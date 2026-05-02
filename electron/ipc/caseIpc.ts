@@ -1,10 +1,14 @@
-import { dialog, type IpcMain } from 'electron';
+import { dialog, shell, type IpcMain } from 'electron';
+import path from 'node:path';
 import { CaseService } from '../../services/caseService.js';
 import type { SecurityService } from '../../services/securityService.js';
 import type { CaseContentSearchInput, CreateCaseNoteInput, UpdateCaseNoteInput } from '../../src/app/core/models/case-note.model.js';
 
 export function registerCaseIpc(ipcMain: IpcMain, security: SecurityService): void {
-  const cases = new CaseService(() => security.getActiveDatabase());
+  const cases = new CaseService(
+    () => security.getActiveDatabase(),
+    () => security.getDataDirectory()
+  );
 
   ipcMain.handle('cases:list', async () => cases.listCases());
   ipcMain.handle('cases:create', async (_event, input) => cases.createCase(input));
@@ -14,6 +18,21 @@ export function registerCaseIpc(ipcMain: IpcMain, security: SecurityService): vo
   ipcMain.handle('cases:notes:delete', async (_event, id: string) => cases.deleteNote(id));
   ipcMain.handle('cases:documents:list', async (_event, caseId: string) => cases.listDocuments(caseId));
   ipcMain.handle('cases:documents:delete', async (_event, id: string) => cases.deleteDocument(id));
+  ipcMain.handle('cases:documents:open', async (_event, id: string) => {
+    const tempCopy = await cases.createTemporaryDocumentCopy(id);
+    const error = await shell.openPath(tempCopy.filePath);
+    if (error) throw new Error(error);
+    return { opened: true, filePath: tempCopy.filePath };
+  });
+  ipcMain.handle('cases:documents:export', async (_event, id: string, suggestedFileName?: string) => {
+    const result = await dialog.showSaveDialog({
+      title: 'Dokument außerhalb des Gremia.SBV-Tresors speichern',
+      defaultPath: suggestedFileName ? path.basename(suggestedFileName) : undefined,
+      buttonLabel: 'Klartextkopie speichern'
+    });
+    if (result.canceled || !result.filePath) return { exported: false, filePath: '' };
+    return cases.exportDocument(id, result.filePath);
+  });
   ipcMain.handle('cases:documents:select-and-import', async (_event, caseId: string, containsHealthData = true) => {
     const result = await dialog.showOpenDialog({
       title: 'Dokument zur Fallakte hinzufügen',

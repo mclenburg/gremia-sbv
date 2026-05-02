@@ -1352,3 +1352,32 @@ html[data-theme="light"] .case-note-content-input textarea { background: #f8fafc
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
+
+
+.industrial-version-badge {
+  margin-top: auto;
+  border-top: 1px solid var(--sbv-border);
+  padding: 12px 4px 2px;
+  color: var(--sbv-muted);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.industrial-version-badge span {
+  display: block;
+  opacity: 0.75;
+}
+
+.industrial-version-badge strong {
+  display: block;
+  margin-top: 3px;
+  color: var(--sbv-yellow);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+
+@media (max-width: 900px) {
+  .industrial-version-badge { margin-top: 12px; }
+}

@@ -31,6 +31,9 @@ const api = {
     selectAndImportDocuments: (caseId: string, containsHealthData = true): Promise<CaseDocumentRecord[]> =>
       ipcRenderer.invoke('cases:documents:select-and-import', caseId, containsHealthData),
     deleteDocument: (id: string): Promise<{ deleted: boolean }> => ipcRenderer.invoke('cases:documents:delete', id),
+    openDocument: (id: string): Promise<{ opened: boolean; filePath: string }> => ipcRenderer.invoke('cases:documents:open', id),
+    exportDocument: (id: string, suggestedFileName?: string): Promise<{ exported: boolean; filePath: string }> =>
+      ipcRenderer.invoke('cases:documents:export', id, suggestedFileName),
     search: (input: CaseContentSearchInput): Promise<CaseSearchResult[]> => ipcRenderer.invoke('cases:search', input)
   },
   contacts: {

@@ -34,6 +34,8 @@ declare global {
         listDocuments(caseId: string): Promise<CaseDocumentRecord[]>;
         selectAndImportDocuments(caseId: string, containsHealthData?: boolean): Promise<CaseDocumentRecord[]>;
         deleteDocument(id: string): Promise<{ deleted: boolean }>;
+        openDocument(id: string): Promise<{ opened: boolean; filePath: string }>;
+        exportDocument(id: string, suggestedFileName?: string): Promise<{ exported: boolean; filePath: string }>;
         search(input: CaseContentSearchInput): Promise<CaseSearchResult[]>;
       };
       contacts: {

@@ -199,6 +199,33 @@ function formatBytes(bytes: number): string {
   return `${value.toFixed(index === 0 ? 0 : 1)} ${units[index]}`;
 }
 
+function listFilesRecursive(directory: string): string[] {
+  if (!fs.existsSync(directory)) return [];
+  const result: string[] = [];
+  const stack = [directory];
+  while (stack.length) {
+    const current = stack.pop()!;
+    for (const entry of fs.readdirSync(current, { withFileTypes: true })) {
+      const fullPath = path.join(current, entry.name);
+      if (entry.isDirectory()) {
+        stack.push(fullPath);
+      } else if (entry.isFile()) {
+        result.push(fullPath);
+      }
+    }
+  }
+  return result;
+}
+
+function hasPlainDocumentExtension(filePath: string): boolean {
+  return /\.(pdf|doc|docx|xls|xlsx|txt|csv|md|json|xml|rtf)$/i.test(filePath);
+}
+
+function isPathInside(childPath: string, parentPath: string): boolean {
+  const relative = path.relative(path.resolve(parentPath), path.resolve(childPath));
+  return Boolean(relative) && !relative.startsWith('..') && !path.isAbsolute(relative);
+}
+
 function metricCards(metrics: Record<string, number | string>): string {
   return `<section class="metric-grid">${Object.entries(metrics)
     .map(([label, value]) => `<article class="metric"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></article>`)
@@ -329,7 +356,8 @@ export class ReportService {
     fs.mkdirSync(exportsDir, { recursive: true });
     const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
     const fileName = `${slug(title)}-${stamp}.pdf`;
-    return { fileName, filePath: path.join(exportsDir, fileName) };
+    const archiveName = `${fileName}.gsbvpdf`;
+    return { fileName, filePath: path.join(exportsDir, archiveName) };
   }
 
   recordExport(input: GenerateReportInput, result: Omit<ReportGenerationResult, 'ok'>): void {
@@ -531,9 +559,10 @@ export class ReportService {
     const documentDir = path.join(dataDir, 'documents');
     const backupDir = path.join(dataDir, 'backups');
     const exportDir = path.join(dataDir, 'exports');
-    const documentFiles = fs.existsSync(documentDir) ? fs.readdirSync(documentDir).length : 0;
+    const documentFilePaths = listFilesRecursive(documentDir);
+    const documentFiles = documentFilePaths.length;
     const backupFiles = fs.existsSync(backupDir) ? fs.readdirSync(backupDir).length : 0;
-    const exportFiles = fs.existsSync(exportDir) ? fs.readdirSync(exportDir).filter((name) => name.endsWith('.pdf')).length : 0;
+    const exportFiles = fs.existsSync(exportDir) ? fs.readdirSync(exportDir).filter((name) => name.endsWith('.gsbvpdf') || name.endsWith('.pdf')).length : 0;
     const vaultSize = fs.existsSync(vaultPath) ? fs.statSync(vaultPath).size : 0;
 
     const integrityRows = pragmaRows(db, 'integrity_check');
@@ -559,7 +588,18 @@ export class ReportService {
     const orphanDeadlines = count(db, `SELECT COUNT(*) AS value FROM deadlines d LEFT JOIN cases c ON c.id = d.case_id WHERE d.case_id IS NOT NULL AND c.id IS NULL`);
     const orphanNotes = count(db, `SELECT COUNT(*) AS value FROM case_note_cases cnc LEFT JOIN cases c ON c.id = cnc.case_id LEFT JOIN case_notes n ON n.id = cnc.note_id WHERE c.id IS NULL OR n.id IS NULL`);
     const orphanDocs = count(db, `SELECT COUNT(*) AS value FROM case_documents d LEFT JOIN cases c ON c.id = d.case_id WHERE d.case_id IS NOT NULL AND c.id IS NULL`);
-    const missingDocumentFiles = count(db, `SELECT COUNT(*) AS value FROM case_documents WHERE encrypted_storage_path IS NOT NULL AND TRIM(encrypted_storage_path) <> ''`) - documentFiles;
+    const documentRows = rows(db, `SELECT id, filename, storage_path, document_key, iv, auth_tag FROM case_documents`);
+    const normalizedDocumentPaths = new Set(documentRows
+      .map((row) => String(row.storage_path ?? '').trim())
+      .filter(Boolean)
+      .map((filePath) => path.resolve(filePath)));
+    const encryptedDocumentFiles = documentFilePaths.filter((filePath) => filePath.endsWith('.gsbvdoc'));
+    const plainDocumentFiles = documentFilePaths.filter((filePath) => !filePath.endsWith('.gsbvdoc') && hasPlainDocumentExtension(filePath));
+    const missingDocumentFiles = documentRows.filter((row) => !row.storage_path || !fs.existsSync(String(row.storage_path))).length;
+    const orphanEncryptedDocumentFiles = encryptedDocumentFiles.filter((filePath) => !normalizedDocumentPaths.has(path.resolve(filePath))).length;
+    const invalidDocumentContainers = documentRows.filter((row) => String(row.storage_path ?? '').trim() && !String(row.storage_path).endsWith('.gsbvdoc')).length;
+    const incompleteDocumentCrypto = documentRows.filter((row) => !row.document_key || !row.iv || !row.auth_tag).length;
+    const documentsOutsideDataDir = documentRows.filter((row) => row.storage_path && !isPathInside(String(row.storage_path), dataDir)).length;
     const schemaVersion = scalarText(db, `SELECT value FROM settings WHERE key = 'database.schema.version'`, [], 'unbekannt');
     const schemaAppVersion = scalarText(db, `SELECT value FROM settings WHERE key = 'database.schema.appVersion'`, [], 'unbekannt');
 
@@ -572,7 +612,12 @@ export class ReportService {
     if (orphanDeadlines) warnings.push(`${orphanDeadlines} Fristen verweisen auf nicht vorhandene Fälle.`);
     if (orphanNotes) warnings.push(`${orphanNotes} Notiz-Fall-Verknüpfungen sind verwaist.`);
     if (orphanDocs) warnings.push(`${orphanDocs} Dokumente verweisen auf nicht vorhandene Fälle.`);
-    if (missingDocumentFiles > 0) warnings.push(`Es gibt mehr Dokumentdatensätze als Dateien im Dokumentenspeicher. Bitte Dokumentenablage prüfen.`);
+    if (missingDocumentFiles > 0) warnings.push(`${missingDocumentFiles} Dokumentdatensätze haben keine auffindbare verschlüsselte Datei.`);
+    if (orphanEncryptedDocumentFiles > 0) warnings.push(`${orphanEncryptedDocumentFiles} verschlüsselte Dokumentdateien haben keinen Datenbankeintrag.`);
+    if (plainDocumentFiles.length > 0) warnings.push(`${plainDocumentFiles.length} mögliche Klartextdateien liegen im Dokumentenspeicher. Diese sollten dort nicht liegen.`);
+    if (invalidDocumentContainers > 0) warnings.push(`${invalidDocumentContainers} Dokumentdatensätze verweisen nicht auf .gsbvdoc-Container.`);
+    if (incompleteDocumentCrypto > 0) warnings.push(`${incompleteDocumentCrypto} Dokumentdatensätze haben unvollständige Verschlüsselungsmetadaten.`);
+    if (documentsOutsideDataDir > 0) warnings.push(`${documentsOutsideDataDir} Dokumente liegen außerhalb des aktuellen Gremia.SBV-Datenverzeichnisses.`);
     if (!backupFiles) warnings.push('Es wurden keine Backup-Dateien im lokalen Backup-Ordner gefunden.');
 
     const metrics = {
@@ -589,7 +634,11 @@ export class ReportService {
       ['Verwaiste Fristen', orphanDeadlines ? `${orphanDeadlines} Befund(e)` : 'OK', orphanDeadlines ? 'ROT' : 'GRÜN'],
       ['Verwaiste Notizverknüpfungen', orphanNotes ? `${orphanNotes} Befund(e)` : 'OK', orphanNotes ? 'ROT' : 'GRÜN'],
       ['Verwaiste Dokumente', orphanDocs ? `${orphanDocs} Befund(e)` : 'OK', orphanDocs ? 'ROT' : 'GRÜN'],
-      ['Dokumentdateien', missingDocumentFiles > 0 ? 'Dateianzahl prüfen' : `${documentFiles} Datei(en)`, missingDocumentFiles > 0 ? 'GELB' : 'GRÜN']
+      ['Fehlende Dokumentcontainer', missingDocumentFiles ? `${missingDocumentFiles} Befund(e)` : 'OK', missingDocumentFiles ? 'ROT' : 'GRÜN'],
+      ['Verwaiste Dokumentcontainer', orphanEncryptedDocumentFiles ? `${orphanEncryptedDocumentFiles} Befund(e)` : 'OK', orphanEncryptedDocumentFiles ? 'GELB' : 'GRÜN'],
+      ['Klartext im Dokumentenspeicher', plainDocumentFiles.length ? `${plainDocumentFiles.length} Datei(en)` : 'OK', plainDocumentFiles.length ? 'ROT' : 'GRÜN'],
+      ['Dokument-Verschlüsselungsmetadaten', incompleteDocumentCrypto ? `${incompleteDocumentCrypto} unvollständig` : 'OK', incompleteDocumentCrypto ? 'ROT' : 'GRÜN'],
+      ['Dokument-Speicherort', documentsOutsideDataDir ? `${documentsOutsideDataDir} außerhalb Datenverzeichnis` : 'OK', documentsOutsideDataDir ? 'GELB' : 'GRÜN']
     ];
     const statusCellRows = validationRows.map((row) => [row[0], row[1], row[2] === 'GRÜN' ? 'GRÜN' : row[2] === 'GELB' ? 'GELB' : 'ROT']);
     const pragmaRowsForReport = [
@@ -604,7 +653,8 @@ export class ReportService {
     const content = `${metricCards(metrics)}
       <section class="box"><h2>Datenbankvalidierung</h2>${table(['Prüfung', 'Befund', 'Ampel'], statusCellRows)}</section>
       <section class="box"><h2>Datenbankdetails</h2>${table(['Eigenschaft', 'Wert'], pragmaRowsForReport)}</section>
-      <section class="box"><h2>Speicherorte</h2>${table(['Bereich', 'Pfad/Anzahl'], [['Datenordner', dataDir], ['Dokumente', `${documentDir} (${documentFiles})`], ['Backups', `${backupDir} (${backupFiles})`], ['Exporte', `${exportDir} (${exportFiles})`]])}</section>
+      <section class="box"><h2>Speicherorte</h2>${table(['Bereich', 'Pfad/Anzahl'], [['Datenordner', dataDir], ['Dokumente', `${documentDir} (${documentFiles}; davon ${encryptedDocumentFiles.length} verschlüsselte Container)`], ['Backups', `${backupDir} (${backupFiles})`], ['Exporte', `${exportDir} (${exportFiles})`]])}</section>
+      <section class="box"><h2>Dokumentenspeicher</h2>${table(['Prüfung', 'Anzahl'], [['Dokumentdatensätze', documentRows.length], ['Verschlüsselte .gsbvdoc-Dateien', encryptedDocumentFiles.length], ['Mögliche Klartextdateien', plainDocumentFiles.length], ['Fehlende Container', missingDocumentFiles], ['Container ohne Datenbankeintrag', orphanEncryptedDocumentFiles], ['Unvollständige Kryptometadaten', incompleteDocumentCrypto]])}</section>
       <section class="box"><h2>Letzte Migrationen</h2>${table(['Version', 'Datei', 'Ausgeführt', 'Modus'], migrationRows.map((row) => [row.version, row.filename, formatDateTime(row.applied_at), normalizeStatus(row.mode)]))}</section>`;
     return {
       title: 'System- und Integritätsbericht',

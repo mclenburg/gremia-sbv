@@ -38,6 +38,8 @@ import type { CaseNoteRecord, CaseNoteType, CaseSearchResult, ConfidentialLevel 
 import type { CreateDeadlineInput, DeadlineDashboardItem, DeadlineProcessType, DeadlineRecord, DeadlineSeverity, DeadlineType } from './core/models/deadline.model';
 import type { GenerateReportInput, ReportDescriptor, ReportExportHistoryItem, ReportGenerationResult, ReportType } from './core/models/report.model';
 
+const APP_VERSION = '0.3.38';
+
 type ViewId =
   | 'dashboard'
   | 'cases'
@@ -1176,6 +1178,32 @@ function CasesView({
     }
   }
 
+  async function openDocument(document: CaseDocumentRecord) {
+    setDocumentError('');
+    try {
+      const bridge = await waitForBridge();
+      if (!bridge?.cases) throw new Error('Falldienst ist nicht erreichbar.');
+      await bridge.cases.openDocument(document.id);
+    } catch (error) {
+      setDocumentError(error instanceof Error ? error.message : 'Dokument konnte nicht geöffnet werden.');
+    }
+  }
+
+  async function exportDocument(document: CaseDocumentRecord) {
+    setDocumentError('');
+    const confirmed = window.confirm(
+      'Dieses Dokument wird als Klartextkopie außerhalb des verschlüsselten Gremia.SBV-Tresors gespeichert. Fortfahren?'
+    );
+    if (!confirmed) return;
+    try {
+      const bridge = await waitForBridge();
+      if (!bridge?.cases) throw new Error('Falldienst ist nicht erreichbar.');
+      await bridge.cases.exportDocument(document.id, document.filename);
+    } catch (error) {
+      setDocumentError(error instanceof Error ? error.message : 'Dokument konnte nicht exportiert werden.');
+    }
+  }
+
   async function deleteDocument(document: CaseDocumentRecord) {
     setDocumentError('');
     try {
@@ -1352,7 +1380,8 @@ function CasesView({
               <p className="industrial-meta">{selectedDocument.filename} · {selectedDocument.mimeType ?? 'Datei'} · {formatBytes(selectedDocument.sizeBytes)}</p>
               <p className="industrial-meta">SHA-256: {selectedDocument.sha256}</p>
               {selectedDocument.extractedText ? <p className="case-note-content">{selectedDocument.extractedText.slice(0, 2000)}</p> : <p className="industrial-empty">Für dieses Dokument wurde kein lesbarer Volltext extrahiert. Dateiname und Metadaten sind trotzdem suchbar.</p>}
-              <div className="industrial-card-actions"><button type="button" className="industrial-secondary-button" onClick={() => void deleteDocument(selectedDocument)}><Trash2 className="h-4 w-4" /> Löschen</button></div>
+              <div className="industrial-message industrial-message-warning">Beim Öffnen oder Exportieren entsteht temporär bzw. bewusst eine Klartextkopie außerhalb des verschlüsselten Dokumentenspeichers.</div>
+              <div className="industrial-card-actions"><button type="button" className="industrial-secondary-button" onClick={() => void openDocument(selectedDocument)}><FileText className="h-4 w-4" /> Öffnen</button><button type="button" className="industrial-secondary-button" onClick={() => void exportDocument(selectedDocument)}>Exportieren</button><button type="button" className="industrial-secondary-button" onClick={() => void deleteDocument(selectedDocument)}><Trash2 className="h-4 w-4" /> Löschen</button></div>
             </article>
           )}
 
@@ -1990,7 +2019,7 @@ function ReportsView() {
               <p>{result.fileName}</p>
             </div>
             <button className="industrial-secondary-button" onClick={() => void window.gremiaSbv?.reports?.openExportFolder(result.filePath)}>
-              <FolderOpen className="h-4 w-4" /> Im Ordner anzeigen
+              <FolderOpen className="h-4 w-4" /> PDF öffnen
             </button>
           </div>
           {!!result.warnings.length && (
@@ -2039,6 +2068,7 @@ function ReportsView() {
           <div>
             <p className="industrial-kicker">Historie</p>
             <h2>Letzte PDF-Exporte</h2>
+            <p>Archivierte Berichte werden verschlüsselt abgelegt. Beim Öffnen wird eine temporäre PDF-Arbeitskopie erzeugt.</p>
           </div>
         </div>
         <div className="industrial-table-shell">
@@ -2051,7 +2081,7 @@ function ReportsView() {
                   <td>{item.title}</td>
                   <td>{item.fileName}</td>
                   <td>{item.warningCount}</td>
-                  <td><button className="industrial-icon-button" onClick={() => void window.gremiaSbv?.reports?.openExportFolder(item.filePath)} title="Im Ordner anzeigen"><FolderOpen className="h-3.5 w-3.5" /></button></td>
+                  <td><button className="industrial-icon-button" onClick={() => void window.gremiaSbv?.reports?.openExportFolder(item.filePath)} title="PDF öffnen"><FolderOpen className="h-3.5 w-3.5" /></button></td>
                 </tr>
               ))}
               {!history.length && <tr><td colSpan={5}>Noch keine Berichte erzeugt.</td></tr>}
@@ -2265,6 +2295,7 @@ function ShellNav({ current, onNavigate }: { current: ViewId; onNavigate: (view:
   );
 }
 
+
 export function App() {
   const [authMode, setAuthMode] = useState<AuthMode>('loading');
   const [unlocked, setUnlocked] = useState(false);
@@ -2440,6 +2471,10 @@ export function App() {
           <LogOut className="h-4 w-4" />
           Sperren
         </button>
+        <div className="industrial-version-badge" aria-label={`Gremia.SBV Version ${APP_VERSION}`}>
+          <span>Version</span>
+          <strong>{APP_VERSION}</strong>
+        </div>
       </aside>
 
       <section className="industrial-content">

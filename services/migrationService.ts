@@ -26,7 +26,7 @@ interface MigrationDefinition {
 }
 
 const APP_SCHEMA_VERSION = '0010';
-const APP_VERSION = '0.3.33';
+const APP_VERSION = '0.3.38';
 const MIGRATION_TABLE_SQL = `
 CREATE TABLE IF NOT EXISTS schema_migrations (
   version TEXT PRIMARY KEY,

@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { createCipheriv, createHash, randomBytes, randomUUID } from 'node:crypto';
+import { createCipheriv, createDecipheriv, createHash, randomBytes, randomUUID } from 'node:crypto';
 import yauzl from 'yauzl';
 import type { CaseCategory, CasePriority, CaseRecord, CaseStatus, CreateCaseInput } from '../src/app/core/models/case.model.js';
 import type { CaseDocumentRecord } from '../src/app/core/models/case-document.model.js';
@@ -202,7 +202,10 @@ function likePattern(query: string): string {
 }
 
 export class CaseService {
-  constructor(private readonly dbProvider: () => DatabaseAdapter) {}
+  constructor(
+    private readonly dbProvider: () => DatabaseAdapter,
+    private readonly dataDirProvider: () => string = () => path.join(process.cwd(), 'data')
+  ) {}
 
   private ensureCaseWorkSchemaSafe(db: DatabaseAdapter): void {
     const tryExec = (sql: string) => {
@@ -538,7 +541,7 @@ export class CaseService {
 
     const id = randomUUID();
     const timestamp = nowIso();
-    const storageDir = path.join(process.cwd(), 'data', 'documents', caseId);
+    const storageDir = path.join(this.dataDirProvider(), 'documents', caseId);
     await fs.promises.mkdir(storageDir, { recursive: true });
     const storagePath = path.join(storageDir, `${id}.gsbvdoc`);
     await fs.promises.writeFile(storagePath, encrypted);
@@ -574,6 +577,68 @@ export class CaseService {
       SELECT d.*, c.case_number FROM case_documents d JOIN cases c ON c.id = d.case_id WHERE d.id = ?
     `).get(id);
     return mapDocument(created);
+  }
+
+  private async cleanupTemporaryDocumentCopies(): Promise<void> {
+    const tmpDir = path.join(this.dataDirProvider(), 'tmp', 'document-preview');
+    await fs.promises.mkdir(tmpDir, { recursive: true });
+    const entries = await fs.promises.readdir(tmpDir).catch(() => [] as string[]);
+    const maxAgeMs = 24 * 60 * 60 * 1000;
+    const now = Date.now();
+    for (const entry of entries) {
+      const filePath = path.join(tmpDir, entry);
+      try {
+        const stat = await fs.promises.stat(filePath);
+        if (now - stat.mtimeMs > maxAgeMs || entry.startsWith('preview-')) {
+          await fs.promises.rm(filePath, { force: true });
+        }
+      } catch {
+        // Viewer kann eine Datei noch geöffnet halten oder sie wurde zwischenzeitlich entfernt.
+      }
+    }
+  }
+
+  private decryptDocumentRow(row: any): Buffer {
+    if (!row?.storage_path || !row?.document_key || !row?.iv || !row?.auth_tag) {
+      throw new Error('Dokument ist unvollständig gespeichert und kann nicht entschlüsselt werden.');
+    }
+    const encrypted = fs.readFileSync(row.storage_path);
+    const decipher = createDecipheriv(
+      'aes-256-gcm',
+      Buffer.from(row.document_key, 'base64'),
+      Buffer.from(row.iv, 'base64')
+    );
+    decipher.setAuthTag(Buffer.from(row.auth_tag, 'base64'));
+    return Buffer.concat([decipher.update(encrypted), decipher.final()]);
+  }
+
+  private safeExportFileName(filename: string): string {
+    const base = path.basename(filename || 'dokument.bin').replace(/[^a-zA-Z0-9._ -]/g, '_').trim();
+    return base || 'dokument.bin';
+  }
+
+  async createTemporaryDocumentCopy(id: string): Promise<{ filePath: string; fileName: string }> {
+    const db = this.getSafeDb();
+    const row = db.prepare<any>('SELECT * FROM case_documents WHERE id = ?').get(id);
+    if (!row) throw new Error(`Dokument nicht gefunden: ${id}`);
+    await this.cleanupTemporaryDocumentCopies();
+    const plain = this.decryptDocumentRow(row);
+    const tmpDir = path.join(this.dataDirProvider(), 'tmp', 'document-preview');
+    await fs.promises.mkdir(tmpDir, { recursive: true });
+    const safeName = this.safeExportFileName(row.filename ?? row.display_title ?? `${id}.bin`);
+    const tempPath = path.join(tmpDir, `preview-${Date.now()}-${safeName}`);
+    await fs.promises.writeFile(tempPath, plain, { mode: 0o600 });
+    return { filePath: tempPath, fileName: safeName };
+  }
+
+  async exportDocument(id: string, targetPath: string): Promise<{ exported: boolean; filePath: string }> {
+    const db = this.getSafeDb();
+    const row = db.prepare<any>('SELECT * FROM case_documents WHERE id = ?').get(id);
+    if (!row) throw new Error(`Dokument nicht gefunden: ${id}`);
+    const plain = this.decryptDocumentRow(row);
+    await fs.promises.mkdir(path.dirname(targetPath), { recursive: true });
+    await fs.promises.writeFile(targetPath, plain, { mode: 0o600 });
+    return { exported: true, filePath: targetPath };
   }
 
   async deleteDocument(id: string): Promise<{ deleted: boolean }> {

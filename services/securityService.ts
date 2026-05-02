@@ -474,6 +474,13 @@ export class SecurityService {
     return this.databaseService.active;
   }
 
+  getActiveDatabaseKey(): Buffer {
+    if (!this.unlocked || !this.databaseKey) {
+      throw new Error('Gremia.SBV ist gesperrt. Schlüsselzugriff verweigert.');
+    }
+    return Buffer.from(this.databaseKey);
+  }
+
   getDataDirectory(): string {
     return this.dataDir;
   }
@@ -516,6 +523,13 @@ export class SecurityService {
     mkdirSync(path.join(this.dataDir, BACKUPS_DIR_NAME), { recursive: true });
     mkdirSync(path.join(this.dataDir, EXPORTS_DIR_NAME), { recursive: true });
     mkdirSync(path.join(this.dataDir, TMP_DIR_NAME), { recursive: true });
+
+    // Entschlüsselte Arbeitskopien dürfen keinen dauerhaften Nebenbestand bilden.
+    // Beim Programmstart werden nur temporäre Vorschauen entfernt; verschlüsselte Archive bleiben erhalten.
+    for (const tempSubdir of ['document-preview', 'report-preview']) {
+      rmSync(path.join(this.dataDir, TMP_DIR_NAME, tempSubdir), { recursive: true, force: true });
+      mkdirSync(path.join(this.dataDir, TMP_DIR_NAME, tempSubdir), { recursive: true });
+    }
   }
 
   private directoryHasUserFiles(directory: string): boolean {
