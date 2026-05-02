@@ -62,6 +62,7 @@ import {
   type TextCommandToken
 } from '@services/textCommandPolicy';
 import { missingPlaceholderWarning, resolveContextualTemplateAction } from '@services/templateContextPolicy';
+import './caseModalResponsive.css';
 
 
 type ViewId =
@@ -790,6 +791,8 @@ function CasesView({
   const [displayName, setDisplayName] = useState('');
   const [category, setCategory] = useState<CaseCategory>('bem');
   const [summary, setSummary] = useState('');
+  const [isCaseCreateModalOpen, setIsCaseCreateModalOpen] = useState(false);
+  const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
   const [caseFilter, setCaseFilter] = useState('');
   const [page, setPage] = useState(1);
   const [selectedCaseId, setSelectedCaseId] = useState('');
@@ -1006,6 +1009,7 @@ ${caseProcessDraft.description}`,
     setConfidentialLevel(note.confidentialLevel);
     setLinkedCaseIds(note.caseIds?.length ? note.caseIds : (selectedCaseId ? [selectedCaseId] : []));
     setSelection({ type: 'note', id: note.id });
+    setIsNoteModalOpen(true);
     setInlineDeadlineDraft(null);
     setInlineContactDraft(null);
     setInlineCaseLinkDraft(null);
@@ -1425,6 +1429,31 @@ ${caseProcessDraft.description}`,
     });
   }
 
+  function openCaseCreateModal() {
+    setError('');
+    setIsCaseCreateModalOpen(true);
+  }
+
+  function cancelCaseCreateModal() {
+    setIsCaseCreateModalOpen(false);
+    setError('');
+  }
+
+  function openNewNoteModal() {
+    if (!selectedCaseId) {
+      setNoteError('Bitte zuerst eine Fallakte auswählen.');
+      return;
+    }
+    resetNoteForm();
+    setLinkedCaseIds([selectedCaseId]);
+    setIsNoteModalOpen(true);
+  }
+
+  function cancelNoteModal() {
+    setIsNoteModalOpen(false);
+    resetNoteForm();
+  }
+
   async function addCase(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError('');
@@ -1438,6 +1467,7 @@ ${caseProcessDraft.description}`,
       setCaseNumber('');
       setDisplayName('');
       setSummary('');
+      setIsCaseCreateModalOpen(false);
       await onCasesChanged();
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Fall konnte nicht angelegt werden.');
@@ -1481,6 +1511,7 @@ ${caseProcessDraft.description}`,
         ? await bridge.cases.updateNote(editingNote.id, payload)
         : await bridge.cases.createNote(payload);
       resetNoteForm();
+      setIsNoteModalOpen(false);
       await reloadSelectedCaseChildren();
       setSelection({ type: 'note', id: saved.id });
       if (searchQuery.trim()) await runSearch();
@@ -1590,44 +1621,16 @@ ${caseProcessDraft.description}`,
       kicker="Fallakte"
       description="Aktenzeichen, Person, Notizen, Protokolle, Dokumente und Volltextsuche in einer Fallakte."
     >
-      <form onSubmit={addCase} className="industrial-form case-create-form">
-        <label>
-          <span>Aktenzeichen</span>
-          <input value={caseNumber} onChange={(event) => setCaseNumber(event.target.value)} placeholder="z. B. BEM-2026-004" />
-        </label>
-        <label>
-          <span>Name / Pseudonym</span>
-          <input value={displayName} onChange={(event) => setDisplayName(event.target.value)} placeholder="Name oder Pseudonym" />
-        </label>
-        <label>
-          <span>Kategorie</span>
-          <select value={category} onChange={(event) => setCategory(event.target.value as CaseCategory)}>
-            <option value="bem">BEM</option>
-            <option value="praevention">Prävention</option>
-            <option value="kuendigung">Kündigung</option>
-            <option value="gleichstellung">Gleichstellung</option>
-            <option value="gdb">GdB</option>
-            <option value="nachteilsausgleich">Nachteilsausgleich</option>
-            <option value="arbeitsplatzgestaltung">Arbeitsplatzgestaltung</option>
-            <option value="diskriminierung">Diskriminierung</option>
-            <option value="sonstiges">Sonstiges</option>
-          </select>
-        </label>
-        <label>
-          <span>Kurzbeschreibung</span>
-          <input value={summary} onChange={(event) => setSummary(event.target.value)} placeholder="knappe Sachebene" />
-        </label>
-        <button type="submit" className="industrial-button"><Plus className="h-4 w-4" />Fall anlegen</button>
-      </form>
-      {error && <div className="industrial-message industrial-message-warning">{error}</div>}
-
       <section className="industrial-panel case-register-panel">
         <div className="case-register-toolbar">
           <div>
             <p className="industrial-kicker">Fallliste</p>
             <h2>Register</h2>
           </div>
-          <input className="industrial-input" value={caseFilter} onChange={(event) => setCaseFilter(event.target.value)} placeholder="Fälle filtern nach Aktenzeichen, Name, Kurzbeschreibung …" />
+          <div className="case-register-actions">
+            <input className="industrial-input" value={caseFilter} onChange={(event) => setCaseFilter(event.target.value)} placeholder="Fälle filtern nach Aktenzeichen, Name, Kurzbeschreibung …" />
+            <button type="button" className="industrial-button" onClick={openCaseCreateModal}><Plus className="h-4 w-4" />Fallakte</button>
+          </div>
         </div>
         <div className="industrial-table-shell">
           <table className="industrial-table case-register-table">
@@ -1795,48 +1798,81 @@ ${caseProcessDraft.description}`,
           )}
 
           <div className="case-detail-actions">
-            <button type="button" className="industrial-button" disabled={!selectedCaseId} onClick={() => { resetNoteForm(); setSelection({ type: 'overview' }); }}><Plus className="h-4 w-4" />Neue Notiz</button>
+            <button type="button" className="industrial-button" disabled={!selectedCaseId} onClick={openNewNoteModal}><Plus className="h-4 w-4" />Notiz / Protokoll</button>
             <button type="button" className="industrial-button" disabled={!selectedCaseId} onClick={openCaseDeadlineDraft}><CalendarPlus className="h-4 w-4" />Frist zum Fall</button>
             <button type="button" className="industrial-button" disabled={!selectedCaseId} onClick={() => void importDocuments()}><FileText className="h-4 w-4" />Dokument hinzufügen</button>
           </div>
           {documentError && <div className="industrial-message industrial-message-warning">{documentError}</div>}
+          {!isNoteModalOpen && noteError && <div className="industrial-message industrial-message-warning">{noteError}</div>}
+          {!isNoteModalOpen && noteInfo && <div className="industrial-message industrial-message-ok">{noteInfo}</div>}
         </section>
       </section>
 
-      <section className="industrial-panel">
-        <div className="industrial-panel-header compact"><div><p className="industrial-kicker">Erfassen</p><h2>{editingNote ? 'Notiz / Protokoll bearbeiten' : 'Neue Gesprächsnotiz / neues Protokoll'}</h2></div></div>
-        <form onSubmit={saveNote} className="industrial-form case-note-form">
-          <label><span>Titel</span><input value={noteTitle} onChange={(event) => setNoteTitle(event.target.value)} placeholder="z. B. Erstgespräch" /></label>
-          <label><span>Datum</span><input type="datetime-local" value={noteDate} onChange={(event) => setNoteDate(event.target.value)} /></label>
-          <label><span>Typ</span><select value={noteType} onChange={(event) => setNoteType(event.target.value as CaseNoteType)}><option value="gespraech">Gespräch</option><option value="protokoll">Protokoll</option><option value="telefonat">Telefonat</option><option value="videocall">Videocall</option><option value="email">E-Mail</option><option value="bem">BEM</option><option value="anhoerung">Anhörung</option><option value="interne_notiz">Interne Notiz</option><option value="sonstiges">Sonstiges</option></select></label>
-          <label><span>Beteiligte</span><input value={participants} onChange={(event) => setParticipants(event.target.value)} placeholder="optional" /></label>
-          <label className="case-note-content-input"><span>Inhalt</span><textarea value={content} onChange={(event) => handleProtocolTextChange('content', event.target.value)} placeholder="Gesprächsinhalt / Protokoll … // Frist, @@ Kontakt, ## Fall, §§ Norm, !! Risiko, >> Aufgabe, ^^ Vertraulichkeit, ~~ Anonymisierung" /></label>
-          <label className="case-note-content-input"><span>Nächste Schritte</span><textarea value={nextSteps} onChange={(event) => handleProtocolTextChange('nextSteps', event.target.value)} placeholder="optional · // Frist, @@ Kontakt, ## Fall, §§ Norm, !! Risiko, >> Aufgabe, ^^ Vertraulichkeit, ~~ Anonymisierung" /></label>
-          <div className="case-note-link-panel">
-            <span>Fallbezüge</span>
-            <p className="industrial-meta">Eine Notiz kann mehreren Fallakten zugeordnet werden. Der aktuell ausgewählte Fall bleibt automatisch Bezug.</p>
-            <div className="case-note-link-grid">
-              {cases.map((record) => (
-                <label key={record.id} className="industrial-checkbox-row compact">
-                  <input
-                    type="checkbox"
-                    checked={linkedCaseIds.includes(record.id) || record.id === selectedCaseId}
-                    disabled={record.id === selectedCaseId}
-                    onChange={(event) => toggleLinkedCase(record.id, event.target.checked)}
-                  />
-                  <span>{record.caseNumber} · {record.displayName}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-          <label><span>Vertraulichkeit</span><select value={confidentialLevel} onChange={(event) => setConfidentialLevel(event.target.value as ConfidentialLevel)}><option value="normal">normal</option><option value="sensibel">sensibel</option><option value="hoch_sensibel">hoch sensibel</option></select></label>
-          <label className="industrial-checkbox-row"><input type="checkbox" checked={containsHealthData} onChange={(event) => setContainsHealthData(event.target.checked)} /><span>enthält Gesundheits-/Behinderungsbezug</span></label>
-          <div className="industrial-card-actions"><button type="button" className="industrial-secondary-button" onClick={resetNoteForm}>Zurücksetzen</button><button type="submit" className="industrial-button"><Save className="h-4 w-4" />Speichern</button></div>
-        </form>
-        {noteError && <div className="industrial-message industrial-message-warning">{noteError}</div>}
-        {noteInfo && <div className="industrial-message industrial-message-ok">{noteInfo}</div>}
-      </section>
 
+
+
+      {isCaseCreateModalOpen && (
+        <div className="industrial-modal-backdrop" role="presentation">
+          <section className="industrial-modal" role="dialog" aria-modal="true" aria-labelledby="case-create-title">
+            <div className="industrial-modal-header">
+              <div className="industrial-modal-icon"><FolderKanban className="h-5 w-5" /></div>
+              <div>
+                <p className="industrial-kicker">Fallakte</p>
+                <h2 id="case-create-title">Neue Fallakte anlegen</h2>
+                <p>Die Fallakte ist der führende Arbeitsraum. Fristen, Notizen, Dokumente und Maßnahmen hängen später daran.</p>
+              </div>
+            </div>
+            <form onSubmit={addCase} className="industrial-form case-create-form">
+              <label><span>Aktenzeichen</span><input value={caseNumber} onChange={(event) => setCaseNumber(event.target.value)} placeholder="z. B. BEM-2026-004" autoFocus /></label>
+              <label><span>Name / Pseudonym</span><input value={displayName} onChange={(event) => setDisplayName(event.target.value)} placeholder="Name oder Pseudonym" /></label>
+              <label><span>Kategorie</span><select value={category} onChange={(event) => setCategory(event.target.value as CaseCategory)}><option value="bem">BEM</option><option value="praevention">Prävention</option><option value="kuendigung">Kündigung</option><option value="gleichstellung">Gleichstellung</option><option value="gdb">GdB</option><option value="nachteilsausgleich">Nachteilsausgleich</option><option value="arbeitsplatzgestaltung">Arbeitsplatzgestaltung</option><option value="diskriminierung">Diskriminierung</option><option value="sonstiges">Sonstiges</option></select></label>
+              <label className="industrial-modal-wide"><span>Kurzbeschreibung</span><input value={summary} onChange={(event) => setSummary(event.target.value)} placeholder="knappe Sachebene" /></label>
+              {error && <div className="industrial-message industrial-message-warning industrial-modal-wide">{error}</div>}
+              <div className="industrial-modal-actions industrial-modal-wide"><button type="button" className="industrial-secondary-button" onClick={cancelCaseCreateModal}>Abbrechen</button><button type="submit" className="industrial-button"><Plus className="h-4 w-4" />Fall anlegen</button></div>
+            </form>
+          </section>
+        </div>
+      )}
+
+      {isNoteModalOpen && (
+        <div className="industrial-modal-backdrop" role="presentation">
+          <section className="industrial-modal industrial-modal-wide" role="dialog" aria-modal="true" aria-labelledby="case-note-title">
+            <div className="industrial-modal-header">
+              <div className="industrial-modal-icon"><MessageSquare className="h-5 w-5" /></div>
+              <div>
+                <p className="industrial-kicker">Fallbaum</p>
+                <h2 id="case-note-title">{editingNote ? 'Notiz / Protokoll bearbeiten' : 'Neue Gesprächsnotiz / neues Protokoll'}</h2>
+                <p>Diese Maske gehört zur ausgewählten Fallakte. Weitere Fallbezüge können direkt hier ergänzt werden.</p>
+              </div>
+            </div>
+            <form onSubmit={saveNote} className="industrial-form case-note-form">
+              <label><span>Titel</span><input value={noteTitle} onChange={(event) => setNoteTitle(event.target.value)} placeholder="z. B. Erstgespräch" autoFocus /></label>
+              <label><span>Datum</span><input type="datetime-local" value={noteDate} onChange={(event) => setNoteDate(event.target.value)} /></label>
+              <label><span>Typ</span><select value={noteType} onChange={(event) => setNoteType(event.target.value as CaseNoteType)}><option value="gespraech">Gespräch</option><option value="protokoll">Protokoll</option><option value="telefonat">Telefonat</option><option value="videocall">Videocall</option><option value="email">E-Mail</option><option value="bem">BEM</option><option value="anhoerung">Anhörung</option><option value="interne_notiz">Interne Notiz</option><option value="sonstiges">Sonstiges</option></select></label>
+              <label><span>Beteiligte</span><input value={participants} onChange={(event) => setParticipants(event.target.value)} placeholder="optional" /></label>
+              <label className="case-note-content-input"><span>Inhalt</span><textarea value={content} onChange={(event) => handleProtocolTextChange('content', event.target.value)} placeholder="Gesprächsinhalt / Protokoll … // Frist, @@ Kontakt, ## Fall, §§ Norm, !! Risiko, >> Aufgabe, ^^ Vertraulichkeit, ~~ Anonymisierung" /></label>
+              <label className="case-note-content-input"><span>Nächste Schritte</span><textarea value={nextSteps} onChange={(event) => handleProtocolTextChange('nextSteps', event.target.value)} placeholder="optional · // Frist, @@ Kontakt, ## Fall, §§ Norm, !! Risiko, >> Aufgabe, ^^ Vertraulichkeit, ~~ Anonymisierung" /></label>
+              <div className="case-note-link-panel">
+                <span>Fallbezüge</span>
+                <p className="industrial-meta">Eine Notiz kann mehreren Fallakten zugeordnet werden. Der aktuell ausgewählte Fall bleibt automatisch Bezug.</p>
+                <div className="case-note-link-grid">
+                  {cases.map((record) => (
+                    <label key={record.id} className="industrial-checkbox-row compact">
+                      <input type="checkbox" checked={linkedCaseIds.includes(record.id) || record.id === selectedCaseId} disabled={record.id === selectedCaseId} onChange={(event) => toggleLinkedCase(record.id, event.target.checked)} />
+                      <span>{record.caseNumber} · {record.displayName}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <label><span>Vertraulichkeit</span><select value={confidentialLevel} onChange={(event) => setConfidentialLevel(event.target.value as ConfidentialLevel)}><option value="normal">normal</option><option value="sensibel">sensibel</option><option value="hoch_sensibel">hoch sensibel</option></select></label>
+              <label className="industrial-checkbox-row"><input type="checkbox" checked={containsHealthData} onChange={(event) => setContainsHealthData(event.target.checked)} /><span>enthält Gesundheits-/Behinderungsbezug</span></label>
+              {noteError && <div className="industrial-message industrial-message-warning industrial-modal-wide">{noteError}</div>}
+              {noteInfo && <div className="industrial-message industrial-message-ok industrial-modal-wide">{noteInfo}</div>}
+              <div className="industrial-modal-actions industrial-modal-wide"><button type="button" className="industrial-secondary-button" onClick={cancelNoteModal}>Abbrechen</button><button type="submit" className="industrial-button"><Save className="h-4 w-4" />Speichern</button></div>
+            </form>
+          </section>
+        </div>
+      )}
 
       {inlineCaseLinkDraft && (
         <div className="industrial-modal-backdrop" role="presentation">
