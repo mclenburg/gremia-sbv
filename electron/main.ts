@@ -2,6 +2,7 @@ import { app, BrowserWindow, ipcMain, nativeImage, session } from 'electron';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { registerCaseIpc } from './ipc/caseIpc.js';
+import { registerContactIpc } from './ipc/contactIpc.js';
 import { registerDeadlineIpc } from './ipc/deadlineIpc.js';
 import { registerSecurityIpc } from './ipc/securityIpc.js';
 import { SecurityService } from '../services/securityService.js';
@@ -199,6 +200,7 @@ if (!singleInstanceLock) {
     console.info('Gremia.SBV data directory:', resolveRuntimeDataDir());
     registerSecurityIpc(ipcMain, security);
     registerCaseIpc(ipcMain, security);
+    registerContactIpc(ipcMain, security);
     registerDeadlineIpc(ipcMain, security);
     return createWindow();
   }).catch((error) => {

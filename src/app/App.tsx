@@ -31,6 +31,7 @@ import { DashboardCard } from './shared/components/DashboardCard';
 import { DeadlineDashboardPanel } from './features/deadlines/DeadlineDashboardPanel';
 import { DeadlineListView } from './features/deadlines/DeadlineListView';
 import type { CaseCategory, CaseRecord } from './core/models/case.model';
+import type { ContactCategory, ContactRecord, CreateContactInput, DeleteContactResult } from './core/models/contact.model';
 import type { CaseDocumentRecord } from './core/models/case-document.model';
 import type { CaseNoteRecord, CaseNoteType, CaseSearchResult, ConfidentialLevel } from './core/models/case-note.model';
 import type { CreateDeadlineInput, DeadlineDashboardItem, DeadlineProcessType, DeadlineRecord, DeadlineSeverity, DeadlineType } from './core/models/deadline.model';
@@ -211,6 +212,26 @@ function buildInlineDeadlineText(draft: InlineDeadlineDraft): string {
   const dateLabel = formatInlineDeadlineDate(draft.dueAt);
   const title = draft.title.trim() || 'Wiedervorlage';
   return `Frist bis ${dateLabel}: ${title}`;
+}
+
+function formatContactReference(contact: ContactRecord | Pick<ContactRecord, 'firstName' | 'lastName' | 'organization'>): string {
+  const lastName = contact.lastName.trim();
+  const firstName = contact.firstName.trim();
+  const name = [lastName, firstName].filter(Boolean).join(', ');
+  const organization = contact.organization?.trim();
+  return organization ? `${name} (${organization})` : name;
+}
+
+function filterContactsForQuery(contacts: ContactRecord[], query: string): ContactRecord[] {
+  const q = query.trim().toLowerCase();
+  if (!q) return contacts.slice(0, 12);
+  return contacts.filter((contact) =>
+    contact.firstName.toLowerCase().includes(q)
+    || contact.lastName.toLowerCase().includes(q)
+    || (contact.organization ?? '').toLowerCase().includes(q)
+    || (contact.role ?? '').toLowerCase().includes(q)
+    || (contact.email ?? '').toLowerCase().includes(q)
+  ).slice(0, 12);
 }
 
 function replaceRange(value: string, start: number, length: number, replacement: string): string {
@@ -643,8 +664,10 @@ type CaseExplorerSelection =
   | { type: 'document'; id: string }
   | { type: 'search'; id: string };
 
+type ProtocolTextTarget = 'content' | 'nextSteps';
+
 type InlineDeadlineDraft = {
-  target: 'content' | 'nextSteps';
+  target: ProtocolTextTarget;
   title: string;
   dueAt: string;
   severity: DeadlineSeverity;
@@ -653,15 +676,32 @@ type InlineDeadlineDraft = {
   markerIndex: number | null;
 };
 
+type InlineContactDraft = {
+  target: ProtocolTextTarget;
+  markerIndex: number;
+  query: string;
+  firstName: string;
+  lastName: string;
+  organization: string;
+  role: string;
+  category: ContactCategory;
+  email: string;
+  phone: string;
+};
+
 function CasesView({
   cases,
+  contacts,
   onCreateCase,
   onCreateDeadline,
+  onCreateContact,
   onCasesChanged
 }: {
   cases: CaseRecord[];
+  contacts: ContactRecord[];
   onCreateCase: (input: { caseNumber: string; displayName: string; category: CaseCategory; summary?: string }) => Promise<void>;
   onCreateDeadline: (input: CreateDeadlineInput) => Promise<void>;
+  onCreateContact: (input: CreateContactInput) => Promise<ContactRecord>;
   onCasesChanged: () => Promise<void>;
 }) {
   const [caseNumber, setCaseNumber] = useState('');
@@ -691,6 +731,7 @@ function CasesView({
   const [noteError, setNoteError] = useState('');
   const [noteInfo, setNoteInfo] = useState('');
   const [inlineDeadlineDraft, setInlineDeadlineDraft] = useState<InlineDeadlineDraft | null>(null);
+  const [inlineContactDraft, setInlineContactDraft] = useState<InlineContactDraft | null>(null);
   const [documentError, setDocumentError] = useState('');
   const [searchError, setSearchError] = useState('');
 
@@ -781,6 +822,7 @@ function CasesView({
     setConfidentialLevel('sensibel');
     setLinkedCaseIds(selectedCaseId ? [selectedCaseId] : []);
     setInlineDeadlineDraft(null);
+    setInlineContactDraft(null);
     setNoteError('');
     setNoteInfo('');
   }
@@ -798,6 +840,7 @@ function CasesView({
     setLinkedCaseIds(note.caseIds?.length ? note.caseIds : (selectedCaseId ? [selectedCaseId] : []));
     setSelection({ type: 'note', id: note.id });
     setInlineDeadlineDraft(null);
+    setInlineContactDraft(null);
     setNoteError('');
     setNoteInfo('');
   }
@@ -810,6 +853,89 @@ function CasesView({
     });
   }
 
+
+  function removeContactCommand(draft: InlineContactDraft) {
+    const applyRemoval = (current: string) => {
+      const index = current.slice(draft.markerIndex).startsWith('@@') ? draft.markerIndex : current.indexOf('@@');
+      if (index < 0) return current;
+      return replaceRange(current, index, 2, '').replace(/ {2,}/g, ' ');
+    };
+
+    if (draft.target === 'content') {
+      setContent(applyRemoval);
+    } else {
+      setNextSteps(applyRemoval);
+    }
+  }
+
+  function insertInlineContactText(draft: InlineContactDraft, contact: ContactRecord) {
+    const replacement = formatContactReference(contact);
+    const applyReplacement = (current: string) => {
+      const index = current.slice(draft.markerIndex).startsWith('@@') ? draft.markerIndex : current.indexOf('@@');
+      if (index < 0) return current;
+      return replaceRange(current, index, 2, replacement);
+    };
+
+    if (draft.target === 'content') {
+      setContent(applyReplacement);
+    } else {
+      setNextSteps(applyReplacement);
+    }
+  }
+
+  function openInlineContactDraft(target: ProtocolTextTarget, markerIndex: number) {
+    setInlineContactDraft({
+      target,
+      markerIndex,
+      query: '',
+      firstName: '',
+      lastName: '',
+      organization: '',
+      role: '',
+      category: 'sonstiges',
+      email: '',
+      phone: ''
+    });
+  }
+
+  async function insertExistingContactFromProtocol(contact: ContactRecord) {
+    if (!inlineContactDraft) return;
+    insertInlineContactText(inlineContactDraft, contact);
+    setInlineContactDraft(null);
+    setNoteInfo(`Kontakt eingefügt: ${formatContactReference(contact)}`);
+  }
+
+  async function createAndInsertContactFromProtocol() {
+    setNoteError('');
+    setNoteInfo('');
+    if (!inlineContactDraft) return;
+    if (!inlineContactDraft.firstName.trim() || !inlineContactDraft.lastName.trim()) {
+      setNoteError('Bitte Vorname und Nachname des Kontakts erfassen.');
+      return;
+    }
+
+    try {
+      const created = await onCreateContact({
+        firstName: inlineContactDraft.firstName,
+        lastName: inlineContactDraft.lastName,
+        organization: inlineContactDraft.organization || undefined,
+        role: inlineContactDraft.role || undefined,
+        category: inlineContactDraft.category,
+        email: inlineContactDraft.email || undefined,
+        phone: inlineContactDraft.phone || undefined
+      });
+      insertInlineContactText(inlineContactDraft, created);
+      setInlineContactDraft(null);
+      setNoteInfo(`Kontakt angelegt und eingefügt: ${formatContactReference(created)}`);
+    } catch (error) {
+      setNoteError(error instanceof Error ? error.message : 'Kontakt konnte nicht angelegt werden.');
+    }
+  }
+
+  function cancelInlineContactDraft() {
+    if (inlineContactDraft) removeContactCommand(inlineContactDraft);
+    setInlineContactDraft(null);
+  }
 
   function removeSlashCommand(draft: InlineDeadlineDraft) {
     if (draft.markerIndex === null) return;
@@ -842,14 +968,16 @@ function CasesView({
     }
   }
 
-  function handleProtocolTextChange(target: 'content' | 'nextSteps', value: string) {
+  function handleProtocolTextChange(target: ProtocolTextTarget, value: string) {
     setNoteInfo('');
-    const markerIndex = value.indexOf('//');
+    const deadlineMarkerIndex = value.indexOf('//');
+    const contactMarkerIndex = value.indexOf('@@');
 
     if (target === 'content') {
-      const hadCommand = content.includes('//');
+      const hadDeadlineCommand = content.includes('//');
+      const hadContactCommand = content.includes('@@');
       setContent(value);
-      if (!inlineDeadlineDraft && markerIndex >= 0 && !hadCommand) {
+      if (!inlineDeadlineDraft && !inlineContactDraft && deadlineMarkerIndex >= 0 && !hadDeadlineCommand) {
         setInlineDeadlineDraft({
           target,
           title: defaultDeadlineTitleForCase(selectedCase, noteTitle),
@@ -857,15 +985,19 @@ function CasesView({
           severity: 'important',
           legalBasis: '',
           description: 'Aus Protokolltext per // angelegt.',
-          markerIndex
+          markerIndex: deadlineMarkerIndex
         });
+      }
+      if (!inlineDeadlineDraft && !inlineContactDraft && contactMarkerIndex >= 0 && !hadContactCommand) {
+        openInlineContactDraft(target, contactMarkerIndex);
       }
       return;
     }
 
-    const hadCommand = nextSteps.includes('//');
+    const hadDeadlineCommand = nextSteps.includes('//');
+    const hadContactCommand = nextSteps.includes('@@');
     setNextSteps(value);
-    if (!inlineDeadlineDraft && markerIndex >= 0 && !hadCommand) {
+    if (!inlineDeadlineDraft && !inlineContactDraft && deadlineMarkerIndex >= 0 && !hadDeadlineCommand) {
       setInlineDeadlineDraft({
         target,
         title: defaultDeadlineTitleForCase(selectedCase, noteTitle),
@@ -873,8 +1005,11 @@ function CasesView({
         severity: 'important',
         legalBasis: '',
         description: 'Aus nächste Schritte per // angelegt.',
-        markerIndex
+        markerIndex: deadlineMarkerIndex
       });
+    }
+    if (!inlineDeadlineDraft && !inlineContactDraft && contactMarkerIndex >= 0 && !hadContactCommand) {
+      openInlineContactDraft(target, contactMarkerIndex);
     }
   }
 
@@ -1239,8 +1374,8 @@ function CasesView({
           <label><span>Datum</span><input type="datetime-local" value={noteDate} onChange={(event) => setNoteDate(event.target.value)} /></label>
           <label><span>Typ</span><select value={noteType} onChange={(event) => setNoteType(event.target.value as CaseNoteType)}><option value="gespraech">Gespräch</option><option value="protokoll">Protokoll</option><option value="telefonat">Telefonat</option><option value="videocall">Videocall</option><option value="email">E-Mail</option><option value="bem">BEM</option><option value="anhoerung">Anhörung</option><option value="interne_notiz">Interne Notiz</option><option value="sonstiges">Sonstiges</option></select></label>
           <label><span>Beteiligte</span><input value={participants} onChange={(event) => setParticipants(event.target.value)} placeholder="optional" /></label>
-          <label className="case-note-content-input"><span>Inhalt</span><textarea value={content} onChange={(event) => handleProtocolTextChange('content', event.target.value)} placeholder="Gesprächsinhalt / Protokoll …  // tippen, um per Overlay eine Frist einzufügen" /></label>
-          <label className="case-note-content-input"><span>Nächste Schritte</span><textarea value={nextSteps} onChange={(event) => handleProtocolTextChange('nextSteps', event.target.value)} placeholder="optional · // öffnet Frist-Overlay und ersetzt den Marker durch das Ablaufdatum" /></label>
+          <label className="case-note-content-input"><span>Inhalt</span><textarea value={content} onChange={(event) => handleProtocolTextChange('content', event.target.value)} placeholder="Gesprächsinhalt / Protokoll … // für Frist, @@ für Kontakt" /></label>
+          <label className="case-note-content-input"><span>Nächste Schritte</span><textarea value={nextSteps} onChange={(event) => handleProtocolTextChange('nextSteps', event.target.value)} placeholder="optional · // öffnet Frist-Overlay, @@ öffnet Kontakt-Overlay" /></label>
           <div className="case-note-link-panel">
             <span>Fallbezüge</span>
             <p className="industrial-meta">Eine Notiz kann mehreren Fallakten zugeordnet werden. Der aktuell ausgewählte Fall bleibt automatisch Bezug.</p>
@@ -1265,6 +1400,68 @@ function CasesView({
         {noteError && <div className="industrial-message industrial-message-warning">{noteError}</div>}
         {noteInfo && <div className="industrial-message industrial-message-ok">{noteInfo}</div>}
       </section>
+
+      {inlineContactDraft && (
+        <div className="industrial-modal-backdrop" role="presentation">
+          <section className="industrial-modal" role="dialog" aria-modal="true" aria-labelledby="inline-contact-title">
+            <div className="industrial-modal-header">
+              <div className="industrial-modal-icon"><Users className="h-5 w-5" /></div>
+              <div>
+                <p className="industrial-kicker">Inline-Kontakt</p>
+                <h2 id="inline-contact-title">Kontakt im Protokoll einfügen</h2>
+                <p>Nach dem Einfügen steht im Text: Name, Vorname (Firma).</p>
+              </div>
+            </div>
+
+            <div className="industrial-modal-grid">
+              <label className="industrial-modal-wide">
+                <span>Bestehenden Kontakt suchen</span>
+                <input
+                  value={inlineContactDraft.query}
+                  onChange={(event) => setInlineContactDraft((current) => current ? { ...current, query: event.target.value } : current)}
+                  placeholder="Name, Organisation, Rolle, E-Mail …"
+                  autoFocus
+                />
+              </label>
+            </div>
+
+            <div className="inline-contact-results">
+              {filterContactsForQuery(contacts, inlineContactDraft.query).map((contact) => (
+                <button key={contact.id} type="button" className="inline-contact-result" onClick={() => void insertExistingContactFromProtocol(contact)}>
+                  <strong>{formatContactReference(contact)}</strong>
+                  <span>{[contact.role, contact.email, contact.phone].filter(Boolean).join(' · ') || 'Kontakt'}</span>
+                </button>
+              ))}
+              {!filterContactsForQuery(contacts, inlineContactDraft.query).length && (
+                <div className="industrial-empty compact">Kein bestehender Kontakt gefunden. Unten neu erfassen.</div>
+              )}
+            </div>
+
+            <div className="industrial-modal-grid">
+              <label><span>Vorname</span><input value={inlineContactDraft.firstName} onChange={(event) => setInlineContactDraft((current) => current ? { ...current, firstName: event.target.value } : current)} /></label>
+              <label><span>Nachname</span><input value={inlineContactDraft.lastName} onChange={(event) => setInlineContactDraft((current) => current ? { ...current, lastName: event.target.value } : current)} /></label>
+              <label><span>Firma / Stelle</span><input value={inlineContactDraft.organization} onChange={(event) => setInlineContactDraft((current) => current ? { ...current, organization: event.target.value } : current)} /></label>
+              <label><span>Rolle</span><input value={inlineContactDraft.role} onChange={(event) => setInlineContactDraft((current) => current ? { ...current, role: event.target.value } : current)} placeholder="z. B. Personalleiter" /></label>
+              <label><span>Kategorie</span><select value={inlineContactDraft.category} onChange={(event) => setInlineContactDraft((current) => current ? { ...current, category: event.target.value as ContactCategory } : current)}><option value="arbeitgeber">Arbeitgeber</option><option value="inklusionsamt">Inklusionsamt</option><option value="agentur_fuer_arbeit">Agentur für Arbeit</option><option value="betriebsarzt">Betriebsarzt</option><option value="betriebsrat">Betriebsrat</option><option value="beratung">Beratung</option><option value="intern">intern</option><option value="sonstiges">sonstiges</option></select></label>
+              <label><span>E-Mail</span><input value={inlineContactDraft.email} onChange={(event) => setInlineContactDraft((current) => current ? { ...current, email: event.target.value } : current)} /></label>
+              <label><span>Telefon</span><input value={inlineContactDraft.phone} onChange={(event) => setInlineContactDraft((current) => current ? { ...current, phone: event.target.value } : current)} /></label>
+            </div>
+
+            {(inlineContactDraft.firstName || inlineContactDraft.lastName) && (
+              <div className="industrial-modal-preview">
+                Wird im Protokoll eingefügt: <strong>{formatContactReference({ firstName: inlineContactDraft.firstName, lastName: inlineContactDraft.lastName, organization: inlineContactDraft.organization })}</strong>
+              </div>
+            )}
+
+            <div className="industrial-modal-actions">
+              <button type="button" className="industrial-secondary-button" onClick={cancelInlineContactDraft}>Abbrechen</button>
+              <button type="button" className="industrial-button" onClick={() => void createAndInsertContactFromProtocol()}>
+                <Users className="h-4 w-4" />Kontakt anlegen und einfügen
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
 
       {inlineDeadlineDraft && (
         <div className="industrial-modal-backdrop" role="presentation">
@@ -1582,6 +1779,108 @@ function DeadlineEditor({
   );
 }
 
+
+function ContactsView({ contacts, onCreateContact, onDeleteContact }: { contacts: ContactRecord[]; onCreateContact: (input: CreateContactInput) => Promise<ContactRecord>; onDeleteContact: (contact: ContactRecord) => Promise<DeleteContactResult> }) {
+  const [query, setQuery] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [organization, setOrganization] = useState('');
+  const [role, setRole] = useState('');
+  const [category, setCategory] = useState<ContactCategory>('sonstiges');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+
+  const filteredContacts = useMemo(() => filterContactsForQuery(contacts, query), [contacts, query]);
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError('');
+    setMessage('');
+    try {
+      const created = await onCreateContact({
+        firstName,
+        lastName,
+        organization: organization || undefined,
+        role: role || undefined,
+        category,
+        email: email || undefined,
+        phone: phone || undefined
+      });
+      setFirstName('');
+      setLastName('');
+      setOrganization('');
+      setRole('');
+      setCategory('sonstiges');
+      setEmail('');
+      setPhone('');
+      setMessage(`Kontakt angelegt: ${formatContactReference(created)}`);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Kontakt konnte nicht angelegt werden.');
+    }
+  }
+
+  return (
+    <ModuleFrame title="Kontakte" kicker="Netzwerk" description="Ansprechpersonen, Stellen und interne Kontakte. In Protokollen mit @@ einfügen.">
+      <section className="industrial-grid-two">
+        <section className="industrial-panel">
+          <div className="industrial-panel-header compact"><div><p className="industrial-kicker">Register</p><h2>Kontaktliste</h2></div></div>
+          <label className="industrial-search"><Search className="h-4 w-4" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Kontakt suchen …" /></label>
+          <div className="contact-register-list">
+            {filteredContacts.map((contact) => (
+              <article key={contact.id} className="contact-register-card">
+                <div>
+                  <strong>{formatContactReference(contact)}</strong>
+                  <span>{[contact.role, contact.email, contact.phone].filter(Boolean).join(' · ') || contact.category}</span>
+                </div>
+                <button
+                  type="button"
+                  className="industrial-danger-button compact"
+                  onClick={async () => {
+                    setError('');
+                    setMessage('');
+                    const ok = window.confirm(`Kontakt wirklich löschen und alle bekannten Textstellen anonymisieren?\n\n${formatContactReference(contact)}`);
+                    if (!ok) return;
+                    try {
+                      const result = await onDeleteContact(contact);
+                      setMessage(result.anonymizedReferences
+                        ? `Kontakt gelöscht. ${result.anonymizedReferences} Textbezug/Textbezüge in ${result.touchedNotes} Protokoll(en) wurden anonymisiert.`
+                        : 'Kontakt gelöscht. Es wurden keine gespeicherten Textbezüge gefunden.');
+                    } catch (error) {
+                      setError(error instanceof Error ? error.message : 'Kontakt konnte nicht gelöscht werden.');
+                    }
+                  }}
+                  title="Kontakt löschen und Textbezüge anonymisieren"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </article>
+            ))}
+            {!filteredContacts.length && <div className="industrial-empty">Noch keine passenden Kontakte vorhanden.</div>}
+          </div>
+        </section>
+
+        <section className="industrial-panel">
+          <div className="industrial-panel-header compact"><div><p className="industrial-kicker">Erfassen</p><h2>Kontakt anlegen</h2></div></div>
+          <form onSubmit={submit} className="industrial-form">
+            <label><span>Vorname</span><input value={firstName} onChange={(event) => setFirstName(event.target.value)} /></label>
+            <label><span>Nachname</span><input value={lastName} onChange={(event) => setLastName(event.target.value)} /></label>
+            <label><span>Firma / Stelle</span><input value={organization} onChange={(event) => setOrganization(event.target.value)} /></label>
+            <label><span>Rolle</span><input value={role} onChange={(event) => setRole(event.target.value)} placeholder="z. B. Personalleiter" /></label>
+            <label><span>Kategorie</span><select value={category} onChange={(event) => setCategory(event.target.value as ContactCategory)}><option value="arbeitgeber">Arbeitgeber</option><option value="inklusionsamt">Inklusionsamt</option><option value="agentur_fuer_arbeit">Agentur für Arbeit</option><option value="betriebsarzt">Betriebsarzt</option><option value="reha">Reha</option><option value="anwalt">Anwalt</option><option value="betriebsrat">Betriebsrat</option><option value="beratung">Beratung</option><option value="intern">intern</option><option value="sonstiges">sonstiges</option></select></label>
+            <label><span>E-Mail</span><input value={email} onChange={(event) => setEmail(event.target.value)} /></label>
+            <label><span>Telefon</span><input value={phone} onChange={(event) => setPhone(event.target.value)} /></label>
+            {error && <div className="industrial-message industrial-message-warning">{error}</div>}
+            {message && <div className="industrial-message industrial-message-ok">{message}</div>}
+            <button type="submit" className="industrial-button"><Save className="h-4 w-4" />Kontakt speichern</button>
+          </form>
+        </section>
+      </section>
+    </ModuleFrame>
+  );
+}
+
 function SettingsView({ theme, onThemeChange }: { theme: ThemeMode; onThemeChange: (theme: ThemeMode) => void }) {
   return (
     <ModuleFrame title="Einstellungen" kicker="System" description="Passwortverwaltung, Darstellung und lokale Anwendungseinstellungen.">
@@ -1789,6 +2088,7 @@ export function App() {
   const [unlocked, setUnlocked] = useState(false);
   const [currentView, setCurrentView] = useState<ViewId>('dashboard');
   const [cases, setCases] = useState<CaseRecord[]>([]);
+  const [contacts, setContacts] = useState<ContactRecord[]>([]);
   const [deadlines, setDeadlines] = useState<DeadlineRecord[]>([]);
   const [dashboardDeadlines, setDashboardDeadlines] = useState<DeadlineDashboardItem[]>([]);
   const [selectedDeadline, setSelectedDeadline] = useState<DeadlineRecord | null>(null);
@@ -1845,15 +2145,17 @@ export function App() {
 
   async function reloadWorkData() {
     const bridge = await waitForBridge();
-    if (!bridge?.cases || !bridge.deadlines) {
+    if (!bridge?.cases || !bridge.contacts || !bridge.deadlines) {
       throw new Error('Datenbrücke ist nicht geladen.');
     }
-    const [caseRows, deadlineRows, dashboardRows] = await Promise.all([
+    const [caseRows, contactRows, deadlineRows, dashboardRows] = await Promise.all([
       bridge.cases.list(),
+      bridge.contacts.list(),
       bridge.deadlines.list({ status: ['open', 'overdue'] }),
       bridge.deadlines.dashboard()
     ]);
     setCases(caseRows);
+    setContacts(contactRows);
     setDeadlines(deadlineRows);
     setDashboardDeadlines(dashboardRows);
   }
@@ -1863,6 +2165,23 @@ export function App() {
     if (!bridge?.cases) throw new Error('Falldienst ist nicht erreichbar.');
     await bridge.cases.create(input);
     await reloadWorkData();
+  }
+
+  async function createContact(input: CreateContactInput): Promise<ContactRecord> {
+    const bridge = await waitForBridge();
+    if (!bridge?.contacts) throw new Error('Kontaktdienst ist nicht erreichbar.');
+    const created = await bridge.contacts.create(input);
+    const contactRows = await bridge.contacts.list();
+    setContacts(contactRows);
+    return created;
+  }
+
+  async function deleteContact(contact: ContactRecord): Promise<DeleteContactResult> {
+    const bridge = await waitForBridge();
+    if (!bridge?.contacts) throw new Error('Kontaktdienst ist nicht erreichbar.');
+    const result = await bridge.contacts.delete(contact.id);
+    await reloadWorkData();
+    return result;
   }
 
   async function createDeadline(input: CreateDeadlineInput) {
@@ -1964,7 +2283,7 @@ export function App() {
             onCompleteDeadline={(deadline) => void completeDeadline(deadline)}
           />
         )}
-        {currentView === 'cases' && <CasesView cases={cases} onCreateCase={createCase} onCreateDeadline={createDeadline} onCasesChanged={reloadWorkData} />}
+        {currentView === 'cases' && <CasesView cases={cases} contacts={contacts} onCreateCase={createCase} onCreateDeadline={createDeadline} onCreateContact={createContact} onCasesChanged={reloadWorkData} />}
         {currentView === 'deadlines' && (
           <DeadlinesView
             cases={cases}
@@ -1974,8 +2293,9 @@ export function App() {
             onCompleteDeadline={(deadline) => void completeDeadline(deadline)}
           />
         )}
+        {currentView === 'contacts' && <ContactsView contacts={contacts} onCreateContact={createContact} onDeleteContact={deleteContact} />}
         {currentView === 'settings' && <SettingsView theme={theme} onThemeChange={setTheme} />}
-        {currentView !== 'dashboard' && currentView !== 'cases' && currentView !== 'deadlines' && currentView !== 'settings' && currentModule && (
+        {currentView !== 'dashboard' && currentView !== 'cases' && currentView !== 'deadlines' && currentView !== 'contacts' && currentView !== 'settings' && currentModule && (
           <PlaceholderView view={currentModule} />
         )}
         {selectedDeadline && (

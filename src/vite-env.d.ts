@@ -2,6 +2,7 @@
 
 import type { CaseDocumentRecord } from './app/core/models/case-document.model';
 import type { CaseRecord, CreateCaseInput } from './app/core/models/case.model';
+import type { ContactListFilters, ContactRecord, CreateContactInput, DeleteContactResult, UpdateContactInput } from './app/core/models/contact.model';
 import type { CaseContentSearchInput, CaseNoteRecord, CaseSearchResult, CreateCaseNoteInput, UpdateCaseNoteInput } from './app/core/models/case-note.model';
 import type { CreateDeadlineInput, DeadlineDashboardItem, DeadlineListFilters, DeadlineRecord, UpdateDeadlineInput } from './app/core/models/deadline.model';
 import type { SecurityResult, SecurityStatus } from './app/core/models/security.model';
@@ -33,6 +34,12 @@ declare global {
         selectAndImportDocuments(caseId: string, containsHealthData?: boolean): Promise<CaseDocumentRecord[]>;
         deleteDocument(id: string): Promise<{ deleted: boolean }>;
         search(input: CaseContentSearchInput): Promise<CaseSearchResult[]>;
+      };
+      contacts: {
+        list(filters?: ContactListFilters): Promise<ContactRecord[]>;
+        create(input: CreateContactInput): Promise<ContactRecord>;
+        update(id: string, input: UpdateContactInput): Promise<ContactRecord>;
+        delete(id: string): Promise<DeleteContactResult>;
       };
       deadlines: {
         list(filters?: DeadlineListFilters): Promise<DeadlineRecord[]>;

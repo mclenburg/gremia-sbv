@@ -14,6 +14,7 @@ import type {
   UpdateCaseNoteInput
 } from '../src/app/core/models/case-note.model.js';
 import type { DatabaseAdapter } from './databaseService.js';
+import { ensureContactPrivacySchema, scanCaseNoteContactReferences } from './contactPrivacyService.js';
 
 function nowIso(): string {
   return new Date().toISOString();
@@ -222,6 +223,8 @@ export class CaseService {
     tryExec(`ALTER TABLE case_documents ADD COLUMN size_bytes INTEGER;`);
     tryExec(`ALTER TABLE case_documents ADD COLUMN imported_at TEXT;`);
 
+    ensureContactPrivacySchema(db);
+
     db.exec(`
       CREATE VIRTUAL TABLE IF NOT EXISTS case_notes_fts USING fts5(
         id UNINDEXED,
@@ -405,6 +408,7 @@ export class CaseService {
     );
 
     this.replaceNoteCaseLinks(db, id, caseIds, input.caseId);
+    scanCaseNoteContactReferences(db, id);
     this.indexNote(db, id);
     const created = db.prepare<any>(this.noteSelectSql('WHERE n.id = ? GROUP BY n.id')).get(id);
     return mapNote(created);
@@ -442,6 +446,7 @@ export class CaseService {
     );
 
     if (linkedCaseIds) this.replaceNoteCaseLinks(db, id, linkedCaseIds, before.case_id);
+    scanCaseNoteContactReferences(db, id);
     this.indexNote(db, id);
     const updated = db.prepare<any>(this.noteSelectSql('WHERE n.id = ? GROUP BY n.id')).get(id);
     return mapNote(updated);

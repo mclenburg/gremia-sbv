@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import type { CaseDocumentRecord } from '../src/app/core/models/case-document.model.js';
 import type { CaseRecord, CreateCaseInput } from '../src/app/core/models/case.model.js';
+import type { ContactListFilters, ContactRecord, CreateContactInput, DeleteContactResult, UpdateContactInput } from '../src/app/core/models/contact.model.js';
 import type { CaseContentSearchInput, CaseNoteRecord, CaseSearchResult, CreateCaseNoteInput, UpdateCaseNoteInput } from '../src/app/core/models/case-note.model.js';
 import type { CreateDeadlineInput, DeadlineDashboardItem, DeadlineListFilters, DeadlineRecord, UpdateDeadlineInput } from '../src/app/core/models/deadline.model.js';
 import type { SecurityResult, SecurityStatus } from '../src/app/core/models/security.model.js';
@@ -30,6 +31,12 @@ const api = {
       ipcRenderer.invoke('cases:documents:select-and-import', caseId, containsHealthData),
     deleteDocument: (id: string): Promise<{ deleted: boolean }> => ipcRenderer.invoke('cases:documents:delete', id),
     search: (input: CaseContentSearchInput): Promise<CaseSearchResult[]> => ipcRenderer.invoke('cases:search', input)
+  },
+  contacts: {
+    list: (filters?: ContactListFilters): Promise<ContactRecord[]> => ipcRenderer.invoke('contacts:list', filters),
+    create: (input: CreateContactInput): Promise<ContactRecord> => ipcRenderer.invoke('contacts:create', input),
+    update: (id: string, input: UpdateContactInput): Promise<ContactRecord> => ipcRenderer.invoke('contacts:update', id, input),
+    delete: (id: string): Promise<DeleteContactResult> => ipcRenderer.invoke('contacts:delete', id)
   },
   deadlines: {
     list: (filters?: DeadlineListFilters): Promise<DeadlineRecord[]> => ipcRenderer.invoke('deadlines:list', filters),
