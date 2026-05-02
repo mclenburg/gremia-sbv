@@ -25,8 +25,8 @@ interface MigrationDefinition {
   checksum: string;
 }
 
-const APP_SCHEMA_VERSION = '0011';
-const APP_VERSION = '0.3.41';
+const APP_SCHEMA_VERSION = '0013';
+const APP_VERSION = '0.4.2';
 const MIGRATION_TABLE_SQL = `
 CREATE TABLE IF NOT EXISTS schema_migrations (
   version TEXT PRIMARY KEY,
@@ -236,6 +236,10 @@ export class MigrationService {
         return this.tableExists('report_exports');
       case '0011':
         return this.tableExists('retention_actions');
+      case '0012':
+        return this.tableExists('prevention_processes') && this.tableExists('prevention_process_contacts');
+      case '0013':
+        return this.tableExists('legal_norms') && this.tableExists('case_legal_references') && this.tableExists('norm_checklist_items');
       default:
         return false;
     }

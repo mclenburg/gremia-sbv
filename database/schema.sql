@@ -405,3 +405,116 @@ CREATE TABLE IF NOT EXISTS report_exports (
 
 CREATE INDEX IF NOT EXISTS idx_report_exports_created_at ON report_exports(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_report_exports_type ON report_exports(report_type);
+CREATE TABLE IF NOT EXISTS prevention_processes (
+  id TEXT PRIMARY KEY,
+  case_id TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'zu_pruefen',
+  first_knowledge_at TEXT,
+  requested_at TEXT,
+  employer_response_due_at TEXT,
+  employer_responded_at TEXT,
+  integration_office_involved_at TEXT,
+  difficulty_type TEXT NOT NULL DEFAULT 'sonstiges',
+  risk_type TEXT NOT NULL DEFAULT 'sonstiges',
+  person_status TEXT NOT NULL DEFAULT 'unklar',
+  hazard_description TEXT,
+  employer_request_summary TEXT,
+  measures TEXT,
+  result TEXT,
+  next_review_at TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY (case_id) REFERENCES cases(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS prevention_process_contacts (
+  process_id TEXT NOT NULL,
+  contact_id TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  PRIMARY KEY (process_id, contact_id),
+  FOREIGN KEY (process_id) REFERENCES prevention_processes(id) ON DELETE CASCADE,
+  FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS prevention_process_events (
+  id TEXT PRIMARY KEY,
+  process_id TEXT NOT NULL,
+  event_type TEXT NOT NULL,
+  title TEXT NOT NULL,
+  description TEXT,
+  created_at TEXT NOT NULL,
+  FOREIGN KEY (process_id) REFERENCES prevention_processes(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_prevention_processes_case_id ON prevention_processes(case_id);
+CREATE INDEX IF NOT EXISTS idx_prevention_processes_status ON prevention_processes(status);
+CREATE INDEX IF NOT EXISTS idx_prevention_process_contacts_contact_id ON prevention_process_contacts(contact_id);
+
+-- Knowledge base / SBV-Kompass (0.4.2)
+CREATE TABLE IF NOT EXISTS legal_norms (
+  id TEXT PRIMARY KEY,
+  source TEXT NOT NULL,
+  paragraph TEXT NOT NULL,
+  title TEXT NOT NULL,
+  short_text TEXT NOT NULL,
+  full_text TEXT,
+  sbv_meaning TEXT,
+  practice_note TEXT,
+  typical_cases TEXT,
+  deadline_relevance TEXT,
+  template_relevance TEXT,
+  tags TEXT NOT NULL DEFAULT '[]',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE(source, paragraph)
+);
+CREATE INDEX IF NOT EXISTS idx_legal_norms_source ON legal_norms(source);
+CREATE INDEX IF NOT EXISTS idx_legal_norms_paragraph ON legal_norms(paragraph);
+CREATE INDEX IF NOT EXISTS idx_legal_norms_title ON legal_norms(title);
+
+CREATE TABLE IF NOT EXISTS case_legal_references (
+  id TEXT PRIMARY KEY,
+  case_id TEXT NOT NULL,
+  legal_norm_id TEXT NOT NULL,
+  note TEXT,
+  created_at TEXT NOT NULL,
+  UNIQUE(case_id, legal_norm_id),
+  FOREIGN KEY (case_id) REFERENCES cases(id) ON DELETE CASCADE,
+  FOREIGN KEY (legal_norm_id) REFERENCES legal_norms(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_case_legal_references_case_id ON case_legal_references(case_id);
+CREATE INDEX IF NOT EXISTS idx_case_legal_references_norm_id ON case_legal_references(legal_norm_id);
+
+CREATE TABLE IF NOT EXISTS norm_comments (
+  id TEXT PRIMARY KEY,
+  legal_norm_id TEXT NOT NULL,
+  title TEXT NOT NULL,
+  content TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY (legal_norm_id) REFERENCES legal_norms(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS norm_case_law (
+  id TEXT PRIMARY KEY,
+  legal_norm_id TEXT NOT NULL,
+  court TEXT NOT NULL,
+  decision_date TEXT,
+  file_number TEXT NOT NULL,
+  short_holding TEXT NOT NULL,
+  relevance TEXT,
+  source_url TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY (legal_norm_id) REFERENCES legal_norms(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS norm_checklist_items (
+  id TEXT PRIMARY KEY,
+  legal_norm_id TEXT NOT NULL,
+  text TEXT NOT NULL,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY (legal_norm_id) REFERENCES legal_norms(id) ON DELETE CASCADE
+);

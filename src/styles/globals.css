@@ -1423,3 +1423,84 @@ html[data-theme='light'] .industrial-danger-button {
   color: #7f1d1d;
   border-color: #b91c1c;
 }
+
+/* Prevention process */
+.industrial-split-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.85fr) minmax(0, 2fr);
+  gap: 1rem;
+}
+
+.case-register-list.compact {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.prevention-detail-panel {
+  min-height: 520px;
+}
+
+.prevention-step-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.prevention-step-card {
+  border: 1px solid var(--industrial-border);
+  border-left: 3px solid var(--industrial-accent);
+  background: linear-gradient(135deg, var(--industrial-panel-muted), var(--industrial-panel));
+  padding: 0.85rem;
+}
+
+.prevention-step-card header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  color: var(--industrial-text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.prevention-step-card p {
+  margin-top: 0.6rem;
+  color: var(--industrial-text-muted);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.industrial-help-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--industrial-accent);
+  color: var(--industrial-accent);
+  background: rgba(250, 204, 21, 0.08);
+  cursor: help;
+  flex: 0 0 auto;
+}
+
+.prevention-warning-stack {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.industrial-message-info {
+  border-color: rgba(250, 204, 21, 0.38);
+  background: rgba(250, 204, 21, 0.08);
+  color: var(--industrial-text);
+}
+
+@media (max-width: 1050px) {
+  .industrial-split-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -8,6 +8,8 @@ import type { SecurityResult, SecurityStatus } from '../src/app/core/models/secu
 import type { GenerateReportInput, ReportDescriptor, ReportExportHistoryItem, ReportGenerationResult } from '../src/app/core/models/report.model.js';
 import type { BackupInspectionResult, BackupOperationResult } from '../src/app/core/models/backup.model.js';
 import type { RetentionDashboard, RetentionOperationResult, RetentionSettings, UpdateRetentionSettingsInput } from '../src/app/core/models/retention.model.js';
+import type { CreatePreventionProcessInput, PreventionDashboardSummary, PreventionProcessRecord, PreventionStepDefinition, PreventionWarning, UpdatePreventionProcessInput } from '../src/app/core/models/prevention.model.js';
+import type { CaseLawRecord, CaseLegalReferenceRecord, CreateCaseLawInput, CreateLegalNormInput, CreateNormChecklistItemInput, CreateNormCommentInput, KnowledgeExportPreview, LegalNormRecord, LegalNormSearchInput, LinkLegalNormToCaseInput, NormChecklistItemRecord, NormCommentRecord, UpdateLegalNormInput } from '../src/app/core/models/knowledge.model.js';
 
 const api = {
   security: {
@@ -43,6 +45,31 @@ const api = {
     create: (input: CreateContactInput): Promise<ContactRecord> => ipcRenderer.invoke('contacts:create', input),
     update: (id: string, input: UpdateContactInput): Promise<ContactRecord> => ipcRenderer.invoke('contacts:update', id, input),
     delete: (id: string): Promise<DeleteContactResult> => ipcRenderer.invoke('contacts:delete', id)
+  },
+  knowledge: {
+    listNorms: (filters?: LegalNormSearchInput): Promise<LegalNormRecord[]> => ipcRenderer.invoke('knowledge:norms:list', filters),
+    getNorm: (id: string): Promise<LegalNormRecord | null> => ipcRenderer.invoke('knowledge:norms:get', id),
+    createNorm: (input: CreateLegalNormInput): Promise<LegalNormRecord> => ipcRenderer.invoke('knowledge:norms:create', input),
+    updateNorm: (id: string, input: UpdateLegalNormInput): Promise<LegalNormRecord> => ipcRenderer.invoke('knowledge:norms:update', id, input),
+    linkNormToCase: (input: LinkLegalNormToCaseInput): Promise<CaseLegalReferenceRecord> => ipcRenderer.invoke('knowledge:cases:link', input),
+    listCaseReferences: (caseId: string): Promise<CaseLegalReferenceRecord[]> => ipcRenderer.invoke('knowledge:cases:list', caseId),
+    unlinkNormFromCase: (caseId: string, legalNormId: string): Promise<{ deleted: boolean }> => ipcRenderer.invoke('knowledge:cases:unlink', caseId, legalNormId),
+    listComments: (legalNormId: string): Promise<NormCommentRecord[]> => ipcRenderer.invoke('knowledge:comments:list', legalNormId),
+    createComment: (input: CreateNormCommentInput): Promise<NormCommentRecord> => ipcRenderer.invoke('knowledge:comments:create', input),
+    listCaseLaw: (legalNormId: string): Promise<CaseLawRecord[]> => ipcRenderer.invoke('knowledge:caselaw:list', legalNormId),
+    createCaseLaw: (input: CreateCaseLawInput): Promise<CaseLawRecord> => ipcRenderer.invoke('knowledge:caselaw:create', input),
+    listChecklist: (legalNormId: string): Promise<NormChecklistItemRecord[]> => ipcRenderer.invoke('knowledge:checklist:list', legalNormId),
+    createChecklistItem: (input: CreateNormChecklistItemInput): Promise<NormChecklistItemRecord> => ipcRenderer.invoke('knowledge:checklist:create', input),
+    exportPreview: (): Promise<KnowledgeExportPreview> => ipcRenderer.invoke('knowledge:export:preview')
+  },
+
+  prevention: {
+    steps: (): Promise<PreventionStepDefinition[]> => ipcRenderer.invoke('prevention:steps'),
+    list: (caseId?: string): Promise<PreventionProcessRecord[]> => ipcRenderer.invoke('prevention:list', caseId),
+    dashboard: (): Promise<PreventionDashboardSummary> => ipcRenderer.invoke('prevention:dashboard'),
+    create: (input: CreatePreventionProcessInput): Promise<PreventionProcessRecord> => ipcRenderer.invoke('prevention:create', input),
+    update: (id: string, input: UpdatePreventionProcessInput): Promise<PreventionProcessRecord> => ipcRenderer.invoke('prevention:update', id, input),
+    warnings: (id: string): Promise<PreventionWarning[]> => ipcRenderer.invoke('prevention:warnings', id)
   },
   deadlines: {
     list: (filters?: DeadlineListFilters): Promise<DeadlineRecord[]> => ipcRenderer.invoke('deadlines:list', filters),

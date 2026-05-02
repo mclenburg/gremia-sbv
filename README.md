@@ -322,3 +322,12 @@ npm run release:check
 ```
 
 Details siehe `docs/TEST_COVERAGE_BASELINE.md`.
+
+
+## Version 0.4.0 – Präventionsverfahren
+
+- Präventionsverfahren nach § 167 Abs. 1 SGB IX als fallbezogener Fachprozess ergänzt.
+- Workflow-Schritte mit Tooltip-Hilfen ergänzt.
+- automatische Wiedervorlage für Arbeitgeberreaktion.
+- Warnlogik für 48h, überfällige Reaktion, Kündigungsrisiko und Inklusionsamt.
+- Tests für Präventionsworkflow ergänzt.

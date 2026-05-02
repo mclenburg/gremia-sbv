@@ -172,7 +172,7 @@ export class DeadlineService {
     const warningThresholdHours = input.warningThresholdHours ?? DASHBOARD_HOURS_BEFORE_DUE;
     const criticalThresholdHours = input.criticalThresholdHours ?? 24;
     const dueAt = new Date(input.dueAt).toISOString();
-    const dashboardFromAt = subtractHours(dueAt, DASHBOARD_HOURS_BEFORE_DUE);
+    const dashboardFromAt = dueAt.startsWith('9999-') ? timestamp : subtractHours(dueAt, DASHBOARD_HOURS_BEFORE_DUE);
 
     this.db.prepare(`
       INSERT INTO deadlines (

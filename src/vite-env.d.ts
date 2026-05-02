@@ -9,6 +9,8 @@ import type { SecurityResult, SecurityStatus } from './app/core/models/security.
 import type { GenerateReportInput, ReportDescriptor, ReportExportHistoryItem, ReportGenerationResult } from './app/core/models/report.model';
 import type { BackupInspectionResult, BackupOperationResult } from './app/core/models/backup.model';
 import type { RetentionDashboard, RetentionOperationResult, RetentionSettings, UpdateRetentionSettingsInput } from './app/core/models/retention.model';
+import type { CreatePreventionProcessInput, PreventionDashboardSummary, PreventionProcessRecord, PreventionStepDefinition, PreventionWarning, UpdatePreventionProcessInput } from './app/core/models/prevention.model';
+import type { CaseLawRecord, CaseLegalReferenceRecord, CreateCaseLawInput, CreateLegalNormInput, CreateNormChecklistItemInput, CreateNormCommentInput, KnowledgeExportPreview, LegalNormRecord, LegalNormSearchInput, LinkLegalNormToCaseInput, NormChecklistItemRecord, NormCommentRecord, UpdateLegalNormInput } from './app/core/models/knowledge.model';
 
 declare global {
   interface Window {
@@ -45,6 +47,30 @@ declare global {
         create(input: CreateContactInput): Promise<ContactRecord>;
         update(id: string, input: UpdateContactInput): Promise<ContactRecord>;
         delete(id: string): Promise<DeleteContactResult>;
+      };
+      knowledge: {
+        listNorms(filters?: LegalNormSearchInput): Promise<LegalNormRecord[]>;
+        getNorm(id: string): Promise<LegalNormRecord | null>;
+        createNorm(input: CreateLegalNormInput): Promise<LegalNormRecord>;
+        updateNorm(id: string, input: UpdateLegalNormInput): Promise<LegalNormRecord>;
+        linkNormToCase(input: LinkLegalNormToCaseInput): Promise<CaseLegalReferenceRecord>;
+        listCaseReferences(caseId: string): Promise<CaseLegalReferenceRecord[]>;
+        unlinkNormFromCase(caseId: string, legalNormId: string): Promise<{ deleted: boolean }>;
+        listComments(legalNormId: string): Promise<NormCommentRecord[]>;
+        createComment(input: CreateNormCommentInput): Promise<NormCommentRecord>;
+        listCaseLaw(legalNormId: string): Promise<CaseLawRecord[]>;
+        createCaseLaw(input: CreateCaseLawInput): Promise<CaseLawRecord>;
+        listChecklist(legalNormId: string): Promise<NormChecklistItemRecord[]>;
+        createChecklistItem(input: CreateNormChecklistItemInput): Promise<NormChecklistItemRecord>;
+        exportPreview(): Promise<KnowledgeExportPreview>;
+      };
+      prevention: {
+        steps(): Promise<PreventionStepDefinition[]>;
+        list(caseId?: string): Promise<PreventionProcessRecord[]>;
+        dashboard(): Promise<PreventionDashboardSummary>;
+        create(input: CreatePreventionProcessInput): Promise<PreventionProcessRecord>;
+        update(id: string, input: UpdatePreventionProcessInput): Promise<PreventionProcessRecord>;
+        warnings(id: string): Promise<PreventionWarning[]>;
       };
       deadlines: {
         list(filters?: DeadlineListFilters): Promise<DeadlineRecord[]>;

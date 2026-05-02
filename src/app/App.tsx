@@ -24,6 +24,7 @@ import {
   Scale,
   Settings as SettingsIcon,
   ShieldAlert,
+  HelpCircle,
   TerminalSquare,
   Trash2,
   Users
@@ -39,14 +40,33 @@ import type { CreateDeadlineInput, DeadlineDashboardItem, DeadlineProcessType, D
 import type { GenerateReportInput, ReportDescriptor, ReportExportHistoryItem, ReportGenerationResult, ReportType } from './core/models/report.model';
 import type { BackupInspectionResult, BackupOperationResult } from './core/models/backup.model';
 import type { RetentionCandidate, RetentionDashboard, RetentionOperationResult, RetentionSettings } from './core/models/retention.model';
+import type { CreatePreventionProcessInput, PreventionDifficultyType, PreventionProcessRecord, PreventionRiskType, PreventionStatus, PreventionStepDefinition, PreventionWarning, UpdatePreventionProcessInput } from './core/models/prevention.model';
+import type { CaseLawRecord, CaseLegalReferenceRecord, LegalNormRecord, NormChecklistItemRecord, NormCommentRecord } from './core/models/knowledge.model';
+import {
+  LEGAL_NORM_SUGGESTIONS,
+  findFirstTextCommand,
+  formatAnonymizationMarkerText,
+  formatCaseReferenceText,
+  formatConfidentialityText,
+  formatLegalNormText,
+  formatOpenTaskText,
+  formatRiskText,
+  removeCommandMarker,
+  replaceCommandMarker,
+  type ConfidentialCommandLevel,
+  type LegalNormSuggestion,
+  type RiskLevelCommand,
+  type TextCommandToken
+} from '@services/textCommandPolicy';
 
-const APP_VERSION = '0.3.41';
+const APP_VERSION = '0.4.2';
 
 type ViewId =
   | 'dashboard'
   | 'cases'
   | 'deadlines'
   | 'bem'
+  | 'prevention'
   | 'equalization'
   | 'termination'
   | 'templates'
@@ -89,6 +109,14 @@ const modules: ModuleDefinition[] = [
     shortTitle: 'BEM',
     text: 'Einladung, Zustimmung, Maßnahmen, Evaluation.',
     icon: HeartPulse
+  },
+  {
+    id: 'prevention',
+    title: 'Präventionsverfahren',
+    shortTitle: 'Prävention',
+    text: 'Frühzeitige Aktivierung nach § 167 Abs. 1 SGB IX.',
+    icon: ShieldAlert,
+    status: 'neu'
   },
   {
     id: 'equalization',
@@ -664,6 +692,13 @@ function formatBytes(bytes?: number): string {
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 }
 
+function formatDateShort(iso?: string): string {
+  if (!iso) return '—';
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '—';
+  return new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium' }).format(date);
+}
+
 type CaseExplorerSelection =
   | { type: 'overview' }
   | { type: 'note'; id: string }
@@ -695,6 +730,13 @@ type InlineContactDraft = {
   phone: string;
 };
 
+type InlineCaseLinkDraft = { target: ProtocolTextTarget; markerIndex: number; query: string };
+type InlineLegalNormDraft = { target: ProtocolTextTarget; markerIndex: number; query: string };
+type InlineRiskDraft = { target: ProtocolTextTarget; markerIndex: number; level: RiskLevelCommand; text: string };
+type InlineOpenTaskDraft = { target: ProtocolTextTarget; markerIndex: number | null; title: string; description: string; severity: DeadlineSeverity };
+type InlineConfidentialityDraft = { target: ProtocolTextTarget; markerIndex: number; level: ConfidentialCommandLevel };
+type InlineAnonymizationDraft = { target: ProtocolTextTarget; markerIndex: number; label: string };
+
 function CasesView({
   cases,
   contacts,
@@ -719,6 +761,7 @@ function CasesView({
   const [selectedCaseId, setSelectedCaseId] = useState('');
   const [notes, setNotes] = useState<CaseNoteRecord[]>([]);
   const [documents, setDocuments] = useState<CaseDocumentRecord[]>([]);
+  const [caseLegalReferences, setCaseLegalReferences] = useState<CaseLegalReferenceRecord[]>([]);
   const [selection, setSelection] = useState<CaseExplorerSelection>({ type: 'overview' });
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOnlySelectedCase, setSearchOnlySelectedCase] = useState(true);
@@ -738,6 +781,12 @@ function CasesView({
   const [noteInfo, setNoteInfo] = useState('');
   const [inlineDeadlineDraft, setInlineDeadlineDraft] = useState<InlineDeadlineDraft | null>(null);
   const [inlineContactDraft, setInlineContactDraft] = useState<InlineContactDraft | null>(null);
+  const [inlineCaseLinkDraft, setInlineCaseLinkDraft] = useState<InlineCaseLinkDraft | null>(null);
+  const [inlineLegalNormDraft, setInlineLegalNormDraft] = useState<InlineLegalNormDraft | null>(null);
+  const [inlineRiskDraft, setInlineRiskDraft] = useState<InlineRiskDraft | null>(null);
+  const [inlineOpenTaskDraft, setInlineOpenTaskDraft] = useState<InlineOpenTaskDraft | null>(null);
+  const [inlineConfidentialityDraft, setInlineConfidentialityDraft] = useState<InlineConfidentialityDraft | null>(null);
+  const [inlineAnonymizationDraft, setInlineAnonymizationDraft] = useState<InlineAnonymizationDraft | null>(null);
   const [documentError, setDocumentError] = useState('');
   const [searchError, setSearchError] = useState('');
 
@@ -780,6 +829,7 @@ function CasesView({
     if (!selectedCaseId) {
       setNotes([]);
       setDocuments([]);
+      setCaseLegalReferences([]);
       return;
     }
     let active = true;
@@ -787,13 +837,15 @@ function CasesView({
       try {
         const bridge = await waitForBridge();
         if (!bridge?.cases) throw new Error('Falldienst ist nicht erreichbar.');
-        const [noteRows, docRows] = await Promise.all([
+        const [noteRows, docRows, legalRefRows] = await Promise.all([
           bridge.cases.listNotes(selectedCaseId),
-          bridge.cases.listDocuments(selectedCaseId)
+          bridge.cases.listDocuments(selectedCaseId),
+          bridge.knowledge?.listCaseReferences(selectedCaseId) ?? Promise.resolve([])
         ]);
         if (active) {
           setNotes(noteRows);
           setDocuments(docRows);
+          setCaseLegalReferences(legalRefRows);
           setSelection({ type: 'overview' });
         }
       } catch (error) {
@@ -808,12 +860,14 @@ function CasesView({
     if (!selectedCaseId) return;
     const bridge = await waitForBridge();
     if (!bridge?.cases) throw new Error('Falldienst ist nicht erreichbar.');
-    const [noteRows, docRows] = await Promise.all([
+    const [noteRows, docRows, legalRefRows] = await Promise.all([
       bridge.cases.listNotes(selectedCaseId),
-      bridge.cases.listDocuments(selectedCaseId)
+      bridge.cases.listDocuments(selectedCaseId),
+      bridge.knowledge?.listCaseReferences(selectedCaseId) ?? Promise.resolve([])
     ]);
     setNotes(noteRows);
     setDocuments(docRows);
+    setCaseLegalReferences(legalRefRows);
   }
 
   function resetNoteForm() {
@@ -829,6 +883,12 @@ function CasesView({
     setLinkedCaseIds(selectedCaseId ? [selectedCaseId] : []);
     setInlineDeadlineDraft(null);
     setInlineContactDraft(null);
+    setInlineCaseLinkDraft(null);
+    setInlineLegalNormDraft(null);
+    setInlineRiskDraft(null);
+    setInlineOpenTaskDraft(null);
+    setInlineConfidentialityDraft(null);
+    setInlineAnonymizationDraft(null);
     setNoteError('');
     setNoteInfo('');
   }
@@ -847,6 +907,12 @@ function CasesView({
     setSelection({ type: 'note', id: note.id });
     setInlineDeadlineDraft(null);
     setInlineContactDraft(null);
+    setInlineCaseLinkDraft(null);
+    setInlineLegalNormDraft(null);
+    setInlineRiskDraft(null);
+    setInlineOpenTaskDraft(null);
+    setInlineConfidentialityDraft(null);
+    setInlineAnonymizationDraft(null);
     setNoteError('');
     setNoteInfo('');
   }
@@ -859,6 +925,91 @@ function CasesView({
     });
   }
 
+
+
+  function hasOpenInlineOverlay(): boolean {
+    return Boolean(
+      inlineDeadlineDraft || inlineContactDraft || inlineCaseLinkDraft || inlineLegalNormDraft || inlineRiskDraft
+      || inlineOpenTaskDraft || inlineConfidentialityDraft || inlineAnonymizationDraft
+    );
+  }
+
+  function updateProtocolTarget(target: ProtocolTextTarget, updater: (current: string) => string) {
+    if (target === 'content') setContent(updater);
+    else setNextSteps(updater);
+  }
+
+  function replaceInlineCommand(target: ProtocolTextTarget, markerIndex: number, token: TextCommandToken, replacement: string) {
+    updateProtocolTarget(target, (current) => replaceCommandMarker(current, markerIndex, token, replacement));
+  }
+
+  function removeInlineCommand(target: ProtocolTextTarget, markerIndex: number, token: TextCommandToken) {
+    updateProtocolTarget(target, (current) => removeCommandMarker(current, markerIndex, token));
+  }
+
+  function filterCasesForQuery(records: CaseRecord[], query: string): CaseRecord[] {
+    const q = query.trim().toLowerCase();
+    if (!q) return records.slice(0, 12);
+    return records.filter((record) =>
+      record.caseNumber.toLowerCase().includes(q)
+      || record.displayName.toLowerCase().includes(q)
+      || (record.summary ?? '').toLowerCase().includes(q)
+      || record.category.toLowerCase().includes(q)
+    ).slice(0, 12);
+  }
+
+  function filterNormsForQuery(norms: LegalNormSuggestion[], query: string): LegalNormSuggestion[] {
+    const q = query.trim().toLowerCase();
+    if (!q) return norms.slice(0, 12);
+    return norms.filter((norm) =>
+      norm.paragraph.toLowerCase().includes(q)
+      || norm.title.toLowerCase().includes(q)
+      || norm.source.toLowerCase().includes(q)
+      || norm.shortText.toLowerCase().includes(q)
+    ).slice(0, 12);
+  }
+
+  function openInlineCommand(target: ProtocolTextTarget, token: TextCommandToken, markerIndex: number) {
+    if (token === '//') {
+      setInlineDeadlineDraft({
+        target,
+        title: defaultDeadlineTitleForCase(selectedCase, noteTitle),
+        dueAt: '',
+        severity: 'important',
+        legalBasis: '',
+        description: target === 'content' ? 'Aus Protokolltext per // angelegt.' : 'Aus nächste Schritte per // angelegt.',
+        markerIndex
+      });
+      return;
+    }
+    if (token === '@@') {
+      openInlineContactDraft(target, markerIndex);
+      return;
+    }
+    if (token === '##') {
+      setInlineCaseLinkDraft({ target, markerIndex, query: '' });
+      return;
+    }
+    if (token === '§§') {
+      setInlineLegalNormDraft({ target, markerIndex, query: '' });
+      return;
+    }
+    if (token === '!!') {
+      setInlineRiskDraft({ target, markerIndex, level: 'high', text: '' });
+      return;
+    }
+    if (token === '>>') {
+      setInlineOpenTaskDraft({ target, markerIndex, title: '', description: '', severity: 'important' });
+      return;
+    }
+    if (token === '^^') {
+      setInlineConfidentialityDraft({ target, markerIndex, level: 'hoch_sensibel' });
+      return;
+    }
+    if (token === '~~') {
+      setInlineAnonymizationDraft({ target, markerIndex, label: 'Name' });
+    }
+  }
 
   function removeContactCommand(draft: InlineContactDraft) {
     const applyRemoval = (current: string) => {
@@ -976,47 +1127,137 @@ function CasesView({
 
   function handleProtocolTextChange(target: ProtocolTextTarget, value: string) {
     setNoteInfo('');
-    const deadlineMarkerIndex = value.indexOf('//');
-    const contactMarkerIndex = value.indexOf('@@');
+    const previousValue = target === 'content' ? content : nextSteps;
+    if (target === 'content') setContent(value);
+    else setNextSteps(value);
 
-    if (target === 'content') {
-      const hadDeadlineCommand = content.includes('//');
-      const hadContactCommand = content.includes('@@');
-      setContent(value);
-      if (!inlineDeadlineDraft && !inlineContactDraft && deadlineMarkerIndex >= 0 && !hadDeadlineCommand) {
-        setInlineDeadlineDraft({
-          target,
-          title: defaultDeadlineTitleForCase(selectedCase, noteTitle),
-          dueAt: '',
-          severity: 'important',
-          legalBasis: '',
-          description: 'Aus Protokolltext per // angelegt.',
-          markerIndex: deadlineMarkerIndex
-        });
+    if (hasOpenInlineOverlay()) return;
+    const command = findFirstTextCommand(value);
+    if (!command) return;
+
+    const wasAlreadyPresent = previousValue.includes(command.token);
+    if (!wasAlreadyPresent) {
+      openInlineCommand(target, command.token, command.index);
+    }
+  }
+
+  async function insertCaseReferenceFromProtocol(record: CaseRecord) {
+    if (!inlineCaseLinkDraft) return;
+    setLinkedCaseIds((current) => [...new Set([...current, record.id])]);
+    replaceInlineCommand(inlineCaseLinkDraft.target, inlineCaseLinkDraft.markerIndex, '##', formatCaseReferenceText(record.caseNumber, record.displayName));
+    setInlineCaseLinkDraft(null);
+    setNoteInfo(`Fallbezug ergänzt: ${record.caseNumber}`);
+  }
+
+  function cancelInlineCaseLinkDraft() {
+    if (inlineCaseLinkDraft) removeInlineCommand(inlineCaseLinkDraft.target, inlineCaseLinkDraft.markerIndex, '##');
+    setInlineCaseLinkDraft(null);
+  }
+
+  async function insertLegalNormFromProtocol(norm: LegalNormSuggestion | LegalNormRecord) {
+    if (!inlineLegalNormDraft) return;
+    replaceInlineCommand(inlineLegalNormDraft.target, inlineLegalNormDraft.markerIndex, '§§', formatLegalNormText(norm));
+    if (selectedCaseId) {
+      try {
+        const bridge = await waitForBridge();
+        if (bridge?.knowledge) {
+          await bridge.knowledge.linkNormToCase({ caseId: selectedCaseId, legalNormId: norm.id, note: 'Aus Protokoll mit §§ verknüpft.' });
+          setCaseLegalReferences(await bridge.knowledge.listCaseReferences(selectedCaseId));
+        }
+      } catch {
+        // Der Text bleibt eingefügt; der Fallbezug kann später im Wissensmodul nachgezogen werden.
       }
-      if (!inlineDeadlineDraft && !inlineContactDraft && contactMarkerIndex >= 0 && !hadContactCommand) {
-        openInlineContactDraft(target, contactMarkerIndex);
-      }
+    }
+    setInlineLegalNormDraft(null);
+    setNoteInfo(`Rechtsnorm eingefügt: ${norm.paragraph}`);
+  }
+
+  function cancelInlineLegalNormDraft() {
+    if (inlineLegalNormDraft) removeInlineCommand(inlineLegalNormDraft.target, inlineLegalNormDraft.markerIndex, '§§');
+    setInlineLegalNormDraft(null);
+  }
+
+  async function insertRiskFromProtocol() {
+    if (!inlineRiskDraft) return;
+    replaceInlineCommand(inlineRiskDraft.target, inlineRiskDraft.markerIndex, '!!', formatRiskText(inlineRiskDraft.level, inlineRiskDraft.text));
+    if (inlineRiskDraft.level === 'critical') setConfidentialLevel('hoch_sensibel');
+    else if (inlineRiskDraft.level === 'high' && confidentialLevel === 'normal') setConfidentialLevel('sensibel');
+    setInlineRiskDraft(null);
+    setNoteInfo('Risiko im Protokoll markiert. Fall-Risikostufe wird mit dem Protokoll nachvollziehbar dokumentiert.');
+  }
+
+  function cancelInlineRiskDraft() {
+    if (inlineRiskDraft) removeInlineCommand(inlineRiskDraft.target, inlineRiskDraft.markerIndex, '!!');
+    setInlineRiskDraft(null);
+  }
+
+  async function createOpenTaskFromProtocol() {
+    setNoteError('');
+    setNoteInfo('');
+    if (!selectedCaseId || !selectedCase) {
+      setNoteError('Bitte zuerst eine Fallakte auswählen. Aufgaben werden immer mit dem aktuellen Fall verbunden.');
       return;
     }
-
-    const hadDeadlineCommand = nextSteps.includes('//');
-    const hadContactCommand = nextSteps.includes('@@');
-    setNextSteps(value);
-    if (!inlineDeadlineDraft && !inlineContactDraft && deadlineMarkerIndex >= 0 && !hadDeadlineCommand) {
-      setInlineDeadlineDraft({
-        target,
-        title: defaultDeadlineTitleForCase(selectedCase, noteTitle),
-        dueAt: '',
-        severity: 'important',
-        legalBasis: '',
-        description: 'Aus nächste Schritte per // angelegt.',
-        markerIndex: deadlineMarkerIndex
+    if (!inlineOpenTaskDraft || !inlineOpenTaskDraft.title.trim()) {
+      setNoteError('Bitte einen Aufgabentitel erfassen.');
+      return;
+    }
+    try {
+      const placeholderDueAt = new Date('9999-12-31T23:59:59.000Z').toISOString();
+      await onCreateDeadline({
+        caseId: selectedCaseId,
+        processType: 'case',
+        deadlineType: 'follow_up',
+        title: inlineOpenTaskDraft.title.trim(),
+        confidentialTitle: `Aufgabe ${selectedCase.caseNumber}`,
+        description: `${inlineOpenTaskDraft.description.trim() || 'Offene Aufgabe ohne konkretes Ablaufdatum.'} Hinweis: technisch mit Platzhalterdatum gespeichert, aber als offene Aufgabe ohne Datum gemeint.`,
+        dueAt: placeholderDueAt,
+        severity: inlineOpenTaskDraft.severity,
+        sourceEvent: noteTitle.trim() ? `Protokoll: ${noteTitle.trim()}` : `Protokoll im Fall ${selectedCase.caseNumber}`,
+        calculationMode: 'manual',
+        isLegalDeadline: false,
+        isUserEditable: true,
+        warningThresholdHours: 999999,
+        criticalThresholdHours: 999998
       });
+      if (inlineOpenTaskDraft.markerIndex !== null) {
+        replaceInlineCommand(inlineOpenTaskDraft.target, inlineOpenTaskDraft.markerIndex, '>>', formatOpenTaskText(inlineOpenTaskDraft.title));
+      }
+      setInlineOpenTaskDraft(null);
+      setNoteInfo(`Offene Aufgabe wurde mit Fall ${selectedCase.caseNumber} verbunden.`);
+    } catch (error) {
+      setNoteError(error instanceof Error ? error.message : 'Offene Aufgabe konnte nicht angelegt werden.');
     }
-    if (!inlineDeadlineDraft && !inlineContactDraft && contactMarkerIndex >= 0 && !hadContactCommand) {
-      openInlineContactDraft(target, contactMarkerIndex);
-    }
+  }
+
+  function cancelInlineOpenTaskDraft() {
+    if (inlineOpenTaskDraft?.markerIndex !== null && inlineOpenTaskDraft) removeInlineCommand(inlineOpenTaskDraft.target, inlineOpenTaskDraft.markerIndex, '>>');
+    setInlineOpenTaskDraft(null);
+  }
+
+  function applyConfidentialityFromProtocol() {
+    if (!inlineConfidentialityDraft) return;
+    setConfidentialLevel(inlineConfidentialityDraft.level);
+    replaceInlineCommand(inlineConfidentialityDraft.target, inlineConfidentialityDraft.markerIndex, '^^', formatConfidentialityText(inlineConfidentialityDraft.level));
+    setInlineConfidentialityDraft(null);
+    setNoteInfo('Vertraulichkeitsstufe der Notiz wurde angepasst.');
+  }
+
+  function cancelInlineConfidentialityDraft() {
+    if (inlineConfidentialityDraft) removeInlineCommand(inlineConfidentialityDraft.target, inlineConfidentialityDraft.markerIndex, '^^');
+    setInlineConfidentialityDraft(null);
+  }
+
+  function applyAnonymizationMarkerFromProtocol() {
+    if (!inlineAnonymizationDraft) return;
+    replaceInlineCommand(inlineAnonymizationDraft.target, inlineAnonymizationDraft.markerIndex, '~~', formatAnonymizationMarkerText(inlineAnonymizationDraft.label));
+    setInlineAnonymizationDraft(null);
+    setNoteInfo('Anonymisierungsvormerkung im Protokoll gesetzt.');
+  }
+
+  function cancelInlineAnonymizationDraft() {
+    if (inlineAnonymizationDraft) removeInlineCommand(inlineAnonymizationDraft.target, inlineAnonymizationDraft.markerIndex, '~~');
+    setInlineAnonymizationDraft(null);
   }
 
   async function createInlineDeadlineFromProtocol() {
@@ -1359,7 +1600,7 @@ function CasesView({
             <div className="case-detail-content">
               <h2>{selectedCase ? `${selectedCase.caseNumber} · ${selectedCase.displayName}` : 'Keine Fallakte ausgewählt'}</h2>
               <p>{selectedCase?.summary ?? 'Keine Kurzbeschreibung erfasst.'}</p>
-              <div className="case-detail-metrics"><Metric label="Notizen" value={String(notes.length)} /><Metric label="Dokumente" value={String(documents.length)} /><Metric label="Kategorie" value={selectedCase?.category ?? '—'} /></div>
+              <div className="case-detail-metrics"><Metric label="Notizen" value={String(notes.length)} /><Metric label="Dokumente" value={String(documents.length)} /><Metric label="Rechtsbezüge" value={String(caseLegalReferences.length)} /><Metric label="Kategorie" value={selectedCase?.category ?? '—'} /></div>
             </div>
           )}
 
@@ -1407,8 +1648,8 @@ function CasesView({
           <label><span>Datum</span><input type="datetime-local" value={noteDate} onChange={(event) => setNoteDate(event.target.value)} /></label>
           <label><span>Typ</span><select value={noteType} onChange={(event) => setNoteType(event.target.value as CaseNoteType)}><option value="gespraech">Gespräch</option><option value="protokoll">Protokoll</option><option value="telefonat">Telefonat</option><option value="videocall">Videocall</option><option value="email">E-Mail</option><option value="bem">BEM</option><option value="anhoerung">Anhörung</option><option value="interne_notiz">Interne Notiz</option><option value="sonstiges">Sonstiges</option></select></label>
           <label><span>Beteiligte</span><input value={participants} onChange={(event) => setParticipants(event.target.value)} placeholder="optional" /></label>
-          <label className="case-note-content-input"><span>Inhalt</span><textarea value={content} onChange={(event) => handleProtocolTextChange('content', event.target.value)} placeholder="Gesprächsinhalt / Protokoll … // für Frist, @@ für Kontakt" /></label>
-          <label className="case-note-content-input"><span>Nächste Schritte</span><textarea value={nextSteps} onChange={(event) => handleProtocolTextChange('nextSteps', event.target.value)} placeholder="optional · // öffnet Frist-Overlay, @@ öffnet Kontakt-Overlay" /></label>
+          <label className="case-note-content-input"><span>Inhalt</span><textarea value={content} onChange={(event) => handleProtocolTextChange('content', event.target.value)} placeholder="Gesprächsinhalt / Protokoll … // Frist, @@ Kontakt, ## Fall, §§ Norm, !! Risiko, >> Aufgabe, ^^ Vertraulichkeit, ~~ Anonymisierung" /></label>
+          <label className="case-note-content-input"><span>Nächste Schritte</span><textarea value={nextSteps} onChange={(event) => handleProtocolTextChange('nextSteps', event.target.value)} placeholder="optional · // Frist, @@ Kontakt, ## Fall, §§ Norm, !! Risiko, >> Aufgabe, ^^ Vertraulichkeit, ~~ Anonymisierung" /></label>
           <div className="case-note-link-panel">
             <span>Fallbezüge</span>
             <p className="industrial-meta">Eine Notiz kann mehreren Fallakten zugeordnet werden. Der aktuell ausgewählte Fall bleibt automatisch Bezug.</p>
@@ -1433,6 +1674,70 @@ function CasesView({
         {noteError && <div className="industrial-message industrial-message-warning">{noteError}</div>}
         {noteInfo && <div className="industrial-message industrial-message-ok">{noteInfo}</div>}
       </section>
+
+
+      {inlineCaseLinkDraft && (
+        <div className="industrial-modal-backdrop" role="presentation">
+          <section className="industrial-modal" role="dialog" aria-modal="true" aria-labelledby="inline-case-link-title">
+            <div className="industrial-modal-header"><div className="industrial-modal-icon"><FolderKanban className="h-5 w-5" /></div><div><p className="industrial-kicker">Inline-Fallbezug</p><h2 id="inline-case-link-title">Fallbezug verknüpfen</h2><p>Der gewählte Fall wird in den Text eingefügt und als weiterer Fallbezug der Notiz gespeichert.</p></div></div>
+            <div className="industrial-modal-grid"><label className="industrial-modal-wide"><span>Fall suchen</span><input value={inlineCaseLinkDraft.query} onChange={(event) => setInlineCaseLinkDraft((current) => current ? { ...current, query: event.target.value } : current)} autoFocus placeholder="Aktenzeichen, Name/Pseudonym, Kategorie …" /></label></div>
+            <div className="inline-contact-results">
+              {filterCasesForQuery(cases, inlineCaseLinkDraft.query).map((record) => (
+                <button key={record.id} type="button" className="inline-contact-result" onClick={() => void insertCaseReferenceFromProtocol(record)}><strong>{record.caseNumber}</strong><span>{record.displayName} · {record.category}</span></button>
+              ))}
+            </div>
+            <div className="industrial-modal-actions"><button type="button" className="industrial-secondary-button" onClick={cancelInlineCaseLinkDraft}>Abbrechen</button></div>
+          </section>
+        </div>
+      )}
+
+      {inlineLegalNormDraft && (
+        <div className="industrial-modal-backdrop" role="presentation">
+          <section className="industrial-modal" role="dialog" aria-modal="true" aria-labelledby="inline-legal-title">
+            <div className="industrial-modal-header"><div className="industrial-modal-icon"><Scale className="h-5 w-5" /></div><div><p className="industrial-kicker">Inline-Rechtsnorm</p><h2 id="inline-legal-title">Rechtsnorm einfügen</h2><p>Die Norm wird als Kurzverweis in den Text eingefügt. Das ist die Grundlage für die spätere Wissensdatenbank-Verknüpfung.</p></div></div>
+            <div className="industrial-modal-grid"><label className="industrial-modal-wide"><span>Norm suchen</span><input value={inlineLegalNormDraft.query} onChange={(event) => setInlineLegalNormDraft((current) => current ? { ...current, query: event.target.value } : current)} autoFocus placeholder="z. B. 178, Prävention, Kündigung, AGG …" /></label></div>
+            <div className="inline-contact-results">
+              {filterNormsForQuery(LEGAL_NORM_SUGGESTIONS, inlineLegalNormDraft.query).map((norm) => (
+                <button key={norm.id} type="button" className="inline-contact-result" onClick={() => void insertLegalNormFromProtocol(norm)}><strong>{formatLegalNormText(norm)}</strong><span>{norm.shortText}</span></button>
+              ))}
+            </div>
+            <div className="industrial-modal-actions"><button type="button" className="industrial-secondary-button" onClick={cancelInlineLegalNormDraft}>Abbrechen</button></div>
+          </section>
+        </div>
+      )}
+
+      {inlineRiskDraft && (
+        <div className="industrial-modal-backdrop" role="presentation">
+          <section className="industrial-modal" role="dialog" aria-modal="true" aria-labelledby="inline-risk-title">
+            <div className="industrial-modal-header"><div className="industrial-modal-icon"><AlertTriangle className="h-5 w-5" /></div><div><p className="industrial-kicker">Inline-Risiko</p><h2 id="inline-risk-title">Risiko markieren</h2><p>Die Markierung bleibt im Protokoll sichtbar und hebt bei hohen Risiken die Vertraulichkeit der Notiz an.</p></div></div>
+            <div className="industrial-modal-grid">
+              <label><span>Risikostufe</span><select value={inlineRiskDraft.level} onChange={(event) => setInlineRiskDraft((current) => current ? { ...current, level: event.target.value as RiskLevelCommand } : current)}><option value="low">niedrig</option><option value="medium">mittel</option><option value="high">hoch</option><option value="critical">kritisch</option></select></label>
+              <label className="industrial-modal-wide"><span>Hinweis</span><input value={inlineRiskDraft.text} onChange={(event) => setInlineRiskDraft((current) => current ? { ...current, text: event.target.value } : current)} autoFocus placeholder="z. B. Kündigungsrisiko, Chronifizierungsrisiko, Arbeitgeber blockiert …" /></label>
+            </div>
+            <div className="industrial-modal-preview">Wird eingefügt: <strong>{formatRiskText(inlineRiskDraft.level, inlineRiskDraft.text)}</strong></div>
+            <div className="industrial-modal-actions"><button type="button" className="industrial-secondary-button" onClick={cancelInlineRiskDraft}>Abbrechen</button><button type="button" className="industrial-button" onClick={() => void insertRiskFromProtocol()}>Risiko einfügen</button></div>
+          </section>
+        </div>
+      )}
+
+      {inlineOpenTaskDraft && (
+        <div className="industrial-modal-backdrop" role="presentation">
+          <section className="industrial-modal" role="dialog" aria-modal="true" aria-labelledby="inline-task-title">
+            <div className="industrial-modal-header"><div className="industrial-modal-icon"><CheckCircle2 className="h-5 w-5" /></div><div><p className="industrial-kicker">Inline-Aufgabe</p><h2 id="inline-task-title">Offene Aufgabe ohne Datum</h2><p>Erzeugt eine Wiedervorlage ohne konkretes Ablaufdatum und vermerkt den nächsten Schritt im Text.</p></div></div>
+            <div className="industrial-modal-grid"><label><span>Aufgabe</span><input value={inlineOpenTaskDraft.title} onChange={(event) => setInlineOpenTaskDraft((current) => current ? { ...current, title: event.target.value } : current)} autoFocus placeholder="z. B. Inklusionsamt nachfassen" /></label><label><span>Stufe</span><select value={inlineOpenTaskDraft.severity} onChange={(event) => setInlineOpenTaskDraft((current) => current ? { ...current, severity: event.target.value as DeadlineSeverity } : current)}><option value="normal">normal</option><option value="important">wichtig</option><option value="critical">kritisch</option><option value="fatal">fatal</option></select></label><label className="industrial-modal-wide"><span>Notiz</span><input value={inlineOpenTaskDraft.description} onChange={(event) => setInlineOpenTaskDraft((current) => current ? { ...current, description: event.target.value } : current)} /></label></div>
+            <div className="industrial-modal-preview">Wird eingefügt: <strong>{formatOpenTaskText(inlineOpenTaskDraft.title)}</strong></div>
+            <div className="industrial-modal-actions"><button type="button" className="industrial-secondary-button" onClick={cancelInlineOpenTaskDraft}>Abbrechen</button><button type="button" className="industrial-button" onClick={() => void createOpenTaskFromProtocol()}>Aufgabe anlegen</button></div>
+          </section>
+        </div>
+      )}
+
+      {inlineConfidentialityDraft && (
+        <div className="industrial-modal-backdrop" role="presentation"><section className="industrial-modal" role="dialog" aria-modal="true" aria-labelledby="inline-conf-title"><div className="industrial-modal-header"><div className="industrial-modal-icon"><Lock className="h-5 w-5" /></div><div><p className="industrial-kicker">Inline-Vertraulichkeit</p><h2 id="inline-conf-title">Vertraulichkeitsstufe anheben</h2><p>Setzt die Vertraulichkeitsstufe der gesamten Notiz direkt hoch.</p></div></div><div className="industrial-modal-grid"><label><span>Stufe</span><select value={inlineConfidentialityDraft.level} onChange={(event) => setInlineConfidentialityDraft((current) => current ? { ...current, level: event.target.value as ConfidentialCommandLevel } : current)}><option value="normal">normal</option><option value="sensibel">sensibel</option><option value="hoch_sensibel">hoch sensibel</option></select></label></div><div className="industrial-modal-preview">Wird eingefügt: <strong>{formatConfidentialityText(inlineConfidentialityDraft.level)}</strong></div><div className="industrial-modal-actions"><button type="button" className="industrial-secondary-button" onClick={cancelInlineConfidentialityDraft}>Abbrechen</button><button type="button" className="industrial-button" onClick={applyConfidentialityFromProtocol}>Übernehmen</button></div></section></div>
+      )}
+
+      {inlineAnonymizationDraft && (
+        <div className="industrial-modal-backdrop" role="presentation"><section className="industrial-modal" role="dialog" aria-modal="true" aria-labelledby="inline-anon-title"><div className="industrial-modal-header"><div className="industrial-modal-icon"><ShieldAlert className="h-5 w-5" /></div><div><p className="industrial-kicker">Inline-Anonymisierung</p><h2 id="inline-anon-title">Anonymisierung vormerken</h2><p>Setzt eine sichtbare Vormerkung im Protokoll. Berichtslogik kann diese Markierung später gezielt auswerten.</p></div></div><div className="industrial-modal-grid"><label><span>Art der Textstelle</span><input value={inlineAnonymizationDraft.label} onChange={(event) => setInlineAnonymizationDraft((current) => current ? { ...current, label: event.target.value } : current)} autoFocus placeholder="z. B. Name, Bereich, Funktion, Gesundheitsdetail" /></label></div><div className="industrial-modal-preview">Wird eingefügt: <strong>{formatAnonymizationMarkerText(inlineAnonymizationDraft.label)}</strong></div><div className="industrial-modal-actions"><button type="button" className="industrial-secondary-button" onClick={cancelInlineAnonymizationDraft}>Abbrechen</button><button type="button" className="industrial-button" onClick={applyAnonymizationMarkerFromProtocol}>Vormerken</button></div></section></div>
+      )}
 
       {inlineContactDraft && (
         <div className="industrial-modal-backdrop" role="presentation">
@@ -1812,6 +2117,271 @@ function DeadlineEditor({
   );
 }
 
+
+
+const preventionDifficultyOptions: { value: PreventionDifficultyType; label: string }[] = [
+  { value: 'personenbedingt', label: 'personenbedingt' },
+  { value: 'verhaltensbedingt', label: 'verhaltensbedingt' },
+  { value: 'betriebsbedingt', label: 'betriebsbedingt' },
+  { value: 'organisatorisch', label: 'organisatorisch' },
+  { value: 'gesundheitlich_arbeitsplatzbezogen', label: 'gesundheitlich / arbeitsplatzbezogen' },
+  { value: 'konflikt_fuehrung', label: 'Konflikt / Führung' },
+  { value: 'sonstiges', label: 'sonstiges' }
+];
+
+const preventionRiskOptions: { value: PreventionRiskType; label: string }[] = [
+  { value: 'abmahnung', label: 'Abmahnung' },
+  { value: 'kuendigung', label: 'Kündigung' },
+  { value: 'umsetzung', label: 'Umsetzung' },
+  { value: 'arbeitsunfaehigkeit', label: 'Arbeitsunfähigkeit' },
+  { value: 'ueberlastung', label: 'Überlastung' },
+  { value: 'leistungsverlust', label: 'Leistungsverlust' },
+  { value: 'arbeitsplatzverlust', label: 'Arbeitsplatzverlust' },
+  { value: 'sonstiges', label: 'sonstiges' }
+];
+
+function statusLabel(status: PreventionStatus): string {
+  const labels: Record<PreventionStatus, string> = {
+    zu_pruefen: 'zu prüfen',
+    angefordert: 'angefordert',
+    arbeitgeber_reagiert: 'Arbeitgeber reagiert',
+    inklusionsamt_eingeschaltet: 'Inklusionsamt eingeschaltet',
+    massnahmen_in_klaerung: 'Maßnahmen in Klärung',
+    massnahmen_vereinbart: 'Maßnahmen vereinbart',
+    abgeschlossen: 'abgeschlossen',
+    blockiert_verweigert: 'blockiert / verweigert'
+  };
+  return labels[status];
+}
+
+function StepTooltip({ text }: { text: string }) {
+  return (
+    <span className="industrial-help-dot" title={text} aria-label={text}>
+      <HelpCircle className="h-3.5 w-3.5" />
+    </span>
+  );
+}
+
+function PreventionView({ cases, contacts, onWorkDataChanged }: { cases: CaseRecord[]; contacts: ContactRecord[]; onWorkDataChanged: () => Promise<void> }) {
+  const [processes, setProcesses] = useState<PreventionProcessRecord[]>([]);
+  const [steps, setSteps] = useState<PreventionStepDefinition[]>([]);
+  const [selectedId, setSelectedId] = useState('');
+  const [warnings, setWarnings] = useState<PreventionWarning[]>([]);
+  const [error, setError] = useState('');
+  const [info, setInfo] = useState('');
+
+  const [newCaseId, setNewCaseId] = useState('');
+  const [firstKnowledgeAt, setFirstKnowledgeAt] = useState(toDateTimeLocalValue(new Date().toISOString()));
+  const [requestedAt, setRequestedAt] = useState(toDateTimeLocalValue(new Date().toISOString()));
+  const [employerResponseDueAt, setEmployerResponseDueAt] = useState('');
+  const [difficultyType, setDifficultyType] = useState<PreventionDifficultyType>('gesundheitlich_arbeitsplatzbezogen');
+  const [riskType, setRiskType] = useState<PreventionRiskType>('ueberlastung');
+  const [personStatus, setPersonStatus] = useState<PreventionProcessRecord['personStatus']>('unklar');
+  const [hazardDescription, setHazardDescription] = useState('');
+  const [selectedContactIds, setSelectedContactIds] = useState<string[]>([]);
+
+  const selected = useMemo(() => processes.find((process) => process.id === selectedId), [processes, selectedId]);
+  const selectedCase = useMemo(() => cases.find((item) => item.id === selected?.caseId), [cases, selected]);
+
+  async function reload() {
+    const bridge = await waitForBridge();
+    if (!bridge?.prevention) throw new Error('Präventionsdienst ist nicht erreichbar.');
+    const [rows, stepRows] = await Promise.all([bridge.prevention.list(), bridge.prevention.steps()]);
+    setProcesses(rows);
+    setSteps(stepRows);
+    if (!selectedId && rows.length) setSelectedId(rows[0].id);
+    if (!newCaseId && cases.length) setNewCaseId(cases[0].id);
+  }
+
+  useEffect(() => {
+    void reload().catch((error) => setError(error instanceof Error ? error.message : 'Präventionsverfahren konnten nicht geladen werden.'));
+  }, [cases.length]);
+
+  useEffect(() => {
+    if (!selectedId) {
+      setWarnings([]);
+      return;
+    }
+    async function loadWarnings() {
+      const bridge = await waitForBridge();
+      if (!bridge?.prevention) return;
+      setWarnings(await bridge.prevention.warnings(selectedId));
+    }
+    void loadWarnings();
+  }, [selectedId, processes]);
+
+  function toggleContact(contactId: string, checked: boolean) {
+    setSelectedContactIds((current) => checked ? [...new Set([...current, contactId])] : current.filter((id) => id !== contactId));
+  }
+
+  async function createProcess(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError('');
+    setInfo('');
+    if (!newCaseId) {
+      setError('Bitte zuerst einen Fall auswählen.');
+      return;
+    }
+    if (!hazardDescription.trim()) {
+      setError('Bitte die Gefährdung kurz beschreiben.');
+      return;
+    }
+
+    try {
+      const bridge = await waitForBridge();
+      if (!bridge?.prevention) throw new Error('Präventionsdienst ist nicht erreichbar.');
+      const input: CreatePreventionProcessInput = {
+        caseId: newCaseId,
+        firstKnowledgeAt: firstKnowledgeAt ? fromDateTimeLocalValue(firstKnowledgeAt) : undefined,
+        requestedAt: requestedAt ? fromDateTimeLocalValue(requestedAt) : undefined,
+        employerResponseDueAt: employerResponseDueAt ? fromDateTimeLocalValue(employerResponseDueAt) : undefined,
+        difficultyType,
+        riskType,
+        personStatus,
+        hazardDescription,
+        contactIds: selectedContactIds,
+        createDefaultDeadlines: true
+      };
+      const created = await bridge.prevention.create(input);
+      setSelectedId(created.id);
+      setHazardDescription('');
+      setSelectedContactIds([]);
+      setInfo('Präventionsverfahren angelegt. Die Wiedervorlage für die Arbeitgeberreaktion wurde automatisch erzeugt.');
+      await reload();
+      await onWorkDataChanged();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Präventionsverfahren konnte nicht angelegt werden.');
+    }
+  }
+
+  async function updateSelected(input: UpdatePreventionProcessInput) {
+    if (!selected) return;
+    setError('');
+    setInfo('');
+    try {
+      const bridge = await waitForBridge();
+      if (!bridge?.prevention) throw new Error('Präventionsdienst ist nicht erreichbar.');
+      const updated = await bridge.prevention.update(selected.id, input);
+      setSelectedId(updated.id);
+      setInfo('Präventionsverfahren aktualisiert.');
+      await reload();
+      await onWorkDataChanged();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Präventionsverfahren konnte nicht aktualisiert werden.');
+    }
+  }
+
+  return (
+    <ModuleFrame title="Präventionsverfahren" kicker="§ 167 Abs. 1 SGB IX" description="Frühzeitige, fallbezogene Steuerung bei erkennbarer Gefährdung des Arbeitsverhältnisses schwerbehinderter oder gleichgestellter Menschen.">
+      <section className="industrial-panel">
+        <div className="industrial-panel-header compact">
+          <div>
+            <p className="industrial-kicker">Neues Verfahren</p>
+            <h2>Präventionsverfahren starten</h2>
+            <p>Das Verfahren hängt immer an einer Fallakte. Beim Anlegen wird automatisch eine Wiedervorlage für die Arbeitgeberreaktion erzeugt.</p>
+          </div>
+        </div>
+        <form className="industrial-form" onSubmit={createProcess}>
+          <div className="industrial-form-grid">
+            <label><span>Fallakte</span><select value={newCaseId} onChange={(event) => setNewCaseId(event.target.value)}>{cases.map((record) => <option key={record.id} value={record.id}>{record.caseNumber} · {record.displayName}</option>)}</select></label>
+            <label><span>erste Kenntnis</span><input type="datetime-local" value={firstKnowledgeAt} onChange={(event) => setFirstKnowledgeAt(event.target.value)} /></label>
+            <label><span>Arbeitgeber angefordert am</span><input type="datetime-local" value={requestedAt} onChange={(event) => setRequestedAt(event.target.value)} /></label>
+            <label><span>Frist Arbeitgeberreaktion</span><input type="datetime-local" value={employerResponseDueAt} onChange={(event) => setEmployerResponseDueAt(event.target.value)} placeholder="leer = 7 Tage nach Anforderung" /></label>
+            <label><span>Schwierigkeit</span><select value={difficultyType} onChange={(event) => setDifficultyType(event.target.value as PreventionDifficultyType)}>{preventionDifficultyOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
+            <label><span>Risiko</span><select value={riskType} onChange={(event) => setRiskType(event.target.value as PreventionRiskType)}>{preventionRiskOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
+            <label><span>Status Person</span><select value={personStatus} onChange={(event) => setPersonStatus(event.target.value as PreventionProcessRecord['personStatus'])}><option value="unklar">unklar</option><option value="schwerbehindert">schwerbehindert</option><option value="gleichgestellt">gleichgestellt</option><option value="antrag_laeuft">Antrag läuft</option></select></label>
+          </div>
+          <label><span>Gefährdung / Anlass</span><textarea value={hazardDescription} onChange={(event) => setHazardDescription(event.target.value)} placeholder="Kurz und sachlich: Welche Schwierigkeiten gefährden Beschäftigung, Gesundheit oder Arbeitsplatz?" /></label>
+          <div className="case-note-link-panel">
+            <span>Beteiligte Kontakte</span>
+            <div className="case-note-link-grid">
+              {contacts.slice(0, 18).map((contact) => (
+                <label key={contact.id} className="industrial-checkbox-row compact">
+                  <input type="checkbox" checked={selectedContactIds.includes(contact.id)} onChange={(event) => toggleContact(contact.id, event.target.checked)} />
+                  <span>{formatContactReference(contact)}</span>
+                </label>
+              ))}
+              {!contacts.length && <p className="industrial-meta">Noch keine Kontakte vorhanden.</p>}
+            </div>
+          </div>
+          <div className="industrial-card-actions"><button className="industrial-button" type="submit"><Plus className="h-4 w-4" />Präventionsverfahren anlegen</button></div>
+        </form>
+        {error && <div className="industrial-message industrial-message-warning mt-4">{error}</div>}
+        {info && <div className="industrial-message industrial-message-ok mt-4">{info}</div>}
+      </section>
+
+      <section className="industrial-split-grid">
+        <aside className="industrial-panel">
+          <div className="industrial-panel-header compact"><div><p className="industrial-kicker">Register</p><h2>Laufende Verfahren</h2></div></div>
+          <div className="case-register-list compact">
+            {processes.map((process) => {
+              const record = cases.find((item) => item.id === process.caseId);
+              return (
+                <button key={process.id} type="button" className={`case-register-row ${selectedId === process.id ? 'active' : ''}`} onClick={() => setSelectedId(process.id)}>
+                  <strong>{record?.caseNumber ?? 'Fall nicht auflösbar'}</strong>
+                  <span>{statusLabel(process.status)} · {process.riskType.replaceAll('_', ' ')}</span>
+                  <small>Arbeitgeberfrist: {formatDateShort(process.employerResponseDueAt)}</small>
+                </button>
+              );
+            })}
+            {!processes.length && <div className="industrial-empty compact">Noch kein Präventionsverfahren angelegt.</div>}
+          </div>
+        </aside>
+
+        <section className="industrial-panel prevention-detail-panel">
+          {!selected && <div className="industrial-empty">Verfahren auswählen oder neu anlegen.</div>}
+          {selected && (
+            <>
+              <div className="industrial-panel-header compact">
+                <div>
+                  <p className="industrial-kicker">{selectedCase?.caseNumber ?? 'Fall'}</p>
+                  <h2>{selectedCase?.displayName ?? 'Präventionsverfahren'}</h2>
+                  <p>{statusLabel(selected.status)} · erste Kenntnis: {formatDateShort(selected.firstKnowledgeAt)}</p>
+                </div>
+                <select value={selected.status} onChange={(event) => void updateSelected({ status: event.target.value as PreventionStatus })}>
+                  <option value="zu_pruefen">zu prüfen</option>
+                  <option value="angefordert">angefordert</option>
+                  <option value="arbeitgeber_reagiert">Arbeitgeber reagiert</option>
+                  <option value="inklusionsamt_eingeschaltet">Inklusionsamt eingeschaltet</option>
+                  <option value="massnahmen_in_klaerung">Maßnahmen in Klärung</option>
+                  <option value="massnahmen_vereinbart">Maßnahmen vereinbart</option>
+                  <option value="abgeschlossen">abgeschlossen</option>
+                  <option value="blockiert_verweigert">blockiert / verweigert</option>
+                </select>
+              </div>
+
+              {!!warnings.length && (
+                <div className="prevention-warning-stack">
+                  {warnings.map((warning) => <div key={warning.message} className={`industrial-message ${warning.level === 'critical' ? 'industrial-message-warning' : 'industrial-message-info'}`}>{warning.message}</div>)}
+                </div>
+              )}
+
+              <div className="prevention-step-grid">
+                {steps.map((step) => (
+                  <article key={step.key} className="prevention-step-card">
+                    <header><span>{step.title}</span><StepTooltip text={step.objective} /></header>
+                    <p>{step.objective}</p>
+                  </article>
+                ))}
+              </div>
+
+              <div className="industrial-form mt-5">
+                <div className="industrial-form-grid">
+                  <label><span>Arbeitgeber reagiert am</span><input type="datetime-local" value={toDateTimeLocalValue(selected.employerRespondedAt)} onChange={(event) => void updateSelected({ employerRespondedAt: event.target.value ? fromDateTimeLocalValue(event.target.value) : undefined, status: 'arbeitgeber_reagiert' })} /></label>
+                  <label><span>Inklusionsamt eingeschaltet am</span><input type="datetime-local" value={toDateTimeLocalValue(selected.integrationOfficeInvolvedAt)} onChange={(event) => void updateSelected({ integrationOfficeInvolvedAt: event.target.value ? fromDateTimeLocalValue(event.target.value) : undefined, status: 'inklusionsamt_eingeschaltet' })} /></label>
+                  <label><span>nächste Wiedervorlage</span><input type="datetime-local" value={toDateTimeLocalValue(selected.nextReviewAt)} onChange={(event) => void updateSelected({ nextReviewAt: event.target.value ? fromDateTimeLocalValue(event.target.value) : undefined })} /></label>
+                </div>
+                <label><span>Arbeitgeberanforderung / Gesprächsstand</span><textarea defaultValue={selected.employerRequestSummary ?? ''} onBlur={(event) => void updateSelected({ employerRequestSummary: event.target.value })} /></label>
+                <label><span>Maßnahmen</span><textarea defaultValue={selected.measures ?? ''} onBlur={(event) => void updateSelected({ measures: event.target.value, status: event.target.value.trim() ? 'massnahmen_vereinbart' : selected.status })} /></label>
+                <label><span>Ergebnis / Abschlussbewertung</span><textarea defaultValue={selected.result ?? ''} onBlur={(event) => void updateSelected({ result: event.target.value })} /></label>
+              </div>
+            </>
+          )}
+        </section>
+      </section>
+    </ModuleFrame>
+  );
+}
 
 function ContactsView({ contacts, onCreateContact, onDeleteContact }: { contacts: ContactRecord[]; onCreateContact: (input: CreateContactInput) => Promise<ContactRecord>; onDeleteContact: (contact: ContactRecord) => Promise<DeleteContactResult> }) {
   const [query, setQuery] = useState('');
@@ -2538,6 +3108,247 @@ function RetentionSettingsPanel({ cases }: { cases: CaseRecord[] }) {
   );
 }
 
+function KnowledgeView({ cases }: { cases: CaseRecord[] }) {
+  const [query, setQuery] = useState('');
+  const [source, setSource] = useState('');
+  const [norms, setNorms] = useState<LegalNormRecord[]>([]);
+  const [selectedNormId, setSelectedNormId] = useState('');
+  const [caseReferences, setCaseReferences] = useState<CaseLegalReferenceRecord[]>([]);
+  const [comments, setComments] = useState<NormCommentRecord[]>([]);
+  const [caseLaw, setCaseLaw] = useState<CaseLawRecord[]>([]);
+  const [checklist, setChecklist] = useState<NormChecklistItemRecord[]>([]);
+  const [linkCaseId, setLinkCaseId] = useState('');
+  const [commentTitle, setCommentTitle] = useState('');
+  const [commentText, setCommentText] = useState('');
+  const [caseLawCourt, setCaseLawCourt] = useState('');
+  const [caseLawFileNumber, setCaseLawFileNumber] = useState('');
+  const [caseLawHolding, setCaseLawHolding] = useState('');
+  const [checklistText, setChecklistText] = useState('');
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+
+  const selectedNorm = useMemo(() => norms.find((norm) => norm.id === selectedNormId), [norms, selectedNormId]);
+  const sources = useMemo(() => [...new Set(norms.map((norm) => norm.source))].sort((a, b) => a.localeCompare(b)), [norms]);
+
+  async function loadNorms(nextQuery = query, nextSource = source) {
+    setError('');
+    try {
+      const bridge = await waitForBridge();
+      if (!bridge?.knowledge) throw new Error('Wissensdienst ist nicht erreichbar.');
+      const rows = await bridge.knowledge.listNorms({ query: nextQuery || undefined, source: nextSource || undefined, limit: 300 });
+      setNorms(rows);
+      if (!selectedNormId && rows.length) setSelectedNormId(rows[0].id);
+      if (selectedNormId && !rows.some((norm) => norm.id === selectedNormId)) setSelectedNormId(rows[0]?.id ?? '');
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Wissensdatenbank konnte nicht geladen werden.');
+    }
+  }
+
+  async function loadDetails(normId: string) {
+    if (!normId) {
+      setCaseReferences([]);
+      setComments([]);
+      setCaseLaw([]);
+      setChecklist([]);
+      return;
+    }
+    setError('');
+    try {
+      const bridge = await waitForBridge();
+      if (!bridge?.knowledge) throw new Error('Wissensdienst ist nicht erreichbar.');
+      const allCaseReferences = await Promise.all(cases.map((record) => bridge.knowledge.listCaseReferences(record.id)));
+      const [commentRows, caseLawRows, checklistRows] = await Promise.all([
+        bridge.knowledge.listComments(normId),
+        bridge.knowledge.listCaseLaw(normId),
+        bridge.knowledge.listChecklist(normId)
+      ]);
+      setCaseReferences(allCaseReferences.flat().filter((reference) => reference.legalNormId === normId));
+      setComments(commentRows);
+      setCaseLaw(caseLawRows);
+      setChecklist(checklistRows);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Details konnten nicht geladen werden.');
+    }
+  }
+
+  useEffect(() => {
+    void loadNorms();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    void loadDetails(selectedNormId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedNormId, cases.length]);
+
+  async function runSearch(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    await loadNorms(query, source);
+  }
+
+  async function linkSelectedNormToCase() {
+    setMessage('');
+    setError('');
+    if (!selectedNorm || !linkCaseId) {
+      setError('Bitte Norm und Fall auswählen.');
+      return;
+    }
+    try {
+      const bridge = await waitForBridge();
+      if (!bridge?.knowledge) throw new Error('Wissensdienst ist nicht erreichbar.');
+      await bridge.knowledge.linkNormToCase({ caseId: linkCaseId, legalNormId: selectedNorm.id, note: 'Im Wissensmodul verknüpft.' });
+      setMessage(`Rechtsbezug ${selectedNorm.paragraph} wurde mit der Fallakte verknüpft.`);
+      await loadDetails(selectedNorm.id);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Rechtsbezug konnte nicht verknüpft werden.');
+    }
+  }
+
+  async function createCommentForNorm(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!selectedNorm) return;
+    setMessage('');
+    setError('');
+    try {
+      const bridge = await waitForBridge();
+      if (!bridge?.knowledge) throw new Error('Wissensdienst ist nicht erreichbar.');
+      await bridge.knowledge.createComment({ legalNormId: selectedNorm.id, title: commentTitle, content: commentText });
+      setCommentTitle('');
+      setCommentText('');
+      setMessage('Kommentar gespeichert.');
+      await loadDetails(selectedNorm.id);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Kommentar konnte nicht gespeichert werden.');
+    }
+  }
+
+  async function createCaseLawForNorm(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!selectedNorm) return;
+    setMessage('');
+    setError('');
+    try {
+      const bridge = await waitForBridge();
+      if (!bridge?.knowledge) throw new Error('Wissensdienst ist nicht erreichbar.');
+      await bridge.knowledge.createCaseLaw({ legalNormId: selectedNorm.id, court: caseLawCourt, fileNumber: caseLawFileNumber, shortHolding: caseLawHolding });
+      setCaseLawCourt('');
+      setCaseLawFileNumber('');
+      setCaseLawHolding('');
+      setMessage('Rechtsprechungsnotiz gespeichert.');
+      await loadDetails(selectedNorm.id);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Rechtsprechungsnotiz konnte nicht gespeichert werden.');
+    }
+  }
+
+  async function createChecklistItemForNorm(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!selectedNorm) return;
+    setMessage('');
+    setError('');
+    try {
+      const bridge = await waitForBridge();
+      if (!bridge?.knowledge) throw new Error('Wissensdienst ist nicht erreichbar.');
+      await bridge.knowledge.createChecklistItem({ legalNormId: selectedNorm.id, text: checklistText, sortOrder: checklist.length + 1 });
+      setChecklistText('');
+      setMessage('Checklisteneintrag ergänzt.');
+      await loadDetails(selectedNorm.id);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Checklisteneintrag konnte nicht gespeichert werden.');
+    }
+  }
+
+  return (
+    <ModuleFrame title="Wissensdatenbank" kicker="SBV-Kompass" description="Rechtsnormen, Praxishinweise, eigene Kommentare, Rechtsprechung und Fallverknüpfungen. In Protokollen mit §§ einfügen.">
+      <section className="industrial-panel">
+        <form onSubmit={runSearch} className="case-search-bar">
+          <Search className="h-4 w-4 text-yellow-300" />
+          <input className="industrial-input" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Norm, Stichwort oder Praxisbegriff suchen …" />
+          <select value={source} onChange={(event) => setSource(event.target.value)}>
+            <option value="">alle Quellen</option>
+            {sources.map((item) => <option key={item} value={item}>{item}</option>)}
+          </select>
+          <button type="submit" className="industrial-button">Suchen</button>
+        </form>
+      </section>
+
+      {error && <div className="industrial-message industrial-message-warning">{error}</div>}
+      {message && <div className="industrial-message industrial-message-ok">{message}</div>}
+
+      <section className="industrial-split-grid">
+        <aside className="industrial-panel">
+          <div className="industrial-panel-header compact"><div><p className="industrial-kicker">Normen</p><h2>Register</h2></div></div>
+          <div className="case-register-list compact">
+            {norms.map((norm) => (
+              <button key={norm.id} type="button" className={`case-register-row ${selectedNormId === norm.id ? 'active' : ''}`} onClick={() => setSelectedNormId(norm.id)}>
+                <strong>{norm.paragraph}</strong>
+                <span>{norm.title}</span>
+                <small>{norm.source} · {norm.tags.slice(0, 3).join(', ')}</small>
+              </button>
+            ))}
+            {!norms.length && <div className="industrial-empty compact">Keine Normen gefunden.</div>}
+          </div>
+        </aside>
+
+        <section className="industrial-panel prevention-detail-panel">
+          {!selectedNorm && <div className="industrial-empty">Norm auswählen.</div>}
+          {selectedNorm && (
+            <>
+              <div className="industrial-panel-header compact">
+                <div>
+                  <p className="industrial-kicker">{selectedNorm.source}</p>
+                  <h2>{selectedNorm.paragraph} · {selectedNorm.title}</h2>
+                  <p>{selectedNorm.shortText}</p>
+                </div>
+              </div>
+
+              <div className="grid gap-4 xl:grid-cols-2">
+                <div className="industrial-subpanel"><h4>SBV-Bedeutung</h4><p>{selectedNorm.sbvMeaning ?? 'Noch nicht ergänzt.'}</p></div>
+                <div className="industrial-subpanel"><h4>Praxishinweis</h4><p>{selectedNorm.practiceNote ?? 'Noch nicht ergänzt.'}</p></div>
+                <div className="industrial-subpanel"><h4>Typische Fälle</h4><p>{selectedNorm.typicalCases ?? 'Noch nicht ergänzt.'}</p></div>
+                <div className="industrial-subpanel"><h4>Tags</h4><p>{selectedNorm.tags.join(', ') || '—'}</p></div>
+              </div>
+
+              <div className="industrial-subpanel mt-4">
+                <h4>Mit Fallakte verknüpfen</h4>
+                <div className="industrial-form-grid compact">
+                  <select value={linkCaseId} onChange={(event) => setLinkCaseId(event.target.value)}>
+                    <option value="">Fall auswählen</option>
+                    {cases.map((record) => <option key={record.id} value={record.id}>{record.caseNumber} · {record.displayName}</option>)}
+                  </select>
+                  <button type="button" className="industrial-button" onClick={() => void linkSelectedNormToCase()}>Rechtsbezug setzen</button>
+                </div>
+                <div className="mt-3">
+                  {caseReferences.map((reference) => <p key={reference.id} className="industrial-meta"><strong>{reference.caseNumber}</strong> · {reference.createdAt.slice(0, 10)}</p>)}
+                  {!caseReferences.length && <p className="industrial-meta">Noch keine Fallverknüpfung.</p>}
+                </div>
+              </div>
+
+              <div className="grid gap-4 xl:grid-cols-3 mt-4">
+                <section className="industrial-subpanel">
+                  <h4>Checkliste</h4>
+                  {checklist.map((item) => <p key={item.id} className="industrial-meta">□ {item.text}</p>)}
+                  <form onSubmit={createChecklistItemForNorm} className="industrial-settings-form compact"><input value={checklistText} onChange={(event) => setChecklistText(event.target.value)} placeholder="Checklisteneintrag" /><button className="industrial-secondary-button" type="submit">Ergänzen</button></form>
+                </section>
+                <section className="industrial-subpanel">
+                  <h4>Eigene Kommentare</h4>
+                  {comments.map((comment) => <p key={comment.id} className="industrial-meta"><strong>{comment.title}</strong><br />{comment.content}</p>)}
+                  <form onSubmit={createCommentForNorm} className="industrial-settings-form compact"><input value={commentTitle} onChange={(event) => setCommentTitle(event.target.value)} placeholder="Titel" /><textarea value={commentText} onChange={(event) => setCommentText(event.target.value)} placeholder="Kommentar" /><button className="industrial-secondary-button" type="submit">Speichern</button></form>
+                </section>
+                <section className="industrial-subpanel">
+                  <h4>Rechtsprechung</h4>
+                  {caseLaw.map((item) => <p key={item.id} className="industrial-meta"><strong>{item.court}, {item.fileNumber}</strong><br />{item.shortHolding}</p>)}
+                  <form onSubmit={createCaseLawForNorm} className="industrial-settings-form compact"><input value={caseLawCourt} onChange={(event) => setCaseLawCourt(event.target.value)} placeholder="Gericht" /><input value={caseLawFileNumber} onChange={(event) => setCaseLawFileNumber(event.target.value)} placeholder="Aktenzeichen" /><textarea value={caseLawHolding} onChange={(event) => setCaseLawHolding(event.target.value)} placeholder="Kurzleitsatz / Relevanz" /><button className="industrial-secondary-button" type="submit">Speichern</button></form>
+                </section>
+              </div>
+            </>
+          )}
+        </section>
+      </section>
+    </ModuleFrame>
+  );
+}
+
 function PlaceholderView({ view }: { view: ModuleDefinition }) {
   return (
     <ModuleFrame title={view.title} kicker={view.shortTitle} description={view.text}>
@@ -2843,9 +3654,11 @@ export function App() {
           />
         )}
         {currentView === 'contacts' && <ContactsView contacts={contacts} onCreateContact={createContact} onDeleteContact={deleteContact} />}
+        {currentView === 'knowledge' && <KnowledgeView cases={cases} />}
+        {currentView === 'prevention' && <PreventionView cases={cases} contacts={contacts} onWorkDataChanged={reloadWorkData} />}
         {currentView === 'reports' && <ReportsView />}
         {currentView === 'settings' && <SettingsView theme={theme} onThemeChange={setTheme} cases={cases} />}
-        {currentView !== 'dashboard' && currentView !== 'cases' && currentView !== 'deadlines' && currentView !== 'contacts' && currentView !== 'reports' && currentView !== 'settings' && currentModule && (
+        {currentView !== 'dashboard' && currentView !== 'cases' && currentView !== 'deadlines' && currentView !== 'contacts' && currentView !== 'knowledge' && currentView !== 'prevention' && currentView !== 'reports' && currentView !== 'settings' && currentModule && (
           <PlaceholderView view={currentModule} />
         )}
         {selectedDeadline && (
