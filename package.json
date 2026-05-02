@@ -1,0 +1,136 @@
+{
+  "name": "gremia-sbv",
+  "version": "0.3.28",
+  "private": true,
+  "description": "Offline-first Desktop-App für die vertrauliche Fallarbeit der Schwerbehindertenvertretung.",
+  "main": "dist-electron/electron/main.js",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -k --success first \"npm:dev:renderer\" \"npm:dev:electron\"",
+    "dev:renderer": "vite --host 127.0.0.1",
+    "dev:electron": "wait-on tcp:5173 && tsc -p tsconfig.electron.json && node scripts/write-electron-cjs-package.cjs && electron .",
+    "build": "tsc -p tsconfig.json && vite build && tsc -p tsconfig.electron.json && node scripts/write-electron-cjs-package.cjs",
+    "preview": "vite preview",
+    "lint": "eslint . --ext .ts,.tsx",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:init": "tsx scripts/init-db.ts",
+    "db:migrate": "tsx scripts/migrate-db.ts",
+    "package": "electron-builder --dir",
+    "dist": "electron-builder",
+    "dev:electron:build": "tsc -p tsconfig.electron.json && node scripts/write-electron-cjs-package.cjs",
+    "deps:linux": "bash scripts/install-linux-deps.sh",
+    "native:rebuild": "npm run native:rebuild:electron",
+    "native:rebuild:node": "npm rebuild better-sqlite3-multiple-ciphers --build-from-source",
+    "native:rebuild:electron": "electron-rebuild -f -w better-sqlite3-multiple-ciphers",
+    "native:clean": "rm -rf node_modules/better-sqlite3-multiple-ciphers/build",
+    "native:diagnose": "node scripts/diagnose-native-sqlcipher.cjs",
+    "start:prod": "npm run build && electron .",
+    "build:linux": "bash scripts/build-linux-appimage.sh",
+    "launcher:linux": "bash scripts/create-linux-launcher.sh",
+    "build:win": "bash scripts/build-windows.sh",
+    "build:windows": "npm run build:win",
+    "build:all": "npm run build:linux && npm run build:win",
+    "debug:paths": "node -e \"console.log({cwd:process.cwd(),home:process.env.HOME,GREMIA_SBV_DATA_DIR:process.env.GREMIA_SBV_DATA_DIR})\""
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "^5.0.0",
+    "argon2-browser": "^1.18.0",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
+    "docx": "^9.5.1",
+    "ical-generator": "^9.0.0",
+    "lucide-react": "^0.468.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "zod": "^3.24.1",
+    "better-sqlite3-multiple-ciphers": "^12.0.0",
+    "yauzl": "^3.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/react": "^19.0.2",
+    "@types/react-dom": "^19.0.2",
+    "@typescript-eslint/eslint-plugin": "^8.18.0",
+    "@typescript-eslint/parser": "^8.18.0",
+    "autoprefixer": "^10.4.20",
+    "concurrently": "^9.1.0",
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8",
+    "eslint": "^9.17.0",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.6",
+    "vitest": "^2.1.8",
+    "wait-on": "^8.0.1",
+    "@electron/rebuild": "^3.7.2",
+    "@types/yauzl": "^2.10.3"
+  },
+  "build": {
+    "appId": "de.gremia.sbv",
+    "productName": "Gremia.SBV",
+    "files": [
+      "dist/**",
+      "dist-electron/**",
+      "package.json",
+      "assets/**",
+      "database/**"
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "asarUnpack": [
+      "**/*.node"
+    ],
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Office",
+      "icon": "assets/icons/png"
+    },
+    "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "publisherName": "Gremia.SBV",
+      "requestedExecutionLevel": "asInvoker",
+      "icon": "assets/icons/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Gremia.SBV",
+      "deleteAppDataOnUninstall": false
+    },
+    "icon": "assets/icons/icon.png",
+    "extraResources": [
+      {
+        "from": "assets",
+        "to": "assets"
+      },
+      {
+        "from": "database",
+        "to": "database"
+      }
+    ]
+  }
+}

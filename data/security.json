@@ -1,0 +1,18 @@
+{
+  "version": 3,
+  "vaultId": "2e30e73980e6cb1d84ab7dfc911f4552",
+  "kdf": "scrypt",
+  "salt": "f61c8ff6abe1b5f59e0b7df50df1c6f2",
+  "passwordVerifier": "1dde3da9c4b5a9f980935f35d5e32f8c82b0e09dd6831ee5b87c8224712d768a",
+  "databaseKeyWrap": {
+    "version": 1,
+    "algorithm": "aes-256-gcm",
+    "kdf": "scrypt",
+    "salt": "a119a8368bf7c43777229fb16b49e5d4",
+    "iv": "991f4b89091f31eb87d64d85",
+    "tag": "eea94bee84aa92e4845d1b5b220a84cf",
+    "ciphertext": "aef06ab8c34986cdf0da2cec1df830cc3cba313ae17063746db0281bb0462a8b"
+  },
+  "createdAt": "2026-05-02T08:25:44.356Z",
+  "updatedAt": "2026-05-02T08:25:44.356Z"
+}

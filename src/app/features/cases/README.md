@@ -1,0 +1,3 @@
+# cases
+
+Fallverwaltung als Kernmodul.
