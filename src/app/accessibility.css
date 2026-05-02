@@ -1,0 +1,54 @@
+:where(button, input, select, textarea, a, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent, #facc15);
+  outline-offset: 3px;
+}
+
+.industrial-dashboard-card {
+  display: flex;
+  min-height: 160px;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  border: 1px solid var(--panel-border, rgba(250, 204, 21, 0.28));
+  background: linear-gradient(145deg, rgba(24, 24, 27, 0.92), rgba(9, 9, 11, 0.96));
+  padding: 1rem;
+  text-align: left;
+  color: inherit;
+  transition: border-color 160ms ease, transform 160ms ease, opacity 160ms ease;
+}
+
+.industrial-dashboard-card:not(.is-disabled):hover,
+.industrial-dashboard-card:not(.is-disabled):focus-visible {
+  border-color: var(--accent, #facc15);
+  transform: translateY(-1px);
+}
+
+.industrial-dashboard-card.is-disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.industrial-dashboard-card-icon {
+  width: 1.8rem;
+  height: 1.8rem;
+  color: var(--accent, #facc15);
+}
+
+.industrial-dashboard-card-title {
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.industrial-dashboard-card-text,
+.industrial-dashboard-card-status {
+  color: var(--text-muted, #a1a1aa);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.industrial-dashboard-card-status {
+  margin-top: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}

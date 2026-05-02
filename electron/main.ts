@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, nativeImage, session } from 'electron';
+import { app, BrowserWindow, ipcMain, nativeImage, session, Menu } from 'electron';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { registerCaseIpc } from './ipc/caseIpc.js';
@@ -143,6 +143,12 @@ async function createWindow(): Promise<void> {
     }
   });
 
+
+  if (process.env.GREMIA_SBV_SHOW_MENU !== '1') {
+    win.setMenuBarVisibility(false);
+    win.setAutoHideMenuBar(true);
+  }
+
   mainWindow = win;
   registerDiagnostics(win);
 
@@ -202,6 +208,10 @@ if (!singleInstanceLock) {
   });
 
   app.whenReady().then(() => {
+    if (process.env.GREMIA_SBV_SHOW_MENU !== '1') {
+      Menu.setApplicationMenu(null);
+    }
+
     security = new SecurityService(resolveRuntimeDataDir());
     console.info('Gremia.SBV data directory:', resolveRuntimeDataDir());
     registerSecurityIpc(ipcMain, security);
@@ -210,7 +220,7 @@ if (!singleInstanceLock) {
     registerDeadlineIpc(ipcMain, security);
     registerPreventionIpc(ipcMain, security);
     registerKnowledgeIpc(ipcMain, security);
-  registerTemplateIpc(ipcMain, security);
+    registerTemplateIpc(ipcMain, security);
     registerReportIpc(ipcMain, security);
     registerBackupIpc(ipcMain, security);
     registerRetentionIpc(ipcMain, security);

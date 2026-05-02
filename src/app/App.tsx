@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { FormEvent, ReactNode } from 'react';
+import type { FormEvent } from 'react';
 import {
   AlertTriangle,
   BarChart3,
@@ -31,6 +31,11 @@ import {
   Workflow
 } from 'lucide-react';
 import { DashboardCard } from './shared/components/DashboardCard';
+import { ModuleFrame } from './shared/components/ModuleFrame';
+import { PlaceholderView } from './shared/components/PlaceholderView';
+import { ShellNav } from './shell/ShellNav';
+import { modules, type ViewId } from './core/navigation/modules';
+import { useModalKeyboardShortcuts } from './core/keyboard/useModalKeyboardShortcuts';
 import { DeadlineDashboardPanel } from './features/deadlines/DeadlineDashboardPanel';
 import { DeadlineListView } from './features/deadlines/DeadlineListView';
 import type { CaseCategory, CaseRecord } from './core/models/case.model';
@@ -62,112 +67,10 @@ import {
   type TextCommandToken
 } from '@services/textCommandPolicy';
 import { missingPlaceholderWarning, resolveContextualTemplateAction } from '@services/templateContextPolicy';
+import { buildExportWarningMessage, scanSensitiveExportText } from '@services/exportGuardPolicy';
 import './caseModalResponsive.css';
+import './accessibility.css';
 
-
-type ViewId =
-  | 'dashboard'
-  | 'cases'
-  | 'deadlines'
-  | 'bem'
-  | 'prevention'
-  | 'equalization'
-  | 'termination'
-  | 'templates'
-  | 'knowledge'
-  | 'contacts'
-  | 'reports'
-  | 'portable'
-  | 'settings';
-
-interface ModuleDefinition {
-  id: Exclude<ViewId, 'dashboard' | 'settings'>;
-  title: string;
-  shortTitle: string;
-  text: string;
-  icon: typeof FolderKanban;
-}
-
-
-const modules: ModuleDefinition[] = [
-  {
-    id: 'cases',
-    title: 'Fälle',
-    shortTitle: 'Fallakte',
-    text: 'Fallakte, Vorgang, Gesprächsnotizen und Protokolle.',
-    icon: FolderKanban
-  },
-  {
-    id: 'deadlines',
-    title: 'Fristen',
-    shortTitle: 'Frist',
-    text: 'Fristen und Wiedervorlagen. Ab 48h zwingend auf dem Dashboard.',
-    icon: CalendarClock
-  },
-  {
-    id: 'bem',
-    title: 'BEM',
-    shortTitle: 'BEM',
-    text: 'Einladung, Zustimmung, Maßnahmen, Evaluation.',
-    icon: HeartPulse
-  },
-  {
-    id: 'prevention',
-    title: 'Präventionsverfahren',
-    shortTitle: 'Prävention',
-    text: 'Frühzeitige Aktivierung nach § 167 Abs. 1 SGB IX.',
-    icon: ShieldAlert
-  },
-  {
-    id: 'equalization',
-    title: 'Gleichstellung',
-    shortTitle: 'Gleichstellung',
-    text: 'Antrag, Sachstand, Bescheid, Widerspruchsfrist.',
-    icon: Scale
-  },
-  {
-    id: 'termination',
-    title: 'Kündigungsanhörung',
-    shortTitle: 'Kündigung',
-    text: 'Kritischer Workflow für SBV-Anhörung und Integrationsamt-Prüfung.',
-    icon: ShieldAlert
-  },
-  {
-    id: 'templates',
-    title: 'Vorlagen',
-    shortTitle: 'Vorlagen',
-    text: 'Schriftverkehr, Platzhalter, Standardschreiben.',
-    icon: FileText
-  },
-  {
-    id: 'knowledge',
-    title: 'Wissen',
-    shortTitle: 'Wissen',
-    text: 'Normen, Notizen, Fallverknüpfungen.',
-    icon: BookOpen
-  },
-  {
-    id: 'contacts',
-    title: 'Kontakte',
-    shortTitle: 'Kontakte',
-    text: 'Inklusionsamt, Betriebsarzt, Agentur, Beratungsstellen.',
-    icon: Users
-  },
-  {
-    id: 'reports',
-    title: 'Berichte',
-    shortTitle: 'Berichte',
-    text: 'Anonymisierte Tätigkeitsberichte und Auswertungen.',
-    icon: BarChart3
-  },
-  {
-    id: 'portable',
-    title: 'Portabilität',
-    shortTitle: 'USB',
-    text: 'Datenpfad, Backup, tragbarer Betrieb.',
-    icon: HardDrive
-  }
-];
 
 function nowLabel(): string {
   return new Intl.DateTimeFormat('de-DE', {
@@ -661,7 +564,16 @@ function DashboardOverview({
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         {modules.map((module) => (
-          <DashboardCard key={module.id} {...module} onClick={() => onNavigate(module.id)} />
+          <DashboardCard
+            key={module.id}
+            {...module}
+            disabled={module.status === 'planned'}
+            statusText={module.status === 'planned' ? `In Entwicklung${module.plannedVersion ? ` · geplant ${module.plannedVersion}` : ''}` : undefined}
+            onClick={() => {
+              if (module.status === 'planned') return;
+              onNavigate(module.id);
+            }}
+          />
         ))}
       </section>
 
@@ -863,6 +775,25 @@ function CasesView({
   useEffect(() => {
     setPage(1);
   }, [caseFilter]);
+
+  useEffect(() => {
+    function openCaseModalFromShortcut() {
+      openCaseCreateModal();
+    }
+
+    function focusCaseSearchFromShortcut() {
+      const target = document.querySelector<HTMLInputElement>('[data-global-search-target=\"cases\"]');
+      target?.focus();
+      target?.select();
+    }
+
+    window.addEventListener('gremia-sbv:create-case', openCaseModalFromShortcut);
+    window.addEventListener('gremia-sbv:focus-search', focusCaseSearchFromShortcut);
+    return () => {
+      window.removeEventListener('gremia-sbv:create-case', openCaseModalFromShortcut);
+      window.removeEventListener('gremia-sbv:focus-search', focusCaseSearchFromShortcut);
+    };
+  }, []);
 
   useEffect(() => {
     if (!selectedCaseId) {
@@ -1566,9 +1497,11 @@ ${caseProcessDraft.description}`,
 
   async function exportDocument(document: CaseDocumentRecord) {
     setDocumentError('');
-    const confirmed = window.confirm(
-      'Dieses Dokument wird als Klartextkopie außerhalb des verschlüsselten Gremia.SBV-Tresors gespeichert. Fortfahren?'
-    );
+    const scan = scanSensitiveExportText(`${document.filename} ${selectedCase?.caseNumber ?? ''} ${selectedCase?.displayName ?? ''}`, {
+      context: 'Dokumentenexport',
+      target: document.filename
+    });
+    const confirmed = window.confirm(buildExportWarningMessage(scan));
     if (!confirmed) return;
     try {
       const bridge = await waitForBridge();
@@ -1628,7 +1561,7 @@ ${caseProcessDraft.description}`,
             <h2>Register</h2>
           </div>
           <div className="case-register-actions">
-            <input className="industrial-input" value={caseFilter} onChange={(event) => setCaseFilter(event.target.value)} placeholder="Fälle filtern nach Aktenzeichen, Name, Kurzbeschreibung …" />
+            <input className="industrial-input" data-global-search-target="cases" value={caseFilter} onChange={(event) => setCaseFilter(event.target.value)} placeholder="Fälle filtern nach Aktenzeichen, Name, Kurzbeschreibung …" />
             <button type="button" className="industrial-button" onClick={openCaseCreateModal}><Plus className="h-4 w-4" />Fallakte</button>
           </div>
         </div>
@@ -1705,7 +1638,7 @@ ${caseProcessDraft.description}`,
         <section className="industrial-panel case-detail-panel">
           <form onSubmit={runSearch} className="case-search-bar">
             <Search className="h-4 w-4 text-yellow-300" />
-            <input className="industrial-input" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Volltextsuche in Notizen, Protokollen und Dokumenten …" />
+            <input className="industrial-input" data-global-search-target="case-fulltext" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Volltextsuche in Notizen, Protokollen und Dokumenten …" />
             <label className="industrial-checkbox-row compact"><input type="checkbox" checked={searchOnlySelectedCase} onChange={(event) => setSearchOnlySelectedCase(event.target.checked)} /><span>nur diese Fallakte</span></label>
             <button type="submit" className="industrial-button">Suchen</button>
           </form>
@@ -3646,6 +3579,8 @@ function ContextualTemplateButton({
   async function copyRendered() {
     if (!rendered) return;
     const text = `Betreff: ${rendered.subject}\n\n${rendered.body}`;
+    const scan = scanSensitiveExportText(text, { context: 'Vorlagenexport', target: rendered.title });
+    if (!window.confirm(buildExportWarningMessage(scan))) return;
     await navigator.clipboard.writeText(text);
     setMessage('Entwurf wurde in die Zwischenablage kopiert. Achtung: Die Zwischenablage liegt außerhalb des Tresors.');
   }
@@ -3764,6 +3699,8 @@ function TemplatesView({ cases }: { cases: CaseRecord[] }) {
   async function copyRenderedText() {
     if (!rendered) return;
     const text = `Betreff: ${rendered.subject}\n\n${rendered.body}`;
+    const scan = scanSensitiveExportText(text, { context: 'Vorlagenexport', target: rendered.title });
+    if (!window.confirm(buildExportWarningMessage(scan))) return;
     try {
       await navigator.clipboard.writeText(text);
       setInfo('Entwurf wurde in die Zwischenablage kopiert. Hinweis: Die Zwischenablage liegt außerhalb des Tresors.');
@@ -3897,96 +3834,6 @@ function TemplatesView({ cases }: { cases: CaseRecord[] }) {
   );
 }
 
-function PlaceholderView({ view }: { view: ModuleDefinition }) {
-  return (
-    <ModuleFrame title={view.title} kicker={view.shortTitle} description={view.text}>
-      <div className="industrial-empty">
-        <view.icon className="h-10 w-10 text-yellow-300" />
-        <div>
-          <h3>Modul geöffnet</h3>
-          <p>Hier erscheinen die Fachmasken dieses Bereichs.</p>
-        </div>
-      </div>
-    </ModuleFrame>
-  );
-}
-
-function ModuleFrame({
-  title,
-  kicker,
-  description,
-  children
-}: {
-  title: string;
-  kicker: string;
-  description: string;
-  children: ReactNode;
-}) {
-  return (
-    <section className="space-y-6">
-      <header className="industrial-module-header">
-        <div>
-          <p className="industrial-kicker">{kicker}</p>
-          <h1 className="industrial-title">{title}</h1>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-400">{description}</p>
-        </div>
-      </header>
-      {children}
-    </section>
-  );
-}
-
-function IndustrialTable({ headers, rows, empty }: { headers: string[]; rows: string[][]; empty: string }) {
-  if (!rows.length) {
-    return <div className="industrial-empty">{empty}</div>;
-  }
-
-  return (
-    <div className="industrial-table-shell">
-      <table className="industrial-table">
-        <thead>
-          <tr>
-            {headers.map((header) => (
-              <th key={header}>{header}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row) => (
-            <tr key={row.join('|')}>
-              {row.map((cell, index) => (
-                <td key={`${cell}-${index}`}>{cell}</td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-function ShellNav({ current, onNavigate }: { current: ViewId; onNavigate: (view: ViewId) => void }) {
-  return (
-    <nav className="industrial-nav">
-      <button className={current === 'dashboard' ? 'active' : ''} onClick={() => onNavigate('dashboard')}>
-        <TerminalSquare className="h-4 w-4" />
-        Dashboard
-      </button>
-      {modules.map((module) => (
-        <button key={module.id} className={current === module.id ? 'active' : ''} onClick={() => onNavigate(module.id)}>
-          <module.icon className="h-4 w-4" />
-          {module.shortTitle}
-        </button>
-      ))}
-      <button className={current === 'settings' ? 'active' : ''} onClick={() => onNavigate('settings')}>
-        <SettingsIcon className="h-4 w-4" />
-        Einstellungen
-      </button>
-    </nav>
-  );
-}
-
-
 export function App() {
   const [authMode, setAuthMode] = useState<AuthMode>('loading');
   const [unlocked, setUnlocked] = useState(false);
@@ -4000,6 +3847,8 @@ export function App() {
   const [theme, setTheme] = useState<ThemeMode>(() => getInitialTheme());
 
   const currentModule = useMemo(() => modules.find((module) => module.id === currentView), [currentView]);
+
+  useModalKeyboardShortcuts({ setCurrentView });
 
   useEffect(() => {
     applyTheme(theme);
