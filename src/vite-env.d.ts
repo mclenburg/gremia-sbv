@@ -6,6 +6,7 @@ import type { ContactListFilters, ContactRecord, CreateContactInput, DeleteConta
 import type { CaseContentSearchInput, CaseNoteRecord, CaseSearchResult, CreateCaseNoteInput, UpdateCaseNoteInput } from './app/core/models/case-note.model';
 import type { CreateDeadlineInput, DeadlineDashboardItem, DeadlineListFilters, DeadlineRecord, UpdateDeadlineInput } from './app/core/models/deadline.model';
 import type { SecurityResult, SecurityStatus } from './app/core/models/security.model';
+import type { GenerateReportInput, ReportDescriptor, ReportExportHistoryItem, ReportGenerationResult } from './app/core/models/report.model';
 
 declare global {
   interface Window {
@@ -49,6 +50,12 @@ declare global {
         complete(id: string, note?: string): Promise<DeadlineRecord>;
         suspend(id: string, reason: string): Promise<DeadlineRecord>;
         cancel(id: string, reason: string): Promise<DeadlineRecord>;
+      };
+      reports: {
+        descriptors(): Promise<ReportDescriptor[]>;
+        history(limit?: number): Promise<ReportExportHistoryItem[]>;
+        generate(input: GenerateReportInput): Promise<ReportGenerationResult>;
+        openExportFolder(filePath?: string): Promise<{ opened: boolean }>;
       };
     };
     gremiaSbvPreload?: {

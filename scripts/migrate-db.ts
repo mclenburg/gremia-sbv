@@ -1,2 +1,3 @@
-console.log('Gremia.SBV Migration Runner');
-console.log('Platzhalter: Migrations werden nach MVP-1 als nummerierte SQL-Dateien ergänzt.');
+console.log('Gremia.SBV Datenbankmigrationen laufen automatisch beim Entsperren der App.');
+console.log('Der SQLCipher-Tresor wird erst nach erfolgreicher Passworteingabe geöffnet; danach führt der MigrationService fehlende Migrationen aus.');
+console.log('Zur Kontrolle in der entsperrten Datenbank: SELECT * FROM schema_migrations ORDER BY version;');

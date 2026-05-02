@@ -173,15 +173,30 @@ CREATE TABLE IF NOT EXISTS generated_documents (
 
 CREATE TABLE IF NOT EXISTS contacts (
   id TEXT PRIMARY KEY,
-  organization TEXT NOT NULL,
-  name TEXT,
+  first_name TEXT NOT NULL,
+  last_name TEXT NOT NULL,
+  organization TEXT,
   role TEXT,
+  category TEXT NOT NULL DEFAULT 'sonstiges',
   email TEXT,
   phone TEXT,
-  category TEXT NOT NULL,
   notes TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS contact_text_references (
+  id TEXT PRIMARY KEY,
+  contact_id TEXT NOT NULL REFERENCES contacts(id) ON DELETE CASCADE,
+  source_type TEXT NOT NULL,
+  source_id TEXT NOT NULL,
+  field_name TEXT NOT NULL,
+  matched_text TEXT NOT NULL,
+  replacement_text TEXT NOT NULL DEFAULT '[Kontakt anonymisiert]',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  anonymized_at TEXT,
+  UNIQUE(contact_id, source_type, source_id, field_name, matched_text)
 );
 
 CREATE TABLE IF NOT EXISTS case_contacts (
@@ -209,6 +224,25 @@ CREATE TABLE IF NOT EXISTS settings (
   updated_at TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS schema_migrations (
+  version TEXT PRIMARY KEY,
+  filename TEXT NOT NULL UNIQUE,
+  checksum TEXT NOT NULL,
+  applied_at TEXT NOT NULL,
+  app_version TEXT,
+  mode TEXT NOT NULL DEFAULT 'sql',
+  notes TEXT
+);
+
+CREATE TABLE IF NOT EXISTS schema_migration_log (
+  id TEXT PRIMARY KEY,
+  version TEXT NOT NULL,
+  filename TEXT NOT NULL,
+  action TEXT NOT NULL,
+  message TEXT,
+  created_at TEXT NOT NULL
+);
+
 CREATE INDEX IF NOT EXISTS idx_cases_status ON cases(status);
 CREATE INDEX IF NOT EXISTS idx_cases_category ON cases(category);
 CREATE INDEX IF NOT EXISTS idx_deadlines_due_at ON deadlines(due_at);
@@ -225,6 +259,10 @@ CREATE INDEX IF NOT EXISTS idx_case_notes_case_id ON case_notes(case_id);
 CREATE INDEX IF NOT EXISTS idx_case_notes_date ON case_notes(case_id, note_date DESC);
 CREATE INDEX IF NOT EXISTS idx_case_note_cases_case_id ON case_note_cases(case_id);
 CREATE INDEX IF NOT EXISTS idx_case_note_cases_note_id ON case_note_cases(note_id);
+CREATE INDEX IF NOT EXISTS idx_contacts_name ON contacts(last_name, first_name);
+CREATE INDEX IF NOT EXISTS idx_contacts_category ON contacts(category);
+CREATE INDEX IF NOT EXISTS idx_contact_text_refs_contact ON contact_text_references(contact_id);
+CREATE INDEX IF NOT EXISTS idx_contact_text_refs_source ON contact_text_references(source_type, source_id);
 
 CREATE VIRTUAL TABLE IF NOT EXISTS case_notes_fts USING fts5(
   id UNINDEXED,
@@ -335,3 +373,20 @@ CREATE INDEX IF NOT EXISTS idx_termination_hearings_received_at ON termination_h
 
 -- 0.3.17 document encryption metadata
 CREATE INDEX IF NOT EXISTS idx_case_documents_case_id ON case_documents(case_id);
+
+
+-- Reports module added for Gremia.SBV 0.3.33
+CREATE TABLE IF NOT EXISTS report_exports (
+  id TEXT PRIMARY KEY,
+  report_type TEXT NOT NULL,
+  title TEXT NOT NULL,
+  file_name TEXT NOT NULL,
+  file_path TEXT NOT NULL,
+  period_start TEXT,
+  period_end TEXT,
+  warning_count INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_report_exports_created_at ON report_exports(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_report_exports_type ON report_exports(report_type);

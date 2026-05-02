@@ -8,6 +8,7 @@ import {
   CalendarPlus,
   CheckCircle2,
   FileText,
+  FolderOpen,
   FolderKanban,
   MessageSquare,
   Save,
@@ -35,6 +36,7 @@ import type { ContactCategory, ContactRecord, CreateContactInput, DeleteContactR
 import type { CaseDocumentRecord } from './core/models/case-document.model';
 import type { CaseNoteRecord, CaseNoteType, CaseSearchResult, ConfidentialLevel } from './core/models/case-note.model';
 import type { CreateDeadlineInput, DeadlineDashboardItem, DeadlineProcessType, DeadlineRecord, DeadlineSeverity, DeadlineType } from './core/models/deadline.model';
+import type { GenerateReportInput, ReportDescriptor, ReportExportHistoryItem, ReportGenerationResult, ReportType } from './core/models/report.model';
 
 type ViewId =
   | 'dashboard'
@@ -1881,6 +1883,186 @@ function ContactsView({ contacts, onCreateContact, onDeleteContact }: { contacts
   );
 }
 
+
+const REPORT_TYPE_ORDER: ReportType[] = [
+  'activity',
+  'privacy_audit',
+  'case_deadline_controlling',
+  'bem_prevention',
+  'termination_hearings',
+  'system_integrity'
+];
+
+function defaultReportPeriod(): { periodStart: string; periodEnd: string } {
+  const year = new Date().getFullYear();
+  return {
+    periodStart: `${year}-01-01T00:00`,
+    periodEnd: `${year}-12-31T23:59`
+  };
+}
+
+function reportConfidentialityLabel(value: ReportDescriptor['confidentiality']): string {
+  if (value === 'anonymized') return 'anonymisiert';
+  if (value === 'technical') return 'technisch vertraulich';
+  return 'intern vertraulich';
+}
+
+function ReportsView() {
+  const defaultPeriod = useMemo(() => defaultReportPeriod(), []);
+  const [descriptors, setDescriptors] = useState<ReportDescriptor[]>([]);
+  const [history, setHistory] = useState<ReportExportHistoryItem[]>([]);
+  const [periodStart, setPeriodStart] = useState(defaultPeriod.periodStart);
+  const [periodEnd, setPeriodEnd] = useState(defaultPeriod.periodEnd);
+  const [generating, setGenerating] = useState<ReportType | null>(null);
+  const [result, setResult] = useState<ReportGenerationResult | null>(null);
+  const [error, setError] = useState('');
+
+  async function loadReportsMeta() {
+    const bridge = await waitForBridge();
+    if (!bridge?.reports) throw new Error('Berichtsdienst ist nicht erreichbar.');
+    const [descriptorRows, historyRows] = await Promise.all([
+      bridge.reports.descriptors(),
+      bridge.reports.history(15)
+    ]);
+    const ordered = [...descriptorRows].sort((a, b) => REPORT_TYPE_ORDER.indexOf(a.type) - REPORT_TYPE_ORDER.indexOf(b.type));
+    setDescriptors(ordered);
+    setHistory(historyRows);
+  }
+
+  useEffect(() => {
+    loadReportsMeta().catch((error) => {
+      console.error('Gremia.SBV report metadata failed', error);
+      setError(error instanceof Error ? error.message : 'Berichtsmodul konnte nicht geladen werden.');
+    });
+  }, []);
+
+  async function generateReport(type: ReportType) {
+    setGenerating(type);
+    setError('');
+    setResult(null);
+    try {
+      const bridge = await waitForBridge();
+      if (!bridge?.reports) throw new Error('Berichtsdienst ist nicht erreichbar.');
+      const input: GenerateReportInput = {
+        type,
+        periodStart: periodStart ? new Date(periodStart).toISOString() : undefined,
+        periodEnd: periodEnd ? new Date(periodEnd).toISOString() : undefined
+      };
+      const generated = await bridge.reports.generate(input);
+      if (!generated.ok) throw new Error(generated.error ?? 'Bericht konnte nicht erzeugt werden.');
+      setResult(generated);
+      await loadReportsMeta();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Bericht konnte nicht erzeugt werden.');
+    } finally {
+      setGenerating(null);
+    }
+  }
+
+  return (
+    <ModuleFrame title="Berichte" kicker="Audit & Auswertung" description="PDF-Berichte im Industrial-Design: anonymisierter Tätigkeitsbericht, Datenschutz-Audit und interne Steuerungsberichte.">
+      <section className="industrial-panel">
+        <div className="industrial-panel-header compact">
+          <div>
+            <p className="industrial-kicker">Zeitraum</p>
+            <h2>Berichtsparameter</h2>
+          </div>
+        </div>
+        <div className="industrial-form-grid">
+          <label>
+            <span>Von</span>
+            <input type="datetime-local" value={periodStart} onChange={(event) => setPeriodStart(event.target.value)} />
+          </label>
+          <label>
+            <span>Bis</span>
+            <input type="datetime-local" value={periodEnd} onChange={(event) => setPeriodEnd(event.target.value)} />
+          </label>
+        </div>
+      </section>
+
+      {error && <div className="industrial-message industrial-message-warning">{error}</div>}
+      {result && (
+        <section className="industrial-panel report-result-panel">
+          <div className="industrial-panel-header compact">
+            <div>
+              <p className="industrial-kicker">PDF erzeugt</p>
+              <h2>{result.title}</h2>
+              <p>{result.fileName}</p>
+            </div>
+            <button className="industrial-secondary-button" onClick={() => void window.gremiaSbv?.reports?.openExportFolder(result.filePath)}>
+              <FolderOpen className="h-4 w-4" /> Im Ordner anzeigen
+            </button>
+          </div>
+          {!!result.warnings.length && (
+            <div className="industrial-message industrial-message-warning mt-4">
+              {result.warnings.map((warning) => <p key={warning}>{warning}</p>)}
+            </div>
+          )}
+        </section>
+      )}
+
+      <section className="industrial-report-grid" aria-label="Berichtsauswahl">
+        {descriptors.map((descriptor) => {
+          const isGenerating = generating === descriptor.type;
+          return (
+            <article
+              key={descriptor.type}
+              className={`industrial-report-card clickable ${isGenerating ? 'is-busy' : ''}`}
+              role="button"
+              tabIndex={0}
+              aria-busy={isGenerating}
+              aria-label={`${descriptor.title} als PDF erzeugen`}
+              onClick={() => { if (!generating) void generateReport(descriptor.type); }}
+              onKeyDown={(event) => {
+                if (!generating && (event.key === 'Enter' || event.key === ' ')) {
+                  event.preventDefault();
+                  void generateReport(descriptor.type);
+                }
+              }}
+            >
+              <div>
+                <p className="industrial-kicker">{reportConfidentialityLabel(descriptor.confidentiality)}</p>
+                <h3>{descriptor.title}</h3>
+                <p>{descriptor.description}</p>
+              </div>
+              <div className="industrial-report-card-footer">
+                <span>{isGenerating ? 'PDF wird erzeugt …' : 'Klicken zum Erzeugen'}</span>
+                <FileText className="h-4 w-4" />
+              </div>
+            </article>
+          );
+        })}
+      </section>
+
+      <section className="industrial-panel">
+        <div className="industrial-panel-header compact">
+          <div>
+            <p className="industrial-kicker">Historie</p>
+            <h2>Letzte PDF-Exporte</h2>
+          </div>
+        </div>
+        <div className="industrial-table-shell">
+          <table className="industrial-table">
+            <thead><tr><th>Zeitpunkt</th><th>Bericht</th><th>Datei</th><th>Hinweise</th><th></th></tr></thead>
+            <tbody>
+              {history.map((item) => (
+                <tr key={item.id}>
+                  <td>{new Date(item.generatedAt).toLocaleString('de-DE')}</td>
+                  <td>{item.title}</td>
+                  <td>{item.fileName}</td>
+                  <td>{item.warningCount}</td>
+                  <td><button className="industrial-icon-button" onClick={() => void window.gremiaSbv?.reports?.openExportFolder(item.filePath)} title="Im Ordner anzeigen"><FolderOpen className="h-3.5 w-3.5" /></button></td>
+                </tr>
+              ))}
+              {!history.length && <tr><td colSpan={5}>Noch keine Berichte erzeugt.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </ModuleFrame>
+  );
+}
+
 function SettingsView({ theme, onThemeChange }: { theme: ThemeMode; onThemeChange: (theme: ThemeMode) => void }) {
   return (
     <ModuleFrame title="Einstellungen" kicker="System" description="Passwortverwaltung, Darstellung und lokale Anwendungseinstellungen.">
@@ -2294,8 +2476,9 @@ export function App() {
           />
         )}
         {currentView === 'contacts' && <ContactsView contacts={contacts} onCreateContact={createContact} onDeleteContact={deleteContact} />}
+        {currentView === 'reports' && <ReportsView />}
         {currentView === 'settings' && <SettingsView theme={theme} onThemeChange={setTheme} />}
-        {currentView !== 'dashboard' && currentView !== 'cases' && currentView !== 'deadlines' && currentView !== 'contacts' && currentView !== 'settings' && currentModule && (
+        {currentView !== 'dashboard' && currentView !== 'cases' && currentView !== 'deadlines' && currentView !== 'contacts' && currentView !== 'reports' && currentView !== 'settings' && currentModule && (
           <PlaceholderView view={currentModule} />
         )}
         {selectedDeadline && (

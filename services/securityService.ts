@@ -11,6 +11,7 @@ import {
 import type { SecurityResult, SecurityStatus } from '../src/app/core/models/security.model.js';
 import { DatabaseService } from './databaseService.js';
 import type { DatabaseAdapter } from './databaseService.js';
+import { MigrationService } from './migrationService.js';
 
 interface KeyWrap {
   version: 1;
@@ -473,6 +474,10 @@ export class SecurityService {
     return this.databaseService.active;
   }
 
+  getDataDirectory(): string {
+    return this.dataDir;
+  }
+
   private hasPasswordStore(): boolean {
     return existsSync(this.storePath);
   }
@@ -577,10 +582,18 @@ export class SecurityService {
   private async openAndInitializeVaultDatabase(databaseKey: Buffer): Promise<void> {
     this.ensureDataLayout();
     const schemaPath = this.resolveSchemaPath();
-    const schemaSql = readFileSync(schemaPath, 'utf8');
+    const migrationsDir = this.resolveMigrationsDir();
 
     const db = await this.databaseService.open(this.vaultDatabasePath, databaseKey.toString('hex'));
-    db.exec(schemaSql);
+    const result = new MigrationService(db, schemaPath, migrationsDir).migrate();
+
+    if (result.applied.length || result.inferred.length) {
+      console.log('Gremia.SBV database migrations:', {
+        applied: result.applied,
+        inferred: result.inferred,
+        schemaVersion: result.currentSchemaVersion
+      });
+    }
   }
 
   private resolveSchemaPath(): string {
@@ -599,4 +612,22 @@ export class SecurityService {
 
     return match;
   }
+
+  private resolveMigrationsDir(): string {
+    const electronProcess = process as NodeJS.Process & { resourcesPath?: string };
+    const candidates = [
+      path.join(process.cwd(), 'database', 'migrations'),
+      electronProcess.resourcesPath ? path.join(electronProcess.resourcesPath, 'database', 'migrations') : undefined,
+      path.join(__dirname, '../database/migrations'),
+      path.join(__dirname, '../../database/migrations')
+    ].filter((candidate): candidate is string => Boolean(candidate));
+
+    const match = candidates.find((candidate) => existsSync(candidate));
+    if (!match) {
+      throw new Error(`Datenbankmigrationen nicht gefunden. Geprüft: ${candidates.join(', ')}`);
+    }
+
+    return match;
+  }
+
 }

@@ -5,6 +5,7 @@ import type { ContactListFilters, ContactRecord, CreateContactInput, DeleteConta
 import type { CaseContentSearchInput, CaseNoteRecord, CaseSearchResult, CreateCaseNoteInput, UpdateCaseNoteInput } from '../src/app/core/models/case-note.model.js';
 import type { CreateDeadlineInput, DeadlineDashboardItem, DeadlineListFilters, DeadlineRecord, UpdateDeadlineInput } from '../src/app/core/models/deadline.model.js';
 import type { SecurityResult, SecurityStatus } from '../src/app/core/models/security.model.js';
+import type { GenerateReportInput, ReportDescriptor, ReportExportHistoryItem, ReportGenerationResult } from '../src/app/core/models/report.model.js';
 
 const api = {
   security: {
@@ -46,6 +47,12 @@ const api = {
     complete: (id: string, note?: string): Promise<DeadlineRecord> => ipcRenderer.invoke('deadlines:complete', id, note),
     suspend: (id: string, reason: string): Promise<DeadlineRecord> => ipcRenderer.invoke('deadlines:suspend', id, reason),
     cancel: (id: string, reason: string): Promise<DeadlineRecord> => ipcRenderer.invoke('deadlines:cancel', id, reason)
+  },
+  reports: {
+    descriptors: (): Promise<ReportDescriptor[]> => ipcRenderer.invoke('reports:descriptors'),
+    history: (limit?: number): Promise<ReportExportHistoryItem[]> => ipcRenderer.invoke('reports:history', limit),
+    generate: (input: GenerateReportInput): Promise<ReportGenerationResult> => ipcRenderer.invoke('reports:generate', input),
+    openExportFolder: (filePath?: string): Promise<{ opened: boolean }> => ipcRenderer.invoke('reports:open-export-folder', filePath)
   },
   diagnostics: {
     bridgeReady: true,
