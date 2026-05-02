@@ -7,7 +7,7 @@ import type { BackupFileSummary, BackupInspectionResult, BackupOperationResult }
 
 const BACKUP_FORMAT = 'gremia-sbv-encrypted-backup';
 const BACKUP_VERSION = 1;
-const CURRENT_APP_VERSION = '0.3.39';
+const CURRENT_APP_VERSION = '0.3.41';
 const RESTORE_CONFIRMATION = 'BACKUP WIEDERHERSTELLEN';
 const MIN_BACKUP_PASSPHRASE_LENGTH = 12;
 

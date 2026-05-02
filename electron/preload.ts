@@ -7,6 +7,7 @@ import type { CreateDeadlineInput, DeadlineDashboardItem, DeadlineListFilters, D
 import type { SecurityResult, SecurityStatus } from '../src/app/core/models/security.model.js';
 import type { GenerateReportInput, ReportDescriptor, ReportExportHistoryItem, ReportGenerationResult } from '../src/app/core/models/report.model.js';
 import type { BackupInspectionResult, BackupOperationResult } from '../src/app/core/models/backup.model.js';
+import type { RetentionDashboard, RetentionOperationResult, RetentionSettings, UpdateRetentionSettingsInput } from '../src/app/core/models/retention.model.js';
 
 const api = {
   security: {
@@ -57,6 +58,16 @@ const api = {
     history: (limit?: number): Promise<ReportExportHistoryItem[]> => ipcRenderer.invoke('reports:history', limit),
     generate: (input: GenerateReportInput): Promise<ReportGenerationResult> => ipcRenderer.invoke('reports:generate', input),
     openExportFolder: (filePath?: string): Promise<{ opened: boolean }> => ipcRenderer.invoke('reports:open-export-folder', filePath)
+  },
+
+  retention: {
+    dashboard: (): Promise<RetentionDashboard> => ipcRenderer.invoke('retention:dashboard'),
+    getSettings: (): Promise<RetentionSettings> => ipcRenderer.invoke('retention:settings:get'),
+    updateSettings: (input: UpdateRetentionSettingsInput): Promise<RetentionSettings> => ipcRenderer.invoke('retention:settings:update', input),
+    anonymizeCase: (caseId: string, reason: string, confirmation: string): Promise<RetentionOperationResult> =>
+      ipcRenderer.invoke('retention:case:anonymize', caseId, reason, confirmation),
+    deleteCase: (caseId: string, reason: string, confirmation: string): Promise<RetentionOperationResult> =>
+      ipcRenderer.invoke('retention:case:delete', caseId, reason, confirmation)
   },
   backup: {
     create: (passphrase: string): Promise<BackupOperationResult> => ipcRenderer.invoke('backup:create', passphrase),

@@ -305,3 +305,20 @@ Dieses Paket ergänzt die Fallakte um Gesprächsnotizen und Protokolle. Zusätzl
 - Backupprüfung mit Prüfsummen
 - Wiederherstellung mit Sicherheitsbestätigung
 - temporäre Arbeitskopien und vorhandene Backups werden nicht in neue Backups aufgenommen
+
+
+## Teststrategie
+
+Ab Version 0.3.41 gilt: Neue Funktionalität wird grundsätzlich mit Tests ausgeliefert.
+
+Wichtige Befehle:
+
+```bash
+npm run test
+npm run test:privacy
+npm run test:backup
+npm run test:migrations
+npm run release:check
+```
+
+Details siehe `docs/TEST_COVERAGE_BASELINE.md`.

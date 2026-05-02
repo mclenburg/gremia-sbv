@@ -33,13 +33,13 @@ function unique(values: string[]): string[] {
   return [...new Set(values.map(normalizeWhitespace).filter((value) => value.length >= 3))];
 }
 
-function contactDisplayName(contact: ContactRow): string {
+export function contactDisplayName(contact: ContactRow): string {
   const name = [contact.last_name, contact.first_name].map((part) => part?.trim()).filter(Boolean).join(', ');
   const organization = contact.organization?.trim();
   return organization ? `${name} (${organization})` : name;
 }
 
-function contactMatchVariants(
+export function contactMatchVariants(
   contact: ContactRow,
   options: { allowSalutationLastName?: boolean; allowInitialLastName?: boolean } = {}
 ): string[] {
@@ -61,7 +61,7 @@ function contactMatchVariants(
   ]);
 }
 
-function findContactMatches(
+export function findContactMatches(
   text: string | null | undefined,
   contact: ContactRow,
   options: { allowSalutationLastName?: boolean; allowInitialLastName?: boolean } = {}

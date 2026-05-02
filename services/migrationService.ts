@@ -25,8 +25,8 @@ interface MigrationDefinition {
   checksum: string;
 }
 
-const APP_SCHEMA_VERSION = '0010';
-const APP_VERSION = '0.3.38';
+const APP_SCHEMA_VERSION = '0011';
+const APP_VERSION = '0.3.41';
 const MIGRATION_TABLE_SQL = `
 CREATE TABLE IF NOT EXISTS schema_migrations (
   version TEXT PRIMARY KEY,
@@ -60,7 +60,7 @@ function checksum(content: string): string {
   return (hash >>> 0).toString(16).padStart(8, '0');
 }
 
-function normalizeSql(sql: string): string {
+export function normalizeSql(sql: string): string {
   return sql
     .replace(/^\uFEFF/, '')
     .split(/\r?\n/)
@@ -69,7 +69,7 @@ function normalizeSql(sql: string): string {
     .trim();
 }
 
-function splitSqlStatements(sql: string): string[] {
+export function splitSqlStatements(sql: string): string[] {
   const statements: string[] = [];
   let current = '';
   let quote: 'single' | 'double' | null = null;
@@ -98,16 +98,16 @@ function splitSqlStatements(sql: string): string[] {
   return statements;
 }
 
-function getVersionFromFilename(filename: string): string | null {
+export function getVersionFromFilename(filename: string): string | null {
   const match = filename.match(/^(\d{4})[_-].+\.sql$/i);
   return match?.[1] ?? null;
 }
 
-function isAlterAddColumnStatement(statement: string): boolean {
+export function isAlterAddColumnStatement(statement: string): boolean {
   return /^ALTER\s+TABLE\s+\w+\s+ADD\s+COLUMN\s+/i.test(statement.trim());
 }
 
-function parseAddColumnStatement(statement: string): { table: string; column: string } | null {
+export function parseAddColumnStatement(statement: string): { table: string; column: string } | null {
   const match = statement.trim().match(/^ALTER\s+TABLE\s+(\w+)\s+ADD\s+COLUMN\s+(\w+)\b/i);
   if (!match) return null;
   return { table: match[1], column: match[2] };
@@ -232,6 +232,10 @@ export class MigrationService {
         return this.tableExists('contact_text_references');
       case '0009':
         return this.tableExists('schema_migrations');
+      case '0010':
+        return this.tableExists('report_exports');
+      case '0011':
+        return this.tableExists('retention_actions');
       default:
         return false;
     }

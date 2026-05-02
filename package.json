@@ -1,6 +1,6 @@
 {
   "name": "gremia-sbv",
-  "version": "0.3.39",
+  "version": "0.3.41",
   "private": true,
   "description": "Offline-first Desktop-App für die vertrauliche Fallarbeit der Schwerbehindertenvertretung.",
   "main": "dist-electron/electron/main.js",
@@ -31,7 +31,12 @@
     "build:win": "bash scripts/build-windows.sh",
     "build:windows": "npm run build:win",
     "build:all": "npm run build:linux && npm run build:win",
-    "debug:paths": "node -e \"console.log({cwd:process.cwd(),home:process.env.HOME,GREMIA_SBV_DATA_DIR:process.env.GREMIA_SBV_DATA_DIR})\""
+    "debug:paths": "node -e \"console.log({cwd:process.cwd(),home:process.env.HOME,GREMIA_SBV_DATA_DIR:process.env.GREMIA_SBV_DATA_DIR})\"",
+    "test:retention": "vitest run tests/retentionPolicy.test.ts",
+    "release:check": "npm run test && npm run build",
+    "test:privacy": "vitest run tests/contactPrivacyService.test.ts tests/reportPrivacyPolicy.test.ts tests/documentStoragePolicy.test.ts",
+    "test:migrations": "vitest run tests/migrationService.test.ts",
+    "test:backup": "vitest run tests/backupPolicy.test.ts"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.0",

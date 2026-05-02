@@ -8,6 +8,7 @@ import type { CreateDeadlineInput, DeadlineDashboardItem, DeadlineListFilters, D
 import type { SecurityResult, SecurityStatus } from './app/core/models/security.model';
 import type { GenerateReportInput, ReportDescriptor, ReportExportHistoryItem, ReportGenerationResult } from './app/core/models/report.model';
 import type { BackupInspectionResult, BackupOperationResult } from './app/core/models/backup.model';
+import type { RetentionDashboard, RetentionOperationResult, RetentionSettings, UpdateRetentionSettingsInput } from './app/core/models/retention.model';
 
 declare global {
   interface Window {
@@ -59,6 +60,14 @@ declare global {
         history(limit?: number): Promise<ReportExportHistoryItem[]>;
         generate(input: GenerateReportInput): Promise<ReportGenerationResult>;
         openExportFolder(filePath?: string): Promise<{ opened: boolean }>;
+      };
+
+      retention: {
+        dashboard(): Promise<RetentionDashboard>;
+        getSettings(): Promise<RetentionSettings>;
+        updateSettings(input: UpdateRetentionSettingsInput): Promise<RetentionSettings>;
+        anonymizeCase(caseId: string, reason: string, confirmation: string): Promise<RetentionOperationResult>;
+        deleteCase(caseId: string, reason: string, confirmation: string): Promise<RetentionOperationResult>;
       };
       backup: {
         create(passphrase: string): Promise<BackupOperationResult>;

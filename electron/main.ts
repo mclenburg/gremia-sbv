@@ -7,6 +7,7 @@ import { registerDeadlineIpc } from './ipc/deadlineIpc.js';
 import { registerSecurityIpc } from './ipc/securityIpc.js';
 import { registerReportIpc } from './ipc/reportIpc.js';
 import { registerBackupIpc } from './ipc/backupIpc.js';
+import { registerRetentionIpc } from './ipc/retentionIpc.js';
 import { SecurityService } from '../services/securityService.js';
 
 app.setName('Gremia.SBV');
@@ -206,6 +207,7 @@ if (!singleInstanceLock) {
     registerDeadlineIpc(ipcMain, security);
     registerReportIpc(ipcMain, security);
     registerBackupIpc(ipcMain, security);
+    registerRetentionIpc(ipcMain, security);
     return createWindow();
   }).catch((error) => {
     console.error('Gremia.SBV startup failed', error);
