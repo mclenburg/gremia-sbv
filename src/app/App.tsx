@@ -37,8 +37,9 @@ import type { CaseDocumentRecord } from './core/models/case-document.model';
 import type { CaseNoteRecord, CaseNoteType, CaseSearchResult, ConfidentialLevel } from './core/models/case-note.model';
 import type { CreateDeadlineInput, DeadlineDashboardItem, DeadlineProcessType, DeadlineRecord, DeadlineSeverity, DeadlineType } from './core/models/deadline.model';
 import type { GenerateReportInput, ReportDescriptor, ReportExportHistoryItem, ReportGenerationResult, ReportType } from './core/models/report.model';
+import type { BackupInspectionResult, BackupOperationResult } from './core/models/backup.model';
 
-const APP_VERSION = '0.3.38';
+const APP_VERSION = '0.3.39';
 
 type ViewId =
   | 'dashboard'
@@ -2099,6 +2100,7 @@ function SettingsView({ theme, onThemeChange }: { theme: ThemeMode; onThemeChang
       <div className="grid gap-6 xl:grid-cols-2">
         <ThemeSettingsForm theme={theme} onThemeChange={onThemeChange} />
         <ChangePasswordForm />
+        <BackupRestoreForm />
       </div>
     </ModuleFrame>
   );
@@ -2203,6 +2205,159 @@ function ChangePasswordForm() {
         Passwort ändern
       </button>
     </form>
+  );
+}
+
+
+function BackupRestoreForm() {
+  const [backupPassphrase, setBackupPassphrase] = useState('');
+  const [verifyPassphrase, setVerifyPassphrase] = useState('');
+  const [restorePassphrase, setRestorePassphrase] = useState('');
+  const [restoreConfirmation, setRestoreConfirmation] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<BackupOperationResult | BackupInspectionResult | null>(null);
+  const [error, setError] = useState('');
+
+  function resetMessages() {
+    setResult(null);
+    setError('');
+  }
+
+  function validateBackupPassphrase(passphrase: string): string | null {
+    if (passphrase.length < 12) return 'Die Backup-Passphrase muss mindestens 12 Zeichen lang sein.';
+    return null;
+  }
+
+  async function createBackup() {
+    resetMessages();
+    const validation = validateBackupPassphrase(backupPassphrase);
+    if (validation) {
+      setError(validation);
+      return;
+    }
+    setBusy(true);
+    try {
+      const bridge = await waitForBridge();
+      if (!bridge?.backup) throw new Error('Backup-Dienst ist nicht erreichbar.');
+      const operationResult = await bridge.backup.create(backupPassphrase);
+      if (!operationResult.ok) setError(operationResult.error ?? 'Backup konnte nicht erstellt werden.');
+      setResult(operationResult);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function inspectBackup() {
+    resetMessages();
+    const validation = validateBackupPassphrase(verifyPassphrase);
+    if (validation) {
+      setError(validation);
+      return;
+    }
+    setBusy(true);
+    try {
+      const bridge = await waitForBridge();
+      if (!bridge?.backup) throw new Error('Backup-Dienst ist nicht erreichbar.');
+      const operationResult = await bridge.backup.inspect(verifyPassphrase);
+      if (!operationResult.ok) setError(operationResult.error ?? 'Backup konnte nicht geprüft werden.');
+      setResult(operationResult);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function restoreBackup() {
+    resetMessages();
+    const validation = validateBackupPassphrase(restorePassphrase);
+    if (validation) {
+      setError(validation);
+      return;
+    }
+    setBusy(true);
+    try {
+      const bridge = await waitForBridge();
+      if (!bridge?.backup) throw new Error('Backup-Dienst ist nicht erreichbar.');
+      const operationResult = await bridge.backup.restore(restorePassphrase, restoreConfirmation);
+      if (!operationResult.ok) setError(operationResult.error ?? 'Backup konnte nicht wiederhergestellt werden.');
+      setResult(operationResult);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section className="industrial-settings-form xl:col-span-2">
+      <div>
+        <h3>Backup & Wiederherstellung</h3>
+        <p className="industrial-settings-note">
+          Backups werden als verschlüsselte <code>.gsbvbackup</code>-Datei erzeugt. Die Datei enthält Datenbank, Sicherheitsmanifest,
+          Dokumente und verschlüsselte Berichtsexporte. Temporäre Klartextkopien werden nicht gesichert.
+        </p>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-3">
+        <div className="industrial-subpanel">
+          <h4>Backup erstellen</h4>
+          <label>
+            <span>Backup-Passphrase</span>
+            <input type="password" value={backupPassphrase} onChange={(event) => setBackupPassphrase(event.target.value)} />
+          </label>
+          <button type="button" className="industrial-button" disabled={busy} onClick={() => void createBackup()}>
+            <Save className="h-4 w-4" /> Backup speichern
+          </button>
+        </div>
+
+        <div className="industrial-subpanel">
+          <h4>Backup prüfen</h4>
+          <label>
+            <span>Backup-Passphrase</span>
+            <input type="password" value={verifyPassphrase} onChange={(event) => setVerifyPassphrase(event.target.value)} />
+          </label>
+          <button type="button" className="industrial-secondary-button" disabled={busy} onClick={() => void inspectBackup()}>
+            Backup prüfen
+          </button>
+        </div>
+
+        <div className="industrial-subpanel industrial-danger-zone">
+          <h4>Wiederherstellen</h4>
+          <p className="industrial-settings-note">Ersetzt den aktuellen lokalen Datenbestand. Der bisherige Stand wird vorher in einen Sicherheitsordner verschoben.</p>
+          <label>
+            <span>Backup-Passphrase</span>
+            <input type="password" value={restorePassphrase} onChange={(event) => setRestorePassphrase(event.target.value)} />
+          </label>
+          <label>
+            <span>Bestätigung: BACKUP WIEDERHERSTELLEN</span>
+            <input value={restoreConfirmation} onChange={(event) => setRestoreConfirmation(event.target.value)} />
+          </label>
+          <button type="button" className="industrial-danger-button" disabled={busy} onClick={() => void restoreBackup()}>
+            Backup wiederherstellen
+          </button>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-3">
+        <button type="button" className="industrial-secondary-button" onClick={() => void window.gremiaSbv?.backup?.openBackupFolder()}>
+          <FolderOpen className="h-4 w-4" /> Backup-Ordner öffnen
+        </button>
+      </div>
+
+      {error && <div className="industrial-message industrial-message-warning">{error}</div>}
+      {result?.ok && (
+        <div className="industrial-message industrial-message-ok">
+          <strong>{result.restartRequired ? 'Wiederherstellung vorbereitet.' : 'verifiedAt' in result ? 'Backup erfolgreich geprüft.' : 'Backup-Vorgang abgeschlossen.'}</strong>
+          <p>{result.fileName}</p>
+          <p>{result.fileCount ?? 0} Dateien · {result.totalBytes ?? 0} Bytes</p>
+          {result.restartRequired && <p>Bitte Gremia.SBV jetzt vollständig schließen und neu starten.</p>}
+          {result.warnings?.map((warning) => <p key={warning}>{warning}</p>)}
+        </div>
+      )}
+    </section>
   );
 }
 

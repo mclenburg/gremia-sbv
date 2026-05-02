@@ -7,6 +7,7 @@ import type { CaseContentSearchInput, CaseNoteRecord, CaseSearchResult, CreateCa
 import type { CreateDeadlineInput, DeadlineDashboardItem, DeadlineListFilters, DeadlineRecord, UpdateDeadlineInput } from './app/core/models/deadline.model';
 import type { SecurityResult, SecurityStatus } from './app/core/models/security.model';
 import type { GenerateReportInput, ReportDescriptor, ReportExportHistoryItem, ReportGenerationResult } from './app/core/models/report.model';
+import type { BackupInspectionResult, BackupOperationResult } from './app/core/models/backup.model';
 
 declare global {
   interface Window {
@@ -58,6 +59,12 @@ declare global {
         history(limit?: number): Promise<ReportExportHistoryItem[]>;
         generate(input: GenerateReportInput): Promise<ReportGenerationResult>;
         openExportFolder(filePath?: string): Promise<{ opened: boolean }>;
+      };
+      backup: {
+        create(passphrase: string): Promise<BackupOperationResult>;
+        inspect(passphrase: string): Promise<BackupInspectionResult>;
+        restore(passphrase: string, confirmation: string): Promise<BackupOperationResult>;
+        openBackupFolder(): Promise<{ opened: boolean }>;
       };
     };
     gremiaSbvPreload?: {

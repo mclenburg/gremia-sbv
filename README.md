@@ -298,3 +298,10 @@ Siehe `docs/LAYOUT_0_3_3.md`.
 ## 0.3.16 – Fallnotizen und Volltextsuche
 
 Dieses Paket ergänzt die Fallakte um Gesprächsnotizen und Protokolle. Zusätzlich gibt es eine Volltextsuche über Notizen/Protokolle sowie den vorbereiteten Dokumentenindex. Dashboard-Kacheln wurden optisch bereinigt und enthalten kein separates „Öffnen“-Label mehr.
+
+## Version 0.3.39 – Backup & Wiederherstellung
+
+- verschlüsselte `.gsbvbackup`-Backups
+- Backupprüfung mit Prüfsummen
+- Wiederherstellung mit Sicherheitsbestätigung
+- temporäre Arbeitskopien und vorhandene Backups werden nicht in neue Backups aufgenommen

@@ -6,6 +6,7 @@ import type { CaseContentSearchInput, CaseNoteRecord, CaseSearchResult, CreateCa
 import type { CreateDeadlineInput, DeadlineDashboardItem, DeadlineListFilters, DeadlineRecord, UpdateDeadlineInput } from '../src/app/core/models/deadline.model.js';
 import type { SecurityResult, SecurityStatus } from '../src/app/core/models/security.model.js';
 import type { GenerateReportInput, ReportDescriptor, ReportExportHistoryItem, ReportGenerationResult } from '../src/app/core/models/report.model.js';
+import type { BackupInspectionResult, BackupOperationResult } from '../src/app/core/models/backup.model.js';
 
 const api = {
   security: {
@@ -56,6 +57,12 @@ const api = {
     history: (limit?: number): Promise<ReportExportHistoryItem[]> => ipcRenderer.invoke('reports:history', limit),
     generate: (input: GenerateReportInput): Promise<ReportGenerationResult> => ipcRenderer.invoke('reports:generate', input),
     openExportFolder: (filePath?: string): Promise<{ opened: boolean }> => ipcRenderer.invoke('reports:open-export-folder', filePath)
+  },
+  backup: {
+    create: (passphrase: string): Promise<BackupOperationResult> => ipcRenderer.invoke('backup:create', passphrase),
+    inspect: (passphrase: string): Promise<BackupInspectionResult> => ipcRenderer.invoke('backup:inspect', passphrase),
+    restore: (passphrase: string, confirmation: string): Promise<BackupOperationResult> => ipcRenderer.invoke('backup:restore', passphrase, confirmation),
+    openBackupFolder: (): Promise<{ opened: boolean }> => ipcRenderer.invoke('backup:open-backup-folder')
   },
   diagnostics: {
     bridgeReady: true,
