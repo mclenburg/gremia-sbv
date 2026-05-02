@@ -11,6 +11,7 @@ import type { BackupInspectionResult, BackupOperationResult } from './app/core/m
 import type { RetentionDashboard, RetentionOperationResult, RetentionSettings, UpdateRetentionSettingsInput } from './app/core/models/retention.model';
 import type { CreatePreventionProcessInput, PreventionDashboardSummary, PreventionProcessRecord, PreventionStepDefinition, PreventionWarning, UpdatePreventionProcessInput } from './app/core/models/prevention.model';
 import type { CaseLawRecord, CaseLegalReferenceRecord, CreateCaseLawInput, CreateLegalNormInput, CreateNormChecklistItemInput, CreateNormCommentInput, KnowledgeExportPreview, LegalNormRecord, LegalNormSearchInput, LinkLegalNormToCaseInput, NormChecklistItemRecord, NormCommentRecord, UpdateLegalNormInput } from './app/core/models/knowledge.model';
+import type { CreateTemplateInput, RenderContextTemplateInput, RenderTemplateInput, RenderedTemplateResult, TemplateListFilters, TemplateRecord, UpdateTemplateInput } from './app/core/models/template.model';
 
 declare global {
   interface Window {
@@ -86,6 +87,14 @@ declare global {
         history(limit?: number): Promise<ReportExportHistoryItem[]>;
         generate(input: GenerateReportInput): Promise<ReportGenerationResult>;
         openExportFolder(filePath?: string): Promise<{ opened: boolean }>;
+      };
+      templates: {
+        list(filters?: TemplateListFilters): Promise<TemplateRecord[]>;
+        create(input: CreateTemplateInput): Promise<TemplateRecord>;
+        update(id: string, input: UpdateTemplateInput): Promise<TemplateRecord>;
+        delete(id: string): Promise<{ deleted: boolean }>;
+        render(input: RenderTemplateInput): Promise<RenderedTemplateResult>;
+        renderContext(input: RenderContextTemplateInput): Promise<RenderedTemplateResult>;
       };
 
       retention: {

@@ -10,6 +10,7 @@ import type { BackupInspectionResult, BackupOperationResult } from '../src/app/c
 import type { RetentionDashboard, RetentionOperationResult, RetentionSettings, UpdateRetentionSettingsInput } from '../src/app/core/models/retention.model.js';
 import type { CreatePreventionProcessInput, PreventionDashboardSummary, PreventionProcessRecord, PreventionStepDefinition, PreventionWarning, UpdatePreventionProcessInput } from '../src/app/core/models/prevention.model.js';
 import type { CaseLawRecord, CaseLegalReferenceRecord, CreateCaseLawInput, CreateLegalNormInput, CreateNormChecklistItemInput, CreateNormCommentInput, KnowledgeExportPreview, LegalNormRecord, LegalNormSearchInput, LinkLegalNormToCaseInput, NormChecklistItemRecord, NormCommentRecord, UpdateLegalNormInput } from '../src/app/core/models/knowledge.model.js';
+import type { CreateTemplateInput, RenderContextTemplateInput, RenderTemplateInput, RenderedTemplateResult, TemplateListFilters, TemplateRecord, UpdateTemplateInput } from '../src/app/core/models/template.model.js';
 
 const api = {
   security: {
@@ -46,6 +47,7 @@ const api = {
     update: (id: string, input: UpdateContactInput): Promise<ContactRecord> => ipcRenderer.invoke('contacts:update', id, input),
     delete: (id: string): Promise<DeleteContactResult> => ipcRenderer.invoke('contacts:delete', id)
   },
+
   knowledge: {
     listNorms: (filters?: LegalNormSearchInput): Promise<LegalNormRecord[]> => ipcRenderer.invoke('knowledge:norms:list', filters),
     getNorm: (id: string): Promise<LegalNormRecord | null> => ipcRenderer.invoke('knowledge:norms:get', id),
@@ -85,6 +87,14 @@ const api = {
     history: (limit?: number): Promise<ReportExportHistoryItem[]> => ipcRenderer.invoke('reports:history', limit),
     generate: (input: GenerateReportInput): Promise<ReportGenerationResult> => ipcRenderer.invoke('reports:generate', input),
     openExportFolder: (filePath?: string): Promise<{ opened: boolean }> => ipcRenderer.invoke('reports:open-export-folder', filePath)
+  },
+  templates: {
+    list: (filters?: TemplateListFilters): Promise<TemplateRecord[]> => ipcRenderer.invoke('templates:list', filters),
+    create: (input: CreateTemplateInput): Promise<TemplateRecord> => ipcRenderer.invoke('templates:create', input),
+    update: (id: string, input: UpdateTemplateInput): Promise<TemplateRecord> => ipcRenderer.invoke('templates:update', id, input),
+    delete: (id: string): Promise<{ deleted: boolean }> => ipcRenderer.invoke('templates:delete', id),
+    render: (input: RenderTemplateInput): Promise<RenderedTemplateResult> => ipcRenderer.invoke('templates:render', input),
+    renderContext: (input: RenderContextTemplateInput): Promise<RenderedTemplateResult> => ipcRenderer.invoke('templates:render-context', input)
   },
 
   retention: {

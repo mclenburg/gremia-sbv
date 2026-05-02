@@ -1,6 +1,6 @@
 {
   "name": "gremia-sbv",
-  "version": "0.4.3",
+  "version": "0.4.10",
   "private": true,
   "description": "Offline-first Desktop-App für die vertrauliche Fallarbeit der Schwerbehindertenvertretung.",
   "main": "dist-electron/electron/main.js",
@@ -40,7 +40,16 @@
     "test:prevention": "vitest run tests/preventionWorkflowPolicy.test.ts",
     "test:text-commands": "vitest run tests/textCommandPolicy.test.ts",
     "test:inline-overlays": "vitest run tests/textCommandPolicy.test.ts tests/openTaskDashboardPolicy.test.ts",
-    "test:knowledge": "vitest run tests/knowledgePolicy.test.ts tests/knowledgeService.test.ts"
+    "test:knowledge": "vitest run tests/knowledgePolicy.test.ts tests/knowledgeService.test.ts tests/knowledgeMigrationCompatibility.test.ts",
+    "version:generate": "node scripts/generate-app-version.cjs",
+    "predev": "npm run version:generate",
+    "prebuild": "npm run version:generate",
+    "pretest": "npm run version:generate",
+    "test:version": "vitest run tests/appVersion.test.ts",
+    "test:templates": "vitest run tests/templatePolicy.test.ts",
+    "test:bridge": "vitest run tests/bridgeContract.test.ts",
+    "test:contextual-templates": "vitest run tests/templateContextPolicy.test.ts",
+    "test:case-process": "vitest run tests/caseProcessPolicy.test.ts"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.0",

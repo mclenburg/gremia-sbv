@@ -27,7 +27,8 @@ import {
   HelpCircle,
   TerminalSquare,
   Trash2,
-  Users
+  Users,
+  Workflow
 } from 'lucide-react';
 import { DashboardCard } from './shared/components/DashboardCard';
 import { DeadlineDashboardPanel } from './features/deadlines/DeadlineDashboardPanel';
@@ -42,6 +43,8 @@ import type { BackupInspectionResult, BackupOperationResult } from './core/model
 import type { RetentionCandidate, RetentionDashboard, RetentionOperationResult, RetentionSettings } from './core/models/retention.model';
 import type { CreatePreventionProcessInput, PreventionDifficultyType, PreventionProcessRecord, PreventionRiskType, PreventionStatus, PreventionStepDefinition, PreventionWarning, UpdatePreventionProcessInput } from './core/models/prevention.model';
 import type { CaseLawRecord, CaseLegalReferenceRecord, LegalNormRecord, NormChecklistItemRecord, NormCommentRecord } from './core/models/knowledge.model';
+import type { ContextualTemplateAction, CreateTemplateInput, RenderedTemplateResult, TemplateCategory, TemplateRecord } from './core/models/template.model';
+import { APP_VERSION } from './generated/appVersion';
 import {
   LEGAL_NORM_SUGGESTIONS,
   findFirstTextCommand,
@@ -58,8 +61,8 @@ import {
   type RiskLevelCommand,
   type TextCommandToken
 } from '@services/textCommandPolicy';
+import { missingPlaceholderWarning, resolveContextualTemplateAction } from '@services/templateContextPolicy';
 
-const APP_VERSION = '0.4.2';
 
 type ViewId =
   | 'dashboard'
@@ -82,7 +85,6 @@ interface ModuleDefinition {
   shortTitle: string;
   text: string;
   icon: typeof FolderKanban;
-  status?: string;
 }
 
 
@@ -92,16 +94,14 @@ const modules: ModuleDefinition[] = [
     title: 'Fälle',
     shortTitle: 'Fallakte',
     text: 'Fallakte, Vorgang, Gesprächsnotizen und Protokolle.',
-    icon: FolderKanban,
-    status: 'Kernmodul'
+    icon: FolderKanban
   },
   {
     id: 'deadlines',
     title: 'Fristen',
     shortTitle: 'Frist',
     text: 'Fristen und Wiedervorlagen. Ab 48h zwingend auf dem Dashboard.',
-    icon: CalendarClock,
-    status: 'aktiv'
+    icon: CalendarClock
   },
   {
     id: 'bem',
@@ -115,8 +115,7 @@ const modules: ModuleDefinition[] = [
     title: 'Präventionsverfahren',
     shortTitle: 'Prävention',
     text: 'Frühzeitige Aktivierung nach § 167 Abs. 1 SGB IX.',
-    icon: ShieldAlert,
-    status: 'neu'
+    icon: ShieldAlert
   },
   {
     id: 'equalization',
@@ -130,8 +129,7 @@ const modules: ModuleDefinition[] = [
     title: 'Kündigungsanhörung',
     shortTitle: 'Kündigung',
     text: 'Kritischer Workflow für SBV-Anhörung und Integrationsamt-Prüfung.',
-    icon: ShieldAlert,
-    status: 'kritisch'
+    icon: ShieldAlert
   },
   {
     id: 'templates',
@@ -703,6 +701,7 @@ type CaseExplorerSelection =
   | { type: 'overview' }
   | { type: 'note'; id: string }
   | { type: 'document'; id: string }
+  | { type: 'process'; processType: CaseProcessType; id?: string }
   | { type: 'search'; id: string };
 
 type ProtocolTextTarget = 'content' | 'nextSteps';
@@ -737,6 +736,41 @@ type InlineOpenTaskDraft = { target: ProtocolTextTarget; markerIndex: number | n
 type InlineConfidentialityDraft = { target: ProtocolTextTarget; markerIndex: number; level: ConfidentialCommandLevel };
 type InlineAnonymizationDraft = { target: ProtocolTextTarget; markerIndex: number; label: string };
 
+type CaseProcessType = 'prevention' | 'bem' | 'termination_hearing' | 'equalization';
+
+type CaseProcessDraft = {
+  processType: CaseProcessType;
+  title: string;
+  description: string;
+  dueAt: string;
+};
+
+const caseProcessLabels: Record<CaseProcessType, string> = {
+  prevention: 'Präventionsverfahren',
+  bem: 'BEM-Verfahren',
+  termination_hearing: 'Kündigungsanhörung',
+  equalization: 'Gleichstellungsprozess'
+};
+
+function processTypeLabel(processType: CaseProcessType): string {
+  return caseProcessLabels[processType];
+}
+
+function defaultCaseProcessDraft(processType: CaseProcessType): CaseProcessDraft {
+  return {
+    processType,
+    title: processTypeLabel(processType),
+    description: processType === 'prevention'
+      ? 'Aus der Fallakte gestartetes Präventionsverfahren. Bitte Anlass und Gefährdung konkretisieren.'
+      : `${processTypeLabel(processType)} aus der Fallakte vorgemerkt. Das Fachmodul übernimmt später die strukturierte Bearbeitung.`,
+    dueAt: ''
+  };
+}
+
+function formatProcessNodeSubtitle(processType: CaseProcessType, status?: string): string {
+  return `${processTypeLabel(processType)}${status ? ` · ${status}` : ''}`;
+}
+
 function CasesView({
   cases,
   contacts,
@@ -762,6 +796,8 @@ function CasesView({
   const [notes, setNotes] = useState<CaseNoteRecord[]>([]);
   const [documents, setDocuments] = useState<CaseDocumentRecord[]>([]);
   const [caseLegalReferences, setCaseLegalReferences] = useState<CaseLegalReferenceRecord[]>([]);
+  const [casePreventionProcesses, setCasePreventionProcesses] = useState<PreventionProcessRecord[]>([]);
+  const [caseProcessDraft, setCaseProcessDraft] = useState<CaseProcessDraft | null>(null);
   const [selection, setSelection] = useState<CaseExplorerSelection>({ type: 'overview' });
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOnlySelectedCase, setSearchOnlySelectedCase] = useState(true);
@@ -830,6 +866,7 @@ function CasesView({
       setNotes([]);
       setDocuments([]);
       setCaseLegalReferences([]);
+      setCasePreventionProcesses([]);
       return;
     }
     let active = true;
@@ -837,15 +874,17 @@ function CasesView({
       try {
         const bridge = await waitForBridge();
         if (!bridge?.cases) throw new Error('Falldienst ist nicht erreichbar.');
-        const [noteRows, docRows, legalRefRows] = await Promise.all([
+        const [noteRows, docRows, legalRefRows, preventionRows] = await Promise.all([
           bridge.cases.listNotes(selectedCaseId),
           bridge.cases.listDocuments(selectedCaseId),
-          bridge.knowledge?.listCaseReferences(selectedCaseId) ?? Promise.resolve([])
+          bridge.knowledge?.listCaseReferences(selectedCaseId) ?? Promise.resolve([]),
+          bridge.prevention?.list(selectedCaseId) ?? Promise.resolve([])
         ]);
         if (active) {
           setNotes(noteRows);
           setDocuments(docRows);
           setCaseLegalReferences(legalRefRows);
+          setCasePreventionProcesses(preventionRows);
           setSelection({ type: 'overview' });
         }
       } catch (error) {
@@ -860,14 +899,76 @@ function CasesView({
     if (!selectedCaseId) return;
     const bridge = await waitForBridge();
     if (!bridge?.cases) throw new Error('Falldienst ist nicht erreichbar.');
-    const [noteRows, docRows, legalRefRows] = await Promise.all([
+    const [noteRows, docRows, legalRefRows, preventionRows] = await Promise.all([
       bridge.cases.listNotes(selectedCaseId),
       bridge.cases.listDocuments(selectedCaseId),
-      bridge.knowledge?.listCaseReferences(selectedCaseId) ?? Promise.resolve([])
+      bridge.knowledge?.listCaseReferences(selectedCaseId) ?? Promise.resolve([]),
+      bridge.prevention?.list(selectedCaseId) ?? Promise.resolve([])
     ]);
     setNotes(noteRows);
     setDocuments(docRows);
     setCaseLegalReferences(legalRefRows);
+    setCasePreventionProcesses(preventionRows);
+  }
+
+
+  function openCaseProcessDraft(processType: CaseProcessType) {
+    if (!selectedCaseId) {
+      setNoteError('Bitte zuerst eine Fallakte auswählen.');
+      return;
+    }
+    setCaseProcessDraft(defaultCaseProcessDraft(processType));
+  }
+
+  async function createCaseProcessFromDraft() {
+    if (!selectedCase || !caseProcessDraft) return;
+    setNoteError('');
+    setNoteInfo('');
+    try {
+      const bridge = await waitForBridge();
+      if (caseProcessDraft.processType === 'prevention') {
+        if (!bridge?.prevention) throw new Error('Präventionsdienst ist nicht erreichbar.');
+        const created = await bridge.prevention.create({
+          caseId: selectedCase.id,
+          hazardDescription: caseProcessDraft.description.trim() || `Präventionsverfahren aus Fallakte ${selectedCase.caseNumber} gestartet.`,
+          employerResponseDueAt: caseProcessDraft.dueAt ? fromDateTimeLocalValue(caseProcessDraft.dueAt) : undefined,
+          difficultyType: 'gesundheitlich_arbeitsplatzbezogen',
+          riskType: 'ueberlastung',
+          personStatus: 'unklar',
+          contactIds: [],
+          createDefaultDeadlines: true
+        });
+        setCaseProcessDraft(null);
+        setSelection({ type: 'process', processType: 'prevention', id: created.id });
+        setNoteInfo('Präventionsverfahren wurde direkt an der Fallakte angelegt und im Fallbaum ergänzt.');
+        await reloadSelectedCaseChildren();
+        await onCasesChanged();
+        return;
+      }
+
+      if (!bridge?.cases) throw new Error('Falldienst ist nicht erreichbar.');
+      await bridge.cases.createNote({
+        caseId: selectedCase.id,
+        caseIds: [selectedCase.id],
+        title: `${caseProcessDraft.title} vorgemerkt`,
+        noteDate: new Date().toISOString(),
+        noteType: 'interne_notiz',
+        participants: '',
+        content: `${caseProcessDraft.title} wurde an dieser Fallakte als Fachmaßnahme vorgemerkt.
+
+${caseProcessDraft.description}`,
+        nextSteps: 'Fachmodul öffnen, sobald der strukturierte Workflow verfügbar ist.',
+        containsHealthData: true,
+        confidentialLevel: 'sensibel'
+      });
+      setCaseProcessDraft(null);
+      setSelection({ type: 'process', processType: caseProcessDraft.processType });
+      setNoteInfo(`${caseProcessDraft.title} wurde als fallbezogene Maßnahme vorgemerkt.`);
+      await reloadSelectedCaseChildren();
+      await onCasesChanged();
+    } catch (error) {
+      setNoteError(error instanceof Error ? error.message : 'Maßnahme konnte nicht angelegt werden.');
+    }
   }
 
   function resetNoteForm() {
@@ -1557,6 +1658,28 @@ function CasesView({
           <p className="industrial-kicker">Ausgewählte Fallakte</p>
           <h2>{selectedCase?.caseNumber ?? 'Keine Auswahl'}</h2>
           <p className="industrial-meta">{selectedCase?.displayName ?? 'Bitte oben einen Fall auswählen.'}</p>
+          <div className="case-tree-group process-drop-zone"
+            onDragOver={(event) => event.preventDefault()}
+            onDrop={(event) => {
+              event.preventDefault();
+              const processType = event.dataTransfer.getData('text/gremia-sbv-process') as CaseProcessType;
+              if (processType) openCaseProcessDraft(processType);
+            }}>
+            <div className="case-tree-group-title"><Workflow className="h-4 w-4" /> Maßnahmen <span>{casePreventionProcesses.length}</span></div>
+            {(['prevention', 'bem', 'termination_hearing', 'equalization'] as CaseProcessType[]).map((processType) => (
+              <button key={processType} type="button" className="case-tree-node case-tree-action-node" draggable
+                onDragStart={(event) => event.dataTransfer.setData('text/gremia-sbv-process', processType)}
+                onClick={() => openCaseProcessDraft(processType)}>
+                <span>+ {processTypeLabel(processType)}</span>
+                <small>an diese Fallakte hängen</small>
+              </button>
+            ))}
+            {casePreventionProcesses.map((process) => (
+              <button key={process.id} type="button" className={`case-tree-node ${selection.type === 'process' && selection.id === process.id ? 'active' : ''}`} onClick={() => setSelection({ type: 'process', processType: 'prevention', id: process.id })}>
+                <span>Prävention</span><small>{formatProcessNodeSubtitle('prevention', process.status)}</small>
+              </button>
+            ))}
+          </div>
           <button type="button" className={`case-tree-node ${selection.type === 'overview' ? 'active' : ''}`} onClick={() => setSelection({ type: 'overview' })}>Übersicht</button>
           <div className="case-tree-group">
             <div className="case-tree-group-title"><MessageSquare className="h-4 w-4" /> Notizen & Protokolle <span>{notes.length}</span></div>
@@ -1600,8 +1723,47 @@ function CasesView({
             <div className="case-detail-content">
               <h2>{selectedCase ? `${selectedCase.caseNumber} · ${selectedCase.displayName}` : 'Keine Fallakte ausgewählt'}</h2>
               <p>{selectedCase?.summary ?? 'Keine Kurzbeschreibung erfasst.'}</p>
-              <div className="case-detail-metrics"><Metric label="Notizen" value={String(notes.length)} /><Metric label="Dokumente" value={String(documents.length)} /><Metric label="Rechtsbezüge" value={String(caseLegalReferences.length)} /><Metric label="Kategorie" value={selectedCase?.category ?? '—'} /></div>
+              <div className="case-detail-metrics"><Metric label="Notizen" value={String(notes.length)} /><Metric label="Dokumente" value={String(documents.length)} /><Metric label="Rechtsbezüge" value={String(caseLegalReferences.length)} /><Metric label="Maßnahmen" value={String(casePreventionProcesses.length)} /><Metric label="Kategorie" value={selectedCase?.category ?? '—'} /></div>
+              {selectedCase && (() => {
+                const action = resolveContextualTemplateAction({ sourceType: 'case', title: 'Fallübersicht' });
+                return action ? <div className="contextual-template-actions"><ContextualTemplateButton action={action} caseId={selectedCase.id} values={{ 'fall.aktenzeichen': selectedCase.caseNumber, 'fall.name': selectedCase.displayName, 'fall.kurzbeschreibung': selectedCase.summary ?? '' }} /></div> : null;
+              })()}
+              {selectedCase && (
+                <div className="industrial-subpanel mt-4">
+                  <h4>Maßnahme direkt aus der Fallakte anlegen</h4>
+                  <p className="industrial-meta">Diese Aktionen hängen einen Fachprozess direkt an die Fallakte. Die gleichen Prozesskarten können links in den Fallbaum gezogen werden.</p>
+                  <div className="process-action-grid">
+                    {(['prevention', 'bem', 'termination_hearing', 'equalization'] as CaseProcessType[]).map((processType) => (
+                      <button key={processType} type="button" className="industrial-process-card" draggable
+                        onDragStart={(event) => event.dataTransfer.setData('text/gremia-sbv-process', processType)}
+                        onClick={() => openCaseProcessDraft(processType)}>
+                        <strong>{processTypeLabel(processType)}</strong>
+                        <span>{processType === 'prevention' ? 'strukturiertes Verfahren starten' : 'fallbezogen vormerken'}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
+          )}
+
+          {selection.type === 'process' && (
+            <article className="case-detail-content">
+              <div className="case-note-card-header"><span className="industrial-badge">Maßnahme</span><span>{processTypeLabel(selection.processType)}</span></div>
+              <h2>{processTypeLabel(selection.processType)}</h2>
+              {selection.processType === 'prevention' && selection.id ? (
+                (() => {
+                  const process = casePreventionProcesses.find((item) => item.id === selection.id);
+                  return process ? <>
+                    <p>{process.hazardDescription}</p>
+                    <div className="case-detail-metrics"><Metric label="Status" value={statusLabel(process.status)} /><Metric label="Risiko" value={process.riskType} /><Metric label="Person" value={process.personStatus} /></div>
+                    <p className="industrial-meta">Zur vertieften Bearbeitung bitte das Modul „Prävention“ öffnen. Der Fallbezug ist dort bereits Bestandteil des Vorgangs.</p>
+                  </> : <p className="industrial-meta">Präventionsverfahren nicht gefunden.</p>;
+                })()
+              ) : (
+                <p className="industrial-meta">Dieses Fachmodul ist noch nicht vollständig umgesetzt. Die Maßnahme wurde als fallbezogene Notiz vorgemerkt und erscheint in der Fallhistorie.</p>
+              )}
+            </article>
           )}
 
           {selectedNote && (
@@ -1796,6 +1958,30 @@ function CasesView({
               <button type="button" className="industrial-button" onClick={() => void createAndInsertContactFromProtocol()}>
                 <Users className="h-4 w-4" />Kontakt anlegen und einfügen
               </button>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {caseProcessDraft && selectedCase && (
+        <div className="industrial-modal-backdrop" role="dialog" aria-modal="true">
+          <section className="industrial-modal">
+            <div className="industrial-panel-header compact">
+              <div>
+                <p className="industrial-kicker">Fallmaßnahme</p>
+                <h2>{processTypeLabel(caseProcessDraft.processType)} anlegen</h2>
+                <p>{selectedCase.caseNumber} · {selectedCase.displayName}</p>
+              </div>
+            </div>
+            <div className="industrial-settings-form mt-5">
+              <label><span>Titel</span><input value={caseProcessDraft.title} onChange={(event) => setCaseProcessDraft((current) => current ? { ...current, title: event.target.value } : current)} /></label>
+              <label><span>Beschreibung / Anlass</span><textarea value={caseProcessDraft.description} onChange={(event) => setCaseProcessDraft((current) => current ? { ...current, description: event.target.value } : current)} /></label>
+              {caseProcessDraft.processType === 'prevention' && <label><span>Frist Arbeitgeberreaktion optional</span><input type="datetime-local" value={caseProcessDraft.dueAt} onChange={(event) => setCaseProcessDraft((current) => current ? { ...current, dueAt: event.target.value } : current)} /></label>}
+              {caseProcessDraft.processType !== 'prevention' && <div className="industrial-message industrial-message-warning">Das Fachmodul ist noch nicht vollständig gebaut. Gremia.SBV legt deshalb zunächst eine fallbezogene Maßnahme als vertrauliche Notiz an.</div>}
+            </div>
+            <div className="industrial-modal-actions">
+              <button type="button" className="industrial-secondary-button" onClick={() => setCaseProcessDraft(null)}>Abbrechen</button>
+              <button type="button" className="industrial-button" onClick={() => void createCaseProcessFromDraft()}>An Fallakte hängen</button>
             </div>
           </section>
         </div>
@@ -2278,7 +2464,7 @@ function PreventionView({ cases, contacts, onWorkDataChanged }: { cases: CaseRec
           <div>
             <p className="industrial-kicker">Neues Verfahren</p>
             <h2>Präventionsverfahren starten</h2>
-            <p>Das Verfahren hängt immer an einer Fallakte. Beim Anlegen wird automatisch eine Wiedervorlage für die Arbeitgeberreaktion erzeugt.</p>
+            <p>Das Verfahren hängt immer an einer Fallakte. Es kann hier einem Fall zugeordnet oder direkt aus der Fallakte gestartet werden. Beim Anlegen wird automatisch eine Wiedervorlage für die Arbeitgeberreaktion erzeugt.</p>
           </div>
         </div>
         <form className="industrial-form" onSubmit={createProcess}>
@@ -2361,6 +2547,24 @@ function PreventionView({ cases, contacts, onWorkDataChanged }: { cases: CaseRec
                   <article key={step.key} className="prevention-step-card">
                     <header><span>{step.title}</span><StepTooltip text={step.objective} /></header>
                     <p>{step.objective}</p>
+                    {(() => {
+                      const action = resolveContextualTemplateAction({ sourceType: 'prevention', key: step.key, title: step.title });
+                      return action ? (
+                        <div className="contextual-template-actions compact">
+                          <ContextualTemplateButton
+                            action={action}
+                            caseId={selected.caseId}
+                            sourceId={selected.id}
+                            values={{
+                              'frist.datum': selected.employerResponseDueAt ? formatDateShort(selected.employerResponseDueAt) : '',
+                              'praevention.status': statusLabel(selected.status),
+                              'praevention.gefaehrdung': selected.riskType.replaceAll('_', ' '),
+                              'praevention.schwierigkeit': selected.difficultyType.replaceAll('_', ' ')
+                            }}
+                          />
+                        </div>
+                      ) : null;
+                    })()}
                   </article>
                 ))}
               </div>
@@ -3349,6 +3553,314 @@ function KnowledgeView({ cases }: { cases: CaseRecord[] }) {
   );
 }
 
+
+const templateCategoryLabels: Record<TemplateCategory, string> = {
+  praevention: 'Prävention',
+  bem: 'BEM',
+  beteiligung: 'SBV-Beteiligung',
+  kuendigung: 'Kündigung',
+  gleichstellung: 'Gleichstellung',
+  auskunft: 'Auskunft',
+  frist: 'Frist / Erinnerung',
+  datenschutz: 'Datenschutz',
+  sonstiges: 'Sonstiges'
+};
+
+
+function ContextualTemplateButton({
+  action,
+  caseId,
+  sourceId,
+  values
+}: {
+  action: ContextualTemplateAction;
+  caseId: string;
+  sourceId?: string;
+  values?: Record<string, string>;
+}) {
+  const [rendered, setRendered] = useState<RenderedTemplateResult | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+
+  async function generate() {
+    setBusy(true);
+    setError('');
+    setMessage('');
+    try {
+      const bridge = await waitForBridge();
+      if (!bridge?.templates) throw new Error('Vorlagendienst ist nicht erreichbar.');
+      const result = await bridge.templates.renderContext({
+        templateKey: action.templateKey,
+        caseId,
+        sourceType: action.sourceType,
+        sourceId,
+        sourceLabel: action.description,
+        values,
+        archive: true
+      });
+      setRendered(result);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Schreiben konnte nicht erzeugt werden.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function copyRendered() {
+    if (!rendered) return;
+    const text = `Betreff: ${rendered.subject}\n\n${rendered.body}`;
+    await navigator.clipboard.writeText(text);
+    setMessage('Entwurf wurde in die Zwischenablage kopiert. Achtung: Die Zwischenablage liegt außerhalb des Tresors.');
+  }
+
+  return (
+    <>
+      <button type="button" className="industrial-inline-link" onClick={() => void generate()} disabled={busy || !caseId} title={action.description}>
+        {busy ? 'Schreiben wird erzeugt …' : action.label}
+      </button>
+      {error && <span className="industrial-inline-warning">{error}</span>}
+      {rendered && (
+        <div className="industrial-modal-backdrop" role="dialog" aria-modal="true">
+          <section className="industrial-modal industrial-modal-wide">
+            <div className="industrial-panel-header compact">
+              <div>
+                <p className="industrial-kicker">Kontextschreiben</p>
+                <h2>{rendered.title}</h2>
+                <p>Dieser Entwurf wurde aus dem aktuellen Vorgang erzeugt und der Fallakte zugeordnet.</p>
+              </div>
+            </div>
+            {!!rendered.unresolvedPlaceholders.length && (
+              <div className="industrial-message industrial-message-warning mt-4">{missingPlaceholderWarning(rendered.unresolvedPlaceholders)}</div>
+            )}
+            {message && <div className="industrial-message industrial-message-ok mt-4">{message}</div>}
+            <div className="industrial-subpanel mt-4">
+              <h4>Betreff</h4>
+              <p>{rendered.subject}</p>
+            </div>
+            <div className="industrial-subpanel mt-4 template-preview-body">
+              <h4>Textvorschau</h4>
+              <pre>{rendered.body}</pre>
+            </div>
+            <div className="industrial-modal-actions">
+              <button type="button" className="industrial-secondary-button" onClick={() => setRendered(null)}>Schließen</button>
+              <button type="button" className="industrial-button" onClick={() => void copyRendered()}>In Zwischenablage kopieren</button>
+            </div>
+          </section>
+        </div>
+      )}
+    </>
+  );
+}
+
+function TemplatesView({ cases }: { cases: CaseRecord[] }) {
+  const [templates, setTemplates] = useState<TemplateRecord[]>([]);
+  const [query, setQuery] = useState('');
+  const [category, setCategory] = useState<TemplateCategory | ''>('');
+  const [selectedTemplateId, setSelectedTemplateId] = useState('');
+  const [selectedCaseId, setSelectedCaseId] = useState('');
+  const [deadlineDate, setDeadlineDate] = useState('');
+  const [sbvName, setSbvName] = useState('Schwerbehindertenvertretung');
+  const [recipientName, setRecipientName] = useState('Personalabteilung');
+  const [rendered, setRendered] = useState<RenderedTemplateResult | null>(null);
+  const [info, setInfo] = useState('');
+  const [error, setError] = useState('');
+  const [newTemplate, setNewTemplate] = useState<CreateTemplateInput>({
+    title: '',
+    category: 'sonstiges',
+    subject: '',
+    body: '',
+    description: '',
+    legalBasis: [],
+    tags: []
+  });
+
+  async function loadTemplates(nextQuery = query, nextCategory = category) {
+    const bridge = await waitForBridge();
+    if (!bridge?.templates) throw new Error('Vorlagendienst ist nicht erreichbar.');
+    const rows = await bridge.templates.list({ query: nextQuery, category: nextCategory || undefined, limit: 300 });
+    setTemplates(rows);
+    if (!selectedTemplateId && rows[0]) setSelectedTemplateId(rows[0].id);
+  }
+
+  useEffect(() => {
+    loadTemplates().catch((loadError) => setError(loadError instanceof Error ? loadError.message : 'Vorlagen konnten nicht geladen werden.'));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const selectedTemplate = useMemo(() => templates.find((template) => template.id === selectedTemplateId) ?? templates[0], [templates, selectedTemplateId]);
+
+  async function applyFilters(event?: FormEvent) {
+    event?.preventDefault();
+    setError('');
+    setInfo('');
+    try {
+      await loadTemplates(query, category);
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : 'Vorlagen konnten nicht geladen werden.');
+    }
+  }
+
+  async function renderSelectedTemplate() {
+    if (!selectedTemplate) return;
+    setError('');
+    setInfo('');
+    try {
+      const bridge = await waitForBridge();
+      if (!bridge?.templates) throw new Error('Vorlagendienst ist nicht erreichbar.');
+      const result = await bridge.templates.render({
+        templateId: selectedTemplate.id,
+        caseId: selectedCaseId || undefined,
+        values: {
+          'frist.datum': deadlineDate,
+          'sbv.name': sbvName,
+          'arbeitgeber.ansprechpartner': recipientName
+        },
+        archive: true
+      });
+      setRendered(result);
+      setInfo('Entwurf wurde erzeugt und im geschützten Vorlagenverlauf archiviert.');
+    } catch (renderError) {
+      setError(renderError instanceof Error ? renderError.message : 'Vorlage konnte nicht erzeugt werden.');
+    }
+  }
+
+  async function copyRenderedText() {
+    if (!rendered) return;
+    const text = `Betreff: ${rendered.subject}\n\n${rendered.body}`;
+    try {
+      await navigator.clipboard.writeText(text);
+      setInfo('Entwurf wurde in die Zwischenablage kopiert. Hinweis: Die Zwischenablage liegt außerhalb des Tresors.');
+    } catch {
+      setError('Kopieren in die Zwischenablage war nicht möglich. Bitte den Text manuell markieren.');
+    }
+  }
+
+  async function createOwnTemplate(event: FormEvent) {
+    event.preventDefault();
+    setError('');
+    setInfo('');
+    try {
+      const bridge = await waitForBridge();
+      if (!bridge?.templates) throw new Error('Vorlagendienst ist nicht erreichbar.');
+      const created = await bridge.templates.create({
+        ...newTemplate,
+        legalBasis: (newTemplate.legalBasis ?? []).flatMap((entry) => String(entry).split(',')).map((entry) => entry.trim()).filter(Boolean),
+        tags: (newTemplate.tags ?? []).flatMap((entry) => String(entry).split(',')).map((entry) => entry.trim()).filter(Boolean)
+      });
+      setNewTemplate({ title: '', category: 'sonstiges', subject: '', body: '', description: '', legalBasis: [], tags: [] });
+      await loadTemplates(query, category);
+      setSelectedTemplateId(created.id);
+      setInfo('Eigene Vorlage wurde gespeichert.');
+    } catch (createError) {
+      setError(createError instanceof Error ? createError.message : 'Vorlage konnte nicht gespeichert werden.');
+    }
+  }
+
+  const categories = Object.keys(templateCategoryLabels) as TemplateCategory[];
+
+  return (
+    <ModuleFrame
+      title="Vorlagen"
+      kicker="Schriftverkehr"
+      description="Standardschreiben mit Platzhaltern. Tonalität: freundlich, rechtlich klar, verbindlich und ohne unnötige Diskussionsöffnung."
+    >
+      <section className="industrial-panel">
+        <div className="industrial-panel-header compact">
+          <div>
+            <p className="industrial-kicker">Auswahl</p>
+            <h2>Vorlagenkatalog</h2>
+          </div>
+          <form onSubmit={applyFilters} className="industrial-form-grid compact">
+            <label><span>Suche</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Prävention, Beteiligung, Kündigung ..." /></label>
+            <label><span>Kategorie</span><select value={category} onChange={(event) => setCategory(event.target.value as TemplateCategory | '')}><option value="">Alle</option>{categories.map((item) => <option key={item} value={item}>{templateCategoryLabels[item]}</option>)}</select></label>
+            <button type="submit" className="industrial-secondary-button"><Search className="h-4 w-4" />Filtern</button>
+          </form>
+        </div>
+        {error && <div className="industrial-message industrial-message-warning mb-4">{error}</div>}
+        {info && <div className="industrial-message mb-4">{info}</div>}
+        <div className="grid gap-4 xl:grid-cols-[0.9fr_1.4fr]">
+          <div className="space-y-3">
+            {templates.map((template) => (
+              <button
+                key={template.id}
+                type="button"
+                className={`industrial-list-item w-full text-left ${selectedTemplate?.id === template.id ? 'active' : ''}`}
+                onClick={() => { setSelectedTemplateId(template.id); setRendered(null); }}
+              >
+                <strong>{template.title}</strong>
+                <span>{templateCategoryLabels[template.category]} · {template.legalBasis.join(', ') || 'ohne Normbezug'}</span>
+                <p>{template.description}</p>
+              </button>
+            ))}
+            {!templates.length && <div className="industrial-empty">Keine Vorlage gefunden.</div>}
+          </div>
+
+          <div className="industrial-subpanel">
+            {selectedTemplate ? (
+              <>
+                <div className="industrial-case-header">
+                  <div>
+                    <p className="industrial-kicker">{templateCategoryLabels[selectedTemplate.category]}</p>
+                    <h2>{selectedTemplate.title}</h2>
+                    <p>{selectedTemplate.description}</p>
+                  </div>
+                </div>
+
+                <div className="industrial-form-grid compact mt-4">
+                  <label><span>Fallbezug</span><select value={selectedCaseId} onChange={(event) => setSelectedCaseId(event.target.value)}><option value="">ohne Fallbezug</option>{cases.map((record) => <option key={record.id} value={record.id}>{record.caseNumber} · {record.displayName}</option>)}</select></label>
+                  <label><span>Frist / Datum</span><input value={deadlineDate} onChange={(event) => setDeadlineDate(event.target.value)} placeholder="z. B. 17.05.2026" /></label>
+                  <label><span>SBV-Absender</span><input value={sbvName} onChange={(event) => setSbvName(event.target.value)} /></label>
+                  <label><span>Ansprechstelle</span><input value={recipientName} onChange={(event) => setRecipientName(event.target.value)} /></label>
+                </div>
+
+                <div className="industrial-subpanel mt-4">
+                  <h4>Vorschau der Vorlage</h4>
+                  <p className="industrial-meta"><strong>Betreff:</strong> {selectedTemplate.subject}</p>
+                  <pre className="industrial-prewrap">{selectedTemplate.body}</pre>
+                </div>
+
+                <div className="mt-4 flex flex-wrap gap-3">
+                  <button type="button" className="industrial-button" onClick={() => void renderSelectedTemplate()}><FileText className="h-4 w-4" />Entwurf erzeugen</button>
+                  {rendered && <button type="button" className="industrial-secondary-button" onClick={() => void copyRenderedText()}>In Zwischenablage kopieren</button>}
+                </div>
+
+                {rendered && (
+                  <div className="industrial-subpanel mt-4">
+                    <h4>Erzeugter Entwurf</h4>
+                    {rendered.unresolvedPlaceholders.length > 0 && <div className="industrial-message industrial-message-warning mb-3">Offene Platzhalter: {rendered.unresolvedPlaceholders.join(', ')}</div>}
+                    <p className="industrial-meta"><strong>Betreff:</strong> {rendered.subject}</p>
+                    <textarea className="industrial-output-area" value={rendered.body} readOnly />
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="industrial-empty">Bitte eine Vorlage auswählen.</div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      <section className="industrial-panel">
+        <div className="industrial-panel-header compact"><div><p className="industrial-kicker">Eigene Vorlage</p><h2>Vorlage ergänzen</h2></div></div>
+        <form onSubmit={createOwnTemplate} className="industrial-settings-form">
+          <div className="industrial-form-grid">
+            <label><span>Titel</span><input value={newTemplate.title} onChange={(event) => setNewTemplate((draft) => ({ ...draft, title: event.target.value }))} /></label>
+            <label><span>Kategorie</span><select value={newTemplate.category} onChange={(event) => setNewTemplate((draft) => ({ ...draft, category: event.target.value as TemplateCategory }))}>{categories.map((item) => <option key={item} value={item}>{templateCategoryLabels[item]}</option>)}</select></label>
+            <label><span>Normen</span><input value={(newTemplate.legalBasis ?? []).join(', ')} onChange={(event) => setNewTemplate((draft) => ({ ...draft, legalBasis: [event.target.value] }))} placeholder="§ 178 Abs. 2 Satz 1 SGB IX" /></label>
+            <label><span>Tags</span><input value={(newTemplate.tags ?? []).join(', ')} onChange={(event) => setNewTemplate((draft) => ({ ...draft, tags: [event.target.value] }))} placeholder="Beteiligung, Frist, HR" /></label>
+          </div>
+          <label><span>Beschreibung</span><input value={newTemplate.description ?? ''} onChange={(event) => setNewTemplate((draft) => ({ ...draft, description: event.target.value }))} /></label>
+          <label><span>Betreff</span><input value={newTemplate.subject} onChange={(event) => setNewTemplate((draft) => ({ ...draft, subject: event.target.value }))} placeholder="Beteiligung der SBV – {{fall.aktenzeichen}}" /></label>
+          <label><span>Text</span><textarea value={newTemplate.body} onChange={(event) => setNewTemplate((draft) => ({ ...draft, body: event.target.value }))} placeholder="Sehr geehrte Damen und Herren, ..." /></label>
+          <div className="industrial-message">Verfügbare Platzhalter u. a.: {'{{heute}}'}, {'{{fall.aktenzeichen}}'}, {'{{fall.name}}'}, {'{{fall.kurzbeschreibung}}'}, {'{{person.name}}'}, {'{{frist.datum}}'}, {'{{sbv.name}}'}, {'{{arbeitgeber.ansprechpartner}}'}, {'{{normen}}'}.</div>
+          <button type="submit" className="industrial-button"><Save className="h-4 w-4" />Vorlage speichern</button>
+        </form>
+      </section>
+    </ModuleFrame>
+  );
+}
+
 function PlaceholderView({ view }: { view: ModuleDefinition }) {
   return (
     <ModuleFrame title={view.title} kicker={view.shortTitle} description={view.text}>
@@ -3656,9 +4168,10 @@ export function App() {
         {currentView === 'contacts' && <ContactsView contacts={contacts} onCreateContact={createContact} onDeleteContact={deleteContact} />}
         {currentView === 'knowledge' && <KnowledgeView cases={cases} />}
         {currentView === 'prevention' && <PreventionView cases={cases} contacts={contacts} onWorkDataChanged={reloadWorkData} />}
+        {currentView === 'templates' && <TemplatesView cases={cases} />}
         {currentView === 'reports' && <ReportsView />}
         {currentView === 'settings' && <SettingsView theme={theme} onThemeChange={setTheme} cases={cases} />}
-        {currentView !== 'dashboard' && currentView !== 'cases' && currentView !== 'deadlines' && currentView !== 'contacts' && currentView !== 'knowledge' && currentView !== 'prevention' && currentView !== 'reports' && currentView !== 'settings' && currentModule && (
+        {currentView !== 'dashboard' && currentView !== 'cases' && currentView !== 'deadlines' && currentView !== 'contacts' && currentView !== 'knowledge' && currentView !== 'prevention' && currentView !== 'templates' && currentView !== 'reports' && currentView !== 'settings' && currentModule && (
           <PlaceholderView view={currentModule} />
         )}
         {selectedDeadline && (

@@ -136,23 +136,6 @@ CREATE TABLE IF NOT EXISTS deadline_audit (
   created_at TEXT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS legal_references (
-  id TEXT PRIMARY KEY,
-  source TEXT NOT NULL,
-  paragraph TEXT NOT NULL,
-  title TEXT NOT NULL,
-  content TEXT,
-  notes TEXT,
-  created_at TEXT NOT NULL,
-  updated_at TEXT NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS case_legal_references (
-  case_id TEXT NOT NULL REFERENCES cases(id) ON DELETE CASCADE,
-  legal_reference_id TEXT NOT NULL REFERENCES legal_references(id) ON DELETE CASCADE,
-  PRIMARY KEY (case_id, legal_reference_id)
-);
-
 CREATE TABLE IF NOT EXISTS templates (
   id TEXT PRIMARY KEY,
   title TEXT NOT NULL,
@@ -518,3 +501,30 @@ CREATE TABLE IF NOT EXISTS norm_checklist_items (
   updated_at TEXT NOT NULL,
   FOREIGN KEY (legal_norm_id) REFERENCES legal_norms(id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS document_templates (
+  id TEXT PRIMARY KEY,
+  template_key TEXT NOT NULL UNIQUE,
+  title TEXT NOT NULL,
+  category TEXT NOT NULL,
+  description TEXT,
+  subject TEXT NOT NULL,
+  body TEXT NOT NULL,
+  legal_basis_json TEXT NOT NULL DEFAULT '[]',
+  tags_json TEXT NOT NULL DEFAULT '[]',
+  is_system INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS template_renders (
+  id TEXT PRIMARY KEY,
+  template_id TEXT NOT NULL REFERENCES document_templates(id) ON DELETE CASCADE,
+  case_id TEXT REFERENCES cases(id) ON DELETE SET NULL,
+  subject TEXT NOT NULL,
+  body TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_document_templates_category ON document_templates(category);
+CREATE INDEX IF NOT EXISTS idx_template_renders_case ON template_renders(case_id, created_at);

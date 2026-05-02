@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import type { DatabaseAdapter } from './databaseService.js';
+import { classifyCaseLegalReferencesColumns } from './knowledgeMigrationPolicy.js';
 
 interface MigrationRow {
   version: string;
@@ -25,8 +26,8 @@ interface MigrationDefinition {
   checksum: string;
 }
 
-const APP_SCHEMA_VERSION = '0013';
-const APP_VERSION = '0.4.2';
+const APP_SCHEMA_VERSION = '0014';
+const APP_VERSION = '0.4.6';
 const MIGRATION_TABLE_SQL = `
 CREATE TABLE IF NOT EXISTS schema_migrations (
   version TEXT PRIMARY KEY,
@@ -239,7 +240,9 @@ export class MigrationService {
       case '0012':
         return this.tableExists('prevention_processes') && this.tableExists('prevention_process_contacts');
       case '0013':
-        return this.tableExists('legal_norms') && this.tableExists('case_legal_references') && this.tableExists('norm_checklist_items');
+        return this.tableExists('legal_norms') && this.tableExists('case_legal_references') && this.columnExists('case_legal_references', 'legal_norm_id') && this.tableExists('norm_checklist_items');
+      case '0014':
+        return this.tableExists('document_templates') && this.tableExists('template_renders');
       default:
         return false;
     }
@@ -257,6 +260,10 @@ export class MigrationService {
       } else if (definition.version === '0007') {
         this.ensureContactsSchema();
         this.executeStatements(sql, { skipUnsafeCreateContacts: true });
+      } else if (definition.version === '0013') {
+        this.ensureKnowledgeSchemaCompatibility();
+        this.applyAddColumnsSafely(sql);
+        this.executeStatements(sql, { skipAlterAddColumn: true });
       } else {
         this.applyAddColumnsSafely(sql);
         this.executeStatements(sql, { skipAlterAddColumn: true });
@@ -345,6 +352,50 @@ export class MigrationService {
       CREATE INDEX IF NOT EXISTS idx_contacts_name ON contacts(last_name, first_name);
       CREATE INDEX IF NOT EXISTS idx_contacts_category ON contacts(category);
     `);
+  }
+
+
+  private ensureKnowledgeSchemaCompatibility(): void {
+    if (!this.tableExists('case_legal_references')) return;
+
+    const state = classifyCaseLegalReferencesColumns(this.columnsOf('case_legal_references'));
+    if (state === 'current') return;
+
+    if (state === 'legacy') {
+      const legacyName = this.uniqueLegacyTableName('case_legal_references_legacy');
+      this.db.exec(`ALTER TABLE case_legal_references RENAME TO ${legacyName};`);
+      this.db.exec(`
+        CREATE TABLE IF NOT EXISTS knowledge_migration_notes (
+          id TEXT PRIMARY KEY,
+          message TEXT NOT NULL,
+          created_at TEXT NOT NULL
+        );
+      `);
+      this.db.prepare(`
+        INSERT INTO knowledge_migration_notes (id, message, created_at)
+        VALUES (?, ?, ?)
+      `).run(
+        `knowledge-legacy-${Date.now()}`,
+        `Alte Tabelle case_legal_references wurde als ${legacyName} erhalten, weil sie das neue Feld legal_norm_id nicht enthielt. Neue Wissensdatenbank-Verknüpfungen werden in einer neuen Tabelle case_legal_references gespeichert.`,
+        nowIso()
+      );
+    }
+  }
+
+  private columnsOf(table: string): string[] {
+    if (!this.tableExists(table)) return [];
+    const rows = this.db.prepare<{ name: string }>(`PRAGMA table_info(${table})`).all();
+    return rows.map((row) => row.name);
+  }
+
+  private uniqueLegacyTableName(base: string): string {
+    let candidate = `${base}_${Date.now()}`;
+    let counter = 1;
+    while (this.tableExists(candidate)) {
+      candidate = `${base}_${Date.now()}_${counter}`;
+      counter += 1;
+    }
+    return candidate;
   }
 
   private addColumnIfMissing(table: string, column: string, definition: string): void {

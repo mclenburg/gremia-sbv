@@ -10,6 +10,7 @@ import { registerBackupIpc } from './ipc/backupIpc.js';
 import { registerRetentionIpc } from './ipc/retentionIpc.js';
 import { registerPreventionIpc } from './ipc/preventionIpc.js';
 import { registerKnowledgeIpc } from './ipc/knowledgeIpc.js';
+import { registerTemplateIpc } from './ipc/templateIpc.js';
 import { SecurityService } from '../services/securityService.js';
 
 app.setName('Gremia.SBV');
@@ -209,6 +210,7 @@ if (!singleInstanceLock) {
     registerDeadlineIpc(ipcMain, security);
     registerPreventionIpc(ipcMain, security);
     registerKnowledgeIpc(ipcMain, security);
+  registerTemplateIpc(ipcMain, security);
     registerReportIpc(ipcMain, security);
     registerBackupIpc(ipcMain, security);
     registerRetentionIpc(ipcMain, security);
