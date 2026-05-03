@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { FormEvent } from 'react';
+import type { FormEvent, ReactNode } from 'react';
 import {
   AlertTriangle,
   BarChart3,
@@ -74,6 +74,8 @@ import './caseWorkbench.css';
 import './accessibility.css';
 import './templateWorkbench.css';
 import './templateDefaults.css';
+import './processOverview.css';
+import './knowledgeWorkbench.css';
 
 
 function nowLabel(): string {
@@ -717,6 +719,12 @@ type CaseExplorerSelection =
   | { type: 'process'; processType: CaseProcessType; id?: string }
   | { type: 'search'; id: string };
 
+type CaseNodeTarget = {
+  caseId: string;
+  nodeType: CaseProcessType | 'note' | 'document' | 'deadline';
+  nodeId?: string;
+};
+
 type ProtocolTextTarget = 'content' | 'nextSteps';
 
 type InlineDeadlineDraft = {
@@ -884,17 +892,21 @@ type CaseToast = {
 function CasesView({
   cases,
   contacts,
+  target,
   onCreateCase,
   onCreateDeadline,
   onCreateContact,
-  onCasesChanged
+  onCasesChanged,
+  onTargetConsumed
 }: {
   cases: CaseRecord[];
   contacts: ContactRecord[];
+  target?: CaseNodeTarget | null;
   onCreateCase: (input: { caseNumber: string; displayName: string; category: CaseCategory; summary?: string }) => Promise<void>;
   onCreateDeadline: (input: CreateDeadlineInput) => Promise<void>;
   onCreateContact: (input: CreateContactInput) => Promise<ContactRecord>;
   onCasesChanged: () => Promise<void>;
+  onTargetConsumed?: () => void;
 }) {
   const [caseNumber, setCaseNumber] = useState('');
   const [displayName, setDisplayName] = useState('');
@@ -938,6 +950,13 @@ function CasesView({
   const [documentError, setDocumentError] = useState('');
   const [searchError, setSearchError] = useState('');
   const [caseToast, setCaseToast] = useState<CaseToast | null>(null);
+  const [pendingCaseNodeTarget, setPendingCaseNodeTarget] = useState<CaseNodeTarget | null>(null);
+
+  useEffect(() => {
+    if (!target) return;
+    setPendingCaseNodeTarget(target);
+    setSelectedCaseId(target.caseId);
+  }, [target]);
 
   const selectedCase = useMemo(() => cases.find((item) => item.id === selectedCaseId), [cases, selectedCaseId]);
   const filteredCases = useMemo(() => {
@@ -1044,7 +1063,21 @@ function CasesView({
           setDocuments(docRows);
           setCaseLegalReferences(legalRefRows);
           setCasePreventionProcesses(preventionRows);
-          setSelection({ type: 'overview' });
+          if (pendingCaseNodeTarget?.caseId === selectedCaseId) {
+            if (pendingCaseNodeTarget.nodeType === 'prevention') {
+              setSelection({ type: 'process', processType: 'prevention', id: pendingCaseNodeTarget.nodeId });
+            } else if (pendingCaseNodeTarget.nodeType === 'note' && pendingCaseNodeTarget.nodeId) {
+              setSelection({ type: 'note', id: pendingCaseNodeTarget.nodeId });
+            } else if (pendingCaseNodeTarget.nodeType === 'document' && pendingCaseNodeTarget.nodeId) {
+              setSelection({ type: 'document', id: pendingCaseNodeTarget.nodeId });
+            } else {
+              setSelection({ type: 'overview' });
+            }
+            setPendingCaseNodeTarget(null);
+            onTargetConsumed?.();
+          } else {
+            setSelection({ type: 'overview' });
+          }
         }
       } catch (error) {
         if (active) setNoteError(error instanceof Error ? error.message : 'Fallakte konnte nicht geladen werden.');
@@ -1943,7 +1976,7 @@ ${caseProcessDraft.description}`,
         </aside>
 
         <section className="industrial-panel case-detail-panel">
-          <form onSubmit={runSearch} className="case-search-bar">
+          <form onSubmit={runSearch} className="knowledge-search-bar">
             <Search className="h-4 w-4 text-yellow-300" />
             <input className="industrial-input" data-global-search-target="case-fulltext" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Volltextsuche in Notizen, Protokollen und Dokumenten …" />
             <label className="industrial-checkbox-row compact"><input type="checkbox" checked={searchOnlySelectedCase} onChange={(event) => setSearchOnlySelectedCase(event.target.checked)} /><span>nur diese Fallakte</span></label>
@@ -2653,6 +2686,153 @@ function statusLabel(status: PreventionStatus): string {
   return labels[status];
 }
 
+
+type ProcessOverviewStatusGroup<TStatus extends string, TRecord> = {
+  status: TStatus;
+  label: string;
+  records: TRecord[];
+  collapsedByDefault?: boolean;
+};
+
+type ProcessOverviewCardModel<TStatus extends string> = {
+  id: string;
+  caseId: string;
+  caseNumber: string;
+  displayName: string;
+  summary: string;
+  status: TStatus;
+  statusLabel: string;
+  riskLabel?: string;
+  dueLabel?: string;
+  updatedLabel?: string;
+  isOverdue?: boolean;
+};
+
+const PREVENTION_OVERVIEW_STATUS_ORDER: PreventionStatus[] = [
+  'zu_pruefen',
+  'angefordert',
+  'arbeitgeber_reagiert',
+  'inklusionsamt_eingeschaltet',
+  'massnahmen_in_klaerung',
+  'massnahmen_vereinbart',
+  'blockiert_verweigert',
+  'abgeschlossen'
+];
+
+function isDonePreventionStatus(status: PreventionStatus): boolean {
+  return status === 'abgeschlossen';
+}
+
+function groupProcessOverviewRecords<TRecord, TStatus extends string>(
+  records: TRecord[],
+  statuses: TStatus[],
+  getStatus: (record: TRecord) => TStatus,
+  getLabel: (status: TStatus) => string,
+  isDone: (status: TStatus) => boolean
+): ProcessOverviewStatusGroup<TStatus, TRecord>[] {
+  return statuses.map((status) => ({
+    status,
+    label: getLabel(status),
+    records: records.filter((record) => getStatus(record) === status),
+    collapsedByDefault: isDone(status)
+  }));
+}
+
+function isIsoBeforeNow(iso?: string): boolean {
+  if (!iso) return false;
+  const timestamp = new Date(iso).getTime();
+  return Number.isFinite(timestamp) && timestamp < Date.now();
+}
+
+function ProcessOverviewCard<TStatus extends string>({
+  item,
+  onOpen
+}: {
+  item: ProcessOverviewCardModel<TStatus>;
+  onOpen: (item: ProcessOverviewCardModel<TStatus>) => void;
+}) {
+  return (
+    <button type="button" className="process-overview-card" onClick={() => onOpen(item)}>
+      <div>
+        <strong>{item.caseNumber}</strong>
+        <span>{item.displayName}</span>
+        <p>{item.summary}</p>
+      </div>
+      <div className="process-overview-card-meta">
+        <span className="process-overview-badge">{item.statusLabel}</span>
+        {item.riskLabel && <span className="process-overview-badge muted">{item.riskLabel}</span>}
+        {item.dueLabel && <span className={`process-overview-badge ${item.isOverdue ? 'warning' : 'muted'}`}>Frist: {item.dueLabel}</span>}
+        {item.updatedLabel && <small>geändert: {item.updatedLabel}</small>}
+      </div>
+    </button>
+  );
+}
+
+function ProcessOverviewGroup<TStatus extends string>({
+  group,
+  renderItem,
+  emptyText
+}: {
+  group: ProcessOverviewStatusGroup<TStatus, ProcessOverviewCardModel<TStatus>>;
+  renderItem: (item: ProcessOverviewCardModel<TStatus>) => ReactNode;
+  emptyText: string;
+}) {
+  const [open, setOpen] = useState(!group.collapsedByDefault);
+  return (
+    <section className="process-overview-group">
+      <button type="button" className="process-overview-group-header" onClick={() => setOpen((current) => !current)} aria-expanded={open}>
+        <span>{open ? '▾' : '▸'}</span>
+        <strong>{group.label}</strong>
+        <em>{group.records.length}</em>
+      </button>
+      {open && (
+        <div className="process-overview-group-body">
+          {group.records.map(renderItem)}
+          {!group.records.length && <div className="industrial-empty compact">{emptyText}</div>}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function ProcessOverviewPage<TStatus extends string>({
+  title,
+  kicker,
+  description,
+  stats,
+  groups,
+  renderItem,
+  emptyText
+}: {
+  title: string;
+  kicker: string;
+  description: string;
+  stats: Array<{ label: string; value: number | string }>;
+  groups: ProcessOverviewStatusGroup<TStatus, ProcessOverviewCardModel<TStatus>>[];
+  renderItem: (item: ProcessOverviewCardModel<TStatus>) => ReactNode;
+  emptyText: string;
+}) {
+  return (
+    <ModuleFrame title={title} kicker={kicker} description={description}>
+      <section className="industrial-panel process-overview-panel">
+        <div className="process-overview-stats" aria-label="Kennzahlen">
+          {stats.map((stat) => (
+            <div key={stat.label} className="process-overview-stat">
+              <span>{stat.label}</span>
+              <strong>{stat.value}</strong>
+            </div>
+          ))}
+        </div>
+        <div className="process-overview-groups">
+          {groups.map((group) => (
+            <ProcessOverviewGroup key={group.status} group={group} renderItem={renderItem} emptyText={emptyText} />
+          ))}
+        </div>
+      </section>
+    </ModuleFrame>
+  );
+}
+
 function StepTooltip({ text }: { text: string }) {
   return (
     <span className="industrial-help-dot" title={text} aria-label={text}>
@@ -2661,242 +2841,81 @@ function StepTooltip({ text }: { text: string }) {
   );
 }
 
-function PreventionView({ cases, contacts, onWorkDataChanged }: { cases: CaseRecord[]; contacts: ContactRecord[]; onWorkDataChanged: () => Promise<void> }) {
+function PreventionView({
+  cases,
+  onOpenCaseNode
+}: {
+  cases: CaseRecord[];
+  onOpenCaseNode: (target: CaseNodeTarget) => void;
+}) {
   const [processes, setProcesses] = useState<PreventionProcessRecord[]>([]);
-  const [steps, setSteps] = useState<PreventionStepDefinition[]>([]);
-  const [selectedId, setSelectedId] = useState('');
-  const [warnings, setWarnings] = useState<PreventionWarning[]>([]);
   const [error, setError] = useState('');
-  const [info, setInfo] = useState('');
-
-  const [newCaseId, setNewCaseId] = useState('');
-  const [firstKnowledgeAt, setFirstKnowledgeAt] = useState(toDateTimeLocalValue(new Date().toISOString()));
-  const [requestedAt, setRequestedAt] = useState(toDateTimeLocalValue(new Date().toISOString()));
-  const [employerResponseDueAt, setEmployerResponseDueAt] = useState('');
-  const [difficultyType, setDifficultyType] = useState<PreventionDifficultyType>('gesundheitlich_arbeitsplatzbezogen');
-  const [riskType, setRiskType] = useState<PreventionRiskType>('ueberlastung');
-  const [personStatus, setPersonStatus] = useState<PreventionProcessRecord['personStatus']>('unklar');
-  const [hazardDescription, setHazardDescription] = useState('');
-  const [selectedContactIds, setSelectedContactIds] = useState<string[]>([]);
-
-  const selected = useMemo(() => processes.find((process) => process.id === selectedId), [processes, selectedId]);
-  const selectedCase = useMemo(() => cases.find((item) => item.id === selected?.caseId), [cases, selected]);
 
   async function reload() {
     const bridge = await waitForBridge();
     if (!bridge?.prevention) throw new Error('Präventionsdienst ist nicht erreichbar.');
-    const [rows, stepRows] = await Promise.all([bridge.prevention.list(), bridge.prevention.steps()]);
+    const rows = await bridge.prevention.list();
     setProcesses(rows);
-    setSteps(stepRows);
-    if (!selectedId && rows.length) setSelectedId(rows[0].id);
-    if (!newCaseId && cases.length) setNewCaseId(cases[0].id);
   }
 
   useEffect(() => {
-    void reload().catch((error) => setError(error instanceof Error ? error.message : 'Präventionsverfahren konnten nicht geladen werden.'));
+    void reload().catch((loadError) => setError(loadError instanceof Error ? loadError.message : 'Präventionsverfahren konnten nicht geladen werden.'));
   }, [cases.length]);
 
-  useEffect(() => {
-    if (!selectedId) {
-      setWarnings([]);
-      return;
-    }
-    async function loadWarnings() {
-      const bridge = await waitForBridge();
-      if (!bridge?.prevention) return;
-      setWarnings(await bridge.prevention.warnings(selectedId));
-    }
-    void loadWarnings();
-  }, [selectedId, processes]);
+  const cards = useMemo<ProcessOverviewCardModel<PreventionStatus>[]>(() => processes.map((process) => {
+    const record = cases.find((item) => item.id === process.caseId);
+    return {
+      id: process.id,
+      caseId: process.caseId,
+      caseNumber: record?.caseNumber ?? 'Fall nicht auflösbar',
+      displayName: record?.displayName ?? 'unbekannte Fallakte',
+      summary: process.hazardDescription || record?.summary || 'Keine Kurzbeschreibung hinterlegt.',
+      status: process.status,
+      statusLabel: statusLabel(process.status),
+      riskLabel: process.riskType.replaceAll('_', ' '),
+      dueLabel: formatDateShort(process.employerResponseDueAt),
+      updatedLabel: formatDateShort(process.updatedAt),
+      isOverdue: !isDonePreventionStatus(process.status) && isIsoBeforeNow(process.employerResponseDueAt)
+    };
+  }), [processes, cases]);
 
-  function toggleContact(contactId: string, checked: boolean) {
-    setSelectedContactIds((current) => checked ? [...new Set([...current, contactId])] : current.filter((id) => id !== contactId));
-  }
+  const groups = useMemo(() => groupProcessOverviewRecords(
+    cards,
+    PREVENTION_OVERVIEW_STATUS_ORDER,
+    (item) => item.status,
+    statusLabel,
+    isDonePreventionStatus
+  ), [cards]);
 
-  async function createProcess(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setError('');
-    setInfo('');
-    if (!newCaseId) {
-      setError('Bitte zuerst einen Fall auswählen.');
-      return;
-    }
-    if (!hazardDescription.trim()) {
-      setError('Bitte die Gefährdung kurz beschreiben.');
-      return;
-    }
-
-    try {
-      const bridge = await waitForBridge();
-      if (!bridge?.prevention) throw new Error('Präventionsdienst ist nicht erreichbar.');
-      const input: CreatePreventionProcessInput = {
-        caseId: newCaseId,
-        firstKnowledgeAt: firstKnowledgeAt ? fromDateTimeLocalValue(firstKnowledgeAt) : undefined,
-        requestedAt: requestedAt ? fromDateTimeLocalValue(requestedAt) : undefined,
-        employerResponseDueAt: employerResponseDueAt ? fromDateTimeLocalValue(employerResponseDueAt) : undefined,
-        difficultyType,
-        riskType,
-        personStatus,
-        hazardDescription,
-        contactIds: selectedContactIds,
-        createDefaultDeadlines: true
-      };
-      const created = await bridge.prevention.create(input);
-      setSelectedId(created.id);
-      setHazardDescription('');
-      setSelectedContactIds([]);
-      setInfo('Präventionsverfahren angelegt. Die Wiedervorlage für die Arbeitgeberreaktion wurde automatisch erzeugt.');
-      await reload();
-      await onWorkDataChanged();
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Präventionsverfahren konnte nicht angelegt werden.');
-    }
-  }
-
-  async function updateSelected(input: UpdatePreventionProcessInput) {
-    if (!selected) return;
-    setError('');
-    setInfo('');
-    try {
-      const bridge = await waitForBridge();
-      if (!bridge?.prevention) throw new Error('Präventionsdienst ist nicht erreichbar.');
-      const updated = await bridge.prevention.update(selected.id, input);
-      setSelectedId(updated.id);
-      setInfo('Präventionsverfahren aktualisiert.');
-      await reload();
-      await onWorkDataChanged();
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Präventionsverfahren konnte nicht aktualisiert werden.');
-    }
-  }
+  const openCount = cards.filter((item) => !isDonePreventionStatus(item.status)).length;
+  const doneCount = cards.filter((item) => isDonePreventionStatus(item.status)).length;
+  const overdueCount = cards.filter((item) => item.isOverdue).length;
+  const highRiskCount = processes.filter((process) => ['kuendigung', 'chronifizierung', 'eskalation'].includes(process.riskType)).length;
 
   return (
-    <ModuleFrame title="Präventionsverfahren" kicker="§ 167 Abs. 1 SGB IX" description="Frühzeitige, fallbezogene Steuerung bei erkennbarer Gefährdung des Arbeitsverhältnisses schwerbehinderter oder gleichgestellter Menschen.">
-      <section className="industrial-panel">
-        <div className="industrial-panel-header compact">
-          <div>
-            <p className="industrial-kicker">Neues Verfahren</p>
-            <h2>Präventionsverfahren starten</h2>
-            <p>Das Verfahren hängt immer an einer Fallakte. Es kann hier einem Fall zugeordnet oder direkt aus der Fallakte gestartet werden. Beim Anlegen wird automatisch eine Wiedervorlage für die Arbeitgeberreaktion erzeugt.</p>
-          </div>
-        </div>
-        <form className="industrial-form" onSubmit={createProcess}>
-          <div className="industrial-form-grid">
-            <label><span>Fallakte</span><select value={newCaseId} onChange={(event) => setNewCaseId(event.target.value)}>{cases.map((record) => <option key={record.id} value={record.id}>{record.caseNumber} · {record.displayName}</option>)}</select></label>
-            <label><span>erste Kenntnis</span><input type="datetime-local" value={firstKnowledgeAt} onChange={(event) => setFirstKnowledgeAt(event.target.value)} /></label>
-            <label><span>Arbeitgeber angefordert am</span><input type="datetime-local" value={requestedAt} onChange={(event) => setRequestedAt(event.target.value)} /></label>
-            <label><span>Frist Arbeitgeberreaktion</span><input type="datetime-local" value={employerResponseDueAt} onChange={(event) => setEmployerResponseDueAt(event.target.value)} placeholder="leer = 7 Tage nach Anforderung" /></label>
-            <label><span>Schwierigkeit</span><select value={difficultyType} onChange={(event) => setDifficultyType(event.target.value as PreventionDifficultyType)}>{preventionDifficultyOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
-            <label><span>Risiko</span><select value={riskType} onChange={(event) => setRiskType(event.target.value as PreventionRiskType)}>{preventionRiskOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
-            <label><span>Status Person</span><select value={personStatus} onChange={(event) => setPersonStatus(event.target.value as PreventionProcessRecord['personStatus'])}><option value="unklar">unklar</option><option value="schwerbehindert">schwerbehindert</option><option value="gleichgestellt">gleichgestellt</option><option value="antrag_laeuft">Antrag läuft</option></select></label>
-          </div>
-          <label><span>Gefährdung / Anlass</span><textarea value={hazardDescription} onChange={(event) => setHazardDescription(event.target.value)} placeholder="Kurz und sachlich: Welche Schwierigkeiten gefährden Beschäftigung, Gesundheit oder Arbeitsplatz?" /></label>
-          <div className="case-note-link-panel">
-            <span>Beteiligte Kontakte</span>
-            <div className="case-note-link-grid">
-              {contacts.slice(0, 18).map((contact) => (
-                <label key={contact.id} className="industrial-checkbox-row compact">
-                  <input type="checkbox" checked={selectedContactIds.includes(contact.id)} onChange={(event) => toggleContact(contact.id, event.target.checked)} />
-                  <span>{formatContactReference(contact)}</span>
-                </label>
-              ))}
-              {!contacts.length && <p className="industrial-meta">Noch keine Kontakte vorhanden.</p>}
-            </div>
-          </div>
-          <div className="industrial-card-actions"><button className="industrial-button" type="submit"><Plus className="h-4 w-4" />Präventionsverfahren anlegen</button></div>
-        </form>
-        {error && <div className="industrial-message industrial-message-warning mt-4">{error}</div>}
-        {info && <div className="industrial-message industrial-message-ok mt-4">{info}</div>}
-      </section>
-
-      <section className="industrial-split-grid">
-        <aside className="industrial-panel">
-          <div className="industrial-panel-header compact"><div><p className="industrial-kicker">Register</p><h2>Laufende Verfahren</h2></div></div>
-          <div className="case-register-list compact">
-            {processes.map((process) => {
-              const record = cases.find((item) => item.id === process.caseId);
-              return (
-                <button key={process.id} type="button" className={`case-register-row ${selectedId === process.id ? 'active' : ''}`} onClick={() => setSelectedId(process.id)}>
-                  <strong>{record?.caseNumber ?? 'Fall nicht auflösbar'}</strong>
-                  <span>{statusLabel(process.status)} · {process.riskType.replaceAll('_', ' ')}</span>
-                  <small>Arbeitgeberfrist: {formatDateShort(process.employerResponseDueAt)}</small>
-                </button>
-              );
-            })}
-            {!processes.length && <div className="industrial-empty compact">Noch kein Präventionsverfahren angelegt.</div>}
-          </div>
-        </aside>
-
-        <section className="industrial-panel prevention-detail-panel">
-          {!selected && <div className="industrial-empty">Verfahren auswählen oder neu anlegen.</div>}
-          {selected && (
-            <>
-              <div className="industrial-panel-header compact">
-                <div>
-                  <p className="industrial-kicker">{selectedCase?.caseNumber ?? 'Fall'}</p>
-                  <h2>{selectedCase?.displayName ?? 'Präventionsverfahren'}</h2>
-                  <p>{statusLabel(selected.status)} · erste Kenntnis: {formatDateShort(selected.firstKnowledgeAt)}</p>
-                </div>
-                <select value={selected.status} onChange={(event) => void updateSelected({ status: event.target.value as PreventionStatus })}>
-                  <option value="zu_pruefen">zu prüfen</option>
-                  <option value="angefordert">angefordert</option>
-                  <option value="arbeitgeber_reagiert">Arbeitgeber reagiert</option>
-                  <option value="inklusionsamt_eingeschaltet">Inklusionsamt eingeschaltet</option>
-                  <option value="massnahmen_in_klaerung">Maßnahmen in Klärung</option>
-                  <option value="massnahmen_vereinbart">Maßnahmen vereinbart</option>
-                  <option value="abgeschlossen">abgeschlossen</option>
-                  <option value="blockiert_verweigert">blockiert / verweigert</option>
-                </select>
-              </div>
-
-              {!!warnings.length && (
-                <div className="prevention-warning-stack">
-                  {warnings.map((warning) => <div key={warning.message} className={`industrial-message ${warning.level === 'critical' ? 'industrial-message-warning' : 'industrial-message-info'}`}>{warning.message}</div>)}
-                </div>
-              )}
-
-              <div className="prevention-step-grid">
-                {steps.map((step) => (
-                  <article key={step.key} className="prevention-step-card">
-                    <header><span>{step.title}</span><StepTooltip text={step.objective} /></header>
-                    <p>{step.objective}</p>
-                    {(() => {
-                      const action = resolveContextualTemplateAction({ sourceType: 'prevention', key: step.key, title: step.title });
-                      return action ? (
-                        <div className="contextual-template-actions compact">
-                          <ContextualTemplateButton
-                            action={action}
-                            caseId={selected.caseId}
-                            sourceId={selected.id}
-                            values={{
-                              'frist.datum': selected.employerResponseDueAt ? formatDateShort(selected.employerResponseDueAt) : '',
-                              'praevention.status': statusLabel(selected.status),
-                              'praevention.gefaehrdung': selected.riskType.replaceAll('_', ' '),
-                              'praevention.schwierigkeit': selected.difficultyType.replaceAll('_', ' ')
-                            }}
-                          />
-                        </div>
-                      ) : null;
-                    })()}
-                  </article>
-                ))}
-              </div>
-
-              <div className="industrial-form mt-5">
-                <div className="industrial-form-grid">
-                  <label><span>Arbeitgeber reagiert am</span><input type="datetime-local" value={toDateTimeLocalValue(selected.employerRespondedAt)} onChange={(event) => void updateSelected({ employerRespondedAt: event.target.value ? fromDateTimeLocalValue(event.target.value) : undefined, status: 'arbeitgeber_reagiert' })} /></label>
-                  <label><span>Inklusionsamt eingeschaltet am</span><input type="datetime-local" value={toDateTimeLocalValue(selected.integrationOfficeInvolvedAt)} onChange={(event) => void updateSelected({ integrationOfficeInvolvedAt: event.target.value ? fromDateTimeLocalValue(event.target.value) : undefined, status: 'inklusionsamt_eingeschaltet' })} /></label>
-                  <label><span>nächste Wiedervorlage</span><input type="datetime-local" value={toDateTimeLocalValue(selected.nextReviewAt)} onChange={(event) => void updateSelected({ nextReviewAt: event.target.value ? fromDateTimeLocalValue(event.target.value) : undefined })} /></label>
-                </div>
-                <label><span>Arbeitgeberanforderung / Gesprächsstand</span><textarea defaultValue={selected.employerRequestSummary ?? ''} onBlur={(event) => void updateSelected({ employerRequestSummary: event.target.value })} /></label>
-                <label><span>Maßnahmen</span><textarea defaultValue={selected.measures ?? ''} onBlur={(event) => void updateSelected({ measures: event.target.value, status: event.target.value.trim() ? 'massnahmen_vereinbart' : selected.status })} /></label>
-                <label><span>Ergebnis / Abschlussbewertung</span><textarea defaultValue={selected.result ?? ''} onBlur={(event) => void updateSelected({ result: event.target.value })} /></label>
-              </div>
-            </>
-          )}
-        </section>
-      </section>
-    </ModuleFrame>
+    <>
+      {error && <div className="industrial-message industrial-message-warning">{error}</div>}
+      <ProcessOverviewPage
+        title="Präventionsverfahren"
+        kicker="§ 167 Abs. 1 SGB IX"
+        description="Übersicht über fallbezogene Präventionsverfahren. Die Bearbeitung erfolgt ausschließlich in der Fallakte."
+        stats={[
+          { label: 'offen', value: openCount },
+          { label: 'überfällig', value: overdueCount },
+          { label: 'hohes Risiko', value: highRiskCount },
+          { label: 'erledigt', value: doneCount }
+        ]}
+        groups={groups}
+        emptyText="Keine Verfahren in diesem Status."
+        renderItem={(item) => (
+          <ProcessOverviewCard
+            key={item.id}
+            item={item}
+            onOpen={(target) => onOpenCaseNode({ caseId: target.caseId, nodeType: 'prevention', nodeId: target.id })}
+          />
+        )}
+      />
+    </>
   );
 }
 
@@ -3708,10 +3727,314 @@ function RetentionSettingsPanel({ cases }: { cases: CaseRecord[] }) {
   );
 }
 
+
+const SBV_ADVISOR_KNOWLEDGE_ENTRIES = [
+  {
+    id: 'advisor-sgb-ix-151',
+    source: 'SGB IX',
+    paragraph: '§ 151 SGB IX',
+    title: 'Geltungsbereich Schwerbehindertenrecht',
+    shortText: 'Regelt, für wen die besonderen Schutz- und Förderrechte schwerbehinderter Menschen gelten.',
+    sbvMeaning: 'Prüfe zuerst, ob Schwerbehinderung, Gleichstellung oder ein laufender Antrag relevant ist. Davon hängt ab, welche Beteiligungs- und Schutzrechte greifen.',
+    practiceNote: 'In der Fallakte den Status sauber dokumentieren: anerkannt, gleichgestellt, Antrag läuft oder unklar.',
+    typicalCases: 'Neue Beratung, unklarer Status, Gleichstellungsantrag, Beteiligung bei personeller Maßnahme.',
+    tags: ['Schwerbehinderung', 'Gleichstellung', 'Status', 'Anwendungsbereich']
+  },
+  {
+    id: 'advisor-sgb-ix-152',
+    source: 'SGB IX',
+    paragraph: '§ 152 SGB IX',
+    title: 'Feststellung der Behinderung',
+    shortText: 'Grundlage für die Feststellung des Grades der Behinderung und der Merkzeichen.',
+    sbvMeaning: 'Wichtig für Beratung zur Antragstellung und für die Einordnung, ob besonderer Schutz bereits sicher oder noch in Klärung ist.',
+    practiceNote: 'SBV kann beim Antrag unterstützen, sollte aber keine medizinische Bewertung vornehmen. Fristen und Bescheide als Dokumente ablegen.',
+    typicalCases: 'Erstantrag, Verschlimmerungsantrag, Merkzeichen, Widerspruch gegen GdB.',
+    tags: ['GdB', 'Antrag', 'Merkzeichen', 'Versorgungsamt']
+  },
+  {
+    id: 'advisor-sgb-ix-163',
+    source: 'SGB IX',
+    paragraph: '§ 163 SGB IX',
+    title: 'Beschäftigungspflicht und Ausgleichsabgabe',
+    shortText: 'Arbeitgeber müssen schwerbehinderte Menschen beschäftigen und Nichterfüllung ausgleichen.',
+    sbvMeaning: 'Hilft bei strategischen Gesprächen über Beschäftigung, Personalplanung und Inklusion.',
+    practiceNote: 'Nicht nur Quote betrachten: entscheidend ist, ob konkrete Beschäftigungsmöglichkeiten geprüft und genutzt werden.',
+    typicalCases: 'Personalplanung, Stellenbesetzung, Inklusionsvereinbarung, Berichtspflichten.',
+    tags: ['Beschäftigungspflicht', 'Quote', 'Ausgleichsabgabe', 'Personalplanung']
+  },
+  {
+    id: 'advisor-sgb-ix-164',
+    source: 'SGB IX',
+    paragraph: '§ 164 SGB IX',
+    title: 'Pflichten des Arbeitgebers und behinderungsgerechte Beschäftigung',
+    shortText: 'Zentrale Anspruchsgrundlage für leidens- und behinderungsgerechte Beschäftigung, Ausstattung und Förderung.',
+    sbvMeaning: 'Kernnorm für Arbeitsplatzanpassung, technische Hilfen, Arbeitsorganisation, Qualifizierung und Nachteilsausgleich.',
+    practiceNote: 'Immer konkret fragen: Welche Tätigkeit, welche Einschränkung, welche Anpassung, welche Kostenstelle, welche Fördermöglichkeit?',
+    typicalCases: 'Homeoffice, Teilzeit, Arbeitsplatzgestaltung, Hilfsmittel, Aufgabenänderung, Überlastung.',
+    tags: ['Arbeitsplatzgestaltung', 'Nachteilsausgleich', 'Homeoffice', 'Hilfsmittel', 'Teilzeit']
+  },
+  {
+    id: 'advisor-sgb-ix-165',
+    source: 'SGB IX',
+    paragraph: '§ 165 SGB IX',
+    title: 'Pflichten öffentlicher Arbeitgeber bei Stellenbesetzung',
+    shortText: 'Öffentliche Arbeitgeber haben besondere Prüf- und Einladungspflichten gegenüber schwerbehinderten Bewerbenden.',
+    sbvMeaning: 'Für SBV relevant bei Auswahlverfahren, internen Bewerbungen und Verdacht auf Benachteiligung.',
+    practiceNote: 'Frühzeitig Unterlagen, Bewerberfeld und Beteiligung der SBV sichern. Nicht erst nach Auswahlentscheidung reagieren.',
+    typicalCases: 'Bewerbung, interne Stelle, Einladungspflicht, Auswahlentscheidung, AGG-Risiko.',
+    tags: ['Bewerbung', 'Stellenbesetzung', 'Einladung', 'öffentlicher Arbeitgeber']
+  },
+  {
+    id: 'advisor-sgb-ix-167-1',
+    source: 'SGB IX',
+    paragraph: '§ 167 Abs. 1 SGB IX',
+    title: 'Präventionsverfahren',
+    shortText: 'Bei Schwierigkeiten, die das Arbeitsverhältnis gefährden können, muss der Arbeitgeber frühzeitig Prävention betreiben.',
+    sbvMeaning: 'Sehr starkes Werkzeug der SBV, wenn Belastung, Konflikt oder gesundheitliche Gefährdung eskaliert.',
+    practiceNote: 'Schriftlich einfordern, Anlass konkret benennen, Beteiligte und Frist zur Arbeitgeberreaktion dokumentieren.',
+    typicalCases: 'Überlastung, Konflikt mit Führungskraft, drohende Kündigung, Arbeitsplatzverlust, Chronifizierungsrisiko.',
+    tags: ['Prävention', 'Gefährdung', 'Arbeitgeberpflicht', 'Inklusionsamt']
+  },
+  {
+    id: 'advisor-sgb-ix-167-2',
+    source: 'SGB IX',
+    paragraph: '§ 167 Abs. 2 SGB IX',
+    title: 'Betriebliches Eingliederungsmanagement',
+    shortText: 'BEM ist anzubieten, wenn Beschäftigte länger als sechs Wochen arbeitsunfähig sind.',
+    sbvMeaning: 'SBV achtet auf Freiwilligkeit, Datenschutz, sauberes Verfahren und konkrete Maßnahmen statt Symboltermin.',
+    practiceNote: 'Einwilligung, Teilnehmende, Ziele, Maßnahmen und Ergebnis getrennt dokumentieren. Keine Gesundheitsdaten ohne Erforderlichkeit.',
+    typicalCases: 'Langzeiterkrankung, Wiedereingliederung, Arbeitsplatzanpassung, krankheitsbedingte Kündigung.',
+    tags: ['BEM', 'Arbeitsunfähigkeit', 'Wiedereingliederung', 'Datenschutz']
+  },
+  {
+    id: 'advisor-sgb-ix-168',
+    source: 'SGB IX',
+    paragraph: '§ 168 SGB IX',
+    title: 'Zustimmung des Integrationsamts bei Kündigung',
+    shortText: 'Die Kündigung schwerbehinderter Menschen braucht grundsätzlich vorherige Zustimmung des Integrationsamts.',
+    sbvMeaning: 'SBV muss sofort prüfen, ob Anhörung, Unterlagen, Prävention und BEM sauber erfolgt sind.',
+    practiceNote: 'Fristen und Unterlagen eng führen. Bei fehlender SBV-Beteiligung Rechtsverletzung dokumentieren und anwaltlich prüfen lassen.',
+    typicalCases: 'Kündigungsanhörung, Zustimmung Integrationsamt, krankheitsbedingte Kündigung, außerordentliche Kündigung.',
+    tags: ['Kündigung', 'Integrationsamt', 'Sonderkündigungsschutz', 'Frist']
+  },
+  {
+    id: 'advisor-sgb-ix-178-1',
+    source: 'SGB IX',
+    paragraph: '§ 178 Abs. 1 SGB IX',
+    title: 'Aufgaben der SBV',
+    shortText: 'Die SBV fördert die Eingliederung, vertritt Interessen und überwacht die Einhaltung der Schutzvorschriften.',
+    sbvMeaning: 'Grundlage für aktives Handeln: beraten, überwachen, Anträge unterstützen, Maßnahmen anstoßen.',
+    practiceNote: 'Nicht auf Beschwerden warten. Bei erkennbarer Betroffenheit Informationen anfordern und Beteiligung einfordern.',
+    typicalCases: 'Beratung, GdB-Antrag, Arbeitgeberpflichten, Überwachung, Maßnahmenanstoß.',
+    tags: ['SBV-Aufgaben', 'Überwachung', 'Beratung', 'Interessenvertretung']
+  },
+  {
+    id: 'advisor-sgb-ix-178-2',
+    source: 'SGB IX',
+    paragraph: '§ 178 Abs. 2 SGB IX',
+    title: 'Unterrichtung und Anhörung der SBV',
+    shortText: 'Die SBV ist in allen Angelegenheiten schwerbehinderter Menschen unverzüglich und umfassend zu unterrichten und vor Entscheidungen anzuhören.',
+    sbvMeaning: 'Zentraler Beteiligungsanspruch der SBV. Ohne vorherige Anhörung ist die Beteiligung nicht ordnungsgemäß.',
+    practiceNote: 'Bei Verstößen schriftlich rügen, Unterlagen anfordern, Nachholung verlangen und Vorgang dokumentieren.',
+    typicalCases: 'Versetzung, Kündigung, Stellenbesetzung, Arbeitszeit, Homeoffice, Organisationsänderung.',
+    tags: ['Anhörung', 'Unterrichtung', 'Beteiligung', 'SBV-Rechte']
+  },
+  {
+    id: 'advisor-sgb-ix-179',
+    source: 'SGB IX',
+    paragraph: '§ 179 SGB IX',
+    title: 'Persönliche Rechte und Ressourcen der SBV',
+    shortText: 'Regelt Schutz, Freistellung, Schulung, Kosten und Amtsausstattung der SBV.',
+    sbvMeaning: 'Grundlage für Schulungen, Arbeitsmittel, Zeitaufwand und unabhängige Amtsführung.',
+    practiceNote: 'Erforderlichkeit sachlich begründen. SBV-Zeit ist Amtszeit, keine normale Arbeitsaufgabe.',
+    typicalCases: 'Schulung, Ausstattung, Freistellung, Zeitbuchung, Stellvertretung.',
+    tags: ['Schulung', 'Kosten', 'Freistellung', 'Ausstattung']
+  },
+  {
+    id: 'advisor-sgb-ix-182',
+    source: 'SGB IX',
+    paragraph: '§ 182 SGB IX',
+    title: 'Zusammenarbeit',
+    shortText: 'Arbeitgeber, Inklusionsbeauftragte, Betriebsrat und SBV sollen eng zusammenarbeiten.',
+    sbvMeaning: 'Kooperation ja, Unterordnung nein. Die SBV bleibt eigenständige Interessenvertretung.',
+    practiceNote: 'Zusammenarbeit strukturiert einfordern: feste Termine, klare Unterlagen, verbindliche Rückmeldungen.',
+    typicalCases: 'Regeltermine, Arbeitgebergespräche, Inklusionsvereinbarung, Konflikte mit HR.',
+    tags: ['Zusammenarbeit', 'Inklusionsbeauftragter', 'Betriebsrat', 'Arbeitgeber']
+  },
+  {
+    id: 'advisor-sgb-ix-185',
+    source: 'SGB IX',
+    paragraph: '§ 185 SGB IX',
+    title: 'Aufgaben des Integrationsamts',
+    shortText: 'Das Integrationsamt unterstützt Teilhabe im Arbeitsleben, Prävention und Kündigungsschutz.',
+    sbvMeaning: 'Wichtiger externer Hebel bei Arbeitsplatzanpassung, Konflikten und Präventionsverfahren.',
+    practiceNote: 'Frühzeitig einschalten, wenn interne Klärung stockt oder Arbeitgebermaßnahmen ausbleiben.',
+    typicalCases: 'Technische Hilfen, Prävention, Kündigung, Beratung, begleitende Hilfe.',
+    tags: ['Integrationsamt', 'Förderung', 'Prävention', 'Kündigungsschutz']
+  },
+  {
+    id: 'advisor-betrvg-80',
+    source: 'BetrVG',
+    paragraph: '§ 80 BetrVG',
+    title: 'Allgemeine Aufgaben des Betriebsrats',
+    shortText: 'Der Betriebsrat überwacht Gesetze und fördert u. a. Eingliederung schwerbehinderter Menschen.',
+    sbvMeaning: 'Schnittstelle zur SBV, aber kein Ersatz für SBV-Beteiligung.',
+    practiceNote: 'Bei Doppelrelevanz parallel denken: BR-Mitbestimmung und SBV-Anhörung sind getrennte Rechte.',
+    typicalCases: 'Betriebsvereinbarung, Überwachung, Beschwerden, Gleichbehandlung.',
+    tags: ['Betriebsrat', 'Überwachung', 'Schnittstelle', 'Mitbestimmung']
+  },
+  {
+    id: 'advisor-betrvg-87',
+    source: 'BetrVG',
+    paragraph: '§ 87 BetrVG',
+    title: 'Mitbestimmung in sozialen Angelegenheiten',
+    shortText: 'Mitbestimmung u. a. bei Arbeitszeit, Ordnung, technischen Einrichtungen und Gesundheitsschutz.',
+    sbvMeaning: 'SBV prüft zusätzlich, ob schwerbehinderte Menschen besonders betroffen sind.',
+    practiceNote: 'Bei BV-Themen SBV-Perspektive früh einbringen: Barrierefreiheit, Ausnahmen, Nachteilsausgleich.',
+    typicalCases: 'Arbeitszeit, Zeiterfassung, mobiles Arbeiten, Gesundheitsschutz, IT-Systeme.',
+    tags: ['Mitbestimmung', 'Arbeitszeit', 'IT-Systeme', 'Gesundheitsschutz']
+  },
+  {
+    id: 'advisor-betrvg-99',
+    source: 'BetrVG',
+    paragraph: '§ 99 BetrVG',
+    title: 'Personelle Einzelmaßnahmen',
+    shortText: 'Betriebsrat ist bei Einstellung, Eingruppierung, Umgruppierung und Versetzung zu beteiligen.',
+    sbvMeaning: 'SBV-Beteiligung nach § 178 Abs. 2 SGB IX läuft daneben, wenn schwerbehinderte Menschen betroffen sind.',
+    practiceNote: 'Nicht auf BR-Unterlagen verlassen. SBV hat eigenen Unterrichtungs- und Anhörungsanspruch.',
+    typicalCases: 'Einstellung, Versetzung, Eingruppierung, Umorganisation.',
+    tags: ['Versetzung', 'Einstellung', 'Eingruppierung', 'BR']
+  },
+  {
+    id: 'advisor-betrvg-102',
+    source: 'BetrVG',
+    paragraph: '§ 102 BetrVG',
+    title: 'Anhörung des Betriebsrats bei Kündigung',
+    shortText: 'Der Betriebsrat ist vor jeder Kündigung anzuhören.',
+    sbvMeaning: 'Bei schwerbehinderten Menschen zusätzlich SBV-Anhörung und Integrationsamtsverfahren prüfen.',
+    practiceNote: 'SBV sollte Kündigungsgründe, BEM, Prävention, Alternativen und leidensgerechte Beschäftigung prüfen.',
+    typicalCases: 'Kündigung, Änderungskündigung, Anhörung, Frist.',
+    tags: ['Kündigung', 'BR-Anhörung', 'SBV-Anhörung', 'Frist']
+  },
+  {
+    id: 'advisor-agg-7',
+    source: 'AGG',
+    paragraph: '§ 7 AGG',
+    title: 'Benachteiligungsverbot',
+    shortText: 'Beschäftigte dürfen wegen geschützter Merkmale, u. a. Behinderung, nicht benachteiligt werden.',
+    sbvMeaning: 'Wichtig bei Auswahlentscheidungen, Umgang mit Einschränkungen und fehlenden angemessenen Vorkehrungen.',
+    practiceNote: 'Indizien zeitnah dokumentieren: Vergleichsfälle, Aussagen, Abläufe, fehlende Prüfung von Alternativen.',
+    typicalCases: 'Bewerbung, Mobbing, Beförderung, Arbeitsplatzanpassung, Ausschluss von Leistungen.',
+    tags: ['Diskriminierung', 'Behinderung', 'Benachteiligung', 'AGG']
+  },
+  {
+    id: 'advisor-agg-15',
+    source: 'AGG',
+    paragraph: '§ 15 AGG',
+    title: 'Entschädigung und Schadensersatz',
+    shortText: 'Bei Benachteiligung können Entschädigungs- und Schadensersatzansprüche entstehen.',
+    sbvMeaning: 'Relevanz für taktische Einschätzung und Hinweis auf anwaltliche Beratung.',
+    practiceNote: 'Fristen sind kritisch. SBV sollte nicht selbst Rechtsvertretung übernehmen, sondern sauber dokumentieren.',
+    typicalCases: 'Diskriminierung, Bewerbungsverfahren, Entschädigungsfrist, Vergleich.',
+    tags: ['Entschädigung', 'Schadensersatz', 'Frist', 'AGG']
+  },
+  {
+    id: 'advisor-agg-22',
+    source: 'AGG',
+    paragraph: '§ 22 AGG',
+    title: 'Beweislast',
+    shortText: 'Indizien für Benachteiligung können die Beweislast zulasten des Arbeitgebers verschieben.',
+    sbvMeaning: 'Dokumentation ist entscheidend. Einzelne Aussagen oder Verfahrensfehler können wichtig werden.',
+    practiceNote: 'Sachverhalt chronologisch sichern und Vermutungsindizien getrennt von Bewertungen erfassen.',
+    typicalCases: 'Bewerbung, Benachteiligung wegen Behinderung, fehlende Beteiligung, ungünstige Behandlung.',
+    tags: ['Beweislast', 'Indizien', 'Dokumentation', 'AGG']
+  },
+  {
+    id: 'advisor-kschg-1',
+    source: 'KSchG',
+    paragraph: '§ 1 KSchG',
+    title: 'Soziale Rechtfertigung der Kündigung',
+    shortText: 'Kündigungen müssen sozial gerechtfertigt sein, wenn Kündigungsschutz greift.',
+    sbvMeaning: 'Bei schwerbehinderten Menschen immer Alternativen, Anpassungen, BEM und Prävention prüfen.',
+    practiceNote: 'SBV sollte auf mildere Mittel, leidensgerechte Beschäftigung und fehlende Prävention hinweisen.',
+    typicalCases: 'Krankheitsbedingte Kündigung, personenbedingte Kündigung, Änderungskündigung.',
+    tags: ['Kündigung', 'KSchG', 'mildere Mittel', 'BEM']
+  },
+  {
+    id: 'advisor-arbschg-3',
+    source: 'ArbSchG',
+    paragraph: '§ 3 ArbSchG',
+    title: 'Grundpflichten des Arbeitgebers',
+    shortText: 'Arbeitgeber müssen erforderliche Arbeitsschutzmaßnahmen treffen und auf Wirksamkeit prüfen.',
+    sbvMeaning: 'Nützlich bei Überlastung, psychischer Gefährdung und fehlender Anpassung der Arbeitsbedingungen.',
+    practiceNote: 'Nicht nur Einzelfall beschreiben, sondern konkrete Maßnahme und Wirksamkeitsprüfung verlangen.',
+    typicalCases: 'Überlastung, psychische Belastung, Organisation, Arbeitsmittel, Gesundheitsschutz.',
+    tags: ['Arbeitsschutz', 'Überlastung', 'Wirksamkeitsprüfung', 'Gesundheit']
+  },
+  {
+    id: 'advisor-arbschg-5',
+    source: 'ArbSchG',
+    paragraph: '§ 5 ArbSchG',
+    title: 'Gefährdungsbeurteilung',
+    shortText: 'Arbeitgeber müssen Gefährdungen beurteilen, einschließlich psychischer Belastungen.',
+    sbvMeaning: 'Starker Bezug zu Prävention, Arbeitsplatzgestaltung und Belastungsfällen.',
+    practiceNote: 'Bei Einzelfällen prüfen, ob die Gefährdungsbeurteilung aktuell, konkret und wirksam ist.',
+    typicalCases: 'Psychische Belastung, Arbeitsverdichtung, Arbeitsplatzgestaltung, Homeoffice, Teamkonflikt.',
+    tags: ['Gefährdungsbeurteilung', 'psychische Belastung', 'Arbeitsplatz', 'Prävention']
+  },
+  {
+    id: 'advisor-arbschg-6',
+    source: 'ArbSchG',
+    paragraph: '§ 6 ArbSchG',
+    title: 'Dokumentation des Arbeitsschutzes',
+    shortText: 'Arbeitgeber müssen Gefährdungsbeurteilung, Maßnahmen und Überprüfung dokumentieren.',
+    sbvMeaning: 'Hilft, wenn Arbeitgeber nur mündlich behauptet, alles sei geprüft.',
+    practiceNote: 'Dokumente anfordern: Ergebnis, Maßnahme, Verantwortliche, Frist, Wirksamkeitskontrolle.',
+    typicalCases: 'Gefährdungsbeurteilung, Prävention, Überlastung, Arbeitsplatzanpassung.',
+    tags: ['Dokumentation', 'Arbeitsschutz', 'Nachweis', 'Gefährdung']
+  }
+] as LegalNormRecord[];
+
+function normalizeKnowledgeText(value: string): string {
+  return value.toLocaleLowerCase('de-DE');
+}
+
+function knowledgeSearchText(norm: LegalNormRecord): string {
+  return normalizeKnowledgeText([
+    norm.source,
+    norm.paragraph,
+    norm.title,
+    norm.shortText,
+    norm.sbvMeaning,
+    norm.practiceNote,
+    norm.typicalCases,
+    ...(norm.tags ?? [])
+  ].filter(Boolean).join(' '));
+}
+
+function mergeKnowledgeNorms(remoteRows: LegalNormRecord[]): LegalNormRecord[] {
+  const byKey = new Map<string, LegalNormRecord>();
+  for (const norm of [...SBV_ADVISOR_KNOWLEDGE_ENTRIES, ...remoteRows]) {
+    const key = `${norm.source}::${norm.paragraph}`.toLocaleLowerCase('de-DE');
+    byKey.set(key, { ...byKey.get(key), ...norm });
+  }
+  return [...byKey.values()].sort((a, b) => `${a.source} ${a.paragraph}`.localeCompare(`${b.source} ${b.paragraph}`, 'de-DE', { numeric: true }));
+}
+
+function filterKnowledgeNorms(rows: LegalNormRecord[], query: string, source: string): LegalNormRecord[] {
+  const terms = query.trim().split(/\s+/).filter(Boolean).map(normalizeKnowledgeText);
+  return rows.filter((norm) => {
+    if (source && norm.source !== source) return false;
+    const haystack = knowledgeSearchText(norm);
+    return terms.every((term) => haystack.includes(term));
+  });
+}
+
 function KnowledgeView({ cases }: { cases: CaseRecord[] }) {
   const [query, setQuery] = useState('');
   const [source, setSource] = useState('');
   const [norms, setNorms] = useState<LegalNormRecord[]>([]);
+  const [allKnowledgeNorms, setAllKnowledgeNorms] = useState<LegalNormRecord[]>([]);
   const [selectedNormId, setSelectedNormId] = useState('');
   const [caseReferences, setCaseReferences] = useState<CaseLegalReferenceRecord[]>([]);
   const [comments, setComments] = useState<NormCommentRecord[]>([]);
@@ -3728,19 +4051,29 @@ function KnowledgeView({ cases }: { cases: CaseRecord[] }) {
   const [error, setError] = useState('');
 
   const selectedNorm = useMemo(() => norms.find((norm) => norm.id === selectedNormId), [norms, selectedNormId]);
-  const sources = useMemo(() => [...new Set(norms.map((norm) => norm.source))].sort((a, b) => a.localeCompare(b)), [norms]);
+  const sources = useMemo(() => [...new Set(allKnowledgeNorms.map((norm) => norm.source))].sort((a, b) => a.localeCompare(b)), [allKnowledgeNorms]);
 
   async function loadNorms(nextQuery = query, nextSource = source) {
     setError('');
     try {
       const bridge = await waitForBridge();
-      if (!bridge?.knowledge) throw new Error('Wissensdienst ist nicht erreichbar.');
-      const rows = await bridge.knowledge.listNorms({ query: nextQuery || undefined, source: nextSource || undefined, limit: 300 });
-      setNorms(rows);
-      if (!selectedNormId && rows.length) setSelectedNormId(rows[0].id);
-      if (selectedNormId && !rows.some((norm) => norm.id === selectedNormId)) setSelectedNormId(rows[0]?.id ?? '');
+      let remoteRows: LegalNormRecord[] = [];
+      if (bridge?.knowledge) {
+        remoteRows = await bridge.knowledge.listNorms({ limit: 800 });
+      }
+      const mergedRows = mergeKnowledgeNorms(remoteRows);
+      const filteredRows = filterKnowledgeNorms(mergedRows, nextQuery, nextSource);
+      setAllKnowledgeNorms(mergedRows);
+      setNorms(filteredRows);
+      if (!selectedNormId && filteredRows.length) setSelectedNormId(filteredRows[0].id);
+      if (selectedNormId && !filteredRows.some((norm) => norm.id === selectedNormId)) setSelectedNormId(filteredRows[0]?.id ?? '');
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Wissensdatenbank konnte nicht geladen werden.');
+      const fallbackRows = filterKnowledgeNorms(SBV_ADVISOR_KNOWLEDGE_ENTRIES, nextQuery, nextSource);
+      setAllKnowledgeNorms(SBV_ADVISOR_KNOWLEDGE_ENTRIES);
+      setNorms(fallbackRows);
+      if (!selectedNormId && fallbackRows.length) setSelectedNormId(fallbackRows[0].id);
+      if (selectedNormId && !fallbackRows.some((norm) => norm.id === selectedNormId)) setSelectedNormId(fallbackRows[0]?.id ?? '');
+      setError(error instanceof Error ? `${error.message} Lokaler SBV-Ratgeber wurde geladen.` : 'Wissensdienst nicht erreichbar. Lokaler SBV-Ratgeber wurde geladen.');
     }
   }
 
@@ -3859,9 +4192,9 @@ function KnowledgeView({ cases }: { cases: CaseRecord[] }) {
   }
 
   return (
-    <ModuleFrame title="Wissensdatenbank" kicker="SBV-Kompass" description="Rechtsnormen, Praxishinweise, eigene Kommentare, Rechtsprechung und Fallverknüpfungen. In Protokollen mit §§ einfügen.">
+    <ModuleFrame title="Wissensdatenbank" kicker="SBV-Kompass" description="Kurze Ratgebertexte zu SBV-relevanten Normen, Pflichten und Handlungsoptionen. In Protokollen mit §§ einfügen.">
       <section className="industrial-panel">
-        <form onSubmit={runSearch} className="case-search-bar">
+        <form onSubmit={runSearch} className="knowledge-search-bar">
           <Search className="h-4 w-4 text-yellow-300" />
           <input className="industrial-input" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Norm, Stichwort oder Praxisbegriff suchen …" />
           <select value={source} onChange={(event) => setSource(event.target.value)}>
@@ -3875,12 +4208,12 @@ function KnowledgeView({ cases }: { cases: CaseRecord[] }) {
       {error && <div className="industrial-message industrial-message-warning">{error}</div>}
       {message && <div className="industrial-message industrial-message-ok">{message}</div>}
 
-      <section className="industrial-split-grid">
+      <section className="knowledge-layout">
         <aside className="industrial-panel">
-          <div className="industrial-panel-header compact"><div><p className="industrial-kicker">Normen</p><h2>Register</h2></div></div>
-          <div className="case-register-list compact">
+          <div className="industrial-panel-header compact"><div><p className="industrial-kicker">Normen</p><h2>Register</h2><p className="industrial-meta">{norms.length} Treffer</p></div></div>
+          <div className="knowledge-register-list">
             {norms.map((norm) => (
-              <button key={norm.id} type="button" className={`case-register-row ${selectedNormId === norm.id ? 'active' : ''}`} onClick={() => setSelectedNormId(norm.id)}>
+              <button key={norm.id} type="button" className={`knowledge-register-row ${selectedNormId === norm.id ? 'active' : ''}`} onClick={() => setSelectedNormId(norm.id)}>
                 <strong>{norm.paragraph}</strong>
                 <span>{norm.title}</span>
                 <small>{norm.source} · {norm.tags.slice(0, 3).join(', ')}</small>
@@ -3890,7 +4223,7 @@ function KnowledgeView({ cases }: { cases: CaseRecord[] }) {
           </div>
         </aside>
 
-        <section className="industrial-panel prevention-detail-panel">
+        <section className="industrial-panel knowledge-detail-panel">
           {!selectedNorm && <div className="industrial-empty">Norm auswählen.</div>}
           {selectedNorm && (
             <>
@@ -3909,8 +4242,8 @@ function KnowledgeView({ cases }: { cases: CaseRecord[] }) {
                 <div className="industrial-subpanel"><h4>Tags</h4><p>{selectedNorm.tags.join(', ') || '—'}</p></div>
               </div>
 
-              <div className="industrial-subpanel mt-4">
-                <h4>Mit Fallakte verknüpfen</h4>
+              <details className="industrial-subpanel mt-4 knowledge-case-link">
+                <summary>Mit Fallakte verknüpfen</summary>
                 <div className="industrial-form-grid compact">
                   <select value={linkCaseId} onChange={(event) => setLinkCaseId(event.target.value)}>
                     <option value="">Fall auswählen</option>
@@ -3922,7 +4255,7 @@ function KnowledgeView({ cases }: { cases: CaseRecord[] }) {
                   {caseReferences.map((reference) => <p key={reference.id} className="industrial-meta"><strong>{reference.caseNumber}</strong> · {reference.createdAt.slice(0, 10)}</p>)}
                   {!caseReferences.length && <p className="industrial-meta">Noch keine Fallverknüpfung.</p>}
                 </div>
-              </div>
+              </details>
 
               <div className="grid gap-4 xl:grid-cols-3 mt-4">
                 <section className="industrial-subpanel">
@@ -4476,8 +4809,15 @@ export function App() {
   const [selectedDeadline, setSelectedDeadline] = useState<DeadlineRecord | null>(null);
   const [dataError, setDataError] = useState('');
   const [theme, setTheme] = useState<ThemeMode>(() => getInitialTheme());
+  const [caseNodeTarget, setCaseNodeTarget] = useState<CaseNodeTarget | null>(null);
 
   const currentModule = useMemo(() => modules.find((module) => module.id === currentView), [currentView]);
+
+  function openCaseNode(target: CaseNodeTarget) {
+    setCaseNodeTarget(target);
+    setCurrentView('cases');
+  }
+
 
   useModalKeyboardShortcuts({ setCurrentView });
 
@@ -4522,7 +4862,7 @@ export function App() {
 
     void loadSecurityStatus();
 
-    return () => {
+  return () => {
       active = false;
     };
   }, []);
@@ -4671,7 +5011,7 @@ export function App() {
             onCompleteDeadline={(deadline) => void completeDeadline(deadline)}
           />
         )}
-        {currentView === 'cases' && <CasesView cases={cases} contacts={contacts} onCreateCase={createCase} onCreateDeadline={createDeadline} onCreateContact={createContact} onCasesChanged={reloadWorkData} />}
+        {currentView === 'cases' && <CasesView cases={cases} contacts={contacts} target={caseNodeTarget} onCreateCase={createCase} onCreateDeadline={createDeadline} onCreateContact={createContact} onCasesChanged={reloadWorkData} onTargetConsumed={() => setCaseNodeTarget(null)} />}
         {currentView === 'deadlines' && (
           <DeadlinesView
             cases={cases}
@@ -4683,7 +5023,7 @@ export function App() {
         )}
         {currentView === 'contacts' && <ContactsView contacts={contacts} onCreateContact={createContact} onDeleteContact={deleteContact} />}
         {currentView === 'knowledge' && <KnowledgeView cases={cases} />}
-        {currentView === 'prevention' && <PreventionView cases={cases} contacts={contacts} onWorkDataChanged={reloadWorkData} />}
+        {currentView === 'prevention' && <PreventionView cases={cases} onOpenCaseNode={openCaseNode} />}
         {currentView === 'templates' && <TemplatesView cases={cases} />}
         {currentView === 'reports' && <ReportsView />}
         {currentView === 'settings' && <SettingsView theme={theme} onThemeChange={setTheme} cases={cases} />}

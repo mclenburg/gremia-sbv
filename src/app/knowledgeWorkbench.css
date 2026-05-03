@@ -1,0 +1,108 @@
+/* Gremia.SBV 0.4.37 – Wissensdatenbank als Ratgeberseite. */
+
+.knowledge-search-bar {
+  display: grid;
+  grid-template-columns: auto minmax(18rem, 1fr) minmax(10rem, 14rem) auto;
+  gap: .75rem;
+  align-items: center;
+}
+
+.knowledge-search-bar input,
+.knowledge-search-bar select {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.knowledge-layout {
+  display: grid;
+  grid-template-columns: minmax(17rem, .75fr) minmax(0, 1.65fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.knowledge-register-list {
+  display: grid;
+  gap: .35rem;
+  max-height: calc(100vh - 20rem);
+  overflow: auto;
+  padding-right: .25rem;
+}
+
+.knowledge-register-row {
+  display: grid;
+  gap: .2rem;
+  width: 100%;
+  padding: .7rem .8rem;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+}
+
+.knowledge-register-row strong,
+.knowledge-register-row span,
+.knowledge-register-row small {
+  display: block;
+  text-align: left;
+}
+
+.knowledge-register-row strong {
+  font-size: .95rem;
+}
+
+.knowledge-register-row span {
+  color: var(--text-primary);
+  line-height: 1.35;
+}
+
+.knowledge-register-row small {
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
+.knowledge-register-row:hover,
+.knowledge-register-row:focus-visible,
+.knowledge-register-row.active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface-panel));
+}
+
+.knowledge-detail-panel .industrial-panel-header h2 {
+  line-height: 1.15;
+}
+
+.knowledge-detail-panel .industrial-subpanel p {
+  line-height: 1.55;
+}
+
+.knowledge-case-link summary {
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: .75rem;
+  font-weight: 800;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.knowledge-case-link[open] summary {
+  margin-bottom: .85rem;
+  color: var(--accent);
+}
+
+@media (max-width: 1050px) {
+  .knowledge-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .knowledge-register-list {
+    max-height: 22rem;
+  }
+}
+
+@media (max-width: 760px) {
+  .knowledge-search-bar {
+    grid-template-columns: 1fr;
+  }
+}
