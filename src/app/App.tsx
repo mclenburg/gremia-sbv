@@ -8,6 +8,7 @@ import {
   CalendarPlus,
   CheckCircle2,
   FileText,
+  Download,
   FolderOpen,
   FolderKanban,
   MessageSquare,
@@ -69,7 +70,10 @@ import {
 import { missingPlaceholderWarning, resolveContextualTemplateAction } from '@services/templateContextPolicy';
 import { buildExportWarningMessage, scanSensitiveExportText } from '@services/exportGuardPolicy';
 import './caseModalResponsive.css';
+import './caseWorkbench.css';
 import './accessibility.css';
+import './templateWorkbench.css';
+import './templateDefaults.css';
 
 
 function nowLabel(): string {
@@ -93,6 +97,102 @@ type AuthMode = 'loading' | 'setup' | 'login' | 'recovery' | 'unavailable';
 type ThemeMode = 'dark' | 'light';
 
 const THEME_STORAGE_KEY = 'gremia.sbv.theme';
+
+const TEMPLATE_DEFAULT_VALUES_STORAGE_KEY = 'gremia.sbv.templateDefaultValues';
+
+type TemplateDefaultKey =
+  | 'sbv.name'
+  | 'sbv.funktion'
+  | 'sbv.email'
+  | 'sbv.telefon'
+  | 'sbv.signatur'
+  | 'arbeitgeber.ansprechpartner'
+  | 'arbeitgeber.personalabteilung'
+  | 'arbeitgeber.name'
+  | 'unternehmen.name'
+  | 'standort.name';
+
+type TemplateDefaultValues = Record<TemplateDefaultKey, string>;
+
+type TemplateDefaultsBridge = {
+  templateDefaults?: {
+    list(): Promise<TemplateDefaultValues>;
+    save(values: TemplateDefaultValues): Promise<TemplateDefaultValues>;
+  };
+};
+
+const TEMPLATE_DEFAULT_FIELDS: Array<{ key: TemplateDefaultKey; label: string; description: string; multiline?: boolean }> = [
+  { key: 'sbv.name', label: '{{sbv.name}}', description: 'Name oder Funktionsbezeichnung der SBV.' },
+  { key: 'sbv.funktion', label: '{{sbv.funktion}}', description: 'Funktion, z. B. Schwerbehindertenvertretung.' },
+  { key: 'sbv.email', label: '{{sbv.email}}', description: 'Kontakt-E-Mail der SBV.' },
+  { key: 'sbv.telefon', label: '{{sbv.telefon}}', description: 'Telefon oder interne Durchwahl.' },
+  { key: 'sbv.signatur', label: '{{sbv.signatur}}', description: 'Standard-Signatur für Schreiben.', multiline: true },
+  { key: 'arbeitgeber.ansprechpartner', label: '{{arbeitgeber.ansprechpartner}}', description: 'Standard-Ansprechstelle, z. B. Personalabteilung.' },
+  { key: 'arbeitgeber.personalabteilung', label: '{{arbeitgeber.personalabteilung}}', description: 'Bezeichnung der Personalabteilung.' },
+  { key: 'arbeitgeber.name', label: '{{arbeitgeber.name}}', description: 'Name des Arbeitgebers.' },
+  { key: 'unternehmen.name', label: '{{unternehmen.name}}', description: 'Unternehmens- oder Dienststellenname.' },
+  { key: 'standort.name', label: '{{standort.name}}', description: 'Standard-Standort.' }
+];
+
+const EMPTY_TEMPLATE_DEFAULT_VALUES: TemplateDefaultValues = {
+  'sbv.name': 'Schwerbehindertenvertretung',
+  'sbv.funktion': 'Schwerbehindertenvertretung',
+  'sbv.email': '',
+  'sbv.telefon': '',
+  'sbv.signatur': 'Mit freundlichen Grüßen\nSchwerbehindertenvertretung',
+  'arbeitgeber.ansprechpartner': 'Personalabteilung',
+  'arbeitgeber.personalabteilung': 'Personalabteilung',
+  'arbeitgeber.name': '',
+  'unternehmen.name': '',
+  'standort.name': ''
+};
+
+function normalizeTemplateDefaultValues(input: Partial<Record<string, unknown>> | null | undefined): TemplateDefaultValues {
+  const next = { ...EMPTY_TEMPLATE_DEFAULT_VALUES };
+  for (const field of TEMPLATE_DEFAULT_FIELDS) {
+    const value = input?.[field.key];
+    next[field.key] = typeof value === 'string' ? value : next[field.key];
+  }
+  return next;
+}
+
+function readTemplateDefaultValuesFromLocalStorage(): TemplateDefaultValues {
+  try {
+    const raw = window.localStorage.getItem(TEMPLATE_DEFAULT_VALUES_STORAGE_KEY);
+    return normalizeTemplateDefaultValues(raw ? JSON.parse(raw) as Record<string, unknown> : null);
+  } catch {
+    return { ...EMPTY_TEMPLATE_DEFAULT_VALUES };
+  }
+}
+
+function writeTemplateDefaultValuesToLocalStorage(values: TemplateDefaultValues): void {
+  try {
+    window.localStorage.setItem(TEMPLATE_DEFAULT_VALUES_STORAGE_KEY, JSON.stringify(values));
+  } catch {
+    // Fallback-Speicherung kann blockiert sein; die laufende Sitzung bleibt trotzdem nutzbar.
+  }
+}
+
+async function loadTemplateDefaultValues(): Promise<TemplateDefaultValues> {
+  const bridge = await waitForBridge();
+  const defaultsBridge = bridge as unknown as TemplateDefaultsBridge | null;
+  if (defaultsBridge?.templateDefaults?.list) {
+    return normalizeTemplateDefaultValues(await defaultsBridge.templateDefaults.list());
+  }
+  return readTemplateDefaultValuesFromLocalStorage();
+}
+
+async function saveTemplateDefaultValues(values: TemplateDefaultValues): Promise<TemplateDefaultValues> {
+  const normalized = normalizeTemplateDefaultValues(values);
+  const bridge = await waitForBridge();
+  const defaultsBridge = bridge as unknown as TemplateDefaultsBridge | null;
+  if (defaultsBridge?.templateDefaults?.save) {
+    return normalizeTemplateDefaultValues(await defaultsBridge.templateDefaults.save(normalized));
+  }
+  writeTemplateDefaultValuesToLocalStorage(normalized);
+  return normalized;
+}
+
 
 function getInitialTheme(): ThemeMode {
   try {
@@ -684,6 +784,103 @@ function formatProcessNodeSubtitle(processType: CaseProcessType, status?: string
   return `${processTypeLabel(processType)}${status ? ` · ${status}` : ''}`;
 }
 
+
+type ProcessTemplateModalState = {
+  process: PreventionProcessRecord;
+  templates: TemplateRecord[];
+  rendered?: RenderedTemplateResult;
+  loading: boolean;
+  error?: string;
+  info?: string;
+};
+
+const preventionStatusOrder: PreventionStatus[] = [
+  'zu_pruefen',
+  'angefordert',
+  'arbeitgeber_reagiert',
+  'inklusionsamt_eingeschaltet',
+  'massnahmen_in_klaerung',
+  'massnahmen_vereinbart',
+  'abgeschlossen',
+  'blockiert_verweigert'
+];
+
+function preventionStatusReached(current: PreventionStatus, minimum: PreventionStatus): boolean {
+  return preventionStatusOrder.indexOf(current) >= preventionStatusOrder.indexOf(minimum);
+}
+
+function canShowEmployerReactionSection(status: PreventionStatus): boolean {
+  return preventionStatusReached(status, 'arbeitgeber_reagiert');
+}
+
+function canShowMeasureClarificationSection(status: PreventionStatus): boolean {
+  return preventionStatusReached(status, 'massnahmen_in_klaerung') || status === 'blockiert_verweigert';
+}
+
+function canShowResultSection(status: PreventionStatus): boolean {
+  return status === 'abgeschlossen' || status === 'blockiert_verweigert';
+}
+
+function sanitizeDownloadFileName(value: string): string {
+  return value.replace(/[\\/:*?"<>|]+/g, '-').replace(/\s+/g, ' ').trim().slice(0, 110) || 'dokument';
+}
+
+function downloadRenderedTemplate(result: RenderedTemplateResult) {
+  const content = `Betreff: ${result.subject}\n\n${result.body}`;
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = `${sanitizeDownloadFileName(result.title || result.subject || 'SBV-Dokument')}.txt`;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
+}
+
+function templateTags(template: TemplateRecord): string[] {
+  return ((template.tags ?? []) as string[]).map((tag) => tag.trim().toLowerCase()).filter(Boolean);
+}
+
+function isTemplateConnectedToPreventionStatus(template: TemplateRecord, status: PreventionStatus): boolean {
+  if (template.category !== 'praevention') return false;
+  const tags = templateTags(template);
+  const text = `${template.title} ${template.description ?? ''} ${tags.join(' ')}`.toLowerCase();
+  const hasProcessMatch = tags.length === 0
+    || tags.some((tag) => ['massnahme:prevention', 'maßnahme:prevention', 'prozess:prevention', 'praevention', 'prävention', 'prevention'].includes(tag))
+    || text.includes('prävention')
+    || text.includes('präventionsverfahren');
+  const statusTokens = [`status:${status}`, `praevention:${status}`, `prävention:${status}`, `prevention:${status}`, status];
+  const hasStatusMatch = tags.length === 0 || statusTokens.some((token) => tags.includes(token) || text.includes(token.replaceAll('_', ' ')));
+  return hasProcessMatch && hasStatusMatch;
+}
+
+function buildProcessTemplateValues(caseRecord: CaseRecord | undefined, process: PreventionProcessRecord): Record<string, string> {
+  return {
+    'fall.aktenzeichen': caseRecord?.caseNumber ?? '',
+    'fall.name': caseRecord?.displayName ?? '',
+    'fall.kurzbeschreibung': caseRecord?.summary ?? '',
+    'praevention.status': statusLabel(process.status),
+    'praevention.status.key': process.status,
+    'praevention.gefaehrdung': process.hazardDescription ?? '',
+    'praevention.schwierigkeit': process.difficultyType.replaceAll('_', ' '),
+    'praevention.risiko': process.riskType.replaceAll('_', ' '),
+    'praevention.personenstatus': process.personStatus.replaceAll('_', ' '),
+    'praevention.angefordert_am': formatDateShort(process.requestedAt),
+    'praevention.arbeitgeberfrist': formatDateShort(process.employerResponseDueAt),
+    'praevention.arbeitgeberreaktion': process.employerRequestSummary ?? '',
+    'praevention.massnahmen': process.measures ?? '',
+    'praevention.ergebnis': process.result ?? '',
+    'frist.datum': formatDateShort(process.employerResponseDueAt)
+  };
+}
+
+type CaseToast = {
+  id: number;
+  variant: 'ok' | 'warning';
+  text: string;
+};
+
 function CasesView({
   cases,
   contacts,
@@ -706,13 +903,13 @@ function CasesView({
   const [isCaseCreateModalOpen, setIsCaseCreateModalOpen] = useState(false);
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
   const [caseFilter, setCaseFilter] = useState('');
-  const [page, setPage] = useState(1);
   const [selectedCaseId, setSelectedCaseId] = useState('');
   const [notes, setNotes] = useState<CaseNoteRecord[]>([]);
   const [documents, setDocuments] = useState<CaseDocumentRecord[]>([]);
   const [caseLegalReferences, setCaseLegalReferences] = useState<CaseLegalReferenceRecord[]>([]);
   const [casePreventionProcesses, setCasePreventionProcesses] = useState<PreventionProcessRecord[]>([]);
   const [caseProcessDraft, setCaseProcessDraft] = useState<CaseProcessDraft | null>(null);
+  const [processTemplateModal, setProcessTemplateModal] = useState<ProcessTemplateModalState | null>(null);
   const [selection, setSelection] = useState<CaseExplorerSelection>({ type: 'overview' });
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOnlySelectedCase, setSearchOnlySelectedCase] = useState(true);
@@ -740,6 +937,7 @@ function CasesView({
   const [inlineAnonymizationDraft, setInlineAnonymizationDraft] = useState<InlineAnonymizationDraft | null>(null);
   const [documentError, setDocumentError] = useState('');
   const [searchError, setSearchError] = useState('');
+  const [caseToast, setCaseToast] = useState<CaseToast | null>(null);
 
   const selectedCase = useMemo(() => cases.find((item) => item.id === selectedCaseId), [cases, selectedCaseId]);
   const filteredCases = useMemo(() => {
@@ -753,12 +951,18 @@ function CasesView({
     );
   }, [cases, caseFilter]);
 
-  const pageSize = 8;
-  const pageCount = Math.max(1, Math.ceil(filteredCases.length / pageSize));
-  const visibleCases = filteredCases.slice((Math.min(page, pageCount) - 1) * pageSize, Math.min(page, pageCount) * pageSize);
+  const visibleCases = filteredCases;
   const selectedNote = selection.type === 'note' ? notes.find((note) => note.id === selection.id) : undefined;
   const selectedDocument = selection.type === 'document' ? documents.find((doc) => doc.id === selection.id) : undefined;
   const selectedSearchResult = selection.type === 'search' ? searchResults.find((result) => result.sourceId === selection.id) : undefined;
+
+  function pushCaseToast(text: string, variant: 'ok' | 'warning' = 'ok') {
+    const id = Date.now();
+    setCaseToast({ id, text, variant });
+    window.setTimeout(() => {
+      setCaseToast((current: CaseToast | null) => current?.id === id ? null : current);
+    }, 4200);
+  }
 
   useEffect(() => {
     if (!selectedCaseId && cases.length) {
@@ -772,9 +976,6 @@ function CasesView({
     }
   }, [selectedCaseId, editingNote]);
 
-  useEffect(() => {
-    setPage(1);
-  }, [caseFilter]);
 
   useEffect(() => {
     function openCaseModalFromShortcut() {
@@ -794,6 +995,30 @@ function CasesView({
       window.removeEventListener('gremia-sbv:focus-search', focusCaseSearchFromShortcut);
     };
   }, []);
+
+  useEffect(() => {
+    if (!noteInfo) return;
+    pushCaseToast(noteInfo, 'ok');
+    setNoteInfo('');
+  }, [noteInfo]);
+
+  useEffect(() => {
+    if (!noteError) return;
+    pushCaseToast(noteError, 'warning');
+    setNoteError('');
+  }, [noteError]);
+
+  useEffect(() => {
+    if (!documentError) return;
+    pushCaseToast(documentError, 'warning');
+    setDocumentError('');
+  }, [documentError]);
+
+  useEffect(() => {
+    if (!searchError) return;
+    pushCaseToast(searchError, 'warning');
+    setSearchError('');
+  }, [searchError]);
 
   useEffect(() => {
     if (!selectedCaseId) {
@@ -843,6 +1068,56 @@ function CasesView({
     setDocuments(docRows);
     setCaseLegalReferences(legalRefRows);
     setCasePreventionProcesses(preventionRows);
+  }
+
+  async function updateCasePreventionProcess(processId: string, input: UpdatePreventionProcessInput) {
+    setNoteError('');
+    setNoteInfo('');
+    try {
+      const bridge = await waitForBridge();
+      if (!bridge?.prevention) throw new Error('Präventionsdienst ist nicht erreichbar.');
+      await bridge.prevention.update(processId, input);
+      await reloadSelectedCaseChildren();
+      setNoteInfo('Präventionsverfahren wurde aktualisiert.');
+    } catch (error) {
+      setNoteError(error instanceof Error ? error.message : 'Präventionsverfahren konnte nicht aktualisiert werden.');
+    }
+  }
+
+  async function openProcessTemplateModal(process: PreventionProcessRecord) {
+    setProcessTemplateModal({ process, templates: [], loading: true });
+    try {
+      const bridge = await waitForBridge();
+      if (!bridge?.templates) throw new Error('Vorlagendienst ist nicht erreichbar.');
+      const rows = await bridge.templates.list({ category: 'praevention', limit: 500 });
+      const templates = rows.filter((template: TemplateRecord) => isTemplateConnectedToPreventionStatus(template, process.status));
+      setProcessTemplateModal({ process, templates, loading: false });
+    } catch (error) {
+      setProcessTemplateModal({ process, templates: [], loading: false, error: error instanceof Error ? error.message : 'Vorlagen konnten nicht geladen werden.' });
+    }
+  }
+
+  async function renderAndDownloadProcessTemplate(template: TemplateRecord) {
+    if (!processTemplateModal) return;
+    try {
+      const bridge = await waitForBridge();
+      if (!bridge?.templates) throw new Error('Vorlagendienst ist nicht erreichbar.');
+      const defaultValues = await loadTemplateDefaultValues();
+      const result = await (bridge.templates.render as unknown as (input: Record<string, unknown>) => Promise<RenderedTemplateResult>)({
+        templateId: template.id,
+        caseId: selectedCase?.id,
+        sourceId: processTemplateModal.process.id,
+        values: {
+          ...defaultValues,
+          ...buildProcessTemplateValues(selectedCase, processTemplateModal.process)
+        },
+        archive: true
+      });
+      downloadRenderedTemplate(result);
+      setProcessTemplateModal((current) => current ? { ...current, rendered: result, info: 'Dokument wurde erzeugt, heruntergeladen und im Vorlagenverlauf archiviert.', error: undefined } : current);
+    } catch (error) {
+      setProcessTemplateModal((current) => current ? { ...current, error: error instanceof Error ? error.message : 'Dokument konnte nicht erzeugt werden.' } : current);
+    }
   }
 
 
@@ -1549,23 +1824,73 @@ ${caseProcessDraft.description}`,
   }
 
   return (
-    <ModuleFrame
-      title="Fallregister"
-      kicker="Fallakte"
-      description="Aktenzeichen, Person, Notizen, Protokolle, Dokumente und Volltextsuche in einer Fallakte."
-    >
-      <section className="industrial-panel case-register-panel">
-        <div className="case-register-toolbar">
-          <div>
+    <>
+      {caseToast && (
+        <div className={`case-toast case-toast-${caseToast.variant}`} role="status" aria-live="assertive">
+          {caseToast.variant === "warning" ? <AlertTriangle className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}
+          <span>{caseToast.text}</span>
+        </div>
+      )}
+      {processTemplateModal && (
+        <div className="industrial-modal-backdrop" role="dialog" aria-modal="true">
+          <section className="industrial-modal process-template-modal">
+            <div className="industrial-panel-header compact">
+              <div>
+                <p className="industrial-kicker">Dokumente zur Maßnahme</p>
+                <h2>{processTypeLabel('prevention')} · {statusLabel(processTemplateModal.process.status)}</h2>
+                <p>Gezeigt werden Vorlagen der Maßnahmeart Prävention, die mit dem aktuellen Status verbunden sind.</p>
+              </div>
+              <button type="button" className="industrial-secondary-button" onClick={() => setProcessTemplateModal(null)}>Schließen</button>
+            </div>
+            {processTemplateModal.loading && <div className="industrial-empty">Vorlagen werden geladen …</div>}
+            {processTemplateModal.error && <div className="industrial-message industrial-message-warning">{processTemplateModal.error}</div>}
+            {processTemplateModal.info && <div className="industrial-message industrial-message-ok">{processTemplateModal.info}</div>}
+            {!processTemplateModal.loading && !processTemplateModal.templates.length && !processTemplateModal.error && (
+              <div className="process-template-empty">
+                <p>Für diesen Status ist noch keine Vorlage hinterlegt.</p>
+                <div className="process-template-hint">
+                  <span>Benötigte Tags</span>
+                  <code>massnahme:prevention</code>
+                  <code>{`status:${processTemplateModal.process.status}`}</code>
+                </div>
+                <p className="process-template-empty-note">Lege die Vorlage im Vorlagenmodul an und verbinde sie mit Maßnahmeart und Status. Danach erscheint sie hier automatisch.</p>
+              </div>
+            )}
+            <div className="process-template-list">
+              {processTemplateModal.templates.map((template) => (
+                <article key={template.id} className="process-template-card">
+                  <div>
+                    <strong>{template.title}</strong>
+                    <p>{template.description}</p>
+                    <span>{template.legalBasis.join(', ') || 'ohne Normbezug'}</span>
+                  </div>
+                  <button type="button" className="industrial-button" onClick={() => void renderAndDownloadProcessTemplate(template)}><Download className="h-4 w-4" />Download</button>
+                </article>
+              ))}
+            </div>
+            {processTemplateModal.rendered && (
+              <div className="industrial-subpanel mt-4">
+                <h4>Zuletzt erzeugt</h4>
+                {processTemplateModal.rendered.unresolvedPlaceholders.length > 0 && <div className="industrial-message industrial-message-warning mb-3">Offene Platzhalter: {processTemplateModal.rendered.unresolvedPlaceholders.join(', ')}</div>}
+                <p className="industrial-meta"><strong>Betreff:</strong> {processTemplateModal.rendered.subject}</p>
+                <textarea className="industrial-output-area" value={processTemplateModal.rendered.body} readOnly />
+              </div>
+            )}
+          </section>
+        </div>
+      )}
+      <section className="industrial-panel case-register-panel compact">
+        <div className="case-register-toolbar compact">
+          <div className="case-register-meta">
             <p className="industrial-kicker">Fallliste</p>
-            <h2>Register</h2>
+            <strong>{filteredCases.length} Fälle</strong>
           </div>
           <div className="case-register-actions">
             <input className="industrial-input" data-global-search-target="cases" value={caseFilter} onChange={(event) => setCaseFilter(event.target.value)} placeholder="Fälle filtern nach Aktenzeichen, Name, Kurzbeschreibung …" />
             <button type="button" className="industrial-button" onClick={openCaseCreateModal}><Plus className="h-4 w-4" />Fallakte</button>
           </div>
         </div>
-        <div className="industrial-table-shell">
+        <div className="industrial-table-shell case-register-table-shell">
           <table className="industrial-table case-register-table">
             <thead><tr><th>Aktenzeichen</th><th>Name / Pseudonym</th><th>Kategorie</th><th>Status</th><th>Kurzbeschreibung</th></tr></thead>
             <tbody>
@@ -1582,39 +1907,21 @@ ${caseProcessDraft.description}`,
           </table>
           {!visibleCases.length && <div className="industrial-empty">Keine passenden Fälle.</div>}
         </div>
-        <div className="case-pagination">
-          <button type="button" className="industrial-secondary-button" disabled={page <= 1} onClick={() => setPage((value) => Math.max(1, value - 1))}>Zurück</button>
-          <span>Seite {Math.min(page, pageCount)} / {pageCount}</span>
-          <button type="button" className="industrial-secondary-button" disabled={page >= pageCount} onClick={() => setPage((value) => Math.min(pageCount, value + 1))}>Weiter</button>
-        </div>
       </section>
 
       <section className="case-workbench">
         <aside className="industrial-panel case-tree-panel">
-          <p className="industrial-kicker">Ausgewählte Fallakte</p>
+          <p className="industrial-kicker">Fallakte</p>
           <h2>{selectedCase?.caseNumber ?? 'Keine Auswahl'}</h2>
           <p className="industrial-meta">{selectedCase?.displayName ?? 'Bitte oben einen Fall auswählen.'}</p>
-          <div className="case-tree-group process-drop-zone"
-            onDragOver={(event) => event.preventDefault()}
-            onDrop={(event) => {
-              event.preventDefault();
-              const processType = event.dataTransfer.getData('text/gremia-sbv-process') as CaseProcessType;
-              if (processType) openCaseProcessDraft(processType);
-            }}>
+          <div className="case-tree-group process-drop-zone">
             <div className="case-tree-group-title"><Workflow className="h-4 w-4" /> Maßnahmen <span>{casePreventionProcesses.length}</span></div>
-            {(['prevention', 'bem', 'termination_hearing', 'equalization'] as CaseProcessType[]).map((processType) => (
-              <button key={processType} type="button" className="case-tree-node case-tree-action-node" draggable
-                onDragStart={(event) => event.dataTransfer.setData('text/gremia-sbv-process', processType)}
-                onClick={() => openCaseProcessDraft(processType)}>
-                <span>+ {processTypeLabel(processType)}</span>
-                <small>an diese Fallakte hängen</small>
-              </button>
-            ))}
             {casePreventionProcesses.map((process) => (
               <button key={process.id} type="button" className={`case-tree-node ${selection.type === 'process' && selection.id === process.id ? 'active' : ''}`} onClick={() => setSelection({ type: 'process', processType: 'prevention', id: process.id })}>
                 <span>Prävention</span><small>{formatProcessNodeSubtitle('prevention', process.status)}</small>
               </button>
             ))}
+            {!casePreventionProcesses.length && <p className="case-tree-empty">Noch keine Maßnahme in dieser Akte.</p>}
           </div>
           <button type="button" className={`case-tree-node ${selection.type === 'overview' ? 'active' : ''}`} onClick={() => setSelection({ type: 'overview' })}>Übersicht</button>
           <div className="case-tree-group">
@@ -1642,7 +1949,6 @@ ${caseProcessDraft.description}`,
             <label className="industrial-checkbox-row compact"><input type="checkbox" checked={searchOnlySelectedCase} onChange={(event) => setSearchOnlySelectedCase(event.target.checked)} /><span>nur diese Fallakte</span></label>
             <button type="submit" className="industrial-button">Suchen</button>
           </form>
-          {searchError && <div className="industrial-message industrial-message-warning">{searchError}</div>}
           {!!searchResults.length && (
             <div className="case-search-results">
               {searchResults.map((result) => (
@@ -1664,37 +1970,74 @@ ${caseProcessDraft.description}`,
                 const action = resolveContextualTemplateAction({ sourceType: 'case', title: 'Fallübersicht' });
                 return action ? <div className="contextual-template-actions"><ContextualTemplateButton action={action} caseId={selectedCase.id} values={{ 'fall.aktenzeichen': selectedCase.caseNumber, 'fall.name': selectedCase.displayName, 'fall.kurzbeschreibung': selectedCase.summary ?? '' }} /></div> : null;
               })()}
-              {selectedCase && (
-                <div className="industrial-subpanel mt-4">
-                  <h4>Maßnahme direkt aus der Fallakte anlegen</h4>
-                  <p className="industrial-meta">Diese Aktionen hängen einen Fachprozess direkt an die Fallakte. Die gleichen Prozesskarten können links in den Fallbaum gezogen werden.</p>
-                  <div className="process-action-grid">
-                    {(['prevention', 'bem', 'termination_hearing', 'equalization'] as CaseProcessType[]).map((processType) => (
-                      <button key={processType} type="button" className="industrial-process-card" draggable
-                        onDragStart={(event) => event.dataTransfer.setData('text/gremia-sbv-process', processType)}
-                        onClick={() => openCaseProcessDraft(processType)}>
-                        <strong>{processTypeLabel(processType)}</strong>
-                        <span>{processType === 'prevention' ? 'strukturiertes Verfahren starten' : 'fallbezogen vormerken'}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           )}
 
           {selection.type === 'process' && (
             <article className="case-detail-content">
-              <div className="case-note-card-header"><span className="industrial-badge">Maßnahme</span><span>{processTypeLabel(selection.processType)}</span></div>
-              <h2>{processTypeLabel(selection.processType)}</h2>
               {selection.processType === 'prevention' && selection.id ? (
                 (() => {
                   const process = casePreventionProcesses.find((item) => item.id === selection.id);
-                  return process ? <>
-                    <p>{process.hazardDescription}</p>
-                    <div className="case-detail-metrics"><Metric label="Status" value={statusLabel(process.status)} /><Metric label="Risiko" value={process.riskType} /><Metric label="Person" value={process.personStatus} /></div>
-                    <p className="industrial-meta">Zur vertieften Bearbeitung bitte das Modul „Prävention“ öffnen. Der Fallbezug ist dort bereits Bestandteil des Vorgangs.</p>
-                  </> : <p className="industrial-meta">Präventionsverfahren nicht gefunden.</p>;
+                  return process ? <div className="case-detail-inline-form">
+                    <div className="case-process-header">
+                      <div className="case-process-header-main">
+                        <div className="case-process-title-row">
+                          <span className="industrial-badge">Maßnahme</span>
+                          <button type="button" className="case-process-document-link" onClick={() => void openProcessTemplateModal(process)}><FileText className="h-3.5 w-3.5" />Dokumente</button>
+                        </div>
+                        <h2>{processTypeLabel(selection.processType)}</h2>
+                      </div>
+                      <div className="case-process-badges" aria-label="Statusübersicht">
+                        <span className="case-process-badge"><strong>Status</strong>{statusLabel(process.status)}</span>
+                        <span className="case-process-badge"><strong>Risiko</strong>{process.riskType.replaceAll('_', ' ')}</span>
+                        <span className="case-process-badge"><strong>Person</strong>{process.personStatus}</span>
+                      </div>
+                    </div>
+                    <div className="prevention-status-sections">
+                      <section className="prevention-status-section">
+                        <header><span>1</span><strong>Prüfung und Ausgangslage</strong></header>
+                        <div className="industrial-form-grid">
+                          <label><span>Status</span><select value={process.status} onChange={(event) => void updateCasePreventionProcess(process.id, { status: event.target.value as PreventionStatus })}><option value="zu_pruefen">zu prüfen</option><option value="angefordert">angefordert</option><option value="arbeitgeber_reagiert">Arbeitgeber reagiert</option><option value="inklusionsamt_eingeschaltet">Inklusionsamt eingeschaltet</option><option value="massnahmen_in_klaerung">Maßnahmen in Klärung</option><option value="massnahmen_vereinbart">Maßnahmen vereinbart</option><option value="abgeschlossen">abgeschlossen</option><option value="blockiert_verweigert">blockiert / verweigert</option></select></label>
+                          <label><span>Schwierigkeit</span><select value={process.difficultyType} onChange={(event) => void updateCasePreventionProcess(process.id, { difficultyType: event.target.value as PreventionDifficultyType })}>{preventionDifficultyOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
+                          <label><span>Risiko</span><select value={process.riskType} onChange={(event) => void updateCasePreventionProcess(process.id, { riskType: event.target.value as PreventionRiskType })}>{preventionRiskOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
+                          <label><span>Status Person</span><select value={process.personStatus} onChange={(event) => void updateCasePreventionProcess(process.id, { personStatus: event.target.value as PreventionProcessRecord['personStatus'] })}><option value="unklar">unklar</option><option value="schwerbehindert">schwerbehindert</option><option value="gleichgestellt">gleichgestellt</option><option value="antrag_laeuft">Antrag läuft</option></select></label>
+                        </div>
+                        <label><span>Gefährdung / Anlass</span><textarea defaultValue={process.hazardDescription ?? ''} onBlur={(event) => void updateCasePreventionProcess(process.id, { hazardDescription: event.target.value })} /></label>
+                      </section>
+
+                      {preventionStatusReached(process.status, 'angefordert') && (
+                        <section className="prevention-status-section">
+                          <header><span>2</span><strong>Anforderung an den Arbeitgeber</strong></header>
+                          <div className="industrial-form-grid">
+                            <label><span>Arbeitgeber angefordert am</span><input type="datetime-local" defaultValue={toDateTimeLocalValue(process.requestedAt)} onBlur={(event) => void updateCasePreventionProcess(process.id, { requestedAt: event.target.value ? fromDateTimeLocalValue(event.target.value) : undefined })} /></label>
+                            <label><span>Frist Arbeitgeberreaktion</span><input type="datetime-local" defaultValue={toDateTimeLocalValue(process.employerResponseDueAt)} onBlur={(event) => void updateCasePreventionProcess(process.id, { employerResponseDueAt: event.target.value ? fromDateTimeLocalValue(event.target.value) : undefined })} /></label>
+                          </div>
+                        </section>
+                      )}
+
+                      {canShowEmployerReactionSection(process.status) && (
+                        <section className="prevention-status-section">
+                          <header><span>3</span><strong>Reaktion des Arbeitgebers</strong></header>
+                          <label><span>Arbeitgeberreaktion / Stand</span><textarea defaultValue={process.employerRequestSummary ?? ''} onBlur={(event) => void updateCasePreventionProcess(process.id, { employerRequestSummary: event.target.value })} /></label>
+                        </section>
+                      )}
+
+                      {canShowMeasureClarificationSection(process.status) && (
+                        <section className="prevention-status-section">
+                          <header><span>4</span><strong>Maßnahmenklärung und Umsetzung</strong></header>
+                          <label><span>Maßnahmen</span><textarea defaultValue={process.measures ?? ''} onBlur={(event) => void updateCasePreventionProcess(process.id, { measures: event.target.value })} /></label>
+                        </section>
+                      )}
+
+                      {canShowResultSection(process.status) && (
+                        <section className="prevention-status-section">
+                          <header><span>5</span><strong>Ergebnis / Abschluss</strong></header>
+                          <label><span>Ergebnis / Abschluss</span><textarea defaultValue={process.result ?? ''} onBlur={(event) => void updateCasePreventionProcess(process.id, { result: event.target.value })} /></label>
+                        </section>
+                      )}
+                    </div>
+                    <p className="industrial-meta">Abschnitte werden erst sichtbar, wenn der Status fachlich erreicht ist. Eine Arbeitgeberreaktion wird deshalb erst nach dokumentierter Anforderung geführt.</p>
+                  </div> : <p className="industrial-meta">Präventionsverfahren nicht gefunden.</p>;
                 })()
               ) : (
                 <p className="industrial-meta">Dieses Fachmodul ist noch nicht vollständig umgesetzt. Die Maßnahme wurde als fallbezogene Notiz vorgemerkt und erscheint in der Fallhistorie.</p>
@@ -1730,14 +2073,15 @@ ${caseProcessDraft.description}`,
             <article className="case-detail-content"><h2>{selectedSearchResult.title}</h2><p>{selectedSearchResult.excerpt}</p><button type="button" className="industrial-secondary-button" onClick={() => setSelectedCaseId(selectedSearchResult.caseId)}>Fallakte öffnen</button></article>
           )}
 
-          <div className="case-detail-actions">
+          <footer className="case-workbench-footer" aria-label="Neue Akteneinträge">
             <button type="button" className="industrial-button" disabled={!selectedCaseId} onClick={openNewNoteModal}><Plus className="h-4 w-4" />Notiz / Protokoll</button>
-            <button type="button" className="industrial-button" disabled={!selectedCaseId} onClick={openCaseDeadlineDraft}><CalendarPlus className="h-4 w-4" />Frist zum Fall</button>
-            <button type="button" className="industrial-button" disabled={!selectedCaseId} onClick={() => void importDocuments()}><FileText className="h-4 w-4" />Dokument hinzufügen</button>
-          </div>
-          {documentError && <div className="industrial-message industrial-message-warning">{documentError}</div>}
-          {!isNoteModalOpen && noteError && <div className="industrial-message industrial-message-warning">{noteError}</div>}
-          {!isNoteModalOpen && noteInfo && <div className="industrial-message industrial-message-ok">{noteInfo}</div>}
+            <button type="button" className="industrial-button" disabled={!selectedCaseId} onClick={() => void importDocuments()}><FileText className="h-4 w-4" />Dokument</button>
+            <button type="button" className="industrial-button" disabled={!selectedCaseId} onClick={openCaseDeadlineDraft}><CalendarPlus className="h-4 w-4" />Frist</button>
+            <button type="button" className="industrial-button" disabled={!selectedCaseId} onClick={() => openCaseProcessDraft('prevention')}><Workflow className="h-4 w-4" />Prävention</button>
+            <button type="button" className="industrial-secondary-button" disabled={!selectedCaseId} onClick={() => openCaseProcessDraft('bem')}>BEM</button>
+            <button type="button" className="industrial-secondary-button" disabled={!selectedCaseId} onClick={() => openCaseProcessDraft('termination_hearing')}>Kündigungsanhörung</button>
+            <button type="button" className="industrial-secondary-button" disabled={!selectedCaseId} onClick={() => openCaseProcessDraft('equalization')}>Gleichstellung</button>
+          </footer>
         </section>
       </section>
 
@@ -2030,7 +2374,7 @@ ${caseProcessDraft.description}`,
           </section>
         </div>
       )}
-    </ModuleFrame>
+    </>
   );
 }
 
@@ -2816,7 +3160,7 @@ function ReportsView() {
             <p>Archivierte Berichte werden verschlüsselt abgelegt. Beim Öffnen wird eine temporäre PDF-Arbeitskopie erzeugt.</p>
           </div>
         </div>
-        <div className="industrial-table-shell">
+        <div className="industrial-table-shell case-register-table-shell">
           <table className="industrial-table">
             <thead><tr><th>Zeitpunkt</th><th>Bericht</th><th>Datei</th><th>Hinweise</th><th></th></tr></thead>
             <tbody>
@@ -2843,6 +3187,7 @@ function SettingsView({ theme, onThemeChange, cases }: { theme: ThemeMode; onThe
     <ModuleFrame title="Einstellungen" kicker="System" description="Passwortverwaltung, Darstellung und lokale Anwendungseinstellungen.">
       <div className="grid gap-6 xl:grid-cols-2">
         <ThemeSettingsForm theme={theme} onThemeChange={onThemeChange} />
+        <TemplateDefaultSettingsForm />
         <ChangePasswordForm />
         <BackupRestoreForm />
         <RetentionSettingsPanel cases={cases} />
@@ -2880,6 +3225,88 @@ function ThemeSettingsForm({ theme, onThemeChange }: { theme: ThemeMode; onTheme
     </section>
   );
 }
+
+
+function TemplateDefaultSettingsForm() {
+  const [values, setValues] = useState<TemplateDefaultValues>(EMPTY_TEMPLATE_DEFAULT_VALUES);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    loadTemplateDefaultValues()
+      .then((loaded) => {
+        if (!active) return;
+        setValues(loaded);
+      })
+      .catch((loadError) => {
+        if (!active) return;
+        setError(loadError instanceof Error ? loadError.message : 'Standardwerte konnten nicht geladen werden.');
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setMessage('');
+    setError('');
+    try {
+      const saved = await saveTemplateDefaultValues(values);
+      setValues(saved);
+      setMessage('Standardwerte wurden gespeichert.');
+    } catch (saveError) {
+      setError(saveError instanceof Error ? saveError.message : 'Standardwerte konnten nicht gespeichert werden.');
+    }
+  }
+
+  function updateValue(key: TemplateDefaultKey, value: string) {
+    setValues((current) => ({ ...current, [key]: value }));
+  }
+
+  return (
+    <form onSubmit={submit} className="industrial-settings-form template-default-settings xl:col-span-2">
+      <div>
+        <h3>Vorlagen & Standardwerte</h3>
+        <p className="industrial-settings-note">
+          Diese Werte füllen allgemeine Platzhalter wie <code>{'{{sbv.name}}'}</code> oder <code>{'{{arbeitgeber.ansprechpartner}}'}</code>.
+          Konkrete Fall-, Frist- oder Maßnahmendaten überschreiben diese Standardwerte beim Erzeugen eines Schreibens.
+        </p>
+      </div>
+
+      {loading ? (
+        <div className="industrial-empty">Standardwerte werden geladen …</div>
+      ) : (
+        <div className="template-default-grid">
+          {TEMPLATE_DEFAULT_FIELDS.map((field) => (
+            <label key={field.key} className={field.multiline ? 'template-default-wide' : undefined}>
+              <span>{field.label}</span>
+              <small>{field.description}</small>
+              {field.multiline ? (
+                <textarea value={values[field.key]} onChange={(event) => updateValue(field.key, event.target.value)} />
+              ) : (
+                <input value={values[field.key]} onChange={(event) => updateValue(field.key, event.target.value)} />
+              )}
+            </label>
+          ))}
+        </div>
+      )}
+
+      {error && <div className="industrial-message industrial-message-warning">{error}</div>}
+      {message && <div className="industrial-message industrial-message-ok">{message}</div>}
+
+      <button type="submit" className="industrial-button" disabled={loading}>
+        <Save className="h-4 w-4" /> Standardwerte speichern
+      </button>
+    </form>
+  );
+}
+
 
 function ChangePasswordForm() {
   const [currentPassword, setCurrentPassword] = useState('');
@@ -3645,6 +4072,12 @@ function TemplatesView({ cases }: { cases: CaseRecord[] }) {
     legalBasis: [],
     tags: []
   });
+  const [newTemplateProcessStatus, setNewTemplateProcessStatus] = useState<PreventionStatus | ''>('');
+  const [isCreateTemplateModalOpen, setIsCreateTemplateModalOpen] = useState(false);
+  const [isTemplateHelpOpen, setIsTemplateHelpOpen] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState<TemplateRecord | null>(null);
+  const [editTemplateProcessStatus, setEditTemplateProcessStatus] = useState<PreventionStatus | ''>('');
+
 
   async function loadTemplates(nextQuery = query, nextCategory = category) {
     const bridge = await waitForBridge();
@@ -3719,14 +4152,92 @@ function TemplatesView({ cases }: { cases: CaseRecord[] }) {
       const created = await bridge.templates.create({
         ...newTemplate,
         legalBasis: (newTemplate.legalBasis ?? []).flatMap((entry) => String(entry).split(',')).map((entry) => entry.trim()).filter(Boolean),
-        tags: (newTemplate.tags ?? []).flatMap((entry) => String(entry).split(',')).map((entry) => entry.trim()).filter(Boolean)
+        tags: [
+          ...(newTemplate.tags ?? []).flatMap((entry) => String(entry).split(',')).map((entry) => entry.trim()).filter(Boolean),
+          ...(newTemplate.category === 'praevention' ? ['massnahme:prevention'] : []),
+          ...(newTemplate.category === 'praevention' && newTemplateProcessStatus ? [`status:${newTemplateProcessStatus}`] : [])
+        ].filter((entry, index, all) => all.indexOf(entry) === index)
       });
       setNewTemplate({ title: '', category: 'sonstiges', subject: '', body: '', description: '', legalBasis: [], tags: [] });
+      setNewTemplateProcessStatus('');
+      setIsCreateTemplateModalOpen(false);
       await loadTemplates(query, category);
       setSelectedTemplateId(created.id);
       setInfo('Eigene Vorlage wurde gespeichert.');
     } catch (createError) {
       setError(createError instanceof Error ? createError.message : 'Vorlage konnte nicht gespeichert werden.');
+    }
+  }
+
+  function openEditTemplate(template: TemplateRecord) {
+    setEditingTemplate({
+      ...template,
+      legalBasis: [...template.legalBasis],
+      tags: [...template.tags]
+    });
+    const statusTag = template.tags.find((tag) => tag.startsWith('status:'));
+    setEditTemplateProcessStatus(statusTag ? statusTag.replace('status:', '') as PreventionStatus : '');
+    setRendered(null);
+    setError('');
+    setInfo('');
+  }
+
+  async function saveEditedTemplate(event: FormEvent) {
+    event.preventDefault();
+    if (!editingTemplate) return;
+    setError('');
+    setInfo('');
+    try {
+      const bridge = await waitForBridge();
+      if (!bridge?.templates) throw new Error('Vorlagendienst ist nicht erreichbar.');
+      const nextTags = [
+        ...(editingTemplate.tags ?? []).flatMap((entry) => String(entry).split(',')).map((entry) => entry.trim()).filter(Boolean).filter((entry) => !entry.startsWith('status:') && entry !== 'massnahme:prevention'),
+        ...(editingTemplate.category === 'praevention' ? ['massnahme:prevention'] : []),
+        ...(editingTemplate.category === 'praevention' && editTemplateProcessStatus ? [`status:${editTemplateProcessStatus}`] : [])
+      ].filter((entry, index, all) => all.indexOf(entry) === index);
+
+      const payload = {
+        title: editingTemplate.title,
+        category: editingTemplate.category,
+        subject: editingTemplate.subject,
+        body: editingTemplate.body,
+        description: editingTemplate.description,
+        legalBasis: (editingTemplate.legalBasis ?? []).flatMap((entry) => String(entry).split(',')).map((entry) => entry.trim()).filter(Boolean),
+        tags: nextTags
+      };
+
+      if (bridge.templates.update) {
+        await bridge.templates.update(editingTemplate.id, payload);
+      } else {
+        throw new Error('Vorlagenänderung wird von der Datenbrücke noch nicht unterstützt.');
+      }
+      setEditingTemplate(null);
+      await loadTemplates(query, category);
+      setSelectedTemplateId(editingTemplate.id);
+      setInfo('Vorlage wurde aktualisiert.');
+    } catch (updateError) {
+      setError(updateError instanceof Error ? updateError.message : 'Vorlage konnte nicht aktualisiert werden.');
+    }
+  }
+
+  async function deleteTemplate(template: TemplateRecord) {
+    if (!window.confirm(`Vorlage „${template.title}“ wirklich löschen?`)) return;
+    setError('');
+    setInfo('');
+    try {
+      const bridge = await waitForBridge();
+      if (!bridge?.templates) throw new Error('Vorlagendienst ist nicht erreichbar.');
+      if (bridge.templates.delete) {
+        await bridge.templates.delete(template.id);
+      } else {
+        throw new Error('Vorlagenlöschung wird von der Datenbrücke noch nicht unterstützt.');
+      }
+      if (selectedTemplateId === template.id) setSelectedTemplateId('');
+      setRendered(null);
+      await loadTemplates(query, category);
+      setInfo('Vorlage wurde gelöscht.');
+    } catch (deleteError) {
+      setError(deleteError instanceof Error ? deleteError.message : 'Vorlage konnte nicht gelöscht werden.');
     }
   }
 
@@ -3739,32 +4250,56 @@ function TemplatesView({ cases }: { cases: CaseRecord[] }) {
       description="Standardschreiben mit Platzhaltern. Tonalität: freundlich, rechtlich klar, verbindlich und ohne unnötige Diskussionsöffnung."
     >
       <section className="industrial-panel">
-        <div className="industrial-panel-header compact">
-          <div>
-            <p className="industrial-kicker">Auswahl</p>
-            <h2>Vorlagenkatalog</h2>
+        <div className="template-catalog-toolbar">
+          <div className="template-title-cluster">
+            <button
+              type="button"
+              className="template-help-button"
+              onClick={() => setIsTemplateHelpOpen(true)}
+              aria-label="Hilfe zu Vorlagen und Platzhaltern öffnen"
+              title="Hilfe zu Platzhaltern"
+            >
+              <HelpCircle className="h-4 w-4" />
+            </button>
+            <div>
+              <p className="industrial-kicker">Auswahl</p>
+              <h2>Vorlagenkatalog</h2>
+            </div>
           </div>
-          <form onSubmit={applyFilters} className="industrial-form-grid compact">
-            <label><span>Suche</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Prävention, Beteiligung, Kündigung ..." /></label>
-            <label><span>Kategorie</span><select value={category} onChange={(event) => setCategory(event.target.value as TemplateCategory | '')}><option value="">Alle</option>{categories.map((item) => <option key={item} value={item}>{templateCategoryLabels[item]}</option>)}</select></label>
-            <button type="submit" className="industrial-secondary-button"><Search className="h-4 w-4" />Filtern</button>
-          </form>
+          <button type="button" className="industrial-button" onClick={() => setIsCreateTemplateModalOpen(true)}>
+            <Plus className="h-4 w-4" /> Neue Vorlage
+          </button>
         </div>
+        <form onSubmit={applyFilters} className="template-filter-form">
+          <label><span>Suche</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Prävention, Beteiligung, Kündigung ..." /></label>
+          <label><span>Kategorie</span><select value={category} onChange={(event) => setCategory(event.target.value as TemplateCategory | '')}><option value="">Alle</option>{categories.map((item) => <option key={item} value={item}>{templateCategoryLabels[item]}</option>)}</select></label>
+          <button type="submit" className="industrial-secondary-button"><Search className="h-4 w-4" />Filtern</button>
+        </form>
         {error && <div className="industrial-message industrial-message-warning mb-4">{error}</div>}
         {info && <div className="industrial-message mb-4">{info}</div>}
         <div className="grid gap-4 xl:grid-cols-[0.9fr_1.4fr]">
           <div className="space-y-3">
             {templates.map((template) => (
-              <button
-                key={template.id}
-                type="button"
-                className={`industrial-list-item w-full text-left ${selectedTemplate?.id === template.id ? 'active' : ''}`}
-                onClick={() => { setSelectedTemplateId(template.id); setRendered(null); }}
-              >
-                <strong>{template.title}</strong>
-                <span>{templateCategoryLabels[template.category]} · {template.legalBasis.join(', ') || 'ohne Normbezug'}</span>
-                <p>{template.description}</p>
-              </button>
+              <div key={template.id} className={`template-list-row ${selectedTemplate?.id === template.id ? 'active' : ''}`}>
+                <button
+                  type="button"
+                  className="industrial-list-item template-list-main w-full text-left"
+                  onClick={() => { setSelectedTemplateId(template.id); setRendered(null); }}
+                >
+                  <strong>{template.title}</strong>
+                  <span>{templateCategoryLabels[template.category]} · {template.legalBasis.join(', ') || 'ohne Normbezug'}</span>
+                  <p>{template.description}</p>
+                </button>
+                <button
+                  type="button"
+                  className="template-trash-button"
+                  onClick={() => void deleteTemplate(template)}
+                  aria-label={`Vorlage ${template.title} löschen`}
+                  title="Vorlage löschen"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
             ))}
             {!templates.length && <div className="industrial-empty">Keine Vorlage gefunden.</div>}
           </div>
@@ -3780,32 +4315,21 @@ function TemplatesView({ cases }: { cases: CaseRecord[] }) {
                   </div>
                 </div>
 
-                <div className="industrial-form-grid compact mt-4">
-                  <label><span>Fallbezug</span><select value={selectedCaseId} onChange={(event) => setSelectedCaseId(event.target.value)}><option value="">ohne Fallbezug</option>{cases.map((record) => <option key={record.id} value={record.id}>{record.caseNumber} · {record.displayName}</option>)}</select></label>
-                  <label><span>Frist / Datum</span><input value={deadlineDate} onChange={(event) => setDeadlineDate(event.target.value)} placeholder="z. B. 17.05.2026" /></label>
-                  <label><span>SBV-Absender</span><input value={sbvName} onChange={(event) => setSbvName(event.target.value)} /></label>
-                  <label><span>Ansprechstelle</span><input value={recipientName} onChange={(event) => setRecipientName(event.target.value)} /></label>
+                <div className="template-detail-meta mt-4">
+                  <div><span>Kategorie</span><strong>{templateCategoryLabels[selectedTemplate.category]}</strong></div>
+                  <div><span>Normen</span><strong>{selectedTemplate.legalBasis.join(', ') || 'ohne Normbezug'}</strong></div>
+                  <div><span>Tags</span><strong>{selectedTemplate.tags.join(', ') || 'keine Tags'}</strong></div>
                 </div>
 
                 <div className="industrial-subpanel mt-4">
-                  <h4>Vorschau der Vorlage</h4>
+                  <h4>Vorlagentext</h4>
                   <p className="industrial-meta"><strong>Betreff:</strong> {selectedTemplate.subject}</p>
                   <pre className="industrial-prewrap">{selectedTemplate.body}</pre>
                 </div>
 
                 <div className="mt-4 flex flex-wrap gap-3">
-                  <button type="button" className="industrial-button" onClick={() => void renderSelectedTemplate()}><FileText className="h-4 w-4" />Entwurf erzeugen</button>
-                  {rendered && <button type="button" className="industrial-secondary-button" onClick={() => void copyRenderedText()}>In Zwischenablage kopieren</button>}
+                  <button type="button" className="industrial-button" onClick={() => openEditTemplate(selectedTemplate)}><FileText className="h-4 w-4" />Vorlage bearbeiten</button>
                 </div>
-
-                {rendered && (
-                  <div className="industrial-subpanel mt-4">
-                    <h4>Erzeugter Entwurf</h4>
-                    {rendered.unresolvedPlaceholders.length > 0 && <div className="industrial-message industrial-message-warning mb-3">Offene Platzhalter: {rendered.unresolvedPlaceholders.join(', ')}</div>}
-                    <p className="industrial-meta"><strong>Betreff:</strong> {rendered.subject}</p>
-                    <textarea className="industrial-output-area" value={rendered.body} readOnly />
-                  </div>
-                )}
               </>
             ) : (
               <div className="industrial-empty">Bitte eine Vorlage auswählen.</div>
@@ -3814,22 +4338,129 @@ function TemplatesView({ cases }: { cases: CaseRecord[] }) {
         </div>
       </section>
 
-      <section className="industrial-panel">
-        <div className="industrial-panel-header compact"><div><p className="industrial-kicker">Eigene Vorlage</p><h2>Vorlage ergänzen</h2></div></div>
-        <form onSubmit={createOwnTemplate} className="industrial-settings-form">
-          <div className="industrial-form-grid">
-            <label><span>Titel</span><input value={newTemplate.title} onChange={(event) => setNewTemplate((draft) => ({ ...draft, title: event.target.value }))} /></label>
+      {isCreateTemplateModalOpen && (
+        <div className="industrial-modal-backdrop" role="presentation">
+          <section className="industrial-modal template-create-modal" role="dialog" aria-modal="true" aria-labelledby="template-create-title">
+            <div className="industrial-modal-header">
+              <div className="industrial-modal-icon"><FileText className="h-5 w-5" /></div>
+              <div>
+                <p className="industrial-kicker">Eigene Vorlage</p>
+                <h2 id="template-create-title">Vorlage ergänzen</h2>
+                <p>Neue Standardschreiben werden hier angelegt und können anschließend aus Fallakte oder Maßnahme heraus genutzt werden.</p>
+              </div>
+            </div>
+        <form onSubmit={createOwnTemplate} className="template-create-form">
+          <div className="template-form-grid">
+            <label><span>Titel</span><input value={newTemplate.title} onChange={(event) => setNewTemplate((draft) => ({ ...draft, title: event.target.value }))} autoFocus /></label>
             <label><span>Kategorie</span><select value={newTemplate.category} onChange={(event) => setNewTemplate((draft) => ({ ...draft, category: event.target.value as TemplateCategory }))}>{categories.map((item) => <option key={item} value={item}>{templateCategoryLabels[item]}</option>)}</select></label>
+            <label><span>Maßnahmenstatus</span><select value={newTemplateProcessStatus} onChange={(event) => setNewTemplateProcessStatus(event.target.value as PreventionStatus | '')} disabled={newTemplate.category !== 'praevention'}><option value="">alle / nicht gebunden</option>{preventionStatusOrder.map((status) => <option key={status} value={status}>{statusLabel(status)}</option>)}</select></label>
             <label><span>Normen</span><input value={(newTemplate.legalBasis ?? []).join(', ')} onChange={(event) => setNewTemplate((draft) => ({ ...draft, legalBasis: [event.target.value] }))} placeholder="§ 178 Abs. 2 Satz 1 SGB IX" /></label>
             <label><span>Tags</span><input value={(newTemplate.tags ?? []).join(', ')} onChange={(event) => setNewTemplate((draft) => ({ ...draft, tags: [event.target.value] }))} placeholder="Beteiligung, Frist, HR" /></label>
           </div>
           <label><span>Beschreibung</span><input value={newTemplate.description ?? ''} onChange={(event) => setNewTemplate((draft) => ({ ...draft, description: event.target.value }))} /></label>
           <label><span>Betreff</span><input value={newTemplate.subject} onChange={(event) => setNewTemplate((draft) => ({ ...draft, subject: event.target.value }))} placeholder="Beteiligung der SBV – {{fall.aktenzeichen}}" /></label>
           <label><span>Text</span><textarea value={newTemplate.body} onChange={(event) => setNewTemplate((draft) => ({ ...draft, body: event.target.value }))} placeholder="Sehr geehrte Damen und Herren, ..." /></label>
-          <div className="industrial-message">Verfügbare Platzhalter u. a.: {'{{heute}}'}, {'{{fall.aktenzeichen}}'}, {'{{fall.name}}'}, {'{{fall.kurzbeschreibung}}'}, {'{{person.name}}'}, {'{{frist.datum}}'}, {'{{sbv.name}}'}, {'{{arbeitgeber.ansprechpartner}}'}, {'{{normen}}'}.</div>
-          <button type="submit" className="industrial-button"><Save className="h-4 w-4" />Vorlage speichern</button>
+          <div className="template-form-hint">Platzhalter kannst du über das Hilfe-Symbol im Vorlagenkatalog nachschlagen.</div>
+          <div className="industrial-modal-actions">
+            <button type="button" className="industrial-secondary-button" onClick={() => setIsCreateTemplateModalOpen(false)}>Abbrechen</button>
+            <button type="submit" className="industrial-button"><Save className="h-4 w-4" />Vorlage speichern</button>
+          </div>
         </form>
-      </section>
+          </section>
+        </div>
+      )}
+      {editingTemplate && (
+        <div className="industrial-modal-backdrop" role="presentation">
+          <section className="industrial-modal template-create-modal" role="dialog" aria-modal="true" aria-labelledby="template-edit-title">
+            <div className="industrial-modal-header">
+              <div className="industrial-modal-icon"><FileText className="h-5 w-5" /></div>
+              <div>
+                <p className="industrial-kicker">Vorlage bearbeiten</p>
+                <h2 id="template-edit-title">{editingTemplate.title}</h2>
+                <p>Text, Tags, Normen und Zuordnung dieser Vorlage ändern.</p>
+              </div>
+            </div>
+            <form onSubmit={saveEditedTemplate} className="template-create-form">
+              <div className="template-form-grid">
+                <label><span>Titel</span><input value={editingTemplate.title} onChange={(event) => setEditingTemplate((draft) => draft ? { ...draft, title: event.target.value } : draft)} autoFocus /></label>
+                <label><span>Kategorie</span><select value={editingTemplate.category} onChange={(event) => setEditingTemplate((draft) => draft ? { ...draft, category: event.target.value as TemplateCategory } : draft)}>{categories.map((item) => <option key={item} value={item}>{templateCategoryLabels[item]}</option>)}</select></label>
+                <label><span>Maßnahmenstatus</span><select value={editTemplateProcessStatus} onChange={(event) => setEditTemplateProcessStatus(event.target.value as PreventionStatus | '')} disabled={editingTemplate.category !== 'praevention'}><option value="">alle / nicht gebunden</option>{preventionStatusOrder.map((status) => <option key={status} value={status}>{statusLabel(status)}</option>)}</select></label>
+                <label><span>Normen</span><input value={(editingTemplate.legalBasis ?? []).join(', ')} onChange={(event) => setEditingTemplate((draft) => draft ? { ...draft, legalBasis: [event.target.value] } : draft)} placeholder="§ 178 Abs. 2 Satz 1 SGB IX" /></label>
+                <label><span>Tags</span><input value={(editingTemplate.tags ?? []).filter((tag) => tag !== 'massnahme:prevention' && !tag.startsWith('status:')).join(', ')} onChange={(event) => setEditingTemplate((draft) => draft ? { ...draft, tags: [event.target.value] } : draft)} placeholder="Beteiligung, Frist, HR" /></label>
+              </div>
+              <label><span>Beschreibung</span><input value={editingTemplate.description ?? ''} onChange={(event) => setEditingTemplate((draft) => draft ? { ...draft, description: event.target.value } : draft)} /></label>
+              <label><span>Betreff</span><input value={editingTemplate.subject} onChange={(event) => setEditingTemplate((draft) => draft ? { ...draft, subject: event.target.value } : draft)} placeholder="Beteiligung der SBV – {{fall.aktenzeichen}}" /></label>
+              <label><span>Text</span><textarea value={editingTemplate.body} onChange={(event) => setEditingTemplate((draft) => draft ? { ...draft, body: event.target.value } : draft)} placeholder="Sehr geehrte Damen und Herren, ..." /></label>
+              <div className="template-form-hint">Bei Präventionsvorlagen werden die Tags <code>massnahme:prevention</code> und bei Statusbindung <code>status:...</code> automatisch gesetzt.</div>
+              <div className="industrial-modal-actions">
+                <button type="button" className="industrial-secondary-button" onClick={() => setEditingTemplate(null)}>Abbrechen</button>
+                <button type="submit" className="industrial-button"><Save className="h-4 w-4" />Änderungen speichern</button>
+              </div>
+            </form>
+          </section>
+        </div>
+      )}
+      {isTemplateHelpOpen && (
+        <div className="industrial-modal-backdrop" role="presentation">
+          <section className="industrial-modal template-help-modal" role="dialog" aria-modal="true" aria-labelledby="template-help-title">
+            <div className="industrial-modal-header">
+              <div className="industrial-modal-icon"><HelpCircle className="h-5 w-5" /></div>
+              <div>
+                <p className="industrial-kicker">Hilfe</p>
+                <h2 id="template-help-title">Platzhalter in Vorlagen</h2>
+                <p>Platzhalter werden in doppelten geschweiften Klammern geschrieben. Allgemeine Werte wie SBV-Name oder Arbeitgeber-Ansprechstelle pflegst du unter Einstellungen → Vorlagen & Standardwerte.</p>
+              </div>
+            </div>
+            <div className="template-placeholder-help">
+              <section>
+                <h3>Allgemein</h3>
+                <code>{'{{heute}}'}</code>
+                <p>Aktuelles Datum.</p>
+                <code>{'{{sbv.name}}'}</code>
+                <p>Name oder Funktionsbezeichnung der SBV als Absender.</p>
+                <code>{'{{arbeitgeber.ansprechpartner}}'}</code>
+                <p>Ansprechstelle des Arbeitgebers, z. B. Personalabteilung.</p>
+              </section>
+              <section>
+                <h3>Fallakte</h3>
+                <code>{'{{fall.aktenzeichen}}'}</code>
+                <p>Aktenzeichen des ausgewählten Falls.</p>
+                <code>{'{{fall.name}}'}</code>
+                <p>Name oder Pseudonym aus der Fallakte.</p>
+                <code>{'{{fall.kurzbeschreibung}}'}</code>
+                <p>Kurzbeschreibung des Falls.</p>
+                <code>{'{{person.name}}'}</code>
+                <p>Personenbezug aus dem Fall, soweit vorhanden.</p>
+              </section>
+              <section>
+                <h3>Fristen und Normen</h3>
+                <code>{'{{frist.datum}}'}</code>
+                <p>Datum, das beim Erzeugen des Schreibens eingetragen wurde.</p>
+                <code>{'{{normen}}'}</code>
+                <p>Normbezüge der Vorlage oder des Vorgangs.</p>
+              </section>
+              <section>
+                <h3>Präventionsverfahren</h3>
+                <code>{'{{praevention.status}}'}</code>
+                <p>Aktueller Status der Maßnahme.</p>
+                <code>{'{{praevention.gefaehrdung}}'}</code>
+                <p>Dokumentierte Gefährdung oder Ausgangslage.</p>
+                <code>{'{{praevention.arbeitgeberfrist}}'}</code>
+                <p>Frist zur Arbeitgeberreaktion.</p>
+                <code>{'{{praevention.massnahmen}}'}</code>
+                <p>Geplante oder dokumentierte Maßnahmen.</p>
+              </section>
+            </div>
+            <div className="template-help-example">
+              <h3>Beispiel</h3>
+              <pre>{'Bitte stellen Sie mir die Unterlagen zur Fallakte {{fall.aktenzeichen}} bis zum {{frist.datum}} zur Verfügung.'}</pre>
+            </div>
+            <div className="industrial-modal-actions">
+              <button type="button" className="industrial-button" onClick={() => setIsTemplateHelpOpen(false)}>Schließen</button>
+            </div>
+          </section>
+        </div>
+      )}
     </ModuleFrame>
   );
 }

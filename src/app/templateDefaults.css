@@ -1,0 +1,45 @@
+/* Gremia.SBV 0.4.31 – Einstellungen für allgemeine Vorlagen-Platzhalter. */
+
+.template-default-settings code {
+  color: var(--accent);
+}
+
+.template-default-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  gap: .85rem;
+}
+
+.template-default-grid label {
+  display: grid;
+  gap: .35rem;
+}
+
+.template-default-grid label span {
+  color: var(--text-primary);
+  font-size: .82rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+}
+
+.template-default-grid label small {
+  min-height: 2.4em;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
+.template-default-grid input,
+.template-default-grid textarea {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.template-default-grid textarea {
+  min-height: 7rem;
+  resize: vertical;
+}
+
+.template-default-wide {
+  grid-column: 1 / -1;
+}

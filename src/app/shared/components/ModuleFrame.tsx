@@ -1,23 +1,30 @@
 import type { ReactNode } from 'react';
 
-interface ModuleFrameProps {
-  title: string;
-  kicker: string;
-  description: string;
+type ModuleFrameProps = {
+  title?: string;
+  kicker?: string;
+  description?: string;
+  compact?: boolean;
   children: ReactNode;
-}
+};
 
-export function ModuleFrame({ title, kicker, description, children }: ModuleFrameProps) {
+export function ModuleFrame({
+  title,
+  kicker,
+  description,
+  compact = false,
+  children
+}: ModuleFrameProps) {
   return (
-    <section className="space-y-6">
-      <header className="industrial-module-header">
+    <main className="module-frame">
+      <section className={`industrial-hero ${compact ? 'industrial-hero-compact' : ''}`}>
         <div>
-          <p className="industrial-kicker">{kicker}</p>
-          <h1 className="industrial-title">{title}</h1>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-400">{description}</p>
+          {kicker ? <p className="industrial-kicker">{kicker}</p> : null}
+          {title ? <h1>{title}</h1> : null}
+          {description ? <p>{description}</p> : null}
         </div>
-      </header>
+      </section>
       {children}
-    </section>
+    </main>
   );
 }

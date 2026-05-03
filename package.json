@@ -1,11 +1,12 @@
 {
   "name": "gremia-sbv",
-  "version": "0.4.16",
+  "version": "0.4.31",
   "private": true,
   "description": "Offline-first Desktop-App für die vertrauliche Fallarbeit der Schwerbehindertenvertretung.",
   "main": "dist-electron/electron/main.js",
   "type": "module",
   "scripts": {
+    "test:case-workbench-layout": "vitest run tests/caseWorkbenchLayoutPolicy.test.ts",
     "dev": "concurrently -k --success first \"npm:dev:renderer\" \"npm:dev:electron\"",
     "dev:renderer": "vite --host 127.0.0.1",
     "dev:electron": "wait-on tcp:5173 && tsc -p tsconfig.electron.json && node scripts/write-electron-cjs-package.cjs && electron .",
@@ -55,7 +56,21 @@
     "test:a11y": "vitest run tests/keyboardAccessibilityPolicy.test.ts tests/modalAccessibilityCss.test.ts",
     "test:export-guard": "vitest run tests/exportGuardPolicy.test.ts",
     "test:maintainability": "vitest run tests/appMaintainabilityRefactor.test.ts",
-    "test:native-menu": "vitest run tests/nativeMenuPolicy.test.ts"
+    "test:native-menu": "vitest run tests/nativeMenuPolicy.test.ts",
+    "test:case-workbench": "vitest run tests/caseWorkbenchWorkflowPolicy.test.ts",
+    "test:case-toast": "vitest run tests/caseToastTypeRegression.test.ts",
+    "postinstall": "electron-builder install-app-deps",
+    "test:case-workbench-regression": "vitest run tests/caseWorkbenchRegression.test.ts",
+    "test:case-header-toast": "vitest run tests/caseHeaderToastRegression.test.ts",
+    "test:module-frame": "vitest run tests/moduleFrameCompactContract.test.ts",
+    "test:case-header-process-badges": "vitest run tests/caseHeaderProcessBadges.test.ts",
+    "test:case-process-templates": "vitest run tests/caseProcessTemplatesModal.test.ts",
+    "test:process-template-overlay": "vitest run tests/processTemplateOverlayPolish.test.ts",
+    "test:process-template-build": "vitest run tests/processTemplateBuildRegression.test.ts",
+    "test:template-process-status-state": "vitest run tests/templateProcessStatusState.test.ts",
+    "test:template-workbench": "vitest run tests/templateWorkbenchModalHelp.test.ts",
+    "test:template-management": "vitest run tests/templateManagementEditDelete.test.ts",
+    "test:template-defaults": "vitest run tests/templateDefaultSettings.test.ts"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.0",

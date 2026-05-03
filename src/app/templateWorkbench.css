@@ -1,0 +1,242 @@
+/* Gremia.SBV 0.4.29 – Vorlagen-Workbench: klare Abstände, Modal-Anlage, Platzhalterhilfe. */
+
+.template-catalog-toolbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.template-title-cluster {
+  display: flex;
+  align-items: flex-start;
+  gap: .75rem;
+}
+
+.template-help-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  border: 1px solid var(--border-muted);
+  background: var(--surface-base);
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.template-help-button:hover,
+.template-help-button:focus-visible {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.template-filter-form {
+  display: grid;
+  grid-template-columns: minmax(16rem, 1fr) minmax(12rem, 16rem) auto;
+  gap: .85rem;
+  align-items: end;
+  margin-bottom: 1.15rem;
+}
+
+.template-filter-form label,
+.template-detail-fields label,
+.template-create-form label {
+  display: grid;
+  gap: .35rem;
+}
+
+.template-filter-form label span,
+.template-detail-fields label span,
+.template-create-form label span {
+  display: block;
+  color: var(--text-muted);
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.template-filter-form input,
+.template-filter-form select,
+.template-detail-fields input,
+.template-detail-fields select,
+.template-create-form input,
+.template-create-form select,
+.template-create-form textarea {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.template-detail-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: .85rem;
+}
+
+.template-create-modal {
+  width: min(68rem, calc(100vw - 2rem));
+  max-height: min(88vh, 56rem);
+  overflow: auto;
+}
+
+.template-create-form {
+  display: grid;
+  gap: .9rem;
+}
+
+.template-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: .85rem;
+}
+
+.template-create-form textarea {
+  min-height: 14rem;
+  resize: vertical;
+}
+
+.template-form-hint {
+  padding: .75rem .9rem;
+  border: 1px dashed var(--border-muted);
+  color: var(--text-muted);
+  background: color-mix(in srgb, var(--surface-panel) 92%, black 8%);
+}
+
+.template-help-modal {
+  width: min(72rem, calc(100vw - 2rem));
+  max-height: min(88vh, 58rem);
+  overflow: auto;
+}
+
+.template-placeholder-help {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+  gap: 1rem;
+}
+
+.template-placeholder-help section {
+  display: grid;
+  align-content: start;
+  gap: .45rem;
+  padding: .9rem;
+  border: 1px solid var(--border-muted);
+  background: color-mix(in srgb, var(--surface-panel) 94%, black 6%);
+}
+
+.template-placeholder-help h3,
+.template-help-example h3 {
+  margin: 0 0 .25rem;
+  font-size: .95rem;
+}
+
+.template-placeholder-help code {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  padding: .22rem .5rem;
+  border: 1px solid var(--border-muted);
+  color: var(--accent);
+  background: var(--surface-base);
+  overflow-wrap: anywhere;
+}
+
+.template-placeholder-help p {
+  margin: 0 0 .35rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.template-help-example {
+  margin-top: 1rem;
+  padding: .9rem;
+  border: 1px dashed var(--border-muted);
+  background: var(--surface-base);
+}
+
+.template-help-example pre {
+  margin: .5rem 0 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 860px) {
+  .template-catalog-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .template-filter-form {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* Gremia.SBV 0.4.30 – Vorlagenverwaltung: Bearbeiten und Löschen. */
+.template-list-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: .5rem;
+  align-items: stretch;
+}
+
+.template-list-row.active .template-list-main {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface-panel));
+}
+
+.template-list-main {
+  min-width: 0;
+}
+
+.template-trash-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  min-height: 2.4rem;
+  border: 1px solid var(--border-muted);
+  background: var(--surface-base);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.template-trash-button:hover,
+.template-trash-button:focus-visible {
+  border-color: color-mix(in srgb, #ff6b6b 70%, var(--accent));
+  color: #ffb3b3;
+  box-shadow: 0 0 0 2px color-mix(in srgb, #ff6b6b 20%, transparent);
+}
+
+.template-detail-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: .75rem;
+}
+
+.template-detail-meta div {
+  display: grid;
+  gap: .25rem;
+  padding: .7rem .8rem;
+  border: 1px solid var(--border-muted);
+  background: color-mix(in srgb, var(--surface-panel) 94%, black 6%);
+}
+
+.template-detail-meta span {
+  color: var(--text-muted);
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.template-detail-meta strong {
+  font-size: .86rem;
+  overflow-wrap: anywhere;
+}
+
+.template-form-hint code {
+  color: var(--accent);
+}
