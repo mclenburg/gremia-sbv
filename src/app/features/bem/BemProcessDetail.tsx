@@ -2,6 +2,7 @@ import { FileText } from 'lucide-react';
 import { TextCommandTextarea } from '../../shared/textCommands/TextCommandTextarea';
 import type { BemProcessRecord, BemResponse, BemStatus, BemTriggerType, UpdateBemProcessInput } from '../../core/models/bem.model';
 import type { CaseProcessType } from '../cases/caseWorkbenchTypes';
+import { formatDateShort } from '../../workflowViews';
 import { fromDateTimeLocalValue, processTypeLabel, toDateTimeLocalValue } from '../cases/caseWorkbenchFormat';
 import { bemStatusLabel, bemStatusOrder, bemStatusReached } from './bemShared';
 
@@ -52,27 +53,30 @@ export function BemProcessDetail({
   const showCompletionSection = process.status === 'abgeschlossen' || process.status === 'abgebrochen' || process.status === 'abgelehnt';
 
   return (
-    <div className="case-detail-content">
-      <div className="case-process-detail-header">
-        <div>
-          <p className="industrial-kicker">Fallmaßnahme</p>
-          <h2>BEM-Verfahren</h2>
-          <p>BEM ist freiwillig, vertraulich und prozesshaft. Dokumentiere nur, was für die SBV-Arbeit wirklich erforderlich ist.</p>
+    <article className="case-detail-content">
+      <div className="case-detail-inline-form">
+        <div className="case-process-header">
+          <div className="case-process-header-main">
+            <div className="case-process-title-row">
+              <span className="industrial-badge">Maßnahme</span>
+              {onOpenTemplates && (
+                <button type="button" className="case-process-document-link" onClick={() => onOpenTemplates(process)}>
+                  <FileText className="h-3.5 w-3.5" />
+                  Dokumente
+                </button>
+              )}
+            </div>
+            <h2>BEM-Verfahren</h2>
+          </div>
+          <div className="case-process-badges" aria-label="Statusübersicht">
+            <span className="case-process-badge"><strong>Status</strong>{bemStatusLabel(process.status)}</span>
+            <span className="case-process-badge"><strong>Reaktion</strong>{process.employeeResponse.replaceAll('_', ' ')}</span>
+            <span className="case-process-badge"><strong>Frist</strong>{formatDateShort(process.responseDueAt) || '—'}</span>
+          </div>
         </div>
-        <div className="case-process-badge-row">
-          <span className="industrial-badge">BEM</span>
-          <span className="industrial-badge">{bemStatusLabel(process.status)}</span>
-          {onOpenTemplates && (
-            <button type="button" className="industrial-secondary-button compact" onClick={() => onOpenTemplates(process)}>
-              <FileText className="h-4 w-4" />
-              Dokumente
-            </button>
-          )}
-        </div>
-      </div>
-
-      <div className="industrial-settings-form case-process-form">
-        <section>
+        <p className="industrial-meta">BEM ist freiwillig, vertraulich und prozesshaft. Dokumentiere nur, was für die SBV-Arbeit wirklich erforderlich ist.</p>
+        <div className="prevention-status-sections bem-status-sections">
+          <section>
           <h3>BEM-Auslöser</h3>
           <label><span>Status</span><select value={process.status} onChange={(event) => void onUpdate(process.id, { status: event.target.value as BemStatus })}>{bemStatusOrder.map((status) => <option key={status} value={status}>{bemStatusLabel(status)}</option>)}</select></label>
           <label><span>Titel</span><input value={process.title} onChange={(event) => void onUpdate(process.id, { title: event.target.value })} /></label>
@@ -124,7 +128,8 @@ export function BemProcessDetail({
           <h3>Vertrauliche SBV-Notiz</h3>
           <label className="case-note-content-input"><span>Nur intern / hochsensibel</span><TextCommandTextarea fieldId="bem-confidential-notes" defaultValue={process.confidentialNotes ?? ''} onBlur={(event) => void onUpdate(process.id, { confidentialNotes: event.currentTarget.value })} /></label>
         </section>
+        </div>
       </div>
-    </div>
+    </article>
   );
 }

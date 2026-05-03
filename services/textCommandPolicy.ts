@@ -80,3 +80,11 @@ export function formatConfidentialityText(level: ConfidentialCommandLevel): stri
 export function formatAnonymizationMarkerText(label: string): string {
   return `[Anonymisierung vormerken: ${label.trim() || 'Textstelle'}]`;
 }
+
+
+export function formatContactReferenceText(contact: { firstName?: string; lastName?: string; organization?: string; role?: string; email?: string }): string {
+  const name = `${contact.firstName ?? ''} ${contact.lastName ?? ''}`.trim();
+  const org = [contact.organization, contact.role].filter(Boolean).join(' · ');
+  const email = contact.email ? ` <${contact.email}>` : '';
+  return [name || 'Kontakt', org].filter(Boolean).join(' – ') + email;
+}

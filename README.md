@@ -25,3 +25,13 @@ Das BEM-Grundmodul ist als eigenes Fachmodul ergänzt: Übersicht, Fallakteninte
 ## Stand 0.5.1
 
 Barrierefreiheit und Typensicherheit verbessert: Statusmeldungen aus Fallakte, Vorlagen und Berichten werden per LiveRegion angekündigt; `InlineCommandOverlays` ist nicht mehr mit `any` typisiert.
+
+
+## Stand 0.5.2
+
+BEM-Übersicht als kompakter Leitstand überarbeitet und BEM-Fallaktenansicht optisch an die Präventionsmaßnahme angeglichen.
+
+
+## Stand 0.5.3
+
+Globale Inline-Befehle für Textfelder ergänzt: `//`, `@@`, `##`, `§§`, `!!`, `>>`, `^^` und `~~` funktionieren jetzt in allen `TextCommandTextarea`-Feldern. Die Fallnotiz behält ihre tiefer integrierte lokale Logik.

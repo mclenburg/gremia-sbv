@@ -48,6 +48,14 @@ export function TemplatesView() {
   const announce = useAnnouncer();
 
 
+  useEffect(() => {
+    if (error) announce(error, 'assertive');
+  }, [error, announce]);
+
+  useEffect(() => {
+    if (info) announce(info, 'polite');
+  }, [info, announce]);
+
   async function loadTemplates(nextQuery = query, nextCategory = category) {
     const bridge = await waitForBridge();
     if (!bridge?.templates) throw new Error('Vorlagendienst ist nicht erreichbar.');

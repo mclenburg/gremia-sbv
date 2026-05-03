@@ -1,5 +1,7 @@
+import { useEffect } from 'react';
 import { FileText, FolderOpen } from 'lucide-react';
 import { ModuleFrame } from '../../shared/components/ModuleFrame';
+import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 import { useReports } from './useReports';
 import { reportConfidentialityLabel } from './reportService';
 
@@ -16,6 +18,15 @@ export function ReportsView() {
     setPeriodEnd,
     generateReport
   } = useReports();
+  const announce = useAnnouncer();
+
+  useEffect(() => {
+    if (error) announce(error, 'assertive');
+  }, [error, announce]);
+
+  useEffect(() => {
+    if (result) announce(`Bericht ${result.title} wurde erzeugt.`, 'polite');
+  }, [result, announce]);
 
   return (
     <ModuleFrame title="Berichte" kicker="Audit & Auswertung" description="PDF-Berichte im Industrial-Design: anonymisierter Tätigkeitsbericht, Datenschutz-Audit und interne Steuerungsberichte.">

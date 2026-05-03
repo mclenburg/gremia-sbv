@@ -1,15 +1,23 @@
 -- BEM-Grundmodul.
+-- 0.5.1b: robuste Reparatur für frühe/kaputte 0.5.0-Teststände.
+--
+-- Hintergrund:
+-- Frühere Teststände konnten bereits eine bem_processes-Tabelle mit unbekanntem,
+-- unvollständigem Schema erzeugen. Die Migration darf deshalb NICHT aus Spalten
+-- wie status, title oder current_phase lesen, weil diese je nach Fehlstand fehlen
+-- können. Die alte Tabelle wird nur gesichert und die neue BEM-Struktur sauber
+-- angelegt.
+
+PRAGMA foreign_keys = OFF;
+
+DROP TABLE IF EXISTS bem_processes_legacy_0500;
+
+-- Frischinstallation: Falls bem_processes noch gar nicht existiert, erzeugen wir
+-- eine minimale Dummy-Tabelle, die direkt im nächsten Schritt gesichert wird.
 CREATE TABLE IF NOT EXISTS bem_processes (
   id TEXT PRIMARY KEY,
-  case_id TEXT NOT NULL,
-  current_phase TEXT,
-  title TEXT,
-  created_at TEXT,
-  updated_at TEXT
+  case_id TEXT
 );
-
--- Hinweis: 0.5.1a baut die Tabelle bewusst neu auf, weil frühe 0.5.0-Teststände
--- bereits eine unvollständige bem_processes-Tabelle ohne status-Spalte erzeugt haben konnten.
 
 ALTER TABLE bem_processes RENAME TO bem_processes_legacy_0500;
 
@@ -36,25 +44,6 @@ CREATE TABLE IF NOT EXISTS bem_processes (
   FOREIGN KEY (case_id) REFERENCES cases(id) ON DELETE CASCADE
 );
 
-INSERT OR IGNORE INTO bem_processes (id, case_id, status, title, trigger_type, employee_response, created_at, updated_at)
-SELECT
-  id,
-  case_id,
-  CASE
-    WHEN current_phase = 'angebot' THEN 'angebot_vorzubereiten'
-    WHEN current_phase = 'reaktion' THEN 'reaktion_abwarten'
-    WHEN current_phase = 'gespraech' THEN 'gespraech_geplant'
-    WHEN current_phase = 'massnahmen' THEN 'massnahmen_in_klaerung'
-    WHEN current_phase = 'abschluss' THEN 'abgeschlossen'
-    ELSE 'zu_pruefen'
-  END,
-  COALESCE(title, 'BEM-Verfahren'),
-  'sonstiges',
-  'offen',
-  COALESCE(created_at, datetime('now')),
-  COALESCE(updated_at, datetime('now'))
-FROM bem_processes_legacy_0500;
-
 CREATE TABLE IF NOT EXISTS bem_process_contacts (
   process_id TEXT NOT NULL,
   contact_id TEXT NOT NULL,
@@ -78,3 +67,5 @@ CREATE INDEX IF NOT EXISTS idx_bem_processes_case_id ON bem_processes(case_id);
 CREATE INDEX IF NOT EXISTS idx_bem_processes_status ON bem_processes(status);
 CREATE INDEX IF NOT EXISTS idx_bem_processes_response_due_at ON bem_processes(response_due_at);
 CREATE INDEX IF NOT EXISTS idx_bem_process_contacts_contact_id ON bem_process_contacts(contact_id);
+
+PRAGMA foreign_keys = ON;

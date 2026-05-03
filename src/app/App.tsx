@@ -10,6 +10,7 @@ import type { CreateDeadlineInput, DeadlineDashboardItem, DeadlineRecord, Deadli
 import { APP_VERSION } from './generated/appVersion';
 import { ConfirmDialogProvider } from './shared/dialogs/ConfirmDialogProvider';
 import { LiveRegionProvider } from './shared/a11y/LiveRegionProvider';
+import { GlobalTextCommandController } from './shared/textCommands/GlobalTextCommandController';
 import { KnowledgeView } from './features/knowledge/KnowledgeView';
 import { PreventionView } from './features/prevention/PreventionView';
 import { BemView } from './features/bem/BemView';
@@ -278,6 +279,7 @@ export function App() {
         {currentView !== 'dashboard' && currentView !== 'cases' && currentView !== 'deadlines' && currentView !== 'contacts' && currentView !== 'knowledge' && currentView !== 'bem' && currentView !== 'prevention' && currentView !== 'templates' && currentView !== 'reports' && currentView !== 'settings' && currentModule && (
           <PlaceholderView view={currentModule} />
         )}
+        <GlobalTextCommandController cases={cases} contacts={contacts} />
         {selectedDeadline && (
           <DeadlineEditor
             deadline={selectedDeadline}

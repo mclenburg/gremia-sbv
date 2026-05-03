@@ -153,3 +153,33 @@
     text-align: left;
   }
 }
+
+
+/* Gremia.SBV 0.5.2 – kompakter BEM-/Maßnahmenleitstand. */
+.process-overview-topline {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: start;
+}
+
+.process-overview-topline h2 {
+  margin: .2rem 0 .35rem;
+}
+
+.process-overview-topline p {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.process-overview-group.is-empty {
+  opacity: .72;
+}
+
+.process-overview-card.is-critical {
+  border-color: color-mix(in srgb, #ffb020 70%, var(--border-muted));
+}
+
+.bem-overview-panel .process-overview-groups {
+  gap: .65rem;
+}

@@ -1661,3 +1661,35 @@ html[data-theme='light'] .industrial-danger-button {
   color: var(--industrial-text-muted);
   font-size: 0.8rem;
 }
+
+
+.industrial-command-results {
+  display: grid;
+  gap: .45rem;
+  grid-column: 1 / -1;
+  max-height: 18rem;
+  overflow: auto;
+}
+
+.industrial-command-results button {
+  display: flex;
+  gap: .5rem;
+  align-items: center;
+  width: 100%;
+  padding: .65rem .75rem;
+  border: 1px solid var(--sbv-border);
+  background: var(--sbv-panel);
+  color: var(--sbv-text);
+  text-align: left;
+}
+
+.industrial-command-results button:hover,
+.industrial-command-results button:focus-visible {
+  border-color: var(--sbv-yellow);
+  outline: none;
+}
+
+.industrial-command-results p {
+  margin: 0;
+  color: var(--sbv-muted);
+}
