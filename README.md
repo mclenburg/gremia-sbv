@@ -279,3 +279,8 @@ Ab 0.4.43 gilt:
 - Jede neue Funktion erhält Tests.
 - Strukturtests ersetzen keine Verhaltenstests, sichern aber die Refaktorierungsgrenzen ab.
 - Nicht implementierte Funktionen werden nicht als vorhandene Features dokumentiert.
+
+
+## Stand 0.4.57
+
+Gebündelte Verhaltens- und Funktionstests können mit `npm run test:behavior-suite` ausgeführt werden.

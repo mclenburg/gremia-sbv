@@ -1,6 +1,6 @@
 {
   "name": "gremia-sbv",
-  "version": "0.4.55a",
+  "version": "0.4.57a",
   "private": true,
   "description": "Offline-first Desktop-App für die vertrauliche Fallarbeit der Schwerbehindertenvertretung.",
   "main": "dist-electron/electron/main.js",
@@ -85,7 +85,7 @@
     "test:feature-modules": "vitest run tests/featureModulesHooksServices0442.test.ts",
     "test:workflow-missing-helpers": "vitest run tests/workflowMissingHelpers0442a.test.ts",
     "test:readme-final": "vitest run tests/readmeFinalAndCleanup0443.test.ts",
-    "test:refactor": "vitest run tests/cleanCodeRefactor0439.test.ts tests/workflowModuleExtraction0440.test.ts tests/featureModulesHooksServices0442.test.ts tests/workflowMissingHelpers0442a.test.ts tests/readmeFinalAndCleanup0443.test.ts tests/templatesViewExtraction0444.test.ts tests/casesViewExtraction0445.test.ts tests/casesHooksServices0446.test.ts tests/caseWorkbenchDataHooks0447.test.ts tests/caseWorkbenchDataHooks0447a.test.ts tests/caseEditorModals0448.test.ts tests/inlineCommandFeature0449a.test.ts tests/inlineCommandFeature0449b.test.ts tests/inlineCommandProcessModalSignature0449c.test.ts tests/preventionProcessDetail0450.test.ts tests/caseNoteModal0451.test.ts tests/caseOverviewDetail0452.test.ts tests/textCommandTextareas0453.test.ts tests/inlineCommandHook0454.test.ts tests/caseNoteEditorHook0455.test.ts",
+    "test:refactor": "vitest run tests/cleanCodeRefactor0439.test.ts tests/workflowModuleExtraction0440.test.ts tests/featureModulesHooksServices0442.test.ts tests/workflowMissingHelpers0442a.test.ts tests/readmeFinalAndCleanup0443.test.ts tests/templatesViewExtraction0444.test.ts tests/casesViewExtraction0445.test.ts tests/casesHooksServices0446.test.ts tests/caseWorkbenchDataHooks0447.test.ts tests/caseWorkbenchDataHooks0447a.test.ts tests/caseEditorModals0448.test.ts tests/inlineCommandFeature0449a.test.ts tests/inlineCommandFeature0449b.test.ts tests/inlineCommandProcessModalSignature0449c.test.ts tests/preventionProcessDetail0450.test.ts tests/caseNoteModal0451.test.ts tests/caseOverviewDetail0452.test.ts tests/textCommandTextareas0453.test.ts tests/inlineCommandHook0454.test.ts tests/caseNoteEditorHook0455.test.ts tests/caseNoteEditorHook0455a.test.ts tests/inlineCommandBehavior0456.test.ts tests/fallakteBehavior0457.test.ts tests/inlineCommandIntegration0457.test.ts tests/preventionWorkflow0457.test.ts tests/exportPrivacyGuard0457.test.ts tests/templatesBehavior0457.test.ts tests/accessibilityKeyboard0457.test.ts tests/databaseMigrationSafety0457.test.ts",
     "cleanup:legacy": "node scripts/cleanup-legacy-artifacts.cjs",
     "test:templates-extraction": "vitest run tests/templatesViewExtraction0444.test.ts",
     "test:cases-extraction": "vitest run tests/casesViewExtraction0445.test.ts",
@@ -102,7 +102,17 @@
     "test:text-command-textareas": "vitest run tests/textCommandTextareas0453.test.ts",
     "test:inline-command-hook": "vitest run tests/inlineCommandHook0454.test.ts",
     "test:case-note-editor-hook": "vitest run tests/caseNoteEditorHook0455.test.ts",
-    "test:case-note-editor-hook-fix": "vitest run tests/caseNoteEditorHook0455a.test.ts"
+    "test:case-note-editor-hook-fix": "vitest run tests/caseNoteEditorHook0455a.test.ts",
+    "test:inline-command-behavior": "vitest run tests/inlineCommandBehavior0456.test.ts",
+    "test:behavior-suite": "vitest run tests/fallakteBehavior0457.test.ts tests/inlineCommandIntegration0457.test.ts tests/preventionWorkflow0457.test.ts tests/exportPrivacyGuard0457.test.ts tests/templatesBehavior0457.test.ts tests/accessibilityKeyboard0457.test.ts tests/databaseMigrationSafety0457.test.ts",
+    "test:fallakte-behavior": "vitest run tests/fallakteBehavior0457.test.ts",
+    "test:inline-command-integration": "vitest run tests/inlineCommandIntegration0457.test.ts",
+    "test:prevention-workflow": "vitest run tests/preventionWorkflow0457.test.ts",
+    "test:export-privacy": "vitest run tests/exportPrivacyGuard0457.test.ts",
+    "test:templates-behavior": "vitest run tests/templatesBehavior0457.test.ts",
+    "test:a11y-keyboard": "vitest run tests/accessibilityKeyboard0457.test.ts",
+    "test:db-migration-safety": "vitest run tests/databaseMigrationSafety0457.test.ts",
+    "test:inline-command-behavior-fix": "vitest run tests/inlineCommandBehavior0456.test.ts"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.0",
