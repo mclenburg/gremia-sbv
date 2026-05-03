@@ -1,6 +1,6 @@
 {
   "name": "gremia-sbv",
-  "version": "0.4.42a",
+  "version": "0.4.43",
   "private": true,
   "description": "Offline-first Desktop-App für die vertrauliche Fallarbeit der Schwerbehindertenvertretung.",
   "main": "dist-electron/electron/main.js",
@@ -34,7 +34,7 @@
     "build:all": "npm run build:linux && npm run build:win",
     "debug:paths": "node -e \"console.log({cwd:process.cwd(),home:process.env.HOME,GREMIA_SBV_DATA_DIR:process.env.GREMIA_SBV_DATA_DIR})\"",
     "test:retention": "vitest run tests/retentionPolicy.test.ts",
-    "release:check": "npm run test && npm run build",
+    "release:check": "npm run test && npm run test:readme-final && npm run build",
     "test:privacy": "vitest run tests/contactPrivacyService.test.ts tests/reportPrivacyPolicy.test.ts tests/documentStoragePolicy.test.ts",
     "test:migrations": "vitest run tests/migrationService.test.ts",
     "test:backup": "vitest run tests/backupPolicy.test.ts",
@@ -83,7 +83,10 @@
     "test:workflow-modules": "vitest run tests/workflowModuleExtraction0440.test.ts",
     "test:prevention-imports": "vitest run tests/preventionFeatureImports.test.ts",
     "test:feature-modules": "vitest run tests/featureModulesHooksServices0442.test.ts",
-    "test:workflow-missing-helpers": "vitest run tests/workflowMissingHelpers0442a.test.ts"
+    "test:workflow-missing-helpers": "vitest run tests/workflowMissingHelpers0442a.test.ts",
+    "test:readme-final": "vitest run tests/readmeFinalAndCleanup0443.test.ts",
+    "test:refactor": "vitest run tests/cleanCodeRefactor0439.test.ts tests/workflowModuleExtraction0440.test.ts tests/featureModulesHooksServices0442.test.ts tests/workflowMissingHelpers0442a.test.ts tests/readmeFinalAndCleanup0443.test.ts",
+    "cleanup:legacy": "node scripts/cleanup-legacy-artifacts.cjs"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.0",
