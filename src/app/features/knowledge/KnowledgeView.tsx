@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import { BookOpen, Plus, Search } from 'lucide-react';
 import { ModuleFrame } from '../../shared/components/ModuleFrame';
+import { TextCommandTextarea } from '../../shared/textCommands/TextCommandTextarea';
 import type { CaseRecord } from '../../core/models/case.model';
 import type { CaseLawRecord, CaseLegalReferenceRecord, LegalNormRecord, NormChecklistItemRecord, NormCommentRecord } from '../../core/models/knowledge.model';
 import { waitForBridge } from '../../workflowViews';
@@ -544,12 +545,12 @@ export function KnowledgeView({ cases }: { cases: CaseRecord[] }) {
                 <section className="industrial-subpanel">
                   <h4>Eigene Kommentare</h4>
                   {comments.map((comment) => <p key={comment.id} className="industrial-meta"><strong>{comment.title}</strong><br />{comment.content}</p>)}
-                  <form onSubmit={createCommentForNorm} className="industrial-settings-form compact"><input value={commentTitle} onChange={(event) => setCommentTitle(event.target.value)} placeholder="Titel" /><textarea value={commentText} onChange={(event) => setCommentText(event.target.value)} placeholder="Kommentar" /><button className="industrial-secondary-button" type="submit">Speichern</button></form>
+                  <form onSubmit={createCommentForNorm} className="industrial-settings-form compact"><input value={commentTitle} onChange={(event) => setCommentTitle(event.target.value)} placeholder="Titel" /><TextCommandTextarea fieldId="knowledge-comment" value={commentText} onChange={(event) => setCommentText(event.target.value)} placeholder="Kommentar" /><button className="industrial-secondary-button" type="submit">Speichern</button></form>
                 </section>
                 <section className="industrial-subpanel">
                   <h4>Rechtsprechung</h4>
                   {caseLaw.map((item) => <p key={item.id} className="industrial-meta"><strong>{item.court}, {item.fileNumber}</strong><br />{item.shortHolding}</p>)}
-                  <form onSubmit={createCaseLawForNorm} className="industrial-settings-form compact"><input value={caseLawCourt} onChange={(event) => setCaseLawCourt(event.target.value)} placeholder="Gericht" /><input value={caseLawFileNumber} onChange={(event) => setCaseLawFileNumber(event.target.value)} placeholder="Aktenzeichen" /><textarea value={caseLawHolding} onChange={(event) => setCaseLawHolding(event.target.value)} placeholder="Kurzleitsatz / Relevanz" /><button className="industrial-secondary-button" type="submit">Speichern</button></form>
+                  <form onSubmit={createCaseLawForNorm} className="industrial-settings-form compact"><input value={caseLawCourt} onChange={(event) => setCaseLawCourt(event.target.value)} placeholder="Gericht" /><input value={caseLawFileNumber} onChange={(event) => setCaseLawFileNumber(event.target.value)} placeholder="Aktenzeichen" /><TextCommandTextarea fieldId="knowledge-case-law-holding" value={caseLawHolding} onChange={(event) => setCaseLawHolding(event.target.value)} placeholder="Kurzleitsatz / Relevanz" /><button className="industrial-secondary-button" type="submit">Speichern</button></form>
                 </section>
               </div>
             </>

@@ -4,14 +4,18 @@ Gremia.SBV ist eine lokale, verschlüsselte Desktop-Anwendung für die vertrauli
 
 Die Anwendung ist bewusst **offline-first** gebaut: keine Cloud-Synchronisierung, keine Telemetrie, kein externer Login-Dienst und keine gemeinsame Fallakte mit Arbeitgeber oder Betriebsrat. SBV-Daten bleiben lokal, werden verschlüsselt gespeichert und werden nur durch bewusste Exporte aus der App herausgegeben.
 
-## Stand: 0.4.43
+## Stand: 0.4.47
 
-Version 0.4.43 ist ein Aufräum- und Dokumentationsstand nach den ersten Refaktorierungsschnitten.
+Version 0.4.47 zieht Fallakten-Datenlogik, Registerfilter und Volltextsuche in eigene Hooks und Komponenten.
 
 Erreicht:
 
 - `App.tsx` ist wieder App-Shell statt Fachlogik-Sammelstelle.
 - erste Fachansichten wurden aus der bisherigen Sammeldatei `workflowViews.tsx` herausgelöst.
+- `TemplatesView` liegt jetzt in `src/app/features/templates/TemplatesView.tsx`.
+- Erste Fallakten-Bausteine liegen jetzt in `src/app/features/cases/`.
+- Fallakten-Formatierungslogik liegt in `src/app/features/cases/caseWorkbenchFormat.ts`.
+- Fallakten-Datenlogik und Suche liegen in `useCaseWorkbenchData` und `useCaseWorkbenchSearch`.
 - Präventionsübersicht, Wissensseite, Kontakte und Berichte liegen in Feature-Bereichen.
 - gemeinsame Dialog- und Live-Region-Infrastruktur ist vorhanden.
 - native `window.confirm`-Dialoge wurden durch eigene Industrial-Dialoge ersetzt.
@@ -21,7 +25,7 @@ Erreicht:
 
 Noch offen vor Version 1.0:
 
-- `workflowViews.tsx` weiter zerlegen, insbesondere Vorlagen und Fallakte.
+- `CasesView` weiter in Hooks, Formulare und Fachdetail-Komponenten schneiden.
 - BEM, Kündigungsanhörung und Gleichstellung als echte Prozessmodule ausbauen.
 - weitere fachliche Services aus UI-Dateien herausziehen.
 - Tests stärker von Strukturtests zu Verhaltenstests ausbauen.
@@ -141,7 +145,8 @@ gremia-sbv/
 │       │   ├── contacts/
 │       │   ├── knowledge/
 │       │   ├── prevention/
-│       │   └── reports/
+│       │   ├── reports/
+│       │   └── templates/
 │       ├── shared/               # wiederverwendbare UI-, Dialog- und A11y-Komponenten
 │       └── shell/                # Navigation und Layout
 ├── services/                     # Fachservices und Policies
@@ -257,6 +262,10 @@ Grundsatz:
 ```text
 Was in der SBV-Fallakte steht, verlässt die App nur durch bewusste, nachvollziehbare Handlung.
 ```
+
+## Textbefehle
+
+Große Textfelder sollen über `TextCommandTextarea` laufen. Dadurch sind die Kürzel `//`, `@@`, `##`, `§§`, `!!`, `>>`, `^^` und `~~` technisch überall erkennbar und können modulbezogen verarbeitet werden. Die Fallaktenverarbeitung der Kürzel liegt in `useInlineCommands`. Die Notiz-/Protokoll-Editorlogik liegt in `useCaseNoteEditor`.
 
 ## Clean-Code-Leitlinie
 

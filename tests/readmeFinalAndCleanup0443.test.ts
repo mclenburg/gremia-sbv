@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 
-describe("0.4.43 README and cleanup finalization", () => {
-  it("documents the current version and does not mention not-yet-implemented external product interfaces", () => {
+describe("README and cleanup finalization", () => {
+  it("documents the current package version and does not mention not-yet-implemented external product interfaces", () => {
     const readme = readFileSync("README.md", "utf8");
-    expect(readme).toContain("Stand: 0.4.43");
+    const packageJson = JSON.parse(readFileSync("package.json", "utf8")) as { version: string };
+
+    expect(readme).toContain(`Stand: ${packageJson.version}`);
     expect(readme).not.toContain("Gremia.BR");
     expect(readme).not.toContain("GREMIA_BR_INTERFACE");
   });
@@ -18,7 +20,6 @@ describe("0.4.43 README and cleanup finalization", () => {
 
   it("adds cleanup and refactor test scripts", () => {
     const pkg = readFileSync("package.json", "utf8");
-    expect(pkg).toContain('"version": "0.4.43"');
     expect(pkg).toContain('"test:readme-final"');
     expect(pkg).toContain('"test:refactor"');
     expect(pkg).toContain('"cleanup:legacy"');

@@ -33,6 +33,7 @@ import {
 } from 'lucide-react';
 import { DashboardCard } from './shared/components/DashboardCard';
 import { ModuleFrame } from './shared/components/ModuleFrame';
+import { TextCommandTextarea } from './shared/textCommands/TextCommandTextarea';
 import { filterContactsForQuery, formatContactReference } from './features/contacts/contactDisplay';
 import { PlaceholderView } from './shared/components/PlaceholderView';
 import { ShellNav } from './shell/ShellNav';
@@ -40,18 +41,37 @@ import { modules, type ViewId } from './core/navigation/modules';
 import { useModalKeyboardShortcuts } from './core/keyboard/useModalKeyboardShortcuts';
 import { DeadlineDashboardPanel } from './features/deadlines/DeadlineDashboardPanel';
 import { DeadlineListView } from './features/deadlines/DeadlineListView';
+import { CaseTreePanel } from './features/cases/CaseTreePanel';
+import { CaseDetailPanel } from './features/cases/CaseDetailPanel';
+import { CaseRegister } from './features/cases/CaseRegister';
+import { CaseCreateModal } from './features/cases/CaseCreateModal';
+import { CaseProcessDraftModal } from './features/cases/CaseProcessDraftModal';
+import { CaseDocumentDetail } from './features/cases/CaseDocumentDetail';
+import { CaseOverviewDetail } from './features/cases/CaseOverviewDetail';
+import { CaseNoteModal } from './features/cases/CaseNoteModal';
+import { CaseWorkbenchFooter } from './features/cases/CaseWorkbenchFooter';
+import { createCaseDocumentActions } from './features/cases/useCaseDocuments';
+import { InlineCommandOverlays } from './features/cases/InlineCommandOverlays';
+import { useInlineCommands } from './features/cases/inlineCommands/useInlineCommands';
+import { useCaseWorkbenchData } from './features/cases/useCaseWorkbenchData';
+import { useCaseRegisterFilter } from './features/cases/useCaseRegisterFilter';
+import { useCaseWorkbenchSearch } from './features/cases/useCaseWorkbenchSearch';
+import { useCaseNoteEditor } from './features/cases/useCaseNoteEditor';
+import { defaultDeadlineTitleForCase, formatBytes, formatCaseLabel, formatNoteDate, formatProcessNodeSubtitle, fromDateTimeLocalValue, processTypeLabel, toDateTimeLocalValue } from './features/cases/caseWorkbenchFormat';
+import { ProcessTemplateDocumentsModal, type ProcessTemplateModalState } from './features/cases/ProcessTemplateDocumentsModal';
 import type { CaseCategory, CaseRecord } from './core/models/case.model';
 import type { ContactCategory, ContactRecord, CreateContactInput, DeleteContactResult } from './core/models/contact.model';
 import type { CaseDocumentRecord } from './core/models/case-document.model';
-import type { CaseNoteRecord, CaseNoteType, CaseSearchResult, ConfidentialLevel } from './core/models/case-note.model';
+import type { CaseNoteRecord, CaseNoteType, ConfidentialLevel } from './core/models/case-note.model';
 import type { CreateDeadlineInput, DeadlineDashboardItem, DeadlineProcessType, DeadlineRecord, DeadlineSeverity, DeadlineType } from './core/models/deadline.model';
 import type { GenerateReportInput, ReportDescriptor, ReportExportHistoryItem, ReportGenerationResult, ReportType } from './core/models/report.model';
 import type { BackupInspectionResult, BackupOperationResult } from './core/models/backup.model';
 import type { RetentionCandidate, RetentionDashboard, RetentionOperationResult, RetentionSettings } from './core/models/retention.model';
 import type { CreatePreventionProcessInput, PreventionDifficultyType, PreventionProcessRecord, PreventionRiskType, PreventionStatus, PreventionStepDefinition, PreventionWarning, UpdatePreventionProcessInput } from './core/models/prevention.model';
-import { preventionStatusOrder, statusLabel } from './features/prevention/preventionShared';
+import { statusLabel } from './features/prevention/preventionShared';
+import { PreventionProcessDetail } from './features/prevention/PreventionProcessDetail';
 import type { CaseLawRecord, CaseLegalReferenceRecord, LegalNormRecord, NormChecklistItemRecord, NormCommentRecord } from './core/models/knowledge.model';
-import type { ContextualTemplateAction, CreateTemplateInput, RenderedTemplateResult, TemplateCategory, TemplateRecord } from './core/models/template.model';
+import type { ContextualTemplateAction, RenderedTemplateResult, TemplateRecord } from './core/models/template.model';
 import { APP_VERSION } from './generated/appVersion';
 import {
   LEGAL_NORM_SUGGESTIONS,
@@ -206,28 +226,6 @@ export function getInitialTheme(): ThemeMode {
 export function applyTheme(theme: ThemeMode) {
   document.documentElement.dataset.theme = theme;
   document.documentElement.style.colorScheme = theme;
-}
-
-function toDateTimeLocalValue(iso?: string): string {
-  if (!iso) return '';
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return '';
-  const offsetMs = date.getTimezoneOffset() * 60_000;
-  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
-}
-
-function fromDateTimeLocalValue(value: string): string {
-  return new Date(value).toISOString();
-}
-
-function formatCaseLabel(record: CaseRecord): string {
-  return `${record.caseNumber} · ${record.displayName}`;
-}
-
-function defaultDeadlineTitleForCase(record?: CaseRecord, noteTitle?: string): string {
-  if (noteTitle?.trim()) return `Wiedervorlage: ${noteTitle.trim()}`;
-  if (record?.caseNumber) return `Wiedervorlage ${record.caseNumber}`;
-  return 'Wiedervorlage aus Protokoll';
 }
 
 function formatInlineDeadlineDate(value: string): string {
@@ -671,17 +669,6 @@ function Metric({ label, value, tone = 'default' }: { label: string; value: stri
 }
 
 
-function formatNoteDate(iso: string): string {
-  return new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(iso));
-}
-
-function formatBytes(bytes?: number): string {
-  if (!bytes && bytes !== 0) return 'unbekannt';
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
-}
-
 export function formatDateShort(iso?: string): string {
   if (!iso) return '—';
   const date = new Date(iso);
@@ -743,17 +730,6 @@ type CaseProcessDraft = {
   dueAt: string;
 };
 
-const caseProcessLabels: Record<CaseProcessType, string> = {
-  prevention: 'Präventionsverfahren',
-  bem: 'BEM-Verfahren',
-  termination_hearing: 'Kündigungsanhörung',
-  equalization: 'Gleichstellungsprozess'
-};
-
-function processTypeLabel(processType: CaseProcessType): string {
-  return caseProcessLabels[processType];
-}
-
 function defaultCaseProcessDraft(processType: CaseProcessType): CaseProcessDraft {
   return {
     processType,
@@ -765,35 +741,6 @@ function defaultCaseProcessDraft(processType: CaseProcessType): CaseProcessDraft
   };
 }
 
-function formatProcessNodeSubtitle(processType: CaseProcessType, status?: string): string {
-  return `${processTypeLabel(processType)}${status ? ` · ${status}` : ''}`;
-}
-
-
-type ProcessTemplateModalState = {
-  process: PreventionProcessRecord;
-  templates: TemplateRecord[];
-  rendered?: RenderedTemplateResult;
-  loading: boolean;
-  error?: string;
-  info?: string;
-};
-
-function preventionStatusReached(current: PreventionStatus, minimum: PreventionStatus): boolean {
-  return preventionStatusOrder.indexOf(current) >= preventionStatusOrder.indexOf(minimum);
-}
-
-function canShowEmployerReactionSection(status: PreventionStatus): boolean {
-  return preventionStatusReached(status, 'arbeitgeber_reagiert');
-}
-
-function canShowMeasureClarificationSection(status: PreventionStatus): boolean {
-  return preventionStatusReached(status, 'massnahmen_in_klaerung') || status === 'blockiert_verweigert';
-}
-
-function canShowResultSection(status: PreventionStatus): boolean {
-  return status === 'abgeschlossen' || status === 'blockiert_verweigert';
-}
 
 function sanitizeDownloadFileName(value: string): string {
   return value.replace(/[\\/:*?"<>|]+/g, '-').replace(/\s+/g, ' ').trim().slice(0, 110) || 'dokument';
@@ -879,69 +826,125 @@ export function CasesView({
   const [category, setCategory] = useState<CaseCategory>('bem');
   const [summary, setSummary] = useState('');
   const [isCaseCreateModalOpen, setIsCaseCreateModalOpen] = useState(false);
-  const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
-  const [caseFilter, setCaseFilter] = useState('');
-  const [selectedCaseId, setSelectedCaseId] = useState('');
-  const [notes, setNotes] = useState<CaseNoteRecord[]>([]);
-  const [documents, setDocuments] = useState<CaseDocumentRecord[]>([]);
-  const [caseLegalReferences, setCaseLegalReferences] = useState<CaseLegalReferenceRecord[]>([]);
-  const [casePreventionProcesses, setCasePreventionProcesses] = useState<PreventionProcessRecord[]>([]);
   const [caseProcessDraft, setCaseProcessDraft] = useState<CaseProcessDraft | null>(null);
   const [processTemplateModal, setProcessTemplateModal] = useState<ProcessTemplateModalState | null>(null);
-  const [selection, setSelection] = useState<CaseExplorerSelection>({ type: 'overview' });
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchOnlySelectedCase, setSearchOnlySelectedCase] = useState(true);
-  const [searchResults, setSearchResults] = useState<CaseSearchResult[]>([]);
-  const [editingNote, setEditingNote] = useState<CaseNoteRecord | null>(null);
-  const [noteTitle, setNoteTitle] = useState('');
-  const [noteDate, setNoteDate] = useState(toDateTimeLocalValue(new Date().toISOString()));
-  const [noteType, setNoteType] = useState<CaseNoteType>('gespraech');
-  const [participants, setParticipants] = useState('');
-  const [content, setContent] = useState('');
-  const [nextSteps, setNextSteps] = useState('');
-  const [containsHealthData, setContainsHealthData] = useState(true);
-  const [confidentialLevel, setConfidentialLevel] = useState<ConfidentialLevel>('sensibel');
-  const [linkedCaseIds, setLinkedCaseIds] = useState<string[]>([]);
   const [error, setError] = useState('');
-  const [noteError, setNoteError] = useState('');
-  const [noteInfo, setNoteInfo] = useState('');
-  const [inlineDeadlineDraft, setInlineDeadlineDraft] = useState<InlineDeadlineDraft | null>(null);
-  const [inlineContactDraft, setInlineContactDraft] = useState<InlineContactDraft | null>(null);
-  const [inlineCaseLinkDraft, setInlineCaseLinkDraft] = useState<InlineCaseLinkDraft | null>(null);
-  const [inlineLegalNormDraft, setInlineLegalNormDraft] = useState<InlineLegalNormDraft | null>(null);
-  const [inlineRiskDraft, setInlineRiskDraft] = useState<InlineRiskDraft | null>(null);
-  const [inlineOpenTaskDraft, setInlineOpenTaskDraft] = useState<InlineOpenTaskDraft | null>(null);
-  const [inlineConfidentialityDraft, setInlineConfidentialityDraft] = useState<InlineConfidentialityDraft | null>(null);
-  const [inlineAnonymizationDraft, setInlineAnonymizationDraft] = useState<InlineAnonymizationDraft | null>(null);
   const [documentError, setDocumentError] = useState('');
-  const [searchError, setSearchError] = useState('');
   const [caseToast, setCaseToast] = useState<CaseToast | null>(null);
   const confirmDialog = useConfirmDialog();
   const announce = useAnnouncer();
-  const [pendingCaseNodeTarget, setPendingCaseNodeTarget] = useState<CaseNodeTarget | null>(null);
 
-  useEffect(() => {
-    if (!target) return;
-    setPendingCaseNodeTarget(target);
-    setSelectedCaseId(target.caseId);
-  }, [target]);
-
-  const selectedCase = useMemo(() => cases.find((item) => item.id === selectedCaseId), [cases, selectedCaseId]);
-  const filteredCases = useMemo(() => {
-    const q = caseFilter.trim().toLowerCase();
-    if (!q) return cases;
-    return cases.filter((item) =>
-      item.caseNumber.toLowerCase().includes(q)
-      || item.displayName.toLowerCase().includes(q)
-      || (item.summary ?? '').toLowerCase().includes(q)
-      || item.category.toLowerCase().includes(q)
-    );
-  }, [cases, caseFilter]);
-
+  const [caseLoadError, setCaseLoadError] = useState('');
+  const [caseFilter, setCaseFilter] = useState('');
+  const {
+    selectedCaseId,
+    setSelectedCaseId,
+    selectedCase,
+    notes,
+    documents,
+    caseLegalReferences,
+    setCaseLegalReferences,
+    casePreventionProcesses,
+    selection,
+    setSelection,
+    reloadSelectedCaseChildren
+  } = useCaseWorkbenchData({
+    cases,
+    target,
+    onTargetConsumed,
+    onError: setCaseLoadError
+  });
+  const filteredCases = useCaseRegisterFilter(cases, caseFilter);
   const visibleCases = filteredCases;
+  const {
+    searchQuery,
+    setSearchQuery,
+    searchOnlySelectedCase,
+    setSearchOnlySelectedCase,
+    searchResults,
+    searchError,
+    setSearchError,
+    runSearch
+  } = useCaseWorkbenchSearch({
+    selectedCaseId,
+    onSelect: setSelection
+  });
+
   const selectedNote = selection.type === 'note' ? notes.find((note) => note.id === selection.id) : undefined;
   const selectedDocument = selection.type === 'document' ? documents.find((doc) => doc.id === selection.id) : undefined;
   const selectedSearchResult = selection.type === 'search' ? searchResults.find((result) => result.sourceId === selection.id) : undefined;
+  const documentActions = createCaseDocumentActions({
+    importDocuments,
+    openDocument,
+    exportDocument,
+    deleteDocument
+  });
+
+
+  const noteEditor = useCaseNoteEditor({
+    selectedCaseId,
+    searchQuery,
+    reloadSelectedCaseChildren,
+    runSearch,
+    setSelection
+  });
+  const {
+    bindClearInlineDrafts,
+    isNoteModalOpen,
+    editingNote,
+    noteTitle,
+    setNoteTitle,
+    noteDate,
+    setNoteDate,
+    noteType,
+    setNoteType,
+    participants,
+    setParticipants,
+    content,
+    setContent,
+    nextSteps,
+    setNextSteps,
+    containsHealthData,
+    setContainsHealthData,
+    confidentialLevel,
+    setConfidentialLevel,
+    linkedCaseIds,
+    setLinkedCaseIds,
+    noteError,
+    setNoteError,
+    noteInfo,
+    setNoteInfo,
+    startEditNote,
+    toggleLinkedCase,
+    openNewNoteModal,
+    cancelNoteModal,
+    saveNote,
+    ensureSelectedCaseLink
+  } = noteEditor;
+
+  useEffect(() => {
+    if (caseLoadError) setNoteError(caseLoadError);
+  }, [caseLoadError, setNoteError]);
+
+  const inlineCommands = useInlineCommands({
+    selectedCaseId,
+    selectedCase,
+    noteTitle,
+    content,
+    setContent,
+    nextSteps,
+    setNextSteps,
+    confidentialLevel,
+    setConfidentialLevel,
+    setLinkedCaseIds,
+    setCaseLegalReferences,
+    setNoteInfo,
+    setNoteError,
+    onCreateDeadline,
+    onCreateContact
+  });
+
+  bindClearInlineDrafts(inlineCommands.clearInlineDrafts);
 
   function pushCaseToast(text: string, variant: 'ok' | 'warning' = 'ok') {
     const id = Date.now();
@@ -952,15 +955,7 @@ export function CasesView({
   }
 
   useEffect(() => {
-    if (!selectedCaseId && cases.length) {
-      setSelectedCaseId(cases[0].id);
-    }
-  }, [cases, selectedCaseId]);
-
-  useEffect(() => {
-    if (selectedCaseId && !editingNote) {
-      setLinkedCaseIds([selectedCaseId]);
-    }
+    ensureSelectedCaseLink();
   }, [selectedCaseId, editingNote]);
 
 
@@ -1006,70 +1001,6 @@ export function CasesView({
     pushCaseToast(searchError, 'warning');
     setSearchError('');
   }, [searchError]);
-
-  useEffect(() => {
-    if (!selectedCaseId) {
-      setNotes([]);
-      setDocuments([]);
-      setCaseLegalReferences([]);
-      setCasePreventionProcesses([]);
-      return;
-    }
-    let active = true;
-    async function loadCaseChildren() {
-      try {
-        const bridge = await waitForBridge();
-        if (!bridge?.cases) throw new Error('Falldienst ist nicht erreichbar.');
-        const [noteRows, docRows, legalRefRows, preventionRows] = await Promise.all([
-          bridge.cases.listNotes(selectedCaseId),
-          bridge.cases.listDocuments(selectedCaseId),
-          bridge.knowledge?.listCaseReferences(selectedCaseId) ?? Promise.resolve([]),
-          bridge.prevention?.list(selectedCaseId) ?? Promise.resolve([])
-        ]);
-        if (active) {
-          setNotes(noteRows);
-          setDocuments(docRows);
-          setCaseLegalReferences(legalRefRows);
-          setCasePreventionProcesses(preventionRows);
-          if (pendingCaseNodeTarget?.caseId === selectedCaseId) {
-            if (pendingCaseNodeTarget.nodeType === 'prevention') {
-              setSelection({ type: 'process', processType: 'prevention', id: pendingCaseNodeTarget.nodeId });
-            } else if (pendingCaseNodeTarget.nodeType === 'note' && pendingCaseNodeTarget.nodeId) {
-              setSelection({ type: 'note', id: pendingCaseNodeTarget.nodeId });
-            } else if (pendingCaseNodeTarget.nodeType === 'document' && pendingCaseNodeTarget.nodeId) {
-              setSelection({ type: 'document', id: pendingCaseNodeTarget.nodeId });
-            } else {
-              setSelection({ type: 'overview' });
-            }
-            setPendingCaseNodeTarget(null);
-            onTargetConsumed?.();
-          } else {
-            setSelection({ type: 'overview' });
-          }
-        }
-      } catch (error) {
-        if (active) setNoteError(error instanceof Error ? error.message : 'Fallakte konnte nicht geladen werden.');
-      }
-    }
-    void loadCaseChildren();
-    return () => { active = false; };
-  }, [selectedCaseId]);
-
-  async function reloadSelectedCaseChildren() {
-    if (!selectedCaseId) return;
-    const bridge = await waitForBridge();
-    if (!bridge?.cases) throw new Error('Falldienst ist nicht erreichbar.');
-    const [noteRows, docRows, legalRefRows, preventionRows] = await Promise.all([
-      bridge.cases.listNotes(selectedCaseId),
-      bridge.cases.listDocuments(selectedCaseId),
-      bridge.knowledge?.listCaseReferences(selectedCaseId) ?? Promise.resolve([]),
-      bridge.prevention?.list(selectedCaseId) ?? Promise.resolve([])
-    ]);
-    setNotes(noteRows);
-    setDocuments(docRows);
-    setCaseLegalReferences(legalRefRows);
-    setCasePreventionProcesses(preventionRows);
-  }
 
   async function updateCasePreventionProcess(processId: string, input: UpdatePreventionProcessInput) {
     setNoteError('');
@@ -1181,460 +1112,8 @@ ${caseProcessDraft.description}`,
     }
   }
 
-  function resetNoteForm() {
-    setEditingNote(null);
-    setNoteTitle('');
-    setNoteDate(toDateTimeLocalValue(new Date().toISOString()));
-    setNoteType('gespraech');
-    setParticipants('');
-    setContent('');
-    setNextSteps('');
-    setContainsHealthData(true);
-    setConfidentialLevel('sensibel');
-    setLinkedCaseIds(selectedCaseId ? [selectedCaseId] : []);
-    setInlineDeadlineDraft(null);
-    setInlineContactDraft(null);
-    setInlineCaseLinkDraft(null);
-    setInlineLegalNormDraft(null);
-    setInlineRiskDraft(null);
-    setInlineOpenTaskDraft(null);
-    setInlineConfidentialityDraft(null);
-    setInlineAnonymizationDraft(null);
-    setNoteError('');
-    setNoteInfo('');
-  }
-
-  function startEditNote(note: CaseNoteRecord) {
-    setEditingNote(note);
-    setNoteTitle(note.title);
-    setNoteDate(toDateTimeLocalValue(note.noteDate));
-    setNoteType(note.noteType);
-    setParticipants(note.participants ?? '');
-    setContent(note.content);
-    setNextSteps(note.nextSteps ?? '');
-    setContainsHealthData(note.containsHealthData);
-    setConfidentialLevel(note.confidentialLevel);
-    setLinkedCaseIds(note.caseIds?.length ? note.caseIds : (selectedCaseId ? [selectedCaseId] : []));
-    setSelection({ type: 'note', id: note.id });
-    setIsNoteModalOpen(true);
-    setInlineDeadlineDraft(null);
-    setInlineContactDraft(null);
-    setInlineCaseLinkDraft(null);
-    setInlineLegalNormDraft(null);
-    setInlineRiskDraft(null);
-    setInlineOpenTaskDraft(null);
-    setInlineConfidentialityDraft(null);
-    setInlineAnonymizationDraft(null);
-    setNoteError('');
-    setNoteInfo('');
-  }
 
 
-  function toggleLinkedCase(caseId: string, checked: boolean) {
-    setLinkedCaseIds((current) => {
-      const next = checked ? [...current, caseId] : current.filter((id) => id !== caseId);
-      return [...new Set(next)];
-    });
-  }
-
-
-
-  function hasOpenInlineOverlay(): boolean {
-    return Boolean(
-      inlineDeadlineDraft || inlineContactDraft || inlineCaseLinkDraft || inlineLegalNormDraft || inlineRiskDraft
-      || inlineOpenTaskDraft || inlineConfidentialityDraft || inlineAnonymizationDraft
-    );
-  }
-
-  function updateProtocolTarget(target: ProtocolTextTarget, updater: (current: string) => string) {
-    if (target === 'content') setContent(updater);
-    else setNextSteps(updater);
-  }
-
-  function replaceInlineCommand(target: ProtocolTextTarget, markerIndex: number, token: TextCommandToken, replacement: string) {
-    updateProtocolTarget(target, (current) => replaceCommandMarker(current, markerIndex, token, replacement));
-  }
-
-  function removeInlineCommand(target: ProtocolTextTarget, markerIndex: number, token: TextCommandToken) {
-    updateProtocolTarget(target, (current) => removeCommandMarker(current, markerIndex, token));
-  }
-
-  function filterCasesForQuery(records: CaseRecord[], query: string): CaseRecord[] {
-    const q = query.trim().toLowerCase();
-    if (!q) return records.slice(0, 12);
-    return records.filter((record) =>
-      record.caseNumber.toLowerCase().includes(q)
-      || record.displayName.toLowerCase().includes(q)
-      || (record.summary ?? '').toLowerCase().includes(q)
-      || record.category.toLowerCase().includes(q)
-    ).slice(0, 12);
-  }
-
-  function filterNormsForQuery(norms: LegalNormSuggestion[], query: string): LegalNormSuggestion[] {
-    const q = query.trim().toLowerCase();
-    if (!q) return norms.slice(0, 12);
-    return norms.filter((norm) =>
-      norm.paragraph.toLowerCase().includes(q)
-      || norm.title.toLowerCase().includes(q)
-      || norm.source.toLowerCase().includes(q)
-      || norm.shortText.toLowerCase().includes(q)
-    ).slice(0, 12);
-  }
-
-  function openInlineCommand(target: ProtocolTextTarget, token: TextCommandToken, markerIndex: number) {
-    if (token === '//') {
-      setInlineDeadlineDraft({
-        target,
-        title: defaultDeadlineTitleForCase(selectedCase, noteTitle),
-        dueAt: '',
-        severity: 'important',
-        legalBasis: '',
-        description: target === 'content' ? 'Aus Protokolltext per // angelegt.' : 'Aus nächste Schritte per // angelegt.',
-        markerIndex
-      });
-      return;
-    }
-    if (token === '@@') {
-      openInlineContactDraft(target, markerIndex);
-      return;
-    }
-    if (token === '##') {
-      setInlineCaseLinkDraft({ target, markerIndex, query: '' });
-      return;
-    }
-    if (token === '§§') {
-      setInlineLegalNormDraft({ target, markerIndex, query: '' });
-      return;
-    }
-    if (token === '!!') {
-      setInlineRiskDraft({ target, markerIndex, level: 'high', text: '' });
-      return;
-    }
-    if (token === '>>') {
-      setInlineOpenTaskDraft({ target, markerIndex, title: '', description: '', severity: 'important' });
-      return;
-    }
-    if (token === '^^') {
-      setInlineConfidentialityDraft({ target, markerIndex, level: 'hoch_sensibel' });
-      return;
-    }
-    if (token === '~~') {
-      setInlineAnonymizationDraft({ target, markerIndex, label: 'Name' });
-    }
-  }
-
-  function removeContactCommand(draft: InlineContactDraft) {
-    const applyRemoval = (current: string) => {
-      const index = current.slice(draft.markerIndex).startsWith('@@') ? draft.markerIndex : current.indexOf('@@');
-      if (index < 0) return current;
-      return replaceRange(current, index, 2, '').replace(/ {2,}/g, ' ');
-    };
-
-    if (draft.target === 'content') {
-      setContent(applyRemoval);
-    } else {
-      setNextSteps(applyRemoval);
-    }
-  }
-
-  function insertInlineContactText(draft: InlineContactDraft, contact: ContactRecord) {
-    const replacement = formatContactReference(contact);
-    const applyReplacement = (current: string) => {
-      const index = current.slice(draft.markerIndex).startsWith('@@') ? draft.markerIndex : current.indexOf('@@');
-      if (index < 0) return current;
-      return replaceRange(current, index, 2, replacement);
-    };
-
-    if (draft.target === 'content') {
-      setContent(applyReplacement);
-    } else {
-      setNextSteps(applyReplacement);
-    }
-  }
-
-  function openInlineContactDraft(target: ProtocolTextTarget, markerIndex: number) {
-    setInlineContactDraft({
-      target,
-      markerIndex,
-      query: '',
-      firstName: '',
-      lastName: '',
-      organization: '',
-      role: '',
-      category: 'sonstiges',
-      email: '',
-      phone: ''
-    });
-  }
-
-  async function insertExistingContactFromProtocol(contact: ContactRecord) {
-    if (!inlineContactDraft) return;
-    insertInlineContactText(inlineContactDraft, contact);
-    setInlineContactDraft(null);
-    setNoteInfo(`Kontakt eingefügt: ${formatContactReference(contact)}`);
-  }
-
-  async function createAndInsertContactFromProtocol() {
-    setNoteError('');
-    setNoteInfo('');
-    if (!inlineContactDraft) return;
-    if (!inlineContactDraft.firstName.trim() || !inlineContactDraft.lastName.trim()) {
-      setNoteError('Bitte Vorname und Nachname des Kontakts erfassen.');
-      return;
-    }
-
-    try {
-      const created = await onCreateContact({
-        firstName: inlineContactDraft.firstName,
-        lastName: inlineContactDraft.lastName,
-        organization: inlineContactDraft.organization || undefined,
-        role: inlineContactDraft.role || undefined,
-        category: inlineContactDraft.category,
-        email: inlineContactDraft.email || undefined,
-        phone: inlineContactDraft.phone || undefined
-      });
-      insertInlineContactText(inlineContactDraft, created);
-      setInlineContactDraft(null);
-      setNoteInfo(`Kontakt angelegt und eingefügt: ${formatContactReference(created)}`);
-    } catch (error) {
-      setNoteError(error instanceof Error ? error.message : 'Kontakt konnte nicht angelegt werden.');
-    }
-  }
-
-  function cancelInlineContactDraft() {
-    if (inlineContactDraft) removeContactCommand(inlineContactDraft);
-    setInlineContactDraft(null);
-  }
-
-  function removeSlashCommand(draft: InlineDeadlineDraft) {
-    if (draft.markerIndex === null) return;
-    const applyRemoval = (current: string) => {
-      const index = current.slice(draft.markerIndex ?? 0).startsWith('//') ? draft.markerIndex ?? 0 : current.indexOf('//');
-      if (index < 0) return current;
-      return replaceRange(current, index, 2, '').replace(/ {2,}/g, ' ');
-    };
-
-    if (draft.target === 'content') {
-      setContent(applyRemoval);
-    } else {
-      setNextSteps(applyRemoval);
-    }
-  }
-
-  function insertInlineDeadlineText(draft: InlineDeadlineDraft) {
-    if (draft.markerIndex === null) return;
-    const replacement = buildInlineDeadlineText(draft);
-    const applyReplacement = (current: string) => {
-      const index = current.slice(draft.markerIndex ?? 0).startsWith('//') ? draft.markerIndex ?? 0 : current.indexOf('//');
-      if (index < 0) return current;
-      return replaceRange(current, index, 2, replacement);
-    };
-
-    if (draft.target === 'content') {
-      setContent(applyReplacement);
-    } else {
-      setNextSteps(applyReplacement);
-    }
-  }
-
-  function handleProtocolTextChange(target: ProtocolTextTarget, value: string) {
-    setNoteInfo('');
-    const previousValue = target === 'content' ? content : nextSteps;
-    if (target === 'content') setContent(value);
-    else setNextSteps(value);
-
-    if (hasOpenInlineOverlay()) return;
-    const command = findFirstTextCommand(value);
-    if (!command) return;
-
-    const wasAlreadyPresent = previousValue.includes(command.token);
-    if (!wasAlreadyPresent) {
-      openInlineCommand(target, command.token, command.index);
-    }
-  }
-
-  async function insertCaseReferenceFromProtocol(record: CaseRecord) {
-    if (!inlineCaseLinkDraft) return;
-    setLinkedCaseIds((current) => [...new Set([...current, record.id])]);
-    replaceInlineCommand(inlineCaseLinkDraft.target, inlineCaseLinkDraft.markerIndex, '##', formatCaseReferenceText(record.caseNumber, record.displayName));
-    setInlineCaseLinkDraft(null);
-    setNoteInfo(`Fallbezug ergänzt: ${record.caseNumber}`);
-  }
-
-  function cancelInlineCaseLinkDraft() {
-    if (inlineCaseLinkDraft) removeInlineCommand(inlineCaseLinkDraft.target, inlineCaseLinkDraft.markerIndex, '##');
-    setInlineCaseLinkDraft(null);
-  }
-
-  async function insertLegalNormFromProtocol(norm: LegalNormSuggestion | LegalNormRecord) {
-    if (!inlineLegalNormDraft) return;
-    replaceInlineCommand(inlineLegalNormDraft.target, inlineLegalNormDraft.markerIndex, '§§', formatLegalNormText(norm));
-    if (selectedCaseId) {
-      try {
-        const bridge = await waitForBridge();
-        if (bridge?.knowledge) {
-          await bridge.knowledge.linkNormToCase({ caseId: selectedCaseId, legalNormId: norm.id, note: 'Aus Protokoll mit §§ verknüpft.' });
-          setCaseLegalReferences(await bridge.knowledge.listCaseReferences(selectedCaseId));
-        }
-      } catch {
-        // Der Text bleibt eingefügt; der Fallbezug kann später im Wissensmodul nachgezogen werden.
-      }
-    }
-    setInlineLegalNormDraft(null);
-    setNoteInfo(`Rechtsnorm eingefügt: ${norm.paragraph}`);
-  }
-
-  function cancelInlineLegalNormDraft() {
-    if (inlineLegalNormDraft) removeInlineCommand(inlineLegalNormDraft.target, inlineLegalNormDraft.markerIndex, '§§');
-    setInlineLegalNormDraft(null);
-  }
-
-  async function insertRiskFromProtocol() {
-    if (!inlineRiskDraft) return;
-    replaceInlineCommand(inlineRiskDraft.target, inlineRiskDraft.markerIndex, '!!', formatRiskText(inlineRiskDraft.level, inlineRiskDraft.text));
-    if (inlineRiskDraft.level === 'critical') setConfidentialLevel('hoch_sensibel');
-    else if (inlineRiskDraft.level === 'high' && confidentialLevel === 'normal') setConfidentialLevel('sensibel');
-    setInlineRiskDraft(null);
-    setNoteInfo('Risiko im Protokoll markiert. Fall-Risikostufe wird mit dem Protokoll nachvollziehbar dokumentiert.');
-  }
-
-  function cancelInlineRiskDraft() {
-    if (inlineRiskDraft) removeInlineCommand(inlineRiskDraft.target, inlineRiskDraft.markerIndex, '!!');
-    setInlineRiskDraft(null);
-  }
-
-  async function createOpenTaskFromProtocol() {
-    setNoteError('');
-    setNoteInfo('');
-    if (!selectedCaseId || !selectedCase) {
-      setNoteError('Bitte zuerst eine Fallakte auswählen. Aufgaben werden immer mit dem aktuellen Fall verbunden.');
-      return;
-    }
-    if (!inlineOpenTaskDraft || !inlineOpenTaskDraft.title.trim()) {
-      setNoteError('Bitte einen Aufgabentitel erfassen.');
-      return;
-    }
-    try {
-      const placeholderDueAt = new Date('9999-12-31T23:59:59.000Z').toISOString();
-      await onCreateDeadline({
-        caseId: selectedCaseId,
-        processType: 'case',
-        deadlineType: 'follow_up',
-        title: inlineOpenTaskDraft.title.trim(),
-        confidentialTitle: `Aufgabe ${selectedCase.caseNumber}`,
-        description: `${inlineOpenTaskDraft.description.trim() || 'Offene Aufgabe ohne konkretes Ablaufdatum.'} Hinweis: technisch mit Platzhalterdatum gespeichert, aber als offene Aufgabe ohne Datum gemeint.`,
-        dueAt: placeholderDueAt,
-        severity: inlineOpenTaskDraft.severity,
-        sourceEvent: noteTitle.trim() ? `Protokoll: ${noteTitle.trim()}` : `Protokoll im Fall ${selectedCase.caseNumber}`,
-        calculationMode: 'manual',
-        isLegalDeadline: false,
-        isUserEditable: true,
-        warningThresholdHours: 999999,
-        criticalThresholdHours: 999998
-      });
-      if (inlineOpenTaskDraft.markerIndex !== null) {
-        replaceInlineCommand(inlineOpenTaskDraft.target, inlineOpenTaskDraft.markerIndex, '>>', formatOpenTaskText(inlineOpenTaskDraft.title));
-      }
-      setInlineOpenTaskDraft(null);
-      setNoteInfo(`Offene Aufgabe wurde mit Fall ${selectedCase.caseNumber} verbunden.`);
-    } catch (error) {
-      setNoteError(error instanceof Error ? error.message : 'Offene Aufgabe konnte nicht angelegt werden.');
-    }
-  }
-
-  function cancelInlineOpenTaskDraft() {
-    if (inlineOpenTaskDraft?.markerIndex !== null && inlineOpenTaskDraft) removeInlineCommand(inlineOpenTaskDraft.target, inlineOpenTaskDraft.markerIndex, '>>');
-    setInlineOpenTaskDraft(null);
-  }
-
-  function applyConfidentialityFromProtocol() {
-    if (!inlineConfidentialityDraft) return;
-    setConfidentialLevel(inlineConfidentialityDraft.level);
-    replaceInlineCommand(inlineConfidentialityDraft.target, inlineConfidentialityDraft.markerIndex, '^^', formatConfidentialityText(inlineConfidentialityDraft.level));
-    setInlineConfidentialityDraft(null);
-    setNoteInfo('Vertraulichkeitsstufe der Notiz wurde angepasst.');
-  }
-
-  function cancelInlineConfidentialityDraft() {
-    if (inlineConfidentialityDraft) removeInlineCommand(inlineConfidentialityDraft.target, inlineConfidentialityDraft.markerIndex, '^^');
-    setInlineConfidentialityDraft(null);
-  }
-
-  function applyAnonymizationMarkerFromProtocol() {
-    if (!inlineAnonymizationDraft) return;
-    replaceInlineCommand(inlineAnonymizationDraft.target, inlineAnonymizationDraft.markerIndex, '~~', formatAnonymizationMarkerText(inlineAnonymizationDraft.label));
-    setInlineAnonymizationDraft(null);
-    setNoteInfo('Anonymisierungsvormerkung im Protokoll gesetzt.');
-  }
-
-  function cancelInlineAnonymizationDraft() {
-    if (inlineAnonymizationDraft) removeInlineCommand(inlineAnonymizationDraft.target, inlineAnonymizationDraft.markerIndex, '~~');
-    setInlineAnonymizationDraft(null);
-  }
-
-  async function createInlineDeadlineFromProtocol() {
-    setNoteError('');
-    setNoteInfo('');
-
-    if (!selectedCaseId || !selectedCase) {
-      setNoteError('Bitte zuerst eine Fallakte auswählen. Inline-Fristen werden immer mit dem aktuellen Fall verbunden.');
-      return;
-    }
-    if (!inlineDeadlineDraft) return;
-    if (!inlineDeadlineDraft.title.trim() || !inlineDeadlineDraft.dueAt) {
-      setNoteError('Bitte Titel und Ablaufdatum der Frist erfassen.');
-      return;
-    }
-
-    try {
-      await onCreateDeadline({
-        caseId: selectedCaseId,
-        processType: 'case',
-        deadlineType: 'follow_up',
-        title: inlineDeadlineDraft.title.trim(),
-        confidentialTitle: `Frist ${selectedCase.caseNumber}`,
-        description: inlineDeadlineDraft.description.trim() || `Aus Protokolltext zum Fall ${selectedCase.caseNumber} angelegt.`,
-        dueAt: fromDateTimeLocalValue(inlineDeadlineDraft.dueAt),
-        severity: inlineDeadlineDraft.severity,
-        legalBasis: inlineDeadlineDraft.legalBasis.trim() || undefined,
-        sourceEvent: noteTitle.trim() ? `Protokoll: ${noteTitle.trim()}` : `Protokoll im Fall ${selectedCase.caseNumber}`,
-        calculationMode: 'manual',
-        isLegalDeadline: false,
-        isUserEditable: true
-      });
-      const shouldInsertDeadlineText = inlineDeadlineDraft.markerIndex !== null;
-      insertInlineDeadlineText(inlineDeadlineDraft);
-      setInlineDeadlineDraft(null);
-      setNoteInfo(shouldInsertDeadlineText
-        ? `Frist wurde mit Fall ${selectedCase.caseNumber} angelegt und im Protokolltext vermerkt.`
-        : `Frist wurde mit Fall ${selectedCase.caseNumber} angelegt.`);
-    } catch (error) {
-      setNoteError(error instanceof Error ? error.message : 'Inline-Frist konnte nicht angelegt werden.');
-    }
-  }
-
-  function cancelInlineDeadlineDraft() {
-    if (inlineDeadlineDraft) removeSlashCommand(inlineDeadlineDraft);
-    setInlineDeadlineDraft(null);
-  }
-
-  function openCaseDeadlineDraft() {
-    setNoteError('');
-    setNoteInfo('');
-    if (!selectedCaseId || !selectedCase) {
-      setNoteError('Bitte zuerst eine Fallakte auswählen.');
-      return;
-    }
-    setInlineDeadlineDraft({
-      target: 'nextSteps',
-      title: defaultDeadlineTitleForCase(selectedCase, noteTitle),
-      dueAt: '',
-      severity: 'important',
-      legalBasis: '',
-      description: `Direkt aus Fallakte ${selectedCase.caseNumber} angelegt.`,
-      markerIndex: null
-    });
-  }
 
   function openCaseCreateModal() {
     setError('');
@@ -1644,21 +1123,6 @@ ${caseProcessDraft.description}`,
   function cancelCaseCreateModal() {
     setIsCaseCreateModalOpen(false);
     setError('');
-  }
-
-  function openNewNoteModal() {
-    if (!selectedCaseId) {
-      setNoteError('Bitte zuerst eine Fallakte auswählen.');
-      return;
-    }
-    resetNoteForm();
-    setLinkedCaseIds([selectedCaseId]);
-    setIsNoteModalOpen(true);
-  }
-
-  function cancelNoteModal() {
-    setIsNoteModalOpen(false);
-    resetNoteForm();
   }
 
   async function addCase(event: FormEvent<HTMLFormElement>) {
@@ -1681,59 +1145,13 @@ ${caseProcessDraft.description}`,
     }
   }
 
-  async function saveNote(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setNoteError('');
-    setNoteInfo('');
-    if (!selectedCaseId) {
-      setNoteError('Bitte zuerst eine Fallakte auswählen.');
-      return;
-    }
-    if (!noteTitle.trim() || !content.trim()) {
-      setNoteError('Bitte Titel und Inhalt erfassen.');
-      return;
-    }
-    const normalizedLinkedCaseIds = [...new Set([selectedCaseId, ...linkedCaseIds].filter(Boolean))];
-    if (!normalizedLinkedCaseIds.length) {
-      setNoteError('Bitte mindestens eine Fallakte als Bezug auswählen.');
-      return;
-    }
-
-    try {
-      const bridge = await waitForBridge();
-      if (!bridge?.cases) throw new Error('Falldienst ist nicht erreichbar.');
-      const payload = {
-        caseId: selectedCaseId,
-        caseIds: normalizedLinkedCaseIds,
-        title: noteTitle.trim(),
-        noteDate: fromDateTimeLocalValue(noteDate),
-        noteType,
-        participants: participants.trim() || undefined,
-        content: content.trim(),
-        nextSteps: nextSteps.trim() || undefined,
-        containsHealthData,
-        confidentialLevel
-      };
-      const saved = editingNote
-        ? await bridge.cases.updateNote(editingNote.id, payload)
-        : await bridge.cases.createNote(payload);
-      resetNoteForm();
-      setIsNoteModalOpen(false);
-      await reloadSelectedCaseChildren();
-      setSelection({ type: 'note', id: saved.id });
-      if (searchQuery.trim()) await runSearch();
-    } catch (error) {
-      setNoteError(error instanceof Error ? error.message : 'Gesprächsnotiz konnte nicht gespeichert werden.');
-    }
-  }
-
   async function deleteNote(note: CaseNoteRecord) {
     setNoteError('');
     try {
       const bridge = await waitForBridge();
       if (!bridge?.cases) throw new Error('Falldienst ist nicht erreichbar.');
       await bridge.cases.deleteNote(note.id);
-      if (editingNote?.id === note.id) resetNoteForm();
+      if (editingNote?.id === note.id) noteEditor.resetNoteForm();
       await reloadSelectedCaseChildren();
       setSelection({ type: 'overview' });
       if (searchQuery.trim()) await runSearch();
@@ -1811,28 +1229,6 @@ ${caseProcessDraft.description}`,
     }
   }
 
-  async function runSearch(event?: FormEvent<HTMLFormElement>) {
-    event?.preventDefault();
-    setSearchError('');
-    if (searchQuery.trim().length < 2) {
-      setSearchResults([]);
-      return;
-    }
-    try {
-      const bridge = await waitForBridge();
-      if (!bridge?.cases) throw new Error('Falldienst ist nicht erreichbar.');
-      const results = await bridge.cases.search({
-        query: searchQuery,
-        caseId: searchOnlySelectedCase ? selectedCaseId || undefined : undefined,
-        limit: 80
-      });
-      setSearchResults(results);
-      if (results.length) setSelection({ type: 'search', id: results[0].sourceId });
-    } catch (error) {
-      setSearchError(error instanceof Error ? error.message : 'Volltextsuche konnte nicht ausgeführt werden.');
-    }
-  }
-
   return (
     <>
       {caseToast && (
@@ -1841,218 +1237,67 @@ ${caseProcessDraft.description}`,
           <span>{caseToast.text}</span>
         </div>
       )}
-      {processTemplateModal && (
-        <div className="industrial-modal-backdrop" role="dialog" aria-modal="true">
-          <section className="industrial-modal process-template-modal">
-            <div className="industrial-panel-header compact">
-              <div>
-                <p className="industrial-kicker">Dokumente zur Maßnahme</p>
-                <h2>{processTypeLabel('prevention')} · {statusLabel(processTemplateModal.process.status)}</h2>
-                <p>Gezeigt werden Vorlagen der Maßnahmeart Prävention, die mit dem aktuellen Status verbunden sind.</p>
-              </div>
-              <button type="button" className="industrial-secondary-button" onClick={() => setProcessTemplateModal(null)}>Schließen</button>
-            </div>
-            {processTemplateModal.loading && <div className="industrial-empty">Vorlagen werden geladen …</div>}
-            {processTemplateModal.error && <div className="industrial-message industrial-message-warning">{processTemplateModal.error}</div>}
-            {processTemplateModal.info && <div className="industrial-message industrial-message-ok">{processTemplateModal.info}</div>}
-            {!processTemplateModal.loading && !processTemplateModal.templates.length && !processTemplateModal.error && (
-              <div className="process-template-empty">
-                <p>Für diesen Status ist noch keine Vorlage hinterlegt.</p>
-                <div className="process-template-hint">
-                  <span>Benötigte Tags</span>
-                  <code>massnahme:prevention</code>
-                  <code>{`status:${processTemplateModal.process.status}`}</code>
-                </div>
-                <p className="process-template-empty-note">Lege die Vorlage im Vorlagenmodul an und verbinde sie mit Maßnahmeart und Status. Danach erscheint sie hier automatisch.</p>
-              </div>
-            )}
-            <div className="process-template-list">
-              {processTemplateModal.templates.map((template) => (
-                <article key={template.id} className="process-template-card">
-                  <div>
-                    <strong>{template.title}</strong>
-                    <p>{template.description}</p>
-                    <span>{template.legalBasis.join(', ') || 'ohne Normbezug'}</span>
-                  </div>
-                  <button type="button" className="industrial-button" onClick={() => void renderAndDownloadProcessTemplate(template)}><Download className="h-4 w-4" />Download</button>
-                </article>
-              ))}
-            </div>
-            {processTemplateModal.rendered && (
-              <div className="industrial-subpanel mt-4">
-                <h4>Zuletzt erzeugt</h4>
-                {processTemplateModal.rendered.unresolvedPlaceholders.length > 0 && <div className="industrial-message industrial-message-warning mb-3">Offene Platzhalter: {processTemplateModal.rendered.unresolvedPlaceholders.join(', ')}</div>}
-                <p className="industrial-meta"><strong>Betreff:</strong> {processTemplateModal.rendered.subject}</p>
-                <textarea className="industrial-output-area" value={processTemplateModal.rendered.body} readOnly />
-              </div>
-            )}
-          </section>
-        </div>
-      )}
-      <section className="industrial-panel case-register-panel compact">
-        <div className="case-register-toolbar compact">
-          <div className="case-register-meta">
-            <p className="industrial-kicker">Fallliste</p>
-            <strong>{filteredCases.length} Fälle</strong>
-          </div>
-          <div className="case-register-actions">
-            <input className="industrial-input" data-global-search-target="cases" value={caseFilter} onChange={(event) => setCaseFilter(event.target.value)} placeholder="Fälle filtern nach Aktenzeichen, Name, Kurzbeschreibung …" />
-            <button type="button" className="industrial-button" onClick={openCaseCreateModal}><Plus className="h-4 w-4" />Fallakte</button>
-          </div>
-        </div>
-        <div className="industrial-table-shell case-register-table-shell">
-          <table className="industrial-table case-register-table">
-            <thead><tr><th>Aktenzeichen</th><th>Name / Pseudonym</th><th>Kategorie</th><th>Status</th><th>Kurzbeschreibung</th></tr></thead>
-            <tbody>
-              {visibleCases.map((record) => (
-                <tr key={record.id} className={record.id === selectedCaseId ? 'selected' : ''} onClick={() => setSelectedCaseId(record.id)}>
-                  <td><strong>{record.caseNumber}</strong></td>
-                  <td>{record.displayName}</td>
-                  <td>{record.category}</td>
-                  <td>{record.status}</td>
-                  <td>{record.summary ?? '—'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {!visibleCases.length && <div className="industrial-empty">Keine passenden Fälle.</div>}
-        </div>
-      </section>
+      <ProcessTemplateDocumentsModal
+        state={processTemplateModal}
+        onClose={() => setProcessTemplateModal(null)}
+        onDownload={(template) => void renderAndDownloadProcessTemplate(template)}
+        processTypeLabel={processTypeLabel}
+      />
+      <CaseRegister
+        filteredCount={filteredCases.length}
+        visibleCases={visibleCases}
+        selectedCaseId={selectedCaseId}
+        caseFilter={caseFilter}
+        onCaseFilterChange={setCaseFilter}
+        onSelectCase={setSelectedCaseId}
+        onCreateCase={openCaseCreateModal}
+      />
+
 
       <section className="case-workbench">
-        <aside className="industrial-panel case-tree-panel">
-          <p className="industrial-kicker">Fallakte</p>
-          <h2>{selectedCase?.caseNumber ?? 'Keine Auswahl'}</h2>
-          <p className="industrial-meta">{selectedCase?.displayName ?? 'Bitte oben einen Fall auswählen.'}</p>
-          <div className="case-tree-group process-drop-zone">
-            <div className="case-tree-group-title"><Workflow className="h-4 w-4" /> Maßnahmen <span>{casePreventionProcesses.length}</span></div>
-            {casePreventionProcesses.map((process) => (
-              <button key={process.id} type="button" className={`case-tree-node ${selection.type === 'process' && selection.id === process.id ? 'active' : ''}`} onClick={() => setSelection({ type: 'process', processType: 'prevention', id: process.id })}>
-                <span>Prävention</span><small>{formatProcessNodeSubtitle('prevention', process.status)}</small>
-              </button>
-            ))}
-            {!casePreventionProcesses.length && <p className="case-tree-empty">Noch keine Maßnahme in dieser Akte.</p>}
-          </div>
-          <button type="button" className={`case-tree-node ${selection.type === 'overview' ? 'active' : ''}`} onClick={() => setSelection({ type: 'overview' })}>Übersicht</button>
-          <div className="case-tree-group">
-            <div className="case-tree-group-title"><MessageSquare className="h-4 w-4" /> Notizen & Protokolle <span>{notes.length}</span></div>
-            {notes.map((note) => (
-              <button key={note.id} type="button" className={`case-tree-node ${selection.type === 'note' && selection.id === note.id ? 'active' : ''}`} onClick={() => setSelection({ type: 'note', id: note.id })}>
-                <span>{note.title}</span><small>{formatNoteDate(note.noteDate)} · {(note.caseNumbers ?? []).join(', ')}</small>
-              </button>
-            ))}
-          </div>
-          <div className="case-tree-group">
-            <div className="case-tree-group-title"><FileText className="h-4 w-4" /> Dokumente <span>{documents.length}</span></div>
-            {documents.map((document) => (
-              <button key={document.id} type="button" className={`case-tree-node ${selection.type === 'document' && selection.id === document.id ? 'active' : ''}`} onClick={() => setSelection({ type: 'document', id: document.id })}>
-                <span>{document.displayTitle}</span><small>{formatBytes(document.sizeBytes)}</small>
-              </button>
-            ))}
-          </div>
-        </aside>
+        <CaseTreePanel
+          selectedCase={selectedCase}
+          notes={notes}
+          documents={documents}
+          preventionProcesses={casePreventionProcesses}
+          selection={selection}
+          onSelect={setSelection}
+          formatProcessNodeSubtitle={formatProcessNodeSubtitle}
+          formatNoteDate={formatNoteDate}
+          formatBytes={formatBytes}
+        />
 
-        <section className="industrial-panel case-detail-panel">
-          <form onSubmit={runSearch} className="knowledge-search-bar">
-            <Search className="h-4 w-4 text-yellow-300" />
-            <input className="industrial-input" data-global-search-target="case-fulltext" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Volltextsuche in Notizen, Protokollen und Dokumenten …" />
-            <label className="industrial-checkbox-row compact"><input type="checkbox" checked={searchOnlySelectedCase} onChange={(event) => setSearchOnlySelectedCase(event.target.checked)} /><span>nur diese Fallakte</span></label>
-            <button type="submit" className="industrial-button">Suchen</button>
-          </form>
-          {!!searchResults.length && (
-            <div className="case-search-results">
-              {searchResults.map((result) => (
-                <button key={`${result.sourceType}-${result.sourceId}`} type="button" className="case-search-result" onClick={() => setSelection({ type: 'search', id: result.sourceId })}>
-                  <span>{result.sourceType === 'note' ? 'Notiz' : 'Dokument'} · {(result.caseNumbers?.length ? result.caseNumbers.join(', ') : result.caseNumber)}</span>
-                  <strong>{result.title}</strong>
-                  <p>{result.excerpt}</p>
-                </button>
-              ))}
-            </div>
-          )}
+        <CaseDetailPanel
+          searchQuery={searchQuery}
+          searchOnlySelectedCase={searchOnlySelectedCase}
+          searchResults={searchResults}
+          onSearchSubmit={runSearch}
+          onSearchQueryChange={setSearchQuery}
+          onSearchOnlySelectedCaseChange={setSearchOnlySelectedCase}
+          onSelectSearchResult={(result) => setSelection({ type: 'search', id: result.sourceId })}
+        >
 
           {selection.type === 'overview' && (
-            <div className="case-detail-content">
-              <h2>{selectedCase ? `${selectedCase.caseNumber} · ${selectedCase.displayName}` : 'Keine Fallakte ausgewählt'}</h2>
-              <p>{selectedCase?.summary ?? 'Keine Kurzbeschreibung erfasst.'}</p>
-              <div className="case-detail-metrics"><Metric label="Notizen" value={String(notes.length)} /><Metric label="Dokumente" value={String(documents.length)} /><Metric label="Rechtsbezüge" value={String(caseLegalReferences.length)} /><Metric label="Maßnahmen" value={String(casePreventionProcesses.length)} /><Metric label="Kategorie" value={selectedCase?.category ?? '—'} /></div>
-              {selectedCase && (() => {
+            <CaseOverviewDetail
+              selectedCase={selectedCase}
+              notesCount={notes.length}
+              documentsCount={documents.length}
+              legalReferencesCount={caseLegalReferences.length}
+              processesCount={casePreventionProcesses.length}
+              contextualTemplateActions={selectedCase && (() => {
                 const action = resolveContextualTemplateAction({ sourceType: 'case', title: 'Fallübersicht' });
                 return action ? <div className="contextual-template-actions"><ContextualTemplateButton action={action} caseId={selectedCase.id} values={{ 'fall.aktenzeichen': selectedCase.caseNumber, 'fall.name': selectedCase.displayName, 'fall.kurzbeschreibung': selectedCase.summary ?? '' }} /></div> : null;
               })()}
-            </div>
+            />
           )}
 
           {selection.type === 'process' && (
-            <article className="case-detail-content">
-              {selection.processType === 'prevention' && selection.id ? (
-                (() => {
-                  const process = casePreventionProcesses.find((item) => item.id === selection.id);
-                  return process ? <div className="case-detail-inline-form">
-                    <div className="case-process-header">
-                      <div className="case-process-header-main">
-                        <div className="case-process-title-row">
-                          <span className="industrial-badge">Maßnahme</span>
-                          <button type="button" className="case-process-document-link" onClick={() => void openProcessTemplateModal(process)}><FileText className="h-3.5 w-3.5" />Dokumente</button>
-                        </div>
-                        <h2>{processTypeLabel(selection.processType)}</h2>
-                      </div>
-                      <div className="case-process-badges" aria-label="Statusübersicht">
-                        <span className="case-process-badge"><strong>Status</strong>{statusLabel(process.status)}</span>
-                        <span className="case-process-badge"><strong>Risiko</strong>{process.riskType.replaceAll('_', ' ')}</span>
-                        <span className="case-process-badge"><strong>Person</strong>{process.personStatus}</span>
-                      </div>
-                    </div>
-                    <div className="prevention-status-sections">
-                      <section className="prevention-status-section">
-                        <header><span>1</span><strong>Prüfung und Ausgangslage</strong></header>
-                        <div className="industrial-form-grid">
-                          <label><span>Status</span><select value={process.status} onChange={(event) => void updateCasePreventionProcess(process.id, { status: event.target.value as PreventionStatus })}><option value="zu_pruefen">zu prüfen</option><option value="angefordert">angefordert</option><option value="arbeitgeber_reagiert">Arbeitgeber reagiert</option><option value="inklusionsamt_eingeschaltet">Inklusionsamt eingeschaltet</option><option value="massnahmen_in_klaerung">Maßnahmen in Klärung</option><option value="massnahmen_vereinbart">Maßnahmen vereinbart</option><option value="abgeschlossen">abgeschlossen</option><option value="blockiert_verweigert">blockiert / verweigert</option></select></label>
-                          <label><span>Schwierigkeit</span><select value={process.difficultyType} onChange={(event) => void updateCasePreventionProcess(process.id, { difficultyType: event.target.value as PreventionDifficultyType })}>{preventionDifficultyOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
-                          <label><span>Risiko</span><select value={process.riskType} onChange={(event) => void updateCasePreventionProcess(process.id, { riskType: event.target.value as PreventionRiskType })}>{preventionRiskOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
-                          <label><span>Status Person</span><select value={process.personStatus} onChange={(event) => void updateCasePreventionProcess(process.id, { personStatus: event.target.value as PreventionProcessRecord['personStatus'] })}><option value="unklar">unklar</option><option value="schwerbehindert">schwerbehindert</option><option value="gleichgestellt">gleichgestellt</option><option value="antrag_laeuft">Antrag läuft</option></select></label>
-                        </div>
-                        <label><span>Gefährdung / Anlass</span><textarea defaultValue={process.hazardDescription ?? ''} onBlur={(event) => void updateCasePreventionProcess(process.id, { hazardDescription: event.target.value })} /></label>
-                      </section>
-
-                      {preventionStatusReached(process.status, 'angefordert') && (
-                        <section className="prevention-status-section">
-                          <header><span>2</span><strong>Anforderung an den Arbeitgeber</strong></header>
-                          <div className="industrial-form-grid">
-                            <label><span>Arbeitgeber angefordert am</span><input type="datetime-local" defaultValue={toDateTimeLocalValue(process.requestedAt)} onBlur={(event) => void updateCasePreventionProcess(process.id, { requestedAt: event.target.value ? fromDateTimeLocalValue(event.target.value) : undefined })} /></label>
-                            <label><span>Frist Arbeitgeberreaktion</span><input type="datetime-local" defaultValue={toDateTimeLocalValue(process.employerResponseDueAt)} onBlur={(event) => void updateCasePreventionProcess(process.id, { employerResponseDueAt: event.target.value ? fromDateTimeLocalValue(event.target.value) : undefined })} /></label>
-                          </div>
-                        </section>
-                      )}
-
-                      {canShowEmployerReactionSection(process.status) && (
-                        <section className="prevention-status-section">
-                          <header><span>3</span><strong>Reaktion des Arbeitgebers</strong></header>
-                          <label><span>Arbeitgeberreaktion / Stand</span><textarea defaultValue={process.employerRequestSummary ?? ''} onBlur={(event) => void updateCasePreventionProcess(process.id, { employerRequestSummary: event.target.value })} /></label>
-                        </section>
-                      )}
-
-                      {canShowMeasureClarificationSection(process.status) && (
-                        <section className="prevention-status-section">
-                          <header><span>4</span><strong>Maßnahmenklärung und Umsetzung</strong></header>
-                          <label><span>Maßnahmen</span><textarea defaultValue={process.measures ?? ''} onBlur={(event) => void updateCasePreventionProcess(process.id, { measures: event.target.value })} /></label>
-                        </section>
-                      )}
-
-                      {canShowResultSection(process.status) && (
-                        <section className="prevention-status-section">
-                          <header><span>5</span><strong>Ergebnis / Abschluss</strong></header>
-                          <label><span>Ergebnis / Abschluss</span><textarea defaultValue={process.result ?? ''} onBlur={(event) => void updateCasePreventionProcess(process.id, { result: event.target.value })} /></label>
-                        </section>
-                      )}
-                    </div>
-                    <p className="industrial-meta">Abschnitte werden erst sichtbar, wenn der Status fachlich erreicht ist. Eine Arbeitgeberreaktion wird deshalb erst nach dokumentierter Anforderung geführt.</p>
-                  </div> : <p className="industrial-meta">Präventionsverfahren nicht gefunden.</p>;
-                })()
-              ) : (
-                <p className="industrial-meta">Dieses Fachmodul ist noch nicht vollständig umgesetzt. Die Maßnahme wurde als fallbezogene Notiz vorgemerkt und erscheint in der Fallhistorie.</p>
-              )}
-            </article>
+            <PreventionProcessDetail
+              processType={selection.processType}
+              process={selection.processType === 'prevention' && selection.id ? casePreventionProcesses.find((item) => item.id === selection.id) : undefined}
+              onUpdate={updateCasePreventionProcess}
+              onOpenTemplates={openProcessTemplateModal}
+            />
           )}
 
           {selectedNote && (
@@ -2067,323 +1312,88 @@ ${caseProcessDraft.description}`,
             </article>
           )}
 
-          {selectedDocument && (
-            <article className="case-detail-content">
-              <div className="case-note-card-header"><span className="industrial-badge">Dokument</span><time>{formatNoteDate(selectedDocument.createdAt)}</time></div>
-              <h2>{selectedDocument.displayTitle}</h2>
-              <p className="industrial-meta">{selectedDocument.filename} · {selectedDocument.mimeType ?? 'Datei'} · {formatBytes(selectedDocument.sizeBytes)}</p>
-              <p className="industrial-meta">SHA-256: {selectedDocument.sha256}</p>
-              {selectedDocument.extractedText ? <p className="case-note-content">{selectedDocument.extractedText.slice(0, 2000)}</p> : <p className="industrial-empty">Für dieses Dokument wurde kein lesbarer Volltext extrahiert. Dateiname und Metadaten sind trotzdem suchbar.</p>}
-              <div className="industrial-message industrial-message-warning">Beim Öffnen oder Exportieren entsteht temporär bzw. bewusst eine Klartextkopie außerhalb des verschlüsselten Dokumentenspeichers.</div>
-              <div className="industrial-card-actions"><button type="button" className="industrial-secondary-button" onClick={() => void openDocument(selectedDocument)}><FileText className="h-4 w-4" /> Öffnen</button><button type="button" className="industrial-secondary-button" onClick={() => void exportDocument(selectedDocument)}>Exportieren</button><button type="button" className="industrial-secondary-button" onClick={() => void deleteDocument(selectedDocument)}><Trash2 className="h-4 w-4" /> Löschen</button></div>
-            </article>
-          )}
+          <CaseDocumentDetail
+            document={selectedDocument}
+            formatNoteDate={formatNoteDate}
+            formatBytes={formatBytes}
+            onOpen={(document) => void documentActions.openDocument(document)}
+            onExport={(document) => void documentActions.exportDocument(document)}
+            onDelete={(document) => void documentActions.deleteDocument(document)}
+          />
 
           {selectedSearchResult && !selectedNote && !selectedDocument && (
             <article className="case-detail-content"><h2>{selectedSearchResult.title}</h2><p>{selectedSearchResult.excerpt}</p><button type="button" className="industrial-secondary-button" onClick={() => setSelectedCaseId(selectedSearchResult.caseId)}>Fallakte öffnen</button></article>
           )}
 
-          <footer className="case-workbench-footer" aria-label="Neue Akteneinträge">
-            <button type="button" className="industrial-button" disabled={!selectedCaseId} onClick={openNewNoteModal}><Plus className="h-4 w-4" />Notiz / Protokoll</button>
-            <button type="button" className="industrial-button" disabled={!selectedCaseId} onClick={() => void importDocuments()}><FileText className="h-4 w-4" />Dokument</button>
-            <button type="button" className="industrial-button" disabled={!selectedCaseId} onClick={openCaseDeadlineDraft}><CalendarPlus className="h-4 w-4" />Frist</button>
-            <button type="button" className="industrial-button" disabled={!selectedCaseId} onClick={() => openCaseProcessDraft('prevention')}><Workflow className="h-4 w-4" />Prävention</button>
-            <button type="button" className="industrial-secondary-button" disabled={!selectedCaseId} onClick={() => openCaseProcessDraft('bem')}>BEM</button>
-            <button type="button" className="industrial-secondary-button" disabled={!selectedCaseId} onClick={() => openCaseProcessDraft('termination_hearing')}>Kündigungsanhörung</button>
-            <button type="button" className="industrial-secondary-button" disabled={!selectedCaseId} onClick={() => openCaseProcessDraft('equalization')}>Gleichstellung</button>
-          </footer>
-        </section>
+          <CaseWorkbenchFooter
+            disabled={!selectedCaseId}
+            onNewNote={openNewNoteModal}
+            onImportDocument={() => void documentActions.importDocuments()}
+            onDeadline={inlineCommands.openCaseDeadlineDraft}
+            onProcess={openCaseProcessDraft}
+          />
+        </CaseDetailPanel>
       </section>
 
 
 
 
-      {isCaseCreateModalOpen && (
-        <div className="industrial-modal-backdrop" role="presentation">
-          <section className="industrial-modal" role="dialog" aria-modal="true" aria-labelledby="case-create-title">
-            <div className="industrial-modal-header">
-              <div className="industrial-modal-icon"><FolderKanban className="h-5 w-5" /></div>
-              <div>
-                <p className="industrial-kicker">Fallakte</p>
-                <h2 id="case-create-title">Neue Fallakte anlegen</h2>
-                <p>Die Fallakte ist der führende Arbeitsraum. Fristen, Notizen, Dokumente und Maßnahmen hängen später daran.</p>
-              </div>
-            </div>
-            <form onSubmit={addCase} className="industrial-form case-create-form">
-              <label><span>Aktenzeichen</span><input value={caseNumber} onChange={(event) => setCaseNumber(event.target.value)} placeholder="z. B. BEM-2026-004" autoFocus /></label>
-              <label><span>Name / Pseudonym</span><input value={displayName} onChange={(event) => setDisplayName(event.target.value)} placeholder="Name oder Pseudonym" /></label>
-              <label><span>Kategorie</span><select value={category} onChange={(event) => setCategory(event.target.value as CaseCategory)}><option value="bem">BEM</option><option value="praevention">Prävention</option><option value="kuendigung">Kündigung</option><option value="gleichstellung">Gleichstellung</option><option value="gdb">GdB</option><option value="nachteilsausgleich">Nachteilsausgleich</option><option value="arbeitsplatzgestaltung">Arbeitsplatzgestaltung</option><option value="diskriminierung">Diskriminierung</option><option value="sonstiges">Sonstiges</option></select></label>
-              <label className="industrial-modal-wide"><span>Kurzbeschreibung</span><input value={summary} onChange={(event) => setSummary(event.target.value)} placeholder="knappe Sachebene" /></label>
-              {error && <div className="industrial-message industrial-message-warning industrial-modal-wide">{error}</div>}
-              <div className="industrial-modal-actions industrial-modal-wide"><button type="button" className="industrial-secondary-button" onClick={cancelCaseCreateModal}>Abbrechen</button><button type="submit" className="industrial-button"><Plus className="h-4 w-4" />Fall anlegen</button></div>
-            </form>
-          </section>
-        </div>
-      )}
+      <CaseCreateModal
+        open={isCaseCreateModalOpen}
+        caseNumber={caseNumber}
+        displayName={displayName}
+        category={category}
+        summary={summary}
+        error={error}
+        onCaseNumberChange={setCaseNumber}
+        onDisplayNameChange={setDisplayName}
+        onCategoryChange={setCategory}
+        onSummaryChange={setSummary}
+        onCancel={cancelCaseCreateModal}
+        onSubmit={addCase}
+      />
 
-      {isNoteModalOpen && (
-        <div className="industrial-modal-backdrop" role="presentation">
-          <section className="industrial-modal industrial-modal-wide" role="dialog" aria-modal="true" aria-labelledby="case-note-title">
-            <div className="industrial-modal-header">
-              <div className="industrial-modal-icon"><MessageSquare className="h-5 w-5" /></div>
-              <div>
-                <p className="industrial-kicker">Fallbaum</p>
-                <h2 id="case-note-title">{editingNote ? 'Notiz / Protokoll bearbeiten' : 'Neue Gesprächsnotiz / neues Protokoll'}</h2>
-                <p>Diese Maske gehört zur ausgewählten Fallakte. Weitere Fallbezüge können direkt hier ergänzt werden.</p>
-              </div>
-            </div>
-            <form onSubmit={saveNote} className="industrial-form case-note-form">
-              <label><span>Titel</span><input value={noteTitle} onChange={(event) => setNoteTitle(event.target.value)} placeholder="z. B. Erstgespräch" autoFocus /></label>
-              <label><span>Datum</span><input type="datetime-local" value={noteDate} onChange={(event) => setNoteDate(event.target.value)} /></label>
-              <label><span>Typ</span><select value={noteType} onChange={(event) => setNoteType(event.target.value as CaseNoteType)}><option value="gespraech">Gespräch</option><option value="protokoll">Protokoll</option><option value="telefonat">Telefonat</option><option value="videocall">Videocall</option><option value="email">E-Mail</option><option value="bem">BEM</option><option value="anhoerung">Anhörung</option><option value="interne_notiz">Interne Notiz</option><option value="sonstiges">Sonstiges</option></select></label>
-              <label><span>Beteiligte</span><input value={participants} onChange={(event) => setParticipants(event.target.value)} placeholder="optional" /></label>
-              <label className="case-note-content-input"><span>Inhalt</span><textarea value={content} onChange={(event) => handleProtocolTextChange('content', event.target.value)} placeholder="Gesprächsinhalt / Protokoll … // Frist, @@ Kontakt, ## Fall, §§ Norm, !! Risiko, >> Aufgabe, ^^ Vertraulichkeit, ~~ Anonymisierung" /></label>
-              <label className="case-note-content-input"><span>Nächste Schritte</span><textarea value={nextSteps} onChange={(event) => handleProtocolTextChange('nextSteps', event.target.value)} placeholder="optional · // Frist, @@ Kontakt, ## Fall, §§ Norm, !! Risiko, >> Aufgabe, ^^ Vertraulichkeit, ~~ Anonymisierung" /></label>
-              <div className="case-note-link-panel">
-                <span>Fallbezüge</span>
-                <p className="industrial-meta">Eine Notiz kann mehreren Fallakten zugeordnet werden. Der aktuell ausgewählte Fall bleibt automatisch Bezug.</p>
-                <div className="case-note-link-grid">
-                  {cases.map((record) => (
-                    <label key={record.id} className="industrial-checkbox-row compact">
-                      <input type="checkbox" checked={linkedCaseIds.includes(record.id) || record.id === selectedCaseId} disabled={record.id === selectedCaseId} onChange={(event) => toggleLinkedCase(record.id, event.target.checked)} />
-                      <span>{record.caseNumber} · {record.displayName}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-              <label><span>Vertraulichkeit</span><select value={confidentialLevel} onChange={(event) => setConfidentialLevel(event.target.value as ConfidentialLevel)}><option value="normal">normal</option><option value="sensibel">sensibel</option><option value="hoch_sensibel">hoch sensibel</option></select></label>
-              <label className="industrial-checkbox-row"><input type="checkbox" checked={containsHealthData} onChange={(event) => setContainsHealthData(event.target.checked)} /><span>enthält Gesundheits-/Behinderungsbezug</span></label>
-              {noteError && <div className="industrial-message industrial-message-warning industrial-modal-wide">{noteError}</div>}
-              {noteInfo && <div className="industrial-message industrial-message-ok industrial-modal-wide">{noteInfo}</div>}
-              <div className="industrial-modal-actions industrial-modal-wide"><button type="button" className="industrial-secondary-button" onClick={cancelNoteModal}>Abbrechen</button><button type="submit" className="industrial-button"><Save className="h-4 w-4" />Speichern</button></div>
-            </form>
-          </section>
-        </div>
-      )}
+      <CaseNoteModal
+        open={isNoteModalOpen}
+        editingNote={editingNote}
+        noteTitle={noteTitle}
+        noteDate={noteDate}
+        noteType={noteType}
+        participants={participants}
+        content={content}
+        nextSteps={nextSteps}
+        cases={cases}
+        linkedCaseIds={linkedCaseIds}
+        selectedCaseId={selectedCaseId}
+        confidentialLevel={confidentialLevel}
+        containsHealthData={containsHealthData}
+        noteError={noteError}
+        noteInfo={noteInfo}
+        onTitleChange={setNoteTitle}
+        onDateChange={setNoteDate}
+        onNoteTypeChange={setNoteType}
+        onParticipantsChange={setParticipants}
+        onProtocolTextChange={inlineCommands.handleProtocolTextChange}
+        onToggleLinkedCase={toggleLinkedCase}
+        onConfidentialLevelChange={setConfidentialLevel}
+        onContainsHealthDataChange={setContainsHealthData}
+        onCancel={cancelNoteModal}
+        onSubmit={saveNote}
+      />
 
-      {inlineCaseLinkDraft && (
-        <div className="industrial-modal-backdrop" role="presentation">
-          <section className="industrial-modal" role="dialog" aria-modal="true" aria-labelledby="inline-case-link-title">
-            <div className="industrial-modal-header"><div className="industrial-modal-icon"><FolderKanban className="h-5 w-5" /></div><div><p className="industrial-kicker">Inline-Fallbezug</p><h2 id="inline-case-link-title">Fallbezug verknüpfen</h2><p>Der gewählte Fall wird in den Text eingefügt und als weiterer Fallbezug der Notiz gespeichert.</p></div></div>
-            <div className="industrial-modal-grid"><label className="industrial-modal-wide"><span>Fall suchen</span><input value={inlineCaseLinkDraft.query} onChange={(event) => setInlineCaseLinkDraft((current) => current ? { ...current, query: event.target.value } : current)} autoFocus placeholder="Aktenzeichen, Name/Pseudonym, Kategorie …" /></label></div>
-            <div className="inline-contact-results">
-              {filterCasesForQuery(cases, inlineCaseLinkDraft.query).map((record) => (
-                <button key={record.id} type="button" className="inline-contact-result" onClick={() => void insertCaseReferenceFromProtocol(record)}><strong>{record.caseNumber}</strong><span>{record.displayName} · {record.category}</span></button>
-              ))}
-            </div>
-            <div className="industrial-modal-actions"><button type="button" className="industrial-secondary-button" onClick={cancelInlineCaseLinkDraft}>Abbrechen</button></div>
-          </section>
-        </div>
-      )}
+      <CaseProcessDraftModal
+        draft={caseProcessDraft}
+        onChange={(nextDraft) => setCaseProcessDraft(nextDraft)}
+        onCancel={() => setCaseProcessDraft(null)}
+        onCreate={() => void createCaseProcessFromDraft()}
+      />
 
-      {inlineLegalNormDraft && (
-        <div className="industrial-modal-backdrop" role="presentation">
-          <section className="industrial-modal" role="dialog" aria-modal="true" aria-labelledby="inline-legal-title">
-            <div className="industrial-modal-header"><div className="industrial-modal-icon"><Scale className="h-5 w-5" /></div><div><p className="industrial-kicker">Inline-Rechtsnorm</p><h2 id="inline-legal-title">Rechtsnorm einfügen</h2><p>Die Norm wird als Kurzverweis in den Text eingefügt. Das ist die Grundlage für die spätere Wissensdatenbank-Verknüpfung.</p></div></div>
-            <div className="industrial-modal-grid"><label className="industrial-modal-wide"><span>Norm suchen</span><input value={inlineLegalNormDraft.query} onChange={(event) => setInlineLegalNormDraft((current) => current ? { ...current, query: event.target.value } : current)} autoFocus placeholder="z. B. 178, Prävention, Kündigung, AGG …" /></label></div>
-            <div className="inline-contact-results">
-              {filterNormsForQuery(LEGAL_NORM_SUGGESTIONS, inlineLegalNormDraft.query).map((norm) => (
-                <button key={norm.id} type="button" className="inline-contact-result" onClick={() => void insertLegalNormFromProtocol(norm)}><strong>{formatLegalNormText(norm)}</strong><span>{norm.shortText}</span></button>
-              ))}
-            </div>
-            <div className="industrial-modal-actions"><button type="button" className="industrial-secondary-button" onClick={cancelInlineLegalNormDraft}>Abbrechen</button></div>
-          </section>
-        </div>
-      )}
-
-      {inlineRiskDraft && (
-        <div className="industrial-modal-backdrop" role="presentation">
-          <section className="industrial-modal" role="dialog" aria-modal="true" aria-labelledby="inline-risk-title">
-            <div className="industrial-modal-header"><div className="industrial-modal-icon"><AlertTriangle className="h-5 w-5" /></div><div><p className="industrial-kicker">Inline-Risiko</p><h2 id="inline-risk-title">Risiko markieren</h2><p>Die Markierung bleibt im Protokoll sichtbar und hebt bei hohen Risiken die Vertraulichkeit der Notiz an.</p></div></div>
-            <div className="industrial-modal-grid">
-              <label><span>Risikostufe</span><select value={inlineRiskDraft.level} onChange={(event) => setInlineRiskDraft((current) => current ? { ...current, level: event.target.value as RiskLevelCommand } : current)}><option value="low">niedrig</option><option value="medium">mittel</option><option value="high">hoch</option><option value="critical">kritisch</option></select></label>
-              <label className="industrial-modal-wide"><span>Hinweis</span><input value={inlineRiskDraft.text} onChange={(event) => setInlineRiskDraft((current) => current ? { ...current, text: event.target.value } : current)} autoFocus placeholder="z. B. Kündigungsrisiko, Chronifizierungsrisiko, Arbeitgeber blockiert …" /></label>
-            </div>
-            <div className="industrial-modal-preview">Wird eingefügt: <strong>{formatRiskText(inlineRiskDraft.level, inlineRiskDraft.text)}</strong></div>
-            <div className="industrial-modal-actions"><button type="button" className="industrial-secondary-button" onClick={cancelInlineRiskDraft}>Abbrechen</button><button type="button" className="industrial-button" onClick={() => void insertRiskFromProtocol()}>Risiko einfügen</button></div>
-          </section>
-        </div>
-      )}
-
-      {inlineOpenTaskDraft && (
-        <div className="industrial-modal-backdrop" role="presentation">
-          <section className="industrial-modal" role="dialog" aria-modal="true" aria-labelledby="inline-task-title">
-            <div className="industrial-modal-header"><div className="industrial-modal-icon"><CheckCircle2 className="h-5 w-5" /></div><div><p className="industrial-kicker">Inline-Aufgabe</p><h2 id="inline-task-title">Offene Aufgabe ohne Datum</h2><p>Erzeugt eine Wiedervorlage ohne konkretes Ablaufdatum und vermerkt den nächsten Schritt im Text.</p></div></div>
-            <div className="industrial-modal-grid"><label><span>Aufgabe</span><input value={inlineOpenTaskDraft.title} onChange={(event) => setInlineOpenTaskDraft((current) => current ? { ...current, title: event.target.value } : current)} autoFocus placeholder="z. B. Inklusionsamt nachfassen" /></label><label><span>Stufe</span><select value={inlineOpenTaskDraft.severity} onChange={(event) => setInlineOpenTaskDraft((current) => current ? { ...current, severity: event.target.value as DeadlineSeverity } : current)}><option value="normal">normal</option><option value="important">wichtig</option><option value="critical">kritisch</option><option value="fatal">fatal</option></select></label><label className="industrial-modal-wide"><span>Notiz</span><input value={inlineOpenTaskDraft.description} onChange={(event) => setInlineOpenTaskDraft((current) => current ? { ...current, description: event.target.value } : current)} /></label></div>
-            <div className="industrial-modal-preview">Wird eingefügt: <strong>{formatOpenTaskText(inlineOpenTaskDraft.title)}</strong></div>
-            <div className="industrial-modal-actions"><button type="button" className="industrial-secondary-button" onClick={cancelInlineOpenTaskDraft}>Abbrechen</button><button type="button" className="industrial-button" onClick={() => void createOpenTaskFromProtocol()}>Aufgabe anlegen</button></div>
-          </section>
-        </div>
-      )}
-
-      {inlineConfidentialityDraft && (
-        <div className="industrial-modal-backdrop" role="presentation"><section className="industrial-modal" role="dialog" aria-modal="true" aria-labelledby="inline-conf-title"><div className="industrial-modal-header"><div className="industrial-modal-icon"><Lock className="h-5 w-5" /></div><div><p className="industrial-kicker">Inline-Vertraulichkeit</p><h2 id="inline-conf-title">Vertraulichkeitsstufe anheben</h2><p>Setzt die Vertraulichkeitsstufe der gesamten Notiz direkt hoch.</p></div></div><div className="industrial-modal-grid"><label><span>Stufe</span><select value={inlineConfidentialityDraft.level} onChange={(event) => setInlineConfidentialityDraft((current) => current ? { ...current, level: event.target.value as ConfidentialCommandLevel } : current)}><option value="normal">normal</option><option value="sensibel">sensibel</option><option value="hoch_sensibel">hoch sensibel</option></select></label></div><div className="industrial-modal-preview">Wird eingefügt: <strong>{formatConfidentialityText(inlineConfidentialityDraft.level)}</strong></div><div className="industrial-modal-actions"><button type="button" className="industrial-secondary-button" onClick={cancelInlineConfidentialityDraft}>Abbrechen</button><button type="button" className="industrial-button" onClick={applyConfidentialityFromProtocol}>Übernehmen</button></div></section></div>
-      )}
-
-      {inlineAnonymizationDraft && (
-        <div className="industrial-modal-backdrop" role="presentation"><section className="industrial-modal" role="dialog" aria-modal="true" aria-labelledby="inline-anon-title"><div className="industrial-modal-header"><div className="industrial-modal-icon"><ShieldAlert className="h-5 w-5" /></div><div><p className="industrial-kicker">Inline-Anonymisierung</p><h2 id="inline-anon-title">Anonymisierung vormerken</h2><p>Setzt eine sichtbare Vormerkung im Protokoll. Berichtslogik kann diese Markierung später gezielt auswerten.</p></div></div><div className="industrial-modal-grid"><label><span>Art der Textstelle</span><input value={inlineAnonymizationDraft.label} onChange={(event) => setInlineAnonymizationDraft((current) => current ? { ...current, label: event.target.value } : current)} autoFocus placeholder="z. B. Name, Bereich, Funktion, Gesundheitsdetail" /></label></div><div className="industrial-modal-preview">Wird eingefügt: <strong>{formatAnonymizationMarkerText(inlineAnonymizationDraft.label)}</strong></div><div className="industrial-modal-actions"><button type="button" className="industrial-secondary-button" onClick={cancelInlineAnonymizationDraft}>Abbrechen</button><button type="button" className="industrial-button" onClick={applyAnonymizationMarkerFromProtocol}>Vormerken</button></div></section></div>
-      )}
-
-      {inlineContactDraft && (
-        <div className="industrial-modal-backdrop" role="presentation">
-          <section className="industrial-modal" role="dialog" aria-modal="true" aria-labelledby="inline-contact-title">
-            <div className="industrial-modal-header">
-              <div className="industrial-modal-icon"><Users className="h-5 w-5" /></div>
-              <div>
-                <p className="industrial-kicker">Inline-Kontakt</p>
-                <h2 id="inline-contact-title">Kontakt im Protokoll einfügen</h2>
-                <p>Nach dem Einfügen steht im Text: Name, Vorname (Firma).</p>
-              </div>
-            </div>
-
-            <div className="industrial-modal-grid">
-              <label className="industrial-modal-wide">
-                <span>Bestehenden Kontakt suchen</span>
-                <input
-                  value={inlineContactDraft.query}
-                  onChange={(event) => setInlineContactDraft((current) => current ? { ...current, query: event.target.value } : current)}
-                  placeholder="Name, Organisation, Rolle, E-Mail …"
-                  autoFocus
-                />
-              </label>
-            </div>
-
-            <div className="inline-contact-results">
-              {filterContactsForQuery(contacts, inlineContactDraft.query).map((contact) => (
-                <button key={contact.id} type="button" className="inline-contact-result" onClick={() => void insertExistingContactFromProtocol(contact)}>
-                  <strong>{formatContactReference(contact)}</strong>
-                  <span>{[contact.role, contact.email, contact.phone].filter(Boolean).join(' · ') || 'Kontakt'}</span>
-                </button>
-              ))}
-              {!filterContactsForQuery(contacts, inlineContactDraft.query).length && (
-                <div className="industrial-empty compact">Kein bestehender Kontakt gefunden. Unten neu erfassen.</div>
-              )}
-            </div>
-
-            <div className="industrial-modal-grid">
-              <label><span>Vorname</span><input value={inlineContactDraft.firstName} onChange={(event) => setInlineContactDraft((current) => current ? { ...current, firstName: event.target.value } : current)} /></label>
-              <label><span>Nachname</span><input value={inlineContactDraft.lastName} onChange={(event) => setInlineContactDraft((current) => current ? { ...current, lastName: event.target.value } : current)} /></label>
-              <label><span>Firma / Stelle</span><input value={inlineContactDraft.organization} onChange={(event) => setInlineContactDraft((current) => current ? { ...current, organization: event.target.value } : current)} /></label>
-              <label><span>Rolle</span><input value={inlineContactDraft.role} onChange={(event) => setInlineContactDraft((current) => current ? { ...current, role: event.target.value } : current)} placeholder="z. B. Personalleiter" /></label>
-              <label><span>Kategorie</span><select value={inlineContactDraft.category} onChange={(event) => setInlineContactDraft((current) => current ? { ...current, category: event.target.value as ContactCategory } : current)}><option value="arbeitgeber">Arbeitgeber</option><option value="inklusionsamt">Inklusionsamt</option><option value="agentur_fuer_arbeit">Agentur für Arbeit</option><option value="betriebsarzt">Betriebsarzt</option><option value="betriebsrat">Betriebsrat</option><option value="beratung">Beratung</option><option value="intern">intern</option><option value="sonstiges">sonstiges</option></select></label>
-              <label><span>E-Mail</span><input value={inlineContactDraft.email} onChange={(event) => setInlineContactDraft((current) => current ? { ...current, email: event.target.value } : current)} /></label>
-              <label><span>Telefon</span><input value={inlineContactDraft.phone} onChange={(event) => setInlineContactDraft((current) => current ? { ...current, phone: event.target.value } : current)} /></label>
-            </div>
-
-            {(inlineContactDraft.firstName || inlineContactDraft.lastName) && (
-              <div className="industrial-modal-preview">
-                Wird im Protokoll eingefügt: <strong>{formatContactReference({ firstName: inlineContactDraft.firstName, lastName: inlineContactDraft.lastName, organization: inlineContactDraft.organization })}</strong>
-              </div>
-            )}
-
-            <div className="industrial-modal-actions">
-              <button type="button" className="industrial-secondary-button" onClick={cancelInlineContactDraft}>Abbrechen</button>
-              <button type="button" className="industrial-button" onClick={() => void createAndInsertContactFromProtocol()}>
-                <Users className="h-4 w-4" />Kontakt anlegen und einfügen
-              </button>
-            </div>
-          </section>
-        </div>
-      )}
-
-      {caseProcessDraft && selectedCase && (
-        <div className="industrial-modal-backdrop" role="dialog" aria-modal="true">
-          <section className="industrial-modal">
-            <div className="industrial-panel-header compact">
-              <div>
-                <p className="industrial-kicker">Fallmaßnahme</p>
-                <h2>{processTypeLabel(caseProcessDraft.processType)} anlegen</h2>
-                <p>{selectedCase.caseNumber} · {selectedCase.displayName}</p>
-              </div>
-            </div>
-            <div className="industrial-settings-form mt-5">
-              <label><span>Titel</span><input value={caseProcessDraft.title} onChange={(event) => setCaseProcessDraft((current) => current ? { ...current, title: event.target.value } : current)} /></label>
-              <label><span>Beschreibung / Anlass</span><textarea value={caseProcessDraft.description} onChange={(event) => setCaseProcessDraft((current) => current ? { ...current, description: event.target.value } : current)} /></label>
-              {caseProcessDraft.processType === 'prevention' && <label><span>Frist Arbeitgeberreaktion optional</span><input type="datetime-local" value={caseProcessDraft.dueAt} onChange={(event) => setCaseProcessDraft((current) => current ? { ...current, dueAt: event.target.value } : current)} /></label>}
-              {caseProcessDraft.processType !== 'prevention' && <div className="industrial-message industrial-message-warning">Das Fachmodul ist noch nicht vollständig gebaut. Gremia.SBV legt deshalb zunächst eine fallbezogene Maßnahme als vertrauliche Notiz an.</div>}
-            </div>
-            <div className="industrial-modal-actions">
-              <button type="button" className="industrial-secondary-button" onClick={() => setCaseProcessDraft(null)}>Abbrechen</button>
-              <button type="button" className="industrial-button" onClick={() => void createCaseProcessFromDraft()}>An Fallakte hängen</button>
-            </div>
-          </section>
-        </div>
-      )}
-
-      {inlineDeadlineDraft && (
-        <div className="industrial-modal-backdrop" role="presentation">
-          <section className="industrial-modal" role="dialog" aria-modal="true" aria-labelledby="inline-deadline-title">
-            <div className="industrial-modal-header">
-              <div className="industrial-modal-icon"><CalendarPlus className="h-5 w-5" /></div>
-              <div>
-                <p className="industrial-kicker">Inline-Frist</p>
-                <h2 id="inline-deadline-title">Frist aus Protokoll anlegen</h2>
-                <p>Die Frist wird mit dem aktuell ausgewählten Fall verbunden: {selectedCase?.caseNumber ?? '—'}</p>
-              </div>
-            </div>
-
-            <div className="industrial-modal-grid">
-              <label>
-                <span>Fristtitel</span>
-                <input
-                  value={inlineDeadlineDraft.title}
-                  onChange={(event) => setInlineDeadlineDraft((current) => current ? { ...current, title: event.target.value } : current)}
-                  placeholder="z. B. Antwort Arbeitgeber nachhalten"
-                  autoFocus
-                />
-              </label>
-              <label>
-                <span>Ablaufdatum</span>
-                <input
-                  type="datetime-local"
-                  value={inlineDeadlineDraft.dueAt}
-                  onChange={(event) => setInlineDeadlineDraft((current) => current ? { ...current, dueAt: event.target.value } : current)}
-                />
-              </label>
-              <label>
-                <span>Stufe</span>
-                <select
-                  value={inlineDeadlineDraft.severity}
-                  onChange={(event) => setInlineDeadlineDraft((current) => current ? { ...current, severity: event.target.value as DeadlineSeverity } : current)}
-                >
-                  <option value="normal">normal</option>
-                  <option value="important">wichtig</option>
-                  <option value="critical">kritisch</option>
-                  <option value="fatal">fatal</option>
-                </select>
-              </label>
-              <label>
-                <span>Rechtsbezug</span>
-                <input
-                  value={inlineDeadlineDraft.legalBasis}
-                  onChange={(event) => setInlineDeadlineDraft((current) => current ? { ...current, legalBasis: event.target.value } : current)}
-                  placeholder="optional"
-                />
-              </label>
-              <label className="industrial-modal-wide">
-                <span>Notiz zur Frist</span>
-                <input
-                  value={inlineDeadlineDraft.description}
-                  onChange={(event) => setInlineDeadlineDraft((current) => current ? { ...current, description: event.target.value } : current)}
-                />
-              </label>
-            </div>
-
-            {inlineDeadlineDraft.dueAt && (
-              <div className="industrial-modal-preview">
-                Wird im Protokoll eingefügt: <strong>{buildInlineDeadlineText(inlineDeadlineDraft)}</strong>
-              </div>
-            )}
-
-            <div className="industrial-modal-actions">
-              <button type="button" className="industrial-secondary-button" onClick={cancelInlineDeadlineDraft}>Abbrechen</button>
-              <button type="button" className="industrial-button" onClick={() => void createInlineDeadlineFromProtocol()}>
-                <CalendarPlus className="h-4 w-4" />Frist anlegen
-              </button>
-            </div>
-          </section>
-        </div>
-      )}
+      <InlineCommandOverlays
+        cases={cases}
+        contacts={contacts}
+        selectedCase={selectedCase}
+        {...inlineCommands.overlayProps}
+      />
     </>
   );
 }
@@ -2628,27 +1638,6 @@ export function DeadlineEditor({
 
 
 
-const preventionDifficultyOptions: { value: PreventionDifficultyType; label: string }[] = [
-  { value: 'personenbedingt', label: 'personenbedingt' },
-  { value: 'verhaltensbedingt', label: 'verhaltensbedingt' },
-  { value: 'betriebsbedingt', label: 'betriebsbedingt' },
-  { value: 'organisatorisch', label: 'organisatorisch' },
-  { value: 'gesundheitlich_arbeitsplatzbezogen', label: 'gesundheitlich / arbeitsplatzbezogen' },
-  { value: 'konflikt_fuehrung', label: 'Konflikt / Führung' },
-  { value: 'sonstiges', label: 'sonstiges' }
-];
-
-const preventionRiskOptions: { value: PreventionRiskType; label: string }[] = [
-  { value: 'abmahnung', label: 'Abmahnung' },
-  { value: 'kuendigung', label: 'Kündigung' },
-  { value: 'umsetzung', label: 'Umsetzung' },
-  { value: 'arbeitsunfaehigkeit', label: 'Arbeitsunfähigkeit' },
-  { value: 'ueberlastung', label: 'Überlastung' },
-  { value: 'leistungsverlust', label: 'Leistungsverlust' },
-  { value: 'arbeitsplatzverlust', label: 'Arbeitsplatzverlust' },
-  { value: 'sonstiges', label: 'sonstiges' }
-];
-
 export function SettingsView({ theme, onThemeChange, cases }: { theme: ThemeMode; onThemeChange: (theme: ThemeMode) => void; cases: CaseRecord[] }) {
   return (
     <ModuleFrame title="Einstellungen" kicker="System" description="Passwortverwaltung, Darstellung und lokale Anwendungseinstellungen.">
@@ -2755,7 +1744,7 @@ function TemplateDefaultSettingsForm() {
               <span>{field.label}</span>
               <small>{field.description}</small>
               {field.multiline ? (
-                <textarea value={values[field.key]} onChange={(event) => updateValue(field.key, event.target.value)} />
+                <TextCommandTextarea fieldId={`template-default-${field.key}`} value={values[field.key]} onChange={(event) => updateValue(field.key, event.target.value)} />
               ) : (
                 <input value={values[field.key]} onChange={(event) => updateValue(field.key, event.target.value)} />
               )}
@@ -3004,12 +1993,12 @@ function BackupRestoreForm() {
 function RetentionSettingsPanel({ cases }: { cases: CaseRecord[] }) {
   const [dashboard, setDashboard] = useState<RetentionDashboard | null>(null);
   const [settings, setSettings] = useState<RetentionSettings | null>(null);
-  const [selectedCaseId, setSelectedCaseId] = useState('');
   const [reason, setReason] = useState('');
   const [confirmation, setConfirmation] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [selectedCaseId, setSelectedCaseId] = useState('');
 
   async function reloadRetention() {
     setError('');
@@ -3161,7 +2150,7 @@ function RetentionSettingsPanel({ cases }: { cases: CaseRecord[] }) {
             {cases.map((item) => <option key={item.id} value={item.id}>{item.caseNumber} · {item.displayName}</option>)}
           </select>
         </label>
-        <label><span>Grund / Dokumentation</span><textarea value={reason} onChange={(event) => setReason(event.target.value)} /></label>
+        <label><span>Grund / Dokumentation</span><TextCommandTextarea fieldId="retention-reason" value={reason} onChange={(event) => setReason(event.target.value)} /></label>
         <label><span>Bestätigung</span><input value={confirmation} onChange={(event) => setConfirmation(event.target.value)} placeholder="FALL ANONYMISIEREN oder FALL LÖSCHEN" /></label>
         <div className="flex flex-wrap gap-3">
           <button type="button" className="industrial-secondary-button" disabled={busy} onClick={() => void runCaseAction('anonymize')}>Fall anonymisieren</button>
@@ -3174,19 +2163,6 @@ function RetentionSettingsPanel({ cases }: { cases: CaseRecord[] }) {
     </section>
   );
 }
-
-
-const templateCategoryLabels: Record<TemplateCategory, string> = {
-  praevention: 'Prävention',
-  bem: 'BEM',
-  beteiligung: 'SBV-Beteiligung',
-  kuendigung: 'Kündigung',
-  gleichstellung: 'Gleichstellung',
-  auskunft: 'Auskunft',
-  frist: 'Frist / Erinnerung',
-  datenschutz: 'Datenschutz',
-  sonstiges: 'Sonstiges'
-};
 
 
 function ContextualTemplateButton({
@@ -3288,440 +2264,5 @@ function ContextualTemplateButton({
   );
 }
 
-export function TemplatesView({ cases }: { cases: CaseRecord[] }) {
-  const [templates, setTemplates] = useState<TemplateRecord[]>([]);
-  const [query, setQuery] = useState('');
-  const [category, setCategory] = useState<TemplateCategory | ''>('');
-  const [selectedTemplateId, setSelectedTemplateId] = useState('');
-  const [selectedCaseId, setSelectedCaseId] = useState('');
-  const [deadlineDate, setDeadlineDate] = useState('');
-  const [sbvName, setSbvName] = useState('Schwerbehindertenvertretung');
-  const [recipientName, setRecipientName] = useState('Personalabteilung');
-  const [rendered, setRendered] = useState<RenderedTemplateResult | null>(null);
-  const [info, setInfo] = useState('');
-  const [error, setError] = useState('');
-  const [newTemplate, setNewTemplate] = useState<CreateTemplateInput>({
-    title: '',
-    category: 'sonstiges',
-    subject: '',
-    body: '',
-    description: '',
-    legalBasis: [],
-    tags: []
-  });
-  const [newTemplateProcessStatus, setNewTemplateProcessStatus] = useState<PreventionStatus | ''>('');
-  const [isCreateTemplateModalOpen, setIsCreateTemplateModalOpen] = useState(false);
-  const [isTemplateHelpOpen, setIsTemplateHelpOpen] = useState(false);
-  const [editingTemplate, setEditingTemplate] = useState<TemplateRecord | null>(null);
-  const [editTemplateProcessStatus, setEditTemplateProcessStatus] = useState<PreventionStatus | ''>('');
-  const confirmDialog = useConfirmDialog();
-  const announce = useAnnouncer();
 
-
-  async function loadTemplates(nextQuery = query, nextCategory = category) {
-    const bridge = await waitForBridge();
-    if (!bridge?.templates) throw new Error('Vorlagendienst ist nicht erreichbar.');
-    const rows = await bridge.templates.list({ query: nextQuery, category: nextCategory || undefined, limit: 300 });
-    setTemplates(rows);
-    if (!selectedTemplateId && rows[0]) setSelectedTemplateId(rows[0].id);
-  }
-
-  useEffect(() => {
-    loadTemplates().catch((loadError) => setError(loadError instanceof Error ? loadError.message : 'Vorlagen konnten nicht geladen werden.'));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const selectedTemplate = useMemo(() => templates.find((template) => template.id === selectedTemplateId) ?? templates[0], [templates, selectedTemplateId]);
-
-  async function applyFilters(event?: FormEvent) {
-    event?.preventDefault();
-    setError('');
-    setInfo('');
-    try {
-      await loadTemplates(query, category);
-    } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : 'Vorlagen konnten nicht geladen werden.');
-    }
-  }
-
-  async function renderSelectedTemplate() {
-    if (!selectedTemplate) return;
-    setError('');
-    setInfo('');
-    try {
-      const bridge = await waitForBridge();
-      if (!bridge?.templates) throw new Error('Vorlagendienst ist nicht erreichbar.');
-      const result = await bridge.templates.render({
-        templateId: selectedTemplate.id,
-        caseId: selectedCaseId || undefined,
-        values: {
-          'frist.datum': deadlineDate,
-          'sbv.name': sbvName,
-          'arbeitgeber.ansprechpartner': recipientName
-        },
-        archive: true
-      });
-      setRendered(result);
-      setInfo('Entwurf wurde erzeugt und im geschützten Vorlagenverlauf archiviert.');
-    } catch (renderError) {
-      setError(renderError instanceof Error ? renderError.message : 'Vorlage konnte nicht erzeugt werden.');
-    }
-  }
-
-  async function copyRenderedText() {
-    if (!rendered) return;
-    const text = `Betreff: ${rendered.subject}\n\n${rendered.body}`;
-    const scan = scanSensitiveExportText(text, { context: 'Vorlagenexport', target: rendered.title });
-    const confirmed = await confirmDialog({
-      variant: 'warning',
-      title: 'Entwurf in Zwischenablage kopieren?',
-      message: buildExportWarningMessage(scan),
-      confirmLabel: 'Kopieren',
-      cancelLabel: 'Abbrechen'
-    });
-    if (!confirmed) return;
-    try {
-      await navigator.clipboard.writeText(text);
-      const successMessage = 'Entwurf wurde in die Zwischenablage kopiert. Hinweis: Die Zwischenablage liegt außerhalb des Tresors.';
-      setInfo(successMessage);
-      announce(successMessage, 'polite');
-    } catch {
-      const errorMessage = 'Kopieren in die Zwischenablage war nicht möglich. Bitte den Text manuell markieren.';
-      setError(errorMessage);
-      announce(errorMessage, 'assertive');
-    }
-  }
-
-  async function createOwnTemplate(event: FormEvent) {
-    event.preventDefault();
-    setError('');
-    setInfo('');
-    try {
-      const bridge = await waitForBridge();
-      if (!bridge?.templates) throw new Error('Vorlagendienst ist nicht erreichbar.');
-      const created = await bridge.templates.create({
-        ...newTemplate,
-        legalBasis: (newTemplate.legalBasis ?? []).flatMap((entry) => String(entry).split(',')).map((entry) => entry.trim()).filter(Boolean),
-        tags: [
-          ...(newTemplate.tags ?? []).flatMap((entry) => String(entry).split(',')).map((entry) => entry.trim()).filter(Boolean),
-          ...(newTemplate.category === 'praevention' ? ['massnahme:prevention'] : []),
-          ...(newTemplate.category === 'praevention' && newTemplateProcessStatus ? [`status:${newTemplateProcessStatus}`] : [])
-        ].filter((entry, index, all) => all.indexOf(entry) === index)
-      });
-      setNewTemplate({ title: '', category: 'sonstiges', subject: '', body: '', description: '', legalBasis: [], tags: [] });
-      setNewTemplateProcessStatus('');
-      setIsCreateTemplateModalOpen(false);
-      await loadTemplates(query, category);
-      setSelectedTemplateId(created.id);
-      setInfo('Eigene Vorlage wurde gespeichert.');
-    } catch (createError) {
-      setError(createError instanceof Error ? createError.message : 'Vorlage konnte nicht gespeichert werden.');
-    }
-  }
-
-  function openEditTemplate(template: TemplateRecord) {
-    setEditingTemplate({
-      ...template,
-      legalBasis: [...template.legalBasis],
-      tags: [...template.tags]
-    });
-    const statusTag = template.tags.find((tag) => tag.startsWith('status:'));
-    setEditTemplateProcessStatus(statusTag ? statusTag.replace('status:', '') as PreventionStatus : '');
-    setRendered(null);
-    setError('');
-    setInfo('');
-  }
-
-  async function saveEditedTemplate(event: FormEvent) {
-    event.preventDefault();
-    if (!editingTemplate) return;
-    setError('');
-    setInfo('');
-    try {
-      const bridge = await waitForBridge();
-      if (!bridge?.templates) throw new Error('Vorlagendienst ist nicht erreichbar.');
-      const nextTags = [
-        ...(editingTemplate.tags ?? []).flatMap((entry) => String(entry).split(',')).map((entry) => entry.trim()).filter(Boolean).filter((entry) => !entry.startsWith('status:') && entry !== 'massnahme:prevention'),
-        ...(editingTemplate.category === 'praevention' ? ['massnahme:prevention'] : []),
-        ...(editingTemplate.category === 'praevention' && editTemplateProcessStatus ? [`status:${editTemplateProcessStatus}`] : [])
-      ].filter((entry, index, all) => all.indexOf(entry) === index);
-
-      const payload = {
-        title: editingTemplate.title,
-        category: editingTemplate.category,
-        subject: editingTemplate.subject,
-        body: editingTemplate.body,
-        description: editingTemplate.description,
-        legalBasis: (editingTemplate.legalBasis ?? []).flatMap((entry) => String(entry).split(',')).map((entry) => entry.trim()).filter(Boolean),
-        tags: nextTags
-      };
-
-      if (bridge.templates.update) {
-        await bridge.templates.update(editingTemplate.id, payload);
-      } else {
-        throw new Error('Vorlagenänderung wird von der Datenbrücke noch nicht unterstützt.');
-      }
-      setEditingTemplate(null);
-      await loadTemplates(query, category);
-      setSelectedTemplateId(editingTemplate.id);
-      setInfo('Vorlage wurde aktualisiert.');
-    } catch (updateError) {
-      setError(updateError instanceof Error ? updateError.message : 'Vorlage konnte nicht aktualisiert werden.');
-    }
-  }
-
-  async function deleteTemplate(template: TemplateRecord) {
-    const confirmed = await confirmDialog({
-      variant: 'danger',
-      title: 'Vorlage löschen?',
-      message: `Die Vorlage „${template.title}“ wird dauerhaft gelöscht.`,
-      confirmLabel: 'Vorlage löschen',
-      cancelLabel: 'Abbrechen'
-    });
-    if (!confirmed) return;
-    setError('');
-    setInfo('');
-    try {
-      const bridge = await waitForBridge();
-      if (!bridge?.templates) throw new Error('Vorlagendienst ist nicht erreichbar.');
-      if (bridge.templates.delete) {
-        await bridge.templates.delete(template.id);
-      } else {
-        throw new Error('Vorlagenlöschung wird von der Datenbrücke noch nicht unterstützt.');
-      }
-      if (selectedTemplateId === template.id) setSelectedTemplateId('');
-      setRendered(null);
-      await loadTemplates(query, category);
-      setInfo('Vorlage wurde gelöscht.');
-      announce('Vorlage wurde gelöscht.', 'polite');
-    } catch (deleteError) {
-      const errorMessage = deleteError instanceof Error ? deleteError.message : 'Vorlage konnte nicht gelöscht werden.';
-      setError(errorMessage);
-      announce(errorMessage, 'assertive');
-    }
-  }
-
-  const categories = Object.keys(templateCategoryLabels) as TemplateCategory[];
-
-  return (
-    <ModuleFrame
-      title="Vorlagen"
-      kicker="Schriftverkehr"
-      description="Standardschreiben mit Platzhaltern. Tonalität: freundlich, rechtlich klar, verbindlich und ohne unnötige Diskussionsöffnung."
-    >
-      <section className="industrial-panel">
-        <div className="template-catalog-toolbar">
-          <div className="template-title-cluster">
-            <button
-              type="button"
-              className="template-help-button"
-              onClick={() => setIsTemplateHelpOpen(true)}
-              aria-label="Hilfe zu Vorlagen und Platzhaltern öffnen"
-              title="Hilfe zu Platzhaltern"
-            >
-              <HelpCircle className="h-4 w-4" />
-            </button>
-            <div>
-              <p className="industrial-kicker">Auswahl</p>
-              <h2>Vorlagenkatalog</h2>
-            </div>
-          </div>
-          <button type="button" className="industrial-button" onClick={() => setIsCreateTemplateModalOpen(true)}>
-            <Plus className="h-4 w-4" /> Neue Vorlage
-          </button>
-        </div>
-        <form onSubmit={applyFilters} className="template-filter-form">
-          <label><span>Suche</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Prävention, Beteiligung, Kündigung ..." /></label>
-          <label><span>Kategorie</span><select value={category} onChange={(event) => setCategory(event.target.value as TemplateCategory | '')}><option value="">Alle</option>{categories.map((item) => <option key={item} value={item}>{templateCategoryLabels[item]}</option>)}</select></label>
-          <button type="submit" className="industrial-secondary-button"><Search className="h-4 w-4" />Filtern</button>
-        </form>
-        {error && <div className="industrial-message industrial-message-warning mb-4">{error}</div>}
-        {info && <div className="industrial-message mb-4">{info}</div>}
-        <div className="grid gap-4 xl:grid-cols-[0.9fr_1.4fr]">
-          <div className="space-y-3">
-            {templates.map((template) => (
-              <div key={template.id} className={`template-list-row ${selectedTemplate?.id === template.id ? 'active' : ''}`}>
-                <button
-                  type="button"
-                  className="industrial-list-item template-list-main w-full text-left"
-                  onClick={() => { setSelectedTemplateId(template.id); setRendered(null); }}
-                >
-                  <strong>{template.title}</strong>
-                  <span>{templateCategoryLabels[template.category]} · {template.legalBasis.join(', ') || 'ohne Normbezug'}</span>
-                  <p>{template.description}</p>
-                </button>
-                <button
-                  type="button"
-                  className="template-trash-button"
-                  onClick={() => void deleteTemplate(template)}
-                  aria-label={`Vorlage ${template.title} löschen`}
-                  title="Vorlage löschen"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
-            ))}
-            {!templates.length && <div className="industrial-empty">Keine Vorlage gefunden.</div>}
-          </div>
-
-          <div className="industrial-subpanel">
-            {selectedTemplate ? (
-              <>
-                <div className="industrial-case-header">
-                  <div>
-                    <p className="industrial-kicker">{templateCategoryLabels[selectedTemplate.category]}</p>
-                    <h2>{selectedTemplate.title}</h2>
-                    <p>{selectedTemplate.description}</p>
-                  </div>
-                </div>
-
-                <div className="template-detail-meta mt-4">
-                  <div><span>Kategorie</span><strong>{templateCategoryLabels[selectedTemplate.category]}</strong></div>
-                  <div><span>Normen</span><strong>{selectedTemplate.legalBasis.join(', ') || 'ohne Normbezug'}</strong></div>
-                  <div><span>Tags</span><strong>{selectedTemplate.tags.join(', ') || 'keine Tags'}</strong></div>
-                </div>
-
-                <div className="industrial-subpanel mt-4">
-                  <h4>Vorlagentext</h4>
-                  <p className="industrial-meta"><strong>Betreff:</strong> {selectedTemplate.subject}</p>
-                  <pre className="industrial-prewrap">{selectedTemplate.body}</pre>
-                </div>
-
-                <div className="mt-4 flex flex-wrap gap-3">
-                  <button type="button" className="industrial-button" onClick={() => openEditTemplate(selectedTemplate)}><FileText className="h-4 w-4" />Vorlage bearbeiten</button>
-                </div>
-              </>
-            ) : (
-              <div className="industrial-empty">Bitte eine Vorlage auswählen.</div>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {isCreateTemplateModalOpen && (
-        <div className="industrial-modal-backdrop" role="presentation">
-          <section className="industrial-modal template-create-modal" role="dialog" aria-modal="true" aria-labelledby="template-create-title">
-            <div className="industrial-modal-header">
-              <div className="industrial-modal-icon"><FileText className="h-5 w-5" /></div>
-              <div>
-                <p className="industrial-kicker">Eigene Vorlage</p>
-                <h2 id="template-create-title">Vorlage ergänzen</h2>
-                <p>Neue Standardschreiben werden hier angelegt und können anschließend aus Fallakte oder Maßnahme heraus genutzt werden.</p>
-              </div>
-            </div>
-        <form onSubmit={createOwnTemplate} className="template-create-form">
-          <div className="template-form-grid">
-            <label><span>Titel</span><input value={newTemplate.title} onChange={(event) => setNewTemplate((draft) => ({ ...draft, title: event.target.value }))} autoFocus /></label>
-            <label><span>Kategorie</span><select value={newTemplate.category} onChange={(event) => setNewTemplate((draft) => ({ ...draft, category: event.target.value as TemplateCategory }))}>{categories.map((item) => <option key={item} value={item}>{templateCategoryLabels[item]}</option>)}</select></label>
-            <label><span>Maßnahmenstatus</span><select value={newTemplateProcessStatus} onChange={(event) => setNewTemplateProcessStatus(event.target.value as PreventionStatus | '')} disabled={newTemplate.category !== 'praevention'}><option value="">alle / nicht gebunden</option>{preventionStatusOrder.map((status) => <option key={status} value={status}>{statusLabel(status)}</option>)}</select></label>
-            <label><span>Normen</span><input value={(newTemplate.legalBasis ?? []).join(', ')} onChange={(event) => setNewTemplate((draft) => ({ ...draft, legalBasis: [event.target.value] }))} placeholder="§ 178 Abs. 2 Satz 1 SGB IX" /></label>
-            <label><span>Tags</span><input value={(newTemplate.tags ?? []).join(', ')} onChange={(event) => setNewTemplate((draft) => ({ ...draft, tags: [event.target.value] }))} placeholder="Beteiligung, Frist, HR" /></label>
-          </div>
-          <label><span>Beschreibung</span><input value={newTemplate.description ?? ''} onChange={(event) => setNewTemplate((draft) => ({ ...draft, description: event.target.value }))} /></label>
-          <label><span>Betreff</span><input value={newTemplate.subject} onChange={(event) => setNewTemplate((draft) => ({ ...draft, subject: event.target.value }))} placeholder="Beteiligung der SBV – {{fall.aktenzeichen}}" /></label>
-          <label><span>Text</span><textarea value={newTemplate.body} onChange={(event) => setNewTemplate((draft) => ({ ...draft, body: event.target.value }))} placeholder="Sehr geehrte Damen und Herren, ..." /></label>
-          <div className="template-form-hint">Platzhalter kannst du über das Hilfe-Symbol im Vorlagenkatalog nachschlagen.</div>
-          <div className="industrial-modal-actions">
-            <button type="button" className="industrial-secondary-button" onClick={() => setIsCreateTemplateModalOpen(false)}>Abbrechen</button>
-            <button type="submit" className="industrial-button"><Save className="h-4 w-4" />Vorlage speichern</button>
-          </div>
-        </form>
-          </section>
-        </div>
-      )}
-      {editingTemplate && (
-        <div className="industrial-modal-backdrop" role="presentation">
-          <section className="industrial-modal template-create-modal" role="dialog" aria-modal="true" aria-labelledby="template-edit-title">
-            <div className="industrial-modal-header">
-              <div className="industrial-modal-icon"><FileText className="h-5 w-5" /></div>
-              <div>
-                <p className="industrial-kicker">Vorlage bearbeiten</p>
-                <h2 id="template-edit-title">{editingTemplate.title}</h2>
-                <p>Text, Tags, Normen und Zuordnung dieser Vorlage ändern.</p>
-              </div>
-            </div>
-            <form onSubmit={saveEditedTemplate} className="template-create-form">
-              <div className="template-form-grid">
-                <label><span>Titel</span><input value={editingTemplate.title} onChange={(event) => setEditingTemplate((draft) => draft ? { ...draft, title: event.target.value } : draft)} autoFocus /></label>
-                <label><span>Kategorie</span><select value={editingTemplate.category} onChange={(event) => setEditingTemplate((draft) => draft ? { ...draft, category: event.target.value as TemplateCategory } : draft)}>{categories.map((item) => <option key={item} value={item}>{templateCategoryLabels[item]}</option>)}</select></label>
-                <label><span>Maßnahmenstatus</span><select value={editTemplateProcessStatus} onChange={(event) => setEditTemplateProcessStatus(event.target.value as PreventionStatus | '')} disabled={editingTemplate.category !== 'praevention'}><option value="">alle / nicht gebunden</option>{preventionStatusOrder.map((status) => <option key={status} value={status}>{statusLabel(status)}</option>)}</select></label>
-                <label><span>Normen</span><input value={(editingTemplate.legalBasis ?? []).join(', ')} onChange={(event) => setEditingTemplate((draft) => draft ? { ...draft, legalBasis: [event.target.value] } : draft)} placeholder="§ 178 Abs. 2 Satz 1 SGB IX" /></label>
-                <label><span>Tags</span><input value={(editingTemplate.tags ?? []).filter((tag) => tag !== 'massnahme:prevention' && !tag.startsWith('status:')).join(', ')} onChange={(event) => setEditingTemplate((draft) => draft ? { ...draft, tags: [event.target.value] } : draft)} placeholder="Beteiligung, Frist, HR" /></label>
-              </div>
-              <label><span>Beschreibung</span><input value={editingTemplate.description ?? ''} onChange={(event) => setEditingTemplate((draft) => draft ? { ...draft, description: event.target.value } : draft)} /></label>
-              <label><span>Betreff</span><input value={editingTemplate.subject} onChange={(event) => setEditingTemplate((draft) => draft ? { ...draft, subject: event.target.value } : draft)} placeholder="Beteiligung der SBV – {{fall.aktenzeichen}}" /></label>
-              <label><span>Text</span><textarea value={editingTemplate.body} onChange={(event) => setEditingTemplate((draft) => draft ? { ...draft, body: event.target.value } : draft)} placeholder="Sehr geehrte Damen und Herren, ..." /></label>
-              <div className="template-form-hint">Bei Präventionsvorlagen werden die Tags <code>massnahme:prevention</code> und bei Statusbindung <code>status:...</code> automatisch gesetzt.</div>
-              <div className="industrial-modal-actions">
-                <button type="button" className="industrial-secondary-button" onClick={() => setEditingTemplate(null)}>Abbrechen</button>
-                <button type="submit" className="industrial-button"><Save className="h-4 w-4" />Änderungen speichern</button>
-              </div>
-            </form>
-          </section>
-        </div>
-      )}
-      {isTemplateHelpOpen && (
-        <div className="industrial-modal-backdrop" role="presentation">
-          <section className="industrial-modal template-help-modal" role="dialog" aria-modal="true" aria-labelledby="template-help-title">
-            <div className="industrial-modal-header">
-              <div className="industrial-modal-icon"><HelpCircle className="h-5 w-5" /></div>
-              <div>
-                <p className="industrial-kicker">Hilfe</p>
-                <h2 id="template-help-title">Platzhalter in Vorlagen</h2>
-                <p>Platzhalter werden in doppelten geschweiften Klammern geschrieben. Allgemeine Werte wie SBV-Name oder Arbeitgeber-Ansprechstelle pflegst du unter Einstellungen → Vorlagen & Standardwerte.</p>
-              </div>
-            </div>
-            <div className="template-placeholder-help">
-              <section>
-                <h3>Allgemein</h3>
-                <code>{'{{heute}}'}</code>
-                <p>Aktuelles Datum.</p>
-                <code>{'{{sbv.name}}'}</code>
-                <p>Name oder Funktionsbezeichnung der SBV als Absender.</p>
-                <code>{'{{arbeitgeber.ansprechpartner}}'}</code>
-                <p>Ansprechstelle des Arbeitgebers, z. B. Personalabteilung.</p>
-              </section>
-              <section>
-                <h3>Fallakte</h3>
-                <code>{'{{fall.aktenzeichen}}'}</code>
-                <p>Aktenzeichen des ausgewählten Falls.</p>
-                <code>{'{{fall.name}}'}</code>
-                <p>Name oder Pseudonym aus der Fallakte.</p>
-                <code>{'{{fall.kurzbeschreibung}}'}</code>
-                <p>Kurzbeschreibung des Falls.</p>
-                <code>{'{{person.name}}'}</code>
-                <p>Personenbezug aus dem Fall, soweit vorhanden.</p>
-              </section>
-              <section>
-                <h3>Fristen und Normen</h3>
-                <code>{'{{frist.datum}}'}</code>
-                <p>Datum, das beim Erzeugen des Schreibens eingetragen wurde.</p>
-                <code>{'{{normen}}'}</code>
-                <p>Normbezüge der Vorlage oder des Vorgangs.</p>
-              </section>
-              <section>
-                <h3>Präventionsverfahren</h3>
-                <code>{'{{praevention.status}}'}</code>
-                <p>Aktueller Status der Maßnahme.</p>
-                <code>{'{{praevention.gefaehrdung}}'}</code>
-                <p>Dokumentierte Gefährdung oder Ausgangslage.</p>
-                <code>{'{{praevention.arbeitgeberfrist}}'}</code>
-                <p>Frist zur Arbeitgeberreaktion.</p>
-                <code>{'{{praevention.massnahmen}}'}</code>
-                <p>Geplante oder dokumentierte Maßnahmen.</p>
-              </section>
-            </div>
-            <div className="template-help-example">
-              <h3>Beispiel</h3>
-              <pre>{'Bitte stellen Sie mir die Unterlagen zur Fallakte {{fall.aktenzeichen}} bis zum {{frist.datum}} zur Verfügung.'}</pre>
-            </div>
-            <div className="industrial-modal-actions">
-              <button type="button" className="industrial-button" onClick={() => setIsTemplateHelpOpen(false)}>Schließen</button>
-            </div>
-          </section>
-        </div>
-      )}
-    </ModuleFrame>
-  );
-}
 

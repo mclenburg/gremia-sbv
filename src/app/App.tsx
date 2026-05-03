@@ -14,6 +14,7 @@ import { KnowledgeView } from './features/knowledge/KnowledgeView';
 import { PreventionView } from './features/prevention/PreventionView';
 import { ContactsView } from './features/contacts/ContactsView';
 import { ReportsView } from './features/reports/ReportsView';
+import { TemplatesView } from './features/templates/TemplatesView';
 import {
   applyTheme,
   DashboardOverview,
@@ -24,7 +25,6 @@ import {
   LoginGate,
   nowLabel,
   SettingsView,
-  TemplatesView,
   waitForBridge,
   type AuthMode,
   type CaseNodeTarget,
@@ -270,7 +270,7 @@ export function App() {
         {currentView === 'contacts' && <ContactsView contacts={contacts} onCreateContact={createContact} onDeleteContact={deleteContact} />}
         {currentView === 'knowledge' && <KnowledgeView cases={cases} />}
         {currentView === 'prevention' && <PreventionView cases={cases} onOpenCaseNode={openCaseNode} />}
-        {currentView === 'templates' && <TemplatesView cases={cases} />}
+        {currentView === 'templates' && <TemplatesView />}
         {currentView === 'reports' && <ReportsView />}
         {currentView === 'settings' && <SettingsView theme={theme} onThemeChange={setTheme} cases={cases} />}
         {currentView !== 'dashboard' && currentView !== 'cases' && currentView !== 'deadlines' && currentView !== 'contacts' && currentView !== 'knowledge' && currentView !== 'prevention' && currentView !== 'templates' && currentView !== 'reports' && currentView !== 'settings' && currentModule && (
