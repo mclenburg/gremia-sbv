@@ -76,6 +76,10 @@ import './templateWorkbench.css';
 import './templateDefaults.css';
 import './processOverview.css';
 import './knowledgeWorkbench.css';
+import { ConfirmDialogProvider, useConfirmDialog } from './shared/dialogs/ConfirmDialogProvider';
+import { LiveRegionProvider, useAnnouncer } from './shared/a11y/LiveRegionProvider';
+import './confirmDialog.css';
+import './accessibilityLiveRegion.css';
 
 
 function nowLabel(): string {
@@ -950,6 +954,8 @@ function CasesView({
   const [documentError, setDocumentError] = useState('');
   const [searchError, setSearchError] = useState('');
   const [caseToast, setCaseToast] = useState<CaseToast | null>(null);
+  const confirmDialog = useConfirmDialog();
+  const announce = useAnnouncer();
   const [pendingCaseNodeTarget, setPendingCaseNodeTarget] = useState<CaseNodeTarget | null>(null);
 
   useEffect(() => {
@@ -1809,14 +1815,23 @@ ${caseProcessDraft.description}`,
       context: 'Dokumentenexport',
       target: document.filename
     });
-    const confirmed = window.confirm(buildExportWarningMessage(scan));
+    const confirmed = await confirmDialog({
+      variant: 'warning',
+      title: 'Dokument exportieren?',
+      message: buildExportWarningMessage(scan),
+      confirmLabel: 'Exportieren',
+      cancelLabel: 'Abbrechen'
+    });
     if (!confirmed) return;
     try {
       const bridge = await waitForBridge();
       if (!bridge?.cases) throw new Error('Falldienst ist nicht erreichbar.');
       await bridge.cases.exportDocument(document.id, document.filename);
+      announce('Dokument wurde exportiert.', 'polite');
     } catch (error) {
-      setDocumentError(error instanceof Error ? error.message : 'Dokument konnte nicht exportiert werden.');
+      const message = error instanceof Error ? error.message : 'Dokument konnte nicht exportiert werden.';
+      setDocumentError(message);
+      announce(message, 'assertive');
     }
   }
 
@@ -2930,6 +2945,8 @@ function ContactsView({ contacts, onCreateContact, onDeleteContact }: { contacts
   const [phone, setPhone] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const confirmDialog = useConfirmDialog();
+  const announce = useAnnouncer();
 
   const filteredContacts = useMemo(() => filterContactsForQuery(contacts, query), [contacts, query]);
 
@@ -2979,15 +2996,25 @@ function ContactsView({ contacts, onCreateContact, onDeleteContact }: { contacts
                   onClick={async () => {
                     setError('');
                     setMessage('');
-                    const ok = window.confirm(`Kontakt wirklich löschen und alle bekannten Textstellen anonymisieren?\n\n${formatContactReference(contact)}`);
+                    const ok = await confirmDialog({
+                      variant: 'danger',
+                      title: 'Kontakt löschen?',
+                      message: `Der Kontakt wird gelöscht. Bekannte Textstellen werden anonymisiert.\n\n${formatContactReference(contact)}`,
+                      confirmLabel: 'Kontakt löschen',
+                      cancelLabel: 'Abbrechen'
+                    });
                     if (!ok) return;
                     try {
                       const result = await onDeleteContact(contact);
-                      setMessage(result.anonymizedReferences
+                      const successMessage = result.anonymizedReferences
                         ? `Kontakt gelöscht. ${result.anonymizedReferences} Textbezug/Textbezüge in ${result.touchedNotes} Protokoll(en) wurden anonymisiert.`
-                        : 'Kontakt gelöscht. Es wurden keine gespeicherten Textbezüge gefunden.');
+                        : 'Kontakt gelöscht. Es wurden keine gespeicherten Textbezüge gefunden.';
+                      setMessage(successMessage);
+                      announce(successMessage, 'polite');
                     } catch (error) {
-                      setError(error instanceof Error ? error.message : 'Kontakt konnte nicht gelöscht werden.');
+                      const errorMessage = error instanceof Error ? error.message : 'Kontakt konnte nicht gelöscht werden.';
+                      setError(errorMessage);
+                      announce(errorMessage, 'assertive');
                     }
                   }}
                   title="Kontakt löschen und Textbezüge anonymisieren"
@@ -4311,6 +4338,8 @@ function ContextualTemplateButton({
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const confirmDialog = useConfirmDialog();
+  const announce = useAnnouncer();
 
   async function generate() {
     setBusy(true);
@@ -4340,9 +4369,18 @@ function ContextualTemplateButton({
     if (!rendered) return;
     const text = `Betreff: ${rendered.subject}\n\n${rendered.body}`;
     const scan = scanSensitiveExportText(text, { context: 'Vorlagenexport', target: rendered.title });
-    if (!window.confirm(buildExportWarningMessage(scan))) return;
+    const confirmed = await confirmDialog({
+      variant: 'warning',
+      title: 'Entwurf in Zwischenablage kopieren?',
+      message: buildExportWarningMessage(scan),
+      confirmLabel: 'Kopieren',
+      cancelLabel: 'Abbrechen'
+    });
+    if (!confirmed) return;
     await navigator.clipboard.writeText(text);
-    setMessage('Entwurf wurde in die Zwischenablage kopiert. Achtung: Die Zwischenablage liegt außerhalb des Tresors.');
+    const successMessage = 'Entwurf wurde in die Zwischenablage kopiert. Achtung: Die Zwischenablage liegt außerhalb des Tresors.';
+    setMessage(successMessage);
+    announce(successMessage, 'polite');
   }
 
   return (
@@ -4410,6 +4448,8 @@ function TemplatesView({ cases }: { cases: CaseRecord[] }) {
   const [isTemplateHelpOpen, setIsTemplateHelpOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<TemplateRecord | null>(null);
   const [editTemplateProcessStatus, setEditTemplateProcessStatus] = useState<PreventionStatus | ''>('');
+  const confirmDialog = useConfirmDialog();
+  const announce = useAnnouncer();
 
 
   async function loadTemplates(nextQuery = query, nextCategory = category) {
@@ -4466,12 +4506,23 @@ function TemplatesView({ cases }: { cases: CaseRecord[] }) {
     if (!rendered) return;
     const text = `Betreff: ${rendered.subject}\n\n${rendered.body}`;
     const scan = scanSensitiveExportText(text, { context: 'Vorlagenexport', target: rendered.title });
-    if (!window.confirm(buildExportWarningMessage(scan))) return;
+    const confirmed = await confirmDialog({
+      variant: 'warning',
+      title: 'Entwurf in Zwischenablage kopieren?',
+      message: buildExportWarningMessage(scan),
+      confirmLabel: 'Kopieren',
+      cancelLabel: 'Abbrechen'
+    });
+    if (!confirmed) return;
     try {
       await navigator.clipboard.writeText(text);
-      setInfo('Entwurf wurde in die Zwischenablage kopiert. Hinweis: Die Zwischenablage liegt außerhalb des Tresors.');
+      const successMessage = 'Entwurf wurde in die Zwischenablage kopiert. Hinweis: Die Zwischenablage liegt außerhalb des Tresors.';
+      setInfo(successMessage);
+      announce(successMessage, 'polite');
     } catch {
-      setError('Kopieren in die Zwischenablage war nicht möglich. Bitte den Text manuell markieren.');
+      const errorMessage = 'Kopieren in die Zwischenablage war nicht möglich. Bitte den Text manuell markieren.';
+      setError(errorMessage);
+      announce(errorMessage, 'assertive');
     }
   }
 
@@ -4554,7 +4605,14 @@ function TemplatesView({ cases }: { cases: CaseRecord[] }) {
   }
 
   async function deleteTemplate(template: TemplateRecord) {
-    if (!window.confirm(`Vorlage „${template.title}“ wirklich löschen?`)) return;
+    const confirmed = await confirmDialog({
+      variant: 'danger',
+      title: 'Vorlage löschen?',
+      message: `Die Vorlage „${template.title}“ wird dauerhaft gelöscht.`,
+      confirmLabel: 'Vorlage löschen',
+      cancelLabel: 'Abbrechen'
+    });
+    if (!confirmed) return;
     setError('');
     setInfo('');
     try {
@@ -4569,8 +4627,11 @@ function TemplatesView({ cases }: { cases: CaseRecord[] }) {
       setRendered(null);
       await loadTemplates(query, category);
       setInfo('Vorlage wurde gelöscht.');
+      announce('Vorlage wurde gelöscht.', 'polite');
     } catch (deleteError) {
-      setError(deleteError instanceof Error ? deleteError.message : 'Vorlage konnte nicht gelöscht werden.');
+      const errorMessage = deleteError instanceof Error ? deleteError.message : 'Vorlage konnte nicht gelöscht werden.';
+      setError(errorMessage);
+      announce(errorMessage, 'assertive');
     }
   }
 
@@ -4956,7 +5017,9 @@ export function App() {
   }
 
   return (
-    <main className="industrial-shell min-h-screen text-zinc-100">
+    <LiveRegionProvider>
+      <ConfirmDialogProvider>
+        <main className="industrial-shell min-h-screen text-zinc-100">
       <aside className="industrial-sidebar">
         <div className="brand-block">
           <div className="brand-mark">SBV</div>
@@ -5040,6 +5103,8 @@ export function App() {
           />
         )}
       </section>
-    </main>
+        </main>
+      </ConfirmDialogProvider>
+    </LiveRegionProvider>
   );
 }
