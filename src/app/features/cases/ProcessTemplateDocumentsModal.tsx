@@ -43,6 +43,7 @@ export function ProcessTemplateDocumentsModal({
         {state.loading && <div className="industrial-empty">Vorlagen werden geladen …</div>}
         {state.error && <div className="industrial-message industrial-message-warning">{state.error}</div>}
         {state.info && <div className="industrial-message industrial-message-ok">{state.info}</div>}
+        {state.processType === 'bem' && <div className="industrial-message industrial-message-warning">BEM-Dokumente enthalten regelmäßig Gesundheits-, Datenschutz- oder Einwilligungsinformationen. Jeder Download benötigt eine bewusste Exportbestätigung.</div>}
 
         {!state.loading && !state.templates.length && !state.error && (
           <div className="process-template-empty">

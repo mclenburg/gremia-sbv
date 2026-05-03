@@ -105,6 +105,151 @@ Mit freundlichen Grüßen
 {{sbv.name}}`
     },
     {
+      key: 'bem-angebot-datenschutz',
+      title: 'BEM-Angebot mit Datenschutzhinweis',
+      category: 'bem',
+      description: 'BEM-Angebot mit Freiwilligkeit, Datenschutz und Beteiligtenhinweis.',
+      subject: 'Angebot eines Betrieblichen Eingliederungsmanagements – {{fall.aktenzeichen}}',
+      legalBasis: ['§ 167 Abs. 2 SGB IX', 'Art. 9 DSGVO'],
+      tags: ['BEM', 'massnahme:bem', 'status:angebot_vorzubereiten', 'Datenschutz', 'Einwilligung'],
+      body: `Sehr geehrte*r {{fall.name}},
+
+wir möchten Ihnen ein Betriebliches Eingliederungsmanagement nach § 167 Abs. 2 SGB IX anbieten.
+
+Ziel des BEM ist es, gemeinsam zu klären, wie Arbeitsunfähigkeit möglichst überwunden, erneuter Arbeitsunfähigkeit vorgebeugt und Ihr Arbeitsplatz erhalten werden kann. Die Teilnahme ist freiwillig. Aus einer Ablehnung dürfen Ihnen keine unmittelbaren Nachteile entstehen.
+
+Im BEM werden nur die Informationen verarbeitet, die für die Klärung geeigneter Maßnahmen erforderlich sind. Über Beteiligte, Umfang und Inhalte entscheiden Sie mit. Sie können eine erteilte Einwilligung jederzeit mit Wirkung für die Zukunft widerrufen.
+
+Bitte teilen Sie bis zum {{bem.reaktionsfrist}} mit, ob Sie das Angebot annehmen möchten und welche Personen beteiligt werden sollen.
+
+Mit freundlichen Grüßen
+{{sbv.name}}`
+    },
+    {
+      key: 'bem-einwilligung-beteiligte',
+      title: 'BEM-Einwilligung und Beteiligte dokumentieren',
+      category: 'bem',
+      description: 'Dokumentation der freiwilligen Einwilligung und des gewünschten Beteiligtenkreises.',
+      subject: 'BEM – Einwilligung und Beteiligte – {{fall.aktenzeichen}}',
+      legalBasis: ['§ 167 Abs. 2 SGB IX', 'Art. 6 DSGVO', 'Art. 9 DSGVO'],
+      tags: ['BEM', 'massnahme:bem', 'status:angenommen', 'Einwilligung', 'Beteiligte'],
+      body: `BEM-Verfahren: {{fall.aktenzeichen}}
+
+Die betroffene Person hat das BEM-Angebot angenommen.
+
+Einwilligungsumfang / Beteiligte:
+{{bem.beteiligte}}
+
+Datenschutzhinweis erteilt am:
+{{bem.angebot_am}}
+
+Hinweis:
+Die Einwilligung ist freiwillig und kann jederzeit mit Wirkung für die Zukunft widerrufen werden. Inhalte des BEM werden nur zweckgebunden und nur im erforderlichen Umfang dokumentiert.`
+    },
+    {
+      key: 'bem-gespraechsprotokoll',
+      title: 'BEM-Gesprächsprotokoll',
+      category: 'bem',
+      description: 'Strukturiertes Protokoll für Erst- oder Folgegespräche im BEM.',
+      subject: 'BEM-Gesprächsprotokoll – {{fall.aktenzeichen}}',
+      legalBasis: ['§ 167 Abs. 2 SGB IX'],
+      tags: ['BEM', 'massnahme:bem', 'status:gespraech_geplant', 'Protokoll'],
+      body: `BEM-Gesprächsprotokoll
+
+Fall: {{fall.aktenzeichen}}
+Betroffene Person: {{fall.name}}
+Termin: {{bem.erstgespraech}}
+Beteiligte: {{bem.beteiligte}}
+
+Ausgangslage:
+{{bem.ausloeser}}
+
+Besprochene arbeitsplatzbezogene Belastungen / Ressourcen:
+[bitte nur erforderliche Angaben dokumentieren]
+
+Vereinbarte nächste Schritte:
+[bitte ergänzen]
+
+Datenschutz- und Vertraulichkeitshinweis:
+Die Dokumentation enthält nur die für das BEM erforderlichen Informationen. Diagnosen werden nicht dokumentiert, sofern sie für die Maßnahmenklärung nicht erforderlich sind.`
+    },
+    {
+      key: 'bem-massnahmenplan',
+      title: 'BEM-Maßnahmenplan',
+      category: 'bem',
+      description: 'Maßnahmenplan mit Verantwortlichen und Wirksamkeitsprüfung.',
+      subject: 'BEM-Maßnahmenplan – {{fall.aktenzeichen}}',
+      legalBasis: ['§ 167 Abs. 2 SGB IX', '§ 164 Abs. 4 SGB IX'],
+      tags: ['BEM', 'massnahme:bem', 'status:massnahmen_vereinbart', 'Maßnahmenplan'],
+      body: `BEM-Maßnahmenplan
+
+Fall: {{fall.aktenzeichen}}
+
+Vereinbarte Maßnahmen:
+{{bem.massnahmen}}
+
+Verantwortliche / Umsetzung:
+{{bem.beteiligte}}
+
+Wirksamkeitsprüfung:
+{{bem.wirksamkeitspruefung}}
+
+Hinweis:
+Die Wirksamkeit der Maßnahmen wird zum genannten Termin geprüft. Anpassungen sind möglich, wenn die Maßnahme nicht ausreichend trägt oder sich die Arbeitsbedingungen verändern.`
+    },
+    {
+      key: 'bem-wirksamkeitspruefung',
+      title: 'BEM-Wirksamkeitsprüfung',
+      category: 'bem',
+      description: 'Auswertung der Umsetzung und Wirkung vereinbarter BEM-Maßnahmen.',
+      subject: 'BEM-Wirksamkeitsprüfung – {{fall.aktenzeichen}}',
+      legalBasis: ['§ 167 Abs. 2 SGB IX'],
+      tags: ['BEM', 'massnahme:bem', 'status:wirksamkeit_pruefen', 'Evaluation'],
+      body: `BEM-Wirksamkeitsprüfung
+
+Fall: {{fall.aktenzeichen}}
+Prüftermin: {{bem.wirksamkeitspruefung}}
+
+Geprüfte Maßnahmen:
+{{bem.massnahmen}}
+
+Ergebnis / Wirkung:
+{{bem.ergebnis}}
+
+Weitere Schritte:
+[bitte ergänzen]
+
+Bewertung der SBV:
+[bitte ergänzen]`
+    },
+    {
+      key: 'bem-abschlussvermerk',
+      title: 'BEM-Abschlussvermerk',
+      category: 'bem',
+      description: 'Abschlussvermerk mit Ergebnis, offenen Punkten und Aufbewahrungshinweis.',
+      subject: 'BEM-Abschlussvermerk – {{fall.aktenzeichen}}',
+      legalBasis: ['§ 167 Abs. 2 SGB IX', 'DSGVO'],
+      tags: ['BEM', 'massnahme:bem', 'status:abgeschlossen', 'Abschluss', 'Datenschutz'],
+      body: `BEM-Abschlussvermerk
+
+Fall: {{fall.aktenzeichen}}
+Status: {{bem.status}}
+Ergebnis:
+{{bem.ergebnis}}
+
+Offene Punkte:
+[bitte ergänzen]
+
+Aufbewahrung / Löschung:
+BEM-Unterlagen sind getrennt und zweckgebunden aufzubewahren. Nicht erforderliche oder nicht mehr erforderliche Informationen sind zu löschen beziehungsweise nicht weiter zu verwenden.
+
+Abschlussdatum:
+{{datum.heute}}
+
+Mit freundlichen Grüßen
+{{sbv.name}}`
+    },
+    {
       key: 'kuendigungsanhoerung-unterlagen-unvollstaendig',
       title: 'Kündigungsanhörung – Unterlagen unvollständig',
       category: 'kuendigung',

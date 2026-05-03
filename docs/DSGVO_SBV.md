@@ -205,3 +205,8 @@ Nicht übernommen werden:
 - Vollzugriff eines technischen Admins auf fachliche Beratungsdaten.
 
 Diese Punkte können für Gremia.BR sinnvoll sein, sind aber für Gremia.SBV nicht die passende Datenschutzgrundlage.
+
+
+## Ergänzung 0.5.8: BEM-Export und Backup
+
+BEM-Dokumente werden durch den ExportGuard als kritisch behandelt. Backups enthalten den verschlüsselten Tresor einschließlich möglicher Art.-9-DSGVO-Daten und dürfen nur mit getrennter Passphrase und kontrolliertem Speicherort aufbewahrt werden.

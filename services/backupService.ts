@@ -7,7 +7,7 @@ import type { BackupFileSummary, BackupInspectionResult, BackupOperationResult }
 
 const BACKUP_FORMAT = 'gremia-sbv-encrypted-backup';
 const BACKUP_VERSION = 1;
-const CURRENT_APP_VERSION = '0.3.41';
+const CURRENT_APP_VERSION = '0.5.8';
 const RESTORE_CONFIRMATION = 'BACKUP WIEDERHERSTELLEN';
 const MIN_BACKUP_PASSPHRASE_LENGTH = 12;
 
@@ -82,6 +82,25 @@ function walkFiles(root: string, relativeBase = ''): string[] {
     result.push(normalized);
   }
   return result.sort((a, b) => a.localeCompare(b));
+}
+
+function buildBackupPrivacyWarnings(files: BackupPayloadFile[]): string[] {
+  const warnings: string[] = [];
+  warnings.push('Backup enthält den verschlüsselten Gremia.SBV-Tresor einschließlich SBV-, BEM- und Gesundheitsdaten.');
+  warnings.push('Backup-Passphrase getrennt vom Backup aufbewahren; ohne Passphrase ist keine Wiederherstellung möglich.');
+  if (files.some((file) => file.relativePath.includes('exports/'))) {
+    warnings.push('Backup enthält verschlüsselte Berichtsexporte. Weitergabe nur an berechtigte Personen.');
+  }
+  if (files.some((file) => file.relativePath.includes('documents/'))) {
+    warnings.push('Backup enthält Fall- und Dokumentenablagen. Lösch- und Aufbewahrungsfristen beachten.');
+  }
+  return warnings;
+}
+
+function schemaVersionWarning(schemaVersion?: string): string | undefined {
+  if (!schemaVersion) return 'Schema-Version im Backup konnte nicht ermittelt werden.';
+  if (schemaVersion !== '0016') return `Backup-Schema ${schemaVersion} weicht von der erwarteten Schema-Version 0016 ab. Restore nur nach Prüfung durchführen.`;
+  return undefined;
 }
 
 function readSchemaVersion(security: SecurityService): string | undefined {
@@ -167,7 +186,7 @@ export class BackupService {
         createdAt,
         fileCount: files.length,
         totalBytes: files.reduce((sum, file) => sum + file.sizeBytes, 0),
-        warnings: []
+        warnings: buildBackupPrivacyWarnings(files)
       };
     } catch (error) {
       return { ok: false, error: error instanceof Error ? error.message : String(error), warnings: [] };
@@ -191,7 +210,10 @@ export class BackupService {
         fileCount: payload.files.length,
         totalBytes: payload.files.reduce((sum, file) => sum + file.sizeBytes, 0),
         files: payload.files.map(({ contentBase64: _contentBase64, ...summary }) => summary),
-        warnings: []
+        warnings: [
+          ...buildBackupPrivacyWarnings(payload.files),
+          ...(schemaVersionWarning(payload.schemaVersion) ? [schemaVersionWarning(payload.schemaVersion)!] : [])
+        ]
       };
     } catch (error) {
       return { ok: false, filePath, fileName: path.basename(filePath), error: error instanceof Error ? error.message : String(error), warnings: [] };
@@ -248,7 +270,11 @@ export class BackupService {
         fileName: path.basename(filePath),
         fileCount: payload.files.length,
         totalBytes: payload.files.reduce((sum, file) => sum + file.sizeBytes, 0),
-        warnings: [`Der vorherige Datenbestand wurde gesichert unter: ${backupOfCurrent}`],
+        warnings: [
+          `Der vorherige Datenbestand wurde gesichert unter: ${backupOfCurrent}`,
+          ...buildBackupPrivacyWarnings(payload.files),
+          ...(schemaVersionWarning(payload.schemaVersion) ? [schemaVersionWarning(payload.schemaVersion)!] : [])
+        ],
         restartRequired: true
       };
     } catch (error) {

@@ -1,6 +1,6 @@
 {
   "name": "gremia-sbv",
-  "version": "0.5.6",
+  "version": "0.5.9a",
   "private": true,
   "description": "Offline-first Desktop-App für die vertrauliche Fallarbeit der Schwerbehindertenvertretung.",
   "main": "dist-electron/electron/main.js",
@@ -131,7 +131,11 @@
     "test:migration-hardening-054": "vitest run tests/migrationHardening054.test.ts tests/databaseDiagnostics054.test.ts",
     "test:module-boundaries-a11y-055": "vitest run tests/moduleBoundariesA11y055.test.ts tests/liveRegionCoverage055.test.ts",
     "test:module-boundaries-a11y-055a": "vitest run tests/moduleBoundariesA11y055.test.ts tests/moduleBoundaryImportFix055a.test.ts",
-    "test:process-framework-bem-056": "vitest run tests/processFramework056.test.ts tests/bemCompletion056.test.ts"
+    "test:process-framework-bem-056": "vitest run tests/processFramework056.test.ts tests/bemCompletion056.test.ts",
+    "test:bem-guidance-057": "vitest run tests/bemGuidance057.test.ts tests/bemTemplates057.test.ts",
+    "test:privacy-export-backup-058": "vitest run tests/exportGuardBem058.test.ts tests/backupHardening058.test.ts tests/privacyDocs058.test.ts",
+    "test:privacy-export-backup-058a": "vitest run tests/exportGuardBem058.test.ts tests/exportGuardImport058a.test.ts tests/backupHardening058.test.ts tests/privacyDocs058.test.ts",
+    "test:workflow-auth-boundary-059a": "vitest run tests/workflowAuthBoundary059a.test.ts tests/packagePostinstall059.test.ts"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.0",

@@ -504,20 +504,25 @@ export class ReportService {
   private buildBemPreventionReport(input: GenerateReportInput): ReportBuildResult {
     const db = this.dbProvider();
     const opened = periodWhere('created_at', input);
-    const bemPhases = rows(db, `SELECT current_phase, COUNT(*) AS value FROM bem_processes ${opened.sql} GROUP BY current_phase ORDER BY value DESC`, opened.params);
-    const preventionCases = count(db, `SELECT COUNT(*) AS value FROM cases WHERE category = 'praevention'`);
-    const bemCases = count(db, `SELECT COUNT(*) AS value FROM cases WHERE category = 'bem'`);
-    const openBem = count(db, `SELECT COUNT(*) AS value FROM bem_processes WHERE current_phase <> 'abgeschlossen'`);
-    const measures = rows(db, `SELECT status, COUNT(*) AS value FROM bem_measures GROUP BY status ORDER BY value DESC`);
+    const bemStatuses = rows(db, `SELECT status, COUNT(*) AS value FROM bem_processes ${opened.sql} GROUP BY status ORDER BY value DESC`, opened.params);
+    const preventionStatuses = rows(db, `SELECT status, COUNT(*) AS value FROM prevention_processes GROUP BY status ORDER BY value DESC`);
+    const openBem = count(db, `SELECT COUNT(*) AS value FROM bem_processes WHERE status NOT IN ('abgeschlossen', 'abgelehnt', 'abgebrochen')`);
+    const missingPrivacyNotice = count(db, `SELECT COUNT(*) AS value FROM bem_processes WHERE employee_response = 'angenommen' AND (privacy_notice_at IS NULL OR privacy_notice_at = '')`);
+    const missingConsentScope = count(db, `SELECT COUNT(*) AS value FROM bem_processes WHERE employee_response = 'angenommen' AND (consent_scope IS NULL OR consent_scope = '')`);
+    const confidentialBemNotes = count(db, `SELECT COUNT(*) AS value FROM bem_processes WHERE confidential_notes IS NOT NULL AND TRIM(confidential_notes) <> ''`);
     const warnings: string[] = [];
-    if (openBem) warnings.push(`${openBem} BEM-Prozesse sind noch nicht abgeschlossen.`);
+    if (openBem) warnings.push(`${openBem} BEM-Verfahren sind noch nicht abgeschlossen.`);
+    if (missingPrivacyNotice) warnings.push(`${missingPrivacyNotice} angenommene BEM-Verfahren haben keinen dokumentierten Datenschutzhinweis.`);
+    if (missingConsentScope) warnings.push(`${missingConsentScope} angenommene BEM-Verfahren haben keinen dokumentierten Einwilligungsumfang.`);
+    if (confidentialBemNotes) warnings.push(`${confidentialBemNotes} BEM-Verfahren enthalten vertrauliche SBV-Notizen. Export und Weitergabe besonders prüfen.`);
     const metrics = {
-      'BEM-Fälle': bemCases,
-      'Präventionsfälle': preventionCases,
-      'Offene BEM-Prozesse': openBem,
-      'BEM-Maßnahmen': count(db, `SELECT COUNT(*) AS value FROM bem_measures`)
+      'BEM-Verfahren': count(db, `SELECT COUNT(*) AS value FROM bem_processes`),
+      'Präventionsverfahren': count(db, `SELECT COUNT(*) AS value FROM prevention_processes`),
+      'Offene BEM-Verfahren': openBem,
+      'BEM ohne Datenschutzhinweis': missingPrivacyNotice,
+      'BEM mit vertraulichen Notizen': confidentialBemNotes
     };
-    const content = `${metricCards(metrics)}<section class="box"><h2>BEM-Phasen</h2>${table(['Phase', 'Anzahl'], bemPhases.map((row) => [normalizeStatus(row.current_phase), row.value]))}</section><section class="box"><h2>Maßnahmenstatus</h2>${table(['Status', 'Anzahl'], measures.map((row) => [normalizeStatus(row.status), row.value]))}</section>`;
+    const content = `${metricCards(metrics)}<section class="box"><h2>BEM-Status</h2>${table(['Status', 'Anzahl'], bemStatuses.map((row) => [normalizeStatus(row.status), row.value]))}</section><section class="box"><h2>Präventionsstatus</h2>${table(['Status', 'Anzahl'], preventionStatuses.map((row) => [normalizeStatus(row.status), row.value]))}</section><section class="box"><h2>Datenschutz-Hinweis</h2><p>Dieser Bericht ist aggregiert. Vertrauliche BEM-Notizen, Diagnosen und Freitextinhalte werden nicht ausgegeben.</p></section>`;
     return {
       title: 'BEM- und Präventionsbericht',
       warnings,

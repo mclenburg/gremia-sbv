@@ -5,6 +5,7 @@ import { formatDateShort } from '../../shared/format/dates';
 import { fromDateTimeLocalValue, processTypeLabel, toDateTimeLocalValue } from '../cases/caseWorkbenchFormat';
 import { bemStatusLabel, bemStatusOrder, bemStatusReached } from './bemShared';
 import { ProcessDetailHeader, ProcessSection } from '../../shared/process/ProcessDetailHeader';
+import { buildBemStatusGuidance } from '@services/bemGuidancePolicy';
 
 const triggerOptions: { value: BemTriggerType; label: string }[] = [
   { value: 'sechs_wochen_au', label: 'mehr als 6 Wochen AU' },
@@ -51,6 +52,7 @@ export function BemProcessDetail({
   const showMeetingSection = process.employeeResponse === 'angenommen' || bemStatusReached(process.status, 'gespraech_geplant');
   const showMeasuresSection = bemStatusReached(process.status, 'massnahmen_in_klaerung');
   const showCompletionSection = process.status === 'abgeschlossen' || process.status === 'abgebrochen' || process.status === 'abgelehnt';
+  const guidance = buildBemStatusGuidance(process);
 
   return (
     <article className="case-detail-content">
@@ -65,6 +67,25 @@ export function BemProcessDetail({
             { label: 'Frist', value: formatDateShort(process.responseDueAt) || '—' }
           ]}
         />
+        <div className="industrial-message bem-guidance-panel">
+          <div>
+            <strong>{guidance.title}</strong>
+            <p>{guidance.objective}</p>
+          </div>
+          {guidance.suggestedNextStatus && (
+            <button type="button" className="industrial-secondary-button compact" onClick={() => void onUpdate(process.id, { status: guidance.suggestedNextStatus as BemStatus })}>
+              Status vorschlagen: {bemStatusLabel(guidance.suggestedNextStatus)}
+            </button>
+          )}
+          {guidance.required.length > 0 && (
+            <ul>
+              {guidance.required.map((item) => (
+                <li key={item.id} className={`bem-guidance-${item.level}`}>{item.text}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+
         <div className="prevention-status-sections bem-status-sections">
           <ProcessSection title="BEM-Auslöser" objective="Dokumentiert wird der Anlass, nicht eine Diagnose.">
           <label><span>Status</span><select value={process.status} onChange={(event) => void onUpdate(process.id, { status: event.target.value as BemStatus })}>{bemStatusOrder.map((status) => <option key={status} value={status}>{bemStatusLabel(status)}</option>)}</select></label>

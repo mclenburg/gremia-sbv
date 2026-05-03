@@ -24,12 +24,12 @@ import {
   DeadlinesView,
   CasesView,
   getInitialTheme,
-  LoginGate,
   nowLabel,
   SettingsView,
-  type AuthMode,
   type ThemeMode
 } from './workflowViews';
+import { LoginGate } from './features/auth/LoginGate';
+import type { AuthMode } from './core/auth/authTypes';
 import { waitForBridge } from './core/bridge/waitForBridge';
 import type { CaseNodeTarget } from './core/navigation/caseNodeTarget';
 import './caseModalResponsive.css';

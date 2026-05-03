@@ -50,3 +50,18 @@ Modulgrenzen verbessert: `waitForBridge`, `formatDateShort` und `CaseNodeTarget`
 ## Stand 0.5.6
 
 Generic Process Framework ergänzt und BEM fachlich vertieft: Datenschutz-/Einwilligungsdokumentation, Maßnahmenverantwortliche, Wirksamkeitsprüfung und Abschlussgrund sind nun strukturierte Felder. Prävention und BEM nutzen die gemeinsame Maßnahmenübersicht.
+
+
+## Stand 0.5.7
+
+BEM fachlich abgerundet: Statusführung mit Pflichtfeldhinweisen, Statusvorschlägen und BEM-Systemvorlagen für Angebot, Datenschutz, Einwilligung, Gesprächsprotokoll, Maßnahmenplan, Wirksamkeitsprüfung und Abschluss.
+
+
+## Stand 0.5.8
+
+Datenschutz-/Export-Härtung: BEM-Dokumente erhalten eine eigene kritische Exportprüfung, BEM-/Präventionsberichte nutzen das aktuelle Schema und Backups melden Datenschutz-/Schema-Hinweise deutlicher.
+
+
+## Stand 0.5.9a
+
+Auth-Boundary-Schnitt syntaktisch korrigiert: `LoginGate` ist ausgelagert, `DashboardOverview` bleibt intakt. `postinstall` für native Electron-Abhängigkeiten bleibt gesetzt.
