@@ -65,3 +65,8 @@ Datenschutz-/Export-Härtung: BEM-Dokumente erhalten eine eigene kritische Expor
 ## Stand 0.5.9a
 
 Auth-Boundary-Schnitt syntaktisch korrigiert: `LoginGate` ist ausgelagert, `DashboardOverview` bleibt intakt. `postinstall` für native Electron-Abhängigkeiten bleibt gesetzt.
+
+
+## Stand 0.5.10
+
+Fristenmodul weiter entkoppelt: `DeadlinesView` und `DeadlineEditor` liegen jetzt in `src/app/features/deadlines/DeadlinesView.tsx`. `workflowViews.tsx` ist weiter entlastet.

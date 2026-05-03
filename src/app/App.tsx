@@ -20,14 +20,13 @@ import { TemplatesView } from './features/templates/TemplatesView';
 import {
   applyTheme,
   DashboardOverview,
-  DeadlineEditor,
-  DeadlinesView,
   CasesView,
   getInitialTheme,
   nowLabel,
   SettingsView,
   type ThemeMode
 } from './workflowViews';
+import { DeadlinesView, DeadlineEditor } from './features/deadlines/DeadlinesView';
 import { LoginGate } from './features/auth/LoginGate';
 import type { AuthMode } from './core/auth/authTypes';
 import { waitForBridge } from './core/bridge/waitForBridge';
