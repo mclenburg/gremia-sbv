@@ -12,9 +12,10 @@ import { ConfirmDialogProvider } from './shared/dialogs/ConfirmDialogProvider';
 import { LiveRegionProvider } from './shared/a11y/LiveRegionProvider';
 import { KnowledgeView } from './features/knowledge/KnowledgeView';
 import { PreventionView } from './features/prevention/PreventionView';
+import { ContactsView } from './features/contacts/ContactsView';
+import { ReportsView } from './features/reports/ReportsView';
 import {
   applyTheme,
-  ContactsView,
   DashboardOverview,
   DeadlineEditor,
   DeadlinesView,
@@ -22,7 +23,6 @@ import {
   getInitialTheme,
   LoginGate,
   nowLabel,
-  ReportsView,
   SettingsView,
   TemplatesView,
   waitForBridge,

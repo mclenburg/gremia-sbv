@@ -4,9 +4,9 @@ Gremia.SBV ist eine lokale, verschlüsselte Desktop-Anwendung für die vertrauli
 
 Die Anwendung ist bewusst **offline-first** angelegt: keine Cloud-Synchronisierung, keine Telemetrie und kein externer Login-Dienst. SBV-Daten verbleiben lokal und werden verschlüsselt gespeichert.
 
-## Aktueller Stand: Version 0.4.40
+## Aktueller Stand: Version 0.4.42
 
-Version 0.4.40 ist ein Clean-Code- und Stabilisierungsstand:
+Version 0.4.42 ist ein Clean-Code- und Stabilisierungsstand:
 
 - `src/app/App.tsx` wurde auf die App-Shell reduziert: Authentifizierung, globale Provider, Navigation, Datenladen und View-Routing.
 - Die großen Fachansichten wurden aus der Shell in `src/app/workflowViews.tsx` ausgelagert.
@@ -230,7 +230,7 @@ Eine spätere Verbindung zu Gremia.BR bleibt höchstens **lesend**. Sie darf nic
 
 Siehe `services/gremiaBrReadAdapter.ts` und `docs/GREMIA_BR_INTERFACE.md`.
 
-## Clean-Code-Leitlinie ab 0.4.40
+## Clean-Code-Leitlinie ab 0.4.42
 
 - `App.tsx` bleibt Shell und Orchestrierung, nicht Fachlogik-Sammelstelle.
 - Fachliche UI-Logik wird in Features oder ausgelagerte View-Module verschoben.
@@ -240,13 +240,13 @@ Siehe `services/gremiaBrReadAdapter.ts` und `docs/GREMIA_BR_INTERFACE.md`.
 - Temporäre Build-Artefakte und verschachtelte ZIP-Dateien gehören nicht ins Repository.
 
 
-## Architekturstand 0.4.40 – Workflow-Module
+## Architekturstand 0.4.42 – Workflow-Module
 
 Die erste Clean-Code-Refaktorierung wurde weitergeführt. `App.tsx` bleibt die App-Shell. Die bisherige Sammeldatei `workflowViews.tsx` wurde weiter entschärft:
 
 - `KnowledgeView` liegt jetzt in `src/app/features/knowledge/KnowledgeView.tsx`.
 - Die Präventionsübersicht liegt jetzt in `src/app/features/prevention/PreventionView.tsx`.
 - Gemeinsame Präventionslabels und Statusreihenfolgen liegen in `src/app/features/prevention/preventionShared.ts`.
-- `workflowViews.tsx` enthält noch die großen Altbereiche, wird aber ab 0.4.40 schrittweise weiter zerlegt.
+- `workflowViews.tsx` enthält noch die großen Altbereiche, wird aber ab 0.4.42 schrittweise weiter zerlegt.
 
 Nächster sinnvoller Schnitt: `TemplatesView` und danach `CasesView` in eigene Feature-Dateien und Unterkomponenten auslagern.
