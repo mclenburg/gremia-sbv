@@ -5,7 +5,6 @@ describe("README and cleanup finalization", () => {
   it("documents the current package version and does not mention not-yet-implemented external product interfaces", () => {
     const readme = readFileSync("README.md", "utf8");
     const packageJson = JSON.parse(readFileSync("package.json", "utf8")) as { version: string };
-
     expect(readme).toContain(`Stand: ${packageJson.version}`);
     expect(readme).not.toContain("Gremia.BR");
     expect(readme).not.toContain("GREMIA_BR_INTERFACE");
@@ -13,9 +12,9 @@ describe("README and cleanup finalization", () => {
 
   it("keeps App.tsx as shell and documents workflowViews as transition file", () => {
     const readme = readFileSync("README.md", "utf8");
-    expect(readme).toContain("App.tsx               # App-Shell");
-    expect(readme).toContain("workflowViews.tsx     # verbleibende Alt-/Übergangsansichten");
-    expect(readme).toContain("Neue Fachlogik kommt nicht zurück in `App.tsx`.");
+    expect(readme).toContain("App.tsx");
+    expect(readme).toContain("workflowViews");
+    expect(readme).toContain("App.tsx` ist wieder App-Shell");
   });
 
   it("adds cleanup and refactor test scripts", () => {

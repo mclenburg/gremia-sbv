@@ -2,11 +2,12 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 
 describe("accessible confirm dialogs and live regions", () => {
-  it("removes native window.confirm from App.tsx", () => {
+  it("removes native window.confirm from application source", () => {
     const app = readFileSync("src/app/App.tsx", "utf8");
+    const templates = readFileSync("src/app/features/templates/TemplatesView.tsx", "utf8");
     expect(app).not.toContain("window.confirm");
-    expect(app).toContain("useConfirmDialog");
-    expect(app).toContain("ConfirmDialogProvider");
+    expect(templates).not.toContain("window.confirm");
+    expect(templates).toContain("useConfirmDialog");
   });
 
   it("provides an accessible alertdialog implementation", () => {

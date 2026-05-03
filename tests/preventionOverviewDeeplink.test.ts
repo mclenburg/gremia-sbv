@@ -3,26 +3,28 @@ import { readFileSync } from "node:fs";
 
 describe("prevention overview deep-link", () => {
   it("uses reusable process overview components", () => {
-    const app = readFileSync("src/app/App.tsx", "utf8");
-    expect(app).toContain("function ProcessOverviewPage");
-    expect(app).toContain("function ProcessOverviewGroup");
-    expect(app).toContain("function ProcessOverviewCard");
-    expect(app).toContain("groupProcessOverviewRecords");
+    const view = readFileSync("src/app/features/prevention/PreventionView.tsx", "utf8");
+    expect(view).toContain("function ProcessOverviewPage");
+    expect(view).toContain("function ProcessOverviewGroup");
+    expect(view).toContain("function ProcessOverviewCard");
+    expect(view).toContain("groupProcessOverviewRecords");
   });
 
   it("turns PreventionView into overview-only navigation", () => {
-    const app = readFileSync("src/app/App.tsx", "utf8");
-    expect(app).toContain("onOpenCaseNode");
-    expect(app).toContain("Die Bearbeitung erfolgt ausschließlich in der Fallakte.");
-    expect(app).not.toContain("Präventionsverfahren anlegen");
-    expect(app).not.toContain("updateSelected(input: UpdatePreventionProcessInput)");
+    const view = readFileSync("src/app/features/prevention/PreventionView.tsx", "utf8");
+    expect(view).toContain("onOpenCaseNode");
+    expect(view).toContain("Die Bearbeitung erfolgt ausschließlich in der Fallakte.");
+    expect(view).not.toContain("Präventionsverfahren anlegen");
+    expect(view).not.toContain("updateSelected(input: UpdatePreventionProcessInput)");
   });
 
   it("prepares deep linking into the case workbench", () => {
     const app = readFileSync("src/app/App.tsx", "utf8");
-    expect(app).toContain("type CaseNodeTarget");
+    const workflow = readFileSync("src/app/workflowViews.tsx", "utf8");
+    const hook = readFileSync("src/app/features/cases/useCaseWorkbenchData.ts", "utf8");
+    expect(workflow).toContain("type CaseNodeTarget");
     expect(app).toContain("function openCaseNode(target: CaseNodeTarget)");
-    expect(app).toContain("setSelection({ type: 'process', processType: 'prevention', id: pendingCaseNodeTarget.nodeId })");
+    expect(hook).toContain("setSelection({ type: 'process', processType: 'prevention', id: pendingCaseNodeTarget.nodeId })");
   });
 
   it("loads process overview styles", () => {

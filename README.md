@@ -4,7 +4,7 @@ Gremia.SBV ist eine lokale, verschlüsselte Desktop-Anwendung für die vertrauli
 
 Die Anwendung ist bewusst **offline-first** gebaut: keine Cloud-Synchronisierung, keine Telemetrie, kein externer Login-Dienst und keine gemeinsame Fallakte mit Arbeitgeber oder Betriebsrat. SBV-Daten bleiben lokal, werden verschlüsselt gespeichert und werden nur durch bewusste Exporte aus der App herausgegeben.
 
-## Stand: 0.4.47
+## Stand: 0.4.57b
 
 Version 0.4.47 zieht Fallakten-Datenlogik, Registerfilter und Volltextsuche in eigene Hooks und Komponenten.
 

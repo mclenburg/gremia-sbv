@@ -22,7 +22,7 @@ describe("0.4.51 CaseNoteModal extraction", () => {
   it("keeps inline command text handling wired through props", () => {
     const workflow = readFileSync("src/app/workflowViews.tsx", "utf8");
     const component = readFileSync("src/app/features/cases/CaseNoteModal.tsx", "utf8");
-    expect(workflow).toContain("onProtocolTextChange={handleProtocolTextChange}");
+    expect(workflow).toContain("onProtocolTextChange={inlineCommands.handleProtocolTextChange}");
     expect(component).toContain("onProtocolTextChange('content'");
     expect(component).toContain("onProtocolTextChange('nextSteps'");
   });

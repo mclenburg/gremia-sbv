@@ -9,6 +9,6 @@ describe('App-Versionsanzeige', () => {
   });
 
   it('verwendet eine semantisch lesbare Versionsnummer', () => {
-    expect(APP_VERSION).toMatch(/^\d+\.\d+\.\d+(?:[-+][A-Za-z0-9.-]+)?$/);
+    expect(APP_VERSION).toMatch(/^\d+\.\d+\.\d+(?:[a-z]|[-+][A-Za-z0-9.-]+)?$/);
   });
 });

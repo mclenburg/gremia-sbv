@@ -3,9 +3,9 @@ import { readFileSync } from "node:fs";
 
 describe("case toast typing regression", () => {
   it("declares CaseToast type used by the case workbench", () => {
-    const app = readFileSync("src/app/App.tsx", "utf8");
-    expect(app).toContain("type CaseToast =");
-    expect(app).toContain("useState<CaseToast | null>");
+    const workflow = readFileSync("src/app/workflowViews.tsx", "utf8");
+    expect(workflow).toContain("type CaseToast =");
+    expect(workflow).toContain("useState<CaseToast | null>");
   });
 
   it("keeps toast feedback fixed in the viewport", () => {

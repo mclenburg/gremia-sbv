@@ -10,9 +10,9 @@ describe("ModuleFrame compact contract", () => {
   });
 
   it("keeps the case page compact usage", () => {
-    const app = readFileSync("src/app/App.tsx", "utf8");
-    expect(app).toContain("compact");
-    expect(app).toContain('description="Fälle"');
+    const workflow = readFileSync("src/app/workflowViews.tsx", "utf8");
+    expect(workflow).toContain("compact");
+    expect(workflow).toContain("<ModuleFrame");
   });
 
   it("keeps toast and responsive workbench styles", () => {

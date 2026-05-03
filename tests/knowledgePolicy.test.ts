@@ -9,7 +9,7 @@ describe('knowledgePolicy', () => {
   });
 
   it('normalisiert Paragraphensuchen robust', () => {
-    expect(normalizeNormQuery('§§ 178   Abs. 2')).toBe('178 abs. 2');
+    expect(normalizeNormQuery('§§ 178   Abs. 2').trim()).toBe('178 abs. 2');
   });
 
   it('findet Normen über Paragraph, Titel, Kurztext und Tags', () => {

@@ -1,5 +1,5 @@
-import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import { existsSync, readFileSync } from 'node:fs';
 
 describe('Clean-Code-Refaktorierung 0.4.39', () => {
   it('hält App.tsx als schlanke Shell', () => {
@@ -9,12 +9,11 @@ describe('Clean-Code-Refaktorierung 0.4.39', () => {
     expect(source).toContain("from './workflowViews'");
   });
 
-  it('lagert Fachansichten in ein separates View-Modul aus', () => {
+  it('lagert Fachansichten in separate View- oder Feature-Module aus', () => {
     expect(existsSync('src/app/workflowViews.tsx')).toBe(true);
-    const source = readFileSync('src/app/workflowViews.tsx', 'utf8');
-    expect(source).toContain('export function CasesView');
-    expect(source).toContain('export function TemplatesView');
-    expect(source).toContain('export function KnowledgeView');
+    expect(readFileSync('src/app/workflowViews.tsx', 'utf8')).toContain('export function CasesView');
+    expect(existsSync('src/app/features/templates/TemplatesView.tsx')).toBe(true);
+    expect(existsSync('src/app/features/knowledge/KnowledgeView.tsx')).toBe(true);
   });
 
   it('enthält keine verschachtelten ZIP-Artefakte im Projektwurzelverzeichnis', () => {

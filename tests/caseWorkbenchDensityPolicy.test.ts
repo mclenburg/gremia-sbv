@@ -9,8 +9,8 @@ describe("case workbench density patch", () => {
   });
 
   it("renders compact case register toolbar", () => {
-    const app = readFileSync("src/app/App.tsx", "utf8");
-    expect(app).toContain("case-register-toolbar compact");
-    expect(app).toContain("case-register-table-shell");
+    const register = readFileSync("src/app/features/cases/CaseRegister.tsx", "utf8");
+    expect(register).toContain("case-register-toolbar compact");
+    expect(register).toContain("case-register-table-shell");
   });
 });
