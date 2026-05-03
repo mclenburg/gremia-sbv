@@ -5,11 +5,11 @@ describe("0.5.2 BEM overview and case detail alignment", () => {
   it("uses the reusable process overview structure for the BEM dashboard", () => {
     const source = readFileSync("src/app/features/bem/BemView.tsx", "utf8");
 
-    expect(source).toContain("process-overview-panel bem-overview-panel");
-    expect(source).toContain("process-overview-stats");
-    expect(source).toContain("process-overview-group-header");
-    expect(source).toContain("collapsedByDefault: isDoneBemStatus(status) || records.length === 0");
-    expect(source).toContain("return [...activeGroups, ...(nextEmptyGroup ? [nextEmptyGroup] : []), ...doneGroups]");
+    expect(source).toContain("ProcessOverviewPage");
+    expect(source).toContain("stats={[");
+    expect(source).toContain("groupProcessOverviewRecords");
+    expect(source).toContain("keepNextEmptyActiveGroup: true");
+    expect(readFileSync("src/app/shared/process/ProcessOverview.tsx", "utf8")).toContain("return [...activeGroups, ...(nextEmptyGroup ? [nextEmptyGroup] : []), ...doneGroups]");
     expect(source).toContain("onOpenCaseNode({ caseId: selected.caseId, nodeType: 'bem', nodeId: selected.id })");
   });
 
@@ -17,12 +17,12 @@ describe("0.5.2 BEM overview and case detail alignment", () => {
     const source = readFileSync("src/app/features/bem/BemProcessDetail.tsx", "utf8");
 
     expect(source).toContain("case-detail-inline-form");
-    expect(source).toContain("case-process-header");
-    expect(source).toContain("case-process-title-row");
-    expect(source).toContain("case-process-document-link");
-    expect(source).toContain("case-process-badges");
-    expect(source).toContain('<span className="case-process-badge"><strong>Status</strong>{bemStatusLabel(process.status)}</span>');
-    expect(source).toContain("<strong>Reaktion</strong>{process.employeeResponse.replaceAll('_', ' ')}");
+    expect(source).toContain("ProcessDetailHeader");
+    expect(readFileSync("src/app/shared/process/ProcessDetailHeader.tsx", "utf8")).toContain("case-process-title-row");
+    expect(readFileSync("src/app/shared/process/ProcessDetailHeader.tsx", "utf8")).toContain("case-process-document-link");
+    expect(readFileSync("src/app/shared/process/ProcessDetailHeader.tsx", "utf8")).toContain("case-process-badges");
+    expect(source).toContain("{ label: 'Status', value: bemStatusLabel(process.status) }");
+    expect(source).toContain("{ label: 'Reaktion', value: process.employeeResponse.replaceAll('_', ' ') }");
   });
 
   it("keeps dedicated CSS refinements for the compact BEM overview", () => {

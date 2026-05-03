@@ -5,7 +5,8 @@ import { ModuleFrame } from '../../shared/components/ModuleFrame';
 import { TextCommandTextarea } from '../../shared/textCommands/TextCommandTextarea';
 import type { CaseRecord } from '../../core/models/case.model';
 import type { CaseLawRecord, CaseLegalReferenceRecord, LegalNormRecord, NormChecklistItemRecord, NormCommentRecord } from '../../core/models/knowledge.model';
-import { waitForBridge } from '../../workflowViews';
+import { waitForBridge } from '../../core/bridge/waitForBridge';
+import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 
 const SBV_ADVISOR_KNOWLEDGE_ENTRIES = [
   {
@@ -328,6 +329,15 @@ export function KnowledgeView({ cases }: { cases: CaseRecord[] }) {
   const [checklistText, setChecklistText] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const announce = useAnnouncer();
+
+  useEffect(() => {
+    if (error) announce(error, 'assertive');
+  }, [error, announce]);
+
+  useEffect(() => {
+    if (message) announce(message, 'polite');
+  }, [message, announce]);
 
   const selectedNorm = useMemo(() => norms.find((norm) => norm.id === selectedNormId), [norms, selectedNormId]);
   const sources = useMemo(() => [...new Set(allKnowledgeNorms.map((norm) => norm.source))].sort((a, b) => a.localeCompare(b)), [allKnowledgeNorms]);

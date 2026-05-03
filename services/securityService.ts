@@ -146,6 +146,24 @@ function unwrapDatabaseKey(keyWrap: KeyWrap, secret: string, context: string): B
   return Buffer.concat([decipher.update(Buffer.from(keyWrap.ciphertext, 'hex')), decipher.final()]);
 }
 
+function formatVaultOpenError(error: unknown): string {
+  const message = error instanceof Error ? error.message : String(error);
+
+  if (/Migration .* fehlgeschlagen/i.test(message) || /Datenbankschema unvollständig/i.test(message)) {
+    return `Die verschlüsselte Datenbank wurde geöffnet, aber die Schema-Migration ist fehlgeschlagen. ${message} Bitte Backup sichern und den Migrationsstatus prüfen.`;
+  }
+
+  if (/file is not a database|not a database|file is encrypted|bad decrypt|cipher|malformed/i.test(message)) {
+    return `Die Datenbankdatei konnte mit dem entschlüsselten Schlüssel nicht gelesen werden. Das spricht für ein falsches Passwort, eine falsche Manifest-Datei, eine kopierte Datenbank aus einem anderen Tresor oder eine beschädigte Datenbankdatei. Technische Ursache: ${message}`;
+  }
+
+  if (/Passwortdatei und Datenbestand gehören nicht zusammen/i.test(message)) {
+    return message;
+  }
+
+  return `Die Datenbank konnte nicht geöffnet werden. Technische Ursache: ${message}`;
+}
+
 export class SecurityService {
   private unlocked = false;
   private databaseKey?: Buffer;
@@ -335,7 +353,7 @@ export class SecurityService {
         ok: false,
         initialized: true,
         unlocked: false,
-        error: `Die verschlüsselte Datenbank konnte nicht geöffnet werden. Passwort, Manifest und Datenbankdatei passen nicht zusammen. ${error instanceof Error ? error.message : ''}`.trim()
+        error: formatVaultOpenError(error)
       };
     }
   }
@@ -605,7 +623,8 @@ export class SecurityService {
       console.log('Gremia.SBV database migrations:', {
         applied: result.applied,
         inferred: result.inferred,
-        schemaVersion: result.currentSchemaVersion
+        schemaVersion: result.currentSchemaVersion,
+        diagnostics: result.diagnostics
       });
     }
   }

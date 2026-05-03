@@ -1,5 +1,5 @@
 -- BEM-Grundmodul.
--- 0.5.1b: robuste Reparatur für frühe/kaputte 0.5.0-Teststände.
+-- 0.5.4: robuste Reparatur für frühe/kaputte 0.5.0-Teststände.
 --
 -- Hintergrund:
 -- Frühere Teststände konnten bereits eine bem_processes-Tabelle mit unbekanntem,
@@ -20,6 +20,9 @@ CREATE TABLE IF NOT EXISTS bem_processes (
 );
 
 ALTER TABLE bem_processes RENAME TO bem_processes_legacy_0500;
+
+DROP TABLE IF EXISTS bem_process_contacts;
+DROP TABLE IF EXISTS bem_process_events;
 
 CREATE TABLE IF NOT EXISTS bem_processes (
   id TEXT PRIMARY KEY,

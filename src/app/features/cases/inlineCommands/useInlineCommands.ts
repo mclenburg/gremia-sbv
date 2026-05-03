@@ -23,7 +23,7 @@ import {
 import { formatContactReference } from '../../contacts/contactDisplay';
 import { defaultDeadlineTitleForCase, fromDateTimeLocalValue } from '../caseWorkbenchFormat';
 import { hasAnyInlineCommandOverlay } from './inlineCommandSearch';
-import { waitForBridge } from '../../../workflowViews';
+import { waitForBridge } from '../../../core/bridge/waitForBridge';
 
 export type ProtocolTextTarget = 'content' | 'nextSteps';
 

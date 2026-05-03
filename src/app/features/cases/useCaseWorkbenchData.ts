@@ -5,9 +5,9 @@ import type { CaseNoteRecord } from '../../core/models/case-note.model';
 import type { CaseLegalReferenceRecord } from '../../core/models/knowledge.model';
 import type { PreventionProcessRecord } from '../../core/models/prevention.model';
 import type { BemProcessRecord } from '../../core/models/bem.model';
-import type { CaseNodeTarget } from '../../workflowViews';
+import type { CaseNodeTarget } from '../../core/navigation/caseNodeTarget';
 import type { CaseExplorerSelection } from './caseWorkbenchTypes';
-import { waitForBridge } from '../../workflowViews';
+import { waitForBridge } from '../../core/bridge/waitForBridge';
 
 export function useCaseWorkbenchData({
   cases,

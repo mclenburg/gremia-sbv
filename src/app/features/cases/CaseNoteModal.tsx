@@ -1,6 +1,8 @@
+import { useEffect } from 'react';
 import type { FormEvent } from 'react';
 import { MessageSquare, Save } from 'lucide-react';
 import { TextCommandTextarea } from '../../shared/textCommands/TextCommandTextarea';
+import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 import type { CaseRecord } from '../../core/models/case.model';
 import type { CaseNoteRecord, CaseNoteType, ConfidentialLevel } from '../../core/models/case-note.model';
 
@@ -59,6 +61,18 @@ export function CaseNoteModal({
   onCancel: () => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void | Promise<void>;
 }) {
+  const announce = useAnnouncer();
+
+  useEffect(() => {
+    if (!open || !noteError) return;
+    announce(noteError, 'assertive');
+  }, [open, noteError, announce]);
+
+  useEffect(() => {
+    if (!open || !noteInfo) return;
+    announce(noteInfo, 'polite');
+  }, [open, noteInfo, announce]);
+
   if (!open) return null;
 
   return (

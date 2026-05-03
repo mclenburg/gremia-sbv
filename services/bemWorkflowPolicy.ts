@@ -111,12 +111,28 @@ export function evaluateBemWarnings(process: BemProcessRecord, referenceDate = n
     }
   }
 
+  if (process.employeeResponse === 'angenommen' && !process.privacyNoticeAt && isOpenBemStatus(process.status)) {
+    warnings.push({ level: 'warning', message: 'BEM angenommen: Datenschutzhinweis ist noch nicht dokumentiert.' });
+  }
+
+  if (process.employeeResponse === 'angenommen' && !process.consentScope && isOpenBemStatus(process.status)) {
+    warnings.push({ level: 'warning', message: 'BEM angenommen: Einwilligungsumfang/Beteiligte sind noch nicht dokumentiert.' });
+  }
+
   if (process.employeeResponse === 'angenommen' && !process.firstMeetingAt && isOpenBemStatus(process.status)) {
     warnings.push({ level: 'info', message: 'BEM angenommen: Erstgespräch ist noch nicht geplant.' });
   }
 
+  if ((process.status === 'massnahmen_vereinbart' || process.status === 'wirksamkeit_pruefen') && !process.measureOwners) {
+    warnings.push({ level: 'warning', message: 'Für den BEM-Maßnahmenplan fehlen Verantwortliche/Umsetzungshinweise.' });
+  }
+
   if ((process.status === 'massnahmen_vereinbart' || process.status === 'wirksamkeit_pruefen') && !process.nextReviewAt) {
     warnings.push({ level: 'warning', message: 'Für vereinbarte BEM-Maßnahmen fehlt eine Wirksamkeitsprüfung/Wiedervorlage.' });
+  }
+
+  if (process.status === 'abgeschlossen' && !process.completionReason) {
+    warnings.push({ level: 'warning', message: 'BEM ist abgeschlossen, aber der Abschlussgrund fehlt.' });
   }
 
   if (process.confidentialNotes && process.confidentialNotes.length > 0) {

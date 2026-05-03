@@ -38,6 +38,9 @@ import { filterContactsForQuery, formatContactReference } from './features/conta
 import { PlaceholderView } from './shared/components/PlaceholderView';
 import { ShellNav } from './shell/ShellNav';
 import { modules, type ViewId } from './core/navigation/modules';
+import { waitForBridge } from './core/bridge/waitForBridge';
+import { formatDateShort } from './shared/format/dates';
+import type { CaseNodeTarget } from './core/navigation/caseNodeTarget';
 import { useModalKeyboardShortcuts } from './core/keyboard/useModalKeyboardShortcuts';
 import { DeadlineDashboardPanel } from './features/deadlines/DeadlineDashboardPanel';
 import { DeadlineListView } from './features/deadlines/DeadlineListView';
@@ -250,25 +253,10 @@ function buildInlineDeadlineText(draft: InlineDeadlineDraft): string {
   return `Frist bis ${dateLabel}: ${title}`;
 }
 
-function getBridge(): Window['gremiaSbv'] | null {
-  return window.gremiaSbv ?? null;
-}
-
 function replaceRange(value: string, start: number, length: number, replacement: string): string {
   return `${value.slice(0, start)}${replacement}${value.slice(start + length)}`;
 }
 
-export async function waitForBridge(timeoutMs = 2500): Promise<Window['gremiaSbv'] | null> {
-  const startedAt = Date.now();
-
-  while (Date.now() - startedAt < timeoutMs) {
-    const bridge = getBridge();
-    if (bridge?.security) return bridge;
-    await new Promise((resolve) => window.setTimeout(resolve, 50));
-  }
-
-  return getBridge();
-}
 
 function SecurityUnavailable() {
   return (
@@ -672,12 +660,6 @@ function Metric({ label, value, tone = 'default' }: { label: string; value: stri
 }
 
 
-export function formatDateShort(iso?: string): string {
-  if (!iso) return '—';
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return '—';
-  return new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium' }).format(date);
-}
 
 type CaseExplorerSelection =
   | { type: 'overview' }
@@ -686,11 +668,6 @@ type CaseExplorerSelection =
   | { type: 'process'; processType: CaseProcessType; id?: string }
   | { type: 'search'; id: string };
 
-export type CaseNodeTarget = {
-  caseId: string;
-  nodeType: CaseProcessType | 'note' | 'document' | 'deadline';
-  nodeId?: string;
-};
 
 type ProtocolTextTarget = 'content' | 'nextSteps';
 

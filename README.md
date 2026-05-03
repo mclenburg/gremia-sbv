@@ -35,3 +35,18 @@ BEM-Übersicht als kompakter Leitstand überarbeitet und BEM-Fallaktenansicht op
 ## Stand 0.5.3
 
 Globale Inline-Befehle für Textfelder ergänzt: `//`, `@@`, `##`, `§§`, `!!`, `>>`, `^^` und `~~` funktionieren jetzt in allen `TextCommandTextarea`-Feldern. Die Fallnotiz behält ihre tiefer integrierte lokale Logik.
+
+
+## Stand 0.5.4
+
+Migration Hardening ergänzt: Schema-Version 0015, BEM-Migration abgesichert, Schema-Validierung nach Migration und verständlichere Diagnose bei Tresor-/Datenbank-/Manifestproblemen.
+
+
+## Stand 0.5.5
+
+Modulgrenzen verbessert: `waitForBridge`, `formatDateShort` und `CaseNodeTarget` wurden aus `workflowViews.tsx` ausgelagert. LiveRegion-Ankündigungen wurden in BEM, Fallnotiz-Modal und Wissensdatenbank ergänzt.
+
+
+## Stand 0.5.6
+
+Generic Process Framework ergänzt und BEM fachlich vertieft: Datenschutz-/Einwilligungsdokumentation, Maßnahmenverantwortliche, Wirksamkeitsprüfung und Abschlussgrund sind nun strukturierte Felder. Prävention und BEM nutzen die gemeinsame Maßnahmenübersicht.

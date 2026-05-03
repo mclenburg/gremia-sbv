@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { FormEvent } from 'react';
 import type { CaseSearchResult } from '../../core/models/case-note.model';
 import type { CaseExplorerSelection } from './caseWorkbenchTypes';
-import { waitForBridge } from '../../workflowViews';
+import { waitForBridge } from '../../core/bridge/waitForBridge';
 
 export function useCaseWorkbenchSearch({
   selectedCaseId,

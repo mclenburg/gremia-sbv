@@ -17,6 +17,7 @@ export interface MigrationResult {
   skipped: string[];
   inferred: string[];
   currentSchemaVersion: string;
+  diagnostics: string[];
 }
 
 interface MigrationDefinition {
@@ -26,8 +27,8 @@ interface MigrationDefinition {
   checksum: string;
 }
 
-const APP_SCHEMA_VERSION = '0014';
-const APP_VERSION = '0.4.6';
+const APP_SCHEMA_VERSION = '0016';
+const APP_VERSION = '0.5.6';
 const MIGRATION_TABLE_SQL = `
 CREATE TABLE IF NOT EXISTS schema_migrations (
   version TEXT PRIMARY KEY,
@@ -133,6 +134,7 @@ export class MigrationService {
     const applied: string[] = [];
     const skipped: string[] = [];
     const inferred: string[] = [];
+    const diagnostics: string[] = [];
 
     this.ensureMigrationTables();
 
@@ -143,8 +145,9 @@ export class MigrationService {
         this.recordMigration(definition, 'baseline', 'Frische Datenbank wurde über database/schema.sql auf aktuellen Stand initialisiert.');
         inferred.push(definition.filename);
       });
+      this.validateRequiredSchema(diagnostics);
       this.writeSchemaSettings(APP_SCHEMA_VERSION);
-      return { applied, skipped, inferred, currentSchemaVersion: APP_SCHEMA_VERSION };
+      return { applied, skipped, inferred, currentSchemaVersion: APP_SCHEMA_VERSION, diagnostics };
     }
 
     this.inferAlreadyAppliedMigrations(inferred);
@@ -160,8 +163,9 @@ export class MigrationService {
       applied.push(definition.filename);
     });
 
+    this.validateRequiredSchema(diagnostics);
     this.writeSchemaSettings(APP_SCHEMA_VERSION);
-    return { applied, skipped, inferred, currentSchemaVersion: this.currentSchemaVersion() };
+    return { applied, skipped, inferred, currentSchemaVersion: this.currentSchemaVersion(), diagnostics };
   }
 
   private ensureMigrationTables(): void {
@@ -243,6 +247,18 @@ export class MigrationService {
         return this.tableExists('legal_norms') && this.tableExists('case_legal_references') && this.columnExists('case_legal_references', 'legal_norm_id') && this.tableExists('norm_checklist_items');
       case '0014':
         return this.tableExists('document_templates') && this.tableExists('template_renders');
+      case '0015':
+        return this.tableExists('bem_processes')
+          && this.columnExists('bem_processes', 'status')
+          && this.columnExists('bem_processes', 'title')
+          && this.columnExists('bem_processes', 'employee_response')
+          && this.tableExists('bem_process_contacts')
+          && this.tableExists('bem_process_events');
+      case '0016':
+        return this.columnExists('bem_processes', 'privacy_notice_at')
+          && this.columnExists('bem_processes', 'consent_scope')
+          && this.columnExists('bem_processes', 'measure_owners')
+          && this.columnExists('bem_processes', 'completion_reason');
       default:
         return false;
     }
@@ -435,6 +451,47 @@ export class MigrationService {
       INSERT INTO settings (key, value, updated_at) VALUES (?, ?, ?)
       ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
     `).run('database.schema.appVersion', APP_VERSION, nowIso());
+  }
+
+  private validateRequiredSchema(diagnostics: string[]): void {
+    const requiredTables = [
+      'cases',
+      'case_notes',
+      'case_documents',
+      'contacts',
+      'deadlines',
+      'document_templates',
+      'prevention_processes',
+      'bem_processes',
+      'bem_process_contacts',
+      'bem_process_events'
+    ];
+
+    requiredTables.forEach((table) => {
+      if (!this.tableExists(table)) {
+        throw new Error(`Datenbankschema unvollständig: Tabelle ${table} fehlt.`);
+      }
+    });
+
+    const requiredColumns: Record<string, string[]> = {
+      cases: ['id', 'case_number', 'display_name', 'category', 'status'],
+      contacts: ['id', 'first_name', 'last_name', 'category'],
+      deadlines: ['id', 'title', 'due_at', 'status'],
+      prevention_processes: ['id', 'case_id', 'status'],
+      bem_processes: ['id', 'case_id', 'status', 'title', 'trigger_type', 'employee_response', 'privacy_notice_at', 'consent_scope', 'measure_owners', 'completion_reason', 'created_at', 'updated_at']
+    };
+
+    Object.entries(requiredColumns).forEach(([table, columns]) => {
+      columns.forEach((column) => {
+        if (!this.columnExists(table, column)) {
+          throw new Error(`Datenbankschema unvollständig: Spalte ${table}.${column} fehlt.`);
+        }
+      });
+    });
+
+    if (this.tableExists('bem_processes_legacy_0500')) {
+      diagnostics.push('Frühe/defekte BEM-Tabelle wurde als bem_processes_legacy_0500 gesichert.');
+    }
   }
 
   private currentSchemaVersion(): string {

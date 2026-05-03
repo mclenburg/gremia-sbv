@@ -27,11 +27,11 @@ import {
   LoginGate,
   nowLabel,
   SettingsView,
-  waitForBridge,
   type AuthMode,
-  type CaseNodeTarget,
   type ThemeMode
 } from './workflowViews';
+import { waitForBridge } from './core/bridge/waitForBridge';
+import type { CaseNodeTarget } from './core/navigation/caseNodeTarget';
 import './caseModalResponsive.css';
 import './caseWorkbench.css';
 import './accessibility.css';

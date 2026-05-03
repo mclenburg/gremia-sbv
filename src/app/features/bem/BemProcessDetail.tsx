@@ -1,10 +1,10 @@
-import { FileText } from 'lucide-react';
 import { TextCommandTextarea } from '../../shared/textCommands/TextCommandTextarea';
 import type { BemProcessRecord, BemResponse, BemStatus, BemTriggerType, UpdateBemProcessInput } from '../../core/models/bem.model';
 import type { CaseProcessType } from '../cases/caseWorkbenchTypes';
-import { formatDateShort } from '../../workflowViews';
+import { formatDateShort } from '../../shared/format/dates';
 import { fromDateTimeLocalValue, processTypeLabel, toDateTimeLocalValue } from '../cases/caseWorkbenchFormat';
 import { bemStatusLabel, bemStatusOrder, bemStatusReached } from './bemShared';
+import { ProcessDetailHeader, ProcessSection } from '../../shared/process/ProcessDetailHeader';
 
 const triggerOptions: { value: BemTriggerType; label: string }[] = [
   { value: 'sechs_wochen_au', label: 'mehr als 6 Wochen AU' },
@@ -55,79 +55,74 @@ export function BemProcessDetail({
   return (
     <article className="case-detail-content">
       <div className="case-detail-inline-form">
-        <div className="case-process-header">
-          <div className="case-process-header-main">
-            <div className="case-process-title-row">
-              <span className="industrial-badge">Maßnahme</span>
-              {onOpenTemplates && (
-                <button type="button" className="case-process-document-link" onClick={() => onOpenTemplates(process)}>
-                  <FileText className="h-3.5 w-3.5" />
-                  Dokumente
-                </button>
-              )}
-            </div>
-            <h2>BEM-Verfahren</h2>
-          </div>
-          <div className="case-process-badges" aria-label="Statusübersicht">
-            <span className="case-process-badge"><strong>Status</strong>{bemStatusLabel(process.status)}</span>
-            <span className="case-process-badge"><strong>Reaktion</strong>{process.employeeResponse.replaceAll('_', ' ')}</span>
-            <span className="case-process-badge"><strong>Frist</strong>{formatDateShort(process.responseDueAt) || '—'}</span>
-          </div>
-        </div>
-        <p className="industrial-meta">BEM ist freiwillig, vertraulich und prozesshaft. Dokumentiere nur, was für die SBV-Arbeit wirklich erforderlich ist.</p>
+        <ProcessDetailHeader
+          title="BEM-Verfahren"
+          description="BEM ist freiwillig, vertraulich und prozesshaft. Dokumentiere nur, was für die SBV-Arbeit wirklich erforderlich ist."
+          documentAction={onOpenTemplates ? () => onOpenTemplates(process) : undefined}
+          badges={[
+            { label: 'Status', value: bemStatusLabel(process.status) },
+            { label: 'Reaktion', value: process.employeeResponse.replaceAll('_', ' ') },
+            { label: 'Frist', value: formatDateShort(process.responseDueAt) || '—' }
+          ]}
+        />
         <div className="prevention-status-sections bem-status-sections">
-          <section>
-          <h3>BEM-Auslöser</h3>
+          <ProcessSection title="BEM-Auslöser" objective="Dokumentiert wird der Anlass, nicht eine Diagnose.">
           <label><span>Status</span><select value={process.status} onChange={(event) => void onUpdate(process.id, { status: event.target.value as BemStatus })}>{bemStatusOrder.map((status) => <option key={status} value={status}>{bemStatusLabel(status)}</option>)}</select></label>
           <label><span>Titel</span><input value={process.title} onChange={(event) => void onUpdate(process.id, { title: event.target.value })} /></label>
           <label><span>Auslöser</span><select value={process.triggerType} onChange={(event) => void onUpdate(process.id, { triggerType: event.target.value as BemTriggerType })}>{triggerOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
           <label><span>AU-Tage in 12 Monaten</span><input type="number" min="0" defaultValue={process.sicknessDaysTwelveMonths ?? ''} onBlur={(event) => void onUpdate(process.id, { sicknessDaysTwelveMonths: event.currentTarget.value ? Number(event.currentTarget.value) : undefined })} /></label>
           <label className="case-note-content-input"><span>Anlass / Ausgangslage</span><TextCommandTextarea fieldId="bem-trigger-description" defaultValue={process.triggerDescription ?? ''} onBlur={(event) => void onUpdate(process.id, { triggerDescription: event.currentTarget.value })} /></label>
-        </section>
+        </ProcessSection>
 
         {showOfferSection && (
-          <section>
-            <h3>BEM-Angebot</h3>
+          <ProcessSection title="BEM-Angebot" objective="Das Angebot muss freiwillig, verständlich und datenschutzklar erfolgen.">
             <label><span>Angebot versendet am</span><input type="datetime-local" defaultValue={toDateTimeLocalValue(process.bemOfferedAt)} onBlur={(event) => void onUpdate(process.id, { bemOfferedAt: normalizeDateTime(event.currentTarget.value) })} /></label>
             <label><span>Reaktionsfrist</span><input type="datetime-local" defaultValue={toDateTimeLocalValue(process.responseDueAt)} onBlur={(event) => void onUpdate(process.id, { responseDueAt: normalizeDateTime(event.currentTarget.value) })} /></label>
-          </section>
+          </ProcessSection>
+        )}
+
+
+        {showOfferSection && (
+          <ProcessSection title="Datenschutz und Einwilligung" objective="BEM-Daten sind besonders sensibel. Reichweite, Freiwilligkeit und Widerruf müssen nachvollziehbar sein.">
+            <label><span>Datenschutzhinweis erteilt am</span><input type="datetime-local" defaultValue={toDateTimeLocalValue(process.privacyNoticeAt)} onBlur={(event) => void onUpdate(process.id, { privacyNoticeAt: normalizeDateTime(event.currentTarget.value) })} /></label>
+            <label className="case-note-content-input"><span>Einwilligungsumfang / Beteiligte</span><TextCommandTextarea fieldId="bem-consent-scope" defaultValue={process.consentScope ?? ''} onBlur={(event) => void onUpdate(process.id, { consentScope: event.currentTarget.value })} /></label>
+            <label><span>Widerruf am</span><input type="datetime-local" defaultValue={toDateTimeLocalValue(process.consentWithdrawnAt)} onBlur={(event) => void onUpdate(process.id, { consentWithdrawnAt: normalizeDateTime(event.currentTarget.value) })} /></label>
+            <label className="case-note-content-input"><span>Aufbewahrung / Löschhinweis</span><TextCommandTextarea fieldId="bem-data-retention-note" defaultValue={process.dataRetentionNote ?? ''} onBlur={(event) => void onUpdate(process.id, { dataRetentionNote: event.currentTarget.value })} /></label>
+          </ProcessSection>
         )}
 
         {showResponseSection && (
-          <section>
-            <h3>Reaktion der betroffenen Person</h3>
+          <ProcessSection title="Reaktion der betroffenen Person" objective="Ablehnung und Widerruf dürfen nicht zulasten der betroffenen Person als Pflichtverletzung dokumentiert werden.">
             <label><span>Reaktion</span><select value={process.employeeResponse} onChange={(event) => void onUpdate(process.id, { employeeResponse: event.target.value as BemResponse })}>{responseOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
             <label><span>Reaktion am</span><input type="datetime-local" defaultValue={toDateTimeLocalValue(process.employeeResponseAt)} onBlur={(event) => void onUpdate(process.id, { employeeResponseAt: normalizeDateTime(event.currentTarget.value) })} /></label>
-          </section>
+          </ProcessSection>
         )}
 
         {showMeetingSection && (
-          <section>
-            <h3>Erstgespräch / Beteiligte</h3>
+          <ProcessSection title="Erstgespräch / Beteiligte" objective="Nur die von der betroffenen Person gewünschten oder erforderlichen Beteiligten aufnehmen.">
             <label><span>Erstgespräch</span><input type="datetime-local" defaultValue={toDateTimeLocalValue(process.firstMeetingAt)} onBlur={(event) => void onUpdate(process.id, { firstMeetingAt: normalizeDateTime(event.currentTarget.value) })} /></label>
             <label><span>Beteiligte</span><input defaultValue={process.participants ?? ''} onBlur={(event) => void onUpdate(process.id, { participants: event.currentTarget.value })} /></label>
-          </section>
+          </ProcessSection>
         )}
 
         {showMeasuresSection && (
-          <section>
-            <h3>Maßnahmen und Wirksamkeit</h3>
-            <label className="case-note-content-input"><span>Maßnahmen</span><TextCommandTextarea fieldId="bem-measures" defaultValue={process.measures ?? ''} onBlur={(event) => void onUpdate(process.id, { measures: event.currentTarget.value })} /></label>
+          <ProcessSection title="Maßnahmenplan und Wirksamkeit" objective="Maßnahmen brauchen Verantwortliche, Termin und Wirksamkeitsprüfung.">
+            <label className="case-note-content-input"><span>Maßnahmenplan</span><TextCommandTextarea fieldId="bem-measures" defaultValue={process.measures ?? ''} onBlur={(event) => void onUpdate(process.id, { measures: event.currentTarget.value })} /></label>
+            <label><span>Verantwortliche / Umsetzung</span><input defaultValue={process.measureOwners ?? ''} onBlur={(event) => void onUpdate(process.id, { measureOwners: event.currentTarget.value })} /></label>
             <label><span>Nächste Wirksamkeitsprüfung</span><input type="datetime-local" defaultValue={toDateTimeLocalValue(process.nextReviewAt)} onBlur={(event) => void onUpdate(process.id, { nextReviewAt: normalizeDateTime(event.currentTarget.value) })} /></label>
-          </section>
+          </ProcessSection>
         )}
 
         {showCompletionSection && (
-          <section>
-            <h3>Abschluss</h3>
+          <ProcessSection title="Abschluss" objective="Abschlussgrund, Ergebnis und offene Punkte gehören getrennt dokumentiert.">
+            <label><span>Abschlussgrund</span><input defaultValue={process.completionReason ?? ''} onBlur={(event) => void onUpdate(process.id, { completionReason: event.currentTarget.value })} /></label>
             <label className="case-note-content-input"><span>Ergebnis</span><TextCommandTextarea fieldId="bem-result" defaultValue={process.result ?? ''} onBlur={(event) => void onUpdate(process.id, { result: event.currentTarget.value })} /></label>
-          </section>
+          </ProcessSection>
         )}
 
-        <section>
-          <h3>Vertrauliche SBV-Notiz</h3>
+        <ProcessSection title="Vertrauliche SBV-Notiz" objective="Dieses Feld ist für interne SBV-Abwägungen gedacht und beim Export besonders zu prüfen.">
           <label className="case-note-content-input"><span>Nur intern / hochsensibel</span><TextCommandTextarea fieldId="bem-confidential-notes" defaultValue={process.confidentialNotes ?? ''} onBlur={(event) => void onUpdate(process.id, { confidentialNotes: event.currentTarget.value })} /></label>
-        </section>
+        </ProcessSection>
         </div>
       </div>
     </article>

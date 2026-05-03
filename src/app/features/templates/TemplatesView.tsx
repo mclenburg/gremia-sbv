@@ -8,7 +8,7 @@ import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 import type { CreateTemplateInput, TemplateCategory, TemplateRecord } from '../../core/models/template.model';
 import type { PreventionStatus } from '../../core/models/prevention.model';
 import { preventionStatusOrder, statusLabel } from '../prevention/preventionShared';
-import { waitForBridge } from '../../workflowViews';
+import { waitForBridge } from '../../core/bridge/waitForBridge';
 
 const templateCategoryLabels: Record<TemplateCategory, string> = {
   praevention: 'Prävention',

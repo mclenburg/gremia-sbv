@@ -37,11 +37,17 @@ function mapProcess(row: any, contactIds: string[]): BemProcessRecord {
     responseDueAt: row.response_due_at ?? undefined,
     employeeResponse: row.employee_response ?? 'offen',
     employeeResponseAt: row.employee_response_at ?? undefined,
+    privacyNoticeAt: row.privacy_notice_at ?? undefined,
+    consentScope: row.consent_scope ?? undefined,
+    consentWithdrawnAt: row.consent_withdrawn_at ?? undefined,
+    dataRetentionNote: row.data_retention_note ?? undefined,
     firstMeetingAt: row.first_meeting_at ?? undefined,
     participants: row.participants ?? undefined,
     measures: row.measures ?? undefined,
+    measureOwners: row.measure_owners ?? undefined,
     nextReviewAt: row.next_review_at ?? undefined,
     result: row.result ?? undefined,
+    completionReason: row.completion_reason ?? undefined,
     confidentialNotes: row.confidential_notes ?? undefined,
     contactIds,
     createdAt: row.created_at,
@@ -98,9 +104,10 @@ export class BemService {
     this.db.prepare(`
       INSERT INTO bem_processes (
         id, case_id, status, title, trigger_type, trigger_description, sickness_days_twelve_months,
-        bem_offered_at, response_due_at, employee_response, employee_response_at, first_meeting_at,
-        participants, measures, next_review_at, result, confidential_notes, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        bem_offered_at, response_due_at, employee_response, employee_response_at, privacy_notice_at, consent_scope,
+        consent_withdrawn_at, data_retention_note, first_meeting_at, participants, measures, measure_owners,
+        next_review_at, result, completion_reason, confidential_notes, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       id,
       input.caseId,
@@ -113,11 +120,17 @@ export class BemService {
       responseDueAt,
       input.employeeResponse ?? 'offen',
       input.employeeResponseAt ? new Date(input.employeeResponseAt).toISOString() : null,
+      input.privacyNoticeAt ? new Date(input.privacyNoticeAt).toISOString() : null,
+      input.consentScope ?? null,
+      input.consentWithdrawnAt ? new Date(input.consentWithdrawnAt).toISOString() : null,
+      input.dataRetentionNote ?? null,
       input.firstMeetingAt ? new Date(input.firstMeetingAt).toISOString() : null,
       input.participants ?? null,
       input.measures ?? null,
+      input.measureOwners ?? null,
       input.nextReviewAt ? new Date(input.nextReviewAt).toISOString() : null,
       input.result ?? null,
+      input.completionReason ?? null,
       input.confidentialNotes ?? null,
       timestamp,
       timestamp
@@ -163,19 +176,26 @@ export class BemService {
       responseDueAt: input.responseDueAt !== undefined ? input.responseDueAt : existing.responseDueAt,
       employeeResponse: input.employeeResponse ?? existing.employeeResponse,
       employeeResponseAt: input.employeeResponseAt !== undefined ? input.employeeResponseAt : existing.employeeResponseAt,
+      privacyNoticeAt: input.privacyNoticeAt !== undefined ? input.privacyNoticeAt : existing.privacyNoticeAt,
+      consentScope: input.consentScope !== undefined ? input.consentScope : existing.consentScope,
+      consentWithdrawnAt: input.consentWithdrawnAt !== undefined ? input.consentWithdrawnAt : existing.consentWithdrawnAt,
+      dataRetentionNote: input.dataRetentionNote !== undefined ? input.dataRetentionNote : existing.dataRetentionNote,
       firstMeetingAt: input.firstMeetingAt !== undefined ? input.firstMeetingAt : existing.firstMeetingAt,
       participants: input.participants !== undefined ? input.participants : existing.participants,
       measures: input.measures !== undefined ? input.measures : existing.measures,
+      measureOwners: input.measureOwners !== undefined ? input.measureOwners : existing.measureOwners,
       nextReviewAt: input.nextReviewAt !== undefined ? input.nextReviewAt : existing.nextReviewAt,
       result: input.result !== undefined ? input.result : existing.result,
+      completionReason: input.completionReason !== undefined ? input.completionReason : existing.completionReason,
       confidentialNotes: input.confidentialNotes !== undefined ? input.confidentialNotes : existing.confidentialNotes
     };
 
     this.db.prepare(`
       UPDATE bem_processes
       SET status = ?, title = ?, trigger_type = ?, trigger_description = ?, sickness_days_twelve_months = ?,
-          bem_offered_at = ?, response_due_at = ?, employee_response = ?, employee_response_at = ?, first_meeting_at = ?,
-          participants = ?, measures = ?, next_review_at = ?, result = ?, confidential_notes = ?, updated_at = ?
+          bem_offered_at = ?, response_due_at = ?, employee_response = ?, employee_response_at = ?, privacy_notice_at = ?,
+          consent_scope = ?, consent_withdrawn_at = ?, data_retention_note = ?, first_meeting_at = ?,
+          participants = ?, measures = ?, measure_owners = ?, next_review_at = ?, result = ?, completion_reason = ?, confidential_notes = ?, updated_at = ?
       WHERE id = ?
     `).run(
       next.status,
@@ -187,11 +207,17 @@ export class BemService {
       next.responseDueAt ? new Date(next.responseDueAt).toISOString() : null,
       next.employeeResponse,
       next.employeeResponseAt ? new Date(next.employeeResponseAt).toISOString() : null,
+      next.privacyNoticeAt ? new Date(next.privacyNoticeAt).toISOString() : null,
+      next.consentScope ?? null,
+      next.consentWithdrawnAt ? new Date(next.consentWithdrawnAt).toISOString() : null,
+      next.dataRetentionNote ?? null,
       next.firstMeetingAt ? new Date(next.firstMeetingAt).toISOString() : null,
       next.participants ?? null,
       next.measures ?? null,
+      next.measureOwners ?? null,
       next.nextReviewAt ? new Date(next.nextReviewAt).toISOString() : null,
       next.result ?? null,
+      next.completionReason ?? null,
       next.confidentialNotes ?? null,
       nowIso(),
       id

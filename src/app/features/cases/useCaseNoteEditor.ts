@@ -3,7 +3,7 @@ import type { FormEvent } from 'react';
 import type { CaseNoteRecord, CaseNoteType, ConfidentialLevel } from '../../core/models/case-note.model';
 import type { CaseExplorerSelection } from './caseWorkbenchTypes';
 import { fromDateTimeLocalValue, toDateTimeLocalValue } from './caseWorkbenchFormat';
-import { waitForBridge } from '../../workflowViews';
+import { waitForBridge } from '../../core/bridge/waitForBridge';
 
 export function useCaseNoteEditor({
   selectedCaseId,
