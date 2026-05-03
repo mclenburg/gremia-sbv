@@ -1,14 +1,22 @@
 # Gremia.SBV
 
-> Eine lokale, verschlüsselte Desktop-Anwendung für die vertrauliche Fallarbeit der Schwerbehindertenvertretung.
+Gremia.SBV ist eine lokale, verschlüsselte Desktop-Anwendung für die vertrauliche Fallarbeit der Schwerbehindertenvertretung. Die App unterstützt SBV-Arbeit bei Fällen, Gesprächsnotizen, Fristen, Präventions- und BEM-Prozessen, Kontakten, Vorlagen, Wissensarbeit und anonymisierten Tätigkeitsberichten.
 
-Gremia.SBV unterstützt Schwerbehindertenvertretungen bei der strukturierten, datenschutzgerechten und fristensicheren Bearbeitung von Einzelfällen. Im Mittelpunkt stehen Fallakten, Gesprächsnotizen, Fristen, Dokumente, Vorlagen, Kontakte und anonymisierte Tätigkeitsberichte.
+Die Anwendung ist bewusst **offline-first** angelegt: keine Cloud-Synchronisierung, keine Telemetrie und kein externer Login-Dienst. SBV-Daten verbleiben lokal und werden verschlüsselt gespeichert.
 
-Die Anwendung ist bewusst als **Offline-First-Desktop-App** konzipiert. Es gibt keinen zentralen Server, keine Cloud-Synchronisierung und keinen externen Login-Dienst. Sensible Daten verbleiben lokal auf dem Rechner der SBV und werden verschlüsselt gespeichert.
+## Aktueller Stand: Version 0.4.40
+
+Version 0.4.40 ist ein Clean-Code- und Stabilisierungsstand:
+
+- `src/app/App.tsx` wurde auf die App-Shell reduziert: Authentifizierung, globale Provider, Navigation, Datenladen und View-Routing.
+- Die großen Fachansichten wurden aus der Shell in `src/app/workflowViews.tsx` ausgelagert.
+- Der Provider-Wrapping-Fehler aus 0.4.38 ist korrigiert und per Regressionstest abgesichert.
+- Nicht mehr benötigte Paketartefakte wurden aus dem Repository entfernt.
+- Diese README wurde bereinigt und auf den aktuellen Entwicklungsstand gebracht.
 
 ## Zielbild
 
-Gremia.SBV ist keine Kopie von Gremia.BR. Während Gremia.BR gremien-, sitzungs- und beschlussorientiert arbeitet, ist Gremia.SBV fall-, fristen- und vertraulichkeitszentriert.
+Gremia.SBV ist keine Kopie von Gremia.BR. Während Gremia.BR sitzungs-, gremien- und beschlussorientiert arbeitet, ist Gremia.SBV fall-, fristen- und vertraulichkeitszentriert.
 
 ```text
 Gremia.SBV = vertrauliche, fristensichere, datensparsame SBV-Fallarbeit
@@ -16,49 +24,30 @@ Gremia.SBV = vertrauliche, fristensichere, datensparsame SBV-Fallarbeit
 
 ## Grundprinzipien
 
-- **Offline-first:** keine Cloud, keine Telemetrie, kein externer Login.
-- **Lokal verschlüsselt:** Datenbankverschlüsselung über SQLCipher-kompatiblen Adapter.
+- **Offline-first:** keine Cloud, kein externer Login, keine Telemetrie.
+- **Lokal verschlüsselt:** SQLCipher-kompatible SQLite-Datenbank.
 - **Datensparsam:** anonyme, pseudonyme und personenbezogene Fallführung möglich.
-- **Fristensicher:** Ampelwarnungen, Wiedervorlagen, iCal-Export.
-- **SBV-zentriert:** Schutzauftrag, Beteiligung, Prävention und Fallbegleitung stehen im Mittelpunkt.
-- **Keine Arbeitgeber- oder BR-Akte:** Informationen werden nur bewusst und fallbezogen exportiert oder geteilt.
-
-## Tech-Stack
-
-| Bereich | Technik |
-|---|---|
-| Desktop-Shell | Electron |
-| UI | React + TypeScript + Tailwind CSS |
-| Build | Vite |
-| lokale Datenbank | SQLite mit SQLCipher-kompatibler Verschlüsselung |
-| DB-Adapter | `better-sqlite3-multiple-ciphers` als vorgesehener Adapter |
-| Schlüsselableitung | Argon2id / scrypt-Konzept, siehe `docs/SECURITY.md` |
-| Dokumente | lokaler verschlüsselter Dokumentenspeicher |
-| Export | PDF, DOCX, iCal |
-| Tests | Vitest |
-
-> Hinweis: Native Electron-Abhängigkeiten müssen je nach Zielplattform ggf. mit `electron-builder install-app-deps` oder vergleichbarer Build-Konfiguration neu gebaut werden.
+- **Fristensicher:** Wiedervorlagen, Ampellogik, Dashboard-Warnungen und iCal-Export.
+- **SBV-zentriert:** Prävention, Beteiligung, Arbeitsplatzsicherung und vertrauliche Fallbegleitung stehen im Mittelpunkt.
+- **Kein gemeinsames BR-/Arbeitgeber-Fallaktensystem:** Exporte und Weitergaben erfolgen nur bewusst, fallbezogen und nachvollziehbar.
 
 ## Hauptmodule
 
 ### Dashboard
 
 - offene Fälle
-- kritische Fristen
-- Wiedervorlagen
+- kritische Fristen und Wiedervorlagen
 - BEM- und Präventionsvorgänge
-- Kündigungs-/Anhörungsvorgänge
-- Backup- und Datenschutzwarnungen
+- Prozess- und Datenschutzwarnungen
 
 ### Fallverwaltung
 
-- Fallakte pro Person oder anonym/pseudonym
-- Fallstatus: offen, in Bearbeitung, ruhend, abgeschlossen
-- Kategorien: BEM, Prävention, Kündigung, Gleichstellung, Nachteilsausgleich, Diskriminierung, Arbeitsplatzgestaltung u. a.
-- Gesprächsnotizen
+- Fallakten pro Person oder anonym/pseudonym
+- Kategorien wie BEM, Prävention, Gleichstellung, Kündigungsanhörung, Nachteilsausgleich, Diskriminierung und Arbeitsplatzgestaltung
+- Gesprächsnotizen und Protokolle
 - Dokumentenzuordnung
-- Rechtsgrundlagenverknüpfung
-- fallbezogene Kontakte
+- Rechtsgrundlagen- und Kontaktverknüpfungen
+- kontextbezogene Textbefehle für Fallverweise, Fristen, Risiken, Vertraulichkeit und Anonymisierung
 
 ### Fristenkalender
 
@@ -67,32 +56,24 @@ Gremia.SBV = vertrauliche, fristensichere, datensparsame SBV-Fallarbeit
 - Kündigungs-/Anhörungsfristen
 - BEM-Rückmeldungen
 - Gleichstellungs-/Widerspruchsfristen
-- Ampellogik
+- Dashboard-Regel: offene kritische Fristen werden rechtzeitig sichtbar
 - iCal-Export
 
-### Wissensdatenbank
+### Präventionsverfahren nach § 167 Abs. 1 SGB IX
 
-- SGB IX
-- BetrVG-Bezüge
-- AGG
-- KSchG
-- ArbSchG
-- eigene Kommentare und Notizen
-- Verknüpfung von Normen mit Fällen
+- fallbezogener Prozess
+- Statusmodell mit Warnlogik
+- Arbeitgeberreaktion, Maßnahmenklärung, Ergebnisdokumentation
+- Deep-Links in die Fallakte
+- Vorlagenanbindung
 
-### Schriftverkehr und Vorlagen
+### BEM / weitere Prozessmodule
 
-- Vorlagenverwaltung mit Platzhaltern
-- automatisch befüllte Schreiben aus Falldaten
-- PDF-/DOCX-Export
-- Archivierung ausgehender Schreiben am Fall
-
-### Tätigkeitsbericht
-
-- anonymisierte Fallstatistik
-- Jahresbericht nach SBV-Praxisbedarf
-- keine personenbezogenen Daten im Bericht
-- Export als PDF, DOCX oder Markdown
+- BEM als eigenständiger Prozessbereich vorbereitet
+- Gleichstellungsanträge
+- Kündigungsanhörungen
+- Dokumentenmanagement
+- späterer Tätigkeitsbericht
 
 ### Kontakte / Netzwerk
 
@@ -104,17 +85,37 @@ Gremia.SBV = vertrauliche, fristensichere, datensparsame SBV-Fallarbeit
 - anwaltliche Kontakte
 - interne Ansprechpartner
 
-### Sicherheit und Datenschutz
+### Wissensdatenbank
 
-- Passwort beim App-Start
-- automatische Sperre nach Inaktivität
-- verschlüsselte Datenbank
-- verschlüsselte Backups
-- Audit-Log
-- Löschkonzept
-- Exportwarnungen
+- Normen, Kommentierungen, Rechtsprechung und Checklisten
+- Verknüpfung mit Fällen
+- Arbeitsnotizen für SBV-Praxis
 
-Details siehe `docs/SECURITY.md` und `docs/DATENSCHUTZKONZEPT.md`.
+### Vorlagen und Schriftverkehr
+
+- Vorlagenverwaltung mit Platzhaltern
+- kontextbezogene Vorlagen aus Fall- und Prozessdaten
+- PDF-/DOCX-nahe Exportlogik
+- Warnungen bei fehlenden oder sensiblen Platzhaltern
+
+### Tätigkeitsbericht
+
+- anonymisierte Fallstatistik
+- Jahresbericht nach SBV-Praxisbedarf
+- Datenschutzprüfung vor Export
+
+## Technik
+
+| Bereich | Technik |
+|---|---|
+| Desktop-Shell | Electron |
+| Renderer | React + TypeScript |
+| Styling | Tailwind CSS + modulare CSS-Dateien |
+| Build | Vite |
+| lokale Datenbank | SQLite mit SQLCipher-kompatibler Verschlüsselung |
+| nativer DB-Adapter | `better-sqlite3-multiple-ciphers` |
+| Exporte | DOCX, PDF-/Druckpfade, iCal |
+| Tests | Vitest |
 
 ## Projektstruktur
 
@@ -123,32 +124,23 @@ gremia-sbv/
 ├── electron/                  # Electron Main/Preload und IPC
 │   ├── main.ts
 │   ├── preload.ts
-│   ├── ipc/
-│   └── security/
-├── src/                       # React Renderer
+│   └── ipc/
+├── src/
+│   ├── main.tsx               # Renderer-Einstieg
 │   ├── app/
-│   │   ├── core/
-│   │   ├── features/
-│   │   └── shared/
-│   ├── styles/
-│   └── main.tsx
+│   │   ├── App.tsx            # schlanke App-Shell
+│   │   ├── workflowViews.tsx  # ausgelagerte Fachansichten
+│   │   ├── core/              # Modelle, Navigation, Hooks
+│   │   ├── features/          # fachliche UI-Bausteine
+│   │   ├── shared/            # wiederverwendbare UI-/Dialog-/A11y-Komponenten
+│   │   └── shell/             # Navigation/Shell
+│   └── styles/
 ├── services/                  # Fachliche Services im Main-Prozess
-├── database/                  # Schema, Migrations, Seeds
-├── scripts/                   # CLI-Hilfen für DB und Entwicklung
-├── docs/                      # Sicherheits- und Datenschutzkonzept
-└── tests/
+├── database/                  # Schema, Migrationen, Seeds
+├── scripts/                   # Build-, DB- und Diagnose-Skripte
+├── docs/                      # Architektur, Datenschutz, Sicherheit, Release-Notizen
+└── tests/                     # Policy-, Regression- und Servicetests
 ```
-
-
-## Aktueller Stand 0.3.15
-
-- Dashboard-Fristen können direkt bearbeitet und erledigt werden.
-- Fristen werden über die Electron-IPC-Brücke aus der verschlüsselten SQLCipher-Datenbank geladen.
-- Fallakten werden nicht mehr nur im UI gehalten, sondern in der Datenbank gespeichert.
-- Rechtliche Fristen und Workflow-Schritte benötigen einen Fallbezug.
-- Ohne Fallbezug ist nur eine freie Wiedervorlage zulässig.
-
-Siehe auch: `docs/DEADLINE_EDITING_AND_CASE_BINDING.md`.
 
 ## Entwicklung
 
@@ -156,7 +148,7 @@ Siehe auch: `docs/DEADLINE_EDITING_AND_CASE_BINDING.md`.
 
 - Node.js LTS
 - npm
-- IntelliJ IDEA / WebStorm mit TypeScript-Unterstützung
+- Linux-Build: native Build-Abhängigkeiten für Electron und SQLCipher-Adapter
 
 ### Installation
 
@@ -164,21 +156,35 @@ Siehe auch: `docs/DEADLINE_EDITING_AND_CASE_BINDING.md`.
 npm install
 ```
 
-#
-## Aktueller Stand 0.3.15
+Native Electron-Abhängigkeiten bei Bedarf neu bauen:
 
-- Dashboard-Fristen können direkt bearbeitet und erledigt werden.
-- Fristen werden über die Electron-IPC-Brücke aus der verschlüsselten SQLCipher-Datenbank geladen.
-- Fallakten werden nicht mehr nur im UI gehalten, sondern in der Datenbank gespeichert.
-- Rechtliche Fristen und Workflow-Schritte benötigen einen Fallbezug.
-- Ohne Fallbezug ist nur eine freie Wiedervorlage zulässig.
+```bash
+npm run native:rebuild
+```
 
-Siehe auch: `docs/DEADLINE_EDITING_AND_CASE_BINDING.md`.
-
-## Entwicklung starten
+### Entwicklung starten
 
 ```bash
 npm run dev
+```
+
+### Tests
+
+```bash
+npm run test
+```
+
+Wichtige gezielte Testläufe:
+
+```bash
+npm run test:provider-wrapping
+npm run test:maintainability
+npm run test:privacy
+npm run test:backup
+npm run test:migrations
+npm run test:prevention
+npm run test:templates
+npm run test:knowledge
 ```
 
 ### Build
@@ -187,147 +193,60 @@ npm run dev
 npm run build
 ```
 
-### Tests
+Linux-AppImage:
 
 ```bash
-npm test
+npm run build:linux
 ```
 
-
-## Aktueller Stand 0.3.15
-
-- Dashboard-Fristen können direkt bearbeitet und erledigt werden.
-- Fristen werden über die Electron-IPC-Brücke aus der verschlüsselten SQLCipher-Datenbank geladen.
-- Fallakten werden nicht mehr nur im UI gehalten, sondern in der Datenbank gespeichert.
-- Rechtliche Fristen und Workflow-Schritte benötigen einen Fallbezug.
-- Ohne Fallbezug ist nur eine freie Wiedervorlage zulässig.
-
-Siehe auch: `docs/DEADLINE_EDITING_AND_CASE_BINDING.md`.
-
-## Entwicklungsstand
-
-Dieses Repository ist ein bewusst schlankes Startgerüst. Es enthält noch keine fertige Produktivlogik, sondern:
-
-- fachliche Modulstruktur
-- Electron/React/Vite-Grundlage
-- SQLCipher-orientiertes Datenbankschema
-- Service-Schnittstellen
-- Datenschutz- und Sicherheitsdokumentation
-- Platzhalter für spätere Gremia.BR-Leseschnittstelle
-
-## Spätere Gremia.BR-Schnittstelle
-
-Die Anwendung bleibt offline. Eine spätere Schnittstelle zu Gremia.BR soll höchstens **lesend** erfolgen, z. B. für:
-
-- Sitzungs-/Beschlussbezug
-- BR-Ansprechpartner
-- Betriebsvereinbarungen
-- Termine oder relevante Vorgänge
-
-Wichtig: Gremia.SBV darf nicht automatisch personenbezogene SBV-Falldaten an Gremia.BR übertragen.
-
-Siehe `services/gremiaBrReadAdapter.ts`.
-
-## Datenschutzregel
-
-Gremia.SBV behandelt Fallinformationen grundsätzlich als vertrauliche SBV-Daten. Exporte, Weitergaben und Deanonymisierung müssen bewusst ausgelöst und protokolliert werden.
-
-## Fachliche Leitplanken ab Version 0.2
-
-Gremia.SBV bleibt ein **Offline-Tool**. Alle produktiven Funktionen müssen ohne Netzwerkzugriff funktionieren. Eine spätere Verbindung zu Gremia.BR ist ausschließlich als **lesende Schnittstelle** vorgesehen, etwa zum Import von Sitzungsterminen, Betriebsvereinbarungen oder BR-Beschlüssen, die für einen SBV-Fall relevant sein können. Gremia.SBV darf dadurch nicht zu einem gemeinsamen Fallakten-System mit dem Betriebsrat werden.
-
-### Zusätzliche Prozessmodule
-
-| Modul | Zweck | Datenschutz-Hinweis |
-|---|---|---|
-| BEM | Eigenständiger Prozess mit Einladung, Zustimmung, Erstgespräch, Maßnahmen, Evaluation und Abschluss | BEM-Daten strikt von Personalakte und Tätigkeitsbericht trennen |
-| Gleichstellung | Prozess zur Beratung und Begleitung von Gleichstellungsanträgen | Status „beantragt“ und Nachweise sparsam speichern |
-| Kündigungsanhörung | Workflow für stufenweise Prüfung von SBV-Beteiligung, BR-Beteiligung und Integrationsamt | Fristen und Zugangsdaten besonders deutlich kennzeichnen |
-| Portabilität | App und Daten auf einem verschlüsselten Datenträger nutzbar | Keine Pfade außerhalb des App-Datenverzeichnisses erzwingen |
-
-### Empfohlene Entwicklungsreihenfolge
-
-1. Datenbankmodell für Fälle, Personen, Dokumente und Fristen
-2. Fristenkalender mit Ampellogik
-3. Fallverwaltung mit Gesprächsnotizen
-4. Dokumentenmanagement mit Verschlüsselung
-5. Tätigkeitsbericht-Generator mit strikter Anonymisierung
-
-Diese Reihenfolge ist verbindlich für die frühe Architektur: Erst das Datenfundament, dann der erste tägliche Nutzen, danach Komfort- und Exportfunktionen.
-
-## 🕒 Fristen- und Wiedervorlagenzentrale ab Version 0.3
-
-Das Fristenmodul ist als SBV-Risiko- und Wiedervorlagesystem angelegt. Es unterscheidet ausdrücklich zwischen:
-
-- rechtlichen Fristen,
-- Wiedervorlagen,
-- Terminen,
-- Warnungen,
-- Workflow-Schritten.
-
-### Harte Dashboard-Regel
-
-> Jede offene Frist erscheint spätestens ab 48 Stunden vor Ablauf auf dem Dashboard.
-
-Diese Regel ist in `services/deadlineService.ts` über `getDashboardState()` umgesetzt und damit nicht nur eine optische Konvention der Oberfläche.
-
-### Enthaltene Standardprozesse
-
-- BEM-Rückmeldung und Maßnahmenevaluation
-- Präventionsverfahren nach § 167 Abs. 1 SGB IX
-- Kündigungsanhörung als kritischer Workflow
-- Gleichstellungsverfahren
-- GdB-/Bescheid-Widerspruchsfristen
-- allgemeine Arbeitgeberantworten und Wiedervorlagen
-
-### Datenschutz im Kalender
-
-Für sensible Fristen gibt es neben dem internen Titel ein Feld `confidential_title`. Dieses soll für Dashboard, Kalenderexporte und spätere Betriebssystembenachrichtigungen genutzt werden, damit keine personenbezogenen oder gesundheitsbezogenen Details sichtbar werden.
-
-
-## 0.3.3 Layout & Startschutz
-
-- Dashboard entschlackt
-- Industrial-Design eingeführt
-- Passwort-Gate vor dem Dashboard
-- klickbare Modulkacheln und Sidebar-Navigation
-- erste Erfassungsmasken für Fälle und Fristen
-
-Siehe `docs/LAYOUT_0_3_3.md`.
-
-## 0.3.16 – Fallnotizen und Volltextsuche
-
-Dieses Paket ergänzt die Fallakte um Gesprächsnotizen und Protokolle. Zusätzlich gibt es eine Volltextsuche über Notizen/Protokolle sowie den vorbereiteten Dokumentenindex. Dashboard-Kacheln wurden optisch bereinigt und enthalten kein separates „Öffnen“-Label mehr.
-
-## Version 0.3.39 – Backup & Wiederherstellung
-
-- verschlüsselte `.gsbvbackup`-Backups
-- Backupprüfung mit Prüfsummen
-- Wiederherstellung mit Sicherheitsbestätigung
-- temporäre Arbeitskopien und vorhandene Backups werden nicht in neue Backups aufgenommen
-
-
-## Teststrategie
-
-Ab Version 0.3.41 gilt: Neue Funktionalität wird grundsätzlich mit Tests ausgeliefert.
-
-Wichtige Befehle:
+Windows-Build:
 
 ```bash
-npm run test
-npm run test:privacy
-npm run test:backup
-npm run test:migrations
+npm run build:win
+```
+
+Release-Check:
+
+```bash
 npm run release:check
 ```
 
-Details siehe `docs/TEST_COVERAGE_BASELINE.md`.
+## Sicherheit und Datenschutz
+
+Gremia.SBV behandelt Fallinformationen grundsätzlich als vertrauliche SBV-Daten. Gesundheitsdaten, personenbezogene Angaben und arbeitsrechtliche Konfliktdaten werden nur lokal verarbeitet. Export, Weitergabe und Deanonymisierung müssen bewusst ausgelöst und fachlich begründet werden.
+
+Wichtige Dokumente:
+
+- `docs/SECURITY.md`
+- `docs/DATENSCHUTZKONZEPT.md`
+- `docs/DATABASE_ENCRYPTION.md`
+- `docs/BACKUP_RESTORE.md`
+- `docs/RETENTION_AND_TESTS.md`
+- `docs/GREMIA_BR_INTERFACE.md`
+
+## Gremia.BR-Schnittstelle
+
+Eine spätere Verbindung zu Gremia.BR bleibt höchstens **lesend**. Sie darf nicht dazu führen, dass Gremia.SBV zu einem gemeinsamen Fallakten-System mit dem Betriebsrat wird. Personenbezogene SBV-Falldaten werden nicht automatisch an Gremia.BR übertragen.
+
+Siehe `services/gremiaBrReadAdapter.ts` und `docs/GREMIA_BR_INTERFACE.md`.
+
+## Clean-Code-Leitlinie ab 0.4.40
+
+- `App.tsx` bleibt Shell und Orchestrierung, nicht Fachlogik-Sammelstelle.
+- Fachliche UI-Logik wird in Features oder ausgelagerte View-Module verschoben.
+- Wiederverwendbare UI-Bausteine gehören nach `src/app/shared/`.
+- Fachliche Regeln gehören in `services/*Policy.ts` oder dedizierte Service-Module.
+- Jede neue fachliche Funktion erhält mindestens einen Policy-, Service- oder Regressionstest.
+- Temporäre Build-Artefakte und verschachtelte ZIP-Dateien gehören nicht ins Repository.
 
 
-## Version 0.4.0 – Präventionsverfahren
+## Architekturstand 0.4.40 – Workflow-Module
 
-- Präventionsverfahren nach § 167 Abs. 1 SGB IX als fallbezogener Fachprozess ergänzt.
-- Workflow-Schritte mit Tooltip-Hilfen ergänzt.
-- automatische Wiedervorlage für Arbeitgeberreaktion.
-- Warnlogik für 48h, überfällige Reaktion, Kündigungsrisiko und Inklusionsamt.
-- Tests für Präventionsworkflow ergänzt.
+Die erste Clean-Code-Refaktorierung wurde weitergeführt. `App.tsx` bleibt die App-Shell. Die bisherige Sammeldatei `workflowViews.tsx` wurde weiter entschärft:
+
+- `KnowledgeView` liegt jetzt in `src/app/features/knowledge/KnowledgeView.tsx`.
+- Die Präventionsübersicht liegt jetzt in `src/app/features/prevention/PreventionView.tsx`.
+- Gemeinsame Präventionslabels und Statusreihenfolgen liegen in `src/app/features/prevention/preventionShared.ts`.
+- `workflowViews.tsx` enthält noch die großen Altbereiche, wird aber ab 0.4.40 schrittweise weiter zerlegt.
+
+Nächster sinnvoller Schnitt: `TemplatesView` und danach `CasesView` in eigene Feature-Dateien und Unterkomponenten auslagern.
