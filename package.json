@@ -1,6 +1,6 @@
 {
   "name": "gremia-sbv",
-  "version": "0.5.10a",
+  "version": "0.6.0a",
   "private": true,
   "description": "Offline-first Desktop-App für die vertrauliche Fallarbeit der Schwerbehindertenvertretung.",
   "main": "dist-electron/electron/main.js",
@@ -137,7 +137,9 @@
     "test:privacy-export-backup-058a": "vitest run tests/exportGuardBem058.test.ts tests/exportGuardImport058a.test.ts tests/backupHardening058.test.ts tests/privacyDocs058.test.ts",
     "test:workflow-auth-boundary-059a": "vitest run tests/workflowAuthBoundary059a.test.ts tests/packagePostinstall059.test.ts",
     "test:deadlines-boundary-0510": "vitest run tests/deadlinesBoundary0510.test.ts tests/packagePostinstall059.test.ts",
-    "test:deadlines-boundary-0510a": "vitest run tests/deadlinesBoundary0510.test.ts tests/deadlinesImport0510a.test.ts"
+    "test:deadlines-boundary-0510a": "vitest run tests/deadlinesBoundary0510.test.ts tests/deadlinesImport0510a.test.ts",
+    "test:equalization-module-060": "vitest run tests/equalizationModule060.test.ts tests/equalizationTemplates060.test.ts",
+    "test:equalization-module-060a": "vitest run tests/equalizationModule060.test.ts tests/equalizationWorkflowImport060a.test.ts tests/equalizationTemplates060.test.ts"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.0",

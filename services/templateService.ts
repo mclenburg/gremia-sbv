@@ -250,6 +250,76 @@ Mit freundlichen Grüßen
 {{sbv.name}}`
     },
     {
+      key: 'gleichstellung-antrag-unterstuetzung',
+      title: 'Gleichstellungsantrag unterstützen',
+      category: 'gleichstellung',
+      description: 'Beratungsschreiben zur Antragstellung und betrieblichen Begründung.',
+      subject: 'Gleichstellungsantrag – Unterstützung durch die SBV – {{fall.aktenzeichen}}',
+      legalBasis: ['§ 2 Abs. 3 SGB IX', '§ 151 SGB IX'],
+      tags: ['Gleichstellung', 'GdB', 'massnahme:equalization', 'status:vorbereitung'],
+      body: `Sehr geehrte*r {{fall.name}},
+
+die Schwerbehindertenvertretung unterstützt Sie bei der Vorbereitung eines Gleichstellungsantrags.
+
+Eine Gleichstellung kommt in Betracht, wenn ein Grad der Behinderung von weniger als 50, aber mindestens 30 vorliegt und die Gleichstellung erforderlich ist, um einen geeigneten Arbeitsplatz zu erlangen oder zu behalten.
+
+Für die betriebliche Begründung sollten insbesondere folgende Punkte geprüft werden:
+- konkrete Gefährdung oder Erschwerung des Arbeitsplatzes,
+- behinderungsbedingte Nachteile im Arbeitsverhältnis,
+- erforderliche Unterstützung oder Schutzinstrumente,
+- mögliche Bedeutung des besonderen Kündigungsschutzes.
+
+Nächste Schritte:
+{{gleichstellung.notizen}}
+
+Mit freundlichen Grüßen
+{{sbv.name}}`
+    },
+    {
+      key: 'gleichstellung-unterlagen-nachfordern',
+      title: 'Gleichstellung – Unterlagen nachfordern',
+      category: 'gleichstellung',
+      description: 'Fehlende Informationen für Antrag, Sachstand oder Widerspruch freundlich nachfordern.',
+      subject: 'Gleichstellungsverfahren – Unterlagen / Sachstand – {{fall.aktenzeichen}}',
+      legalBasis: ['§ 2 Abs. 3 SGB IX'],
+      tags: ['Gleichstellung', 'Unterlagen', 'massnahme:equalization', 'status:nachfrage'],
+      body: `Sehr geehrte Damen und Herren,
+
+im Gleichstellungs-/GdB-bezogenen Vorgang {{fall.aktenzeichen}} bitte ich um Übersendung beziehungsweise Mitteilung der noch fehlenden Informationen.
+
+Geschäftszeichen / Aktenzeichen:
+{{gleichstellung.aktenzeichen}}
+
+Aus Sicht der Schwerbehindertenvertretung sind insbesondere der aktuelle Verfahrensstand, vorliegende Nachfragen und etwaige Fristen relevant.
+
+Bitte übersenden Sie die Informationen bis zum {{frist.datum}}.
+
+Mit freundlichen Grüßen
+{{sbv.name}}`
+    },
+    {
+      key: 'gleichstellung-widerspruch-frist',
+      title: 'Gleichstellung – Widerspruchsfrist sichern',
+      category: 'gleichstellung',
+      description: 'Hinweis zur Sicherung der Widerspruchsfrist nach ablehnendem Bescheid.',
+      subject: 'Gleichstellungsverfahren – Widerspruchsfrist – {{fall.aktenzeichen}}',
+      legalBasis: ['§ 2 Abs. 3 SGB IX', 'SGB X'],
+      tags: ['Gleichstellung', 'Widerspruch', 'Frist', 'massnahme:equalization', 'status:abgelehnt', 'status:widerspruch'],
+      body: `Gleichstellungs-/GdB-Verfahren: {{fall.aktenzeichen}}
+
+Bescheid erhalten am:
+{{gleichstellung.bescheid_am}}
+
+Widerspruchsfrist:
+{{gleichstellung.widerspruchsfrist}}
+
+Bewertung / nächste Schritte:
+{{gleichstellung.notizen}}
+
+Hinweis:
+Die Schwerbehindertenvertretung kann unterstützen und auf Fristen hinweisen. Die rechtliche Vertretung im Widerspruchsverfahren sollte bei Bedarf anwaltlich oder durch eine geeignete Beratungsstelle erfolgen.`
+    },
+    {
       key: 'kuendigungsanhoerung-unterlagen-unvollstaendig',
       title: 'Kündigungsanhörung – Unterlagen unvollständig',
       category: 'kuendigung',

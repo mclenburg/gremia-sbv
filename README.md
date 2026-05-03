@@ -70,3 +70,8 @@ Auth-Boundary-Schnitt syntaktisch korrigiert: `LoginGate` ist ausgelagert, `Dash
 ## Stand 0.5.10
 
 Fristenmodul weiter entkoppelt: `DeadlinesView` und `DeadlineEditor` liegen jetzt in `src/app/features/deadlines/DeadlinesView.tsx`. `workflowViews.tsx` ist weiter entlastet.
+
+
+## Stand 0.6.0
+
+Gleichstellung / GdB als aktives Fachmodul ergänzt: Übersicht, Fallaktenmaßnahme, Detailformular, IPC-Service, Warnlogik und Vorlagen für Antrag, Unterlagennachforderung und Widerspruchsfrist.

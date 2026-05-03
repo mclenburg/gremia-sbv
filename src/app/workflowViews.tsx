@@ -68,10 +68,12 @@ import type { BackupInspectionResult, BackupOperationResult } from './core/model
 import type { RetentionCandidate, RetentionDashboard, RetentionOperationResult, RetentionSettings } from './core/models/retention.model';
 import type { CreatePreventionProcessInput, PreventionDifficultyType, PreventionProcessRecord, PreventionRiskType, PreventionStatus, PreventionStepDefinition, PreventionWarning, UpdatePreventionProcessInput } from './core/models/prevention.model';
 import type { BemProcessRecord, BemStatus, UpdateBemProcessInput } from './core/models/bem.model';
+import type { UpdateEqualizationProcessInput } from './core/models/equalization.model';
 import { statusLabel } from './features/prevention/preventionShared';
 import { bemStatusLabel } from './features/bem/bemShared';
 import { PreventionProcessDetail } from './features/prevention/PreventionProcessDetail';
 import { BemProcessDetail } from './features/bem/BemProcessDetail';
+import { EqualizationProcessDetail } from './features/equalization/EqualizationProcessDetail';
 import type { CaseLawRecord, CaseLegalReferenceRecord, LegalNormRecord, NormChecklistItemRecord, NormCommentRecord } from './core/models/knowledge.model';
 import type { ContextualTemplateAction, RenderedTemplateResult, TemplateRecord } from './core/models/template.model';
 import { APP_VERSION } from './generated/appVersion';
@@ -417,11 +419,15 @@ function isTemplateConnectedToProcessStatus(template: TemplateRecord, processTyp
   return hasProcessMatch && hasStatusMatch;
 }
 
-function isBemProcessRecord(process: PreventionProcessRecord | BemProcessRecord): process is BemProcessRecord {
+function isBemProcessRecord(process: PreventionProcessRecord | BemProcessRecord | import('./core/models/equalization.model').EqualizationProcessRecord): process is BemProcessRecord {
   return 'employeeResponse' in process;
 }
 
-function buildProcessTemplateValues(caseRecord: CaseRecord | undefined, process: PreventionProcessRecord | BemProcessRecord): Record<string, string> {
+function isEqualizationProcessRecord(process: unknown): process is import('./core/models/equalization.model').EqualizationProcessRecord {
+  return Boolean(process && typeof process === 'object' && 'applicationStatus' in process);
+}
+
+function buildProcessTemplateValues(caseRecord: CaseRecord | undefined, process: PreventionProcessRecord | BemProcessRecord | import('./core/models/equalization.model').EqualizationProcessRecord): Record<string, string> {
   const base = {
     'fall.aktenzeichen': caseRecord?.caseNumber ?? '',
     'fall.name': caseRecord?.displayName ?? '',
@@ -446,6 +452,21 @@ function buildProcessTemplateValues(caseRecord: CaseRecord | undefined, process:
       'bem.wirksamkeitspruefung': formatDateShort(process.nextReviewAt),
       'bem.ergebnis': process.result ?? '',
       'frist.datum': formatDateShort(process.responseDueAt)
+    };
+  }
+
+  if (isEqualizationProcessRecord(process)) {
+    return {
+      ...base,
+      'gleichstellung.status': process.applicationStatus,
+      'gleichstellung.status.label': process.applicationStatus,
+      'gleichstellung.aktenzeichen': process.agencyReference ?? '',
+      'gleichstellung.antrag_am': formatDateShort(process.applicationSubmittedAt),
+      'gleichstellung.bescheid_am': formatDateShort(process.decisionReceivedAt),
+      'gleichstellung.widerspruchsfrist': formatDateShort(process.objectionDueAt),
+      'gleichstellung.ergebnis': process.outcome ?? '',
+      'gleichstellung.notizen': process.notes ?? '',
+      'frist.datum': formatDateShort(process.objectionDueAt)
     };
   }
 
@@ -517,6 +538,7 @@ export function CasesView({
     setCaseLegalReferences,
     casePreventionProcesses,
     caseBemProcesses,
+    caseEqualizationProcesses,
     selection,
     setSelection,
     reloadSelectedCaseChildren
@@ -547,6 +569,7 @@ export function CasesView({
   const selectedSearchResult = selection.type === 'search' ? searchResults.find((result) => result.sourceId === selection.id) : undefined;
   const selectedPreventionProcess = selection.type === 'process' && selection.processType === 'prevention' && selection.id ? casePreventionProcesses.find((item) => item.id === selection.id) : undefined;
   const selectedBemProcess = selection.type === 'process' && selection.processType === 'bem' && selection.id ? caseBemProcesses.find((item) => item.id === selection.id) : undefined;
+  const selectedEqualizationProcess = selection.type === 'process' && selection.processType === 'equalization' && selection.id ? caseEqualizationProcesses.find((item) => item.id === selection.id) : undefined;
   const documentActions = createCaseDocumentActions({
     importDocuments,
     openDocument,
@@ -717,6 +740,20 @@ export function CasesView({
     }
   }
 
+  async function updateCaseEqualizationProcess(processId: string, input: UpdateEqualizationProcessInput) {
+    setNoteError('');
+    setNoteInfo('');
+    try {
+      const bridge = await waitForBridge();
+      if (!bridge?.equalization) throw new Error('Gleichstellungsdienst ist nicht erreichbar.');
+      await bridge.equalization.update(processId, input);
+      await reloadSelectedCaseChildren();
+      setNoteInfo('Gleichstellungs-/GdB-Verfahren wurde aktualisiert.');
+    } catch (error) {
+      setNoteError(error instanceof Error ? error.message : 'Gleichstellungsverfahren konnte nicht aktualisiert werden.');
+    }
+  }
+
   async function openProcessTemplateModal(process: PreventionProcessRecord | BemProcessRecord) {
     setProcessTemplateModal({ process, processType: isBemProcessRecord(process) ? 'bem' : 'prevention', templates: [], loading: true });
     try {
@@ -836,6 +873,22 @@ export function CasesView({
         setCaseProcessDraft(null);
         setSelection({ type: 'process', processType: 'bem', id: created.id });
         setNoteInfo('BEM-Verfahren wurde direkt an der Fallakte angelegt und im Fallbaum ergänzt.');
+        await reloadSelectedCaseChildren();
+        await onCasesChanged();
+        return;
+      }
+
+      if (caseProcessDraft.processType === 'equalization') {
+        if (!bridge?.equalization) throw new Error('Gleichstellungsdienst ist nicht erreichbar.');
+        const created = await bridge.equalization.create({
+          caseId: selectedCase.id,
+          applicationStatus: 'beratung',
+          notes: caseProcessDraft.description.trim() || `Gleichstellungs-/GdB-Verfahren aus Fallakte ${selectedCase.caseNumber} gestartet.`,
+          objectionDueAt: caseProcessDraft.dueAt ? fromDateTimeLocalValue(caseProcessDraft.dueAt) : undefined
+        });
+        setCaseProcessDraft(null);
+        setSelection({ type: 'process', processType: 'equalization', id: created.id });
+        setNoteInfo('Gleichstellungs-/GdB-Verfahren wurde direkt an der Fallakte angelegt und im Fallbaum ergänzt.');
         await reloadSelectedCaseChildren();
         await onCasesChanged();
         return;
@@ -1015,6 +1068,7 @@ ${caseProcessDraft.description}`,
           documents={documents}
           preventionProcesses={casePreventionProcesses}
           bemProcesses={caseBemProcesses}
+          equalizationProcesses={caseEqualizationProcesses}
           selection={selection}
           onSelect={setSelection}
           formatProcessNodeSubtitle={formatProcessNodeSubtitle}
@@ -1061,6 +1115,13 @@ ${caseProcessDraft.description}`,
               process={selectedBemProcess}
               onUpdate={updateCaseBemProcess}
               onOpenTemplates={openProcessTemplateModal}
+            />
+          )}
+
+          {selection.type === 'process' && selection.processType === 'equalization' && selectedEqualizationProcess && (
+            <EqualizationProcessDetail
+              process={selectedEqualizationProcess}
+              onUpdate={updateCaseEqualizationProcess}
             />
           )}
 

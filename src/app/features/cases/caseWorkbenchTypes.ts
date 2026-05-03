@@ -3,6 +3,7 @@ import type { CaseNoteRecord, CaseSearchResult } from '../../core/models/case-no
 import type { FormEvent } from 'react';
 import type { PreventionProcessRecord } from '../../core/models/prevention.model';
 import type { BemProcessRecord } from '../../core/models/bem.model';
+import type { EqualizationProcessRecord } from '../../core/models/equalization.model';
 import type { CaseRecord } from '../../core/models/case.model';
 
 export type CaseProcessType = 'prevention' | 'bem' | 'termination_hearing' | 'equalization';
@@ -20,6 +21,7 @@ export type CaseTreePanelProps = {
   documents: CaseDocumentRecord[];
   preventionProcesses: PreventionProcessRecord[];
   bemProcesses: BemProcessRecord[];
+  equalizationProcesses: EqualizationProcessRecord[];
   selection: CaseExplorerSelection;
   onSelect: (selection: CaseExplorerSelection) => void;
   formatProcessNodeSubtitle: (processType: CaseProcessType, status?: string) => string;

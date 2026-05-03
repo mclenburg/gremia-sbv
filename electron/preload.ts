@@ -10,6 +10,7 @@ import type { BackupInspectionResult, BackupOperationResult } from '../src/app/c
 import type { RetentionDashboard, RetentionOperationResult, RetentionSettings, UpdateRetentionSettingsInput } from '../src/app/core/models/retention.model.js';
 import type { CreatePreventionProcessInput, PreventionDashboardSummary, PreventionProcessRecord, PreventionStepDefinition, PreventionWarning, UpdatePreventionProcessInput } from '../src/app/core/models/prevention.model.js';
 import type { BemDashboardSummary, BemProcessRecord, BemStepDefinition, BemWarning, CreateBemProcessInput, UpdateBemProcessInput } from '../src/app/core/models/bem.model.js';
+import type { CreateEqualizationProcessInput, EqualizationProcessRecord, EqualizationWarning, UpdateEqualizationProcessInput } from '../src/app/core/models/equalization.model.js';
 import type { CaseLawRecord, CaseLegalReferenceRecord, CreateCaseLawInput, CreateLegalNormInput, CreateNormChecklistItemInput, CreateNormCommentInput, KnowledgeExportPreview, LegalNormRecord, LegalNormSearchInput, LinkLegalNormToCaseInput, NormChecklistItemRecord, NormCommentRecord, UpdateLegalNormInput } from '../src/app/core/models/knowledge.model.js';
 import type { CreateTemplateInput, RenderContextTemplateInput, RenderTemplateInput, RenderedTemplateResult, TemplateListFilters, TemplateRecord, UpdateTemplateInput } from '../src/app/core/models/template.model.js';
 
@@ -81,6 +82,13 @@ const api = {
     create: (input: CreateBemProcessInput): Promise<BemProcessRecord> => ipcRenderer.invoke('bem:create', input),
     update: (id: string, input: UpdateBemProcessInput): Promise<BemProcessRecord> => ipcRenderer.invoke('bem:update', id, input),
     warnings: (id: string): Promise<BemWarning[]> => ipcRenderer.invoke('bem:warnings', id)
+  },
+  equalization: {
+    steps: (): Promise<string[]> => ipcRenderer.invoke('equalization:steps'),
+    list: (caseId?: string): Promise<EqualizationProcessRecord[]> => ipcRenderer.invoke('equalization:list', caseId),
+    create: (input: CreateEqualizationProcessInput): Promise<EqualizationProcessRecord> => ipcRenderer.invoke('equalization:create', input),
+    update: (id: string, input: UpdateEqualizationProcessInput): Promise<EqualizationProcessRecord> => ipcRenderer.invoke('equalization:update', id, input),
+    warnings: (id: string): Promise<EqualizationWarning[]> => ipcRenderer.invoke('equalization:warnings', id)
   },
   deadlines: {
     list: (filters?: DeadlineListFilters): Promise<DeadlineRecord[]> => ipcRenderer.invoke('deadlines:list', filters),

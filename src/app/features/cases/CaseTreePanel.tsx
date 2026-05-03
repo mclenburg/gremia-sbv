@@ -7,6 +7,7 @@ export function CaseTreePanel({
   documents,
   preventionProcesses,
   bemProcesses,
+  equalizationProcesses,
   selection,
   onSelect,
   formatProcessNodeSubtitle,
@@ -20,7 +21,7 @@ export function CaseTreePanel({
       <p className="industrial-meta">{selectedCase?.displayName ?? 'Bitte oben einen Fall auswählen.'}</p>
 
       <div className="case-tree-group process-drop-zone">
-        <div className="case-tree-group-title"><Workflow className="h-4 w-4" /> Maßnahmen <span>{preventionProcesses.length + bemProcesses.length}</span></div>
+        <div className="case-tree-group-title"><Workflow className="h-4 w-4" /> Maßnahmen <span>{preventionProcesses.length + bemProcesses.length + equalizationProcesses.length}</span></div>
         {preventionProcesses.map((process) => (
           <button
             key={process.id}
@@ -43,7 +44,18 @@ export function CaseTreePanel({
             <small>{formatProcessNodeSubtitle('bem', process.status)}</small>
           </button>
         ))}
-        {!preventionProcesses.length && !bemProcesses.length && <p className="case-tree-empty">Noch keine Maßnahme in dieser Akte.</p>}
+        {equalizationProcesses.map((process) => (
+          <button
+            key={process.id}
+            type="button"
+            className={`case-tree-node ${selection.type === 'process' && selection.id === process.id ? 'active' : ''}`}
+            onClick={() => onSelect({ type: 'process', processType: 'equalization', id: process.id })}
+          >
+            <span>Gleichstellung</span>
+            <small>{formatProcessNodeSubtitle('equalization', process.applicationStatus)}</small>
+          </button>
+        ))}
+        {!preventionProcesses.length && !bemProcesses.length && !equalizationProcesses.length && <p className="case-tree-empty">Noch keine Maßnahme in dieser Akte.</p>}
       </div>
 
       <button type="button" className={`case-tree-node ${selection.type === 'overview' ? 'active' : ''}`} onClick={() => onSelect({ type: 'overview' })}>

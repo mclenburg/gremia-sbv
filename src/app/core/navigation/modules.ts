@@ -71,12 +71,10 @@ export const modules: ModuleDefinition[] = [
   },
   {
     id: 'equalization',
-    title: 'Gleichstellung',
+    title: 'Gleichstellung / GdB',
     shortTitle: 'Gleichstellung',
     text: 'Antrag, Sachstand, Bescheid, Widerspruchsfrist.',
-    icon: Scale,
-    status: 'planned',
-    plannedVersion: '0.5.x'
+    icon: Scale
   },
   {
     id: 'termination',

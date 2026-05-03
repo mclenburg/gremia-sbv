@@ -11,6 +11,7 @@ import type { BackupInspectionResult, BackupOperationResult } from './app/core/m
 import type { RetentionDashboard, RetentionOperationResult, RetentionSettings, UpdateRetentionSettingsInput } from './app/core/models/retention.model';
 import type { CreatePreventionProcessInput, PreventionDashboardSummary, PreventionProcessRecord, PreventionStepDefinition, PreventionWarning, UpdatePreventionProcessInput } from './app/core/models/prevention.model';
 import type { BemDashboardSummary, BemProcessRecord, BemStepDefinition, BemWarning, CreateBemProcessInput, UpdateBemProcessInput } from './app/core/models/bem.model';
+import type { CreateEqualizationProcessInput, EqualizationProcessRecord, EqualizationWarning, UpdateEqualizationProcessInput } from './app/core/models/equalization.model';
 import type { CaseLawRecord, CaseLegalReferenceRecord, CreateCaseLawInput, CreateLegalNormInput, CreateNormChecklistItemInput, CreateNormCommentInput, KnowledgeExportPreview, LegalNormRecord, LegalNormSearchInput, LinkLegalNormToCaseInput, NormChecklistItemRecord, NormCommentRecord, UpdateLegalNormInput } from './app/core/models/knowledge.model';
 import type { CreateTemplateInput, RenderContextTemplateInput, RenderTemplateInput, RenderedTemplateResult, TemplateListFilters, TemplateRecord, UpdateTemplateInput } from './app/core/models/template.model';
 
@@ -81,6 +82,13 @@ declare global {
         create(input: CreateBemProcessInput): Promise<BemProcessRecord>;
         update(id: string, input: UpdateBemProcessInput): Promise<BemProcessRecord>;
         warnings(id: string): Promise<BemWarning[]>;
+      };
+      equalization: {
+        steps(): Promise<string[]>;
+        list(caseId?: string): Promise<EqualizationProcessRecord[]>;
+        create(input: CreateEqualizationProcessInput): Promise<EqualizationProcessRecord>;
+        update(id: string, input: UpdateEqualizationProcessInput): Promise<EqualizationProcessRecord>;
+        warnings(id: string): Promise<EqualizationWarning[]>;
       };
       deadlines: {
         list(filters?: DeadlineListFilters): Promise<DeadlineRecord[]>;

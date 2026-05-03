@@ -1,4 +1,4 @@
-import { CalendarPlus, FileText, HeartPulse, Plus, Workflow } from 'lucide-react';
+import { CalendarPlus, FileText, HeartPulse, Plus, Scale, Workflow } from 'lucide-react';
 import type { CaseProcessType } from './caseWorkbenchTypes';
 
 export function CaseWorkbenchFooter({
@@ -22,7 +22,7 @@ export function CaseWorkbenchFooter({
       <button type="button" className="industrial-button" disabled={disabled} onClick={() => onProcess('prevention')}><Workflow className="h-4 w-4" />Prävention</button>
       <button type="button" className="industrial-button" disabled={disabled} onClick={() => onProcess('bem')}><HeartPulse className="h-4 w-4" />BEM</button>
       <button type="button" className="industrial-secondary-button" disabled={disabled} onClick={() => onProcess('termination_hearing')}>Kündigungsanhörung</button>
-      <button type="button" className="industrial-secondary-button" disabled={disabled} onClick={() => onProcess('equalization')}>Gleichstellung</button>
+      <button type="button" className="industrial-button" disabled={disabled} onClick={() => onProcess('equalization')}><Scale className="h-4 w-4" />Gleichstellung</button>
     </footer>
   );
 }
