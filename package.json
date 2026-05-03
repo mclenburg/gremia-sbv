@@ -1,6 +1,6 @@
 {
   "name": "gremia-sbv",
-  "version": "0.4.58",
+  "version": "0.4.58a",
   "private": true,
   "description": "Offline-first Desktop-App für die vertrauliche Fallarbeit der Schwerbehindertenvertretung.",
   "main": "dist-electron/electron/main.js",
@@ -115,7 +115,8 @@
     "test:inline-command-behavior-fix": "vitest run tests/inlineCommandBehavior0456.test.ts",
     "test:regression-fixes": "vitest run tests/databaseMigrationSafety0457.test.ts tests/preventionWorkflow0457.test.ts tests/exportPrivacyGuard0457.test.ts tests/templatesBehavior0457.test.ts tests/caseProcessTemplatesModal.test.ts tests/preventionOverviewDeeplink.test.ts tests/readmeFinalAndCleanup0443.test.ts tests/caseNoteModal0451.test.ts tests/templateWorkbenchModalHelp.test.ts tests/accessibleDialogsLiveRegion.test.ts tests/knowledgeWorkbenchAdvisor.test.ts tests/caseWorkbenchRegression.test.ts tests/knowledgePolicy.test.ts tests/templateDefaultSettings.test.ts tests/templateManagementEditDelete.test.ts tests/caseHeaderToastRegression.test.ts tests/keyboardAccessibilityPolicy.test.ts tests/inlineCommandFeature0449b.test.ts tests/caseNoteEditorHook0455a.test.ts tests/templateProcessStatusState.test.ts tests/cleanCodeRefactor0439.test.ts tests/caseWorkbenchDataHooks0447a.test.ts tests/moduleFrameCompactContract.test.ts tests/processTemplateOverlayPolish.test.ts tests/caseHeaderProcessBadges.test.ts tests/processTemplateBuildRegression.test.ts tests/caseDeepLinkSelectionPersistence.test.ts tests/caseToastTypeRegression.test.ts tests/caseWorkbenchDensityPolicy.test.ts tests/appVersion.test.ts",
     "test:regression-fixes-final": "vitest run tests/exportPrivacyGuard0457.test.ts tests/knowledgeWorkbenchAdvisor.test.ts tests/dsgvoSbvDocumentation0458.test.ts tests/sbvPrivacyPolicy0458.test.ts",
-    "test:dsgvo-sbv-docs": "vitest run tests/dsgvoSbvDocumentation0458.test.ts tests/sbvPrivacyPolicy0458.test.ts"
+    "test:dsgvo-sbv-docs": "vitest run tests/dsgvoSbvDocumentation0458.test.ts tests/sbvPrivacyPolicy0458.test.ts",
+    "test:dsgvo-sbv-fix": "vitest run tests/sbvPrivacyPolicy0458.test.ts tests/dsgvoSbvDocumentation0458.test.ts tests/exportPrivacyGuard0457.test.ts tests/readmeFinalAndCleanup0443.test.ts"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.0",

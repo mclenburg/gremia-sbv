@@ -69,6 +69,8 @@ Gremia.SBV darf kein BR-Rollenkonzept unreflektiert übernehmen. Für die SBV si
 
 Technische Administration darf grundsätzlich keine Fallakteninhalte lesen. Administration und Facheinsicht sind strikt zu trennen.
 
+Merksatz: technische Administration darf grundsätzlich keine Fallakteninhalte lesen.
+
 ## 5. Datenkategorien
 
 Gremia.SBV muss folgende Datenkategorien unterscheiden können:

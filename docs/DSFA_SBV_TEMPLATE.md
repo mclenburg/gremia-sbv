@@ -17,6 +17,8 @@ Stand: 0.4.58
 
 ## 2. Datenarten
 
+Gremia.SBV verarbeitet regelmäßig besondere Kategorien personenbezogener Daten, insbesondere Gesundheitsdaten und Angaben zur Schwerbehinderung oder Gleichstellung.
+
 - Stammdaten,
 - Kontaktdaten,
 - Beschäftigungsdaten,
