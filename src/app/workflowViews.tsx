@@ -68,8 +68,11 @@ import type { GenerateReportInput, ReportDescriptor, ReportExportHistoryItem, Re
 import type { BackupInspectionResult, BackupOperationResult } from './core/models/backup.model';
 import type { RetentionCandidate, RetentionDashboard, RetentionOperationResult, RetentionSettings } from './core/models/retention.model';
 import type { CreatePreventionProcessInput, PreventionDifficultyType, PreventionProcessRecord, PreventionRiskType, PreventionStatus, PreventionStepDefinition, PreventionWarning, UpdatePreventionProcessInput } from './core/models/prevention.model';
+import type { BemProcessRecord, BemStatus, UpdateBemProcessInput } from './core/models/bem.model';
 import { statusLabel } from './features/prevention/preventionShared';
+import { bemStatusLabel } from './features/bem/bemShared';
 import { PreventionProcessDetail } from './features/prevention/PreventionProcessDetail';
+import { BemProcessDetail } from './features/bem/BemProcessDetail';
 import type { CaseLawRecord, CaseLegalReferenceRecord, LegalNormRecord, NormChecklistItemRecord, NormCommentRecord } from './core/models/knowledge.model';
 import type { ContextualTemplateAction, RenderedTemplateResult, TemplateRecord } from './core/models/template.model';
 import { APP_VERSION } from './generated/appVersion';
@@ -736,7 +739,9 @@ function defaultCaseProcessDraft(processType: CaseProcessType): CaseProcessDraft
     title: processTypeLabel(processType),
     description: processType === 'prevention'
       ? 'Aus der Fallakte gestartetes Präventionsverfahren. Bitte Anlass und Gefährdung konkretisieren.'
-      : `${processTypeLabel(processType)} aus der Fallakte vorgemerkt. Das Fachmodul übernimmt später die strukturierte Bearbeitung.`,
+      : processType === 'bem'
+        ? 'Aus der Fallakte gestartetes BEM-Verfahren. Bitte Auslöser, Angebot und Reaktion konkretisieren.'
+        : `${processTypeLabel(processType)} aus der Fallakte vorgemerkt. Das Fachmodul übernimmt später die strukturierte Bearbeitung.`,
     dueAt: ''
   };
 }
@@ -763,24 +768,56 @@ function templateTags(template: TemplateRecord): string[] {
   return ((template.tags ?? []) as string[]).map((tag) => tag.trim().toLowerCase()).filter(Boolean);
 }
 
-function isTemplateConnectedToPreventionStatus(template: TemplateRecord, status: PreventionStatus): boolean {
-  if (template.category !== 'praevention') return false;
+function isTemplateConnectedToProcessStatus(template: TemplateRecord, processType: 'prevention' | 'bem', status: PreventionStatus | BemStatus): boolean {
+  if (processType === 'prevention' && template.category !== 'praevention') return false;
+  if (processType === 'bem' && template.category !== 'bem') return false;
   const tags = templateTags(template);
   const text = `${template.title} ${template.description ?? ''} ${tags.join(' ')}`.toLowerCase();
+  const processTokens = processType === 'bem'
+    ? ['massnahme:bem', 'maßnahme:bem', 'prozess:bem', 'bem']
+    : ['massnahme:prevention', 'maßnahme:prevention', 'prozess:prevention', 'praevention', 'prävention', 'prevention'];
   const hasProcessMatch = tags.length === 0
-    || tags.some((tag) => ['massnahme:prevention', 'maßnahme:prevention', 'prozess:prevention', 'praevention', 'prävention', 'prevention'].includes(tag))
-    || text.includes('prävention')
-    || text.includes('präventionsverfahren');
-  const statusTokens = [`status:${status}`, `praevention:${status}`, `prävention:${status}`, `prevention:${status}`, status];
+    || tags.some((tag) => processTokens.includes(tag))
+    || (processType === 'bem' ? text.includes('bem') : text.includes('prävention') || text.includes('präventionsverfahren'));
+  const statusTokens = [`status:${status}`, `${processType}:${status}`, status];
   const hasStatusMatch = tags.length === 0 || statusTokens.some((token) => tags.includes(token) || text.includes(token.replaceAll('_', ' ')));
   return hasProcessMatch && hasStatusMatch;
 }
 
-function buildProcessTemplateValues(caseRecord: CaseRecord | undefined, process: PreventionProcessRecord): Record<string, string> {
-  return {
+function isBemProcessRecord(process: PreventionProcessRecord | BemProcessRecord): process is BemProcessRecord {
+  return 'employeeResponse' in process;
+}
+
+function buildProcessTemplateValues(caseRecord: CaseRecord | undefined, process: PreventionProcessRecord | BemProcessRecord): Record<string, string> {
+  const base = {
     'fall.aktenzeichen': caseRecord?.caseNumber ?? '',
     'fall.name': caseRecord?.displayName ?? '',
-    'fall.kurzbeschreibung': caseRecord?.summary ?? '',
+    'fall.kurzbeschreibung': caseRecord?.summary ?? ''
+  };
+
+  if (isBemProcessRecord(process)) {
+    return {
+      ...base,
+      'bem.status': bemStatusLabel(process.status),
+      'bem.status.key': process.status,
+      'bem.titel': process.title,
+      'bem.ausloeser': process.triggerDescription ?? '',
+      'bem.au_tage': process.sicknessDaysTwelveMonths !== undefined ? String(process.sicknessDaysTwelveMonths) : '',
+      'bem.angebot_am': formatDateShort(process.bemOfferedAt),
+      'bem.reaktionsfrist': formatDateShort(process.responseDueAt),
+      'bem.reaktion': process.employeeResponse.replaceAll('_', ' '),
+      'bem.reaktion_am': formatDateShort(process.employeeResponseAt),
+      'bem.erstgespraech': formatDateShort(process.firstMeetingAt),
+      'bem.beteiligte': process.participants ?? '',
+      'bem.massnahmen': process.measures ?? '',
+      'bem.wirksamkeitspruefung': formatDateShort(process.nextReviewAt),
+      'bem.ergebnis': process.result ?? '',
+      'frist.datum': formatDateShort(process.responseDueAt)
+    };
+  }
+
+  return {
+    ...base,
     'praevention.status': statusLabel(process.status),
     'praevention.status.key': process.status,
     'praevention.gefaehrdung': process.hazardDescription ?? '',
@@ -795,6 +832,7 @@ function buildProcessTemplateValues(caseRecord: CaseRecord | undefined, process:
     'frist.datum': formatDateShort(process.employerResponseDueAt)
   };
 }
+
 
 type CaseToast = {
   id: number;
@@ -845,6 +883,7 @@ export function CasesView({
     caseLegalReferences,
     setCaseLegalReferences,
     casePreventionProcesses,
+    caseBemProcesses,
     selection,
     setSelection,
     reloadSelectedCaseChildren
@@ -873,6 +912,8 @@ export function CasesView({
   const selectedNote = selection.type === 'note' ? notes.find((note) => note.id === selection.id) : undefined;
   const selectedDocument = selection.type === 'document' ? documents.find((doc) => doc.id === selection.id) : undefined;
   const selectedSearchResult = selection.type === 'search' ? searchResults.find((result) => result.sourceId === selection.id) : undefined;
+  const selectedPreventionProcess = selection.type === 'process' && selection.processType === 'prevention' && selection.id ? casePreventionProcesses.find((item) => item.id === selection.id) : undefined;
+  const selectedBemProcess = selection.type === 'process' && selection.processType === 'bem' && selection.id ? caseBemProcesses.find((item) => item.id === selection.id) : undefined;
   const documentActions = createCaseDocumentActions({
     importDocuments,
     openDocument,
@@ -946,6 +987,19 @@ export function CasesView({
 
   bindClearInlineDrafts(inlineCommands.clearInlineDrafts);
 
+  useEffect(() => {
+    if (noteInfo) announce(noteInfo, 'polite');
+  }, [noteInfo, announce]);
+
+  useEffect(() => {
+    const message = noteError || documentError || error || caseLoadError;
+    if (message) announce(message, 'assertive');
+  }, [noteError, documentError, error, caseLoadError, announce]);
+
+  useEffect(() => {
+    if (caseToast?.text) announce(caseToast.text, caseToast.variant === 'warning' ? 'assertive' : 'polite');
+  }, [caseToast, announce]);
+
   function pushCaseToast(text: string, variant: 'ok' | 'warning' = 'ok') {
     const id = Date.now();
     setCaseToast({ id, text, variant });
@@ -1016,16 +1070,31 @@ export function CasesView({
     }
   }
 
-  async function openProcessTemplateModal(process: PreventionProcessRecord) {
-    setProcessTemplateModal({ process, templates: [], loading: true });
+  async function updateCaseBemProcess(processId: string, input: UpdateBemProcessInput) {
+    setNoteError('');
+    setNoteInfo('');
+    try {
+      const bridge = await waitForBridge();
+      if (!bridge?.bem) throw new Error('BEM-Dienst ist nicht erreichbar.');
+      await bridge.bem.update(processId, input);
+      await reloadSelectedCaseChildren();
+      setNoteInfo('BEM-Verfahren wurde aktualisiert.');
+    } catch (error) {
+      setNoteError(error instanceof Error ? error.message : 'BEM-Verfahren konnte nicht aktualisiert werden.');
+    }
+  }
+
+  async function openProcessTemplateModal(process: PreventionProcessRecord | BemProcessRecord) {
+    setProcessTemplateModal({ process, processType: isBemProcessRecord(process) ? 'bem' : 'prevention', templates: [], loading: true });
     try {
       const bridge = await waitForBridge();
       if (!bridge?.templates) throw new Error('Vorlagendienst ist nicht erreichbar.');
-      const rows = await bridge.templates.list({ category: 'praevention', limit: 500 });
-      const templates = rows.filter((template: TemplateRecord) => isTemplateConnectedToPreventionStatus(template, process.status));
-      setProcessTemplateModal({ process, templates, loading: false });
+      const processType = isBemProcessRecord(process) ? 'bem' : 'prevention';
+      const rows = await bridge.templates.list({ category: processType === 'bem' ? 'bem' : 'praevention', limit: 500 });
+      const templates = rows.filter((template: TemplateRecord) => isTemplateConnectedToProcessStatus(template, processType, process.status));
+      setProcessTemplateModal({ process, processType, templates, loading: false });
     } catch (error) {
-      setProcessTemplateModal({ process, templates: [], loading: false, error: error instanceof Error ? error.message : 'Vorlagen konnten nicht geladen werden.' });
+      setProcessTemplateModal({ process, processType: isBemProcessRecord(process) ? 'bem' : 'prevention', templates: [], loading: false, error: error instanceof Error ? error.message : 'Vorlagen konnten nicht geladen werden.' });
     }
   }
 
@@ -1082,6 +1151,25 @@ export function CasesView({
         setCaseProcessDraft(null);
         setSelection({ type: 'process', processType: 'prevention', id: created.id });
         setNoteInfo('Präventionsverfahren wurde direkt an der Fallakte angelegt und im Fallbaum ergänzt.');
+        await reloadSelectedCaseChildren();
+        await onCasesChanged();
+        return;
+      }
+
+      if (caseProcessDraft.processType === 'bem') {
+        if (!bridge?.bem) throw new Error('BEM-Dienst ist nicht erreichbar.');
+        const created = await bridge.bem.create({
+          caseId: selectedCase.id,
+          title: caseProcessDraft.title.trim() || 'BEM-Verfahren',
+          triggerDescription: caseProcessDraft.description.trim() || `BEM-Verfahren aus Fallakte ${selectedCase.caseNumber} gestartet.`,
+          triggerType: 'sbv_anregung',
+          responseDueAt: caseProcessDraft.dueAt ? fromDateTimeLocalValue(caseProcessDraft.dueAt) : undefined,
+          contactIds: [],
+          createDefaultDeadlines: true
+        });
+        setCaseProcessDraft(null);
+        setSelection({ type: 'process', processType: 'bem', id: created.id });
+        setNoteInfo('BEM-Verfahren wurde direkt an der Fallakte angelegt und im Fallbaum ergänzt.');
         await reloadSelectedCaseChildren();
         await onCasesChanged();
         return;
@@ -1260,6 +1348,7 @@ ${caseProcessDraft.description}`,
           notes={notes}
           documents={documents}
           preventionProcesses={casePreventionProcesses}
+          bemProcesses={caseBemProcesses}
           selection={selection}
           onSelect={setSelection}
           formatProcessNodeSubtitle={formatProcessNodeSubtitle}
@@ -1283,7 +1372,7 @@ ${caseProcessDraft.description}`,
               notesCount={notes.length}
               documentsCount={documents.length}
               legalReferencesCount={caseLegalReferences.length}
-              processesCount={casePreventionProcesses.length}
+              processesCount={casePreventionProcesses.length + caseBemProcesses.length}
               contextualTemplateActions={selectedCase && (() => {
                 const action = resolveContextualTemplateAction({ sourceType: 'case', title: 'Fallübersicht' });
                 return action ? <div className="contextual-template-actions"><ContextualTemplateButton action={action} caseId={selectedCase.id} values={{ 'fall.aktenzeichen': selectedCase.caseNumber, 'fall.name': selectedCase.displayName, 'fall.kurzbeschreibung': selectedCase.summary ?? '' }} /></div> : null;
@@ -1291,11 +1380,20 @@ ${caseProcessDraft.description}`,
             />
           )}
 
-          {selection.type === 'process' && (
+          {selection.type === 'process' && selection.processType === 'prevention' && (
             <PreventionProcessDetail
               processType={selection.processType}
-              process={selection.processType === 'prevention' && selection.id ? casePreventionProcesses.find((item) => item.id === selection.id) : undefined}
+              process={selectedPreventionProcess}
               onUpdate={updateCasePreventionProcess}
+              onOpenTemplates={openProcessTemplateModal}
+            />
+          )}
+
+          {selection.type === 'process' && selection.processType === 'bem' && (
+            <BemProcessDetail
+              processType={selection.processType}
+              process={selectedBemProcess}
+              onUpdate={updateCaseBemProcess}
               onOpenTemplates={openProcessTemplateModal}
             />
           )}

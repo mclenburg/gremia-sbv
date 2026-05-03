@@ -1,40 +1,117 @@
-export type BemConsentStatus = 'offen' | 'erteilt' | 'abgelehnt' | 'widerrufen';
-export type BemPhase =
-  | 'pruefung'
-  | 'einladung'
-  | 'zustimmung'
-  | 'erstgespraech'
-  | 'klaerung'
-  | 'massnahmen'
-  | 'evaluation'
-  | 'abgeschlossen';
+export type BemStatus =
+  | 'zu_pruefen'
+  | 'angebot_vorzubereiten'
+  | 'angebot_versendet'
+  | 'reaktion_abwarten'
+  | 'angenommen'
+  | 'abgelehnt'
+  | 'gespraech_geplant'
+  | 'massnahmen_in_klaerung'
+  | 'massnahmen_vereinbart'
+  | 'wirksamkeit_pruefen'
+  | 'abgeschlossen'
+  | 'abgebrochen';
 
-export type BemMeasureStatus = 'geplant' | 'in_umsetzung' | 'wirksam' | 'nicht_wirksam' | 'verworfen';
+export type BemResponse = 'offen' | 'angenommen' | 'abgelehnt' | 'keine_reaktion';
+
+export type BemLegacyPhase = 'pruefung' | 'angebot' | 'reaktion' | 'gespraech' | 'massnahmen' | 'abschluss';
+
+export type BemTriggerType =
+  | 'sechs_wochen_au'
+  | 'wiederholt_au'
+  | 'praeventiv'
+  | 'arbeitgeberangebot'
+  | 'sbv_anregung'
+  | 'sonstiges';
+
+export interface BemStepDefinition {
+  key:
+    | 'eligibility'
+    | 'offer'
+    | 'response'
+    | 'first_meeting'
+    | 'analysis'
+    | 'measures'
+    | 'review'
+    | 'completion';
+  title: string;
+  objective: string;
+}
 
 export interface BemProcessRecord {
   id: string;
   caseId: string;
-  triggerDate?: string;
-  auDaysIn12Months?: number;
-  invitationSentAt?: string;
+  status: BemStatus;
+  /** @deprecated Legacy alias for older tests and callers. Use status instead. */
+  currentPhase?: BemLegacyPhase;
+  title: string;
+  triggerType: BemTriggerType;
+  triggerDescription?: string;
+  sicknessDaysTwelveMonths?: number;
+  bemOfferedAt?: string;
   responseDueAt?: string;
-  consentStatus: BemConsentStatus;
+  employeeResponse: BemResponse;
+  employeeResponseAt?: string;
   firstMeetingAt?: string;
-  currentPhase: BemPhase;
-  sbvInvolved: boolean;
-  brInvolved: boolean;
-  worksDoctorInvolved: boolean;
-  integrationOfficeInvolved: boolean;
-  notes?: string;
+  participants?: string;
+  measures?: string;
+  nextReviewAt?: string;
+  result?: string;
+  confidentialNotes?: string;
+  contactIds: string[];
+  createdAt: string;
+  updatedAt: string;
 }
 
-export interface BemMeasureRecord {
-  id: string;
-  bemProcessId: string;
-  title: string;
-  description?: string;
-  responsibleParty?: string;
-  dueAt?: string;
-  status: BemMeasureStatus;
-  evaluationNotes?: string;
+export interface CreateBemProcessInput {
+  caseId: string;
+  title?: string;
+  triggerType?: BemTriggerType;
+  triggerDescription?: string;
+  sicknessDaysTwelveMonths?: number;
+  bemOfferedAt?: string;
+  responseDueAt?: string;
+  employeeResponse?: BemResponse;
+  employeeResponseAt?: string;
+  firstMeetingAt?: string;
+  participants?: string;
+  measures?: string;
+  nextReviewAt?: string;
+  result?: string;
+  confidentialNotes?: string;
+  contactIds?: string[];
+  createDefaultDeadlines?: boolean;
+}
+
+export interface UpdateBemProcessInput {
+  status?: BemStatus;
+  title?: string;
+  triggerType?: BemTriggerType;
+  triggerDescription?: string;
+  sicknessDaysTwelveMonths?: number;
+  bemOfferedAt?: string;
+  responseDueAt?: string;
+  employeeResponse?: BemResponse;
+  employeeResponseAt?: string;
+  firstMeetingAt?: string;
+  participants?: string;
+  measures?: string;
+  nextReviewAt?: string;
+  result?: string;
+  confidentialNotes?: string;
+  contactIds?: string[];
+}
+
+export interface BemDashboardSummary {
+  open: number;
+  waitingForResponse: number;
+  accepted: number;
+  dueForResponse: number;
+  inMeasures: number;
+  completed: number;
+}
+
+export interface BemWarning {
+  level: 'info' | 'warning' | 'critical';
+  message: string;
 }

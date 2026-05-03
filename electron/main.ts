@@ -9,6 +9,7 @@ import { registerReportIpc } from './ipc/reportIpc.js';
 import { registerBackupIpc } from './ipc/backupIpc.js';
 import { registerRetentionIpc } from './ipc/retentionIpc.js';
 import { registerPreventionIpc } from './ipc/preventionIpc.js';
+import { registerBemIpc } from './ipc/bemIpc.js';
 import { registerKnowledgeIpc } from './ipc/knowledgeIpc.js';
 import { registerTemplateIpc } from './ipc/templateIpc.js';
 import { SecurityService } from '../services/securityService.js';
@@ -219,6 +220,7 @@ if (!singleInstanceLock) {
     registerContactIpc(ipcMain, security);
     registerDeadlineIpc(ipcMain, security);
     registerPreventionIpc(ipcMain, security);
+    registerBemIpc(ipcMain, security);
     registerKnowledgeIpc(ipcMain, security);
     registerTemplateIpc(ipcMain, security);
     registerReportIpc(ipcMain, security);

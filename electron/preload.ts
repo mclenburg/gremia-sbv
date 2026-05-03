@@ -9,6 +9,7 @@ import type { GenerateReportInput, ReportDescriptor, ReportExportHistoryItem, Re
 import type { BackupInspectionResult, BackupOperationResult } from '../src/app/core/models/backup.model.js';
 import type { RetentionDashboard, RetentionOperationResult, RetentionSettings, UpdateRetentionSettingsInput } from '../src/app/core/models/retention.model.js';
 import type { CreatePreventionProcessInput, PreventionDashboardSummary, PreventionProcessRecord, PreventionStepDefinition, PreventionWarning, UpdatePreventionProcessInput } from '../src/app/core/models/prevention.model.js';
+import type { BemDashboardSummary, BemProcessRecord, BemStepDefinition, BemWarning, CreateBemProcessInput, UpdateBemProcessInput } from '../src/app/core/models/bem.model.js';
 import type { CaseLawRecord, CaseLegalReferenceRecord, CreateCaseLawInput, CreateLegalNormInput, CreateNormChecklistItemInput, CreateNormCommentInput, KnowledgeExportPreview, LegalNormRecord, LegalNormSearchInput, LinkLegalNormToCaseInput, NormChecklistItemRecord, NormCommentRecord, UpdateLegalNormInput } from '../src/app/core/models/knowledge.model.js';
 import type { CreateTemplateInput, RenderContextTemplateInput, RenderTemplateInput, RenderedTemplateResult, TemplateListFilters, TemplateRecord, UpdateTemplateInput } from '../src/app/core/models/template.model.js';
 
@@ -72,6 +73,14 @@ const api = {
     create: (input: CreatePreventionProcessInput): Promise<PreventionProcessRecord> => ipcRenderer.invoke('prevention:create', input),
     update: (id: string, input: UpdatePreventionProcessInput): Promise<PreventionProcessRecord> => ipcRenderer.invoke('prevention:update', id, input),
     warnings: (id: string): Promise<PreventionWarning[]> => ipcRenderer.invoke('prevention:warnings', id)
+  },
+  bem: {
+    steps: (): Promise<BemStepDefinition[]> => ipcRenderer.invoke('bem:steps'),
+    list: (caseId?: string): Promise<BemProcessRecord[]> => ipcRenderer.invoke('bem:list', caseId),
+    dashboard: (): Promise<BemDashboardSummary> => ipcRenderer.invoke('bem:dashboard'),
+    create: (input: CreateBemProcessInput): Promise<BemProcessRecord> => ipcRenderer.invoke('bem:create', input),
+    update: (id: string, input: UpdateBemProcessInput): Promise<BemProcessRecord> => ipcRenderer.invoke('bem:update', id, input),
+    warnings: (id: string): Promise<BemWarning[]> => ipcRenderer.invoke('bem:warnings', id)
   },
   deadlines: {
     list: (filters?: DeadlineListFilters): Promise<DeadlineRecord[]> => ipcRenderer.invoke('deadlines:list', filters),

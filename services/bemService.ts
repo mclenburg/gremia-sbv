@@ -1,68 +1,231 @@
 import { randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
-import type { BemProcessRecord, BemPhase, BemConsentStatus } from '../src/app/core/models/bem.model.js';
+import { DeadlineService } from './deadlineService.js';
+import { defaultBemResponseDueAt } from './bemWorkflowPolicy.js';
+import type {
+  BemDashboardSummary,
+  BemProcessRecord,
+  BemStatus,
+  CreateBemProcessInput,
+  UpdateBemProcessInput
+} from '../src/app/core/models/bem.model.js';
 
 function nowIso(): string {
   return new Date().toISOString();
 }
 
-function mapBem(row: any): BemProcessRecord {
+function legacyPhaseForStatus(status: string): 'pruefung' | 'angebot' | 'reaktion' | 'gespraech' | 'massnahmen' | 'abschluss' {
+  if (status === 'zu_pruefen') return 'pruefung';
+  if (status === 'angebot_vorzubereiten' || status === 'angebot_versendet') return 'angebot';
+  if (status === 'reaktion_abwarten' || status === 'angenommen' || status === 'abgelehnt') return 'reaktion';
+  if (status === 'gespraech_geplant') return 'gespraech';
+  if (status === 'massnahmen_in_klaerung' || status === 'massnahmen_vereinbart' || status === 'wirksamkeit_pruefen') return 'massnahmen';
+  return 'abschluss';
+}
+
+function mapProcess(row: any, contactIds: string[]): BemProcessRecord {
   return {
     id: row.id,
     caseId: row.case_id,
-    triggerDate: row.trigger_date ?? undefined,
-    auDaysIn12Months: row.au_days_in_12_months ?? undefined,
-    invitationSentAt: row.invitation_sent_at ?? undefined,
+    status: row.status,
+    currentPhase: legacyPhaseForStatus(row.status),
+    title: row.title,
+    triggerType: row.trigger_type ?? 'sonstiges',
+    triggerDescription: row.trigger_description ?? undefined,
+    sicknessDaysTwelveMonths: row.sickness_days_twelve_months ?? undefined,
+    bemOfferedAt: row.bem_offered_at ?? undefined,
     responseDueAt: row.response_due_at ?? undefined,
-    consentStatus: row.consent_status,
+    employeeResponse: row.employee_response ?? 'offen',
+    employeeResponseAt: row.employee_response_at ?? undefined,
     firstMeetingAt: row.first_meeting_at ?? undefined,
-    currentPhase: row.current_phase,
-    sbvInvolved: Boolean(row.sbv_involved),
-    brInvolved: Boolean(row.br_involved),
-    worksDoctorInvolved: Boolean(row.works_doctor_involved),
-    integrationOfficeInvolved: Boolean(row.integration_office_involved),
-    notes: row.notes ?? undefined
+    participants: row.participants ?? undefined,
+    measures: row.measures ?? undefined,
+    nextReviewAt: row.next_review_at ?? undefined,
+    result: row.result ?? undefined,
+    confidentialNotes: row.confidential_notes ?? undefined,
+    contactIds,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
   };
 }
 
 export class BemService {
   constructor(private readonly db: DatabaseAdapter) {}
 
+  list(caseId?: string): BemProcessRecord[] {
+    const rows = caseId
+      ? this.db.prepare<any>('SELECT * FROM bem_processes WHERE case_id = ? ORDER BY COALESCE(bem_offered_at, first_meeting_at, created_at) DESC').all(caseId)
+      : this.db.prepare<any>('SELECT * FROM bem_processes ORDER BY COALESCE(bem_offered_at, first_meeting_at, created_at) DESC').all();
+    return rows.map((row) => mapProcess(row, this.contactIdsForProcess(row.id)));
+  }
+
+  dashboardSummary(): BemDashboardSummary {
+    const rows = this.list();
+    const now = new Date();
+    return {
+      open: rows.filter((row) => row.status !== 'abgeschlossen' && row.status !== 'abgelehnt' && row.status !== 'abgebrochen').length,
+      waitingForResponse: rows.filter((row) => row.status === 'reaktion_abwarten' || row.employeeResponse === 'offen').length,
+      accepted: rows.filter((row) => row.employeeResponse === 'angenommen').length,
+      dueForResponse: rows.filter((row) => row.responseDueAt && row.employeeResponse === 'offen' && new Date(row.responseDueAt) <= now).length,
+      inMeasures: rows.filter((row) => row.status === 'massnahmen_in_klaerung' || row.status === 'massnahmen_vereinbart' || row.status === 'wirksamkeit_pruefen').length,
+      completed: rows.filter((row) => row.status === 'abgeschlossen').length
+    };
+  }
+
   createForCase(caseId: string, triggerDate?: string): BemProcessRecord {
+    return this.create({
+      caseId,
+      title: 'BEM-Verfahren',
+      triggerType: 'sechs_wochen_au',
+      triggerDescription: triggerDate ? `BEM-Auslöser dokumentiert am ${triggerDate}` : 'BEM-Auslöser dokumentiert.',
+      createDefaultDeadlines: true
+    });
+  }
+
+  create(input: CreateBemProcessInput): BemProcessRecord {
+    if (!input.caseId) throw new Error('Ein BEM-Verfahren muss einem Fall zugeordnet sein.');
+
     const id = randomUUID();
     const timestamp = nowIso();
+    const bemOfferedAt = input.bemOfferedAt ? new Date(input.bemOfferedAt).toISOString() : null;
+    const responseDueAt = input.responseDueAt
+      ? new Date(input.responseDueAt).toISOString()
+      : bemOfferedAt
+        ? defaultBemResponseDueAt(bemOfferedAt)
+        : null;
+    const status: BemStatus = bemOfferedAt ? 'angebot_versendet' : 'zu_pruefen';
+
     this.db.prepare(`
-      INSERT INTO bem_processes (id, case_id, trigger_date, consent_status, current_phase, created_at, updated_at)
-      VALUES (?, ?, ?, 'offen', 'pruefung', ?, ?)
-    `).run(id, caseId, triggerDate ?? null, timestamp, timestamp);
+      INSERT INTO bem_processes (
+        id, case_id, status, title, trigger_type, trigger_description, sickness_days_twelve_months,
+        bem_offered_at, response_due_at, employee_response, employee_response_at, first_meeting_at,
+        participants, measures, next_review_at, result, confidential_notes, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      id,
+      input.caseId,
+      status,
+      input.title?.trim() || 'BEM-Verfahren',
+      input.triggerType ?? 'sonstiges',
+      input.triggerDescription ?? null,
+      input.sicknessDaysTwelveMonths ?? null,
+      bemOfferedAt,
+      responseDueAt,
+      input.employeeResponse ?? 'offen',
+      input.employeeResponseAt ? new Date(input.employeeResponseAt).toISOString() : null,
+      input.firstMeetingAt ? new Date(input.firstMeetingAt).toISOString() : null,
+      input.participants ?? null,
+      input.measures ?? null,
+      input.nextReviewAt ? new Date(input.nextReviewAt).toISOString() : null,
+      input.result ?? null,
+      input.confidentialNotes ?? null,
+      timestamp,
+      timestamp
+    );
+
+    this.replaceContacts(id, input.contactIds ?? []);
+    this.event(id, 'created', 'BEM-Verfahren angelegt', input.triggerDescription);
+
+    if (input.createDefaultDeadlines !== false && responseDueAt) {
+      new DeadlineService(this.db).create({
+        caseId: input.caseId,
+        processId: id,
+        processType: 'bem',
+        deadlineType: 'follow_up',
+        title: 'BEM-Reaktion nachhalten',
+        confidentialTitle: 'BEM: Reaktion nachhalten',
+        description: 'Automatische Wiedervorlage aus dem BEM-Verfahren.',
+        dueAt: responseDueAt,
+        legalBasis: '§ 167 Abs. 2 SGB IX',
+        sourceEvent: 'bem_process_created',
+        severity: 'important',
+        calculationMode: 'workflow',
+        isLegalDeadline: false,
+        warningThresholdHours: 48,
+        criticalThresholdHours: 24
+      });
+    }
 
     return this.getById(id)!;
   }
 
-  listOpen(): BemProcessRecord[] {
-    return this.db.prepare<any>(`
-      SELECT * FROM bem_processes
-      WHERE current_phase != 'abgeschlossen'
-      ORDER BY COALESCE(response_due_at, trigger_date, created_at) ASC
-    `).all().map(mapBem);
+  update(id: string, input: UpdateBemProcessInput): BemProcessRecord {
+    const existing = this.getById(id);
+    if (!existing) throw new Error(`BEM-Verfahren nicht gefunden: ${id}`);
+
+    const next = {
+      status: input.status ?? existing.status,
+      title: input.title ?? existing.title,
+      triggerType: input.triggerType ?? existing.triggerType,
+      triggerDescription: input.triggerDescription !== undefined ? input.triggerDescription : existing.triggerDescription,
+      sicknessDaysTwelveMonths: input.sicknessDaysTwelveMonths !== undefined ? input.sicknessDaysTwelveMonths : existing.sicknessDaysTwelveMonths,
+      bemOfferedAt: input.bemOfferedAt !== undefined ? input.bemOfferedAt : existing.bemOfferedAt,
+      responseDueAt: input.responseDueAt !== undefined ? input.responseDueAt : existing.responseDueAt,
+      employeeResponse: input.employeeResponse ?? existing.employeeResponse,
+      employeeResponseAt: input.employeeResponseAt !== undefined ? input.employeeResponseAt : existing.employeeResponseAt,
+      firstMeetingAt: input.firstMeetingAt !== undefined ? input.firstMeetingAt : existing.firstMeetingAt,
+      participants: input.participants !== undefined ? input.participants : existing.participants,
+      measures: input.measures !== undefined ? input.measures : existing.measures,
+      nextReviewAt: input.nextReviewAt !== undefined ? input.nextReviewAt : existing.nextReviewAt,
+      result: input.result !== undefined ? input.result : existing.result,
+      confidentialNotes: input.confidentialNotes !== undefined ? input.confidentialNotes : existing.confidentialNotes
+    };
+
+    this.db.prepare(`
+      UPDATE bem_processes
+      SET status = ?, title = ?, trigger_type = ?, trigger_description = ?, sickness_days_twelve_months = ?,
+          bem_offered_at = ?, response_due_at = ?, employee_response = ?, employee_response_at = ?, first_meeting_at = ?,
+          participants = ?, measures = ?, next_review_at = ?, result = ?, confidential_notes = ?, updated_at = ?
+      WHERE id = ?
+    `).run(
+      next.status,
+      next.title,
+      next.triggerType,
+      next.triggerDescription ?? null,
+      next.sicknessDaysTwelveMonths ?? null,
+      next.bemOfferedAt ? new Date(next.bemOfferedAt).toISOString() : null,
+      next.responseDueAt ? new Date(next.responseDueAt).toISOString() : null,
+      next.employeeResponse,
+      next.employeeResponseAt ? new Date(next.employeeResponseAt).toISOString() : null,
+      next.firstMeetingAt ? new Date(next.firstMeetingAt).toISOString() : null,
+      next.participants ?? null,
+      next.measures ?? null,
+      next.nextReviewAt ? new Date(next.nextReviewAt).toISOString() : null,
+      next.result ?? null,
+      next.confidentialNotes ?? null,
+      nowIso(),
+      id
+    );
+
+    if (input.contactIds) this.replaceContacts(id, input.contactIds);
+    this.event(id, 'updated', 'BEM-Verfahren aktualisiert', JSON.stringify(input));
+    return this.getById(id)!;
+  }
+
+  setStatus(id: string, status: BemStatus): BemProcessRecord {
+    return this.update(id, { status });
   }
 
   getById(id: string): BemProcessRecord | undefined {
     const row = this.db.prepare<any>('SELECT * FROM bem_processes WHERE id = ?').get(id);
-    return row ? mapBem(row) : undefined;
+    return row ? mapProcess(row, this.contactIdsForProcess(id)) : undefined;
   }
 
-  setPhase(id: string, phase: BemPhase): BemProcessRecord {
-    this.db.prepare('UPDATE bem_processes SET current_phase = ?, updated_at = ? WHERE id = ?').run(phase, nowIso(), id);
-    const updated = this.getById(id);
-    if (!updated) throw new Error(`BEM process not found: ${id}`);
-    return updated;
+  private contactIdsForProcess(processId: string): string[] {
+    return this.db.prepare<{ contact_id: string }>('SELECT contact_id FROM bem_process_contacts WHERE process_id = ? ORDER BY created_at ASC')
+      .all(processId)
+      .map((row) => row.contact_id);
   }
 
-  setConsent(id: string, consentStatus: BemConsentStatus): BemProcessRecord {
-    this.db.prepare('UPDATE bem_processes SET consent_status = ?, updated_at = ? WHERE id = ?').run(consentStatus, nowIso(), id);
-    const updated = this.getById(id);
-    if (!updated) throw new Error(`BEM process not found: ${id}`);
-    return updated;
+  private replaceContacts(processId: string, contactIds: string[]): void {
+    const timestamp = nowIso();
+    this.db.prepare('DELETE FROM bem_process_contacts WHERE process_id = ?').run(processId);
+    const insert = this.db.prepare('INSERT OR IGNORE INTO bem_process_contacts (process_id, contact_id, created_at) VALUES (?, ?, ?)');
+    [...new Set(contactIds)].filter(Boolean).forEach((contactId) => insert.run(processId, contactId, timestamp));
+  }
+
+  private event(processId: string, eventType: string, title: string, description?: string): void {
+    this.db.prepare('INSERT INTO bem_process_events (id, process_id, event_type, title, description, created_at) VALUES (?, ?, ?, ?, ?, ?)')
+      .run(randomUUID(), processId, eventType, title, description ?? null, nowIso());
   }
 }

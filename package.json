@@ -1,6 +1,6 @@
 {
   "name": "gremia-sbv",
-  "version": "0.4.58a",
+  "version": "0.5.1a",
   "private": true,
   "description": "Offline-first Desktop-App für die vertrauliche Fallarbeit der Schwerbehindertenvertretung.",
   "main": "dist-electron/electron/main.js",
@@ -85,7 +85,7 @@
     "test:feature-modules": "vitest run tests/featureModulesHooksServices0442.test.ts",
     "test:workflow-missing-helpers": "vitest run tests/workflowMissingHelpers0442a.test.ts",
     "test:readme-final": "vitest run tests/readmeFinalAndCleanup0443.test.ts",
-    "test:refactor": "vitest run tests/cleanCodeRefactor0439.test.ts tests/workflowModuleExtraction0440.test.ts tests/featureModulesHooksServices0442.test.ts tests/workflowMissingHelpers0442a.test.ts tests/readmeFinalAndCleanup0443.test.ts tests/templatesViewExtraction0444.test.ts tests/casesViewExtraction0445.test.ts tests/casesHooksServices0446.test.ts tests/caseWorkbenchDataHooks0447.test.ts tests/caseWorkbenchDataHooks0447a.test.ts tests/caseEditorModals0448.test.ts tests/inlineCommandFeature0449a.test.ts tests/inlineCommandFeature0449b.test.ts tests/inlineCommandProcessModalSignature0449c.test.ts tests/preventionProcessDetail0450.test.ts tests/caseNoteModal0451.test.ts tests/caseOverviewDetail0452.test.ts tests/textCommandTextareas0453.test.ts tests/inlineCommandHook0454.test.ts tests/caseNoteEditorHook0455.test.ts tests/caseNoteEditorHook0455a.test.ts tests/inlineCommandBehavior0456.test.ts tests/fallakteBehavior0457.test.ts tests/inlineCommandIntegration0457.test.ts tests/preventionWorkflow0457.test.ts tests/exportPrivacyGuard0457.test.ts tests/templatesBehavior0457.test.ts tests/accessibilityKeyboard0457.test.ts tests/databaseMigrationSafety0457.test.ts",
+    "test:refactor": "vitest run tests/cleanCodeRefactor0439.test.ts tests/workflowModuleExtraction0440.test.ts tests/featureModulesHooksServices0442.test.ts tests/workflowMissingHelpers0442a.test.ts tests/readmeFinalAndCleanup0443.test.ts tests/templatesViewExtraction0444.test.ts tests/casesViewExtraction0445.test.ts tests/casesHooksServices0446.test.ts tests/caseWorkbenchDataHooks0447.test.ts tests/caseWorkbenchDataHooks0447a.test.ts tests/caseEditorModals0448.test.ts tests/inlineCommandFeature0449a.test.ts tests/inlineCommandFeature0449b.test.ts tests/inlineCommandProcessModalSignature0449c.test.ts tests/preventionProcessDetail0450.test.ts tests/caseNoteModal0451.test.ts tests/caseOverviewDetail0452.test.ts tests/textCommandTextareas0453.test.ts tests/inlineCommandHook0454.test.ts tests/caseNoteEditorHook0455.test.ts tests/caseNoteEditorHook0455a.test.ts tests/inlineCommandBehavior0456.test.ts tests/fallakteBehavior0457.test.ts tests/inlineCommandIntegration0457.test.ts tests/preventionWorkflow0457.test.ts tests/exportPrivacyGuard0457.test.ts tests/templatesBehavior0457.test.ts tests/accessibilityKeyboard0457.test.ts tests/databaseMigrationSafety0457.test.ts tests/bemModule0500.test.ts tests/bemWorkflowPolicy0500.test.ts tests/bemCaseIntegration0500.test.ts tests/cleanCodeA11y051.test.ts tests/inlineCommandOverlayTypes051.test.ts",
     "cleanup:legacy": "node scripts/cleanup-legacy-artifacts.cjs",
     "test:templates-extraction": "vitest run tests/templatesViewExtraction0444.test.ts",
     "test:cases-extraction": "vitest run tests/casesViewExtraction0445.test.ts",
@@ -116,7 +116,13 @@
     "test:regression-fixes": "vitest run tests/databaseMigrationSafety0457.test.ts tests/preventionWorkflow0457.test.ts tests/exportPrivacyGuard0457.test.ts tests/templatesBehavior0457.test.ts tests/caseProcessTemplatesModal.test.ts tests/preventionOverviewDeeplink.test.ts tests/readmeFinalAndCleanup0443.test.ts tests/caseNoteModal0451.test.ts tests/templateWorkbenchModalHelp.test.ts tests/accessibleDialogsLiveRegion.test.ts tests/knowledgeWorkbenchAdvisor.test.ts tests/caseWorkbenchRegression.test.ts tests/knowledgePolicy.test.ts tests/templateDefaultSettings.test.ts tests/templateManagementEditDelete.test.ts tests/caseHeaderToastRegression.test.ts tests/keyboardAccessibilityPolicy.test.ts tests/inlineCommandFeature0449b.test.ts tests/caseNoteEditorHook0455a.test.ts tests/templateProcessStatusState.test.ts tests/cleanCodeRefactor0439.test.ts tests/caseWorkbenchDataHooks0447a.test.ts tests/moduleFrameCompactContract.test.ts tests/processTemplateOverlayPolish.test.ts tests/caseHeaderProcessBadges.test.ts tests/processTemplateBuildRegression.test.ts tests/caseDeepLinkSelectionPersistence.test.ts tests/caseToastTypeRegression.test.ts tests/caseWorkbenchDensityPolicy.test.ts tests/appVersion.test.ts",
     "test:regression-fixes-final": "vitest run tests/exportPrivacyGuard0457.test.ts tests/knowledgeWorkbenchAdvisor.test.ts tests/dsgvoSbvDocumentation0458.test.ts tests/sbvPrivacyPolicy0458.test.ts",
     "test:dsgvo-sbv-docs": "vitest run tests/dsgvoSbvDocumentation0458.test.ts tests/sbvPrivacyPolicy0458.test.ts",
-    "test:dsgvo-sbv-fix": "vitest run tests/sbvPrivacyPolicy0458.test.ts tests/dsgvoSbvDocumentation0458.test.ts tests/exportPrivacyGuard0457.test.ts tests/readmeFinalAndCleanup0443.test.ts"
+    "test:dsgvo-sbv-fix": "vitest run tests/sbvPrivacyPolicy0458.test.ts tests/dsgvoSbvDocumentation0458.test.ts tests/exportPrivacyGuard0457.test.ts tests/readmeFinalAndCleanup0443.test.ts",
+    "test:bem-module": "vitest run tests/bemModule0500.test.ts tests/bemWorkflowPolicy0500.test.ts tests/bemCaseIntegration0500.test.ts",
+    "test:bem-build-fix": "vitest run tests/bemBuildFix0500a.test.ts tests/processServices.test.ts",
+    "test:bem-legacy-service-fix": "vitest run tests/bemLegacyServiceFix0500b.test.ts tests/processServices.test.ts",
+    "test:bem-model-module-fix": "vitest run tests/bemModelModuleFix0500c.test.ts",
+    "test:clean-code-a11y-051": "vitest run tests/cleanCodeA11y051.test.ts tests/inlineCommandOverlayTypes051.test.ts",
+    "test:clean-code-a11y-051a": "vitest run tests/cleanCodeA11y051a.test.ts tests/bemMigration051a.test.ts"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.0",

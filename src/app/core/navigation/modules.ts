@@ -60,9 +60,7 @@ export const modules: ModuleDefinition[] = [
     title: 'BEM',
     shortTitle: 'BEM',
     text: 'Einladung, Zustimmung, Maßnahmen, Evaluation.',
-    icon: HeartPulse,
-    status: 'planned',
-    plannedVersion: '0.5.x'
+    icon: HeartPulse
   },
   {
     id: 'prevention',

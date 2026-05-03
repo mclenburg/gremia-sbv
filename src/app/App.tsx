@@ -12,6 +12,7 @@ import { ConfirmDialogProvider } from './shared/dialogs/ConfirmDialogProvider';
 import { LiveRegionProvider } from './shared/a11y/LiveRegionProvider';
 import { KnowledgeView } from './features/knowledge/KnowledgeView';
 import { PreventionView } from './features/prevention/PreventionView';
+import { BemView } from './features/bem/BemView';
 import { ContactsView } from './features/contacts/ContactsView';
 import { ReportsView } from './features/reports/ReportsView';
 import { TemplatesView } from './features/templates/TemplatesView';
@@ -269,11 +270,12 @@ export function App() {
         )}
         {currentView === 'contacts' && <ContactsView contacts={contacts} onCreateContact={createContact} onDeleteContact={deleteContact} />}
         {currentView === 'knowledge' && <KnowledgeView cases={cases} />}
+        {currentView === 'bem' && <BemView cases={cases} onOpenCaseNode={openCaseNode} />}
         {currentView === 'prevention' && <PreventionView cases={cases} onOpenCaseNode={openCaseNode} />}
         {currentView === 'templates' && <TemplatesView />}
         {currentView === 'reports' && <ReportsView />}
         {currentView === 'settings' && <SettingsView theme={theme} onThemeChange={setTheme} cases={cases} />}
-        {currentView !== 'dashboard' && currentView !== 'cases' && currentView !== 'deadlines' && currentView !== 'contacts' && currentView !== 'knowledge' && currentView !== 'prevention' && currentView !== 'templates' && currentView !== 'reports' && currentView !== 'settings' && currentModule && (
+        {currentView !== 'dashboard' && currentView !== 'cases' && currentView !== 'deadlines' && currentView !== 'contacts' && currentView !== 'knowledge' && currentView !== 'bem' && currentView !== 'prevention' && currentView !== 'templates' && currentView !== 'reports' && currentView !== 'settings' && currentModule && (
           <PlaceholderView view={currentModule} />
         )}
         {selectedDeadline && (

@@ -15,3 +15,13 @@ Die SBV-spezifische Datenschutzdokumentation liegt unter `docs/DSGVO_SBV.md`, er
 - ExportGuard vor sensiblen Exporten
 - keine automatische Cloud-Synchronisation
 - keine Erwähnung nicht implementierter externer Produktschnittstellen
+
+
+## Stand 0.5.0
+
+Das BEM-Grundmodul ist als eigenes Fachmodul ergänzt: Übersicht, Fallaktenintegration, Detailformular, Service, IPC und Migration.
+
+
+## Stand 0.5.1
+
+Barrierefreiheit und Typensicherheit verbessert: Statusmeldungen aus Fallakte, Vorlagen und Berichten werden per LiveRegion angekündigt; `InlineCommandOverlays` ist nicht mehr mit `any` typisiert.

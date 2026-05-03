@@ -4,6 +4,7 @@ import type { CaseDocumentRecord } from '../../core/models/case-document.model';
 import type { CaseNoteRecord } from '../../core/models/case-note.model';
 import type { CaseLegalReferenceRecord } from '../../core/models/knowledge.model';
 import type { PreventionProcessRecord } from '../../core/models/prevention.model';
+import type { BemProcessRecord } from '../../core/models/bem.model';
 import type { CaseNodeTarget } from '../../workflowViews';
 import type { CaseExplorerSelection } from './caseWorkbenchTypes';
 import { waitForBridge } from '../../workflowViews';
@@ -24,6 +25,7 @@ export function useCaseWorkbenchData({
   const [documents, setDocuments] = useState<CaseDocumentRecord[]>([]);
   const [caseLegalReferences, setCaseLegalReferences] = useState<CaseLegalReferenceRecord[]>([]);
   const [casePreventionProcesses, setCasePreventionProcesses] = useState<PreventionProcessRecord[]>([]);
+  const [caseBemProcesses, setCaseBemProcesses] = useState<BemProcessRecord[]>([]);
   const [selection, setSelection] = useState<CaseExplorerSelection>({ type: 'overview' });
   const [pendingCaseNodeTarget, setPendingCaseNodeTarget] = useState<CaseNodeTarget | null>(null);
 
@@ -47,6 +49,7 @@ export function useCaseWorkbenchData({
       setDocuments([]);
       setCaseLegalReferences([]);
       setCasePreventionProcesses([]);
+      setCaseBemProcesses([]);
       return;
     }
 
@@ -55,20 +58,24 @@ export function useCaseWorkbenchData({
       try {
         const bridge = await waitForBridge();
         if (!bridge?.cases) throw new Error('Falldienst ist nicht erreichbar.');
-        const [noteRows, docRows, legalRefRows, preventionRows] = await Promise.all([
+        const [noteRows, docRows, legalRefRows, preventionRows, bemRows] = await Promise.all([
           bridge.cases.listNotes(selectedCaseId),
           bridge.cases.listDocuments(selectedCaseId),
           bridge.knowledge?.listCaseReferences(selectedCaseId) ?? Promise.resolve([]),
-          bridge.prevention?.list(selectedCaseId) ?? Promise.resolve([])
+          bridge.prevention?.list(selectedCaseId) ?? Promise.resolve([]),
+          bridge.bem?.list(selectedCaseId) ?? Promise.resolve([])
         ]);
         if (active) {
           setNotes(noteRows);
           setDocuments(docRows);
           setCaseLegalReferences(legalRefRows);
           setCasePreventionProcesses(preventionRows);
+          setCaseBemProcesses(bemRows);
           if (pendingCaseNodeTarget?.caseId === selectedCaseId) {
             if (pendingCaseNodeTarget.nodeType === 'prevention') {
               setSelection({ type: 'process', processType: 'prevention', id: pendingCaseNodeTarget.nodeId });
+            } else if (pendingCaseNodeTarget.nodeType === 'bem') {
+              setSelection({ type: 'process', processType: 'bem', id: pendingCaseNodeTarget.nodeId });
             } else if (pendingCaseNodeTarget.nodeType === 'note' && pendingCaseNodeTarget.nodeId) {
               setSelection({ type: 'note', id: pendingCaseNodeTarget.nodeId });
             } else if (pendingCaseNodeTarget.nodeType === 'document' && pendingCaseNodeTarget.nodeId) {
@@ -97,16 +104,18 @@ export function useCaseWorkbenchData({
     if (!selectedCaseId) return;
     const bridge = await waitForBridge();
     if (!bridge?.cases) throw new Error('Falldienst ist nicht erreichbar.');
-    const [noteRows, docRows, legalRefRows, preventionRows] = await Promise.all([
+    const [noteRows, docRows, legalRefRows, preventionRows, bemRows] = await Promise.all([
       bridge.cases.listNotes(selectedCaseId),
       bridge.cases.listDocuments(selectedCaseId),
       bridge.knowledge?.listCaseReferences(selectedCaseId) ?? Promise.resolve([]),
-      bridge.prevention?.list(selectedCaseId) ?? Promise.resolve([])
+      bridge.prevention?.list(selectedCaseId) ?? Promise.resolve([]),
+      bridge.bem?.list(selectedCaseId) ?? Promise.resolve([])
     ]);
     setNotes(noteRows);
     setDocuments(docRows);
     setCaseLegalReferences(legalRefRows);
     setCasePreventionProcesses(preventionRows);
+    setCaseBemProcesses(bemRows);
   }
 
   return {
@@ -120,6 +129,7 @@ export function useCaseWorkbenchData({
     caseLegalReferences,
     setCaseLegalReferences,
     casePreventionProcesses,
+    caseBemProcesses,
     setCasePreventionProcesses,
     selection,
     setSelection,
