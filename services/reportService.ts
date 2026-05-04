@@ -244,6 +244,69 @@ function warningList(warnings: string[]): string {
   return `<section class="warnings"><h2>Prüfhinweise</h2>${warnings.map((warning) => `<p>⚠ ${escapeHtml(warning)}</p>`).join('')}</section>`;
 }
 
+
+function inlineMarkdown(value: string): string {
+  return escapeHtml(value)
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+}
+
+function markdownToReportHtml(markdown: string): string {
+  const lines = markdown.split(/\r?\n/);
+  const html: string[] = [];
+  let inList = false;
+  let inTable = false;
+
+  function closeList(): void {
+    if (inList) {
+      html.push('</ul>');
+      inList = false;
+    }
+  }
+
+  function closeTable(): void {
+    if (inTable) {
+      html.push('</tbody></table></section>');
+      inTable = false;
+    }
+  }
+
+  for (const rawLine of lines) {
+    const line = rawLine.trimEnd();
+    if (/^\|.+\|$/.test(line.trim())) {
+      closeList();
+      const cells = line.trim().slice(1, -1).split('|').map((cell) => cell.trim());
+      if (cells.every((cell) => /^:?-{3,}:?$/.test(cell))) continue;
+      if (!inTable) {
+        html.push('<section class="box"><table><tbody>');
+        inTable = true;
+      }
+      html.push(`<tr>${cells.map((cell) => `<td>${inlineMarkdown(cell)}</td>`).join('')}</tr>`);
+      continue;
+    }
+
+    closeTable();
+    if (line.startsWith('- ')) {
+      if (!inList) {
+        html.push('<ul>');
+        inList = true;
+      }
+      html.push(`<li>${inlineMarkdown(line.slice(2))}</li>`);
+      continue;
+    }
+
+    closeList();
+    if (line.startsWith('# ')) html.push(`<section class="box"><h2>${inlineMarkdown(line.slice(2))}</h2></section>`);
+    else if (line.startsWith('## ')) html.push(`<section class="box"><h2>${inlineMarkdown(line.slice(3))}</h2>`);
+    else if (line.startsWith('### ')) html.push(`<h3>${inlineMarkdown(line.slice(4))}</h3>`);
+    else if (line.trim()) html.push(`<p>${inlineMarkdown(line)}</p>`);
+    else html.push('');
+  }
+  closeList();
+  closeTable();
+  return html.join('\n');
+}
+
 function reportShell(title: string, subtitle: string, classification: string, content: string, warnings: string[]): string {
   const generated = formatDateTime(nowIso());
   return `<!doctype html>
@@ -347,6 +410,7 @@ export class ReportService {
       case 'bem_prevention': return this.buildBemPreventionReport(input);
       case 'termination_hearings': return this.buildTerminationReport(input);
       case 'system_integrity': return this.buildSystemIntegrityReport(input);
+      case 'compliance_document': return this.buildComplianceDocumentReport(input);
       default: throw new Error('Unbekannter Berichtstyp.');
     }
   }
@@ -553,6 +617,26 @@ export class ReportService {
       warnings,
       metrics,
       html: reportShell('Kündigungsanhörungsbericht', this.periodLabel(input), 'Intern vertraulich', content, warnings)
+    };
+  }
+
+  private buildComplianceDocumentReport(input: GenerateReportInput): ReportBuildResult {
+    const title = input.complianceTitle?.trim() || 'Compliance-Dokument';
+    const subtitle = input.complianceSubtitle?.trim() || 'Aus Gremia.SBV Compliance Center erzeugt';
+    const classification = input.complianceClassification?.trim() || 'Intern vertraulich';
+    const body = input.complianceBody?.trim() || 'Keine Inhalte übergeben.';
+    const warnings = [
+      'Compliance-Dokumente vor Weitergabe fachlich prüfen. Sie ersetzen keine abschließende Bewertung durch DSB, IT-Security oder Rechtsberatung.'
+    ];
+    return {
+      title,
+      warnings,
+      metrics: {
+        'Dokumenttyp': 'Compliance',
+        'Quelle': 'Compliance Center',
+        'Exportformat': 'PDF'
+      },
+      html: reportShell(title, subtitle, classification, markdownToReportHtml(body), warnings)
     };
   }
 

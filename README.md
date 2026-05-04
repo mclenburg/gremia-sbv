@@ -170,3 +170,8 @@ Compliance Center Layout verbessert: Dokumentkarten, Auskunftsformular und Vorsc
 ## Stand 0.8.3
 
 Berichte-Modul ergänzt: anonymisierter SBV-Tätigkeitsbericht mit aggregierten Fall-, Frist- und Prozesszahlen, Markdown-Export und PDF-Druckansicht. Sensible Freitexte werden bewusst nicht übernommen. `postinstall` bleibt gesetzt.
+
+
+## Stand 0.8.3a
+
+Compliance Center nutzt für PDF-Exporte denselben direkten Berichts-PDF-Pfad wie das Berichte-Modul. Die vorherige Markdown/HTML-Druckansicht in ComplianceView wurde entfernt. `postinstall` bleibt gesetzt.

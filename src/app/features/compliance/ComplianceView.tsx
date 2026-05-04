@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Download } from 'lucide-react';
 import { ModuleFrame } from '../../shared/components/ModuleFrame';
+import { waitForBridge } from '../../core/bridge/waitForBridge';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 import type { ComplianceDocument, ComplianceDocumentType, DataSubjectAccessRequestInput } from '../../core/models/compliance.model';
 import { defaultDsarInput, listComplianceDocuments, renderComplianceDocument, renderDsarResponseDocument } from '@services/complianceCenterService';
@@ -13,89 +14,6 @@ function downloadTextFile(document: ComplianceDocument) {
   anchor.download = document.filename;
   anchor.click();
   URL.revokeObjectURL(url);
-}
-
-function escapeHtml(value: string): string {
-  return value
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#039;');
-}
-
-function markdownToPrintableHtml(markdown: string): string {
-  const lines = markdown.split('\n');
-  const html: string[] = [];
-  let inTable = false;
-
-  function closeTable() {
-    if (inTable) {
-      html.push('</tbody></table>');
-      inTable = false;
-    }
-  }
-
-  for (const line of lines) {
-    if (/^\|.+\|$/.test(line.trim())) {
-      const cells = line.trim().slice(1, -1).split('|').map((cell) => cell.trim());
-      if (cells.every((cell) => /^:?-{3,}:?$/.test(cell))) continue;
-      if (!inTable) {
-        html.push('<table><tbody>');
-        inTable = true;
-      }
-      html.push(`<tr>${cells.map((cell) => `<td>${escapeHtml(cell)}</td>`).join('')}</tr>`);
-      continue;
-    }
-
-    closeTable();
-    if (line.startsWith('# ')) html.push(`<h1>${escapeHtml(line.slice(2))}</h1>`);
-    else if (line.startsWith('## ')) html.push(`<h2>${escapeHtml(line.slice(3))}</h2>`);
-    else if (line.startsWith('### ')) html.push(`<h3>${escapeHtml(line.slice(4))}</h3>`);
-    else if (line.startsWith('- ')) html.push(`<li>${escapeHtml(line.slice(2))}</li>`);
-    else if (line.trim()) html.push(`<p>${escapeHtml(line)}</p>`);
-    else html.push('<br />');
-  }
-
-  closeTable();
-  return html.join('\n');
-}
-
-function openPdfPrintView(document: ComplianceDocument) {
-  const printable = window.open('', '_blank', 'noopener,noreferrer,width=900,height=1200');
-  if (!printable) throw new Error('PDF-Druckansicht konnte nicht geöffnet werden.');
-
-  printable.document.write(`<!doctype html>
-<html lang="de">
-<head>
-  <meta charset="utf-8" />
-  <title>${escapeHtml(document.title)}</title>
-  <style>
-    @page { size: A4; margin: 18mm; }
-    body { font-family: Arial, sans-serif; color: #111827; line-height: 1.45; }
-    h1 { font-size: 22pt; margin: 0 0 12pt; }
-    h2 { font-size: 15pt; margin: 18pt 0 8pt; border-bottom: 1px solid #d1d5db; padding-bottom: 4pt; }
-    h3 { font-size: 12pt; margin: 14pt 0 6pt; }
-    p, li, td { font-size: 10.5pt; }
-    table { width: 100%; border-collapse: collapse; margin: 8pt 0 12pt; page-break-inside: avoid; }
-    td { border: 1px solid #d1d5db; padding: 5pt; vertical-align: top; }
-    li { margin: 2pt 0; }
-    .meta { color: #4b5563; font-size: 9pt; margin-bottom: 14pt; }
-    .no-print { margin-bottom: 16pt; }
-    .no-print button { padding: 8pt 12pt; font-weight: 700; }
-    @media print { .no-print { display: none; } }
-  </style>
-</head>
-<body>
-  <div class="no-print">
-    <button onclick="window.print()">Als PDF drucken / speichern</button>
-  </div>
-  <div class="meta">Gremia.SBV · ${escapeHtml(document.filename)}</div>
-  ${markdownToPrintableHtml(document.body)}
-</body>
-</html>`);
-  printable.document.close();
-  printable.focus();
 }
 
 export function ComplianceView() {
@@ -135,14 +53,23 @@ export function ComplianceView() {
     announce(info, 'polite');
   }
 
-  function exportPdfCurrent() {
+  async function exportPdfCurrent() {
     try {
-      openPdfPrintView(document);
-      const info = `${document.title} wurde als PDF-Druckansicht geöffnet.`;
+      const bridge = await waitForBridge();
+      if (!bridge?.reports) throw new Error('Berichtsdienst ist nicht erreichbar.');
+      const result = await bridge.reports.generate({
+        type: 'compliance_document',
+        complianceTitle: document.title,
+        complianceSubtitle: document.description,
+        complianceClassification: document.type === 'toms' || document.type === 'dsgvo_bdsg_matrix' ? 'Intern / Compliance' : 'Intern vertraulich',
+        complianceBody: document.body
+      });
+      if (!result.ok) throw new Error(result.error ?? 'PDF-Dokument konnte nicht erzeugt werden.');
+      const info = `${document.title} wurde als PDF erzeugt: ${result.fileName}`;
       setMessage(info);
       announce(info, 'polite');
     } catch (error) {
-      const info = error instanceof Error ? error.message : 'PDF-Druckansicht konnte nicht geöffnet werden.';
+      const info = error instanceof Error ? error.message : 'PDF-Dokument konnte nicht erzeugt werden.';
       setMessage(info);
       announce(info, 'assertive');
     }

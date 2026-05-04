@@ -4,7 +4,8 @@ export type ReportType =
   | 'case_deadline_controlling'
   | 'bem_prevention'
   | 'termination_hearings'
-  | 'system_integrity';
+  | 'system_integrity'
+  | 'compliance_document';
 
 export interface ReportDescriptor {
   type: ReportType;
@@ -18,7 +19,12 @@ export interface GenerateReportInput {
   type: ReportType;
   periodStart?: string;
   periodEnd?: string;
+  complianceTitle?: string;
+  complianceSubtitle?: string;
+  complianceClassification?: string;
+  complianceBody?: string;
 }
+
 
 export interface ReportGenerationResult {
   ok: boolean;
