@@ -1,9 +1,22 @@
-CREATE TABLE IF NOT EXISTS termination_hearings (
+-- 0.8.0b repair:
+-- Earlier 0017 builds could leave a partial termination_hearings table behind.
+-- In that state CREATE TABLE IF NOT EXISTS does not repair the table and the
+-- subsequent status index fails with "no such column: status".
+--
+-- The termination module is new at this migration point. If the table exists
+-- while 0017 has not been marked successful, it is treated as an incomplete
+-- migration artifact and rebuilt from scratch.
+DROP INDEX IF EXISTS idx_termination_hearings_case_id;
+DROP INDEX IF EXISTS idx_termination_hearings_status;
+DROP INDEX IF EXISTS idx_termination_hearings_due;
+DROP TABLE IF EXISTS termination_hearings;
+
+CREATE TABLE termination_hearings (
   id TEXT PRIMARY KEY,
   case_id TEXT NOT NULL,
-  status TEXT NOT NULL,
-  termination_type TEXT NOT NULL,
-  protection_status TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'eingang',
+  termination_type TEXT NOT NULL DEFAULT 'sonstiges',
+  protection_status TEXT NOT NULL DEFAULT 'unklar',
   received_at TEXT,
   employer_deadline_at TEXT,
   sbv_statement_due_at TEXT,

@@ -1,4 +1,4 @@
 // Diese Datei wird automatisch aus package.json erzeugt.
 // Nicht manuell ändern. Änderungen erfolgen über scripts/generate-app-version.cjs.
-export const APP_VERSION = "0.7.2";
+export const APP_VERSION = "0.8.3";
 export const APP_PACKAGE_NAME = "gremia-sbv";

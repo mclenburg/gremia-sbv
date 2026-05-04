@@ -1,6 +1,6 @@
 {
   "name": "gremia-sbv",
-  "version": "0.7.2",
+  "version": "0.8.3",
   "private": true,
   "description": "Offline-first Desktop-App für die vertrauliche Fallarbeit der Schwerbehindertenvertretung.",
   "main": "dist-electron/electron/main.js",
@@ -151,7 +151,14 @@
     "test:termination-module-070": "vitest run tests/terminationModule070.test.ts tests/terminationTemplates070.test.ts tests/postinstallGuard070.test.ts",
     "test:termination-stabilization-071": "vitest run tests/terminationStabilization071.test.ts tests/terminationTemplateModal071.test.ts tests/postinstallGuard071.test.ts",
     "test:termination-viewid-071a": "vitest run tests/terminationViewId071a.test.ts tests/postinstallGuard071.test.ts",
-    "test:termination-hardening-072": "vitest run tests/terminationHardening072.test.ts tests/terminationTemplates072.test.ts tests/postinstallGuard072.test.ts"
+    "test:termination-hardening-072": "vitest run tests/terminationHardening072.test.ts tests/terminationTemplates072.test.ts tests/postinstallGuard072.test.ts",
+    "test:termination-privacy-export-073": "vitest run tests/terminationPrivacyExport073.test.ts tests/terminationPrivacyPolicy073.test.ts tests/postinstallGuard073.test.ts",
+    "test:compliance-center-080": "vitest run tests/complianceCenter080.test.ts tests/complianceDocuments080.test.ts tests/postinstallGuard080.test.ts",
+    "test:compliance-buildfix-080a": "vitest run tests/complianceBuildFix080a.test.ts tests/complianceCenter080.test.ts tests/postinstallGuard080.test.ts",
+    "test:migration-0017-repair-080b": "vitest run tests/migration0017Repair080b.test.ts tests/postinstallGuard080b.test.ts",
+    "test:dsar-response-081": "vitest run tests/dsarResponse081.test.ts tests/dsarComplianceView081.test.ts tests/postinstallGuard081.test.ts",
+    "test:compliance-layout-pdf-082": "vitest run tests/complianceLayoutPdf082.test.ts tests/compliancePdfExport082.test.ts tests/postinstallGuard082.test.ts",
+    "test:activity-report-083": "vitest run tests/activityReport083.test.ts tests/activityReportPrivacy083.test.ts tests/postinstallGuard083.test.ts"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.0",

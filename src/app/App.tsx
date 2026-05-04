@@ -18,6 +18,7 @@ import { EqualizationView } from './features/equalization/EqualizationView';
 import { TerminationView } from './features/termination/TerminationView';
 import { ContactsView } from './features/contacts/ContactsView';
 import { ReportsView } from './features/reports/ReportsView';
+import { ComplianceView } from './features/compliance/ComplianceView';
 import { TemplatesView } from './features/templates/TemplatesView';
 import {
   applyTheme,
@@ -42,6 +43,8 @@ import './processOverview.css';
 import './knowledgeWorkbench.css';
 import './confirmDialog.css';
 import './accessibilityLiveRegion.css';
+import './complianceCenter.css';
+import './reportsWorkbench.css';
 
 const THEME_STORAGE_KEY = 'gremia.sbv.theme';
 
@@ -56,6 +59,7 @@ const IMPLEMENTED_VIEW_IDS = new Set<ViewId>([
   'equalization',
   'templates',
   'reports',
+  'compliance',
   'settings',
 ]);
 
@@ -296,6 +300,7 @@ export function App() {
         {currentView === 'termination_hearing' && <TerminationView cases={cases} onOpenCaseNode={openCaseNode} />}
         {currentView === 'templates' && <TemplatesView />}
         {currentView === 'reports' && <ReportsView />}
+        {currentView === 'compliance' && <ComplianceView />}
         {currentView === 'settings' && <SettingsView theme={theme} onThemeChange={setTheme} cases={cases} />}
         {!isImplementedView(currentView) && currentModule && (
           <PlaceholderView view={currentModule} />

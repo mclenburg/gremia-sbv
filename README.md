@@ -135,3 +135,38 @@ Build-Fix: Die Modulnavigation verwendet jetzt `termination_hearing` als gültig
 ## Stand 0.7.2
 
 Kündigungsanhörung fachlich gehärtet: Fristvorschläge, geschärfte Warnlogik, Schutzstatusprüfung, Integrationsamt-Hinweise und zusätzliche Kündigungs-Checkliste. `postinstall` bleibt gesetzt.
+
+
+## Stand 0.7.3
+
+Kündigungsanhörung datenschutz- und exportsicherer: sensible Felder klassifiziert, Kündigungsexporte mit erweitertem ExportGuard-Kontext, UI-Hinweis im Detailformular. `postinstall` bleibt gesetzt.
+
+
+## Stand 0.8.0
+
+Compliance Center ergänzt: TOMs, DSFA-Entwurf, DSGVO-/BDSG-Compliance-Auswertung und Freigabeformular für DSB/IT-Security können direkt in der App erzeugt und als Markdown exportiert werden. `postinstall` bleibt gesetzt.
+
+
+## Stand 0.8.0a
+
+Build-Fix: `ComplianceView` übergibt keine nicht unterstützte `icon`-Prop mehr an `ModuleFrame`. `postinstall` bleibt gesetzt.
+
+
+## Stand 0.8.0b
+
+Migrationsfix: `0017_termination_hearings.sql` repariert unvollständige Teilläufe der Kündigungsanhörungs-Tabelle, die zu `no such column: status` führen konnten. `postinstall` bleibt gesetzt.
+
+
+## Stand 0.8.1
+
+Compliance Center erweitert: Antwortgenerator für DSGVO-Auskunftsersuchen nach Art. 15 DSGVO mit Prüfliste, Datenkategorien, Empfänger-/Speicherfristen-Abschnitten und Markdown-Export. `postinstall` bleibt gesetzt.
+
+
+## Stand 0.8.2
+
+Compliance Center Layout verbessert: Dokumentkarten, Auskunftsformular und Vorschau sind jetzt breit und responsiv angeordnet. Zusätzlich gibt es einen PDF-Export über eine druckoptimierte PDF-Ansicht. `postinstall` bleibt gesetzt.
+
+
+## Stand 0.8.3
+
+Berichte-Modul ergänzt: anonymisierter SBV-Tätigkeitsbericht mit aggregierten Fall-, Frist- und Prozesszahlen, Markdown-Export und PDF-Druckansicht. Sensible Freitexte werden bewusst nicht übernommen. `postinstall` bleibt gesetzt.

@@ -10,6 +10,7 @@ import {
   HeartPulse,
   Scale,
   ShieldAlert,
+  ShieldCheck,
   Users
 } from 'lucide-react';
 
@@ -25,6 +26,7 @@ export type ViewId =
   | 'knowledge'
   | 'contacts'
   | 'reports'
+  | 'compliance'
   | 'portable'
   | 'settings';
 
@@ -103,6 +105,13 @@ export const modules: ModuleDefinition[] = [
     shortTitle: 'Kontakte',
     text: 'Inklusionsamt, Betriebsarzt, Agentur, Beratungsstellen.',
     icon: Users
+  },
+  {
+    id: 'compliance',
+    title: 'Compliance Center',
+    shortTitle: 'Compliance',
+    text: 'TOMs, DSFA, DSGVO/BDSG und Freigabeformular.',
+    icon: ShieldCheck
   },
   {
     id: 'reports',

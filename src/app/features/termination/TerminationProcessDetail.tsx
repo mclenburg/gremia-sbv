@@ -78,6 +78,11 @@ export function TerminationProcessDetail({
           </div>
         </div>
 
+        <div className="industrial-message termination-privacy-panel">
+          <strong>Kündigungsdaten sind vertraulich.</strong>
+          <p>Arbeitgebervortrag, Schutzstatus, SBV-Bewertung und Stellungnahme können Gesundheits-, Leistungs- oder Verhaltensdaten enthalten. Exporte nur mit Zweckbindung und minimal notwendigem Inhalt nutzen.</p>
+        </div>
+
         {warnings.length > 0 && (
           <div className="industrial-message industrial-message-warning">
             <strong>Hinweise</strong>

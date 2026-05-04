@@ -6,3 +6,8 @@
   gap: .5rem;
   justify-content: flex-end;
 }
+
+
+.termination-privacy-panel {
+  border-color: rgba(251, 191, 36, .45);
+}

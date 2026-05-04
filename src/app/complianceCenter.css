@@ -1,0 +1,125 @@
+.compliance-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+.compliance-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  gap: .75rem;
+  align-content: start;
+}
+
+.compliance-card {
+  display: grid;
+  gap: .75rem;
+  border: 1px solid var(--sbv-border);
+  border-radius: 1rem;
+  padding: 1rem;
+  background: rgba(15, 23, 42, .35);
+}
+
+.compliance-card.active {
+  border-color: rgba(251, 191, 36, .75);
+}
+
+.compliance-card h3 {
+  margin: 0 0 .35rem;
+}
+
+.compliance-card p {
+  margin: 0;
+  color: var(--sbv-muted);
+}
+
+.compliance-preview {
+  min-width: 0;
+  display: grid;
+  gap: .75rem;
+}
+
+.compliance-preview-header {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  justify-content: space-between;
+  border: 1px solid var(--sbv-border);
+  border-radius: 1rem;
+  padding: 1rem;
+  background: rgba(15, 23, 42, .25);
+}
+
+.compliance-output {
+  min-height: 38rem;
+  width: 100%;
+  white-space: pre-wrap;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+@media (max-width: 58rem) {
+  .compliance-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .compliance-preview-header {
+    flex-direction: column;
+  }
+}
+
+
+.compliance-dsar-form {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: .85rem;
+  border: 1px solid var(--sbv-border);
+  border-radius: 1rem;
+  padding: 1rem;
+  background: rgba(15, 23, 42, .25);
+}
+
+.compliance-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: .75rem;
+}
+
+.compliance-form-grid label {
+  display: grid;
+  gap: .35rem;
+  min-width: 0;
+}
+
+.compliance-form-grid input,
+.compliance-form-grid textarea {
+  min-width: 0;
+}
+
+.compliance-wide {
+  grid-column: 1 / -1;
+}
+
+.compliance-checkbox {
+  align-content: end;
+  grid-template-columns: auto 1fr;
+  display: flex !important;
+  align-items: center;
+  gap: .5rem !important;
+}
+
+
+.compliance-export-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  justify-content: flex-end;
+}
+
+.compliance-preview-header > div {
+  min-width: 0;
+}
+
+.compliance-preview-header h2,
+.compliance-preview-header p {
+  overflow-wrap: anywhere;
+}

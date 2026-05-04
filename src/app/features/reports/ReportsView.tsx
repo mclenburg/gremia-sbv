@@ -1,135 +1,169 @@
-import { useEffect } from 'react';
-import { FileText, FolderOpen } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Download } from 'lucide-react';
 import { ModuleFrame } from '../../shared/components/ModuleFrame';
+import { waitForBridge } from '../../core/bridge/waitForBridge';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
-import { useReports } from './useReports';
-import { reportConfidentialityLabel } from './reportService';
+import { renderActivityReport, type ActivityReportResult } from '@services/activityReportService';
+
+function downloadTextFile(report: ActivityReportResult) {
+  const blob = new Blob([report.body], { type: 'text/markdown;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const anchor = window.document.createElement('a');
+  anchor.href = url;
+  anchor.download = report.filename;
+  anchor.click();
+  URL.revokeObjectURL(url);
+}
+
+function escapeHtml(value: string): string {
+  return value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
+}
+
+function markdownToPrintableHtml(markdown: string): string {
+  const lines = markdown.split('\n');
+  const html: string[] = [];
+  let inTable = false;
+  function closeTable() {
+    if (inTable) {
+      html.push('</tbody></table>');
+      inTable = false;
+    }
+  }
+  for (const line of lines) {
+    if (/^\|.+\|$/.test(line.trim())) {
+      const cells = line.trim().slice(1, -1).split('|').map((cell) => cell.trim());
+      if (cells.every((cell) => /^:?-{3,}:?$/.test(cell))) continue;
+      if (!inTable) {
+        html.push('<table><tbody>');
+        inTable = true;
+      }
+      html.push(`<tr>${cells.map((cell) => `<td>${escapeHtml(cell)}</td>`).join('')}</tr>`);
+      continue;
+    }
+    closeTable();
+    if (line.startsWith('# ')) html.push(`<h1>${escapeHtml(line.slice(2))}</h1>`);
+    else if (line.startsWith('## ')) html.push(`<h2>${escapeHtml(line.slice(3))}</h2>`);
+    else if (line.startsWith('- ')) html.push(`<li>${escapeHtml(line.slice(2))}</li>`);
+    else if (line.trim()) html.push(`<p>${escapeHtml(line)}</p>`);
+    else html.push('<br />');
+  }
+  closeTable();
+  return html.join('\n');
+}
+
+function openPdfPrintView(report: ActivityReportResult) {
+  const printable = window.open('', '_blank', 'noopener,noreferrer,width=900,height=1200');
+  if (!printable) throw new Error('PDF-Druckansicht konnte nicht geöffnet werden.');
+  printable.document.write(`<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <title>${escapeHtml(report.title)}</title>
+  <style>
+    @page { size: A4; margin: 18mm; }
+    body { font-family: Arial, sans-serif; color: #111827; line-height: 1.45; }
+    h1 { font-size: 22pt; margin: 0 0 12pt; }
+    h2 { font-size: 15pt; margin: 18pt 0 8pt; border-bottom: 1px solid #d1d5db; padding-bottom: 4pt; }
+    p, li, td { font-size: 10.5pt; }
+    table { width: 100%; border-collapse: collapse; margin: 8pt 0 12pt; page-break-inside: avoid; }
+    td { border: 1px solid #d1d5db; padding: 5pt; vertical-align: top; }
+    .no-print { margin-bottom: 16pt; }
+    @media print { .no-print { display: none; } }
+  </style>
+</head>
+<body>
+  <div class="no-print"><button onclick="window.print()">Als PDF drucken / speichern</button></div>
+  ${markdownToPrintableHtml(report.body)}
+</body>
+</html>`);
+  printable.document.close();
+  printable.focus();
+}
 
 export function ReportsView() {
-  const {
-    descriptors,
-    history,
-    periodStart,
-    periodEnd,
-    generating,
-    result,
-    error,
-    setPeriodStart,
-    setPeriodEnd,
-    generateReport
-  } = useReports();
+  const [periodLabel, setPeriodLabel] = useState(() => String(new Date().getFullYear()));
+  const [report, setReport] = useState<ActivityReportResult | null>(null);
+  const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
   const announce = useAnnouncer();
 
-  useEffect(() => {
-    if (error) announce(error, 'assertive');
-  }, [error, announce]);
+  async function generateReport() {
+    setLoading(true);
+    setMessage('');
+    try {
+      const bridge = await waitForBridge() as any;
+      const [cases, deadlines, contacts, preventionProcesses, bemProcesses, equalizationProcesses, terminationProcesses] = await Promise.all([
+        bridge.cases?.list?.() ?? [],
+        bridge.deadlines?.list?.({ status: ['open', 'overdue'] }) ?? [],
+        bridge.contacts?.list?.() ?? [],
+        bridge.prevention?.list?.() ?? [],
+        bridge.bem?.list?.() ?? [],
+        bridge.equalization?.list?.() ?? [],
+        bridge.termination?.list?.() ?? []
+      ]);
+      const next = renderActivityReport({
+        periodLabel,
+        cases,
+        deadlines,
+        contacts,
+        preventionProcesses,
+        bemProcesses,
+        equalizationProcesses,
+        terminationProcesses
+      });
+      setReport(next);
+      setMessage('Tätigkeitsbericht wurde anonymisiert erzeugt.');
+      announce('Tätigkeitsbericht wurde anonymisiert erzeugt.', 'polite');
+    } catch (error) {
+      const info = error instanceof Error ? error.message : 'Tätigkeitsbericht konnte nicht erzeugt werden.';
+      setMessage(info);
+      announce(info, 'assertive');
+    } finally {
+      setLoading(false);
+    }
+  }
 
   useEffect(() => {
-    if (result) announce(`Bericht ${result.title} wurde erzeugt.`, 'polite');
-  }, [result, announce]);
+    void generateReport();
+  }, []);
 
   return (
-    <ModuleFrame title="Berichte" kicker="Audit & Auswertung" description="PDF-Berichte im Industrial-Design: anonymisierter Tätigkeitsbericht, Datenschutz-Audit und interne Steuerungsberichte.">
-      <section className="industrial-panel">
-        <div className="industrial-panel-header compact">
-          <div>
-            <p className="industrial-kicker">Zeitraum</p>
-            <h2>Berichtsparameter</h2>
-          </div>
-        </div>
-        <div className="industrial-form-grid">
+    <ModuleFrame title="Berichte" description="Anonymisierte Tätigkeitsberichte und SBV-Auswertungen ohne sensible Freitexte.">
+      <section className="reports-workbench">
+        <div className="reports-toolbar">
           <label>
-            <span>Von</span>
-            <input type="datetime-local" value={periodStart} onChange={(event) => setPeriodStart(event.target.value)} />
+            <span>Berichtszeitraum</span>
+            <input value={periodLabel} onChange={(event) => setPeriodLabel(event.currentTarget.value)} placeholder="z. B. 2026 oder Q2/2026" />
           </label>
-          <label>
-            <span>Bis</span>
-            <input type="datetime-local" value={periodEnd} onChange={(event) => setPeriodEnd(event.target.value)} />
-          </label>
+          <button type="button" className="industrial-button" onClick={() => void generateReport()} disabled={loading}>
+            Tätigkeitsbericht erzeugen
+          </button>
         </div>
-      </section>
 
-      {error && <div className="industrial-message industrial-message-warning">{error}</div>}
-      {result && (
-        <section className="industrial-panel report-result-panel">
-          <div className="industrial-panel-header compact">
-            <div>
-              <p className="industrial-kicker">PDF erzeugt</p>
-              <h2>{result.title}</h2>
-              <p>{result.fileName}</p>
-            </div>
-            <button className="industrial-secondary-button" onClick={() => void window.gremiaSbv?.reports?.openExportFolder(result.filePath)}>
-              <FolderOpen className="h-4 w-4" /> PDF öffnen
-            </button>
-          </div>
-          {!!result.warnings.length && (
-            <div className="industrial-message industrial-message-warning mt-4">
-              {result.warnings.map((warning) => <p key={warning}>{warning}</p>)}
-            </div>
-          )}
-        </section>
-      )}
+        {message && <div className="industrial-message">{message}</div>}
 
-      <section className="industrial-report-grid" aria-label="Berichtsauswahl">
-        {descriptors.map((descriptor) => {
-          const isGenerating = generating === descriptor.type;
-          return (
-            <article
-              key={descriptor.type}
-              className={`industrial-report-card clickable ${isGenerating ? 'is-busy' : ''}`}
-              role="button"
-              tabIndex={0}
-              aria-busy={isGenerating}
-              aria-label={`${descriptor.title} als PDF erzeugen`}
-              onClick={() => { if (!generating) void generateReport(descriptor.type); }}
-              onKeyDown={(event) => {
-                if (!generating && (event.key === 'Enter' || event.key === ' ')) {
-                  event.preventDefault();
-                  void generateReport(descriptor.type);
-                }
-              }}
-            >
+        {report && (
+          <section className="reports-preview">
+            <div className="reports-preview-header">
               <div>
-                <p className="industrial-kicker">{reportConfidentialityLabel(descriptor.confidentiality)}</p>
-                <h3>{descriptor.title}</h3>
-                <p>{descriptor.description}</p>
+                <p className="industrial-kicker">Anonymisierter Bericht</p>
+                <h2>{report.title}</h2>
+                <p>Enthält nur aggregierte Zahlen und Statusauswertungen.</p>
               </div>
-              <div className="industrial-report-card-footer">
-                <span>{isGenerating ? 'PDF wird erzeugt …' : 'Klicken zum Erzeugen'}</span>
-                <FileText className="h-4 w-4" />
+              <div className="reports-export-actions">
+                <button type="button" className="industrial-secondary-button" onClick={() => downloadTextFile(report)}>
+                  <Download className="h-4 w-4" />
+                  Markdown exportieren
+                </button>
+                <button type="button" className="industrial-button" onClick={() => openPdfPrintView(report)}>
+                  PDF exportieren
+                </button>
               </div>
-            </article>
-          );
-        })}
-      </section>
-
-      <section className="industrial-panel">
-        <div className="industrial-panel-header compact">
-          <div>
-            <p className="industrial-kicker">Historie</p>
-            <h2>Letzte PDF-Exporte</h2>
-            <p>Archivierte Berichte werden verschlüsselt abgelegt. Beim Öffnen wird eine temporäre PDF-Arbeitskopie erzeugt.</p>
-          </div>
-        </div>
-        <div className="industrial-table-shell case-register-table-shell">
-          <table className="industrial-table">
-            <thead><tr><th>Zeitpunkt</th><th>Bericht</th><th>Datei</th><th>Hinweise</th><th></th></tr></thead>
-            <tbody>
-              {history.map((item) => (
-                <tr key={item.id}>
-                  <td>{new Date(item.generatedAt).toLocaleString('de-DE')}</td>
-                  <td>{item.title}</td>
-                  <td>{item.fileName}</td>
-                  <td>{item.warningCount}</td>
-                  <td><button className="industrial-icon-button" onClick={() => void window.gremiaSbv?.reports?.openExportFolder(item.filePath)} title="PDF öffnen"><FolderOpen className="h-3.5 w-3.5" /></button></td>
-                </tr>
-              ))}
-              {!history.length && <tr><td colSpan={5}>Noch keine Berichte erzeugt.</td></tr>}
-            </tbody>
-          </table>
-        </div>
+            </div>
+            <textarea className="industrial-output-area reports-output" value={report.body} readOnly aria-label="Tätigkeitsbericht Vorschau" />
+          </section>
+        )}
       </section>
     </ModuleFrame>
   );
 }
-

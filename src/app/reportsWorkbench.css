@@ -1,0 +1,65 @@
+.reports-workbench {
+  display: grid;
+  gap: 1rem;
+}
+
+.reports-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem;
+  align-items: end;
+  border: 1px solid var(--sbv-border);
+  border-radius: 1rem;
+  padding: 1rem;
+  background: rgba(15, 23, 42, .25);
+}
+
+.reports-toolbar label {
+  display: grid;
+  gap: .35rem;
+  min-width: min(100%, 18rem);
+}
+
+.reports-preview {
+  display: grid;
+  gap: .75rem;
+}
+
+.reports-preview-header {
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  align-items: flex-start;
+  border: 1px solid var(--sbv-border);
+  border-radius: 1rem;
+  padding: 1rem;
+  background: rgba(15, 23, 42, .25);
+}
+
+.reports-export-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  justify-content: flex-end;
+}
+
+.reports-output {
+  min-height: 38rem;
+  width: 100%;
+  white-space: pre-wrap;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+@media (max-width: 58rem) {
+  .reports-preview-header {
+    flex-direction: column;
+  }
+
+  .reports-export-actions {
+    width: 100%;
+  }
+
+  .reports-export-actions button {
+    flex: 1 1 12rem;
+  }
+}
