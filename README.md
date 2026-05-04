@@ -110,3 +110,8 @@ PlaceholderView-Guard auf Set-basierte Prüfung umgestellt, sodass implementiert
 ## Stand 0.6.2a
 
 Build-Fix: `usb` aus `IMPLEMENTED_VIEW_IDS` entfernt, weil es kein gültiger `ViewId` ist.
+
+
+## Stand 0.6.3
+
+Gleichstellungs-/GdB-Notizen werden für neue Inhalte nicht mehr im Gleichstellungsdatensatz gespeichert, sondern als hoch sensible Fallnotizen geführt und im Detailformular gefiltert angezeigt.

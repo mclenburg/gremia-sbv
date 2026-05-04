@@ -20,7 +20,8 @@ function mapEqualization(row: any): EqualizationProcessRecord {
     decisionReceivedAt: row.decision_received_at ?? undefined,
     objectionDueAt: row.objection_due_at ?? undefined,
     outcome: row.outcome ?? undefined,
-    notes: row.notes ?? undefined,
+    notes: undefined,
+    legacyPlaintextNotesPresent: Boolean(row.notes && String(row.notes).trim()),
     createdAt: row.created_at,
     updatedAt: row.updated_at
   };
@@ -54,7 +55,7 @@ export class EqualizationService {
       optionalIso(input.decisionReceivedAt),
       optionalIso(input.objectionDueAt),
       input.outcome ?? null,
-      input.notes ?? null,
+      null,
       timestamp,
       timestamp
     );
@@ -81,7 +82,7 @@ export class EqualizationService {
       decisionReceivedAt: input.decisionReceivedAt !== undefined ? input.decisionReceivedAt : existing.decisionReceivedAt,
       objectionDueAt: input.objectionDueAt !== undefined ? input.objectionDueAt : existing.objectionDueAt,
       outcome: input.outcome !== undefined ? input.outcome : existing.outcome,
-      notes: input.notes !== undefined ? input.notes : existing.notes
+      notes: undefined
     };
 
     this.db.prepare(`
@@ -96,7 +97,7 @@ export class EqualizationService {
       optionalIso(next.decisionReceivedAt),
       optionalIso(next.objectionDueAt),
       next.outcome ?? null,
-      next.notes ?? null,
+      null,
       nowIso(),
       id
     );

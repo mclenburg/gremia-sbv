@@ -22,7 +22,7 @@ function toCard(process: EqualizationProcessRecord, cases: CaseRecord[]): Proces
     caseId: process.caseId,
     caseNumber: caseRecord?.caseNumber ?? 'unbekannte Akte',
     displayName: caseRecord?.displayName ?? 'Unbekannter Fall',
-    summary: process.notes || caseRecord?.summary || 'Gleichstellung / GdB-Verfahren ohne Kurzbeschreibung.',
+    summary: caseRecord?.summary || 'Gleichstellung / GdB-Verfahren ohne Kurzbeschreibung.',
     status: process.applicationStatus,
     statusLabel: equalizationStatusLabel(process.applicationStatus),
     riskLabel: process.agencyReference ? `Az.: ${process.agencyReference}` : undefined,

@@ -466,7 +466,7 @@ function buildProcessTemplateValues(caseRecord: CaseRecord | undefined, process:
       'gleichstellung.bescheid_am': formatDateShort(process.decisionReceivedAt),
       'gleichstellung.widerspruchsfrist': formatDateShort(process.objectionDueAt),
       'gleichstellung.ergebnis': process.outcome ?? '',
-      'gleichstellung.notizen': process.notes ?? '',
+      'gleichstellung.notizen': 'Siehe verschlüsselte Fallnotizen in der Fallakte.',
       'frist.datum': formatDateShort(process.objectionDueAt)
     };
   }
@@ -575,6 +575,7 @@ export function CasesView({
   const selectedPreventionProcess = selection.type === 'process' && selection.processType === 'prevention' && selection.id ? casePreventionProcesses.find((item) => item.id === selection.id) : undefined;
   const selectedBemProcess = selection.type === 'process' && selection.processType === 'bem' && selection.id ? caseBemProcesses.find((item) => item.id === selection.id) : undefined;
   const selectedEqualizationProcess = selection.type === 'process' && selection.processType === 'equalization' && selection.id ? caseEqualizationProcesses.find((item) => item.id === selection.id) : undefined;
+  const selectedEqualizationNotes = selectedEqualizationProcess ? notes.filter((note) => (note.content ?? '').includes(`[[equalization:${selectedEqualizationProcess.id}]]`)) : [];
   const documentActions = createCaseDocumentActions({
     importDocuments,
     openDocument,
@@ -745,6 +746,32 @@ export function CasesView({
     }
   }
 
+  async function createEqualizationSecureNote(process: EqualizationProcessRecord, content: string) {
+    if (!selectedCase) return;
+    setNoteError('');
+    setNoteInfo('');
+    try {
+      const bridge = await waitForBridge();
+      if (!bridge?.cases) throw new Error('Falldienst ist nicht erreichbar.');
+      await bridge.cases.createNote({
+        caseId: selectedCase.id,
+        caseIds: [selectedCase.id],
+        title: 'Gleichstellung/GdB – verschlüsselte Notiz',
+        noteDate: new Date().toISOString(),
+        noteType: 'interne_notiz',
+        participants: '',
+        content: `[[equalization:${process.id}]]\n${content}`,
+        nextSteps: 'Bei Bedarf Antrag, Bescheid oder Widerspruchsfrist aktualisieren.',
+        containsHealthData: true,
+        confidentialLevel: 'hoch_sensibel'
+      });
+      await reloadSelectedCaseChildren();
+      setNoteInfo('Gleichstellungs-/GdB-Notiz wurde als verschlüsselte Fallnotiz gespeichert.');
+    } catch (error) {
+      setNoteError(error instanceof Error ? error.message : 'Gleichstellungsnotiz konnte nicht gespeichert werden.');
+    }
+  }
+
   async function updateCaseEqualizationProcess(processId: string, input: UpdateEqualizationProcessInput) {
     setNoteError('');
     setNoteInfo('');
@@ -890,9 +917,22 @@ export function CasesView({
         const created = await bridge.equalization.create({
           caseId: selectedCase.id,
           applicationStatus: 'beratung',
-          notes: caseProcessDraft.description.trim() || `Gleichstellungs-/GdB-Verfahren aus Fallakte ${selectedCase.caseNumber} gestartet.`,
           objectionDueAt: caseProcessDraft.dueAt ? fromDateTimeLocalValue(caseProcessDraft.dueAt) : undefined
         });
+        if (caseProcessDraft.description.trim()) {
+          await bridge.cases.createNote({
+            caseId: selectedCase.id,
+            caseIds: [selectedCase.id],
+            title: `Gleichstellung/GdB – verschlüsselte Startnotiz`,
+            noteDate: new Date().toISOString(),
+            noteType: 'interne_notiz',
+            participants: '',
+            content: `[[equalization:${created.id}]]\n${caseProcessDraft.description.trim()}`,
+            nextSteps: 'Gleichstellungs-/GdB-Verfahren weiter bearbeiten.',
+            containsHealthData: true,
+            confidentialLevel: 'hoch_sensibel'
+          });
+        }
         setCaseProcessDraft(null);
         setSelection({ type: 'process', processType: 'equalization', id: created.id });
         setNoteInfo('Gleichstellungs-/GdB-Verfahren wurde direkt an der Fallakte angelegt und im Fallbaum ergänzt.');
@@ -1134,6 +1174,8 @@ ${caseProcessDraft.description}`,
               process={selectedEqualizationProcess}
               onUpdate={updateCaseEqualizationProcess}
               onOpenTemplates={openProcessTemplateModal}
+              secureNotes={selectedEqualizationNotes}
+              onCreateSecureNote={createEqualizationSecureNote}
             />
           )}
 

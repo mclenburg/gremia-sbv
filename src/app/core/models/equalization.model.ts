@@ -17,7 +17,9 @@ export interface EqualizationProcessRecord {
   decisionReceivedAt?: string;
   objectionDueAt?: string;
   outcome?: string;
+  /** @deprecated Gleichstellungsnotizen werden ab 0.6.3 als verschlüsselte Fallnotizen geführt. */
   notes?: string;
+  legacyPlaintextNotesPresent?: boolean;
   createdAt: string;
   updatedAt: string;
 }

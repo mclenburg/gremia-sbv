@@ -746,3 +746,22 @@
     flex: 1 1 12rem;
   }
 }
+
+
+.case-note-secure-list {
+  display: grid;
+  gap: .6rem;
+  margin-bottom: .75rem;
+}
+
+.case-note-secure-item {
+  border: 1px solid var(--sbv-border);
+  border-radius: 1rem;
+  padding: .75rem;
+  background: rgba(15, 23, 42, .35);
+}
+
+.case-note-secure-item p {
+  margin: .35rem 0 0;
+  white-space: pre-wrap;
+}

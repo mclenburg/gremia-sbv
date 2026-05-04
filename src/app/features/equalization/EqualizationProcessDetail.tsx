@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { EqualizationProcessRecord, EqualizationStatus } from '../../core/models/equalization.model';
+import type { CaseNoteRecord } from '../../core/models/case-note.model';
 import { TextCommandTextarea } from '../../shared/textCommands/TextCommandTextarea';
 import { formatDateShort } from '../../shared/format/dates';
 import { waitForBridge } from '../../core/bridge/waitForBridge';
@@ -12,17 +13,33 @@ function normalizeDateTime(value: string): string | undefined {
   return value ? fromDateTimeLocalValue(value) : undefined;
 }
 
+function stripEqualizationNoteMarker(content: string): string {
+  return content.replace(/^\[\[equalization:[^\]]+\]\]\s*/m, '').trim();
+}
+
 export function EqualizationProcessDetail({
   process,
   onUpdate,
-  onOpenTemplates
+  onOpenTemplates,
+  secureNotes = [],
+  onCreateSecureNote
 }: {
   process: EqualizationProcessRecord;
   onUpdate: (id: string, input: Partial<EqualizationProcessRecord>) => Promise<void>;
   onOpenTemplates?: (process: EqualizationProcessRecord) => void;
+  secureNotes?: CaseNoteRecord[];
+  onCreateSecureNote?: (process: EqualizationProcessRecord, content: string) => Promise<void>;
 }) {
   const [warnings, setWarnings] = useState<string[]>([]);
+  const [secureNoteDraft, setSecureNoteDraft] = useState('');
   const guidance = buildEqualizationGuidance(process);
+
+  async function saveSecureNote() {
+    const content = secureNoteDraft.trim();
+    if (!content || !onCreateSecureNote) return;
+    await onCreateSecureNote(process, content);
+    setSecureNoteDraft('');
+  }
 
   useEffect(() => {
     let active = true;
@@ -87,8 +104,21 @@ export function EqualizationProcessDetail({
             <label className="case-note-content-input"><span>Ergebnis / Bescheid</span><TextCommandTextarea fieldId="equalization-outcome" defaultValue={process.outcome ?? ''} onBlur={(event) => void onUpdate(process.id, { outcome: event.currentTarget.value })} /></label>
           </ProcessSection>
 
-          <ProcessSection title="SBV-Notizen / nächste Schritte" objective="Nur erforderliche Informationen dokumentieren, besonders bei Gesundheitsdaten und GdB-Unterlagen.">
-            <label className="case-note-content-input"><span>Notizen</span><TextCommandTextarea fieldId="equalization-notes" defaultValue={process.notes ?? ''} onBlur={(event) => void onUpdate(process.id, { notes: event.currentTarget.value })} /></label>
+          <ProcessSection title="Verschlüsselte SBV-Notizen / nächste Schritte" objective="Notizen zu Gleichstellung, GdB und Gesundheit werden als verschlüsselte Fallnotizen geführt und nicht mehr im Gleichstellungsdatensatz gespeichert.">
+            {process.legacyPlaintextNotesPresent && (
+              <div className="industrial-message industrial-message-warning">Es gibt Alt-Notizen aus einer früheren Version. Bitte in eine verschlüsselte Fallnotiz übertragen und danach den Altbestand bereinigen.</div>
+            )}
+            {secureNotes.length > 0 && (
+              <div className="case-note-secure-list">
+                {secureNotes.map((note) => (
+                  <article key={note.id} className="case-note-secure-item">
+                    <strong>{note.title}</strong>
+                    <p>{stripEqualizationNoteMarker(note.content ?? '')}</p>
+                  </article>
+                ))}
+              </div>
+            )}
+            <label className="case-note-content-input"><span>Neue verschlüsselte Notiz</span><TextCommandTextarea fieldId="equalization-secure-note" value={secureNoteDraft} onChange={(event) => setSecureNoteDraft(event.currentTarget.value)} onBlur={() => void saveSecureNote()} /></label>
           </ProcessSection>
         </div>
       </div>
