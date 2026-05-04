@@ -2,6 +2,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import type { DatabaseAdapter } from './databaseService.js';
 import { classifyCaseLegalReferencesColumns } from './knowledgeMigrationPolicy.js';
+import { APP_VERSION } from './generated/appMetadata.js';
+import { APP_SCHEMA_VERSION, DATABASE_SCHEMA_APP_VERSION_KEY, DATABASE_SCHEMA_VERSION_KEY, PERSONAL_DATA_AUDIT_REQUIRED_COLUMNS, TERMINATION_HEARINGS_REQUIRED_COLUMNS } from './appSchema.js';
 
 interface MigrationRow {
   version: string;
@@ -27,8 +29,6 @@ interface MigrationDefinition {
   checksum: string;
 }
 
-const APP_SCHEMA_VERSION = '0016';
-const APP_VERSION = '0.5.6';
 const MIGRATION_TABLE_SQL = `
 CREATE TABLE IF NOT EXISTS schema_migrations (
   version TEXT PRIMARY KEY,
@@ -145,6 +145,7 @@ export class MigrationService {
         this.recordMigration(definition, 'baseline', 'Frische Datenbank wurde über database/schema.sql auf aktuellen Stand initialisiert.');
         inferred.push(definition.filename);
       });
+      this.repairKnownSchemaDrift(diagnostics);
       this.validateRequiredSchema(diagnostics);
       this.writeSchemaSettings(APP_SCHEMA_VERSION);
       return { applied, skipped, inferred, currentSchemaVersion: APP_SCHEMA_VERSION, diagnostics };
@@ -163,6 +164,7 @@ export class MigrationService {
       applied.push(definition.filename);
     });
 
+    this.repairKnownSchemaDrift(diagnostics);
     this.validateRequiredSchema(diagnostics);
     this.writeSchemaSettings(APP_SCHEMA_VERSION);
     return { applied, skipped, inferred, currentSchemaVersion: this.currentSchemaVersion(), diagnostics };
@@ -259,6 +261,16 @@ export class MigrationService {
           && this.columnExists('bem_processes', 'consent_scope')
           && this.columnExists('bem_processes', 'measure_owners')
           && this.columnExists('bem_processes', 'completion_reason');
+      case '0017':
+        return this.tableExists('termination_hearings')
+          && this.columnExists('termination_hearings', 'status')
+          && this.columnExists('termination_hearings', 'received_at')
+          && this.columnExists('termination_hearings', 'protection_status')
+          && this.indexExists('idx_termination_hearings_status');
+      case '0018':
+        return this.tableExists('personal_data_audit_log')
+          && this.columnExists('personal_data_audit_log', 'entry_hash')
+          && this.indexExists('idx_personal_data_audit_action');
       default:
         return false;
     }
@@ -420,6 +432,78 @@ export class MigrationService {
     this.db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition};`);
   }
 
+  private repairKnownSchemaDrift(diagnostics: string[]): void {
+    if (!this.tableExists('termination_hearings') || !TERMINATION_HEARINGS_REQUIRED_COLUMNS.every((column) => this.columnExists('termination_hearings', column))) {
+      this.rebuildTerminationHearingsTable();
+      diagnostics.push('Kündigungsanhörungen-Schema wurde auf Stand 0017 repariert.');
+    }
+
+    if (!this.tableExists('personal_data_audit_log') || !PERSONAL_DATA_AUDIT_REQUIRED_COLUMNS.every((column) => this.columnExists('personal_data_audit_log', column))) {
+      this.ensurePersonalDataAuditLogSchema();
+      diagnostics.push('Audit-Log-Schema wurde auf Stand 0018 repariert.');
+    }
+  }
+
+  private rebuildTerminationHearingsTable(): void {
+    this.db.exec(`
+      DROP INDEX IF EXISTS idx_termination_hearings_case_id;
+      DROP INDEX IF EXISTS idx_termination_hearings_status;
+      DROP INDEX IF EXISTS idx_termination_hearings_due;
+      DROP INDEX IF EXISTS idx_termination_hearings_received_at;
+      DROP TABLE IF EXISTS termination_hearings;
+
+      CREATE TABLE termination_hearings (
+        id TEXT PRIMARY KEY,
+        case_id TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'eingang',
+        termination_type TEXT NOT NULL DEFAULT 'sonstiges',
+        protection_status TEXT NOT NULL DEFAULT 'unklar',
+        received_at TEXT,
+        employer_deadline_at TEXT,
+        sbv_statement_due_at TEXT,
+        works_council_hearing_at TEXT,
+        integration_office_requested_at TEXT,
+        integration_office_decision_at TEXT,
+        integration_office_decision TEXT,
+        employer_reason TEXT,
+        missing_information TEXT,
+        sbv_assessment TEXT,
+        statement TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY(case_id) REFERENCES cases(id) ON DELETE CASCADE
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_termination_hearings_case_id ON termination_hearings(case_id);
+      CREATE INDEX IF NOT EXISTS idx_termination_hearings_status ON termination_hearings(status);
+      CREATE INDEX IF NOT EXISTS idx_termination_hearings_due ON termination_hearings(sbv_statement_due_at);
+    `);
+  }
+
+  private ensurePersonalDataAuditLogSchema(): void {
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS personal_data_audit_log (
+        id TEXT PRIMARY KEY,
+        sequence INTEGER NOT NULL UNIQUE,
+        occurred_at TEXT NOT NULL,
+        actor TEXT NOT NULL,
+        action TEXT NOT NULL,
+        subject_type TEXT NOT NULL,
+        subject_id TEXT,
+        case_id TEXT,
+        purpose TEXT NOT NULL,
+        metadata_json TEXT NOT NULL,
+        previous_hash TEXT NOT NULL,
+        entry_hash TEXT NOT NULL
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_personal_data_audit_sequence ON personal_data_audit_log(sequence);
+      CREATE INDEX IF NOT EXISTS idx_personal_data_audit_case ON personal_data_audit_log(case_id, occurred_at);
+      CREATE INDEX IF NOT EXISTS idx_personal_data_audit_subject ON personal_data_audit_log(subject_type, subject_id, occurred_at);
+      CREATE INDEX IF NOT EXISTS idx_personal_data_audit_action ON personal_data_audit_log(action, occurred_at);
+    `);
+  }
+
   private hasMigration(version: string): boolean {
     return Boolean(this.db.prepare<MigrationRow>('SELECT version FROM schema_migrations WHERE version = ?').get(version));
   }
@@ -446,11 +530,11 @@ export class MigrationService {
     this.db.prepare(`
       INSERT INTO settings (key, value, updated_at) VALUES (?, ?, ?)
       ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
-    `).run('database.schema.version', version, nowIso());
+    `).run(DATABASE_SCHEMA_VERSION_KEY, version, nowIso());
     this.db.prepare(`
       INSERT INTO settings (key, value, updated_at) VALUES (?, ?, ?)
       ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
-    `).run('database.schema.appVersion', APP_VERSION, nowIso());
+    `).run(DATABASE_SCHEMA_APP_VERSION_KEY, APP_VERSION, nowIso());
   }
 
   private validateRequiredSchema(diagnostics: string[]): void {
@@ -464,7 +548,9 @@ export class MigrationService {
       'prevention_processes',
       'bem_processes',
       'bem_process_contacts',
-      'bem_process_events'
+      'bem_process_events',
+      'termination_hearings',
+      'personal_data_audit_log'
     ];
 
     requiredTables.forEach((table) => {
@@ -478,7 +564,9 @@ export class MigrationService {
       contacts: ['id', 'first_name', 'last_name', 'category'],
       deadlines: ['id', 'title', 'due_at', 'status'],
       prevention_processes: ['id', 'case_id', 'status'],
-      bem_processes: ['id', 'case_id', 'status', 'title', 'trigger_type', 'employee_response', 'privacy_notice_at', 'consent_scope', 'measure_owners', 'completion_reason', 'created_at', 'updated_at']
+      bem_processes: ['id', 'case_id', 'status', 'title', 'trigger_type', 'employee_response', 'privacy_notice_at', 'consent_scope', 'measure_owners', 'completion_reason', 'created_at', 'updated_at'],
+      termination_hearings: [...TERMINATION_HEARINGS_REQUIRED_COLUMNS],
+      personal_data_audit_log: [...PERSONAL_DATA_AUDIT_REQUIRED_COLUMNS]
     };
 
     Object.entries(requiredColumns).forEach(([table, columns]) => {

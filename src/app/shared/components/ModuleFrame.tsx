@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useId, type ReactNode } from 'react';
 
 type ModuleFrameProps = {
   title?: string;
@@ -15,16 +15,18 @@ export function ModuleFrame({
   compact = false,
   children
 }: ModuleFrameProps) {
+  const titleId = useId();
+
   return (
-    <main className="module-frame">
-      <section className={`industrial-hero ${compact ? 'industrial-hero-compact' : ''}`}>
+    <section className="module-frame" aria-labelledby={title ? titleId : undefined}>
+      <div className={`industrial-hero ${compact ? 'industrial-hero-compact' : ''}`}>
         <div>
           {kicker ? <p className="industrial-kicker">{kicker}</p> : null}
-          {title ? <h1>{title}</h1> : null}
+          {title ? <h1 id={titleId}>{title}</h1> : null}
           {description ? <p>{description}</p> : null}
         </div>
-      </section>
+      </div>
       {children}
-    </main>
+    </section>
   );
 }

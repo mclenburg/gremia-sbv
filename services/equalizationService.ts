@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
+import { PersonalDataAuditLogService } from './auditLogService.js';
 import type { CreateEqualizationProcessInput, EqualizationProcessRecord, EqualizationStatus, UpdateEqualizationProcessInput } from '../src/app/core/models/equalization.model.js';
 
 function nowIso(): string {
@@ -28,12 +29,27 @@ function mapEqualization(row: any): EqualizationProcessRecord {
 }
 
 export class EqualizationService {
-  constructor(private readonly db: DatabaseAdapter) {}
+  constructor(private readonly db: DatabaseAdapter) {
+    this.ensureAuditSchema();
+  }
+
+  private ensureAuditSchema(): void {
+    new PersonalDataAuditLogService(this.db);
+  }
+
+  private audit(action: Parameters<PersonalDataAuditLogService['append']>[0]['action'], subjectId: string | undefined, caseId: string | undefined, purpose: string): void {
+    try {
+      new PersonalDataAuditLogService(this.db).append({ action, subjectType: 'equalization_process', subjectId, caseId, purpose });
+    } catch (error) {
+      console.warn('Gremia.SBV audit log write failed', error);
+    }
+  }
 
   list(caseId?: string): EqualizationProcessRecord[] {
     const sql = caseId
       ? 'SELECT * FROM equalization_processes WHERE case_id = ? ORDER BY updated_at DESC'
       : 'SELECT * FROM equalization_processes ORDER BY updated_at DESC';
+    this.audit('read', undefined, caseId, 'equalization_process Liste anzeigen');
     const rows = caseId ? this.db.prepare<any>(sql).all(caseId) : this.db.prepare<any>(sql).all();
     return rows.map(mapEqualization);
   }
@@ -59,6 +75,7 @@ export class EqualizationService {
       timestamp,
       timestamp
     );
+    this.audit('create', id, input.caseId, 'equalization_process angelegt');
     return this.getById(id)!;
   }
 
@@ -67,6 +84,7 @@ export class EqualizationService {
   }
 
   getById(id: string): EqualizationProcessRecord | undefined {
+    this.audit('read', id, undefined, 'equalization_process Detail anzeigen');
     const row = this.db.prepare<any>('SELECT * FROM equalization_processes WHERE id = ?').get(id);
     return row ? mapEqualization(row) : undefined;
   }
@@ -104,6 +122,7 @@ export class EqualizationService {
 
     const updated = this.getById(id);
     if (!updated) throw new Error(`Equalization process not found after update: ${id}`);
+    this.audit('update', id, existing.caseId, 'equalization_process geändert');
     return updated;
   }
 

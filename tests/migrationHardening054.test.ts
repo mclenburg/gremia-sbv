@@ -5,8 +5,8 @@ describe("0.5.4 migration hardening", () => {
   it("bumps the app schema version to the BEM migration", () => {
     const source = readFileSync("services/migrationService.ts", "utf8");
 
-    expect(source).toContain("const APP_SCHEMA_VERSION = '0016'");
-    expect(source).toMatch(/const APP_VERSION = '0\.5\.[0-9]+'/);
+    expect(source).toContain("import { APP_SCHEMA_VERSION");
+    expect(source).toContain("APP_VERSION");
     expect(source).toContain("diagnostics: string[]");
   });
 

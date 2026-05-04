@@ -4,10 +4,11 @@ import { createCipheriv, createDecipheriv, createHash, randomBytes, scryptSync }
 import { gzipSync, gunzipSync } from 'node:zlib';
 import type { SecurityService } from './securityService.js';
 import type { BackupFileSummary, BackupInspectionResult, BackupOperationResult } from '../src/app/core/models/backup.model.js';
+import { APP_VERSION } from './generated/appMetadata.js';
+import { APP_SCHEMA_VERSION, DATABASE_SCHEMA_VERSION_KEY, LEGACY_DATABASE_SCHEMA_VERSION_KEY } from './appSchema.js';
 
 const BACKUP_FORMAT = 'gremia-sbv-encrypted-backup';
 const BACKUP_VERSION = 1;
-const CURRENT_APP_VERSION = '0.5.8';
 const RESTORE_CONFIRMATION = 'BACKUP WIEDERHERSTELLEN';
 const MIN_BACKUP_PASSPHRASE_LENGTH = 12;
 
@@ -99,15 +100,17 @@ function buildBackupPrivacyWarnings(files: BackupPayloadFile[]): string[] {
 
 function schemaVersionWarning(schemaVersion?: string): string | undefined {
   if (!schemaVersion) return 'Schema-Version im Backup konnte nicht ermittelt werden.';
-  if (schemaVersion !== '0016') return `Backup-Schema ${schemaVersion} weicht von der erwarteten Schema-Version 0016 ab. Restore nur nach Prüfung durchführen.`;
+  if (schemaVersion !== APP_SCHEMA_VERSION) return `Backup-Schema ${schemaVersion} weicht von der erwarteten Schema-Version ${APP_SCHEMA_VERSION} ab. Restore nur nach Prüfung durchführen.`;
   return undefined;
 }
 
 function readSchemaVersion(security: SecurityService): string | undefined {
   try {
     const db = security.getActiveDatabase();
-    const row = db.prepare<{ value: string }>("SELECT value FROM settings WHERE key = 'settings.database.schema.version'").get();
-    return row?.value;
+    const row = db.prepare<{ value: string }>('SELECT value FROM settings WHERE key = ?').get(DATABASE_SCHEMA_VERSION_KEY);
+    if (row?.value) return row.value;
+    const legacyRow = db.prepare<{ value: string }>('SELECT value FROM settings WHERE key = ?').get(LEGACY_DATABASE_SCHEMA_VERSION_KEY);
+    return legacyRow?.value;
   } catch {
     return undefined;
   }
@@ -149,7 +152,7 @@ export class BackupService {
       const payload: BackupPayload = {
         format: BACKUP_FORMAT,
         version: BACKUP_VERSION,
-        appVersion: CURRENT_APP_VERSION,
+        appVersion: APP_VERSION,
         createdAt,
         schemaVersion: readSchemaVersion(this.security),
         files
@@ -170,7 +173,7 @@ export class BackupService {
         kdf: 'scrypt',
         compression: 'gzip',
         createdAt,
-        appVersion: CURRENT_APP_VERSION,
+        appVersion: APP_VERSION,
         salt,
         iv: iv.toString('hex'),
         tag: cipher.getAuthTag().toString('hex'),

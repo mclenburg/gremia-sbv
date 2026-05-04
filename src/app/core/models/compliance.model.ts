@@ -1,7 +1,11 @@
 export type ComplianceDocumentType =
   | 'toms'
+  | 'vvt'
   | 'dsfa'
   | 'dsgvo_bdsg_matrix'
+  | 'retention_schedule'
+  | 'data_subject_rights'
+  | 'export_policy'
   | 'dsb_it_security_approval'
   | 'dsar_response';
 

@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
+import { PersonalDataAuditLogService } from './auditLogService.js';
 import { DeadlineService } from './deadlineService.js';
 import { defaultEmployerResponseDueAt } from './preventionWorkflowPolicy.js';
 import type {
@@ -39,9 +40,24 @@ function mapProcess(row: any, contactIds: string[]): PreventionProcessRecord {
 }
 
 export class PreventionService {
-  constructor(private readonly db: DatabaseAdapter) {}
+  constructor(private readonly db: DatabaseAdapter) {
+    this.ensureAuditSchema();
+  }
+
+  private ensureAuditSchema(): void {
+    new PersonalDataAuditLogService(this.db);
+  }
+
+  private audit(action: Parameters<PersonalDataAuditLogService['append']>[0]['action'], subjectId: string | undefined, caseId: string | undefined, purpose: string): void {
+    try {
+      new PersonalDataAuditLogService(this.db).append({ action, subjectType: 'prevention_process', subjectId, caseId, purpose });
+    } catch (error) {
+      console.warn('Gremia.SBV audit log write failed', error);
+    }
+  }
 
   list(caseId?: string): PreventionProcessRecord[] {
+    this.audit('read', undefined, caseId, 'prevention_process Liste anzeigen');
     const rows = caseId
       ? this.db.prepare<any>('SELECT * FROM prevention_processes WHERE case_id = ? ORDER BY COALESCE(requested_at, first_knowledge_at, created_at) DESC').all(caseId)
       : this.db.prepare<any>('SELECT * FROM prevention_processes ORDER BY COALESCE(requested_at, first_knowledge_at, created_at) DESC').all();
@@ -113,6 +129,7 @@ export class PreventionService {
       });
     }
 
+    this.audit('create', id, input.caseId, 'prevention_process angelegt');
     return this.getById(id)!;
   }
 
@@ -164,6 +181,7 @@ export class PreventionService {
 
     if (input.contactIds) this.replaceContacts(id, input.contactIds);
     this.event(id, 'updated', 'Präventionsverfahren aktualisiert', JSON.stringify(input));
+    this.audit('update', id, existing.caseId, 'prevention_process geändert');
     return this.getById(id)!;
   }
 
@@ -172,6 +190,7 @@ export class PreventionService {
   }
 
   getById(id: string): PreventionProcessRecord | undefined {
+    this.audit('read', id, undefined, 'prevention_process Detail anzeigen');
     const row = this.db.prepare<any>('SELECT * FROM prevention_processes WHERE id = ?').get(id);
     return row ? mapProcess(row, this.contactIdsForProcess(id)) : undefined;
   }

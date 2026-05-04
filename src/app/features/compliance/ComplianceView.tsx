@@ -4,7 +4,7 @@ import { ModuleFrame } from '../../shared/components/ModuleFrame';
 import { waitForBridge } from '../../core/bridge/waitForBridge';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 import type { ComplianceDocument, ComplianceDocumentType, DataSubjectAccessRequestInput } from '../../core/models/compliance.model';
-import { defaultDsarInput, listComplianceDocuments, renderComplianceDocument, renderDsarResponseDocument } from '@services/complianceCenterService';
+import { buildComplianceReportInput, defaultDsarInput, listComplianceDocuments, renderComplianceDocument, renderDsarResponseDocument } from '@services/complianceCenterService';
 
 function downloadTextFile(document: ComplianceDocument) {
   const blob = new Blob([document.body], { type: 'text/markdown;charset=utf-8' });
@@ -53,19 +53,18 @@ export function ComplianceView() {
     announce(info, 'polite');
   }
 
-  async function exportPdfCurrent() {
+  async function exportPdfCurrent(openAfterExport = false) {
     try {
       const bridge = await waitForBridge();
       if (!bridge?.reports) throw new Error('Berichtsdienst ist nicht erreichbar.');
-      const result = await bridge.reports.generate({
-        type: 'compliance_document',
-        complianceTitle: document.title,
-        complianceSubtitle: document.description,
-        complianceClassification: document.type === 'toms' || document.type === 'dsgvo_bdsg_matrix' ? 'Intern / Compliance' : 'Intern vertraulich',
-        complianceBody: document.body
-      });
+      const result = await bridge.reports.generate(buildComplianceReportInput(document));
       if (!result.ok) throw new Error(result.error ?? 'PDF-Dokument konnte nicht erzeugt werden.');
-      const info = `${document.title} wurde als PDF erzeugt: ${result.fileName}`;
+      if (openAfterExport) {
+        await bridge.reports.openExportFolder(result.filePath);
+      }
+      const info = openAfterExport
+        ? `${document.title} wurde als PDF erzeugt und geöffnet: ${result.fileName}`
+        : `${document.title} wurde als verschlüsselter PDF-Report erzeugt: ${result.fileName}`;
       setMessage(info);
       announce(info, 'polite');
     } catch (error) {
@@ -78,7 +77,7 @@ export function ComplianceView() {
   return (
     <ModuleFrame
       title="Compliance Center"
-      description="TOMs, DSFA-Entwurf, DSGVO-/BDSG-Auswertung und Freigabeformular für DSB und IT-Security."
+      description="TOMs, VVT, DSFA, Löschkonzept, Betroffenenrechte und Freigabeunterlagen als einheitlich erzeugbare Compliance-Dokumente."
     >
       <div className="compliance-layout">
         <section className="compliance-actions" aria-label="Compliance-Dokumente">
@@ -146,8 +145,11 @@ export function ComplianceView() {
                 <Download className="h-4 w-4" />
                 Markdown exportieren
               </button>
-              <button type="button" className="industrial-button" onClick={exportPdfCurrent}>
-                PDF exportieren
+              <button type="button" className="industrial-secondary-button" onClick={() => void exportPdfCurrent(false)}>
+                PDF erzeugen
+              </button>
+              <button type="button" className="industrial-button" onClick={() => void exportPdfCurrent(true)}>
+                PDF abrufen
               </button>
             </div>
           </div>

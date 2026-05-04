@@ -357,19 +357,24 @@ CREATE TABLE IF NOT EXISTS equalization_processes (
 
 CREATE TABLE IF NOT EXISTS termination_hearings (
   id TEXT PRIMARY KEY,
-  case_id TEXT NOT NULL REFERENCES cases(id) ON DELETE CASCADE,
-  hearing_received_at TEXT NOT NULL,
+  case_id TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'eingang',
+  termination_type TEXT NOT NULL DEFAULT 'sonstiges',
+  protection_status TEXT NOT NULL DEFAULT 'unklar',
+  received_at TEXT,
   employer_deadline_at TEXT,
-  termination_type TEXT CHECK (termination_type IN ('ordentlich', 'ausserordentlich', 'aenderungskuendigung', 'unbekannt')) DEFAULT 'unbekannt',
-  sbv_hearing_complete INTEGER NOT NULL DEFAULT 0,
-  br_hearing_known INTEGER NOT NULL DEFAULT 0,
-  integration_office_approval_required INTEGER NOT NULL DEFAULT 1,
-  integration_office_approval_status TEXT CHECK (integration_office_approval_status IN ('unbekannt', 'beantragt', 'erteilt', 'abgelehnt', 'nicht_erforderlich')) DEFAULT 'unbekannt',
-  statement_status TEXT NOT NULL CHECK (statement_status IN ('offen', 'in_bearbeitung', 'abgegeben', 'keine_stellungnahme')) DEFAULT 'offen',
-  statement_sent_at TEXT,
-  risk_notes TEXT,
+  sbv_statement_due_at TEXT,
+  works_council_hearing_at TEXT,
+  integration_office_requested_at TEXT,
+  integration_office_decision_at TEXT,
+  integration_office_decision TEXT,
+  employer_reason TEXT,
+  missing_information TEXT,
+  sbv_assessment TEXT,
+  statement TEXT,
   created_at TEXT NOT NULL,
-  updated_at TEXT NOT NULL
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY(case_id) REFERENCES cases(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS portable_profile (
@@ -388,7 +393,8 @@ CREATE INDEX IF NOT EXISTS idx_bem_processes_response_due_at ON bem_processes(re
 CREATE INDEX IF NOT EXISTS idx_equalization_processes_case_id ON equalization_processes(case_id);
 CREATE INDEX IF NOT EXISTS idx_equalization_objection_due_at ON equalization_processes(objection_due_at);
 CREATE INDEX IF NOT EXISTS idx_termination_hearings_case_id ON termination_hearings(case_id);
-CREATE INDEX IF NOT EXISTS idx_termination_hearings_received_at ON termination_hearings(hearing_received_at);
+CREATE INDEX IF NOT EXISTS idx_termination_hearings_status ON termination_hearings(status);
+CREATE INDEX IF NOT EXISTS idx_termination_hearings_due ON termination_hearings(sbv_statement_due_at);
 
 -- 0.3.17 document encryption metadata
 CREATE INDEX IF NOT EXISTS idx_case_documents_case_id ON case_documents(case_id);
@@ -549,3 +555,23 @@ CREATE TABLE IF NOT EXISTS template_renders (
 
 CREATE INDEX IF NOT EXISTS idx_document_templates_category ON document_templates(category);
 CREATE INDEX IF NOT EXISTS idx_template_renders_case ON template_renders(case_id, created_at);
+
+
+CREATE TABLE IF NOT EXISTS personal_data_audit_log (
+  id TEXT PRIMARY KEY,
+  sequence INTEGER NOT NULL UNIQUE,
+  occurred_at TEXT NOT NULL,
+  actor TEXT NOT NULL,
+  action TEXT NOT NULL,
+  subject_type TEXT NOT NULL,
+  subject_id TEXT,
+  case_id TEXT,
+  purpose TEXT NOT NULL,
+  metadata_json TEXT NOT NULL,
+  previous_hash TEXT NOT NULL,
+  entry_hash TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_personal_data_audit_sequence ON personal_data_audit_log(sequence);
+CREATE INDEX IF NOT EXISTS idx_personal_data_audit_case ON personal_data_audit_log(case_id, occurred_at);
+CREATE INDEX IF NOT EXISTS idx_personal_data_audit_subject ON personal_data_audit_log(subject_type, subject_id, occurred_at);
+CREATE INDEX IF NOT EXISTS idx_personal_data_audit_action ON personal_data_audit_log(action, occurred_at);

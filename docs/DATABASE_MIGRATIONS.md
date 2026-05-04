@@ -20,7 +20,8 @@ Der `MigrationService` führt beim Öffnen der verschlüsselten Datenbank aus:
 3. vorhandene Altstände anhand konkreter Tabellen, Spalten und Indizes erkennen,
 4. erkannte Migrationen nachträglich als `inferred` markieren,
 5. fehlende Migrationen sortiert aus `database/migrations/*.sql` anwenden,
-6. `settings.database.schema.version` aktualisieren.
+6. bekannte Schema-Drifts reparieren (z. B. falsch gebaselinte Tabellen),
+7. `database.schema.version` und `database.schema.appVersion` in `settings` aktualisieren. Der alte Key `settings.database.schema.version` wird nur noch beim Backup-Lesen als Kompatibilitätsfallback berücksichtigt.
 
 ## Warum nicht einfach alle SQL-Dateien erneut ausführen?
 

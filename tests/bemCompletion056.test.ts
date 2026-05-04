@@ -36,7 +36,7 @@ describe("0.5.6 BEM completion", () => {
     const migrationService = readFileSync("services/migrationService.ts", "utf8");
     const policy = readFileSync("services/bemWorkflowPolicy.ts", "utf8");
 
-    expect(migrationService).toContain("const APP_SCHEMA_VERSION = '0016'");
+    expect(migrationService).toContain("import { APP_SCHEMA_VERSION");
     expect(migrationService).toContain("case '0016'");
     expect(policy).toContain("Datenschutzhinweis");
     expect(policy).toContain("Einwilligungsumfang");

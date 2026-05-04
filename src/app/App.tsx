@@ -45,6 +45,7 @@ import './confirmDialog.css';
 import './accessibilityLiveRegion.css';
 import './complianceCenter.css';
 import './reportsWorkbench.css';
+import './ui/responsiveDesign.css';
 
 const THEME_STORAGE_KEY = 'gremia.sbv.theme';
 
@@ -57,6 +58,7 @@ const IMPLEMENTED_VIEW_IDS = new Set<ViewId>([
   'bem',
   'prevention',
   'equalization',
+  'termination_hearing',
   'templates',
   'reports',
   'compliance',
@@ -227,8 +229,9 @@ export function App() {
   return (
     <LiveRegionProvider>
       <ConfirmDialogProvider>
-        <main className="industrial-shell min-h-screen text-zinc-100">
-      <aside className="industrial-sidebar">
+        <a className="skip-link" href="#main-content">Zum Hauptinhalt springen</a>
+        <div className="industrial-shell min-h-screen text-zinc-100">
+      <aside className="industrial-sidebar" aria-label="Gremia.SBV Navigation und Sitzung">
         <div className="brand-block">
           <div className="brand-mark">SBV</div>
           <div>
@@ -238,6 +241,7 @@ export function App() {
         </div>
         <ShellNav current={currentView} onNavigate={setCurrentView} />
         <button
+          type="button"
           className="industrial-lock-button"
           onClick={async () => {
             try {
@@ -259,7 +263,7 @@ export function App() {
         </div>
       </aside>
 
-      <section className="industrial-content">
+      <main id="main-content" className="industrial-content" tabIndex={-1}>
         <header className="industrial-topbar">
           <div>
             <p className="font-mono text-xs uppercase tracking-[0.28em] text-zinc-500">Arbeitsplatz</p>
@@ -315,8 +319,8 @@ export function App() {
             onComplete={completeDeadline}
           />
         )}
-      </section>
-        </main>
+      </main>
+        </div>
       </ConfirmDialogProvider>
     </LiveRegionProvider>
   );

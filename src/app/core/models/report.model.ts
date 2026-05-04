@@ -19,6 +19,7 @@ export interface GenerateReportInput {
   type: ReportType;
   periodStart?: string;
   periodEnd?: string;
+  complianceDocumentType?: string;
   complianceTitle?: string;
   complianceSubtitle?: string;
   complianceClassification?: string;

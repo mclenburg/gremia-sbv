@@ -2,7 +2,12 @@
 
 Gremia.SBV ist eine lokale, offline-first Desktop-Anwendung für die vertrauliche Fallarbeit der Schwerbehindertenvertretung.
 
-Stand: 0.4.58a
+Stand: 0.8.4a
+
+
+## Stand 0.8.4a
+
+Stabilisierungspatch: App-Version und Service-Version werden einheitlich aus `package.json` generiert, die Datenbank-Schema-Version ist zentral auf `0018` gesetzt und Backup-/Migrationsdienste nutzen dieselben Konstanten. Das Frischschema enthält nun die reparierte Kündigungsanhörungs-Tabelle aus Migration `0017`; zusätzlich repariert der MigrationService bekannte Schema-Drifts bei falsch gebaselinten Datenbanken. Die Kündigungsanhörung ist als implementierte View registriert, sodass kein Platzhalter mehr parallel zur echten Ansicht erscheint.
 
 ## Datenschutz / DSGVO
 
@@ -175,3 +180,8 @@ Berichte-Modul ergänzt: anonymisierter SBV-Tätigkeitsbericht mit aggregierten 
 ## Stand 0.8.3a
 
 Compliance Center nutzt für PDF-Exporte denselben direkten Berichts-PDF-Pfad wie das Berichte-Modul. Die vorherige Markdown/HTML-Druckansicht in ComplianceView wurde entfernt. `postinstall` bleibt gesetzt.
+
+
+## Stand 0.8.4
+
+Security-Hardening ergänzt: Buffer-basiertes Schlüsselmaterial wird best-effort überschrieben, neue Tresore nutzen stärkere scrypt-Parameter, bestehende Tresore bleiben kompatibel. Zusätzlich wurde ein lokales hashverkettetes Audit-Log für Zugriffe und Änderungen an personenbezogenen Daten eingeführt. `postinstall` bleibt gesetzt.

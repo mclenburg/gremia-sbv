@@ -1,0 +1,427 @@
+/* 0.8.4-b: zentrale Layout-, Design- und Accessibility-Baseline.
+   Diese Datei ergänzt die historisch gewachsene globale Industrial-CSS-Basis,
+   ohne jedes Feature-Modul einzeln anfassen zu müssen. */
+
+:root {
+  --industrial-bg: var(--sbv-black, #050505);
+  --industrial-panel: var(--sbv-panel, #09090b);
+  --industrial-panel-muted: var(--sbv-panel-2, #121214);
+  --industrial-card: var(--sbv-panel-2, #121214);
+  --industrial-border: var(--sbv-border, #2f2f33);
+  --industrial-border-strong: var(--sbv-border-hard, #4a4a50);
+  --industrial-accent: var(--sbv-yellow, #facc15);
+  --industrial-accent-soft: var(--sbv-yellow-soft, rgba(250, 204, 21, 0.12));
+  --industrial-danger: var(--sbv-danger, #ef4444);
+  --industrial-ok: var(--sbv-ok, #84cc16);
+  --industrial-text: var(--sbv-text, #f4f4f5);
+  --industrial-text-strong: #ffffff;
+  --industrial-text-muted: var(--sbv-muted, #a1a1aa);
+  --industrial-muted: var(--sbv-muted, #a1a1aa);
+  --industrial-dim: var(--sbv-dim, #71717a);
+
+  --layout-sidebar-width: 254px;
+  --layout-content-max: 1440px;
+  --layout-gap: clamp(0.85rem, 1.6vw, 1.35rem);
+  --layout-page-padding: clamp(0.85rem, 2vw, 1.5rem);
+  --control-min-height: 2.75rem;
+  --control-radius: 0.25rem;
+  --focus-ring: 0 0 0 3px color-mix(in srgb, var(--industrial-accent) 32%, transparent);
+}
+
+html[data-theme='light'] {
+  --industrial-text-strong: #111111;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  min-width: 320px;
+}
+
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  min-height: var(--control-min-height);
+}
+
+textarea {
+  line-height: 1.45;
+  resize: vertical;
+}
+
+button,
+[role='button'] {
+  touch-action: manipulation;
+}
+
+button:disabled,
+[aria-disabled='true'] {
+  cursor: not-allowed;
+}
+
+.skip-link {
+  position: fixed;
+  z-index: 9999;
+  top: 0.75rem;
+  left: 0.75rem;
+  transform: translateY(-180%);
+  border: 2px solid var(--industrial-accent);
+  background: var(--industrial-bg);
+  color: var(--industrial-text-strong);
+  padding: 0.75rem 1rem;
+  font-weight: 900;
+  text-decoration: none;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+}
+
+.skip-link:focus,
+.skip-link:focus-visible {
+  transform: translateY(0);
+  outline: none;
+}
+
+.industrial-shell {
+  display: grid;
+  grid-template-columns: var(--layout-sidebar-width) minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+.industrial-sidebar {
+  position: sticky;
+  top: 0;
+  grid-column: 1;
+  width: var(--layout-sidebar-width);
+  height: 100vh;
+  overflow: auto;
+}
+
+.industrial-content {
+  grid-column: 2;
+  width: min(100%, var(--layout-content-max));
+  margin-left: 0;
+  padding: var(--layout-page-padding);
+  scroll-margin-top: 1rem;
+}
+
+.industrial-content:focus-visible {
+  outline: 2px solid var(--industrial-accent);
+  outline-offset: -2px;
+}
+
+.industrial-topbar,
+.industrial-hero,
+.industrial-panel,
+.industrial-module-header,
+.industrial-settings-form,
+.module-frame,
+.case-workbench,
+.industrial-split-grid {
+  max-width: 100%;
+}
+
+.industrial-topbar {
+  gap: var(--layout-gap);
+}
+
+.industrial-topbar h2,
+.industrial-title,
+.industrial-card h2,
+.module-frame h1,
+.industrial-panel-header h2,
+.industrial-modal-header h2 {
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.industrial-hero,
+.industrial-panel,
+.industrial-module-header,
+.industrial-settings-form,
+.login-panel {
+  border-radius: var(--control-radius);
+}
+
+.industrial-form,
+.industrial-form-grid,
+.industrial-form-deadline,
+.industrial-modal-grid,
+.industrial-grid-two,
+.industrial-split-grid,
+.industrial-deadline-grid {
+  gap: var(--layout-gap);
+}
+
+.industrial-button,
+.industrial-secondary-button,
+.industrial-danger-button,
+.industrial-lock-button,
+.industrial-nav button,
+.industrial-table-actions button,
+.template-help-button,
+.template-trash-button {
+  min-height: var(--control-min-height);
+  border-radius: var(--control-radius);
+}
+
+.industrial-input,
+.industrial-form input,
+.industrial-form select,
+.industrial-form textarea,
+.industrial-settings-form input,
+.industrial-settings-form select,
+.industrial-settings-form textarea,
+.industrial-modal-grid input,
+.industrial-modal-grid select,
+.industrial-modal-grid textarea {
+  min-height: var(--control-min-height);
+  border-radius: var(--control-radius);
+}
+
+.industrial-nav button:focus-visible,
+.industrial-lock-button:focus-visible,
+.industrial-button:focus-visible,
+.industrial-secondary-button:focus-visible,
+.industrial-danger-button:focus-visible,
+.industrial-card:focus-visible,
+.industrial-dashboard-card:focus-visible,
+.industrial-list-item:focus-visible,
+.industrial-table-actions button:focus-visible,
+.industrial-input:focus-visible,
+.industrial-form input:focus-visible,
+.industrial-form select:focus-visible,
+.industrial-form textarea:focus-visible,
+.industrial-settings-form input:focus-visible,
+.industrial-settings-form select:focus-visible,
+.industrial-settings-form textarea:focus-visible,
+.industrial-modal-grid input:focus-visible,
+.industrial-modal-grid select:focus-visible,
+.industrial-modal-grid textarea:focus-visible {
+  outline: 2px solid var(--industrial-accent);
+  outline-offset: 3px;
+  box-shadow: var(--focus-ring);
+}
+
+.industrial-nav button[aria-current='page'] {
+  border-color: rgba(250, 204, 21, 0.62);
+  background: linear-gradient(90deg, rgba(250,204,21,0.16), rgba(39,39,42,0.48));
+  color: #fde047;
+  box-shadow: inset 3px 0 0 var(--industrial-accent);
+}
+
+.industrial-version-badge {
+  border: 1px solid var(--industrial-border);
+  background: rgba(9, 9, 11, 0.72);
+  padding: 0.7rem 0.75rem;
+  color: var(--industrial-text-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.industrial-version-badge span,
+.industrial-version-badge strong {
+  display: block;
+}
+
+.industrial-version-badge strong {
+  margin-top: 0.25rem;
+  color: var(--industrial-text-strong);
+  letter-spacing: 0.04em;
+}
+
+.industrial-table-shell {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.industrial-table {
+  min-width: 42rem;
+}
+
+.industrial-card-actions,
+.industrial-modal-actions,
+.industrial-table-actions,
+.industrial-panel-header {
+  flex-wrap: wrap;
+}
+
+.industrial-message,
+.industrial-empty,
+.industrial-alert,
+.industrial-action-note {
+  overflow-wrap: anywhere;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (max-width: 1180px) {
+  .industrial-content {
+    width: 100%;
+  }
+
+  .case-workbench,
+  .industrial-split-grid,
+  .industrial-grid-two {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 1050px) {
+  .industrial-shell {
+    display: block;
+  }
+
+  .industrial-sidebar {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    width: 100%;
+    height: auto;
+    max-height: none;
+    overflow: visible;
+    border-right: 0;
+    border-bottom: 1px solid var(--industrial-border);
+    padding: 0.75rem;
+  }
+
+  .brand-block {
+    min-width: min(18rem, 100%);
+  }
+
+  .industrial-nav {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(8.5rem, max-content);
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 0.2rem 0 0.35rem;
+    scrollbar-width: thin;
+  }
+
+  .industrial-nav button {
+    justify-content: flex-start;
+    white-space: nowrap;
+  }
+
+  .industrial-lock-button,
+  .industrial-version-badge {
+    width: 100%;
+  }
+
+  .industrial-content {
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  :root {
+    --layout-page-padding: 0.75rem;
+    --layout-gap: 0.75rem;
+  }
+
+  .industrial-sidebar {
+    gap: 0.75rem;
+  }
+
+  .brand-block {
+    padding: 0.75rem;
+  }
+
+  .industrial-topbar,
+  .industrial-hero,
+  .industrial-module-header,
+  .industrial-panel-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .industrial-state {
+    align-items: flex-start;
+    justify-content: flex-start;
+    white-space: normal;
+  }
+
+  .industrial-hero,
+  .industrial-panel,
+  .industrial-module-header,
+  .industrial-settings-form,
+  .industrial-form,
+  .login-panel {
+    padding: 1rem;
+  }
+
+  .industrial-title {
+    font-size: clamp(1.7rem, 14vw, 2.55rem);
+  }
+
+  .industrial-card,
+  .industrial-deadline-card,
+  .industrial-dashboard-card {
+    min-height: auto;
+  }
+
+  .industrial-modal {
+    width: min(100% - 1rem, 46rem);
+    max-height: calc(100vh - 1rem);
+  }
+
+  .industrial-modal-actions,
+  .industrial-card-actions,
+  .industrial-table-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .industrial-modal-actions > *,
+  .industrial-card-actions > *,
+  .industrial-table-actions > * {
+    width: 100%;
+  }
+}
+
+@media (max-width: 520px) {
+  .industrial-nav {
+    grid-auto-columns: minmax(7.5rem, max-content);
+  }
+
+  .industrial-nav button {
+    font-size: 0.78rem;
+    padding-inline: 0.6rem;
+  }
+
+  .brand-mark {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  .industrial-kicker,
+  .brand-block span,
+  .industrial-state,
+  .industrial-badge,
+  .industrial-status-badge,
+  .industrial-chip {
+    letter-spacing: 0.09em;
+  }
+}

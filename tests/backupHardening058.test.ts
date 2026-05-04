@@ -5,7 +5,7 @@ describe("0.5.8 backup hardening", () => {
   it("uses the current app version and adds privacy warnings to backups", () => {
     const source = readFileSync("services/backupService.ts", "utf8");
 
-    expect(source).toContain("const CURRENT_APP_VERSION = '0.5.8'");
+    expect(source).toContain("import { APP_VERSION } from './generated/appMetadata.js'");
     expect(source).toContain("function buildBackupPrivacyWarnings");
     expect(source).toContain("SBV-, BEM- und Gesundheitsdaten");
     expect(source).toContain("Passphrase getrennt");
@@ -15,7 +15,7 @@ describe("0.5.8 backup hardening", () => {
     const source = readFileSync("services/backupService.ts", "utf8");
 
     expect(source).toContain("function schemaVersionWarning");
-    expect(source).toContain("Schema-Version 0016");
+    expect(source).toContain("APP_SCHEMA_VERSION");
     expect(source).toContain("schemaVersionWarning(payload.schemaVersion)");
   });
 });

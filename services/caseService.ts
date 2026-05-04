@@ -15,6 +15,7 @@ import type {
 } from '../src/app/core/models/case-note.model.js';
 import type { DatabaseAdapter } from './databaseService.js';
 import { ensureContactPrivacySchema, scanCaseNoteContactReferences } from './contactPrivacyService.js';
+import { PersonalDataAuditLogService } from './auditLogService.js';
 
 function nowIso(): string {
   return new Date().toISOString();
@@ -207,6 +208,14 @@ export class CaseService {
     private readonly dataDirProvider: () => string = () => path.join(process.cwd(), 'data')
   ) {}
 
+  private audit(db: DatabaseAdapter, input: Parameters<PersonalDataAuditLogService['append']>[0]): void {
+    try {
+      new PersonalDataAuditLogService(db).append(input);
+    } catch (error) {
+      console.warn('Gremia.SBV audit log write failed', error);
+    }
+  }
+
   private ensureCaseWorkSchemaSafe(db: DatabaseAdapter): void {
     const tryExec = (sql: string) => {
       try {
@@ -329,7 +338,9 @@ export class CaseService {
   }
 
   async listCases(): Promise<CaseRecord[]> {
-    const rows = this.getSafeDb()
+    const db = this.getSafeDb();
+    this.audit(db, { action: 'read', subjectType: 'case', purpose: 'Fallaktenliste anzeigen' });
+    const rows = db
       .prepare<any>('SELECT * FROM cases ORDER BY opened_at DESC, case_number DESC')
       .all();
     return rows.map(mapCase);
@@ -367,11 +378,14 @@ export class CaseService {
     );
 
     const created = db.prepare<any>('SELECT * FROM cases WHERE id = ?').get(id);
+    this.audit(db, { action: 'create', subjectType: 'case', subjectId: id, caseId: id, purpose: 'Fallakte angelegt', metadata: { category: input.category } });
     return mapCase(created);
   }
 
   async listNotes(caseId: string): Promise<CaseNoteRecord[]> {
-    const rows = this.getSafeDb().prepare<any>(this.noteSelectSql(`
+    const db = this.getSafeDb();
+    this.audit(db, { action: 'read', subjectType: 'case_note', caseId, purpose: 'Fallnotizen anzeigen' });
+    const rows = db.prepare<any>(this.noteSelectSql(`
       WHERE EXISTS (SELECT 1 FROM case_note_cases link WHERE link.note_id = n.id AND link.case_id = ?)
       GROUP BY n.id
       ORDER BY n.note_date DESC, n.created_at DESC
@@ -414,6 +428,7 @@ export class CaseService {
     scanCaseNoteContactReferences(db, id);
     this.indexNote(db, id);
     const created = db.prepare<any>(this.noteSelectSql('WHERE n.id = ? GROUP BY n.id')).get(id);
+    this.audit(db, { action: 'create', subjectType: 'case_note', subjectId: id, caseId: input.caseId, purpose: 'Fallnotiz angelegt', metadata: { containsHealthData: input.containsHealthData, confidentialLevel: input.confidentialLevel ?? 'sensibel' } });
     return mapNote(created);
   }
 
@@ -452,6 +467,7 @@ export class CaseService {
     scanCaseNoteContactReferences(db, id);
     this.indexNote(db, id);
     const updated = db.prepare<any>(this.noteSelectSql('WHERE n.id = ? GROUP BY n.id')).get(id);
+    this.audit(db, { action: 'update', subjectType: 'case_note', subjectId: id, caseId: before.case_id, purpose: 'Fallnotiz geändert' });
     return mapNote(updated);
   }
 
@@ -459,12 +475,15 @@ export class CaseService {
     const db = this.getSafeDb();
     db.prepare('DELETE FROM case_notes_fts WHERE id = ?').run(id);
     db.prepare('DELETE FROM case_note_cases WHERE note_id = ?').run(id);
+    const before = db.prepare<any>('SELECT case_id FROM case_notes WHERE id = ?').get(id);
     const result = db.prepare<any>('DELETE FROM case_notes WHERE id = ?').run(id) as { changes?: number } | undefined;
+    this.audit(db, { action: 'delete', subjectType: 'case_note', subjectId: id, caseId: before?.case_id, purpose: 'Fallnotiz gelöscht' });
     return { deleted: Boolean(result?.changes) };
   }
 
   async searchContent(input: CaseContentSearchInput): Promise<CaseSearchResult[]> {
     const db = this.getSafeDb();
+    this.audit(db, { action: 'search', subjectType: 'case_content', caseId: input.caseId, purpose: 'Volltextsuche in personenbezogenen Falldaten', metadata: { hasCaseFilter: Boolean(input.caseId) } });
     const query = input.query.trim();
     if (query.length < 2) return [];
 
@@ -515,7 +534,9 @@ export class CaseService {
 
 
   async listDocuments(caseId: string): Promise<CaseDocumentRecord[]> {
-    const rows = this.getSafeDb().prepare<any>(`
+    const db = this.getSafeDb();
+    this.audit(db, { action: 'read', subjectType: 'case_document', caseId, purpose: 'Falldokumente anzeigen' });
+    const rows = db.prepare<any>(`
       SELECT d.*, c.case_number
       FROM case_documents d
       JOIN cases c ON c.id = d.case_id
@@ -628,6 +649,7 @@ export class CaseService {
     const safeName = this.safeExportFileName(row.filename ?? row.display_title ?? `${id}.bin`);
     const tempPath = path.join(tmpDir, `preview-${Date.now()}-${safeName}`);
     await fs.promises.writeFile(tempPath, plain, { mode: 0o600 });
+    this.audit(db, { action: 'open', subjectType: 'case_document', subjectId: id, caseId: row.case_id, purpose: 'Falldokument zur Vorschau entschlüsselt' });
     return { filePath: tempPath, fileName: safeName };
   }
 
@@ -638,17 +660,19 @@ export class CaseService {
     const plain = this.decryptDocumentRow(row);
     await fs.promises.mkdir(path.dirname(targetPath), { recursive: true });
     await fs.promises.writeFile(targetPath, plain, { mode: 0o600 });
+    this.audit(db, { action: 'export', subjectType: 'case_document', subjectId: id, caseId: row.case_id, purpose: 'Falldokument exportiert' });
     return { exported: true, filePath: targetPath };
   }
 
   async deleteDocument(id: string): Promise<{ deleted: boolean }> {
     const db = this.getSafeDb();
-    const row = db.prepare<any>('SELECT storage_path FROM case_documents WHERE id = ?').get(id);
+    const row = db.prepare<any>('SELECT storage_path, case_id FROM case_documents WHERE id = ?').get(id);
     db.prepare('DELETE FROM case_documents_fts WHERE id = ?').run(id);
     const result = db.prepare<any>('DELETE FROM case_documents WHERE id = ?').run(id) as { changes?: number } | undefined;
     if (row?.storage_path) {
       await fs.promises.rm(row.storage_path, { force: true }).catch(() => undefined);
     }
+    this.audit(db, { action: 'delete', subjectType: 'case_document', subjectId: id, caseId: row?.case_id, purpose: 'Falldokument gelöscht' });
     return { deleted: Boolean(result?.changes) };
   }
 

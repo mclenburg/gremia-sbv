@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
+import { PersonalDataAuditLogService } from './auditLogService.js';
 import type {
   CreateTerminationHearingInput,
   TerminationHearingRecord,
@@ -39,17 +40,33 @@ function mapTermination(row: any): TerminationHearingRecord {
 }
 
 export class TerminationService {
-  constructor(private readonly db: DatabaseAdapter) {}
+  constructor(private readonly db: DatabaseAdapter) {
+    this.ensureAuditSchema();
+  }
+
+  private ensureAuditSchema(): void {
+    new PersonalDataAuditLogService(this.db);
+  }
+
+  private audit(action: Parameters<PersonalDataAuditLogService['append']>[0]['action'], subjectId: string | undefined, caseId: string | undefined, purpose: string): void {
+    try {
+      new PersonalDataAuditLogService(this.db).append({ action, subjectType: 'termination_hearing', subjectId, caseId, purpose });
+    } catch (error) {
+      console.warn('Gremia.SBV audit log write failed', error);
+    }
+  }
 
   list(caseId?: string): TerminationHearingRecord[] {
     const sql = caseId
       ? 'SELECT * FROM termination_hearings WHERE case_id = ? ORDER BY updated_at DESC'
       : 'SELECT * FROM termination_hearings ORDER BY updated_at DESC';
+    this.audit('read', undefined, caseId, 'termination_hearing Liste anzeigen');
     const rows = caseId ? this.db.prepare<any>(sql).all(caseId) : this.db.prepare<any>(sql).all();
     return rows.map(mapTermination);
   }
 
   getById(id: string): TerminationHearingRecord | undefined {
+    this.audit('read', id, undefined, 'termination_hearing Detail anzeigen');
     const row = this.db.prepare<any>('SELECT * FROM termination_hearings WHERE id = ?').get(id);
     return row ? mapTermination(row) : undefined;
   }
@@ -84,6 +101,7 @@ export class TerminationService {
       timestamp,
       timestamp
     );
+    this.audit('create', id, input.caseId, 'termination_hearing angelegt');
     return this.getById(id)!;
   }
 
@@ -133,6 +151,7 @@ export class TerminationService {
       nowIso(),
       id
     );
+    this.audit('update', id, existing.caseId, 'termination_hearing geändert');
     return this.getById(id)!;
   }
 

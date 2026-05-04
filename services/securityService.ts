@@ -17,6 +17,7 @@ interface KeyWrap {
   version: 1;
   algorithm: 'aes-256-gcm';
   kdf: 'scrypt';
+  kdfParams?: ScryptKdfParams;
   salt: string;
   iv: string;
   tag: string;
@@ -24,9 +25,10 @@ interface KeyWrap {
 }
 
 interface PasswordStore {
-  version: 3;
+  version: 3 | 4;
   vaultId: string;
   kdf: 'scrypt';
+  kdfParams?: ScryptKdfParams;
   salt: string;
   passwordVerifier: string;
   databaseKeyWrap: KeyWrap;
@@ -34,8 +36,15 @@ interface PasswordStore {
   updatedAt: string;
 }
 
+interface ScryptKdfParams {
+  N: number;
+  r: number;
+  p: number;
+  maxmem: number;
+}
+
 interface VaultManifest {
-  version: 2;
+  version: 2 | 3;
   vaultId: string;
   createdAt: string;
   updatedAt: string;
@@ -47,6 +56,7 @@ interface VaultManifest {
   };
   recovery: {
     kdf: 'scrypt';
+    kdfParams?: ScryptKdfParams;
     salt: string;
     verifier: string;
     databaseKeyWrap: KeyWrap;
@@ -68,38 +78,74 @@ function getDataDir(): string {
   return process.env.GREMIA_SBV_DATA_DIR ?? path.join(process.cwd(), 'data');
 }
 
-function deriveSecretKey(secret: string, saltHex: string, context: string): Buffer {
+const LEGACY_SCRYPT_PARAMS: ScryptKdfParams = {
+  N: 32768,
+  r: 8,
+  p: 1,
+  maxmem: 64 * 1024 * 1024
+};
+
+const CURRENT_SCRYPT_PARAMS: ScryptKdfParams = {
+  N: 131072,
+  r: 8,
+  p: 1,
+  maxmem: 256 * 1024 * 1024
+};
+
+function safeDestroyBuffer(buffer?: Buffer): void {
+  if (!buffer) return;
+  try {
+    buffer.fill(0);
+  } catch {
+    // Best-effort: Buffer-Zeroing darf Sperren/Fehlerbehandlung nicht verhindern.
+  }
+}
+
+function normalizeScryptParams(params?: ScryptKdfParams): ScryptKdfParams {
+  return params ?? LEGACY_SCRYPT_PARAMS;
+}
+
+function deriveSecretKey(secret: string, saltHex: string, context: string, params?: ScryptKdfParams): Buffer {
   const salt = Buffer.from(saltHex, 'hex');
-  return scryptSync(`${context}:${secret}`, salt, 32, {
-    N: 32768,
-    r: 8,
-    p: 1,
-    maxmem: 64 * 1024 * 1024
-  });
+  try {
+    const effectiveParams = normalizeScryptParams(params);
+    return scryptSync(`${context}:${secret}`, salt, 32, effectiveParams);
+  } finally {
+    safeDestroyBuffer(salt);
+  }
 }
 
-function deriveVerifier(secret: string, saltHex: string, context: string): string {
-  const key = deriveSecretKey(secret, saltHex, context);
-  return createHash('sha256').update(context).update(':').update(key).digest('hex');
+function deriveVerifier(secret: string, saltHex: string, context: string, params?: ScryptKdfParams): string {
+  const key = deriveSecretKey(secret, saltHex, context, params);
+  try {
+    return createHash('sha256').update(context).update(':').update(key).digest('hex');
+  } finally {
+    safeDestroyBuffer(key);
+  }
 }
 
-function derivePasswordVerifier(password: string, saltHex: string): string {
-  return deriveVerifier(password, saltHex, 'gremia-sbv-auth-v3');
+function derivePasswordVerifier(password: string, saltHex: string, params?: ScryptKdfParams): string {
+  return deriveVerifier(password, saltHex, 'gremia-sbv-auth-v3', params);
 }
 
-function deriveRecoveryVerifier(recoveryKey: string, saltHex: string): string {
-  return deriveVerifier(normalizeRecoveryKey(recoveryKey), saltHex, 'gremia-sbv-recovery-v2');
+function deriveRecoveryVerifier(recoveryKey: string, saltHex: string, params?: ScryptKdfParams): string {
+  return deriveVerifier(normalizeRecoveryKey(recoveryKey), saltHex, 'gremia-sbv-recovery-v2', params);
 }
 
 function safeEqualsHex(aHex: string, bHex: string): boolean {
   const a = Buffer.from(aHex, 'hex');
   const b = Buffer.from(bHex, 'hex');
 
-  if (a.length !== b.length) {
-    return false;
-  }
+  try {
+    if (a.length !== b.length) {
+      return false;
+    }
 
-  return timingSafeEqual(a, b);
+    return timingSafeEqual(a, b);
+  } finally {
+    safeDestroyBuffer(a);
+    safeDestroyBuffer(b);
+  }
 }
 
 function validatePassword(password: string): string | null {
@@ -121,29 +167,44 @@ function createRecoveryKey(): string {
   return formatRecoveryKey(randomBytes(24).toString('hex'));
 }
 
-function wrapDatabaseKey(databaseKey: Buffer, secret: string, saltHex: string, context: string): KeyWrap {
-  const kek = deriveSecretKey(secret, saltHex, context);
+function wrapDatabaseKey(databaseKey: Buffer, secret: string, saltHex: string, context: string, params = CURRENT_SCRYPT_PARAMS): KeyWrap {
+  const kek = deriveSecretKey(secret, saltHex, context, params);
   const iv = randomBytes(12);
   const cipher = createCipheriv('aes-256-gcm', kek, iv);
   const ciphertext = Buffer.concat([cipher.update(databaseKey), cipher.final()]);
   const tag = cipher.getAuthTag();
 
-  return {
-    version: 1,
-    algorithm: 'aes-256-gcm',
-    kdf: 'scrypt',
-    salt: saltHex,
-    iv: iv.toString('hex'),
-    tag: tag.toString('hex'),
-    ciphertext: ciphertext.toString('hex')
-  };
+  try {
+    return {
+      version: 1,
+      algorithm: 'aes-256-gcm',
+      kdf: 'scrypt',
+      kdfParams: params,
+      salt: saltHex,
+      iv: iv.toString('hex'),
+      tag: tag.toString('hex'),
+      ciphertext: ciphertext.toString('hex')
+    };
+  } finally {
+    safeDestroyBuffer(kek);
+  }
 }
 
 function unwrapDatabaseKey(keyWrap: KeyWrap, secret: string, context: string): Buffer {
-  const kek = deriveSecretKey(secret, keyWrap.salt, context);
-  const decipher = createDecipheriv('aes-256-gcm', kek, Buffer.from(keyWrap.iv, 'hex'));
-  decipher.setAuthTag(Buffer.from(keyWrap.tag, 'hex'));
-  return Buffer.concat([decipher.update(Buffer.from(keyWrap.ciphertext, 'hex')), decipher.final()]);
+  const kek = deriveSecretKey(secret, keyWrap.salt, context, keyWrap.kdfParams);
+  const iv = Buffer.from(keyWrap.iv, 'hex');
+  const tag = Buffer.from(keyWrap.tag, 'hex');
+  const ciphertext = Buffer.from(keyWrap.ciphertext, 'hex');
+  const decipher = createDecipheriv('aes-256-gcm', kek, iv);
+  decipher.setAuthTag(tag);
+  try {
+    return Buffer.concat([decipher.update(ciphertext), decipher.final()]);
+  } finally {
+    safeDestroyBuffer(kek);
+    safeDestroyBuffer(iv);
+    safeDestroyBuffer(tag);
+    safeDestroyBuffer(ciphertext);
+  }
 }
 
 function formatVaultOpenError(error: unknown): string {
@@ -256,7 +317,7 @@ export class SecurityService {
     const databaseKey = randomBytes(32);
 
     const manifest: VaultManifest = {
-      version: 2,
+      version: 3,
       vaultId,
       createdAt: now,
       updatedAt: now,
@@ -267,19 +328,21 @@ export class SecurityService {
       },
       recovery: {
         kdf: 'scrypt',
+        kdfParams: CURRENT_SCRYPT_PARAMS,
         salt: recoverySalt,
-        verifier: deriveRecoveryVerifier(recoveryKey, recoverySalt),
+        verifier: deriveRecoveryVerifier(recoveryKey, recoverySalt, CURRENT_SCRYPT_PARAMS),
         databaseKeyWrap: wrapDatabaseKey(databaseKey, normalizeRecoveryKey(recoveryKey), recoveryWrapSalt, 'gremia-sbv-dbkey-recovery-v1'),
         createdAt: now
       }
     };
 
     const store: PasswordStore = {
-      version: 3,
+      version: 4,
       vaultId,
       kdf: 'scrypt',
+      kdfParams: CURRENT_SCRYPT_PARAMS,
       salt: passwordSalt,
-      passwordVerifier: derivePasswordVerifier(password, passwordSalt),
+      passwordVerifier: derivePasswordVerifier(password, passwordSalt, CURRENT_SCRYPT_PARAMS),
       databaseKeyWrap: wrapDatabaseKey(databaseKey, password, passwordWrapSalt, 'gremia-sbv-dbkey-password-v1'),
       createdAt: now,
       updatedAt: now
@@ -293,7 +356,7 @@ export class SecurityService {
     } catch (error) {
       this.databaseService.close();
       this.unlocked = false;
-      this.databaseKey = undefined;
+      this.destroyActiveDatabaseKey();
       // Sicherheitsdateien stehen nur dann, wenn auch die verschlüsselte DB initialisiert wurde.
       rmSync(this.storePath, { force: true });
       rmSync(this.vaultManifestPath, { force: true });
@@ -329,11 +392,11 @@ export class SecurityService {
     }
 
     const store = this.readStore();
-    const verifier = derivePasswordVerifier(password, store.salt);
+    const verifier = derivePasswordVerifier(password, store.salt, store.kdfParams);
 
     if (!safeEqualsHex(verifier, store.passwordVerifier)) {
       this.unlocked = false;
-      this.databaseKey = undefined;
+      this.destroyActiveDatabaseKey();
       this.databaseService.close();
       return { ok: false, initialized: true, unlocked: false, error: 'Das Passwort ist nicht korrekt.' };
     }
@@ -347,7 +410,7 @@ export class SecurityService {
       return { ok: true, initialized: true, unlocked: true };
     } catch (error) {
       this.unlocked = false;
-      this.databaseKey = undefined;
+      this.destroyActiveDatabaseKey();
       this.databaseService.close();
       return {
         ok: false,
@@ -378,11 +441,12 @@ export class SecurityService {
     const salt = randomBytes(16).toString('hex');
     const wrapSalt = randomBytes(16).toString('hex');
     const nextStore: PasswordStore = {
-      version: 3,
+      version: 4,
       vaultId: previousStore.vaultId,
       kdf: 'scrypt',
+      kdfParams: CURRENT_SCRYPT_PARAMS,
       salt,
-      passwordVerifier: derivePasswordVerifier(newPassword, salt),
+      passwordVerifier: derivePasswordVerifier(newPassword, salt, CURRENT_SCRYPT_PARAMS),
       databaseKeyWrap: wrapDatabaseKey(this.databaseKey, newPassword, wrapSalt, 'gremia-sbv-dbkey-password-v1'),
       createdAt: previousStore.createdAt,
       updatedAt: now
@@ -416,7 +480,7 @@ export class SecurityService {
 
     const normalizedRecoveryKey = normalizeRecoveryKey(recoveryKey);
     const manifest = this.readManifest();
-    const verifier = deriveRecoveryVerifier(normalizedRecoveryKey, manifest.recovery.salt);
+    const verifier = deriveRecoveryVerifier(normalizedRecoveryKey, manifest.recovery.salt, manifest.recovery.kdfParams);
     if (!safeEqualsHex(verifier, manifest.recovery.verifier)) {
       return { ok: false, initialized: true, unlocked: false, error: 'Der Recovery-Key ist nicht korrekt.' };
     }
@@ -429,11 +493,12 @@ export class SecurityService {
       const salt = randomBytes(16).toString('hex');
       const wrapSalt = randomBytes(16).toString('hex');
       const store: PasswordStore = {
-        version: 3,
+        version: 4,
         vaultId: manifest.vaultId,
         kdf: 'scrypt',
+        kdfParams: CURRENT_SCRYPT_PARAMS,
         salt,
-        passwordVerifier: derivePasswordVerifier(newPassword, salt),
+        passwordVerifier: derivePasswordVerifier(newPassword, salt, CURRENT_SCRYPT_PARAMS),
         databaseKeyWrap: wrapDatabaseKey(databaseKey, newPassword, wrapSalt, 'gremia-sbv-dbkey-password-v1'),
         createdAt: manifest.createdAt,
         updatedAt: now
@@ -446,7 +511,7 @@ export class SecurityService {
       return { ok: true, initialized: true, unlocked: true };
     } catch (error) {
       this.unlocked = false;
-      this.databaseKey = undefined;
+      this.destroyActiveDatabaseKey();
       this.databaseService.close();
       return {
         ok: false,
@@ -468,7 +533,7 @@ export class SecurityService {
     }
 
     this.unlocked = false;
-    this.databaseKey = undefined;
+    this.destroyActiveDatabaseKey();
     this.databaseService.close();
     rmSync(this.dataDir, { recursive: true, force: true });
     this.ensureDataLayout();
@@ -477,7 +542,7 @@ export class SecurityService {
 
   lock(): void {
     this.unlocked = false;
-    this.databaseKey = undefined;
+    this.destroyActiveDatabaseKey();
     this.databaseService.close();
   }
 
@@ -501,6 +566,11 @@ export class SecurityService {
 
   getDataDirectory(): string {
     return this.dataDir;
+  }
+
+  private destroyActiveDatabaseKey(): void {
+    safeDestroyBuffer(this.databaseKey);
+    this.databaseKey = undefined;
   }
 
   private hasPasswordStore(): boolean {
@@ -561,7 +631,7 @@ export class SecurityService {
     const raw = readFileSync(this.storePath, 'utf8');
     const parsed = JSON.parse(raw) as { version?: number };
 
-    if (parsed.version !== 3) {
+    if (parsed.version !== 3 && parsed.version !== 4) {
       throw new Error('Veraltete Sicherheitsdatei erkannt. Bitte Entwicklungsdatenbestand zurücksetzen oder eine passende Migration einspielen.');
     }
 
@@ -572,7 +642,7 @@ export class SecurityService {
     const raw = readFileSync(this.vaultManifestPath, 'utf8');
     const parsed = JSON.parse(raw) as { version?: number };
 
-    if (parsed.version !== 2) {
+    if (parsed.version !== 2 && parsed.version !== 3) {
       throw new Error('Veraltetes Tresor-Manifest erkannt. Bitte Entwicklungsdatenbestand zurücksetzen oder eine passende Migration einspielen.');
     }
 
@@ -616,7 +686,9 @@ export class SecurityService {
     const schemaPath = this.resolveSchemaPath();
     const migrationsDir = this.resolveMigrationsDir();
 
-    const db = await this.databaseService.open(this.vaultDatabasePath, databaseKey.toString('hex'));
+    const keyHex = databaseKey.toString('hex');
+    const db = await this.databaseService.open(this.vaultDatabasePath, keyHex);
+    // keyHex ist ein JS-String und kann nicht zuverlässig überschrieben werden.
     const result = new MigrationService(db, schemaPath, migrationsDir).migrate();
 
     if (result.applied.length || result.inferred.length) {

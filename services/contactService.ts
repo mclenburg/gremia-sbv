@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import type { ContactCategory, ContactListFilters, ContactRecord, CreateContactInput, UpdateContactInput } from '../src/app/core/models/contact.model.js';
 import type { DatabaseAdapter } from './databaseService.js';
 import { anonymizeContactReferences, ensureContactPrivacySchema } from './contactPrivacyService.js';
+import { PersonalDataAuditLogService } from './auditLogService.js';
 
 function nowIso(): string {
   return new Date().toISOString();
@@ -35,6 +36,14 @@ function likePattern(query: string): string {
 export class ContactService {
   constructor(private readonly dbProvider: () => DatabaseAdapter) {}
 
+  private audit(db: DatabaseAdapter, input: Parameters<PersonalDataAuditLogService['append']>[0]): void {
+    try {
+      new PersonalDataAuditLogService(db).append(input);
+    } catch (error) {
+      console.warn('Gremia.SBV audit log write failed', error);
+    }
+  }
+
   private ensureSchema(db: DatabaseAdapter): void {
     ensureContactPrivacySchema(db);
     db.exec(`
@@ -65,6 +74,7 @@ export class ContactService {
 
   async listContacts(filters: ContactListFilters = {}): Promise<ContactRecord[]> {
     const db = this.getSafeDb();
+    this.audit(db, { action: 'read', subjectType: 'contact', purpose: 'Kontaktliste anzeigen', metadata: { hasQuery: Boolean(filters.query), category: filters.category ?? null } });
     const limit = Math.min(Math.max(filters.limit ?? 200, 1), 500);
     const query = filters.query?.trim();
 
@@ -125,6 +135,7 @@ export class ContactService {
     );
 
     const created = db.prepare<any>('SELECT * FROM contacts WHERE id = ?').get(id);
+    this.audit(db, { action: 'create', subjectType: 'contact', subjectId: id, purpose: 'Kontakt angelegt', metadata: { category: input.category ?? 'sonstiges' } });
     return mapContact(created);
   }
 
@@ -156,6 +167,7 @@ export class ContactService {
     );
 
     const updated = db.prepare<any>('SELECT * FROM contacts WHERE id = ?').get(id);
+    this.audit(db, { action: 'update', subjectType: 'contact', subjectId: id, purpose: 'Kontakt geändert' });
     return mapContact(updated);
   }
 
@@ -166,6 +178,7 @@ export class ContactService {
 
     const privacyResult = anonymizeContactReferences(db, id);
     const result = db.prepare<any>('DELETE FROM contacts WHERE id = ?').run(id) as { changes?: number } | undefined;
+    this.audit(db, { action: 'delete', subjectType: 'contact', subjectId: id, purpose: 'Kontakt gelöscht und Referenzen anonymisiert', metadata: privacyResult });
     return { deleted: Boolean(result?.changes), ...privacyResult };
   }
 }

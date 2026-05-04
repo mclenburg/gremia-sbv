@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
+import { PersonalDataAuditLogService } from './auditLogService.js';
 import type {
   CreateDeadlineInput,
   CreateFromTemplateInput,
@@ -163,7 +164,17 @@ function validateCaseBinding(input: CreateDeadlineInput): void {
 }
 
 export class DeadlineService {
-  constructor(private readonly db: DatabaseAdapter) {}
+  constructor(private readonly db: DatabaseAdapter) {
+    new PersonalDataAuditLogService(this.db);
+  }
+
+  private personalDataAudit(action: Parameters<PersonalDataAuditLogService['append']>[0]['action'], subjectId: string | undefined, caseId: string | undefined, purpose: string, metadata?: Record<string, unknown>): void {
+    try {
+      new PersonalDataAuditLogService(this.db).append({ action, subjectType: 'deadline', subjectId, caseId, purpose, metadata });
+    } catch (error) {
+      console.warn('Gremia.SBV audit log write failed', error);
+    }
+  }
 
   create(input: CreateDeadlineInput): DeadlineRecord {
     validateCaseBinding(input);
@@ -207,6 +218,7 @@ export class DeadlineService {
     );
 
     this.audit(id, 'created', undefined, JSON.stringify(input), 'Frist angelegt');
+    this.personalDataAudit('create', id, input.caseId, 'Frist personenbezogen angelegt', { processType: input.processType, deadlineType: input.deadlineType ?? 'follow_up', isLegalDeadline: Boolean(input.isLegalDeadline) });
     return this.getById(id)!;
   }
 
@@ -263,6 +275,7 @@ export class DeadlineService {
   }
 
   list(filters: DeadlineListFilters = {}): DeadlineRecord[] {
+    this.personalDataAudit('read', undefined, filters.caseId, 'Fristenliste anzeigen', { hasCaseFilter: Boolean(filters.caseId), dashboardOnly: Boolean(filters.dashboardOnly) });
     const rows = this.db.prepare<any>(`SELECT * FROM deadlines ORDER BY due_at ASC`).all();
     let deadlines = rows.map(mapDeadline).map((d: DeadlineRecord) => ({ ...d, status: normalizeStatus(d.status) }));
 
@@ -308,7 +321,9 @@ export class DeadlineService {
 
   getById(id: string): DeadlineRecord | undefined {
     const row = this.db.prepare<any>('SELECT * FROM deadlines WHERE id = ?').get(id);
-    return row ? { ...mapDeadline(row), status: normalizeStatus(row.status) } : undefined;
+    if (!row) return undefined;
+    this.personalDataAudit('read', id, row.case_id ?? undefined, 'Fristendetail anzeigen');
+    return { ...mapDeadline(row), status: normalizeStatus(row.status) };
   }
 
   update(id: string, input: UpdateDeadlineInput): DeadlineRecord {
@@ -351,6 +366,7 @@ export class DeadlineService {
     );
 
     this.audit(id, 'updated', JSON.stringify(before), JSON.stringify(input), input.reason ?? 'Frist geändert');
+    this.personalDataAudit('update', id, before.caseId, 'Frist personenbezogen geändert', { status: nextStatus, reason: input.reason ?? null });
     return this.getById(id)!;
   }
 

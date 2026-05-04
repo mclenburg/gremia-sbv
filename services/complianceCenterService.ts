@@ -1,11 +1,18 @@
+import type { GenerateReportInput } from '../src/app/core/models/report.model.js';
 import type { ComplianceDocument, ComplianceDocumentDescriptor, ComplianceDocumentType, DataSubjectAccessRequestInput } from '../src/app/core/models/compliance.model.js';
 
 export const COMPLIANCE_DOCUMENTS: ComplianceDocumentDescriptor[] = [
   {
     type: 'toms',
     title: 'TOMs – Technische und organisatorische Maßnahmen',
-    description: 'Dokumentiert die Sicherheitsmaßnahmen von Gremia.SBV für lokale SBV-Fallarbeit.',
+    description: 'Dokumentiert die technischen und organisatorischen Schutzmaßnahmen für lokale SBV-Fallarbeit.',
     buttonLabel: 'TOMs abrufen'
+  },
+  {
+    type: 'vvt',
+    title: 'VVT-Eintrag – SBV-Fallarbeit',
+    description: 'Entwurf für das Verzeichnis von Verarbeitungstätigkeiten nach Art. 30 DSGVO.',
+    buttonLabel: 'VVT abrufen'
   },
   {
     type: 'dsfa',
@@ -18,6 +25,24 @@ export const COMPLIANCE_DOCUMENTS: ComplianceDocumentDescriptor[] = [
     title: 'DSGVO-/BDSG-Compliance-Auswertung',
     description: 'Matrix zu Anforderungen, Umsetzung, Bewertung und offenen Punkten.',
     buttonLabel: 'Compliance-Auswertung abrufen'
+  },
+  {
+    type: 'retention_schedule',
+    title: 'Lösch- und Aufbewahrungskonzept',
+    description: 'Arbeitsentwurf für Aufbewahrung, Löschung, Anonymisierung und Review-Fristen.',
+    buttonLabel: 'Löschkonzept abrufen'
+  },
+  {
+    type: 'data_subject_rights',
+    title: 'Prozess Betroffenenrechte',
+    description: 'Prüf- und Ablaufhilfe für Auskunft, Berichtigung, Löschung und Einschränkung.',
+    buttonLabel: 'Betroffenenrechte abrufen'
+  },
+  {
+    type: 'export_policy',
+    title: 'Export- und Weitergaberegeln',
+    description: 'Interne Nutzungsregel für Klartextexporte, PDF-Abrufe und externe Weitergabe.',
+    buttonLabel: 'Exportregeln abrufen'
   },
   {
     type: 'dsb_it_security_approval',
@@ -37,10 +62,29 @@ function nowIso(): string {
   return new Date().toISOString();
 }
 
+function displayDateTime(value: string): string {
+  return new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
+}
+
+function plusDays(date: Date, days: number): Date {
+  const next = new Date(date);
+  next.setDate(next.getDate() + days);
+  return next;
+}
+
+function toDateInputValue(date: Date): string {
+  return date.toISOString().slice(0, 10);
+}
+
+function markdownFileName(type: ComplianceDocumentType, generatedAt: string): string {
+  const stamp = generatedAt.replace(/[:.]/g, '-').slice(0, 19);
+  return `gremia-sbv-${type}-${stamp}.md`;
+}
+
 function header(title: string, generatedAt: string): string {
   return `# ${title}
 
-Erzeugt am: ${new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(generatedAt))}
+Erzeugt am: ${displayDateTime(generatedAt)}
 
 Hinweis: Diese Unterlage dokumentiert die in Gremia.SBV vorgesehenen und umgesetzten Maßnahmen. Sie ersetzt keine abschließende Bewertung durch Datenschutzbeauftragte, IT-Security oder Rechtsberatung.
 
@@ -48,22 +92,26 @@ Hinweis: Diese Unterlage dokumentiert die in Gremia.SBV vorgesehenen und umgeset
 }
 
 function tomsBody(generatedAt: string): string {
-  return `${header('TOMs – Technische und organisatorische Maßnahmen Gremia.SBV', generatedAt)}
-## 1. Vertraulichkeit
+  return `${header('TOMs – Technische und organisatorische Maßnahmen Gremia.SBV', generatedAt)}## 1. Vertraulichkeit
 
 - Lokale Offline-first-Anwendung ohne Cloud-Synchronisierung.
 - Verschlüsselter Tresor / verschlüsselte Datenbank.
 - Zugriff nur nach erfolgreicher Entsperrung.
+- Schlüsselmaterial in Buffer-Form wird beim Sperren best-effort überschrieben.
+- Zugriffe, Suchen, Vorschauen, Exporte und Änderungen an personenbezogenen Daten werden lokal hashverkettet protokolliert.
 - Keine Telemetrie und keine externen Analyse- oder Trackingdienste.
 - Besonders sensible Fallnotizen werden als vertrauliche Fallnotizen geführt.
 - ExportGuard warnt vor Exporten sensibler Inhalte.
+- Während der entsperrten Nutzung liegen zur Anzeige/Bearbeitung erforderliche Daten im RAM vor. Vollständiger Schutz gegen Memory-Dumps eines entsperrten Systems kann nicht garantiert werden.
 
 ## 2. Integrität
 
 - Strukturierte Fachmodule für Fallakte, Prävention, BEM, Gleichstellung/GdB und Kündigungsanhörung.
 - Datenbankmigrationen versionieren Strukturänderungen.
 - Backups werden verschlüsselt und prüfbar erzeugt.
-- Vorlagenexporte werden vor Herausgabe geprüft.
+- Berichtsexporte werden als verschlüsselte .gsbvpdf-Container abgelegt.
+- Compliance-PDFs werden über denselben Report-Service erzeugt wie sonstige Berichte.
+- Der System- und Integritätsbericht prüft die Audit-Hash-Chain auf Lücken, Hash-Brüche und rechnerische Manipulationen.
 
 ## 3. Verfügbarkeit
 
@@ -87,20 +135,87 @@ function tomsBody(generatedAt: string): string {
 
 - ExportGuard vor sensiblen Dokumenten.
 - Warnung bei Gesundheits-, Kündigungs-, BEM-, Gleichstellungs- und Fallnotizinhalten.
+- PDF-Berichte und Compliance-Dokumente werden zunächst verschlüsselt gespeichert.
+- Beim Abruf als PDF entsteht eine temporäre Klartextkopie für den externen Viewer.
 - Exporte sind außerhalb des Tresors besonders schutzbedürftig.
 
 ## 7. Offene Punkte vor 1.0
 
-- Migrationen mit realistischen Altständen testen.
+- Auto-Lock und Preview-Cleanup Ende-zu-Ende testen.
 - Backup/Restore Ende-zu-Ende prüfen.
 - Tätigkeitsbericht vollständig anonymisieren.
 - Compliance-Unterlagen mit DSB und IT-Security fachlich gegenprüfen.
 `;
 }
 
+function vvtBody(generatedAt: string): string {
+  return `${header('VVT-Eintrag – Gremia.SBV / SBV-Fallarbeit', generatedAt)}## 1. Bezeichnung der Verarbeitungstätigkeit
+
+Vertrauliche Fall-, Beratungs-, Beteiligungs- und Fristenarbeit der Schwerbehindertenvertretung mit Gremia.SBV.
+
+## 2. Verantwortlichkeit
+
+| Feld | Eintrag |
+|---|---|
+| Verantwortlicher | Arbeitgeber / Dienststelle, organisatorisch zu bestätigen |
+| Fachliche Stelle | Schwerbehindertenvertretung |
+| Datenschutzkontakt | Datenschutzbeauftragte*r einzutragen |
+| IT-Security-Kontakt | einzutragen |
+| Software | Gremia.SBV, lokale Offline-first-Desktopanwendung |
+
+## 3. Zwecke der Verarbeitung
+
+- Wahrnehmung der gesetzlichen Aufgaben der SBV.
+- Beratung und Unterstützung schwerbehinderter, gleichgestellter oder von Behinderung bedrohter Beschäftigter.
+- Dokumentation von Beteiligungsvorgängen, Prävention, BEM, Gleichstellung/GdB, Arbeitsplatzanpassung und Kündigungsanhörung.
+- Fristenkontrolle und Erstellung vertraulicher Arbeitsunterlagen.
+
+## 4. Kategorien betroffener Personen
+
+- schwerbehinderte Beschäftigte.
+- gleichgestellte Beschäftigte.
+- Beschäftigte mit laufendem Antrag oder Beratungsbedarf.
+- Kontaktpersonen innerhalb und außerhalb des Unternehmens.
+
+## 5. Kategorien personenbezogener Daten
+
+- Stammdaten, Kontaktdaten und Aktenbezüge.
+- Gesprächsnotizen, Vorgangsstatus und Fristen.
+- Angaben zu Arbeitsplatz, Arbeitszeit, Belastungen, Hilfsmitteln und Maßnahmen.
+- besondere Kategorien personenbezogener Daten, insbesondere Gesundheitsdaten nach Art. 9 DSGVO, soweit für die SBV-Aufgabe erforderlich.
+
+## 6. Kategorien von Empfängern
+
+- SBV-Vertrauensperson und im zulässigen Rahmen herangezogene Stellvertretungen.
+- betroffene Person selbst.
+- Betriebsrat, Arbeitgeber, Inklusionsamt, Integrationsfachdienst, Rehabilitationsträger oder weitere Stellen nur soweit erforderlich, rechtlich zulässig und zweckgebunden.
+
+## 7. Übermittlungen in Drittländer
+
+Keine geplante Übermittlung durch Gremia.SBV. Cloud-Synchronisierung ist nicht Bestandteil der lokalen Standardnutzung.
+
+## 8. Lösch- und Aufbewahrungsfristen
+
+Die konkrete Frist ist betrieblich festzulegen. Empfohlen ist eine regelmäßige Review-Logik mit Löschung oder Anonymisierung, sobald der Zweck entfällt und keine rechtlichen Aufbewahrungs- oder Nachweisinteressen entgegenstehen.
+
+## 9. Technische und organisatorische Maßnahmen
+
+Siehe TOMs-Dokument. Besonders relevant sind Verschlüsselung, lokale Datenhaltung, Zugriffsschutz, Exportkontrolle, Backup-Konzept und Audit-Log.
+
+## 10. Prüfvermerk
+
+| Prüffrage | Status / Entscheidung |
+|---|---|
+| Rechtsgrundlage intern dokumentiert? |  |
+| DSFA erforderlich / abgeschlossen? |  |
+| Backup-Ort freigegeben? |  |
+| Stellvertretungszugriffe geregelt? |  |
+| Exportregeln bekanntgegeben? |  |
+`;
+}
+
 function dsfaBody(generatedAt: string): string {
-  return `${header('DSFA-Entwurf Gremia.SBV', generatedAt)}
-## 1. Verarbeitungsvorgang
+  return `${header('DSFA-Entwurf Gremia.SBV', generatedAt)}## 1. Verarbeitungsvorgang
 
 Gremia.SBV unterstützt die vertrauliche Fallarbeit der Schwerbehindertenvertretung. Verarbeitet werden Fallakten, Kontakte, Fristen, Notizen, BEM-, Präventions-, Gleichstellungs-/GdB- und Kündigungsanhörungsinformationen.
 
@@ -131,7 +246,7 @@ Gremia.SBV unterstützt die vertrauliche Fallarbeit der Schwerbehindertenvertret
 |---|---:|---|
 | Verlust des Geräts oder Datenträgers | hoch | Verschlüsselter Tresor, starke Passphrase, Backup-Konzept |
 | Unbeabsichtigter Export sensibler Daten | hoch | ExportGuard, Warnhinweise, Zweckbindung |
-| Zugriff durch Unbefugte | hoch | Entsperrlogik, lokale Nutzung, kein Cloud-Zwang |
+| Zugriff durch Unbefugte | hoch | Entsperrlogik, lokale Nutzung, kein Cloud-Zwang, Audit-Log |
 | Re-Identifikation in Berichten | mittel bis hoch | anonymisierte Auswertung, keine sensiblen Freitexte |
 | Fehlmigration alter Daten | mittel | Migrationstests, Restore-Test, klare Fehlermeldungen |
 
@@ -150,18 +265,17 @@ Freigabe nur mit dokumentierten Nutzungsregeln, starker Passphrase, geklärtem B
 }
 
 function matrixBody(generatedAt: string): string {
-  return `${header('DSGVO-/BDSG-Compliance-Auswertung Gremia.SBV', generatedAt)}
-| Anforderung | Umsetzung in Gremia.SBV | Bewertung | Offene Punkte |
+  return `${header('DSGVO-/BDSG-Compliance-Auswertung Gremia.SBV', generatedAt)}| Anforderung | Umsetzung in Gremia.SBV | Bewertung | Offene Punkte |
 |---|---|---|---|
 | Art. 5 DSGVO – Grundsätze | Zweckbindung auf SBV-Arbeit, Datenminimierung durch strukturierte Module | teilweise umgesetzt | Nutzungsregeln dokumentieren |
 | Art. 6 DSGVO – Rechtsgrundlage | Verarbeitung im Beschäftigungskontext zur gesetzlichen SBV-Aufgabe | organisatorisch zu bestätigen | Rechtsgrundlage intern dokumentieren |
 | Art. 9 DSGVO – besondere Kategorien | Gesundheitsdaten können verarbeitet werden; Schutz durch Verschlüsselung und ExportGuard | hohes Schutzniveau erforderlich | DSFA final bewerten |
 | Art. 25 DSGVO – Privacy by Design | Offline-first, Verschlüsselung, Exportwarnungen, Anonymisierung | umgesetzt / auszubauen | Tätigkeitsbericht prüfen |
-| Art. 30 DSGVO – Verzeichnis | Angaben können in Freigabeformular übernommen werden | vorbereitet | VVT-Eintrag organisatorisch erstellen |
-| Art. 32 DSGVO – Sicherheit | Verschlüsselung, Zugriffsschutz, Backup-Konzept, keine Telemetrie | umgesetzt / testpflichtig | Backup/Restore final testen |
+| Art. 30 DSGVO – Verzeichnis | VVT-Entwurf im Compliance Center abrufbar | vorbereitet | VVT-Eintrag organisatorisch freigeben |
+| Art. 32 DSGVO – Sicherheit | Verschlüsselung, Zugriffsschutz, Backup-Konzept, keine Telemetrie, hashverkettetes Audit-Log | umgesetzt / testpflichtig | Backup/Restore und Audit-Chain final testen |
 | Art. 35 DSGVO – DSFA | DSFA-Entwurf abrufbar | vorbereitet | finale DSFA durch DSB/Verantwortliche |
 | BDSG Beschäftigtendaten | Zweckbindung, Erforderlichkeit, Zugriffsbeschränkung | zu prüfen | Arbeitgeber-/DSB-Freigabeprozess |
-| Betroffenenrechte | Auskunft/Löschung organisatorisch zu regeln; Lösch-/Anonymisierungslogik vorhanden | teilweise | Prozessbeschreibung ergänzen |
+| Betroffenenrechte | Prozessdokument und DSAR-Antwortgenerator vorhanden | teilweise | Freigabe- und Schwärzungsprozess ergänzen |
 
 ## Bewertung
 
@@ -169,9 +283,113 @@ Gremia.SBV ist als lokales, verschlüsseltes SBV-Arbeitsmittel konzipiert. Die t
 `;
 }
 
+function retentionScheduleBody(generatedAt: string): string {
+  return `${header('Lösch- und Aufbewahrungskonzept Gremia.SBV', generatedAt)}## 1. Grundsatz
+
+Personenbezogene Daten werden nur solange gespeichert, wie sie für die konkrete SBV-Aufgabe, Nachweisführung oder Rechtsverteidigung erforderlich sind. Danach sind sie zu löschen oder zu anonymisieren.
+
+## 2. Regelmäßige Prüfung
+
+- Fallakten: Review spätestens nach Abschluss und anschließend turnusmäßig.
+- Fristen und Wiedervorlagen: Löschung oder Archivierung nach Zweckerfüllung.
+- Berichte: anonymisierte Berichte bevorzugen; interne Prüfberichte vertraulich behandeln.
+- Exporte: außerhalb des Tresors besonders kurz halten und gesondert schützen.
+
+## 3. Arbeitsvorschlag für Fristen
+
+| Datenbereich | Review-Auslöser | Maßnahme |
+|---|---|---|
+| offene Fallakte | laufender Vorgang | weiterführen, Datenminimierung prüfen |
+| abgeschlossene Fallakte | Abschluss + Review | löschen, anonymisieren oder begründet aufbewahren |
+| BEM/Prävention | Abschluss / Maßnahmenevaluation | Zweckfortfall prüfen |
+| Kündigungsanhörung | Abschluss des Verfahrens | Nachweisinteresse prüfen |
+| Gleichstellung/GdB | Abschluss Beratung / Antrag | Zweckbindung prüfen |
+| Exporte | unmittelbare Zweckverwendung beendet | löschen oder gesichert ablegen |
+
+## 4. Verantwortlichkeit
+
+Die fachliche Entscheidung trifft die SBV im Rahmen ihrer Aufgaben. Organisatorische Vorgaben zu Datenschutz, Archivierung und Rechtsverteidigung sind mit DSB und ggf. Rechtsberatung abzustimmen.
+
+## 5. Dokumentation
+
+Lösch- und Anonymisierungsvorgänge sollen nachvollziehbar dokumentiert werden, ohne unnötige sensible Inhalte erneut festzuhalten.
+`;
+}
+
+function dataSubjectRightsBody(generatedAt: string): string {
+  return `${header('Prozess Betroffenenrechte Gremia.SBV', generatedAt)}## 1. Ziel
+
+Dieses Dokument beschreibt einen Arbeitsprozess für Anfragen nach Auskunft, Berichtigung, Löschung, Einschränkung oder Kopie personenbezogener Daten im Zusammenhang mit Gremia.SBV.
+
+## 2. Eingang und Identitätsprüfung
+
+- Eingang der Anfrage dokumentieren.
+- Identität prüfen, bevor personenbezogene Inhalte herausgegeben werden.
+- Umfang des Ersuchens klären.
+- Monatsfrist überwachen und ggf. Verlängerung begründen.
+
+## 3. Fachliche Prüfung
+
+- Welche Daten betreffen die anfragende Person?
+- Enthalten Unterlagen Daten Dritter?
+- Bestehen Vertraulichkeits-, Schutz- oder Rechtsverteidigungsinteressen?
+- Sind Schwärzungen erforderlich?
+- Muss der Datenschutzbeauftragte eingebunden werden?
+
+## 4. Antwort
+
+- Antwort strukturiert und verständlich formulieren.
+- Datenkategorien, Zwecke, Empfänger und Speicherdauer benennen, soweit einschlägig.
+- Keine unnötigen Gesundheitsdetails oder Drittdaten offenlegen.
+- Entscheidung über Löschung/Berichtigung dokumentieren.
+
+## 5. Werkzeuge in Gremia.SBV
+
+- DSAR-Antwortgenerator im Compliance Center.
+- Fall- und Dokumentensuche.
+- Lösch-/Anonymisierungslogik.
+- Audit-Log zur Nachvollziehbarkeit.
+
+## 6. Hinweis
+
+Betroffenenrechte im SBV-Kontext können kollidierende Schutzinteressen berühren. Bei komplexen Fällen ist DSB- oder anwaltliche Prüfung erforderlich.
+`;
+}
+
+function exportPolicyBody(generatedAt: string): string {
+  return `${header('Export- und Weitergaberegeln Gremia.SBV', generatedAt)}## 1. Grundsatz
+
+Daten bleiben grundsätzlich im verschlüsselten Gremia.SBV-Tresor. Exporte sind Ausnahmen und müssen erforderlich, zweckgebunden und auf das notwendige Minimum beschränkt sein.
+
+## 2. PDF-Berichte und Compliance-Dokumente
+
+- Berichte werden über den zentralen Report-Service erzeugt.
+- Der gespeicherte Export ist ein verschlüsselter .gsbvpdf-Container.
+- Beim Abruf als PDF wird eine temporäre Klartextkopie für den externen PDF-Viewer erzeugt.
+- Temporäre Klartextkopien sind nach Nutzung zu löschen; externe Viewer können eigene Caches erzeugen.
+
+## 3. Markdown-Exporte
+
+Markdown-Exporte aus dem Compliance Center sind Klartextexporte. Sie dürfen nur genutzt werden, wenn dies fachlich erforderlich ist und der Ablageort geschützt ist.
+
+## 4. Weitergabe an Dritte
+
+Vor jeder Weitergabe ist zu prüfen:
+
+- Wer ist Empfänger?
+- Welche Rechtsgrundlage oder Aufgabe rechtfertigt die Weitergabe?
+- Welche Inhalte sind wirklich erforderlich?
+- Müssen Namen, Aktenzeichen oder Gesundheitsdetails geschwärzt werden?
+- Ist eine verschlüsselte Übermittlung erforderlich?
+
+## 5. Dokumentation
+
+Exporte und Weitergaben sollen nachvollziehbar dokumentiert werden, insbesondere bei Gesundheitsdaten, BEM, Prävention, Gleichstellung/GdB und Kündigungsvorgängen.
+`;
+}
+
 function approvalBody(generatedAt: string): string {
-  return `${header('Freigabeformular Gremia.SBV für Datenschutzbeauftragte und IT-Security', generatedAt)}
-## 1. Zweck der Software
+  return `${header('Freigabeformular Gremia.SBV für Datenschutzbeauftragte und IT-Security', generatedAt)}## 1. Zweck der Software
 
 Gremia.SBV dient der vertraulichen Arbeitsorganisation der Schwerbehindertenvertretung.
 
@@ -199,8 +417,10 @@ Gremia.SBV dient der vertraulichen Arbeitsorganisation der Schwerbehindertenvert
 ## 5. Sicherheitsmaßnahmen
 
 - verschlüsselter Tresor / verschlüsselte Datenbank.
+- lokales hashverkettetes Audit-Log für Zugriff/Änderung personenbezogener Daten.
 - starke Passphrase.
 - verschlüsselte Backups.
+- verschlüsselte PDF-Reportcontainer.
 - ExportGuard.
 - Lösch-/Anonymisierungsfunktionen.
 - lokale Datenhaltung.
@@ -247,232 +467,137 @@ Review-Termin: __________________
 `;
 }
 
+function dsarBody(input: DataSubjectAccessRequestInput, generatedAt: string): string {
+  return `${header('Antwort auf DSGVO-Auskunftsersuchen – Arbeitsentwurf', generatedAt)}## 1. Vorgang
 
-export function defaultDsarInput(): DataSubjectAccessRequestInput {
-  const received = new Date();
-  const due = new Date(received.getTime());
-  due.setDate(due.getDate() + 30);
-  return {
-    requesterName: '',
-    requestReceivedAt: received.toISOString().slice(0, 10),
-    responseDueAt: due.toISOString().slice(0, 10),
-    caseReference: '',
-    identityVerified: false,
-    requestScope: 'Auskunft nach Art. 15 DSGVO über die in Gremia.SBV verarbeiteten personenbezogenen Daten.',
-    preparedBy: 'Schwerbehindertenvertretung'
-  };
-}
+| Feld | Inhalt |
+|---|---|
+| Anfragende Person | ${input.requesterName || '—'} |
+| Eingang des Ersuchens | ${input.requestReceivedAt || '—'} |
+| Antwortfrist | ${input.responseDueAt || '—'} |
+| Fall-/Aktenbezug | ${input.caseReference || '—'} |
+| Identität geprüft | ${input.identityVerified ? 'Ja' : 'Nein / noch offen'} |
+| Bearbeitet durch | ${input.preparedBy || '—'} |
 
-function safeText(value: string | undefined, fallback: string): string {
-  const trimmed = (value ?? '').trim();
-  return trimmed || fallback;
-}
+## 2. Umfang des Ersuchens
 
-function dsarResponseBody(generatedAt: string, input: DataSubjectAccessRequestInput = defaultDsarInput()): string {
-  const requesterName = safeText(input.requesterName, '<Name der anfragenden Person>');
-  const caseReference = safeText(input.caseReference, '<Aktenzeichen / Fallbezug>');
-  const preparedBy = safeText(input.preparedBy, 'Schwerbehindertenvertretung');
-  const scope = safeText(input.requestScope, 'Auskunft nach Art. 15 DSGVO');
-  const identityText = input.identityVerified
-    ? 'Die Identität der anfragenden Person wurde geprüft.'
-    : 'Die Identität ist vor Versand noch zu prüfen. Ohne Identitätsprüfung darf keine Auskunft erteilt werden.';
+${input.requestScope || 'Der Umfang des Ersuchens ist noch zu konkretisieren.'}
 
-  return `${header('Antwort auf Auskunftsersuchen nach Art. 15 DSGVO', generatedAt)}
-## 1. Vorgang
+## 3. Prüfschritte vor Antwort
 
-Anfragende Person: ${requesterName}
+- Identität der anfragenden Person prüfen.
+- Betroffene Datenbestände in Gremia.SBV ermitteln.
+- Drittdaten und vertrauliche Angaben anderer Personen identifizieren.
+- Gesundheitsdaten und besondere Kategorien gesondert prüfen.
+- Lösch- und Aufbewahrungsinteressen abwägen.
+- Datenschutzbeauftragte*n bei Unsicherheit einbinden.
 
-Fall-/Aktenbezug: ${caseReference}
+## 4. Antwortbaustein
 
-Eingang des Ersuchens: ${safeText(input.requestReceivedAt, '<Datum Eingang>')}
+Sehr geehrte*r ${input.requesterName || '[Name]'},
 
-Antwortfrist: ${safeText(input.responseDueAt, '<Fristdatum>')}
+wir bestätigen den Eingang Ihres Auskunftsersuchens. Nach Prüfung der in Gremia.SBV geführten Daten erhalten Sie eine strukturierte Auskunft über die zu Ihrer Person gespeicherten Datenkategorien, Zwecke, Empfänger bzw. Empfängerkategorien und die vorgesehene Speicherdauer, soweit diese Angaben einschlägig und rechtlich herausgabefähig sind.
 
-Bearbeitet durch: ${preparedBy}
+Soweit Unterlagen personenbezogene Daten Dritter oder besonders schutzwürdige vertrauliche Angaben enthalten, wird vor Herausgabe eine Schwärzung bzw. gesonderte rechtliche Prüfung vorgenommen.
 
-Umfang des Ersuchens:
+## 5. Rechtsbehelfs- und Kontakt-Hinweis
 
-${scope}
+Bei datenschutzrechtlichen Fragen können Sie sich an die zuständige Datenschutzstelle wenden. Unabhängig davon besteht das Recht, sich bei einer Datenschutzaufsichtsbehörde zu beschweren.
 
-Identitätsprüfung:
+## 6. Interner Vermerk
 
-${identityText}
-
-## 2. Antwortentwurf
-
-Sehr geehrte*r ${requesterName},
-
-Sie haben Auskunft nach Art. 15 DSGVO über die Verarbeitung Ihrer personenbezogenen Daten im Zusammenhang mit der Tätigkeit der Schwerbehindertenvertretung verlangt.
-
-Nachfolgend erhalten Sie die strukturierte Auskunft zu den in Gremia.SBV geführten Informationen, soweit diese Ihrem Auskunftsersuchen und dem oben genannten Vorgang zugeordnet werden konnten.
-
-## 3. Verarbeitungszwecke
-
-Die Verarbeitung erfolgt zur Wahrnehmung der Aufgaben der Schwerbehindertenvertretung, insbesondere:
-
-- Beratung und Unterstützung schwerbehinderter, gleichgestellter oder von Behinderung bedrohter Beschäftigter.
-- Wahrnehmung von Beteiligungsrechten der SBV.
-- Dokumentation von Fallbearbeitung, Fristen, Kontakten und Maßnahmen.
-- Unterstützung bei Prävention, BEM, Gleichstellung/GdB und Kündigungsanhörungen.
-- Nachweis ordnungsgemäßer SBV-Tätigkeit.
-
-## 4. Kategorien personenbezogener Daten
-
-Je nach Vorgang können folgende Datenkategorien verarbeitet sein:
-
-| Kategorie | Möglicher Inhalt | Vorhanden / nicht vorhanden |
-|---|---|---|
-| Stammdaten / Fallbezug | Name, Pseudonym, Aktenzeichen, Organisationseinheit | ☐ vorhanden ☐ nicht vorhanden |
-| Kontaktdaten | E-Mail, Telefon, interne/externe Ansprechpartner | ☐ vorhanden ☐ nicht vorhanden |
-| Fallnotizen | Gesprächsnotizen, Anliegen, nächste Schritte | ☐ vorhanden ☐ nicht vorhanden |
-| Fristen | Wiedervorlagen, Stellungnahmefristen, Reaktionsfristen | ☐ vorhanden ☐ nicht vorhanden |
-| Präventionsdaten | Präventionsverfahren, Risiken, Maßnahmen | ☐ vorhanden ☐ nicht vorhanden |
-| BEM-Daten | BEM-Angebot, Reaktion, Beteiligte, Maßnahmen | ☐ vorhanden ☐ nicht vorhanden |
-| Gleichstellung/GdB | Antrag, Bescheid, Widerspruchsfrist, Verfahrensstand | ☐ vorhanden ☐ nicht vorhanden |
-| Kündigungsanhörung | Arbeitgebervortrag, Schutzstatus, Integrationsamt, SBV-Stellungnahme | ☐ vorhanden ☐ nicht vorhanden |
-| Dokumente / Vorlagen | erzeugte Schreiben, exportierte Unterlagen, interne Entwürfe | ☐ vorhanden ☐ nicht vorhanden |
-
-## 5. Besondere Kategorien personenbezogener Daten
-
-In SBV-Vorgängen können besondere Kategorien personenbezogener Daten nach Art. 9 DSGVO betroffen sein, insbesondere Gesundheitsdaten, Angaben zu Behinderung, Gleichstellung, BEM, GdB oder behinderungsbedingten Einschränkungen.
-
-Bitte konkret eintragen:
-
-- ☐ Es liegen keine besonderen Kategorien personenbezogener Daten vor.
-- ☐ Es liegen besondere Kategorien personenbezogener Daten vor, nämlich: _______________________________
-
-## 6. Empfänger oder Kategorien von Empfängern
-
-Je nach Vorgang können Daten ausschließlich intern bei der SBV verbleiben oder zweckgebunden an folgende Stellen weitergegeben worden sein:
-
-- betroffene Person selbst,
-- Arbeitgeber / Personalbereich, soweit für Beteiligungsrechte erforderlich,
-- Betriebsrat, soweit rechtlich und sachlich erforderlich,
-- Integrationsamt / Inklusionsamt,
-- Agentur für Arbeit,
-- Betriebsarzt / arbeitsmedizinischer Dienst,
-- externe Beratung oder Rechtsvertretung,
-- IT-/Datenschutzstellen nur im Rahmen technischer Prüfung ohne fachlichen Fallzugriff.
-
-Bitte konkret eintragen:
-
-| Empfänger | Zweck | Datum / Vorgang |
-|---|---|---|
-|  |  |  |
-|  |  |  |
-
-## 7. Speicherdauer / Löschung
-
-Die Daten werden nur so lange gespeichert, wie dies für die Aufgabenerfüllung der SBV, die Nachvollziehbarkeit laufender Verfahren, Fristen, Nachweiszwecke oder rechtliche Anforderungen erforderlich ist.
-
-Für diesen Vorgang vorgesehene Prüfung:
-
-| Datenbereich | Aufbewahrung erforderlich bis | Begründung |
-|---|---|---|
-| Fallakte |  |  |
-| Fallnotizen |  |  |
-| Fristen |  |  |
-| Dokumente / Exporte |  |  |
-
-## 8. Herkunft der Daten
-
-Die Daten stammen je nach Vorgang aus folgenden Quellen:
-
-- Angaben der betroffenen Person,
-- Kommunikation mit Arbeitgeber / Personalbereich,
-- Unterlagen aus Beteiligungsverfahren,
-- Angaben von Behörden oder externen Stellen,
-- eigene Dokumentation der SBV,
-- erzeugte Schreiben und Notizen in Gremia.SBV.
-
-## 9. Automatisierte Entscheidungsfindung
-
-Eine automatisierte Entscheidungsfindung im Sinne von Art. 22 DSGVO findet in Gremia.SBV nicht statt. Die Software unterstützt Dokumentation, Fristen, Vorlagen und Auswertungen; fachliche Entscheidungen werden nicht automatisiert getroffen.
-
-## 10. Rechte der betroffenen Person
-
-Sie haben nach Maßgabe der DSGVO insbesondere folgende Rechte:
-
-- Recht auf Berichtigung unrichtiger Daten,
-- Recht auf Löschung, soweit keine Aufbewahrungs- oder Nachweisgründe entgegenstehen,
-- Recht auf Einschränkung der Verarbeitung,
-- Recht auf Datenübertragbarkeit, soweit anwendbar,
-- Recht auf Beschwerde bei der zuständigen Datenschutzaufsichtsbehörde.
-
-## 11. Anlagen zur Auskunft
-
-Folgende Anlagen sollten vor Versand beigefügt oder als „nicht vorhanden“ dokumentiert werden:
-
-- ☐ Auszug Fallstammdaten
-- ☐ Auszug Fallnotizen
-- ☐ Auszug Fristen
-- ☐ Auszug Kontakte
-- ☐ Auszug Prävention
-- ☐ Auszug BEM
-- ☐ Auszug Gleichstellung/GdB
-- ☐ Auszug Kündigungsanhörung
-- ☐ Dokumentenliste / Exportliste
-- ☐ keine weiteren personenbezogenen Daten vorhanden
-
-## 12. Interne Prüfliste vor Versand
-
-- ☐ Identität geprüft
-- ☐ Umfang des Ersuchens geklärt
-- ☐ alle relevanten Module geprüft
-- ☐ besondere Kategorien personenbezogener Daten geprüft
-- ☐ Dritt- und Fremddaten geschwärzt
-- ☐ Rechte und Freiheiten anderer Personen geprüft
-- ☐ keine internen Rechts-/Strategievermerke unzulässig herausgegeben
-- ☐ ExportGuard-Hinweise geprüft
-- ☐ Antwortfrist eingehalten oder Fristverlängerung dokumentiert
-- ☐ Versandweg sicher gewählt
-
-## 13. Schlussformel
-
-Mit freundlichen Grüßen
-
-${preparedBy}
+Dieses Dokument ist ein Arbeitsentwurf. Vor Versand ist eine fachliche Prüfung erforderlich.
 `;
 }
 
-export function renderDsarResponseDocument(input: DataSubjectAccessRequestInput): ComplianceDocument {
-  const generatedAt = nowIso();
-  const body = dsarResponseBody(generatedAt, input);
-  return {
-    type: 'dsar_response',
-    title: 'Antwort auf DSGVO-Auskunftsersuchen',
-    description: 'Strukturierte Antwort nach Art. 15 DSGVO mit Prüfliste und Anlagenübersicht.',
-    filename: `gremia-sbv-dsgvo-auskunft-${generatedAt.slice(0, 10)}.md`,
-    body,
-    generatedAt
-  };
-}
-
-export function renderComplianceDocument(type: ComplianceDocumentType): ComplianceDocument {
-  const descriptor = COMPLIANCE_DOCUMENTS.find((item) => item.type === type);
-  if (!descriptor) throw new Error(`Unknown compliance document type: ${type}`);
-
-  const generatedAt = nowIso();
-  const body = type === 'toms'
-    ? tomsBody(generatedAt)
-    : type === 'dsfa'
-      ? dsfaBody(generatedAt)
-      : type === 'dsgvo_bdsg_matrix'
-        ? matrixBody(generatedAt)
-        : type === 'dsar_response'
-          ? dsarResponseBody(generatedAt)
-          : approvalBody(generatedAt);
-
-  return {
-    type,
-    title: descriptor.title,
-    description: descriptor.description,
-    filename: `gremia-sbv-${type}-${generatedAt.slice(0, 10)}.md`,
-    body,
-    generatedAt
-  };
+function bodyFor(type: ComplianceDocumentType, generatedAt: string, dsarInput?: DataSubjectAccessRequestInput): string {
+  switch (type) {
+    case 'toms': return tomsBody(generatedAt);
+    case 'vvt': return vvtBody(generatedAt);
+    case 'dsfa': return dsfaBody(generatedAt);
+    case 'dsgvo_bdsg_matrix': return matrixBody(generatedAt);
+    case 'retention_schedule': return retentionScheduleBody(generatedAt);
+    case 'data_subject_rights': return dataSubjectRightsBody(generatedAt);
+    case 'export_policy': return exportPolicyBody(generatedAt);
+    case 'dsb_it_security_approval': return approvalBody(generatedAt);
+    case 'dsar_response': return dsarBody(dsarInput ?? defaultDsarInput(), generatedAt);
+    default: {
+      const exhaustive: never = type;
+      return String(exhaustive);
+    }
+  }
 }
 
 export function listComplianceDocuments(): ComplianceDocumentDescriptor[] {
   return COMPLIANCE_DOCUMENTS;
+}
+
+export function renderComplianceDocument(type: ComplianceDocumentType): ComplianceDocument {
+  const generatedAt = nowIso();
+  const descriptor = COMPLIANCE_DOCUMENTS.find((item) => item.type === type) ?? COMPLIANCE_DOCUMENTS[0];
+  return {
+    type: descriptor.type,
+    title: descriptor.title,
+    description: descriptor.description,
+    filename: markdownFileName(descriptor.type, generatedAt),
+    body: bodyFor(descriptor.type, generatedAt),
+    generatedAt
+  };
+}
+
+export function defaultDsarInput(): DataSubjectAccessRequestInput {
+  const received = new Date();
+  return {
+    requesterName: '',
+    requestReceivedAt: toDateInputValue(received),
+    responseDueAt: toDateInputValue(plusDays(received, 30)),
+    caseReference: '',
+    identityVerified: false,
+    requestScope: 'Auskunft über die in Gremia.SBV verarbeiteten personenbezogenen Daten.',
+    preparedBy: 'Schwerbehindertenvertretung'
+  };
+}
+
+export function renderDsarResponseDocument(input: DataSubjectAccessRequestInput): ComplianceDocument {
+  const generatedAt = nowIso();
+  const descriptor = COMPLIANCE_DOCUMENTS.find((item) => item.type === 'dsar_response')!;
+  return {
+    type: 'dsar_response',
+    title: descriptor.title,
+    description: descriptor.description,
+    filename: markdownFileName('dsar_response', generatedAt),
+    body: bodyFor('dsar_response', generatedAt, input),
+    generatedAt
+  };
+}
+
+export function complianceClassificationFor(type: ComplianceDocumentType): string {
+  switch (type) {
+    case 'toms':
+    case 'vvt':
+    case 'dsgvo_bdsg_matrix':
+    case 'retention_schedule':
+    case 'data_subject_rights':
+    case 'export_policy':
+      return 'Intern / Compliance';
+    case 'dsfa':
+    case 'dsb_it_security_approval':
+    case 'dsar_response':
+      return 'Intern vertraulich';
+    default: {
+      const exhaustive: never = type;
+      return String(exhaustive);
+    }
+  }
+}
+
+export function buildComplianceReportInput(document: ComplianceDocument): GenerateReportInput {
+  return {
+    type: 'compliance_document',
+    complianceDocumentType: document.type,
+    complianceTitle: document.title,
+    complianceSubtitle: document.description,
+    complianceClassification: complianceClassificationFor(document.type),
+    complianceBody: document.body
+  };
 }

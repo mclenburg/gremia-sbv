@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import type { DatabaseAdapter } from './databaseService.js';
+import { PersonalDataAuditLogService } from './auditLogService.js';
 import type {
   GenerateReportInput,
   ReportDescriptor,
@@ -441,6 +442,23 @@ export class ReportService {
       result.warnings.length,
       result.generatedAt
     );
+    try {
+      new PersonalDataAuditLogService(db).append({
+        action: 'export',
+        subjectType: 'report',
+        subjectId: input.type,
+        purpose: 'PDF-Report als verschlüsselter .gsbvpdf-Container erzeugt',
+        metadata: {
+          reportType: input.type,
+          title: result.title,
+          warningCount: result.warnings.length,
+          fileName: result.fileName,
+          complianceDocumentType: input.complianceDocumentType ?? null
+        }
+      });
+    } catch (error) {
+      console.warn('Gremia.SBV audit log write failed', error);
+    }
   }
 
   private periodLabel(input: GenerateReportInput): string {
@@ -625,16 +643,18 @@ export class ReportService {
     const subtitle = input.complianceSubtitle?.trim() || 'Aus Gremia.SBV Compliance Center erzeugt';
     const classification = input.complianceClassification?.trim() || 'Intern vertraulich';
     const body = input.complianceBody?.trim() || 'Keine Inhalte übergeben.';
+    const documentType = input.complianceDocumentType?.trim() || 'compliance_document';
     const warnings = [
-      'Compliance-Dokumente vor Weitergabe fachlich prüfen. Sie ersetzen keine abschließende Bewertung durch DSB, IT-Security oder Rechtsberatung.'
+      'Compliance-Dokumente vor Weitergabe fachlich prüfen. Sie ersetzen keine abschließende Bewertung durch DSB, IT-Security oder Rechtsberatung.',
+      'Beim Abruf als PDF wird temporär eine Klartextkopie für den externen PDF-Viewer erzeugt.'
     ];
     return {
       title,
       warnings,
       metrics: {
-        'Dokumenttyp': 'Compliance',
+        'Dokumenttyp': documentType,
         'Quelle': 'Compliance Center',
-        'Exportformat': 'PDF'
+        'Exportformat': 'verschlüsselter PDF-Report'
       },
       html: reportShell(title, subtitle, classification, markdownToReportHtml(body), warnings)
     };
@@ -670,7 +690,8 @@ export class ReportService {
     const requiredTables = [
       'cases', 'persons', 'case_notes', 'case_note_cases', 'case_documents',
       'deadlines', 'deadline_templates', 'contacts', 'contact_text_references',
-      'report_exports', 'schema_migrations', 'schema_migration_log', 'settings'
+      'report_exports', 'schema_migrations', 'schema_migration_log', 'settings',
+      'personal_data_audit_log'
     ];
     const missingTables = requiredTables.filter((tableName) => !rows(db, `SELECT name FROM sqlite_master WHERE type IN ('table', 'view') AND name = ?`, [tableName]).length);
     const migrationLogErrors = count(db, `SELECT COUNT(*) AS value FROM schema_migration_log WHERE action LIKE '%error%' OR action = 'failed'`);
@@ -691,6 +712,7 @@ export class ReportService {
     const documentsOutsideDataDir = documentRows.filter((row) => row.storage_path && !isPathInside(String(row.storage_path), dataDir)).length;
     const schemaVersion = scalarText(db, `SELECT value FROM settings WHERE key = 'database.schema.version'`, [], 'unbekannt');
     const schemaAppVersion = scalarText(db, `SELECT value FROM settings WHERE key = 'database.schema.appVersion'`, [], 'unbekannt');
+    let auditChain = new PersonalDataAuditLogService(db).integritySummary();
 
     const warnings: string[] = [];
     if (!integrityOk) warnings.push(`SQLite-Integritätsprüfung meldet: ${integrityResult.join('; ') || 'kein Ergebnis'}.`);
@@ -707,10 +729,13 @@ export class ReportService {
     if (invalidDocumentContainers > 0) warnings.push(`${invalidDocumentContainers} Dokumentdatensätze verweisen nicht auf .gsbvdoc-Container.`);
     if (incompleteDocumentCrypto > 0) warnings.push(`${incompleteDocumentCrypto} Dokumentdatensätze haben unvollständige Verschlüsselungsmetadaten.`);
     if (documentsOutsideDataDir > 0) warnings.push(`${documentsOutsideDataDir} Dokumente liegen außerhalb des aktuellen Gremia.SBV-Datenverzeichnisses.`);
+    if (!auditChain.ok) warnings.push(`Audit-Hash-Chain ist beschädigt oder lückenhaft. Erste auffällige Sequenz: ${auditChain.firstBrokenSequence ?? 'unbekannt'}.`);
     if (!backupFiles) warnings.push('Es wurden keine Backup-Dateien im lokalen Backup-Ordner gefunden.');
 
     const metrics = {
-      'Integritätsprüfung': integrityOk && quickOk ? 'OK' : 'Auffällig',
+      'Integritätsprüfung': integrityOk && quickOk && auditChain.ok ? 'OK' : 'Auffällig',
+      'Audit-Hash-Chain': auditChain.ok ? 'OK' : 'Manipulationsverdacht',
+      'Audit-Einträge': auditChain.checked,
       'FK-Probleme': foreignKeyIssues,
       'Schema-Version': schemaVersion,
       'DB-Größe': formatBytes(vaultSize)
@@ -727,7 +752,8 @@ export class ReportService {
       ['Verwaiste Dokumentcontainer', orphanEncryptedDocumentFiles ? `${orphanEncryptedDocumentFiles} Befund(e)` : 'OK', orphanEncryptedDocumentFiles ? 'GELB' : 'GRÜN'],
       ['Klartext im Dokumentenspeicher', plainDocumentFiles.length ? `${plainDocumentFiles.length} Datei(en)` : 'OK', plainDocumentFiles.length ? 'ROT' : 'GRÜN'],
       ['Dokument-Verschlüsselungsmetadaten', incompleteDocumentCrypto ? `${incompleteDocumentCrypto} unvollständig` : 'OK', incompleteDocumentCrypto ? 'ROT' : 'GRÜN'],
-      ['Dokument-Speicherort', documentsOutsideDataDir ? `${documentsOutsideDataDir} außerhalb Datenverzeichnis` : 'OK', documentsOutsideDataDir ? 'GELB' : 'GRÜN']
+      ['Dokument-Speicherort', documentsOutsideDataDir ? `${documentsOutsideDataDir} außerhalb Datenverzeichnis` : 'OK', documentsOutsideDataDir ? 'GELB' : 'GRÜN'],
+      ['Audit-Hash-Chain', auditChain.ok ? `OK (${auditChain.checked} Einträge)` : `${auditChain.issues.length} Befund(e), erste Sequenz ${auditChain.firstBrokenSequence ?? '—'}`, auditChain.ok ? 'GRÜN' : 'ROT']
     ];
     const statusCellRows = validationRows.map((row) => [row[0], row[1], row[2] === 'GRÜN' ? 'GRÜN' : row[2] === 'GELB' ? 'GELB' : 'ROT']);
     const pragmaRowsForReport = [
@@ -737,13 +763,19 @@ export class ReportService {
       ['Page Count', String(pageCountRows[0]?.page_count ?? Object.values(pageCountRows[0] ?? {})[0] ?? '—')],
       ['Page Size', String(pageSizeRows[0]?.page_size ?? Object.values(pageSizeRows[0] ?? {})[0] ?? '—')],
       ['Datenbankdatei', vaultPath],
-      ['Datenbankgröße', formatBytes(vaultSize)]
+      ['Datenbankgröße', formatBytes(vaultSize)],
+      ['Audit-Hash-Algorithmus', auditChain.algorithm],
+      ['Audit-Chain-Version', String(auditChain.chainVersion)],
+      ['Letzter Audit-Hash', auditChain.latestHash],
+      ['Audit-Sequenzbereich', auditChain.checked ? `${auditChain.firstSequence ?? '—'} bis ${auditChain.lastSequence ?? '—'}` : 'keine Einträge']
     ];
     const content = `${metricCards(metrics)}
       <section class="box"><h2>Datenbankvalidierung</h2>${table(['Prüfung', 'Befund', 'Ampel'], statusCellRows)}</section>
       <section class="box"><h2>Datenbankdetails</h2>${table(['Eigenschaft', 'Wert'], pragmaRowsForReport)}</section>
       <section class="box"><h2>Speicherorte</h2>${table(['Bereich', 'Pfad/Anzahl'], [['Datenordner', dataDir], ['Dokumente', `${documentDir} (${documentFiles}; davon ${encryptedDocumentFiles.length} verschlüsselte Container)`], ['Backups', `${backupDir} (${backupFiles})`], ['Exporte', `${exportDir} (${exportFiles})`]])}</section>
       <section class="box"><h2>Dokumentenspeicher</h2>${table(['Prüfung', 'Anzahl'], [['Dokumentdatensätze', documentRows.length], ['Verschlüsselte .gsbvdoc-Dateien', encryptedDocumentFiles.length], ['Mögliche Klartextdateien', plainDocumentFiles.length], ['Fehlende Container', missingDocumentFiles], ['Container ohne Datenbankeintrag', orphanEncryptedDocumentFiles], ['Unvollständige Kryptometadaten', incompleteDocumentCrypto]])}</section>
+      <section class="box"><h2>Audit-Log und Hash-Chain</h2>${table(['Kennzahl', 'Wert'], [['Status', auditChain.ok ? 'Hash-Chain intakt' : 'Auffällig / Manipulationsverdacht'], ['Geprüfte Einträge', auditChain.checked], ['Lese-/Such-/Öffnungsereignisse', auditChain.readEvents], ['Änderungsereignisse', auditChain.changeEvents], ['Export-/Backupereignisse', auditChain.exportEvents], ['Letzter Hash', auditChain.latestHash]])}</section>
+      ${auditChain.issues.length ? `<section class="box"><h2>Audit-Chain-Befunde</h2>${table(['Sequenz', 'Art', 'Befund'], auditChain.issues.slice(0, 25).map((issue) => [issue.sequence, issue.kind, issue.message]))}</section>` : ''}
       <section class="box"><h2>Letzte Migrationen</h2>${table(['Version', 'Datei', 'Ausgeführt', 'Modus'], migrationRows.map((row) => [row.version, row.filename, formatDateTime(row.applied_at), normalizeStatus(row.mode)]))}</section>`;
     return {
       title: 'System- und Integritätsbericht',

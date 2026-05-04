@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
+import { PersonalDataAuditLogService } from './auditLogService.js';
 import { DeadlineService } from './deadlineService.js';
 import { defaultBemResponseDueAt } from './bemWorkflowPolicy.js';
 import type {
@@ -56,9 +57,24 @@ function mapProcess(row: any, contactIds: string[]): BemProcessRecord {
 }
 
 export class BemService {
-  constructor(private readonly db: DatabaseAdapter) {}
+  constructor(private readonly db: DatabaseAdapter) {
+    this.ensureAuditSchema();
+  }
+
+  private ensureAuditSchema(): void {
+    new PersonalDataAuditLogService(this.db);
+  }
+
+  private audit(action: Parameters<PersonalDataAuditLogService['append']>[0]['action'], subjectId: string | undefined, caseId: string | undefined, purpose: string): void {
+    try {
+      new PersonalDataAuditLogService(this.db).append({ action, subjectType: 'bem_process', subjectId, caseId, purpose });
+    } catch (error) {
+      console.warn('Gremia.SBV audit log write failed', error);
+    }
+  }
 
   list(caseId?: string): BemProcessRecord[] {
+    this.audit('read', undefined, caseId, 'bem_process Liste anzeigen');
     const rows = caseId
       ? this.db.prepare<any>('SELECT * FROM bem_processes WHERE case_id = ? ORDER BY COALESCE(bem_offered_at, first_meeting_at, created_at) DESC').all(caseId)
       : this.db.prepare<any>('SELECT * FROM bem_processes ORDER BY COALESCE(bem_offered_at, first_meeting_at, created_at) DESC').all();
@@ -159,6 +175,7 @@ export class BemService {
       });
     }
 
+    this.audit('create', id, input.caseId, 'bem_process angelegt');
     return this.getById(id)!;
   }
 
@@ -225,6 +242,7 @@ export class BemService {
 
     if (input.contactIds) this.replaceContacts(id, input.contactIds);
     this.event(id, 'updated', 'BEM-Verfahren aktualisiert', JSON.stringify(input));
+    this.audit('update', id, existing.caseId, 'bem_process geändert');
     return this.getById(id)!;
   }
 
@@ -233,6 +251,7 @@ export class BemService {
   }
 
   getById(id: string): BemProcessRecord | undefined {
+    this.audit('read', id, undefined, 'bem_process Detail anzeigen');
     const row = this.db.prepare<any>('SELECT * FROM bem_processes WHERE id = ?').get(id);
     return row ? mapProcess(row, this.contactIdsForProcess(id)) : undefined;
   }
