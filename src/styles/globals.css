@@ -1693,3 +1693,8 @@ html[data-theme='light'] .industrial-danger-button {
   margin: 0;
   color: var(--sbv-muted);
 }
+
+
+.process-overview-topline-actions {
+  justify-content: flex-end;
+}

@@ -82,8 +82,7 @@ export const modules: ModuleDefinition[] = [
     shortTitle: 'Kündigung',
     text: 'Kritischer Workflow für SBV-Anhörung und Integrationsamt-Prüfung.',
     icon: ShieldAlert,
-    status: 'planned',
-    plannedVersion: '0.5.x'
+    
   },
   {
     id: 'templates',

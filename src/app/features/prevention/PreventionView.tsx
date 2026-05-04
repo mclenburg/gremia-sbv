@@ -5,6 +5,7 @@ import type { PreventionProcessRecord, PreventionStatus } from '../../core/model
 import type { CaseNodeTarget } from '../../core/navigation/caseNodeTarget';
 import { waitForBridge } from '../../core/bridge/waitForBridge';
 import { formatDateShort } from '../../shared/format/dates';
+import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 import {
   ProcessOverviewCard,
   ProcessOverviewPage,
@@ -31,17 +32,35 @@ export function PreventionView({
 }) {
   const [processes, setProcesses] = useState<PreventionProcessRecord[]>([]);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
+  const announce = useAnnouncer();
 
   async function reload() {
-    const bridge = await waitForBridge();
-    if (!bridge?.prevention) throw new Error('Präventionsdienst ist nicht erreichbar.');
-    const rows = await bridge.prevention.list();
-    setProcesses(rows);
+    setLoading(true);
+    setError('');
+    try {
+      const bridge = await waitForBridge();
+      if (!bridge?.prevention) throw new Error('Präventionsdienst ist nicht erreichbar.');
+      const rows = await bridge.prevention.list();
+      setProcesses(rows);
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : 'Präventionsverfahren konnten nicht geladen werden.');
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
-    void reload().catch((loadError) => setError(loadError instanceof Error ? loadError.message : 'Präventionsverfahren konnten nicht geladen werden.'));
+    void reload();
   }, [cases.length]);
+
+  useEffect(() => {
+    if (error) announce(error, 'assertive');
+  }, [error, announce]);
+
+  useEffect(() => {
+    if (!loading && !error) announce(`${processes.length} Präventionsverfahren geladen.`, 'polite');
+  }, [loading, error, processes.length, announce]);
 
   const cards = useMemo<ProcessOverviewCardModel<PreventionStatus>[]>(() => processes.map((process) => {
     const record = cases.find((item) => item.id === process.caseId);
@@ -76,6 +95,7 @@ export function PreventionView({
 
   return (
     <>
+      {loading && <div className="industrial-message">Präventionsverfahren werden geladen …</div>}
       {error && <div className="industrial-message industrial-message-warning">{error}</div>}
       <ProcessOverviewPage
         title="Präventionsverfahren"

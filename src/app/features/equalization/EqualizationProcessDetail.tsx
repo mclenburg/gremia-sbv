@@ -6,6 +6,7 @@ import { waitForBridge } from '../../core/bridge/waitForBridge';
 import { ProcessDetailHeader, ProcessSection } from '../../shared/process/ProcessDetailHeader';
 import { fromDateTimeLocalValue, toDateTimeLocalValue } from '../cases/caseWorkbenchFormat';
 import { equalizationStatusLabel, equalizationStatusOrder } from './equalizationShared';
+import { buildEqualizationGuidance } from '@services/equalizationGuidancePolicy';
 
 function normalizeDateTime(value: string): string | undefined {
   return value ? fromDateTimeLocalValue(value) : undefined;
@@ -21,6 +22,7 @@ export function EqualizationProcessDetail({
   onOpenTemplates?: (process: EqualizationProcessRecord) => void;
 }) {
   const [warnings, setWarnings] = useState<string[]>([]);
+  const guidance = buildEqualizationGuidance(process);
 
   useEffect(() => {
     let active = true;
@@ -52,6 +54,18 @@ export function EqualizationProcessDetail({
             { label: 'Widerspruch', value: formatDateShort(process.objectionDueAt) }
           ]}
         />
+
+        <div className="industrial-message equalization-guidance-panel">
+          <div>
+            <strong>{guidance.title}</strong>
+            <p>{guidance.objective}</p>
+          </div>
+          {guidance.suggestedNextStatus && (
+            <button type="button" className="industrial-secondary-button compact" onClick={() => void onUpdate(process.id, { applicationStatus: guidance.suggestedNextStatus })}>
+              Status vorschlagen: {equalizationStatusLabel(guidance.suggestedNextStatus)}
+            </button>
+          )}
+        </div>
 
         {warnings.length > 0 && (
           <div className="industrial-message industrial-message-warning">

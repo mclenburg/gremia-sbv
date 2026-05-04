@@ -130,14 +130,12 @@ export function ProcessOverviewPage<TStatus extends string>({
   return (
     <ModuleFrame title={title} kicker={kicker} description={description}>
       <section className="industrial-panel process-overview-panel">
-        <div className="process-overview-topline">
-          <div>
-            <p className="industrial-kicker">{kicker}</p>
-            <h2>{title}</h2>
-            <p>{description}</p>
+        {helpAction && (
+          <div className="process-overview-topline process-overview-topline-actions">
+            <span aria-hidden="true" />
+            {helpAction}
           </div>
-          {helpAction}
-        </div>
+        )}
         <div className="process-overview-stats" aria-label="Kennzahlen">
           {stats.map((stat) => (
             <div key={stat.label} className="process-overview-stat">

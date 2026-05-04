@@ -692,3 +692,57 @@
 .bem-guidance-info {
   color: var(--sbv-muted);
 }
+
+
+
+
+.case-create-modal-responsive {
+  width: min(96vw, 58rem);
+  max-width: 96vw;
+  overflow-x: hidden;
+}
+
+.case-create-modal-responsive .case-create-form {
+  min-width: 0;
+}
+
+.case-create-modal-responsive .case-create-form-grid,
+.case-create-modal-responsive .case-create-grid,
+.case-create-modal-responsive .industrial-modal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  gap: .85rem;
+  align-items: end;
+}
+
+.case-create-modal-responsive label,
+.case-create-modal-responsive input,
+.case-create-modal-responsive select,
+.case-create-modal-responsive textarea {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.case-create-modal-responsive .industrial-modal-wide,
+.case-create-modal-responsive .case-create-wide {
+  grid-column: 1 / -1;
+}
+
+.case-create-modal-responsive .industrial-modal-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+@media (max-width: 44rem) {
+  .case-create-modal-responsive {
+    width: 96vw;
+  }
+
+  .case-create-modal-responsive .industrial-modal-actions {
+    justify-content: stretch;
+  }
+
+  .case-create-modal-responsive .industrial-modal-actions button {
+    flex: 1 1 12rem;
+  }
+}

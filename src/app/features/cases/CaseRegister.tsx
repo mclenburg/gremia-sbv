@@ -8,7 +8,11 @@ export function CaseRegister({
   caseFilter,
   onCaseFilterChange,
   onSelectCase,
-  onCreateCase
+  onCreateCase,
+  page,
+  pageCount,
+  pageSize,
+  onPageChange
 }: {
   filteredCount: number;
   visibleCases: CaseRecord[];
@@ -17,6 +21,10 @@ export function CaseRegister({
   onCaseFilterChange: (value: string) => void;
   onSelectCase: (caseId: string) => void;
   onCreateCase: () => void;
+  page: number;
+  pageCount: number;
+  pageSize: number;
+  onPageChange: (page: number) => void;
 }) {
   return (
     <section className="industrial-panel case-register-panel compact">
@@ -60,6 +68,11 @@ export function CaseRegister({
           </tbody>
         </table>
         {!visibleCases.length && <div className="industrial-empty">Keine passenden Fälle.</div>}
+      </div>
+      <div className="case-pagination" aria-label="Falllisten-Seiten">
+        <span>Seite {page} von {pageCount} · maximal {pageSize} Fälle pro Seite</span>
+        <button type="button" className="industrial-secondary-button compact" disabled={page <= 1} onClick={() => onPageChange(page - 1)}>Zurück</button>
+        <button type="button" className="industrial-secondary-button compact" disabled={page >= pageCount} onClick={() => onPageChange(page + 1)}>Weiter</button>
       </div>
     </section>
   );

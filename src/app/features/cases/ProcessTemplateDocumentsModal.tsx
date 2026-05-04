@@ -1,13 +1,43 @@
 import { Download, FileText } from 'lucide-react';
 import type { PreventionProcessRecord } from '../../core/models/prevention.model';
 import type { BemProcessRecord } from '../../core/models/bem.model';
+import type { EqualizationProcessRecord } from '../../core/models/equalization.model';
 import type { RenderedTemplateResult, TemplateRecord } from '../../core/models/template.model';
 import { statusLabel } from '../prevention/preventionShared';
 import { bemStatusLabel } from '../bem/bemShared';
+import { equalizationStatusLabel } from '../equalization/equalizationShared';
+
+function isEqualizationProcessRecord(process: ProcessTemplateModalState['process']): process is EqualizationProcessRecord {
+  return 'applicationStatus' in process;
+}
+
+function hasGenericProcessStatus(process: ProcessTemplateModalState['process']): process is PreventionProcessRecord | BemProcessRecord {
+  return 'status' in process;
+}
+
+function processTemplateProcessLabel(processType: ProcessTemplateModalState['processType']): string {
+  if (processType === 'bem') return 'BEM';
+  if (processType === 'equalization') return 'Gleichstellung / GdB';
+  return 'Prävention';
+}
+
+function processTemplateStatusLabel(state: ProcessTemplateModalState): string {
+  if (isEqualizationProcessRecord(state.process)) return equalizationStatusLabel(state.process.applicationStatus);
+  if (state.processType === 'bem' && hasGenericProcessStatus(state.process)) return bemStatusLabel(state.process.status as any);
+  if (hasGenericProcessStatus(state.process)) return statusLabel(state.process.status as any);
+  return 'unbekannt';
+}
+
+function processTemplateStatusTag(state: ProcessTemplateModalState): string {
+  if (isEqualizationProcessRecord(state.process)) return `status:${state.process.applicationStatus}`;
+  if (hasGenericProcessStatus(state.process)) return `status:${state.process.status}`;
+  return 'status:unbekannt';
+}
+
 
 export type ProcessTemplateModalState = {
-  process: PreventionProcessRecord | BemProcessRecord;
-  processType: 'prevention' | 'bem';
+  process: PreventionProcessRecord | BemProcessRecord | EqualizationProcessRecord;
+  processType: 'prevention' | 'bem' | 'equalization';
   templates: TemplateRecord[];
   rendered?: RenderedTemplateResult;
   loading: boolean;
@@ -34,7 +64,7 @@ export function ProcessTemplateDocumentsModal({
         <div className="industrial-panel-header compact">
           <div>
             <p className="industrial-kicker">Dokumente zur Maßnahme</p>
-            <h2>{processTypeLabel(state.processType)} · {state.processType === 'bem' ? bemStatusLabel(state.process.status as any) : statusLabel(state.process.status as any)}</h2>
+            <h2>{processTemplateProcessLabel(state.processType)} · {processTemplateStatusLabel(state)}</h2>
             <p>Gezeigt werden Vorlagen der passenden Maßnahmeart, die mit dem aktuellen Status verbunden sind.</p>
           </div>
           <button type="button" className="industrial-secondary-button" onClick={onClose}>Schließen</button>
@@ -51,7 +81,7 @@ export function ProcessTemplateDocumentsModal({
             <div className="process-template-hint">
               <span>Benötigte Tags</span>
               <code>{`massnahme:${state.processType}`}</code>
-              <code>{`status:${state.process.status}`}</code>
+              <code>{processTemplateStatusTag(state)}</code>
             </div>
             <p className="process-template-empty-note">Lege die Vorlage im Vorlagenmodul an und verbinde sie mit Maßnahmeart und Status. Danach erscheint sie hier automatisch.</p>
           </div>

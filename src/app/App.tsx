@@ -44,6 +44,24 @@ import './accessibilityLiveRegion.css';
 
 const THEME_STORAGE_KEY = 'gremia.sbv.theme';
 
+const IMPLEMENTED_VIEW_IDS = new Set<ViewId>([
+  'dashboard',
+  'cases',
+  'deadlines',
+  'contacts',
+  'knowledge',
+  'bem',
+  'prevention',
+  'equalization',
+  'templates',
+  'reports',
+  'settings',
+]);
+
+function isImplementedView(viewId: ViewId): boolean {
+  return IMPLEMENTED_VIEW_IDS.has(viewId);
+}
+
 export function App() {
   const [authMode, setAuthMode] = useState<AuthMode>('loading');
   const [unlocked, setUnlocked] = useState(false);
@@ -277,7 +295,7 @@ export function App() {
         {currentView === 'templates' && <TemplatesView />}
         {currentView === 'reports' && <ReportsView />}
         {currentView === 'settings' && <SettingsView theme={theme} onThemeChange={setTheme} cases={cases} />}
-        {currentView !== 'dashboard' && currentView !== 'cases' && currentView !== 'deadlines' && currentView !== 'contacts' && currentView !== 'knowledge' && currentView !== 'bem' && currentView !== 'prevention' && currentView !== 'templates' && currentView !== 'reports' && currentView !== 'settings' && currentModule && (
+        {!isImplementedView(currentView) && currentModule && (
           <PlaceholderView view={currentModule} />
         )}
         <GlobalTextCommandController cases={cases} contacts={contacts} />

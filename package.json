@@ -1,6 +1,6 @@
 {
   "name": "gremia-sbv",
-  "version": "0.6.0a",
+  "version": "0.6.2a",
   "private": true,
   "description": "Offline-first Desktop-App für die vertrauliche Fallarbeit der Schwerbehindertenvertretung.",
   "main": "dist-electron/electron/main.js",
@@ -139,7 +139,14 @@
     "test:deadlines-boundary-0510": "vitest run tests/deadlinesBoundary0510.test.ts tests/packagePostinstall059.test.ts",
     "test:deadlines-boundary-0510a": "vitest run tests/deadlinesBoundary0510.test.ts tests/deadlinesImport0510a.test.ts",
     "test:equalization-module-060": "vitest run tests/equalizationModule060.test.ts tests/equalizationTemplates060.test.ts",
-    "test:equalization-module-060a": "vitest run tests/equalizationModule060.test.ts tests/equalizationWorkflowImport060a.test.ts tests/equalizationTemplates060.test.ts"
+    "test:equalization-module-060a": "vitest run tests/equalizationModule060.test.ts tests/equalizationWorkflowImport060a.test.ts tests/equalizationTemplates060.test.ts",
+    "test:equalization-stabilization-061": "vitest run tests/equalizationStabilization061.test.ts tests/caseRegisterPagination061.test.ts tests/caseCreateModalScroll061.test.ts",
+    "test:case-create-modal-layout-061a": "vitest run tests/caseCreateModalLayout061a.test.ts tests/equalizationStabilization061.test.ts",
+    "test:equalization-buildfix-061b": "vitest run tests/equalizationBuildFix061b.test.ts tests/caseRegisterPagination061.test.ts tests/caseCreateModalLayout061a.test.ts",
+    "test:equalization-template-status-061c": "vitest run tests/equalizationTemplateStatus061c.test.ts tests/equalizationBuildFix061b.test.ts",
+    "test:equalization-template-status-061d": "vitest run tests/equalizationTemplateStatus061d.test.ts tests/equalizationTemplateStatus061c.test.ts",
+    "test:view-guard-a11y-062": "vitest run tests/viewGuardA11y062.test.ts tests/equalizationPrivacyDebt062.test.ts",
+    "test:view-guard-a11y-062a": "vitest run tests/viewGuardA11y062.test.ts tests/viewGuardTypeFix062a.test.ts"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.0",

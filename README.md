@@ -75,3 +75,38 @@ Fristenmodul weiter entkoppelt: `DeadlinesView` und `DeadlineEditor` liegen jetz
 ## Stand 0.6.0
 
 Gleichstellung / GdB als aktives Fachmodul ergänzt: Übersicht, Fallaktenmaßnahme, Detailformular, IPC-Service, Warnlogik und Vorlagen für Antrag, Unterlagennachforderung und Widerspruchsfrist.
+
+
+## Stand 0.6.1
+
+Gleichstellung/GdB stabilisiert: doppelte Überschriften und Entwicklungs-Hinweis entfernt, Statusführung und Vorlagenintegration in der Fallakte ergänzt. Die Fallliste ist wieder auf 5 Einträge pro Seite paginiert; das Neue-Fall-Modal ist horizontal scrollbar.
+
+
+## Stand 0.6.1a
+
+Layout-Fix: Das Neue-Fall-Modal nutzt keinen horizontalen Scroll mehr, sondern bricht Formularfelder responsiv um.
+
+
+## Stand 0.6.1b
+
+Build-Fix: Pagination-State der Falltabelle ergänzt und Gleichstellungsprozesse für das Prozessvorlagen-Modal typseitig freigeschaltet.
+
+
+## Stand 0.6.1c
+
+Build-Fix: Prozessvorlagenmodal und ExportGuard verwenden für Gleichstellungsprozesse `applicationStatus` statt `status`.
+
+
+## Stand 0.6.1d
+
+Build-Fix: Prozessvorlagenmodal nutzt Type-Guards für Gleichstellungsprozesse (`applicationStatus`) und Prävention/BEM (`status`).
+
+
+## Stand 0.6.2
+
+PlaceholderView-Guard auf Set-basierte Prüfung umgestellt, sodass implementierte Module wie Gleichstellung/GdB nicht mehr parallel zum Placeholder gerendert werden. PreventionView nutzt jetzt ebenfalls `useAnnouncer`. Der Datenschutz-Schuldposten für Gleichstellungsnotizen ist dokumentiert.
+
+
+## Stand 0.6.2a
+
+Build-Fix: `usb` aus `IMPLEMENTED_VIEW_IDS` entfernt, weil es kein gültiger `ViewId` ist.

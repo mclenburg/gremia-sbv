@@ -33,7 +33,7 @@ export function CaseCreateModal({
 
   return (
     <div className="industrial-modal-backdrop" role="presentation">
-      <section className="industrial-modal" role="dialog" aria-modal="true" aria-labelledby="case-create-title">
+      <section className="industrial-modal case-create-modal-responsive" role="dialog" aria-modal="true" aria-labelledby="case-create-title">
         <div className="industrial-modal-header">
           <div className="industrial-modal-icon"><FolderKanban className="h-5 w-5" /></div>
           <div>

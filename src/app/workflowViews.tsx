@@ -68,7 +68,7 @@ import type { BackupInspectionResult, BackupOperationResult } from './core/model
 import type { RetentionCandidate, RetentionDashboard, RetentionOperationResult, RetentionSettings } from './core/models/retention.model';
 import type { CreatePreventionProcessInput, PreventionDifficultyType, PreventionProcessRecord, PreventionRiskType, PreventionStatus, PreventionStepDefinition, PreventionWarning, UpdatePreventionProcessInput } from './core/models/prevention.model';
 import type { BemProcessRecord, BemStatus, UpdateBemProcessInput } from './core/models/bem.model';
-import type { UpdateEqualizationProcessInput } from './core/models/equalization.model';
+import type { EqualizationProcessRecord, UpdateEqualizationProcessInput } from './core/models/equalization.model';
 import { statusLabel } from './features/prevention/preventionShared';
 import { bemStatusLabel } from './features/bem/bemShared';
 import { PreventionProcessDetail } from './features/prevention/PreventionProcessDetail';
@@ -403,9 +403,10 @@ function templateTags(template: TemplateRecord): string[] {
   return ((template.tags ?? []) as string[]).map((tag) => tag.trim().toLowerCase()).filter(Boolean);
 }
 
-function isTemplateConnectedToProcessStatus(template: TemplateRecord, processType: 'prevention' | 'bem', status: PreventionStatus | BemStatus): boolean {
+function isTemplateConnectedToProcessStatus(template: TemplateRecord, processType: 'prevention' | 'bem' | 'equalization', status: PreventionStatus | BemStatus | string): boolean {
   if (processType === 'prevention' && template.category !== 'praevention') return false;
   if (processType === 'bem' && template.category !== 'bem') return false;
+  if (processType === 'equalization' && template.category !== 'gleichstellung') return false;
   const tags = templateTags(template);
   const text = `${template.title} ${template.description ?? ''} ${tags.join(' ')}`.toLowerCase();
   const processTokens = processType === 'bem'
@@ -419,15 +420,15 @@ function isTemplateConnectedToProcessStatus(template: TemplateRecord, processTyp
   return hasProcessMatch && hasStatusMatch;
 }
 
-function isBemProcessRecord(process: PreventionProcessRecord | BemProcessRecord | import('./core/models/equalization.model').EqualizationProcessRecord): process is BemProcessRecord {
+function isBemProcessRecord(process: PreventionProcessRecord | BemProcessRecord | EqualizationProcessRecord): process is BemProcessRecord {
   return 'employeeResponse' in process;
 }
 
-function isEqualizationProcessRecord(process: unknown): process is import('./core/models/equalization.model').EqualizationProcessRecord {
+function isEqualizationProcessRecord(process: unknown): process is EqualizationProcessRecord {
   return Boolean(process && typeof process === 'object' && 'applicationStatus' in process);
 }
 
-function buildProcessTemplateValues(caseRecord: CaseRecord | undefined, process: PreventionProcessRecord | BemProcessRecord | import('./core/models/equalization.model').EqualizationProcessRecord): Record<string, string> {
+function buildProcessTemplateValues(caseRecord: CaseRecord | undefined, process: PreventionProcessRecord | BemProcessRecord | EqualizationProcessRecord): Record<string, string> {
   const base = {
     'fall.aktenzeichen': caseRecord?.caseNumber ?? '',
     'fall.name': caseRecord?.displayName ?? '',
@@ -528,6 +529,7 @@ export function CasesView({
 
   const [caseLoadError, setCaseLoadError] = useState('');
   const [caseFilter, setCaseFilter] = useState('');
+  const [caseRegisterPage, setCaseRegisterPage] = useState(1);
   const {
     selectedCaseId,
     setSelectedCaseId,
@@ -549,7 +551,10 @@ export function CasesView({
     onError: setCaseLoadError
   });
   const filteredCases = useCaseRegisterFilter(cases, caseFilter);
-  const visibleCases = filteredCases;
+  const caseRegisterPageSize = 5;
+  const caseRegisterPageCount = Math.max(1, Math.ceil(filteredCases.length / caseRegisterPageSize));
+  const normalizedCaseRegisterPage = Math.min(caseRegisterPage, caseRegisterPageCount);
+  const visibleCases = filteredCases.slice((normalizedCaseRegisterPage - 1) * caseRegisterPageSize, normalizedCaseRegisterPage * caseRegisterPageSize);
   const {
     searchQuery,
     setSearchQuery,
@@ -754,17 +759,19 @@ export function CasesView({
     }
   }
 
-  async function openProcessTemplateModal(process: PreventionProcessRecord | BemProcessRecord) {
-    setProcessTemplateModal({ process, processType: isBemProcessRecord(process) ? 'bem' : 'prevention', templates: [], loading: true });
+  async function openProcessTemplateModal(process: PreventionProcessRecord | BemProcessRecord | EqualizationProcessRecord) {
+    const processType = isBemProcessRecord(process) ? 'bem' : (isEqualizationProcessRecord(process) ? 'equalization' : 'prevention');
+    const category = processType === 'bem' ? 'bem' : processType === 'equalization' ? 'gleichstellung' : 'praevention';
+    const status = isEqualizationProcessRecord(process) ? process.applicationStatus : process.status;
+    setProcessTemplateModal({ process, processType, templates: [], loading: true });
     try {
       const bridge = await waitForBridge();
       if (!bridge?.templates) throw new Error('Vorlagendienst ist nicht erreichbar.');
-      const processType = isBemProcessRecord(process) ? 'bem' : 'prevention';
-      const rows = await bridge.templates.list({ category: processType === 'bem' ? 'bem' : 'praevention', limit: 500 });
-      const templates = rows.filter((template: TemplateRecord) => isTemplateConnectedToProcessStatus(template, processType, process.status));
+      const rows = await bridge.templates.list({ category, limit: 500 });
+      const templates = rows.filter((template: TemplateRecord) => isTemplateConnectedToProcessStatus(template, processType, status));
       setProcessTemplateModal({ process, processType, templates, loading: false });
     } catch (error) {
-      setProcessTemplateModal({ process, processType: isBemProcessRecord(process) ? 'bem' : 'prevention', templates: [], loading: false, error: error instanceof Error ? error.message : 'Vorlagen konnten nicht geladen werden.' });
+      setProcessTemplateModal({ process, processType, templates: [], loading: false, error: error instanceof Error ? error.message : 'Vorlagen konnten nicht geladen werden.' });
     }
   }
 
@@ -788,7 +795,7 @@ export function CasesView({
         const scan = scanBemProcessExport({
           title: result.title,
           body: result.body,
-          status: processTemplateModal.process.status,
+          status: isEqualizationProcessRecord(processTemplateModal.process) ? processTemplateModal.process.applicationStatus : processTemplateModal.process.status,
           containsConfidentialNotes: isBemProcessRecord(processTemplateModal.process) && Boolean(processTemplateModal.process.confidentialNotes),
           unresolvedPlaceholders: result.unresolvedPlaceholders
         });
@@ -1055,9 +1062,13 @@ ${caseProcessDraft.description}`,
         visibleCases={visibleCases}
         selectedCaseId={selectedCaseId}
         caseFilter={caseFilter}
-        onCaseFilterChange={setCaseFilter}
+        onCaseFilterChange={(value) => { setCaseFilter(value); setCaseRegisterPage(1); }}
         onSelectCase={setSelectedCaseId}
         onCreateCase={openCaseCreateModal}
+        page={normalizedCaseRegisterPage}
+        pageCount={caseRegisterPageCount}
+        pageSize={caseRegisterPageSize}
+        onPageChange={setCaseRegisterPage}
       />
 
 
@@ -1122,6 +1133,7 @@ ${caseProcessDraft.description}`,
             <EqualizationProcessDetail
               process={selectedEqualizationProcess}
               onUpdate={updateCaseEqualizationProcess}
+              onOpenTemplates={openProcessTemplateModal}
             />
           )}
 
