@@ -6,6 +6,7 @@ import type { CaseLegalReferenceRecord } from '../../core/models/knowledge.model
 import type { PreventionProcessRecord } from '../../core/models/prevention.model';
 import type { BemProcessRecord } from '../../core/models/bem.model';
 import type { EqualizationProcessRecord } from '../../core/models/equalization.model';
+import type { TerminationHearingRecord } from '../../core/models/termination.model';
 import type { CaseNodeTarget } from '../../core/navigation/caseNodeTarget';
 import type { CaseExplorerSelection } from './caseWorkbenchTypes';
 import { waitForBridge } from '../../core/bridge/waitForBridge';
@@ -28,6 +29,7 @@ export function useCaseWorkbenchData({
   const [casePreventionProcesses, setCasePreventionProcesses] = useState<PreventionProcessRecord[]>([]);
   const [caseBemProcesses, setCaseBemProcesses] = useState<BemProcessRecord[]>([]);
   const [caseEqualizationProcesses, setCaseEqualizationProcesses] = useState<EqualizationProcessRecord[]>([]);
+  const [caseTerminationProcesses, setCaseTerminationProcesses] = useState<TerminationHearingRecord[]>([]);
   const [selection, setSelection] = useState<CaseExplorerSelection>({ type: 'overview' });
   const [pendingCaseNodeTarget, setPendingCaseNodeTarget] = useState<CaseNodeTarget | null>(null);
 
@@ -53,6 +55,7 @@ export function useCaseWorkbenchData({
       setCasePreventionProcesses([]);
       setCaseBemProcesses([]);
       setCaseEqualizationProcesses([]);
+      setCaseTerminationProcesses([]);
       return;
     }
 
@@ -61,13 +64,14 @@ export function useCaseWorkbenchData({
       try {
         const bridge = await waitForBridge();
         if (!bridge?.cases) throw new Error('Falldienst ist nicht erreichbar.');
-        const [noteRows, docRows, legalRefRows, preventionRows, bemRows, equalizationRows] = await Promise.all([
+        const [noteRows, docRows, legalRefRows, preventionRows, bemRows, equalizationRows, terminationRows] = await Promise.all([
           bridge.cases.listNotes(selectedCaseId),
           bridge.cases.listDocuments(selectedCaseId),
           bridge.knowledge?.listCaseReferences(selectedCaseId) ?? Promise.resolve([]),
           bridge.prevention?.list(selectedCaseId) ?? Promise.resolve([]),
           bridge.bem?.list(selectedCaseId) ?? Promise.resolve([]),
-          bridge.equalization?.list(selectedCaseId) ?? Promise.resolve([])
+          bridge.equalization?.list(selectedCaseId) ?? Promise.resolve([]),
+          bridge.termination?.list(selectedCaseId) ?? Promise.resolve([])
         ]);
         if (active) {
           setNotes(noteRows);
@@ -76,6 +80,8 @@ export function useCaseWorkbenchData({
           setCasePreventionProcesses(preventionRows);
           setCaseBemProcesses(bemRows);
           setCaseEqualizationProcesses(equalizationRows);
+    setCaseTerminationProcesses(terminationRows);
+          setCaseTerminationProcesses(terminationRows);
           if (pendingCaseNodeTarget?.caseId === selectedCaseId) {
             if (pendingCaseNodeTarget.nodeType === 'prevention') {
               setSelection({ type: 'process', processType: 'prevention', id: pendingCaseNodeTarget.nodeId });
@@ -83,6 +89,8 @@ export function useCaseWorkbenchData({
               setSelection({ type: 'process', processType: 'bem', id: pendingCaseNodeTarget.nodeId });
             } else if (pendingCaseNodeTarget.nodeType === 'equalization') {
               setSelection({ type: 'process', processType: 'equalization', id: pendingCaseNodeTarget.nodeId });
+            } else if (pendingCaseNodeTarget.nodeType === 'termination_hearing') {
+              setSelection({ type: 'process', processType: 'termination_hearing', id: pendingCaseNodeTarget.nodeId });
             } else if (pendingCaseNodeTarget.nodeType === 'note' && pendingCaseNodeTarget.nodeId) {
               setSelection({ type: 'note', id: pendingCaseNodeTarget.nodeId });
             } else if (pendingCaseNodeTarget.nodeType === 'document' && pendingCaseNodeTarget.nodeId) {
@@ -111,13 +119,14 @@ export function useCaseWorkbenchData({
     if (!selectedCaseId) return;
     const bridge = await waitForBridge();
     if (!bridge?.cases) throw new Error('Falldienst ist nicht erreichbar.');
-    const [noteRows, docRows, legalRefRows, preventionRows, bemRows, equalizationRows] = await Promise.all([
+    const [noteRows, docRows, legalRefRows, preventionRows, bemRows, equalizationRows, terminationRows] = await Promise.all([
       bridge.cases.listNotes(selectedCaseId),
       bridge.cases.listDocuments(selectedCaseId),
       bridge.knowledge?.listCaseReferences(selectedCaseId) ?? Promise.resolve([]),
       bridge.prevention?.list(selectedCaseId) ?? Promise.resolve([]),
       bridge.bem?.list(selectedCaseId) ?? Promise.resolve([]),
-      bridge.equalization?.list(selectedCaseId) ?? Promise.resolve([])
+      bridge.equalization?.list(selectedCaseId) ?? Promise.resolve([]),
+      bridge.termination?.list(selectedCaseId) ?? Promise.resolve([])
     ]);
     setNotes(noteRows);
     setDocuments(docRows);
@@ -140,6 +149,7 @@ export function useCaseWorkbenchData({
     casePreventionProcesses,
     caseBemProcesses,
     caseEqualizationProcesses,
+    caseTerminationProcesses,
     setCasePreventionProcesses,
     selection,
     setSelection,

@@ -69,11 +69,13 @@ import type { RetentionCandidate, RetentionDashboard, RetentionOperationResult, 
 import type { CreatePreventionProcessInput, PreventionDifficultyType, PreventionProcessRecord, PreventionRiskType, PreventionStatus, PreventionStepDefinition, PreventionWarning, UpdatePreventionProcessInput } from './core/models/prevention.model';
 import type { BemProcessRecord, BemStatus, UpdateBemProcessInput } from './core/models/bem.model';
 import type { EqualizationProcessRecord, UpdateEqualizationProcessInput } from './core/models/equalization.model';
+import type { TerminationHearingRecord, UpdateTerminationHearingInput } from './core/models/termination.model';
 import { statusLabel } from './features/prevention/preventionShared';
 import { bemStatusLabel } from './features/bem/bemShared';
 import { PreventionProcessDetail } from './features/prevention/PreventionProcessDetail';
 import { BemProcessDetail } from './features/bem/BemProcessDetail';
 import { EqualizationProcessDetail } from './features/equalization/EqualizationProcessDetail';
+import { TerminationProcessDetail } from './features/termination/TerminationProcessDetail';
 import type { CaseLawRecord, CaseLegalReferenceRecord, LegalNormRecord, NormChecklistItemRecord, NormCommentRecord } from './core/models/knowledge.model';
 import type { ContextualTemplateAction, RenderedTemplateResult, TemplateRecord } from './core/models/template.model';
 import { APP_VERSION } from './generated/appVersion';
@@ -403,24 +405,35 @@ function templateTags(template: TemplateRecord): string[] {
   return ((template.tags ?? []) as string[]).map((tag) => tag.trim().toLowerCase()).filter(Boolean);
 }
 
-function isTemplateConnectedToProcessStatus(template: TemplateRecord, processType: 'prevention' | 'bem' | 'equalization', status: PreventionStatus | BemStatus | string): boolean {
+function isTemplateConnectedToProcessStatus(template: TemplateRecord, processType: 'prevention' | 'bem' | 'equalization' | 'termination_hearing', status: PreventionStatus | BemStatus | string): boolean {
   if (processType === 'prevention' && template.category !== 'praevention') return false;
   if (processType === 'bem' && template.category !== 'bem') return false;
   if (processType === 'equalization' && template.category !== 'gleichstellung') return false;
+  if (processType === 'termination_hearing' && template.category !== 'kuendigung') return false;
   const tags = templateTags(template);
   const text = `${template.title} ${template.description ?? ''} ${tags.join(' ')}`.toLowerCase();
   const processTokens = processType === 'bem'
     ? ['massnahme:bem', 'maßnahme:bem', 'prozess:bem', 'bem']
-    : ['massnahme:prevention', 'maßnahme:prevention', 'prozess:prevention', 'praevention', 'prävention', 'prevention'];
+    : processType === 'equalization'
+      ? ['massnahme:equalization', 'maßnahme:equalization', 'prozess:equalization', 'gleichstellung', 'gdb']
+      : processType === 'termination_hearing'
+        ? ['massnahme:termination_hearing', 'maßnahme:termination_hearing', 'prozess:termination_hearing', 'kündigung', 'kuendigung', 'kündigungsanhörung']
+        : ['massnahme:prevention', 'maßnahme:prevention', 'prozess:prevention', 'praevention', 'prävention', 'prevention'];
   const hasProcessMatch = tags.length === 0
     || tags.some((tag) => processTokens.includes(tag))
-    || (processType === 'bem' ? text.includes('bem') : text.includes('prävention') || text.includes('präventionsverfahren'));
+    || (processType === 'bem'
+      ? text.includes('bem')
+      : processType === 'equalization'
+        ? text.includes('gleichstellung') || text.includes('gdb')
+        : processType === 'termination_hearing'
+          ? text.includes('kündigung') || text.includes('kuendigung') || text.includes('kündigungsanhörung')
+          : text.includes('prävention') || text.includes('präventionsverfahren'));
   const statusTokens = [`status:${status}`, `${processType}:${status}`, status];
   const hasStatusMatch = tags.length === 0 || statusTokens.some((token) => tags.includes(token) || text.includes(token.replaceAll('_', ' ')));
   return hasProcessMatch && hasStatusMatch;
 }
 
-function isBemProcessRecord(process: PreventionProcessRecord | BemProcessRecord | EqualizationProcessRecord): process is BemProcessRecord {
+function isBemProcessRecord(process: PreventionProcessRecord | BemProcessRecord | EqualizationProcessRecord | TerminationHearingRecord): process is BemProcessRecord {
   return 'employeeResponse' in process;
 }
 
@@ -428,7 +441,11 @@ function isEqualizationProcessRecord(process: unknown): process is EqualizationP
   return Boolean(process && typeof process === 'object' && 'applicationStatus' in process);
 }
 
-function buildProcessTemplateValues(caseRecord: CaseRecord | undefined, process: PreventionProcessRecord | BemProcessRecord | EqualizationProcessRecord): Record<string, string> {
+function isTerminationHearingRecord(process: unknown): process is TerminationHearingRecord {
+  return Boolean(process && typeof process === 'object' && 'terminationType' in process && 'protectionStatus' in process);
+}
+
+function buildProcessTemplateValues(caseRecord: CaseRecord | undefined, process: PreventionProcessRecord | BemProcessRecord | EqualizationProcessRecord | TerminationHearingRecord): Record<string, string> {
   const base = {
     'fall.aktenzeichen': caseRecord?.caseNumber ?? '',
     'fall.name': caseRecord?.displayName ?? '',
@@ -453,6 +470,26 @@ function buildProcessTemplateValues(caseRecord: CaseRecord | undefined, process:
       'bem.wirksamkeitspruefung': formatDateShort(process.nextReviewAt),
       'bem.ergebnis': process.result ?? '',
       'frist.datum': formatDateShort(process.responseDueAt)
+    };
+  }
+
+  if (isTerminationHearingRecord(process)) {
+    return {
+      ...base,
+      'kuendigung.status': process.status,
+      'kuendigung.art': process.terminationType,
+      'kuendigung.schutzstatus': process.protectionStatus,
+      'kuendigung.eingang': formatDateShort(process.receivedAt),
+      'kuendigung.sbv_frist': formatDateShort(process.sbvStatementDueAt),
+      'kuendigung.br_anhoerung': formatDateShort(process.worksCouncilHearingAt),
+      'kuendigung.integrationsamt_anfrage': formatDateShort(process.integrationOfficeRequestedAt),
+      'kuendigung.integrationsamt_entscheidung': formatDateShort(process.integrationOfficeDecisionAt),
+      'kuendigung.integrationsamt_stand': process.integrationOfficeDecision ?? '',
+      'kuendigung.grund': process.employerReason ?? '',
+      'kuendigung.fehlende_unterlagen': process.missingInformation ?? '',
+      'kuendigung.bewertung': process.sbvAssessment ?? '',
+      'kuendigung.stellungnahme': process.statement ?? '',
+      'frist.datum': formatDateShort(process.sbvStatementDueAt)
     };
   }
 
@@ -541,6 +578,7 @@ export function CasesView({
     casePreventionProcesses,
     caseBemProcesses,
     caseEqualizationProcesses,
+    caseTerminationProcesses,
     selection,
     setSelection,
     reloadSelectedCaseChildren
@@ -575,6 +613,7 @@ export function CasesView({
   const selectedPreventionProcess = selection.type === 'process' && selection.processType === 'prevention' && selection.id ? casePreventionProcesses.find((item) => item.id === selection.id) : undefined;
   const selectedBemProcess = selection.type === 'process' && selection.processType === 'bem' && selection.id ? caseBemProcesses.find((item) => item.id === selection.id) : undefined;
   const selectedEqualizationProcess = selection.type === 'process' && selection.processType === 'equalization' && selection.id ? caseEqualizationProcesses.find((item) => item.id === selection.id) : undefined;
+  const selectedTerminationProcess = selection.type === 'process' && selection.processType === 'termination_hearing' && selection.id ? caseTerminationProcesses.find((item) => item.id === selection.id) : undefined;
   const selectedEqualizationNotes = selectedEqualizationProcess ? notes.filter((note) => (note.content ?? '').includes(`[[equalization:${selectedEqualizationProcess.id}]]`)) : [];
   const documentActions = createCaseDocumentActions({
     importDocuments,
@@ -746,6 +785,20 @@ export function CasesView({
     }
   }
 
+  async function updateCaseTerminationProcess(processId: string, input: UpdateTerminationHearingInput) {
+    setNoteError('');
+    setNoteInfo('');
+    try {
+      const bridge = await waitForBridge();
+      if (!bridge?.termination) throw new Error('Kündigungsdienst ist nicht erreichbar.');
+      await bridge.termination.update(processId, input);
+      await reloadSelectedCaseChildren();
+      setNoteInfo('Kündigungsanhörung wurde aktualisiert.');
+    } catch (error) {
+      setNoteError(error instanceof Error ? error.message : 'Kündigungsanhörung konnte nicht aktualisiert werden.');
+    }
+  }
+
   async function createEqualizationSecureNote(process: EqualizationProcessRecord, content: string) {
     if (!selectedCase) return;
     setNoteError('');
@@ -786,9 +839,9 @@ export function CasesView({
     }
   }
 
-  async function openProcessTemplateModal(process: PreventionProcessRecord | BemProcessRecord | EqualizationProcessRecord) {
-    const processType = isBemProcessRecord(process) ? 'bem' : (isEqualizationProcessRecord(process) ? 'equalization' : 'prevention');
-    const category = processType === 'bem' ? 'bem' : processType === 'equalization' ? 'gleichstellung' : 'praevention';
+  async function openProcessTemplateModal(process: PreventionProcessRecord | BemProcessRecord | EqualizationProcessRecord | TerminationHearingRecord) {
+    const processType = isBemProcessRecord(process) ? 'bem' : (isEqualizationProcessRecord(process) ? 'equalization' : (isTerminationHearingRecord(process) ? 'termination_hearing' : 'prevention'));
+    const category = processType === 'bem' ? 'bem' : processType === 'equalization' ? 'gleichstellung' : processType === 'termination_hearing' ? 'kuendigung' : 'praevention';
     const status = isEqualizationProcessRecord(process) ? process.applicationStatus : process.status;
     setProcessTemplateModal({ process, processType, templates: [], loading: true });
     try {
@@ -907,6 +960,25 @@ export function CasesView({
         setCaseProcessDraft(null);
         setSelection({ type: 'process', processType: 'bem', id: created.id });
         setNoteInfo('BEM-Verfahren wurde direkt an der Fallakte angelegt und im Fallbaum ergänzt.');
+        await reloadSelectedCaseChildren();
+        await onCasesChanged();
+        return;
+      }
+
+      if (caseProcessDraft.processType === 'termination_hearing') {
+        if (!bridge?.termination) throw new Error('Kündigungsdienst ist nicht erreichbar.');
+        const created = await bridge.termination.create({
+          caseId: selectedCase.id,
+          status: 'eingang',
+          terminationType: 'sonstiges',
+          protectionStatus: 'unklar',
+          receivedAt: new Date().toISOString(),
+          sbvStatementDueAt: caseProcessDraft.dueAt ? fromDateTimeLocalValue(caseProcessDraft.dueAt) : undefined,
+          employerReason: caseProcessDraft.description.trim() || undefined
+        });
+        setCaseProcessDraft(null);
+        setSelection({ type: 'process', processType: 'termination_hearing', id: created.id });
+        setNoteInfo('Kündigungsanhörung wurde direkt an der Fallakte angelegt und im Fallbaum ergänzt.');
         await reloadSelectedCaseChildren();
         await onCasesChanged();
         return;
@@ -1120,6 +1192,7 @@ ${caseProcessDraft.description}`,
           preventionProcesses={casePreventionProcesses}
           bemProcesses={caseBemProcesses}
           equalizationProcesses={caseEqualizationProcesses}
+          terminationProcesses={caseTerminationProcesses}
           selection={selection}
           onSelect={setSelection}
           formatProcessNodeSubtitle={formatProcessNodeSubtitle}
@@ -1165,6 +1238,14 @@ ${caseProcessDraft.description}`,
               processType={selection.processType}
               process={selectedBemProcess}
               onUpdate={updateCaseBemProcess}
+              onOpenTemplates={openProcessTemplateModal}
+            />
+          )}
+
+          {selection.type === 'process' && selection.processType === 'termination_hearing' && selectedTerminationProcess && (
+            <TerminationProcessDetail
+              process={selectedTerminationProcess}
+              onUpdate={updateCaseTerminationProcess}
               onOpenTemplates={openProcessTemplateModal}
             />
           )}

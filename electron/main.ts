@@ -11,6 +11,7 @@ import { registerRetentionIpc } from './ipc/retentionIpc.js';
 import { registerPreventionIpc } from './ipc/preventionIpc.js';
 import { registerBemIpc } from './ipc/bemIpc.js';
 import { registerEqualizationIpc } from './ipc/equalizationIpc.js';
+import { registerTerminationIpc } from './ipc/terminationIpc.js';
 import { registerKnowledgeIpc } from './ipc/knowledgeIpc.js';
 import { registerTemplateIpc } from './ipc/templateIpc.js';
 import { SecurityService } from '../services/securityService.js';
@@ -223,6 +224,7 @@ if (!singleInstanceLock) {
     registerPreventionIpc(ipcMain, security);
     registerBemIpc(ipcMain, security);
     registerEqualizationIpc(ipcMain, security);
+    registerTerminationIpc(ipcMain, security);
     registerKnowledgeIpc(ipcMain, security);
     registerTemplateIpc(ipcMain, security);
     registerReportIpc(ipcMain, security);

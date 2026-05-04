@@ -11,6 +11,7 @@ import type { RetentionDashboard, RetentionOperationResult, RetentionSettings, U
 import type { CreatePreventionProcessInput, PreventionDashboardSummary, PreventionProcessRecord, PreventionStepDefinition, PreventionWarning, UpdatePreventionProcessInput } from '../src/app/core/models/prevention.model.js';
 import type { BemDashboardSummary, BemProcessRecord, BemStepDefinition, BemWarning, CreateBemProcessInput, UpdateBemProcessInput } from '../src/app/core/models/bem.model.js';
 import type { CreateEqualizationProcessInput, EqualizationProcessRecord, EqualizationWarning, UpdateEqualizationProcessInput } from '../src/app/core/models/equalization.model.js';
+import type { CreateTerminationHearingInput, TerminationHearingRecord, TerminationHearingWarning, UpdateTerminationHearingInput } from '../src/app/core/models/termination.model.js';
 import type { CaseLawRecord, CaseLegalReferenceRecord, CreateCaseLawInput, CreateLegalNormInput, CreateNormChecklistItemInput, CreateNormCommentInput, KnowledgeExportPreview, LegalNormRecord, LegalNormSearchInput, LinkLegalNormToCaseInput, NormChecklistItemRecord, NormCommentRecord, UpdateLegalNormInput } from '../src/app/core/models/knowledge.model.js';
 import type { CreateTemplateInput, RenderContextTemplateInput, RenderTemplateInput, RenderedTemplateResult, TemplateListFilters, TemplateRecord, UpdateTemplateInput } from '../src/app/core/models/template.model.js';
 
@@ -89,6 +90,13 @@ const api = {
     create: (input: CreateEqualizationProcessInput): Promise<EqualizationProcessRecord> => ipcRenderer.invoke('equalization:create', input),
     update: (id: string, input: UpdateEqualizationProcessInput): Promise<EqualizationProcessRecord> => ipcRenderer.invoke('equalization:update', id, input),
     warnings: (id: string): Promise<EqualizationWarning[]> => ipcRenderer.invoke('equalization:warnings', id)
+  },
+  termination: {
+    steps: (): Promise<string[]> => ipcRenderer.invoke('termination:steps'),
+    list: (caseId?: string): Promise<TerminationHearingRecord[]> => ipcRenderer.invoke('termination:list', caseId),
+    create: (input: CreateTerminationHearingInput): Promise<TerminationHearingRecord> => ipcRenderer.invoke('termination:create', input),
+    update: (id: string, input: UpdateTerminationHearingInput): Promise<TerminationHearingRecord> => ipcRenderer.invoke('termination:update', id, input),
+    warnings: (id: string): Promise<TerminationHearingWarning[]> => ipcRenderer.invoke('termination:warnings', id)
   },
   deadlines: {
     list: (filters?: DeadlineListFilters): Promise<DeadlineRecord[]> => ipcRenderer.invoke('deadlines:list', filters),

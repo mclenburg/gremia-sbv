@@ -115,3 +115,23 @@ Build-Fix: `usb` aus `IMPLEMENTED_VIEW_IDS` entfernt, weil es kein gültiger `Vi
 ## Stand 0.6.3
 
 Gleichstellungs-/GdB-Notizen werden für neue Inhalte nicht mehr im Gleichstellungsdatensatz gespeichert, sondern als hoch sensible Fallnotizen geführt und im Detailformular gefiltert angezeigt.
+
+
+## Stand 0.7.0
+
+Kündigungsanhörung als aktives Fachmodul ergänzt: Übersicht, Fallaktenmaßnahme, Detailformular, IPC-Service, Warnlogik, Vorlagen und Migration. `postinstall` bleibt für native Electron-Abhängigkeiten gesetzt.
+
+
+## Stand 0.7.1
+
+Kündigungsanhörung stabilisiert: Prozessvorlagenfilter, Vorlagenmodal und ExportGuard erkennen `termination_hearing` vollständig. `postinstall` bleibt gesetzt.
+
+
+## Stand 0.7.1a
+
+Build-Fix: Die Modulnavigation verwendet jetzt `termination_hearing` als gültigen `ViewId`, passend zu `App.tsx` und dem Prozessmodul. `postinstall` bleibt gesetzt.
+
+
+## Stand 0.7.2
+
+Kündigungsanhörung fachlich gehärtet: Fristvorschläge, geschärfte Warnlogik, Schutzstatusprüfung, Integrationsamt-Hinweise und zusätzliche Kündigungs-Checkliste. `postinstall` bleibt gesetzt.

@@ -1,6 +1,6 @@
 {
   "name": "gremia-sbv",
-  "version": "0.6.3",
+  "version": "0.7.2",
   "private": true,
   "description": "Offline-first Desktop-App für die vertrauliche Fallarbeit der Schwerbehindertenvertretung.",
   "main": "dist-electron/electron/main.js",
@@ -147,7 +147,11 @@
     "test:equalization-template-status-061d": "vitest run tests/equalizationTemplateStatus061d.test.ts tests/equalizationTemplateStatus061c.test.ts",
     "test:view-guard-a11y-062": "vitest run tests/viewGuardA11y062.test.ts tests/equalizationPrivacyDebt062.test.ts",
     "test:view-guard-a11y-062a": "vitest run tests/viewGuardA11y062.test.ts tests/viewGuardTypeFix062a.test.ts",
-    "test:secure-equalization-notes-063": "vitest run tests/secureEqualizationNotes063.test.ts tests/equalizationNotesNoPlaintext063.test.ts"
+    "test:secure-equalization-notes-063": "vitest run tests/secureEqualizationNotes063.test.ts tests/equalizationNotesNoPlaintext063.test.ts",
+    "test:termination-module-070": "vitest run tests/terminationModule070.test.ts tests/terminationTemplates070.test.ts tests/postinstallGuard070.test.ts",
+    "test:termination-stabilization-071": "vitest run tests/terminationStabilization071.test.ts tests/terminationTemplateModal071.test.ts tests/postinstallGuard071.test.ts",
+    "test:termination-viewid-071a": "vitest run tests/terminationViewId071a.test.ts tests/postinstallGuard071.test.ts",
+    "test:termination-hardening-072": "vitest run tests/terminationHardening072.test.ts tests/terminationTemplates072.test.ts tests/postinstallGuard072.test.ts"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.0",

@@ -250,6 +250,102 @@ Mit freundlichen Grüßen
 {{sbv.name}}`
     },
     {
+      key: 'kuendigung-frist-schutzstatus-check',
+      title: 'Kündigungsanhörung – Frist und Schutzstatus sichern',
+      category: 'kuendigung',
+      description: 'Interne SBV-Checkliste für Eingang, Frist, Schutzstatus und Integrationsamt.',
+      subject: 'Kündigungsanhörung – Frist-/Schutzstatus-Check – {{fall.aktenzeichen}}',
+      legalBasis: ['§ 178 Abs. 2 Satz 1 SGB IX', '§§ 168 ff. SGB IX'],
+      tags: ['Kündigung', 'Frist', 'Schutzstatus', 'massnahme:termination_hearing', 'status:eingang'],
+      body: `Kündigungsanhörung – Sofortcheck
+
+Fall: {{fall.aktenzeichen}}
+Eingang: {{kuendigung.eingang}}
+SBV-Frist: {{kuendigung.sbv_frist}}
+Kündigungsart: {{kuendigung.art}}
+Schutzstatus: {{kuendigung.schutzstatus}}
+
+Sofort zu klären:
+- Ist die SBV vollständig unterrichtet?
+- Ist der Schutzstatus geklärt?
+- Muss das Integrationsamt beteiligt werden?
+- Liegen Kündigungsgrund und entscheidungserhebliche Unterlagen vollständig vor?
+
+Fehlende Punkte:
+{{kuendigung.fehlende_unterlagen}}`
+    },
+    {
+      key: 'kuendigung-unterlagen-unvollstaendig',
+      title: 'Kündigungsanhörung – Unterlagen unvollständig',
+      category: 'kuendigung',
+      description: 'Nachforderung fehlender Informationen zur SBV-Anhörung.',
+      subject: 'Kündigungsanhörung – Unterlagen unvollständig – {{fall.aktenzeichen}}',
+      legalBasis: ['§ 178 Abs. 2 Satz 1 SGB IX', '§§ 168 ff. SGB IX'],
+      tags: ['Kündigung', 'SBV-Anhörung', 'massnahme:termination_hearing', 'status:unterlagen_pruefen'],
+      body: `Sehr geehrte Damen und Herren,
+
+die Schwerbehindertenvertretung wurde zur beabsichtigten Kündigung im Fall {{fall.aktenzeichen}} beteiligt.
+
+Nach aktueller Prüfung sind die vorliegenden Unterlagen für eine sachgerechte Stellungnahme nicht vollständig.
+
+Es fehlen insbesondere:
+{{kuendigung.fehlende_unterlagen}}
+
+Bitte reichen Sie die fehlenden Informationen unverzüglich nach. Bis zur vollständigen Unterrichtung kann die Schwerbehindertenvertretung die Angelegenheit nicht abschließend bewerten.
+
+Mit freundlichen Grüßen
+{{sbv.name}}`
+    },
+    {
+      key: 'kuendigung-integrationsamt-hinweis',
+      title: 'Kündigungsanhörung – Integrationsamt prüfen',
+      category: 'kuendigung',
+      description: 'Hinweis auf besonderen Kündigungsschutz und Zustimmungserfordernis.',
+      subject: 'Kündigungsanhörung – Integrationsamt / besonderer Kündigungsschutz – {{fall.aktenzeichen}}',
+      legalBasis: ['§§ 168 ff. SGB IX', '§ 178 Abs. 2 Satz 1 SGB IX'],
+      tags: ['Kündigung', 'Integrationsamt', 'massnahme:termination_hearing', 'status:integrationsamt_pruefen'],
+      body: `Sehr geehrte Damen und Herren,
+
+im Zusammenhang mit der beabsichtigten Kündigung im Fall {{fall.aktenzeichen}} ist der besondere Kündigungsschutz zu prüfen.
+
+Dokumentierter Schutzstatus:
+{{kuendigung.schutzstatus}}
+
+Stand Integrationsamt:
+{{kuendigung.integrationsamt_stand}}
+
+Aus Sicht der Schwerbehindertenvertretung darf eine Kündigung schwerbehinderter oder gleichgestellter Menschen ohne die erforderliche Beteiligung und Zustimmung des Integrationsamts nicht umgesetzt werden.
+
+Mit freundlichen Grüßen
+{{sbv.name}}`
+    },
+    {
+      key: 'kuendigung-sbv-stellungnahme',
+      title: 'Kündigungsanhörung – SBV-Stellungnahme',
+      category: 'kuendigung',
+      description: 'Strukturierte Stellungnahme der SBV zur Kündigungsanhörung.',
+      subject: 'SBV-Stellungnahme zur Kündigungsanhörung – {{fall.aktenzeichen}}',
+      legalBasis: ['§ 178 Abs. 2 Satz 1 SGB IX', '§ 164 Abs. 4 SGB IX', '§§ 168 ff. SGB IX'],
+      tags: ['Kündigung', 'SBV-Stellungnahme', 'massnahme:termination_hearing', 'status:stellungnahme_in_arbeit'],
+      body: `Stellungnahme der Schwerbehindertenvertretung
+
+Fall: {{fall.aktenzeichen}}
+Kündigungsart: {{kuendigung.art}}
+Eingang der Anhörung: {{kuendigung.eingang}}
+SBV-Frist: {{kuendigung.sbv_frist}}
+
+Arbeitgebervortrag:
+{{kuendigung.grund}}
+
+Bewertung der SBV:
+{{kuendigung.bewertung}}
+
+Stellungnahme:
+{{kuendigung.stellungnahme}}
+
+Die Schwerbehindertenvertretung bittet um Berücksichtigung der behinderungsbedingten Belange, der Beteiligungsrechte nach § 178 Abs. 2 Satz 1 SGB IX und – soweit einschlägig – des besonderen Kündigungsschutzes nach §§ 168 ff. SGB IX. Die weitere Entscheidung und deren Begründung bitte ich zu dokumentieren.`
+    },
+    {
       key: 'gleichstellung-antrag-unterstuetzung',
       title: 'Gleichstellungsantrag unterstützen',
       category: 'gleichstellung',

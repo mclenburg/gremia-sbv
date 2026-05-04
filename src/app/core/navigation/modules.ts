@@ -20,7 +20,7 @@ export type ViewId =
   | 'bem'
   | 'prevention'
   | 'equalization'
-  | 'termination'
+  | 'termination_hearing'
   | 'templates'
   | 'knowledge'
   | 'contacts'
@@ -77,12 +77,11 @@ export const modules: ModuleDefinition[] = [
     icon: Scale
   },
   {
-    id: 'termination',
+    id: 'termination_hearing',
     title: 'Kündigungsanhörung',
     shortTitle: 'Kündigung',
     text: 'Kritischer Workflow für SBV-Anhörung und Integrationsamt-Prüfung.',
-    icon: ShieldAlert,
-    
+    icon: ShieldAlert
   },
   {
     id: 'templates',
@@ -118,7 +117,6 @@ export const modules: ModuleDefinition[] = [
     shortTitle: 'USB',
     text: 'Datenpfad, Backup, tragbarer Betrieb.',
     icon: HardDrive,
-    status: 'planned',
-    plannedVersion: '0.6.x'
+    
   }
 ];

@@ -15,6 +15,7 @@ import { KnowledgeView } from './features/knowledge/KnowledgeView';
 import { PreventionView } from './features/prevention/PreventionView';
 import { BemView } from './features/bem/BemView';
 import { EqualizationView } from './features/equalization/EqualizationView';
+import { TerminationView } from './features/termination/TerminationView';
 import { ContactsView } from './features/contacts/ContactsView';
 import { ReportsView } from './features/reports/ReportsView';
 import { TemplatesView } from './features/templates/TemplatesView';
@@ -292,6 +293,7 @@ export function App() {
         {currentView === 'bem' && <BemView cases={cases} onOpenCaseNode={openCaseNode} />}
         {currentView === 'prevention' && <PreventionView cases={cases} onOpenCaseNode={openCaseNode} />}
         {currentView === 'equalization' && <EqualizationView cases={cases} onOpenCaseNode={openCaseNode} />}
+        {currentView === 'termination_hearing' && <TerminationView cases={cases} onOpenCaseNode={openCaseNode} />}
         {currentView === 'templates' && <TemplatesView />}
         {currentView === 'reports' && <ReportsView />}
         {currentView === 'settings' && <SettingsView theme={theme} onThemeChange={setTheme} cases={cases} />}

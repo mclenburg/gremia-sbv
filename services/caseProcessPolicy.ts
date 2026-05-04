@@ -13,7 +13,7 @@ export type CaseProcessCapability = {
 export const CASE_PROCESS_CAPABILITIES: CaseProcessCapability[] = [
   { processType: 'prevention', label: 'Präventionsverfahren', canCreateStructuredProcess: true, canCreateCasePlaceholder: false, allowedEntryPoints: ['case-tree', 'case-overview', 'process-module'] },
   { processType: 'bem', label: 'BEM-Verfahren', canCreateStructuredProcess: false, canCreateCasePlaceholder: true, allowedEntryPoints: ['case-tree', 'case-overview', 'process-module'] },
-  { processType: 'termination_hearing', label: 'Kündigungsanhörung', canCreateStructuredProcess: false, canCreateCasePlaceholder: true, allowedEntryPoints: ['case-tree', 'case-overview', 'process-module'] },
+  { processType: 'termination_hearing', label: 'Kündigungsanhörung', canCreateStructuredProcess: true, canCreateCasePlaceholder: false, allowedEntryPoints: ['case-tree', 'case-overview', 'process-module'] },
   { processType: 'equalization', label: 'Gleichstellungsprozess', canCreateStructuredProcess: true, canCreateCasePlaceholder: true, allowedEntryPoints: ['case-tree', 'case-overview', 'process-module'] }
 ];
 

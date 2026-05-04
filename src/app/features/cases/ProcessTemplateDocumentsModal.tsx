@@ -2,6 +2,8 @@ import { Download, FileText } from 'lucide-react';
 import type { PreventionProcessRecord } from '../../core/models/prevention.model';
 import type { BemProcessRecord } from '../../core/models/bem.model';
 import type { EqualizationProcessRecord } from '../../core/models/equalization.model';
+import type { TerminationHearingRecord } from '../../core/models/termination.model';
+import { terminationStatusLabel } from '../termination/terminationShared';
 import type { RenderedTemplateResult, TemplateRecord } from '../../core/models/template.model';
 import { statusLabel } from '../prevention/preventionShared';
 import { bemStatusLabel } from '../bem/bemShared';
@@ -11,18 +13,24 @@ function isEqualizationProcessRecord(process: ProcessTemplateModalState['process
   return 'applicationStatus' in process;
 }
 
-function hasGenericProcessStatus(process: ProcessTemplateModalState['process']): process is PreventionProcessRecord | BemProcessRecord {
+function isTerminationHearingRecord(process: ProcessTemplateModalState['process']): process is TerminationHearingRecord {
+  return 'terminationType' in process && 'protectionStatus' in process;
+}
+
+function hasGenericProcessStatus(process: ProcessTemplateModalState['process']): process is PreventionProcessRecord | BemProcessRecord | TerminationHearingRecord {
   return 'status' in process;
 }
 
 function processTemplateProcessLabel(processType: ProcessTemplateModalState['processType']): string {
   if (processType === 'bem') return 'BEM';
   if (processType === 'equalization') return 'Gleichstellung / GdB';
+  if (processType === 'termination_hearing') return 'Kündigungsanhörung';
   return 'Prävention';
 }
 
 function processTemplateStatusLabel(state: ProcessTemplateModalState): string {
   if (isEqualizationProcessRecord(state.process)) return equalizationStatusLabel(state.process.applicationStatus);
+  if (isTerminationHearingRecord(state.process)) return terminationStatusLabel(state.process.status);
   if (state.processType === 'bem' && hasGenericProcessStatus(state.process)) return bemStatusLabel(state.process.status as any);
   if (hasGenericProcessStatus(state.process)) return statusLabel(state.process.status as any);
   return 'unbekannt';
@@ -34,10 +42,9 @@ function processTemplateStatusTag(state: ProcessTemplateModalState): string {
   return 'status:unbekannt';
 }
 
-
 export type ProcessTemplateModalState = {
-  process: PreventionProcessRecord | BemProcessRecord | EqualizationProcessRecord;
-  processType: 'prevention' | 'bem' | 'equalization';
+  process: PreventionProcessRecord | BemProcessRecord | EqualizationProcessRecord | TerminationHearingRecord;
+  processType: 'prevention' | 'bem' | 'equalization' | 'termination_hearing';
   templates: TemplateRecord[];
   rendered?: RenderedTemplateResult;
   loading: boolean;

@@ -12,6 +12,7 @@ import type { RetentionDashboard, RetentionOperationResult, RetentionSettings, U
 import type { CreatePreventionProcessInput, PreventionDashboardSummary, PreventionProcessRecord, PreventionStepDefinition, PreventionWarning, UpdatePreventionProcessInput } from './app/core/models/prevention.model';
 import type { BemDashboardSummary, BemProcessRecord, BemStepDefinition, BemWarning, CreateBemProcessInput, UpdateBemProcessInput } from './app/core/models/bem.model';
 import type { CreateEqualizationProcessInput, EqualizationProcessRecord, EqualizationWarning, UpdateEqualizationProcessInput } from './app/core/models/equalization.model';
+import type { CreateTerminationHearingInput, TerminationHearingRecord, TerminationHearingWarning, UpdateTerminationHearingInput } from './app/core/models/termination.model';
 import type { CaseLawRecord, CaseLegalReferenceRecord, CreateCaseLawInput, CreateLegalNormInput, CreateNormChecklistItemInput, CreateNormCommentInput, KnowledgeExportPreview, LegalNormRecord, LegalNormSearchInput, LinkLegalNormToCaseInput, NormChecklistItemRecord, NormCommentRecord, UpdateLegalNormInput } from './app/core/models/knowledge.model';
 import type { CreateTemplateInput, RenderContextTemplateInput, RenderTemplateInput, RenderedTemplateResult, TemplateListFilters, TemplateRecord, UpdateTemplateInput } from './app/core/models/template.model';
 
@@ -89,6 +90,13 @@ declare global {
         create(input: CreateEqualizationProcessInput): Promise<EqualizationProcessRecord>;
         update(id: string, input: UpdateEqualizationProcessInput): Promise<EqualizationProcessRecord>;
         warnings(id: string): Promise<EqualizationWarning[]>;
+      };
+      termination: {
+        steps(): Promise<string[]>;
+        list(caseId?: string): Promise<TerminationHearingRecord[]>;
+        create(input: CreateTerminationHearingInput): Promise<TerminationHearingRecord>;
+        update(id: string, input: UpdateTerminationHearingInput): Promise<TerminationHearingRecord>;
+        warnings(id: string): Promise<TerminationHearingWarning[]>;
       };
       deadlines: {
         list(filters?: DeadlineListFilters): Promise<DeadlineRecord[]>;
