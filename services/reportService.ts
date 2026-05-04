@@ -298,6 +298,7 @@ function markdownToReportHtml(markdown: string): string {
   const html: string[] = [];
   let inList = false;
   let inTable = false;
+  let inSection = false;
 
   function closeList(): void {
     if (inList) {
@@ -313,18 +314,43 @@ function markdownToReportHtml(markdown: string): string {
     }
   }
 
+  function closeSection(): void {
+    closeList();
+    if (inSection) {
+      html.push("</section>");
+      inSection = false;
+    }
+  }
+
+  function ensureSection(): void {
+    closeTable();
+    if (!inSection) {
+      html.push('<section class="report-section">');
+      inSection = true;
+    }
+  }
+
+  function startSection(headingHtml: string): void {
+    closeTable();
+    closeSection();
+    html.push('<section class="report-section">');
+    html.push(headingHtml);
+    inSection = true;
+  }
+
   for (const rawLine of lines) {
     const line = rawLine.trimEnd();
-    if (/^\|.+\|$/.test(line.trim())) {
-      closeList();
-      const cells = line
-        .trim()
+    const trimmed = line.trim();
+
+    if (/^\|.+\|$/.test(trimmed)) {
+      closeSection();
+      const cells = trimmed
         .slice(1, -1)
         .split("|")
         .map((cell) => cell.trim());
       if (cells.every((cell) => /^:?-{3,}:?$/.test(cell))) continue;
       if (!inTable) {
-        html.push('<section class="box"><table><tbody>');
+        html.push('<section class="report-section report-table-section"><table><tbody>');
         inTable = true;
       }
       html.push(
@@ -334,7 +360,28 @@ function markdownToReportHtml(markdown: string): string {
     }
 
     closeTable();
+
+    if (line.startsWith("# ")) {
+      startSection(
+        `<h2 class="document-heading">${inlineMarkdown(line.slice(2))}</h2>`,
+      );
+      continue;
+    }
+
+    if (line.startsWith("## ")) {
+      startSection(`<h2>${inlineMarkdown(line.slice(3))}</h2>`);
+      continue;
+    }
+
+    if (line.startsWith("### ")) {
+      ensureSection();
+      closeList();
+      html.push(`<h3>${inlineMarkdown(line.slice(4))}</h3>`);
+      continue;
+    }
+
     if (line.startsWith("- ")) {
+      ensureSection();
       if (!inList) {
         html.push("<ul>");
         inList = true;
@@ -343,22 +390,18 @@ function markdownToReportHtml(markdown: string): string {
       continue;
     }
 
+    if (trimmed) {
+      ensureSection();
+      closeList();
+      html.push(`<p>${inlineMarkdown(line)}</p>`);
+      continue;
+    }
+
     closeList();
-    if (line.startsWith("# "))
-      html.push(
-        `<section class="box"><h2>${inlineMarkdown(line.slice(2))}</h2></section>`,
-      );
-    else if (line.startsWith("## "))
-      html.push(
-        `<section class="box"><h2>${inlineMarkdown(line.slice(3))}</h2>`,
-      );
-    else if (line.startsWith("### "))
-      html.push(`<h3>${inlineMarkdown(line.slice(4))}</h3>`);
-    else if (line.trim()) html.push(`<p>${inlineMarkdown(line)}</p>`);
-    else html.push("");
   }
-  closeList();
+
   closeTable();
+  closeSection();
   return html.join("\n");
 }
 
@@ -379,13 +422,13 @@ function reportShell(
   @page { margin: 17mm 14mm; size: A4; }
   * { box-sizing: border-box; }
   body { margin: 0; font-family: Inter, Arial, Helvetica, sans-serif; color: #1f2933; background: #ffffff; }
-  .page { min-height: 100vh; padding: 26px; background: #ffffff; }
+  .page { min-height: 100vh; padding: 18px 20px; background: #ffffff; }
   .header { border: 1px solid #c6ccd3; border-left: 7px solid #b58500; padding: 18px 20px; background: linear-gradient(135deg, #f8fafc 0%, #eef1f4 100%); margin-bottom: 20px; }
   .kicker { color: #8a6400; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; font-weight: 900; }
   h1 { margin: 8px 0 4px; font-size: 28px; line-height: 1.15; color: #111827; text-transform: uppercase; }
-  h2 { margin: 22px 0 10px; font-size: 16px; color: #7c5700; text-transform: uppercase; letter-spacing: 0.08em; }
-  h3 { margin: 18px 0 8px; font-size: 13px; color: #1f2933; text-transform: uppercase; }
-  p { color: #24313d; font-size: 11px; line-height: 1.55; }
+  h2 { margin: 0 0 10px; font-size: 15px; color: #7c5700; text-transform: uppercase; letter-spacing: 0.08em; }
+  h3 { margin: 14px 0 6px; font-size: 12px; color: #1f2933; text-transform: uppercase; }
+  p { color: #24313d; font-size: 11px; line-height: 1.5; margin: 6px 0; }
   .subtitle { color: #394858; font-size: 12px; }
   .classification { display: inline-block; margin-top: 12px; padding: 6px 9px; border: 1px solid #b58500; color: #5f4500; background: #fff4c2; font-weight: 900; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
   .meta { margin-top: 8px; color: #566575; font-size: 10px; }
@@ -393,10 +436,15 @@ function reportShell(
   .metric { border: 1px solid #cbd3dc; background: #f8fafc; padding: 10px; min-height: 64px; }
   .metric span { display: block; color: #4b5c6d; text-transform: uppercase; font-size: 9px; letter-spacing: .08em; font-weight: 800; }
   .metric strong { display: block; color: #8a6400; font-size: 22px; margin-top: 6px; }
-  table { width: 100%; border-collapse: collapse; margin: 8px 0 16px; background: #ffffff; }
+  table { width: 100%; border-collapse: collapse; margin: 6px 0 0; background: #ffffff; }
   th { text-align: left; padding: 8px; border: 1px solid #c7ced6; background: #e9edf2; color: #5f4500; text-transform: uppercase; font-size: 9px; letter-spacing: .08em; }
   td { padding: 8px; border: 1px solid #d4dae1; color: #1f2933; font-size: 11px; vertical-align: top; }
-  .box { border: 1px solid #cbd3dc; background: #f8fafc; padding: 12px; margin: 10px 0; }
+  .box, .report-section { border: 1px solid #cbd3dc; background: #f8fafc; padding: 12px; margin: 10px 0; break-inside: avoid; page-break-inside: avoid; }
+  .report-section + .report-section { margin-top: 12px; }
+  .report-section ul { margin: 7px 0 0 18px; padding: 0; }
+  .report-section li { margin: 4px 0; font-size: 11px; line-height: 1.45; color: #24313d; }
+  .report-table-section { padding: 10px; }
+  .document-heading { font-size: 16px; }
   .warnings { border: 1px solid #c49100; background: #fff7d6; padding: 12px; margin: 16px 0; }
   .warnings p { margin: 7px 0; color: #5c4300; font-size: 11px; font-weight: 700; }
   .ok { border: 1px solid #7aa56d; background: #eef8ec; color: #234b22; padding: 10px; font-size: 11px; }

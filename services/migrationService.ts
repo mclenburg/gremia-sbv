@@ -3,7 +3,7 @@ import path from 'node:path';
 import type { DatabaseAdapter } from './databaseService.js';
 import { classifyCaseLegalReferencesColumns } from './knowledgeMigrationPolicy.js';
 import { APP_VERSION } from './generated/appMetadata.js';
-import { APP_SCHEMA_VERSION, DATABASE_SCHEMA_APP_VERSION_KEY, DATABASE_SCHEMA_VERSION_KEY, PERSONAL_DATA_AUDIT_REQUIRED_COLUMNS, TERMINATION_HEARINGS_REQUIRED_COLUMNS } from './appSchema.js';
+import { APP_SCHEMA_VERSION, DATABASE_SCHEMA_APP_VERSION_KEY, DATABASE_SCHEMA_VERSION_KEY, PERSONAL_DATA_AUDIT_REQUIRED_COLUMNS, SBV_PARTICIPATION_REQUIRED_COLUMNS, TERMINATION_HEARINGS_REQUIRED_COLUMNS } from './appSchema.js';
 
 interface MigrationRow {
   version: string;
@@ -271,6 +271,10 @@ export class MigrationService {
         return this.tableExists('personal_data_audit_log')
           && this.columnExists('personal_data_audit_log', 'entry_hash')
           && this.indexExists('idx_personal_data_audit_action');
+      case '0019':
+        return this.tableExists('sbv_participations')
+          && this.columnExists('sbv_participations', 'hearing_before_decision')
+          && this.indexExists('idx_sbv_participations_status');
       default:
         return false;
     }
@@ -442,6 +446,11 @@ export class MigrationService {
       this.ensurePersonalDataAuditLogSchema();
       diagnostics.push('Audit-Log-Schema wurde auf Stand 0018 repariert.');
     }
+
+    if (!this.tableExists('sbv_participations') || !SBV_PARTICIPATION_REQUIRED_COLUMNS.every((column) => this.columnExists('sbv_participations', column))) {
+      this.ensureSbvParticipationSchema();
+      diagnostics.push('SBV-Beteiligungsmonitor-Schema wurde auf Stand 0019 repariert.');
+    }
   }
 
   private rebuildTerminationHearingsTable(): void {
@@ -504,6 +513,57 @@ export class MigrationService {
     `);
   }
 
+
+  private ensureSbvParticipationSchema(): void {
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS sbv_participations (
+        id TEXT PRIMARY KEY,
+        case_id TEXT NOT NULL,
+        title TEXT NOT NULL,
+        measure_type TEXT NOT NULL DEFAULT 'sonstiges',
+        status TEXT NOT NULL DEFAULT 'neu',
+        risk_level TEXT NOT NULL DEFAULT 'normal',
+        person_status TEXT NOT NULL DEFAULT 'unklar',
+        decision_stage TEXT NOT NULL DEFAULT 'unklar',
+        first_known_at TEXT,
+        information_received_at TEXT,
+        hearing_requested_at TEXT,
+        statement_due_at TEXT,
+        statement_submitted_at TEXT,
+        employer_decision_at TEXT,
+        implementation_at TEXT,
+        information_complete INTEGER NOT NULL DEFAULT 0,
+        hearing_before_decision INTEGER NOT NULL DEFAULT 0,
+        decision_notified INTEGER NOT NULL DEFAULT 0,
+        suspension_requested_at TEXT,
+        suspension_due_at TEXT,
+        violation_summary TEXT,
+        sbv_position TEXT,
+        next_step TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY(case_id) REFERENCES cases(id) ON DELETE CASCADE
+      );
+
+      CREATE TABLE IF NOT EXISTS sbv_participation_events (
+        id TEXT PRIMARY KEY,
+        participation_id TEXT NOT NULL,
+        event_type TEXT NOT NULL,
+        title TEXT NOT NULL,
+        description TEXT,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY(participation_id) REFERENCES sbv_participations(id) ON DELETE CASCADE
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_sbv_participations_case_id ON sbv_participations(case_id);
+      CREATE INDEX IF NOT EXISTS idx_sbv_participations_status ON sbv_participations(status);
+      CREATE INDEX IF NOT EXISTS idx_sbv_participations_risk ON sbv_participations(risk_level);
+      CREATE INDEX IF NOT EXISTS idx_sbv_participations_statement_due ON sbv_participations(statement_due_at);
+      CREATE INDEX IF NOT EXISTS idx_sbv_participations_suspension_due ON sbv_participations(suspension_due_at);
+      CREATE INDEX IF NOT EXISTS idx_sbv_participation_events_process ON sbv_participation_events(participation_id, created_at);
+    `);
+  }
+
   private hasMigration(version: string): boolean {
     return Boolean(this.db.prepare<MigrationRow>('SELECT version FROM schema_migrations WHERE version = ?').get(version));
   }
@@ -550,7 +610,8 @@ export class MigrationService {
       'bem_process_contacts',
       'bem_process_events',
       'termination_hearings',
-      'personal_data_audit_log'
+      'personal_data_audit_log',
+      'sbv_participations'
     ];
 
     requiredTables.forEach((table) => {
@@ -566,7 +627,8 @@ export class MigrationService {
       prevention_processes: ['id', 'case_id', 'status'],
       bem_processes: ['id', 'case_id', 'status', 'title', 'trigger_type', 'employee_response', 'privacy_notice_at', 'consent_scope', 'measure_owners', 'completion_reason', 'created_at', 'updated_at'],
       termination_hearings: [...TERMINATION_HEARINGS_REQUIRED_COLUMNS],
-      personal_data_audit_log: [...PERSONAL_DATA_AUDIT_REQUIRED_COLUMNS]
+      personal_data_audit_log: [...PERSONAL_DATA_AUDIT_REQUIRED_COLUMNS],
+      sbv_participations: [...SBV_PARTICIPATION_REQUIRED_COLUMNS]
     };
 
     Object.entries(requiredColumns).forEach(([table, columns]) => {

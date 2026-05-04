@@ -54,6 +54,13 @@ import type {
   UpdatePreventionProcessInput,
 } from "../src/app/core/models/prevention.model.js";
 import type {
+  CreateParticipationInput,
+  ParticipationDashboardSummary,
+  ParticipationRecord,
+  ParticipationWarning,
+  UpdateParticipationInput,
+} from "../src/app/core/models/participation.model.js";
+import type {
   BemDashboardSummary,
   BemProcessRecord,
   BemStepDefinition,
@@ -253,6 +260,21 @@ const api = {
       ipcRenderer.invoke("prevention:update", id, input),
     warnings: (id: string): Promise<PreventionWarning[]> =>
       ipcRenderer.invoke("prevention:warnings", id),
+  },
+  participation: {
+    list: (caseId?: string): Promise<ParticipationRecord[]> =>
+      ipcRenderer.invoke("participation:list", caseId),
+    dashboard: (): Promise<ParticipationDashboardSummary> =>
+      ipcRenderer.invoke("participation:dashboard"),
+    create: (input: CreateParticipationInput): Promise<ParticipationRecord> =>
+      ipcRenderer.invoke("participation:create", input),
+    update: (
+      id: string,
+      input: UpdateParticipationInput,
+    ): Promise<ParticipationRecord> =>
+      ipcRenderer.invoke("participation:update", id, input),
+    warnings: (id: string): Promise<ParticipationWarning[]> =>
+      ipcRenderer.invoke("participation:warnings", id),
   },
   bem: {
     steps: (): Promise<BemStepDefinition[]> => ipcRenderer.invoke("bem:steps"),

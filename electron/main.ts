@@ -16,6 +16,7 @@ import { registerReportIpc } from "./ipc/reportIpc.js";
 import { registerBackupIpc } from "./ipc/backupIpc.js";
 import { registerRetentionIpc } from "./ipc/retentionIpc.js";
 import { registerPreventionIpc } from "./ipc/preventionIpc.js";
+import { registerParticipationIpc } from "./ipc/participationIpc.js";
 import { registerBemIpc } from "./ipc/bemIpc.js";
 import { registerEqualizationIpc } from "./ipc/equalizationIpc.js";
 import { registerTerminationIpc } from "./ipc/terminationIpc.js";
@@ -273,6 +274,7 @@ if (!singleInstanceLock) {
       registerContactIpc(ipcMain, security);
       registerDeadlineIpc(ipcMain, security);
       registerPreventionIpc(ipcMain, security);
+      registerParticipationIpc(ipcMain, security);
       registerBemIpc(ipcMain, security);
       registerEqualizationIpc(ipcMain, security);
       registerTerminationIpc(ipcMain, security);

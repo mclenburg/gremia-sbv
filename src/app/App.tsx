@@ -23,6 +23,7 @@ import { LiveRegionProvider } from "./shared/a11y/LiveRegionProvider";
 import { GlobalTextCommandController } from "./shared/textCommands/GlobalTextCommandController";
 import { KnowledgeView } from "./features/knowledge/KnowledgeView";
 import { PreventionView } from "./features/prevention/PreventionView";
+import { ParticipationView } from "./features/participation/ParticipationView";
 import { BemView } from "./features/bem/BemView";
 import { EqualizationView } from "./features/equalization/EqualizationView";
 import { TerminationView } from "./features/termination/TerminationView";
@@ -58,6 +59,7 @@ import "./confirmDialog.css";
 import "./accessibilityLiveRegion.css";
 import "./complianceCenter.css";
 import "./reportsWorkbench.css";
+import "./features/participation/participationWorkbench.css";
 import "./ui/responsiveDesign.css";
 
 const THEME_STORAGE_KEY = "gremia.sbv.theme";
@@ -70,6 +72,7 @@ const IMPLEMENTED_VIEW_IDS = new Set<ViewId>([
   "knowledge",
   "bem",
   "prevention",
+  "participation",
   "equalization",
   "termination_hearing",
   "templates",
@@ -409,6 +412,9 @@ export function App() {
             )}
             {currentView === "prevention" && (
               <PreventionView cases={cases} onOpenCaseNode={openCaseNode} />
+            )}
+            {currentView === "participation" && (
+              <ParticipationView cases={cases} onOpenCaseNode={openCaseNode} />
             )}
             {currentView === "equalization" && (
               <EqualizationView cases={cases} onOpenCaseNode={openCaseNode} />

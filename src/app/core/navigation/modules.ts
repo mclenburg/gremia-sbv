@@ -20,6 +20,7 @@ export type ViewId =
   | 'deadlines'
   | 'bem'
   | 'prevention'
+  | 'participation'
   | 'equalization'
   | 'termination_hearing'
   | 'templates'
@@ -70,6 +71,13 @@ export const modules: ModuleDefinition[] = [
     shortTitle: 'Prävention',
     text: 'Frühzeitige Aktivierung nach § 167 Abs. 1 SGB IX.',
     icon: ShieldAlert
+  },
+  {
+    id: 'participation',
+    title: 'SBV-Beteiligung',
+    shortTitle: 'Beteiligung',
+    text: 'Unterrichtung, Anhörung und Aussetzung nach § 178 Abs. 2 SGB IX.',
+    icon: ShieldCheck
   },
   {
     id: 'equalization',

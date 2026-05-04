@@ -52,6 +52,13 @@ import type {
   UpdatePreventionProcessInput,
 } from "./app/core/models/prevention.model";
 import type {
+  CreateParticipationInput,
+  ParticipationDashboardSummary,
+  ParticipationRecord,
+  ParticipationWarning,
+  UpdateParticipationInput,
+} from "./app/core/models/participation.model";
+import type {
   BemDashboardSummary,
   BemProcessRecord,
   BemStepDefinition,
@@ -201,6 +208,16 @@ declare global {
           input: UpdatePreventionProcessInput,
         ): Promise<PreventionProcessRecord>;
         warnings(id: string): Promise<PreventionWarning[]>;
+      };
+      participation: {
+        list(caseId?: string): Promise<ParticipationRecord[]>;
+        dashboard(): Promise<ParticipationDashboardSummary>;
+        create(input: CreateParticipationInput): Promise<ParticipationRecord>;
+        update(
+          id: string,
+          input: UpdateParticipationInput,
+        ): Promise<ParticipationRecord>;
+        warnings(id: string): Promise<ParticipationWarning[]>;
       };
       bem: {
         steps(): Promise<BemStepDefinition[]>;
