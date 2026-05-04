@@ -425,3 +425,43 @@ button:disabled,
     letter-spacing: 0.09em;
   }
 }
+
+/* 0.8.5-g: kompaktere Flächennutzung zwischen Navigation und Arbeitsbereich. */
+:root {
+  --layout-content-max: none;
+  --layout-gap: clamp(0.65rem, 1.2vw, 1rem);
+  --layout-page-padding: clamp(0.75rem, 1.25vw, 1.1rem);
+}
+
+.industrial-content {
+  justify-self: stretch;
+  width: 100%;
+  max-width: none;
+  margin-left: 0 !important;
+  padding-inline-start: var(--layout-page-padding);
+}
+
+.module-frame,
+.industrial-panel,
+.industrial-module-header,
+.industrial-hero,
+.industrial-topbar {
+  width: 100%;
+}
+
+.industrial-topbar {
+  margin-bottom: clamp(0.75rem, 1.1vw, 1rem);
+}
+
+.industrial-hero,
+.industrial-panel,
+.industrial-module-header,
+.industrial-settings-form {
+  padding: clamp(0.85rem, 1.2vw, 1.15rem);
+}
+
+@media (min-width: 1051px) {
+  .industrial-shell {
+    column-gap: 0;
+  }
+}

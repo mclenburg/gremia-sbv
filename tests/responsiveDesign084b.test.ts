@@ -42,7 +42,7 @@ describe('0.8.4-b responsive Design- und Accessibility-Baseline', () => {
     expect(moduleFrameSource).not.toContain('<main className="module-frame"');
   });
 
-  it('kennzeichnet den Patch als 0.8.4-b', () => {
-    expect(packageJson).toContain('"version": "0.8.4-b"');
+  it('führt die aktuelle Paketversion', () => {
+    expect(packageJson).toContain('"version": "0.8.5-g"');
   });
 });

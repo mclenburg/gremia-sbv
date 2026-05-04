@@ -22,11 +22,45 @@ const templateCategoryLabels: Record<TemplateCategory, string> = {
   sonstiges: 'Sonstiges'
 };
 
+const TEMPLATE_CATEGORY_ORDER = Object.keys(templateCategoryLabels) as TemplateCategory[];
+
+type TemplateSortMode = 'category' | 'alphabetical';
+
+const TEMPLATE_PAGE_SIZE_OPTIONS = [12, 24, 48] as const;
+const DEFAULT_TEMPLATE_PAGE_SIZE = 12;
+
+function compareTemplatesByTitle(left: TemplateRecord, right: TemplateRecord): number {
+  return left.title.localeCompare(right.title, 'de', { sensitivity: 'base' });
+}
+
+function groupTemplates(templates: TemplateRecord[], sortMode: TemplateSortMode): Array<{ key: string; label: string; items: TemplateRecord[] }> {
+  if (sortMode === 'alphabetical') {
+    return [{ key: 'alphabetical', label: 'Alphabetisch', items: [...templates].sort(compareTemplatesByTitle) }];
+  }
+
+  const groups = TEMPLATE_CATEGORY_ORDER
+    .map((item) => ({
+      key: item,
+      label: templateCategoryLabels[item],
+      items: templates.filter((template) => template.category === item).sort(compareTemplatesByTitle)
+    }))
+    .filter((group) => group.items.length > 0);
+
+  return groups;
+}
+
+function clampTemplatePage(page: number, pageCount: number): number {
+  return Math.min(Math.max(page, 1), Math.max(pageCount, 1));
+}
+
 
 export function TemplatesView() {
   const [templates, setTemplates] = useState<TemplateRecord[]>([]);
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState<TemplateCategory | ''>('');
+  const [sortMode, setSortMode] = useState<TemplateSortMode>('category');
+  const [pageSize, setPageSize] = useState<number>(DEFAULT_TEMPLATE_PAGE_SIZE);
+  const [currentPage, setCurrentPage] = useState(1);
   const [selectedTemplateId, setSelectedTemplateId] = useState('');
   const [info, setInfo] = useState('');
   const [error, setError] = useState('');
@@ -46,6 +80,7 @@ export function TemplatesView() {
   const [editTemplateProcessStatus, setEditTemplateProcessStatus] = useState<PreventionStatus | ''>('');
   const confirmDialog = useConfirmDialog();
   const announce = useAnnouncer();
+  const categories = TEMPLATE_CATEGORY_ORDER;
 
 
   useEffect(() => {
@@ -69,13 +104,40 @@ export function TemplatesView() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const selectedTemplate = useMemo(() => templates.find((template) => template.id === selectedTemplateId) ?? templates[0], [templates, selectedTemplateId]);
+  const sortedTemplates = useMemo(() => [...templates].sort((left, right) => {
+    if (sortMode === 'alphabetical') return compareTemplatesByTitle(left, right);
+    const categoryOrder = categories.indexOf(left.category) - categories.indexOf(right.category);
+    return categoryOrder || compareTemplatesByTitle(left, right);
+  }), [templates, sortMode]);
+
+  const pageCount = Math.max(1, Math.ceil(sortedTemplates.length / pageSize));
+  const safeCurrentPage = clampTemplatePage(currentPage, pageCount);
+  const pageStart = (safeCurrentPage - 1) * pageSize;
+  const pagedTemplates = sortedTemplates.slice(pageStart, pageStart + pageSize);
+  const groupedPagedTemplates = useMemo(() => groupTemplates(pagedTemplates, sortMode), [pagedTemplates, sortMode]);
+  const visibleRangeLabel = templates.length
+    ? `${pageStart + 1}–${Math.min(pageStart + pageSize, sortedTemplates.length)} von ${sortedTemplates.length}`
+    : '0 Vorlagen';
+
+  const selectedTemplate = useMemo(() => templates.find((template) => template.id === selectedTemplateId) ?? sortedTemplates[0], [templates, sortedTemplates, selectedTemplateId]);
+
+  useEffect(() => {
+    if (currentPage !== safeCurrentPage) setCurrentPage(safeCurrentPage);
+  }, [currentPage, safeCurrentPage]);
+
+  useEffect(() => {
+    if (!pagedTemplates.length) return;
+    if (!selectedTemplateId || !pagedTemplates.some((template) => template.id === selectedTemplateId)) {
+      setSelectedTemplateId(pagedTemplates[0].id);
+    }
+  }, [pagedTemplates, selectedTemplateId]);
 
   async function applyFilters(event?: FormEvent) {
     event?.preventDefault();
     setError('');
     setInfo('');
     try {
+      setCurrentPage(1);
       await loadTemplates(query, category);
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : 'Vorlagen konnten nicht geladen werden.');
@@ -189,8 +251,6 @@ export function TemplatesView() {
     }
   }
 
-  const categories = Object.keys(templateCategoryLabels) as TemplateCategory[];
-
   return (
     <ModuleFrame
       title="Vorlagen"
@@ -220,63 +280,81 @@ export function TemplatesView() {
         </div>
         <form onSubmit={applyFilters} className="template-filter-form">
           <label><span>Suche</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Prävention, Beteiligung, Kündigung ..." /></label>
-          <label><span>Kategorie</span><select value={category} onChange={(event) => setCategory(event.target.value as TemplateCategory | '')}><option value="">Alle</option>{categories.map((item) => <option key={item} value={item}>{templateCategoryLabels[item]}</option>)}</select></label>
+          <label><span>Kategorie</span><select value={category} onChange={(event) => { setCategory(event.target.value as TemplateCategory | ''); setCurrentPage(1); }}><option value="">Alle</option>{categories.map((item) => <option key={item} value={item}>{templateCategoryLabels[item]}</option>)}</select></label>
+          <label><span>Sortierung</span><select value={sortMode} onChange={(event) => { setSortMode(event.target.value as TemplateSortMode); setCurrentPage(1); }}><option value="category">Thematisch gruppiert</option><option value="alphabetical">Alphabetisch</option></select></label>
+          <label><span>Pro Seite</span><select value={pageSize} onChange={(event) => { setPageSize(Number(event.target.value)); setCurrentPage(1); }}>{TEMPLATE_PAGE_SIZE_OPTIONS.map((size) => <option key={size} value={size}>{size}</option>)}</select></label>
           <button type="submit" className="industrial-secondary-button"><Search className="h-4 w-4" />Filtern</button>
         </form>
         {error && <div className="industrial-message industrial-message-warning mb-4">{error}</div>}
         {info && <div className="industrial-message mb-4">{info}</div>}
-        <div className="grid gap-4 xl:grid-cols-[0.9fr_1.4fr]">
-          <div className="space-y-3">
-            {templates.map((template) => (
-              <div key={template.id} className={`template-list-row ${selectedTemplate?.id === template.id ? 'active' : ''}`}>
-                <button
-                  type="button"
-                  className="industrial-list-item template-list-main w-full text-left"
-                  onClick={() => setSelectedTemplateId(template.id)}
-                >
-                  <strong>{template.title}</strong>
-                  <span>{templateCategoryLabels[template.category]} · {template.legalBasis.join(', ') || 'ohne Normbezug'}</span>
-                  <p>{template.description}</p>
-                </button>
-                <button
-                  type="button"
-                  className="template-trash-button"
-                  onClick={() => void deleteTemplate(template)}
-                  aria-label={`Vorlage ${template.title} löschen`}
-                  title="Vorlage löschen"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
+        <div className="template-workbench-grid">
+          <div className="template-list-panel" aria-label="Vorlagenliste">
+            <div className="template-list-summary">
+              <span>{visibleRangeLabel}</span>
+              <span>{sortMode === 'category' ? 'thematisch sortiert' : 'alphabetisch sortiert'}</span>
+            </div>
+            {groupedPagedTemplates.map((group) => (
+              <section key={group.key} className="template-list-group" aria-labelledby={`template-group-${group.key}`}>
+                <h3 id={`template-group-${group.key}`}>{group.label}</h3>
+                <div className="template-list-stack">
+                  {group.items.map((template) => (
+                    <div key={template.id} className={`template-list-row ${selectedTemplate?.id === template.id ? 'active' : ''}`}>
+                      <button
+                        type="button"
+                        className="industrial-list-item template-list-main w-full text-left"
+                        onClick={() => setSelectedTemplateId(template.id)}
+                      >
+                        <strong>{template.title}</strong>
+                        <span>{templateCategoryLabels[template.category]} · {template.legalBasis.join(', ') || 'ohne Normbezug'}</span>
+                        <p>{template.description}</p>
+                      </button>
+                      <button
+                        type="button"
+                        className="template-trash-button"
+                        onClick={() => void deleteTemplate(template)}
+                        aria-label={`Vorlage ${template.title} löschen`}
+                        title="Vorlage löschen"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </section>
             ))}
             {!templates.length && <div className="industrial-empty">Keine Vorlage gefunden.</div>}
+            {templates.length > pageSize && (
+              <nav className="template-pagination" aria-label="Vorlagen-Seiten">
+                <button type="button" className="industrial-secondary-button" onClick={() => setCurrentPage((page) => Math.max(1, page - 1))} disabled={safeCurrentPage <= 1}>Zurück</button>
+                <span>Seite {safeCurrentPage} von {pageCount}</span>
+                <button type="button" className="industrial-secondary-button" onClick={() => setCurrentPage((page) => Math.min(pageCount, page + 1))} disabled={safeCurrentPage >= pageCount}>Weiter</button>
+              </nav>
+            )}
           </div>
 
-          <div className="industrial-subpanel">
+          <div className="industrial-subpanel template-detail-panel">
             {selectedTemplate ? (
               <>
-                <div className="industrial-case-header">
+                <div className="template-detail-header">
                   <div>
                     <p className="industrial-kicker">{templateCategoryLabels[selectedTemplate.category]}</p>
                     <h2>{selectedTemplate.title}</h2>
                     <p>{selectedTemplate.description}</p>
                   </div>
+                  <button type="button" className="industrial-button template-detail-edit-button" onClick={() => openEditTemplate(selectedTemplate)}><FileText className="h-4 w-4" />Bearbeiten</button>
                 </div>
 
-                <div className="template-detail-meta mt-4">
-                  <div><span>Kategorie</span><strong>{templateCategoryLabels[selectedTemplate.category]}</strong></div>
+                <div className="template-detail-meta">
                   <div><span>Normen</span><strong>{selectedTemplate.legalBasis.join(', ') || 'ohne Normbezug'}</strong></div>
                   <div><span>Tags</span><strong>{selectedTemplate.tags.join(', ') || 'keine Tags'}</strong></div>
                 </div>
 
-                <div className="industrial-subpanel mt-4">
-                  <h4>Vorlagentext</h4>
-                  <p className="industrial-meta"><strong>Betreff:</strong> {selectedTemplate.subject}</p>
-                  <pre className="industrial-prewrap">{selectedTemplate.body}</pre>
-                </div>
-
-                <div className="mt-4 flex flex-wrap gap-3">
-                  <button type="button" className="industrial-button" onClick={() => openEditTemplate(selectedTemplate)}><FileText className="h-4 w-4" />Vorlage bearbeiten</button>
+                <div className="template-body-panel">
+                  <div className="template-body-heading">
+                    <h4>Vorlagentext</h4>
+                    <p className="industrial-meta"><strong>Betreff:</strong> {selectedTemplate.subject || 'ohne Betreff'}</p>
+                  </div>
+                  <pre className="industrial-prewrap template-body-preview">{selectedTemplate.body}</pre>
                 </div>
               </>
             ) : (

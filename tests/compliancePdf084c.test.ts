@@ -13,7 +13,7 @@ describe('0.8.4-c Compliance-PDFs und Report-Erzeugung', () => {
   const reportIpc = readFileSync(join(process.cwd(), 'electron/ipc/reportIpc.ts'), 'utf8');
 
   it('führt die Patch-Version zentral in Renderer und Services', () => {
-    expect(packageJson.version).toBe('0.8.4-c');
+    expect(packageJson.version).toBe('0.8.5-g');
     expect(RENDERER_APP_VERSION).toBe(packageJson.version);
     expect(SERVICE_APP_VERSION).toBe(packageJson.version);
   });

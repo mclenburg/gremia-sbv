@@ -11,6 +11,7 @@ import {
 } from "node:crypto";
 import { ReportService } from "../../services/reportService.js";
 import type { SecurityService } from "../../services/securityService.js";
+import { normalizeReportType } from "../../src/app/core/models/report.model.js";
 import type {
   GenerateReportInput,
   ReportGenerationResult,
@@ -217,7 +218,11 @@ export function registerReportIpc(
       } catch (error) {
         return {
           ok: false,
-          reportType: typeof input === "object" && input && "type" in input ? String((input as { type?: unknown }).type ?? "unknown") : "unknown",
+          reportType: normalizeReportType(
+            typeof input === "object" && input && "type" in input
+              ? (input as { type?: unknown }).type
+              : undefined,
+          ),
           title: "Bericht konnte nicht erzeugt werden",
           fileName: "",
           filePath: "",
