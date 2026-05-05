@@ -18,7 +18,7 @@ export function CaseDetailPanel({
 }: CaseDetailPanelProps) {
   return (
     <section className="industrial-panel case-detail-panel">
-      <form onSubmit={(event) => void onSearchSubmit(event)} className="knowledge-search-bar">
+      <form onSubmit={(event) => void onSearchSubmit(event)} className="knowledge-search-bar case-detail-search-bar">
         <Search className="h-4 w-4 text-yellow-300" />
         <input
           className="industrial-input"
@@ -35,7 +35,7 @@ export function CaseDetailPanel({
           />
           <span>nur diese Fallakte</span>
         </label>
-        <button type="submit" className="industrial-button">Suchen</button>
+        <button type="submit" className="industrial-secondary-button case-detail-search-button">Suchen</button>
       </form>
 
       {!!searchResults.length && (

@@ -1,0 +1,11 @@
+{
+  "version": "0.8.8-b",
+  "reason": "Entfernt veraltete Layout-Policy-Tests, die historische CSS-Dateien und widersprüchliche Zwischenstände prüfen. Die aktuelle responsive Fallakten-UI wird durch tests/caseWorkbenchResponsivePolish088b.test.ts abgedeckt.",
+  "files": [
+    "tests/caseCreateModalScroll061.test.ts",
+    "tests/caseCreateModalLayout061a.test.ts",
+    "tests/caseWorkbenchDensityPolicy.test.ts",
+    "tests/caseWorkbenchLayoutPolicy.test.ts"
+  ],
+  "directories": []
+}

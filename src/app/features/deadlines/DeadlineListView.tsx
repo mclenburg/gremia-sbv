@@ -1,5 +1,7 @@
 import { CheckCircle2, Edit3 } from 'lucide-react';
 import type { CaseRecord } from '../../core/models/case.model';
+import type { CaseMeasureRecord } from '../../core/models/case-measure.model';
+import { caseMeasureTypeLabels } from '../../core/models/case-measure.model';
 import type { DeadlineRecord } from '../../core/models/deadline.model';
 import { getDashboardState, getHoursRemaining } from '../../core/deadlineLogic';
 import { DeadlineSeverityBadge, DeadlineStateBadge } from './DeadlineBadge';
@@ -19,18 +21,28 @@ function formatCase(deadline: DeadlineRecord, casesById: Map<string, CaseRecord>
     : 'Fallzuordnung fehlt';
 }
 
+function formatMeasure(deadline: DeadlineRecord, measuresById: Map<string, CaseMeasureRecord>): string {
+  if (!deadline.measureId) return '—';
+  const measure = measuresById.get(deadline.measureId);
+  if (!measure) return 'Maßnahme nicht auflösbar';
+  return `${caseMeasureTypeLabels[measure.type]} · ${measure.title}`;
+}
+
 export function DeadlineListView({
   deadlines,
   onEdit,
   onComplete,
-  cases = []
+  cases = [],
+  measures = []
 }: {
   deadlines: DeadlineRecord[];
   onEdit?: (deadline: DeadlineRecord) => void;
   onComplete?: (deadline: DeadlineRecord) => void;
   cases?: CaseRecord[];
+  measures?: CaseMeasureRecord[];
 }) {
   const casesById = new Map(cases.map((item) => [item.id, item]));
+  const measuresById = new Map(measures.map((item) => [item.id, item]));
 
   return (
     <section className="industrial-panel">
@@ -49,6 +61,7 @@ export function DeadlineListView({
               <th>Status</th>
               <th>Frist</th>
               <th>Fall</th>
+              <th>Maßnahme</th>
               <th>Fällig</th>
               <th>Restzeit</th>
               <th>Schwere</th>
@@ -67,6 +80,7 @@ export function DeadlineListView({
                     <p className="industrial-table-secondary">{deadline.deadlineType} · {deadline.processType}</p>
                   </td>
                   <td>{formatCase(deadline, casesById)}</td>
+                  <td>{formatMeasure(deadline, measuresById)}</td>
                   <td>{formatDueDate(deadline.dueAt)}</td>
                   <td>{hours < 0 ? 'überfällig' : `${Math.round(hours)} h`}</td>
                   <td><DeadlineSeverityBadge severity={deadline.severity} /></td>
@@ -81,7 +95,7 @@ export function DeadlineListView({
             })}
             {!deadlines.length && (
               <tr>
-                <td colSpan={7}>Keine offenen Fristen vorhanden.</td>
+                <td colSpan={8}>Keine offenen Fristen vorhanden.</td>
               </tr>
             )}
           </tbody>

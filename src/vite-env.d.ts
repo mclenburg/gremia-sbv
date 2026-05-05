@@ -154,10 +154,11 @@ declare global {
           input: UpdateCaseNoteInput,
         ): Promise<CaseNoteRecord>;
         deleteNote(id: string): Promise<{ deleted: boolean }>;
-        listDocuments(caseId: string): Promise<CaseDocumentRecord[]>;
+        listDocuments(caseId: string, measureId?: string): Promise<CaseDocumentRecord[]>;
         selectAndImportDocuments(
           caseId: string,
           containsHealthData?: boolean,
+          measureId?: string,
         ): Promise<CaseDocumentRecord[]>;
         deleteDocument(id: string): Promise<{ deleted: boolean }>;
         openDocument(

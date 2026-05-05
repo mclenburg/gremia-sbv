@@ -9,6 +9,7 @@ import type {
 import type { CreateCaseInput } from "../../src/app/core/models/case.model.js";
 import {
   assertOptionalBoolean,
+  assertOptionalString,
   assertRecordInput,
   assertString,
   sanitizeDialogFileName,
@@ -59,8 +60,11 @@ export function registerCaseIpc(
   ipcMain.handle("cases:notes:delete", async (_event, id: unknown) =>
     cases.deleteNote(assertString(id, "cases:notes:delete", "Notiz-ID", { minLength: 1, maxLength: 120 })),
   );
-  ipcMain.handle("cases:documents:list", async (_event, caseId: unknown) =>
-    cases.listDocuments(assertString(caseId, "cases:documents:list", "Fall-ID", { minLength: 1, maxLength: 120 })),
+  ipcMain.handle("cases:documents:list", async (_event, caseId: unknown, measureId?: unknown) =>
+    cases.listDocuments(
+      assertString(caseId, "cases:documents:list", "Fall-ID", { minLength: 1, maxLength: 120 }),
+      assertOptionalString(measureId, "cases:documents:list", "Maßnahmen-ID", { maxLength: 120 }),
+    ),
   );
   ipcMain.handle("cases:documents:delete", async (_event, id: unknown) =>
     cases.deleteDocument(assertString(id, "cases:documents:delete", "Dokument-ID", { minLength: 1, maxLength: 120 })),
@@ -94,7 +98,7 @@ export function registerCaseIpc(
   );
   ipcMain.handle(
     "cases:documents:select-and-import",
-    async (_event, caseId: unknown, containsHealthData: unknown = true) => {
+    async (_event, caseId: unknown, containsHealthData: unknown = true, measureId?: unknown) => {
       const validatedCaseId = assertString(
         caseId,
         "cases:documents:select-and-import",
@@ -106,6 +110,12 @@ export function registerCaseIpc(
         "cases:documents:select-and-import",
         "Gesundheitsdaten-Kennzeichen",
         true,
+      );
+      const validatedMeasureId = assertOptionalString(
+        measureId,
+        "cases:documents:select-and-import",
+        "Maßnahmen-ID",
+        { maxLength: 120 },
       );
       const result = await dialog.showOpenDialog({
         title: "Dokument zur Fallakte hinzufügen",
@@ -122,6 +132,7 @@ export function registerCaseIpc(
             validatedCaseId,
             filePath,
             validatedContainsHealthData,
+            validatedMeasureId,
           ),
         );
       }

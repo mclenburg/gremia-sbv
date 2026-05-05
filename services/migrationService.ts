@@ -522,9 +522,11 @@ export class MigrationService {
       CREATE INDEX IF NOT EXISTS idx_case_measures_type_status ON case_measures(type, status);
       CREATE INDEX IF NOT EXISTS idx_case_measures_due ON case_measures(due_at);
       CREATE INDEX IF NOT EXISTS idx_case_measures_source ON case_measures(source_id);
+CREATE INDEX IF NOT EXISTS idx_case_measures_follow_up ON case_measures(case_id, requires_follow_up, status);
       CREATE INDEX IF NOT EXISTS idx_case_measure_participation_status ON case_measure_participation(participation_status);
       CREATE INDEX IF NOT EXISTS idx_case_measure_participation_statement_due ON case_measure_participation(sbv_statement_due_at);
       CREATE INDEX IF NOT EXISTS idx_case_measure_participation_suspension_due ON case_measure_participation(suspension_deadline_at);
+CREATE INDEX IF NOT EXISTS idx_case_measure_events_measure_created ON case_measure_events(measure_id, created_at);
     `);
   }
 

@@ -16,6 +16,7 @@ export type DeadlineDashboardState = 'hidden' | 'upcoming' | 'due_soon' | 'criti
 export interface DeadlineRecord {
   id: string;
   caseId?: string;
+  measureId?: string;
   personId?: string;
   processId?: string;
   processType: DeadlineProcessType;
@@ -66,6 +67,7 @@ export interface DeadlineTemplateRecord {
 
 export interface CreateDeadlineInput {
   caseId?: string;
+  measureId?: string;
   personId?: string;
   processId?: string;
   processType: DeadlineProcessType;
@@ -123,6 +125,7 @@ export interface DeadlineListFilters {
   status?: DeadlineStatus[];
   processType?: DeadlineProcessType[];
   caseId?: string;
+  measureId?: string;
   from?: string;
   to?: string;
   dashboardOnly?: boolean;
@@ -132,6 +135,7 @@ export interface CreateFromTemplateInput {
   templateKey: string;
   baseDate: string;
   caseId?: string;
+  measureId?: string;
   personId?: string;
   processId?: string;
   overrideTitle?: string;

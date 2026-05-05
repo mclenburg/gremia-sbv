@@ -51,6 +51,18 @@ export const COMPLIANCE_DOCUMENTS: ComplianceDocumentDescriptor[] = [
     buttonLabel: 'Freigabeformular abrufen'
   },
   {
+    type: 'data_protection_status',
+    title: 'Datenschutzstatus vor Produktivnutzung',
+    description: 'Prüfliste für Auto-Lock, Backup, Audit, temporäre Dateien, DSFA/TOM/VVT und organisatorische Freigaben.',
+    buttonLabel: 'Datenschutzstatus abrufen'
+  },
+  {
+    type: 'release_readiness_checklist',
+    title: '1.0-Release-Checkliste',
+    description: 'Abnahmeliste für Build, Migration, Backup/Restore, Berichte, Overlay, Datenschutz und Known Issues.',
+    buttonLabel: 'Release-Checkliste abrufen'
+  },
+  {
     type: 'dsar_response',
     title: 'Antwort auf DSGVO-Auskunftsersuchen',
     description: 'Strukturierte Antwort nach Art. 15 DSGVO mit Prüfliste, Datenkategorien und Rechtsbehelfsbelehrung.',
@@ -467,6 +479,96 @@ Review-Termin: __________________
 `;
 }
 
+function dataProtectionStatusBody(generatedAt: string): string {
+  return `${header('Datenschutzstatus Gremia.SBV vor Produktivnutzung', generatedAt)}## 1. Zweck
+
+Diese Prüfliste unterstützt die SBV dabei, den lokalen Gremia.SBV-Tresor vor produktiver Nutzung fachlich, technisch und organisatorisch zu bewerten. Sie ersetzt keine Freigabe durch Datenschutzbeauftragte, IT-Security oder Rechtsberatung.
+
+## 2. Statusampel
+
+| Bereich | Sollzustand | Status / Nachweis |
+|---|---|---|
+| Verschlüsselter Tresor | Datenbank und Dokumente lokal verschlüsselt |  |
+| Auto-Lock | automatische Sperre aktiv und getestet |  |
+| Temporäre Arbeitskopien | tmp-Bereich nach PDF-/Dokumentabruf bereinigt |  |
+| Audit-Hash-Chain | System- und Integritätsbericht ohne Hash-Fehler |  |
+| Backup | verschlüsseltes Backup erzeugt und Restore getestet |  |
+| TOMs | erzeugt und fachlich geprüft |  |
+| VVT | Entwurf erzeugt und Verantwortlichkeit geklärt |  |
+| DSFA | Erforderlichkeit geprüft / Entwurf bewertet |  |
+| Löschkonzept | Review- und Löschlogik organisatorisch entschieden |  |
+| Stellvertretung | Zugriff und Heranziehung organisatorisch geregelt |  |
+| Externe Viewer | Risiken temporärer PDF-Kopien dokumentiert |  |
+
+## 3. Bewertung
+
+- Grün: Technische Grundlage vorhanden und organisatorisch entschieden.
+- Gelb: Technische Grundlage vorhanden, aber organisatorische Prüfung oder Nachweis offen.
+- Rot: Kritische Schutzlücke oder fehlender Nachweis.
+
+## 4. Mindestempfehlung vor produktiver Nutzung
+
+- Auto-Lock testen.
+- System- und Integritätsbericht erzeugen.
+- Temporäre Arbeitskopien bereinigen.
+- Erstes verschlüsseltes Backup erzeugen und testweise prüfen.
+- TOMs, VVT und DSFA-Entwurf mit Datenschutzbeauftragten / IT-Security abstimmen.
+- Regeln für Stellvertretung und Exporte schriftlich festhalten.
+`;
+}
+
+function releaseReadinessChecklistBody(generatedAt: string): string {
+  return `${header('1.0-Release-Checkliste Gremia.SBV', generatedAt)}## 1. Technische Abnahme
+
+| Prüfung | Erwartung | Ergebnis |
+|---|---|---|
+| npm run build | fehlerfrei |  |
+| npm run build:linux | AppImage wird erzeugt |  |
+| frische Datenbank | Start und Einrichtung erfolgreich |  |
+| Migration Altstand | Schema wird konsistent auf aktuellen Stand gebracht |  |
+| Backup erzeugen | verschlüsselte .gsbvbackup-Datei |  |
+| Backup prüfen / Restore | Integrität und Schema-Version plausibel |  |
+| Berichte erzeugen | alle Reporttypen erzeugbar |  |
+| PDF abrufen | temporäre Dateien werden kontrolliert |  |
+| Audit-Manipulationstest | Hash-Chain erkennt Änderung |  |
+
+## 2. Fachliche Abnahme
+
+| Bereich | Erwartung | Ergebnis |
+|---|---|---|
+| Fallakte | Maßnahmen werden dort angelegt und fortgeschrieben |  |
+| Inlinebefehle | /fr, /wv, /bet, /anp, /bem, /praev, /kuend, /gleich funktionieren |  |
+| Vorbelegung | Felder sind sinnvoll vorbelegt und ohne Zusatzklick speicherbar |  |
+| Beteiligung | Cockpit ist Übersicht, Bearbeitung in Fallakte |  |
+| Arbeitsplatzgestaltung | Maßnahme nach § 164 Abs. 4 SGB IX in Fallakte |  |
+| Fristen | fall- und maßnahmenbezogen sichtbar |  |
+| Dokumente | fall- und maßnahmenbezogen zuordenbar |  |
+| Tätigkeitsbericht | anonymisiert und ohne sensible Freitexte |  |
+
+## 3. Datenschutzabnahme
+
+| Prüfung | Erwartung | Ergebnis |
+|---|---|---|
+| TOMs | erzeugt und geprüft |  |
+| VVT | Verantwortlichkeit dokumentiert |  |
+| DSFA | Prüfung dokumentiert |  |
+| Löschkonzept | Review-Logik entschieden |  |
+| Exportregeln | schriftlich festgelegt |  |
+| DSB-/IT-Freigabe | Entscheidung / Auflagen dokumentiert |  |
+| Known Issues | offen dokumentiert |  |
+
+## 4. Releaseentscheidung
+
+- ☐ Release Candidate freigeben
+- ☐ nur mit Auflagen freigeben
+- ☐ nicht freigeben
+
+Auflagen / offene Punkte:
+
+______________________________________________________________________
+`;
+}
+
 function dsarBody(input: DataSubjectAccessRequestInput, generatedAt: string): string {
   return `${header('Antwort auf DSGVO-Auskunftsersuchen – Arbeitsentwurf', generatedAt)}## 1. Vorgang
 
@@ -520,6 +622,8 @@ function bodyFor(type: ComplianceDocumentType, generatedAt: string, dsarInput?: 
     case 'data_subject_rights': return dataSubjectRightsBody(generatedAt);
     case 'export_policy': return exportPolicyBody(generatedAt);
     case 'dsb_it_security_approval': return approvalBody(generatedAt);
+    case 'data_protection_status': return dataProtectionStatusBody(generatedAt);
+    case 'release_readiness_checklist': return releaseReadinessChecklistBody(generatedAt);
     case 'dsar_response': return dsarBody(dsarInput ?? defaultDsarInput(), generatedAt);
     default: {
       const exhaustive: never = type;
@@ -579,6 +683,8 @@ export function complianceClassificationFor(type: ComplianceDocumentType): strin
     case 'retention_schedule':
     case 'data_subject_rights':
     case 'export_policy':
+    case 'data_protection_status':
+    case 'release_readiness_checklist':
       return 'Intern / Compliance';
     case 'dsfa':
     case 'dsb_it_security_approval':

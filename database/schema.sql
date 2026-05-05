@@ -62,6 +62,7 @@ CREATE TABLE IF NOT EXISTS case_note_cases (
 CREATE TABLE IF NOT EXISTS case_documents (
   id TEXT PRIMARY KEY,
   case_id TEXT NOT NULL REFERENCES cases(id) ON DELETE CASCADE,
+  measure_id TEXT REFERENCES case_measures(id) ON DELETE SET NULL,
   filename TEXT NOT NULL,
   display_title TEXT,
   mime_type TEXT,
@@ -75,6 +76,7 @@ CREATE TABLE IF NOT EXISTS case_documents (
 CREATE TABLE IF NOT EXISTS deadlines (
   id TEXT PRIMARY KEY,
   case_id TEXT REFERENCES cases(id) ON DELETE CASCADE,
+  measure_id TEXT REFERENCES case_measures(id) ON DELETE SET NULL,
   person_id TEXT REFERENCES persons(id) ON DELETE SET NULL,
   process_id TEXT,
   process_type TEXT NOT NULL DEFAULT 'case',
@@ -247,6 +249,8 @@ CREATE INDEX IF NOT EXISTS idx_deadlines_due_at ON deadlines(due_at);
 
 CREATE INDEX IF NOT EXISTS idx_deadlines_status_due_at ON deadlines(status, due_at);
 CREATE INDEX IF NOT EXISTS idx_deadlines_case_id ON deadlines(case_id);
+CREATE INDEX IF NOT EXISTS idx_deadlines_measure_id ON deadlines(measure_id);
+CREATE INDEX IF NOT EXISTS idx_deadlines_case_measure ON deadlines(case_id, measure_id, due_at);
 CREATE INDEX IF NOT EXISTS idx_deadlines_person_id ON deadlines(person_id);
 CREATE INDEX IF NOT EXISTS idx_deadlines_process ON deadlines(process_type, process_id);
 CREATE INDEX IF NOT EXISTS idx_deadlines_dashboard_from_at ON deadlines(dashboard_from_at);
@@ -398,6 +402,8 @@ CREATE INDEX IF NOT EXISTS idx_termination_hearings_due ON termination_hearings(
 
 -- 0.3.17 document encryption metadata
 CREATE INDEX IF NOT EXISTS idx_case_documents_case_id ON case_documents(case_id);
+CREATE INDEX IF NOT EXISTS idx_case_documents_measure_id ON case_documents(measure_id);
+CREATE INDEX IF NOT EXISTS idx_case_documents_case_measure ON case_documents(case_id, measure_id, created_at);
 
 
 -- Reports module added for Gremia.SBV 0.3.33
@@ -683,9 +689,11 @@ CREATE INDEX IF NOT EXISTS idx_case_measures_case ON case_measures(case_id, type
 CREATE INDEX IF NOT EXISTS idx_case_measures_type_status ON case_measures(type, status);
 CREATE INDEX IF NOT EXISTS idx_case_measures_due ON case_measures(due_at);
 CREATE INDEX IF NOT EXISTS idx_case_measures_source ON case_measures(source_id);
+CREATE INDEX IF NOT EXISTS idx_case_measures_follow_up ON case_measures(case_id, requires_follow_up, status);
 CREATE INDEX IF NOT EXISTS idx_case_measure_participation_status ON case_measure_participation(participation_status);
 CREATE INDEX IF NOT EXISTS idx_case_measure_participation_statement_due ON case_measure_participation(sbv_statement_due_at);
 CREATE INDEX IF NOT EXISTS idx_case_measure_participation_suspension_due ON case_measure_participation(suspension_deadline_at);
+CREATE INDEX IF NOT EXISTS idx_case_measure_events_measure_created ON case_measure_events(measure_id, created_at);
 
 CREATE TABLE IF NOT EXISTS case_measure_workplace_accommodation (
   measure_id TEXT PRIMARY KEY,

@@ -175,16 +175,18 @@ const api = {
       ipcRenderer.invoke("cases:notes:update", id, input),
     deleteNote: (id: string): Promise<{ deleted: boolean }> =>
       ipcRenderer.invoke("cases:notes:delete", id),
-    listDocuments: (caseId: string): Promise<CaseDocumentRecord[]> =>
-      ipcRenderer.invoke("cases:documents:list", caseId),
+    listDocuments: (caseId: string, measureId?: string): Promise<CaseDocumentRecord[]> =>
+      ipcRenderer.invoke("cases:documents:list", caseId, measureId),
     selectAndImportDocuments: (
       caseId: string,
       containsHealthData = true,
+      measureId?: string,
     ): Promise<CaseDocumentRecord[]> =>
       ipcRenderer.invoke(
         "cases:documents:select-and-import",
         caseId,
         containsHealthData,
+        measureId,
       ),
     deleteDocument: (id: string): Promise<{ deleted: boolean }> =>
       ipcRenderer.invoke("cases:documents:delete", id),

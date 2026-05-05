@@ -1,27 +1,37 @@
 export type ParticipationMeasureType =
-  | 'einstellung'
-  | 'versetzung'
-  | 'arbeitszeit'
-  | 'arbeitsplatzgestaltung'
-  | 'abmahnung'
-  | 'kuendigung'
-  | 'bem_praevention'
-  | 'regelung_praxis'
-  | 'sonstiges';
+  | "einstellung"
+  | "versetzung"
+  | "arbeitszeit"
+  | "arbeitsplatzgestaltung"
+  | "abmahnung"
+  | "kuendigung"
+  | "bem_praevention"
+  | "regelung_praxis"
+  | "sonstiges";
 
 export type ParticipationStatus =
-  | 'neu'
-  | 'unterrichtung_pruefen'
-  | 'anhoerung_laeuft'
-  | 'stellungnahme_abgegeben'
-  | 'aussetzung_verlangt'
-  | 'nachholung_laeuft'
-  | 'abgeschlossen'
-  | 'pflichtverstoss_dokumentiert';
+  | "neu"
+  | "unterrichtung_pruefen"
+  | "anhoerung_laeuft"
+  | "stellungnahme_abgegeben"
+  | "aussetzung_verlangt"
+  | "nachholung_laeuft"
+  | "abgeschlossen"
+  | "pflichtverstoss_dokumentiert";
 
-export type ParticipationRiskLevel = 'normal' | 'erhoeht' | 'kritisch';
-export type ParticipationPersonStatus = 'schwerbehindert' | 'gleichgestellt' | 'antrag_laeuft' | 'moeglich_betroffen' | 'unklar';
-export type ParticipationDecisionStage = 'vor_entscheidung' | 'entscheidung_angekuendigt' | 'entscheidung_getroffen' | 'umgesetzt' | 'unklar';
+export type ParticipationRiskLevel = "normal" | "erhoeht" | "kritisch";
+export type ParticipationPersonStatus =
+  | "schwerbehindert"
+  | "gleichgestellt"
+  | "antrag_laeuft"
+  | "moeglich_betroffen"
+  | "unklar";
+export type ParticipationDecisionStage =
+  | "vor_entscheidung"
+  | "entscheidung_angekuendigt"
+  | "entscheidung_getroffen"
+  | "umgesetzt"
+  | "unklar";
 
 export interface ParticipationRecord {
   id: string;
@@ -69,6 +79,8 @@ export interface CreateParticipationInput {
   sbvPosition?: string;
   nextStep?: string;
   createDefaultDeadlines?: boolean;
+  createdFrom?: "manual" | "inline_command";
+  requiresFollowUp?: boolean;
 }
 
 export interface UpdateParticipationInput {
@@ -103,6 +115,6 @@ export interface ParticipationDashboardSummary {
 }
 
 export interface ParticipationWarning {
-  level: 'info' | 'warning' | 'critical';
+  level: "info" | "warning" | "critical";
   message: string;
 }

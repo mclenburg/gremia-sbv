@@ -23,6 +23,9 @@ export function CaseDocumentDetail({
       <div className="case-note-card-header"><span className="industrial-badge">Dokument</span><time>{formatNoteDate(document.createdAt)}</time></div>
       <h2>{document.displayTitle}</h2>
       <p className="industrial-meta">{document.filename} · {document.mimeType ?? 'Datei'} · {formatBytes(document.sizeBytes)}</p>
+      {document.measureTitle && (
+        <p className="industrial-meta">Zugeordnete Maßnahme: {document.measureTitle}</p>
+      )}
       <p className="industrial-meta">SHA-256: {document.sha256}</p>
       {document.extractedText ? <p className="case-note-content">{document.extractedText.slice(0, 2000)}</p> : <p className="industrial-empty">Für dieses Dokument wurde kein lesbarer Volltext extrahiert. Dateiname und Metadaten sind trotzdem suchbar.</p>}
       <div className="industrial-message industrial-message-warning">Beim Öffnen oder Exportieren entsteht temporär bzw. bewusst eine Klartextkopie außerhalb des verschlüsselten Dokumentenspeichers.</div>

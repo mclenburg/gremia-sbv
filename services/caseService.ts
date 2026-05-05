@@ -91,6 +91,9 @@ function mapDocument(row: any): CaseDocumentRecord {
     id: row.id,
     caseId: row.case_id,
     caseNumber: row.case_number ?? undefined,
+    measureId: row.measure_id ?? undefined,
+    measureTitle: row.measure_title ?? undefined,
+    measureType: row.measure_type ?? undefined,
     displayTitle: row.display_title ?? row.filename,
     filename: row.filename,
     mimeType: row.mime_type ?? undefined,
@@ -728,7 +731,7 @@ export class CaseService {
     }
   }
 
-  async listDocuments(caseId: string): Promise<CaseDocumentRecord[]> {
+  async listDocuments(caseId: string, measureId?: string): Promise<CaseDocumentRecord[]> {
     const db = this.getSafeDb();
     this.audit(db, {
       action: "read",
@@ -739,14 +742,15 @@ export class CaseService {
     const rows = db
       .prepare<any>(
         `
-      SELECT d.*, c.case_number
+      SELECT d.*, c.case_number, m.title AS measure_title, m.type AS measure_type
       FROM case_documents d
       JOIN cases c ON c.id = d.case_id
-      WHERE d.case_id = ?
+      LEFT JOIN case_measures m ON m.id = d.measure_id
+      WHERE d.case_id = ? AND (? IS NULL OR d.measure_id = ?)
       ORDER BY d.created_at DESC
     `,
       )
-      .all(caseId);
+      .all(caseId, measureId ?? null, measureId ?? null);
     return rows.map(mapDocument);
   }
 
@@ -754,6 +758,7 @@ export class CaseService {
     caseId: string,
     filePath: string,
     containsHealthData = true,
+    measureId?: string,
   ): Promise<CaseDocumentRecord> {
     const db = this.getSafeDb();
     const caseRow = db
@@ -787,13 +792,14 @@ export class CaseService {
     db.prepare(
       `
       INSERT INTO case_documents (
-        id, case_id, filename, display_title, mime_type, storage_path, sha256, extracted_text,
+        id, case_id, measure_id, filename, display_title, mime_type, storage_path, sha256, extracted_text,
         document_key, iv, auth_tag, size_bytes, contains_health_data, created_at, imported_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `,
     ).run(
       id,
       caseId,
+      measureId ?? null,
       originalName,
       originalName,
       mimeType,
@@ -813,7 +819,11 @@ export class CaseService {
     const created = db
       .prepare<any>(
         `
-      SELECT d.*, c.case_number FROM case_documents d JOIN cases c ON c.id = d.case_id WHERE d.id = ?
+      SELECT d.*, c.case_number, m.title AS measure_title, m.type AS measure_type
+      FROM case_documents d
+      JOIN cases c ON c.id = d.case_id
+      LEFT JOIN case_measures m ON m.id = d.measure_id
+      WHERE d.id = ?
     `,
       )
       .get(id);

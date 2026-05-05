@@ -695,3 +695,72 @@ html[data-theme='light'] .industrial-field textarea {
   background: #f9f9f4;
   color: #141414;
 }
+
+/* 0.8.6-b: dezente Kennzeichnung automatisch vorbelegter Felder. */
+.prefill-marker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0.35rem;
+  font-size: 0.78em;
+  line-height: 1;
+  color: var(--color-accent, #f5d000);
+  opacity: 0.86;
+}
+
+.industrial-field > span .prefill-marker,
+.industrial-modal-grid label > span .prefill-marker {
+  vertical-align: baseline;
+}
+
+.measure-detail-header {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.85rem;
+  border: 1px solid var(--border-subtle, rgba(255,255,255,0.14));
+  background: rgba(255,255,255,0.025);
+}
+
+.measure-detail-header-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.measure-detail-title {
+  margin: 0;
+  font-size: clamp(1.05rem, 1.1vw, 1.35rem);
+}
+
+.measure-detail-meta {
+  margin: 0;
+  color: var(--text-muted, #aeb4c2);
+}
+
+.measure-status-badge,
+.measure-risk-badge,
+.measure-follow-up-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.55rem;
+  padding: 0.18rem 0.5rem;
+  border: 1px solid var(--border-subtle, rgba(255,255,255,0.14));
+  background: rgba(255,255,255,0.035);
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.measure-risk-badge[data-risk="kritisch"] {
+  border-color: rgba(255, 87, 87, 0.45);
+}
+
+.measure-risk-badge[data-risk="erhoeht"] {
+  border-color: rgba(245, 208, 0, 0.45);
+}
+
+.measure-follow-up-badge {
+  border-color: rgba(245, 208, 0, 0.55);
+  color: var(--color-accent, #f5d000);
+}

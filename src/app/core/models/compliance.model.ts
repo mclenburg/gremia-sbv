@@ -7,6 +7,8 @@ export type ComplianceDocumentType =
   | 'data_subject_rights'
   | 'export_policy'
   | 'dsb_it_security_approval'
+  | 'data_protection_status'
+  | 'release_readiness_checklist'
   | 'dsar_response';
 
 export interface ComplianceDocument {
@@ -33,4 +35,22 @@ export interface DataSubjectAccessRequestInput {
   identityVerified: boolean;
   requestScope: string;
   preparedBy: string;
+}
+
+
+export type ComplianceStatusLevel = 'green' | 'yellow' | 'red';
+
+export interface ComplianceStatusItem {
+  id: string;
+  label: string;
+  level: ComplianceStatusLevel;
+  summary: string;
+  detail?: string;
+}
+
+export interface ComplianceStatusOverview {
+  generatedAt: string;
+  overallLevel: ComplianceStatusLevel;
+  items: ComplianceStatusItem[];
+  nextActions: string[];
 }

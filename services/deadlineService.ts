@@ -49,6 +49,7 @@ function mapDeadline(row: any): DeadlineRecord {
   return {
     id: row.id,
     caseId: row.case_id ?? undefined,
+    measureId: row.measure_id ?? undefined,
     personId: row.person_id ?? undefined,
     processId: row.process_id ?? undefined,
     processType: row.process_type ?? 'case',
@@ -187,14 +188,15 @@ export class DeadlineService {
 
     this.db.prepare(`
       INSERT INTO deadlines (
-        id, case_id, person_id, process_id, process_type, deadline_type,
+        id, case_id, measure_id, person_id, process_id, process_type, deadline_type,
         title, confidential_title, description, due_at, reminder_at, legal_basis, source_event,
         severity, status, calculation_mode, is_legal_deadline, is_user_editable,
         warning_threshold_hours, critical_threshold_hours, dashboard_from_at, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'open', ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'open', ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       id,
       input.caseId ?? null,
+      input.measureId ?? null,
       input.personId ?? null,
       input.processId ?? null,
       input.processType,
@@ -218,7 +220,7 @@ export class DeadlineService {
     );
 
     this.audit(id, 'created', undefined, JSON.stringify(input), 'Frist angelegt');
-    this.personalDataAudit('create', id, input.caseId, 'Frist personenbezogen angelegt', { processType: input.processType, deadlineType: input.deadlineType ?? 'follow_up', isLegalDeadline: Boolean(input.isLegalDeadline) });
+    this.personalDataAudit('create', id, input.caseId, 'Frist personenbezogen angelegt', { processType: input.processType, deadlineType: input.deadlineType ?? 'follow_up', measureId: input.measureId ?? null, isLegalDeadline: Boolean(input.isLegalDeadline) });
     return this.getById(id)!;
   }
 
@@ -234,6 +236,7 @@ export class DeadlineService {
 
     return this.create({
       caseId: input.caseId,
+      measureId: input.measureId,
       personId: input.personId,
       processId: input.processId,
       processType: template.processType,
@@ -282,6 +285,7 @@ export class DeadlineService {
     if (filters.status?.length) deadlines = deadlines.filter((d: DeadlineRecord) => filters.status!.includes(d.status));
     if (filters.processType?.length) deadlines = deadlines.filter((d: DeadlineRecord) => filters.processType!.includes(d.processType));
     if (filters.caseId) deadlines = deadlines.filter((d: DeadlineRecord) => d.caseId === filters.caseId);
+    if (filters.measureId) deadlines = deadlines.filter((d: DeadlineRecord) => d.measureId === filters.measureId);
     if (filters.from) deadlines = deadlines.filter((d: DeadlineRecord) => d.dueAt >= filters.from!);
     if (filters.to) deadlines = deadlines.filter((d: DeadlineRecord) => d.dueAt <= filters.to!);
     if (filters.dashboardOnly) deadlines = deadlines.filter((d: DeadlineRecord) => getDashboardState(d) !== 'hidden');

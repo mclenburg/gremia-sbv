@@ -1,4 +1,92 @@
+.case-workbench-footer {
+  display: grid;
+  gap: 1rem;
+  border-top: 1px solid var(--sbv-border);
+  padding-top: 1rem;
+}
 
+.case-workbench-footer-section {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.case-workbench-footer-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.case-workbench-footer-heading span {
+  color: var(--sbv-yellow);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.case-workbench-footer-heading small {
+  color: var(--sbv-muted);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.case-workbench-footer-actions {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.case-workbench-footer-actions-primary {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.case-workbench-footer-actions-secondary {
+  grid-template-columns: repeat(auto-fit, minmax(11.5rem, 1fr));
+}
+
+.case-workbench-footer-button {
+  width: 100%;
+  justify-content: flex-start;
+  align-items: flex-start;
+  text-align: left;
+  gap: 0.7rem;
+  padding: 0.8rem 0.9rem;
+  box-shadow: none;
+}
+
+.case-workbench-footer-button .h-4 {
+  margin-top: 0.1rem;
+  flex: 0 0 auto;
+}
+
+.case-workbench-footer-button-secondary {
+  background: rgba(9, 9, 11, 0.58);
+}
+
+.case-workbench-footer-button-secondary:hover:not(:disabled),
+.case-workbench-footer-button-secondary:focus-visible {
+  background: rgba(24, 24, 27, 0.88);
+}
+
+.case-workbench-footer-action-label {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.case-workbench-footer-action-label strong {
+  color: inherit;
+  font-size: 0.92rem;
+  font-weight: 850;
+  line-height: 1.2;
+}
+
+.case-workbench-footer-action-label small {
+  color: var(--sbv-muted);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
 
 .termination-guidance-actions {
   display: flex;
@@ -7,7 +95,113 @@
   justify-content: flex-end;
 }
 
-
 .termination-privacy-panel {
   border-color: rgba(251, 191, 36, .45);
+}
+
+@media (max-width: 1180px) {
+  .case-workbench-footer-actions-primary {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .case-workbench-footer-heading {
+    display: grid;
+  }
+
+  .case-workbench-footer-actions-secondary {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* 0.8.8-b Fallakte UI-Polish: ruhige Aktionshierarchie und responsive Suchleiste */
+.case-detail-search-bar {
+  grid-template-columns: auto minmax(18rem, 1fr) minmax(10rem, auto) auto;
+  align-items: center;
+  padding-bottom: 0.9rem;
+}
+
+.case-detail-search-button {
+  justify-content: center;
+  min-width: 7rem;
+  box-shadow: none;
+}
+
+.case-workbench-footer {
+  margin-top: 0.25rem;
+}
+
+.case-workbench-footer-actions {
+  align-items: stretch;
+}
+
+.case-workbench-footer-actions-primary {
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+}
+
+.case-workbench-footer-actions-secondary {
+  grid-template-columns: repeat(auto-fit, minmax(10.75rem, 1fr));
+}
+
+.case-workbench-footer-button {
+  min-height: 4.2rem;
+  border-radius: 0.35rem;
+}
+
+.case-workbench-footer-actions-secondary .case-workbench-footer-button {
+  min-height: 3.85rem;
+}
+
+.case-workbench-footer-actions-secondary .case-workbench-footer-action-label strong {
+  font-size: 0.86rem;
+}
+
+.case-workbench-footer-actions-secondary .case-workbench-footer-action-label small {
+  font-size: 0.68rem;
+}
+
+.case-workbench-footer-actions-secondary .case-workbench-footer-button .h-4 {
+  opacity: 0.82;
+}
+
+@media (max-width: 1250px) {
+  .case-detail-search-bar {
+    grid-template-columns: auto minmax(16rem, 1fr) auto;
+  }
+
+  .case-detail-search-bar .industrial-checkbox-row.compact {
+    grid-column: 2 / 4;
+  }
+}
+
+@media (max-width: 900px) {
+  .case-detail-search-bar {
+    grid-template-columns: 1fr;
+  }
+
+  .case-detail-search-bar > .h-4 {
+    display: none;
+  }
+
+  .case-detail-search-bar .industrial-checkbox-row.compact,
+  .case-detail-search-button {
+    grid-column: auto;
+    width: 100%;
+  }
+
+  .case-workbench-footer-heading small {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 560px) {
+  .case-workbench-footer-button {
+    min-height: auto;
+  }
+
+  .case-workbench-footer-action-label small {
+    display: none;
+  }
 }

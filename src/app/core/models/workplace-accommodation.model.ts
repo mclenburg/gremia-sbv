@@ -1,31 +1,42 @@
 export type WorkplaceAccommodationStatus =
-  | 'entwurf'
-  | 'angefragt'
-  | 'in_pruefung'
-  | 'unterlagen_fehlen'
-  | 'arbeitgeber_lehnt_ab'
-  | 'inklusionsamt_einbezogen'
-  | 'bewilligt'
-  | 'in_umsetzung'
-  | 'wirksamkeitspruefung'
-  | 'abgeschlossen'
-  | 'eskaliert';
+  | "entwurf"
+  | "angefragt"
+  | "in_pruefung"
+  | "unterlagen_fehlen"
+  | "arbeitgeber_lehnt_ab"
+  | "inklusionsamt_einbezogen"
+  | "bewilligt"
+  | "in_umsetzung"
+  | "wirksamkeitspruefung"
+  | "abgeschlossen"
+  | "eskaliert";
 
 export type WorkplaceAccommodationCategory =
-  | 'arbeitsplatz'
-  | 'arbeitsumfeld'
-  | 'arbeitsorganisation'
-  | 'arbeitszeit'
-  | 'arbeitsort'
-  | 'technische_arbeitshilfe'
-  | 'software_barrierefreiheit'
-  | 'qualifizierung'
-  | 'aufgabenanpassung'
-  | 'sonstiges';
+  | "arbeitsplatz"
+  | "arbeitsumfeld"
+  | "arbeitsorganisation"
+  | "arbeitszeit"
+  | "arbeitsort"
+  | "technische_arbeitshilfe"
+  | "software_barrierefreiheit"
+  | "qualifizierung"
+  | "aufgabenanpassung"
+  | "sonstiges";
 
-export type WorkplaceAccommodationRiskLevel = 'normal' | 'erhoeht' | 'kritisch';
-export type WorkplaceAccommodationEmployerResponseStatus = 'offen' | 'zugesagt' | 'teilweise_zugesagt' | 'abgelehnt' | 'klaerung_noetig';
-export type WorkplaceAccommodationImplementationStatus = 'nicht_begonnen' | 'geplant' | 'in_umsetzung' | 'umgesetzt' | 'nicht_umgesetzt' | 'nicht_mehr_erforderlich';
+export type WorkplaceAccommodationRiskLevel = "normal" | "erhoeht" | "kritisch";
+export type WorkplaceAccommodationEmployerResponseStatus =
+  | "offen"
+  | "zugesagt"
+  | "teilweise_zugesagt"
+  | "abgelehnt"
+  | "klaerung_noetig";
+export type WorkplaceAccommodationImplementationStatus =
+  | "nicht_begonnen"
+  | "geplant"
+  | "in_umsetzung"
+  | "umgesetzt"
+  | "nicht_umgesetzt"
+  | "nicht_mehr_erforderlich";
 
 export interface WorkplaceAccommodationRecord {
   id: string;
@@ -85,6 +96,8 @@ export interface CreateWorkplaceAccommodationInput {
   nextStep?: string;
   outcome?: string;
   createDefaultDeadlines?: boolean;
+  createdFrom?: "manual" | "inline_command";
+  requiresFollowUp?: boolean;
 }
 
 export interface UpdateWorkplaceAccommodationInput {
@@ -122,33 +135,39 @@ export interface WorkplaceAccommodationDashboardSummary {
 }
 
 export interface WorkplaceAccommodationWarning {
-  level: 'info' | 'warning' | 'critical';
+  level: "info" | "warning" | "critical";
   message: string;
 }
 
-export const workplaceAccommodationStatusLabels: Record<WorkplaceAccommodationStatus, string> = {
-  entwurf: 'Entwurf',
-  angefragt: 'angefragt',
-  in_pruefung: 'in Prüfung',
-  unterlagen_fehlen: 'Unterlagen fehlen',
-  arbeitgeber_lehnt_ab: 'Arbeitgeber lehnt ab',
-  inklusionsamt_einbezogen: 'Inklusionsamt einbezogen',
-  bewilligt: 'bewilligt',
-  in_umsetzung: 'in Umsetzung',
-  wirksamkeitspruefung: 'Wirksamkeitsprüfung',
-  abgeschlossen: 'abgeschlossen',
-  eskaliert: 'eskaliert'
+export const workplaceAccommodationStatusLabels: Record<
+  WorkplaceAccommodationStatus,
+  string
+> = {
+  entwurf: "Entwurf",
+  angefragt: "angefragt",
+  in_pruefung: "in Prüfung",
+  unterlagen_fehlen: "Unterlagen fehlen",
+  arbeitgeber_lehnt_ab: "Arbeitgeber lehnt ab",
+  inklusionsamt_einbezogen: "Inklusionsamt einbezogen",
+  bewilligt: "bewilligt",
+  in_umsetzung: "in Umsetzung",
+  wirksamkeitspruefung: "Wirksamkeitsprüfung",
+  abgeschlossen: "abgeschlossen",
+  eskaliert: "eskaliert",
 };
 
-export const workplaceAccommodationCategoryLabels: Record<WorkplaceAccommodationCategory, string> = {
-  arbeitsplatz: 'Arbeitsplatz',
-  arbeitsumfeld: 'Arbeitsumfeld',
-  arbeitsorganisation: 'Arbeitsorganisation',
-  arbeitszeit: 'Arbeitszeit',
-  arbeitsort: 'Arbeitsort / mobile Arbeit',
-  technische_arbeitshilfe: 'technische Arbeitshilfe',
-  software_barrierefreiheit: 'Software / Barrierefreiheit',
-  qualifizierung: 'Qualifizierung',
-  aufgabenanpassung: 'Aufgabenanpassung',
-  sonstiges: 'Sonstiges'
+export const workplaceAccommodationCategoryLabels: Record<
+  WorkplaceAccommodationCategory,
+  string
+> = {
+  arbeitsplatz: "Arbeitsplatz",
+  arbeitsumfeld: "Arbeitsumfeld",
+  arbeitsorganisation: "Arbeitsorganisation",
+  arbeitszeit: "Arbeitszeit",
+  arbeitsort: "Arbeitsort / mobile Arbeit",
+  technische_arbeitshilfe: "technische Arbeitshilfe",
+  software_barrierefreiheit: "Software / Barrierefreiheit",
+  qualifizierung: "Qualifizierung",
+  aufgabenanpassung: "Aufgabenanpassung",
+  sonstiges: "Sonstiges",
 };

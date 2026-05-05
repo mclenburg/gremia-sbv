@@ -460,6 +460,21 @@ function likePattern(query: string): string {
   return `%${query.trim().replace(/[\\%_]/g, (match) => `\\${match}`)}%`;
 }
 
+
+function categoryForMeasureType(measureType: string | undefined): string | null {
+  if (!measureType) return null;
+  const map: Record<string, string> = {
+    bem: 'bem',
+    prevention: 'praevention',
+    sbv_participation: 'beteiligung',
+    termination_hearing: 'kuendigung',
+    equalization_gdb: 'gleichstellung',
+    workplace_accommodation: 'praevention',
+    other: 'sonstiges'
+  };
+  return map[measureType] ?? null;
+}
+
 export class TemplateService {
   constructor(private readonly dbProvider: () => DatabaseAdapter) {}
 
@@ -528,7 +543,8 @@ export class TemplateService {
   async listTemplates(filters: TemplateListFilters = {}): Promise<TemplateRecord[]> {
     const db = this.db;
     const query = filters.query?.trim();
-    const category = filters.category ?? null;
+    const category = filters.category ?? categoryForMeasureType(filters.measureType) ?? null;
+    const contextualTag = filters.measureType ?? null;
     const limit = Math.min(Math.max(filters.limit ?? 200, 1), 500);
 
     if (query) {
@@ -536,6 +552,7 @@ export class TemplateService {
       const rows = db.prepare<any>(`
         SELECT * FROM document_templates
         WHERE (? IS NULL OR category = ?)
+          AND (? IS NULL OR tags_json LIKE '%' || ? || '%' OR category = ?)
           AND (? = 1 OR is_system = 0)
           AND (
             title LIKE ? ESCAPE '\\'
@@ -547,17 +564,18 @@ export class TemplateService {
           )
         ORDER BY is_system DESC, category, title COLLATE NOCASE
         LIMIT ?
-      `).all(category, category, filters.includeSystem === false ? 0 : 1, pattern, pattern, pattern, pattern, pattern, pattern, limit);
+      `).all(category, category, contextualTag, contextualTag, category, filters.includeSystem === false ? 0 : 1, pattern, pattern, pattern, pattern, pattern, pattern, limit);
       return rows.map(mapTemplate);
     }
 
     const rows = db.prepare<any>(`
       SELECT * FROM document_templates
       WHERE (? IS NULL OR category = ?)
+        AND (? IS NULL OR tags_json LIKE '%' || ? || '%' OR category = ?)
         AND (? = 1 OR is_system = 0)
       ORDER BY is_system DESC, category, title COLLATE NOCASE
       LIMIT ?
-    `).all(category, category, filters.includeSystem === false ? 0 : 1, limit);
+    `).all(category, category, contextualTag, contextualTag, category, filters.includeSystem === false ? 0 : 1, limit);
     return rows.map(mapTemplate);
   }
 

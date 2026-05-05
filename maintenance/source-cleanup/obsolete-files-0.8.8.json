@@ -1,0 +1,6 @@
+{
+  "version": "0.8.8",
+  "description": "Patch 0.8.8 führt Build-Readiness-Prüfungen ein. In diesem Patch werden keine Source-Dateien entfernt.",
+  "files": [],
+  "directories": []
+}

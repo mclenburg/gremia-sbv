@@ -1,36 +1,104 @@
 import {
   AlertTriangle,
+  BadgeCheck,
   CalendarPlus,
   CheckCircle2,
   ClipboardCheck,
   FileText,
+  HeartPulse,
   Wrench,
   FolderKanban,
   Lock,
   Scale,
   ShieldAlert,
-  Users
-} from 'lucide-react';
-import type { CaseRecord } from '../../../core/models/case.model';
-import type { ContactRecord } from '../../../core/models/contact.model';
-import type { LegalNormSuggestion } from '@services/textCommandPolicy';
-import { filterContactsForQuery, formatContactReference } from '../../contacts/contactDisplay';
+  Siren,
+  Users,
+} from "lucide-react";
+import type { CaseRecord } from "../../../core/models/case.model";
+import type { ContactRecord } from "../../../core/models/contact.model";
+import type { LegalNormSuggestion } from "@services/textCommandPolicy";
+import {
+  filterContactsForQuery,
+  formatContactReference,
+} from "../../contacts/contactDisplay";
 import {
   LEGAL_NORM_SUGGESTIONS,
   formatAnonymizationMarkerText,
+  formatBemMarkerText,
   formatConfidentialityText,
   formatLegalNormText,
   formatOpenTaskText,
+  formatPreventionMarkerText,
+  formatEqualizationMarkerText,
+  formatTerminationMarkerText,
   formatRiskText,
-  formatTemplateMarkerText
-} from '@services/textCommandPolicy';
-import { filterCasesForInlineCommand, filterNormsForInlineCommand } from './inlineCommandSearch';
-import type { InlineAnonymizationDraft, InlineCaseLinkDraft, InlineConfidentialityDraft, InlineContactDraft, InlineDeadlineDraft, InlineLegalNormDraft, InlineOpenTaskDraft, InlineParticipationDraft, InlineRiskDraft, InlineTemplateDraft, InlineWorkplaceAccommodationDraft } from './useInlineCommands';
-import type { ContactCategory } from '../../../core/models/contact.model';
-import type { DeadlineSeverity } from '../../../core/models/deadline.model';
-import type { ConfidentialCommandLevel, RiskLevelCommand } from '@services/textCommandPolicy';
+  formatTemplateMarkerText,
+} from "@services/textCommandPolicy";
+import {
+  filterCasesForInlineCommand,
+  filterNormsForInlineCommand,
+} from "./inlineCommandSearch";
+import type {
+  InlineAnonymizationDraft,
+  InlineBemDraft,
+  InlineCaseLinkDraft,
+  InlineConfidentialityDraft,
+  InlineContactDraft,
+  InlineDeadlineDraft,
+  InlineEqualizationDraft,
+  InlineLegalNormDraft,
+  InlineOpenTaskDraft,
+  InlineParticipationDraft,
+  InlinePreventionDraft,
+  InlineRiskDraft,
+  InlineTemplateDraft,
+  InlineTerminationDraft,
+  InlineWorkplaceAccommodationDraft,
+} from "./useInlineCommands";
+import type { ContactCategory } from "../../../core/models/contact.model";
+import type { DeadlineSeverity } from "../../../core/models/deadline.model";
+import type {
+  ConfidentialCommandLevel,
+  RiskLevelCommand,
+} from "@services/textCommandPolicy";
 
 type Setter<T> = (updater: (current: T | null) => T | null) => void;
+
+function isPrefilled(
+  draft: { prefilledFields?: string[] } | null | undefined,
+  field: string,
+): boolean {
+  return Boolean(draft?.prefilledFields?.includes(field));
+}
+
+function PrefillIndicator({ active }: { active: boolean }) {
+  return active ? (
+    <span
+      className="prefill-marker"
+      aria-label="automatisch vorbelegt"
+      title="automatisch vorbelegt"
+    >
+      ◇
+    </span>
+  ) : null;
+}
+
+function FieldCaption({
+  children,
+  draft,
+  field,
+}: {
+  children: string;
+  draft: { prefilledFields?: string[] };
+  field: string;
+}) {
+  return (
+    <span>
+      {children}
+      <PrefillIndicator active={isPrefilled(draft, field)} />
+    </span>
+  );
+}
 
 export type InlineCommandOverlaysProps = {
   inlineCaseLinkDraft: InlineCaseLinkDraft | null;
@@ -41,7 +109,9 @@ export type InlineCommandOverlaysProps = {
 
   inlineLegalNormDraft: InlineLegalNormDraft | null;
   setInlineLegalNormDraft: Setter<InlineLegalNormDraft>;
-  insertLegalNormFromProtocol: (norm: LegalNormSuggestion) => void | Promise<void>;
+  insertLegalNormFromProtocol: (
+    norm: LegalNormSuggestion,
+  ) => void | Promise<void>;
   cancelInlineLegalNormDraft: () => void;
 
   inlineRiskDraft: InlineRiskDraft | null;
@@ -67,9 +137,31 @@ export type InlineCommandOverlaysProps = {
   inlineContactDraft: InlineContactDraft | null;
   setInlineContactDraft: Setter<InlineContactDraft>;
   contacts: ContactRecord[];
-  insertExistingContactFromProtocol: (contact: ContactRecord) => void | Promise<void>;
+  insertExistingContactFromProtocol: (
+    contact: ContactRecord,
+  ) => void | Promise<void>;
   createAndInsertContactFromProtocol: () => void | Promise<void>;
   cancelInlineContactDraft: () => void;
+
+  inlineBemDraft: InlineBemDraft | null;
+  setInlineBemDraft: Setter<InlineBemDraft>;
+  createBemFromProtocol: () => void | Promise<void>;
+  cancelInlineBemDraft: () => void;
+
+  inlinePreventionDraft: InlinePreventionDraft | null;
+  setInlinePreventionDraft: Setter<InlinePreventionDraft>;
+  createPreventionFromProtocol: () => void | Promise<void>;
+  cancelInlinePreventionDraft: () => void;
+
+  inlineEqualizationDraft: InlineEqualizationDraft | null;
+  setInlineEqualizationDraft: Setter<InlineEqualizationDraft>;
+  createEqualizationFromProtocol: () => void | Promise<void>;
+  cancelInlineEqualizationDraft: () => void;
+
+  inlineTerminationDraft: InlineTerminationDraft | null;
+  setInlineTerminationDraft: Setter<InlineTerminationDraft>;
+  createTerminationFromProtocol: () => void | Promise<void>;
+  cancelInlineTerminationDraft: () => void;
 
   inlineParticipationDraft: InlineParticipationDraft | null;
   setInlineParticipationDraft: Setter<InlineParticipationDraft>;
@@ -127,6 +219,22 @@ export function InlineCommandOverlays(props: InlineCommandOverlaysProps) {
     insertExistingContactFromProtocol,
     createAndInsertContactFromProtocol,
     cancelInlineContactDraft,
+    inlineBemDraft,
+    setInlineBemDraft,
+    createBemFromProtocol,
+    cancelInlineBemDraft,
+    inlinePreventionDraft,
+    setInlinePreventionDraft,
+    createPreventionFromProtocol,
+    cancelInlinePreventionDraft,
+    inlineEqualizationDraft,
+    setInlineEqualizationDraft,
+    createEqualizationFromProtocol,
+    cancelInlineEqualizationDraft,
+    inlineTerminationDraft,
+    setInlineTerminationDraft,
+    createTerminationFromProtocol,
+    cancelInlineTerminationDraft,
     inlineParticipationDraft,
     setInlineParticipationDraft,
     createParticipationFromProtocol,
@@ -144,79 +252,474 @@ export function InlineCommandOverlays(props: InlineCommandOverlaysProps) {
     selectedCase,
     buildInlineDeadlineText,
     createInlineDeadlineFromProtocol,
-    cancelInlineDeadlineDraft
+    cancelInlineDeadlineDraft,
   } = props;
 
   return (
     <>
       {inlineCaseLinkDraft && (
         <div className="industrial-modal-backdrop" role="presentation">
-          <section className="industrial-modal" role="dialog" aria-modal="true" aria-labelledby="inline-case-link-title">
-            <div className="industrial-modal-header"><div className="industrial-modal-icon"><FolderKanban className="h-5 w-5" /></div><div><p className="industrial-kicker">Inline-Fallbezug</p><h2 id="inline-case-link-title">Fallbezug verknüpfen</h2><p>Der gewählte Fall wird in den Text eingefügt und als weiterer Fallbezug der Notiz gespeichert.</p></div></div>
-            <div className="industrial-modal-grid"><label className="industrial-modal-wide"><span>Fall suchen</span><input value={inlineCaseLinkDraft.query} onChange={(event) => setInlineCaseLinkDraft((current) => current ? { ...current, query: event.target.value } : current)} autoFocus placeholder="Aktenzeichen, Name/Pseudonym, Kategorie …" /></label></div>
+          <section
+            className="industrial-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="inline-case-link-title"
+          >
+            <div className="industrial-modal-header">
+              <div className="industrial-modal-icon">
+                <FolderKanban className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="industrial-kicker">Inline-Fallbezug</p>
+                <h2 id="inline-case-link-title">Fallbezug verknüpfen</h2>
+                <p>
+                  Der gewählte Fall wird in den Text eingefügt und als weiterer
+                  Fallbezug der Notiz gespeichert.
+                </p>
+              </div>
+            </div>
+            <div className="industrial-modal-grid">
+              <label className="industrial-modal-wide">
+                <span>Fall suchen</span>
+                <input
+                  value={inlineCaseLinkDraft.query}
+                  onChange={(event) =>
+                    setInlineCaseLinkDraft((current) =>
+                      current
+                        ? { ...current, query: event.target.value }
+                        : current,
+                    )
+                  }
+                  autoFocus
+                  placeholder="Aktenzeichen, Name/Pseudonym, Kategorie …"
+                />
+              </label>
+            </div>
             <div className="inline-contact-results">
-              {filterCasesForInlineCommand(cases, inlineCaseLinkDraft.query).map((record) => (
-                <button key={record.id} type="button" className="inline-contact-result" onClick={() => void insertCaseReferenceFromProtocol(record)}><strong>{record.caseNumber}</strong><span>{record.displayName} · {record.category}</span></button>
+              {filterCasesForInlineCommand(
+                cases,
+                inlineCaseLinkDraft.query,
+              ).map((record) => (
+                <button
+                  key={record.id}
+                  type="button"
+                  className="inline-contact-result"
+                  onClick={() => void insertCaseReferenceFromProtocol(record)}
+                >
+                  <strong>{record.caseNumber}</strong>
+                  <span>
+                    {record.displayName} · {record.category}
+                  </span>
+                </button>
               ))}
             </div>
-            <div className="industrial-modal-actions"><button type="button" className="industrial-secondary-button" onClick={cancelInlineCaseLinkDraft}>Abbrechen</button></div>
+            <div className="industrial-modal-actions">
+              <button
+                type="button"
+                className="industrial-secondary-button"
+                onClick={cancelInlineCaseLinkDraft}
+              >
+                Abbrechen
+              </button>
+            </div>
           </section>
         </div>
       )}
 
       {inlineLegalNormDraft && (
         <div className="industrial-modal-backdrop" role="presentation">
-          <section className="industrial-modal" role="dialog" aria-modal="true" aria-labelledby="inline-legal-title">
-            <div className="industrial-modal-header"><div className="industrial-modal-icon"><Scale className="h-5 w-5" /></div><div><p className="industrial-kicker">Inline-Rechtsnorm</p><h2 id="inline-legal-title">Rechtsnorm einfügen</h2><p>Die Norm wird als Kurzverweis in den Text eingefügt. Das ist die Grundlage für die spätere Wissensdatenbank-Verknüpfung.</p></div></div>
-            <div className="industrial-modal-grid"><label className="industrial-modal-wide"><span>Norm suchen</span><input value={inlineLegalNormDraft.query} onChange={(event) => setInlineLegalNormDraft((current) => current ? { ...current, query: event.target.value } : current)} autoFocus placeholder="z. B. 178, Prävention, Kündigung, AGG …" /></label></div>
+          <section
+            className="industrial-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="inline-legal-title"
+          >
+            <div className="industrial-modal-header">
+              <div className="industrial-modal-icon">
+                <Scale className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="industrial-kicker">Inline-Rechtsnorm</p>
+                <h2 id="inline-legal-title">Rechtsnorm einfügen</h2>
+                <p>
+                  Die Norm wird als Kurzverweis in den Text eingefügt. Das ist
+                  die Grundlage für die spätere Wissensdatenbank-Verknüpfung.
+                </p>
+              </div>
+            </div>
+            <div className="industrial-modal-grid">
+              <label className="industrial-modal-wide">
+                <span>Norm suchen</span>
+                <input
+                  value={inlineLegalNormDraft.query}
+                  onChange={(event) =>
+                    setInlineLegalNormDraft((current) =>
+                      current
+                        ? { ...current, query: event.target.value }
+                        : current,
+                    )
+                  }
+                  autoFocus
+                  placeholder="z. B. 178, Prävention, Kündigung, AGG …"
+                />
+              </label>
+            </div>
             <div className="inline-contact-results">
-              {filterNormsForInlineCommand(LEGAL_NORM_SUGGESTIONS, inlineLegalNormDraft.query).map((norm) => (
-                <button key={norm.id} type="button" className="inline-contact-result" onClick={() => void insertLegalNormFromProtocol(norm)}><strong>{formatLegalNormText(norm)}</strong><span>{norm.shortText}</span></button>
+              {filterNormsForInlineCommand(
+                LEGAL_NORM_SUGGESTIONS,
+                inlineLegalNormDraft.query,
+              ).map((norm) => (
+                <button
+                  key={norm.id}
+                  type="button"
+                  className="inline-contact-result"
+                  onClick={() => void insertLegalNormFromProtocol(norm)}
+                >
+                  <strong>{formatLegalNormText(norm)}</strong>
+                  <span>{norm.shortText}</span>
+                </button>
               ))}
             </div>
-            <div className="industrial-modal-actions"><button type="button" className="industrial-secondary-button" onClick={cancelInlineLegalNormDraft}>Abbrechen</button></div>
+            <div className="industrial-modal-actions">
+              <button
+                type="button"
+                className="industrial-secondary-button"
+                onClick={cancelInlineLegalNormDraft}
+              >
+                Abbrechen
+              </button>
+            </div>
           </section>
         </div>
       )}
 
       {inlineRiskDraft && (
         <div className="industrial-modal-backdrop" role="presentation">
-          <section className="industrial-modal" role="dialog" aria-modal="true" aria-labelledby="inline-risk-title">
-            <div className="industrial-modal-header"><div className="industrial-modal-icon"><AlertTriangle className="h-5 w-5" /></div><div><p className="industrial-kicker">Inline-Risiko</p><h2 id="inline-risk-title">Risiko markieren</h2><p>Die Markierung bleibt im Protokoll sichtbar und hebt bei hohen Risiken die Vertraulichkeit der Notiz an.</p></div></div>
-            <div className="industrial-modal-grid">
-              <label><span>Risikostufe</span><select value={inlineRiskDraft.level} onChange={(event) => setInlineRiskDraft((current) => current ? { ...current, level: event.target.value as RiskLevelCommand } : current)}><option value="low">niedrig</option><option value="medium">mittel</option><option value="high">hoch</option><option value="critical">kritisch</option></select></label>
-              <label className="industrial-modal-wide"><span>Hinweis</span><input value={inlineRiskDraft.text} onChange={(event) => setInlineRiskDraft((current) => current ? { ...current, text: event.target.value } : current)} autoFocus placeholder="z. B. Kündigungsrisiko, Chronifizierungsrisiko, Arbeitgeber blockiert …" /></label>
+          <section
+            className="industrial-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="inline-risk-title"
+          >
+            <div className="industrial-modal-header">
+              <div className="industrial-modal-icon">
+                <AlertTriangle className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="industrial-kicker">Inline-Risiko</p>
+                <h2 id="inline-risk-title">Risiko markieren</h2>
+                <p>
+                  Die Markierung bleibt im Protokoll sichtbar und hebt bei hohen
+                  Risiken die Vertraulichkeit der Notiz an.
+                </p>
+              </div>
             </div>
-            <div className="industrial-modal-preview">Wird eingefügt: <strong>{formatRiskText(inlineRiskDraft.level, inlineRiskDraft.text)}</strong></div>
-            <div className="industrial-modal-actions"><button type="button" className="industrial-secondary-button" onClick={cancelInlineRiskDraft}>Abbrechen</button><button type="button" className="industrial-button" onClick={() => void insertRiskFromProtocol()}>Risiko einfügen</button></div>
+            <div className="industrial-modal-grid">
+              <label>
+                <span>Risikostufe</span>
+                <select
+                  value={inlineRiskDraft.level}
+                  onChange={(event) =>
+                    setInlineRiskDraft((current) =>
+                      current
+                        ? {
+                            ...current,
+                            level: event.target.value as RiskLevelCommand,
+                          }
+                        : current,
+                    )
+                  }
+                >
+                  <option value="low">niedrig</option>
+                  <option value="medium">mittel</option>
+                  <option value="high">hoch</option>
+                  <option value="critical">kritisch</option>
+                </select>
+              </label>
+              <label className="industrial-modal-wide">
+                <span>Hinweis</span>
+                <input
+                  value={inlineRiskDraft.text}
+                  onChange={(event) =>
+                    setInlineRiskDraft((current) =>
+                      current
+                        ? { ...current, text: event.target.value }
+                        : current,
+                    )
+                  }
+                  autoFocus
+                  placeholder="z. B. Kündigungsrisiko, Chronifizierungsrisiko, Arbeitgeber blockiert …"
+                />
+              </label>
+            </div>
+            <div className="industrial-modal-preview">
+              Wird eingefügt:{" "}
+              <strong>
+                {formatRiskText(inlineRiskDraft.level, inlineRiskDraft.text)}
+              </strong>
+            </div>
+            <div className="industrial-modal-actions">
+              <button
+                type="button"
+                className="industrial-secondary-button"
+                onClick={cancelInlineRiskDraft}
+              >
+                Abbrechen
+              </button>
+              <button
+                type="button"
+                className="industrial-button"
+                onClick={() => void insertRiskFromProtocol()}
+              >
+                Risiko einfügen
+              </button>
+            </div>
           </section>
         </div>
       )}
 
       {inlineOpenTaskDraft && (
         <div className="industrial-modal-backdrop" role="presentation">
-          <section className="industrial-modal" role="dialog" aria-modal="true" aria-labelledby="inline-task-title">
-            <div className="industrial-modal-header"><div className="industrial-modal-icon"><CheckCircle2 className="h-5 w-5" /></div><div><p className="industrial-kicker">Inline-Aufgabe</p><h2 id="inline-task-title">Offene Aufgabe ohne Datum</h2><p>Erzeugt eine Wiedervorlage ohne konkretes Ablaufdatum und vermerkt den nächsten Schritt im Text.</p></div></div>
-            <div className="industrial-modal-grid"><label><span>Aufgabe</span><input value={inlineOpenTaskDraft.title} onChange={(event) => setInlineOpenTaskDraft((current) => current ? { ...current, title: event.target.value } : current)} autoFocus placeholder="z. B. Inklusionsamt nachfassen" /></label><label><span>Stufe</span><select value={inlineOpenTaskDraft.severity} onChange={(event) => setInlineOpenTaskDraft((current) => current ? { ...current, severity: event.target.value as DeadlineSeverity } : current)}><option value="normal">normal</option><option value="important">wichtig</option><option value="critical">kritisch</option><option value="fatal">fatal</option></select></label><label className="industrial-modal-wide"><span>Notiz</span><input value={inlineOpenTaskDraft.description} onChange={(event) => setInlineOpenTaskDraft((current) => current ? { ...current, description: event.target.value } : current)} /></label></div>
-            <div className="industrial-modal-preview">Wird eingefügt: <strong>{formatOpenTaskText(inlineOpenTaskDraft.title)}</strong></div>
-            <div className="industrial-modal-actions"><button type="button" className="industrial-secondary-button" onClick={cancelInlineOpenTaskDraft}>Abbrechen</button><button type="button" className="industrial-button" onClick={() => void createOpenTaskFromProtocol()}>Aufgabe anlegen</button></div>
+          <section
+            className="industrial-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="inline-task-title"
+          >
+            <div className="industrial-modal-header">
+              <div className="industrial-modal-icon">
+                <CheckCircle2 className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="industrial-kicker">Inline-Aufgabe</p>
+                <h2 id="inline-task-title">Offene Aufgabe ohne Datum</h2>
+                <p>
+                  Erzeugt eine Wiedervorlage ohne konkretes Ablaufdatum und
+                  vermerkt den nächsten Schritt im Text.
+                </p>
+              </div>
+            </div>
+            <div className="industrial-modal-grid">
+              <label>
+                <span>Aufgabe</span>
+                <input
+                  value={inlineOpenTaskDraft.title}
+                  onChange={(event) =>
+                    setInlineOpenTaskDraft((current) =>
+                      current
+                        ? { ...current, title: event.target.value }
+                        : current,
+                    )
+                  }
+                  autoFocus
+                  placeholder="z. B. Inklusionsamt nachfassen"
+                />
+              </label>
+              <label>
+                <span>Stufe</span>
+                <select
+                  value={inlineOpenTaskDraft.severity}
+                  onChange={(event) =>
+                    setInlineOpenTaskDraft((current) =>
+                      current
+                        ? {
+                            ...current,
+                            severity: event.target.value as DeadlineSeverity,
+                          }
+                        : current,
+                    )
+                  }
+                >
+                  <option value="normal">normal</option>
+                  <option value="important">wichtig</option>
+                  <option value="critical">kritisch</option>
+                  <option value="fatal">fatal</option>
+                </select>
+              </label>
+              <label className="industrial-modal-wide">
+                <span>Notiz</span>
+                <input
+                  value={inlineOpenTaskDraft.description}
+                  onChange={(event) =>
+                    setInlineOpenTaskDraft((current) =>
+                      current
+                        ? { ...current, description: event.target.value }
+                        : current,
+                    )
+                  }
+                />
+              </label>
+            </div>
+            <div className="industrial-modal-preview">
+              Wird eingefügt:{" "}
+              <strong>{formatOpenTaskText(inlineOpenTaskDraft.title)}</strong>
+            </div>
+            <div className="industrial-modal-actions">
+              <button
+                type="button"
+                className="industrial-secondary-button"
+                onClick={cancelInlineOpenTaskDraft}
+              >
+                Abbrechen
+              </button>
+              <button
+                type="button"
+                className="industrial-button"
+                onClick={() => void createOpenTaskFromProtocol()}
+              >
+                Aufgabe anlegen
+              </button>
+            </div>
           </section>
         </div>
       )}
 
       {inlineConfidentialityDraft && (
-        <div className="industrial-modal-backdrop" role="presentation"><section className="industrial-modal" role="dialog" aria-modal="true" aria-labelledby="inline-conf-title"><div className="industrial-modal-header"><div className="industrial-modal-icon"><Lock className="h-5 w-5" /></div><div><p className="industrial-kicker">Inline-Vertraulichkeit</p><h2 id="inline-conf-title">Vertraulichkeitsstufe anheben</h2><p>Setzt die Vertraulichkeitsstufe der gesamten Notiz direkt hoch.</p></div></div><div className="industrial-modal-grid"><label><span>Stufe</span><select value={inlineConfidentialityDraft.level} onChange={(event) => setInlineConfidentialityDraft((current) => current ? { ...current, level: event.target.value as ConfidentialCommandLevel } : current)}><option value="normal">normal</option><option value="sensibel">sensibel</option><option value="hoch_sensibel">hoch sensibel</option></select></label></div><div className="industrial-modal-preview">Wird eingefügt: <strong>{formatConfidentialityText(inlineConfidentialityDraft.level)}</strong></div><div className="industrial-modal-actions"><button type="button" className="industrial-secondary-button" onClick={cancelInlineConfidentialityDraft}>Abbrechen</button><button type="button" className="industrial-button" onClick={applyConfidentialityFromProtocol}>Übernehmen</button></div></section></div>
+        <div className="industrial-modal-backdrop" role="presentation">
+          <section
+            className="industrial-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="inline-conf-title"
+          >
+            <div className="industrial-modal-header">
+              <div className="industrial-modal-icon">
+                <Lock className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="industrial-kicker">Inline-Vertraulichkeit</p>
+                <h2 id="inline-conf-title">Vertraulichkeitsstufe anheben</h2>
+                <p>
+                  Setzt die Vertraulichkeitsstufe der gesamten Notiz direkt
+                  hoch.
+                </p>
+              </div>
+            </div>
+            <div className="industrial-modal-grid">
+              <label>
+                <span>Stufe</span>
+                <select
+                  value={inlineConfidentialityDraft.level}
+                  onChange={(event) =>
+                    setInlineConfidentialityDraft((current) =>
+                      current
+                        ? {
+                            ...current,
+                            level: event.target
+                              .value as ConfidentialCommandLevel,
+                          }
+                        : current,
+                    )
+                  }
+                >
+                  <option value="normal">normal</option>
+                  <option value="sensibel">sensibel</option>
+                  <option value="hoch_sensibel">hoch sensibel</option>
+                </select>
+              </label>
+            </div>
+            <div className="industrial-modal-preview">
+              Wird eingefügt:{" "}
+              <strong>
+                {formatConfidentialityText(inlineConfidentialityDraft.level)}
+              </strong>
+            </div>
+            <div className="industrial-modal-actions">
+              <button
+                type="button"
+                className="industrial-secondary-button"
+                onClick={cancelInlineConfidentialityDraft}
+              >
+                Abbrechen
+              </button>
+              <button
+                type="button"
+                className="industrial-button"
+                onClick={applyConfidentialityFromProtocol}
+              >
+                Übernehmen
+              </button>
+            </div>
+          </section>
+        </div>
       )}
 
       {inlineAnonymizationDraft && (
-        <div className="industrial-modal-backdrop" role="presentation"><section className="industrial-modal" role="dialog" aria-modal="true" aria-labelledby="inline-anon-title"><div className="industrial-modal-header"><div className="industrial-modal-icon"><ShieldAlert className="h-5 w-5" /></div><div><p className="industrial-kicker">Inline-Anonymisierung</p><h2 id="inline-anon-title">Anonymisierung vormerken</h2><p>Setzt eine sichtbare Vormerkung im Protokoll. Berichtslogik kann diese Markierung später gezielt auswerten.</p></div></div><div className="industrial-modal-grid"><label><span>Art der Textstelle</span><input value={inlineAnonymizationDraft.label} onChange={(event) => setInlineAnonymizationDraft((current) => current ? { ...current, label: event.target.value } : current)} autoFocus placeholder="z. B. Name, Bereich, Funktion, Gesundheitsdetail" /></label></div><div className="industrial-modal-preview">Wird eingefügt: <strong>{formatAnonymizationMarkerText(inlineAnonymizationDraft.label)}</strong></div><div className="industrial-modal-actions"><button type="button" className="industrial-secondary-button" onClick={cancelInlineAnonymizationDraft}>Abbrechen</button><button type="button" className="industrial-button" onClick={applyAnonymizationMarkerFromProtocol}>Vormerken</button></div></section></div>
+        <div className="industrial-modal-backdrop" role="presentation">
+          <section
+            className="industrial-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="inline-anon-title"
+          >
+            <div className="industrial-modal-header">
+              <div className="industrial-modal-icon">
+                <ShieldAlert className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="industrial-kicker">Inline-Anonymisierung</p>
+                <h2 id="inline-anon-title">Anonymisierung vormerken</h2>
+                <p>
+                  Setzt eine sichtbare Vormerkung im Protokoll. Berichtslogik
+                  kann diese Markierung später gezielt auswerten.
+                </p>
+              </div>
+            </div>
+            <div className="industrial-modal-grid">
+              <label>
+                <span>Art der Textstelle</span>
+                <input
+                  value={inlineAnonymizationDraft.label}
+                  onChange={(event) =>
+                    setInlineAnonymizationDraft((current) =>
+                      current
+                        ? { ...current, label: event.target.value }
+                        : current,
+                    )
+                  }
+                  autoFocus
+                  placeholder="z. B. Name, Bereich, Funktion, Gesundheitsdetail"
+                />
+              </label>
+            </div>
+            <div className="industrial-modal-preview">
+              Wird eingefügt:{" "}
+              <strong>
+                {formatAnonymizationMarkerText(inlineAnonymizationDraft.label)}
+              </strong>
+            </div>
+            <div className="industrial-modal-actions">
+              <button
+                type="button"
+                className="industrial-secondary-button"
+                onClick={cancelInlineAnonymizationDraft}
+              >
+                Abbrechen
+              </button>
+              <button
+                type="button"
+                className="industrial-button"
+                onClick={applyAnonymizationMarkerFromProtocol}
+              >
+                Vormerken
+              </button>
+            </div>
+          </section>
+        </div>
       )}
 
       {inlineContactDraft && (
         <div className="industrial-modal-backdrop" role="presentation">
-          <section className="industrial-modal" role="dialog" aria-modal="true" aria-labelledby="inline-contact-title">
+          <section
+            className="industrial-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="inline-contact-title"
+          >
             <div className="industrial-modal-header">
-              <div className="industrial-modal-icon"><Users className="h-5 w-5" /></div>
+              <div className="industrial-modal-icon">
+                <Users className="h-5 w-5" />
+              </div>
               <div>
                 <p className="industrial-kicker">Inline-Kontakt</p>
                 <h2 id="inline-contact-title">Kontakt im Protokoll einfügen</h2>
@@ -229,7 +732,13 @@ export function InlineCommandOverlays(props: InlineCommandOverlaysProps) {
                 <span>Bestehenden Kontakt suchen</span>
                 <input
                   value={inlineContactDraft.query}
-                  onChange={(event) => setInlineContactDraft((current) => current ? { ...current, query: event.target.value } : current)}
+                  onChange={(event) =>
+                    setInlineContactDraft((current) =>
+                      current
+                        ? { ...current, query: event.target.value }
+                        : current,
+                    )
+                  }
                   placeholder="Name, Organisation, Rolle, E-Mail …"
                   autoFocus
                 />
@@ -237,37 +746,820 @@ export function InlineCommandOverlays(props: InlineCommandOverlaysProps) {
             </div>
 
             <div className="inline-contact-results">
-              {filterContactsForQuery(contacts, inlineContactDraft.query).map((contact) => (
-                <button key={contact.id} type="button" className="inline-contact-result" onClick={() => void insertExistingContactFromProtocol(contact)}>
-                  <strong>{formatContactReference(contact)}</strong>
-                  <span>{[contact.role, contact.email, contact.phone].filter(Boolean).join(' · ') || 'Kontakt'}</span>
-                </button>
-              ))}
-              {!filterContactsForQuery(contacts, inlineContactDraft.query).length && (
-                <div className="industrial-empty compact">Kein bestehender Kontakt gefunden. Unten neu erfassen.</div>
+              {filterContactsForQuery(contacts, inlineContactDraft.query).map(
+                (contact) => (
+                  <button
+                    key={contact.id}
+                    type="button"
+                    className="inline-contact-result"
+                    onClick={() =>
+                      void insertExistingContactFromProtocol(contact)
+                    }
+                  >
+                    <strong>{formatContactReference(contact)}</strong>
+                    <span>
+                      {[contact.role, contact.email, contact.phone]
+                        .filter(Boolean)
+                        .join(" · ") || "Kontakt"}
+                    </span>
+                  </button>
+                ),
+              )}
+              {!filterContactsForQuery(contacts, inlineContactDraft.query)
+                .length && (
+                <div className="industrial-empty compact">
+                  Kein bestehender Kontakt gefunden. Unten neu erfassen.
+                </div>
               )}
             </div>
 
             <div className="industrial-modal-grid">
-              <label><span>Vorname</span><input value={inlineContactDraft.firstName} onChange={(event) => setInlineContactDraft((current) => current ? { ...current, firstName: event.target.value } : current)} /></label>
-              <label><span>Nachname</span><input value={inlineContactDraft.lastName} onChange={(event) => setInlineContactDraft((current) => current ? { ...current, lastName: event.target.value } : current)} /></label>
-              <label><span>Firma / Stelle</span><input value={inlineContactDraft.organization} onChange={(event) => setInlineContactDraft((current) => current ? { ...current, organization: event.target.value } : current)} /></label>
-              <label><span>Rolle</span><input value={inlineContactDraft.role} onChange={(event) => setInlineContactDraft((current) => current ? { ...current, role: event.target.value } : current)} placeholder="z. B. Personalleiter" /></label>
-              <label><span>Kategorie</span><select value={inlineContactDraft.category} onChange={(event) => setInlineContactDraft((current) => current ? { ...current, category: event.target.value as ContactCategory } : current)}><option value="arbeitgeber">Arbeitgeber</option><option value="inklusionsamt">Inklusionsamt</option><option value="agentur_fuer_arbeit">Agentur für Arbeit</option><option value="betriebsarzt">Betriebsarzt</option><option value="betriebsrat">Betriebsrat</option><option value="beratung">Beratung</option><option value="intern">intern</option><option value="sonstiges">sonstiges</option></select></label>
-              <label><span>E-Mail</span><input value={inlineContactDraft.email} onChange={(event) => setInlineContactDraft((current) => current ? { ...current, email: event.target.value } : current)} /></label>
-              <label><span>Telefon</span><input value={inlineContactDraft.phone} onChange={(event) => setInlineContactDraft((current) => current ? { ...current, phone: event.target.value } : current)} /></label>
+              <label>
+                <span>Vorname</span>
+                <input
+                  value={inlineContactDraft.firstName}
+                  onChange={(event) =>
+                    setInlineContactDraft((current) =>
+                      current
+                        ? { ...current, firstName: event.target.value }
+                        : current,
+                    )
+                  }
+                />
+              </label>
+              <label>
+                <span>Nachname</span>
+                <input
+                  value={inlineContactDraft.lastName}
+                  onChange={(event) =>
+                    setInlineContactDraft((current) =>
+                      current
+                        ? { ...current, lastName: event.target.value }
+                        : current,
+                    )
+                  }
+                />
+              </label>
+              <label>
+                <span>Firma / Stelle</span>
+                <input
+                  value={inlineContactDraft.organization}
+                  onChange={(event) =>
+                    setInlineContactDraft((current) =>
+                      current
+                        ? { ...current, organization: event.target.value }
+                        : current,
+                    )
+                  }
+                />
+              </label>
+              <label>
+                <span>Rolle</span>
+                <input
+                  value={inlineContactDraft.role}
+                  onChange={(event) =>
+                    setInlineContactDraft((current) =>
+                      current
+                        ? { ...current, role: event.target.value }
+                        : current,
+                    )
+                  }
+                  placeholder="z. B. Personalleiter"
+                />
+              </label>
+              <label>
+                <span>Kategorie</span>
+                <select
+                  value={inlineContactDraft.category}
+                  onChange={(event) =>
+                    setInlineContactDraft((current) =>
+                      current
+                        ? {
+                            ...current,
+                            category: event.target.value as ContactCategory,
+                          }
+                        : current,
+                    )
+                  }
+                >
+                  <option value="arbeitgeber">Arbeitgeber</option>
+                  <option value="inklusionsamt">Inklusionsamt</option>
+                  <option value="agentur_fuer_arbeit">
+                    Agentur für Arbeit
+                  </option>
+                  <option value="betriebsarzt">Betriebsarzt</option>
+                  <option value="betriebsrat">Betriebsrat</option>
+                  <option value="beratung">Beratung</option>
+                  <option value="intern">intern</option>
+                  <option value="sonstiges">sonstiges</option>
+                </select>
+              </label>
+              <label>
+                <span>E-Mail</span>
+                <input
+                  value={inlineContactDraft.email}
+                  onChange={(event) =>
+                    setInlineContactDraft((current) =>
+                      current
+                        ? { ...current, email: event.target.value }
+                        : current,
+                    )
+                  }
+                />
+              </label>
+              <label>
+                <span>Telefon</span>
+                <input
+                  value={inlineContactDraft.phone}
+                  onChange={(event) =>
+                    setInlineContactDraft((current) =>
+                      current
+                        ? { ...current, phone: event.target.value }
+                        : current,
+                    )
+                  }
+                />
+              </label>
             </div>
 
             {(inlineContactDraft.firstName || inlineContactDraft.lastName) && (
               <div className="industrial-modal-preview">
-                Wird im Protokoll eingefügt: <strong>{formatContactReference({ firstName: inlineContactDraft.firstName, lastName: inlineContactDraft.lastName, organization: inlineContactDraft.organization })}</strong>
+                Wird im Protokoll eingefügt:{" "}
+                <strong>
+                  {formatContactReference({
+                    firstName: inlineContactDraft.firstName,
+                    lastName: inlineContactDraft.lastName,
+                    organization: inlineContactDraft.organization,
+                  })}
+                </strong>
               </div>
             )}
 
             <div className="industrial-modal-actions">
-              <button type="button" className="industrial-secondary-button" onClick={cancelInlineContactDraft}>Abbrechen</button>
-              <button type="button" className="industrial-button" onClick={() => void createAndInsertContactFromProtocol()}>
-                <Users className="h-4 w-4" />Kontakt anlegen und einfügen
+              <button
+                type="button"
+                className="industrial-secondary-button"
+                onClick={cancelInlineContactDraft}
+              >
+                Abbrechen
+              </button>
+              <button
+                type="button"
+                className="industrial-button"
+                onClick={() => void createAndInsertContactFromProtocol()}
+              >
+                <Users className="h-4 w-4" />
+                Kontakt anlegen und einfügen
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {inlineBemDraft && (
+        <div className="industrial-modal-backdrop" role="presentation">
+          <section
+            className="industrial-modal inline-command-quick"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="inline-bem-title"
+          >
+            <div className="industrial-modal-header">
+              <div className="industrial-modal-icon">
+                <HeartPulse className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="industrial-kicker">Inline-Maßnahme</p>
+                <h2 id="inline-bem-title">BEM-Vorgang anlegen</h2>
+                <p>
+                  Legt einen BEM-Vorgang direkt in der aktuellen Fallakte an.
+                  Details können nach dem Gespräch ergänzt werden.
+                </p>
+              </div>
+            </div>
+            <div className="industrial-modal-grid">
+              <label className="industrial-modal-wide">
+                <FieldCaption draft={inlineBemDraft} field="title">
+                  Titel
+                </FieldCaption>
+                <input
+                  value={inlineBemDraft.title}
+                  onChange={(event) =>
+                    setInlineBemDraft((current) =>
+                      current
+                        ? { ...current, title: event.target.value }
+                        : current,
+                    )
+                  }
+                  autoFocus
+                  placeholder="z. B. BEM wegen wiederholter Arbeitsunfähigkeit"
+                />
+              </label>
+              <label className="industrial-modal-wide">
+                <FieldCaption draft={inlineBemDraft} field="triggerDescription">
+                  Anlass / Kurznotiz
+                </FieldCaption>
+                <input
+                  value={inlineBemDraft.triggerDescription}
+                  onChange={(event) =>
+                    setInlineBemDraft((current) =>
+                      current
+                        ? { ...current, triggerDescription: event.target.value }
+                        : current,
+                    )
+                  }
+                  placeholder="z. B. Rückkehr nach längerer AU, Beschäftigte wünscht Begleitung"
+                />
+              </label>
+              <label>
+                <FieldCaption draft={inlineBemDraft} field="triggerType">
+                  Auslöser
+                </FieldCaption>
+                <select
+                  value={inlineBemDraft.triggerType}
+                  onChange={(event) =>
+                    setInlineBemDraft((current) =>
+                      current
+                        ? {
+                            ...current,
+                            triggerType: event.target
+                              .value as InlineBemDraft["triggerType"],
+                          }
+                        : current,
+                    )
+                  }
+                >
+                  <option value="sechs_wochen_au">mehr als 6 Wochen AU</option>
+                  <option value="wiederholt_au">wiederholte AU</option>
+                  <option value="praeventiv">präventiv</option>
+                  <option value="arbeitgeberangebot">Arbeitgeberangebot</option>
+                  <option value="sbv_anregung">SBV-Anregung</option>
+                  <option value="sonstiges">Sonstiges</option>
+                </select>
+              </label>
+              <label>
+                <span>Rückmeldefrist optional</span>
+                <input
+                  type="datetime-local"
+                  value={inlineBemDraft.responseDueAt}
+                  onChange={(event) =>
+                    setInlineBemDraft((current) =>
+                      current
+                        ? { ...current, responseDueAt: event.target.value }
+                        : current,
+                    )
+                  }
+                />
+              </label>
+              <label className="industrial-modal-wide">
+                <FieldCaption draft={inlineBemDraft} field="nextStep">
+                  Nächster Schritt
+                </FieldCaption>
+                <input
+                  value={inlineBemDraft.nextStep}
+                  onChange={(event) =>
+                    setInlineBemDraft((current) =>
+                      current
+                        ? { ...current, nextStep: event.target.value }
+                        : current,
+                    )
+                  }
+                />
+              </label>
+            </div>
+            <div className="industrial-modal-preview">
+              <HeartPulse className="h-4 w-4" /> Wird als Fallaktenvorgang
+              angelegt:{" "}
+              <strong>{inlineBemDraft.title.trim() || "BEM-Vorgang"}</strong>
+            </div>
+            <div className="industrial-modal-actions">
+              <button
+                type="button"
+                className="industrial-secondary-button"
+                onClick={cancelInlineBemDraft}
+              >
+                Abbrechen
+              </button>
+              <button
+                type="button"
+                className="industrial-button"
+                onClick={() => void createBemFromProtocol()}
+              >
+                Anlegen und weiterprotokollieren
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {inlinePreventionDraft && (
+        <div className="industrial-modal-backdrop" role="presentation">
+          <section
+            className="industrial-modal inline-command-quick"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="inline-prevention-title"
+          >
+            <div className="industrial-modal-header">
+              <div className="industrial-modal-icon">
+                <ShieldAlert className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="industrial-kicker">Inline-Maßnahme</p>
+                <h2 id="inline-prevention-title">Prävention anlegen</h2>
+                <p>
+                  Legt ein Präventionsverfahren nach § 167 Abs. 1 SGB IX direkt
+                  in der aktuellen Fallakte an.
+                </p>
+              </div>
+            </div>
+            <div className="industrial-modal-grid">
+              <label className="industrial-modal-wide">
+                <FieldCaption draft={inlinePreventionDraft} field="title">
+                  Titel
+                </FieldCaption>
+                <input
+                  value={inlinePreventionDraft.title}
+                  onChange={(event) =>
+                    setInlinePreventionDraft((current) =>
+                      current
+                        ? { ...current, title: event.target.value }
+                        : current,
+                    )
+                  }
+                  autoFocus
+                  placeholder="z. B. Arbeitsplatzgefährdung frühzeitig klären"
+                />
+              </label>
+              <label className="industrial-modal-wide">
+                <FieldCaption
+                  draft={inlinePreventionDraft}
+                  field="hazardDescription"
+                >
+                  Gefährdung / Kurznotiz
+                </FieldCaption>
+                <input
+                  value={inlinePreventionDraft.hazardDescription}
+                  onChange={(event) =>
+                    setInlinePreventionDraft((current) =>
+                      current
+                        ? { ...current, hazardDescription: event.target.value }
+                        : current,
+                    )
+                  }
+                  placeholder="z. B. Konflikt mit Führungskraft, Überlastung, Kündigungsrisiko"
+                />
+              </label>
+              <label>
+                <FieldCaption
+                  draft={inlinePreventionDraft}
+                  field="difficultyType"
+                >
+                  Schwierigkeit
+                </FieldCaption>
+                <select
+                  value={inlinePreventionDraft.difficultyType}
+                  onChange={(event) =>
+                    setInlinePreventionDraft((current) =>
+                      current
+                        ? {
+                            ...current,
+                            difficultyType: event.target
+                              .value as InlinePreventionDraft["difficultyType"],
+                          }
+                        : current,
+                    )
+                  }
+                >
+                  <option value="personenbedingt">personenbedingt</option>
+                  <option value="verhaltensbedingt">verhaltensbedingt</option>
+                  <option value="betriebsbedingt">betriebsbedingt</option>
+                  <option value="organisatorisch">organisatorisch</option>
+                  <option value="gesundheitlich_arbeitsplatzbezogen">
+                    gesundheitlich/arbeitsplatzbezogen
+                  </option>
+                  <option value="konflikt_fuehrung">Konflikt Führung</option>
+                  <option value="sonstiges">Sonstiges</option>
+                </select>
+              </label>
+              <label>
+                <span>Risiko</span>
+                <select
+                  value={inlinePreventionDraft.riskType}
+                  onChange={(event) =>
+                    setInlinePreventionDraft((current) =>
+                      current
+                        ? {
+                            ...current,
+                            riskType: event.target
+                              .value as InlinePreventionDraft["riskType"],
+                          }
+                        : current,
+                    )
+                  }
+                >
+                  <option value="arbeitsplatzverlust">
+                    Arbeitsplatzverlust
+                  </option>
+                  <option value="kuendigung">Kündigung</option>
+                  <option value="abmahnung">Abmahnung</option>
+                  <option value="umsetzung">Umsetzung</option>
+                  <option value="arbeitsunfaehigkeit">
+                    Arbeitsunfähigkeit
+                  </option>
+                  <option value="ueberlastung">Überlastung</option>
+                  <option value="leistungsverlust">Leistungsverlust</option>
+                  <option value="sonstiges">Sonstiges</option>
+                </select>
+              </label>
+              <label>
+                <span>Arbeitgeberantwort optional</span>
+                <input
+                  type="datetime-local"
+                  value={inlinePreventionDraft.employerResponseDueAt}
+                  onChange={(event) =>
+                    setInlinePreventionDraft((current) =>
+                      current
+                        ? {
+                            ...current,
+                            employerResponseDueAt: event.target.value,
+                          }
+                        : current,
+                    )
+                  }
+                />
+              </label>
+              <label className="industrial-modal-wide">
+                <FieldCaption draft={inlinePreventionDraft} field="nextStep">
+                  Nächster Schritt
+                </FieldCaption>
+                <input
+                  value={inlinePreventionDraft.nextStep}
+                  onChange={(event) =>
+                    setInlinePreventionDraft((current) =>
+                      current
+                        ? { ...current, nextStep: event.target.value }
+                        : current,
+                    )
+                  }
+                />
+              </label>
+            </div>
+            <div className="industrial-modal-preview">
+              <ShieldAlert className="h-4 w-4" /> Wird als Fallaktenvorgang
+              angelegt:{" "}
+              <strong>
+                {inlinePreventionDraft.title.trim() || "Präventionsverfahren"}
+              </strong>
+            </div>
+            <div className="industrial-modal-actions">
+              <button
+                type="button"
+                className="industrial-secondary-button"
+                onClick={cancelInlinePreventionDraft}
+              >
+                Abbrechen
+              </button>
+              <button
+                type="button"
+                className="industrial-button"
+                onClick={() => void createPreventionFromProtocol()}
+              >
+                Anlegen und weiterprotokollieren
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {inlineEqualizationDraft && (
+        <div className="industrial-modal-backdrop" role="presentation">
+          <section
+            className="industrial-modal inline-command-quick"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="inline-equalization-title"
+          >
+            <div className="industrial-modal-header">
+              <div className="industrial-modal-icon">
+                <BadgeCheck className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="industrial-kicker">Inline-Maßnahme</p>
+                <h2 id="inline-equalization-title">
+                  Gleichstellung/GdB anlegen
+                </h2>
+                <p>
+                  Legt einen Beratungs-/Begleitvorgang zur Gleichstellung oder
+                  zum GdB in der aktuellen Fallakte an.
+                </p>
+              </div>
+            </div>
+            <div className="industrial-modal-grid">
+              <label className="industrial-modal-wide">
+                <FieldCaption draft={inlineEqualizationDraft} field="title">
+                  Titel
+                </FieldCaption>
+                <input
+                  value={inlineEqualizationDraft.title}
+                  onChange={(event) =>
+                    setInlineEqualizationDraft((current) =>
+                      current
+                        ? { ...current, title: event.target.value }
+                        : current,
+                    )
+                  }
+                  autoFocus
+                  placeholder="z. B. Gleichstellungsantrag vorbereiten"
+                />
+              </label>
+              <label>
+                <span>Status</span>
+                <select
+                  value={inlineEqualizationDraft.status}
+                  onChange={(event) =>
+                    setInlineEqualizationDraft((current) =>
+                      current
+                        ? {
+                            ...current,
+                            status: event.target
+                              .value as InlineEqualizationDraft["status"],
+                          }
+                        : current,
+                    )
+                  }
+                >
+                  <option value="beratung">Beratung</option>
+                  <option value="vorbereitung">Vorbereitung</option>
+                  <option value="eingereicht">eingereicht</option>
+                  <option value="nachfrage">Nachfrage</option>
+                  <option value="bewilligt">bewilligt</option>
+                  <option value="abgelehnt">abgelehnt</option>
+                  <option value="widerspruch">Widerspruch</option>
+                  <option value="abgeschlossen">abgeschlossen</option>
+                </select>
+              </label>
+              <label>
+                <span>Widerspruchs-/Prüffrist optional</span>
+                <input
+                  type="datetime-local"
+                  value={inlineEqualizationDraft.objectionDueAt}
+                  onChange={(event) =>
+                    setInlineEqualizationDraft((current) =>
+                      current
+                        ? { ...current, objectionDueAt: event.target.value }
+                        : current,
+                    )
+                  }
+                />
+              </label>
+              <label className="industrial-modal-wide">
+                <FieldCaption draft={inlineEqualizationDraft} field="note">
+                  Kurznotiz
+                </FieldCaption>
+                <input
+                  value={inlineEqualizationDraft.note}
+                  onChange={(event) =>
+                    setInlineEqualizationDraft((current) =>
+                      current
+                        ? { ...current, note: event.target.value }
+                        : current,
+                    )
+                  }
+                  placeholder="z. B. Voraussetzungen prüfen, Unterlagen sammeln"
+                />
+              </label>
+              <label className="industrial-modal-wide">
+                <FieldCaption draft={inlineEqualizationDraft} field="nextStep">
+                  Nächster Schritt
+                </FieldCaption>
+                <input
+                  value={inlineEqualizationDraft.nextStep}
+                  onChange={(event) =>
+                    setInlineEqualizationDraft((current) =>
+                      current
+                        ? { ...current, nextStep: event.target.value }
+                        : current,
+                    )
+                  }
+                />
+              </label>
+            </div>
+            <div className="industrial-modal-preview">
+              <BadgeCheck className="h-4 w-4" /> Wird als Fallaktenvorgang
+              angelegt:{" "}
+              <strong>
+                {inlineEqualizationDraft.title.trim() || "Gleichstellung/GdB"}
+              </strong>
+            </div>
+            <div className="industrial-modal-actions">
+              <button
+                type="button"
+                className="industrial-secondary-button"
+                onClick={cancelInlineEqualizationDraft}
+              >
+                Abbrechen
+              </button>
+              <button
+                type="button"
+                className="industrial-button"
+                onClick={() => void createEqualizationFromProtocol()}
+              >
+                Anlegen und weiterprotokollieren
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {inlineTerminationDraft && (
+        <div className="industrial-modal-backdrop" role="presentation">
+          <section
+            className="industrial-modal inline-command-quick"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="inline-termination-title"
+          >
+            <div className="industrial-modal-header">
+              <div className="industrial-modal-icon">
+                <Siren className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="industrial-kicker">Inline-Maßnahme</p>
+                <h2 id="inline-termination-title">
+                  Kündigungsanhörung anlegen
+                </h2>
+                <p>
+                  Legt einen Kündigungsanhörungsvorgang direkt in der aktuellen
+                  Fallakte an. Fristen können sofort vorgemerkt werden.
+                </p>
+              </div>
+            </div>
+            <div className="industrial-modal-grid">
+              <label className="industrial-modal-wide">
+                <FieldCaption draft={inlineTerminationDraft} field="title">
+                  Titel
+                </FieldCaption>
+                <input
+                  value={inlineTerminationDraft.title}
+                  onChange={(event) =>
+                    setInlineTerminationDraft((current) =>
+                      current
+                        ? { ...current, title: event.target.value }
+                        : current,
+                    )
+                  }
+                  autoFocus
+                  placeholder="z. B. Anhörung zur ordentlichen Kündigung"
+                />
+              </label>
+              <label>
+                <FieldCaption
+                  draft={inlineTerminationDraft}
+                  field="terminationType"
+                >
+                  Kündigungsart
+                </FieldCaption>
+                <select
+                  value={inlineTerminationDraft.terminationType}
+                  onChange={(event) =>
+                    setInlineTerminationDraft((current) =>
+                      current
+                        ? {
+                            ...current,
+                            terminationType: event.target
+                              .value as InlineTerminationDraft["terminationType"],
+                          }
+                        : current,
+                    )
+                  }
+                >
+                  <option value="ordentlich">ordentlich</option>
+                  <option value="ausserordentlich">außerordentlich</option>
+                  <option value="aenderungskuendigung">
+                    Änderungskündigung
+                  </option>
+                  <option value="verdachtskuendigung">
+                    Verdachtskündigung
+                  </option>
+                  <option value="personenbedingt">personenbedingt</option>
+                  <option value="verhaltensbedingt">verhaltensbedingt</option>
+                  <option value="betriebsbedingt">betriebsbedingt</option>
+                  <option value="sonstiges">Sonstiges</option>
+                </select>
+              </label>
+              <label>
+                <FieldCaption
+                  draft={inlineTerminationDraft}
+                  field="protectionStatus"
+                >
+                  Schutzstatus
+                </FieldCaption>
+                <select
+                  value={inlineTerminationDraft.protectionStatus}
+                  onChange={(event) =>
+                    setInlineTerminationDraft((current) =>
+                      current
+                        ? {
+                            ...current,
+                            protectionStatus: event.target
+                              .value as InlineTerminationDraft["protectionStatus"],
+                          }
+                        : current,
+                    )
+                  }
+                >
+                  <option value="unklar">unklar</option>
+                  <option value="schwerbehindert">schwerbehindert</option>
+                  <option value="gleichgestellt">gleichgestellt</option>
+                  <option value="antrag_laeuft">Antrag läuft</option>
+                  <option value="nicht_bekannt">nicht bekannt</option>
+                </select>
+              </label>
+              <label>
+                <FieldCaption draft={inlineTerminationDraft} field="receivedAt">
+                  Eingang optional
+                </FieldCaption>
+                <input
+                  type="datetime-local"
+                  value={inlineTerminationDraft.receivedAt}
+                  onChange={(event) =>
+                    setInlineTerminationDraft((current) =>
+                      current
+                        ? { ...current, receivedAt: event.target.value }
+                        : current,
+                    )
+                  }
+                />
+              </label>
+              <label>
+                <span>SBV-Frist optional</span>
+                <input
+                  type="datetime-local"
+                  value={inlineTerminationDraft.sbvStatementDueAt}
+                  onChange={(event) =>
+                    setInlineTerminationDraft((current) =>
+                      current
+                        ? { ...current, sbvStatementDueAt: event.target.value }
+                        : current,
+                    )
+                  }
+                />
+              </label>
+              <label className="industrial-modal-wide">
+                <FieldCaption
+                  draft={inlineTerminationDraft}
+                  field="employerReason"
+                >
+                  Arbeitgebervortrag / Kurznotiz
+                </FieldCaption>
+                <input
+                  value={inlineTerminationDraft.employerReason}
+                  onChange={(event) =>
+                    setInlineTerminationDraft((current) =>
+                      current
+                        ? { ...current, employerReason: event.target.value }
+                        : current,
+                    )
+                  }
+                />
+              </label>
+              <label className="industrial-modal-wide">
+                <FieldCaption draft={inlineTerminationDraft} field="nextStep">
+                  Nächster Schritt
+                </FieldCaption>
+                <input
+                  value={inlineTerminationDraft.nextStep}
+                  onChange={(event) =>
+                    setInlineTerminationDraft((current) =>
+                      current
+                        ? { ...current, nextStep: event.target.value }
+                        : current,
+                    )
+                  }
+                />
+              </label>
+            </div>
+            <div className="industrial-modal-preview">
+              <Siren className="h-4 w-4" /> Wird als Fallaktenvorgang angelegt:{" "}
+              <strong>
+                {inlineTerminationDraft.title.trim() || "Kündigungsanhörung"}
+              </strong>
+            </div>
+            <div className="industrial-modal-actions">
+              <button
+                type="button"
+                className="industrial-secondary-button"
+                onClick={cancelInlineTerminationDraft}
+              >
+                Abbrechen
+              </button>
+              <button
+                type="button"
+                className="industrial-button"
+                onClick={() => void createTerminationFromProtocol()}
+              >
+                Anlegen und weiterprotokollieren
               </button>
             </div>
           </section>
@@ -276,75 +1568,424 @@ export function InlineCommandOverlays(props: InlineCommandOverlaysProps) {
 
       {inlineParticipationDraft && (
         <div className="industrial-modal-backdrop" role="presentation">
-          <section className="industrial-modal inline-command-quick" role="dialog" aria-modal="true" aria-labelledby="inline-participation-title">
+          <section
+            className="industrial-modal inline-command-quick"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="inline-participation-title"
+          >
             <div className="industrial-modal-header">
-              <div className="industrial-modal-icon"><ClipboardCheck className="h-5 w-5" /></div>
+              <div className="industrial-modal-icon">
+                <ClipboardCheck className="h-5 w-5" />
+              </div>
               <div>
                 <p className="industrial-kicker">Inline-Maßnahme</p>
                 <h2 id="inline-participation-title">SBV-Beteiligung anlegen</h2>
-                <p>Legt die Beteiligung direkt als Maßnahme in der aktuellen Fallakte an. Details können nach dem Gespräch ergänzt werden.</p>
+                <p>
+                  Legt die Beteiligung direkt als Maßnahme in der aktuellen
+                  Fallakte an. Details können nach dem Gespräch ergänzt werden.
+                </p>
               </div>
             </div>
             <div className="industrial-modal-grid">
-              <label className="industrial-modal-wide"><span>Titel</span><input value={inlineParticipationDraft.title} onChange={(event) => setInlineParticipationDraft((current) => current ? { ...current, title: event.target.value } : current)} autoFocus placeholder="z. B. Versetzung ohne vorherige SBV-Anhörung" /></label>
-              <label><span>Arbeitgebermaßnahme / Kurznotiz</span><input value={inlineParticipationDraft.employerMeasure} onChange={(event) => setInlineParticipationDraft((current) => current ? { ...current, employerMeasure: event.target.value } : current)} placeholder="z. B. Versetzung angekündigt, Unterlagen fehlen" /></label>
-              <label><span>Risikostufe</span><select value={inlineParticipationDraft.riskLevel} onChange={(event) => setInlineParticipationDraft((current) => current ? { ...current, riskLevel: event.target.value as InlineParticipationDraft['riskLevel'] } : current)}><option value="normal">normal</option><option value="erhoeht">erhöht</option><option value="kritisch">kritisch</option></select></label>
-              <label><span>Stellungnahmefrist optional</span><input type="datetime-local" value={inlineParticipationDraft.statementDueAt} onChange={(event) => setInlineParticipationDraft((current) => current ? { ...current, statementDueAt: event.target.value } : current)} /></label>
-              <label className="industrial-modal-wide"><span>Nächster Schritt</span><input value={inlineParticipationDraft.nextStep} onChange={(event) => setInlineParticipationDraft((current) => current ? { ...current, nextStep: event.target.value } : current)} /></label>
+              <label className="industrial-modal-wide">
+                <FieldCaption draft={inlineParticipationDraft} field="title">
+                  Titel
+                </FieldCaption>
+                <input
+                  value={inlineParticipationDraft.title}
+                  onChange={(event) =>
+                    setInlineParticipationDraft((current) =>
+                      current
+                        ? { ...current, title: event.target.value }
+                        : current,
+                    )
+                  }
+                  autoFocus
+                  placeholder="z. B. Versetzung ohne vorherige SBV-Anhörung"
+                />
+              </label>
+              <label>
+                <FieldCaption
+                  draft={inlineParticipationDraft}
+                  field="employerMeasure"
+                >
+                  Arbeitgebermaßnahme / Kurznotiz
+                </FieldCaption>
+                <input
+                  value={inlineParticipationDraft.employerMeasure}
+                  onChange={(event) =>
+                    setInlineParticipationDraft((current) =>
+                      current
+                        ? { ...current, employerMeasure: event.target.value }
+                        : current,
+                    )
+                  }
+                  placeholder="z. B. Versetzung angekündigt, Unterlagen fehlen"
+                />
+              </label>
+              <label>
+                <FieldCaption
+                  draft={inlineParticipationDraft}
+                  field="riskLevel"
+                >
+                  Risikostufe
+                </FieldCaption>
+                <select
+                  value={inlineParticipationDraft.riskLevel}
+                  onChange={(event) =>
+                    setInlineParticipationDraft((current) =>
+                      current
+                        ? {
+                            ...current,
+                            riskLevel: event.target
+                              .value as InlineParticipationDraft["riskLevel"],
+                          }
+                        : current,
+                    )
+                  }
+                >
+                  <option value="normal">normal</option>
+                  <option value="erhoeht">erhöht</option>
+                  <option value="kritisch">kritisch</option>
+                </select>
+              </label>
+              <label>
+                <span>Stellungnahmefrist optional</span>
+                <input
+                  type="datetime-local"
+                  value={inlineParticipationDraft.statementDueAt}
+                  onChange={(event) =>
+                    setInlineParticipationDraft((current) =>
+                      current
+                        ? { ...current, statementDueAt: event.target.value }
+                        : current,
+                    )
+                  }
+                />
+              </label>
+              <label className="industrial-modal-wide">
+                <FieldCaption draft={inlineParticipationDraft} field="nextStep">
+                  Nächster Schritt
+                </FieldCaption>
+                <input
+                  value={inlineParticipationDraft.nextStep}
+                  onChange={(event) =>
+                    setInlineParticipationDraft((current) =>
+                      current
+                        ? { ...current, nextStep: event.target.value }
+                        : current,
+                    )
+                  }
+                />
+              </label>
             </div>
-            <div className="industrial-modal-preview"><ClipboardCheck className="h-4 w-4" /> Wird als Fallaktenmaßnahme angelegt: <strong>{inlineParticipationDraft.title.trim() || 'SBV-Beteiligung'}</strong></div>
-            <div className="industrial-modal-actions"><button type="button" className="industrial-secondary-button" onClick={cancelInlineParticipationDraft}>Abbrechen</button><button type="button" className="industrial-button" onClick={() => void createParticipationFromProtocol()}>Anlegen und weiterprotokollieren</button></div>
+            <div className="industrial-modal-preview">
+              <ClipboardCheck className="h-4 w-4" /> Wird als Fallaktenmaßnahme
+              angelegt:{" "}
+              <strong>
+                {inlineParticipationDraft.title.trim() || "SBV-Beteiligung"}
+              </strong>
+            </div>
+            <div className="industrial-modal-actions">
+              <button
+                type="button"
+                className="industrial-secondary-button"
+                onClick={cancelInlineParticipationDraft}
+              >
+                Abbrechen
+              </button>
+              <button
+                type="button"
+                className="industrial-button"
+                onClick={() => void createParticipationFromProtocol()}
+              >
+                Anlegen und weiterprotokollieren
+              </button>
+            </div>
           </section>
         </div>
       )}
 
-
-
       {inlineWorkplaceAccommodationDraft && (
         <div className="industrial-modal-backdrop" role="presentation">
-          <section className="industrial-modal inline-command-quick" role="dialog" aria-modal="true" aria-labelledby="inline-workplace-title">
+          <section
+            className="industrial-modal inline-command-quick"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="inline-workplace-title"
+          >
             <div className="industrial-modal-header">
-              <div className="industrial-modal-icon"><Wrench className="h-5 w-5" /></div>
+              <div className="industrial-modal-icon">
+                <Wrench className="h-5 w-5" />
+              </div>
               <div>
                 <p className="industrial-kicker">Inline-Maßnahme</p>
-                <h2 id="inline-workplace-title">Arbeitsplatzgestaltung anlegen</h2>
-                <p>Legt eine Maßnahme nach § 164 Abs. 4 SGB IX direkt in der aktuellen Fallakte an. Details können nach dem Gespräch ergänzt werden.</p>
+                <h2 id="inline-workplace-title">
+                  Arbeitsplatzgestaltung anlegen
+                </h2>
+                <p>
+                  Legt eine Maßnahme nach § 164 Abs. 4 SGB IX direkt in der
+                  aktuellen Fallakte an. Details können nach dem Gespräch
+                  ergänzt werden.
+                </p>
               </div>
             </div>
             <div className="industrial-modal-grid">
-              <label className="industrial-modal-wide"><span>Titel</span><input value={inlineWorkplaceAccommodationDraft.title} onChange={(event) => setInlineWorkplaceAccommodationDraft((current) => current ? { ...current, title: event.target.value } : current)} autoFocus placeholder="z. B. fester Arbeitsplatz / technische Arbeitshilfe" /></label>
-              <label className="industrial-modal-wide"><span>Gewünschte Gestaltung / Kurznotiz</span><input value={inlineWorkplaceAccommodationDraft.requestedAdjustment} onChange={(event) => setInlineWorkplaceAccommodationDraft((current) => current ? { ...current, requestedAdjustment: event.target.value } : current)} placeholder="z. B. fester Arbeitsplatz wegen behinderungsbedingter Belastung" /></label>
-              <label><span>Kategorie</span><select value={inlineWorkplaceAccommodationDraft.category} onChange={(event) => setInlineWorkplaceAccommodationDraft((current) => current ? { ...current, category: event.target.value as InlineWorkplaceAccommodationDraft['category'] } : current)}><option value="arbeitsplatz">Arbeitsplatz</option><option value="arbeitsumfeld">Arbeitsumfeld</option><option value="arbeitsorganisation">Arbeitsorganisation</option><option value="arbeitszeit">Arbeitszeit</option><option value="arbeitsort">Arbeitsort / mobile Arbeit</option><option value="technische_arbeitshilfe">technische Arbeitshilfe</option><option value="software_barrierefreiheit">Software / Barrierefreiheit</option><option value="qualifizierung">Qualifizierung</option><option value="aufgabenanpassung">Aufgabenanpassung</option><option value="sonstiges">Sonstiges</option></select></label>
-              <label><span>Risikostufe</span><select value={inlineWorkplaceAccommodationDraft.riskLevel} onChange={(event) => setInlineWorkplaceAccommodationDraft((current) => current ? { ...current, riskLevel: event.target.value as InlineWorkplaceAccommodationDraft['riskLevel'] } : current)}><option value="normal">normal</option><option value="erhoeht">erhöht</option><option value="kritisch">kritisch</option></select></label>
-              <label><span>Umsetzungs-/Wiedervorlage optional</span><input type="datetime-local" value={inlineWorkplaceAccommodationDraft.implementationDueAt} onChange={(event) => setInlineWorkplaceAccommodationDraft((current) => current ? { ...current, implementationDueAt: event.target.value } : current)} /></label>
-              <label className="industrial-modal-wide"><span>Nächster Schritt</span><input value={inlineWorkplaceAccommodationDraft.nextStep} onChange={(event) => setInlineWorkplaceAccommodationDraft((current) => current ? { ...current, nextStep: event.target.value } : current)} /></label>
+              <label className="industrial-modal-wide">
+                <FieldCaption
+                  draft={inlineWorkplaceAccommodationDraft}
+                  field="title"
+                >
+                  Titel
+                </FieldCaption>
+                <input
+                  value={inlineWorkplaceAccommodationDraft.title}
+                  onChange={(event) =>
+                    setInlineWorkplaceAccommodationDraft((current) =>
+                      current
+                        ? { ...current, title: event.target.value }
+                        : current,
+                    )
+                  }
+                  autoFocus
+                  placeholder="z. B. fester Arbeitsplatz / technische Arbeitshilfe"
+                />
+              </label>
+              <label className="industrial-modal-wide">
+                <FieldCaption
+                  draft={inlineWorkplaceAccommodationDraft}
+                  field="requestedAdjustment"
+                >
+                  Gewünschte Gestaltung / Kurznotiz
+                </FieldCaption>
+                <input
+                  value={inlineWorkplaceAccommodationDraft.requestedAdjustment}
+                  onChange={(event) =>
+                    setInlineWorkplaceAccommodationDraft((current) =>
+                      current
+                        ? {
+                            ...current,
+                            requestedAdjustment: event.target.value,
+                          }
+                        : current,
+                    )
+                  }
+                  placeholder="z. B. fester Arbeitsplatz wegen behinderungsbedingter Belastung"
+                />
+              </label>
+              <label>
+                <FieldCaption
+                  draft={inlineWorkplaceAccommodationDraft}
+                  field="category"
+                >
+                  Kategorie
+                </FieldCaption>
+                <select
+                  value={inlineWorkplaceAccommodationDraft.category}
+                  onChange={(event) =>
+                    setInlineWorkplaceAccommodationDraft((current) =>
+                      current
+                        ? {
+                            ...current,
+                            category: event.target
+                              .value as InlineWorkplaceAccommodationDraft["category"],
+                          }
+                        : current,
+                    )
+                  }
+                >
+                  <option value="arbeitsplatz">Arbeitsplatz</option>
+                  <option value="arbeitsumfeld">Arbeitsumfeld</option>
+                  <option value="arbeitsorganisation">
+                    Arbeitsorganisation
+                  </option>
+                  <option value="arbeitszeit">Arbeitszeit</option>
+                  <option value="arbeitsort">Arbeitsort / mobile Arbeit</option>
+                  <option value="technische_arbeitshilfe">
+                    technische Arbeitshilfe
+                  </option>
+                  <option value="software_barrierefreiheit">
+                    Software / Barrierefreiheit
+                  </option>
+                  <option value="qualifizierung">Qualifizierung</option>
+                  <option value="aufgabenanpassung">Aufgabenanpassung</option>
+                  <option value="sonstiges">Sonstiges</option>
+                </select>
+              </label>
+              <label>
+                <FieldCaption
+                  draft={inlineWorkplaceAccommodationDraft}
+                  field="riskLevel"
+                >
+                  Risikostufe
+                </FieldCaption>
+                <select
+                  value={inlineWorkplaceAccommodationDraft.riskLevel}
+                  onChange={(event) =>
+                    setInlineWorkplaceAccommodationDraft((current) =>
+                      current
+                        ? {
+                            ...current,
+                            riskLevel: event.target
+                              .value as InlineWorkplaceAccommodationDraft["riskLevel"],
+                          }
+                        : current,
+                    )
+                  }
+                >
+                  <option value="normal">normal</option>
+                  <option value="erhoeht">erhöht</option>
+                  <option value="kritisch">kritisch</option>
+                </select>
+              </label>
+              <label>
+                <span>Umsetzungs-/Wiedervorlage optional</span>
+                <input
+                  type="datetime-local"
+                  value={inlineWorkplaceAccommodationDraft.implementationDueAt}
+                  onChange={(event) =>
+                    setInlineWorkplaceAccommodationDraft((current) =>
+                      current
+                        ? {
+                            ...current,
+                            implementationDueAt: event.target.value,
+                          }
+                        : current,
+                    )
+                  }
+                />
+              </label>
+              <label className="industrial-modal-wide">
+                <FieldCaption
+                  draft={inlineWorkplaceAccommodationDraft}
+                  field="nextStep"
+                >
+                  Nächster Schritt
+                </FieldCaption>
+                <input
+                  value={inlineWorkplaceAccommodationDraft.nextStep}
+                  onChange={(event) =>
+                    setInlineWorkplaceAccommodationDraft((current) =>
+                      current
+                        ? { ...current, nextStep: event.target.value }
+                        : current,
+                    )
+                  }
+                />
+              </label>
             </div>
-            <div className="industrial-modal-preview"><Wrench className="h-4 w-4" /> Wird als Fallaktenmaßnahme angelegt: <strong>{inlineWorkplaceAccommodationDraft.title.trim() || 'Arbeitsplatzgestaltung'}</strong></div>
-            <div className="industrial-modal-actions"><button type="button" className="industrial-secondary-button" onClick={cancelInlineWorkplaceAccommodationDraft}>Abbrechen</button><button type="button" className="industrial-button" onClick={() => void createWorkplaceAccommodationFromProtocol()}>Anlegen und weiterprotokollieren</button></div>
+            <div className="industrial-modal-preview">
+              <Wrench className="h-4 w-4" /> Wird als Fallaktenmaßnahme
+              angelegt:{" "}
+              <strong>
+                {inlineWorkplaceAccommodationDraft.title.trim() ||
+                  "Arbeitsplatzgestaltung"}
+              </strong>
+            </div>
+            <div className="industrial-modal-actions">
+              <button
+                type="button"
+                className="industrial-secondary-button"
+                onClick={cancelInlineWorkplaceAccommodationDraft}
+              >
+                Abbrechen
+              </button>
+              <button
+                type="button"
+                className="industrial-button"
+                onClick={() => void createWorkplaceAccommodationFromProtocol()}
+              >
+                Anlegen und weiterprotokollieren
+              </button>
+            </div>
           </section>
         </div>
       )}
 
       {inlineTemplateDraft && (
         <div className="industrial-modal-backdrop" role="presentation">
-          <section className="industrial-modal inline-command-quick" role="dialog" aria-modal="true" aria-labelledby="inline-template-title">
-            <div className="industrial-modal-header"><div className="industrial-modal-icon"><FileText className="h-5 w-5" /></div><div><p className="industrial-kicker">Inline-Vorlage</p><h2 id="inline-template-title">Vorlage vormerken</h2><p>Der Vorlagenbezug wird im Protokoll markiert. Die konkrete Dokumenterzeugung bleibt im Vorlagenmodul.</p></div></div>
-            <div className="industrial-modal-grid"><label className="industrial-modal-wide"><span>Such-/Vorlagenhinweis</span><input value={inlineTemplateDraft.query} onChange={(event) => setInlineTemplateDraft((current) => current ? { ...current, query: event.target.value } : current)} autoFocus placeholder="z. B. Unterlagenanforderung Beteiligung" /></label></div>
-            <div className="industrial-modal-preview"><FileText className="h-4 w-4" /> Wird eingefügt: <strong>{formatTemplateMarkerText(inlineTemplateDraft.query)}</strong></div>
-            <div className="industrial-modal-actions"><button type="button" className="industrial-secondary-button" onClick={cancelInlineTemplateDraft}>Abbrechen</button><button type="button" className="industrial-button" onClick={applyTemplateMarkerFromProtocol}>Vormerken</button></div>
+          <section
+            className="industrial-modal inline-command-quick"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="inline-template-title"
+          >
+            <div className="industrial-modal-header">
+              <div className="industrial-modal-icon">
+                <FileText className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="industrial-kicker">Inline-Vorlage</p>
+                <h2 id="inline-template-title">Vorlage vormerken</h2>
+                <p>
+                  Der Vorlagenbezug wird im Protokoll markiert. Die konkrete
+                  Dokumenterzeugung bleibt im Vorlagenmodul.
+                </p>
+              </div>
+            </div>
+            <div className="industrial-modal-grid">
+              <label className="industrial-modal-wide">
+                <span>Such-/Vorlagenhinweis</span>
+                <input
+                  value={inlineTemplateDraft.query}
+                  onChange={(event) =>
+                    setInlineTemplateDraft((current) =>
+                      current
+                        ? { ...current, query: event.target.value }
+                        : current,
+                    )
+                  }
+                  autoFocus
+                  placeholder="z. B. Unterlagenanforderung Beteiligung"
+                />
+              </label>
+            </div>
+            <div className="industrial-modal-preview">
+              <FileText className="h-4 w-4" /> Wird eingefügt:{" "}
+              <strong>
+                {formatTemplateMarkerText(inlineTemplateDraft.query)}
+              </strong>
+            </div>
+            <div className="industrial-modal-actions">
+              <button
+                type="button"
+                className="industrial-secondary-button"
+                onClick={cancelInlineTemplateDraft}
+              >
+                Abbrechen
+              </button>
+              <button
+                type="button"
+                className="industrial-button"
+                onClick={applyTemplateMarkerFromProtocol}
+              >
+                Vormerken
+              </button>
+            </div>
           </section>
         </div>
       )}
 
       {inlineDeadlineDraft && (
         <div className="industrial-modal-backdrop" role="presentation">
-          <section className="industrial-modal" role="dialog" aria-modal="true" aria-labelledby="inline-deadline-title">
+          <section
+            className="industrial-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="inline-deadline-title"
+          >
             <div className="industrial-modal-header">
-              <div className="industrial-modal-icon"><CalendarPlus className="h-5 w-5" /></div>
+              <div className="industrial-modal-icon">
+                <CalendarPlus className="h-5 w-5" />
+              </div>
               <div>
                 <p className="industrial-kicker">Inline-Frist</p>
                 <h2 id="inline-deadline-title">Frist aus Protokoll anlegen</h2>
-                <p>Die Frist wird mit dem aktuell ausgewählten Fall verbunden: {selectedCase?.caseNumber ?? '—'}</p>
+                <p>
+                  Die Frist wird mit dem aktuell ausgewählten Fall verbunden:{" "}
+                  {selectedCase?.caseNumber ?? "—"}
+                </p>
               </div>
             </div>
 
@@ -353,7 +1994,13 @@ export function InlineCommandOverlays(props: InlineCommandOverlaysProps) {
                 <span>Fristtitel</span>
                 <input
                   value={inlineDeadlineDraft.title}
-                  onChange={(event) => setInlineDeadlineDraft((current) => current ? { ...current, title: event.target.value } : current)}
+                  onChange={(event) =>
+                    setInlineDeadlineDraft((current) =>
+                      current
+                        ? { ...current, title: event.target.value }
+                        : current,
+                    )
+                  }
                   placeholder="z. B. Antwort Arbeitgeber nachhalten"
                   autoFocus
                 />
@@ -363,14 +2010,29 @@ export function InlineCommandOverlays(props: InlineCommandOverlaysProps) {
                 <input
                   type="datetime-local"
                   value={inlineDeadlineDraft.dueAt}
-                  onChange={(event) => setInlineDeadlineDraft((current) => current ? { ...current, dueAt: event.target.value } : current)}
+                  onChange={(event) =>
+                    setInlineDeadlineDraft((current) =>
+                      current
+                        ? { ...current, dueAt: event.target.value }
+                        : current,
+                    )
+                  }
                 />
               </label>
               <label>
                 <span>Stufe</span>
                 <select
                   value={inlineDeadlineDraft.severity}
-                  onChange={(event) => setInlineDeadlineDraft((current) => current ? { ...current, severity: event.target.value as DeadlineSeverity } : current)}
+                  onChange={(event) =>
+                    setInlineDeadlineDraft((current) =>
+                      current
+                        ? {
+                            ...current,
+                            severity: event.target.value as DeadlineSeverity,
+                          }
+                        : current,
+                    )
+                  }
                 >
                   <option value="normal">normal</option>
                   <option value="important">wichtig</option>
@@ -382,7 +2044,13 @@ export function InlineCommandOverlays(props: InlineCommandOverlaysProps) {
                 <span>Rechtsbezug</span>
                 <input
                   value={inlineDeadlineDraft.legalBasis}
-                  onChange={(event) => setInlineDeadlineDraft((current) => current ? { ...current, legalBasis: event.target.value } : current)}
+                  onChange={(event) =>
+                    setInlineDeadlineDraft((current) =>
+                      current
+                        ? { ...current, legalBasis: event.target.value }
+                        : current,
+                    )
+                  }
                   placeholder="optional"
                 />
               </label>
@@ -390,21 +2058,39 @@ export function InlineCommandOverlays(props: InlineCommandOverlaysProps) {
                 <span>Notiz zur Frist</span>
                 <input
                   value={inlineDeadlineDraft.description}
-                  onChange={(event) => setInlineDeadlineDraft((current) => current ? { ...current, description: event.target.value } : current)}
+                  onChange={(event) =>
+                    setInlineDeadlineDraft((current) =>
+                      current
+                        ? { ...current, description: event.target.value }
+                        : current,
+                    )
+                  }
                 />
               </label>
             </div>
 
             {inlineDeadlineDraft.dueAt && (
               <div className="industrial-modal-preview">
-                Wird im Protokoll eingefügt: <strong>{buildInlineDeadlineText(inlineDeadlineDraft)}</strong>
+                Wird im Protokoll eingefügt:{" "}
+                <strong>{buildInlineDeadlineText(inlineDeadlineDraft)}</strong>
               </div>
             )}
 
             <div className="industrial-modal-actions">
-              <button type="button" className="industrial-secondary-button" onClick={cancelInlineDeadlineDraft}>Abbrechen</button>
-              <button type="button" className="industrial-button" onClick={() => void createInlineDeadlineFromProtocol()}>
-                <CalendarPlus className="h-4 w-4" />Frist anlegen
+              <button
+                type="button"
+                className="industrial-secondary-button"
+                onClick={cancelInlineDeadlineDraft}
+              >
+                Abbrechen
+              </button>
+              <button
+                type="button"
+                className="industrial-button"
+                onClick={() => void createInlineDeadlineFromProtocol()}
+              >
+                <CalendarPlus className="h-4 w-4" />
+                Frist anlegen
               </button>
             </div>
           </section>

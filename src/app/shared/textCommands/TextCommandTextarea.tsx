@@ -14,6 +14,7 @@ export type TextCommandTextareaReplacement = {
   markerIndex: number;
   token: TextCommandToken;
   replacement: string;
+  rangeLength?: number;
 };
 
 type TextCommandTextareaProps = Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'onChange'> & {
@@ -50,7 +51,8 @@ export function TextCommandTextarea({
         : textarea.value.indexOf(detail.token);
       if (index < 0) return;
 
-      textarea.value = `${textarea.value.slice(0, index)}${detail.replacement}${textarea.value.slice(index + detail.token.length)}`.replace(/ {2,}/g, ' ');
+      const rangeLength = detail.rangeLength ?? detail.token.length;
+      textarea.value = `${textarea.value.slice(0, index)}${detail.replacement}${textarea.value.slice(index + rangeLength)}`.replace(/ {2,}/g, ' ');
       textarea.dispatchEvent(new Event('input', { bubbles: true }));
       textarea.focus();
       const cursor = index + detail.replacement.length;
@@ -78,7 +80,7 @@ export function TextCommandTextarea({
   }
 
   const describedBy = [ariaDescribedBy, hintId].filter(Boolean).join(' ') || undefined;
-  const commandPlaceholder = showCommandHint ? (placeholder ? `${placeholder} · ${TEXT_COMMAND_HINT}` : TEXT_COMMAND_HINT) : placeholder;
+  const commandPlaceholder = showCommandHint ? (placeholder ? `${placeholder} · Strg+H: Kurzbefehle` : TEXT_COMMAND_HINT) : placeholder;
 
   return (
     <>
@@ -91,7 +93,7 @@ export function TextCommandTextarea({
         placeholder={commandPlaceholder}
         onChange={handleChange}
       />
-      {hintId && <small id={hintId} className="text-command-hint">{TEXT_COMMAND_HINT}</small>}
+      {hintId && <small id={hintId} className="text-command-hint">Strg+H: Kurzbefehle anzeigen</small>}
     </>
   );
 }

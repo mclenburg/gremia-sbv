@@ -7,6 +7,7 @@ import { useModalKeyboardShortcuts } from "./core/keyboard/useModalKeyboardShort
 import { AUTO_LOCK_TIMEOUT_MS, useAutoLock } from "./core/security/useAutoLock";
 import type { CaseCategory, CaseRecord } from "./core/models/case.model";
 import type { WorkplaceAccommodationRecord } from "./core/models/workplace-accommodation.model";
+import type { CaseMeasureRecord } from "./core/models/case-measure.model";
 import type {
   ContactRecord,
   CreateContactInput,
@@ -22,6 +23,7 @@ import { APP_VERSION } from "./generated/appVersion";
 import { ConfirmDialogProvider } from "./shared/dialogs/ConfirmDialogProvider";
 import { LiveRegionProvider } from "./shared/a11y/LiveRegionProvider";
 import { GlobalTextCommandController } from "./shared/textCommands/GlobalTextCommandController";
+import { TextCommandHelpModal } from "./shared/textCommands/TextCommandHelpModal";
 import { KnowledgeView } from "./features/knowledge/KnowledgeView";
 import { PreventionView } from "./features/prevention/PreventionView";
 import { ParticipationView } from "./features/participation/ParticipationView";
@@ -63,6 +65,7 @@ import "./complianceCenter.css";
 import "./reportsWorkbench.css";
 import "./features/participation/participationWorkbench.css";
 import "./ui/responsiveDesign.css";
+import "./shared/textCommands/textCommandHelp.css";
 
 const THEME_STORAGE_KEY = "gremia.sbv.theme";
 
@@ -131,6 +134,7 @@ export function App() {
   const [cases, setCases] = useState<CaseRecord[]>([]);
   const [contacts, setContacts] = useState<ContactRecord[]>([]);
   const [deadlines, setDeadlines] = useState<DeadlineRecord[]>([]);
+  const [caseMeasures, setCaseMeasures] = useState<CaseMeasureRecord[]>([]);
   const [dashboardDeadlines, setDashboardDeadlines] = useState<
     DeadlineDashboardItem[]
   >([]);
@@ -219,17 +223,19 @@ export function App() {
     if (!bridge?.cases || !bridge.contacts || !bridge.deadlines) {
       throw new Error("Datenbrücke ist nicht geladen.");
     }
-    const [caseRows, contactRows, deadlineRows, dashboardRows] =
+    const [caseRows, contactRows, deadlineRows, dashboardRows, measureRows] =
       await Promise.all([
         bridge.cases.list(),
         bridge.contacts.list(),
         bridge.deadlines.list({ status: ["open", "overdue"] }),
         bridge.deadlines.dashboard(),
+        bridge.caseMeasures?.list() ?? Promise.resolve([]),
       ]);
     setCases(caseRows);
     setContacts(contactRows);
     setDeadlines(deadlineRows);
     setDashboardDeadlines(dashboardRows);
+    setCaseMeasures(measureRows);
   }
 
   async function createCase(input: {
@@ -430,6 +436,7 @@ export function App() {
             {currentView === "deadlines" && (
               <DeadlinesView
                 cases={cases}
+                measures={caseMeasures}
                 deadlines={deadlines}
                 onCreateDeadline={createDeadline}
                 onEditDeadline={(deadline) => setSelectedDeadline(deadline)}
@@ -479,6 +486,7 @@ export function App() {
               <PlaceholderView view={currentModule} />
             )}
             <GlobalTextCommandController cases={cases} contacts={contacts} />
+            <TextCommandHelpModal />
             {selectedDeadline && (
               <DeadlineEditor
                 deadline={selectedDeadline}

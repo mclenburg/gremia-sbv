@@ -3,6 +3,7 @@ import type { FormEvent } from 'react';
 import { AlertTriangle, Plus } from 'lucide-react';
 import { ModuleFrame } from '../../shared/components/ModuleFrame';
 import type { CaseRecord } from '../../core/models/case.model';
+import type { CaseMeasureRecord } from '../../core/models/case-measure.model';
 import type { CreateDeadlineInput, DeadlineProcessType, DeadlineRecord, DeadlineSeverity, DeadlineType } from '../../core/models/deadline.model';
 import { DeadlineListView } from './DeadlineListView';
 import { formatCaseLabel, fromDateTimeLocalValue, toDateTimeLocalValue } from '../cases/caseWorkbenchFormat';
@@ -10,12 +11,14 @@ import { formatCaseLabel, fromDateTimeLocalValue, toDateTimeLocalValue } from '.
 export function DeadlinesView({
   cases,
   deadlines,
+  measures = [],
   onCreateDeadline,
   onEditDeadline,
   onCompleteDeadline
 }: {
   cases: CaseRecord[];
   deadlines: DeadlineRecord[];
+  measures?: CaseMeasureRecord[];
   onCreateDeadline: (input: CreateDeadlineInput) => Promise<void>;
   onEditDeadline: (deadline: DeadlineRecord) => void;
   onCompleteDeadline: (deadline: DeadlineRecord) => void;
@@ -144,7 +147,7 @@ export function DeadlinesView({
       </form>
       {error && <div className="industrial-message industrial-message-warning">{error}</div>}
 
-      <DeadlineListView deadlines={deadlines} cases={cases} onEdit={onEditDeadline} onComplete={onCompleteDeadline} />
+      <DeadlineListView deadlines={deadlines} cases={cases} measures={measures} onEdit={onEditDeadline} onComplete={onCompleteDeadline} />
     </ModuleFrame>
   );
 }

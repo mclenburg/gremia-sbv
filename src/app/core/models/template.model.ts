@@ -1,3 +1,4 @@
+import type { CaseMeasureType } from './case-measure.model';
 export type TemplateCategory =
   | 'praevention'
   | 'bem'
@@ -50,6 +51,7 @@ export interface TemplateListFilters {
   category?: TemplateCategory;
   includeSystem?: boolean;
   limit?: number;
+  measureType?: CaseMeasureType;
 }
 
 export interface RenderTemplateInput {
@@ -60,7 +62,7 @@ export interface RenderTemplateInput {
 }
 
 
-export type TemplateSourceType = 'case' | 'prevention' | 'bem' | 'deadline' | 'termination' | 'equalization';
+export type TemplateSourceType = 'case' | 'case_measure' | 'prevention' | 'bem' | 'deadline' | 'termination' | 'equalization' | 'participation' | 'workplace_accommodation';
 
 export interface RenderContextTemplateInput {
   templateKey: string;
