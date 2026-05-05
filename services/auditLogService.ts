@@ -120,7 +120,28 @@ export class PersonalDataAuditLogService {
     );
 
     const created = this.db.prepare<any>('SELECT * FROM personal_data_audit_log WHERE id = ?').get(id);
-    return mapAudit(created);
+    if (created) return mapAudit(created);
+
+    // Einige schlanke Test-/Diagnose-Adapter bilden INSERTs nach, geben aber
+    // keine anschließend selektierbare Zeile zurück. Für den produktiven
+    // SQLCipher-/SQLite-Adapter bleibt der SELECT der maßgebliche Pfad; für
+    // diese Adapter liefern wir denselben Datensatz aus den gerade berechneten
+    // Werten zurück, statt beim Auditieren Fachservices mit einem TypeError zu
+    // stören.
+    return {
+      id,
+      sequence,
+      occurredAt,
+      actor,
+      action: input.action,
+      subjectType: input.subjectType,
+      subjectId: input.subjectId ?? undefined,
+      caseId: input.caseId ?? undefined,
+      purpose: input.purpose,
+      metadataJson,
+      previousHash,
+      entryHash
+    };
   }
 
   list(limit = 500): PersonalDataAuditRecord[] {

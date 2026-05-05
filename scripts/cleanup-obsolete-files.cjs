@@ -2,10 +2,10 @@
 /*
  * Gremia.SBV source cleanup helper.
  *
- * Removes obsolete source files listed by patch manifests before a build.
- * The script is intentionally conservative: only explicit relative paths under
- * the project root are accepted; wildcards, absolute paths and parent traversal
- * are rejected.
+ * Removes obsolete source files listed by patch manifests before a build or test
+ * run. The script is intentionally conservative: only explicit relative paths
+ * under the project root are accepted; wildcards, absolute paths and parent
+ * traversal are rejected.
  */
 const fs = require('node:fs');
 const path = require('node:path');
@@ -13,9 +13,10 @@ const path = require('node:path');
 const projectRoot = path.resolve(__dirname, '..');
 const defaultManifestDir = path.join(projectRoot, 'maintenance', 'source-cleanup');
 const dryRun = process.argv.includes('--dry-run');
+const verbose = process.argv.includes('--verbose');
 const explicitManifests = process.argv
   .slice(2)
-  .filter((arg) => arg !== '--dry-run')
+  .filter((arg) => arg !== '--dry-run' && arg !== '--verbose')
   .map((arg) => path.resolve(projectRoot, arg));
 
 const protectedTopLevel = new Set([
@@ -39,6 +40,7 @@ const allowedTopLevel = new Set([
   'tests',
   'docs',
   'assets',
+  'maintenance',
 ]);
 
 function loadManifestPaths() {
@@ -103,7 +105,7 @@ function assertSafeRelativePath(relativePath, kind, manifestPath) {
 function removeFile(relativePath, manifestPath, result) {
   const { normalized, absolutePath } = assertSafeRelativePath(relativePath, 'Datei', manifestPath);
   if (!fs.existsSync(absolutePath)) {
-    result.skipped.push(normalized);
+    result.alreadyClean.push(normalized);
     return;
   }
   const stat = fs.statSync(absolutePath);
@@ -119,7 +121,7 @@ function removeFile(relativePath, manifestPath, result) {
 function removeDirectory(relativePath, manifestPath, result) {
   const { normalized, absolutePath } = assertSafeRelativePath(relativePath, 'Verzeichnis', manifestPath);
   if (!fs.existsSync(absolutePath)) {
-    result.skipped.push(normalized);
+    result.alreadyClean.push(`${normalized}/`);
     return;
   }
   const stat = fs.statSync(absolutePath);
@@ -134,7 +136,7 @@ function removeDirectory(relativePath, manifestPath, result) {
 
 function main() {
   const manifestPaths = loadManifestPaths();
-  const result = { removed: [], skipped: [] };
+  const result = { removed: [], alreadyClean: [] };
 
   for (const manifestPath of manifestPaths) {
     if (!fs.existsSync(manifestPath)) {
@@ -146,9 +148,15 @@ function main() {
   }
 
   const mode = dryRun ? 'Trockenlauf' : 'Cleanup';
-  console.log(`Source-${mode}: ${result.removed.length} entfernt, ${result.skipped.length} nicht vorhanden.`);
+  const suffix = result.alreadyClean.length > 0
+    ? `, ${result.alreadyClean.length} bereits bereinigt`
+    : '';
+  console.log(`Source-${mode}: ${result.removed.length} entfernt${suffix}.`);
   if (result.removed.length > 0) {
     console.log(`Entfernt: ${result.removed.join(', ')}`);
+  }
+  if (verbose && result.alreadyClean.length > 0) {
+    console.log(`Bereits bereinigt: ${result.alreadyClean.join(', ')}`);
   }
 }
 

@@ -1,187 +1,178 @@
 # Gremia.SBV
 
-Gremia.SBV ist eine lokale, offline-first Desktop-Anwendung für die vertrauliche Fallarbeit der Schwerbehindertenvertretung.
+**Gremia.SBV** ist eine lokale, offline-first Desktop-Anwendung für die vertrauliche Fallarbeit der Schwerbehindertenvertretung (SBV).
 
-Stand: 0.8.4a
+Stand: **0.8.8-d**  
+Zielrichtung: Vorbereitung auf den ersten Release Candidate `0.9.0-rc.1`.
 
+## Zweck
 
-## Stand 0.8.4a
+Gremia.SBV unterstützt die SBV bei personenbezogener, besonders vertraulicher Fallarbeit. Die App bündelt Fallakten, Maßnahmen, Fristen, Dokumente, Vorlagen, Berichte und Compliance-Prüfpunkte in einem lokalen Tresor.
 
-Stabilisierungspatch: App-Version und Service-Version werden einheitlich aus `package.json` generiert, die Datenbank-Schema-Version ist zentral auf `0018` gesetzt und Backup-/Migrationsdienste nutzen dieselben Konstanten. Das Frischschema enthält nun die reparierte Kündigungsanhörungs-Tabelle aus Migration `0017`; zusätzlich repariert der MigrationService bekannte Schema-Drifts bei falsch gebaselinten Datenbanken. Die Kündigungsanhörung ist als implementierte View registriert, sodass kein Platzhalter mehr parallel zur echten Ansicht erscheint.
+Die zentrale Produktregel lautet:
 
-## Datenschutz / DSGVO
+> Die Fallakte führt. Maßnahmen schreiben fort. Cockpits überwachen. Inlinebefehle beschleunigen. Berichte werten aus.
 
-Die SBV-spezifische Datenschutzdokumentation liegt unter `docs/DSGVO_SBV.md`, ergänzt durch `docs/DSFA_SBV_TEMPLATE.md`, `docs/LOESCHKONZEPT_SBV.md` und `docs/VERARBEITUNGSVERZEICHNIS_SBV.md`.
+## Kernfunktionen
 
-## Leitlinien
+- Fallakten für vertrauliche SBV-Vorgänge
+- Maßnahmen innerhalb der Fallakte, unter anderem:
+  - BEM
+  - Prävention
+  - SBV-Beteiligung
+  - Kündigungsanhörung
+  - Gleichstellung / GdB
+  - Arbeitsplatzgestaltung
+- Fristen und Wiedervorlagen
+- Dokumentenimport in den lokalen Tresor
+- Vorlagen und strukturierte Schreiben
+- Inline-Kurzbefehle für Live-Protokolle
+- Berichte und System-/Integritätsberichte
+- Compliance-Dokumente wie TOMs, VVT, DSFA-Entwurf und Release-Checkliste
+- lokales Audit-Log mit Hash-Chain
+- Auto-Lock und Sicherheitsstatus
 
-- Fallakte als zentrales Arbeitsinstrument
-- lokale verschlüsselte Datenhaltung
-- ExportGuard vor sensiblen Exporten
-- keine automatische Cloud-Synchronisation
-- keine Erwähnung nicht implementierter externer Produktschnittstellen
+## Datenschutz und Sicherheitsmodell
 
+Gremia.SBV ist bewusst **offline-first** gebaut:
 
-## Stand 0.5.0
+- keine Cloud-Synchronisation,
+- keine Telemetrie,
+- keine automatische externe Schnittstelle,
+- lokale verschlüsselte Datenhaltung,
+- Auditierung von Zugriffen und Änderungen,
+- temporäre Arbeitskopien werden kontrolliert,
+- Berichte werden lokal erzeugt.
 
-Das BEM-Grundmodul ist als eigenes Fachmodul ergänzt: Übersicht, Fallaktenintegration, Detailformular, Service, IPC und Migration.
+Die App ersetzt keine organisatorische Datenschutzfreigabe. Vor produktiver Nutzung sind insbesondere DSB, IT-Security und die verantwortliche Stelle einzubeziehen.
 
+Wichtige Dokumente:
 
-## Stand 0.5.1
+- `docs/SECURITY.md`
+- `docs/DATENSCHUTZKONZEPT.md`
+- `docs/DSGVO_SBV.md`
+- `docs/DSFA_SBV_TEMPLATE.md`
+- `docs/VERARBEITUNGSVERZEICHNIS_SBV.md`
+- `docs/LOESCHKONZEPT_SBV.md`
 
-Barrierefreiheit und Typensicherheit verbessert: Statusmeldungen aus Fallakte, Vorlagen und Berichten werden per LiveRegion angekündigt; `InlineCommandOverlays` ist nicht mehr mit `any` typisiert.
+## Architekturüberblick
 
+Die Anwendung besteht aus:
 
-## Stand 0.5.2
+- React/Vite-Renderer unter `src/app/`
+- Electron Main/Preload unter `electron/`
+- Services unter `services/`
+- Datenbankschema und Migrationen unter `database/`
+- Build- und Wartungsskripten unter `scripts/`
+- Tests unter `tests/`
+- Projektdokumentation unter `docs/`
 
-BEM-Übersicht als kompakter Leitstand überarbeitet und BEM-Fallaktenansicht optisch an die Präventionsmaßnahme angeglichen.
+Weitere Details stehen in:
 
+- `docs/README.md`
+- `docs/ARCHITECTURE.md`
+- `docs/DEVELOPMENT.md`
+- `docs/RELEASE_CHECKLIST.md`
 
-## Stand 0.5.3
+## Voraussetzungen
 
-Globale Inline-Befehle für Textfelder ergänzt: `//`, `@@`, `##`, `§§`, `!!`, `>>`, `^^` und `~~` funktionieren jetzt in allen `TextCommandTextarea`-Feldern. Die Fallnotiz behält ihre tiefer integrierte lokale Logik.
+- Node.js in der vom Projekt verwendeten LTS-Version
+- npm
+- Linux-Desktop für den AppImage-Build
+- native Build-Abhängigkeiten für Electron/SQLite, siehe `docs/NATIVE_SQLCIPHER_DEPENDENCY.md`
 
+Nach `npm install` wird automatisch ausgeführt:
 
-## Stand 0.5.4
+```bash
+npx electron-builder install-app-deps
+```
 
-Migration Hardening ergänzt: Schema-Version 0015, BEM-Migration abgesichert, Schema-Validierung nach Migration und verständlichere Diagnose bei Tresor-/Datenbank-/Manifestproblemen.
+Das ist in `package.json` als `postinstall` hinterlegt.
 
+## Entwicklung
 
-## Stand 0.5.5
+```bash
+npm install
+npm run dev
+```
 
-Modulgrenzen verbessert: `waitForBridge`, `formatDateShort` und `CaseNodeTarget` wurden aus `workflowViews.tsx` ausgelagert. LiveRegion-Ankündigungen wurden in BEM, Fallnotiz-Modal und Wissensdatenbank ergänzt.
+Der Entwicklungsmodus startet Renderer und Electron gemeinsam.
 
+## Tests
 
-## Stand 0.5.6
+```bash
+npm run test
+```
 
-Generic Process Framework ergänzt und BEM fachlich vertieft: Datenschutz-/Einwilligungsdokumentation, Maßnahmenverantwortliche, Wirksamkeitsprüfung und Abschlussgrund sind nun strukturierte Felder. Prävention und BEM nutzen die gemeinsame Maßnahmenübersicht.
+Vor dem Testlauf werden Versionen erzeugt und obsolete Source-Dateien bereinigt.
 
+Gezielte Testgruppen:
 
-## Stand 0.5.7
+```bash
+npm run test:privacy
+npm run test:migrations
+npm run test:backup
+npm run test:documentation-088d
+```
 
-BEM fachlich abgerundet: Statusführung mit Pflichtfeldhinweisen, Statusvorschlägen und BEM-Systemvorlagen für Angebot, Datenschutz, Einwilligung, Gesprächsprotokoll, Maßnahmenplan, Wirksamkeitsprüfung und Abschluss.
+## Build
 
+```bash
+npm run build
+```
 
-## Stand 0.5.8
+Linux-AppImage:
 
-Datenschutz-/Export-Härtung: BEM-Dokumente erhalten eine eigene kritische Exportprüfung, BEM-/Präventionsberichte nutzen das aktuelle Schema und Backups melden Datenschutz-/Schema-Hinweise deutlicher.
+```bash
+npm run build:linux
+```
 
+Vor dem Build laufen:
 
-## Stand 0.5.9a
+1. Versionsgenerierung,
+2. Source-Cleanup,
+3. Build-Readiness-Check.
 
-Auth-Boundary-Schnitt syntaktisch korrigiert: `LoginGate` ist ausgelagert, `DashboardOverview` bleibt intakt. `postinstall` für native Electron-Abhängigkeiten bleibt gesetzt.
+## Source-Cleanup
 
+Obsolete Dateien werden über explizite Manifeste unter `maintenance/source-cleanup/` entfernt.
 
-## Stand 0.5.10
+```bash
+npm run source:cleanup
+npm run source:cleanup:dry-run
+```
 
-Fristenmodul weiter entkoppelt: `DeadlinesView` und `DeadlineEditor` liegen jetzt in `src/app/features/deadlines/DeadlinesView.tsx`. `workflowViews.tsx` ist weiter entlastet.
+Der Cleanup akzeptiert nur explizite relative Pfade in bekannten Projektbereichen. Keine Wildcards, keine absoluten Pfade und kein Zugriff außerhalb des Projekt-Roots.
 
+## Release-Vorbereitung
 
-## Stand 0.6.0
+Vor dem ersten RC müssen mindestens erfolgreich sein:
 
-Gleichstellung / GdB als aktives Fachmodul ergänzt: Übersicht, Fallaktenmaßnahme, Detailformular, IPC-Service, Warnlogik und Vorlagen für Antrag, Unterlagennachforderung und Widerspruchsfrist.
+```bash
+npm ci
+npm run test
+npm run build
+npm run build:linux
+```
 
+Zusätzlich sind manuell zu prüfen:
 
-## Stand 0.6.1
+- frische Tresor-/Datenbankanlage,
+- Migration einer bestehenden Datenbank,
+- Backup und Restore,
+- Audit-Hash-Chain und Manipulationserkennung,
+- Report- und PDF-Erzeugung,
+- temporäre Dateien,
+- Auto-Lock,
+- Inlinebefehle in Fallaktenprotokollen,
+- responsive UI.
 
-Gleichstellung/GdB stabilisiert: doppelte Überschriften und Entwicklungs-Hinweis entfernt, Statusführung und Vorlagenintegration in der Fallakte ergänzt. Die Fallliste ist wieder auf 5 Einträge pro Seite paginiert; das Neue-Fall-Modal ist horizontal scrollbar.
+Siehe `docs/RELEASE_CHECKLIST.md`.
 
+## Projektstatus
 
-## Stand 0.6.1a
+Gremia.SBV befindet sich in der späten Vorbereitungsphase vor `0.9.0-rc.1`. Bis zum RC sollen keine neuen großen Fachmodule ergänzt werden. Fokus ist jetzt Stabilisierung, Dokumentation, Testhärtung, Migration und UI-Polish.
 
-Layout-Fix: Das Neue-Fall-Modal nutzt keinen horizontalen Scroll mehr, sondern bricht Formularfelder responsiv um.
+## Grenzen
 
-
-## Stand 0.6.1b
-
-Build-Fix: Pagination-State der Falltabelle ergänzt und Gleichstellungsprozesse für das Prozessvorlagen-Modal typseitig freigeschaltet.
-
-
-## Stand 0.6.1c
-
-Build-Fix: Prozessvorlagenmodal und ExportGuard verwenden für Gleichstellungsprozesse `applicationStatus` statt `status`.
-
-
-## Stand 0.6.1d
-
-Build-Fix: Prozessvorlagenmodal nutzt Type-Guards für Gleichstellungsprozesse (`applicationStatus`) und Prävention/BEM (`status`).
-
-
-## Stand 0.6.2
-
-PlaceholderView-Guard auf Set-basierte Prüfung umgestellt, sodass implementierte Module wie Gleichstellung/GdB nicht mehr parallel zum Placeholder gerendert werden. PreventionView nutzt jetzt ebenfalls `useAnnouncer`. Der Datenschutz-Schuldposten für Gleichstellungsnotizen ist dokumentiert.
-
-
-## Stand 0.6.2a
-
-Build-Fix: `usb` aus `IMPLEMENTED_VIEW_IDS` entfernt, weil es kein gültiger `ViewId` ist.
-
-
-## Stand 0.6.3
-
-Gleichstellungs-/GdB-Notizen werden für neue Inhalte nicht mehr im Gleichstellungsdatensatz gespeichert, sondern als hoch sensible Fallnotizen geführt und im Detailformular gefiltert angezeigt.
-
-
-## Stand 0.7.0
-
-Kündigungsanhörung als aktives Fachmodul ergänzt: Übersicht, Fallaktenmaßnahme, Detailformular, IPC-Service, Warnlogik, Vorlagen und Migration. `postinstall` bleibt für native Electron-Abhängigkeiten gesetzt.
-
-
-## Stand 0.7.1
-
-Kündigungsanhörung stabilisiert: Prozessvorlagenfilter, Vorlagenmodal und ExportGuard erkennen `termination_hearing` vollständig. `postinstall` bleibt gesetzt.
-
-
-## Stand 0.7.1a
-
-Build-Fix: Die Modulnavigation verwendet jetzt `termination_hearing` als gültigen `ViewId`, passend zu `App.tsx` und dem Prozessmodul. `postinstall` bleibt gesetzt.
-
-
-## Stand 0.7.2
-
-Kündigungsanhörung fachlich gehärtet: Fristvorschläge, geschärfte Warnlogik, Schutzstatusprüfung, Integrationsamt-Hinweise und zusätzliche Kündigungs-Checkliste. `postinstall` bleibt gesetzt.
-
-
-## Stand 0.7.3
-
-Kündigungsanhörung datenschutz- und exportsicherer: sensible Felder klassifiziert, Kündigungsexporte mit erweitertem ExportGuard-Kontext, UI-Hinweis im Detailformular. `postinstall` bleibt gesetzt.
-
-
-## Stand 0.8.0
-
-Compliance Center ergänzt: TOMs, DSFA-Entwurf, DSGVO-/BDSG-Compliance-Auswertung und Freigabeformular für DSB/IT-Security können direkt in der App erzeugt und als Markdown exportiert werden. `postinstall` bleibt gesetzt.
-
-
-## Stand 0.8.0a
-
-Build-Fix: `ComplianceView` übergibt keine nicht unterstützte `icon`-Prop mehr an `ModuleFrame`. `postinstall` bleibt gesetzt.
-
-
-## Stand 0.8.0b
-
-Migrationsfix: `0017_termination_hearings.sql` repariert unvollständige Teilläufe der Kündigungsanhörungs-Tabelle, die zu `no such column: status` führen konnten. `postinstall` bleibt gesetzt.
-
-
-## Stand 0.8.1
-
-Compliance Center erweitert: Antwortgenerator für DSGVO-Auskunftsersuchen nach Art. 15 DSGVO mit Prüfliste, Datenkategorien, Empfänger-/Speicherfristen-Abschnitten und Markdown-Export. `postinstall` bleibt gesetzt.
-
-
-## Stand 0.8.2
-
-Compliance Center Layout verbessert: Dokumentkarten, Auskunftsformular und Vorschau sind jetzt breit und responsiv angeordnet. Zusätzlich gibt es einen PDF-Export über eine druckoptimierte PDF-Ansicht. `postinstall` bleibt gesetzt.
-
-
-## Stand 0.8.3
-
-Berichte-Modul ergänzt: anonymisierter SBV-Tätigkeitsbericht mit aggregierten Fall-, Frist- und Prozesszahlen, Markdown-Export und PDF-Druckansicht. Sensible Freitexte werden bewusst nicht übernommen. `postinstall` bleibt gesetzt.
-
-
-## Stand 0.8.3a
-
-Compliance Center nutzt für PDF-Exporte denselben direkten Berichts-PDF-Pfad wie das Berichte-Modul. Die vorherige Markdown/HTML-Druckansicht in ComplianceView wurde entfernt. `postinstall` bleibt gesetzt.
-
-
-## Stand 0.8.4
-
-Security-Hardening ergänzt: Buffer-basiertes Schlüsselmaterial wird best-effort überschrieben, neue Tresore nutzen stärkere scrypt-Parameter, bestehende Tresore bleiben kompatibel. Zusätzlich wurde ein lokales hashverkettetes Audit-Log für Zugriffe und Änderungen an personenbezogenen Daten eingeführt. `postinstall` bleibt gesetzt.
+Gremia.SBV ist ein Arbeitswerkzeug für die SBV. Die App ersetzt keine Rechtsberatung, keine Datenschutzfreigabe und keine fachliche Prüfung durch SBV, DSB, IT-Security oder anwaltliche Beratung.
