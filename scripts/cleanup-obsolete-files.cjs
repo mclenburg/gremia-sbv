@@ -6,6 +6,12 @@
  * run. The script is intentionally conservative: only explicit relative paths
  * under the project root are accepted; wildcards, absolute paths and parent
  * traversal are rejected.
+ *
+ * Windows note:
+ * Obsolete files can occasionally be locked by an editor, antivirus scanner or
+ * npm itself. Cleanup must not make the whole build unusable in that case.
+ * Unsafe paths still fail hard; deletion failures are reported as warnings and
+ * can be investigated later.
  */
 const fs = require('node:fs');
 const path = require('node:path');
@@ -14,9 +20,10 @@ const projectRoot = path.resolve(__dirname, '..');
 const defaultManifestDir = path.join(projectRoot, 'maintenance', 'source-cleanup');
 const dryRun = process.argv.includes('--dry-run');
 const verbose = process.argv.includes('--verbose');
+const strictDelete = process.argv.includes('--strict-delete');
 const explicitManifests = process.argv
   .slice(2)
-  .filter((arg) => arg !== '--dry-run' && arg !== '--verbose')
+  .filter((arg) => arg !== '--dry-run' && arg !== '--verbose' && arg !== '--strict-delete')
   .map((arg) => path.resolve(projectRoot, arg));
 
 const protectedTopLevel = new Set([
@@ -41,6 +48,7 @@ const allowedTopLevel = new Set([
   'docs',
   'assets',
   'maintenance',
+  'e2e',
 ]);
 
 function loadManifestPaths() {
@@ -102,6 +110,22 @@ function assertSafeRelativePath(relativePath, kind, manifestPath) {
   return { normalized, absolutePath };
 }
 
+function markDeletionFailure(result, normalized, error) {
+  const reason = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+  result.failed.push({ path: normalized, reason });
+  if (strictDelete) {
+    throw error;
+  }
+}
+
+function makeWritable(targetPath) {
+  try {
+    fs.chmodSync(targetPath, 0o666);
+  } catch {
+    // Best effort only. chmod is not reliable on Windows for every file type.
+  }
+}
+
 function removeFile(relativePath, manifestPath, result) {
   const { normalized, absolutePath } = assertSafeRelativePath(relativePath, 'Datei', manifestPath);
   if (!fs.existsSync(absolutePath)) {
@@ -112,31 +136,52 @@ function removeFile(relativePath, manifestPath, result) {
   if (!stat.isFile()) {
     throw new Error(`Als Datei gelistet, aber keine Datei: ${normalized}`);
   }
-  result.removed.push(normalized);
-  if (!dryRun) {
+
+  if (dryRun) {
+    result.removed.push(normalized);
+    return;
+  }
+
+  try {
+    makeWritable(absolutePath);
     fs.unlinkSync(absolutePath);
+    result.removed.push(normalized);
+  } catch (error) {
+    markDeletionFailure(result, normalized, error);
   }
 }
 
 function removeDirectory(relativePath, manifestPath, result) {
   const { normalized, absolutePath } = assertSafeRelativePath(relativePath, 'Verzeichnis', manifestPath);
+  const displayPath = `${normalized}/`;
   if (!fs.existsSync(absolutePath)) {
-    result.alreadyClean.push(`${normalized}/`);
+    result.alreadyClean.push(displayPath);
     return;
   }
   const stat = fs.statSync(absolutePath);
   if (!stat.isDirectory()) {
     throw new Error(`Als Verzeichnis gelistet, aber kein Verzeichnis: ${normalized}`);
   }
-  result.removed.push(`${normalized}/`);
-  if (!dryRun) {
-    fs.rmSync(absolutePath, { recursive: true, force: true });
+
+  if (dryRun) {
+    result.removed.push(displayPath);
+    return;
+  }
+
+  try {
+    fs.rmSync(absolutePath, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
+    if (fs.existsSync(absolutePath)) {
+      throw new Error('Verzeichnis ist nach Löschversuch weiterhin vorhanden');
+    }
+    result.removed.push(displayPath);
+  } catch (error) {
+    markDeletionFailure(result, displayPath, error);
   }
 }
 
 function main() {
   const manifestPaths = loadManifestPaths();
-  const result = { removed: [], alreadyClean: [] };
+  const result = { removed: [], alreadyClean: [], failed: [] };
 
   for (const manifestPath of manifestPaths) {
     if (!fs.existsSync(manifestPath)) {
@@ -149,7 +194,7 @@ function main() {
 
   const action = dryRun ? 'würde entfernt' : 'entfernt';
   if (result.removed.length === 0) {
-    console.log(`Source-Cleanup: nichts zu entfernen.`);
+    console.log('Source-Cleanup: nichts zu entfernen.');
   } else {
     console.log(`Source-Cleanup: ${result.removed.length} ${action}.`);
   }
@@ -158,6 +203,16 @@ function main() {
   }
   if (verbose && result.alreadyClean.length > 0) {
     console.log(`Bereits bereinigt: ${result.alreadyClean.join(', ')}`);
+  }
+  if (result.failed.length > 0) {
+    console.warn(
+      `Source-Cleanup: ${result.failed.length} Datei(en)/Verzeichnis(se) konnten nicht entfernt werden; Build läuft weiter.`
+    );
+    if (verbose) {
+      for (const failure of result.failed) {
+        console.warn(`Nicht entfernt: ${failure.path} – ${failure.reason}`);
+      }
+    }
   }
 }
 
