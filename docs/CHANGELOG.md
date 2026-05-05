@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.8.8-g
+
+- Playwright-basierte E2E-Smoke-Testbasis ergänzt.
+- E2E-Runner erzeugt pro Lauf eine eigene temporäre Testumgebung und setzt `GREMIA_SBV_DATA_DIR` ausschließlich auf dieses Verzeichnis.
+- Schutzabbruch eingebaut, falls ein E2E-Datenverzeichnis nicht unter dem System-Temp mit Präfix `gremia-sbv-e2e-` liegt.
+- Browser-E2E-Tests nutzen synthetische Bridge-Daten statt produktiver SBV-Daten.
+- Smoke-Tests für App-Start, Fallakte, Kurzbefehls-Hilfe und Compliance-Farbschema ergänzt.
+- Containerlauf über `Dockerfile.e2e` vorbereitet.
+
+## 0.8.8-f
+
+- Compliance Center trennt technische Statusprüfung von organisatorischen Datenschutz-Prüfpunkten.
+- Gesamtampel für Datenschutzstatus entfernt.
+- Dark-/Lightmode-Styles des Compliance-Statusbereichs korrigiert.
+
 ## 0.8.8-d
 
 - README zu einer GitHub-tauglichen Projekt-README umgebaut.
@@ -34,9 +49,3 @@
 ## 0.8.4
 
 - Versionen, Schema, PDF-Erzeugung, Audit-Hash-Chain, Auto-Lock, temporäre Dateien und IPC-Validierung stabilisiert.
-
-## 0.8.8-f
-
-- Compliance Center trennt technische Statusprüfung von organisatorischen Datenschutz-Prüfpunkten.
-- Gesamtampel für Datenschutzstatus entfernt.
-- Dark-/Lightmode-Styles des Compliance-Statusbereichs korrigiert.

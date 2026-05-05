@@ -1,6 +1,6 @@
 {
   "name": "gremia-sbv",
-  "version": "0.8.8-f",
+  "version": "0.8.8-g",
   "private": true,
   "description": "Offline-first Desktop-App für die vertrauliche Fallarbeit der Schwerbehindertenvertretung.",
   "main": "dist-electron/electron/main.js",
@@ -190,7 +190,15 @@
     "source:cleanup:verbose": "node scripts/cleanup-obsolete-files.cjs --verbose",
     "rc:check": "npm run version:generate && npm run source:cleanup && npm run build:readiness:strict && node scripts/check-release-candidate-readiness.cjs",
     "test:release-candidate-088e": "vitest run tests/releaseCandidateReadiness088e.test.ts",
-    "test:compliance-boundary-088f": "vitest run tests/complianceStatusBoundary088f.test.ts"
+    "test:compliance-boundary-088f": "vitest run tests/complianceStatusBoundary088f.test.ts",
+    "dev:renderer:e2e": "vite --host 127.0.0.1 --port 5174 --strictPort",
+    "test:e2e": "node scripts/run-e2e.cjs",
+    "test:e2e:headed": "node scripts/run-e2e.cjs --headed",
+    "test:e2e:debug": "node scripts/run-e2e.cjs --debug",
+    "test:e2e:install": "playwright install chromium",
+    "test:e2e:docker": "docker build -f Dockerfile.e2e -t gremia-sbv-e2e . && docker run --rm gremia-sbv-e2e",
+    "test:e2e-guard-088g": "vitest run tests/e2eIsolation088g.test.ts",
+    "release:check:e2e": "npm run release:check && npm run test:e2e"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.0",
@@ -226,7 +234,8 @@
     "vitest": "^2.1.8",
     "wait-on": "^8.0.1",
     "@electron/rebuild": "^3.7.2",
-    "@types/yauzl": "^2.10.3"
+    "@types/yauzl": "^2.10.3",
+    "@playwright/test": "^1.59.1"
   },
   "build": {
     "appId": "de.gremia.sbv",
