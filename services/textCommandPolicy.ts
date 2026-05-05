@@ -23,6 +23,9 @@ export type TextCommandToken =
   | '/anonym'
   | '/bet'
   | '/beteiligung'
+  | '/anp'
+  | '/anpassung'
+  | '/arbeitsplatz'
   | '/vl'
   | '/vorlage';
 
@@ -37,6 +40,7 @@ export type TextCommandKind =
   | 'confidentiality'
   | 'anonymization'
   | 'participation'
+  | 'workplace_accommodation'
   | 'template';
 
 export interface TextCommandDefinition {
@@ -69,6 +73,7 @@ export const TEXT_COMMAND_REGISTRY: TextCommandDefinition[] = [
   { kind: 'confidentiality', tokens: ['^^', '/vertr', '/vertraulich'], label: 'Vertraulichkeit setzen', description: 'Vertraulichkeitsstufe der Notiz anheben.' },
   { kind: 'anonymization', tokens: ['~~', '/anon', '/anonym'], label: 'Anonymisierung vormerken', description: 'Textstelle für spätere Anonymisierung markieren.' },
   { kind: 'participation', tokens: ['/bet', '/beteiligung'], label: 'SBV-Beteiligung anlegen', description: 'SBV-Beteiligung nach § 178 Abs. 2 SGB IX als Maßnahme der aktuellen Fallakte anlegen.', requiresCase: true },
+  { kind: 'workplace_accommodation', tokens: ['/anp', '/anpassung', '/arbeitsplatz'], label: 'Arbeitsplatzgestaltung anlegen', description: 'Behinderungsgerechte Arbeitsplatzgestaltung nach § 164 Abs. 4 SGB IX als Maßnahme der aktuellen Fallakte anlegen.', requiresCase: true },
   { kind: 'template', tokens: ['/vl', '/vorlage'], label: 'Vorlage vormerken', description: 'Vorlagenbezug im Protokoll vormerken; die Dokumenterzeugung erfolgt im Vorlagenbereich.' }
 ];
 
@@ -77,7 +82,7 @@ export const TEXT_COMMANDS = TEXT_COMMAND_REGISTRY.reduce((acc, definition) => {
   return acc;
 }, {} as Record<TextCommandToken, string>);
 
-export const TEXT_COMMAND_HINT = '// oder /fr Frist · /wv Wiedervorlage · /bet Beteiligung · /vl Vorlage · @@ Kontakt · §§ Norm · !! Risiko · >> Aufgabe';
+export const TEXT_COMMAND_HINT = '// oder /fr Frist · /wv Wiedervorlage · /bet Beteiligung · /anp Arbeitsplatz · /vl Vorlage · @@ Kontakt · §§ Norm · !! Risiko · >> Aufgabe';
 
 const TOKEN_TO_KIND = TEXT_COMMAND_REGISTRY.reduce((acc, definition) => {
   for (const token of definition.tokens) acc[token] = definition.kind;
@@ -165,6 +170,10 @@ export function formatTemplateMarkerText(query: string): string {
 
 export function formatParticipationMarkerText(title: string): string {
   return `SBV-Beteiligung angelegt: ${title.trim() || 'Beteiligung nach § 178 Abs. 2 SGB IX prüfen'}`;
+}
+
+export function formatWorkplaceAccommodationMarkerText(title: string): string {
+  return `Arbeitsplatzgestaltung angelegt: ${title.trim() || 'behinderungsgerechte Beschäftigung nach § 164 Abs. 4 SGB IX prüfen'}`;
 }
 
 export function formatContactReferenceText(contact: { firstName?: string; lastName?: string; organization?: string; role?: string; email?: string }): string {

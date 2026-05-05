@@ -13,6 +13,7 @@ import {
   formatLegalNormText,
   formatOpenTaskText,
   formatParticipationMarkerText,
+  formatWorkplaceAccommodationMarkerText,
   formatRiskText,
   formatTemplateMarkerText,
   getTextCommandKind,
@@ -69,6 +70,17 @@ export type InlineParticipationDraft = {
   employerMeasure: string;
   riskLevel: 'normal' | 'erhoeht' | 'kritisch';
   statementDueAt: string;
+  nextStep: string;
+};
+export type InlineWorkplaceAccommodationDraft = {
+  target: ProtocolTextTarget;
+  markerIndex: number;
+  token: TextCommandToken;
+  title: string;
+  requestedAdjustment: string;
+  category: 'arbeitsplatz' | 'arbeitsumfeld' | 'arbeitsorganisation' | 'arbeitszeit' | 'arbeitsort' | 'technische_arbeitshilfe' | 'software_barrierefreiheit' | 'qualifizierung' | 'aufgabenanpassung' | 'sonstiges';
+  riskLevel: 'normal' | 'erhoeht' | 'kritisch';
+  implementationDueAt: string;
   nextStep: string;
 };
 export type InlineTemplateDraft = { target: ProtocolTextTarget; markerIndex: number; token: TextCommandToken; query: string };
@@ -134,6 +146,7 @@ export function useInlineCommands({
   const [inlineConfidentialityDraft, setInlineConfidentialityDraft] = useState<InlineConfidentialityDraft | null>(null);
   const [inlineAnonymizationDraft, setInlineAnonymizationDraft] = useState<InlineAnonymizationDraft | null>(null);
   const [inlineParticipationDraft, setInlineParticipationDraft] = useState<InlineParticipationDraft | null>(null);
+  const [inlineWorkplaceAccommodationDraft, setInlineWorkplaceAccommodationDraft] = useState<InlineWorkplaceAccommodationDraft | null>(null);
   const [inlineTemplateDraft, setInlineTemplateDraft] = useState<InlineTemplateDraft | null>(null);
 
   function clearInlineDrafts() {
@@ -146,6 +159,7 @@ export function useInlineCommands({
     setInlineConfidentialityDraft(null);
     setInlineAnonymizationDraft(null);
     setInlineParticipationDraft(null);
+    setInlineWorkplaceAccommodationDraft(null);
     setInlineTemplateDraft(null);
   }
 
@@ -160,6 +174,7 @@ export function useInlineCommands({
       inlineConfidentialityDraft,
       inlineAnonymizationDraft,
       inlineParticipationDraft,
+      inlineWorkplaceAccommodationDraft,
       inlineTemplateDraft
     );
   }
@@ -250,6 +265,20 @@ export function useInlineCommands({
         riskLevel: 'erhoeht',
         statementDueAt: '',
         nextStep: 'Beteiligung nach § 178 Abs. 2 SGB IX in der Fallakte weiter prüfen.'
+      });
+      return;
+    }
+    if (kind === 'workplace_accommodation') {
+      setInlineWorkplaceAccommodationDraft({
+        target,
+        markerIndex,
+        token,
+        title: 'Arbeitsplatzgestaltung prüfen',
+        requestedAdjustment: '',
+        category: 'sonstiges',
+        riskLevel: 'erhoeht',
+        implementationDueAt: '',
+        nextStep: 'Arbeitsplatzgestaltung nach § 164 Abs. 4 SGB IX in der Fallakte weiter prüfen.'
       });
       return;
     }
@@ -547,6 +576,52 @@ export function useInlineCommands({
     setInlineParticipationDraft(null);
   }
 
+  async function createWorkplaceAccommodationFromProtocol() {
+    setNoteError('');
+    setNoteInfo('');
+    if (!selectedCaseId || !selectedCase) {
+      setNoteError('Bitte zuerst eine Fallakte auswählen. Arbeitsplatzgestaltung wird immer als Maßnahme der aktuellen Fallakte angelegt.');
+      return;
+    }
+    if (!inlineWorkplaceAccommodationDraft) return;
+    if (!inlineWorkplaceAccommodationDraft.title.trim()) {
+      setNoteError('Bitte einen Titel für die Arbeitsplatzgestaltung erfassen.');
+      return;
+    }
+    try {
+      const bridge = await waitForBridge();
+      if (!bridge?.workplaceAccommodation) throw new Error('Arbeitsplatzgestaltungsdienst ist nicht erreichbar.');
+      await bridge.workplaceAccommodation.create({
+        caseId: selectedCaseId,
+        title: inlineWorkplaceAccommodationDraft.title.trim(),
+        category: inlineWorkplaceAccommodationDraft.category,
+        status: 'angefragt',
+        riskLevel: inlineWorkplaceAccommodationDraft.riskLevel,
+        requestedAdjustment: inlineWorkplaceAccommodationDraft.requestedAdjustment.trim() || inlineWorkplaceAccommodationDraft.title.trim(),
+        legalBasis: '§ 164 Abs. 4 SGB IX',
+        implementationDueAt: inlineWorkplaceAccommodationDraft.implementationDueAt ? fromDateTimeLocalValue(inlineWorkplaceAccommodationDraft.implementationDueAt) : undefined,
+        nextStep: inlineWorkplaceAccommodationDraft.nextStep.trim() || 'Arbeitsplatzgestaltung nach § 164 Abs. 4 SGB IX in der Fallakte weiter prüfen.',
+        createDefaultDeadlines: Boolean(inlineWorkplaceAccommodationDraft.implementationDueAt)
+      });
+      await onStructuredActionCreated?.();
+      replaceInlineCommandWithToken(
+        inlineWorkplaceAccommodationDraft.target,
+        inlineWorkplaceAccommodationDraft.markerIndex,
+        inlineWorkplaceAccommodationDraft.token,
+        formatWorkplaceAccommodationMarkerText(inlineWorkplaceAccommodationDraft.title)
+      );
+      setInlineWorkplaceAccommodationDraft(null);
+      setNoteInfo(`Arbeitsplatzgestaltung wurde als Maßnahme in Fall ${selectedCase.caseNumber} angelegt. Details können nach dem Gespräch im Maßnahmenbereich ergänzt werden.`);
+    } catch (error) {
+      setNoteError(error instanceof Error ? error.message : 'Arbeitsplatzgestaltung konnte nicht angelegt werden.');
+    }
+  }
+
+  function cancelInlineWorkplaceAccommodationDraft() {
+    if (inlineWorkplaceAccommodationDraft) removeInlineCommand(inlineWorkplaceAccommodationDraft.target, inlineWorkplaceAccommodationDraft.markerIndex, inlineWorkplaceAccommodationDraft.token);
+    setInlineWorkplaceAccommodationDraft(null);
+  }
+
   function applyTemplateMarkerFromProtocol() {
     if (!inlineTemplateDraft) return;
     replaceInlineCommandWithToken(inlineTemplateDraft.target, inlineTemplateDraft.markerIndex, inlineTemplateDraft.token, formatTemplateMarkerText(inlineTemplateDraft.query));
@@ -643,6 +718,10 @@ export function useInlineCommands({
       setInlineParticipationDraft,
       createParticipationFromProtocol,
       cancelInlineParticipationDraft,
+      inlineWorkplaceAccommodationDraft,
+      setInlineWorkplaceAccommodationDraft,
+      createWorkplaceAccommodationFromProtocol,
+      cancelInlineWorkplaceAccommodationDraft,
       inlineTemplateDraft,
       setInlineTemplateDraft,
       applyTemplateMarkerFromProtocol,

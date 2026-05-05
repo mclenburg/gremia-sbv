@@ -59,6 +59,13 @@ import type {
   UpdateParticipationInput,
 } from "./app/core/models/participation.model";
 import type {
+  CreateWorkplaceAccommodationInput,
+  UpdateWorkplaceAccommodationInput,
+  WorkplaceAccommodationDashboardSummary,
+  WorkplaceAccommodationRecord,
+  WorkplaceAccommodationWarning,
+} from "./app/core/models/workplace-accommodation.model";
+import type {
   BemDashboardSummary,
   BemProcessRecord,
   BemStepDefinition,
@@ -227,6 +234,17 @@ declare global {
           input: UpdateParticipationInput,
         ): Promise<ParticipationRecord>;
         warnings(id: string): Promise<ParticipationWarning[]>;
+      };
+
+      workplaceAccommodation: {
+        list(caseId?: string): Promise<WorkplaceAccommodationRecord[]>;
+        dashboard(): Promise<WorkplaceAccommodationDashboardSummary>;
+        create(input: CreateWorkplaceAccommodationInput): Promise<WorkplaceAccommodationRecord>;
+        update(
+          id: string,
+          input: UpdateWorkplaceAccommodationInput,
+        ): Promise<WorkplaceAccommodationRecord>;
+        warnings(id: string): Promise<WorkplaceAccommodationWarning[]>;
       };
       bem: {
         steps(): Promise<BemStepDefinition[]>;

@@ -6,6 +6,7 @@ import { modules, type ViewId } from "./core/navigation/modules";
 import { useModalKeyboardShortcuts } from "./core/keyboard/useModalKeyboardShortcuts";
 import { AUTO_LOCK_TIMEOUT_MS, useAutoLock } from "./core/security/useAutoLock";
 import type { CaseCategory, CaseRecord } from "./core/models/case.model";
+import type { WorkplaceAccommodationRecord } from "./core/models/workplace-accommodation.model";
 import type {
   ContactRecord,
   CreateContactInput,
@@ -24,6 +25,7 @@ import { GlobalTextCommandController } from "./shared/textCommands/GlobalTextCom
 import { KnowledgeView } from "./features/knowledge/KnowledgeView";
 import { PreventionView } from "./features/prevention/PreventionView";
 import { ParticipationView } from "./features/participation/ParticipationView";
+import { WorkplaceAccommodationView } from "./features/workplace-accommodation/WorkplaceAccommodationView";
 import { BemView } from "./features/bem/BemView";
 import { EqualizationView } from "./features/equalization/EqualizationView";
 import { TerminationView } from "./features/termination/TerminationView";
@@ -73,6 +75,7 @@ const IMPLEMENTED_VIEW_IDS = new Set<ViewId>([
   "bem",
   "prevention",
   "participation",
+  "workplace_accommodation",
   "equalization",
   "termination_hearing",
   "templates",
@@ -83,6 +86,42 @@ const IMPLEMENTED_VIEW_IDS = new Set<ViewId>([
 
 function isImplementedView(viewId: ViewId): boolean {
   return IMPLEMENTED_VIEW_IDS.has(viewId);
+}
+
+
+function WorkplaceAccommodationContainer({
+  onOpenCaseNode,
+}: {
+  onOpenCaseNode: (target: CaseNodeTarget) => void;
+}) {
+  const [items, setItems] = useState<WorkplaceAccommodationRecord[]>([]);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    async function load() {
+      try {
+        const bridge = await waitForBridge();
+        if (!bridge?.workplaceAccommodation) throw new Error("Arbeitsplatzgestaltungsdienst ist nicht erreichbar.");
+        const rows = await bridge.workplaceAccommodation.list();
+        if (active) setItems(rows);
+      } catch (err) {
+        if (active) setError(err instanceof Error ? err.message : "Arbeitsplatzgestaltung konnte nicht geladen werden.");
+      }
+    }
+    void load();
+    return () => { active = false; };
+  }, []);
+
+  return (
+    <>
+      {error && <div className="industrial-message industrial-message-warning mb-4">{error}</div>}
+      <WorkplaceAccommodationView
+        items={items}
+        onOpenCase={(caseId, processId) => onOpenCaseNode({ caseId, nodeType: "workplace_accommodation", nodeId: processId })}
+      />
+    </>
+  );
 }
 
 export function App() {
@@ -415,6 +454,10 @@ export function App() {
             )}
             {currentView === "participation" && (
               <ParticipationView cases={cases} onOpenCaseNode={openCaseNode} />
+            )}
+
+            {currentView === "workplace_accommodation" && (
+              <WorkplaceAccommodationContainer onOpenCaseNode={openCaseNode} />
             )}
             {currentView === "equalization" && (
               <EqualizationView cases={cases} onOpenCaseNode={openCaseNode} />

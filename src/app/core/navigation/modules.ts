@@ -11,7 +11,8 @@ import {
   Scale,
   ShieldAlert,
   ShieldCheck,
-  Users
+  Users,
+  Wrench
 } from 'lucide-react';
 
 export type ViewId =
@@ -21,6 +22,7 @@ export type ViewId =
   | 'bem'
   | 'prevention'
   | 'participation'
+  | 'workplace_accommodation'
   | 'equalization'
   | 'termination_hearing'
   | 'templates'
@@ -78,6 +80,13 @@ export const modules: ModuleDefinition[] = [
     shortTitle: 'Beteiligung',
     text: 'Unterrichtung, Anhörung und Aussetzung nach § 178 Abs. 2 SGB IX.',
     icon: ShieldCheck
+  },
+  {
+    id: 'workplace_accommodation',
+    title: 'Arbeitsplatzgestaltung',
+    shortTitle: 'Arbeitsplatz',
+    text: 'Behinderungsgerechte Beschäftigung nach § 164 Abs. 4 SGB IX.',
+    icon: Wrench
   },
   {
     id: 'equalization',

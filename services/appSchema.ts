@@ -1,4 +1,4 @@
-export const APP_SCHEMA_VERSION = '0020';
+export const APP_SCHEMA_VERSION = '0021';
 
 export const DATABASE_SCHEMA_VERSION_KEY = 'database.schema.version';
 export const LEGACY_DATABASE_SCHEMA_VERSION_KEY = 'settings.database.schema.version';
@@ -59,6 +59,18 @@ export const SBV_PARTICIPATION_REQUIRED_COLUMNS = [
   'information_complete',
   'hearing_before_decision',
   'decision_notified',
+  'created_at',
+  'updated_at'
+] as const;
+
+export const CASE_MEASURE_WORKPLACE_ACCOMMODATION_REQUIRED_COLUMNS = [
+  'measure_id',
+  'category',
+  'accommodation_status',
+  'requested_adjustment',
+  'legal_basis',
+  'employer_response_status',
+  'implementation_status',
   'created_at',
   'updated_at'
 ] as const;

@@ -40,7 +40,8 @@ export function processTypeLabel(processType: CaseProcessType): string {
     bem: 'BEM',
     termination_hearing: 'Kündigungsanhörung',
     equalization: 'Gleichstellung',
-    participation: 'SBV-Beteiligung'
+    participation: 'SBV-Beteiligung',
+    workplace_accommodation: 'Arbeitsplatzgestaltung'
   };
   return labels[processType];
 }

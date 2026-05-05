@@ -66,6 +66,13 @@ import type {
   UpdateParticipationInput,
 } from "../src/app/core/models/participation.model.js";
 import type {
+  CreateWorkplaceAccommodationInput,
+  UpdateWorkplaceAccommodationInput,
+  WorkplaceAccommodationDashboardSummary,
+  WorkplaceAccommodationRecord,
+  WorkplaceAccommodationWarning,
+} from "../src/app/core/models/workplace-accommodation.model.js";
+import type {
   BemDashboardSummary,
   BemProcessRecord,
   BemStepDefinition,
@@ -292,6 +299,22 @@ const api = {
       ipcRenderer.invoke("participation:update", id, input),
     warnings: (id: string): Promise<ParticipationWarning[]> =>
       ipcRenderer.invoke("participation:warnings", id),
+  },
+
+  workplaceAccommodation: {
+    list: (caseId?: string): Promise<WorkplaceAccommodationRecord[]> =>
+      ipcRenderer.invoke("workplaceAccommodation:list", caseId),
+    dashboard: (): Promise<WorkplaceAccommodationDashboardSummary> =>
+      ipcRenderer.invoke("workplaceAccommodation:dashboard"),
+    create: (input: CreateWorkplaceAccommodationInput): Promise<WorkplaceAccommodationRecord> =>
+      ipcRenderer.invoke("workplaceAccommodation:create", input),
+    update: (
+      id: string,
+      input: UpdateWorkplaceAccommodationInput,
+    ): Promise<WorkplaceAccommodationRecord> =>
+      ipcRenderer.invoke("workplaceAccommodation:update", id, input),
+    warnings: (id: string): Promise<WorkplaceAccommodationWarning[]> =>
+      ipcRenderer.invoke("workplaceAccommodation:warnings", id),
   },
   bem: {
     steps: (): Promise<BemStepDefinition[]> => ipcRenderer.invoke("bem:steps"),

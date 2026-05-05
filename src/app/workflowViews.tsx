@@ -139,6 +139,10 @@ import type {
   ParticipationRecord,
   UpdateParticipationInput,
 } from "./core/models/participation.model";
+import type {
+  WorkplaceAccommodationRecord,
+  UpdateWorkplaceAccommodationInput,
+} from "./core/models/workplace-accommodation.model";
 import { statusLabel } from "./features/prevention/preventionShared";
 import { bemStatusLabel } from "./features/bem/bemShared";
 import { PreventionProcessDetail } from "./features/prevention/PreventionProcessDetail";
@@ -146,6 +150,7 @@ import { BemProcessDetail } from "./features/bem/BemProcessDetail";
 import { EqualizationProcessDetail } from "./features/equalization/EqualizationProcessDetail";
 import { TerminationProcessDetail } from "./features/termination/TerminationProcessDetail";
 import { ParticipationProcessDetail } from "./features/participation/ParticipationProcessDetail";
+import { WorkplaceAccommodationProcessDetail } from "./features/workplace-accommodation/WorkplaceAccommodationProcessDetail";
 import type {
   CaseLawRecord,
   CaseLegalReferenceRecord,
@@ -577,6 +582,7 @@ type CaseProcessType =
   | "prevention"
   | "bem"
   | "participation"
+  | "workplace_accommodation"
   | "termination_hearing"
   | "equalization";
 
@@ -599,7 +605,9 @@ function defaultCaseProcessDraft(
         : processType === "bem"
           ? "Aus der Fallakte gestartetes BEM-Verfahren. Bitte Auslöser, Angebot und Reaktion konkretisieren."
           : processType === "participation"
-            ? "Aus der Fallakte gestartete SBV-Beteiligungsmaßnahme. Bitte Arbeitgebermaßnahme, Beteiligungsstand und nächsten Schritt erfassen."
+          ? "Aus der Fallakte gestartete SBV-Beteiligungsmaßnahme. Bitte Arbeitgebermaßnahme, Beteiligungsstand und nächsten Schritt erfassen."
+          : processType === "workplace_accommodation"
+            ? "Aus der Fallakte gestartete Arbeitsplatzgestaltung nach § 164 Abs. 4 SGB IX. Bitte Barriere, gewünschte Gestaltung und nächsten Schritt erfassen."
             : `${processTypeLabel(processType)} aus der Fallakte vorgemerkt. Das Fachmodul übernimmt später die strukturierte Bearbeitung.`,
     dueAt: "",
   };
@@ -895,6 +903,7 @@ export function CasesView({
     caseEqualizationProcesses,
     caseTerminationProcesses,
     caseParticipationProcesses,
+    caseWorkplaceAccommodationProcesses,
     selection,
     setSelection,
     reloadSelectedCaseChildren,
@@ -973,6 +982,12 @@ export function CasesView({
     selection.processType === "participation" &&
     selection.id
       ? caseParticipationProcesses.find((item) => item.id === selection.id)
+      : undefined;
+  const selectedWorkplaceAccommodationProcess =
+    selection.type === "process" &&
+    selection.processType === "workplace_accommodation" &&
+    selection.id
+      ? caseWorkplaceAccommodationProcesses.find((item) => item.id === selection.id)
       : undefined;
   const selectedEqualizationNotes = selectedEqualizationProcess
     ? notes.filter((note) =>
@@ -1228,6 +1243,28 @@ export function CasesView({
         error instanceof Error
           ? error.message
           : "SBV-Beteiligungsmaßnahme konnte nicht aktualisiert werden.",
+      );
+    }
+  }
+
+  async function updateCaseWorkplaceAccommodationProcess(
+    processId: string,
+    input: UpdateWorkplaceAccommodationInput,
+  ) {
+    setNoteError("");
+    setNoteInfo("");
+    try {
+      const bridge = await waitForBridge();
+      if (!bridge?.workplaceAccommodation)
+        throw new Error("Arbeitsplatzgestaltungsdienst ist nicht erreichbar.");
+      await bridge.workplaceAccommodation.update(processId, input);
+      await reloadSelectedCaseChildren();
+      setNoteInfo("Arbeitsplatzgestaltung wurde aktualisiert.");
+    } catch (error) {
+      setNoteError(
+        error instanceof Error
+          ? error.message
+          : "Arbeitsplatzgestaltung konnte nicht aktualisiert werden.",
       );
     }
   }
@@ -1590,6 +1627,37 @@ export function CasesView({
         return;
       }
 
+      if (caseProcessDraft.processType === "workplace_accommodation") {
+        if (!bridge?.workplaceAccommodation)
+          throw new Error("Arbeitsplatzgestaltungsdienst ist nicht erreichbar.");
+        const created = await bridge.workplaceAccommodation.create({
+          caseId: selectedCase.id,
+          title: caseProcessDraft.title.trim() || "Arbeitsplatzgestaltung",
+          requestedAdjustment: caseProcessDraft.description.trim() || "Behinderungsgerechte Arbeitsplatzgestaltung prüfen.",
+          barrierOrLimitation: caseProcessDraft.description.trim() || undefined,
+          category: "sonstiges",
+          status: "angefragt",
+          riskLevel: "erhoeht",
+          implementationDueAt: caseProcessDraft.dueAt
+            ? fromDateTimeLocalValue(caseProcessDraft.dueAt)
+            : undefined,
+          nextStep: "Arbeitsplatzgestaltung nach § 164 Abs. 4 SGB IX in der Fallakte weiter prüfen.",
+          createDefaultDeadlines: true,
+        });
+        setCaseProcessDraft(null);
+        setSelection({
+          type: "process",
+          processType: "workplace_accommodation",
+          id: created.id,
+        });
+        setNoteInfo(
+          "Arbeitsplatzgestaltung wurde direkt an der Fallakte angelegt und im Fallbaum ergänzt.",
+        );
+        await reloadSelectedCaseChildren();
+        await onCasesChanged();
+        return;
+      }
+
       if (caseProcessDraft.processType === "termination_hearing") {
         if (!bridge?.termination)
           throw new Error("Kündigungsdienst ist nicht erreichbar.");
@@ -1891,6 +1959,7 @@ ${caseProcessDraft.description}`,
           equalizationProcesses={caseEqualizationProcesses}
           terminationProcesses={caseTerminationProcesses}
           participationProcesses={caseParticipationProcesses}
+          workplaceAccommodationProcesses={caseWorkplaceAccommodationProcesses}
           selection={selection}
           onSelect={setSelection}
           formatProcessNodeSubtitle={formatProcessNodeSubtitle}
@@ -1920,7 +1989,8 @@ ${caseProcessDraft.description}`,
                 caseBemProcesses.length +
                 caseEqualizationProcesses.length +
                 caseTerminationProcesses.length +
-                caseParticipationProcesses.length
+                caseParticipationProcesses.length +
+                caseWorkplaceAccommodationProcesses.length
               }
               contextualTemplateActions={
                 selectedCase &&
@@ -1996,6 +2066,15 @@ ${caseProcessDraft.description}`,
               <ParticipationProcessDetail
                 process={selectedParticipationProcess}
                 onUpdate={updateCaseParticipationProcess}
+              />
+            )}
+
+          {selection.type === "process" &&
+            selection.processType === "workplace_accommodation" &&
+            selectedWorkplaceAccommodationProcess && (
+              <WorkplaceAccommodationProcessDetail
+                process={selectedWorkplaceAccommodationProcess}
+                onUpdate={updateCaseWorkplaceAccommodationProcess}
               />
             )}
 

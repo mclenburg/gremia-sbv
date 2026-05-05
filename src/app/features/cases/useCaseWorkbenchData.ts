@@ -8,6 +8,7 @@ import type { BemProcessRecord } from '../../core/models/bem.model';
 import type { EqualizationProcessRecord } from '../../core/models/equalization.model';
 import type { TerminationHearingRecord } from '../../core/models/termination.model';
 import type { ParticipationRecord } from '../../core/models/participation.model';
+import type { WorkplaceAccommodationRecord } from '../../core/models/workplace-accommodation.model';
 import type { CaseNodeTarget } from '../../core/navigation/caseNodeTarget';
 import type { CaseExplorerSelection } from './caseWorkbenchTypes';
 import { waitForBridge } from '../../core/bridge/waitForBridge';
@@ -32,6 +33,7 @@ export function useCaseWorkbenchData({
   const [caseEqualizationProcesses, setCaseEqualizationProcesses] = useState<EqualizationProcessRecord[]>([]);
   const [caseTerminationProcesses, setCaseTerminationProcesses] = useState<TerminationHearingRecord[]>([]);
   const [caseParticipationProcesses, setCaseParticipationProcesses] = useState<ParticipationRecord[]>([]);
+  const [caseWorkplaceAccommodationProcesses, setCaseWorkplaceAccommodationProcesses] = useState<WorkplaceAccommodationRecord[]>([]);
   const [selection, setSelection] = useState<CaseExplorerSelection>({ type: 'overview' });
   const [pendingCaseNodeTarget, setPendingCaseNodeTarget] = useState<CaseNodeTarget | null>(null);
 
@@ -56,6 +58,7 @@ export function useCaseWorkbenchData({
     setCaseEqualizationProcesses([]);
     setCaseTerminationProcesses([]);
     setCaseParticipationProcesses([]);
+    setCaseWorkplaceAccommodationProcesses([]);
   }
 
   async function loadChildren(caseId: string) {
@@ -69,7 +72,8 @@ export function useCaseWorkbenchData({
       bridge.bem?.list(caseId) ?? Promise.resolve([]),
       bridge.equalization?.list(caseId) ?? Promise.resolve([]),
       bridge.termination?.list(caseId) ?? Promise.resolve([]),
-      bridge.participation?.list(caseId) ?? Promise.resolve([])
+      bridge.participation?.list(caseId) ?? Promise.resolve([]),
+      bridge.workplaceAccommodation?.list(caseId) ?? Promise.resolve([])
     ]);
   }
 
@@ -83,6 +87,7 @@ export function useCaseWorkbenchData({
     else if (targetToApply.nodeType === 'equalization') setSelection({ type: 'process', processType: 'equalization', id: targetToApply.nodeId });
     else if (targetToApply.nodeType === 'termination_hearing') setSelection({ type: 'process', processType: 'termination_hearing', id: targetToApply.nodeId });
     else if (targetToApply.nodeType === 'participation') setSelection({ type: 'process', processType: 'participation', id: targetToApply.nodeId });
+    else if (targetToApply.nodeType === 'workplace_accommodation') setSelection({ type: 'process', processType: 'workplace_accommodation', id: targetToApply.nodeId });
     else if (targetToApply.nodeType === 'note' && targetToApply.nodeId) setSelection({ type: 'note', id: targetToApply.nodeId });
     else if (targetToApply.nodeType === 'document' && targetToApply.nodeId) setSelection({ type: 'document', id: targetToApply.nodeId });
     else setSelection({ type: 'overview' });
@@ -99,7 +104,7 @@ export function useCaseWorkbenchData({
     let active = true;
     async function loadCaseChildren() {
       try {
-        const [noteRows, docRows, legalRefRows, preventionRows, bemRows, equalizationRows, terminationRows, participationRows] = await loadChildren(selectedCaseId);
+        const [noteRows, docRows, legalRefRows, preventionRows, bemRows, equalizationRows, terminationRows, participationRows, workplaceAccommodationRows] = await loadChildren(selectedCaseId);
         if (!active) return;
         setNotes(noteRows);
         setDocuments(docRows);
@@ -109,6 +114,7 @@ export function useCaseWorkbenchData({
         setCaseEqualizationProcesses(equalizationRows);
         setCaseTerminationProcesses(terminationRows);
         setCaseParticipationProcesses(participationRows);
+        setCaseWorkplaceAccommodationProcesses(workplaceAccommodationRows);
         applySelectionTarget(pendingCaseNodeTarget, selectedCaseId);
       } catch (error) {
         if (active) onError?.(error instanceof Error ? error.message : 'Fallakte konnte nicht geladen werden.');
@@ -123,7 +129,7 @@ export function useCaseWorkbenchData({
 
   async function reloadSelectedCaseChildren() {
     if (!selectedCaseId) return;
-    const [noteRows, docRows, legalRefRows, preventionRows, bemRows, equalizationRows, terminationRows, participationRows] = await loadChildren(selectedCaseId);
+    const [noteRows, docRows, legalRefRows, preventionRows, bemRows, equalizationRows, terminationRows, participationRows, workplaceAccommodationRows] = await loadChildren(selectedCaseId);
     setNotes(noteRows);
     setDocuments(docRows);
     setCaseLegalReferences(legalRefRows);
@@ -132,6 +138,7 @@ export function useCaseWorkbenchData({
     setCaseEqualizationProcesses(equalizationRows);
     setCaseTerminationProcesses(terminationRows);
     setCaseParticipationProcesses(participationRows);
+    setCaseWorkplaceAccommodationProcesses(workplaceAccommodationRows);
   }
 
   return {
@@ -149,6 +156,7 @@ export function useCaseWorkbenchData({
     caseEqualizationProcesses,
     caseTerminationProcesses,
     caseParticipationProcesses,
+    caseWorkplaceAccommodationProcesses,
     setCasePreventionProcesses,
     selection,
     setSelection,

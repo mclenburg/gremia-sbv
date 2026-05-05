@@ -11,6 +11,7 @@ import {
   formatLegalNormText,
   formatOpenTaskText,
   formatParticipationMarkerText,
+  formatWorkplaceAccommodationMarkerText,
   formatRiskText,
   formatTemplateMarkerText,
   getTextCommandKind,
@@ -124,6 +125,7 @@ export function GlobalTextCommandController({ cases, contacts }: { cases: CaseRe
     confidentiality: 'Vertraulichkeit einfügen',
     anonymization: 'Anonymisierung vormerken',
     participation: 'SBV-Beteiligung anlegen',
+    workplace_accommodation: 'Arbeitsplatzgestaltung anlegen',
     template: 'Vorlage vormerken'
   } as const;
   const commandKind = getTextCommandKind(draft.token);
@@ -227,6 +229,13 @@ export function GlobalTextCommandController({ cases, contacts }: { cases: CaseRe
           </div>
         )}
 
+        {commandKind === 'workplace_accommodation' && (
+          <div className="industrial-modal-grid">
+            <label className="industrial-modal-wide"><span>Titel</span><input value={draft.title} onChange={(event) => setDraft((current) => current ? { ...current, title: event.target.value } : current)} autoFocus placeholder="z. B. Arbeitsplatzgestaltung in Fallakte anlegen" /></label>
+            <div className="industrial-modal-preview"><ShieldAlert className="h-4 w-4" /> Personenbezogene Arbeitsplatzgestaltung wird nur in einer geöffneten Fallakte angelegt. Hier wird nur ein Hinweis eingefügt.</div>
+          </div>
+        )}
+
         {commandKind === 'template' && (
           <div className="industrial-modal-grid">
             <label className="industrial-modal-wide"><span>Vorlagenhinweis</span><input value={draft.query} onChange={(event) => setDraft((current) => current ? { ...current, query: event.target.value } : current)} autoFocus placeholder="z. B. Unterlagenanforderung" /></label>
@@ -242,6 +251,7 @@ export function GlobalTextCommandController({ cases, contacts }: { cases: CaseRe
           {commandKind === 'confidentiality' && <button type="button" className="industrial-button" onClick={() => replaceAndClose(formatConfidentialityText(draft.confidentiality))}>Einfügen</button>}
           {commandKind === 'anonymization' && <button type="button" className="industrial-button" onClick={() => replaceAndClose(formatAnonymizationMarkerText(draft.label))}>Einfügen</button>}
           {commandKind === 'participation' && <button type="button" className="industrial-button" onClick={() => replaceAndClose(formatParticipationMarkerText(draft.title))}>Hinweis einfügen</button>}
+          {commandKind === 'workplace_accommodation' && <button type="button" className="industrial-button" onClick={() => replaceAndClose(formatWorkplaceAccommodationMarkerText(draft.title))}>Hinweis einfügen</button>}
           {commandKind === 'template' && <button type="button" className="industrial-button" onClick={() => replaceAndClose(formatTemplateMarkerText(draft.query))}>Vormerken</button>}
         </div>
       </section>

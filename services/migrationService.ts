@@ -3,7 +3,7 @@ import path from 'node:path';
 import type { DatabaseAdapter } from './databaseService.js';
 import { classifyCaseLegalReferencesColumns } from './knowledgeMigrationPolicy.js';
 import { APP_VERSION } from './generated/appMetadata.js';
-import { APP_SCHEMA_VERSION, CASE_MEASURES_REQUIRED_COLUMNS, CASE_MEASURE_PARTICIPATION_REQUIRED_COLUMNS, DATABASE_SCHEMA_APP_VERSION_KEY, DATABASE_SCHEMA_VERSION_KEY, PERSONAL_DATA_AUDIT_REQUIRED_COLUMNS, SBV_PARTICIPATION_REQUIRED_COLUMNS, TERMINATION_HEARINGS_REQUIRED_COLUMNS } from './appSchema.js';
+import { APP_SCHEMA_VERSION, CASE_MEASURES_REQUIRED_COLUMNS, CASE_MEASURE_PARTICIPATION_REQUIRED_COLUMNS, CASE_MEASURE_WORKPLACE_ACCOMMODATION_REQUIRED_COLUMNS, DATABASE_SCHEMA_APP_VERSION_KEY, DATABASE_SCHEMA_VERSION_KEY, PERSONAL_DATA_AUDIT_REQUIRED_COLUMNS, SBV_PARTICIPATION_REQUIRED_COLUMNS, TERMINATION_HEARINGS_REQUIRED_COLUMNS } from './appSchema.js';
 
 interface MigrationRow {
   version: string;
@@ -456,6 +456,11 @@ export class MigrationService {
       this.ensureCaseMeasureSchema();
       diagnostics.push('Fallmaßnahmen-Schema wurde auf Stand 0020 repariert.');
     }
+
+    if (!this.tableExists('case_measure_workplace_accommodation') || !CASE_MEASURE_WORKPLACE_ACCOMMODATION_REQUIRED_COLUMNS.every((column) => this.columnExists('case_measure_workplace_accommodation', column))) {
+      this.ensureWorkplaceAccommodationSchema();
+      diagnostics.push('Arbeitsplatzgestaltungs-Schema wurde auf Stand 0021 repariert.');
+    }
   }
 
 
@@ -520,6 +525,42 @@ export class MigrationService {
       CREATE INDEX IF NOT EXISTS idx_case_measure_participation_status ON case_measure_participation(participation_status);
       CREATE INDEX IF NOT EXISTS idx_case_measure_participation_statement_due ON case_measure_participation(sbv_statement_due_at);
       CREATE INDEX IF NOT EXISTS idx_case_measure_participation_suspension_due ON case_measure_participation(suspension_deadline_at);
+    `);
+  }
+
+
+  private ensureWorkplaceAccommodationSchema(): void {
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS case_measure_workplace_accommodation (
+        measure_id TEXT PRIMARY KEY,
+        category TEXT NOT NULL DEFAULT 'sonstiges',
+        accommodation_status TEXT NOT NULL DEFAULT 'entwurf',
+        requested_adjustment TEXT NOT NULL DEFAULT '',
+        legal_basis TEXT NOT NULL DEFAULT '§ 164 Abs. 4 SGB IX',
+        barrier_or_limitation TEXT,
+        workplace_context TEXT,
+        proposed_solution TEXT,
+        technical_aid_needed INTEGER NOT NULL DEFAULT 0,
+        organizational_adjustment_needed INTEGER NOT NULL DEFAULT 0,
+        working_time_adjustment_needed INTEGER NOT NULL DEFAULT 0,
+        qualification_needed INTEGER NOT NULL DEFAULT 0,
+        fixed_workplace_needed INTEGER NOT NULL DEFAULT 0,
+        homeoffice_or_mobile_work_relevant INTEGER NOT NULL DEFAULT 0,
+        inclusion_office_involved INTEGER NOT NULL DEFAULT 0,
+        rehab_carrier_involved INTEGER NOT NULL DEFAULT 0,
+        employer_response_status TEXT NOT NULL DEFAULT 'offen',
+        employer_response_at TEXT,
+        implementation_status TEXT NOT NULL DEFAULT 'nicht_begonnen',
+        implementation_due_at TEXT,
+        effectiveness_review_at TEXT,
+        outcome TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY(measure_id) REFERENCES case_measures(id) ON DELETE CASCADE
+      );
+      CREATE INDEX IF NOT EXISTS idx_case_measure_workplace_status ON case_measure_workplace_accommodation(accommodation_status);
+      CREATE INDEX IF NOT EXISTS idx_case_measure_workplace_category ON case_measure_workplace_accommodation(category);
+      CREATE INDEX IF NOT EXISTS idx_case_measure_workplace_review ON case_measure_workplace_accommodation(effectiveness_review_at);
     `);
   }
 
@@ -683,7 +724,8 @@ export class MigrationService {
       'personal_data_audit_log',
       'sbv_participations',
       'case_measures',
-      'case_measure_participation'
+      'case_measure_participation',
+      'case_measure_workplace_accommodation'
     ];
 
     requiredTables.forEach((table) => {
@@ -702,7 +744,8 @@ export class MigrationService {
       personal_data_audit_log: [...PERSONAL_DATA_AUDIT_REQUIRED_COLUMNS],
       sbv_participations: [...SBV_PARTICIPATION_REQUIRED_COLUMNS],
       case_measures: [...CASE_MEASURES_REQUIRED_COLUMNS],
-      case_measure_participation: [...CASE_MEASURE_PARTICIPATION_REQUIRED_COLUMNS]
+      case_measure_participation: [...CASE_MEASURE_PARTICIPATION_REQUIRED_COLUMNS],
+      case_measure_workplace_accommodation: [...CASE_MEASURE_WORKPLACE_ACCOMMODATION_REQUIRED_COLUMNS]
     };
 
     Object.entries(requiredColumns).forEach(([table, columns]) => {
