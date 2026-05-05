@@ -147,13 +147,14 @@ function main() {
     files.forEach((entry) => removeFile(entry, manifestPath, result));
   }
 
-  const mode = dryRun ? 'Trockenlauf' : 'Cleanup';
-  const suffix = result.alreadyClean.length > 0
-    ? `, ${result.alreadyClean.length} bereits bereinigt`
-    : '';
-  console.log(`Source-${mode}: ${result.removed.length} entfernt${suffix}.`);
-  if (result.removed.length > 0) {
-    console.log(`Entfernt: ${result.removed.join(', ')}`);
+  const action = dryRun ? 'würde entfernt' : 'entfernt';
+  if (result.removed.length === 0) {
+    console.log(`Source-Cleanup: nichts zu entfernen.`);
+  } else {
+    console.log(`Source-Cleanup: ${result.removed.length} ${action}.`);
+  }
+  if (verbose && result.removed.length > 0) {
+    console.log(`${dryRun ? 'Würde entfernen' : 'Entfernt'}: ${result.removed.join(', ')}`);
   }
   if (verbose && result.alreadyClean.length > 0) {
     console.log(`Bereits bereinigt: ${result.alreadyClean.join(', ')}`);

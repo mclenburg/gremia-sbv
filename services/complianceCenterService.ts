@@ -52,9 +52,9 @@ export const COMPLIANCE_DOCUMENTS: ComplianceDocumentDescriptor[] = [
   },
   {
     type: 'data_protection_status',
-    title: 'Datenschutzstatus vor Produktivnutzung',
+    title: 'Technischer Datenschutzstatus vor Produktivnutzung',
     description: 'Prüfliste für Auto-Lock, Backup, Audit, temporäre Dateien, DSFA/TOM/VVT und organisatorische Freigaben.',
-    buttonLabel: 'Datenschutzstatus abrufen'
+    buttonLabel: 'Technischen Status abrufen'
   },
   {
     type: 'release_readiness_checklist',
@@ -503,7 +503,6 @@ Diese Prüfliste unterstützt die SBV dabei, den lokalen Gremia.SBV-Tresor vor p
 ## 3. Bewertung
 
 - Grün: Technische Grundlage vorhanden und organisatorisch entschieden.
-- Gelb: Technische Grundlage vorhanden, aber organisatorische Prüfung oder Nachweis offen.
 - Rot: Kritische Schutzlücke oder fehlender Nachweis.
 
 ## 4. Mindestempfehlung vor produktiver Nutzung
@@ -512,7 +511,7 @@ Diese Prüfliste unterstützt die SBV dabei, den lokalen Gremia.SBV-Tresor vor p
 - System- und Integritätsbericht erzeugen.
 - Temporäre Arbeitskopien bereinigen.
 - Erstes verschlüsseltes Backup erzeugen und testweise prüfen.
-- TOMs, VVT und DSFA-Entwurf mit Datenschutzbeauftragten / IT-Security abstimmen.
+- TOMs, VVT und DSFA-Entwurf mit Datenschutzbeauftragten / IT-Security abstimmen. Diese Prüfung wird durch die Software nur erinnert, nicht bewertet.
 - Regeln für Stellvertretung und Exporte schriftlich festhalten.
 `;
 }

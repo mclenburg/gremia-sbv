@@ -2,7 +2,7 @@
 
 **Gremia.SBV** ist eine lokale, offline-first Desktop-Anwendung für die vertrauliche Fallarbeit der Schwerbehindertenvertretung (SBV).
 
-Stand: **0.8.8-d**  
+Stand: **0.8.8-e**  
 Zielrichtung: Vorbereitung auf den ersten Release Candidate `0.9.0-rc.1`.
 
 ## Zweck
@@ -150,12 +150,13 @@ Vor dem ersten RC müssen mindestens erfolgreich sein:
 
 ```bash
 npm ci
+npm run rc:check
 npm run test
 npm run build
 npm run build:linux
 ```
 
-Zusätzlich sind manuell zu prüfen:
+Der RC-Check prüft die statische Release-Verkabelung, die Dokumentationsstruktur, Versionskonsistenz und obsolete Testskriptverweise. Zusätzlich sind manuell zu prüfen:
 
 - frische Tresor-/Datenbankanlage,
 - Migration einer bestehenden Datenbank,

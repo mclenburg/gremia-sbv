@@ -34,3 +34,9 @@
 ## 0.8.4
 
 - Versionen, Schema, PDF-Erzeugung, Audit-Hash-Chain, Auto-Lock, temporäre Dateien und IPC-Validierung stabilisiert.
+
+## 0.8.8-f
+
+- Compliance Center trennt technische Statusprüfung von organisatorischen Datenschutz-Prüfpunkten.
+- Gesamtampel für Datenschutzstatus entfernt.
+- Dark-/Lightmode-Styles des Compliance-Statusbereichs korrigiert.

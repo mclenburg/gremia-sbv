@@ -6,9 +6,10 @@ import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 import type {
   ComplianceDocument,
   ComplianceDocumentType,
-  ComplianceStatusItem,
-  ComplianceStatusLevel,
+  ComplianceManualCheckItem,
   ComplianceStatusOverview,
+  ComplianceTechnicalStatusItem,
+  ComplianceTechnicalStatusLevel,
   DataSubjectAccessRequestInput,
 } from '../../core/models/compliance.model';
 import { buildComplianceReportInput, defaultDsarInput, listComplianceDocuments, renderComplianceDocument, renderDsarResponseDocument } from '@services/complianceCenterService';
@@ -23,41 +24,62 @@ function downloadTextFile(document: ComplianceDocument) {
   URL.revokeObjectURL(url);
 }
 
-function levelLabel(level: ComplianceStatusLevel): string {
+function technicalLevelLabel(level: ComplianceTechnicalStatusLevel): string {
   switch (level) {
-    case 'green': return 'Grün';
-    case 'yellow': return 'Gelb';
-    case 'red': return 'Rot';
+    case 'ok': return 'OK';
+    case 'warning': return 'Prüfen';
+    case 'problem': return 'Problem';
+    case 'info': return 'Info';
   }
 }
 
-function buildOverallLevel(items: ComplianceStatusItem[]): ComplianceStatusLevel {
-  if (items.some((item) => item.level === 'red')) return 'red';
-  if (items.some((item) => item.level === 'yellow')) return 'yellow';
-  return 'green';
+function buildManualChecks(): ComplianceManualCheckItem[] {
+  return [
+    {
+      id: 'toms',
+      label: 'TOMs',
+      summary: 'Technische und organisatorische Maßnahmen müssen fachlich geprüft und freigegeben werden.',
+      detail: 'Die App kann den TOM-Entwurf erzeugen, aber nicht entscheiden, ob er organisatorisch ausreicht.',
+    },
+    {
+      id: 'vvt',
+      label: 'VVT',
+      summary: 'Das Verzeichnis von Verarbeitungstätigkeiten ist organisatorisch zu prüfen.',
+      detail: 'Die App kann einen Entwurf erstellen. Vollständigkeit und Verantwortlichkeit bleiben manuell zu bewerten.',
+    },
+    {
+      id: 'dsfa',
+      label: 'DSFA',
+      summary: 'Ob eine Datenschutz-Folgenabschätzung erforderlich und ausreichend ist, ist manuell zu bewerten.',
+    },
+    {
+      id: 'approvals',
+      label: 'DSB-/IT-Security-Freigaben',
+      summary: 'Freigaben sind menschliche Entscheidungen und werden hier nur als Prüfpunkte erinnert.',
+    },
+    {
+      id: 'restore-proof',
+      label: 'Restore organisatorisch nachweisen',
+      summary: 'Die Software kann technische Backup-Funktionen bereitstellen; der tatsächliche Restore-Test ist zu dokumentieren.',
+    },
+  ];
 }
 
 function buildFallbackStatus(): ComplianceStatusOverview {
-  const items: ComplianceStatusItem[] = [
-    {
-      id: 'runtime-status',
-      label: 'Laufzeitstatus',
-      level: 'yellow',
-      summary: 'Status konnte noch nicht vollständig geladen werden.',
-      detail: 'Das Compliance Center lädt Sicherheits- und Temp-Dateistatus nach dem Öffnen nach.',
-    },
-    {
-      id: 'organizational-approval',
-      label: 'Organisatorische Freigaben',
-      level: 'yellow',
-      summary: 'DSB-/IT-Security-Freigaben müssen organisatorisch dokumentiert werden.',
-    },
-  ];
   return {
     generatedAt: new Date().toISOString(),
-    overallLevel: buildOverallLevel(items),
-    items,
-    nextActions: ['Datenschutzstatus aktualisieren', 'TOMs, VVT und DSFA vor Produktivnutzung prüfen'],
+    technicalItems: [
+      {
+        id: 'runtime-status',
+        label: 'Laufzeitstatus',
+        level: 'info',
+        summary: 'Technischer Status konnte noch nicht vollständig geladen werden.',
+        detail: 'Das Compliance Center lädt Sicherheits- und Temp-Dateistatus nach dem Öffnen nach.',
+      },
+    ],
+    manualItems: buildManualChecks(),
+    nextTechnicalActions: ['Technischen Status aktualisieren'],
+    manualCheckSummary: 'Organisatorische Prüfpunkte werden nicht durch die Software bewertet.',
   };
 }
 
@@ -71,11 +93,11 @@ async function loadComplianceStatus(): Promise<ComplianceStatusOverview> {
   const securityStatus = await security.status();
   const tempStatus = await security.temporaryFileStatus();
 
-  const items: ComplianceStatusItem[] = [
+  const technicalItems: ComplianceTechnicalStatusItem[] = [
     {
       id: 'vault',
       label: 'Verschlüsselter Tresor',
-      level: securityStatus.initialized && securityStatus.databaseProtected !== false ? 'green' : 'red',
+      level: securityStatus.initialized && securityStatus.databaseProtected !== false ? 'ok' : 'problem',
       summary: securityStatus.initialized
         ? 'Tresor ist eingerichtet.'
         : 'Tresor ist noch nicht eingerichtet.',
@@ -84,24 +106,25 @@ async function loadComplianceStatus(): Promise<ComplianceStatusOverview> {
         : undefined,
     },
     {
-      id: 'unlocked-state',
-      label: 'Aktueller Schutzstatus',
-      level: securityStatus.unlocked ? 'green' : 'yellow',
+      id: 'lock-state',
+      label: 'Tresorstatus',
+      level: 'info',
       summary: securityStatus.unlocked
-        ? 'Tresor ist aktuell entsperrt; Auto-Lock und manuelle Sperre bleiben maßgeblich.'
+        ? 'Tresor ist aktuell entsperrt.'
         : 'Tresor ist aktuell gesperrt oder nicht verfügbar.',
+      detail: 'Dies ist ein technischer Laufzeitstatus, keine Datenschutzbewertung.',
     },
     {
       id: 'auto-lock',
       label: 'Auto-Lock',
-      level: 'green',
-      summary: 'Automatische Sperre ist in der App-Basis vorgesehen.',
-      detail: 'Vor Produktivnutzung sollte der Sperrzeitraum praktisch getestet werden.',
+      level: 'ok',
+      summary: 'Automatische Sperre ist technisch in der App-Basis vorgesehen.',
+      detail: 'Die konkrete organisatorische Vorgabe zum Sperrzeitraum ist separat festzulegen.',
     },
     {
       id: 'temp-files',
       label: 'Temporäre Arbeitskopien',
-      level: tempStatus.remaining > 0 ? 'yellow' : 'green',
+      level: tempStatus.remaining > 0 ? 'warning' : 'ok',
       summary: tempStatus.remaining > 0
         ? `${tempStatus.remaining} temporäre Datei(en) im Arbeitsbereich.`
         : 'Keine temporären Arbeitskopien gefunden.',
@@ -112,67 +135,94 @@ async function loadComplianceStatus(): Promise<ComplianceStatusOverview> {
     {
       id: 'audit-chain',
       label: 'Audit-Hash-Chain',
-      level: 'yellow',
-      summary: 'Manipulationserkennung ist technisch vorhanden; Prüfung erfolgt im System- und Integritätsbericht.',
+      level: 'info',
+      summary: 'Technische Manipulationsprüfung ist über System- und Integritätsberichte abrufbar.',
+      detail: 'Eine nicht ausgeführte Prüfung wird hier nicht als Erfolg oder Fehler bewertet.',
     },
     {
-      id: 'backup',
-      label: 'Backup / Restore',
-      level: 'yellow',
-      summary: 'Verschlüsselte Backups sind vorgesehen; ein Restore-Test muss organisatorisch nachgewiesen werden.',
+      id: 'backup-function',
+      label: 'Backup-Funktion',
+      level: 'info',
+      summary: 'Verschlüsselte Backups sind technisch vorgesehen.',
+      detail: 'Ob ein Restore organisatorisch durchgeführt und dokumentiert wurde, kann die Software nicht selbst bewerten.',
     },
     {
       id: 'compliance-documents',
-      label: 'TOMs, VVT, DSFA',
-      level: 'yellow',
-      summary: 'Dokumente können erzeugt werden; fachliche Freigabe durch DSB/IT-Security bleibt erforderlich.',
+      label: 'Compliance-Dokumente',
+      level: 'info',
+      summary: 'TOMs, VVT, DSFA und Freigabeunterlagen können als Entwürfe erzeugt werden.',
+      detail: 'Inhaltliche Vollständigkeit und Freigaben bleiben manuell zu prüfen.',
     },
   ];
 
-  const nextActions = items
-    .filter((item) => item.level !== 'green')
+  const nextTechnicalActions = technicalItems
+    .filter((item) => item.level === 'warning' || item.level === 'problem')
     .map((item) => item.label);
 
   return {
     generatedAt: new Date().toISOString(),
-    overallLevel: buildOverallLevel(items),
-    items,
-    nextActions: nextActions.length ? nextActions : ['Keine offenen Statuspunkte aus der automatischen Prüfung. Organisatorische Freigabe dokumentieren.'],
+    technicalItems,
+    manualItems: buildManualChecks(),
+    nextTechnicalActions: nextTechnicalActions.length ? nextTechnicalActions : ['Keine technischen Handlungsbedarfe aus automatischer Prüfung.'],
+    manualCheckSummary: 'Organisatorische Entscheidungen wie DSB-/IT-Freigaben, DSFA-Bewertung und TOM-Vollständigkeit werden nur erinnert, nicht bewertet.',
   };
 }
 
 function ComplianceStatusPanel({ overview, onRefresh }: { overview: ComplianceStatusOverview; onRefresh: () => void }) {
   return (
-    <section className={`compliance-status-panel status-${overview.overallLevel}`} aria-label="Datenschutzstatus">
+    <section className="compliance-status-panel" aria-label="Technischer Datenschutz- und Integritätsstatus">
       <div className="compliance-status-header">
         <div>
-          <p className="industrial-kicker">Datenschutzstatus</p>
-          <h2>1.0-Vorbereitung</h2>
-          <p>Technische Signale und organisatorische Prüfpunkte vor produktiver Nutzung.</p>
+          <p className="industrial-kicker">Technischer Status</p>
+          <h2>Datenschutz- und Integritätsstatus</h2>
+          <p>Automatisch geprüft werden nur technische Zustände, die die Software selbst feststellen kann.</p>
         </div>
-        <div className="compliance-status-badge" aria-label={`Gesamtstatus ${levelLabel(overview.overallLevel)}`}>
+        <div className="compliance-status-badge" aria-label="Keine Gesamtbewertung der Datenschutzkonformität">
           <ShieldCheck className="h-4 w-4" aria-hidden="true" />
-          {levelLabel(overview.overallLevel)}
+          Technische Prüfung
         </div>
       </div>
+
       <div className="compliance-status-grid">
-        {overview.items.map((item) => (
-          <article key={item.id} className={`compliance-status-card status-${item.level}`}>
+        {overview.technicalItems.map((item) => (
+          <article key={item.id} className={`compliance-status-card tech-${item.level}`}>
             <div className="compliance-status-card-header">
               <h3>{item.label}</h3>
-              <span aria-label={`Status ${levelLabel(item.level)}`}>{levelLabel(item.level)}</span>
+              <span aria-label={`Technischer Status ${technicalLevelLabel(item.level)}`}>{technicalLevelLabel(item.level)}</span>
             </div>
             <p>{item.summary}</p>
             {item.detail && <small>{item.detail}</small>}
           </article>
         ))}
       </div>
+
       <div className="compliance-next-actions">
-        <strong>Nächste Prüfpunkte:</strong>
-        <span>{overview.nextActions.join(' · ')}</span>
+        <strong>Technische Hinweise:</strong>
+        <span>{overview.nextTechnicalActions.join(' · ')}</span>
       </div>
+
+      <section className="compliance-manual-checks" aria-label="Organisatorische Datenschutz-Prüfpunkte">
+        <div className="compliance-manual-checks-header">
+          <div>
+            <p className="industrial-kicker">Manuelle Prüfung</p>
+            <h3>Organisatorische Datenschutz-Prüfpunkte</h3>
+          </div>
+          <span>Nicht durch Software bewertbar</span>
+        </div>
+        <p>{overview.manualCheckSummary}</p>
+        <div className="compliance-manual-grid">
+          {overview.manualItems.map((item) => (
+            <article key={item.id} className="compliance-manual-card">
+              <h4>{item.label}</h4>
+              <p>{item.summary}</p>
+              {item.detail && <small>{item.detail}</small>}
+            </article>
+          ))}
+        </div>
+      </section>
+
       <button type="button" className="industrial-secondary-button" onClick={onRefresh}>
-        Status aktualisieren
+        Technischen Status aktualisieren
       </button>
     </section>
   );
@@ -191,9 +241,9 @@ export function ComplianceView() {
     try {
       const next = await loadComplianceStatus();
       setStatusOverview(next);
-      announce('Datenschutzstatus wurde aktualisiert.', 'polite');
+      announce('Technischer Datenschutzstatus wurde aktualisiert.', 'polite');
     } catch (error) {
-      const info = error instanceof Error ? error.message : 'Datenschutzstatus konnte nicht geladen werden.';
+      const info = error instanceof Error ? error.message : 'Technischer Datenschutzstatus konnte nicht geladen werden.';
       setStatusOverview(buildFallbackStatus());
       setMessage(info);
       announce(info, 'assertive');
@@ -257,7 +307,7 @@ export function ComplianceView() {
   return (
     <ModuleFrame
       title="Compliance Center"
-      description="TOMs, VVT, DSFA, Datenschutzstatus, Release-Checklisten, Löschkonzept, Betroffenenrechte und Freigabeunterlagen."
+      description="Technischer Datenschutzstatus, organisatorische Prüflisten, TOMs, VVT, DSFA, Löschkonzept, Betroffenenrechte und Freigabeunterlagen."
     >
       <div className="compliance-layout">
         <ComplianceStatusPanel overview={statusOverview} onRefresh={() => void refreshStatus()} />

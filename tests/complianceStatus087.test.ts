@@ -13,9 +13,9 @@ describe('0.8.7 compliance status and release readiness', () => {
   });
 
   it('surfaces the Datenschutzstatus in the compliance view without claiming automatic DSGVO approval', () => {
-    expect(source).toContain('Datenschutzstatus');
-    expect(source).toContain('1.0-Vorbereitung');
-    expect(source).toContain('Status aktualisieren');
-    expect(source).toContain('fachliche Freigabe durch DSB/IT-Security bleibt erforderlich');
+    expect(source).toContain('Technischer Status');
+    expect(source).toContain('Datenschutz- und Integritätsstatus');
+    expect(source).toContain('Technischen Status aktualisieren');
+    expect(source).toContain('Organisatorische Datenschutz-Prüfpunkte');
   });
 });

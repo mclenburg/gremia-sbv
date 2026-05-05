@@ -126,11 +126,14 @@
 
 .compliance-status-panel {
   grid-column: 1 / -1;
-  border: 1px solid var(--border-subtle, #d6dde8);
+  display: grid;
+  gap: 1rem;
+  border: 1px solid var(--sbv-border);
   border-radius: 18px;
-  background: var(--surface-elevated, #ffffff);
+  background: linear-gradient(180deg, rgba(18, 18, 20, 0.94), rgba(9, 9, 11, 0.92));
+  color: var(--sbv-text);
   padding: clamp(1rem, 2vw, 1.35rem);
-  box-shadow: var(--shadow-soft, 0 10px 28px rgba(15, 23, 42, 0.08));
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
 }
 
 .compliance-status-header {
@@ -138,7 +141,6 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
-  margin-bottom: 1rem;
 }
 
 .compliance-status-header h2,
@@ -146,110 +148,170 @@
   margin: 0;
 }
 
+.compliance-status-header p:not(.industrial-kicker),
+.compliance-manual-checks > p {
+  color: var(--sbv-muted);
+}
+
 .compliance-status-badge {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
+  border: 1px solid var(--sbv-border-hard);
   border-radius: 999px;
+  background: rgba(250, 204, 21, 0.08);
+  color: var(--sbv-yellow);
   padding: 0.42rem 0.75rem;
-  font-weight: 700;
+  font-weight: 800;
   white-space: nowrap;
-  border: 1px solid var(--border-subtle, #d6dde8);
-  background: var(--surface-muted, #f7f9fc);
 }
 
-.compliance-status-panel.status-green .compliance-status-badge {
-  background: #ecfdf3;
-  color: #166534;
-  border-color: #bbf7d0;
-}
-
-.compliance-status-panel.status-yellow .compliance-status-badge {
-  background: #fffbeb;
-  color: #92400e;
-  border-color: #fde68a;
-}
-
-.compliance-status-panel.status-red .compliance-status-badge {
-  background: #fef2f2;
-  color: #991b1b;
-  border-color: #fecaca;
-}
-
-.compliance-status-grid {
+.compliance-status-grid,
+.compliance-manual-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
   gap: 0.75rem;
 }
 
-.compliance-status-card {
-  border: 1px solid var(--border-subtle, #d6dde8);
+.compliance-status-card,
+.compliance-manual-card {
+  border: 1px solid var(--sbv-border);
   border-radius: 14px;
   padding: 0.85rem;
-  background: var(--surface, #ffffff);
+  background: rgba(9, 9, 11, 0.58);
+  color: var(--sbv-text);
 }
 
-.compliance-status-card-header {
+.compliance-status-card-header,
+.compliance-manual-checks-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.75rem;
   margin-bottom: 0.45rem;
 }
 
 .compliance-status-card h3,
-.compliance-status-card p {
+.compliance-status-card p,
+.compliance-manual-card h4,
+.compliance-manual-card p,
+.compliance-manual-checks h3,
+.compliance-manual-checks p {
   margin: 0;
 }
 
-.compliance-status-card p {
-  color: var(--text-muted, #526070);
+.compliance-status-card p,
+.compliance-manual-card p {
+  color: var(--sbv-muted);
   font-size: 0.92rem;
 }
 
-.compliance-status-card small {
+.compliance-status-card small,
+.compliance-manual-card small {
   display: block;
   margin-top: 0.35rem;
-  color: var(--text-subtle, #667085);
+  color: var(--sbv-dim);
 }
 
-.compliance-status-card-header span {
+.compliance-status-card-header span,
+.compliance-manual-checks-header > span {
   border-radius: 999px;
   padding: 0.2rem 0.45rem;
   font-size: 0.76rem;
-  font-weight: 700;
-  background: var(--surface-muted, #f7f9fc);
+  font-weight: 800;
+  white-space: nowrap;
+  background: rgba(161, 161, 170, 0.10);
+  color: var(--sbv-muted);
 }
 
-.compliance-status-card.status-green .compliance-status-card-header span {
-  background: #ecfdf3;
-  color: #166534;
+.compliance-status-card.tech-ok .compliance-status-card-header span {
+  background: rgba(132, 204, 22, 0.14);
+  color: #bef264;
 }
 
-.compliance-status-card.status-yellow .compliance-status-card-header span {
-  background: #fffbeb;
-  color: #92400e;
+.compliance-status-card.tech-warning .compliance-status-card-header span {
+  background: rgba(250, 204, 21, 0.14);
+  color: var(--sbv-yellow);
 }
 
-.compliance-status-card.status-red .compliance-status-card-header span {
-  background: #fef2f2;
-  color: #991b1b;
+.compliance-status-card.tech-problem .compliance-status-card-header span {
+  background: rgba(239, 68, 68, 0.14);
+  color: #fca5a5;
+}
+
+.compliance-status-card.tech-info .compliance-status-card-header span {
+  background: rgba(161, 161, 170, 0.12);
+  color: var(--sbv-muted);
 }
 
 .compliance-next-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
-  margin: 1rem 0;
-  color: var(--text-muted, #526070);
+  margin: 0;
+  color: var(--sbv-muted);
 }
 
 .compliance-next-actions strong {
-  color: var(--text, #111827);
+  color: var(--sbv-text);
+}
+
+.compliance-manual-checks {
+  display: grid;
+  gap: 0.75rem;
+  border: 1px dashed var(--sbv-border-hard);
+  border-radius: 16px;
+  padding: 1rem;
+  background: rgba(18, 18, 20, 0.52);
+}
+
+html[data-theme='light'] .compliance-status-panel {
+  background: linear-gradient(180deg, #eeeeea, #deded8);
+  color: var(--sbv-text);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+}
+
+html[data-theme='light'] .compliance-status-card,
+html[data-theme='light'] .compliance-manual-card,
+html[data-theme='light'] .compliance-manual-checks {
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--sbv-text);
+}
+
+html[data-theme='light'] .compliance-status-card p,
+html[data-theme='light'] .compliance-status-card small,
+html[data-theme='light'] .compliance-manual-card p,
+html[data-theme='light'] .compliance-manual-card small,
+html[data-theme='light'] .compliance-status-header p:not(.industrial-kicker),
+html[data-theme='light'] .compliance-manual-checks > p,
+html[data-theme='light'] .compliance-next-actions {
+  color: var(--sbv-muted);
+}
+
+html[data-theme='light'] .compliance-status-card.tech-ok .compliance-status-card-header span {
+  background: #ecfdf3;
+  color: #166534;
+}
+
+html[data-theme='light'] .compliance-status-card.tech-warning .compliance-status-card-header span {
+  background: #fffbeb;
+  color: #92400e;
+}
+
+html[data-theme='light'] .compliance-status-card.tech-problem .compliance-status-card-header span {
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+html[data-theme='light'] .compliance-status-card.tech-info .compliance-status-card-header span,
+html[data-theme='light'] .compliance-manual-checks-header > span {
+  background: #f7f7f2;
+  color: var(--sbv-muted);
 }
 
 @media (max-width: 760px) {
-  .compliance-status-header {
+  .compliance-status-header,
+  .compliance-manual-checks-header {
     flex-direction: column;
   }
 }

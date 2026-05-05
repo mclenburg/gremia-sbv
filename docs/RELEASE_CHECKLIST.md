@@ -4,6 +4,7 @@
 
 ```bash
 npm ci
+npm run rc:check
 npm run test
 npm run build
 npm run build:linux
@@ -13,9 +14,11 @@ Zusätzlich:
 
 ```bash
 npm run source:cleanup:dry-run
+npm run source:cleanup:verbose
 npm run build:readiness
 npm run build:readiness:strict
 npm run test:documentation-088d
+npm run test:release-candidate-088e
 ```
 
 ## Manuelle Abnahme

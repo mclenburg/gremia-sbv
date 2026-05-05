@@ -39,8 +39,7 @@ Diese Dokumentation ist ab 0.8.8-d auf dauerhafte Projektunterlagen ausgerichtet
 
 | Datei | Zweck |
 | --- | --- |
-| `PROCESS_MODULES.md` | Prozessmodule und Fallaktenbezug |
-| `PROCESS_MODULES.md` | fachliche Maßnahmenlogik |
+| `PROCESS_MODULES.md` | Prozessmodule, Maßnahmenlogik und Fallaktenbezug |
 | `CASE_PROCESS_WORKFLOW.md` | Fallakten-Workflow |
 | `INLINE_TEXT_COMMANDS.md` | Inline-Kurzbefehle |
 | `TEMPLATES_MODULE.md` | Vorlagenmodul |

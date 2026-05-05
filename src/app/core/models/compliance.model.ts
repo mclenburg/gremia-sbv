@@ -38,19 +38,27 @@ export interface DataSubjectAccessRequestInput {
 }
 
 
-export type ComplianceStatusLevel = 'green' | 'yellow' | 'red';
+export type ComplianceTechnicalStatusLevel = 'ok' | 'warning' | 'problem' | 'info';
 
-export interface ComplianceStatusItem {
+export interface ComplianceTechnicalStatusItem {
   id: string;
   label: string;
-  level: ComplianceStatusLevel;
+  level: ComplianceTechnicalStatusLevel;
+  summary: string;
+  detail?: string;
+}
+
+export interface ComplianceManualCheckItem {
+  id: string;
+  label: string;
   summary: string;
   detail?: string;
 }
 
 export interface ComplianceStatusOverview {
   generatedAt: string;
-  overallLevel: ComplianceStatusLevel;
-  items: ComplianceStatusItem[];
-  nextActions: string[];
+  technicalItems: ComplianceTechnicalStatusItem[];
+  manualItems: ComplianceManualCheckItem[];
+  nextTechnicalActions: string[];
+  manualCheckSummary: string;
 }
