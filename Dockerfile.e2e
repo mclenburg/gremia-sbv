@@ -1,0 +1,12 @@
+FROM mcr.microsoft.com/playwright:v1.59.1-noble
+
+WORKDIR /app
+ENV CI=1 \
+    GREMIA_SBV_E2E=1
+
+COPY package.json package-lock.json ./
+RUN npm ci
+RUN npm install --no-save @playwright/test@1.59.1
+
+COPY . .
+RUN npm run test:e2e
