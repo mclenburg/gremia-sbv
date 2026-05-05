@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import type { ChangeEvent, TextareaHTMLAttributes } from 'react';
-import { findFirstTextCommand, type TextCommandToken } from '@services/textCommandPolicy';
+import { TEXT_COMMAND_HINT, findFirstTextCommand, type TextCommandToken } from '@services/textCommandPolicy';
 
 export type TextCommandTextareaChange = {
   token: TextCommandToken;
@@ -23,8 +23,6 @@ type TextCommandTextareaProps = Omit<TextareaHTMLAttributes<HTMLTextAreaElement>
   showCommandHint?: boolean;
   globalCommandsEnabled?: boolean;
 };
-
-const TEXT_COMMAND_HINT = '// Frist · @@ Kontakt · ## Fall · §§ Norm · !! Risiko · >> Aufgabe · ^^ Vertraulichkeit · ~~ Anonymisierung';
 
 export function TextCommandTextarea({
   fieldId,

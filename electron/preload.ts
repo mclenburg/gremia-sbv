@@ -5,6 +5,11 @@ import type {
   CreateCaseInput,
 } from "../src/app/core/models/case.model.js";
 import type {
+  CaseMeasureRecord,
+  CreateCaseMeasureInput,
+  UpdateCaseMeasureInput,
+} from "../src/app/core/models/case-measure.model.js";
+import type {
   ContactListFilters,
   ContactRecord,
   CreateContactInput,
@@ -187,6 +192,18 @@ const api = {
       ipcRenderer.invoke("cases:documents:export", id, suggestedFileName),
     search: (input: CaseContentSearchInput): Promise<CaseSearchResult[]> =>
       ipcRenderer.invoke("cases:search", input),
+  },
+
+  caseMeasures: {
+    list: (caseId?: string): Promise<CaseMeasureRecord[]> =>
+      ipcRenderer.invoke("caseMeasures:list", caseId),
+    create: (input: CreateCaseMeasureInput): Promise<CaseMeasureRecord> =>
+      ipcRenderer.invoke("caseMeasures:create", input),
+    update: (
+      id: string,
+      input: UpdateCaseMeasureInput,
+    ): Promise<CaseMeasureRecord> =>
+      ipcRenderer.invoke("caseMeasures:update", id, input),
   },
   contacts: {
     list: (filters?: ContactListFilters): Promise<ContactRecord[]> =>

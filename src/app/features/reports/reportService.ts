@@ -3,11 +3,16 @@ import { waitForBridge } from '../../core/bridge/waitForBridge';
 
 export const REPORT_TYPE_ORDER: ReportType[] = [
   'activity',
-  'privacy_audit',
   'case_deadline_controlling',
   'bem_prevention',
+  'sbv_participation',
   'termination_hearings',
-  'system_integrity'
+  'equalization_gdb',
+  'privacy_audit',
+  'retention_cleanup',
+  'audit_log',
+  'system_integrity',
+  'compliance_document'
 ];
 
 export function defaultReportPeriod(): { periodStart: string; periodEnd: string } {
@@ -32,7 +37,7 @@ export async function loadReportMetadata(): Promise<{ descriptors: ReportDescrip
     bridge.reports.history(15)
   ]);
   return {
-    descriptors: [...descriptorRows].sort((a, b) => REPORT_TYPE_ORDER.indexOf(a.type) - REPORT_TYPE_ORDER.indexOf(b.type)),
+    descriptors: [...descriptorRows].sort((a, b) => (REPORT_TYPE_ORDER.indexOf(a.type) === -1 ? 999 : REPORT_TYPE_ORDER.indexOf(a.type)) - (REPORT_TYPE_ORDER.indexOf(b.type) === -1 ? 999 : REPORT_TYPE_ORDER.indexOf(b.type))),
     history: historyRows
   };
 }

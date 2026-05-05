@@ -135,12 +135,17 @@ import type {
   TerminationHearingRecord,
   UpdateTerminationHearingInput,
 } from "./core/models/termination.model";
+import type {
+  ParticipationRecord,
+  UpdateParticipationInput,
+} from "./core/models/participation.model";
 import { statusLabel } from "./features/prevention/preventionShared";
 import { bemStatusLabel } from "./features/bem/bemShared";
 import { PreventionProcessDetail } from "./features/prevention/PreventionProcessDetail";
 import { BemProcessDetail } from "./features/bem/BemProcessDetail";
 import { EqualizationProcessDetail } from "./features/equalization/EqualizationProcessDetail";
 import { TerminationProcessDetail } from "./features/termination/TerminationProcessDetail";
+import { ParticipationProcessDetail } from "./features/participation/ParticipationProcessDetail";
 import type {
   CaseLawRecord,
   CaseLegalReferenceRecord,
@@ -571,6 +576,7 @@ type InlineAnonymizationDraft = {
 type CaseProcessType =
   | "prevention"
   | "bem"
+  | "participation"
   | "termination_hearing"
   | "equalization";
 
@@ -592,7 +598,9 @@ function defaultCaseProcessDraft(
         ? "Aus der Fallakte gestartetes Präventionsverfahren. Bitte Anlass und Gefährdung konkretisieren."
         : processType === "bem"
           ? "Aus der Fallakte gestartetes BEM-Verfahren. Bitte Auslöser, Angebot und Reaktion konkretisieren."
-          : `${processTypeLabel(processType)} aus der Fallakte vorgemerkt. Das Fachmodul übernimmt später die strukturierte Bearbeitung.`,
+          : processType === "participation"
+            ? "Aus der Fallakte gestartete SBV-Beteiligungsmaßnahme. Bitte Arbeitgebermaßnahme, Beteiligungsstand und nächsten Schritt erfassen."
+            : `${processTypeLabel(processType)} aus der Fallakte vorgemerkt. Das Fachmodul übernimmt später die strukturierte Bearbeitung.`,
     dueAt: "",
   };
 }
@@ -886,6 +894,7 @@ export function CasesView({
     caseBemProcesses,
     caseEqualizationProcesses,
     caseTerminationProcesses,
+    caseParticipationProcesses,
     selection,
     setSelection,
     reloadSelectedCaseChildren,
@@ -958,6 +967,12 @@ export function CasesView({
     selection.processType === "termination_hearing" &&
     selection.id
       ? caseTerminationProcesses.find((item) => item.id === selection.id)
+      : undefined;
+  const selectedParticipationProcess =
+    selection.type === "process" &&
+    selection.processType === "participation" &&
+    selection.id
+      ? caseParticipationProcesses.find((item) => item.id === selection.id)
       : undefined;
   const selectedEqualizationNotes = selectedEqualizationProcess
     ? notes.filter((note) =>
@@ -1034,6 +1049,10 @@ export function CasesView({
     setNoteError,
     onCreateDeadline,
     onCreateContact,
+    onStructuredActionCreated: async () => {
+      await reloadSelectedCaseChildren();
+      await onCasesChanged();
+    },
   });
 
   bindClearInlineDrafts(inlineCommands.clearInlineDrafts);
@@ -1187,6 +1206,28 @@ export function CasesView({
         error instanceof Error
           ? error.message
           : "Kündigungsanhörung konnte nicht aktualisiert werden.",
+      );
+    }
+  }
+
+  async function updateCaseParticipationProcess(
+    processId: string,
+    input: UpdateParticipationInput,
+  ) {
+    setNoteError("");
+    setNoteInfo("");
+    try {
+      const bridge = await waitForBridge();
+      if (!bridge?.participation)
+        throw new Error("Beteiligungsdienst ist nicht erreichbar.");
+      await bridge.participation.update(processId, input);
+      await reloadSelectedCaseChildren();
+      setNoteInfo("SBV-Beteiligungsmaßnahme wurde aktualisiert.");
+    } catch (error) {
+      setNoteError(
+        error instanceof Error
+          ? error.message
+          : "SBV-Beteiligungsmaßnahme konnte nicht aktualisiert werden.",
       );
     }
   }
@@ -1517,6 +1558,38 @@ export function CasesView({
         return;
       }
 
+      if (caseProcessDraft.processType === "participation") {
+        if (!bridge?.participation)
+          throw new Error("Beteiligungsdienst ist nicht erreichbar.");
+        const created = await bridge.participation.create({
+          caseId: selectedCase.id,
+          title: caseProcessDraft.title.trim() || "SBV-Beteiligung",
+          measureType: "sonstiges",
+          riskLevel: "erhoeht",
+          decisionStage: "unklar",
+          personStatus: "unklar",
+          firstKnownAt: new Date().toISOString(),
+          statementDueAt: caseProcessDraft.dueAt
+            ? fromDateTimeLocalValue(caseProcessDraft.dueAt)
+            : undefined,
+          violationSummary: caseProcessDraft.description.trim() || undefined,
+          nextStep: "Beteiligung nach § 178 Abs. 2 SGB IX in der Fallakte weiter prüfen.",
+          createDefaultDeadlines: true,
+        });
+        setCaseProcessDraft(null);
+        setSelection({
+          type: "process",
+          processType: "participation",
+          id: created.id,
+        });
+        setNoteInfo(
+          "SBV-Beteiligungsmaßnahme wurde direkt an der Fallakte angelegt und im Fallbaum ergänzt.",
+        );
+        await reloadSelectedCaseChildren();
+        await onCasesChanged();
+        return;
+      }
+
       if (caseProcessDraft.processType === "termination_hearing") {
         if (!bridge?.termination)
           throw new Error("Kündigungsdienst ist nicht erreichbar.");
@@ -1817,6 +1890,7 @@ ${caseProcessDraft.description}`,
           bemProcesses={caseBemProcesses}
           equalizationProcesses={caseEqualizationProcesses}
           terminationProcesses={caseTerminationProcesses}
+          participationProcesses={caseParticipationProcesses}
           selection={selection}
           onSelect={setSelection}
           formatProcessNodeSubtitle={formatProcessNodeSubtitle}
@@ -1842,7 +1916,11 @@ ${caseProcessDraft.description}`,
               documentsCount={documents.length}
               legalReferencesCount={caseLegalReferences.length}
               processesCount={
-                casePreventionProcesses.length + caseBemProcesses.length
+                casePreventionProcesses.length +
+                caseBemProcesses.length +
+                caseEqualizationProcesses.length +
+                caseTerminationProcesses.length +
+                caseParticipationProcesses.length
               }
               contextualTemplateActions={
                 selectedCase &&
@@ -1907,6 +1985,17 @@ ${caseProcessDraft.description}`,
                 onOpenTemplates={openProcessTemplateModal}
                 secureNotes={selectedEqualizationNotes}
                 onCreateSecureNote={createEqualizationSecureNote}
+              />
+            )}
+
+
+
+          {selection.type === "process" &&
+            selection.processType === "participation" &&
+            selectedParticipationProcess && (
+              <ParticipationProcessDetail
+                process={selectedParticipationProcess}
+                onUpdate={updateCaseParticipationProcess}
               />
             )}
 

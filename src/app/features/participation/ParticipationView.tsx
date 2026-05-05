@@ -1,25 +1,18 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
-import { AlertTriangle, CheckCircle2, FileWarning, Plus, ShieldCheck } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { AlertTriangle, ExternalLink } from 'lucide-react';
 import type { CaseRecord } from '../../core/models/case.model';
 import type {
-  CreateParticipationInput,
   ParticipationDecisionStage,
   ParticipationMeasureType,
   ParticipationPersonStatus,
   ParticipationRecord,
   ParticipationRiskLevel,
   ParticipationStatus,
-  UpdateParticipationInput
 } from '../../core/models/participation.model';
 import type { CaseNodeTarget } from '../../core/navigation/caseNodeTarget';
 import { waitForBridge } from '../../core/bridge/waitForBridge';
 import { ModuleFrame } from '../../shared/components/ModuleFrame';
 import {
-  IndustrialActionRow,
-  IndustrialCheckboxRow,
-  IndustrialField,
-  IndustrialFormGrid,
-  WorkbenchCreatePanel,
   WorkbenchDetailPanel,
   WorkbenchGrid,
   WorkbenchListPanel,
@@ -121,8 +114,6 @@ export function ParticipationView({
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [createOpen, setCreateOpen] = useState(false);
-  const [saving, setSaving] = useState(false);
   const announce = useAnnouncer();
 
   const selected = useMemo(() => records.find((record) => record.id === selectedId) ?? records[0] ?? null, [records, selectedId]);
@@ -158,61 +149,6 @@ export function ParticipationView({
     violations: records.filter((record) => record.status === 'pflichtverstoss_dokumentiert').length
   }), [records]);
 
-  async function createRecord(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    const input: CreateParticipationInput = {
-      caseId: String(data.get('caseId') ?? ''),
-      title: String(data.get('title') ?? ''),
-      measureType: String(data.get('measureType') ?? 'sonstiges') as ParticipationMeasureType,
-      riskLevel: String(data.get('riskLevel') ?? 'normal') as ParticipationRiskLevel,
-      personStatus: String(data.get('personStatus') ?? 'unklar') as ParticipationPersonStatus,
-      decisionStage: String(data.get('decisionStage') ?? 'unklar') as ParticipationDecisionStage,
-      firstKnownAt: fromDateTimeLocal(String(data.get('firstKnownAt') ?? '')),
-      statementDueAt: fromDateTimeLocal(String(data.get('statementDueAt') ?? '')),
-      informationComplete: data.get('informationComplete') === 'on',
-      hearingBeforeDecision: data.get('hearingBeforeDecision') === 'on',
-      decisionNotified: data.get('decisionNotified') === 'on',
-      violationSummary: String(data.get('violationSummary') ?? ''),
-      nextStep: String(data.get('nextStep') ?? ''),
-      createDefaultDeadlines: true
-    };
-
-    setSaving(true);
-    setError('');
-    try {
-      const bridge = await waitForBridge();
-      if (!bridge?.participation) throw new Error('Beteiligungsmonitor ist nicht erreichbar.');
-      const created = await bridge.participation.create(input);
-      await reload();
-      setSelectedId(created.id);
-      setCreateOpen(false);
-      announce('SBV-Beteiligungsprüfung wurde angelegt.', 'polite');
-    } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : 'Beteiligungsprüfung konnte nicht angelegt werden.');
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function updateSelected(input: UpdateParticipationInput) {
-    if (!selected) return;
-    setSaving(true);
-    setError('');
-    try {
-      const bridge = await waitForBridge();
-      if (!bridge?.participation) throw new Error('Beteiligungsmonitor ist nicht erreichbar.');
-      const updated = await bridge.participation.update(selected.id, input);
-      setRecords((current) => current.map((record) => record.id === updated.id ? updated : record));
-      setSelectedId(updated.id);
-      announce('Beteiligungsprüfung wurde aktualisiert.', 'polite');
-    } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : 'Beteiligungsprüfung konnte nicht gespeichert werden.');
-    } finally {
-      setSaving(false);
-    }
-  }
-
   const selectedCase = selected ? cases.find((item) => item.id === selected.caseId) : undefined;
 
   return (
@@ -226,70 +162,12 @@ export function ParticipationView({
           { label: 'Pflichtverstöße', value: stats.violations, tone: stats.violations > 0 ? 'danger' : 'default' }
         ]}
         actions={(
-          <button type="button" className="industrial-button industrial-button-primary" onClick={() => setCreateOpen((open) => !open)}>
-            <Plus className="h-4 w-4" /> Beteiligung anlegen
-          </button>
+          <span className="industrial-meta">Anlage und Bearbeitung erfolgen in der jeweiligen Fallakte.</span>
         )}
       />
 
       {error && <div className="industrial-message industrial-message-warning">{error}</div>}
       {loading && <div className="industrial-message">Beteiligungsprüfungen werden geladen …</div>}
-
-      {createOpen && (
-        <form onSubmit={(event) => void createRecord(event)}>
-          <WorkbenchCreatePanel
-            title="Neue Beteiligungsprüfung"
-            description="Erfasse die Maßnahme, den Beteiligungsstand und die nächsten SBV-Schritte in einer strukturierten Form."
-          >
-            <IndustrialFormGrid>
-              <IndustrialField label="Fallakte">
-                <select name="caseId" required defaultValue={cases[0]?.id ?? ''}>
-                  <option value="" disabled>Fall auswählen</option>
-                  {cases.map((record) => <option key={record.id} value={record.id}>{caseLabel(record)}</option>)}
-                </select>
-              </IndustrialField>
-              <IndustrialField label="Titel">
-                <input name="title" required placeholder="z. B. Versetzung ohne vorherige SBV-Anhörung" />
-              </IndustrialField>
-              <IndustrialField label="Maßnahme">
-                <select name="measureType" defaultValue="sonstiges">{measureOrder.map((item) => <option key={item} value={item}>{measureLabels[item]}</option>)}</select>
-              </IndustrialField>
-              <IndustrialField label="Risiko">
-                <select name="riskLevel" defaultValue="normal">{riskOrder.map((item) => <option key={item} value={item}>{riskLabels[item]}</option>)}</select>
-              </IndustrialField>
-              <IndustrialField label="Personenstatus">
-                <select name="personStatus" defaultValue="unklar">{personStatusOrder.map((item) => <option key={item} value={item}>{personStatusLabels[item]}</option>)}</select>
-              </IndustrialField>
-              <IndustrialField label="Entscheidungsstand">
-                <select name="decisionStage" defaultValue="unklar">{decisionStageOrder.map((item) => <option key={item} value={item}>{decisionStageLabels[item]}</option>)}</select>
-              </IndustrialField>
-              <IndustrialField label="Kenntnis der SBV">
-                <input name="firstKnownAt" type="datetime-local" />
-              </IndustrialField>
-              <IndustrialField label="Stellungnahmefrist">
-                <input name="statementDueAt" type="datetime-local" />
-              </IndustrialField>
-            </IndustrialFormGrid>
-            <IndustrialCheckboxRow>
-              <label><input name="informationComplete" type="checkbox" /> Unterrichtung vollständig</label>
-              <label><input name="hearingBeforeDecision" type="checkbox" /> Anhörung vor Entscheidung</label>
-              <label><input name="decisionNotified" type="checkbox" /> Entscheidung mitgeteilt</label>
-            </IndustrialCheckboxRow>
-            <IndustrialFormGrid columns={2}>
-              <IndustrialField label="Mangel / Risiko">
-                <textarea name="violationSummary" rows={3} placeholder="Welche Unterlagen fehlen? Wurde bereits entschieden oder umgesetzt?" />
-              </IndustrialField>
-              <IndustrialField label="Nächster Schritt">
-                <textarea name="nextStep" rows={3} placeholder="z. B. Unterlagen mit Frist anfordern oder Aussetzung verlangen." />
-              </IndustrialField>
-            </IndustrialFormGrid>
-            <IndustrialActionRow>
-              <button type="submit" className="industrial-button industrial-button-primary" disabled={saving}>Anlegen</button>
-              <button type="button" className="industrial-button" onClick={() => setCreateOpen(false)}>Abbrechen</button>
-            </IndustrialActionRow>
-          </WorkbenchCreatePanel>
-        </form>
-      )}
 
       <WorkbenchGrid>
         <WorkbenchListPanel ariaLabel="Beteiligungsprüfungen">
@@ -316,43 +194,16 @@ export function ParticipationView({
                 <div><p className="industrial-kicker">{measureLabels[selected.measureType]} · {personStatusLabels[selected.personStatus]}</p><h2>{selected.title}</h2><p>{caseLabel(selectedCase)}</p></div>
                 <button type="button" className="industrial-button" onClick={() => onOpenCaseNode({ caseId: selected.caseId, nodeType: 'overview' })}>Fallakte öffnen</button>
               </div>
-              <div className="participation-check-matrix" aria-label="Prüfmatrix § 178 Abs. 2 SGB IX">
-                <button type="button" className={selected.informationComplete ? 'check-ok' : 'check-missing'} onClick={() => void updateSelected({ informationComplete: !selected.informationComplete })}><CheckCircle2 className="h-4 w-4" /> Unterrichtung vollständig</button>
-                <button type="button" className={selected.hearingBeforeDecision ? 'check-ok' : 'check-missing'} onClick={() => void updateSelected({ hearingBeforeDecision: !selected.hearingBeforeDecision })}><ShieldCheck className="h-4 w-4" /> Anhörung vor Entscheidung</button>
-                <button type="button" className={selected.decisionNotified ? 'check-ok' : 'check-missing'} onClick={() => void updateSelected({ decisionNotified: !selected.decisionNotified })}><FileWarning className="h-4 w-4" /> Entscheidung mitgeteilt</button>
+              <div className="participation-cockpit-summary">
+                <p><strong>Status:</strong> {statusLabels[selected.status]} · <strong>Risiko:</strong> {riskLabels[selected.riskLevel]} · <strong>Entscheidungsstand:</strong> {decisionStageLabels[selected.decisionStage]}</p>
+                <p><strong>Stellungnahmefrist:</strong> {selected.statementDueAt ? formatDateShort(selected.statementDueAt) : 'keine Frist erfasst'}</p>
+                {selected.violationSummary && <p><strong>Pflichtverstoß / fehlende Unterlagen:</strong> {selected.violationSummary}</p>}
+                {selected.nextStep && <p><strong>Nächster Schritt:</strong> {selected.nextStep}</p>}
+                <p className="industrial-meta">Dieses Cockpit ist nur die Übersicht. Änderungen erfolgen in der Fallakte, damit der Verlauf und die Maßnahme zusammen bleiben.</p>
               </div>
-              <IndustrialFormGrid columns={3}>
-                <IndustrialField label="Status">
-                  <select value={selected.status} onChange={(event) => void updateSelected({ status: event.target.value as ParticipationStatus })}>{statusOrder.map((item) => <option key={item} value={item}>{statusLabels[item]}</option>)}</select>
-                </IndustrialField>
-                <IndustrialField label="Risiko">
-                  <select value={selected.riskLevel} onChange={(event) => void updateSelected({ riskLevel: event.target.value as ParticipationRiskLevel })}>{riskOrder.map((item) => <option key={item} value={item}>{riskLabels[item]}</option>)}</select>
-                </IndustrialField>
-                <IndustrialField label="Entscheidungsstand">
-                  <select value={selected.decisionStage} onChange={(event) => void updateSelected({ decisionStage: event.target.value as ParticipationDecisionStage })}>{decisionStageOrder.map((item) => <option key={item} value={item}>{decisionStageLabels[item]}</option>)}</select>
-                </IndustrialField>
-                <IndustrialField label="Stellungnahmefrist">
-                  <input type="datetime-local" value={toDateTimeLocal(selected.statementDueAt)} onChange={(event) => void updateSelected({ statementDueAt: fromDateTimeLocal(event.target.value) })} />
-                </IndustrialField>
-                <IndustrialField label="Stellungnahme abgegeben">
-                  <input type="datetime-local" value={toDateTimeLocal(selected.statementSubmittedAt)} onChange={(event) => void updateSelected({ statementSubmittedAt: fromDateTimeLocal(event.target.value), status: event.target.value ? 'stellungnahme_abgegeben' : selected.status })} />
-                </IndustrialField>
-                <IndustrialField label="Aussetzung verlangt">
-                  <input type="datetime-local" value={toDateTimeLocal(selected.suspensionRequestedAt)} onChange={(event) => void updateSelected({ suspensionRequestedAt: fromDateTimeLocal(event.target.value), status: event.target.value ? 'aussetzung_verlangt' : selected.status })} />
-                </IndustrialField>
-              </IndustrialFormGrid>
-              <IndustrialFormGrid columns={2}>
-                <IndustrialField label="SBV-Position / Stellungnahme-Kern">
-                  <textarea value={selected.sbvPosition ?? ''} rows={4} onChange={(event) => void updateSelected({ sbvPosition: event.target.value })} />
-                </IndustrialField>
-                <IndustrialField label="Pflichtverstoß / fehlende Unterlagen">
-                  <textarea value={selected.violationSummary ?? ''} rows={4} onChange={(event) => void updateSelected({ violationSummary: event.target.value })} />
-                </IndustrialField>
-                <IndustrialField label="Nächster Schritt" wide>
-                  <textarea value={selected.nextStep ?? ''} rows={3} onChange={(event) => void updateSelected({ nextStep: event.target.value })} />
-                </IndustrialField>
-              </IndustrialFormGrid>
-              <div className="participation-legal-note"><strong>Prüfhinweis:</strong> Bei unterbliebener oder verspäteter Beteiligung kann die SBV nach § 178 Abs. 2 Satz 2 SGB IX verlangen, dass die Durchführung oder Vollziehung der Entscheidung ausgesetzt und die Beteiligung innerhalb von sieben Tagen nachgeholt wird.</div>
+              <div className="industrial-card-actions">
+                <button type="button" className="industrial-button" onClick={() => onOpenCaseNode({ caseId: selected.caseId, nodeType: 'participation', nodeId: selected.id })}><ExternalLink className="h-4 w-4" /> Maßnahme in Fallakte öffnen</button>
+              </div>
             </>
           )}
         </WorkbenchDetailPanel>

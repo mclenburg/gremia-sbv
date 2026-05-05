@@ -10,7 +10,10 @@ import {
   formatContactReferenceText,
   formatLegalNormText,
   formatOpenTaskText,
+  formatParticipationMarkerText,
   formatRiskText,
+  formatTemplateMarkerText,
+  getTextCommandKind,
   type ConfidentialCommandLevel,
   type RiskLevelCommand,
   type TextCommandToken
@@ -75,7 +78,7 @@ export function GlobalTextCommandController({ cases, contacts }: { cases: CaseRe
   }, []);
 
   const matchingCases = useMemo(() => {
-    if (!draft || draft.token !== '##') return [];
+    if (!draft || getTextCommandKind(draft.token) !== 'case_reference') return [];
     const query = draft.query.trim().toLowerCase();
     return cases
       .filter((item) => !query || `${item.caseNumber} ${item.displayName} ${item.summary ?? ''} ${item.category}`.toLowerCase().includes(query))
@@ -83,7 +86,7 @@ export function GlobalTextCommandController({ cases, contacts }: { cases: CaseRe
   }, [cases, draft]);
 
   const matchingContacts = useMemo(() => {
-    if (!draft || draft.token !== '@@') return [];
+    if (!draft || getTextCommandKind(draft.token) !== 'contact') return [];
     const query = draft.query.trim().toLowerCase();
     return contacts
       .filter((item) => !query || `${item.firstName} ${item.lastName} ${item.organization ?? ''} ${item.role ?? ''} ${item.email ?? ''}`.toLowerCase().includes(query))
@@ -91,7 +94,7 @@ export function GlobalTextCommandController({ cases, contacts }: { cases: CaseRe
   }, [contacts, draft]);
 
   const matchingNorms = useMemo(() => {
-    if (!draft || draft.token !== '§§') return [];
+    if (!draft || getTextCommandKind(draft.token) !== 'legal_norm') return [];
     const query = draft.query.trim().toLowerCase();
     return LEGAL_NORM_SUGGESTIONS
       .filter((item) => !query || `${item.paragraph} ${item.title} ${item.shortText} ${item.source}`.toLowerCase().includes(query))
@@ -110,16 +113,20 @@ export function GlobalTextCommandController({ cases, contacts }: { cases: CaseRe
     setDraft(null);
   }
 
-  const titleByToken: Record<TextCommandToken, string> = {
-    '//': 'Frist einfügen',
-    '@@': 'Kontakt einfügen',
-    '##': 'Fallbezug einfügen',
-    '§§': 'Rechtsnorm einfügen',
-    '!!': 'Risiko markieren',
-    '>>': 'Aufgabe einfügen',
-    '^^': 'Vertraulichkeit einfügen',
-    '~~': 'Anonymisierung vormerken'
-  };
+  const titleByKind = {
+    deadline: 'Frist einfügen',
+    follow_up: 'Wiedervorlage einfügen',
+    contact: 'Kontakt einfügen',
+    case_reference: 'Fallbezug einfügen',
+    legal_norm: 'Rechtsnorm einfügen',
+    risk: 'Risiko markieren',
+    open_task: 'Aufgabe einfügen',
+    confidentiality: 'Vertraulichkeit einfügen',
+    anonymization: 'Anonymisierung vormerken',
+    participation: 'SBV-Beteiligung anlegen',
+    template: 'Vorlage vormerken'
+  } as const;
+  const commandKind = getTextCommandKind(draft.token);
 
   return (
     <div className="industrial-modal-backdrop" role="presentation">
@@ -128,12 +135,12 @@ export function GlobalTextCommandController({ cases, contacts }: { cases: CaseRe
           <div className="industrial-modal-icon"><Search className="h-5 w-5" /></div>
           <div>
             <p className="industrial-kicker">Inline-Befehl</p>
-            <h2 id="global-text-command-title">{titleByToken[draft.token]}</h2>
+            <h2 id="global-text-command-title">{titleByKind[commandKind]}</h2>
             <p>Dieser Befehl wirkt direkt auf das aktuell bearbeitete Textfeld.</p>
           </div>
         </div>
 
-        {draft.token === '//' && (
+        {(commandKind === 'deadline' || commandKind === 'follow_up') && (
           <div className="industrial-modal-grid">
             <label><span>Titel</span><input value={draft.title} onChange={(event) => setDraft((current) => current ? { ...current, title: event.target.value } : current)} autoFocus placeholder="z. B. Rückmeldung Arbeitgeber nachhalten" /></label>
             <label><span>Datum</span><input type="datetime-local" value={draft.dueAt} onChange={(event) => setDraft((current) => current ? { ...current, dueAt: event.target.value } : current)} /></label>
@@ -141,7 +148,7 @@ export function GlobalTextCommandController({ cases, contacts }: { cases: CaseRe
           </div>
         )}
 
-        {draft.token === '@@' && (
+        {commandKind === 'contact' && (
           <div className="industrial-modal-grid">
             <label className="industrial-modal-wide"><span>Kontakt suchen</span><input value={draft.query} onChange={(event) => setDraft((current) => current ? { ...current, query: event.target.value } : current)} autoFocus placeholder="Name, Organisation, Rolle …" /></label>
             <div className="industrial-command-results">
@@ -156,7 +163,7 @@ export function GlobalTextCommandController({ cases, contacts }: { cases: CaseRe
           </div>
         )}
 
-        {draft.token === '##' && (
+        {commandKind === 'case_reference' && (
           <div className="industrial-modal-grid">
             <label className="industrial-modal-wide"><span>Fall suchen</span><input value={draft.query} onChange={(event) => setDraft((current) => current ? { ...current, query: event.target.value } : current)} autoFocus placeholder="Aktenzeichen, Name, Kurzbeschreibung …" /></label>
             <div className="industrial-command-results">
@@ -171,7 +178,7 @@ export function GlobalTextCommandController({ cases, contacts }: { cases: CaseRe
           </div>
         )}
 
-        {draft.token === '§§' && (
+        {commandKind === 'legal_norm' && (
           <div className="industrial-modal-grid">
             <label className="industrial-modal-wide"><span>Norm suchen</span><input value={draft.query} onChange={(event) => setDraft((current) => current ? { ...current, query: event.target.value } : current)} autoFocus placeholder="z. B. 167, BEM, Kündigung, AGG …" /></label>
             <div className="industrial-command-results">
@@ -186,40 +193,56 @@ export function GlobalTextCommandController({ cases, contacts }: { cases: CaseRe
           </div>
         )}
 
-        {draft.token === '!!' && (
+        {commandKind === 'risk' && (
           <div className="industrial-modal-grid">
             <label><span>Risikostufe</span><select value={draft.riskLevel} onChange={(event) => setDraft((current) => current ? { ...current, riskLevel: event.target.value as RiskLevelCommand } : current)}><option value="low">niedrig</option><option value="medium">mittel</option><option value="high">hoch</option><option value="critical">kritisch</option></select></label>
             <label className="industrial-modal-wide"><span>Hinweis</span><input value={draft.title} onChange={(event) => setDraft((current) => current ? { ...current, title: event.target.value } : current)} autoFocus placeholder="z. B. Kündigungsrisiko, Chronifizierung, Blockade …" /></label>
           </div>
         )}
 
-        {draft.token === '>>' && (
+        {commandKind === 'open_task' && (
           <div className="industrial-modal-grid">
             <label className="industrial-modal-wide"><span>Aufgabe</span><input value={draft.title} onChange={(event) => setDraft((current) => current ? { ...current, title: event.target.value } : current)} autoFocus placeholder="z. B. Inklusionsamt nachfassen" /></label>
           </div>
         )}
 
-        {draft.token === '^^' && (
+        {commandKind === 'confidentiality' && (
           <div className="industrial-modal-grid">
             <label><span>Stufe</span><select value={draft.confidentiality} onChange={(event) => setDraft((current) => current ? { ...current, confidentiality: event.target.value as ConfidentialCommandLevel } : current)}><option value="normal">normal</option><option value="sensibel">sensibel</option><option value="hoch_sensibel">hoch sensibel</option></select></label>
             <div className="industrial-modal-preview"><Lock className="h-4 w-4" /> Wird eingefügt: <strong>{formatConfidentialityText(draft.confidentiality)}</strong></div>
           </div>
         )}
 
-        {draft.token === '~~' && (
+        {commandKind === 'anonymization' && (
           <div className="industrial-modal-grid">
             <label className="industrial-modal-wide"><span>Art der Textstelle</span><input value={draft.label} onChange={(event) => setDraft((current) => current ? { ...current, label: event.target.value } : current)} autoFocus placeholder="z. B. Name, Bereich, Gesundheitsdetail" /></label>
             <div className="industrial-modal-preview"><ShieldAlert className="h-4 w-4" /> Wird eingefügt: <strong>{formatAnonymizationMarkerText(draft.label)}</strong></div>
           </div>
         )}
 
+        {commandKind === 'participation' && (
+          <div className="industrial-modal-grid">
+            <label className="industrial-modal-wide"><span>Titel</span><input value={draft.title} onChange={(event) => setDraft((current) => current ? { ...current, title: event.target.value } : current)} autoFocus placeholder="z. B. Beteiligung in Fallakte anlegen" /></label>
+            <div className="industrial-modal-preview"><ShieldAlert className="h-4 w-4" /> Personenbezogene Beteiligungen werden nur in einer geöffneten Fallakte angelegt. Hier wird nur ein Hinweis eingefügt.</div>
+          </div>
+        )}
+
+        {commandKind === 'template' && (
+          <div className="industrial-modal-grid">
+            <label className="industrial-modal-wide"><span>Vorlagenhinweis</span><input value={draft.query} onChange={(event) => setDraft((current) => current ? { ...current, query: event.target.value } : current)} autoFocus placeholder="z. B. Unterlagenanforderung" /></label>
+            <div className="industrial-modal-preview"><FileText className="h-4 w-4" /> Wird eingefügt: <strong>{formatTemplateMarkerText(draft.query)}</strong></div>
+          </div>
+        )}
+
         <div className="industrial-modal-actions">
           <button type="button" className="industrial-secondary-button" onClick={closeWithoutReplacement}>Abbrechen</button>
-          {draft.token === '//' && <button type="button" className="industrial-button" onClick={() => replaceAndClose(`Frist bis ${formatDate(draft.dueAt)}: ${draft.title.trim() || 'Wiedervorlage'}`)}>Einfügen</button>}
-          {draft.token === '!!' && <button type="button" className="industrial-button" onClick={() => replaceAndClose(formatRiskText(draft.riskLevel, draft.title))}>Einfügen</button>}
-          {draft.token === '>>' && <button type="button" className="industrial-button" onClick={() => replaceAndClose(formatOpenTaskText(draft.title))}>Einfügen</button>}
-          {draft.token === '^^' && <button type="button" className="industrial-button" onClick={() => replaceAndClose(formatConfidentialityText(draft.confidentiality))}>Einfügen</button>}
-          {draft.token === '~~' && <button type="button" className="industrial-button" onClick={() => replaceAndClose(formatAnonymizationMarkerText(draft.label))}>Einfügen</button>}
+          {(commandKind === 'deadline' || commandKind === 'follow_up') && <button type="button" className="industrial-button" onClick={() => replaceAndClose(`Frist bis ${formatDate(draft.dueAt)}: ${draft.title.trim() || 'Wiedervorlage'}`)}>Einfügen</button>}
+          {commandKind === 'risk' && <button type="button" className="industrial-button" onClick={() => replaceAndClose(formatRiskText(draft.riskLevel, draft.title))}>Einfügen</button>}
+          {commandKind === 'open_task' && <button type="button" className="industrial-button" onClick={() => replaceAndClose(formatOpenTaskText(draft.title))}>Einfügen</button>}
+          {commandKind === 'confidentiality' && <button type="button" className="industrial-button" onClick={() => replaceAndClose(formatConfidentialityText(draft.confidentiality))}>Einfügen</button>}
+          {commandKind === 'anonymization' && <button type="button" className="industrial-button" onClick={() => replaceAndClose(formatAnonymizationMarkerText(draft.label))}>Einfügen</button>}
+          {commandKind === 'participation' && <button type="button" className="industrial-button" onClick={() => replaceAndClose(formatParticipationMarkerText(draft.title))}>Hinweis einfügen</button>}
+          {commandKind === 'template' && <button type="button" className="industrial-button" onClick={() => replaceAndClose(formatTemplateMarkerText(draft.query))}>Vormerken</button>}
         </div>
       </section>
     </div>

@@ -9,6 +9,7 @@ export function CaseTreePanel({
   bemProcesses,
   equalizationProcesses,
   terminationProcesses,
+  participationProcesses,
   selection,
   onSelect,
   formatProcessNodeSubtitle,
@@ -22,7 +23,7 @@ export function CaseTreePanel({
       <p className="industrial-meta">{selectedCase?.displayName ?? 'Bitte oben einen Fall auswählen.'}</p>
 
       <div className="case-tree-group process-drop-zone">
-        <div className="case-tree-group-title"><Workflow className="h-4 w-4" /> Maßnahmen <span>{preventionProcesses.length + bemProcesses.length + equalizationProcesses.length + terminationProcesses.length}</span></div>
+        <div className="case-tree-group-title"><Workflow className="h-4 w-4" /> Maßnahmen <span>{preventionProcesses.length + bemProcesses.length + equalizationProcesses.length + terminationProcesses.length + participationProcesses.length}</span></div>
         {preventionProcesses.map((process) => (
           <button
             key={process.id}
@@ -67,7 +68,19 @@ export function CaseTreePanel({
             <small>{formatProcessNodeSubtitle('termination_hearing', process.status)}</small>
           </button>
         ))}
-        {!preventionProcesses.length && !bemProcesses.length && !equalizationProcesses.length && !terminationProcesses.length && <p className="case-tree-empty">Noch keine Maßnahme in dieser Akte.</p>}
+
+        {participationProcesses.map((process) => (
+          <button
+            key={process.id}
+            type="button"
+            className={`case-tree-node ${selection.type === 'process' && selection.id === process.id ? 'active' : ''}`}
+            onClick={() => onSelect({ type: 'process', processType: 'participation', id: process.id })}
+          >
+            <span>SBV-Beteiligung</span>
+            <small>{formatProcessNodeSubtitle('participation', process.status)}</small>
+          </button>
+        ))}
+        {!preventionProcesses.length && !bemProcesses.length && !equalizationProcesses.length && !terminationProcesses.length && !participationProcesses.length && <p className="case-tree-empty">Noch keine Maßnahme in dieser Akte.</p>}
       </div>
 
       <button type="button" className={`case-tree-node ${selection.type === 'overview' ? 'active' : ''}`} onClick={() => onSelect({ type: 'overview' })}>

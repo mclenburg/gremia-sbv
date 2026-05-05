@@ -622,3 +622,67 @@ CREATE INDEX IF NOT EXISTS idx_sbv_participations_risk ON sbv_participations(ris
 CREATE INDEX IF NOT EXISTS idx_sbv_participations_statement_due ON sbv_participations(statement_due_at);
 CREATE INDEX IF NOT EXISTS idx_sbv_participations_suspension_due ON sbv_participations(suspension_due_at);
 CREATE INDEX IF NOT EXISTS idx_sbv_participation_events_process ON sbv_participation_events(participation_id, created_at);
+
+-- Fallaktenzentrierte Maßnahmenarchitektur (Schema 0020)
+CREATE TABLE IF NOT EXISTS case_measures (
+  id TEXT PRIMARY KEY,
+  case_id TEXT NOT NULL,
+  type TEXT NOT NULL,
+  title TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'open',
+  risk_level TEXT NOT NULL DEFAULT 'normal',
+  created_from TEXT NOT NULL DEFAULT 'manual',
+  summary TEXT,
+  next_step TEXT,
+  due_at TEXT,
+  opened_at TEXT NOT NULL,
+  closed_at TEXT,
+  requires_follow_up INTEGER NOT NULL DEFAULT 0,
+  source_id TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY(case_id) REFERENCES cases(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS case_measure_participation (
+  measure_id TEXT PRIMARY KEY,
+  employer_measure_type TEXT NOT NULL DEFAULT 'sonstiges',
+  person_status TEXT NOT NULL DEFAULT 'unklar',
+  decision_stage TEXT NOT NULL DEFAULT 'unklar',
+  participation_status TEXT NOT NULL DEFAULT 'neu',
+  sbv_knowledge_at TEXT,
+  employer_information_at TEXT,
+  hearing_requested_at TEXT,
+  sbv_statement_due_at TEXT,
+  sbv_statement_submitted_at TEXT,
+  employer_decision_at TEXT,
+  implementation_at TEXT,
+  information_complete INTEGER NOT NULL DEFAULT 0,
+  hearing_before_decision INTEGER NOT NULL DEFAULT 0,
+  decision_notified INTEGER NOT NULL DEFAULT 0,
+  suspension_requested_at TEXT,
+  suspension_deadline_at TEXT,
+  violation_summary TEXT,
+  sbv_position TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY(measure_id) REFERENCES case_measures(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS case_measure_events (
+  id TEXT PRIMARY KEY,
+  measure_id TEXT NOT NULL,
+  event_type TEXT NOT NULL,
+  title TEXT NOT NULL,
+  description TEXT,
+  created_at TEXT NOT NULL,
+  FOREIGN KEY(measure_id) REFERENCES case_measures(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_case_measures_case ON case_measures(case_id, type, status);
+CREATE INDEX IF NOT EXISTS idx_case_measures_type_status ON case_measures(type, status);
+CREATE INDEX IF NOT EXISTS idx_case_measures_due ON case_measures(due_at);
+CREATE INDEX IF NOT EXISTS idx_case_measures_source ON case_measures(source_id);
+CREATE INDEX IF NOT EXISTS idx_case_measure_participation_status ON case_measure_participation(participation_status);
+CREATE INDEX IF NOT EXISTS idx_case_measure_participation_statement_due ON case_measure_participation(sbv_statement_due_at);
+CREATE INDEX IF NOT EXISTS idx_case_measure_participation_suspension_due ON case_measure_participation(suspension_deadline_at);

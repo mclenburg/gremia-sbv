@@ -162,6 +162,15 @@ declare global {
         ): Promise<{ exported: boolean; filePath: string }>;
         search(input: CaseContentSearchInput): Promise<CaseSearchResult[]>;
       };
+
+      caseMeasures: {
+        list(caseId?: string): Promise<CaseMeasureRecord[]>;
+        create(input: CreateCaseMeasureInput): Promise<CaseMeasureRecord>;
+        update(
+          id: string,
+          input: UpdateCaseMeasureInput,
+        ): Promise<CaseMeasureRecord>;
+      };
       contacts: {
         list(filters?: ContactListFilters): Promise<ContactRecord[]>;
         create(input: CreateContactInput): Promise<ContactRecord>;

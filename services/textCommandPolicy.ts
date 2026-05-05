@@ -1,4 +1,51 @@
-export type TextCommandToken = '//' | '@@' | '##' | '§§' | '!!' | '>>' | '^^' | '~~';
+export type TextCommandToken =
+  | '//'
+  | '/fr'
+  | '/frist'
+  | '/wv'
+  | '/wiedervorlage'
+  | '@@'
+  | '/kontakt'
+  | '##'
+  | '/fall'
+  | '§§'
+  | '/norm'
+  | '!!'
+  | '/risiko'
+  | '>>'
+  | '/todo'
+  | '/aufgabe'
+  | '^^'
+  | '/vertr'
+  | '/vertraulich'
+  | '~~'
+  | '/anon'
+  | '/anonym'
+  | '/bet'
+  | '/beteiligung'
+  | '/vl'
+  | '/vorlage';
+
+export type TextCommandKind =
+  | 'deadline'
+  | 'follow_up'
+  | 'contact'
+  | 'case_reference'
+  | 'legal_norm'
+  | 'risk'
+  | 'open_task'
+  | 'confidentiality'
+  | 'anonymization'
+  | 'participation'
+  | 'template';
+
+export interface TextCommandDefinition {
+  kind: TextCommandKind;
+  tokens: TextCommandToken[];
+  label: string;
+  description: string;
+  requiresCase?: boolean;
+}
 
 export interface LegalNormSuggestion {
   id: string;
@@ -11,16 +58,47 @@ export interface LegalNormSuggestion {
 export type RiskLevelCommand = 'low' | 'medium' | 'high' | 'critical';
 export type ConfidentialCommandLevel = 'normal' | 'sensibel' | 'hoch_sensibel';
 
-export const TEXT_COMMANDS: Record<TextCommandToken, string> = {
-  '//': 'Frist mit Datum anlegen',
-  '@@': 'Kontakt einfügen',
-  '##': 'weiteren Fallbezug verknüpfen',
-  '§§': 'Rechtsnorm einfügen',
-  '!!': 'Risiko oder Warnung markieren',
-  '>>': 'offene Aufgabe ohne Datum anlegen',
-  '^^': 'Vertraulichkeitsstufe der Notiz anheben',
-  '~~': 'Textstelle zur späteren Anonymisierung vormerken'
-};
+export const TEXT_COMMAND_REGISTRY: TextCommandDefinition[] = [
+  { kind: 'deadline', tokens: ['//', '/fr', '/frist'], label: 'Frist anlegen', description: 'Frist mit Datum direkt aus dem Protokoll anlegen.', requiresCase: true },
+  { kind: 'follow_up', tokens: ['/wv', '/wiedervorlage'], label: 'Wiedervorlage anlegen', description: 'Wiedervorlage mit Datum direkt aus dem Protokoll anlegen.', requiresCase: true },
+  { kind: 'contact', tokens: ['@@', '/kontakt'], label: 'Kontakt einfügen', description: 'Kontakt suchen oder anlegen und in den Text einfügen.' },
+  { kind: 'case_reference', tokens: ['##', '/fall'], label: 'Fallbezug verknüpfen', description: 'Weiteren Fallbezug in Text und Notiz hinterlegen.' },
+  { kind: 'legal_norm', tokens: ['§§', '/norm'], label: 'Rechtsnorm einfügen', description: 'Rechtsnorm suchen, einfügen und mit der Fallakte verknüpfen.' },
+  { kind: 'risk', tokens: ['!!', '/risiko'], label: 'Risiko markieren', description: 'Risiko- oder Warnhinweis sichtbar im Protokoll markieren.' },
+  { kind: 'open_task', tokens: ['>>', '/todo', '/aufgabe'], label: 'Offene Aufgabe anlegen', description: 'Offene Aufgabe ohne konkretes Ablaufdatum anlegen.', requiresCase: true },
+  { kind: 'confidentiality', tokens: ['^^', '/vertr', '/vertraulich'], label: 'Vertraulichkeit setzen', description: 'Vertraulichkeitsstufe der Notiz anheben.' },
+  { kind: 'anonymization', tokens: ['~~', '/anon', '/anonym'], label: 'Anonymisierung vormerken', description: 'Textstelle für spätere Anonymisierung markieren.' },
+  { kind: 'participation', tokens: ['/bet', '/beteiligung'], label: 'SBV-Beteiligung anlegen', description: 'SBV-Beteiligung nach § 178 Abs. 2 SGB IX als Maßnahme der aktuellen Fallakte anlegen.', requiresCase: true },
+  { kind: 'template', tokens: ['/vl', '/vorlage'], label: 'Vorlage vormerken', description: 'Vorlagenbezug im Protokoll vormerken; die Dokumenterzeugung erfolgt im Vorlagenbereich.' }
+];
+
+export const TEXT_COMMANDS = TEXT_COMMAND_REGISTRY.reduce((acc, definition) => {
+  for (const token of definition.tokens) acc[token] = definition.description;
+  return acc;
+}, {} as Record<TextCommandToken, string>);
+
+export const TEXT_COMMAND_HINT = '// oder /fr Frist · /wv Wiedervorlage · /bet Beteiligung · /vl Vorlage · @@ Kontakt · §§ Norm · !! Risiko · >> Aufgabe';
+
+const TOKEN_TO_KIND = TEXT_COMMAND_REGISTRY.reduce((acc, definition) => {
+  for (const token of definition.tokens) acc[token] = definition.kind;
+  return acc;
+}, {} as Record<TextCommandToken, TextCommandKind>);
+
+export function getTextCommandKind(token: TextCommandToken): TextCommandKind {
+  return TOKEN_TO_KIND[token];
+}
+
+export function isTextCommandKind(token: TextCommandToken, kind: TextCommandKind): boolean {
+  return getTextCommandKind(token) === kind;
+}
+
+export function tokensForTextCommandKind(kind: TextCommandKind): TextCommandToken[] {
+  return TEXT_COMMAND_REGISTRY.find((definition) => definition.kind === kind)?.tokens ?? [];
+}
+
+export function primaryTokenForTextCommandKind(kind: TextCommandKind): TextCommandToken {
+  return tokensForTextCommandKind(kind)[0];
+}
 
 export const LEGAL_NORM_SUGGESTIONS: LegalNormSuggestion[] = [
   { id: 'sgb-ix-167-1', source: 'SGB IX', paragraph: '§ 167 Abs. 1 SGB IX', title: 'Präventionsverfahren', shortText: 'Arbeitgeber muss bei Gefährdung frühzeitig SBV, Interessenvertretung und Inklusionsamt einschalten.' },
@@ -81,6 +159,13 @@ export function formatAnonymizationMarkerText(label: string): string {
   return `[Anonymisierung vormerken: ${label.trim() || 'Textstelle'}]`;
 }
 
+export function formatTemplateMarkerText(query: string): string {
+  return `[Vorlage vormerken: ${query.trim() || 'Vorlage auswählen'}]`;
+}
+
+export function formatParticipationMarkerText(title: string): string {
+  return `SBV-Beteiligung angelegt: ${title.trim() || 'Beteiligung nach § 178 Abs. 2 SGB IX prüfen'}`;
+}
 
 export function formatContactReferenceText(contact: { firstName?: string; lastName?: string; organization?: string; role?: string; email?: string }): string {
   const name = `${contact.firstName ?? ''} ${contact.lastName ?? ''}`.trim();

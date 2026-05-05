@@ -4,6 +4,10 @@ export const REPORT_TYPES = [
   'case_deadline_controlling',
   'bem_prevention',
   'termination_hearings',
+  'sbv_participation',
+  'equalization_gdb',
+  'retention_cleanup',
+  'audit_log',
   'system_integrity',
   'compliance_document',
 ] as const;
@@ -29,6 +33,7 @@ export interface ReportDescriptor {
   shortTitle: string;
   description: string;
   confidentiality: 'anonymized' | 'internal' | 'technical';
+  group?: 'sbv' | 'datenschutz' | 'system';
 }
 
 export interface GenerateReportInput {
@@ -41,7 +46,6 @@ export interface GenerateReportInput {
   complianceClassification?: string;
   complianceBody?: string;
 }
-
 
 export interface ReportGenerationResult {
   ok: boolean;

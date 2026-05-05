@@ -1,121 +1,107 @@
-import { useEffect, useState } from 'react';
-import { Download } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Download, ExternalLink, FileText, RefreshCw } from 'lucide-react';
 import { ModuleFrame } from '../../shared/components/ModuleFrame';
 import { waitForBridge } from '../../core/bridge/waitForBridge';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
-import { renderActivityReport, type ActivityReportResult } from '@services/activityReportService';
+import type {
+  GenerateReportInput,
+  ReportDescriptor,
+  ReportExportHistoryItem,
+  ReportGenerationResult,
+  ReportType,
+} from '../../core/models/report.model';
 
-function downloadTextFile(report: ActivityReportResult) {
-  const blob = new Blob([report.body], { type: 'text/markdown;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const anchor = window.document.createElement('a');
-  anchor.href = url;
-  anchor.download = report.filename;
-  anchor.click();
-  URL.revokeObjectURL(url);
+const GROUP_LABELS: Record<string, string> = {
+  sbv: 'SBV-Fachberichte',
+  datenschutz: 'Datenschutz & Compliance',
+  system: 'Systemberichte',
+};
+
+function today(): string {
+  return new Date().toISOString().slice(0, 10);
 }
 
-function escapeHtml(value: string): string {
-  return value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
+function startOfYear(): string {
+  const date = new Date();
+  return `${date.getFullYear()}-01-01`;
 }
 
-function markdownToPrintableHtml(markdown: string): string {
-  const lines = markdown.split('\n');
-  const html: string[] = [];
-  let inTable = false;
-  function closeTable() {
-    if (inTable) {
-      html.push('</tbody></table>');
-      inTable = false;
-    }
-  }
-  for (const line of lines) {
-    if (/^\|.+\|$/.test(line.trim())) {
-      const cells = line.trim().slice(1, -1).split('|').map((cell) => cell.trim());
-      if (cells.every((cell) => /^:?-{3,}:?$/.test(cell))) continue;
-      if (!inTable) {
-        html.push('<table><tbody>');
-        inTable = true;
-      }
-      html.push(`<tr>${cells.map((cell) => `<td>${escapeHtml(cell)}</td>`).join('')}</tr>`);
-      continue;
-    }
-    closeTable();
-    if (line.startsWith('# ')) html.push(`<h1>${escapeHtml(line.slice(2))}</h1>`);
-    else if (line.startsWith('## ')) html.push(`<h2>${escapeHtml(line.slice(3))}</h2>`);
-    else if (line.startsWith('- ')) html.push(`<li>${escapeHtml(line.slice(2))}</li>`);
-    else if (line.trim()) html.push(`<p>${escapeHtml(line)}</p>`);
-    else html.push('<br />');
-  }
-  closeTable();
-  return html.join('\n');
+function formatDateTime(value?: string): string {
+  if (!value) return '—';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 'short' }).format(date);
 }
 
-function openPdfPrintView(report: ActivityReportResult) {
-  const printable = window.open('', '_blank', 'noopener,noreferrer,width=900,height=1200');
-  if (!printable) throw new Error('PDF-Druckansicht konnte nicht geöffnet werden.');
-  printable.document.write(`<!doctype html>
-<html lang="de">
-<head>
-  <meta charset="utf-8" />
-  <title>${escapeHtml(report.title)}</title>
-  <style>
-    @page { size: A4; margin: 18mm; }
-    body { font-family: Arial, sans-serif; color: #111827; line-height: 1.45; }
-    h1 { font-size: 22pt; margin: 0 0 12pt; }
-    h2 { font-size: 15pt; margin: 18pt 0 8pt; border-bottom: 1px solid #d1d5db; padding-bottom: 4pt; }
-    p, li, td { font-size: 10.5pt; }
-    table { width: 100%; border-collapse: collapse; margin: 8pt 0 12pt; page-break-inside: avoid; }
-    td { border: 1px solid #d1d5db; padding: 5pt; vertical-align: top; }
-    .no-print { margin-bottom: 16pt; }
-    @media print { .no-print { display: none; } }
-  </style>
-</head>
-<body>
-  <div class="no-print"><button onclick="window.print()">Als PDF drucken / speichern</button></div>
-  ${markdownToPrintableHtml(report.body)}
-</body>
-</html>`);
-  printable.document.close();
-  printable.focus();
+function confidentialityLabel(value: ReportDescriptor['confidentiality']): string {
+  if (value === 'anonymized') return 'Anonymisiert';
+  if (value === 'technical') return 'Technisch vertraulich';
+  return 'Intern vertraulich';
 }
 
 export function ReportsView() {
-  const [periodLabel, setPeriodLabel] = useState(() => String(new Date().getFullYear()));
-  const [report, setReport] = useState<ActivityReportResult | null>(null);
+  const [descriptors, setDescriptors] = useState<ReportDescriptor[]>([]);
+  const [history, setHistory] = useState<ReportExportHistoryItem[]>([]);
+  const [selectedType, setSelectedType] = useState<ReportType>('activity');
+  const [periodStart, setPeriodStart] = useState(startOfYear);
+  const [periodEnd, setPeriodEnd] = useState(today);
+  const [lastResult, setLastResult] = useState<ReportGenerationResult | null>(null);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const announce = useAnnouncer();
 
-  async function generateReport() {
+  const selectedDescriptor = descriptors.find((descriptor) => descriptor.type === selectedType) ?? descriptors[0];
+  const groupedDescriptors = useMemo(() => {
+    const groups = new Map<string, ReportDescriptor[]>();
+    for (const descriptor of descriptors) {
+      const group = descriptor.group ?? 'sbv';
+      const current = groups.get(group) ?? [];
+      current.push(descriptor);
+      groups.set(group, current);
+    }
+    return Array.from(groups.entries()).map(([group, items]) => [
+      group,
+      items.sort((left, right) => left.shortTitle.localeCompare(right.shortTitle, 'de')),
+    ] as const);
+  }, [descriptors]);
+
+  async function loadReports() {
+    const bridge = await waitForBridge() as any;
+    const [nextDescriptors, nextHistory] = await Promise.all([
+      bridge.reports.descriptors(),
+      bridge.reports.history(25),
+    ]);
+    setDescriptors(nextDescriptors);
+    setHistory(nextHistory);
+    if (nextDescriptors.length && !nextDescriptors.some((descriptor: ReportDescriptor) => descriptor.type === selectedType)) {
+      setSelectedType(nextDescriptors[0].type);
+    }
+  }
+
+  async function generateReport(openAfterCreate = false) {
+    if (!selectedDescriptor) return;
     setLoading(true);
     setMessage('');
+    setLastResult(null);
     try {
       const bridge = await waitForBridge() as any;
-      const [cases, deadlines, contacts, preventionProcesses, bemProcesses, equalizationProcesses, terminationProcesses] = await Promise.all([
-        bridge.cases?.list?.() ?? [],
-        bridge.deadlines?.list?.({ status: ['open', 'overdue'] }) ?? [],
-        bridge.contacts?.list?.() ?? [],
-        bridge.prevention?.list?.() ?? [],
-        bridge.bem?.list?.() ?? [],
-        bridge.equalization?.list?.() ?? [],
-        bridge.termination?.list?.() ?? []
-      ]);
-      const next = renderActivityReport({
-        periodLabel,
-        cases,
-        deadlines,
-        contacts,
-        preventionProcesses,
-        bemProcesses,
-        equalizationProcesses,
-        terminationProcesses
-      });
-      setReport(next);
-      setMessage('Tätigkeitsbericht wurde anonymisiert erzeugt.');
-      announce('Tätigkeitsbericht wurde anonymisiert erzeugt.', 'polite');
+      const input: GenerateReportInput = {
+        type: selectedDescriptor.type,
+        periodStart: periodStart || undefined,
+        periodEnd: periodEnd || undefined,
+      };
+      const result: ReportGenerationResult = await bridge.reports.generate(input);
+      setLastResult(result);
+      if (!result.ok) throw new Error(result.error || 'Bericht konnte nicht erzeugt werden.');
+      await loadReports();
+      if (openAfterCreate) {
+        await bridge.reports.openExportFolder(result.filePath);
+      }
+      const info = `${result.title} wurde als verschlüsselter PDF-Report erzeugt.`;
+      setMessage(info);
+      announce(info, 'polite');
     } catch (error) {
-      const info = error instanceof Error ? error.message : 'Tätigkeitsbericht konnte nicht erzeugt werden.';
+      const info = error instanceof Error ? error.message : 'Bericht konnte nicht erzeugt werden.';
       setMessage(info);
       announce(info, 'assertive');
     } finally {
@@ -123,46 +109,126 @@ export function ReportsView() {
     }
   }
 
+  async function openReport(filePath: string) {
+    try {
+      const bridge = await waitForBridge() as any;
+      await bridge.reports.openExportFolder(filePath);
+    } catch (error) {
+      const info = error instanceof Error ? error.message : 'Bericht konnte nicht geöffnet werden.';
+      setMessage(info);
+      announce(info, 'assertive');
+    }
+  }
+
   useEffect(() => {
-    void generateReport();
+    void loadReports();
   }, []);
 
   return (
-    <ModuleFrame title="Berichte" description="Anonymisierte Tätigkeitsberichte und SBV-Auswertungen ohne sensible Freitexte.">
+    <ModuleFrame title="Berichte" description="SBV-Fachberichte, Datenschutzprüfungen und Systemberichte als verschlüsselte PDF-Reports.">
       <section className="reports-workbench">
-        <div className="reports-toolbar">
+        <div className="reports-toolbar reports-toolbar-grid">
           <label>
-            <span>Berichtszeitraum</span>
-            <input value={periodLabel} onChange={(event) => setPeriodLabel(event.currentTarget.value)} placeholder="z. B. 2026 oder Q2/2026" />
+            <span>Von</span>
+            <input type="date" value={periodStart} onChange={(event) => setPeriodStart(event.currentTarget.value)} />
           </label>
-          <button type="button" className="industrial-button" onClick={() => void generateReport()} disabled={loading}>
-            Tätigkeitsbericht erzeugen
+          <label>
+            <span>Bis</span>
+            <input type="date" value={periodEnd} onChange={(event) => setPeriodEnd(event.currentTarget.value)} />
+          </label>
+          <button type="button" className="industrial-secondary-button" onClick={() => void loadReports()} disabled={loading}>
+            <RefreshCw className="h-4 w-4" />
+            Aktualisieren
+          </button>
+          <button type="button" className="industrial-button" onClick={() => void generateReport(false)} disabled={loading || !selectedDescriptor}>
+            <Download className="h-4 w-4" />
+            PDF erzeugen
+          </button>
+          <button type="button" className="industrial-button" onClick={() => void generateReport(true)} disabled={loading || !selectedDescriptor}>
+            <ExternalLink className="h-4 w-4" />
+            PDF erzeugen & öffnen
           </button>
         </div>
 
         {message && <div className="industrial-message">{message}</div>}
 
-        {report && (
-          <section className="reports-preview">
-            <div className="reports-preview-header">
-              <div>
-                <p className="industrial-kicker">Anonymisierter Bericht</p>
-                <h2>{report.title}</h2>
-                <p>Enthält nur aggregierte Zahlen und Statusauswertungen.</p>
+        <div className="reports-layout-grid">
+          <section className="reports-catalog" aria-label="Berichtskatalog">
+            {groupedDescriptors.map(([group, items]) => (
+              <div className="reports-group" key={group}>
+                <h2>{GROUP_LABELS[group] ?? group}</h2>
+                <div className="reports-card-list">
+                  {items.map((descriptor) => (
+                    <button
+                      type="button"
+                      key={descriptor.type}
+                      className={`reports-card ${selectedType === descriptor.type ? 'is-selected' : ''}`}
+                      onClick={() => setSelectedType(descriptor.type)}
+                      aria-pressed={selectedType === descriptor.type}
+                    >
+                      <span className="reports-card-icon"><FileText className="h-4 w-4" /></span>
+                      <span className="reports-card-body">
+                        <strong>{descriptor.shortTitle}</strong>
+                        <small>{descriptor.description}</small>
+                        <em>{confidentialityLabel(descriptor.confidentiality)}</em>
+                      </span>
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div className="reports-export-actions">
-                <button type="button" className="industrial-secondary-button" onClick={() => downloadTextFile(report)}>
-                  <Download className="h-4 w-4" />
-                  Markdown exportieren
-                </button>
-                <button type="button" className="industrial-button" onClick={() => openPdfPrintView(report)}>
-                  PDF exportieren
-                </button>
-              </div>
-            </div>
-            <textarea className="industrial-output-area reports-output" value={report.body} readOnly aria-label="Tätigkeitsbericht Vorschau" />
+            ))}
           </section>
-        )}
+
+          <aside className="reports-detail-panel" aria-label="Ausgewählter Bericht">
+            {selectedDescriptor ? (
+              <>
+                <p className="industrial-kicker">Ausgewählter Bericht</p>
+                <h2>{selectedDescriptor.title}</h2>
+                <p>{selectedDescriptor.description}</p>
+                <dl className="reports-meta-list">
+                  <div><dt>Vertraulichkeit</dt><dd>{confidentialityLabel(selectedDescriptor.confidentiality)}</dd></div>
+                  <div><dt>Zeitraum</dt><dd>{periodStart || '—'} bis {periodEnd || '—'}</dd></div>
+                  <div><dt>Format</dt><dd>verschlüsselter .gsbvpdf-Container</dd></div>
+                </dl>
+                {lastResult?.ok && lastResult.reportType === selectedDescriptor.type && (
+                  <div className="reports-result-card">
+                    <strong>Zuletzt erzeugt</strong>
+                    <span>{lastResult.fileName}</span>
+                    <button type="button" className="industrial-secondary-button" onClick={() => void openReport(lastResult.filePath)}>
+                      PDF öffnen
+                    </button>
+                  </div>
+                )}
+              </>
+            ) : (
+              <p>Keine Berichte verfügbar.</p>
+            )}
+          </aside>
+        </div>
+
+        <section className="reports-history" aria-label="Berichtshistorie">
+          <div className="reports-preview-header">
+            <div>
+              <p className="industrial-kicker">Historie</p>
+              <h2>Zuletzt erzeugte verschlüsselte PDF-Reports</h2>
+              <p>Beim Öffnen wird temporär eine Klartext-Arbeitskopie erzeugt und vom Sicherheitsmodul verwaltet.</p>
+            </div>
+          </div>
+          <div className="reports-history-list">
+            {history.length ? history.map((item) => (
+              <article className="reports-history-item" key={item.id}>
+                <div>
+                  <strong>{item.title}</strong>
+                  <span>{formatDateTime(item.generatedAt)} · {item.fileName}</span>
+                  {item.warningCount > 0 && <em>{item.warningCount} Prüfhinweis(e)</em>}
+                </div>
+                <button type="button" className="industrial-secondary-button" onClick={() => void openReport(item.filePath)}>
+                  Öffnen
+                </button>
+              </article>
+            )) : <div className="industrial-empty-state">Noch keine PDF-Reports erzeugt.</div>}
+          </div>
+        </section>
       </section>
     </ModuleFrame>
   );

@@ -9,6 +9,7 @@ import {
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { registerCaseIpc } from "./ipc/caseIpc.js";
+import { registerCaseMeasureIpc } from "./ipc/caseMeasureIpc.js";
 import { registerContactIpc } from "./ipc/contactIpc.js";
 import { registerDeadlineIpc } from "./ipc/deadlineIpc.js";
 import { registerSecurityIpc } from "./ipc/securityIpc.js";
@@ -271,6 +272,7 @@ if (!singleInstanceLock) {
       console.info("Gremia.SBV data directory:", resolveRuntimeDataDir());
       registerSecurityIpc(ipcMain, security);
       registerCaseIpc(ipcMain, security);
+      registerCaseMeasureIpc(ipcMain, security);
       registerContactIpc(ipcMain, security);
       registerDeadlineIpc(ipcMain, security);
       registerPreventionIpc(ipcMain, security);

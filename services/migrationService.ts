@@ -3,7 +3,7 @@ import path from 'node:path';
 import type { DatabaseAdapter } from './databaseService.js';
 import { classifyCaseLegalReferencesColumns } from './knowledgeMigrationPolicy.js';
 import { APP_VERSION } from './generated/appMetadata.js';
-import { APP_SCHEMA_VERSION, DATABASE_SCHEMA_APP_VERSION_KEY, DATABASE_SCHEMA_VERSION_KEY, PERSONAL_DATA_AUDIT_REQUIRED_COLUMNS, SBV_PARTICIPATION_REQUIRED_COLUMNS, TERMINATION_HEARINGS_REQUIRED_COLUMNS } from './appSchema.js';
+import { APP_SCHEMA_VERSION, CASE_MEASURES_REQUIRED_COLUMNS, CASE_MEASURE_PARTICIPATION_REQUIRED_COLUMNS, DATABASE_SCHEMA_APP_VERSION_KEY, DATABASE_SCHEMA_VERSION_KEY, PERSONAL_DATA_AUDIT_REQUIRED_COLUMNS, SBV_PARTICIPATION_REQUIRED_COLUMNS, TERMINATION_HEARINGS_REQUIRED_COLUMNS } from './appSchema.js';
 
 interface MigrationRow {
   version: string;
@@ -451,6 +451,76 @@ export class MigrationService {
       this.ensureSbvParticipationSchema();
       diagnostics.push('SBV-Beteiligungsmonitor-Schema wurde auf Stand 0019 repariert.');
     }
+
+    if (!this.tableExists('case_measures') || !CASE_MEASURES_REQUIRED_COLUMNS.every((column) => this.columnExists('case_measures', column)) || !this.tableExists('case_measure_participation') || !CASE_MEASURE_PARTICIPATION_REQUIRED_COLUMNS.every((column) => this.columnExists('case_measure_participation', column))) {
+      this.ensureCaseMeasureSchema();
+      diagnostics.push('Fallmaßnahmen-Schema wurde auf Stand 0020 repariert.');
+    }
+  }
+
+
+  private ensureCaseMeasureSchema(): void {
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS case_measures (
+        id TEXT PRIMARY KEY,
+        case_id TEXT NOT NULL,
+        type TEXT NOT NULL,
+        title TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'open',
+        risk_level TEXT NOT NULL DEFAULT 'normal',
+        created_from TEXT NOT NULL DEFAULT 'manual',
+        summary TEXT,
+        next_step TEXT,
+        due_at TEXT,
+        opened_at TEXT NOT NULL,
+        closed_at TEXT,
+        requires_follow_up INTEGER NOT NULL DEFAULT 0,
+        source_id TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY(case_id) REFERENCES cases(id) ON DELETE CASCADE
+      );
+      CREATE TABLE IF NOT EXISTS case_measure_participation (
+        measure_id TEXT PRIMARY KEY,
+        employer_measure_type TEXT NOT NULL DEFAULT 'sonstiges',
+        person_status TEXT NOT NULL DEFAULT 'unklar',
+        decision_stage TEXT NOT NULL DEFAULT 'unklar',
+        participation_status TEXT NOT NULL DEFAULT 'neu',
+        sbv_knowledge_at TEXT,
+        employer_information_at TEXT,
+        hearing_requested_at TEXT,
+        sbv_statement_due_at TEXT,
+        sbv_statement_submitted_at TEXT,
+        employer_decision_at TEXT,
+        implementation_at TEXT,
+        information_complete INTEGER NOT NULL DEFAULT 0,
+        hearing_before_decision INTEGER NOT NULL DEFAULT 0,
+        decision_notified INTEGER NOT NULL DEFAULT 0,
+        suspension_requested_at TEXT,
+        suspension_deadline_at TEXT,
+        violation_summary TEXT,
+        sbv_position TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY(measure_id) REFERENCES case_measures(id) ON DELETE CASCADE
+      );
+      CREATE TABLE IF NOT EXISTS case_measure_events (
+        id TEXT PRIMARY KEY,
+        measure_id TEXT NOT NULL,
+        event_type TEXT NOT NULL,
+        title TEXT NOT NULL,
+        description TEXT,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY(measure_id) REFERENCES case_measures(id) ON DELETE CASCADE
+      );
+      CREATE INDEX IF NOT EXISTS idx_case_measures_case ON case_measures(case_id, type, status);
+      CREATE INDEX IF NOT EXISTS idx_case_measures_type_status ON case_measures(type, status);
+      CREATE INDEX IF NOT EXISTS idx_case_measures_due ON case_measures(due_at);
+      CREATE INDEX IF NOT EXISTS idx_case_measures_source ON case_measures(source_id);
+      CREATE INDEX IF NOT EXISTS idx_case_measure_participation_status ON case_measure_participation(participation_status);
+      CREATE INDEX IF NOT EXISTS idx_case_measure_participation_statement_due ON case_measure_participation(sbv_statement_due_at);
+      CREATE INDEX IF NOT EXISTS idx_case_measure_participation_suspension_due ON case_measure_participation(suspension_deadline_at);
+    `);
   }
 
   private rebuildTerminationHearingsTable(): void {
@@ -611,7 +681,9 @@ export class MigrationService {
       'bem_process_events',
       'termination_hearings',
       'personal_data_audit_log',
-      'sbv_participations'
+      'sbv_participations',
+      'case_measures',
+      'case_measure_participation'
     ];
 
     requiredTables.forEach((table) => {
@@ -628,7 +700,9 @@ export class MigrationService {
       bem_processes: ['id', 'case_id', 'status', 'title', 'trigger_type', 'employee_response', 'privacy_notice_at', 'consent_scope', 'measure_owners', 'completion_reason', 'created_at', 'updated_at'],
       termination_hearings: [...TERMINATION_HEARINGS_REQUIRED_COLUMNS],
       personal_data_audit_log: [...PERSONAL_DATA_AUDIT_REQUIRED_COLUMNS],
-      sbv_participations: [...SBV_PARTICIPATION_REQUIRED_COLUMNS]
+      sbv_participations: [...SBV_PARTICIPATION_REQUIRED_COLUMNS],
+      case_measures: [...CASE_MEASURES_REQUIRED_COLUMNS],
+      case_measure_participation: [...CASE_MEASURE_PARTICIPATION_REQUIRED_COLUMNS]
     };
 
     Object.entries(requiredColumns).forEach(([table, columns]) => {

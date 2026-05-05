@@ -37,11 +37,11 @@ export function CaseProcessDraftModal({
           </div>
         </div>
         <div className="industrial-settings-form mt-5">
-          <label><span>Art</span><select value={draft.processType} onChange={(event) => update({ processType: event.target.value as CaseProcessType })}><option value="prevention">Präventionsverfahren</option><option value="bem">BEM</option><option value="termination_hearing">Kündigungsanhörung</option><option value="equalization">Gleichstellung</option></select></label>
+          <label><span>Art</span><select value={draft.processType} onChange={(event) => update({ processType: event.target.value as CaseProcessType })}><option value="prevention">Präventionsverfahren</option><option value="bem">BEM</option><option value="participation">SBV-Beteiligung</option><option value="termination_hearing">Kündigungsanhörung</option><option value="equalization">Gleichstellung</option></select></label>
           <label><span>Titel</span><input value={draft.title} onChange={(event) => update({ title: event.target.value })} /></label>
           <label><span>Beschreibung / Anlass</span><TextCommandTextarea fieldId="case-process-description" value={draft.description} onChange={(event) => update({ description: event.target.value })} /></label>
           {(draft.processType === 'prevention' || draft.processType === 'bem') && <label><span>{draft.processType === 'bem' ? 'Reaktionsfrist optional' : 'Frist Arbeitgeberreaktion optional'}</span><input type="datetime-local" value={draft.dueAt} onChange={(event) => update({ dueAt: event.target.value })} /></label>}
-          {draft.processType !== 'prevention' && draft.processType !== 'bem' && <div className="industrial-message industrial-message-warning">Das Fachmodul ist noch nicht vollständig gebaut. Gremia.SBV legt deshalb zunächst eine fallbezogene Maßnahme als vertrauliche Notiz an.</div>}
+          {draft.processType !== 'prevention' && draft.processType !== 'bem' && draft.processType !== 'participation' && <div className="industrial-message industrial-message-warning">Das Fachmodul ist noch nicht vollständig gebaut. Gremia.SBV legt deshalb zunächst eine fallbezogene Maßnahme als vertrauliche Notiz an.</div>}
         </div>
         <div className="industrial-modal-actions">
           <button type="button" className="industrial-secondary-button" onClick={onCancel}>Abbrechen</button>

@@ -2,6 +2,8 @@ import {
   AlertTriangle,
   CalendarPlus,
   CheckCircle2,
+  ClipboardCheck,
+  FileText,
   FolderKanban,
   Lock,
   Scale,
@@ -18,10 +20,11 @@ import {
   formatConfidentialityText,
   formatLegalNormText,
   formatOpenTaskText,
-  formatRiskText
+  formatRiskText,
+  formatTemplateMarkerText
 } from '@services/textCommandPolicy';
 import { filterCasesForInlineCommand, filterNormsForInlineCommand } from './inlineCommandSearch';
-import type { InlineAnonymizationDraft, InlineCaseLinkDraft, InlineConfidentialityDraft, InlineContactDraft, InlineDeadlineDraft, InlineLegalNormDraft, InlineOpenTaskDraft, InlineRiskDraft } from './useInlineCommands';
+import type { InlineAnonymizationDraft, InlineCaseLinkDraft, InlineConfidentialityDraft, InlineContactDraft, InlineDeadlineDraft, InlineLegalNormDraft, InlineOpenTaskDraft, InlineParticipationDraft, InlineRiskDraft, InlineTemplateDraft } from './useInlineCommands';
 import type { ContactCategory } from '../../../core/models/contact.model';
 import type { DeadlineSeverity } from '../../../core/models/deadline.model';
 import type { ConfidentialCommandLevel, RiskLevelCommand } from '@services/textCommandPolicy';
@@ -67,6 +70,16 @@ export type InlineCommandOverlaysProps = {
   createAndInsertContactFromProtocol: () => void | Promise<void>;
   cancelInlineContactDraft: () => void;
 
+  inlineParticipationDraft: InlineParticipationDraft | null;
+  setInlineParticipationDraft: Setter<InlineParticipationDraft>;
+  createParticipationFromProtocol: () => void | Promise<void>;
+  cancelInlineParticipationDraft: () => void;
+
+  inlineTemplateDraft: InlineTemplateDraft | null;
+  setInlineTemplateDraft: Setter<InlineTemplateDraft>;
+  applyTemplateMarkerFromProtocol: () => void;
+  cancelInlineTemplateDraft: () => void;
+
   inlineDeadlineDraft: InlineDeadlineDraft | null;
   setInlineDeadlineDraft: Setter<InlineDeadlineDraft>;
   selectedCase?: CaseRecord;
@@ -108,6 +121,14 @@ export function InlineCommandOverlays(props: InlineCommandOverlaysProps) {
     insertExistingContactFromProtocol,
     createAndInsertContactFromProtocol,
     cancelInlineContactDraft,
+    inlineParticipationDraft,
+    setInlineParticipationDraft,
+    createParticipationFromProtocol,
+    cancelInlineParticipationDraft,
+    inlineTemplateDraft,
+    setInlineTemplateDraft,
+    applyTemplateMarkerFromProtocol,
+    cancelInlineTemplateDraft,
     inlineDeadlineDraft,
     setInlineDeadlineDraft,
     selectedCase,
@@ -239,6 +260,41 @@ export function InlineCommandOverlays(props: InlineCommandOverlaysProps) {
                 <Users className="h-4 w-4" />Kontakt anlegen und einfügen
               </button>
             </div>
+          </section>
+        </div>
+      )}
+
+      {inlineParticipationDraft && (
+        <div className="industrial-modal-backdrop" role="presentation">
+          <section className="industrial-modal inline-command-quick" role="dialog" aria-modal="true" aria-labelledby="inline-participation-title">
+            <div className="industrial-modal-header">
+              <div className="industrial-modal-icon"><ClipboardCheck className="h-5 w-5" /></div>
+              <div>
+                <p className="industrial-kicker">Inline-Maßnahme</p>
+                <h2 id="inline-participation-title">SBV-Beteiligung anlegen</h2>
+                <p>Legt die Beteiligung direkt als Maßnahme in der aktuellen Fallakte an. Details können nach dem Gespräch ergänzt werden.</p>
+              </div>
+            </div>
+            <div className="industrial-modal-grid">
+              <label className="industrial-modal-wide"><span>Titel</span><input value={inlineParticipationDraft.title} onChange={(event) => setInlineParticipationDraft((current) => current ? { ...current, title: event.target.value } : current)} autoFocus placeholder="z. B. Versetzung ohne vorherige SBV-Anhörung" /></label>
+              <label><span>Arbeitgebermaßnahme / Kurznotiz</span><input value={inlineParticipationDraft.employerMeasure} onChange={(event) => setInlineParticipationDraft((current) => current ? { ...current, employerMeasure: event.target.value } : current)} placeholder="z. B. Versetzung angekündigt, Unterlagen fehlen" /></label>
+              <label><span>Risikostufe</span><select value={inlineParticipationDraft.riskLevel} onChange={(event) => setInlineParticipationDraft((current) => current ? { ...current, riskLevel: event.target.value as InlineParticipationDraft['riskLevel'] } : current)}><option value="normal">normal</option><option value="erhoeht">erhöht</option><option value="kritisch">kritisch</option></select></label>
+              <label><span>Stellungnahmefrist optional</span><input type="datetime-local" value={inlineParticipationDraft.statementDueAt} onChange={(event) => setInlineParticipationDraft((current) => current ? { ...current, statementDueAt: event.target.value } : current)} /></label>
+              <label className="industrial-modal-wide"><span>Nächster Schritt</span><input value={inlineParticipationDraft.nextStep} onChange={(event) => setInlineParticipationDraft((current) => current ? { ...current, nextStep: event.target.value } : current)} /></label>
+            </div>
+            <div className="industrial-modal-preview"><ClipboardCheck className="h-4 w-4" /> Wird als Fallaktenmaßnahme angelegt: <strong>{inlineParticipationDraft.title.trim() || 'SBV-Beteiligung'}</strong></div>
+            <div className="industrial-modal-actions"><button type="button" className="industrial-secondary-button" onClick={cancelInlineParticipationDraft}>Abbrechen</button><button type="button" className="industrial-button" onClick={() => void createParticipationFromProtocol()}>Anlegen und weiterprotokollieren</button></div>
+          </section>
+        </div>
+      )}
+
+      {inlineTemplateDraft && (
+        <div className="industrial-modal-backdrop" role="presentation">
+          <section className="industrial-modal inline-command-quick" role="dialog" aria-modal="true" aria-labelledby="inline-template-title">
+            <div className="industrial-modal-header"><div className="industrial-modal-icon"><FileText className="h-5 w-5" /></div><div><p className="industrial-kicker">Inline-Vorlage</p><h2 id="inline-template-title">Vorlage vormerken</h2><p>Der Vorlagenbezug wird im Protokoll markiert. Die konkrete Dokumenterzeugung bleibt im Vorlagenmodul.</p></div></div>
+            <div className="industrial-modal-grid"><label className="industrial-modal-wide"><span>Such-/Vorlagenhinweis</span><input value={inlineTemplateDraft.query} onChange={(event) => setInlineTemplateDraft((current) => current ? { ...current, query: event.target.value } : current)} autoFocus placeholder="z. B. Unterlagenanforderung Beteiligung" /></label></div>
+            <div className="industrial-modal-preview"><FileText className="h-4 w-4" /> Wird eingefügt: <strong>{formatTemplateMarkerText(inlineTemplateDraft.query)}</strong></div>
+            <div className="industrial-modal-actions"><button type="button" className="industrial-secondary-button" onClick={cancelInlineTemplateDraft}>Abbrechen</button><button type="button" className="industrial-button" onClick={applyTemplateMarkerFromProtocol}>Vormerken</button></div>
           </section>
         </div>
       )}

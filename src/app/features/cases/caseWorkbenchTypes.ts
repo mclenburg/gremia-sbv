@@ -5,9 +5,10 @@ import type { PreventionProcessRecord } from '../../core/models/prevention.model
 import type { BemProcessRecord } from '../../core/models/bem.model';
 import type { EqualizationProcessRecord } from '../../core/models/equalization.model';
 import type { TerminationHearingRecord } from '../../core/models/termination.model';
+import type { ParticipationRecord } from '../../core/models/participation.model';
 import type { CaseRecord } from '../../core/models/case.model';
 
-export type CaseProcessType = 'prevention' | 'bem' | 'termination_hearing' | 'equalization';
+export type CaseProcessType = 'prevention' | 'bem' | 'termination_hearing' | 'equalization' | 'participation';
 
 export type CaseExplorerSelection =
   | { type: 'overview' }
@@ -24,6 +25,7 @@ export type CaseTreePanelProps = {
   bemProcesses: BemProcessRecord[];
   equalizationProcesses: EqualizationProcessRecord[];
   terminationProcesses: TerminationHearingRecord[];
+  participationProcesses: ParticipationRecord[];
   selection: CaseExplorerSelection;
   onSelect: (selection: CaseExplorerSelection) => void;
   formatProcessNodeSubtitle: (processType: CaseProcessType, status?: string) => string;

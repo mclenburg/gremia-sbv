@@ -12,7 +12,10 @@ import {
   formatConfidentialityText,
   formatLegalNormText,
   formatOpenTaskText,
+  formatParticipationMarkerText,
   formatRiskText,
+  formatTemplateMarkerText,
+  getTextCommandKind,
   removeCommandMarker,
   replaceCommandMarker,
   type ConfidentialCommandLevel,
@@ -29,6 +32,7 @@ export type ProtocolTextTarget = 'content' | 'nextSteps';
 
 export type InlineDeadlineDraft = {
   target: ProtocolTextTarget;
+  token: TextCommandToken;
   title: string;
   dueAt: string;
   severity: DeadlineSeverity;
@@ -39,6 +43,7 @@ export type InlineDeadlineDraft = {
 
 export type InlineContactDraft = {
   target: ProtocolTextTarget;
+  token: TextCommandToken;
   markerIndex: number;
   query: string;
   firstName: string;
@@ -50,12 +55,23 @@ export type InlineContactDraft = {
   phone: string;
 };
 
-export type InlineCaseLinkDraft = { target: ProtocolTextTarget; markerIndex: number; query: string };
-export type InlineLegalNormDraft = { target: ProtocolTextTarget; markerIndex: number; query: string };
-export type InlineRiskDraft = { target: ProtocolTextTarget; markerIndex: number; level: RiskLevelCommand; text: string };
-export type InlineOpenTaskDraft = { target: ProtocolTextTarget; markerIndex: number | null; title: string; description: string; severity: DeadlineSeverity };
-export type InlineConfidentialityDraft = { target: ProtocolTextTarget; markerIndex: number; level: ConfidentialCommandLevel };
-export type InlineAnonymizationDraft = { target: ProtocolTextTarget; markerIndex: number; label: string };
+export type InlineCaseLinkDraft = { target: ProtocolTextTarget; markerIndex: number; token: TextCommandToken; query: string };
+export type InlineLegalNormDraft = { target: ProtocolTextTarget; markerIndex: number; token: TextCommandToken; query: string };
+export type InlineRiskDraft = { target: ProtocolTextTarget; markerIndex: number; token: TextCommandToken; level: RiskLevelCommand; text: string };
+export type InlineOpenTaskDraft = { target: ProtocolTextTarget; markerIndex: number | null; token: TextCommandToken; title: string; description: string; severity: DeadlineSeverity };
+export type InlineConfidentialityDraft = { target: ProtocolTextTarget; markerIndex: number; token: TextCommandToken; level: ConfidentialCommandLevel };
+export type InlineAnonymizationDraft = { target: ProtocolTextTarget; markerIndex: number; token: TextCommandToken; label: string };
+export type InlineParticipationDraft = {
+  target: ProtocolTextTarget;
+  markerIndex: number;
+  token: TextCommandToken;
+  title: string;
+  employerMeasure: string;
+  riskLevel: 'normal' | 'erhoeht' | 'kritisch';
+  statementDueAt: string;
+  nextStep: string;
+};
+export type InlineTemplateDraft = { target: ProtocolTextTarget; markerIndex: number; token: TextCommandToken; query: string };
 
 function formatInlineDeadlineDate(value: string): string {
   if (!value) return 'offen';
@@ -89,7 +105,8 @@ export function useInlineCommands({
   setNoteInfo,
   setNoteError,
   onCreateDeadline,
-  onCreateContact
+  onCreateContact,
+  onStructuredActionCreated
 }: {
   selectedCaseId: string;
   selectedCase?: CaseRecord;
@@ -106,6 +123,7 @@ export function useInlineCommands({
   setNoteError: Dispatch<SetStateAction<string>>;
   onCreateDeadline: (input: CreateDeadlineInput) => Promise<void>;
   onCreateContact: (input: CreateContactInput) => Promise<ContactRecord>;
+  onStructuredActionCreated?: () => Promise<void> | void;
 }) {
   const [inlineDeadlineDraft, setInlineDeadlineDraft] = useState<InlineDeadlineDraft | null>(null);
   const [inlineContactDraft, setInlineContactDraft] = useState<InlineContactDraft | null>(null);
@@ -115,6 +133,8 @@ export function useInlineCommands({
   const [inlineOpenTaskDraft, setInlineOpenTaskDraft] = useState<InlineOpenTaskDraft | null>(null);
   const [inlineConfidentialityDraft, setInlineConfidentialityDraft] = useState<InlineConfidentialityDraft | null>(null);
   const [inlineAnonymizationDraft, setInlineAnonymizationDraft] = useState<InlineAnonymizationDraft | null>(null);
+  const [inlineParticipationDraft, setInlineParticipationDraft] = useState<InlineParticipationDraft | null>(null);
+  const [inlineTemplateDraft, setInlineTemplateDraft] = useState<InlineTemplateDraft | null>(null);
 
   function clearInlineDrafts() {
     setInlineDeadlineDraft(null);
@@ -125,6 +145,8 @@ export function useInlineCommands({
     setInlineOpenTaskDraft(null);
     setInlineConfidentialityDraft(null);
     setInlineAnonymizationDraft(null);
+    setInlineParticipationDraft(null);
+    setInlineTemplateDraft(null);
   }
 
   function hasOpenInlineOverlay(): boolean {
@@ -136,7 +158,9 @@ export function useInlineCommands({
       inlineRiskDraft,
       inlineOpenTaskDraft,
       inlineConfidentialityDraft,
-      inlineAnonymizationDraft
+      inlineAnonymizationDraft,
+      inlineParticipationDraft,
+      inlineTemplateDraft
     );
   }
 
@@ -153,9 +177,14 @@ export function useInlineCommands({
     updateProtocolTarget(target, (current) => removeCommandMarker(current, markerIndex, token));
   }
 
-  function openInlineContactDraft(target: ProtocolTextTarget, markerIndex: number) {
+  function replaceInlineCommandWithToken(target: ProtocolTextTarget, markerIndex: number, token: TextCommandToken, replacement: string) {
+    updateProtocolTarget(target, (current) => replaceCommandMarker(current, markerIndex, token, replacement));
+  }
+
+  function openInlineContactDraft(target: ProtocolTextTarget, markerIndex: number, token: TextCommandToken = '@@') {
     setInlineContactDraft({
       target,
+      token,
       markerIndex,
       query: '',
       firstName: '',
@@ -169,52 +198,72 @@ export function useInlineCommands({
   }
 
   function openInlineCommand(target: ProtocolTextTarget, token: TextCommandToken, markerIndex: number) {
-    if (token === '//') {
+    const kind = getTextCommandKind(token);
+    if (kind === 'deadline' || kind === 'follow_up') {
       setInlineDeadlineDraft({
         target,
-        title: defaultDeadlineTitleForCase(selectedCase, noteTitle),
+        token,
+        title: kind === 'follow_up' ? 'Wiedervorlage' : defaultDeadlineTitleForCase(selectedCase, noteTitle),
         dueAt: '',
-        severity: 'important',
+        severity: kind === 'follow_up' ? 'normal' : 'important',
         legalBasis: '',
-        description: target === 'content' ? 'Aus Protokolltext per // angelegt.' : 'Aus nächste Schritte per // angelegt.',
+        description: target === 'content' ? `Aus Protokolltext per ${token} angelegt.` : `Aus nächste Schritte per ${token} angelegt.`,
         markerIndex
       });
       return;
     }
-    if (token === '@@') {
-      openInlineContactDraft(target, markerIndex);
+    if (kind === 'contact') {
+      openInlineContactDraft(target, markerIndex, token);
       return;
     }
-    if (token === '##') {
-      setInlineCaseLinkDraft({ target, markerIndex, query: '' });
+    if (kind === 'case_reference') {
+      setInlineCaseLinkDraft({ target, markerIndex, token, query: '' });
       return;
     }
-    if (token === '§§') {
-      setInlineLegalNormDraft({ target, markerIndex, query: '' });
+    if (kind === 'legal_norm') {
+      setInlineLegalNormDraft({ target, markerIndex, token, query: '' });
       return;
     }
-    if (token === '!!') {
-      setInlineRiskDraft({ target, markerIndex, level: 'high', text: '' });
+    if (kind === 'risk') {
+      setInlineRiskDraft({ target, markerIndex, token, level: 'high', text: '' });
       return;
     }
-    if (token === '>>') {
-      setInlineOpenTaskDraft({ target, markerIndex, title: '', description: '', severity: 'important' });
+    if (kind === 'open_task') {
+      setInlineOpenTaskDraft({ target, markerIndex, token, title: '', description: '', severity: 'important' });
       return;
     }
-    if (token === '^^') {
-      setInlineConfidentialityDraft({ target, markerIndex, level: 'hoch_sensibel' });
+    if (kind === 'confidentiality') {
+      setInlineConfidentialityDraft({ target, markerIndex, token, level: 'hoch_sensibel' });
       return;
     }
-    if (token === '~~') {
-      setInlineAnonymizationDraft({ target, markerIndex, label: 'Name' });
+    if (kind === 'anonymization') {
+      setInlineAnonymizationDraft({ target, markerIndex, token, label: 'Name' });
+      return;
+    }
+    if (kind === 'participation') {
+      setInlineParticipationDraft({
+        target,
+        markerIndex,
+        token,
+        title: 'SBV-Beteiligung prüfen',
+        employerMeasure: '',
+        riskLevel: 'erhoeht',
+        statementDueAt: '',
+        nextStep: 'Beteiligung nach § 178 Abs. 2 SGB IX in der Fallakte weiter prüfen.'
+      });
+      return;
+    }
+    if (kind === 'template') {
+      setInlineTemplateDraft({ target, markerIndex, token, query: '' });
     }
   }
 
+
   function removeContactCommand(draft: InlineContactDraft) {
     const applyRemoval = (current: string) => {
-      const index = current.slice(draft.markerIndex).startsWith('@@') ? draft.markerIndex : current.indexOf('@@');
+      const index = current.slice(draft.markerIndex).startsWith(draft.token) ? draft.markerIndex : current.indexOf(draft.token);
       if (index < 0) return current;
-      return replaceRange(current, index, 2, '').replace(/ {2,}/g, ' ');
+      return replaceRange(current, index, draft.token.length, '').replace(/ {2,}/g, ' ');
     };
 
     if (draft.target === 'content') setContent(applyRemoval);
@@ -224,9 +273,9 @@ export function useInlineCommands({
   function insertInlineContactText(draft: InlineContactDraft, contact: ContactRecord) {
     const replacement = formatContactReference(contact);
     const applyReplacement = (current: string) => {
-      const index = current.slice(draft.markerIndex).startsWith('@@') ? draft.markerIndex : current.indexOf('@@');
+      const index = current.slice(draft.markerIndex).startsWith(draft.token) ? draft.markerIndex : current.indexOf(draft.token);
       if (index < 0) return current;
-      return replaceRange(current, index, 2, replacement);
+      return replaceRange(current, index, draft.token.length, replacement);
     };
 
     if (draft.target === 'content') setContent(applyReplacement);
@@ -275,9 +324,9 @@ export function useInlineCommands({
   function removeSlashCommand(draft: InlineDeadlineDraft) {
     if (draft.markerIndex === null) return;
     const applyRemoval = (current: string) => {
-      const index = current.slice(draft.markerIndex ?? 0).startsWith('//') ? draft.markerIndex ?? 0 : current.indexOf('//');
+      const index = current.slice(draft.markerIndex ?? 0).startsWith(draft.token) ? draft.markerIndex ?? 0 : current.indexOf(draft.token);
       if (index < 0) return current;
-      return replaceRange(current, index, 2, '').replace(/ {2,}/g, ' ');
+      return replaceRange(current, index, draft.token.length, '').replace(/ {2,}/g, ' ');
     };
 
     if (draft.target === 'content') setContent(applyRemoval);
@@ -288,9 +337,9 @@ export function useInlineCommands({
     if (draft.markerIndex === null) return;
     const replacement = buildInlineDeadlineText(draft);
     const applyReplacement = (current: string) => {
-      const index = current.slice(draft.markerIndex ?? 0).startsWith('//') ? draft.markerIndex ?? 0 : current.indexOf('//');
+      const index = current.slice(draft.markerIndex ?? 0).startsWith(draft.token) ? draft.markerIndex ?? 0 : current.indexOf(draft.token);
       if (index < 0) return current;
-      return replaceRange(current, index, 2, replacement);
+      return replaceRange(current, index, draft.token.length, replacement);
     };
 
     if (draft.target === 'content') setContent(applyReplacement);
@@ -322,6 +371,7 @@ export function useInlineCommands({
     }
     setInlineDeadlineDraft({
       target: 'nextSteps',
+      token: '//',
       title: defaultDeadlineTitleForCase(selectedCase, noteTitle),
       dueAt: '',
       severity: 'important',
@@ -334,19 +384,19 @@ export function useInlineCommands({
   async function insertCaseReferenceFromProtocol(record: CaseRecord) {
     if (!inlineCaseLinkDraft) return;
     setLinkedCaseIds((current) => [...new Set([...current, record.id])]);
-    replaceInlineCommand(inlineCaseLinkDraft.target, inlineCaseLinkDraft.markerIndex, '##', formatCaseReferenceText(record.caseNumber, record.displayName));
+    replaceInlineCommandWithToken(inlineCaseLinkDraft.target, inlineCaseLinkDraft.markerIndex, inlineCaseLinkDraft.token, formatCaseReferenceText(record.caseNumber, record.displayName));
     setInlineCaseLinkDraft(null);
     setNoteInfo(`Fallbezug ergänzt: ${record.caseNumber}`);
   }
 
   function cancelInlineCaseLinkDraft() {
-    if (inlineCaseLinkDraft) removeInlineCommand(inlineCaseLinkDraft.target, inlineCaseLinkDraft.markerIndex, '##');
+    if (inlineCaseLinkDraft) removeInlineCommand(inlineCaseLinkDraft.target, inlineCaseLinkDraft.markerIndex, inlineCaseLinkDraft.token);
     setInlineCaseLinkDraft(null);
   }
 
   async function insertLegalNormFromProtocol(norm: LegalNormSuggestion | LegalNormRecord) {
     if (!inlineLegalNormDraft) return;
-    replaceInlineCommand(inlineLegalNormDraft.target, inlineLegalNormDraft.markerIndex, '§§', formatLegalNormText(norm));
+    replaceInlineCommandWithToken(inlineLegalNormDraft.target, inlineLegalNormDraft.markerIndex, inlineLegalNormDraft.token, formatLegalNormText(norm));
     if (selectedCaseId) {
       try {
         const bridge = await waitForBridge();
@@ -363,13 +413,13 @@ export function useInlineCommands({
   }
 
   function cancelInlineLegalNormDraft() {
-    if (inlineLegalNormDraft) removeInlineCommand(inlineLegalNormDraft.target, inlineLegalNormDraft.markerIndex, '§§');
+    if (inlineLegalNormDraft) removeInlineCommand(inlineLegalNormDraft.target, inlineLegalNormDraft.markerIndex, inlineLegalNormDraft.token);
     setInlineLegalNormDraft(null);
   }
 
   async function insertRiskFromProtocol() {
     if (!inlineRiskDraft) return;
-    replaceInlineCommand(inlineRiskDraft.target, inlineRiskDraft.markerIndex, '!!', formatRiskText(inlineRiskDraft.level, inlineRiskDraft.text));
+    replaceInlineCommandWithToken(inlineRiskDraft.target, inlineRiskDraft.markerIndex, inlineRiskDraft.token, formatRiskText(inlineRiskDraft.level, inlineRiskDraft.text));
     if (inlineRiskDraft.level === 'critical') setConfidentialLevel('hoch_sensibel');
     else if (inlineRiskDraft.level === 'high' && confidentialLevel === 'normal') setConfidentialLevel('sensibel');
     setInlineRiskDraft(null);
@@ -377,7 +427,7 @@ export function useInlineCommands({
   }
 
   function cancelInlineRiskDraft() {
-    if (inlineRiskDraft) removeInlineCommand(inlineRiskDraft.target, inlineRiskDraft.markerIndex, '!!');
+    if (inlineRiskDraft) removeInlineCommand(inlineRiskDraft.target, inlineRiskDraft.markerIndex, inlineRiskDraft.token);
     setInlineRiskDraft(null);
   }
 
@@ -411,7 +461,7 @@ export function useInlineCommands({
         criticalThresholdHours: 999998
       });
       if (inlineOpenTaskDraft.markerIndex !== null) {
-        replaceInlineCommand(inlineOpenTaskDraft.target, inlineOpenTaskDraft.markerIndex, '>>', formatOpenTaskText(inlineOpenTaskDraft.title));
+        replaceInlineCommandWithToken(inlineOpenTaskDraft.target, inlineOpenTaskDraft.markerIndex, inlineOpenTaskDraft.token, formatOpenTaskText(inlineOpenTaskDraft.title));
       }
       setInlineOpenTaskDraft(null);
       setNoteInfo(`Offene Aufgabe wurde mit Fall ${selectedCase.caseNumber} verbunden.`);
@@ -421,33 +471,92 @@ export function useInlineCommands({
   }
 
   function cancelInlineOpenTaskDraft() {
-    if (inlineOpenTaskDraft?.markerIndex !== null && inlineOpenTaskDraft) removeInlineCommand(inlineOpenTaskDraft.target, inlineOpenTaskDraft.markerIndex, '>>');
+    if (inlineOpenTaskDraft?.markerIndex !== null && inlineOpenTaskDraft) removeInlineCommand(inlineOpenTaskDraft.target, inlineOpenTaskDraft.markerIndex, inlineOpenTaskDraft.token);
     setInlineOpenTaskDraft(null);
   }
 
   function applyConfidentialityFromProtocol() {
     if (!inlineConfidentialityDraft) return;
     setConfidentialLevel(inlineConfidentialityDraft.level);
-    replaceInlineCommand(inlineConfidentialityDraft.target, inlineConfidentialityDraft.markerIndex, '^^', formatConfidentialityText(inlineConfidentialityDraft.level));
+    replaceInlineCommandWithToken(inlineConfidentialityDraft.target, inlineConfidentialityDraft.markerIndex, inlineConfidentialityDraft.token, formatConfidentialityText(inlineConfidentialityDraft.level));
     setInlineConfidentialityDraft(null);
     setNoteInfo('Vertraulichkeitsstufe der Notiz wurde angepasst.');
   }
 
   function cancelInlineConfidentialityDraft() {
-    if (inlineConfidentialityDraft) removeInlineCommand(inlineConfidentialityDraft.target, inlineConfidentialityDraft.markerIndex, '^^');
+    if (inlineConfidentialityDraft) removeInlineCommand(inlineConfidentialityDraft.target, inlineConfidentialityDraft.markerIndex, inlineConfidentialityDraft.token);
     setInlineConfidentialityDraft(null);
   }
 
   function applyAnonymizationMarkerFromProtocol() {
     if (!inlineAnonymizationDraft) return;
-    replaceInlineCommand(inlineAnonymizationDraft.target, inlineAnonymizationDraft.markerIndex, '~~', formatAnonymizationMarkerText(inlineAnonymizationDraft.label));
+    replaceInlineCommandWithToken(inlineAnonymizationDraft.target, inlineAnonymizationDraft.markerIndex, inlineAnonymizationDraft.token, formatAnonymizationMarkerText(inlineAnonymizationDraft.label));
     setInlineAnonymizationDraft(null);
     setNoteInfo('Anonymisierungsvormerkung im Protokoll gesetzt.');
   }
 
   function cancelInlineAnonymizationDraft() {
-    if (inlineAnonymizationDraft) removeInlineCommand(inlineAnonymizationDraft.target, inlineAnonymizationDraft.markerIndex, '~~');
+    if (inlineAnonymizationDraft) removeInlineCommand(inlineAnonymizationDraft.target, inlineAnonymizationDraft.markerIndex, inlineAnonymizationDraft.token);
     setInlineAnonymizationDraft(null);
+  }
+
+  async function createParticipationFromProtocol() {
+    setNoteError('');
+    setNoteInfo('');
+    if (!selectedCaseId || !selectedCase) {
+      setNoteError('Bitte zuerst eine Fallakte auswählen. SBV-Beteiligungen werden immer als Maßnahme der aktuellen Fallakte angelegt.');
+      return;
+    }
+    if (!inlineParticipationDraft) return;
+    if (!inlineParticipationDraft.title.trim()) {
+      setNoteError('Bitte einen Titel für die SBV-Beteiligung erfassen.');
+      return;
+    }
+    try {
+      const bridge = await waitForBridge();
+      if (!bridge?.participation) throw new Error('Beteiligungsdienst ist nicht erreichbar.');
+      const created = await bridge.participation.create({
+        caseId: selectedCaseId,
+        title: inlineParticipationDraft.title.trim(),
+        measureType: 'sonstiges',
+        riskLevel: inlineParticipationDraft.riskLevel,
+        personStatus: 'unklar',
+        decisionStage: 'unklar',
+        firstKnownAt: new Date().toISOString(),
+        statementDueAt: inlineParticipationDraft.statementDueAt ? fromDateTimeLocalValue(inlineParticipationDraft.statementDueAt) : undefined,
+        violationSummary: inlineParticipationDraft.employerMeasure.trim() || undefined,
+        nextStep: inlineParticipationDraft.nextStep.trim() || 'Beteiligung nach § 178 Abs. 2 SGB IX in der Fallakte weiter prüfen.',
+        createDefaultDeadlines: Boolean(inlineParticipationDraft.statementDueAt)
+      });
+      await onStructuredActionCreated?.();
+      replaceInlineCommandWithToken(
+        inlineParticipationDraft.target,
+        inlineParticipationDraft.markerIndex,
+        inlineParticipationDraft.token,
+        formatParticipationMarkerText(inlineParticipationDraft.title)
+      );
+      setInlineParticipationDraft(null);
+      setNoteInfo(`SBV-Beteiligung wurde als Maßnahme in Fall ${selectedCase.caseNumber} angelegt. Details können nach dem Gespräch im Maßnahmenbereich ergänzt werden.`);
+    } catch (error) {
+      setNoteError(error instanceof Error ? error.message : 'SBV-Beteiligung konnte nicht angelegt werden.');
+    }
+  }
+
+  function cancelInlineParticipationDraft() {
+    if (inlineParticipationDraft) removeInlineCommand(inlineParticipationDraft.target, inlineParticipationDraft.markerIndex, inlineParticipationDraft.token);
+    setInlineParticipationDraft(null);
+  }
+
+  function applyTemplateMarkerFromProtocol() {
+    if (!inlineTemplateDraft) return;
+    replaceInlineCommandWithToken(inlineTemplateDraft.target, inlineTemplateDraft.markerIndex, inlineTemplateDraft.token, formatTemplateMarkerText(inlineTemplateDraft.query));
+    setInlineTemplateDraft(null);
+    setNoteInfo('Vorlagenbezug wurde im Protokoll vorgemerkt. Die konkrete Dokumenterzeugung erfolgt weiterhin im Vorlagenbereich.');
+  }
+
+  function cancelInlineTemplateDraft() {
+    if (inlineTemplateDraft) removeInlineCommand(inlineTemplateDraft.target, inlineTemplateDraft.markerIndex, inlineTemplateDraft.token);
+    setInlineTemplateDraft(null);
   }
 
   async function createInlineDeadlineFromProtocol() {
@@ -530,6 +639,14 @@ export function useInlineCommands({
       insertExistingContactFromProtocol,
       createAndInsertContactFromProtocol,
       cancelInlineContactDraft,
+      inlineParticipationDraft,
+      setInlineParticipationDraft,
+      createParticipationFromProtocol,
+      cancelInlineParticipationDraft,
+      inlineTemplateDraft,
+      setInlineTemplateDraft,
+      applyTemplateMarkerFromProtocol,
+      cancelInlineTemplateDraft,
       inlineDeadlineDraft,
       setInlineDeadlineDraft,
       buildInlineDeadlineText,

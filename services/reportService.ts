@@ -4,6 +4,7 @@ import path from "node:path";
 import type { DatabaseAdapter } from "./databaseService.js";
 import { PersonalDataAuditLogService } from "./auditLogService.js";
 import { TempFileService } from "./tempFileService.js";
+import { normalizeReportType } from "../src/app/core/models/report.model.js";
 import type {
   GenerateReportInput,
   ReportDescriptor,
@@ -18,47 +19,89 @@ const REPORT_DESCRIPTORS: ReportDescriptor[] = [
     title: "Tätigkeitsbericht der SBV",
     shortTitle: "Tätigkeitsbericht",
     description:
-      "Anonymisierte Jahres- oder Zeitraumsauswertung der SBV-Arbeit.",
+      "Anonymisierte Jahres- oder Zeitraumsauswertung der SBV-Arbeit mit aktuellen Prozesskennzahlen.",
     confidentiality: "anonymized",
-  },
-  {
-    type: "privacy_audit",
-    title: "Datenschutz-Audit",
-    shortTitle: "Datenschutz-Audit",
-    description: "Technische und fachliche Prüfung des lokalen Datenbestands.",
-    confidentiality: "internal",
+    group: "sbv",
   },
   {
     type: "case_deadline_controlling",
     title: "Fall- und Fristen-Controlling",
     shortTitle: "Controlling",
     description:
-      "Interne Übersicht über offene Fälle, überfällige Fristen und ruhende Vorgänge.",
+      "Interne Übersicht über offene Fälle, überfällige Fristen, ruhende Vorgänge und fehlende Wiedervorlagen.",
     confidentiality: "internal",
+    group: "sbv",
   },
   {
     type: "bem_prevention",
     title: "BEM- und Präventionsbericht",
     shortTitle: "BEM/Prävention",
     description:
-      "Auswertung von BEM-, Präventions- und Arbeitsplatzsicherungsprozessen.",
+      "Auswertung von BEM-, Präventions- und Arbeitsplatzsicherungsprozessen ohne Diagnosen/Freitexte.",
     confidentiality: "anonymized",
+    group: "sbv",
+  },
+  {
+    type: "sbv_participation",
+    title: "SBV-Beteiligungsbericht",
+    shortTitle: "SBV-Beteiligung",
+    description:
+      "Interne Auswertung zu Unterrichtung, Anhörung, Arbeitgeberentscheidung und Aussetzungsverlangen nach § 178 Abs. 2 SGB IX.",
+    confidentiality: "internal",
+    group: "sbv",
   },
   {
     type: "termination_hearings",
     title: "Kündigungsanhörungsbericht",
     shortTitle: "Kündigungen",
     description:
-      "Auswertung kritischer Kündigungsanhörungen und Beteiligungsstände.",
+      "Auswertung kritischer Kündigungsanhörungen, Fristen und Schutzstatus nach aktuellem Kündigungsmodul.",
     confidentiality: "internal",
+    group: "sbv",
+  },
+  {
+    type: "equalization_gdb",
+    title: "Gleichstellungs- und GdB-Bericht",
+    shortTitle: "Gleichstellung/GdB",
+    description:
+      "Auswertung von Gleichstellungs-, Widerspruchs- und Feststellungsverfahren.",
+    confidentiality: "internal",
+    group: "sbv",
+  },
+  {
+    type: "privacy_audit",
+    title: "Datenschutz-Audit",
+    shortTitle: "Datenschutz-Audit",
+    description: "Technische und fachliche Prüfung des lokalen Datenbestands auf Datenschutzrisiken.",
+    confidentiality: "internal",
+    group: "datenschutz",
+  },
+  {
+    type: "retention_cleanup",
+    title: "Lösch- und Aufbewahrungsbericht",
+    shortTitle: "Löschung/Aufbewahrung",
+    description:
+      "Systembericht zu Löschprüfungen, Retention-Aktionen und offenen Aufbewahrungsrisiken.",
+    confidentiality: "technical",
+    group: "datenschutz",
+  },
+  {
+    type: "audit_log",
+    title: "Audit-Log- und Zugriffsbericht",
+    shortTitle: "Audit-Log",
+    description:
+      "Systembericht zu Zugriffen, Änderungen, Exporten und Hash-Chain-Integrität.",
+    confidentiality: "technical",
+    group: "system",
   },
   {
     type: "system_integrity",
     title: "System- und Integritätsbericht",
     shortTitle: "Systemstatus",
     description:
-      "Technischer Bericht zu Schema, Migrationen, Audit-Log und Speicherorten.",
+      "Technischer Bericht zu Schema, Migrationen, Speicherorten, Dokumentcontainern und Hash-Chain.",
     confidentiality: "technical",
+    group: "system",
   },
 ];
 
@@ -506,7 +549,7 @@ export class ReportService {
       [Math.min(Math.max(limit, 1), 100)],
     ).map((row) => ({
       id: row.id,
-      reportType: row.report_type,
+      reportType: normalizeReportType(row.report_type),
       title: row.title,
       fileName: row.file_name,
       filePath: row.file_path,
@@ -530,6 +573,14 @@ export class ReportService {
         return this.buildBemPreventionReport(input);
       case "termination_hearings":
         return this.buildTerminationReport(input);
+      case "sbv_participation":
+        return this.buildParticipationReport(input);
+      case "equalization_gdb":
+        return this.buildEqualizationReport(input);
+      case "retention_cleanup":
+        return this.buildRetentionCleanupReport(input);
+      case "audit_log":
+        return this.buildAuditLogReport(input);
       case "system_integrity":
         return this.buildSystemIntegrityReport(input);
       case "compliance_document":
@@ -599,69 +650,66 @@ export class ReportService {
     const opened = periodWhere("opened_at", input);
     const closed = periodWhere("closed_at", input);
     const notes = periodWhere("note_date", input);
+    const participationCreated = periodWhere("cm.created_at", input);
+    const bemCreated = periodWhere("created_at", input);
+    const preventionCreated = periodWhere("created_at", input);
+    const terminationReceived = periodWhere("received_at", input);
+    const equalizationCreated = periodWhere("created_at", input);
+
+    const newCases = count(db, `SELECT COUNT(*) AS value FROM cases ${opened.sql}`, opened.params);
+    const closedCases = count(db, `SELECT COUNT(*) AS value FROM cases ${closed.sql}`, closed.params);
+    const noteCount = count(db, `SELECT COUNT(*) AS value FROM case_notes ${notes.sql}`, notes.params);
+    const bemCount = count(db, `SELECT COUNT(*) AS value FROM bem_processes ${bemCreated.sql}`, bemCreated.params);
+    const preventionCount = count(db, `SELECT COUNT(*) AS value FROM prevention_processes ${preventionCreated.sql}`, preventionCreated.params);
+    const participationCount = count(db, `SELECT COUNT(*) AS value FROM case_measures cm WHERE cm.type = 'sbv_participation'${participationCreated.sql ? ' AND ' + participationCreated.sql.replace(/^ WHERE /, '') : ''}`, participationCreated.params);
+    const terminationCount = count(db, `SELECT COUNT(*) AS value FROM termination_hearings ${terminationReceived.sql}`, terminationReceived.params);
+    const equalizationCount = count(db, `SELECT COUNT(*) AS value FROM equalization_processes ${equalizationCreated.sql}`, equalizationCreated.params);
+
     const metrics = {
-      "Neue Fälle": count(
-        db,
-        `SELECT COUNT(*) AS value FROM cases ${opened.sql}`,
-        opened.params,
-      ),
-      "Abgeschlossene Fälle": count(
-        db,
-        `SELECT COUNT(*) AS value FROM cases ${closed.sql}`,
-        closed.params,
-      ),
-      "Offen gesamt": count(
-        db,
-        `SELECT COUNT(*) AS value FROM cases WHERE status <> 'abgeschlossen'`,
-      ),
-      "Notizen/Protokolle": count(
-        db,
-        `SELECT COUNT(*) AS value FROM case_notes ${notes.sql}`,
-        notes.params,
-      ),
+      "Neue Fälle": newCases,
+      "Abgeschlossene Fälle": closedCases,
+      "Offen gesamt": count(db, `SELECT COUNT(*) AS value FROM cases WHERE status <> 'abgeschlossen'`),
+      "SBV-Beteiligungen": participationCount,
+      "BEM/Prävention": bemCount + preventionCount,
+      "Kündigungsanhörungen": terminationCount,
     };
     const categories = rows(
       db,
       `SELECT category, COUNT(*) AS value FROM cases ${opened.sql} GROUP BY category ORDER BY value DESC`,
       opened.params,
     );
-    const statuses = rows(
-      db,
-      `SELECT status, COUNT(*) AS value FROM cases GROUP BY status ORDER BY value DESC`,
-    );
+    const statuses = rows(db, `SELECT status, COUNT(*) AS value FROM cases GROUP BY status ORDER BY value DESC`);
+    const processRows = [
+      ["Fallnotizen/Protokolle", noteCount],
+      ["BEM-Verfahren", bemCount],
+      ["Präventionsverfahren", preventionCount],
+      ["SBV-Beteiligungsprüfungen", participationCount],
+      ["Kündigungsanhörungen", terminationCount],
+      ["Gleichstellung/GdB", equalizationCount],
+    ];
     const warnings: string[] = [];
-    const rareCategories = categories.filter(
-      (row) => Number(row.value) > 0 && Number(row.value) < 3,
-    );
-    if (rareCategories.length)
-      warnings.push(
-        "Einzelne Fallkategorien enthalten weniger als 3 Fälle. Für externe Tätigkeitsberichte sollten diese zusammengefasst werden.",
-      );
+    const rareCategories = categories.filter((row) => Number(row.value) > 0 && Number(row.value) < 3);
+    if (rareCategories.length) {
+      warnings.push("Einzelne Fallkategorien enthalten weniger als 3 Fälle. Für externe Tätigkeitsberichte sollten diese zusammengefasst oder ausgelassen werden.");
+    }
+    if (newCases + bemCount + preventionCount + participationCount + terminationCount + equalizationCount < 3) {
+      warnings.push("Der Berichtszeitraum enthält sehr wenige Vorgänge. Vor externer Weitergabe ist die Rückrechenbarkeit besonders zu prüfen.");
+    }
 
     const content = `
       ${metricCards(metrics)}
-      <section class="box"><h2>Fallkategorien im Berichtszeitraum</h2>${table(
-        ["Kategorie", "Anzahl"],
-        categories.map((row) => [row.category, row.value]),
-      )}</section>
-      <section class="box"><h2>Fallstatus zum Stichtag</h2>${table(
-        ["Status", "Anzahl"],
-        statuses.map((row) => [normalizeStatus(row.status), row.value]),
-      )}</section>
-      <section class="box"><h2>Arbeitsfelder</h2><p>Dieser Bericht ist als anonymisierte Grundlage für die SBV-Berichterstattung gedacht. Aktenzeichen, Namen und Gesundheitsdetails werden nicht ausgegeben.</p></section>`;
+      <section class="box"><h2>Arbeitsfelder im Berichtszeitraum</h2>${table(["Arbeitsfeld", "Anzahl"], processRows)}</section>
+      <section class="box"><h2>Fallkategorien im Berichtszeitraum</h2>${table(["Kategorie", "Anzahl"], categories.map((row) => [normalizeStatus(row.category), row.value]))}</section>
+      <section class="box"><h2>Fallstatus zum Stichtag</h2>${table(["Status", "Anzahl"], statuses.map((row) => [normalizeStatus(row.status), row.value]))}</section>
+      <section class="box"><h2>Datenschutz und Anonymisierung</h2><p>Dieser Tätigkeitsbericht enthält keine Namen, Aktenzeichen, Diagnosen, Dokumenttitel oder vertraulichen Freitexte. Bei kleinen Fallzahlen ist vor Weitergabe dennoch eine Rückrechenbarkeitsprüfung erforderlich.</p></section>`;
     return {
       title: "Tätigkeitsbericht der SBV",
       warnings,
       metrics,
-      html: reportShell(
-        "Tätigkeitsbericht der SBV",
-        this.periodLabel(input),
-        "Anonymisiert",
-        content,
-        warnings,
-      ),
+      html: reportShell("Tätigkeitsbericht der SBV", this.periodLabel(input), "Anonymisiert", content, warnings),
     };
   }
+
 
   private buildPrivacyAudit(input: GenerateReportInput): ReportBuildResult {
     const db = this.dbProvider();
@@ -934,70 +982,219 @@ export class ReportService {
     };
   }
 
-  private buildTerminationReport(
-    input: GenerateReportInput,
-  ): ReportBuildResult {
+  private buildTerminationReport(input: GenerateReportInput): ReportBuildResult {
     const db = this.dbProvider();
-    const received = periodWhere("hearing_received_at", input);
+    const received = periodWhere("received_at", input);
     const typeRows = rows(
       db,
       `SELECT termination_type, COUNT(*) AS value FROM termination_hearings ${received.sql} GROUP BY termination_type ORDER BY value DESC`,
       received.params,
     );
-    const statementRows = rows(
+    const statusRows = rows(
       db,
-      `SELECT statement_status, COUNT(*) AS value FROM termination_hearings GROUP BY statement_status ORDER BY value DESC`,
+      `SELECT status, COUNT(*) AS value FROM termination_hearings GROUP BY status ORDER BY value DESC`,
+    );
+    const protectionRows = rows(
+      db,
+      `SELECT protection_status, COUNT(*) AS value FROM termination_hearings GROUP BY protection_status ORDER BY value DESC`,
     );
     const openStatements = count(
       db,
-      `SELECT COUNT(*) AS value FROM termination_hearings WHERE statement_status IN ('offen', 'in_bearbeitung')`,
+      `SELECT COUNT(*) AS value FROM termination_hearings WHERE status NOT IN ('abgeschlossen', 'zurueckgenommen', 'erledigt')`,
     );
-    const unknownApproval = count(
+    const overdueStatements = count(
       db,
-      `SELECT COUNT(*) AS value FROM termination_hearings WHERE integration_office_approval_required = 1 AND integration_office_approval_status = 'unbekannt'`,
+      `SELECT COUNT(*) AS value FROM termination_hearings WHERE sbv_statement_due_at IS NOT NULL AND sbv_statement_due_at < ? AND status NOT IN ('abgeschlossen', 'zurueckgenommen', 'erledigt')`,
+      [nowIso()],
+    );
+    const missingInfo = count(
+      db,
+      `SELECT COUNT(*) AS value FROM termination_hearings WHERE missing_information IS NOT NULL AND TRIM(missing_information) <> ''`,
+    );
+    const unclearProtection = count(
+      db,
+      `SELECT COUNT(*) AS value FROM termination_hearings WHERE protection_status IN ('unklar', 'unbekannt', '') OR protection_status IS NULL`,
     );
     const warnings: string[] = [];
-    if (openStatements)
-      warnings.push(
-        `${openStatements} Kündigungsanhörungen haben noch keine abgeschlossene Stellungnahme.`,
-      );
-    if (unknownApproval)
-      warnings.push(
-        `${unknownApproval} Kündigungsanhörungen haben ungeklärten Integrationsamt-Status.`,
-      );
+    if (openStatements) warnings.push(`${openStatements} Kündigungsanhörungen sind noch nicht abgeschlossen.`);
+    if (overdueStatements) warnings.push(`${overdueStatements} SBV-Stellungnahmefristen sind überfällig.`);
+    if (missingInfo) warnings.push(`${missingInfo} Kündigungsanhörungen enthalten dokumentierte fehlende Unterlagen/Informationen.`);
+    if (unclearProtection) warnings.push(`${unclearProtection} Kündigungsanhörungen haben ungeklärten Schutzstatus.`);
     const metrics = {
-      "Anhörungen gesamt": count(
-        db,
-        `SELECT COUNT(*) AS value FROM termination_hearings`,
-      ),
-      "Offene Stellungnahmen": openStatements,
-      "Integrationsamt ungeklärt": unknownApproval,
-      "SBV-Anhörung vollständig": count(
-        db,
-        `SELECT COUNT(*) AS value FROM termination_hearings WHERE sbv_hearing_complete = 1`,
-      ),
+      "Anhörungen gesamt": count(db, `SELECT COUNT(*) AS value FROM termination_hearings`),
+      "Offene Vorgänge": openStatements,
+      "Frist überfällig": overdueStatements,
+      "Schutzstatus unklar": unclearProtection,
+      "Unterlagenmängel": missingInfo,
     };
     const content = `${metricCards(metrics)}<section class="box"><h2>Kündigungsarten</h2>${table(
       ["Art", "Anzahl"],
       typeRows.map((row) => [normalizeStatus(row.termination_type), row.value]),
-    )}</section><section class="box"><h2>Stellungnahmestatus</h2>${table(
+    )}</section><section class="box"><h2>Verfahrensstatus</h2>${table(
       ["Status", "Anzahl"],
-      statementRows.map((row) => [
-        normalizeStatus(row.statement_status),
-        row.value,
-      ]),
-    )}</section>`;
+      statusRows.map((row) => [normalizeStatus(row.status), row.value]),
+    )}</section><section class="box"><h2>Schutzstatus</h2>${table(
+      ["Status", "Anzahl"],
+      protectionRows.map((row) => [normalizeStatus(row.protection_status), row.value]),
+    )}</section><section class="box"><h2>Prüfhinweis</h2><p>Der Bericht nutzt die aktuelle Kündigungsanhörungsstruktur ab Schema 0017/0019. Er gibt keine Begründungsfreitexte oder personenbezogenen Details aus.</p></section>`;
     return {
       title: "Kündigungsanhörungsbericht",
       warnings,
       metrics,
-      html: reportShell(
-        "Kündigungsanhörungsbericht",
-        this.periodLabel(input),
-        "Intern vertraulich",
-        content,
-        warnings,
-      ),
+      html: reportShell("Kündigungsanhörungsbericht", this.periodLabel(input), "Intern vertraulich", content, warnings),
+    };
+  }
+
+
+
+  private buildParticipationReport(input: GenerateReportInput): ReportBuildResult {
+    const db = this.dbProvider();
+    const created = periodWhere("cm.created_at", input);
+    const periodClause = created.sql ? ` AND ${created.sql.replace(/^ WHERE /, '')}` : '';
+    const periodParams = created.params;
+    const participationFrom = `case_measures cm JOIN case_measure_participation p ON p.measure_id = cm.id WHERE cm.type = 'sbv_participation'`;
+    const byStatus = rows(db, `SELECT p.participation_status AS status, COUNT(*) AS value FROM ${participationFrom}${periodClause} GROUP BY p.participation_status ORDER BY value DESC`, periodParams);
+    const byMeasure = rows(db, `SELECT p.employer_measure_type AS measure_type, COUNT(*) AS value FROM ${participationFrom}${periodClause} GROUP BY p.employer_measure_type ORDER BY value DESC`, periodParams);
+    const open = count(db, `SELECT COUNT(*) AS value FROM ${participationFrom} AND p.participation_status NOT IN ('abgeschlossen', 'pflichtverstoss_dokumentiert')`);
+    const critical = count(db, `SELECT COUNT(*) AS value FROM ${participationFrom} AND (cm.risk_level IN ('erhoeht', 'kritisch') OR p.violation_summary IS NOT NULL AND TRIM(p.violation_summary) <> '')`);
+    const suspensions = count(db, `SELECT COUNT(*) AS value FROM ${participationFrom} AND p.suspension_requested_at IS NOT NULL AND TRIM(p.suspension_requested_at) <> ''`);
+    const violations = count(db, `SELECT COUNT(*) AS value FROM ${participationFrom} AND p.violation_summary IS NOT NULL AND TRIM(p.violation_summary) <> ''`);
+    const due = count(db, `SELECT COUNT(*) AS value FROM ${participationFrom} AND p.sbv_statement_due_at IS NOT NULL AND p.sbv_statement_due_at < ? AND p.participation_status NOT IN ('abgeschlossen', 'pflichtverstoss_dokumentiert')`, [nowIso()]);
+    const missingInformation = count(db, `SELECT COUNT(*) AS value FROM ${participationFrom} AND p.information_complete = 0`);
+    const lateHearing = count(db, `SELECT COUNT(*) AS value FROM ${participationFrom} AND p.hearing_before_decision = 0`);
+    const decisionMissing = count(db, `SELECT COUNT(*) AS value FROM ${participationFrom} AND p.decision_notified = 0`);
+    const warnings: string[] = [];
+    if (due) warnings.push(`${due} Beteiligungsvorgänge haben überfällige Stellungnahmefristen.`);
+    if (violations) warnings.push(`${violations} Beteiligungsvorgänge enthalten dokumentierte Pflichtverstöße.`);
+    if (missingInformation) warnings.push(`${missingInformation} Beteiligungsvorgänge sind als nicht vollständig unterrichtet markiert.`);
+    if (lateHearing) warnings.push(`${lateHearing} Beteiligungsvorgänge sind nicht als Anhörung vor Entscheidung bestätigt.`);
+    const metrics = {
+      "Beteiligungen gesamt": count(db, `SELECT COUNT(*) AS value FROM ${participationFrom}`),
+      "Offen": open,
+      "Kritisch": critical,
+      "Aussetzungen": suspensions,
+      "Pflichtverstöße": violations,
+      "Frist überfällig": due,
+    };
+    const content = `${metricCards(metrics)}
+      <section class="box"><h2>Status</h2>${table(["Status", "Anzahl"], byStatus.map((row) => [normalizeStatus(row.status), row.value]))}</section>
+      <section class="box"><h2>Maßnahmearten</h2>${table(["Maßnahme", "Anzahl"], byMeasure.map((row) => [normalizeStatus(row.measure_type), row.value]))}</section>
+      <section class="box"><h2>§ 178 Abs. 2 SGB IX Prüfpunkte</h2>${table(
+        ["Prüffrage", "Befund"],
+        [
+          ["Unterrichtung unvollständig", missingInformation],
+          ["Anhörung vor Entscheidung nicht bestätigt", lateHearing],
+          ["Entscheidungsmitteilung nicht bestätigt", decisionMissing],
+          ["Aussetzungsverlangen dokumentiert", suspensions],
+          ["Pflichtverstoß dokumentiert", violations],
+        ],
+      )}</section>`;
+    return {
+      title: "SBV-Beteiligungsbericht",
+      warnings,
+      metrics,
+      html: reportShell("SBV-Beteiligungsbericht", this.periodLabel(input), "Intern vertraulich", content, warnings),
+    };
+  }
+
+  private buildEqualizationReport(input: GenerateReportInput): ReportBuildResult {
+    const db = this.dbProvider();
+    const created = periodWhere("created_at", input);
+    const byStatus = rows(db, `SELECT application_status, COUNT(*) AS value FROM equalization_processes ${created.sql} GROUP BY application_status ORDER BY value DESC`, created.params);
+    const openObjections = count(db, `SELECT COUNT(*) AS value FROM equalization_processes WHERE objection_due_at IS NOT NULL AND objection_due_at >= ? AND application_status IN ('abgelehnt', 'widerspruch', 'nachfrage')`, [nowIso()]);
+    const overdueObjections = count(db, `SELECT COUNT(*) AS value FROM equalization_processes WHERE objection_due_at IS NOT NULL AND objection_due_at < ? AND application_status NOT IN ('bewilligt', 'abgeschlossen')`, [nowIso()]);
+    const missingOutcome = count(db, `SELECT COUNT(*) AS value FROM equalization_processes WHERE application_status IN ('eingereicht', 'nachfrage', 'widerspruch') AND (outcome IS NULL OR TRIM(outcome) = '')`);
+    const warnings: string[] = [];
+    if (overdueObjections) warnings.push(`${overdueObjections} Gleichstellungs-/GdB-Vorgänge haben überfällige Widerspruchs- oder Nachfassfristen.`);
+    if (openObjections) warnings.push(`${openObjections} Vorgänge haben offene Widerspruchsfristen.`);
+    if (missingOutcome) warnings.push(`${missingOutcome} laufende Vorgänge haben noch kein dokumentiertes Ergebnis.`);
+    const metrics = {
+      "Vorgänge gesamt": count(db, `SELECT COUNT(*) AS value FROM equalization_processes`),
+      "Offene Widerspruchsfristen": openObjections,
+      "Überfällige Fristen": overdueObjections,
+      "Ohne Ergebnisnotiz": missingOutcome,
+    };
+    const content = `${metricCards(metrics)}<section class="box"><h2>Antragsstatus</h2>${table(
+      ["Status", "Anzahl"],
+      byStatus.map((row) => [normalizeStatus(row.application_status), row.value]),
+    )}</section><section class="box"><h2>Datenschutzhinweis</h2><p>Dieser Bericht ist intern. Er enthält keine Namen, keine Bescheiddetails und keine Gesundheitsdaten, kann aber aufgrund kleiner Fallzahlen rückrechenbar sein.</p></section>`;
+    return {
+      title: "Gleichstellungs- und GdB-Bericht",
+      warnings,
+      metrics,
+      html: reportShell("Gleichstellungs- und GdB-Bericht", this.periodLabel(input), "Intern vertraulich", content, warnings),
+    };
+  }
+
+  private buildRetentionCleanupReport(input: GenerateReportInput): ReportBuildResult {
+    const db = this.dbProvider();
+    const actionPeriod = periodWhere("created_at", input);
+    const byAction = rows(db, `SELECT action_type, COUNT(*) AS value, SUM(affected_rows) AS affected_rows, SUM(affected_files) AS affected_files FROM retention_actions ${actionPeriod.sql} GROUP BY action_type ORDER BY value DESC`, actionPeriod.params);
+    const closedWithOpenDeadlines = count(db, `SELECT COUNT(*) AS value FROM deadlines d JOIN cases c ON c.id = d.case_id WHERE c.status = 'abgeschlossen' AND d.status IN ('open', 'overdue')`);
+    const retentionActions = count(db, `SELECT COUNT(*) AS value FROM retention_actions ${actionPeriod.sql}`, actionPeriod.params);
+    const oldClosedCases = count(db, `SELECT COUNT(*) AS value FROM cases WHERE status = 'abgeschlossen' AND closed_at IS NOT NULL AND closed_at < datetime('now', '-3 years')`);
+    const warnings: string[] = [];
+    if (!retentionActions) warnings.push("Im gewählten Zeitraum wurden keine Lösch-/Aufbewahrungsaktionen protokolliert.");
+    if (closedWithOpenDeadlines) warnings.push(`${closedWithOpenDeadlines} abgeschlossene Fälle enthalten noch offene Fristen.`);
+    if (oldClosedCases) warnings.push(`${oldClosedCases} abgeschlossene Fälle sind älter als drei Jahre. Aufbewahrungsentscheidung prüfen.`);
+    const metrics = {
+      "Retention-Aktionen": retentionActions,
+      "Betroffene Datensätze": count(db, `SELECT COALESCE(SUM(affected_rows), 0) AS value FROM retention_actions`),
+      "Betroffene Dateien": count(db, `SELECT COALESCE(SUM(affected_files), 0) AS value FROM retention_actions`),
+      "Alte abgeschl. Fälle": oldClosedCases,
+      "Offene Fristen in abgeschl. Fällen": closedWithOpenDeadlines,
+    };
+    const content = `${metricCards(metrics)}<section class="box"><h2>Lösch-/Aufbewahrungsaktionen</h2>${table(
+      ["Aktion", "Anzahl", "Datensätze", "Dateien"],
+      byAction.map((row) => [normalizeStatus(row.action_type), row.value, row.affected_rows ?? 0, row.affected_files ?? 0]),
+    )}</section><section class="box"><h2>Prüfhinweis</h2><p>Der Bericht zeigt technische und fachliche Aufbewahrungsrisiken. Eine Löschung ist vor Ausführung rechtlich und fachlich zu prüfen; besonders SBV-Vertraulichkeit, laufende Ansprüche und Nachweispflichten sind zu berücksichtigen.</p></section>`;
+    return {
+      title: "Lösch- und Aufbewahrungsbericht",
+      warnings,
+      metrics,
+      html: reportShell("Lösch- und Aufbewahrungsbericht", this.periodLabel(input), "Technisch vertraulich", content, warnings),
+    };
+  }
+
+  private buildAuditLogReport(input: GenerateReportInput): ReportBuildResult {
+    const db = this.dbProvider();
+    const occurred = periodWhere("occurred_at", input);
+    const auditChain = new PersonalDataAuditLogService(db).integritySummary();
+    const byAction = rows(db, `SELECT action, COUNT(*) AS value FROM personal_data_audit_log ${occurred.sql} GROUP BY action ORDER BY value DESC`, occurred.params);
+    const bySubject = rows(db, `SELECT subject_type, COUNT(*) AS value FROM personal_data_audit_log ${occurred.sql} GROUP BY subject_type ORDER BY value DESC`, occurred.params);
+    const exportEvents = count(db, `SELECT COUNT(*) AS value FROM personal_data_audit_log WHERE action IN ('export', 'backup', 'open')`);
+    const warnings: string[] = [];
+    if (!auditChain.ok) warnings.push(`Audit-Hash-Chain ist beschädigt oder lückenhaft. Erste auffällige Sequenz: ${auditChain.firstBrokenSequence ?? "unbekannt"}.`);
+    if (!auditChain.checked) warnings.push("Es liegen noch keine Audit-Log-Einträge vor.");
+    const metrics = {
+      "Hash-Chain": auditChain.ok ? "OK" : "Auffällig",
+      "Geprüfte Einträge": auditChain.checked,
+      "Leseereignisse": auditChain.readEvents,
+      "Änderungen": auditChain.changeEvents,
+      "Export/Backup": auditChain.exportEvents,
+      "Exportnahe Ereignisse": exportEvents,
+    };
+    const content = `${metricCards(metrics)}<section class="box"><h2>Aktionen</h2>${table(
+      ["Aktion", "Anzahl"],
+      byAction.map((row) => [normalizeStatus(row.action), row.value]),
+    )}</section><section class="box"><h2>Betroffene Bereiche</h2>${table(
+      ["Bereich", "Anzahl"],
+      bySubject.map((row) => [normalizeStatus(row.subject_type), row.value]),
+    )}</section><section class="box"><h2>Hash-Chain</h2>${table(
+      ["Kennzahl", "Wert"],
+      [
+        ["Status", auditChain.ok ? "intakt" : "auffällig / Manipulationsverdacht"],
+        ["Algorithmus", auditChain.algorithm],
+        ["Chain-Version", auditChain.chainVersion],
+        ["Sequenzbereich", auditChain.checked ? `${auditChain.firstSequence ?? "—"} bis ${auditChain.lastSequence ?? "—"}` : "keine Einträge"],
+        ["Letzter Hash", auditChain.latestHash],
+      ],
+    )}</section>${auditChain.issues.length ? `<section class="box"><h2>Audit-Chain-Befunde</h2>${table(["Sequenz", "Art", "Befund"], auditChain.issues.slice(0, 50).map((issue) => [issue.sequence, issue.kind, issue.message]))}</section>` : ""}`;
+    return {
+      title: "Audit-Log- und Zugriffsbericht",
+      warnings,
+      metrics,
+      html: reportShell("Audit-Log- und Zugriffsbericht", this.periodLabel(input), "Technisch vertraulich", content, warnings),
     };
   }
 
