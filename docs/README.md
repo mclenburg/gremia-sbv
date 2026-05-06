@@ -10,7 +10,8 @@ Diese Dokumentation ist ab 0.8.8-d auf dauerhafte Projektunterlagen ausgerichtet
 | `DEVELOPMENT.md` | Entwicklung, Tests, Build und Source-Cleanup |
 | `RELEASE_CHECKLIST.md` | Abnahme vor `0.9.0-rc.1` |
 | `CHANGELOG.md` | zusammengefasste Entwicklungshistorie |
-| `DOCUMENTATION_AUDIT_0_8_8_D.md` | Dokumentationsprüfung und Bereinigungsentscheidung |
+| `ROADMAP.md` | Versionspfad bis RC und spätere 1.x-Themen |
+| `KNOWN_ISSUES.md` | bekannte Einschränkungen für RC-Abnahme und Release Notes |
 
 ## Datenschutz und Compliance
 
@@ -34,6 +35,7 @@ Diese Dokumentation ist ab 0.8.8-d auf dauerhafte Projektunterlagen ausgerichtet
 | `NATIVE_SQLCIPHER_DEPENDENCY.md` | native SQLite-/SQLCipher-Abhängigkeit |
 | `APPIMAGE_DATA_PATHS.md` | Datenpfade im AppImage-Betrieb |
 | `WINDOWS_BUILD.md` | Windows-Build-Hinweise |
+| `E2E_TESTS.md` | E2E-Setup, isolierte Testdaten und RC-kritische Flüsse |
 
 ## Fachliche Dauerunterlagen
 
@@ -48,4 +50,4 @@ Diese Dokumentation ist ab 0.8.8-d auf dauerhafte Projektunterlagen ausgerichtet
 
 ## Regel
 
-Neue Dokumentation soll dauerhaft verwendbar sein. Kurzlebige Patchnotizen gehören nicht mehr in den aktiven Dokumentationsbestand, sondern nur noch zusammengefasst in `CHANGELOG.md`.
+Neue Dokumentation soll dauerhaft verwendbar sein. Kurzlebige Patchnotizen, historische Buildfix-Protokolle und temporäre Hotfix-Dokumente gehören nicht mehr in den aktiven Dokumentationsbestand, sondern nur noch zusammengefasst in `CHANGELOG.md`. Die Root-README und diese Übersicht bleiben die öffentlichen Einstiegspunkte; Detailthemen werden nur behalten, wenn sie für Betrieb, Datenschutz, Security, Migration, Entwicklung oder RC-Abnahme dauerhaft erforderlich sind.

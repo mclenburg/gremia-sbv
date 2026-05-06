@@ -1,5 +1,13 @@
 ## 0.8.12-j – Windows-Build ohne Symlink-Privileg
 
+
+## 0.8.13-b – RC-Dateibereinigung
+
+- aktive Dokumentation auf dauerhafte RC-Unterlagen reduziert.
+- historische Patch-, Buildfix- und Zwischenstandsnotizen über den Source-Cleanup-Mechanismus zur Entfernung vorgemerkt.
+- altes `cleanup:legacy`-Skript aus den npm-Skripten entfernt; Dateibereinigung läuft im Build über manifestgesteuerten `source:cleanup`.
+- Guard-Test ergänzt, damit kurzlebige Patchdokumente und verwaiste Legacy-Cleanup-Skripte vor RC1 nicht erneut im aktiven Bestand auftauchen.
+
 ## 0.8.13-a
 
 - RC-Readiness-Tests an die tatsächlichen Konstantennamen und dynamischen E2E-IDs angepasst.

@@ -1,6 +1,6 @@
 {
   "name": "gremia-sbv",
-  "version": "0.8.13-a",
+  "version": "0.8.13-b",
   "private": true,
   "description": "Offline-first Desktop-App für die vertrauliche Fallarbeit der Schwerbehindertenvertretung.",
   "main": "dist-electron/electron/main.js",
@@ -61,7 +61,6 @@
     "test:knowledge-workbench": "vitest run tests/knowledgeWorkbenchAdvisor.test.ts",
     "test:accessible-dialogs": "vitest run tests/accessibleDialogsLiveRegion.test.ts",
     "test:prevention-imports": "vitest run tests/preventionFeatureImports.test.ts",
-    "cleanup:legacy": "node scripts/cleanup-legacy-artifacts.cjs",
     "test:inline-command-behavior": "vitest run tests/inlineCommandBehavior0456.test.ts",
     "test:inline-command-integration": "vitest run tests/inlineCommandIntegration0457.test.ts",
     "test:export-privacy": "vitest run tests/exportPrivacyGuard0457.test.ts",
@@ -139,7 +138,8 @@
     "test:security-privacy-0813": "vitest run tests/securityPrivacyReadiness0813.test.ts",
     "test:public-readme-0813": "vitest run tests/publicReadmeReadiness0813.test.ts",
     "test:migration-smoke-0813": "vitest run tests/rcMigrationSmoke0813.test.ts",
-    "test:e2e-responsive-readiness-0813": "vitest run tests/e2eResponsiveLayoutReadiness0813.test.ts"
+    "test:e2e-responsive-readiness-0813": "vitest run tests/e2eResponsiveLayoutReadiness0813.test.ts",
+    "test:rc-cleanup-0813b": "vitest run tests/rcCleanup0813b.test.ts"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.0",
