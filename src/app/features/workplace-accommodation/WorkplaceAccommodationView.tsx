@@ -2,6 +2,7 @@ import { AlertTriangle, FolderOpen, Wrench } from 'lucide-react';
 import type { WorkplaceAccommodationRecord } from '../../core/models/workplace-accommodation.model';
 import { workplaceAccommodationCategoryLabels, workplaceAccommodationStatusLabels } from '../../core/models/workplace-accommodation.model';
 import { WorkbenchDetailPanel, WorkbenchGrid, WorkbenchListPanel, WorkbenchSummary } from '../../shared/components/WorkbenchLayout';
+import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 
 export function WorkplaceAccommodationView({
   items,
@@ -10,10 +11,17 @@ export function WorkplaceAccommodationView({
   items: WorkplaceAccommodationRecord[];
   onOpenCase: (caseId: string, processId?: string) => void;
 }) {
+  const announce = useAnnouncer();
+
   const open = items.filter((item) => item.status !== 'abgeschlossen').length;
   const critical = items.filter((item) => item.riskLevel === 'kritisch' || item.status === 'arbeitgeber_lehnt_ab' || item.status === 'eskaliert').length;
   const employerOpen = items.filter((item) => item.employerResponseStatus === 'offen' && item.status !== 'abgeschlossen').length;
   const reviewDue = items.filter((item) => item.effectivenessReviewAt && new Date(item.effectivenessReviewAt) <= new Date() && item.status === 'wirksamkeitspruefung').length;
+
+  function openAccommodation(item: WorkplaceAccommodationRecord) {
+    announce(`Arbeitsplatzgestaltungsmaßnahme ${item.title} wird in der Fallakte geöffnet.`);
+    onOpenCase(item.caseId, item.id);
+  }
 
   return (
     <div className="workplace-accommodation-workbench">
@@ -35,7 +43,7 @@ export function WorkplaceAccommodationView({
           </div>
           <div className="industrial-list compact">
             {items.map((item) => (
-              <button key={item.id} type="button" className="industrial-list-item" onClick={() => onOpenCase(item.caseId, item.id)}>
+              <button key={item.id} type="button" className="industrial-list-item" onClick={() => openAccommodation(item)}>
                 <strong>{item.title}</strong>
                 <span>{workplaceAccommodationCategoryLabels[item.category]} · {workplaceAccommodationStatusLabels[item.status]} · Risiko {item.riskLevel}</span>
                 <small>{item.nextStep || item.requestedAdjustment || 'Fallakte öffnen und Maßnahme fortschreiben.'}</small>

@@ -12,6 +12,27 @@ const BACKUP_VERSION = 1;
 const RESTORE_CONFIRMATION = 'BACKUP WIEDERHERSTELLEN';
 const MIN_BACKUP_PASSPHRASE_LENGTH = 12;
 
+interface ScryptKdfParams {
+  N: number;
+  r: number;
+  p: number;
+  maxmem: number;
+}
+
+export const LEGACY_BACKUP_SCRYPT_PARAMS: ScryptKdfParams = {
+  N: 32768,
+  r: 8,
+  p: 1,
+  maxmem: 64 * 1024 * 1024
+};
+
+export const CURRENT_BACKUP_SCRYPT_PARAMS: ScryptKdfParams = {
+  N: 131072,
+  r: 8,
+  p: 1,
+  maxmem: 256 * 1024 * 1024
+};
+
 interface BackupPayloadFile extends BackupFileSummary {
   contentBase64: string;
 }
@@ -30,6 +51,7 @@ interface BackupEnvelope {
   version: typeof BACKUP_VERSION;
   algorithm: 'aes-256-gcm';
   kdf: 'scrypt';
+  kdfParams?: ScryptKdfParams;
   compression: 'gzip';
   createdAt: string;
   appVersion: string;
@@ -45,13 +67,26 @@ function assertPassphrase(passphrase: string): void {
   }
 }
 
-function deriveBackupKey(passphrase: string, saltHex: string): Buffer {
-  return scryptSync(`gremia-sbv-backup-v1:${passphrase}`, Buffer.from(saltHex, 'hex'), 32, {
-    N: 32768,
-    r: 8,
-    p: 1,
-    maxmem: 64 * 1024 * 1024
-  });
+function normalizeBackupKdfParams(params?: ScryptKdfParams): ScryptKdfParams {
+  return params ?? LEGACY_BACKUP_SCRYPT_PARAMS;
+}
+
+function safeDestroyBuffer(buffer?: Buffer): void {
+  if (!buffer) return;
+  try {
+    buffer.fill(0);
+  } catch {
+    // Best effort: Backup-Erzeugung/Restore nicht durch Buffer-Zeroing blockieren.
+  }
+}
+
+function deriveBackupKey(passphrase: string, saltHex: string, params?: ScryptKdfParams): Buffer {
+  const salt = Buffer.from(saltHex, 'hex');
+  try {
+    return scryptSync(`gremia-sbv-backup-v1:${passphrase}`, salt, 32, normalizeBackupKdfParams(params));
+  } finally {
+    safeDestroyBuffer(salt);
+  }
 }
 
 function sha256(buffer: Buffer): string {
@@ -161,7 +196,7 @@ export class BackupService {
       const payloadBuffer = gzipSync(Buffer.from(JSON.stringify(payload), 'utf8'));
       const salt = randomBytes(16).toString('hex');
       const iv = randomBytes(12);
-      const key = deriveBackupKey(passphrase, salt);
+      const key = deriveBackupKey(passphrase, salt, CURRENT_BACKUP_SCRYPT_PARAMS);
       const cipher = createCipheriv('aes-256-gcm', key, iv);
       cipher.setAAD(Buffer.from(`${BACKUP_FORMAT}:${BACKUP_VERSION}`, 'utf8'));
       const ciphertext = Buffer.concat([cipher.update(payloadBuffer), cipher.final()]);
@@ -171,6 +206,7 @@ export class BackupService {
         version: BACKUP_VERSION,
         algorithm: 'aes-256-gcm',
         kdf: 'scrypt',
+        kdfParams: CURRENT_BACKUP_SCRYPT_PARAMS,
         compression: 'gzip',
         createdAt,
         appVersion: APP_VERSION,
@@ -181,6 +217,7 @@ export class BackupService {
       };
 
       writeFileSync(targetFilePath, `${JSON.stringify(envelope, null, 2)}\n`, { encoding: 'utf8', mode: 0o600 });
+      safeDestroyBuffer(key);
 
       return {
         ok: true,
@@ -298,12 +335,13 @@ export class BackupService {
       throw new Error('Die Datei ist kein unterstütztes Gremia.SBV-Backup.');
     }
 
-    const key = deriveBackupKey(passphrase, envelope.salt);
+    const key = deriveBackupKey(passphrase, envelope.salt, envelope.kdfParams);
     const decipher = createDecipheriv('aes-256-gcm', key, Buffer.from(envelope.iv, 'hex'));
     decipher.setAAD(Buffer.from(`${BACKUP_FORMAT}:${BACKUP_VERSION}`, 'utf8'));
     decipher.setAuthTag(Buffer.from(envelope.tag, 'hex'));
     const compressed = Buffer.concat([decipher.update(Buffer.from(envelope.payload, 'base64')), decipher.final()]);
     const payload = JSON.parse(gunzipSync(compressed).toString('utf8')) as BackupPayload;
+    safeDestroyBuffer(key);
     return payload;
   }
 

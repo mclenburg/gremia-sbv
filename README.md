@@ -2,7 +2,7 @@
 
 **Gremia.SBV** ist eine lokale, offline-first Desktop-Anwendung für die vertrauliche Fallarbeit der Schwerbehindertenvertretung (SBV).
 
-Stand: **0.8.8-e**  
+Stand: **0.8.11**  
 Zielrichtung: Vorbereitung auf den ersten Release Candidate `0.9.0-rc.1`.
 
 ## Zweck
@@ -84,7 +84,7 @@ Weitere Details stehen in:
 Nach `npm install` wird automatisch ausgeführt:
 
 ```bash
-npx electron-builder install-app-deps
+electron-builder install-app-deps
 ```
 
 Das ist in `package.json` als `postinstall` hinterlegt.
@@ -112,7 +112,7 @@ Gezielte Testgruppen:
 npm run test:privacy
 npm run test:migrations
 npm run test:backup
-npm run test:documentation-088d
+npm run test:review-fixes-0810
 ```
 
 ## Build

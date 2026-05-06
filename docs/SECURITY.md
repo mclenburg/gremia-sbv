@@ -108,6 +108,23 @@ Ein Backup enthält:
 - Prüfsummen
 - Versionsinformation
 
+
+## Entsperrschutz ab 0.8.9
+
+Nach falschen Tresorpasswörtern wird der nächste Entsperrversuch verzögert:
+
+- ab 3 Fehlversuchen: 30 Sekunden Pause,
+- ab 5 Fehlversuchen: 60 Sekunden Pause,
+- ab 7 Fehlversuchen: 5 Minuten Pause.
+
+Es gibt keinen permanenten Lockout. Ein erfolgreicher Unlock setzt den Zähler zurück. Die Fehlversuchsdaten werden nur im Arbeitsspeicher der laufenden App-Instanz gehalten; ein App-Neustart darf den Zähler zurücksetzen. Passwortfragmente oder Klartextpasswörter werden nicht persistiert.
+
+## Backup-KDF ab 0.8.9
+
+Backups sind eine primäre Offline-Angriffsfläche, weil eine Angreiferin das Backup außerhalb der laufenden App beliebig oft gegen Passwortkandidaten prüfen könnte. Neue Backups verwenden deshalb dieselben gehärteten scrypt-Parameter wie der aktuelle Tresorstandard: scrypt N=131072, r=8, p=1, maxmem=256 MiB.
+
+Die verwendeten KDF-Parameter werden im Backup-Envelope als technische Metadaten gespeichert. Legacy-Backups ohne `kdfParams` bleiben wiederherstellbar; für sie wird der frühere Fallback scrypt N=32768, r=8, p=1 verwendet.
+
 ## Amtsende / Übergabe
 
 Für Amtsende oder Vertretungsfälle braucht die Anwendung später einen gesonderten Übergabemodus:

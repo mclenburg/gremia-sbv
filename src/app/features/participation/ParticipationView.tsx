@@ -95,6 +95,25 @@ function isOpenStatus(status: ParticipationStatus): boolean {
   return !['abgeschlossen', 'pflichtverstoss_dokumentiert'].includes(status);
 }
 
+
+function ParticipationLegalViolationWarning({ record }: { record: ParticipationRecord }) {
+  if (record.status !== 'pflichtverstoss_dokumentiert') return null;
+
+  return (
+    <section className="participation-legal-warning" role="note" aria-label="Dokumentierter Pflichtverstoß nach § 178 Absatz 2 SGB IX">
+      <div className="participation-legal-warning-title"><AlertTriangle className="h-4 w-4" /> Beteiligungspflichtverletzung dokumentiert</div>
+      <p>
+        Für diese Maßnahme ist eine Verletzung der Unterrichtungs- und Anhörungspflicht der SBV nach § 178 Abs. 2 Satz 1 SGB IX dokumentiert.
+      </p>
+      <p>
+        Die App trifft keine automatische Aussage, dass die Arbeitgebermaßnahme unwirksam ist. Zu prüfen sind mögliche Rechtsfolgen einschließlich
+        Aussetzung oder Nachholung nach § 178 Abs. 2 Satz 2 SGB IX, weitere Dokumentation, Einschaltung des Inklusionsamts und die rechtliche Bewertung der Wirksamkeit.
+      </p>
+      {record.violationSummary && <p><strong>Dokumentierter Anlass:</strong> {record.violationSummary}</p>}
+    </section>
+  );
+}
+
 function criticalCount(record: ParticipationRecord): number {
   let count = 0;
   if (!record.informationComplete) count += 1;
@@ -199,6 +218,7 @@ export function ParticipationView({
                 <p><strong>Stellungnahmefrist:</strong> {selected.statementDueAt ? formatDateShort(selected.statementDueAt) : 'keine Frist erfasst'}</p>
                 {selected.violationSummary && <p><strong>Pflichtverstoß / fehlende Unterlagen:</strong> {selected.violationSummary}</p>}
                 {selected.nextStep && <p><strong>Nächster Schritt:</strong> {selected.nextStep}</p>}
+                <ParticipationLegalViolationWarning record={selected} />
                 <p className="industrial-meta">Dieses Cockpit ist nur die Übersicht. Änderungen erfolgen in der Fallakte, damit der Verlauf und die Maßnahme zusammen bleiben.</p>
               </div>
               <div className="industrial-card-actions">

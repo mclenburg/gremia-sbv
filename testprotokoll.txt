@@ -1,0 +1,619 @@
+
+> gremia-sbv@0.8.11 pretest
+> npm run version:generate && npm run source:cleanup
+
+
+> gremia-sbv@0.8.11 version:generate
+> node scripts/generate-app-version.cjs
+
+Gremia.SBV App-Version erzeugt: 0.8.11
+
+> gremia-sbv@0.8.11 source:cleanup
+> node scripts/cleanup-obsolete-files.cjs
+
+Source-Cleanup: nichts zu entfernen.
+
+> gremia-sbv@0.8.11 test
+> vitest run
+
+
+ RUN  v2.1.9 /home/dwaesnigk/git-repos/gremia-sbv
+
+ ✓ tests/migrationHardening054.test.ts (5 tests) 45ms
+ ✓ tests/bemGuidance057.test.ts (3 tests) 115ms
+ ✓ tests/processServices.test.ts (3 tests) 113ms
+ ✓ tests/backupPolicy.test.ts (5 tests) 42ms
+ ✓ tests/releaseCandidateReadiness088e.test.ts (5 tests) 61ms
+ ✓ tests/inlineCommands086a.test.ts (4 tests) 41ms
+ ✓ tests/documentStoragePolicy.test.ts (5 tests) 68ms
+ ✓ tests/inlineCommandIntegration0457.test.ts (4 tests) 22ms
+ ✓ tests/deadlineService.test.ts (6 tests) 23ms
+ ✓ tests/retentionPolicy.test.ts (5 tests) 23ms
+ ✓ tests/ipcValidation084f.test.ts (5 tests) 127ms
+ ✓ tests/sbvPrivacyPolicy0458.test.ts (4 tests) 44ms
+ ✓ tests/preventionWorkflowPolicy.test.ts (5 tests) 46ms
+ ✓ tests/moduleBoundariesA11y055.test.ts (3 tests) 58ms
+ ✓ tests/bemCompletion056.test.ts (4 tests) 32ms
+ ✓ tests/measureArtifacts086c.test.ts (4 tests) 64ms
+ ✓ tests/inlineCommands085e.test.ts (3 tests) 60ms
+ ✓ tests/auditChain084d.test.ts (3 tests) 32ms
+ ❯ tests/textCommandTextareas0453.test.ts (4 tests | 1 failed) 67ms
+   × 0.4.53 reusable text command textareas > uses TextCommandTextarea for editable large text fields 37ms
+     → expected 'export {\n  applyTheme,\n  CasesView,…' to contain 'TextCommandTextarea'
+ ❯ tests/preventionWorkflow0457.test.ts (4 tests | 1 failed) 106ms
+   × 0.4.57 prevention workflow contracts > offers process documents through status-bound templates 74ms
+     → expected 'export {\n  applyTheme,\n  CasesView,…' to contain 'massnahme:prevention'
+ ✓ tests/bemWorkflowPolicy0500.test.ts (4 tests) 19ms
+ ✓ tests/bemUi052.test.ts (3 tests) 45ms
+ ✓ tests/exportPrivacyGuard0457.test.ts (4 tests) 70ms
+ ✓ tests/caseWorkbenchResponsivePolish088b.test.ts (4 tests) 40ms
+ ❯ tests/inlineCommandFeature0449.test.ts (4 tests | 1 failed) 207ms
+   × 0.4.49 inline command feature extraction > removes the large inline overlay JSX from workflowViews 111ms
+     → expected 'export {\n  applyTheme,\n  CasesView,…' to contain '<InlineCommandOverlays'
+ ❯ tests/inlineCommandHook0454.test.ts (3 tests | 2 failed) 210ms
+   × 0.4.54 useInlineCommands extraction > removes inline command state and handlers from workflowViews 117ms
+     → expected 'export {\n  applyTheme,\n  CasesView,…' to contain 'useInlineCommands'
+   × 0.4.54 useInlineCommands extraction > keeps manual case deadline creation in the hook 36ms
+     → expected 'export {\n  applyTheme,\n  CasesView,…' to contain 'onDeadline={inlineCommands.openCaseDe…'
+ ✓ tests/measureArchitecture086b.test.ts (4 tests) 42ms
+ ❯ tests/caseNoteEditorHook0455.test.ts (3 tests | 2 failed) 202ms
+   × 0.4.55 Case note editor hook > removes note editor state and save logic from workflowViews 152ms
+     → expected 'export {\n  applyTheme,\n  CasesView,…' to contain 'useCaseNoteEditor'
+   × 0.4.55 Case note editor hook > keeps the note modal wired to editor outputs 20ms
+     → expected 'export {\n  applyTheme,\n  CasesView,…' to contain 'editingNote={editingNote}'
+ ✓ tests/contactPrivacyService.test.ts (5 tests) 233ms
+ ✓ tests/templatesBehavior0457.test.ts (4 tests) 62ms
+ ✓ tests/knowledgePolicy.test.ts (5 tests) 77ms
+ ❯ tests/caseWorkbenchDataHooks0447.test.ts (4 tests | 1 failed) 178ms
+   × 0.4.47 case workbench data hooks > moves case register rendering out of workflowViews 128ms
+     → expected 'export {\n  applyTheme,\n  CasesView,…' to contain 'useCaseWorkbenchData'
+ ❯ tests/casesHooksServices0446.test.ts (4 tests | 1 failed) 117ms
+   × 0.4.46 case hooks and services preparation > removes extracted formatting helpers from workflowViews 66ms
+     → expected 'export {\n  applyTheme,\n  CasesView,…' to contain 'caseWorkbenchFormat'
+ ✓ tests/processFramework056.test.ts (3 tests) 33ms
+ ✓ tests/migrationService.test.ts (5 tests) 94ms
+ ✓ tests/accessibilityKeyboard0457.test.ts (4 tests) 40ms
+ ✓ tests/complianceStatusBoundary088f.test.ts (3 tests) 51ms
+ ✓ tests/unlockDelay089.test.ts (3 tests) 56ms
+ ❯ tests/caseEditorModals0448.test.ts (3 tests | 1 failed) 141ms
+   × 0.4.48 case editor modals and document split > uses extracted case components from workflowViews 113ms
+     → expected 'export {\n  applyTheme,\n  CasesView,…' to contain '<CaseCreateModal'
+ ✓ tests/exportGuardBem058.test.ts (3 tests) 39ms
+ ✓ tests/terminationHardening072.test.ts (3 tests) 52ms
+ ✓ tests/accessibleDialogsLiveRegion.test.ts (4 tests) 19ms
+ ✓ tests/knowledgeWorkbenchAdvisor.test.ts (3 tests) 28ms
+ ✓ tests/templateContextPolicy.test.ts (5 tests) 52ms
+ ✓ tests/templatePolicy.test.ts (4 tests) 248ms
+ ✓ tests/preventionDeepLinkAppScope.test.ts (3 tests) 72ms
+ ✓ tests/participationLegalViolationUx0810.test.ts (3 tests) 130ms
+ ✓ tests/buildPlatforms088h.test.ts (3 tests) 45ms
+ ✓ tests/dsgvoSbvDocumentation0458.test.ts (3 tests) 28ms
+ ✓ tests/auditChain084.test.ts (2 tests) 19ms
+ ✓ tests/reportPrivacyPolicy.test.ts (4 tests) 83ms
+ ❯ tests/roadmapReadiness0810.test.ts (3 tests | 1 failed) 47ms
+   × 0.8.10 roadmap readiness > keeps the concept order: workflow extraction before live links 25ms
+     → expected 2390 to be less than 994
+ ✓ tests/bemMigration051b.test.ts (2 tests) 32ms
+ ✓ tests/textCommandPolicy.test.ts (3 tests) 46ms
+ ✓ tests/liveRegionCoverage055.test.ts (3 tests) 81ms
+ ✓ tests/templateManagementEditDelete.test.ts (3 tests) 41ms
+ ✓ tests/complianceStatus087.test.ts (2 tests) 158ms
+ ✓ tests/moduleBoundaryImportFix055a.test.ts (2 tests) 20ms
+ ❯ tests/featureViewAnnouncerConsistency0810.test.ts (2 tests | 1 failed) 43ms
+   × 0.8.10 feature view announcer consistency > keeps native Electron dependency rebuild tied to npm install without npx auto install wording 31ms
+     → expected '0.8.11' to be '0.8.10' // Object.is equality
+ ✓ tests/noWorkflowViewLogic0811.test.ts (2 tests) 43ms
+ ✓ tests/casesViewExtraction0811.test.ts (2 tests) 21ms
+ ✓ tests/e2eOptionalDependency088g2.test.ts (3 tests) 33ms
+ ✓ tests/exportGuardPolicy.test.ts (3 tests) 63ms
+ ✓ tests/migration0017Repair080b.test.ts (2 tests) 17ms
+ ✓ tests/complianceDocuments080.test.ts (2 tests) 44ms
+ ✓ tests/appMaintainabilityRefactor.test.ts (3 tests) 17ms
+ ✓ tests/reportTypeNormalization085g1.test.ts (3 tests) 27ms
+ ✓ tests/reportLayout085a.test.ts (3 tests) 19ms
+ ✓ tests/securityReadiness089.test.ts (2 tests) 31ms
+ ✓ tests/openTaskDashboardPolicy.test.ts (1 test) 46ms
+ ❯ tests/templateProcessStatusState.test.ts (2 tests | 1 failed) 64ms
+   × template process status state > keeps the render bridge TypeScript cast stable 49ms
+     → expected 'export {\n  applyTheme,\n  CasesView,…' to contain 'bridge.templates.render as unknown as'
+ ✓ tests/knowledgeService.test.ts (1 test) 15ms
+ ✓ tests/securityHardening084.test.ts (2 tests) 33ms
+ ✓ tests/terminationPrivacyPolicy073.test.ts (2 tests) 65ms
+ ✓ tests/caseWorkbenchRegression0811.test.ts (2 tests) 32ms
+ ❯ tests/inlineCommandFeature0449b.test.ts (2 tests | 1 failed) 90ms
+   × 0.4.49b inline command extraction repair > keeps the case process draft modal in workflowViews where its state still lives 62ms
+     → expected 'export {\n  applyTheme,\n  CasesView,…' to contain '<CaseProcessDraftModal'
+ ✓ tests/e2eSmokeActivePath088h2.test.ts (3 tests) 15ms
+ ✓ tests/modalResponsiveCss.test.ts (3 tests) 22ms
+ ❯ tests/equalizationTemplates060.test.ts (2 tests | 1 failed) 52ms
+   × 0.6.0 equalization templates > adds equalization placeholders to contextual rendering 37ms
+     → expected 'export {\n  applyTheme,\n  CasesView,…' to contain 'gleichstellung.aktenzeichen'
+ ❯ tests/processTemplateBuildRegression.test.ts (3 tests | 1 failed) 104ms
+   × process template build regression > casts template render bridge through unknown to satisfy TypeScript 53ms
+     → expected 'export {\n  applyTheme,\n  CasesView,…' to contain 'bridge.templates.render as unknown as'
+ ✓ tests/dsarComplianceView081.test.ts (2 tests) 27ms
+ ✓ tests/backupHardening058.test.ts (2 tests) 68ms
+ ✓ tests/caseWorkbenchFooter088a.test.ts (2 tests) 16ms
+ ✓ tests/bemLegacyServiceFix0500b.test.ts (2 tests) 43ms
+ ✓ tests/terminationTemplates072.test.ts (2 tests) 37ms
+ ✓ tests/complianceLayoutPdf082.test.ts (2 tests) 19ms
+ ✓ tests/workplaceAccessibility0810.test.ts (2 tests) 40ms
+ ❯ tests/inlineCommandProcessModalSignature0449c.test.ts (1 test | 1 failed) 119ms
+   × 0.4.49c process modal signature fix > uses the existing CaseProcessDraftModal prop contract 109ms
+     → expected '' to contain 'draft={caseProcessDraft}'
+ ✓ tests/bemModelModuleFix0500c.test.ts (1 test) 54ms
+ ✓ tests/equalizationTemplateStatus061d.test.ts (1 test) 17ms
+ ✓ tests/nativeMenuPolicy.test.ts (3 tests) 16ms
+ ✓ tests/knowledgeMigrationCompatibility.test.ts (3 tests) 20ms
+ ✓ tests/inlineCommands086d1.test.ts (1 test) 32ms
+ ✓ tests/databaseDiagnostics054.test.ts (1 test) 28ms
+ ✓ tests/caseWorkbenchWorkflowPolicy.test.ts (2 tests) 67ms
+ ✓ tests/workflowViewsPureIndex0811.test.ts (1 test) 45ms
+ ✓ tests/bemMigration051a.test.ts (1 test) 26ms
+ ✓ tests/backupLegacyRestore089.test.ts (1 test) 15ms
+ ✓ tests/backupKdfStrength089.test.ts (1 test) 47ms
+ ✓ tests/complianceStatus087a.test.ts (1 test) 44ms
+ ✓ tests/inlineCommandBehavior0456.test.ts (1 test) 34ms
+ ✓ tests/appVersion.test.ts (2 tests) 14ms
+ ✓ tests/modalAccessibilityCss.test.ts (2 tests) 36ms
+ ✓ tests/auditService.test.ts (1 test) 57ms
+ ✓ tests/preventionFeatureImports.test.ts (1 test) 47ms
+ ✓ tests/caseModalWorkflowPolicy.test.ts (1 test) 101ms
+ ✓ tests/postinstallGuard080b.test.ts (1 test) 37ms
+ ✓ tests/postinstallGuard083a.test.ts (1 test) 17ms
+ ✓ tests/postinstallGuard072.test.ts (1 test) 24ms
+ ✓ tests/postinstallGuard073.test.ts (1 test) 32ms
+ ✓ tests/postinstallGuard080.test.ts (1 test) 39ms
+ ✓ tests/postinstallGuard081.test.ts (1 test) 66ms
+ ✓ tests/postinstallGuard082.test.ts (1 test) 69ms
+ ✓ tests/postinstallGuard083.test.ts (1 test) 30ms
+ ✓ tests/postinstallGuard084.test.ts (1 test) 56ms
+ ✓ tests/backupPayloadPolicy.test.ts (1 test) 58ms
+ ✓ tests/packagePostinstall059.test.ts (1 test) 37ms
+ ✓ tests/postinstallGuard070.test.ts (1 test) 44ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 17 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/caseEditorModals0448.test.ts > 0.4.48 case editor modals and document split > uses extracted case components from workflowViews
+AssertionError: expected 'export {\n  applyTheme,\n  CasesView,…' to contain '<CaseCreateModal'
+
+- Expected
++ Received
+
+- <CaseCreateModal
++ export {
++   applyTheme,
++   CasesView,
++   DashboardOverview,
++   getInitialTheme,
++   nowLabel,
++   SettingsView,
++ } from "./features/cases/CasesView";
++ export type { ThemeMode } from "./features/cases/CasesView";
++
+
+ ❯ tests/caseEditorModals0448.test.ts:14:22
+     12|   it("uses extracted case components from workflowViews", () => {
+     13|     const workflow = readFileSync("src/app/workflowViews.tsx", "utf8");
+     14|     expect(workflow).toContain("<CaseCreateModal");
+       |                      ^
+     15|     expect(workflow).toContain("<CaseProcessDraftModal");
+     16|     expect(workflow).toContain("<CaseDocumentDetail");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/17]⎯
+
+ FAIL  tests/caseNoteEditorHook0455.test.ts > 0.4.55 Case note editor hook > removes note editor state and save logic from workflowViews
+AssertionError: expected 'export {\n  applyTheme,\n  CasesView,…' to contain 'useCaseNoteEditor'
+
+- Expected
++ Received
+
+- useCaseNoteEditor
++ export {
++   applyTheme,
++   CasesView,
++   DashboardOverview,
++   getInitialTheme,
++   nowLabel,
++   SettingsView,
++ } from "./features/cases/CasesView";
++ export type { ThemeMode } from "./features/cases/CasesView";
++
+
+ ❯ tests/caseNoteEditorHook0455.test.ts:17:22
+     15|   it("removes note editor state and save logic from workflowViews", ()…
+     16|     const workflow = readFileSync("src/app/workflowViews.tsx", "utf8");
+     17|     expect(workflow).toContain("useCaseNoteEditor");
+       |                      ^
+     18|     expect(workflow).toContain("const noteEditor = useCaseNoteEditor");
+     19|     expect(workflow).toContain("bindClearInlineDrafts(inlineCommands.c…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/17]⎯
+
+ FAIL  tests/caseNoteEditorHook0455.test.ts > 0.4.55 Case note editor hook > keeps the note modal wired to editor outputs
+AssertionError: expected 'export {\n  applyTheme,\n  CasesView,…' to contain 'editingNote={editingNote}'
+
+- Expected
++ Received
+
+- editingNote={editingNote}
++ export {
++   applyTheme,
++   CasesView,
++   DashboardOverview,
++   getInitialTheme,
++   nowLabel,
++   SettingsView,
++ } from "./features/cases/CasesView";
++ export type { ThemeMode } from "./features/cases/CasesView";
++
+
+ ❯ tests/caseNoteEditorHook0455.test.ts:28:22
+     26|   it("keeps the note modal wired to editor outputs", () => {
+     27|     const workflow = readFileSync("src/app/workflowViews.tsx", "utf8");
+     28|     expect(workflow).toContain("editingNote={editingNote}");
+       |                      ^
+     29|     expect(workflow).toContain("onSubmit={saveNote}");
+     30|     expect(workflow).toContain("onToggleLinkedCase={toggleLinkedCase}"…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/17]⎯
+
+ FAIL  tests/caseWorkbenchDataHooks0447.test.ts > 0.4.47 case workbench data hooks > moves case register rendering out of workflowViews
+AssertionError: expected 'export {\n  applyTheme,\n  CasesView,…' to contain 'useCaseWorkbenchData'
+
+- Expected
++ Received
+
+- useCaseWorkbenchData
++ export {
++   applyTheme,
++   CasesView,
++   DashboardOverview,
++   getInitialTheme,
++   nowLabel,
++   SettingsView,
++ } from "./features/cases/CasesView";
++ export type { ThemeMode } from "./features/cases/CasesView";
++
+
+ ❯ tests/caseWorkbenchDataHooks0447.test.ts:14:22
+     12|   it("moves case register rendering out of workflowViews", () => {
+     13|     const workflow = readFileSync("src/app/workflowViews.tsx", "utf8");
+     14|     expect(workflow).toContain("useCaseWorkbenchData");
+       |                      ^
+     15|     expect(workflow).toContain("useCaseWorkbenchSearch");
+     16|     expect(workflow).toContain("<CaseRegister");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/17]⎯
+
+ FAIL  tests/casesHooksServices0446.test.ts > 0.4.46 case hooks and services preparation > removes extracted formatting helpers from workflowViews
+AssertionError: expected 'export {\n  applyTheme,\n  CasesView,…' to contain 'caseWorkbenchFormat'
+
+- Expected
++ Received
+
+- caseWorkbenchFormat
++ export {
++   applyTheme,
++   CasesView,
++   DashboardOverview,
++   getInitialTheme,
++   nowLabel,
++   SettingsView,
++ } from "./features/cases/CasesView";
++ export type { ThemeMode } from "./features/cases/CasesView";
++
+
+ ❯ tests/casesHooksServices0446.test.ts:28:22
+     26|   it("removes extracted formatting helpers from workflowViews", () => {
+     27|     const workflow = readFileSync("src/app/workflowViews.tsx", "utf8");
+     28|     expect(workflow).toContain("caseWorkbenchFormat");
+       |                      ^
+     29|     expect(workflow).not.toContain("function formatBytes(bytes?");
+     30|     expect(workflow).not.toContain("function processTypeLabel(processT…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/17]⎯
+
+ FAIL  tests/equalizationTemplates060.test.ts > 0.6.0 equalization templates > adds equalization placeholders to contextual rendering
+AssertionError: expected 'export {\n  applyTheme,\n  CasesView,…' to contain 'gleichstellung.aktenzeichen'
+
+- Expected
++ Received
+
+- gleichstellung.aktenzeichen
++ export {
++   applyTheme,
++   CasesView,
++   DashboardOverview,
++   getInitialTheme,
++   nowLabel,
++   SettingsView,
++ } from "./features/cases/CasesView";
++ export type { ThemeMode } from "./features/cases/CasesView";
++
+
+ ❯ tests/equalizationTemplates060.test.ts:17:22
+     15|     const workflow = readFileSync("src/app/workflowViews.tsx", "utf8");
+     16| 
+     17|     expect(workflow).toContain("gleichstellung.aktenzeichen");
+       |                      ^
+     18|     expect(workflow).toContain("gleichstellung.bescheid_am");
+     19|     expect(workflow).toContain("gleichstellung.widerspruchsfrist");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/17]⎯
+
+ FAIL  tests/featureViewAnnouncerConsistency0810.test.ts > 0.8.10 feature view announcer consistency > keeps native Electron dependency rebuild tied to npm install without npx auto install wording
+AssertionError: expected '0.8.11' to be '0.8.10' // Object.is equality
+
+Expected: "0.8.10"
+Received: "0.8.11"
+
+ ❯ tests/featureViewAnnouncerConsistency0810.test.ts:18:25
+     16| 
+     17|   it('keeps native Electron dependency rebuild tied to npm install wit…
+     18|     expect(pkg.version).toBe('0.8.10');
+       |                         ^
+     19|     expect(pkg.scripts.postinstall).toBe('electron-builder install-app…
+     20|     expect(readme).toContain('electron-builder install-app-deps');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/17]⎯
+
+ FAIL  tests/inlineCommandFeature0449.test.ts > 0.4.49 inline command feature extraction > removes the large inline overlay JSX from workflowViews
+AssertionError: expected 'export {\n  applyTheme,\n  CasesView,…' to contain '<InlineCommandOverlays'
+
+- Expected
++ Received
+
+- <InlineCommandOverlays
++ export {
++   applyTheme,
++   CasesView,
++   DashboardOverview,
++   getInitialTheme,
++   nowLabel,
++   SettingsView,
++ } from "./features/cases/CasesView";
++ export type { ThemeMode } from "./features/cases/CasesView";
++
+
+ ❯ tests/inlineCommandFeature0449.test.ts:17:22
+     15|   it("removes the large inline overlay JSX from workflowViews", () => {
+     16|     const workflow = readFileSync("src/app/workflowViews.tsx", "utf8");
+     17|     expect(workflow).toContain("<InlineCommandOverlays");
+       |                      ^
+     18|     expect(workflow).not.toContain("<InlineCommandOverlaysBoundary");
+     19|     expect(workflow).not.toContain("id=\"inline-case-link-title\"");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/17]⎯
+
+ FAIL  tests/inlineCommandFeature0449b.test.ts > 0.4.49b inline command extraction repair > keeps the case process draft modal in workflowViews where its state still lives
+AssertionError: expected 'export {\n  applyTheme,\n  CasesView,…' to contain '<CaseProcessDraftModal'
+
+- Expected
++ Received
+
+- <CaseProcessDraftModal
++ export {
++   applyTheme,
++   CasesView,
++   DashboardOverview,
++   getInitialTheme,
++   nowLabel,
++   SettingsView,
++ } from "./features/cases/CasesView";
++ export type { ThemeMode } from "./features/cases/CasesView";
++
+
+ ❯ tests/inlineCommandFeature0449b.test.ts:15:22
+     13|   it("keeps the case process draft modal in workflowViews where its st…
+     14|     const workflow = readFileSync("src/app/workflowViews.tsx", "utf8");
+     15|     expect(workflow).toContain("<CaseProcessDraftModal");
+       |                      ^
+     16|     expect(workflow).toContain("draft={caseProcessDraft}");
+     17|     expect(workflow).toContain("onCreate={() => void createCaseProcess…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/17]⎯
+
+ FAIL  tests/inlineCommandHook0454.test.ts > 0.4.54 useInlineCommands extraction > removes inline command state and handlers from workflowViews
+AssertionError: expected 'export {\n  applyTheme,\n  CasesView,…' to contain 'useInlineCommands'
+
+- Expected
++ Received
+
+- useInlineCommands
++ export {
++   applyTheme,
++   CasesView,
++   DashboardOverview,
++   getInitialTheme,
++   nowLabel,
++   SettingsView,
++ } from "./features/cases/CasesView";
++ export type { ThemeMode } from "./features/cases/CasesView";
++
+
+ ❯ tests/inlineCommandHook0454.test.ts:18:22
+     16|   it("removes inline command state and handlers from workflowViews", (…
+     17|     const workflow = readFileSync("src/app/workflowViews.tsx", "utf8");
+     18|     expect(workflow).toContain("useInlineCommands");
+       |                      ^
+     19|     expect(workflow).toContain("inlineCommands.handleProtocolTextChang…
+     20|     expect(workflow).toContain("{...inlineCommands.overlayProps}");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/17]⎯
+
+ FAIL  tests/inlineCommandHook0454.test.ts > 0.4.54 useInlineCommands extraction > keeps manual case deadline creation in the hook
+AssertionError: expected 'export {\n  applyTheme,\n  CasesView,…' to contain 'onDeadline={inlineCommands.openCaseDe…'
+
+- Expected
++ Received
+
+- onDeadline={inlineCommands.openCaseDeadlineDraft}
++ export {
++   applyTheme,
++   CasesView,
++   DashboardOverview,
++   getInitialTheme,
++   nowLabel,
++   SettingsView,
++ } from "./features/cases/CasesView";
++ export type { ThemeMode } from "./features/cases/CasesView";
++
+
+ ❯ tests/inlineCommandHook0454.test.ts:31:22
+     29|     const workflow = readFileSync("src/app/workflowViews.tsx", "utf8");
+     30|     expect(hook).toContain("function openCaseDeadlineDraft");
+     31|     expect(workflow).toContain("onDeadline={inlineCommands.openCaseDea…
+       |                      ^
+     32|     expect(workflow).not.toContain("setInlineDeadlineDraft({");
+     33|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/17]⎯
+
+ FAIL  tests/inlineCommandProcessModalSignature0449c.test.ts > 0.4.49c process modal signature fix > uses the existing CaseProcessDraftModal prop contract
+AssertionError: expected '' to contain 'draft={caseProcessDraft}'
+
+- Expected
++ Received
+
+- draft={caseProcessDraft}
+
+ ❯ tests/inlineCommandProcessModalSignature0449c.test.ts:11:18
+      9|     const call = workflow.slice(start, end);
+     10| 
+     11|     expect(call).toContain("draft={caseProcessDraft}");
+       |                  ^
+     12|     expect(call).toContain("onChange={(nextDraft) => setCaseProcessDra…
+     13|     expect(call).toContain("onCreate={() => void createCaseProcessFrom…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/17]⎯
+
+ FAIL  tests/preventionWorkflow0457.test.ts > 0.4.57 prevention workflow contracts > offers process documents through status-bound templates
+AssertionError: expected 'export {\n  applyTheme,\n  CasesView,…' to contain 'massnahme:prevention'
+
+- Expected
++ Received
+
+- massnahme:prevention
++ export {
++   applyTheme,
++   CasesView,
++   DashboardOverview,
++   getInitialTheme,
++   nowLabel,
++   SettingsView,
++ } from "./features/cases/CasesView";
++ export type { ThemeMode } from "./features/cases/CasesView";
++
+
+ ❯ tests/preventionWorkflow0457.test.ts:32:22
+     30|     const workflow = readFileSync("src/app/workflowViews.tsx", "utf8");
+     31|     const modal = readFileSync("src/app/features/cases/ProcessTemplate…
+     32|     expect(workflow).toContain("massnahme:prevention");
+       |                      ^
+     33|     expect(workflow).toContain("status:");
+     34|     expect(modal).toContain("Dokumente zur Maßnahme");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/17]⎯
+
+ FAIL  tests/processTemplateBuildRegression.test.ts > process template build regression > casts template render bridge through unknown to satisfy TypeScript
+AssertionError: expected 'export {\n  applyTheme,\n  CasesView,…' to contain 'bridge.templates.render as unknown as'
+
+- Expected
++ Received
+
+- bridge.templates.render as unknown as
++ export {
++   applyTheme,
++   CasesView,
++   DashboardOverview,
++   getInitialTheme,
++   nowLabel,
++   SettingsView,
++ } from "./features/cases/CasesView";
++ export type { ThemeMode } from "./features/cases/CasesView";
++
+
+ ❯ tests/processTemplateBuildRegression.test.ts:14:22
+     12|   it("casts template render bridge through unknown to satisfy TypeScri…
+     13|     const workflow = readFileSync("src/app/workflowViews.tsx", "utf8");
+     14|     expect(workflow).toContain("bridge.templates.render as unknown as"…
+       |                      ^
+     15|   });
+     16| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/17]⎯
+
+ FAIL  tests/roadmapReadiness0810.test.ts > 0.8.10 roadmap readiness > keeps the concept order: workflow extraction before live links
+AssertionError: expected 2390 to be less than 994
+ ❯ tests/roadmapReadiness0810.test.ts:25:83
+     23|     expect(roadmap.indexOf('0.8.11 – `workflowViews.tsx` vollständig e…
+     24|     expect(roadmap.indexOf('0.8.12 – Lebende Protokollverknüpfungen al…
+     25|     expect(roadmap.indexOf('0.8.11 – `workflowViews.tsx` vollständig e…
+       |                                                                                   ^
+     26|   });
+     27| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/17]⎯
+
+ FAIL  tests/templateProcessStatusState.test.ts > template process status state > keeps the render bridge TypeScript cast stable
+AssertionError: expected 'export {\n  applyTheme,\n  CasesView,…' to contain 'bridge.templates.render as unknown as'
+
+- Expected
++ Received
+
+- bridge.templates.render as unknown as
++ export {
++   applyTheme,
++   CasesView,
++   DashboardOverview,
++   getInitialTheme,
++   nowLabel,
++   SettingsView,
++ } from "./features/cases/CasesView";
++ export type { ThemeMode } from "./features/cases/CasesView";
++
+
+ ❯ tests/templateProcessStatusState.test.ts:17:22
+     15|   it("keeps the render bridge TypeScript cast stable", () => {
+     16|     const workflow = readFileSync("src/app/workflowViews.tsx", "utf8");
+     17|     expect(workflow).toContain("bridge.templates.render as unknown as"…
+       |                      ^
+     18|   });
+     19| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/17]⎯
+
+ FAIL  tests/textCommandTextareas0453.test.ts > 0.4.53 reusable text command textareas > uses TextCommandTextarea for editable large text fields
+AssertionError: expected 'export {\n  applyTheme,\n  CasesView,…' to contain 'TextCommandTextarea'
+
+- Expected
++ Received
+
+- TextCommandTextarea
++ export {
++   applyTheme,
++   CasesView,
++   DashboardOverview,
++   getInitialTheme,
++   nowLabel,
++   SettingsView,
++ } from "./features/cases/CasesView";
++ export type { ThemeMode } from "./features/cases/CasesView";
++
+
+ ❯ tests/textCommandTextareas0453.test.ts:26:22
+     24|     for (const file of editableTextareaFiles) {
+     25|       const source = readFileSync(file, "utf8");
+     26|       expect(source).toContain("TextCommandTextarea");
+       |                      ^
+     27|     }
+     28| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/17]⎯
+
+ Test Files  15 failed | 103 passed (118)
+      Tests  17 failed | 299 passed (316)
+   Start at  07:24:48
+   Duration  98.05s (transform 6.10s, setup 0ms, collect 18.62s, tests 6.83s, environment 269ms, prepare 74.57s)
+

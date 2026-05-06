@@ -14,6 +14,8 @@ export interface SecurityStatus {
   dataProtectionState?: DataProtectionState;
   error?: string;
   databaseProtected?: boolean;
+  unlockDelaySeconds?: number;
+  unlockAvailableAt?: string;
 }
 
 export interface SecurityResult {
@@ -23,4 +25,6 @@ export interface SecurityResult {
   recoveryKey?: string;
   error?: string;
   databaseProtected?: boolean;
+  unlockDelaySeconds?: number;
+  unlockAvailableAt?: string;
 }

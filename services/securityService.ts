@@ -90,6 +90,19 @@ const EXPORTS_DIR_NAME = "exports";
 const TMP_DIR_NAME = "tmp";
 const RESET_CONFIRMATION = "DATENBESTAND LÖSCHEN";
 
+interface UnlockDelaySnapshot {
+  failedAttempts: number;
+  blockedUntilEpochMs: number;
+  remainingSeconds: number;
+}
+
+const UNLOCK_DELAY_STEPS = [
+  { attempts: 7, delayMs: 5 * 60 * 1000 },
+  { attempts: 5, delayMs: 60 * 1000 },
+  { attempts: 3, delayMs: 30 * 1000 },
+] as const;
+const MAX_UNLOCK_DELAY_MS = 5 * 60 * 1000;
+
 function getDataDir(): string {
   return process.env.GREMIA_SBV_DATA_DIR ?? path.join(process.cwd(), "data");
 }
@@ -296,6 +309,8 @@ function formatVaultOpenError(error: unknown): string {
 export class SecurityService {
   private unlocked = false;
   private databaseKey?: Buffer;
+  private failedUnlockAttempts = 0;
+  private unlockBlockedUntilEpochMs = 0;
   private readonly dataDir: string;
   private readonly storePath: string;
   private readonly vaultManifestPath: string;
@@ -326,6 +341,7 @@ export class SecurityService {
         destructiveResetAvailable: false,
         dataProtectionState: this.unlocked ? "unlocked" : "locked",
         databaseProtected: existsSync(this.vaultDatabasePath),
+        ...this.unlockDelayStatusFields(),
       };
     }
 
@@ -355,6 +371,57 @@ export class SecurityService {
       dataProtectionState: "not_initialized",
       databaseProtected: false,
     };
+  }
+
+  private currentUnlockDelay(): UnlockDelaySnapshot {
+    const now = Date.now();
+    const remainingMs = Math.max(0, this.unlockBlockedUntilEpochMs - now);
+    if (remainingMs <= 0 && this.unlockBlockedUntilEpochMs !== 0) {
+      this.unlockBlockedUntilEpochMs = 0;
+    }
+
+    return {
+      failedAttempts: this.failedUnlockAttempts,
+      blockedUntilEpochMs: this.unlockBlockedUntilEpochMs,
+      remainingSeconds: Math.ceil(remainingMs / 1000),
+    };
+  }
+
+  private unlockDelayStatusFields(): Pick<SecurityStatus, "unlockDelaySeconds" | "unlockAvailableAt"> {
+    const delay = this.currentUnlockDelay();
+    if (delay.remainingSeconds <= 0) return {};
+    return {
+      unlockDelaySeconds: delay.remainingSeconds,
+      unlockAvailableAt: new Date(delay.blockedUntilEpochMs).toISOString(),
+    };
+  }
+
+  private resetUnlockDelay(): void {
+    this.failedUnlockAttempts = 0;
+    this.unlockBlockedUntilEpochMs = 0;
+  }
+
+  private recordFailedUnlockAttempt(): UnlockDelaySnapshot {
+    this.failedUnlockAttempts += 1;
+    const step = UNLOCK_DELAY_STEPS.find((candidate) => this.failedUnlockAttempts >= candidate.attempts);
+    if (step) {
+      const delayMs = Math.min(step.delayMs, MAX_UNLOCK_DELAY_MS);
+      this.unlockBlockedUntilEpochMs = Date.now() + delayMs;
+    }
+    return this.currentUnlockDelay();
+  }
+
+  private buildUnlockDelayError(delay: UnlockDelaySnapshot): string {
+    if (delay.remainingSeconds <= 0) {
+      return "Das Passwort ist nicht korrekt.";
+    }
+
+    if (delay.remainingSeconds >= 60) {
+      const minutes = Math.ceil(delay.remainingSeconds / 60);
+      return `Zu viele falsche Entsperrversuche. Bitte in etwa ${minutes} Minute${minutes === 1 ? "" : "n"} erneut versuchen.`;
+    }
+
+    return `Zu viele falsche Entsperrversuche. Bitte in ${delay.remainingSeconds} Sekunden erneut versuchen.`;
   }
 
   async setupInitialPassword(password: string): Promise<SecurityResult> {
@@ -475,71 +542,92 @@ export class SecurityService {
 
     this.databaseKey = databaseKey;
     this.unlocked = true;
+    this.resetUnlockDelay();
     this.touchManifest(new Date().toISOString(), true);
 
     return { ok: true, initialized: true, unlocked: true, recoveryKey };
   }
 
   async unlock(password: string): Promise<SecurityResult> {
-    const currentStatus = this.status();
-    if (currentStatus.recoveryRequired) {
+    const activeDelay = this.currentUnlockDelay();
+    if (activeDelay.remainingSeconds > 0) {
       return {
         ok: false,
         initialized: true,
         unlocked: false,
-        error: currentStatus.error ?? "Recovery erforderlich.",
-      };
-    }
-
-    if (!this.hasPasswordStore()) {
-      return {
-        ok: false,
-        initialized: false,
-        unlocked: false,
-        error: "Es wurde noch kein Initialpasswort eingerichtet.",
+        error: this.buildUnlockDelayError(activeDelay),
+        unlockDelaySeconds: activeDelay.remainingSeconds,
+        unlockAvailableAt: new Date(activeDelay.blockedUntilEpochMs).toISOString(),
       };
     }
 
     const store = this.readStore();
-    const verifier = derivePasswordVerifier(
-      password,
-      store.salt,
-      store.kdfParams,
-    );
+    if (!store) {
+      return {
+        ok: false,
+        initialized: false,
+        unlocked: false,
+        error: "Es ist noch kein Tresorpasswort eingerichtet.",
+      };
+    }
 
-    if (!safeEqualsHex(verifier, store.passwordVerifier)) {
-      this.unlocked = false;
-      this.destroyActiveDatabaseKey();
-      this.databaseService.close();
+    if (!this.hasVaultManifest()) {
       return {
         ok: false,
         initialized: true,
         unlocked: false,
-        error: "Das Passwort ist nicht korrekt.",
+        error:
+          "Das Sicherheitsmanifest fehlt. Bitte Recovery prüfen oder ein Backup wiederherstellen.",
+      };
+    }
+
+    const verifier = derivePasswordVerifier(password, store.salt, store.kdfParams);
+    if (!safeEqualsHex(verifier, store.passwordVerifier)) {
+      this.unlocked = false;
+      this.destroyActiveDatabaseKey();
+      const delay = this.recordFailedUnlockAttempt();
+      return {
+        ok: false,
+        initialized: true,
+        unlocked: false,
+        error: this.buildUnlockDelayError(delay),
+        ...(delay.remainingSeconds > 0
+          ? {
+              unlockDelaySeconds: delay.remainingSeconds,
+              unlockAvailableAt: new Date(delay.blockedUntilEpochMs).toISOString(),
+            }
+          : {}),
       };
     }
 
     try {
-      this.assertStoreMatchesManifest(store);
       const databaseKey = unwrapDatabaseKey(
         store.databaseKeyWrap,
         password,
         "gremia-sbv-dbkey-password-v1",
       );
       await this.openAndInitializeVaultDatabase(databaseKey);
+      this.destroyActiveDatabaseKey();
       this.databaseKey = databaseKey;
       this.unlocked = true;
+      this.resetUnlockDelay();
       this.auditSecurityEvent("unlock", "Tresor per Passwort entsperrt");
       return { ok: true, initialized: true, unlocked: true };
     } catch (error) {
       this.unlocked = false;
       this.destroyActiveDatabaseKey();
-      this.databaseService.close();
+      const delay = this.recordFailedUnlockAttempt();
       return {
         ok: false,
         initialized: true,
         unlocked: false,
-        error: formatVaultOpenError(error),
+        error: `${formatVaultOpenError(error)}${delay.remainingSeconds > 0 ? ` ${this.buildUnlockDelayError(delay)}` : ""}`,
+        ...(delay.remainingSeconds > 0
+          ? {
+              unlockDelaySeconds: delay.remainingSeconds,
+              unlockAvailableAt: new Date(delay.blockedUntilEpochMs).toISOString(),
+            }
+          : {}),
       };
     }
   }
@@ -695,6 +783,7 @@ export class SecurityService {
       this.touchManifest(now);
       this.databaseKey = databaseKey;
       this.unlocked = true;
+      this.resetUnlockDelay();
       this.auditSecurityEvent("unlock", "Tresor per Recovery-Key entsperrt");
       return { ok: true, initialized: true, unlocked: true };
     } catch (error) {

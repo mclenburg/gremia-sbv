@@ -104,3 +104,25 @@
     display: grid;
   }
 }
+
+.participation-legal-warning {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--industrial-danger-border, rgba(220, 38, 38, 0.45));
+  border-radius: 0.9rem;
+  background: var(--industrial-danger-bg, rgba(127, 29, 29, 0.16));
+  color: var(--industrial-text, inherit);
+}
+
+.participation-legal-warning-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-weight: 700;
+}
+
+.participation-legal-warning p {
+  margin: 0;
+}
