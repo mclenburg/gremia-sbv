@@ -12,7 +12,7 @@ describe('0.8.12-c case note link TypeScript build guard', () => {
 
   it('keeps the native Electron dependency rebuild contract stable', () => {
     const pkg = JSON.parse(readFileSync('package.json', 'utf8'));
-    expect(pkg.version).toBe('0.8.12-c');
+    expect(pkg.version).toMatch(/^0\.8\.12(?:-[a-z])?$/);
     expect(pkg.scripts.postinstall).toBe('electron-builder install-app-deps');
   });
 });

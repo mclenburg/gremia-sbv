@@ -17,7 +17,7 @@ describe("0.8.12-d BEM migration fresh-install guard", () => {
   it("does not relax the native dependency postinstall contract", () => {
     const pkg = JSON.parse(readFileSync("package.json", "utf8"));
 
-    expect(pkg.version).toBe("0.8.12-d");
+    expect(pkg.version).toMatch(/^0\.8\.12(?:-[a-z])?$/);
     expect(pkg.scripts.postinstall).toBe("electron-builder install-app-deps");
   });
 });

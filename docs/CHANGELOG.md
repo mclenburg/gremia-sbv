@@ -1,3 +1,9 @@
+## 0.8.12-e – Hotfix für Hotfix-Versionsguards
+
+- Testguards aus 0.8.12-c und 0.8.12-d pinnen nicht mehr hart auf einen einzelnen Hotfix-Suffix.
+- 0.8.12-Hotfixstände werden über ein gemeinsames Versionsmuster akzeptiert, ohne den Postinstall-Sicherheitsvertrag zu lockern.
+- `postinstall` bleibt exakt `electron-builder install-app-deps`.
+
 # Changelog
 
 ## 0.8.12-d – BEM-Migration-Fresh-Install-Hotfix
