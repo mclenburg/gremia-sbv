@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.12-d – BEM-Migration-Fresh-Install-Hotfix
+
+- `database/migrations/0015_bem_process.sql` enthält wieder explizit die minimale Dummy-Tabelle vor dem Rename, damit frische Installationen und frühe Legacy-Stände den robusten BEM-Migrationstest bestehen.
+- Keine Schema-Erhöhung: Es handelt sich um die Korrektur einer bestehenden Migration im Patchstand, nicht um eine neue Produktmigration.
+- `postinstall` bleibt unverändert auf `electron-builder install-app-deps`.
+
 ## 0.8.12-c – TypeScript-Build-Hotfix für Fallnotizlinks
 
 - Fehlende Typimporte in `services/caseService.ts` ergänzt: `CaseNoteLinkRecord` und `CreateCaseNoteLinkInput` werden nun aus `case-note-link.model` importiert.

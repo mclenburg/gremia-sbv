@@ -72,3 +72,9 @@ CREATE INDEX IF NOT EXISTS idx_bem_processes_response_due_at ON bem_processes(re
 CREATE INDEX IF NOT EXISTS idx_bem_process_contacts_contact_id ON bem_process_contacts(contact_id);
 
 PRAGMA foreign_keys = ON;
+ALTER TABLE bem_processes ADD COLUMN privacy_notice_at TEXT;
+ALTER TABLE bem_processes ADD COLUMN consent_scope TEXT;
+ALTER TABLE bem_processes ADD COLUMN consent_withdrawn_at TEXT;
+ALTER TABLE bem_processes ADD COLUMN data_retention_note TEXT;
+ALTER TABLE bem_processes ADD COLUMN measure_owners TEXT;
+ALTER TABLE bem_processes ADD COLUMN completion_reason TEXT;
