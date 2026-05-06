@@ -1,6 +1,6 @@
 # Roadmap Gremia.SBV
 
-Stand: **0.8.11**  
+Stand: **0.8.11-b**  
 Zielrichtung: stabiler Weg zu `0.9.0-rc.1` ohne neue Nebenideen außerhalb des aktualisierten Entwicklerkonzepts.
 
 ## Aktueller Stand
@@ -58,6 +58,7 @@ Abgeschlossen sind unter anderem:
 ## Historisch abgeschlossen
 
 ### 0.8.11 – `workflowViews.tsx` vollständig entkernen
+- 0.8.11-a – Clean-Code-Hotfix: CasesView in fokussierte Module aufteilen und obsolete Strukturtests bereinigen
 
 - `workflowViews.tsx` ist nur noch Import-/Re-Export-Orchestrierung.
 - Die Fallaktenansicht liegt unter `src/app/features/cases/`.

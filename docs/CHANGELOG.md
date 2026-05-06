@@ -1,5 +1,34 @@
 # Changelog
 
+
+## 0.8.11-d – Build-Ketten-Hotfix
+
+- `prebuild` wieder auf den bestehenden Build-Readiness-Vertrag zurückgesetzt.
+- Vitest-Suite in den normalen `npm run build`-Befehl verschoben, damit Plattformbuilds weiterhin vor der Kompilierung testen.
+- Build-Integrationstest auf die neue Build-Kette angepasst.
+- Obsoleten 0.8.11-c-Build-Integrationstest per Source-Cleanup entfernt, damit `vitest run` nicht gegen historische Erwartungen läuft.
+
+## 0.8.11-c – Build-/Test-Hotfix
+
+- Der normale Build-Lauf führt vor der Kompilierung jetzt die Vitest-Suite aus.
+- Fehlende Props in `CasesViewRender` für Fallregister-Paging und Prozessanlage korrigiert.
+- Build-Integrationsprüfung für die 0.8.11-CasesView-Extraktion ergänzt.
+
+## 0.8.11-b - Build- und Test-Hotfix
+
+- TypeScript-Fehler aus der 0.8.11-a-Aufteilung behoben: fehlende Imports, zu frühe Verwendung der Dokumentaktionen und fehlende Render-Props korrigiert.
+- CaseWorkbench-Regressionstest an die neue Render-Aufteilung angepasst.
+- Verwaiste npm-Testskripte entfernt, die nach Source-Cleanup auf nicht mehr vorhandene historische Strukturtests zeigten.
+- Keine Schemaänderung, keine neue Fachlogik.
+
+## 0.8.11-a - Clean-Code-Hotfix CasesView
+
+- CasesView nach der 0.8.11-Entkernung weiter in fokussierte Feature-Module aufgeteilt.
+- Settings-, Render-, Prozess-, Vorlagen- und CRUD-Aktionen aus dem ehemaligen Monolithen herausgelöst.
+- Historische Tests, die nach der Entkernung weiterhin Implementierungsdetails in `workflowViews.tsx` erwarteten, werden über den Source-Cleanup-Mechanismus entfernt.
+- Versions- und Roadmap-Readiness-Tests an Hotfix-Versionen und die verbindliche Konzeptreihenfolge angepasst.
+
+
 ## 0.8.11
 
 - `workflowViews.tsx` vollständig entkernt; die Datei enthält nur noch Re-Exports.

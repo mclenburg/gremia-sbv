@@ -2,7 +2,7 @@
 
 **Gremia.SBV** ist eine lokale, offline-first Desktop-Anwendung für die vertrauliche Fallarbeit der Schwerbehindertenvertretung (SBV).
 
-Stand: **0.8.11**  
+Stand: **0.8.11-d**  
 Zielrichtung: Vorbereitung auf den ersten Release Candidate `0.9.0-rc.1`.
 
 ## Zweck
@@ -120,6 +120,8 @@ npm run test:review-fixes-0810
 ```bash
 npm run build
 ```
+
+Der normale Build-Lauf führt die Vitest-Suite vor der Kompilierung aus.
 
 Linux-AppImage:
 

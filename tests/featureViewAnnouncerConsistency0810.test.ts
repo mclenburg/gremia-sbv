@@ -15,7 +15,7 @@ describe('0.8.10 feature view announcer consistency', () => {
   });
 
   it('keeps native Electron dependency rebuild tied to npm install without npx auto install wording', () => {
-    expect(pkg.version).toBe('0.8.10');
+    expect(pkg.version).toMatch(/^0\.8\.(10|11)(?:-[a-z0-9.]+)?$/);
     expect(pkg.scripts.postinstall).toBe('electron-builder install-app-deps');
     expect(readme).toContain('electron-builder install-app-deps');
     expect(readme).not.toContain('npx electron-builder install-app-deps');

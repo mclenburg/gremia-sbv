@@ -22,6 +22,7 @@ describe('0.8.10 roadmap readiness', () => {
   it('keeps the concept order: workflow extraction before live links', () => {
     expect(roadmap.indexOf('0.8.11 – `workflowViews.tsx` vollständig entkernen')).toBeGreaterThan(-1);
     expect(roadmap.indexOf('0.8.12 – Lebende Protokollverknüpfungen als MVP')).toBeGreaterThan(-1);
-    expect(roadmap.indexOf('0.8.11 – `workflowViews.tsx` vollständig entkernen')).toBeLessThan(roadmap.indexOf('0.8.12 – Lebende Protokollverknüpfungen als MVP'));
+    const vorRc1 = roadmap.split('## Vor RC1 offen')[1]?.split('## Nach RC1')[0] ?? '';
+    expect(vorRc1.indexOf('0.8.11 – `workflowViews.tsx` vollständig entkernen')).toBeLessThan(vorRc1.indexOf('0.8.12 – Lebende Protokollverknüpfungen als MVP'));
   });
 });

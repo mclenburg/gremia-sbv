@@ -1,0 +1,20 @@
+{
+  "version": "0.8.11-b",
+  "reason": "Build- und Test-Hotfix: historische Strukturtests und alte E2E-Spiegeldateien duerfen nach der workflowViews-Entkernung nicht mehr per Vitest auto-discovery laufen.",
+  "files": [
+    "tests/textCommandTextareas0453.test.ts",
+    "tests/preventionWorkflow0457.test.ts",
+    "tests/inlineCommandFeature0449.test.ts",
+    "tests/inlineCommandHook0454.test.ts",
+    "tests/caseNoteEditorHook0455.test.ts",
+    "tests/caseWorkbenchDataHooks0447.test.ts",
+    "tests/casesHooksServices0446.test.ts",
+    "tests/caseEditorModals0448.test.ts",
+    "tests/templateProcessStatusState.test.ts",
+    "tests/inlineCommandFeature0449b.test.ts",
+    "tests/equalizationTemplates060.test.ts",
+    "tests/processTemplateBuildRegression.test.ts",
+    "tests/inlineCommandProcessModalSignature0449c.test.ts"
+  ],
+  "directories": []
+}
