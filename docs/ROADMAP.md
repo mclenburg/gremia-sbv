@@ -70,3 +70,17 @@ Frühere Planpunkte aus 0.2 und 0.3 sind nicht mehr als offene Checkliste zu fü
 - 0.2 Prozessfundament: historisch abgeschlossen oder in spätere Prozessmodule überführt.
 - 0.3 Fristen und Wiedervorlagen: historisch abgeschlossen oder durch heutige Fristen-/Dashboard-Architektur ersetzt.
 - 0.3.16 Fallnotizen und Volltextsuche: historisch abgeschlossen.
+
+## 0.8.13 - RC-Härtung
+
+0.8.13 ist der letzte Härtungsschritt vor 0.9.0-rc.1. Keine neuen Fachfeatures. Fokus: Build-/Testmatrix, E2E, Barrierefreiheit, Migrations-Smoke, Security-/Datenschutz-Readiness und öffentliche README-Reife.
+
+### RC-blockierende Punkte
+
+- Linux- und Windows-Builds prüfen.
+- E2E-Tests mit isolierten temporären Testdaten ausführen.
+- Responsive-Layout über mehrere Desktop-Auflösungen prüfen.
+- Barrierefreiheit über Tastatur, Rollen, Dialoge und Labels prüfen.
+- README als öffentliche Projektstartseite für SBVen finalisieren.
+- Known Issues und Plattformstatus dokumentieren.
+

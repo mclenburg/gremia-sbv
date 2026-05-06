@@ -51,6 +51,53 @@
     },
   ];
 
+
+  const notes = [
+    {
+      id: 'note-test-0001',
+      caseIds: ['case-test-0001'],
+      caseNumbers: ['TEST-0001'],
+      title: 'Synthetische Notiz mit Aktenbezug',
+      noteDate: '2026-05-05',
+      noteType: 'gespraech',
+      participants: 'SBV, Testperson',
+      content: 'Synthetische Notiz ohne Echtdaten mit internem BEM-Aktenbezug.',
+      nextSteps: 'E2E prüft nur Oberfläche und Labels.',
+      containsHealthData: false,
+      confidentialLevel: 'normal',
+      createdAt: now,
+      updatedAt: now,
+      links: [
+        {
+          id: 'link-test-0001',
+          caseNoteId: 'note-test-0001',
+          caseId: 'case-test-0001',
+          targetType: 'bem',
+          targetId: 'bem-test-0001',
+          label: 'BEM-Testvorgang',
+          accessibleLabel: 'Aktenbezug BEM-Testvorgang öffnen',
+          textStart: 0,
+          textEnd: 4,
+          createdAt: now,
+          isMissingTarget: false,
+        },
+      ],
+    },
+  ];
+
+  const bemProcesses = [
+    {
+      id: 'bem-test-0001',
+      caseId: 'case-test-0001',
+      status: 'angeboten',
+      invitationDate: '2026-05-05',
+      consentStatus: 'offen',
+      title: 'BEM-Testvorgang',
+      createdAt: now,
+      updatedAt: now,
+    },
+  ];
+
   const measures = [
     {
       id: 'measure-test-0001',
@@ -88,7 +135,7 @@
     cases: {
       list: async () => cases,
       create: createRecord,
-      listNotes: emptyList,
+      listNotes: async () => notes,
       listDocuments: emptyList,
       createNote: createRecord,
       deleteNote: async () => ({ deleted: true }),
@@ -108,7 +155,7 @@
     caseMeasures: { list: async () => measures, create: createRecord, update: createRecord },
     knowledge: { listCaseReferences: emptyList, search: emptyList, list: emptyList },
     prevention: { list: emptyList, create: createRecord, update: createRecord },
-    bem: { list: emptyList, create: createRecord, update: createRecord },
+    bem: { list: async () => bemProcesses, create: createRecord, update: createRecord },
     equalization: { list: emptyList, create: createRecord, update: createRecord },
     termination: { list: emptyList, create: createRecord, update: createRecord },
     participation: { list: emptyList, create: createRecord, update: createRecord, warnings: emptyList },

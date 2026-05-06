@@ -1,92 +1,45 @@
-# Build-Prozess
+# Build von Gremia.SBV
 
-Gremia.SBV wird für den RC auf echten Zielsystemen gebaut. Cross-Builds sind nicht die Abnahmegrundlage.
+Stand: 0.8.13-a
 
-## Voraussetzungen
+## Unterstützte RC-Plattformen
 
-- Node.js 20 oder neuer
-- npm 10 oder neuer
-- Netzwerkzugriff auf die konfigurierte npm-Registry
-- Git-Arbeitsverzeichnis ohne alte `node_modules`-Sperren
+Offiziell für den RC geprüft werden:
 
-Unter Windows sollten Terminal, Editor, Virenscanner und Explorer-Fenster, die in `node_modules` stehen, vor einem Neuinstall geschlossen werden. `EPERM`-Meldungen beim npm-Cleanup sind meist Dateisperren. Bei hartnäckigen Fällen:
+- Linux AppImage
+- Windows 10+ als NSIS-/Portable-Build
 
-```powershell
-Remove-Item -Recurse -Force node_modules
-Remove-Item -Force package-lock.json
-npm install
-```
+macOS ist technisch vorbereitet, aber bis zu einem echten macOS-Runner mit Signierung und Notarisierung nur experimentell dokumentiert.
 
-## Gemeinsame Prüfung
+## Native Electron-Abhängigkeiten
 
-```bash
-npm install
-npm run rc:check
-npm run test
-npm run build
-```
-
-## Linux
-
-Auf einem echten Linux-System:
-
-```bash
-npm run build:linux
-```
-
-Erzeugt ein AppImage unter `release/`.
-
-## Windows 10 oder neuer
-
-In PowerShell oder Windows Terminal:
-
-```powershell
-npm run build:win
-```
-
-Die Windows-Paketierung nutzt keine Bash-Skripte mehr. Erwartet werden NSIS-Installer und portable EXE unter `release/`.
-
-### Windows-Build ohne Symlink-Privileg
-
-Der RC-Build erzeugt Windows-Artefakte bewusst ohne `rcedit`-/Code-Sign-Resource-Editing. Deshalb ist in der Electron-Builder-Konfiguration gesetzt:
-
-```json
-"signAndEditExecutable": false
-```
-
-Hintergrund: `electron-builder` lädt für das Windows-Resource-Editing das Paket `winCodeSign`. Dieses Archiv enthält macOS-Symlinks. Auf Windows-Systemen ohne Entwickler-Modus oder Administratorrecht kann das Entpacken mit `Cannot create symbolic link` scheitern. Für den unsignierten RC-Build hat reproduzierbare Buildbarkeit Vorrang vor EXE-Metadaten-/Icon-Resource-Editing.
-
-Wichtig: Das ändert nichts am nativen Dependency-Rebuild. `postinstall` bleibt weiterhin exakt:
+Native Abhängigkeiten müssen zur Electron-Version passen. Der verbindliche npm-Vertrag lautet:
 
 ```json
 "postinstall": "electron-builder install-app-deps"
 ```
 
-## macOS
+Dieser Eintrag darf nicht entfernt, durch `npx` ersetzt oder indirekt versteckt werden. `npm install` muss native Dependencies automatisch passend zur Electron-Version vorbereiten.
 
-Auf einem echten Mac:
-
-```bash
-npm run build:mac
-```
-
-Erzeugt DMG/ZIP unter `release/`. Signierung und Notarisierung sind für den RC noch gesondert zu klären.
-
-## Aktuelle Plattform bauen
+## Standardmatrix
 
 ```bash
-npm run build:current
+npm run rc:check
+npm run test
+npm run build
+npm run build:linux
+npm run build:win
+npm run build:mac # experimentell, nur auf macOS-Host sinnvoll
+npm run build:readiness:strict
 ```
 
-Dieser Befehl erkennt Linux, Windows oder macOS und startet den passenden Plattformbuild.
+## Windows-Build
 
-## E2E-Tests
+Der Windows-RC-Build ist unsigniert und setzt `signAndEditExecutable: false`, damit normale Windows-Entwicklungsumgebungen ohne Symlink-Privilegien nicht an `winCodeSign` scheitern. Der typische Fehler lautet `Cannot create symbolic link`, wenn das Electron-Builder-Hilfspaket `winCodeSign` Symlinks entpacken will. Ein späterer signierter Release benötigt eine dafür vorbereitete Windows-Buildumgebung.
 
-Playwright ist optional und nicht Teil der normalen Installation. Für E2E-Tests:
+## Build-Regeln
 
-```bash
-npm run test:e2e:setup
-npm run test:e2e
-```
-
-Die E2E-Tests verwenden ein eigenes temporäres Datenverzeichnis und dürfen niemals produktive SBV-Daten öffnen.
+- Keine produktiven Datenbanken im Build.
+- Keine `node_modules` oder `release`-Artefakte in Patch-ZIPs.
+- Tests sind Teil des normalen Build-Laufs.
+- `prebuild` bleibt der Build-Readiness-Vertrag: Version generieren, Source-Cleanup, Build-Readiness.

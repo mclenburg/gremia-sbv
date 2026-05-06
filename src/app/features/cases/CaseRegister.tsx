@@ -57,7 +57,7 @@ export function CaseRegister({
           </thead>
           <tbody>
             {visibleCases.map((record) => (
-              <tr key={record.id} className={record.id === selectedCaseId ? 'selected' : ''} onClick={() => onSelectCase(record.id)}>
+              <tr key={record.id} data-e2e={`case-row-${record.caseNumber}`} className={record.id === selectedCaseId ? 'selected' : ''} onClick={() => onSelectCase(record.id)}>
                 <td><strong>{record.caseNumber}</strong></td>
                 <td>{record.displayName}</td>
                 <td>{record.category as CaseCategory}</td>

@@ -86,6 +86,7 @@ export function TextCommandHelpModal() {
       <section
         ref={dialogRef}
         className="industrial-modal text-command-help-modal"
+        data-e2e="inline-help-dialog"
         role="dialog"
         aria-modal="true"
         aria-labelledby="text-command-help-title"

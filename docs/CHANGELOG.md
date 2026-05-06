@@ -1,5 +1,12 @@
 ## 0.8.12-j – Windows-Build ohne Symlink-Privileg
 
+## 0.8.13-a
+
+- RC-Readiness-Tests an die tatsächlichen Konstantennamen und dynamischen E2E-IDs angepasst.
+- BUILD-Dokumentation ergänzt: experimenteller macOS-Buildbefehl und Windows-`winCodeSign`-/Symlink-Hinweis.
+- Security-/Privacy-Readiness prüft technische Verträge statt redaktioneller Testphrasen.
+
+
 - Windows-RC-Build deaktiviert `signAndEditExecutable`, damit unsignierte Windows-Artefakte ohne `winCodeSign`-Symlink-Extraktion gebaut werden können.
 - Hintergrund: Auf Windows-Systemen ohne Entwickler-Modus oder Administratorrecht scheitert `winCodeSign-2.6.0.7z` beim Entpacken der enthaltenen macOS-Symlinks.
 - Trade-off: EXE-Resource-Editing wie Datei-Metadaten/Icon am Executable wird für den unsignierten RC-Build nicht durchgeführt; NSIS/Portable-Artefakte bleiben buildbar.
@@ -181,3 +188,14 @@
 ## 0.8.4
 
 - Versionen, Schema, PDF-Erzeugung, Audit-Hash-Chain, Auto-Lock, temporäre Dateien und IPC-Validierung stabilisiert.
+
+## 0.8.13 - RC-Härtung
+
+- Root-README als öffentliche Projektstartseite für Schwerbehindertenvertretungen optimiert.
+- RC-Build-/Testmatrix für Linux und Windows dokumentiert.
+- E2E-Responsive-Test für mehrere Desktop-Auflösungen ergänzt.
+- E2E-Barrierefreiheitstest für Tastatur, Dialoge und fachliche Labels ergänzt.
+- Plattformstabilitäts-, Accessibility-, Security-/Privacy-, Migrations- und README-Readiness-Tests ergänzt.
+- RC-kritische data-e2e-Selektoren stabilisiert.
+- Native-Dependency-Vertrag `postinstall: electron-builder install-app-deps` bleibt blockierend abgesichert.
+

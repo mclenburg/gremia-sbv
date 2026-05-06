@@ -1,31 +1,40 @@
-# E2E-Smoke-Tests
+# E2E-Tests
 
-Gremia.SBV nutzt optionale Playwright-Smoke-Tests für RC-nahe UI-Prüfungen.
+Stand: 0.8.13
 
-## Datenbankschutz
+## Zweck
 
-Der E2E-Runner erzeugt bei jedem Lauf ein eigenes temporäres Verzeichnis und setzt:
+Die E2E-Tests prüfen RC-kritische Nutzerflüsse mit synthetischen Daten. Sie dürfen niemals produktive SBV-Datenbanken öffnen oder verändern.
 
-```bash
-GREMIA_SBV_E2E=1
-GREMIA_SBV_E2E_DATA_DIR=/tmp/gremia-sbv-e2e-...
-GREMIA_SBV_DATA_DIR=/tmp/gremia-sbv-e2e-...
-```
+## Isolation
 
-Der Test bricht ab, wenn das Datenverzeichnis nicht eindeutig als temporäre E2E-Umgebung erkannt wird.
+Der E2E-Runner setzt:
 
-## Installation
+- `GREMIA_SBV_E2E=1`
+- `GREMIA_SBV_E2E_DATA_DIR`
+- `GREMIA_SBV_DATA_DIR`
 
-Playwright ist optional und wird nicht durch den normalen Build erzwungen.
+Das Datenverzeichnis muss unter dem System-Temp liegen und `gremia-sbv-e2e-` enthalten. Andernfalls bricht der Runner ab.
+
+## Ausführung
 
 ```bash
 npm run test:e2e:setup
 npm run test:e2e
 ```
 
-## Stabilitätsregeln
+## RC-kritische Selektoren
 
-- Tests dürfen keine historische Versionsnummer hart verdrahten.
-- Navigation wird auf die echte Sidebar/Navigation begrenzt.
-- Theme-Tests setzen den isolierten `localStorage` direkt und prüfen danach die real gerenderte Oberfläche.
-- Testdaten sind synthetisch und nicht personenbezogen.
+- `data-e2e="main-nav-cases"`
+- `data-e2e="main-nav-compliance"`
+- `data-e2e="case-row-TEST-0001"`
+- `data-e2e="inline-help-dialog"`
+- `data-e2e="note-entity-link"`
+
+## Responsive-Layout
+
+`e2e/responsive-layout.spec.ts` prüft mehrere Desktop-Auflösungen auf horizontale Überläufe, sichtbare Hauptnavigation, Fallaktenliste, Compliance-Ansicht und stabile Dialogdarstellung.
+
+## Barrierefreiheit
+
+`e2e/accessibility.spec.ts` prüft Tastaturflüsse, Dialoge, Rollen, Fokusführung und fachliche Labels ohne technische UUIDs.

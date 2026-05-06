@@ -45,3 +45,22 @@ npm run test:release-candidate-088e
 ## RC-Regel
 
 Nach `0.9.0-rc.1` werden keine neuen Fachfunktionen mehr aufgenommen. Zulässig sind nur Fehlerkorrekturen, Sicherheitskorrekturen, Buildfixes, Doku-Korrekturen und kleine UI-Korrekturen ohne neue Fachlogik.
+
+## RC-Härtung 0.8.13
+
+Vor 0.9.0-rc.1 müssen zusätzlich geprüft werden:
+
+- [ ] `npm run rc:check`
+- [ ] `npm run test`
+- [ ] `npm run build`
+- [ ] `npm run build:linux`
+- [ ] `npm run build:win`
+- [ ] `npm run build:readiness:strict`
+- [ ] `npm run test:e2e` mit isoliertem Testdatenverzeichnis
+- [ ] Responsive-E2E ohne horizontale Überläufe oder überlagerte Hauptaktionen
+- [ ] Barrierefreiheits-E2E für Tastatur, Dialoge, Rollen und Link-Labels
+- [ ] Migration-Smoke mit synthetischen Legacy-Daten
+- [ ] Security-/Datenschutz-Readiness
+- [ ] README als öffentliche SBV-Projektstartseite geprüft
+- [ ] `postinstall` exakt `electron-builder install-app-deps`
+

@@ -141,3 +141,16 @@ Für Amtsende oder Vertretungsfälle braucht die Anwendung später einen gesonde
 - Schlüsselverwaltung im RAM
 - sichere Löschbarkeit auf SSDs realistisch bewerten
 - Signierung von Releases
+
+## RC-Readiness 0.8.13
+
+Für den RC wird Security nicht als nachgelagerte Dokumentation behandelt, sondern als Build- und Testvertrag:
+
+- Vault- und Backup-KDF müssen geprüft bleiben.
+- Unlock-Delay darf keinen permanenten Lockout erzeugen.
+- Fehlversuchszähler dürfen nicht persistiert werden.
+- Audit-Logs dürfen keine sensiblen Freitexte aufnehmen.
+- Exporte sollen fachliche Labels statt unnötiger technischer UUIDs nutzen.
+- E2E-Tests müssen ausschließlich isolierte temporäre Datenverzeichnisse verwenden.
+- Native Electron-Abhängigkeiten werden über `postinstall: electron-builder install-app-deps` passend zur Electron-Version vorbereitet.
+

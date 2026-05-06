@@ -1,186 +1,133 @@
-# Gremia.SBV
+# Gremia.SBV – lokale Software für Schwerbehindertenvertretungen
 
-**Gremia.SBV** ist eine lokale, offline-first Desktop-Anwendung für die vertrauliche Fallarbeit der Schwerbehindertenvertretung (SBV).
+**Gremia.SBV** ist eine lokale, offline-first Desktop-App für Schwerbehindertenvertretungen in Deutschland. Sie unterstützt vertrauliche SBV-Fallarbeit rund um BEM, Präventionsverfahren nach § 167 SGB IX, SBV-Beteiligung nach § 178 SGB IX, Kündigungsanhörungen, Gleichstellung/GdB, Arbeitsplatzanpassung, Fristen, Dokumentation und Tätigkeitsberichte – ohne Cloud, ohne Telemetrie und ohne HR-Zugriff.
 
-Stand: **0.8.12-j**  
-Zielrichtung: Vorbereitung auf den ersten Release Candidate `0.9.0-rc.1`.
+Stand: **0.8.13-a**  
+Zielrichtung: RC-Härtung vor dem ersten Release Candidate `0.9.0-rc.1`.
 
-## Zweck
+## Kurzüberblick
 
-Gremia.SBV unterstützt die SBV bei personenbezogener, besonders vertraulicher Fallarbeit. Die App bündelt Fallakten, Maßnahmen, Fristen, Dokumente, Vorlagen, Berichte und Compliance-Prüfpunkte in einem lokalen Tresor.
+Gremia.SBV ist eine **SBV Software** für die besonders vertrauliche Fallarbeit der Schwerbehindertenvertretung. Die Anwendung bündelt Fallakten, Gesprächsnotizen, Live-Protokolle, Maßnahmen, Fristen, Dokumente, Vorlagen, Datenschutzdokumente und Berichte in einem lokalen Arbeitsbereich.
 
-Die zentrale Produktregel lautet:
+Die Produktregel lautet:
 
 > Die Fallakte führt. Maßnahmen schreiben fort. Cockpits überwachen. Inlinebefehle beschleunigen. Berichte werten aus.
 
-## Kernfunktionen
+## Was Gremia.SBV besonders macht
+
+- **SBV-first:** entwickelt für die vertrauliche Arbeit der Schwerbehindertenvertretung, nicht als HR-Kontrollsystem.
+- **Offline-first:** lokale Desktop-App ohne Cloud-Synchronisation, ohne Telemetrie und ohne externe Datenübertragung.
+- **Prozessnah:** BEM, Prävention, Beteiligung, Kündigungsanhörung, Gleichstellung/GdB, Arbeitsplatzanpassung und Fristen bleiben in einer Fallakte nachvollziehbar verbunden.
+- **Lebende Arbeitschronik:** Notizen, Maßnahmen, Fristen und interne Aktenbezüge bilden eine nachvollziehbare Arbeitschronik statt einer losen Dateiablage.
+- **Datenschutzbewusst:** lokale Verschlüsselung, sparsame Audit-Metadaten, kontrollierte Backups und exportfreundliche Berichte ohne unnötige technische IDs.
+- **Menschliche Verantwortung bleibt erhalten:** Die App unterstützt Dokumentation und Nachvollziehbarkeit, ersetzt aber keine rechtliche Bewertung, keine Datenschutzfreigabe und keine organisatorische Entscheidung.
+
+## Für wen ist Gremia.SBV gedacht?
+
+Gremia.SBV richtet sich an gewählte Vertrauenspersonen der schwerbehinderten Menschen, stellvertretende Mitglieder und kleine SBV-Teams, die eine lokale Software für Schwerbehindertenvertretungen suchen und besonders sensible personenbezogene Daten datenschutzbewusst strukturieren möchten.
+
+Typische Einsatzfelder:
+
+- BEM Dokumentation und Maßnahmenverfolgung,
+- Präventionsverfahren nach § 167 SGB IX,
+- Beteiligung der SBV nach § 178 SGB IX,
+- Kündigungsanhörungen schwerbehinderter oder gleichgestellter Menschen,
+- Gleichstellung/GdB-Verfahren,
+- behinderungsgerechte Arbeitsplatzgestaltung,
+- Fristen, Wiedervorlagen und Tätigkeitsberichte.
+
+## Datenschutz: lokal statt Cloud
+
+Gremia.SBV verarbeitet besonders sensible personenbezogene Daten. Deshalb ist die Anwendung konsequent offline-first konzipiert:
+
+- keine Cloud-Synchronisation,
+- keine Telemetrie,
+- keine Mehrbenutzer- oder Serverfunktion,
+- lokale verschlüsselte Datenhaltung,
+- kontrollierte Backups,
+- sparsame Audit-Metadaten,
+- keine Übertragung an externe Dienste.
+
+Die App ersetzt keine organisatorische Datenschutzfreigabe. Vor produktiver Nutzung sind insbesondere Datenschutzbeauftragte, IT-Security und die verantwortliche Stelle einzubeziehen.
+
+## Unterstützte SBV-Prozesse
 
 - Fallakten für vertrauliche SBV-Vorgänge
-- Maßnahmen innerhalb der Fallakte, unter anderem:
-  - BEM
-  - Prävention
-  - SBV-Beteiligung
-  - Kündigungsanhörung
-  - Gleichstellung / GdB
-  - Arbeitsplatzgestaltung
+- Live-Protokolle und Gesprächsnotizen mit internen Aktenbezügen
+- BEM, Prävention, SBV-Beteiligung, Kündigungsanhörung, Gleichstellung/GdB und Arbeitsplatzgestaltung
 - Fristen und Wiedervorlagen
 - Dokumentenimport in den lokalen Tresor
 - Vorlagen und strukturierte Schreiben
-- Inline-Kurzbefehle für Live-Protokolle
 - Berichte und System-/Integritätsberichte
 - Compliance-Dokumente wie TOMs, VVT, DSFA-Entwurf und Release-Checkliste
 - lokales Audit-Log mit Hash-Chain
 - Auto-Lock und Sicherheitsstatus
 
-## Datenschutz und Sicherheitsmodell
+## Grenzen der Software
 
-Gremia.SBV ist bewusst **offline-first** gebaut:
+Gremia.SBV ist ein Arbeitswerkzeug für die SBV. Die Anwendung bietet keine Rechtsberatung und trifft keine menschlichen oder organisatorischen Freigabeentscheidungen. Sie bewertet technische Zustände, unterstützt Dokumentation und macht Vorgänge nachvollziehbar – die rechtliche Bewertung und Interessenvertretungsentscheidung bleiben bei den zuständigen Menschen.
 
-- keine Cloud-Synchronisation,
-- keine Telemetrie,
-- keine automatische externe Schnittstelle,
-- lokale verschlüsselte Datenhaltung,
-- Auditierung von Zugriffen und Änderungen,
-- temporäre Arbeitskopien werden kontrolliert,
-- Berichte werden lokal erzeugt.
+## Installation und Build
 
-Die App ersetzt keine organisatorische Datenschutzfreigabe. Vor produktiver Nutzung sind insbesondere DSB, IT-Security und die verantwortliche Stelle einzubeziehen.
+Voraussetzungen:
 
-Wichtige Dokumente:
+- Node.js in der vom Projekt verwendeten LTS-Version,
+- npm,
+- native Build-Abhängigkeiten für Electron/SQLite,
+- Linux-Desktop für AppImage-Builds,
+- Windows 10+ für Windows-Builds.
 
-- `docs/SECURITY.md`
-- `docs/DATENSCHUTZKONZEPT.md`
-- `docs/DSGVO_SBV.md`
-- `docs/DSFA_SBV_TEMPLATE.md`
-- `docs/VERARBEITUNGSVERZEICHNIS_SBV.md`
-- `docs/LOESCHKONZEPT_SBV.md`
-
-## Architekturüberblick
-
-Die Anwendung besteht aus:
-
-- React/Vite-Renderer unter `src/app/`
-- Electron Main/Preload unter `electron/`
-- Services unter `services/`
-- Datenbankschema und Migrationen unter `database/`
-- Build- und Wartungsskripten unter `scripts/`
-- Tests unter `tests/`
-- Projektdokumentation unter `docs/`
-
-Weitere Details stehen in:
-
-- `docs/README.md`
-- `docs/ARCHITECTURE.md`
-- `docs/DEVELOPMENT.md`
-- `docs/RELEASE_CHECKLIST.md`
-
-## Voraussetzungen
-
-- Node.js in der vom Projekt verwendeten LTS-Version
-- npm
-- Linux-Desktop für den AppImage-Build
-- native Build-Abhängigkeiten für Electron/SQLite, siehe `docs/NATIVE_SQLCIPHER_DEPENDENCY.md`
-
-Nach `npm install` wird automatisch ausgeführt:
-
-```bash
-electron-builder install-app-deps
-```
-
-Das ist in `package.json` als `postinstall` hinterlegt.
-
-## Entwicklung
+Nach `npm install` werden native Electron-Abhängigkeiten automatisch passend zur Electron-Version gebaut:
 
 ```bash
 npm install
+```
+
+Der dafür verbindliche Vertrag in `package.json` lautet:
+
+```json
+"postinstall": "electron-builder install-app-deps"
+```
+
+Entwicklung:
+
+```bash
 npm run dev
 ```
 
-Der Entwicklungsmodus startet Renderer und Electron gemeinsam.
-
-## Tests
-
-```bash
-npm run test
-```
-
-Vor dem Testlauf werden Versionen erzeugt und obsolete Source-Dateien bereinigt.
-
-Gezielte Testgruppen:
-
-```bash
-npm run test:privacy
-npm run test:migrations
-npm run test:backup
-npm run test:review-fixes-0810
-```
-
-## Build
+Build:
 
 ```bash
 npm run build
-```
-
-Der normale Build-Lauf führt die Vitest-Suite vor der Kompilierung aus.
-
-Linux-AppImage:
-
-```bash
 npm run build:linux
+npm run build:win
 ```
 
-Vor dem Build laufen:
-
-1. Versionsgenerierung,
-2. Source-Cleanup,
-3. Build-Readiness-Check.
-
-## Source-Cleanup
-
-Obsolete Dateien werden über explizite Manifeste unter `maintenance/source-cleanup/` entfernt.
+## Tests und Qualitätssicherung
 
 ```bash
-npm run source:cleanup
-npm run source:cleanup:dry-run
-```
-
-Der Cleanup akzeptiert nur explizite relative Pfade in bekannten Projektbereichen. Keine Wildcards, keine absoluten Pfade und kein Zugriff außerhalb des Projekt-Roots.
-
-## Release-Vorbereitung
-
-Vor dem ersten RC müssen mindestens erfolgreich sein:
-
-```bash
-npm ci
+npm run test
 npm run rc:check
-npm run test
-npm run build
-npm run build:linux
+npm run build:readiness:strict
 ```
 
-Der RC-Check prüft die statische Release-Verkabelung, die Dokumentationsstruktur, Versionskonsistenz und obsolete Testskriptverweise. Zusätzlich sind manuell zu prüfen:
+E2E-Tests laufen ausschließlich mit isolierten temporären Testdaten:
 
-- frische Tresor-/Datenbankanlage,
-- Migration einer bestehenden Datenbank,
-- Backup und Restore,
-- Audit-Hash-Chain und Manipulationserkennung,
-- Report- und PDF-Erzeugung,
-- temporäre Dateien,
-- Auto-Lock,
-- Inlinebefehle in Fallaktenprotokollen,
-- responsive UI.
+```bash
+npm run test:e2e:setup
+npm run test:e2e
+```
 
-Siehe `docs/RELEASE_CHECKLIST.md`.
+## Dokumentation
 
-## Projektstatus
+- `docs/BUILD.md`
+- `docs/E2E_TESTS.md`
+- `docs/RELEASE_CHECKLIST.md`
+- `docs/SECURITY.md`
+- `docs/ROADMAP.md`
+- `docs/KNOWN_ISSUES.md`
+- `docs/CHANGELOG.md`
 
-Gremia.SBV befindet sich in der späten Vorbereitungsphase vor `0.9.0-rc.1`. Bis zum RC sollen keine neuen großen Fachmodule ergänzt werden. Fokus ist jetzt Stabilisierung, Dokumentation, Testhärtung, Migration und UI-Polish.
+## Release-Status
 
-## Grenzen
-
-Gremia.SBV ist ein Arbeitswerkzeug für die SBV. Die App ersetzt keine Rechtsberatung, keine Datenschutzfreigabe und keine fachliche Prüfung durch SBV, DSB, IT-Security oder anwaltliche Beratung.
-
-
-### Hinweis zum Windows-RC-Build
-
-Windows-Artefakte werden für den unsignierten RC-Build ohne `signAndEditExecutable` erzeugt. Das verhindert, dass `electron-builder` beim Resource-Editing das `winCodeSign`-Archiv entpacken muss, das auf nicht privilegierten Windows-Systemen an Symlinks scheitern kann. Native Abhängigkeiten bleiben davon unberührt; nach `npm install` läuft weiterhin `electron-builder install-app-deps`.
+Gremia.SBV befindet sich in der RC-Härtung vor `0.9.0-rc.1`. Bis zum Release Candidate stehen Stabilisierung, Migration, E2E, Barrierefreiheit, Datenschutz-/Security-Readiness und Dokumentationsreife im Vordergrund.
