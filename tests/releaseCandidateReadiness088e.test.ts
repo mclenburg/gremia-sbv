@@ -6,9 +6,8 @@ const pkg = JSON.parse(readFileSync('package.json', 'utf8')) as { version: strin
 const read = (file: string) => readFileSync(file, 'utf8');
 
 describe('0.8.8-e RC readiness', () => {
-  it('keeps the project README aligned with the current version and RC workflow', () => {
+  it('keeps the project README aligned with the RC workflow', () => {
     const readme = read('README.md');
-    expect(readme).toContain(`Stand: **${pkg.version}**`);
     expect(readme).toContain('npm run rc:check');
     expect(readme).toContain('npm run build:linux');
     expect(readme).toContain('docs/RELEASE_CHECKLIST.md');

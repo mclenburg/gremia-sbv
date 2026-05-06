@@ -8,9 +8,8 @@ const packageJson = JSON.parse(readFileSync('package.json', 'utf8')) as {
 const renderSource = readFileSync('src/app/features/cases/CasesViewRender.tsx', 'utf8');
 const casesViewSource = readFileSync('src/app/features/cases/CasesView.tsx', 'utf8');
 
-describe('0.8.11-d build integration hardening', () => {
+describe('build integration hardening', () => {
   it('keeps prebuild compatible with the readiness guard and runs Vitest inside the normal build command', () => {
-    expect(packageJson.version).toMatch(/^0\.8\.(11|12)(?:-[a-z0-9.]+)?$/);
     expect(packageJson.scripts.prebuild).toBe('npm run version:generate && npm run source:cleanup && npm run build:readiness');
     expect(packageJson.scripts.build).toContain('npm run test && tsc -p tsconfig.json');
   });

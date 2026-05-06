@@ -19,8 +19,8 @@ const trackedFiles = [
   'src/app/features/cases/ContextualTemplateButton.tsx',
 ];
 
-describe('0.8.11-a CasesView clean-code repair', () => {
-  it('keeps the extracted 0.8.11-a case modules below the 500 line review limit', () => {
+describe('CasesView clean-code repair', () => {
+  it('keeps the extracted case modules below the 500 line review limit', () => {
     const oversized = trackedFiles
       .map((file) => ({ file, lines: readFileSync(file, 'utf8').split('\n').length }))
       .filter((entry) => entry.lines > 500);

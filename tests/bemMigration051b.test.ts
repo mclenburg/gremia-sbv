@@ -1,9 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
+import { indexOfPattern, readNormalizedSourceText } from "./helpers/sourceText";
 
-describe("0.5.1b robust BEM migration", () => {
+function readMigrationSql() {
+  return readNormalizedSourceText("database/migrations/0015_bem_process.sql");
+}
+
+const minimalBemProcessTablePattern = /CREATE TABLE IF NOT EXISTS bem_processes\s*\(\s*id TEXT PRIMARY KEY,\s*case_id TEXT\s*\);/m;
+
+describe("robust BEM migration", () => {
   it("does not read unknown legacy columns from early bem_processes tables", () => {
-    const sql = readFileSync("database/migrations/0015_bem_process.sql", "utf8");
+    const sql = readMigrationSql();
 
     expect(sql).toContain("bem_processes_legacy_0500");
     expect(sql).toContain("CREATE TABLE IF NOT EXISTS bem_processes");
@@ -15,9 +21,9 @@ describe("0.5.1b robust BEM migration", () => {
   });
 
   it("is fresh-install safe by creating a minimal table before rename", () => {
-    const sql = readFileSync("database/migrations/0015_bem_process.sql", "utf8");
+    const sql = readMigrationSql();
 
-    const dummyTable = sql.indexOf("CREATE TABLE IF NOT EXISTS bem_processes (\n  id TEXT PRIMARY KEY,\n  case_id TEXT\n);");
+    const dummyTable = indexOfPattern(sql, minimalBemProcessTablePattern);
     const rename = sql.indexOf("ALTER TABLE bem_processes RENAME TO bem_processes_legacy_0500;");
     const realTable = sql.lastIndexOf("CREATE TABLE IF NOT EXISTS bem_processes (");
 

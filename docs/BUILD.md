@@ -46,6 +46,22 @@ npm run build:win
 
 Die Windows-Paketierung nutzt keine Bash-Skripte mehr. Erwartet werden NSIS-Installer und portable EXE unter `release/`.
 
+### Windows-Build ohne Symlink-Privileg
+
+Der RC-Build erzeugt Windows-Artefakte bewusst ohne `rcedit`-/Code-Sign-Resource-Editing. Deshalb ist in der Electron-Builder-Konfiguration gesetzt:
+
+```json
+"signAndEditExecutable": false
+```
+
+Hintergrund: `electron-builder` lädt für das Windows-Resource-Editing das Paket `winCodeSign`. Dieses Archiv enthält macOS-Symlinks. Auf Windows-Systemen ohne Entwickler-Modus oder Administratorrecht kann das Entpacken mit `Cannot create symbolic link` scheitern. Für den unsignierten RC-Build hat reproduzierbare Buildbarkeit Vorrang vor EXE-Metadaten-/Icon-Resource-Editing.
+
+Wichtig: Das ändert nichts am nativen Dependency-Rebuild. `postinstall` bleibt weiterhin exakt:
+
+```json
+"postinstall": "electron-builder install-app-deps"
+```
+
 ## macOS
 
 Auf einem echten Mac:

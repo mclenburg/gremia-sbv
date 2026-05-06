@@ -1,21 +1,20 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-describe("0.8.12-e hotfix version guards", () => {
-  it("does not pin earlier 0.8.12 hotfix tests to one exact patch suffix", () => {
-    const typeImportGuard = readFileSync("tests/caseNoteLinkTypeImports0812c.test.ts", "utf8");
-    const bemMigrationGuard = readFileSync("tests/bemMigrationFreshInstall0812d.test.ts", "utf8");
+describe("hotfix-safe test guards", () => {
+  it("checks technical contracts instead of concrete package versions", () => {
+    const guardSource = readFileSync("tests/noPackageVersionPinning0812f.test.ts", "utf8");
 
-    expect(typeImportGuard).toContain("0\\.8\\.12");
-    expect(bemMigrationGuard).toContain("0\\.8\\.12");
-    expect(typeImportGuard).not.toContain("toBe('0.8.12-c')");
-    expect(bemMigrationGuard).not.toContain('toBe("0.8.12-d")');
+    expect(guardSource).toContain("does not use the package version as a stable product contract");
+    expect(guardSource).toContain("isVersionAssertion");
+    expect(guardSource).not.toContain("0.8.12-");
+    expect(guardSource).not.toContain("0.8.13");
+    expect(guardSource).not.toContain("0.9.0");
   });
 
   it("keeps the native Electron dependency rebuild contract stable", () => {
-    const pkg = JSON.parse(readFileSync("package.json", "utf8"));
+    const project = JSON.parse(readFileSync("package.json", "utf8"));
 
-    expect(pkg.version).toBe("0.8.12-e");
-    expect(pkg.scripts.postinstall).toBe("electron-builder install-app-deps");
+    expect(project.scripts.postinstall).toBe("electron-builder install-app-deps");
   });
 });

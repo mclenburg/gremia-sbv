@@ -2,7 +2,7 @@
 
 **Gremia.SBV** ist eine lokale, offline-first Desktop-Anwendung für die vertrauliche Fallarbeit der Schwerbehindertenvertretung (SBV).
 
-Stand: **0.8.12-e**  
+Stand: **0.8.12-j**  
 Zielrichtung: Vorbereitung auf den ersten Release Candidate `0.9.0-rc.1`.
 
 ## Zweck
@@ -179,3 +179,8 @@ Gremia.SBV befindet sich in der späten Vorbereitungsphase vor `0.9.0-rc.1`. Bis
 ## Grenzen
 
 Gremia.SBV ist ein Arbeitswerkzeug für die SBV. Die App ersetzt keine Rechtsberatung, keine Datenschutzfreigabe und keine fachliche Prüfung durch SBV, DSB, IT-Security oder anwaltliche Beratung.
+
+
+### Hinweis zum Windows-RC-Build
+
+Windows-Artefakte werden für den unsignierten RC-Build ohne `signAndEditExecutable` erzeugt. Das verhindert, dass `electron-builder` beim Resource-Editing das `winCodeSign`-Archiv entpacken muss, das auf nicht privilegierten Windows-Systemen an Symlinks scheitern kann. Native Abhängigkeiten bleiben davon unberührt; nach `npm install` läuft weiterhin `electron-builder install-app-deps`.

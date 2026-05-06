@@ -1,4 +1,40 @@
+## 0.8.12-j – Windows-Build ohne Symlink-Privileg
+
+- Windows-RC-Build deaktiviert `signAndEditExecutable`, damit unsignierte Windows-Artefakte ohne `winCodeSign`-Symlink-Extraktion gebaut werden können.
+- Hintergrund: Auf Windows-Systemen ohne Entwickler-Modus oder Administratorrecht scheitert `winCodeSign-2.6.0.7z` beim Entpacken der enthaltenen macOS-Symlinks.
+- Trade-off: EXE-Resource-Editing wie Datei-Metadaten/Icon am Executable wird für den unsignierten RC-Build nicht durchgeführt; NSIS/Portable-Artefakte bleiben buildbar.
+- Native Dependency-Vertrag bleibt unverändert: `postinstall` ist exakt `electron-builder install-app-deps`.
+
+## 0.8.12-i – Plattform- und versionsstabile Testguards
+
+- BEM-Migrationstests verwenden jetzt eine gemeinsame Source-Text-Normalisierung und whitespace-tolerante SQL-Muster statt zeilenendensensitiver Snippets.
+- Versionsnummern werden in Tests nicht mehr als stabiler Produktvertrag behandelt; erlaubt bleibt nur Konsistenzprüfung wie generierte Version gegen package.json.
+- Source-Text-Guard erkennt nun auch unvollständige CRLF-Normalisierung und setzt auf `normalizeSourceText`.
+- `postinstall` bleibt unverändert: `electron-builder install-app-deps`.
+
+## 0.8.12-h – Testversionslabels entkoppelt
+
+- Verbleibenden Testfehler aus `hotfixVersionGuards0812e.test.ts` behoben.
+- Hotfix- und Build-Guard-Tests beschreiben jetzt technische Verträge ohne konkrete Versionslabels in `describe(...)`.
+- Der Guard prüft weiterhin, dass relevante Tests nicht wieder an konkrete Hotfix-Versionen gekoppelt werden.
+- Keine Schemaänderung.
+
+## 0.8.12-g – Plattformunabhängige Tests
+
+- Hotfix: BEM-Migrationstests normalisieren CRLF/LF-Zeilenenden, damit Windows-Checkouts mit `core.autocrlf` nicht scheitern.
+- Neuer Guard verhindert zeilenendensensitive `indexOf`/`lastIndexOf`/`toContain`-Assertions auf mehrzeilige Source-Needles in Tests.
+- Postinstall-Vertrag bleibt unverändert: `electron-builder install-app-deps`.
+
 ## 0.8.12-e – Hotfix für Hotfix-Versionsguards
+
+## 0.8.12-f
+
+- Keine Tests mehr auf konkrete `package.json`-Versionsnummern; geprüft werden nur noch technische Verträge.
+
+- Hotfix: Versionsnummern werden in Tests nicht mehr als fachlicher Vertrag geprüft.
+- Postinstall-Vertrag bleibt weiterhin direkt abgesichert: `electron-builder install-app-deps`.
+- Obsolete Tests mit hart gepinnten historischen Hotfix-Versionen werden über den Source-Cleanup entfernt.
+
 
 - Testguards aus 0.8.12-c und 0.8.12-d pinnen nicht mehr hart auf einen einzelnen Hotfix-Suffix.
 - 0.8.12-Hotfixstände werden über ein gemeinsames Versionsmuster akzeptiert, ohne den Postinstall-Sicherheitsvertrag zu lockern.

@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { describe, expect, it } from 'vitest';
 
-describe('0.8.12-a Windows source cleanup path handling', () => {
+describe('Windows source cleanup path handling', () => {
   it('accepts Windows-style manifest paths in known project areas', () => {
     const targetPath = 'tests/source-cleanup-windows-path-0812a.tmp';
     const manifestDir = mkdtempSync(join(tmpdir(), 'gremia-sbv-cleanup-'));
@@ -13,7 +13,7 @@ describe('0.8.12-a Windows source cleanup path handling', () => {
     writeFileSync(targetPath, 'temporary cleanup guard file', 'utf8');
     writeFileSync(
       manifestPath,
-      JSON.stringify({ version: '0.8.12-a', files: ['tests\\source-cleanup-windows-path-0812a.tmp'] }),
+      JSON.stringify({ version: 'cleanup-fixture', files: ['tests\\source-cleanup-windows-path-0812a.tmp'] }),
       'utf8',
     );
 
