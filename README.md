@@ -2,7 +2,7 @@
 
 **Gremia.SBV** ist eine lokale, offline-first Desktop-Anwendung für die vertrauliche Fallarbeit der Schwerbehindertenvertretung (SBV).
 
-Stand: **0.8.11-d**  
+Stand: **0.8.12-c**  
 Zielrichtung: Vorbereitung auf den ersten Release Candidate `0.9.0-rc.1`.
 
 ## Zweck

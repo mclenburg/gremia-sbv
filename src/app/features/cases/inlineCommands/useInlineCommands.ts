@@ -15,6 +15,7 @@ import type {
   CreateDeadlineInput,
   DeadlineSeverity,
 } from "../../../core/models/deadline.model";
+import type { CreateCaseNoteLinkInput } from "../../../core/models/case-note-link.model";
 import {
   findFirstTextCommand,
   formatAnonymizationMarkerText,
@@ -299,6 +300,7 @@ export function useInlineCommands({
   setNoteError,
   onCreateDeadline,
   onCreateContact,
+  onEntityLinkCreated,
   onStructuredActionCreated,
 }: {
   selectedCaseId: string;
@@ -316,6 +318,7 @@ export function useInlineCommands({
   setNoteError: Dispatch<SetStateAction<string>>;
   onCreateDeadline: (input: CreateDeadlineInput) => Promise<void>;
   onCreateContact: (input: CreateContactInput) => Promise<ContactRecord>;
+  onEntityLinkCreated?: (link: CreateCaseNoteLinkInput) => void;
   onStructuredActionCreated?: () => Promise<void> | void;
 }) {
   const [inlineDeadlineDraft, setInlineDeadlineDraft] =
@@ -452,6 +455,24 @@ export function useInlineCommands({
         / {2,}/g,
         " ",
       );
+    });
+  }
+
+  function rememberEntityLink(input: {
+    targetType: CreateCaseNoteLinkInput["targetType"];
+    targetId: string;
+    label: string;
+    accessibleLabel: string;
+  }) {
+    if (!selectedCaseId) return;
+    onEntityLinkCreated?.({
+      targetType: input.targetType,
+      targetId: input.targetId,
+      caseId: selectedCaseId,
+      label: input.label,
+      accessibleLabel: input.accessibleLabel,
+      textStart: 0,
+      textEnd: input.label.length,
     });
   }
 
@@ -983,7 +1004,9 @@ export function useInlineCommands({
       const placeholderDueAt = new Date(
         "9999-12-31T23:59:59.000Z",
       ).toISOString();
-      await onCreateDeadline({
+      const bridge = await waitForBridge();
+      if (!bridge?.deadlines) throw new Error("Fristendienst ist nicht erreichbar.");
+      const created = await bridge.deadlines.create({
         caseId: selectedCaseId,
         processType: "case",
         deadlineType: "follow_up",
@@ -1094,7 +1117,7 @@ export function useInlineCommands({
     try {
       const bridge = await waitForBridge();
       if (!bridge?.bem) throw new Error("BEM-Dienst ist nicht erreichbar.");
-      await bridge.bem.create({
+      const created = await bridge.bem.create({
         caseId: selectedCaseId,
         title: inlineBemDraft.title.trim(),
         triggerType: inlineBemDraft.triggerType,
@@ -1106,9 +1129,16 @@ export function useInlineCommands({
         createDefaultDeadlines: Boolean(inlineBemDraft.responseDueAt),
       });
       await onStructuredActionCreated?.();
+      const linkLabel = formatBemMarkerText(inlineBemDraft.title);
+      rememberEntityLink({
+        targetType: "bem",
+        targetId: created.id,
+        label: linkLabel,
+        accessibleLabel: `BEM-Vorgang öffnen: ${created.title}`,
+      });
       replaceInlineMeasureCommandWithToken(
         inlineBemDraft,
-        formatBemMarkerText(inlineBemDraft.title),
+        linkLabel,
       );
       setInlineBemDraft(null);
       setNoteInfo(
@@ -1356,9 +1386,16 @@ export function useInlineCommands({
         ),
       });
       await onStructuredActionCreated?.();
+      const linkLabel = formatParticipationMarkerText(inlineParticipationDraft.title);
+      rememberEntityLink({
+        targetType: "participation",
+        targetId: created.id,
+        label: linkLabel,
+        accessibleLabel: `SBV-Beteiligung öffnen: ${created.title}`,
+      });
       replaceInlineMeasureCommandWithToken(
         inlineParticipationDraft,
-        formatParticipationMarkerText(inlineParticipationDraft.title),
+        linkLabel,
       );
       setInlineParticipationDraft(null);
       setNoteInfo(
@@ -1497,7 +1534,9 @@ export function useInlineCommands({
     }
 
     try {
-      await onCreateDeadline({
+      const bridge = await waitForBridge();
+      if (!bridge?.deadlines) throw new Error("Fristendienst ist nicht erreichbar.");
+      const created = await bridge.deadlines.create({
         caseId: selectedCaseId,
         processType: "case",
         deadlineType: "follow_up",
@@ -1517,6 +1556,13 @@ export function useInlineCommands({
         isUserEditable: true,
       });
       const shouldInsertDeadlineText = inlineDeadlineDraft.markerIndex !== null;
+      const linkLabel = buildInlineDeadlineText(inlineDeadlineDraft);
+      rememberEntityLink({
+        targetType: "deadline",
+        targetId: created.id,
+        label: linkLabel,
+        accessibleLabel: `Frist öffnen: ${created.title}`,
+      });
       insertInlineDeadlineText(inlineDeadlineDraft);
       setInlineDeadlineDraft(null);
       setNoteInfo(

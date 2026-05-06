@@ -87,7 +87,7 @@ function assertSafeRelativePath(relativePath, kind, manifestPath) {
     throw new Error(`Absolute Pfade sind nicht erlaubt: ${relativePath}`);
   }
 
-  const normalized = path.normalize(relativePath).replaceAll('\\\\', '/');
+  const normalized = path.normalize(relativePath).replaceAll('\\', '/');
   if (normalized === '..' || normalized.startsWith('../')) {
     throw new Error(`Pfade außerhalb des Projekt-Roots sind nicht erlaubt: ${relativePath}`);
   }

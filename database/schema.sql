@@ -59,6 +59,20 @@ CREATE TABLE IF NOT EXISTS case_note_cases (
   PRIMARY KEY (note_id, case_id)
 );
 
+
+CREATE TABLE IF NOT EXISTS case_note_links (
+  id TEXT PRIMARY KEY,
+  case_note_id TEXT NOT NULL REFERENCES case_notes(id) ON DELETE CASCADE,
+  target_type TEXT NOT NULL CHECK (target_type IN ('bem', 'participation', 'deadline')),
+  target_id TEXT NOT NULL,
+  case_id TEXT NOT NULL REFERENCES cases(id) ON DELETE CASCADE,
+  label TEXT NOT NULL,
+  accessible_label TEXT NOT NULL,
+  text_start INTEGER NOT NULL DEFAULT 0,
+  text_end INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS case_documents (
   id TEXT PRIMARY KEY,
   case_id TEXT NOT NULL REFERENCES cases(id) ON DELETE CASCADE,
@@ -259,6 +273,10 @@ CREATE INDEX IF NOT EXISTS idx_deadline_audit_deadline_id ON deadline_audit(dead
 
 CREATE INDEX IF NOT EXISTS idx_case_notes_case_id ON case_notes(case_id);
 CREATE INDEX IF NOT EXISTS idx_case_notes_date ON case_notes(case_id, note_date DESC);
+CREATE INDEX IF NOT EXISTS idx_case_note_links_note ON case_note_links(case_note_id);
+CREATE INDEX IF NOT EXISTS idx_case_note_links_target ON case_note_links(target_type, target_id);
+CREATE INDEX IF NOT EXISTS idx_case_note_links_case ON case_note_links(case_id);
+
 CREATE INDEX IF NOT EXISTS idx_case_note_cases_case_id ON case_note_cases(case_id);
 CREATE INDEX IF NOT EXISTS idx_case_note_cases_note_id ON case_note_cases(note_id);
 CREATE INDEX IF NOT EXISTS idx_contacts_name ON contacts(last_name, first_name);

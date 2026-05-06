@@ -1,0 +1,36 @@
+
+.case-note-entity-links {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 0.85rem;
+}
+
+.case-note-entity-link-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.case-note-entity-link {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 12rem;
+  max-width: 100%;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--industrial-border-subtle);
+  border-radius: 0.8rem;
+  background: var(--industrial-card-bg);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.case-note-entity-link:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.case-note-entity-link span,
+.case-note-entity-link small {
+  color: var(--industrial-text-muted);
+}

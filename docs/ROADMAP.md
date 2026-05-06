@@ -1,6 +1,6 @@
 # Roadmap Gremia.SBV
 
-Stand: **0.8.11-b**  
+Stand: **0.8.12-b**  
 Zielrichtung: stabiler Weg zu `0.9.0-rc.1` ohne neue Nebenideen außerhalb des aktualisierten Entwicklerkonzepts.
 
 ## Aktueller Stand
@@ -16,17 +16,10 @@ Abgeschlossen sind unter anderem:
 - Audit-Hash-Chain, Auto-Lock, Backup/Restore und Export-Guards,
 - Security-Hardening 0.8.9 mit Unlock-Delay und aktuellem Backup-KDF,
 - Review-Fixes 0.8.10 für Accessibility, Pflichtverstoß-UX und Roadmap,
-- strukturelle Entkernung von `workflowViews.tsx` in 0.8.11.
+- strukturelle Entkernung von `workflowViews.tsx` in 0.8.11,
+- lebende Protokollverknüpfungen als MVP in 0.8.12 für `/bem`, `/bet` und `/fr`.
 
 ## Vor RC1 offen
-
-### 0.8.12 – Lebende Protokollverknüpfungen als MVP
-
-- MVP nur für `/bem`, `/bet` und `/fr`.
-- Persistente Linkmetadaten über `case_note_links`.
-- Bestehende Notizen ohne Links bleiben normaler Text.
-- Export/Reports mit fachlichen Labels, aber ohne technische UUIDs.
-- Fehlende Zielobjekte robust als deaktivierte Aktenverweise darstellen.
 
 ### 0.8.13 – RC-Härtung
 
@@ -63,6 +56,14 @@ Abgeschlossen sind unter anderem:
 - `workflowViews.tsx` ist nur noch Import-/Re-Export-Orchestrierung.
 - Die Fallaktenansicht liegt unter `src/app/features/cases/`.
 - Es gab keine Schemaänderung und keine neue fachliche UI-Logik.
+
+### 0.8.12 – Lebende Protokollverknüpfungen als MVP
+
+- MVP für `/bem`, `/bet` und `/fr` umgesetzt.
+- Persistente Linkmetadaten liegen in `case_note_links`.
+- Bestehende Notizen ohne Links bleiben normaler Text.
+- Notizlinks nutzen fachliche Labels; technische Ziel-IDs bleiben interne Routingdaten.
+- Fehlende Zielobjekte werden deaktiviert angezeigt.
 
 Frühere Planpunkte aus 0.2 und 0.3 sind nicht mehr als offene Checkliste zu führen. Sie sind entweder umgesetzt, durch spätere Architekturentscheidungen ersetzt oder in die RC-Roadmap oben überführt.
 

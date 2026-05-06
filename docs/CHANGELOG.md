@@ -1,5 +1,35 @@
 # Changelog
 
+## 0.8.12-c – TypeScript-Build-Hotfix für Fallnotizlinks
+
+- Fehlende Typimporte in `services/caseService.ts` ergänzt: `CaseNoteLinkRecord` und `CreateCaseNoteLinkInput` werden nun aus `case-note-link.model` importiert.
+- Damit sind die nach vollständig grünem Vitest-Lauf auftretenden TypeScript-Fehler im Plattformbuild behoben.
+- Keine Schemaänderung; `case_note_links` bleibt unverändert bei Schema `0024`.
+- `postinstall` bleibt exakt `electron-builder install-app-deps`.
+
+## 0.8.12-b – Test-Hotfix für Hotfix-Versionen
+
+- Verbleibende Testfehler aus dem 0.8.12-a-Buildlauf behoben.
+- Versionsprüfungen in Guard-Tests hotfixfähig gemacht, ohne den eigentlichen Sicherheitsvertrag aufzuweichen.
+- Roadmap-Test an den erreichten Stand angepasst: 0.8.11 und 0.8.12 sind nicht mehr vor RC1 offen, sondern historisch abgeschlossen; die Konzeptreihenfolge bleibt dokumentiert.
+- `postinstall` bleibt exakt `electron-builder install-app-deps`.
+
+
+## 0.8.12-a – Windows-Source-Cleanup-Hotfix
+
+- Windows-Buildfehler im Source-Cleanup behoben: Manifest-Pfade mit Backslashes werden vor der Top-Level-Prüfung stabil auf `/` normalisiert.
+- `postinstall` bleibt als harter Vertrag gesetzt: `electron-builder install-app-deps`.
+- Version und generierte Versionsdateien auf `0.8.12-a` aktualisiert.
+
+
+## 0.8.12 – Lebende Protokollverknüpfungen MVP
+
+- Persistente Tabelle `case_note_links` für interne Aktenbezüge aus Fallnotizen ergänzt.
+- Inlinebefehle `/bem`, `/bet` und `/fr` merken die erzeugten Zielobjekte als strukturierte Notizlinks vor.
+- Fallnotizen liefern Links mit fachlichem Label und Screenreader-Label aus; technische UUIDs bleiben interne Routingdaten.
+- Notizansicht rendert Aktenbezüge als klickbare interne Links; fehlende Ziele werden deaktiviert angezeigt statt zu crashen.
+- Audit für Linkanlage bleibt sparsam: Fall-ID, Notiz-ID, Zieltyp und Ziel-ID; keine sensiblen Freitexte.
+- `postinstall` erneut hart abgesichert: exakt `electron-builder install-app-deps`, ohne `npx`.
 
 ## 0.8.11-d – Build-Ketten-Hotfix
 

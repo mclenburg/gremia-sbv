@@ -25,6 +25,10 @@ import type {
   CreateCaseNoteInput,
   UpdateCaseNoteInput,
 } from "../src/app/core/models/case-note.model.js";
+import type {
+  CaseNoteLinkRecord,
+  CreateCaseNoteLinkInput,
+} from "../src/app/core/models/case-note-link.model.js";
 import type { DatabaseAdapter } from "./databaseService.js";
 import {
   ensureContactPrivacySchema,
@@ -83,6 +87,23 @@ function mapNote(row: any): CaseNoteRecord {
       "sensibel") as ConfidentialLevel,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+  };
+}
+
+
+function mapNoteLink(row: any): CaseNoteLinkRecord {
+  return {
+    id: row.id,
+    caseNoteId: row.case_note_id,
+    targetType: row.target_type,
+    targetId: row.target_id,
+    caseId: row.case_id,
+    label: row.label,
+    accessibleLabel: row.accessible_label,
+    textStart: Number(row.text_start ?? 0),
+    textEnd: Number(row.text_end ?? 0),
+    createdAt: row.created_at,
+    isMissingTarget: Boolean(row.is_missing_target),
   };
 }
 
@@ -311,6 +332,26 @@ export class CaseService {
         FOREIGN KEY (case_id) REFERENCES cases(id) ON DELETE CASCADE
       );
 
+
+      CREATE TABLE IF NOT EXISTS case_note_links (
+        id TEXT PRIMARY KEY,
+        case_note_id TEXT NOT NULL,
+        target_type TEXT NOT NULL CHECK (target_type IN ('bem', 'participation', 'deadline')),
+        target_id TEXT NOT NULL,
+        case_id TEXT NOT NULL,
+        label TEXT NOT NULL,
+        accessible_label TEXT NOT NULL,
+        text_start INTEGER NOT NULL DEFAULT 0,
+        text_end INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (case_note_id) REFERENCES case_notes(id) ON DELETE CASCADE,
+        FOREIGN KEY (case_id) REFERENCES cases(id) ON DELETE CASCADE
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_case_note_links_note ON case_note_links(case_note_id);
+      CREATE INDEX IF NOT EXISTS idx_case_note_links_target ON case_note_links(target_type, target_id);
+      CREATE INDEX IF NOT EXISTS idx_case_note_links_case ON case_note_links(case_id);
+
       CREATE VIRTUAL TABLE IF NOT EXISTS case_documents_fts USING fts5(
         id UNINDEXED,
         case_id UNINDEXED,
@@ -408,6 +449,71 @@ export class CaseService {
     `;
   }
 
+
+  private listNoteLinks(db: DatabaseAdapter, noteId: string): CaseNoteLinkRecord[] {
+    const rows = db.prepare<any>(`
+      SELECT l.*,
+        CASE
+          WHEN l.target_type = 'bem' AND NOT EXISTS (SELECT 1 FROM bem_processes b WHERE b.id = l.target_id) THEN 1
+          WHEN l.target_type = 'participation' AND NOT EXISTS (SELECT 1 FROM case_measures m WHERE m.id = l.target_id) THEN 1
+          WHEN l.target_type = 'deadline' AND NOT EXISTS (SELECT 1 FROM deadlines d WHERE d.id = l.target_id) THEN 1
+          ELSE 0
+        END AS is_missing_target
+      FROM case_note_links l
+      WHERE l.case_note_id = ?
+      ORDER BY l.text_start ASC, l.created_at ASC
+    `).all(noteId);
+    return rows.map(mapNoteLink);
+  }
+
+  private attachNoteLinks(db: DatabaseAdapter, note: CaseNoteRecord): CaseNoteRecord {
+    return { ...note, links: this.listNoteLinks(db, note.id) };
+  }
+
+  private replaceNoteEntityLinks(
+    db: DatabaseAdapter,
+    noteId: string,
+    links: CreateCaseNoteLinkInput[] | undefined,
+  ): void {
+    if (!links) return;
+    const timestamp = nowIso();
+    db.prepare('DELETE FROM case_note_links WHERE case_note_id = ?').run(noteId);
+    const insert = db.prepare(`
+      INSERT INTO case_note_links (
+        id, case_note_id, target_type, target_id, case_id, label, accessible_label,
+        text_start, text_end, created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    for (const link of links) {
+      const label = link.label.trim();
+      if (!label) continue;
+      insert.run(
+        randomUUID(),
+        noteId,
+        link.targetType,
+        link.targetId,
+        link.caseId,
+        label,
+        link.accessibleLabel?.trim() || `${label} öffnen`,
+        Math.max(0, Math.trunc(link.textStart)),
+        Math.max(0, Math.trunc(link.textEnd)),
+        timestamp,
+      );
+      this.audit(db, {
+        action: 'create',
+        subjectType: 'case_note_link',
+        subjectId: link.targetId,
+        caseId: link.caseId,
+        purpose: 'Interner Fallnotiz-Bezug angelegt',
+        metadata: {
+          noteId,
+          targetType: link.targetType,
+          targetId: link.targetId,
+        },
+      });
+    }
+  }
+
   async listCases(): Promise<CaseRecord[]> {
     const db = this.getSafeDb();
     this.audit(db, {
@@ -489,7 +595,7 @@ export class CaseService {
     `),
       )
       .all(caseId);
-    return rows.map(mapNote);
+    return rows.map(mapNote).map((note) => this.attachNoteLinks(db, note));
   }
 
   async createNote(input: CreateCaseNoteInput): Promise<CaseNoteRecord> {
@@ -529,6 +635,7 @@ export class CaseService {
     );
 
     this.replaceNoteCaseLinks(db, id, caseIds, input.caseId);
+    this.replaceNoteEntityLinks(db, id, input.links);
     scanCaseNoteContactReferences(db, id);
     this.indexNote(db, id);
     const created = db
@@ -545,7 +652,7 @@ export class CaseService {
         confidentialLevel: input.confidentialLevel ?? "sensibel",
       },
     });
-    return mapNote(created);
+    return this.attachNoteLinks(db, mapNote(created));
   }
 
   async updateNote(
@@ -602,6 +709,7 @@ export class CaseService {
 
     if (linkedCaseIds)
       this.replaceNoteCaseLinks(db, id, linkedCaseIds, before.case_id);
+    this.replaceNoteEntityLinks(db, id, input.links);
     scanCaseNoteContactReferences(db, id);
     this.indexNote(db, id);
     const updated = db
@@ -614,13 +722,14 @@ export class CaseService {
       caseId: before.case_id,
       purpose: "Fallnotiz geändert",
     });
-    return mapNote(updated);
+    return this.attachNoteLinks(db, mapNote(updated));
   }
 
   async deleteNote(id: string): Promise<{ deleted: boolean }> {
     const db = this.getSafeDb();
     db.prepare("DELETE FROM case_notes_fts WHERE id = ?").run(id);
     db.prepare("DELETE FROM case_note_cases WHERE note_id = ?").run(id);
+    db.prepare("DELETE FROM case_note_links WHERE case_note_id = ?").run(id);
     const before = db
       .prepare<any>("SELECT case_id FROM case_notes WHERE id = ?")
       .get(id);

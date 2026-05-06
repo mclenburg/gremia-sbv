@@ -1,6 +1,6 @@
 {
   "name": "gremia-sbv",
-  "version": "0.8.11-d",
+  "version": "0.8.12-c",
   "private": true,
   "description": "Offline-first Desktop-App für die vertrauliche Fallarbeit der Schwerbehindertenvertretung.",
   "main": "dist-electron/electron/main.js",
@@ -126,7 +126,10 @@
     "test:cases-clean-code-0811a": "vitest run tests/casesViewCleanCode0811a.test.ts",
     "test:workflow-extraction-0811b": "vitest run tests/casesViewCleanCode0811a.test.ts tests/caseWorkbenchRegression0811.test.ts tests/workflowViewsPureIndex0811.test.ts",
     "test:build-integration-0811d": "vitest run tests/casesViewBuildIntegration0811d.test.ts",
-    "test:workflow-extraction-0811d": "vitest run tests/casesViewBuildIntegration0811d.test.ts tests/caseWorkbenchRegression0811.test.ts tests/casesViewCleanCode0811a.test.ts"
+    "test:workflow-extraction-0811d": "vitest run tests/casesViewBuildIntegration0811d.test.ts tests/caseWorkbenchRegression0811.test.ts tests/casesViewCleanCode0811a.test.ts",
+    "test:case-note-links-0812": "vitest run tests/caseNoteLinksMigration0812.test.ts tests/inlineCommandBemEntityLink0812.test.ts tests/inlineCommandParticipationEntityLink0812.test.ts tests/inlineCommandDeadlineEntityLink0812.test.ts tests/caseNoteLinkRendering0812.test.ts tests/caseNoteLinkExportPrivacy0812.test.ts tests/caseNoteLinkMissingTarget0812.test.ts tests/postinstallGuard0812.test.ts",
+    "test:source-cleanup-windows-0812a": "vitest run tests/sourceCleanupWindowsPath0812a.test.ts",
+    "test:case-note-links-0812c": "vitest run tests/caseNoteLinkTypeImports0812c.test.ts"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.0",

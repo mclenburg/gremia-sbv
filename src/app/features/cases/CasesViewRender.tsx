@@ -14,6 +14,7 @@ import { CaseWorkbenchFooter } from "./CaseWorkbenchFooter";
 import { InlineCommandOverlays } from "./InlineCommandOverlays";
 import { ProcessTemplateDocumentsModal } from "./ProcessTemplateDocumentsModal";
 import { ContextualTemplateButton } from "./ContextualTemplateButton";
+import { CaseNoteEntityLinks } from "./CaseNoteEntityLinks";
 import { PreventionProcessDetail } from "../prevention/PreventionProcessDetail";
 import { BemProcessDetail } from "../bem/BemProcessDetail";
 import { EqualizationProcessDetail } from "../equalization/EqualizationProcessDetail";
@@ -217,6 +218,10 @@ export function CasesViewRender(props: CasesViewRenderProps) {
                 </p>
               )}
               <p className="case-note-content">{selectedNote.content}</p>
+              <CaseNoteEntityLinks
+                links={selectedNote.links}
+                onSelect={setSelection}
+              />
               {selectedNote.nextSteps && (
                 <p className="case-note-next">
                   <strong>Nächste Schritte:</strong> {selectedNote.nextSteps}

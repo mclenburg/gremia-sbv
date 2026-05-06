@@ -197,6 +197,7 @@ export function CasesView({
     setNoteInfo,
     startEditNote,
     toggleLinkedCase,
+    addEntityLink,
     openNewNoteModal,
     cancelNoteModal,
     saveNote,
@@ -223,6 +224,7 @@ export function CasesView({
     setNoteError,
     onCreateDeadline,
     onCreateContact,
+    onEntityLinkCreated: addEntityLink,
     onStructuredActionCreated: async () => {
       await reloadSelectedCaseChildren();
       await onCasesChanged();

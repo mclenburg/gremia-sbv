@@ -1,3 +1,5 @@
+import type { CaseNoteLinkRecord, CreateCaseNoteLinkInput } from './case-note-link.model';
+
 export type CaseNoteType =
   | 'gespraech'
   | 'protokoll'
@@ -27,6 +29,7 @@ export interface CaseNoteRecord {
   confidentialLevel: ConfidentialLevel;
   createdAt: string;
   updatedAt: string;
+  links?: CaseNoteLinkRecord[];
 }
 
 export interface CreateCaseNoteInput {
@@ -40,6 +43,7 @@ export interface CreateCaseNoteInput {
   nextSteps?: string;
   containsHealthData?: boolean;
   confidentialLevel?: ConfidentialLevel;
+  links?: CreateCaseNoteLinkInput[];
 }
 
 export interface UpdateCaseNoteInput {
@@ -52,6 +56,7 @@ export interface UpdateCaseNoteInput {
   nextSteps?: string;
   containsHealthData?: boolean;
   confidentialLevel?: ConfidentialLevel;
+  links?: CreateCaseNoteLinkInput[];
 }
 
 export type CaseSearchSourceType = 'note' | 'document';
