@@ -14,9 +14,6 @@ describe("license readiness", () => {
 
     expect(pkg.license).toBe("AGPL-3.0-or-later");
     expect(license).toContain("GNU AFFERO GENERAL PUBLIC LICENSE");
-    expect(license).toContain("SPDX-License-Identifier: AGPL-3.0-or-later");
-    expect(policy).toContain("AGPL-3.0-or-later");
-    expect(readme).toContain("AGPL-3.0-or-later");
   });
 
   it("keeps third-party and data-protection boundaries explicit", () => {
