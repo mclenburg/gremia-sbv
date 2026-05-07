@@ -81,6 +81,7 @@ jobs:
       - name: Build artifact
         run: npm run ${{ matrix.build_script }}
         env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
 
       - name: Upload workflow artifact
