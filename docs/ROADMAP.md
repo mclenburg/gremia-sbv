@@ -1,6 +1,6 @@
 # Roadmap Gremia.SBV
 
-Stand: **0.8.12-b**  
+Stand: **0.8.13-g**  
 Zielrichtung: stabiler Weg zu `0.9.0-rc.1` ohne neue Nebenideen außerhalb des aktualisierten Entwicklerkonzepts.
 
 ## Aktueller Stand
@@ -20,14 +20,6 @@ Abgeschlossen sind unter anderem:
 - lebende Protokollverknüpfungen als MVP in 0.8.12 für `/bem`, `/bet` und `/fr`.
 
 ## Vor RC1 offen
-
-### 0.8.13 – RC-Härtung
-
-- Build-/Test-/E2E-Matrix finalisieren.
-- Migrationstest für bestehende 0.8.x-Datenbanken ergänzen.
-- E2E-Selektoren an RC-kritischen Navigationspunkten stabilisieren.
-- Security-/Datenschutz-Readiness prüfen.
-- README, BUILD, E2E_TESTS, RELEASE_CHECKLIST, SECURITY, ROADMAP und CHANGELOG finalisieren.
 
 ### 0.9.0-rc.1 – Release Candidate
 
@@ -71,16 +63,12 @@ Frühere Planpunkte aus 0.2 und 0.3 sind nicht mehr als offene Checkliste zu fü
 - 0.3 Fristen und Wiedervorlagen: historisch abgeschlossen oder durch heutige Fristen-/Dashboard-Architektur ersetzt.
 - 0.3.16 Fallnotizen und Volltextsuche: historisch abgeschlossen.
 
-## 0.8.13 - RC-Härtung
+### 0.8.13 – RC-Härtung
 
-0.8.13 ist der letzte Härtungsschritt vor 0.9.0-rc.1. Keine neuen Fachfeatures. Fokus: Build-/Testmatrix, E2E, Barrierefreiheit, Migrations-Smoke, Security-/Datenschutz-Readiness und öffentliche README-Reife.
-
-### RC-blockierende Punkte
-
-- Linux- und Windows-Builds prüfen.
-- E2E-Tests mit isolierten temporären Testdaten ausführen.
-- Responsive-Layout über mehrere Desktop-Auflösungen prüfen.
-- Barrierefreiheit über Tastatur, Rollen, Dialoge und Labels prüfen.
-- README als öffentliche Projektstartseite für SBVen finalisieren.
-- Known Issues und Plattformstatus dokumentieren.
+- Build-/Test-/E2E-Matrix finalisiert.
+- Migrations-Smoke, Security-/Datenschutz-Readiness, responsive E2E-Readiness und Accessibility-Readiness ergänzt.
+- README als öffentliche Projektstartseite für SBVen überarbeitet.
+- Dashboard- und Settings-Module aus dem Fallaktenbereich herausgelöst.
+- Sicherheitsdokumentation von Frühphasen-Placeholdern bereinigt.
+- Lebende Protokollverknüpfungen sind für die RC-kritischen Fallaktenbefehle vollständig: `/bem`, `/praev`, `/bet`, `/kuend`, `/gleich`, `/anp` und `/fr` erzeugen klickbare Aktenbezüge.
 

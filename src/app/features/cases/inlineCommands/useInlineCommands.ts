@@ -1181,7 +1181,7 @@ export function useInlineCommands({
       const bridge = await waitForBridge();
       if (!bridge?.prevention)
         throw new Error("Präventionsdienst ist nicht erreichbar.");
-      await bridge.prevention.create({
+      const created = await bridge.prevention.create({
         caseId: selectedCaseId,
         firstKnowledgeAt: new Date().toISOString(),
         difficultyType: inlinePreventionDraft.difficultyType,
@@ -1198,9 +1198,16 @@ export function useInlineCommands({
         ),
       });
       await onStructuredActionCreated?.();
+      const linkLabel = formatPreventionMarkerText(inlinePreventionDraft.title);
+      rememberEntityLink({
+        targetType: "prevention",
+        targetId: created.id,
+        label: linkLabel,
+        accessibleLabel: `Präventionsverfahren öffnen: ${created.hazardDescription || inlinePreventionDraft.title}`,
+      });
       replaceInlineMeasureCommandWithToken(
         inlinePreventionDraft,
-        formatPreventionMarkerText(inlinePreventionDraft.title),
+        linkLabel,
       );
       setInlinePreventionDraft(null);
       setNoteInfo(
@@ -1243,7 +1250,7 @@ export function useInlineCommands({
       const bridge = await waitForBridge();
       if (!bridge?.equalization)
         throw new Error("Gleichstellungsdienst ist nicht erreichbar.");
-      await bridge.equalization.create({
+      const created = await bridge.equalization.create({
         caseId: selectedCaseId,
         applicationStatus: inlineEqualizationDraft.status,
         outcome: inlineEqualizationDraft.note.trim() || undefined,
@@ -1253,9 +1260,16 @@ export function useInlineCommands({
         createDefaultDeadline: Boolean(inlineEqualizationDraft.objectionDueAt),
       });
       await onStructuredActionCreated?.();
+      const linkLabel = formatEqualizationMarkerText(inlineEqualizationDraft.title);
+      rememberEntityLink({
+        targetType: "equalization",
+        targetId: created.id,
+        label: linkLabel,
+        accessibleLabel: `Gleichstellung/GdB öffnen: ${inlineEqualizationDraft.title}`,
+      });
       replaceInlineMeasureCommandWithToken(
         inlineEqualizationDraft,
-        formatEqualizationMarkerText(inlineEqualizationDraft.title),
+        linkLabel,
       );
       setInlineEqualizationDraft(null);
       setNoteInfo(
@@ -1298,7 +1312,7 @@ export function useInlineCommands({
       const bridge = await waitForBridge();
       if (!bridge?.termination)
         throw new Error("Kündigungsdienst ist nicht erreichbar.");
-      await bridge.termination.create({
+      const created = await bridge.termination.create({
         caseId: selectedCaseId,
         status: "eingang",
         terminationType: inlineTerminationDraft.terminationType,
@@ -1316,9 +1330,16 @@ export function useInlineCommands({
           "Kündigungsanhörung und Beteiligungsrechte prüfen.",
       });
       await onStructuredActionCreated?.();
+      const linkLabel = formatTerminationMarkerText(inlineTerminationDraft.title);
+      rememberEntityLink({
+        targetType: "termination_hearing",
+        targetId: created.id,
+        label: linkLabel,
+        accessibleLabel: `Kündigungsanhörung öffnen: ${inlineTerminationDraft.title}`,
+      });
       replaceInlineMeasureCommandWithToken(
         inlineTerminationDraft,
-        formatTerminationMarkerText(inlineTerminationDraft.title),
+        linkLabel,
       );
       setInlineTerminationDraft(null);
       setNoteInfo(
@@ -1440,7 +1461,7 @@ export function useInlineCommands({
       const bridge = await waitForBridge();
       if (!bridge?.workplaceAccommodation)
         throw new Error("Arbeitsplatzgestaltungsdienst ist nicht erreichbar.");
-      await bridge.workplaceAccommodation.create({
+      const created = await bridge.workplaceAccommodation.create({
         caseId: selectedCaseId,
         title: inlineWorkplaceAccommodationDraft.title.trim(),
         category: inlineWorkplaceAccommodationDraft.category,
@@ -1464,11 +1485,18 @@ export function useInlineCommands({
         ),
       });
       await onStructuredActionCreated?.();
+      const linkLabel = formatWorkplaceAccommodationMarkerText(
+        inlineWorkplaceAccommodationDraft.title,
+      );
+      rememberEntityLink({
+        targetType: "workplace_accommodation",
+        targetId: created.id,
+        label: linkLabel,
+        accessibleLabel: `Arbeitsplatzanpassung öffnen: ${created.title}`,
+      });
       replaceInlineMeasureCommandWithToken(
         inlineWorkplaceAccommodationDraft,
-        formatWorkplaceAccommodationMarkerText(
-          inlineWorkplaceAccommodationDraft.title,
-        ),
+        linkLabel,
       );
       setInlineWorkplaceAccommodationDraft(null);
       setNoteInfo(

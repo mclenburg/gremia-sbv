@@ -7,15 +7,23 @@ type Props = {
   onMissingTarget?: (label: string) => void;
 };
 
-function selectionForLink(link: CaseNoteLinkRecord): CaseExplorerSelection | null {
+export function selectionForLink(link: CaseNoteLinkRecord): CaseExplorerSelection | null {
   if (link.targetType === 'bem') return { type: 'process', processType: 'bem', id: link.targetId };
+  if (link.targetType === 'prevention') return { type: 'process', processType: 'prevention', id: link.targetId };
   if (link.targetType === 'participation') return { type: 'process', processType: 'participation', id: link.targetId };
+  if (link.targetType === 'termination_hearing') return { type: 'process', processType: 'termination_hearing', id: link.targetId };
+  if (link.targetType === 'equalization') return { type: 'process', processType: 'equalization', id: link.targetId };
+  if (link.targetType === 'workplace_accommodation') return { type: 'process', processType: 'workplace_accommodation', id: link.targetId };
   return null;
 }
 
-function typeLabel(link: CaseNoteLinkRecord): string {
+export function typeLabel(link: CaseNoteLinkRecord): string {
   if (link.targetType === 'bem') return 'BEM';
+  if (link.targetType === 'prevention') return 'Prävention';
   if (link.targetType === 'participation') return 'SBV-Beteiligung';
+  if (link.targetType === 'termination_hearing') return 'Kündigungsanhörung';
+  if (link.targetType === 'equalization') return 'Gleichstellung/GdB';
+  if (link.targetType === 'workplace_accommodation') return 'Arbeitsplatzanpassung';
   return 'Frist';
 }
 
@@ -29,7 +37,7 @@ export function CaseNoteEntityLinks({ links, onSelect, onMissingTarget }: Props)
       <div className="case-note-entity-link-list">
         {visibleLinks.map((link) => {
           const selection = selectionForLink(link);
-          const disabled = Boolean(link.isMissingTarget) || !selection;
+          const disabled = Boolean(link.isMissingTarget) || (!selection && link.targetType !== 'deadline');
           return (
             <button
               key={link.id}

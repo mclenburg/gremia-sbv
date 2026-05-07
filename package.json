@@ -1,6 +1,6 @@
 {
   "name": "gremia-sbv",
-  "version": "0.8.13-b",
+  "version": "0.8.13-g",
   "private": true,
   "description": "Offline-first Desktop-App für die vertrauliche Fallarbeit der Schwerbehindertenvertretung.",
   "main": "dist-electron/electron/main.js",
@@ -139,11 +139,18 @@
     "test:public-readme-0813": "vitest run tests/publicReadmeReadiness0813.test.ts",
     "test:migration-smoke-0813": "vitest run tests/rcMigrationSmoke0813.test.ts",
     "test:e2e-responsive-readiness-0813": "vitest run tests/e2eResponsiveLayoutReadiness0813.test.ts",
-    "test:rc-cleanup-0813b": "vitest run tests/rcCleanup0813b.test.ts"
+    "test:rc-cleanup-0813b": "vitest run tests/rcCleanup0813b.test.ts",
+    "test:rc-review-0813c": "vitest run tests/featureModuleBoundaries0813c.test.ts tests/roadmapVersionReadiness0813c.test.ts tests/securityDocReadiness0813c.test.ts",
+    "test:coverage": "vitest run --coverage",
+    "test:rc-review-0813d": "vitest run tests/reviewTypeSafety0813d.test.ts tests/caseNoteLinkCoverage0813d.test.ts tests/unitCoverageGate0813d.test.ts tests/featureModuleBoundaries0813c.test.ts",
+    "test:rc-behavior-0813e": "vitest run tests/inlineCommandPureBehavior0813e.test.ts tests/caseNoteEntityLinkBehavior0813e.test.ts",
+    "test:services-coverage": "vitest run --coverage tests/securityServiceBehavior0813f.test.ts tests/backupServiceBehavior0813f.test.ts tests/terminationWorkflowPolicyBehavior0813f.test.ts tests/retentionPolicyBehavior0813f.test.ts tests/preventionWorkflowPolicy.test.ts tests/reportPrivacyPolicy.test.ts tests/exportGuardPolicy.test.ts tests/textCommandPolicy.test.ts",
+    "test:rc-service-behavior-0813f": "vitest run tests/securityServiceBehavior0813f.test.ts tests/backupServiceBehavior0813f.test.ts tests/terminationWorkflowPolicyBehavior0813f.test.ts tests/retentionPolicyBehavior0813f.test.ts tests/serviceCoverageConfig0813f.test.ts"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.0",
     "argon2-browser": "^1.18.0",
+    "better-sqlite3-multiple-ciphers": "^12.0.0",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "docx": "^9.5.1",
@@ -151,16 +158,18 @@
     "lucide-react": "^0.468.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "zod": "^3.24.1",
-    "better-sqlite3-multiple-ciphers": "^12.0.0",
-    "yauzl": "^3.2.0"
+    "yauzl": "^3.2.0",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@electron/rebuild": "^3.7.2",
     "@types/node": "^22.10.2",
     "@types/react": "^19.0.2",
     "@types/react-dom": "^19.0.2",
+    "@types/yauzl": "^2.10.3",
     "@typescript-eslint/eslint-plugin": "^8.18.0",
     "@typescript-eslint/parser": "^8.18.0",
+    "@vitest/coverage-v8": "^2.1.9",
     "autoprefixer": "^10.4.20",
     "concurrently": "^9.1.0",
     "electron": "^33.2.1",
@@ -173,9 +182,7 @@
     "typescript": "^5.7.2",
     "vite": "^6.0.6",
     "vitest": "^2.1.8",
-    "wait-on": "^8.0.1",
-    "@electron/rebuild": "^3.7.2",
-    "@types/yauzl": "^2.10.3"
+    "wait-on": "^8.0.1"
   },
   "build": {
     "appId": "de.gremia.sbv",

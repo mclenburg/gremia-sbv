@@ -1,4 +1,45 @@
+## 0.8.13-g - Buildfix für Service-Behavior-Tests
+
+- TypeScript-Buildfehler in den verhaltensprüfenden Security-Service-Tests behoben: der Test-Spy für die interne Vault-DB-Initialisierung wird nicht mehr als Schnittmengen-Typ mit privater Methode modelliert.
+- `securityServiceBehavior0813f.test.ts` bleibt ein echter Behavior-Test gegen `SecurityService`: Unlock positiv/negativ, Unlock-Delay, Recovery-Key, Passwortwechsel und destruktiver Reset werden weiterhin mit definierten Eingaben und erwarteten Ergebnissen geprüft.
+- TypeScript-Buildfehler in `caseNoteEntityLinkBehavior0813e.test.ts` behoben: die Prozessauswahl wird vor Zugriff auf `id` explizit typverengt.
+- Keine Schemaänderung. Coverage-Konfiguration mit V8-Provider und 70-Prozent-Schwellen für `services/**/*.ts` bleibt unverändert.
+
+## 0.8.13-f - Service-Coverage und echte Unit-Tests
+
+- Vitest-Coverage auf `provider: 'v8'` und Service-Schicht `services/**/*.ts` begrenzt.
+- Coverage-Gate mit 70 Prozent für Branches, Functions, Lines und Statements gesetzt.
+- Echte Behavior-/Unit-Tests für `securityService.ts`, `backupService.ts`, `terminationWorkflowPolicy.ts` und Retention-Lücken ergänzt.
+- Backup-Tests prüfen aktuelle KDF-Parameter und Legacy-Restore ohne `kdfParams`.
+- Security-Tests prüfen Unlock positiv/negativ, Unlock-Delay, Recovery-Key, Passwortwechsel und destruktiven Reset.
+
+# CHANGELOG
+
+## 0.8.13-e - Verhaltensprüfende Unit-Tests für RC-kritische Logik
+
+- Ergänzt echte Unit-Tests mit definierten Eingaben und erwarteten Ergebnissen für Inlinebefehle, Prefill-Logik und Aktenbezug-Navigation.
+- Positive und negative Testfälle prüfen u. a. Command-Boundaries, Argumentextraktion, Ersetzung, Präventions-/Kündigungs-/Gleichstellungs-/Arbeitsplatzanpassungs-Prefills sowie Beteiligungs-Klassifikation.
+- `CaseNoteEntityLinks` exportiert die bisher interne Link-zu-Auswahl-Logik, damit Prozessnavigation und fachliche Labels direkt getestet werden können.
+- Neues Script `npm run test:rc-behavior-0813e` bündelt die verhaltensprüfenden RC-Unit-Tests.
+- Keine Schemaänderung; bestehende Coverage- und Struktur-Guards bleiben erhalten, ersetzen aber nicht die neuen Logiktests.
+
+## 0.8.13-d - RC-Review-Fixes: Typen, Modulgrenzen, Linkabdeckung und Coverage-Gate
+
+- Lebende Protokollverknüpfungen auf `/praev`, `/kuend`, `/gleich` und `/anp` erweitert; die RC-kritischen Fallaktenbefehle `/bem`, `/praev`, `/bet`, `/kuend`, `/gleich`, `/anp` und `/fr` erzeugen damit einheitlich klickbare Aktenbezüge.
+- TypeScript-Schnell-Casts in `ReportsView.tsx` und `useProcessTemplateActions.ts` entfernt; die vorhandenen Bridge- und Dialogtypen werden wieder direkt genutzt.
+- `src/vite-env.d.ts` importiert die `caseMeasures`-Typen vollständig.
+- Coverage-Gate für die RC-Prüfung ergänzt: `vitest.config.ts` enthält 70-Prozent-Schwellen für Lines, Functions, Branches und Statements; `npm run test:coverage` führt die Coverage-Prüfung aus.
+- Modulgrenzen für Dashboard/Settings bleiben über den Source-Cleanup und Boundary-Tests abgesichert.
+
 ## 0.8.12-j – Windows-Build ohne Symlink-Privileg
+## 0.8.13-c - Review-Fixes vor RC
+
+- Frühphasen-Placeholder aus `docs/SECURITY.md` entfernt und Plattformintegration als RC-geprüften Build-/Readiness-Vertrag beschrieben.
+- Dashboard- und Settings-Komponenten aus `features/cases/` in semantisch passende Module verschoben.
+- `workflowViews.tsx` bleibt als öffentlicher Kompatibilitätsindex erhalten, re-exportiert aber Dashboard, Settings und Theme aus den richtigen Modulbereichen.
+- `docs/ROADMAP.md` auf den aktuellen Stand gehoben und um die bewusste MVP-Grenze der lebenden Protokollverknüpfungen ergänzt.
+- Lebende Protokollverknüpfungen auf `/praev`, `/kuend`, `/gleich` und `/anp` erweitert; die RC-kritischen Fallaktenbefehle `/bem`, `/praev`, `/bet`, `/kuend`, `/gleich`, `/anp` und `/fr` erzeugen damit einheitlich klickbare Aktenbezüge.
+- RC-Review-Tests für Modulgrenzen, Roadmap-Stand und Security-Doku ergänzt.
 
 
 ## 0.8.13-b – RC-Dateibereinigung

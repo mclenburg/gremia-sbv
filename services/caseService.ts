@@ -455,7 +455,11 @@ export class CaseService {
       SELECT l.*,
         CASE
           WHEN l.target_type = 'bem' AND NOT EXISTS (SELECT 1 FROM bem_processes b WHERE b.id = l.target_id) THEN 1
+          WHEN l.target_type = 'prevention' AND NOT EXISTS (SELECT 1 FROM prevention_processes p WHERE p.id = l.target_id) THEN 1
           WHEN l.target_type = 'participation' AND NOT EXISTS (SELECT 1 FROM case_measures m WHERE m.id = l.target_id) THEN 1
+          WHEN l.target_type = 'termination_hearing' AND NOT EXISTS (SELECT 1 FROM termination_hearings t WHERE t.id = l.target_id) THEN 1
+          WHEN l.target_type = 'equalization' AND NOT EXISTS (SELECT 1 FROM equalization_processes e WHERE e.id = l.target_id) THEN 1
+          WHEN l.target_type = 'workplace_accommodation' AND NOT EXISTS (SELECT 1 FROM case_measures a WHERE a.id = l.target_id) THEN 1
           WHEN l.target_type = 'deadline' AND NOT EXISTS (SELECT 1 FROM deadlines d WHERE d.id = l.target_id) THEN 1
           ELSE 0
         END AS is_missing_target

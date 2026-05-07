@@ -18,11 +18,6 @@ import { caseRegisterSliceBounds, clampCaseRegisterPage } from "./casesViewUtils
 import { useConfirmDialog } from "../../shared/dialogs/ConfirmDialogProvider";
 import { useAnnouncer } from "../../shared/a11y/LiveRegionProvider";
 
-export { DashboardOverview } from "./DashboardOverview";
-export { applyTheme, getInitialTheme, nowLabel } from "./casesViewTheme";
-export { SettingsView } from "./SettingsView";
-export type { ThemeMode } from "./casesViewTheme";
-
 export function CasesView({
   cases,
   contacts,

@@ -36,7 +36,7 @@ db.pragma(`key = "x'${keyHex}'"`);
 db.pragma('cipher_compatibility = 4');
 ```
 
-Die konkrete Plattformintegration muss beim ersten lauffähigen Prototyp geprüft werden, insbesondere für Windows mit Electron-Packaging.
+Die Plattformintegration ist für die RC-Linie umgesetzt und wird über die Build-/Readiness-Prüfungen für Electron, SQLCipher-kompatible native Abhängigkeiten und die unterstützten Zielplattformen abgesichert. Windows-spezifische Packaging-Grenzen, insbesondere unsignierte RC-Artefakte und bekannte Tooling-Anforderungen, sind in `docs/BUILD.md` und `docs/KNOWN_ISSUES.md` dokumentiert.
 
 ### Passwort und Master-Key
 

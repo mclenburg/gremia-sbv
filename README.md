@@ -2,7 +2,7 @@
 
 **Gremia.SBV** ist eine lokale, offline-first Desktop-App für Schwerbehindertenvertretungen in Deutschland. Sie unterstützt vertrauliche SBV-Fallarbeit rund um BEM, Präventionsverfahren nach § 167 SGB IX, SBV-Beteiligung nach § 178 SGB IX, Kündigungsanhörungen, Gleichstellung/GdB, Arbeitsplatzanpassung, Fristen, Dokumentation und Tätigkeitsberichte – ohne Cloud, ohne Telemetrie und ohne HR-Zugriff.
 
-Stand: **0.8.13-b**  
+Stand: **0.8.13-g**  
 Zielrichtung: RC-Härtung vor dem ersten Release Candidate `0.9.0-rc.1`.
 
 ## Kurzüberblick

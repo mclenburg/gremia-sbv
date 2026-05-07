@@ -1,4 +1,11 @@
-export type CaseNoteLinkTargetType = 'bem' | 'participation' | 'deadline';
+export type CaseNoteLinkTargetType =
+  | 'bem'
+  | 'prevention'
+  | 'participation'
+  | 'termination_hearing'
+  | 'equalization'
+  | 'workplace_accommodation'
+  | 'deadline';
 
 export interface CaseNoteLinkRecord {
   id: string;

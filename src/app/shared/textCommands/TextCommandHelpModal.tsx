@@ -108,6 +108,10 @@ export function TextCommandHelpModal() {
           <input ref={searchRef} value={query} onChange={(event) => setQuery(event.target.value)} placeholder="z. B. Frist, Beteiligung, Datenschutz, /anp …" />
         </label>
 
+        <div className="industrial-inline-note" role="note">
+          Klickbare Aktenbezüge im Protokoll sind für <code>/bem</code>, <code>/praev</code>, <code>/bet</code>, <code>/kuend</code>, <code>/gleich</code>, <code>/anp</code> und <code>/fr</code> aktiv.
+        </div>
+
         <div className="text-command-help-grid">
           {groups.map((group) => (
             <article key={group.title} className="text-command-help-group">

@@ -1,8 +1,6 @@
 import { waitForBridge } from "../../core/bridge/waitForBridge";
 import { fromDateTimeLocalValue } from "./caseWorkbenchFormat";
 import type { FormEvent } from "react";
-import type { CaseNoteRecord } from "../../core/models/case-note.model";
-import type { CaseDocumentRecord } from "../../core/models/case-document.model";
 import type { TemplateRecord, RenderedTemplateResult } from "../../core/models/template.model";
 import type { SetStateAction } from "react";
 import type { PreventionProcessRecord } from "../../core/models/prevention.model";
@@ -10,6 +8,8 @@ import type { BemProcessRecord } from "../../core/models/bem.model";
 import type { EqualizationProcessRecord } from "../../core/models/equalization.model";
 import type { TerminationHearingRecord } from "../../core/models/termination.model";
 import type { ProcessTemplateModalState } from "./ProcessTemplateDocumentsModal";
+import type { CaseRecord } from "../../core/models/case.model";
+import type { ConfirmDialogRequest } from "../../shared/dialogs/ConfirmDialogProvider";
 import { buildExportWarningMessage, scanBemProcessExport, scanSensitiveExportText } from "@services/exportGuardPolicy";
 import { buildTerminationExportContext, terminationPrivacyExportNotice } from "@services/terminationPrivacyPolicy";
 import { buildProcessTemplateValues, defaultCaseProcessDraft, downloadRenderedTemplate, isBemProcessRecord, isEqualizationProcessRecord, isTemplateConnectedToProcessStatus, isTerminationHearingRecord, loadTemplateDefaultValues } from "./casesViewProcessUtils";
@@ -21,14 +21,16 @@ type ProcessTemplateModalSetter = (
     | ((current: ProcessTemplateModalState | null) => ProcessTemplateModalState | null),
 ) => void;
 
-type useProcessTemplateActionsDeps = {
+type ConfirmDialog = (request: ConfirmDialogRequest) => Promise<boolean>;
+
+type UseProcessTemplateActionsDeps = {
   processTemplateModal: ProcessTemplateModalState | null;
   setProcessTemplateModal: ProcessTemplateModalSetter;
-  selectedCase: any;
-  confirmDialog: any;
+  selectedCase?: CaseRecord;
+  confirmDialog: ConfirmDialog;
 };
 
-export function useProcessTemplateActions(deps: useProcessTemplateActionsDeps) {
+export function useProcessTemplateActions(deps: UseProcessTemplateActionsDeps) {
   const { processTemplateModal, setProcessTemplateModal, selectedCase, confirmDialog } = deps;
   async function openProcessTemplateModal(
     process:

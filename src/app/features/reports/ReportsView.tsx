@@ -66,7 +66,8 @@ export function ReportsView() {
   }, [descriptors]);
 
   async function loadReports() {
-    const bridge = await waitForBridge() as any;
+    const bridge = await waitForBridge();
+    if (!bridge?.reports) throw new Error('Berichtsdienst ist nicht erreichbar.');
     const [nextDescriptors, nextHistory] = await Promise.all([
       bridge.reports.descriptors(),
       bridge.reports.history(25),
@@ -84,7 +85,8 @@ export function ReportsView() {
     setMessage('');
     setLastResult(null);
     try {
-      const bridge = await waitForBridge() as any;
+      const bridge = await waitForBridge();
+      if (!bridge?.reports) throw new Error('Berichtsdienst ist nicht erreichbar.');
       const input: GenerateReportInput = {
         type: selectedDescriptor.type,
         periodStart: periodStart || undefined,
@@ -111,7 +113,8 @@ export function ReportsView() {
 
   async function openReport(filePath: string) {
     try {
-      const bridge = await waitForBridge() as any;
+      const bridge = await waitForBridge();
+      if (!bridge?.reports) throw new Error('Berichtsdienst ist nicht erreichbar.');
       await bridge.reports.openExportFolder(filePath);
     } catch (error) {
       const info = error instanceof Error ? error.message : 'Bericht konnte nicht geöffnet werden.';

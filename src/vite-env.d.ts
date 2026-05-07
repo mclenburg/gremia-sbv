@@ -10,6 +10,11 @@ import type {
   UpdateContactInput,
 } from "./app/core/models/contact.model";
 import type {
+  CaseMeasureRecord,
+  CreateCaseMeasureInput,
+  UpdateCaseMeasureInput,
+} from "./app/core/models/case-measure.model";
+import type {
   CaseContentSearchInput,
   CaseNoteRecord,
   CaseSearchResult,
