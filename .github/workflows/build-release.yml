@@ -98,3 +98,4 @@ jobs:
           files: ${{ matrix.artifact_glob }}
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
