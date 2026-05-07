@@ -1,6 +1,6 @@
 {
   "name": "gremia-sbv",
-  "version": "0.8.13-g",
+  "version": "0.8.13-i",
   "private": true,
   "description": "Offline-first Desktop-App für die vertrauliche Fallarbeit der Schwerbehindertenvertretung.",
   "main": "dist-electron/electron/main.js",
@@ -34,7 +34,7 @@
     "build:all": "node scripts/build-current-platform.cjs",
     "debug:paths": "node -e \"console.log({cwd:process.cwd(),home:process.env.HOME,GREMIA_SBV_DATA_DIR:process.env.GREMIA_SBV_DATA_DIR})\"",
     "test:retention": "vitest run tests/retentionPolicy.test.ts",
-    "release:check": "npm run rc:check && npm run test && npm run build",
+    "release:check": "npm run rc:check && npm run test:coverage && npm run build",
     "test:privacy": "vitest run tests/contactPrivacyService.test.ts tests/reportPrivacyPolicy.test.ts tests/documentStoragePolicy.test.ts",
     "test:migrations": "vitest run tests/migrationService.test.ts",
     "test:backup": "vitest run tests/backupPolicy.test.ts",
@@ -145,7 +145,8 @@
     "test:rc-review-0813d": "vitest run tests/reviewTypeSafety0813d.test.ts tests/caseNoteLinkCoverage0813d.test.ts tests/unitCoverageGate0813d.test.ts tests/featureModuleBoundaries0813c.test.ts",
     "test:rc-behavior-0813e": "vitest run tests/inlineCommandPureBehavior0813e.test.ts tests/caseNoteEntityLinkBehavior0813e.test.ts",
     "test:services-coverage": "vitest run --coverage tests/securityServiceBehavior0813f.test.ts tests/backupServiceBehavior0813f.test.ts tests/terminationWorkflowPolicyBehavior0813f.test.ts tests/retentionPolicyBehavior0813f.test.ts tests/preventionWorkflowPolicy.test.ts tests/reportPrivacyPolicy.test.ts tests/exportGuardPolicy.test.ts tests/textCommandPolicy.test.ts",
-    "test:rc-service-behavior-0813f": "vitest run tests/securityServiceBehavior0813f.test.ts tests/backupServiceBehavior0813f.test.ts tests/terminationWorkflowPolicyBehavior0813f.test.ts tests/retentionPolicyBehavior0813f.test.ts tests/serviceCoverageConfig0813f.test.ts"
+    "test:rc-service-behavior-0813f": "vitest run tests/securityServiceBehavior0813f.test.ts tests/backupServiceBehavior0813f.test.ts tests/terminationWorkflowPolicyBehavior0813f.test.ts tests/retentionPolicyBehavior0813f.test.ts tests/serviceCoverageConfig0813f.test.ts",
+    "test:rc-release-infra-0813h": "vitest run tests/releaseInfrastructure0813h.test.ts tests/docsConsistency0813h.test.ts tests/dependencyWarningReadiness0813h.test.ts"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.0",

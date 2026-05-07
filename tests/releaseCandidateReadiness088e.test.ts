@@ -5,7 +5,7 @@ import path from 'node:path';
 const pkg = JSON.parse(readFileSync('package.json', 'utf8')) as { version: string; scripts: Record<string, string> };
 const read = (file: string) => readFileSync(file, 'utf8');
 
-describe('0.8.8-e RC readiness', () => {
+describe('release candidate readiness', () => {
   it('keeps the project README aligned with the RC workflow', () => {
     const readme = read('README.md');
     expect(readme).toContain('npm run rc:check');
@@ -16,7 +16,7 @@ describe('0.8.8-e RC readiness', () => {
   it('ships a dependency-free RC readiness script and package alias', () => {
     expect(existsSync('scripts/check-release-candidate-readiness.cjs')).toBe(true);
     expect(pkg.scripts['rc:check']).toContain('check-release-candidate-readiness.cjs');
-    expect(pkg.scripts['release:check']).toBe('npm run rc:check && npm run test && npm run build');
+    expect(pkg.scripts['release:check']).toBe('npm run rc:check && npm run test:coverage && npm run build');
   });
 
   it('does not keep npm test scripts that reference missing test files', () => {
@@ -43,6 +43,8 @@ describe('0.8.8-e RC readiness', () => {
     expect(docsReadme).not.toContain('| `PROCESS_MODULES.md` | fachliche Maßnahmenlogik |');
     const checklist = read('docs/RELEASE_CHECKLIST.md');
     expect(checklist).toContain('npm run rc:check');
-    expect(checklist).toContain('npm run test:release-candidate-088e');
+    expect(checklist).toContain('npm run test:coverage');
+    expect(checklist).toContain('npm run release:check');
+    expect(checklist).not.toContain('npm run test:release-candidate-088e');
   });
 });

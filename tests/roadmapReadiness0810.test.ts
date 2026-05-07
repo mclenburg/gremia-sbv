@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 const roadmap = readFileSync('docs/ROADMAP.md', 'utf8');
 
-describe('0.8.10 roadmap readiness', () => {
+describe('roadmap readiness', () => {
   it('uses the RC-ready roadmap structure', () => {
     expect(roadmap).toContain('## Aktueller Stand');
     expect(roadmap).toContain('## Vor RC1 offen');
@@ -21,9 +21,9 @@ describe('0.8.10 roadmap readiness', () => {
 
   it('keeps the concept order: workflow extraction before live links', () => {
     expect(roadmap.indexOf('0.8.11 – `workflowViews.tsx` vollständig entkernen')).toBeGreaterThan(-1);
-    expect(roadmap.indexOf('0.8.12 – Lebende Protokollverknüpfungen als MVP')).toBeGreaterThan(-1);
+    expect(roadmap.indexOf('0.8.12 – Lebende Protokollverknüpfungen')).toBeGreaterThan(-1);
     const historical = roadmap.split('## Historisch abgeschlossen')[1] ?? '';
-    expect(historical.indexOf('0.8.11 – `workflowViews.tsx` vollständig entkernen')).toBeLessThan(historical.indexOf('0.8.12 – Lebende Protokollverknüpfungen als MVP'));
-    expect(roadmap).toContain('lebende Protokollverknüpfungen als MVP in 0.8.12');
+    expect(historical.indexOf('0.8.11 – `workflowViews.tsx` vollständig entkernen')).toBeLessThan(historical.indexOf('0.8.12 – Lebende Protokollverknüpfungen'));
+    expect(roadmap).toContain('lebenden Protokollverknüpfungen als MVP in 0.8.12');
   });
 });

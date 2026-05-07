@@ -1,3 +1,23 @@
+## 0.8.13-i - RC-Test- und Doku-Konsistenzfix
+
+- Veraltete historische Readiness-Tests auf den aktuellen RC-Vertrag angepasst.
+- `release:check` wird nun korrekt mit Service-Coverage-Gate erwartet.
+- Roadmap-Guards an den aktuellen historischen Stand angepasst und 0.2/0.3 ausdrücklich historisiert.
+- Build-Dokumentation um den expliziten macOS-Artefakt-Hinweis ergänzt.
+- Keine Schemaänderung.
+
+# CHANGELOG
+
+## 0.8.13-h - Final RC Readiness und Release-Infrastruktur
+
+- GitHub-Workflow `.github/workflows/build-release.yml` ergänzt: Tags `v*` erzeugen ein Draft Release mit Linux-, Windows- und unsigniertem macOS-Artefakt.
+- Tag-/Package-Version-Abgleich im Release-Workflow ergänzt.
+- `release:check` als verbindlicher lokaler RC-Gate-Befehl geschärft: `rc:check`, Service-Coverage und Build werden gebündelt.
+- Doku-Stände und RC-Dokumentation konsistent auf 0.8.13-i gezogen.
+- `docs/BUILD.md`, `docs/RELEASE_CHECKLIST.md`, `docs/KNOWN_ISSUES.md` und `docs/ROADMAP.md` auf GitHub-Build, npm-/electron-builder-Warnungen, macOS unsigned und Service-Coverage-Gate aktualisiert.
+- Release-Infrastruktur-Tests für GitHub-Workflow, Doku-Konsistenz und Dependency-Warnungs-Readiness ergänzt.
+- Keine Schemaänderung und keine neue Fachlogik.
+
 ## 0.8.13-g - Buildfix für Service-Behavior-Tests
 
 - TypeScript-Buildfehler in den verhaltensprüfenden Security-Service-Tests behoben: der Test-Spy für die interne Vault-DB-Initialisierung wird nicht mehr als Schnittmengen-Typ mit privater Methode modelliert.

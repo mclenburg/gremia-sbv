@@ -77,7 +77,7 @@ function validateDocs() {
 function validatePackageScripts(pkg) {
   const scripts = pkg.scripts ?? {};
   expect(scripts['rc:check']?.includes('check-release-candidate-readiness.cjs'), 'rc:check muss den RC-Readiness-Check ausführen.');
-  expect(scripts['release:check'] === 'npm run rc:check && npm run test && npm run build', 'release:check muss rc:check, test und build bündeln.');
+  expect(scripts['release:check'] === 'npm run rc:check && npm run test:coverage && npm run build', 'release:check muss rc:check, Service-Coverage und build bündeln.');
   expect(scripts['source:cleanup:verbose'] === 'node scripts/cleanup-obsolete-files.cjs --verbose', 'source:cleanup:verbose fehlt.');
 
   const missing = [];
@@ -96,12 +96,63 @@ function validateGeneratedVersions(pkg) {
   }
 }
 
+
+function validateReleaseWorkflow(pkg) {
+  const workflowPath = '.github/workflows/build-release.yml';
+  expect(exists(workflowPath), 'GitHub-Release-Workflow fehlt: .github/workflows/build-release.yml');
+  const workflow = read(workflowPath);
+  for (const phrase of [
+    'tags:',
+    'v*',
+    'ubuntu-latest',
+    'windows-latest',
+    'macos-latest',
+    'npm ci',
+    'GITHUB_REF_NAME#v',
+    'npm run rc:check && npm run test:coverage',
+    'npm run ${{ matrix.build_script }}',
+    'CSC_IDENTITY_AUTO_DISCOVERY: "false"',
+    'softprops/action-gh-release@v2',
+    'draft: true',
+  ]) {
+    expect(workflow.includes(phrase), `GitHub-Release-Workflow enthält den erwarteten Vertrag nicht: ${phrase}`);
+  }
+}
+
+function validateCoverageConfig() {
+  const config = read('vitest.config.ts');
+  for (const phrase of [
+    "provider: 'v8'",
+    "include: ['services/**/*.ts']",
+    'branches: 70',
+    'functions: 70',
+    'lines: 70',
+    'statements: 70',
+  ]) {
+    expect(config.includes(phrase), `Vitest-Coverage-Konfiguration enthält ${phrase} nicht.`);
+  }
+}
+
+function validatePublicDocVersions(pkg) {
+  const versionDocs = ['README.md', 'docs/BUILD.md', 'docs/E2E_TESTS.md', 'docs/KNOWN_ISSUES.md', 'docs/RELEASE_CHECKLIST.md', 'docs/ROADMAP.md'];
+  for (const doc of versionDocs) {
+    const source = read(doc);
+    expect(source.includes(pkg.version), `${doc} muss den aktuellen Paketstand ${pkg.version} ausweisen oder bewusst aktualisiert werden.`);
+  }
+  const roadmap = read('docs/ROADMAP.md');
+  expect(roadmap.includes('/bem`, `/praev`, `/bet`, `/kuend`, `/gleich`, `/anp` und `/fr'), 'ROADMAP.md muss die vollständige RC-Linkabdeckung dokumentieren.');
+  expect(!roadmap.includes('erst nach stabiler MVP-Erfahrung'), 'ROADMAP.md darf die umgesetzte Linkabdeckung nicht mehr als Post-RC-Thema führen.');
+}
+
 function main() {
   const pkg = readJson('package.json');
   validateGeneratedVersions(pkg);
   validateReadme(pkg);
   validateDocs();
   validatePackageScripts(pkg);
+  validateReleaseWorkflow(pkg);
+  validateCoverageConfig();
+  validatePublicDocVersions(pkg);
   console.log(`RC-Readiness OK: ${pkg.name}@${pkg.version}.`);
 }
 
