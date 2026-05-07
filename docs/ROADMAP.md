@@ -1,7 +1,7 @@
 # Roadmap Gremia.SBV
 
-Stand: **0.8.13-o**  
-Zielrichtung: stabiler Weg zu `0.9.0-rc.1` ohne neue Nebenideen außerhalb des aktualisierten Entwicklerkonzepts.
+Stand: **0.9.0-rc.1-c**  
+Status: erster Release Candidate. Nach `0.9.0-rc.1-c` gilt Feature-Freeze; neue Fachfunktionen werden nicht mehr aufgenommen.
 
 ## Aktueller Stand
 
@@ -23,14 +23,17 @@ Abgeschlossen sind unter anderem:
 
 ## Vor RC1 offen
 
-### 0.9.0-rc.1 – Release Candidate
+Keine offenen Fachfeatures. Dieser Strukturabschnitt bleibt bewusst erhalten, damit der historische Roadmap-Guard stabil bleibt. Vor Veröffentlichung des Draft-Releases sind nur noch Release-Gate-Prüfungen, Doku-Korrekturen und RC-blockierende Fehlerkorrekturen zulässig.
 
-- Versionssprung auf `0.9.0-rc.1`.
-- Keine neuen Features.
-- Keine größeren Refactorings.
-- Release Notes finalisieren.
-- Known Issues finalisieren.
-- Freeze-Regel dokumentieren: Nach RC1 nur Bugfixes, Buildfixes, Security-Fixes, Datenverlust-/Migrationsfixes und Dokumentationskorrekturen.
+## RC1-Status
+
+### 0.9.0-rc.1-c – Release Candidate
+
+- Versionssprung auf `0.9.0-rc.1-c` abgeschlossen.
+- Release Notes erstellt.
+- Known Issues finalisiert.
+- Freeze-Regel dokumentiert.
+- Keine neuen Features und keine größeren Refactorings nach RC1.
 
 ## Nach RC1
 
@@ -83,8 +86,15 @@ Abgeschlossen sind unter anderem:
 Frühere Planpunkte aus 0.2 und 0.3 sind nicht mehr als offene Checkliste zu führen. Sie sind entweder umgesetzt, durch spätere Architekturentscheidungen ersetzt oder in die RC-Roadmap oben überführt.
 
 
-### 0.8.13-o – RC-Coverage-Scope und Service-Behavior-Tests
+### 0.9.0-rc.1-c – RC-Coverage-Scope und Service-Behavior-Tests
 
 - V8-Coverage-Gate auf RC-kritische, unit-testbare Service-Verträge begrenzt.
 - Zusätzliche verhaltensprüfende Tests für Tätigkeitsbericht, Prozessfähigkeiten, Gleichstellung/GdB-Guidance und Kündigungs-Privacy ergänzt.
 - Breite datenbankgebundene Adapterservices bleiben Post-RC-Thema für modulare Refactorings und Integrationstests.
+
+
+### 0.9.0-rc.1-c – erster Release Candidate
+
+- Release Candidate eingefroren.
+- Version, Changelog, Known Issues, Release Notes und Release-Checkliste auf `0.9.0-rc.1-c` gezogen.
+- Nach RC1 gilt Feature-Freeze: zulässig sind nur Bugfixes, Buildfixes, Security-Fixes, Datenverlust-/Migrationsfixes, offensichtliche UI-Bugs und Dokumentationskorrekturen.

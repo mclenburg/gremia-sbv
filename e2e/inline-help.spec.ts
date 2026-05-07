@@ -9,7 +9,7 @@ test('opens and closes the keyboard command help with Ctrl+H and Esc', async ({ 
   await expect(page.getByLabel(/Kurzbefehle durchsuchen/)).toBeFocused();
 
   await page.getByLabel(/Kurzbefehle durchsuchen/).fill('Beteiligung');
-  await expect(dialog.getByText('/bet')).toBeVisible();
+  await expect(dialog.getByText('/bet', { exact: true })).toBeVisible();
 
   await page.keyboard.press('Escape');
   await expect(dialog).toBeHidden();

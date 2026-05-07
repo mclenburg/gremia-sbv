@@ -1,3 +1,14 @@
+## 0.9.0-rc.1-c – Layout-Hotfix für Maßnahmenmasken
+
+- RC-Hotfix ohne Schemaänderung und ohne neue Fachlogik.
+- Maßnahmenmasken für BEM, Prävention, Beteiligung, Kündigungsanhörung, Gleichstellung und Arbeitsplatzgestaltung layoutseitig gehärtet.
+- Prozessköpfe, Status-Badges, Abschnittskarten und Formularfelder nutzen vorhandenen Desktop-Platz besser und brechen auf kleineren Viewports kontrolliert um.
+- Arbeitsplatzgestaltungs-Prüfpunkte nutzen jetzt ein responsives Checkbox-Grid statt einer platzverschwendenden vertikalen Liste.
+- Darkmode-/Lightmode-Flächen bleiben explizit gesetzt; keine hellen Fallbackflächen im Darkmode und keine dunklen Fallback-Panels im Lightmode.
+- Guard-Test `measureLayoutReadiness090rc1a.test.ts` ergänzt.
+- Native Dropdown-/Select-Listen werden jetzt theme-aware gestaltet, damit sie nicht mehr als graue System-Fremdkörper aus dem Industrial-Design herausfallen.
+- Guard-Test `dropdownDesignReadiness090rc1b.test.ts` ergänzt.
+
 ## 0.8.13-o – Coverage-Testfix und RC-Guard-Bereinigung
 
 - `activityReportService` prüft sensible Freitexte jetzt fachlich korrekt: konkrete Diagnose-Felder mit Doppelpunkt werden blockiert, generische Datenschutz-Hinweise im Bericht aber nicht fälschlich als personenbezogene Inhalte bewertet.

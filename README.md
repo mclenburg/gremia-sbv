@@ -2,8 +2,8 @@
 
 **Gremia.SBV** ist eine lokale, offline-first Desktop-App für Schwerbehindertenvertretungen in Deutschland. Sie unterstützt vertrauliche SBV-Fallarbeit rund um BEM, Präventionsverfahren nach § 167 SGB IX, SBV-Beteiligung nach § 178 SGB IX, Kündigungsanhörungen, Gleichstellung/GdB, Arbeitsplatzanpassung, Fristen, Dokumentation und Tätigkeitsberichte – ohne Cloud, ohne Telemetrie und ohne HR-Zugriff.
 
-Stand: **0.8.13-o**  
-Zielrichtung: RC-Härtung vor dem ersten Release Candidate `0.9.0-rc.1`.
+Stand: **0.9.0-rc.1-c**  
+Status: erster Release Candidate `0.9.0-rc.1-c`.
 
 ## Kurzüberblick
 
@@ -71,7 +71,7 @@ Gremia.SBV ist ein Arbeitswerkzeug für die SBV. Die Anwendung bietet keine Rech
 
 Voraussetzungen:
 
-- Node.js in der vom Projekt verwendeten LTS-Version,
+- Node.js 20.19.0 oder neuer innerhalb der unterstützten LTS-/Current-Linien,
 - npm,
 - native Build-Abhängigkeiten für Electron/SQLite,
 - Linux-Desktop für AppImage-Builds,
@@ -127,6 +127,7 @@ npm run test:e2e
 - `docs/ROADMAP.md`
 - `docs/KNOWN_ISSUES.md`
 - `docs/CHANGELOG.md`
+- `docs/RELEASE_NOTES_0.9.0-rc.1-c.md`
 - `docs/LICENSE_POLICY.md`
 
 ## Lizenz
@@ -137,4 +138,4 @@ Weitere Hinweise stehen in `LICENSE`, `NOTICE` und `docs/LICENSE_POLICY.md`. Dri
 
 ## Release-Status
 
-Gremia.SBV befindet sich in der RC-Härtung vor `0.9.0-rc.1`. Bis zum Release Candidate stehen Stabilisierung, Migration, E2E, Barrierefreiheit, Datenschutz-/Security-Readiness und Dokumentationsreife im Vordergrund.
+Gremia.SBV befindet sich mit `0.9.0-rc.1-c` im ersten Release Candidate. Nach RC1 werden keine neuen Fachfunktionen mehr aufgenommen; zulässig sind nur Bugfixes, Buildfixes, Security-Fixes, Datenverlust-/Migrationsfixes, offensichtliche UI-Bugs und Dokumentationskorrekturen.

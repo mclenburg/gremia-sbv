@@ -1,6 +1,6 @@
-# Known Issues vor 0.9.0-rc.1
+# Known Issues für 0.9.0-rc.1-c
 
-Stand: 0.8.13-o
+Stand: 0.9.0-rc.1-c
 
 ## Plattformen und Signierung
 
