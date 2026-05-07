@@ -1,0 +1,27 @@
+Gremia.SBV
+==========
+
+Gremia.SBV is an offline-first desktop application for confidential casework of
+German Schwerbehindertenvertretungen (SBV).
+
+License
+-------
+
+Gremia.SBV is licensed under the GNU Affero General Public License, version 3 or
+later (AGPL-3.0-or-later). See LICENSE and docs/LICENSE_POLICY.md.
+
+Third-party components
+----------------------
+
+This project uses third-party open source components from the Node.js, Electron,
+React and SQLite ecosystem. These components are not relicensed by this project;
+they remain subject to their respective upstream licenses. A generated
+third-party license inventory should be produced as part of a later release
+packaging step when the dependency tree is frozen.
+
+Data protection note
+--------------------
+
+The license governs copyright permissions. It does not by itself constitute a
+GDPR/DSGVO approval, security certification, legal advice, or operational release
+approval for processing real SBV case data.

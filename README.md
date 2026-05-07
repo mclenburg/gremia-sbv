@@ -2,7 +2,7 @@
 
 **Gremia.SBV** ist eine lokale, offline-first Desktop-App für Schwerbehindertenvertretungen in Deutschland. Sie unterstützt vertrauliche SBV-Fallarbeit rund um BEM, Präventionsverfahren nach § 167 SGB IX, SBV-Beteiligung nach § 178 SGB IX, Kündigungsanhörungen, Gleichstellung/GdB, Arbeitsplatzanpassung, Fristen, Dokumentation und Tätigkeitsberichte – ohne Cloud, ohne Telemetrie und ohne HR-Zugriff.
 
-Stand: **0.8.13-i**  
+Stand: **0.8.13-l**  
 Zielrichtung: RC-Härtung vor dem ersten Release Candidate `0.9.0-rc.1`.
 
 ## Kurzüberblick
@@ -127,6 +127,13 @@ npm run test:e2e
 - `docs/ROADMAP.md`
 - `docs/KNOWN_ISSUES.md`
 - `docs/CHANGELOG.md`
+- `docs/LICENSE_POLICY.md`
+
+## Lizenz
+
+Gremia.SBV steht unter der **GNU Affero General Public License v3.0 or later** (`AGPL-3.0-or-later`). Die Lizenz ist bewusst gewählt, damit die Software als freie SBV-first-Anwendung prüfbar, weiterentwickelbar und nicht ohne Rückgabe von Verbesserungen proprietär vereinnahmt werden kann.
+
+Weitere Hinweise stehen in `LICENSE`, `NOTICE` und `docs/LICENSE_POLICY.md`. Drittkomponenten bleiben unter ihren jeweiligen Upstream-Lizenzen.
 
 ## Release-Status
 

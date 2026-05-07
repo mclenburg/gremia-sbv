@@ -11,7 +11,6 @@ export default defineConfig({
     ],
     coverage: {
       provider: 'v8',
-      enabled: false,
       reportsDirectory: './coverage',
       include: ['services/**/*.ts'],
       exclude: [

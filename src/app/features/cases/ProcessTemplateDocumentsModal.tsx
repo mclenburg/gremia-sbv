@@ -9,48 +9,78 @@ import { statusLabel } from '../prevention/preventionShared';
 import { bemStatusLabel } from '../bem/bemShared';
 import { equalizationStatusLabel } from '../equalization/equalizationShared';
 
-function isEqualizationProcessRecord(process: ProcessTemplateModalState['process']): process is EqualizationProcessRecord {
-  return 'applicationStatus' in process;
-}
-
-function isTerminationHearingRecord(process: ProcessTemplateModalState['process']): process is TerminationHearingRecord {
-  return 'terminationType' in process && 'protectionStatus' in process;
-}
-
-function hasGenericProcessStatus(process: ProcessTemplateModalState['process']): process is PreventionProcessRecord | BemProcessRecord | TerminationHearingRecord {
-  return 'status' in process;
-}
-
-function processTemplateProcessLabel(processType: ProcessTemplateModalState['processType']): string {
-  if (processType === 'bem') return 'BEM';
-  if (processType === 'equalization') return 'Gleichstellung / GdB';
-  if (processType === 'termination_hearing') return 'Kündigungsanhörung';
-  return 'Prävention';
-}
-
-function processTemplateStatusLabel(state: ProcessTemplateModalState): string {
-  if (isEqualizationProcessRecord(state.process)) return equalizationStatusLabel(state.process.applicationStatus);
-  if (isTerminationHearingRecord(state.process)) return terminationStatusLabel(state.process.status);
-  if (state.processType === 'bem' && hasGenericProcessStatus(state.process)) return bemStatusLabel(state.process.status as any);
-  if (hasGenericProcessStatus(state.process)) return statusLabel(state.process.status as any);
-  return 'unbekannt';
-}
-
-function processTemplateStatusTag(state: ProcessTemplateModalState): string {
-  if (isEqualizationProcessRecord(state.process)) return `status:${state.process.applicationStatus}`;
-  if (hasGenericProcessStatus(state.process)) return `status:${state.process.status}`;
-  return 'status:unbekannt';
-}
-
-export type ProcessTemplateModalState = {
-  process: PreventionProcessRecord | BemProcessRecord | EqualizationProcessRecord | TerminationHearingRecord;
-  processType: 'prevention' | 'bem' | 'equalization' | 'termination_hearing';
+type PreventionProcessTemplateModalState = {
+  process: PreventionProcessRecord;
+  processType: 'prevention';
   templates: TemplateRecord[];
   rendered?: RenderedTemplateResult;
   loading: boolean;
   error?: string;
   info?: string;
 };
+
+type BemProcessTemplateModalState = {
+  process: BemProcessRecord;
+  processType: 'bem';
+  templates: TemplateRecord[];
+  rendered?: RenderedTemplateResult;
+  loading: boolean;
+  error?: string;
+  info?: string;
+};
+
+type EqualizationProcessTemplateModalState = {
+  process: EqualizationProcessRecord;
+  processType: 'equalization';
+  templates: TemplateRecord[];
+  rendered?: RenderedTemplateResult;
+  loading: boolean;
+  error?: string;
+  info?: string;
+};
+
+type TerminationProcessTemplateModalState = {
+  process: TerminationHearingRecord;
+  processType: 'termination_hearing';
+  templates: TemplateRecord[];
+  rendered?: RenderedTemplateResult;
+  loading: boolean;
+  error?: string;
+  info?: string;
+};
+
+export type ProcessTemplateModalState =
+  | PreventionProcessTemplateModalState
+  | BemProcessTemplateModalState
+  | EqualizationProcessTemplateModalState
+  | TerminationProcessTemplateModalState;
+
+export function processTemplateProcessLabel(processType: ProcessTemplateModalState['processType']): string {
+  if (processType === 'bem') return 'BEM';
+  if (processType === 'equalization') return 'Gleichstellung / GdB';
+  if (processType === 'termination_hearing') return 'Kündigungsanhörung';
+  return 'Prävention';
+}
+
+export function processTemplateStatusLabel(state: ProcessTemplateModalState): string {
+  switch (state.processType) {
+    case 'bem':
+      return bemStatusLabel(state.process.status);
+    case 'equalization':
+      return equalizationStatusLabel(state.process.applicationStatus);
+    case 'termination_hearing':
+      return terminationStatusLabel(state.process.status);
+    case 'prevention':
+      return statusLabel(state.process.status);
+  }
+}
+
+export function processTemplateStatusTag(state: ProcessTemplateModalState): string {
+  const status = state.processType === 'equalization'
+    ? state.process.applicationStatus
+    : state.process.status;
+  return `status:${status}`;
+}
 
 export function ProcessTemplateDocumentsModal({
   state,

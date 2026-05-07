@@ -1,6 +1,6 @@
 # Build von Gremia.SBV
 
-Stand: 0.8.13-i
+Stand: 0.8.13-l
 
 ## Unterstützte RC-Plattformen
 
@@ -98,3 +98,18 @@ Nicht automatisch blockierend sind transitive Buildzeit-Warnungen, wenn sie übe
 - Keine `node_modules` oder `release`-Artefakte in Patch-ZIPs.
 - Tests sind Teil des normalen Build-Laufs.
 - `prebuild` bleibt der Build-Readiness-Vertrag: Version generieren, Source-Cleanup, Build-Readiness.
+
+
+## Node.js- und npm-Version
+
+Für reproduzierbare RC-Builds ist Node.js 20.19.0 oder neuer innerhalb der 20.x-LTS-Linie erforderlich. Einige Build- und Native-Dependencies verlangen Node 20+; Node 18 wird nicht mehr als Build-Umgebung unterstützt.
+
+Empfohlen:
+
+```bash
+nvm install 20.19.0
+nvm use 20.19.0
+npm ci
+```
+
+Das Repository enthält `.nvmrc` und `.node-version` mit `20.19.0`. Die Projekt-`.npmrc` erzwingt die öffentliche npm Registry, damit keine lokalen oder internen Registry-URLs aus Entwicklungsumgebungen in den Installationspfad geraten.

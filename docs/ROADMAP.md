@@ -1,6 +1,6 @@
 # Roadmap Gremia.SBV
 
-Stand: **0.8.13-i**  
+Stand: **0.8.13-l**  
 Zielrichtung: stabiler Weg zu `0.9.0-rc.1` ohne neue Nebenideen außerhalb des aktualisierten Entwicklerkonzepts.
 
 ## Aktueller Stand

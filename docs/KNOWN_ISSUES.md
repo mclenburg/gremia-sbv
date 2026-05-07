@@ -1,6 +1,6 @@
 # Known Issues vor 0.9.0-rc.1
 
-Stand: 0.8.13-i
+Stand: 0.8.13-l
 
 ## Plattformen und Signierung
 
@@ -30,3 +30,12 @@ Stand: 0.8.13-i
 - `InlineCommandOverlays.tsx` und `useInlineCommands.ts` sind weiterhin groß und sollten nach RC weiter modularisiert werden.
 - Große Services wie `caseService.ts`, `reportService.ts` und `templateService.ts` bleiben Post-RC-Kandidaten für weitere fachliche Aufteilung.
 - Nach RC sind nur Bugfixes, Buildfixes, Security-Fixes, Datenverlust-/Migrationsfixes und Dokumentationskorrekturen zulässig.
+
+
+## Build-Umgebung: Node 18 nicht unterstützt
+
+Node.js 18 kann bei aktuellen Electron-/Vite-/Native-Dependencies `EBADENGINE`-Warnungen erzeugen und ist für den RC-Build nicht mehr freigegeben. Für lokale Builds, GitHub Actions und Release-Artefakte ist Node.js 20.19.0 oder neuer innerhalb der unterstützten LTS-/Current-Linien zu verwenden.
+
+## npm Registry
+
+Der Lockfile-Stand darf keine internen Registry- oder Artifactory-URLs enthalten. Der RC-Stand verwendet öffentliche `registry.npmjs.org`-URLs. Lokale npm-Konfigurationen wie alte `always-auth`-/`email`-Einträge können weiterhin Warnungen verursachen, sind aber außerhalb des Projekt-Repositories zu bereinigen.

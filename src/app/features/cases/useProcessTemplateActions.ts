@@ -39,48 +39,41 @@ export function useProcessTemplateActions(deps: UseProcessTemplateActionsDeps) {
       | EqualizationProcessRecord
       | TerminationHearingRecord,
   ) {
-    const processType = isBemProcessRecord(process)
-      ? "bem"
+    const modalBase: ProcessTemplateModalState = isBemProcessRecord(process)
+      ? { process, processType: "bem", templates: [], loading: true }
       : isEqualizationProcessRecord(process)
-        ? "equalization"
+        ? { process, processType: "equalization", templates: [], loading: true }
         : isTerminationHearingRecord(process)
-          ? "termination_hearing"
-          : "prevention";
+          ? { process, processType: "termination_hearing", templates: [], loading: true }
+          : { process, processType: "prevention", templates: [], loading: true };
     const category =
-      processType === "bem"
+      modalBase.processType === "bem"
         ? "bem"
-        : processType === "equalization"
+        : modalBase.processType === "equalization"
           ? "gleichstellung"
-          : processType === "termination_hearing"
+          : modalBase.processType === "termination_hearing"
             ? "kuendigung"
             : "praevention";
-    const status = isEqualizationProcessRecord(process)
-      ? process.applicationStatus
-      : process.status;
-    setProcessTemplateModal({
-      process,
-      processType,
-      templates: [],
-      loading: true,
-    });
+    const status = modalBase.processType === "equalization"
+      ? modalBase.process.applicationStatus
+      : modalBase.process.status;
+    setProcessTemplateModal(modalBase);
     try {
       const bridge = await waitForBridge();
       if (!bridge?.templates)
         throw new Error("Vorlagendienst ist nicht erreichbar.");
       const rows = await bridge.templates.list({ category, limit: 500 });
       const templates = rows.filter((template: TemplateRecord) =>
-        isTemplateConnectedToProcessStatus(template, processType, status),
+        isTemplateConnectedToProcessStatus(template, modalBase.processType, status),
       );
       setProcessTemplateModal({
-        process,
-        processType,
+        ...modalBase,
         templates,
         loading: false,
       });
     } catch (error) {
       setProcessTemplateModal({
-        process,
-        processType,
+        ...modalBase,
         templates: [],
         loading: false,
         error:

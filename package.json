@@ -1,6 +1,6 @@
 {
   "name": "gremia-sbv",
-  "version": "0.8.13-i",
+  "version": "0.8.13-l",
   "private": true,
   "description": "Offline-first Desktop-App für die vertrauliche Fallarbeit der Schwerbehindertenvertretung.",
   "main": "dist-electron/electron/main.js",
@@ -146,7 +146,9 @@
     "test:rc-behavior-0813e": "vitest run tests/inlineCommandPureBehavior0813e.test.ts tests/caseNoteEntityLinkBehavior0813e.test.ts",
     "test:services-coverage": "vitest run --coverage tests/securityServiceBehavior0813f.test.ts tests/backupServiceBehavior0813f.test.ts tests/terminationWorkflowPolicyBehavior0813f.test.ts tests/retentionPolicyBehavior0813f.test.ts tests/preventionWorkflowPolicy.test.ts tests/reportPrivacyPolicy.test.ts tests/exportGuardPolicy.test.ts tests/textCommandPolicy.test.ts",
     "test:rc-service-behavior-0813f": "vitest run tests/securityServiceBehavior0813f.test.ts tests/backupServiceBehavior0813f.test.ts tests/terminationWorkflowPolicyBehavior0813f.test.ts tests/retentionPolicyBehavior0813f.test.ts tests/serviceCoverageConfig0813f.test.ts",
-    "test:rc-release-infra-0813h": "vitest run tests/releaseInfrastructure0813h.test.ts tests/docsConsistency0813h.test.ts tests/dependencyWarningReadiness0813h.test.ts"
+    "test:rc-release-infra-0813h": "vitest run tests/releaseInfrastructure0813h.test.ts tests/docsConsistency0813h.test.ts tests/dependencyWarningReadiness0813h.test.ts",
+    "test:license-readiness": "vitest run tests/licenseReadiness0813k.test.ts",
+    "test:dependency-readiness": "vitest run tests/dependencyRegistryReadiness0813l.test.ts"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.0",
@@ -249,5 +251,10 @@
         "to": "database"
       }
     ]
+  },
+  "license": "AGPL-3.0-or-later",
+  "engines": {
+    "node": ">=20.19.0 <25",
+    "npm": ">=10"
   }
 }

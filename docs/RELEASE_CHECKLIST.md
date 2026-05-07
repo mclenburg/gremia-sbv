@@ -1,6 +1,6 @@
 # Release-Checkliste bis 0.9.0-rc.1
 
-Stand: 0.8.13-i
+Stand: 0.8.13-l
 
 ## Automatisierte Mindestprüfung lokal
 
