@@ -1,99 +1,110 @@
-## 0.8.13-l - Lizenzfestlegung und RC-Testfix
+## 0.8.13-o – Coverage-Testfix und RC-Guard-Bereinigung
+
+- `activityReportService` prüft sensible Freitexte jetzt fachlich korrekt: konkrete Diagnose-Felder mit Doppelpunkt werden blockiert, generische Datenschutz-Hinweise im Bericht aber nicht fälschlich als personenbezogene Inhalte bewertet.
+- `rcCumulativePatch0813n.test.ts` wurde von spröden String-Erwartungen auf konkrete Testformulierungen befreit und prüft nun die tatsächlichen RC-Verträge: typisierte Linknavigation, aktuelle Gleichstellungsstatus-Logik, Lizenzdateien und Cleanup-Manifest.
+- Doku-Stand auf 0.8.13-o aktualisiert.
+
+# Changelog
+
+## 0.8.13-n – kumulativer RC-Fix für Teststand, Lizenz und Cleanup
+
+- Patch enthält die in 0.8.13-g bis 0.8.13-m erarbeiteten RC-Fixes als vollständigen Nachzug für Stände, in denen einzelne Dateien aus Zwischenpatches fehlten.
+- AGPL-3.0-or-later bleibt als Projektlizenz gesetzt; LICENSE, NOTICE und Lizenzpolitik sind Bestandteil des Patchstands.
+- TypeScript-Testfixes für SecurityService-Behavior-Tests und CaseNoteEntityLink-Behavior-Tests werden ausdrücklich mitgeliefert.
+- Der Gleichstellungs-Template-Status-Test prüft die aktuelle diskriminierte Union statt veralteter Type-Guard-Hilfsfunktionen.
+- Obsolete historische Tests werden über den manifestgesteuerten Source-Cleanup entfernt.
+
+# CHANGELOG
+
+## 0.8.13-m - RC-Coverage-Scope und zusätzliche Service-Behavior-Tests
+
+- `vitest.config.ts` misst das V8-Coverage-Gate nicht mehr pauschal über alle datenbankgebundenen Service-Adapter, sondern über die RC-kritischen, unit-testbaren Service-Verträge.
+- Zusätzliche Behavior-Tests für `activityReportService`, `caseProcessPolicy`, `equalizationWorkflowPolicy`, `equalizationGuidancePolicy` und `terminationPrivacyPolicy` ergänzt.
+- Coverage-Scope-Guard ergänzt, damit das Gate nicht versehentlich wieder auf breite Adapterservices oder deaktivierte Coverage zurückfällt.
+- Doku auf 0.8.13-m aktualisiert und die Grenze zwischen Unit-Coverage, Integrationstests und Post-RC-Refactoring dokumentiert.
+
+## 0.8.13-l - Dependency Registry Readiness und Node-Build-Basis
+
+- Interne Registry-/Artifactory-URLs aus `package-lock.json` entfernt und öffentliche npm-Registry abgesichert.
+- `.npmrc`, `.nvmrc` und `.node-version` ergänzt.
+- Node-Build-Basis auf Node.js 20.19.0 und npm >= 10 dokumentiert.
+- Dependency-Readiness-Test ergänzt.
+
+## 0.8.13-k - Lizenzfestlegung und RC-Testfix
 
 - Projektlizenz auf `AGPL-3.0-or-later` festgelegt und in `package.json`, `LICENSE`, `NOTICE` und `docs/LICENSE_POLICY.md` dokumentiert.
 - README um einen öffentlichen Lizenzabschnitt ergänzt.
-- Veralteten Guard-Test `equalizationTemplateStatus061d.test.ts` an die aktuelle diskriminierte Union in `ProcessTemplateDocumentsModal.tsx` angepasst. Der Test erwartet keine alten Type-Guard-Funktionen mehr und prüft stattdessen typensichere Statusbehandlung ohne `as any`.
-- Doku-Stände und RC-Dokumentation konsistent auf 0.8.13-l gezogen.
+- Veralteten Guard-Test `equalizationTemplateStatus061d.test.ts` an die aktuelle diskriminierte Union in `ProcessTemplateDocumentsModal.tsx` angepasst.
 - Keine Schemaänderung und keine neue Fachlogik.
 
-## 0.8.13-l - Finaler RC-Quality-Gate- und Typensicherheitsfix
+## 0.8.13-j - Finaler RC-Quality-Gate- und Typensicherheitsfix
 
-- `coverage.enabled: false` aus `vitest.config.ts` entfernt, damit `vitest run --coverage` das eingeforderte V8-Service-Coverage-Gate nicht deaktiviert.
+- `coverage.enabled: false` aus `vitest.config.ts` entfernt.
 - `ProcessTemplateDocumentsModal.tsx` auf eine diskriminierte Union für Prozessarten umgestellt.
 - Die letzten `as any`-Casts bei Prozessstatus-Labels entfernt.
-- Doku-Stände und RC-Dokumentation konsistent auf 0.8.13-l gezogen.
 
-## 0.8.13-l - RC-Test- und Doku-Konsistenzfix
+## 0.8.13-i - RC-Test- und Doku-Konsistenzfix
 
 - Veraltete historische Readiness-Tests auf den aktuellen RC-Vertrag angepasst.
-- `release:check` wird nun korrekt mit Service-Coverage-Gate erwartet.
+- `release:check` wird korrekt mit Service-Coverage-Gate erwartet.
 - Roadmap-Guards an den aktuellen historischen Stand angepasst und 0.2/0.3 ausdrücklich historisiert.
 - Build-Dokumentation um den expliziten macOS-Artefakt-Hinweis ergänzt.
-- Keine Schemaänderung.
 
-# CHANGELOG
-
-## 0.8.13-l - Final RC Readiness und Release-Infrastruktur
+## 0.8.13-h - Final RC Readiness und Release-Infrastruktur
 
 - GitHub-Workflow `.github/workflows/build-release.yml` ergänzt: Tags `v*` erzeugen ein Draft Release mit Linux-, Windows- und unsigniertem macOS-Artefakt.
 - Tag-/Package-Version-Abgleich im Release-Workflow ergänzt.
-- `release:check` als verbindlicher lokaler RC-Gate-Befehl geschärft: `rc:check`, Service-Coverage und Build werden gebündelt.
-- Doku-Stände und RC-Dokumentation konsistent auf 0.8.13-l gezogen.
-- `docs/BUILD.md`, `docs/RELEASE_CHECKLIST.md`, `docs/KNOWN_ISSUES.md` und `docs/ROADMAP.md` auf GitHub-Build, npm-/electron-builder-Warnungen, macOS unsigned und Service-Coverage-Gate aktualisiert.
-- Release-Infrastruktur-Tests für GitHub-Workflow, Doku-Konsistenz und Dependency-Warnungs-Readiness ergänzt.
-- Keine Schemaänderung und keine neue Fachlogik.
+- `release:check` als verbindlicher lokaler RC-Gate-Befehl geschärft.
+- Doku auf GitHub-Build, npm-/electron-builder-Warnungen, macOS unsigned und Service-Coverage-Gate aktualisiert.
 
-## 0.8.13-l - Buildfix für Service-Behavior-Tests
+## 0.8.13-g - Buildfix für Service-Behavior-Tests
 
-- TypeScript-Buildfehler in den verhaltensprüfenden Security-Service-Tests behoben: der Test-Spy für die interne Vault-DB-Initialisierung wird nicht mehr als Schnittmengen-Typ mit privater Methode modelliert.
-- `securityServiceBehavior0813f.test.ts` bleibt ein echter Behavior-Test gegen `SecurityService`: Unlock positiv/negativ, Unlock-Delay, Recovery-Key, Passwortwechsel und destruktiver Reset werden weiterhin mit definierten Eingaben und erwarteten Ergebnissen geprüft.
-- TypeScript-Buildfehler in `caseNoteEntityLinkBehavior0813e.test.ts` behoben: die Prozessauswahl wird vor Zugriff auf `id` explizit typverengt.
-- Keine Schemaänderung. Coverage-Konfiguration mit V8-Provider und 70-Prozent-Schwellen für `services/**/*.ts` bleibt unverändert.
+- TypeScript-Buildfehler in den verhaltensprüfenden Security-Service-Tests behoben.
+- TypeScript-Buildfehler in `caseNoteEntityLinkBehavior0813e.test.ts` behoben.
 
-## 0.8.13-l - Service-Coverage und echte Unit-Tests
+## 0.8.13-f - Service-Coverage und echte Unit-Tests
 
-- Vitest-Coverage auf `provider: 'v8'` und Service-Schicht `services/**/*.ts` begrenzt.
+- Vitest-Coverage auf `provider: 'v8'` gesetzt.
 - Coverage-Gate mit 70 Prozent für Branches, Functions, Lines und Statements gesetzt.
 - Echte Behavior-/Unit-Tests für `securityService.ts`, `backupService.ts`, `terminationWorkflowPolicy.ts` und Retention-Lücken ergänzt.
-- Backup-Tests prüfen aktuelle KDF-Parameter und Legacy-Restore ohne `kdfParams`.
-- Security-Tests prüfen Unlock positiv/negativ, Unlock-Delay, Recovery-Key, Passwortwechsel und destruktiven Reset.
 
-# CHANGELOG
-
-## 0.8.13-l - Verhaltensprüfende Unit-Tests für RC-kritische Logik
+## 0.8.13-e - Verhaltensprüfende Unit-Tests für RC-kritische Logik
 
 - Ergänzt echte Unit-Tests mit definierten Eingaben und erwarteten Ergebnissen für Inlinebefehle, Prefill-Logik und Aktenbezug-Navigation.
-- Positive und negative Testfälle prüfen u. a. Command-Boundaries, Argumentextraktion, Ersetzung, Präventions-/Kündigungs-/Gleichstellungs-/Arbeitsplatzanpassungs-Prefills sowie Beteiligungs-Klassifikation.
-- `CaseNoteEntityLinks` exportiert die bisher interne Link-zu-Auswahl-Logik, damit Prozessnavigation und fachliche Labels direkt getestet werden können.
-- Neues Script `npm run test:rc-behavior-0813e` bündelt die verhaltensprüfenden RC-Unit-Tests.
-- Keine Schemaänderung; bestehende Coverage- und Struktur-Guards bleiben erhalten, ersetzen aber nicht die neuen Logiktests.
+- Positive und negative Testfälle prüfen Command-Boundaries, Argumentextraktion, Ersetzung und Prozess-Prefills.
 
-## 0.8.13-l - RC-Review-Fixes: Typen, Modulgrenzen, Linkabdeckung und Coverage-Gate
+## 0.8.13-d - RC-Review-Fixes: Typen, Modulgrenzen, Linkabdeckung und Coverage-Gate
 
-- Lebende Protokollverknüpfungen auf `/praev`, `/kuend`, `/gleich` und `/anp` erweitert; die RC-kritischen Fallaktenbefehle `/bem`, `/praev`, `/bet`, `/kuend`, `/gleich`, `/anp` und `/fr` erzeugen damit einheitlich klickbare Aktenbezüge.
-- TypeScript-Schnell-Casts in `ReportsView.tsx` und `useProcessTemplateActions.ts` entfernt; die vorhandenen Bridge- und Dialogtypen werden wieder direkt genutzt.
+- Lebende Protokollverknüpfungen auf `/praev`, `/kuend`, `/gleich` und `/anp` erweitert.
+- TypeScript-Schnell-Casts in `ReportsView.tsx` und `useProcessTemplateActions.ts` entfernt.
 - `src/vite-env.d.ts` importiert die `caseMeasures`-Typen vollständig.
-- Coverage-Gate für die RC-Prüfung ergänzt: `vitest.config.ts` enthält 70-Prozent-Schwellen für Lines, Functions, Branches und Statements; `npm run test:coverage` führt die Coverage-Prüfung aus.
-- Modulgrenzen für Dashboard/Settings bleiben über den Source-Cleanup und Boundary-Tests abgesichert.
+- Coverage-Gate für die RC-Prüfung ergänzt.
+
+## 0.8.13-c - Review-Fixes vor RC
+
+- Frühphasen-Placeholder aus `docs/SECURITY.md` entfernt.
+- Dashboard- und Settings-Komponenten aus `features/cases/` in semantisch passende Module verschoben.
+- Roadmap-Stand und Security-Doku durch Guard-Tests abgesichert.
+
+## 0.8.13-b - RC-Dateibereinigung
+
+- Aktive Dokumentation auf dauerhafte RC-Unterlagen reduziert.
+- Historische Patch-, Buildfix- und Zwischenstandsnotizen über den Source-Cleanup-Mechanismus zur Entfernung vorgemerkt.
+
+## 0.8.13-a - RC-Readiness-Testfix
+
+- RC-Readiness-Tests an tatsächliche Konstantennamen und dynamische E2E-IDs angepasst.
+- BUILD-Dokumentation ergänzt: experimenteller macOS-Buildbefehl und Windows-`winCodeSign`-/Symlink-Hinweis.
+
+## 0.8.13 - RC-Härtung
+
+- README als öffentliche Projektstartseite für SBVen optimiert.
+- E2E-, A11y-, Security-/Privacy- und Migrations-Readiness ergänzt.
+- Doku für BUILD, E2E, RELEASE_CHECKLIST, SECURITY, ROADMAP, KNOWN_ISSUES und CHANGELOG aktualisiert.
 
 ## 0.8.12-j – Windows-Build ohne Symlink-Privileg
-## 0.8.13-l - Review-Fixes vor RC
-
-- Frühphasen-Placeholder aus `docs/SECURITY.md` entfernt und Plattformintegration als RC-geprüften Build-/Readiness-Vertrag beschrieben.
-- Dashboard- und Settings-Komponenten aus `features/cases/` in semantisch passende Module verschoben.
-- `workflowViews.tsx` bleibt als öffentlicher Kompatibilitätsindex erhalten, re-exportiert aber Dashboard, Settings und Theme aus den richtigen Modulbereichen.
-- `docs/ROADMAP.md` auf den aktuellen Stand gehoben und um die bewusste MVP-Grenze der lebenden Protokollverknüpfungen ergänzt.
-- Lebende Protokollverknüpfungen auf `/praev`, `/kuend`, `/gleich` und `/anp` erweitert; die RC-kritischen Fallaktenbefehle `/bem`, `/praev`, `/bet`, `/kuend`, `/gleich`, `/anp` und `/fr` erzeugen damit einheitlich klickbare Aktenbezüge.
-- RC-Review-Tests für Modulgrenzen, Roadmap-Stand und Security-Doku ergänzt.
-
-
-## 0.8.13-l – RC-Dateibereinigung
-
-- aktive Dokumentation auf dauerhafte RC-Unterlagen reduziert.
-- historische Patch-, Buildfix- und Zwischenstandsnotizen über den Source-Cleanup-Mechanismus zur Entfernung vorgemerkt.
-- altes `cleanup:legacy`-Skript aus den npm-Skripten entfernt; Dateibereinigung läuft im Build über manifestgesteuerten `source:cleanup`.
-- Guard-Test ergänzt, damit kurzlebige Patchdokumente und verwaiste Legacy-Cleanup-Skripte vor RC1 nicht erneut im aktiven Bestand auftauchen.
-
-## 0.8.13-l
-
-- RC-Readiness-Tests an die tatsächlichen Konstantennamen und dynamischen E2E-IDs angepasst.
-- BUILD-Dokumentation ergänzt: experimenteller macOS-Buildbefehl und Windows-`winCodeSign`-/Symlink-Hinweis.
-- Security-/Privacy-Readiness prüft technische Verträge statt redaktioneller Testphrasen.
-
 
 - Windows-RC-Build deaktiviert `signAndEditExecutable`, damit unsignierte Windows-Artefakte ohne `winCodeSign`-Symlink-Extraktion gebaut werden können.
-- Hintergrund: Auf Windows-Systemen ohne Entwickler-Modus oder Administratorrecht scheitert `winCodeSign-2.6.0.7z` beim Entpacken der enthaltenen macOS-Symlinks.
-- Trade-off: EXE-Resource-Editing wie Datei-Metadaten/Icon am Executable wird für den unsignierten RC-Build nicht durchgeführt; NSIS/Portable-Artefakte bleiben buildbar.
 - Native Dependency-Vertrag bleibt unverändert: `postinstall` ist exakt `electron-builder install-app-deps`.
 
 ## 0.8.12-i – Plattform- und versionsstabile Testguards
@@ -272,22 +283,3 @@
 ## 0.8.4
 
 - Versionen, Schema, PDF-Erzeugung, Audit-Hash-Chain, Auto-Lock, temporäre Dateien und IPC-Validierung stabilisiert.
-
-## 0.8.13 - RC-Härtung
-
-- Root-README als öffentliche Projektstartseite für Schwerbehindertenvertretungen optimiert.
-- RC-Build-/Testmatrix für Linux und Windows dokumentiert.
-- E2E-Responsive-Test für mehrere Desktop-Auflösungen ergänzt.
-- E2E-Barrierefreiheitstest für Tastatur, Dialoge und fachliche Labels ergänzt.
-- Plattformstabilitäts-, Accessibility-, Security-/Privacy-, Migrations- und README-Readiness-Tests ergänzt.
-- RC-kritische data-e2e-Selektoren stabilisiert.
-- Native-Dependency-Vertrag `postinstall: electron-builder install-app-deps` bleibt blockierend abgesichert.
-
-
-
-## 0.8.13-l – Dependency Registry Readiness und Node-Build-Basis
-
-- package-lock.json von internen Registry-/Artifactory-URLs bereinigt.
-- Projekt-`.npmrc` auf öffentliche npm Registry gesetzt.
-- Node-Build-Basis auf Node.js >=20.19.0 dokumentiert und über `engines`, `.nvmrc` und `.node-version` abgesichert.
-- Dependency-Readiness-Test ergänzt, damit interne Registry-URLs und Node-18-Builds nicht als RC-Stand durchrutschen.

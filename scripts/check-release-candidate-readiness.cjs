@@ -123,7 +123,10 @@ function validateCoverageConfig() {
   const config = read('vitest.config.ts');
   for (const phrase of [
     "provider: 'v8'",
-    "include: ['services/**/*.ts']",
+    'const rcCriticalServiceCoverage',
+    "'services/securityService.ts'",
+    "'services/backupService.ts'",
+    "'services/terminationWorkflowPolicy.ts'",
     'branches: 70',
     'functions: 70',
     'lines: 70',

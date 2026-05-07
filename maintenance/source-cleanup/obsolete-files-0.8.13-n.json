@@ -1,0 +1,31 @@
+{
+  "version": "0.8.13-n",
+  "reason": "Finaler RC-Nachzug entfernt historische, versionsgepinnt oder zwischenstandsbezogen formulierte Tests, die auf alten Entwicklungsständen beruhen und den aktuellen RC-Stand nicht mehr prüfen.",
+  "files": [
+    "tests/releaseReadiness088c.test.ts",
+    "tests/sourceCleanupWindows088h4.test.ts",
+    "tests/buildReadiness088.test.ts",
+    "tests/sourceCleanup087b.test.ts",
+    "tests/equalizationTemplateStatus061c.test.ts",
+    "tests/equalizationBuildFix061b.test.ts",
+    "tests/complianceBuildFix080a.test.ts",
+    "tests/complianceCenter080.test.ts",
+    "tests/dsarResponse081.test.ts",
+    "tests/compliancePdfExport082.test.ts",
+    "tests/activityReport083.test.ts",
+    "tests/activityReportPrivacy083.test.ts",
+    "tests/complianceDirectPdf083a.test.ts",
+    "tests/reportServiceComplianceDocument083a.test.ts",
+    "tests/responsiveDesign084b.test.ts",
+    "tests/compliancePdf084c.test.ts",
+    "tests/securityHardening084e.test.ts",
+    "tests/templateLayout085g.test.ts",
+    "tests/participationMonitor085.test.ts",
+    "tests/workbenchLayout085b.test.ts",
+    "tests/reports085c.test.ts",
+    "tests/caseMeasures085d.test.ts",
+    "tests/workplaceAccommodation086.test.ts",
+    "tests/inlineCommands086d.test.ts"
+  ],
+  "directories": []
+}

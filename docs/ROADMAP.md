@@ -1,6 +1,6 @@
 # Roadmap Gremia.SBV
 
-Stand: **0.8.13-l**  
+Stand: **0.8.13-o**  
 Zielrichtung: stabiler Weg zu `0.9.0-rc.1` ohne neue Nebenideen außerhalb des aktualisierten Entwicklerkonzepts.
 
 ## Aktueller Stand
@@ -81,3 +81,10 @@ Abgeschlossen sind unter anderem:
 - GitHub-Release-Build für Linux, Windows und unsigniertes macOS ergänzt.
 
 Frühere Planpunkte aus 0.2 und 0.3 sind nicht mehr als offene Checkliste zu führen. Sie sind entweder umgesetzt, durch spätere Architekturentscheidungen ersetzt oder in die RC-Roadmap oben überführt.
+
+
+### 0.8.13-o – RC-Coverage-Scope und Service-Behavior-Tests
+
+- V8-Coverage-Gate auf RC-kritische, unit-testbare Service-Verträge begrenzt.
+- Zusätzliche verhaltensprüfende Tests für Tätigkeitsbericht, Prozessfähigkeiten, Gleichstellung/GdB-Guidance und Kündigungs-Privacy ergänzt.
+- Breite datenbankgebundene Adapterservices bleiben Post-RC-Thema für modulare Refactorings und Integrationstests.

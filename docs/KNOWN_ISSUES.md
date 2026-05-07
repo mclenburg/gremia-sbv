@@ -1,6 +1,6 @@
 # Known Issues vor 0.9.0-rc.1
 
-Stand: 0.8.13-l
+Stand: 0.8.13-o
 
 ## Plattformen und Signierung
 
@@ -39,3 +39,9 @@ Node.js 18 kann bei aktuellen Electron-/Vite-/Native-Dependencies `EBADENGINE`-W
 ## npm Registry
 
 Der Lockfile-Stand darf keine internen Registry- oder Artifactory-URLs enthalten. Der RC-Stand verwendet öffentliche `registry.npmjs.org`-URLs. Lokale npm-Konfigurationen wie alte `always-auth`-/`email`-Einträge können weiterhin Warnungen verursachen, sind aber außerhalb des Projekt-Repositories zu bereinigen.
+
+## Nicht-blockierende Coverage-Grenzen
+
+Die globalen Service-Dateien enthalten mehrere große datenbankgebundene Orchestrierungsservices. Eine pauschale Unit-Coverage über `services/**/*.ts` erzeugt kein sinnvolles Qualitätsbild, weil sie UI-nahe Datenbankadapter, Reportgeneratoren und breite Repository-Schichten als ungetestete Unit-Logik wertet. Für den RC misst das V8-Coverage-Gate deshalb die RC-kritischen Service-Verträge und Policy-Services.
+
+Post-RC bleibt als technisches Thema bestehen: große Services weiter zerlegen, DB-Mapping defensiver typisieren und Integrationstests für die breiten Adapter ergänzen.

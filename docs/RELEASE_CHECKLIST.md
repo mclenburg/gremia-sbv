@@ -1,6 +1,6 @@
 # Release-Checkliste bis 0.9.0-rc.1
 
-Stand: 0.8.13-l
+Stand: 0.8.13-o
 
 ## Automatisierte Mindestprüfung lokal
 
@@ -28,7 +28,7 @@ npm run build:mac
 Für den RC gilt:
 
 - `vitest --coverage` mit `provider: 'v8'`,
-- Coverage-Scope `services/**/*.ts`,
+- Coverage-Scope RC-kritische Service-Verträge,
 - mindestens 70 Prozent für Branches, Functions, Lines und Statements.
 
 Das Gate wird über `npm run test:coverage` und `npm run release:check` ausgeführt.

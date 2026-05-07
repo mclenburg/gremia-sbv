@@ -113,7 +113,7 @@ Die Auswertung ist bewusst zahlen- und statusorientiert. Sensible Freitexte werd
 export function assertActivityReportHasNoSensitiveFreeText(body: string): boolean {
   const forbidden = [
     /Aktenzeichen:\s*\S+/i,
-    /Diagnose/i,
+    /(^|\n)\s*Diagnose\s*:/i,
     /Arbeitgebervortrag:/i,
     /SBV-Stellungnahme:/i,
     /Gesprächsnotiz:/i,

@@ -1,6 +1,6 @@
 {
   "name": "gremia-sbv",
-  "version": "0.8.13-l",
+  "version": "0.8.13-o",
   "private": true,
   "description": "Offline-first Desktop-App für die vertrauliche Fallarbeit der Schwerbehindertenvertretung.",
   "main": "dist-electron/electron/main.js",
@@ -148,7 +148,10 @@
     "test:rc-service-behavior-0813f": "vitest run tests/securityServiceBehavior0813f.test.ts tests/backupServiceBehavior0813f.test.ts tests/terminationWorkflowPolicyBehavior0813f.test.ts tests/retentionPolicyBehavior0813f.test.ts tests/serviceCoverageConfig0813f.test.ts",
     "test:rc-release-infra-0813h": "vitest run tests/releaseInfrastructure0813h.test.ts tests/docsConsistency0813h.test.ts tests/dependencyWarningReadiness0813h.test.ts",
     "test:license-readiness": "vitest run tests/licenseReadiness0813k.test.ts",
-    "test:dependency-readiness": "vitest run tests/dependencyRegistryReadiness0813l.test.ts"
+    "test:dependency-readiness": "vitest run tests/dependencyRegistryReadiness0813l.test.ts",
+    "test:coverage-scope-readiness": "vitest run tests/serviceCoverageScope0813m.test.ts",
+    "test:rc-service-behavior-0813m": "vitest run tests/activityReportServiceBehavior0813m.test.ts tests/caseProcessPolicyBehavior0813m.test.ts tests/equalizationWorkflowAndGuidanceBehavior0813m.test.ts tests/terminationPrivacyPolicyBehavior0813m.test.ts",
+    "test:rc-cumulative-0813n": "vitest run tests/rcCumulativePatch0813n.test.ts"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.0",

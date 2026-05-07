@@ -1,6 +1,6 @@
 # Lizenzpolitik
 
-Stand: 0.8.13-l
+Stand: 0.8.13-o
 
 ## Projektlizenz
 

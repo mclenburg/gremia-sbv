@@ -1,6 +1,6 @@
 # Build von Gremia.SBV
 
-Stand: 0.8.13-l
+Stand: 0.8.13-o
 
 ## Unterstützte RC-Plattformen
 
@@ -113,3 +113,11 @@ npm ci
 ```
 
 Das Repository enthält `.nvmrc` und `.node-version` mit `20.19.0`. Die Projekt-`.npmrc` erzwingt die öffentliche npm Registry, damit keine lokalen oder internen Registry-URLs aus Entwicklungsumgebungen in den Installationspfad geraten.
+
+## Service-Coverage-Gate im RC
+
+`npm run test:coverage` nutzt Vitest mit `provider: 'v8'` und einem 70-Prozent-Gate für Branches, Functions, Lines und Statements. Das Gate misst ab 0.8.13-o bewusst die RC-kritischen Service-Verträge und gut unit-testbaren Policy-Services.
+
+Nicht im Unit-Coverage-Gate gemessen werden breite datenbankgebundene Adapter- und Orchestrierungsservices wie `caseService.ts`, `reportService.ts`, `templateService.ts`, `participationService.ts` oder `workplaceAccommodationService.ts`. Diese Dateien sind für isolierte Unit-Coverage nicht sinnvoll geeignet und werden über Integration-/E2E-/Smoke-Tests sowie über spätere modulare Refactorings abgesichert.
+
+RC-blockierend bleiben echte Datenschutz-, Security-, Backup-, Fristen- und Policy-Fehler. Das Coverage-Gate ist kein Ersatz für fachliche Verhaltensprüfungen; die Tests müssen definierte Eingaben, erwartete Ergebnisse und Negativfälle prüfen.

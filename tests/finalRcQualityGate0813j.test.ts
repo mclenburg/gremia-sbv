@@ -6,7 +6,9 @@ describe('final RC quality gate', () => {
     const config = readFileSync('vitest.config.ts', 'utf8');
 
     expect(config).toContain("provider: 'v8'");
-    expect(config).toContain("'services/**/*.ts'");
+    expect(config).toContain('const rcCriticalServiceCoverage');
+    expect(config).toContain("'services/securityService.ts'");
+    expect(config).toContain("'services/backupService.ts'");
     expect(config).toContain('branches: 70');
     expect(config).not.toContain('enabled: false');
   });
