@@ -43,8 +43,8 @@ button { border-radius: 0; }
 }
 
 .industrial-sidebar {
-  position: fixed;
-  inset: 0 auto 0 0;
+  position: sticky;
+  top: 0;
   width: 254px;
   border-right: 1px solid var(--sbv-border);
   background: linear-gradient(180deg, rgba(24,24,27,0.98), rgba(9,9,11,0.99));
@@ -871,13 +871,6 @@ html[data-theme='light'] .industrial-settings-form select { background: #f7f7f2;
 @media (max-width: 760px) { .industrial-form-deadline, .industrial-form-wide { grid-template-columns: 1fr; } }
 
 /* 0.3.16: Fallakten-Workbench, Gesprächsnotizen und Volltextsuche */
-.case-workbench {
-  display: grid;
-  grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
-  gap: 16px;
-  align-items: start;
-}
-
 .case-list {
   display: grid;
   gap: 8px;
@@ -1116,26 +1109,32 @@ html[data-theme='light'] .case-note-next {
 }
 
 @media (max-width: 760px) {
+  .case-create-form,
   .case-note-form-grid, .case-search-form { grid-template-columns: 1fr; }
   .case-search-form label:first-child { grid-column: span 1; }
 }
 
 /* 0.3.17 Fallregister / Explorer */
 .case-create-form {
-  grid-template-columns: minmax(150px, 220px) minmax(180px, 1fr) minmax(160px, 220px) minmax(220px, 1.5fr) auto;
+  grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 1fr));
+}
+
+.case-create-form .industrial-modal-wide,
+.case-create-form .industrial-modal-actions {
+  grid-column: 1 / -1;
 }
 
 .case-register-panel { display: grid; gap: 14px; }
-.case-register-toolbar { display: grid; grid-template-columns: auto minmax(280px, 520px); align-items: end; justify-content: space-between; gap: 18px; }
-.case-register-toolbar h2 { margin: 0; font-size: 24px; font-weight: 950; letter-spacing: -0.04em; text-transform: uppercase; }
+.case-register-toolbar { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 18px; }
+.case-register-toolbar h2 { margin: 0; min-width: min(100%, 16rem); font-size: 24px; font-weight: 950; letter-spacing: -0.04em; text-transform: uppercase; overflow-wrap: anywhere; }
 .case-register-table tbody tr { cursor: pointer; }
 .case-register-table tbody tr:hover,
 .case-register-table tbody tr.selected { background: var(--sbv-yellow-soft); box-shadow: inset 4px 0 0 var(--sbv-yellow); }
 .case-register-table td strong { color: var(--sbv-yellow); font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
 .case-pagination { display: flex; align-items: center; justify-content: flex-end; gap: 10px; color: var(--sbv-muted); font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12px; text-transform: uppercase; letter-spacing: 0.12em; }
 
-.case-workbench { display: grid; grid-template-columns: minmax(260px, 330px) minmax(0, 1fr); gap: 16px; align-items: start; }
-.case-tree-panel { display: grid; gap: 10px; max-height: 72vh; overflow: auto; }
+.case-workbench { display: grid; grid-template-columns: minmax(260px, 330px) minmax(0, 1fr); gap: 16px; align-items: start; min-width: 0; }
+.case-tree-panel { display: grid; gap: 10px; max-height: min(72vh, calc(100vh - 11rem)); overflow: auto; }
 .case-tree-panel h2 { margin: 0; color: var(--sbv-text); font-size: 20px; font-weight: 950; letter-spacing: -0.04em; }
 .case-tree-group { border-top: 1px solid var(--sbv-border); padding-top: 12px; display: grid; gap: 6px; }
 .case-tree-group-title { display: flex; align-items: center; gap: 8px; color: var(--sbv-yellow); font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.16em; }
@@ -1166,6 +1165,10 @@ html[data-theme='light'] .case-note-next {
 .industrial-checkbox-row.compact { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
 .industrial-checkbox-row.compact span { margin: 0; }
 
+@media (max-width: 1050px) and (min-width: 761px) {
+  .case-create-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
 html[data-theme="light"] .case-tree-node,
 html[data-theme="light"] .case-search-result,
 html[data-theme="light"] .case-detail-content { background: rgba(255,255,255,0.72); }
@@ -1177,7 +1180,7 @@ html[data-theme="light"] .case-note-content-input textarea { background: #f8fafc
   .case-note-content-input { grid-column: span 2; }
   .case-workbench { grid-template-columns: 1fr; }
   .case-search-bar { grid-template-columns: 1fr; }
-  .case-register-toolbar { grid-template-columns: 1fr; }
+  .case-register-toolbar { align-items: stretch; }
 }
 
 .case-note-link-panel {

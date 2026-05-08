@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import { Keyboard, Search, X } from 'lucide-react';
 import { TEXT_COMMAND_HELP_GROUPS, TEXT_COMMAND_REGISTRY, type TextCommandDefinition } from '@services/textCommandPolicy';
@@ -32,17 +32,18 @@ export function TextCommandHelpModal() {
     [query]
   );
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     function handleKeyDown(event: globalThis.KeyboardEvent) {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'h') {
         event.preventDefault();
+        event.stopPropagation();
         setOpen((current) => !current);
       }
       if (event.key === 'Escape') setOpen(false);
     }
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    document.addEventListener('keydown', handleKeyDown, { capture: true });
+    return () => document.removeEventListener('keydown', handleKeyDown, { capture: true });
   }, []);
 
   useEffect(() => {

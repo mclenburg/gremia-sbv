@@ -76,7 +76,7 @@ export function TextCommandTextarea({
     };
 
     onTextCommand?.(payload);
-    if (globalCommandsEnabled) window.dispatchEvent(new CustomEvent<TextCommandTextareaChange>('gremia-sbv:text-command-detected', { detail: payload }));
+    if (globalCommandsEnabled && !onTextCommand) window.dispatchEvent(new CustomEvent<TextCommandTextareaChange>('gremia-sbv:text-command-detected', { detail: payload }));
   }
 
   const describedBy = [ariaDescribedBy, hintId].filter(Boolean).join(' ') || undefined;

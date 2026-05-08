@@ -1,6 +1,6 @@
 # E2E-Tests
 
-Stand: 0.9.0-rc.1-c
+Stand: 0.9.0-rc.1-l
 
 ## Zweck
 
@@ -38,3 +38,10 @@ npm run test:e2e
 ## Barrierefreiheit
 
 `e2e/accessibility.spec.ts` prüft Tastaturflüsse, Dialoge, Rollen, Fokusführung und fachliche Labels ohne technische UUIDs.
+
+
+## Inline-Kurzbefehle
+
+Der RC-kritische Test `npm run test:e2e:inline-commands` prüft den echten Arbeitsfluss in der Fallakte: Fallakte öffnen, neue Gesprächsnotiz anlegen, im großen Textfeld `Inhalt` den Kurzbefehl `/praev Arbeitsplatzgefährdung klären` eingeben, den Dialog „Prävention anlegen“ bestätigen und die Ersetzung im Textfeld verifizieren. Der Test stellt zugleich sicher, dass kein zweiter globaler Aufgabendialog parallel geöffnet wird.
+
+Dieser Test schützt ausdrücklich davor, Kurzbefehle in großen Textfeldern aus Performancegründen versehentlich zu deaktivieren oder durch Renderfehler unbenutzbar zu machen.

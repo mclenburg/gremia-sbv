@@ -319,6 +319,7 @@ export function CasesViewRender(props: CasesViewRenderProps) {
         onNoteTypeChange={setNoteType}
         onParticipantsChange={setParticipants}
         onProtocolTextChange={inlineCommands.handleProtocolTextChange}
+        onProtocolTextCommand={inlineCommands.handleProtocolTextCommand}
         onToggleLinkedCase={toggleLinkedCase}
         onConfidentialLevelChange={setConfidentialLevel}
         onContainsHealthDataChange={setContainsHealthData}

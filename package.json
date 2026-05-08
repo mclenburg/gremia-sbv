@@ -1,6 +1,6 @@
 {
   "name": "gremia-sbv",
-  "version": "0.9.0-rc.1-c",
+  "version": "0.9.0-rc.1-l",
   "private": true,
   "description": "Offline-first Desktop-App für die vertrauliche Fallarbeit der Schwerbehindertenvertretung.",
   "main": "dist-electron/electron/main.js",
@@ -117,7 +117,13 @@
     "build:platforms:check": "node scripts/check-build-platforms.cjs",
     "test:e2e-guard-088h2": "vitest run tests/e2eSmokeActivePath088h2.test.ts",
     "test:coverage": "vitest run --coverage",
-    "test:rc-cumulative-0813n": "vitest run tests/rcCumulativePatch0813n.test.ts"
+    "test:rc-cumulative-0813n": "vitest run tests/rcCumulativePatch0813n.test.ts",
+    "test:rc-fix-case-prevention-css-090rc1d": "vitest run tests/rcFixCasePreventionCss090rc1d.test.ts",
+    "test:rc-fix-case-prevention-css-090rc1e": "vitest run tests/rcFixCasePreventionCss090rc1e.test.ts",
+    "test:rc-release-artifacts-090rc1f": "vitest run tests/rcReleaseArtifacts090rc1f.test.ts",
+    "test:rc-text-command-stability-090rc1g": "vitest run tests/rcTextCommandStability090rc1g.test.ts",
+    "test:e2e:inline-commands": "node scripts/run-e2e.cjs e2e/inline-commands.spec.ts",
+    "test:rc-inline-command-stability-090rc1i": "vitest run tests/rcInlineCommandStability090rc1i.test.ts"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.0",

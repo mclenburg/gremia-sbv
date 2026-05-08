@@ -18,6 +18,7 @@ describe("0.4.57 inline command integration contracts", () => {
     const textarea = readFileSync("src/app/shared/textCommands/TextCommandTextarea.tsx", "utf8");
 
     expect(textarea).toContain("findFirstTextCommand(event.target.value)");
+    expect(textarea).not.toContain("findTextCommandNearCursor");
     expect(textarea).toContain("onTextCommand?.(payload)");
     expect(textarea).toContain("gremia-sbv:text-command-detected");
     expect(textarea).toContain("data-text-command-enabled");

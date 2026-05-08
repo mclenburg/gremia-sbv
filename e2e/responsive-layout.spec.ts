@@ -48,6 +48,7 @@ for (const viewport of viewports) {
 test('keeps inline help dialog inside the viewport', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.goto('/');
+  await expect(page.getByRole('navigation', { name: 'Hauptnavigation' })).toBeVisible();
   await page.keyboard.press(process.platform === 'darwin' ? 'Meta+H' : 'Control+H');
 
   const dialog = page.locator('[data-e2e="inline-help-dialog"]');

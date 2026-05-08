@@ -62,8 +62,8 @@ function initialDraft(detail: TextCommandTextareaChange): GlobalDraft | null {
   return {
     ...detail,
     fieldId: detail.fieldId,
-    query: commandText,
-    title: commandText,
+    query: commandText.trim(),
+    title: commandText.trim(),
     dueAt: "",
     severity: "important",
     riskLevel: "high",

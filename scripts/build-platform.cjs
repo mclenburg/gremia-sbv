@@ -16,22 +16,22 @@ const TARGETS = {
   },
   win: {
     os: 'win',
-    label: 'Windows x64 Installer und Portable',
-    builderArgs: ['--win', 'nsis', 'portable', '--x64'],
+    label: 'Windows x64 NSIS-Installer',
+    builderArgs: ['--win', 'nsis', '--x64'],
     supportedPlatforms: ['win32'],
     artifactHint: 'release/Gremia.SBV-<version>-win-x64.exe'
   },
   windows: {
     os: 'win',
-    label: 'Windows x64 Installer und Portable',
-    builderArgs: ['--win', 'nsis', 'portable', '--x64'],
+    label: 'Windows x64 NSIS-Installer',
+    builderArgs: ['--win', 'nsis', '--x64'],
     supportedPlatforms: ['win32'],
     artifactHint: 'release/Gremia.SBV-<version>-win-x64.exe'
   },
   mac: {
     os: 'mac',
-    label: 'macOS DMG und ZIP',
-    builderArgs: ['--mac', 'dmg', 'zip'],
+    label: 'macOS DMG',
+    builderArgs: ['--mac', 'dmg'],
     supportedPlatforms: ['darwin'],
     artifactHint: 'release/Gremia.SBV-<version>-mac-<arch>.dmg'
   }

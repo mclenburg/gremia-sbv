@@ -1,13 +1,13 @@
 # Build von Gremia.SBV
 
-Stand: 0.9.0-rc.1-c
+Stand: 0.9.0-rc.1-l
 
 ## Unterstützte RC-Plattformen
 
 Für den Release Candidate werden Artefakte für drei Plattformen gebaut:
 
 - Linux AppImage
-- Windows 10+ als NSIS-/Portable-Build
+- Windows 10+ als NSIS-Installer
 - macOS als unsigniertes, nicht notarisiertes Evaluationsartefakt (macOS-Artefakt)
 
 Linux und Windows sind die primären RC-Plattformen. macOS wird im GitHub-Release-Build mitgebaut, bleibt aber bis zu Signierung und Notarisierung ausdrücklich unsigniert und nicht als produktiv freigegebene macOS-Endanwenderdistribution zu verstehen.
@@ -63,15 +63,17 @@ Das Repository enthält den Workflow:
 .github/workflows/build-release.yml
 ```
 
-Ein Tag im Format `v<package.json version>`, für diesen RC also `v0.9.0-rc.1-c`, löst einen Draft-Release-Build aus. Der Workflow:
+Ein Tag im Format `v<package.json version>`, für diesen RC also `v0.9.0-rc.1-l`, löst einen Draft-Release-Build aus. Der Workflow:
 
 - verwendet `npm ci`,
 - vergleicht Tag und `package.json.version`,
 - führt `npm run rc:check` und `npm run test:coverage` aus,
 - baut Linux, Windows und macOS,
 - setzt für den unsignierten macOS-Build `CSC_IDENTITY_AUTO_DISCOVERY=false`,
-- lädt Artefakte als Workflow-Artefakte hoch,
-- hängt Artefakte an ein GitHub Draft Release.
+- lädt ausschließlich die drei Endanwender-Artefakte als Workflow-Artefakte hoch: AppImage, EXE und DMG,
+- hängt ausschließlich diese drei Endanwender-Artefakte an ein GitHub Draft Release.
+
+Nicht hochgeladen werden Update-Metadaten (`latest*.yml`), Blockmaps, DEB/TAR.GZ, macOS-ZIP oder zusätzliche portable ZIP-Dateien. Die von GitHub automatisch angezeigten „Source code“-Archive sind keine vom Workflow hochgeladenen Build-Artefakte.
 
 ## Windows-Build
 
@@ -116,7 +118,7 @@ Das Repository enthält `.nvmrc` und `.node-version` mit `20.19.0`. Die Projekt-
 
 ## Service-Coverage-Gate im RC
 
-`npm run test:coverage` nutzt Vitest mit `provider: 'v8'` und einem 70-Prozent-Gate für Branches, Functions, Lines und Statements. Das Gate misst ab 0.9.0-rc.1-c bewusst die RC-kritischen Service-Verträge und gut unit-testbaren Policy-Services.
+`npm run test:coverage` nutzt Vitest mit `provider: 'v8'` und einem 70-Prozent-Gate für Branches, Functions, Lines und Statements. Das Gate misst ab 0.9.0-rc.1-l bewusst die RC-kritischen Service-Verträge und gut unit-testbaren Policy-Services.
 
 Nicht im Unit-Coverage-Gate gemessen werden breite datenbankgebundene Adapter- und Orchestrierungsservices wie `caseService.ts`, `reportService.ts`, `templateService.ts`, `participationService.ts` oder `workplaceAccommodationService.ts`. Diese Dateien sind für isolierte Unit-Coverage nicht sinnvoll geeignet und werden über Integration-/E2E-/Smoke-Tests sowie über spätere modulare Refactorings abgesichert.
 

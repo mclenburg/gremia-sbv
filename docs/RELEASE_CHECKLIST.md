@@ -1,6 +1,6 @@
-# Release-Checkliste für 0.9.0-rc.1-c
+# Release-Checkliste für 0.9.0-rc.1-l
 
-Stand: 0.9.0-rc.1-c
+Stand: 0.9.0-rc.1-l
 
 ## Automatisierte Mindestprüfung lokal
 
@@ -38,8 +38,8 @@ Das Gate wird über `npm run test:coverage` und `npm run release:check` ausgefü
 Ein GitHub-Draft-Release wird durch einen Tag ausgelöst:
 
 ```bash
-git tag v0.9.0-rc.1-c
-git push origin v0.9.0-rc.1-c
+git tag v0.9.0-rc.1-l
+git push origin v0.9.0-rc.1-l
 ```
 
 Der Workflow `.github/workflows/build-release.yml` muss dann erzeugen:
@@ -49,7 +49,7 @@ Der Workflow `.github/workflows/build-release.yml` muss dann erzeugen:
 - macOS-Artefakt unsigniert/nicht notarisiert,
 - GitHub Draft Release mit Artefakten.
 
-Der Workflow muss Tag und `package.json.version` abgleichen. `v0.9.0-rc.1-c` darf nur zu `package.json` Version `0.9.0-rc.1-c` passen.
+Der Workflow muss Tag und `package.json.version` abgleichen. `v0.9.0-rc.1-l` darf nur zu `package.json` Version `0.9.0-rc.1-l` passen.
 
 ## Manuelle Abnahme
 
@@ -76,7 +76,7 @@ Der Workflow muss Tag und `package.json.version` abgleichen. `v0.9.0-rc.1-c` dar
 
 ## RC-Regel
 
-Nach `0.9.0-rc.1-c` werden keine neuen Fachfunktionen mehr aufgenommen. Zulässig sind nur:
+Nach `0.9.0-rc.1-l` werden keine neuen Fachfunktionen mehr aufgenommen. Zulässig sind nur:
 
 - Security-Fixes,
 - Datenverlust-/Migrationsfixes,
@@ -101,11 +101,11 @@ Nicht zulässig sind:
 - [ ] Windows-Build grün ist
 - [ ] GitHub-Draft-Release Linux/Windows/macOS erzeugt
 - [x] Known Issues final sind
-- [x] Release Notes für `0.9.0-rc.1-c` erstellt sind
+- [x] Release Notes für `0.9.0-rc.1-l` erstellt sind
 - [x] Doku-Stände mit `package.json.version` konsistent sind oder bewusst versionsfrei formuliert sind
 - [x] `postinstall` exakt `electron-builder install-app-deps` ist
 
 
 ## Freeze-Regel nach RC1
 
-Nach `0.9.0-rc.1-c` sind nur noch Security-Fixes, Datenverlust-/Migrationsfixes, Buildfixes, Testfixes, Dokumentationskorrekturen und offensichtliche UI-Bugs ohne neue Fachlogik zulässig. Neue Fachfeatures, neue Inlinebefehle, neue Module, große Refactorings und neue Datenbankstrukturen ohne zwingenden Fehlergrund sind ausgeschlossen.
+Nach `0.9.0-rc.1-l` sind nur noch Security-Fixes, Datenverlust-/Migrationsfixes, Buildfixes, Testfixes, Dokumentationskorrekturen und offensichtliche UI-Bugs ohne neue Fachlogik zulässig. Neue Fachfeatures, neue Inlinebefehle, neue Module, große Refactorings und neue Datenbankstrukturen ohne zwingenden Fehlergrund sind ausgeschlossen.

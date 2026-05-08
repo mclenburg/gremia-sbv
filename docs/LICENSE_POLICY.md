@@ -1,6 +1,6 @@
 # Lizenzpolitik
 
-Stand: 0.9.0-rc.1-c
+Stand: 0.9.0-rc.1-l
 
 ## Projektlizenz
 

@@ -2,8 +2,8 @@
 
 **Gremia.SBV** ist eine lokale, offline-first Desktop-App für Schwerbehindertenvertretungen in Deutschland. Sie unterstützt vertrauliche SBV-Fallarbeit rund um BEM, Präventionsverfahren nach § 167 SGB IX, SBV-Beteiligung nach § 178 SGB IX, Kündigungsanhörungen, Gleichstellung/GdB, Arbeitsplatzanpassung, Fristen, Dokumentation und Tätigkeitsberichte – ohne Cloud, ohne Telemetrie und ohne HR-Zugriff.
 
-Stand: **0.9.0-rc.1-c**  
-Status: erster Release Candidate `0.9.0-rc.1-c`.
+Stand: **0.9.0-rc.1-l**  
+Status: erster Release Candidate `0.9.0-rc.1-l`.
 
 ## Kurzüberblick
 
@@ -127,7 +127,7 @@ npm run test:e2e
 - `docs/ROADMAP.md`
 - `docs/KNOWN_ISSUES.md`
 - `docs/CHANGELOG.md`
-- `docs/RELEASE_NOTES_0.9.0-rc.1-c.md`
+- `docs/RELEASE_NOTES_0.9.0-rc.1-l.md`
 - `docs/LICENSE_POLICY.md`
 
 ## Lizenz
@@ -138,4 +138,29 @@ Weitere Hinweise stehen in `LICENSE`, `NOTICE` und `docs/LICENSE_POLICY.md`. Dri
 
 ## Release-Status
 
-Gremia.SBV befindet sich mit `0.9.0-rc.1-c` im ersten Release Candidate. Nach RC1 werden keine neuen Fachfunktionen mehr aufgenommen; zulässig sind nur Bugfixes, Buildfixes, Security-Fixes, Datenverlust-/Migrationsfixes, offensichtliche UI-Bugs und Dokumentationskorrekturen.
+Gremia.SBV befindet sich mit `0.9.0-rc.1-l` im ersten Release Candidate. Nach RC1 werden keine neuen Fachfunktionen mehr aufgenommen; zulässig sind nur Bugfixes, Buildfixes, Security-Fixes, Datenverlust-/Migrationsfixes, offensichtliche UI-Bugs und Dokumentationskorrekturen.
+
+
+### RC-Fix 0.9.0-rc.1-d – Fallakte, Prävention und CSS-Baseline
+
+Dieser Patch härtet die Fallaktenarbeit vor Version 1.0:
+
+- Das Modal „Neue Fallakte anlegen“ nutzt kein starres 5-Spalten-Raster mehr, sondern ein responsives Auto-Fit-Grid mit Zwischen-Breakpoint für Tablet-/kleine Desktopbreiten.
+- Die Fallregister-Toolbar darf umbrechen; Suchfeld und Titel kollidieren dadurch nicht mehr auf schmalen Viewports.
+- Die CSS-Basis enthält nur noch eine führende `.case-workbench`-Definition; die widersprüchliche historische Definition mit `minmax(280px, 360px)` wurde entfernt.
+- Die Sidebar-Positionierung ist zwischen `globals.css` und `responsiveDesign.css` nicht mehr widersprüchlich dokumentiert; schmale Navigationen erhalten eine sichtbare Overflow-Andeutung.
+- Präventionsverfahren erzeugen aus der Arbeitgeber-Reaktionsfrist eine Wiedervorlage am Folgetag. Die Reaktionsfrist selbst wird als Erinnerung (`reminderAt`) an der Wiedervorlage dokumentiert.
+- Lange Textfelder im Präventionsdetail werden lokal bearbeitet und über „Textfelder speichern“ geschrieben.
+
+Regressionstest: `npm run test:rc-fix-case-prevention-css-090rc1d`.
+
+### RC-Fix 0.9.0-rc.1-l – Kurzbefehle in großen Textfeldern
+
+Dieser Patch korrigiert die Textbefehls-Strategie aus `0.9.0-rc.1-d`:
+
+- Kurzbefehle bleiben in den großen Fallakten- und Präventionstextfeldern aktiv.
+- Die Performance wird nicht durch Abschalten der Funktion erreicht, sondern durch eine lokal begrenzte Erkennung im Bereich des Cursors.
+- Die Präventions-Textfelder behalten den expliziten Speicherbutton; die Texte werden weiterhin erst beim Speichern in den Vorgang geschrieben.
+- Die großen Protokollfelder der Fallnotiz verwenden ebenfalls wieder die globalen Textbefehle.
+
+Regressionstest: `npm run test:rc-fix-case-prevention-css-090rc1e`.

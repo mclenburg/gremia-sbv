@@ -320,6 +320,10 @@ button:disabled,
     scrollbar-width: thin;
   }
 
+  .industrial-nav {
+    mask-image: linear-gradient(90deg, transparent 0, #000 1rem, #000 calc(100% - 2.25rem), transparent 100%);
+  }
+
   .industrial-nav button {
     justify-content: flex-start;
     white-space: nowrap;
@@ -566,7 +570,7 @@ button:disabled,
 .workbench-list-panel {
   display: grid;
   gap: 0;
-  max-height: calc(100vh - 19rem);
+  max-height: clamp(22rem, calc(100vh - 16rem), 56rem);
   overflow: auto;
 }
 
@@ -1073,4 +1077,29 @@ html[data-theme='light'] .industrial-modal-grid select option,
 html[data-theme='light'] .industrial-field select option,
 html[data-theme='light'] .case-detail-inline-form select option {
   color: #141414;
+}
+
+
+html[data-theme='light'] .workbench-create-panel,
+html[data-theme='light'] .workbench-list-panel,
+html[data-theme='light'] .workbench-detail-panel,
+html[data-theme='light'] .module-frame,
+html[data-theme='light'] .industrial-card,
+html[data-theme='light'] .industrial-panel {
+  background: rgba(255, 255, 250, 0.82);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.10);
+}
+
+.case-process-save-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3, 0.75rem);
+  border-top: 1px solid var(--industrial-border);
+  padding-top: var(--space-3, 0.75rem);
+}
+
+.case-process-save-row .industrial-meta {
+  margin: 0;
+  flex: 1 1 18rem;
 }

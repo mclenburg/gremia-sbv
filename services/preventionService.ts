@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
 import { DeadlineService } from './deadlineService.js';
-import { defaultEmployerResponseDueAt } from './preventionWorkflowPolicy.js';
+import { defaultEmployerResponseDueAt, preventionReviewDueAtAfterEmployerDeadline } from './preventionWorkflowPolicy.js';
 import type {
   CreatePreventionProcessInput,
   PreventionDashboardSummary,
@@ -110,6 +110,8 @@ export class PreventionService {
     this.event(id, 'created', 'Präventionsverfahren angelegt', input.hazardDescription);
 
     if (input.createDefaultDeadlines !== false && employerResponseDueAt) {
+      const reviewDueAt = preventionReviewDueAtAfterEmployerDeadline(employerResponseDueAt);
+      this.db.prepare('UPDATE prevention_processes SET next_review_at = ?, updated_at = ? WHERE id = ?').run(reviewDueAt, timestamp, id);
       new DeadlineService(this.db).create({
         caseId: input.caseId,
         processId: id,
@@ -118,7 +120,8 @@ export class PreventionService {
         title: 'Arbeitgeberreaktion Präventionsverfahren nachhalten',
         confidentialTitle: 'Präventionsverfahren: Arbeitgeberreaktion nachhalten',
         description: 'Automatische Wiedervorlage aus dem Präventionsverfahren.',
-        dueAt: employerResponseDueAt,
+        dueAt: reviewDueAt,
+        reminderAt: employerResponseDueAt,
         legalBasis: '§ 167 Abs. 1 SGB IX',
         sourceEvent: 'prevention_process_created',
         severity: input.riskType === 'kuendigung' || input.riskType === 'arbeitsplatzverlust' ? 'critical' : 'important',

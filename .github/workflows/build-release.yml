@@ -22,29 +22,18 @@ jobs:
             build_script: build:linux
             artifact_glob: |
               release/*.AppImage
-              release/*.deb
-              release/*.tar.gz
-              release/*.blockmap
-              release/latest-linux.yml
 
           - platform: windows
             os: windows-latest
             build_script: build:win
             artifact_glob: |
               release/*.exe
-              release/*.msi
-              release/*.zip
-              release/*.blockmap
-              release/latest.yml
 
           - platform: macos
             os: macos-latest
             build_script: build:mac
             artifact_glob: |
               release/*.dmg
-              release/*.zip
-              release/*.blockmap
-              release/latest-mac.yml
 
     steps:
       - name: Checkout code

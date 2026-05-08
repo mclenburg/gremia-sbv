@@ -55,6 +55,13 @@ export function defaultEmployerResponseDueAt(requestedAt: string, days = 7): str
   return date.toISOString();
 }
 
+export function preventionReviewDueAtAfterEmployerDeadline(employerResponseDueAt: string, offsetDays = 1): string {
+  const date = new Date(employerResponseDueAt);
+  if (Number.isNaN(date.getTime())) throw new Error('Ungültige Frist für die Arbeitgeberreaktion.');
+  date.setUTCDate(date.getUTCDate() + offsetDays);
+  return date.toISOString();
+}
+
 export function isOpenPreventionStatus(status: PreventionStatus): boolean {
   return status !== 'abgeschlossen';
 }

@@ -4,13 +4,10 @@ Ab Version 0.3.23 kann Gremia.SBV zusätzlich als Windows-Anwendung gebaut werde
 
 ## Zielartefakte
 
-Der Windows-Build erzeugt zwei Varianten unter `release/`:
+Der Windows-RC-Build erzeugt ein Release-Artefakt unter `release/`:
 
-1. **NSIS-Installer**  
-   Geeignet für normale Installation im Benutzerprofil. Der Installer benötigt keine Administratorrechte, weil `perMachine: false` gesetzt ist.
-
-2. **Portable EXE**  
-   Geeignet für USB-Stick- oder Ordnerbetrieb. Die Portabilität der Datenablage wird separat über den Datenpfad gesteuert; die Datenbank bleibt SQLCipher-verschlüsselt.
+1. **NSIS-Installer als EXE**  
+   Geeignet für normale Installation im Benutzerprofil. Der Installer benötigt keine Administratorrechte, weil `perMachine: false` gesetzt ist. Für GitHub-Releases wird nur diese EXE hochgeladen; zusätzliche ZIP-, Blockmap- oder Update-Metadaten-Artefakte gehören nicht in den RC-Release.
 
 ## Build unter Windows
 
@@ -53,7 +50,7 @@ Nach dem Build liegen die Dateien unter:
 release/
 ```
 
-Der Installer richtet Startmenü- und Desktop-Verknüpfungen ein. Die portable EXE kann direkt gestartet werden.
+Der Installer richtet Startmenü- und Desktop-Verknüpfungen ein. Eine gesonderte portable EXE wird im RC-Release nicht mehr erzeugt oder hochgeladen.
 
 ## Datenschutz und Datenablage
 

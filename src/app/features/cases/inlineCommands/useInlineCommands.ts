@@ -17,7 +17,6 @@ import type {
 } from "../../../core/models/deadline.model";
 import type { CreateCaseNoteLinkInput } from "../../../core/models/case-note-link.model";
 import {
-  findFirstTextCommand,
   formatAnonymizationMarkerText,
   formatBemMarkerText,
   formatCaseReferenceText,
@@ -46,6 +45,7 @@ import {
 } from "../caseWorkbenchFormat";
 import { hasAnyInlineCommandOverlay } from "./inlineCommandSearch";
 import { waitForBridge } from "../../../core/bridge/waitForBridge";
+import type { TextCommandTextareaChange } from "../../../shared/textCommands/TextCommandTextarea";
 import {
   buildBemPrefill,
   buildEqualizationPrefill,
@@ -480,8 +480,9 @@ export function useInlineCommands({
     target: ProtocolTextTarget,
     markerIndex: number,
     token: TextCommandToken,
+    commandValue?: string,
   ): string {
-    const value = target === "content" ? content : nextSteps;
+    const value = commandValue ?? (target === "content" ? content : nextSteps);
     return extractInlineCommandArgument(value, markerIndex, token);
   }
 
@@ -509,6 +510,7 @@ export function useInlineCommands({
     target: ProtocolTextTarget,
     token: TextCommandToken,
     markerIndex: number,
+    commandValue?: string,
   ) {
     const kind = getTextCommandKind(token);
     if (kind === "deadline" || kind === "follow_up") {
@@ -582,7 +584,7 @@ export function useInlineCommands({
       return;
     }
     if (kind === "bem_measure") {
-      const commandText = getCommandText(target, markerIndex, token);
+      const commandText = getCommandText(target, markerIndex, token, commandValue);
       const prefill = buildBemPrefill({
         selectedCase,
         commandText,
@@ -608,7 +610,7 @@ export function useInlineCommands({
       return;
     }
     if (kind === "prevention_measure") {
-      const commandText = getCommandText(target, markerIndex, token);
+      const commandText = getCommandText(target, markerIndex, token, commandValue);
       const prefill = buildPreventionPrefill({
         selectedCase,
         commandText,
@@ -637,7 +639,7 @@ export function useInlineCommands({
       return;
     }
     if (kind === "equalization_measure") {
-      const commandText = getCommandText(target, markerIndex, token);
+      const commandText = getCommandText(target, markerIndex, token, commandValue);
       const prefill = buildEqualizationPrefill({
         selectedCase,
         commandText,
@@ -658,7 +660,7 @@ export function useInlineCommands({
       return;
     }
     if (kind === "termination_measure") {
-      const commandText = getCommandText(target, markerIndex, token);
+      const commandText = getCommandText(target, markerIndex, token, commandValue);
       const prefill = buildTerminationPrefill({
         selectedCase,
         commandText,
@@ -690,7 +692,7 @@ export function useInlineCommands({
       return;
     }
     if (kind === "participation") {
-      const commandText = getCommandText(target, markerIndex, token);
+      const commandText = getCommandText(target, markerIndex, token, commandValue);
       const prefill = buildParticipationPrefill({
         selectedCase,
         commandText,
@@ -711,7 +713,7 @@ export function useInlineCommands({
       return;
     }
     if (kind === "workplace_accommodation") {
-      const commandText = getCommandText(target, markerIndex, token);
+      const commandText = getCommandText(target, markerIndex, token, commandValue);
       const prefill = buildWorkplaceAccommodationPrefill({
         selectedCase,
         commandText,
@@ -862,18 +864,17 @@ export function useInlineCommands({
 
   function handleProtocolTextChange(target: ProtocolTextTarget, value: string) {
     setNoteInfo("");
-    const previousValue = target === "content" ? content : nextSteps;
     if (target === "content") setContent(value);
     else setNextSteps(value);
+  }
 
+  function handleProtocolTextCommand(
+    target: ProtocolTextTarget,
+    command: TextCommandTextareaChange,
+  ) {
+    setNoteInfo("");
     if (hasOpenInlineOverlay()) return;
-    const command = findFirstTextCommand(value);
-    if (!command) return;
-
-    const wasAlreadyPresent = previousValue.includes(command.token);
-    if (!wasAlreadyPresent) {
-      openInlineCommand(target, command.token, command.index);
-    }
+    openInlineCommand(target, command.token, command.index, command.value);
   }
 
   function openCaseDeadlineDraft() {
@@ -1614,6 +1615,7 @@ export function useInlineCommands({
 
   return {
     handleProtocolTextChange,
+    handleProtocolTextCommand,
     openCaseDeadlineDraft,
     clearInlineDrafts,
     overlayProps: {

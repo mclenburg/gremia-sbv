@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import type { FormEvent } from 'react';
 import { MessageSquare, Save } from 'lucide-react';
-import { TextCommandTextarea } from '../../shared/textCommands/TextCommandTextarea';
+import { TextCommandTextarea, type TextCommandTextareaChange } from '../../shared/textCommands/TextCommandTextarea';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 import type { CaseRecord } from '../../core/models/case.model';
 import type { CaseNoteRecord, CaseNoteType, ConfidentialLevel } from '../../core/models/case-note.model';
@@ -29,6 +29,7 @@ export function CaseNoteModal({
   onNoteTypeChange,
   onParticipantsChange,
   onProtocolTextChange,
+  onProtocolTextCommand,
   onToggleLinkedCase,
   onConfidentialLevelChange,
   onContainsHealthDataChange,
@@ -55,6 +56,7 @@ export function CaseNoteModal({
   onNoteTypeChange: (value: CaseNoteType) => void;
   onParticipantsChange: (value: string) => void;
   onProtocolTextChange: (target: ProtocolTextTarget, value: string) => void;
+  onProtocolTextCommand: (target: ProtocolTextTarget, command: TextCommandTextareaChange) => void;
   onToggleLinkedCase: (caseId: string, checked: boolean) => void;
   onConfidentialLevelChange: (value: ConfidentialLevel) => void;
   onContainsHealthDataChange: (value: boolean) => void;
@@ -91,8 +93,8 @@ export function CaseNoteModal({
           <label><span>Datum</span><input type="datetime-local" value={noteDate} onChange={(event) => onDateChange(event.target.value)} /></label>
           <label><span>Typ</span><select value={noteType} onChange={(event) => onNoteTypeChange(event.target.value as CaseNoteType)}><option value="gespraech">Gespräch</option><option value="protokoll">Protokoll</option><option value="telefonat">Telefonat</option><option value="videocall">Videocall</option><option value="email">E-Mail</option><option value="bem">BEM</option><option value="anhoerung">Anhörung</option><option value="interne_notiz">Interne Notiz</option><option value="sonstiges">Sonstiges</option></select></label>
           <label><span>Beteiligte</span><input value={participants} onChange={(event) => onParticipantsChange(event.target.value)} placeholder="optional" /></label>
-          <label className="case-note-content-input"><span>Inhalt</span><TextCommandTextarea globalCommandsEnabled={false} fieldId="case-note-content" value={content} onChange={(event) => onProtocolTextChange('content', event.target.value)} placeholder="Gesprächsinhalt / Protokoll …" /></label>
-          <label className="case-note-content-input"><span>Nächste Schritte</span><TextCommandTextarea globalCommandsEnabled={false} fieldId="case-note-next-steps" value={nextSteps} onChange={(event) => onProtocolTextChange('nextSteps', event.target.value)} placeholder="optional" /></label>
+          <label className="case-note-content-input"><span>Inhalt</span><TextCommandTextarea fieldId="case-note-content" value={content} onChange={(event) => onProtocolTextChange('content', event.target.value)} onTextCommand={(command) => onProtocolTextCommand('content', command)} placeholder="Gesprächsinhalt / Protokoll …" /></label>
+          <label className="case-note-content-input"><span>Nächste Schritte</span><TextCommandTextarea fieldId="case-note-next-steps" value={nextSteps} onChange={(event) => onProtocolTextChange('nextSteps', event.target.value)} onTextCommand={(command) => onProtocolTextCommand('nextSteps', command)} placeholder="optional" /></label>
           <div className="case-note-link-panel">
             <span>Fallbezüge</span>
             <p className="industrial-meta">Eine Notiz kann mehreren Fallakten zugeordnet werden. Der aktuell ausgewählte Fall bleibt automatisch Bezug.</p>
