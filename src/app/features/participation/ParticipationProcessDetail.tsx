@@ -18,6 +18,7 @@ import {
   IndustrialFormGrid,
 } from "../../shared/components/WorkbenchLayout";
 import { MeasureDetailFrame } from "../cases/measures/MeasureDetailFrame";
+import { TextCommandTextarea } from "../../shared/textCommands/TextCommandTextarea";
 
 const measureLabels: Record<ParticipationMeasureType, string> = {
   einstellung: "Einstellung",
@@ -254,19 +255,19 @@ export function ParticipationProcessDetail({
           <IndustrialField label="Kenntnis der SBV">
             <input
               type="datetime-local"
-              value={toDateTimeLocal(process.firstKnownAt)}
-              onChange={(event) =>
-                update({ firstKnownAt: fromDateTimeLocal(event.target.value) })
+              defaultValue={toDateTimeLocal(process.firstKnownAt)}
+              onBlur={(event) =>
+                update({ firstKnownAt: fromDateTimeLocal(event.currentTarget.value) })
               }
             />
           </IndustrialField>
           <IndustrialField label="Unterrichtung erhalten">
             <input
               type="datetime-local"
-              value={toDateTimeLocal(process.informationReceivedAt)}
-              onChange={(event) =>
+              defaultValue={toDateTimeLocal(process.informationReceivedAt)}
+              onBlur={(event) =>
                 update({
-                  informationReceivedAt: fromDateTimeLocal(event.target.value),
+                  informationReceivedAt: fromDateTimeLocal(event.currentTarget.value),
                 })
               }
             />
@@ -274,10 +275,10 @@ export function ParticipationProcessDetail({
           <IndustrialField label="Stellungnahmefrist">
             <input
               type="datetime-local"
-              value={toDateTimeLocal(process.statementDueAt)}
-              onChange={(event) =>
+              defaultValue={toDateTimeLocal(process.statementDueAt)}
+              onBlur={(event) =>
                 update({
-                  statementDueAt: fromDateTimeLocal(event.target.value),
+                  statementDueAt: fromDateTimeLocal(event.currentTarget.value),
                 })
               }
             />
@@ -285,11 +286,11 @@ export function ParticipationProcessDetail({
           <IndustrialField label="Aussetzung verlangt">
             <input
               type="datetime-local"
-              value={toDateTimeLocal(process.suspensionRequestedAt)}
-              onChange={(event) =>
+              defaultValue={toDateTimeLocal(process.suspensionRequestedAt)}
+              onBlur={(event) =>
                 update({
-                  suspensionRequestedAt: fromDateTimeLocal(event.target.value),
-                  status: event.target.value
+                  suspensionRequestedAt: fromDateTimeLocal(event.currentTarget.value),
+                  status: event.currentTarget.value
                     ? "aussetzung_verlangt"
                     : process.status,
                 })
@@ -300,26 +301,29 @@ export function ParticipationProcessDetail({
 
         <IndustrialFormGrid columns={2}>
           <IndustrialField label="Pflichtverstoß / fehlende Unterlagen">
-            <textarea
-              value={process.violationSummary ?? ""}
+            <TextCommandTextarea
+              fieldId="participation-violation-summary"
+              defaultValue={process.violationSummary ?? ""}
               rows={4}
-              onChange={(event) =>
-                update({ violationSummary: event.target.value })
+              onBlur={(event) =>
+                update({ violationSummary: event.currentTarget.value })
               }
             />
           </IndustrialField>
           <IndustrialField label="SBV-Position / Stellungnahme-Kern">
-            <textarea
-              value={process.sbvPosition ?? ""}
+            <TextCommandTextarea
+              fieldId="participation-sbv-position"
+              defaultValue={process.sbvPosition ?? ""}
               rows={4}
-              onChange={(event) => update({ sbvPosition: event.target.value })}
+              onBlur={(event) => update({ sbvPosition: event.currentTarget.value })}
             />
           </IndustrialField>
           <IndustrialField label="Nächster Schritt" wide>
-            <textarea
-              value={process.nextStep ?? ""}
+            <TextCommandTextarea
+              fieldId="participation-next-step"
+              defaultValue={process.nextStep ?? ""}
               rows={3}
-              onChange={(event) => update({ nextStep: event.target.value })}
+              onBlur={(event) => update({ nextStep: event.currentTarget.value })}
             />
           </IndustrialField>
         </IndustrialFormGrid>

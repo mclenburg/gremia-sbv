@@ -1,7 +1,7 @@
 # Roadmap Gremia.SBV
 
-Stand: **0.9.0-rc.1-m**  
-Status: erster Release Candidate. Nach `0.9.0-rc.1-m` gilt Feature-Freeze; neue Fachfunktionen werden nicht mehr aufgenommen.
+Stand: **0.9.0-rc.1-p**  
+Status: erster Release Candidate. Nach `0.9.0-rc.1-p` gilt Feature-Freeze; neue Fachfunktionen werden nicht mehr aufgenommen.
 
 ## Aktueller Stand
 
@@ -27,9 +27,9 @@ Keine offenen Fachfeatures. Dieser Strukturabschnitt bleibt bewusst erhalten, da
 
 ## RC1-Status
 
-### 0.9.0-rc.1-m – Release Candidate
+### 0.9.0-rc.1-p – Release Candidate
 
-- Versionssprung auf `0.9.0-rc.1-m` abgeschlossen.
+- Versionssprung auf `0.9.0-rc.1-p` abgeschlossen.
 - Release Notes erstellt.
 - Known Issues finalisiert.
 - Freeze-Regel dokumentiert.
@@ -86,15 +86,19 @@ Keine offenen Fachfeatures. Dieser Strukturabschnitt bleibt bewusst erhalten, da
 Frühere Planpunkte aus 0.2 und 0.3 sind nicht mehr als offene Checkliste zu führen. Sie sind entweder umgesetzt, durch spätere Architekturentscheidungen ersetzt oder in die RC-Roadmap oben überführt.
 
 
-### 0.9.0-rc.1-m – RC-Coverage-Scope und Service-Behavior-Tests
+### 0.9.0-rc.1-p – RC-Coverage-Scope und Service-Behavior-Tests
 
 - V8-Coverage-Gate auf RC-kritische, unit-testbare Service-Verträge begrenzt.
 - Zusätzliche verhaltensprüfende Tests für Tätigkeitsbericht, Prozessfähigkeiten, Gleichstellung/GdB-Guidance und Kündigungs-Privacy ergänzt.
 - Breite datenbankgebundene Adapterservices bleiben Post-RC-Thema für modulare Refactorings und Integrationstests.
 
 
-### 0.9.0-rc.1-m – erster Release Candidate
+### 0.9.0-rc.1-p – erster Release Candidate
 
 - Release Candidate eingefroren.
-- Version, Changelog, Known Issues, Release Notes und Release-Checkliste auf `0.9.0-rc.1-m` gezogen.
+- Version, Changelog, Known Issues, Release Notes und Release-Checkliste auf `0.9.0-rc.1-p` gezogen.
 - Nach RC1 gilt Feature-Freeze: zulässig sind nur Bugfixes, Buildfixes, Security-Fixes, Datenverlust-/Migrationsfixes, offensichtliche UI-Bugs und Dokumentationskorrekturen.
+
+## RC-Freeze-Regel 0.9.0-rc.1-p
+
+Nach RC1 gilt weiterhin Feature-Freeze: zulässig sind Bugfixes, Buildfixes, Security-Fixes, Datenverlust-/Migrationsfixes, offensichtliche UI-Bugs und Dokumentationskorrekturen. Es gibt keine neuen Fachfeatures, keine Cloud-Synchronisation und keine Lizenzänderung weg von AGPL-3.0-or-later.

@@ -18,6 +18,7 @@ import {
   IndustrialFormGrid,
 } from "../../shared/components/WorkbenchLayout";
 import { MeasureDetailFrame } from "../cases/measures/MeasureDetailFrame";
+import { TextCommandTextarea } from "../../shared/textCommands/TextCommandTextarea";
 
 const statusOrder = Object.keys(
   workplaceAccommodationStatusLabels,
@@ -212,10 +213,10 @@ export function WorkplaceAccommodationProcessDetail({
           <IndustrialField label="Reaktion erhalten">
             <input
               type="datetime-local"
-              value={toDateTimeLocal(process.employerResponseAt)}
-              onChange={(event) =>
+              defaultValue={toDateTimeLocal(process.employerResponseAt)}
+              onBlur={(event) =>
                 update({
-                  employerResponseAt: fromDateTimeLocal(event.target.value),
+                  employerResponseAt: fromDateTimeLocal(event.currentTarget.value),
                 })
               }
             />
@@ -240,10 +241,10 @@ export function WorkplaceAccommodationProcessDetail({
           <IndustrialField label="Umsetzung bis">
             <input
               type="datetime-local"
-              value={toDateTimeLocal(process.implementationDueAt)}
-              onChange={(event) =>
+              defaultValue={toDateTimeLocal(process.implementationDueAt)}
+              onBlur={(event) =>
                 update({
-                  implementationDueAt: fromDateTimeLocal(event.target.value),
+                  implementationDueAt: fromDateTimeLocal(event.currentTarget.value),
                 })
               }
             />
@@ -251,56 +252,60 @@ export function WorkplaceAccommodationProcessDetail({
           <IndustrialField label="Wirksamkeitsprüfung">
             <input
               type="datetime-local"
-              value={toDateTimeLocal(process.effectivenessReviewAt)}
-              onChange={(event) =>
+              defaultValue={toDateTimeLocal(process.effectivenessReviewAt)}
+              onBlur={(event) =>
                 update({
-                  effectivenessReviewAt: fromDateTimeLocal(event.target.value),
+                  effectivenessReviewAt: fromDateTimeLocal(event.currentTarget.value),
                 })
               }
             />
           </IndustrialField>
           <IndustrialField label="Rechtsgrundlage">
             <input
-              value={process.legalBasis}
-              onChange={(event) => update({ legalBasis: event.target.value })}
+              defaultValue={process.legalBasis}
+              onBlur={(event) => update({ legalBasis: event.currentTarget.value })}
             />
           </IndustrialField>
         </IndustrialFormGrid>
 
         <IndustrialFormGrid columns={2}>
           <IndustrialField label="Gewünschte Gestaltung / Nachteilsausgleich">
-            <textarea
-              value={process.requestedAdjustment}
+            <TextCommandTextarea
+              fieldId="workplace-requested-adjustment"
+              defaultValue={process.requestedAdjustment}
               rows={4}
-              onChange={(event) =>
-                update({ requestedAdjustment: event.target.value })
+              onBlur={(event) =>
+                update({ requestedAdjustment: event.currentTarget.value })
               }
             />
           </IndustrialField>
           <IndustrialField label="Barriere / Einschränkung im Arbeitskontext">
-            <textarea
-              value={process.barrierOrLimitation ?? ""}
+            <TextCommandTextarea
+              fieldId="workplace-barrier-or-limitation"
+              defaultValue={process.barrierOrLimitation ?? ""}
               rows={4}
-              onChange={(event) =>
-                update({ barrierOrLimitation: event.target.value })
+              onBlur={(event) =>
+                update({ barrierOrLimitation: event.currentTarget.value })
               }
             />
           </IndustrialField>
           <IndustrialField label="Arbeitsplatz / Arbeitsumfeld">
-            <textarea
-              value={process.workplaceContext ?? ""}
+            <TextCommandTextarea
+              fieldId="workplace-context"
+              defaultValue={process.workplaceContext ?? ""}
               rows={3}
-              onChange={(event) =>
-                update({ workplaceContext: event.target.value })
+              onBlur={(event) =>
+                update({ workplaceContext: event.currentTarget.value })
               }
             />
           </IndustrialField>
           <IndustrialField label="Lösungsvorschlag / konkrete Maßnahme">
-            <textarea
-              value={process.proposedSolution ?? ""}
+            <TextCommandTextarea
+              fieldId="workplace-proposed-solution"
+              defaultValue={process.proposedSolution ?? ""}
               rows={3}
-              onChange={(event) =>
-                update({ proposedSolution: event.target.value })
+              onBlur={(event) =>
+                update({ proposedSolution: event.currentTarget.value })
               }
             />
           </IndustrialField>
@@ -419,17 +424,19 @@ export function WorkplaceAccommodationProcessDetail({
 
         <IndustrialFormGrid columns={2}>
           <IndustrialField label="Nächster Schritt">
-            <textarea
-              value={process.nextStep ?? ""}
+            <TextCommandTextarea
+              fieldId="workplace-next-step"
+              defaultValue={process.nextStep ?? ""}
               rows={3}
-              onChange={(event) => update({ nextStep: event.target.value })}
+              onBlur={(event) => update({ nextStep: event.currentTarget.value })}
             />
           </IndustrialField>
           <IndustrialField label="Ergebnis / Abschlussvermerk">
-            <textarea
-              value={process.outcome ?? ""}
+            <TextCommandTextarea
+              fieldId="workplace-outcome"
+              defaultValue={process.outcome ?? ""}
               rows={3}
-              onChange={(event) => update({ outcome: event.target.value })}
+              onBlur={(event) => update({ outcome: event.currentTarget.value })}
             />
           </IndustrialField>
         </IndustrialFormGrid>

@@ -16,15 +16,15 @@ const TARGETS = {
   },
   win: {
     os: 'win',
-    label: 'Windows x64 NSIS-Installer',
-    builderArgs: ['--win', 'nsis', '--x64'],
+    label: 'Windows portable x64 EXE',
+    builderArgs: ['--win', 'portable', '--x64'],
     supportedPlatforms: ['win32'],
     artifactHint: 'release/Gremia.SBV-<version>-win-x64.exe'
   },
   windows: {
     os: 'win',
-    label: 'Windows x64 NSIS-Installer',
-    builderArgs: ['--win', 'nsis', '--x64'],
+    label: 'Windows portable x64 EXE',
+    builderArgs: ['--win', 'portable', '--x64'],
     supportedPlatforms: ['win32'],
     artifactHint: 'release/Gremia.SBV-<version>-win-x64.exe'
   },

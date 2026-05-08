@@ -26,8 +26,9 @@ describe('0.9.0-rc.1-f release artifact hygiene', () => {
 
   it('builds only the release targets that are meant to be uploaded', () => {
     expect(buildPlatform).toContain("builderArgs: ['--linux', 'AppImage']");
-    expect(buildPlatform).toContain("builderArgs: ['--win', 'nsis', '--x64']");
+    expect(buildPlatform).toContain("builderArgs: ['--win', 'portable', '--x64']");
     expect(buildPlatform).toContain("builderArgs: ['--mac', 'dmg']");
+    expect(buildPlatform).not.toContain("builderArgs: ['--win', 'nsis', '--x64']");
     expect(buildPlatform).not.toContain("builderArgs: ['--win', 'nsis', 'portable', '--x64']");
     expect(buildPlatform).not.toContain("builderArgs: ['--mac', 'dmg', 'zip']");
   });

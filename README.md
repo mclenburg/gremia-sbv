@@ -2,8 +2,8 @@
 
 **Gremia.SBV** ist eine lokale, offline-first Desktop-App für Schwerbehindertenvertretungen in Deutschland. Sie unterstützt vertrauliche SBV-Fallarbeit rund um BEM, Präventionsverfahren nach § 167 SGB IX, SBV-Beteiligung nach § 178 SGB IX, Kündigungsanhörungen, Gleichstellung/GdB, Arbeitsplatzanpassung, Fristen, Dokumentation und Tätigkeitsberichte – ohne Cloud, ohne Telemetrie und ohne HR-Zugriff.
 
-Stand: **0.9.0-rc.1-m**  
-Status: erster Release Candidate `0.9.0-rc.1-m`.
+Stand: **0.9.0-rc.1-p**  
+Status: erster Release Candidate `0.9.0-rc.1-p`.
 
 ## Kurzüberblick
 
@@ -127,7 +127,7 @@ npm run test:e2e
 - `docs/ROADMAP.md`
 - `docs/KNOWN_ISSUES.md`
 - `docs/CHANGELOG.md`
-- `docs/RELEASE_NOTES_0.9.0-rc.1-m.md`
+- `docs/RELEASE_NOTES_0.9.0-rc.1-p.md`
 - `docs/LICENSE_POLICY.md`
 
 ## Lizenz
@@ -138,10 +138,10 @@ Weitere Hinweise stehen in `LICENSE`, `NOTICE` und `docs/LICENSE_POLICY.md`. Dri
 
 ## Release-Status
 
-Gremia.SBV befindet sich mit `0.9.0-rc.1-m` im ersten Release Candidate. Nach RC1 werden keine neuen Fachfunktionen mehr aufgenommen; zulässig sind nur Bugfixes, Buildfixes, Security-Fixes, Datenverlust-/Migrationsfixes, offensichtliche UI-Bugs und Dokumentationskorrekturen.
+Gremia.SBV befindet sich mit `0.9.0-rc.1-p` im ersten Release Candidate. Nach RC1 werden keine neuen Fachfunktionen mehr aufgenommen; zulässig sind nur Bugfixes, Buildfixes, Security-Fixes, Datenverlust-/Migrationsfixes, offensichtliche UI-Bugs und Dokumentationskorrekturen.
 
 
-### RC-Fix 0.9.0-rc.1-d – Fallakte, Prävention und CSS-Baseline
+### RC-Fix 0.9.0-rc.1-p – Fallakte, Prävention und CSS-Baseline
 
 Dieser Patch härtet die Fallaktenarbeit vor Version 1.0:
 
@@ -154,9 +154,9 @@ Dieser Patch härtet die Fallaktenarbeit vor Version 1.0:
 
 Regressionstest: `npm run test:rc-fix-case-prevention-css-090rc1d`.
 
-### RC-Fix 0.9.0-rc.1-m – Kurzbefehle in großen Textfeldern
+### RC-Fix 0.9.0-rc.1-p – Kurzbefehle in großen Textfeldern
 
-Dieser Patch korrigiert die Textbefehls-Strategie aus `0.9.0-rc.1-d`:
+Dieser Patch korrigiert die Textbefehls-Strategie aus `0.9.0-rc.1-p`:
 
 - Kurzbefehle bleiben in den großen Fallakten- und Präventionstextfeldern aktiv.
 - Die Performance wird nicht durch Abschalten der Funktion erreicht, sondern durch eine lokal begrenzte Erkennung im Bereich des Cursors.
@@ -164,3 +164,11 @@ Dieser Patch korrigiert die Textbefehls-Strategie aus `0.9.0-rc.1-d`:
 - Die großen Protokollfelder der Fallnotiz verwenden ebenfalls wieder die globalen Textbefehle.
 
 Regressionstest: `npm run test:rc-fix-case-prevention-css-090rc1e`.
+
+### RC-Fix 0.9.0-rc.1-p – Maßnahmenfelder mit Lost-Focus-Speicherung
+
+Textfelder und TextAreas in fallaktenbezogenen Maßnahmen speichern ihre Inhalte nicht mehr bei jedem Tastendruck, sondern erst beim Verlassen des Feldes. Die bestehende Inline-Kommando-Erkennung bleibt unverändert aktiv.
+### RC-Fix 0.9.0-rc.1-p – Windows wieder portable EXE
+
+Der Windows-Build erzeugt wieder eine direkt startbare portable EXE statt eines NSIS-Installers. Die Release-Hygiene bleibt erhalten: GitHub lädt weiterhin nur die drei Endanwender-Artefakte `.AppImage`, `.dmg` und `.exe` hoch.
+

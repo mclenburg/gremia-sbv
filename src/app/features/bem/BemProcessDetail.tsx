@@ -89,7 +89,7 @@ export function BemProcessDetail({
         <div className="prevention-status-sections bem-status-sections">
           <ProcessSection title="BEM-Auslöser" objective="Dokumentiert wird der Anlass, nicht eine Diagnose.">
           <label><span>Status</span><select value={process.status} onChange={(event) => void onUpdate(process.id, { status: event.target.value as BemStatus })}>{bemStatusOrder.map((status) => <option key={status} value={status}>{bemStatusLabel(status)}</option>)}</select></label>
-          <label><span>Titel</span><input value={process.title} onChange={(event) => void onUpdate(process.id, { title: event.target.value })} /></label>
+          <label><span>Titel</span><input defaultValue={process.title} onBlur={(event) => void onUpdate(process.id, { title: event.currentTarget.value })} /></label>
           <label><span>Auslöser</span><select value={process.triggerType} onChange={(event) => void onUpdate(process.id, { triggerType: event.target.value as BemTriggerType })}>{triggerOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
           <label><span>AU-Tage in 12 Monaten</span><input type="number" min="0" defaultValue={process.sicknessDaysTwelveMonths ?? ''} onBlur={(event) => void onUpdate(process.id, { sicknessDaysTwelveMonths: event.currentTarget.value ? Number(event.currentTarget.value) : undefined })} /></label>
           <label className="case-note-content-input"><span>Anlass / Ausgangslage</span><TextCommandTextarea fieldId="bem-trigger-description" defaultValue={process.triggerDescription ?? ''} onBlur={(event) => void onUpdate(process.id, { triggerDescription: event.currentTarget.value })} /></label>

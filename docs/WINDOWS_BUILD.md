@@ -6,8 +6,8 @@ Ab Version 0.3.23 kann Gremia.SBV zusätzlich als Windows-Anwendung gebaut werde
 
 Der Windows-RC-Build erzeugt ein Release-Artefakt unter `release/`:
 
-1. **NSIS-Installer als EXE**  
-   Geeignet für normale Installation im Benutzerprofil. Der Installer benötigt keine Administratorrechte, weil `perMachine: false` gesetzt ist. Für GitHub-Releases wird nur diese EXE hochgeladen; zusätzliche ZIP-, Blockmap- oder Update-Metadaten-Artefakte gehören nicht in den RC-Release.
+1. **portable Direktstart-EXE als EXE**  
+   Geeignet für normale Installation im Benutzerprofil. Der portable EXE benötigt keine Administratorrechte, weil `perMachine: false` gesetzt ist. Für GitHub-Releases wird nur diese EXE hochgeladen; zusätzliche ZIP-, Blockmap- oder Update-Metadaten-Artefakte gehören nicht in den RC-Release.
 
 ## Build unter Windows
 
@@ -50,7 +50,7 @@ Nach dem Build liegen die Dateien unter:
 release/
 ```
 
-Der Installer richtet Startmenü- und Desktop-Verknüpfungen ein. Eine gesonderte portable EXE wird im RC-Release nicht mehr erzeugt oder hochgeladen.
+Der portable EXE richtet Startmenü- und Desktop-Verknüpfungen ein. Eine gesonderte portable EXE wird im RC-Release nicht mehr erzeugt oder hochgeladen.
 
 ## Datenschutz und Datenablage
 
@@ -72,3 +72,8 @@ oder eine grafische Auswahl in den Einstellungen.
 ## Keine automatische Cloud-Anbindung
 
 Der Windows-Build enthält keine Cloud-Synchronisation, keine Telemetrie und keine automatische Verbindung zu Gremia.BR. Eine spätere Gremia.BR-Schnittstelle bleibt rein lesend und muss ausdrücklich aktiviert werden.
+
+
+## Portable EXE statt Installer
+
+Für Gremia.SBV wird unter Windows eine portable, direkt startbare EXE gebaut. Das passt zur Offline- und USB-Nutzung der SBV-Anwendung. Der Build verwendet `--win portable --x64`; es wird kein Installer als primäres RC-Artefakt erzeugt.

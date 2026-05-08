@@ -19,3 +19,10 @@ Zulässig sind nur noch:
 - **Dokumentationskorrekturen**.
 
 Die Lizenz bleibt **AGPL-3.0-or-later**.
+
+## Nachtrag: Maßnahmenfelder speichern erst bei Fokusverlust
+
+- Die Lost-Focus-Speicherung für lange Präventionsfelder wurde auf die übrigen fallaktenbezogenen Maßnahmen übertragen.
+- SBV-Beteiligung und Arbeitsplatzgestaltung schreiben Textfelder/TextAreas nicht mehr bei jedem Tastendruck in die Datenbank.
+- Große Maßnahmenfelder nutzen weiterhin die bestehende Inline-Kommando-Erkennung über `findFirstTextCommand(event.target.value)`.
+- Der BEM-Titel speichert ebenfalls erst bei Fokusverlust, damit auch kurze Textfelder nicht pro Zeichen persistieren.
