@@ -1,6 +1,6 @@
 # Build von Gremia.SBV
 
-Stand: 0.9.0-rc.1-l
+Stand: 0.9.0-rc.1-m
 
 ## Unterstützte RC-Plattformen
 
@@ -63,7 +63,7 @@ Das Repository enthält den Workflow:
 .github/workflows/build-release.yml
 ```
 
-Ein Tag im Format `v<package.json version>`, für diesen RC also `v0.9.0-rc.1-l`, löst einen Draft-Release-Build aus. Der Workflow:
+Ein Tag im Format `v<package.json version>`, für diesen RC also `v0.9.0-rc.1-m`, löst einen Draft-Release-Build aus. Der Workflow:
 
 - verwendet `npm ci`,
 - vergleicht Tag und `package.json.version`,
@@ -118,7 +118,7 @@ Das Repository enthält `.nvmrc` und `.node-version` mit `20.19.0`. Die Projekt-
 
 ## Service-Coverage-Gate im RC
 
-`npm run test:coverage` nutzt Vitest mit `provider: 'v8'` und einem 70-Prozent-Gate für Branches, Functions, Lines und Statements. Das Gate misst ab 0.9.0-rc.1-l bewusst die RC-kritischen Service-Verträge und gut unit-testbaren Policy-Services.
+`npm run test:coverage` nutzt Vitest mit `provider: 'v8'` und einem 70-Prozent-Gate für Branches, Functions, Lines und Statements. Das Gate misst ab 0.9.0-rc.1-m bewusst die RC-kritischen Service-Verträge und gut unit-testbaren Policy-Services.
 
 Nicht im Unit-Coverage-Gate gemessen werden breite datenbankgebundene Adapter- und Orchestrierungsservices wie `caseService.ts`, `reportService.ts`, `templateService.ts`, `participationService.ts` oder `workplaceAccommodationService.ts`. Diese Dateien sind für isolierte Unit-Coverage nicht sinnvoll geeignet und werden über Integration-/E2E-/Smoke-Tests sowie über spätere modulare Refactorings abgesichert.
 

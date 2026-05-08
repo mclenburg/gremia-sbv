@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { readNormalizedSourceText } from './helpers/sourceText';
 import { defaultEmployerResponseDueAt, preventionReviewDueAtAfterEmployerDeadline } from '../services/preventionWorkflowPolicy';
 
-const globals = readFileSync('src/styles/globals.css', 'utf8');
-const responsive = readFileSync('src/app/ui/responsiveDesign.css', 'utf8');
-const preventionDetail = readFileSync('src/app/features/prevention/PreventionProcessDetail.tsx', 'utf8');
-const textCommandTextarea = readFileSync('src/app/shared/textCommands/TextCommandTextarea.tsx', 'utf8');
+const globals = readNormalizedSourceText('src/styles/globals.css');
+const responsive = readNormalizedSourceText('src/app/ui/responsiveDesign.css');
+const preventionDetail = readNormalizedSourceText('src/app/features/prevention/PreventionProcessDetail.tsx');
+const textCommandTextarea = readNormalizedSourceText('src/app/shared/textCommands/TextCommandTextarea.tsx');
 
 describe('0.9.0-rc.1-e case, prevention, css and text-command fixes', () => {
   it('creates the automatic prevention review one day after the employer response deadline', () => {
@@ -43,7 +43,7 @@ describe('0.9.0-rc.1-e case, prevention, css and text-command fixes', () => {
   });
 
   it('keeps global text commands enabled in the large case-note text fields', () => {
-    const caseNoteModal = readFileSync('src/app/features/cases/CaseNoteModal.tsx', 'utf8');
+    const caseNoteModal = readNormalizedSourceText('src/app/features/cases/CaseNoteModal.tsx');
     expect(caseNoteModal).not.toContain('globalCommandsEnabled={false}');
     expect(caseNoteModal).toContain('fieldId="case-note-content"');
     expect(caseNoteModal).toContain('fieldId="case-note-next-steps"');

@@ -8,12 +8,12 @@ Diese Dokumentation ist ab 0.8.8-d auf dauerhafte Projektunterlagen ausgerichtet
 | --- | --- |
 | `ARCHITECTURE.md` | Architektur, Datenfluss und Modulgrenzen |
 | `DEVELOPMENT.md` | Entwicklung, Tests, Build und Source-Cleanup |
-| `RELEASE_CHECKLIST.md` | Abnahme vor `0.9.0-rc.1-l` |
+| `RELEASE_CHECKLIST.md` | Abnahme vor `0.9.0-rc.1-m` |
 | `BUILD.md` | Build, Plattformmatrix und GitHub-Release-Workflow |
 | `CHANGELOG.md` | zusammengefasste Entwicklungshistorie |
 | `ROADMAP.md` | Versionspfad bis RC und spätere 1.x-Themen |
 | `KNOWN_ISSUES.md` | bekannte Einschränkungen für RC-Abnahme und Release Notes |
-| `RELEASE_NOTES_0.9.0-rc.1-l.md` | Release Notes zum ersten Release Candidate |
+| `RELEASE_NOTES_0.9.0-rc.1-m.md` | Release Notes zum ersten Release Candidate |
 
 ## Datenschutz und Compliance
 

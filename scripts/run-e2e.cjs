@@ -17,6 +17,13 @@ function localBin(name) {
     : join(process.cwd(), 'node_modules', '.bin', name);
 }
 
+
+function normalizeSpecPathArg(arg) {
+  if (arg.startsWith('-')) return arg;
+  if (!/\.(spec|test)\.[cm]?[jt]sx?$/.test(arg)) return arg;
+  return join(...arg.split(/[\\/]+/));
+}
+
 function assertLocalPlaywrightInstalled() {
   const binary = localBin('playwright');
   if (existsSync(binary)) return binary;
@@ -35,7 +42,9 @@ const args = process.argv.slice(2);
 const keep = args.includes('--keep-data');
 const headed = args.includes('--headed');
 const debug = args.includes('--debug');
-const passThrough = args.filter((arg) => !['--keep-data', '--headed', '--debug'].includes(arg));
+const passThrough = args
+  .filter((arg) => !['--keep-data', '--headed', '--debug'].includes(arg))
+  .map(normalizeSpecPathArg);
 
 const providedDataDir = process.env.GREMIA_SBV_E2E_DATA_DIR || '';
 const dataDir = providedDataDir || mkdtempSync(join(tmpdir(), 'gremia-sbv-e2e-'));

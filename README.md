@@ -2,8 +2,8 @@
 
 **Gremia.SBV** ist eine lokale, offline-first Desktop-App für Schwerbehindertenvertretungen in Deutschland. Sie unterstützt vertrauliche SBV-Fallarbeit rund um BEM, Präventionsverfahren nach § 167 SGB IX, SBV-Beteiligung nach § 178 SGB IX, Kündigungsanhörungen, Gleichstellung/GdB, Arbeitsplatzanpassung, Fristen, Dokumentation und Tätigkeitsberichte – ohne Cloud, ohne Telemetrie und ohne HR-Zugriff.
 
-Stand: **0.9.0-rc.1-l**  
-Status: erster Release Candidate `0.9.0-rc.1-l`.
+Stand: **0.9.0-rc.1-m**  
+Status: erster Release Candidate `0.9.0-rc.1-m`.
 
 ## Kurzüberblick
 
@@ -127,7 +127,7 @@ npm run test:e2e
 - `docs/ROADMAP.md`
 - `docs/KNOWN_ISSUES.md`
 - `docs/CHANGELOG.md`
-- `docs/RELEASE_NOTES_0.9.0-rc.1-l.md`
+- `docs/RELEASE_NOTES_0.9.0-rc.1-m.md`
 - `docs/LICENSE_POLICY.md`
 
 ## Lizenz
@@ -138,7 +138,7 @@ Weitere Hinweise stehen in `LICENSE`, `NOTICE` und `docs/LICENSE_POLICY.md`. Dri
 
 ## Release-Status
 
-Gremia.SBV befindet sich mit `0.9.0-rc.1-l` im ersten Release Candidate. Nach RC1 werden keine neuen Fachfunktionen mehr aufgenommen; zulässig sind nur Bugfixes, Buildfixes, Security-Fixes, Datenverlust-/Migrationsfixes, offensichtliche UI-Bugs und Dokumentationskorrekturen.
+Gremia.SBV befindet sich mit `0.9.0-rc.1-m` im ersten Release Candidate. Nach RC1 werden keine neuen Fachfunktionen mehr aufgenommen; zulässig sind nur Bugfixes, Buildfixes, Security-Fixes, Datenverlust-/Migrationsfixes, offensichtliche UI-Bugs und Dokumentationskorrekturen.
 
 
 ### RC-Fix 0.9.0-rc.1-d – Fallakte, Prävention und CSS-Baseline
@@ -154,7 +154,7 @@ Dieser Patch härtet die Fallaktenarbeit vor Version 1.0:
 
 Regressionstest: `npm run test:rc-fix-case-prevention-css-090rc1d`.
 
-### RC-Fix 0.9.0-rc.1-l – Kurzbefehle in großen Textfeldern
+### RC-Fix 0.9.0-rc.1-m – Kurzbefehle in großen Textfeldern
 
 Dieser Patch korrigiert die Textbefehls-Strategie aus `0.9.0-rc.1-d`:
 
