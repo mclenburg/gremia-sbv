@@ -147,13 +147,16 @@ export function getActionHint(deadline: DeadlineRecord): string {
   if (deadline.processType === 'prevention') return 'Präventionsverfahren prüfen: Arbeitgeberreaktion und Einschaltung Inklusionsamt nachhalten.';
   if (deadline.processType === 'equalization') return 'Gleichstellungsverfahren prüfen: Nachweise, Sachstand und ggf. Widerspruchsfrist klären.';
   if (deadline.processType === 'gdb') return 'Bescheid/Zugang/Rechtsbehelfsbelehrung prüfen; ggf. Beratung oder Rechtsvertretung empfehlen.';
+  if (deadline.sourceEvent === 'protected_person.status_expiry_warning' || deadline.sourceEvent === 'protected_person.status_expired_privacy_review') {
+    return 'Statusnachweis im Personenverzeichnis prüfen: Status aktualisieren, Fortspeicherung begründen oder Datenschutzprüfung starten.';
+  }
   return 'Nächsten Schritt im Fall prüfen und dokumentieren.';
 }
 
 
 function validateCaseBinding(input: CreateDeadlineInput): void {
   const deadlineType = input.deadlineType ?? 'follow_up';
-  const isFreeFollowUp = input.processType === 'custom' && deadlineType === 'follow_up' && !input.isLegalDeadline;
+  const isFreeFollowUp = input.processType === 'custom' && ['follow_up', 'warning'].includes(deadlineType) && !input.isLegalDeadline;
 
   if (!input.caseId && !isFreeFollowUp) {
     throw new Error('Fristen müssen einem Fall zugeordnet werden. Ohne Fallbezug ist nur eine freie Wiedervorlage erlaubt.');

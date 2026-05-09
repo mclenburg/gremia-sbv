@@ -1,6 +1,6 @@
-# Release-Checkliste für 0.9.0-rc.1-p
+# Release-Checkliste für 0.9.1
 
-Stand: 0.9.0-rc.1-p
+Stand: 0.9.1
 
 ## Automatisierte Mindestprüfung lokal
 
@@ -38,8 +38,8 @@ Das Gate wird über `npm run test:coverage` und `npm run release:check` ausgefü
 Ein GitHub-Draft-Release wird durch einen Tag ausgelöst:
 
 ```bash
-git tag v0.9.0-rc.1-p
-git push origin v0.9.0-rc.1-p
+git tag v0.9.1
+git push origin v0.9.1
 ```
 
 Der Workflow `.github/workflows/build-release.yml` muss dann erzeugen:
@@ -49,7 +49,7 @@ Der Workflow `.github/workflows/build-release.yml` muss dann erzeugen:
 - macOS-Artefakt unsigniert/nicht notarisiert,
 - GitHub Draft Release mit Artefakten.
 
-Der Workflow muss Tag und `package.json.version` abgleichen. `v0.9.0-rc.1-p` darf nur zu `package.json` Version `0.9.0-rc.1-p` passen.
+Der Workflow muss Tag und `package.json.version` abgleichen. `v0.9.1` darf nur zu `package.json` Version `0.9.1` passen.
 
 ## Manuelle Abnahme
 

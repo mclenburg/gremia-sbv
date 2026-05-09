@@ -112,6 +112,8 @@ function tomsBody(generatedAt: string): string {
 - Schlüsselmaterial in Buffer-Form wird beim Sperren best-effort überschrieben.
 - Zugriffe, Suchen, Vorschauen, Exporte und Änderungen an personenbezogenen Daten werden lokal hashverkettet protokolliert.
 - Keine Telemetrie und keine externen Analyse- oder Trackingdienste.
+- Personenverzeichnis 0.9.1: Importkontrolle, Spaltenmapping, keine dauerhafte Speicherung der Arbeitgeber-Importdatei und kein GdB-Standardfeld.
+- Statusabläufe werden im bestehenden Fristensystem als datenschutzfreundliche Wiedervorlagen geführt.
 - Besonders sensible Fallnotizen werden als vertrauliche Fallnotizen geführt.
 - ExportGuard warnt vor Exporten sensibler Inhalte.
 - Während der entsperrten Nutzung liegen zur Anzeige/Bearbeitung erforderliche Daten im RAM vor. Vollständiger Schutz gegen Memory-Dumps eines entsperrten Systems kann nicht garantiert werden.
@@ -145,13 +147,20 @@ function tomsBody(generatedAt: string): string {
 
 ## 6. Exportkontrolle
 
+- iCal-Export ist nur ein manueller lokaler Export. Standardmäßig werden keine Namen, Diagnosen oder Fallinhalte in Kalendertermine geschrieben.
 - ExportGuard vor sensiblen Dokumenten.
 - Warnung bei Gesundheits-, Kündigungs-, BEM-, Gleichstellungs- und Fallnotizinhalten.
 - PDF-Berichte und Compliance-Dokumente werden zunächst verschlüsselt gespeichert.
 - Beim Abruf als PDF entsteht eine temporäre Klartextkopie für den externen Viewer.
 - Exporte sind außerhalb des Tresors besonders schutzbedürftig.
 
-## 7. Offene Punkte vor 1.0
+## 7. Feldverschlüsselung und Suchbarkeit
+
+- Strukturierte Personenstammdaten werden über SQLCipher im Ruhezustand geschützt.
+- Eine zusätzliche Feldverschlüsselung von Vor- und Nachnamen wird in 0.9.1 bewusst nicht eingeführt; es gibt also keine zusätzliche Feldverschlüsselung für Namen, weil Suche, Sortierung und Importabgleich erforderlich sind und der Sicherheitsgewinn bei lokal verschlüsselter Einzelplatzdatenbank in keinem angemessenen Verhältnis zur Komplexität steht.
+- Besonders sensible Freitexte mit Gesundheitsbezug bleiben von der bestehenden Gesundheitsdaten-/Fallnotizstrategie erfasst.
+
+## 8. Offene Punkte vor 1.0
 
 - Auto-Lock und Preview-Cleanup Ende-zu-Ende testen.
 - Backup/Restore Ende-zu-Ende prüfen.
@@ -178,6 +187,7 @@ Vertrauliche Fall-, Beratungs-, Beteiligungs- und Fristenarbeit der Schwerbehind
 ## 3. Zwecke der Verarbeitung
 
 - Wahrnehmung der gesetzlichen Aufgaben der SBV.
+- Führung eines datensparsamen Personenverzeichnisses schwerbehinderter und gleichgestellter Beschäftigter einschließlich Schutzstatus, Statusgültigkeit, Beschäftigungsende und Fallaktenverknüpfung.
 - Beratung und Unterstützung schwerbehinderter, gleichgestellter oder von Behinderung bedrohter Beschäftigter.
 - Dokumentation von Beteiligungsvorgängen, Prävention, BEM, Gleichstellung/GdB, Arbeitsplatzanpassung und Kündigungsanhörung.
 - Fristenkontrolle und Erstellung vertraulicher Arbeitsunterlagen.
@@ -191,6 +201,7 @@ Vertrauliche Fall-, Beratungs-, Beteiligungs- und Fristenarbeit der Schwerbehind
 
 ## 5. Kategorien personenbezogener Daten
 
+- Personenverzeichnis: Vorname, Nachname, dienstliche E-Mail, Organisationseinheit, Standort, optional Personalnummer, Schutzstatus, Statusgültigkeit, Quelle, Beschäftigungsende und Lifecycle-Status. Kein GdB-Standardfeld. Keine Diagnosen.
 - Stammdaten, Kontaktdaten und Aktenbezüge.
 - Gesprächsnotizen, Vorgangsstatus und Fristen.
 - Angaben zu Arbeitsplatz, Arbeitszeit, Belastungen, Hilfsmitteln und Maßnahmen.
@@ -210,11 +221,17 @@ Keine geplante Übermittlung durch Gremia.SBV. Cloud-Synchronisierung ist nicht 
 
 Die konkrete Frist ist betrieblich festzulegen. Empfohlen ist eine regelmäßige Review-Logik mit Löschung oder Anonymisierung, sobald der Zweck entfällt und keine rechtlichen Aufbewahrungs- oder Nachweisinteressen entgegenstehen.
 
-## 9. Technische und organisatorische Maßnahmen
+## 9. Rechtsgrundlagen
+
+Art. 6 Abs. 1 lit. c DSGVO in Verbindung mit Art. 9 Abs. 2 lit. b DSGVO, § 26 Abs. 3 BDSG sowie den Aufgaben und Beteiligungsrechten der Schwerbehindertenvertretung nach § 178 Abs. 1 und Abs. 2 Satz 1 SGB IX. Für Arbeitgeberverzeichnis und Arbeitgeberliste ist zusätzlich § 163 SGB IX zu berücksichtigen.
+
+Beschäftigte sind organisatorisch über die Verarbeitung zu informieren, insbesondere über die Datenschutzinformation des Arbeitgebers. Gremia.SBV versendet keine eigenständigen Art. 13/14-DSGVO-Benachrichtigungen.
+
+## 10. Technische und organisatorische Maßnahmen
 
 Siehe TOMs-Dokument. Besonders relevant sind Verschlüsselung, lokale Datenhaltung, Zugriffsschutz, Exportkontrolle, Backup-Konzept und Audit-Log.
 
-## 10. Prüfvermerk
+## 11. Prüfvermerk
 
 | Prüffrage | Status / Entscheidung |
 |---|---|
@@ -234,6 +251,7 @@ Gremia.SBV unterstützt die vertrauliche Fallarbeit der Schwerbehindertenvertret
 ## 2. Zweck
 
 - Wahrnehmung der gesetzlichen Aufgaben der SBV.
+- Führung eines datensparsamen Personenverzeichnisses schwerbehinderter und gleichgestellter Beschäftigter einschließlich Schutzstatus, Statusgültigkeit, Beschäftigungsende und Fallaktenverknüpfung.
 - Dokumentation und Nachverfolgung von Beratungs- und Beteiligungsvorgängen.
 - Fristenkontrolle.
 - Erstellung von Schreiben, Berichten und internen Arbeitsunterlagen.
@@ -264,7 +282,7 @@ Gremia.SBV unterstützt die vertrauliche Fallarbeit der Schwerbehindertenvertret
 
 ## 6. Schutzmaßnahmen
 
-Siehe TOMs. Besonders relevant: Verschlüsselung, Offline-Betrieb, ExportGuard, Backup/Restore, Lösch-/Anonymisierungslogik, dokumentierte Zweckbindung.
+Siehe TOMs. Besonders relevant: Verschlüsselung, Offline-Betrieb, ExportGuard, Backup/Restore, Lösch-/Anonymisierungslogik, dokumentierte Zweckbindung, Personenverzeichnis, Importkontrolle, Statusablaufwarnung, iCal-Export und Art. 13/14-Organisationshinweis.
 
 ## 7. Restrisiko
 
@@ -281,9 +299,9 @@ function matrixBody(generatedAt: string): string {
 |---|---|---|---|
 | Art. 5 DSGVO – Grundsätze | Zweckbindung auf SBV-Arbeit, Datenminimierung durch strukturierte Module | teilweise umgesetzt | Nutzungsregeln dokumentieren |
 | Art. 6 DSGVO – Rechtsgrundlage | Verarbeitung im Beschäftigungskontext zur gesetzlichen SBV-Aufgabe | organisatorisch zu bestätigen | Rechtsgrundlage intern dokumentieren |
-| Art. 9 DSGVO – besondere Kategorien | Gesundheitsdaten können verarbeitet werden; Schutz durch Verschlüsselung und ExportGuard | hohes Schutzniveau erforderlich | DSFA final bewerten |
+| Art. 9 DSGVO – besondere Kategorien | Gesundheitsdaten und Schutzstatus können verarbeitet werden; Art. 9 Abs. 2 lit. b DSGVO / § 26 Abs. 3 BDSG dokumentieren | hohes Schutzniveau erforderlich | DSFA final bewerten |
 | Art. 25 DSGVO – Privacy by Design | Offline-first, Verschlüsselung, Exportwarnungen, Anonymisierung | umgesetzt / auszubauen | Tätigkeitsbericht prüfen |
-| Art. 30 DSGVO – Verzeichnis | VVT-Entwurf im Compliance Center abrufbar | vorbereitet | VVT-Eintrag organisatorisch freigeben |
+| Art. 30 DSGVO – Verzeichnis | VVT-Entwurf inklusive Personenverzeichnis im Compliance Center abrufbar | vorbereitet | VVT-Eintrag organisatorisch freigeben |
 | Art. 32 DSGVO – Sicherheit | Verschlüsselung, Zugriffsschutz, Backup-Konzept, keine Telemetrie, hashverkettetes Audit-Log | umgesetzt / testpflichtig | Backup/Restore und Audit-Chain final testen |
 | Art. 35 DSGVO – DSFA | DSFA-Entwurf abrufbar | vorbereitet | finale DSFA durch DSB/Verantwortliche |
 | BDSG Beschäftigtendaten | Zweckbindung, Erforderlichkeit, Zugriffsbeschränkung | zu prüfen | Arbeitgeber-/DSB-Freigabeprozess |

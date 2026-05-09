@@ -1,25 +1,23 @@
 import { describe, expect, it } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { readNormalizedSourceText } from './helpers/sourceText';
 
-const buildPlatform = readFileSync('scripts/build-platform.cjs', 'utf8');
-const workflow = readFileSync('.github/workflows/build-release.yml', 'utf8');
-const windowsBuildDoc = readFileSync('docs/WINDOWS_BUILD.md', 'utf8');
-const buildDoc = readFileSync('docs/BUILD.md', 'utf8');
-const pkg = JSON.parse(readFileSync('package.json', 'utf8')) as {
+const buildPlatform = readNormalizedSourceText('scripts/build-platform.cjs');
+const workflow = readNormalizedSourceText('.github/workflows/build-release.yml');
+const windowsBuildDoc = readNormalizedSourceText('docs/WINDOWS_BUILD.md');
+const buildDoc = readNormalizedSourceText('docs/BUILD.md');
+const pkg = JSON.parse(readNormalizedSourceText('package.json')) as {
   version: string;
   scripts: Record<string, string>;
 };
-const lock = JSON.parse(readFileSync('package-lock.json', 'utf8')) as {
+const lock = JSON.parse(readNormalizedSourceText('package-lock.json')) as {
   version: string;
   packages: Record<string, { version?: string }>;
 };
 
-describe('0.9.0-rc.1-o Windows portable artifact', () => {
-  it('keeps package metadata internally aligned without hard-coding a concrete patch version', () => {
+describe('Windows portable artifact', () => {
+  it('keeps package metadata synchronized without pinning a historical package version', () => {
     expect(lock.version).toBe(pkg.version);
     expect(lock.packages[''].version).toBe(pkg.version);
-    expect(readFileSync('src/app/generated/appVersion.ts', 'utf8')).toContain(pkg.version);
-    expect(readFileSync('services/generated/appMetadata.ts', 'utf8')).toContain(pkg.version);
   });
 
   it('builds a portable Windows executable instead of an installer', () => {

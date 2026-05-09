@@ -24,6 +24,7 @@ import { registerEqualizationIpc } from "./ipc/equalizationIpc.js";
 import { registerTerminationIpc } from "./ipc/terminationIpc.js";
 import { registerKnowledgeIpc } from "./ipc/knowledgeIpc.js";
 import { registerTemplateIpc } from "./ipc/templateIpc.js";
+import { registerProtectedPersonIpc } from "./ipc/protectedPersonIpc.js";
 import { SecurityService } from "../services/securityService.js";
 import {
   registerRendererSecurityPolicy,
@@ -284,6 +285,7 @@ if (!singleInstanceLock) {
       registerTerminationIpc(ipcMain, security);
       registerKnowledgeIpc(ipcMain, security);
       registerTemplateIpc(ipcMain, security);
+      registerProtectedPersonIpc(ipcMain, security);
       registerReportIpc(ipcMain, security);
       registerBackupIpc(ipcMain, security);
       registerRetentionIpc(ipcMain, security);

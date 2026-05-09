@@ -117,6 +117,20 @@ import type {
   UpdateTemplateInput,
 } from "../src/app/core/models/template.model.js";
 
+import type {
+  CreateProtectedPersonInput,
+  PersonAnonymizationResult,
+  PersonCaseLinkRecord,
+  PersonImportExecuteInput,
+  PersonImportExecuteResult,
+  PersonImportPreviewInput,
+  PersonImportPreviewResult,
+  PersonStatusExpirySummary,
+  ProtectedPersonListFilters,
+  ProtectedPersonRecord,
+  UpdateProtectedPersonInput,
+} from "../src/app/core/models/protected-person.model.js";
+
 const api = {
   security: {
     status: (): Promise<SecurityStatus> =>
@@ -365,6 +379,27 @@ const api = {
     warnings: (id: string): Promise<TerminationHearingWarning[]> =>
       ipcRenderer.invoke("termination:warnings", id),
   },
+
+  persons: {
+    list: (filters?: ProtectedPersonListFilters): Promise<ProtectedPersonRecord[]> =>
+      ipcRenderer.invoke("persons:list", filters),
+    create: (input: CreateProtectedPersonInput): Promise<ProtectedPersonRecord> =>
+      ipcRenderer.invoke("persons:create", input),
+    update: (id: string, input: UpdateProtectedPersonInput): Promise<ProtectedPersonRecord> =>
+      ipcRenderer.invoke("persons:update", id, input),
+    linkCase: (personId: string, caseId: string, reason?: string): Promise<PersonCaseLinkRecord> =>
+      ipcRenderer.invoke("persons:link-case", personId, caseId, reason),
+    previewImport: (input: PersonImportPreviewInput): Promise<PersonImportPreviewResult> =>
+      ipcRenderer.invoke("persons:import:preview", input),
+    executeImport: (input: PersonImportExecuteInput): Promise<PersonImportExecuteResult> =>
+      ipcRenderer.invoke("persons:import:execute", input),
+    selectImportFile: (): Promise<{ filePath: string; sourceFileName: string; fileType: 'csv' | 'xlsx' } | null> =>
+      ipcRenderer.invoke("persons:import:select-preview"),
+    evaluateExpiry: (referenceIso?: string): Promise<PersonStatusExpirySummary> =>
+      ipcRenderer.invoke("persons:expiry:evaluate", referenceIso),
+    anonymize: (id: string, reason: string): Promise<PersonAnonymizationResult> =>
+      ipcRenderer.invoke("persons:anonymize", id, reason),
+  },
   deadlines: {
     list: (filters?: DeadlineListFilters): Promise<DeadlineRecord[]> =>
       ipcRenderer.invoke("deadlines:list", filters),
@@ -380,6 +415,8 @@ const api = {
       ipcRenderer.invoke("deadlines:suspend", id, reason),
     cancel: (id: string, reason: string): Promise<DeadlineRecord> =>
       ipcRenderer.invoke("deadlines:cancel", id, reason),
+    exportIcal: (filters?: DeadlineListFilters, privacyLevel?: "privacy_first" | "case_reference" | "details"): Promise<string> =>
+      ipcRenderer.invoke("deadlines:ical-export", filters, privacyLevel),
   },
   reports: {
     descriptors: (): Promise<ReportDescriptor[]> =>

@@ -115,6 +115,20 @@ import type {
   UpdateTemplateInput,
 } from "./app/core/models/template.model";
 
+import type {
+  CreateProtectedPersonInput,
+  PersonAnonymizationResult,
+  PersonCaseLinkRecord,
+  PersonImportExecuteInput,
+  PersonImportExecuteResult,
+  PersonImportPreviewInput,
+  PersonImportPreviewResult,
+  PersonStatusExpirySummary,
+  ProtectedPersonListFilters,
+  ProtectedPersonRecord,
+  UpdateProtectedPersonInput,
+} from "./app/core/models/protected-person.model";
+
 declare global {
   interface Window {
     gremiaSbv: {
@@ -287,6 +301,18 @@ declare global {
         ): Promise<TerminationHearingRecord>;
         warnings(id: string): Promise<TerminationHearingWarning[]>;
       };
+
+      persons: {
+        list(filters?: ProtectedPersonListFilters): Promise<ProtectedPersonRecord[]>;
+        create(input: CreateProtectedPersonInput): Promise<ProtectedPersonRecord>;
+        update(id: string, input: UpdateProtectedPersonInput): Promise<ProtectedPersonRecord>;
+        linkCase(personId: string, caseId: string, reason?: string): Promise<PersonCaseLinkRecord>;
+        previewImport(input: PersonImportPreviewInput): Promise<PersonImportPreviewResult>;
+        executeImport(input: PersonImportExecuteInput): Promise<PersonImportExecuteResult>;
+        selectImportFile(): Promise<{ filePath: string; sourceFileName: string; fileType: 'csv' | 'xlsx' } | null>;
+        evaluateExpiry(referenceIso?: string): Promise<PersonStatusExpirySummary>;
+        anonymize(id: string, reason: string): Promise<PersonAnonymizationResult>;
+      };
       deadlines: {
         list(filters?: DeadlineListFilters): Promise<DeadlineRecord[]>;
         dashboard(): Promise<DeadlineDashboardItem[]>;
@@ -295,6 +321,7 @@ declare global {
         complete(id: string, note?: string): Promise<DeadlineRecord>;
         suspend(id: string, reason: string): Promise<DeadlineRecord>;
         cancel(id: string, reason: string): Promise<DeadlineRecord>;
+        exportIcal(filters?: DeadlineListFilters, privacyLevel?: "privacy_first" | "case_reference" | "details"): Promise<string>;
       };
       reports: {
         descriptors(): Promise<ReportDescriptor[]>;

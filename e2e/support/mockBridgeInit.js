@@ -27,6 +27,25 @@
     },
   ];
 
+
+  const persons = [
+    {
+      id: 'person-test-0001',
+      firstName: 'Max',
+      lastName: 'Mustermann',
+      workEmail: 'max.mustermann@example.invalid',
+      organizationalUnit: 'Demo-Team',
+      location: 'Demo-Standort',
+      employmentState: 'active_employee',
+      protectionStatus: 'equivalent',
+      statusValidUntil: '2026-06-01',
+      statusSource: 'employer_list',
+      lifecycleState: 'expiring_soon',
+      createdAt: now,
+      updatedAt: now,
+    },
+  ];
+
   const deadlines = [
     {
       id: 'deadline-test-0001',
@@ -144,6 +163,18 @@
       exportDocument: async () => ({ exported: true }),
       deleteDocument: async () => ({ deleted: true }),
     },
+
+    persons: {
+      list: async () => persons,
+      create: async (input) => { const row = { id: `person-${Date.now()}`, ...input, createdAt: now, updatedAt: now, lifecycleState: 'active' }; persons.push(row); return row; },
+      update: async (id, input) => { const row = persons.find((person) => person.id === id); Object.assign(row, input, { updatedAt: now }); return row; },
+      linkCase: async (personId, caseId) => ({ id: `link-${Date.now()}`, protectedPersonId: personId, caseFileId: caseId, linkState: 'active', createdAt: now }),
+      previewImport: async () => ({ columns: ['Name', 'Status'], rows: [], warnings: [] }),
+      executeImport: async () => ({ run: { id: `run-${Date.now()}`, totalRows: 0, createdCount: 0, updatedCount: 0, unchangedCount: 0, conflictCount: 0, skippedCount: 0, missingCount: 0, sourceFileName: 'e2e.csv', sourceFileHash: 'synthetic', importedAt: now }, imported: [] }),
+      selectImportFile: async () => null,
+      evaluateExpiry: async () => ({ expiringSoon: persons, expiredReviewRequired: [] }),
+      anonymize: async (id, reason) => ({ person: persons.find((person) => person.id === id), affectedCaseIds: [], anonymizedLinks: 0, reason }),
+    },
     contacts: { list: emptyList, create: createRecord, delete: async () => ({ deleted: true, anonymizedReferences: 0 }) },
     deadlines: {
       list: async () => deadlines,
@@ -151,6 +182,7 @@
       create: createRecord,
       update: createRecord,
       complete: async () => ({ completed: true }),
+      exportIcal: async () => "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nEND:VCALENDAR\r\n",
     },
     caseMeasures: { list: async () => measures, create: createRecord, update: createRecord },
     knowledge: { listCaseReferences: emptyList, search: emptyList, list: emptyList },

@@ -3,7 +3,7 @@ import path from 'node:path';
 import type { DatabaseAdapter } from './databaseService.js';
 import { classifyCaseLegalReferencesColumns } from './knowledgeMigrationPolicy.js';
 import { APP_VERSION } from './generated/appMetadata.js';
-import { APP_SCHEMA_VERSION, CASE_MEASURES_REQUIRED_COLUMNS, CASE_MEASURE_PARTICIPATION_REQUIRED_COLUMNS, CASE_MEASURE_WORKPLACE_ACCOMMODATION_REQUIRED_COLUMNS, DATABASE_SCHEMA_APP_VERSION_KEY, DATABASE_SCHEMA_VERSION_KEY, PERSONAL_DATA_AUDIT_REQUIRED_COLUMNS, SBV_PARTICIPATION_REQUIRED_COLUMNS, TERMINATION_HEARINGS_REQUIRED_COLUMNS } from './appSchema.js';
+import { APP_SCHEMA_VERSION, CASE_MEASURES_REQUIRED_COLUMNS, CASE_MEASURE_PARTICIPATION_REQUIRED_COLUMNS, CASE_MEASURE_WORKPLACE_ACCOMMODATION_REQUIRED_COLUMNS, PERSON_IMPORT_RUN_ITEMS_REQUIRED_COLUMNS, PROTECTED_PERSONS_REQUIRED_COLUMNS, DATABASE_SCHEMA_APP_VERSION_KEY, DATABASE_SCHEMA_VERSION_KEY, PERSONAL_DATA_AUDIT_REQUIRED_COLUMNS, SBV_PARTICIPATION_REQUIRED_COLUMNS, TERMINATION_HEARINGS_REQUIRED_COLUMNS } from './appSchema.js';
 
 interface MigrationRow {
   version: string;
@@ -275,6 +275,12 @@ export class MigrationService {
         return this.tableExists('sbv_participations')
           && this.columnExists('sbv_participations', 'hearing_before_decision')
           && this.indexExists('idx_sbv_participations_status');
+      case '0025':
+        return this.tableExists('protected_persons')
+          && this.tableExists('person_import_runs')
+          && this.tableExists('person_import_run_items')
+          && this.tableExists('person_case_links')
+          && this.columnExists('protected_persons', 'left_company_at');
       default:
         return false;
     }
@@ -727,7 +733,11 @@ CREATE INDEX IF NOT EXISTS idx_case_measure_events_measure_created ON case_measu
       'sbv_participations',
       'case_measures',
       'case_measure_participation',
-      'case_measure_workplace_accommodation'
+      'case_measure_workplace_accommodation',
+      'protected_persons',
+      'person_import_runs',
+      'person_import_run_items',
+      'person_case_links'
     ];
 
     requiredTables.forEach((table) => {
@@ -747,7 +757,9 @@ CREATE INDEX IF NOT EXISTS idx_case_measure_events_measure_created ON case_measu
       sbv_participations: [...SBV_PARTICIPATION_REQUIRED_COLUMNS],
       case_measures: [...CASE_MEASURES_REQUIRED_COLUMNS],
       case_measure_participation: [...CASE_MEASURE_PARTICIPATION_REQUIRED_COLUMNS],
-      case_measure_workplace_accommodation: [...CASE_MEASURE_WORKPLACE_ACCOMMODATION_REQUIRED_COLUMNS]
+      case_measure_workplace_accommodation: [...CASE_MEASURE_WORKPLACE_ACCOMMODATION_REQUIRED_COLUMNS],
+      protected_persons: [...PROTECTED_PERSONS_REQUIRED_COLUMNS],
+      person_import_run_items: [...PERSON_IMPORT_RUN_ITEMS_REQUIRED_COLUMNS]
     };
 
     Object.entries(requiredColumns).forEach(([table, columns]) => {

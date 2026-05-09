@@ -1,4 +1,4 @@
-export const APP_SCHEMA_VERSION = '0024';
+export const APP_SCHEMA_VERSION = '0025';
 
 export const DATABASE_SCHEMA_VERSION_KEY = 'database.schema.version';
 export const LEGACY_DATABASE_SCHEMA_VERSION_KEY = 'settings.database.schema.version';
@@ -61,6 +61,27 @@ export const SBV_PARTICIPATION_REQUIRED_COLUMNS = [
   'decision_notified',
   'created_at',
   'updated_at'
+] as const;
+
+
+export const PROTECTED_PERSONS_REQUIRED_COLUMNS = [
+  'id',
+  'first_name',
+  'last_name',
+  'employment_state',
+  'protection_status',
+  'status_source',
+  'lifecycle_state',
+  'created_at',
+  'updated_at'
+] as const;
+
+export const PERSON_IMPORT_RUN_ITEMS_REQUIRED_COLUMNS = [
+  'id',
+  'run_id',
+  'row_number',
+  'action',
+  'created_at'
 ] as const;
 
 export const CASE_MEASURE_WORKPLACE_ACCOMMODATION_REQUIRED_COLUMNS = [

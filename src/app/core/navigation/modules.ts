@@ -11,6 +11,7 @@ import {
   Scale,
   ShieldAlert,
   ShieldCheck,
+  UserRoundCheck,
   Users,
   Wrench
 } from 'lucide-react';
@@ -19,6 +20,7 @@ export type ViewId =
   | 'dashboard'
   | 'cases'
   | 'deadlines'
+  | 'persons'
   | 'bem'
   | 'prevention'
   | 'participation'
@@ -59,6 +61,14 @@ export const modules: ModuleDefinition[] = [
     shortTitle: 'Frist',
     text: 'Fristen und Wiedervorlagen. Ab 48h zwingend auf dem Dashboard.',
     icon: CalendarClock
+  },
+
+  {
+    id: 'persons',
+    title: 'Personenverzeichnis',
+    shortTitle: 'Personen',
+    text: 'Schutzstatus, Arbeitgeberliste, Import und Datenschutz-Lifecycle.',
+    icon: UserRoundCheck
   },
   {
     id: 'bem',

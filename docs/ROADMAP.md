@@ -1,7 +1,7 @@
 # Roadmap Gremia.SBV
 
-Stand: **0.9.0-rc.1-p**  
-Status: erster Release Candidate. Nach `0.9.0-rc.1-p` gilt Feature-Freeze; neue Fachfunktionen werden nicht mehr aufgenommen.
+Stand: **0.9.1**  
+Status: Vor-1.0-Ergänzung. `0.9.1` ergänzt das im RC aufgefallene Personenverzeichnis; danach gilt Feature-Freeze bis 1.0.
 
 ## Aktueller Stand
 
@@ -102,3 +102,14 @@ Frühere Planpunkte aus 0.2 und 0.3 sind nicht mehr als offene Checkliste zu fü
 ## RC-Freeze-Regel 0.9.0-rc.1-p
 
 Nach RC1 gilt weiterhin Feature-Freeze: zulässig sind Bugfixes, Buildfixes, Security-Fixes, Datenverlust-/Migrationsfixes, offensichtliche UI-Bugs und Dokumentationskorrekturen. Es gibt keine neuen Fachfeatures, keine Cloud-Synchronisation und keine Lizenzänderung weg von AGPL-3.0-or-later.
+
+## 0.9.1 – Personenverzeichnis vor 1.0
+
+- Personenverzeichnis als releasekritischer RC-Fund.
+- Import aus CSV/XLSX mit Spaltenmapping; Personalnummer optional; Vollnamen-Spalten unterstützt.
+- Kein GdB-Standardfeld, keine Diagnosen.
+- Beschäftigungsende und Statusablauf als Datenschutz-Lifecycle.
+- 30-Tage-Warnung über bestehendes Fristensystem.
+- iCal-Export nur manuell und datenschutzfreundlich.
+
+Nach 0.9.1 folgt der 1.0-Freeze: Security-Fixes, Datenverlust-Risiken, Dokumentationskorrekturen, keine neuen Fachfeatures, keine Cloud-Synchronisation, AGPL-3.0-or-later.

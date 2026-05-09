@@ -1,6 +1,6 @@
 # Build von Gremia.SBV
 
-Stand: 0.9.0-rc.1-p
+Stand: 0.9.1
 
 ## Unterstützte RC-Plattformen
 
@@ -63,7 +63,7 @@ Das Repository enthält den Workflow:
 .github/workflows/build-release.yml
 ```
 
-Ein Tag im Format `v<package.json version>`, für diesen RC also `v0.9.0-rc.1-p`, löst einen Draft-Release-Build aus. Der Workflow:
+Ein Tag im Format `v<package.json version>`, für diesen RC also `v0.9.1`, löst einen Draft-Release-Build aus. Der Workflow:
 
 - verwendet `npm ci`,
 - vergleicht Tag und `package.json.version`,

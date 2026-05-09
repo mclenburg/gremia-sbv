@@ -2,8 +2,8 @@
 
 **Gremia.SBV** ist eine lokale, offline-first Desktop-App für Schwerbehindertenvertretungen in Deutschland. Sie unterstützt vertrauliche SBV-Fallarbeit rund um BEM, Präventionsverfahren nach § 167 SGB IX, SBV-Beteiligung nach § 178 SGB IX, Kündigungsanhörungen, Gleichstellung/GdB, Arbeitsplatzanpassung, Fristen, Dokumentation und Tätigkeitsberichte – ohne Cloud, ohne Telemetrie und ohne HR-Zugriff.
 
-Stand: **0.9.0-rc.1-p**  
-Status: erster Release Candidate `0.9.0-rc.1-p`.
+Stand: **0.9.1**  
+Status: Vor-1.0-Ergänzung `0.9.1` im RC-Zweig.
 
 ## Kurzüberblick
 
@@ -127,7 +127,7 @@ npm run test:e2e
 - `docs/ROADMAP.md`
 - `docs/KNOWN_ISSUES.md`
 - `docs/CHANGELOG.md`
-- `docs/RELEASE_NOTES_0.9.0-rc.1-p.md`
+- `docs/RELEASE_NOTES_0.9.1.md`
 - `docs/LICENSE_POLICY.md`
 
 ## Lizenz
@@ -138,7 +138,7 @@ Weitere Hinweise stehen in `LICENSE`, `NOTICE` und `docs/LICENSE_POLICY.md`. Dri
 
 ## Release-Status
 
-Gremia.SBV befindet sich mit `0.9.0-rc.1-p` im ersten Release Candidate. Nach RC1 werden keine neuen Fachfunktionen mehr aufgenommen; zulässig sind nur Bugfixes, Buildfixes, Security-Fixes, Datenverlust-/Migrationsfixes, offensichtliche UI-Bugs und Dokumentationskorrekturen.
+Gremia.SBV befindet sich mit `0.9.1` im Vor-1.0-RC-Zweig. 0.9.1 ergänzt das im RC aufgefallene Personenverzeichnis; danach werden bis 1.0 keine neuen Fachfunktionen mehr aufgenommen. Zulässig sind nur Bugfixes, Buildfixes, Security-Fixes, Datenverlust-/Migrationsfixes, offensichtliche UI-Bugs und Dokumentationskorrekturen.
 
 
 ### RC-Fix 0.9.0-rc.1-p – Fallakte, Prävention und CSS-Baseline
@@ -150,7 +150,7 @@ Dieser Patch härtet die Fallaktenarbeit vor Version 1.0:
 - Die CSS-Basis enthält nur noch eine führende `.case-workbench`-Definition; die widersprüchliche historische Definition mit `minmax(280px, 360px)` wurde entfernt.
 - Die Sidebar-Positionierung ist zwischen `globals.css` und `responsiveDesign.css` nicht mehr widersprüchlich dokumentiert; schmale Navigationen erhalten eine sichtbare Overflow-Andeutung.
 - Präventionsverfahren erzeugen aus der Arbeitgeber-Reaktionsfrist eine Wiedervorlage am Folgetag. Die Reaktionsfrist selbst wird als Erinnerung (`reminderAt`) an der Wiedervorlage dokumentiert.
-- Lange Textfelder im Präventionsdetail werden lokal bearbeitet und über „Textfelder speichern“ geschrieben.
+- Lange Textfelder im Präventionsdetail und in Maßnahmen werden lokal bearbeitet und erst beim Verlassen des Feldes gespeichert.
 
 Regressionstest: `npm run test:rc-fix-case-prevention-css-090rc1d`.
 
@@ -159,9 +159,9 @@ Regressionstest: `npm run test:rc-fix-case-prevention-css-090rc1d`.
 Dieser Patch korrigiert die Textbefehls-Strategie aus `0.9.0-rc.1-p`:
 
 - Kurzbefehle bleiben in den großen Fallakten- und Präventionstextfeldern aktiv.
-- Die Performance wird nicht durch Abschalten der Funktion erreicht, sondern durch eine lokal begrenzte Erkennung im Bereich des Cursors.
-- Die Präventions-Textfelder behalten den expliziten Speicherbutton; die Texte werden weiterhin erst beim Speichern in den Vorgang geschrieben.
-- Die großen Protokollfelder der Fallnotiz verwenden ebenfalls wieder die globalen Textbefehle.
+- Die Performance wird nicht durch Abschalten der Funktion erreicht; der Inline-Kommando-Scan bleibt fachlich unverändert aktiv.
+- Die Präventions- und Maßnahmen-Textfelder persistieren lange Texte erst bei `onBlur`, nicht pro Tastendruck.
+- Die großen Protokollfelder der Fallnotiz verwenden weiterhin die globalen Textbefehle.
 
 Regressionstest: `npm run test:rc-fix-case-prevention-css-090rc1e`.
 
@@ -172,3 +172,9 @@ Textfelder und TextAreas in fallaktenbezogenen Maßnahmen speichern ihre Inhalte
 
 Der Windows-Build erzeugt wieder eine direkt startbare portable EXE statt eines NSIS-Installers. Die Release-Hygiene bleibt erhalten: GitHub lädt weiterhin nur die drei Endanwender-Artefakte `.AppImage`, `.dmg` und `.exe` hoch.
 
+
+## 0.9.1: Personenverzeichnis und Import
+
+Gremia.SBV 0.9.1 ergänzt vor dem 1.0-Freeze ein datensparsames Personenverzeichnis für schwerbehinderte und gleichgestellte Beschäftigte. Der genaue GdB wird nicht als Standardfeld gespeichert; entscheidend ist der Schutzstatus. Arbeitgeberlisten können aus CSV/XLSX mit konfigurierbarem Spaltenmapping importiert werden. Die Personalnummer ist optional, und Namen können getrennt oder in einer gemeinsamen Spalte stehen, auch im Format `Nachname, Vorname`.
+
+Statusabläufe erzeugen 30-Tage-Warnungen im bestehenden Fristensystem. Nach Ablauf wird eine Datenschutzprüfung erforderlich; strukturierte Anonymisierung entfernt direkte Identifikatoren und markiert verknüpfte Fallakten zur Prüfung. Fristen können manuell als iCal exportiert werden; der Standardexport enthält keine Namen, Diagnosen oder Fallinhalte.

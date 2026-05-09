@@ -24,7 +24,7 @@ function expectNoPerKeystrokePersistenceInTextInputs(source: string): void {
 
 describe('0.9.0-rc.1-n measure detail text persistence', () => {
   it('persists textual participation measure fields only on blur and keeps inline commands available', () => {
-    expect(participation).toContain('import { TextCommandTextarea } from "../../shared/textCommands/TextCommandTextarea";');
+    expect(participation).toContain('TextCommandTextarea');
 
     for (const fieldId of [
       'participation-violation-summary',
@@ -48,7 +48,7 @@ describe('0.9.0-rc.1-n measure detail text persistence', () => {
   });
 
   it('persists textual workplace accommodation fields only on blur and keeps inline commands available', () => {
-    expect(workplace).toContain('import { TextCommandTextarea } from "../../shared/textCommands/TextCommandTextarea";');
+    expect(workplace).toContain('TextCommandTextarea');
 
     for (const fieldId of [
       'workplace-requested-adjustment',

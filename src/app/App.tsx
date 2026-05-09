@@ -9,6 +9,12 @@ import type { CaseCategory, CaseRecord } from "./core/models/case.model";
 import type { WorkplaceAccommodationRecord } from "./core/models/workplace-accommodation.model";
 import type { CaseMeasureRecord } from "./core/models/case-measure.model";
 import type {
+  ProtectedPersonRecord,
+  CreateProtectedPersonInput,
+  UpdateProtectedPersonInput,
+  PersonImportColumnMapping,
+} from "./core/models/protected-person.model";
+import type {
   ContactRecord,
   CreateContactInput,
   DeleteContactResult,
@@ -34,6 +40,7 @@ import { TerminationView } from "./features/termination/TerminationView";
 import { ContactsView } from "./features/contacts/ContactsView";
 import { ReportsView } from "./features/reports/ReportsView";
 import { ComplianceView } from "./features/compliance/ComplianceView";
+import { PersonsView } from "./features/persons/PersonsView";
 import { TemplatesView } from "./features/templates/TemplatesView";
 import {
   applyTheme,
@@ -64,6 +71,7 @@ import "./accessibilityLiveRegion.css";
 import "./complianceCenter.css";
 import "./reportsWorkbench.css";
 import "./features/participation/participationWorkbench.css";
+import "./features/persons/personsWorkbench.css";
 import "./ui/responsiveDesign.css";
 import "./shared/textCommands/textCommandHelp.css";
 
@@ -73,6 +81,7 @@ const IMPLEMENTED_VIEW_IDS = new Set<ViewId>([
   "dashboard",
   "cases",
   "deadlines",
+  "persons",
   "contacts",
   "knowledge",
   "bem",
@@ -134,6 +143,7 @@ export function App() {
   const [cases, setCases] = useState<CaseRecord[]>([]);
   const [contacts, setContacts] = useState<ContactRecord[]>([]);
   const [deadlines, setDeadlines] = useState<DeadlineRecord[]>([]);
+  const [persons, setPersons] = useState<ProtectedPersonRecord[]>([]);
   const [caseMeasures, setCaseMeasures] = useState<CaseMeasureRecord[]>([]);
   const [dashboardDeadlines, setDashboardDeadlines] = useState<
     DeadlineDashboardItem[]
@@ -223,19 +233,21 @@ export function App() {
     if (!bridge?.cases || !bridge.contacts || !bridge.deadlines) {
       throw new Error("Datenbrücke ist nicht geladen.");
     }
-    const [caseRows, contactRows, deadlineRows, dashboardRows, measureRows] =
+    const [caseRows, contactRows, deadlineRows, dashboardRows, measureRows, personRows] =
       await Promise.all([
         bridge.cases.list(),
         bridge.contacts.list(),
         bridge.deadlines.list({ status: ["open", "overdue"] }),
         bridge.deadlines.dashboard(),
         bridge.caseMeasures?.list() ?? Promise.resolve([]),
+        bridge.persons?.list() ?? Promise.resolve([]),
       ]);
     setCases(caseRows);
     setContacts(contactRows);
     setDeadlines(deadlineRows);
     setDashboardDeadlines(dashboardRows);
     setCaseMeasures(measureRows);
+    setPersons(personRows);
   }
 
   async function createCase(input: {
@@ -248,6 +260,76 @@ export function App() {
     if (!bridge?.cases) throw new Error("Falldienst ist nicht erreichbar.");
     await bridge.cases.create(input);
     await reloadWorkData();
+  }
+
+
+
+  async function createProtectedPerson(input: CreateProtectedPersonInput) {
+    const bridge = await waitForBridge();
+    if (!bridge?.persons) throw new Error("Personendienst ist nicht erreichbar.");
+    await bridge.persons.create(input);
+    await reloadWorkData();
+  }
+
+  async function updateProtectedPerson(id: string, input: UpdateProtectedPersonInput) {
+    const bridge = await waitForBridge();
+    if (!bridge?.persons) throw new Error("Personendienst ist nicht erreichbar.");
+    await bridge.persons.update(id, input);
+    await reloadWorkData();
+  }
+
+  async function importProtectedPersonsCsv(input: { csvText: string; mapping: PersonImportColumnMapping }) {
+    const bridge = await waitForBridge();
+    if (!bridge?.persons) throw new Error("Personenimport ist nicht erreichbar.");
+    await bridge.persons.executeImport({
+      sourceFileName: "eingefuegte-arbeitgeberliste.csv",
+      fileType: "csv",
+      csvText: input.csvText,
+      delimiter: ";",
+      headerRowIndex: 0,
+      firstDataRowIndex: 1,
+      mapping: input.mapping
+    });
+    await bridge.persons.evaluateExpiry();
+    await reloadWorkData();
+  }
+
+  async function selectAndImportProtectedPersons(mapping: PersonImportColumnMapping) {
+    const bridge = await waitForBridge();
+    if (!bridge?.persons) throw new Error("Personenimport ist nicht erreichbar.");
+    const selected = await bridge.persons.selectImportFile();
+    if (!selected) return;
+    await bridge.persons.executeImport({
+      sourceFileName: selected.sourceFileName,
+      fileType: selected.fileType,
+      filePath: selected.filePath,
+      delimiter: ";",
+      headerRowIndex: 0,
+      firstDataRowIndex: 1,
+      mapping
+    });
+    await bridge.persons.evaluateExpiry();
+    await reloadWorkData();
+  }
+
+  async function evaluateProtectedPersonExpiry() {
+    const bridge = await waitForBridge();
+    if (!bridge?.persons) throw new Error("Statusprüfung ist nicht erreichbar.");
+    await bridge.persons.evaluateExpiry();
+    await reloadWorkData();
+  }
+
+  async function exportDeadlinesAsIcal() {
+    const bridge = await waitForBridge();
+    if (!bridge?.deadlines?.exportIcal) throw new Error("iCal-Export ist nicht erreichbar.");
+    const ics = await bridge.deadlines.exportIcal({ status: ["open", "overdue"] }, "privacy_first");
+    const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "gremia-sbv-fristen.ics";
+    link.click();
+    URL.revokeObjectURL(url);
   }
 
   async function createContact(
@@ -443,6 +525,18 @@ export function App() {
                 onCompleteDeadline={(deadline) =>
                   void completeDeadline(deadline)
                 }
+              />
+            )}
+            {currentView === "persons" && (
+              <PersonsView
+                persons={persons}
+                cases={cases}
+                onCreate={createProtectedPerson}
+                onUpdate={updateProtectedPerson}
+                onImportCsv={importProtectedPersonsCsv}
+                onSelectImportFile={selectAndImportProtectedPersons}
+                onEvaluateExpiry={evaluateProtectedPersonExpiry}
+                onExportIcal={exportDeadlinesAsIcal}
               />
             )}
             {currentView === "contacts" && (
