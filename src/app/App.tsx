@@ -12,7 +12,10 @@ import type {
   ProtectedPersonRecord,
   CreateProtectedPersonInput,
   UpdateProtectedPersonInput,
-  PersonImportColumnMapping,
+  PersonImportExecuteInput,
+  PersonImportExecuteResult,
+  PersonImportPreviewInput,
+  PersonImportPreviewResult,
 } from "./core/models/protected-person.model";
 import type {
   ContactRecord,
@@ -278,38 +281,25 @@ export function App() {
     await reloadWorkData();
   }
 
-  async function importProtectedPersonsCsv(input: { csvText: string; mapping: PersonImportColumnMapping }) {
+  async function selectProtectedPersonImportFile() {
     const bridge = await waitForBridge();
     if (!bridge?.persons) throw new Error("Personenimport ist nicht erreichbar.");
-    await bridge.persons.executeImport({
-      sourceFileName: "eingefuegte-arbeitgeberliste.csv",
-      fileType: "csv",
-      csvText: input.csvText,
-      delimiter: ";",
-      headerRowIndex: 0,
-      firstDataRowIndex: 1,
-      mapping: input.mapping
-    });
-    await bridge.persons.evaluateExpiry();
-    await reloadWorkData();
+    return await bridge.persons.selectImportFile();
   }
 
-  async function selectAndImportProtectedPersons(mapping: PersonImportColumnMapping) {
+  async function previewProtectedPersonsImport(input: PersonImportPreviewInput): Promise<PersonImportPreviewResult> {
     const bridge = await waitForBridge();
     if (!bridge?.persons) throw new Error("Personenimport ist nicht erreichbar.");
-    const selected = await bridge.persons.selectImportFile();
-    if (!selected) return;
-    await bridge.persons.executeImport({
-      sourceFileName: selected.sourceFileName,
-      fileType: selected.fileType,
-      filePath: selected.filePath,
-      delimiter: ";",
-      headerRowIndex: 0,
-      firstDataRowIndex: 1,
-      mapping
-    });
+    return await bridge.persons.previewImport(input);
+  }
+
+  async function executeProtectedPersonsImport(input: PersonImportExecuteInput): Promise<PersonImportExecuteResult> {
+    const bridge = await waitForBridge();
+    if (!bridge?.persons) throw new Error("Personenimport ist nicht erreichbar.");
+    const result = await bridge.persons.executeImport(input);
     await bridge.persons.evaluateExpiry();
     await reloadWorkData();
+    return result;
   }
 
   async function evaluateProtectedPersonExpiry() {
@@ -533,8 +523,9 @@ export function App() {
                 cases={cases}
                 onCreate={createProtectedPerson}
                 onUpdate={updateProtectedPerson}
-                onImportCsv={importProtectedPersonsCsv}
-                onSelectImportFile={selectAndImportProtectedPersons}
+                onSelectImportFile={selectProtectedPersonImportFile}
+                onPreviewImport={previewProtectedPersonsImport}
+                onExecuteImport={executeProtectedPersonsImport}
                 onEvaluateExpiry={evaluateProtectedPersonExpiry}
                 onExportIcal={exportDeadlinesAsIcal}
               />

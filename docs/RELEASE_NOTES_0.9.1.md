@@ -6,7 +6,7 @@
 
 - Personenverzeichnis ohne GdB-Standardfeld und ohne Diagnosefelder.
 - Optionales Beschäftigungsende über `employmentState` und `leftCompanyAt`.
-- CSV-/XLSX-Import mit frei konfigurierbarem Spaltenmapping.
+- CSV-/XLSX-Import als barrierearmer Import-Assistent mit Datei-/CSV-Quelle, Vorschau, Spaltenmapping, Prüfung und Ergebnisanzeige.
 - Personalnummer ist optional; sicherer Abgleich ersatzweise über dienstliche E-Mail.
 - Vor- und Nachname können getrennt oder als Vollnamen-Spalte importiert werden, auch im Format `Nachname, Vorname`.
 - Importprotokoll ohne Rohdaten mit `person_import_run_items`.

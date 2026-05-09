@@ -175,6 +175,6 @@ Der Windows-Build erzeugt wieder eine direkt startbare portable EXE statt eines 
 
 ## 0.9.1: Personenverzeichnis und Import
 
-Gremia.SBV 0.9.1 ergänzt vor dem 1.0-Freeze ein datensparsames Personenverzeichnis für schwerbehinderte und gleichgestellte Beschäftigte. Der genaue GdB wird nicht als Standardfeld gespeichert; entscheidend ist der Schutzstatus. Arbeitgeberlisten können aus CSV/XLSX mit konfigurierbarem Spaltenmapping importiert werden. Die Personalnummer ist optional, und Namen können getrennt oder in einer gemeinsamen Spalte stehen, auch im Format `Nachname, Vorname`.
+Gremia.SBV 0.9.1 ergänzt vor dem 1.0-Freeze ein datensparsames Personenverzeichnis für schwerbehinderte und gleichgestellte Beschäftigte. Der genaue GdB wird nicht als Standardfeld gespeichert; entscheidend ist der Schutzstatus. Arbeitgeberlisten können aus CSV/XLSX über einen kompakten Import-Assistenten importiert werden: Datei oder CSV auswählen, Vorschau prüfen, echte Spalten den Zielfeldern zuordnen, Importprüfung bestätigen. Die Personalnummer ist optional, und Namen können getrennt oder in einer gemeinsamen Spalte stehen, auch im Format `Nachname, Vorname`.
 
 Statusabläufe erzeugen 30-Tage-Warnungen im bestehenden Fristensystem. Nach Ablauf wird eine Datenschutzprüfung erforderlich; strukturierte Anonymisierung entfernt direkte Identifikatoren und markiert verknüpfte Fallakten zur Prüfung. Fristen können manuell als iCal exportiert werden; der Standardexport enthält keine Namen, Diagnosen oder Fallinhalte.

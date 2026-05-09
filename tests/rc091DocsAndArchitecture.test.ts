@@ -32,6 +32,7 @@ describe('0.9.1 Dokumentation und Test-Synchronität', () => {
   it('hält die Testquellen plattformunabhängig', () => {
     const tests = [
       'tests/personImport091.test.ts',
+      'tests/personImportWizard091.test.ts',
       'tests/protectedPersons091.test.ts',
       'tests/personExpiryIcal091.test.ts',
       'tests/rc091DocsAndArchitecture.test.ts'
