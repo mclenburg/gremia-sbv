@@ -132,7 +132,8 @@
     "test:person-import-091": "vitest run tests/personImport091.test.ts",
     "test:person-expiry-ical-091": "vitest run tests/personExpiryIcal091.test.ts",
     "test:rc-091-docs": "vitest run tests/rc091DocsAndArchitecture.test.ts",
-    "test:person-import-wizard-091": "vitest run tests/personImportWizard091.test.ts"
+    "test:person-import-wizard-091": "vitest run tests/personImportWizard091.test.ts",
+    "cleanup:obsolete-release-notes": "node scripts/cleanup-obsolete-release-notes-091.cjs"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.0",

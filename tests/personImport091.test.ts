@@ -1,6 +1,21 @@
 import { describe, expect, it } from 'vitest';
 import { normalizeProtectionStatus, parseDelimitedText, splitFullName } from '../services/personImportParsing';
-import { readNormalizedSourceText } from './helpers/sourceText';
+import { resolvePersonImportMatch } from '../services/personMatchingService';
+import type { ProtectedPersonRecord } from '../src/app/core/models/protected-person.model';
+
+const existing: ProtectedPersonRecord = {
+  id: 'p1',
+  createdAt: '2026-01-01T00:00:00.000Z',
+  updatedAt: '2026-01-01T00:00:00.000Z',
+  firstName: 'Max',
+  lastName: 'Mustermann',
+  personnelNumber: 'P-1',
+  workEmail: 'max@example.invalid',
+  employmentState: 'active_employee',
+  protectionStatus: 'equivalent',
+  statusSource: 'employer_list',
+  lifecycleState: 'active'
+};
 
 describe('0.9.1 Personenimport', () => {
   it('unterstützt CRLF/LF, optionale Personalnummer und Namen in einer Spalte', () => {
@@ -14,15 +29,18 @@ describe('0.9.1 Personenimport', () => {
     expect(normalizeProtectionStatus(rows[2][1])).toBe('severely_disabled');
   });
 
-  it('modelliert den Import ohne GdB-Pflicht und ohne Rohdatenspeicherung', () => {
-    const model = readNormalizedSourceText('src/app/core/models/protected-person.model.ts');
-    const migration = readNormalizedSourceText('database/migrations/0025_protected_persons.sql');
+  it('matched sicher über Personalnummer oder E-Mail, aber Name/Vorname nur als Konflikt', () => {
+    const lookup = {
+      findByPersonnelNumber: (value: string) => value === 'P-1' ? existing : undefined,
+      findByWorkEmail: (value: string) => value === 'max@example.invalid' ? existing : undefined,
+      findNameConflict: (firstName: string, lastName: string) => firstName === 'Max' && lastName === 'Mustermann' ? existing : undefined
+    };
 
-    expect(model).toContain('personnelNumber?: string');
-    expect(model).toContain("fullNameMode?: 'first_last' | 'last_comma_first'");
-    expect(model).not.toContain('gdb:');
-    expect(migration).not.toMatch(/\bgdb\b/i);
-    expect(migration).toContain('person_import_run_items');
-    expect(migration).toContain('changed_fields_json');
+    expect(resolvePersonImportMatch({ firstName: 'Max', lastName: 'Mustermann', personnelNumber: 'P-1', protectionStatus: 'equivalent' }, lookup).matchStrategy).toBe('personnel_number');
+    expect(resolvePersonImportMatch({ firstName: 'Max', lastName: 'Mustermann', workEmail: 'max@example.invalid', protectionStatus: 'equivalent' }, lookup).matchStrategy).toBe('work_email');
+    const conflict = resolvePersonImportMatch({ firstName: 'Max', lastName: 'Mustermann', protectionStatus: 'equivalent' }, lookup);
+    expect(conflict.matchStrategy).toBe('name_only_conflict');
+    expect(conflict.existing).toBeUndefined();
+    expect(conflict.conflict?.id).toBe('p1');
   });
 });

@@ -1,32 +1,27 @@
 import { describe, expect, it } from 'vitest';
-import { readNormalizedSourceText } from './helpers/sourceText';
+import { buildDefaultMapping, updateColumnMapping } from '../src/app/features/persons/personImportUi';
 
 describe('0.9.1 Import-Assistent Personenverzeichnis', () => {
-  it('ersetzt das große Importpanel durch einen kompakten Wizard', () => {
-    const view = readNormalizedSourceText('src/app/features/persons/PersonsView.tsx');
-    const css = readNormalizedSourceText('src/app/features/persons/personsWorkbench.css');
+  it('erkennt echte Dateispalten und setzt Personalnummer nur optional', () => {
+    const mapping = buildDefaultMapping(['Name', 'Status', 'Gültig bis', 'Bereich']);
 
-    expect(view).toContain('data-e2e="open-person-import-wizard"');
-    expect(view).toContain('data-e2e="person-import-wizard"');
-    expect(view).toContain('role="dialog"');
-    expect(view).toContain('aria-modal="true"');
-    expect(view).toContain('Wie funktioniert der Import?');
-    expect(view).toContain('Weiter zum Spaltenmapping');
-    expect(view).toContain('Mapping prüfen');
-    expect(view).toContain('Import ausführen');
-    expect(css).toContain('.person-import-dialog');
-    expect(css).toContain('@media (max-width: 720px)');
+    expect(mapping.fullName).toBe('Name');
+    expect(mapping.firstName).toBe('');
+    expect(mapping.lastName).toBe('');
+    expect(mapping.protectionStatus).toBe('Status');
+    expect(mapping.statusValidUntil).toBe('Gültig bis');
+    expect(mapping.organizationalUnit).toBe('Bereich');
+    expect(mapping.personnelNumber).toBe('');
   });
 
-  it('ordnet echte Dateispalten erst im Mapping-Schritt zu', () => {
-    const view = readNormalizedSourceText('src/app/features/persons/PersonsView.tsx');
+  it('schaltet zwischen Vollnamen-Spalte und getrennten Namensspalten ohne Doppelmapping um', () => {
+    const fullNameMapping = updateColumnMapping(buildDefaultMapping(), 'fullName', 'Name');
+    expect(fullNameMapping.fullName).toBe('Name');
+    expect(fullNameMapping.firstName).toBe('');
+    expect(fullNameMapping.lastName).toBe('');
 
-    expect(view).toContain('buildDefaultMapping(nextPreview.columns)');
-    expect(view).toContain("{ key: 'fullName', label: 'Vollname' }");
-    expect(view).toContain("{ key: 'personnelNumber', label: 'Personalnummer' }");
-    expect(view).toContain('Personalnummer ist optional');
-    expect(view).toContain('Nicht importieren');
-    expect(view).toContain('Nachname, Vorname');
-    expect(view).not.toContain('<section className="industrial-panel" aria-labelledby="person-import-heading">');
+    const firstNameMapping = updateColumnMapping(fullNameMapping, 'firstName', 'Vorname');
+    expect(firstNameMapping.fullName).toBe('');
+    expect(firstNameMapping.firstName).toBe('Vorname');
   });
 });

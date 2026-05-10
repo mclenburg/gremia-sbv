@@ -1,27 +1,35 @@
 import { describe, expect, it } from 'vitest';
-import { readNormalizedSourceText } from './helpers/sourceText';
+import { decidePersonLifecycleTransition } from '../services/personLifecyclePolicy';
+import type { ProtectedPersonRecord } from '../src/app/core/models/protected-person.model';
 
-describe('0.9.1 Personenverzeichnis Architektur', () => {
-  it('enthält Beschäftigungsende und Schutzstatus-Lifecycle als eigene Konzepte', () => {
-    const model = readNormalizedSourceText('src/app/core/models/protected-person.model.ts');
-    const migration = readNormalizedSourceText('database/migrations/0025_protected_persons.sql');
+function person(statusValidUntil: string, lifecycleState: ProtectedPersonRecord['lifecycleState'] = 'active'): ProtectedPersonRecord {
+  return {
+    id: 'p1',
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+    firstName: 'Max',
+    lastName: 'Mustermann',
+    employmentState: 'active_employee',
+    protectionStatus: 'equivalent',
+    statusValidUntil,
+    statusSource: 'employer_list',
+    lifecycleState
+  };
+}
 
-    expect(model).toContain("export type EmploymentState = 'active_employee' | 'left_company' | 'unknown'");
-    expect(model).toContain('leftCompanyAt?: string');
-    expect(migration).toContain('employment_state TEXT NOT NULL DEFAULT');
-    expect(migration).toContain('left_company_at TEXT');
-    expect(migration).toContain('lifecycle_state TEXT NOT NULL DEFAULT');
+describe('0.9.1 Personenverzeichnis Lifecycle', () => {
+  it('entscheidet 30-Tage-Warnung und Datenschutzprüfung deterministisch als Policy', () => {
+    const reference = new Date('2026-05-10T00:00:00.000Z');
+
+    expect(decidePersonLifecycleTransition(person('2026-06-09'), reference, 30)?.lifecycleState).toBe('expiring_soon');
+    const expired = decidePersonLifecycleTransition(person('2026-05-09'), reference, 30);
+    expect(expired?.lifecycleState).toBe('expired_review_required');
+    expect(expired?.protectionStatus).toBe('expired');
+    expect(decidePersonLifecycleTransition(person('2026-06-10'), reference, 30)).toBeNull();
   });
 
-  it('integriert das Modul in Navigation, Bridge und IPC statt daneben zu stehen', () => {
-    const modules = readNormalizedSourceText('src/app/core/navigation/modules.ts');
-    const app = readNormalizedSourceText('src/app/App.tsx');
-    const preload = readNormalizedSourceText('electron/preload.ts');
-    const main = readNormalizedSourceText('electron/main.ts');
-
-    expect(modules).toContain("id: 'persons'");
-    expect(app).toContain('<PersonsView');
-    expect(preload).toContain('persons: {');
-    expect(main).toContain('registerProtectedPersonIpc');
+  it('ändert anonymisierte Personen nicht automatisch erneut', () => {
+    const decision = decidePersonLifecycleTransition(person('2026-05-09', 'anonymized'), new Date('2026-05-10T00:00:00.000Z'), 30);
+    expect(decision).toBeNull();
   });
 });

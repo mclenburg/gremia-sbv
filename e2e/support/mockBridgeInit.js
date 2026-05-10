@@ -169,8 +169,25 @@
       create: async (input) => { const row = { id: `person-${Date.now()}`, ...input, createdAt: now, updatedAt: now, lifecycleState: 'active' }; persons.push(row); return row; },
       update: async (id, input) => { const row = persons.find((person) => person.id === id); Object.assign(row, input, { updatedAt: now }); return row; },
       linkCase: async (personId, caseId) => ({ id: `link-${Date.now()}`, protectedPersonId: personId, caseFileId: caseId, linkState: 'active', createdAt: now }),
-      previewImport: async () => ({ columns: ['Name', 'Status'], rows: [], warnings: [] }),
-      executeImport: async () => ({ run: { id: `run-${Date.now()}`, totalRows: 0, createdCount: 0, updatedCount: 0, unchangedCount: 0, conflictCount: 0, skippedCount: 0, missingCount: 0, sourceFileName: 'e2e.csv', sourceFileHash: 'synthetic', importedAt: now }, imported: [] }),
+      previewImport: async (input) => {
+        const lines = String(input?.csvText || 'Name;Status\nImportperson, Ida;gleichgestellt').trim().split(/\r?\n/);
+        const columns = lines[0].split(';');
+        const rows = lines.slice(1).filter(Boolean).map((line, index) => {
+          const values = line.split(';');
+          const name = values[columns.indexOf(input?.mapping?.fullName || 'Name')] || values[0] || '';
+          const [lastName, firstName] = name.includes(',') ? name.split(',').map((part) => part.trim()) : ['', name.trim()];
+          return { rowNumber: index + 2, firstName, lastName, protectionStatus: 'equivalent', statusValidUntil: values[2], validationErrors: [], rawPreview: {} };
+        });
+        return { columns, rows, warnings: [] };
+      },
+      executeImport: async (input) => {
+        const lines = String(input?.csvText || 'Name;Status\nImportperson, Ida;gleichgestellt').trim().split(/\r?\n/);
+        const name = (lines[1] || 'Importperson, Ida').split(';')[0];
+        const [lastName, firstName] = name.includes(',') ? name.split(',').map((part) => part.trim()) : ['', name.trim()];
+        const importedPerson = { id: `person-${Date.now()}`, firstName, lastName, employmentState: 'active_employee', protectionStatus: 'equivalent', statusSource: 'employer_list', lifecycleState: 'active', createdAt: now, updatedAt: now };
+        persons.push(importedPerson);
+        return { run: { id: `run-${Date.now()}`, totalRows: 1, createdCount: 1, updatedCount: 0, unchangedCount: 0, conflictCount: 0, skippedCount: 0, missingCount: 0, sourceFileName: 'e2e.csv', sourceFileHash: 'synthetic', importedAt: now }, imported: [importedPerson] };
+      },
       selectImportFile: async () => null,
       evaluateExpiry: async () => ({ expiringSoon: persons, expiredReviewRequired: [] }),
       anonymize: async (id, reason) => ({ person: persons.find((person) => person.id === id), affectedCaseIds: [], anonymizedLinks: 0, reason }),

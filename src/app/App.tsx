@@ -8,15 +8,7 @@ import { AUTO_LOCK_TIMEOUT_MS, useAutoLock } from "./core/security/useAutoLock";
 import type { CaseCategory, CaseRecord } from "./core/models/case.model";
 import type { WorkplaceAccommodationRecord } from "./core/models/workplace-accommodation.model";
 import type { CaseMeasureRecord } from "./core/models/case-measure.model";
-import type {
-  ProtectedPersonRecord,
-  CreateProtectedPersonInput,
-  UpdateProtectedPersonInput,
-  PersonImportExecuteInput,
-  PersonImportExecuteResult,
-  PersonImportPreviewInput,
-  PersonImportPreviewResult,
-} from "./core/models/protected-person.model";
+import type { ProtectedPersonRecord } from "./core/models/protected-person.model";
 import type {
   ContactRecord,
   CreateContactInput,
@@ -44,6 +36,7 @@ import { ContactsView } from "./features/contacts/ContactsView";
 import { ReportsView } from "./features/reports/ReportsView";
 import { ComplianceView } from "./features/compliance/ComplianceView";
 import { PersonsView } from "./features/persons/PersonsView";
+import { usePersonsHandlers } from "./features/persons/usePersonsHandlers";
 import { TemplatesView } from "./features/templates/TemplatesView";
 import {
   applyTheme,
@@ -267,60 +260,8 @@ export function App() {
 
 
 
-  async function createProtectedPerson(input: CreateProtectedPersonInput) {
-    const bridge = await waitForBridge();
-    if (!bridge?.persons) throw new Error("Personendienst ist nicht erreichbar.");
-    await bridge.persons.create(input);
-    await reloadWorkData();
-  }
+  const personHandlers = usePersonsHandlers(reloadWorkData);
 
-  async function updateProtectedPerson(id: string, input: UpdateProtectedPersonInput) {
-    const bridge = await waitForBridge();
-    if (!bridge?.persons) throw new Error("Personendienst ist nicht erreichbar.");
-    await bridge.persons.update(id, input);
-    await reloadWorkData();
-  }
-
-  async function selectProtectedPersonImportFile() {
-    const bridge = await waitForBridge();
-    if (!bridge?.persons) throw new Error("Personenimport ist nicht erreichbar.");
-    return await bridge.persons.selectImportFile();
-  }
-
-  async function previewProtectedPersonsImport(input: PersonImportPreviewInput): Promise<PersonImportPreviewResult> {
-    const bridge = await waitForBridge();
-    if (!bridge?.persons) throw new Error("Personenimport ist nicht erreichbar.");
-    return await bridge.persons.previewImport(input);
-  }
-
-  async function executeProtectedPersonsImport(input: PersonImportExecuteInput): Promise<PersonImportExecuteResult> {
-    const bridge = await waitForBridge();
-    if (!bridge?.persons) throw new Error("Personenimport ist nicht erreichbar.");
-    const result = await bridge.persons.executeImport(input);
-    await bridge.persons.evaluateExpiry();
-    await reloadWorkData();
-    return result;
-  }
-
-  async function evaluateProtectedPersonExpiry() {
-    const bridge = await waitForBridge();
-    if (!bridge?.persons) throw new Error("Statusprüfung ist nicht erreichbar.");
-    await bridge.persons.evaluateExpiry();
-    await reloadWorkData();
-  }
-
-  async function exportDeadlinesAsIcal() {
-    const bridge = await waitForBridge();
-    if (!bridge?.deadlines?.exportIcal) throw new Error("iCal-Export ist nicht erreichbar.");
-    const ics = await bridge.deadlines.exportIcal({ status: ["open", "overdue"] }, "privacy_first");
-    const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "gremia-sbv-fristen.ics";
-    link.click();
-    URL.revokeObjectURL(url);
-  }
 
   async function createContact(
     input: CreateContactInput,
@@ -521,13 +462,13 @@ export function App() {
               <PersonsView
                 persons={persons}
                 cases={cases}
-                onCreate={createProtectedPerson}
-                onUpdate={updateProtectedPerson}
-                onSelectImportFile={selectProtectedPersonImportFile}
-                onPreviewImport={previewProtectedPersonsImport}
-                onExecuteImport={executeProtectedPersonsImport}
-                onEvaluateExpiry={evaluateProtectedPersonExpiry}
-                onExportIcal={exportDeadlinesAsIcal}
+                onCreate={personHandlers.createProtectedPerson}
+                onUpdate={personHandlers.updateProtectedPerson}
+                onSelectImportFile={personHandlers.selectProtectedPersonImportFile}
+                onPreviewImport={personHandlers.previewProtectedPersonsImport}
+                onExecuteImport={personHandlers.executeProtectedPersonsImport}
+                onEvaluateExpiry={personHandlers.evaluateProtectedPersonExpiry}
+                onExportIcal={personHandlers.exportDeadlinesAsIcal}
               />
             )}
             {currentView === "contacts" && (

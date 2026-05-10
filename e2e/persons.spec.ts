@@ -32,14 +32,14 @@ test('guides CSV import through preview, mapping and validation', async ({ page 
   await dialog.getByRole('button', { name: 'Weiter zum Spaltenmapping' }).click();
 
   await expect(dialog.getByRole('heading', { name: 'Spaltenmapping' })).toBeVisible();
-  await expect(dialog.getByLabel('Vollname')).toHaveValue('Name');
-  await expect(dialog.getByLabel('Personalnummer')).toHaveValue('');
+  await expect(dialog.locator('[data-e2e="person-import-field-fullName"]')).toHaveValue('Name');
+  await expect(dialog.locator('[data-e2e="person-import-field-personnelNumber"]')).toHaveValue('');
   await dialog.getByRole('button', { name: 'Mapping prüfen' }).click();
 
   await expect(dialog.getByRole('heading', { name: 'Importprüfung' })).toBeVisible();
   await dialog.getByRole('button', { name: 'Import ausführen' }).click();
   await expect(dialog.getByRole('heading', { name: 'Import abgeschlossen' })).toBeVisible();
-  await dialog.getByRole('button', { name: 'Schließen' }).click();
+  await dialog.locator('[data-e2e="person-import-close-result"]').click();
   await expect(dialog).toBeHidden();
   await expect(page.getByText('Importperson, Ida')).toBeVisible();
 });

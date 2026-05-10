@@ -2,6 +2,7 @@ import { basename } from 'node:path';
 import { readFileSync } from 'node:fs';
 import type { DatabaseAdapter } from './databaseService.js';
 import { ProtectedPersonService } from './protectedPersonService.js';
+import { resolvePersonImportMatch } from './personMatchingService.js';
 import {
   getMappedValue,
   normalizeCell,
@@ -157,15 +158,13 @@ export class PersonImportService {
         continue;
       }
 
-      const existingByPersonnel = mapped.input.personnelNumber ? personService.findByPersonnelNumber(mapped.input.personnelNumber) : undefined;
-      const existingByMail = !existingByPersonnel && mapped.input.workEmail ? personService.findByWorkEmail(mapped.input.workEmail) : undefined;
-      const nameConflict = !existingByPersonnel && !existingByMail ? personService.findNameConflict(mapped.input.firstName, mapped.input.lastName) : undefined;
-      const existing = existingByPersonnel ?? existingByMail;
-      const matchStrategy = existingByPersonnel ? 'personnel_number' : existingByMail ? 'work_email' : nameConflict ? 'name_only_conflict' : 'none';
+      const match = resolvePersonImportMatch(mapped.input, personService);
+      const existing = match.existing;
+      const matchStrategy = match.matchStrategy;
 
-      if (nameConflict && !existing) {
+      if (match.conflict && !existing) {
         conflictCount += 1;
-        items.push({ rowNumber, action: 'conflict', protectedPersonId: nameConflict.id, matchStrategy, conflictReason: 'Name/Vorname ist kein sicherer Schlüssel. Bitte manuell prüfen.', changedFields: [] });
+        items.push({ rowNumber, action: 'conflict', protectedPersonId: match.conflict.id, matchStrategy, conflictReason: match.conflictReason, changedFields: [] });
         continue;
       }
 

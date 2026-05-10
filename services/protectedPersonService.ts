@@ -1,6 +1,7 @@
 import { randomUUID, createHash } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
 import { DeadlineService } from './deadlineService.js';
+import { PersonCaseLinkService } from './personCaseLinkService.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
 import type {
   CreateProtectedPersonInput,
@@ -48,18 +49,6 @@ function mapPerson(row: any): ProtectedPersonRecord {
     anonymizedAt: row.anonymized_at ?? undefined,
     anonymizationReason: row.anonymization_reason ?? undefined,
     notes: row.notes ?? undefined
-  };
-}
-
-function mapLink(row: any): PersonCaseLinkRecord {
-  return {
-    id: row.id,
-    protectedPersonId: row.protected_person_id,
-    caseFileId: row.case_file_id,
-    linkState: row.link_state ?? 'active',
-    createdAt: row.created_at,
-    anonymizedAt: row.anonymized_at ?? undefined,
-    linkReason: row.link_reason ?? undefined
   };
 }
 
@@ -234,20 +223,13 @@ export class ProtectedPersonService {
   }
 
   linkCase(protectedPersonId: string, caseFileId: string, linkReason?: string): PersonCaseLinkRecord {
-    const existing = this.db.prepare<any>('SELECT * FROM person_case_links WHERE protected_person_id = ? AND case_file_id = ?').get(protectedPersonId, caseFileId);
-    if (existing) return mapLink(existing);
-    const id = randomUUID();
-    const timestamp = nowIso();
-    this.db.prepare(`
-      INSERT INTO person_case_links (id, protected_person_id, case_file_id, link_state, created_at, link_reason)
-      VALUES (?, ?, ?, 'active', ?, ?)
-    `).run(id, protectedPersonId, caseFileId, timestamp, normalizeOptional(linkReason));
+    const link = new PersonCaseLinkService(this.db).linkCase(protectedPersonId, caseFileId, linkReason);
     this.audit('update', protectedPersonId, 'Personenverzeichnis: Fallakte verknüpft', { caseFileId });
-    return this.listCaseLinks(protectedPersonId).find((link) => link.id === id)!;
+    return link;
   }
 
   listCaseLinks(protectedPersonId: string): PersonCaseLinkRecord[] {
-    return this.db.prepare<any>('SELECT * FROM person_case_links WHERE protected_person_id = ? ORDER BY created_at DESC').all(protectedPersonId).map(mapLink);
+    return new PersonCaseLinkService(this.db).listCaseLinks(protectedPersonId);
   }
 
   listImportRuns(limit = 20): PersonImportRunRecord[] {
@@ -303,8 +285,7 @@ export class ProtectedPersonService {
         updated_at = ?
       WHERE id = ?
     `).run(anonymizedName, timestamp, reason, timestamp, id);
-    const links = this.db.prepare<any>('SELECT * FROM person_case_links WHERE protected_person_id = ? AND link_state = ?').all(id, 'active').map(mapLink);
-    this.db.prepare(`UPDATE person_case_links SET link_state = 'person_anonymized', anonymized_at = ? WHERE protected_person_id = ? AND link_state = 'active'`).run(timestamp, id);
+    const links = new PersonCaseLinkService(this.db).markPersonAnonymized(id, timestamp);
     links.forEach((link) => {
       this.db.prepare(`UPDATE cases SET summary = COALESCE(summary, ''), updated_at = ? WHERE id = ?`).run(timestamp, link.caseFileId);
     });

@@ -16,6 +16,14 @@
 - Strukturierte Anonymisierung entfernt direkte Identifikatoren und markiert Personen-Fallakten-Links als `person_anonymized`.
 - Manueller iCal-Export für Fristen mit datenschutzfreundlichem Standard ohne Namen, Diagnosen und Fallinhalte.
 
+## Architekturkorrektur nach Review
+
+- `PersonsView.tsx` ist wieder nur Container/Komposition; Liste, Detail, Formular, Import-Assistent, Ablaufkarte und Lifecycle-Hinweis liegen in eigenen Komponenten.
+- Personen-IPC-/Bridge-Handler sind aus `App.tsx` in `usePersonsHandlers` ausgelagert.
+- Matching, Lifecycle-Entscheidungen und Fallaktenverknüpfungen liegen in eigenen Services/Policies.
+- Das Personenmodul nutzt Live-Region-Ansagen über `useAnnouncer`.
+- iCal-Export nutzt sprechende, datenschutzfreundliche Fristentitel aus dem bestehenden Fristenmodul statt generischer Dummy-Wiedervorlagen.
+
 ## Datenschutz und Compliance
 
 - DSFA, TOMs und VVT berücksichtigen Personenverzeichnis, Import, Statusablauf, Anonymisierung, iCal-Export und Art. 13/14-DSGVO-Organisationshinweis.
