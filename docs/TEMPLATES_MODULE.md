@@ -1,27 +1,23 @@
 # Vorlagenmodul
 
-Das Vorlagenmodul stellt Standardschreiben für die SBV-Fallarbeit bereit. Die Systemvorlagen folgen der Linie „Durchweg wirksam“: freundlich im Ton, klar am Gesetz orientiert, verbindlich in der Fristsetzung und ohne unnötige Einladung zur Diskussion.
+Stand: **0.9.1**
 
-## Enthaltene Systemvorlagen
+## Zweck
 
-- Präventionsverfahren einfordern
-- SBV-Beteiligung / Unterlagen nachfordern
-- BEM-Verfahren nachhalten
-- Kündigungsanhörung – Unterlagen unvollständig
-- Freundliche Fristerinnerung
+Das Vorlagenmodul unterstützt wiederkehrende SBV-Schreiben und Dokumentationsbausteine.
 
-## Platzhalter
+## Leitplanken
 
-Unterstützt werden u. a.:
+- Vorlagen dürfen keine Diagnosen verlangen.
+- Platzhalter für Personen- und Fallaktenbezug müssen bewusst befüllt werden.
+- Schreiben an Arbeitgeber sollen grundsätzlich freundliche Fristsetzung ermöglichen.
+- Vorlagen für Datenschutzprüfung, Fortspeicherung, Anonymisierung und Löschung sind ab 0.9.1 fachlich relevant.
 
-- `{{heute}}`
-- `{{fall.aktenzeichen}}`
-- `{{fall.name}}`
-- `{{fall.kurzbeschreibung}}`
-- `{{person.name}}`
-- `{{frist.datum}}`
-- `{{sbv.name}}`
-- `{{arbeitgeber.ansprechpartner}}`
-- `{{normen}}`
+## Typische Vorlagen
 
-Erzeugte Entwürfe werden im geschützten Vorlagenverlauf archiviert. Beim Kopieren in die Zwischenablage verlässt der Text technisch den Gremia.SBV-Tresor.
+- Anfrage an Arbeitgeber nach § 178 Abs. 2 Satz 1 SGB IX,
+- Nachfassung Prävention,
+- BEM-Begleitung,
+- Arbeitsplatzanpassung nach § 164 Abs. 4 SGB IX,
+- Fortspeicherung begründen,
+- Datenschutzprüfung dokumentieren.

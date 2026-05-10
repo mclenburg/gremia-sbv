@@ -1,41 +1,21 @@
-# Wissensdatenbank / SBV-Kompass
+# Wissensbasis
 
-Version: 0.4.2
+Stand: **0.9.1**
 
-Die Wissensdatenbank ist der fachliche Unterbau für das `§§`-Overlay, die Fallakte und spätere Vorlagen-/Checklistenfunktionen.
+## Zweck
 
-## Kernidee
+Die Wissensbasis bündelt fachliche Hinweise, ohne konkrete Fallakteninhalte zu vermischen.
 
-Die Datenbank ist keine bloße Gesetzessammlung, sondern ein SBV-Arbeitskompass:
+## Abgrenzung
 
-- Rechtsnormen suchen
-- SBV-Bedeutung lesen
-- Praxishinweise pflegen
-- eigene Kommentare speichern
-- Rechtsprechungsnotizen ergänzen
-- Checklisten je Norm führen
-- Normen mit Fallakten verknüpfen
+- Keine Rechtsberatung durch die Software.
+- Keine automatische Entscheidung über SBV-Beteiligung.
+- Keine automatische Diagnoseauswertung.
 
-## Datenschutz
+## Relevante Themen
 
-Normen und allgemeine Kommentare sind fachlich nicht sensibel. Fallverknüpfungen sind hingegen personenbezogen und bleiben deshalb im SQLCipher-Tresor.
-
-Wissensexporte enthalten standardmäßig keine Fallbezüge.
-
-## Tabellen
-
-- `legal_norms`
-- `case_legal_references`
-- `norm_comments`
-- `norm_case_law`
-- `norm_checklist_items`
-
-## Overlay-Integration
-
-`§§` in Protokollfeldern fügt einen Normverweis ein. Wenn eine Fallakte geöffnet ist, wird die Norm zusätzlich als Rechtsbezug am Fall gespeichert.
-
-## Tests
-
-```bash
-npm run test:knowledge
-```
+- § 164 Abs. 4 SGB IX – behinderungsgerechte Beschäftigung und Arbeitsplatzgestaltung,
+- § 167 SGB IX – Prävention und BEM,
+- § 178 SGB IX – Aufgaben und Beteiligung der SBV,
+- Datenschutz-Lifecycle bei Statusablauf und Beschäftigungsende,
+- anonyme Erstberatung.

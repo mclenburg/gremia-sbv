@@ -1,63 +1,48 @@
 # Datenschutzkonzept Gremia.SBV
 
-## Zweck der Verarbeitung
+Stand: **0.9.1**
 
-Gremia.SBV dient der vertraulichen Organisation der Aufgaben der Schwerbehindertenvertretung. Die Verarbeitung erfolgt zur Beratung, Begleitung, Interessenvertretung, Fristenkontrolle und Dokumentation im Rahmen der SBV-Tätigkeit.
+## Grundsatz
 
-## Datenkategorien
+Gremia.SBV ist ein lokales Arbeitsmittel der Schwerbehindertenvertretung. Es unterstützt eine datensparsame, zweckgebundene und nachvollziehbare Verarbeitung besonders sensibler Beschäftigtendaten.
 
-Mögliche Daten:
+## Rollen und Verantwortung
 
-- Kontaktdaten betroffener Personen
-- Schwerbehindertenstatus / Gleichstellung
-- Grad der Behinderung
-- Merkzeichen, soweit erforderlich
-- Gesprächsnotizen
-- BEM-Informationen
-- Arbeitsplatzbezogene Belastungen
-- Schriftverkehr
-- Fristen
-- Kontakte zu Inklusionsamt, Betriebsarzt, Beratungsstellen
+Die App selbst ist kein Verantwortlicher im Sinne der DSGVO. Verantwortlichkeit, Datenschutzinformation, Berechtigungskonzept und Freigabe liegen organisatorisch bei der verantwortlichen Stelle. Die SBV nutzt die Anwendung zur Aufgabenwahrnehmung. Technische Administration darf grundsätzlich keine Fallakteninhalte lesen.
 
-Diagnosen sollen nicht als Standardfeld gespeichert werden. Wenn medizinische Unterlagen erforderlich sind, werden sie als besonders sensible Dokumente markiert.
+## Datenminimierung
 
-## Rollen und Zugriff
+- Kein GdB-Standardfeld im Personenverzeichnis.
+- Keine Diagnosen als Stammdaten.
+- Personalnummer optional.
+- Anonyme Beratungsanfrage ohne Direktidentifikatoren möglich.
+- Importprofile speichern Mapping, nicht Rohdateien.
+- iCal-Standardexport enthält nur Prozesstypen.
 
-Grundsatz:
+## Personenverzeichnis
 
-```text
-Nur die Vertrauensperson nutzt die aktive Fallakte.
-```
+Das Personenverzeichnis dient der SBV-Arbeitssteuerung, Beteiligungsprüfung, Statusablaufwarnung und Fallaktenbindung. Schutzstatus, Statusgültigkeit, Beschäftigungsstatus und Fallaktenbezug werden verarbeitet, soweit dies für die SBV-Aufgabe erforderlich ist.
 
-Stellvertretungen erhalten nicht automatisch Zugriff auf alle Fälle. Eine spätere Zugriffslogik muss fallbezogen und dokumentiert erfolgen.
+## Fallakten und Lifecycle
 
-## Datensparsamkeit
+Reguläre Fallakten werden an eine Person gebunden. Bei Statusablauf, Beschäftigungsende, Anonymisierung oder Löschung entsteht eine Datenschutzprüfung. Fortspeicherung benötigt Grund und erneuten Prüftermin. Freitexte werden nicht automatisch anonymisiert, sondern prüfpflichtig markiert.
 
-Die Anwendung unterstützt drei Stufen:
+## Rechtsgrundlagen
 
-1. anonymer Fall
-2. pseudonymisierte Fallakte
-3. personenbezogene Fallakte
+Zu dokumentieren sind insbesondere:
 
-Deanonymisierung wird protokolliert.
+- Art. 6 Abs. 1 lit. c DSGVO,
+- Art. 9 Abs. 2 lit. b DSGVO,
+- § 26 Abs. 3 BDSG,
+- § 163 SGB IX,
+- § 164 Abs. 4 SGB IX,
+- § 178 Abs. 1 SGB IX,
+- § 178 Abs. 2 Satz 1 SGB IX.
 
-## Speicherbegrenzung und Löschung
+## Information der Beschäftigten
 
-Für jeden Fall soll ein Lösch-/Prüfdatum gesetzt werden können. Nach Abschluss eines Falls erscheint eine Wiedervorlage zur Prüfung, ob die Daten noch erforderlich sind.
+Die Anwendung versendet keine eigenständigen Informationen nach Art. 13/14 DSGVO. Die Information der Beschäftigten ist organisatorisch über Arbeitgeber, Datenschutzinformation oder verantwortliche Stelle sicherzustellen.
 
-## Exportkontrolle
+## Auskunft nach Art. 15 DSGVO
 
-Vor Exporten prüft die Anwendung perspektivisch:
-
-- enthält der Export Namen?
-- enthält der Export Gesundheitsdaten?
-- ist der Export für Tätigkeitsbericht oder externe Weitergabe gedacht?
-- wurde eine Warnung bestätigt?
-
-## Tätigkeitsbericht
-
-Tätigkeitsberichte dürfen keine personenbezogenen Daten enthalten. Statistiken werden aggregiert erzeugt.
-
-## Gremia.BR-Schnittstelle
-
-Eine spätere Schnittstelle zu Gremia.BR darf nur lesend sein. SBV-Falldaten dürfen nicht automatisch an Gremia.BR übertragen werden.
+Mit dem Personenverzeichnis muss die App Auskunftsfähigkeit unterstützen: verknüpfte Fallakten, Fristen, Maßnahmen, Importläufe und Lifecycle-Ereignisse müssen auffindbar sein. Ein vollständiger Auskunftsexport ist ein späteres 1.x-Thema.

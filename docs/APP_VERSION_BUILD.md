@@ -1,33 +1,24 @@
-# App-Version in der Oberfläche
+# App-Version und Build-Metadaten
 
-Die in der Oberfläche links unten angezeigte Versionsnummer wird nicht mehr manuell in `App.tsx` gepflegt.
+Stand: **0.9.1**
 
-Stattdessen erzeugt das Script
+## Version
+
+Die Paketversion in `package.json` ist die führende Versionsquelle. Generierte Dateien müssen synchron sein:
+
+- `src/app/generated/appVersion.ts`,
+- `services/generated/appMetadata.ts`,
+- Release Notes `docs/RELEASE_NOTES_0.9.1.md`,
+- README und Roadmap.
+
+## Generierung
 
 ```bash
 npm run version:generate
 ```
 
-aus der `package.json` die Datei:
+`pretest`, `predev` und `prebuild` rufen die Versionsgenerierung automatisch auf.
 
-```text
-src/app/generated/appVersion.ts
-```
+## Tests
 
-Die App importiert daraus `APP_VERSION`.
-
-## Automatische Ausführung
-
-Das Script läuft automatisch vor:
-
-```bash
-npm run dev
-npm run test
-npm run build
-```
-
-Damit übernehmen auch `npm run build:linux` und `npm run build:win` die aktuelle Version, weil beide intern `npm run build` verwenden.
-
-## Regel
-
-Die Versionsnummer wird nur noch in `package.json` geändert. Die UI zieht sie beim nächsten Dev-/Test-/Build-Lauf automatisch nach.
+Versions-Tests dürfen nicht hart auf historische Hotfix-Suffixe pinnen. Sie müssen dynamisch gegen `package.json` prüfen.

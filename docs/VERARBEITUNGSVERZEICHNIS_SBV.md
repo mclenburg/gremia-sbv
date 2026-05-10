@@ -1,116 +1,69 @@
 # Verzeichnis von Verarbeitungstätigkeiten – Gremia.SBV
 
-Stand: 0.4.58
+Stand: **0.9.1**
 
-## 1. SBV-Fallberatung
+## 1. Personenverzeichnis schwerbehinderter und gleichgestellter Beschäftigter
+
+**Zweck:** SBV-Arbeitssteuerung, Beteiligungsprüfung, Fallaktenbindung, Statusablaufwarnung, Datenschutzprüfung und Art.-15-Auskunftsvorbereitung.
+
+**Datenkategorien:** Name, Vorname, dienstliche Kontaktdaten, optional Personalnummer, Organisationseinheit, Standort, Schutzstatus, Statusgültigkeit, Beschäftigungsstatus, Fallaktenbezug, Lifecycle-Events.
+
+**Nicht als Standard gespeichert:** GdB, Diagnosen, Krankheitsursachen, private Gesundheitsdetails.
+
+**Empfänger:** grundsätzlich keine externen Empfänger durch die App. Weitergaben erfolgen nur durch bewusste SBV-Entscheidung und organisatorische Freigabe.
+
+**Schutzmaßnahmen:** SQLCipher, Importvorschau, keine Rohdateispeicherung, Audit ohne Direktidentifikatoren, Lösch-/Anonymisierungsworkflow.
+
+## 2. SBV-Fallberatung
 
 **Zweck:** Beratung und Unterstützung schwerbehinderter, gleichgestellter und ratsuchender Beschäftigter.
 
-**Datenkategorien:**
+**Datenkategorien:** Stammdaten, Kontaktdaten, Beschäftigungsdaten, Gesundheitsdaten, Schwerbehindertenstatus, Gleichstellung, Gesprächsnotizen, Dokumente.
 
-- Stammdaten,
-- Kontaktdaten,
-- Beschäftigungsdaten,
-- Gesundheitsdaten,
-- Schwerbehindertenstatus,
-- Gleichstellung,
-- Gesprächsnotizen,
-- Dokumente.
-
-**Betroffene:** ratsuchende Beschäftigte, schwerbehinderte Beschäftigte, gleichgestellte Beschäftigte.
-
-**Empfänger:** grundsätzlich keine; nur bei Erforderlichkeit und Mandat, z. B. Arbeitgeber, Betriebsrat, Inklusionsamt, Integrationsamt, Agentur für Arbeit.
+**Betroffene:** ratsuchende Beschäftigte, schwerbehinderte Beschäftigte, gleichgestellte Beschäftigte, anonyme Beratungsanfragen.
 
 **Schutzmaßnahmen:** SQLCipher, Passwortschutz, ExportGuard, Rollen-/Vertretungskonzept, Löschprüfung, Audit-Log.
 
-## 2. Präventionsverfahren nach § 167 Abs. 1 SGB IX
+## 3. Präventionsverfahren nach § 167 Abs. 1 SGB IX
 
 **Zweck:** Dokumentation und Begleitung von Präventionsverfahren bei Schwierigkeiten im Arbeitsverhältnis.
 
-**Datenkategorien:**
-
-- Fallakte,
-- Anlass / Gefährdung,
-- Gesundheits- und Arbeitsplatzbezug,
-- Arbeitgeberreaktion,
-- Maßnahmen,
-- Fristen,
-- Ergebnis.
+**Datenkategorien:** Fallakte, Anlass / Gefährdung, Gesundheits- und Arbeitsplatzbezug, Arbeitgeberreaktion, Maßnahmen, Fristen, Ergebnis.
 
 **Empfänger:** Arbeitgeber, SBV, ggf. Betriebsrat, Inklusionsamt / Integrationsamt, Agentur für Arbeit.
 
-**Schutzmaßnahmen:** statusbezogene Dokumentation, ExportGuard, vertrauliche Fallakte, Fristenkontrolle.
-
-## 3. Betriebliches Eingliederungsmanagement
+## 4. Betriebliches Eingliederungsmanagement
 
 **Zweck:** Unterstützung und Begleitung des BEM nach § 167 Abs. 2 SGB IX.
 
-**Datenkategorien:**
-
-- Arbeitsunfähigkeitsbezug,
-- Gesprächsnotizen,
-- Maßnahmen,
-- ärztliche Hinweise, soweit erforderlich,
-- Arbeitsplatzanpassungen,
-- Beteiligte,
-- Ergebnisse.
+**Datenkategorien:** Arbeitsunfähigkeitsbezug, Gesprächsnotizen, Maßnahmen, ärztliche Hinweise soweit erforderlich, Arbeitsplatzanpassungen, Beteiligte, Ergebnisse.
 
 **Empfänger:** nur nach Erforderlichkeit und Einwilligung / Verfahrensmandat.
 
-**Schutzmaßnahmen:** besonders hohe Vertraulichkeit, getrennte Dokumentation, ExportGuard, Löschprüfung.
-
-## 4. Kündigungsanhörung und Kündigungsschutz
+## 5. Kündigungsanhörung und Kündigungsschutz
 
 **Zweck:** Wahrnehmung der SBV-Beteiligungsrechte und Unterstützung im besonderen Kündigungsschutz.
 
-**Datenkategorien:**
+**Datenkategorien:** Kündigungsabsicht, Anhörungsunterlagen, Schutzstatus, Beteiligung Integrationsamt, Stellungnahmen, Fristen, Dokumente.
 
-- Kündigungsabsicht,
-- Anhörungsunterlagen,
-- Schwerbehindertenstatus,
-- Beteiligung Integrationsamt,
-- Stellungnahmen,
-- Fristen,
-- Dokumente.
+## 6. Gleichstellung / GdB-Beratung
 
-**Empfänger:** SBV, Arbeitgeber, ggf. Betriebsrat, Integrationsamt / Inklusionsamt, anwaltliche Vertretung nach Mandat.
+**Zweck:** Beratung und Unterstützung bei Gleichstellung, Schutzstatusklärung und GdB-Angelegenheiten.
 
-**Schutzmaßnahmen:** Fristenkontrolle, ExportGuard, vertrauliche Akte, dokumentierte Weitergabe.
+**Hinweis:** GdB kann Beratungsthema sein; der genaue GdB ist kein Standardfeld des Personenverzeichnisses.
 
-## 5. Gleichstellung / GdB-Beratung
+## 7. Arbeitsplatzanpassung nach § 164 Abs. 4 SGB IX
 
-**Zweck:** Unterstützung bei Antragstellung, Widerspruch, Nachteilsausgleich und betrieblicher Einordnung.
+**Zweck:** Dokumentation und Unterstützung behinderungsgerechter Beschäftigung, Arbeitsplatzgestaltung, technischer Arbeitshilfen und organisatorischer Anpassungen.
 
-**Datenkategorien:**
+## 8. Fristen, Wiedervorlagen und iCal-Export
 
-- GdB,
-- Merkzeichen,
-- Gleichstellungsstatus,
-- Bescheide,
-- ärztliche Unterlagen,
-- Antragsschreiben,
-- Beratungshistorie.
+**Zweck:** Nachverfolgung von Fristen, Wiedervorlagen, Statusablaufwarnungen und Datenschutzprüfungen.
 
-**Empfänger:** grundsätzlich keine; ggf. Agentur für Arbeit, Versorgungsamt, anwaltliche Vertretung nach Mandat.
+**Empfänger:** keine externen Empfänger durch die App. iCal-Export ist ein manueller lokaler Export.
 
-**Schutzmaßnahmen:** Anonymisierung, ExportGuard, Dokumentenverschlüsselung, Löschprüfung.
+## 9. Übergabe / Vertretung
 
-## 6. Tätigkeitsbericht
+**Zweck:** Selektive Übergabe erforderlicher Informationen an berechtigte SBV-Stellvertretung oder Nachfolge.
 
-**Zweck:** Bericht der SBV über Tätigkeit, Themen und Schwerpunkte.
-
-**Datenkategorien:** aggregierte und anonymisierte Statistiken, Fallzahlen, Maßnahmentypen, Fristen, Themen.
-
-**Empfänger:** betriebliche Gremien, Beschäftigte oder Arbeitgeber nur in anonymisierter Form.
-
-**Schutzmaßnahmen:** Anonymisierung, Mindestfallzahlen, ExportGuard, keine Klarnamen.
-
-## 7. Übergabe / Vertretung
-
-**Zweck:** zeitlich oder sachlich begrenzte Übergabe ausgewählter Fallinformationen an eine herangezogene Stellvertretung.
-
-**Datenkategorien:** ausgewählte Fallakten, Dokumente, Notizen, Fristen, Maßnahmen.
-
-**Empfänger:** herangezogene Stellvertretung oder berechtigte Nachfolge-SBV.
-
-**Schutzmaßnahmen:** selektiver Export, Verschlüsselung, Ablaufdatum, Exportgrund, Importprotokoll, keine automatische Vollsynchronisation.
+**Schutzmaßnahmen:** selektiver Export, Ablaufdatum, keine automatische Vollsynchronisation.

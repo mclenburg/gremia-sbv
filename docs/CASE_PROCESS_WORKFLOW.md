@@ -1,17 +1,42 @@
-# Fallbezogene Fachmaßnahmen
+# Fallakten-Workflow
 
-Gremia.SBV behandelt Fachmaßnahmen nicht als Modul-Silos. Prävention, BEM, Kündigungsanhörung und Gleichstellung müssen an einer Fallakte hängen.
+Stand: **0.9.1**
 
-## Einstiegspunkte
+## Grundsatz
 
-- **Aus der Fallakte:** In der Fallübersicht kann eine Maßnahme direkt gestartet werden.
-- **Aus dem Fallbaum:** Prozesskarten können in den Maßnahmenbereich der Fallakte gezogen oder angeklickt werden.
-- **Aus dem Fachmodul:** Das Fachmodul bietet weiterhin die Zuordnung zu einer Fallakte.
+Die Fallakte ist der führende Arbeitsraum für SBV-Vorgänge. Ab 0.9.1 gilt als Zielbild: reguläre neue Fallakten werden an eine Person im Personenverzeichnis gebunden. Wenn keine Identität genannt werden soll, wird eine anonyme Beratungsanfrage angelegt.
 
-## Aktueller Stand
+## Fallakte anlegen
 
-Das Präventionsverfahren ist bereits als strukturierter Workflow umgesetzt. BEM, Kündigungsanhörung und Gleichstellung werden bis zur Umsetzung ihrer Fachmodule als vertrauliche fallbezogene Maßnahme vorgemerkt. So bleibt der Workflow einheitlich, ohne eine künstliche Mehrbenutzer- oder Modul-Silo-Logik einzuführen.
+Zielablauf:
 
-## Grundregel
+1. Person suchen,
+2. Person auswählen oder neu anlegen,
+3. alternativ anonyme Beratungsanfrage dokumentieren,
+4. Fallakten-Grunddaten erfassen,
+5. Fallakte anlegen.
 
-Eine Maßnahme ohne Fallbezug ist in Gremia.SBV nicht vorgesehen. Organisatorische Aufgaben ohne Fallbezug gehören in die freien Wiedervorlagen, nicht in die Fachprozesse.
+## Legacy-Fälle
+
+Bestehende Fälle werden in der Migration nicht geratenhaft aus Freitexten verknüpft. Sichere vorhandene Links können übernommen werden; mehrdeutige oder fehlende Links erzeugen `legacy_unlinked` mit Priorisierung.
+
+## Datenschutzprüfung
+
+Eine Fallakte wird prüfpflichtig bei:
+
+- Schutzstatus abgelaufen,
+- Beschäftigung beendet,
+- Person anonymisiert,
+- Person gelöscht,
+- Altfall ohne sicheren Personenbezug.
+
+Entscheidungsmöglichkeiten:
+
+- Status aktualisieren,
+- Fortspeicherung begründen,
+- anonymisieren,
+- löschen.
+
+## Barrierefreiheit
+
+Fallakte-anlegen-Dialog, Personenauswahl, anonyme Anfrage und Datenschutzdialog müssen per Tastatur bedienbar sein, Fokus korrekt führen und Announcer-Meldungen ausgeben.

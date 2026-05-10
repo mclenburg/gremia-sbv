@@ -1,115 +1,68 @@
-# Release-Checkliste für 0.9.1
+# Release-Checkliste Gremia.SBV
 
-Stand: 0.9.1
+Stand: **0.9.1**
 
-## Automatisierte Mindestprüfung lokal
+Diese Checkliste ist das Gate vor dem 1.0-Freeze. Sie ersetzt keine Datenschutzfreigabe, sondern bündelt technische, fachliche und organisatorische Prüfungen.
+
+## Pflichtläufe
 
 ```bash
-npm ci
 npm run rc:check
 npm run test
+npm run test:e2e
 npm run test:coverage
-npm run build
+npm run release:check
 npm run build:linux
 npm run build:win
-npm run build:readiness:strict
-npm run release:check
 ```
 
-Optional, wenn lokal eingerichtet:
+macOS wird auf einem passenden macOS-Runner gebaut:
 
 ```bash
-npm run test:e2e
 npm run build:mac
 ```
 
-## Service-Coverage-Gate
+## Fachliche Abnahme
 
-Für den RC gilt:
+- [ ] Personenverzeichnis enthält kein GdB-Standardfeld und keine Diagnosen.
+- [ ] Personalnummer ist optional.
+- [ ] CSV-/XLSX-Import prüft Vorschau, Mapping, Validierung und Ergebnis.
+- [ ] Vollnamen-Spalten wie `Nachname, Vorname` werden unterstützt.
+- [ ] Reguläre neue Fallakten werden an eine Person gebunden.
+- [ ] Anonyme Beratungsanfrage ist ohne Direktidentifikatoren möglich.
+- [ ] Statusablauf und Beschäftigungsende erzeugen Datenschutzprüfung.
+- [ ] Fortspeicherung braucht Grund und erneuten Prüftermin.
+- [ ] iCal-Export nutzt `process_type` als Standard und enthält keine Namen.
 
-- `vitest --coverage` mit `provider: 'v8'`,
-- Coverage-Scope RC-kritische Service-Verträge,
-- mindestens 70 Prozent für Branches, Functions, Lines und Statements.
+## Datenschutz und Compliance
 
-Das Gate wird über `npm run test:coverage` und `npm run release:check` ausgeführt.
+- [ ] DSFA-Entwurf enthält Personenverzeichnis, Fallaktenbindung, anonyme Anfrage und iCal-Export.
+- [ ] TOMs enthalten SQLCipher, ExportGuard, Audit-ohne-Direktidentifikatoren und Lösch-/Anonymisierungsworkflow.
+- [ ] VVT enthält die neue Verarbeitungstätigkeit Personenverzeichnis.
+- [ ] Rechtsgrundlagen enthalten Art. 6 Abs. 1 lit. c DSGVO, Art. 9 Abs. 2 lit. b DSGVO, § 26 Abs. 3 BDSG, § 163 SGB IX, § 164 Abs. 4 SGB IX, § 178 Abs. 1 SGB IX und § 178 Abs. 2 Satz 1 SGB IX.
+- [ ] Art. 13/14-Hinweis ist organisatorisch beschrieben.
+- [ ] Art. 15-Auskunftsfähigkeit ist als Compliance-Anwendungsfall dokumentiert.
 
-## GitHub Release Build
+## Barrierefreiheit und Responsivität
 
-Ein GitHub-Draft-Release wird durch einen Tag ausgelöst:
+- [ ] Personenmodul, Import-Assistent, Personenauswahl, anonyme Anfrage und Datenschutzdialog sind per Tastatur bedienbar.
+- [ ] Dialoge haben `role="dialog"`, `aria-modal`, sinnvolle Labels und Fokus-Rückkehr.
+- [ ] `useAnnouncer` meldet Import, Auswahl, Verknüpfung, Anonymisierung und Löschung.
+- [ ] Es gibt keine horizontalen Überläufe in den E2E-Standard-Viewports.
 
-```bash
-git tag v0.9.1
-git push origin v0.9.1
-```
+## Build und Release
 
-Der Workflow `.github/workflows/build-release.yml` muss dann erzeugen:
+- [ ] Linux erzeugt AppImage.
+- [ ] Windows erzeugt portable EXE, keinen verpflichtenden Installer.
+- [ ] macOS-Artefakt ist unsigniert und nicht notarisiert dokumentiert.
+- [ ] GitHub-Release-Upload enthält nur `.exe`, `.AppImage` und `.dmg`; `latest*.yml`, `.blockmap` und zusätzliche ZIPs werden nicht hochgeladen.
+- [ ] Release Notes für `0.9.1` existieren.
+- [ ] README, Roadmap, Known Issues, Build-Doku und Lizenzpolitik nennen `0.9.1`.
 
-- Linux-Artefakt,
-- Windows-Artefakt,
-- macOS-Artefakt unsigniert/nicht notarisiert,
-- GitHub Draft Release mit Artefakten.
+## Freeze-Regel
 
-Der Workflow muss Tag und `package.json.version` abgleichen. `v0.9.1` darf nur zu `package.json` Version `0.9.1` passen.
+Nach `0.9.1` werden keine neuen Fachfunktionen mehr aufgenommen. Zulässig sind nur Security-Fixes, Datenverlust-/Migrationsfixes, Buildfixes, Testfixes, Dokumentationskorrekturen und offensichtliche UI-Bugs ohne neue Fachlogik. Neue Fachfeatures, neue Inlinebefehle, neue Module, große Refactorings und neue Datenbankstrukturen ohne zwingenden Fehlergrund sind ausgeschlossen.
 
-## Manuelle Abnahme
+## RC-Freeze-Regel 0.9.1
 
-- frischen Tresor anlegen
-- bestehende Datenbank migrieren
-- Fallakte anlegen
-- Notiz/Protokoll erfassen
-- Inlinebefehle `/bem`, `/praev`, `/bet`, `/kuend`, `/gleich`, `/anp` und `/fr` testen
-- klickbare Aktenbezüge öffnen
-- Export ohne technische UUIDs prüfen
-- Dokument importieren und öffnen
-- Vorlagen verwenden
-- Berichte erzeugen
-- Compliance-Dokumente erzeugen
-- Backup erstellen
-- Restore testen
-- Auto-Lock testen
-- Unlock-Delay testen
-- Audit-Hash-Chain prüfen
-- Manipulationserkennung testen
-- temporäre Dateien bereinigen
-- Responsivität in mehreren Auflösungen prüfen
-- Tastaturbedienung und Screenreader-Labels prüfen
-
-## RC-Regel
-
-Nach `0.9.0-rc.1-p` werden keine neuen Fachfunktionen mehr aufgenommen. Zulässig sind nur:
-
-- Security-Fixes,
-- Datenverlust-/Migrationsfixes,
-- Buildfixes,
-- Testfixes,
-- Dokumentationskorrekturen,
-- offensichtliche UI-Bugs ohne neue Fachlogik.
-
-Nicht zulässig sind:
-
-- neue Fachfeatures,
-- neue Inlinebefehle,
-- neue Module,
-- größere Refactorings,
-- neue Datenbankstruktur ohne zwingenden Fehlergrund,
-- Cloud-, Sync- oder Mehrbenutzerfunktionen.
-
-## RC-Härtung abgeschlossen, wenn
-
-- [ ] `npm run release:check` grün ist
-- [ ] Linux-Build grün ist
-- [ ] Windows-Build grün ist
-- [ ] GitHub-Draft-Release Linux/Windows/macOS erzeugt
-- [x] Known Issues final sind
-- [x] Release Notes für `0.9.0-rc.1-p` erstellt sind
-- [x] Doku-Stände mit `package.json.version` konsistent sind oder bewusst versionsfrei formuliert sind
-- [x] `postinstall` exakt `electron-builder install-app-deps` ist
-
-
-## Freeze-Regel nach RC1
-
-Nach `0.9.0-rc.1-p` sind nur noch Security-Fixes, Datenverlust-/Migrationsfixes, Buildfixes, Testfixes, Dokumentationskorrekturen und offensichtliche UI-Bugs ohne neue Fachlogik zulässig. Neue Fachfeatures, neue Inlinebefehle, neue Module, große Refactorings und neue Datenbankstrukturen ohne zwingenden Fehlergrund sind ausgeschlossen.
-
-## RC-Freeze-Regel 0.9.0-rc.1-p
-
-Für 0.9.0-rc.1-p gilt: Nur Bugfixes, Buildfixes, Security-Fixes, Datenverlust-/Migrationsfixes, offensichtliche UI-Bugs und Dokumentationskorrekturen. Es gibt keine neuen Fachfeatures, keine Cloud-Synchronisation und keine Lizenzänderung weg von AGPL-3.0-or-later.
+Für 0.9.1 gilt: Nur Bugfixes, Buildfixes, Security-Fixes, Datenverlust-/Migrationsfixes, offensichtliche UI-Bugs und Dokumentationskorrekturen. Es gibt keine neuen Fachfeatures, keine Cloud-Synchronisation und keine Lizenzänderung weg von AGPL-3.0-or-later.

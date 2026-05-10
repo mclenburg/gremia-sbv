@@ -1,47 +1,41 @@
 # E2E-Tests
 
-Stand: 0.9.1
+Stand: **0.9.1**
 
-## Zweck
+Die E2E-Tests prüfen RC-kritische Arbeitswege in einer isolierten synthetischen Testumgebung. Der Runner erzeugt ein temporäres `GREMIA_SBV_DATA_DIR`, damit keine produktiven Daten berührt werden.
 
-Die E2E-Tests prüfen RC-kritische Nutzerflüsse mit synthetischen Daten. Sie dürfen niemals produktive SBV-Datenbanken öffnen oder verändern.
-
-## Isolation
-
-Der E2E-Runner setzt:
-
-- `GREMIA_SBV_E2E=1`
-- `GREMIA_SBV_E2E_DATA_DIR`
-- `GREMIA_SBV_DATA_DIR`
-
-Das Datenverzeichnis muss unter dem System-Temp liegen und `gremia-sbv-e2e-` enthalten. Andernfalls bricht der Runner ab.
-
-## Ausführung
+## Start
 
 ```bash
-npm run test:e2e:setup
 npm run test:e2e
+npm run test:e2e:headed
+npm run test:e2e:debug
 ```
 
-## RC-kritische Selektoren
+## Abgedeckte Kernflüsse
 
-- `data-e2e="main-nav-cases"`
-- `data-e2e="main-nav-compliance"`
-- `data-e2e="case-row-TEST-0001"`
-- `data-e2e="inline-help-dialog"`
-- `data-e2e="note-entity-link"`
+- App startet in isolierter Testumgebung.
+- Fallakten-Workbench öffnet synthetische Fälle.
+- Inline-Hilfe ist per Tastatur erreichbar.
+- Inline-Kommandos funktionieren in großen Textfeldern.
+- Personenmodul öffnet ohne horizontalen Overflow.
+- Personenimport führt durch Quelle, Vorschau, Spaltenmapping, Validierung und Ergebnis.
+- Responsive Layouts bleiben bei HD small, Laptop, Full HD und QHD stabil.
+- Compliance Light-/Dark-Mode bleibt lesbar.
 
-## Responsive-Layout
+## 0.9.1-Erweiterungen
 
-`e2e/responsive-layout.spec.ts` prüft mehrere Desktop-Auflösungen auf horizontale Überläufe, sichtbare Hauptnavigation, Fallaktenliste, Compliance-Ansicht und stabile Dialogdarstellung.
+Neue E2E-Pfade müssen künftig zusätzlich prüfen:
+
+- Person anlegen und Fallakte aus Person erstellen.
+- Anonyme Beratungsanfrage ohne Direktidentifikatoren anlegen.
+- Statusablauf führt zur Frist und Datenschutzprüfung.
+- iCal-Export aus dem Fristenmodul enthält `process_type`-Titel, aber keine Namen.
 
 ## Barrierefreiheit
 
-`e2e/accessibility.spec.ts` prüft Tastaturflüsse, Dialoge, Rollen, Fokusführung und fachliche Labels ohne technische UUIDs.
+Dialoge müssen `role="dialog"`, `aria-modal`, stabile Labels und Fokus-Rückkehr haben. Tests sollen vorrangig nutzernahe Rollen/Labels verwenden; `data-e2e` ist für technisch notwendige, stabile Anker zulässig.
 
+## Plattformhinweise
 
-## Inline-Kurzbefehle
-
-Der RC-kritische Test `npm run test:e2e:inline-commands` prüft den echten Arbeitsfluss in der Fallakte: Fallakte öffnen, neue Gesprächsnotiz anlegen, im großen Textfeld `Inhalt` den Kurzbefehl `/praev Arbeitsplatzgefährdung klären` eingeben, den Dialog „Prävention anlegen“ bestätigen und die Ersetzung im Textfeld verifizieren. Der Test stellt zugleich sicher, dass kein zweiter globaler Aufgabendialog parallel geöffnet wird.
-
-Dieser Test schützt ausdrücklich davor, Kurzbefehle in großen Textfeldern aus Performancegründen versehentlich zu deaktivieren oder durch Renderfehler unbenutzbar zu machen.
+Unter Windows nutzt der Runner `playwright.cmd`. E2E-Tests dürfen keine `/tmp`- oder Laufwerksannahmen enthalten.

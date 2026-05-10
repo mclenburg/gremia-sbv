@@ -1,60 +1,39 @@
 # Entwicklung
 
-## Installation
+Stand: **0.9.1**
 
-```bash
-npm install
-```
+## Grundregeln
 
-Der `postinstall`-Hook führt `electron-builder install-app-deps` aus, damit native Abhängigkeiten zur Electron-Version passen.
+- Kleine, fokussierte Dateien.
+- Feature-Views nicht monolithisch aufbauen.
+- `App.tsx` verdrahtet nur; Feature-Handler gehören in Hooks.
+- Policies sind pure Functions.
+- Services enthalten Orchestrierung, aber keine UI-Logik.
+- Tests prüfen Verhalten statt Quelltext-Existenz, soweit möglich.
+- Barrierefreiheit und Responsivität sind Teil der Definition of Done.
 
-## Start
-
-```bash
-npm run dev
-```
-
-## Tests
+## Standardprüfung
 
 ```bash
 npm run test
-```
-
-Vor Tests laufen Versionsgenerierung und Source-Cleanup.
-
-Gezielte Prüfungen:
-
-```bash
-npm run test:privacy
-npm run test:migrations
-npm run test:backup
-npm run test:documentation-088d
-```
-
-## Build
-
-```bash
+npm run test:e2e
 npm run build
-npm run build:linux
+npm run rc:check
 ```
 
-Vor dem Build laufen:
+## 0.9.1-Entwicklungsfokus
 
-1. `npm run version:generate`
-2. `npm run source:cleanup`
-3. `npm run build:readiness`
+Bei Änderungen am Personenmodul sind immer mitzuprüfen:
 
-## Source-Cleanup
+- Import-Mapping inklusive Vollnamen-Spalten,
+- optionale Personalnummer,
+- anonyme Anfrage,
+- Fallaktenbindung,
+- Datenschutz-Lifecycle,
+- Compliance Center,
+- iCal-Export,
+- alte Tests mit veralteten Annahmen.
 
-Obsolete Dateien stehen explizit in `maintenance/source-cleanup/*.json`.
+## Testqualität
 
-```bash
-npm run source:cleanup:dry-run
-npm run source:cleanup
-```
-
-Die Manifeste dürfen nur konkrete relative Pfade enthalten. Wildcards, absolute Pfade und Parent-Traversal sind verboten.
-
-## Dokumentationsregel
-
-Dauerhafte Dokumentation gehört in `docs/`. Historische Patchnotizen werden nicht mehr einzeln gepflegt, sondern im `CHANGELOG.md` zusammengefasst.
+String-Matching-Tests sind nur für Dokumentations- und Struktur-Gates akzeptabel. Fachlogik muss durch Behavior-Tests abgesichert werden. Neue Tests müssen plattformunabhängig sein und keine festen absoluten Pfade oder rohen Zeilenendungsannahmen enthalten.

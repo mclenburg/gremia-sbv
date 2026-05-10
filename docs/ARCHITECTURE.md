@@ -1,44 +1,68 @@
-# Architektur
+# Architektur Gremia.SBV
 
-## Leitprinzip
+Stand: **0.9.1**
 
-Gremia.SBV ist fallaktenzentriert:
+## Architekturprinzip
 
-```text
-Fallakte → Maßnahmen → Fristen/Dokumente/Vorlagen → Berichte/Compliance
-```
-
-Personenbezogene SBV-Arbeit wird aus der Fallakte heraus angelegt und fortgeschrieben. Fachmodule außerhalb der Fallakte sind Cockpits, Übersichten oder Auswertungen.
-
-## Schichten
+Gremia.SBV ist eine lokale Electron-/React-/Node.js-App. Die Architektur folgt der Trennung:
 
 ```text
-src/app/        React/Vite Renderer
-electron/       Electron Main und Preload
-services/       Fachservices, Datenzugriff, Reports, Audit
-database/       Schema und Migrationen
-scripts/        Build-, Diagnose- und Wartungsskripte
-tests/          Service-, Policy-, Build- und Readiness-Tests
+UI-Komponenten → Feature-Hooks → Services → Policies → Datenbank/Migrationen
 ```
 
-## Maßnahmenarchitektur
+Policies sind pure Functions ohne Datenbankzugriff. Services sind dünne, testbare Orchestrierer. `App.tsx` verdrahtet nur und darf nicht zum Sammelpunkt von Feature-Handlern werden.
 
-`case_measures` ist die gemeinsame Klammer für fachliche Vorgänge:
+## Zentrale Domänen
 
-- BEM
-- Prävention
-- SBV-Beteiligung
-- Kündigungsanhörung
-- Gleichstellung / GdB
-- Arbeitsplatzgestaltung
-- sonstige Maßnahme
+```text
+ProtectedPerson
+  └── CaseFile
+        ├── Notes
+        ├── Measures
+        ├── Deadlines
+        └── Documents
+```
 
-Jede Maßnahme hat gemeinsame Basisdaten wie Fallbezug, Typ, Status, Risiko, nächsten Schritt, Frist und Nachbearbeitungsstatus. Typspezifische Detaildaten liegen in Detailtabellen oder Fachservices.
+Die Person ist führender Datensatz. Reguläre Fallakten gehören zu genau einer Person. Für Erstberatungen ohne Namensnennung gibt es eine pseudonyme anonyme Anfrage.
 
-## Inlinebefehle
+## Personenverzeichnis
 
-Inlinebefehle dienen der Live-Erfassung in Gesprächen. Sie dürfen personenbezogene Maßnahmen nur im Kontext einer geöffneten Fallakte anlegen. Die Hilfe ist über `Strg+H` erreichbar.
+Das Personenverzeichnis speichert Schutzstatus und Beschäftigungsstatus, aber kein GdB-Standardfeld und keine Diagnosen. Die Personalnummer ist optional. Import-Matching erfolgt bevorzugt über Personalnummer oder dienstliche E-Mail; Name/Vorname allein ist ein Konflikt, kein automatisches Update.
 
-## Datenschutz
+Wichtige Services:
 
-Die App arbeitet offline-first. Der lokale Tresor, Audit-Hash-Chain, Auto-Lock, temporäre Arbeitskopien und Compliance-Dokumente bilden die technische Grundlage. Organisatorische Datenschutzfreigaben bleiben außerhalb der App erforderlich.
+- `protectedPersonService.ts`
+- `personImportService.ts`
+- `personMatchingService.ts`
+- `personLifecyclePolicy.ts`
+- `personCaseLinkService.ts` beziehungsweise künftiger `personCaseBindingService.ts`
+- `personAnonymizationService.ts`
+- `personStatusExpiryService.ts`
+
+## Fallaktenbindung
+
+`case_files.protected_person_id` soll fachlich führend werden. Bestehende `person_case_links` werden in der Migration ausgewertet:
+
+- genau ein aktiver Link → `migrated`,
+- mehrere Links → `legacy_unlinked`,
+- kein Link → `legacy_unlinked`,
+- anonyme Anfrage → `anonymous_request`.
+
+## Datenschutz-Lifecycle
+
+Statusablauf und Beschäftigungsende sind Datenschutz-Prüfereignisse. Zulässige Entscheidungen sind:
+
+1. Status aktualisieren,
+2. Fortspeicherung mit Grund und Prüftermin,
+3. Anonymisierung,
+4. Löschung.
+
+Freitexte werden nicht automatisch anonymisiert, sondern prüfpflichtig markiert.
+
+## Fristen und iCal
+
+Fristen werden über das bestehende Fristensystem geführt. Personenbezogene Ablaufwarnungen dürfen kein paralleles Dashboard-System erzeugen. iCal-Export nutzt `process_type` als Standard und enthält keine Namen oder Fallinhalte.
+
+## Compliance Center
+
+`complianceCenterService.ts` erzeugt TOMs, DSFA, DSGVO-/BDSG-Matrix und Freigabeunterlagen. Personenverzeichnis, Art. 13/14, Art. 15, § 164 Abs. 4 SGB IX und Audit-ohne-Direktidentifikatoren müssen dort gepflegt werden.

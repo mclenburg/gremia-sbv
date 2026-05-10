@@ -1,43 +1,36 @@
-# Gremia.SBV 0.9.1 – Personenverzeichnis, Import und Datenschutz-Lifecycle
+# Release Notes – Gremia.SBV 0.9.1
 
-0.9.1 ist eine Vor-1.0-Ergänzung, weil im RC-Test ein fachlicher Grundbaustein fehlte: die datensparsame Liste der schwerbehinderten und gleichgestellten Personen.
+Stand: **0.9.1**
+
+`0.9.1` ist eine Vor-1.0-Ergänzung im RC-Zweig. Sie ergänzt das im Praxistest als fehlend erkannte Personenverzeichnis und zieht Datenschutz-Lifecycle, Import, Fristenintegration, iCal-Export und Compliance-Dokumentation nach.
 
 ## Neu
 
 - Personenverzeichnis ohne GdB-Standardfeld und ohne Diagnosefelder.
-- Optionales Beschäftigungsende über `employmentState` und `leftCompanyAt`.
-- CSV-/XLSX-Import als barrierearmer Import-Assistent mit Datei-/CSV-Quelle, Vorschau, Spaltenmapping, Prüfung und Ergebnisanzeige.
-- Personalnummer ist optional; sicherer Abgleich ersatzweise über dienstliche E-Mail.
-- Vor- und Nachname können getrennt oder als Vollnamen-Spalte importiert werden, auch im Format `Nachname, Vorname`.
-- Importprotokoll ohne Rohdaten mit `person_import_run_items`.
-- Statusablauf erzeugt Fristen im bestehenden Deadline-System, keine parallele Dashboard-Logik.
-- 30-Tage-Warnung für auslaufende Statusnachweise.
-- Datenschutzprüfung bei abgelaufenem Status.
-- Strukturierte Anonymisierung entfernt direkte Identifikatoren und markiert Personen-Fallakten-Links als `person_anonymized`.
-- Manueller iCal-Export für Fristen mit datenschutzfreundlichem Standard ohne Namen, Diagnosen und Fallinhalte.
+- Personalnummer ist optional.
+- CSV-/XLSX-Import mit Vorschau, Spaltenmapping, Validierung und Ergebnis.
+- Vollnamen-Spalte mit `Nachname, Vorname` oder `Vorname Nachname`.
+- Beschäftigungsstatus und Beschäftigungsende.
+- Statusablaufwarnungen über das bestehende Fristensystem.
+- Datenschutzprüfung bei Statusablauf, Beschäftigungsende, Anonymisierung oder Löschung.
+- iCal-Export aus Fristen mit `process_type` als Standard.
+- Compliance-Dokumente für Personenverzeichnis, Art. 13/14, Art. 15, § 164 Abs. 4 SGB IX und Audit-ohne-Direktidentifikatoren.
 
-## Architekturkorrektur nach Review
+## Architekturkorrekturen
 
-- `PersonsView.tsx` ist wieder nur Container/Komposition; Liste, Detail, Formular, Import-Assistent, Ablaufkarte und Lifecycle-Hinweis liegen in eigenen Komponenten.
-- Personen-IPC-/Bridge-Handler sind aus `App.tsx` in `usePersonsHandlers` ausgelagert.
-- Matching, Lifecycle-Entscheidungen und Fallaktenverknüpfungen liegen in eigenen Services/Policies.
-- Das Personenmodul nutzt Live-Region-Ansagen über `useAnnouncer`.
-- iCal-Export nutzt sprechende, datenschutzfreundliche Fristentitel aus dem bestehenden Fristenmodul statt generischer Dummy-Wiedervorlagen.
+- Personenmodul wird modular geführt, nicht als View-Monolith.
+- Feature-Handler gehören in Hooks, nicht in `App.tsx`.
+- Matching, Lifecycle, Case-Linking und Anonymisierung werden über Services/Policies getrennt.
+- Reguläre Fallakten sollen künftig personengebunden sein; anonyme Beratungsanfragen werden pseudonym geführt.
 
-## Datenschutz und Compliance
+## Datenschutz
 
-- DSFA, TOMs und VVT berücksichtigen Personenverzeichnis, Import, Statusablauf, Anonymisierung, iCal-Export und Art. 13/14-DSGVO-Organisationshinweis.
-- Rechtsgrundlage: Art. 6 Abs. 1 lit. c DSGVO, Art. 9 Abs. 2 lit. b DSGVO, § 26 Abs. 3 BDSG, § 163 SGB IX und § 178 Abs. 1 sowie Abs. 2 Satz 1 SGB IX.
-- SQLCipher bleibt Schutzmaßnahme für strukturierte Personenstammdaten; keine zusätzliche Feldverschlüsselung für Namen in 0.9.1, weil Suchbarkeit und Importabgleich erforderlich sind.
+- Keine Namen, E-Mail-Adressen oder Personalnummern im Audit-Log.
+- Keine Rohdateispeicherung beim Import.
+- Keine automatische Freitextanonymisierung.
+- Fortspeicherung personenbezogener Fallakten benötigt Grund und Prüftermin.
+- Art. 13/14-Information ist organisatorisch sicherzustellen.
 
+## Freeze
 
-## Regressionen aus dem RC-Zweig
-
-- Der fehlschlagende Maßnahmen-Test war zu grob formuliert und wurde auf echte Textfelder begrenzt.
-- Die Inline-Kommando-Erkennung bleibt bei `findFirstTextCommand(event.target.value)`.
-- Maßnahmen-Textfelder persistieren lange Freitexte über `onBlur`, nicht pro Tastendruck.
-- Windows baut wieder eine portable Direktstart-EXE statt eines Installers.
-
-## Freeze-Hinweis Richtung 1.0
-
-Nach 0.9.1 sollen bis 1.0 nur noch Security-Fixes, Datenverlust-Risiken, Test-/Buildstabilisierung und Dokumentationskorrekturen erfolgen. keine neuen Fachfeatures, keine Cloud-Synchronisation. Lizenz: AGPL-3.0-or-later.
+Nach Abschluss von 0.9.1 gilt bis 1.0: **keine neuen Fachfeatures**, **keine Cloud-Synchronisation**, keine Lizenzänderung weg von **AGPL-3.0-or-later**. Zulässig bleiben Security-Fixes, Datenverlust- und Migrationsfixes, Build-/Testfixes, offensichtliche UI-Bugs und Dokumentationskorrekturen.

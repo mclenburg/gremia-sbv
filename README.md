@@ -1,26 +1,27 @@
 # Gremia.SBV – lokale Software für Schwerbehindertenvertretungen
 
-**Gremia.SBV** ist eine lokale, offline-first Desktop-App für Schwerbehindertenvertretungen in Deutschland. Sie unterstützt vertrauliche SBV-Fallarbeit rund um BEM, Präventionsverfahren nach § 167 SGB IX, SBV-Beteiligung nach § 178 SGB IX, Kündigungsanhörungen, Gleichstellung/GdB, Arbeitsplatzanpassung, Fristen, Dokumentation und Tätigkeitsberichte – ohne Cloud, ohne Telemetrie und ohne HR-Zugriff.
+**Gremia.SBV** ist eine lokale, offline-first Desktop-App für Schwerbehindertenvertretungen in Deutschland. Sie unterstützt vertrauliche SBV-Fallarbeit rund um BEM, Präventionsverfahren nach § 167 SGB IX, SBV-Beteiligung nach § 178 SGB IX, Kündigungsanhörungen, Gleichstellung / Schutzstatus / GdB-Beratung, Arbeitsplatzanpassung, Fristen, Dokumentation und Tätigkeitsberichte – ohne Cloud, ohne Telemetrie und ohne HR-Zugriff.
 
 Stand: **0.9.1**  
-Status: Vor-1.0-Ergänzung `0.9.1` im RC-Zweig.
+Status: Vor-1.0-Ergänzung im RC-Zweig.
 
 ## Kurzüberblick
 
-Gremia.SBV ist eine **SBV Software** für die besonders vertrauliche Fallarbeit der Schwerbehindertenvertretung. Die Anwendung bündelt Fallakten, Gesprächsnotizen, Live-Protokolle, Maßnahmen, Fristen, Dokumente, Vorlagen, Datenschutzdokumente und Berichte in einem lokalen Arbeitsbereich.
+Gremia.SBV ist eine **SBV Software** für die besonders vertrauliche Fallarbeit der Schwerbehindertenvertretung. Die Anwendung bündelt Personenverzeichnis, Fallakten, Gesprächsnotizen, Live-Protokolle, Maßnahmen, Fristen, Dokumente, Vorlagen, Datenschutzdokumente und Berichte in einem lokalen Arbeitsbereich.
 
 Die Produktregel lautet:
 
-> Die Fallakte führt. Maßnahmen schreiben fort. Cockpits überwachen. Inlinebefehle beschleunigen. Berichte werten aus.
+> Personen führen. Fallakten dokumentieren. Maßnahmen schreiben fort. Fristen überwachen. Inlinebefehle beschleunigen. Compliance macht Datenschutzentscheidungen nachvollziehbar.
 
 ## Was Gremia.SBV besonders macht
 
 - **SBV-first:** entwickelt für die vertrauliche Arbeit der Schwerbehindertenvertretung, nicht als HR-Kontrollsystem.
 - **Offline-first:** lokale Desktop-App ohne Cloud-Synchronisation, ohne Telemetrie und ohne externe Datenübertragung.
-- **Prozessnah:** BEM, Prävention, Beteiligung, Kündigungsanhörung, Gleichstellung/GdB, Arbeitsplatzanpassung und Fristen bleiben in einer Fallakte nachvollziehbar verbunden.
+- **Personengebundene Fallarbeit:** reguläre Fallakten werden an Personen aus dem Personenverzeichnis gebunden; anonyme Erstberatungen sind als pseudonyme Anfrage möglich.
+- **Prozessnah:** BEM, Prävention, Beteiligung, Kündigungsanhörung, Gleichstellung / Schutzstatus / GdB-Beratung, Arbeitsplatzanpassung und Fristen bleiben in einer Fallakte nachvollziehbar verbunden.
 - **Lebende Arbeitschronik:** Notizen, Maßnahmen, Fristen und interne Aktenbezüge bilden eine nachvollziehbare Arbeitschronik statt einer losen Dateiablage.
-- **Datenschutzbewusst:** lokale Verschlüsselung, sparsame Audit-Metadaten, kontrollierte Backups und exportfreundliche Berichte ohne unnötige technische IDs.
-- **Menschliche Verantwortung bleibt erhalten:** Die App unterstützt Dokumentation und Nachvollziehbarkeit, ersetzt aber keine rechtliche Bewertung, keine Datenschutzfreigabe und keine organisatorische Entscheidung.
+- **Datenschutzbewusst:** lokale Verschlüsselung, Audit-Hash-Kette ohne Direktidentifikatoren, kontrollierte Backups, Statusablaufprüfung, Lösch-/Anonymisierungsworkflow und exportfreundliche Berichte ohne unnötige technische IDs.
+- **Menschliche Verantwortung bleibt erhalten:** Die App unterstützt Dokumentation und Nachvollziehbarkeit, ersetzt aber keine Rechtsberatung, keine Datenschutzfreigabe und keine organisatorische Entscheidung.
 
 ## Für wen ist Gremia.SBV gedacht?
 
@@ -32,9 +33,22 @@ Typische Einsatzfelder:
 - Präventionsverfahren nach § 167 SGB IX,
 - Beteiligung der SBV nach § 178 SGB IX,
 - Kündigungsanhörungen schwerbehinderter oder gleichgestellter Menschen,
-- Gleichstellung/GdB-Verfahren,
-- behinderungsgerechte Arbeitsplatzgestaltung,
-- Fristen, Wiedervorlagen und Tätigkeitsberichte.
+- Gleichstellung / Schutzstatus / GdB-Beratung,
+- behinderungsgerechte Arbeitsplatzgestaltung nach § 164 Abs. 4 SGB IX,
+- Personenverzeichnis schwerbehinderter und gleichgestellter Beschäftigter,
+- Fristen, Wiedervorlagen, iCal-Export und Tätigkeitsberichte.
+
+## Personenverzeichnis und Import
+
+Gremia.SBV 0.9.1 ergänzt vor dem 1.0-Freeze ein datensparsames Personenverzeichnis für schwerbehinderte und gleichgestellte Beschäftigte. Der genaue GdB wird nicht als Standardfeld gespeichert; entscheidend ist der Schutzstatus. Arbeitgeberlisten können aus CSV/XLSX über einen kompakten Import-Assistenten importiert werden: Datei oder CSV auswählen, Vorschau prüfen, echte Spalten den Zielfeldern zuordnen, Importprüfung bestätigen.
+
+Die **Personalnummer ist optional**. Aktualisiert wird bevorzugt über Personalnummer oder dienstliche E-Mail. Name und Vorname können getrennt oder in einer gemeinsamen Spalte stehen, auch im Format **`Nachname, Vorname`**. Name/Vorname allein gelten beim Import nur als Konflikthinweis, nicht als automatisches Update.
+
+## Fallaktenbindung und anonyme Anfrage
+
+Neue reguläre Fallakten sollen zu genau einer Person gehören. Wenn der Status unklar ist, wird eine Person mit Status „Status unklar“ oder „Antrag läuft“ angelegt. Für Erstberatungen ohne Namensnennung gibt es einen pseudonymen Sonderweg „Anonyme Anfrage“ ohne Direktidentifikatoren.
+
+Bestehende Altakten werden nicht geratenhaft aus Freitexten verknüpft. Sichere vorhandene `person_case_links` werden migriert; mehrdeutige oder nicht verknüpfte Altakten werden priorisiert zur Prüfung markiert.
 
 ## Datenschutz: lokal statt Cloud
 
@@ -43,29 +57,34 @@ Gremia.SBV verarbeitet besonders sensible personenbezogene Daten. Deshalb ist di
 - keine Cloud-Synchronisation,
 - keine Telemetrie,
 - keine Mehrbenutzer- oder Serverfunktion,
-- lokale verschlüsselte Datenhaltung,
+- lokale verschlüsselte Datenhaltung mit SQLCipher,
 - kontrollierte Backups,
-- sparsame Audit-Metadaten,
+- Audit-Metadaten ohne Namen, E-Mail-Adressen oder Personalnummern,
 - keine Übertragung an externe Dienste.
 
 Die App ersetzt keine organisatorische Datenschutzfreigabe. Vor produktiver Nutzung sind insbesondere Datenschutzbeauftragte, IT-Security und die verantwortliche Stelle einzubeziehen.
 
+## Fristen und iCal
+
+Fristen und Wiedervorlagen werden im bestehenden Fristenmodul geführt. Statusablaufwarnungen aus dem Personenverzeichnis landen nicht in einem parallelen System, sondern als Fristen im bestehenden Dashboard. Der iCal-Export erzeugt manuell exportierbare `.ics`-Dateien. Standard ist die Datenschutzstufe `process_type`: Kalendertermine zeigen den Prozesstyp wie „BEM-Wiedervorlage“ oder „Statusnachweis läuft ab“, aber keine Namen, Diagnosen, Personalnummern oder Fallnotizen.
+
 ## Unterstützte SBV-Prozesse
 
+- Personenverzeichnis mit Schutzstatus, Beschäftigungsstatus und Statusablaufprüfung
 - Fallakten für vertrauliche SBV-Vorgänge
 - Live-Protokolle und Gesprächsnotizen mit internen Aktenbezügen
-- BEM, Prävention, SBV-Beteiligung, Kündigungsanhörung, Gleichstellung/GdB und Arbeitsplatzgestaltung
-- Fristen und Wiedervorlagen
+- BEM, Prävention, SBV-Beteiligung, Kündigungsanhörung, Gleichstellung / GdB-Beratung und Arbeitsplatzgestaltung
+- Fristen, Wiedervorlagen und iCal-Export
 - Dokumentenimport in den lokalen Tresor
 - Vorlagen und strukturierte Schreiben
 - Berichte und System-/Integritätsberichte
 - Compliance-Dokumente wie TOMs, VVT, DSFA-Entwurf und Release-Checkliste
-- lokales Audit-Log mit Hash-Chain
+- lokales Audit-Log mit Hash-Chain ohne Direktidentifikatoren
 - Auto-Lock und Sicherheitsstatus
 
 ## Grenzen der Software
 
-Gremia.SBV ist ein Arbeitswerkzeug für die SBV. Die Anwendung bietet keine Rechtsberatung und trifft keine menschlichen oder organisatorischen Freigabeentscheidungen. Sie bewertet technische Zustände, unterstützt Dokumentation und macht Vorgänge nachvollziehbar – die rechtliche Bewertung und Interessenvertretungsentscheidung bleiben bei den zuständigen Menschen.
+Gremia.SBV bietet keine Rechtsberatung und trifft keine menschlichen oder organisatorischen Freigabeentscheidungen. Sie bewertet technische Zustände, unterstützt Dokumentation und macht Vorgänge nachvollziehbar – die rechtliche Bewertung und Interessenvertretungsentscheidung bleiben bei den zuständigen Menschen. Die App garantiert keine DSGVO-Konformität; sie liefert Bausteine für eine datenschutzbewusste lokale Arbeitsweise.
 
 ## Installation und Build
 
@@ -81,100 +100,27 @@ Nach `npm install` werden native Electron-Abhängigkeiten automatisch passend zu
 
 ```bash
 npm install
-```
-
-Der dafür verbindliche Vertrag in `package.json` lautet:
-
-```json
-"postinstall": "electron-builder install-app-deps"
-```
-
-Entwicklung:
-
-```bash
-npm run dev
-```
-
-Build:
-
-```bash
-npm run build
+npm run test
+npm run test:e2e
+npm run rc:check
 npm run build:linux
+```
+
+Für Windows:
+
+```bash
 npm run build:win
 ```
 
-## Tests und Qualitätssicherung
+Der Windows-Build ist als portable direkt startbare EXE vorgesehen; der Release-Upload soll nur `.exe`, `.AppImage` und `.dmg` veröffentlichen.
 
-```bash
-npm run test
-npm run rc:check
-npm run build:readiness:strict
-```
+## Release-Unterlagen
 
-E2E-Tests laufen ausschließlich mit isolierten temporären Testdaten:
-
-```bash
-npm run test:e2e:setup
-npm run test:e2e
-```
-
-## Dokumentation
-
-- `docs/BUILD.md`
-- `docs/E2E_TESTS.md`
-- `docs/RELEASE_CHECKLIST.md`
-- `docs/SECURITY.md`
-- `docs/ROADMAP.md`
-- `docs/KNOWN_ISSUES.md`
-- `docs/CHANGELOG.md`
-- `docs/RELEASE_NOTES_0.9.1.md`
-- `docs/LICENSE_POLICY.md`
+- Release-Checkliste: `docs/RELEASE_CHECKLIST.md`
+- Release Notes: `docs/RELEASE_NOTES_0.9.1.md`
+- Build-Dokumentation: `docs/BUILD.md`
+- Datenschutz- und Compliance-Dokumente: `docs/DSFA_SBV_TEMPLATE.md`, `docs/VERARBEITUNGSVERZEICHNIS_SBV.md`, `docs/DATENSCHUTZKONZEPT.md`, `docs/LOESCHKONZEPT_SBV.md`
 
 ## Lizenz
 
-Gremia.SBV steht unter der **GNU Affero General Public License v3.0 or later** (`AGPL-3.0-or-later`). Die Lizenz ist bewusst gewählt, damit die Software als freie SBV-first-Anwendung prüfbar, weiterentwickelbar und nicht ohne Rückgabe von Verbesserungen proprietär vereinnahmt werden kann.
-
-Weitere Hinweise stehen in `LICENSE`, `NOTICE` und `docs/LICENSE_POLICY.md`. Drittkomponenten bleiben unter ihren jeweiligen Upstream-Lizenzen.
-
-## Release-Status
-
-Gremia.SBV befindet sich mit `0.9.1` im Vor-1.0-RC-Zweig. 0.9.1 ergänzt das im RC aufgefallene Personenverzeichnis; danach werden bis 1.0 keine neuen Fachfunktionen mehr aufgenommen. Zulässig sind nur Bugfixes, Buildfixes, Security-Fixes, Datenverlust-/Migrationsfixes, offensichtliche UI-Bugs und Dokumentationskorrekturen.
-
-
-### RC-Fix 0.9.0-rc.1-p – Fallakte, Prävention und CSS-Baseline
-
-Dieser Patch härtet die Fallaktenarbeit vor Version 1.0:
-
-- Das Modal „Neue Fallakte anlegen“ nutzt kein starres 5-Spalten-Raster mehr, sondern ein responsives Auto-Fit-Grid mit Zwischen-Breakpoint für Tablet-/kleine Desktopbreiten.
-- Die Fallregister-Toolbar darf umbrechen; Suchfeld und Titel kollidieren dadurch nicht mehr auf schmalen Viewports.
-- Die CSS-Basis enthält nur noch eine führende `.case-workbench`-Definition; die widersprüchliche historische Definition mit `minmax(280px, 360px)` wurde entfernt.
-- Die Sidebar-Positionierung ist zwischen `globals.css` und `responsiveDesign.css` nicht mehr widersprüchlich dokumentiert; schmale Navigationen erhalten eine sichtbare Overflow-Andeutung.
-- Präventionsverfahren erzeugen aus der Arbeitgeber-Reaktionsfrist eine Wiedervorlage am Folgetag. Die Reaktionsfrist selbst wird als Erinnerung (`reminderAt`) an der Wiedervorlage dokumentiert.
-- Lange Textfelder im Präventionsdetail und in Maßnahmen werden lokal bearbeitet und erst beim Verlassen des Feldes gespeichert.
-
-Regressionstest: `npm run test:rc-fix-case-prevention-css-090rc1d`.
-
-### RC-Fix 0.9.0-rc.1-p – Kurzbefehle in großen Textfeldern
-
-Dieser Patch korrigiert die Textbefehls-Strategie aus `0.9.0-rc.1-p`:
-
-- Kurzbefehle bleiben in den großen Fallakten- und Präventionstextfeldern aktiv.
-- Die Performance wird nicht durch Abschalten der Funktion erreicht; der Inline-Kommando-Scan bleibt fachlich unverändert aktiv.
-- Die Präventions- und Maßnahmen-Textfelder persistieren lange Texte erst bei `onBlur`, nicht pro Tastendruck.
-- Die großen Protokollfelder der Fallnotiz verwenden weiterhin die globalen Textbefehle.
-
-Regressionstest: `npm run test:rc-fix-case-prevention-css-090rc1e`.
-
-### RC-Fix 0.9.0-rc.1-p – Maßnahmenfelder mit Lost-Focus-Speicherung
-
-Textfelder und TextAreas in fallaktenbezogenen Maßnahmen speichern ihre Inhalte nicht mehr bei jedem Tastendruck, sondern erst beim Verlassen des Feldes. Die bestehende Inline-Kommando-Erkennung bleibt unverändert aktiv.
-### RC-Fix 0.9.0-rc.1-p – Windows wieder portable EXE
-
-Der Windows-Build erzeugt wieder eine direkt startbare portable EXE statt eines NSIS-Installers. Die Release-Hygiene bleibt erhalten: GitHub lädt weiterhin nur die drei Endanwender-Artefakte `.AppImage`, `.dmg` und `.exe` hoch.
-
-
-## 0.9.1: Personenverzeichnis und Import
-
-Gremia.SBV 0.9.1 ergänzt vor dem 1.0-Freeze ein datensparsames Personenverzeichnis für schwerbehinderte und gleichgestellte Beschäftigte. Der genaue GdB wird nicht als Standardfeld gespeichert; entscheidend ist der Schutzstatus. Arbeitgeberlisten können aus CSV/XLSX über einen kompakten Import-Assistenten importiert werden: Datei oder CSV auswählen, Vorschau prüfen, echte Spalten den Zielfeldern zuordnen, Importprüfung bestätigen. Die Personalnummer ist optional, und Namen können getrennt oder in einer gemeinsamen Spalte stehen, auch im Format `Nachname, Vorname`.
-
-Statusabläufe erzeugen 30-Tage-Warnungen im bestehenden Fristensystem. Nach Ablauf wird eine Datenschutzprüfung erforderlich; strukturierte Anonymisierung entfernt direkte Identifikatoren und markiert verknüpfte Fallakten zur Prüfung. Fristen können manuell als iCal exportiert werden; der Standardexport enthält keine Namen, Diagnosen oder Fallinhalte.
+Gremia.SBV steht unter **AGPL-3.0-or-later**. Die Lizenz ersetzt keine datenschutzrechtliche Freigabe und keine organisatorische Prüfung vor produktiver Nutzung.

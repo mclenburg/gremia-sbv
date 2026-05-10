@@ -1,19 +1,22 @@
 # Dokumentation
 
-Diese Dokumentation ist ab 0.8.8-d auf dauerhafte Projektunterlagen ausgerichtet. Historische Patch- und Buildfix-Notizen wurden aus dem aktiven Dokumentationsbestand entfernt und durch zusammenfassende Dokumente ersetzt.
+Stand: **0.9.1**
 
-## Zentrale Dokumente
+Diese Dokumentation ist der aktive, dauerhafte Dokumentationsbestand von Gremia.SBV. Historische Patch- und Buildfix-Notizen werden nicht mehr als Einzeldateien gepflegt, sondern im `CHANGELOG.md` zusammengefasst. Obsolete RC-Release-Notes werden durch `npm run source:cleanup` beziehungsweise `npm run cleanup:obsolete-release-notes` entfernt.
+
+## Einstieg
 
 | Datei | Zweck |
 | --- | --- |
+| `../README.md` | öffentlicher Projekteinstieg |
 | `ARCHITECTURE.md` | Architektur, Datenfluss und Modulgrenzen |
-| `DEVELOPMENT.md` | Entwicklung, Tests, Build und Source-Cleanup |
-| `RELEASE_CHECKLIST.md` | Abnahme vor `0.9.1` |
+| `DEVELOPMENT.md` | Entwicklung, Tests, Build und Clean-Code-Regeln |
+| `RELEASE_CHECKLIST.md` | Abnahme vor `0.9.1` / 1.0-Freeze |
 | `BUILD.md` | Build, Plattformmatrix und GitHub-Release-Workflow |
 | `CHANGELOG.md` | zusammengefasste Entwicklungshistorie |
-| `ROADMAP.md` | Versionspfad bis RC und spätere 1.x-Themen |
+| `ROADMAP.md` | Versionspfad bis 1.0 und spätere 1.x-Themen |
 | `KNOWN_ISSUES.md` | bekannte Einschränkungen für RC-Abnahme und Release Notes |
-| `RELEASE_NOTES_0.9.1.md` | Release Notes zur Vor-1.0-Ergänzung Personenverzeichnis |
+| `RELEASE_NOTES_0.9.1.md` | Release Notes zur aktuellen Vor-1.0-Ergänzung |
 
 ## Datenschutz und Compliance
 
@@ -24,7 +27,7 @@ Diese Dokumentation ist ab 0.8.8-d auf dauerhafte Projektunterlagen ausgerichtet
 | `DSGVO_SBV.md` | DSGVO-/SBV-spezifische Hinweise |
 | `DSFA_SBV_TEMPLATE.md` | Vorlage für Datenschutz-Folgenabschätzung |
 | `VERARBEITUNGSVERZEICHNIS_SBV.md` | VVT-Grundlage |
-| `LOESCHKONZEPT_SBV.md` | Aufbewahrung und Löschung |
+| `LOESCHKONZEPT_SBV.md` | Aufbewahrung, Löschung und Anonymisierung |
 | `BACKUP_RESTORE.md` | Sicherung und Wiederherstellung |
 
 ## Betrieb und Build
@@ -44,7 +47,7 @@ Diese Dokumentation ist ab 0.8.8-d auf dauerhafte Projektunterlagen ausgerichtet
 | Datei | Zweck |
 | --- | --- |
 | `PROCESS_MODULES.md` | Prozessmodule, Maßnahmenlogik und Fallaktenbezug |
-| `CASE_PROCESS_WORKFLOW.md` | Fallakten-Workflow |
+| `CASE_PROCESS_WORKFLOW.md` | Fallakten-Workflow, Personenbindung und anonyme Anfrage |
 | `INLINE_TEXT_COMMANDS.md` | Inline-Kurzbefehle |
 | `TEMPLATES_MODULE.md` | Vorlagenmodul |
 | `KNOWLEDGE_BASE.md` | Wissensbasis |
@@ -52,4 +55,4 @@ Diese Dokumentation ist ab 0.8.8-d auf dauerhafte Projektunterlagen ausgerichtet
 
 ## Regel
 
-Neue Dokumentation soll dauerhaft verwendbar sein. Kurzlebige Patchnotizen, historische Buildfix-Protokolle und temporäre Hotfix-Dokumente gehören nicht mehr in den aktiven Dokumentationsbestand, sondern nur noch zusammengefasst in `CHANGELOG.md`. Die Root-README und diese Übersicht bleiben die öffentlichen Einstiegspunkte; Detailthemen werden nur behalten, wenn sie für Betrieb, Datenschutz, Security, Migration, Entwicklung oder RC-Abnahme dauerhaft erforderlich sind.
+Neue Dokumentation soll dauerhaft verwendbar sein. Kurzlebige Patchnotizen, historische Buildfix-Protokolle und temporäre Hotfix-Dokumente gehören nicht in den aktiven Dokumentationsbestand. Detailthemen werden nur behalten, wenn sie für Betrieb, Datenschutz, Security, Migration, Entwicklung oder RC-Abnahme dauerhaft erforderlich sind.

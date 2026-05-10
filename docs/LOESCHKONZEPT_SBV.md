@@ -1,6 +1,6 @@
 # Lösch- und Anonymisierungskonzept – Gremia.SBV
 
-Stand: 0.4.58
+Stand: **0.9.1**
 
 ## 1. Grundsatz
 
@@ -17,7 +17,18 @@ Automatische Hard Deletes ohne dokumentierte Prüfung sind zu vermeiden.
 | Hard Delete | endgültige Löschung aus aktiver Datenbank |
 | Backup-Ablauf | Löschung über Backup-Rotation |
 
-## 3. Falltypbezogene Vorschlagsfristen
+## 3. Trigger für Lösch-/Anonymisierungsprüfung
+
+- Schutzstatus abgelaufen,
+- Beschäftigung beendet,
+- Person wird anonymisiert,
+- Person wird gelöscht,
+- Fall abgeschlossen,
+- Zweckfortfall,
+- Export- oder Übergabedatei abgelaufen,
+- Altfall ohne Personenbindung.
+
+## 4. Falltypbezogene Vorschlagsfristen
 
 Diese Fristen sind Vorschläge für die App und ersetzen keine rechtliche Prüfung.
 
@@ -31,10 +42,10 @@ Diese Fristen sind Vorschläge für die App und ersetzen keine rechtliche Prüfu
 | Arbeitsplatzanpassung | Abschluss + 3 bis 6 Jahre |
 | Konflikt / Diskriminierung | Abschluss + 3 bis 6 Jahre |
 | Exportdateien | sofortige Prüfung, spätestens 24 bis 90 Tage |
-| Audit-Logs | 12 bis 36 Monate |
+| Audit-Logs | 12 bis 36 Monate, ohne Direktidentifikatoren |
 | Backups | rotierend, verschlüsselt, mit Ablaufdatum |
 
-## 4. Löschprüfung
+## 5. Löschprüfung
 
 Vor Löschung ist zu prüfen:
 
@@ -46,23 +57,24 @@ Vor Löschung ist zu prüfen:
 - Sind Dokumente separat zu löschen?
 - Sind Backups betroffen?
 - Muss ein Löschprotokoll erstellt werden?
+- Keine BR-Fristen übernehmen.
 
-## 5. Löschprotokoll
+## 6. Löschprotokoll
 
 Ein Löschprotokoll soll enthalten:
 
-- Fall-ID,
-- Aktenzeichen,
+- Fall-ID oder pseudonymisierte Entitäts-ID,
+- Aktenzeichen nur wenn nicht identifizierend,
 - Löschart,
 - Löschgrund,
 - Rechtsgrundlage,
 - betroffene Datenarten,
-- durchführende Person,
+- durchführende Person/Rolle,
 - Zeitpunkt,
 - Hinweis auf Backup-Rotation,
 - Ergebnis der Prüfung.
 
-## 6. Anonymisierung
+## 7. Anonymisierung
 
 Anonymisierung ist vorzuziehen, wenn statistische, organisatorische oder Tätigkeitsbericht-Zwecke erhalten bleiben sollen.
 
@@ -76,17 +88,16 @@ Zu anonymisieren sind insbesondere:
 - Dokumentnamen,
 - Freitextstellen mit Rückschluss auf Person.
 
-## 7. Export- und Übergabedateien
+Freitexte werden nicht automatisch vollständig anonymisiert. Sie werden als prüfpflichtig markiert.
 
-Übergabe- und Exportdateien sind besonders kritisch. Sie sollen enthalten:
+## 8. Personenbindung
 
-- Exportgrund,
-- Empfänger,
-- Ablaufdatum,
-- Verschlüsselung,
-- Auswahlumfang,
-- Hinweis auf Löschung nach Zweckende.
+Wenn eine Person anonymisiert oder gelöscht wird, müssen verbundene Fallakten und Maßnahmen mitgeführt werden:
 
-## 8. Keine BR-Fristen übernehmen
+- Fallakte anonymisieren,
+- Fallakte löschen,
+- oder Fortspeicherung mit Grund und Prüftermin dokumentieren.
 
-BR-Wahlunterlagen, BR-Sitzungsprotokolle und BR-Mitgliedschaftsdaten haben eigene Aufbewahrungskontexte. Diese dürfen nicht als Standard für SBV-Fallakten übernommen werden.
+## 9. Export- und Übergabedateien
+
+Export- und Übergabedateien sind außerhalb der Datenbank besonders risikobehaftet. Sie sollen Ablaufdaten, bewusste Freigabe und ExportGuard-Prüfung erhalten.

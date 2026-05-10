@@ -1,57 +1,21 @@
-# Datenbankschutz / SQLCipher
+# Datenbankverschlüsselung
 
-Gremia.SBV schützt den Datenbestand nicht nur über eine UI-Sperre. Der produktive Datenbestand liegt in einer SQLCipher-verschlüsselten Datenbank:
+Stand: **0.9.1**
 
-```text
-data/gremia-sbv.vault.sqlite
-```
+## Grundsatz
 
-## Sicherheitsprinzip
+Die lokale Datenbank wird SQLCipher-kompatibel verschlüsselt. Das schützt den Ruhezustand der Datenbankdatei und ist die zentrale technische Maßnahme für die lokale Offline-Nutzung.
 
-Beim ersten Einrichten wird ein zufälliger 256-Bit-Datenbankschlüssel erzeugt. Dieser Schlüssel verschlüsselt die SQLCipher-Datenbank. Das Nutzerpasswort wird nicht als Datenbankschlüssel gespeichert und auch nicht direkt als Datenbankschlüssel verwendet.
+## Personenverzeichnis
 
-Stattdessen gilt:
+Namen im Personenverzeichnis sind direkte Identifikatoren für einen Schutzstatus. Sie bleiben in 0.9.1 innerhalb der SQLCipher-Datenbank, werden aber nicht zusätzlich feldverschlüsselt. Diese Entscheidung wird begründet mit:
 
-```text
-Passwort
-  -> scrypt-Key-Derivation
-  -> Schlüssel zum Entpacken des Datenbankschlüssels
-  -> SQLCipher öffnet die Datenbank
-```
+- erforderlicher Suchbarkeit,
+- Importabgleich,
+- Dublettenprüfung,
+- Datenqualität,
+- begrenztem Zusatznutzen zusätzlicher Feldverschlüsselung bei lokal verschlüsselter Datenbank.
 
-Für den Recovery-Key gilt dasselbe Prinzip. Der Recovery-Key ist kein Klartextpasswort, sondern kann den Datenbankschlüssel neu verpacken, damit ein neues Passwort gesetzt werden kann.
+## Freitexte und Dokumente
 
-## Warum Kopieren der DB-Datei nicht reicht
-
-Wer nur diese Datei kopiert:
-
-```text
-data/gremia-sbv.vault.sqlite
-```
-
-kann sie in einer neuen Umgebung nicht öffnen. Es fehlt der Datenbankschlüssel. Auch das Löschen von `security.json` erzeugt keinen neuen Zugriff, sondern führt in den Recovery-Modus.
-
-## Wichtige Dateien
-
-```text
-data/gremia-sbv.vault.sqlite   # verschlüsselte SQLCipher-Datenbank
-data/security.json             # Passwortprüfwert + verschlüsselter Datenbankschlüssel
-data/vault-manifest.json       # Tresor-Metadaten + Recovery-Verpackung des Datenbankschlüssels
-```
-
-`security.json` und `vault-manifest.json` enthalten keinen unverschlüsselten Datenbankschlüssel.
-
-## Passwortänderung
-
-Beim Passwortwechsel wird die Datenbank nicht neu verschlüsselt. Stattdessen wird der zufällige Datenbankschlüssel mit dem neuen Passwort neu verpackt. Dadurch bleibt ein Passwortwechsel schnell und risikoarm.
-
-## Recovery
-
-Wenn `security.json` fehlt, aber Manifest oder Datenbank vorhanden sind, erlaubt Gremia.SBV kein neues Initialpasswort. Stattdessen ist nur möglich:
-
-1. Recovery-Key eingeben und neues Passwort setzen.
-2. Oder bewusst den gesamten Datenbestand löschen.
-
-## Entwicklungsdatenbanken
-
-Ältere Dateien wie `data/gremia-sbv.dev.sqlite` waren reine Entwicklungsartefakte. Produktiv ist ausschließlich `gremia-sbv.vault.sqlite` relevant.
+Freitexte und Dokumente mit Gesundheitsbezug unterliegen den bestehenden Schutz-, Export- und Löschregeln. Dokumentinhalte werden nicht unverschlüsselt im Dateisystem abgelegt.

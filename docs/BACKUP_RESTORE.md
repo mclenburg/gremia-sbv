@@ -1,36 +1,20 @@
-# Backup & Wiederherstellung
+# Backup und Wiederherstellung
 
-Gremia.SBV erzeugt vollständige Backups als verschlüsselte `.gsbvbackup`-Datei.
+Stand: **0.9.1**
 
-## Enthaltene Daten
+## Grundsatz
 
-Das Backup enthält den vollständigen produktiven Datenbestand aus dem aktuellen Datenverzeichnis:
+Backups enthalten besonders sensible SBV-Daten einschließlich Personenverzeichnis, Fallakten, Dokumenten, Fristen und Audit-Metadaten. Sie sind genauso zu schützen wie die aktive Datenbank.
 
-- `gremia-sbv.vault.sqlite`
-- `security.json`
-- `vault-manifest.json`
-- `documents/`
-- `exports/`
-- weitere produktive Metadaten
+## Anforderungen
 
-Nicht gesichert werden temporäre Arbeitskopien unter `tmp/` und vorhandene Backups unter `backups/`.
+- verschlüsselte Backups,
+- Integritätsprüfung,
+- klarer Speicherort,
+- keine Cloud-Synchronisation als Standard,
+- Backup-Rotation,
+- Wiederherstellungstest vor produktiver Nutzung.
 
-## Verschlüsselung
+## Personenverzeichnis
 
-Das Backup wird zusätzlich zur SQLCipher-Datenbankverschlüsselung mit AES-256-GCM verschlüsselt. Der Schlüssel wird aus der Backup-Passphrase per `scrypt` abgeleitet.
-
-Wichtig: Die Backup-Passphrase ist nicht automatisch identisch mit dem App-Passwort. Sie muss sicher aufbewahrt werden.
-
-## Wiederherstellung
-
-Die Wiederherstellung ersetzt den aktuellen Datenbestand. Vor dem Überschreiben verschiebt die App den bestehenden Datenordner in einen Sicherheitsordner:
-
-```text
-data.before-restore.<Zeitstempel>
-```
-
-Nach erfolgreicher Wiederherstellung muss Gremia.SBV vollständig neu gestartet werden.
-
-## Integritätsprüfung
-
-Vor einer Wiederherstellung wird das Backup entschlüsselt, dekomprimiert und jede enthaltene Datei anhand ihrer SHA-256-Prüfsumme geprüft. Fehlen Pflichtdateien oder stimmen Prüfsummen nicht, wird die Wiederherstellung verweigert.
+Backups können Schutzstatus und Beschäftigungsstatus enthalten. Wenn Daten in der aktiven Datenbank gelöscht oder anonymisiert wurden, können alte Backups diese Daten noch bis zum Ablauf der Backup-Rotation enthalten. Das ist organisatorisch zu dokumentieren.

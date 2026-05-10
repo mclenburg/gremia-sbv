@@ -1,54 +1,59 @@
 # Roadmap Gremia.SBV
 
 Stand: **0.9.1**  
-Status: Vor-1.0-Ergänzung. `0.9.1` ergänzt das im RC aufgefallene Personenverzeichnis; danach gilt Feature-Freeze bis 1.0.
+Status: Vor-1.0-Ergänzung. `0.9.1` ergänzt das im RC aufgefallene Personenverzeichnis und den Datenschutz-Lifecycle; danach gilt Feature-Freeze bis 1.0.
 
 ## Aktueller Stand
 
-Gremia.SBV ist eine lokale, offline-first Electron-/React-/Node.js-App für vertrauliche SBV-Fallarbeit. Der aktuelle Schwerpunkt liegt nicht mehr auf neuen Großmodulen, sondern auf Security, Datenschutz, Accessibility, Wartbarkeit und Release-Readiness.
+Gremia.SBV ist eine lokale, offline-first Electron-/React-/Node.js-App für vertrauliche SBV-Fallarbeit. Der Schwerpunkt liegt auf Security, Datenschutz, Accessibility, Wartbarkeit und Release-Readiness.
 
-Abgeschlossen sind unter anderem:
+Abgeschlossen beziehungsweise im 0.9.1-Stand enthalten sind:
 
 - verschlüsselte lokale Fallaktenarbeit,
+- Personenverzeichnis für schwerbehinderte und gleichgestellte Beschäftigte,
 - BEM-, Präventions-, Beteiligungs-, Kündigungs-, Gleichstellungs-/GdB- und Arbeitsplatzgestaltungsprozesse,
-- Fristen und Wiedervorlagen,
+- Fristen und Wiedervorlagen inklusive iCal-Export,
 - Vorlagen, Dokumente, Reports und Compliance-Dokumente,
-- Audit-Hash-Chain, Auto-Lock, Backup/Restore und Export-Guards,
-- Security-Hardening mit Unlock-Delay und aktuellem Backup-KDF,
+- Audit-Hash-Chain ohne Direktidentifikatoren als Zielzustand,
+- Auto-Lock, Backup/Restore und Export-Guards,
 - strukturelle Entkernung von `workflowViews.tsx`,
-- Dashboard- und Settings-Module außerhalb des Fallaktenbereichs,
-- lebende Protokollverknüpfungen für die RC-kritischen Fallaktenbefehle `/bem`, `/praev`, `/bet`, `/kuend`, `/gleich`, `/anp` und `/fr`,
-- Service-Coverage-Gate mit V8-Provider und 70-Prozent-Schwellen,
+- lebende Protokollverknüpfungen für `/bem`, `/praev`, `/bet`, `/kuend`, `/gleich`, `/anp` und `/fr`,
 - GitHub-Release-Build für Linux, Windows und unsigniertes macOS.
 
 ## Vor RC1 offen
 
-Keine offenen Fachfeatures. Dieser Strukturabschnitt bleibt bewusst erhalten, damit der historische Roadmap-Guard stabil bleibt. Vor Veröffentlichung des Draft-Releases sind nur noch Release-Gate-Prüfungen, Doku-Korrekturen und RC-blockierende Fehlerkorrekturen zulässig.
+Keine offenen Fachfeatures im Sinne neuer Großmodule. Vor 1.0 sind nur noch releasekritische Korrekturen zulässig:
+
+- Personenbindung der Fallakte sauber migrieren,
+- anonyme Beratungsanfrage ohne Direktidentifikatoren absichern,
+- Audit-Log ohne Direktidentifikatoren härten,
+- Compliance Center auf Personenverzeichnis, DSFA/TOM/VVT und Art. 15 vorbereiten,
+- bestehende Tests von veralteten Strukturannahmen bereinigen.
 
 ## RC1-Status
 
-### 0.9.0-rc.1-p – Release Candidate
+### 0.9.1 – Vor-1.0-Ergänzung
 
-- Versionssprung auf `0.9.0-rc.1-p` abgeschlossen.
-- Release Notes erstellt.
-- Known Issues finalisiert.
-- Freeze-Regel dokumentiert.
-- Keine neuen Features und keine größeren Refactorings nach RC1.
+- Personenverzeichnis, Import-Assistent, Statusablaufwarnungen und Datenschutz-Lifecycle werden vor 1.0 ergänzt, weil sie im RC als fehlender Grundbaustein auffielen.
+- Kein GdB-Standardfeld, keine Diagnosen.
+- Personalnummer optional.
+- Freie Fallakten ohne Person werden perspektivisch durch Personenauswahl oder anonyme Anfrage ersetzt.
 
 ## Nach RC1
 
 - Fehlerkorrekturen aus Test, Review und Pilotnutzung.
 - Dokumentationskorrekturen ohne Funktionsausweitung.
-- Sicherheits- und Datenverlust-Fixes mit Hotfix-Versionen.
+- Security-Fixes und Datenverlust-/Migrationsfixes.
+- Stabilisierung von Barrierefreiheit, Responsivität und Cross-Platform-Builds.
 
 ## Später / 1.x
 
-- Weitere Auswertungen nur datensparsam und ohne technische UUIDs in Reports.
+- Vollständiger Art.-15-Auskunftsexport.
+- Erweiterte Auswertungen nur datensparsam und ohne technische UUIDs in Reports.
 - Weitere technische Modularisierung großer Services und Inlinecommand-Module.
-- Keine Cloud-, Sync- oder Mehrbenutzerfunktionen.
+- Keine Cloud-, Sync- oder Mehrbenutzerfunktionen ohne neue Architektur- und Datenschutzentscheidung.
 
 ## Historisch abgeschlossen
-
 
 ### 0.2 Prozessfundament: historisch abgeschlossen
 
@@ -62,54 +67,24 @@ Keine offenen Fachfeatures. Dieser Strukturabschnitt bleibt bewusst erhalten, da
 
 - `workflowViews.tsx` ist nur noch Import-/Re-Export-Orchestrierung.
 - Die Fallaktenansicht liegt unter `src/app/features/cases/`.
-- Es gab keine Schemaänderung und keine neue fachliche UI-Logik.
 
 ### 0.8.12 – Lebende Protokollverknüpfungen
 
 - Die lebenden Protokollverknüpfungen als MVP in 0.8.12 haben das generische Fundament für persistente Aktenbezüge gelegt.
-- Persistente Linkmetadaten liegen in `case_note_links`.
-- Bestehende Notizen ohne Links bleiben normaler Text.
-- Notizlinks nutzen fachliche Labels; technische Ziel-IDs bleiben interne Routingdaten.
-- Fehlende Zielobjekte werden deaktiviert angezeigt.
-- In 0.8.13 wurde die RC-kritische Linkabdeckung auf `/bem`, `/praev`, `/bet`, `/kuend`, `/gleich`, `/anp` und `/fr` vervollständigt.
 
 ### 0.8.13 – RC-Härtung
 
-- Build-/Test-/E2E-Matrix finalisiert.
-- Migrations-Smoke, Security-/Datenschutz-Readiness, responsive E2E-Readiness und Accessibility-Readiness ergänzt.
-- README als öffentliche Projektstartseite für SBVen überarbeitet.
-- Sicherheitsdokumentation von Frühphasen-Placeholdern bereinigt.
-- Service-Coverage-Gate mit V8-Provider und 70-Prozent-Schwellen ergänzt.
-- Echte Behavior-Tests für sicherheits- und rechtskritische Services ergänzt.
-- GitHub-Release-Build für Linux, Windows und unsigniertes macOS ergänzt.
-
-Frühere Planpunkte aus 0.2 und 0.3 sind nicht mehr als offene Checkliste zu führen. Sie sind entweder umgesetzt, durch spätere Architekturentscheidungen ersetzt oder in die RC-Roadmap oben überführt.
-
+- In 0.8.13 wurde die RC-kritische Linkabdeckung auf `/bem`, `/praev`, `/bet`, `/kuend`, `/gleich`, `/anp` und `/fr` vervollständigt.
 
 ### 0.9.0-rc.1-p – RC-Coverage-Scope und Service-Behavior-Tests
 
-- V8-Coverage-Gate auf RC-kritische, unit-testbare Service-Verträge begrenzt.
 - Zusätzliche verhaltensprüfende Tests für Tätigkeitsbericht, Prozessfähigkeiten, Gleichstellung/GdB-Guidance und Kündigungs-Privacy ergänzt.
-- Breite datenbankgebundene Adapterservices bleiben Post-RC-Thema für modulare Refactorings und Integrationstests.
-
 
 ### 0.9.0-rc.1-p – erster Release Candidate
 
-- Release Candidate eingefroren.
-- Version, Changelog, Known Issues, Release Notes und Release-Checkliste auf `0.9.0-rc.1-p` gezogen.
-- Nach RC1 gilt Feature-Freeze: zulässig sind nur Bugfixes, Buildfixes, Security-Fixes, Datenverlust-/Migrationsfixes, offensichtliche UI-Bugs und Dokumentationskorrekturen.
+- Version, Changelog, Known Issues, Release Notes und Release-Checkliste auf den RC-Stand gezogen.
+- Release-Artefakte auf `.exe`, `.AppImage` und `.dmg` begrenzt.
 
-## RC-Freeze-Regel 0.9.0-rc.1-p
+## RC-Freeze-Regel 0.9.1
 
-Nach RC1 gilt weiterhin Feature-Freeze: zulässig sind Bugfixes, Buildfixes, Security-Fixes, Datenverlust-/Migrationsfixes, offensichtliche UI-Bugs und Dokumentationskorrekturen. Es gibt keine neuen Fachfeatures, keine Cloud-Synchronisation und keine Lizenzänderung weg von AGPL-3.0-or-later.
-
-## 0.9.1 – Personenverzeichnis vor 1.0
-
-- Personenverzeichnis als releasekritischer RC-Fund.
-- Import aus CSV/XLSX mit Spaltenmapping; Personalnummer optional; Vollnamen-Spalten unterstützt.
-- Kein GdB-Standardfeld, keine Diagnosen.
-- Beschäftigungsende und Statusablauf als Datenschutz-Lifecycle.
-- 30-Tage-Warnung über bestehendes Fristensystem.
-- iCal-Export nur manuell und datenschutzfreundlich.
-
-Nach 0.9.1 folgt der 1.0-Freeze: Security-Fixes, Datenverlust-Risiken, Dokumentationskorrekturen, keine neuen Fachfeatures, keine Cloud-Synchronisation, AGPL-3.0-or-later.
+Nach Abschluss der 0.9.1-Korrekturen gilt: keine neuen Fachfeatures, keine Cloud-Synchronisation, keine Lizenzänderung weg von AGPL-3.0-or-later. Zulässig bleiben Security-Fixes, Datenverlust-/Migrationsfixes, Buildfixes, Testfixes, Dokumentationskorrekturen und offensichtliche UI-Bugs ohne neue Fachlogik.

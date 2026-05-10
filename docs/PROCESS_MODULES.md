@@ -1,43 +1,30 @@
-# Prozessmodule
+# Prozessmodule und Maßnahmenlogik
 
-## BEM
+Stand: **0.9.1**
 
-Das BEM-Modul bildet einen eigenständigen Prozess ab. Es ist bewusst nicht nur eine Fallkategorie, weil BEM typischerweise mehrere Phasen, Beteiligte, Zustimmungslagen, Maßnahmen und Evaluationsschritte enthält.
+## Grundsatz
 
-Phasen:
+Prozessmodule schreiben die Fallakte fort. Sie ersetzen keine rechtliche Bewertung und keine menschliche Entscheidung der SBV.
 
-1. Prüfung
-2. Einladung
-3. Zustimmung
-4. Erstgespräch
-5. Klärung
-6. Maßnahmen
-7. Evaluation
-8. Abschluss
+## Module
 
-## Gleichstellung
+- BEM,
+- Prävention,
+- Beteiligung,
+- Kündigung,
+- Gleichstellung / GdB-Beratung,
+- Arbeitsplatzgestaltung,
+- Fristen und Wiedervorlagen,
+- Personenverzeichnis und Schutzstatus.
 
-Gleichstellungsanträge werden als eigener Prozess-Typ geführt, weil Fristen, Nachweise und Bescheide häufig separat zu überwachen sind.
+## Personenbezug
 
-Typischer Ablauf:
+Reguläre Prozessmaßnahmen gehören über die Fallakte zu genau einer Person. Bei anonymer Anfrage ist nur ein pseudonymer Personenstamm zulässig. Maßnahmen dürfen keinen parallelen Personenbezug speichern, wenn der Bezug über `CaseFile → ProtectedPerson` ableitbar ist.
 
-1. Beratung
-2. Vorbereitung
-3. Einreichung
-4. Nachfrage / Unterlagen
-5. Bescheid
-6. ggf. Widerspruch
-7. Abschluss
+## Speicherung großer Textfelder
 
-## Kündigungsanhörung
+Große Textfelder und Textareas in Maßnahmen speichern auf Lost Focus. Inline-Kommandos bleiben aktiv und nutzen die bestehende Kommandoerkennung.
 
-Kündigungsanhörungen werden als kritischer Workflow geführt. Die App soll besonders deutlich prüfen:
+## Datenschutz-Lifecycle
 
-- Eingang der vollständigen Arbeitgeberinformation
-- SBV-Beteiligung
-- BR-Beteiligung
-- Zustimmung des Integrationsamts nach schwerbehindertenrechtlichem Kündigungsschutz
-- Stellungnahmefrist
-- Versand und Archivierung der SBV-Stellungnahme
-
-Die Software ersetzt keine Rechtsberatung, soll aber verhindern, dass formale Prüfpunkte übersehen werden.
+Statusablauf, Beschäftigungsende, Anonymisierung oder Löschung der Person markieren verbundene Maßnahmen zur Datenschutzprüfung. Freitexte werden nicht automatisch anonymisiert.
