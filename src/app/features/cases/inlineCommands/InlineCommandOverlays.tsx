@@ -647,7 +647,7 @@ export function InlineCommandOverlays(props: InlineCommandOverlaysProps) {
       {inlineAnonymizationDraft && (
         <div className="industrial-modal-backdrop" role="presentation">
           <section
-            className="industrial-modal"
+            className="industrial-modal inline-anonymization-modal"
             role="dialog"
             aria-modal="true"
             aria-labelledby="inline-anon-title"

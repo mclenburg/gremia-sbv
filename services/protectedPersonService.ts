@@ -3,6 +3,7 @@ import type { DatabaseAdapter } from './databaseService.js';
 import { DeadlineService } from './deadlineService.js';
 import { PersonCaseLinkService } from './personCaseLinkService.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
+import { assertPersonPrivacyReason, decideStructuredPersonAnonymization } from './personAnonymizationPolicy.js';
 import type {
   CreateProtectedPersonInput,
   PersonCaseLinkRecord,
@@ -22,18 +23,34 @@ function normalizeOptional(value: unknown): string | null {
   return text.length ? text : null;
 }
 
+function isPastOrTodayDate(value: string | null | undefined): boolean {
+  if (!value) return false;
+  const dateOnly = value.slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateOnly)) return false;
+  const today = new Date().toISOString().slice(0, 10);
+  return dateOnly <= today;
+}
+
+function resolveEmploymentState(requested: unknown, leftCompanyAt: string | null | undefined): ProtectedPersonRecord['employmentState'] {
+  if (requested === 'unknown') return 'unknown';
+  if (requested === 'left_company') return isPastOrTodayDate(leftCompanyAt) ? 'left_company' : 'active_employee';
+  return isPastOrTodayDate(leftCompanyAt) ? 'left_company' : 'active_employee';
+}
+
 function mapPerson(row: any): ProtectedPersonRecord {
   return {
     id: row.id,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
-    firstName: row.first_name,
-    lastName: row.last_name,
+    recordKind: row.record_kind ?? 'identified_person',
+    firstName: row.first_name ?? '',
+    lastName: row.last_name ?? '',
+    pseudonymLabel: row.pseudonym_label ?? undefined,
     personnelNumber: row.personnel_number ?? undefined,
     workEmail: row.work_email ?? undefined,
     organizationalUnit: row.organizational_unit ?? undefined,
     location: row.location ?? undefined,
-    employmentState: row.employment_state ?? 'active_employee',
+    employmentState: resolveEmploymentState(row.employment_state, row.left_company_at),
     leftCompanyAt: row.left_company_at ?? undefined,
     leftCompanyReason: row.left_company_reason ?? undefined,
     protectionStatus: row.protection_status ?? 'unclear',
@@ -100,29 +117,34 @@ export class ProtectedPersonService {
   }
 
   create(input: CreateProtectedPersonInput): ProtectedPersonRecord {
-    const firstName = normalizeOptional(input.firstName);
-    const lastName = normalizeOptional(input.lastName);
-    if (!firstName || !lastName) throw new Error('Vor- und Nachname sind Pflichtfelder.');
+    const recordKind = input.recordKind ?? 'identified_person';
+    const firstName = normalizeOptional(input.firstName) ?? '';
+    const lastName = normalizeOptional(input.lastName) ?? '';
+    const pseudonymLabel = normalizeOptional(input.pseudonymLabel);
+    if (recordKind === 'identified_person' && (!firstName || !lastName)) throw new Error('Vor- und Nachname sind Pflichtfelder.');
+    if (recordKind === 'pseudonymous_request' && (input.personnelNumber || input.workEmail || input.organizationalUnit || input.location)) throw new Error('Anonyme Anfragen dürfen keine Direktidentifikatoren enthalten.');
     const id = randomUUID();
     const timestamp = nowIso();
     this.db.prepare(`
       INSERT INTO protected_persons (
-        id, created_at, updated_at, first_name, last_name, personnel_number, work_email,
+        id, created_at, updated_at, record_kind, pseudonym_label, first_name, last_name, personnel_number, work_email,
         organizational_unit, location, employment_state, left_company_at, left_company_reason,
         protection_status, status_valid_from, status_valid_until, evidence_checked_at, status_source,
         lifecycle_state, notes
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       id,
       timestamp,
       timestamp,
+      recordKind,
+      pseudonymLabel,
       firstName,
       lastName,
       normalizeOptional(input.personnelNumber),
       normalizeOptional(input.workEmail),
       normalizeOptional(input.organizationalUnit),
       normalizeOptional(input.location),
-      input.employmentState ?? 'active_employee',
+      resolveEmploymentState(input.employmentState, normalizeOptional(input.leftCompanyAt)),
       normalizeOptional(input.leftCompanyAt),
       normalizeOptional(input.leftCompanyReason),
       input.protectionStatus,
@@ -133,7 +155,7 @@ export class ProtectedPersonService {
       'active',
       normalizeOptional(input.notes)
     );
-    this.audit('create', id, 'Personenverzeichnis: geschützte Person angelegt', { source: input.statusSource ?? 'manual', hasPersonnelNumber: Boolean(input.personnelNumber) });
+    this.audit('create', id, 'Personenverzeichnis: geschützte Person angelegt', { source: input.statusSource ?? 'manual', recordKind, hasPersonnelNumber: Boolean(input.personnelNumber) });
     return this.get(id)!;
   }
 
@@ -141,10 +163,10 @@ export class ProtectedPersonService {
     const before = this.get(id);
     if (!before) throw new Error(`Person nicht gefunden: ${id}`);
     const merged = { ...before, ...input };
-    if (!normalizeOptional(merged.firstName) || !normalizeOptional(merged.lastName)) throw new Error('Vor- und Nachname sind Pflichtfelder.');
+    if ((merged.recordKind ?? 'identified_person') === 'identified_person' && (!normalizeOptional(merged.firstName) || !normalizeOptional(merged.lastName))) throw new Error('Vor- und Nachname sind Pflichtfelder.');
     this.db.prepare(`
       UPDATE protected_persons SET
-        updated_at = ?, first_name = ?, last_name = ?, personnel_number = ?, work_email = ?,
+        updated_at = ?, record_kind = ?, pseudonym_label = ?, first_name = ?, last_name = ?, personnel_number = ?, work_email = ?,
         organizational_unit = ?, location = ?, employment_state = ?, left_company_at = ?, left_company_reason = ?,
         protection_status = ?, status_valid_from = ?, status_valid_until = ?, evidence_checked_at = ?, status_source = ?,
         lifecycle_state = ?, expiry_warning_created_at = ?, expiry_review_due_at = ?, retention_reason = ?, retention_review_at = ?,
@@ -152,13 +174,15 @@ export class ProtectedPersonService {
       WHERE id = ?
     `).run(
       nowIso(),
+      merged.recordKind ?? 'identified_person',
+      normalizeOptional(merged.pseudonymLabel),
       merged.firstName,
       merged.lastName,
       normalizeOptional(merged.personnelNumber),
       normalizeOptional(merged.workEmail),
       normalizeOptional(merged.organizationalUnit),
       normalizeOptional(merged.location),
-      merged.employmentState,
+      resolveEmploymentState(merged.employmentState, normalizeOptional(merged.leftCompanyAt)),
       normalizeOptional(merged.leftCompanyAt),
       normalizeOptional(merged.leftCompanyReason),
       merged.protectionStatus,
@@ -269,27 +293,44 @@ export class ProtectedPersonService {
     const before = this.get(id);
     if (!before) throw new Error(`Person nicht gefunden: ${id}`);
     const timestamp = nowIso();
-    const anonymizedName = `Anonymisierte Person ${hashStableId(id)}`;
+    const normalizedReason = assertPersonPrivacyReason(reason);
+    const decision = decideStructuredPersonAnonymization(id);
     this.db.prepare(`
       UPDATE protected_persons SET
-        first_name = 'Anonymisierte',
+        record_kind = 'pseudonymous_request',
+        pseudonym_label = ?,
+        first_name = ?,
         last_name = ?,
-        personnel_number = NULL,
-        work_email = NULL,
-        organizational_unit = NULL,
-        location = NULL,
-        lifecycle_state = 'anonymized',
+        personnel_number = ?,
+        work_email = ?,
+        organizational_unit = ?,
+        location = ?,
+        lifecycle_state = ?,
         anonymized_at = ?,
         anonymization_reason = ?,
-        notes = NULL,
+        notes = ?,
         updated_at = ?
       WHERE id = ?
-    `).run(anonymizedName, timestamp, reason, timestamp, id);
+    `).run(
+      decision.pseudonymLabel,
+      decision.firstName,
+      decision.lastName,
+      decision.personnelNumber,
+      decision.workEmail,
+      decision.organizationalUnit,
+      decision.location,
+      decision.lifecycleState,
+      timestamp,
+      normalizedReason,
+      decision.notes,
+      timestamp,
+      id
+    );
     const links = new PersonCaseLinkService(this.db).markPersonAnonymized(id, timestamp);
     links.forEach((link) => {
       this.db.prepare(`UPDATE cases SET summary = COALESCE(summary, ''), updated_at = ? WHERE id = ?`).run(timestamp, link.caseFileId);
     });
-    this.audit('anonymize', id, 'Personenverzeichnis: strukturierte Daten anonymisiert', { affectedCaseIds: links.map((link) => link.caseFileId), reason });
+    this.audit('anonymize', id, 'Personenverzeichnis: strukturierte Daten anonymisiert', { subjectId: id, timestamp, reasonCode: 'structured_person_anonymization' });
     return this.get(id)!;
   }
 
@@ -342,6 +383,21 @@ export class ProtectedPersonService {
       warningThresholdHours: 24,
       criticalThresholdHours: 0,
       isUserEditable: false
+    });
+  }
+
+
+  createAnonymousRequest(sequenceLabel?: string): ProtectedPersonRecord {
+    const stamp = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const label = sequenceLabel?.trim() || `Anonyme Anfrage ${stamp}-${hashStableId(randomUUID()).slice(0, 4)}`;
+    return this.create({
+      recordKind: 'pseudonymous_request',
+      firstName: '',
+      lastName: '',
+      pseudonymLabel: label,
+      protectionStatus: 'unclear',
+      employmentState: 'unknown',
+      statusSource: 'manual'
     });
   }
 

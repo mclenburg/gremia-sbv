@@ -4,6 +4,19 @@ export const DATABASE_SCHEMA_VERSION_KEY = 'database.schema.version';
 export const LEGACY_DATABASE_SCHEMA_VERSION_KEY = 'settings.database.schema.version';
 export const DATABASE_SCHEMA_APP_VERSION_KEY = 'database.schema.appVersion';
 
+export const CASES_REQUIRED_COLUMNS = [
+  'id',
+  'case_number',
+  'display_name',
+  'category',
+  'status',
+  'protected_person_id',
+  'person_binding_state',
+  'privacy_review_required',
+  'privacy_review_reason',
+  'privacy_review_due_at'
+] as const;
+
 export const TERMINATION_HEARINGS_REQUIRED_COLUMNS = [
   'id',
   'case_id',
@@ -63,7 +76,6 @@ export const SBV_PARTICIPATION_REQUIRED_COLUMNS = [
   'updated_at'
 ] as const;
 
-
 export const PROTECTED_PERSONS_REQUIRED_COLUMNS = [
   'id',
   'first_name',
@@ -73,7 +85,9 @@ export const PROTECTED_PERSONS_REQUIRED_COLUMNS = [
   'status_source',
   'lifecycle_state',
   'created_at',
-  'updated_at'
+  'updated_at',
+  'record_kind',
+  'pseudonym_label'
 ] as const;
 
 export const PERSON_IMPORT_RUN_ITEMS_REQUIRED_COLUMNS = [

@@ -1,3 +1,5 @@
+export type PersonRecordKind = 'identified_person' | 'pseudonymous_request';
+
 export type ProtectionStatus =
   | 'severely_disabled'
   | 'equivalent'
@@ -30,8 +32,11 @@ export interface ProtectedPersonRecord {
   id: string;
   createdAt: string;
   updatedAt: string;
+  /** Optional for compatibility with pre-0.9.1 fixtures; persisted records default to identified_person. */
+  recordKind?: PersonRecordKind;
   firstName: string;
   lastName: string;
+  pseudonymLabel?: string;
   personnelNumber?: string;
   workEmail?: string;
   organizationalUnit?: string;
@@ -55,8 +60,10 @@ export interface ProtectedPersonRecord {
 }
 
 export interface CreateProtectedPersonInput {
+  recordKind?: PersonRecordKind;
   firstName: string;
   lastName: string;
+  pseudonymLabel?: string;
   personnelNumber?: string;
   workEmail?: string;
   organizationalUnit?: string;

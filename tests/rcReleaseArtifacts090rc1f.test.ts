@@ -9,7 +9,7 @@ const pkg = JSON.parse(readFileSync('package.json', 'utf8')) as {
   scripts: Record<string, string>;
 };
 
-describe('0.9.0-rc.1-f release artifact hygiene', () => {
+describe('0.9.1 release artifact hygiene', () => {
   it('uploads only AppImage, EXE and DMG artifacts to workflow artifacts and draft releases', () => {
     expect(workflow).toContain('release/*.AppImage');
     expect(workflow).toContain('release/*.exe');
@@ -33,11 +33,12 @@ describe('0.9.0-rc.1-f release artifact hygiene', () => {
     expect(buildPlatform).not.toContain("builderArgs: ['--mac', 'dmg', 'zip']");
   });
 
-  it('documents that Source code archives are GitHub-generated and not workflow build assets', () => {
+  it('documents that GitHub source-code archives are generated outside the workflow release assets', () => {
     expect(buildDoc).toContain('ausschließlich die drei Endanwender-Artefakte');
     expect(buildDoc).toContain('AppImage, EXE und DMG');
-    expect(buildDoc).toContain('Source code');
-    expect(windowsBuildDoc).toContain('Für GitHub-Releases wird nur diese EXE hochgeladen');
+    expect(buildDoc).toMatch(/Source[- ]code-Archive/i);
+    expect(buildDoc).toMatch(/GitHub.*nicht durch den Release-Workflow hochgeladen|GitHub.*keine.*Build-Artefakte/i);
+    expect(windowsBuildDoc).toMatch(/nur diese EXE hochgeladen/i);
   });
 
   it('exposes this regression test as an npm script for RC verification', () => {

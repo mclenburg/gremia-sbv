@@ -33,8 +33,20 @@ CREATE TABLE IF NOT EXISTS cases (
   is_locked INTEGER NOT NULL DEFAULT 0,
   review_at TEXT,
   created_at TEXT NOT NULL,
-  updated_at TEXT NOT NULL
+  updated_at TEXT NOT NULL,
+  protected_person_id TEXT REFERENCES protected_persons(id) ON DELETE SET NULL,
+  person_binding_state TEXT NOT NULL DEFAULT 'legacy_unlinked' CHECK (person_binding_state IN ('active','migrated','legacy_unlinked','anonymous_request','anonymized','person_deleted','unlinking_in_progress')),
+  privacy_review_required INTEGER NOT NULL DEFAULT 0,
+  privacy_review_reason TEXT,
+  privacy_review_due_at TEXT,
+  privacy_review_priority TEXT NOT NULL DEFAULT 'normal',
+  anonymization_recommended INTEGER NOT NULL DEFAULT 0,
+  anonymized_at TEXT
 );
+
+CREATE INDEX IF NOT EXISTS idx_cases_protected_person ON cases(protected_person_id);
+CREATE INDEX IF NOT EXISTS idx_cases_person_binding_state ON cases(person_binding_state);
+CREATE INDEX IF NOT EXISTS idx_cases_privacy_review ON cases(privacy_review_required, privacy_review_due_at);
 
 CREATE TABLE IF NOT EXISTS case_notes (
   id TEXT PRIMARY KEY,
@@ -749,6 +761,8 @@ CREATE TABLE IF NOT EXISTS protected_persons (
   id TEXT PRIMARY KEY,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
+  record_kind TEXT NOT NULL DEFAULT 'identified_person' CHECK (record_kind IN ('identified_person','pseudonymous_request')),
+  pseudonym_label TEXT,
   first_name TEXT NOT NULL,
   last_name TEXT NOT NULL,
   personnel_number TEXT,

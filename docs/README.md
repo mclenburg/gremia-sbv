@@ -2,7 +2,7 @@
 
 Stand: **0.9.1**
 
-Diese Dokumentation ist der aktive, dauerhafte Dokumentationsbestand von Gremia.SBV. Historische Patch- und Buildfix-Notizen werden nicht mehr als Einzeldateien gepflegt, sondern im `CHANGELOG.md` zusammengefasst. Obsolete RC-Release-Notes werden durch `npm run source:cleanup` beziehungsweise `npm run cleanup:obsolete-release-notes` entfernt.
+Diese Dokumentation ist der aktive, dauerhafte Dokumentationsbestand von Gremia.SBV und damit ein aktiver, dauerhafter Dokumentationsbestand. Historische Patch-, Buildfix-, Release-Notes- und Change-Log-Dateien werden vor der Veröffentlichung nicht separat gepflegt. Dauerhafte Inhalte stehen in den fachlichen Betriebs-, Architektur-, Datenschutz- und Build-Dokumenten.
 
 ## Einstieg
 
@@ -13,10 +13,8 @@ Diese Dokumentation ist der aktive, dauerhafte Dokumentationsbestand von Gremia.
 | `DEVELOPMENT.md` | Entwicklung, Tests, Build und Clean-Code-Regeln |
 | `RELEASE_CHECKLIST.md` | Abnahme vor `0.9.1` / 1.0-Freeze |
 | `BUILD.md` | Build, Plattformmatrix und GitHub-Release-Workflow |
-| `CHANGELOG.md` | zusammengefasste Entwicklungshistorie |
 | `ROADMAP.md` | Versionspfad bis 1.0 und spätere 1.x-Themen |
-| `KNOWN_ISSUES.md` | bekannte Einschränkungen für RC-Abnahme und Release Notes |
-| `RELEASE_NOTES_0.9.1.md` | Release Notes zur aktuellen Vor-1.0-Ergänzung |
+| `KNOWN_ISSUES.md` | bekannte Einschränkungen für RC-Abnahme |
 
 ## Datenschutz und Compliance
 
@@ -55,4 +53,4 @@ Diese Dokumentation ist der aktive, dauerhafte Dokumentationsbestand von Gremia.
 
 ## Regel
 
-Neue Dokumentation soll dauerhaft verwendbar sein. Kurzlebige Patchnotizen, historische Buildfix-Protokolle und temporäre Hotfix-Dokumente gehören nicht in den aktiven Dokumentationsbestand. Detailthemen werden nur behalten, wenn sie für Betrieb, Datenschutz, Security, Migration, Entwicklung oder RC-Abnahme dauerhaft erforderlich sind.
+Neue Dokumentation soll dauerhaft verwendbar sein. Kurzlebige Patchnotizen, historische Buildfix-Protokolle, Release Notes, Change Logs und temporäre Hotfix-Dokumente gehören vor Veröffentlichung nicht in den aktiven Dokumentationsbestand. Detailthemen werden nur behalten, wenn sie für Betrieb, Datenschutz, Security, Migration, Entwicklung oder RC-Abnahme dauerhaft erforderlich sind.

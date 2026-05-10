@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 
 import type { CaseDocumentRecord } from "./app/core/models/case-document.model";
-import type { CaseRecord, CreateCaseInput } from "./app/core/models/case.model";
+import type { CaseRecord, CreateCaseInput, LegacyCaseBindingInput, LegacyCaseBindingResult } from "./app/core/models/case.model";
 import type {
   ContactListFilters,
   ContactRecord,
@@ -28,6 +28,7 @@ import type {
   DeadlineRecord,
   UpdateDeadlineInput,
 } from "./app/core/models/deadline.model";
+import type { PrivacyReviewActionInput, PrivacyReviewActionResult, PrivacyReviewBulkResult, PrivacyReviewItemRecord } from "./app/core/models/privacy-review.model";
 import type {
   SecurityResult,
   SecurityStatus,
@@ -166,6 +167,7 @@ declare global {
       cases: {
         list(): Promise<CaseRecord[]>;
         create(input: CreateCaseInput): Promise<CaseRecord>;
+        bindLegacyCase(input: LegacyCaseBindingInput): Promise<LegacyCaseBindingResult>;
         listNotes(caseId: string): Promise<CaseNoteRecord[]>;
         createNote(input: CreateCaseNoteInput): Promise<CaseNoteRecord>;
         updateNote(
@@ -305,6 +307,7 @@ declare global {
       persons: {
         list(filters?: ProtectedPersonListFilters): Promise<ProtectedPersonRecord[]>;
         create(input: CreateProtectedPersonInput): Promise<ProtectedPersonRecord>;
+        createAnonymousRequest(label?: string): Promise<ProtectedPersonRecord>;
         update(id: string, input: UpdateProtectedPersonInput): Promise<ProtectedPersonRecord>;
         linkCase(personId: string, caseId: string, reason?: string): Promise<PersonCaseLinkRecord>;
         previewImport(input: PersonImportPreviewInput): Promise<PersonImportPreviewResult>;
@@ -312,6 +315,17 @@ declare global {
         selectImportFile(): Promise<{ filePath: string; sourceFileName: string; fileType: 'csv' | 'xlsx' } | null>;
         evaluateExpiry(referenceIso?: string): Promise<PersonStatusExpirySummary>;
         anonymize(id: string, reason: string): Promise<PersonAnonymizationResult>;
+        delete(id: string, reason: string): Promise<{ ok: true; affectedCaseIds: string[]; deletedPersonId: string }>;
+      };
+
+      privacyReview: {
+        listOpenForPerson(protectedPersonId: string): Promise<PrivacyReviewItemRecord[]>;
+        documentRetention(input: PrivacyReviewActionInput): Promise<PrivacyReviewActionResult>;
+        scheduleLater(input: PrivacyReviewActionInput): Promise<PrivacyReviewActionResult>;
+        clearCase(input: PrivacyReviewActionInput): Promise<PrivacyReviewActionResult>;
+        anonymizeCase(input: PrivacyReviewActionInput): Promise<PrivacyReviewActionResult>;
+        deleteCase(input: PrivacyReviewActionInput): Promise<PrivacyReviewActionResult>;
+        bulkMarkClosedLegacy(): Promise<PrivacyReviewBulkResult>;
       };
       deadlines: {
         list(filters?: DeadlineListFilters): Promise<DeadlineRecord[]>;
@@ -321,7 +335,7 @@ declare global {
         complete(id: string, note?: string): Promise<DeadlineRecord>;
         suspend(id: string, reason: string): Promise<DeadlineRecord>;
         cancel(id: string, reason: string): Promise<DeadlineRecord>;
-        exportIcal(filters?: DeadlineListFilters, privacyLevel?: "privacy_first" | "case_reference" | "details"): Promise<string>;
+        exportIcal(filters?: DeadlineListFilters, privacyLevel?: "privacy_first" | "process_type" | "case_reference" | "details"): Promise<string>;
       };
       reports: {
         descriptors(): Promise<ReportDescriptor[]>;

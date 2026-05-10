@@ -1,0 +1,9 @@
+{
+  "version": "0.9.1-pre-release-doc-consolidation",
+  "reason": "Vor Veröffentlichung werden Release Notes, Change Logs und patchbezogene Änderungsnotizen nicht als aktive Markdown-Dateien geführt. Dauerhafte Inhalte sind in README.md, docs/README.md, docs/ARCHITECTURE.md, docs/BUILD.md, docs/ROADMAP.md, docs/RELEASE_CHECKLIST.md sowie den Datenschutz-, Sicherheits- und Betriebsdokumenten gebündelt.",
+  "files": [
+    "docs/CHANGELOG.md",
+    "docs/RELEASE_NOTES_0.9.1.md"
+  ],
+  "directories": []
+}

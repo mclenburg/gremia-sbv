@@ -1103,3 +1103,126 @@ html[data-theme='light'] .industrial-panel {
   margin: 0;
   flex: 1 1 18rem;
 }
+
+/* 0.9.1 UX-Korrektur: keine Dokumentbreite durch Tabellen/Formleisten sprengen. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+.industrial-shell,
+.industrial-content,
+.module-frame,
+.industrial-panel,
+.case-register-panel,
+.case-register-toolbar,
+.case-register-actions,
+.case-register-table-shell,
+.person-workbench-grid,
+.person-side-stack {
+  min-width: 0;
+}
+
+.case-register-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 0.6rem;
+  align-items: center;
+  max-width: 100%;
+}
+
+.case-register-actions .industrial-input {
+  width: 100%;
+  min-width: 0;
+}
+
+.industrial-table th,
+.industrial-table td {
+  overflow-wrap: anywhere;
+}
+
+.person-detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-block: 0.85rem;
+}
+
+@media (max-width: 1180px) {
+  .case-register-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .case-register-actions > * {
+    width: 100%;
+  }
+}
+
+/* 0.9.1 RC-Korrektur: die Fallliste darf die Dokumentbreite nicht treiben. */
+.case-register-table {
+  width: 100%;
+  min-width: 0;
+  table-layout: fixed;
+}
+
+.case-register-table th,
+.case-register-table td {
+  max-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.case-register-table-shell {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* 0.9.1 RC-Korrektur: Fallaktenansicht darf bei Notebook-Breiten keine Dokumentbreite erzeugen. */
+.case-workbench-grid,
+.case-workbench,
+.case-tree-panel,
+.case-detail-panel,
+.case-detail-content,
+.case-search-bar,
+.case-pagination {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.case-register-panel {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+.case-pagination {
+  flex-wrap: wrap;
+}
+
+.case-pagination span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 1500px) {
+  .case-workbench {
+    grid-template-columns: 1fr !important;
+  }
+
+  .case-search-bar {
+    grid-template-columns: 1fr !important;
+  }
+
+  .case-search-bar > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+}
+
+/* 0.9.1 RC-Korrektur: horizontale Ausreißer bleiben in ihrem Modul, nicht auf dem Dokument. */
+.industrial-content,
+.module-frame {
+  overflow-x: clip;
+}

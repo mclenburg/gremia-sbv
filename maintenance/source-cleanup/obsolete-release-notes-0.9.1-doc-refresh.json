@@ -1,0 +1,21 @@
+{
+  "version": "0.9.1-doc-refresh",
+  "reason": "Dokumentationsbereinigung 0.9.1: historische RC-Zwischenrelease-notes werden aus dem aktiven Dokumentationsbestand entfernt. Dauerhafte Inhalte stehen in CHANGELOG.md und RELEASE_NOTES_0.9.1.md.",
+  "files": [
+    "docs/RELEASE_NOTES_0.9.0-rc.1-b.md",
+    "docs/RELEASE_NOTES_0.9.0-rc.1-c.md",
+    "docs/RELEASE_NOTES_0.9.0-rc.1-d.md",
+    "docs/RELEASE_NOTES_0.9.0-rc.1-e.md",
+    "docs/RELEASE_NOTES_0.9.0-rc.1-f.md",
+    "docs/RELEASE_NOTES_0.9.0-rc.1-g.md",
+    "docs/RELEASE_NOTES_0.9.0-rc.1-h.md",
+    "docs/RELEASE_NOTES_0.9.0-rc.1-i.md",
+    "docs/RELEASE_NOTES_0.9.0-rc.1-j.md",
+    "docs/RELEASE_NOTES_0.9.0-rc.1-k.md",
+    "docs/RELEASE_NOTES_0.9.0-rc.1-l.md",
+    "docs/RELEASE_NOTES_0.9.0-rc.1-m.md",
+    "docs/RELEASE_NOTES_0.9.0-rc.1-o.md",
+    "docs/RELEASE_NOTES_0.9.0-rc.1-p.md"
+  ],
+  "directories": []
+}

@@ -9,9 +9,10 @@ import { useCaseProcessUpdates } from "./useCaseProcessUpdates";
 import { useProcessTemplateActions } from "./useProcessTemplateActions";
 import { useCaseProcessCreation } from "./useCaseProcessCreation";
 import { useCaseCrudActions } from "./useCaseCrudActions";
+import { useLegacyCaseBindingHandlers } from "./useLegacyCaseBindingHandlers";
 import { CasesViewRender } from "./CasesViewRender";
 import type { CasesViewProps, CaseToast } from "./casesViewTypes";
-import type { CaseCategory } from "../../core/models/case.model";
+import type { CaseCategory, CaseRecord } from "../../core/models/case.model";
 import type { ProcessTemplateModalState } from "./ProcessTemplateDocumentsModal";
 import type { CaseProcessDraft } from "./casesViewProcessUtils";
 import { caseRegisterSliceBounds, clampCaseRegisterPage } from "./casesViewUtils";
@@ -21,6 +22,7 @@ import { useAnnouncer } from "../../shared/a11y/LiveRegionProvider";
 export function CasesView({
   cases,
   contacts,
+  protectedPersons,
   target,
   onCreateCase,
   onCreateDeadline,
@@ -32,7 +34,10 @@ export function CasesView({
   const [displayName, setDisplayName] = useState("");
   const [category, setCategory] = useState<CaseCategory>("bem");
   const [summary, setSummary] = useState("");
+  const [selectedProtectedPersonId, setSelectedProtectedPersonId] = useState("");
   const [isCaseCreateModalOpen, setIsCaseCreateModalOpen] = useState(false);
+  const [legacyBindingCase, setLegacyBindingCase] = useState<CaseRecord | null>(null);
+  const [legacyBindingError, setLegacyBindingError] = useState("");
   const [caseProcessDraft, setCaseProcessDraft] =
     useState<CaseProcessDraft | null>(null);
   const [processTemplateModal, setProcessTemplateModal] =
@@ -319,7 +324,35 @@ export function CasesView({
   const { updateCasePreventionProcess, updateCaseBemProcess, updateCaseTerminationProcess, updateCaseParticipationProcess, updateCaseWorkplaceAccommodationProcess, createEqualizationSecureNote, updateCaseEqualizationProcess } = useCaseProcessUpdates({ setNoteError, setNoteInfo, reloadSelectedCaseChildren, selectedCase });
   const { openProcessTemplateModal, renderAndDownloadProcessTemplate } = useProcessTemplateActions({ processTemplateModal, setProcessTemplateModal, selectedCase, confirmDialog });
   const { openCaseProcessDraft, createCaseProcessFromDraft } = useCaseProcessCreation({ selectedCase, selectedCaseId, caseProcessDraft, setCaseProcessDraft, setSelection, setNoteError, setNoteInfo, reloadSelectedCaseChildren, onCasesChanged });
-  const { openCaseCreateModal, cancelCaseCreateModal, addCase, deleteNote, importDocuments, openDocument, exportDocument, deleteDocument } = useCaseCrudActions({ setError, setIsCaseCreateModalOpen, caseNumber, displayName, category, summary, onCreateCase, onCasesChanged, setCaseNumber, setDisplayName, setSummary, setNoteError, editingNote, noteEditor, reloadSelectedCaseChildren, setSelection, searchQuery, runSearch, setDocumentError, selectedCaseId, selectedCase, confirmDialog, announce });
+  const { openCaseCreateModal, cancelCaseCreateModal, addCase, deleteNote, importDocuments, openDocument, exportDocument, deleteDocument } = useCaseCrudActions({ setError, setIsCaseCreateModalOpen, caseNumber, displayName, category, summary, selectedProtectedPersonId, protectedPersons, onCreateCase, onCasesChanged, setCaseNumber, setDisplayName, setSummary, setSelectedProtectedPersonId, setNoteError, editingNote, noteEditor, reloadSelectedCaseChildren, setSelection, searchQuery, runSearch, setDocumentError, selectedCaseId, selectedCase, confirmDialog, announce });
+  const legacyBindingHandlers = useLegacyCaseBindingHandlers({ onCasesChanged, announce });
+  const closedLegacyBulkCount = cases.filter((record) => record.status === 'abgeschlossen' && record.personBindingState === 'legacy_unlinked' && !record.anonymizationRecommended).length;
+
+  async function bulkMarkClosedLegacyCases() {
+    try {
+      const result = await legacyBindingHandlers.bulkMarkClosedLegacyCases();
+      pushCaseToast(result.message ?? `${result.marked} abgeschlossene Altakten wurden vorgemerkt.`, 'ok');
+    } catch (error) {
+      pushCaseToast(error instanceof Error ? error.message : 'Altakten konnten nicht vorgemerkt werden.', 'warning');
+    }
+  }
+
+  function openLegacyBindingDialog(caseRecord: CaseRecord) {
+    setLegacyBindingError("");
+    setLegacyBindingCase(caseRecord);
+  }
+
+  async function assignLegacyCase(protectedPersonId: string, reason: string) {
+    if (!legacyBindingCase) return;
+    setLegacyBindingError("");
+    try {
+      await legacyBindingHandlers.bindLegacyCase(legacyBindingCase, protectedPersonId, reason);
+      setLegacyBindingCase(null);
+      setSelectedCaseId(legacyBindingCase.id);
+    } catch (error) {
+      setLegacyBindingError(error instanceof Error ? error.message : "Legacy-Zuordnung konnte nicht gespeichert werden.");
+    }
+  }
   const documentActions = createCaseDocumentActions({
     importDocuments,
     openDocument,
@@ -327,5 +360,5 @@ export function CasesView({
     deleteDocument,
   });
 
-  return <CasesViewRender {...{ caseToast, visibleCases, selectedCaseId, filteredCases, caseFilter, setCaseFilter, normalizedCaseRegisterPage, caseRegisterPageCount, caseRegisterPageSize, setCaseRegisterPage, openCaseCreateModal, selectedCase, selectedNote, selectedDocument, selectedSearchResult, selectedPreventionProcess, selectedBemProcess, selectedTerminationProcess, selectedEqualizationProcess, selectedEqualizationNotes, selectedParticipationProcess, selectedWorkplaceAccommodationProcess, notes, documents, caseLegalReferences, casePreventionProcesses, caseBemProcesses, caseEqualizationProcesses, caseTerminationProcesses, caseParticipationProcesses, caseWorkplaceAccommodationProcesses, selection, setSelection, setSelectedCaseId, searchQuery, searchOnlySelectedCase, searchResults, runSearch, setSearchQuery, setSearchOnlySelectedCase, documentActions, updateCasePreventionProcess, openProcessTemplateModal, updateCaseBemProcess, updateCaseTerminationProcess, updateCaseEqualizationProcess, createEqualizationSecureNote, updateCaseParticipationProcess, openCaseProcessDraft, updateCaseWorkplaceAccommodationProcess, startEditNote, deleteNote, openNewNoteModal, inlineCommands, caseNumber, displayName, category, summary, error, isCaseCreateModalOpen, setCaseNumber, setDisplayName, setCategory, setSummary, cancelCaseCreateModal, addCase, isNoteModalOpen, editingNote, noteTitle, noteDate, noteType, participants, content, nextSteps, cases, linkedCaseIds, confidentialLevel, containsHealthData, noteError, noteInfo, setNoteTitle, setNoteDate, setNoteType, setParticipants, setConfidentialLevel, setContainsHealthData, toggleLinkedCase, cancelNoteModal, saveNote, caseProcessDraft, setCaseProcessDraft, createCaseProcessFromDraft, contacts, processTemplateModal, setProcessTemplateModal, renderAndDownloadProcessTemplate }} />;
+  return <CasesViewRender {...{ caseToast, visibleCases, selectedCaseId, filteredCases, caseFilter, setCaseFilter, normalizedCaseRegisterPage, caseRegisterPageCount, caseRegisterPageSize, setCaseRegisterPage, openCaseCreateModal, selectedCase, selectedNote, selectedDocument, selectedSearchResult, selectedPreventionProcess, selectedBemProcess, selectedTerminationProcess, selectedEqualizationProcess, selectedEqualizationNotes, selectedParticipationProcess, selectedWorkplaceAccommodationProcess, notes, documents, caseLegalReferences, casePreventionProcesses, caseBemProcesses, caseEqualizationProcesses, caseTerminationProcesses, caseParticipationProcesses, caseWorkplaceAccommodationProcesses, selection, setSelection, setSelectedCaseId, searchQuery, searchOnlySelectedCase, searchResults, runSearch, setSearchQuery, setSearchOnlySelectedCase, documentActions, updateCasePreventionProcess, openProcessTemplateModal, updateCaseBemProcess, updateCaseTerminationProcess, updateCaseEqualizationProcess, createEqualizationSecureNote, updateCaseParticipationProcess, openCaseProcessDraft, updateCaseWorkplaceAccommodationProcess, startEditNote, deleteNote, openNewNoteModal, inlineCommands, caseNumber, displayName, category, summary, selectedProtectedPersonId, protectedPersons, error, isCaseCreateModalOpen, setCaseNumber, setDisplayName, setCategory, setSummary, setSelectedProtectedPersonId, cancelCaseCreateModal, addCase, isNoteModalOpen, editingNote, noteTitle, noteDate, noteType, participants, content, nextSteps, cases, linkedCaseIds, confidentialLevel, containsHealthData, noteError, noteInfo, setNoteTitle, setNoteDate, setNoteType, setParticipants, setConfidentialLevel, setContainsHealthData, toggleLinkedCase, cancelNoteModal, saveNote, caseProcessDraft, setCaseProcessDraft, createCaseProcessFromDraft, contacts, processTemplateModal, setProcessTemplateModal, renderAndDownloadProcessTemplate, legacyBindingCase, legacyBindingError, openLegacyBindingDialog, closeLegacyBindingDialog: () => setLegacyBindingCase(null), assignLegacyCase, closedLegacyBulkCount, bulkMarkClosedLegacyCases }} />;
 }

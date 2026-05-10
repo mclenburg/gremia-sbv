@@ -43,3 +43,57 @@ test('guides CSV import through preview, mapping and validation', async ({ page 
   await expect(dialog).toBeHidden();
   await expect(page.getByText('Importperson, Ida')).toBeVisible();
 });
+
+test('legt Personen manuell ausschließlich im Modal-Overlay an und zeigt Auswahl rechts', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('[data-e2e="main-nav-persons"]').click();
+
+  await page.getByText('Mustermann, Max').click();
+  await expect(page.locator('.person-detail')).toContainText('Mustermann, Max');
+  await expect(page.locator('.person-side-stack form[aria-labelledby="person-create-heading"]')).toHaveCount(0);
+
+  await page.locator('[data-e2e="open-person-create-dialog"]').click();
+  const dialog = page.locator('[data-e2e="person-create-dialog"]');
+  await expect(dialog).toBeVisible();
+  await expect(page.getByRole('dialog', { name: 'Person anlegen' })).toBeVisible();
+  await dialog.getByLabel('Vorname').fill('Mara');
+  await dialog.getByLabel('Nachname').fill('Modal');
+  await dialog.getByRole('button', { name: 'Person anlegen' }).click();
+  await expect(dialog).toBeHidden();
+  await expect(page.getByText('Modal, Mara')).toBeVisible();
+});
+
+test('führt Personenanonymisierung über geschützten Modalpfad aus', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('[data-e2e="main-nav-persons"]').click();
+  await page.getByText('Mustermann, Max').click();
+  await page.locator('[data-e2e="open-person-anonymize-dialog"]').click();
+
+  const dialog = page.locator('[data-e2e="person-anonymize-dialog"]');
+  await expect(dialog).toBeVisible();
+  await expect(page.getByRole('dialog', { name: 'Person anonymisieren' })).toBeVisible();
+  await dialog.getByLabel('Grund').fill('Status dauerhaft entfallen, weitere personenbezogene Speicherung nicht erforderlich.');
+  await dialog.getByLabel('Bestätigung').fill('PERSON ANONYMISIEREN');
+  await dialog.getByRole('button', { name: 'Person anonymisieren' }).click();
+
+  await expect(dialog).toBeHidden();
+  await expect(page.locator('#main-content').getByText('Person wurde anonymisiert. Verbundene Fallakten benötigen Datenschutzprüfung.')).toBeVisible();
+});
+
+test('führt Personenlöschung über geschützten Modalpfad aus', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('[data-e2e="main-nav-persons"]').click();
+  await page.getByText('Mustermann, Max').click();
+  await page.getByRole('button', { name: /Person löschen: Mustermann, Max/ }).click();
+
+  const dialog = page.locator('[data-e2e="person-delete-dialog"]');
+  await expect(dialog).toBeVisible();
+  await expect(page.getByRole('dialog', { name: 'Person löschen' })).toBeVisible();
+  await dialog.getByLabel('Grund').fill('Löschgrund nach abgeschlossener Prüfung dokumentiert.');
+  await dialog.getByLabel('Bestätigung').fill('PERSON LÖSCHEN');
+  await dialog.getByRole('button', { name: 'Person löschen' }).click();
+
+  await expect(dialog).toBeHidden();
+  await expect(page.locator('#main-content').getByText('Person wurde gelöscht. Verbundene Fallakten benötigen Datenschutzprüfung.')).toBeVisible();
+  await expect(page.getByText('Mustermann, Max')).toHaveCount(0);
+});

@@ -11,7 +11,7 @@ Gremia.SBV ist eine **SBV Software** für die besonders vertrauliche Fallarbeit 
 
 Die Produktregel lautet:
 
-> Personen führen. Fallakten dokumentieren. Maßnahmen schreiben fort. Fristen überwachen. Inlinebefehle beschleunigen. Compliance macht Datenschutzentscheidungen nachvollziehbar.
+> Personen führen. Die Fallakte führt die Arbeitschronik. Maßnahmen schreiben fort. Fristen überwachen. Inlinebefehle beschleunigen. Compliance macht Datenschutzentscheidungen nachvollziehbar.
 
 ## Was Gremia.SBV besonders macht
 
@@ -96,7 +96,7 @@ Voraussetzungen:
 - Linux-Desktop für AppImage-Builds,
 - Windows 10+ für Windows-Builds.
 
-Nach `npm install` werden native Electron-Abhängigkeiten automatisch passend zur Electron-Version gebaut:
+Nach `npm install` werden native Electron-Abhängigkeiten automatisch passend zur Electron-Version gebaut (`electron-builder install-app-deps`):
 
 ```bash
 npm install
@@ -114,10 +114,13 @@ npm run build:win
 
 Der Windows-Build ist als portable direkt startbare EXE vorgesehen; der Release-Upload soll nur `.exe`, `.AppImage` und `.dmg` veröffentlichen.
 
+## Test-, Doku- und Release-Synchronisierung
+
+Für 0.9.1 sind README, Roadmap, Build-/Release-Dokumentation und Test-Gates synchron zu halten. Vorveröffentlichte Release-Notes, Change-Logs und Patchnotizen werden nicht im aktiven Dokumentationsbestand gepflegt. Neue Tests sollen plattformunabhängig laufen und Fachlogik bevorzugt über Verhalten statt über brüchige Detailstrings prüfen.
+
 ## Release-Unterlagen
 
 - Release-Checkliste: `docs/RELEASE_CHECKLIST.md`
-- Release Notes: `docs/RELEASE_NOTES_0.9.1.md`
 - Build-Dokumentation: `docs/BUILD.md`
 - Datenschutz- und Compliance-Dokumente: `docs/DSFA_SBV_TEMPLATE.md`, `docs/VERARBEITUNGSVERZEICHNIS_SBV.md`, `docs/DATENSCHUTZKONZEPT.md`, `docs/LOESCHKONZEPT_SBV.md`
 

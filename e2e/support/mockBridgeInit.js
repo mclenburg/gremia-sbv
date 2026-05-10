@@ -12,6 +12,9 @@
       summary: 'Synthetischer E2E-Testfall ohne Echtdaten.',
       isPseudonymized: true,
       isLocked: false,
+      protectedPersonId: 'person-test-0001',
+      personBindingState: 'active',
+      privacyReviewRequired: false,
     },
     {
       id: 'case-test-0002',
@@ -24,6 +27,26 @@
       summary: 'Synthetischer Testfall Arbeitsplatzgestaltung.',
       isPseudonymized: true,
       isLocked: false,
+      personBindingState: 'legacy_unlinked',
+      privacyReviewRequired: true,
+      privacyReviewReason: 'no_person_link',
+    },
+    {
+      id: 'case-test-0003',
+      caseNumber: 'TEST-0003',
+      displayName: 'Abgeschlossener Altfall',
+      category: 'sonstiges',
+      status: 'abgeschlossen',
+      priority: 'normal',
+      openedAt: '2024-01-05',
+      closedAt: '2024-02-05',
+      summary: 'Synthetischer abgeschlossener Altfall für Bulk-Datenschutzprüfung.',
+      isPseudonymized: true,
+      isLocked: false,
+      personBindingState: 'legacy_unlinked',
+      privacyReviewRequired: true,
+      privacyReviewReason: 'no_person_link',
+      anonymizationRecommended: false,
     },
   ];
 
@@ -108,10 +131,28 @@
     {
       id: 'bem-test-0001',
       caseId: 'case-test-0001',
-      status: 'angeboten',
-      invitationDate: '2026-05-05',
-      consentStatus: 'offen',
-      title: 'BEM-Testvorgang',
+      status: 'angebot_versendet',
+      triggerType: 'sechs_wochen_au',
+      triggerDescription: 'Synthetischer BEM-Anlass Alpha.',
+      employeeResponse: 'offen',
+      bemOfferedAt: '2026-05-05T09:00:00.000Z',
+      responseDueAt: '2026-05-12T09:00:00.000Z',
+      consentScope: '',
+      title: 'BEM-Testvorgang Alpha',
+      createdAt: now,
+      updatedAt: now,
+    },
+    {
+      id: 'bem-test-0002',
+      caseId: 'case-test-0002',
+      status: 'reaktion_abwarten',
+      triggerType: 'praeventiv',
+      triggerDescription: 'Synthetischer BEM-Anlass Beta.',
+      employeeResponse: 'offen',
+      bemOfferedAt: '2026-05-06T09:00:00.000Z',
+      responseDueAt: '2026-05-13T09:00:00.000Z',
+      consentScope: '',
+      title: 'BEM-Testvorgang Beta',
       createdAt: now,
       updatedAt: now,
     },
@@ -135,8 +176,34 @@
     },
   ];
 
+  const privacyReviews = [
+    {
+      id: 'privacy-review-test-0001',
+      caseId: 'case-test-0001',
+      protectedPersonId: 'person-test-0001',
+      reason: 'status_expired',
+      priority: 'critical',
+      dueAt: now,
+      freeTextReviewRequired: true,
+      status: 'open',
+      createdAt: now,
+      updatedAt: now,
+      context: {
+        person: persons[0],
+        caseFile: cases[0],
+        openDeadlineCount: 1,
+        runningMeasureCount: 1,
+        linkedDocumentCount: 0,
+        lastActivityAt: now,
+        freeTextReviewRequired: true,
+      },
+    },
+  ];
+
   const emptyList = async () => [];
   const createRecord = async (input) => ({ id: `created-${Date.now()}`, ...input, createdAt: now, updatedAt: now });
+
+  window.__GREMIA_SBV_E2E_ICAL_EXPORTS = [];
 
   window.__GREMIA_SBV_E2E = {
     active: true,
@@ -153,7 +220,8 @@
     },
     cases: {
       list: async () => cases,
-      create: createRecord,
+      create: async (input) => { const row = { id: `case-${Date.now()}`, status: 'offen', priority: 'normal', openedAt: now, isLocked: false, ...input, createdAt: now, updatedAt: now }; cases.unshift(row); return row; },
+      bindLegacyCase: async (input) => { const row = cases.find((item) => item.id === input.caseId); Object.assign(row, { protectedPersonId: input.protectedPersonId, personBindingState: 'active', privacyReviewRequired: false }); return { caseId: input.caseId, protectedPersonId: input.protectedPersonId, personBindingState: 'active', privacyReviewRequired: false }; },
       listNotes: async () => notes,
       listDocuments: emptyList,
       createNote: createRecord,
@@ -167,6 +235,7 @@
     persons: {
       list: async () => persons,
       create: async (input) => { const row = { id: `person-${Date.now()}`, ...input, createdAt: now, updatedAt: now, lifecycleState: 'active' }; persons.push(row); return row; },
+      createAnonymousRequest: async (label) => { const row = { id: `person-anon-${Date.now()}`, recordKind: 'pseudonymous_request', firstName: '', lastName: '', pseudonymLabel: label || 'Anonyme Anfrage 2026-0001', employmentState: 'unknown', protectionStatus: 'unclear', statusSource: 'manual', lifecycleState: 'active', createdAt: now, updatedAt: now }; persons.push(row); return row; },
       update: async (id, input) => { const row = persons.find((person) => person.id === id); Object.assign(row, input, { updatedAt: now }); return row; },
       linkCase: async (personId, caseId) => ({ id: `link-${Date.now()}`, protectedPersonId: personId, caseFileId: caseId, linkState: 'active', createdAt: now }),
       previewImport: async (input) => {
@@ -190,7 +259,56 @@
       },
       selectImportFile: async () => null,
       evaluateExpiry: async () => ({ expiringSoon: persons, expiredReviewRequired: [] }),
-      anonymize: async (id, reason) => ({ person: persons.find((person) => person.id === id), affectedCaseIds: [], anonymizedLinks: 0, reason }),
+      anonymize: async (id, reason) => {
+        const row = persons.find((person) => person.id === id);
+        const affected = cases.filter((item) => item.protectedPersonId === id);
+        if (row) Object.assign(row, { firstName: '', lastName: '', workEmail: undefined, personnelNumber: undefined, organizationalUnit: undefined, location: undefined, notes: undefined, pseudonymLabel: 'Anonymisierte Person #e2e', recordKind: 'pseudonymous_request', lifecycleState: 'anonymized', anonymizationReason: reason, updatedAt: now });
+        for (const item of affected) Object.assign(item, { personBindingState: 'anonymized', privacyReviewRequired: true, privacyReviewReason: 'linked_person_anonymized' });
+        return { person: row, affectedCaseIds: affected.map((item) => item.id), anonymizedLinks: affected.length, reason };
+      },
+      delete: async (id, reason) => {
+        const affected = cases.filter((item) => item.protectedPersonId === id);
+        for (const item of affected) Object.assign(item, { protectedPersonId: undefined, personBindingState: 'person_deleted', privacyReviewRequired: true, privacyReviewReason: 'linked_person_deleted' });
+        const index = persons.findIndex((person) => person.id === id);
+        if (index >= 0) persons.splice(index, 1);
+        return { ok: true, affectedCaseIds: affected.map((item) => item.id), deletedPersonId: id, reason };
+      },
+    },
+
+    privacyReview: {
+      listOpenForPerson: async (personId) => privacyReviews.filter((item) => item.protectedPersonId === personId && item.status === 'open'),
+      documentRetention: async (input) => {
+        privacyReviews.forEach((item) => { if (item.caseId === input.caseId && item.status === 'open') item.status = 'retention_documented'; });
+        return { ok: true, message: 'Fortspeicherung wurde dokumentiert.' };
+      },
+      scheduleLater: async () => ({ ok: true, message: 'Datenschutzprüfung wurde erneut terminiert.' }),
+      clearCase: async (input) => {
+        privacyReviews.forEach((item) => { if (item.caseId === input.caseId && item.status === 'open') item.status = 'cleared'; });
+        return { ok: true, message: 'Datenschutzprüfung wurde abgeschlossen.' };
+      },
+      anonymizeCase: async (input) => {
+        const row = cases.find((item) => item.id === input.caseId);
+        if (row) Object.assign(row, { personBindingState: 'anonymized', privacyReviewRequired: true, privacyReviewReason: 'linked_person_anonymized', anonymizedAt: now });
+        privacyReviews.forEach((item) => { if (item.caseId === input.caseId && item.status === 'open') item.status = 'anonymized'; });
+        return { ok: true, message: 'Fallakte wurde anonymisiert.', affectedRows: 1, affectedFiles: 0 };
+      },
+      deleteCase: async (input) => {
+        const index = cases.findIndex((item) => item.id === input.caseId);
+        if (index >= 0) cases.splice(index, 1);
+        return { ok: true, message: 'Fallakte wurde gelöscht.', affectedRows: 1, affectedFiles: 0 };
+      },
+      bulkMarkClosedLegacy: async () => {
+        let marked = 0;
+        for (const row of cases) {
+          if (row.status === 'abgeschlossen' && row.personBindingState === 'legacy_unlinked' && !row.anonymizationRecommended) {
+            row.anonymizationRecommended = true;
+            row.privacyReviewRequired = true;
+            row.privacyReviewPriority = 'low';
+            marked += 1;
+          }
+        }
+        return { ok: true, reviewed: marked, marked, skipped: 0, message: `${marked} abgeschlossene Altakten wurden zur Datenschutzprüfung vorgemerkt.` };
+      },
     },
     contacts: { list: emptyList, create: createRecord, delete: async () => ({ deleted: true, anonymizedReferences: 0 }) },
     deadlines: {
@@ -199,12 +317,22 @@
       create: createRecord,
       update: createRecord,
       complete: async () => ({ completed: true }),
-      exportIcal: async () => "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nEND:VCALENDAR\r\n",
+      exportIcal: async (filters, privacyLevel) => {
+        const level = privacyLevel || 'process_type';
+        const summary = level === 'privacy_first'
+          ? 'Gremia.SBV Wiedervorlage'
+          : level === 'case_reference'
+            ? 'Gremia.SBV: BEM-Wiedervorlage – Fall TEST-0001'
+            : 'Gremia.SBV: BEM-Wiedervorlage';
+        const ics = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nSUMMARY:${summary}\r\nDESCRIPTION:Bitte Vorgang in Gremia.SBV prüfen.\r\nEND:VCALENDAR\r\n`;
+        window.__GREMIA_SBV_E2E_ICAL_EXPORTS.push({ filters, privacyLevel: level, ics });
+        return ics;
+      },
     },
     caseMeasures: { list: async () => measures, create: createRecord, update: createRecord },
     knowledge: { listCaseReferences: emptyList, search: emptyList, list: emptyList },
     prevention: { list: emptyList, create: createRecord, update: createRecord },
-    bem: { list: async () => bemProcesses, create: createRecord, update: createRecord },
+    bem: { list: async (caseId) => caseId ? bemProcesses.filter((item) => item.caseId === caseId) : bemProcesses, create: createRecord, update: createRecord },
     equalization: { list: emptyList, create: createRecord, update: createRecord },
     termination: { list: emptyList, create: createRecord, update: createRecord },
     participation: { list: emptyList, create: createRecord, update: createRecord, warnings: emptyList },

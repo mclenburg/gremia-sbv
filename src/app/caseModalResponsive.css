@@ -131,3 +131,51 @@
     flex: 1 1 100%;
   }
 }
+
+/* Inline-Anonymisierung: stabile Dialogbreite auch während der Eingabe.
+ * Wichtig: Inhalt und Preview dürfen nie die intrinsische Dialogbreite treiben.
+ */
+.industrial-modal-backdrop > .industrial-modal.inline-anonymization-modal {
+  flex: 0 0 auto;
+  inline-size: min(42rem, calc(100vw - 2rem));
+  width: min(42rem, calc(100vw - 2rem)) !important;
+  min-inline-size: 0 !important;
+  min-width: 0 !important;
+  max-inline-size: calc(100vw - 2rem);
+  max-width: calc(100vw - 2rem) !important;
+  contain: inline-size;
+}
+
+.industrial-modal.inline-anonymization-modal .industrial-modal-header,
+.industrial-modal.inline-anonymization-modal .industrial-modal-grid,
+.industrial-modal.inline-anonymization-modal label,
+.industrial-modal.inline-anonymization-modal input,
+.industrial-modal.inline-anonymization-modal textarea,
+.industrial-modal.inline-anonymization-modal .industrial-modal-preview,
+.industrial-modal.inline-anonymization-modal .industrial-modal-preview strong {
+  inline-size: 100%;
+  width: 100%;
+  min-inline-size: 0;
+  min-width: 0;
+  max-inline-size: 100%;
+  max-width: 100%;
+}
+
+.industrial-modal.inline-anonymization-modal input,
+.industrial-modal.inline-anonymization-modal textarea,
+.industrial-modal.inline-anonymization-modal .industrial-modal-preview,
+.industrial-modal.inline-anonymization-modal .industrial-modal-preview strong {
+  display: block;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
+}
+
+@media (max-width: 560px) {
+  .industrial-modal-backdrop > .industrial-modal.inline-anonymization-modal {
+    inline-size: calc(100vw - 1rem);
+    width: calc(100vw - 1rem) !important;
+    max-inline-size: calc(100vw - 1rem);
+    max-width: calc(100vw - 1rem) !important;
+  }
+}

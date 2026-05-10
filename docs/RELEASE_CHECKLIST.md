@@ -56,7 +56,6 @@ npm run build:mac
 - [ ] Windows erzeugt portable EXE, keinen verpflichtenden Installer.
 - [ ] macOS-Artefakt ist unsigniert und nicht notarisiert dokumentiert.
 - [ ] GitHub-Release-Upload enthält nur `.exe`, `.AppImage` und `.dmg`; `latest*.yml`, `.blockmap` und zusätzliche ZIPs werden nicht hochgeladen.
-- [ ] Release Notes für `0.9.1` existieren.
 - [ ] README, Roadmap, Known Issues, Build-Doku und Lizenzpolitik nennen `0.9.1`.
 
 ## Freeze-Regel

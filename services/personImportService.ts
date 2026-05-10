@@ -39,6 +39,10 @@ function rowsToObjects(rows: string[][], headerRowIndex: number): { columns: str
   return { columns, objects };
 }
 
+function isPastOrToday(value: string | undefined): boolean {
+  return Boolean(value) && value! <= new Date().toISOString().slice(0, 10);
+}
+
 function buildPersonInput(rowObject: Record<string, string>, mapping: PersonImportColumnMapping): { input: CreateProtectedPersonInput; validationErrors: string[]; rawPreview: Record<string, string> } {
   const fullName = getMappedValue(rowObject, 'fullName', mapping);
   const split = fullName ? splitFullName(fullName, mapping.fullNameMode) : { firstName: '', lastName: '' };
@@ -47,7 +51,8 @@ function buildPersonInput(rowObject: Record<string, string>, mapping: PersonImpo
   const protectionStatus = normalizeProtectionStatus(getMappedValue(rowObject, 'protectionStatus', mapping));
   const employmentStateRaw = normalizeCell(getMappedValue(rowObject, 'employmentState', mapping)).toLowerCase();
   const leftCompanyAt = normalizeDateString(getMappedValue(rowObject, 'leftCompanyAt', mapping));
-  const employmentState: CreateProtectedPersonInput['employmentState'] = leftCompanyAt || /ausgeschieden|ende|left|inaktiv/.test(employmentStateRaw) ? 'left_company' : 'active_employee';
+  const rawIndicatesLeft = /ausgeschieden|ende|left|inaktiv/.test(employmentStateRaw);
+  const employmentState: CreateProtectedPersonInput['employmentState'] = isPastOrToday(leftCompanyAt) || (rawIndicatesLeft && !leftCompanyAt) ? 'left_company' : 'active_employee';
   const input: CreateProtectedPersonInput = {
     firstName,
     lastName,

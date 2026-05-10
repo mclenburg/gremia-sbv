@@ -11,14 +11,17 @@ function lineCount(path: string): number {
 }
 
 describe('0.9.1 Dokumentation und Architektur-Synchronität', () => {
-  it('synchronisiert Version und Release Notes dynamisch', () => {
+  it('synchronisiert Version und dauerhafte Projektdokumentation dynamisch', () => {
     const appVersion = readNormalizedSourceText('src/app/generated/appVersion.ts');
     const metadata = readNormalizedSourceText('services/generated/appMetadata.ts');
-    const releaseNotes = readNormalizedSourceText(`docs/RELEASE_NOTES_${packageJson.version}.md`);
+    const readme = readNormalizedSourceText('README.md');
+    const docsReadme = readNormalizedSourceText('docs/README.md');
 
     expect(appVersion).toContain(packageJson.version);
     expect(metadata).toContain(packageJson.version);
-    expect(releaseNotes).toContain('Personenverzeichnis');
+    expect(readme).toContain(`Stand: **${packageJson.version}**`);
+    expect(docsReadme).toContain('aktiver, dauerhafter Dokumentationsbestand');
+    expect(readme).toContain('Personenverzeichnis');
   });
 
   it('hält das Personenmodul modular und screenreaderfähig', () => {

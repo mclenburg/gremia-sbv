@@ -8,6 +8,7 @@ import { CaseDetailPanel } from "./CaseDetailPanel";
 import { CaseOverviewDetail } from "./CaseOverviewDetail";
 import { CaseDocumentDetail } from "./CaseDocumentDetail";
 import { CaseCreateModal } from "./CaseCreateModal";
+import { LegacyCaseBindingDialog } from "./LegacyCaseBindingDialog";
 import { CaseNoteModal } from "./CaseNoteModal";
 import { CaseProcessDraftModal } from "./CaseProcessDraftModal";
 import { CaseWorkbenchFooter } from "./CaseWorkbenchFooter";
@@ -27,7 +28,7 @@ import { formatBytes, formatCaseLabel, formatNoteDate, formatProcessNodeSubtitle
 type CasesViewRenderProps = Record<string, any>;
 
 export function CasesViewRender(props: CasesViewRenderProps) {
-  const { caseToast, visibleCases, selectedCaseId, filteredCases, caseFilter, setCaseFilter, normalizedCaseRegisterPage, caseRegisterPageCount, caseRegisterPageSize, setCaseRegisterPage, openCaseCreateModal, selectedCase, selectedNote, selectedDocument, selectedSearchResult, selectedPreventionProcess, selectedBemProcess, selectedTerminationProcess, selectedEqualizationProcess, selectedEqualizationNotes, selectedParticipationProcess, selectedWorkplaceAccommodationProcess, notes, documents, caseLegalReferences, casePreventionProcesses, caseBemProcesses, caseEqualizationProcesses, caseTerminationProcesses, caseParticipationProcesses, caseWorkplaceAccommodationProcesses, selection, setSelection, setSelectedCaseId, searchQuery, searchOnlySelectedCase, searchResults, runSearch, setSearchQuery, setSearchOnlySelectedCase, documentActions, updateCasePreventionProcess, openProcessTemplateModal, updateCaseBemProcess, updateCaseTerminationProcess, updateCaseEqualizationProcess, createEqualizationSecureNote, updateCaseParticipationProcess, openCaseProcessDraft, updateCaseWorkplaceAccommodationProcess, startEditNote, deleteNote, openNewNoteModal, inlineCommands, caseNumber, displayName, category, summary, error, isCaseCreateModalOpen, setCaseNumber, setDisplayName, setCategory, setSummary, cancelCaseCreateModal, addCase, isNoteModalOpen, editingNote, noteTitle, noteDate, noteType, participants, content, nextSteps, cases, linkedCaseIds, confidentialLevel, containsHealthData, noteError, noteInfo, setNoteTitle, setNoteDate, setNoteType, setParticipants, setConfidentialLevel, setContainsHealthData, toggleLinkedCase, cancelNoteModal, saveNote, caseProcessDraft, setCaseProcessDraft, createCaseProcessFromDraft, contacts, processTemplateModal, setProcessTemplateModal, renderAndDownloadProcessTemplate } = props;
+  const { caseToast, visibleCases, selectedCaseId, filteredCases, caseFilter, setCaseFilter, normalizedCaseRegisterPage, caseRegisterPageCount, caseRegisterPageSize, setCaseRegisterPage, openCaseCreateModal, selectedCase, selectedNote, selectedDocument, selectedSearchResult, selectedPreventionProcess, selectedBemProcess, selectedTerminationProcess, selectedEqualizationProcess, selectedEqualizationNotes, selectedParticipationProcess, selectedWorkplaceAccommodationProcess, notes, documents, caseLegalReferences, casePreventionProcesses, caseBemProcesses, caseEqualizationProcesses, caseTerminationProcesses, caseParticipationProcesses, caseWorkplaceAccommodationProcesses, selection, setSelection, setSelectedCaseId, searchQuery, searchOnlySelectedCase, searchResults, runSearch, setSearchQuery, setSearchOnlySelectedCase, documentActions, updateCasePreventionProcess, openProcessTemplateModal, updateCaseBemProcess, updateCaseTerminationProcess, updateCaseEqualizationProcess, createEqualizationSecureNote, updateCaseParticipationProcess, openCaseProcessDraft, updateCaseWorkplaceAccommodationProcess, startEditNote, deleteNote, openNewNoteModal, inlineCommands, caseNumber, displayName, category, summary, selectedProtectedPersonId, protectedPersons, error, isCaseCreateModalOpen, setCaseNumber, setDisplayName, setCategory, setSummary, setSelectedProtectedPersonId, cancelCaseCreateModal, addCase, isNoteModalOpen, editingNote, noteTitle, noteDate, noteType, participants, content, nextSteps, cases, linkedCaseIds, confidentialLevel, containsHealthData, noteError, noteInfo, setNoteTitle, setNoteDate, setNoteType, setParticipants, setConfidentialLevel, setContainsHealthData, toggleLinkedCase, cancelNoteModal, saveNote, caseProcessDraft, setCaseProcessDraft, createCaseProcessFromDraft, contacts, processTemplateModal, setProcessTemplateModal, renderAndDownloadProcessTemplate, legacyBindingCase, legacyBindingError, openLegacyBindingDialog, closeLegacyBindingDialog, assignLegacyCase, closedLegacyBulkCount, bulkMarkClosedLegacyCases } = props;
   return (
     <>
       {caseToast && (
@@ -63,6 +64,8 @@ export function CasesViewRender(props: CasesViewRenderProps) {
         }}
         onSelectCase={setSelectedCaseId}
         onCreateCase={openCaseCreateModal}
+        onBulkMarkClosedLegacyCases={() => void bulkMarkClosedLegacyCases()}
+        closedLegacyBulkCount={closedLegacyBulkCount}
         page={normalizedCaseRegisterPage}
         pageCount={caseRegisterPageCount}
         pageSize={caseRegisterPageSize}
@@ -112,6 +115,7 @@ export function CasesViewRender(props: CasesViewRenderProps) {
                 caseParticipationProcesses.length +
                 caseWorkplaceAccommodationProcesses.length
               }
+              onOpenLegacyBinding={selectedCase?.personBindingState === "legacy_unlinked" ? () => openLegacyBindingDialog(selectedCase) : undefined}
               contextualTemplateActions={
                 selectedCase &&
                 (() => {
@@ -289,13 +293,25 @@ export function CasesViewRender(props: CasesViewRenderProps) {
         displayName={displayName}
         category={category}
         summary={summary}
+        selectedProtectedPersonId={selectedProtectedPersonId}
+        protectedPersons={protectedPersons}
         error={error}
         onCaseNumberChange={setCaseNumber}
         onDisplayNameChange={setDisplayName}
         onCategoryChange={setCategory}
         onSummaryChange={setSummary}
+        onProtectedPersonChange={setSelectedProtectedPersonId}
         onCancel={cancelCaseCreateModal}
         onSubmit={addCase}
+      />
+
+      <LegacyCaseBindingDialog
+        open={Boolean(legacyBindingCase)}
+        legacyCase={legacyBindingCase ?? undefined}
+        persons={protectedPersons}
+        error={legacyBindingError}
+        onClose={closeLegacyBindingDialog}
+        onAssign={assignLegacyCase}
       />
 
       <CaseNoteModal

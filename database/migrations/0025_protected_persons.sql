@@ -3,6 +3,8 @@ CREATE TABLE IF NOT EXISTS protected_persons (
   id TEXT PRIMARY KEY,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
+  record_kind TEXT NOT NULL DEFAULT 'identified_person' CHECK (record_kind IN ('identified_person','pseudonymous_request')),
+  pseudonym_label TEXT,
   first_name TEXT NOT NULL,
   last_name TEXT NOT NULL,
   personnel_number TEXT,
@@ -93,3 +95,32 @@ CREATE TABLE IF NOT EXISTS person_case_links (
 CREATE INDEX IF NOT EXISTS idx_person_case_links_person ON person_case_links(protected_person_id);
 CREATE INDEX IF NOT EXISTS idx_person_case_links_case ON person_case_links(case_file_id);
 CREATE INDEX IF NOT EXISTS idx_person_case_links_state ON person_case_links(link_state);
+
+-- Direkte Fallaktenbindung 0.9.1: cases ist der bestehende Tabellenname für Fallakten.
+ALTER TABLE cases ADD COLUMN protected_person_id TEXT REFERENCES protected_persons(id) ON DELETE SET NULL;
+ALTER TABLE cases ADD COLUMN person_binding_state TEXT NOT NULL DEFAULT 'legacy_unlinked' CHECK (person_binding_state IN ('active','migrated','legacy_unlinked','anonymous_request','anonymized','person_deleted','unlinking_in_progress'));
+ALTER TABLE cases ADD COLUMN privacy_review_required INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE cases ADD COLUMN privacy_review_reason TEXT;
+ALTER TABLE cases ADD COLUMN privacy_review_due_at TEXT;
+ALTER TABLE cases ADD COLUMN privacy_review_priority TEXT NOT NULL DEFAULT 'normal';
+ALTER TABLE cases ADD COLUMN anonymization_recommended INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE cases ADD COLUMN anonymized_at TEXT;
+CREATE INDEX IF NOT EXISTS idx_cases_protected_person ON cases(protected_person_id);
+CREATE INDEX IF NOT EXISTS idx_cases_person_binding_state ON cases(person_binding_state);
+CREATE INDEX IF NOT EXISTS idx_cases_privacy_review ON cases(privacy_review_required, privacy_review_due_at);
+
+CREATE TABLE IF NOT EXISTS privacy_review_items (
+  id TEXT PRIMARY KEY,
+  case_id TEXT NOT NULL REFERENCES cases(id) ON DELETE CASCADE,
+  protected_person_id TEXT REFERENCES protected_persons(id) ON DELETE SET NULL,
+  reason TEXT NOT NULL,
+  priority TEXT NOT NULL,
+  due_at TEXT NOT NULL,
+  free_text_review_required INTEGER NOT NULL DEFAULT 1,
+  context_json TEXT NOT NULL DEFAULT '{}',
+  status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open','cleared','anonymized','deleted','retention_documented')),
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_privacy_review_items_case ON privacy_review_items(case_id, status);
+CREATE INDEX IF NOT EXISTS idx_privacy_review_items_person ON privacy_review_items(protected_person_id, status);

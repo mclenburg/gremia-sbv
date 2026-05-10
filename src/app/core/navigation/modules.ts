@@ -49,6 +49,13 @@ export interface ModuleDefinition {
 
 export const modules: ModuleDefinition[] = [
   {
+    id: 'persons',
+    title: 'Personenverzeichnis',
+    shortTitle: 'Personen',
+    text: 'Führender Datensatz: Schutzstatus, Import, Personenbindung und Datenschutz-Lifecycle.',
+    icon: UserRoundCheck
+  },
+  {
     id: 'cases',
     title: 'Fälle',
     shortTitle: 'Fallakte',
@@ -58,18 +65,11 @@ export const modules: ModuleDefinition[] = [
   {
     id: 'deadlines',
     title: 'Fristen',
-    shortTitle: 'Frist',
+    shortTitle: 'Fristen',
     text: 'Fristen und Wiedervorlagen. Ab 48h zwingend auf dem Dashboard.',
     icon: CalendarClock
   },
 
-  {
-    id: 'persons',
-    title: 'Personenverzeichnis',
-    shortTitle: 'Personen',
-    text: 'Schutzstatus, Arbeitgeberliste, Import und Datenschutz-Lifecycle.',
-    icon: UserRoundCheck
-  },
   {
     id: 'bem',
     title: 'BEM',

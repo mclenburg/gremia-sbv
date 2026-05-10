@@ -8,7 +8,6 @@ Die Paketversion in `package.json` ist die führende Versionsquelle. Generierte 
 
 - `src/app/generated/appVersion.ts`,
 - `services/generated/appMetadata.ts`,
-- Release Notes `docs/RELEASE_NOTES_0.9.1.md`,
 - README und Roadmap.
 
 ## Generierung

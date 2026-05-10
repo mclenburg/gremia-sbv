@@ -302,7 +302,7 @@ export function GlobalTextCommandController({
     <div className="industrial-modal-backdrop" role="presentation">
       <section
         ref={dialogRef}
-        className="industrial-modal"
+        className={commandKind === 'anonymization' ? 'industrial-modal inline-anonymization-modal' : 'industrial-modal'}
         role="dialog"
         aria-modal="true"
         aria-labelledby="global-text-command-title"

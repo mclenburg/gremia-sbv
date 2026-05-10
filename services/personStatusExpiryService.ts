@@ -1,6 +1,7 @@
 import type { DatabaseAdapter } from './databaseService.js';
 import { ProtectedPersonService } from './protectedPersonService.js';
 import { decidePersonLifecycleTransition } from './personLifecyclePolicy.js';
+import { PrivacyReviewService } from './privacyReviewService.js';
 import type { PersonStatusExpirySummary, ProtectedPersonRecord } from '../src/app/core/models/protected-person.model.js';
 
 function dueIso(dateOnly: string): string {
@@ -23,6 +24,7 @@ export class PersonStatusExpiryService {
       const updated = personService.update(person.id, decision);
       if (decision.lifecycleState === 'expired_review_required') {
         personService.createStatusExpiredPrivacyReview(updated, decision.expiryReviewDueAt ?? referenceDate.toISOString(), referenceDate);
+        new PrivacyReviewService(this.db).markLinkedCasesForPerson(updated.id, 'status_expired');
         expiredReviewRequired.push(updated);
       } else if (decision.lifecycleState === 'expiring_soon' && person.statusValidUntil) {
         personService.createStatusExpiryWarning(updated, dueIso(person.statusValidUntil), referenceDate);

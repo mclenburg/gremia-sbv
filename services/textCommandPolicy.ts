@@ -232,8 +232,40 @@ export function formatConfidentialityText(level: ConfidentialCommandLevel): stri
   return `[Vertraulichkeit: ${label}]`;
 }
 
+
+export type AnonymizationTargetKind = 'name' | 'email' | 'personnel_number' | 'organizational_unit' | 'health_detail' | 'case_reference' | 'text_segment';
+
+const ANONYMIZATION_TARGET_LABELS: Record<AnonymizationTargetKind, string> = {
+  name: 'Name',
+  email: 'E-Mail-Adresse',
+  personnel_number: 'Personalnummer',
+  organizational_unit: 'Organisationseinheit',
+  health_detail: 'Gesundheitsdetail',
+  case_reference: 'Fallbezug',
+  text_segment: 'Textstelle'
+};
+
+export function classifyAnonymizationTarget(value: string): AnonymizationTargetKind {
+  const text = value.trim();
+  const normalized = text.toLowerCase();
+  if (!text) return 'text_segment';
+  if (/\b[\w.%+-]+@[\w.-]+\.[a-z]{2,}\b/i.test(text) || normalized.includes('e-mail') || normalized.includes('email') || normalized.includes('mailadresse')) return 'email';
+  if (/\b(pers(?:onal)?\.?\s*nr|personalnummer|pnr|mitarbeiter(?:nummer)?|ma-?nr)\b/i.test(text) || /\b[A-Z]{0,3}-?\d{3,}\b/.test(text)) return 'personnel_number';
+  if (/\b(gdb|diagnose|krank|erkrank|behinderung|depression|ptbs|adhs|autismus|krebs|tumor|sucht|therapie|medikation|reha)\b/i.test(text)) return 'health_detail';
+  if (/\b(team|bereich|abteilung|referat|dezernat|standort|organisationseinheit|org[-\s]?einheit)\b/i.test(text)) return 'organizational_unit';
+  if (/\b(fall|akte|aktenzeichen|az|sbv-\d|bem-\d)\b/i.test(text)) return 'case_reference';
+  if (/^[A-ZÄÖÜ][a-zäöüß]+(?:[-\s][A-ZÄÖÜ][a-zäöüß]+)+$/.test(text)) return 'name';
+  return 'text_segment';
+}
+
 export function formatAnonymizationMarkerText(label: string): string {
-  return `[Anonymisierung vormerken: ${label.trim() || 'Textstelle'}]`;
+  const value = label.trim();
+  return `[Anonymisierung vormerken: ${value || 'Textstelle prüfen'}]`;
+}
+
+export function applyPendingAnonymizationMarkers(value: string | null | undefined): string | null | undefined {
+  if (value == null) return value;
+  return value.replace(/\[Anonymisierung vormerken:\s*[^\]\r\n]+\]/gi, '[anonymisiert]');
 }
 
 export function formatTemplateMarkerText(query: string): string {

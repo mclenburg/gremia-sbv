@@ -5,14 +5,13 @@ const project = JSON.parse(readFileSync("package.json", "utf8"));
 const buildDocs = readFileSync("docs/BUILD.md", "utf8");
 
 describe("Windows RC build contract", () => {
-  it("keeps unsigned Windows packaging independent from winCodeSign symlink extraction", () => {
+  it("builds only the portable Windows executable and no installer", () => {
     expect(project.build.win.signAndEditExecutable).toBe(false);
-    expect(project.build.win.target).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ target: "nsis" }),
-        expect.objectContaining({ target: "portable" }),
-      ]),
-    );
+    expect(project.build.win.target).toEqual([
+      expect.objectContaining({ target: "portable" }),
+    ]);
+    expect(JSON.stringify(project.build.win.target)).not.toContain("nsis");
+    expect(project.build.nsis).toBeUndefined();
   });
 
   it("keeps native dependency rebuild independent from Windows executable resource editing", () => {
@@ -21,5 +20,6 @@ describe("Windows RC build contract", () => {
     expect(buildDocs).toContain("signAndEditExecutable");
     expect(buildDocs).toContain("Cannot create symbolic link");
     expect(buildDocs).toContain("postinstall");
+    expect(buildDocs).toContain("portable Direktstart-EXE");
   });
 });

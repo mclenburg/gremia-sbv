@@ -8,6 +8,7 @@ const buildDoc = readNormalizedSourceText('docs/BUILD.md');
 const pkg = JSON.parse(readNormalizedSourceText('package.json')) as {
   version: string;
   scripts: Record<string, string>;
+  build: { win: { target: Array<{ target: string }> }; nsis?: unknown };
 };
 const lock = JSON.parse(readNormalizedSourceText('package-lock.json')) as {
   version: string;
@@ -25,6 +26,8 @@ describe('Windows portable artifact', () => {
     expect(buildPlatform).toContain("builderArgs: ['--win', 'portable', '--x64']");
     expect(buildPlatform).not.toContain("builderArgs: ['--win', 'nsis', '--x64']");
     expect(buildPlatform).not.toContain('NSIS-Installer');
+    expect(pkg.build.win.target.map((entry) => entry.target)).toEqual(['portable']);
+    expect(pkg.build.nsis).toBeUndefined();
   });
 
   it('still uploads only the three end-user artifacts', () => {

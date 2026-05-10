@@ -66,8 +66,47 @@ export function stableStringify(value: unknown): string {
   return `{${keys.map((key) => `${JSON.stringify(key)}:${stableStringify(record[key])}`).join(',')}}`;
 }
 
+
+const DIRECT_IDENTIFIER_PATTERNS = [
+  /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i,
+  /\b(?:P|PNR|Pers(?:onal)?(?:nummer)?)[-\s]*\d{2,}\b/i,
+  /\b\d{5,}\b/
+];
+
+export function sanitizeAuditPurpose(purpose: string): string {
+  const normalized = purpose.trim() || 'SBV-Datenschutzereignis';
+  if (DIRECT_IDENTIFIER_PATTERNS.some((pattern) => pattern.test(normalized))) return 'SBV-Datenschutzereignis';
+  return normalized.slice(0, 240);
+}
+
+export function sanitizeAuditActor(actor: string): string {
+  const normalized = actor.trim() || 'local-sbv-user';
+  if (DIRECT_IDENTIFIER_PATTERNS.some((pattern) => pattern.test(normalized))) return 'local-sbv-user';
+  return normalized.slice(0, 120);
+}
+
+const AUDIT_METADATA_ALLOWLIST = new Set(['subjectId', 'caseId', 'action', 'purpose', 'timestamp']);
+const UUID_OR_STABLE_ID_PATTERN = /^[a-zA-Z0-9:_.-]{3,160}$/;
+
+function normalizeAllowedAuditMetadataValue(value: unknown): string | null {
+  if (value == null) return null;
+  if (value instanceof Date) return value.toISOString();
+  if (typeof value === 'string') {
+    const text = value.trim();
+    return UUID_OR_STABLE_ID_PATTERN.test(text) ? text : null;
+  }
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  return null;
+}
+
 export function normalizeAuditMetadata(metadata?: Record<string, unknown>): string {
-  return stableStringify(metadata ?? {});
+  const normalized: Record<string, string> = {};
+  for (const [key, value] of Object.entries(metadata ?? {})) {
+    if (!AUDIT_METADATA_ALLOWLIST.has(key)) continue;
+    const safeValue = normalizeAllowedAuditMetadataValue(value);
+    if (safeValue !== null) normalized[key] = safeValue;
+  }
+  return stableStringify(normalized);
 }
 
 export function buildAuditChainPayload(input: AuditChainPayloadInput): string {

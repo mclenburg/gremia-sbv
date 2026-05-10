@@ -9,6 +9,8 @@ export function CaseRegister({
   onCaseFilterChange,
   onSelectCase,
   onCreateCase,
+  onBulkMarkClosedLegacyCases,
+  closedLegacyBulkCount,
   page,
   pageCount,
   pageSize,
@@ -21,6 +23,8 @@ export function CaseRegister({
   onCaseFilterChange: (value: string) => void;
   onSelectCase: (caseId: string) => void;
   onCreateCase: () => void;
+  onBulkMarkClosedLegacyCases?: () => void;
+  closedLegacyBulkCount?: number;
   page: number;
   pageCount: number;
   pageSize: number;
@@ -41,6 +45,11 @@ export function CaseRegister({
             onChange={(event) => onCaseFilterChange(event.target.value)}
             placeholder="Fälle filtern nach Aktenzeichen, Name, Kurzbeschreibung …"
           />
+          {Boolean(closedLegacyBulkCount) && (
+            <button type="button" className="industrial-secondary-button compact" onClick={onBulkMarkClosedLegacyCases} data-e2e="bulk-mark-closed-legacy">
+              {closedLegacyBulkCount} Altakten vormerken
+            </button>
+          )}
           <button type="button" className="industrial-button" onClick={onCreateCase}><Plus className="h-4 w-4" />Fallakte</button>
         </div>
       </div>
@@ -52,6 +61,7 @@ export function CaseRegister({
               <th>Name / Pseudonym</th>
               <th>Kategorie</th>
               <th>Status</th>
+              <th>Bindung</th>
               <th>Kurzbeschreibung</th>
             </tr>
           </thead>
@@ -62,6 +72,7 @@ export function CaseRegister({
                 <td>{record.displayName}</td>
                 <td>{record.category as CaseCategory}</td>
                 <td>{record.status}</td>
+                <td>{record.personBindingState === 'legacy_unlinked' ? 'Altfall' : record.personBindingState === 'anonymous_request' ? 'Anonym' : record.protectedPersonId ? 'Person' : '—'}</td>
                 <td>{record.summary ?? '—'}</td>
               </tr>
             ))}

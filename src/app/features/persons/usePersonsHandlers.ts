@@ -6,6 +6,7 @@ import type {
   PersonImportPreviewInput,
   UpdateProtectedPersonInput
 } from '../../core/models/protected-person.model';
+import type { PrivacyReviewActionInput } from '../../core/models/privacy-review.model';
 
 export function usePersonsHandlers(reloadWorkData: () => Promise<void>) {
   const createProtectedPerson = useCallback(async (input: CreateProtectedPersonInput) => {
@@ -50,10 +51,70 @@ export function usePersonsHandlers(reloadWorkData: () => Promise<void>) {
     await reloadWorkData();
   }, [reloadWorkData]);
 
+  const listOpenPrivacyReviewsForPerson = useCallback(async (protectedPersonId: string) => {
+    const bridge = await waitForBridge();
+    if (!bridge?.privacyReview) throw new Error('Datenschutzprüfung ist nicht erreichbar.');
+    return await bridge.privacyReview.listOpenForPerson(protectedPersonId);
+  }, []);
+
+  const documentPrivacyRetention = useCallback(async (input: PrivacyReviewActionInput) => {
+    const bridge = await waitForBridge();
+    if (!bridge?.privacyReview) throw new Error('Datenschutzprüfung ist nicht erreichbar.');
+    const result = await bridge.privacyReview.documentRetention(input);
+    await reloadWorkData();
+    return result;
+  }, [reloadWorkData]);
+
+  const schedulePrivacyReviewLater = useCallback(async (input: PrivacyReviewActionInput) => {
+    const bridge = await waitForBridge();
+    if (!bridge?.privacyReview) throw new Error('Datenschutzprüfung ist nicht erreichbar.');
+    const result = await bridge.privacyReview.scheduleLater(input);
+    await reloadWorkData();
+    return result;
+  }, [reloadWorkData]);
+
+  const clearPrivacyReview = useCallback(async (input: PrivacyReviewActionInput) => {
+    const bridge = await waitForBridge();
+    if (!bridge?.privacyReview) throw new Error('Datenschutzprüfung ist nicht erreichbar.');
+    const result = await bridge.privacyReview.clearCase(input);
+    await reloadWorkData();
+    return result;
+  }, [reloadWorkData]);
+
+  const anonymizePrivacyReviewCase = useCallback(async (input: Required<Pick<PrivacyReviewActionInput, 'caseId' | 'reason' | 'confirmation'>>) => {
+    const bridge = await waitForBridge();
+    if (!bridge?.privacyReview?.anonymizeCase) throw new Error('Anonymisierung ist nicht erreichbar.');
+    const result = await bridge.privacyReview.anonymizeCase(input);
+    await reloadWorkData();
+    return result;
+  }, [reloadWorkData]);
+
+  const deletePrivacyReviewCase = useCallback(async (input: Required<Pick<PrivacyReviewActionInput, 'caseId' | 'reason' | 'confirmation'>>) => {
+    const bridge = await waitForBridge();
+    if (!bridge?.privacyReview?.deleteCase) throw new Error('Löschung ist nicht erreichbar.');
+    const result = await bridge.privacyReview.deleteCase(input);
+    await reloadWorkData();
+    return result;
+  }, [reloadWorkData]);
+
+  const anonymizeProtectedPerson = useCallback(async (personId: string, reason: string) => {
+    const bridge = await waitForBridge();
+    if (!bridge?.persons?.anonymize) throw new Error('Personenanonymisierung ist nicht erreichbar.');
+    await bridge.persons.anonymize(personId, reason);
+    await reloadWorkData();
+  }, [reloadWorkData]);
+
+  const deleteProtectedPerson = useCallback(async (personId: string, reason: string) => {
+    const bridge = await waitForBridge();
+    if (!bridge?.persons?.delete) throw new Error('Personenlöschung ist nicht erreichbar.');
+    await bridge.persons.delete(personId, reason);
+    await reloadWorkData();
+  }, [reloadWorkData]);
+
   const exportDeadlinesAsIcal = useCallback(async () => {
     const bridge = await waitForBridge();
     if (!bridge?.deadlines?.exportIcal) throw new Error('iCal-Export ist nicht erreichbar.');
-    const ics = await bridge.deadlines.exportIcal({ status: ['open', 'overdue'] }, 'privacy_first');
+    const ics = await bridge.deadlines.exportIcal({ status: ['open', 'overdue'] }, 'process_type');
     const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -70,6 +131,14 @@ export function usePersonsHandlers(reloadWorkData: () => Promise<void>) {
     previewProtectedPersonsImport,
     executeProtectedPersonsImport,
     evaluateProtectedPersonExpiry,
+    listOpenPrivacyReviewsForPerson,
+    documentPrivacyRetention,
+    schedulePrivacyReviewLater,
+    clearPrivacyReview,
+    anonymizePrivacyReviewCase,
+    deletePrivacyReviewCase,
+    anonymizeProtectedPerson,
+    deleteProtectedPerson,
     exportDeadlinesAsIcal
   }), [
     createProtectedPerson,
@@ -78,6 +147,14 @@ export function usePersonsHandlers(reloadWorkData: () => Promise<void>) {
     previewProtectedPersonsImport,
     executeProtectedPersonsImport,
     evaluateProtectedPersonExpiry,
+    listOpenPrivacyReviewsForPerson,
+    documentPrivacyRetention,
+    schedulePrivacyReviewLater,
+    clearPrivacyReview,
+    anonymizePrivacyReviewCase,
+    deletePrivacyReviewCase,
+    anonymizeProtectedPerson,
+    deleteProtectedPerson,
     exportDeadlinesAsIcal
   ]);
 }

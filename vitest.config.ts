@@ -23,7 +23,13 @@ const rcCriticalServiceCoverage = [
   'services/terminationHearingService.ts',
   'services/terminationWorkflowPolicy.ts',
   'services/bemWorkflowPolicy.ts',
-  'services/bemGuidancePolicy.ts'
+  'services/bemGuidancePolicy.ts',
+  'services/personCaseBindingPolicy.ts',
+  'services/personAnonymizationPolicy.ts',
+  'services/privacyReviewPolicy.ts',
+  'services/icalPrivacyPolicy.ts',
+  'services/deadlineIcalExportService.ts',
+  'services/auditHashChain.ts'
 ];
 
 export default defineConfig({

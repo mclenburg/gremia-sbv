@@ -8,6 +8,8 @@ import type {
 import {
   computeAuditEntryHash,
   normalizeAuditMetadata,
+  sanitizeAuditActor,
+  sanitizeAuditPurpose,
   PERSONAL_DATA_AUDIT_GENESIS_HASH,
   verifyAuditHashChain,
   type AuditChainRowInput
@@ -86,7 +88,8 @@ export class PersonalDataAuditLogService {
     const occurredAt = nowIso();
     const metadataJson = normalizeAuditMetadata(input.metadata);
     const id = randomUUID();
-    const actor = input.actor ?? this.actor;
+    const actor = sanitizeAuditActor(input.actor ?? this.actor);
+    const purpose = sanitizeAuditPurpose(input.purpose);
     const entryHash = computeAuditEntryHash({
       sequence,
       occurredAt,
@@ -95,7 +98,7 @@ export class PersonalDataAuditLogService {
       subjectType: input.subjectType,
       subjectId: input.subjectId ?? null,
       caseId: input.caseId ?? null,
-      purpose: input.purpose,
+      purpose,
       metadataJson,
       previousHash
     });
@@ -113,7 +116,7 @@ export class PersonalDataAuditLogService {
       input.subjectType,
       input.subjectId ?? null,
       input.caseId ?? null,
-      input.purpose,
+      purpose,
       metadataJson,
       previousHash,
       entryHash
@@ -137,7 +140,7 @@ export class PersonalDataAuditLogService {
       subjectType: input.subjectType,
       subjectId: input.subjectId ?? undefined,
       caseId: input.caseId ?? undefined,
-      purpose: input.purpose,
+      purpose,
       metadataJson,
       previousHash,
       entryHash

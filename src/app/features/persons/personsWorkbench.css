@@ -263,3 +263,114 @@
     width: 100%;
   }
 }
+
+.person-lifecycle-review.needs-review {
+  border-color: rgba(255, 214, 0, 0.5);
+}
+
+.person-privacy-review-dialog {
+  width: min(58rem, calc(100vw - 2rem));
+  max-width: calc(100vw - 2rem);
+  max-height: calc(100vh - 2rem);
+  overflow: auto;
+}
+
+.privacy-review-form {
+  display: grid;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.privacy-review-form label {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.privacy-review-form textarea {
+  min-height: 6rem;
+  resize: vertical;
+}
+
+.privacy-context-grid dd {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 760px) {
+  .person-privacy-review-dialog {
+    width: calc(100vw - 1rem);
+    max-width: calc(100vw - 1rem);
+  }
+
+  .person-privacy-review-dialog .industrial-panel-heading {
+    align-items: stretch;
+  }
+}
+
+.person-create-dialog {
+  width: min(48rem, calc(100vw - 2rem));
+  max-width: calc(100vw - 2rem);
+  max-height: calc(100vh - 2rem);
+  overflow: auto;
+}
+
+.person-create-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.person-create-form label {
+  min-width: 0;
+}
+
+@media (max-width: 720px) {
+  .person-create-dialog {
+    width: calc(100vw - 1rem);
+    max-width: calc(100vw - 1rem);
+  }
+}
+
+.person-list-item {
+  position: relative;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
+  padding: 0;
+  overflow: hidden;
+}
+
+.person-list-select {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 0.75rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.person-list-select:focus-visible,
+.person-list-delete:focus-visible {
+  outline: 2px solid var(--industrial-accent);
+  outline-offset: -2px;
+}
+
+.person-list-delete {
+  display: grid;
+  place-items: center;
+  align-self: stretch;
+  min-width: 2.5rem;
+  border: 0;
+  border-left: 1px solid var(--sbv-border);
+  background: rgba(127, 29, 29, 0.16);
+  color: #fecaca;
+  cursor: pointer;
+}
+
+.person-list-delete:hover {
+  background: rgba(185, 28, 28, 0.28);
+  color: #fff1f2;
+}

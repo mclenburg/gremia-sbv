@@ -3,6 +3,8 @@ import type { CaseDocumentRecord } from "../src/app/core/models/case-document.mo
 import type {
   CaseRecord,
   CreateCaseInput,
+  LegacyCaseBindingInput,
+  LegacyCaseBindingResult,
 } from "../src/app/core/models/case.model.js";
 import type {
   CaseMeasureRecord,
@@ -30,6 +32,7 @@ import type {
   DeadlineRecord,
   UpdateDeadlineInput,
 } from "../src/app/core/models/deadline.model.js";
+import type { PrivacyReviewActionInput, PrivacyReviewActionResult, PrivacyReviewBulkResult, PrivacyReviewItemRecord } from "../src/app/core/models/privacy-review.model.js";
 import type {
   SecurityResult,
   SecurityStatus,
@@ -178,6 +181,8 @@ const api = {
     list: (): Promise<CaseRecord[]> => ipcRenderer.invoke("cases:list"),
     create: (input: CreateCaseInput): Promise<CaseRecord> =>
       ipcRenderer.invoke("cases:create", input),
+    bindLegacyCase: (input: LegacyCaseBindingInput): Promise<LegacyCaseBindingResult> =>
+      ipcRenderer.invoke("cases:bind-legacy", input),
     listNotes: (caseId: string): Promise<CaseNoteRecord[]> =>
       ipcRenderer.invoke("cases:notes:list", caseId),
     createNote: (input: CreateCaseNoteInput): Promise<CaseNoteRecord> =>
@@ -385,6 +390,8 @@ const api = {
       ipcRenderer.invoke("persons:list", filters),
     create: (input: CreateProtectedPersonInput): Promise<ProtectedPersonRecord> =>
       ipcRenderer.invoke("persons:create", input),
+    createAnonymousRequest: (label?: string): Promise<ProtectedPersonRecord> =>
+      ipcRenderer.invoke("persons:create-anonymous-request", label),
     update: (id: string, input: UpdateProtectedPersonInput): Promise<ProtectedPersonRecord> =>
       ipcRenderer.invoke("persons:update", id, input),
     linkCase: (personId: string, caseId: string, reason?: string): Promise<PersonCaseLinkRecord> =>
@@ -399,6 +406,25 @@ const api = {
       ipcRenderer.invoke("persons:expiry:evaluate", referenceIso),
     anonymize: (id: string, reason: string): Promise<PersonAnonymizationResult> =>
       ipcRenderer.invoke("persons:anonymize", id, reason),
+    delete: (id: string, reason: string): Promise<{ ok: true; affectedCaseIds: string[]; deletedPersonId: string }> =>
+      ipcRenderer.invoke("persons:delete", id, reason),
+  },
+
+  privacyReview: {
+    listOpenForPerson: (protectedPersonId: string): Promise<PrivacyReviewItemRecord[]> =>
+      ipcRenderer.invoke("privacy-review:list-open-for-person", protectedPersonId),
+    documentRetention: (input: PrivacyReviewActionInput): Promise<PrivacyReviewActionResult> =>
+      ipcRenderer.invoke("privacy-review:document-retention", input),
+    scheduleLater: (input: PrivacyReviewActionInput): Promise<PrivacyReviewActionResult> =>
+      ipcRenderer.invoke("privacy-review:schedule-later", input),
+    clearCase: (input: PrivacyReviewActionInput): Promise<PrivacyReviewActionResult> =>
+      ipcRenderer.invoke("privacy-review:clear-case", input),
+    anonymizeCase: (input: PrivacyReviewActionInput): Promise<PrivacyReviewActionResult> =>
+      ipcRenderer.invoke("privacy-review:anonymize-case", input),
+    deleteCase: (input: PrivacyReviewActionInput): Promise<PrivacyReviewActionResult> =>
+      ipcRenderer.invoke("privacy-review:delete-case", input),
+    bulkMarkClosedLegacy: (): Promise<PrivacyReviewBulkResult> =>
+      ipcRenderer.invoke("privacy-review:bulk-mark-closed-legacy"),
   },
   deadlines: {
     list: (filters?: DeadlineListFilters): Promise<DeadlineRecord[]> =>
@@ -415,7 +441,7 @@ const api = {
       ipcRenderer.invoke("deadlines:suspend", id, reason),
     cancel: (id: string, reason: string): Promise<DeadlineRecord> =>
       ipcRenderer.invoke("deadlines:cancel", id, reason),
-    exportIcal: (filters?: DeadlineListFilters, privacyLevel?: "privacy_first" | "case_reference" | "details"): Promise<string> =>
+    exportIcal: (filters?: DeadlineListFilters, privacyLevel?: "privacy_first" | "process_type" | "case_reference" | "details"): Promise<string> =>
       ipcRenderer.invoke("deadlines:ical-export", filters, privacyLevel),
   },
   reports: {

@@ -11,7 +11,7 @@ import { buildProcessTemplateValues, defaultCaseProcessDraft, downloadRenderedTe
 type useCaseCrudActionsDeps = Record<string, any>;
 
 export function useCaseCrudActions(deps: useCaseCrudActionsDeps) {
-  const { setError, setIsCaseCreateModalOpen, caseNumber, displayName, category, summary, onCreateCase, onCasesChanged, setCaseNumber, setDisplayName, setSummary, setNoteError, editingNote, noteEditor, reloadSelectedCaseChildren, setSelection, searchQuery, runSearch, setDocumentError, selectedCaseId, selectedCase, confirmDialog, announce } = deps;
+  const { setError, setIsCaseCreateModalOpen, caseNumber, displayName, category, summary, selectedProtectedPersonId, protectedPersons, onCreateCase, onCasesChanged, setCaseNumber, setDisplayName, setSummary, setSelectedProtectedPersonId, setNoteError, editingNote, noteEditor, reloadSelectedCaseChildren, setSelection, searchQuery, runSearch, setDocumentError, selectedCaseId, selectedCase, confirmDialog, announce } = deps;
   function openCaseCreateModal() {
     setError("");
     setIsCaseCreateModalOpen(true);
@@ -25,21 +25,44 @@ export function useCaseCrudActions(deps: useCaseCrudActionsDeps) {
   async function addCase(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
-    if (!caseNumber.trim() || !displayName.trim()) {
-      setError("Bitte Aktenzeichen und Namen/Pseudonym erfassen.");
+    if (!caseNumber.trim()) {
+      setError("Bitte ein Aktenzeichen erfassen.");
+      return;
+    }
+    if (!selectedProtectedPersonId) {
+      setError("Bitte zuerst eine Person auswählen oder den Sonderweg für anonyme Beratungsanfrage nutzen.");
       return;
     }
 
     try {
+      let protectedPersonId = selectedProtectedPersonId;
+      let bindingState = "active";
+      let nextDisplayName = displayName.trim();
+      if (selectedProtectedPersonId === "__anonymous_request__") {
+        const bridge = await waitForBridge();
+        if (!bridge?.persons) throw new Error("Personendienst ist nicht erreichbar.");
+        const anonymousPerson = await bridge.persons.createAnonymousRequest();
+        protectedPersonId = anonymousPerson.id;
+        bindingState = "anonymous_request";
+        nextDisplayName = anonymousPerson.pseudonymLabel ?? "Anonyme Anfrage";
+      } else if (!nextDisplayName) {
+        const person = protectedPersons.find((entry: any) => entry.id === selectedProtectedPersonId);
+        nextDisplayName = person?.pseudonymLabel || [person?.lastName, person?.firstName].filter(Boolean).join(", ") || "Personenbezogene Fallakte";
+      }
       await onCreateCase({
         caseNumber: caseNumber.trim(),
-        displayName: displayName.trim(),
+        displayName: nextDisplayName,
         category,
         summary: summary.trim() || undefined,
+        protectedPersonId,
+        personBindingState: bindingState,
+        isPseudonymized: bindingState === "anonymous_request",
       });
+      announce(bindingState === "anonymous_request" ? "Anonyme Anfrage wurde angelegt." : "Fallakte wurde mit Person verknüpft.");
       setCaseNumber("");
       setDisplayName("");
       setSummary("");
+      setSelectedProtectedPersonId("");
       setIsCaseCreateModalOpen(false);
       await onCasesChanged();
     } catch (error) {

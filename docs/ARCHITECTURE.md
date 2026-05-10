@@ -41,7 +41,7 @@ Wichtige Services:
 
 ## Fallaktenbindung
 
-`case_files.protected_person_id` soll fachlich führend werden. Bestehende `person_case_links` werden in der Migration ausgewertet:
+`cases.protected_person_id` ist technisch führend; fachlich entspricht dies der im Konzept bezeichneten Fallakte (`case_files`). Bestehende `person_case_links` werden nur für Migration, Historie und Audit ausgewertet:
 
 - genau ein aktiver Link → `migrated`,
 - mehrere Links → `legacy_unlinked`,
@@ -61,8 +61,8 @@ Freitexte werden nicht automatisch anonymisiert, sondern prüfpflichtig markiert
 
 ## Fristen und iCal
 
-Fristen werden über das bestehende Fristensystem geführt. Personenbezogene Ablaufwarnungen dürfen kein paralleles Dashboard-System erzeugen. iCal-Export nutzt `process_type` als Standard und enthält keine Namen oder Fallinhalte.
+Fristen werden über das bestehende Fristensystem geführt. Personenbezogene Ablaufwarnungen dürfen kein paralleles Dashboard-System erzeugen. iCal-Export nutzt `process_type` als Standard und enthält keine Namen oder Fallinhalte. Der Exportpfad liegt im Fristenmodul; Personenansichten dürfen ihn nur als datensparsame Komfortaktion auslösen, nicht als parallele Fristenlogik.
 
 ## Compliance Center
 
-`complianceCenterService.ts` erzeugt TOMs, DSFA, DSGVO-/BDSG-Matrix und Freigabeunterlagen. Personenverzeichnis, Art. 13/14, Art. 15, § 164 Abs. 4 SGB IX und Audit-ohne-Direktidentifikatoren müssen dort gepflegt werden.
+`complianceCenterService.ts` erzeugt TOMs, DSFA, DSGVO-/BDSG-Matrix und Freigabeunterlagen. Personenverzeichnis, Art. 13/14, Art. 15, § 164 Abs. 4 SGB IX, SQLCipher-Entscheidung und Audit-ohne-Direktidentifikatoren werden dort generatorbasiert gepflegt; reine Markdown-Änderungen reichen nicht aus.

@@ -23,7 +23,7 @@ const deadline: DeadlineRecord = {
 
 describe('0.9.1 Statusablauf und iCal', () => {
   it('exportiert datenschutzfreundlich, aber fachlich sprechend statt als Dummy-Wiedervorlage', () => {
-    const ics = exportDeadlinesToIcal([deadline], { now: new Date('2026-05-01T00:00:00.000Z'), privacyLevel: 'privacy_first' });
+    const ics = exportDeadlinesToIcal([deadline], { now: new Date('2026-05-01T00:00:00.000Z'), privacyLevel: 'process_type' });
     const crlf = String.fromCharCode(13, 10);
 
     expect(ics.startsWith(`BEGIN:VCALENDAR${crlf}`)).toBe(true);

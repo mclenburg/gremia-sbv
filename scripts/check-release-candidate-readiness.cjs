@@ -52,7 +52,6 @@ function validateDocs() {
     'docs/ARCHITECTURE.md',
     'docs/DEVELOPMENT.md',
     'docs/RELEASE_CHECKLIST.md',
-    'docs/CHANGELOG.md',
     'docs/SECURITY.md',
     'docs/DATENSCHUTZKONZEPT.md',
     'docs/DSFA_SBV_TEMPLATE.md',
@@ -66,6 +65,8 @@ function validateDocs() {
 
   const docsReadme = read('docs/README.md');
   expect(docsReadme.includes('RELEASE_CHECKLIST.md'), 'docs/README.md muss die Release-Checkliste aufführen.');
+  expect(!docsReadme.includes('RELEASE_NOTES_0.9.1.md'), 'docs/README.md darf vor Veröffentlichung keine Release Notes aufführen.');
+  expect(!docsReadme.includes('CHANGELOG.md'), 'docs/README.md darf vor Veröffentlichung kein Changelog aufführen.');
   expect(!docsReadme.includes('| `PROCESS_MODULES.md` | fachliche Maßnahmenlogik |'), 'docs/README.md darf PROCESS_MODULES.md nicht doppelt aufführen.');
 
   const releaseChecklist = read('docs/RELEASE_CHECKLIST.md');

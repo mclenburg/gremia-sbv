@@ -4,8 +4,10 @@ import { AlertTriangle, Plus } from 'lucide-react';
 import { ModuleFrame } from '../../shared/components/ModuleFrame';
 import type { CaseRecord } from '../../core/models/case.model';
 import type { CaseMeasureRecord } from '../../core/models/case-measure.model';
-import type { CreateDeadlineInput, DeadlineProcessType, DeadlineRecord, DeadlineSeverity, DeadlineType } from '../../core/models/deadline.model';
+import type { CreateDeadlineInput, DeadlineListFilters, DeadlineProcessType, DeadlineRecord, DeadlineSeverity, DeadlineType } from '../../core/models/deadline.model';
 import { DeadlineListView } from './DeadlineListView';
+import { DeadlineIcalExportPanel } from './DeadlineIcalExportPanel';
+import type { IcalExportPrivacyLevel } from './useIcalExportHandlers';
 import { formatCaseLabel, fromDateTimeLocalValue, toDateTimeLocalValue } from '../cases/caseWorkbenchFormat';
 
 export function DeadlinesView({
@@ -14,7 +16,8 @@ export function DeadlinesView({
   measures = [],
   onCreateDeadline,
   onEditDeadline,
-  onCompleteDeadline
+  onCompleteDeadline,
+  onExportIcal
 }: {
   cases: CaseRecord[];
   deadlines: DeadlineRecord[];
@@ -22,6 +25,7 @@ export function DeadlinesView({
   onCreateDeadline: (input: CreateDeadlineInput) => Promise<void>;
   onEditDeadline: (deadline: DeadlineRecord) => void;
   onCompleteDeadline: (deadline: DeadlineRecord) => void;
+  onExportIcal: (privacyLevel: IcalExportPrivacyLevel, filters: DeadlineListFilters) => Promise<void>;
 }) {
   const [title, setTitle] = useState('');
   const [caseId, setCaseId] = useState('');
@@ -146,6 +150,7 @@ export function DeadlinesView({
         </button>
       </form>
       {error && <div className="industrial-message industrial-message-warning">{error}</div>}
+      <DeadlineIcalExportPanel onExport={onExportIcal} />
 
       <DeadlineListView deadlines={deadlines} cases={cases} measures={measures} onEdit={onEditDeadline} onComplete={onCompleteDeadline} />
     </ModuleFrame>

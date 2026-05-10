@@ -134,7 +134,8 @@
     "test:rc-091-docs": "vitest run tests/rc091DocsAndArchitecture.test.ts",
     "test:person-import-wizard-091": "vitest run tests/personImportWizard091.test.ts",
     "cleanup:obsolete-release-notes": "node scripts/cleanup-obsolete-release-notes-091.cjs",
-    "test:docs-current-091": "vitest run tests/rc091MarkdownDocsCurrent.test.ts"
+    "test:docs-current-091": "vitest run tests/rc091MarkdownDocsCurrent.test.ts",
+    "test:rc-091-step-g-sync": "vitest run tests/rc091StepGReleaseSync.test.ts"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.0",
@@ -200,12 +201,6 @@
     "win": {
       "target": [
         {
-          "target": "nsis",
-          "arch": [
-            "x64"
-          ]
-        },
-        {
           "target": "portable",
           "arch": [
             "x64"
@@ -216,15 +211,6 @@
       "requestedExecutionLevel": "asInvoker",
       "icon": "assets/icons/icon.ico",
       "signAndEditExecutable": false
-    },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
-      "perMachine": false,
-      "createDesktopShortcut": true,
-      "createStartMenuShortcut": true,
-      "shortcutName": "Gremia.SBV",
-      "deleteAppDataOnUninstall": false
     },
     "icon": "assets/icons/icon.png",
     "extraResources": [

@@ -14,6 +14,8 @@ import type {
   CaseRecord,
   CaseStatus,
   CreateCaseInput,
+  LegacyCaseBindingInput,
+  LegacyCaseBindingResult,
 } from "../src/app/core/models/case.model.js";
 import type { CaseDocumentRecord } from "../src/app/core/models/case-document.model.js";
 import type {
@@ -36,6 +38,8 @@ import {
 } from "./contactPrivacyService.js";
 import { PersonalDataAuditLogService } from "./auditLogService.js";
 import { TempFileService } from "./tempFileService.js";
+import { PersonCaseBindingService } from "./personCaseBindingService.js";
+import { assertCanCreateRegularCase } from "./personCaseBindingPolicy.js";
 
 function nowIso(): string {
   return new Date().toISOString();
@@ -54,6 +58,14 @@ function mapCase(row: any): CaseRecord {
     summary: row.summary ?? undefined,
     isPseudonymized: Boolean(row.is_pseudonymized),
     isLocked: Boolean(row.is_locked),
+    protectedPersonId: row.protected_person_id ?? undefined,
+    personBindingState: row.person_binding_state ?? 'legacy_unlinked',
+    privacyReviewRequired: Boolean(row.privacy_review_required),
+    privacyReviewReason: row.privacy_review_reason ?? undefined,
+    privacyReviewDueAt: row.privacy_review_due_at ?? undefined,
+    privacyReviewPriority: row.privacy_review_priority ?? undefined,
+    anonymizationRecommended: Boolean(row.anonymization_recommended),
+    anonymizedAt: row.anonymized_at ?? undefined,
   };
 }
 
@@ -309,6 +321,7 @@ export class CaseService {
     tryExec(`ALTER TABLE case_documents ADD COLUMN imported_at TEXT;`);
 
     ensureContactPrivacySchema(db);
+    new PersonCaseBindingService(db).ensureSchema();
 
     db.exec(`
       CREATE VIRTUAL TABLE IF NOT EXISTS case_notes_fts USING fts5(
@@ -533,6 +546,11 @@ export class CaseService {
     return rows.map(mapCase);
   }
 
+  async bindLegacyCase(input: LegacyCaseBindingInput): Promise<LegacyCaseBindingResult> {
+    const db = this.getSafeDb();
+    return new PersonCaseBindingService(db).assignLegacyCase(input.caseId, input.protectedPersonId, input.reason);
+  }
+
   async createCase(input: CreateCaseInput): Promise<CaseRecord> {
     const db = this.getSafeDb();
     const now = nowIso();
@@ -544,6 +562,13 @@ export class CaseService {
     if (!displayName)
       throw new Error("Bitte Namen oder Pseudonym der Person erfassen.");
 
+    const bindingState = input.personBindingState ?? "active";
+    assertCanCreateRegularCase({
+      protectedPersonId: input.protectedPersonId,
+      personBindingState: bindingState,
+      isAnonymousRequest: bindingState === "anonymous_request",
+    });
+
     const existing = db
       .prepare<any>("SELECT id FROM cases WHERE case_number = ?")
       .get(caseNumber);
@@ -554,8 +579,8 @@ export class CaseService {
       `
       INSERT INTO cases (
         id, case_number, display_name, category, status, priority,
-        opened_at, summary, is_pseudonymized, is_locked, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, 'offen', ?, ?, ?, ?, 0, ?, ?)
+        opened_at, summary, is_pseudonymized, is_locked, protected_person_id, person_binding_state, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, 'offen', ?, ?, ?, ?, 0, ?, ?, ?, ?)
     `,
     ).run(
       id,
@@ -566,6 +591,8 @@ export class CaseService {
       now,
       input.summary ?? null,
       input.isPseudonymized === false ? 0 : 1,
+      input.protectedPersonId ?? null,
+      bindingState,
       now,
       now,
     );
@@ -577,7 +604,7 @@ export class CaseService {
       subjectId: id,
       caseId: id,
       purpose: "Fallakte angelegt",
-      metadata: { category: input.category },
+      metadata: { category: input.category, bindingState },
     });
     return mapCase(created);
   }

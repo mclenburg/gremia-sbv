@@ -41,3 +41,42 @@ test('renders note entity links with fachliche accessible labels instead of UUID
   await expect(link).toHaveAccessibleName(/BEM-Testvorgang/);
   await expect(link).not.toHaveAccessibleName(/link-test|bem-test|case-test/);
 });
+
+test('supports keyboard-only person selection and case creation from selected person', async ({ page }) => {
+  await page.goto('/');
+  const navigation = page.getByRole('navigation', { name: 'Hauptnavigation' });
+  await navigation.getByRole('button', { name: 'Personen', exact: true }).focus();
+  await page.keyboard.press('Enter');
+
+  await page.locator('.person-list-select').filter({ hasText: 'Mustermann, Max' }).first().focus();
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('button', { name: 'Fallakte aus Person anlegen' })).toBeEnabled();
+  await page.getByRole('button', { name: 'Fallakte aus Person anlegen' }).focus();
+  await page.keyboard.press('Enter');
+
+  const dialog = page.getByRole('dialog', { name: 'Fallakte aus Person anlegen' });
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByLabel('Aktenzeichen')).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(dialog).toBeHidden();
+  await expect(page.getByRole('button', { name: 'Fallakte aus Person anlegen' })).toBeFocused();
+});
+
+test('supports keyboard-only anonymous request path and announces binding feedback', async ({ page }) => {
+  await page.goto('/');
+  const navigation = page.getByRole('navigation', { name: 'Hauptnavigation' });
+  await navigation.getByRole('button', { name: 'Fallakte', exact: true }).focus();
+  await page.keyboard.press('Enter');
+  await page.locator('.case-register-actions').getByRole('button', { name: 'Fallakte', exact: true }).focus();
+  await page.keyboard.press('Enter');
+
+  const dialog = page.getByRole('dialog', { name: 'Neue Fallakte anlegen' });
+  await dialog.getByLabel('Aktenzeichen').fill('TEST-A11Y-ANON');
+  await dialog.locator('[data-e2e="anonymous-request-path"]').focus();
+  await page.keyboard.press('Enter');
+  await dialog.getByRole('button', { name: 'Fall anlegen' }).focus();
+  await page.keyboard.press('Enter');
+
+  await expect(page.locator('[data-e2e="case-row-TEST-A11Y-ANON"]')).toBeVisible();
+  await expect(page.getByRole('status')).toContainText(/Anonyme Anfrage wurde angelegt|Fallakte wurde/);
+});

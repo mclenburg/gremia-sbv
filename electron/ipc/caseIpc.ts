@@ -6,7 +6,7 @@ import type {
   CreateCaseNoteInput,
   UpdateCaseNoteInput,
 } from "../../src/app/core/models/case-note.model.js";
-import type { CreateCaseInput } from "../../src/app/core/models/case.model.js";
+import type { CreateCaseInput, LegacyCaseBindingInput } from "../../src/app/core/models/case.model.js";
 import {
   assertOptionalBoolean,
   assertOptionalString,
@@ -40,6 +40,9 @@ export function registerCaseIpc(
   ipcMain.handle("cases:list", async () => cases.listCases());
   ipcMain.handle("cases:create", async (_event, input: unknown) =>
     cases.createCase(assertRecordInput<CreateCaseInput>(input, "cases:create")),
+  );
+  ipcMain.handle("cases:bind-legacy", async (_event, input: unknown) =>
+    cases.bindLegacyCase(assertRecordInput<LegacyCaseBindingInput>(input, "cases:bind-legacy")),
   );
   ipcMain.handle("cases:notes:list", async (_event, caseId: unknown) =>
     cases.listNotes(assertString(caseId, "cases:notes:list", "Fall-ID", { minLength: 1, maxLength: 120 })),

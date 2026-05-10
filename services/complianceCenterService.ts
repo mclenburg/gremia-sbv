@@ -1,5 +1,6 @@
 import type { GenerateReportInput } from '../src/app/core/models/report.model.js';
 import type { ComplianceDocument, ComplianceDocumentDescriptor, ComplianceDocumentType, DataSubjectAccessRequestInput } from '../src/app/core/models/compliance.model.js';
+import { auditHashChainDecisionSection, informationAndAccessRightsSection, personDirectoryProcessingActivitySection, sqlCipherDecisionSection, stepELegalBasesSection } from './complianceStepEContent.js';
 
 export const COMPLIANCE_DOCUMENTS: ComplianceDocumentDescriptor[] = [
   {
@@ -112,7 +113,7 @@ function tomsBody(generatedAt: string): string {
 - Schlüsselmaterial in Buffer-Form wird beim Sperren best-effort überschrieben.
 - Zugriffe, Suchen, Vorschauen, Exporte und Änderungen an personenbezogenen Daten werden lokal hashverkettet protokolliert.
 - Keine Telemetrie und keine externen Analyse- oder Trackingdienste.
-- Personenverzeichnis 0.9.1: Importkontrolle, Spaltenmapping, keine dauerhafte Speicherung der Arbeitgeber-Importdatei und kein GdB-Standardfeld.
+- Personenverzeichnis 0.9.1: Importkontrolle, Spaltenmapping, keine dauerhafte Speicherung der Arbeitgeber-Importdatei, kein GdB-Standardfeld, anonyme Anfrage nur als pseudonymer Personenstamm ohne Direktidentifikatoren.
 - Statusabläufe werden im bestehenden Fristensystem als datenschutzfreundliche Wiedervorlagen geführt.
 - Besonders sensible Fallnotizen werden als vertrauliche Fallnotizen geführt.
 - ExportGuard warnt vor Exporten sensibler Inhalte.
@@ -126,6 +127,7 @@ function tomsBody(generatedAt: string): string {
 - Berichtsexporte werden als verschlüsselte .gsbvpdf-Container abgelegt.
 - Compliance-PDFs werden über denselben Report-Service erzeugt wie sonstige Berichte.
 - Der System- und Integritätsbericht prüft die Audit-Hash-Chain auf Lücken, Hash-Brüche und rechnerische Manipulationen.
+- Audit-Einträge enthalten ab 0.9.1 keine Direktidentifikatoren wie Namen, E-Mail-Adressen oder Personalnummern; gespeichert werden nur UUIDs, action, purpose, caseId, subjectId und timestamp. Die Hash-Kette bleibt nach Löschung oder Anonymisierung stabil.
 
 ## 3. Verfügbarkeit
 
@@ -160,6 +162,8 @@ function tomsBody(generatedAt: string): string {
 - Eine zusätzliche Feldverschlüsselung von Vor- und Nachnamen wird in 0.9.1 bewusst nicht eingeführt; es gibt also keine zusätzliche Feldverschlüsselung für Namen, weil Suche, Sortierung und Importabgleich erforderlich sind und der Sicherheitsgewinn bei lokal verschlüsselter Einzelplatzdatenbank in keinem angemessenen Verhältnis zur Komplexität steht.
 - Besonders sensible Freitexte mit Gesundheitsbezug bleiben von der bestehenden Gesundheitsdaten-/Fallnotizstrategie erfasst.
 
+${auditHashChainDecisionSection()}
+${sqlCipherDecisionSection()}
 ## 8. Offene Punkte vor 1.0
 
 - Auto-Lock und Preview-Cleanup Ende-zu-Ende testen.
@@ -174,6 +178,7 @@ function vvtBody(generatedAt: string): string {
 
 Vertrauliche Fall-, Beratungs-, Beteiligungs- und Fristenarbeit der Schwerbehindertenvertretung mit Gremia.SBV.
 
+${personDirectoryProcessingActivitySection()}
 ## 2. Verantwortlichkeit
 
 | Feld | Eintrag |
@@ -221,12 +226,16 @@ Keine geplante Übermittlung durch Gremia.SBV. Cloud-Synchronisierung ist nicht 
 
 Die konkrete Frist ist betrieblich festzulegen. Empfohlen ist eine regelmäßige Review-Logik mit Löschung oder Anonymisierung, sobald der Zweck entfällt und keine rechtlichen Aufbewahrungs- oder Nachweisinteressen entgegenstehen.
 
+${stepELegalBasesSection()}
 ## 9. Rechtsgrundlagen
 
-Art. 6 Abs. 1 lit. c DSGVO in Verbindung mit Art. 9 Abs. 2 lit. b DSGVO, § 26 Abs. 3 BDSG sowie den Aufgaben und Beteiligungsrechten der Schwerbehindertenvertretung nach § 178 Abs. 1 und Abs. 2 Satz 1 SGB IX. Für Arbeitgeberverzeichnis und Arbeitgeberliste ist zusätzlich § 163 SGB IX zu berücksichtigen.
+Art. 6 Abs. 1 lit. c DSGVO in Verbindung mit Art. 9 Abs. 2 lit. b DSGVO, § 26 Abs. 3 BDSG sowie den Aufgaben und Beteiligungsrechten der Schwerbehindertenvertretung nach § 178 Abs. 1 SGB IX und § 178 Abs. 2 Satz 1 SGB IX. Für Arbeitgeberverzeichnis und Arbeitgeberliste ist zusätzlich § 163 SGB IX zu berücksichtigen; für behinderungsgerechte Beschäftigung, Arbeitsplatzgestaltung, Arbeitsorganisation, Hilfsmittel und Teilzeit ist § 164 Abs. 4 SGB IX ausdrücklich Rechts- und Zweckbezug.
 
 Beschäftigte sind organisatorisch über die Verarbeitung zu informieren, insbesondere über die Datenschutzinformation des Arbeitgebers. Gremia.SBV versendet keine eigenständigen Art. 13/14-DSGVO-Benachrichtigungen.
 
+${informationAndAccessRightsSection()}
+${auditHashChainDecisionSection()}
+${sqlCipherDecisionSection()}
 ## 10. Technische und organisatorische Maßnahmen
 
 Siehe TOMs-Dokument. Besonders relevant sind Verschlüsselung, lokale Datenhaltung, Zugriffsschutz, Exportkontrolle, Backup-Konzept und Audit-Log.
@@ -256,6 +265,8 @@ Gremia.SBV unterstützt die vertrauliche Fallarbeit der Schwerbehindertenvertret
 - Fristenkontrolle.
 - Erstellung von Schreiben, Berichten und internen Arbeitsunterlagen.
 
+${personDirectoryProcessingActivitySection()}
+${stepELegalBasesSection()}
 ## 3. Datenkategorien
 
 - Stammdaten / Fallbezeichnungen.
@@ -284,6 +295,9 @@ Gremia.SBV unterstützt die vertrauliche Fallarbeit der Schwerbehindertenvertret
 
 Siehe TOMs. Besonders relevant: Verschlüsselung, Offline-Betrieb, ExportGuard, Backup/Restore, Lösch-/Anonymisierungslogik, dokumentierte Zweckbindung, Personenverzeichnis, Importkontrolle, Statusablaufwarnung, iCal-Export und Art. 13/14-Organisationshinweis.
 
+${informationAndAccessRightsSection()}
+${auditHashChainDecisionSection()}
+${sqlCipherDecisionSection()}
 ## 7. Restrisiko
 
 Ein Restrisiko bleibt insbesondere bei manuellen Exporten, Zwischenablage, lokalen Dateikopien und unsachgemäßer Nutzung. Diese Risiken müssen organisatorisch adressiert werden.
@@ -306,6 +320,13 @@ function matrixBody(generatedAt: string): string {
 | Art. 35 DSGVO – DSFA | DSFA-Entwurf abrufbar | vorbereitet | finale DSFA durch DSB/Verantwortliche |
 | BDSG Beschäftigtendaten | Zweckbindung, Erforderlichkeit, Zugriffsbeschränkung | zu prüfen | Arbeitgeber-/DSB-Freigabeprozess |
 | Betroffenenrechte | Prozessdokument und DSAR-Antwortgenerator vorhanden | teilweise | Freigabe- und Schwärzungsprozess ergänzen |
+
+| Personenverzeichnis | Verarbeitungstätigkeit schwerbehinderter und gleichgestellter Beschäftigter ist in DSFA/TOM/VVT dokumentiert | vorbereitet | organisatorisch freigeben |
+| § 164 Abs. 4 SGB IX | Arbeitsplatzgestaltung, Arbeitsorganisation, Hilfsmittel und Teilzeit sind als Zweckbezug dokumentiert | umgesetzt | Praxisprozess prüfen |
+| Art. 13/14 DSGVO | Information erfolgt organisatorisch über Arbeitgeber/verantwortliche Stelle, nicht automatisch durch die App | vorbereitet | Datenschutzinformation abstimmen |
+| Art. 15 DSGVO | strukturierte Auskunftsfähigkeit mit DSAR-Generator und Prüfschritten vorbereitet | vorbereitet | Schwärzungsprozess festlegen |
+| Audit-Hash-Kette | Audit ohne Direktidentifikatoren; Hash-Kette bleibt bei Löschung/Anonymisierung stabil | umgesetzt / testpflichtig | Integritätsbericht prüfen |
+| SQLCipher | Ruheverschlüsselung der strukturierten Personenstammdaten; keine zusätzliche Namens-Feldverschlüsselung in 0.9.1 | dokumentiert | Passphrase-/Backup-Regeln absichern |
 
 ## Bewertung
 
@@ -373,6 +394,7 @@ Dieses Dokument beschreibt einen Arbeitsprozess für Anfragen nach Auskunft, Ber
 - Keine unnötigen Gesundheitsdetails oder Drittdaten offenlegen.
 - Entscheidung über Löschung/Berichtigung dokumentieren.
 
+${informationAndAccessRightsSection()}
 ## 5. Werkzeuge in Gremia.SBV
 
 - DSAR-Antwortgenerator im Compliance Center.

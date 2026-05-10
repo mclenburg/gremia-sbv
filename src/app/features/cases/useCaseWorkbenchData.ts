@@ -12,6 +12,7 @@ import type { WorkplaceAccommodationRecord } from '../../core/models/workplace-a
 import type { CaseNodeTarget } from '../../core/navigation/caseNodeTarget';
 import type { CaseExplorerSelection } from './caseWorkbenchTypes';
 import { waitForBridge } from '../../core/bridge/waitForBridge';
+import { selectionForCaseNodeTarget, shouldAutoSelectFirstCase } from './caseNodeTargetSelection';
 
 export function useCaseWorkbenchData({
   cases,
@@ -46,8 +47,15 @@ export function useCaseWorkbenchData({
   const selectedCase = useMemo(() => cases.find((item) => item.id === selectedCaseId), [cases, selectedCaseId]);
 
   useEffect(() => {
-    if (!selectedCaseId && cases.length) setSelectedCaseId(cases[0].id);
-  }, [cases, selectedCaseId]);
+    if (shouldAutoSelectFirstCase({
+      selectedCaseId,
+      hasCases: cases.length > 0,
+      hasTarget: Boolean(target),
+      hasPendingTarget: Boolean(pendingCaseNodeTarget)
+    })) {
+      setSelectedCaseId(cases[0].id);
+    }
+  }, [cases, selectedCaseId, target, pendingCaseNodeTarget]);
 
   function clearChildren() {
     setNotes([]);
@@ -78,22 +86,20 @@ export function useCaseWorkbenchData({
   }
 
   function applySelectionTarget(targetToApply: CaseNodeTarget | null, caseId: string) {
-    if (targetToApply?.caseId !== caseId) {
-      setSelection({ type: 'overview' });
-      return;
-    }
-    if (targetToApply.nodeType === 'prevention') setSelection({ type: 'process', processType: 'prevention', id: targetToApply.nodeId });
-    else if (targetToApply.nodeType === 'bem') setSelection({ type: 'process', processType: 'bem', id: targetToApply.nodeId });
-    else if (targetToApply.nodeType === 'equalization') setSelection({ type: 'process', processType: 'equalization', id: targetToApply.nodeId });
-    else if (targetToApply.nodeType === 'termination_hearing') setSelection({ type: 'process', processType: 'termination_hearing', id: targetToApply.nodeId });
-    else if (targetToApply.nodeType === 'participation') setSelection({ type: 'process', processType: 'participation', id: targetToApply.nodeId });
-    else if (targetToApply.nodeType === 'workplace_accommodation') setSelection({ type: 'process', processType: 'workplace_accommodation', id: targetToApply.nodeId });
-    else if (targetToApply.nodeType === 'note' && targetToApply.nodeId) setSelection({ type: 'note', id: targetToApply.nodeId });
-    else if (targetToApply.nodeType === 'document' && targetToApply.nodeId) setSelection({ type: 'document', id: targetToApply.nodeId });
-    else setSelection({ type: 'overview' });
+    const nextSelection = selectionForCaseNodeTarget(targetToApply, caseId);
+    if (!nextSelection) return;
+    setSelection(nextSelection);
     setPendingCaseNodeTarget(null);
     onTargetConsumed?.();
   }
+
+  useEffect(() => {
+    if (!pendingCaseNodeTarget || pendingCaseNodeTarget.caseId !== selectedCaseId) return;
+    applySelectionTarget(pendingCaseNodeTarget, selectedCaseId);
+    // Pending targets are consumed intentionally without waiting for a child reload when
+    // the requested case is already selected. The detail arrays update independently.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingCaseNodeTarget, selectedCaseId]);
 
   useEffect(() => {
     if (!selectedCaseId) {

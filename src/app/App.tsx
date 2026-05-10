@@ -37,6 +37,7 @@ import { ReportsView } from "./features/reports/ReportsView";
 import { ComplianceView } from "./features/compliance/ComplianceView";
 import { PersonsView } from "./features/persons/PersonsView";
 import { usePersonsHandlers } from "./features/persons/usePersonsHandlers";
+import { useIcalExportHandlers } from "./features/deadlines/useIcalExportHandlers";
 import { TemplatesView } from "./features/templates/TemplatesView";
 import {
   applyTheme,
@@ -55,7 +56,6 @@ import { LoginGate } from "./features/auth/LoginGate";
 import type { AuthMode } from "./core/auth/authTypes";
 import { waitForBridge } from "./core/bridge/waitForBridge";
 import type { CaseNodeTarget } from "./core/navigation/caseNodeTarget";
-import "./caseModalResponsive.css";
 import "./caseWorkbench.css";
 import "./accessibility.css";
 import "./templateWorkbench.css";
@@ -69,6 +69,7 @@ import "./reportsWorkbench.css";
 import "./features/participation/participationWorkbench.css";
 import "./features/persons/personsWorkbench.css";
 import "./ui/responsiveDesign.css";
+import "./caseModalResponsive.css";
 import "./shared/textCommands/textCommandHelp.css";
 
 const THEME_STORAGE_KEY = "gremia.sbv.theme";
@@ -251,6 +252,9 @@ export function App() {
     displayName: string;
     category: CaseCategory;
     summary?: string;
+    protectedPersonId?: string;
+    personBindingState?: CaseRecord["personBindingState"];
+    isPseudonymized?: boolean;
   }) {
     const bridge = await waitForBridge();
     if (!bridge?.cases) throw new Error("Falldienst ist nicht erreichbar.");
@@ -261,6 +265,7 @@ export function App() {
 
 
   const personHandlers = usePersonsHandlers(reloadWorkData);
+  const icalHandlers = useIcalExportHandlers();
 
 
   async function createContact(
@@ -438,6 +443,7 @@ export function App() {
               <CasesView
                 cases={cases}
                 contacts={contacts}
+                protectedPersons={persons}
                 target={caseNodeTarget}
                 onCreateCase={createCase}
                 onCreateDeadline={createDeadline}
@@ -456,12 +462,16 @@ export function App() {
                 onCompleteDeadline={(deadline) =>
                   void completeDeadline(deadline)
                 }
+                onExportIcal={(privacyLevel, filters) => icalHandlers.exportIcal({ privacyLevel, filters })}
               />
             )}
             {currentView === "persons" && (
               <PersonsView
                 persons={persons}
                 cases={cases}
+                onCreateCaseForPerson={async (person, input) => {
+                  await createCase({ ...input, protectedPersonId: person.id, personBindingState: person.recordKind === "pseudonymous_request" ? "anonymous_request" : "active", isPseudonymized: true });
+                }}
                 onCreate={personHandlers.createProtectedPerson}
                 onUpdate={personHandlers.updateProtectedPerson}
                 onSelectImportFile={personHandlers.selectProtectedPersonImportFile}
@@ -469,6 +479,14 @@ export function App() {
                 onExecuteImport={personHandlers.executeProtectedPersonsImport}
                 onEvaluateExpiry={personHandlers.evaluateProtectedPersonExpiry}
                 onExportIcal={personHandlers.exportDeadlinesAsIcal}
+                onListOpenPrivacyReviews={personHandlers.listOpenPrivacyReviewsForPerson}
+                onDocumentRetention={personHandlers.documentPrivacyRetention}
+                onScheduleReviewLater={personHandlers.schedulePrivacyReviewLater}
+                onClearReview={personHandlers.clearPrivacyReview}
+                onAnonymizeReviewCase={personHandlers.anonymizePrivacyReviewCase}
+                onDeleteReviewCase={personHandlers.deletePrivacyReviewCase}
+                onAnonymizePerson={personHandlers.anonymizeProtectedPerson}
+                onDeletePerson={personHandlers.deleteProtectedPerson}
               />
             )}
             {currentView === "contacts" && (

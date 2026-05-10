@@ -32,7 +32,7 @@ Für DOCX-, PDF-, Dokumenten- und Übergabeexporte soll grundsätzlich eine bewu
 
 ## Nicht übernommen aus Gremia.BR
 
-Gremia.SBV übernimmt nicht das BR-Rollenmodell mit BR-Vorsitz, BR-Ausschusslogik oder allgemeiner Gremienablage. Technische Administration darf grundsätzlich keine Fallakteninhalte lesen.
+Gremia.SBV übernimmt nicht das BR-Rollenmodell mit BR-Vorsitz, BR-Ausschusslogik oder allgemeiner Gremienablage. technische Administration darf grundsätzlich keine Fallakteninhalte lesen.
 
 ## Art. 13/14 DSGVO
 

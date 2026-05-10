@@ -47,6 +47,11 @@ Das Audit-Log ist append-only und über Hashes verkettet. Ab 0.9.1 gilt als verb
 
 Exports sind bewusste lokale Aktionen. Der iCal-Export nutzt als Standard `process_type`: Termine zeigen den Prozesstyp, aber keine Personennamen, Diagnosen, Personalnummern oder Fallnotizen.
 
+
+## Backups als Offline-Angriffsfläche
+
+Backups sind eine primäre Offline-Angriffsfläche. Deshalb werden Backup-Payloads verschlüsselt und mit den aktuellen KDF-Parametern geschützt: scrypt N=131072, r=8, p=1. Legacy-Backups ohne explizite KDF-Metadaten bleiben nur aus Kompatibilitätsgründen lesbar und werden beim nächsten regulären Backup durch das aktuelle Format ersetzt.
+
 ## RC-Readiness
 
 Security, Datenschutz und Build-Artefakte werden über Tests, Release-Checkliste und Compliance Center geprüft. Die Lizenz oder die lokale Architektur ersetzt keine organisatorische Datenschutzfreigabe.

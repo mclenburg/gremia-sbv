@@ -76,14 +76,17 @@ Keine offenen Fachfeatures im Sinne neuer Großmodule. Vor 1.0 sind nur noch rel
 
 - In 0.8.13 wurde die RC-kritische Linkabdeckung auf `/bem`, `/praev`, `/bet`, `/kuend`, `/gleich`, `/anp` und `/fr` vervollständigt.
 
-### 0.9.0-rc.1-p – RC-Coverage-Scope und Service-Behavior-Tests
+### 0.9.0 – RC-Stabilisierung historisch gebündelt
 
-- Zusätzliche verhaltensprüfende Tests für Tätigkeitsbericht, Prozessfähigkeiten, Gleichstellung/GdB-Guidance und Kündigungs-Privacy ergänzt.
+- RC-Coverage-Scope, Service-Behavior-Tests, Release-Artefakte und Build-Dokumentation wurden in der 0.9.0-RC-Linie stabilisiert.
+- Die Detailnotizen einzelner RC-Zwischenpatches werden nicht mehr als aktuelle Roadmap geführt. Maßgeblich für 0.9.1 sind README, Roadmap, Build-Dokumentation und die aktuellen Test-Gates.
 
-### 0.9.0-rc.1-p – erster Release Candidate
 
-- Version, Changelog, Known Issues, Release Notes und Release-Checkliste auf den RC-Stand gezogen.
-- Release-Artefakte auf `.exe`, `.AppImage` und `.dmg` begrenzt.
+## Step G – Test-/Doku-/Release-Sync
+
+- README, Roadmap und Build-/Release-Dokumentation sind auf 0.9.1 synchronisiert.
+- Alte RC-Notes, Release Notes und Change Logs werden vor Veröffentlichung nicht als aktive Dokumente geführt.
+- Tests sollen plattformunabhängig sein und Fachlogik bevorzugt über Behavior-Tests statt reine Stringvergleiche absichern.
 
 ## RC-Freeze-Regel 0.9.1
 

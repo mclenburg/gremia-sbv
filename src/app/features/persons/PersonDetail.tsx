@@ -1,4 +1,5 @@
 import type { CaseRecord } from '../../core/models/case.model';
+import type { PrivacyReviewActionInput, PrivacyReviewActionResult, PrivacyReviewItemRecord } from '../../core/models/privacy-review.model';
 import type { ProtectedPersonRecord, UpdateProtectedPersonInput } from '../../core/models/protected-person.model';
 import { employmentStateLabels, lifecycleStateLabels, protectionStatusLabels } from '../../core/models/protected-person.model';
 import { toInputDate } from './personImportUi';
@@ -7,44 +8,56 @@ import { PersonLifecycleReviewDialog } from './PersonLifecycleReviewDialog';
 export function PersonDetail({
   person,
   cases,
-  onUpdate
+  onUpdate,
+  privacyReviewOpen,
+  privacyReviews,
+  privacyReviewLoading,
+  onOpenPrivacyReview,
+  onClosePrivacyReview,
+  onDocumentRetention,
+  onScheduleLater,
+  onClearReview,
+  onAnonymizeCase,
+  onDeleteCase,
+  onMessage,
+  onError
 }: {
   person: ProtectedPersonRecord | null;
   cases: CaseRecord[];
   onUpdate: (id: string, input: UpdateProtectedPersonInput) => Promise<void>;
+  privacyReviewOpen: boolean;
+  privacyReviews: PrivacyReviewItemRecord[];
+  privacyReviewLoading: boolean;
+  onOpenPrivacyReview: () => Promise<void>;
+  onClosePrivacyReview: () => void;
+  onDocumentRetention: (input: PrivacyReviewActionInput) => Promise<PrivacyReviewActionResult>;
+  onScheduleLater: (input: PrivacyReviewActionInput) => Promise<PrivacyReviewActionResult>;
+  onClearReview: (input: PrivacyReviewActionInput) => Promise<PrivacyReviewActionResult>;
+  onAnonymizeCase: (input: Required<Pick<PrivacyReviewActionInput, 'caseId' | 'reason' | 'confirmation'>>) => Promise<PrivacyReviewActionResult>;
+  onDeleteCase: (input: Required<Pick<PrivacyReviewActionInput, 'caseId' | 'reason' | 'confirmation'>>) => Promise<PrivacyReviewActionResult>;
+  onMessage: (message: string) => void;
+  onError: (message: string) => void;
 }) {
-  if (!person) {
-    return (
-      <section className="industrial-panel person-detail-empty" aria-label="Keine Person ausgewählt">
-        <p className="industrial-muted">Wählen Sie links eine Person aus, um Status, Beschäftigung und Datenschutz-Lifecycle zu prüfen.</p>
-      </section>
-    );
-  }
+  if (!person) return <section className="industrial-panel person-detail-empty" aria-label="Keine Person ausgewählt"><p className="industrial-muted">Wählen Sie links eine Person aus, um Status, Beschäftigung und Datenschutz-Lifecycle zu prüfen.</p></section>;
 
-  async function updateSelected(input: UpdateProtectedPersonInput) {
-    await onUpdate(person!.id, input);
-  }
+  async function updateSelected(input: UpdateProtectedPersonInput) { await onUpdate(person!.id, input); }
+  const displayName = person.recordKind === 'pseudonymous_request' ? person.pseudonymLabel || 'Anonyme Anfrage' : `${person.lastName}, ${person.firstName}`;
+
 
   return (
     <section className="industrial-panel person-detail" aria-labelledby="person-detail-heading">
       <p className="industrial-kicker">Detail</p>
-      <h2 id="person-detail-heading">{person.lastName}, {person.firstName}</h2>
+      <h2 id="person-detail-heading">{displayName}</h2>
       <dl className="person-detail-grid">
         <div><dt>Schutzstatus</dt><dd>{protectionStatusLabels[person.protectionStatus]}</dd></div>
         <div><dt>Beschäftigung</dt><dd>{employmentStateLabels[person.employmentState]}</dd></div>
         <div><dt>Lifecycle</dt><dd>{lifecycleStateLabels[person.lifecycleState]}</dd></div>
         <div><dt>Status gültig bis</dt><dd>{person.statusValidUntil ?? '—'}</dd></div>
       </dl>
-      <PersonLifecycleReviewDialog person={person} />
+      <PersonLifecycleReviewDialog person={person} open={privacyReviewOpen} reviews={privacyReviews} loading={privacyReviewLoading} onOpen={onOpenPrivacyReview} onClose={onClosePrivacyReview} onDocumentRetention={onDocumentRetention} onScheduleLater={onScheduleLater} onClear={onClearReview} onAnonymizeCase={onAnonymizeCase} onDeleteCase={onDeleteCase} onMessage={onMessage} onError={onError} />
       <div className="industrial-settings-form">
-        <label>
-          <span>Status gültig bis</span>
-          <input type="date" defaultValue={toInputDate(person.statusValidUntil)} onBlur={(event) => void updateSelected({ statusValidUntil: event.target.value || undefined })} />
-        </label>
-        <label>
-          <span>Beschäftigungsende</span>
-          <input type="date" defaultValue={toInputDate(person.leftCompanyAt)} onBlur={(event) => void updateSelected({ employmentState: event.target.value ? 'left_company' : 'active_employee', leftCompanyAt: event.target.value || undefined })} />
-        </label>
+        <label><span>Status gültig bis</span><input type="date" defaultValue={toInputDate(person.statusValidUntil)} onBlur={(event) => void updateSelected({ statusValidUntil: event.target.value || undefined, protectionStatus: event.target.value ? person.protectionStatus : 'expired' })} /></label>
+        <label><span>Beschäftigungsende</span><input type="date" defaultValue={toInputDate(person.leftCompanyAt)} onBlur={(event) => { const value = event.target.value; const today = new Date().toISOString().slice(0, 10); void updateSelected({ employmentState: value && value <= today ? 'left_company' : 'active_employee', leftCompanyAt: value || undefined }); }} /></label>
       </div>
       <p className="industrial-muted">Verknüpfte Fallakten werden bei einer Anonymisierung nicht mehr mit Namen angezeigt, sondern erhalten eine Datenschutz-Prüfmarkierung.</p>
       <p className="industrial-meta">Verfügbare Fallakten: {cases.length}</p>
