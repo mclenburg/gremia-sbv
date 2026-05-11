@@ -1,3 +1,5 @@
+import type { PersonalDataAuditChainStatus } from './audit.model';
+
 export type ComplianceDocumentType =
   | 'toms'
   | 'vvt'
@@ -56,18 +58,8 @@ export interface ComplianceManualCheckItem {
 }
 
 
-export interface ComplianceAuditChainStatus {
-  ok: boolean;
-  checked: number;
-  firstSequence?: number;
-  lastSequence?: number;
-  firstBrokenSequence?: number;
-  latestHash: string;
-  algorithm: string;
-  chainVersion: number;
-  issueCount: number;
-  issues: { sequence: number; kind: string; message: string }[];
-}
+
+export type ComplianceAuditChainStatus = PersonalDataAuditChainStatus;
 
 export interface ComplianceStatusOverview {
   generatedAt: string;
@@ -75,4 +67,15 @@ export interface ComplianceStatusOverview {
   manualItems: ComplianceManualCheckItem[];
   nextTechnicalActions: string[];
   manualCheckSummary: string;
+}
+
+export interface ComplianceDatabaseIntegrityStatus {
+  ok: boolean;
+  schemaVersion: string;
+  appliedSchemaVersion?: string;
+  missingTables: string[];
+  missingColumns: Record<string, string[]>;
+  issueCount: number;
+  issues: string[];
+  repairRequired: boolean;
 }

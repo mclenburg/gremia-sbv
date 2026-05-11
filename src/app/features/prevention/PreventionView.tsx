@@ -95,8 +95,6 @@ export function PreventionView({
 
   return (
     <>
-      {loading && <div className="industrial-message">Präventionsverfahren werden geladen …</div>}
-      {error && <div className="industrial-message industrial-message-warning">{error}</div>}
       <ProcessOverviewPage
         title="Präventionsverfahren"
         kicker="§ 167 Abs. 1 SGB IX"
@@ -108,6 +106,7 @@ export function PreventionView({
           { label: 'erledigt', value: doneCount }
         ]}
         groups={groups}
+        feedbackItems={[loading ? { id: 'prevention-loading', message: 'Präventionsverfahren werden geladen …' } : null, error ? { id: 'prevention-error', tone: 'warning', message: error } : null]}
         emptyText="Keine Verfahren in diesem Status."
         helpAction={<StepTooltip text="Klick auf eine Karte öffnet die Fallakte direkt am Präventionsverfahren." />}
         renderItem={(item) => (

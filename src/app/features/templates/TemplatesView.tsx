@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import { FileText, HelpCircle, Plus, Save, Search, Trash2 } from 'lucide-react';
 import { ModuleFrame } from '../../shared/components/ModuleFrame';
+import { ModuleFeedback } from '../../shared/components/ModuleFeedback';
 import { TextCommandTextarea } from '../../shared/textCommands/TextCommandTextarea';
 import { useConfirmDialog } from '../../shared/dialogs/ConfirmDialogProvider';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
@@ -285,8 +286,7 @@ export function TemplatesView() {
           <label><span>Pro Seite</span><select value={pageSize} onChange={(event) => { setPageSize(Number(event.target.value)); setCurrentPage(1); }}>{TEMPLATE_PAGE_SIZE_OPTIONS.map((size) => <option key={size} value={size}>{size}</option>)}</select></label>
           <button type="submit" className="industrial-secondary-button"><Search className="h-4 w-4" />Filtern</button>
         </form>
-        {error && <div className="industrial-message industrial-message-warning mb-4">{error}</div>}
-        {info && <div className="industrial-message mb-4">{info}</div>}
+        <ModuleFeedback items={[info ? { id: 'templates-info', tone: 'success', message: info } : null, error ? { id: 'templates-error', tone: 'warning', message: error } : null]} />
         <div className="template-workbench-grid">
           <div className="template-list-panel" aria-label="Vorlagenliste">
             <div className="template-list-summary">

@@ -59,3 +59,8 @@ Neue Dokumentation soll dauerhaft verwendbar sein. Kurzlebige Patchnotizen, hist
 ## Testqualität
 
 Für 0.9.1 gilt: Mindestens 68 % der aktiven Tests müssen Verhalten, Ergebnisse, Policies, Services, Migrationen, Exporte oder E2E-Flows prüfen. Source-Text-Stringtests sind nur noch als eng begrenzte Architektur-Guards zulässig und dürfen maximal 32 % der aktiven Testbasis ausmachen.
+
+
+## ModuleFeedback-Regel
+
+Feature-Views mit `ModuleFrame` müssen Rückmeldungen über den gemeinsamen `ModuleFeedback`-Baustein ausgeben. Prozessübersichten verwenden dafür `ProcessOverviewPage` mit `feedbackItems`. Feature-spezifische Inline-Fehlerbereiche außerhalb von Modalen sind nicht zulässig; Modal-Fehler bleiben im jeweiligen Dialog. Diese Regel wird durch `tests/moduleFeedbackArchitecture091.test.ts` abgesichert.

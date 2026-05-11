@@ -1,0 +1,18 @@
+{
+  "version": "0.9.1-postinstall-guard-consolidation",
+  "reason": "Patchhistorische postinstallGuard-Tests werden durch einen einzigen sprechenden Vertragstest für native Electron-Abhängigkeiten ersetzt.",
+  "files": [
+    "tests/postinstallGuard070.test.ts",
+    "tests/postinstallGuard072.test.ts",
+    "tests/postinstallGuard073.test.ts",
+    "tests/postinstallGuard080.test.ts",
+    "tests/postinstallGuard080b.test.ts",
+    "tests/postinstallGuard081.test.ts",
+    "tests/postinstallGuard0812.test.ts",
+    "tests/postinstallGuard082.test.ts",
+    "tests/postinstallGuard083.test.ts",
+    "tests/postinstallGuard083a.test.ts",
+    "tests/postinstallGuard084.test.ts"
+  ],
+  "directories": []
+}

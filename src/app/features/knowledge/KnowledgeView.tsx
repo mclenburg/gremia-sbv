@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import { BookOpen, Plus, Search } from 'lucide-react';
 import { ModuleFrame } from '../../shared/components/ModuleFrame';
+import { ModuleFeedback } from '../../shared/components/ModuleFeedback';
 import { TextCommandTextarea } from '../../shared/textCommands/TextCommandTextarea';
 import type { CaseRecord } from '../../core/models/case.model';
 import type { CaseLawRecord, CaseLegalReferenceRecord, LegalNormRecord, NormChecklistItemRecord, NormCommentRecord } from '../../core/models/knowledge.model';
@@ -482,6 +483,7 @@ export function KnowledgeView({ cases }: { cases: CaseRecord[] }) {
 
   return (
     <ModuleFrame title="Wissensdatenbank" kicker="SBV-Kompass" description="Kurze Ratgebertexte zu SBV-relevanten Normen, Pflichten und Handlungsoptionen. In Protokollen mit §§ einfügen.">
+      <ModuleFeedback items={[message ? { id: 'knowledge-message', tone: 'success', message } : null, error ? { id: 'knowledge-error', tone: 'warning', message: error } : null]} />
       <section className="industrial-panel">
         <form onSubmit={runSearch} className="knowledge-search-bar">
           <Search className="h-4 w-4 text-yellow-300" />
@@ -494,8 +496,6 @@ export function KnowledgeView({ cases }: { cases: CaseRecord[] }) {
         </form>
       </section>
 
-      {error && <div className="industrial-message industrial-message-warning">{error}</div>}
-      {message && <div className="industrial-message industrial-message-ok">{message}</div>}
 
       <section className="knowledge-layout">
         <aside className="industrial-panel">

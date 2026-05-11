@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Download, ShieldCheck } from 'lucide-react';
 import { ModuleFrame } from '../../shared/components/ModuleFrame';
+import { ModuleFeedback } from '../../shared/components/ModuleFeedback';
 import { waitForBridge } from '../../core/bridge/waitForBridge';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 import type {
   ComplianceAuditChainStatus,
+  ComplianceDatabaseIntegrityStatus,
   ComplianceDocument,
   ComplianceDocumentType,
-  ComplianceManualCheckItem,
   ComplianceStatusOverview,
   ComplianceTechnicalStatusItem,
   ComplianceTechnicalStatusLevel,
@@ -34,38 +35,6 @@ function technicalLevelLabel(level: ComplianceTechnicalStatusLevel): string {
   }
 }
 
-function buildManualChecks(): ComplianceManualCheckItem[] {
-  return [
-    {
-      id: 'toms',
-      label: 'TOMs',
-      summary: 'Technische und organisatorische Maßnahmen müssen fachlich geprüft und freigegeben werden.',
-      detail: 'Die App kann den TOM-Entwurf erzeugen, aber nicht entscheiden, ob er organisatorisch ausreicht.',
-    },
-    {
-      id: 'vvt',
-      label: 'VVT',
-      summary: 'Das Verzeichnis von Verarbeitungstätigkeiten ist organisatorisch zu prüfen.',
-      detail: 'Die App kann einen Entwurf erstellen. Vollständigkeit und Verantwortlichkeit bleiben manuell zu bewerten.',
-    },
-    {
-      id: 'dsfa',
-      label: 'DSFA',
-      summary: 'Ob eine Datenschutz-Folgenabschätzung erforderlich und ausreichend ist, ist manuell zu bewerten.',
-    },
-    {
-      id: 'approvals',
-      label: 'DSB-/IT-Security-Freigaben',
-      summary: 'Freigaben sind menschliche Entscheidungen und werden hier nur als Prüfpunkte erinnert.',
-    },
-    {
-      id: 'restore-proof',
-      label: 'Restore organisatorisch nachweisen',
-      summary: 'Die Software kann technische Backup-Funktionen bereitstellen; der tatsächliche Restore-Test ist zu dokumentieren.',
-    },
-  ];
-}
-
 function buildFallbackStatus(): ComplianceStatusOverview {
   return {
     generatedAt: new Date().toISOString(),
@@ -73,14 +42,14 @@ function buildFallbackStatus(): ComplianceStatusOverview {
       {
         id: 'runtime-status',
         label: 'Laufzeitstatus',
-        level: 'info',
+        level: 'warning',
         summary: 'Technischer Status konnte noch nicht vollständig geladen werden.',
         detail: 'Das Compliance Center lädt Sicherheits- und Temp-Dateistatus nach dem Öffnen nach.',
       },
     ],
-    manualItems: buildManualChecks(),
+    manualItems: [],
     nextTechnicalActions: ['Technischen Status aktualisieren'],
-    manualCheckSummary: 'Organisatorische Prüfpunkte werden nicht durch die Software bewertet.',
+    manualCheckSummary: '',
   };
 }
 
@@ -95,18 +64,43 @@ function auditChainStatusItem(status?: ComplianceAuditChainStatus): ComplianceTe
   if (!status.checked) return {
     id: 'audit-chain',
     label: 'Audit-Hash-Chain',
-    level: 'info',
-    summary: 'Noch keine Audit-Einträge vorhanden.',
-    detail: `Algorithmus ${status.algorithm}, Chain-Version ${status.chainVersion}.`
+    level: 'ok',
+    summary: 'Keine Audit-Einträge vorhanden.',
   };
   return {
     id: 'audit-chain',
     label: 'Audit-Hash-Chain',
     level: status.ok ? 'ok' : 'problem',
-    summary: status.ok ? `Hash-Kette intakt (${status.checked} Einträge geprüft).` : `Hash-Kette auffällig (${status.issueCount} Befund(e)).`,
+    summary: status.ok ? `Hash-Kette intakt (${status.checked} Einträge geprüft).` : `Hash-Kette auffällig (${status.issues.length} Befund(e)).`,
     detail: status.ok
       ? `Sequenzen ${status.firstSequence ?? '—'} bis ${status.lastSequence ?? '—'}, letzter Hash ${status.latestHash.slice(0, 12)}…`
       : `Erste auffällige Sequenz: ${status.firstBrokenSequence ?? 'unbekannt'}. ${status.issues[0]?.message ?? 'Integritätsprüfung fehlgeschlagen.'}`
+  };
+}
+
+function databaseIntegrityStatusItem(status?: ComplianceDatabaseIntegrityStatus): ComplianceTechnicalStatusItem {
+  if (!status) return {
+    id: 'database-integrity',
+    label: 'Datenbankschema',
+    level: 'warning',
+    summary: 'Datenbankschema konnte nicht geprüft werden.',
+    detail: 'Bitte technischen Status erneut laden oder Migrationsstatus prüfen.',
+  };
+
+  if (status.ok) return {
+    id: 'database-integrity',
+    label: 'Datenbankschema',
+    level: 'ok',
+    summary: `Schema ${status.appliedSchemaVersion ?? status.schemaVersion} vollständig.`,
+    detail: 'Kritische Tabellen und Spalten für Fallakten-, Personen-, Datenschutz- und Auditfunktionen sind vorhanden.',
+  };
+
+  return {
+    id: 'database-integrity',
+    label: 'Datenbankschema',
+    level: status.repairRequired ? 'problem' : 'warning',
+    summary: `${status.issueCount} Schema-Befund(e).`,
+    detail: status.issues.slice(0, 3).join(' · '),
   };
 }
 
@@ -120,6 +114,7 @@ async function loadComplianceStatus(): Promise<ComplianceStatusOverview> {
   const securityStatus = await security.status();
   const tempStatus = await security.temporaryFileStatus();
   const auditStatus = await bridge.compliance?.auditChainStatus().catch(() => undefined);
+  const databaseIntegrityStatus = await bridge.compliance?.databaseIntegrityStatus().catch(() => undefined);
 
   const technicalItems: ComplianceTechnicalStatusItem[] = [
     {
@@ -134,22 +129,6 @@ async function loadComplianceStatus(): Promise<ComplianceStatusOverview> {
         : undefined,
     },
     {
-      id: 'lock-state',
-      label: 'Tresorstatus',
-      level: 'info',
-      summary: securityStatus.unlocked
-        ? 'Tresor ist aktuell entsperrt.'
-        : 'Tresor ist aktuell gesperrt oder nicht verfügbar.',
-      detail: 'Dies ist ein technischer Laufzeitstatus, keine Datenschutzbewertung.',
-    },
-    {
-      id: 'auto-lock',
-      label: 'Auto-Lock',
-      level: 'ok',
-      summary: 'Automatische Sperre ist technisch in der App-Basis vorgesehen.',
-      detail: 'Die konkrete organisatorische Vorgabe zum Sperrzeitraum ist separat festzulegen.',
-    },
-    {
       id: 'temp-files',
       label: 'Temporäre Arbeitskopien',
       level: tempStatus.remaining > 0 ? 'warning' : 'ok',
@@ -160,21 +139,8 @@ async function loadComplianceStatus(): Promise<ComplianceStatusOverview> {
         ? 'Temporäre PDF-/Dokumentkopien sollten nach Nutzung bereinigt werden.'
         : undefined,
     },
+    databaseIntegrityStatusItem(databaseIntegrityStatus),
     auditChainStatusItem(auditStatus),
-    {
-      id: 'backup-function',
-      label: 'Backup-Funktion',
-      level: 'info',
-      summary: 'Verschlüsselte Backups sind technisch vorgesehen.',
-      detail: 'Ob ein Restore organisatorisch durchgeführt und dokumentiert wurde, kann die Software nicht selbst bewerten.',
-    },
-    {
-      id: 'compliance-documents',
-      label: 'Compliance-Dokumente',
-      level: 'info',
-      summary: 'TOMs, VVT, DSFA und Freigabeunterlagen können als Entwürfe erzeugt werden.',
-      detail: 'Inhaltliche Vollständigkeit und Freigaben bleiben manuell zu prüfen.',
-    },
   ];
 
   const nextTechnicalActions = technicalItems
@@ -184,9 +150,9 @@ async function loadComplianceStatus(): Promise<ComplianceStatusOverview> {
   return {
     generatedAt: new Date().toISOString(),
     technicalItems,
-    manualItems: buildManualChecks(),
-    nextTechnicalActions: nextTechnicalActions.length ? nextTechnicalActions : ['Keine technischen Handlungsbedarfe aus automatischer Prüfung.'],
-    manualCheckSummary: 'Organisatorische Entscheidungen wie DSB-/IT-Freigaben, DSFA-Bewertung und TOM-Vollständigkeit werden nur erinnert, nicht bewertet.',
+    manualItems: [],
+    nextTechnicalActions,
+    manualCheckSummary: '',
   };
 }
 
@@ -197,7 +163,7 @@ function ComplianceStatusPanel({ overview, onRefresh }: { overview: ComplianceSt
         <div>
           <p className="industrial-kicker">Technischer Status</p>
           <h2>Datenschutz- und Integritätsstatus</h2>
-          <p>Automatisch geprüft werden nur technische Zustände, die die Software selbst feststellen kann.</p>
+          <p>Gezeigt werden nur automatisch prüfbare technische Zustände. Organisatorische Freigaben stehen unten bei den Dokumenten.</p>
         </div>
         <div className="compliance-status-badge" aria-label="Keine Gesamtbewertung der Datenschutzkonformität">
           <ShieldCheck className="h-4 w-4" aria-hidden="true" />
@@ -218,30 +184,12 @@ function ComplianceStatusPanel({ overview, onRefresh }: { overview: ComplianceSt
         ))}
       </div>
 
-      <div className="compliance-next-actions">
-        <strong>Technische Hinweise:</strong>
-        <span>{overview.nextTechnicalActions.join(' · ')}</span>
-      </div>
-
-      <section className="compliance-manual-checks" aria-label="Organisatorische Datenschutz-Prüfpunkte">
-        <div className="compliance-manual-checks-header">
-          <div>
-            <p className="industrial-kicker">Manuelle Prüfung</p>
-            <h3>Organisatorische Datenschutz-Prüfpunkte</h3>
-          </div>
-          <span>Nicht durch Software bewertbar</span>
+      {overview.nextTechnicalActions.length > 0 && (
+        <div className="compliance-next-actions">
+          <strong>Technische Hinweise:</strong>
+          <span>{overview.nextTechnicalActions.join(' · ')}</span>
         </div>
-        <p>{overview.manualCheckSummary}</p>
-        <div className="compliance-manual-grid">
-          {overview.manualItems.map((item) => (
-            <article key={item.id} className="compliance-manual-card">
-              <h4>{item.label}</h4>
-              <p>{item.summary}</p>
-              {item.detail && <small>{item.detail}</small>}
-            </article>
-          ))}
-        </div>
-      </section>
+      )}
 
       <button type="button" className="industrial-secondary-button" onClick={onRefresh}>
         Technischen Status aktualisieren
@@ -331,6 +279,7 @@ export function ComplianceView() {
       title="Compliance Center"
       description="Technischer Datenschutzstatus, organisatorische Prüflisten, TOMs, VVT, DSFA, Löschkonzept, Betroffenenrechte und Freigabeunterlagen."
     >
+      <ModuleFeedback items={[message ? { id: 'compliance-message', message } : null]} />
       <div className="compliance-layout">
         <ComplianceStatusPanel overview={statusOverview} onRefresh={() => void refreshStatus()} />
 
@@ -407,7 +356,6 @@ export function ComplianceView() {
               </button>
             </div>
           </div>
-          {message && <div className="industrial-message">{message}</div>}
           <textarea className="industrial-output-area compliance-output" value={document.body} readOnly aria-label={`${document.title} Vorschau`} />
         </section>
       </div>

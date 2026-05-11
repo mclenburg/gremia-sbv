@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { ShieldAlert } from 'lucide-react';
 import { ModuleFrame } from '../../shared/components/ModuleFrame';
+import { ModuleFeedback } from '../../shared/components/ModuleFeedback';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 import type { CreateProtectedPersonInput, ProtectedPersonRecord, UpdateProtectedPersonInput } from '../../core/models/protected-person.model';
 import type { PrivacyReviewItemRecord } from '../../core/models/privacy-review.model';
@@ -94,6 +95,10 @@ export function PersonsView(props: PersonsViewProps) {
     <ModuleFrame title="Personenverzeichnis" kicker="Datenschutz-Lifecycle" description="Datensparsames Verzeichnis schwerbehinderter und gleichgestellter Personen mit Import, Statusablauf und Fristenintegration.">
       <div className="industrial-alert"><ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-yellow-300" aria-hidden="true" /><p>Gremia.SBV speichert hier nur den Schutzstatus, nicht den GdB. Importdateien werden lokal verarbeitet und nicht dauerhaft gespeichert.</p></div>
       <PersonToolbar query={query} onQueryChange={setQuery} onOpenCreate={() => setPersonCreateOpen(true)} onOpenImport={() => setImportOpen(true)} onExportIcal={() => void exportIcal()} />
+      <ModuleFeedback items={[
+        message ? { id: 'persons-message', tone: 'success', message } : null,
+        error ? { id: 'persons-error', tone: 'warning', message: error } : null
+      ]} />
       <div className="person-workbench-grid" data-e2e="persons-workbench">
         <PersonList persons={filtered} selectedId={selected?.id} onSelect={setSelected} onEdit={(person) => { setSelected(person); setPersonEditOpen(true); }} onDelete={(person) => { setSelected(person); setPersonPrivacyAction('delete'); }} />
         <div className="person-side-stack">
@@ -101,8 +106,6 @@ export function PersonsView(props: PersonsViewProps) {
           <PersonExpiryDashboardCard persons={persons} evaluating={expiryEvaluating} lastEvaluationMessage={expiryFeedback} onEvaluateExpiry={evaluateExpiry} onExportIcal={exportIcal} />
         </div>
       </div>
-      {message && <div className="industrial-message industrial-message-success">{message}</div>}
-      {error && <div className="industrial-message industrial-message-warning">{error}</div>}
       <PersonForm open={personCreateOpen} onClose={() => setPersonCreateOpen(false)} onCreate={createPerson} onCreated={showMessage} onError={showError} />
       <PersonEditDialog open={personEditOpen} person={selected} onClose={() => setPersonEditOpen(false)} onUpdate={updatePerson} onUpdated={showMessage} onError={showError} />
       <PersonCaseCreateDialog open={caseDialogOpen} personLabel={personCaseDialogLabel(selected)} onClose={() => setCaseDialogOpen(false)} onSubmit={createCaseFromPerson} onError={showError} />

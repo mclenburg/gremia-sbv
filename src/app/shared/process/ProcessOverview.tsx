@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { ModuleFrame } from '../components/ModuleFrame';
+import { ModuleFeedback, type ModuleFeedbackItem } from '../components/ModuleFeedback';
 
 export type ProcessOverviewStatusGroup<TStatus extends string, TRecord> = {
   status: TStatus;
@@ -115,6 +116,7 @@ export function ProcessOverviewPage<TStatus extends string>({
   renderItem,
   emptyText,
   helpAction,
+  feedbackItems = [],
   children
 }: {
   title: string;
@@ -125,10 +127,12 @@ export function ProcessOverviewPage<TStatus extends string>({
   renderItem: (item: ProcessOverviewCardModel<TStatus>) => ReactNode;
   emptyText: string;
   helpAction?: ReactNode;
+  feedbackItems?: Array<ModuleFeedbackItem | null | undefined | false>;
   children?: ReactNode;
 }) {
   return (
     <ModuleFrame title={title} kicker={kicker} description={description}>
+      <ModuleFeedback items={feedbackItems} />
       <section className="industrial-panel process-overview-panel">
         {helpAction && (
           <div className="process-overview-topline process-overview-topline-actions">

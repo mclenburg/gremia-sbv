@@ -90,8 +90,6 @@ export function BemView({ cases, onOpenCaseNode }: { cases: CaseRecord[]; onOpen
 
   return (
     <>
-      {loading && <div className="industrial-message">BEM-Verfahren werden geladen …</div>}
-      {error && <div className="industrial-message industrial-message-warning">{error}</div>}
       <ProcessOverviewPage
         title="BEM-Verfahren"
         kicker="BEM-Leitstand"
@@ -103,6 +101,7 @@ export function BemView({ cases, onOpenCaseNode }: { cases: CaseRecord[]; onOpen
           { label: 'gesamt', value: cards.length }
         ]}
         groups={groups}
+        feedbackItems={[loading ? { id: 'bem-loading', message: 'BEM-Verfahren werden geladen …' } : null, error ? { id: 'bem-error', tone: 'warning', message: error } : null]}
         emptyText="Keine BEM-Verfahren in diesem Status."
         helpAction={(
           <button type="button" className="industrial-secondary-button compact" onClick={() => setShowHelp(true)} aria-label="Hilfe zur BEM-Übersicht öffnen">

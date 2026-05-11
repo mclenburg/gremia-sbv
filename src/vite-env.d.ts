@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
-import type { ComplianceAuditChainStatus } from "./app/core/models/compliance.model";
+import type { ComplianceAuditChainStatus, ComplianceDatabaseIntegrityStatus } from "./app/core/models/compliance.model";
 
 import type { CaseDocumentRecord } from "./app/core/models/case-document.model";
 import type { CaseRecord, CreateCaseInput, LegacyCaseBindingInput, LegacyCaseBindingResult } from "./app/core/models/case.model";
@@ -307,6 +307,7 @@ declare global {
 
       compliance: {
         auditChainStatus(): Promise<ComplianceAuditChainStatus>;
+        databaseIntegrityStatus(): Promise<ComplianceDatabaseIntegrityStatus>;
       };
 
       persons: {

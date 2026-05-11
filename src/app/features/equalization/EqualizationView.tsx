@@ -85,8 +85,6 @@ export function EqualizationView({ cases, onOpenCaseNode }: { cases: CaseRecord[
 
   return (
     <>
-      {loading && <div className="industrial-message">Gleichstellungsverfahren werden geladen …</div>}
-      {error && <div className="industrial-message industrial-message-warning">{error}</div>}
       <ProcessOverviewPage
         title="Gleichstellung / GdB"
         kicker="Antrag, Bescheid, Widerspruch"
@@ -98,6 +96,7 @@ export function EqualizationView({ cases, onOpenCaseNode }: { cases: CaseRecord[
           { label: 'gesamt', value: cards.length }
         ]}
         groups={groups}
+        feedbackItems={[loading ? { id: 'equalization-loading', message: 'Gleichstellungsverfahren werden geladen …' } : null, error ? { id: 'equalization-error', tone: 'warning', message: error } : null]}
         emptyText="Keine Verfahren in diesem Status."
         helpAction={(
           <button type="button" className="industrial-secondary-button compact" onClick={() => setShowHelp(true)} aria-label="Hilfe zur Gleichstellungsübersicht öffnen">

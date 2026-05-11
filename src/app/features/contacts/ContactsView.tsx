@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Save, Search, Trash2 } from 'lucide-react';
 import { ModuleFrame } from '../../shared/components/ModuleFrame';
+import { ModuleFeedback } from '../../shared/components/ModuleFeedback';
 import { useConfirmDialog } from '../../shared/dialogs/ConfirmDialogProvider';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 import type { ContactCategory, ContactRecord, CreateContactInput, DeleteContactResult } from '../../core/models/contact.model';
@@ -60,6 +61,7 @@ export function ContactsView({
 
   return (
     <ModuleFrame title="Kontakte" kicker="Netzwerk" description="Ansprechpersonen, Stellen und interne Kontakte. In Protokollen mit @@ einfügen.">
+      <ModuleFeedback items={[message ? { id: 'contacts-message', tone: 'success', message } : null, error ? { id: 'contacts-error', tone: 'warning', message: error } : null]} />
       <section className="industrial-grid-two">
         <section className="industrial-panel">
           <div className="industrial-panel-header compact"><div><p className="industrial-kicker">Register</p><h2>Kontaktliste</h2></div></div>
@@ -118,8 +120,6 @@ export function ContactsView({
             <label><span>Kategorie</span><select value={category} onChange={(event) => setCategory(event.target.value as ContactCategory)}><option value="arbeitgeber">Arbeitgeber</option><option value="inklusionsamt">Inklusionsamt</option><option value="agentur_fuer_arbeit">Agentur für Arbeit</option><option value="betriebsarzt">Betriebsarzt</option><option value="reha">Reha</option><option value="anwalt">Anwalt</option><option value="betriebsrat">Betriebsrat</option><option value="beratung">Beratung</option><option value="intern">intern</option><option value="sonstiges">sonstiges</option></select></label>
             <label><span>E-Mail</span><input value={email} onChange={(event) => setEmail(event.target.value)} /></label>
             <label><span>Telefon</span><input value={phone} onChange={(event) => setPhone(event.target.value)} /></label>
-            {error && <div className="industrial-message industrial-message-warning">{error}</div>}
-            {message && <div className="industrial-message industrial-message-ok">{message}</div>}
             <button type="submit" className="industrial-button"><Save className="h-4 w-4" />Kontakt speichern</button>
           </form>
         </section>

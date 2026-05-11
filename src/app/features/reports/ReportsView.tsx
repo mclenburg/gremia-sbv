@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Download, ExternalLink, FileText, RefreshCw } from 'lucide-react';
 import { ModuleFrame } from '../../shared/components/ModuleFrame';
+import { ModuleFeedback } from '../../shared/components/ModuleFeedback';
 import { waitForBridge } from '../../core/bridge/waitForBridge';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 import type {
@@ -129,6 +130,7 @@ export function ReportsView() {
 
   return (
     <ModuleFrame title="Berichte" description="SBV-Fachberichte, Datenschutzprüfungen und Systemberichte als verschlüsselte PDF-Reports.">
+      <ModuleFeedback items={[message ? { id: 'reports-message', message } : null]} />
       <section className="reports-workbench">
         <div className="reports-toolbar reports-toolbar-grid">
           <label>
@@ -153,7 +155,6 @@ export function ReportsView() {
           </button>
         </div>
 
-        {message && <div className="industrial-message">{message}</div>}
 
         <div className="reports-layout-grid">
           <section className="reports-catalog" aria-label="Berichtskatalog">

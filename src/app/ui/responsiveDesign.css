@@ -258,6 +258,18 @@ button:disabled,
   flex-wrap: wrap;
 }
 
+
+.module-feedback {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0 0 1rem;
+  max-width: 100%;
+}
+
+.module-feedback .industrial-message {
+  margin: 0;
+}
+
 .industrial-message,
 .industrial-empty,
 .industrial-alert,

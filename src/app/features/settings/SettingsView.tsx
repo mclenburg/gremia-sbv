@@ -1,4 +1,5 @@
 import { ModuleFrame } from "../../shared/components/ModuleFrame";
+import { ModuleFeedback } from "../../shared/components/ModuleFeedback";
 import type { CaseRecord } from "../../core/models/case.model";
 import type { ThemeMode } from "../../shared/theme/appTheme";
 
@@ -24,6 +25,7 @@ export function SettingsView({
       kicker="System"
       description="Passwortverwaltung, Darstellung und lokale Anwendungseinstellungen."
     >
+      <ModuleFeedback items={[]} />
       <div className="grid gap-6 xl:grid-cols-2">
         <ThemeSettingsForm theme={theme} onThemeChange={onThemeChange} />
         <TemplateDefaultSettingsForm />

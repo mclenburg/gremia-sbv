@@ -84,8 +84,6 @@ export function TerminationView({ cases, onOpenCaseNode }: { cases: CaseRecord[]
 
   return (
     <>
-      {loading && <div className="industrial-message">Kündigungsanhörungen werden geladen …</div>}
-      {error && <div className="industrial-message industrial-message-warning">{error}</div>}
       <ProcessOverviewPage
         title="Kündigungsanhörung"
         kicker="SBV-Fristen und Schutzprüfung"
@@ -96,6 +94,7 @@ export function TerminationView({ cases, onOpenCaseNode }: { cases: CaseRecord[]
           { label: 'gesamt', value: cards.length }
         ]}
         groups={groups}
+        feedbackItems={[loading ? { id: 'termination-loading', message: 'Kündigungsanhörungen werden geladen …' } : null, error ? { id: 'termination-error', tone: 'warning', message: error } : null]}
         emptyText="Keine Kündigungsanhörung in diesem Status."
         helpAction={(
           <button type="button" className="industrial-secondary-button compact" onClick={() => setShowHelp(true)} aria-label="Hilfe zur Kündigungsanhörung öffnen">

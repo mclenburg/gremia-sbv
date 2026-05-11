@@ -33,7 +33,7 @@ import type {
   UpdateDeadlineInput,
 } from "../src/app/core/models/deadline.model.js";
 import type { PrivacyReviewActionInput, PrivacyReviewActionResult, PrivacyReviewBulkResult, PrivacyReviewItemRecord } from "../src/app/core/models/privacy-review.model.js";
-import type { ComplianceAuditChainStatus } from "../src/app/core/models/compliance.model.js";
+import type { ComplianceAuditChainStatus, ComplianceDatabaseIntegrityStatus } from "../src/app/core/models/compliance.model.js";
 import type {
   SecurityResult,
   SecurityStatus,
@@ -389,6 +389,8 @@ const api = {
   compliance: {
     auditChainStatus: (): Promise<ComplianceAuditChainStatus> =>
       ipcRenderer.invoke("compliance:audit-chain-status"),
+    databaseIntegrityStatus: (): Promise<ComplianceDatabaseIntegrityStatus> =>
+      ipcRenderer.invoke("compliance:database-integrity-status"),
   },
 
   persons: {

@@ -1,0 +1,9 @@
+{
+  "version": "0.9.1-test-quality-final-string-reduction",
+  "reason": "Zwei verbliebene patchhistorische Source-Text-RC-Tests werden aus der aktiven Suite entfernt. Release-Artefakt- und Textpersistenzschutz sind inzwischen durch Build-Konfiguration, E2E- und Behavior-/Service-Tests abgesichert; die Testqualitätsquote bleibt dadurch stabil über 68 Prozent Verhaltenstests.",
+  "files": [
+    "tests/rcMeasureBlurPersistence090rc1n.test.ts",
+    "tests/rcReleaseArtifacts090rc1f.test.ts"
+  ],
+  "directories": []
+}

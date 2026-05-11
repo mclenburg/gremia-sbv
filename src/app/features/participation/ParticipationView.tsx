@@ -12,6 +12,7 @@ import type {
 import type { CaseNodeTarget } from '../../core/navigation/caseNodeTarget';
 import { waitForBridge } from '../../core/bridge/waitForBridge';
 import { ModuleFrame } from '../../shared/components/ModuleFrame';
+import { ModuleFeedback } from '../../shared/components/ModuleFeedback';
 import {
   WorkbenchDetailPanel,
   WorkbenchGrid,
@@ -172,6 +173,7 @@ export function ParticipationView({
 
   return (
     <ModuleFrame title="SBV-Beteiligungsmonitor" kicker="§ 178 Abs. 2 SGB IX" description="Dokumentiert Unterrichtung, Anhörung, Stellungnahme, Arbeitgeberentscheidung und Aussetzungsverlangen der SBV." compact>
+      <ModuleFeedback items={[error ? { id: 'participation-error', tone: 'warning', message: error } : null, loading ? { id: 'participation-loading', message: 'Beteiligungsprüfungen werden geladen …' } : null]} />
       <WorkbenchSummary
         ariaLabel="Beteiligungsmonitor Kennzahlen"
         items={[
@@ -185,8 +187,6 @@ export function ParticipationView({
         )}
       />
 
-      {error && <div className="industrial-message industrial-message-warning">{error}</div>}
-      {loading && <div className="industrial-message">Beteiligungsprüfungen werden geladen …</div>}
 
       <WorkbenchGrid>
         <WorkbenchListPanel ariaLabel="Beteiligungsprüfungen">

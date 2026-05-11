@@ -39,8 +39,7 @@ describe('0.9.1 Step G Test-, Doku- und Release-Sync', () => {
   it('keeps Step-G regression tests free from POSIX-only paths and raw CRLF assumptions', () => {
     const sources = [
       'tests/rc091StepGReleaseSync.test.ts',
-      'tests/rcFinalTestSync090rc1p.test.ts',
-      'tests/rcReleaseArtifacts090rc1f.test.ts'
+      'tests/rcFinalTestSync090rc1p.test.ts'
     ].map((file) => read(file)).join(String.fromCharCode(10));
     expect(sources.includes(forbiddenTmpLiteral)).toBe(false);
     expect(sources.includes(forbiddenWindowsRoot)).toBe(false);

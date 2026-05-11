@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { AlertTriangle, Plus } from 'lucide-react';
 import { ModuleFrame } from '../../shared/components/ModuleFrame';
+import { ModuleFeedback } from '../../shared/components/ModuleFeedback';
 import type { CaseRecord } from '../../core/models/case.model';
 import type { CaseMeasureRecord } from '../../core/models/case-measure.model';
 import type { CreateDeadlineInput, DeadlineListFilters, DeadlineProcessType, DeadlineRecord, DeadlineSeverity, DeadlineType } from '../../core/models/deadline.model';
@@ -79,6 +80,7 @@ export function DeadlinesView({
       kicker="48h-Regel aktiv"
       description="Echte Fristen gehören an eine Fallakte. Freie Einträge sind nur als einfache Wiedervorlagen ohne Rechtsfrist vorgesehen."
     >
+      <ModuleFeedback items={[error ? { id: 'deadlines-error', tone: 'warning', message: error } : null]} />
       <div className="industrial-alert">
         <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-yellow-300" />
         <p>
@@ -149,7 +151,6 @@ export function DeadlinesView({
           Frist anlegen
         </button>
       </form>
-      {error && <div className="industrial-message industrial-message-warning">{error}</div>}
       <DeadlineIcalExportPanel onExport={onExportIcal} />
 
       <DeadlineListView deadlines={deadlines} cases={cases} measures={measures} onEdit={onEditDeadline} onComplete={onCompleteDeadline} />
