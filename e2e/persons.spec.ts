@@ -6,11 +6,18 @@ test('opens persons module and shows status expiry workflow without horizontal o
 
   await expect(page.getByRole('heading', { name: 'Personenverzeichnis' }).first()).toBeVisible();
   await expect(page.locator('[data-e2e="persons-workbench"]')).toBeVisible();
-  await expect(page.getByRole('button', { name: /Personen importieren/ })).toBeVisible();
+  const toolbarButtons = page.locator('.person-toolbar button');
+  await expect(toolbarButtons.nth(0)).toHaveText(/Person anlegen/);
+  await expect(toolbarButtons.nth(1)).toHaveText(/Personen importieren/);
+  await expect(toolbarButtons.nth(2)).toHaveText(/Fristen exportieren/);
   await expect(page.getByRole('button', { name: /Ablauf prüfen/ })).toBeVisible();
-  await expect(page.getByRole('button', { name: /Fristen als iCal/ })).toBeVisible();
   await expect(page.getByText('Mustermann, Max')).toBeVisible();
   await expect(page.locator('.person-lifecycle-badge').first()).toBeVisible();
+  await page.getByText('Mustermann, Max').click();
+  await expect(page.locator('.person-detail [data-e2e="create-case-from-selected-person"]')).toBeVisible();
+  await expect(page.locator('.person-detail [data-e2e="open-person-anonymize-dialog"]')).toBeVisible();
+  await expect(page.locator('.person-toolbar [data-e2e="create-case-from-selected-person"]')).toHaveCount(0);
+  await expect(page.locator('.person-toolbar [data-e2e="open-person-anonymize-dialog"]')).toHaveCount(0);
 
   const hasHorizontalOverflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
   expect(hasHorizontalOverflow).toBe(false);
@@ -71,7 +78,7 @@ test('bearbeitet importierte oder manuell angelegte Personen im Modal', async ({
   await page.goto('/');
   await page.locator('[data-e2e="main-nav-persons"]').click();
   await page.getByText('Mustermann, Max').click();
-  await page.locator('[data-e2e="open-person-edit-dialog"]').click();
+  await page.getByRole('button', { name: /Person bearbeiten: Mustermann, Max/ }).click();
 
   const dialog = page.locator('[data-e2e="person-edit-dialog"]');
   await expect(dialog).toBeVisible();

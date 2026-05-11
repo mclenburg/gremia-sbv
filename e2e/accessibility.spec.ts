@@ -50,8 +50,8 @@ test('supports keyboard-only person selection and case creation from selected pe
 
   await page.locator('.person-list-select').filter({ hasText: 'Mustermann, Max' }).first().focus();
   await page.keyboard.press('Enter');
-  await expect(page.getByRole('button', { name: 'Fallakte aus Person anlegen' })).toBeEnabled();
-  await page.getByRole('button', { name: 'Fallakte aus Person anlegen' }).focus();
+  await expect(page.getByRole('button', { name: 'Fallakte anlegen' })).toBeEnabled();
+  await page.getByRole('button', { name: 'Fallakte anlegen' }).focus();
   await page.keyboard.press('Enter');
 
   const dialog = page.getByRole('dialog', { name: 'Fallakte aus Person anlegen' });
@@ -59,7 +59,7 @@ test('supports keyboard-only person selection and case creation from selected pe
   await expect(dialog.getByLabel('Aktenzeichen')).toBeFocused();
   await page.keyboard.press('Escape');
   await expect(dialog).toBeHidden();
-  await expect(page.getByRole('button', { name: 'Fallakte aus Person anlegen' })).toBeFocused();
+  await expect(page.getByRole('button', { name: 'Fallakte anlegen' })).toBeFocused();
 });
 
 test('supports keyboard-only anonymous request path and announces binding feedback', async ({ page }) => {

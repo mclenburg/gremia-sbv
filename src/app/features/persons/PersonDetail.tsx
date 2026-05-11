@@ -9,6 +9,8 @@ export function PersonDetail({
   person,
   cases,
   onUpdate,
+  onOpenCaseCreate,
+  onOpenAnonymize,
   privacyReviewOpen,
   privacyReviews,
   privacyReviewLoading,
@@ -25,6 +27,8 @@ export function PersonDetail({
   person: ProtectedPersonRecord | null;
   cases: CaseRecord[];
   onUpdate: (id: string, input: UpdateProtectedPersonInput) => Promise<void>;
+  onOpenCaseCreate: () => void;
+  onOpenAnonymize: () => void;
   privacyReviewOpen: boolean;
   privacyReviews: PrivacyReviewItemRecord[];
   privacyReviewLoading: boolean;
@@ -46,8 +50,16 @@ export function PersonDetail({
 
   return (
     <section className="industrial-panel person-detail" aria-labelledby="person-detail-heading">
-      <p className="industrial-kicker">Detail</p>
-      <h2 id="person-detail-heading">{displayName}</h2>
+      <div className="person-detail-header">
+        <div>
+          <p className="industrial-kicker">Detail</p>
+          <h2 id="person-detail-heading">{displayName}</h2>
+        </div>
+        <div className="person-detail-actions">
+          <button type="button" className="industrial-secondary-button" data-e2e="create-case-from-selected-person" onClick={onOpenCaseCreate}>Fallakte anlegen</button>
+          <button type="button" className="industrial-secondary-button" disabled={person.lifecycleState === 'anonymized'} data-e2e="open-person-anonymize-dialog" onClick={onOpenAnonymize}>Person anonymisieren</button>
+        </div>
+      </div>
       <dl className="person-detail-grid">
         <div><dt>Schutzstatus</dt><dd>{protectionStatusLabels[person.protectionStatus]}</dd></div>
         <div><dt>Beschäftigung</dt><dd>{employmentStateLabels[person.employmentState]}</dd></div>

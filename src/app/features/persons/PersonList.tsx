@@ -1,4 +1,4 @@
-import { AlertTriangle, Clock3, ShieldCheck, Trash2, UserRoundCheck } from 'lucide-react';
+import { AlertTriangle, Clock3, Pencil, ShieldCheck, Trash2, UserRoundCheck } from 'lucide-react';
 import type { PersonLifecycleState, ProtectedPersonRecord } from '../../core/models/protected-person.model';
 import { employmentStateLabels, lifecycleStateLabels, protectionStatusLabels } from '../../core/models/protected-person.model';
 
@@ -24,11 +24,13 @@ export function PersonList({
   persons,
   selectedId,
   onSelect,
+  onEdit,
   onDelete
 }: {
   persons: ProtectedPersonRecord[];
   selectedId?: string;
   onSelect: (person: ProtectedPersonRecord) => void;
+  onEdit: (person: ProtectedPersonRecord) => void;
   onDelete: (person: ProtectedPersonRecord) => void;
 }) {
   return (
@@ -51,15 +53,26 @@ export function PersonList({
                 <span>{protectionStatusLabels[person.protectionStatus]} · {employmentStateLabels[person.employmentState]}</span>
                 <small className={`person-lifecycle-badge ${severity}`}><LifecycleIcon severity={severity} />{lifecycleStateLabels[person.lifecycleState]}</small>
               </button>
-              <button
-                type="button"
-                className="person-list-delete"
-                aria-label={`Person löschen: ${label}`}
-                title={`Person löschen: ${label}`}
-                onClick={() => onDelete(person)}
-              >
-                <Trash2 className="h-4 w-4" aria-hidden="true" />
-              </button>
+              <div className="person-list-actions">
+                <button
+                  type="button"
+                  className="person-list-edit"
+                  aria-label={`Person bearbeiten: ${label}`}
+                  title={`Person bearbeiten: ${label}`}
+                  onClick={() => onEdit(person)}
+                >
+                  <Pencil className="h-4 w-4" aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  className="person-list-delete"
+                  aria-label={`Person löschen: ${label}`}
+                  title={`Person löschen: ${label}`}
+                  onClick={() => onDelete(person)}
+                >
+                  <Trash2 className="h-4 w-4" aria-hidden="true" />
+                </button>
+              </div>
             </div>
           );
         })}

@@ -8,7 +8,7 @@ test('legt Fallakte aus Person heraus personengebunden an', async ({ page }) => 
   await page.goto('/');
   await navigation(page).getByRole('button', { name: 'Personen', exact: true }).click();
   await page.getByText('Mustermann, Max').click();
-  await page.getByRole('button', { name: 'Fallakte aus Person anlegen' }).click();
+  await page.getByRole('button', { name: 'Fallakte anlegen' }).click();
   await expect(page.getByRole('dialog', { name: 'Fallakte aus Person anlegen' })).toBeVisible();
   await page.getByLabel('Fallakte aus Person anlegen').getByLabel('Aktenzeichen').fill('TEST-PERSON-01');
   await page.getByLabel('Fallakte aus Person anlegen').getByRole('button', { name: 'Fallakte aus Person anlegen' }).click();

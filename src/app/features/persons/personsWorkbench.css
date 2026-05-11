@@ -307,26 +307,59 @@
   }
 }
 
-.person-create-dialog {
+.person-create-dialog,
+.person-edit-dialog {
   width: min(48rem, calc(100vw - 2rem));
   max-width: calc(100vw - 2rem);
   max-height: calc(100vh - 2rem);
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.person-edit-dialog {
+  width: min(60rem, calc(100vw - 2rem));
+}
+
+.person-create-form,
+.person-edit-form {
+  display: grid;
+  gap: 0.9rem;
+  min-width: 0;
 }
 
 .person-create-form {
-  display: grid;
   grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
-  gap: 0.75rem;
+}
+
+.person-edit-form {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.person-create-form label,
+.person-edit-form label {
   min-width: 0;
 }
 
-.person-create-form label {
-  min-width: 0;
+.person-create-form .span-2,
+.person-edit-form .span-2 {
+  grid-column: 1 / -1;
+}
+
+.person-edit-form textarea,
+.person-edit-form input,
+.person-edit-form select {
+  max-width: 100%;
+}
+
+@media (max-width: 860px) {
+  .person-edit-form {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 720px) {
-  .person-create-dialog {
+  .person-create-dialog,
+  .person-edit-dialog {
     width: calc(100vw - 1rem);
     max-width: calc(100vw - 1rem);
   }
@@ -428,4 +461,164 @@
 @keyframes sbv-spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+
+
+.person-list-actions {
+  display: flex;
+  align-items: stretch;
+  border-left: 1px solid var(--sbv-border);
+}
+
+.person-list-edit,
+.person-list-delete {
+  width: 2.75rem;
+  min-width: 2.75rem;
+  border: 0;
+  border-left: 1px solid var(--sbv-border);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--industrial-text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.person-list-edit:hover,
+.person-list-edit:focus-visible {
+  background: rgba(255, 214, 0, 0.14);
+  color: var(--industrial-text-strong);
+}
+
+.person-list-delete {
+  color: #f6b0b0;
+}
+
+.person-list-delete:hover,
+.person-list-delete:focus-visible {
+  background: rgba(160, 0, 0, 0.22);
+  color: #ffd4d4;
+}
+
+
+.person-detail-heading-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.person-detail-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.person-detail-actions .industrial-secondary-button {
+  white-space: nowrap;
+}
+
+.person-edit-dialog {
+  width: min(76rem, calc(100vw - 2rem)) !important;
+  max-width: calc(100vw - 2rem) !important;
+  overflow-x: hidden !important;
+  overflow-y: auto;
+}
+
+.person-edit-form {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.9rem;
+  align-items: start;
+  border: 1px solid var(--sbv-border);
+  background: rgba(9, 9, 11, 0.92);
+  padding: 16px;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.person-edit-form label {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.person-edit-form label > span {
+  margin-bottom: 7px;
+  display: block;
+  color: var(--sbv-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+}
+
+.person-edit-form input,
+.person-edit-form select,
+.person-edit-form textarea {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  border: 1px solid var(--sbv-border);
+  background: #050505;
+  color: var(--sbv-text);
+  padding: 10px 12px;
+  font: inherit;
+  box-sizing: border-box;
+}
+
+.person-edit-form textarea {
+  min-height: 6.5rem;
+  resize: vertical;
+}
+
+.person-edit-form .span-2,
+.person-edit-form .industrial-modal-wide {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 1180px) {
+  .person-edit-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .person-detail-heading-row,
+  .person-detail-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .person-edit-form {
+    grid-template-columns: 1fr;
+  }
+}
+
+.person-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.person-detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+@media (max-width: 900px) {
+  .person-detail-header {
+    display: grid;
+  }
+
+  .person-detail-actions {
+    justify-content: flex-start;
+  }
 }

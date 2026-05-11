@@ -179,3 +179,54 @@
     max-width: calc(100vw - 1rem) !important;
   }
 }
+
+/* Personenbearbeitung: eigener breiter Dialog, nicht von generischen Formularregeln einengen lassen. */
+.industrial-modal-backdrop > .industrial-modal.person-edit-dialog {
+  width: min(78rem, calc(100vw - 2rem)) !important;
+  max-width: calc(100vw - 2rem) !important;
+  min-width: 0 !important;
+  overflow-x: hidden !important;
+  overflow-y: auto;
+}
+
+.industrial-modal.person-edit-dialog .person-edit-form {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 0.9rem !important;
+  overflow-x: hidden !important;
+}
+
+.industrial-modal.person-edit-dialog .person-edit-form label,
+.industrial-modal.person-edit-dialog .person-edit-form input,
+.industrial-modal.person-edit-dialog .person-edit-form select,
+.industrial-modal.person-edit-dialog .person-edit-form textarea {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box;
+}
+
+.industrial-modal.person-edit-dialog .person-edit-form .span-2,
+.industrial-modal.person-edit-dialog .person-edit-form .industrial-modal-wide {
+  grid-column: 1 / -1 !important;
+}
+
+@media (max-width: 1100px) {
+  .industrial-modal.person-edit-dialog .person-edit-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .industrial-modal-backdrop > .industrial-modal.person-edit-dialog {
+    width: calc(100vw - 1rem) !important;
+    max-width: calc(100vw - 1rem) !important;
+  }
+
+  .industrial-modal.person-edit-dialog .person-edit-form {
+    grid-template-columns: 1fr !important;
+  }
+}

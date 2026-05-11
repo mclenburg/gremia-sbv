@@ -107,7 +107,7 @@ export function PersonEditDialog({
 
   return (
     <div className="industrial-modal-backdrop" role="presentation" data-e2e="person-edit-dialog">
-      <section className="industrial-modal person-create-dialog" role="dialog" aria-modal="true" aria-labelledby="person-edit-heading" aria-describedby="person-edit-description">
+      <section className="industrial-modal person-edit-dialog" role="dialog" aria-modal="true" aria-labelledby="person-edit-heading" aria-describedby="person-edit-description">
         <div className="industrial-modal-header">
           <div className="industrial-modal-icon"><Pencil className="h-5 w-5" aria-hidden="true" /></div>
           <div>
@@ -116,7 +116,7 @@ export function PersonEditDialog({
             <p id="person-edit-description">Alle strukturierten Personendaten können manuell korrigiert werden. Änderungen werden lokal gespeichert und auditierbar protokolliert.</p>
           </div>
         </div>
-        <form className="industrial-form person-create-form" onSubmit={(event) => void submit(event)}>
+        <form className="person-edit-form" onSubmit={(event) => void submit(event)}>
           <label><span>Vorname</span><input value={form.firstName} onChange={(event) => updateField('firstName', event.target.value)} /></label>
           <label><span>Nachname</span><input value={form.lastName} onChange={(event) => updateField('lastName', event.target.value)} /></label>
           <label><span>Pseudonym/Label</span><input value={form.pseudonymLabel} onChange={(event) => updateField('pseudonymLabel', event.target.value)} placeholder={title || '—'} /></label>
