@@ -13,6 +13,7 @@ import {
   sha256Text,
   splitFullName
 } from './personImportParsing.js';
+import { decodeCp850, detectCsvEncoding, type CsvEncodingDetectionResult } from './csvEncodingDetection.js';
 import type {
   CreateProtectedPersonInput,
   PersonImportColumnMapping,
@@ -100,27 +101,48 @@ function diffPerson(existing: ProtectedPersonRecord, next: CreateProtectedPerson
 export class PersonImportService {
   constructor(private readonly db: DatabaseAdapter) {}
 
-  async readRows(input: PersonImportPreviewInput): Promise<{ rows: string[][]; sourceTextHash: string; columns: string[]; objects: Record<string, string>[] }> {
+  private decodeCsv(input: PersonImportPreviewInput): { text: string; hashSource: string; detection?: CsvEncodingDetectionResult } {
+    if (input.csvText !== undefined) {
+      return { text: input.csvText, hashSource: input.csvText, detection: { encoding: 'utf-8', confidence: 'high', decodedText: input.csvText, warnings: ['CSV-Zeichenkodierung: eingefügter Text wird als UTF-8 verarbeitet.'] } };
+    }
+    const buffer = input.filePath ? readFileSync(input.filePath) : Buffer.from('');
+    const requested = input.csvEncoding && input.csvEncoding !== 'auto' ? input.csvEncoding : undefined;
+    if (requested && requested !== 'cp850') {
+      const text = new TextDecoder(requested, { fatal: false }).decode(buffer);
+      return { text, hashSource: buffer.toString('base64'), detection: { encoding: requested, confidence: 'high', decodedText: text, warnings: [`CSV-Zeichenkodierung manuell verwendet: ${requested}.`] } };
+    }
+    if (requested === 'cp850') {
+      const detected = detectCsvEncoding(buffer);
+      const forced = { ...detected, encoding: 'cp850' as const, decodedText: decodeCp850(buffer), warnings: ['CSV-Zeichenkodierung manuell verwendet: cp850.'] };
+      return { text: forced.decodedText, hashSource: buffer.toString('base64'), detection: forced };
+    }
+    const detection = detectCsvEncoding(buffer);
+    return { text: detection.decodedText, hashSource: buffer.toString('base64'), detection };
+  }
+
+  async readRows(input: PersonImportPreviewInput): Promise<{ rows: string[][]; sourceTextHash: string; columns: string[]; objects: Record<string, string>[]; csvDetection?: CsvEncodingDetectionResult }> {
     const headerRowIndex = input.headerRowIndex ?? 0;
     const fileType = input.fileType;
     let rows: string[][];
     let sourceHash: string;
+    let csvDetection: CsvEncodingDetectionResult | undefined;
     if (fileType === 'xlsx') {
       if (!input.filePath) throw new Error('XLSX-Import benötigt einen Dateipfad.');
       const parsed = await parseXlsxFile(input.filePath, input.sheetName);
       rows = parsed.rows;
       sourceHash = sha256Text(readFileSync(input.filePath).toString('base64'));
     } else {
-      const text = input.csvText ?? (input.filePath ? readFileSync(input.filePath, 'utf8') : '');
-      rows = parseDelimitedText(text, input.delimiter ?? ';');
-      sourceHash = sha256Text(text);
+      const decoded = this.decodeCsv(input);
+      csvDetection = decoded.detection;
+      rows = parseDelimitedText(decoded.text, input.delimiter ?? ';');
+      sourceHash = sha256Text(decoded.hashSource);
     }
     const { columns, objects } = rowsToObjects(rows, headerRowIndex);
-    return { rows, sourceTextHash: sourceHash, columns, objects };
+    return { rows, sourceTextHash: sourceHash, columns, objects, csvDetection };
   }
 
   async preview(input: PersonImportPreviewInput): Promise<PersonImportPreviewResult> {
-    const { columns, objects } = await this.readRows(input);
+    const { columns, objects, csvDetection } = await this.readRows(input);
     const firstDataIndex = input.firstDataRowIndex ?? 1;
     const rows = objects.slice(Math.max(0, firstDataIndex - 1)).slice(0, 50).map((rowObject, index): PersonImportPreviewRow => {
       const mapped = buildPersonInput(rowObject, input.mapping);
@@ -136,10 +158,10 @@ export class PersonImportService {
         rawPreview: mapped.rawPreview
       };
     });
-    const warnings: string[] = [];
+    const warnings: string[] = [...(csvDetection?.warnings ?? [])];
     if (columns.some((column) => /\bgdb\b|grad der behinderung/i.test(column))) warnings.push('Eine GdB-Spalte wurde erkannt. Sie wird aus Gründen der Datensparsamkeit nicht importiert, solange sie nicht ausdrücklich gemappt wird.');
     if (!input.mapping.personnelNumber) warnings.push('Personalnummer ist optional. Ohne Personalnummer erfolgt der sichere Abgleich ersatzweise über dienstliche E-Mail; Name/Vorname erzeugt nur Konflikte.');
-    return { columns, rows, warnings };
+    return { columns, rows, warnings, detectedEncoding: csvDetection?.encoding, encodingConfidence: csvDetection?.confidence };
   }
 
   async execute(input: PersonImportExecuteInput): Promise<PersonImportExecuteResult> {

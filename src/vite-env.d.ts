@@ -1,4 +1,5 @@
 /// <reference types="vite/client" />
+import type { ComplianceAuditChainStatus } from "./app/core/models/compliance.model";
 
 import type { CaseDocumentRecord } from "./app/core/models/case-document.model";
 import type { CaseRecord, CreateCaseInput, LegacyCaseBindingInput, LegacyCaseBindingResult } from "./app/core/models/case.model";
@@ -302,6 +303,10 @@ declare global {
           input: UpdateTerminationHearingInput,
         ): Promise<TerminationHearingRecord>;
         warnings(id: string): Promise<TerminationHearingWarning[]>;
+      };
+
+      compliance: {
+        auditChainStatus(): Promise<ComplianceAuditChainStatus>;
       };
 
       persons: {

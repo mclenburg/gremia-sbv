@@ -1,4 +1,3 @@
-import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import pkg from '../package.json';
 import { readNormalizedSourceText } from './helpers/sourceText';
@@ -42,10 +41,10 @@ describe('0.9.1 Step G Test-, Doku- und Release-Sync', () => {
       'tests/rc091StepGReleaseSync.test.ts',
       'tests/rcFinalTestSync090rc1p.test.ts',
       'tests/rcReleaseArtifacts090rc1f.test.ts'
-    ].map((file) => readFileSync(file, 'utf8')).join('\n');
-    expect(sources).not.toContain(forbiddenTmpLiteral);
-    expect(sources).not.toContain(forbiddenWindowsRoot);
-    const forbiddenRawCrlfAssertion = '\\r' + '\\n';
-    expect(sources).not.toContain(forbiddenRawCrlfAssertion);
+    ].map((file) => read(file)).join(String.fromCharCode(10));
+    expect(sources.includes(forbiddenTmpLiteral)).toBe(false);
+    expect(sources.includes(forbiddenWindowsRoot)).toBe(false);
+    const forbiddenRawCrlfAssertion = String.raw`\r` + String.raw`\n`;
+    expect(sources.includes(forbiddenRawCrlfAssertion)).toBe(false);
   });
 });

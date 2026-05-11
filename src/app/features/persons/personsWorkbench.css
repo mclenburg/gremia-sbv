@@ -374,3 +374,58 @@
   background: rgba(185, 28, 28, 0.28);
   color: #fff1f2;
 }
+
+.person-lifecycle-badge {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid var(--sbv-border);
+  border-radius: 999px;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.78rem;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.person-lifecycle-badge.ok {
+  border-color: rgba(34, 197, 94, 0.32);
+  background: rgba(22, 101, 52, 0.14);
+  color: #bbf7d0;
+}
+
+.person-lifecycle-badge.warning {
+  border-color: rgba(250, 204, 21, 0.42);
+  background: rgba(113, 63, 18, 0.18);
+  color: #fde68a;
+}
+
+.person-lifecycle-badge.critical {
+  border-color: rgba(248, 113, 113, 0.5);
+  background: rgba(127, 29, 29, 0.22);
+  color: #fecaca;
+}
+
+.person-lifecycle-badge.muted {
+  border-color: rgba(148, 163, 184, 0.3);
+  background: rgba(51, 65, 85, 0.18);
+  color: var(--industrial-text-muted);
+}
+
+.person-list-item.person-lifecycle-critical {
+  border-color: rgba(248, 113, 113, 0.55);
+}
+
+.person-list-item.person-lifecycle-warning {
+  border-color: rgba(250, 204, 21, 0.42);
+}
+
+.spin {
+  animation: sbv-spin 0.9s linear infinite;
+}
+
+@keyframes sbv-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

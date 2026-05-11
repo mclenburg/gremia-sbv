@@ -1226,3 +1226,14 @@ html[data-theme='light'] .industrial-panel {
 .module-frame {
   overflow-x: clip;
 }
+
+.case-create-path-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.case-create-path-actions .industrial-secondary-button {
+  opacity: 0.86;
+}

@@ -10,6 +10,7 @@ test('opens persons module and shows status expiry workflow without horizontal o
   await expect(page.getByRole('button', { name: /Ablauf prüfen/ })).toBeVisible();
   await expect(page.getByRole('button', { name: /Fristen als iCal/ })).toBeVisible();
   await expect(page.getByText('Mustermann, Max')).toBeVisible();
+  await expect(page.locator('.person-lifecycle-badge').first()).toBeVisible();
 
   const hasHorizontalOverflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
   expect(hasHorizontalOverflow).toBe(false);
@@ -29,6 +30,7 @@ test('guides CSV import through preview, mapping and validation', async ({ page 
 
   await expect(dialog.getByRole('heading', { name: 'Vorschau aus eingefuegte-arbeitgeberliste.csv' })).toBeVisible();
   await expect(dialog.getByText('Importperson, Ida')).toBeVisible();
+  await expect(dialog.getByText(/Zeichenkodierung: utf-8/)).toBeVisible();
   await dialog.getByRole('button', { name: 'Weiter zum Spaltenmapping' }).click();
 
   await expect(dialog.getByRole('heading', { name: 'Spaltenmapping' })).toBeVisible();
@@ -50,6 +52,7 @@ test('legt Personen manuell ausschließlich im Modal-Overlay an und zeigt Auswah
 
   await page.getByText('Mustermann, Max').click();
   await expect(page.locator('.person-detail')).toContainText('Mustermann, Max');
+  await expect(page.locator('.person-detail')).toContainText('Verknüpfte Fallakten:');
   await expect(page.locator('.person-side-stack form[aria-labelledby="person-create-heading"]')).toHaveCount(0);
 
   await page.locator('[data-e2e="open-person-create-dialog"]').click();
@@ -61,6 +64,26 @@ test('legt Personen manuell ausschließlich im Modal-Overlay an und zeigt Auswah
   await dialog.getByRole('button', { name: 'Person anlegen' }).click();
   await expect(dialog).toBeHidden();
   await expect(page.getByText('Modal, Mara')).toBeVisible();
+});
+
+
+test('bearbeitet importierte oder manuell angelegte Personen im Modal', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('[data-e2e="main-nav-persons"]').click();
+  await page.getByText('Mustermann, Max').click();
+  await page.locator('[data-e2e="open-person-edit-dialog"]').click();
+
+  const dialog = page.locator('[data-e2e="person-edit-dialog"]');
+  await expect(dialog).toBeVisible();
+  await expect(page.getByRole('dialog', { name: 'Person bearbeiten' })).toBeVisible();
+  await dialog.getByLabel('Organisationseinheit').fill('SBV-Testteam ÄÖÜ');
+  await dialog.getByLabel('Standort').fill('Rostock');
+  await dialog.getByLabel('Dienstliche E-Mail').fill('max.mustermann@example.test');
+  await dialog.getByRole('button', { name: 'Person speichern' }).click();
+
+  await expect(dialog).toBeHidden();
+  await expect(page.locator('.person-detail')).toContainText('SBV-Testteam ÄÖÜ');
+  await expect(page.locator('.person-detail')).toContainText('Rostock');
 });
 
 test('führt Personenanonymisierung über geschützten Modalpfad aus', async ({ page }) => {

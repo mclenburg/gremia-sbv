@@ -232,6 +232,10 @@
       deleteDocument: async () => ({ deleted: true }),
     },
 
+    compliance: {
+      auditChainStatus: async () => ({ ok: true, checked: 3, firstSequence: 1, lastSequence: 3, latestHash: 'abc123def4567890', algorithm: 'sha256', chainVersion: 1, issueCount: 0, issues: [] }),
+    },
+
     persons: {
       list: async () => persons,
       create: async (input) => { const row = { id: `person-${Date.now()}`, ...input, createdAt: now, updatedAt: now, lifecycleState: 'active' }; persons.push(row); return row; },
@@ -247,7 +251,7 @@
           const [lastName, firstName] = name.includes(',') ? name.split(',').map((part) => part.trim()) : ['', name.trim()];
           return { rowNumber: index + 2, firstName, lastName, protectionStatus: 'equivalent', statusValidUntil: values[2], validationErrors: [], rawPreview: {} };
         });
-        return { columns, rows, warnings: [] };
+        return { columns, rows, warnings: ['CSV-Zeichenkodierung erkannt: utf-8.'], detectedEncoding: 'utf-8', encodingConfidence: 'high' };
       },
       executeImport: async (input) => {
         const lines = String(input?.csvText || 'Name;Status\nImportperson, Ida;gleichgestellt').trim().split(/\r?\n/);

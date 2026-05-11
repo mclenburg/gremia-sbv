@@ -22,15 +22,14 @@ export function useCaseCrudActions(deps: useCaseCrudActionsDeps) {
     setError("");
   }
 
-  async function addCase(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function createCaseFromModal(mode: "identified" | "anonymous") {
     setError("");
     if (!caseNumber.trim()) {
       setError("Bitte ein Aktenzeichen erfassen.");
       return;
     }
-    if (!selectedProtectedPersonId) {
-      setError("Bitte zuerst eine Person auswählen oder den Sonderweg für anonyme Beratungsanfrage nutzen.");
+    if (mode === "identified" && !selectedProtectedPersonId) {
+      setError("Bitte zuerst eine Person auswählen oder den Sonderweg ohne Personenbezug nutzen.");
       return;
     }
 
@@ -38,13 +37,13 @@ export function useCaseCrudActions(deps: useCaseCrudActionsDeps) {
       let protectedPersonId = selectedProtectedPersonId;
       let bindingState = "active";
       let nextDisplayName = displayName.trim();
-      if (selectedProtectedPersonId === "__anonymous_request__") {
+      if (mode === "anonymous") {
         const bridge = await waitForBridge();
         if (!bridge?.persons) throw new Error("Personendienst ist nicht erreichbar.");
         const anonymousPerson = await bridge.persons.createAnonymousRequest();
         protectedPersonId = anonymousPerson.id;
         bindingState = "anonymous_request";
-        nextDisplayName = anonymousPerson.pseudonymLabel ?? "Anonyme Anfrage";
+        nextDisplayName = displayName.trim() || anonymousPerson.pseudonymLabel || "Anonyme Beratung";
       } else if (!nextDisplayName) {
         const person = protectedPersons.find((entry: any) => entry.id === selectedProtectedPersonId);
         nextDisplayName = person?.pseudonymLabel || [person?.lastName, person?.firstName].filter(Boolean).join(", ") || "Personenbezogene Fallakte";
@@ -66,12 +65,17 @@ export function useCaseCrudActions(deps: useCaseCrudActionsDeps) {
       setIsCaseCreateModalOpen(false);
       await onCasesChanged();
     } catch (error) {
-      setError(
-        error instanceof Error
-          ? error.message
-          : "Fall konnte nicht angelegt werden.",
-      );
+      setError(error instanceof Error ? error.message : "Fall konnte nicht angelegt werden.");
     }
+  }
+
+  async function addCase(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    await createCaseFromModal("identified");
+  }
+
+  async function addAnonymousCase() {
+    await createCaseFromModal("anonymous");
   }
 
   async function deleteNote(note: CaseNoteRecord) {
@@ -185,5 +189,5 @@ export function useCaseCrudActions(deps: useCaseCrudActionsDeps) {
   }
 
 
-  return { openCaseCreateModal, cancelCaseCreateModal, addCase, deleteNote, importDocuments, openDocument, exportDocument, deleteDocument };
+  return { openCaseCreateModal, cancelCaseCreateModal, addCase, addAnonymousCase, deleteNote, importDocuments, openDocument, exportDocument, deleteDocument };
 }

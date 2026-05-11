@@ -74,8 +74,6 @@ test('supports keyboard-only anonymous request path and announces binding feedba
   await dialog.getByLabel('Aktenzeichen').fill('TEST-A11Y-ANON');
   await dialog.locator('[data-e2e="anonymous-request-path"]').focus();
   await page.keyboard.press('Enter');
-  await dialog.getByRole('button', { name: 'Fall anlegen' }).focus();
-  await page.keyboard.press('Enter');
 
   await expect(page.locator('[data-e2e="case-row-TEST-A11Y-ANON"]')).toBeVisible();
   await expect(page.getByRole('status')).toContainText(/Anonyme Anfrage wurde angelegt|Fallakte wurde/);

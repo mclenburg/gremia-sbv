@@ -55,6 +55,20 @@ export interface ComplianceManualCheckItem {
   detail?: string;
 }
 
+
+export interface ComplianceAuditChainStatus {
+  ok: boolean;
+  checked: number;
+  firstSequence?: number;
+  lastSequence?: number;
+  firstBrokenSequence?: number;
+  latestHash: string;
+  algorithm: string;
+  chainVersion: number;
+  issueCount: number;
+  issues: { sequence: number; kind: string; message: string }[];
+}
+
 export interface ComplianceStatusOverview {
   generatedAt: string;
   technicalItems: ComplianceTechnicalStatusItem[];

@@ -76,3 +76,8 @@ Step G hält README, Roadmap, Build-Dokumentation und Release-Tests synchron. Vo
 ### Windows-Artefaktvertrag 0.9.1
 
 Der Windows-Build erzeugt ausschließlich eine portable Direktstart-EXE. Ein Installer wird bewusst nicht gebaut und darf in der RC-Freigabe nicht als Artefakt erscheinen.
+
+
+## Testqualität
+
+Für 0.9.1 gilt: Mindestens 68 % der aktiven Tests müssen Verhalten, Ergebnisse, Policies, Services, Migrationen, Exporte oder E2E-Flows prüfen. Source-Text-Stringtests sind nur noch als eng begrenzte Architektur-Guards zulässig und dürfen maximal 32 % der aktiven Testbasis ausmachen.

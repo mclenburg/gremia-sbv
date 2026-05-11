@@ -42,7 +42,7 @@ export function PersonDetail({
 
   async function updateSelected(input: UpdateProtectedPersonInput) { await onUpdate(person!.id, input); }
   const displayName = person.recordKind === 'pseudonymous_request' ? person.pseudonymLabel || 'Anonyme Anfrage' : `${person.lastName}, ${person.firstName}`;
-
+  const linkedCaseCount = cases.filter((record) => record.protectedPersonId === person.id).length;
 
   return (
     <section className="industrial-panel person-detail" aria-labelledby="person-detail-heading">
@@ -53,6 +53,11 @@ export function PersonDetail({
         <div><dt>Beschäftigung</dt><dd>{employmentStateLabels[person.employmentState]}</dd></div>
         <div><dt>Lifecycle</dt><dd>{lifecycleStateLabels[person.lifecycleState]}</dd></div>
         <div><dt>Status gültig bis</dt><dd>{person.statusValidUntil ?? '—'}</dd></div>
+        <div><dt>Beschäftigungsende</dt><dd>{person.leftCompanyAt ?? '—'}</dd></div>
+        <div><dt>Dienstliche E-Mail</dt><dd>{person.workEmail ?? '—'}</dd></div>
+        <div><dt>Personalnummer</dt><dd>{person.personnelNumber ?? '—'}</dd></div>
+        <div><dt>Organisationseinheit</dt><dd>{person.organizationalUnit ?? '—'}</dd></div>
+        <div><dt>Standort</dt><dd>{person.location ?? '—'}</dd></div>
       </dl>
       <PersonLifecycleReviewDialog person={person} open={privacyReviewOpen} reviews={privacyReviews} loading={privacyReviewLoading} onOpen={onOpenPrivacyReview} onClose={onClosePrivacyReview} onDocumentRetention={onDocumentRetention} onScheduleLater={onScheduleLater} onClear={onClearReview} onAnonymizeCase={onAnonymizeCase} onDeleteCase={onDeleteCase} onMessage={onMessage} onError={onError} />
       <div className="industrial-settings-form">
@@ -60,7 +65,7 @@ export function PersonDetail({
         <label><span>Beschäftigungsende</span><input type="date" defaultValue={toInputDate(person.leftCompanyAt)} onBlur={(event) => { const value = event.target.value; const today = new Date().toISOString().slice(0, 10); void updateSelected({ employmentState: value && value <= today ? 'left_company' : 'active_employee', leftCompanyAt: value || undefined }); }} /></label>
       </div>
       <p className="industrial-muted">Verknüpfte Fallakten werden bei einer Anonymisierung nicht mehr mit Namen angezeigt, sondern erhalten eine Datenschutz-Prüfmarkierung.</p>
-      <p className="industrial-meta">Verfügbare Fallakten: {cases.length}</p>
+      <p className="industrial-meta">Verknüpfte Fallakten: {linkedCaseCount}</p>
     </section>
   );
 }

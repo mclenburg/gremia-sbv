@@ -47,8 +47,9 @@ export function usePersonsHandlers(reloadWorkData: () => Promise<void>) {
   const evaluateProtectedPersonExpiry = useCallback(async () => {
     const bridge = await waitForBridge();
     if (!bridge?.persons) throw new Error('Statusprüfung ist nicht erreichbar.');
-    await bridge.persons.evaluateExpiry();
+    const result = await bridge.persons.evaluateExpiry();
     await reloadWorkData();
+    return result;
   }, [reloadWorkData]);
 
   const listOpenPrivacyReviewsForPerson = useCallback(async (protectedPersonId: string) => {

@@ -4,6 +4,7 @@ import { ModuleFrame } from '../../shared/components/ModuleFrame';
 import { waitForBridge } from '../../core/bridge/waitForBridge';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 import type {
+  ComplianceAuditChainStatus,
   ComplianceDocument,
   ComplianceDocumentType,
   ComplianceManualCheckItem,
@@ -83,6 +84,32 @@ function buildFallbackStatus(): ComplianceStatusOverview {
   };
 }
 
+function auditChainStatusItem(status?: ComplianceAuditChainStatus): ComplianceTechnicalStatusItem {
+  if (!status) return {
+    id: 'audit-chain',
+    label: 'Audit-Hash-Chain',
+    level: 'warning',
+    summary: 'Audit-Hash-Chain konnte nicht geprüft werden.',
+    detail: 'Bitte technischen Status erneut laden oder System-/Integritätsbericht prüfen.'
+  };
+  if (!status.checked) return {
+    id: 'audit-chain',
+    label: 'Audit-Hash-Chain',
+    level: 'info',
+    summary: 'Noch keine Audit-Einträge vorhanden.',
+    detail: `Algorithmus ${status.algorithm}, Chain-Version ${status.chainVersion}.`
+  };
+  return {
+    id: 'audit-chain',
+    label: 'Audit-Hash-Chain',
+    level: status.ok ? 'ok' : 'problem',
+    summary: status.ok ? `Hash-Kette intakt (${status.checked} Einträge geprüft).` : `Hash-Kette auffällig (${status.issueCount} Befund(e)).`,
+    detail: status.ok
+      ? `Sequenzen ${status.firstSequence ?? '—'} bis ${status.lastSequence ?? '—'}, letzter Hash ${status.latestHash.slice(0, 12)}…`
+      : `Erste auffällige Sequenz: ${status.firstBrokenSequence ?? 'unbekannt'}. ${status.issues[0]?.message ?? 'Integritätsprüfung fehlgeschlagen.'}`
+  };
+}
+
 async function loadComplianceStatus(): Promise<ComplianceStatusOverview> {
   const bridge = await waitForBridge();
   if (!bridge?.security) {
@@ -92,6 +119,7 @@ async function loadComplianceStatus(): Promise<ComplianceStatusOverview> {
   const security = bridge.security;
   const securityStatus = await security.status();
   const tempStatus = await security.temporaryFileStatus();
+  const auditStatus = await bridge.compliance?.auditChainStatus().catch(() => undefined);
 
   const technicalItems: ComplianceTechnicalStatusItem[] = [
     {
@@ -132,13 +160,7 @@ async function loadComplianceStatus(): Promise<ComplianceStatusOverview> {
         ? 'Temporäre PDF-/Dokumentkopien sollten nach Nutzung bereinigt werden.'
         : undefined,
     },
-    {
-      id: 'audit-chain',
-      label: 'Audit-Hash-Chain',
-      level: 'info',
-      summary: 'Technische Manipulationsprüfung ist über System- und Integritätsberichte abrufbar.',
-      detail: 'Eine nicht ausgeführte Prüfung wird hier nicht als Erfolg oder Fehler bewertet.',
-    },
+    auditChainStatusItem(auditStatus),
     {
       id: 'backup-function',
       label: 'Backup-Funktion',

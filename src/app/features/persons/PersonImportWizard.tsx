@@ -192,6 +192,7 @@ function PreviewStep({ sourceName, preview, onBack, onNext }: { sourceName: stri
     <div className="person-import-section">
       <h3>Vorschau aus {sourceName}</h3>
       <p className="industrial-muted">Gezeigt werden die ersten importierbaren Zeilen. Im nächsten Schritt ordnen Sie die echten Spalten der Datei den Zielfeldern zu.</p>
+      {preview.detectedEncoding && <p className="industrial-message industrial-message-info">Zeichenkodierung: {preview.detectedEncoding} ({preview.encodingConfidence ?? 'unbekannt'}). Umlaute werden anhand dieser Kodierung verarbeitet.</p>}
       <ImportPreviewTable preview={preview} />
       <div className="person-import-footer"><button type="button" className="industrial-secondary-button" onClick={onBack}>Zurück</button><button type="button" className="industrial-button" onClick={onNext}>Weiter zum Spaltenmapping</button></div>
     </div>
@@ -216,7 +217,7 @@ function MappingStep({ preview, mapping, onMappingChange, onModeChange, onBack, 
 
 function ValidateStep({ preview, onBack, onExecute }: { preview: PersonImportPreviewResult; onBack: () => void; onExecute: () => void }) {
   return (
-    <div className="person-import-section"><h3>Importprüfung</h3><div className="person-import-summary"><span>{preview.rows.length} Zeilen in der Vorschau</span><span>{countRowsWithErrors(preview)} Zeilen mit Hinweisen</span><span>{preview.warnings.length} allgemeine Hinweise</span></div>{preview.warnings.map((warning) => <p key={warning} className="industrial-message industrial-message-warning">{warning}</p>)}<ImportPreviewTable preview={preview} /><div className="person-import-footer"><button type="button" className="industrial-secondary-button" onClick={onBack}>Zurück</button><button type="button" className="industrial-button" onClick={() => void onExecute()}>Import ausführen</button></div></div>
+    <div className="person-import-section"><h3>Importprüfung</h3>{preview.detectedEncoding && <p className="industrial-message industrial-message-info">Zeichenkodierung: {preview.detectedEncoding} ({preview.encodingConfidence ?? 'unbekannt'}).</p>}<div className="person-import-summary"><span>{preview.rows.length} Zeilen in der Vorschau</span><span>{countRowsWithErrors(preview)} Zeilen mit Hinweisen</span><span>{preview.warnings.length} allgemeine Hinweise</span></div>{preview.warnings.map((warning) => <p key={warning} className="industrial-message industrial-message-warning">{warning}</p>)}<ImportPreviewTable preview={preview} /><div className="person-import-footer"><button type="button" className="industrial-secondary-button" onClick={onBack}>Zurück</button><button type="button" className="industrial-button" onClick={() => void onExecute()}>Import ausführen</button></div></div>
   );
 }
 

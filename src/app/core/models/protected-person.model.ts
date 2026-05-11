@@ -188,6 +188,7 @@ export interface PersonImportPreviewInput {
   fileType: 'csv' | 'xlsx';
   csvText?: string;
   filePath?: string;
+  csvEncoding?: 'auto' | 'utf-8' | 'windows-1252' | 'iso-8859-1' | 'cp850';
   sheetName?: string;
   delimiter?: string;
   headerRowIndex?: number;
@@ -199,6 +200,8 @@ export interface PersonImportPreviewResult {
   columns: string[];
   rows: PersonImportPreviewRow[];
   warnings: string[];
+  detectedEncoding?: string;
+  encodingConfidence?: 'high' | 'medium' | 'low';
 }
 
 export interface PersonImportExecuteInput extends PersonImportPreviewInput {

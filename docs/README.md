@@ -54,3 +54,8 @@ Diese Dokumentation ist der aktive, dauerhafte Dokumentationsbestand von Gremia.
 ## Regel
 
 Neue Dokumentation soll dauerhaft verwendbar sein. Kurzlebige Patchnotizen, historische Buildfix-Protokolle, Release Notes, Change Logs und temporäre Hotfix-Dokumente gehören vor Veröffentlichung nicht in den aktiven Dokumentationsbestand. Detailthemen werden nur behalten, wenn sie für Betrieb, Datenschutz, Security, Migration, Entwicklung oder RC-Abnahme dauerhaft erforderlich sind.
+
+
+## Testqualität
+
+Für 0.9.1 gilt: Mindestens 68 % der aktiven Tests müssen Verhalten, Ergebnisse, Policies, Services, Migrationen, Exporte oder E2E-Flows prüfen. Source-Text-Stringtests sind nur noch als eng begrenzte Architektur-Guards zulässig und dürfen maximal 32 % der aktiven Testbasis ausmachen.

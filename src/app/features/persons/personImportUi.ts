@@ -14,7 +14,7 @@ export const importFieldOptions = [
 ] as const;
 
 export type ImportFieldKey = (typeof importFieldOptions)[number]['key'];
-export type ImportSource = { sourceFileName: string; fileType: 'csv' | 'xlsx'; filePath?: string; csvText?: string };
+export type ImportSource = { sourceFileName: string; fileType: 'csv' | 'xlsx'; filePath?: string; csvText?: string; csvEncoding?: PersonImportPreviewInput['csvEncoding'] };
 export type ImportStep = 'source' | 'preview' | 'mapping' | 'validate' | 'result';
 
 export function toInputDate(value?: string): string {
@@ -53,6 +53,7 @@ export function createPreviewInput(source: ImportSource, mapping: PersonImportCo
     fileType: source.fileType,
     filePath: source.filePath,
     csvText: source.csvText,
+    csvEncoding: source.csvEncoding ?? 'auto',
     delimiter: ';',
     headerRowIndex: 0,
     firstDataRowIndex: 1,

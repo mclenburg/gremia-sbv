@@ -70,7 +70,8 @@ export function stableStringify(value: unknown): string {
 const DIRECT_IDENTIFIER_PATTERNS = [
   /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i,
   /\b(?:P|PNR|Pers(?:onal)?(?:nummer)?)[-\s]*\d{2,}\b/i,
-  /\b\d{5,}\b/
+  /\b\d{5,}\b/,
+  /\b[A-ZÄÖÜ][a-zäöüß]+(?:[-\s]+[A-ZÄÖÜ][a-zäöüß]+){1,3}\b/u
 ];
 
 export function sanitizeAuditPurpose(purpose: string): string {

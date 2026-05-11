@@ -1,4 +1,4 @@
-import { CalendarCheck } from 'lucide-react';
+import { CalendarCheck, Loader2 } from 'lucide-react';
 import type { ProtectedPersonRecord } from '../../core/models/protected-person.model';
 
 function isExpiringSoon(person: ProtectedPersonRecord): boolean {
@@ -11,10 +11,14 @@ function needsReview(person: ProtectedPersonRecord): boolean {
 
 export function PersonExpiryDashboardCard({
   persons,
+  evaluating,
+  lastEvaluationMessage,
   onEvaluateExpiry,
   onExportIcal
 }: {
   persons: ProtectedPersonRecord[];
+  evaluating: boolean;
+  lastEvaluationMessage?: string;
   onEvaluateExpiry: () => Promise<void>;
   onExportIcal: () => Promise<void>;
 }) {
@@ -35,9 +39,10 @@ export function PersonExpiryDashboardCard({
         <span>{reviewRequired} Datenschutzprüfungen</span>
       </div>
       <div className="person-toolbar compact">
-        <button type="button" className="industrial-secondary-button" onClick={() => void onEvaluateExpiry()}>Ablauf prüfen</button>
+        <button type="button" className="industrial-secondary-button" disabled={evaluating} aria-busy={evaluating} onClick={() => void onEvaluateExpiry()}>{evaluating && <Loader2 className="h-4 w-4 spin" aria-hidden="true" />}{evaluating ? 'Prüfung läuft …' : 'Ablauf prüfen'}</button>
         <button type="button" className="industrial-secondary-button" onClick={() => void onExportIcal()}>Fristen als iCal exportieren</button>
       </div>
+      {lastEvaluationMessage && <p className="industrial-meta" role="status">{lastEvaluationMessage}</p>}
       <p className="industrial-muted">Ablaufwarnungen werden im bestehenden Fristenmodul geführt und erscheinen dort mit Ampellogik.</p>
     </section>
   );

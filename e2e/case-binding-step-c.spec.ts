@@ -24,11 +24,10 @@ test('verhindert freie Fallakte und erlaubt den anonymen Sonderweg', async ({ pa
   await page.locator('.case-register-actions').getByRole('button', { name: 'Fallakte', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'Neue Fallakte anlegen' });
   await dialog.getByLabel('Aktenzeichen').fill('TEST-ANON-01');
-  await dialog.getByRole('button', { name: 'Fall anlegen' }).click();
+  await dialog.getByRole('button', { name: 'Person auswählen →' }).click();
   await expect(dialog.getByRole('alert')).toContainText(/Person auswählen|anonyme Beratungsanfrage/i);
 
   await dialog.locator('[data-e2e="anonymous-request-path"]').click();
-  await dialog.getByRole('button', { name: 'Fall anlegen' }).click();
   await expect(page.locator('[data-e2e="case-row-TEST-ANON-01"]')).toBeVisible();
 });
 

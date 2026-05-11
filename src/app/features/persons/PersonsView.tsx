@@ -6,6 +6,7 @@ import type { CreateProtectedPersonInput, ProtectedPersonRecord, UpdateProtected
 import type { PrivacyReviewItemRecord } from '../../core/models/privacy-review.model';
 import { PersonList } from './PersonList';
 import { PersonForm } from './PersonForm';
+import { PersonEditDialog } from './PersonEditDialog';
 import { PersonDetail } from './PersonDetail';
 import { PersonExpiryDashboardCard } from './PersonExpiryDashboardCard';
 import { PersonImportWizard } from './PersonImportWizard';
@@ -31,9 +32,12 @@ export function PersonsView(props: PersonsViewProps) {
   const [privacyReviewOpen, setPrivacyReviewOpen] = useState(false);
   const [caseDialogOpen, setCaseDialogOpen] = useState(false);
   const [personCreateOpen, setPersonCreateOpen] = useState(false);
+  const [personEditOpen, setPersonEditOpen] = useState(false);
   const [personPrivacyAction, setPersonPrivacyAction] = useState<PersonPrivacyActionMode | null>(null);
   const [privacyReviews, setPrivacyReviews] = useState<PrivacyReviewItemRecord[]>([]);
   const [privacyReviewLoading, setPrivacyReviewLoading] = useState(false);
+  const [expiryEvaluating, setExpiryEvaluating] = useState(false);
+  const [expiryFeedback, setExpiryFeedback] = useState('');
 
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -46,7 +50,20 @@ export function PersonsView(props: PersonsViewProps) {
   async function createPerson(input: CreateProtectedPersonInput) { setError(''); await onCreate(input); announce('Person wurde angelegt.'); }
   async function updatePerson(id: string, input: UpdateProtectedPersonInput) { setError(''); await onUpdate(id, input); if (selected?.id === id) setSelected({ ...selected, ...input } as ProtectedPersonRecord); announce('Personendaten wurden aktualisiert.'); }
   async function createCaseFromPerson(input: CreateCaseForPersonInput) { if (!selected) return; setError(''); await onCreateCaseForPerson(selected, input); showMessage('Fallakte wurde aus der Person heraus angelegt.'); }
-  async function evaluateExpiry() { await onEvaluateExpiry(); announce('Statusabläufe wurden geprüft.'); }
+  async function evaluateExpiry() {
+    setExpiryEvaluating(true);
+    try {
+      const result = await onEvaluateExpiry();
+      const warningCount = result.expiringSoon.length;
+      const reviewCount = result.expiredReviewRequired.length;
+      const feedback = warningCount || reviewCount
+        ? `${warningCount} neue Ablaufwarnungen und ${reviewCount} Datenschutzprüfungen wurden erzeugt.`
+        : 'Alle Statusabläufe sind aktuell.';
+      setExpiryFeedback(feedback);
+      announce(feedback);
+    } catch (err) { showError(err instanceof Error ? err.message : 'Statusabläufe konnten nicht geprüft werden.'); }
+    finally { setExpiryEvaluating(false); }
+  }
   async function exportIcal() { await onExportIcal(); announce('Fristenexport wurde erstellt.'); }
 
   async function openPrivacyReview() {
@@ -74,19 +91,20 @@ export function PersonsView(props: PersonsViewProps) {
   }
 
   return (
-    <ModuleFrame title="Personenverzeichnis" kicker="0.9.1 · Datenschutz-Lifecycle" description="Datensparsames Verzeichnis schwerbehinderter und gleichgestellter Personen mit Import, Statusablauf und Fristenintegration.">
+    <ModuleFrame title="Personenverzeichnis" kicker="Datenschutz-Lifecycle" description="Datensparsames Verzeichnis schwerbehinderter und gleichgestellter Personen mit Import, Statusablauf und Fristenintegration.">
       <div className="industrial-alert"><ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-yellow-300" aria-hidden="true" /><p>Gremia.SBV speichert hier nur den Schutzstatus, nicht den GdB. Importdateien werden lokal verarbeitet und nicht dauerhaft gespeichert.</p></div>
-      <PersonToolbar query={query} selected={selected} onQueryChange={setQuery} onOpenCreate={() => setPersonCreateOpen(true)} onOpenCaseCreate={() => setCaseDialogOpen(true)} onOpenPrivacyAction={setPersonPrivacyAction} onOpenImport={() => setImportOpen(true)} onExportIcal={() => void exportIcal()} />
+      <PersonToolbar query={query} selected={selected} onQueryChange={setQuery} onOpenCreate={() => setPersonCreateOpen(true)} onOpenCaseCreate={() => setCaseDialogOpen(true)} onOpenEdit={() => setPersonEditOpen(true)} onOpenPrivacyAction={setPersonPrivacyAction} onOpenImport={() => setImportOpen(true)} onExportIcal={() => void exportIcal()} />
       <div className="person-workbench-grid" data-e2e="persons-workbench">
         <PersonList persons={filtered} selectedId={selected?.id} onSelect={setSelected} onDelete={(person) => { setSelected(person); setPersonPrivacyAction('delete'); }} />
         <div className="person-side-stack">
           <PersonDetail person={selected} cases={cases} onUpdate={updatePerson} privacyReviewOpen={privacyReviewOpen} privacyReviews={privacyReviews} privacyReviewLoading={privacyReviewLoading} onOpenPrivacyReview={openPrivacyReview} onClosePrivacyReview={() => setPrivacyReviewOpen(false)} onDocumentRetention={onDocumentRetention} onScheduleLater={onScheduleReviewLater} onClearReview={onClearReview} onAnonymizeCase={onAnonymizeReviewCase} onDeleteCase={onDeleteReviewCase} onMessage={showMessage} onError={showError} />
-          <PersonExpiryDashboardCard persons={persons} onEvaluateExpiry={evaluateExpiry} onExportIcal={exportIcal} />
+          <PersonExpiryDashboardCard persons={persons} evaluating={expiryEvaluating} lastEvaluationMessage={expiryFeedback} onEvaluateExpiry={evaluateExpiry} onExportIcal={exportIcal} />
         </div>
       </div>
       {message && <div className="industrial-message industrial-message-success">{message}</div>}
       {error && <div className="industrial-message industrial-message-warning">{error}</div>}
       <PersonForm open={personCreateOpen} onClose={() => setPersonCreateOpen(false)} onCreate={createPerson} onCreated={showMessage} onError={showError} />
+      <PersonEditDialog open={personEditOpen} person={selected} onClose={() => setPersonEditOpen(false)} onUpdate={updatePerson} onUpdated={showMessage} onError={showError} />
       <PersonCaseCreateDialog open={caseDialogOpen} personLabel={personCaseDialogLabel(selected)} onClose={() => setCaseDialogOpen(false)} onSubmit={createCaseFromPerson} onError={showError} />
       <PersonImportWizard open={importOpen} onClose={() => setImportOpen(false)} onSelectImportFile={onSelectImportFile} onPreviewImport={onPreviewImport} onExecuteImport={onExecuteImport} onImported={showMessage} onError={showError} />
       <PersonPrivacyActionDialog open={personPrivacyAction !== null} mode={personPrivacyAction ?? 'anonymize'} person={selected} affectedCaseCount={selected ? cases.filter((item) => item.protectedPersonId === selected.id).length : 0} onClose={() => setPersonPrivacyAction(null)} onSubmit={submitPersonPrivacyAction} onError={showError} />
