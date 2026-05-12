@@ -234,7 +234,7 @@
 
     compliance: {
       auditChainStatus: async () => ({ ok: true, checked: 3, firstSequence: 1, lastSequence: 3, latestHash: 'abc123def4567890', algorithm: 'sha256', chainVersion: 1, issueCount: 0, issues: [] }),
-      databaseIntegrityStatus: async () => ({ ok: true, schemaVersion: '0025', appliedSchemaVersion: '0025', missingTables: [], missingColumns: {}, issueCount: 0, issues: [], repairRequired: false }),
+      databaseIntegrityStatus: async () => ({ ok: true, schemaVersion: '0026', appliedSchemaVersion: '0026', missingTables: [], missingColumns: {}, issueCount: 0, issues: [], repairRequired: false }),
     },
 
     persons: {

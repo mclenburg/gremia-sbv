@@ -71,6 +71,21 @@ describe('case measure notes', () => {
     expect(notes[1].title).toBe('Ersttermin');
   });
 
+
+
+  it('updates an existing measure note without creating a duplicate', () => {
+    const service = new CaseMeasureService(new MemoryDb() as any);
+    const created = service.createNote({ caseId: 'case-1', measureType: 'participation', measureId: 'measure-1', title: 'Erstentwurf', noteAt: '2026-05-12T10:00:00.000Z', content: 'Noch unvollständig.' });
+
+    const updated = service.updateNote(created.id, { title: 'Abgestimmtes Protokoll', content: 'Abgestimmt und ergänzt.', nextSteps: 'HR liefert Unterlagen nach.' });
+    const notes = service.listNotes('case-1', 'participation', 'measure-1');
+
+    expect(updated.title).toBe('Abgestimmtes Protokoll');
+    expect(updated.nextSteps).toBe('HR liefert Unterlagen nach.');
+    expect(notes).toHaveLength(1);
+    expect(notes[0].content).toBe('Abgestimmt und ergänzt.');
+  });
+
   it('rejects notes for measures outside the case', () => {
     const service = new CaseMeasureService(new MemoryDb() as any);
     expect(() => service.createNote({ caseId: 'case-2', measureType: 'participation', measureId: 'measure-1', title: 'Falscher Fall', content: 'Darf nicht gespeichert werden.' })).toThrow(/gehört nicht/);

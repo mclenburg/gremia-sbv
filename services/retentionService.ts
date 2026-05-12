@@ -71,7 +71,10 @@ function hasColumn(db: DatabaseAdapter, table: string, column: string): boolean 
 
 function latestActivityExpression(db: DatabaseAdapter): string {
   const casesUpdated = hasColumn(db, 'cases', 'updated_at') ? 'c.updated_at' : 'c.opened_at';
-  return `MAX(COALESCE(${casesUpdated}, c.opened_at), COALESCE((SELECT MAX(n.updated_at) FROM case_notes n WHERE n.case_id = c.id), c.opened_at), COALESCE((SELECT MAX(d.created_at) FROM case_documents d WHERE d.case_id = c.id), c.opened_at), COALESCE((SELECT MAX(dl.updated_at) FROM deadlines dl WHERE dl.case_id = c.id), c.opened_at))`;
+  const measureNotesActivity = tableExists(db, 'case_measure_notes')
+    ? 'COALESCE((SELECT MAX(mn.updated_at) FROM case_measure_notes mn WHERE mn.case_id = c.id), c.opened_at), '
+    : '';
+  return `MAX(COALESCE(${casesUpdated}, c.opened_at), COALESCE((SELECT MAX(n.updated_at) FROM case_notes n WHERE n.case_id = c.id), c.opened_at), COALESCE((SELECT MAX(d.created_at) FROM case_documents d WHERE d.case_id = c.id), c.opened_at), ${measureNotesActivity}COALESCE((SELECT MAX(dl.updated_at) FROM deadlines dl WHERE dl.case_id = c.id), c.opened_at))`;
 }
 
 function listCleartextFiles(dataDir: string): string[] {
@@ -171,10 +174,13 @@ export class RetentionService {
   private listCaseSnapshots(db: DatabaseAdapter): RetentionCaseSnapshot[] {
     if (!tableExists(db, 'cases')) return [];
     const activity = latestActivityExpression(db);
+    const measureNoteCountExpression = tableExists(db, 'case_measure_notes')
+      ? ' + (SELECT COUNT(*) FROM case_measure_notes mn WHERE mn.case_id = c.id)'
+      : '';
     const rows = db.prepare<any>(`
       SELECT c.id, c.case_number, c.display_name, c.status, c.category, c.closed_at, c.opened_at,
         ${activity} AS last_activity_at,
-        (SELECT COUNT(*) FROM case_notes n WHERE n.case_id = c.id) AS note_count,
+        ((SELECT COUNT(*) FROM case_notes n WHERE n.case_id = c.id)${measureNoteCountExpression}) AS note_count,
         (SELECT COUNT(*) FROM case_documents d WHERE d.case_id = c.id) AS document_count,
         (SELECT COUNT(*) FROM deadlines dl WHERE dl.case_id = c.id AND dl.status IN ('open', 'offen')) AS open_deadline_count
       FROM cases c
@@ -265,6 +271,9 @@ export class RetentionService {
     affectedRows += safeRun(db, `UPDATE cases SET display_name = '[Fall anonymisiert]', summary = ?, is_pseudonymized = 1, updated_at = ? WHERE id = ?`, stamp, nowIso(), caseId);
     affectedRows += safeRun(db, `UPDATE case_notes SET participants = '[anonymisiert]', content = ?, next_steps = NULL, contains_health_data = 0, updated_at = ? WHERE case_id = ?`, stamp, nowIso(), caseId);
     affectedRows += safeRun(db, `DELETE FROM case_notes_fts WHERE case_id = ?`, caseId);
+    if (tableExists(db, 'case_measure_notes')) {
+      affectedRows += safeRun(db, `UPDATE case_measure_notes SET title = '[Maßnahmennotiz anonymisiert]', participants = '[anonymisiert]', content = ?, next_steps = NULL, contains_health_data = 0, confidential_level = 'normal', updated_at = ? WHERE case_id = ?`, stamp, nowIso(), caseId);
+    }
     affectedRows += safeRun(db, `UPDATE case_documents SET extracted_text = NULL, display_title = '[Dokument anonymisiert]' WHERE case_id = ?`, caseId);
     affectedRows += safeRun(db, `DELETE FROM case_documents_fts WHERE case_id = ?`, caseId);
     this.recordAction(db, 'case_anonymized', 'case', caseId, row.case_number, reason, affectedRows, 0);
@@ -297,6 +306,9 @@ export class RetentionService {
     }
     affectedRows += safeRun(db, `DELETE FROM case_note_cases WHERE case_id = ?`, caseId);
     affectedRows += safeRun(db, `DELETE FROM case_notes WHERE case_id = ?`, caseId);
+    if (tableExists(db, 'case_measure_notes')) {
+      affectedRows += safeRun(db, `DELETE FROM case_measure_notes WHERE case_id = ?`, caseId);
+    }
     affectedRows += safeRun(db, `DELETE FROM deadlines WHERE case_id = ?`, caseId);
     affectedRows += safeRun(db, `DELETE FROM cases WHERE id = ?`, caseId);
 

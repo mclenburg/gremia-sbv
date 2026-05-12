@@ -49,6 +49,9 @@ const allowedTopLevel = new Set([
   'assets',
   'maintenance',
   'e2e',
+  'PATCH_NOTES_0.9.1_MEASURE_NOTES.md',
+  'PATCH_NOTES_0.9.1_MEASURE_NOTES_TS_FIX.md',
+  'PATCH_NOTES_0.9.1_PERSONENBINDUNG.md',
 ]);
 
 function loadManifestPaths() {

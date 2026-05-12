@@ -1,0 +1,9 @@
+{
+  "version": "0.9.1-measure-notes-root-patch-notes",
+  "files": [
+    "PATCH_NOTES_0.9.1_MEASURE_NOTES.md",
+    "PATCH_NOTES_0.9.1_MEASURE_NOTES_TS_FIX.md",
+    "PATCH_NOTES_0.9.1_PERSONENBINDUNG.md"
+  ],
+  "directories": []
+}
