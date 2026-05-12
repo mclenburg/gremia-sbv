@@ -1,0 +1,29 @@
+flowchart TD
+  User["SBV-Nutzerin / SBV-Nutzer"]
+  UI["React UI\nFeature-Views, Panels, Dialoge"]
+  Components["Shared UI\nModuleFrame, IndustrialField, TextCommandTextarea"]
+  Hooks["Feature-Hooks und View-Handler\nStatus, Validierung, Nutzeraktionen"]
+  Bridge["Preload Bridge\nwindow.gremiaSbv"]
+  IPC["Electron IPC Handler\nvalidierte Kanalgrenzen"]
+  Services["Node Services\nfachliche Orchestrierung"]
+  Policies["Pure Policies\nRegeln ohne DB-Zugriff"]
+  DB["SQLCipher SQLite\nverschlüsselte lokale Datenbank"]
+  Audit["Audit / Hash Chain\ndatensparsame Nachvollziehbarkeit"]
+  Backup["Backup / Restore\nverschlüsselte Nutzdatenpakete"]
+  Reports["Reports / Exporte\nPrivacy Guards"]
+
+  User --> UI
+  UI --> Components
+  Components --> Hooks
+  Hooks --> Bridge
+  Bridge --> IPC
+  IPC --> Services
+  Services --> Policies
+  Services --> DB
+  Services --> Audit
+  DB --> Backup
+  Services --> Reports
+
+  Policies -. "keine Seiteneffekte" .-> Services
+  Reports -. "prüft Exportgrenzen" .-> Policies
+  Backup -. "keine Klartext-Nebenspeicher" .-> DB

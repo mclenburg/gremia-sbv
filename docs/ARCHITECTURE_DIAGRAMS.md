@@ -2,41 +2,13 @@
 
 Stand: **0.9.1**
 
-Diese Seite ergänzt `ARCHITECTURE.md` um zwei bewusst grobe Mermaid-Sichten. Sie soll neuen Entwicklerinnen und Entwicklern schnell zeigen, wie Daten durch Gremia.SBV laufen und welche Hauptkomponenten fachlich zusammengehören.
+Diese Seite ergänzt `ARCHITECTURE.md` um zwei bewusst grobe Architektursichten. Die Diagramme sind als SVG eingebunden, damit sie auch in Markdown-Viewern, PDF-Exporten und Reviews ohne Mermaid-Renderer sofort sichtbar bleiben. Die Mermaid-Quellen liegen separat unter `docs/mermaid/` und bleiben die pflegbare Wahrheit.
 
 ## Datenfluss UI bis Datenbank
 
-```mermaid
-flowchart TD
-  User[SBV-Nutzerin / SBV-Nutzer]
-  UI[React UI\nFeature-Views, Panels, Dialoge]
-  Components[Shared UI\nModuleFrame, IndustrialField, TextCommandTextarea]
-  Hooks[Feature-Hooks und View-Handler\nStatus, Validierung, Nutzeraktionen]
-  Bridge[Preload Bridge\nwindow.gremiaSbv]
-  IPC[Electron IPC Handler\nvalidierte Kanalgrenzen]
-  Services[Node Services\nfachliche Orchestrierung]
-  Policies[Pure Policies\nRegeln ohne DB-Zugriff]
-  DB[SQLCipher SQLite\nverschlüsselte lokale Datenbank]
-  Audit[Audit / Hash Chain\ndatensparsame Nachvollziehbarkeit]
-  Backup[Backup / Restore\nverschlüsselte Nutzdatenpakete]
-  Reports[Reports / Exporte\nPrivacy Guards]
+![Datenfluss von React UI über Bridge und IPC bis zur SQLCipher-Datenbank](./assets/architecture-data-flow.svg)
 
-  User --> UI
-  UI --> Components
-  Components --> Hooks
-  Hooks --> Bridge
-  Bridge --> IPC
-  IPC --> Services
-  Services --> Policies
-  Services --> DB
-  Services --> Audit
-  DB --> Backup
-  Services --> Reports
-
-  Policies -. keine Seiteneffekte .-> Services
-  Reports -. prüft Exportgrenzen .-> Policies
-  Backup -. keine Klartext-Nebenspeicher .-> DB
-```
+Mermaid-Quelle: [`docs/mermaid/architecture-data-flow.mmd`](./mermaid/architecture-data-flow.mmd)
 
 ### Lesart
 
@@ -44,64 +16,9 @@ Die UI spricht nie direkt mit der Datenbank. Fachliche Regeln liegen als testbar
 
 ## Grobe Komponentensicht der Anwendung
 
-```mermaid
-flowchart LR
-  Shell[App Shell\nNavigation, Lock Screen, Theme]
-  A11y[Barrierefreiheit\nAnnouncer, Fokusführung, Tastatur]
-  Bridge[Bridge / IPC\nPreload, Handler, Validierung]
-  Data[Persistenz\nSQLCipher, Migrationen, Schema-Version]
-  Security[Security & Privacy\nSession Lock, Audit, Retention, Anonymisierung]
+![Grobe Komponentensicht mit Core, SBV-Fachmodulen, Querschnittsmodulen, Security und Persistenz](./assets/architecture-components.svg)
 
-  subgraph Core[Core]
-    Shell
-    A11y
-    Bridge
-  end
-
-  subgraph Domain[SBV-Fachmodule]
-    Persons[Personenverzeichnis]
-    Cases[Fallakten-Workbench]
-    Measures[Maßnahmen & Prozessknoten]
-    Bem[BEM]
-    Prevention[Prävention]
-    Equalization[Gleichstellung / GdB]
-    Termination[Kündigungsanhörung]
-    Workplace[Arbeitsplatzgestaltung]
-    Participation[SBV-Beteiligung]
-  end
-
-  subgraph Support[Querschnittsmodule]
-    Deadlines[Fristen & iCal]
-    Documents[Dokumente]
-    Templates[Vorlagen]
-    Knowledge[Wissensbasis]
-    Contacts[Kontakte]
-    Reports[Berichte / Exporte]
-    Compliance[Compliance Center]
-    Settings[Einstellungen, Backup, Portable]
-  end
-
-  Core --> Domain
-  Domain --> Support
-  Domain --> Security
-  Support --> Security
-  Bridge --> Data
-  Security --> Data
-
-  Persons --> Cases
-  Cases --> Measures
-  Measures --> Bem
-  Measures --> Prevention
-  Measures --> Equalization
-  Measures --> Termination
-  Measures --> Workplace
-  Measures --> Participation
-  Cases --> Deadlines
-  Cases --> Documents
-  Cases --> Reports
-  Compliance --> Security
-  Settings --> Data
-```
+Mermaid-Quelle: [`docs/mermaid/architecture-components.mmd`](./mermaid/architecture-components.mmd)
 
 ### Lesart
 

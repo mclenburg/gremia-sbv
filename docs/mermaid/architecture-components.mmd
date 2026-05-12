@@ -1,0 +1,56 @@
+flowchart LR
+  Shell["App Shell\nNavigation, Lock Screen, Theme"]
+  A11y["Barrierefreiheit\nAnnouncer, Fokusführung, Tastatur"]
+  Bridge["Bridge / IPC\nPreload, Handler, Validierung"]
+  Data["Persistenz\nSQLCipher, Migrationen, Schema-Version"]
+  Security["Security & Privacy\nSession Lock, Audit, Retention, Anonymisierung"]
+
+  subgraph Core["Core"]
+    Shell
+    A11y
+    Bridge
+  end
+
+  subgraph Domain["SBV-Fachmodule"]
+    Persons["Personenverzeichnis"]
+    Cases["Fallakten-Workbench"]
+    Measures["Maßnahmen & Prozessknoten"]
+    Bem["BEM"]
+    Prevention["Prävention"]
+    Equalization["Gleichstellung / GdB"]
+    Termination["Kündigungsanhörung"]
+    Workplace["Arbeitsplatzgestaltung"]
+    Participation["SBV-Beteiligung"]
+  end
+
+  subgraph Support["Querschnittsmodule"]
+    Deadlines["Fristen & iCal"]
+    Documents["Dokumente"]
+    Templates["Vorlagen"]
+    Knowledge["Wissensbasis"]
+    Contacts["Kontakte"]
+    Reports["Berichte / Exporte"]
+    Compliance["Compliance Center"]
+    Settings["Einstellungen, Backup, Portable"]
+  end
+
+  Core --> Domain
+  Domain --> Support
+  Domain --> Security
+  Support --> Security
+  Bridge --> Data
+  Security --> Data
+
+  Persons --> Cases
+  Cases --> Measures
+  Measures --> Bem
+  Measures --> Prevention
+  Measures --> Equalization
+  Measures --> Termination
+  Measures --> Workplace
+  Measures --> Participation
+  Cases --> Deadlines
+  Cases --> Documents
+  Cases --> Reports
+  Compliance --> Security
+  Settings --> Data
