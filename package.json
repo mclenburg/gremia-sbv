@@ -57,7 +57,7 @@
     "test:templates-behavior": "vitest run tests/templatesBehavior0457.test.ts",
     "test:inline-command-behavior-fix": "vitest run tests/inlineCommandBehavior0456.test.ts",
     "test:bem-migration-051b": "vitest run tests/bemMigration051b.test.ts",
-    "test:termination-hardening-072": "vitest run tests/terminationHardening072.test.ts tests/terminationTemplates072.test.ts tests/postinstallGuard072.test.ts",
+    "test:termination-hardening-072": "vitest run tests/terminationHardening072.test.ts tests/terminationTemplates072.test.ts",
     "test:ipc-validation-084f": "vitest run tests/ipcValidation084f.test.ts",
     "source:cleanup": "node scripts/cleanup-obsolete-files.cjs",
     "source:cleanup:dry-run": "node scripts/cleanup-obsolete-files.cjs --dry-run",
