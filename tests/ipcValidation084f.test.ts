@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import {
   assertExtension,
@@ -22,10 +23,12 @@ describe("Patch 0.8.4-f IPC validation baseline", () => {
   });
 
   it("keeps report-open paths inside the encrypted export area", () => {
-    const root = path.resolve("/tmp/gremia-sbv/data/exports");
+    const root = path.join(tmpdir(), "gremia-sbv", "data", "exports");
     const inside = path.join(root, "bericht.gsbvpdf");
+    const outside = path.join(tmpdir(), "gremia-sbv", "data", "vault.db");
+
     expect(ensurePathInside(inside, root, "reports:open-export-folder")).toBe(inside);
-    expect(() => ensurePathInside("/tmp/gremia-sbv/data/vault.db", root, "reports:open-export-folder")).toThrow(/außerhalb/);
+    expect(() => ensurePathInside(outside, root, "reports:open-export-folder")).toThrow(/außerhalb/);
   });
 
   it("allows only explicit encrypted report extension for report previews", () => {
