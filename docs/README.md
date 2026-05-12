@@ -10,6 +10,7 @@ Diese Dokumentation ist der aktive, dauerhafte Dokumentationsbestand von Gremia.
 | --- | --- |
 | `../README.md` | öffentlicher Projekteinstieg |
 | `ARCHITECTURE.md` | Architektur, Datenfluss und Modulgrenzen |
+| `ARCHITECTURE_DIAGRAMS.md` | Mermaid-Diagramme für Datenfluss und grobe Komponentensicht |
 | `DEVELOPMENT.md` | Entwicklung, Tests, Build und Clean-Code-Regeln |
 | `RELEASE_CHECKLIST.md` | Abnahme vor `0.9.1` / 1.0-Freeze |
 | `BUILD.md` | Build, Plattformmatrix und GitHub-Release-Workflow |
