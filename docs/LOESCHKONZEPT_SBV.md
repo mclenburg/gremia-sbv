@@ -88,7 +88,7 @@ Zu anonymisieren sind insbesondere:
 - Dokumentnamen,
 - Freitextstellen mit Rückschluss auf Person.
 
-Freitexte werden nicht automatisch vollständig anonymisiert. Sie werden als prüfpflichtig markiert.
+Freitexte werden nicht automatisch vollständig anonymisiert. Sie werden als prüfpflichtig markiert. Maßnahmennotizen (`case_measure_notes`) sind ausdrücklich einbezogen; Titel, Beteiligte, Protokoll und nächste Schritte werden im bestätigten Anonymisierungspfad wie andere fallbezogene Freitexte geprüft.
 
 ## 8. Personenbindung
 

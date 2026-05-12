@@ -11,9 +11,13 @@ import type {
   UpdateContactInput,
 } from "./app/core/models/contact.model";
 import type {
+  CaseMeasureNoteProcessType,
+  CaseMeasureNoteRecord,
   CaseMeasureRecord,
   CreateCaseMeasureInput,
+  CreateCaseMeasureNoteInput,
   UpdateCaseMeasureInput,
+  UpdateCaseMeasureNoteInput,
 } from "./app/core/models/case-measure.model";
 import type {
   CaseContentSearchInput,
@@ -200,6 +204,17 @@ declare global {
           id: string,
           input: UpdateCaseMeasureInput,
         ): Promise<CaseMeasureRecord>;
+        listNotes(
+          caseId: string,
+          measureType?: CaseMeasureNoteProcessType,
+          measureId?: string,
+        ): Promise<CaseMeasureNoteRecord[]>;
+        createNote(input: CreateCaseMeasureNoteInput): Promise<CaseMeasureNoteRecord>;
+        updateNote(
+          id: string,
+          input: UpdateCaseMeasureNoteInput,
+        ): Promise<CaseMeasureNoteRecord>;
+        deleteNote(id: string): Promise<{ deleted: boolean }>;
       };
       contacts: {
         list(filters?: ContactListFilters): Promise<ContactRecord[]>;

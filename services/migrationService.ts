@@ -3,7 +3,7 @@ import path from 'node:path';
 import type { DatabaseAdapter } from './databaseService.js';
 import { classifyCaseLegalReferencesColumns } from './knowledgeMigrationPolicy.js';
 import { APP_VERSION } from './generated/appMetadata.js';
-import { APP_SCHEMA_VERSION, CASES_REQUIRED_COLUMNS, CASE_MEASURES_REQUIRED_COLUMNS, CASE_MEASURE_PARTICIPATION_REQUIRED_COLUMNS, CASE_MEASURE_WORKPLACE_ACCOMMODATION_REQUIRED_COLUMNS, PERSON_IMPORT_RUN_ITEMS_REQUIRED_COLUMNS, PROTECTED_PERSONS_REQUIRED_COLUMNS, DATABASE_SCHEMA_APP_VERSION_KEY, DATABASE_SCHEMA_VERSION_KEY, PERSONAL_DATA_AUDIT_REQUIRED_COLUMNS, SBV_PARTICIPATION_REQUIRED_COLUMNS, TERMINATION_HEARINGS_REQUIRED_COLUMNS } from './appSchema.js';
+import { APP_SCHEMA_VERSION, CASES_REQUIRED_COLUMNS, CASE_MEASURES_REQUIRED_COLUMNS, CASE_MEASURE_PARTICIPATION_REQUIRED_COLUMNS, CASE_MEASURE_NOTES_REQUIRED_COLUMNS, CASE_MEASURE_WORKPLACE_ACCOMMODATION_REQUIRED_COLUMNS, PERSON_IMPORT_RUN_ITEMS_REQUIRED_COLUMNS, PROTECTED_PERSONS_REQUIRED_COLUMNS, DATABASE_SCHEMA_APP_VERSION_KEY, DATABASE_SCHEMA_VERSION_KEY, PERSONAL_DATA_AUDIT_REQUIRED_COLUMNS, SBV_PARTICIPATION_REQUIRED_COLUMNS, TERMINATION_HEARINGS_REQUIRED_COLUMNS } from './appSchema.js';
 
 interface MigrationRow {
   version: string;
@@ -286,6 +286,11 @@ export class MigrationService {
           && this.columnExists('cases', 'protected_person_id')
           && this.columnExists('cases', 'person_binding_state')
           && this.columnExists('cases', 'privacy_review_required');
+      case '0026':
+        return this.tableExists('case_measure_notes')
+          && this.columnExists('case_measure_notes', 'measure_type')
+          && this.columnExists('case_measure_notes', 'measure_id')
+          && this.columnExists('case_measure_notes', 'content');
       default:
         return false;
     }
@@ -466,6 +471,11 @@ export class MigrationService {
     if (!this.tableExists('case_measures') || !CASE_MEASURES_REQUIRED_COLUMNS.every((column) => this.columnExists('case_measures', column)) || !this.tableExists('case_measure_participation') || !CASE_MEASURE_PARTICIPATION_REQUIRED_COLUMNS.every((column) => this.columnExists('case_measure_participation', column))) {
       this.ensureCaseMeasureSchema();
       diagnostics.push('Fallmaßnahmen-Schema wurde auf Stand 0020 repariert.');
+    }
+
+    if (!this.tableExists('case_measure_notes') || !CASE_MEASURE_NOTES_REQUIRED_COLUMNS.every((column) => this.columnExists('case_measure_notes', column))) {
+      this.ensureCaseMeasureNoteSchema();
+      diagnostics.push('Maßnahmennotizen-Schema wurde auf Stand 0026 repariert.');
     }
 
     if (!this.hasCompleteProtectedPerson091Schema()) {
@@ -694,6 +704,31 @@ CREATE INDEX IF NOT EXISTS idx_case_measures_follow_up ON case_measures(case_id,
       CREATE INDEX IF NOT EXISTS idx_case_measure_participation_statement_due ON case_measure_participation(sbv_statement_due_at);
       CREATE INDEX IF NOT EXISTS idx_case_measure_participation_suspension_due ON case_measure_participation(suspension_deadline_at);
 CREATE INDEX IF NOT EXISTS idx_case_measure_events_measure_created ON case_measure_events(measure_id, created_at);
+    `);
+    this.ensureCaseMeasureNoteSchema();
+  }
+
+
+  private ensureCaseMeasureNoteSchema(): void {
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS case_measure_notes (
+        id TEXT PRIMARY KEY,
+        case_id TEXT NOT NULL,
+        measure_type TEXT NOT NULL CHECK (measure_type IN ('prevention','bem','termination_hearing','equalization','participation','workplace_accommodation')),
+        measure_id TEXT NOT NULL,
+        title TEXT NOT NULL,
+        note_at TEXT NOT NULL,
+        participants TEXT,
+        content TEXT NOT NULL,
+        next_steps TEXT,
+        contains_health_data INTEGER NOT NULL DEFAULT 1,
+        confidential_level TEXT NOT NULL DEFAULT 'sensibel' CHECK (confidential_level IN ('normal','sensibel','hoch_sensibel')),
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY(case_id) REFERENCES cases(id) ON DELETE CASCADE
+      );
+      CREATE INDEX IF NOT EXISTS idx_case_measure_notes_measure ON case_measure_notes(measure_type, measure_id, note_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_case_measure_notes_case ON case_measure_notes(case_id, note_at DESC);
     `);
   }
 

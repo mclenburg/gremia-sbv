@@ -334,7 +334,7 @@
         return ics;
       },
     },
-    caseMeasures: { list: async () => measures, create: createRecord, update: createRecord },
+    caseMeasures: { list: async () => measures, create: createRecord, update: createRecord, listNotes: async () => [], createNote: createRecord, updateNote: createRecord, deleteNote: async () => ({ deleted: true }) },
     knowledge: { listCaseReferences: emptyList, search: emptyList, list: emptyList },
     prevention: { list: emptyList, create: createRecord, update: createRecord },
     bem: { list: async (caseId) => caseId ? bemProcesses.filter((item) => item.caseId === caseId) : bemProcesses, create: createRecord, update: createRecord },

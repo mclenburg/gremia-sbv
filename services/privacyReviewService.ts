@@ -142,6 +142,7 @@ function replacePendingAnonymizationMarkersForCase(db: DatabaseAdapter, caseId: 
   affected += replacePendingMarkersInRecordFields(db, 'sbv_participations', 'id', 'WHERE case_id = ?', [caseId], ['title', 'violation_summary', 'sbv_position', 'next_step'], timestamp);
   affected += replacePendingMarkersInRecordFields(db, 'sbv_participation_events', 'id', 'WHERE participation_id IN (SELECT id FROM sbv_participations WHERE case_id = ?)', [caseId], ['title', 'description'], timestamp);
   affected += replacePendingMarkersInRecordFields(db, 'case_measures', 'id', 'WHERE case_id = ?', [caseId], ['title', 'summary', 'next_step'], timestamp);
+  affected += replacePendingMarkersInRecordFields(db, 'case_measure_notes', 'id', 'WHERE case_id = ?', [caseId], ['title', 'participants', 'content', 'next_steps'], timestamp);
 
   const measureRows = tableExists(db, 'case_measures') ? db.prepare<{ id: string }>('SELECT id FROM case_measures WHERE case_id = ?').all(caseId) : [];
   for (const measure of measureRows) {

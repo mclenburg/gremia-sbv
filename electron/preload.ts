@@ -7,9 +7,13 @@ import type {
   LegacyCaseBindingResult,
 } from "../src/app/core/models/case.model.js";
 import type {
+  CaseMeasureNoteProcessType,
+  CaseMeasureNoteRecord,
   CaseMeasureRecord,
   CreateCaseMeasureInput,
+  CreateCaseMeasureNoteInput,
   UpdateCaseMeasureInput,
+  UpdateCaseMeasureNoteInput,
 } from "../src/app/core/models/case-measure.model.js";
 import type {
   ContactListFilters,
@@ -233,6 +237,21 @@ const api = {
       input: UpdateCaseMeasureInput,
     ): Promise<CaseMeasureRecord> =>
       ipcRenderer.invoke("caseMeasures:update", id, input),
+    listNotes: (
+      caseId: string,
+      measureType?: CaseMeasureNoteProcessType,
+      measureId?: string,
+    ): Promise<CaseMeasureNoteRecord[]> =>
+      ipcRenderer.invoke("caseMeasures:notes:list", caseId, measureType, measureId),
+    createNote: (input: CreateCaseMeasureNoteInput): Promise<CaseMeasureNoteRecord> =>
+      ipcRenderer.invoke("caseMeasures:notes:create", input),
+    updateNote: (
+      id: string,
+      input: UpdateCaseMeasureNoteInput,
+    ): Promise<CaseMeasureNoteRecord> =>
+      ipcRenderer.invoke("caseMeasures:notes:update", id, input),
+    deleteNote: (id: string): Promise<{ deleted: boolean }> =>
+      ipcRenderer.invoke("caseMeasures:notes:delete", id),
   },
   contacts: {
     list: (filters?: ContactListFilters): Promise<ContactRecord[]> =>

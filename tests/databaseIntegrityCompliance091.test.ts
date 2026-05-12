@@ -5,7 +5,7 @@ import type { DatabaseAdapter } from '../services/databaseService';
 class SchemaDb implements DatabaseAdapter {
   constructor(
     private readonly tables: Record<string, string[]>,
-    private readonly schemaVersion = '0025',
+    private readonly schemaVersion = '0026',
   ) {}
 
   prepare<T = unknown>(sql: string) {
@@ -51,6 +51,7 @@ const completeSchema: Record<string, string[]> = {
   person_case_links: ['id', 'protected_person_id', 'case_file_id', 'link_state'],
   privacy_review_items: ['id', 'case_id', 'protected_person_id', 'reason', 'status', 'due_at'],
   personal_data_audit_log: ['id', 'sequence', 'occurred_at', 'actor', 'action', 'subject_type', 'purpose', 'previous_hash', 'entry_hash'],
+  case_measure_notes: ['id', 'case_id', 'measure_type', 'measure_id', 'title', 'note_at', 'content', 'created_at', 'updated_at'],
 };
 
 describe('database integrity status for compliance center', () => {
@@ -58,13 +59,13 @@ describe('database integrity status for compliance center', () => {
     const result = evaluateDatabaseIntegrity(new SchemaDb(completeSchema));
 
     expect(result.ok).toBe(true);
-    expect(result.appliedSchemaVersion).toBe('0025');
+    expect(result.appliedSchemaVersion).toBe('0026');
     expect(result.missingTables).toEqual([]);
     expect(result.missingColumns).toEqual({});
     expect(result.repairRequired).toBe(false);
   });
 
-  it('accepts the real person-link and privacy-review column names from schema 0025', () => {
+  it('accepts the real person-link and privacy-review column names from schema 0026', () => {
     const result = evaluateDatabaseIntegrity(new SchemaDb(completeSchema));
 
     expect(result.issues).not.toContain('Spalte person_case_links.person_id fehlt.');

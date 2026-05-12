@@ -1,4 +1,4 @@
-export const APP_SCHEMA_VERSION = '0025';
+export const APP_SCHEMA_VERSION = '0026';
 
 export const DATABASE_SCHEMA_VERSION_KEY = 'database.schema.version';
 export const LEGACY_DATABASE_SCHEMA_VERSION_KEY = 'settings.database.schema.version';
@@ -59,6 +59,21 @@ export const CASE_MEASURE_PARTICIPATION_REQUIRED_COLUMNS = [
   'information_complete',
   'hearing_before_decision',
   'decision_notified',
+  'created_at',
+  'updated_at'
+] as const;
+
+
+export const CASE_MEASURE_NOTES_REQUIRED_COLUMNS = [
+  'id',
+  'case_id',
+  'measure_type',
+  'measure_id',
+  'title',
+  'note_at',
+  'content',
+  'contains_health_data',
+  'confidential_level',
   'created_at',
   'updated_at'
 ] as const;

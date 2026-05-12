@@ -15,6 +15,7 @@ import { CaseWorkbenchFooter } from "./CaseWorkbenchFooter";
 import { InlineCommandOverlays } from "./InlineCommandOverlays";
 import { ProcessTemplateDocumentsModal } from "./ProcessTemplateDocumentsModal";
 import { ContextualTemplateButton } from "./ContextualTemplateButton";
+import { MeasureNotesPanel } from "./measures/MeasureNotesPanel";
 import { CaseNoteEntityLinks } from "./CaseNoteEntityLinks";
 import { PreventionProcessDetail } from "../prevention/PreventionProcessDetail";
 import { BemProcessDetail } from "../bem/BemProcessDetail";
@@ -143,43 +144,83 @@ export function CasesViewRender(props: CasesViewRenderProps) {
 
           {selection.type === "process" &&
             selection.processType === "prevention" && (
-              <PreventionProcessDetail
-                processType={selection.processType}
-                process={selectedPreventionProcess}
-                onUpdate={updateCasePreventionProcess}
-                onOpenTemplates={openProcessTemplateModal}
-              />
+              <>
+                <PreventionProcessDetail
+                  processType={selection.processType}
+                  process={selectedPreventionProcess}
+                  onUpdate={updateCasePreventionProcess}
+                  onOpenTemplates={openProcessTemplateModal}
+                />
+                {selectedPreventionProcess && selectedCase && (
+                  <MeasureNotesPanel
+                    caseId={selectedCase.id}
+                    measureType="prevention"
+                    measureId={selectedPreventionProcess.id}
+                    measureTitle="Präventionsverfahren"
+                  />
+                )}
+              </>
             )}
 
           {selection.type === "process" && selection.processType === "bem" && (
-            <BemProcessDetail
-              processType={selection.processType}
-              process={selectedBemProcess}
-              onUpdate={updateCaseBemProcess}
-              onOpenTemplates={openProcessTemplateModal}
-            />
+            <>
+              <BemProcessDetail
+                processType={selection.processType}
+                process={selectedBemProcess}
+                onUpdate={updateCaseBemProcess}
+                onOpenTemplates={openProcessTemplateModal}
+              />
+              {selectedBemProcess && selectedCase && (
+                <MeasureNotesPanel
+                  caseId={selectedCase.id}
+                  measureType="bem"
+                  measureId={selectedBemProcess.id}
+                  measureTitle={selectedBemProcess.title}
+                />
+              )}
+            </>
           )}
 
           {selection.type === "process" &&
             selection.processType === "termination_hearing" &&
             selectedTerminationProcess && (
-              <TerminationProcessDetail
-                process={selectedTerminationProcess}
-                onUpdate={updateCaseTerminationProcess}
-                onOpenTemplates={openProcessTemplateModal}
-              />
+              <>
+                <TerminationProcessDetail
+                  process={selectedTerminationProcess}
+                  onUpdate={updateCaseTerminationProcess}
+                  onOpenTemplates={openProcessTemplateModal}
+                />
+                {selectedCase && (
+                  <MeasureNotesPanel
+                    caseId={selectedCase.id}
+                    measureType="termination_hearing"
+                    measureId={selectedTerminationProcess.id}
+                    measureTitle="Kündigungsanhörung"
+                  />
+                )}
+              </>
             )}
 
           {selection.type === "process" &&
             selection.processType === "equalization" &&
             selectedEqualizationProcess && (
-              <EqualizationProcessDetail
-                process={selectedEqualizationProcess}
-                onUpdate={updateCaseEqualizationProcess}
-                onOpenTemplates={openProcessTemplateModal}
-                secureNotes={selectedEqualizationNotes}
-                onCreateSecureNote={createEqualizationSecureNote}
-              />
+              <>
+                <EqualizationProcessDetail
+                  process={selectedEqualizationProcess}
+                  onUpdate={updateCaseEqualizationProcess}
+                  onOpenTemplates={openProcessTemplateModal}
+                  secureNotes={selectedEqualizationNotes}
+                  onCreateSecureNote={createEqualizationSecureNote}
+                />
+                {selectedCase && (
+                  <MeasureNotesPanel
+                    caseId={selectedCase.id}
+                    measureType="equalization"
+                    measureId={selectedEqualizationProcess.id}
+                    measureTitle="Gleichstellung / GdB"
+                  />
+                )}
+              </>
             )}
 
 
@@ -187,19 +228,39 @@ export function CasesViewRender(props: CasesViewRenderProps) {
           {selection.type === "process" &&
             selection.processType === "participation" &&
             selectedParticipationProcess && (
-              <ParticipationProcessDetail
-                process={selectedParticipationProcess}
-                onUpdate={updateCaseParticipationProcess}
-              />
+              <>
+                <ParticipationProcessDetail
+                  process={selectedParticipationProcess}
+                  onUpdate={updateCaseParticipationProcess}
+                />
+                {selectedCase && (
+                  <MeasureNotesPanel
+                    caseId={selectedCase.id}
+                    measureType="participation"
+                    measureId={selectedParticipationProcess.id}
+                    measureTitle={selectedParticipationProcess.title}
+                  />
+                )}
+              </>
             )}
 
           {selection.type === "process" &&
             selection.processType === "workplace_accommodation" &&
             selectedWorkplaceAccommodationProcess && (
-              <WorkplaceAccommodationProcessDetail
-                process={selectedWorkplaceAccommodationProcess}
-                onUpdate={updateCaseWorkplaceAccommodationProcess}
-              />
+              <>
+                <WorkplaceAccommodationProcessDetail
+                  process={selectedWorkplaceAccommodationProcess}
+                  onUpdate={updateCaseWorkplaceAccommodationProcess}
+                />
+                {selectedCase && (
+                  <MeasureNotesPanel
+                    caseId={selectedCase.id}
+                    measureType="workplace_accommodation"
+                    measureId={selectedWorkplaceAccommodationProcess.id}
+                    measureTitle={selectedWorkplaceAccommodationProcess.title}
+                  />
+                )}
+              </>
             )}
 
           {selectedNote && (

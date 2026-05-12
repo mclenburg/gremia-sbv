@@ -73,3 +73,50 @@ export const caseMeasureTypeLabels: Record<CaseMeasureType, string> = {
   workplace_accommodation: 'Arbeitsplatzgestaltung',
   other: 'Sonstige Maßnahme'
 };
+
+export type CaseMeasureNoteProcessType =
+  | 'prevention'
+  | 'bem'
+  | 'termination_hearing'
+  | 'equalization'
+  | 'participation'
+  | 'workplace_accommodation';
+
+export interface CaseMeasureNoteRecord {
+  id: string;
+  caseId: string;
+  measureType: CaseMeasureNoteProcessType;
+  measureId: string;
+  title: string;
+  noteAt: string;
+  participants?: string;
+  content: string;
+  nextSteps?: string;
+  containsHealthData: boolean;
+  confidentialLevel: 'normal' | 'sensibel' | 'hoch_sensibel';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateCaseMeasureNoteInput {
+  caseId: string;
+  measureType: CaseMeasureNoteProcessType;
+  measureId: string;
+  title: string;
+  noteAt?: string;
+  participants?: string;
+  content: string;
+  nextSteps?: string;
+  containsHealthData?: boolean;
+  confidentialLevel?: 'normal' | 'sensibel' | 'hoch_sensibel';
+}
+
+export interface UpdateCaseMeasureNoteInput {
+  title?: string;
+  noteAt?: string;
+  participants?: string;
+  content?: string;
+  nextSteps?: string;
+  containsHealthData?: boolean;
+  confidentialLevel?: 'normal' | 'sensibel' | 'hoch_sensibel';
+}

@@ -27,4 +27,4 @@ Große Textfelder und Textareas in Maßnahmen speichern auf Lost Focus. Inline-K
 
 ## Datenschutz-Lifecycle
 
-Statusablauf, Beschäftigungsende, Anonymisierung oder Löschung der Person markieren verbundene Maßnahmen zur Datenschutzprüfung. Freitexte werden nicht automatisch anonymisiert.
+Statusablauf, Beschäftigungsende, Anonymisierung oder Löschung der Person markieren verbundene Maßnahmen zur Datenschutzprüfung. Freitexte werden nicht automatisch anonymisiert. Maßnahmennotizen sind als eigene fall- und maßnahmengebundene Freitexte Teil dieses Prüfpfads.
