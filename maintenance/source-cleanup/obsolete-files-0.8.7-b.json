@@ -1,6 +1,0 @@
-{
-  "version": "0.8.7-b",
-  "description": "Patchbezogene Liste alter Source-Dateien, die vor dem Build sicher entfernt werden koennen. Dieser Patch fuehrt den Mechanismus ein; konkrete Obsolete-Dateien werden in Folgelisten ergaenzt.",
-  "files": [],
-  "directories": []
-}

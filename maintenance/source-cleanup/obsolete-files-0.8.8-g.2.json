@@ -1,8 +1,0 @@
-{
-  "version": "0.8.8-g.2",
-  "reason": "E2E-Tests werden aus tests/ nach e2e/ verschoben, damit Vitest und TypeScript-Build keine optionale Playwright-Abhängigkeit benötigen.",
-  "directories": [
-    "tests/e2e"
-  ],
-  "files": []
-}

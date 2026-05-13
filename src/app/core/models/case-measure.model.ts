@@ -82,6 +82,39 @@ export type CaseMeasureNoteProcessType =
   | 'participation'
   | 'workplace_accommodation';
 
+
+export function noteProcessTypeToCaseMeasureType(type: CaseMeasureNoteProcessType): CaseMeasureType | undefined {
+  switch (type) {
+    case 'bem':
+    case 'prevention':
+    case 'termination_hearing':
+    case 'workplace_accommodation':
+      return type;
+    case 'participation':
+      return 'sbv_participation';
+    case 'equalization':
+      return 'equalization_gdb';
+    default:
+      return undefined;
+  }
+}
+
+export function caseMeasureTypeToNoteProcessType(type: CaseMeasureType): CaseMeasureNoteProcessType | undefined {
+  switch (type) {
+    case 'bem':
+    case 'prevention':
+    case 'termination_hearing':
+    case 'workplace_accommodation':
+      return type;
+    case 'sbv_participation':
+      return 'participation';
+    case 'equalization_gdb':
+      return 'equalization';
+    default:
+      return undefined;
+  }
+}
+
 export interface CaseMeasureNoteRecord {
   id: string;
   caseId: string;

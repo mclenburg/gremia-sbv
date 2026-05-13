@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { CaseMeasureService } from '../services/caseMeasureService';
+import { noteProcessTypeToCaseMeasureType } from '../src/app/core/models/case-measure.model';
 
 class MemoryDb {
   rows: Record<string, any[]> = {
@@ -60,6 +61,12 @@ class MemoryDb {
 }
 
 describe('case measure notes', () => {
+
+  it('maps note process types explicitly to the underlying case measure type', () => {
+    expect(noteProcessTypeToCaseMeasureType('participation')).toBe('sbv_participation');
+    expect(noteProcessTypeToCaseMeasureType('workplace_accommodation')).toBe('workplace_accommodation');
+  });
+
   it('creates and lists multiple notes for one measure', () => {
     const service = new CaseMeasureService(new MemoryDb() as any);
     service.createNote({ caseId: 'case-1', measureType: 'participation', measureId: 'measure-1', title: 'Ersttermin', noteAt: '2026-05-12T10:00:00.000Z', content: 'Unterrichtung geprüft.' });

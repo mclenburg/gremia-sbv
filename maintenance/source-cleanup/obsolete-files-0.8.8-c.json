@@ -1,6 +1,0 @@
-{
-  "version": "0.8.8-c",
-  "reason": "Die Testbereinigung aus 0.8.8-c ist nach Anwendung abgeschlossen. Die frühere lange Löschliste wird ersetzt, damit wiederholte Builds nicht mit bereits entfernten Dateien rauschen.",
-  "files": [],
-  "directories": []
-}

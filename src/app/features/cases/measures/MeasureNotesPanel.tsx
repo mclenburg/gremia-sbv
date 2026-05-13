@@ -10,8 +10,9 @@ import {
   IndustrialFormGrid,
 } from "../../../shared/components/WorkbenchLayout";
 import { TextCommandTextarea } from "../../../shared/textCommands/TextCommandTextarea";
-import { formatDateTimeShort } from "../../../shared/format/dates";
+import { formatDateTimeShort, fromDateTimeLocal, toDateTimeLocal } from "../../../shared/format/dates";
 import { waitForBridge } from "../../../core/bridge/waitForBridge";
+import { useAnnouncer } from "../../../shared/a11y/LiveRegionProvider";
 
 type MeasureNotesPanelProps = {
   caseId: string;
@@ -27,18 +28,6 @@ type MeasureNoteFormState = {
   content: string;
   nextSteps: string;
 };
-
-function toDateTimeLocal(iso?: string): string {
-  if (!iso) return "";
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return "";
-  const offset = date.getTimezoneOffset();
-  return new Date(date.getTime() - offset * 60_000).toISOString().slice(0, 16);
-}
-
-function fromDateTimeLocal(value: string): string | undefined {
-  return value ? new Date(value).toISOString() : undefined;
-}
 
 function createEmptyForm(): MeasureNoteFormState {
   return {
@@ -126,6 +115,7 @@ export function MeasureNotesPanel({
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<MeasureNoteFormState>(() => createEmptyForm());
   const [error, setError] = useState("");
+  const announce = useAnnouncer();
 
   const fieldPrefix = useMemo(
     () => `measure-note-${measureType}-${measureId}`,
@@ -147,7 +137,9 @@ export function MeasureNotesPanel({
         if (active) setNotes(rows);
       } catch (loadError) {
         if (active) {
-          setError(loadError instanceof Error ? loadError.message : "Maßnahmennotizen konnten nicht geladen werden.");
+          const message = loadError instanceof Error ? loadError.message : "Maßnahmennotizen konnten nicht geladen werden.";
+          setError(message);
+          announce(message, "assertive");
         }
       }
     }
@@ -155,7 +147,7 @@ export function MeasureNotesPanel({
     return () => {
       active = false;
     };
-  }, [caseId, measureId, measureType]);
+  }, [announce, caseId, measureId, measureType]);
 
   function startEdit(note: CaseMeasureNoteRecord) {
     setError("");
@@ -188,8 +180,11 @@ export function MeasureNotesPanel({
       setCreateForm(createEmptyForm());
       setIsCreating(false);
       await loadNotes();
+      announce("Maßnahmennotiz wurde gespeichert.", "polite");
     } catch (createError) {
-      setError(createError instanceof Error ? createError.message : "Maßnahmennotiz konnte nicht gespeichert werden.");
+      const message = createError instanceof Error ? createError.message : "Maßnahmennotiz konnte nicht gespeichert werden.";
+      setError(message);
+      announce(message, "assertive");
     }
   }
 
@@ -208,8 +203,11 @@ export function MeasureNotesPanel({
       });
       cancelEdit();
       await loadNotes();
+      announce("Maßnahmennotiz wurde aktualisiert.", "polite");
     } catch (updateError) {
-      setError(updateError instanceof Error ? updateError.message : "Maßnahmennotiz konnte nicht aktualisiert werden.");
+      const message = updateError instanceof Error ? updateError.message : "Maßnahmennotiz konnte nicht aktualisiert werden.";
+      setError(message);
+      announce(message, "assertive");
     }
   }
 
@@ -220,8 +218,11 @@ export function MeasureNotesPanel({
       await caseMeasures.deleteNote(note.id);
       if (editingNoteId === note.id) cancelEdit();
       await loadNotes();
+      announce("Maßnahmennotiz wurde gelöscht.", "polite");
     } catch (deleteError) {
-      setError(deleteError instanceof Error ? deleteError.message : "Maßnahmennotiz konnte nicht gelöscht werden.");
+      const message = deleteError instanceof Error ? deleteError.message : "Maßnahmennotiz konnte nicht gelöscht werden.";
+      setError(message);
+      announce(message, "assertive");
     }
   }
 

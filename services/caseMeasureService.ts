@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
+import { noteProcessTypeToCaseMeasureType } from '../src/app/core/models/case-measure.model.js';
 import type {
   CaseMeasureCreatedFrom,
   CaseMeasureNoteProcessType,
@@ -32,8 +33,8 @@ const MEASURE_SOURCE_TABLES: Record<CaseMeasureNoteProcessType, { table: string;
   bem: { table: 'bem_processes', idColumn: 'id', caseColumn: 'case_id' },
   termination_hearing: { table: 'termination_hearings', idColumn: 'id', caseColumn: 'case_id' },
   equalization: { table: 'equalization_processes', idColumn: 'id', caseColumn: 'case_id' },
-  participation: { table: 'case_measures', idColumn: 'id', caseColumn: 'case_id', typeColumn: 'type', typeValue: 'sbv_participation' },
-  workplace_accommodation: { table: 'case_measures', idColumn: 'id', caseColumn: 'case_id', typeColumn: 'type', typeValue: 'workplace_accommodation' }
+  participation: { table: 'case_measures', idColumn: 'id', caseColumn: 'case_id', typeColumn: 'type', typeValue: noteProcessTypeToCaseMeasureType('participation') },
+  workplace_accommodation: { table: 'case_measures', idColumn: 'id', caseColumn: 'case_id', typeColumn: 'type', typeValue: noteProcessTypeToCaseMeasureType('workplace_accommodation') }
 };
 
 function assertMeasureNoteType(value: CaseMeasureNoteProcessType): void {
