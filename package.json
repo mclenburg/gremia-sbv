@@ -65,7 +65,7 @@
     "build:readiness": "node scripts/check-build-readiness.cjs",
     "build:readiness:strict": "node scripts/check-build-readiness.cjs --strict",
     "source:cleanup:verbose": "node scripts/cleanup-obsolete-files.cjs --verbose",
-    "rc:check": "npm run version:generate && npm run source:cleanup && npm run build:readiness:strict && node scripts/check-release-candidate-readiness.cjs",
+    "rc:check": "npm run version:generate && npm run source:cleanup && npm run build:readiness:strict && npm run docs:diagrams:check && node scripts/check-release-candidate-readiness.cjs",
     "dev:renderer:e2e": "vite --host 127.0.0.1 --port 5174 --strictPort",
     "test:e2e": "node scripts/run-e2e.cjs",
     "test:e2e:headed": "node scripts/run-e2e.cjs --headed",
@@ -91,7 +91,8 @@
     "cleanup:obsolete-release-notes": "node scripts/cleanup-obsolete-release-notes-091.cjs",
     "test:docs-current-091": "vitest run tests/rc091MarkdownDocsCurrent.test.ts",
     "test:rc-091-step-g-sync": "vitest run tests/rc091StepGReleaseSync.test.ts",
-    "test:quality-ratio": "vitest run tests/rc091TestQualityRatio.test.ts"
+    "test:quality-ratio": "vitest run tests/rc091TestQualityRatio.test.ts",
+    "docs:diagrams:check": "node scripts/check-diagram-assets.cjs"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.0",

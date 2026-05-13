@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { normalizeAuditMetadata, sanitizeAuditActor, sanitizeAuditPurpose } from '../services/auditHashChain';
 import { assertDestructivePrivacyConfirmation, assertRetentionDecision, decideLegacyBulkPrivacyReview, decidePrivacyReviewForContext } from '../services/privacyReviewPolicy';
+import { casePrivacyTables } from '../services/privacyEntityRegistry';
 
 describe('0.9.1 Datenschutz-Lifecycle und Audit-Härtung', () => {
   it('markiert Statusablauf und Beschäftigungsende als Datenschutzprüfung', () => {
@@ -56,10 +57,13 @@ describe('0.9.1 Datenschutz-Lifecycle und Audit-Härtung', () => {
 
 
   it('erfasst vorgemerkte Freitextstellen in Prozess- und Maßnahmentabellen der Fallakte', async () => {
-    const source = await import('node:fs').then((fs) => fs.readFileSync('services/privacyReviewService.ts', 'utf8'));
-    for (const table of ['bem_processes', 'bem_process_events', 'prevention_processes', 'prevention_process_events', 'equalization_processes', 'termination_hearings', 'sbv_participations', 'sbv_participation_events', 'case_measure_workplace_accommodation']) {
-      expect(source).toContain(table);
+    const registeredTables = casePrivacyTables();
+    for (const table of ['bem_processes', 'bem_process_events', 'prevention_processes', 'prevention_process_events', 'equalization_processes', 'termination_hearings', 'sbv_participations', 'sbv_participation_events', 'case_measures', 'case_measure_notes']) {
+      expect(registeredTables).toContain(table);
     }
+
+    const source = await import('node:fs').then((fs) => fs.readFileSync('services/privacyReviewService.ts', 'utf8'));
+    expect(source).toContain('case_measure_workplace_accommodation');
   });
 
   it('schützt Audit-Purpose und Actor vor direkten Identifikatoren', () => {

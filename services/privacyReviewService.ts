@@ -6,6 +6,7 @@ import { ProtectedPersonService } from './protectedPersonService.js';
 import { applyPendingAnonymizationMarkers } from './textCommandPolicy.js';
 import type { CaseCategory, CasePriority, CaseRecord, CaseStatus } from '../src/app/core/models/case.model.js';
 import type { PrivacyReviewItemRecord, PrivacyReviewItemStatus, PrivacyReviewContextSnapshot } from '../src/app/core/models/privacy-review.model.js';
+import { caseWhereSql, directCasePrivacyEntities } from './privacyEntityRegistry.js';
 
 function nowIso(): string { return new Date().toISOString(); }
 function tryExec(db: DatabaseAdapter, sql: string): void { try { db.exec(sql); } catch { /* idempotent */ } }
@@ -124,25 +125,21 @@ function replacePendingMarkersInRecordFields(db: DatabaseAdapter, table: string,
 
 function replacePendingAnonymizationMarkersForCase(db: DatabaseAdapter, caseId: string, timestamp: string): number {
   let affected = 0;
-  affected += replacePendingMarkersInRecordFields(db, 'cases', 'id', 'WHERE id = ?', [caseId], ['summary'], timestamp);
-  affected += replacePendingMarkersInRecordFields(db, 'case_notes', 'id', 'WHERE case_id = ?', [caseId], ['title', 'participants', 'content', 'next_steps'], timestamp);
-  affected += replacePendingMarkersInRecordFields(db, 'case_documents', 'id', 'WHERE case_id = ?', [caseId], ['display_title', 'extracted_text'], timestamp);
-  affected += replacePendingMarkersInRecordFields(db, 'bem_processes', 'id', 'WHERE case_id = ?', [caseId], [
-    'title', 'trigger_description', 'consent_scope', 'data_retention_note', 'participants', 'measures', 'measure_owners', 'result', 'completion_reason', 'confidential_notes'
-  ], timestamp);
+  for (const entity of directCasePrivacyEntities()) {
+    affected += replacePendingMarkersInRecordFields(
+      db,
+      entity.table,
+      entity.idColumn,
+      caseWhereSql(entity),
+      [caseId],
+      [...entity.pendingMarkerFields],
+      timestamp,
+    );
+  }
+
   affected += replacePendingMarkersInRecordFields(db, 'bem_process_events', 'id', 'WHERE process_id IN (SELECT id FROM bem_processes WHERE case_id = ?)', [caseId], ['title', 'description'], timestamp);
-  affected += replacePendingMarkersInRecordFields(db, 'prevention_processes', 'id', 'WHERE case_id = ?', [caseId], [
-    'hazard_description', 'employer_request_summary', 'measures', 'result'
-  ], timestamp);
   affected += replacePendingMarkersInRecordFields(db, 'prevention_process_events', 'id', 'WHERE process_id IN (SELECT id FROM prevention_processes WHERE case_id = ?)', [caseId], ['title', 'description'], timestamp);
-  affected += replacePendingMarkersInRecordFields(db, 'equalization_processes', 'id', 'WHERE case_id = ?', [caseId], ['agency_reference', 'outcome', 'notes'], timestamp);
-  affected += replacePendingMarkersInRecordFields(db, 'termination_hearings', 'id', 'WHERE case_id = ?', [caseId], [
-    'employer_reason', 'missing_information', 'sbv_assessment', 'statement'
-  ], timestamp);
-  affected += replacePendingMarkersInRecordFields(db, 'sbv_participations', 'id', 'WHERE case_id = ?', [caseId], ['title', 'violation_summary', 'sbv_position', 'next_step'], timestamp);
   affected += replacePendingMarkersInRecordFields(db, 'sbv_participation_events', 'id', 'WHERE participation_id IN (SELECT id FROM sbv_participations WHERE case_id = ?)', [caseId], ['title', 'description'], timestamp);
-  affected += replacePendingMarkersInRecordFields(db, 'case_measures', 'id', 'WHERE case_id = ?', [caseId], ['title', 'summary', 'next_step'], timestamp);
-  affected += replacePendingMarkersInRecordFields(db, 'case_measure_notes', 'id', 'WHERE case_id = ?', [caseId], ['title', 'participants', 'content', 'next_steps'], timestamp);
 
   const measureRows = tableExists(db, 'case_measures') ? db.prepare<{ id: string }>('SELECT id FROM case_measures WHERE case_id = ?').all(caseId) : [];
   for (const measure of measureRows) {

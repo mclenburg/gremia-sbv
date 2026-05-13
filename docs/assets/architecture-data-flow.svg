@@ -1,3 +1,4 @@
+<!-- source-sha256: 3544392263272f677de3d0546386773faf6b60a571ab68eb1f697eb82fcfa8bd -->
 <svg xmlns="http://www.w3.org/2000/svg" width="1180" height="660" viewBox="0 0 1180 660" role="img" aria-labelledby="title desc">
 <title id="title">Datenfluss UI bis Datenbank</title>
 <desc id="desc">Visualisiert den Weg von React UI über Preload Bridge, IPC, Services und Policies bis zur lokalen SQLCipher-Datenbank.</desc>

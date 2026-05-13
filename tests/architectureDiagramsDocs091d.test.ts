@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
@@ -26,12 +27,17 @@ function mermaidNodeLabels(source: string): string[] {
   return Array.from(source.matchAll(/\["([^"\]]+)"\]/g)).map((match) => (match[1] ?? '').replace(/\\n/g, '\n'));
 }
 
-function svgMetadata(path: string): { hasSvgRoot: boolean; title: string; description: string } {
+function sha256(text: string): string {
+  return createHash('sha256').update(text).digest('hex');
+}
+
+function svgMetadata(path: string): { hasSvgRoot: boolean; title: string; description: string; sourceHash: string } {
   const svg = readText(path);
   return {
-    hasSvgRoot: svg.trimStart().startsWith('<svg '),
+    hasSvgRoot: /<svg\s/.test(svg),
     title: svg.match(/<title id="title">([^<]+)<\/title>/)?.[1] ?? '',
     description: svg.match(/<desc id="desc">([^<]+)<\/desc>/)?.[1] ?? '',
+    sourceHash: svg.match(/source-sha256: ([a-f0-9]+)/)?.[1] ?? '',
   };
 }
 
@@ -62,6 +68,7 @@ describe('Architekturdiagramme 0.9.1', () => {
       hasSvgRoot: true,
       title: 'Datenfluss UI bis Datenbank',
       description: 'Visualisiert den Weg von React UI über Preload Bridge, IPC, Services und Policies bis zur lokalen SQLCipher-Datenbank.',
+      sourceHash: sha256(source),
     });
   });
 
@@ -79,6 +86,7 @@ describe('Architekturdiagramme 0.9.1', () => {
       hasSvgRoot: true,
       title: 'Grobe Komponentensicht',
       description: 'Zeigt Core, SBV-Fachmodule, Querschnittsmodule, Security und Persistenz der Anwendung.',
+      sourceHash: sha256(source),
     });
   });
 });

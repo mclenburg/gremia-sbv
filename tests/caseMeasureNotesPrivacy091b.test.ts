@@ -27,6 +27,11 @@ class RetentionMemoryDb {
         return undefined;
       },
       all(...params: any[]) {
+        if (sql.startsWith('PRAGMA table_info(')) {
+          const table = sql.match(/PRAGMA table_info\(([^)]+)\)/)?.[1] ?? '';
+          const firstRow = self.rows[table]?.[0] ?? {};
+          return Object.keys(firstRow).map((name) => ({ name }));
+        }
         if (sql.includes('SELECT id, storage_path FROM case_documents WHERE case_id = ?')) {
           return self.rows.case_documents.filter((row) => row.case_id === params[0]).map((row) => ({ id: row.id, storage_path: undefined }));
         }
@@ -45,33 +50,36 @@ class RetentionMemoryDb {
         }
         if (sql.includes('UPDATE case_notes SET participants')) {
           let changes = 0;
-          for (const row of self.rows.case_notes.filter((entry) => entry.case_id === params[2])) {
-            row.participants = '[anonymisiert]';
-            row.content = params[0];
-            row.next_steps = null;
-            row.contains_health_data = 0;
+          const caseId = params[4];
+          for (const row of self.rows.case_notes.filter((entry) => entry.case_id === caseId)) {
+            row.participants = params[0];
+            row.content = params[1];
+            row.next_steps = params[2];
+            row.contains_health_data = params[3];
             changes += 1;
           }
           return { changes };
         }
         if (sql.includes('UPDATE case_measure_notes SET title')) {
           let changes = 0;
-          for (const row of self.rows.case_measure_notes.filter((entry) => entry.case_id === params[2])) {
-            row.title = '[Maßnahmennotiz anonymisiert]';
-            row.participants = '[anonymisiert]';
-            row.content = params[0];
-            row.next_steps = null;
-            row.contains_health_data = 0;
-            row.confidential_level = 'normal';
+          const caseId = params[6];
+          for (const row of self.rows.case_measure_notes.filter((entry) => entry.case_id === caseId)) {
+            row.title = params[0];
+            row.participants = params[1];
+            row.content = params[2];
+            row.next_steps = params[3];
+            row.contains_health_data = params[4];
+            row.confidential_level = params[5];
             changes += 1;
           }
           return { changes };
         }
-        if (sql.includes('UPDATE case_documents SET extracted_text')) {
+        if (sql.includes('UPDATE case_documents SET')) {
           let changes = 0;
-          for (const row of self.rows.case_documents.filter((entry) => entry.case_id === params[0])) {
-            row.extracted_text = null;
-            row.display_title = '[Dokument anonymisiert]';
+          const caseId = params[2];
+          for (const row of self.rows.case_documents.filter((entry) => entry.case_id === caseId)) {
+            row.display_title = params[0];
+            row.extracted_text = params[1];
             changes += 1;
           }
           return { changes };

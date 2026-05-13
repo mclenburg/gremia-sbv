@@ -17,6 +17,7 @@ import {
   type RetentionDeadlineSnapshot,
   type RetentionDocumentSnapshot
 } from './retentionPolicy.js';
+import { directCasePrivacyEntities, resolveAnonymizationValue } from './privacyEntityRegistry.js';
 
 const CASE_ANONYMIZE_CONFIRMATION = 'FALL ANONYMISIEREN';
 const CASE_DELETE_CONFIRMATION = 'FALL LÖSCHEN';
@@ -75,6 +76,27 @@ function latestActivityExpression(db: DatabaseAdapter): string {
     ? 'COALESCE((SELECT MAX(mn.updated_at) FROM case_measure_notes mn WHERE mn.case_id = c.id), c.opened_at), '
     : '';
   return `MAX(COALESCE(${casesUpdated}, c.opened_at), COALESCE((SELECT MAX(n.updated_at) FROM case_notes n WHERE n.case_id = c.id), c.opened_at), COALESCE((SELECT MAX(d.created_at) FROM case_documents d WHERE d.case_id = c.id), c.opened_at), ${measureNotesActivity}COALESCE((SELECT MAX(dl.updated_at) FROM deadlines dl WHERE dl.case_id = c.id), c.opened_at))`;
+}
+
+
+function anonymizeRegisteredCasePrivacyEntities(db: DatabaseAdapter, caseId: string, stamp: string, timestamp: string): number {
+  let affectedRows = 0;
+  for (const entity of directCasePrivacyEntities()) {
+    if (entity.table === 'cases' || !tableExists(db, entity.table)) continue;
+    const assignments = Object.entries(entity.anonymizeFields)
+      .filter(([column]) => hasColumn(db, entity.table, column));
+    if (!assignments.length) continue;
+
+    const updates = assignments.map(([column]) => `${column} = ?`);
+    const params = assignments.map(([, value]) => resolveAnonymizationValue(value, stamp));
+    if (hasColumn(db, entity.table, 'updated_at')) {
+      updates.push('updated_at = ?');
+      params.push(timestamp);
+    }
+    params.push(caseId);
+    affectedRows += safeRun(db, `UPDATE ${entity.table} SET ${updates.join(', ')} WHERE ${entity.caseColumn} = ?`, ...params);
+  }
+  return affectedRows;
 }
 
 function listCleartextFiles(dataDir: string): string[] {
@@ -268,13 +290,10 @@ export class RetentionService {
 
     let affectedRows = 0;
     const stamp = `Anonymisiert am ${new Date().toLocaleDateString('de-DE')}`;
-    affectedRows += safeRun(db, `UPDATE cases SET display_name = '[Fall anonymisiert]', summary = ?, is_pseudonymized = 1, updated_at = ? WHERE id = ?`, stamp, nowIso(), caseId);
-    affectedRows += safeRun(db, `UPDATE case_notes SET participants = '[anonymisiert]', content = ?, next_steps = NULL, contains_health_data = 0, updated_at = ? WHERE case_id = ?`, stamp, nowIso(), caseId);
+    const timestamp = nowIso();
+    affectedRows += safeRun(db, `UPDATE cases SET display_name = '[Fall anonymisiert]', summary = ?, is_pseudonymized = 1, updated_at = ? WHERE id = ?`, stamp, timestamp, caseId);
+    affectedRows += anonymizeRegisteredCasePrivacyEntities(db, caseId, stamp, timestamp);
     affectedRows += safeRun(db, `DELETE FROM case_notes_fts WHERE case_id = ?`, caseId);
-    if (tableExists(db, 'case_measure_notes')) {
-      affectedRows += safeRun(db, `UPDATE case_measure_notes SET title = '[Maßnahmennotiz anonymisiert]', participants = '[anonymisiert]', content = ?, next_steps = NULL, contains_health_data = 0, confidential_level = 'normal', updated_at = ? WHERE case_id = ?`, stamp, nowIso(), caseId);
-    }
-    affectedRows += safeRun(db, `UPDATE case_documents SET extracted_text = NULL, display_title = '[Dokument anonymisiert]' WHERE case_id = ?`, caseId);
     affectedRows += safeRun(db, `DELETE FROM case_documents_fts WHERE case_id = ?`, caseId);
     this.recordAction(db, 'case_anonymized', 'case', caseId, row.case_number, reason, affectedRows, 0);
     return { ok: true, action: 'case_anonymized', message: `Fall ${row.case_number} wurde anonymisiert.`, affectedRows, affectedFiles: 0 };
