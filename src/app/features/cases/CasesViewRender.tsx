@@ -25,11 +25,51 @@ import { ParticipationProcessDetail } from "../participation/ParticipationProces
 import { WorkplaceAccommodationProcessDetail } from "../workplace-accommodation/WorkplaceAccommodationProcessDetail";
 import { resolveContextualTemplateAction } from "@services/templateContextPolicy";
 import { formatBytes, formatCaseLabel, formatNoteDate, formatProcessNodeSubtitle, processTypeLabel } from "./caseWorkbenchFormat";
+import type { CaseSearchResult } from "../../core/models/case-note.model";
+import type { CaseProcessType } from "./caseWorkbenchTypes";
 
 type CasesViewRenderProps = Record<string, any>;
 
 export function CasesViewRender(props: CasesViewRenderProps) {
-  const { caseToast, visibleCases, selectedCaseId, filteredCases, caseFilter, setCaseFilter, normalizedCaseRegisterPage, caseRegisterPageCount, caseRegisterPageSize, setCaseRegisterPage, openCaseCreateModal, selectedCase, selectedNote, selectedDocument, selectedSearchResult, selectedPreventionProcess, selectedBemProcess, selectedTerminationProcess, selectedEqualizationProcess, selectedEqualizationNotes, selectedParticipationProcess, selectedWorkplaceAccommodationProcess, notes, documents, caseLegalReferences, casePreventionProcesses, caseBemProcesses, caseEqualizationProcesses, caseTerminationProcesses, caseParticipationProcesses, caseWorkplaceAccommodationProcesses, selection, setSelection, setSelectedCaseId, searchQuery, searchOnlySelectedCase, searchResults, runSearch, setSearchQuery, setSearchOnlySelectedCase, documentActions, updateCasePreventionProcess, openProcessTemplateModal, updateCaseBemProcess, updateCaseTerminationProcess, updateCaseEqualizationProcess, createEqualizationSecureNote, updateCaseParticipationProcess, openCaseProcessDraft, updateCaseWorkplaceAccommodationProcess, startEditNote, deleteNote, openNewNoteModal, inlineCommands, caseNumber, displayName, category, summary, selectedProtectedPersonId, protectedPersons, error, isCaseCreateModalOpen, setCaseNumber, setDisplayName, setCategory, setSummary, setSelectedProtectedPersonId, cancelCaseCreateModal, addCase, addAnonymousCase, isNoteModalOpen, editingNote, noteTitle, noteDate, noteType, participants, content, nextSteps, cases, linkedCaseIds, confidentialLevel, containsHealthData, noteError, noteInfo, setNoteTitle, setNoteDate, setNoteType, setParticipants, setConfidentialLevel, setContainsHealthData, toggleLinkedCase, cancelNoteModal, saveNote, caseProcessDraft, setCaseProcessDraft, createCaseProcessFromDraft, contacts, processTemplateModal, setProcessTemplateModal, renderAndDownloadProcessTemplate, legacyBindingCase, legacyBindingError, openLegacyBindingDialog, closeLegacyBindingDialog, assignLegacyCase, closedLegacyBulkCount, bulkMarkClosedLegacyCases } = props;
+  const { caseToast, visibleCases, selectedCaseId, filteredCases, caseFilter, setCaseFilter, normalizedCaseRegisterPage, caseRegisterPageCount, caseRegisterPageSize, setCaseRegisterPage, openCaseCreateModal, selectedCase, selectedNote, selectedDocument, selectedSearchResult, selectedPreventionProcess, selectedBemProcess, selectedTerminationProcess, selectedEqualizationProcess, selectedEqualizationNotes, selectedParticipationProcess, selectedWorkplaceAccommodationProcess, notes, documents, caseLegalReferences, casePreventionProcesses, caseBemProcesses, caseEqualizationProcesses, caseTerminationProcesses, caseParticipationProcesses, caseWorkplaceAccommodationProcesses, selection, setSelection, setSelectedCaseId, searchQuery, searchOnlySelectedCase, searchResults, selectedSearchSourceTypes, runSearch, setSearchQuery, setSearchOnlySelectedCase, setSelectedSearchSourceTypes, documentActions, updateCasePreventionProcess, openProcessTemplateModal, updateCaseBemProcess, updateCaseTerminationProcess, updateCaseEqualizationProcess, createEqualizationSecureNote, updateCaseParticipationProcess, openCaseProcessDraft, updateCaseWorkplaceAccommodationProcess, startEditNote, deleteNote, openNewNoteModal, inlineCommands, caseNumber, displayName, category, summary, selectedProtectedPersonId, protectedPersons, error, isCaseCreateModalOpen, setCaseNumber, setDisplayName, setCategory, setSummary, setSelectedProtectedPersonId, cancelCaseCreateModal, addCase, addAnonymousCase, isNoteModalOpen, editingNote, noteTitle, noteDate, noteType, participants, content, nextSteps, cases, linkedCaseIds, confidentialLevel, containsHealthData, noteError, noteInfo, setNoteTitle, setNoteDate, setNoteType, setParticipants, setConfidentialLevel, setContainsHealthData, toggleLinkedCase, cancelNoteModal, saveNote, caseProcessDraft, setCaseProcessDraft, createCaseProcessFromDraft, contacts, processTemplateModal, setProcessTemplateModal, renderAndDownloadProcessTemplate, legacyBindingCase, legacyBindingError, openLegacyBindingDialog, closeLegacyBindingDialog, assignLegacyCase, closedLegacyBulkCount, bulkMarkClosedLegacyCases } = props;
+
+  function renderSearchExcerpt(result: CaseSearchResult) {
+    const segments = result.excerptSegments?.length ? result.excerptSegments : [{ text: result.excerpt, match: false }];
+    return segments.map((segment, index) => segment.match
+      ? <mark key={`${segment.text}-${index}`}>{segment.text}</mark>
+      : <span key={`${segment.text}-${index}`}>{segment.text}</span>);
+  }
+
+  function selectSearchResult(result: CaseSearchResult) {
+    if (result.caseId && result.caseId !== selectedCaseId) setSelectedCaseId(result.caseId);
+    const targetId = result.navigationId ?? result.sourceId;
+    if (result.navigationKind === 'note') {
+      setSelection({ type: 'note', id: targetId });
+      return;
+    }
+    if (result.navigationKind === 'document') {
+      setSelection({ type: 'document', id: targetId });
+      return;
+    }
+    const processTypeBySource: Partial<Record<CaseSearchResult['sourceType'], CaseProcessType>> = {
+      bem: 'bem',
+      bem_event: 'bem',
+      prevention: 'prevention',
+      prevention_event: 'prevention',
+      termination: 'termination_hearing',
+      equalization: 'equalization',
+      participation: 'participation',
+      participation_event: 'participation',
+      workplace_accommodation: 'workplace_accommodation',
+    };
+    const processType = processTypeBySource[result.sourceType];
+    if (result.navigationKind === 'process' && processType) {
+      setSelection({ type: 'process', processType, id: targetId });
+      return;
+    }
+    setSelection({ type: 'search', id: `${result.sourceType}:${result.sourceId}` });
+  }
+
   return (
     <>
       {caseToast && (
@@ -95,12 +135,12 @@ export function CasesViewRender(props: CasesViewRenderProps) {
           searchQuery={searchQuery}
           searchOnlySelectedCase={searchOnlySelectedCase}
           searchResults={searchResults}
+          selectedSearchSourceTypes={selectedSearchSourceTypes}
           onSearchSubmit={runSearch}
           onSearchQueryChange={setSearchQuery}
           onSearchOnlySelectedCaseChange={setSearchOnlySelectedCase}
-          onSelectSearchResult={(result) =>
-            setSelection({ type: "search", id: result.sourceId })
-          }
+          onSearchSourceTypesChange={setSelectedSearchSourceTypes}
+          onSelectSearchResult={selectSearchResult}
         >
           {selection.type === "overview" && (
             <CaseOverviewDetail
@@ -327,7 +367,7 @@ export function CasesViewRender(props: CasesViewRenderProps) {
           {selectedSearchResult && !selectedNote && !selectedDocument && (
             <article className="case-detail-content">
               <h2>{selectedSearchResult.title}</h2>
-              <p>{selectedSearchResult.excerpt}</p>
+              <p>{renderSearchExcerpt(selectedSearchResult)}</p>
               <button
                 type="button"
                 className="industrial-secondary-button"

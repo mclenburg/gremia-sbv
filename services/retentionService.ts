@@ -18,6 +18,7 @@ import {
   type RetentionDocumentSnapshot
 } from './retentionPolicy.js';
 import { directCasePrivacyEntities, resolveAnonymizationValue } from './privacyEntityRegistry.js';
+import { SearchIndexService } from './search/searchIndexService.js';
 
 const CASE_ANONYMIZE_CONFIRMATION = 'FALL ANONYMISIEREN';
 const CASE_DELETE_CONFIRMATION = 'FALL LÖSCHEN';
@@ -78,6 +79,71 @@ function latestActivityExpression(db: DatabaseAdapter): string {
   return `MAX(COALESCE(${casesUpdated}, c.opened_at), COALESCE((SELECT MAX(n.updated_at) FROM case_notes n WHERE n.case_id = c.id), c.opened_at), COALESCE((SELECT MAX(d.created_at) FROM case_documents d WHERE d.case_id = c.id), c.opened_at), ${measureNotesActivity}COALESCE((SELECT MAX(dl.updated_at) FROM deadlines dl WHERE dl.case_id = c.id), c.opened_at))`;
 }
 
+
+
+
+type IndirectAnonymizationTarget = {
+  table: string;
+  whereSql: string;
+  assignments: ReadonlyArray<readonly [string, unknown]>;
+};
+
+function anonymizeIndirectCaseSearchSources(db: DatabaseAdapter, caseId: string, stamp: string, timestamp: string): number {
+  const targets: IndirectAnonymizationTarget[] = [
+    {
+      table: 'bem_process_events',
+      whereSql: 'process_id IN (SELECT id FROM bem_processes WHERE case_id = ?)',
+      assignments: [['title', '[BEM-Ereignis anonymisiert]'], ['description', stamp]],
+    },
+    {
+      table: 'prevention_process_events',
+      whereSql: 'process_id IN (SELECT id FROM prevention_processes WHERE case_id = ?)',
+      assignments: [['title', '[Präventionsereignis anonymisiert]'], ['description', stamp]],
+    },
+    {
+      table: 'sbv_participation_events',
+      whereSql: 'participation_id IN (SELECT id FROM sbv_participations WHERE case_id = ?)',
+      assignments: [['title', '[SBV-Beteiligungsereignis anonymisiert]'], ['description', stamp]],
+    },
+    {
+      table: 'case_measure_participation',
+      whereSql: 'measure_id IN (SELECT id FROM case_measures WHERE case_id = ?)',
+      assignments: [['violation_summary', stamp], ['sbv_position', stamp]],
+    },
+    {
+      table: 'case_measure_events',
+      whereSql: 'measure_id IN (SELECT id FROM case_measures WHERE case_id = ?)',
+      assignments: [['title', '[Maßnahmenereignis anonymisiert]'], ['description', stamp]],
+    },
+    {
+      table: 'case_measure_workplace_accommodation',
+      whereSql: 'measure_id IN (SELECT id FROM case_measures WHERE case_id = ?)',
+      assignments: [
+        ['requested_adjustment', stamp],
+        ['barrier_or_limitation', null],
+        ['workplace_context', null],
+        ['proposed_solution', null],
+        ['outcome', stamp],
+      ],
+    },
+  ];
+
+  let affectedRows = 0;
+  for (const target of targets) {
+    if (!tableExists(db, target.table)) continue;
+    const assignments = target.assignments.filter(([column]) => hasColumn(db, target.table, column));
+    if (!assignments.length) continue;
+    const updates = assignments.map(([column]) => `${column} = ?`);
+    const params = assignments.map(([, value]) => value);
+    if (hasColumn(db, target.table, 'updated_at')) {
+      updates.push('updated_at = ?');
+      params.push(timestamp);
+    }
+    params.push(caseId);
+    affectedRows += safeRun(db, `UPDATE ${target.table} SET ${updates.join(', ')} WHERE ${target.whereSql}`, ...params);
+  }
+  return affectedRows;
+}
 
 function anonymizeRegisteredCasePrivacyEntities(db: DatabaseAdapter, caseId: string, stamp: string, timestamp: string): number {
   let affectedRows = 0;
@@ -293,8 +359,11 @@ export class RetentionService {
     const timestamp = nowIso();
     affectedRows += safeRun(db, `UPDATE cases SET display_name = '[Fall anonymisiert]', summary = ?, is_pseudonymized = 1, updated_at = ? WHERE id = ?`, stamp, timestamp, caseId);
     affectedRows += anonymizeRegisteredCasePrivacyEntities(db, caseId, stamp, timestamp);
+    affectedRows += anonymizeIndirectCaseSearchSources(db, caseId, stamp, timestamp);
     affectedRows += safeRun(db, `DELETE FROM case_notes_fts WHERE case_id = ?`, caseId);
+    affectedRows += new SearchIndexService(db).deleteCase(caseId);
     affectedRows += safeRun(db, `DELETE FROM case_documents_fts WHERE case_id = ?`, caseId);
+    affectedRows += new SearchIndexService(db).reindexCase(caseId);
     this.recordAction(db, 'case_anonymized', 'case', caseId, row.case_number, reason, affectedRows, 0);
     return { ok: true, action: 'case_anonymized', message: `Fall ${row.case_number} wurde anonymisiert.`, affectedRows, affectedFiles: 0 };
   }
@@ -316,6 +385,7 @@ export class RetentionService {
       }
     }
 
+    affectedRows += new SearchIndexService(db).deleteCase(caseId);
     affectedRows += safeRun(db, `DELETE FROM case_documents_fts WHERE case_id = ?`, caseId);
     affectedRows += safeRun(db, `DELETE FROM case_documents WHERE case_id = ?`, caseId);
     const noteIds = db.prepare<any>('SELECT id FROM case_notes WHERE case_id = ?').all(caseId).map((note) => note.id);

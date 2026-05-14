@@ -7,7 +7,6 @@ import {
   randomBytes,
   randomUUID,
 } from "node:crypto";
-import yauzl from "yauzl";
 import type {
   CaseCategory,
   CasePriority,
@@ -40,6 +39,9 @@ import { PersonalDataAuditLogService } from "./auditLogService.js";
 import { TempFileService } from "./tempFileService.js";
 import { PersonCaseBindingService } from "./personCaseBindingService.js";
 import { assertCanCreateRegularCase } from "./personCaseBindingPolicy.js";
+import { SearchIndexService } from "./search/searchIndexService.js";
+import { extractDocumentTextBestEffort, inferMimeType } from "./documents/documentTextExtractionService.js";
+import { DocumentOcrService } from "./documents/documentOcrService.js";
 
 function nowIso(): string {
   return new Date().toISOString();
@@ -136,149 +138,20 @@ function mapDocument(row: any): CaseDocumentRecord {
         : Number(row.size_bytes),
     sha256: row.sha256,
     extractedText: row.extracted_text ?? undefined,
+    extractionQuality: row.extraction_quality ?? undefined,
+    textExtractionStatus: row.text_extraction_status ?? undefined,
+    textExtractedAt: row.text_extracted_at ?? undefined,
+    textExtractorId: row.text_extractor_id ?? undefined,
+    textExtractionError: row.text_extraction_error ?? undefined,
+    ocrStatus: row.ocr_status ?? undefined,
+    ocrText: row.ocr_text ?? undefined,
+    ocrEngine: row.ocr_engine ?? undefined,
+    ocrStartedAt: row.ocr_started_at ?? undefined,
+    ocrCompletedAt: row.ocr_completed_at ?? undefined,
+    ocrError: row.ocr_error ?? undefined,
     containsHealthData: Boolean(row.contains_health_data),
     createdAt: row.created_at,
   };
-}
-
-function inferMimeType(filename: string): string {
-  const ext = path.extname(filename).toLowerCase();
-  const map: Record<string, string> = {
-    ".pdf": "application/pdf",
-    ".docx":
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    ".xlsx":
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    ".xls": "application/vnd.ms-excel",
-    ".doc": "application/msword",
-    ".txt": "text/plain",
-    ".md": "text/markdown",
-    ".csv": "text/csv",
-    ".json": "application/json",
-    ".xml": "application/xml",
-  };
-  return map[ext] ?? "application/octet-stream";
-}
-
-function stripXml(value: string): string {
-  return value
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&apos;/g, "'")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function extractPdfTextBestEffort(buffer: Buffer): string {
-  const raw = buffer.toString("latin1");
-  const matches = [...raw.matchAll(/\(([^()]|\\.){3,}\)/g)]
-    .map((match) => match[0].slice(1, -1).replace(/\\([\\()])/g, "$1"))
-    .filter((text) => /[A-Za-zÄÖÜäöüß0-9]{3}/.test(text));
-  const text = matches.join(" ").replace(/\s+/g, " ").trim();
-  return text.slice(0, 300_000);
-}
-
-function readZipTextEntries(
-  filePath: string,
-  matcher: (entryName: string) => boolean,
-): Promise<string[]> {
-  return new Promise((resolve) => {
-    const chunks: string[] = [];
-    yauzl.open(filePath, { lazyEntries: true }, (openError, zipfile) => {
-      if (openError || !zipfile) {
-        resolve([]);
-        return;
-      }
-      zipfile.readEntry();
-      zipfile.on("entry", (entry) => {
-        if (!matcher(entry.fileName)) {
-          zipfile.readEntry();
-          return;
-        }
-        zipfile.openReadStream(entry, (streamError, stream) => {
-          if (streamError || !stream) {
-            zipfile.readEntry();
-            return;
-          }
-          const parts: Buffer[] = [];
-          stream.on("data", (part) => parts.push(Buffer.from(part)));
-          stream.on("end", () => {
-            chunks.push(stripXml(Buffer.concat(parts).toString("utf8")));
-            zipfile.readEntry();
-          });
-        });
-      });
-      zipfile.on("end", () => resolve(chunks.filter(Boolean)));
-      zipfile.on("error", () => resolve(chunks.filter(Boolean)));
-    });
-  });
-}
-
-async function extractTextBestEffort(
-  filePath: string,
-  filename: string,
-  buffer: Buffer,
-): Promise<string> {
-  const ext = path.extname(filename).toLowerCase();
-  if (
-    [".txt", ".md", ".csv", ".json", ".xml", ".html", ".htm", ".log"].includes(
-      ext,
-    )
-  ) {
-    return buffer.toString("utf8").slice(0, 300_000);
-  }
-  if (ext === ".pdf") {
-    return extractPdfTextBestEffort(buffer);
-  }
-  if (ext === ".docx") {
-    const entries = await readZipTextEntries(
-      filePath,
-      (entry) =>
-        entry === "word/document.xml" ||
-        /^word\/(header|footer)\d+\.xml$/.test(entry),
-    );
-    return entries.join("\n").slice(0, 300_000);
-  }
-  if (ext === ".xlsx") {
-    const entries = await readZipTextEntries(
-      filePath,
-      (entry) =>
-        entry === "xl/sharedStrings.xml" ||
-        /^xl\/worksheets\/sheet\d+\.xml$/.test(entry),
-    );
-    return entries.join("\n").slice(0, 300_000);
-  }
-  return "";
-}
-
-function mapSearchResult(row: any): CaseSearchResult {
-  return {
-    sourceType: row.source_type,
-    sourceId: row.source_id,
-    caseId: row.case_id,
-    caseNumber: row.case_number ?? undefined,
-    caseNumbers: splitCsv(row.case_numbers),
-    title: row.title,
-    excerpt: row.excerpt,
-    date: row.date ?? undefined,
-    rank: Number(row.rank ?? 0),
-  };
-}
-
-function escapeFtsQuery(query: string): string {
-  return query
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean)
-    .map((part) => `"${part.replace(/"/g, '""')}"`)
-    .join(" AND ");
-}
-
-function likePattern(query: string): string {
-  return `%${query.trim().replace(/[\\%_]/g, (match) => `\\${match}`)}%`;
 }
 
 export class CaseService {
@@ -319,6 +192,19 @@ export class CaseService {
     tryExec(`ALTER TABLE case_documents ADD COLUMN auth_tag TEXT;`);
     tryExec(`ALTER TABLE case_documents ADD COLUMN size_bytes INTEGER;`);
     tryExec(`ALTER TABLE case_documents ADD COLUMN imported_at TEXT;`);
+    tryExec(`ALTER TABLE case_documents ADD COLUMN extraction_quality TEXT DEFAULT 'unknown';`);
+    tryExec(`ALTER TABLE case_documents ADD COLUMN text_extraction_status TEXT DEFAULT 'unknown';`);
+    tryExec(`ALTER TABLE case_documents ADD COLUMN text_extracted_at TEXT;`);
+    tryExec(`ALTER TABLE case_documents ADD COLUMN text_extractor_id TEXT;`);
+    tryExec(`ALTER TABLE case_documents ADD COLUMN text_extraction_error TEXT;`);
+    tryExec(`ALTER TABLE case_documents ADD COLUMN ocr_status TEXT NOT NULL DEFAULT 'not_required';`);
+    tryExec(`ALTER TABLE case_documents ADD COLUMN ocr_text TEXT;`);
+    tryExec(`ALTER TABLE case_documents ADD COLUMN ocr_engine TEXT;`);
+    tryExec(`ALTER TABLE case_documents ADD COLUMN ocr_started_at TEXT;`);
+    tryExec(`ALTER TABLE case_documents ADD COLUMN ocr_completed_at TEXT;`);
+    tryExec(`ALTER TABLE case_documents ADD COLUMN ocr_error TEXT;`);
+    tryExec(`CREATE INDEX IF NOT EXISTS idx_case_documents_ocr_status ON case_documents(ocr_status, imported_at);`);
+    new DocumentOcrService(db).ensureSchema();
 
     ensureContactPrivacySchema(db);
     new PersonCaseBindingService(db).ensureSchema();
@@ -397,6 +283,8 @@ export class CaseService {
       JOIN cases c ON c.id = d.case_id
       WHERE NOT EXISTS (SELECT 1 FROM case_documents_fts f WHERE f.id = d.id);
     `);
+
+    new SearchIndexService(db).ensureSchema();
   }
 
   private getSafeDb(): DatabaseAdapter {
@@ -669,6 +557,7 @@ export class CaseService {
     this.replaceNoteEntityLinks(db, id, input.links);
     scanCaseNoteContactReferences(db, id);
     this.indexNote(db, id);
+    new SearchIndexService(db).reindexSource("note", id);
     const created = db
       .prepare<any>(this.noteSelectSql("WHERE n.id = ? GROUP BY n.id"))
       .get(id);
@@ -743,6 +632,7 @@ export class CaseService {
     this.replaceNoteEntityLinks(db, id, input.links);
     scanCaseNoteContactReferences(db, id);
     this.indexNote(db, id);
+    new SearchIndexService(db).reindexSource("note", id);
     const updated = db
       .prepare<any>(this.noteSelectSql("WHERE n.id = ? GROUP BY n.id"))
       .get(id);
@@ -758,6 +648,7 @@ export class CaseService {
 
   async deleteNote(id: string): Promise<{ deleted: boolean }> {
     const db = this.getSafeDb();
+    new SearchIndexService(db).deleteSource("note", id);
     db.prepare("DELETE FROM case_notes_fts WHERE id = ?").run(id);
     db.prepare("DELETE FROM case_note_cases WHERE note_id = ?").run(id);
     db.prepare("DELETE FROM case_note_links WHERE case_note_id = ?").run(id);
@@ -788,87 +679,7 @@ export class CaseService {
       purpose: "Volltextsuche in personenbezogenen Falldaten",
       metadata: { hasCaseFilter: Boolean(input.caseId) },
     });
-    const query = input.query.trim();
-    if (query.length < 2) return [];
-
-    const limit = Math.min(Math.max(input.limit ?? 50, 1), 100);
-    const ftsQuery = escapeFtsQuery(query);
-
-    try {
-      const params = input.caseId
-        ? [ftsQuery, input.caseId, limit]
-        : [ftsQuery, limit];
-      const noteSql = input.caseId
-        ? `SELECT 'note' AS source_type, f.id AS source_id, f.case_id, f.case_number, (SELECT GROUP_CONCAT(DISTINCT c.case_number) FROM case_note_cases cnc JOIN cases c ON c.id = cnc.case_id WHERE cnc.note_id = f.id) AS case_numbers, f.title, snippet(case_notes_fts, 5, '[', ']', ' … ', 18) AS excerpt, NULL AS date, bm25(case_notes_fts) AS rank FROM case_notes_fts f WHERE case_notes_fts MATCH ? AND EXISTS (SELECT 1 FROM case_note_cases link WHERE link.note_id = f.id AND link.case_id = ?) ORDER BY rank LIMIT ?`
-        : `SELECT 'note' AS source_type, f.id AS source_id, f.case_id, f.case_number, (SELECT GROUP_CONCAT(DISTINCT c.case_number) FROM case_note_cases cnc JOIN cases c ON c.id = cnc.case_id WHERE cnc.note_id = f.id) AS case_numbers, f.title, snippet(case_notes_fts, 5, '[', ']', ' … ', 18) AS excerpt, NULL AS date, bm25(case_notes_fts) AS rank FROM case_notes_fts f WHERE case_notes_fts MATCH ? ORDER BY rank LIMIT ?`;
-      const docSql = input.caseId
-        ? `SELECT 'document' AS source_type, id AS source_id, case_id, case_number, title, snippet(case_documents_fts, 5, '[', ']', ' … ', 18) AS excerpt, NULL AS date, bm25(case_documents_fts) AS rank FROM case_documents_fts WHERE case_documents_fts MATCH ? AND case_id = ? ORDER BY rank LIMIT ?`
-        : `SELECT 'document' AS source_type, id AS source_id, case_id, case_number, title, snippet(case_documents_fts, 5, '[', ']', ' … ', 18) AS excerpt, NULL AS date, bm25(case_documents_fts) AS rank FROM case_documents_fts WHERE case_documents_fts MATCH ? ORDER BY rank LIMIT ?`;
-
-      const notes = db
-        .prepare<any>(noteSql)
-        .all(...params)
-        .map(mapSearchResult);
-      const docs = db
-        .prepare<any>(docSql)
-        .all(...params)
-        .map(mapSearchResult);
-      return [...notes, ...docs]
-        .sort((a, b) => a.rank - b.rank)
-        .slice(0, limit);
-    } catch (error) {
-      // Fallback für Umgebungen ohne FTS5 oder bei Sonderzeichen in der Suche.
-      const pattern = likePattern(query);
-      const noteRows = db
-        .prepare<any>(
-          `
-        SELECT 'note' AS source_type, n.id AS source_id, n.case_id, c.case_number,
-          (SELECT GROUP_CONCAT(DISTINCT lc.case_number) FROM case_note_cases cnc JOIN cases lc ON lc.id = cnc.case_id WHERE cnc.note_id = n.id) AS case_numbers,
-          COALESCE(n.title, 'Gesprächsnotiz') AS title,
-          substr(COALESCE(n.content, ''), 1, 220) AS excerpt, n.note_date AS date, 100 AS rank
-        FROM case_notes n
-        JOIN cases c ON c.id = n.case_id
-        WHERE (? IS NULL OR EXISTS (SELECT 1 FROM case_note_cases link WHERE link.note_id = n.id AND link.case_id = ?))
-          AND (n.title LIKE ? ESCAPE '\\' OR n.content LIKE ? ESCAPE '\\' OR COALESCE(n.participants, '') LIKE ? ESCAPE '\\' OR COALESCE(n.next_steps, '') LIKE ? ESCAPE '\\')
-        ORDER BY n.note_date DESC
-        LIMIT ?
-      `,
-        )
-        .all(
-          input.caseId ?? null,
-          input.caseId ?? null,
-          pattern,
-          pattern,
-          pattern,
-          pattern,
-          limit,
-        )
-        .map(mapSearchResult);
-
-      const docRows = db
-        .prepare<any>(
-          `
-        SELECT 'document' AS source_type, d.id AS source_id, d.case_id, c.case_number, COALESCE(d.display_title, d.filename) AS title,
-          substr(COALESCE(d.extracted_text, d.filename), 1, 220) AS excerpt, d.created_at AS date, 110 AS rank
-        FROM case_documents d
-        JOIN cases c ON c.id = d.case_id
-        WHERE (? IS NULL OR d.case_id = ?)
-          AND (d.filename LIKE ? ESCAPE '\\' OR COALESCE(d.display_title, '') LIKE ? ESCAPE '\\' OR COALESCE(d.extracted_text, '') LIKE ? ESCAPE '\\')
-        ORDER BY d.created_at DESC
-        LIMIT ?
-      `,
-        )
-        .all(
-          input.caseId ?? null,
-          input.caseId ?? null,
-          pattern,
-          pattern,
-          pattern,
-          limit,
-        )
-        .map(mapSearchResult);
-      return [...noteRows, ...docRows].slice(0, limit);
-    }
+    return new SearchIndexService(db).search(input);
   }
 
   async listDocuments(caseId: string, measureId?: string): Promise<CaseDocumentRecord[]> {
@@ -922,19 +733,20 @@ export class CaseService {
     const storagePath = path.join(storageDir, `${id}.gsbvdoc`);
     await fs.promises.writeFile(storagePath, encrypted);
 
-    const extractedText = await extractTextBestEffort(
+    const extraction = await extractDocumentTextBestEffort(
       filePath,
       originalName,
       buffer,
     );
-    const mimeType = inferMimeType(originalName);
+    const extractedText = extraction.text;
+    const mimeType = extraction.mimeType;
 
     db.prepare(
       `
       INSERT INTO case_documents (
         id, case_id, measure_id, filename, display_title, mime_type, storage_path, sha256, extracted_text,
-        document_key, iv, auth_tag, size_bytes, contains_health_data, created_at, imported_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        document_key, iv, auth_tag, size_bytes, contains_health_data, extraction_quality, text_extraction_status, text_extracted_at, text_extractor_id, text_extraction_error, ocr_status, created_at, imported_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `,
     ).run(
       id,
@@ -951,11 +763,19 @@ export class CaseService {
       authTag.toString("base64"),
       buffer.length,
       containsHealthData ? 1 : 0,
+      extraction.quality,
+      extraction.status,
+      timestamp,
+      extraction.extractorId,
+      extraction.errorMessage ?? null,
+      'not_required',
       timestamp,
       timestamp,
     );
 
     this.indexDocument(db, id);
+    new SearchIndexService(db).reindexSource("document", id);
+    this.scheduleDocumentOcrIfUseful(db, id);
     const created = db
       .prepare<any>(
         `
@@ -968,6 +788,15 @@ export class CaseService {
       )
       .get(id);
     return mapDocument(created);
+  }
+
+
+  private scheduleDocumentOcrIfUseful(db: DatabaseAdapter, documentId: string): void {
+    const ocr = new DocumentOcrService(db);
+    if (!ocr.enqueueIfUseful(documentId)) return;
+    setTimeout(() => {
+      void new DocumentOcrService(db).runPending().catch(() => undefined);
+    }, 0);
   }
 
   private tempFiles(): TempFileService {
@@ -1066,6 +895,8 @@ export class CaseService {
       )
       .get(id);
     db.prepare("DELETE FROM case_documents_fts WHERE id = ?").run(id);
+    new SearchIndexService(db).deleteSource("document", id);
+    new SearchIndexService(db).deleteSource("document_ocr", id);
     const result = db
       .prepare<any>("DELETE FROM case_documents WHERE id = ?")
       .run(id) as { changes?: number } | undefined;

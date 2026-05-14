@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
 import { noteProcessTypeToCaseMeasureType } from '../src/app/core/models/case-measure.model.js';
+import { SearchIndexService } from './search/searchIndexService.js';
 import type {
   CaseMeasureCreatedFrom,
   CaseMeasureNoteProcessType,
@@ -204,6 +205,7 @@ export class CaseMeasureService {
       timestamp
     );
     this.audit('create', id, input.caseId, `Fallmaßnahme angelegt (${input.type})`);
+    new SearchIndexService(this.db).reindexSource('measure', id);
     return this.getById(id)!;
   }
 
@@ -227,6 +229,7 @@ export class CaseMeasureService {
       id
     );
     this.audit('update', id, existing.caseId, 'Fallmaßnahme geändert');
+    new SearchIndexService(this.db).reindexSource('measure', id);
     return this.getById(id)!;
   }
 
@@ -269,6 +272,7 @@ export class CaseMeasureService {
       timestamp
     );
     this.audit('create', id, input.caseId, `Maßnahmennotiz angelegt (${input.measureType})`);
+    new SearchIndexService(this.db).reindexSource('measure_note', id);
     return mapMeasureNote(this.db.prepare<any>('SELECT * FROM case_measure_notes WHERE id = ?').get(id));
   }
 
@@ -295,11 +299,13 @@ export class CaseMeasureService {
       id
     );
     this.audit('update', id, existing.case_id, 'Maßnahmennotiz geändert');
+    new SearchIndexService(this.db).reindexSource('measure_note', id);
     return mapMeasureNote(this.db.prepare<any>('SELECT * FROM case_measure_notes WHERE id = ?').get(id));
   }
 
   deleteNote(id: string): { deleted: boolean } {
     const existing = this.db.prepare<any>('SELECT * FROM case_measure_notes WHERE id = ?').get(id);
+    new SearchIndexService(this.db).deleteSource('measure_note', id);
     const result = this.db.prepare<any>('DELETE FROM case_measure_notes WHERE id = ?').run(id) as { changes?: number } | undefined;
     this.audit('delete', id, existing?.case_id, 'Maßnahmennotiz gelöscht');
     return { deleted: Boolean(result?.changes) };

@@ -58,7 +58,18 @@ export const CASE_PRIVACY_ENTITY_REGISTRY = [
     idColumn: 'id',
     caseColumn: 'case_id',
     pendingMarkerFields: ['title', 'trigger_description', 'consent_scope', 'data_retention_note', 'participants', 'measures', 'measure_owners', 'result', 'completion_reason', 'confidential_notes'],
-    anonymizeFields: {},
+    anonymizeFields: {
+      title: { literal: '[BEM anonymisiert]' },
+      trigger_description: 'anonymizationStamp',
+      consent_scope: 'null',
+      data_retention_note: 'null',
+      participants: { literal: '[anonymisiert]' },
+      measures: 'anonymizationStamp',
+      measure_owners: 'null',
+      result: 'anonymizationStamp',
+      completion_reason: 'null',
+      confidential_notes: 'null',
+    },
     deleteWithCase: false,
   },
   {
@@ -67,7 +78,10 @@ export const CASE_PRIVACY_ENTITY_REGISTRY = [
     idColumn: 'id',
     caseColumn: 'process_id',
     pendingMarkerFields: ['title', 'description'],
-    anonymizeFields: {},
+    anonymizeFields: {
+      title: { literal: '[BEM-Ereignis anonymisiert]' },
+      description: 'anonymizationStamp',
+    },
     deleteWithCase: false,
   },
   {
@@ -76,7 +90,12 @@ export const CASE_PRIVACY_ENTITY_REGISTRY = [
     idColumn: 'id',
     caseColumn: 'case_id',
     pendingMarkerFields: ['hazard_description', 'employer_request_summary', 'measures', 'result'],
-    anonymizeFields: {},
+    anonymizeFields: {
+      hazard_description: 'anonymizationStamp',
+      employer_request_summary: 'null',
+      measures: 'anonymizationStamp',
+      result: 'anonymizationStamp',
+    },
     deleteWithCase: false,
   },
   {
@@ -85,7 +104,10 @@ export const CASE_PRIVACY_ENTITY_REGISTRY = [
     idColumn: 'id',
     caseColumn: 'process_id',
     pendingMarkerFields: ['title', 'description'],
-    anonymizeFields: {},
+    anonymizeFields: {
+      title: { literal: '[Präventionsereignis anonymisiert]' },
+      description: 'anonymizationStamp',
+    },
     deleteWithCase: false,
   },
   {
@@ -94,7 +116,11 @@ export const CASE_PRIVACY_ENTITY_REGISTRY = [
     idColumn: 'id',
     caseColumn: 'case_id',
     pendingMarkerFields: ['agency_reference', 'outcome', 'notes'],
-    anonymizeFields: {},
+    anonymizeFields: {
+      agency_reference: 'null',
+      outcome: 'anonymizationStamp',
+      notes: 'anonymizationStamp',
+    },
     deleteWithCase: false,
   },
   {
@@ -103,7 +129,12 @@ export const CASE_PRIVACY_ENTITY_REGISTRY = [
     idColumn: 'id',
     caseColumn: 'case_id',
     pendingMarkerFields: ['employer_reason', 'missing_information', 'sbv_assessment', 'statement'],
-    anonymizeFields: {},
+    anonymizeFields: {
+      employer_reason: 'anonymizationStamp',
+      missing_information: 'null',
+      sbv_assessment: 'anonymizationStamp',
+      statement: 'anonymizationStamp',
+    },
     deleteWithCase: false,
   },
   {
@@ -112,7 +143,12 @@ export const CASE_PRIVACY_ENTITY_REGISTRY = [
     idColumn: 'id',
     caseColumn: 'case_id',
     pendingMarkerFields: ['title', 'violation_summary', 'sbv_position', 'next_step'],
-    anonymizeFields: {},
+    anonymizeFields: {
+      title: { literal: '[SBV-Beteiligung anonymisiert]' },
+      violation_summary: 'anonymizationStamp',
+      sbv_position: 'anonymizationStamp',
+      next_step: 'null',
+    },
     deleteWithCase: false,
   },
   {
@@ -121,7 +157,10 @@ export const CASE_PRIVACY_ENTITY_REGISTRY = [
     idColumn: 'id',
     caseColumn: 'participation_id',
     pendingMarkerFields: ['title', 'description'],
-    anonymizeFields: {},
+    anonymizeFields: {
+      title: { literal: '[SBV-Beteiligungsereignis anonymisiert]' },
+      description: 'anonymizationStamp',
+    },
     deleteWithCase: false,
   },
   {
@@ -130,7 +169,50 @@ export const CASE_PRIVACY_ENTITY_REGISTRY = [
     idColumn: 'id',
     caseColumn: 'case_id',
     pendingMarkerFields: ['title', 'summary', 'next_step'],
-    anonymizeFields: {},
+    anonymizeFields: {
+      title: { literal: '[Maßnahme anonymisiert]' },
+      summary: 'anonymizationStamp',
+      next_step: 'null',
+    },
+    deleteWithCase: false,
+  },
+  {
+    key: 'case-measure-participation',
+    table: 'case_measure_participation',
+    idColumn: 'measure_id',
+    caseColumn: 'measure_id',
+    pendingMarkerFields: ['violation_summary', 'sbv_position'],
+    anonymizeFields: {
+      violation_summary: 'anonymizationStamp',
+      sbv_position: 'anonymizationStamp',
+    },
+    deleteWithCase: false,
+  },
+  {
+    key: 'case-measure-event',
+    table: 'case_measure_events',
+    idColumn: 'id',
+    caseColumn: 'measure_id',
+    pendingMarkerFields: ['title', 'description'],
+    anonymizeFields: {
+      title: { literal: '[Maßnahmenereignis anonymisiert]' },
+      description: 'anonymizationStamp',
+    },
+    deleteWithCase: false,
+  },
+  {
+    key: 'case-measure-workplace-accommodation',
+    table: 'case_measure_workplace_accommodation',
+    idColumn: 'measure_id',
+    caseColumn: 'measure_id',
+    pendingMarkerFields: ['requested_adjustment', 'barrier_or_limitation', 'workplace_context', 'proposed_solution', 'outcome'],
+    anonymizeFields: {
+      requested_adjustment: 'anonymizationStamp',
+      barrier_or_limitation: 'null',
+      workplace_context: 'null',
+      proposed_solution: 'null',
+      outcome: 'anonymizationStamp',
+    },
     deleteWithCase: false,
   },
   {

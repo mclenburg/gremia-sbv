@@ -59,16 +59,43 @@ export interface UpdateCaseNoteInput {
   links?: CreateCaseNoteLinkInput[];
 }
 
-export type CaseSearchSourceType = 'note' | 'document';
+export type CaseSearchSourceType =
+  | 'case'
+  | 'note'
+  | 'document'
+  | 'document_ocr'
+  | 'measure_note'
+  | 'bem'
+  | 'bem_event'
+  | 'prevention'
+  | 'prevention_event'
+  | 'termination'
+  | 'equalization'
+  | 'participation'
+  | 'participation_event'
+  | 'measure'
+  | 'measure_event'
+  | 'workplace_accommodation';
+
+export interface CaseSearchHighlightSegment {
+  text: string;
+  match: boolean;
+}
 
 export interface CaseSearchResult {
   sourceType: CaseSearchSourceType;
   sourceId: string;
+  sourceLabel?: string;
   caseId: string;
   caseNumber?: string;
   caseNumbers?: string[];
   title: string;
   excerpt: string;
+  excerptSegments?: CaseSearchHighlightSegment[];
+  extractionQuality?: 'structured' | 'native_text' | 'ocr' | 'manual' | 'unknown';
+  navigationKind?: 'case' | 'note' | 'document' | 'measure' | 'process';
+  navigationId?: string;
+  navigationSubId?: string;
   date?: string;
   rank: number;
 }
@@ -77,4 +104,5 @@ export interface CaseContentSearchInput {
   query: string;
   caseId?: string;
   limit?: number;
+  sourceTypes?: CaseSearchSourceType[];
 }

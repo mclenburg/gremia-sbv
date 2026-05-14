@@ -3,7 +3,7 @@ import path from 'node:path';
 import type { DatabaseAdapter } from './databaseService.js';
 import { classifyCaseLegalReferencesColumns } from './knowledgeMigrationPolicy.js';
 import { APP_VERSION } from './generated/appMetadata.js';
-import { APP_SCHEMA_VERSION, CASES_REQUIRED_COLUMNS, CASE_MEASURES_REQUIRED_COLUMNS, CASE_MEASURE_PARTICIPATION_REQUIRED_COLUMNS, CASE_MEASURE_NOTES_REQUIRED_COLUMNS, CASE_MEASURE_WORKPLACE_ACCOMMODATION_REQUIRED_COLUMNS, PERSON_IMPORT_RUN_ITEMS_REQUIRED_COLUMNS, PROTECTED_PERSONS_REQUIRED_COLUMNS, DATABASE_SCHEMA_APP_VERSION_KEY, DATABASE_SCHEMA_VERSION_KEY, PERSONAL_DATA_AUDIT_REQUIRED_COLUMNS, SBV_PARTICIPATION_REQUIRED_COLUMNS, TERMINATION_HEARINGS_REQUIRED_COLUMNS } from './appSchema.js';
+import { APP_SCHEMA_VERSION, CASE_DOCUMENTS_REQUIRED_COLUMNS, CASE_DOCUMENT_OCR_JOBS_REQUIRED_COLUMNS, CASES_REQUIRED_COLUMNS, CASE_MEASURES_REQUIRED_COLUMNS, CASE_MEASURE_PARTICIPATION_REQUIRED_COLUMNS, CASE_MEASURE_NOTES_REQUIRED_COLUMNS, CASE_MEASURE_WORKPLACE_ACCOMMODATION_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_STATE_REQUIRED_COLUMNS, PERSON_IMPORT_RUN_ITEMS_REQUIRED_COLUMNS, PROTECTED_PERSONS_REQUIRED_COLUMNS, DATABASE_SCHEMA_APP_VERSION_KEY, DATABASE_SCHEMA_VERSION_KEY, PERSONAL_DATA_AUDIT_REQUIRED_COLUMNS, SBV_PARTICIPATION_REQUIRED_COLUMNS, TERMINATION_HEARINGS_REQUIRED_COLUMNS } from './appSchema.js';
 
 interface MigrationRow {
   version: string;
@@ -291,6 +291,21 @@ export class MigrationService {
           && this.columnExists('case_measure_notes', 'measure_type')
           && this.columnExists('case_measure_notes', 'measure_id')
           && this.columnExists('case_measure_notes', 'content');
+      case '0027':
+        return this.tableExists('case_search_index')
+          && this.tableExists('case_search_index_fts')
+          && CASE_SEARCH_INDEX_REQUIRED_COLUMNS.every((column) => this.columnExists('case_search_index', column));
+      case '0028':
+        return CASE_DOCUMENTS_REQUIRED_COLUMNS.every((column) => this.columnExists('case_documents', column));
+      case '0029':
+        return this.tableExists('case_search_index_state')
+          && CASE_SEARCH_INDEX_STATE_REQUIRED_COLUMNS.every((column) => this.columnExists('case_search_index_state', column));
+      case '0030':
+        return CASE_DOCUMENTS_REQUIRED_COLUMNS.every((column) => this.columnExists('case_documents', column));
+      case '0031':
+        return CASE_DOCUMENTS_REQUIRED_COLUMNS.every((column) => this.columnExists('case_documents', column))
+          && this.tableExists('case_document_ocr_jobs')
+          && CASE_DOCUMENT_OCR_JOBS_REQUIRED_COLUMNS.every((column) => this.columnExists('case_document_ocr_jobs', column));
       default:
         return false;
     }
@@ -478,10 +493,119 @@ export class MigrationService {
       diagnostics.push('Maßnahmennotizen-Schema wurde auf Stand 0026 repariert.');
     }
 
+    if (this.tableExists('case_documents')) {
+      const missingDocumentExtractionColumns = CASE_DOCUMENTS_REQUIRED_COLUMNS
+        .filter((column) => !this.columnExists('case_documents', column));
+      if (missingDocumentExtractionColumns.length) {
+        this.addColumnIfMissing('case_documents', 'extraction_quality', "TEXT NOT NULL DEFAULT 'unknown'");
+        this.addColumnIfMissing('case_documents', 'text_extraction_status', "TEXT NOT NULL DEFAULT 'unknown'");
+        this.addColumnIfMissing('case_documents', 'text_extracted_at', 'TEXT');
+        this.addColumnIfMissing('case_documents', 'text_extractor_id', 'TEXT');
+        this.addColumnIfMissing('case_documents', 'text_extraction_error', 'TEXT');
+        this.addColumnIfMissing('case_documents', 'ocr_status', "TEXT NOT NULL DEFAULT 'not_required'");
+        this.addColumnIfMissing('case_documents', 'ocr_text', 'TEXT');
+        this.addColumnIfMissing('case_documents', 'ocr_engine', 'TEXT');
+        this.addColumnIfMissing('case_documents', 'ocr_started_at', 'TEXT');
+        this.addColumnIfMissing('case_documents', 'ocr_completed_at', 'TEXT');
+        this.addColumnIfMissing('case_documents', 'ocr_error', 'TEXT');
+        this.db.exec(`
+          UPDATE case_documents
+          SET extraction_quality = CASE WHEN COALESCE(extracted_text, '') <> '' THEN 'native_text' ELSE 'unknown' END,
+              text_extraction_status = CASE WHEN COALESCE(extracted_text, '') <> '' THEN 'extracted' ELSE 'empty' END,
+              text_extracted_at = COALESCE(imported_at, created_at, CURRENT_TIMESTAMP),
+              text_extractor_id = COALESCE(text_extractor_id, CASE WHEN COALESCE(extracted_text, '') <> '' THEN 'legacy' ELSE 'unsupported' END)
+          WHERE extraction_quality = 'unknown' AND text_extraction_status = 'unknown';
+        `);
+        this.ensureDocumentOcrSchema();
+        diagnostics.push('Dokument-Extraktionsmetadaten wurden auf Stand 0031 repariert.');
+      }
+    }
+
+    if (this.tableExists('case_documents') && (!this.tableExists('case_document_ocr_jobs') || !CASE_DOCUMENT_OCR_JOBS_REQUIRED_COLUMNS.every((column) => this.columnExists('case_document_ocr_jobs', column)))) {
+      this.ensureDocumentOcrSchema();
+      diagnostics.push('Dokument-OCR-Schema wurde auf Stand 0031 repariert.');
+    }
+
+    if (!this.tableExists('case_search_index') || !this.tableExists('case_search_index_fts') || !this.tableExists('case_search_index_state') || !CASE_SEARCH_INDEX_REQUIRED_COLUMNS.every((column) => this.columnExists('case_search_index', column)) || !CASE_SEARCH_INDEX_STATE_REQUIRED_COLUMNS.every((column) => this.columnExists('case_search_index_state', column))) {
+      this.ensureCaseSearchIndexSchema();
+      diagnostics.push('Suchindex-Schema wurde auf Stand 0029 repariert.');
+    }
+
     if (!this.hasCompleteProtectedPerson091Schema()) {
       this.ensureProtectedPerson091Schema();
       diagnostics.push('Personenverzeichnis-/Fallaktenbindung-Schema wurde auf Stand 0025 repariert.');
     }
+  }
+
+
+  private ensureDocumentOcrSchema(): void {
+    if (this.tableExists('case_documents')) {
+      this.addColumnIfMissing('case_documents', 'ocr_status', "TEXT NOT NULL DEFAULT 'not_required'");
+      this.addColumnIfMissing('case_documents', 'ocr_text', 'TEXT');
+      this.addColumnIfMissing('case_documents', 'ocr_engine', 'TEXT');
+      this.addColumnIfMissing('case_documents', 'ocr_started_at', 'TEXT');
+      this.addColumnIfMissing('case_documents', 'ocr_completed_at', 'TEXT');
+      this.addColumnIfMissing('case_documents', 'ocr_error', 'TEXT');
+      this.db.exec('CREATE INDEX IF NOT EXISTS idx_case_documents_ocr_status ON case_documents(ocr_status, imported_at);');
+    }
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS case_document_ocr_jobs (
+        id TEXT PRIMARY KEY,
+        document_id TEXT NOT NULL REFERENCES case_documents(id) ON DELETE CASCADE,
+        case_id TEXT NOT NULL REFERENCES cases(id) ON DELETE CASCADE,
+        status TEXT NOT NULL DEFAULT 'queued' CHECK (status IN ('queued','processing','completed','unsupported','failed')),
+        attempts INTEGER NOT NULL DEFAULT 0,
+        last_error TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_case_document_ocr_jobs_document ON case_document_ocr_jobs(document_id);
+      CREATE INDEX IF NOT EXISTS idx_case_document_ocr_jobs_status ON case_document_ocr_jobs(status, updated_at);
+    `);
+  }
+
+  private ensureCaseSearchIndexSchema(): void {
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS case_search_index (
+        id TEXT PRIMARY KEY,
+        case_id TEXT NOT NULL,
+        case_number TEXT,
+        source_type TEXT NOT NULL,
+        source_id TEXT NOT NULL,
+        source_label TEXT NOT NULL,
+        title TEXT NOT NULL,
+        content TEXT NOT NULL,
+        keywords TEXT,
+        occurred_at TEXT,
+        updated_at TEXT NOT NULL,
+        confidentiality TEXT NOT NULL DEFAULT 'sensibel',
+        contains_health_data INTEGER NOT NULL DEFAULT 1,
+        extraction_quality TEXT NOT NULL DEFAULT 'structured',
+        navigation_kind TEXT NOT NULL,
+        navigation_id TEXT NOT NULL,
+        navigation_sub_id TEXT,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(source_type, source_id, case_id)
+      );
+      CREATE INDEX IF NOT EXISTS idx_case_search_index_case ON case_search_index(case_id, updated_at);
+      CREATE INDEX IF NOT EXISTS idx_case_search_index_source ON case_search_index(source_type, source_id);
+      CREATE INDEX IF NOT EXISTS idx_case_search_index_navigation ON case_search_index(navigation_kind, navigation_id);
+      CREATE TABLE IF NOT EXISTS case_search_index_state (
+        case_id TEXT PRIMARY KEY,
+        indexed_at TEXT NOT NULL,
+        last_source_updated_at TEXT,
+        source_count INTEGER NOT NULL DEFAULT 0,
+        updated_at TEXT NOT NULL
+      );
+      CREATE VIRTUAL TABLE IF NOT EXISTS case_search_index_fts USING fts5(
+        index_id UNINDEXED,
+        title,
+        content,
+        keywords,
+        source_label,
+        tokenize = 'unicode61 remove_diacritics 2'
+      );
+    `);
   }
 
   private hasCompleteProtectedPerson091Schema(): boolean {
@@ -944,6 +1068,7 @@ CREATE INDEX IF NOT EXISTS idx_case_measure_events_measure_created ON case_measu
 
     const requiredColumns: Record<string, string[]> = {
       cases: [...CASES_REQUIRED_COLUMNS],
+      case_documents: [...CASE_DOCUMENTS_REQUIRED_COLUMNS],
       contacts: ['id', 'first_name', 'last_name', 'category'],
       deadlines: ['id', 'title', 'due_at', 'status'],
       prevention_processes: ['id', 'case_id', 'status'],

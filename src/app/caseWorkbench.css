@@ -205,3 +205,30 @@
     display: none;
   }
 }
+
+.case-search-source-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.5rem 0 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 0.75rem;
+}
+
+.case-search-source-filters legend {
+  padding: 0 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(226, 232, 240, 0.74);
+}
+
+.case-search-result mark {
+  border-radius: 0.2rem;
+  padding: 0 0.12rem;
+  background: rgba(250, 204, 21, 0.28);
+  color: inherit;
+}

@@ -7,6 +7,7 @@ import { applyPendingAnonymizationMarkers } from './textCommandPolicy.js';
 import type { CaseCategory, CasePriority, CaseRecord, CaseStatus } from '../src/app/core/models/case.model.js';
 import type { PrivacyReviewItemRecord, PrivacyReviewItemStatus, PrivacyReviewContextSnapshot } from '../src/app/core/models/privacy-review.model.js';
 import { caseWhereSql, directCasePrivacyEntities } from './privacyEntityRegistry.js';
+import { SearchIndexService } from './search/searchIndexService.js';
 
 function nowIso(): string { return new Date().toISOString(); }
 function tryExec(db: DatabaseAdapter, sql: string): void { try { db.exec(sql); } catch { /* idempotent */ } }
@@ -268,6 +269,8 @@ export class PrivacyReviewService {
       let affectedRows = 0;
       affectedRows += Number((this.db.prepare(`UPDATE cases SET display_name = '[Fall anonymisiert]', protected_person_id = NULL, person_binding_state = 'anonymized', is_pseudonymized = 1, privacy_review_required = 1, privacy_review_reason = 'linked_person_anonymized', anonymized_at = ?, updated_at = ? WHERE id = ?`).run(timestamp, timestamp, caseId) as { changes?: number }).changes ?? 0);
       affectedRows += replacePendingAnonymizationMarkersForCase(this.db, caseId, timestamp);
+      affectedRows += new SearchIndexService(this.db).deleteCase(caseId);
+      affectedRows += new SearchIndexService(this.db).reindexCase(caseId);
       affectedRows += Number((this.db.prepare(`UPDATE person_case_links SET link_state = 'person_anonymized', anonymized_at = ? WHERE case_file_id = ? AND link_state = 'active'`).run(timestamp, caseId) as { changes?: number }).changes ?? 0);
       this.db.prepare(`UPDATE privacy_review_items SET status = 'anonymized', updated_at = ? WHERE case_id = ? AND status = 'open'`).run(timestamp, caseId);
       new PersonalDataAuditLogService(this.db).append({ action: 'update', subjectType: 'privacy_review', caseId, purpose: 'Fallakte strukturiert anonymisiert', metadata: { reasonDocumented: true, pendingMarkersApplied: true, unmarkedFreeTextReviewRequired: true } });

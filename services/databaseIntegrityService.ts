@@ -17,16 +17,24 @@ const REQUIRED_TABLES = [
   'privacy_review_items',
   'personal_data_audit_log',
   'case_measure_notes',
+  'case_search_index',
+  'case_search_index_fts',
+  'case_search_index_state',
+  'case_document_ocr_jobs',
 ] as const;
 
 const REQUIRED_COLUMNS: Record<string, readonly string[]> = {
   cases: ['id', 'case_number', 'display_name', 'category', 'status', 'protected_person_id', 'person_binding_state'],
+  case_documents: ['id', 'case_id', 'filename', 'storage_path', 'sha256', 'extracted_text', 'document_key', 'iv', 'auth_tag', 'size_bytes', 'imported_at', 'extraction_quality', 'text_extraction_status', 'text_extracted_at', 'text_extractor_id', 'text_extraction_error', 'ocr_status', 'ocr_text', 'ocr_engine', 'ocr_started_at', 'ocr_completed_at', 'ocr_error', 'contains_health_data', 'created_at'],
   protected_persons: ['id', 'first_name', 'last_name', 'employment_state', 'protection_status', 'lifecycle_state'],
   person_case_links: ['id', 'protected_person_id', 'case_file_id', 'link_state'],
   privacy_review_items: ['id', 'case_id', 'protected_person_id', 'reason', 'status', 'due_at'],
   personal_data_audit_log: ['id', 'sequence', 'occurred_at', 'actor', 'action', 'subject_type', 'purpose', 'previous_hash', 'entry_hash'],
   case_measure_notes: ['id', 'case_id', 'measure_type', 'measure_id', 'title', 'note_at', 'content', 'contains_health_data', 'confidential_level', 'created_at', 'updated_at'],
   deadlines: ['id', 'title', 'due_at', 'status'],
+  case_search_index: ['id', 'case_id', 'source_type', 'source_id', 'source_label', 'title', 'content', 'updated_at', 'confidentiality', 'contains_health_data', 'extraction_quality', 'navigation_kind', 'navigation_id'],
+  case_search_index_state: ['case_id', 'indexed_at', 'last_source_updated_at', 'source_count', 'updated_at'],
+  case_document_ocr_jobs: ['id', 'document_id', 'case_id', 'status', 'attempts', 'created_at', 'updated_at'],
 };
 
 function tableExists(db: DatabaseAdapter, table: string): boolean {

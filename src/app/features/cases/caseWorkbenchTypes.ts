@@ -1,5 +1,5 @@
 import type { CaseDocumentRecord } from '../../core/models/case-document.model';
-import type { CaseNoteRecord, CaseSearchResult } from '../../core/models/case-note.model';
+import type { CaseNoteRecord, CaseSearchResult, CaseSearchSourceType } from '../../core/models/case-note.model';
 import type { FormEvent } from 'react';
 import type { PreventionProcessRecord } from '../../core/models/prevention.model';
 import type { BemProcessRecord } from '../../core/models/bem.model';
@@ -39,8 +39,10 @@ export type CaseDetailPanelSearchProps = {
   searchQuery: string;
   searchOnlySelectedCase: boolean;
   searchResults: CaseSearchResult[];
+  selectedSearchSourceTypes: CaseSearchSourceType[];
   onSearchSubmit: (event?: FormEvent<HTMLFormElement>) => void | Promise<void>;
   onSearchQueryChange: (value: string) => void;
   onSearchOnlySelectedCaseChange: (value: boolean) => void;
+  onSearchSourceTypesChange: (value: CaseSearchSourceType[]) => void;
   onSelectSearchResult: (result: CaseSearchResult) => void;
 };

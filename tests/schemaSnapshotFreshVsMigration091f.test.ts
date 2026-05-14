@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { CASE_MEASURE_NOTES_REQUIRED_COLUMNS } from '../services/appSchema';
+import { CASE_DOCUMENTS_REQUIRED_COLUMNS, CASE_DOCUMENT_OCR_JOBS_REQUIRED_COLUMNS, CASE_MEASURE_NOTES_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_STATE_REQUIRED_COLUMNS } from '../services/appSchema';
 import { compareIndexSnapshot, compareTableSnapshot, createSqlSchemaSnapshot } from '../services/schemaSnapshotPolicy';
 
 describe('Schema-Snapshot Fresh Install vs. Legacy-Migration 0.9.1', () => {
@@ -17,4 +17,66 @@ describe('Schema-Snapshot Fresh Install vs. Legacy-Migration 0.9.1', () => {
     expect(problems).toEqual([]);
     expect(fresh.tables.case_measure_notes.columns).toEqual(expect.arrayContaining([...CASE_MEASURE_NOTES_REQUIRED_COLUMNS]));
   });
+
+  it('hält case_search_index in Basisschema und Migration 0027 strukturgleich', () => {
+    const fresh = createSqlSchemaSnapshot(readFileSync('database/schema.sql', 'utf8'));
+    const migrated = createSqlSchemaSnapshot(readFileSync('database/migrations/0027_case_search_index.sql', 'utf8'));
+
+    const problems = [
+      ...compareTableSnapshot(fresh, migrated, 'case_search_index'),
+      ...compareIndexSnapshot(fresh, migrated, 'idx_case_search_index_case'),
+      ...compareIndexSnapshot(fresh, migrated, 'idx_case_search_index_source'),
+      ...compareIndexSnapshot(fresh, migrated, 'idx_case_search_index_navigation'),
+    ];
+
+    expect(problems).toEqual([]);
+    expect(fresh.tables.case_search_index.columns).toEqual(expect.arrayContaining([...CASE_SEARCH_INDEX_REQUIRED_COLUMNS]));
+  });
+
+
+  it('hält Dokument-Extraktionsmetadaten in Basisschema und Migration 0028 nachvollziehbar', () => {
+    const fresh = createSqlSchemaSnapshot(readFileSync('database/schema.sql', 'utf8'));
+    const migrated = createSqlSchemaSnapshot(readFileSync('database/migrations/0028_document_text_extraction_metadata.sql', 'utf8'));
+
+    const expectedColumns = ['extraction_quality', 'text_extraction_status', 'text_extracted_at'];
+
+    expect(fresh.tables.case_documents.columns).toEqual(expect.arrayContaining([...CASE_DOCUMENTS_REQUIRED_COLUMNS]));
+    expect(migrated.tables.case_documents.columns).toEqual(expect.arrayContaining(expectedColumns));
+  });
+
+
+  it('hält Dokument-Extraktionsdiagnostik in Basisschema und Migration 0030 nachvollziehbar', () => {
+    const fresh = createSqlSchemaSnapshot(readFileSync('database/schema.sql', 'utf8'));
+    const migrated = createSqlSchemaSnapshot(readFileSync('database/migrations/0030_document_text_extraction_diagnostics.sql', 'utf8'));
+
+    const expectedColumns = ['text_extractor_id', 'text_extraction_error'];
+
+    expect(fresh.tables.case_documents.columns).toEqual(expect.arrayContaining([...CASE_DOCUMENTS_REQUIRED_COLUMNS]));
+    expect(migrated.tables.case_documents.columns).toEqual(expect.arrayContaining(expectedColumns));
+  });
+
+
+  it('hält OCR-Hintergrundjob-Struktur in Basisschema und Migration 0031 nachvollziehbar', () => {
+    const fresh = createSqlSchemaSnapshot(readFileSync('database/schema.sql', 'utf8'));
+    const migrated = createSqlSchemaSnapshot(readFileSync('database/migrations/0031_document_ocr_background_jobs.sql', 'utf8'));
+
+    const expectedDocumentColumns = ['ocr_status', 'ocr_text', 'ocr_engine', 'ocr_started_at', 'ocr_completed_at', 'ocr_error'];
+
+    expect(fresh.tables.case_documents.columns).toEqual(expect.arrayContaining([...CASE_DOCUMENTS_REQUIRED_COLUMNS]));
+    expect(migrated.tables.case_documents.columns).toEqual(expect.arrayContaining(expectedDocumentColumns));
+    expect(fresh.tables.case_document_ocr_jobs.columns).toEqual(expect.arrayContaining([...CASE_DOCUMENT_OCR_JOBS_REQUIRED_COLUMNS]));
+    expect(migrated.tables.case_document_ocr_jobs.columns).toEqual(expect.arrayContaining([...CASE_DOCUMENT_OCR_JOBS_REQUIRED_COLUMNS]));
+  });
+
+
+  it('hält case_search_index_state in Basisschema und Migration 0029 strukturgleich', () => {
+    const fresh = createSqlSchemaSnapshot(readFileSync('database/schema.sql', 'utf8'));
+    const migrated = createSqlSchemaSnapshot(readFileSync('database/migrations/0029_case_search_index_state.sql', 'utf8'));
+
+    const problems = compareTableSnapshot(fresh, migrated, 'case_search_index_state');
+
+    expect(problems).toEqual([]);
+    expect(fresh.tables.case_search_index_state.columns).toEqual(expect.arrayContaining([...CASE_SEARCH_INDEX_STATE_REQUIRED_COLUMNS]));
+  });
+
 });

@@ -95,8 +95,36 @@ CREATE TABLE IF NOT EXISTS case_documents (
   storage_path TEXT NOT NULL,
   sha256 TEXT NOT NULL,
   extracted_text TEXT,
+  document_key TEXT,
+  iv TEXT,
+  auth_tag TEXT,
+  size_bytes INTEGER,
+  imported_at TEXT,
+  extraction_quality TEXT NOT NULL DEFAULT 'unknown',
+  text_extraction_status TEXT NOT NULL DEFAULT 'unknown',
+  text_extracted_at TEXT,
+  text_extractor_id TEXT,
+  text_extraction_error TEXT,
+  ocr_status TEXT NOT NULL DEFAULT 'not_required' CHECK (ocr_status IN ('not_required','queued','processing','completed','unsupported','failed')),
+  ocr_text TEXT,
+  ocr_engine TEXT,
+  ocr_started_at TEXT,
+  ocr_completed_at TEXT,
+  ocr_error TEXT,
   contains_health_data INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL
+);
+
+
+CREATE TABLE IF NOT EXISTS case_document_ocr_jobs (
+  id TEXT PRIMARY KEY,
+  document_id TEXT NOT NULL REFERENCES case_documents(id) ON DELETE CASCADE,
+  case_id TEXT NOT NULL REFERENCES cases(id) ON DELETE CASCADE,
+  status TEXT NOT NULL DEFAULT 'queued' CHECK (status IN ('queued','processing','completed','unsupported','failed')),
+  attempts INTEGER NOT NULL DEFAULT 0,
+  last_error TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS deadlines (
@@ -434,6 +462,9 @@ CREATE INDEX IF NOT EXISTS idx_termination_hearings_due ON termination_hearings(
 CREATE INDEX IF NOT EXISTS idx_case_documents_case_id ON case_documents(case_id);
 CREATE INDEX IF NOT EXISTS idx_case_documents_measure_id ON case_documents(measure_id);
 CREATE INDEX IF NOT EXISTS idx_case_documents_case_measure ON case_documents(case_id, measure_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_case_documents_ocr_status ON case_documents(ocr_status, imported_at);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_case_document_ocr_jobs_document ON case_document_ocr_jobs(document_id);
+CREATE INDEX IF NOT EXISTS idx_case_document_ocr_jobs_status ON case_document_ocr_jobs(status, updated_at);
 
 
 -- Reports module added for Gremia.SBV 0.3.33
@@ -875,3 +906,58 @@ CREATE TABLE IF NOT EXISTS case_measure_notes (
 
 CREATE INDEX IF NOT EXISTS idx_case_measure_notes_measure ON case_measure_notes(measure_type, measure_id, note_at DESC);
 CREATE INDEX IF NOT EXISTS idx_case_measure_notes_case ON case_measure_notes(case_id, note_at DESC);
+
+
+-- 0027: Zentraler Fallakten-Suchindex für strukturierte Moduldaten und Dokumentvolltexte.
+-- Die Tabelle liegt im SQLCipher-Vault und enthält kopierte Suchtexte; sie ist daher
+-- bewusst an Falllöschung und Fallanonymisierung gekoppelt.
+
+CREATE TABLE IF NOT EXISTS case_search_index (
+  id TEXT PRIMARY KEY,
+  case_id TEXT NOT NULL,
+  case_number TEXT,
+  source_type TEXT NOT NULL,
+  source_id TEXT NOT NULL,
+  source_label TEXT NOT NULL,
+  title TEXT NOT NULL,
+  content TEXT NOT NULL,
+  keywords TEXT,
+  occurred_at TEXT,
+  updated_at TEXT NOT NULL,
+  confidentiality TEXT NOT NULL DEFAULT 'sensibel',
+  contains_health_data INTEGER NOT NULL DEFAULT 1,
+  extraction_quality TEXT NOT NULL DEFAULT 'structured',
+  navigation_kind TEXT NOT NULL,
+  navigation_id TEXT NOT NULL,
+  navigation_sub_id TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(source_type, source_id, case_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_case_search_index_case ON case_search_index(case_id, updated_at);
+CREATE INDEX IF NOT EXISTS idx_case_search_index_source ON case_search_index(source_type, source_id);
+CREATE INDEX IF NOT EXISTS idx_case_search_index_navigation ON case_search_index(navigation_kind, navigation_id);
+
+CREATE TABLE IF NOT EXISTS case_search_index_state (
+  case_id TEXT PRIMARY KEY,
+  indexed_at TEXT NOT NULL,
+  last_source_updated_at TEXT,
+  source_count INTEGER NOT NULL DEFAULT 0,
+  updated_at TEXT NOT NULL
+);
+
+CREATE VIRTUAL TABLE IF NOT EXISTS case_search_index_fts USING fts5(
+  index_id UNINDEXED,
+  title,
+  content,
+  keywords,
+  source_label,
+  tokenize = 'unicode61 remove_diacritics 2'
+);
+
+
+-- 0028: Metadaten zur lokalen Dokumenttext-Extraktion für den Suchindex.
+-- extraction_quality unterscheidet native_text, ocr, manual und unknown.
+-- text_extraction_status dokumentiert extracted, empty, unsupported oder failed.
+-- 0030: text_extractor_id und text_extraction_error machen Dokumentextraktion diagnosefähig.
+-- 0031: OCR-Status, lokale OCR-Textablage und OCR-Hintergrundjobs erweitern den Suchindex ohne Cloud-Anbindung.

@@ -1,4 +1,4 @@
-export const APP_SCHEMA_VERSION = '0026';
+export const APP_SCHEMA_VERSION = '0031';
 
 export const DATABASE_SCHEMA_VERSION_KEY = 'database.schema.version';
 export const LEGACY_DATABASE_SCHEMA_VERSION_KEY = 'settings.database.schema.version';
@@ -15,6 +15,45 @@ export const CASES_REQUIRED_COLUMNS = [
   'privacy_review_required',
   'privacy_review_reason',
   'privacy_review_due_at'
+] as const;
+
+
+export const CASE_DOCUMENTS_REQUIRED_COLUMNS = [
+  'id',
+  'case_id',
+  'filename',
+  'storage_path',
+  'sha256',
+  'extracted_text',
+  'document_key',
+  'iv',
+  'auth_tag',
+  'size_bytes',
+  'imported_at',
+  'extraction_quality',
+  'text_extraction_status',
+  'text_extracted_at',
+  'text_extractor_id',
+  'text_extraction_error',
+  'ocr_status',
+  'ocr_text',
+  'ocr_engine',
+  'ocr_started_at',
+  'ocr_completed_at',
+  'ocr_error',
+  'contains_health_data',
+  'created_at'
+] as const;
+
+
+export const CASE_DOCUMENT_OCR_JOBS_REQUIRED_COLUMNS = [
+  'id',
+  'document_id',
+  'case_id',
+  'status',
+  'attempts',
+  'created_at',
+  'updated_at'
 ] as const;
 
 export const TERMINATION_HEARINGS_REQUIRED_COLUMNS = [
@@ -122,5 +161,30 @@ export const CASE_MEASURE_WORKPLACE_ACCOMMODATION_REQUIRED_COLUMNS = [
   'employer_response_status',
   'implementation_status',
   'created_at',
+  'updated_at'
+] as const;
+
+
+export const CASE_SEARCH_INDEX_REQUIRED_COLUMNS = [
+  'id',
+  'case_id',
+  'source_type',
+  'source_id',
+  'source_label',
+  'title',
+  'content',
+  'updated_at',
+  'confidentiality',
+  'contains_health_data',
+  'extraction_quality',
+  'navigation_kind',
+  'navigation_id'
+] as const;
+
+export const CASE_SEARCH_INDEX_STATE_REQUIRED_COLUMNS = [
+  'case_id',
+  'indexed_at',
+  'last_source_updated_at',
+  'source_count',
   'updated_at'
 ] as const;

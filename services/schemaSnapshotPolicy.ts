@@ -60,6 +60,15 @@ export function createSqlSchemaSnapshot(sql: string): SqlSchemaSnapshot {
     tables[table] = { table, columns: extractTableColumns(match[2]) };
   }
 
+
+  const alterAddColumnPattern = /ALTER\s+TABLE\s+([\w"`\[\]]+)\s+ADD\s+COLUMN\s+([\w"`\[\]]+)\b/gi;
+  for (const match of sql.matchAll(alterAddColumnPattern)) {
+    const table = normalizeIdentifier(match[1]);
+    const column = normalizeIdentifier(match[2]);
+    if (!tables[table]) tables[table] = { table, columns: [] };
+    if (!tables[table].columns.includes(column)) tables[table].columns.push(column);
+  }
+
   const indexPattern = /CREATE\s+(?:UNIQUE\s+)?INDEX\s+(?:IF\s+NOT\s+EXISTS\s+)?([\w"`\[\]]+)\s+ON\s+([\w"`\[\]]+)\s*\(([\s\S]*?)\);/gi;
   for (const match of sql.matchAll(indexPattern)) {
     const name = normalizeIdentifier(match[1]);
