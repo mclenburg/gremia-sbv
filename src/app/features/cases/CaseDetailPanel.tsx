@@ -37,6 +37,9 @@ export function CaseDetailPanel({
   searchQuery,
   searchOnlySelectedCase,
   searchResults,
+  searchError,
+  searchInfo,
+  isSearching,
   selectedSearchSourceTypes,
   onSearchSubmit,
   onSearchQueryChange,
@@ -46,7 +49,11 @@ export function CaseDetailPanel({
 }: CaseDetailPanelProps) {
   return (
     <section className="industrial-panel case-detail-panel">
-      <form onSubmit={(event) => void onSearchSubmit(event)} className="knowledge-search-bar case-detail-search-bar">
+      <form
+        onSubmit={(event) => void onSearchSubmit(event)}
+        className="knowledge-search-bar case-detail-search-bar"
+        aria-busy={isSearching}
+      >
         <Search className="h-4 w-4 text-yellow-300" aria-hidden="true" />
         <input
           className="industrial-input"
@@ -64,8 +71,26 @@ export function CaseDetailPanel({
           />
           <span>nur diese Fallakte</span>
         </label>
-        <button type="submit" className="industrial-secondary-button case-detail-search-button">Suchen</button>
+        <button
+          type="submit"
+          className="industrial-secondary-button case-detail-search-button"
+          disabled={isSearching}
+        >
+          {isSearching ? 'Suche läuft …' : 'Suchen'}
+        </button>
       </form>
+
+
+
+      {(searchError || searchInfo) && (
+        <p
+          className={searchError ? "case-search-status error" : "case-search-status"}
+          role={searchError ? "alert" : "status"}
+          aria-live={searchError ? "assertive" : "polite"}
+        >
+          {searchError || searchInfo}
+        </p>
+      )}
 
       <fieldset className="case-search-source-filters" aria-label="Suchbereich einschränken">
         <legend>Suchbereiche</legend>

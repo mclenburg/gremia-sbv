@@ -232,3 +232,13 @@
   background: rgba(250, 204, 21, 0.28);
   color: inherit;
 }
+
+.case-search-status {
+  margin: 0.35rem 0 0.75rem;
+  color: rgba(226, 232, 240, 0.78);
+  font-size: 0.9rem;
+}
+
+.case-search-status.error {
+  color: #fecaca;
+}

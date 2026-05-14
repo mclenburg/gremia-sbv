@@ -204,6 +204,137 @@
   const createRecord = async (input) => ({ id: `created-${Date.now()}`, ...input, createdAt: now, updatedAt: now });
 
   window.__GREMIA_SBV_E2E_ICAL_EXPORTS = [];
+  window.__GREMIA_SBV_E2E_SEARCH_CALLS = [];
+
+  const searchDocuments = [
+    {
+      sourceType: 'case',
+      sourceId: 'case-test-0001',
+      sourceLabel: 'Fallakte',
+      caseId: 'case-test-0001',
+      caseNumber: 'TEST-0001',
+      title: 'TEST-0001 · Testperson Alpha',
+      excerpt: 'Synthetischer E2E-Testfall ohne Echtdaten.',
+      content: 'TEST-0001 Testperson Alpha Synthetischer E2E-Testfall ohne Echtdaten.',
+      navigationKind: 'case',
+      rank: 100,
+    },
+    {
+      sourceType: 'note',
+      sourceId: 'note-test-0001',
+      sourceLabel: 'Fallnotiz',
+      caseId: 'case-test-0001',
+      caseNumber: 'TEST-0001',
+      caseNumbers: ['TEST-0001'],
+      title: 'Synthetische Notiz mit Aktenbezug',
+      excerpt: 'Synthetische Notiz ohne Echtdaten mit internem BEM-Aktenbezug.',
+      content: 'Synthetische Notiz ohne Echtdaten mit internem BEM-Aktenbezug. E2E prüft nur Oberfläche und Labels.',
+      navigationKind: 'note',
+      navigationId: 'note-test-0001',
+      rank: 95,
+    },
+    {
+      sourceType: 'document',
+      sourceId: 'document-test-0001',
+      sourceLabel: 'Dokument',
+      caseId: 'case-test-0001',
+      caseNumber: 'TEST-0001',
+      title: 'Synthetisches Dokument',
+      excerpt: 'Auszug aus einem importierten Dokument mit Suchwort Dokumentenfund.',
+      content: 'Auszug aus einem importierten Dokument mit Suchwort Dokumentenfund.',
+      extractionQuality: 'native_text',
+      navigationKind: 'document',
+      navigationId: 'document-test-0001',
+      rank: 90,
+    },
+    {
+      sourceType: 'document_ocr',
+      sourceId: 'document-test-ocr-0001',
+      sourceLabel: 'OCR-Text',
+      caseId: 'case-test-0001',
+      caseNumber: 'TEST-0001',
+      title: 'Scan mit OCR',
+      excerpt: 'OCR erkannte gescannte Unterlage mit ScanFund.',
+      content: 'OCR erkannte gescannte Unterlage mit ScanFund.',
+      extractionQuality: 'ocr',
+      navigationKind: 'document',
+      navigationId: 'document-test-ocr-0001',
+      rank: 80,
+    },
+    {
+      sourceType: 'measure_note',
+      sourceId: 'measure-note-test-0001',
+      sourceLabel: 'Maßnahmennotiz',
+      caseId: 'case-test-0001',
+      caseNumber: 'TEST-0001',
+      title: 'Maßnahmentermin Arbeitsplatz',
+      excerpt: 'Protokollierter Maßnahmentermin mit Suchwort Maßnahmentermin.',
+      content: 'Protokollierter Maßnahmentermin mit Suchwort Maßnahmentermin.',
+      navigationKind: 'measure',
+      navigationId: 'measure-test-0001',
+      rank: 85,
+    },
+    {
+      sourceType: 'bem',
+      sourceId: 'bem-test-0001',
+      sourceLabel: 'BEM',
+      caseId: 'case-test-0001',
+      caseNumber: 'TEST-0001',
+      title: 'BEM-Testvorgang Alpha',
+      excerpt: 'Synthetischer BEM-Anlass Alpha.',
+      content: 'BEM-Testvorgang Alpha Synthetischer BEM-Anlass Alpha.',
+      navigationKind: 'process',
+      navigationId: 'bem-test-0001',
+      rank: 88,
+    },
+    {
+      sourceType: 'bem',
+      sourceId: 'bem-test-0002',
+      sourceLabel: 'BEM',
+      caseId: 'case-test-0002',
+      caseNumber: 'TEST-0002',
+      title: 'BEM-Testvorgang Beta',
+      excerpt: 'Synthetischer BEM-Anlass Beta.',
+      content: 'BEM-Testvorgang Beta Synthetischer BEM-Anlass Beta.',
+      navigationKind: 'process',
+      navigationId: 'bem-test-0002',
+      rank: 88,
+    },
+  ];
+
+  function buildHighlightSegments(text, query) {
+    const safeText = String(text || '');
+    const safeQuery = String(query || '').trim();
+    if (!safeQuery) return [{ text: safeText, match: false }];
+    const lowerText = safeText.toLowerCase();
+    const lowerQuery = safeQuery.toLowerCase();
+    const index = lowerText.indexOf(lowerQuery);
+    if (index < 0) return [{ text: safeText, match: false }];
+    return [
+      { text: safeText.slice(0, index), match: false },
+      { text: safeText.slice(index, index + safeQuery.length), match: true },
+      { text: safeText.slice(index + safeQuery.length), match: false },
+    ].filter((segment) => segment.text.length > 0);
+  }
+
+  async function searchCaseContent(input) {
+    window.__GREMIA_SBV_E2E_SEARCH_CALLS.push(input);
+    const query = String(input?.query || '').trim().toLowerCase();
+    if (query.length < 2) return [];
+    const sourceTypes = Array.isArray(input?.sourceTypes) ? input.sourceTypes : undefined;
+    const rows = searchDocuments
+      .filter((item) => !input?.caseId || item.caseId === input.caseId)
+      .filter((item) => !sourceTypes?.length || sourceTypes.includes(item.sourceType))
+      .filter((item) => `${item.title} ${item.excerpt} ${item.content}`.toLowerCase().includes(query))
+      .sort((left, right) => right.rank - left.rank)
+      .slice(0, input?.limit ?? 80)
+      .map((item) => ({
+        ...item,
+        excerptSegments: buildHighlightSegments(item.excerpt, input.query),
+      }));
+    return rows;
+  }
+
 
   window.__GREMIA_SBV_E2E = {
     active: true,
@@ -223,7 +354,39 @@
       create: async (input) => { const row = { id: `case-${Date.now()}`, status: 'offen', priority: 'normal', openedAt: now, isLocked: false, ...input, createdAt: now, updatedAt: now }; cases.unshift(row); return row; },
       bindLegacyCase: async (input) => { const row = cases.find((item) => item.id === input.caseId); Object.assign(row, { protectedPersonId: input.protectedPersonId, personBindingState: 'active', privacyReviewRequired: false }); return { caseId: input.caseId, protectedPersonId: input.protectedPersonId, personBindingState: 'active', privacyReviewRequired: false }; },
       listNotes: async () => notes,
-      listDocuments: emptyList,
+      listDocuments: async () => [
+        {
+          id: 'document-test-0001',
+          caseId: 'case-test-0001',
+          title: 'Synthetisches Dokument',
+          filename: 'synthetisches-dokument.txt',
+          mimeType: 'text/plain',
+          sizeBytes: 128,
+          storagePath: 'synthetic/document.txt',
+          extractedText: 'Auszug aus einem importierten Dokument mit Suchwort Dokumentenfund.',
+          extractionQuality: 'native_text',
+          textExtractionStatus: 'extracted',
+          createdAt: now,
+          updatedAt: now,
+        },
+        {
+          id: 'document-test-ocr-0001',
+          caseId: 'case-test-0001',
+          title: 'Scan mit OCR',
+          filename: 'scan-mit-ocr.png',
+          mimeType: 'image/png',
+          sizeBytes: 256,
+          storagePath: 'synthetic/scan.png',
+          extractedText: '',
+          ocrText: 'OCR erkannte gescannte Unterlage mit ScanFund.',
+          extractionQuality: 'ocr',
+          textExtractionStatus: 'extracted',
+          ocrStatus: 'completed',
+          createdAt: now,
+          updatedAt: now,
+        },
+      ],
+      search: searchCaseContent,
       createNote: createRecord,
       deleteNote: async () => ({ deleted: true }),
       selectAndImportDocuments: emptyList,

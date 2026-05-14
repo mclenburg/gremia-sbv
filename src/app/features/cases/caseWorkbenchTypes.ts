@@ -39,6 +39,9 @@ export type CaseDetailPanelSearchProps = {
   searchQuery: string;
   searchOnlySelectedCase: boolean;
   searchResults: CaseSearchResult[];
+  searchError: string;
+  searchInfo: string;
+  isSearching: boolean;
   selectedSearchSourceTypes: CaseSearchSourceType[];
   onSearchSubmit: (event?: FormEvent<HTMLFormElement>) => void | Promise<void>;
   onSearchQueryChange: (value: string) => void;
