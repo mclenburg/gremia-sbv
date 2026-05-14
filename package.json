@@ -92,7 +92,8 @@
     "test:docs-current-091": "vitest run tests/rc091MarkdownDocsCurrent.test.ts",
     "test:rc-091-step-g-sync": "vitest run tests/rc091StepGReleaseSync.test.ts",
     "test:quality-ratio": "vitest run tests/rc091TestQualityRatio.test.ts",
-    "docs:diagrams:check": "node scripts/check-diagram-assets.cjs"
+    "docs:diagrams:check": "node scripts/check-diagram-assets.cjs",
+    "css:usage:report": "node scripts/report-css-usage.cjs"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.0",

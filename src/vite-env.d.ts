@@ -111,6 +111,8 @@ import type {
   NormCommentRecord,
   UpdateLegalNormInput,
 } from "./app/core/models/knowledge.model";
+import type { TemplateDefaultValues } from "./app/core/models/template-default.model";
+
 import type {
   CreateTemplateInput,
   RenderContextTemplateInput,
@@ -357,6 +359,10 @@ declare global {
         suspend(id: string, reason: string): Promise<DeadlineRecord>;
         cancel(id: string, reason: string): Promise<DeadlineRecord>;
         exportIcal(filters?: DeadlineListFilters, privacyLevel?: "privacy_first" | "process_type" | "case_reference" | "details"): Promise<string>;
+      };
+      templateDefaults: {
+        list(): Promise<TemplateDefaultValues>;
+        save(values: TemplateDefaultValues): Promise<TemplateDefaultValues>;
       };
       reports: {
         descriptors(): Promise<ReportDescriptor[]>;

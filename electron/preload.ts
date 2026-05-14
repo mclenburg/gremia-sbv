@@ -115,6 +115,7 @@ import type {
   NormCommentRecord,
   UpdateLegalNormInput,
 } from "../src/app/core/models/knowledge.model.js";
+import type { TemplateDefaultValues } from "../src/app/core/models/template-default.model.js";
 import type {
   CreateTemplateInput,
   RenderContextTemplateInput,
@@ -470,6 +471,12 @@ const api = {
       ipcRenderer.invoke("deadlines:cancel", id, reason),
     exportIcal: (filters?: DeadlineListFilters, privacyLevel?: "privacy_first" | "process_type" | "case_reference" | "details"): Promise<string> =>
       ipcRenderer.invoke("deadlines:ical-export", filters, privacyLevel),
+  },
+  templateDefaults: {
+    list: (): Promise<TemplateDefaultValues> =>
+      ipcRenderer.invoke("template-defaults:list"),
+    save: (values: TemplateDefaultValues): Promise<TemplateDefaultValues> =>
+      ipcRenderer.invoke("template-defaults:save", values),
   },
   reports: {
     descriptors: (): Promise<ReportDescriptor[]> =>

@@ -10,6 +10,7 @@ import {
   randomBytes,
 } from "node:crypto";
 import { ReportService } from "../../services/reportService.js";
+import { registerRendererSecurityPolicy } from "../security/electronSecurity.js";
 import type { SecurityService } from "../../services/securityService.js";
 import { normalizeReportType } from "../../src/app/core/models/report.model.js";
 import type {
@@ -46,6 +47,8 @@ async function htmlToPdf(
       sandbox: true,
     },
   });
+
+  registerRendererSecurityPolicy(win);
 
   try {
     await win.loadURL(pathToFileURL(tempHtmlPath).toString());

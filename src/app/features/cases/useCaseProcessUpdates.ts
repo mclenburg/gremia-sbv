@@ -12,7 +12,8 @@ import type { UpdateParticipationInput } from "../../core/models/participation.m
 import type { UpdateWorkplaceAccommodationInput } from "../../core/models/workplace-accommodation.model";
 import { buildExportWarningMessage, scanBemProcessExport, scanSensitiveExportText } from "@services/exportGuardPolicy";
 import { buildTerminationExportContext, terminationPrivacyExportNotice } from "@services/terminationPrivacyPolicy";
-import { buildProcessTemplateValues, defaultCaseProcessDraft, downloadRenderedTemplate, isBemProcessRecord, isEqualizationProcessRecord, isTemplateConnectedToProcessStatus, isTerminationHearingRecord, loadTemplateDefaultValues } from "./casesViewProcessUtils";
+import { buildProcessTemplateValues, defaultCaseProcessDraft, downloadRenderedTemplate, isBemProcessRecord, isEqualizationProcessRecord, isTemplateConnectedToProcessStatus, isTerminationHearingRecord } from "./casesViewProcessUtils";
+import { loadTemplateDefaultValues } from "../../shared/templates/templateDefaults";
 
 type useCaseProcessUpdatesDeps = Record<string, any>;
 

@@ -78,4 +78,15 @@ describe('Architektur-Importgrenzen 0.9.1', () => {
 
     expect(violations).toEqual([]);
   });
+
+  it('hält Template-Defaults außerhalb des Cases-Feature-Moduls', () => {
+    const violations = allImports()
+      .filter((edge) => edge.file.startsWith('src/app/features/settings/') || edge.file.startsWith('src/app/features/templates/'))
+      .filter((edge) => edge.specifier.includes('/cases/') || edge.specifier.includes('casesViewProcessUtils'))
+      .map((edge) => `${edge.file} -> ${edge.specifier}`)
+      .sort();
+
+    expect(violations).toEqual([]);
+  });
+
 });

@@ -72,7 +72,6 @@ import "./ui/responsiveDesign.css";
 import "./caseModalResponsive.css";
 import "./shared/textCommands/textCommandHelp.css";
 
-const THEME_STORAGE_KEY = "gremia.sbv.theme";
 
 const IMPLEMENTED_VIEW_IDS = new Set<ViewId>([
   "dashboard",
@@ -181,11 +180,6 @@ export function App() {
 
   useEffect(() => {
     applyTheme(theme);
-    try {
-      window.localStorage.setItem(THEME_STORAGE_KEY, theme);
-    } catch {
-      // Darstellung bleibt für die Sitzung aktiv, auch wenn Persistenz nicht möglich ist.
-    }
   }, [theme]);
 
   useEffect(() => {

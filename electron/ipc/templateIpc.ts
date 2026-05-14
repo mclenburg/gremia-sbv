@@ -1,5 +1,6 @@
 import type { IpcMain } from "electron";
 import { TemplateService } from "../../services/templateService.js";
+import { TemplateDefaultService } from "../../services/templateDefaultService.js";
 import type { SecurityService } from "../../services/securityService.js";
 import type {
   CreateTemplateInput,
@@ -8,6 +9,7 @@ import type {
   TemplateListFilters,
   UpdateTemplateInput,
 } from "../../src/app/core/models/template.model.js";
+import type { TemplateDefaultValues } from "../../src/app/core/models/template-default.model.js";
 import {
   assertOptionalObject,
   assertRecordInput,
@@ -19,6 +21,15 @@ export function registerTemplateIpc(
   security: SecurityService,
 ): void {
   const templates = new TemplateService(() => security.getActiveDatabase());
+  const templateDefaults = new TemplateDefaultService(() => security.getActiveDatabase());
+
+
+  ipcMain.handle("template-defaults:list", async () => templateDefaults.list());
+  ipcMain.handle("template-defaults:save", async (_event, input: unknown) =>
+    templateDefaults.save(
+      assertRecordInput<Partial<TemplateDefaultValues>>(input, "template-defaults:save"),
+    ),
+  );
 
   ipcMain.handle("templates:list", async (_event, filters?: unknown) =>
     templates.listTemplates(

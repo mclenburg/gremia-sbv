@@ -12,13 +12,30 @@ export function nowLabel(): string {
   }).format(new Date());
 }
 
-export function getInitialTheme(): ThemeMode {
-  if (typeof window === "undefined") return "dark";
-  const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
-  return stored === "light" ? "light" : "dark";
+function readStoredTheme(): ThemeMode | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
+    return stored === "light" || stored === "dark" ? stored : null;
+  } catch {
+    return null;
+  }
 }
 
-export function applyTheme(theme: ThemeMode) {
+function persistTheme(theme: ThemeMode): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+  } catch {
+    // Darstellung bleibt für die Sitzung aktiv, auch wenn Persistenz nicht möglich ist.
+  }
+}
+
+export function getInitialTheme(): ThemeMode {
+  return readStoredTheme() ?? "dark";
+}
+
+export function applyTheme(theme: ThemeMode): void {
   document.documentElement.dataset.theme = theme;
-  window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+  persistTheme(theme);
 }

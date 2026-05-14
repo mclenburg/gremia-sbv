@@ -13,8 +13,8 @@ import { buildExportWarningMessage, scanSensitiveExportText } from "@services/ex
 import { missingPlaceholderWarning } from "@services/templateContextPolicy";
 import { useConfirmDialog } from "../../shared/dialogs/ConfirmDialogProvider";
 import { useAnnouncer } from "../../shared/a11y/LiveRegionProvider";
-import { TEMPLATE_DEFAULT_FIELDS, EMPTY_TEMPLATE_DEFAULT_VALUES, loadTemplateDefaultValues, saveTemplateDefaultValues } from "../cases/casesViewProcessUtils";
-import type { TemplateDefaultKey, TemplateDefaultValues } from "../cases/casesViewProcessUtils";
+import { TEMPLATE_DEFAULT_FIELDS, EMPTY_TEMPLATE_DEFAULT_VALUES, loadTemplateDefaultValues, saveTemplateDefaultValues } from "../../shared/templates/templateDefaults";
+import type { TemplateDefaultKey, TemplateDefaultValues } from "../../shared/templates/templateDefaults";
 import type { ThemeMode } from "../../shared/theme/appTheme";
 
 export function TemplateDefaultSettingsForm() {

@@ -6,7 +6,8 @@ import type { CaseDocumentRecord } from "../../core/models/case-document.model";
 import type { TemplateRecord, RenderedTemplateResult } from "../../core/models/template.model";
 import { buildExportWarningMessage, scanBemProcessExport, scanSensitiveExportText } from "@services/exportGuardPolicy";
 import { buildTerminationExportContext, terminationPrivacyExportNotice } from "@services/terminationPrivacyPolicy";
-import { buildProcessTemplateValues, defaultCaseProcessDraft, downloadRenderedTemplate, isBemProcessRecord, isEqualizationProcessRecord, isTemplateConnectedToProcessStatus, isTerminationHearingRecord, loadTemplateDefaultValues } from "./casesViewProcessUtils";
+import { buildProcessTemplateValues, defaultCaseProcessDraft, downloadRenderedTemplate, isBemProcessRecord, isEqualizationProcessRecord, isTemplateConnectedToProcessStatus, isTerminationHearingRecord } from "./casesViewProcessUtils";
+import { loadTemplateDefaultValues } from "../../shared/templates/templateDefaults";
 import type { CaseProcessType } from "./casesViewProcessUtils";
 
 type useCaseProcessCreationDeps = Record<string, any>;

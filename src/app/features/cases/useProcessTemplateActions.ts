@@ -12,7 +12,8 @@ import type { CaseRecord } from "../../core/models/case.model";
 import type { ConfirmDialogRequest } from "../../shared/dialogs/ConfirmDialogProvider";
 import { buildExportWarningMessage, scanBemProcessExport, scanSensitiveExportText } from "@services/exportGuardPolicy";
 import { buildTerminationExportContext, terminationPrivacyExportNotice } from "@services/terminationPrivacyPolicy";
-import { buildProcessTemplateValues, defaultCaseProcessDraft, downloadRenderedTemplate, isBemProcessRecord, isEqualizationProcessRecord, isTemplateConnectedToProcessStatus, isTerminationHearingRecord, loadTemplateDefaultValues } from "./casesViewProcessUtils";
+import { buildProcessTemplateValues, defaultCaseProcessDraft, downloadRenderedTemplate, isBemProcessRecord, isEqualizationProcessRecord, isTemplateConnectedToProcessStatus, isTerminationHearingRecord } from "./casesViewProcessUtils";
+import { loadTemplateDefaultValues } from "../../shared/templates/templateDefaults";
 
 type ProcessTemplateModalSetter = (
   next:

@@ -20,4 +20,23 @@ describe("0.8.9 security readiness", () => {
     expect(docs).toContain("scrypt N=131072, r=8, p=1");
     expect(docs).toContain("Legacy-Backups");
   });
+
+  it("verankert Renderer-CSP und gehärtete Electron-WebPreferences", () => {
+    const main = readFileSync("electron/main.ts", "utf8");
+    const reportIpc = readFileSync("electron/ipc/reportIpc.ts", "utf8");
+    const electronSecurity = readFileSync("electron/security/electronSecurity.ts", "utf8");
+
+    expect(main).toContain("registerSessionSecurityPolicy()");
+    expect(electronSecurity).toContain("Content-Security-Policy");
+    expect(electronSecurity).toContain("script-src ${scriptSrc}");
+    expect(electronSecurity).toContain("object-src 'none'");
+    expect(electronSecurity).toContain("frame-ancestors 'none'");
+
+    for (const source of [main, reportIpc]) {
+      expect(source).toContain("contextIsolation: true");
+      expect(source).toContain("nodeIntegration: false");
+      expect(source).toContain("sandbox: true");
+    }
+  });
+
 });
