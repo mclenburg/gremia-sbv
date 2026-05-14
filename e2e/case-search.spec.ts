@@ -15,6 +15,14 @@ async function runCaseSearch(page: import('@playwright/test').Page, query: strin
   await page.getByRole('button', { name: 'Suchen', exact: true }).click();
 }
 
+function searchResults(page: import('@playwright/test').Page) {
+  return page.locator('[aria-label="Suchtreffer"]');
+}
+
+function searchResultByText(page: import('@playwright/test').Page, text: string) {
+  return searchResults(page).getByRole('button').filter({ hasText: text });
+}
+
 test('findet Fallnotizen über Alle Inhalte und hebt Treffer sicher hervor', async ({ page }) => {
   await openCaseWorkbench(page);
 
@@ -22,8 +30,9 @@ test('findet Fallnotizen über Alle Inhalte und hebt Treffer sicher hervor', asy
   await runCaseSearch(page, 'BEM-Aktenbezug');
 
   await expect(page.locator('.case-search-status')).toContainText('Ein Suchtreffer gefunden.');
-  const result = page.getByRole('button', { name: /Fallnotiz .* TEST-0001 .* Synthetische Notiz mit Aktenbezug/i });
+  const result = searchResultByText(page, 'Synthetische Notiz mit Aktenbezug');
   await expect(result).toBeVisible();
+  await expect(result).toContainText('Fallnotiz · TEST-0001');
   await expect(result.locator('mark')).toHaveText('BEM-Aktenbezug');
 
   const latestCall = await page.evaluate(() => (window as any).__GREMIA_SBV_E2E_SEARCH_CALLS.at(-1));
@@ -38,8 +47,10 @@ test('wendet Suchbereichsfilter an und sucht nur im gewählten Quelltyp', async 
   await runCaseSearch(page, 'BEM-Anlass');
 
   await expect(page.locator('.case-search-status')).toContainText('Ein Suchtreffer gefunden.');
-  await expect(page.getByRole('button', { name: /BEM .* TEST-0001 .* BEM-Testvorgang Alpha/i })).toBeVisible();
-  await expect(page.getByRole('button', { name: /Fallnotiz .* Synthetische Notiz/i })).toHaveCount(0);
+  const bemResult = searchResultByText(page, 'BEM-Testvorgang Alpha');
+  await expect(bemResult).toBeVisible();
+  await expect(bemResult).toContainText('BEM · TEST-0001');
+  await expect(searchResultByText(page, 'Synthetische Notiz')).toHaveCount(0);
 
   const latestCall = await page.evaluate(() => (window as any).__GREMIA_SBV_E2E_SEARCH_CALLS.at(-1));
   expect(latestCall.sourceTypes).toEqual(['bem']);
@@ -50,13 +61,15 @@ test('respektiert Fallaktenisolation und findet andere Fallakten erst bei global
 
   await runCaseSearch(page, 'BEM-Anlass Beta');
   await expect(page.locator('.case-search-status')).toContainText('0 Suchtreffer gefunden.');
-  await expect(page.getByRole('button', { name: /BEM-Testvorgang Beta/i })).toHaveCount(0);
+  await expect(searchResultByText(page, 'BEM-Testvorgang Beta')).toHaveCount(0);
 
   await page.getByLabel('nur diese Fallakte').uncheck();
   await runCaseSearch(page, 'BEM-Anlass Beta');
 
   await expect(page.locator('.case-search-status')).toContainText('Ein Suchtreffer gefunden.');
-  await expect(page.getByRole('button', { name: /BEM .* TEST-0002 .* BEM-Testvorgang Beta/i })).toBeVisible();
+  const betaResult = searchResultByText(page, 'BEM-Testvorgang Beta');
+  await expect(betaResult).toBeVisible();
+  await expect(betaResult).toContainText('BEM · TEST-0002');
 
   const latestCall = await page.evaluate(() => (window as any).__GREMIA_SBV_E2E_SEARCH_CALLS.at(-1));
   expect(latestCall.caseId).toBeUndefined();
@@ -69,7 +82,8 @@ test('findet OCR-Texte als eigene Quelle ohne echten OCR-Prozess', async ({ page
   await runCaseSearch(page, 'ScanFund');
 
   await expect(page.locator('.case-search-status')).toContainText('Ein Suchtreffer gefunden.');
-  const result = page.getByRole('button', { name: /OCR-Text .* TEST-0001 .* OCR-Text .* Scan mit OCR/i });
+  const result = searchResultByText(page, 'Scan mit OCR');
   await expect(result).toBeVisible();
+  await expect(result).toContainText('OCR-Text · TEST-0001');
   await expect(result.locator('mark')).toHaveText('ScanFund');
 });
