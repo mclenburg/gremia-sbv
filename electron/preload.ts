@@ -116,6 +116,7 @@ import type {
   UpdateLegalNormInput,
 } from "../src/app/core/models/knowledge.model.js";
 import type { TemplateDefaultValues } from "../src/app/core/models/template-default.model.js";
+import type { CreateGremiaBrExternalReferenceInput, GremiaBrCachedOverview, GremiaBrCacheRefreshResult, GremiaBrConnectionTestResult, GremiaBrDashboardOverview, GremiaBrExternalReferenceRecord, GremiaBrInlineSuggestion, GremiaBrPublicSettings, GremiaBrRelevanceSettings, GremiaBrSettingsInput } from "../src/app/core/models/gremia-br.model.js";
 import type {
   CreateTemplateInput,
   RenderContextTemplateInput,
@@ -471,6 +472,33 @@ const api = {
       ipcRenderer.invoke("deadlines:cancel", id, reason),
     exportIcal: (filters?: DeadlineListFilters, privacyLevel?: "privacy_first" | "process_type" | "case_reference" | "details"): Promise<string> =>
       ipcRenderer.invoke("deadlines:ical-export", filters, privacyLevel),
+  },
+
+  gremiaBr: {
+    getSettings: (): Promise<GremiaBrPublicSettings> =>
+      ipcRenderer.invoke("gremia-br:settings:get"),
+    saveSettings: (input: GremiaBrSettingsInput): Promise<GremiaBrPublicSettings> =>
+      ipcRenderer.invoke("gremia-br:settings:save", input),
+    clearCredentials: (): Promise<GremiaBrPublicSettings> =>
+      ipcRenderer.invoke("gremia-br:credentials:clear"),
+    saveRelevanceSettings: (input: GremiaBrRelevanceSettings): Promise<GremiaBrPublicSettings> =>
+      ipcRenderer.invoke("gremia-br:relevance:save", input),
+    testConnection: (): Promise<GremiaBrConnectionTestResult> =>
+      ipcRenderer.invoke("gremia-br:connection:test"),
+    getCachedOverview: (): Promise<GremiaBrCachedOverview> =>
+      ipcRenderer.invoke("gremia-br:cache:get"),
+    getDashboardOverview: (): Promise<GremiaBrDashboardOverview> =>
+      ipcRenderer.invoke("gremia-br:dashboard:get"),
+    refreshCache: (): Promise<GremiaBrCacheRefreshResult> =>
+      ipcRenderer.invoke("gremia-br:cache:refresh"),
+    suggestInlineReferences: (query: string): Promise<GremiaBrInlineSuggestion[]> =>
+      ipcRenderer.invoke("gremia-br:inline:suggest", query),
+    listExternalReferences: (caseId: string): Promise<GremiaBrExternalReferenceRecord[]> =>
+      ipcRenderer.invoke("gremia-br:references:list", caseId),
+    saveExternalReference: (input: CreateGremiaBrExternalReferenceInput): Promise<GremiaBrExternalReferenceRecord> =>
+      ipcRenderer.invoke("gremia-br:references:create", input),
+    deleteExternalReference: (referenceId: string): Promise<{ deleted: boolean }> =>
+      ipcRenderer.invoke("gremia-br:references:delete", referenceId),
   },
   templateDefaults: {
     list: (): Promise<TemplateDefaultValues> =>

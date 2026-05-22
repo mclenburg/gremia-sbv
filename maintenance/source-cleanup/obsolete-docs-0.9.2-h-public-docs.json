@@ -1,0 +1,14 @@
+{
+  "version": "0.9.2-j",
+  "description": "Entfernt veraltete Zwischenstands- und Release-Dokumentation aus bekannten Dokumentationsbereichen. Root-Dateien wie PATCH_NOTES.md werden bewusst nicht über den Cleanup gelöscht.",
+  "files": [
+    "docs/RELEASE_CHECKLIST.md"
+  ],
+  "directories": [
+    "docs/releases",
+    "docs/release-notes",
+    "docs/patches",
+    "docs/intermediate",
+    "docs/zwischenstaende"
+  ]
+}

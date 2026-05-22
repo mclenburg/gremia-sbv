@@ -214,7 +214,7 @@
   margin: 0.5rem 0 0.75rem;
   padding: 0.75rem;
   border: 1px solid rgba(148, 163, 184, 0.24);
-  border-radius: 0.75rem;
+  border-radius: 0;
 }
 
 .case-search-source-filters legend {
@@ -227,7 +227,7 @@
 }
 
 .case-search-result mark {
-  border-radius: 0.2rem;
+  border-radius: 0;
   padding: 0 0.12rem;
   background: rgba(250, 204, 21, 0.28);
   color: inherit;

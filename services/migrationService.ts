@@ -3,7 +3,7 @@ import path from 'node:path';
 import type { DatabaseAdapter } from './databaseService.js';
 import { classifyCaseLegalReferencesColumns } from './knowledgeMigrationPolicy.js';
 import { APP_VERSION } from './generated/appMetadata.js';
-import { APP_SCHEMA_VERSION, CASE_DOCUMENTS_REQUIRED_COLUMNS, CASE_DOCUMENT_OCR_JOBS_REQUIRED_COLUMNS, CASES_REQUIRED_COLUMNS, CASE_MEASURES_REQUIRED_COLUMNS, CASE_MEASURE_PARTICIPATION_REQUIRED_COLUMNS, CASE_MEASURE_NOTES_REQUIRED_COLUMNS, CASE_MEASURE_WORKPLACE_ACCOMMODATION_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_STATE_REQUIRED_COLUMNS, PERSON_IMPORT_RUN_ITEMS_REQUIRED_COLUMNS, PROTECTED_PERSONS_REQUIRED_COLUMNS, DATABASE_SCHEMA_APP_VERSION_KEY, DATABASE_SCHEMA_VERSION_KEY, PERSONAL_DATA_AUDIT_REQUIRED_COLUMNS, SBV_PARTICIPATION_REQUIRED_COLUMNS, TERMINATION_HEARINGS_REQUIRED_COLUMNS } from './appSchema.js';
+import { APP_SCHEMA_VERSION, CASE_DOCUMENTS_REQUIRED_COLUMNS, CASE_DOCUMENT_OCR_JOBS_REQUIRED_COLUMNS, CASE_EXTERNAL_REFERENCES_REQUIRED_COLUMNS, CASES_REQUIRED_COLUMNS, CASE_MEASURES_REQUIRED_COLUMNS, CASE_MEASURE_PARTICIPATION_REQUIRED_COLUMNS, CASE_MEASURE_NOTES_REQUIRED_COLUMNS, CASE_MEASURE_WORKPLACE_ACCOMMODATION_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_STATE_REQUIRED_COLUMNS, GREMIA_BR_CACHE_REQUIRED_COLUMNS, GREMIA_BR_SETTINGS_REQUIRED_COLUMNS, PERSON_IMPORT_RUN_ITEMS_REQUIRED_COLUMNS, PROTECTED_PERSONS_REQUIRED_COLUMNS, DATABASE_SCHEMA_APP_VERSION_KEY, DATABASE_SCHEMA_VERSION_KEY, PERSONAL_DATA_AUDIT_REQUIRED_COLUMNS, SBV_PARTICIPATION_REQUIRED_COLUMNS, TERMINATION_HEARINGS_REQUIRED_COLUMNS } from './appSchema.js';
 
 interface MigrationRow {
   version: string;
@@ -306,6 +306,18 @@ export class MigrationService {
         return CASE_DOCUMENTS_REQUIRED_COLUMNS.every((column) => this.columnExists('case_documents', column))
           && this.tableExists('case_document_ocr_jobs')
           && CASE_DOCUMENT_OCR_JOBS_REQUIRED_COLUMNS.every((column) => this.columnExists('case_document_ocr_jobs', column));
+      case '0032':
+        return this.tableExists('gremia_br_settings')
+          && GREMIA_BR_SETTINGS_REQUIRED_COLUMNS.every((column) => this.columnExists('gremia_br_settings', column));
+      case '0033':
+        return this.tableExists('gremia_br_cache_entries')
+          && GREMIA_BR_CACHE_REQUIRED_COLUMNS.every((column) => this.columnExists('gremia_br_cache_entries', column));
+      case '0034':
+        return this.tableExists('gremia_br_settings')
+          && GREMIA_BR_SETTINGS_REQUIRED_COLUMNS.every((column) => this.columnExists('gremia_br_settings', column));
+      case '0035':
+        return this.tableExists('case_external_references')
+          && CASE_EXTERNAL_REFERENCES_REQUIRED_COLUMNS.every((column) => this.columnExists('case_external_references', column));
       default:
         return false;
     }
@@ -519,6 +531,16 @@ export class MigrationService {
         this.ensureDocumentOcrSchema();
         diagnostics.push('Dokument-Extraktionsmetadaten wurden auf Stand 0031 repariert.');
       }
+    }
+
+    if (!this.tableExists('gremia_br_settings') || !GREMIA_BR_SETTINGS_REQUIRED_COLUMNS.every((column) => this.columnExists('gremia_br_settings', column))) {
+      this.ensureGremiaBrSettingsSchema();
+      diagnostics.push('Gremia.BR-Einstellungsschema wurde auf Stand 0034 repariert.');
+    }
+
+    if (!this.tableExists('gremia_br_cache_entries') || !GREMIA_BR_CACHE_REQUIRED_COLUMNS.every((column) => this.columnExists('gremia_br_cache_entries', column))) {
+      this.ensureGremiaBrCacheSchema();
+      diagnostics.push('Gremia.BR-Lesecache-Schema wurde auf Stand 0033 repariert.');
     }
 
     if (this.tableExists('case_documents') && (!this.tableExists('case_document_ocr_jobs') || !CASE_DOCUMENT_OCR_JOBS_REQUIRED_COLUMNS.every((column) => this.columnExists('case_document_ocr_jobs', column)))) {
@@ -1036,6 +1058,42 @@ CREATE INDEX IF NOT EXISTS idx_case_measure_events_measure_created ON case_measu
     `).run(DATABASE_SCHEMA_APP_VERSION_KEY, APP_VERSION, nowIso());
   }
 
+
+  private ensureGremiaBrSettingsSchema(): void {
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS gremia_br_settings (
+        id TEXT PRIMARY KEY CHECK (id = 'default'),
+        enabled INTEGER NOT NULL DEFAULT 0 CHECK (enabled IN (0, 1)),
+        server_url TEXT NOT NULL DEFAULT '',
+        username TEXT NOT NULL DEFAULT '',
+        password_secret TEXT NOT NULL DEFAULT '',
+        last_connection_test_at TEXT,
+        last_successful_login_at TEXT,
+        profile_json TEXT,
+        relevance_keywords_json TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+    `);
+    this.addColumnIfMissing('gremia_br_settings', 'relevance_keywords_json', 'TEXT');
+  }
+
+  private ensureGremiaBrCacheSchema(): void {
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS gremia_br_cache_entries (
+        id TEXT PRIMARY KEY,
+        cache_key TEXT NOT NULL UNIQUE,
+        source_type TEXT NOT NULL,
+        payload_json TEXT NOT NULL,
+        fetched_at TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_gremia_br_cache_entries_key ON gremia_br_cache_entries(cache_key);
+      CREATE INDEX IF NOT EXISTS idx_gremia_br_cache_entries_fetched ON gremia_br_cache_entries(fetched_at DESC);
+    `);
+  }
+
   private validateRequiredSchema(diagnostics: string[]): void {
     const requiredTables = [
       'cases',
@@ -1057,7 +1115,8 @@ CREATE INDEX IF NOT EXISTS idx_case_measure_events_measure_created ON case_measu
       'protected_persons',
       'person_import_runs',
       'person_import_run_items',
-      'person_case_links'
+      'person_case_links',
+      'case_external_references'
     ];
 
     requiredTables.forEach((table) => {
@@ -1080,7 +1139,8 @@ CREATE INDEX IF NOT EXISTS idx_case_measure_events_measure_created ON case_measu
       case_measure_participation: [...CASE_MEASURE_PARTICIPATION_REQUIRED_COLUMNS],
       case_measure_workplace_accommodation: [...CASE_MEASURE_WORKPLACE_ACCOMMODATION_REQUIRED_COLUMNS],
       protected_persons: [...PROTECTED_PERSONS_REQUIRED_COLUMNS],
-      person_import_run_items: [...PERSON_IMPORT_RUN_ITEMS_REQUIRED_COLUMNS]
+      person_import_run_items: [...PERSON_IMPORT_RUN_ITEMS_REQUIRED_COLUMNS],
+      case_external_references: [...CASE_EXTERNAL_REFERENCES_REQUIRED_COLUMNS]
     };
 
     Object.entries(requiredColumns).forEach(([table, columns]) => {

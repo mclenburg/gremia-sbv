@@ -1,129 +1,102 @@
-# Gremia.SBV – lokale Software für Schwerbehindertenvertretungen
+# Gremia.SBV
 
-**Gremia.SBV** ist eine lokale, offline-first Desktop-App für Schwerbehindertenvertretungen in Deutschland. Sie unterstützt vertrauliche SBV-Fallarbeit rund um BEM, Präventionsverfahren nach § 167 SGB IX, SBV-Beteiligung nach § 178 SGB IX, Kündigungsanhörungen, Gleichstellung / Schutzstatus / GdB-Beratung, Arbeitsplatzanpassung, Fristen, Dokumentation und Tätigkeitsberichte – ohne Cloud, ohne Telemetrie und ohne HR-Zugriff.
+**Gremia.SBV ist eine lokale, verschlüsselte Desktop-Anwendung für die Arbeit der Schwerbehindertenvertretung.**
 
-Stand: **0.9.1**  
-Status: Vor-1.0-Ergänzung im RC-Zweig.
 
-## Kurzüberblick
-
-Gremia.SBV ist eine **SBV Software** für die besonders vertrauliche Fallarbeit der Schwerbehindertenvertretung. Die Anwendung bündelt Personenverzeichnis, Fallakten, Gesprächsnotizen, Live-Protokolle, Maßnahmen, Fristen, Dokumente, Vorlagen, Datenschutzdokumente und Berichte in einem lokalen Arbeitsbereich.
-
-Die Produktregel lautet:
-
-> Personen führen. Die Fallakte führt die Arbeitschronik. Maßnahmen schreiben fort. Fristen überwachen. Inlinebefehle beschleunigen. Compliance macht Datenschutzentscheidungen nachvollziehbar.
-
-## Was Gremia.SBV besonders macht
-
-- **SBV-first:** entwickelt für die vertrauliche Arbeit der Schwerbehindertenvertretung, nicht als HR-Kontrollsystem.
-- **Offline-first:** lokale Desktop-App ohne Cloud-Synchronisation, ohne Telemetrie und ohne externe Datenübertragung.
-- **Personengebundene Fallarbeit:** reguläre Fallakten werden an Personen aus dem Personenverzeichnis gebunden; anonyme Erstberatungen sind als pseudonyme Anfrage möglich.
-- **Prozessnah:** BEM, Prävention, Beteiligung, Kündigungsanhörung, Gleichstellung / Schutzstatus / GdB-Beratung, Arbeitsplatzanpassung und Fristen bleiben in einer Fallakte nachvollziehbar verbunden.
-- **Lebende Arbeitschronik:** Notizen, Maßnahmen, Fristen und interne Aktenbezüge bilden eine nachvollziehbare Arbeitschronik statt einer losen Dateiablage.
-- **Datenschutzbewusst:** lokale Verschlüsselung, Audit-Hash-Kette ohne Direktidentifikatoren, kontrollierte Backups, Statusablaufprüfung, Lösch-/Anonymisierungsworkflow und exportfreundliche Berichte ohne unnötige technische IDs.
-- **Menschliche Verantwortung bleibt erhalten:** Die App unterstützt Dokumentation und Nachvollziehbarkeit, ersetzt aber keine Rechtsberatung, keine Datenschutzfreigabe und keine organisatorische Entscheidung.
+Die Anwendung hilft SBVen dabei, Fallakten, Fristen, BEM-/Präventionsvorgänge, Gleichstellungsfragen, Kündigungsanhörungen, Arbeitsplatzgestaltung, Dokumente und Tätigkeitsnachweise strukturiert zu bearbeiten – ohne Cloud, ohne versteckte Synchronisation und ohne dass sensible SBV-Daten das Gerät verlassen.
 
 ## Für wen ist Gremia.SBV gedacht?
 
-Gremia.SBV richtet sich an gewählte Vertrauenspersonen der schwerbehinderten Menschen, stellvertretende Mitglieder und kleine SBV-Teams, die eine lokale Software für Schwerbehindertenvertretungen suchen und besonders sensible personenbezogene Daten datenschutzbewusst strukturieren möchten.
+**Erstrangig für Schwerbehindertenvertretungen**, die ihre Arbeit sicherer, übersichtlicher und wirksamer organisieren wollen:
 
-Typische Einsatzfelder:
+- vertrauliche Fallakten statt verstreuter Notizen,
+- Fristen und Wiedervorlagen mit klarer Übersicht,
+- strukturierte Prozesse für BEM, Prävention, Gleichstellung, Kündigungsanhörungen und Maßnahmen,
+- Personenverzeichnis mit datensparsamer Fallaktenbindung,
+- lokale Dokumentenablage mit Volltextsuche,
+- Datenschutz- und Löschpfade, die zur Sensibilität der SBV-Arbeit passen,
+- ein Dashboard, das nur das zeigt, was wirklich handlungsrelevant ist.
 
-- BEM Dokumentation und Maßnahmenverfolgung,
-- Präventionsverfahren nach § 167 SGB IX,
-- Beteiligung der SBV nach § 178 SGB IX,
-- Kündigungsanhörungen schwerbehinderter oder gleichgestellter Menschen,
-- Gleichstellung / Schutzstatus / GdB-Beratung,
-- behinderungsgerechte Arbeitsplatzgestaltung nach § 164 Abs. 4 SGB IX,
-- Personenverzeichnis schwerbehinderter und gleichgestellter Beschäftigter,
-- Fristen, Wiedervorlagen, iCal-Export und Tätigkeitsberichte.
+**Zweitrangig für Entwicklerinnen und Entwickler**, die eine freie, datenschutzorientierte Fachanwendung für Interessenvertretungen mitentwickeln wollen.
 
-## Personenverzeichnis und Import
+## Warum Gremia.SBV?
 
-Gremia.SBV 0.9.1 ergänzt vor dem 1.0-Freeze ein datensparsames Personenverzeichnis für schwerbehinderte und gleichgestellte Beschäftigte. Der genaue GdB wird nicht als Standardfeld gespeichert; entscheidend ist der Schutzstatus. Arbeitgeberlisten können aus CSV/XLSX über einen kompakten Import-Assistenten importiert werden: Datei oder CSV auswählen, Vorschau prüfen, echte Spalten den Zielfeldern zuordnen, Importprüfung bestätigen.
+SBV-Arbeit ist vertraulich, rechtlich anspruchsvoll und oft kleinteilig. Viele Vorgänge laufen parallel: Gespräche, Fristen, Unterlagen, Beteiligungen, Maßnahmen, Nachverfolgung. Gremia.SBV bündelt diese Arbeit in einem lokalen Arbeitsraum.
 
-Die **Personalnummer ist optional**. Aktualisiert wird bevorzugt über Personalnummer oder dienstliche E-Mail. Name und Vorname können getrennt oder in einer gemeinsamen Spalte stehen, auch im Format **`Nachname, Vorname`**. Name/Vorname allein gelten beim Import nur als Konflikthinweis, nicht als automatisches Update.
+Der Anspruch ist klar:
 
-## Fallaktenbindung und anonyme Anfrage
+> **SBV-Arbeit vertraulich, nachvollziehbar und durchweg wirksam unterstützen.**
 
-Neue reguläre Fallakten sollen zu genau einer Person gehören. Wenn der Status unklar ist, wird eine Person mit Status „Status unklar“ oder „Antrag läuft“ angelegt. Für Erstberatungen ohne Namensnennung gibt es einen pseudonymen Sonderweg „Anonyme Anfrage“ ohne Direktidentifikatoren.
+## Grundprinzipien
 
-Bestehende Altakten werden nicht geratenhaft aus Freitexten verknüpft. Sichere vorhandene `person_case_links` werden migriert; mehrdeutige oder nicht verknüpfte Altakten werden priorisiert zur Prüfung markiert.
+- **Offline-first:** Keine Hintergrundverbindungen, keine Cloudpflicht.
+- **Vault statt Sammelablage:** Daten liegen in einer verschlüsselten lokalen Datenbank.
+- **Datenschutz zuerst:** Anonymisierung, Löschung, Retention und Suchindex werden gemeinsam gedacht.
+- **Datenminimierung:** Personalnummer ist optional und wird nicht als Pflichtmerkmal vorausgesetzt.
+- **SBV-Perspektive:** Die Anwendung folgt den Aufgaben und Schutzbedürfnissen der SBV.
+- **Barrierefreiheit:** Bedienung, Rückmeldungen und Tests berücksichtigen assistive Nutzung.
+- **Modularität:** Fachmodule bleiben klar getrennt und testbar.
 
-## Datenschutz: lokal statt Cloud
+## Zentrale Funktionen
 
-Gremia.SBV verarbeitet besonders sensible personenbezogene Daten. Deshalb ist die Anwendung konsequent offline-first konzipiert:
+### Fallakten
 
-- keine Cloud-Synchronisation,
-- keine Telemetrie,
-- keine Mehrbenutzer- oder Serverfunktion,
-- lokale verschlüsselte Datenhaltung mit SQLCipher,
-- kontrollierte Backups,
-- Audit-Metadaten ohne Namen, E-Mail-Adressen oder Personalnummern,
-- keine Übertragung an externe Dienste.
+Fallakten bündeln Vorgänge, Personenbezug, Notizen, Dokumente, Maßnahmen, externe Referenzen und Verlauf. Die Anwendung unterstützt sowohl personengebundene Akten als auch bewusst angelegte anonyme Vorgänge.
 
-Die App ersetzt keine organisatorische Datenschutzfreigabe. Vor produktiver Nutzung sind insbesondere Datenschutzbeauftragte, IT-Security und die verantwortliche Stelle einzubeziehen.
+### Personenverzeichnis
 
-## Fristen und iCal
+Das Personenverzeichnis unterstützt die SBV bei wiederkehrenden Kontakten und Fallbindungen, bleibt aber bewusst datensparsam. Die Personalnummer ist optional; typische Orientierungsmerkmale sind Nachname, Vorname und bei Bedarf weitere datensparsame Angaben; maßgeblich ist, dass nur Daten erfasst werden, die für die konkrete SBV-Arbeit erforderlich sind.
 
-Fristen und Wiedervorlagen werden im bestehenden Fristenmodul geführt. Statusablaufwarnungen aus dem Personenverzeichnis landen nicht in einem parallelen System, sondern als Fristen im bestehenden Dashboard. Der iCal-Export erzeugt manuell exportierbare `.ics`-Dateien. Standard ist die Datenschutzstufe `process_type`: Kalendertermine zeigen den Prozesstyp wie „BEM-Wiedervorlage“ oder „Statusnachweis läuft ab“, aber keine Namen, Diagnosen, Personalnummern oder Fallnotizen.
+### Fristen und Wiedervorlagen
 
-## Unterstützte SBV-Prozesse
+Fristen werden sichtbar, priorisiert und exportierbar. Das Dashboard markiert, ob Fristen anstehen oder bereits überschritten sind.
 
-- Personenverzeichnis mit Schutzstatus, Beschäftigungsstatus und Statusablaufprüfung
-- Fallakten für vertrauliche SBV-Vorgänge
-- Live-Protokolle und Gesprächsnotizen mit internen Aktenbezügen
-- BEM, Prävention, SBV-Beteiligung, Kündigungsanhörung, Gleichstellung / GdB-Beratung und Arbeitsplatzgestaltung
-- Fristen, Wiedervorlagen und iCal-Export
-- Dokumentenimport in den lokalen Tresor
-- Vorlagen und strukturierte Schreiben
-- Berichte und System-/Integritätsberichte
-- Compliance-Dokumente wie TOMs, VVT, DSFA-Entwurf und Release-Checkliste
-- lokales Audit-Log mit Hash-Chain ohne Direktidentifikatoren
-- Auto-Lock und Sicherheitsstatus
+### Prozessmodule
 
-## Grenzen der Software
+Gremia.SBV unterstützt insbesondere:
 
-Gremia.SBV bietet keine Rechtsberatung und trifft keine menschlichen oder organisatorischen Freigabeentscheidungen. Sie bewertet technische Zustände, unterstützt Dokumentation und macht Vorgänge nachvollziehbar – die rechtliche Bewertung und Interessenvertretungsentscheidung bleiben bei den zuständigen Menschen. Die App garantiert keine DSGVO-Konformität; sie liefert Bausteine für eine datenschutzbewusste lokale Arbeitsweise.
+- BEM-Begleitung,
+- Präventionsverfahren,
+- Gleichstellung / GdB-nahe Begleitung,
+- Kündigungsanhörungen,
+- SBV-Beteiligungen,
+- Arbeitsplatzgestaltung und Maßnahmenverfolgung.
 
-## Installation und Build
+### Dokumente und Volltextsuche
 
-Voraussetzungen:
+Dokumente können lokal abgelegt, textlich extrahiert und in die Fallaktensuche aufgenommen werden. Der Suchindex liegt im verschlüsselten Vault und folgt den Datenschutzpfaden.
 
-- Node.js 20.19.0 oder neuer innerhalb der unterstützten LTS-/Current-Linien,
-- npm,
-- native Build-Abhängigkeiten für Electron/SQLite,
-- Linux-Desktop für AppImage-Builds,
-- Windows 10+ für Windows-Builds.
+### Compliance-Center
 
-Nach `npm install` werden native Electron-Abhängigkeiten automatisch passend zur Electron-Version gebaut (`electron-builder install-app-deps`):
+Das Compliance-Center zeigt Integrität, Datenschutzstatus und relevante Warnungen. Es ist kein Selbstzweck, sondern ein Sicherheitsnetz für sensible SBV-Daten.
 
-```bash
-npm install
-npm run test
-npm run test:e2e
-npm run rc:check
-npm run build:linux
-```
+### Optionale Gremia.BR-Lesebrücke
 
-Für Windows:
+Gremia.SBV kann perspektivisch eine **optionale, standardmäßig deaktivierte Lesebrücke** zu Gremia.BR nutzen. Diese Verbindung ist nur für ausdrücklich ausgelöste, lesende Zugriffe gedacht. Es gibt keine Hintergrundsynchronisation und kein Rückschreiben von SBV-Daten.
 
-```bash
-npm run build:win
-```
+## Datenschutz in einem Satz
 
-Der Windows-Build ist als portable direkt startbare EXE vorgesehen; der Release-Upload soll nur `.exe`, `.AppImage` und `.dmg` veröffentlichen.
+Gremia.SBV behandelt SBV-Daten so, wie SBV-Daten behandelt werden müssen: lokal, verschlüsselt, zweckgebunden, nachvollziehbar und ohne unnötige Datenflüsse.
 
-## Test-, Doku- und Release-Synchronisierung
+Details stehen im [Datenschutz- und Sicherheitskonzept](docs/PRIVACY_AND_SECURITY.md).
 
-Für 0.9.1 sind README, Roadmap, Build-/Release-Dokumentation und Test-Gates synchron zu halten. Vorveröffentlichte Release-Notes, Change-Logs und Patchnotizen werden nicht im aktiven Dokumentationsbestand gepflegt. Neue Tests sollen plattformunabhängig laufen und Fachlogik bevorzugt über Verhalten statt über brüchige Detailstrings prüfen.
+## Für Mitentwickler
 
-## Release-Unterlagen
+Der technische Einstieg steht in [ARCHITECTURE.md](docs/ARCHITECTURE.md) und [CONTRIBUTING.md](CONTRIBUTING.md).
 
-- Release-Checkliste: `docs/RELEASE_CHECKLIST.md`
-- Build-Dokumentation: `docs/BUILD.md`
-- Datenschutz- und Compliance-Dokumente: `docs/DSFA_SBV_TEMPLATE.md`, `docs/VERARBEITUNGSVERZEICHNIS_SBV.md`, `docs/DATENSCHUTZKONZEPT.md`, `docs/LOESCHKONZEPT_SBV.md`
+Kurzfassung:
 
-## Lizenz
+- Electron + React,
+- Services im Main-/Backend-Layer,
+- Renderer ohne direkten Datenbank- oder Netzwerkzugriff,
+- typisierte Bridge/IPC,
+- SQLCipher-Vault,
+- Verhaltenstests vor Oberflächenkosmetik,
+- keine generischen Netzwerkbrücken,
+- keine verdeckten Hintergrundprozesse.
 
-Gremia.SBV steht unter **AGPL-3.0-or-later**. Die Lizenz ersetzt keine datenschutzrechtliche Freigabe und keine organisatorische Prüfung vor produktiver Nutzung.
+## Projektstatus
+
+Gremia.SBV ist eine aktiv entwickelte Open-Source-Anwendung. Der Fokus liegt auf einem belastbaren Kern für die tägliche SBV-Arbeit, nicht auf Feature-Fülle um jeden Preis.
+
+Willkommen sind Beiträge, die die Fachlichkeit, Sicherheit, Barrierefreiheit, Testbarkeit oder Bedienbarkeit verbessern.

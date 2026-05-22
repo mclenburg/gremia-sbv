@@ -176,6 +176,117 @@
     },
   ];
 
+
+  const ocrTexts = [
+    {
+      id: 'ocr-test-0001',
+      caseId: 'case-test-0001',
+      caseNumber: 'TEST-0001',
+      title: 'Scan mit OCR',
+      content: 'Synthetischer OCR-Text mit eindeutigem ScanFund.',
+      sourceType: 'document_ocr',
+      sourceLabel: 'OCR-Text',
+      extractionQuality: 'ocr',
+    },
+  ];
+
+  const createExcerptSegments = (text, query) => {
+    const lowerText = String(text || '').toLowerCase();
+    const lowerQuery = String(query || '').toLowerCase();
+    const index = lowerText.indexOf(lowerQuery);
+    if (index < 0 || !lowerQuery) return [{ text: String(text || ''), match: false }];
+    return [
+      { text: String(text).slice(0, index), match: false },
+      { text: String(text).slice(index, index + String(query).length), match: true },
+      { text: String(text).slice(index + String(query).length), match: false },
+    ].filter((segment) => segment.text.length > 0);
+  };
+
+  const toSearchResult = (item, query, rank) => ({
+    sourceType: item.sourceType,
+    sourceId: item.id,
+    sourceLabel: item.sourceLabel,
+    caseId: item.caseId,
+    caseNumber: item.caseNumber,
+    caseNumbers: item.caseNumber ? [item.caseNumber] : undefined,
+    title: item.title,
+    excerpt: item.content,
+    excerptSegments: createExcerptSegments(item.content, query),
+    extractionQuality: item.extractionQuality || 'structured',
+    navigationKind: item.navigationKind || 'process',
+    navigationId: item.id,
+    rank,
+  });
+
+  const syntheticSearchDocuments = () => [
+    ...notes.flatMap((note) => note.caseIds.map((caseId, index) => ({
+      id: note.id,
+      caseId,
+      caseNumber: note.caseNumbers[index],
+      title: note.title,
+      content: [note.content, note.nextSteps].filter(Boolean).join(' '),
+      sourceType: 'note',
+      sourceLabel: 'Fallnotiz',
+      navigationKind: 'note',
+    }))),
+    ...bemProcesses.map((process) => ({
+      id: process.id,
+      caseId: process.caseId,
+      caseNumber: cases.find((item) => item.id === process.caseId)?.caseNumber,
+      title: process.title,
+      content: process.triggerDescription,
+      sourceType: 'bem',
+      sourceLabel: 'BEM',
+      navigationKind: 'process',
+    })),
+    ...ocrTexts,
+  ];
+
+  const searchSyntheticCaseContent = async (input) => {
+    window.__GREMIA_SBV_E2E_SEARCH_CALLS = window.__GREMIA_SBV_E2E_SEARCH_CALLS || [];
+    const call = {
+      query: input.query,
+      caseId: input.caseId,
+      sourceTypes: input.sourceTypes,
+    };
+    window.__GREMIA_SBV_E2E_SEARCH_CALLS.push(call);
+    const query = String(input.query || '').trim().toLowerCase();
+    const sourceTypes = Array.isArray(input.sourceTypes) ? input.sourceTypes : [];
+    return syntheticSearchDocuments()
+      .filter((item) => !input.caseId || item.caseId === input.caseId)
+      .filter((item) => !sourceTypes.length || sourceTypes.includes(item.sourceType))
+      .filter((item) => `${item.title} ${item.content}`.toLowerCase().includes(query))
+      .slice(0, input.limit || 80)
+      .map((item, index) => toSearchResult(item, input.query, index + 1));
+  };
+
+  let gremiaBrSettings = { enabled: false, serverUrl: '', username: '', hasStoredCredentials: false, relevanceSettings: { groups: [] } };
+  let gremiaBrCache = { upcomingMeetings: [], meetingAgendas: {}, decisions: [], dueDecisions: [], overdueDecisions: [] };
+  const gremiaBrSampleCache = () => ({
+    nextMeeting: { id: 'br-meeting-2026-05-29', title: 'BR-Sitzung Mai', date: '2026-05-29T09:00:00.000Z' },
+    upcomingMeetings: [{ id: 'br-meeting-2026-05-29', title: 'BR-Sitzung Mai', date: '2026-05-29T09:00:00.000Z' }],
+    meetingAgendas: {
+      'br-meeting-2026-05-29': [
+        { id: 'top-1', title: 'TOP 1: Arbeitsplatzausstattung' },
+        { id: 'top-2', title: 'TOP 2: Mobiles Arbeiten' },
+      ],
+    },
+    decisions: [],
+    dueDecisions: [],
+    overdueDecisions: [],
+    lastFetchedAt: now,
+    cacheAgeLabel: 'gerade aktualisiert',
+  });
+
+  const gremiaBrDashboardOverview = () => ({
+    ...gremiaBrCache,
+    relevanceSettings: gremiaBrSettings.relevanceSettings || { groups: [] },
+    relevantMeetings: (gremiaBrCache.upcomingMeetings || []).length ? [{ item: gremiaBrCache.upcomingMeetings[0], agendaItems: gremiaBrCache.meetingAgendas['br-meeting-2026-05-29'] || [], matchedGroups: ['SBV'], matchedKeywords: ['Arbeitsplatz'] }] : [],
+    openDecisionCount: 0,
+    dueDecisionCount: 0,
+    overdueDecisionCount: 0,
+  });
+
   const privacyReviews = [
     {
       id: 'privacy-review-test-0001',
@@ -204,137 +315,6 @@
   const createRecord = async (input) => ({ id: `created-${Date.now()}`, ...input, createdAt: now, updatedAt: now });
 
   window.__GREMIA_SBV_E2E_ICAL_EXPORTS = [];
-  window.__GREMIA_SBV_E2E_SEARCH_CALLS = [];
-
-  const searchDocuments = [
-    {
-      sourceType: 'case',
-      sourceId: 'case-test-0001',
-      sourceLabel: 'Fallakte',
-      caseId: 'case-test-0001',
-      caseNumber: 'TEST-0001',
-      title: 'TEST-0001 · Testperson Alpha',
-      excerpt: 'Synthetischer E2E-Testfall ohne Echtdaten.',
-      content: 'TEST-0001 Testperson Alpha Synthetischer E2E-Testfall ohne Echtdaten.',
-      navigationKind: 'case',
-      rank: 100,
-    },
-    {
-      sourceType: 'note',
-      sourceId: 'note-test-0001',
-      sourceLabel: 'Fallnotiz',
-      caseId: 'case-test-0001',
-      caseNumber: 'TEST-0001',
-      caseNumbers: ['TEST-0001'],
-      title: 'Synthetische Notiz mit Aktenbezug',
-      excerpt: 'Synthetische Notiz ohne Echtdaten mit internem BEM-Aktenbezug.',
-      content: 'Synthetische Notiz ohne Echtdaten mit internem BEM-Aktenbezug. E2E prüft nur Oberfläche und Labels.',
-      navigationKind: 'note',
-      navigationId: 'note-test-0001',
-      rank: 95,
-    },
-    {
-      sourceType: 'document',
-      sourceId: 'document-test-0001',
-      sourceLabel: 'Dokument',
-      caseId: 'case-test-0001',
-      caseNumber: 'TEST-0001',
-      title: 'Synthetisches Dokument',
-      excerpt: 'Auszug aus einem importierten Dokument mit Suchwort Dokumentenfund.',
-      content: 'Auszug aus einem importierten Dokument mit Suchwort Dokumentenfund.',
-      extractionQuality: 'native_text',
-      navigationKind: 'document',
-      navigationId: 'document-test-0001',
-      rank: 90,
-    },
-    {
-      sourceType: 'document_ocr',
-      sourceId: 'document-test-ocr-0001',
-      sourceLabel: 'OCR-Text',
-      caseId: 'case-test-0001',
-      caseNumber: 'TEST-0001',
-      title: 'Scan mit OCR',
-      excerpt: 'OCR erkannte gescannte Unterlage mit ScanFund.',
-      content: 'OCR erkannte gescannte Unterlage mit ScanFund.',
-      extractionQuality: 'ocr',
-      navigationKind: 'document',
-      navigationId: 'document-test-ocr-0001',
-      rank: 80,
-    },
-    {
-      sourceType: 'measure_note',
-      sourceId: 'measure-note-test-0001',
-      sourceLabel: 'Maßnahmennotiz',
-      caseId: 'case-test-0001',
-      caseNumber: 'TEST-0001',
-      title: 'Maßnahmentermin Arbeitsplatz',
-      excerpt: 'Protokollierter Maßnahmentermin mit Suchwort Maßnahmentermin.',
-      content: 'Protokollierter Maßnahmentermin mit Suchwort Maßnahmentermin.',
-      navigationKind: 'measure',
-      navigationId: 'measure-test-0001',
-      rank: 85,
-    },
-    {
-      sourceType: 'bem',
-      sourceId: 'bem-test-0001',
-      sourceLabel: 'BEM',
-      caseId: 'case-test-0001',
-      caseNumber: 'TEST-0001',
-      title: 'BEM-Testvorgang Alpha',
-      excerpt: 'Synthetischer BEM-Anlass Alpha.',
-      content: 'BEM-Testvorgang Alpha Synthetischer BEM-Anlass Alpha.',
-      navigationKind: 'process',
-      navigationId: 'bem-test-0001',
-      rank: 88,
-    },
-    {
-      sourceType: 'bem',
-      sourceId: 'bem-test-0002',
-      sourceLabel: 'BEM',
-      caseId: 'case-test-0002',
-      caseNumber: 'TEST-0002',
-      title: 'BEM-Testvorgang Beta',
-      excerpt: 'Synthetischer BEM-Anlass Beta.',
-      content: 'BEM-Testvorgang Beta Synthetischer BEM-Anlass Beta.',
-      navigationKind: 'process',
-      navigationId: 'bem-test-0002',
-      rank: 88,
-    },
-  ];
-
-  function buildHighlightSegments(text, query) {
-    const safeText = String(text || '');
-    const safeQuery = String(query || '').trim();
-    if (!safeQuery) return [{ text: safeText, match: false }];
-    const lowerText = safeText.toLowerCase();
-    const lowerQuery = safeQuery.toLowerCase();
-    const index = lowerText.indexOf(lowerQuery);
-    if (index < 0) return [{ text: safeText, match: false }];
-    return [
-      { text: safeText.slice(0, index), match: false },
-      { text: safeText.slice(index, index + safeQuery.length), match: true },
-      { text: safeText.slice(index + safeQuery.length), match: false },
-    ].filter((segment) => segment.text.length > 0);
-  }
-
-  async function searchCaseContent(input) {
-    window.__GREMIA_SBV_E2E_SEARCH_CALLS.push(input);
-    const query = String(input?.query || '').trim().toLowerCase();
-    if (query.length < 2) return [];
-    const sourceTypes = Array.isArray(input?.sourceTypes) ? input.sourceTypes : undefined;
-    const rows = searchDocuments
-      .filter((item) => !input?.caseId || item.caseId === input.caseId)
-      .filter((item) => !sourceTypes?.length || sourceTypes.includes(item.sourceType))
-      .filter((item) => `${item.title} ${item.excerpt} ${item.content}`.toLowerCase().includes(query))
-      .sort((left, right) => right.rank - left.rank)
-      .slice(0, input?.limit ?? 80)
-      .map((item) => ({
-        ...item,
-        excerptSegments: buildHighlightSegments(item.excerpt, input.query),
-      }));
-    return rows;
-  }
-
 
   window.__GREMIA_SBV_E2E = {
     active: true,
@@ -354,50 +334,60 @@
       create: async (input) => { const row = { id: `case-${Date.now()}`, status: 'offen', priority: 'normal', openedAt: now, isLocked: false, ...input, createdAt: now, updatedAt: now }; cases.unshift(row); return row; },
       bindLegacyCase: async (input) => { const row = cases.find((item) => item.id === input.caseId); Object.assign(row, { protectedPersonId: input.protectedPersonId, personBindingState: 'active', privacyReviewRequired: false }); return { caseId: input.caseId, protectedPersonId: input.protectedPersonId, personBindingState: 'active', privacyReviewRequired: false }; },
       listNotes: async () => notes,
-      listDocuments: async () => [
-        {
-          id: 'document-test-0001',
-          caseId: 'case-test-0001',
-          title: 'Synthetisches Dokument',
-          filename: 'synthetisches-dokument.txt',
-          mimeType: 'text/plain',
-          sizeBytes: 128,
-          storagePath: 'synthetic/document.txt',
-          extractedText: 'Auszug aus einem importierten Dokument mit Suchwort Dokumentenfund.',
-          extractionQuality: 'native_text',
-          textExtractionStatus: 'extracted',
-          createdAt: now,
-          updatedAt: now,
-        },
-        {
-          id: 'document-test-ocr-0001',
-          caseId: 'case-test-0001',
-          title: 'Scan mit OCR',
-          filename: 'scan-mit-ocr.png',
-          mimeType: 'image/png',
-          sizeBytes: 256,
-          storagePath: 'synthetic/scan.png',
-          extractedText: '',
-          ocrText: 'OCR erkannte gescannte Unterlage mit ScanFund.',
-          extractionQuality: 'ocr',
-          textExtractionStatus: 'extracted',
-          ocrStatus: 'completed',
-          createdAt: now,
-          updatedAt: now,
-        },
-      ],
-      search: searchCaseContent,
+      listDocuments: emptyList,
       createNote: createRecord,
       deleteNote: async () => ({ deleted: true }),
       selectAndImportDocuments: emptyList,
       openDocument: async () => ({ opened: true }),
       exportDocument: async () => ({ exported: true }),
       deleteDocument: async () => ({ deleted: true }),
+      search: searchSyntheticCaseContent,
+    },
+
+
+    gremiaBr: {
+      getSettings: async () => ({ ...gremiaBrSettings }),
+      saveSettings: async (input) => {
+        gremiaBrSettings = {
+          enabled: !!input.enabled,
+          serverUrl: input.serverUrl || '',
+          username: input.username || '',
+          hasStoredCredentials: !!input.password || gremiaBrSettings.hasStoredCredentials,
+          relevanceSettings: input.relevanceSettings || { groups: [] },
+          updatedAt: now,
+        };
+        return { ...gremiaBrSettings };
+      },
+      clearCredentials: async () => {
+        gremiaBrSettings = { enabled: false, serverUrl: '', username: '', hasStoredCredentials: false, relevanceSettings: { groups: [] }, updatedAt: now };
+        gremiaBrCache = { upcomingMeetings: [], meetingAgendas: {}, decisions: [], dueDecisions: [], overdueDecisions: [] };
+        return { ...gremiaBrSettings };
+      },
+      saveRelevanceSettings: async (input) => {
+        gremiaBrSettings = { ...gremiaBrSettings, relevanceSettings: input, updatedAt: now };
+        return { ...gremiaBrSettings };
+      },
+      testConnection: async () => gremiaBrSettings.enabled
+        ? ({ status: 'ok', message: 'Die Gremia.BR-Lesebrücke ist erreichbar.', checkedAt: now, profileDisplayName: 'SBV E2E', profileRole: 'read-only' })
+        : ({ status: 'disabled', message: 'Die Gremia.BR-Anbindung ist deaktiviert.', checkedAt: now }),
+      getCachedOverview: async () => ({ ...gremiaBrCache }),
+      getDashboardOverview: async () => gremiaBrDashboardOverview(),
+      refreshCache: async () => {
+        if (!gremiaBrSettings.enabled) {
+          return { status: 'disabled', message: 'Die Gremia.BR-Anbindung ist deaktiviert.', checkedAt: now, refreshedKeys: [], cached: gremiaBrDashboardOverview() };
+        }
+        gremiaBrCache = gremiaBrSampleCache();
+        return { status: 'ok', message: 'Gremia.BR-Lesecache wurde manuell aktualisiert.', checkedAt: now, refreshedKeys: ['next_meeting', 'upcoming_meetings', 'meeting_agendas'], cached: gremiaBrDashboardOverview() };
+      },
+      suggestInlineReferences: async (query) => String(query || '').length < 2 ? [] : [{ sourceSystem: 'gremia_br', sourceType: 'beschluss', sourceId: 'BR-B-2026-012', title: 'Betriebsvereinbarung Homeoffice', label: 'BR-Beschluss · Betriebsvereinbarung Homeoffice' }],
+      listExternalReferences: async () => [],
+      saveExternalReference: async (input) => ({ id: `gremia-br-ref-${Date.now()}`, sourceSystem: 'gremia_br', fetchedAt: now, createdAt: now, updatedAt: now, ...input }),
+      deleteExternalReference: async () => ({ deleted: true }),
     },
 
     compliance: {
       auditChainStatus: async () => ({ ok: true, checked: 3, firstSequence: 1, lastSequence: 3, latestHash: 'abc123def4567890', algorithm: 'sha256', chainVersion: 1, issueCount: 0, issues: [] }),
-      databaseIntegrityStatus: async () => ({ ok: true, schemaVersion: '0031', appliedSchemaVersion: '0031', missingTables: [], missingColumns: {}, issueCount: 0, issues: [], repairRequired: false }),
+      databaseIntegrityStatus: async () => ({ ok: true, schemaVersion: '0035', appliedSchemaVersion: '0035', missingTables: [], missingColumns: {}, issueCount: 0, issues: [], repairRequired: false }),
     },
 
     persons: {

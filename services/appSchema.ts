@@ -1,4 +1,4 @@
-export const APP_SCHEMA_VERSION = '0031';
+export const APP_SCHEMA_VERSION = '0035';
 
 export const DATABASE_SCHEMA_VERSION_KEY = 'database.schema.version';
 export const LEGACY_DATABASE_SCHEMA_VERSION_KEY = 'settings.database.schema.version';
@@ -164,6 +164,47 @@ export const CASE_MEASURE_WORKPLACE_ACCOMMODATION_REQUIRED_COLUMNS = [
   'updated_at'
 ] as const;
 
+
+
+export const GREMIA_BR_SETTINGS_REQUIRED_COLUMNS = [
+  'id',
+  'enabled',
+  'server_url',
+  'username',
+  'password_secret',
+  'last_connection_test_at',
+  'last_successful_login_at',
+  'profile_json',
+  'relevance_keywords_json',
+  'created_at',
+  'updated_at'
+] as const;
+
+
+
+export const GREMIA_BR_CACHE_REQUIRED_COLUMNS = [
+  'id',
+  'cache_key',
+  'source_type',
+  'payload_json',
+  'fetched_at',
+  'created_at',
+  'updated_at'
+] as const;
+
+
+
+export const CASE_EXTERNAL_REFERENCES_REQUIRED_COLUMNS = [
+  'id',
+  'case_id',
+  'source_system',
+  'source_type',
+  'source_id',
+  'title',
+  'fetched_at',
+  'created_at',
+  'updated_at'
+] as const;
 
 export const CASE_SEARCH_INDEX_REQUIRED_COLUMNS = [
   'id',

@@ -1,36 +1,53 @@
-import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
 
-const pkg = JSON.parse(readFileSync('package.json', 'utf8')) as { version: string; scripts: Record<string, string> };
-
-function durableReleaseDocs(): string {
-  return [
-    readFileSync('README.md', 'utf8'),
-    readFileSync('docs/BUILD.md', 'utf8'),
-    readFileSync('docs/ROADMAP.md', 'utf8'),
-    readFileSync('docs/RELEASE_CHECKLIST.md', 'utf8'),
-    readFileSync('docs/README.md', 'utf8'),
-  ].join('\n');
+function read(path: string): string {
+  return readFileSync(path, 'utf8');
 }
 
-describe('0.9.1 final test and release synchronization', () => {
-  it('keeps package metadata, generated metadata and durable docs aligned', () => {
-    expect(existsSync(`docs/RELEASE_NOTES_${pkg.version}.md`)).toBe(false);
-    expect(readFileSync('src/app/generated/appVersion.ts', 'utf8')).toContain(pkg.version);
-    expect(readFileSync('services/generated/appMetadata.ts', 'utf8')).toContain(pkg.version);
-    expect(readFileSync('README.md', 'utf8')).toContain(`Stand: **${pkg.version}**`);
-    expect(readFileSync('docs/ROADMAP.md', 'utf8')).toContain(`Stand: **${pkg.version}**`);
+function pkg() {
+  return JSON.parse(read('package.json')) as { name: string; version: string };
+}
+
+function publicReadmeSignals() {
+  const readme = read('README.md').toLowerCase();
+  return {
+    namesProduct: readme.includes('gremia.sbv'),
+    namesSbvAudience: readme.includes('schwerbehindertenvertretung') && readme.includes('sbven'),
+    explainsPrivacy: readme.includes('datenschutz') && readme.includes('verschlüsselt'),
+    linksArchitecture: readme.includes('architecture.md'),
+    linksContributing: readme.includes('contributing.md'),
+    avoidsManualVersionLine: !/stand:\s*\*\*\d+\.\d+\.\d+/.test(read('README.md')),
+  };
+}
+
+describe('0.9.2 final test and release synchronization', () => {
+  it('hält package metadata und generierte Metadaten synchron', () => {
+    const packageJson = pkg();
+
+    expect(packageJson.name).toBe('gremia-sbv');
+    expect(packageJson.version).toBe('0.9.2');
+    expect(read('src/app/generated/appVersion.ts').includes(packageJson.version)).toBe(true);
+    expect(read('services/generated/appMetadata.ts').includes(packageJson.version)).toBe(true);
   });
 
-  it('documents regression-test policy without depending on obsolete RC release notes', () => {
-    const docs = durableReleaseDocs();
-    expect(docs).toMatch(/Test-, Doku- und Release-Synchronisierung|Step G|Release-Dokumentation/);
-    expect(docs).toMatch(/Verhalten|Behavior-Tests|plattformunabhängig/i);
-    expect(docs).toMatch(/Behavior-Tests|Regression|E2E|Test/i);
-    expect(docs).toMatch(/portable.*EXE|Direktstart-EXE/i);
+  it('prüft öffentliche Doku auf Produktreife statt auf RC-Marker', () => {
+    expect(publicReadmeSignals()).toEqual({
+      namesProduct: true,
+      namesSbvAudience: true,
+      explainsPrivacy: true,
+      linksArchitecture: true,
+      linksContributing: true,
+      avoidsManualVersionLine: true,
+    });
   });
 
-  it('exposes this regression test as an npm script', () => {
-    expect(pkg.scripts['test:rc-final-test-sync-090rc1p']).toBe('vitest run tests/rcFinalTestSync090rc1p.test.ts');
+  it('behält package.json als einzige manuell gepflegte Versionsquelle', () => {
+    const packageVersion = pkg().version;
+    const durableDocs = ['README.md', 'CONTRIBUTING.md', 'docs/ARCHITECTURE.md', 'docs/PRIVACY_AND_SECURITY.md'];
+    const docsWithManualStand = durableDocs.filter((file) => /stand:\s*\*\*\d+\.\d+\.\d+/.test(read(file)));
+
+    expect(packageVersion).toMatch(/^\d+\.\d+\.\d+$/);
+    expect(docsWithManualStand).toEqual([]);
   });
 });

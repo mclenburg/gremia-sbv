@@ -21,6 +21,9 @@ const REQUIRED_TABLES = [
   'case_search_index_fts',
   'case_search_index_state',
   'case_document_ocr_jobs',
+  'gremia_br_settings',
+  'gremia_br_cache_entries',
+  'case_external_references',
 ] as const;
 
 const REQUIRED_COLUMNS: Record<string, readonly string[]> = {
@@ -35,6 +38,9 @@ const REQUIRED_COLUMNS: Record<string, readonly string[]> = {
   case_search_index: ['id', 'case_id', 'source_type', 'source_id', 'source_label', 'title', 'content', 'updated_at', 'confidentiality', 'contains_health_data', 'extraction_quality', 'navigation_kind', 'navigation_id'],
   case_search_index_state: ['case_id', 'indexed_at', 'last_source_updated_at', 'source_count', 'updated_at'],
   case_document_ocr_jobs: ['id', 'document_id', 'case_id', 'status', 'attempts', 'created_at', 'updated_at'],
+  gremia_br_settings: ['id', 'enabled', 'server_url', 'username', 'password_secret', 'last_connection_test_at', 'last_successful_login_at', 'profile_json', 'relevance_keywords_json', 'created_at', 'updated_at'],
+  gremia_br_cache_entries: ['id', 'cache_key', 'source_type', 'payload_json', 'fetched_at', 'created_at', 'updated_at'],
+  case_external_references: ['id', 'case_id', 'source_system', 'source_type', 'source_id', 'title', 'fetched_at', 'created_at', 'updated_at'],
 };
 
 function tableExists(db: DatabaseAdapter, table: string): boolean {

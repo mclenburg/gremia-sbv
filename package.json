@@ -1,6 +1,6 @@
 {
   "name": "gremia-sbv",
-  "version": "0.9.1",
+  "version": "0.9.2",
   "private": true,
   "description": "Offline-first Desktop-App für die vertrauliche Fallarbeit der Schwerbehindertenvertretung.",
   "main": "dist-electron/electron/main.js",
@@ -93,7 +93,8 @@
     "test:rc-091-step-g-sync": "vitest run tests/rc091StepGReleaseSync.test.ts",
     "test:quality-ratio": "vitest run tests/rc091TestQualityRatio.test.ts",
     "docs:diagrams:check": "node scripts/check-diagram-assets.cjs",
-    "css:usage:report": "node scripts/report-css-usage.cjs"
+    "css:usage:report": "node scripts/report-css-usage.cjs",
+    "version:sync-lock": "node scripts/sync-package-lock-version.cjs"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.0",

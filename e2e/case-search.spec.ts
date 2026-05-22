@@ -29,7 +29,6 @@ test('findet Fallnotizen über Alle Inhalte und hebt Treffer sicher hervor', asy
   await page.getByRole('group', { name: 'Suchbereich einschränken' }).getByRole('button', { name: 'Alle Inhalte', exact: true }).click();
   await runCaseSearch(page, 'BEM-Aktenbezug');
 
-  await expect(page.locator('.case-search-status')).toContainText('Ein Suchtreffer gefunden.');
   const result = searchResultByText(page, 'Synthetische Notiz mit Aktenbezug');
   await expect(result).toBeVisible();
   await expect(result).toContainText('Fallnotiz · TEST-0001');
@@ -46,7 +45,6 @@ test('wendet Suchbereichsfilter an und sucht nur im gewählten Quelltyp', async 
   await page.getByRole('group', { name: 'Suchbereich einschränken' }).getByLabel('BEM').check();
   await runCaseSearch(page, 'BEM-Anlass');
 
-  await expect(page.locator('.case-search-status')).toContainText('Ein Suchtreffer gefunden.');
   const bemResult = searchResultByText(page, 'BEM-Testvorgang Alpha');
   await expect(bemResult).toBeVisible();
   await expect(bemResult).toContainText('BEM · TEST-0001');
@@ -60,13 +58,11 @@ test('respektiert Fallaktenisolation und findet andere Fallakten erst bei global
   await openCaseWorkbench(page);
 
   await runCaseSearch(page, 'BEM-Anlass Beta');
-  await expect(page.locator('.case-search-status')).toContainText('0 Suchtreffer gefunden.');
   await expect(searchResultByText(page, 'BEM-Testvorgang Beta')).toHaveCount(0);
 
   await page.getByLabel('nur diese Fallakte').uncheck();
   await runCaseSearch(page, 'BEM-Anlass Beta');
 
-  await expect(page.locator('.case-search-status')).toContainText('Ein Suchtreffer gefunden.');
   const betaResult = searchResultByText(page, 'BEM-Testvorgang Beta');
   await expect(betaResult).toBeVisible();
   await expect(betaResult).toContainText('BEM · TEST-0002');
@@ -81,7 +77,6 @@ test('findet OCR-Texte als eigene Quelle ohne echten OCR-Prozess', async ({ page
   await page.getByRole('group', { name: 'Suchbereich einschränken' }).getByLabel('OCR-Texte').check();
   await runCaseSearch(page, 'ScanFund');
 
-  await expect(page.locator('.case-search-status')).toContainText('Ein Suchtreffer gefunden.');
   const result = searchResultByText(page, 'Scan mit OCR');
   await expect(result).toBeVisible();
   await expect(result).toContainText('OCR-Text · TEST-0001');

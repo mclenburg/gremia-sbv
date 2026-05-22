@@ -112,6 +112,7 @@ import type {
   UpdateLegalNormInput,
 } from "./app/core/models/knowledge.model";
 import type { TemplateDefaultValues } from "./app/core/models/template-default.model";
+import type { CreateGremiaBrExternalReferenceInput, GremiaBrCachedOverview, GremiaBrCacheRefreshResult, GremiaBrConnectionTestResult, GremiaBrDashboardOverview, GremiaBrExternalReferenceRecord, GremiaBrInlineSuggestion, GremiaBrPublicSettings, GremiaBrRelevanceSettings, GremiaBrSettingsInput } from "./app/core/models/gremia-br.model";
 
 import type {
   CreateTemplateInput,
@@ -359,6 +360,21 @@ declare global {
         suspend(id: string, reason: string): Promise<DeadlineRecord>;
         cancel(id: string, reason: string): Promise<DeadlineRecord>;
         exportIcal(filters?: DeadlineListFilters, privacyLevel?: "privacy_first" | "process_type" | "case_reference" | "details"): Promise<string>;
+      };
+
+      gremiaBr: {
+        getSettings(): Promise<GremiaBrPublicSettings>;
+        saveSettings(input: GremiaBrSettingsInput): Promise<GremiaBrPublicSettings>;
+        clearCredentials(): Promise<GremiaBrPublicSettings>;
+        saveRelevanceSettings(input: GremiaBrRelevanceSettings): Promise<GremiaBrPublicSettings>;
+        testConnection(): Promise<GremiaBrConnectionTestResult>;
+        getCachedOverview(): Promise<GremiaBrCachedOverview>;
+        getDashboardOverview(): Promise<GremiaBrDashboardOverview>;
+        refreshCache(): Promise<GremiaBrCacheRefreshResult>;
+        suggestInlineReferences(query: string): Promise<GremiaBrInlineSuggestion[]>;
+        listExternalReferences(caseId: string): Promise<GremiaBrExternalReferenceRecord[]>;
+        saveExternalReference(input: CreateGremiaBrExternalReferenceInput): Promise<GremiaBrExternalReferenceRecord>;
+        deleteExternalReference(referenceId: string): Promise<{ deleted: boolean }>;
       };
       templateDefaults: {
         list(): Promise<TemplateDefaultValues>;

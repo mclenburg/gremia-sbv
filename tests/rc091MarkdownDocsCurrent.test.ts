@@ -1,36 +1,50 @@
-import { existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { readNormalizedSourceText } from './helpers/sourceText';
+import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { join } from 'node:path';
 
-const activeDocs = [
-  'README.md',
-  'docs/README.md',
-  'docs/ARCHITECTURE.md',
-  'docs/BUILD.md',
-  'docs/ROADMAP.md',
-  'docs/RELEASE_CHECKLIST.md',
-  'docs/SECURITY.md',
-  'docs/DATENSCHUTZKONZEPT.md',
-  'docs/DSFA_SBV_TEMPLATE.md',
-  'docs/VERARBEITUNGSVERZEICHNIS_SBV.md',
-  'docs/LOESCHKONZEPT_SBV.md'
-];
-
-describe('0.9.1 aktive Markdown-Dokumentation', () => {
-  it('führt nur dauerhafte Projekt- und Betriebsdokumentation als aktive Kernunterlagen', () => {
-    for (const file of activeDocs) {
-      expect(existsSync(file), `${file} fehlt`).toBe(true);
-      expect(readNormalizedSourceText(file), `${file} ohne Versionsstand`).toContain('Stand: **0.9.1**');
+function collectMarkdownFiles(root: string): string[] {
+  const result: string[] = [];
+  for (const entry of readdirSync(root)) {
+    const path = join(root, entry);
+    const stat = statSync(path);
+    if (stat.isDirectory()) {
+      result.push(...collectMarkdownFiles(path));
+    } else if (entry.endsWith('.md')) {
+      result.push(path.replace(/\\/g, '/'));
     }
+  }
+  return result.sort();
+}
+
+function classifyMarkdownFile(path: string): 'public-core' | 'internal-durable' | 'transient' {
+  const normalized = path.replace(/\\/g, '/').toLowerCase();
+  if (normalized === 'readme.md' || normalized === 'contributing.md') {
+    return 'public-core';
+  }
+  if (normalized.startsWith('docs/') && !normalized.includes('release') && !normalized.includes('patch')) {
+    return 'internal-durable';
+  }
+  return 'transient';
+}
+
+function hasManualVersionStandLine(file: string): boolean {
+  return /stand:\s*\*\*\d+\.\d+\.\d+/.test(readFileSync(file, 'utf8'));
+}
+
+describe('0.9.2 aktive Markdown-Dokumentation', () => {
+  it('führt öffentliche und dauerhafte Dokumentation ohne manuell gepflegte Versionspflicht', () => {
+    const docs = ['README.md', 'CONTRIBUTING.md', ...collectMarkdownFiles('docs')];
+    const classified = docs.map((file) => ({ file, kind: classifyMarkdownFile(file) }));
+
+    expect(classified.some((entry) => entry.file === 'README.md' && entry.kind === 'public-core')).toBe(true);
+    expect(classified.some((entry) => entry.file === 'docs/PRIVACY_AND_SECURITY.md' && entry.kind === 'internal-durable')).toBe(true);
+    expect(docs.some(hasManualVersionStandLine)).toBe(false);
   });
 
-  it('entfernt vor Veröffentlichung Release Notes und Changelog aus dem aktiven Bestand', () => {
-    expect(existsSync('docs/RELEASE_NOTES_0.9.1.md')).toBe(false);
-    expect(existsSync('docs/CHANGELOG.md')).toBe(false);
+  it('verbannt Release- und Zwischenstandsdokumentation aus der aktiven Kerndoku', () => {
+    const activeDocs = ['README.md', 'CONTRIBUTING.md', ...collectMarkdownFiles('docs')];
+    const transientInCore = activeDocs.filter((file) => classifyMarkdownFile(file) === 'transient');
 
-    const docsReadme = readNormalizedSourceText('docs/README.md');
-    expect(docsReadme).not.toContain('RELEASE_NOTES_0.9.1.md');
-    expect(docsReadme).not.toContain('CHANGELOG.md');
-    expect(docsReadme).toContain('Release Notes, Change Logs');
+    expect(transientInCore).toEqual([]);
   });
 });

@@ -5,7 +5,7 @@ import type { DatabaseAdapter } from '../services/databaseService';
 class SchemaDb implements DatabaseAdapter {
   constructor(
     private readonly tables: Record<string, string[]>,
-    private readonly schemaVersion = '0031',
+    private readonly schemaVersion = '0035',
   ) {}
 
   prepare<T = unknown>(sql: string) {
@@ -56,6 +56,9 @@ const completeSchema: Record<string, string[]> = {
   case_search_index_fts: ['index_id', 'title', 'content', 'keywords', 'source_label'],
   case_search_index_state: ['case_id', 'indexed_at', 'last_source_updated_at', 'source_count', 'updated_at'],
   case_document_ocr_jobs: ['id', 'document_id', 'case_id', 'status', 'attempts', 'created_at', 'updated_at'],
+  gremia_br_settings: ['id', 'enabled', 'server_url', 'username', 'password_secret', 'last_connection_test_at', 'last_successful_login_at', 'profile_json', 'relevance_keywords_json', 'created_at', 'updated_at'],
+  gremia_br_cache_entries: ['id', 'cache_key', 'source_type', 'payload_json', 'fetched_at', 'created_at', 'updated_at'],
+  case_external_references: ['id', 'case_id', 'source_system', 'source_type', 'source_id', 'title', 'fetched_at', 'created_at', 'updated_at'],
 };
 
 describe('database integrity status for compliance center', () => {
@@ -63,13 +66,13 @@ describe('database integrity status for compliance center', () => {
     const result = evaluateDatabaseIntegrity(new SchemaDb(completeSchema));
 
     expect(result.ok).toBe(true);
-    expect(result.appliedSchemaVersion).toBe('0031');
+    expect(result.appliedSchemaVersion).toBe('0035');
     expect(result.missingTables).toEqual([]);
     expect(result.missingColumns).toEqual({});
     expect(result.repairRequired).toBe(false);
   });
 
-  it('accepts the real person-link and privacy-review column names from schema 0031', () => {
+  it('accepts the real person-link and privacy-review column names from schema 0035', () => {
     const result = evaluateDatabaseIntegrity(new SchemaDb(completeSchema));
 
     expect(result.issues).not.toContain('Spalte person_case_links.person_id fehlt.');

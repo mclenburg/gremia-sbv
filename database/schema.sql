@@ -264,6 +264,37 @@ CREATE TABLE IF NOT EXISTS settings (
 );
 
 
+
+
+CREATE TABLE IF NOT EXISTS gremia_br_settings (
+  id TEXT PRIMARY KEY CHECK (id = 'default'),
+  enabled INTEGER NOT NULL DEFAULT 0 CHECK (enabled IN (0, 1)),
+  server_url TEXT NOT NULL DEFAULT '',
+  username TEXT NOT NULL DEFAULT '',
+  password_secret TEXT NOT NULL DEFAULT '',
+  last_connection_test_at TEXT,
+  last_successful_login_at TEXT,
+  profile_json TEXT,
+  relevance_keywords_json TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+
+
+CREATE TABLE IF NOT EXISTS gremia_br_cache_entries (
+  id TEXT PRIMARY KEY,
+  cache_key TEXT NOT NULL UNIQUE,
+  source_type TEXT NOT NULL,
+  payload_json TEXT NOT NULL,
+  fetched_at TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_gremia_br_cache_entries_key ON gremia_br_cache_entries(cache_key);
+CREATE INDEX IF NOT EXISTS idx_gremia_br_cache_entries_fetched ON gremia_br_cache_entries(fetched_at DESC);
+
 CREATE TABLE IF NOT EXISTS retention_actions (
   id TEXT PRIMARY KEY,
   action_type TEXT NOT NULL,
@@ -961,3 +992,26 @@ CREATE VIRTUAL TABLE IF NOT EXISTS case_search_index_fts USING fts5(
 -- text_extraction_status dokumentiert extracted, empty, unsupported oder failed.
 -- 0030: text_extractor_id und text_extraction_error machen Dokumentextraktion diagnosefähig.
 -- 0031: OCR-Status, lokale OCR-Textablage und OCR-Hintergrundjobs erweitern den Suchindex ohne Cloud-Anbindung.
+
+-- 0035: Externe Gremia.BR-Referenzen für Fallakten.
+-- Dieser Abschnitt wird in das bestehende Fresh-Install-Schema übernommen.
+
+CREATE TABLE IF NOT EXISTS case_external_references (
+  id TEXT PRIMARY KEY,
+  case_id TEXT NOT NULL,
+  source_system TEXT NOT NULL DEFAULT 'gremia_br' CHECK (source_system IN ('gremia_br')),
+  source_type TEXT NOT NULL CHECK (source_type IN ('beschluss','sitzung','agenda','protokoll')),
+  source_id TEXT NOT NULL,
+  title TEXT NOT NULL,
+  description TEXT,
+  source_url TEXT,
+  fetched_at TEXT NOT NULL,
+  snapshot_json TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY(case_id) REFERENCES cases(id) ON DELETE CASCADE,
+  UNIQUE(case_id, source_system, source_type, source_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_case_external_references_case ON case_external_references(case_id, updated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_case_external_references_source ON case_external_references(source_system, source_type, source_id);

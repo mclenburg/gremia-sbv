@@ -1,49 +1,49 @@
 import { describe, expect, it } from 'vitest';
-import pkg from '../package.json';
-import { readNormalizedSourceText } from './helpers/sourceText';
-
-const forbiddenTmpLiteral = '/t' + 'mp/';
-const forbiddenWindowsRoot = 'C:' + '\\';
+import { readFileSync } from 'node:fs';
 
 function read(path: string): string {
-  return readNormalizedSourceText(path);
+  return readFileSync(path, 'utf8');
 }
 
-describe('0.9.1 Step G Test-, Doku- und Release-Sync', () => {
-  it('keeps README, roadmap and build docs aligned to the package version', () => {
-    for (const file of ['README.md', 'docs/ROADMAP.md', 'docs/BUILD.md']) {
-      expect(read(file), file).toContain(`Stand: **${pkg.version}**`);
-    }
+function versionFromPackage(): string {
+  return (JSON.parse(read('package.json')) as { version: string }).version;
+}
+
+describe('0.9.2 Step G Test-, Doku- und Release-Sync', () => {
+  it('hält generierte App-Metadaten an package.json gekoppelt', () => {
+    const version = versionFromPackage();
+
+    expect(read('src/app/generated/appVersion.ts').includes(version)).toBe(true);
+    expect(read('services/generated/appMetadata.ts').includes(version)).toBe(true);
   });
 
-  it('keeps pre-release notes out of the active documentation set', () => {
-    const docsReadme = read('docs/README.md');
-    const roadmap = read('docs/ROADMAP.md');
-    const cleanupManifest = read('maintenance/source-cleanup/obsolete-docs-0.9.1-pre-release.json');
-    expect(docsReadme).toContain('Release Notes, Change Logs');
-    expect(roadmap).not.toContain('### 0.9.0-rc.1-p – RC-Coverage-Scope');
-    expect(cleanupManifest).toContain('docs/RELEASE_NOTES_0.9.1.md');
-    expect(cleanupManifest).toContain('docs/CHANGELOG.md');
+  it('prüft README auf dauerhafte Produktbotschaft statt auf Release-Zwischenstände', () => {
+    const readme = read('README.md').toLowerCase();
+    const signals = {
+      sbv: readme.includes('schwerbehindertenvertretung'),
+      offline: readme.includes('offline-first'),
+      vault: readme.includes('vault') || readme.includes('sqlcipher'),
+      noBackgroundSync: readme.includes('keine hintergrundverbindungen') || readme.includes('keine hintergrundsynchronisation'),
+      noManualStand: !/stand:\s*\*\*\d+\.\d+\.\d+/.test(read('README.md')),
+    };
+
+    expect(signals).toEqual({
+      sbv: true,
+      offline: true,
+      vault: true,
+      noBackgroundSync: true,
+      noManualStand: true,
+    });
   });
 
-  it('documents platform-independent test rules and release artifact boundaries', () => {
-    const buildDoc = read('docs/BUILD.md');
-    const windowsDoc = read('docs/WINDOWS_BUILD.md');
-    expect(buildDoc).toMatch(/plattformunabhängig/i);
-    expect(buildDoc).toMatch(/Source[- ]code-Archive/i);
-    expect(buildDoc).toContain('AppImage, EXE und DMG');
-    expect(windowsDoc).toMatch(/portable.*\.exe/i);
-    expect(windowsDoc).toMatch(/kein Installer/i);
+  it('lässt Release-Notizen und Zwischenstände nicht als Pflichtdokumentation wirken', () => {
+    const readme = read('README.md').toLowerCase();
+
+    expect(readme.includes('release notes')).toBe(false);
+    expect(readme.includes('zwischenstand')).toBe(false);
   });
 
-  it('keeps Step-G regression tests free from POSIX-only paths and raw CRLF assumptions', () => {
-    const sources = [
-      'tests/rc091StepGReleaseSync.test.ts',
-      'tests/rcFinalTestSync090rc1p.test.ts'
-    ].map((file) => read(file)).join(String.fromCharCode(10));
-    expect(sources.includes(forbiddenTmpLiteral)).toBe(false);
-    expect(sources.includes(forbiddenWindowsRoot)).toBe(false);
-    const forbiddenRawCrlfAssertion = String.raw`\r` + String.raw`\n`;
-    expect(sources.includes(forbiddenRawCrlfAssertion)).toBe(false);
+  it('bleibt auf die zentrale Version 0.9.2 ausgerichtet', () => {
+    expect(versionFromPackage()).toBe('0.9.2');
   });
 });

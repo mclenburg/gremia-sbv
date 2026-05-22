@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { CASE_DOCUMENTS_REQUIRED_COLUMNS, CASE_DOCUMENT_OCR_JOBS_REQUIRED_COLUMNS, CASE_MEASURE_NOTES_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_STATE_REQUIRED_COLUMNS } from '../services/appSchema';
+import { CASE_DOCUMENTS_REQUIRED_COLUMNS, CASE_DOCUMENT_OCR_JOBS_REQUIRED_COLUMNS, CASE_EXTERNAL_REFERENCES_REQUIRED_COLUMNS, CASE_MEASURE_NOTES_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_STATE_REQUIRED_COLUMNS, GREMIA_BR_CACHE_REQUIRED_COLUMNS, GREMIA_BR_SETTINGS_REQUIRED_COLUMNS } from '../services/appSchema';
 import { compareIndexSnapshot, compareTableSnapshot, createSqlSchemaSnapshot } from '../services/schemaSnapshotPolicy';
 
 describe('Schema-Snapshot Fresh Install vs. Legacy-Migration 0.9.1', () => {
@@ -77,6 +77,47 @@ describe('Schema-Snapshot Fresh Install vs. Legacy-Migration 0.9.1', () => {
 
     expect(problems).toEqual([]);
     expect(fresh.tables.case_search_index_state.columns).toEqual(expect.arrayContaining([...CASE_SEARCH_INDEX_STATE_REQUIRED_COLUMNS]));
+  });
+
+
+  it('hält Gremia.BR-Einstellungen in Basisschema und Migration 0032 plus 0034 strukturgleich', () => {
+    const fresh = createSqlSchemaSnapshot(readFileSync('database/schema.sql', 'utf8'));
+    const migrated = createSqlSchemaSnapshot(`${readFileSync('database/migrations/0032_gremia_br_settings.sql', 'utf8')}\n${readFileSync('database/migrations/0034_gremia_br_relevance_settings.sql', 'utf8')}`);
+
+    const problems = compareTableSnapshot(fresh, migrated, 'gremia_br_settings');
+
+    expect(problems).toEqual([]);
+    expect(fresh.tables.gremia_br_settings.columns).toEqual(expect.arrayContaining([...GREMIA_BR_SETTINGS_REQUIRED_COLUMNS]));
+  });
+
+
+  it('hält Gremia.BR-Lesecache in Basisschema und Migration 0033 strukturgleich', () => {
+    const fresh = createSqlSchemaSnapshot(readFileSync('database/schema.sql', 'utf8'));
+    const migrated = createSqlSchemaSnapshot(readFileSync('database/migrations/0033_gremia_br_read_cache.sql', 'utf8'));
+
+    const problems = [
+      ...compareTableSnapshot(fresh, migrated, 'gremia_br_cache_entries'),
+      ...compareIndexSnapshot(fresh, migrated, 'idx_gremia_br_cache_entries_key'),
+      ...compareIndexSnapshot(fresh, migrated, 'idx_gremia_br_cache_entries_fetched'),
+    ];
+
+    expect(problems).toEqual([]);
+    expect(fresh.tables.gremia_br_cache_entries.columns).toEqual(expect.arrayContaining([...GREMIA_BR_CACHE_REQUIRED_COLUMNS]));
+  });
+
+
+  it('hält externe Gremia.BR-Fallaktenreferenzen in Basisschema und Migration 0035 strukturgleich', () => {
+    const fresh = createSqlSchemaSnapshot(readFileSync('database/schema.sql', 'utf8'));
+    const migrated = createSqlSchemaSnapshot(readFileSync('database/migrations/0035_gremia_br_external_references.sql', 'utf8'));
+
+    const problems = [
+      ...compareTableSnapshot(fresh, migrated, 'case_external_references'),
+      ...compareIndexSnapshot(fresh, migrated, 'idx_case_external_references_case'),
+      ...compareIndexSnapshot(fresh, migrated, 'idx_case_external_references_source'),
+    ];
+
+    expect(problems).toEqual([]);
+    expect(fresh.tables.case_external_references.columns).toEqual(expect.arrayContaining([...CASE_EXTERNAL_REFERENCES_REQUIRED_COLUMNS]));
   });
 
 });

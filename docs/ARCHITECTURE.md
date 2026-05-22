@@ -1,68 +1,54 @@
-# Architektur Gremia.SBV
+# Architekturüberblick
 
-Stand: **0.9.1**
+Gremia.SBV ist eine lokale Electron-/React-Anwendung mit verschlüsseltem Datenbestand. Die Architektur ist darauf ausgelegt, sensible SBV-Daten lokal zu halten und fachliche Funktionen klar zu trennen.
 
-## Architekturprinzip
+## Leitentscheidungen
 
-Gremia.SBV ist eine lokale Electron-/React-/Node.js-App. Die Architektur folgt der Trennung:
+1. **Offline-first bleibt Standard.** Netzwerkzugriffe sind optional, explizit und fachlich begrenzt.
+2. **SQLCipher-Vault ist die zentrale Datenhaltung.** Keine sensiblen Fachdaten in localStorage.
+3. **Renderer ist nicht vertrauenswürdig genug für Secrets.** Datenbank-, Datei- und Netzwerkzugriffe laufen über Services.
+4. **Bridge statt Direktzugriff.** Der Renderer nutzt typisierte IPC-/Preload-Funktionen.
+5. **Module liefern Fachlogik, Services sichern Querschnitt.** Datenschutz, Suche, Audit, Retention und Dokumente sind eigene Bausteine.
 
-```text
-UI-Komponenten → Feature-Hooks → Services → Policies → Datenbank/Migrationen
-```
-
-Policies sind pure Functions ohne Datenbankzugriff. Services sind dünne, testbare Orchestrierer. `App.tsx` verdrahtet nur und darf nicht zum Sammelpunkt von Feature-Handlern werden.
-
-## Zentrale Domänen
+## Grobe Schichten
 
 ```text
-ProtectedPerson
-  └── CaseFile
-        ├── Notes
-        ├── Measures
-        ├── Deadlines
-        └── Documents
+React UI
+  ↓
+Preload / typisierte Bridge
+  ↓
+IPC Handler
+  ↓
+Services
+  ↓
+Repositories / SQLCipher / Dateivault
 ```
 
-Die Person ist führender Datensatz. Reguläre Fallakten gehören zu genau einer Person. Für Erstberatungen ohne Namensnennung gibt es eine pseudonyme anonyme Anfrage.
+## Wichtige Querschnittsdienste
 
-## Personenverzeichnis
+### Datenschutz und Retention
 
-Das Personenverzeichnis speichert Schutzstatus und Beschäftigungsstatus, aber kein GdB-Standardfeld und keine Diagnosen. Die Personalnummer ist optional. Import-Matching erfolgt bevorzugt über Personalnummer oder dienstliche E-Mail; Name/Vorname allein ist ein Konflikt, kein automatisches Update.
+Anonymisierung, Löschung, Retention, Privacy Review und Audit dürfen nicht nebeneinander existieren, sondern müssen dieselben Entitäten kennen. Wird eine Fallakte anonymisiert oder gelöscht, müssen auch Dokumente, Maßnahmennotizen, Suchindex und externe Referenzen folgen.
 
-Wichtige Services:
+### Suchindex
 
-- `protectedPersonService.ts`
-- `personImportService.ts`
-- `personMatchingService.ts`
-- `personLifecyclePolicy.ts`
-- `personCaseLinkService.ts` beziehungsweise künftiger `personCaseBindingService.ts`
-- `personAnonymizationService.ts`
-- `personStatusExpiryService.ts`
+Die Suche nutzt einen zentralen Suchindex im SQLCipher-Vault. Fachmodule liefern indexierbare Inhalte über Provider. Der Suchindex enthält sensible Kopien von Textinhalten und ist daher selbst datenschutzrelevant.
 
-## Fallaktenbindung
+### Dokumentverarbeitung
 
-`cases.protected_person_id` ist technisch führend; fachlich entspricht dies der im Konzept bezeichneten Fallakte (`case_files`). Bestehende `person_case_links` werden nur für Migration, Historie und Audit ausgewertet:
+Dokumente werden lokal gespeichert. Text-Extraktion und optional OCR laufen lokal. Cloud-OCR oder externe Dokumentdienste sind nicht Teil der Architektur.
 
-- genau ein aktiver Link → `migrated`,
-- mehrere Links → `legacy_unlinked`,
-- kein Link → `legacy_unlinked`,
-- anonyme Anfrage → `anonymous_request`.
+### Gremia.BR-Lesebrücke
 
-## Datenschutz-Lifecycle
+Die Gremia.BR-Anbindung ist optional, standardmäßig deaktiviert und read-only. Sie nutzt eine harte Endpunkt-Whitelist, speichert Zugangsdaten im Vault und führt Netzwerkzugriffe nur auf explizite Nutzeraktion aus.
 
-Statusablauf und Beschäftigungsende sind Datenschutz-Prüfereignisse. Zulässige Entscheidungen sind:
+## Dashboard-Prinzip
 
-1. Status aktualisieren,
-2. Fortspeicherung mit Grund und Prüftermin,
-3. Anonymisierung,
-4. Löschung.
+Das Dashboard ist keine Werbefläche für Module. Es zeigt nur Bereiche mit unmittelbarem Arbeitswert:
 
-Freitexte werden nicht automatisch anonymisiert, sondern prüfpflichtig markiert.
+- Fälle,
+- Fristen,
+- Compliance-Center,
+- Gremia.BR-Lesebrücke.
 
-## Fristen und iCal
-
-Fristen werden über das bestehende Fristensystem geführt. Personenbezogene Ablaufwarnungen dürfen kein paralleles Dashboard-System erzeugen. iCal-Export nutzt `process_type` als Standard und enthält keine Namen oder Fallinhalte. Der Exportpfad liegt im Fristenmodul; Personenansichten dürfen ihn nur als datensparsame Komfortaktion auslösen, nicht als parallele Fristenlogik.
-
-## Compliance Center
-
-`complianceCenterService.ts` erzeugt TOMs, DSFA, DSGVO-/BDSG-Matrix und Freigabeunterlagen. Personenverzeichnis, Art. 13/14, Art. 15, § 164 Abs. 4 SGB IX, SQLCipher-Entscheidung und Audit-ohne-Direktidentifikatoren werden dort generatorbasiert gepflegt; reine Markdown-Änderungen reichen nicht aus.
+Alles andere gehört in die Fachmodule.

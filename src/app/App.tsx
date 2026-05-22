@@ -39,13 +39,13 @@ import { PersonsView } from "./features/persons/PersonsView";
 import { usePersonsHandlers } from "./features/persons/usePersonsHandlers";
 import { useIcalExportHandlers } from "./features/deadlines/useIcalExportHandlers";
 import { TemplatesView } from "./features/templates/TemplatesView";
+import { SettingsHub } from "./features/settings/SettingsHub";
+import { DashboardFocusOverview } from "./features/dashboard/DashboardFocusOverview";
 import {
   applyTheme,
-  DashboardOverview,
   CasesView,
   getInitialTheme,
   nowLabel,
-  SettingsView,
   type ThemeMode,
 } from "./workflowViews";
 import {
@@ -71,6 +71,7 @@ import "./features/persons/personsWorkbench.css";
 import "./ui/responsiveDesign.css";
 import "./caseModalResponsive.css";
 import "./shared/textCommands/textCommandHelp.css";
+import "./settingsHub.css";
 
 
 const IMPLEMENTED_VIEW_IDS = new Set<ViewId>([
@@ -422,16 +423,16 @@ export function App() {
               </div>
             )}
             {currentView === "dashboard" && (
-              <DashboardOverview
-                onNavigate={setCurrentView}
-                cases={cases}
-                deadlines={deadlines}
-                dashboardItems={dashboardDeadlines}
-                onEditDeadline={(deadline) => setSelectedDeadline(deadline)}
-                onCompleteDeadline={(deadline) =>
-                  void completeDeadline(deadline)
-                }
-              />
+              <>
+                <DashboardFocusOverview
+                  onNavigate={setCurrentView}
+                  cases={cases}
+                  deadlines={deadlines}
+                  dashboardItems={dashboardDeadlines}
+                  onEditDeadline={(deadline) => setSelectedDeadline(deadline)}
+                  onCompleteDeadline={(deadline) => void completeDeadline(deadline)}
+                />
+              </>
             )}
             {currentView === "cases" && (
               <CasesView
@@ -514,7 +515,7 @@ export function App() {
             {currentView === "reports" && <ReportsView />}
             {currentView === "compliance" && <ComplianceView />}
             {currentView === "settings" && (
-              <SettingsView
+              <SettingsHub
                 theme={theme}
                 onThemeChange={setTheme}
                 cases={cases}
