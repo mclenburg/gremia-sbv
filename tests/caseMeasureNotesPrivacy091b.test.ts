@@ -15,7 +15,7 @@ class RetentionMemoryDb {
     case_search_index: [{ id: 'measure_note:measure-note-1:case-1', case_id: 'case-1', source_type: 'measure_note', source_id: 'measure-note-1', title: 'BEM-Termin Max', content: 'Arbeitsplatzbezogene Einschränkung besprochen.', keywords: null }],
     case_search_index_fts: [{ index_id: 'measure_note:measure-note-1:case-1', title: 'BEM-Termin Max', content: 'Arbeitsplatzbezogene Einschränkung besprochen.' }],
     case_search_index_state: [{ case_id: 'case-1' }],
-    retention_actions: [] as any[],
+    retention_actions: [],
   };
 
   prepare(sql: string) {
@@ -125,10 +125,18 @@ class RetentionMemoryDb {
   close() {}
 }
 
+type RetentionDbFactory = ConstructorParameters<typeof RetentionService>[0];
+type RetentionDb = ReturnType<RetentionDbFactory>;
+
+function createRetentionService(db: RetentionMemoryDb) {
+  const dbFactory: RetentionDbFactory = () => db as unknown as RetentionDb;
+  return new RetentionService(dbFactory, () => path.join(tmpdir(), 'gremia-sbv-retention-test'));
+}
+
 describe('case measure note privacy behavior', () => {
   it('anonymizes measure notes together with the case retention action', () => {
     const db = new RetentionMemoryDb();
-    const service = new RetentionService(() => db as any, () => path.join(tmpdir(), 'gremia-sbv-retention-test'));
+    const service = createRetentionService(db);
 
     const result = service.anonymizeCase('case-1', 'Regelfrist erreicht', 'FALL ANONYMISIEREN');
 

@@ -79,6 +79,10 @@ function buildPersonInput(rowObject: Record<string, string>, mapping: PersonImpo
   return { input, validationErrors, rawPreview: Object.fromEntries(Object.entries(rowObject).filter(([key]) => !key.toLowerCase().includes('gdb')).slice(0, 12)) };
 }
 
+function setPersonImportUpdateField<K extends keyof CreateProtectedPersonInput>(update: UpdateProtectedPersonInput, key: K, value: CreateProtectedPersonInput[K] | undefined): void {
+  update[key] = value;
+}
+
 function diffPerson(existing: ProtectedPersonRecord, next: CreateProtectedPersonInput): { changed: string[]; update: UpdateProtectedPersonInput } {
   const update: UpdateProtectedPersonInput = {};
   const changed: string[] = [];
@@ -91,7 +95,7 @@ function diffPerson(existing: ProtectedPersonRecord, next: CreateProtectedPerson
     const existingValue = existing[key as keyof ProtectedPersonRecord] ?? '';
     const nextValue = next[key] ?? '';
     if (existingValue !== nextValue) {
-      (update as any)[key] = nextValue || undefined;
+      setPersonImportUpdateField(update, key, next[key] || undefined);
       changed.push(String(key));
     }
   });

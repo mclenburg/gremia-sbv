@@ -140,22 +140,38 @@ class MemoryDb {
   close() {}
 }
 
+type BemDb = ConstructorParameters<typeof BemService>[0];
+type EqualizationDb = ConstructorParameters<typeof EqualizationService>[0];
+type TerminationDb = ConstructorParameters<typeof TerminationHearingService>[0];
+
+function createBemService() {
+  return new BemService(new MemoryDb() as unknown as BemDb);
+}
+
+function createEqualizationService() {
+  return new EqualizationService(new MemoryDb() as unknown as EqualizationDb);
+}
+
+function createTerminationService() {
+  return new TerminationHearingService(new MemoryDb() as unknown as TerminationDb);
+}
+
 describe('process services', () => {
   it('creates a BEM process for a case', () => {
-    const service = new BemService(new MemoryDb() as any);
+    const service = createBemService();
     const process = service.createForCase('case-1', '2026-05-02');
     expect(process.caseId).toBe('case-1');
     expect(process.currentPhase).toBe('pruefung');
   });
 
   it('creates an equalization process for a case', () => {
-    const service = new EqualizationService(new MemoryDb() as any);
+    const service = createEqualizationService();
     const process = service.createForCase('case-2');
     expect(process.applicationStatus).toBe('beratung');
   });
 
   it('creates a termination hearing with critical dates', () => {
-    const service = new TerminationHearingService(new MemoryDb() as any);
+    const service = createTerminationService();
     const hearing = service.create({ caseId: 'case-3', hearingReceivedAt: '2026-05-02T09:00:00.000Z' });
     expect(hearing.statementStatus).toBe('offen');
     expect(hearing.integrationOfficeApprovalRequired).toBe(true);

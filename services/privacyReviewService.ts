@@ -20,8 +20,10 @@ function tableExists(db: DatabaseAdapter, table: string): boolean {
 function addColumnIfMissing(db: DatabaseAdapter, table: string, column: string, definition: string): void {
   if (!columnExists(db, table, column)) tryExec(db, `ALTER TABLE ${table} ADD COLUMN ${column} ${definition};`);
 }
+type ScalarValueRow = { value?: string | number | null };
+
 function safeScalar(db: DatabaseAdapter, sql: string, ...params: unknown[]): number {
-  try { return Number((db.prepare<any>(sql).get(...params) as any)?.value ?? 0); } catch { return 0; }
+  try { return Number(db.prepare<ScalarValueRow>(sql).get(...params)?.value ?? 0); } catch { return 0; }
 }
 
 function mapCase(row: any): CaseRecord {
@@ -349,12 +351,12 @@ export class PrivacyReviewService {
     const linkedDocumentCount = safeScalar(this.db, `SELECT COUNT(*) AS value FROM case_documents WHERE case_id = ?`, caseId);
     let lastActivityAt = caseFile?.openedAt;
     try {
-      lastActivityAt = (this.db.prepare<any>(`SELECT MAX(value) AS value FROM (
+      lastActivityAt = this.db.prepare<ScalarValueRow>(`SELECT MAX(value) AS value FROM (
         SELECT updated_at AS value FROM cases WHERE id = ?
         UNION ALL SELECT updated_at AS value FROM case_notes WHERE case_id = ?
         UNION ALL SELECT created_at AS value FROM case_documents WHERE case_id = ?
         UNION ALL SELECT updated_at AS value FROM deadlines WHERE case_id = ?
-      )`).get(caseId, caseId, caseId, caseId) as any)?.value ?? caseFile?.openedAt;
+      )`).get(caseId, caseId, caseId, caseId)?.value?.toString() ?? caseFile?.openedAt;
     } catch {
       lastActivityAt = caseFile?.openedAt;
     }

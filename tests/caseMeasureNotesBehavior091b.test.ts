@@ -60,6 +60,12 @@ class MemoryDb {
   close() {}
 }
 
+type CaseMeasureDb = ConstructorParameters<typeof CaseMeasureService>[0];
+
+function createService() {
+  return new CaseMeasureService(new MemoryDb() as unknown as CaseMeasureDb);
+}
+
 describe('case measure notes', () => {
 
   it('maps note process types explicitly to the underlying case measure type', () => {
@@ -68,7 +74,7 @@ describe('case measure notes', () => {
   });
 
   it('creates and lists multiple notes for one measure', () => {
-    const service = new CaseMeasureService(new MemoryDb() as any);
+    const service = createService();
     service.createNote({ caseId: 'case-1', measureType: 'participation', measureId: 'measure-1', title: 'Ersttermin', noteAt: '2026-05-12T10:00:00.000Z', content: 'Unterrichtung geprüft.' });
     service.createNote({ caseId: 'case-1', measureType: 'participation', measureId: 'measure-1', title: 'Folgetermin', noteAt: '2026-05-13T10:00:00.000Z', content: 'Anhörung nachgefasst.' });
 
@@ -81,7 +87,7 @@ describe('case measure notes', () => {
 
 
   it('updates an existing measure note without creating a duplicate', () => {
-    const service = new CaseMeasureService(new MemoryDb() as any);
+    const service = createService();
     const created = service.createNote({ caseId: 'case-1', measureType: 'participation', measureId: 'measure-1', title: 'Erstentwurf', noteAt: '2026-05-12T10:00:00.000Z', content: 'Noch unvollständig.' });
 
     const updated = service.updateNote(created.id, { title: 'Abgestimmtes Protokoll', content: 'Abgestimmt und ergänzt.', nextSteps: 'HR liefert Unterlagen nach.' });
@@ -94,7 +100,7 @@ describe('case measure notes', () => {
   });
 
   it('rejects notes for measures outside the case', () => {
-    const service = new CaseMeasureService(new MemoryDb() as any);
+    const service = createService();
     expect(() => service.createNote({ caseId: 'case-2', measureType: 'participation', measureId: 'measure-1', title: 'Falscher Fall', content: 'Darf nicht gespeichert werden.' })).toThrow(/gehört nicht/);
   });
 });

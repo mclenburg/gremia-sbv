@@ -1,5 +1,19 @@
 import { test, expect } from './support/test';
 
+interface CaseSearchDebugCall {
+  query?: string;
+  caseId?: string;
+  sourceTypes?: string[];
+}
+
+type CaseSearchDebugWindow = Window & {
+  __GREMIA_SBV_E2E_SEARCH_CALLS: CaseSearchDebugCall[];
+};
+
+function latestCaseSearchDebugCall() {
+  return (window as CaseSearchDebugWindow).__GREMIA_SBV_E2E_SEARCH_CALLS.at(-1);
+}
+
 function mainNavigation(page: import('@playwright/test').Page) {
   return page.getByRole('navigation', { name: 'Hauptnavigation' });
 }
@@ -34,7 +48,7 @@ test('findet Fallnotizen über Alle Inhalte und hebt Treffer sicher hervor', asy
   await expect(result).toContainText('Fallnotiz · TEST-0001');
   await expect(result.locator('mark')).toHaveText('BEM-Aktenbezug');
 
-  const latestCall = await page.evaluate(() => (window as any).__GREMIA_SBV_E2E_SEARCH_CALLS.at(-1));
+  const latestCall = await page.evaluate(latestCaseSearchDebugCall);
   expect(latestCall).toMatchObject({ query: 'BEM-Aktenbezug', caseId: 'case-test-0001' });
   expect(latestCall.sourceTypes).toBeUndefined();
 });
@@ -50,7 +64,7 @@ test('wendet Suchbereichsfilter an und sucht nur im gewählten Quelltyp', async 
   await expect(bemResult).toContainText('BEM · TEST-0001');
   await expect(searchResultByText(page, 'Synthetische Notiz')).toHaveCount(0);
 
-  const latestCall = await page.evaluate(() => (window as any).__GREMIA_SBV_E2E_SEARCH_CALLS.at(-1));
+  const latestCall = await page.evaluate(latestCaseSearchDebugCall);
   expect(latestCall.sourceTypes).toEqual(['bem']);
 });
 
@@ -67,7 +81,7 @@ test('respektiert Fallaktenisolation und findet andere Fallakten erst bei global
   await expect(betaResult).toBeVisible();
   await expect(betaResult).toContainText('BEM · TEST-0002');
 
-  const latestCall = await page.evaluate(() => (window as any).__GREMIA_SBV_E2E_SEARCH_CALLS.at(-1));
+  const latestCall = await page.evaluate(latestCaseSearchDebugCall);
   expect(latestCall.caseId).toBeUndefined();
 });
 

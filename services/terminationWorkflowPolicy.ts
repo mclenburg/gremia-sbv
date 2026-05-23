@@ -11,6 +11,11 @@ export const TERMINATION_STATUS_ORDER: TerminationHearingStatus[] = [
 ];
 
 const PROTECTED_STATUSES = ['schwerbehindert', 'gleichgestellt', 'antrag_laeuft'] as const;
+type ProtectedTerminationStatus = (typeof PROTECTED_STATUSES)[number];
+
+function isProtectedTerminationStatus(status: TerminationHearingRecord['protectionStatus']): status is ProtectedTerminationStatus {
+  return PROTECTED_STATUSES.some((protectedStatus) => protectedStatus === status);
+}
 
 export function terminationStatusLabel(status: TerminationHearingStatus): string {
   const labels: Record<TerminationHearingStatus, string> = {
@@ -43,7 +48,7 @@ export function isDoneTerminationStatus(status: TerminationHearingStatus): boole
 }
 
 export function hasPotentialSpecialDismissalProtection(process: TerminationHearingRecord): boolean {
-  return PROTECTED_STATUSES.includes(process.protectionStatus as any);
+  return isProtectedTerminationStatus(process.protectionStatus);
 }
 
 export function isExtraordinaryTermination(type: TerminationType): boolean {
