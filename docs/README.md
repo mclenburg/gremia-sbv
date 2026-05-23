@@ -51,6 +51,7 @@ Zweite Zielgruppe sind Personen, die Gremia.SBV betreiben, prüfen oder weiteren
 | `TEMPLATES_MODULE.md` | Vorlagenmodul |
 | `KNOWLEDGE_BASE.md` | Wissensbasis |
 | `REPORTS_PDF_EXPORT.md` | PDF- und Reportlogik |
+| `SBV_STEUERUNG.md` | Nachweise für Schulung, Heranziehung, Sachmittel sowie Strukturkontrollen |
 | `DSFA_SBV_TEMPLATE.md` | Vorlage für Datenschutz-Folgenabschätzung |
 | `KNOWN_ISSUES.md` | bekannte Einschränkungen vor produktiver Freigabe |
 
@@ -59,3 +60,4 @@ Zweite Zielgruppe sind Personen, die Gremia.SBV betreiben, prüfen oder weiteren
 Neue Dokumentation soll dauerhaft verwendbar sein. Kurzlebige Patchnotizen, historische Buildfix-Protokolle, Release Notes, Change Logs und temporäre Hotfix-Dokumente gehören nicht in den aktiven Dokumentationsbestand.
 
 Ein Dokument soll nicht erklären, warum ein bestimmter Patch entstanden ist. Es soll erklären, wie Gremia.SBV funktioniert, welche fachlichen Entscheidungen gelten und welche Pflichten die nutzende SBV beachten muss.
+

@@ -124,6 +124,7 @@ import type {
   TemplateRecord,
   UpdateTemplateInput,
 } from "./app/core/models/template.model";
+import type { CreateSbvResourceRecordInput, SbvResourceDashboardSummary, SbvResourceRecord, UpdateSbvResourceRecordInput } from "./app/core/models/sbv-resource.model";
 
 import type {
   CreateProtectedPersonInput,
@@ -285,6 +286,14 @@ declare global {
           input: UpdateParticipationInput,
         ): Promise<ParticipationRecord>;
         warnings(id: string): Promise<ParticipationWarning[]>;
+      };
+
+      sbvResources: {
+        list(): Promise<SbvResourceRecord[]>;
+        dashboard(): Promise<SbvResourceDashboardSummary>;
+        create(input: CreateSbvResourceRecordInput): Promise<SbvResourceRecord>;
+        update(id: string, input: UpdateSbvResourceRecordInput): Promise<SbvResourceRecord>;
+        delete(id: string): Promise<{ deleted: boolean }>;
       };
 
       workplaceAccommodation: {

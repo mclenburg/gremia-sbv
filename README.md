@@ -2,7 +2,7 @@
 
 **Gremia.SBV ist eine lokale, verschlüsselte Desktop-Anwendung für die Arbeit der Schwerbehindertenvertretung.**
 
-Die Anwendung hilft SBVen dabei, Fallakten, Fristen, BEM-/Präventionsvorgänge, Gleichstellungsfragen, Kündigungsanhörungen, Arbeitsplatzgestaltung, Dokumente, Übergaben und Tätigkeitsnachweise strukturiert zu bearbeiten – ohne Cloud, ohne versteckte Synchronisation und ohne dass sensible SBV-Daten unbemerkt das Gerät verlassen.
+Die Anwendung hilft SBVen dabei, Fallakten, Fristen, BEM-/Präventionsvorgänge, Gleichstellungsfragen, Kündigungsanhörungen, Arbeitsplatzgestaltung, Dokumente und Übergaben strukturiert zu bearbeiten – ohne Cloud, ohne versteckte Synchronisation und ohne dass sensible SBV-Daten unbemerkt das Gerät verlassen.
 
 ## Für wen ist Gremia.SBV gedacht?
 
@@ -104,3 +104,4 @@ Kurzfassung:
 Gremia.SBV ist eine aktiv entwickelte Open-Source-Anwendung. Der Fokus liegt auf einem belastbaren Kern für die tägliche SBV-Arbeit, nicht auf Feature-Fülle um jeden Preis.
 
 Willkommen sind Beiträge, die Fachlichkeit, Sicherheit, Barrierefreiheit, Testbarkeit oder Bedienbarkeit verbessern.
+

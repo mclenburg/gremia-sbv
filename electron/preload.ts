@@ -127,6 +127,7 @@ import type {
   TemplateRecord,
   UpdateTemplateInput,
 } from "../src/app/core/models/template.model.js";
+import type { CreateSbvResourceRecordInput, SbvResourceDashboardSummary, SbvResourceRecord, UpdateSbvResourceRecordInput } from "../src/app/core/models/sbv-resource.model.js";
 
 import type {
   CreateProtectedPersonInput,
@@ -358,6 +359,14 @@ const api = {
       ipcRenderer.invoke("participation:update", id, input),
     warnings: (id: string): Promise<ParticipationWarning[]> =>
       ipcRenderer.invoke("participation:warnings", id),
+  },
+
+  sbvResources: {
+    list: (): Promise<SbvResourceRecord[]> => ipcRenderer.invoke("sbvResources:list"),
+    dashboard: (): Promise<SbvResourceDashboardSummary> => ipcRenderer.invoke("sbvResources:dashboard"),
+    create: (input: CreateSbvResourceRecordInput): Promise<SbvResourceRecord> => ipcRenderer.invoke("sbvResources:create", input),
+    update: (id: string, input: UpdateSbvResourceRecordInput): Promise<SbvResourceRecord> => ipcRenderer.invoke("sbvResources:update", id, input),
+    delete: (id: string): Promise<{ deleted: boolean }> => ipcRenderer.invoke("sbvResources:delete", id),
   },
 
   workplaceAccommodation: {

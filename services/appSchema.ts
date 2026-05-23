@@ -1,4 +1,4 @@
-export const APP_SCHEMA_VERSION = '0036';
+export const APP_SCHEMA_VERSION = '0037';
 
 export const DATABASE_SCHEMA_VERSION_KEY = 'database.schema.version';
 export const LEGACY_DATABASE_SCHEMA_VERSION_KEY = 'settings.database.schema.version';
@@ -262,4 +262,24 @@ export const CASE_HANDOVER_IMPORT_ITEMS_REQUIRED_COLUMNS = [
   'local_entity_id',
   'package_ref',
   'created_at'
+] as const;
+
+
+export const SBV_RESOURCE_RECORDS_REQUIRED_COLUMNS = [
+  'id',
+  'kind',
+  'title',
+  'legal_basis',
+  'started_at',
+  'ended_at',
+  'provider',
+  'participants',
+  'task_context',
+  'necessity_reason',
+  'employer_reaction',
+  'cost_note',
+  'status',
+  'notes',
+  'created_at',
+  'updated_at'
 ] as const;

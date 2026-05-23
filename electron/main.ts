@@ -27,6 +27,7 @@ import { registerKnowledgeIpc } from "./ipc/knowledgeIpc.js";
 import { registerTemplateIpc } from "./ipc/templateIpc.js";
 import { registerProtectedPersonIpc } from "./ipc/protectedPersonIpc.js";
 import { registerComplianceIpc } from "./ipc/complianceIpc.js";
+import { registerSbvResourceIpc } from "./ipc/sbvResourceIpc.js";
 import { SecurityService } from "../services/securityService.js";
 import {
   registerRendererSecurityPolicy,
@@ -293,6 +294,7 @@ if (!singleInstanceLock) {
       registerComplianceIpc(ipcMain, security);
       registerBackupIpc(ipcMain, security);
       registerRetentionIpc(ipcMain, security);
+      registerSbvResourceIpc(ipcMain, security);
       return createWindow();
     })
     .catch((error) => {

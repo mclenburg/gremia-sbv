@@ -1,0 +1,9 @@
+{
+  "version": "0.9.2-doc-content-string-tests-cleanup",
+  "reason": "Dokumentationsinhalte werden nicht mehr über fragile String-Tests abgesichert. Build-relevante Tests prüfen Verhalten, Services, Migrationen, Architekturgrenzen, Barrierefreiheit und UI-Flows; Dokumentation darf umstrukturiert werden, ohne den Build wegen Formulierungen abzubrechen.",
+  "files": [
+    "tests/documentationProductFocus092.test.ts",
+    "tests/roadmapArt15Sync092.test.ts"
+  ],
+  "directories": []
+}

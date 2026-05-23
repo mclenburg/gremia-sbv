@@ -34,6 +34,8 @@ Abgelaufene Übergabepakete dürfen nicht importiert werden. Bei bereits importi
 
 Beim Import können mögliche Gegenstücke über Aktenzeichen oder Namen vorgeschlagen werden. Die Entscheidung über neue Anlage oder Zusammenführung trifft die nutzende Person ausdrücklich.
 
+Export, Import, abgelehnte Importversuche abgelaufener Übergabepakete und die Weiterbearbeitung bereits abgelaufener importierter Übergabedaten werden im Audit-Log nur mit technischen Vorgangsdaten auditiert. Das Audit darf keine Personennamen, Diagnosen, Fallnotizen, Falltitel oder Dokumentinhalte enthalten.
+
 ## Nicht übernommen aus Gremia.BR
 
 Gremia.SBV übernimmt nicht das BR-Rollenmodell mit BR-Vorsitz, BR-Ausschusslogik oder allgemeiner Gremienablage. technische Administration darf grundsätzlich keine Fallakteninhalte lesen.

@@ -3,10 +3,10 @@ import type { LucideProps } from 'lucide-react';
 import {
   BarChart3,
   BookOpen,
+  ClipboardCheck,
   CalendarClock,
   FileText,
   FolderKanban,
-  HardDrive,
   HeartPulse,
   Scale,
   ShieldAlert,
@@ -30,9 +30,9 @@ export type ViewId =
   | 'templates'
   | 'knowledge'
   | 'contacts'
+  | 'sbv_control'
   | 'reports'
   | 'compliance'
-  | 'portable'
   | 'settings';
 
 export type ModuleIcon = ForwardRefExoticComponent<Omit<LucideProps, 'ref'> & RefAttributes<SVGSVGElement>>;
@@ -141,18 +141,17 @@ export const modules: ModuleDefinition[] = [
     icon: ShieldCheck
   },
   {
+    id: 'sbv_control',
+    title: 'SBV-Steuerung',
+    shortTitle: 'Steuerung',
+    text: 'Beteiligungsqualität, Inklusionsvereinbarung, Arbeitgeberpflichten, Ressourcen und Fallabschluss.',
+    icon: ClipboardCheck
+  },
+  {
     id: 'reports',
     title: 'Berichte',
     shortTitle: 'Berichte',
     text: 'Anonymisierte Tätigkeitsberichte und Auswertungen.',
     icon: BarChart3
-  },
-  {
-    id: 'portable',
-    title: 'Portabilität',
-    shortTitle: 'USB',
-    text: 'Datenpfad, Backup, tragbarer Betrieb.',
-    icon: HardDrive,
-    
   }
 ];

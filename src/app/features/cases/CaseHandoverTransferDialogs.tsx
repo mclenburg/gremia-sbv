@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { AlertTriangle, Download, Upload } from 'lucide-react';
 import type { CaseRecord } from '../../core/models/case.model';
-import type { CaseHandoverInspectResult, CaseHandoverImportMode } from '../../core/models/case-handover.model';
+import type { CaseHandoverExportResult, CaseHandoverInspectResult, CaseHandoverImportMode } from '../../core/models/case-handover.model';
 
 type ImportFileSelection = { canceled: true } | { canceled: false; filePath: string; fileName: string };
 type InspectSelection = { filePath: string; fileName: string; inspection: CaseHandoverInspectResult };
@@ -12,7 +12,7 @@ type CaseHandoverTransferDialogsProps = {
   selectedCase?: CaseRecord;
   onCloseExport: () => void;
   onCloseImport: () => void;
-  onExport: (passphrase: string, expiresAt?: string) => Promise<void>;
+  onExport: (passphrase: string, expiresAt?: string) => Promise<CaseHandoverExportResult>;
   onSelectImportFile: () => Promise<ImportFileSelection>;
   onInspectImport: (filePath: string, passphrase: string) => Promise<CaseHandoverInspectResult>;
   onImport: (input: { filePath: string; passphrase: string; mode: CaseHandoverImportMode; targetCaseId?: string }) => Promise<void>;
@@ -54,6 +54,7 @@ export function CaseHandoverTransferDialogs({
   const [exportValidUntil, setExportValidUntil] = useState('');
   const [exportError, setExportError] = useState('');
   const [exportBusy, setExportBusy] = useState(false);
+  const [exportResult, setExportResult] = useState<CaseHandoverExportResult | null>(null);
 
   const [importPassphrase, setImportPassphrase] = useState('');
   const [importFile, setImportFile] = useState<ImportFileSelection | null>(null);
@@ -69,6 +70,7 @@ export function CaseHandoverTransferDialogs({
       setExportValidUntil('');
       setExportError('');
       setExportBusy(false);
+      setExportResult(null);
     }
   }, [exportOpen]);
 
@@ -105,8 +107,12 @@ export function CaseHandoverTransferDialogs({
     }
     setExportBusy(true);
     try {
-      await onExport(exportPassphrase, toIsoEndOfDay(exportValidUntil));
-      onCloseExport();
+      const result = await onExport(exportPassphrase, toIsoEndOfDay(exportValidUntil));
+      if (!result.exported) {
+        setExportError('Export wurde abgebrochen.');
+        return;
+      }
+      setExportResult(result);
     } catch (error) {
       setExportError(error instanceof Error ? error.message : 'Übergabepaket konnte nicht erstellt werden.');
     } finally {
@@ -197,7 +203,7 @@ export function CaseHandoverTransferDialogs({
               <div>
                 <p className="industrial-kicker">Fallübergabe / Vertretung</p>
                 <h3 id="case-handover-export-title">Übergabepaket exportieren</h3>
-                <p>Die ausgewählte Fallakte wird verschlüsselt als eigenständiges Übergabepaket gespeichert.</p>
+                <p>Die ausgewählte Fallakte wird verschlüsselt als eigenständiges Übergabepaket gespeichert. Der Speicherort wird über den Systemdialog gewählt; es gibt keinen Browser-Download.</p>
               </div>
             </div>
             <form className="industrial-modal-grid" onSubmit={submitExport}>
@@ -214,10 +220,16 @@ export function CaseHandoverTransferDialogs({
                 <input type="date" value={exportValidUntil} onChange={(event) => setExportValidUntil(event.target.value)} />
               </label>
               <p className="industrial-modal-preview industrial-modal-wide">Nach Ablauf darf die Übergabedatei nicht mehr importiert werden. Bereits importierte Vertretungsakten werden danach als abgelaufen markiert.</p>
+              {exportResult?.exported && (
+                <div className="industrial-message industrial-modal-wide" role="status">
+                  <Download className="h-4 w-4" />
+                  <span>Übergabepaket gespeichert unter: {exportResult.filePath}</span>
+                </div>
+              )}
               {exportError && <div className="industrial-message industrial-message-warning industrial-modal-wide" role="alert"><AlertTriangle className="h-4 w-4" />{exportError}</div>}
               <div className="industrial-modal-actions industrial-modal-wide">
-                <button type="button" className="industrial-secondary-button" onClick={onCloseExport} disabled={exportBusy}>Abbrechen</button>
-                <button type="submit" className="industrial-button" disabled={exportBusy || !selectedCase}><Download className="h-4 w-4" />{exportBusy ? 'Export läuft …' : 'Übergabe exportieren'}</button>
+                <button type="button" className="industrial-secondary-button" onClick={onCloseExport} disabled={exportBusy}>{exportResult?.exported ? 'Schließen' : 'Abbrechen'}</button>
+                <button type="submit" className="industrial-button" disabled={exportBusy || !selectedCase}><Download className="h-4 w-4" />{exportBusy ? 'Export läuft …' : exportResult?.exported ? 'Erneut exportieren' : 'Übergabe exportieren'}</button>
               </div>
             </form>
           </section>

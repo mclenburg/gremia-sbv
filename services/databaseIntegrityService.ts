@@ -15,6 +15,7 @@ import {
   GREMIA_BR_SETTINGS_REQUIRED_COLUMNS,
   PERSONAL_DATA_AUDIT_REQUIRED_COLUMNS,
   PROTECTED_PERSONS_REQUIRED_COLUMNS,
+  SBV_RESOURCE_RECORDS_REQUIRED_COLUMNS,
 } from './appSchema.js';
 import type { ComplianceDatabaseIntegrityStatus } from '../src/app/core/models/compliance.model.js';
 
@@ -43,6 +44,7 @@ const REQUIRED_TABLES = [
   'case_measures',
   'case_handover_imports',
   'case_handover_import_items',
+  'sbv_resource_records',
 ] as const;
 
 const REQUIRED_COLUMNS: Record<string, readonly string[]> = {
@@ -63,6 +65,7 @@ const REQUIRED_COLUMNS: Record<string, readonly string[]> = {
   case_measures: CASE_MEASURES_REQUIRED_COLUMNS,
   case_handover_imports: CASE_HANDOVER_IMPORTS_REQUIRED_COLUMNS,
   case_handover_import_items: CASE_HANDOVER_IMPORT_ITEMS_REQUIRED_COLUMNS,
+  sbv_resource_records: SBV_RESOURCE_RECORDS_REQUIRED_COLUMNS,
 };
 
 function tableExists(db: DatabaseAdapter, table: string): boolean {

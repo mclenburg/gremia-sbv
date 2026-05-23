@@ -1,6 +1,7 @@
 import {
   AlertTriangle,
   CheckCircle2,
+  ClipboardList,
   FileWarning,
   ShieldCheck,
 } from "lucide-react";
@@ -19,6 +20,11 @@ import {
 } from "../../shared/components/WorkbenchLayout";
 import { MeasureDetailFrame } from "../cases/measures/MeasureDetailFrame";
 import { TextCommandTextarea } from "../../shared/textCommands/TextCommandTextarea";
+import {
+  getParticipationActionLabels,
+  getParticipationDocumentRequirements,
+  getParticipationEscalationAdvice,
+} from "./participationPolicy";
 
 const measureLabels: Record<ParticipationMeasureType, string> = {
   einstellung: "Einstellung",
@@ -109,6 +115,9 @@ export function ParticipationProcessDetail({
 
   const update = (input: UpdateParticipationInput) =>
     void onUpdate(process.id, input);
+  const escalation = getParticipationEscalationAdvice(process);
+  const documentRequirements = getParticipationDocumentRequirements(process.measureType);
+  const actionLabels = getParticipationActionLabels(process);
 
   return (
     <MeasureDetailFrame
@@ -171,6 +180,46 @@ export function ParticipationProcessDetail({
             Abs. 2 Satz 2 SGB IX erwägen.
           </div>
         )}
+
+        <section
+          className={`participation-escalation-panel participation-escalation-${escalation.level}`}
+          aria-label="Eskalationsbewertung der SBV-Beteiligung"
+        >
+          <div className="participation-section-head">
+            <div>
+              <p className="industrial-kicker">Handlungslinie</p>
+              <h3>{escalation.title}</h3>
+            </div>
+            <span>{escalation.level === "critical" ? "kritisch" : escalation.level === "warning" ? "prüfen" : "stabil"}</span>
+          </div>
+          <p>{escalation.reason}</p>
+          <p><strong>Nächster sauberer Schritt:</strong> {escalation.nextStep}</p>
+          <div className="participation-action-chips" aria-label="Direkt ableitbare SBV-Aktionen">
+            {actionLabels.map((label) => (
+              <button type="button" className="industrial-button industrial-button-secondary" key={label}>
+                {label}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <section className="participation-document-matrix" aria-label="Unterlagenmatrix nach Maßnahmentyp">
+          <div className="participation-section-head">
+            <div>
+              <p className="industrial-kicker">Unterlagenmatrix</p>
+              <h3>Für {measureLabels[process.measureType]} vor Stellungnahme prüfen</h3>
+            </div>
+            <ClipboardList className="h-5 w-5" aria-hidden="true" />
+          </div>
+          <ul>
+            {documentRequirements.map((item) => (
+              <li key={item.id}>
+                <strong>{item.label}</strong>
+                <span>{item.reason}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
 
         <IndustrialFormGrid columns={3}>
           <IndustrialField label="Status">

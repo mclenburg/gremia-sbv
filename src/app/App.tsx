@@ -34,6 +34,7 @@ import { EqualizationView } from "./features/equalization/EqualizationView";
 import { TerminationView } from "./features/termination/TerminationView";
 import { ContactsView } from "./features/contacts/ContactsView";
 import { ReportsView } from "./features/reports/ReportsView";
+import { SbvControlView } from "./features/sbv-control/SbvControlView";
 import { ComplianceView } from "./features/compliance/ComplianceView";
 import { PersonsView } from "./features/persons/PersonsView";
 import { usePersonsHandlers } from "./features/persons/usePersonsHandlers";
@@ -68,6 +69,7 @@ import "./complianceCenter.css";
 import "./reportsWorkbench.css";
 import "./features/participation/participationWorkbench.css";
 import "./features/persons/personsWorkbench.css";
+import "./features/sbv-control/sbvControlWorkbench.css";
 import "./ui/responsiveDesign.css";
 import "./caseModalResponsive.css";
 import "./shared/textCommands/textCommandHelp.css";
@@ -88,6 +90,7 @@ const IMPLEMENTED_VIEW_IDS = new Set<ViewId>([
   "equalization",
   "termination_hearing",
   "templates",
+  "sbv_control",
   "reports",
   "compliance",
   "settings",
@@ -512,6 +515,7 @@ export function App() {
               <TerminationView cases={cases} onOpenCaseNode={openCaseNode} />
             )}
             {currentView === "templates" && <TemplatesView />}
+            {currentView === "sbv_control" && <SbvControlView cases={cases} deadlines={deadlines} onNavigate={setCurrentView} />}
             {currentView === "reports" && <ReportsView />}
             {currentView === "compliance" && <ComplianceView />}
             {currentView === "settings" && (

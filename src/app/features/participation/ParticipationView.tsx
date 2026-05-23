@@ -21,6 +21,7 @@ import {
 } from '../../shared/components/WorkbenchLayout';
 import { formatDateShort } from '../../shared/format/dates';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
+import { getParticipationActionLabels, getParticipationDocumentRequirements, getParticipationEscalationAdvice } from './participationPolicy';
 import './participationWorkbench.css';
 
 const measureLabels: Record<ParticipationMeasureType, string> = {
@@ -170,6 +171,9 @@ export function ParticipationView({
   }), [records]);
 
   const selectedCase = selected ? cases.find((item) => item.id === selected.caseId) : undefined;
+  const selectedAdvice = selected ? getParticipationEscalationAdvice(selected) : null;
+  const selectedRequirements = selected ? getParticipationDocumentRequirements(selected.measureType) : [];
+  const selectedActions = selected ? getParticipationActionLabels(selected) : [];
 
   return (
     <ModuleFrame title="SBV-Beteiligungsmonitor" kicker="§ 178 Abs. 2 SGB IX" description="Dokumentiert Unterrichtung, Anhörung, Stellungnahme, Arbeitgeberentscheidung und Aussetzungsverlangen der SBV." compact>
@@ -218,8 +222,22 @@ export function ParticipationView({
                 <p><strong>Stellungnahmefrist:</strong> {selected.statementDueAt ? formatDateShort(selected.statementDueAt) : 'keine Frist erfasst'}</p>
                 {selected.violationSummary && <p><strong>Pflichtverstoß / fehlende Unterlagen:</strong> {selected.violationSummary}</p>}
                 {selected.nextStep && <p><strong>Nächster Schritt:</strong> {selected.nextStep}</p>}
+                {selectedAdvice && (
+                  <section className={`participation-escalation-panel participation-escalation-${selectedAdvice.level}`} aria-label="Eskalationsbewertung">
+                    <div className="participation-section-head"><div><p className="industrial-kicker">Handlungslinie</p><h3>{selectedAdvice.title}</h3></div><span>{selectedAdvice.level === 'critical' ? 'kritisch' : selectedAdvice.level === 'warning' ? 'prüfen' : 'stabil'}</span></div>
+                    <p>{selectedAdvice.reason}</p>
+                    <p><strong>Nächster Schritt:</strong> {selectedAdvice.nextStep}</p>
+                    <div className="participation-action-chips">{selectedActions.map((action) => <span key={action}>{action}</span>)}</div>
+                  </section>
+                )}
+                {selectedRequirements.length > 0 && (
+                  <section className="participation-document-matrix compact" aria-label="Unterlagenmatrix">
+                    <div className="participation-section-head"><div><p className="industrial-kicker">Unterlagenmatrix</p><h3>Erforderliche Prüfung vor Stellungnahme</h3></div></div>
+                    <ul>{selectedRequirements.slice(0, 5).map((item) => <li key={item.id}><strong>{item.label}</strong><span>{item.reason}</span></li>)}</ul>
+                  </section>
+                )}
                 <ParticipationLegalViolationWarning record={selected} />
-                <p className="industrial-meta">Dieses Cockpit ist nur die Übersicht. Änderungen erfolgen in der Fallakte, damit der Verlauf und die Maßnahme zusammen bleiben.</p>
+                <p className="industrial-meta">Dieses Cockpit ist die Kontrollsicht. Änderungen erfolgen in der Fallakte, damit Verlauf, Unterlagenprüfung und Maßnahme zusammen bleiben.</p>
               </div>
               <div className="industrial-card-actions">
                 <button type="button" className="industrial-button" onClick={() => onOpenCaseNode({ caseId: selected.caseId, nodeType: 'participation', nodeId: selected.id })}><ExternalLink className="h-4 w-4" /> Maßnahme in Fallakte öffnen</button>

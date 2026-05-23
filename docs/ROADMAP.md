@@ -105,3 +105,8 @@ Nicht geplant in der Referenzlinie:
 ## Dokumentationsregel
 
 Roadmap, README und Fachkonzepte beschreiben den aktuellen Produktzustand und die Zielarchitektur. Detailnotizen einzelner Patches, Buildfixes oder Review-Zwischenstände werden nicht als dauerhafte Roadmap geführt.
+
+
+## SBV-Steuerung
+
+Gremia.SBV enthält eine SBV-Steuerung für Beteiligungsqualität, Inklusionsvereinbarung, Arbeitgeberpflichten, Ressourcenplanung und datensparsamen Fallabschluss. Details stehen in `docs/SBV_STEUERUNG.md`.

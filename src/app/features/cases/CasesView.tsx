@@ -12,6 +12,7 @@ import { useCaseCrudActions } from "./useCaseCrudActions";
 import { useLegacyCaseBindingHandlers } from "./useLegacyCaseBindingHandlers";
 import { CasesViewRender } from "./CasesViewRender";
 import { CaseHandoverTransferDialogs } from "./CaseHandoverTransferDialogs";
+import { formatCaseHandoverExportResultMessage } from "./caseHandoverMessages";
 import type { CasesViewProps, CaseToast } from "./casesViewTypes";
 import type { CaseCategory, CaseRecord } from "../../core/models/case.model";
 import type { ProcessTemplateModalState } from "./ProcessTemplateDocumentsModal";
@@ -352,10 +353,11 @@ export function CasesView({
       `${selectedCase.caseNumber}-falluebergabe.gsbvtransfer`,
     );
     if (result.exported) {
-      pushCaseToast(`Übergabepaket erstellt: ${result.caseCount} Fallakte(n), ${result.measureCount} Maßnahme(n), ${result.documentCount} Dokument(e).`, 'ok');
-      return;
+      pushCaseToast(formatCaseHandoverExportResultMessage(result), 'ok');
+      return result;
     }
-    pushCaseToast('Export wurde abgebrochen.', 'warning');
+    pushCaseToast(formatCaseHandoverExportResultMessage(result), 'warning');
+    return result;
   }
 
   async function selectCaseHandoverFile() {
