@@ -1,6 +1,6 @@
 # DSGVO und SBV-Arbeit mit Gremia.SBV
 
-Stand: **0.9.1**
+Stand: **0.9.2**
 
 ## Zweck
 
@@ -40,4 +40,4 @@ Die App informiert Beschäftigte nicht selbst. Die Information über Arbeitgeber
 
 ## Art. 15 DSGVO
 
-Die App soll Auskunftsfähigkeit unterstützen, indem Personen, Fallakten, Fristen, Maßnahmen, Importläufe und Lifecycle-Events nachvollziehbar verknüpft sind. Ein formaler Auskunftsexport bleibt ein späteres Thema.
+Die App unterstützt Auskunftsfähigkeit, indem Personen, Fallakten, Fristen, Maßnahmen, Importläufe und Lifecycle-Events nachvollziehbar verknüpft sind. Im Compliance Center kann ein Art.-15-Antwortentwurf aus Personen-, Fallakten-, Fristen-, Maßnahmen-, Import- und Lifecycle-Daten vorbefüllt, erzeugt und als Markdown oder PDF exportiert werden. Vor Herausgabe bleiben Identitätsprüfung, Drittdatenprüfung, Schwärzung und rechtliche Freigabe erforderlich.

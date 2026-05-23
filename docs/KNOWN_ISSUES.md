@@ -1,13 +1,13 @@
 # Known Issues Gremia.SBV
 
-Stand: **0.9.1**
+Stand: **0.9.2**
 
 ## Vor 1.0 zu prüfen
 
 - Personenbindung der Fallakte ist tiefgreifend: Migration muss vorhandene `person_case_links` nutzen und Legacy-Fälle priorisieren.
 - Anonyme Beratungsanfragen benötigen einen klaren Sonderstatus ohne Direktidentifikatoren.
 - Audit-Hash-Kette darf keine Direktidentifikatoren enthalten; bestehende Einträge müssen vor Datenübernahme geprüft werden.
-- Compliance Center muss DSFA, TOMs und VVT für Personenverzeichnis, Art. 13/14, Art. 15 und § 164 Abs. 4 SGB IX aktualisieren.
+- Art.-15-Auskunftsexporte benötigen vor Herausgabe weiterhin einen organisatorisch geregelten Identitäts-, Drittdaten-, Schwärzungs- und Freigabeprozess.
 - iCal-Export darf im Standard keine Namen, Diagnosen, Personalnummern oder Fallinhalte enthalten.
 
 ## Plattformen

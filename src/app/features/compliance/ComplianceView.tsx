@@ -234,7 +234,8 @@ export function ComplianceView() {
   }
 
   function updateDsarInput<K extends keyof DataSubjectAccessRequestInput>(key: K, value: DataSubjectAccessRequestInput[K]) {
-    setDsarInput((current) => ({ ...current, [key]: value }));
+    const clearsPrefill = key === 'requesterName' || key === 'caseReference';
+    setDsarInput((current) => ({ ...current, [key]: value, ...(clearsPrefill ? { prefill: undefined } : {}) }));
   }
 
   function renderDsar() {
@@ -244,6 +245,29 @@ export function ComplianceView() {
     const info = 'Antwort auf DSGVO-Auskunftsersuchen wurde erzeugt.';
     setMessage(info);
     announce(info, 'polite');
+  }
+
+  async function prefillDsar() {
+    try {
+      const bridge = await waitForBridge();
+      if (!bridge?.compliance?.prefillDsar) throw new Error('DSGVO-Vorbefüllung ist nicht erreichbar.');
+      const prefill = await bridge.compliance.prefillDsar(dsarInput);
+      const nextInput = { ...dsarInput, prefill };
+      setDsarInput(nextInput);
+      const next = renderDsarResponseDocument(nextInput);
+      setSelectedType('dsar_response');
+      setDocument(next);
+      const count = prefill.persons.length + prefill.cases.length + prefill.deadlines.length + prefill.measures.length + prefill.importRuns.length + prefill.lifecycleEvents.length;
+      const info = count > 0
+        ? `Art.-15-Auskunft wurde mit ${count} strukturierten Datensatzbezug/Datensatzbezügen aus Gremia.SBV vorbefüllt.`
+        : 'Art.-15-Vorbefüllung ausgeführt; es wurden keine passenden Datensatzbezüge gefunden.';
+      setMessage(info);
+      announce(info, 'polite');
+    } catch (error) {
+      const info = error instanceof Error ? error.message : 'DSGVO-Vorbefüllung konnte nicht ausgeführt werden.';
+      setMessage(info);
+      announce(info, 'assertive');
+    }
   }
 
   function downloadCurrent() {
@@ -331,9 +355,19 @@ export function ComplianceView() {
               <textarea value={dsarInput.requestScope} onChange={(event) => updateDsarInput('requestScope', event.currentTarget.value)} />
             </label>
           </div>
-          <button type="button" className="industrial-button" onClick={renderDsar}>
-            Auskunftsantwort erzeugen
-          </button>
+          <div className="compliance-dsar-prefill-actions">
+            <button type="button" className="industrial-secondary-button" onClick={() => void prefillDsar()}>
+              Daten aus Gremia.SBV vorbefüllen
+            </button>
+            <button type="button" className="industrial-button" onClick={renderDsar}>
+              Auskunftsantwort erzeugen
+            </button>
+          </div>
+          {dsarInput.prefill && (
+            <p className="compliance-dsar-prefill-summary" aria-live="polite">
+              Vorbefüllt: {dsarInput.prefill.persons.length} Personen, {dsarInput.prefill.cases.length} Fallakten, {dsarInput.prefill.deadlines.length} Fristen, {dsarInput.prefill.measures.length} Maßnahmen, {dsarInput.prefill.importRuns.length} Importe, {dsarInput.prefill.lifecycleEvents.length} Lifecycle-Ereignisse.
+            </p>
+          )}
         </section>
 
         <section className="compliance-preview" aria-label="Dokumentvorschau">

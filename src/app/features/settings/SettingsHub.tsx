@@ -20,7 +20,7 @@ export function SettingsHub({
   );
 
   return (
-    <section className="settings-hub industrial-card" aria-labelledby="settings-hub-title">
+    <section className="settings-hub industrial-card no-card-hover" aria-labelledby="settings-hub-title">
       <div className="industrial-card-header settings-hub-header">
         <div>
           <p className="font-mono text-xs uppercase tracking-[0.22em] text-zinc-500">Einstellungen</p>

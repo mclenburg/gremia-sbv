@@ -5,12 +5,17 @@ import { GremiaBrCacheService } from '../../services/gremiaBr/gremiaBrCacheServi
 import { GremiaBrHttpReadAdapter } from '../../services/gremiaBr/gremiaBrHttpReadAdapter.js';
 import { GremiaBrExternalReferenceService } from '../../services/gremiaBr/gremiaBrExternalReferenceService.js';
 import { GremiaBrSettingsService } from '../../services/gremiaBr/gremiaBrSettingsService.js';
+import { PersonalDataAuditLogService } from '../../services/auditLogService.js';
 import type { CreateGremiaBrExternalReferenceInput, GremiaBrRelevanceSettings, GremiaBrSettingsInput } from '../../src/app/core/models/gremia-br.model.js';
 import { assertRecordInput } from './ipcValidation.js';
 
 export function registerGremiaBrIpc(ipcMain: IpcMain, security: SecurityService): void {
   const settings = new GremiaBrSettingsService(() => security.getActiveDatabase());
-  const auth = new GremiaBrAuthService(settings);
+  const auth = new GremiaBrAuthService(
+    settings,
+    undefined,
+    () => new PersonalDataAuditLogService(security.getActiveDatabase()),
+  );
   const cache = new GremiaBrCacheService(() => security.getActiveDatabase());
   const adapter = new GremiaBrHttpReadAdapter(auth);
   const references = new GremiaBrExternalReferenceService(() => security.getActiveDatabase());

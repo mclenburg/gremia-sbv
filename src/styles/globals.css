@@ -199,7 +199,7 @@ button { border-radius: 0; }
 }
 
 .industrial-card { min-height: 190px; padding: 18px; cursor: pointer; }
-.industrial-card:hover { transform: translateY(-2px); border-color: rgba(250,204,21,0.72); background: linear-gradient(145deg, rgba(39,39,42,0.98), rgba(9,9,11,1)); box-shadow: 0 0 0 1px rgba(250,204,21,0.16), 0 16px 32px rgba(0,0,0,0.35); }
+.industrial-card:not(.no-card-hover):hover { transform: translateY(-2px); border-color: rgba(250,204,21,0.72); background: linear-gradient(145deg, rgba(39,39,42,0.98), rgba(9,9,11,1)); box-shadow: 0 0 0 1px rgba(250,204,21,0.16), 0 16px 32px rgba(0,0,0,0.35); }
 .industrial-card h2 { margin: 0; font-size: 19px; font-weight: 950; letter-spacing: -0.04em; }
 .industrial-card p { margin: 10px 0 0; color: var(--sbv-muted); font-size: 13px; line-height: 1.55; }
 .industrial-card-link { margin-top: auto; color: var(--sbv-yellow); font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 11px; font-weight: 900; letter-spacing: 0.22em; text-transform: uppercase; }
@@ -398,7 +398,7 @@ html[data-theme='light'] .industrial-deadline-card {
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.48), 0 10px 24px rgba(0,0,0,0.10);
 }
 
-html[data-theme='light'] .industrial-card:hover {
+html[data-theme='light'] .industrial-card:not(.no-card-hover):hover {
   background: linear-gradient(145deg, rgba(250,250,245,0.98), rgba(218,218,211,1));
   box-shadow: 0 0 0 1px rgba(196,138,0,0.18), 0 14px 24px rgba(0,0,0,0.12);
 }

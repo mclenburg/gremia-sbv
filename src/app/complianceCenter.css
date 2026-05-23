@@ -288,3 +288,19 @@ html[data-theme='light'] .compliance-status-card.tech-info .compliance-status-ca
     flex-direction: column;
   }
 }
+
+.compliance-dsar-prefill-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .65rem;
+  align-items: center;
+}
+
+.compliance-dsar-prefill-summary {
+  margin: 0;
+  border: 1px solid var(--sbv-border);
+  border-radius: 0;
+  background: rgba(250, 204, 21, .08);
+  padding: .75rem;
+  color: var(--sbv-text);
+}

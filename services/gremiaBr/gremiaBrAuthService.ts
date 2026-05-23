@@ -1,5 +1,5 @@
 import type { GremiaBrConnectionTestResult } from '../../src/app/core/models/gremia-br.model.js';
-import { GremiaBrHttpClient, type GremiaBrFetch } from './gremiaBrHttpClient.js';
+import { GremiaBrHttpClient, type GremiaBrAuditSink, type GremiaBrFetch } from './gremiaBrHttpClient.js';
 import type { GremiaBrProfileSnapshot, GremiaBrRequestOptions, GremiaBrSettingsStore } from './gremiaBrTypes.js';
 
 function nowIso(): string {
@@ -34,6 +34,7 @@ export class GremiaBrAuthService {
   constructor(
     private readonly settingsStore: GremiaBrSettingsStore,
     private readonly fetchImpl?: GremiaBrFetch,
+    private readonly auditLogFactory?: () => GremiaBrAuditSink,
   ) {}
 
   clearToken(): void {
@@ -111,6 +112,6 @@ export class GremiaBrAuthService {
   }
 
   private client(): GremiaBrHttpClient {
-    return new GremiaBrHttpClient(this.settingsStore.getServiceSettings().serverUrl, this.fetchImpl);
+    return new GremiaBrHttpClient(this.settingsStore.getServiceSettings().serverUrl, this.fetchImpl, this.auditLogFactory?.());
   }
 }

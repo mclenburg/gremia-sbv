@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, BriefcaseBusiness, CheckCircle2, ShieldCheck, TimerReset } from 'lucide-react';
+import { AlertTriangle, BriefcaseBusiness, CheckCircle2, RefreshCw, ShieldCheck, TimerReset } from 'lucide-react';
 import type { CaseRecord } from '../../core/models/case.model';
 import type { DeadlineDashboardItem, DeadlineRecord } from '../../core/models/deadline.model';
+import { DeadlineDashboardPanel } from '../deadlines/DeadlineDashboardPanel';
 import type { GremiaBrDashboardOverview, GremiaBrRelevanceMatch } from '../../core/models/gremia-br.model';
 import { waitForBridge } from '../../core/bridge/waitForBridge';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 import { buildDashboardFocusSummary, type DashboardComplianceLike } from './dashboardFocusPolicy';
-import { DeadlineDashboardPanel } from '../deadlines/DeadlineDashboardPanel';
 import type { ViewId } from '../../core/navigation/modules';
 
 type DashboardFocusOverviewProps = {
@@ -63,31 +63,6 @@ function itemDate(item: unknown): string | undefined {
   return itemValue(item, ['datum', 'date', 'frist', 'startsAt', 'start']);
 }
 
-
-export function formatGermanDateTime(value?: string): string {
-  if (!value?.trim()) return 'noch nicht abgerufen';
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return value;
-  return new Intl.DateTimeFormat('de-DE', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(parsed);
-}
-
-export function resolveGremiaBrDashboardTile({
-  enabled,
-  overview,
-}: {
-  enabled: boolean;
-  overview: GremiaBrDashboardOverview;
-}): { relevantMeetingCount: number; lastFetchedLabel: string } | null {
-  if (!enabled) return null;
-  return {
-    relevantMeetingCount: overview.relevantMeetings.length,
-    lastFetchedLabel: formatGermanDateTime(overview.lastFetchedAt),
-  };
-}
-
 function agendaItemsForMeeting(overview: GremiaBrDashboardOverview, meeting: unknown): unknown[] {
   if (!meeting || typeof meeting !== 'object') return [];
   const record = meeting as Record<string, unknown>;
@@ -97,14 +72,22 @@ function agendaItemsForMeeting(overview: GremiaBrDashboardOverview, meeting: unk
   return Array.isArray(agenda) ? agenda : [];
 }
 
+export function formatGermanDateTime(value?: string): string {
+  if (!value) return 'noch nicht abgerufen';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'noch nicht abgerufen';
+  return new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 'short' }).format(date);
+}
 
-export function resolveNextGremiaBrMeetingAgenda({
-  enabled,
-  overview,
-}: {
-  enabled: boolean;
-  overview: GremiaBrDashboardOverview;
-}): { meeting: unknown; agenda: unknown[] } | null {
+export function resolveGremiaBrDashboardTile({ enabled, overview }: { enabled: boolean; overview: GremiaBrDashboardOverview }): { relevantMeetingCount: number; lastFetchedLabel: string } | null {
+  if (!enabled) return null;
+  return {
+    relevantMeetingCount: overview.relevantMeetings.length,
+    lastFetchedLabel: formatGermanDateTime(overview.lastFetchedAt),
+  };
+}
+
+export function resolveNextGremiaBrMeetingAgenda({ enabled, overview }: { enabled: boolean; overview: GremiaBrDashboardOverview }): { meeting: unknown; agenda: unknown[] } | null {
   if (!enabled) return null;
   const meeting = overview.nextMeeting ?? overview.upcomingMeetings[0];
   if (!meeting) return null;
@@ -203,7 +186,7 @@ export function DashboardFocusOverview({ cases, deadlines, dashboardItems, onNav
 
   const deadlinesForSummary = dashboardItems.length ? dashboardItems : deadlines;
   const summary = useMemo(() => buildDashboardFocusSummary({ cases, deadlines: deadlinesForSummary, compliance }), [cases, compliance, deadlinesForSummary]);
-  const gremiaBrDashboardTile = resolveGremiaBrDashboardTile({ enabled: gremiaBrEnabled, overview: gremiaBrOverview });
+  const gremiaBrTile = resolveGremiaBrDashboardTile({ enabled: gremiaBrEnabled, overview: gremiaBrOverview });
   const nextMeetingAgenda = resolveNextGremiaBrMeetingAgenda({ enabled: gremiaBrEnabled, overview: gremiaBrOverview });
   const nextMeeting = nextMeetingAgenda?.meeting;
   const nextAgenda = nextMeetingAgenda?.agenda ?? [];
@@ -239,23 +222,23 @@ export function DashboardFocusOverview({ cases, deadlines, dashboardItems, onNav
           {complianceError && <small>{complianceError}</small>}
         </button>
 
-        {gremiaBrDashboardTile && (
-          <div className="industrial-card dashboard-focus-card dashboard-focus-card-static" aria-label="Gremia.BR-Lesebrücke">
+        {gremiaBrTile && (
+          <div className="industrial-card no-card-hover dashboard-focus-card dashboard-focus-card-static" aria-label="Gremia.BR-Lesebrücke">
             <span className="dashboard-focus-marker dashboard-focus-marker-attention">Aktiv</span>
             <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
             <strong>Gremia.BR</strong>
-            <span>{gremiaBrDashboardTile.relevantMeetingCount} relevante Sitzung(en) im Lesecache.</span>
-            <span>Letzter Datenabruf: {gremiaBrDashboardTile.lastFetchedLabel}</span>
-            <button type="button" className="industrial-secondary-button dashboard-focus-secondary-action" disabled={gremiaBrBusy} onClick={() => void refreshGremiaBrCache()}>
+            <span>{gremiaBrTile.relevantMeetingCount} relevante Sitzung(en) im Lesecache.</span>
+            <small>Letzter Datenabruf: {gremiaBrTile.lastFetchedLabel}</small>
+            <button type="button" className="industrial-button industrial-button-secondary dashboard-focus-secondary-action" disabled={gremiaBrBusy} onClick={() => void refreshGremiaBrCache()}>
               {gremiaBrBusy ? 'Abruf läuft …' : 'Abrufen'}
             </button>
           </div>
         )}
       </div>
 
-      {gremiaBrEnabled && (
-        <div className="dashboard-support-grid mt-4">
-          <section className="industrial-card dashboard-support-card" aria-labelledby="dashboard-next-br-meeting-title">
+      <div className="dashboard-support-grid mt-4">
+        {gremiaBrEnabled && (
+          <section className="industrial-card no-card-hover dashboard-support-card" aria-labelledby="dashboard-next-br-meeting-title">
             <div className="industrial-card-header compact">
               <div>
                 <p className="font-mono text-xs uppercase tracking-[0.22em] text-zinc-500">Gremia.BR-Lesecache</p>
@@ -288,15 +271,15 @@ export function DashboardFocusOverview({ cases, deadlines, dashboardItems, onNav
               <p className="text-sm text-zinc-500">Keine BR-Sitzung im lokalen Lesecache.</p>
             )}
           </section>
-        </div>
-      )}
+        )}
 
-      <DeadlineDashboardPanel
-        items={dashboardItems}
-        cases={cases}
-        onEdit={onEditDeadline}
-        onComplete={onCompleteDeadline}
-      />
+        <DeadlineDashboardPanel
+          items={dashboardItems}
+          cases={cases}
+          onEdit={onEditDeadline}
+          onComplete={onCompleteDeadline}
+        />
+      </div>
     </section>
   );
 }

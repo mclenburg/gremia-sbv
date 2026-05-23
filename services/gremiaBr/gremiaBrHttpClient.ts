@@ -1,7 +1,9 @@
 import { checkGremiaBrEndpoint, validateGremiaBrBaseUrl } from './gremiaBrPolicy.js';
 import type { GremiaBrRequestOptions } from './gremiaBrTypes.js';
+import type { CreatePersonalDataAuditInput } from '../../src/app/core/models/audit.model.js';
 
 export type GremiaBrFetch = (input: string, init?: RequestInit) => Promise<Response>;
+export type GremiaBrAuditSink = { append(input: CreatePersonalDataAuditInput): unknown };
 
 const DEFAULT_TIMEOUT_MS = 8_000;
 
@@ -16,6 +18,10 @@ function appendQuery(url: URL, query?: GremiaBrRequestOptions['query']): void {
 
 function maskPath(path: string): string {
   return path.replace(/\?.*$/, '');
+}
+
+function endpointLabel(method: string, path: string): string {
+  return `${method.trim().toUpperCase()} ${maskPath(path)}`;
 }
 
 async function readResponsePayload(response: Response): Promise<unknown> {
@@ -42,14 +48,19 @@ export class GremiaBrHttpClient {
   constructor(
     baseUrl: string,
     private readonly fetchImpl: GremiaBrFetch = globalThis.fetch.bind(globalThis),
+    private readonly auditLog?: GremiaBrAuditSink,
   ) {
     this.baseUrl = validateGremiaBrBaseUrl(baseUrl);
     if (!this.baseUrl) throw new Error('Für die Gremia.BR-Anfrage fehlt die Serveradresse.');
   }
 
   async request<T>(method: string, path: string, token?: string, options: GremiaBrRequestOptions = {}): Promise<T> {
+    const endpoint = endpointLabel(method, path);
     const policy = checkGremiaBrEndpoint(method, path);
-    if (!policy.allowed) throw new Error(policy.reason ?? 'Dieser Gremia.BR-Endpunkt ist nicht freigegeben.');
+    if (!policy.allowed) {
+      this.auditRequest(endpoint, 'blocked_by_policy');
+      throw new Error(policy.reason ?? 'Dieser Gremia.BR-Endpunkt ist nicht freigegeben.');
+    }
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), options.timeoutMs ?? DEFAULT_TIMEOUT_MS);
@@ -72,7 +83,7 @@ export class GremiaBrHttpClient {
         redirect: 'manual',
         signal: controller.signal,
       });
-      const endpoint = `${method.toUpperCase()} ${maskPath(path)}`;
+      this.auditRequest(endpoint, response.ok ? 'ok' : 'http_error', response.status);
       if (response.status >= 300 && response.status < 400) {
         throw new GremiaBrHttpError('Gremia.BR hat auf eine andere Adresse umgeleitet. Die Anfrage wurde aus Sicherheitsgründen abgebrochen.', response.status, endpoint);
       }
@@ -82,11 +93,30 @@ export class GremiaBrHttpClient {
       return await readResponsePayload(response) as T;
     } catch (error) {
       if ((error as Error).name === 'AbortError') {
+        this.auditRequest(endpoint, 'timeout');
         throw new Error('Die Gremia.BR-Anfrage wurde wegen Zeitüberschreitung abgebrochen.');
+      }
+      if (!(error instanceof GremiaBrHttpError)) {
+        this.auditRequest(endpoint, 'network_error');
       }
       throw error;
     } finally {
       clearTimeout(timeout);
     }
+  }
+
+  private auditRequest(endpoint: string, outcome: string, status?: number): void {
+    if (!this.auditLog) return;
+    this.auditLog.append({
+      action: endpoint.startsWith('GET ') ? 'read' : 'security',
+      subjectType: 'gremia_br_http_request',
+      subjectId: endpoint,
+      purpose: 'Gremia.BR-Lesebrücke: HTTP-Anfrage ohne Inhaltsdaten protokollieren.',
+      metadata: {
+        endpoint,
+        outcome,
+        ...(typeof status === 'number' ? { status } : {}),
+      },
+    });
   }
 }

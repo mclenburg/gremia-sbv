@@ -29,6 +29,107 @@ export interface ComplianceDocumentDescriptor {
   buttonLabel: string;
 }
 
+
+export interface DataSubjectAccessPrefillPerson {
+  id: string;
+  displayName: string;
+  recordKind?: string;
+  personnelNumber?: string;
+  workEmail?: string;
+  organizationalUnit?: string;
+  location?: string;
+  protectionStatus?: string;
+  employmentState?: string;
+  lifecycleState?: string;
+  statusValidFrom?: string;
+  statusValidUntil?: string;
+  evidenceCheckedAt?: string;
+  retentionReviewAt?: string;
+  anonymizedAt?: string;
+}
+
+export interface DataSubjectAccessPrefillCase {
+  id: string;
+  caseNumber: string;
+  displayName: string;
+  category: string;
+  status: string;
+  priority: string;
+  openedAt: string;
+  closedAt?: string;
+  privacyReviewRequired?: boolean;
+}
+
+export interface DataSubjectAccessPrefillDeadline {
+  id: string;
+  title: string;
+  processType: string;
+  deadlineType: string;
+  status: string;
+  severity: string;
+  dueAt: string;
+  caseId?: string;
+  measureId?: string;
+  legalBasis?: string;
+}
+
+export interface DataSubjectAccessPrefillMeasure {
+  id: string;
+  caseId: string;
+  type: string;
+  title: string;
+  status: string;
+  riskLevel: string;
+  openedAt: string;
+  dueAt?: string;
+  closedAt?: string;
+  requiresFollowUp?: boolean;
+}
+
+export interface DataSubjectAccessPrefillImportRun {
+  id: string;
+  sourceFileName: string;
+  importedAt: string;
+  action: string;
+  changedFields: string[];
+}
+
+export interface DataSubjectAccessPrefillLifecycleEvent {
+  id: string;
+  occurredAt: string;
+  action: string;
+  subjectType: string;
+  subjectId?: string;
+  caseId?: string;
+  purpose: string;
+}
+
+export interface DataSubjectAccessPrefillFreeTextMatch {
+  id: string;
+  sourceType: string;
+  sourceLabel: string;
+  title: string;
+  caseId?: string;
+  caseNumber?: string;
+  occurredAt?: string;
+  matchedTerms: string[];
+  matchKind: 'name_or_reference' | 'linked_case';
+  excerpt: string;
+  requiresManualReview: boolean;
+}
+
+export interface DataSubjectAccessPrefill {
+  generatedAt: string;
+  matchReason: string;
+  persons: DataSubjectAccessPrefillPerson[];
+  cases: DataSubjectAccessPrefillCase[];
+  deadlines: DataSubjectAccessPrefillDeadline[];
+  measures: DataSubjectAccessPrefillMeasure[];
+  importRuns: DataSubjectAccessPrefillImportRun[];
+  lifecycleEvents: DataSubjectAccessPrefillLifecycleEvent[];
+  freeTextMatches: DataSubjectAccessPrefillFreeTextMatch[];
+}
+
 export interface DataSubjectAccessRequestInput {
   requesterName: string;
   requestReceivedAt: string;
@@ -37,6 +138,7 @@ export interface DataSubjectAccessRequestInput {
   identityVerified: boolean;
   requestScope: string;
   preparedBy: string;
+  prefill?: DataSubjectAccessPrefill;
 }
 
 

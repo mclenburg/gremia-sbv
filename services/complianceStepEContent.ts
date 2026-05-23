@@ -29,7 +29,7 @@ export function informationAndAccessRightsSection(): string {
 
 **Art. 13/14 DSGVO:** Die Information der Beschäftigten ist organisatorisch durch den Arbeitgeber beziehungsweise die verantwortliche Stelle sicherzustellen. Gremia.SBV erzeugt hierfür Dokumentations- und Nachweisbausteine, versendet aber keine eigenständigen Datenschutzinformationen an Beschäftigte.
 
-**Art. 15 DSGVO:** Gremia.SBV bereitet strukturierte Auskunftsfähigkeit vor. Auskünfte müssen Fallakten, Personenstammdaten, Fristen, Dokumentverweise, Lifecycle- und Datenschutz-Prüfentscheidungen auffindbar machen. Vor Herausgabe sind Drittdaten, Vertraulichkeit der SBV-Arbeit und schutzwürdige Interessen gesondert zu prüfen.
+**Art. 15 DSGVO:** Gremia.SBV stellt strukturierte Auskunftsfähigkeit bereit. Der Art.-15-Arbeitsentwurf kann Fallakten, Personenstammdaten, Fristen, Maßnahmen, Importläufe, Lifecycle- und Datenschutz-Prüfentscheidungen automatisch vorbefüllen. Vor Herausgabe sind Drittdaten, Vertraulichkeit der SBV-Arbeit und schutzwürdige Interessen gesondert zu prüfen.
 `;
 }
 

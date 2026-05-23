@@ -58,15 +58,23 @@ function toPublicSettings(row?: SettingsRow | null): GremiaBrPublicSettings {
   };
 }
 
+const GREMIA_BR_SECRET_PREFIX = 'b64:v1:';
+const LEGACY_GREMIA_BR_SECRET_PREFIX = 'vault:v1:';
+
 function encodeSecret(value: string): string {
-  return value ? `vault:v1:${Buffer.from(value, 'utf8').toString('base64')}` : '';
+  return value ? `${GREMIA_BR_SECRET_PREFIX}${Buffer.from(value, 'utf8').toString('base64')}` : '';
 }
 
 export function decodeGremiaBrSecret(secret?: string | null): string {
   if (!secret) return '';
-  if (!secret.startsWith('vault:v1:')) return '';
+  const prefix = secret.startsWith(GREMIA_BR_SECRET_PREFIX)
+    ? GREMIA_BR_SECRET_PREFIX
+    : secret.startsWith(LEGACY_GREMIA_BR_SECRET_PREFIX)
+      ? LEGACY_GREMIA_BR_SECRET_PREFIX
+      : '';
+  if (!prefix) return '';
   try {
-    return Buffer.from(secret.slice('vault:v1:'.length), 'base64').toString('utf8');
+    return Buffer.from(secret.slice(prefix.length), 'base64').toString('utf8');
   } catch {
     return '';
   }

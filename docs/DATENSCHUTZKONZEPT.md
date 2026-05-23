@@ -1,6 +1,6 @@
 # Datenschutzkonzept Gremia.SBV
 
-Stand: **0.9.1**
+Stand: **0.9.2**
 
 ## Grundsatz
 
@@ -45,4 +45,4 @@ Die Anwendung versendet keine eigenständigen Informationen nach Art. 13/14 DSGV
 
 ## Auskunft nach Art. 15 DSGVO
 
-Mit dem Personenverzeichnis muss die App Auskunftsfähigkeit unterstützen: verknüpfte Fallakten, Fristen, Maßnahmen, Importläufe und Lifecycle-Ereignisse müssen auffindbar sein. Ein vollständiger Auskunftsexport ist ein späteres 1.x-Thema.
+Mit dem Personenverzeichnis unterstützt die App Auskunftsfähigkeit: verknüpfte Fallakten, Fristen, Maßnahmen, Importläufe und Lifecycle-Ereignisse sind auffindbar. Im Compliance Center kann eine Antwort auf ein Art.-15-Auskunftsersuchen aus Personen-, Fallakten-, Fristen-, Maßnahmen-, Import- und Lifecycle-Daten vorbefüllt, erzeugt und als Markdown oder PDF exportiert werden. Dieser Export ist ein Arbeitsentwurf; Identitätsprüfung, Drittdatenprüfung, Schwärzung und rechtliche Freigabe bleiben organisatorische Schritte.

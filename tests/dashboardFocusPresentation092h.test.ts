@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { formatGermanDateTime, resolveGremiaBrDashboardTile, resolveNextGremiaBrMeetingAgenda } from '../src/app/features/dashboard/DashboardFocusOverview';
 import type { GremiaBrDashboardOverview } from '../src/app/core/models/gremia-br.model';
@@ -26,7 +27,7 @@ const overview: GremiaBrDashboardOverview = {
   lastFetchedAt: '2026-05-22T20:39:00.000Z',
 };
 
-describe('dashboard presentation 0.9.2-H', () => {
+describe('dashboard presentation 0.9.2-I', () => {
   it('zeigt die nächste BR-Sitzung nur bei aktivierter Lesebrücke und begrenzt die Agenda auf Dashboardgröße', () => {
     const resolved = resolveNextGremiaBrMeetingAgenda({ enabled: true, overview });
 
@@ -54,6 +55,22 @@ describe('dashboard presentation 0.9.2-H', () => {
 
   it('zeigt ohne Cache-Zeitpunkt einen neutralen Abrufhinweis statt technischer Rohdaten', () => {
     expect(formatGermanDateTime(undefined)).toBe('noch nicht abgerufen');
+  });
+
+  it('schaltet Hover-Effekte für statische Dashboard- und Einstellungsflächen ab, aber nicht für Navigationskarten', () => {
+    const globalCss = readFileSync('src/styles/globals.css', 'utf8');
+    const dashboardSource = readFileSync('src/app/features/dashboard/DashboardFocusOverview.tsx', 'utf8');
+    const settingsSource = readFileSync('src/app/features/settings/SettingsHub.tsx', 'utf8');
+    const settingsCss = readFileSync('src/app/settingsHub.css', 'utf8');
+
+    expect(globalCss).toContain('.industrial-card:not(.no-card-hover):hover');
+    expect(dashboardSource).toContain('no-card-hover dashboard-support-card');
+    expect(dashboardSource).toContain('DeadlineDashboardPanel');
+    expect(dashboardSource).toContain('onEditDeadline');
+    expect(dashboardSource).toContain('onCompleteDeadline');
+    expect(dashboardSource).toContain('no-card-hover dashboard-focus-card dashboard-focus-card-static');
+    expect(settingsSource).toContain('settings-hub industrial-card no-card-hover');
+    expect(settingsCss).toContain('button.dashboard-focus-card:hover');
   });
 
 });

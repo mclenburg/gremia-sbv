@@ -1,43 +1,55 @@
 # Roadmap Gremia.SBV
 
-Stand: **0.9.1**  
-Status: Vor-1.0-Ergänzung. `0.9.1` ergänzt das im RC aufgefallene Personenverzeichnis und den Datenschutz-Lifecycle; danach gilt Feature-Freeze bis 1.0.
+Stand: **0.9.2**  
+Status: Vor-1.0-Stabilisierung. `0.9.2` enthält die RC-Ergänzungen aus `0.9.1`, die Dashboard-/Settings-Härtung, die optionale Gremia.BR-Lesebrücke und den vorbefüllbaren und exportierbaren Art.-15-Arbeitsentwurf im Compliance Center. Bis 1.0 gilt Feature-Freeze; zulässig bleiben nur Security-, Datenverlust-, Migrations-, Test-, Dokumentations- und offensichtliche UI-Fixes.
 
 ## Aktueller Stand
 
 Gremia.SBV ist eine lokale, offline-first Electron-/React-/Node.js-App für vertrauliche SBV-Fallarbeit. Der Schwerpunkt liegt auf Security, Datenschutz, Accessibility, Wartbarkeit und Release-Readiness.
 
-Abgeschlossen beziehungsweise im 0.9.1-Stand enthalten sind:
+Abgeschlossen beziehungsweise im 0.9.2-Stand enthalten sind:
 
-- verschlüsselte lokale Fallaktenarbeit,
+- verschlüsselte lokale Fallaktenarbeit auf SQLCipher-Basis,
 - Personenverzeichnis für schwerbehinderte und gleichgestellte Beschäftigte,
+- anonyme Beratungsanfrage ohne Direktidentifikatoren,
 - BEM-, Präventions-, Beteiligungs-, Kündigungs-, Gleichstellungs-/GdB- und Arbeitsplatzgestaltungsprozesse,
-- Fristen und Wiedervorlagen inklusive iCal-Export,
+- Fristen und Wiedervorlagen inklusive datensparsamer iCal-Exporte,
 - Vorlagen, Dokumente, Reports und Compliance-Dokumente,
+- Compliance Center mit TOMs, VVT-Entwurf, DSFA-Entwurf, Lösch-/Aufbewahrungskonzept, Betroffenenrechte-Prozess sowie vorbefüllbarer und exportierbarer Antwort auf Art.-15-Auskunftsersuchen,
 - Audit-Hash-Chain ohne Direktidentifikatoren als Zielzustand,
 - Auto-Lock, Backup/Restore und Export-Guards,
 - strukturelle Entkernung von `workflowViews.tsx`,
 - lebende Protokollverknüpfungen für `/bem`, `/praev`, `/bet`, `/kuend`, `/gleich`, `/anp` und `/fr`,
+- optionale Gremia.BR-Lesebrücke nur nach ausdrücklicher Nutzeraktion, ohne Hintergrundsynchronisation und ohne Rückschreiben,
 - GitHub-Release-Build für Linux, Windows und unsigniertes macOS.
 
 ## Vor RC1 offen
 
 Keine offenen Fachfeatures im Sinne neuer Großmodule. Vor 1.0 sind nur noch releasekritische Korrekturen zulässig:
 
-- Personenbindung der Fallakte sauber migrieren,
-- anonyme Beratungsanfrage ohne Direktidentifikatoren absichern,
-- Audit-Log ohne Direktidentifikatoren härten,
-- Compliance Center auf Personenverzeichnis, DSFA/TOM/VVT und Art. 15 vorbereiten,
-- bestehende Tests von veralteten Strukturannahmen bereinigen.
+- Migration und Altfallpfade für Personenbindung der Fallakte final gegen Echtdaten-Szenarien prüfen,
+- anonyme Beratungsanfrage ohne Direktidentifikatoren in Pilotnutzung validieren,
+- Audit-Log ohne Direktidentifikatoren und Hash-Kette in Import-, Export- und Lesebrückenpfaden weiter härten,
+- Art.-15-Auskunftsexport organisatorisch flankieren: Identitätsprüfung, Drittdaten-/Schwärzungsprozess und Freigabeweg müssen außerhalb der App verbindlich geregelt werden,
+- bestehende Tests von veralteten Strukturannahmen bereinigen,
+- Dashboard, Einstellungen und Compliance Center visuell im harten Industrial-Design stabilisieren.
 
 ## RC1-Status
 
 ### 0.9.1 – Vor-1.0-Ergänzung
 
-- Personenverzeichnis, Import-Assistent, Statusablaufwarnungen und Datenschutz-Lifecycle werden vor 1.0 ergänzt, weil sie im RC als fehlender Grundbaustein auffielen.
+- Personenverzeichnis, Import-Assistent, Statusablaufwarnungen und Datenschutz-Lifecycle wurden vor 1.0 ergänzt, weil sie im RC als fehlender Grundbaustein auffielen.
 - Kein GdB-Standardfeld, keine Diagnosen.
 - Personalnummer optional.
-- Freie Fallakten ohne Person werden perspektivisch durch Personenauswahl oder anonyme Anfrage ersetzt.
+- Freie Fallakten werden über Personenauswahl oder den anonymen Sonderweg geführt.
+
+### 0.9.2 – Stabilisierung und Review-Fixes
+
+- Dashboard und Einstellungen wurden auf die bestehende Industrial-Gestaltung zurückgeführt.
+- Gremia.BR bleibt eine optionale, explizit ausgelöste Lesebrücke ohne Hintergrundverbindung.
+- Gremia.BR-HTTP-Leseabfragen werden auditierbar, ohne Inhalte, Query-Werte, Token oder Passwörter zu protokollieren.
+- `password_secret` nutzt bei neuen Werten den ehrlichen Präfix `b64:v1:`; Legacy-`vault:v1:` bleibt lesbar.
+- Der Art.-15-Arbeitsentwurf im Compliance Center ist aus Personen-, Fallakten-, Fristen-, Maßnahmen-, Import- und Lifecycle-Daten vorbefüllbar sowie als Markdown/PDF exportierbar. Er ersetzt keine rechtliche Prüfung, keine Identitätsprüfung und keine Schwärzung von Drittdaten.
 
 ## Nach RC1
 
@@ -48,7 +60,6 @@ Keine offenen Fachfeatures im Sinne neuer Großmodule. Vor 1.0 sind nur noch rel
 
 ## Später / 1.x
 
-- Vollständiger Art.-15-Auskunftsexport.
 - Erweiterte Auswertungen nur datensparsam und ohne technische UUIDs in Reports.
 - Weitere technische Modularisierung großer Services und Inlinecommand-Module.
 - Keine Cloud-, Sync- oder Mehrbenutzerfunktionen ohne neue Architektur- und Datenschutzentscheidung.
@@ -79,15 +90,14 @@ Keine offenen Fachfeatures im Sinne neuer Großmodule. Vor 1.0 sind nur noch rel
 ### 0.9.0 – RC-Stabilisierung historisch gebündelt
 
 - RC-Coverage-Scope, Service-Behavior-Tests, Release-Artefakte und Build-Dokumentation wurden in der 0.9.0-RC-Linie stabilisiert.
-- Die Detailnotizen einzelner RC-Zwischenpatches werden nicht mehr als aktuelle Roadmap geführt. Maßgeblich für 0.9.1 sind README, Roadmap, Build-Dokumentation und die aktuellen Test-Gates.
-
+- Die Detailnotizen einzelner RC-Zwischenpatches werden nicht mehr als aktuelle Roadmap geführt. Maßgeblich für 0.9.2 sind README, Roadmap, Build-Dokumentation und die aktuellen Test-Gates.
 
 ## Step G – Test-/Doku-/Release-Sync
 
-- README, Roadmap und Build-/Release-Dokumentation sind auf 0.9.1 synchronisiert.
+- README, Roadmap und Build-/Release-Dokumentation sind auf 0.9.2 synchronisiert.
 - Alte RC-Notes, Release Notes und Change Logs werden vor Veröffentlichung nicht als aktive Dokumente geführt.
 - Tests sollen plattformunabhängig sein und Fachlogik bevorzugt über Behavior-Tests statt reine Stringvergleiche absichern.
 
-## RC-Freeze-Regel 0.9.1
+## RC-Freeze-Regel 0.9.2
 
-Nach Abschluss der 0.9.1-Korrekturen gilt: keine neuen Fachfeatures, keine Cloud-Synchronisation, keine Lizenzänderung weg von AGPL-3.0-or-later. Zulässig bleiben Security-Fixes, Datenverlust-/Migrationsfixes, Buildfixes, Testfixes, Dokumentationskorrekturen und offensichtliche UI-Bugs ohne neue Fachlogik.
+Nach Abschluss der 0.9.2-Korrekturen gilt: keine neuen Fachfeatures, keine Cloud-Synchronisation, keine Lizenzänderung weg von AGPL-3.0-or-later. Zulässig bleiben Security-Fixes, Datenverlust-/Migrationsfixes, Buildfixes, Testfixes, Dokumentationskorrekturen und offensichtliche UI-Bugs ohne neue Fachlogik.

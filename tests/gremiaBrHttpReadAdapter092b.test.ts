@@ -43,6 +43,15 @@ function createFetch(routes: Record<string, unknown>): { fetch: GremiaBrFetch; c
   return { fetch, calls };
 }
 
+
+class MemoryAuditLog {
+  entries: Array<{ action: string; subjectType: string; subjectId?: string; purpose: string; metadata?: Record<string, unknown> }> = [];
+
+  append(input: any): void {
+    this.entries.push(input);
+  }
+}
+
 function configuredSettings(): GremiaBrServiceSettings {
   return {
     enabled: true,
@@ -103,6 +112,26 @@ describe('Gremia.BR HTTP-ReadAdapter 0.9.2-B', () => {
       const method = String(call.init?.method ?? 'GET');
       return method === 'GET' || new URL(call.url).pathname === '/api/auth/login';
     })).toBe(true);
+  });
+
+  it('protokolliert jede freigegebene HTTP-Leseanfrage im Audit-Log ohne Inhalte', async () => {
+    const { fetch } = createFetch({
+      'GET /api/sitzungen/kommende': [{ id: 's1', titel: 'BR-Sitzung' }],
+    });
+    const audit = new MemoryAuditLog();
+    const client = new GremiaBrHttpClient('https://br.example.invalid/api', fetch, audit);
+
+    await client.request('GET', '/sitzungen/kommende', 'jwt-token', { query: { q: 'BEM', limit: 5 } });
+
+    expect(audit.entries).toHaveLength(1);
+    expect(audit.entries[0]).toMatchObject({
+      action: 'read',
+      subjectType: 'gremia_br_http_request',
+      subjectId: 'GET /sitzungen/kommende',
+    });
+    expect(audit.entries[0].metadata).toMatchObject({ endpoint: 'GET /sitzungen/kommende', outcome: 'ok', status: 200 });
+    expect(JSON.stringify(audit.entries[0])).not.toContain('BEM');
+    expect(JSON.stringify(audit.entries[0])).not.toContain('jwt-token');
   });
 
   it('blockiert Endpunkte außerhalb der Gremia.SBV-Whitelist vor dem Netzwerkzugriff', async () => {

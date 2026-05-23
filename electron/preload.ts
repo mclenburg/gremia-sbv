@@ -37,7 +37,7 @@ import type {
   UpdateDeadlineInput,
 } from "../src/app/core/models/deadline.model.js";
 import type { PrivacyReviewActionInput, PrivacyReviewActionResult, PrivacyReviewBulkResult, PrivacyReviewItemRecord } from "../src/app/core/models/privacy-review.model.js";
-import type { ComplianceAuditChainStatus, ComplianceDatabaseIntegrityStatus } from "../src/app/core/models/compliance.model.js";
+import type { ComplianceAuditChainStatus, ComplianceDatabaseIntegrityStatus, DataSubjectAccessPrefill, DataSubjectAccessRequestInput } from "../src/app/core/models/compliance.model.js";
 import type {
   SecurityResult,
   SecurityStatus,
@@ -412,6 +412,8 @@ const api = {
       ipcRenderer.invoke("compliance:audit-chain-status"),
     databaseIntegrityStatus: (): Promise<ComplianceDatabaseIntegrityStatus> =>
       ipcRenderer.invoke("compliance:database-integrity-status"),
+    prefillDsar: (input: DataSubjectAccessRequestInput): Promise<DataSubjectAccessPrefill> =>
+      ipcRenderer.invoke("compliance:dsar-prefill", input),
   },
 
   persons: {

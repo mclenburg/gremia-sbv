@@ -63,7 +63,16 @@ describe('Gremia.BR Einstellungen 0.9.2-A', () => {
     expect(saved.relevanceSettings.groups.length).toBeGreaterThan(0);
     expect(JSON.stringify(saved)).not.toContain('streng-geheim');
     expect(String(db.row?.password_secret)).not.toBe('streng-geheim');
+    expect(String(db.row?.password_secret)).toMatch(/^b64:v1:/);
+    expect(String(db.row?.password_secret)).not.toMatch(/^vault:v1:/);
     expect(decodeGremiaBrSecret(String(db.row?.password_secret))).toBe('streng-geheim');
+  });
+
+  it('liest Altbestand mit irreführendem vault-Präfix, schreibt neue Secrets aber als b64', () => {
+    const legacySecret = `vault:v1:${Buffer.from('alt-geheim', 'utf8').toString('base64')}`;
+
+    expect(decodeGremiaBrSecret(legacySecret)).toBe('alt-geheim');
+    expect(decodeGremiaBrSecret('plain-text')).toBe('');
   });
 
   it('erzwingt HTTPS außer für localhost und blockiert nicht freigegebene Endpunkte', () => {
