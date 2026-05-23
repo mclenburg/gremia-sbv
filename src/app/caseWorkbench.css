@@ -242,3 +242,181 @@
 .case-search-status.error {
   color: #fecaca;
 }
+
+.case-handover-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+  margin: 1rem 0;
+  padding: 1rem;
+  border-radius: 0;
+}
+.case-handover-actions p {
+  margin: 0.25rem 0 0;
+  color: var(--text-muted);
+}
+.case-handover-actions-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+@media (max-width: 900px) {
+  .case-handover-actions { flex-direction: column; }
+  .case-handover-actions-buttons { justify-content: flex-start; }
+}
+
+.case-handover-validity {
+  margin-top: 0.45rem !important;
+  font-size: 0.84rem;
+  letter-spacing: 0.01em;
+}
+.case-handover-validity strong {
+  color: var(--text-primary);
+}
+
+/* 0.9.2 Fallübergabe: Aktionen dort platzieren, wo sie fachlich hingehören */
+.case-detail-search-bar {
+  grid-template-columns: auto minmax(14rem, 1fr) minmax(10rem, auto) auto auto;
+}
+
+.case-detail-handover-export-button {
+  justify-content: center;
+  min-width: 12rem;
+  box-shadow: none;
+}
+
+.case-handover-validity {
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: baseline;
+  margin: 0.6rem 0 0.9rem !important;
+  padding: 0.35rem 0.5rem;
+  border-left: 2px solid var(--sbv-yellow);
+  background: rgba(250, 204, 21, 0.06);
+}
+
+.handover-import-inspect-actions {
+  justify-content: flex-start;
+}
+
+.case-handover-import-preview {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.case-handover-import-options {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0;
+  padding: 0.75rem;
+  border: 1px solid rgba(148, 163, 184, 0.26);
+  border-radius: 0;
+}
+
+.case-handover-import-options legend {
+  padding: 0 0.35rem;
+  color: var(--sbv-yellow);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 1250px) {
+  .case-detail-search-bar {
+    grid-template-columns: auto minmax(16rem, 1fr) auto;
+  }
+
+  .case-detail-handover-export-button {
+    grid-column: 2 / 4;
+    justify-self: start;
+  }
+}
+
+@media (max-width: 900px) {
+  .case-detail-handover-export-button {
+    grid-column: auto;
+    width: 100%;
+  }
+}
+
+/* 0.9.2 Fallübergabe: Suchaktionen rechts bündeln, Export neben Suchen */
+.case-detail-search-bar {
+  grid-template-columns: auto minmax(14rem, 1fr) minmax(10rem, auto) minmax(15rem, auto);
+}
+
+.case-detail-search-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.case-detail-handover-export-button {
+  white-space: nowrap;
+  box-shadow: none;
+}
+
+@media (max-width: 1250px) {
+  .case-detail-search-bar {
+    grid-template-columns: auto minmax(14rem, 1fr) auto;
+  }
+
+  .case-detail-search-bar .industrial-checkbox-row.compact {
+    grid-column: 2 / 4;
+  }
+
+  .case-detail-search-actions {
+    grid-column: 2 / 4;
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 900px) {
+  .case-detail-search-actions {
+    grid-column: auto;
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .case-detail-search-actions .industrial-secondary-button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* 0.9.2 Fallübergabe: Import folgt dem üblichen Ablauf Datei -> Passphrase -> Prüfung */
+.handover-import-file-step {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.handover-import-file-step > span {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.handover-import-file-row {
+  display: grid;
+  grid-template-columns: minmax(12rem, 1fr) auto;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.handover-import-file-row input {
+  min-width: 0;
+}
+
+@media (max-width: 760px) {
+  .handover-import-file-row {
+    grid-template-columns: 1fr;
+  }
+}

@@ -42,6 +42,15 @@ function assertMeasureNoteType(value: CaseMeasureNoteProcessType): void {
   if (!MEASURE_SOURCE_TABLES[value]) throw new Error(`Unbekannter Maßnahmentyp: ${value}`);
 }
 
+function effectiveHandoverStatus(row: any): CaseMeasureRecord['handoverStatus'] {
+  const status = row.handover_status ?? 'none';
+  if (status === 'active' && row.handover_valid_until) {
+    const validUntil = new Date(row.handover_valid_until);
+    if (Number.isFinite(validUntil.getTime()) && validUntil.getTime() < Date.now()) return 'expired';
+  }
+  return status;
+}
+
 function mapMeasure(row: any): CaseMeasureRecord {
   return {
     id: row.id,
@@ -59,7 +68,13 @@ function mapMeasure(row: any): CaseMeasureRecord {
     requiresFollowUp: Boolean(row.requires_follow_up),
     sourceId: row.source_id ?? undefined,
     createdAt: row.created_at,
-    updatedAt: row.updated_at
+    updatedAt: row.updated_at,
+    handoverImportId: row.handover_import_id ?? undefined,
+    handoverPackageId: row.handover_package_id ?? undefined,
+    handoverValidUntil: row.handover_valid_until ?? undefined,
+    handoverStatus: effectiveHandoverStatus(row),
+    handoverContinueConfirmedAt: row.handover_continue_confirmed_at ?? undefined,
+    handoverContinueReason: row.handover_continue_reason ?? undefined
   };
 }
 

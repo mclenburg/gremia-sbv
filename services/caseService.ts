@@ -47,6 +47,15 @@ function nowIso(): string {
   return new Date().toISOString();
 }
 
+function effectiveHandoverStatus(row: any): CaseRecord['handoverStatus'] {
+  const status = row.handover_status ?? 'none';
+  if (status === 'active' && row.handover_valid_until) {
+    const validUntil = new Date(row.handover_valid_until);
+    if (Number.isFinite(validUntil.getTime()) && validUntil.getTime() < Date.now()) return 'expired';
+  }
+  return status;
+}
+
 function mapCase(row: any): CaseRecord {
   return {
     id: row.id,
@@ -68,6 +77,12 @@ function mapCase(row: any): CaseRecord {
     privacyReviewPriority: row.privacy_review_priority ?? undefined,
     anonymizationRecommended: Boolean(row.anonymization_recommended),
     anonymizedAt: row.anonymized_at ?? undefined,
+    handoverImportId: row.handover_import_id ?? undefined,
+    handoverPackageId: row.handover_package_id ?? undefined,
+    handoverValidUntil: row.handover_valid_until ?? undefined,
+    handoverStatus: effectiveHandoverStatus(row),
+    handoverContinueConfirmedAt: row.handover_continue_confirmed_at ?? undefined,
+    handoverContinueReason: row.handover_continue_reason ?? undefined,
   };
 }
 

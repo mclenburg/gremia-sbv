@@ -1,103 +1,107 @@
 # Roadmap Gremia.SBV
 
-Stand: **0.9.2**  
-Status: Vor-1.0-Stabilisierung. `0.9.2` enthält die RC-Ergänzungen aus `0.9.1`, die Dashboard-/Settings-Härtung, die optionale Gremia.BR-Lesebrücke und den vorbefüllbaren und exportierbaren Art.-15-Arbeitsentwurf im Compliance Center. Bis 1.0 gilt Feature-Freeze; zulässig bleiben nur Security-, Datenverlust-, Migrations-, Test-, Dokumentations- und offensichtliche UI-Fixes.
+Stand: **0.9.2**
 
-## Aktueller Stand
+## Produktlinie
 
-Gremia.SBV ist eine lokale, offline-first Electron-/React-/Node.js-App für vertrauliche SBV-Fallarbeit. Der Schwerpunkt liegt auf Security, Datenschutz, Accessibility, Wartbarkeit und Release-Readiness.
+Gremia.SBV ist eine lokale, offline-first Electron-/React-Anwendung für vertrauliche SBV-Fallarbeit. Die Anwendung soll Schwerbehindertenvertretungen dabei unterstützen, ihre gesetzlichen Aufgaben strukturiert, datensparsam und nachvollziehbar wahrzunehmen.
 
-Abgeschlossen beziehungsweise im 0.9.2-Stand enthalten sind:
+Die Referenzlinie bleibt:
+
+- lokale verschlüsselte Datenhaltung,
+- keine Cloudpflicht,
+- keine Telemetrie,
+- keine automatische Synchronisation,
+- keine Vermischung von BR- und SBV-Akten,
+- fachliche Bedienbarkeit für SBV-Praxis statt allgemeiner Personalaktenverwaltung.
+
+## Aktueller Produktumfang
+
+Im aktuellen Stand umfasst Gremia.SBV folgende Produktbereiche:
 
 - verschlüsselte lokale Fallaktenarbeit auf SQLCipher-Basis,
-- Personenverzeichnis für schwerbehinderte und gleichgestellte Beschäftigte,
+- Personenverzeichnis für schwerbehinderte, gleichgestellte und ratsuchende Beschäftigte,
 - anonyme Beratungsanfrage ohne Direktidentifikatoren,
 - BEM-, Präventions-, Beteiligungs-, Kündigungs-, Gleichstellungs-/GdB- und Arbeitsplatzgestaltungsprozesse,
+- Maßnahmen, Maßnahmennotizen, Dokumente und Volltextsuche,
 - Fristen und Wiedervorlagen inklusive datensparsamer iCal-Exporte,
-- Vorlagen, Dokumente, Reports und Compliance-Dokumente,
-- Compliance Center mit TOMs, VVT-Entwurf, DSFA-Entwurf, Lösch-/Aufbewahrungskonzept, Betroffenenrechte-Prozess sowie vorbefüllbarer und exportierbarer Antwort auf Art.-15-Auskunftsersuchen,
-- Audit-Hash-Chain ohne Direktidentifikatoren als Zielzustand,
+- Vorlagen, Berichte und Tätigkeitsnachweise,
+- Compliance Center mit TOMs, VVT-Entwurf, DSFA-Entwurf, Lösch-/Aufbewahrungskonzept und Betroffenenrechte-Prozess,
+- vorbefüllbarer und exportierbarer Arbeitsentwurf für Art.-15-Auskunftsersuchen,
+- verschlüsselte Fallübergabe für Vertretung oder Nachfolge,
+- Audit-Log mit dem Ziel, keine Direktidentifikatoren oder Freitexte zu protokollieren,
 - Auto-Lock, Backup/Restore und Export-Guards,
-- strukturelle Entkernung von `workflowViews.tsx`,
-- lebende Protokollverknüpfungen für `/bem`, `/praev`, `/bet`, `/kuend`, `/gleich`, `/anp` und `/fr`,
-- optionale Gremia.BR-Lesebrücke nur nach ausdrücklicher Nutzeraktion, ohne Hintergrundsynchronisation und ohne Rückschreiben,
-- GitHub-Release-Build für Linux, Windows und unsigniertes macOS.
+- optionale Gremia.BR-Lesebrücke nur nach ausdrücklicher Nutzeraktion.
 
-## Vor RC1 offen
+## Fallübergabe / Vertretung
 
-Keine offenen Fachfeatures im Sinne neuer Großmodule. Vor 1.0 sind nur noch releasekritische Korrekturen zulässig:
+Die Fallübergabe ist ein selektiver, verschlüsselter Transfer einzelner Vorgänge. Sie dient Urlaubsvertretung, Krankheit, Amtswechsel oder Nachfolge.
 
-- Migration und Altfallpfade für Personenbindung der Fallakte final gegen Echtdaten-Szenarien prüfen,
-- anonyme Beratungsanfrage ohne Direktidentifikatoren in Pilotnutzung validieren,
-- Audit-Log ohne Direktidentifikatoren und Hash-Kette in Import-, Export- und Lesebrückenpfaden weiter härten,
-- Art.-15-Auskunftsexport organisatorisch flankieren: Identitätsprüfung, Drittdaten-/Schwärzungsprozess und Freigabeweg müssen außerhalb der App verbindlich geregelt werden,
-- bestehende Tests von veralteten Strukturannahmen bereinigen,
-- Dashboard, Einstellungen und Compliance Center visuell im harten Industrial-Design stabilisieren.
+Leitplanken:
 
-## RC1-Status
+- Export erfolgt als `.gsbvtransfer`-Paket.
+- Exportiert werden nur ausgewählte Fallakten und die erforderlichen zugehörigen Inhalte.
+- Jede Gremia.SBV-Instanz bleibt eigenständig.
+- Original-IDs der exportierenden Instanz werden nicht als fachliche Identität übernommen.
+- Paketinterne Referenzen dienen nur zur Wiederherstellung der Beziehungen innerhalb des Pakets.
+- Beim Import entstehen lokale IDs der importierenden Instanz.
+- Bei möglichen Gegenstücken entscheidet die nutzende Person zwischen neuer Übergabeakte und bewusster Zusammenführung beziehungsweise Aktualisierung.
+- Abgelaufene Übergabepakete dürfen nicht importiert werden.
+- Bereits importierte Übergabedaten werden nach Ablauf der Vertretungszeit als abgelaufen markiert; weitere Bearbeitung verlangt eine begründete Bestätigung.
+- Export, Import und Fortführung nach Ablauf werden ohne personenbezogene Inhalte auditiert.
 
-### 0.9.1 – Vor-1.0-Ergänzung
+## Art.-15-Auskunft
 
-- Personenverzeichnis, Import-Assistent, Statusablaufwarnungen und Datenschutz-Lifecycle wurden vor 1.0 ergänzt, weil sie im RC als fehlender Grundbaustein auffielen.
-- Kein GdB-Standardfeld, keine Diagnosen.
-- Personalnummer optional.
-- Freie Fallakten werden über Personenauswahl oder den anonymen Sonderweg geführt.
+Das Compliance Center kann einen Arbeitsentwurf für ein Art.-15-Auskunftsersuchen aus vorhandenen Gremia.SBV-Daten vorbefüllen. Die Vorbefüllung berücksichtigt Personen-, Fallakten-, Fristen-, Maßnahmen-, Import-, Freitext- und Lifecycle-Daten, soweit sie auffindbar sind.
 
-### 0.9.2 – Stabilisierung und Review-Fixes
+Der Export ist ein Arbeitsentwurf. Vor Herausgabe bleiben organisatorisch erforderlich:
 
-- Dashboard und Einstellungen wurden auf die bestehende Industrial-Gestaltung zurückgeführt.
-- Gremia.BR bleibt eine optionale, explizit ausgelöste Lesebrücke ohne Hintergrundverbindung.
-- Gremia.BR-HTTP-Leseabfragen werden auditierbar, ohne Inhalte, Query-Werte, Token oder Passwörter zu protokollieren.
-- `password_secret` nutzt bei neuen Werten den ehrlichen Präfix `b64:v1:`; Legacy-`vault:v1:` bleibt lesbar.
-- Der Art.-15-Arbeitsentwurf im Compliance Center ist aus Personen-, Fallakten-, Fristen-, Maßnahmen-, Import- und Lifecycle-Daten vorbefüllbar sowie als Markdown/PDF exportierbar. Er ersetzt keine rechtliche Prüfung, keine Identitätsprüfung und keine Schwärzung von Drittdaten.
+- Identitätsprüfung,
+- Prüfung auf Drittdaten,
+- Schwärzung,
+- rechtliche beziehungsweise verantwortliche Freigabe.
 
-## Nach RC1
+## Vor 1.0 offen
 
-- Fehlerkorrekturen aus Test, Review und Pilotnutzung.
-- Dokumentationskorrekturen ohne Funktionsausweitung.
-- Security-Fixes und Datenverlust-/Migrationsfixes.
-- Stabilisierung von Barrierefreiheit, Responsivität und Cross-Platform-Builds.
+Vor 1.0 stehen keine neuen Großmodule im Vordergrund. Vorrang haben Stabilität und Verlässlichkeit:
 
-## Später / 1.x
+- Echtdatennahe Prüfung der Migrationen und Altfallpfade,
+- Härtung der Fallübergabe gegen Fehlbedienung, Datenverlust und missverständliche Zusammenführung,
+- Audit-Log ohne Direktidentifikatoren in allen Import-, Export- und Lesebrückenpfaden,
+- Art.-15-Auskunft organisatorisch klar dokumentieren,
+- Barrierefreiheit und Tastaturbedienung in allen kritischen Dialogen sichern,
+- Dashboard, Einstellungen, Fallakten und Compliance Center visuell konsistent im harten Industrial-Design halten,
+- Build-, Test- und Release-Gates stabilisieren.
 
-- Erweiterte Auswertungen nur datensparsam und ohne technische UUIDs in Reports.
-- Weitere technische Modularisierung großer Services und Inlinecommand-Module.
-- Keine Cloud-, Sync- oder Mehrbenutzerfunktionen ohne neue Architektur- und Datenschutzentscheidung.
+## Zulässig bis 1.0
 
-## Historisch abgeschlossen
+Bis 1.0 sollen nur noch Änderungen erfolgen, die eine dieser Kategorien erfüllen:
 
-### 0.2 Prozessfundament: historisch abgeschlossen
+- Security-Fix,
+- Datenverlust- oder Migrationsfix,
+- Build- oder Testfix,
+- Barrierefreiheitsfix,
+- Dokumentationskorrektur,
+- offensichtlicher UI-Fehler ohne neue Fachlogik,
+- Korrektur einer bereits begonnenen Vor-1.0-Funktion, wenn sie sonst fachlich irreführend oder gefährlich wäre.
 
-- Frühere Prozessfundament-Aufgaben sind historisch abgeschlossen und werden nicht mehr als offene Checkliste geführt.
+## Spätere 1.x-Themen
 
-### 0.3 Fristen und Wiedervorlagen: historisch abgeschlossen
+Spätere Themen benötigen jeweils eine eigene Architektur- und Datenschutzentscheidung:
 
-- Frühere Fristen- und Wiedervorlagen-Aufgaben sind historisch abgeschlossen und werden nicht mehr als offene Checkliste geführt.
+- erweiterte datensparsame Auswertungen,
+- weitere Modularisierung großer Services,
+- zusätzliche fachliche Berichte,
+- optionale Leseschnittstellen zu anderen Systemen,
+- eventuell weitergehende Rollen- oder Vertretungskonzepte.
 
-### 0.8.11 – `workflowViews.tsx` vollständig entkernen
+Nicht geplant in der Referenzlinie:
 
-- `workflowViews.tsx` ist nur noch Import-/Re-Export-Orchestrierung.
-- Die Fallaktenansicht liegt unter `src/app/features/cases/`.
+- automatische Cloud-Synchronisation,
+- Mehrbenutzerbetrieb ohne neues Sicherheitsmodell,
+- Hintergrundkopplung mit Gremia.BR,
+- Rückschreiben von SBV-Falldaten in BR-Systeme.
 
-### 0.8.12 – Lebende Protokollverknüpfungen
+## Dokumentationsregel
 
-- Die lebenden Protokollverknüpfungen als MVP in 0.8.12 haben das generische Fundament für persistente Aktenbezüge gelegt.
-
-### 0.8.13 – RC-Härtung
-
-- In 0.8.13 wurde die RC-kritische Linkabdeckung auf `/bem`, `/praev`, `/bet`, `/kuend`, `/gleich`, `/anp` und `/fr` vervollständigt.
-
-### 0.9.0 – RC-Stabilisierung historisch gebündelt
-
-- RC-Coverage-Scope, Service-Behavior-Tests, Release-Artefakte und Build-Dokumentation wurden in der 0.9.0-RC-Linie stabilisiert.
-- Die Detailnotizen einzelner RC-Zwischenpatches werden nicht mehr als aktuelle Roadmap geführt. Maßgeblich für 0.9.2 sind README, Roadmap, Build-Dokumentation und die aktuellen Test-Gates.
-
-## Step G – Test-/Doku-/Release-Sync
-
-- README, Roadmap und Build-/Release-Dokumentation sind auf 0.9.2 synchronisiert.
-- Alte RC-Notes, Release Notes und Change Logs werden vor Veröffentlichung nicht als aktive Dokumente geführt.
-- Tests sollen plattformunabhängig sein und Fachlogik bevorzugt über Behavior-Tests statt reine Stringvergleiche absichern.
-
-## RC-Freeze-Regel 0.9.2
-
-Nach Abschluss der 0.9.2-Korrekturen gilt: keine neuen Fachfeatures, keine Cloud-Synchronisation, keine Lizenzänderung weg von AGPL-3.0-or-later. Zulässig bleiben Security-Fixes, Datenverlust-/Migrationsfixes, Buildfixes, Testfixes, Dokumentationskorrekturen und offensichtliche UI-Bugs ohne neue Fachlogik.
+Roadmap, README und Fachkonzepte beschreiben den aktuellen Produktzustand und die Zielarchitektur. Detailnotizen einzelner Patches, Buildfixes oder Review-Zwischenstände werden nicht als dauerhafte Roadmap geführt.

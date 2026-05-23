@@ -1,5 +1,7 @@
 # Datenschutz- und Sicherheitskonzept
 
+Stand: **0.9.2**
+
 Gremia.SBV verarbeitet besonders schutzwürdige Informationen aus der Arbeit der Schwerbehindertenvertretung. Dazu können Gesundheitsdaten, Angaben zu Behinderung, Gleichstellung, Arbeitsplatzproblemen, Kündigungsrisiken, BEM-Verläufen und vertraulichen Gesprächen gehören.
 
 ## Grundsatz
@@ -13,9 +15,11 @@ SBV-Daten bleiben lokal im verschlüsselten Gremia.SBV-Vault. Es gibt keine Clou
 - Suchindex, OCR-Texte und extrahierte Dokumenttexte gelten ebenfalls als sensible Daten.
 - Zugangsdaten für optionale Integrationen werden nicht in localStorage gespeichert.
 
-## Keine zusätzliche Feldverschlüsselung
+## Keine zusätzliche Feldverschlüsselung für Stammdaten
 
-Gremia.SBV nutzt SQLCipher als zentrale Verschlüsselungsschicht für den lokalen Vault. Eine zusätzliche Feldverschlüsselung innerhalb der Fachdatensätze wird bewusst nicht eingeführt, weil sie Suchindex, Migrationen, Barrierefreiheit, Wiederherstellung und Wartbarkeit unnötig verkomplizieren würde. Der Schutz wird stattdessen über den verschlüsselten Vault, klare Zugriffspfade, Datenminimierung, Audit und sichere Lösch-/Anonymisierungspfade erreicht.
+Gremia.SBV nutzt SQLCipher als zentrale Verschlüsselungsschicht für den lokalen Vault. Eine zusätzliche Feldverschlüsselung für strukturierte Stammdaten wird bewusst nicht als Standard eingeführt, weil Suchindex, Migrationen, Barrierefreiheit, Wiederherstellung und Wartbarkeit dadurch erheblich erschwert würden.
+
+Für Transportvorgänge außerhalb des Vaults gelten strengere Regeln: Übergabepakete werden separat verschlüsselt und dürfen nicht als Klartext weitergegeben werden.
 
 ## Suchindex
 
@@ -33,6 +37,19 @@ Dokumenttext-Extraktion erfolgt lokal. OCR ist optional und darf den Upload-Work
 
 OCR-Treffer werden als maschinell erkannte Inhalte gekennzeichnet, weil OCR fehleranfällig sein kann.
 
+## Fallübergabe / Vertretung
+
+Fallübergaben verlassen den lokalen Vault als verschlüsseltes Transportpaket. Die Funktion ist für selektive Vertretung gedacht, nicht für Backup, Synchronisation oder gemeinsame Datenhaltung.
+
+Regeln:
+
+- nur ausgewählte Fallakten und erforderliche Inhalte exportieren,
+- Transport-Passphrase getrennt von der Datei übermitteln,
+- abgelaufene Übergabepakete nicht importieren,
+- importierte Übergabedaten nach Ablauf der Vertretungszeit markieren,
+- weitere Bearbeitung abgelaufener Übergabedaten nur nach begründeter Bestätigung,
+- Export und Import ohne personenbezogene Inhalte auditieren.
+
 ## Gremia.BR-Lesebrücke
 
 Die Gremia.BR-Anbindung dient ausschließlich der Zusammenarbeit zwischen BR und SBV. Sie ist optional und standardmäßig deaktiviert. Die Schnittstelle ist als Read-only-Lesebrücke ausgelegt und erlaubt keine Schreibzugriffe von Gremia.SBV nach Gremia.BR.
@@ -41,18 +58,17 @@ Regeln:
 
 - keine automatische Synchronisation,
 - keine Hintergrundabfragen,
-- keine Hintergrundsynchronisation,
 - kein Rückschreiben nach Gremia.BR,
 - keine Übermittlung von SBV-Falldaten,
 - nur explizit ausgelöste lesende Zugriffe,
 - harte Endpunkt-Whitelist,
 - JWT bevorzugt nur im Arbeitsspeicher,
 - Zugangsdaten im SQLCipher-Vault,
-- Audit nur über Aktion, Zeitpunkt und Ergebnis – nicht über Inhalte oder Suchbegriffe.
+- Audit nur über Aktion, Zeitpunkt, Endpunkt und Ergebnis – nicht über Inhalte, Query-Werte oder Suchbegriffe.
 
 ## Audit
 
-Audit-Einträge sollen Nachvollziehbarkeit schaffen, ohne selbst zum Datenschutzproblem zu werden. Deshalb werden keine Passwörter, Tokens, Suchbegriffe, Dokumentinhalte oder Gesundheitsinformationen protokolliert.
+Audit-Einträge sollen Nachvollziehbarkeit schaffen, ohne selbst zum Datenschutzproblem zu werden. Deshalb werden keine Passwörter, Tokens, Suchbegriffe, Dokumentinhalte, Diagnosen, Personennamen oder Falltitel protokolliert.
 
 ## Barrierefreiheit als Sicherheitsmerkmal
 

@@ -2,6 +2,7 @@
 import type { ComplianceAuditChainStatus, ComplianceDatabaseIntegrityStatus, DataSubjectAccessPrefill, DataSubjectAccessRequestInput } from "./app/core/models/compliance.model";
 
 import type { CaseDocumentRecord } from "./app/core/models/case-document.model";
+import type { CaseHandoverContinueExpiredResult, CaseHandoverExportInput, CaseHandoverExportResult, CaseHandoverImportInput, CaseHandoverImportResult, CaseHandoverInspectResult } from "./app/core/models/case-handover.model";
 import type { CaseRecord, CreateCaseInput, LegacyCaseBindingInput, LegacyCaseBindingResult } from "./app/core/models/case.model";
 import type {
   ContactListFilters,
@@ -200,7 +201,16 @@ declare global {
         search(input: CaseContentSearchInput): Promise<CaseSearchResult[]>;
       };
 
-      caseMeasures: {
+      caseHandover: {
+      export: (input: CaseHandoverExportInput, suggestedFileName?: string) => Promise<CaseHandoverExportResult>;
+      selectFile: () => Promise<{ canceled: true } | { canceled: false; filePath: string; fileName: string }>;
+      inspect: (filePath: string, passphrase: string) => Promise<CaseHandoverInspectResult>;
+      selectAndInspect: (passphrase: string) => Promise<{ canceled: true } | { canceled: false; filePath: string; fileName: string; inspection: CaseHandoverInspectResult }>;
+      import: (input: CaseHandoverImportInput) => Promise<CaseHandoverImportResult>;
+      continueExpired: (caseId: string, reason: string) => Promise<CaseHandoverContinueExpiredResult>;
+    };
+
+    caseMeasures: {
         list(caseId?: string): Promise<CaseMeasureRecord[]>;
         create(input: CreateCaseMeasureInput): Promise<CaseMeasureRecord>;
         update(

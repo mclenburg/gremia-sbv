@@ -43,6 +43,12 @@ export interface CaseRecord {
   privacyReviewPriority?: 'critical' | 'high' | 'normal' | 'low';
   anonymizationRecommended?: boolean;
   anonymizedAt?: string;
+  handoverImportId?: string;
+  handoverPackageId?: string;
+  handoverValidUntil?: string;
+  handoverStatus?: 'none' | 'active' | 'expired' | 'continued_after_expiry' | 'closed';
+  handoverContinueConfirmedAt?: string;
+  handoverContinueReason?: string;
 }
 
 

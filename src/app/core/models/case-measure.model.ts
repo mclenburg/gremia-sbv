@@ -36,6 +36,12 @@ export interface CaseMeasureRecord {
   sourceId?: string;
   createdAt: string;
   updatedAt: string;
+  handoverImportId?: string;
+  handoverPackageId?: string;
+  handoverValidUntil?: string;
+  handoverStatus?: 'none' | 'active' | 'expired' | 'continued_after_expiry' | 'closed';
+  handoverContinueConfirmedAt?: string;
+  handoverContinueReason?: string;
 }
 
 export interface CreateCaseMeasureInput {

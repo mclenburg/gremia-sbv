@@ -1,67 +1,61 @@
 # Dokumentation
 
-Stand: **0.9.1**
+Stand: **0.9.2**
 
-Diese Dokumentation ist der aktive, dauerhafte Dokumentationsbestand von Gremia.SBV und damit ein aktiver, dauerhafter Dokumentationsbestand. Historische Patch-, Buildfix-, Release-Notes- und Change-Log-Dateien werden vor der Veröffentlichung nicht separat gepflegt. Dauerhafte Inhalte stehen in den fachlichen Betriebs-, Architektur-, Datenschutz- und Build-Dokumenten.
+Diese Dokumentation beschreibt das Gesamtprodukt Gremia.SBV. Sie ist nicht als Sammlung einzelner Patchnotizen gedacht, sondern als dauerhafte Arbeits-, Betriebs-, Datenschutz- und Entwicklungsdokumentation für eine lokale Fachanwendung der Schwerbehindertenvertretung.
+
+## Für wen ist diese Dokumentation gedacht?
+
+Die wichtigste Zielgruppe sind Schwerbehindertenvertretungen und ihre Stellvertretungen. Die Texte sollen erklären, was die Anwendung fachlich leistet, welche Grenzen sie hat und worauf bei sensiblen SBV-Daten zu achten ist.
+
+Zweite Zielgruppe sind Personen, die Gremia.SBV betreiben, prüfen oder weiterentwickeln: Datenschutz, IT-Sicherheit, Administration und Entwicklung.
 
 ## Einstieg
 
 | Datei | Zweck |
 | --- | --- |
-| `../README.md` | öffentlicher Projekteinstieg |
-| `ARCHITECTURE.md` | Architektur, Datenfluss und Modulgrenzen |
-| `ARCHITECTURE_DIAGRAMS.md` | Mermaid-Diagramme für Datenfluss und grobe Komponentensicht |
-| `DEVELOPMENT.md` | Entwicklung, Tests, Build und Clean-Code-Regeln |
-| `RELEASE_CHECKLIST.md` | Abnahme vor `0.9.1` / 1.0-Freeze |
-| `BUILD.md` | Build, Plattformmatrix und GitHub-Release-Workflow |
-| `ROADMAP.md` | Versionspfad bis 1.0 und spätere 1.x-Themen |
-| `KNOWN_ISSUES.md` | bekannte Einschränkungen für RC-Abnahme |
-
-## Datenschutz und Compliance
-
-| Datei | Zweck |
-| --- | --- |
-| `SECURITY.md` | technische Sicherheitsgrundsätze |
+| `../README.md` | öffentlicher Projekteinstieg und Produktüberblick |
+| `CASE_PROCESS_WORKFLOW.md` | Fallaktenarbeit, Personenbindung, anonyme Beratung und Datenschutzprüfung |
+| `PROCESS_MODULES.md` | Fachmodule, Maßnahmen und Fristen im SBV-Alltag |
+| `CASE_HANDOVER_TRANSFER.md` | verschlüsselte Fallübergabe für Vertretung und Nachfolge |
+| `PRIVACY_AND_SECURITY.md` | Schutzprinzipien, Vault, Audit, Suche und Datenflüsse |
 | `DATENSCHUTZKONZEPT.md` | organisatorisches Datenschutzkonzept |
-| `DSGVO_SBV.md` | DSGVO-/SBV-spezifische Hinweise |
-| `DSFA_SBV_TEMPLATE.md` | Vorlage für Datenschutz-Folgenabschätzung |
-| `VERARBEITUNGSVERZEICHNIS_SBV.md` | VVT-Grundlage |
-| `LOESCHKONZEPT_SBV.md` | Aufbewahrung, Löschung und Anonymisierung |
-| `BACKUP_RESTORE.md` | Sicherung und Wiederherstellung |
+| `DSGVO_SBV.md` | DSGVO-Hinweise für SBV-Nutzung und Betroffenenrechte |
+| `LOESCHKONZEPT_SBV.md` | Aufbewahrung, Löschung, Anonymisierung und Prüfpfade |
+| `VERARBEITUNGSVERZEICHNIS_SBV.md` | Grundlage für das Verzeichnis der Verarbeitungstätigkeiten |
+| `BACKUP_RESTORE.md` | Sicherung und Wiederherstellung des lokalen Vaults |
+| `ROADMAP.md` | Produktstatus, Stabilisierung vor 1.0 und spätere Themen |
 
-## Betrieb und Build
+## Betrieb, Architektur und Entwicklung
 
 | Datei | Zweck |
 | --- | --- |
+| `ARCHITECTURE.md` | Architektur, Schichten, IPC und Modulgrenzen |
+| `ARCHITECTURE_DIAGRAMS.md` | Mermaid-Diagramme für Datenflüsse und Komponenten |
+| `SECURITY.md` | technische Sicherheitsgrundsätze |
+| `DATABASE_ENCRYPTION.md` | SQLCipher-Vault und Verschlüsselungsentscheidungen |
+| `DATABASE_MIGRATIONS.md` | Migrationen und Schema-Integrität |
+| `BUILD.md` | Build, Tests und Release-Artefakte |
+| `DEVELOPMENT.md` | Entwicklungsregeln, Clean Code und Tests |
+| `E2E_TESTS.md` | Ende-zu-Ende-Tests und isolierte Testumgebung |
 | `APP_VERSION_BUILD.md` | Versionsgenerierung |
-| `DATABASE_MIGRATIONS.md` | Datenbankmigrationen |
-| `DATABASE_ENCRYPTION.md` | verschlüsselte Datenbank |
-| `NATIVE_SQLCIPHER_DEPENDENCY.md` | native SQLite-/SQLCipher-Abhängigkeit |
+| `NATIVE_SQLCIPHER_DEPENDENCY.md` | native SQLCipher-Abhängigkeit |
 | `APPIMAGE_DATA_PATHS.md` | Datenpfade im AppImage-Betrieb |
 | `WINDOWS_BUILD.md` | Windows-Build-Hinweise |
-| `E2E_TESTS.md` | E2E-Setup, isolierte Testdaten und RC-kritische Flüsse |
 
 ## Fachliche Dauerunterlagen
 
 | Datei | Zweck |
 | --- | --- |
-| `PROCESS_MODULES.md` | Prozessmodule, Maßnahmenlogik und Fallaktenbezug |
-| `CASE_PROCESS_WORKFLOW.md` | Fallakten-Workflow, Personenbindung und anonyme Anfrage |
-| `INLINE_TEXT_COMMANDS.md` | Inline-Kurzbefehle |
+| `INLINE_TEXT_COMMANDS.md` | Inline-Kurzbefehle in großen Textfeldern |
 | `TEMPLATES_MODULE.md` | Vorlagenmodul |
 | `KNOWLEDGE_BASE.md` | Wissensbasis |
 | `REPORTS_PDF_EXPORT.md` | PDF- und Reportlogik |
+| `DSFA_SBV_TEMPLATE.md` | Vorlage für Datenschutz-Folgenabschätzung |
+| `KNOWN_ISSUES.md` | bekannte Einschränkungen vor produktiver Freigabe |
 
-## Regel
+## Dokumentationsregel
 
-Neue Dokumentation soll dauerhaft verwendbar sein. Kurzlebige Patchnotizen, historische Buildfix-Protokolle, Release Notes, Change Logs und temporäre Hotfix-Dokumente gehören vor Veröffentlichung nicht in den aktiven Dokumentationsbestand. Detailthemen werden nur behalten, wenn sie für Betrieb, Datenschutz, Security, Migration, Entwicklung oder RC-Abnahme dauerhaft erforderlich sind.
+Neue Dokumentation soll dauerhaft verwendbar sein. Kurzlebige Patchnotizen, historische Buildfix-Protokolle, Release Notes, Change Logs und temporäre Hotfix-Dokumente gehören nicht in den aktiven Dokumentationsbestand.
 
-
-## Testqualität
-
-Für 0.9.1 gilt: Mindestens 68 % der aktiven Tests müssen Verhalten, Ergebnisse, Policies, Services, Migrationen, Exporte oder E2E-Flows prüfen. Source-Text-Stringtests sind nur noch als eng begrenzte Architektur-Guards zulässig und dürfen maximal 32 % der aktiven Testbasis ausmachen.
-
-
-## ModuleFeedback-Regel
-
-Feature-Views mit `ModuleFrame` müssen Rückmeldungen über den gemeinsamen `ModuleFeedback`-Baustein ausgeben. Prozessübersichten verwenden dafür `ProcessOverviewPage` mit `feedbackItems`. Feature-spezifische Inline-Fehlerbereiche außerhalb von Modalen sind nicht zulässig; Modal-Fehler bleiben im jeweiligen Dialog. Diese Regel wird durch `tests/moduleFeedbackArchitecture091.test.ts` abgesichert.
+Ein Dokument soll nicht erklären, warum ein bestimmter Patch entstanden ist. Es soll erklären, wie Gremia.SBV funktioniert, welche fachlichen Entscheidungen gelten und welche Pflichten die nutzende SBV beachten muss.

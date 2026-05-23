@@ -1,11 +1,27 @@
 import { describe, expect, it } from 'vitest';
+import {
+  CASE_DOCUMENT_OCR_JOBS_REQUIRED_COLUMNS,
+  CASE_DOCUMENTS_REQUIRED_COLUMNS,
+  CASE_EXTERNAL_REFERENCES_REQUIRED_COLUMNS,
+  CASE_HANDOVER_IMPORT_ITEMS_REQUIRED_COLUMNS,
+  CASE_HANDOVER_IMPORTS_REQUIRED_COLUMNS,
+  CASE_MEASURES_REQUIRED_COLUMNS,
+  CASE_MEASURE_NOTES_REQUIRED_COLUMNS,
+  CASE_SEARCH_INDEX_REQUIRED_COLUMNS,
+  CASE_SEARCH_INDEX_STATE_REQUIRED_COLUMNS,
+  CASES_REQUIRED_COLUMNS,
+  GREMIA_BR_CACHE_REQUIRED_COLUMNS,
+  GREMIA_BR_SETTINGS_REQUIRED_COLUMNS,
+  PERSONAL_DATA_AUDIT_REQUIRED_COLUMNS,
+  PROTECTED_PERSONS_REQUIRED_COLUMNS,
+} from '../services/appSchema';
 import { evaluateDatabaseIntegrity } from '../services/databaseIntegrityService';
 import type { DatabaseAdapter } from '../services/databaseService';
 
 class SchemaDb implements DatabaseAdapter {
   constructor(
-    private readonly tables: Record<string, string[]>,
-    private readonly schemaVersion = '0035',
+    private readonly tables: Record<string, readonly string[]>,
+    private readonly schemaVersion = '0036',
   ) {}
 
   prepare<T = unknown>(sql: string) {
@@ -40,25 +56,28 @@ class SchemaDb implements DatabaseAdapter {
   close(): void {}
 }
 
-const completeSchema: Record<string, string[]> = {
+const completeSchema: Record<string, readonly string[]> = {
   schema_migrations: ['version'],
-  cases: ['id', 'case_number', 'display_name', 'category', 'status', 'protected_person_id', 'person_binding_state'],
+  cases: CASES_REQUIRED_COLUMNS,
   case_notes: ['id'],
-  case_documents: ['id', 'case_id', 'filename', 'storage_path', 'sha256', 'extracted_text', 'document_key', 'iv', 'auth_tag', 'size_bytes', 'imported_at', 'extraction_quality', 'text_extraction_status', 'text_extracted_at', 'text_extractor_id', 'text_extraction_error', 'ocr_status', 'ocr_text', 'ocr_engine', 'ocr_started_at', 'ocr_completed_at', 'ocr_error', 'contains_health_data', 'created_at'],
+  case_documents: CASE_DOCUMENTS_REQUIRED_COLUMNS,
   contacts: ['id'],
   deadlines: ['id', 'title', 'due_at', 'status'],
-  protected_persons: ['id', 'first_name', 'last_name', 'employment_state', 'protection_status', 'lifecycle_state'],
+  protected_persons: PROTECTED_PERSONS_REQUIRED_COLUMNS,
   person_case_links: ['id', 'protected_person_id', 'case_file_id', 'link_state'],
   privacy_review_items: ['id', 'case_id', 'protected_person_id', 'reason', 'status', 'due_at'],
-  personal_data_audit_log: ['id', 'sequence', 'occurred_at', 'actor', 'action', 'subject_type', 'purpose', 'previous_hash', 'entry_hash'],
-  case_measure_notes: ['id', 'case_id', 'measure_type', 'measure_id', 'title', 'note_at', 'content', 'contains_health_data', 'confidential_level', 'created_at', 'updated_at'],
-  case_search_index: ['id', 'case_id', 'source_type', 'source_id', 'source_label', 'title', 'content', 'updated_at', 'confidentiality', 'contains_health_data', 'extraction_quality', 'navigation_kind', 'navigation_id'],
+  personal_data_audit_log: PERSONAL_DATA_AUDIT_REQUIRED_COLUMNS,
+  case_measure_notes: CASE_MEASURE_NOTES_REQUIRED_COLUMNS,
+  case_search_index: CASE_SEARCH_INDEX_REQUIRED_COLUMNS,
   case_search_index_fts: ['index_id', 'title', 'content', 'keywords', 'source_label'],
-  case_search_index_state: ['case_id', 'indexed_at', 'last_source_updated_at', 'source_count', 'updated_at'],
-  case_document_ocr_jobs: ['id', 'document_id', 'case_id', 'status', 'attempts', 'created_at', 'updated_at'],
-  gremia_br_settings: ['id', 'enabled', 'server_url', 'username', 'password_secret', 'last_connection_test_at', 'last_successful_login_at', 'profile_json', 'relevance_keywords_json', 'created_at', 'updated_at'],
-  gremia_br_cache_entries: ['id', 'cache_key', 'source_type', 'payload_json', 'fetched_at', 'created_at', 'updated_at'],
-  case_external_references: ['id', 'case_id', 'source_system', 'source_type', 'source_id', 'title', 'fetched_at', 'created_at', 'updated_at'],
+  case_search_index_state: CASE_SEARCH_INDEX_STATE_REQUIRED_COLUMNS,
+  case_document_ocr_jobs: CASE_DOCUMENT_OCR_JOBS_REQUIRED_COLUMNS,
+  gremia_br_settings: GREMIA_BR_SETTINGS_REQUIRED_COLUMNS,
+  gremia_br_cache_entries: GREMIA_BR_CACHE_REQUIRED_COLUMNS,
+  case_external_references: CASE_EXTERNAL_REFERENCES_REQUIRED_COLUMNS,
+  case_measures: CASE_MEASURES_REQUIRED_COLUMNS,
+  case_handover_imports: CASE_HANDOVER_IMPORTS_REQUIRED_COLUMNS,
+  case_handover_import_items: CASE_HANDOVER_IMPORT_ITEMS_REQUIRED_COLUMNS,
 };
 
 describe('database integrity status for compliance center', () => {
@@ -66,13 +85,13 @@ describe('database integrity status for compliance center', () => {
     const result = evaluateDatabaseIntegrity(new SchemaDb(completeSchema));
 
     expect(result.ok).toBe(true);
-    expect(result.appliedSchemaVersion).toBe('0035');
+    expect(result.appliedSchemaVersion).toBe('0036');
     expect(result.missingTables).toEqual([]);
     expect(result.missingColumns).toEqual({});
     expect(result.repairRequired).toBe(false);
   });
 
-  it('accepts the real person-link and privacy-review column names from schema 0035', () => {
+  it('accepts the real person-link and privacy-review column names from schema 0036', () => {
     const result = evaluateDatabaseIntegrity(new SchemaDb(completeSchema));
 
     expect(result.issues).not.toContain('Spalte person_case_links.person_id fehlt.');
@@ -80,17 +99,27 @@ describe('database integrity status for compliance center', () => {
     expect(result.issues).not.toContain('Spalte privacy_review_items.trigger fehlt.');
   });
 
-  it('reports repair need when a migration marker exists but a critical column is missing', () => {
+  it('reports repair need when a migration marker exists but a critical handover column is missing', () => {
     const brokenSchema = {
       ...completeSchema,
-      cases: completeSchema.cases.filter((column) => column !== 'protected_person_id'),
+      cases: completeSchema.cases.filter((column) => column !== 'handover_valid_until'),
     };
 
     const result = evaluateDatabaseIntegrity(new SchemaDb(brokenSchema));
 
     expect(result.ok).toBe(false);
     expect(result.repairRequired).toBe(true);
-    expect(result.missingColumns.cases).toContain('protected_person_id');
-    expect(result.issues).toContain('Spalte cases.protected_person_id fehlt.');
+    expect(result.missingColumns.cases).toContain('handover_valid_until');
+    expect(result.issues).toContain('Spalte cases.handover_valid_until fehlt.');
+  });
+
+  it('reports repair need when the handover import tables from schema 0036 are missing', () => {
+    const { case_handover_imports: _imports, case_handover_import_items: _items, ...brokenSchema } = completeSchema;
+
+    const result = evaluateDatabaseIntegrity(new SchemaDb(brokenSchema));
+
+    expect(result.ok).toBe(false);
+    expect(result.repairRequired).toBe(true);
+    expect(result.missingTables).toEqual(['case_handover_imports', 'case_handover_import_items']);
   });
 });

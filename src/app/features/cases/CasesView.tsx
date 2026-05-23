@@ -11,6 +11,7 @@ import { useCaseProcessCreation } from "./useCaseProcessCreation";
 import { useCaseCrudActions } from "./useCaseCrudActions";
 import { useLegacyCaseBindingHandlers } from "./useLegacyCaseBindingHandlers";
 import { CasesViewRender } from "./CasesViewRender";
+import { CaseHandoverTransferDialogs } from "./CaseHandoverTransferDialogs";
 import type { CasesViewProps, CaseToast } from "./casesViewTypes";
 import type { CaseCategory, CaseRecord } from "../../core/models/case.model";
 import type { ProcessTemplateModalState } from "./ProcessTemplateDocumentsModal";
@@ -45,6 +46,8 @@ export function CasesView({
   const [error, setError] = useState("");
   const [documentError, setDocumentError] = useState("");
   const [caseToast, setCaseToast] = useState<CaseToast | null>(null);
+  const [handoverExportOpen, setHandoverExportOpen] = useState(false);
+  const [handoverImportOpen, setHandoverImportOpen] = useState(false);
   const confirmDialog = useConfirmDialog();
   const announce = useAnnouncer();
 
@@ -341,7 +344,50 @@ export function CasesView({
     }
   }
 
-  function openLegacyBindingDialog(caseRecord: CaseRecord) {
+
+  async function exportSelectedCaseHandover(passphrase: string, expiresAt?: string) {
+    if (!selectedCase) throw new Error('Bitte zuerst eine Fallakte auswählen.');
+    const result = await window.gremiaSbv.caseHandover.export(
+      { caseIds: [selectedCase.id], expiresAt, purpose: 'Urlaubsübergabe / SBV-Vertretung', passphrase },
+      `${selectedCase.caseNumber}-falluebergabe.gsbvtransfer`,
+    );
+    if (result.exported) {
+      pushCaseToast(`Übergabepaket erstellt: ${result.caseCount} Fallakte(n), ${result.measureCount} Maßnahme(n), ${result.documentCount} Dokument(e).`, 'ok');
+      return;
+    }
+    pushCaseToast('Export wurde abgebrochen.', 'warning');
+  }
+
+  async function selectCaseHandoverFile() {
+    return window.gremiaSbv.caseHandover.selectFile();
+  }
+
+  async function inspectCaseHandover(filePath: string, passphrase: string) {
+    return window.gremiaSbv.caseHandover.inspect(filePath, passphrase);
+  }
+
+  async function importCaseHandover(input: { filePath: string; passphrase: string; mode: 'create_new' | 'merge_existing'; targetCaseId?: string }) {
+    const result = await window.gremiaSbv.caseHandover.import(input);
+    pushCaseToast(result.mode === 'merge_existing' ? 'Übergabepaket wurde mit der gewählten Akte zusammengeführt.' : 'Übergabepaket wurde als neue lokale Übergabeakte importiert.', 'ok');
+    await onCasesChanged();
+    const nextCaseId = result.updatedCaseIds[0] ?? result.createdCaseIds[0];
+    if (nextCaseId) setSelectedCaseId(nextCaseId);
+  }
+
+  async function continueExpiredHandover() {
+    if (!selectedCase) return;
+    const reason = window.prompt('Begründung für die weitere Bearbeitung abgelaufener Übergabedaten:');
+    if (!reason) return;
+    try {
+      await window.gremiaSbv.caseHandover.continueExpired(selectedCase.id, reason);
+      pushCaseToast('Weitere Bearbeitung der abgelaufenen Übergabedaten wurde bestätigt.', 'ok');
+      await onCasesChanged();
+    } catch (error) {
+      pushCaseToast(error instanceof Error ? error.message : 'Bestätigung konnte nicht dokumentiert werden.', 'warning');
+    }
+  }
+
+    function openLegacyBindingDialog(caseRecord: CaseRecord) {
     setLegacyBindingError("");
     setLegacyBindingCase(caseRecord);
   }
@@ -364,5 +410,18 @@ export function CasesView({
     deleteDocument,
   });
 
-  return <CasesViewRender {...{ caseToast, visibleCases, selectedCaseId, filteredCases, caseFilter, setCaseFilter, normalizedCaseRegisterPage, caseRegisterPageCount, caseRegisterPageSize, setCaseRegisterPage, openCaseCreateModal, selectedCase, selectedNote, selectedDocument, selectedSearchResult, selectedPreventionProcess, selectedBemProcess, selectedTerminationProcess, selectedEqualizationProcess, selectedEqualizationNotes, selectedParticipationProcess, selectedWorkplaceAccommodationProcess, notes, documents, caseLegalReferences, casePreventionProcesses, caseBemProcesses, caseEqualizationProcesses, caseTerminationProcesses, caseParticipationProcesses, caseWorkplaceAccommodationProcesses, selection, setSelection, setSelectedCaseId, searchQuery, searchOnlySelectedCase, searchResults, selectedSearchSourceTypes, searchError, searchInfo, isSearching, runSearch, setSearchQuery, setSearchOnlySelectedCase, setSelectedSearchSourceTypes, documentActions, updateCasePreventionProcess, openProcessTemplateModal, updateCaseBemProcess, updateCaseTerminationProcess, updateCaseEqualizationProcess, createEqualizationSecureNote, updateCaseParticipationProcess, openCaseProcessDraft, updateCaseWorkplaceAccommodationProcess, startEditNote, deleteNote, openNewNoteModal, inlineCommands, caseNumber, displayName, category, summary, selectedProtectedPersonId, protectedPersons, error, isCaseCreateModalOpen, setCaseNumber, setDisplayName, setCategory, setSummary, setSelectedProtectedPersonId, cancelCaseCreateModal, addCase, addAnonymousCase, isNoteModalOpen, editingNote, noteTitle, noteDate, noteType, participants, content, nextSteps, cases, linkedCaseIds, confidentialLevel, containsHealthData, noteError, noteInfo, setNoteTitle, setNoteDate, setNoteType, setParticipants, setConfidentialLevel, setContainsHealthData, toggleLinkedCase, cancelNoteModal, saveNote, caseProcessDraft, setCaseProcessDraft, createCaseProcessFromDraft, contacts, processTemplateModal, setProcessTemplateModal, renderAndDownloadProcessTemplate, legacyBindingCase, legacyBindingError, openLegacyBindingDialog, closeLegacyBindingDialog: () => setLegacyBindingCase(null), assignLegacyCase, closedLegacyBulkCount, bulkMarkClosedLegacyCases }} />;
+  return <>
+    <CaseHandoverTransferDialogs
+      exportOpen={handoverExportOpen}
+      importOpen={handoverImportOpen}
+      selectedCase={selectedCase}
+      onCloseExport={() => setHandoverExportOpen(false)}
+      onCloseImport={() => setHandoverImportOpen(false)}
+      onExport={exportSelectedCaseHandover}
+      onSelectImportFile={selectCaseHandoverFile}
+      onInspectImport={inspectCaseHandover}
+      onImport={importCaseHandover}
+    />
+    <CasesViewRender {...{ caseToast, visibleCases, selectedCaseId, filteredCases, caseFilter, setCaseFilter, normalizedCaseRegisterPage, caseRegisterPageCount, caseRegisterPageSize, setCaseRegisterPage, openCaseCreateModal, selectedCase, selectedNote, selectedDocument, selectedSearchResult, selectedPreventionProcess, selectedBemProcess, selectedTerminationProcess, selectedEqualizationProcess, selectedEqualizationNotes, selectedParticipationProcess, selectedWorkplaceAccommodationProcess, notes, documents, caseLegalReferences, casePreventionProcesses, caseBemProcesses, caseEqualizationProcesses, caseTerminationProcesses, caseParticipationProcesses, caseWorkplaceAccommodationProcesses, selection, setSelection, setSelectedCaseId, searchQuery, searchOnlySelectedCase, searchResults, selectedSearchSourceTypes, searchError, searchInfo, isSearching, runSearch, setSearchQuery, setSearchOnlySelectedCase, setSelectedSearchSourceTypes, documentActions, updateCasePreventionProcess, openProcessTemplateModal, updateCaseBemProcess, updateCaseTerminationProcess, updateCaseEqualizationProcess, createEqualizationSecureNote, updateCaseParticipationProcess, openCaseProcessDraft, updateCaseWorkplaceAccommodationProcess, startEditNote, deleteNote, openNewNoteModal, inlineCommands, caseNumber, displayName, category, summary, selectedProtectedPersonId, protectedPersons, error, isCaseCreateModalOpen, setCaseNumber, setDisplayName, setCategory, setSummary, setSelectedProtectedPersonId, cancelCaseCreateModal, addCase, addAnonymousCase, isNoteModalOpen, editingNote, noteTitle, noteDate, noteType, participants, content, nextSteps, cases, linkedCaseIds, confidentialLevel, containsHealthData, noteError, noteInfo, setNoteTitle, setNoteDate, setNoteType, setParticipants, setConfidentialLevel, setContainsHealthData, toggleLinkedCase, cancelNoteModal, saveNote, caseProcessDraft, setCaseProcessDraft, createCaseProcessFromDraft, contacts, processTemplateModal, setProcessTemplateModal, renderAndDownloadProcessTemplate, legacyBindingCase, legacyBindingError, openLegacyBindingDialog, onOpenExportHandover: () => setHandoverExportOpen(true), onOpenImportHandover: () => setHandoverImportOpen(true), onContinueExpiredHandover: continueExpiredHandover, closeLegacyBindingDialog: () => setLegacyBindingCase(null), assignLegacyCase, closedLegacyBulkCount, bulkMarkClosedLegacyCases }} />
+  </>;
 }

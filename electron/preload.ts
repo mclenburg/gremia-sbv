@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer } from "electron";
+import type { CaseHandoverContinueExpiredResult, CaseHandoverExportInput, CaseHandoverExportResult, CaseHandoverImportInput, CaseHandoverImportResult, CaseHandoverInspectResult } from "../src/app/core/models/case-handover.model.js";
 import type { CaseDocumentRecord } from "../src/app/core/models/case-document.model.js";
 import type {
   CaseRecord,
@@ -227,6 +228,21 @@ const api = {
       ipcRenderer.invoke("cases:documents:export", id, suggestedFileName),
     search: (input: CaseContentSearchInput): Promise<CaseSearchResult[]> =>
       ipcRenderer.invoke("cases:search", input),
+  },
+
+  caseHandover: {
+    export: (input: CaseHandoverExportInput, suggestedFileName?: string): Promise<CaseHandoverExportResult> =>
+      ipcRenderer.invoke("caseHandover:export", input, suggestedFileName),
+    selectFile: (): Promise<{ canceled: true } | { canceled: false; filePath: string; fileName: string }> =>
+      ipcRenderer.invoke("caseHandover:select-file"),
+    inspect: (filePath: string, passphrase: string): Promise<CaseHandoverInspectResult> =>
+      ipcRenderer.invoke("caseHandover:inspect", filePath, passphrase),
+    selectAndInspect: (passphrase: string): Promise<{ canceled: true } | { canceled: false; filePath: string; fileName: string; inspection: CaseHandoverInspectResult }> =>
+      ipcRenderer.invoke("caseHandover:select-and-inspect", passphrase),
+    import: (input: CaseHandoverImportInput): Promise<CaseHandoverImportResult> =>
+      ipcRenderer.invoke("caseHandover:import", input),
+    continueExpired: (caseId: string, reason: string): Promise<CaseHandoverContinueExpiredResult> =>
+      ipcRenderer.invoke("caseHandover:continue-expired", caseId, reason),
   },
 
   caseMeasures: {

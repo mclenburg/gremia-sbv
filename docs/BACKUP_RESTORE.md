@@ -1,6 +1,6 @@
 # Backup und Wiederherstellung
 
-Stand: **0.9.1**
+Stand: **0.9.2**
 
 ## Grundsatz
 
@@ -18,3 +18,14 @@ Backups enthalten besonders sensible SBV-Daten einschließlich Personenverzeichn
 ## Personenverzeichnis
 
 Backups können Schutzstatus und Beschäftigungsstatus enthalten. Wenn Daten in der aktiven Datenbank gelöscht oder anonymisiert wurden, können alte Backups diese Daten noch bis zum Ablauf der Backup-Rotation enthalten. Das ist organisatorisch zu dokumentieren.
+
+
+## Abgrenzung zur Fallübergabe
+
+Backup und Fallübergabe haben unterschiedliche Zwecke.
+
+Ein Backup dient dazu, den eigenen vollständigen Vault nach Datenverlust wiederherzustellen. Es enthält den Gesamtbestand und ist nicht für die Weitergabe an eine Vertretung gedacht.
+
+Die Fallübergabe dient dazu, einzelne ausgewählte Vorgänge zeitlich begrenzt und verschlüsselt an eine berechtigte Vertretung oder Nachfolge zu übergeben. Sie erzeugt kein gemeinsames System und keine Synchronisation zwischen Instanzen.
+
+Für SBV-Praxis gilt: Für Wiederherstellung Backup nutzen; für Vertretung nur die selektive Fallübergabe.

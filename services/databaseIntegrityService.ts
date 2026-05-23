@@ -1,5 +1,21 @@
 import type { DatabaseAdapter } from './databaseService.js';
-import { APP_SCHEMA_VERSION } from './appSchema.js';
+import {
+  APP_SCHEMA_VERSION,
+  CASE_DOCUMENT_OCR_JOBS_REQUIRED_COLUMNS,
+  CASE_DOCUMENTS_REQUIRED_COLUMNS,
+  CASE_EXTERNAL_REFERENCES_REQUIRED_COLUMNS,
+  CASE_HANDOVER_IMPORT_ITEMS_REQUIRED_COLUMNS,
+  CASE_HANDOVER_IMPORTS_REQUIRED_COLUMNS,
+  CASE_MEASURES_REQUIRED_COLUMNS,
+  CASE_MEASURE_NOTES_REQUIRED_COLUMNS,
+  CASE_SEARCH_INDEX_REQUIRED_COLUMNS,
+  CASE_SEARCH_INDEX_STATE_REQUIRED_COLUMNS,
+  CASES_REQUIRED_COLUMNS,
+  GREMIA_BR_CACHE_REQUIRED_COLUMNS,
+  GREMIA_BR_SETTINGS_REQUIRED_COLUMNS,
+  PERSONAL_DATA_AUDIT_REQUIRED_COLUMNS,
+  PROTECTED_PERSONS_REQUIRED_COLUMNS,
+} from './appSchema.js';
 import type { ComplianceDatabaseIntegrityStatus } from '../src/app/core/models/compliance.model.js';
 
 type ValueRow = { value?: unknown };
@@ -24,23 +40,29 @@ const REQUIRED_TABLES = [
   'gremia_br_settings',
   'gremia_br_cache_entries',
   'case_external_references',
+  'case_measures',
+  'case_handover_imports',
+  'case_handover_import_items',
 ] as const;
 
 const REQUIRED_COLUMNS: Record<string, readonly string[]> = {
-  cases: ['id', 'case_number', 'display_name', 'category', 'status', 'protected_person_id', 'person_binding_state'],
-  case_documents: ['id', 'case_id', 'filename', 'storage_path', 'sha256', 'extracted_text', 'document_key', 'iv', 'auth_tag', 'size_bytes', 'imported_at', 'extraction_quality', 'text_extraction_status', 'text_extracted_at', 'text_extractor_id', 'text_extraction_error', 'ocr_status', 'ocr_text', 'ocr_engine', 'ocr_started_at', 'ocr_completed_at', 'ocr_error', 'contains_health_data', 'created_at'],
-  protected_persons: ['id', 'first_name', 'last_name', 'employment_state', 'protection_status', 'lifecycle_state'],
+  cases: CASES_REQUIRED_COLUMNS,
+  case_documents: CASE_DOCUMENTS_REQUIRED_COLUMNS,
+  protected_persons: PROTECTED_PERSONS_REQUIRED_COLUMNS,
   person_case_links: ['id', 'protected_person_id', 'case_file_id', 'link_state'],
   privacy_review_items: ['id', 'case_id', 'protected_person_id', 'reason', 'status', 'due_at'],
-  personal_data_audit_log: ['id', 'sequence', 'occurred_at', 'actor', 'action', 'subject_type', 'purpose', 'previous_hash', 'entry_hash'],
-  case_measure_notes: ['id', 'case_id', 'measure_type', 'measure_id', 'title', 'note_at', 'content', 'contains_health_data', 'confidential_level', 'created_at', 'updated_at'],
+  personal_data_audit_log: PERSONAL_DATA_AUDIT_REQUIRED_COLUMNS,
+  case_measure_notes: CASE_MEASURE_NOTES_REQUIRED_COLUMNS,
   deadlines: ['id', 'title', 'due_at', 'status'],
-  case_search_index: ['id', 'case_id', 'source_type', 'source_id', 'source_label', 'title', 'content', 'updated_at', 'confidentiality', 'contains_health_data', 'extraction_quality', 'navigation_kind', 'navigation_id'],
-  case_search_index_state: ['case_id', 'indexed_at', 'last_source_updated_at', 'source_count', 'updated_at'],
-  case_document_ocr_jobs: ['id', 'document_id', 'case_id', 'status', 'attempts', 'created_at', 'updated_at'],
-  gremia_br_settings: ['id', 'enabled', 'server_url', 'username', 'password_secret', 'last_connection_test_at', 'last_successful_login_at', 'profile_json', 'relevance_keywords_json', 'created_at', 'updated_at'],
-  gremia_br_cache_entries: ['id', 'cache_key', 'source_type', 'payload_json', 'fetched_at', 'created_at', 'updated_at'],
-  case_external_references: ['id', 'case_id', 'source_system', 'source_type', 'source_id', 'title', 'fetched_at', 'created_at', 'updated_at'],
+  case_search_index: CASE_SEARCH_INDEX_REQUIRED_COLUMNS,
+  case_search_index_state: CASE_SEARCH_INDEX_STATE_REQUIRED_COLUMNS,
+  case_document_ocr_jobs: CASE_DOCUMENT_OCR_JOBS_REQUIRED_COLUMNS,
+  gremia_br_settings: GREMIA_BR_SETTINGS_REQUIRED_COLUMNS,
+  gremia_br_cache_entries: GREMIA_BR_CACHE_REQUIRED_COLUMNS,
+  case_external_references: CASE_EXTERNAL_REFERENCES_REQUIRED_COLUMNS,
+  case_measures: CASE_MEASURES_REQUIRED_COLUMNS,
+  case_handover_imports: CASE_HANDOVER_IMPORTS_REQUIRED_COLUMNS,
+  case_handover_import_items: CASE_HANDOVER_IMPORT_ITEMS_REQUIRED_COLUMNS,
 };
 
 function tableExists(db: DatabaseAdapter, table: string): boolean {

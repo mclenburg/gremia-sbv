@@ -1,6 +1,6 @@
 # Verzeichnis von Verarbeitungstätigkeiten – Gremia.SBV
 
-Stand: **0.9.1**
+Stand: **0.9.2**
 
 ## 1. Personenverzeichnis schwerbehinderter und gleichgestellter Beschäftigter
 
@@ -64,6 +64,10 @@ Stand: **0.9.1**
 
 ## 9. Übergabe / Vertretung
 
-**Zweck:** Selektive Übergabe erforderlicher Informationen an berechtigte SBV-Stellvertretung oder Nachfolge.
+**Zweck:** Selektive Übergabe erforderlicher Informationen an berechtigte SBV-Stellvertretung oder Nachfolge, insbesondere bei Urlaub, Krankheit oder Amtswechsel.
 
-**Schutzmaßnahmen:** selektiver Export, Ablaufdatum, keine automatische Vollsynchronisation.
+**Datenkategorien:** ausgewählte Fallakte, erforderlicher Personenbezug, Notizen, Maßnahmen, Maßnahmennotizen, Fristen, Dokumente und technische Paketmetadaten.
+
+**Empfänger:** berechtigte SBV-Stellvertretung oder Nachfolge nach organisatorischer Freigabe. Die App versendet die Datei nicht selbst an Dritte.
+
+**Schutzmaßnahmen:** verschlüsseltes `.gsbvtransfer`-Paket, Transport-Passphrase, selektiver Export, optionales Ablaufdatum, Importverweigerung abgelaufener Pakete, keine automatische Vollsynchronisation, keine Übernahme fachlicher IDs der exportierenden Instanz, Audit ohne personenbezogene Inhalte.

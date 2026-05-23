@@ -43,6 +43,13 @@ Zu dokumentieren sind insbesondere:
 
 Die Anwendung versendet keine eigenständigen Informationen nach Art. 13/14 DSGVO. Die Information der Beschäftigten ist organisatorisch über Arbeitgeber, Datenschutzinformation oder verantwortliche Stelle sicherzustellen.
 
+
+## Fallübergabe / Vertretung
+
+Für Urlaubsvertretung, Krankheit, Amtswechsel oder Nachfolge kann die SBV einzelne Fallakten mit erforderlichen zugehörigen Inhalten als verschlüsseltes Übergabepaket exportieren. Diese Funktion ist selektiv und zweckgebunden. Sie ersetzt kein Backup und keine Synchronisation.
+
+Abgelaufene Übergabepakete dürfen nicht importiert werden. Bereits importierte Übergabedaten werden nach Ablauf der Vertretungszeit als abgelaufen markiert. Eine weitere Bearbeitung erfordert eine bewusste Bestätigung mit Begründung. Export, Import und Fortführung nach Ablauf werden ohne Personennamen, Diagnosen, Falltitel, Dokumentnamen oder Freitexte auditiert.
+
 ## Auskunft nach Art. 15 DSGVO
 
 Mit dem Personenverzeichnis unterstützt die App Auskunftsfähigkeit: verknüpfte Fallakten, Fristen, Maßnahmen, Importläufe und Lifecycle-Ereignisse sind auffindbar. Im Compliance Center kann eine Antwort auf ein Art.-15-Auskunftsersuchen aus Personen-, Fallakten-, Fristen-, Maßnahmen-, Import- und Lifecycle-Daten vorbefüllt, erzeugt und als Markdown oder PDF exportiert werden. Dieser Export ist ein Arbeitsentwurf; Identitätsprüfung, Drittdatenprüfung, Schwärzung und rechtliche Freigabe bleiben organisatorische Schritte.

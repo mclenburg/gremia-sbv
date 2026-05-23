@@ -105,6 +105,7 @@ export function CasesViewRender(props: CasesViewRenderProps) {
         }}
         onSelectCase={setSelectedCaseId}
         onCreateCase={openCaseCreateModal}
+        onImportHandover={props.onOpenImportHandover}
         onBulkMarkClosedLegacyCases={() => void bulkMarkClosedLegacyCases()}
         closedLegacyBulkCount={closedLegacyBulkCount}
         page={normalizedCaseRegisterPage}
@@ -144,6 +145,8 @@ export function CasesViewRender(props: CasesViewRenderProps) {
           onSearchOnlySelectedCaseChange={setSearchOnlySelectedCase}
           onSearchSourceTypesChange={setSelectedSearchSourceTypes}
           onSelectSearchResult={selectSearchResult}
+          onExportHandover={props.onOpenExportHandover}
+          canExportHandover={Boolean(selectedCase)}
         >
           {selection.type === "overview" && (
             <CaseOverviewDetail
@@ -160,6 +163,7 @@ export function CasesViewRender(props: CasesViewRenderProps) {
                 caseWorkplaceAccommodationProcesses.length
               }
               onOpenLegacyBinding={selectedCase?.personBindingState === "legacy_unlinked" ? () => openLegacyBindingDialog(selectedCase) : undefined}
+              onContinueExpiredHandover={props.onContinueExpiredHandover}
               contextualTemplateActions={
                 selectedCase &&
                 (() => {

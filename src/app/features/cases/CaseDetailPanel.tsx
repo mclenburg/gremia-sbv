@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Search } from 'lucide-react';
+import { Download, Search } from 'lucide-react';
 import type { CaseSearchHighlightSegment, CaseSearchSourceType } from '../../core/models/case-note.model';
 import type { CaseDetailPanelSearchProps } from './caseWorkbenchTypes';
 
@@ -19,6 +19,8 @@ const SOURCE_FILTERS: readonly { type: CaseSearchSourceType; label: string }[] =
 
 type CaseDetailPanelProps = CaseDetailPanelSearchProps & {
   children: ReactNode;
+  onExportHandover?: () => void;
+  canExportHandover?: boolean;
 };
 
 function toggleSourceType(values: CaseSearchSourceType[], type: CaseSearchSourceType): CaseSearchSourceType[] {
@@ -45,7 +47,9 @@ export function CaseDetailPanel({
   onSearchQueryChange,
   onSearchOnlySelectedCaseChange,
   onSearchSourceTypesChange,
-  onSelectSearchResult
+  onSelectSearchResult,
+  onExportHandover,
+  canExportHandover
 }: CaseDetailPanelProps) {
   return (
     <section className="industrial-panel case-detail-panel">
@@ -71,13 +75,27 @@ export function CaseDetailPanel({
           />
           <span>nur diese Fallakte</span>
         </label>
-        <button
-          type="submit"
-          className="industrial-secondary-button case-detail-search-button"
-          disabled={isSearching}
-        >
-          {isSearching ? 'Suche läuft …' : 'Suchen'}
-        </button>
+        <div className="case-detail-search-actions">
+          <button
+            type="submit"
+            className="industrial-secondary-button case-detail-search-button"
+            disabled={isSearching}
+          >
+            {isSearching ? 'Suche läuft …' : 'Suchen'}
+          </button>
+          {onExportHandover && (
+            <button
+              type="button"
+              className="industrial-secondary-button case-detail-handover-export-button"
+              disabled={!canExportHandover}
+              onClick={onExportHandover}
+              aria-label="Ausgewählte Fallakte als Übergabepaket exportieren"
+            >
+              <Download className="h-4 w-4" aria-hidden="true" />
+              Übergabe exportieren
+            </button>
+          )}
+        </div>
       </form>
 
 

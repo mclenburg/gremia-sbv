@@ -3,7 +3,7 @@ import path from 'node:path';
 import type { DatabaseAdapter } from './databaseService.js';
 import { classifyCaseLegalReferencesColumns } from './knowledgeMigrationPolicy.js';
 import { APP_VERSION } from './generated/appMetadata.js';
-import { APP_SCHEMA_VERSION, CASE_DOCUMENTS_REQUIRED_COLUMNS, CASE_DOCUMENT_OCR_JOBS_REQUIRED_COLUMNS, CASE_EXTERNAL_REFERENCES_REQUIRED_COLUMNS, CASES_REQUIRED_COLUMNS, CASE_MEASURES_REQUIRED_COLUMNS, CASE_MEASURE_PARTICIPATION_REQUIRED_COLUMNS, CASE_MEASURE_NOTES_REQUIRED_COLUMNS, CASE_MEASURE_WORKPLACE_ACCOMMODATION_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_STATE_REQUIRED_COLUMNS, GREMIA_BR_CACHE_REQUIRED_COLUMNS, GREMIA_BR_SETTINGS_REQUIRED_COLUMNS, PERSON_IMPORT_RUN_ITEMS_REQUIRED_COLUMNS, PROTECTED_PERSONS_REQUIRED_COLUMNS, DATABASE_SCHEMA_APP_VERSION_KEY, DATABASE_SCHEMA_VERSION_KEY, PERSONAL_DATA_AUDIT_REQUIRED_COLUMNS, SBV_PARTICIPATION_REQUIRED_COLUMNS, TERMINATION_HEARINGS_REQUIRED_COLUMNS } from './appSchema.js';
+import { APP_SCHEMA_VERSION, CASE_HANDOVER_IMPORTS_REQUIRED_COLUMNS, CASE_HANDOVER_IMPORT_ITEMS_REQUIRED_COLUMNS, CASE_DOCUMENTS_REQUIRED_COLUMNS, CASE_DOCUMENT_OCR_JOBS_REQUIRED_COLUMNS, CASE_EXTERNAL_REFERENCES_REQUIRED_COLUMNS, CASES_REQUIRED_COLUMNS, CASE_MEASURES_REQUIRED_COLUMNS, CASE_MEASURE_PARTICIPATION_REQUIRED_COLUMNS, CASE_MEASURE_NOTES_REQUIRED_COLUMNS, CASE_MEASURE_WORKPLACE_ACCOMMODATION_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_STATE_REQUIRED_COLUMNS, GREMIA_BR_CACHE_REQUIRED_COLUMNS, GREMIA_BR_SETTINGS_REQUIRED_COLUMNS, PERSON_IMPORT_RUN_ITEMS_REQUIRED_COLUMNS, PROTECTED_PERSONS_REQUIRED_COLUMNS, DATABASE_SCHEMA_APP_VERSION_KEY, DATABASE_SCHEMA_VERSION_KEY, PERSONAL_DATA_AUDIT_REQUIRED_COLUMNS, SBV_PARTICIPATION_REQUIRED_COLUMNS, TERMINATION_HEARINGS_REQUIRED_COLUMNS } from './appSchema.js';
 
 interface MigrationRow {
   version: string;
@@ -318,6 +318,13 @@ export class MigrationService {
       case '0035':
         return this.tableExists('case_external_references')
           && CASE_EXTERNAL_REFERENCES_REQUIRED_COLUMNS.every((column) => this.columnExists('case_external_references', column));
+      case '0036':
+        return this.tableExists('case_handover_imports')
+          && this.tableExists('case_handover_import_items')
+          && CASE_HANDOVER_IMPORTS_REQUIRED_COLUMNS.every((column) => this.columnExists('case_handover_imports', column))
+          && CASE_HANDOVER_IMPORT_ITEMS_REQUIRED_COLUMNS.every((column) => this.columnExists('case_handover_import_items', column))
+          && ['handover_import_id', 'handover_package_id', 'handover_valid_until', 'handover_status', 'handover_continue_confirmed_at', 'handover_continue_reason'].every((column) => this.columnExists('cases', column))
+          && ['handover_import_id', 'handover_package_id', 'handover_valid_until', 'handover_status', 'handover_continue_confirmed_at', 'handover_continue_reason'].every((column) => this.columnExists('case_measures', column));
       default:
         return false;
     }
@@ -1116,7 +1123,9 @@ CREATE INDEX IF NOT EXISTS idx_case_measure_events_measure_created ON case_measu
       'person_import_runs',
       'person_import_run_items',
       'person_case_links',
-      'case_external_references'
+      'case_external_references',
+      'case_handover_imports',
+      'case_handover_import_items'
     ];
 
     requiredTables.forEach((table) => {
@@ -1140,7 +1149,9 @@ CREATE INDEX IF NOT EXISTS idx_case_measure_events_measure_created ON case_measu
       case_measure_workplace_accommodation: [...CASE_MEASURE_WORKPLACE_ACCOMMODATION_REQUIRED_COLUMNS],
       protected_persons: [...PROTECTED_PERSONS_REQUIRED_COLUMNS],
       person_import_run_items: [...PERSON_IMPORT_RUN_ITEMS_REQUIRED_COLUMNS],
-      case_external_references: [...CASE_EXTERNAL_REFERENCES_REQUIRED_COLUMNS]
+      case_external_references: [...CASE_EXTERNAL_REFERENCES_REQUIRED_COLUMNS],
+      case_handover_imports: [...CASE_HANDOVER_IMPORTS_REQUIRED_COLUMNS],
+      case_handover_import_items: [...CASE_HANDOVER_IMPORT_ITEMS_REQUIRED_COLUMNS]
     };
 
     Object.entries(requiredColumns).forEach(([table, columns]) => {

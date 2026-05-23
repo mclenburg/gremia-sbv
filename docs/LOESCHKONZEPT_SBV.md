@@ -1,6 +1,6 @@
 # Lösch- und Anonymisierungskonzept – Gremia.SBV
 
-Stand: **0.9.1**
+Stand: **0.9.2**
 
 ## 1. Grundsatz
 
@@ -100,4 +100,4 @@ Wenn eine Person anonymisiert oder gelöscht wird, müssen verbundene Fallakten 
 
 ## 9. Export- und Übergabedateien
 
-Export- und Übergabedateien sind außerhalb der Datenbank besonders risikobehaftet. Sie sollen Ablaufdaten, bewusste Freigabe und ExportGuard-Prüfung erhalten.
+Export- und Übergabedateien sind außerhalb der Datenbank besonders risikobehaftet. Übergabepakete sind verschlüsselt, selektiv und können ein Ablaufdatum enthalten. Abgelaufene Übergabepakete dürfen nicht importiert werden. Bereits importierte Übergabedaten werden nach Ablauf der Vertretungszeit markiert; weitere Bearbeitung ist begründungspflichtig. Klartext-Exporte sind auf das erforderliche Minimum zu begrenzen und organisatorisch abzusichern.

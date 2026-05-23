@@ -26,9 +26,13 @@ Die Verarbeitung ist organisatorisch zu prüfen. Relevant sind insbesondere Art.
 
 Für DOCX-, PDF-, Dokumenten- und Übergabeexporte soll grundsätzlich eine bewusste Bestätigung erforderlich sein. iCal-Export ist ebenfalls ein Export und muss datensparsam sein.
 
-## Übergabe
+## Übergabe / Vertretung
 
-Übergaben an Stellvertretung oder Nachfolge sind selektiv, zweckgebunden und mit Ablaufdatum vorzusehen. Es gibt keine automatische Vollsynchronisation.
+Übergaben an Stellvertretung oder Nachfolge sind selektiv, zweckgebunden und mit Ablaufdatum vorzusehen. Es gibt keine automatische Vollsynchronisation und keine gemeinsame Datenbank. Jede Gremia.SBV-Instanz bleibt eigenständig.
+
+Abgelaufene Übergabepakete dürfen nicht importiert werden. Bei bereits importierten Übergabedaten markiert die App den Vorgang nach Ablauf der Vertretungszeit als abgelaufen. Weitere Bearbeitung ist nur nach bewusster Bestätigung mit Begründung vorgesehen.
+
+Beim Import können mögliche Gegenstücke über Aktenzeichen oder Namen vorgeschlagen werden. Die Entscheidung über neue Anlage oder Zusammenführung trifft die nutzende Person ausdrücklich.
 
 ## Nicht übernommen aus Gremia.BR
 

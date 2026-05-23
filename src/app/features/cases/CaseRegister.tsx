@@ -1,4 +1,4 @@
-import { Plus } from 'lucide-react';
+import { Plus, Upload } from 'lucide-react';
 import type { CaseCategory, CaseRecord } from '../../core/models/case.model';
 
 export function CaseRegister({
@@ -9,6 +9,7 @@ export function CaseRegister({
   onCaseFilterChange,
   onSelectCase,
   onCreateCase,
+  onImportHandover,
   onBulkMarkClosedLegacyCases,
   closedLegacyBulkCount,
   page,
@@ -23,6 +24,7 @@ export function CaseRegister({
   onCaseFilterChange: (value: string) => void;
   onSelectCase: (caseId: string) => void;
   onCreateCase: () => void;
+  onImportHandover?: () => void;
   onBulkMarkClosedLegacyCases?: () => void;
   closedLegacyBulkCount?: number;
   page: number;
@@ -50,6 +52,7 @@ export function CaseRegister({
               {closedLegacyBulkCount} Altakten vormerken
             </button>
           )}
+          {onImportHandover && <button type="button" className="industrial-secondary-button compact" onClick={onImportHandover}><Upload className="h-4 w-4" />Übergabe importieren</button>}
           <button type="button" className="industrial-button" onClick={onCreateCase}><Plus className="h-4 w-4" />Fallakte</button>
         </div>
       </div>

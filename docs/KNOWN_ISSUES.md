@@ -9,6 +9,7 @@ Stand: **0.9.2**
 - Audit-Hash-Kette darf keine Direktidentifikatoren enthalten; bestehende Einträge müssen vor Datenübernahme geprüft werden.
 - Art.-15-Auskunftsexporte benötigen vor Herausgabe weiterhin einen organisatorisch geregelten Identitäts-, Drittdaten-, Schwärzungs- und Freigabeprozess.
 - iCal-Export darf im Standard keine Namen, Diagnosen, Personalnummern oder Fallinhalte enthalten.
+- Fallübergabe in Pilotnutzung besonders auf Fehlbedienung prüfen: Ablaufdatum, Passphrase-Handling, Zusammenführungsvorschläge und Audit ohne Personenbezug.
 
 ## Plattformen
 

@@ -41,7 +41,13 @@ CREATE TABLE IF NOT EXISTS cases (
   privacy_review_due_at TEXT,
   privacy_review_priority TEXT NOT NULL DEFAULT 'normal',
   anonymization_recommended INTEGER NOT NULL DEFAULT 0,
-  anonymized_at TEXT
+  anonymized_at TEXT,
+  handover_import_id TEXT REFERENCES case_handover_imports(id) ON DELETE SET NULL,
+  handover_package_id TEXT,
+  handover_valid_until TEXT,
+  handover_status TEXT NOT NULL DEFAULT 'none',
+  handover_continue_confirmed_at TEXT,
+  handover_continue_reason TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_cases_protected_person ON cases(protected_person_id);
@@ -467,6 +473,12 @@ CREATE TABLE IF NOT EXISTS termination_hearings (
   statement TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
+  handover_import_id TEXT REFERENCES case_handover_imports(id) ON DELETE SET NULL,
+  handover_package_id TEXT,
+  handover_valid_until TEXT,
+  handover_status TEXT NOT NULL DEFAULT 'none',
+  handover_continue_confirmed_at TEXT,
+  handover_continue_reason TEXT,
   FOREIGN KEY(case_id) REFERENCES cases(id) ON DELETE CASCADE
 );
 
@@ -1015,3 +1027,27 @@ CREATE TABLE IF NOT EXISTS case_external_references (
 
 CREATE INDEX IF NOT EXISTS idx_case_external_references_case ON case_external_references(case_id, updated_at DESC);
 CREATE INDEX IF NOT EXISTS idx_case_external_references_source ON case_external_references(source_system, source_type, source_id);
+
+
+CREATE TABLE IF NOT EXISTS case_handover_imports (
+  id TEXT PRIMARY KEY,
+  package_id TEXT NOT NULL,
+  imported_at TEXT NOT NULL,
+  valid_until TEXT,
+  status TEXT NOT NULL DEFAULT 'active',
+  mode TEXT NOT NULL DEFAULT 'create_new',
+  created_case_count INTEGER NOT NULL DEFAULT 0,
+  updated_case_count INTEGER NOT NULL DEFAULT 0,
+  metadata_json TEXT NOT NULL DEFAULT '{}'
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_case_handover_package ON case_handover_imports(package_id);
+
+CREATE TABLE IF NOT EXISTS case_handover_import_items (
+  id TEXT PRIMARY KEY,
+  handover_import_id TEXT NOT NULL REFERENCES case_handover_imports(id) ON DELETE CASCADE,
+  local_entity_type TEXT NOT NULL,
+  local_entity_id TEXT NOT NULL,
+  package_ref TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_case_handover_items_local ON case_handover_import_items(local_entity_type, local_entity_id);

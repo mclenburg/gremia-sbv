@@ -1,4 +1,4 @@
-export const APP_SCHEMA_VERSION = '0035';
+export const APP_SCHEMA_VERSION = '0036';
 
 export const DATABASE_SCHEMA_VERSION_KEY = 'database.schema.version';
 export const LEGACY_DATABASE_SCHEMA_VERSION_KEY = 'settings.database.schema.version';
@@ -14,7 +14,13 @@ export const CASES_REQUIRED_COLUMNS = [
   'person_binding_state',
   'privacy_review_required',
   'privacy_review_reason',
-  'privacy_review_due_at'
+  'privacy_review_due_at',
+  'handover_import_id',
+  'handover_package_id',
+  'handover_valid_until',
+  'handover_status',
+  'handover_continue_confirmed_at',
+  'handover_continue_reason'
 ] as const;
 
 
@@ -89,7 +95,13 @@ export const CASE_MEASURES_REQUIRED_COLUMNS = [
   'risk_level',
   'created_from',
   'created_at',
-  'updated_at'
+  'updated_at',
+  'handover_import_id',
+  'handover_package_id',
+  'handover_valid_until',
+  'handover_status',
+  'handover_continue_confirmed_at',
+  'handover_continue_reason'
 ] as const;
 
 export const CASE_MEASURE_PARTICIPATION_REQUIRED_COLUMNS = [
@@ -228,4 +240,26 @@ export const CASE_SEARCH_INDEX_STATE_REQUIRED_COLUMNS = [
   'last_source_updated_at',
   'source_count',
   'updated_at'
+] as const;
+
+
+export const CASE_HANDOVER_IMPORTS_REQUIRED_COLUMNS = [
+  'id',
+  'package_id',
+  'imported_at',
+  'valid_until',
+  'status',
+  'mode',
+  'created_case_count',
+  'updated_case_count',
+  'metadata_json'
+] as const;
+
+export const CASE_HANDOVER_IMPORT_ITEMS_REQUIRED_COLUMNS = [
+  'id',
+  'handover_import_id',
+  'local_entity_type',
+  'local_entity_id',
+  'package_ref',
+  'created_at'
 ] as const;
