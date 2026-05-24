@@ -5373,3 +5373,37 @@ html[data-theme='light'] .knowledge-search-bar input::placeholder {
   color: #6a6a60;
   opacity: 1;
 }
+
+/* P10E: Dashboard-Fristen und Light-Mode-Sidebar nachpolieren.
+   Fristen-Badges muessen dieselbe kantige Industrial-Grammatik nutzen;
+   Warnhinweise stehen kompakt einzeilig neben dem Icon statt mit Leerzeile. */
+.industrial-deadline-panel .industrial-status-badge {
+  border-radius: 0;
+  padding-inline: 0.7rem;
+}
+
+.industrial-deadline-panel .industrial-card-status-row {
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.industrial-deadline-panel .industrial-alert-danger {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+}
+
+.industrial-deadline-panel .industrial-alert-danger p {
+  margin: 0;
+}
+
+html[data-theme='light'] .industrial-version-badge {
+  border-color: var(--industrial-border);
+  background: linear-gradient(135deg, rgba(250, 250, 245, 0.95), rgba(226, 225, 214, 0.98));
+  color: var(--text-secondary);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.65);
+}
+
+html[data-theme='light'] .industrial-version-badge strong {
+  color: var(--industrial-accent);
+}
