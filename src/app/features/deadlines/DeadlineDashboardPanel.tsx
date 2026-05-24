@@ -57,9 +57,9 @@ export function DeadlineDashboardPanel({
             Dashboard-Fristen sind Arbeitsobjekte: öffnen, korrigieren, erledigen oder sauber in der Fallakte nachhalten.
           </p>
         </div>
-        <div className="industrial-counter">
+        <div className="industrial-counter industrial-deadline-counter">
           <strong>{items.length}</strong>
-          <span>Dashboard-Fristen</span>
+          <span>Offene Fristen</span>
         </div>
       </div>
 

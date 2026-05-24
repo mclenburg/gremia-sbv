@@ -4566,9 +4566,9 @@ button.dashboard-focus-card:focus-visible {
 
 .dashboard-focus-marker {
   align-self: flex-start;
-  border-radius: 999px;
+  border-radius: 0;
   border: 1px solid rgba(148, 163, 184, 0.22);
-  padding: 0.18rem 0.55rem;
+  padding: 0.2rem 0.7rem;
   font-size: 0.72rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -5223,4 +5223,153 @@ html[data-theme='light'] .knowledge-search-bar select {
 
 html[data-theme='light'] .industrial-file-location-notice {
   background: rgba(255, 255, 255, 0.75);
+}
+
+
+/* 0.9.2-P10C: Dashboard-Badges und Fristenzähler bleiben kantig und lesbar. */
+.dashboard-focus-marker {
+  border-radius: 0;
+  padding-inline: 0.7rem;
+}
+
+.industrial-deadline-counter strong {
+  font-size: 2rem;
+}
+
+.industrial-deadline-counter span {
+  margin-top: 0.35rem;
+  color: var(--sbv-muted);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+/* P10D: Light-Mode-Kontrastpass fuer zentralisierte UI-Bausteine.
+   Die Zentralisierung darf im hellen Theme keine dunklen Restflaechen aus
+   alten Fallback-Variablen erzeugen. Legacy-Variablen werden daher bewusst
+   auf die neue Industrial-Tokenlinie gebrueckt und fuer Light gezielt hell
+   gesetzt. */
+:root {
+  --surface-base: var(--industrial-bg, var(--sbv-black, #050505));
+  --surface-panel: var(--industrial-panel, var(--sbv-panel, #09090b));
+  --surface-muted: var(--industrial-panel-muted, var(--sbv-panel-2, #121214));
+  --panel-muted: color-mix(in srgb, var(--industrial-panel-muted, #121214) 88%, black 12%);
+  --border-muted: var(--industrial-border, var(--sbv-border, #2f2f33));
+  --border-strong: var(--industrial-border-strong, var(--sbv-border-hard, #4a4a50));
+  --text-primary: var(--industrial-text, var(--sbv-text, #f4f4f5));
+  --text-muted: var(--industrial-text-muted, var(--sbv-muted, #a1a1aa));
+  --accent: var(--industrial-accent, var(--sbv-yellow, #facc15));
+}
+
+html[data-theme='light'] {
+  --surface-base: #f4f4ef;
+  --surface-panel: #f8f7ee;
+  --surface-muted: #e7e5d8;
+  --panel-muted: #dedbd0;
+  --border-muted: #858578;
+  --border-strong: #66665b;
+  --text-primary: #141414;
+  --text-muted: #3a3a34;
+  --accent: #c48a00;
+}
+
+html[data-theme='light'] .workbench-header,
+html[data-theme='light'] .industrial-search-toolbar,
+html[data-theme='light'] .industrial-filter-bar,
+html[data-theme='light'] .industrial-record-card,
+html[data-theme='light'] .industrial-selection-card,
+html[data-theme='light'] .industrial-status-card,
+html[data-theme='light'] .industrial-data-table-shell,
+html[data-theme='light'] .industrial-empty-state,
+html[data-theme='light'] .industrial-subpanel {
+  border-color: var(--border-muted);
+  background: linear-gradient(135deg, rgba(250, 250, 245, 0.96), rgba(225, 224, 214, 0.98));
+  color: var(--text-primary);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.55), 0 8px 18px rgba(0,0,0,0.08);
+}
+
+html[data-theme='light'] .industrial-warning-panel {
+  border-color: color-mix(in srgb, #b77900 72%, var(--border-muted));
+  background: linear-gradient(135deg, rgba(255, 248, 204, 0.86), rgba(235, 226, 190, 0.95));
+  color: #2b240e;
+}
+
+html[data-theme='light'] .industrial-danger-panel {
+  border-color: color-mix(in srgb, #b91c1c 68%, var(--border-muted));
+  background: linear-gradient(135deg, rgba(254, 226, 226, 0.86), rgba(232, 211, 205, 0.95));
+  color: #3b1111;
+}
+
+html[data-theme='light'] .industrial-subpanel h4,
+html[data-theme='light'] .industrial-subpanel p,
+html[data-theme='light'] .industrial-subpanel li,
+html[data-theme='light'] .industrial-subpanel summary,
+html[data-theme='light'] .industrial-record-card h3,
+html[data-theme='light'] .industrial-record-card p,
+html[data-theme='light'] .industrial-selection-card h3,
+html[data-theme='light'] .industrial-selection-card p,
+html[data-theme='light'] .industrial-status-card h3,
+html[data-theme='light'] .industrial-status-card p,
+html[data-theme='light'] .industrial-status-card small,
+html[data-theme='light'] .industrial-data-table td,
+html[data-theme='light'] .industrial-data-table-cell p,
+html[data-theme='light'] .industrial-data-table-cell span {
+  color: var(--text-primary);
+}
+
+html[data-theme='light'] .industrial-record-card small,
+html[data-theme='light'] .industrial-selection-card small,
+html[data-theme='light'] .industrial-empty-state span,
+html[data-theme='light'] .industrial-search-field span,
+html[data-theme='light'] .industrial-search-count,
+html[data-theme='light'] .knowledge-register-row small,
+html[data-theme='light'] .knowledge-case-link summary {
+  color: var(--text-muted);
+}
+
+html[data-theme='light'] .knowledge-register-row:hover,
+html[data-theme='light'] .knowledge-register-row:focus-visible,
+html[data-theme='light'] .knowledge-register-row.active,
+html[data-theme='light'] .industrial-selection-card.is-active,
+html[data-theme='light'] .industrial-record-card.is-active {
+  border-color: var(--accent);
+  background: linear-gradient(135deg, rgba(255, 248, 204, 0.86), rgba(239, 230, 190, 0.94));
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+html[data-theme='light'] .industrial-tag,
+html[data-theme='light'] .industrial-search-count {
+  background: #efeee5;
+  border-color: var(--border-muted);
+}
+
+html[data-theme='light'] .industrial-input,
+html[data-theme='light'] .industrial-form input,
+html[data-theme='light'] .industrial-form select,
+html[data-theme='light'] .industrial-form textarea,
+html[data-theme='light'] .industrial-settings-form input,
+html[data-theme='light'] .industrial-settings-form select,
+html[data-theme='light'] .industrial-settings-form textarea,
+html[data-theme='light'] .industrial-field input,
+html[data-theme='light'] .industrial-field select,
+html[data-theme='light'] .industrial-field textarea,
+html[data-theme='light'] .knowledge-search-bar input,
+html[data-theme='light'] .knowledge-search-bar select {
+  border-color: var(--border-strong);
+  background: #fbfaf2;
+  color: var(--text-primary);
+}
+
+html[data-theme='light'] .industrial-input::placeholder,
+html[data-theme='light'] .industrial-form input::placeholder,
+html[data-theme='light'] .industrial-form textarea::placeholder,
+html[data-theme='light'] .industrial-settings-form input::placeholder,
+html[data-theme='light'] .industrial-settings-form textarea::placeholder,
+html[data-theme='light'] .industrial-field input::placeholder,
+html[data-theme='light'] .industrial-field textarea::placeholder,
+html[data-theme='light'] .knowledge-search-bar input::placeholder {
+  color: #6a6a60;
+  opacity: 1;
 }
