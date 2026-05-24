@@ -252,6 +252,8 @@ export function SbvControlView({
     useState<ControlSectionId>("resources");
   const [resourceForm, setResourceForm] =
     useState<ResourceFormState>(initialResourceForm);
+  const [resourceFormSubmitted, setResourceFormSubmitted] = useState(false);
+  const [resourceTitleTouched, setResourceTitleTouched] = useState(false);
   const [editingResourceId, setEditingResourceId] = useState<string | null>(
     null,
   );
@@ -390,6 +392,8 @@ export function SbvControlView({
       status: record.status,
       notes: record.notes ?? "",
     });
+    setResourceFormSubmitted(false);
+    setResourceTitleTouched(false);
     setNotice("");
     setError("");
   }
@@ -397,6 +401,7 @@ export function SbvControlView({
   async function saveResource() {
     setError("");
     setNotice("");
+    setResourceFormSubmitted(true);
     if (!resourceForm.title?.trim()) {
       setError("Bitte einen Titel für den Nachweis angeben.");
       return;
@@ -413,6 +418,8 @@ export function SbvControlView({
         setNotice("Nachweis protokolliert.");
       }
       setResourceForm(initialResourceForm);
+      setResourceFormSubmitted(false);
+      setResourceTitleTouched(false);
       setEditingResourceId(null);
       await loadData();
     } catch (saveError) {
@@ -532,9 +539,15 @@ export function SbvControlView({
                   label="Titel / Anlass"
                   value={resourceForm.title ?? ""}
                   onValueChange={(value) => updateResourceForm("title", value)}
+                  onBlur={() => setResourceTitleTouched(true)}
                   placeholder="z. B. Grundlagenschulung SBV I oder Heranziehung wegen BEM-Begleitung"
                   required
-                  error={!resourceForm.title?.trim() ? "Titel ist für den Nachweis erforderlich." : undefined}
+                  error={
+                    (resourceTitleTouched || resourceFormSubmitted) &&
+                    !resourceForm.title?.trim()
+                      ? "Titel ist für den Nachweis erforderlich."
+                      : undefined
+                  }
                 />
                 <TextInput
                   label="Rechtsgrundlage"

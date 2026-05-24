@@ -100,8 +100,12 @@ export function FormField({
       )}
     >
       <label className="industrial-field-label" htmlFor={id}>
-        {label}
-        {required ? <span aria-hidden="true"> *</span> : null}
+        <span>{label}</span>
+        {required ? (
+          <span className="industrial-field-required-marker" aria-hidden="true">
+            *
+          </span>
+        ) : null}
       </label>
       {children({
         id,
@@ -157,7 +161,7 @@ export function TextInput({
         <input
           {...inputProps}
           id={id}
-          className={joinClassNames("industrial-input", className)}
+          className={joinClassNames("industrial-input industrial-select", className)}
           value={value}
           required={required}
           aria-required={required ? "true" : undefined}
@@ -226,7 +230,7 @@ export function TextareaInput({
           {...textareaProps}
           id={id}
           fieldId={textCommandFieldId ?? id}
-          className={joinClassNames("industrial-input", className)}
+          className={joinClassNames("industrial-input industrial-select", className)}
           value={value}
           required={required}
           aria-required={required ? "true" : undefined}
@@ -280,7 +284,7 @@ export function SelectInput({
         <select
           {...selectProps}
           id={id}
-          className={joinClassNames("industrial-input", className)}
+          className={joinClassNames("industrial-input industrial-select", className)}
           value={value}
           required={required}
           aria-required={required ? "true" : undefined}
