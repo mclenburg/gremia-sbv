@@ -205,7 +205,6 @@ button { border-radius: 0; }
 .industrial-card-link { margin-top: auto; color: var(--sbv-yellow); font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 11px; font-weight: 900; letter-spacing: 0.22em; text-transform: uppercase; }
 
 .industrial-badge,
-.industrial-status-badge,
 .industrial-chip {
   display: inline-flex;
   align-items: center;

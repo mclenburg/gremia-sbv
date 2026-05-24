@@ -9,6 +9,7 @@ import type {
 } from '../src/app/core/models/compliance.model.js';
 import type { DatabaseAdapter } from './databaseService.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
+import { auditComplianceIncidentCreated, auditComplianceIncidentUpdated } from './auditEventBuilders.js';
 
 interface ComplianceIncidentRow {
   id: string;
@@ -154,17 +155,12 @@ export class ComplianceIncidentService {
       createdAt,
     );
 
-    this.audit.append({
-      action: 'create',
-      subjectType: 'compliance_incident',
-      subjectId: id,
-      purpose: 'Dokumentation eines Datenschutz- oder Sicherheitsereignisses ohne personenbezogene Audit-Metadaten.',
-      metadata: {
-        category,
-        riskLevel,
-        status: 'open',
-      },
-    });
+    this.audit.append(auditComplianceIncidentCreated({
+      incidentId: id,
+      category,
+      riskLevel,
+      status: 'open',
+    }));
 
     return this.getRequired(id);
   }
@@ -204,17 +200,12 @@ export class ComplianceIncidentService {
       id,
     );
 
-    this.audit.append({
-      action: 'update',
-      subjectType: 'compliance_incident',
-      subjectId: id,
-      purpose: 'Aktualisierung eines Datenschutz- oder Sicherheitsereignisses ohne inhaltliche Audit-Metadaten.',
-      metadata: {
-        riskLevel,
-        status,
-        authorityNotificationChecked: input.authorityNotificationChecked ?? current.authorityNotificationChecked,
-      },
-    });
+    this.audit.append(auditComplianceIncidentUpdated({
+      incidentId: id,
+      riskLevel,
+      status,
+      authorityNotificationChecked: input.authorityNotificationChecked ?? current.authorityNotificationChecked,
+    }));
 
     return this.getRequired(id);
   }

@@ -199,6 +199,7 @@ html[data-theme='light'] .industrial-panel-header p {
 .industrial-button,
 .industrial-secondary-button,
 .industrial-danger-button,
+.industrial-ghost-button,
 .industrial-lock-button,
 .industrial-nav button,
 .industrial-table-actions button,
@@ -227,6 +228,8 @@ html[data-theme='light'] .industrial-panel-header p {
 .industrial-button:focus-visible,
 .industrial-secondary-button:focus-visible,
 .industrial-danger-button:focus-visible,
+.industrial-ghost-button:focus-visible,
+.industrial-icon-button:focus-visible,
 .industrial-card:focus-visible,
 .industrial-dashboard-card:focus-visible,
 .industrial-list-item:focus-visible,
@@ -244,6 +247,75 @@ html[data-theme='light'] .industrial-panel-header p {
   outline: 2px solid var(--industrial-accent);
   outline-offset: 3px;
   box-shadow: var(--focus-ring);
+}
+
+/* P3: App-weite Button-Familie. Feature-Module nutzen zentrale React-Wrapper statt lokaler Button-Komposition. */
+.industrial-button-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2, 0.5rem);
+}
+
+.industrial-button-group[aria-label] {
+  position: relative;
+}
+
+.industrial-ghost-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 36px;
+  border: 1px solid transparent;
+  border-radius: var(--control-radius);
+  background: transparent;
+  color: var(--industrial-text);
+  cursor: pointer;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.industrial-ghost-button:hover {
+  border-color: var(--industrial-accent);
+  color: var(--industrial-accent);
+  background: color-mix(in srgb, var(--industrial-accent) 9%, transparent);
+}
+
+.industrial-button:disabled,
+.industrial-secondary-button:disabled,
+.industrial-danger-button:disabled,
+.industrial-ghost-button:disabled,
+.industrial-icon-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+  filter: grayscale(0.35);
+}
+
+.industrial-button-loading {
+  position: relative;
+}
+
+.industrial-button-spinner {
+  width: 0.9rem;
+  height: 0.9rem;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: industrial-button-spin 800ms linear infinite;
+}
+
+@keyframes industrial-button-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+html[data-theme='light'] .industrial-ghost-button {
+  color: #141414;
 }
 
 .industrial-nav button[aria-current='page'] {
@@ -292,6 +364,92 @@ html[data-theme='light'] .industrial-panel-header p {
   flex-wrap: wrap;
 }
 
+
+
+/* Zentralisiertes Panel-/Card-System fuer Patch P2. */
+.industrial-panel,
+.industrial-record-card,
+.industrial-selection-card,
+.industrial-status-card,
+.industrial-warning-panel,
+.industrial-danger-panel {
+  border-radius: var(--control-radius);
+}
+
+.industrial-record-card,
+.industrial-selection-card,
+.industrial-status-card {
+  border: 1px solid var(--border-muted);
+  background: var(--surface-base);
+  min-width: 0;
+}
+
+.industrial-record-card,
+.industrial-selection-card {
+  display: grid;
+  gap: .55rem;
+  padding: .85rem .95rem;
+}
+
+.industrial-status-card {
+  display: grid;
+  gap: .45rem;
+  padding: .9rem;
+}
+
+.industrial-record-card.is-active,
+.industrial-selection-card.is-active {
+  border-color: var(--accent);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.industrial-record-card.industrial-tone-warning,
+.industrial-selection-card.industrial-tone-warning,
+.industrial-status-card.industrial-tone-warning {
+  border-color: color-mix(in srgb, #ffb020 68%, var(--border-muted));
+}
+
+.industrial-record-card.industrial-tone-danger,
+.industrial-record-card.industrial-tone-problem,
+.industrial-selection-card.industrial-tone-danger,
+.industrial-selection-card.industrial-tone-problem,
+.industrial-status-card.industrial-tone-danger,
+.industrial-status-card.industrial-tone-problem {
+  border-color: color-mix(in srgb, #ef4444 62%, var(--border-muted));
+}
+
+.industrial-record-card.industrial-tone-ok,
+.industrial-record-card.industrial-tone-success,
+.industrial-selection-card.industrial-tone-ok,
+.industrial-selection-card.industrial-tone-success,
+.industrial-status-card.industrial-tone-ok,
+.industrial-status-card.industrial-tone-success {
+  border-color: color-mix(in srgb, #22c55e 58%, var(--border-muted));
+}
+
+.industrial-record-card:focus-within,
+.industrial-selection-card:focus-within {
+  border-color: var(--accent);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.industrial-warning-panel,
+.industrial-danger-panel {
+  display: grid;
+  gap: .35rem;
+  padding: .85rem .95rem;
+  border: 1px solid var(--border-muted);
+  background: var(--surface-base);
+  color: var(--text-primary);
+}
+
+.industrial-warning-panel {
+  border-color: color-mix(in srgb, #ffb020 68%, var(--border-muted));
+}
+
+.industrial-danger-panel {
+  border-color: color-mix(in srgb, #ef4444 62%, var(--border-muted));
+}
 
 .module-feedback {
   display: grid;
@@ -519,6 +677,52 @@ html[data-theme='light'] .industrial-panel-header p {
 /* 0.8.5-b: zentraler Workbench-/Form-Layout-Master.
    Feature-Module sollen Formulare, Listen und Detailbereiche hierüber layouten,
    statt rohe Labels/Inputs nebeneinander in Modul-CSS zu erzwingen. */
+
+.workbench-page {
+  display: grid;
+  gap: var(--layout-gap);
+  min-width: 0;
+}
+
+.workbench-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--layout-gap);
+  padding: clamp(0.8rem, 1vw, 1rem);
+  border: 1px solid var(--industrial-border);
+  background: color-mix(in srgb, var(--industrial-panel-muted) 88%, black 12%);
+  box-shadow: 0 10px 28px rgba(0,0,0,.18);
+}
+
+.workbench-header h2,
+.workbench-header p {
+  margin: 0;
+}
+
+.workbench-header > div:first-child {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.workbench-header > div:first-child > p:not(.industrial-kicker) {
+  color: var(--industrial-text-muted);
+}
+
+.workbench-sidebar,
+.workbench-content {
+  min-width: 0;
+}
+
+.workbench-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2, 0.5rem);
+  align-items: center;
+}
+
 .workbench-summary {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -1293,6 +1497,13 @@ html[data-theme='light'] .industrial-panel {
   align-items: start;
 }
 
+.workbench-sidebar {
+  display: grid;
+  gap: var(--space-2, 0.5rem);
+  position: sticky;
+  top: var(--space-3, 0.75rem);
+}
+
 .industrial-workspace-nav {
   display: grid;
   gap: var(--space-2, 0.5rem);
@@ -1434,9 +1645,116 @@ html[data-theme='light'] .industrial-panel {
 }
 
 .industrial-empty-state {
+  display: grid;
+  gap: 0.35rem;
   border: 1px dashed var(--industrial-border);
   border-radius: var(--control-radius);
   padding: 0.85rem;
+  color: var(--industrial-text-muted);
+}
+
+.industrial-empty-state strong {
+  color: var(--industrial-text-strong);
+}
+
+.industrial-empty-state span {
+  color: var(--industrial-text-muted);
+}
+
+.industrial-empty-state-action {
+  margin-top: 0.35rem;
+}
+
+.industrial-search-toolbar,
+.industrial-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--space-3, 0.75rem);
+  border: 1px solid var(--industrial-border);
+  background: color-mix(in srgb, var(--industrial-panel-muted) 92%, black 8%);
+  padding: 0.75rem;
+}
+
+.industrial-search-field {
+  display: grid;
+  gap: 0.3rem;
+  min-width: min(100%, 18rem);
+  flex: 1 1 18rem;
+}
+
+.industrial-search-field span {
+  color: var(--industrial-text-muted);
+  font-size: 0.76rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.industrial-search-count {
+  border: 1px solid var(--industrial-border);
+  background: color-mix(in srgb, var(--industrial-panel) 90%, black 10%);
+  color: var(--industrial-text-muted);
+  padding: 0.5rem 0.65rem;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.industrial-search-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.industrial-record-list-item {
+  min-width: 0;
+}
+
+.industrial-data-table-shell {
+  overflow-x: auto;
+  border: 1px solid var(--industrial-border);
+  background: color-mix(in srgb, var(--industrial-panel) 92%, black 8%);
+}
+
+.industrial-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 42rem;
+}
+
+.industrial-data-table th,
+.industrial-data-table td {
+  border-bottom: 1px solid var(--industrial-border);
+  padding: 0.75rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.industrial-data-table th {
+  color: var(--industrial-text-muted);
+  font-size: 0.76rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.industrial-data-table td {
+  color: var(--industrial-text);
+}
+
+.industrial-data-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.industrial-data-table-cell {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.industrial-data-table-cell p,
+.industrial-data-table-cell span {
+  margin: 0;
   color: var(--industrial-text-muted);
 }
 
@@ -1445,6 +1763,19 @@ html[data-theme='light'] .industrial-panel {
     grid-template-columns: 1fr;
   }
 
+  .workbench-header {
+    display: grid;
+  }
+
+  .workbench-toolbar {
+    justify-content: stretch;
+  }
+
+  .workbench-toolbar > * {
+    width: 100%;
+  }
+
+  .workbench-sidebar,
   .industrial-workspace-nav {
     position: static;
   }
@@ -4579,3 +4910,231 @@ html[data-theme='light'] .dashboard-focus-card-static.industrial-card:hover {
   color: var(--industrial-text-muted);
 }
 
+
+/* 0.9.2 P4: zentrale Formular-Chrome fuer Feature-Module. */
+.industrial-form-section {
+  display: grid;
+  gap: var(--space-4, 1rem);
+  min-width: 0;
+}
+
+.industrial-form-section.industrial-panel {
+  padding: var(--space-4, 1rem);
+}
+
+.industrial-field-label {
+  color: var(--industrial-text-muted);
+  font-size: 0.74rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.industrial-field-help,
+.industrial-field-error {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.industrial-field-help {
+  color: var(--industrial-text-muted);
+  font-weight: 500;
+}
+
+.industrial-field-error {
+  color: var(--industrial-danger);
+  font-weight: 800;
+}
+
+.industrial-field-invalid input,
+.industrial-field-invalid select,
+.industrial-field-invalid textarea {
+  border-color: var(--industrial-danger);
+  outline-color: var(--industrial-danger);
+}
+
+.industrial-checkbox-field {
+  align-content: start;
+  grid-template-columns: auto 1fr;
+  column-gap: var(--space-2, 0.5rem);
+}
+
+.industrial-checkbox-field input[type='checkbox'] {
+  width: auto;
+  min-width: 1.05rem;
+  min-height: 1.05rem;
+  margin-top: 0.2rem;
+  grid-row: 1 / span 3;
+}
+
+.industrial-checkbox-field .industrial-field-label {
+  color: var(--industrial-text);
+  font-size: 0.8rem;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.industrial-checkbox-field .industrial-field-help,
+.industrial-checkbox-field .industrial-field-error {
+  grid-column: 2;
+}
+
+.industrial-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3, 0.75rem);
+  align-items: center;
+  padding-top: var(--space-2, 0.5rem);
+}
+
+.industrial-form-actions-start {
+  justify-content: flex-start;
+}
+
+.industrial-form-actions-end {
+  justify-content: flex-end;
+}
+
+.industrial-form-actions-between {
+  justify-content: space-between;
+}
+
+/* P5: zentrale Status-, Risiko- und Fristen-Badges */
+.industrial-status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  width: fit-content;
+  min-height: 1.65rem;
+  border: 1px solid var(--industrial-border);
+  border-radius: var(--control-radius);
+  background: color-mix(in srgb, var(--industrial-panel) 90%, black 10%);
+  color: var(--industrial-text-muted);
+  padding: 0.2rem 0.5rem;
+  font-size: 0.74rem;
+  font-weight: 850;
+  letter-spacing: 0.06em;
+  line-height: 1.15;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.industrial-status-badge-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.industrial-status-badge-ok,
+.industrial-status-badge-success {
+  border-color: color-mix(in srgb, var(--industrial-ok) 55%, var(--industrial-border));
+  color: color-mix(in srgb, var(--industrial-ok) 84%, white 16%);
+}
+
+.industrial-status-badge-warning {
+  border-color: color-mix(in srgb, var(--industrial-accent) 60%, var(--industrial-border));
+  color: var(--industrial-accent);
+}
+
+.industrial-status-badge-danger,
+.industrial-status-badge-problem {
+  border-color: color-mix(in srgb, var(--industrial-danger) 58%, var(--industrial-border));
+  color: color-mix(in srgb, var(--industrial-danger) 72%, white 28%);
+}
+
+.industrial-status-badge-info,
+.industrial-status-badge-neutral {
+  border-color: color-mix(in srgb, var(--industrial-info, var(--industrial-border)) 48%, var(--industrial-border));
+  color: var(--industrial-text);
+}
+
+.industrial-status-badge-muted,
+.industrial-status-badge-default {
+  border-color: var(--industrial-border);
+  color: var(--industrial-text-muted);
+}
+
+/* P6: zentrale Dialog-/Modal-Basis */
+.industrial-modal-warning .industrial-modal-icon,
+.industrial-modal-danger .industrial-modal-icon {
+  border-color: rgba(248, 113, 113, 0.5);
+}
+
+.industrial-modal-warning .industrial-modal-icon {
+  color: #facc15;
+}
+
+.industrial-modal-danger .industrial-modal-icon {
+  color: #f87171;
+}
+
+.industrial-confirm-dialog .industrial-modal-actions,
+.industrial-export-result-dialog .industrial-modal-actions {
+  grid-column: 1 / -1;
+}
+
+.industrial-export-result {
+  display: contents;
+}
+
+/* P8: zentrales Export-/Import-Feedback */
+.industrial-export-action {
+  white-space: nowrap;
+}
+
+.industrial-file-location-notice {
+  display: grid;
+  gap: 0.5rem;
+  padding: 1rem;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(15, 23, 42, 0.4);
+}
+
+.industrial-file-location-notice p {
+  margin: 0;
+  color: var(--industrial-text-muted);
+}
+
+.industrial-file-location-notice code {
+  display: block;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  color: inherit;
+}
+
+.industrial-import-package-review {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.industrial-import-package-review p {
+  margin: 0;
+}
+
+.industrial-import-package-options {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 1rem;
+  border: 1px solid var(--industrial-border);
+}
+
+.industrial-import-package-options legend {
+  padding: 0 0.35rem;
+  color: var(--industrial-text-strong);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.industrial-import-package-target {
+  display: grid;
+  gap: 0.35rem;
+}
+
+html[data-theme='light'] .industrial-file-location-notice {
+  background: rgba(255, 255, 255, 0.75);
+}

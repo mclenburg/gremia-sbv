@@ -1,8 +1,21 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { AlertTriangle, Plus } from 'lucide-react';
-import { ModuleFrame } from '../../shared/components/ModuleFrame';
 import { ModuleFeedback } from '../../shared/components/ModuleFeedback';
+import { GhostButton, IndustrialButton, ToolbarButton } from '../../shared/components/IndustrialButton';
+import {
+  CheckboxField,
+  DateTimeInput,
+  FormActions,
+  FormSection,
+  SelectInput,
+  TextInput
+} from '../../shared/components/IndustrialForm';
+import {
+  IndustrialWarningPanel,
+  WorkbenchPage
+} from '../../shared/components/WorkbenchLayout';
+import { IndustrialModal } from '../../shared/dialogs/IndustrialDialogs';
 import type { CaseRecord } from '../../core/models/case.model';
 import type { CaseMeasureRecord } from '../../core/models/case-measure.model';
 import type { CreateDeadlineInput, DeadlineListFilters, DeadlineProcessType, DeadlineRecord, DeadlineSeverity, DeadlineType } from '../../core/models/deadline.model';
@@ -10,6 +23,30 @@ import { DeadlineListView } from './DeadlineListView';
 import { DeadlineIcalExportPanel } from './DeadlineIcalExportPanel';
 import type { IcalExportPrivacyLevel } from './useIcalExportHandlers';
 import { formatCaseLabel, fromDateTimeLocalValue, toDateTimeLocalValue } from '../cases/caseWorkbenchFormat';
+
+const processOptions: Array<{ value: DeadlineProcessType; label: string }> = [
+  { value: 'case', label: 'Fall' },
+  { value: 'bem', label: 'BEM' },
+  { value: 'prevention', label: 'Prävention' },
+  { value: 'equalization', label: 'Gleichstellung' },
+  { value: 'termination_hearing', label: 'Kündigungsanhörung' },
+  { value: 'gdb', label: 'GdB' }
+];
+
+const deadlineTypeOptions: Array<{ value: DeadlineType; label: string }> = [
+  { value: 'follow_up', label: 'Wiedervorlage' },
+  { value: 'legal_deadline', label: 'Rechtsfrist' },
+  { value: 'workflow_step', label: 'Workflow-Schritt' },
+  { value: 'appointment', label: 'Termin' },
+  { value: 'warning', label: 'Warnung' }
+];
+
+const severityOptions: Array<{ value: DeadlineSeverity; label: string }> = [
+  { value: 'normal', label: 'normal' },
+  { value: 'important', label: 'wichtig' },
+  { value: 'critical', label: 'kritisch' },
+  { value: 'fatal', label: 'fatal' }
+];
 
 export function DeadlinesView({
   cases,
@@ -75,86 +112,50 @@ export function DeadlinesView({
   }
 
   return (
-    <ModuleFrame
+    <WorkbenchPage
       title="Fristen & Wiedervorlagen"
       kicker="48h-Regel aktiv"
       description="Echte Fristen gehören an eine Fallakte. Freie Einträge sind nur als einfache Wiedervorlagen ohne Rechtsfrist vorgesehen."
     >
       <ModuleFeedback items={[error ? { id: 'deadlines-error', tone: 'warning', message: error } : null]} />
-      <div className="industrial-alert">
+      <IndustrialWarningPanel>
         <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-yellow-300" />
         <p>
           Fachregel: Rechtliche Fristen, BEM-Schritte, Präventionsvorgänge, Gleichstellungsverfahren und Kündigungsanhörungen werden immer einem Fall zugeordnet. Ohne Fallbezug erlaubt Gremia.SBV nur eine freie Wiedervorlage.
         </p>
-      </div>
+      </IndustrialWarningPanel>
 
       <form onSubmit={addDeadline} className="industrial-form industrial-form-deadline">
-        <label>
-          <span>Titel</span>
-          <input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="z. B. Stellungnahme SBV" />
-        </label>
-        <label>
-          <span>Fallbezug</span>
-          <select value={caseId} disabled={freeFollowUp} onChange={(event) => setCaseId(event.target.value)}>
-            <option value="">Fall auswählen</option>
-            {cases.map((record) => <option key={record.id} value={record.id}>{formatCaseLabel(record)}</option>)}
-          </select>
-        </label>
-        <label>
-          <span>Fällig am</span>
-          <input type="datetime-local" value={dueAt} onChange={(event) => setDueAt(event.target.value)} />
-        </label>
-        <label>
-          <span>Prozess</span>
-          <select value={processType} disabled={freeFollowUp} onChange={(event) => setProcessType(event.target.value as DeadlineProcessType)}>
-            <option value="case">Fall</option>
-            <option value="bem">BEM</option>
-            <option value="prevention">Prävention</option>
-            <option value="equalization">Gleichstellung</option>
-            <option value="termination_hearing">Kündigungsanhörung</option>
-            <option value="gdb">GdB</option>
-          </select>
-        </label>
-        <label>
-          <span>Typ</span>
-          <select value={deadlineType} disabled={freeFollowUp} onChange={(event) => setDeadlineType(event.target.value as DeadlineType)}>
-            <option value="follow_up">Wiedervorlage</option>
-            <option value="legal_deadline">Rechtsfrist</option>
-            <option value="workflow_step">Workflow-Schritt</option>
-            <option value="appointment">Termin</option>
-            <option value="warning">Warnung</option>
-          </select>
-        </label>
-        <label>
-          <span>Stufe</span>
-          <select value={severity} onChange={(event) => setSeverity(event.target.value as DeadlineSeverity)}>
-            <option value="normal">normal</option>
-            <option value="important">wichtig</option>
-            <option value="critical">kritisch</option>
-            <option value="fatal">fatal</option>
-          </select>
-        </label>
-        <label>
-          <span>Rechtsbezug</span>
-          <input value={legalBasis} disabled={freeFollowUp} onChange={(event) => setLegalBasis(event.target.value)} placeholder="optional" />
-        </label>
-        <label>
-          <span>Notiz</span>
-          <input value={description} onChange={(event) => setDescription(event.target.value)} placeholder="optional" />
-        </label>
-        <label className="industrial-checkbox-row">
-          <input type="checkbox" checked={freeFollowUp} onChange={(event) => setFreeFollowUp(event.target.checked)} />
-          <span>freie Wiedervorlage ohne Fallbezug</span>
-        </label>
-        <button type="submit" className="industrial-button">
-          <Plus className="h-4 w-4" />
-          Frist anlegen
-        </button>
+        <FormSection>
+          <div className="industrial-form-grid">
+            <TextInput label="Titel" value={title} onValueChange={setTitle} placeholder="z. B. Stellungnahme SBV" required />
+            <SelectInput
+              label="Fallbezug"
+              value={caseId}
+              disabled={freeFollowUp}
+              onValueChange={setCaseId}
+              options={[{ value: '', label: 'Fall auswählen' }, ...cases.map((record) => ({ value: record.id, label: formatCaseLabel(record) }))]}
+            />
+            <DateTimeInput label="Fällig am" value={dueAt} onValueChange={setDueAt} required />
+            <SelectInput label="Prozess" value={processType} disabled={freeFollowUp} onValueChange={(value) => setProcessType(value as DeadlineProcessType)} options={processOptions} />
+            <SelectInput label="Typ" value={deadlineType} disabled={freeFollowUp} onValueChange={(value) => setDeadlineType(value as DeadlineType)} options={deadlineTypeOptions} />
+            <SelectInput label="Stufe" value={severity} onValueChange={(value) => setSeverity(value as DeadlineSeverity)} options={severityOptions} />
+            <TextInput label="Rechtsbezug" value={legalBasis} disabled={freeFollowUp} onValueChange={setLegalBasis} placeholder="optional" />
+            <TextInput label="Notiz" value={description} onValueChange={setDescription} placeholder="optional" />
+            <CheckboxField label="freie Wiedervorlage ohne Fallbezug" checked={freeFollowUp} onCheckedChange={setFreeFollowUp} />
+          </div>
+        </FormSection>
+        <FormActions>
+          <IndustrialButton type="submit">
+            <Plus className="h-4 w-4" />
+            Frist anlegen
+          </IndustrialButton>
+        </FormActions>
       </form>
       <DeadlineIcalExportPanel onExport={onExportIcal} />
 
       <DeadlineListView deadlines={deadlines} cases={cases} measures={measures} onEdit={onEditDeadline} onComplete={onCompleteDeadline} />
-    </ModuleFrame>
+    </WorkbenchPage>
   );
 }
 
@@ -202,54 +203,28 @@ export function DeadlineEditor({
   }
 
   return (
-    <div className="industrial-modal-backdrop" role="dialog" aria-modal="true">
-      <section className="industrial-modal">
-        <div className="industrial-panel-header compact">
-          <div>
-            <p className="industrial-kicker">Frist bearbeiten</p>
-            <h2>{deadline.title}</h2>
-            <p>{deadline.caseId ? `Fallbezug: ${cases.find((item: CaseRecord) => item.id === deadline.caseId)?.caseNumber ?? 'nicht auflösbar'}` : 'Freie Wiedervorlage ohne Fallbezug'}</p>
-          </div>
-        </div>
-
-        <form onSubmit={submit} className="industrial-settings-form mt-5">
-          <label>
-            <span>Titel</span>
-            <input value={title} onChange={(event) => setTitle(event.target.value)} />
-          </label>
-          <label>
-            <span>Fällig am</span>
-            <input type="datetime-local" value={dueAt} onChange={(event) => setDueAt(event.target.value)} />
-          </label>
-          <label>
-            <span>Stufe</span>
-            <select value={severity} onChange={(event) => setSeverity(event.target.value as DeadlineSeverity)}>
-              <option value="normal">normal</option>
-              <option value="important">wichtig</option>
-              <option value="critical">kritisch</option>
-              <option value="fatal">fatal</option>
-            </select>
-          </label>
-          <label>
-            <span>Rechtsbezug</span>
-            <input value={legalBasis} onChange={(event) => setLegalBasis(event.target.value)} />
-          </label>
-          <label>
-            <span>Notiz</span>
-            <input value={description} onChange={(event) => setDescription(event.target.value)} />
-          </label>
-          <label>
-            <span>Änderungsgrund / Audit</span>
-            <input value={reason} onChange={(event) => setReason(event.target.value)} />
-          </label>
-          {error && <div className="industrial-message industrial-message-warning">{error}</div>}
-          <div className="industrial-modal-actions">
-            <button type="button" className="industrial-secondary-button" onClick={onClose}>Abbrechen</button>
-            <button type="button" className="industrial-secondary-button" onClick={() => void onComplete(deadline)}>Als erledigt markieren</button>
-            <button type="submit" className="industrial-button">Speichern</button>
-          </div>
-        </form>
-      </section>
-    </div>
+    <IndustrialModal
+      title={deadline.title}
+      kicker="Frist bearbeiten"
+      description={deadline.caseId ? `Fallbezug: ${cases.find((item: CaseRecord) => item.id === deadline.caseId)?.caseNumber ?? 'nicht auflösbar'}` : 'Freie Wiedervorlage ohne Fallbezug'}
+      onClose={onClose}
+    >
+      <form onSubmit={submit} className="industrial-settings-form mt-5">
+        <FormSection>
+          <TextInput label="Titel" value={title} onValueChange={setTitle} required />
+          <DateTimeInput label="Fällig am" value={dueAt} onValueChange={setDueAt} required />
+          <SelectInput label="Stufe" value={severity} onValueChange={(value) => setSeverity(value as DeadlineSeverity)} options={severityOptions} />
+          <TextInput label="Rechtsbezug" value={legalBasis} onValueChange={setLegalBasis} />
+          <TextInput label="Notiz" value={description} onValueChange={setDescription} />
+          <TextInput label="Änderungsgrund / Audit" value={reason} onValueChange={setReason} />
+        </FormSection>
+        {error ? <ModuleFeedback items={[{ id: 'deadline-editor-error', tone: 'warning', message: error }]} /> : null}
+        <FormActions>
+          <GhostButton onClick={onClose}>Abbrechen</GhostButton>
+          <ToolbarButton onClick={() => void onComplete(deadline)}>Als erledigt markieren</ToolbarButton>
+          <IndustrialButton type="submit">Speichern</IndustrialButton>
+        </FormActions>
+      </form>
+    </IndustrialModal>
   );
 }

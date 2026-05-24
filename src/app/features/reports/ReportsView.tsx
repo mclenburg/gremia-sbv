@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Download, ExternalLink, FileText, RefreshCw } from 'lucide-react';
-import { ModuleFrame } from '../../shared/components/ModuleFrame';
 import { ModuleFeedback } from '../../shared/components/ModuleFeedback';
+import { IndustrialButton, ToolbarButton } from '../../shared/components/IndustrialButton';
+import { DateInput } from '../../shared/components/IndustrialForm';
+import { EmptyState, IndustrialRecordCard, WorkbenchPage } from '../../shared/components/WorkbenchLayout';
 import { waitForBridge } from '../../core/bridge/waitForBridge';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 import type {
@@ -129,30 +131,24 @@ export function ReportsView() {
   }, []);
 
   return (
-    <ModuleFrame title="Berichte" description="SBV-Fachberichte, Datenschutzprüfungen und Systemberichte als verschlüsselte PDF-Reports.">
+    <WorkbenchPage title="Berichte" description="SBV-Fachberichte, Datenschutzprüfungen und Systemberichte als verschlüsselte PDF-Reports.">
       <ModuleFeedback items={[message ? { id: 'reports-message', message } : null]} />
       <section className="reports-workbench">
         <div className="reports-toolbar reports-toolbar-grid">
-          <label>
-            <span>Von</span>
-            <input type="date" value={periodStart} onChange={(event) => setPeriodStart(event.currentTarget.value)} />
-          </label>
-          <label>
-            <span>Bis</span>
-            <input type="date" value={periodEnd} onChange={(event) => setPeriodEnd(event.currentTarget.value)} />
-          </label>
-          <button type="button" className="industrial-secondary-button" onClick={() => void loadReports()} disabled={loading}>
+          <DateInput label="Von" value={periodStart} onValueChange={setPeriodStart} />
+          <DateInput label="Bis" value={periodEnd} onValueChange={setPeriodEnd} />
+          <ToolbarButton onClick={() => void loadReports()} disabled={loading}>
             <RefreshCw className="h-4 w-4" />
             Aktualisieren
-          </button>
-          <button type="button" className="industrial-button" onClick={() => void generateReport(false)} disabled={loading || !selectedDescriptor}>
+          </ToolbarButton>
+          <IndustrialButton onClick={() => void generateReport(false)} disabled={loading || !selectedDescriptor}>
             <Download className="h-4 w-4" />
             PDF erzeugen
-          </button>
-          <button type="button" className="industrial-button" onClick={() => void generateReport(true)} disabled={loading || !selectedDescriptor}>
+          </IndustrialButton>
+          <IndustrialButton onClick={() => void generateReport(true)} disabled={loading || !selectedDescriptor}>
             <ExternalLink className="h-4 w-4" />
             PDF erzeugen & öffnen
-          </button>
+          </IndustrialButton>
         </div>
 
 
@@ -163,8 +159,7 @@ export function ReportsView() {
                 <h2>{GROUP_LABELS[group] ?? group}</h2>
                 <div className="reports-card-list">
                   {items.map((descriptor) => (
-                    <button
-                      type="button"
+                    <ToolbarButton
                       key={descriptor.type}
                       className={`reports-card ${selectedType === descriptor.type ? 'is-selected' : ''}`}
                       onClick={() => setSelectedType(descriptor.type)}
@@ -176,7 +171,7 @@ export function ReportsView() {
                         <small>{descriptor.description}</small>
                         <em>{confidentialityLabel(descriptor.confidentiality)}</em>
                       </span>
-                    </button>
+                    </ToolbarButton>
                   ))}
                 </div>
               </div>
@@ -198,9 +193,9 @@ export function ReportsView() {
                   <div className="reports-result-card">
                     <strong>Zuletzt erzeugt</strong>
                     <span>{lastResult.fileName}</span>
-                    <button type="button" className="industrial-secondary-button" onClick={() => void openReport(lastResult.filePath)}>
+                    <ToolbarButton onClick={() => void openReport(lastResult.filePath)}>
                       PDF öffnen
-                    </button>
+                    </ToolbarButton>
                   </div>
                 )}
               </>
@@ -220,20 +215,20 @@ export function ReportsView() {
           </div>
           <div className="reports-history-list">
             {history.length ? history.map((item) => (
-              <article className="reports-history-item" key={item.id}>
+              <IndustrialRecordCard className="reports-history-item" key={item.id}>
                 <div>
                   <strong>{item.title}</strong>
                   <span>{formatDateTime(item.generatedAt)} · {item.fileName}</span>
                   {item.warningCount > 0 && <em>{item.warningCount} Prüfhinweis(e)</em>}
                 </div>
-                <button type="button" className="industrial-secondary-button" onClick={() => void openReport(item.filePath)}>
+                <ToolbarButton onClick={() => void openReport(item.filePath)}>
                   Öffnen
-                </button>
-              </article>
-            )) : <div className="industrial-empty-state">Noch keine PDF-Reports erzeugt.</div>}
+                </ToolbarButton>
+              </IndustrialRecordCard>
+            )) : <EmptyState title="Keine Reports" text="Noch keine PDF-Reports erzeugt." />}
           </div>
         </section>
       </section>
-    </ModuleFrame>
+    </WorkbenchPage>
   );
 }

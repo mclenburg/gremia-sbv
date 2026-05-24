@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
+import { auditResourceRecordChanged } from './auditEventBuilders.js';
 import type {
   CreateSbvResourceRecordInput,
   SbvResourceDashboardSummary,
@@ -90,21 +91,21 @@ export class SbvResourceService {
     new PersonalDataAuditLogService(this.db);
   }
 
-  private audit(action: Parameters<PersonalDataAuditLogService['append']>[0]['action'], subjectId: string | undefined, purpose: string): void {
+  private audit(action: 'read' | 'create' | 'update' | 'delete', subjectId: string | undefined, recordType?: string, status?: string): void {
     try {
-      new PersonalDataAuditLogService(this.db).append({
+      new PersonalDataAuditLogService(this.db).append(auditResourceRecordChanged({
         action,
-        subjectType: 'sbv_resource_record',
-        subjectId,
-        purpose,
-      });
+        recordId: subjectId,
+        recordType,
+        status,
+      }));
     } catch (error) {
       console.warn('Gremia.SBV resource audit write failed', error);
     }
   }
 
   list(): SbvResourceRecord[] {
-    this.audit('read', undefined, 'SBV-Ressourcen- und Heranziehungsnachweise anzeigen');
+    this.audit('read', undefined);
     return this.db.prepare<any>(`
       SELECT * FROM sbv_resource_records
       ORDER BY COALESCE(started_at, created_at) DESC, updated_at DESC
@@ -152,7 +153,7 @@ export class SbvResourceService {
       timestamp,
       timestamp,
     );
-    this.audit('create', id, 'SBV-Ressourcen-/Heranziehungsnachweis angelegt');
+    this.audit('create', id, kind, normalizeStatus(input.status));
     return this.getById(id)!;
   }
 
@@ -185,14 +186,14 @@ export class SbvResourceService {
       timestamp,
       id,
     );
-    this.audit('update', id, 'SBV-Ressourcen-/Heranziehungsnachweis aktualisiert');
+    this.audit('update', id, kind, input.status !== undefined ? normalizeStatus(input.status) : existing.status);
     return this.getById(id)!;
   }
 
   delete(id: string): { deleted: boolean } {
     const result = this.db.prepare('DELETE FROM sbv_resource_records WHERE id = ?').run(id) as { changes?: number };
     const deleted = Number(result.changes ?? 0) > 0;
-    if (deleted) this.audit('delete', id, 'SBV-Ressourcen-/Heranziehungsnachweis gelöscht');
+    if (deleted) this.audit('delete', id);
     return { deleted };
   }
 

@@ -1,12 +1,40 @@
 import { useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
-import { Save, Search, Trash2 } from 'lucide-react';
-import { ModuleFrame } from '../../shared/components/ModuleFrame';
+import { Save, Trash2 } from 'lucide-react';
 import { ModuleFeedback } from '../../shared/components/ModuleFeedback';
+import { DangerButton, IndustrialButton } from '../../shared/components/IndustrialButton';
+import {
+  EmptyState,
+  IndustrialPanel,
+  IndustrialRecordCard,
+  RecordList,
+  SearchToolbar,
+  WorkbenchGrid,
+  WorkbenchPage
+} from '../../shared/components/WorkbenchLayout';
+import {
+  FormActions,
+  FormSection,
+  SelectInput,
+  TextInput
+} from '../../shared/components/IndustrialForm';
 import { useConfirmDialog } from '../../shared/dialogs/ConfirmDialogProvider';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 import type { ContactCategory, ContactRecord, CreateContactInput, DeleteContactResult } from '../../core/models/contact.model';
 import { filterContactsForQuery, formatContactReference } from './contactDisplay';
+
+const contactCategoryOptions: Array<{ value: ContactCategory; label: string }> = [
+  { value: 'arbeitgeber', label: 'Arbeitgeber' },
+  { value: 'inklusionsamt', label: 'Inklusionsamt' },
+  { value: 'agentur_fuer_arbeit', label: 'Agentur für Arbeit' },
+  { value: 'betriebsarzt', label: 'Betriebsarzt' },
+  { value: 'reha', label: 'Reha' },
+  { value: 'anwalt', label: 'Anwalt' },
+  { value: 'betriebsrat', label: 'Betriebsrat' },
+  { value: 'beratung', label: 'Beratung' },
+  { value: 'intern', label: 'intern' },
+  { value: 'sonstiges', label: 'sonstiges' }
+];
 
 export function ContactsView({
   contacts,
@@ -59,71 +87,95 @@ export function ContactsView({
     }
   }
 
-  return (
-    <ModuleFrame title="Kontakte" kicker="Netzwerk" description="Ansprechpersonen, Stellen und interne Kontakte. In Protokollen mit @@ einfügen.">
-      <ModuleFeedback items={[message ? { id: 'contacts-message', tone: 'success', message } : null, error ? { id: 'contacts-error', tone: 'warning', message: error } : null]} />
-      <section className="industrial-grid-two">
-        <section className="industrial-panel">
-          <div className="industrial-panel-header compact"><div><p className="industrial-kicker">Register</p><h2>Kontaktliste</h2></div></div>
-          <label className="industrial-search"><Search className="h-4 w-4" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Kontakt suchen …" /></label>
-          <div className="contact-register-list">
-            {filteredContacts.map((contact) => (
-              <article key={contact.id} className="contact-register-card">
-                <div>
-                  <strong>{formatContactReference(contact)}</strong>
-                  <span>{[contact.role, contact.email, contact.phone].filter(Boolean).join(' · ') || contact.category}</span>
-                </div>
-                <button
-                  type="button"
-                  className="industrial-danger-button compact"
-                  onClick={async () => {
-                    setError('');
-                    setMessage('');
-                    const ok = await confirmDialog({
-                      variant: 'danger',
-                      title: 'Kontakt löschen?',
-                      message: `Der Kontakt wird gelöscht. Bekannte Textstellen werden anonymisiert.\n\n${formatContactReference(contact)}`,
-                      confirmLabel: 'Kontakt löschen',
-                      cancelLabel: 'Abbrechen'
-                    });
-                    if (!ok) return;
-                    try {
-                      const result = await onDeleteContact(contact);
-                      const successMessage = result.anonymizedReferences
-                        ? `Kontakt gelöscht. ${result.anonymizedReferences} Textbezug/Textbezüge in ${result.touchedNotes} Protokoll(en) wurden anonymisiert.`
-                        : 'Kontakt gelöscht. Es wurden keine gespeicherten Textbezüge gefunden.';
-                      setMessage(successMessage);
-                      announce(successMessage, 'polite');
-                    } catch (error) {
-                      const errorMessage = error instanceof Error ? error.message : 'Kontakt konnte nicht gelöscht werden.';
-                      setError(errorMessage);
-                      announce(errorMessage, 'assertive');
-                    }
-                  }}
-                  title="Kontakt löschen und Textbezüge anonymisieren"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
-              </article>
-            ))}
-            {!filteredContacts.length && <div className="industrial-empty">Noch keine passenden Kontakte vorhanden.</div>}
-          </div>
-        </section>
+  async function deleteContact(contact: ContactRecord) {
+    setError('');
+    setMessage('');
+    const ok = await confirmDialog({
+      variant: 'danger',
+      title: 'Kontakt löschen?',
+      message: `Der Kontakt wird gelöscht. Bekannte Textstellen werden anonymisiert.\n\n${formatContactReference(contact)}`,
+      confirmLabel: 'Kontakt löschen',
+      cancelLabel: 'Abbrechen'
+    });
+    if (!ok) return;
+    try {
+      const result = await onDeleteContact(contact);
+      const successMessage = result.anonymizedReferences
+        ? `Kontakt gelöscht. ${result.anonymizedReferences} Textbezug/Textbezüge in ${result.touchedNotes} Protokoll(en) wurden anonymisiert.`
+        : 'Kontakt gelöscht. Es wurden keine gespeicherten Textbezüge gefunden.';
+      setMessage(successMessage);
+      announce(successMessage, 'polite');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Kontakt konnte nicht gelöscht werden.';
+      setError(errorMessage);
+      announce(errorMessage, 'assertive');
+    }
+  }
 
-        <section className="industrial-panel">
-          <div className="industrial-panel-header compact"><div><p className="industrial-kicker">Erfassen</p><h2>Kontakt anlegen</h2></div></div>
+  return (
+    <WorkbenchPage title="Kontakte" kicker="Netzwerk" description="Ansprechpersonen, Stellen und interne Kontakte. In Protokollen mit @@ einfügen.">
+      <ModuleFeedback items={[message ? { id: 'contacts-message', tone: 'success', message } : null, error ? { id: 'contacts-error', tone: 'warning', message: error } : null]} />
+      <WorkbenchGrid>
+        <IndustrialPanel kicker="Register" title="Kontaktliste">
+          <SearchToolbar
+            searchValue={query}
+            onSearchChange={setQuery}
+            searchLabel="Kontakt suchen"
+            searchPlaceholder="Kontakt suchen …"
+            resultCount={filteredContacts.length}
+          />
+          <RecordList
+            items={filteredContacts}
+            getKey={(contact) => contact.id}
+            ariaLabel="Kontaktliste"
+            empty={<EmptyState title="Keine Treffer" text="Noch keine passenden Kontakte vorhanden." />}
+            renderItem={(contact) => (
+              <IndustrialRecordCard ariaLabel={formatContactReference(contact)}>
+                <div className="industrial-record-card-header">
+                  <div>
+                    <strong>{formatContactReference(contact)}</strong>
+                    <span>{[contact.role, contact.email, contact.phone].filter(Boolean).join(' · ') || contact.category}</span>
+                  </div>
+                  <DangerButton
+                    compact
+                    onClick={() => void deleteContact(contact)}
+                    title="Kontakt löschen und Textbezüge anonymisieren"
+                    aria-label={`${formatContactReference(contact)} löschen`}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </DangerButton>
+                </div>
+              </IndustrialRecordCard>
+            )}
+          />
+        </IndustrialPanel>
+
+        <IndustrialPanel kicker="Erfassen" title="Kontakt anlegen">
           <form onSubmit={submit} className="industrial-form">
-            <label><span>Vorname</span><input value={firstName} onChange={(event) => setFirstName(event.target.value)} /></label>
-            <label><span>Nachname</span><input value={lastName} onChange={(event) => setLastName(event.target.value)} /></label>
-            <label><span>Firma / Stelle</span><input value={organization} onChange={(event) => setOrganization(event.target.value)} /></label>
-            <label><span>Rolle</span><input value={role} onChange={(event) => setRole(event.target.value)} placeholder="z. B. Personalleiter" /></label>
-            <label><span>Kategorie</span><select value={category} onChange={(event) => setCategory(event.target.value as ContactCategory)}><option value="arbeitgeber">Arbeitgeber</option><option value="inklusionsamt">Inklusionsamt</option><option value="agentur_fuer_arbeit">Agentur für Arbeit</option><option value="betriebsarzt">Betriebsarzt</option><option value="reha">Reha</option><option value="anwalt">Anwalt</option><option value="betriebsrat">Betriebsrat</option><option value="beratung">Beratung</option><option value="intern">intern</option><option value="sonstiges">sonstiges</option></select></label>
-            <label><span>E-Mail</span><input value={email} onChange={(event) => setEmail(event.target.value)} /></label>
-            <label><span>Telefon</span><input value={phone} onChange={(event) => setPhone(event.target.value)} /></label>
-            <button type="submit" className="industrial-button"><Save className="h-4 w-4" />Kontakt speichern</button>
+            <FormSection>
+              <div className="industrial-form-grid">
+                <TextInput label="Vorname" value={firstName} onValueChange={setFirstName} />
+                <TextInput label="Nachname" value={lastName} onValueChange={setLastName} />
+                <TextInput label="Firma / Stelle" value={organization} onValueChange={setOrganization} />
+                <TextInput label="Rolle" value={role} onValueChange={setRole} placeholder="z. B. Personalleiter" />
+                <SelectInput
+                  label="Kategorie"
+                  value={category}
+                  options={contactCategoryOptions}
+                  onValueChange={(value) => setCategory(value as ContactCategory)}
+                />
+                <TextInput label="E-Mail" value={email} onValueChange={setEmail} type="email" />
+                <TextInput label="Telefon" value={phone} onValueChange={setPhone} />
+              </div>
+            </FormSection>
+            <FormActions>
+              <IndustrialButton type="submit">
+                <Save className="h-4 w-4" />Kontakt speichern
+              </IndustrialButton>
+            </FormActions>
           </form>
-        </section>
-      </section>
-    </ModuleFrame>
+        </IndustrialPanel>
+      </WorkbenchGrid>
+    </WorkbenchPage>
   );
 }

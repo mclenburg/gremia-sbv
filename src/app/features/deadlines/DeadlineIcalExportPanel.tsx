@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import { Download } from 'lucide-react';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
+import { ToolbarButton } from '../../shared/components/IndustrialButton';
+import { SelectInput } from '../../shared/components/IndustrialForm';
+import { IndustrialPanel } from '../../shared/components/WorkbenchLayout';
+import { ModuleFeedback } from '../../shared/components/ModuleFeedback';
 import type { DeadlineListFilters } from '../../core/models/deadline.model';
 import type { IcalExportPrivacyLevel } from './useIcalExportHandlers';
 
@@ -38,38 +42,43 @@ export function DeadlineIcalExportPanel({ onExport }: { onExport: (privacyLevel:
   }
 
   return (
-    <section className="industrial-panel industrial-ical-export" data-e2e="deadline-ical-export-panel" aria-labelledby="ical-export-title" aria-describedby="ical-export-desc">
-      <div className="industrial-panel-header compact">
-        <div>
-          <p className="industrial-kicker">iCal-Export</p>
-          <h2 id="ical-export-title">Fristen datensparsam exportieren</h2>
-          <p id="ical-export-desc">Standard ist process_type: echte Fristen mit sprechendem Prozesstitel, ohne Personen- oder Fallinhalte.</p>
-        </div>
-      </div>
-      <div className="industrial-form industrial-form-deadline mt-4">
-        <label>
-          <span>Datenschutzstufe</span>
-          <select data-e2e="deadline-ical-privacy-level" value={privacyLevel} onChange={(event) => setPrivacyLevel(event.target.value as IcalExportPrivacyLevel)} aria-describedby="ical-privacy-help">
-            <option value="process_type">process_type · Standard</option>
-            <option value="privacy_first">privacy_first · maximal anonym</option>
-            <option value="case_reference">case_reference · mit Fallreferenz</option>
-            <option value="details">details · nur nach Prüfung</option>
-          </select>
-        </label>
-        <label>
-          <span>Umfang</span>
-          <select data-e2e="deadline-ical-scope" value={scope} onChange={(event) => setScope(event.target.value as ExportScope)}>
-            <option value="open">offene und überfällige Fristen</option>
-            <option value="dashboard">nur Dashboard-relevante Fristen</option>
-            <option value="all">alle Fristen</option>
-          </select>
-        </label>
-        <button type="button" className="industrial-secondary-button" onClick={() => void exportIcal()} data-e2e="export-deadlines-ical">
+    <IndustrialPanel
+      className="industrial-ical-export"
+      kicker="iCal-Export"
+      title="Fristen datensparsam exportieren"
+      description="Standard ist process_type: echte Fristen mit sprechendem Prozesstitel, ohne Personen- oder Fallinhalte."
+      ariaLabel="iCal-Export"
+    >
+      <div className="industrial-form industrial-form-deadline mt-4" data-e2e="deadline-ical-export-panel">
+        <SelectInput
+          label="Datenschutzstufe"
+          data-e2e="deadline-ical-privacy-level"
+          value={privacyLevel}
+          onValueChange={(value) => setPrivacyLevel(value as IcalExportPrivacyLevel)}
+          helpText={PRIVACY_HELP[privacyLevel]}
+          options={[
+            { value: 'process_type', label: 'process_type · Standard' },
+            { value: 'privacy_first', label: 'privacy_first · maximal anonym' },
+            { value: 'case_reference', label: 'case_reference · mit Fallreferenz' },
+            { value: 'details', label: 'details · nur nach Prüfung' }
+          ]}
+        />
+        <SelectInput
+          label="Umfang"
+          data-e2e="deadline-ical-scope"
+          value={scope}
+          onValueChange={(value) => setScope(value as ExportScope)}
+          options={[
+            { value: 'open', label: 'offene und überfällige Fristen' },
+            { value: 'dashboard', label: 'nur Dashboard-relevante Fristen' },
+            { value: 'all', label: 'alle Fristen' }
+          ]}
+        />
+        <ToolbarButton onClick={() => void exportIcal()} data-e2e="export-deadlines-ical">
           <Download className="h-4 w-4" aria-hidden="true" /> iCal exportieren
-        </button>
+        </ToolbarButton>
       </div>
-      <p id="ical-privacy-help" className="industrial-table-secondary">{PRIVACY_HELP[privacyLevel]}</p>
-      {error && <div className="industrial-message industrial-message-warning" role="alert">{error}</div>}
-    </section>
+      {error ? <ModuleFeedback items={[{ id: 'ical-export-error', tone: 'warning', message: error }]} /> : null}
+    </IndustrialPanel>
   );
 }

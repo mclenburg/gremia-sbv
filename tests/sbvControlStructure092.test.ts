@@ -43,5 +43,8 @@ describe('SBV-Steuerungsstruktur 0.9.2', () => {
     expect(app).toContain('currentView === "sbv_control"');
     expect(view).toContain('activeSection');
     expect(view).toContain('onNavigate');
+    expect(view).toContain('WorkbenchPage');
+    expect(view).toContain('WorkbenchWorkspace');
+    expect(view).not.toContain('sbv-control-shell');
   });
 });

@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { HelpCircle } from 'lucide-react';
+import { ToolbarButton, IndustrialButton } from '../../shared/components/IndustrialButton';
+import { EmptyState } from '../../shared/components/WorkbenchLayout';
+import { IndustrialModal } from '../../shared/dialogs/IndustrialDialogs';
 import type { CaseRecord } from '../../core/models/case.model';
 import type { EqualizationProcessRecord, EqualizationStatus } from '../../core/models/equalization.model';
 import type { CaseNodeTarget } from '../../core/navigation/caseNodeTarget';
@@ -99,10 +102,10 @@ export function EqualizationView({ cases, onOpenCaseNode }: { cases: CaseRecord[
         feedbackItems={[loading ? { id: 'equalization-loading', message: 'Gleichstellungsverfahren werden geladen …' } : null, error ? { id: 'equalization-error', tone: 'warning', message: error } : null]}
         emptyText="Keine Verfahren in diesem Status."
         helpAction={(
-          <button type="button" className="industrial-secondary-button compact" onClick={() => setShowHelp(true)} aria-label="Hilfe zur Gleichstellungsübersicht öffnen">
+          <ToolbarButton onClick={() => setShowHelp(true)} aria-label="Hilfe zur Gleichstellungsübersicht öffnen">
             <HelpCircle className="h-4 w-4" />
             Hilfe
-          </button>
+          </ToolbarButton>
         )}
         renderItem={(card) => (
           <ProcessOverviewCard
@@ -112,20 +115,24 @@ export function EqualizationView({ cases, onOpenCaseNode }: { cases: CaseRecord[
           />
         )}
       >
-        {!loading && !error && groups.length === 0 && <div className="industrial-empty">Noch keine Gleichstellungs- oder GdB-Verfahren vorhanden. Lege das Verfahren in der Fallakte über die Fußleiste an.</div>}
+        {!loading && !error && groups.length === 0 && (
+          <EmptyState
+            title="Keine Verfahren"
+            text="Noch keine Gleichstellungs- oder GdB-Verfahren vorhanden. Lege das Verfahren in der Fallakte über die Fußleiste an."
+          />
+        )}
       </ProcessOverviewPage>
 
       {showHelp && (
-        <div className="industrial-modal-backdrop" role="dialog" aria-modal="true">
-          <section className="industrial-modal">
-            <h2>Gleichstellung / GdB</h2>
-            <p>Diese Übersicht zeigt Beratungs-, Antrags-, Bescheid- und Widerspruchsstände. Mit einem Klick öffnet sich die Fallakte direkt am Verfahren.</p>
-            <p>Wichtig sind Antragseinreichung, Geschäftszeichen, Bescheidzugang und Widerspruchsfrist.</p>
-            <div className="industrial-modal-actions">
-              <button type="button" className="industrial-button" onClick={() => setShowHelp(false)}>Verstanden</button>
-            </div>
-          </section>
-        </div>
+        <IndustrialModal
+          title="Gleichstellung / GdB"
+          kicker="Hilfe"
+          description="Diese Übersicht zeigt Beratungs-, Antrags-, Bescheid- und Widerspruchsstände. Mit einem Klick öffnet sich die Fallakte direkt am Verfahren."
+          onClose={() => setShowHelp(false)}
+          actions={<IndustrialButton onClick={() => setShowHelp(false)}>Verstanden</IndustrialButton>}
+        >
+          <p>Wichtig sind Antragseinreichung, Geschäftszeichen, Bescheidzugang und Widerspruchsfrist.</p>
+        </IndustrialModal>
       )}
     </>
   );

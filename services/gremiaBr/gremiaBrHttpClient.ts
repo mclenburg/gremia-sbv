@@ -1,6 +1,7 @@
 import { checkGremiaBrEndpoint, validateGremiaBrBaseUrl } from './gremiaBrPolicy.js';
 import type { GremiaBrRequestOptions } from './gremiaBrTypes.js';
 import type { CreatePersonalDataAuditInput } from '../../src/app/core/models/audit.model.js';
+import { auditGremiaBrReadRequest } from '../auditEventBuilders.js';
 
 export type GremiaBrFetch = (input: string, init?: RequestInit) => Promise<Response>;
 export type GremiaBrAuditSink = { append(input: CreatePersonalDataAuditInput): unknown };
@@ -107,16 +108,10 @@ export class GremiaBrHttpClient {
 
   private auditRequest(endpoint: string, outcome: string, status?: number): void {
     if (!this.auditLog) return;
-    this.auditLog.append({
-      action: endpoint.startsWith('GET ') ? 'read' : 'security',
-      subjectType: 'gremia_br_http_request',
-      subjectId: endpoint,
-      purpose: 'Gremia.BR-Lesebrücke: HTTP-Anfrage ohne Inhaltsdaten protokollieren.',
-      metadata: {
-        endpoint,
-        outcome,
-        ...(typeof status === 'number' ? { status } : {}),
-      },
-    });
+    this.auditLog.append(auditGremiaBrReadRequest({
+      endpoint,
+      outcome,
+      ...(typeof status === 'number' ? { status } : {}),
+    }));
   }
 }

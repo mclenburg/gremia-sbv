@@ -10,6 +10,7 @@ Gremia.SBV ist Fachsoftware für besonders sensible Arbeit. Beiträge sind willk
 - Sie bringen Verhaltenstests mit.
 - Sie verschlechtern Barrierefreiheit nicht.
 - Sie vermeiden neue Abhängigkeiten, solange sie nicht gut begründet sind.
+- UI-Beiträge nutzen zentrale Komponenten; lokale Nachbauten von Panels, Buttons, Formularen, Badges, Dialogen, Empty-States, Listen oder Tabellen gehören nicht in Feature-Views.
 
 ## Architekturregeln
 

@@ -2,6 +2,8 @@ import { AlertTriangle, CalendarClock, CheckCircle2, Edit3, ShieldAlert } from '
 import type { CaseRecord } from '../../core/models/case.model';
 import type { DeadlineDashboardItem } from '../../core/models/deadline.model';
 import { DeadlineSeverityBadge, DeadlineStateBadge } from './DeadlineBadge';
+import { ToolbarButton } from '../../shared/components/IndustrialButton';
+import { EmptyState, IndustrialPanel, IndustrialRecordCard, IndustrialWarningPanel } from '../../shared/components/WorkbenchLayout';
 
 function formatDueDate(iso: string): string {
   return new Intl.DateTimeFormat('de-DE', {
@@ -43,7 +45,7 @@ export function DeadlineDashboardPanel({
   const criticalCount = items.filter((item) => item.dashboardState === 'critical' || item.dashboardState === 'overdue').length;
 
   return (
-    <section className="industrial-panel industrial-deadline-panel">
+    <IndustrialPanel className="industrial-deadline-panel">
       <div className="industrial-panel-header">
         <div>
           <div className="industrial-chip industrial-chip-warning">
@@ -62,17 +64,17 @@ export function DeadlineDashboardPanel({
       </div>
 
       {criticalCount > 0 && (
-        <div className="industrial-alert industrial-alert-danger">
+        <IndustrialWarningPanel className="industrial-alert-danger">
           <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0" />
           <p>{criticalCount} Frist(en) sind kritisch oder überfällig. Diese Vorgänge zuerst prüfen und die Bearbeitung dokumentieren.</p>
-        </div>
+        </IndustrialWarningPanel>
       )}
 
-      {!items.length && <div className="industrial-empty">Keine offenen Fristen im 48h-Fenster.</div>}
+      {!items.length && <EmptyState title="Keine offenen Fristen" text="Keine offenen Fristen im 48h-Fenster." />}
 
       <div className="industrial-deadline-grid">
         {items.map((item) => (
-          <article key={item.id} className="industrial-deadline-card">
+          <IndustrialRecordCard key={item.id} className="industrial-deadline-card">
             <div className="industrial-card-status-row">
               <DeadlineStateBadge state={item.dashboardState} />
               <DeadlineSeverityBadge severity={item.severity} />
@@ -89,18 +91,18 @@ export function DeadlineDashboardPanel({
               <p>{item.actionHint}</p>
             </div>
             <div className="industrial-card-actions">
-              <button type="button" className="industrial-secondary-button" onClick={() => onEdit?.(item)}>
+              <ToolbarButton onClick={() => onEdit?.(item)}>
                 <Edit3 className="h-4 w-4" />
                 Bearbeiten
-              </button>
-              <button type="button" className="industrial-secondary-button" onClick={() => onComplete?.(item)}>
+              </ToolbarButton>
+              <ToolbarButton onClick={() => onComplete?.(item)}>
                 <CheckCircle2 className="h-4 w-4" />
                 Erledigt
-              </button>
+              </ToolbarButton>
             </div>
-          </article>
+          </IndustrialRecordCard>
         ))}
       </div>
-    </section>
+    </IndustrialPanel>
   );
 }

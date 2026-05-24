@@ -19,6 +19,7 @@ describe('case handover placement 0.9.2', () => {
   it('nutzt modale Übergabe-Dialoge statt stiller Browser-Prompts', () => {
     const casesView = readFileSync('src/app/features/cases/CasesView.tsx', 'utf8');
     const dialog = readFileSync('src/app/features/cases/CaseHandoverTransferDialogs.tsx', 'utf8');
+    const feedback = readFileSync('src/app/shared/components/ImportExportFeedback.tsx', 'utf8');
 
     expect(casesView).toContain('CaseHandoverTransferDialogs');
     expect(casesView).not.toContain('window.prompt(\'Transport-Passphrase');
@@ -27,11 +28,12 @@ describe('case handover placement 0.9.2', () => {
     expect(dialog).toContain('Bitte zuerst eine Übergabedatei auswählen.');
     expect(dialog).toContain('onSelectImportFile');
     expect(dialog).toContain('onInspectImport(importFile.filePath, importPassphrase)');
+    expect(dialog).toContain('ImportPackageReview');
     expect(dialog).not.toContain('Paket auswählen und prüfen');
     expect(dialog).not.toContain('onInspectImport(importPassphrase)');
     expect(dialog).not.toContain('disabled={importBusy || !importPassphrase.trim()}');
-    expect(dialog).toContain('Als neue lokale Übergabeakte anlegen');
-    expect(dialog).toContain('Mit bestehender Fallakte zusammenführen/aktualisieren');
+    expect(feedback).toContain('Als neue lokale Übergabeakte anlegen');
+    expect(feedback).toContain('Mit bestehender Fallakte zusammenführen/aktualisieren');
   });
   it('trennt Dateiauswahl und Passphrase-Prüfung im Importablauf', () => {
     const ipc = readFileSync('electron/ipc/caseHandoverIpc.ts', 'utf8');

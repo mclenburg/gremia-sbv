@@ -1,0 +1,118 @@
+import { readFileSync } from "node:fs";
+import ts from "typescript";
+import { describe, expect, it } from "vitest";
+
+function source(path: string): string {
+  return readFileSync(path, "utf8");
+}
+
+type JsxTagFinding = { tag: string; line: number; character: number };
+
+function nativeFormControlLocations(path: string): JsxTagFinding[] {
+  const text = source(path);
+  const ast = ts.createSourceFile(
+    path,
+    text,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TSX,
+  );
+  const locations: JsxTagFinding[] = [];
+
+  function hasReadOnlyAttribute(node: ts.JsxOpeningElement): boolean {
+    return node.attributes.properties.some(
+      (attribute) =>
+        ts.isJsxAttribute(attribute) &&
+        ts.isIdentifier(attribute.name) &&
+        attribute.name.text === "readOnly",
+    );
+  }
+
+  function visit(node: ts.Node) {
+    if (ts.isJsxOpeningElement(node) && ts.isIdentifier(node.tagName)) {
+      const tag = node.tagName.text;
+      if (["input", "select", "label"].includes(tag)) {
+        const { line, character } = ast.getLineAndCharacterOfPosition(
+          node.getStart(ast),
+        );
+        locations.push({ tag, line: line + 1, character: character + 1 });
+      }
+      if (tag === "textarea" && !hasReadOnlyAttribute(node)) {
+        const { line, character } = ast.getLineAndCharacterOfPosition(
+          node.getStart(ast),
+        );
+        locations.push({ tag, line: line + 1, character: character + 1 });
+      }
+    }
+    ts.forEachChild(node, visit);
+  }
+
+  visit(ast);
+  return locations;
+}
+
+describe("Formular-Zentralisierung Patch P4", () => {
+  it("stellt zentrale Formularbausteine mit a11y-Verkettung bereit", () => {
+    const form = source("src/app/shared/components/IndustrialForm.tsx");
+    const css = source("src/app/ui/responsiveDesign.css");
+
+    for (const component of [
+      "FormSection",
+      "FormField",
+      "TextInput",
+      "TextareaInput",
+      "SelectInput",
+      "DateInput",
+      "PasswordInput",
+      "FormActions",
+    ]) {
+      expect(form).toContain(`function ${component}`);
+    }
+
+    expect(form).toContain("aria-describedby={describedBy}");
+    expect(form).toContain("aria-invalid={invalid ? \"true\" : undefined}");
+    expect(form).toContain('role="alert"');
+    expect(form).toContain("aria-required={required ? \"true\" : undefined}");
+
+    for (const selector of [
+      ".industrial-form-section",
+      ".industrial-field-label",
+      ".industrial-field-help",
+      ".industrial-field-error",
+      ".industrial-field-invalid",
+      ".industrial-checkbox-field",
+      ".industrial-form-actions",
+    ]) {
+      expect(css).toContain(selector);
+    }
+  });
+
+  it("setzt Compliance-Formulare auf zentrale Komponenten und sperrt fehlerhafte Pflichtfelder negativ ab", () => {
+    const compliance = source("src/app/features/compliance/ComplianceView.tsx");
+
+    expect(compliance).toContain("FormSection");
+    expect(compliance).toContain("DateTimeInput");
+    expect(compliance).toContain("DateInput");
+    expect(compliance).toContain("SelectInput");
+    expect(compliance).toContain("TextareaInput");
+    expect(compliance).toContain("CheckboxField");
+    expect(compliance).toContain('disabled={!input.summary.trim()}');
+    expect(compliance).toContain("Kurzbeschreibung ist erforderlich.");
+    expect(compliance).toContain("Name ist für die Auskunftsantwort erforderlich.");
+
+    expect(nativeFormControlLocations("src/app/features/compliance/ComplianceView.tsx")).toEqual([]);
+  });
+
+  it("setzt das SBV-Ressourcenformular auf zentrale Komponenten und blockiert leere Nachweistitel", () => {
+    const sbvControl = source("src/app/features/sbv-control/SbvControlView.tsx");
+
+    expect(sbvControl).toContain("SelectInput");
+    expect(sbvControl).toContain("DateInput");
+    expect(sbvControl).toContain("TextareaInput");
+    expect(sbvControl).toContain("FormActions");
+    expect(sbvControl).toContain('disabled={!resourceForm.title?.trim()}');
+    expect(sbvControl).toContain("Titel ist für den Nachweis erforderlich.");
+
+    expect(nativeFormControlLocations("src/app/features/sbv-control/SbvControlView.tsx")).toEqual([]);
+  });
+});

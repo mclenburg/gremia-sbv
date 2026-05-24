@@ -99,15 +99,30 @@ const AUDIT_METADATA_ALLOWLIST = new Set([
   'riskLevel',
   'status',
   'authorityNotificationChecked',
+  // Zentrale P9-Audit-Builder: Fallübergabe, SBV-Ressourcen, Gremia.BR-Lesebrücke.
+  'packageId',
+  'caseCount',
+  'measureCount',
+  'documentCount',
+  'deadlineCount',
+  'validUntilPresent',
+  'mode',
+  'result',
+  'reasonCode',
+  'recordType',
+  'endpoint',
+  'outcome',
+  'statusCode',
 ]);
-const UUID_OR_STABLE_ID_PATTERN = /^[a-zA-Z0-9:_.-]{3,160}$/;
+const AUDIT_SAFE_METADATA_TEXT_PATTERN = /^[\p{Letter}\p{Number}:_.\/ -]{2,180}$/u;
 
 function normalizeAllowedAuditMetadataValue(value: unknown): string | null {
   if (value == null) return null;
   if (value instanceof Date) return value.toISOString();
   if (typeof value === 'string') {
     const text = value.trim();
-    return UUID_OR_STABLE_ID_PATTERN.test(text) ? text : null;
+    if (DIRECT_IDENTIFIER_PATTERNS.some((pattern) => pattern.test(text))) return null;
+    return AUDIT_SAFE_METADATA_TEXT_PATTERN.test(text) ? text : null;
   }
   if (typeof value === 'number' || typeof value === 'boolean') return String(value);
   return null;

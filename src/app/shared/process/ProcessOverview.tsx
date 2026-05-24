@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
-import { ModuleFrame } from '../components/ModuleFrame';
 import { ModuleFeedback, type ModuleFeedbackItem } from '../components/ModuleFeedback';
+import { ToolbarButton } from '../components/IndustrialButton';
+import { EmptyState, IndustrialPanel, IndustrialSelectionCard, WorkbenchPage, WorkbenchSummary } from '../components/WorkbenchLayout';
+import { ProcessStatusBadge } from '../components/StatusBadges';
 
 export type ProcessOverviewStatusGroup<TStatus extends string, TRecord> = {
   status: TStatus;
@@ -65,19 +67,24 @@ export function ProcessOverviewCard<TStatus extends string>({
   onOpen: (item: ProcessOverviewCardModel<TStatus>) => void;
 }) {
   return (
-    <button type="button" className={`process-overview-card ${item.isOverdue ? 'is-critical' : ''}`} onClick={() => onOpen(item)}>
-      <div>
-        <strong>{item.caseNumber}</strong>
-        <span>{item.displayName}</span>
-        <p>{item.summary}</p>
-      </div>
-      <div className="process-overview-card-meta">
-        <span className="process-overview-badge">{item.statusLabel}</span>
-        {item.riskLabel && <span className="process-overview-badge muted">{item.riskLabel}</span>}
-        {item.dueLabel && <span className={`process-overview-badge ${item.isOverdue ? 'warning' : 'muted'}`}>Frist: {item.dueLabel}</span>}
-        {item.updatedLabel && <small>geändert: {item.updatedLabel}</small>}
-      </div>
-    </button>
+    <ToolbarButton
+      className={`process-overview-card ${item.isOverdue ? 'is-critical' : ''}`}
+      onClick={() => onOpen(item)}
+    >
+      <IndustrialSelectionCard tone={item.isOverdue ? 'danger' : 'default'}>
+        <div>
+          <strong>{item.caseNumber}</strong>
+          <span>{item.displayName}</span>
+          <p>{item.summary}</p>
+        </div>
+        <div className="process-overview-card-meta">
+          <ProcessStatusBadge status={item.statusLabel} label={item.statusLabel} />
+          {item.riskLabel && <ProcessStatusBadge status="info" label={item.riskLabel} />}
+          {item.dueLabel && <ProcessStatusBadge status={item.isOverdue ? 'overdue' : 'open'} label={`Frist: ${item.dueLabel}`} />}
+          {item.updatedLabel && <small>geändert: {item.updatedLabel}</small>}
+        </div>
+      </IndustrialSelectionCard>
+    </ToolbarButton>
   );
 }
 
@@ -93,14 +100,14 @@ export function ProcessOverviewGroup<TStatus extends string>({
   const [open, setOpen] = useState(!group.collapsedByDefault);
   return (
     <section className={`process-overview-group ${group.records.length === 0 ? 'is-empty' : ''}`}>
-      <button type="button" className="process-overview-group-header" onClick={() => setOpen((current) => !current)} aria-expanded={open}>
+      <ToolbarButton className="process-overview-group-header" onClick={() => setOpen((current) => !current)} aria-expanded={open}>
         <span>{open ? '▾' : '▸'}</span>
         <strong>{group.label}</strong>
         <em>{group.records.length}</em>
-      </button>
+      </ToolbarButton>
       {open && (
         <div className="process-overview-group-body">
-          {group.records.length > 0 ? group.records.map(renderItem) : <div className="industrial-empty compact">{emptyText}</div>}
+          {group.records.length > 0 ? group.records.map(renderItem) : <EmptyState title="Keine Einträge" text={emptyText} />}
         </div>
       )}
     </section>
@@ -131,30 +138,23 @@ export function ProcessOverviewPage<TStatus extends string>({
   children?: ReactNode;
 }) {
   return (
-    <ModuleFrame title={title} kicker={kicker} description={description}>
+    <WorkbenchPage title={title} kicker={kicker} description={description}>
       <ModuleFeedback items={feedbackItems} />
-      <section className="industrial-panel process-overview-panel">
+      <IndustrialPanel className="process-overview-panel">
         {helpAction && (
           <div className="process-overview-topline process-overview-topline-actions">
             <span aria-hidden="true" />
             {helpAction}
           </div>
         )}
-        <div className="process-overview-stats" aria-label="Kennzahlen">
-          {stats.map((stat) => (
-            <div key={stat.label} className="process-overview-stat">
-              <span>{stat.label}</span>
-              <strong>{stat.value}</strong>
-            </div>
-          ))}
-        </div>
+        <WorkbenchSummary items={stats.map((stat) => ({ label: stat.label, value: stat.value }))} ariaLabel="Kennzahlen" />
         {children}
         <div className="process-overview-groups">
           {groups.map((group) => (
             <ProcessOverviewGroup key={group.status} group={group} renderItem={renderItem} emptyText={emptyText} />
           ))}
         </div>
-      </section>
-    </ModuleFrame>
+      </IndustrialPanel>
+    </WorkbenchPage>
   );
 }

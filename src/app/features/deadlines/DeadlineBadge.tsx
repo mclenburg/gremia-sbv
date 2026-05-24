@@ -1,4 +1,8 @@
-import type { DeadlineDashboardState, DeadlineSeverity } from '../../core/models/deadline.model';
+import type {
+  DeadlineDashboardState,
+  DeadlineSeverity,
+} from '../../core/models/deadline.model';
+import { DeadlineBadge, RiskBadge } from '../../shared/components/StatusBadges';
 
 const stateLabels: Record<DeadlineDashboardState, string> = {
   hidden: 'Ausgeblendet',
@@ -15,25 +19,10 @@ const severityLabels: Record<DeadlineSeverity, string> = {
   fatal: 'Kritisch'
 };
 
-const stateClass: Record<DeadlineDashboardState, string> = {
-  hidden: 'industrial-status-muted',
-  upcoming: 'industrial-status-neutral',
-  due_soon: 'industrial-status-warning',
-  critical: 'industrial-status-danger',
-  overdue: 'industrial-status-fatal'
-};
-
-const severityClass: Record<DeadlineSeverity, string> = {
-  normal: 'industrial-status-muted',
-  important: 'industrial-status-warning',
-  critical: 'industrial-status-danger',
-  fatal: 'industrial-status-fatal'
-};
-
 export function DeadlineStateBadge({ state }: { state: DeadlineDashboardState }) {
-  return <span className={`industrial-status-badge ${stateClass[state]}`}>{stateLabels[state]}</span>;
+  return <DeadlineBadge state={state} label={stateLabels[state]} ariaLabel={`Fristenstatus ${stateLabels[state]}`} />;
 }
 
 export function DeadlineSeverityBadge({ severity }: { severity: DeadlineSeverity }) {
-  return <span className={`industrial-status-badge ${severityClass[severity]}`}>{severityLabels[severity]}</span>;
+  return <RiskBadge risk={severity} label={severityLabels[severity]} ariaLabel={`Fristenpriorität ${severityLabels[severity]}`} />;
 }

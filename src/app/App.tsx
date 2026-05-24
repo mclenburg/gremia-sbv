@@ -58,7 +58,6 @@ import type { AuthMode } from "./core/auth/authTypes";
 import { waitForBridge } from "./core/bridge/waitForBridge";
 import type { CaseNodeTarget } from "./core/navigation/caseNodeTarget";
 import "./accessibility.css";
-import "./confirmDialog.css";
 import "./accessibilityLiveRegion.css";
 import "./ui/responsiveDesign.css";
 import "./caseModalResponsive.css";

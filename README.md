@@ -36,6 +36,7 @@ Der Anspruch ist klar:
 - **SBV-Perspektive:** Die Anwendung folgt den Aufgaben und Schutzbedürfnissen der SBV – nicht einer allgemeinen Personalaktenlogik.
 - **Barrierefreiheit:** Bedienung, Rückmeldungen und Tests berücksichtigen assistive Nutzung.
 - **Modularität:** Fachmodule bleiben klar getrennt und testbar.
+- **Einheitliche Bedienoberfläche:** Zentrale Workbench-, Formular-, Dialog-, Listen- und Statusbausteine sorgen dafür, dass Fachmodule konsistent und barrierearm bleiben.
 
 ## Zentrale Funktionen
 

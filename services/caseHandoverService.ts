@@ -3,6 +3,13 @@ import path from 'node:path';
 import { createCipheriv, createDecipheriv, createHash, randomBytes, randomUUID, scryptSync } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
+import type { CreatePersonalDataAuditInput } from '../src/app/core/models/audit.model.js';
+import {
+  auditCaseHandoverContinuedAfterExpiry,
+  auditCaseHandoverExported,
+  auditCaseHandoverImported,
+  auditCaseHandoverImportInspected,
+} from './auditEventBuilders.js';
 import { SearchIndexService } from './search/searchIndexService.js';
 import {
   buildCandidateMatches,
@@ -131,8 +138,8 @@ export class CaseHandoverService {
     new PersonalDataAuditLogService(db);
   }
 
-  private audit(db: DatabaseAdapter, action: 'export' | 'import' | 'update', purpose: string, metadata: Record<string, unknown>): void {
-    try { new PersonalDataAuditLogService(db).append({ action, subjectType: 'case_handover', purpose, metadata }); } catch (error) { console.warn('Gremia.SBV case handover audit write failed', error); }
+  private audit(db: DatabaseAdapter, event: CreatePersonalDataAuditInput): void {
+    try { new PersonalDataAuditLogService(db).append(event); } catch (error) { console.warn('Gremia.SBV case handover audit write failed', error); }
   }
 
   private rows(db: DatabaseAdapter, sql: string, ...params: unknown[]): Row[] { try { return db.prepare<Row>(sql).all(...params); } catch { return []; } }
@@ -230,7 +237,7 @@ export class CaseHandoverService {
     const envelope = this.encryptPayload(payload, input.passphrase);
     await fs.promises.mkdir(path.dirname(targetPath), { recursive: true });
     await fs.promises.writeFile(targetPath, JSON.stringify(envelope, null, 2), { mode: 0o600 });
-    this.audit(db, 'export', 'Verschlüsseltes Fallübergabepaket erstellt', safeAuditMetadata({ packageId: payload.packageId, caseCount: payload.cases.length, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, hasExpiry: Boolean(payload.expiresAt), expiresAt: payload.expiresAt, result: 'success' }));
+    this.audit(db, auditCaseHandoverExported({ packageId: payload.packageId, caseCount: payload.cases.length, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, validUntilPresent: Boolean(payload.expiresAt), result: 'success' }));
     return { exported: true, filePath: targetPath, packageId: payload.packageId, caseCount: payload.cases.length, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, expiresAt: payload.expiresAt };
   }
 
@@ -242,11 +249,11 @@ export class CaseHandoverService {
       const matches = buildCandidateMatches({ exportedCaseNumber: firstCase.case_number, exportedDisplayName: firstCase.display_name, exportedFirstName: person?.first_name, exportedLastName: person?.last_name, localCases });
       const expired = isExpired(payload.expiresAt);
       if (expired) {
-        this.audit(db, 'import', 'Fallübergabepaket wegen abgelaufener Gültigkeit nicht zum Import zugelassen', safeAuditMetadata({ packageId: payload.packageId, caseCount: payload.cases.length, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, hasExpiry: Boolean(payload.expiresAt), expiresAt: payload.expiresAt, result: 'failed', reasonCode: 'expired_transfer_package' }));
+        this.audit(db, auditCaseHandoverImportInspected({ packageId: payload.packageId, caseCount: payload.cases.length, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, validUntilPresent: Boolean(payload.expiresAt), result: 'failed', reasonCode: 'expired_transfer_package' }));
       }
       return { valid: true, packageId: payload.packageId, createdAt: payload.createdAt, expiresAt: payload.expiresAt, isExpired: expired, caseCount: payload.cases.length, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, matches, warnings: expired ? ['Das Übergabepaket ist abgelaufen und darf nicht mehr importiert werden. Bitte eine neue Übergabedatei anfordern.'] : [] };
     } catch (error) {
-      this.audit(db, 'import', 'Fallübergabepaket-Prüfung fehlgeschlagen', safeAuditMetadata({ packageId: envelope?.packageId, result: 'failed', reasonCode: 'invalid_passphrase_or_tampered_package' }));
+      this.audit(db, auditCaseHandoverImportInspected({ packageId: envelope?.packageId, result: 'failed', reasonCode: 'invalid_passphrase_or_tampered_package' }));
       throw error;
     }
   }
@@ -257,7 +264,7 @@ export class CaseHandoverService {
     const payload = this.decryptEnvelope(envelope, input.passphrase);
     const expired = isExpired(payload.expiresAt);
     if (expired) {
-      this.audit(db, 'import', 'Fallübergabepaket wegen abgelaufener Gültigkeit abgelehnt', safeAuditMetadata({ packageId: payload.packageId, caseCount: payload.cases.length, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, hasExpiry: Boolean(payload.expiresAt), expiresAt: payload.expiresAt, mode: input.mode, result: 'failed', reasonCode: 'expired_transfer_package' }));
+      this.audit(db, auditCaseHandoverImported({ packageId: payload.packageId, caseCount: payload.cases.length, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, validUntilPresent: Boolean(payload.expiresAt), mode: input.mode, result: 'failed', reasonCode: 'expired_transfer_package' }));
       throw new Error('Das Fallübergabepaket ist abgelaufen und darf nicht importiert werden. Bitte eine neue Übergabedatei anfordern.');
     }
     const duplicate = this.row(db, 'SELECT id FROM case_handover_imports WHERE package_id = ?', payload.packageId);
@@ -359,7 +366,7 @@ export class CaseHandoverService {
 
     try { for (const id of [...createdCaseIds, ...updatedCaseIds]) new SearchIndexService(db).reindexCase(id); } catch { /* index best effort */ }
     db.prepare('UPDATE case_handover_imports SET created_case_count = ?, updated_case_count = ? WHERE id = ?').run(createdCaseIds.length, updatedCaseIds.length, importId);
-    this.audit(db, 'import', 'Verschlüsseltes Fallübergabepaket importiert', safeAuditMetadata({ packageId: payload.packageId, caseCount: payload.cases.length, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, hasExpiry: Boolean(payload.expiresAt), expiresAt: payload.expiresAt, mode: input.mode, result: 'success' }));
+    this.audit(db, auditCaseHandoverImported({ packageId: payload.packageId, caseCount: payload.cases.length, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, validUntilPresent: Boolean(payload.expiresAt), mode: input.mode, result: 'success' }));
     return { imported: true, packageId: payload.packageId, mode: input.mode, createdCaseIds, updatedCaseIds, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, expiresAt: payload.expiresAt, expired: false };
   }
 
@@ -369,7 +376,7 @@ export class CaseHandoverService {
     const timestamp = nowIso();
     db.prepare(`UPDATE cases SET handover_status = 'continued_after_expiry', handover_continue_confirmed_at = ?, handover_continue_reason = ? WHERE id = ? AND (handover_status = 'expired' OR (handover_status = 'active' AND handover_valid_until IS NOT NULL AND handover_valid_until < ?))`).run(timestamp, input.reason.trim(), input.caseId, timestamp);
     db.prepare(`UPDATE case_measures SET handover_status = 'continued_after_expiry', handover_continue_confirmed_at = ?, handover_continue_reason = ? WHERE case_id = ? AND (handover_status = 'expired' OR (handover_status = 'active' AND handover_valid_until IS NOT NULL AND handover_valid_until < ?))`).run(timestamp, input.reason.trim(), input.caseId, timestamp);
-    this.audit(db, 'update', 'Weitere Bearbeitung abgelaufener Übergabedaten bestätigt', safeAuditMetadata({ result: 'confirmed', reasonCode: 'continued_after_expiry' }));
+    this.audit(db, auditCaseHandoverContinuedAfterExpiry());
     return { caseId: input.caseId, confirmed: true, confirmedAt: timestamp };
   }
 
