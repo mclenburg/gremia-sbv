@@ -1,9 +1,41 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync, statSync } from "node:fs";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
 
 function source(path: string): string {
   return readFileSync(path, "utf8");
+}
+
+function featureSources(dir: string): string {
+  const chunks: string[] = [];
+  function visit(path: string) {
+    for (const entry of readdirSync(path)) {
+      const child = `${path}/${entry}`;
+      if (statSync(child).isDirectory()) {
+        visit(child);
+      } else if (child.endsWith(".ts") || child.endsWith(".tsx")) {
+        chunks.push(source(child));
+      }
+    }
+  }
+  visit(dir);
+  return chunks.join("\n");
+}
+
+function tsxFilesUnder(dir: string): string[] {
+  const files: string[] = [];
+  function visit(path: string) {
+    for (const entry of readdirSync(path)) {
+      const child = `${path}/${entry}`;
+      if (statSync(child).isDirectory()) {
+        visit(child);
+      } else if (child.endsWith(".tsx")) {
+        files.push(child);
+      }
+    }
+  }
+  visit(dir);
+  return files;
 }
 
 function nativeButtonLocations(path: string): string[] {
@@ -64,12 +96,13 @@ describe("Button-Zentralisierung Patch P3", () => {
   });
 
   it("setzt die SBV-Steuerung auf zentrale Button-Komponenten statt nativer Feature-Buttons", () => {
-    const sbvControl = source("src/app/features/sbv-control/SbvControlView.tsx");
+    const sbvControl = featureSources("src/app/features/sbv-control");
 
     expect(sbvControl).toContain("IndustrialButton");
     expect(sbvControl).toContain("ToolbarButton");
     expect(sbvControl).toContain("GhostButton");
     expect(sbvControl).toContain("DangerButton");
-    expect(nativeButtonLocations("src/app/features/sbv-control/SbvControlView.tsx")).toEqual([]);
+    const nativeButtons = tsxFilesUnder("src/app/features/sbv-control").flatMap(nativeButtonLocations);
+    expect(nativeButtons).toEqual([]);
   });
 });

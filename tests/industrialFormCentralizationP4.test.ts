@@ -1,9 +1,41 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync, statSync } from "node:fs";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
 
 function source(path: string): string {
   return readFileSync(path, "utf8");
+}
+
+function featureSources(dir: string): string {
+  const chunks: string[] = [];
+  function visit(path: string) {
+    for (const entry of readdirSync(path)) {
+      const child = `${path}/${entry}`;
+      if (statSync(child).isDirectory()) {
+        visit(child);
+      } else if (child.endsWith(".ts") || child.endsWith(".tsx")) {
+        chunks.push(source(child));
+      }
+    }
+  }
+  visit(dir);
+  return chunks.join("\n");
+}
+
+function tsxFilesUnder(dir: string): string[] {
+  const files: string[] = [];
+  function visit(path: string) {
+    for (const entry of readdirSync(path)) {
+      const child = `${path}/${entry}`;
+      if (statSync(child).isDirectory()) {
+        visit(child);
+      } else if (child.endsWith(".tsx")) {
+        files.push(child);
+      }
+    }
+  }
+  visit(dir);
+  return files;
 }
 
 type JsxTagFinding = { tag: string; line: number; character: number };
@@ -104,15 +136,17 @@ describe("Formular-Zentralisierung Patch P4", () => {
   });
 
   it("setzt das SBV-Ressourcenformular auf zentrale Komponenten und blockiert leere Nachweistitel", () => {
-    const sbvControl = source("src/app/features/sbv-control/SbvControlView.tsx");
+    const sbvControl = featureSources("src/app/features/sbv-control");
+    const resourceForm = source("src/app/features/sbv-control/components/ResourceForm.tsx");
 
-    expect(sbvControl).toContain("SelectInput");
-    expect(sbvControl).toContain("DateInput");
-    expect(sbvControl).toContain("TextareaInput");
-    expect(sbvControl).toContain("FormActions");
-    expect(sbvControl).toContain('disabled={!resourceForm.title?.trim()}');
+    expect(resourceForm).toContain("SelectInput");
+    expect(resourceForm).toContain("DateInput");
+    expect(resourceForm).toContain("TextareaInput");
+    expect(resourceForm).toContain("FormActions");
+    expect(resourceForm).toContain('disabled={!resourceForm.title?.trim()}');
     expect(sbvControl).toContain("Titel ist für den Nachweis erforderlich.");
 
-    expect(nativeFormControlLocations("src/app/features/sbv-control/SbvControlView.tsx")).toEqual([]);
+    const nativeControls = tsxFilesUnder("src/app/features/sbv-control").flatMap(nativeFormControlLocations);
+    expect(nativeControls).toEqual([]);
   });
 });

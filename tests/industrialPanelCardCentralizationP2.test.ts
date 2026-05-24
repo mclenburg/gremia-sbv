@@ -1,8 +1,24 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync, statSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 function source(path: string): string {
   return readFileSync(path, "utf8");
+}
+
+function featureSources(dir: string): string {
+  const chunks: string[] = [];
+  function visit(path: string) {
+    for (const entry of readdirSync(path)) {
+      const child = `${path}/${entry}`;
+      if (statSync(child).isDirectory()) {
+        visit(child);
+      } else if (child.endsWith(".ts") || child.endsWith(".tsx")) {
+        chunks.push(source(child));
+      }
+    }
+  }
+  visit(dir);
+  return chunks.join("\n");
 }
 
 describe("Panel-/Card-Zentralisierung Patch P2", () => {
@@ -45,9 +61,7 @@ describe("Panel-/Card-Zentralisierung Patch P2", () => {
   });
 
   it("zieht SBV-Steuerung auf zentrale Panels und Record-/Selection-Cards", () => {
-    const sbvControl = source(
-      "src/app/features/sbv-control/SbvControlView.tsx",
-    );
+    const sbvControl = featureSources("src/app/features/sbv-control");
 
     expect(sbvControl).toContain("IndustrialPanel");
     expect(sbvControl).toContain("IndustrialRecordCard");

@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync, statSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
   complianceFindingToTone,
@@ -10,6 +10,24 @@ import {
 
 function source(path: string): string {
   return readFileSync(path, "utf8");
+}
+
+function sourcesUnder(dir: string): string {
+  const chunks: string[] = [];
+  function visit(path: string) {
+    for (const entry of readdirSync(path)) {
+      const child = `${path}/${entry}`;
+      if (statSync(child).isDirectory()) {
+        visit(child);
+        continue;
+      }
+      if (child.endsWith(".ts") || child.endsWith(".tsx")) {
+        chunks.push(source(child));
+      }
+    }
+  }
+  visit(dir);
+  return chunks.join("\n");
 }
 
 describe("Status-/Badge-Zentralisierung Patch P5", () => {
@@ -82,7 +100,7 @@ describe("Status-/Badge-Zentralisierung Patch P5", () => {
 
   it("zieht Compliance, SBV-Steuerung und Fristenanzeigen auf zentrale Badge-Komponenten", () => {
     const compliance = source("src/app/features/compliance/ComplianceView.tsx");
-    const sbvControl = source("src/app/features/sbv-control/SbvControlView.tsx");
+    const sbvControl = sourcesUnder("src/app/features/sbv-control");
     const deadlines = source("src/app/features/deadlines/DeadlineBadge.tsx");
 
     expect(compliance).toContain("ComplianceBadge");

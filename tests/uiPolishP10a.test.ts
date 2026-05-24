@@ -1,8 +1,24 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync, statSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 function source(path: string): string {
   return readFileSync(path, "utf8");
+}
+
+function featureSources(dir: string): string {
+  const chunks: string[] = [];
+  function visit(path: string) {
+    for (const entry of readdirSync(path)) {
+      const child = `${path}/${entry}`;
+      if (statSync(child).isDirectory()) {
+        visit(child);
+      } else if (child.endsWith(".ts") || child.endsWith(".tsx")) {
+        chunks.push(source(child));
+      }
+    }
+  }
+  visit(dir);
+  return chunks.join("\n");
 }
 
 describe("UI-Politur nach P10", () => {
@@ -27,14 +43,14 @@ describe("UI-Politur nach P10", () => {
   it("führt Pflichtfeldmarker inline und zeigt SBV-Nachweisfehler erst nach Interaktion oder Submit", () => {
     const form = source("src/app/shared/components/IndustrialForm.tsx");
     const css = source("src/app/ui/responsiveDesign.css");
-    const sbvControl = source("src/app/features/sbv-control/SbvControlView.tsx");
+    const sbvControl = featureSources("src/app/features/sbv-control");
 
     expect(form).toContain("industrial-field-required-marker");
     expect(css).toContain(".industrial-field-required-marker");
     expect(css).toContain("align-items: baseline");
     expect(sbvControl).toContain("resourceFormSubmitted");
     expect(sbvControl).toContain("resourceTitleTouched");
-    expect(sbvControl).toContain("onBlur={() => setResourceTitleTouched(true)}");
+    expect(sbvControl).toContain("onBlur={() => state.setResourceTitleTouched(true)}");
     expect(sbvControl).toContain("resourceTitleTouched || resourceFormSubmitted");
   });
 

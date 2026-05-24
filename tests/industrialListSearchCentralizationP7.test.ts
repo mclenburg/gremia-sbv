@@ -1,9 +1,25 @@
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { recordMatchesQuery } from '../src/app/shared/components/WorkbenchLayout';
 
 function source(path: string): string {
   return readFileSync(path, 'utf8');
+}
+
+function featureSources(dir: string): string {
+  const chunks: string[] = [];
+  function visit(path: string) {
+    for (const entry of readdirSync(path)) {
+      const child = `${path}/${entry}`;
+      if (statSync(child).isDirectory()) {
+        visit(child);
+      } else if (child.endsWith('.ts') || child.endsWith('.tsx')) {
+        chunks.push(source(child));
+      }
+    }
+  }
+  visit(dir);
+  return chunks.join('\n');
 }
 
 describe('Listen-, Such- und Tabellenzentralisierung Patch P7', () => {
@@ -29,7 +45,7 @@ describe('Listen-, Such- und Tabellenzentralisierung Patch P7', () => {
 
   it('zieht Compliance und SBV-Steuerung auf zentrale Such-, Listen- und Tabellenbausteine', () => {
     const compliance = source('src/app/features/compliance/ComplianceView.tsx');
-    const sbvControl = source('src/app/features/sbv-control/SbvControlView.tsx');
+    const sbvControl = featureSources('src/app/features/sbv-control');
 
     expect(compliance).toContain('SearchToolbar');
     expect(compliance).toContain('RecordList');
