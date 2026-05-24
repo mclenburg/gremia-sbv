@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 import { test, expect } from './support/test';
 
 function parseRgb(value: string): number[] {
@@ -33,8 +33,8 @@ async function setTheme(page: Page, theme: 'dark' | 'light') {
   }, theme);
 }
 
-async function effectiveBackgroundColor(page: Page, selector: string): Promise<string> {
-  return page.locator(selector).first().evaluate((element) => {
+async function effectiveBackgroundColor(panel: Locator): Promise<string> {
+  return panel.evaluate((element) => {
     function isTransparent(color: string): boolean {
       return color === 'transparent' || color === 'rgba(0, 0, 0, 0)' || /rgba\([^)]*,\s*0\)/i.test(color);
     }
@@ -62,11 +62,11 @@ test('keeps the compliance status area dark in dark mode', async ({ page }) => {
   await page.goto('/');
   await openComplianceFromNavigation(page);
 
-  const panel = page.locator('.compliance-status-panel').first();
+  const panel = page.getByRole('region', { name: /Technischer Datenschutz- und Integritätsstatus/i });
   await expect(panel).toBeVisible();
-  await expect(page.getByRole('heading', { name: /Technischer Datenschutzstatus/i })).toBeVisible();
+  await expect(panel.getByRole('heading', { name: /Datenschutz- und Integritätsstatus/i })).toBeVisible();
 
-  const background = await effectiveBackgroundColor(page, '.compliance-status-panel');
+  const background = await effectiveBackgroundColor(panel);
   const [r, g, b] = parseRgb(background);
   expect(r + g + b).toBeLessThan(420);
 });
@@ -76,10 +76,10 @@ test('keeps compliance light mode light without dark fallback panels', async ({ 
   await page.goto('/');
   await openComplianceFromNavigation(page);
 
-  const panel = page.locator('.compliance-status-panel').first();
+  const panel = page.getByRole('region', { name: /Technischer Datenschutz- und Integritätsstatus/i });
   await expect(panel).toBeVisible();
 
-  const background = await effectiveBackgroundColor(page, '.compliance-status-panel');
+  const background = await effectiveBackgroundColor(panel);
   const [r, g, b] = parseRgb(background);
   expect(r + g + b).toBeGreaterThan(520);
 });

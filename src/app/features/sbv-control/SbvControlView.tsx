@@ -10,7 +10,6 @@ import { ModuleFrame } from '../../shared/components/ModuleFrame';
 import { ModuleFeedback } from '../../shared/components/ModuleFeedback';
 import { WorkbenchSummary } from '../../shared/components/WorkbenchLayout';
 import { getParticipationEscalationAdvice } from '../participation/participationPolicy';
-import './sbvControlWorkbench.css';
 
 type ControlSectionId = 'resources' | 'participation' | 'obligations' | 'inclusion' | 'reports';
 

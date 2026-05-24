@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { CASE_DOCUMENTS_REQUIRED_COLUMNS, CASE_DOCUMENT_OCR_JOBS_REQUIRED_COLUMNS, CASE_EXTERNAL_REFERENCES_REQUIRED_COLUMNS, CASE_MEASURE_NOTES_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_STATE_REQUIRED_COLUMNS, GREMIA_BR_CACHE_REQUIRED_COLUMNS, GREMIA_BR_SETTINGS_REQUIRED_COLUMNS } from '../services/appSchema';
+import { CASE_DOCUMENTS_REQUIRED_COLUMNS, CASE_DOCUMENT_OCR_JOBS_REQUIRED_COLUMNS, CASE_EXTERNAL_REFERENCES_REQUIRED_COLUMNS, COMPLIANCE_INCIDENTS_REQUIRED_COLUMNS, CASE_MEASURE_NOTES_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_STATE_REQUIRED_COLUMNS, GREMIA_BR_CACHE_REQUIRED_COLUMNS, GREMIA_BR_SETTINGS_REQUIRED_COLUMNS } from '../services/appSchema';
 import { compareIndexSnapshot, compareTableSnapshot, createSqlSchemaSnapshot } from '../services/schemaSnapshotPolicy';
 
 describe('Schema-Snapshot Fresh Install vs. Legacy-Migration 0.9.1', () => {
@@ -118,6 +118,21 @@ describe('Schema-Snapshot Fresh Install vs. Legacy-Migration 0.9.1', () => {
 
     expect(problems).toEqual([]);
     expect(fresh.tables.case_external_references.columns).toEqual(expect.arrayContaining([...CASE_EXTERNAL_REFERENCES_REQUIRED_COLUMNS]));
+  });
+
+
+  it('hält Datenschutzvorfälle in Basisschema und Migration 0038 strukturgleich', () => {
+    const fresh = createSqlSchemaSnapshot(readFileSync('database/schema.sql', 'utf8'));
+    const migrated = createSqlSchemaSnapshot(readFileSync('database/migrations/0038_compliance_incidents.sql', 'utf8'));
+
+    const problems = [
+      ...compareTableSnapshot(fresh, migrated, 'compliance_incidents'),
+      ...compareIndexSnapshot(fresh, migrated, 'idx_compliance_incidents_status'),
+      ...compareIndexSnapshot(fresh, migrated, 'idx_compliance_incidents_risk'),
+    ];
+
+    expect(problems).toEqual([]);
+    expect(fresh.tables.compliance_incidents.columns).toEqual(expect.arrayContaining([...COMPLIANCE_INCIDENTS_REQUIRED_COLUMNS]));
   });
 
 });

@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
-import type { ComplianceAuditChainStatus, ComplianceDatabaseIntegrityStatus, DataSubjectAccessPrefill, DataSubjectAccessRequestInput } from "./app/core/models/compliance.model";
+import type { ComplianceAuditChainStatus, ComplianceDatabaseIntegrityStatus, ComplianceIncidentRecord, ComplianceSelfCheckResult, CreateComplianceIncidentInput, DataSubjectAccessPrefill, DataSubjectAccessRequestInput, UpdateComplianceIncidentInput } from "./app/core/models/compliance.model";
 
 import type { CaseDocumentRecord } from "./app/core/models/case-document.model";
 import type { CaseHandoverContinueExpiredResult, CaseHandoverExportInput, CaseHandoverExportResult, CaseHandoverImportInput, CaseHandoverImportResult, CaseHandoverInspectResult } from "./app/core/models/case-handover.model";
@@ -346,6 +346,10 @@ declare global {
         auditChainStatus(): Promise<ComplianceAuditChainStatus>;
         databaseIntegrityStatus(): Promise<ComplianceDatabaseIntegrityStatus>;
         prefillDsar(input: DataSubjectAccessRequestInput): Promise<DataSubjectAccessPrefill>;
+        selfCheck(): Promise<ComplianceSelfCheckResult>;
+        listIncidents(): Promise<ComplianceIncidentRecord[]>;
+        createIncident(input: CreateComplianceIncidentInput): Promise<ComplianceIncidentRecord>;
+        updateIncident(id: string, input: UpdateComplianceIncidentInput): Promise<ComplianceIncidentRecord>;
       };
 
       persons: {

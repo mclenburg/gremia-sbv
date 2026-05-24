@@ -181,3 +181,75 @@ export interface ComplianceDatabaseIntegrityStatus {
   issues: string[];
   repairRequired: boolean;
 }
+
+export type ComplianceSelfCheckStatus = 'ok' | 'warning' | 'problem';
+
+export interface ComplianceSelfCheckItem {
+  id: string;
+  label: string;
+  status: ComplianceSelfCheckStatus;
+  summary: string;
+  action?: string;
+}
+
+export interface ComplianceSelfCheckResult {
+  generatedAt: string;
+  score: number;
+  status: ComplianceSelfCheckStatus;
+  items: ComplianceSelfCheckItem[];
+  nextActions: string[];
+}
+
+export type ComplianceIncidentCategory =
+  | 'wrong_export'
+  | 'lost_backup'
+  | 'unauthorized_access_suspected'
+  | 'wrong_recipient'
+  | 'vault_integrity'
+  | 'temporary_file'
+  | 'other';
+
+export type ComplianceIncidentRiskLevel = 'low' | 'medium' | 'high';
+export type ComplianceIncidentStatus = 'open' | 'in_review' | 'reported' | 'closed';
+
+export interface ComplianceIncidentRecord {
+  id: string;
+  occurredAt: string;
+  discoveredAt: string;
+  category: ComplianceIncidentCategory;
+  riskLevel: ComplianceIncidentRiskLevel;
+  status: ComplianceIncidentStatus;
+  summary: string;
+  affectedDataCategories: string;
+  immediateMeasures: string;
+  dsbNotifiedAt?: string;
+  authorityNotificationChecked: boolean;
+  dataSubjectsInformedAt?: string;
+  closedAt?: string;
+  lessonsLearned?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateComplianceIncidentInput {
+  occurredAt: string;
+  discoveredAt: string;
+  category: ComplianceIncidentCategory;
+  riskLevel: ComplianceIncidentRiskLevel;
+  summary: string;
+  affectedDataCategories?: string;
+  immediateMeasures?: string;
+}
+
+export interface UpdateComplianceIncidentInput {
+  status?: ComplianceIncidentStatus;
+  riskLevel?: ComplianceIncidentRiskLevel;
+  summary?: string;
+  affectedDataCategories?: string;
+  immediateMeasures?: string;
+  dsbNotifiedAt?: string;
+  authorityNotificationChecked?: boolean;
+  dataSubjectsInformedAt?: string;
+  closedAt?: string;
+  lessonsLearned?: string;
+}

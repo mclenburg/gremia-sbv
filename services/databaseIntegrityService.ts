@@ -3,6 +3,7 @@ import {
   APP_SCHEMA_VERSION,
   CASE_DOCUMENT_OCR_JOBS_REQUIRED_COLUMNS,
   CASE_DOCUMENTS_REQUIRED_COLUMNS,
+  COMPLIANCE_INCIDENTS_REQUIRED_COLUMNS,
   CASE_EXTERNAL_REFERENCES_REQUIRED_COLUMNS,
   CASE_HANDOVER_IMPORT_ITEMS_REQUIRED_COLUMNS,
   CASE_HANDOVER_IMPORTS_REQUIRED_COLUMNS,
@@ -45,6 +46,7 @@ const REQUIRED_TABLES = [
   'case_handover_imports',
   'case_handover_import_items',
   'sbv_resource_records',
+  'compliance_incidents',
 ] as const;
 
 const REQUIRED_COLUMNS: Record<string, readonly string[]> = {
@@ -66,6 +68,7 @@ const REQUIRED_COLUMNS: Record<string, readonly string[]> = {
   case_handover_imports: CASE_HANDOVER_IMPORTS_REQUIRED_COLUMNS,
   case_handover_import_items: CASE_HANDOVER_IMPORT_ITEMS_REQUIRED_COLUMNS,
   sbv_resource_records: SBV_RESOURCE_RECORDS_REQUIRED_COLUMNS,
+  compliance_incidents: COMPLIANCE_INCIDENTS_REQUIRED_COLUMNS,
 };
 
 function tableExists(db: DatabaseAdapter, table: string): boolean {

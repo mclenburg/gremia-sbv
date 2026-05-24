@@ -1,0 +1,21 @@
+{
+  "id": "obsolete-module-css-0.9.2",
+  "version": "0.9.2",
+  "description": "Entfernt modulnahe CSS-Dateien. Oberflächen nutzen die app-weite Industrial-/Workbench-CSS-Basis.",
+  "files": [
+    "src/app/index.css",
+    "src/app/caseWorkbench.css",
+    "src/app/templateWorkbench.css",
+    "src/app/templateDefaults.css",
+    "src/app/processOverview.css",
+    "src/app/knowledgeWorkbench.css",
+    "src/app/complianceCenter.css",
+    "src/app/reportsWorkbench.css",
+    "src/app/settingsHub.css",
+    "src/app/shared/textCommands/textCommandHelp.css",
+    "src/app/features/participation/participationWorkbench.css",
+    "src/app/features/persons/personsWorkbench.css",
+    "src/app/features/sbv-control/sbvControlWorkbench.css"
+  ],
+  "directories": []
+}

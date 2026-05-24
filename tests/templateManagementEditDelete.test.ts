@@ -17,11 +17,4 @@ describe("template management edit and delete", () => {
     expect(view).toContain("template-trash-button");
     expect(view).toContain("Vorlage bearbeiten");
   });
-
-  it("styles the template management list and metadata", () => {
-    const css = readFileSync("src/app/templateWorkbench.css", "utf8");
-    expect(css).toContain(".template-list-row");
-    expect(css).toContain(".template-trash-button");
-    expect(css).toContain(".template-detail-meta");
-  });
 });

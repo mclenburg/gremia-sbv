@@ -86,7 +86,20 @@ export function sanitizeAuditActor(actor: string): string {
   return normalized.slice(0, 120);
 }
 
-const AUDIT_METADATA_ALLOWLIST = new Set(['subjectId', 'caseId', 'action', 'purpose', 'timestamp']);
+const AUDIT_METADATA_ALLOWLIST = new Set([
+  'subjectId',
+  'caseId',
+  'action',
+  'purpose',
+  'timestamp',
+  // Technische Vorgangsdaten für Compliance-Ereignisse. Diese Werte sind bewusst
+  // auf Kategorien, Status- und Risikokennzeichen beschränkt und enthalten keine
+  // Falldaten, Namen, Gesundheitsdaten oder Freitextinhalte.
+  'category',
+  'riskLevel',
+  'status',
+  'authorityNotificationChecked',
+]);
 const UUID_OR_STABLE_ID_PATTERN = /^[a-zA-Z0-9:_.-]{3,160}$/;
 
 function normalizeAllowedAuditMetadataValue(value: unknown): string | null {

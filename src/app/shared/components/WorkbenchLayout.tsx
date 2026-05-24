@@ -118,3 +118,82 @@ export function IndustrialCheckboxRow({ children }: { children: ReactNode }) {
 export function IndustrialActionRow({ children }: { children: ReactNode }) {
   return <div className="industrial-action-row">{children}</div>;
 }
+
+
+
+export function WorkbenchWorkspace({
+  children,
+  navigation,
+  ariaLabel
+}: {
+  children: ReactNode;
+  navigation: ReactNode;
+  ariaLabel?: string;
+}) {
+  return (
+    <div className="industrial-workspace-shell" aria-label={ariaLabel}>
+      {navigation}
+      <div className="industrial-workspace-content">{children}</div>
+    </div>
+  );
+}
+
+export type WorkbenchNavigationItem<T extends string> = {
+  id: T;
+  title: string;
+  description?: string;
+};
+
+export function WorkbenchNavigation<T extends string>({
+  items,
+  active,
+  onChange,
+  ariaLabel
+}: {
+  items: WorkbenchNavigationItem<T>[];
+  active: T;
+  onChange: (id: T) => void;
+  ariaLabel: string;
+}) {
+  return (
+    <nav className="industrial-workspace-nav" aria-label={ariaLabel}>
+      {items.map((item) => (
+        <button
+          key={item.id}
+          type="button"
+          className={active === item.id ? 'is-active' : ''}
+          aria-current={active === item.id ? 'page' : undefined}
+          onClick={() => onChange(item.id)}
+        >
+          <strong>{item.title}</strong>
+          {item.description ? <span>{item.description}</span> : null}
+        </button>
+      ))}
+    </nav>
+  );
+}
+
+export function IndustrialPanelHeader({
+  kicker,
+  title,
+  description,
+  actions,
+  compact = true
+}: {
+  kicker?: string;
+  title: string;
+  description?: string;
+  actions?: ReactNode;
+  compact?: boolean;
+}) {
+  return (
+    <div className={`industrial-panel-header ${compact ? 'compact' : ''}`}>
+      <div>
+        {kicker ? <p className="industrial-kicker">{kicker}</p> : null}
+        <h2>{title}</h2>
+        {description ? <p>{description}</p> : null}
+      </div>
+      {actions ? <div className="industrial-action-row">{actions}</div> : null}
+    </div>
+  );
+}

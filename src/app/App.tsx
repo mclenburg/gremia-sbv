@@ -57,23 +57,11 @@ import { LoginGate } from "./features/auth/LoginGate";
 import type { AuthMode } from "./core/auth/authTypes";
 import { waitForBridge } from "./core/bridge/waitForBridge";
 import type { CaseNodeTarget } from "./core/navigation/caseNodeTarget";
-import "./caseWorkbench.css";
 import "./accessibility.css";
-import "./templateWorkbench.css";
-import "./templateDefaults.css";
-import "./processOverview.css";
-import "./knowledgeWorkbench.css";
 import "./confirmDialog.css";
 import "./accessibilityLiveRegion.css";
-import "./complianceCenter.css";
-import "./reportsWorkbench.css";
-import "./features/participation/participationWorkbench.css";
-import "./features/persons/personsWorkbench.css";
-import "./features/sbv-control/sbvControlWorkbench.css";
 import "./ui/responsiveDesign.css";
 import "./caseModalResponsive.css";
-import "./shared/textCommands/textCommandHelp.css";
-import "./settingsHub.css";
 
 
 const IMPLEMENTED_VIEW_IDS = new Set<ViewId>([

@@ -35,19 +35,13 @@ describe('SBV-Steuerungsstruktur 0.9.2', () => {
     expect(requirements).toContain('Integrationsamt');
   });
 
-  it('integriert SBV-Steuerung als App-konformes Modul ohne runde Sonderoptik', () => {
+  it('integriert SBV-Steuerung als App-konformes Modul', () => {
     const nav = readFileSync('src/app/core/navigation/modules.ts', 'utf8');
     const app = readFileSync('src/app/App.tsx', 'utf8');
     const view = readFileSync('src/app/features/sbv-control/SbvControlView.tsx', 'utf8');
-    const css = readFileSync('src/app/features/sbv-control/sbvControlWorkbench.css', 'utf8');
-
     expect(nav).toContain("id: 'sbv_control'");
     expect(app).toContain('currentView === "sbv_control"');
     expect(view).toContain('activeSection');
     expect(view).toContain('onNavigate');
-    expect(css).toContain('.sbv-control-shell');
-    expect(css).toContain('.sbv-control-tabs');
-    expect(css).not.toMatch(/border-radius|rounded/i);
-    expect(css).not.toContain('.sbv-control-grid');
   });
 });

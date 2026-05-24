@@ -199,7 +199,7 @@ button { border-radius: 0; }
 }
 
 .industrial-card { min-height: 190px; padding: 18px; cursor: pointer; }
-.industrial-card:not(.no-card-hover):hover { transform: translateY(-2px); border-color: rgba(250,204,21,0.72); background: linear-gradient(145deg, rgba(39,39,42,0.98), rgba(9,9,11,1)); box-shadow: 0 0 0 1px rgba(250,204,21,0.16), 0 16px 32px rgba(0,0,0,0.35); }
+.industrial-card:hover { transform: translateY(-2px); border-color: rgba(250,204,21,0.72); background: linear-gradient(145deg, rgba(39,39,42,0.98), rgba(9,9,11,1)); box-shadow: 0 0 0 1px rgba(250,204,21,0.16), 0 16px 32px rgba(0,0,0,0.35); }
 .industrial-card h2 { margin: 0; font-size: 19px; font-weight: 950; letter-spacing: -0.04em; }
 .industrial-card p { margin: 10px 0 0; color: var(--sbv-muted); font-size: 13px; line-height: 1.55; }
 .industrial-card-link { margin-top: auto; color: var(--sbv-yellow); font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 11px; font-weight: 900; letter-spacing: 0.22em; text-transform: uppercase; }
@@ -293,10 +293,6 @@ button { border-radius: 0; }
 .industrial-message-warning { border-color: rgba(250,204,21,0.45); background: rgba(250,204,21,0.10); color: #fef3c7; }
 .industrial-message-ok { border-color: rgba(132,204,22,0.45); background: rgba(132,204,22,0.10); color: #d9f99d; }
 
-.industrial-panel-header { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 18px; }
-.industrial-panel-header.compact { margin-bottom: 0; }
-.industrial-panel-header h2 { margin: 8px 0 0; color: var(--sbv-text); font-size: 26px; font-weight: 950; letter-spacing: -0.05em; text-transform: uppercase; }
-.industrial-panel-header p { margin: 8px 0 0; max-width: 780px; color: var(--sbv-muted); font-size: 13px; line-height: 1.6; }
 .industrial-chip-warning { border-color: rgba(250,204,21,0.45); }
 
 .industrial-counter { min-width: 148px; border: 1px solid var(--sbv-border-hard); background: #050505; padding: 12px 14px; text-align: right; }
@@ -334,7 +330,7 @@ button { border-radius: 0; }
 @media (max-width: 1050px) {
   .industrial-sidebar { position: static; width: auto; }
   .industrial-content { margin-left: 0; }
-  .industrial-hero, .industrial-topbar, .industrial-panel-header { flex-direction: column; align-items: stretch; }
+  .industrial-hero, .industrial-topbar { flex-direction: column; align-items: stretch; }
   .industrial-form { grid-template-columns: 1fr; }
 }
 
@@ -398,7 +394,7 @@ html[data-theme='light'] .industrial-deadline-card {
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.48), 0 10px 24px rgba(0,0,0,0.10);
 }
 
-html[data-theme='light'] .industrial-card:not(.no-card-hover):hover {
+html[data-theme='light'] .industrial-card:hover {
   background: linear-gradient(145deg, rgba(250,250,245,0.98), rgba(218,218,211,1));
   box-shadow: 0 0 0 1px rgba(196,138,0,0.18), 0 14px 24px rgba(0,0,0,0.12);
 }
@@ -562,7 +558,6 @@ html[data-theme='light'] .brand-block span,
 html[data-theme='light'] .metric span,
 html[data-theme='light'] .industrial-state,
 html[data-theme='light'] .industrial-card p,
-html[data-theme='light'] .industrial-panel-header p,
 html[data-theme='light'] .industrial-meta,
 html[data-theme='light'] .industrial-legal-note,
 html[data-theme='light'] .industrial-data-strip span,

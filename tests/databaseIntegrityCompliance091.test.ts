@@ -15,6 +15,7 @@ import {
   PERSONAL_DATA_AUDIT_REQUIRED_COLUMNS,
   PROTECTED_PERSONS_REQUIRED_COLUMNS,
   SBV_RESOURCE_RECORDS_REQUIRED_COLUMNS,
+  COMPLIANCE_INCIDENTS_REQUIRED_COLUMNS,
 } from '../services/appSchema';
 import { evaluateDatabaseIntegrity } from '../services/databaseIntegrityService';
 import type { DatabaseAdapter } from '../services/databaseService';
@@ -22,7 +23,7 @@ import type { DatabaseAdapter } from '../services/databaseService';
 class SchemaDb implements DatabaseAdapter {
   constructor(
     private readonly tables: Record<string, readonly string[]>,
-    private readonly schemaVersion = '0037',
+    private readonly schemaVersion = '0038',
   ) {}
 
   prepare<T = unknown>(sql: string) {
@@ -80,6 +81,7 @@ const completeSchema: Record<string, readonly string[]> = {
   case_handover_imports: CASE_HANDOVER_IMPORTS_REQUIRED_COLUMNS,
   case_handover_import_items: CASE_HANDOVER_IMPORT_ITEMS_REQUIRED_COLUMNS,
   sbv_resource_records: SBV_RESOURCE_RECORDS_REQUIRED_COLUMNS,
+  compliance_incidents: COMPLIANCE_INCIDENTS_REQUIRED_COLUMNS,
 };
 
 describe('database integrity status for compliance center', () => {
@@ -87,13 +89,13 @@ describe('database integrity status for compliance center', () => {
     const result = evaluateDatabaseIntegrity(new SchemaDb(completeSchema));
 
     expect(result.ok).toBe(true);
-    expect(result.appliedSchemaVersion).toBe('0037');
+    expect(result.appliedSchemaVersion).toBe('0038');
     expect(result.missingTables).toEqual([]);
     expect(result.missingColumns).toEqual({});
     expect(result.repairRequired).toBe(false);
   });
 
-  it('accepts the real person-link and privacy-review column names from schema 0037', () => {
+  it('accepts the real person-link and privacy-review column names from schema 0038', () => {
     const result = evaluateDatabaseIntegrity(new SchemaDb(completeSchema));
 
     expect(result.issues).not.toContain('Spalte person_case_links.person_id fehlt.');
@@ -115,7 +117,7 @@ describe('database integrity status for compliance center', () => {
     expect(result.issues).toContain('Spalte cases.handover_valid_until fehlt.');
   });
 
-  it('reports repair need when the handover import tables from schema 0037 are missing', () => {
+  it('reports repair need when the handover import tables from schema 0038 are missing', () => {
     const { case_handover_imports: _imports, case_handover_import_items: _items, ...brokenSchema } = completeSchema;
 
     const result = evaluateDatabaseIntegrity(new SchemaDb(brokenSchema));

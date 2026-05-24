@@ -22,7 +22,6 @@ import {
 import { formatDateShort } from '../../shared/format/dates';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 import { getParticipationActionLabels, getParticipationDocumentRequirements, getParticipationEscalationAdvice } from './participationPolicy';
-import './participationWorkbench.css';
 
 const measureLabels: Record<ParticipationMeasureType, string> = {
   einstellung: 'Einstellung',
