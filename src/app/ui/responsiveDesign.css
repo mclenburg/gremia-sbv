@@ -5407,3 +5407,164 @@ html[data-theme='light'] .industrial-version-badge {
 html[data-theme='light'] .industrial-version-badge strong {
   color: var(--industrial-accent);
 }
+
+/* P10F: Kurzbefehle-Dialog in zentrale Industrial-Optik und Light-Mode einpassen. */
+.text-command-help-modal {
+  width: min(900px, calc(100vw - 2rem));
+  max-height: min(820px, calc(100vh - 2rem));
+  border-radius: 0;
+  padding: 1rem;
+}
+
+.text-command-help-modal .industrial-modal-header {
+  align-items: flex-start;
+  border-bottom-color: var(--industrial-border);
+}
+
+.text-command-help-modal .industrial-modal-header > div:nth-child(2) {
+  min-width: 0;
+  flex: 1;
+}
+
+.text-command-help-modal .industrial-icon-button {
+  border-radius: 0;
+  background: var(--industrial-panel-muted);
+  color: var(--industrial-text);
+  border-color: var(--industrial-border-strong);
+  box-shadow: none;
+}
+
+.text-command-help-search {
+  border: 1px solid var(--industrial-border);
+  background: var(--industrial-panel-muted);
+  padding: 0.75rem;
+  margin: 0 0 0.9rem;
+}
+
+.text-command-help-search span {
+  color: var(--industrial-text-muted);
+}
+
+.text-command-help-search input {
+  border-radius: 0;
+  border-color: var(--industrial-border-strong);
+  background: var(--industrial-bg);
+  color: var(--industrial-text);
+}
+
+.text-command-help-search input::placeholder {
+  color: var(--industrial-text-muted);
+}
+
+.text-command-help-modal .industrial-inline-note {
+  border: 1px solid var(--industrial-border);
+  background: var(--industrial-panel-muted);
+  color: var(--industrial-text);
+  padding: 0.75rem 0.85rem;
+  margin: 0 0 0.9rem;
+  line-height: 1.45;
+}
+
+.text-command-help-grid {
+  gap: 0.75rem;
+}
+
+.text-command-help-group {
+  border-color: var(--industrial-border);
+  border-radius: 0;
+  background: var(--industrial-panel-muted);
+  padding: 0.85rem;
+  position: relative;
+}
+
+.text-command-help-group::before {
+  content: '';
+  position: absolute;
+  inset-block-start: -1px;
+  inset-inline-start: 0;
+  width: 4.25rem;
+  height: 2px;
+  background: var(--industrial-accent);
+}
+
+.text-command-help-group h3 {
+  color: var(--industrial-text-strong);
+}
+
+.text-command-help-group p {
+  color: var(--industrial-text-muted);
+}
+
+.text-command-help-item {
+  border: 1px solid var(--industrial-border);
+  border-radius: 0;
+  background: var(--industrial-card);
+  padding: 0.65rem 0.7rem;
+}
+
+.text-command-help-item code {
+  color: var(--industrial-accent);
+}
+
+.text-command-help-item strong {
+  color: var(--industrial-text-strong);
+}
+
+.text-command-help-item span {
+  color: var(--industrial-text-muted);
+}
+
+.text-command-help-empty {
+  border-radius: 0;
+  border-color: var(--industrial-border-strong);
+  background: var(--industrial-panel-muted);
+  color: var(--industrial-text-muted);
+}
+
+html[data-theme='light'] .text-command-help-modal {
+  background: linear-gradient(135deg, rgba(250, 250, 245, 0.98), rgba(228, 227, 216, 0.99));
+  color: var(--industrial-text);
+}
+
+html[data-theme='light'] .text-command-help-modal .industrial-icon-button {
+  background: linear-gradient(135deg, rgba(250, 250, 245, 0.96), rgba(226, 225, 214, 0.98));
+  color: var(--industrial-text);
+  border-color: var(--industrial-border-strong);
+}
+
+html[data-theme='light'] .text-command-help-search,
+html[data-theme='light'] .text-command-help-modal .industrial-inline-note,
+html[data-theme='light'] .text-command-help-group,
+html[data-theme='light'] .text-command-help-empty {
+  background: linear-gradient(135deg, rgba(250, 250, 245, 0.95), rgba(230, 229, 218, 0.98));
+  border-color: var(--industrial-border);
+  color: var(--industrial-text);
+}
+
+html[data-theme='light'] .text-command-help-item {
+  background: rgba(250, 250, 245, 0.9);
+  border-color: var(--industrial-border);
+}
+
+html[data-theme='light'] .text-command-help-search input {
+  background: rgba(250, 250, 245, 0.95);
+  color: var(--industrial-text);
+  border-color: var(--industrial-border-strong);
+}
+
+html[data-theme='light'] .text-command-help-search input::placeholder,
+html[data-theme='light'] .text-command-help-group p,
+html[data-theme='light'] .text-command-help-item span {
+  color: var(--text-secondary);
+}
+
+/* P10F: Light-Mode-Selektoren behalten ebenfalls die harte Kante. */
+html[data-theme='light'] .text-command-help-modal,
+html[data-theme='light'] .text-command-help-search,
+html[data-theme='light'] .text-command-help-group,
+html[data-theme='light'] .text-command-help-item,
+html[data-theme='light'] .text-command-help-empty,
+html[data-theme='light'] .text-command-help-search input,
+html[data-theme='light'] .text-command-help-modal .industrial-icon-button {
+  border-radius: 0;
+}
