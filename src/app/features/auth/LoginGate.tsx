@@ -3,13 +3,8 @@ import type { FormEvent } from 'react';
 import { AlertTriangle, Lock, LockKeyhole, ShieldAlert } from 'lucide-react';
 import { waitForBridge } from '../../core/bridge/waitForBridge';
 import type { AuthMode } from '../../core/auth/authTypes';
+import { validateAppPassword } from '@services/passwordPolicy';
 
-function validatePassword(password: string): string | null {
-  if (password.length < 12) {
-    return 'Das Passwort muss mindestens 12 Zeichen lang sein.';
-  }
-  return null;
-}
 
 function SecurityUnavailable() {
   return (
@@ -81,7 +76,7 @@ function RecoveryGate({ onUnlock, onResetToSetup }: { onUnlock: () => void; onRe
     setError('');
     setMessage('');
 
-    const validationError = validatePassword(newPassword);
+    const validationError = validateAppPassword(newPassword);
     if (validationError) {
       setError(validationError);
       return;
@@ -225,7 +220,7 @@ export function LoginGate({ mode, onUnlock, onResetToSetup }: { mode: AuthMode; 
     event.preventDefault();
     setError('');
 
-    const validationError = validatePassword(password);
+    const validationError = validateAppPassword(password);
     if (validationError) {
       setError(validationError);
       return;

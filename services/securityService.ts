@@ -28,6 +28,7 @@ import {
 } from "./tempFileService.js";
 import type { DatabaseAdapter } from "./databaseService.js";
 import { MigrationService } from "./migrationService.js";
+import { validateAppPassword } from "./passwordPolicy.js";
 
 interface KeyWrap {
   version: 1;
@@ -80,7 +81,6 @@ interface VaultManifest {
   };
 }
 
-const MIN_PASSWORD_LENGTH = 12;
 const STORE_FILE_NAME = "security.json";
 const VAULT_MANIFEST_FILE_NAME = "vault-manifest.json";
 const VAULT_DATABASE_FILE_NAME = "gremia-sbv.vault.sqlite";
@@ -205,10 +205,7 @@ function safeEqualsHex(aHex: string, bHex: string): boolean {
 }
 
 function validatePassword(password: string): string | null {
-  if (!password || password.length < MIN_PASSWORD_LENGTH) {
-    return `Das Passwort muss mindestens ${MIN_PASSWORD_LENGTH} Zeichen lang sein.`;
-  }
-  return null;
+  return validateAppPassword(password);
 }
 
 function normalizeRecoveryKey(recoveryKey: string): string {
