@@ -79,6 +79,29 @@ Das Compliance-Center zeigt Integrität, Datenschutzstatus und relevante Warnung
 
 Gremia.SBV kann eine **optionale, standardmäßig deaktivierte Lesebrücke** zu Gremia.BR nutzen. Diese Verbindung ist nur für ausdrücklich ausgelöste, lesende Zugriffe gedacht. Es gibt keine Hintergrundsynchronisation und kein Rückschreiben von SBV-Daten.
 
+
+## Demo-Modus
+
+Für Präsentationen, Schulungen und schnelle Produkttests kann Gremia.SBV mit synthetischen Daten gestartet werden:
+
+```bash
+electron . --demo
+```
+
+oder während der Entwicklung:
+
+```bash
+npm run dev:demo
+```
+
+Der Demo-Modus nutzt **nicht** den normalen Datenbestand. Er legt bei jedem Start eine frische Testdatenbank im temporären Systemverzeichnis an, befüllt sie mit synthetischen Personen, Kontakten, Fallakten, Fristen, Prozessmodulen, Maßnahmen, Vorlagen und Compliance-Ereignissen und sperrt den Tresor anschließend. Das Demo-Passwort lautet:
+
+```text
+gremia.sbv-demo
+```
+
+Alle Demo-Daten sind frei erfunden. Der Modus ist ausschließlich für Vorführung, Entwicklung und Tests gedacht.
+
 ## Datenschutz in einem Satz
 
 Gremia.SBV behandelt SBV-Daten so, wie SBV-Daten behandelt werden müssen: lokal, verschlüsselt, zweckgebunden, nachvollziehbar und ohne unnötige Datenflüsse.

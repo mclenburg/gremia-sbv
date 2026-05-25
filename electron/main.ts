@@ -30,6 +30,13 @@ import { registerComplianceIpc } from "./ipc/complianceIpc.js";
 import { registerSbvResourceIpc } from "./ipc/sbvResourceIpc.js";
 import { SecurityService } from "../services/securityService.js";
 import {
+  DEMO_PASSWORD,
+  isDemoMode,
+  prepareDemoVault,
+  resetDemoDataDirectory,
+  resolveDemoDataDirectory,
+} from "../services/demoMode.js";
+import {
   registerRendererSecurityPolicy,
   registerSessionSecurityPolicy,
 } from "./security/electronSecurity.js";
@@ -41,6 +48,10 @@ let security: SecurityService;
 let mainWindow: BrowserWindow | null = null;
 
 function resolveRuntimeDataDir(): string {
+  if (isDemoMode()) {
+    return resolveDemoDataDirectory();
+  }
+
   if (process.env.GREMIA_SBV_DATA_DIR) {
     return process.env.GREMIA_SBV_DATA_DIR;
   }
@@ -266,15 +277,28 @@ if (!singleInstanceLock) {
 
   app
     .whenReady()
-    .then(() => {
+    .then(async () => {
       if (process.env.GREMIA_SBV_SHOW_MENU !== "1") {
         Menu.setApplicationMenu(null);
       }
 
       registerSessionSecurityPolicy();
 
-      security = new SecurityService(resolveRuntimeDataDir());
-      console.info("Gremia.SBV data directory:", resolveRuntimeDataDir());
+      const demoMode = isDemoMode();
+      const dataDirectory = resolveRuntimeDataDir();
+      if (demoMode) {
+        resetDemoDataDirectory(dataDirectory);
+      }
+
+      security = new SecurityService(dataDirectory);
+      if (demoMode) {
+        await prepareDemoVault(security);
+        console.info(
+          `Gremia.SBV demo mode active. Data directory: ${dataDirectory}. Demo password: ${DEMO_PASSWORD}`,
+        );
+      } else {
+        console.info("Gremia.SBV data directory:", dataDirectory);
+      }
       registerSecurityIpc(ipcMain, security);
       registerCaseIpc(ipcMain, security);
       registerCaseHandoverIpc(ipcMain, security);

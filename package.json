@@ -100,7 +100,10 @@
     "test:e2e:core-ui-flows": "node scripts/run-e2e.cjs e2e/core-ui-flows.spec.ts",
     "release:check:core-ui": "npm run build:readiness:strict && npm run test:e2e:core-ui-flows",
     "test:e2e:complete-tour": "node scripts/run-e2e.cjs e2e/app-complete-tour.spec.ts",
-    "release:check:complete-tour": "npm run build:readiness:strict && npm run test:e2e:complete-tour"
+    "release:check:complete-tour": "npm run build:readiness:strict && npm run test:e2e:complete-tour",
+    "dev:electron:demo": "wait-on tcp:5173 && tsc -p tsconfig.electron.json && node scripts/write-electron-cjs-package.cjs && electron . --demo",
+    "dev:demo": "concurrently -k --success first \"npm:dev:renderer\" \"npm:dev:electron:demo\"",
+    "start:demo": "npm run build && electron . --demo"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.0",
