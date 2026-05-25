@@ -65,6 +65,11 @@ Verbindliche Bausteine:
 
 Für neue Features bedeutet das: Erst zentrale Komponente nutzen, dann fachliche Abweichung klein begründen und testen. Neue modulnahe CSS-Dateien, direkte Feature-CSS-Imports und lokale Nachbauten zentraler Industrial-/Workbench-Klassen sind nicht zulässig. Native Formularfelder oder Buttons in Feature-Views sind nur noch erlaubt, wenn ein bestehendes zentrales Pattern technisch nicht passt und der Architekturtest dafür bewusst erweitert wird.
 
+
+### Visuelles QA-Gate
+
+Patch 11 ergänzt für die zentralisierte UI ein visuelles E2E-Gate: `npm run test:e2e:visual`. Es prüft die primären Arbeitsbereiche in Light- und Dark-Mode, verhindert dunkle Light-Mode-Restflächen, helle Dark-Mode-Leaks, runde Legacy-Pill-Badges und systemfremde Control-Flächen. Details stehen in `docs/UI_VISUAL_QA.md`.
+
 ## Dashboard-Prinzip
 
 Das Dashboard ist keine Werbefläche für Module. Es zeigt nur Bereiche mit unmittelbarem Arbeitswert:
@@ -75,3 +80,11 @@ Das Dashboard ist keine Werbefläche für Module. Es zeigt nur Bereiche mit unmi
 - Gremia.BR-Lesebrücke.
 
 Alles andere gehört in die Fachmodule.
+### UI-Core-Verhaltenstests
+
+Zusätzlich zu Architektur-Gates und visueller QA beschreibt `docs/UI_CORE_BEHAVIOR_QA.md` die verpflichtenden P12-Bedienflussverträge für zentrale Dialoge, Formulare, Textareas, Screenreader-Live-Regionen und Exportfeedback.
+
+
+## 1.0 Release-Vertrag
+
+Die verbindliche Release-Readiness-Linie ist in `docs/QUALITY_GATE_1_0.md` dokumentiert. Für neue Module gilt: Views orchestrieren, State liegt in Hooks, UI in kleinen Komponenten, Fachlogik in Logic-/Utility-Dateien. Zentrale UI-Komponenten, Audit-Builder, Live-Regionen und Light-/Dark-Mode-Verträge sind verbindlich.

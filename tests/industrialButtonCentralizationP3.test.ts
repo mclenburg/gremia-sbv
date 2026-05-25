@@ -87,12 +87,13 @@ describe("Button-Zentralisierung Patch P3", () => {
   });
 
   it("setzt Compliance auf zentrale Button-Komponenten statt nativer Feature-Buttons", () => {
-    const compliance = source("src/app/features/compliance/ComplianceView.tsx");
+    const compliance = featureSources("src/app/features/compliance");
 
     expect(compliance).toContain("IndustrialButton");
     expect(compliance).toContain("ToolbarButton");
     expect(compliance).toContain("ButtonGroup");
-    expect(nativeButtonLocations("src/app/features/compliance/ComplianceView.tsx")).toEqual([]);
+    const nativeButtons = tsxFilesUnder("src/app/features/compliance").flatMap(nativeButtonLocations);
+    expect(nativeButtons).toEqual([]);
   });
 
   it("setzt die SBV-Steuerung auf zentrale Button-Komponenten statt nativer Feature-Buttons", () => {

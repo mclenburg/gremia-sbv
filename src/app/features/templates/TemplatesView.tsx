@@ -1,59 +1,17 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import { FileText, HelpCircle, Plus, Save, Search, Trash2 } from 'lucide-react';
+import { TemplateHelpModal } from './TemplateHelpModal';
 import { ModuleFrame } from '../../shared/components/ModuleFrame';
 import { ModuleFeedback } from '../../shared/components/ModuleFeedback';
 import { TextCommandTextarea } from '../../shared/textCommands/TextCommandTextarea';
 import { useConfirmDialog } from '../../shared/dialogs/ConfirmDialogProvider';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 import type { CreateTemplateInput, TemplateCategory, TemplateRecord } from '../../core/models/template.model';
+import { DEFAULT_TEMPLATE_PAGE_SIZE, TEMPLATE_CATEGORY_ORDER, TEMPLATE_PAGE_SIZE_OPTIONS, clampTemplatePage, compareTemplatesByTitle, groupTemplates, templateCategoryLabels, type TemplateSortMode } from './templateCatalogLogic';
 import type { PreventionStatus } from '../../core/models/prevention.model';
 import { preventionStatusOrder, statusLabel } from '../prevention/preventionShared';
 import { waitForBridge } from '../../core/bridge/waitForBridge';
-
-const templateCategoryLabels: Record<TemplateCategory, string> = {
-  praevention: 'Prävention',
-  bem: 'BEM',
-  beteiligung: 'SBV-Beteiligung',
-  kuendigung: 'Kündigung',
-  gleichstellung: 'Gleichstellung',
-  auskunft: 'Auskunft',
-  frist: 'Frist / Erinnerung',
-  datenschutz: 'Datenschutz',
-  sonstiges: 'Sonstiges'
-};
-
-const TEMPLATE_CATEGORY_ORDER = Object.keys(templateCategoryLabels) as TemplateCategory[];
-
-type TemplateSortMode = 'category' | 'alphabetical';
-
-const TEMPLATE_PAGE_SIZE_OPTIONS = [12, 24, 48] as const;
-const DEFAULT_TEMPLATE_PAGE_SIZE = 12;
-
-function compareTemplatesByTitle(left: TemplateRecord, right: TemplateRecord): number {
-  return left.title.localeCompare(right.title, 'de', { sensitivity: 'base' });
-}
-
-function groupTemplates(templates: TemplateRecord[], sortMode: TemplateSortMode): Array<{ key: string; label: string; items: TemplateRecord[] }> {
-  if (sortMode === 'alphabetical') {
-    return [{ key: 'alphabetical', label: 'Alphabetisch', items: [...templates].sort(compareTemplatesByTitle) }];
-  }
-
-  const groups = TEMPLATE_CATEGORY_ORDER
-    .map((item) => ({
-      key: item,
-      label: templateCategoryLabels[item],
-      items: templates.filter((template) => template.category === item).sort(compareTemplatesByTitle)
-    }))
-    .filter((group) => group.items.length > 0);
-
-  return groups;
-}
-
-function clampTemplatePage(page: number, pageCount: number): number {
-  return Math.min(Math.max(page, 1), Math.max(pageCount, 1));
-}
-
 
 export function TemplatesView() {
   const [templates, setTemplates] = useState<TemplateRecord[]>([]);
@@ -426,67 +384,7 @@ export function TemplatesView() {
           </section>
         </div>
       )}
-      {isTemplateHelpOpen && (
-        <div className="industrial-modal-backdrop" role="presentation">
-          <section className="industrial-modal template-help-modal" role="dialog" aria-modal="true" aria-labelledby="template-help-title">
-            <div className="industrial-modal-header">
-              <div className="industrial-modal-icon"><HelpCircle className="h-5 w-5" /></div>
-              <div>
-                <p className="industrial-kicker">Hilfe</p>
-                <h2 id="template-help-title">Platzhalter in Vorlagen</h2>
-                <p>Platzhalter werden in doppelten geschweiften Klammern geschrieben. Allgemeine Werte wie SBV-Name oder Arbeitgeber-Ansprechstelle pflegst du unter Einstellungen → Vorlagen & Standardwerte.</p>
-              </div>
-            </div>
-            <div className="template-placeholder-help">
-              <section>
-                <h3>Allgemein</h3>
-                <code>{'{{heute}}'}</code>
-                <p>Aktuelles Datum.</p>
-                <code>{'{{sbv.name}}'}</code>
-                <p>Name oder Funktionsbezeichnung der SBV als Absender.</p>
-                <code>{'{{arbeitgeber.ansprechpartner}}'}</code>
-                <p>Ansprechstelle des Arbeitgebers, z. B. Personalabteilung.</p>
-              </section>
-              <section>
-                <h3>Fallakte</h3>
-                <code>{'{{fall.aktenzeichen}}'}</code>
-                <p>Aktenzeichen des ausgewählten Falls.</p>
-                <code>{'{{fall.name}}'}</code>
-                <p>Name oder Pseudonym aus der Fallakte.</p>
-                <code>{'{{fall.kurzbeschreibung}}'}</code>
-                <p>Kurzbeschreibung des Falls.</p>
-                <code>{'{{person.name}}'}</code>
-                <p>Personenbezug aus dem Fall, soweit vorhanden.</p>
-              </section>
-              <section>
-                <h3>Fristen und Normen</h3>
-                <code>{'{{frist.datum}}'}</code>
-                <p>Datum, das beim Erzeugen des Schreibens eingetragen wurde.</p>
-                <code>{'{{normen}}'}</code>
-                <p>Normbezüge der Vorlage oder des Vorgangs.</p>
-              </section>
-              <section>
-                <h3>Präventionsverfahren</h3>
-                <code>{'{{praevention.status}}'}</code>
-                <p>Aktueller Status der Maßnahme.</p>
-                <code>{'{{praevention.gefaehrdung}}'}</code>
-                <p>Dokumentierte Gefährdung oder Ausgangslage.</p>
-                <code>{'{{praevention.arbeitgeberfrist}}'}</code>
-                <p>Frist zur Arbeitgeberreaktion.</p>
-                <code>{'{{praevention.massnahmen}}'}</code>
-                <p>Geplante oder dokumentierte Maßnahmen.</p>
-              </section>
-            </div>
-            <div className="template-help-example">
-              <h3>Beispiel</h3>
-              <pre>{'Bitte stellen Sie mir die Unterlagen zur Fallakte {{fall.aktenzeichen}} bis zum {{frist.datum}} zur Verfügung.'}</pre>
-            </div>
-            <div className="industrial-modal-actions">
-              <button type="button" className="industrial-button" onClick={() => setIsTemplateHelpOpen(false)}>Schließen</button>
-            </div>
-          </section>
-        </div>
-      )}
+      {isTemplateHelpOpen && <TemplateHelpModal onClose={() => setIsTemplateHelpOpen(false)} />}
     </ModuleFrame>
   );
 }

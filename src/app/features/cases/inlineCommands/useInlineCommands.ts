@@ -30,7 +30,6 @@ import {
   formatTerminationMarkerText,
   formatRiskText,
   formatTemplateMarkerText,
-  getTextCommandKind,
   removeCommandMarker,
   replaceCommandMarker,
   type ConfidentialCommandLevel,
@@ -47,242 +46,50 @@ import { hasAnyInlineCommandOverlay } from "./inlineCommandSearch";
 import { waitForBridge } from "../../../core/bridge/waitForBridge";
 import type { TextCommandTextareaChange } from "../../../shared/textCommands/TextCommandTextarea";
 import {
-  buildBemPrefill,
-  buildEqualizationPrefill,
   buildParticipationPrefill,
-  buildPreventionPrefill,
-  buildTerminationPrefill,
-  buildWorkplaceAccommodationPrefill,
   extractInlineCommandArgument,
   getInlineCommandRangeLength,
 } from "../measures/measurePrefill";
 
-export type ProtocolTextTarget = "content" | "nextSteps";
+export type {
+  InlineAnonymizationDraft,
+  InlineBemDraft,
+  InlineCaseLinkDraft,
+  InlineConfidentialityDraft,
+  InlineContactDraft,
+  InlineDeadlineDraft,
+  InlineEqualizationDraft,
+  InlineLegalNormDraft,
+  InlineOpenTaskDraft,
+  InlineParticipationDraft,
+  InlinePreventionDraft,
+  InlineRiskDraft,
+  InlineTemplateDraft,
+  InlineTerminationDraft,
+  InlineWorkplaceAccommodationDraft,
+  ProtocolTextTarget,
+} from "./inlineCommandTypes";
 
-export type InlineDeadlineDraft = {
-  target: ProtocolTextTarget;
-  token: TextCommandToken;
-  title: string;
-  dueAt: string;
-  severity: DeadlineSeverity;
-  legalBasis: string;
-  description: string;
-  markerIndex: number | null;
-};
-
-export type InlineContactDraft = {
-  target: ProtocolTextTarget;
-  token: TextCommandToken;
-  markerIndex: number;
-  query: string;
-  firstName: string;
-  lastName: string;
-  organization: string;
-  role: string;
-  category: ContactCategory;
-  email: string;
-  phone: string;
-};
-
-export type InlineCaseLinkDraft = {
-  target: ProtocolTextTarget;
-  markerIndex: number;
-  token: TextCommandToken;
-  query: string;
-};
-export type InlineLegalNormDraft = {
-  target: ProtocolTextTarget;
-  markerIndex: number;
-  token: TextCommandToken;
-  query: string;
-};
-export type InlineRiskDraft = {
-  target: ProtocolTextTarget;
-  markerIndex: number;
-  token: TextCommandToken;
-  level: RiskLevelCommand;
-  text: string;
-};
-export type InlineOpenTaskDraft = {
-  target: ProtocolTextTarget;
-  markerIndex: number | null;
-  token: TextCommandToken;
-  title: string;
-  description: string;
-  severity: DeadlineSeverity;
-};
-export type InlineConfidentialityDraft = {
-  target: ProtocolTextTarget;
-  markerIndex: number;
-  token: TextCommandToken;
-  level: ConfidentialCommandLevel;
-};
-export type InlineAnonymizationDraft = {
-  target: ProtocolTextTarget;
-  markerIndex: number;
-  token: TextCommandToken;
-  label: string;
-};
-export type InlineBemDraft = {
-  target: ProtocolTextTarget;
-  markerIndex: number;
-  token: TextCommandToken;
-  commandText?: string;
-  prefilledFields?: string[];
-  title: string;
-  triggerDescription: string;
-  triggerType:
-    | "sechs_wochen_au"
-    | "wiederholt_au"
-    | "praeventiv"
-    | "arbeitgeberangebot"
-    | "sbv_anregung"
-    | "sonstiges";
-  responseDueAt: string;
-  nextStep: string;
-};
-export type InlinePreventionDraft = {
-  target: ProtocolTextTarget;
-  markerIndex: number;
-  token: TextCommandToken;
-  commandText?: string;
-  prefilledFields?: string[];
-  title: string;
-  hazardDescription: string;
-  difficultyType:
-    | "personenbedingt"
-    | "verhaltensbedingt"
-    | "betriebsbedingt"
-    | "organisatorisch"
-    | "gesundheitlich_arbeitsplatzbezogen"
-    | "konflikt_fuehrung"
-    | "sonstiges";
-  riskType:
-    | "abmahnung"
-    | "kuendigung"
-    | "umsetzung"
-    | "arbeitsunfaehigkeit"
-    | "ueberlastung"
-    | "leistungsverlust"
-    | "arbeitsplatzverlust"
-    | "sonstiges";
-  employerResponseDueAt: string;
-  nextStep: string;
-};
-export type InlineEqualizationDraft = {
-  target: ProtocolTextTarget;
-  markerIndex: number;
-  token: TextCommandToken;
-  commandText?: string;
-  prefilledFields?: string[];
-  title: string;
-  status:
-    | "beratung"
-    | "vorbereitung"
-    | "eingereicht"
-    | "nachfrage"
-    | "bewilligt"
-    | "abgelehnt"
-    | "widerspruch"
-    | "abgeschlossen";
-  note: string;
-  objectionDueAt: string;
-  nextStep: string;
-};
-export type InlineTerminationDraft = {
-  target: ProtocolTextTarget;
-  markerIndex: number;
-  token: TextCommandToken;
-  commandText?: string;
-  prefilledFields?: string[];
-  title: string;
-  terminationType:
-    | "ordentlich"
-    | "ausserordentlich"
-    | "aenderungskuendigung"
-    | "verdachtskuendigung"
-    | "personenbedingt"
-    | "verhaltensbedingt"
-    | "betriebsbedingt"
-    | "sonstiges";
-  protectionStatus:
-    | "schwerbehindert"
-    | "gleichgestellt"
-    | "antrag_laeuft"
-    | "unklar"
-    | "nicht_bekannt";
-  receivedAt: string;
-  sbvStatementDueAt: string;
-  employerReason: string;
-  nextStep: string;
-};
-
-export type InlineParticipationDraft = {
-  target: ProtocolTextTarget;
-  markerIndex: number;
-  token: TextCommandToken;
-  commandText?: string;
-  prefilledFields?: string[];
-  title: string;
-  employerMeasure: string;
-  riskLevel: "normal" | "erhoeht" | "kritisch";
-  statementDueAt: string;
-  nextStep: string;
-};
-export type InlineWorkplaceAccommodationDraft = {
-  target: ProtocolTextTarget;
-  markerIndex: number;
-  token: TextCommandToken;
-  commandText?: string;
-  prefilledFields?: string[];
-  title: string;
-  requestedAdjustment: string;
-  category:
-    | "arbeitsplatz"
-    | "arbeitsumfeld"
-    | "arbeitsorganisation"
-    | "arbeitszeit"
-    | "arbeitsort"
-    | "technische_arbeitshilfe"
-    | "software_barrierefreiheit"
-    | "qualifizierung"
-    | "aufgabenanpassung"
-    | "sonstiges";
-  riskLevel: "normal" | "erhoeht" | "kritisch";
-  implementationDueAt: string;
-  nextStep: string;
-};
-export type InlineTemplateDraft = {
-  target: ProtocolTextTarget;
-  markerIndex: number;
-  token: TextCommandToken;
-  query: string;
-};
-
-function formatInlineDeadlineDate(value: string): string {
-  if (!value) return "offen";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat("de-DE", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(date);
-}
-
-function buildInlineDeadlineText(draft: InlineDeadlineDraft): string {
-  const dateLabel = formatInlineDeadlineDate(draft.dueAt);
-  const title = draft.title.trim() || "Wiedervorlage";
-  return `Frist bis ${dateLabel}: ${title}`;
-}
-
-function replaceRange(
-  value: string,
-  start: number,
-  length: number,
-  replacement: string,
-): string {
-  return `${value.slice(0, start)}${replacement}${value.slice(start + length)}`;
-}
+import type {
+  InlineAnonymizationDraft,
+  InlineBemDraft,
+  InlineCaseLinkDraft,
+  InlineConfidentialityDraft,
+  InlineContactDraft,
+  InlineDeadlineDraft,
+  InlineEqualizationDraft,
+  InlineLegalNormDraft,
+  InlineOpenTaskDraft,
+  InlineParticipationDraft,
+  InlinePreventionDraft,
+  InlineRiskDraft,
+  InlineTemplateDraft,
+  InlineTerminationDraft,
+  InlineWorkplaceAccommodationDraft,
+  ProtocolTextTarget,
+} from "./inlineCommandTypes";
+import { buildInlineDeadlineText, replaceRange } from "./inlineCommandText";
+import { openInlineCommandDraft } from "./inlineCommandOpeners";
 
 export function useInlineCommands({
   selectedCaseId,
@@ -486,263 +293,38 @@ export function useInlineCommands({
     return extractInlineCommandArgument(value, markerIndex, token);
   }
 
-  function openInlineContactDraft(
-    target: ProtocolTextTarget,
-    markerIndex: number,
-    token: TextCommandToken = "@@",
-  ) {
-    setInlineContactDraft({
-      target,
-      token,
-      markerIndex,
-      query: "",
-      firstName: "",
-      lastName: "",
-      organization: "",
-      role: "",
-      category: "sonstiges",
-      email: "",
-      phone: "",
-    });
-  }
-
   function openInlineCommand(
     target: ProtocolTextTarget,
     token: TextCommandToken,
     markerIndex: number,
     commandValue?: string,
   ) {
-    const kind = getTextCommandKind(token);
-    if (kind === "deadline" || kind === "follow_up") {
-      setInlineDeadlineDraft({
-        target,
-        token,
-        title:
-          kind === "follow_up"
-            ? "Wiedervorlage"
-            : defaultDeadlineTitleForCase(selectedCase, noteTitle),
-        dueAt: "",
-        severity: kind === "follow_up" ? "normal" : "important",
-        legalBasis: "",
-        description:
-          target === "content"
-            ? `Aus Protokolltext per ${token} angelegt.`
-            : `Aus nächste Schritte per ${token} angelegt.`,
-        markerIndex,
-      });
-      return;
-    }
-    if (kind === "contact") {
-      openInlineContactDraft(target, markerIndex, token);
-      return;
-    }
-    if (kind === "case_reference") {
-      setInlineCaseLinkDraft({ target, markerIndex, token, query: "" });
-      return;
-    }
-    if (kind === "legal_norm") {
-      setInlineLegalNormDraft({ target, markerIndex, token, query: "" });
-      return;
-    }
-    if (kind === "risk") {
-      setInlineRiskDraft({
-        target,
-        markerIndex,
-        token,
-        level: "high",
-        text: "",
-      });
-      return;
-    }
-    if (kind === "open_task") {
-      setInlineOpenTaskDraft({
-        target,
-        markerIndex,
-        token,
-        title: "",
-        description: "",
-        severity: "important",
-      });
-      return;
-    }
-    if (kind === "confidentiality") {
-      setInlineConfidentialityDraft({
-        target,
-        markerIndex,
-        token,
-        level: "hoch_sensibel",
-      });
-      return;
-    }
-    if (kind === "anonymization") {
-      setInlineAnonymizationDraft({
-        target,
-        markerIndex,
-        token,
-        label: "Name",
-      });
-      return;
-    }
-    if (kind === "bem_measure") {
-      const commandText = getCommandText(target, markerIndex, token, commandValue);
-      const prefill = buildBemPrefill({
-        selectedCase,
-        commandText,
-        createdFrom: "inline_command",
-      });
-      setInlineBemDraft({
-        target,
-        markerIndex,
-        token,
-        commandText,
-        prefilledFields: [
-          "title",
-          "triggerDescription",
-          "triggerType",
-          "nextStep",
-        ],
-        title: prefill.title.value,
-        triggerDescription: prefill.triggerDescription.value,
-        triggerType: prefill.triggerType.value as InlineBemDraft["triggerType"],
-        responseDueAt: prefill.responseDueAt.value,
-        nextStep: prefill.nextStep.value,
-      });
-      return;
-    }
-    if (kind === "prevention_measure") {
-      const commandText = getCommandText(target, markerIndex, token, commandValue);
-      const prefill = buildPreventionPrefill({
-        selectedCase,
-        commandText,
-        createdFrom: "inline_command",
-      });
-      setInlinePreventionDraft({
-        target,
-        markerIndex,
-        token,
-        commandText,
-        prefilledFields: [
-          "title",
-          "hazardDescription",
-          "difficultyType",
-          "riskType",
-          "nextStep",
-        ],
-        title: prefill.title.value,
-        hazardDescription: prefill.hazardDescription.value,
-        difficultyType: prefill.difficultyType
-          .value as InlinePreventionDraft["difficultyType"],
-        riskType: prefill.riskType.value as InlinePreventionDraft["riskType"],
-        employerResponseDueAt: prefill.employerResponseDueAt.value,
-        nextStep: prefill.nextStep.value,
-      });
-      return;
-    }
-    if (kind === "equalization_measure") {
-      const commandText = getCommandText(target, markerIndex, token, commandValue);
-      const prefill = buildEqualizationPrefill({
-        selectedCase,
-        commandText,
-        createdFrom: "inline_command",
-      });
-      setInlineEqualizationDraft({
-        target,
-        markerIndex,
-        token,
-        commandText,
-        prefilledFields: ["title", "status", "note", "nextStep"],
-        title: prefill.title.value,
-        status: prefill.status.value as InlineEqualizationDraft["status"],
-        note: prefill.note.value,
-        objectionDueAt: prefill.objectionDueAt.value,
-        nextStep: prefill.nextStep.value,
-      });
-      return;
-    }
-    if (kind === "termination_measure") {
-      const commandText = getCommandText(target, markerIndex, token, commandValue);
-      const prefill = buildTerminationPrefill({
-        selectedCase,
-        commandText,
-        createdFrom: "inline_command",
-      });
-      setInlineTerminationDraft({
-        target,
-        markerIndex,
-        token,
-        commandText,
-        prefilledFields: [
-          "title",
-          "terminationType",
-          "protectionStatus",
-          "receivedAt",
-          "employerReason",
-          "nextStep",
-        ],
-        title: prefill.title.value,
-        terminationType: prefill.terminationType
-          .value as InlineTerminationDraft["terminationType"],
-        protectionStatus: prefill.protectionStatus
-          .value as InlineTerminationDraft["protectionStatus"],
-        receivedAt: prefill.receivedAt.value,
-        sbvStatementDueAt: prefill.sbvStatementDueAt.value,
-        employerReason: prefill.employerReason.value,
-        nextStep: prefill.nextStep.value,
-      });
-      return;
-    }
-    if (kind === "participation") {
-      const commandText = getCommandText(target, markerIndex, token, commandValue);
-      const prefill = buildParticipationPrefill({
-        selectedCase,
-        commandText,
-        createdFrom: "inline_command",
-      });
-      setInlineParticipationDraft({
-        target,
-        markerIndex,
-        token,
-        commandText,
-        prefilledFields: ["title", "employerMeasure", "riskLevel", "nextStep"],
-        title: prefill.title.value,
-        employerMeasure: prefill.employerMeasure.value,
-        riskLevel: prefill.riskLevel.value,
-        statementDueAt: prefill.statementDueAt.value,
-        nextStep: prefill.nextStep.value,
-      });
-      return;
-    }
-    if (kind === "workplace_accommodation") {
-      const commandText = getCommandText(target, markerIndex, token, commandValue);
-      const prefill = buildWorkplaceAccommodationPrefill({
-        selectedCase,
-        commandText,
-        createdFrom: "inline_command",
-      });
-      setInlineWorkplaceAccommodationDraft({
-        target,
-        markerIndex,
-        token,
-        commandText,
-        prefilledFields: [
-          "title",
-          "requestedAdjustment",
-          "category",
-          "riskLevel",
-          "nextStep",
-        ],
-        title: prefill.title.value,
-        requestedAdjustment: prefill.requestedAdjustment.value,
-        category: prefill.category.value,
-        riskLevel: prefill.riskLevel.value,
-        implementationDueAt: prefill.implementationDueAt.value,
-        nextStep: prefill.nextStep.value,
-      });
-      return;
-    }
-    if (kind === "template") {
-      setInlineTemplateDraft({ target, markerIndex, token, query: "" });
-    }
+    openInlineCommandDraft({
+      target,
+      token,
+      markerIndex,
+      commandValue,
+      selectedCase,
+      noteTitle,
+      getCommandText,
+      openers: {
+        setInlineDeadlineDraft,
+        setInlineContactDraft,
+        setInlineCaseLinkDraft,
+        setInlineLegalNormDraft,
+        setInlineRiskDraft,
+        setInlineOpenTaskDraft,
+        setInlineConfidentialityDraft,
+        setInlineAnonymizationDraft,
+        setInlineBemDraft,
+        setInlinePreventionDraft,
+        setInlineEqualizationDraft,
+        setInlineTerminationDraft,
+        setInlineParticipationDraft,
+        setInlineWorkplaceAccommodationDraft,
+        setInlineTemplateDraft,
+      },
+    });
   }
 
   function removeContactCommand(draft: InlineContactDraft) {

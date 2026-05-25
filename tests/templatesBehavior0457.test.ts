@@ -21,9 +21,11 @@ describe("0.4.57 template behavior contracts", () => {
 
   it("documents placeholder help and unresolved placeholders", () => {
     const templates = readFileSync("src/app/features/templates/TemplatesView.tsx", "utf8");
+    const helpModal = readFileSync("src/app/features/templates/TemplateHelpModal.tsx", "utf8");
     const model = readFileSync("src/app/core/models/template.model.ts", "utf8");
-    expect(templates).toContain("Platzhalter");
-    expect(templates).toContain("sbv.name");
+    expect(templates).toContain("TemplateHelpModal");
+    expect(helpModal).toContain("Platzhalter");
+    expect(helpModal).toContain("sbv.name");
     expect(model).toContain("unresolvedPlaceholders");
   });
 

@@ -5285,7 +5285,8 @@ html[data-theme='light'] .industrial-data-table-shell,
 html[data-theme='light'] .industrial-empty-state,
 html[data-theme='light'] .industrial-subpanel {
   border-color: var(--border-muted);
-  background: linear-gradient(135deg, rgba(250, 250, 245, 0.96), rgba(225, 224, 214, 0.98));
+  background-color: #fafaf5;
+  background-image: linear-gradient(135deg, rgba(250, 250, 245, 0.96), rgba(225, 224, 214, 0.98));
   color: var(--text-primary);
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.55), 0 8px 18px rgba(0,0,0,0.08);
 }
@@ -5522,12 +5523,14 @@ html[data-theme='light'] .industrial-version-badge strong {
 }
 
 html[data-theme='light'] .text-command-help-modal {
-  background: linear-gradient(135deg, rgba(250, 250, 245, 0.98), rgba(228, 227, 216, 0.99));
+  background-color: #fafaf5;
+  background-image: linear-gradient(135deg, rgba(250, 250, 245, 0.98), rgba(228, 227, 216, 0.99));
   color: var(--industrial-text);
 }
 
 html[data-theme='light'] .text-command-help-modal .industrial-icon-button {
-  background: linear-gradient(135deg, rgba(250, 250, 245, 0.96), rgba(226, 225, 214, 0.98));
+  background-color: #fafaf5;
+  background-image: linear-gradient(135deg, rgba(250, 250, 245, 0.96), rgba(226, 225, 214, 0.98));
   color: var(--industrial-text);
   border-color: var(--industrial-border-strong);
 }
@@ -5536,18 +5539,21 @@ html[data-theme='light'] .text-command-help-search,
 html[data-theme='light'] .text-command-help-modal .industrial-inline-note,
 html[data-theme='light'] .text-command-help-group,
 html[data-theme='light'] .text-command-help-empty {
-  background: linear-gradient(135deg, rgba(250, 250, 245, 0.95), rgba(230, 229, 218, 0.98));
+  background-color: #fafaf5;
+  background-image: linear-gradient(135deg, rgba(250, 250, 245, 0.95), rgba(230, 229, 218, 0.98));
   border-color: var(--industrial-border);
   color: var(--industrial-text);
 }
 
 html[data-theme='light'] .text-command-help-item {
-  background: rgba(250, 250, 245, 0.9);
+  background-color: #fafaf5;
+  background-image: linear-gradient(135deg, rgba(250, 250, 245, 0.9), rgba(238, 237, 226, 0.92));
   border-color: var(--industrial-border);
 }
 
 html[data-theme='light'] .text-command-help-search input {
-  background: rgba(250, 250, 245, 0.95);
+  background-color: #fafaf5;
+  background-image: linear-gradient(135deg, rgba(250, 250, 245, 0.95), rgba(244, 243, 232, 0.96));
   color: var(--industrial-text);
   border-color: var(--industrial-border-strong);
 }
@@ -5567,4 +5573,32 @@ html[data-theme='light'] .text-command-help-empty,
 html[data-theme='light'] .text-command-help-search input,
 html[data-theme='light'] .text-command-help-modal .industrial-icon-button {
   border-radius: 0;
+}
+
+
+/* P12A: Visual-QA misst background-color; Light-Mode-Flächen dürfen nicht nur ein Gradient-Image haben. */
+html[data-theme='light'] .industrial-empty-state,
+html[data-theme='light'] .text-command-help-modal,
+html[data-theme='light'] .text-command-help-group,
+html[data-theme='light'] .text-command-help-item,
+html[data-theme='light'] .text-command-help-search,
+html[data-theme='light'] .text-command-help-empty,
+html[data-theme='light'] .text-command-help-modal .industrial-inline-note,
+html[data-theme='light'] .text-command-help-search input,
+html[data-theme='light'] .text-command-help-modal .industrial-icon-button {
+  background-color: #fafaf5;
+}
+
+
+/* P12B: stabile E2E-/Visual-QA-Verträge nach P12A.
+   Der Fristen-Flow nutzt bewusst zentrale Validierung statt Browser-Native-Bubbles.
+   Der Kurzbefehle-Dialog braucht eine echte, gemessene Light-Mode-Fläche auch nach später importiertem Modal-Responsive-CSS. */
+html[data-theme='light'] .industrial-modal.text-command-help-modal {
+  background-color: #fafaf5 !important;
+  background-image: linear-gradient(135deg, rgba(250, 250, 245, 0.98), rgba(228, 227, 216, 0.99));
+  color: var(--industrial-text);
+}
+
+html[data-theme='dark'] .industrial-modal.text-command-help-modal {
+  background-color: var(--industrial-panel);
 }

@@ -106,3 +106,7 @@ Gremia.SBV ist eine aktiv entwickelte Open-Source-Anwendung. Der Fokus liegt auf
 
 Willkommen sind Beiträge, die Fachlichkeit, Sicherheit, Barrierefreiheit, Testbarkeit oder Bedienbarkeit verbessern.
 
+
+## Release-Qualität
+
+Gremia.SBV 1.0 folgt der verbindlichen Release-Readiness-Checkliste in `docs/QUALITY_GATE_1_0.md`. Sie beschreibt die Offline-first-Linie, Architektur-Gates, Accessibility-Gates, Visual-QA und die Tests, die vor Veröffentlichung grün sein müssen.

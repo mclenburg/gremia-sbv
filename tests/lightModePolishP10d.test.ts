@@ -17,7 +17,8 @@ describe('light mode polish P10D', () => {
     expect(css).toContain("html[data-theme='light'] .industrial-subpanel");
     expect(css).toContain("html[data-theme='light'] .industrial-record-card");
     expect(css).toContain("html[data-theme='light'] .industrial-status-card");
-    expect(css).toContain('background: linear-gradient(135deg, rgba(250, 250, 245, 0.96), rgba(225, 224, 214, 0.98))');
+    expect(css).toContain('background-color: #fafaf5;');
+    expect(css).toContain('background-image: linear-gradient(135deg, rgba(250, 250, 245, 0.96), rgba(225, 224, 214, 0.98))');
   });
 
   it('haelt Knowledge-Texte und Formularfelder im Light-Mode kontrastreich lesbar', () => {

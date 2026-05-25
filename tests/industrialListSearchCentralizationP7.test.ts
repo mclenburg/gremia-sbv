@@ -44,7 +44,7 @@ describe('Listen-, Such- und Tabellenzentralisierung Patch P7', () => {
   });
 
   it('zieht Compliance und SBV-Steuerung auf zentrale Such-, Listen- und Tabellenbausteine', () => {
-    const compliance = source('src/app/features/compliance/ComplianceView.tsx');
+    const compliance = featureSources('src/app/features/compliance');
     const sbvControl = featureSources('src/app/features/sbv-control');
 
     expect(compliance).toContain('SearchToolbar');

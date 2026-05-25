@@ -52,7 +52,7 @@ describe("Panel-/Card-Zentralisierung Patch P2", () => {
   });
 
   it("nutzt in Compliance zentrale Status- und Auswahlkarten statt lokaler JSX-Nachbauten", () => {
-    const compliance = source("src/app/features/compliance/ComplianceView.tsx");
+    const compliance = featureSources("src/app/features/compliance");
 
     expect(compliance).toContain("IndustrialStatusCard");
     expect(compliance).toContain("IndustrialSelectionCard");

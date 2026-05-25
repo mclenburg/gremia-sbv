@@ -1,8 +1,24 @@
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 function source(path: string): string {
   return readFileSync(path, 'utf8');
+}
+
+function featureSources(dir: string): string {
+  const chunks: string[] = [];
+  function visit(path: string) {
+    for (const entry of readdirSync(path)) {
+      const child = `${path}/${entry}`;
+      if (statSync(child).isDirectory()) {
+        visit(child);
+      } else if (child.endsWith('.ts') || child.endsWith('.tsx')) {
+        chunks.push(source(child));
+      }
+    }
+  }
+  visit(dir);
+  return chunks.join('\n');
 }
 
 describe('Workbench-Zentralisierung Patch P1', () => {
@@ -20,7 +36,7 @@ describe('Workbench-Zentralisierung Patch P1', () => {
   });
 
   it('zieht Compliance und SBV-Steuerung auf die zentrale Workbench-Struktur statt lokaler Shells', () => {
-    const compliance = source('src/app/features/compliance/ComplianceView.tsx');
+    const compliance = featureSources('src/app/features/compliance');
     const sbvControl = source('src/app/features/sbv-control/SbvControlView.tsx');
 
     expect(compliance).toContain('WorkbenchPage');

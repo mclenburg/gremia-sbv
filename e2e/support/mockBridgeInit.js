@@ -94,6 +94,66 @@
   ];
 
 
+  const sbvResources = [];
+
+  const templates = [
+    {
+      id: 'template-test-0001',
+      key: 'e2e-template-beteiligung',
+      title: 'E2E Beteiligungsvorlage',
+      category: 'beteiligung',
+      description: 'Synthetische Vorlage für vollständige E2E-Abdeckung.',
+      subject: 'SBV-Beteiligung – {{fall.aktenzeichen}}',
+      body: 'Sehr geehrte Damen und Herren, bitte beteiligen Sie die SBV ordnungsgemäß.',
+      legalBasis: ['§ 178 Abs. 2 Satz 1 SGB IX'],
+      tags: ['e2e', 'beteiligung'],
+      isSystem: false,
+      createdAt: now,
+      updatedAt: now,
+    },
+  ];
+
+  const knowledgeNorms = [
+    {
+      id: 'knowledge-test-178',
+      source: 'SGB IX',
+      paragraph: '§ 178 SGB IX',
+      title: 'Aufgaben der Schwerbehindertenvertretung',
+      shortText: 'Zentrale Beteiligungs-, Überwachungs- und Unterstützungsrechte der SBV.',
+      sbvMeaning: 'Die SBV muss frühzeitig, vollständig und vor Entscheidungen beteiligt werden.',
+      practiceNote: 'Beteiligung dokumentieren und fehlende Unterrichtung freundlich, aber bestimmt rügen.',
+      typicalCases: 'Personelle Einzelmaßnahmen, BEM, Prävention, Arbeitsplatzgestaltung.',
+      tags: ['SBV', 'Beteiligung', 'E2E'],
+      createdAt: now,
+      updatedAt: now,
+    },
+  ];
+  const knowledgeReferences = [];
+  const knowledgeComments = [];
+  const knowledgeCaseLaw = [];
+  const knowledgeChecklist = [];
+
+  const reportDescriptors = [
+    {
+      type: 'activity',
+      title: 'Tätigkeitsbericht',
+      shortTitle: 'Tätigkeitsbericht',
+      description: 'Synthetischer Tätigkeitsbericht für die E2E-Abdeckung.',
+      confidentiality: 'anonymized',
+      group: 'sbv',
+    },
+    {
+      type: 'system_integrity',
+      title: 'Systemintegrität',
+      shortTitle: 'Systemintegrität',
+      description: 'Technischer Prüfbericht für Build- und Release-Checks.',
+      confidentiality: 'technical',
+      group: 'system',
+    },
+  ];
+  const reportHistory = [];
+
+
   const notes = [
     {
       id: 'note-test-0001',
@@ -312,7 +372,31 @@
   ];
 
   const emptyList = async () => [];
+  const contacts = [];
+
   const createRecord = async (input) => ({ id: `created-${Date.now()}`, ...input, createdAt: now, updatedAt: now });
+  const createContactRecord = async (input) => {
+    const contact = {
+      id: `contact-${Date.now()}`,
+      firstName: input.firstName || '',
+      lastName: input.lastName || '',
+      organization: input.organization,
+      role: input.role,
+      category: input.category || 'sonstiges',
+      email: input.email,
+      phone: input.phone,
+      notes: input.notes,
+      createdAt: now,
+      updatedAt: now,
+    };
+    contacts.unshift(contact);
+    return contact;
+  };
+  const deleteContactRecord = async (id) => {
+    const index = contacts.findIndex((contact) => contact.id === id);
+    if (index >= 0) contacts.splice(index, 1);
+    return { deleted: true, anonymizedReferences: 0, touchedNotes: 0 };
+  };
 
   window.__GREMIA_SBV_E2E_ICAL_EXPORTS = [];
 
@@ -468,7 +552,7 @@
         return { ok: true, reviewed: marked, marked, skipped: 0, message: `${marked} abgeschlossene Altakten wurden zur Datenschutzprüfung vorgemerkt.` };
       },
     },
-    contacts: { list: emptyList, create: createRecord, delete: async () => ({ deleted: true, anonymizedReferences: 0 }) },
+    contacts: { list: async () => contacts, create: createContactRecord, delete: deleteContactRecord },
     deadlines: {
       list: async () => deadlines,
       dashboard: async () => deadlines,
@@ -488,14 +572,99 @@
       },
     },
     caseMeasures: { list: async () => measures, create: createRecord, update: createRecord, listNotes: async () => [], createNote: createRecord, updateNote: createRecord, deleteNote: async () => ({ deleted: true }) },
-    knowledge: { listCaseReferences: emptyList, search: emptyList, list: emptyList },
+    knowledge: {
+      listNorms: async (input) => {
+        const query = String(input?.query || '').toLowerCase();
+        const source = String(input?.source || '');
+        return knowledgeNorms.filter((norm) => {
+          const sourceMatches = !source || norm.source === source;
+          const queryMatches = !query || [norm.paragraph, norm.title, norm.shortText, ...(norm.tags || [])].join(' ').toLowerCase().includes(query);
+          return sourceMatches && queryMatches;
+        });
+      },
+      search: async (input) => {
+        const query = String(input?.query || '').toLowerCase();
+        return knowledgeNorms.filter((norm) => !query || [norm.paragraph, norm.title, norm.shortText].join(' ').toLowerCase().includes(query));
+      },
+      list: async () => knowledgeNorms,
+      listCaseReferences: async (caseId) => knowledgeReferences.filter((item) => !caseId || item.caseId === caseId),
+      linkNormToCase: async (input) => {
+        const norm = knowledgeNorms.find((item) => item.id === input.legalNormId) || knowledgeNorms[0];
+        const caseFile = cases.find((item) => item.id === input.caseId) || cases[0];
+        const row = { id: `knowledge-ref-${Date.now()}`, caseId: caseFile.id, caseNumber: caseFile.caseNumber, legalNormId: norm.id, paragraph: norm.paragraph, source: norm.source, title: norm.title, note: input.note, createdAt: now };
+        knowledgeReferences.push(row);
+        return row;
+      },
+      listComments: async (normId) => knowledgeComments.filter((item) => item.legalNormId === normId),
+      createComment: async (input) => { const row = { id: `knowledge-comment-${Date.now()}`, ...input, createdAt: now, updatedAt: now }; knowledgeComments.push(row); return row; },
+      listCaseLaw: async (normId) => knowledgeCaseLaw.filter((item) => item.legalNormId === normId),
+      createCaseLaw: async (input) => { const row = { id: `knowledge-case-law-${Date.now()}`, ...input, createdAt: now, updatedAt: now }; knowledgeCaseLaw.push(row); return row; },
+      listChecklist: async (normId) => knowledgeChecklist.filter((item) => item.legalNormId === normId),
+      createChecklistItem: async (input) => { const row = { id: `knowledge-check-${Date.now()}`, legalNormId: input.legalNormId, text: input.text, sortOrder: input.sortOrder || knowledgeChecklist.length + 1, createdAt: now, updatedAt: now }; knowledgeChecklist.push(row); return row; },
+    },
     prevention: { list: emptyList, create: createRecord, update: createRecord },
     bem: { list: async (caseId) => caseId ? bemProcesses.filter((item) => item.caseId === caseId) : bemProcesses, create: createRecord, update: createRecord },
     equalization: { list: emptyList, create: createRecord, update: createRecord },
     termination: { list: emptyList, create: createRecord, update: createRecord },
     participation: { list: emptyList, create: createRecord, update: createRecord, warnings: emptyList },
+    sbvResources: {
+      list: async () => sbvResources,
+      dashboard: async () => ({ total: sbvResources.length, openRequests: sbvResources.filter((item) => item.status === 'planned' || item.status === 'requested').length, byKind: {}, byStatus: {} }),
+      create: async (input) => {
+        const row = { id: `sbv-resource-${Date.now()}`, ...input, createdAt: now, updatedAt: now };
+        sbvResources.unshift(row);
+        return row;
+      },
+      update: async (id, input) => {
+        const row = sbvResources.find((item) => item.id === id);
+        if (!row) throw new Error('Nachweis nicht gefunden.');
+        Object.assign(row, input, { updatedAt: now });
+        return row;
+      },
+      delete: async (id) => {
+        const index = sbvResources.findIndex((item) => item.id === id);
+        if (index >= 0) sbvResources.splice(index, 1);
+        return { deleted: true };
+      },
+    },
     workplaceAccommodation: { list: emptyList, create: createRecord, update: createRecord },
-    reports: { generate: async () => ({ ok: true, path: 'synthetic-e2e-report.gsbvpdf' }) },
-    templates: { list: emptyList },
+    reports: {
+      descriptors: async () => reportDescriptors,
+      history: async () => reportHistory,
+      generate: async (input) => {
+        const descriptor = reportDescriptors.find((item) => item.type === input?.type) || reportDescriptors[0];
+        const result = { ok: true, reportType: descriptor.type, title: descriptor.title, fileName: `${descriptor.type}-e2e.pdf`, filePath: `/tmp/${descriptor.type}-e2e.pdf`, generatedAt: now, warnings: [], metrics: { synthetic: 'true' } };
+        reportHistory.unshift({ id: `report-history-${Date.now()}`, reportType: descriptor.type, title: descriptor.title, fileName: result.fileName, filePath: result.filePath, generatedAt: now, periodStart: input?.periodStart, periodEnd: input?.periodEnd, warningCount: 0 });
+        return result;
+      },
+      openExportFolder: async () => ({ opened: true }),
+    },
+    templates: {
+      list: async (input) => {
+        const query = String(input?.query || '').toLowerCase();
+        const category = input?.category;
+        return templates.filter((template) => {
+          const categoryMatches = !category || template.category === category;
+          const queryMatches = !query || [template.title, template.description, template.subject, template.body, ...(template.tags || [])].join(' ').toLowerCase().includes(query);
+          return categoryMatches && queryMatches;
+        });
+      },
+      create: async (input) => {
+        const row = { id: `template-${Date.now()}`, key: input.key || `template-e2e-${Date.now()}`, isSystem: false, createdAt: now, updatedAt: now, legalBasis: [], tags: [], ...input };
+        templates.unshift(row);
+        return row;
+      },
+      update: async (id, input) => {
+        const row = templates.find((item) => item.id === id);
+        if (!row) throw new Error('Vorlage nicht gefunden.');
+        Object.assign(row, input, { updatedAt: now });
+        return row;
+      },
+      delete: async (id) => {
+        const index = templates.findIndex((item) => item.id === id);
+        if (index >= 0) templates.splice(index, 1);
+        return { deleted: true };
+      },
+    },
   };
 })();

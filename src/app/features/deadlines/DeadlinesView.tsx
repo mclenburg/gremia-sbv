@@ -125,7 +125,7 @@ export function DeadlinesView({
         </p>
       </IndustrialWarningPanel>
 
-      <form onSubmit={addDeadline} className="industrial-form industrial-form-deadline">
+      <form onSubmit={addDeadline} className="industrial-form industrial-form-deadline" noValidate>
         <FormSection>
           <div className="industrial-form-grid">
             <TextInput label="Titel" value={title} onValueChange={setTitle} placeholder="z. B. Stellungnahme SBV" required />
@@ -209,7 +209,7 @@ export function DeadlineEditor({
       description={deadline.caseId ? `Fallbezug: ${cases.find((item: CaseRecord) => item.id === deadline.caseId)?.caseNumber ?? 'nicht auflösbar'}` : 'Freie Wiedervorlage ohne Fallbezug'}
       onClose={onClose}
     >
-      <form onSubmit={submit} className="industrial-settings-form mt-5">
+      <form onSubmit={submit} className="industrial-settings-form mt-5" noValidate>
         <FormSection>
           <TextInput label="Titel" value={title} onValueChange={setTitle} required />
           <DateTimeInput label="Fällig am" value={dueAt} onValueChange={setDueAt} required />

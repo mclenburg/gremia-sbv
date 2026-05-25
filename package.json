@@ -94,7 +94,13 @@
     "test:quality-ratio": "vitest run tests/rc091TestQualityRatio.test.ts",
     "docs:diagrams:check": "node scripts/check-diagram-assets.cjs",
     "css:usage:report": "node scripts/report-css-usage.cjs",
-    "version:sync-lock": "node scripts/sync-package-lock-version.cjs"
+    "version:sync-lock": "node scripts/sync-package-lock-version.cjs",
+    "test:e2e:visual": "node scripts/run-e2e.cjs e2e/visual-contract.spec.ts",
+    "release:check:visual": "npm run build:readiness:strict && npm run test:e2e:visual",
+    "test:e2e:core-ui-flows": "node scripts/run-e2e.cjs e2e/core-ui-flows.spec.ts",
+    "release:check:core-ui": "npm run build:readiness:strict && npm run test:e2e:core-ui-flows",
+    "test:e2e:complete-tour": "node scripts/run-e2e.cjs e2e/app-complete-tour.spec.ts",
+    "release:check:complete-tour": "npm run build:readiness:strict && npm run test:e2e:complete-tour"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.0",

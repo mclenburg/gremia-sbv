@@ -120,7 +120,7 @@ describe("Formular-Zentralisierung Patch P4", () => {
   });
 
   it("setzt Compliance-Formulare auf zentrale Komponenten und sperrt fehlerhafte Pflichtfelder negativ ab", () => {
-    const compliance = source("src/app/features/compliance/ComplianceView.tsx");
+    const compliance = featureSources("src/app/features/compliance");
 
     expect(compliance).toContain("FormSection");
     expect(compliance).toContain("DateTimeInput");
@@ -132,7 +132,8 @@ describe("Formular-Zentralisierung Patch P4", () => {
     expect(compliance).toContain("Kurzbeschreibung ist erforderlich.");
     expect(compliance).toContain("Name ist für die Auskunftsantwort erforderlich.");
 
-    expect(nativeFormControlLocations("src/app/features/compliance/ComplianceView.tsx")).toEqual([]);
+    const nativeControls = tsxFilesUnder("src/app/features/compliance").flatMap(nativeFormControlLocations);
+    expect(nativeControls).toEqual([]);
   });
 
   it("setzt das SBV-Ressourcenformular auf zentrale Komponenten und blockiert leere Nachweistitel", () => {

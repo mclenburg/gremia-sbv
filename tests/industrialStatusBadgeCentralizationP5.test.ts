@@ -99,7 +99,7 @@ describe("Status-/Badge-Zentralisierung Patch P5", () => {
   });
 
   it("zieht Compliance, SBV-Steuerung und Fristenanzeigen auf zentrale Badge-Komponenten", () => {
-    const compliance = source("src/app/features/compliance/ComplianceView.tsx");
+    const compliance = sourcesUnder("src/app/features/compliance");
     const sbvControl = sourcesUnder("src/app/features/sbv-control");
     const deadlines = source("src/app/features/deadlines/DeadlineBadge.tsx");
 

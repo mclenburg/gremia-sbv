@@ -25,9 +25,10 @@ describe('text command help light polish P10F', () => {
 
   it('enthaelt eigene Light-Mode-Regeln fuer den Kurzbefehle-Dialog und seine Karten', () => {
     expect(css).toContain("html[data-theme='light'] .text-command-help-modal");
-    expect(css).toContain('background: linear-gradient(135deg, rgba(250, 250, 245, 0.98), rgba(228, 227, 216, 0.99))');
+    expect(css).toContain('background-color: #fafaf5;');
+    expect(css).toContain('background-image: linear-gradient(135deg, rgba(250, 250, 245, 0.98), rgba(228, 227, 216, 0.99))');
     expect(css).toContain("html[data-theme='light'] .text-command-help-item");
-    expect(css).toContain('background: rgba(250, 250, 245, 0.9)');
+    expect(css).toContain('background-image: linear-gradient(135deg, rgba(250, 250, 245, 0.9), rgba(238, 237, 226, 0.92))');
     expect(css).toContain("html[data-theme='light'] .text-command-help-search input");
     expect(css).toContain('color: var(--industrial-text)');
   });

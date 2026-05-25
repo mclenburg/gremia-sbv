@@ -37,6 +37,12 @@ Für UI-relevante Änderungen zusätzlich:
 npm run test:e2e
 ```
 
+Für reine Light-/Dark-Mode-, Layout-, Badge-, Formular- oder Dialogpolitur genügt in der lokalen Vorprüfung oft das gezielte visuelle Gate:
+
+```bash
+npm run test:e2e:visual
+```
+
 Tests müssen plattformunabhängig sein:
 
 - keine festen `/tmp`-Pfade,
@@ -58,3 +64,11 @@ Sichtbare Statusänderungen brauchen Screen-Reader-Rückmeldung, insbesondere be
 - [ ] Announcer/Live-Regionen sind bei Statusänderungen genutzt.
 - [ ] Keine Secrets in UI, Logs oder Testsnapshots.
 - [ ] Dokumentation ist aktualisiert, wenn sich Bedienung, Architektur oder Datenschutz ändern.
+### UI-Core-Verhalten vor Pull Requests prüfen
+
+Wenn ein Beitrag zentrale Dialoge, Formulare, Textareas, Exportfeedback oder Live-Regionen verändert, muss zusätzlich `npm run test:e2e:core-ui-flows` grün laufen. Neue Komponenten brauchen nach Möglichkeit einen echten Bedienflusstest statt bloßer String- oder Importprüfung.
+
+
+## 1.0-Release-Vertrag
+
+Vor einem Beitrag, der UI, Audit, Datenschutz, Accessibility oder Kernprozesse berührt, ist zusätzlich die 1.0-Checkliste in `docs/QUALITY_GATE_1_0.md` maßgeblich. Abweichungen von zentralen Komponenten oder Architektur-Gates brauchen eine fachliche Begründung im Pull Request und einen Verhaltenstest.

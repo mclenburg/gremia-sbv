@@ -1,0 +1,8 @@
+{
+  "version": "0.9.2-p15b-release-readiness-doc-consolidation",
+  "reason": "Die 1.0-Readiness-Pruefung ist dauerhafte Qualitaetsdokumentation und darf nicht als Release- oder Patch-Zwischenstand in der aktiven Kerndoku erscheinen. Der Inhalt wurde nach docs/QUALITY_GATE_1_0.md ueberfuehrt.",
+  "files": [
+    "docs/RELEASE_1_0_CHECKLIST.md"
+  ],
+  "directories": []
+}
