@@ -38,7 +38,8 @@ test('runs a complete synthetic 1.0 product tour across areas not covered by foc
   await expect(page.getByText(/Kontakt angelegt/)).toBeVisible();
   await expect(page.getByLabel('Vorname')).toHaveValue('');
   await expect(page.getByLabel('Nachname')).toHaveValue('');
-  await expect(page.getByRole('button', { name: /Ada E2E|E2E, Ada|Inklusionsamt Test/ }).first()).toBeVisible();
+  const contactsList = page.getByLabel('Kontaktliste');
+  await expect(contactsList.getByText(/E2E, Ada \(Inklusionsamt Test\)/)).toBeVisible();
 
   await openRoute(page, 'Wissen');
   await page.getByPlaceholder(/Norm, Stichwort oder Praxisbegriff suchen/).fill('178');

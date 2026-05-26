@@ -17,8 +17,8 @@ import { PREVENTION_OVERVIEW_STATUS_ORDER, isDonePreventionStatus, statusLabel }
 
 function StepTooltip({ text }: { text: string }) {
   return (
-    <span className="industrial-help-dot" title={text} aria-label={text}>
-      <HelpCircle className="h-3.5 w-3.5" />
+    <span className="industrial-help-dot" title={text} role="img" aria-label={text}>
+      <HelpCircle className="h-3.5 w-3.5" aria-hidden="true" />
     </span>
   );
 }

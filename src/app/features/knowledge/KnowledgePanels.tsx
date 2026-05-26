@@ -24,7 +24,7 @@ export function KnowledgeSearchPanel({
       <form onSubmit={onSubmit} className="knowledge-search-bar">
         <Search className="h-4 w-4 text-yellow-300" />
         <input className="industrial-input" value={query} onChange={(event) => onQueryChange(event.target.value)} placeholder="Norm, Stichwort oder Praxisbegriff suchen …" />
-        <select value={source} onChange={(event) => onSourceChange(event.target.value)}>
+        <select aria-label="Quelle der Wissenssuche" className="industrial-select" value={source} onChange={(event) => onSourceChange(event.target.value)}>
           <option value="">alle Quellen</option>
           {sources.map((item) => <option key={item} value={item}>{item}</option>)}
         </select>
@@ -126,7 +126,7 @@ export function KnowledgeDetailPanel({
           <details className="industrial-subpanel mt-4 knowledge-case-link">
             <summary>Mit Fallakte verknüpfen</summary>
             <div className="industrial-form-grid compact">
-              <select value={linkCaseId} onChange={(event) => onLinkCaseIdChange(event.target.value)}>
+              <select aria-label="Fallakte für Rechtsbezug auswählen" className="industrial-select" value={linkCaseId} onChange={(event) => onLinkCaseIdChange(event.target.value)}>
                 <option value="">Fall auswählen</option>
                 {cases.map((record) => <option key={record.id} value={record.id}>{record.caseNumber} · {record.displayName}</option>)}
               </select>

@@ -54,6 +54,18 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install Playwright and Axe E2E dependencies
+        run: npm run test:e2e:setup
+
+      - name: Audit production and build dependencies
+        run: npm run security:audit
+
+      - name: Generate third-party license inventory
+        run: npm run licenses:generate
+
+      - name: Verify third-party license inventory
+        run: npm run licenses:check
+
       - name: Verify tag matches package version
         shell: bash
         run: |
@@ -66,6 +78,9 @@ jobs:
 
       - name: Verify release readiness
         run: npm run release:check
+
+      - name: Verify visual, behaviour and accessibility E2E gates
+        run: npm run test:e2e:visual && npm run test:e2e:core-ui-flows && npm run test:e2e:complete-tour && npm run test:e2e:a11y
 
       - name: Build artifact
         run: npm run ${{ matrix.build_script }}

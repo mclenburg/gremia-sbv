@@ -15,9 +15,9 @@ Third-party components
 
 This project uses third-party open source components from the Node.js, Electron,
 React and SQLite ecosystem. These components are not relicensed by this project;
-they remain subject to their respective upstream licenses. A generated
-third-party license inventory should be produced as part of a later release
-packaging step when the dependency tree is frozen.
+they remain subject to their respective upstream licenses. The generated
+third-party license inventory is maintained in THIRD_PARTY_LICENSES.txt and is
+regenerated with `npm run licenses:generate` after dependency changes.
 
 Data protection note
 --------------------

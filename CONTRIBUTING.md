@@ -43,6 +43,14 @@ Für reine Light-/Dark-Mode-, Layout-, Badge-, Formular- oder Dialogpolitur gen�
 npm run test:e2e:visual
 ```
 
+Für Änderungen an zentralen Oberflächen, Formularen, Dialogen, Navigation, Badges oder Theme-Tokens muss zusätzlich das Axe-Gate laufen:
+
+```bash
+npm run test:e2e:a11y
+```
+
+Der Axe-Scan blockiert serious/critical WCAG-Verstöße. Farbkontraste werden zusätzlich durch das Visual-QA-Gate geprüft.
+
 Tests müssen plattformunabhängig sein:
 
 - keine festen `/tmp`-Pfade,

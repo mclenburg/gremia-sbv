@@ -73,7 +73,7 @@
     "test:e2e:install": "node scripts/install-e2e-browsers.cjs",
     "test:e2e:docker": "docker build -f Dockerfile.e2e -t gremia-sbv-e2e . && docker run --rm gremia-sbv-e2e",
     "release:check:e2e": "npm run release:check && npm run test:e2e",
-    "test:e2e:setup": "npm install --no-save @playwright/test@1.59.1 && npm run test:e2e:install",
+    "test:e2e:setup": "npm install --no-save @playwright/test@1.59.1 @axe-core/playwright@4.10.2 && npm run test:e2e:install",
     "build:mac": "node scripts/build-platform.cjs mac",
     "build:current": "node scripts/build-current-platform.cjs",
     "build:platforms:check": "node scripts/check-build-platforms.cjs",
@@ -103,7 +103,13 @@
     "release:check:complete-tour": "npm run build:readiness:strict && npm run test:e2e:complete-tour",
     "dev:electron:demo": "wait-on tcp:5173 && tsc -p tsconfig.electron.json && node scripts/write-electron-cjs-package.cjs && electron . --demo",
     "dev:demo": "concurrently -k --success first \"npm:dev:renderer\" \"npm:dev:electron:demo\"",
-    "start:demo": "npm run build && electron . --demo"
+    "start:demo": "npm run build && electron . --demo",
+    "security:audit": "npm audit --audit-level=high",
+    "licenses:generate": "node scripts/generate-third-party-licenses.cjs",
+    "licenses:check": "node scripts/check-third-party-licenses.cjs",
+    "release:public-check": "npm run security:audit && npm run licenses:check && npm run release:check && npm run test:e2e:visual && npm run test:e2e:core-ui-flows && npm run test:e2e:complete-tour && npm run test:e2e:a11y",
+    "test:e2e:a11y": "node scripts/run-e2e.cjs e2e/accessibility-axe.spec.ts",
+    "release:check:a11y": "npm run build:readiness:strict && npm run test:e2e:a11y"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.0",
@@ -150,7 +156,13 @@
       "dist-electron/**",
       "package.json",
       "assets/**",
-      "database/**"
+      "database/**",
+      "LICENSE",
+      "NOTICE",
+      "THIRD_PARTY_LICENSES.txt",
+      "SECURITY.md",
+      "CHANGELOG.md",
+      "docs/**"
     ],
     "directories": {
       "output": "release"

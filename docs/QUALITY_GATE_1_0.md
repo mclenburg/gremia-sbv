@@ -23,16 +23,20 @@ Diese Checkliste beschreibt den verbindlichen Stand für den öffentlichen 1.0-R
 - Icon-only-Buttons müssen ein `aria-label` besitzen.
 - Asynchrone erfolgreiche Aktionen und Fehler in Kernflows melden sich über Live-Regionen.
 - Kurzbefehle funktionieren in großen Textareas inklusive Inline-Overlay.
+- Axe prüft die primären Arbeitsbereiche und den Kurzbefehle-Dialog auf serious/critical WCAG-Verstöße; Farbkontraste bleiben zusätzlich durch das Visual-QA-Gate abgesichert.
 
 ## Test-/Build-Gates
 
 Vor Release müssen grün laufen:
 
+- `npm run security:audit`
+- `npm run licenses:check`
 - `npm run build`
 - `npm run test:e2e`
 - `npm run test:e2e:visual`
 - `npm run test:e2e:core-ui-flows`
 - `npm run test:e2e:complete-tour`
+- `npm run test:e2e:a11y`
 - `npm run build:readiness:strict`
 - `npm run rc:check`
 
@@ -46,3 +50,13 @@ Vor Release müssen grün laufen:
 ## Erweiterbarkeit
 
 Community-Beiträge müssen sich an die zentrale UI-Schicht, Audit-Builder, Datenschutzlinie und A11y-Gates halten. Abweichungen werden nur akzeptiert, wenn sie fachlich begründet, klein und getestet sind.
+
+
+## Public-Release-Gates
+
+- `THIRD_PARTY_LICENSES.txt` ist erzeugt und aktuell.
+- Root-`SECURITY.md` beschreibt die vertrauliche Meldung von Sicherheitslücken.
+- `CHANGELOG.md` beschreibt den konsolidierten 1.0-Stand.
+- Die Code-Signing-Strategie ist in `docs/CODE_SIGNING.md` dokumentiert.
+- Die README beschreibt den Demo-Start für fertige AppImage-/EXE-Artefakte vor den Entwicklerbefehlen.
+- Das Public-Release-Gate umfasst `npm run test:e2e:a11y` als automatisierten Axe-Scan.

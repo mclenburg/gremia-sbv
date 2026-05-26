@@ -13,8 +13,9 @@ Stand: **0.9.2**
 
 ## Plattformen
 
-- macOS-Artefakte sind im RC-Stand unsigniert und nicht notarisiert.
+- macOS-Artefakte sind im 1.0-Start zunächst unsigniert und nicht notarisiert.
 - Windows-Build ist als portable EXE vorgesehen; SmartScreen-Hinweise sind bei unsignierten Builds möglich.
+- Die Code-Signing-Strategie und der 1.x-Plan sind in `CODE_SIGNING.md` dokumentiert.
 - AppImage-Datenpfade sind in `APPIMAGE_DATA_PATHS.md` dokumentiert.
 
 ## Datenschutz

@@ -34,7 +34,7 @@ Der Anspruch ist klar:
 - **Datenschutz zuerst:** Anonymisierung, Löschung, Retention, Audit und Suchindex werden gemeinsam gedacht.
 - **Datenminimierung:** Es wird nur gespeichert, was für die konkrete SBV-Arbeit erforderlich ist.
 - **SBV-Perspektive:** Die Anwendung folgt den Aufgaben und Schutzbedürfnissen der SBV – nicht einer allgemeinen Personalaktenlogik.
-- **Barrierefreiheit:** Bedienung, Rückmeldungen und Tests berücksichtigen assistive Nutzung.
+- **Barrierefreiheit:** Bedienung, Rückmeldungen und Tests berücksichtigen assistive Nutzung; ein automatisierter Axe-Scan prüft die primären Arbeitsbereiche auf serious/critical WCAG-Verstöße.
 - **Modularität:** Fachmodule bleiben klar getrennt und testbar.
 - **Einheitliche Bedienoberfläche:** Zentrale Workbench-, Formular-, Dialog-, Listen- und Statusbausteine sorgen dafür, dass Fachmodule konsistent und barrierearm bleiben.
 
@@ -80,27 +80,50 @@ Das Compliance-Center zeigt Integrität, Datenschutzstatus und relevante Warnung
 Gremia.SBV kann eine **optionale, standardmäßig deaktivierte Lesebrücke** zu Gremia.BR nutzen. Diese Verbindung ist nur für ausdrücklich ausgelöste, lesende Zugriffe gedacht. Es gibt keine Hintergrundsynchronisation und kein Rückschreiben von SBV-Daten.
 
 
-## Demo-Modus
+## Gremia.SBV gefahrlos ausprobieren: Demo-Modus
 
-Für Präsentationen, Schulungen und schnelle Produkttests kann Gremia.SBV mit synthetischen Daten gestartet werden:
+Wer Gremia.SBV nur ansehen, vorführen oder in einer Schulung testen möchte, muss keinen eigenen Tresor anlegen und keine echten Daten erfassen. Die fertige Anwendung kann direkt mit dem Zusatz `--demo` gestartet werden.
 
-```bash
-electron . --demo
-```
-
-oder während der Entwicklung:
+Unter Linux zum Beispiel:
 
 ```bash
-npm run dev:demo
+./Gremia.SBV-0.9.2-linux-x86_64.AppImage --demo
 ```
 
-Der Demo-Modus nutzt **nicht** den normalen Datenbestand. Er legt bei jedem Start eine frische Testdatenbank im temporären Systemverzeichnis an, befüllt sie mit synthetischen Personen, Kontakten, Fallakten, Fristen, Prozessmodulen, Maßnahmen, Vorlagen und Compliance-Ereignissen und sperrt den Tresor anschließend. Das Demo-Passwort lautet:
+Unter Windows zum Beispiel:
+
+```powershell
+.\Gremia.SBV-0.9.2-win-x64.exe --demo
+```
+
+Wenn Gremia.SBV bereits installiert ist, reicht entsprechend der Programmname mit Zusatz:
+
+```powershell
+"Gremia.SBV.exe" --demo
+```
+
+Das Demo-Passwort lautet:
 
 ```text
 gremia.sbv-demo
 ```
 
-Alle Demo-Daten sind frei erfunden. Der Modus ist ausschließlich für Vorführung, Entwicklung und Tests gedacht.
+Der Demo-Modus nutzt **nicht** den normalen Datenbestand. Er legt bei jedem Start eine frische Testdatenbank im temporären Systemverzeichnis an, befüllt sie mit frei erfundenen Personen, Kontakten, Fallakten, Fristen, Prozessmodulen, Maßnahmen, Vorlagen und Compliance-Ereignissen und sperrt den Tresor anschließend. Dadurch kann die Anwendung realistisch ausprobiert werden, ohne echte SBV-Daten zu verwenden oder den eigenen Datenbestand zu berühren.
+
+Für Entwicklerinnen und Entwickler gibt es zusätzlich:
+
+```bash
+npm run dev:demo
+```
+
+Alle Demo-Daten sind frei erfunden. Der Modus ist ausschließlich für Vorführung, Schulung, Entwicklung und Tests gedacht.
+
+
+## Hinweise zu Signaturen und Sicherheitswarnungen
+
+Die 1.0-Artefakte werden zunächst transparent als nicht signierte Community-Builds veröffentlicht. Je nach Betriebssystem können deshalb Warnhinweise erscheinen, insbesondere Windows SmartScreen oder macOS Gatekeeper. Das bedeutet nicht automatisch, dass die Anwendung kompromittiert ist; es bedeutet, dass für diesen Build noch kein kommerzielles Code-Signing-Zertifikat beziehungsweise keine notarisierten macOS-Artefakte verwendet werden.
+
+Die Code-Signing-Strategie und der Plan für signierte 1.x-Artefakte stehen in [CODE_SIGNING.md](docs/CODE_SIGNING.md).
 
 ## Datenschutz in einem Satz
 
@@ -132,4 +155,4 @@ Willkommen sind Beiträge, die Fachlichkeit, Sicherheit, Barrierefreiheit, Testb
 
 ## Release-Qualität
 
-Gremia.SBV 1.0 folgt der verbindlichen Release-Readiness-Checkliste in `docs/QUALITY_GATE_1_0.md`. Sie beschreibt die Offline-first-Linie, Architektur-Gates, Accessibility-Gates, Visual-QA und die Tests, die vor Veröffentlichung grün sein müssen.
+Gremia.SBV 1.0 folgt der verbindlichen Release-Readiness-Checkliste in `docs/QUALITY_GATE_1_0.md`. Sie beschreibt die Offline-first-Linie, Architektur-Gates, Accessibility-Gates, Visual-QA, Axe-A11y-Scan und die Tests, die vor Veröffentlichung grün sein müssen.

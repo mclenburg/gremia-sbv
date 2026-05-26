@@ -25,7 +25,7 @@ const priorityLabels: Record<string, string> = {
 function InlineAnonymizationHelp() {
   const helpText = 'Freitexte werden nicht blind anonymisiert. Mit ~~ markierte Textstellen werden zunächst als Vormerkung mit Klartext gespeichert und erst bei einer später bestätigten Fallanonymisierung durch [anonymisiert] ersetzt.';
   return (
-    <span className="industrial-help-dot" title={helpText} aria-label={helpText} tabIndex={0}>
+    <span className="industrial-help-dot" title={helpText} role="img" aria-label={helpText} tabIndex={0}>
       <HelpCircle className="h-3.5 w-3.5" aria-hidden="true" />
     </span>
   );

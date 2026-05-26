@@ -32,6 +32,7 @@ describe("P15 Release-Readiness", () => {
       "test:e2e:visual",
       "test:e2e:core-ui-flows",
       "test:e2e:complete-tour",
+      "test:e2e:a11y",
       "Community-Beiträge",
     ]) {
       expect(checklist).toContain(required);
@@ -91,6 +92,7 @@ describe("P15 Release-Readiness", () => {
     expect(e2e).toContain("Rechtsbezug setzen");
     expect(e2e).toContain("PDF erzeugen");
     expect(pkg).toContain("test:e2e:complete-tour");
+    expect(pkg).toContain("test:e2e:a11y");
   });
 
 });
