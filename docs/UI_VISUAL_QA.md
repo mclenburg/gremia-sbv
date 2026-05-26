@@ -34,4 +34,3 @@ Die Route-Matrix liegt zentral in `src/app/shared/theme/visualQa.ts`. Neue produ
 ## Review-Regel
 
 Ein UI-Patch ist nicht ausreichend, wenn er nur einzelne Screenshots korrigiert. Die Korrektur muss entweder über zentrale Komponenten, zentrale CSS-Token oder ein Verhalten im Visual-QA-Gate abgesichert sein.
-

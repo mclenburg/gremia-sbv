@@ -1,7 +1,5 @@
 # Datenschutz-Folgenabschätzung – Vorlage Gremia.SBV
 
-Stand: **0.9.1**
-
 ## 1. Verarbeitung
 
 **Verarbeitungsaktivität:** Digitale Fallarbeit der Schwerbehindertenvertretung mit Gremia.SBV einschließlich Personenverzeichnis, Fallakten, Maßnahmen, Fristen, Dokumenten, Exporten und Compliance-Dokumentation.

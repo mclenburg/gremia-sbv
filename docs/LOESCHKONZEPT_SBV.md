@@ -1,7 +1,5 @@
 # Lösch- und Anonymisierungskonzept – Gremia.SBV
 
-Stand: **0.9.2**
-
 ## 1. Grundsatz
 
 SBV-Fallakten enthalten regelmäßig Gesundheitsdaten und andere hochsensible Beschäftigtendaten. Löschung darf daher nicht nur technisch, sondern muss fachlich und rechtlich geprüft erfolgen.

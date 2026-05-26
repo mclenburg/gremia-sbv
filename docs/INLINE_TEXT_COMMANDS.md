@@ -1,7 +1,5 @@
 # Inline-Kurzbefehle
 
-Stand: **0.9.1**
-
 ## Zweck
 
 Inline-Kurzbefehle beschleunigen die SBV-Dokumentation aus großen Textfeldern heraus.

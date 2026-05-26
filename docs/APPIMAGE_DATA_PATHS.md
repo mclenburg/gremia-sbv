@@ -1,7 +1,5 @@
 # AppImage-Datenpfade
 
-Stand: **0.9.1**
-
 ## Grundsatz
 
 AppImage ist nur das Programm-Artefakt. Fachdaten liegen im konfigurierten lokalen Datenverzeichnis und nicht im AppImage selbst.

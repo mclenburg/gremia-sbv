@@ -87,13 +87,13 @@ Wer Gremia.SBV nur ansehen, vorführen oder in einer Schulung testen möchte, mu
 Unter Linux zum Beispiel:
 
 ```bash
-./Gremia.SBV-0.9.2-linux-x86_64.AppImage --demo
+./Gremia.SBV-linux-x86_64.AppImage --demo
 ```
 
 Unter Windows zum Beispiel:
 
 ```powershell
-.\Gremia.SBV-0.9.2-win-x64.exe --demo
+.\Gremia.SBV-win-x64.exe --demo
 ```
 
 Wenn Gremia.SBV bereits installiert ist, reicht entsprechend der Programmname mit Zusatz:
@@ -121,9 +121,9 @@ Alle Demo-Daten sind frei erfunden. Der Modus ist ausschließlich für Vorführu
 
 ## Hinweise zu Signaturen und Sicherheitswarnungen
 
-Die 1.0-Artefakte werden zunächst transparent als nicht signierte Community-Builds veröffentlicht. Je nach Betriebssystem können deshalb Warnhinweise erscheinen, insbesondere Windows SmartScreen oder macOS Gatekeeper. Das bedeutet nicht automatisch, dass die Anwendung kompromittiert ist; es bedeutet, dass für diesen Build noch kein kommerzielles Code-Signing-Zertifikat beziehungsweise keine notarisierten macOS-Artefakte verwendet werden.
+Die öffentlichen Artefakte werden zunächst transparent als nicht signierte Community-Builds veröffentlicht. Je nach Betriebssystem können deshalb Warnhinweise erscheinen, insbesondere Windows SmartScreen oder macOS Gatekeeper. Das bedeutet nicht automatisch, dass die Anwendung kompromittiert ist; es bedeutet, dass für diesen Build noch kein kommerzielles Code-Signing-Zertifikat beziehungsweise keine notarisierten macOS-Artefakte verwendet werden.
 
-Die Code-Signing-Strategie und der Plan für signierte 1.x-Artefakte stehen in [CODE_SIGNING.md](docs/CODE_SIGNING.md).
+Die Code-Signing-Strategie und der Plan für signierte Artefakte stehen in [CODE_SIGNING.md](docs/CODE_SIGNING.md).
 
 ## Datenschutz in einem Satz
 
@@ -155,4 +155,4 @@ Willkommen sind Beiträge, die Fachlichkeit, Sicherheit, Barrierefreiheit, Testb
 
 ## Release-Qualität
 
-Gremia.SBV 1.0 folgt der verbindlichen Release-Readiness-Checkliste in `docs/QUALITY_GATE_1_0.md`. Sie beschreibt die Offline-first-Linie, Architektur-Gates, Accessibility-Gates, Visual-QA, Axe-A11y-Scan und die Tests, die vor Veröffentlichung grün sein müssen.
+Gremia.SBV folgt der verbindlichen Qualitätsfreigabe-Checkliste in `docs/QUALITY_GATE.md`. Sie beschreibt die Offline-first-Linie, Architektur-Gates, Accessibility-Gates, Visual-QA, Axe-A11y-Scan und die Tests, die vor der Veröffentlichung grün sein müssen.

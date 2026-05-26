@@ -1,7 +1,5 @@
 # Roadmap Gremia.SBV
 
-Stand: **0.9.2**
-
 ## Produktlinie
 
 Gremia.SBV ist eine lokale, offline-first Electron-/React-Anwendung für vertrauliche SBV-Fallarbeit. Die Anwendung soll Schwerbehindertenvertretungen dabei unterstützen, ihre gesetzlichen Aufgaben strukturiert, datensparsam und nachvollziehbar wahrzunehmen.
@@ -61,9 +59,9 @@ Der Export ist ein Arbeitsentwurf. Vor Herausgabe bleiben organisatorisch erford
 - Schwärzung,
 - rechtliche beziehungsweise verantwortliche Freigabe.
 
-## Vor 1.0 offen
+## Vor Veröffentlichung offen
 
-Vor 1.0 stehen keine neuen Großmodule im Vordergrund. Vorrang haben Stabilität und Verlässlichkeit:
+Vor Veröffentlichung stehen keine neuen Großmodule im Vordergrund. Vorrang haben Stabilität und Verlässlichkeit:
 
 - Echtdatennahe Prüfung der Migrationen und Altfallpfade,
 - Härtung der Fallübergabe gegen Fehlbedienung, Datenverlust und missverständliche Zusammenführung,
@@ -71,11 +69,11 @@ Vor 1.0 stehen keine neuen Großmodule im Vordergrund. Vorrang haben Stabilität
 - Art.-15-Auskunft organisatorisch klar dokumentieren,
 - Barrierefreiheit und Tastaturbedienung in allen kritischen Dialogen sichern,
 - Dashboard, Einstellungen, Fallakten und Compliance Center visuell konsistent im harten Industrial-Design halten,
-- Build-, Test- und Release-Gates stabilisieren.
+- Build-, Test- und Qualitätsgates stabilisieren.
 
-## Zulässig bis 1.0
+## Zulässig bis Veröffentlichung
 
-Bis 1.0 sollen nur noch Änderungen erfolgen, die eine dieser Kategorien erfüllen:
+Bis Veröffentlichung sollen nur noch Änderungen erfolgen, die eine dieser Kategorien erfüllen:
 
 - Security-Fix,
 - Datenverlust- oder Migrationsfix,
@@ -83,9 +81,9 @@ Bis 1.0 sollen nur noch Änderungen erfolgen, die eine dieser Kategorien erfüll
 - Barrierefreiheitsfix,
 - Dokumentationskorrektur,
 - offensichtlicher UI-Fehler ohne neue Fachlogik,
-- Korrektur einer bereits begonnenen Vor-1.0-Funktion, wenn sie sonst fachlich irreführend oder gefährlich wäre.
+- Korrektur einer bereits begonnenen Vorabfunktion, wenn sie sonst fachlich irreführend oder gefährlich wäre.
 
-## Spätere 1.x-Themen
+## Spätere Folgestände-Themen
 
 Spätere Themen benötigen jeweils eine eigene Architektur- und Datenschutzentscheidung:
 

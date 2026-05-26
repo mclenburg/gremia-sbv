@@ -4,7 +4,7 @@ Gremia.SBV verarbeitet besonders sensible SBV-Falldaten lokal und verschlüsselt
 
 ## Unterstützte Versionen
 
-Sicherheitsmeldungen werden für den aktuellen 1.0-Release-Zweig und den jeweils neuesten Vorab-Release geprüft.
+Sicherheitsmeldungen werden für den aktuellen öffentlichen Release-Zweig und den jeweils neuesten Vorab-Release geprüft.
 
 ## Sicherheitslücken melden
 

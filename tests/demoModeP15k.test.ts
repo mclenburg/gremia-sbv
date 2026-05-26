@@ -73,8 +73,8 @@ describe("P15k Demo-Modus", () => {
     const readme = source("README.md");
     const pkg = source("package.json");
     expect(readme).toContain("## Gremia.SBV gefahrlos ausprobieren: Demo-Modus");
-    expect(readme).toContain("./Gremia.SBV-0.9.2-linux-x86_64.AppImage --demo");
-    expect(readme).toContain(".\\Gremia.SBV-0.9.2-win-x64.exe --demo");
+    expect(readme).toContain("./Gremia.SBV-linux-x86_64.AppImage --demo");
+    expect(readme).toContain(".\\Gremia.SBV-win-x64.exe --demo");
     expect(readme).toContain('"Gremia.SBV.exe" --demo');
     expect(readme).toContain("npm run dev:demo");
     expect(readme).toContain("gremia.sbv-demo");

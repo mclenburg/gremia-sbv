@@ -1,7 +1,5 @@
 # Datenschutzkonzept Gremia.SBV
 
-Stand: **0.9.2**
-
 ## Grundsatz
 
 Gremia.SBV ist ein lokales Arbeitsmittel der Schwerbehindertenvertretung. Es unterstützt eine datensparsame, zweckgebundene und nachvollziehbare Verarbeitung besonders sensibler Beschäftigtendaten.

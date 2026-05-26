@@ -2,7 +2,7 @@
 
 Alle relevanten Änderungen an Gremia.SBV werden in diesem Dokument zusammengefasst. Das Format orientiert sich an Keep a Changelog.
 
-## [1.0.0] - geplant
+## [Öffentlicher Start] - geplant
 
 ### Added
 
