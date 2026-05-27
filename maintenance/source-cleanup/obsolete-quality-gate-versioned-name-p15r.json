@@ -1,0 +1,8 @@
+{
+  "version": "0.9.2-p15r-release-ready-markdown",
+  "reason": "Die aktive Markdown-Dokumentation soll keine Versionsnummern im Dateinamen oder Inhalt fuehren. Die Qualitaetsfreigabe liegt dauerhaft unter docs/QUALITY_GATE.md.",
+  "files": [
+    "docs/QUALITY_GATE_1_0.md"
+  ],
+  "directories": []
+}

@@ -1,7 +1,5 @@
 # Verzeichnis von Verarbeitungstätigkeiten – Gremia.SBV
 
-Stand: **0.9.2**
-
 ## 1. Personenverzeichnis schwerbehinderter und gleichgestellter Beschäftigter
 
 **Zweck:** SBV-Arbeitssteuerung, Beteiligungsprüfung, Fallaktenbindung, Statusablaufwarnung, Datenschutzprüfung und Art.-15-Auskunftsvorbereitung.

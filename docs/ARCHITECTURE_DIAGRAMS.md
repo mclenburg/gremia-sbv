@@ -1,7 +1,5 @@
 # Architekturdiagramme
 
-Stand: **0.9.1**
-
 Diese Seite ergänzt `ARCHITECTURE.md` um zwei bewusst grobe Architektursichten. Die Diagramme sind als SVG eingebunden, damit sie auch in Markdown-Viewern, PDF-Exporten und Reviews ohne Mermaid-Renderer sofort sichtbar bleiben. Die Mermaid-Quellen liegen separat unter `docs/mermaid/` und bleiben die pflegbare Wahrheit.
 
 ## Datenfluss UI bis Datenbank

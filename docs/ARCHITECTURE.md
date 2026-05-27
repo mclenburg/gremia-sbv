@@ -51,7 +51,7 @@ Die Gremia.BR-Anbindung ist optional, standardmäßig deaktiviert und read-only.
 
 ## UI-Zentralisierung und Architektur-Gates
 
-Seit der 0.9.2-Zentralisierung gilt für neue UI-Arbeit: Fachmodule bauen keine Standard-Shells, Panels, Buttons, Formulare, Badges, Dialoge, Empty-States, Suchleisten oder Tabellen mehr lokal nach. Vor einer neuen UI-Struktur ist zuerst die zentrale Schicht unter `src/app/shared/components`, `src/app/shared/dialogs` und `src/app/ui/responsiveDesign.css` zu prüfen.
+Seit der UI-Zentralisierung gilt für neue UI-Arbeit: Fachmodule bauen keine Standard-Shells, Panels, Buttons, Formulare, Badges, Dialoge, Empty-States, Suchleisten oder Tabellen mehr lokal nach. Vor einer neuen UI-Struktur ist zuerst die zentrale Schicht unter `src/app/shared/components`, `src/app/shared/dialogs` und `src/app/ui/responsiveDesign.css` zu prüfen.
 
 Verbindliche Bausteine:
 
@@ -85,6 +85,6 @@ Alles andere gehört in die Fachmodule.
 Zusätzlich zu Architektur-Gates und visueller QA beschreibt `docs/UI_CORE_BEHAVIOR_QA.md` die verpflichtenden P12-Bedienflussverträge für zentrale Dialoge, Formulare, Textareas, Screenreader-Live-Regionen und Exportfeedback.
 
 
-## 1.0 Release-Vertrag
+## Release-Vertrag
 
-Die verbindliche Release-Readiness-Linie ist in `docs/QUALITY_GATE_1_0.md` dokumentiert. Für neue Module gilt: Views orchestrieren, State liegt in Hooks, UI in kleinen Komponenten, Fachlogik in Logic-/Utility-Dateien. Zentrale UI-Komponenten, Audit-Builder, Live-Regionen und Light-/Dark-Mode-Verträge sind verbindlich.
+Die verbindliche Qualitätsfreigabe-Linie ist in `docs/QUALITY_GATE.md` dokumentiert. Für neue Module gilt: Views orchestrieren, State liegt in Hooks, UI in kleinen Komponenten, Fachlogik in Logic-/Utility-Dateien. Zentrale UI-Komponenten, Audit-Builder, Live-Regionen und Light-/Dark-Mode-Verträge sind verbindlich.

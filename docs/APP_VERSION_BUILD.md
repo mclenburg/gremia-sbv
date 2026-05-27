@@ -1,7 +1,5 @@
 # App-Version und Build-Metadaten
 
-Stand: **0.9.1**
-
 ## Version
 
 Die Paketversion in `package.json` ist die führende Versionsquelle. Generierte Dateien müssen synchron sein:

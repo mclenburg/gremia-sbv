@@ -1,7 +1,5 @@
 # DSGVO und SBV-Arbeit mit Gremia.SBV
 
-Stand: **0.9.2**
-
 ## Zweck
 
 Dieses Dokument beschreibt DSGVO-relevante Leitplanken für die Nutzung von Gremia.SBV durch Schwerbehindertenvertretungen.

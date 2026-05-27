@@ -28,8 +28,8 @@ describe('P15m Axe accessibility gate', () => {
     expect(workflow).toContain('npm run test:e2e:a11y');
   });
 
-  it('dokumentiert Axe als 1.0-Accessibility-Vertrag', () => {
-    const qualityGate = read('docs/QUALITY_GATE_1_0.md');
+  it('dokumentiert Axe als Accessibility-Vertrag', () => {
+    const qualityGate = read('docs/QUALITY_GATE.md');
     expect(qualityGate).toContain('Axe');
     expect(qualityGate).toContain('serious/critical WCAG-Verstöße');
     expect(qualityGate).toContain('npm run test:e2e:a11y');

@@ -1,7 +1,5 @@
 # Reports und PDF-Export
 
-Stand: **0.9.1**
-
 ## Ziel
 
 Berichte sollen SBV-Arbeit nachvollziehbar machen, ohne unnötige personenbezogene oder technische Daten offenzulegen.

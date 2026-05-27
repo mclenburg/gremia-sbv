@@ -1,7 +1,5 @@
 # Native SQLCipher-Abhängigkeit
 
-Stand: **0.9.1**
-
 ## Abhängigkeit
 
 Gremia.SBV nutzt `better-sqlite3-multiple-ciphers` als native SQLite-/SQLCipher-kompatible Abhängigkeit.

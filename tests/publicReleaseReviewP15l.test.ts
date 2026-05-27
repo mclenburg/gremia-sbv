@@ -7,8 +7,8 @@ describe('Public-Release-Review P15l', () => {
   it('beschreibt den Demo-Modus zuerst aus Sicht fertiger Artefakte statt entwicklerlastig', () => {
     const readme = text('README.md');
     expect(readme).toContain('Gremia.SBV gefahrlos ausprobieren: Demo-Modus');
-    expect(readme).toContain('./Gremia.SBV-0.9.2-linux-x86_64.AppImage --demo');
-    expect(readme).toContain('.\\Gremia.SBV-0.9.2-win-x64.exe --demo');
+    expect(readme).toContain('./Gremia.SBV-linux-x86_64.AppImage --demo');
+    expect(readme).toContain('.\\Gremia.SBV-win-x64.exe --demo');
     expect(readme).toContain('"Gremia.SBV.exe" --demo');
     expect(readme).toContain('gremia.sbv-demo');
 
@@ -35,7 +35,7 @@ describe('Public-Release-Review P15l', () => {
     expect(notice).not.toContain('should be produced as part of a later release');
 
     expect(existsSync('docs/CODE_SIGNING.md')).toBe(true);
-    expect(text('docs/CODE_SIGNING.md')).toContain('1.x-Zielbild');
+    expect(text('docs/CODE_SIGNING.md')).toContain('Zielbild für signierte Artefakte');
     expect(text('README.md')).toContain('Hinweise zu Signaturen und Sicherheitswarnungen');
   });
 
@@ -43,16 +43,16 @@ describe('Public-Release-Review P15l', () => {
     expect(existsSync('SECURITY.md')).toBe(true);
     expect(text('SECURITY.md')).toContain('Sicherheitslücken melden');
     expect(existsSync('CHANGELOG.md')).toBe(true);
-    expect(text('CHANGELOG.md')).toContain('[1.0.0]');
+    expect(text('CHANGELOG.md')).toContain('[Öffentlicher Start]');
     expect(existsSync('.github/dependabot.yml')).toBe(true);
     expect(text('.github/dependabot.yml')).toContain('package-ecosystem: "npm"');
   });
 
-  it('nimmt Public-Release-Gates in die 1.0-Qualitätsfreigabe auf', () => {
-    const qualityGate = text('docs/QUALITY_GATE_1_0.md');
+  it('nimmt Public-Gates in die Qualitätsfreigabe auf', () => {
+    const qualityGate = text('docs/QUALITY_GATE.md');
     expect(qualityGate).toContain('npm run security:audit');
     expect(qualityGate).toContain('npm run licenses:check');
-    expect(qualityGate).toContain('Public-Release-Gates');
+    expect(qualityGate).toMatch(/Public-(Gates|Qualitätsgates)/);
     expect(qualityGate).toContain('Demo-Start für fertige AppImage-/EXE-Artefakte');
   });
 });

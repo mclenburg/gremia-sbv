@@ -1,12 +1,10 @@
 # Datenbankmigrationen
 
-Stand: **0.9.1**
-
 ## Grundsatz
 
 Migrationen müssen idempotent, plattformunabhängig und datenverlustfrei sein. Sie dürfen keine Personen aus Freitexten erraten und keine Fallakten automatisch falsch verknüpfen.
 
-## 0.9.1-Migrationsschwerpunkte
+## vorherigen-Migrationsschwerpunkte
 
 - `protected_persons` für Personenverzeichnis,
 - Importprofile und Importläufe ohne Rohdaten,

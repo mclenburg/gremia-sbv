@@ -21,9 +21,9 @@ function filesUnder(dir: string, suffixes = [".ts", ".tsx"]): string[] {
 }
 
 describe("P15 Release-Readiness", () => {
-  it("dokumentiert die 1.0-Gates als verbindliche Release-Checkliste", () => {
-    expect(existsSync(join(root, "docs/QUALITY_GATE_1_0.md"))).toBe(true);
-    const checklist = read("docs/QUALITY_GATE_1_0.md");
+  it("dokumentiert die Qualitätsgates als verbindliche Qualitätsfreigabe", () => {
+    expect(existsSync(join(root, "docs/QUALITY_GATE.md"))).toBe(true);
+    const checklist = read("docs/QUALITY_GATE.md");
     for (const required of [
       "offline-first",
       "Architektur-Gates",
@@ -86,7 +86,8 @@ describe("P15 Release-Readiness", () => {
   it("bindet eine vollständige synthetische Produkttour als E2E-Releasegate ein", () => {
     const e2e = read("e2e/app-complete-tour.spec.ts");
     const pkg = read("package.json");
-    expect(e2e).toContain("complete synthetic 1.0 product tour");
+    expect(e2e).toContain("complete synthetic");
+    expect(e2e).toContain("product tour");
     expect(e2e).toContain("VISUAL_QA_ROUTES");
     expect(e2e).toContain("Kontakt speichern");
     expect(e2e).toContain("Rechtsbezug setzen");

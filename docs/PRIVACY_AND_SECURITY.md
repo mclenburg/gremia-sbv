@@ -1,7 +1,5 @@
 # Datenschutz- und Sicherheitskonzept
 
-Stand: **0.9.2**
-
 Gremia.SBV verarbeitet besonders schutzwürdige Informationen aus der Arbeit der Schwerbehindertenvertretung. Dazu können Gesundheitsdaten, Angaben zu Behinderung, Gleichstellung, Arbeitsplatzproblemen, Kündigungsrisiken, BEM-Verläufen und vertraulichen Gesprächen gehören.
 
 ## Grundsatz

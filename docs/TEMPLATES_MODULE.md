@@ -1,7 +1,5 @@
 # Vorlagenmodul
 
-Stand: **0.9.1**
-
 ## Zweck
 
 Das Vorlagenmodul unterstützt wiederkehrende SBV-Schreiben und Dokumentationsbausteine.
@@ -11,7 +9,7 @@ Das Vorlagenmodul unterstützt wiederkehrende SBV-Schreiben und Dokumentationsba
 - Vorlagen dürfen keine Diagnosen verlangen.
 - Platzhalter für Personen- und Fallaktenbezug müssen bewusst befüllt werden.
 - Schreiben an Arbeitgeber sollen grundsätzlich freundliche Fristsetzung ermöglichen.
-- Vorlagen für Datenschutzprüfung, Fortspeicherung, Anonymisierung und Löschung sind ab 0.9.1 fachlich relevant.
+- Vorlagen für Datenschutzprüfung, Fortspeicherung, Anonymisierung und Löschung sind ab vorherigen fachlich relevant.
 
 ## Typische Vorlagen
 

@@ -1,7 +1,5 @@
 # Backup und Wiederherstellung
 
-Stand: **0.9.2**
-
 ## Grundsatz
 
 Backups enthalten besonders sensible SBV-Daten einschließlich Personenverzeichnis, Fallakten, Dokumenten, Fristen und Audit-Metadaten. Sie sind genauso zu schützen wie die aktive Datenbank.

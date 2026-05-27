@@ -1,7 +1,5 @@
 # Entwicklung
 
-Stand: **0.9.1**
-
 ## Grundregeln
 
 - Kleine, fokussierte Dateien.
@@ -21,7 +19,7 @@ npm run build
 npm run rc:check
 ```
 
-## 0.9.1-Entwicklungsfokus
+## vorherigen-Entwicklungsfokus
 
 Bei Änderungen am Personenmodul sind immer mitzuprüfen:
 

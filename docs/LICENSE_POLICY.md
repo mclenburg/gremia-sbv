@@ -1,7 +1,5 @@
 # Lizenzpolitik
 
-Stand: **0.9.1**
-
 ## Projektlizenz
 
 Gremia.SBV steht unter **AGPL-3.0-or-later**.

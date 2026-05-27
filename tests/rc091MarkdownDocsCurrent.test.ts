@@ -31,7 +31,12 @@ function hasManualVersionStandLine(file: string): boolean {
   return /stand:\s*\*\*\d+\.\d+\.\d+/.test(readFileSync(file, 'utf8'));
 }
 
-describe('0.9.2 aktive Markdown-Dokumentation', () => {
+function hasAppVersionNumber(file: string): boolean {
+  const content = readFileSync(file, 'utf8');
+  return /\b(?:0\.9\.\d+|1\.0(?:\.0)?|1\.x|v0\.9\.\d+)\b/.test(content);
+}
+
+describe('aktive Markdown-Dokumentation', () => {
   it('führt öffentliche und dauerhafte Dokumentation ohne manuell gepflegte Versionspflicht', () => {
     const docs = ['README.md', 'CONTRIBUTING.md', ...collectMarkdownFiles('docs')];
     const classified = docs.map((file) => ({ file, kind: classifyMarkdownFile(file) }));
@@ -39,6 +44,7 @@ describe('0.9.2 aktive Markdown-Dokumentation', () => {
     expect(classified.some((entry) => entry.file === 'README.md' && entry.kind === 'public-core')).toBe(true);
     expect(classified.some((entry) => entry.file === 'docs/PRIVACY_AND_SECURITY.md' && entry.kind === 'internal-durable')).toBe(true);
     expect(docs.some(hasManualVersionStandLine)).toBe(false);
+    expect(docs.some(hasAppVersionNumber)).toBe(false);
   });
 
   it('verbannt Release- und Zwischenstandsdokumentation aus der aktiven Kerndoku', () => {

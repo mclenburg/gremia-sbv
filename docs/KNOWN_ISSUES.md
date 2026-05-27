@@ -1,8 +1,6 @@
 # Known Issues Gremia.SBV
 
-Stand: **0.9.2**
-
-## Vor 1.0 zu prüfen
+## Vor Veröffentlichung zu prüfen
 
 - Personenbindung der Fallakte ist tiefgreifend: Migration muss vorhandene `person_case_links` nutzen und Legacy-Fälle priorisieren.
 - Anonyme Beratungsanfragen benötigen einen klaren Sonderstatus ohne Direktidentifikatoren.
@@ -13,9 +11,9 @@ Stand: **0.9.2**
 
 ## Plattformen
 
-- macOS-Artefakte sind im 1.0-Start zunächst unsigniert und nicht notarisiert.
+- macOS-Artefakte sind im öffentlichen Start zunächst unsigniert und nicht notarisiert.
 - Windows-Build ist als portable EXE vorgesehen; SmartScreen-Hinweise sind bei unsignierten Builds möglich.
-- Die Code-Signing-Strategie und der 1.x-Plan sind in `CODE_SIGNING.md` dokumentiert.
+- Die Code-Signing-Strategie und der Folgestände-Plan sind in `CODE_SIGNING.md` dokumentiert.
 - AppImage-Datenpfade sind in `APPIMAGE_DATA_PATHS.md` dokumentiert.
 
 ## Datenschutz

@@ -1,7 +1,5 @@
 # Dokumentation
 
-Stand: **0.9.2**
-
 Diese Dokumentation beschreibt das Gesamtprodukt Gremia.SBV. Sie ist nicht als Sammlung einzelner Patchnotizen gedacht, sondern als dauerhafte Arbeits-, Betriebs-, Datenschutz- und Entwicklungsdokumentation für eine lokale Fachanwendung der Schwerbehindertenvertretung.
 
 ## Für wen ist diese Dokumentation gedacht?
@@ -24,7 +22,21 @@ Zweite Zielgruppe sind Personen, die Gremia.SBV betreiben, prüfen oder weiteren
 | `LOESCHKONZEPT_SBV.md` | Aufbewahrung, Löschung, Anonymisierung und Prüfpfade |
 | `VERARBEITUNGSVERZEICHNIS_SBV.md` | Grundlage für das Verzeichnis der Verarbeitungstätigkeiten |
 | `BACKUP_RESTORE.md` | Sicherung und Wiederherstellung des lokalen Vaults |
-| `ROADMAP.md` | Produktstatus, Stabilisierung vor 1.0 und spätere Themen |
+| `ROADMAP.md` | Produktstatus, Stabilisierung vor der Veröffentlichung und spätere Themen |
+
+## Freigabeunterlagen für Datenschutz und IT-Security
+
+| Datei | Zweck |
+| --- | --- |
+| `FREIGABE_DSB_IT_SECURITY.md` | zentraler Einstieg für Datenschutzbeauftragte, IT-Security und interne Freigabe |
+| `DATENSCHUTZKONZEPT.md` | Datenschutzkonzept für Zweckbindung, Rollen, Datenminimierung und organisatorische Nutzung |
+| `DSFA_SBV_TEMPLATE.md` | Vorlage für eine Datenschutz-Folgenabschätzung |
+| `VERARBEITUNGSVERZEICHNIS_SBV.md` | Grundlage für das Verzeichnis der Verarbeitungstätigkeiten |
+| `LOESCHKONZEPT_SBV.md` | Aufbewahrung, Löschung, Anonymisierung und Prüffälle |
+| `PRIVACY_AND_SECURITY.md` | Datenschutz- und Sicherheitsprinzipien der Anwendung |
+| `SECURITY.md` | technische Sicherheitsarchitektur |
+| `CODE_SIGNING.md` | Strategie für nicht signierte und später signierte Build-Artefakte |
+| `QUALITY_GATE.md` | verbindliche Qualitäts-, Test-, Security- und Accessibility-Gates |
 
 ## Betrieb, Architektur und Entwicklung
 
@@ -60,4 +72,3 @@ Zweite Zielgruppe sind Personen, die Gremia.SBV betreiben, prüfen oder weiteren
 Neue Dokumentation soll dauerhaft verwendbar sein. Kurzlebige Patchnotizen, historische Buildfix-Protokolle, Release Notes, Change Logs und temporäre Hotfix-Dokumente gehören nicht in den aktiven Dokumentationsbestand.
 
 Ein Dokument soll nicht erklären, warum ein bestimmter Patch entstanden ist. Es soll erklären, wie Gremia.SBV funktioniert, welche fachlichen Entscheidungen gelten und welche Pflichten die nutzende SBV beachten muss.
-

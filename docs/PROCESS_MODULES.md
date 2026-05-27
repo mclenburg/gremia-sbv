@@ -1,7 +1,5 @@
 # Prozessmodule und Maßnahmenlogik
 
-Stand: **0.9.2**
-
 ## Grundsatz
 
 Prozessmodule schreiben die Fallakte fort. Sie ersetzen keine rechtliche Bewertung und keine menschliche Entscheidung der SBV.

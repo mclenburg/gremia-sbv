@@ -1,7 +1,5 @@
 # Fallakten-Workflow
 
-Stand: **0.9.2**
-
 ## Grundsatz
 
 Die Fallakte ist der führende Arbeitsraum für SBV-Vorgänge. Sie bündelt Beratungsanlass, Personenbezug, Notizen, Dokumente, Maßnahmen, Fristen und Verlauf.

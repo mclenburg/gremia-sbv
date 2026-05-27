@@ -1,7 +1,5 @@
 # Fallübergabe und Vertretung
 
-Stand: **0.9.2**
-
 ## Zweck
 
 Die Fallübergabe unterstützt Situationen, in denen eine SBV einzelne Vorgänge zeitlich begrenzt an eine berechtigte Stellvertretung oder Nachfolge übergeben muss. Typische Anlässe sind Urlaub, Krankheit, Amtswechsel oder eine kurzfristige Vertretung bei laufenden Fristen.

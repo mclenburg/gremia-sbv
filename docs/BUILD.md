@@ -1,7 +1,5 @@
 # Build und Release
 
-Stand: **0.9.1**
-
 ## Zielplattformen
 
 Gremia.SBV wird als lokale Electron-App gebaut.
@@ -48,11 +46,11 @@ electron-builder install-app-deps
 
 Damit werden Runtime-Dependencies wie `better-sqlite3-multiple-ciphers` passend zur Electron-Version vorbereitet. `electron-builder` kann beim Packaging trotzdem den generischen Hinweis ausgeben, native Abhängigkeiten per `electron-builder install-app-deps` zu installieren; maßgeblich bleibt der explizite `postinstall`-Schritt ohne `npx`.
 
-## Release-Gates
+## Qualitätsgates
 
-`npm run rc:check` prüft Versionsmetadaten, Source-Cleanup, Build-Readiness und Release-Candidate-Readiness. `npm run test:coverage` nutzt Vitest mit `provider: 'v8'` und einem 70-Prozent-Gate für Branches, Functions, Lines und Statements. Das Gate misst ab 0.9.1 bewusst die RC-kritischen Service-Verträge und gut unit-testbaren Policy-Services. Stringtests sollen dabei nur stabile Release-Verträge absichern; fachliche Logik wird bevorzugt über Behavior-Tests geprüft.
+`npm run rc:check` prüft Versionsmetadaten, Source-Cleanup, Build-Readiness und Release-Candidate-Readiness. `npm run test:coverage` nutzt Vitest mit `provider: 'v8'` und einem 70-Prozent-Gate für Branches, Functions, Lines und Statements. Das Gate misst ab vorherigen bewusst die RC-kritischen Service-Verträge und gut unit-testbaren Policy-Services. Stringtests sollen dabei nur stabile Release-Verträge absichern; fachliche Logik wird bevorzugt über Behavior-Tests geprüft.
 
-## 0.9.1-spezifische Build-Grenzen
+## vorherigen-spezifische Build-Grenzen
 
 - Personenverzeichnis und Import dürfen keine optionalen nativen Abhängigkeiten außerhalb des bestehenden Electron-/Node-Stacks erzwingen.
 - iCal-Export ist lokaler Dateiexport, keine Kalender-Synchronisation.
@@ -61,26 +59,26 @@ Damit werden Runtime-Dependencies wie `better-sqlite3-multiple-ciphers` passend 
 
 ## macOS
 
-macOS-Builds bleiben im RC-Stand unsigniert. Notarisierung, Developer-ID-Signatur und Gatekeeper-optimierte Distribution sind nicht Teil von 0.9.1.
+macOS-Builds bleiben im RC-Stand unsigniert. Notarisierung, Developer-ID-Signatur und Gatekeeper-optimierte Distribution sind nicht Teil von vorherigen.
 
 ## Windows-Hinweise
 
 Der Windows-RC bleibt portabel und unsigniert. `signAndEditExecutable` ist deaktiviert, damit der Build nicht an Windows-Ressourcenbearbeitung oder winCodeSign scheitert. Falls `electron-builder` in isolierten Umgebungen mit `Cannot create symbolic link` warnt, darf daraus kein neuer `postinstall`-Workaround entstehen; native Rebuilds bleiben an `postinstall` gekoppelt.
 
 
-## Test- und Doku-Synchronisierung 0.9.1
+## Test- und Doku-Synchronisierung vorherigen
 
 Step G hält README, Roadmap, Build-Dokumentation und Release-Tests synchron. Vorveröffentlichte Release-Notes, Change-Logs und Patchnotizen werden nicht im aktiven Dokumentationsbestand gepflegt; aktuelle Tests sollen plattformunabhängig arbeiten und keine rohen Pfad-, Laufwerks- oder Zeilenendannahmen enthalten.
 
 
-### Windows-Artefaktvertrag 0.9.1
+### Windows-Artefaktvertrag vorherigen
 
 Der Windows-Build erzeugt ausschließlich eine portable Direktstart-EXE. Ein Installer wird bewusst nicht gebaut und darf in der RC-Freigabe nicht als Artefakt erscheinen.
 
 
 ## Testqualität
 
-Für 0.9.1 gilt: Mindestens 68 % der aktiven Tests müssen Verhalten, Ergebnisse, Policies, Services, Migrationen, Exporte oder E2E-Flows prüfen. Source-Text-Stringtests sind nur noch als eng begrenzte Architektur-Guards zulässig und dürfen maximal 32 % der aktiven Testbasis ausmachen.
+Für vorherigen gilt: Mindestens 68 % der aktiven Tests müssen Verhalten, Ergebnisse, Policies, Services, Migrationen, Exporte oder E2E-Flows prüfen. Source-Text-Stringtests sind nur noch als eng begrenzte Architektur-Guards zulässig und dürfen maximal 32 % der aktiven Testbasis ausmachen.
 
 
 ## ModuleFeedback-Regel

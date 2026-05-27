@@ -1,7 +1,5 @@
 # Sicherheitskonzept Gremia.SBV
 
-Stand: **0.9.1**
-
 ## Ziel
 
 Gremia.SBV verarbeitet hochsensible Informationen aus der SBV-Arbeit. Dazu können Gesundheitsdaten, Angaben zu Schwerbehinderung, Gleichstellung, BEM, Kündigungen, Konflikten, Arbeitsplatzanpassungen und anwaltlichen Verfahren gehören.
@@ -25,7 +23,7 @@ Die Anwendung unterstützt Vertraulichkeit, Integrität, Datensparsamkeit und lo
 
 Die lokale Datenbank wird SQLCipher-kompatibel verschlüsselt. Die Plattformintegration ist für die RC-Linie umgesetzt und wird über Build-/Readiness-Prüfungen für Electron, SQLCipher-kompatible native Abhängigkeiten und die unterstützten Zielplattformen abgesichert.
 
-Strukturierte Personenstammdaten wie Name und dienstliche E-Mail liegen innerhalb der verschlüsselten Datenbank. Eine zusätzliche Feldverschlüsselung für Namen wird in 0.9.1 nicht eingeführt, weil Suchbarkeit, Importabgleich und Datenqualität erforderlich sind und der Zusatznutzen bei lokal verschlüsselter Datenbank nicht im Verhältnis zur Komplexität steht. Freitexte mit Gesundheitsbezug folgen weiterhin den bestehenden Schutz- und Exportregeln.
+Strukturierte Personenstammdaten wie Name und dienstliche E-Mail liegen innerhalb der verschlüsselten Datenbank. Eine zusätzliche Feldverschlüsselung für Namen wird in vorherigen nicht eingeführt, weil Suchbarkeit, Importabgleich und Datenqualität erforderlich sind und der Zusatznutzen bei lokal verschlüsselter Datenbank nicht im Verhältnis zur Komplexität steht. Freitexte mit Gesundheitsbezug folgen weiterhin den bestehenden Schutz- und Exportregeln.
 
 ### Passwort und Master-Key
 
@@ -41,7 +39,7 @@ Die Anwendung sperrt nach Inaktivität. Beim Sperren werden Schlüssel aus dem A
 
 ## Audit-Log
 
-Das Audit-Log ist append-only und über Hashes verkettet. Ab 0.9.1 gilt als verbindliche Sicherheitsregel: Audit-Einträge enthalten keine Namen, E-Mail-Adressen, Personalnummern oder sonstigen Direktidentifikatoren. Erlaubt sind UUIDs, Aktion, Zweck, Zeitstempel und technische Entitätsbezüge. Dadurch bleibt die Hash-Kette stabil, wenn Fachdaten anonymisiert oder gelöscht werden.
+Das Audit-Log ist append-only und über Hashes verkettet. Ab vorherigen gilt als verbindliche Sicherheitsregel: Audit-Einträge enthalten keine Namen, E-Mail-Adressen, Personalnummern oder sonstigen Direktidentifikatoren. Erlaubt sind UUIDs, Aktion, Zweck, Zeitstempel und technische Entitätsbezüge. Dadurch bleibt die Hash-Kette stabil, wenn Fachdaten anonymisiert oder gelöscht werden.
 
 ## Export und iCal
 

@@ -1,7 +1,5 @@
 # Wissensbasis
 
-Stand: **0.9.1**
-
 ## Zweck
 
 Die Wissensbasis bündelt fachliche Hinweise, ohne konkrete Fallakteninhalte zu vermischen.

@@ -1,7 +1,5 @@
 # E2E-Tests
 
-Stand: **0.9.1**
-
 Die E2E-Tests prüfen RC-kritische Arbeitswege in einer isolierten synthetischen Testumgebung. Der Runner erzeugt ein temporäres `GREMIA_SBV_DATA_DIR`, damit keine produktiven Daten berührt werden.
 
 ## Start
@@ -23,7 +21,7 @@ npm run test:e2e:debug
 - Responsive Layouts bleiben bei HD small, Laptop, Full HD und QHD stabil.
 - Compliance Light-/Dark-Mode bleibt lesbar.
 
-## 0.9.1-Erweiterungen
+## vorherigen-Erweiterungen
 
 Neue E2E-Pfade müssen künftig zusätzlich prüfen:
 
