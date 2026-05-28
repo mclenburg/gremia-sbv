@@ -212,7 +212,7 @@ export class ParticipationService {
     for (const row of rows) {
       const existing = this.db
         .prepare<any>(
-          "SELECT id FROM case_measures WHERE id = ? OR source_id = ?",
+          "SELECT id FROM case_measures WHERE (id = ? OR source_id = ?) AND type = 'sbv_participation'",
         )
         .get(row.id, row.id);
       if (!existing) {
@@ -245,11 +245,12 @@ export class ParticipationService {
             row.updated_at,
           );
       }
+      const measureId = existing?.id ?? row.id;
       const detail = this.db
         .prepare<any>(
           "SELECT measure_id FROM case_measure_participation WHERE measure_id = ?",
         )
-        .get(row.id);
+        .get(measureId);
       if (!detail) {
         this.db
           .prepare(
@@ -264,7 +265,7 @@ export class ParticipationService {
         `,
           )
           .run(
-            row.id,
+            measureId,
             row.measure_type ?? "sonstiges",
             row.person_status ?? "unklar",
             row.decision_stage ?? "unklar",

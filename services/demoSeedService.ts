@@ -121,8 +121,8 @@ const CASE_MEASURE_TYPES = [
   "prevention",
   "bem",
   "termination_hearing",
-  "equalization",
-  "participation",
+  "equalization_gdb",
+  "sbv_participation",
   "workplace_accommodation",
 ];
 
@@ -327,7 +327,7 @@ function seedCasesAndProcesses(db: DatabaseAdapter, timestamp: string): void {
       `Demo-Frist ${index}`,
       `Vertrauliche Demo-Frist ${index}`,
       "Synthetische Wiedervorlage für Demo-Dashboard.",
-      daysFromNow(index % 4 === 0 ? -2 : 5 + index),
+      daysFromNow(index % 6 === 0 ? -2 : 5 + index),
       daysFromNow(2 + index),
       index % 3 === 0 ? "§ 178 Abs. 2 Satz 1 SGB IX" : "§ 164 Abs. 4 SGB IX",
       "demo_seed",
@@ -522,7 +522,7 @@ function seedMeasures(db: DatabaseAdapter, caseId: string, caseIndex: number, ti
       timestamp
     );
 
-    if (type === "participation") {
+    if (type === "sbv_participation") {
       run(
         db,
         `INSERT INTO case_measure_participation (
