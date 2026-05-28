@@ -1,0 +1,10 @@
+License file: WTFPL
+
+This file is stored once for all packages using this license in Gremia.SBV.
+Package-specific copyright and notice hints are collected in THIRD_PARTY_NOTICES.txt.
+
+License expression: WTFPL
+
+The upstream package tarball did not contain a dedicated LICENSE/COPYING file.
+The license expression above was read from the exact npm package version metadata.
+Check the upstream package before changing this dependency or publishing a new major release.

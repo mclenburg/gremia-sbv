@@ -162,6 +162,8 @@
       "LICENSE",
       "NOTICE",
       "THIRD_PARTY_LICENSES.txt",
+      "THIRD_PARTY_NOTICES.txt",
+      "LICENSES/**",
       "SECURITY.md",
       "CHANGELOG.md",
       "docs/**"
