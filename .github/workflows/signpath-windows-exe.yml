@@ -1,0 +1,111 @@
+name: Sign Windows EXE with SignPath
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version label passed to SignPath, for example 1.0.0
+        required: true
+        type: string
+      build_unsigned:
+        description: Build the unsigned Windows EXE before submitting it to SignPath
+        required: true
+        default: true
+        type: boolean
+      artifact_glob:
+        description: Unsigned EXE glob to submit if build_unsigned is false
+        required: true
+        default: dist/*.exe
+        type: string
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: signpath-windows-exe-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  signpath-windows-exe:
+    name: Build and submit Windows EXE to SignPath
+    if: ${{ vars.SIGNPATH_ENABLED == 'true' }}
+    runs-on: windows-latest
+    timeout-minutes: 90
+    env:
+      SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
+      SIGNPATH_ORGANIZATION_ID: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+      SIGNPATH_PROJECT_SLUG: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+      SIGNPATH_SIGNING_POLICY_SLUG: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
+      SIGNPATH_ARTIFACT_CONFIGURATION_SLUG: ${{ vars.SIGNPATH_ARTIFACT_CONFIGURATION_SLUG || 'windows-exe' }}
+      SIGNPATH_UNSIGNED_DIR: signpath-unsigned
+      SIGNPATH_SIGNED_DIR: signpath-signed
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Validate SignPath configuration
+        shell: pwsh
+        run: node scripts/check-signpath-readiness.cjs --env
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build unsigned Windows EXE
+        if: ${{ inputs.build_unsigned }}
+        run: npm run build:win
+
+      - name: Prepare unsigned EXE artifact
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $target = $env:SIGNPATH_UNSIGNED_DIR
+          if (Test-Path $target) { Remove-Item -Recurse -Force $target }
+          New-Item -ItemType Directory -Path $target | Out-Null
+          $glob = '${{ inputs.artifact_glob }}'
+          $files = Get-ChildItem -Path $glob -File -ErrorAction SilentlyContinue
+          if (-not $files -or $files.Count -eq 0) {
+            throw "No unsigned EXE matched '$glob'."
+          }
+          foreach ($file in $files) {
+            Copy-Item -Path $file.FullName -Destination (Join-Path $target $file.Name)
+          }
+
+      - name: Upload unsigned EXE for SignPath
+        id: upload-unsigned-artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: gremia-sbv-windows-exe-unsigned
+          path: signpath-unsigned/*.exe
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Submit signing request to SignPath
+        id: signpath
+        uses: signpath/github-action-submit-signing-request@v2
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
+          artifact-configuration-slug: ${{ env.SIGNPATH_ARTIFACT_CONFIGURATION_SLUG }}
+          github-artifact-id: ${{ steps.upload-unsigned-artifact.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: signpath-signed
+          parameters: |
+            version: ${{ toJSON(inputs.version) }}
+
+      - name: Upload signed EXE
+        uses: actions/upload-artifact@v7
+        with:
+          name: gremia-sbv-windows-exe-signed
+          path: signpath-signed/**/*
+          if-no-files-found: error
+          retention-days: 30
