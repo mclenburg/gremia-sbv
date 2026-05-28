@@ -18,7 +18,9 @@ describe('P15m Axe accessibility gate', () => {
 
   it('macht das Axe-Gate installierbar und releasefähig', () => {
     const pkg = read('package.json');
-    expect(pkg).toContain('@axe-core/playwright@4.10.2');
+    const e2eInstaller = read('scripts/install-e2e-tools.cjs');
+    expect(e2eInstaller).toContain('@axe-core/playwright@4.10.2');
+    expect(e2eInstaller).toContain('--prefix');
     expect(pkg).toContain('test:e2e:a11y');
     expect(pkg).toContain('release:check:a11y');
     expect(pkg).toContain('test:e2e:a11y');

@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 
 const packageJson = JSON.parse(readFileSync('package.json', 'utf8')) as {
   scripts: Record<string, string>;
+  dependencies?: Record<string, string>;
   devDependencies?: Record<string, string>;
 };
 const packageLock = JSON.parse(readFileSync('package-lock.json', 'utf8')) as {
@@ -49,6 +50,33 @@ describe('Dependency-Hygiene nach Dependabot-Updates', () => {
     expect(npmrc.includes('registry=https://registry.npmjs.org/')).toBe(true);
     expect(npmrc.includes('workspaces=false')).toBe(true);
     expect(npmrc.includes('include-workspace-root=false')).toBe(true);
+  });
+
+
+  it('hält Build- und E2E-Werkzeuge aus den Runtime-Abhängigkeiten heraus', () => {
+    const runtimeDependencies = packageJson.dependencies ?? {};
+    const devDependencies = packageJson.devDependencies ?? {};
+
+    for (const dependencyName of [
+      '@playwright/test',
+      '@axe-core/playwright',
+      '@vitejs/plugin-react',
+      'electron',
+      'electron-builder',
+      'esbuild',
+      'vite',
+      'vitest',
+      'tsx',
+      'typescript',
+      'tailwindcss',
+      '@tailwindcss/postcss',
+    ]) {
+      expect(runtimeDependencies[dependencyName]).toBeUndefined();
+    }
+
+    expect(devDependencies['@vitejs/plugin-react']).toBeDefined();
+    expect(packageJson.scripts['test:e2e:setup']).toBe('node scripts/install-e2e-tools.cjs && npm run test:e2e:install');
+    expect(packageJson.scripts['test:e2e:setup']).not.toContain('npm install --no-save');
   });
 
 });

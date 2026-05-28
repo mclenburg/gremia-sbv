@@ -3,6 +3,7 @@ const { mkdtempSync, rmSync, existsSync, mkdirSync } = require('node:fs');
 const { join, resolve } = require('node:path');
 const { tmpdir } = require('node:os');
 const { spawnSync } = require('node:child_process');
+const { e2eBin } = require('./e2e-tools.cjs');
 
 function isSafeE2eDir(value) {
   if (!value) return false;
@@ -11,13 +12,6 @@ function isSafeE2eDir(value) {
   return normalized.startsWith(tempRoot) && normalized.includes('gremia-sbv-e2e-');
 }
 
-function localBin(name) {
-  return process.platform === 'win32'
-    ? join(process.cwd(), 'node_modules', '.bin', `${name}.cmd`)
-    : join(process.cwd(), 'node_modules', '.bin', name);
-}
-
-
 function normalizeSpecPathArg(arg) {
   if (arg.startsWith('-')) return arg;
   if (!/\.(spec|test)\.[cm]?[jt]sx?$/.test(arg)) return arg;
@@ -25,16 +19,16 @@ function normalizeSpecPathArg(arg) {
 }
 
 function assertLocalPlaywrightInstalled() {
-  const binary = localBin('playwright');
+  const binary = e2eBin('playwright');
   if (existsSync(binary)) return binary;
 
-  console.error('E2E-Abbruch: Playwright ist nicht lokal installiert.');
-  console.error('Playwright ist bewusst nicht Teil der Standardinstallation, damit normale Builds nicht an optionalen UI-Test-Abhängigkeiten scheitern.');
+  console.error('E2E-Abbruch: Playwright ist nicht in der isolierten E2E-Werkzeugumgebung installiert.');
+  console.error('Playwright ist bewusst nicht Teil der Standardinstallation und wird außerhalb der App-node_modules installiert, damit normale Builds und electron-builder-Pakete sauber bleiben.');
   console.error('Für E2E-Tests bitte explizit ausführen:');
   console.error('  npm run test:e2e:setup');
   console.error('Danach:');
   console.error('  npm run test:e2e');
-  console.error('Der E2E-Runner nutzt bewusst kein npx-Auto-Install und öffnet keine produktive Datenbank.');
+  console.error('Der E2E-Runner nutzt bewusst kein npx-Auto-Install, verändert keine Runtime-Abhängigkeiten und öffnet keine produktive Datenbank.');
   process.exit(3);
 }
 

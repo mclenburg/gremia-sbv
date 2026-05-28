@@ -1,18 +1,12 @@
 #!/usr/bin/env node
 const { existsSync } = require('node:fs');
-const { join } = require('node:path');
 const { spawnSync } = require('node:child_process');
+const { e2eBin } = require('./e2e-tools.cjs');
 
-function localBin(name) {
-  return process.platform === 'win32'
-    ? join(process.cwd(), 'node_modules', '.bin', `${name}.cmd`)
-    : join(process.cwd(), 'node_modules', '.bin', name);
-}
-
-const playwrightBin = localBin('playwright');
+const playwrightBin = e2eBin('playwright');
 if (!existsSync(playwrightBin)) {
-  console.error('E2E-Browserinstallation abgebrochen: Playwright ist lokal nicht installiert.');
-  console.error('Playwright ist bewusst nicht Teil der Standardinstallation, damit normale Builds nicht an optionalen UI-Test-Abhängigkeiten scheitern.');
+  console.error('E2E-Browserinstallation abgebrochen: Playwright ist nicht in der isolierten E2E-Werkzeugumgebung installiert.');
+  console.error('Playwright ist bewusst nicht Teil der Standardinstallation und wird außerhalb der App-node_modules installiert, damit normale Builds und electron-builder-Pakete sauber bleiben.');
   console.error('Für E2E-Tests bitte explizit ausführen:');
   console.error('  npm run test:e2e:setup');
   process.exit(3);

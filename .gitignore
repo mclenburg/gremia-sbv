@@ -18,3 +18,5 @@ release/
 /test-results.zip
 /coverage/
 /data/
+
+/.e2e-tools/

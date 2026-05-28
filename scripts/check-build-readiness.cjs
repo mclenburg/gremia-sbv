@@ -142,6 +142,43 @@ function validateInstalledBuildDependencies(pkg) {
 }
 
 
+
+function validateRuntimeDependencyBoundaries(pkg) {
+  const runtimeDependencies = pkg.dependencies || {};
+  const devDependencies = pkg.devDependencies || {};
+  const forbiddenRuntimeDependencies = [
+    '@playwright/test',
+    '@axe-core/playwright',
+    '@vitejs/plugin-react',
+    'electron',
+    'electron-builder',
+    'esbuild',
+    'vite',
+    'vitest',
+    'tsx',
+    'typescript',
+    'tailwindcss',
+    '@tailwindcss/postcss',
+  ];
+
+  for (const dependencyName of forbiddenRuntimeDependencies) {
+    expect(
+      !Object.prototype.hasOwnProperty.call(runtimeDependencies, dependencyName),
+      `${dependencyName} darf nicht in dependencies stehen. Build-, Test- und E2E-Werkzeuge müssen dev-only oder isoliert bleiben, damit electron-builder keine Runtime-Abhängigkeiten daraus paketiert.`
+    );
+  }
+
+  expect(
+    Object.prototype.hasOwnProperty.call(devDependencies, '@vitejs/plugin-react'),
+    '@vitejs/plugin-react muss als Build-Werkzeug in devDependencies stehen.'
+  );
+
+  expect(
+    !pkg.scripts['test:e2e:setup']?.includes('npm install --no-save'),
+    'test:e2e:setup darf keine no-save-Installation in die App-node_modules schreiben. E2E-Werkzeuge müssen isoliert installiert werden.'
+  );
+}
+
 function validateElectronBuilderConfiguration(pkg) {
   const winConfig = pkg.build?.win;
   expect(
@@ -192,6 +229,7 @@ function main() {
   validateNativeDependencyBootstrap(pkg);
   validateElectronSqlcipherCompatibility(pkg);
   validateInstalledBuildDependencies(pkg);
+  validateRuntimeDependencyBoundaries(pkg);
   validateElectronBuilderConfiguration(pkg);
   validateVersions(pkg);
   validateSchemaVersion();

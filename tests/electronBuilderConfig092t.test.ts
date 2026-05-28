@@ -34,8 +34,22 @@ describe('electron-builder 26 configuration contract', () => {
 
     const hasBuilderSchemaGuard = readinessScript.includes('validateElectronBuilderConfiguration(pkg)');
     const rejectsRemovedPublisherOption = readinessScript.includes('build.win.publisherName wird von electron-builder 26 nicht mehr akzeptiert');
+    const hasRuntimeBoundaryGuard = readinessScript.includes('validateRuntimeDependencyBoundaries(pkg)');
 
     expect(hasBuilderSchemaGuard).toBe(true);
     expect(rejectsRemovedPublisherOption).toBe(true);
+    expect(hasRuntimeBoundaryGuard).toBe(true);
   });
+});
+
+
+it('routes packaging through the electron-builder wrapper that filters known upstream packaging noise', () => {
+  const buildPlatformScript = readFileSync(path.join(root, 'scripts', 'build-platform.cjs'), 'utf8');
+  const wrapperScript = readFileSync(path.join(root, 'scripts', 'run-electron-builder.cjs'), 'utf8');
+
+  expect(buildPlatformScript).toContain('scripts/run-electron-builder.cjs');
+  expect(wrapperScript).toContain('--no-deprecation');
+  expect(wrapperScript).toContain('isKnownUpstreamPackagingNoise');
+  expect(wrapperScript).toContain('duplicate dependency references');
+  expect(wrapperScript).toContain('[DEP0190] DeprecationWarning');
 });

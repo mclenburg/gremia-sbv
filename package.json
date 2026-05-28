@@ -72,7 +72,7 @@
     "test:e2e:install": "node scripts/install-e2e-browsers.cjs",
     "test:e2e:docker": "docker build -f Dockerfile.e2e -t gremia-sbv-e2e . && docker run --rm gremia-sbv-e2e",
     "release:check:e2e": "npm run release:check && npm run test:e2e",
-    "test:e2e:setup": "npm install --no-save @playwright/test@1.59.1 @axe-core/playwright@4.10.2 && npm run test:e2e:install",
+    "test:e2e:setup": "node scripts/install-e2e-tools.cjs && npm run test:e2e:install",
     "build:mac": "node scripts/build-platform.cjs mac",
     "build:current": "node scripts/build-current-platform.cjs",
     "build:platforms:check": "node scripts/check-build-platforms.cjs",
@@ -112,7 +112,6 @@
     "dependency:hygiene": "vitest run tests/dependencyHygiene092j.test.ts tests/dependabotPolicy092k.test.ts tests/tailwindPostcssContract092p.test.ts tests/electronBuilderConfig092t.test.ts"
   },
   "dependencies": {
-    "@vitejs/plugin-react": "^6.0.2",
     "argon2-browser": "^1.18.0",
     "better-sqlite3-multiple-ciphers": "^12.10.0",
     "clsx": "^2.1.1",
@@ -133,6 +132,7 @@
     "@types/yauzl": "^2.10.3",
     "@typescript-eslint/eslint-plugin": "^8.60.0",
     "@typescript-eslint/parser": "^8.60.0",
+    "@vitejs/plugin-react": "^6.0.2",
     "@vitest/coverage-v8": "^4.1.7",
     "autoprefixer": "^10.5.0",
     "concurrently": "^9.2.1",

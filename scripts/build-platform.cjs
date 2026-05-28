@@ -90,7 +90,7 @@ console.log(`Plattform: ${process.platform}, Node: ${process.version}`);
 
 run(command('npm'), ['run', 'build']);
 run(command('npm'), ['run', 'native:rebuild:electron']);
-run(electronBuilder, selected.builderArgs);
+run(command('node'), ['scripts/run-electron-builder.cjs', ...selected.builderArgs]);
 
 console.log('');
 console.log('Fertig. Artefakte liegen unter:');
