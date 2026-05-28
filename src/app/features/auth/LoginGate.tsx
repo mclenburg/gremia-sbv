@@ -5,11 +5,17 @@ import { waitForBridge } from '../../core/bridge/waitForBridge';
 import type { AuthMode } from '../../core/auth/authTypes';
 import { validateAppPassword } from '@services/passwordPolicy';
 
+const LOGIN_SHELL_CLASS = 'industrial-shell login-shell flex min-h-screen items-center justify-center px-6 py-8 text-zinc-100';
+const LOGIN_PANEL_BASE_CLASS = 'login-panel relative w-full overflow-hidden rounded-none bg-zinc-950/95 p-7 shadow-2xl';
+
+function compactPanelClass(borderClass = 'border-zinc-700') {
+  return `${LOGIN_PANEL_BASE_CLASS} max-w-md border ${borderClass}`;
+}
 
 function SecurityUnavailable() {
   return (
-    <main className="industrial-shell flex min-h-screen items-center justify-center px-6 py-8 text-zinc-100">
-      <section className="login-panel relative w-full max-w-md overflow-hidden rounded-none border border-yellow-500/40 bg-zinc-950/95 p-7 shadow-2xl">
+    <main className={LOGIN_SHELL_CLASS}>
+      <section className={compactPanelClass('border-yellow-500/40')}>
         <div className="scanline" />
         <div className="mb-5 flex items-center gap-3 border-b border-zinc-800 pb-5">
           <div className="grid h-11 w-11 place-items-center border border-yellow-400 bg-yellow-400/10 text-yellow-300">
@@ -30,8 +36,8 @@ function SecurityUnavailable() {
 
 function RecoveryKeyPanel({ recoveryKey, onConfirm }: { recoveryKey: string; onConfirm: () => void }) {
   return (
-    <main className="industrial-shell flex min-h-screen items-center justify-center px-6 py-8 text-zinc-100">
-      <section className="login-panel relative w-full max-w-2xl overflow-hidden rounded-none border border-yellow-500/40 bg-zinc-950/95 p-7 shadow-2xl">
+    <main className={LOGIN_SHELL_CLASS}>
+      <section className={`${LOGIN_PANEL_BASE_CLASS} max-w-2xl border border-yellow-500/40`}>
         <div className="scanline" />
         <div className="mb-6 flex items-center gap-3 border-b border-zinc-800 pb-5">
           <div className="grid h-11 w-11 place-items-center border border-yellow-400 bg-yellow-400/10 text-yellow-300 shadow-[0_0_18px_rgba(250,204,21,0.22)]">
@@ -133,8 +139,8 @@ function RecoveryGate({ onUnlock, onResetToSetup }: { onUnlock: () => void; onRe
   }
 
   return (
-    <main className="industrial-shell flex min-h-screen items-center justify-center px-6 py-8 text-zinc-100">
-      <section className="login-panel relative w-full max-w-3xl overflow-hidden rounded-none border border-yellow-500/40 bg-zinc-950/95 p-7 shadow-2xl">
+    <main className={LOGIN_SHELL_CLASS}>
+      <section className={`${LOGIN_PANEL_BASE_CLASS} max-w-3xl border border-yellow-500/40`}>
         <div className="scanline" />
         <div className="mb-7 flex items-center gap-3 border-b border-zinc-800 pb-5">
           <div className="grid h-11 w-11 place-items-center border border-yellow-400 bg-yellow-400/10 text-yellow-300 shadow-[0_0_18px_rgba(250,204,21,0.22)]">
@@ -266,8 +272,8 @@ export function LoginGate({ mode, onUnlock, onResetToSetup }: { mode: AuthMode; 
 
   if (mode === 'loading') {
     return (
-      <main className="industrial-shell flex min-h-screen items-center justify-center px-6 py-8 text-zinc-100">
-        <section className="login-panel relative w-full max-w-md overflow-hidden rounded-none border border-zinc-700 bg-zinc-950/95 p-7 shadow-2xl">
+      <main className={LOGIN_SHELL_CLASS}>
+        <section className={compactPanelClass()}>
           <div className="scanline" />
           <p className="industrial-kicker">Gremia.SBV</p>
           <h1 className="text-2xl font-black tracking-tight text-zinc-100">Initialisierung</h1>
@@ -277,8 +283,8 @@ export function LoginGate({ mode, onUnlock, onResetToSetup }: { mode: AuthMode; 
   }
 
   return (
-    <main className="industrial-shell flex min-h-screen items-center justify-center px-6 py-8 text-zinc-100">
-      <section className="login-panel relative w-full max-w-md overflow-hidden rounded-none border border-zinc-700 bg-zinc-950/95 p-7 shadow-2xl">
+    <main className={LOGIN_SHELL_CLASS}>
+      <section className={compactPanelClass()}>
         <div className="scanline" />
         <div className="mb-7 flex items-center gap-3 border-b border-zinc-800 pb-5">
           <div className="grid h-11 w-11 place-items-center border border-yellow-400 bg-yellow-400/10 text-yellow-300 shadow-[0_0_18px_rgba(250,204,21,0.22)]">

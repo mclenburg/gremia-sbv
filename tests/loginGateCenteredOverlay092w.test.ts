@@ -107,9 +107,9 @@ describe('LoginGate Overlay-Layout wie 0.9.1', () => {
     const controls = renderedControlsInside(panel);
 
     expect(panel.parent).toBe(shell);
-    expect(classList(shell)).toEqual(expect.arrayContaining(['industrial-shell', 'flex', 'min-h-screen', 'items-center', 'justify-center', 'px-6', 'py-8', 'text-zinc-100']));
+    expect(classList(shell)).toEqual(expect.arrayContaining(['industrial-shell', 'login-shell', 'flex', 'min-h-screen', 'items-center', 'justify-center', 'px-6', 'py-8', 'text-zinc-100']));
     expect(classList(panel)).toEqual(expect.arrayContaining(['login-panel', 'relative', 'w-full', 'max-w-md', 'overflow-hidden', 'rounded-none', 'border', 'border-zinc-700', 'bg-zinc-950/95', 'p-7', 'shadow-2xl']));
-    expect(classList(panel)).not.toEqual(expect.arrayContaining(['max-w-none', 'login-panel-compact']));
+    expect(classList(panel)).not.toEqual(expect.arrayContaining(['max-w-none']));
     expect(controls.inputs).toHaveLength(1);
     expect(controls.buttons).toHaveLength(1);
     expect(controls.inputs.every((input) => descendants(panel).includes(input))).toBe(true);
@@ -124,7 +124,7 @@ describe('LoginGate Overlay-Layout wie 0.9.1', () => {
 
       expect(panel.parent).toBe(shell);
       expect(classList(panel)).toEqual(expect.arrayContaining(['w-full', 'max-w-md', 'p-7']));
-      expect(classList(panel)).not.toEqual(expect.arrayContaining(['max-w-none', 'login-panel-compact']));
+      expect(classList(panel)).not.toEqual(expect.arrayContaining(['max-w-none']));
       expect(descendants(shell).some((node) => hasClasses(node, ['industrial-sidebar']))).toBe(false);
     }
   });
@@ -135,7 +135,7 @@ describe('LoginGate Overlay-Layout wie 0.9.1', () => {
 
     expect(classList(unavailablePanel)).toEqual(expect.arrayContaining(['max-w-md', 'border-yellow-500/40', 'p-7']));
     expect(classList(recoveryPanel)).toEqual(expect.arrayContaining(['max-w-3xl', 'border-yellow-500/40', 'p-7']));
-    expect(classList(unavailablePanel)).not.toEqual(expect.arrayContaining(['login-panel-compact']));
+    expect(classList(unavailablePanel)).not.toEqual(expect.arrayContaining(['max-w-none']));
     expect(classList(recoveryPanel)).not.toEqual(expect.arrayContaining(['max-w-none']));
   });
 
@@ -144,6 +144,7 @@ describe('LoginGate Overlay-Layout wie 0.9.1', () => {
       const shell = loginShell(renderLoginTree(mode));
       const shellChildren = descendants(shell);
 
+      expect(classList(shell)).toContain('login-shell');
       expect(shellChildren.some((node) => hasClasses(node, ['industrial-sidebar']))).toBe(false);
       expect(shellChildren.some((node) => hasClasses(node, ['industrial-content']))).toBe(false);
       expect(shellChildren.some((node) => hasClasses(node, ['industrial-topbar']))).toBe(false);
