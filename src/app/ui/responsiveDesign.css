@@ -114,21 +114,30 @@ button:disabled,
 
 .login-shell .login-panel {
   flex: 0 1 auto;
+  padding: clamp(1.75rem, 2.4vw, 2.25rem);
 }
 
-.login-shell .login-panel-compact {
-  width: min(100%, 28rem);
-  max-width: 28rem;
-}
-
-.login-shell .login-panel-medium {
-  width: min(100%, 42rem);
-  max-width: 42rem;
-}
-
+.login-shell .login-panel-compact,
+.login-shell .login-panel-medium,
 .login-shell .login-panel-wide {
-  width: min(100%, 48rem);
-  max-width: 48rem;
+  width: min(100%, var(--auth-panel-max-width));
+  max-width: var(--auth-panel-max-width);
+  min-height: var(--auth-panel-min-height);
+}
+
+.login-shell .auth-form {
+  display: grid;
+  gap: 1.15rem;
+}
+
+.login-shell .auth-field-label {
+  margin-bottom: 0.75rem;
+  line-height: 1.4;
+}
+
+.login-shell .auth-form .industrial-input,
+.login-shell .auth-form .industrial-button {
+  min-height: 3rem;
 }
 
 .industrial-sidebar {
