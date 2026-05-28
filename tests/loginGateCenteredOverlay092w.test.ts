@@ -77,6 +77,18 @@ function styleMap(node: HtmlNode): Record<string, string> {
   );
 }
 
+function normalizedCssValue(value: string | undefined): string {
+  return (value ?? '').replace(/\s+/g, '');
+}
+
+function expectCompactAuthPanel(panel: HtmlNode): void {
+  const panelStyle = styleMap(panel);
+
+  expect(classList(panel)).toEqual(expect.arrayContaining(['auth-panel-compact']));
+  expect(normalizedCssValue(panelStyle.width)).toBe('min(100%,28rem)');
+  expect(panelStyle['max-width']).toBe('28rem');
+}
+
 function firstDescendant(root: HtmlNode, predicate: (node: HtmlNode) => boolean): HtmlNode {
   const node = descendants(root).find(predicate);
   expect(node).toBeTruthy();
@@ -116,20 +128,15 @@ describe('LoginGate Auth-Layout', () => {
     expect(shellStyle['grid-template-columns']).toBe('none');
     expect(shellStyle['align-items']).toBe('center');
     expect(shellStyle['justify-content']).toBe('center');
-    expect(panelStyle.width).toBe('min(100%,28rem)');
-    expect(panelStyle['max-width']).toBe('28rem');
-    expect(classList(panel)).toEqual(expect.arrayContaining(['auth-panel-compact', 'border-zinc-700', 'p-7']));
+    expectCompactAuthPanel(panel);
+    expect(classList(panel)).toEqual(expect.arrayContaining(['border-zinc-700', 'p-7']));
     expect(classList(panel)).not.toEqual(expect.arrayContaining(['max-w-none']));
   });
 
   it('hält Ersteinrichtung und Ladezustand in der kompakten Auth-Karte', () => {
     for (const mode of ['setup', 'loading'] satisfies AuthMode[]) {
       const panel = loginPanel(renderLoginTree(mode));
-      const panelStyle = styleMap(panel);
-
-      expect(classList(panel)).toEqual(expect.arrayContaining(['auth-panel-compact']));
-      expect(panelStyle.width).toBe('min(100%,28rem)');
-      expect(panelStyle['max-width']).toBe('28rem');
+      expectCompactAuthPanel(panel);
     }
   });
 

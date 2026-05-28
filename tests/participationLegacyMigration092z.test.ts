@@ -94,10 +94,10 @@ class ParticipationMigrationDb implements DatabaseAdapter {
         if (sql.includes("sqlite_master") && sql.includes("sbv_participations")) {
           return { name: 'sbv_participations' } as T;
         }
-        if (sql.includes("SELECT id FROM case_measures WHERE id = ? OR (source_id = ? AND type = 'sbv_participation')")) {
+        if (sql.includes('SELECT id FROM case_measures') && sql.includes("type = 'sbv_participation'")) {
           const [id, sourceId] = params;
           return db.rows.case_measures.find(
-            (row) => row.id === id || (row.source_id === sourceId && row.type === 'sbv_participation'),
+            (row) => (row.id === id || row.source_id === sourceId) && row.type === 'sbv_participation',
           ) as T | undefined;
         }
         if (sql.includes('SELECT measure_id FROM case_measure_participation WHERE measure_id = ?')) {
