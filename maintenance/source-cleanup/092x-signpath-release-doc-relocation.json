@@ -1,0 +1,8 @@
+{
+  "version": "0.9.2",
+  "reason": "SignPath-Code-Signatur ist eine dauerhafte Architektur- und Release-Freigabelinie. Die Dokumentation darf nicht unter docs/release liegen, weil aktive Markdown-Guards Release- und Zwischenstandsdokumentation aus der Kerndoku entfernen. Der Inhalt wurde versionsfrei nach docs/architecture/signpath-code-signing.md ueberfuehrt.",
+  "files": [
+    "docs/release/signpath-code-signing.md"
+  ],
+  "directories": []
+}

@@ -751,6 +751,12 @@ CREATE TABLE IF NOT EXISTS case_measures (
   source_id TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
+  handover_import_id TEXT REFERENCES case_handover_imports(id) ON DELETE SET NULL,
+  handover_package_id TEXT,
+  handover_valid_until TEXT,
+  handover_status TEXT NOT NULL DEFAULT 'none',
+  handover_continue_confirmed_at TEXT,
+  handover_continue_reason TEXT,
   FOREIGN KEY(case_id) REFERENCES cases(id) ON DELETE CASCADE
 );
 

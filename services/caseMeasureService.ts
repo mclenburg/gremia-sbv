@@ -120,6 +120,12 @@ export class CaseMeasureService {
         source_id TEXT,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL,
+        handover_import_id TEXT REFERENCES case_handover_imports(id) ON DELETE SET NULL,
+        handover_package_id TEXT,
+        handover_valid_until TEXT,
+        handover_status TEXT NOT NULL DEFAULT 'none',
+        handover_continue_confirmed_at TEXT,
+        handover_continue_reason TEXT,
         FOREIGN KEY(case_id) REFERENCES cases(id) ON DELETE CASCADE
       );
       CREATE INDEX IF NOT EXISTS idx_case_measures_case ON case_measures(case_id, type, status);
@@ -146,7 +152,23 @@ export class CaseMeasureService {
       CREATE INDEX IF NOT EXISTS idx_case_measure_notes_measure ON case_measure_notes(measure_type, measure_id, note_at DESC);
       CREATE INDEX IF NOT EXISTS idx_case_measure_notes_case ON case_measure_notes(case_id, note_at DESC);
     `);
+    this.ensureHandoverColumns();
     new PersonalDataAuditLogService(this.db);
+  }
+
+  private ensureHandoverColumns(): void {
+    const columns = this.db.prepare<{ name: string }>('PRAGMA table_info(case_measures)').all().map((row) => row.name);
+    const addColumn = (column: string, definition: string) => {
+      if (columns.includes(column)) return;
+      this.db.exec(`ALTER TABLE case_measures ADD COLUMN ${column} ${definition};`);
+    };
+
+    addColumn('handover_import_id', 'TEXT REFERENCES case_handover_imports(id) ON DELETE SET NULL');
+    addColumn('handover_package_id', 'TEXT');
+    addColumn('handover_valid_until', 'TEXT');
+    addColumn('handover_status', "TEXT NOT NULL DEFAULT 'none'");
+    addColumn('handover_continue_confirmed_at', 'TEXT');
+    addColumn('handover_continue_reason', 'TEXT');
   }
 
   private audit(action: Parameters<PersonalDataAuditLogService['append']>[0]['action'], subjectId: string | undefined, caseId: string | undefined, purpose: string): void {

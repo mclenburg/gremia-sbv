@@ -570,6 +570,53 @@ export class MigrationService {
       this.ensureProtectedPerson091Schema();
       diagnostics.push('Personenverzeichnis-/Fallaktenbindung-Schema wurde auf Stand 0025 repariert.');
     }
+
+    if (!this.hasCompleteCaseHandoverSchema()) {
+      this.ensureCaseHandoverSchema();
+      diagnostics.push('Fallübergabe-Schema wurde auf Stand 0036 repariert.');
+    }
+  }
+
+  private hasCompleteCaseHandoverSchema(): boolean {
+    return this.tableExists('case_handover_imports')
+      && this.tableExists('case_handover_import_items')
+      && CASE_HANDOVER_IMPORTS_REQUIRED_COLUMNS.every((column) => this.columnExists('case_handover_imports', column))
+      && CASE_HANDOVER_IMPORT_ITEMS_REQUIRED_COLUMNS.every((column) => this.columnExists('case_handover_import_items', column))
+      && ['handover_import_id', 'handover_package_id', 'handover_valid_until', 'handover_status', 'handover_continue_confirmed_at', 'handover_continue_reason'].every((column) => this.columnExists('cases', column))
+      && CASE_MEASURES_REQUIRED_COLUMNS.every((column) => this.columnExists('case_measures', column));
+  }
+
+  private ensureCaseHandoverSchema(): void {
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS case_handover_imports (
+        id TEXT PRIMARY KEY,
+        package_id TEXT NOT NULL,
+        imported_at TEXT NOT NULL,
+        valid_until TEXT,
+        status TEXT NOT NULL DEFAULT 'active',
+        mode TEXT NOT NULL DEFAULT 'create_new',
+        created_case_count INTEGER NOT NULL DEFAULT 0,
+        updated_case_count INTEGER NOT NULL DEFAULT 0,
+        metadata_json TEXT NOT NULL DEFAULT '{}'
+      );
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_case_handover_package ON case_handover_imports(package_id);
+      CREATE TABLE IF NOT EXISTS case_handover_import_items (
+        id TEXT PRIMARY KEY,
+        handover_import_id TEXT NOT NULL REFERENCES case_handover_imports(id) ON DELETE CASCADE,
+        local_entity_type TEXT NOT NULL,
+        local_entity_id TEXT NOT NULL,
+        package_ref TEXT NOT NULL,
+        created_at TEXT NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_case_handover_items_local ON case_handover_import_items(local_entity_type, local_entity_id);
+    `);
+    this.addColumnIfMissing('cases', 'handover_import_id', 'TEXT REFERENCES case_handover_imports(id) ON DELETE SET NULL');
+    this.addColumnIfMissing('cases', 'handover_package_id', 'TEXT');
+    this.addColumnIfMissing('cases', 'handover_valid_until', 'TEXT');
+    this.addColumnIfMissing('cases', 'handover_status', "TEXT NOT NULL DEFAULT 'none'");
+    this.addColumnIfMissing('cases', 'handover_continue_confirmed_at', 'TEXT');
+    this.addColumnIfMissing('cases', 'handover_continue_reason', 'TEXT');
+    this.ensureCaseMeasureHandoverColumns();
   }
 
 
@@ -819,6 +866,12 @@ export class MigrationService {
         source_id TEXT,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL,
+        handover_import_id TEXT REFERENCES case_handover_imports(id) ON DELETE SET NULL,
+        handover_package_id TEXT,
+        handover_valid_until TEXT,
+        handover_status TEXT NOT NULL DEFAULT 'none',
+        handover_continue_confirmed_at TEXT,
+        handover_continue_reason TEXT,
         FOREIGN KEY(case_id) REFERENCES cases(id) ON DELETE CASCADE
       );
       CREATE TABLE IF NOT EXISTS case_measure_participation (
@@ -864,7 +917,17 @@ CREATE INDEX IF NOT EXISTS idx_case_measures_follow_up ON case_measures(case_id,
       CREATE INDEX IF NOT EXISTS idx_case_measure_participation_suspension_due ON case_measure_participation(suspension_deadline_at);
 CREATE INDEX IF NOT EXISTS idx_case_measure_events_measure_created ON case_measure_events(measure_id, created_at);
     `);
+    this.ensureCaseMeasureHandoverColumns();
     this.ensureCaseMeasureNoteSchema();
+  }
+
+  private ensureCaseMeasureHandoverColumns(): void {
+    this.addColumnIfMissing('case_measures', 'handover_import_id', 'TEXT REFERENCES case_handover_imports(id) ON DELETE SET NULL');
+    this.addColumnIfMissing('case_measures', 'handover_package_id', 'TEXT');
+    this.addColumnIfMissing('case_measures', 'handover_valid_until', 'TEXT');
+    this.addColumnIfMissing('case_measures', 'handover_status', "TEXT NOT NULL DEFAULT 'none'");
+    this.addColumnIfMissing('case_measures', 'handover_continue_confirmed_at', 'TEXT');
+    this.addColumnIfMissing('case_measures', 'handover_continue_reason', 'TEXT');
   }
 
 

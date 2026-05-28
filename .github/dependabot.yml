@@ -14,11 +14,11 @@ updates:
       semver-minor-days: 7
       semver-patch-days: 3
     groups:
-      production-patches:
+      production-runtime:
         dependency-type: "production"
         update-types:
           - "patch"
-      development-minor-patches:
+      development-tooling:
         dependency-type: "development"
         update-types:
           - "minor"
@@ -34,3 +34,6 @@ updates:
         update-types:
           - "version-update:semver-major"
       - dependency-name: "@electron/rebuild"
+      - dependency-name: "@types/node"
+        update-types:
+          - "version-update:semver-major"
