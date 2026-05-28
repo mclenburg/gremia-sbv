@@ -45,7 +45,8 @@ function parseRenderedMarkup(markup: string): HtmlNode {
     };
     stack.at(-1)?.children.push(node);
 
-    if (!token.endsWith('/>') && !voidElements.has(tag)) stack.push(node);
+    const selfClosing = token.endsWith('/>') || voidElements.has(tag);
+    if (!selfClosing) stack.push(node);
   }
 
   return root;
@@ -62,31 +63,6 @@ function classList(node: HtmlNode): string[] {
 function hasClasses(node: HtmlNode, expectedClasses: string[]): boolean {
   const classes = new Set(classList(node));
   return expectedClasses.every((className) => classes.has(className));
-}
-
-function styleMap(node: HtmlNode): Record<string, string> {
-  return Object.fromEntries(
-    (node.attrs.style ?? '')
-      .split(';')
-      .map((entry) => entry.trim())
-      .filter(Boolean)
-      .map((entry) => {
-        const separator = entry.indexOf(':');
-        return [entry.slice(0, separator).trim(), entry.slice(separator + 1).trim()];
-      })
-  );
-}
-
-function normalizedCssValue(value: string | undefined): string {
-  return (value ?? '').replace(/\s+/g, '');
-}
-
-function expectCompactAuthPanel(panel: HtmlNode): void {
-  const panelStyle = styleMap(panel);
-
-  expect(classList(panel)).toEqual(expect.arrayContaining(['auth-panel-compact']));
-  expect(normalizedCssValue(panelStyle.width)).toBe('min(100%,28rem)');
-  expect(panelStyle['max-width']).toBe('28rem');
 }
 
 function firstDescendant(root: HtmlNode, predicate: (node: HtmlNode) => boolean): HtmlNode {
@@ -108,51 +84,64 @@ function renderLoginTree(mode: AuthMode): HtmlNode {
 }
 
 function loginShell(root: HtmlNode): HtmlNode {
-  return firstDescendant(root, (node) => node.tag === 'main' && hasClasses(node, ['industrial-shell', 'login-shell', 'auth-screen']));
+  return firstDescendant(root, (node) => node.tag === 'main' && hasClasses(node, ['industrial-shell', 'login-shell']));
 }
 
 function loginPanel(root: HtmlNode): HtmlNode {
-  return firstDescendant(root, (node) => node.tag === 'section' && hasClasses(node, ['login-panel', 'auth-panel']));
+  return firstDescendant(root, (node) => node.tag === 'section' && hasClasses(node, ['login-panel']));
 }
 
-describe('LoginGate Auth-Layout', () => {
-  it('rendert den Entsperrbildschirm als zentriertes, kompaktes Auth-Overlay statt als App-Grid', () => {
+function renderedControlsInside(panel: HtmlNode) {
+  const nodes = descendants(panel);
+  return {
+    inputs: nodes.filter((node) => node.tag === 'input'),
+    buttons: nodes.filter((node) => node.tag === 'button'),
+  };
+}
+
+describe('LoginGate Overlay-Layout', () => {
+  it('rendert den Entsperrbildschirm als zentriertes kompaktes Auth-Overlay', () => {
     const tree = renderLoginTree('login');
     const shell = loginShell(tree);
     const panel = loginPanel(tree);
-    const shellStyle = styleMap(shell);
-    const panelStyle = styleMap(panel);
+    const controls = renderedControlsInside(panel);
+    const fadedIcon = firstDescendant(panel, (node) => node.tag === 'img' && classList(node).includes('opacity-[0.08]'));
 
     expect(panel.parent).toBe(shell);
-    expect(shellStyle.display).toBe('flex');
-    expect(shellStyle['grid-template-columns']).toBe('none');
-    expect(shellStyle['align-items']).toBe('center');
-    expect(shellStyle['justify-content']).toBe('center');
-    expectCompactAuthPanel(panel);
-    expect(classList(panel)).toEqual(expect.arrayContaining(['border-zinc-700', 'p-7']));
-    expect(classList(panel)).not.toEqual(expect.arrayContaining(['max-w-none']));
+    expect(classList(shell)).toEqual(expect.arrayContaining(['industrial-shell', 'login-shell', 'min-h-screen', 'items-center', 'justify-center', 'text-zinc-100']));
+    expect(classList(panel)).toEqual(expect.arrayContaining(['login-panel', 'login-panel-compact', 'relative', 'w-full', 'overflow-hidden', 'border', 'border-zinc-700', 'bg-zinc-950/95', 'p-7', 'shadow-2xl']));
+    expect(controls.inputs).toHaveLength(1);
+    expect(controls.buttons).toHaveLength(1);
+    expect(fadedIcon.attrs['aria-hidden']).toBe('true');
+    expect(fadedIcon.attrs.alt).toBe('');
   });
 
-  it('hält Ersteinrichtung und Ladezustand in der kompakten Auth-Karte', () => {
+  it('hält Ersteinrichtung und Ladezustand im kompakten Panel', () => {
     for (const mode of ['setup', 'loading'] satisfies AuthMode[]) {
-      const panel = loginPanel(renderLoginTree(mode));
-      expectCompactAuthPanel(panel);
+      const tree = renderLoginTree(mode);
+      const shell = loginShell(tree);
+      const panel = loginPanel(tree);
+
+      expect(panel.parent).toBe(shell);
+      expect(classList(panel)).toEqual(expect.arrayContaining(['login-panel-compact', 'w-full', 'p-7']));
+      expect(descendants(shell).some((node) => hasClasses(node, ['industrial-sidebar']))).toBe(false);
     }
   });
 
-  it('rendert Recovery bewusst breiter, ohne in das entsperrte App-Layout zu fallen', () => {
+  it('rendert Sicherheitsfehler kompakt und Recovery bewusst breiter', () => {
     const unavailablePanel = loginPanel(renderLoginTree('unavailable'));
+    const recoveryKeyPanel = loginPanel(renderLoginTree('loading' as AuthMode));
     const recoveryPanel = loginPanel(renderLoginTree('recovery'));
 
-    expect(classList(unavailablePanel)).toEqual(expect.arrayContaining(['auth-panel-compact', 'border-yellow-500/40']));
-    expect(styleMap(unavailablePanel)['max-width']).toBe('28rem');
-    expect(classList(recoveryPanel)).toEqual(expect.arrayContaining(['auth-panel-wide', 'border-yellow-500/40']));
-    expect(styleMap(recoveryPanel)['max-width']).toBe('52rem');
+    expect(classList(unavailablePanel)).toEqual(expect.arrayContaining(['login-panel-compact', 'border-yellow-500/40', 'p-7']));
+    expect(classList(recoveryKeyPanel)).toEqual(expect.arrayContaining(['login-panel-compact']));
+    expect(classList(recoveryPanel)).toEqual(expect.arrayContaining(['login-panel-wide', 'border-yellow-500/40', 'p-7']));
   });
 
-  it('rendert in keinem Auth-Zustand Sidebar, Content-Grid oder Topbar der entsperrten Anwendung', () => {
+  it('verwendet keine entsperrte App-Shell-Struktur im Auth-Screen', () => {
     for (const mode of ['login', 'setup', 'loading', 'unavailable', 'recovery'] satisfies AuthMode[]) {
-      const shellChildren = descendants(loginShell(renderLoginTree(mode)));
+      const shell = loginShell(renderLoginTree(mode));
+      const shellChildren = descendants(shell);
 
       expect(shellChildren.some((node) => hasClasses(node, ['industrial-sidebar']))).toBe(false);
       expect(shellChildren.some((node) => hasClasses(node, ['industrial-content']))).toBe(false);

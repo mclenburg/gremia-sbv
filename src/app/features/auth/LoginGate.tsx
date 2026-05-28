@@ -1,65 +1,17 @@
 import { useState } from 'react';
-import type { CSSProperties, FormEvent, ReactNode } from 'react';
+import type { FormEvent } from 'react';
 import { AlertTriangle, Lock, LockKeyhole, ShieldAlert } from 'lucide-react';
 import { waitForBridge } from '../../core/bridge/waitForBridge';
 import type { AuthMode } from '../../core/auth/authTypes';
 import { validateAppPassword } from '@services/passwordPolicy';
-
-
-const authShellStyle: CSSProperties = {
-  display: 'flex',
-  gridTemplateColumns: 'none',
-  alignItems: 'center',
-  justifyContent: 'center',
-  minHeight: '100vh',
-  width: '100%',
-  padding: '2rem 1.5rem',
-  boxSizing: 'border-box',
-};
-
-const compactPanelStyle: CSSProperties = {
-  width: 'min(100%, 28rem)',
-  maxWidth: '28rem',
-};
-
-const mediumPanelStyle: CSSProperties = {
-  width: 'min(100%, 42rem)',
-  maxWidth: '42rem',
-};
-
-const widePanelStyle: CSSProperties = {
-  width: 'min(100%, 52rem)',
-  maxWidth: '52rem',
-};
-
-const basePanelClass = 'login-panel auth-panel relative overflow-hidden rounded-none border bg-zinc-950/95 p-7 shadow-2xl';
-
-function AuthShell({ children }: { children: ReactNode }) {
-  return (
-    <main className="industrial-shell login-shell auth-screen text-zinc-100" style={authShellStyle}>
-      {children}
-    </main>
-  );
-}
-
-function AuthPanel({ children, tone = 'neutral', size = 'compact' }: { children: ReactNode; tone?: 'neutral' | 'warning'; size?: 'compact' | 'medium' | 'wide' }) {
-  const borderClass = tone === 'warning' ? 'border-yellow-500/40' : 'border-zinc-700';
-  const sizeClass = size === 'wide' ? 'auth-panel-wide' : size === 'medium' ? 'auth-panel-medium' : 'auth-panel-compact';
-  const style = size === 'wide' ? widePanelStyle : size === 'medium' ? mediumPanelStyle : compactPanelStyle;
-
-  return (
-    <section className={`${basePanelClass} ${borderClass} ${sizeClass}`} style={style}>
-      <div className="scanline" />
-      {children}
-    </section>
-  );
-}
+import appIconUrl from '../../../../assets/icons/png/512x512.png';
 
 
 function SecurityUnavailable() {
   return (
-    <AuthShell>
-      <AuthPanel tone="warning">
+    <main className="industrial-shell login-shell min-h-screen items-center justify-center text-zinc-100">
+      <section className="login-panel login-panel-compact relative w-full overflow-hidden rounded-none border border-yellow-500/40 bg-zinc-950/95 p-7 shadow-2xl">
+        <div className="scanline" />
         <div className="mb-5 flex items-center gap-3 border-b border-zinc-800 pb-5">
           <div className="grid h-11 w-11 place-items-center border border-yellow-400 bg-yellow-400/10 text-yellow-300">
             <AlertTriangle className="h-6 w-6" />
@@ -72,15 +24,16 @@ function SecurityUnavailable() {
         <p className="text-sm leading-6 text-zinc-300">
           Die interne Sicherheitsbrücke wurde nicht geladen. Bitte die Anwendung schließen, neu starten und bei erneutem Auftreten die Terminalausgabe prüfen.
         </p>
-      </AuthPanel>
-    </AuthShell>
+      </section>
+    </main>
   );
 }
 
 function RecoveryKeyPanel({ recoveryKey, onConfirm }: { recoveryKey: string; onConfirm: () => void }) {
   return (
-    <AuthShell>
-      <AuthPanel tone="warning" size="medium">
+    <main className="industrial-shell login-shell min-h-screen items-center justify-center text-zinc-100">
+      <section className="login-panel login-panel-medium relative w-full overflow-hidden rounded-none border border-yellow-500/40 bg-zinc-950/95 p-7 shadow-2xl">
+        <div className="scanline" />
         <div className="mb-6 flex items-center gap-3 border-b border-zinc-800 pb-5">
           <div className="grid h-11 w-11 place-items-center border border-yellow-400 bg-yellow-400/10 text-yellow-300 shadow-[0_0_18px_rgba(250,204,21,0.22)]">
             <LockKeyhole className="h-6 w-6" />
@@ -106,8 +59,8 @@ function RecoveryKeyPanel({ recoveryKey, onConfirm }: { recoveryKey: string; onC
             Ich habe den Recovery-Key sicher gespeichert
           </button>
         </div>
-      </AuthPanel>
-    </AuthShell>
+      </section>
+    </main>
   );
 }
 
@@ -181,8 +134,9 @@ function RecoveryGate({ onUnlock, onResetToSetup }: { onUnlock: () => void; onRe
   }
 
   return (
-    <AuthShell>
-      <AuthPanel tone="warning" size="wide">
+    <main className="industrial-shell login-shell min-h-screen items-center justify-center text-zinc-100">
+      <section className="login-panel login-panel-wide relative w-full overflow-hidden rounded-none border border-yellow-500/40 bg-zinc-950/95 p-7 shadow-2xl">
+        <div className="scanline" />
         <div className="mb-7 flex items-center gap-3 border-b border-zinc-800 pb-5">
           <div className="grid h-11 w-11 place-items-center border border-yellow-400 bg-yellow-400/10 text-yellow-300 shadow-[0_0_18px_rgba(250,204,21,0.22)]">
             <ShieldAlert className="h-6 w-6" />
@@ -194,21 +148,21 @@ function RecoveryGate({ onUnlock, onResetToSetup }: { onUnlock: () => void; onRe
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <form onSubmit={resetPassword} className="auth-form space-y-4">
+          <form onSubmit={resetPassword} className="space-y-4">
             <h2 className="text-lg font-black uppercase tracking-tight text-zinc-100">Passwort zurücksetzen</h2>
             <p className="text-sm leading-6 text-zinc-400">
               Ein vorhandener Datenbestand wurde erkannt. Ein neues Passwort kann nur mit dem Recovery-Key gesetzt werden.
             </p>
             <label className="block">
-              <span className="auth-field-label mb-2 block font-mono text-xs uppercase tracking-[0.25em] text-zinc-400">Recovery-Key</span>
+              <span className="mb-2 block font-mono text-xs uppercase tracking-[0.25em] text-zinc-400">Recovery-Key</span>
               <input className="industrial-input w-full" value={recoveryKey} onChange={(event) => setRecoveryKey(event.target.value)} />
             </label>
             <label className="block">
-              <span className="auth-field-label mb-2 block font-mono text-xs uppercase tracking-[0.25em] text-zinc-400">Neues Passwort</span>
+              <span className="mb-2 block font-mono text-xs uppercase tracking-[0.25em] text-zinc-400">Neues Passwort</span>
               <input className="industrial-input w-full" type="password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} />
             </label>
             <label className="block">
-              <span className="auth-field-label mb-2 block font-mono text-xs uppercase tracking-[0.25em] text-zinc-400">Wiederholung</span>
+              <span className="mb-2 block font-mono text-xs uppercase tracking-[0.25em] text-zinc-400">Wiederholung</span>
               <input className="industrial-input w-full" type="password" value={repeatPassword} onChange={(event) => setRepeatPassword(event.target.value)} />
             </label>
             <button type="submit" className="industrial-button w-full">
@@ -222,7 +176,7 @@ function RecoveryGate({ onUnlock, onResetToSetup }: { onUnlock: () => void; onRe
               Ohne Passwort und ohne Recovery-Key ist ein Zugriff auf den vorhandenen Datenbestand nicht vorgesehen. Es kann nur ein neuer leerer Datenbestand angelegt werden.
             </p>
             <label className="mt-4 block">
-              <span className="auth-field-label mb-2 block font-mono text-xs uppercase tracking-[0.25em] text-zinc-400">Bestätigung</span>
+              <span className="mb-2 block font-mono text-xs uppercase tracking-[0.25em] text-zinc-400">Bestätigung</span>
               <input
                 className="industrial-input w-full"
                 value={confirmation}
@@ -238,8 +192,8 @@ function RecoveryGate({ onUnlock, onResetToSetup }: { onUnlock: () => void; onRe
 
         {error && <div className="industrial-message industrial-message-warning mt-5">{error}</div>}
         {message && <div className="industrial-message industrial-message-ok mt-5">{message}</div>}
-      </AuthPanel>
-    </AuthShell>
+      </section>
+    </main>
   );
 }
 
@@ -313,28 +267,34 @@ export function LoginGate({ mode, onUnlock, onResetToSetup }: { mode: AuthMode; 
 
   if (mode === 'loading') {
     return (
-      <AuthShell>
-        <AuthPanel>
+      <main className="industrial-shell login-shell min-h-screen items-center justify-center text-zinc-100">
+        <section className="login-panel login-panel-compact relative w-full overflow-hidden rounded-none border border-zinc-700 bg-zinc-950/95 p-7 shadow-2xl">
+          <div className="scanline" />
           <p className="industrial-kicker">Gremia.SBV</p>
           <h1 className="text-2xl font-black tracking-tight text-zinc-100">Initialisierung</h1>
-        </AuthPanel>
-      </AuthShell>
+        </section>
+      </main>
     );
   }
 
   return (
-    <AuthShell>
-      <AuthPanel>
-        <div className="mb-7 flex items-center gap-3 border-b border-zinc-800 pb-5">
-          <div className="grid h-11 w-11 place-items-center border border-yellow-400 bg-yellow-400/10 text-yellow-300 shadow-[0_0_18px_rgba(250,204,21,0.22)]">
-            <LockKeyhole className="h-6 w-6" />
+    <main className="industrial-shell login-shell min-h-screen items-center justify-center text-zinc-100">
+      <section className="login-panel login-panel-compact relative w-full overflow-hidden rounded-none border border-zinc-700 bg-zinc-950/95 p-7 shadow-2xl">
+        <div className="scanline" />
+        <img
+          src={appIconUrl}
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none absolute -right-12 -top-10 h-44 w-44 opacity-[0.08] saturate-0"
+        />
+        <div className="relative mb-7 border-b border-zinc-800 pb-5">
+          <div className="mb-2 grid h-9 w-9 place-items-center border border-yellow-400 bg-yellow-400/10 text-yellow-300 shadow-[0_0_14px_rgba(250,204,21,0.18)]">
+            <LockKeyhole className="h-5 w-5" />
           </div>
-          <div>
-            <p className="font-mono text-xs uppercase tracking-[0.35em] text-yellow-300">
-              {isSetup ? 'Ersteinrichtung' : 'Entsperren'}
-            </p>
-            <h1 className="text-2xl font-black tracking-tight text-zinc-100">Gremia.SBV</h1>
-          </div>
+          <p className="mb-1 font-mono text-xs uppercase tracking-[0.35em] text-yellow-300">
+            {isSetup ? 'Ersteinrichtung' : 'Entsperren'}
+          </p>
+          <h1 className="text-2xl font-black tracking-tight text-zinc-100">Gremia.SBV</h1>
         </div>
 
         <form onSubmit={submit} className="auth-form space-y-5">
@@ -385,7 +345,7 @@ export function LoginGate({ mode, onUnlock, onResetToSetup }: { mode: AuthMode; 
             {isSetup ? 'Initialpasswort speichern' : 'Entsperren'}
           </button>
         </form>
-      </AuthPanel>
-    </AuthShell>
+      </section>
+    </main>
   );
 }
