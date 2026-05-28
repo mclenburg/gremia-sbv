@@ -51,12 +51,41 @@ function highestMigrationVersion() {
 function validatePostinstall(pkg) {
   expect(pkg.scripts, 'package.json enthält keine scripts.');
   expect(
-    pkg.scripts.postinstall === 'electron-builder install-app-deps',
-    'package.json muss "postinstall": "electron-builder install-app-deps" enthalten, damit native Dependencies zur Electron-Version passen.'
+    pkg.scripts.postinstall === 'node scripts/install-electron-app-deps.cjs',
+    'package.json muss postinstall über scripts/install-electron-app-deps.cjs ausführen, damit npm-Workspace-Flags vor electron-builder bereinigt werden.'
   );
   expect(
-    pkg.scripts['native:install-app-deps'] === 'electron-builder install-app-deps',
-    'package.json muss native:install-app-deps als expliziten wiederverwendbaren Alias enthalten.'
+    pkg.scripts['native:install-app-deps'] === 'node scripts/install-electron-app-deps.cjs',
+    'package.json muss native:install-app-deps als expliziten wiederverwendbaren Alias auf scripts/install-electron-app-deps.cjs enthalten.'
+  );
+}
+
+
+function parseMajorVersion(versionRange) {
+  if (typeof versionRange !== 'string') return null;
+  const match = versionRange.match(/^(?:[~^>=<\s]*)(\d+)\./);
+  return match ? Number(match[1]) : null;
+}
+
+function validateElectronSqlcipherCompatibility(pkg) {
+  const electronRange = pkg.devDependencies?.electron;
+  const sqlcipherRange = pkg.dependencies?.['better-sqlite3-multiple-ciphers'] || pkg.devDependencies?.['better-sqlite3-multiple-ciphers'];
+  if (!sqlcipherRange) return;
+
+  const electronMajor = parseMajorVersion(electronRange);
+  expect(electronMajor !== null, 'electron-Version konnte nicht aus package.json gelesen werden.');
+  expect(
+    electronMajor <= 39,
+    'better-sqlite3-multiple-ciphers wird in Gremia.SBV derzeit bis zur Electron-39-Linie freigegeben. ' +
+      `Gefunden wurde ${electronRange}. Bitte Electron nicht höher ziehen, bis die native SQLCipher-Abhängigkeit neuere Electron/V8-ABIs unterstützt.`
+  );
+
+  const lock = readJson('package-lock.json');
+  const lockedElectronMajor = parseMajorVersion(lock.packages?.['node_modules/electron']?.version);
+  expect(lockedElectronMajor !== null, 'package-lock.json enthält keinen auflösbaren Electron-Eintrag.');
+  expect(
+    lockedElectronMajor <= 39,
+    'package-lock.json enthält eine Electron-Version oberhalb der mit better-sqlite3-multiple-ciphers kompatiblen 39er Linie.'
   );
 }
 
@@ -75,6 +104,45 @@ function validateSchemaVersion() {
   expect(
     schemaVersion === latestMigration,
     `APP_SCHEMA_VERSION ${schemaVersion} passt nicht zur letzten Migration ${latestMigration}.`
+  );
+}
+
+
+function validateInstalledBuildDependencies(pkg) {
+  const requiredDevDependencies = [
+    '@tailwindcss/postcss',
+  ];
+
+  for (const dependencyName of requiredDevDependencies) {
+    expect(
+      pkg.devDependencies?.[dependencyName] || pkg.dependencies?.[dependencyName],
+      `package.json enthält ${dependencyName} nicht. Bitte den Dependency-Patch erneut anwenden.`
+    );
+  }
+
+  const postcssConfig = read('postcss.config.js');
+  if (!postcssConfig.includes("'@tailwindcss/postcss'") && !postcssConfig.includes('"@tailwindcss/postcss"')) {
+    return;
+  }
+
+  for (const dependencyName of requiredDevDependencies) {
+    try {
+      require.resolve(dependencyName, { paths: [root] });
+    } catch (error) {
+      fail(
+        `${dependencyName} ist in package.json/Lockfile eingetragen, aber nicht in node_modules installiert. ` +
+        'Bitte nach dem Patch einmal "npm install" oder sauber "rm -rf node_modules && npm install" ausführen, bevor npm run build:linux gestartet wird.'
+      );
+    }
+  }
+}
+
+
+function validateElectronBuilderConfiguration(pkg) {
+  const winConfig = pkg.build?.win;
+  expect(
+    !Object.prototype.hasOwnProperty.call(winConfig || {}, 'publisherName'),
+    'package.json build.win.publisherName wird von electron-builder 26 nicht mehr akzeptiert. Bitte entfernen; Signatur-/Publisher-Informationen gehören nicht in build.win.publisherName.'
   );
 }
 
@@ -118,6 +186,9 @@ function validateStrictBuildArtifacts() {
 function main() {
   const pkg = readJson('package.json');
   validatePostinstall(pkg);
+  validateElectronSqlcipherCompatibility(pkg);
+  validateInstalledBuildDependencies(pkg);
+  validateElectronBuilderConfiguration(pkg);
   validateVersions(pkg);
   validateSchemaVersion();
   validateCleanup(pkg);

@@ -84,12 +84,22 @@ class SuggestAdapter implements GremiaBrReadAdapter {
   async listRelevantMeetings(): Promise<unknown[]> { return []; }
   async getReferenceById(): Promise<unknown | null> { return null; }
   async getNextMeeting(): Promise<unknown | null> { return null; }
+  async getCurrentMeeting(): Promise<unknown | null> { return null; }
   async getUpcomingMeetings(): Promise<unknown[]> { return []; }
+  async getPendingFollowUps(): Promise<unknown[]> { return []; }
+  async getMeetingById(): Promise<unknown | null> { return null; }
   async getMeetingAgenda(): Promise<unknown[]> { return []; }
+  async getMeetingProtocolStatus(): Promise<unknown | null> { return null; }
+  async listProtocols(): Promise<unknown[]> { return []; }
+  async getProtocolById(): Promise<unknown | null> { return null; }
+  async getProtocolByMeeting(): Promise<unknown | null> { return null; }
+  async listProtocolDecisions(): Promise<unknown[]> { return []; }
   async listRelevantDecisions(): Promise<unknown[]> { return []; }
   async getDueDecisions(): Promise<unknown[]> { return []; }
   async getOverdueDecisions(): Promise<unknown[]> { return []; }
   async searchDecisions(): Promise<unknown[]> { return []; }
+  async getDecisionStatistics(): Promise<unknown | null> { return null; }
+  async getExtendedDecisionStatistics(): Promise<unknown | null> { return null; }
   async suggestForInlineCommand(q: string): Promise<unknown[]> {
     this.requestedQueries.push(q);
     return [

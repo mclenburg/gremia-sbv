@@ -1,14 +1,17 @@
 # Gremia.BR-Lesebrücke
 
-Gremia.SBV kann optional mit einem Gremia.BR-Server verbunden werden. Diese Funktion ist als **read-only Kooperationsbrücke** gedacht.
+Gremia.SBV kann optional mit einem Gremia.BR-Server verbunden werden. Diese Funktion ist eine **kontrollierte, manuell ausgelöste read-only Kooperationsbrücke**. Sie ergänzt die SBV-Arbeit um BR-Kontext, ohne die getrennten Datenräume von Betriebsrat und Schwerbehindertenvertretung aufzulösen.
 
 ## Zweck
 
 Die SBV kann gezielt BR-Informationen abrufen, die für ihre Arbeit relevant sind:
 
-- nächste und kommende BR-Sitzungen,
-- Tagesordnungspunkte mit SBV-Bezug,
+- nächste, laufende und kommende BR-Sitzungen,
+- Tagesordnungspunkte mit möglichem SBV-Bezug,
+- Protokollstatus und Protokollreferenzen,
 - fällige oder überfällige BR-Beschlüsse,
+- Beschlussstatistiken als Kontext,
+- Dokument-Metadaten und Kategorien als Referenz,
 - Suchvorschläge für externe BR-Referenzen.
 
 ## Nicht-Zweck
@@ -21,7 +24,10 @@ Ausgeschlossen sind:
 - Übertragung von SBV-Falldaten,
 - Hintergrundabfragen,
 - BR-Mitgliederverwaltung,
-- Stimmrechtslogik,
+- BR-Notizen,
+- Abwesenheiten,
+- Audit-Logs,
+- Stimmrechtsänderungen,
 - Admin- und DSGVO-Endpunkte von Gremia.BR,
 - Datei-Upload zu Gremia.BR.
 
@@ -29,9 +35,22 @@ Ausgeschlossen sind:
 
 - Verbindung ist standardmäßig deaktiviert.
 - Server-URL und Zugangsdaten werden im SQLCipher-Vault gespeichert.
-- Das JWT wird bevorzugt nur im Arbeitsspeicher gehalten.
+- JWT-Token werden ausschließlich im Arbeitsspeicher gehalten und nicht persistiert.
 - Der Adapter nutzt eine harte Whitelist.
 - Suchbegriffe und Antwortinhalte werden nicht auditiert.
+- Dokumente werden nicht automatisch in Gremia.SBV importiert; vorgesehen sind Referenzen und bewusst ausgelöste Vorschauen.
+
+## Neue Gremia.BR-API
+
+Die aktuelle Gremia.BR-OpenAPI stellt zusätzliche lesende Endpunkte bereit. Gremia.SBV nutzt davon nur den fachlich passenden Ausschnitt:
+
+- Auth: Login, Refresh, Logout, Session-/Profilprüfung,
+- Sitzungen: nächste, laufende, kommende Sitzung, Tagesordnung und Protokollstatus,
+- Protokolle/Beschlüsse: Listen, Sitzungsbezug, Fälligkeiten und Statistik,
+- Dokumente: Liste, Kategorien, Metadaten und HTML-Vorschau,
+- Suche: Suche, Vorschläge, erweiterte Suche und Suchstatistik.
+
+Nicht freigegeben bleiben insbesondere Admin, Audit, DSGVO, Notizen, Abwesenheiten, Mitgliederverwaltung, Ausschüsse, Uploads und alle fachlichen Schreiboperationen.
 
 ## Nutzung
 

@@ -33,12 +33,46 @@ export class GremiaBrHttpReadAdapter implements GremiaBrReadAdapter {
     return await this.auth.get<unknown | null>('/sitzungen/naechste');
   }
 
+  async getCurrentMeeting(): Promise<unknown | null> {
+    return await this.auth.get<unknown | null>('/sitzungen/aktuelle');
+  }
+
   async getUpcomingMeetings(): Promise<unknown[]> {
     return arrayFromResponse(await this.auth.get<unknown>('/sitzungen/kommende'));
   }
 
+  async getPendingFollowUps(date?: string): Promise<unknown[]> {
+    return arrayFromResponse(await this.auth.get<unknown>('/sitzungen/wiedervorlagen', {
+      query: { datum: date },
+    }));
+  }
+
+  async getMeetingById(id: string): Promise<unknown | null> {
+    return await this.auth.get<unknown | null>(`/sitzungen/${encodeURIComponent(id)}`);
+  }
+
   async getMeetingAgenda(id: string): Promise<unknown[]> {
     return arrayFromResponse(await this.auth.get<unknown>(`/sitzungen/${encodeURIComponent(id)}/agenda`));
+  }
+
+  async getMeetingProtocolStatus(id: string): Promise<unknown | null> {
+    return await this.auth.get<unknown | null>(`/sitzungen/${encodeURIComponent(id)}/protokoll-status`);
+  }
+
+  async listProtocols(): Promise<unknown[]> {
+    return arrayFromResponse(await this.auth.get<unknown>('/protokolle'));
+  }
+
+  async getProtocolById(id: string): Promise<unknown | null> {
+    return await this.auth.get<unknown | null>(`/protokolle/${encodeURIComponent(id)}`);
+  }
+
+  async getProtocolByMeeting(sitzungId: string): Promise<unknown | null> {
+    return await this.auth.get<unknown | null>(`/protokolle/sitzung/${encodeURIComponent(sitzungId)}`);
+  }
+
+  async listProtocolDecisions(id: string): Promise<unknown[]> {
+    return arrayFromResponse(await this.auth.get<unknown>(`/protokolle/${encodeURIComponent(id)}/beschluesse`));
   }
 
   async listRelevantDecisions(): Promise<unknown[]> {
@@ -51,6 +85,14 @@ export class GremiaBrHttpReadAdapter implements GremiaBrReadAdapter {
 
   async getOverdueDecisions(): Promise<unknown[]> {
     return arrayFromResponse(await this.auth.get<unknown>('/protokolle/beschluesse/ueberfaellig'));
+  }
+
+  async getDecisionStatistics(): Promise<unknown | null> {
+    return await this.auth.get<unknown | null>('/protokolle/beschluesse/statistik');
+  }
+
+  async getExtendedDecisionStatistics(): Promise<unknown | null> {
+    return await this.auth.get<unknown | null>('/protokolle/beschluesse/statistik-extended');
   }
 
   async searchDecisions(query: string): Promise<unknown[]> {

@@ -35,12 +35,22 @@ export interface GremiaBrReadAdapter {
   listRelevantMeetings(): Promise<unknown[]>;
   getReferenceById(id: string): Promise<unknown | null>;
   getNextMeeting(): Promise<unknown | null>;
+  getCurrentMeeting(): Promise<unknown | null>;
   getUpcomingMeetings(): Promise<unknown[]>;
+  getPendingFollowUps(date?: string): Promise<unknown[]>;
+  getMeetingById(id: string): Promise<unknown | null>;
   getMeetingAgenda(id: string): Promise<unknown[]>;
+  getMeetingProtocolStatus(id: string): Promise<unknown | null>;
+  listProtocols(): Promise<unknown[]>;
+  getProtocolById(id: string): Promise<unknown | null>;
+  getProtocolByMeeting(sitzungId: string): Promise<unknown | null>;
+  listProtocolDecisions(id: string): Promise<unknown[]>;
   listRelevantDecisions(): Promise<unknown[]>;
   getDueDecisions(): Promise<unknown[]>;
   getOverdueDecisions(): Promise<unknown[]>;
   searchDecisions(query: string): Promise<unknown[]>;
+  getDecisionStatistics(): Promise<unknown | null>;
+  getExtendedDecisionStatistics(): Promise<unknown | null>;
   suggestForInlineCommand(q: string): Promise<unknown[]>;
   getDecisionById?(id: string): Promise<unknown | null>;
 }

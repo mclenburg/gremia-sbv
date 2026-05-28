@@ -38,13 +38,13 @@ Build-Baseline ist Node.js 20.19.0. Die `.nvmrc` und `.node-version` müssen syn
 
 ## Native Abhängigkeiten
 
-Nach `npm install` wird ausgeführt:
+Nach `npm install` wird ein projektlokaler Bootstrap ausgeführt:
 
 ```bash
-electron-builder install-app-deps
+node scripts/install-electron-app-deps.cjs
 ```
 
-Damit werden Runtime-Dependencies wie `better-sqlite3-multiple-ciphers` passend zur Electron-Version vorbereitet. `electron-builder` kann beim Packaging trotzdem den generischen Hinweis ausgeben, native Abhängigkeiten per `electron-builder install-app-deps` zu installieren; maßgeblich bleibt der explizite `postinstall`-Schritt ohne `npx`.
+Der Bootstrap startet die lokal installierte `electron-builder`-CLI direkt über Node und führt darüber `install-app-deps` aus. Dadurch werden Runtime-Dependencies wie `better-sqlite3-multiple-ciphers` passend zur Electron-Version vorbereitet, ohne `npx`/`npm exec` und ohne npm-Workspace-Flags aus npm 11 in den Electron-Rebuild weiterzureichen. `electron-builder` kann beim Packaging trotzdem den generischen Hinweis ausgeben, native Abhängigkeiten per `electron-builder install-app-deps` zu installieren; maßgeblich bleibt der explizite, workspace-sichere `postinstall`-Schritt.
 
 ## Qualitätsgates
 
@@ -63,7 +63,7 @@ macOS-Builds bleiben im RC-Stand unsigniert. Notarisierung, Developer-ID-Signatu
 
 ## Windows-Hinweise
 
-Der Windows-RC bleibt portabel und unsigniert. `signAndEditExecutable` ist deaktiviert, damit der Build nicht an Windows-Ressourcenbearbeitung oder winCodeSign scheitert. Falls `electron-builder` in isolierten Umgebungen mit `Cannot create symbolic link` warnt, darf daraus kein neuer `postinstall`-Workaround entstehen; native Rebuilds bleiben an `postinstall` gekoppelt.
+Der Windows-RC bleibt portabel und unsigniert. `signAndEditExecutable` ist deaktiviert, damit der Build nicht an Windows-Ressourcenbearbeitung oder winCodeSign scheitert. Falls `electron-builder` in isolierten Umgebungen mit `Cannot create symbolic link` warnt, darf daraus kein `npx`- oder `npm exec`-Workaround entstehen; native Rebuilds bleiben an den workspace-sicheren `postinstall`-Bootstrap gekoppelt.
 
 
 ## Test- und Doku-Synchronisierung vorherigen

@@ -6,6 +6,7 @@ import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 const EMPTY_DASHBOARD: GremiaBrDashboardOverview = {
   upcomingMeetings: [],
   meetingAgendas: {},
+  pendingFollowUps: [],
   decisions: [],
   dueDecisions: [],
   overdueDecisions: [],

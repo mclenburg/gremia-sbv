@@ -204,7 +204,7 @@ export class GremiaBrSettingsService implements GremiaBrSettingsStore {
     return {
       status: 'ok',
       checkedAt,
-      message: 'Die Gremia.BR-Konfiguration ist vollständig. Der HTTP-Verbindungstest folgt mit dem Read-Adapter im nächsten Umsetzungsschritt.',
+      message: 'Die Gremia.BR-Konfiguration ist vollständig. Der Verbindungstest nutzt die freigegebene Lesebrücke.',
     };
   }
 

@@ -109,6 +109,7 @@ Die wichtigsten Punkte:
 - **Datenschutzpfade:** Löschung, Anonymisierung, Retention, Audit und Suchindex werden gemeinsam betrachtet.
 - **Datenminimierung:** gespeichert werden soll nur, was für die konkrete SBV-Arbeit erforderlich ist.
 - **Barrierefreiheit:** Bedienung, Rückmeldungen und Tests berücksichtigen assistive Nutzung; ein automatisierter Axe-Scan prüft die primären Arbeitsbereiche auf serious/critical WCAG-Verstöße.
+- **Einheitliche Bedienoberfläche:** wiederkehrende Dialoge, Formulare, Buttons, Statusanzeigen und Listen folgen zentralen Komponenten statt lokalen Sonderlösungen.
 
 Details stehen im [Datenschutz- und Sicherheitskonzept](docs/PRIVACY_AND_SECURITY.md). Unterlagen für Datenschutzbeauftragte und IT-Security sind in [FREIGABE_DSB_IT_SECURITY.md](docs/FREIGABE_DSB_IT_SECURITY.md) gebündelt.
 

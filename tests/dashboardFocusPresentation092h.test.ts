@@ -15,6 +15,7 @@ const overview: GremiaBrDashboardOverview = {
       { title: 'TOP 6: Sonstiges' },
     ],
   },
+  pendingFollowUps: [],
   decisions: [],
   dueDecisions: [],
   overdueDecisions: [],

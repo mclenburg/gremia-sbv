@@ -1,4 +1,5 @@
 import { checkGremiaBrEndpoint, validateGremiaBrBaseUrl } from './gremiaBrPolicy.js';
+import { toGremiaBrEndpointLabel } from './gremiaBrApiCatalog.js';
 import type { GremiaBrRequestOptions } from './gremiaBrTypes.js';
 import type { CreatePersonalDataAuditInput } from '../../src/app/core/models/audit.model.js';
 import { auditGremiaBrReadRequest } from '../auditEventBuilders.js';
@@ -22,7 +23,7 @@ function maskPath(path: string): string {
 }
 
 function endpointLabel(method: string, path: string): string {
-  return `${method.trim().toUpperCase()} ${maskPath(path)}`;
+  return toGremiaBrEndpointLabel(method, maskPath(path));
 }
 
 async function readResponsePayload(response: Response): Promise<unknown> {

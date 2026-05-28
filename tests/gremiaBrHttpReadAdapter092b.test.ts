@@ -65,6 +65,7 @@ describe('Gremia.BR HTTP-ReadAdapter 0.9.2-B', () => {
   it('meldet sich an, prüft das Profil und gibt keine Zugangsdaten im Ergebnis zurück', async () => {
     const { fetch, calls } = createFetch({
       'POST /api/auth/login': { access_token: 'jwt-token' },
+      'GET /api/auth/me': { id: 'u1', email: 'sbv@example.invalid' },
       'GET /api/auth/profile': { displayName: 'SBV Nutzerin', role: 'sbv', email: 'sbv@example.invalid' },
     });
     const settings = new MemoryGremiaBrSettings(configuredSettings());
@@ -77,11 +78,15 @@ describe('Gremia.BR HTTP-ReadAdapter 0.9.2-B', () => {
     expect(JSON.stringify(result)).not.toContain('streng-geheim');
     expect(JSON.stringify(result)).not.toContain('jwt-token');
     expect(settings.success?.profile.role).toBe('sbv');
-    expect(calls.map((call) => `${call.init?.method} ${new URL(call.url).pathname}`)).toEqual([
-      'POST /api/auth/login',
-      'GET /api/auth/profile',
-    ]);
-    expect(calls[1].init?.headers).toMatchObject({ Authorization: 'Bearer jwt-token' });
+    const callSignatures = calls.map((call) => `${call.init?.method} ${new URL(call.url).pathname}`);
+    expect(callSignatures[0]).toBe('POST /api/auth/login');
+    expect(callSignatures).toContain('GET /api/auth/profile');
+    expect(callSignatures.every((signature) => ['POST /api/auth/login', 'GET /api/auth/me', 'GET /api/auth/profile'].includes(signature))).toBe(true);
+    const authenticatedCalls = calls.slice(1);
+    expect(authenticatedCalls.length).toBeGreaterThanOrEqual(1);
+    for (const call of authenticatedCalls) {
+      expect(call.init?.headers).toMatchObject({ Authorization: 'Bearer jwt-token' });
+    }
   });
 
   it('nutzt ausschließlich freigegebene lesende Endpunkte für Sitzungen, Beschlüsse und Suche', async () => {

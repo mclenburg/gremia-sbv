@@ -11,7 +11,7 @@ npm run native:rebuild
 npm run native:diagnose
 ```
 
-Nach Installation sorgt `electron-builder install-app-deps` dafür, dass native Abhängigkeiten zur Electron-Version passen.
+Nach Installation sorgt `node scripts/install-electron-app-deps.cjs` dafür, dass die lokal installierte `electron-builder`-CLI mit bereinigter npm-Umgebung `install-app-deps` ausführt. So passen native Abhängigkeiten zur Electron-Version, ohne npm-Workspace-Flags aus npm 11 weiterzureichen.
 
 ## Plattformen
 

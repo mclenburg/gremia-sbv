@@ -1,18 +1,5 @@
 import type { GremiaBrPolicyCheckResult } from '../../src/app/core/models/gremia-br.model.js';
-
-const READ_ONLY_ENDPOINTS = new Set([
-  'GET /auth/profile',
-  'GET /search',
-  'GET /search/suggest',
-  'GET /sitzungen/naechste',
-  'GET /sitzungen/kommende',
-  'GET /sitzungen/{id}/agenda',
-  'GET /protokolle/beschluesse',
-  'GET /protokolle/beschluesse/faellig',
-  'GET /protokolle/beschluesse/ueberfaellig',
-]);
-
-const AUTH_ENDPOINTS = new Set(['POST /auth/login']);
+import { findGremiaBrEndpointDefinition } from './gremiaBrApiCatalog.js';
 
 const BLOCKED_PREFIXES = [
   '/admin/',
@@ -20,17 +7,14 @@ const BLOCKED_PREFIXES = [
   '/abwesenheiten/',
   '/mitglieder/',
   '/ausschuesse/',
+  '/files/',
+  '/upload-links',
+  '/public-upload/',
+  '/agenda/',
 ];
 
 function normalizePath(path: string): string {
   return path.replace(/\/+/g, '/').replace(/\?.*$/, '');
-}
-
-function endpointKey(method: string, path: string): string {
-  const upperMethod = method.trim().toUpperCase();
-  const normalizedPath = normalizePath(path.trim());
-  if (/^\/sitzungen\/[^/]+\/agenda$/.test(normalizedPath)) return `${upperMethod} /sitzungen/{id}/agenda`;
-  return `${upperMethod} ${normalizedPath}`;
 }
 
 export function validateGremiaBrBaseUrl(rawUrl: string): string {
@@ -61,9 +45,8 @@ export function checkGremiaBrEndpoint(method: string, path: string): GremiaBrPol
   if (BLOCKED_PREFIXES.some((prefix) => normalizedPath.startsWith(prefix))) {
     return { allowed: false, reason: 'Dieser Gremia.BR-Endpunkt ist für Gremia.SBV gesperrt.' };
   }
-  const key = endpointKey(method, normalizedPath);
-  if (AUTH_ENDPOINTS.has(key)) return { allowed: true };
-  if (READ_ONLY_ENDPOINTS.has(key)) return { allowed: true };
+  const endpoint = findGremiaBrEndpointDefinition(method, normalizedPath);
+  if (endpoint) return { allowed: true };
   return { allowed: false, reason: 'Der Endpunkt ist nicht in der Gremia.SBV-Lesebrücke freigegeben.' };
 }
 

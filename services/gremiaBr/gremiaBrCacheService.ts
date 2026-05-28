@@ -19,11 +19,15 @@ interface CacheRow {
 
 const CACHE_KEYS: readonly GremiaBrCacheSourceType[] = [
   'next_meeting',
+  'current_meeting',
   'upcoming_meetings',
   'meeting_agendas',
+  'pending_follow_ups',
   'decisions',
   'due_decisions',
   'overdue_decisions',
+  'decision_statistics',
+  'extended_decision_statistics',
 ] as const;
 
 function nowIso(): string {
@@ -99,20 +103,30 @@ export class GremiaBrCacheService {
 
   getOverview(): GremiaBrCachedOverview {
     const nextMeeting = this.getEntry('next_meeting');
+    const currentMeeting = this.getEntry('current_meeting');
     const upcomingMeetings = this.getEntry('upcoming_meetings');
     const meetingAgendas = this.getEntry('meeting_agendas');
+    const pendingFollowUps = this.getEntry('pending_follow_ups');
     const decisions = this.getEntry('decisions');
     const dueDecisions = this.getEntry('due_decisions');
     const overdueDecisions = this.getEntry('overdue_decisions');
-    const lastFetchedAt = latestTimestamp([nextMeeting, upcomingMeetings, meetingAgendas, decisions, dueDecisions, overdueDecisions]);
+    const decisionStatistics = this.getEntry('decision_statistics');
+    const extendedDecisionStatistics = this.getEntry('extended_decision_statistics');
+    const lastFetchedAt = latestTimestamp([
+      nextMeeting, currentMeeting, upcomingMeetings, meetingAgendas, pendingFollowUps, decisions, dueDecisions, overdueDecisions, decisionStatistics, extendedDecisionStatistics,
+    ]);
 
     return {
       nextMeeting: nextMeeting?.payload,
+      currentMeeting: currentMeeting?.payload,
       upcomingMeetings: asArray(upcomingMeetings?.payload),
       meetingAgendas: asAgendaMap(meetingAgendas?.payload),
+      pendingFollowUps: asArray(pendingFollowUps?.payload),
       decisions: asArray(decisions?.payload),
       dueDecisions: asArray(dueDecisions?.payload),
       overdueDecisions: asArray(overdueDecisions?.payload),
+      decisionStatistics: decisionStatistics?.payload,
+      extendedDecisionStatistics: extendedDecisionStatistics?.payload,
       lastFetchedAt,
       cacheAgeLabel: cacheAgeLabel(lastFetchedAt),
     };
@@ -151,8 +165,13 @@ export class GremiaBrCacheService {
   async refresh(adapter: GremiaBrReadAdapter): Promise<GremiaBrCacheRefreshResult> {
     const checkedAt = nowIso();
     const nextMeeting = await adapter.getNextMeeting();
+    const currentMeeting = await adapter.getCurrentMeeting();
     const upcomingMeetings = await adapter.getUpcomingMeetings();
-    const meetingIds = Array.from(new Set([nextMeeting, ...upcomingMeetings].map((item) => getGremiaBrItemId(item)).filter((id): id is string => Boolean(id)))).slice(0, 12);
+    const pendingFollowUps = await adapter.getPendingFollowUps();
+    const meetingIds = Array.from(new Set([nextMeeting, currentMeeting, ...upcomingMeetings]
+      .map((item) => getGremiaBrItemId(item))
+      .filter((id): id is string => Boolean(id))))
+      .slice(0, 12);
     const meetingAgendas: Record<string, unknown[]> = {};
     for (const id of meetingIds) {
       try {
@@ -164,14 +183,20 @@ export class GremiaBrCacheService {
     const decisions = await adapter.listRelevantDecisions();
     const dueDecisions = await adapter.getDueDecisions();
     const overdueDecisions = await adapter.getOverdueDecisions();
+    const decisionStatistics = await adapter.getDecisionStatistics();
+    const extendedDecisionStatistics = await adapter.getExtendedDecisionStatistics();
 
     const writes: Array<[GremiaBrCacheSourceType, unknown]> = [
       ['next_meeting', nextMeeting],
+      ['current_meeting', currentMeeting],
       ['upcoming_meetings', upcomingMeetings],
       ['meeting_agendas', meetingAgendas],
+      ['pending_follow_ups', pendingFollowUps],
       ['decisions', decisions],
       ['due_decisions', dueDecisions],
       ['overdue_decisions', overdueDecisions],
+      ['decision_statistics', decisionStatistics],
+      ['extended_decision_statistics', extendedDecisionStatistics],
     ];
     for (const [key, payload] of writes) this.saveEntry(key, payload, checkedAt);
 

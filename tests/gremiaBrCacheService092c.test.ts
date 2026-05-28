@@ -57,6 +57,14 @@ class FakeReadAdapter implements GremiaBrReadAdapter {
   async listRelevantMeetings(): Promise<unknown[]> { return this.getUpcomingMeetings(); }
   async getReferenceById(_id: string): Promise<unknown | null> { return null; }
   async searchDecisions(_query: string): Promise<unknown[]> { return []; }
+  async getDecisionStatistics(): Promise<unknown | null> {
+    this.calls.push('stats');
+    return { offen: 1 };
+  }
+  async getExtendedDecisionStatistics(): Promise<unknown | null> {
+    this.calls.push('extended-stats');
+    return { offen: 1, faellig: 1 };
+  }
   async suggestForInlineCommand(_q: string): Promise<unknown[]> { return []; }
 
   async getNextMeeting(): Promise<unknown | null> {
@@ -64,16 +72,32 @@ class FakeReadAdapter implements GremiaBrReadAdapter {
     return { id: 's1', titel: 'Nächste BR-Sitzung' };
   }
 
+  async getCurrentMeeting(): Promise<unknown | null> {
+    this.calls.push('current');
+    return { id: 's0', titel: 'Aktuelle BR-Sitzung' };
+  }
+
   async getUpcomingMeetings(): Promise<unknown[]> {
     this.calls.push('upcoming');
     return [{ id: 's1' }, { id: 's2' }];
   }
 
+  async getPendingFollowUps(): Promise<unknown[]> {
+    this.calls.push('followups');
+    return [{ id: 'w1', titel: 'Wiedervorlage BEM' }];
+  }
+
+  async getMeetingById(): Promise<unknown | null> { return null; }
   async getMeetingAgenda(id: string): Promise<unknown[]> {
     this.calls.push(`agenda:${id}`);
     return id === 's1' ? [{ titel: 'BEM und Arbeitsplatzgestaltung' }] : [];
   }
 
+  async getMeetingProtocolStatus(): Promise<unknown | null> { return null; }
+  async listProtocols(): Promise<unknown[]> { return []; }
+  async getProtocolById(): Promise<unknown | null> { return null; }
+  async getProtocolByMeeting(): Promise<unknown | null> { return null; }
+  async listProtocolDecisions(): Promise<unknown[]> { return []; }
   async listRelevantDecisions(): Promise<unknown[]> {
     this.calls.push('decisions');
     return [{ id: 'b1', titel: 'BEM-Beschluss' }];
@@ -99,15 +123,18 @@ describe('Gremia.BR Lesecache 0.9.2-C', () => {
     const result = await service.refresh(adapter);
 
     expect(result.status).toBe('ok');
-    expect(result.refreshedKeys).toEqual(['next_meeting', 'upcoming_meetings', 'meeting_agendas', 'decisions', 'due_decisions', 'overdue_decisions']);
-    expect(adapter.calls).toEqual(['next', 'upcoming', 'agenda:s1', 'agenda:s2', 'decisions', 'due', 'overdue']);
+    expect(result.refreshedKeys).toEqual(['next_meeting', 'current_meeting', 'upcoming_meetings', 'meeting_agendas', 'pending_follow_ups', 'decisions', 'due_decisions', 'overdue_decisions', 'decision_statistics', 'extended_decision_statistics']);
+    expect(adapter.calls).toEqual(['next', 'current', 'upcoming', 'followups', 'agenda:s1', 'agenda:s0', 'agenda:s2', 'decisions', 'due', 'overdue', 'stats', 'extended-stats']);
     expect(result.cached.nextMeeting).toMatchObject({ id: 's1' });
+    expect(result.cached.currentMeeting).toMatchObject({ id: 's0' });
     expect(result.cached.upcomingMeetings).toHaveLength(2);
     expect(result.cached.meetingAgendas.s1).toHaveLength(1);
+    expect(result.cached.pendingFollowUps).toHaveLength(1);
     expect(result.cached.decisions).toHaveLength(1);
     expect(result.cached.dueDecisions).toHaveLength(1);
     expect(result.cached.overdueDecisions).toHaveLength(1);
-    expect(db.rows.size).toBe(6);
+    expect(result.cached.decisionStatistics).toMatchObject({ offen: 1 });
+    expect(db.rows.size).toBe(10);
   });
 
   it('löscht gecachte BR-Daten ohne Settings oder Credentials zu berühren', () => {

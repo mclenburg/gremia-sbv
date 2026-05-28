@@ -35,7 +35,17 @@ export interface GremiaBrPolicyCheckResult {
 }
 
 
-export type GremiaBrCacheSourceType = 'next_meeting' | 'upcoming_meetings' | 'meeting_agendas' | 'decisions' | 'due_decisions' | 'overdue_decisions';
+export type GremiaBrCacheSourceType =
+  | 'next_meeting'
+  | 'current_meeting'
+  | 'upcoming_meetings'
+  | 'meeting_agendas'
+  | 'pending_follow_ups'
+  | 'decisions'
+  | 'due_decisions'
+  | 'overdue_decisions'
+  | 'decision_statistics'
+  | 'extended_decision_statistics';
 
 export interface GremiaBrCacheEntry {
   cacheKey: GremiaBrCacheSourceType;
@@ -46,11 +56,15 @@ export interface GremiaBrCacheEntry {
 
 export interface GremiaBrCachedOverview {
   nextMeeting?: unknown;
+  currentMeeting?: unknown;
   upcomingMeetings: unknown[];
   meetingAgendas: Record<string, unknown[]>;
+  pendingFollowUps: unknown[];
   decisions: unknown[];
   dueDecisions: unknown[];
   overdueDecisions: unknown[];
+  decisionStatistics?: unknown;
+  extendedDecisionStatistics?: unknown;
   lastFetchedAt?: string;
   cacheAgeLabel?: string;
 }

@@ -16,6 +16,6 @@ describe('RC unit coverage gate', () => {
     const pkg = JSON.parse(readFileSync('package.json', 'utf8')) as { scripts: Record<string, string> };
     expect(pkg.scripts['test:coverage']).toBe('vitest run --coverage');
     expect(pkg.scripts.build).toContain('npm run test');
-    expect(pkg.scripts.postinstall).toBe('electron-builder install-app-deps');
+    expect(pkg.scripts.postinstall).toBe('node scripts/install-electron-app-deps.cjs');
   });
 });

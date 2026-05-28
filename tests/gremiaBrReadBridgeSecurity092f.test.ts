@@ -5,7 +5,17 @@ import { GremiaBrHttpClient, type GremiaBrFetch } from '../services/gremiaBr/gre
 describe('Gremia.BR Lesebrücke Security-Härtung 0.9.2-F', () => {
   it('erlaubt nur explizit freigegebene Leseendpunkte und blockiert Verwaltungs- oder Schreibzugriffe vor dem Netzwerk', async () => {
     expect(checkGremiaBrEndpoint('GET', '/sitzungen/kommende').allowed).toBe(true);
+    expect(checkGremiaBrEndpoint('GET', '/sitzungen/aktuelle').allowed).toBe(true);
+    expect(checkGremiaBrEndpoint('GET', '/sitzungen/wiedervorlagen?datum=2026-05-27').allowed).toBe(true);
+    expect(checkGremiaBrEndpoint('GET', '/sitzungen/s1').allowed).toBe(true);
+    expect(checkGremiaBrEndpoint('GET', '/sitzungen/s1/protokoll-status').allowed).toBe(true);
+    expect(checkGremiaBrEndpoint('GET', '/protokolle').allowed).toBe(true);
+    expect(checkGremiaBrEndpoint('GET', '/protokolle/p1').allowed).toBe(true);
+    expect(checkGremiaBrEndpoint('GET', '/protokolle/sitzung/s1').allowed).toBe(true);
+    expect(checkGremiaBrEndpoint('GET', '/protokolle/p1/beschluesse').allowed).toBe(true);
     expect(checkGremiaBrEndpoint('GET', '/protokolle/beschluesse/faellig').allowed).toBe(true);
+    expect(checkGremiaBrEndpoint('GET', '/protokolle/beschluesse/statistik').allowed).toBe(true);
+    expect(checkGremiaBrEndpoint('GET', '/protokolle/beschluesse/statistik-extended').allowed).toBe(true);
     expect(checkGremiaBrEndpoint('GET', '/search/suggest?q=BEM').allowed).toBe(true);
     expect(checkGremiaBrEndpoint('POST', '/auth/login').allowed).toBe(true);
 
@@ -15,6 +25,9 @@ describe('Gremia.BR Lesebrücke Security-Härtung 0.9.2-F', () => {
       ['GET', '/mitglieder'],
       ['GET', '/abwesenheiten'],
       ['GET', '/ausschuesse'],
+      ['GET', '/dokumente'],
+      ['GET', '/files/unterlage.pdf'],
+      ['POST', '/auth/refresh'],
       ['POST', '/protokolle/beschluesse'],
       ['PATCH', '/sitzungen/s1'],
       ['DELETE', '/files/unterlage.pdf'],

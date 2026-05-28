@@ -19,6 +19,7 @@ const EMPTY_SETTINGS: GremiaBrPublicSettings = {
 
 const EMPTY_CACHE: GremiaBrCachedOverview = {
   upcomingMeetings: [],
+  pendingFollowUps: [],
   decisions: [],
   dueDecisions: [],
   meetingAgendas: {},

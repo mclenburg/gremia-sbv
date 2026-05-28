@@ -8,1517 +8,1191 @@ This inventory lists third-party Node/Electron dependencies.
 Each dependency remains licensed by its upstream project.
 
 - @alloc/quick-lru@5.2.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @ampproject/remapping@2.3.0
-  License: Apache-2.0
-- @babel/code-frame@7.29.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @babel/compat-data@7.29.3
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
+- @babel/code-frame@7.29.7
+  License: MIT
+- @babel/compat-data@7.29.7
+  License: MIT
 - @babel/core@6.3.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @babel/core@7.29.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @babel/generator@7.29.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: ISC
+- @babel/core@7.29.7
+  License: MIT
+- @babel/generator@7.29.7
+  License: MIT
 - @babel/helper-compilation-targets@6.3.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @babel/helper-compilation-targets@7.28.6
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @babel/helper-globals@7.28.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @babel/helper-module-imports@7.28.6
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @babel/helper-module-transforms@7.28.6
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @babel/helper-plugin-utils@7.28.6
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @babel/helper-string-parser@7.27.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @babel/helper-validator-identifier@7.28.5
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @babel/helper-validator-option@7.27.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @babel/helpers@7.29.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @babel/parser@7.29.3
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @babel/plugin-transform-react-jsx-self@7.27.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @babel/plugin-transform-react-jsx-source@7.27.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @babel/template@7.28.6
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @babel/traverse@7.29.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @babel/types@7.29.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @bcoe/v8-coverage@0.2.3
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: ISC
+- @babel/helper-compilation-targets@7.29.7
+  License: MIT
+- @babel/helper-globals@7.29.7
+  License: MIT
+- @babel/helper-module-imports@7.29.7
+  License: MIT
+- @babel/helper-module-transforms@7.29.7
+  License: MIT
+- @babel/helper-string-parser@7.29.7
+  License: MIT
+- @babel/helper-validator-identifier@7.29.7
+  License: MIT
+- @babel/helper-validator-option@7.29.7
+  License: MIT
+- @babel/helpers@7.29.7
+  License: MIT
+- @babel/parser@7.29.7
+  License: MIT
+- @babel/template@7.29.7
+  License: MIT
+- @babel/traverse@7.29.7
+  License: MIT
+- @babel/types@7.29.7
+  License: MIT
+- @bcoe/v8-coverage@1.0.2
+  License: MIT
 - @develar/schema-utils@2.6.5
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - @electron/asar@1.0.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @electron/asar@1.1.14
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
+- @electron/asar@1.1.15
+  License: MIT
 - @electron/asar@3.1.5
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: ISC
 - @electron/asar@3.4.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @electron/asar@7.2.3
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
+- @electron/fuses@1.8.0
+  License: MIT
+- @electron/fuses@9.1.0
+  License: MIT
 - @electron/get@0.1.2
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - @electron/get@2.0.3
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - @electron/get@4.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - @electron/get@6.3.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: ISC
 - @electron/get@8.1.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @electron/node-gyp@10.2.0-electron.1
   License: MIT
 - @electron/notarize@2.5.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - @electron/notarize@9.1.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @electron/osx-sign@1.3.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
+- @electron/osx-sign@1.3.3
+  License: BSD-2-Clause
 - @electron/osx-sign@4.0.10
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @electron/rebuild@3.7.2
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
+- @electron/rebuild@12.3.0
+  License: MIT
+- @electron/rebuild@4.0.0
+  License: ISC
+- @electron/rebuild@4.0.4
+  License: MIT
+- @electron/rebuild@4.31.0
+  License: MIT
+- @electron/rebuild@6.0.1
+  License: ISC
+- @electron/rebuild@9.0.0
+  License: ISC
 - @electron/universal@1.0.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @electron/universal@11.3.4
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @electron/universal@2.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @electron/universal@2.1.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
+- @electron/universal@11.3.5
+  License: MIT
+- @electron/universal@2.0.3
+  License: MIT
+- @electron/universal@2.1.1
+  License: MIT
 - @electron/universal@9.0.9
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @esbuild/aix-ppc64@0.27.7
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @esbuild/android-arm@0.27.7
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @esbuild/android-arm64@0.27.7
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @esbuild/android-x64@0.27.7
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @esbuild/darwin-arm64@0.27.7
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @esbuild/darwin-x64@0.27.7
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @esbuild/freebsd-arm64@0.27.7
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @esbuild/freebsd-x64@0.27.7
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @esbuild/linux-arm@0.27.7
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @esbuild/linux-arm64@0.27.7
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @esbuild/linux-ia32@0.27.7
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @esbuild/linux-loong64@0.27.7
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @esbuild/linux-mips64el@0.27.7
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @esbuild/linux-ppc64@0.27.7
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @esbuild/linux-riscv64@0.27.7
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @esbuild/linux-s390x@0.27.7
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @esbuild/linux-x64@0.27.7
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @esbuild/netbsd-arm64@0.27.7
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @esbuild/netbsd-x64@0.27.7
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @esbuild/openbsd-arm64@0.27.7
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @esbuild/openbsd-x64@0.27.7
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @esbuild/openharmony-arm64@0.27.7
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @esbuild/sunos-x64@0.27.7
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @esbuild/win32-arm64@0.27.7
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @esbuild/win32-ia32@0.27.7
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @esbuild/win32-x64@0.27.7
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: ISC
+- @electron/windows-sign@1.2.2
+  License: BSD-2-Clause
+- @electron/windows-sign@11.3.5
+  License: MIT
+- @emnapi/core@1.10.0
+  License: MIT
+- @emnapi/runtime@1.10.0
+  License: MIT
+- @emnapi/wasi-threads@1.2.1
+  License: MIT
+- @esbuild/aix-ppc64@0.28.0
+  License: MIT
+- @esbuild/android-arm@0.28.0
+  License: MIT
+- @esbuild/android-arm64@0.28.0
+  License: MIT
+- @esbuild/android-x64@0.28.0
+  License: MIT
+- @esbuild/darwin-arm64@0.28.0
+  License: MIT
+- @esbuild/darwin-x64@0.28.0
+  License: MIT
+- @esbuild/freebsd-arm64@0.28.0
+  License: MIT
+- @esbuild/freebsd-x64@0.28.0
+  License: MIT
+- @esbuild/linux-arm@0.28.0
+  License: MIT
+- @esbuild/linux-arm64@0.28.0
+  License: MIT
+- @esbuild/linux-ia32@0.28.0
+  License: MIT
+- @esbuild/linux-loong64@0.28.0
+  License: MIT
+- @esbuild/linux-mips64el@0.28.0
+  License: MIT
+- @esbuild/linux-ppc64@0.28.0
+  License: MIT
+- @esbuild/linux-riscv64@0.28.0
+  License: MIT
+- @esbuild/linux-s390x@0.28.0
+  License: MIT
+- @esbuild/linux-x64@0.28.0
+  License: MIT
+- @esbuild/netbsd-arm64@0.28.0
+  License: MIT
+- @esbuild/netbsd-x64@0.28.0
+  License: MIT
+- @esbuild/openbsd-arm64@0.28.0
+  License: MIT
+- @esbuild/openbsd-x64@0.28.0
+  License: MIT
+- @esbuild/openharmony-arm64@0.28.0
+  License: MIT
+- @esbuild/sunos-x64@0.28.0
+  License: MIT
+- @esbuild/win32-arm64@0.28.0
+  License: MIT
+- @esbuild/win32-ia32@0.28.0
+  License: MIT
+- @esbuild/win32-x64@0.28.0
+  License: MIT
 - @eslint-community/eslint-utils@4.9.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - @eslint-community/regexpp@4.12.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @eslint/config-array@0.21.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @eslint/config-array@1.0.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @eslint/config-array@1.1.14
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @eslint/config-array@3.1.5
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @eslint/config-helpers@0.4.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @eslint/core@0.17.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @eslint/eslintrc@1.0.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @eslint/eslintrc@1.1.14
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @eslint/eslintrc@3.1.5
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @eslint/eslintrc@3.3.5
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @eslint/eslintrc@5.3.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @eslint/js@9.39.4
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @eslint/object-schema@2.1.7
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @eslint/plugin-kit@0.4.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @gar/promisify@1.1.3
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
+- @eslint/config-array@0.23.5
+  License: Apache-2.0
+- @eslint/config-helpers@0.6.0
+  License: Apache-2.0
+- @eslint/core@1.2.1
+  License: Apache-2.0
+- @eslint/object-schema@3.0.5
+  License: Apache-2.0
+- @eslint/plugin-kit@0.7.1
+  License: Apache-2.0
 - @hapi/address@5.1.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: BSD-3-Clause
 - @hapi/formula@3.0.2
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: BSD-3-Clause
 - @hapi/hoek@11.0.7
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: BSD-3-Clause
 - @hapi/pinpoint@2.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: BSD-3-Clause
 - @hapi/tlds@1.1.6
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: BSD-3-Clause
 - @hapi/topo@6.0.2
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: BSD-3-Clause
 - @humanfs/core@0.19.2
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: Apache-2.0
 - @humanfs/node@0.16.8
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: Apache-2.0
 - @humanfs/types@0.15.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: Apache-2.0
 - @humanwhocodes/module-importer@1.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: Apache-2.0
 - @humanwhocodes/retry@0.4.3
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @isaacs/cliui@5.1.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @isaacs/cliui@6.2.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @isaacs/cliui@6.2.3
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @isaacs/cliui@7.2.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @isaacs/cliui@8.0.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @isaacs/cliui@8.1.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @isaacs/cliui@9.2.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @istanbuljs/schema@0.1.6
-  License: MIT
+  License: Apache-2.0
+- @isaacs/fs-minipass@4.0.1
+  License: ISC
 - @jridgewell/gen-mapping@0.3.13
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @jridgewell/remapping@2.3.5
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @jridgewell/resolve-uri@3.1.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @jridgewell/sourcemap-codec@1.5.5
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @jridgewell/trace-mapping@0.3.31
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @malept/cross-spawn-promise@2.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @malept/flatpak-bundler@0.4.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @malept/flatpak-bundler@9.1.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @nodelib/fs.scandir@2.1.5
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @nodelib/fs.stat@2.0.5
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @nodelib/fs.walk@1.2.8
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @npmcli/fs@2.1.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @npmcli/move-file@2.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @pkgjs/parseargs@0.11.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @rolldown/pluginutils@1.0.0-rc.3
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @rollup/rollup-android-arm-eabi@4.60.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @rollup/rollup-android-arm64@4.60.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @rollup/rollup-darwin-arm64@4.60.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @rollup/rollup-darwin-x64@4.60.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @rollup/rollup-freebsd-arm64@4.60.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @rollup/rollup-freebsd-x64@4.60.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @rollup/rollup-linux-arm-gnueabihf@4.60.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @rollup/rollup-linux-arm-musleabihf@4.60.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @rollup/rollup-linux-arm64-gnu@4.60.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @rollup/rollup-linux-arm64-musl@4.60.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @rollup/rollup-linux-loong64-gnu@4.60.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @rollup/rollup-linux-loong64-musl@4.60.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @rollup/rollup-linux-ppc64-gnu@4.60.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @rollup/rollup-linux-ppc64-musl@4.60.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @rollup/rollup-linux-riscv64-gnu@4.60.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @rollup/rollup-linux-riscv64-musl@4.60.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @rollup/rollup-linux-s390x-gnu@4.60.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @rollup/rollup-linux-x64-gnu@4.60.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @rollup/rollup-linux-x64-musl@4.60.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @rollup/rollup-openbsd-x64@4.60.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @rollup/rollup-openharmony-arm64@4.60.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @rollup/rollup-win32-arm64-msvc@4.60.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @rollup/rollup-win32-ia32-msvc@4.60.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @rollup/rollup-win32-x64-gnu@4.60.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @rollup/rollup-win32-x64-msvc@4.60.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @sindresorhus/is@4.6.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @standard-schema/spec@1.1.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @szmarczak/http-timer@4.0.6
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @tootallnate/once@2.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @types/babel__core@7.20.5
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @types/babel__generator@7.27.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @types/babel__template@7.4.4
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @types/babel__traverse@7.28.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @types/cacheable-request@6.0.3
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @types/debug@4.1.13
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @types/estree@1.0.8
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @types/fs-extra@9.0.13
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @types/http-cache-semantics@4.2.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @types/json-schema@7.0.15
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @types/keyv@3.1.4
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @types/ms@2.1.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @types/node@22.19.17
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @types/plist@3.0.5
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @types/react-dom@19.2.3
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @types/react@19.2.14
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @types/responselike@1.0.3
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @types/verror@1.10.11
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @types/yauzl@2.10.3
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @typescript-eslint/eslint-plugin@8.59.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @typescript-eslint/parser@8.59.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @typescript-eslint/project-service@8.59.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @typescript-eslint/scope-manager@8.59.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @typescript-eslint/tsconfig-utils@8.59.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @typescript-eslint/type-utils@8.59.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @typescript-eslint/types@8.59.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @typescript-eslint/typescript-estree@8.59.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @typescript-eslint/utils@8.59.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @typescript-eslint/visitor-keys@5.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @typescript-eslint/visitor-keys@8.59.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @vitejs/plugin-react@5.2.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @vitest/coverage-v8@2.1.9
   License: MIT
-- @vitest/expect@2.1.9
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @vitest/pretty-format@2.1.9
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @vitest/runner@2.1.9
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @vitest/snapshot@2.1.9
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @vitest/spy@2.1.9
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @vitest/utils@2.1.9
-  License: UNKNOWN - bitte upstream package.json prüfen
-- @xmldom/xmldom@0.9.10
-  License: UNKNOWN - bitte upstream package.json prüfen
+- @jridgewell/remapping@2.3.5
+  License: MIT
+- @jridgewell/resolve-uri@3.1.2
+  License: MIT
+- @jridgewell/sourcemap-codec@1.5.5
+  License: MIT
+- @jridgewell/trace-mapping@0.3.31
+  License: MIT
+- @malept/cross-spawn-promise@2.0.0
+  License: Apache-2.0
+- @malept/flatpak-bundler@0.4.0
+  License: MIT
+- @malept/flatpak-bundler@9.1.0
+  License: MIT
+- @napi-rs/wasm-runtime@1.1.4
+  License: MIT
+- @oxc-project/types@0.132.0
+  License: MIT
+- @rolldown/binding-android-arm64@1.0.2
+  License: MIT
+- @rolldown/binding-darwin-arm64@1.0.2
+  License: MIT
+- @rolldown/binding-darwin-x64@1.0.2
+  License: MIT
+- @rolldown/binding-freebsd-x64@1.0.2
+  License: MIT
+- @rolldown/binding-linux-arm-gnueabihf@1.0.2
+  License: MIT
+- @rolldown/binding-linux-arm64-gnu@1.0.2
+  License: MIT
+- @rolldown/binding-linux-arm64-musl@1.0.2
+  License: MIT
+- @rolldown/binding-linux-ppc64-gnu@1.0.2
+  License: MIT
+- @rolldown/binding-linux-s390x-gnu@1.0.2
+  License: MIT
+- @rolldown/binding-linux-x64-gnu@1.0.2
+  License: MIT
+- @rolldown/binding-linux-x64-musl@1.0.2
+  License: MIT
+- @rolldown/binding-openharmony-arm64@1.0.2
+  License: MIT
+- @rolldown/binding-wasm32-wasi@1.0.2
+  License: MIT
+- @rolldown/binding-win32-arm64-msvc@1.0.2
+  License: MIT
+- @rolldown/binding-win32-x64-msvc@1.0.2
+  License: MIT
+- @rolldown/pluginutils@1.0.1
+  License: MIT
+- @sindresorhus/is@4.6.0
+  License: MIT
+- @standard-schema/spec@1.1.0
+  License: MIT
+- @szmarczak/http-timer@4.0.6
+  License: MIT
+- @tailwindcss/node@4.3.0
+  License: MIT
+- @tailwindcss/oxide-android-arm64@4.3.0
+  License: MIT
+- @tailwindcss/oxide-darwin-arm64@4.3.0
+  License: MIT
+- @tailwindcss/oxide-darwin-x64@4.3.0
+  License: MIT
+- @tailwindcss/oxide-freebsd-x64@4.3.0
+  License: MIT
+- @tailwindcss/oxide-linux-arm-gnueabihf@4.3.0
+  License: MIT
+- @tailwindcss/oxide-linux-arm64-gnu@4.3.0
+  License: MIT
+- @tailwindcss/oxide-linux-arm64-musl@4.3.0
+  License: MIT
+- @tailwindcss/oxide-linux-x64-gnu@4.3.0
+  License: MIT
+- @tailwindcss/oxide-linux-x64-musl@4.3.0
+  License: MIT
+- @tailwindcss/oxide-wasm32-wasi@0.10.1
+  License: MIT
+- @tailwindcss/oxide-wasm32-wasi@1.1.4
+  License: MIT
+- @tailwindcss/oxide-wasm32-wasi@1.10.0
+  License: MIT
+- @tailwindcss/oxide-wasm32-wasi@1.2.1
+  License: MIT
+- @tailwindcss/oxide-wasm32-wasi@2.8.1
+  License: 0BSD
+- @tailwindcss/oxide-wasm32-wasi@4.3.0
+  License: MIT
+- @tailwindcss/oxide-win32-arm64-msvc@4.3.0
+  License: MIT
+- @tailwindcss/oxide-win32-x64-msvc@4.3.0
+  License: MIT
+- @tailwindcss/oxide@4.3.0
+  License: MIT
+- @tailwindcss/postcss@4.3.0
+  License: MIT
+- @tybys/wasm-util@0.10.2
+  License: MIT
+- @types/cacheable-request@6.0.3
+  License: MIT
+- @types/chai@5.2.3
+  License: MIT
+- @types/debug@4.1.13
+  License: MIT
+- @types/deep-eql@4.0.2
+  License: MIT
+- @types/esrecurse@4.3.1
+  License: MIT
+- @types/estree@1.0.8
+  License: MIT
+- @types/fs-extra@9.0.13
+  License: MIT
+- @types/http-cache-semantics@4.2.0
+  License: MIT
+- @types/json-schema@7.0.15
+  License: MIT
+- @types/keyv@3.1.4
+  License: MIT
+- @types/ms@2.1.0
+  License: MIT
+- @types/node@22.19.19
+  License: MIT
+- @types/plist@3.0.5
+  License: MIT
+- @types/react-dom@19.2.3
+  License: MIT
+- @types/react@19.2.15
+  License: MIT
+- @types/responselike@1.0.3
+  License: MIT
+- @types/verror@1.10.11
+  License: MIT
+- @types/yauzl@2.10.3
+  License: MIT
+- @typescript-eslint/eslint-plugin@8.60.0
+  License: MIT
+- @typescript-eslint/parser@8.60.0
+  License: MIT
+- @typescript-eslint/project-service@8.60.0
+  License: MIT
+- @typescript-eslint/scope-manager@8.60.0
+  License: MIT
+- @typescript-eslint/tsconfig-utils@8.60.0
+  License: MIT
+- @typescript-eslint/type-utils@8.60.0
+  License: MIT
+- @typescript-eslint/types@8.60.0
+  License: MIT
+- @typescript-eslint/typescript-estree@8.60.0
+  License: MIT
+- @typescript-eslint/utils@8.60.0
+  License: MIT
+- @typescript-eslint/visitor-keys@5.0.1
+  License: Apache-2.0
+- @typescript-eslint/visitor-keys@8.60.0
+  License: MIT
+- @vitejs/plugin-react@6.0.2
+  License: MIT
+- @vitest/coverage-v8@4.1.7
+  License: MIT
+- @vitest/expect@4.1.7
+  License: MIT
+- @vitest/mocker@4.1.7
+  License: MIT
+- @vitest/pretty-format@4.1.7
+  License: MIT
+- @vitest/runner@4.1.7
+  License: MIT
+- @vitest/snapshot@4.1.7
+  License: MIT
+- @vitest/spy@4.1.7
+  License: MIT
+- @vitest/utils@4.1.7
+  License: MIT
+- @xmldom/xmldom@0.8.13
+  License: MIT
 - 7zip-bin@5.2.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- abbrev@1.1.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - acorn-jsx@5.3.2
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - acorn@8.16.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - agent-base@7.1.4
-  License: UNKNOWN - bitte upstream package.json prüfen
-- agentkeepalive@4.6.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- aggregate-error@3.1.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - ajv-keywords@3.5.2
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - ajv@6.15.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - ansi-regex@5.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - ansi-styles@4.3.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- any-promise@1.3.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- anymatch@3.1.3
-  License: UNKNOWN - bitte upstream package.json prüfen
-- app-builder-bin@5.0.0-alpha.10
-  License: UNKNOWN - bitte upstream package.json prüfen
-- app-builder-lib@25.1.8
-  License: UNKNOWN - bitte upstream package.json prüfen
-- app-builder-lib@3.6.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- aproba@2.1.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- archiver-utils@1.0.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- archiver-utils@1.1.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- archiver-utils@1.1.14
-  License: UNKNOWN - bitte upstream package.json prüfen
-- archiver-utils@2.1.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- archiver-utils@2.3.8
-  License: UNKNOWN - bitte upstream package.json prüfen
-- archiver-utils@3.1.5
-  License: UNKNOWN - bitte upstream package.json prüfen
-- archiver-utils@5.1.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- archiver-utils@7.2.3
-  License: UNKNOWN - bitte upstream package.json prüfen
-- archiver@5.3.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- are-we-there-yet@3.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- arg@5.0.2
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
+- app-builder-bin@5.0.0-alpha.12
+  License: MIT
+- app-builder-lib@0.1.2
+  License: MIT
+- app-builder-lib@26.8.1
+  License: MIT
+- app-builder-lib@3.1.0
+  License: MIT
+- app-builder-lib@3.1.5
+  License: BlueOak-1.0.0
+- app-builder-lib@4.0.0
+  License: MIT
+- app-builder-lib@4.3.1
+  License: MIT
+- app-builder-lib@5.0.0
+  License: ISC
+- app-builder-lib@6.3.1
+  License: ISC
+- app-builder-lib@8.1.0
+  License: MIT
 - argon2-browser@1.18.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - argparse@2.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: Python-2.0
 - assert-plus@1.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - assertion-error@2.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
+- ast-v8-to-istanbul@1.0.2
+  License: MIT
+- ast-v8-to-istanbul@10.0.0
+  License: MIT
 - astral-regex@2.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - async-exit-hook@2.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - async@3.2.6
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - asynckit@0.4.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - at-least-node@1.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: ISC
 - autoprefixer@10.5.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- axios@1.15.2
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
+- axios@1.16.1
+  License: MIT
+- axios@5.0.1
+  License: MIT
+- axios@6.0.2
+  License: MIT
 - balanced-match@4.0.4
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - base64-js@1.5.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - baseline-browser-mapping@2.10.25
-  License: UNKNOWN - bitte upstream package.json prüfen
-- better-sqlite3-multiple-ciphers@12.9.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- binary-extensions@2.3.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: Apache-2.0
+- better-sqlite3-multiple-ciphers@12.10.0
+  License: MIT
 - bindings@1.5.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - bl@4.1.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- bluebird-lst@1.0.9
-  License: UNKNOWN - bitte upstream package.json prüfen
-- bluebird@3.7.2
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - boolean@3.2.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- brace-expansion@5.0.5
-  License: UNKNOWN - bitte upstream package.json prüfen
-- braces@3.0.3
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
+- brace-expansion@5.0.6
+  License: MIT
 - browserslist@4.28.2
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - buffer-crc32@0.2.13
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - buffer-from@1.1.2
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - buffer@5.7.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- builder-util-runtime@9.2.10
-  License: UNKNOWN - bitte upstream package.json prüfen
-- builder-util@25.1.7
-  License: UNKNOWN - bitte upstream package.json prüfen
-- cac@6.7.14
-  License: UNKNOWN - bitte upstream package.json prüfen
-- cacache@16.1.3
-  License: UNKNOWN - bitte upstream package.json prüfen
-- cacache@7.18.3
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
+- builder-util-runtime@9.5.1
+  License: MIT
+- builder-util@26.8.1
+  License: MIT
 - cacheable-lookup@5.0.4
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - cacheable-request@7.0.4
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - call-bind-apply-helpers@1.0.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- callsites@3.1.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- camelcase-css@2.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - caniuse-lite@1.0.30001791
-  License: UNKNOWN - bitte upstream package.json prüfen
-- chai@5.3.3
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: CC-BY-4.0
+- chai@6.2.2
+  License: MIT
 - chalk@4.1.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- check-error@2.1.3
-  License: UNKNOWN - bitte upstream package.json prüfen
-- chokidar@3.6.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- chokidar@5.1.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- chownr@2.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
+- chownr@3.0.0
+  License: BlueOak-1.0.0
 - chromium-pickle-js@0.2.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- ci-info@3.9.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- clean-stack@2.2.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- cli-cursor@3.1.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- cli-spinners@2.9.2
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
+- ci-info@4.4.0
+  License: MIT
 - cli-truncate@2.1.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - cliui@8.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: ISC
 - clone-response@1.0.3
-  License: UNKNOWN - bitte upstream package.json prüfen
-- clone@1.0.4
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - clsx@2.1.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - color-convert@2.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - color-name@1.1.4
-  License: UNKNOWN - bitte upstream package.json prüfen
-- color-support@1.1.3
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - combined-stream@1.0.8
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - commander@5.1.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - compare-version@0.1.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- compress-commons@4.1.2
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - concat-map@0.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - concurrently@8.1.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - concurrently@9.2.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- config-file-ts@0.2.8-rc1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- config-file-ts@1.0.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- config-file-ts@10.5.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- config-file-ts@2.1.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- config-file-ts@7.1.3
-  License: UNKNOWN - bitte upstream package.json prüfen
-- config-file-ts@9.0.9
-  License: UNKNOWN - bitte upstream package.json prüfen
-- console-control-strings@1.1.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - convert-source-map@2.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - core-util-is@1.0.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- crc-32@1.2.2
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - crc@3.8.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- crc32-stream@4.0.3
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
+- cross-dirname@0.1.0
+  License: MIT
 - cross-spawn@7.0.6
-  License: UNKNOWN - bitte upstream package.json prüfen
-- cssesc@3.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - csstype@3.2.3
-  License: UNKNOWN - bitte upstream package.json prüfen
-- date-fns@4.1.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
+- date-fns@4.3.0
+  License: MIT
 - debug@4.4.3
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - decompress-response@3.1.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - decompress-response@6.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- deep-eql@5.0.2
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - deep-extend@0.6.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - deep-is@0.1.4
-  License: UNKNOWN - bitte upstream package.json prüfen
-- defaults@1.0.4
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - defer-to-connect@2.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - define-data-property@1.1.4
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - define-properties@1.2.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - delayed-stream@1.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- delegates@1.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - detect-libc@2.1.2
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: Apache-2.0
 - detect-node@2.1.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- didyoumean@1.2.2
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - dir-compare@1.0.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- dir-compare@1.1.14
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
+- dir-compare@1.1.15
+  License: MIT
 - dir-compare@3.1.5
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: ISC
 - dir-compare@4.2.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- dlv@1.1.3
-  License: UNKNOWN - bitte upstream package.json prüfen
-- dmg-builder@25.1.8
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
+- dmg-builder@26.8.1
+  License: MIT
 - dmg-license@1.0.11
-  License: UNKNOWN - bitte upstream package.json prüfen
-- docx@25.6.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- docx@7.19.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- docx@9.6.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
+- docx@25.9.1
+  License: MIT
+- docx@7.24.6
+  License: MIT
+- docx@9.7.1
+  License: MIT
 - dotenv-expand@11.0.7
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: BSD-2-Clause
 - dotenv@16.6.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: BSD-2-Clause
 - dunder-proto@1.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- eastasianwidth@0.2.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - ejs@3.1.10
-  License: UNKNOWN - bitte upstream package.json prüfen
-- electron-builder-squirrel-windows@25.1.8
-  License: UNKNOWN - bitte upstream package.json prüfen
-- electron-builder@25.1.8
-  License: UNKNOWN - bitte upstream package.json prüfen
-- electron-publish@25.1.7
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: Apache-2.0
+- electron-builder-squirrel-windows@26.8.1
+  License: MIT
+- electron-builder@26.8.1
+  License: MIT
+- electron-publish@26.8.1
+  License: MIT
 - electron-to-chromium@1.5.349
-  License: UNKNOWN - bitte upstream package.json prüfen
-- electron@20.19.39
-  License: UNKNOWN - bitte upstream package.json prüfen
-- electron@33.4.11
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: ISC
+- electron-winstaller@0.1.2
+  License: MIT
+- electron-winstaller@4.0.0
+  License: MIT
+- electron-winstaller@5.4.0
+  License: MIT
+- electron-winstaller@7.0.1
+  License: MIT
+- electron@39.8.10
+  License: MIT
 - emoji-regex@8.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- encoding@0.1.13
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - end-of-stream@1.4.5
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
+- enhanced-resolve@5.22.0
+  License: MIT
 - env-paths@2.2.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - err-code@2.0.3
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - es-define-property@1.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - es-errors@1.3.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- es-module-lexer@1.7.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
+- es-module-lexer@2.1.0
+  License: MIT
 - es-object-atoms@1.1.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - es-set-tostringtag@2.1.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - es6-error@4.1.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- esbuild@0.27.7
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
+- esbuild@0.28.0
+  License: MIT
 - escalade@3.2.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - escape-string-regexp@4.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- eslint-plugin-react-hooks@5.2.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- eslint-scope@8.4.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
+- eslint-plugin-react-hooks@7.1.1
+  License: MIT
+- eslint-scope@9.1.2
+  License: BSD-2-Clause
 - eslint-visitor-keys@3.4.3
-  License: UNKNOWN - bitte upstream package.json prüfen
-- eslint@1.0.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- eslint@1.1.14
-  License: UNKNOWN - bitte upstream package.json prüfen
-- eslint@3.1.5
-  License: UNKNOWN - bitte upstream package.json prüfen
-- eslint@4.2.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: Apache-2.0
+- eslint@10.4.0
+  License: MIT
+- eslint@5.0.1
+  License: Apache-2.0
 - eslint@5.3.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- eslint@9.39.4
-  License: UNKNOWN - bitte upstream package.json prüfen
-- espree@10.4.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- espree@4.2.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
+- espree@11.2.0
+  License: BSD-2-Clause
+- espree@5.0.1
+  License: Apache-2.0
 - esquery@1.7.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: BSD-3-Clause
 - esrecurse@4.3.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: BSD-2-Clause
 - estraverse@5.3.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: BSD-2-Clause
 - estree-walker@3.0.3
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - esutils@2.0.3
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: BSD-2-Clause
 - expand-template@2.0.3
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: (MIT OR WTFPL)
 - expect-type@1.3.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: Apache-2.0
 - exponential-backoff@3.1.3
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: Apache-2.0
 - extract-zip@2.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: BSD-2-Clause
 - extract-zip@2.10.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - extsprintf@1.4.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - fast-deep-equal@3.1.3
-  License: UNKNOWN - bitte upstream package.json prüfen
-- fast-glob@3.3.3
-  License: UNKNOWN - bitte upstream package.json prüfen
-- fast-glob@5.1.2
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - fast-json-stable-stringify@2.1.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - fast-levenshtein@2.0.6
-  License: UNKNOWN - bitte upstream package.json prüfen
-- fastq@1.20.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - fd-slicer@1.1.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - file-entry-cache@8.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - file-uri-to-path@1.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - filelist@1.0.2
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - filelist@1.0.6
-  License: UNKNOWN - bitte upstream package.json prüfen
-- filelist@2.1.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: Apache-2.0
+- filelist@2.1.1
+  License: MIT
 - filelist@5.1.9
-  License: UNKNOWN - bitte upstream package.json prüfen
-- fill-range@7.1.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: ISC
 - find-up@5.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - flat-cache@4.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - flatted@3.4.2
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: ISC
 - follow-redirects@1.16.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- foreground-child@3.3.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- foreground-child@4.1.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - form-data@4.0.5
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - fraction.js@5.3.4
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - fs-constants@1.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - fs-extra@10.1.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- fs-minipass@2.1.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - fs.realpath@1.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: ISC
 - fsevents@2.3.3
   License: UNKNOWN - bitte upstream package.json prüfen
 - function-bind@1.1.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- gauge@4.0.4
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - gensync@1.0.0-beta.2
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - get-caller-file@2.0.5
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: ISC
 - get-intrinsic@1.3.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - get-proto@1.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - get-stream@5.2.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- get-tsconfig@4.14.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - github-from-package@0.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - glob-parent@6.0.2
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: ISC
 - glob@1.0.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- glob@2.1.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- glob@5.1.9
-  License: UNKNOWN - bitte upstream package.json prüfen
-- glob@8.1.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
+- glob@1.1.15
+  License: MIT
+- glob@3.1.5
+  License: ISC
+- glob@7.2.3
+  License: ISC
 - global-agent@3.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- globals@14.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: BSD-3-Clause
 - globalthis@1.0.4
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - gopd@1.2.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - got@11.8.6
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - graceful-fs@4.2.11
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: ISC
 - has-flag@4.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - has-property-descriptors@1.0.2
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - has-symbols@1.1.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - has-tostringtag@1.0.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- has-unicode@2.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - hash.js@1.1.7
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - hasown@2.0.3
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
+- hermes-estree@0.25.1
+  License: MIT
+- hermes-parser@0.25.1
+  License: MIT
 - hosted-git-info@4.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: ISC
 - hosted-git-info@4.1.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: ISC
 - hosted-git-info@6.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: ISC
 - html-escaper@2.0.2
   License: MIT
 - http-cache-semantics@4.2.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: BSD-2-Clause
 - http-proxy-agent@7.0.2
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - http2-wrapper@1.0.3
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - https-proxy-agent@7.0.6
-  License: UNKNOWN - bitte upstream package.json prüfen
-- humanize-ms@1.2.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- ical-generator@9.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
+- ical-generator@10.2.0
+  License: MIT
 - iconv-corefoundation@1.1.7
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - iconv-lite@0.6.3
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - ieee754@1.2.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: BSD-3-Clause
 - ignore@7.0.5
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - immediate@3.0.6
-  License: UNKNOWN - bitte upstream package.json prüfen
-- import-fresh@3.3.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - imurmurhash@0.1.4
-  License: UNKNOWN - bitte upstream package.json prüfen
-- indent-string@4.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- infer-owner@1.0.4
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - inflight@1.0.6
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: ISC
 - inherits@2.0.4
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: ISC
 - ini@1.3.8
-  License: UNKNOWN - bitte upstream package.json prüfen
-- ip-address@10.2.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- is-binary-path@2.1.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- is-ci@3.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- is-core-module@2.16.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: ISC
 - is-extglob@2.1.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - is-fullwidth-code-point@3.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - is-glob@4.0.3
-  License: UNKNOWN - bitte upstream package.json prüfen
-- is-interactive@1.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- is-lambda@1.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- is-number@7.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- is-unicode-supported@0.1.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - isarray@1.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - isbinaryfile@5.0.7
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - isexe@2.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: ISC
 - istanbul-lib-coverage@3.2.2
   License: BSD-3-Clause
 - istanbul-lib-report@3.0.1
   License: BSD-3-Clause
-- istanbul-lib-source-maps@5.0.6
-  License: BSD-3-Clause
 - istanbul-reports@3.2.0
   License: BSD-3-Clause
-- jackspeak@3.4.3
-  License: UNKNOWN - bitte upstream package.json prüfen
 - jake@10.9.4
-  License: UNKNOWN - bitte upstream package.json prüfen
-- jiti@1.21.7
-  License: UNKNOWN - bitte upstream package.json prüfen
-- joi@18.1.2
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: Apache-2.0
+- jiti@2.7.0
+  License: MIT
+- joi@18.2.1
+  License: BSD-3-Clause
 - js-tokens@4.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - js-yaml@4.1.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - jsesc@3.1.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - json-buffer@3.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - json-schema-traverse@0.4.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - json-stable-stringify-without-jsonify@1.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - json-stringify-safe@5.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: ISC
 - json5@2.2.3
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - jsonfile@6.2.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - jszip@1.1.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - jszip@2.3.8
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - jszip@3.10.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: (MIT OR GPL-3.0-or-later)
 - jszip@5.1.2
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - keyv@4.5.4
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - lazy-val@1.0.5
-  License: UNKNOWN - bitte upstream package.json prüfen
-- lazystream@1.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- lazystream@1.1.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- lazystream@2.3.8
-  License: UNKNOWN - bitte upstream package.json prüfen
-- lazystream@5.1.2
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - levn@0.4.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - lie@3.3.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- lilconfig@3.1.3
-  License: UNKNOWN - bitte upstream package.json prüfen
-- lines-and-columns@1.2.4
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
+- lightningcss-android-arm64@1.32.0
+  License: MPL-2.0
+- lightningcss-darwin-arm64@1.32.0
+  License: MPL-2.0
+- lightningcss-darwin-x64@1.32.0
+  License: MPL-2.0
+- lightningcss-freebsd-x64@1.32.0
+  License: MPL-2.0
+- lightningcss-linux-arm-gnueabihf@1.32.0
+  License: MPL-2.0
+- lightningcss-linux-arm64-gnu@1.32.0
+  License: MPL-2.0
+- lightningcss-linux-arm64-musl@1.32.0
+  License: MPL-2.0
+- lightningcss-linux-x64-gnu@1.32.0
+  License: MPL-2.0
+- lightningcss-linux-x64-musl@1.32.0
+  License: MPL-2.0
+- lightningcss-win32-arm64-msvc@1.32.0
+  License: MPL-2.0
+- lightningcss-win32-x64-msvc@1.32.0
+  License: MPL-2.0
+- lightningcss@1.32.0
+  License: MPL-2.0
 - locate-path@6.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- lodash.defaults@4.2.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- lodash.difference@4.5.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- lodash.flatten@4.4.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- lodash.isplainobject@4.0.6
-  License: UNKNOWN - bitte upstream package.json prüfen
-- lodash.merge@4.6.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- lodash.union@4.6.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - lodash@4.18.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- log-symbols@4.1.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- loupe@3.2.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - lowercase-keys@2.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - lru-cache@5.1.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- lucide-react@0.468.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: ISC
+- lucide-react@1.16.0
+  License: ISC
 - magic-string@0.30.21
-  License: UNKNOWN - bitte upstream package.json prüfen
-- magicast@0.3.5
+  License: MIT
+- magicast@0.5.3
   License: MIT
 - make-dir@4.0.0
   License: MIT
-- make-fetch-happen@10.2.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- make-fetch-happen@5.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- make-fetch-happen@5.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- make-fetch-happen@6.0.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- make-fetch-happen@7.18.3
-  License: UNKNOWN - bitte upstream package.json prüfen
 - matcher@3.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - math-intrinsics@1.1.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- merge2@1.4.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- micromatch@4.0.8
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - mime-db@1.52.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - mime-types@2.1.35
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - mime@2.6.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- mimic-fn@2.1.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - mimic-response@1.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - minimalistic-assert@1.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: ISC
 - minimatch@10.2.5
-  License: UNKNOWN - bitte upstream package.json prüfen
-- minimist@1.2.8
-  License: UNKNOWN - bitte upstream package.json prüfen
-- minipass-collect@1.0.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- minipass-fetch@2.1.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- minipass-flush@1.0.7
-  License: UNKNOWN - bitte upstream package.json prüfen
-- minipass-pipeline@1.2.4
-  License: UNKNOWN - bitte upstream package.json prüfen
-- minipass-sized@1.0.3
-  License: UNKNOWN - bitte upstream package.json prüfen
-- minipass@3.3.6
-  License: UNKNOWN - bitte upstream package.json prüfen
-- minipass@4.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- minizlib@2.1.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- minizlib@4.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- mkdirp-classic@0.5.3
-  License: UNKNOWN - bitte upstream package.json prüfen
-- mkdirp@1.0.4
-  License: UNKNOWN - bitte upstream package.json prüfen
-- ms@2.1.3
-  License: UNKNOWN - bitte upstream package.json prüfen
-- mz@2.7.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- nanoid@5.1.11
-  License: UNKNOWN - bitte upstream package.json prüfen
-- napi-build-utils@2.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- natural-compare@1.4.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- negotiator@0.6.4
-  License: UNKNOWN - bitte upstream package.json prüfen
-- node-abi@3.90.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- node-addon-api@1.7.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- node-api-version@0.2.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- node-gyp@1.0.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- node-gyp@1.1.14
-  License: UNKNOWN - bitte upstream package.json prüfen
-- node-gyp@3.1.5
-  License: UNKNOWN - bitte upstream package.json prüfen
-- node-gyp@7.2.3
-  License: UNKNOWN - bitte upstream package.json prüfen
-- node-gyp@9.4.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- node-releases@2.0.38
-  License: UNKNOWN - bitte upstream package.json prüfen
-- nopt@6.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- normalize-path@3.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- normalize-url@6.1.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- npmlog@6.0.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- object-assign@4.1.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- object-hash@3.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- object-keys@1.1.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- once@1.4.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- onetime@5.1.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- optionator@0.9.4
-  License: UNKNOWN - bitte upstream package.json prüfen
-- ora@5.4.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- p-cancelable@2.1.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- p-limit@3.1.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- p-locate@5.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- p-map@4.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- package-json-from-dist@1.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- pako@1.0.11
-  License: UNKNOWN - bitte upstream package.json prüfen
-- parent-module@1.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- path-exists@4.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- path-is-absolute@1.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- path-key@3.1.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- path-parse@1.0.7
-  License: UNKNOWN - bitte upstream package.json prüfen
-- path-scurry@1.11.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- path-scurry@10.4.3
-  License: UNKNOWN - bitte upstream package.json prüfen
-- path-scurry@7.1.3
-  License: UNKNOWN - bitte upstream package.json prüfen
-- pathe@1.1.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- pathval@2.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- pe-library@0.4.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- pend@1.2.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- picocolors@1.1.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- picomatch@2.3.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- pify@2.3.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- pirates@4.0.7
-  License: UNKNOWN - bitte upstream package.json prüfen
-- plist@3.1.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- postcss-import@15.1.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- postcss-js@4.1.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- postcss-load-config@6.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- postcss-nested@6.2.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- postcss-selector-parser@6.1.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- postcss-value-parser@4.2.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- postcss@3.3.12
-  License: UNKNOWN - bitte upstream package.json prüfen
-- postcss@8.5.13
-  License: UNKNOWN - bitte upstream package.json prüfen
-- prebuild-install@7.1.3
-  License: UNKNOWN - bitte upstream package.json prüfen
-- prelude-ls@1.2.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- proc-log@2.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- process-nextick-args@2.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- progress@2.0.3
-  License: UNKNOWN - bitte upstream package.json prüfen
-- promise-inflight@1.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- promise-retry@2.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- proxy-from-env@2.1.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- pump@3.0.4
-  License: UNKNOWN - bitte upstream package.json prüfen
-- punycode@2.3.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- queue-microtask@1.2.3
-  License: UNKNOWN - bitte upstream package.json prüfen
-- quick-lru@5.1.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- rc@1.2.8
-  License: UNKNOWN - bitte upstream package.json prüfen
-- rc@2.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- react-dom@19.2.5
-  License: UNKNOWN - bitte upstream package.json prüfen
-- react-refresh@0.18.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- react@19.2.5
-  License: UNKNOWN - bitte upstream package.json prüfen
-- read-binary-file-arch@1.0.6
-  License: UNKNOWN - bitte upstream package.json prüfen
-- read-cache@1.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- readable-stream@3.6.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- readdir-glob@1.0.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- readdir-glob@1.1.3
-  License: UNKNOWN - bitte upstream package.json prüfen
-- readdir-glob@2.1.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- readdir-glob@5.1.9
-  License: UNKNOWN - bitte upstream package.json prüfen
-- readdirp@3.6.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- require-directory@2.1.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- resedit@1.7.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- resolve-alpn@1.2.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- resolve-from@4.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- resolve-pkg-maps@1.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- resolve@1.22.12
-  License: UNKNOWN - bitte upstream package.json prüfen
-- responselike@2.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- restore-cursor@3.1.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- retry@0.12.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- reusify@1.1.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- rimraf@1.0.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- rimraf@1.1.14
-  License: UNKNOWN - bitte upstream package.json prüfen
-- rimraf@3.0.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- rimraf@3.1.5
-  License: UNKNOWN - bitte upstream package.json prüfen
-- rimraf@7.2.3
-  License: UNKNOWN - bitte upstream package.json prüfen
-- roarr@2.15.4
-  License: UNKNOWN - bitte upstream package.json prüfen
-- rollup@4.60.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- run-parallel@1.2.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- rxjs@7.8.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- safe-buffer@5.2.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- safer-buffer@2.1.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- sanitize-filename@1.6.4
-  License: UNKNOWN - bitte upstream package.json prüfen
-- sax@1.6.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- scheduler@0.27.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- semver-compare@1.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- semver@7.7.4
-  License: UNKNOWN - bitte upstream package.json prüfen
-- serialize-error@7.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- set-blocking@2.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- setimmediate@1.0.5
-  License: UNKNOWN - bitte upstream package.json prüfen
-- shebang-command@2.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- shebang-regex@3.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- shell-quote@1.8.3
-  License: UNKNOWN - bitte upstream package.json prüfen
-- siginfo@2.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- signal-exit@3.0.7
-  License: UNKNOWN - bitte upstream package.json prüfen
-- simple-concat@1.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- simple-get@4.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- simple-update-notifier@2.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- slice-ansi@3.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- smart-buffer@4.2.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- socks-proxy-agent@6.0.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- socks-proxy-agent@7.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- socks@2.8.8
-  License: UNKNOWN - bitte upstream package.json prüfen
-- source-map-js@1.2.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- source-map-support@0.5.21
-  License: UNKNOWN - bitte upstream package.json prüfen
-- source-map@0.6.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- sprintf-js@1.1.3
-  License: UNKNOWN - bitte upstream package.json prüfen
-- ssri@9.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- stackback@0.0.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- stat-mode@1.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- std-env@3.10.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- string_decoder@1.3.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- string-width@4.2.3
-  License: UNKNOWN - bitte upstream package.json prüfen
-- strip-ansi@6.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- strip-json-comments@3.1.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- sucrase@3.35.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- sucrase@4.1.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- sumchecker@3.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- supports-color@7.2.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- supports-preserve-symlinks-flag@1.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- tailwindcss@3.4.19
-  License: UNKNOWN - bitte upstream package.json prüfen
-- tar-fs@1.1.4
-  License: UNKNOWN - bitte upstream package.json prüfen
-- tar-fs@2.1.4
-  License: UNKNOWN - bitte upstream package.json prüfen
-- tar-stream@2.2.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- tar@4.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- tar@5.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- tar@6.2.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- temp-file@3.4.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- test-exclude@1.0.2
-  License: MIT
-- test-exclude@10.5.0
-  License: ISC
-- test-exclude@2.1.0
-  License: MIT
-- test-exclude@7.0.2
-  License: ISC
-- test-exclude@7.1.3
   License: BlueOak-1.0.0
-- test-exclude@9.0.9
+- minimist@1.2.8
+  License: MIT
+- minipass@7.1.3
+  License: BlueOak-1.0.0
+- minizlib@3.1.0
+  License: MIT
+- mkdirp-classic@0.5.3
+  License: MIT
+- ms@2.1.3
+  License: MIT
+- nanoid@5.1.11
+  License: MIT
+- napi-build-utils@2.0.0
+  License: MIT
+- natural-compare@1.4.0
+  License: MIT
+- node-abi@3.90.0
+  License: MIT
+- node-addon-api@1.7.2
+  License: MIT
+- node-api-version@0.2.1
+  License: MIT
+- node-releases@2.0.38
+  License: MIT
+- normalize-url@6.1.0
+  License: MIT
+- object-keys@1.1.1
+  License: MIT
+- obug@2.1.1
+  License: MIT
+- once@1.4.0
   License: ISC
-- thenify-all@1.6.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- thenify@3.3.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+- optionator@0.9.4
+  License: MIT
+- p-cancelable@2.1.1
+  License: MIT
+- p-limit@3.1.0
+  License: MIT
+- p-locate@5.0.0
+  License: MIT
+- pako@1.0.11
+  License: (MIT AND Zlib)
+- path-exists@4.0.0
+  License: MIT
+- path-is-absolute@1.0.1
+  License: MIT
+- path-key@3.1.1
+  License: MIT
+- pathe@2.0.3
+  License: MIT
+- pe-library@0.4.1
+  License: MIT
+- pend@1.2.0
+  License: MIT
+- picocolors@1.1.1
+  License: ISC
+- picomatch@4.0.4
+  License: MIT
+- plist@3.1.0
+  License: MIT
+- postcss-value-parser@4.2.0
+  License: MIT
+- postcss@3.3.12
+  License: MIT
+- postcss@8.5.15
+  License: MIT
+- postject@1.0.0-alpha.6
+  License: MIT
+- postject@9.5.0
+  License: MIT
+- prebuild-install@7.1.3
+  License: MIT
+- prelude-ls@1.2.1
+  License: MIT
+- proc-log@6.1.0
+  License: ISC
+- process-nextick-args@2.0.1
+  License: MIT
+- progress@2.0.3
+  License: MIT
+- promise-retry@2.0.1
+  License: MIT
+- proper-lockfile@4.1.2
+  License: MIT
+- proxy-from-env@2.1.0
+  License: MIT
+- pump@3.0.4
+  License: MIT
+- punycode@2.3.1
+  License: MIT
+- quick-lru@5.1.1
+  License: MIT
+- rc@1.2.8
+  License: (BSD-2-Clause OR MIT OR Apache-2.0)
+- rc@2.0.1
+  License: MIT
+- react-dom@19.2.6
+  License: MIT
+- react@19.2.6
+  License: MIT
+- read-binary-file-arch@1.0.6
+  License: MIT
+- readable-stream@3.6.2
+  License: MIT
+- require-directory@2.1.1
+  License: MIT
+- resedit@1.7.2
+  License: MIT
+- resolve-alpn@1.2.1
+  License: MIT
+- responselike@2.0.1
+  License: MIT
+- retry@0.12.0
+  License: MIT
+- rimraf@2.6.3
+  License: ISC
+- roarr@2.15.4
+  License: BSD-3-Clause
+- rolldown@1.0.2
+  License: MIT
+- rxjs@7.8.2
+  License: Apache-2.0
+- safe-buffer@5.2.1
+  License: MIT
+- safer-buffer@2.1.2
+  License: MIT
+- sanitize-filename@1.6.4
+  License: WTFPL OR ISC
+- sax@1.6.0
+  License: BlueOak-1.0.0
+- scheduler@0.27.0
+  License: MIT
+- semver-compare@1.0.0
+  License: MIT
+- semver@7.7.4
+  License: ISC
+- serialize-error@7.0.1
+  License: MIT
+- setimmediate@1.0.5
+  License: MIT
+- shebang-command@2.0.0
+  License: MIT
+- shebang-regex@3.0.0
+  License: MIT
+- shell-quote@1.8.3
+  License: MIT
+- siginfo@2.0.0
+  License: ISC
+- signal-exit@3.0.7
+  License: ISC
+- simple-concat@1.0.1
+  License: MIT
+- simple-get@4.0.1
+  License: MIT
+- simple-update-notifier@2.0.0
+  License: MIT
+- slice-ansi@3.0.0
+  License: MIT
+- smart-buffer@4.2.0
+  License: MIT
+- source-map-js@1.2.1
+  License: BSD-3-Clause
+- source-map-support@0.5.21
+  License: MIT
+- source-map@0.6.1
+  License: BSD-3-Clause
+- sprintf-js@1.1.3
+  License: BSD-3-Clause
+- stackback@0.0.2
+  License: MIT
+- stat-mode@1.0.0
+  License: MIT
+- std-env@4.1.0
+  License: MIT
+- string_decoder@1.3.0
+  License: MIT
+- string-width@4.2.3
+  License: MIT
+- strip-ansi@6.0.1
+  License: MIT
+- sumchecker@3.0.1
+  License: Apache-2.0
+- supports-color@7.2.0
+  License: MIT
+- tailwindcss@4.3.0
+  License: MIT
+- tapable@2.3.3
+  License: MIT
+- tar-fs@1.1.4
+  License: ISC
+- tar-fs@2.1.4
+  License: MIT
+- tar-stream@2.2.0
+  License: MIT
+- tar@5.0.0
+  License: BlueOak-1.0.0
+- tar@7.5.15
+  License: BlueOak-1.0.0
+- temp-file@3.4.0
+  License: MIT
+- temp@0.5.6
+  License: MIT
+- temp@0.9.4
+  License: MIT
+- tiny-async-pool@1.3.0
+  License: MIT
+- tiny-async-pool@5.7.2
+  License: ISC
 - tinybench@2.9.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- tinyexec@0.3.2
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
+- tinyexec@1.2.2
+  License: MIT
 - tinyglobby@0.2.16
-  License: UNKNOWN - bitte upstream package.json prüfen
-- tinyglobby@4.0.4
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - tinyglobby@6.5.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- tinypool@1.1.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- tinyrainbow@1.2.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- tinyspy@3.0.2
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
+- tinyrainbow@3.1.0
+  License: MIT
 - tmp-promise@3.0.3
-  License: UNKNOWN - bitte upstream package.json prüfen
-- tmp@0.2.5
-  License: UNKNOWN - bitte upstream package.json prüfen
-- to-regex-range@5.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
+- tmp@0.2.7
+  License: MIT
 - tree-kill@1.2.2
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - truncate-utf8-bytes@1.0.2
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: WTFPL
 - ts-api-utils@2.5.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- ts-interface-checker@0.1.13
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - tslib@2.8.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- tsx@4.21.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: 0BSD
+- tsx@4.22.3
+  License: MIT
 - tunnel-agent@0.6.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: Apache-2.0
 - type-check@0.4.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - type-fest@0.13.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- typescript@5.9.3
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: (MIT OR CC0-1.0)
+- typescript@6.0.3
+  License: Apache-2.0
 - undici-types@6.21.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- unique-filename@2.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- unique-slug@3.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
+- undici@6.26.0
+  License: MIT
 - universalify@2.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - update-browserslist-db@1.2.3
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - uri-js@4.4.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: BSD-2-Clause
 - utf8-byte-length@1.0.5
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: (WTFPL OR MIT)
 - util-deprecate@1.0.2
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - verror@1.10.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- vite-node@0.21.5
-  License: UNKNOWN - bitte upstream package.json prüfen
-- vite-node@2.1.9
-  License: UNKNOWN - bitte upstream package.json prüfen
-- vite-node@5.4.21
-  License: UNKNOWN - bitte upstream package.json prüfen
-- vite@0.25.12
-  License: UNKNOWN - bitte upstream package.json prüfen
-- vite@4.0.4
-  License: UNKNOWN - bitte upstream package.json prüfen
-- vite@6.4.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- vite@6.5.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- vitest@0.21.5
-  License: UNKNOWN - bitte upstream package.json prüfen
-- vitest@2.1.9
-  License: UNKNOWN - bitte upstream package.json prüfen
-- vitest@5.4.21
-  License: UNKNOWN - bitte upstream package.json prüfen
-- wait-on@8.0.5
-  License: UNKNOWN - bitte upstream package.json prüfen
-- wcwidth@1.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
+- vite@8.0.14
+  License: MIT
+- vitest@4.1.7
+  License: MIT
+- wait-on@9.0.10
+  License: MIT
 - which@2.0.2
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: ISC
 - why-is-node-running@2.3.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- wide-align@1.1.5
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - word-wrap@1.2.5
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - wrap-ansi@7.0.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - wrappy@1.0.2
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: ISC
 - xml-js@1.6.11
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - xml@1.0.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - xmlbuilder@15.1.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
 - y18n@5.0.8
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: ISC
 - yallist@3.1.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: ISC
 - yargs-parser@21.1.1
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: ISC
 - yargs@17.7.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- yauzl@3.3.0
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
+- yauzl@3.3.1
+  License: MIT
 - yocto-queue@0.1.0
-  License: UNKNOWN - bitte upstream package.json prüfen
-- zip-stream@1.0.2
-  License: UNKNOWN - bitte upstream package.json prüfen
-- zip-stream@1.1.14
-  License: UNKNOWN - bitte upstream package.json prüfen
-- zip-stream@3.0.4
-  License: UNKNOWN - bitte upstream package.json prüfen
-- zip-stream@3.1.5
-  License: UNKNOWN - bitte upstream package.json prüfen
-- zip-stream@4.1.1
-  License: UNKNOWN - bitte upstream package.json prüfen
-- zip-stream@7.2.3
-  License: UNKNOWN - bitte upstream package.json prüfen
-- zod@3.25.76
-  License: UNKNOWN - bitte upstream package.json prüfen
+  License: MIT
+- zod-validation-error@4.0.2
+  License: MIT
+- zod@4.4.3
+  License: MIT
 

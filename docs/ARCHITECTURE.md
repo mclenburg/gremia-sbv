@@ -48,6 +48,8 @@ Die Importentscheidung bleibt fachlich bei der nutzenden Person. Mögliche Gegen
 
 Die Gremia.BR-Anbindung ist optional, standardmäßig deaktiviert und read-only. Sie nutzt eine harte Endpunkt-Whitelist, speichert Zugangsdaten im Vault und führt Netzwerkzugriffe nur auf explizite Nutzeraktion aus.
 
+Die freigegebenen Gremia.BR-Endpunkte werden zentral in `services/gremiaBr/gremiaBrApiCatalog.ts` gepflegt. Policy, HTTP-Client, Audit-Label und ReadAdapter dürfen keine eigenen Nebenlisten aufbauen. Neue Lesemöglichkeiten aus der OpenAPI werden erst dort begründet aufgenommen, bevor ein Adapter sie nutzt. Schreib-, Verwaltungs-, DSGVO-, Mitglieder-, Abwesenheits-, Datei- und Upload-Pfade bleiben für Gremia.SBV gesperrt.
+
 
 ## UI-Zentralisierung und Architektur-Gates
 

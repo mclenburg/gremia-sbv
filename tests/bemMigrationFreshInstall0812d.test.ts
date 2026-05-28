@@ -17,8 +17,9 @@ describe("BEM migration fresh-install guard", () => {
     expect(realTable).toBeGreaterThan(rename);
   });
 
-  it("does not relax the native dependency postinstall contract", () => {
+  it("keeps the native dependency postinstall contract workspace-safe", () => {
     const pkg = JSON.parse(readFileSync("package.json", "utf8"));
-    expect(pkg.scripts.postinstall).toBe("electron-builder install-app-deps");
+    expect(pkg.scripts.postinstall).toBe("node scripts/install-electron-app-deps.cjs");
+    expect(pkg.scripts.postinstall).not.toContain("npx");
   });
 });

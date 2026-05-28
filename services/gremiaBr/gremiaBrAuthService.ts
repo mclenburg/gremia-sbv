@@ -16,16 +16,41 @@ function extractToken(payload: unknown): string {
   return '';
 }
 
+function textValue(...values: unknown[]): string | undefined {
+  return values.find((value): value is string => typeof value === 'string' && value.trim().length > 0)?.trim();
+}
+
+function nestedRecord(value: unknown): Record<string, unknown> | undefined {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : undefined;
+}
+
+function profileRecordFromPayload(payload: unknown): Record<string, unknown> | undefined {
+  const record = nestedRecord(payload);
+  if (!record) return undefined;
+  return nestedRecord(record.profile) ?? nestedRecord(record.user) ?? nestedRecord(record.data) ?? record;
+}
+
 function profileFromPayload(payload: unknown, fallbackEmail: string): GremiaBrProfileSnapshot {
-  if (!payload || typeof payload !== 'object') return { email: fallbackEmail };
-  const record = payload as Record<string, unknown>;
-  const displayName = [record.name, record.displayName, record.vorname && record.nachname ? `${record.vorname} ${record.nachname}` : undefined]
-    .find((value): value is string => typeof value === 'string' && value.trim().length > 0);
-  const role = [record.role, record.rolle]
-    .find((value): value is string => typeof value === 'string' && value.trim().length > 0);
-  const email = [record.email, record.username]
-    .find((value): value is string => typeof value === 'string' && value.trim().length > 0) ?? fallbackEmail;
+  const record = profileRecordFromPayload(payload);
+  if (!record) return { email: fallbackEmail };
+  const displayName = textValue(
+    record.displayName,
+    record.name,
+    record.fullName,
+    record.vollName,
+    record.vorname && record.nachname ? `${record.vorname} ${record.nachname}` : undefined,
+  );
+  const role = textValue(record.role, record.rolle);
+  const email = textValue(record.email, record.username, record.userName, record.login) ?? fallbackEmail;
   return { displayName, role, email };
+}
+
+function mergeProfileSnapshots(primary: GremiaBrProfileSnapshot, fallback: GremiaBrProfileSnapshot): GremiaBrProfileSnapshot {
+  return {
+    displayName: primary.displayName ?? fallback.displayName,
+    role: primary.role ?? fallback.role,
+    email: primary.email ?? fallback.email,
+  };
 }
 
 export class GremiaBrAuthService {
@@ -88,8 +113,13 @@ export class GremiaBrAuthService {
   private async loginAndFetchProfile(): Promise<GremiaBrProfileSnapshot> {
     await this.login();
     const settings = this.settingsStore.getServiceSettings();
-    const profilePayload = await this.client().request<unknown>('GET', '/auth/profile', this.token);
-    return profileFromPayload(profilePayload, settings.username);
+    const client = this.client();
+    const sessionPayload = await client.request<unknown>('GET', '/auth/me', this.token);
+    const profilePayload = await client.request<unknown>('GET', '/auth/profile', this.token);
+    return mergeProfileSnapshots(
+      profileFromPayload(profilePayload, settings.username),
+      profileFromPayload(sessionPayload, settings.username),
+    );
   }
 
   private async ensureToken(): Promise<string> {
