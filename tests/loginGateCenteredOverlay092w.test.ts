@@ -71,19 +71,6 @@ function firstDescendant(root: HtmlNode, predicate: (node: HtmlNode) => boolean)
   return node!;
 }
 
-function inlineStyle(node: HtmlNode): Record<string, string> {
-  return Object.fromEntries(
-    (node.attrs.style ?? '')
-      .split(';')
-      .map((entry) => entry.trim())
-      .filter(Boolean)
-      .map((entry) => {
-        const separator = entry.indexOf(':');
-        return [entry.slice(0, separator).trim(), entry.slice(separator + 1).trim()];
-      })
-  );
-}
-
 function renderLoginTree(mode: AuthMode): HtmlNode {
   return parseRenderedMarkup(
     renderToStaticMarkup(
@@ -97,89 +84,69 @@ function renderLoginTree(mode: AuthMode): HtmlNode {
 }
 
 function loginShell(root: HtmlNode): HtmlNode {
-  return firstDescendant(root, (node) => node.tag === 'main' && hasClasses(node, ['industrial-shell', 'login-shell']));
+  return firstDescendant(root, (node) => node.tag === 'main' && hasClasses(node, ['industrial-shell']));
 }
 
 function loginPanel(root: HtmlNode): HtmlNode {
   return firstDescendant(root, (node) => node.tag === 'section' && hasClasses(node, ['login-panel']));
 }
 
-function formInside(panel: HtmlNode): HtmlNode {
-  return firstDescendant(panel, (node) => node.tag === 'form' && hasClasses(node, ['auth-form']));
-}
-
 function renderedControlsInside(panel: HtmlNode) {
   const nodes = descendants(panel);
   return {
-    labels: nodes.filter((node) => node.tag === 'label'),
     inputs: nodes.filter((node) => node.tag === 'input'),
     buttons: nodes.filter((node) => node.tag === 'button'),
   };
 }
 
-describe('LoginGate zentriertes Overlay 0.9.2w', () => {
-  it('rendert den Entsperrbildschirm als ausreichend großes, zentriertes Auth-Panel', () => {
+describe('LoginGate Overlay-Layout wie 0.9.1', () => {
+  it('rendert den Entsperrbildschirm als zentriertes kompaktes 0.9.1-Panel', () => {
     const tree = renderLoginTree('login');
     const shell = loginShell(tree);
     const panel = loginPanel(tree);
-    const form = formInside(panel);
     const controls = renderedControlsInside(panel);
-    const panelStyle = inlineStyle(panel);
 
     expect(panel.parent).toBe(shell);
-    expect(classList(shell)).toEqual(expect.arrayContaining(['flex', 'items-center', 'justify-center', 'min-h-screen']));
-    expect(classList(panel)).toEqual(expect.arrayContaining(['login-panel-compact', 'w-full']));
-    expect(panelStyle['--auth-panel-max-width']).toBe('32rem');
-    expect(panelStyle['--auth-panel-min-height']).toBe('18rem');
+    expect(classList(shell)).toEqual(expect.arrayContaining(['industrial-shell', 'flex', 'min-h-screen', 'items-center', 'justify-center', 'px-6', 'py-8', 'text-zinc-100']));
+    expect(classList(panel)).toEqual(expect.arrayContaining(['login-panel', 'relative', 'w-full', 'max-w-md', 'overflow-hidden', 'rounded-none', 'border', 'border-zinc-700', 'bg-zinc-950/95', 'p-7', 'shadow-2xl']));
+    expect(classList(panel)).not.toEqual(expect.arrayContaining(['max-w-none', 'login-panel-compact']));
     expect(controls.inputs).toHaveLength(1);
     expect(controls.buttons).toHaveLength(1);
-    expect(controls.labels.every((label) => label.parent === form)).toBe(true);
-    expect(controls.inputs.every((input) => descendants(form).includes(input))).toBe(true);
-    expect(controls.buttons.every((button) => descendants(form).includes(button))).toBe(true);
+    expect(controls.inputs.every((input) => descendants(panel).includes(input))).toBe(true);
+    expect(controls.buttons.every((button) => descendants(panel).includes(button))).toBe(true);
   });
 
-  it('hält die Ersteinrichtung im selben großzügigen Auth-Panel', () => {
-    const panel = loginPanel(renderLoginTree('setup'));
-    const form = formInside(panel);
-    const controls = renderedControlsInside(panel);
-    const panelStyle = inlineStyle(panel);
-
-    expect(classList(panel)).toEqual(expect.arrayContaining(['login-panel-compact']));
-    expect(panelStyle['--auth-panel-max-width']).toBe('32rem');
-    expect(panelStyle['--auth-panel-min-height']).toBe('18rem');
-    expect(controls.inputs).toHaveLength(2);
-    expect(controls.buttons).toHaveLength(1);
-    expect(controls.labels.every((label) => label.parent === form)).toBe(true);
-  });
-
-  it('rendert Ladezustand und Sicherheitsfehler ohne App-Shell und ohne Fullwidth-Panel', () => {
-    for (const mode of ['loading', 'unavailable'] satisfies AuthMode[]) {
+  it('hält Ersteinrichtung und Ladezustand im kompakten 0.9.1-Panel', () => {
+    for (const mode of ['setup', 'loading'] satisfies AuthMode[]) {
       const tree = renderLoginTree(mode);
       const shell = loginShell(tree);
       const panel = loginPanel(tree);
-      const panelStyle = inlineStyle(panel);
 
       expect(panel.parent).toBe(shell);
-      expect(classList(panel)).toEqual(expect.arrayContaining(['login-panel-compact']));
-      expect(panelStyle['--auth-panel-max-width']).toBe('32rem');
+      expect(classList(panel)).toEqual(expect.arrayContaining(['w-full', 'max-w-md', 'p-7']));
+      expect(classList(panel)).not.toEqual(expect.arrayContaining(['max-w-none', 'login-panel-compact']));
       expect(descendants(shell).some((node) => hasClasses(node, ['industrial-sidebar']))).toBe(false);
-      expect(classList(panel)).not.toEqual(expect.arrayContaining(['max-w-none']));
     }
   });
 
-  it('gibt Recovery bewusst mehr Raum, ohne das entsperrte App-Layout zu verwenden', () => {
-    const tree = renderLoginTree('recovery');
-    const shell = loginShell(tree);
-    const panel = loginPanel(tree);
-    const controls = renderedControlsInside(panel);
-    const panelStyle = inlineStyle(panel);
+  it('rendert Sicherheitsfehler kompakt und Recovery bewusst breit wie 0.9.1', () => {
+    const unavailablePanel = loginPanel(renderLoginTree('unavailable'));
+    const recoveryPanel = loginPanel(renderLoginTree('recovery'));
 
-    expect(panel.parent).toBe(shell);
-    expect(classList(panel)).toEqual(expect.arrayContaining(['login-panel-wide']));
-    expect(panelStyle['--auth-panel-max-width']).toBe('48rem');
-    expect(panelStyle['--auth-panel-min-height']).toBe('24rem');
-    expect(controls.inputs).toHaveLength(4);
-    expect(controls.buttons).toHaveLength(2);
-    expect(descendants(shell).some((node) => hasClasses(node, ['industrial-sidebar']))).toBe(false);
+    expect(classList(unavailablePanel)).toEqual(expect.arrayContaining(['max-w-md', 'border-yellow-500/40', 'p-7']));
+    expect(classList(recoveryPanel)).toEqual(expect.arrayContaining(['max-w-3xl', 'border-yellow-500/40', 'p-7']));
+    expect(classList(unavailablePanel)).not.toEqual(expect.arrayContaining(['login-panel-compact']));
+    expect(classList(recoveryPanel)).not.toEqual(expect.arrayContaining(['max-w-none']));
+  });
+
+  it('verwendet keine entsperrte App-Shell-Struktur im Auth-Screen', () => {
+    for (const mode of ['login', 'setup', 'loading', 'unavailable', 'recovery'] satisfies AuthMode[]) {
+      const shell = loginShell(renderLoginTree(mode));
+      const shellChildren = descendants(shell);
+
+      expect(shellChildren.some((node) => hasClasses(node, ['industrial-sidebar']))).toBe(false);
+      expect(shellChildren.some((node) => hasClasses(node, ['industrial-content']))).toBe(false);
+      expect(shellChildren.some((node) => hasClasses(node, ['industrial-topbar']))).toBe(false);
+    }
   });
 });
