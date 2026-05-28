@@ -27,6 +27,10 @@ function deadlineRuns(db: CapturingDemoDb): CapturedRun[] {
   return db.runs.filter((run) => run.sql.includes('INSERT INTO deadlines'));
 }
 
+function caseMeasureNoteRuns(db: CapturingDemoDb): CapturedRun[] {
+  return db.runs.filter((run) => run.sql.includes('INSERT INTO case_measure_notes'));
+}
+
 describe('DemoSeed relative Datumswerte', () => {
   beforeEach(() => {
     vi.useFakeTimers();
@@ -66,4 +70,27 @@ describe('DemoSeed relative Datumswerte', () => {
     expect(overdueRows.length).toBeGreaterThan(0);
     expect(overdueRows.every((row) => row.status === 'completed')).toBe(true);
   });
+
+  it('verwendet für Maßnahmennotizen nur die vom Schema erlaubten Maßnahmentypen', () => {
+    const db = new CapturingDemoDb();
+    seedDemoDatabase(db);
+
+    const allowedMeasureTypes = new Set([
+      'prevention',
+      'bem',
+      'termination_hearing',
+      'equalization',
+      'participation',
+      'workplace_accommodation',
+    ]);
+    const noteMeasureTypes = caseMeasureNoteRuns(db).map((run) => String(run.params[2]));
+
+    expect(noteMeasureTypes.length).toBeGreaterThan(10);
+    expect(noteMeasureTypes).toContain('equalization');
+    expect(noteMeasureTypes).toContain('participation');
+    expect(noteMeasureTypes).not.toContain('equalization_gdb');
+    expect(noteMeasureTypes).not.toContain('sbv_participation');
+    expect(noteMeasureTypes.every((type) => allowedMeasureTypes.has(type))).toBe(true);
+  });
+
 });

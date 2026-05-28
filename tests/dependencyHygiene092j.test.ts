@@ -16,8 +16,9 @@ function versionStartsWith(value: string | undefined, prefix: string): boolean {
 describe('Dependency-Hygiene nach Dependabot-Updates', () => {
   it('zieht @electron/rebuild nicht mehr direkt und vermeidet damit die alte electron/node-gyp-Git-Abhängigkeit', () => {
     expect(packageJson.devDependencies?.['@electron/rebuild']).toBeUndefined();
-    expect(packageJson.scripts.postinstall).toBe('node scripts/install-electron-app-deps.cjs');
+    expect(packageJson.scripts.postinstall).toBeUndefined();
     expect(packageJson.scripts['native:rebuild:electron']).toBe('node scripts/install-electron-app-deps.cjs');
+    expect(packageJson.scripts['native:install-app-deps']).toBe('node scripts/install-electron-app-deps.cjs');
 
     const resolvedValues = Object.values(packageLock.packages).map((entry) => entry.resolved ?? '');
     expect(resolvedValues.some((resolved) => resolved.includes('github.com/electron/node-gyp'))).toBe(false);

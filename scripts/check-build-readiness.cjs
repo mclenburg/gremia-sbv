@@ -48,15 +48,19 @@ function highestMigrationVersion() {
   return versions.at(-1) ?? null;
 }
 
-function validatePostinstall(pkg) {
+function validateNativeDependencyBootstrap(pkg) {
   expect(pkg.scripts, 'package.json enthält keine scripts.');
   expect(
-    pkg.scripts.postinstall === 'node scripts/install-electron-app-deps.cjs',
-    'package.json muss postinstall über scripts/install-electron-app-deps.cjs ausführen, damit npm-Workspace-Flags vor electron-builder bereinigt werden.'
+    pkg.scripts.postinstall === undefined,
+    'package.json darf keinen postinstall-Rebuild ausführen; npm install muss ohne native Electron-Bootstrap-Seiteneffekte laufen.'
   );
   expect(
     pkg.scripts['native:install-app-deps'] === 'node scripts/install-electron-app-deps.cjs',
     'package.json muss native:install-app-deps als expliziten wiederverwendbaren Alias auf scripts/install-electron-app-deps.cjs enthalten.'
+  );
+  expect(
+    pkg.scripts['native:rebuild:electron'] === 'node scripts/install-electron-app-deps.cjs',
+    'package.json muss native:rebuild:electron kontrolliert über scripts/install-electron-app-deps.cjs ausführen.'
   );
 }
 
@@ -185,7 +189,7 @@ function validateStrictBuildArtifacts() {
 
 function main() {
   const pkg = readJson('package.json');
-  validatePostinstall(pkg);
+  validateNativeDependencyBootstrap(pkg);
   validateElectronSqlcipherCompatibility(pkg);
   validateInstalledBuildDependencies(pkg);
   validateElectronBuilderConfiguration(pkg);

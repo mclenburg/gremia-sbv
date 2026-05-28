@@ -13,11 +13,10 @@ export function getDashboardState(deadline: DeadlineRecord, referenceDate = new 
   if (hoursRemaining < 0 || deadline.status === 'overdue') return 'overdue';
   if (hoursRemaining <= deadline.criticalThresholdHours) return 'critical';
 
-  // Harte Produktregel: Ab 48h vor Ablaufdatum muss die Frist auf dem Dashboard auftauchen.
+  // Harte Produktregel: Das Dashboard zeigt nur Fristen, die überschritten sind
+  // oder innerhalb der nächsten 48 Stunden fällig werden. Frühere Wiedervorlagen
+  // bleiben in der Fristenliste, aber nicht auf der Arbeitsübersicht.
   if (hoursRemaining <= DASHBOARD_HOURS_BEFORE_DUE) return 'due_soon';
-
-  const dashboardFrom = deadline.dashboardFromAt ? new Date(deadline.dashboardFromAt) : undefined;
-  if (dashboardFrom && referenceDate >= dashboardFrom) return 'upcoming';
 
   return 'hidden';
 }

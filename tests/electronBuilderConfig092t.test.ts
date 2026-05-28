@@ -11,7 +11,10 @@ function readJson<T>(relativePath: string): T {
 describe('electron-builder 26 configuration contract', () => {
   it('keeps Windows packaging configuration schema-compatible', () => {
     const pkg = readJson<{
+      author?: string;
       build?: {
+        npmRebuild?: boolean;
+        nodeGypRebuild?: boolean;
         win?: Record<string, unknown>;
       };
     }>('package.json');
@@ -21,6 +24,9 @@ describe('electron-builder 26 configuration contract', () => {
 
     expect(hasUnsupportedPublisherName).toBe(false);
     expect(windowsConfig.signAndEditExecutable).toBe(false);
+    expect(pkg.author).toBe('Gremia.SBV Contributors');
+    expect(pkg.build?.npmRebuild).toBe(false);
+    expect(pkg.build?.nodeGypRebuild).toBe(false);
   });
 
   it('checks the unsupported option before electron-builder starts packaging', () => {

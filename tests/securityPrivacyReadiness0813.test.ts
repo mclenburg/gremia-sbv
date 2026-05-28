@@ -9,7 +9,8 @@ const runE2e = readFileSync('scripts/run-e2e.cjs', 'utf8');
 
 describe('RC security and privacy readiness', () => {
   it('keeps native dependency and unlock-delay security contracts in place', () => {
-    expect(packageJson.scripts.postinstall).toBe('node scripts/install-electron-app-deps.cjs');
+    expect(packageJson.scripts.postinstall).toBeUndefined();
+    expect(packageJson.scripts['native:rebuild:electron']).toBe('node scripts/install-electron-app-deps.cjs');
     expect(securityService).toContain('MAX_UNLOCK_DELAY_MS');
     expect(securityService).toContain('failedUnlockAttempts');
     expect(securityService).not.toContain('localStorage');

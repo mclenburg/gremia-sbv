@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
@@ -99,6 +101,10 @@ function renderedControlsInside(panel: HtmlNode) {
   };
 }
 
+function responsiveDesignCss(): string {
+  return readFileSync(join(process.cwd(), 'src/app/ui/responsiveDesign.css'), 'utf8').replace(/\s+/g, ' ');
+}
+
 describe('LoginGate Overlay-Layout', () => {
   it('rendert den Entsperrbildschirm als zentriertes kompaktes Auth-Overlay', () => {
     const tree = renderLoginTree('login');
@@ -114,6 +120,13 @@ describe('LoginGate Overlay-Layout', () => {
     expect(controls.buttons).toHaveLength(1);
     expect(fadedIcon.attrs['aria-hidden']).toBe('true');
     expect(fadedIcon.attrs.alt).toBe('');
+  });
+
+  it('begrenzt das kompakte Login-Panel über die Auth-Shell auf rund 70 Prozent der Arbeitsfläche', () => {
+    const css = responsiveDesignCss();
+
+    expect(css).toContain('.login-shell .login-panel-compact { --auth-panel-max-width: min(70vw, 54rem); --auth-panel-min-height: auto; }');
+    expect(css).toContain('.login-shell .login-panel-compact, .login-shell .login-panel-medium, .login-shell .login-panel-wide { width: min(100%, var(--auth-panel-max-width)); max-width: var(--auth-panel-max-width); min-height: var(--auth-panel-min-height); }');
   });
 
   it('hält Ersteinrichtung und Ladezustand im kompakten Panel', () => {

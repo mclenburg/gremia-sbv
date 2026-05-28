@@ -100,10 +100,9 @@ button:disabled,
 
 /* Auth surfaces must remain centered overlays.
    .industrial-shell is a grid layout for the unlocked application shell;
-   LoginGate adds .login-shell and inline geometry to opt out of that grid.
-   These rules are the CSS fallback and design baseline for the auth surface. */
-.industrial-shell.login-shell,
-.auth-screen {
+   LoginGate adds .login-shell to opt out of that grid without depending on
+   Tailwind utility generation or cascade order. */
+.industrial-shell.login-shell {
   display: flex;
   grid-template-columns: none;
   align-items: center;
@@ -111,29 +110,34 @@ button:disabled,
   min-height: 100vh;
   width: 100%;
   padding: 2rem 1.5rem;
-  box-sizing: border-box;
 }
 
-.login-shell .login-panel,
-.auth-panel {
+.login-shell .login-panel {
   flex: 0 1 auto;
-  box-sizing: border-box;
-  padding: 1.75rem;
+  padding: clamp(1.75rem, 2.4vw, 2.25rem);
 }
 
-.login-shell .auth-panel-compact {
-  width: min(100%, 28rem);
-  max-width: 28rem;
+.login-shell .login-panel-compact {
+  --auth-panel-max-width: min(70vw, 54rem);
+  --auth-panel-min-height: auto;
 }
 
-.login-shell .auth-panel-medium {
-  width: min(100%, 42rem);
-  max-width: 42rem;
+.login-shell .login-panel-medium {
+  --auth-panel-max-width: min(78vw, 64rem);
+  --auth-panel-min-height: auto;
 }
 
-.login-shell .auth-panel-wide {
-  width: min(100%, 52rem);
-  max-width: 52rem;
+.login-shell .login-panel-wide {
+  --auth-panel-max-width: min(86vw, 72rem);
+  --auth-panel-min-height: auto;
+}
+
+.login-shell .login-panel-compact,
+.login-shell .login-panel-medium,
+.login-shell .login-panel-wide {
+  width: min(100%, var(--auth-panel-max-width));
+  max-width: var(--auth-panel-max-width);
+  min-height: var(--auth-panel-min-height);
 }
 
 .login-shell .auth-form {

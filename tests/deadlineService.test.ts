@@ -33,7 +33,7 @@ describe('Deadline dashboard logic', () => {
     expect(getDashboardState(deadline(47.5), reference)).toBe('due_soon');
   });
 
-  it('keeps deadlines outside the 48 hour window hidden unless dashboardFromAt is reached', () => {
+  it('keeps deadlines outside the 48 hour window hidden', () => {
     expect(getDashboardState(deadline(49), reference)).toBe('hidden');
   });
 

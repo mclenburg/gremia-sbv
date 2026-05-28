@@ -17,9 +17,10 @@ describe("BEM migration fresh-install guard", () => {
     expect(realTable).toBeGreaterThan(rename);
   });
 
-  it("keeps the native dependency postinstall contract workspace-safe", () => {
+  it("keeps native dependency rebuild explicit and outside npm install", () => {
     const pkg = JSON.parse(readFileSync("package.json", "utf8"));
-    expect(pkg.scripts.postinstall).toBe("node scripts/install-electron-app-deps.cjs");
-    expect(pkg.scripts.postinstall).not.toContain("npx");
+    expect(pkg.scripts.postinstall).toBeUndefined();
+    expect(pkg.scripts["native:install-app-deps"]).toBe("node scripts/install-electron-app-deps.cjs");
+    expect(pkg.scripts["native:rebuild:electron"]).toBe("node scripts/install-electron-app-deps.cjs");
   });
 });

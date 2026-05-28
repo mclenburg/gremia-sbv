@@ -51,7 +51,6 @@
     "test:case-modals": "vitest run tests/caseModalWorkflowPolicy.test.ts",
     "test:export-guard": "vitest run tests/exportGuardPolicy.test.ts",
     "test:case-workbench": "vitest run tests/caseWorkbenchWorkflowPolicy.test.ts",
-    "postinstall": "node scripts/install-electron-app-deps.cjs",
     "test:template-management": "vitest run tests/templateManagementEditDelete.test.ts",
     "test:inline-command-behavior": "vitest run tests/inlineCommandBehavior0456.test.ts",
     "test:templates-behavior": "vitest run tests/templatesBehavior0457.test.ts",
@@ -205,11 +204,14 @@
         "from": "database",
         "to": "database"
       }
-    ]
+    ],
+    "npmRebuild": false,
+    "nodeGypRebuild": false
   },
   "license": "AGPL-3.0-or-later",
   "engines": {
     "node": ">=20.19.0 <25",
     "npm": ">=10"
-  }
+  },
+  "author": "Gremia.SBV Contributors"
 }

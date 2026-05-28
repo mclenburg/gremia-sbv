@@ -126,6 +126,15 @@ const CASE_MEASURE_TYPES = [
   "workplace_accommodation",
 ];
 
+const CASE_MEASURE_NOTE_TYPES: Record<string, string> = {
+  equalization_gdb: "equalization",
+  sbv_participation: "participation",
+};
+
+function noteMeasureTypeFor(type: string): string {
+  return CASE_MEASURE_NOTE_TYPES[type] ?? type;
+}
+
 function seedProtectedPersons(db: DatabaseAdapter, timestamp: string): void {
   const protectionStatuses = [
     "severely_disabled",
@@ -310,6 +319,9 @@ function seedCasesAndProcesses(db: DatabaseAdapter, timestamp: string): void {
       timestamp
     );
 
+    const deadlineStatus = index % 6 === 0 ? "completed" : "open";
+    const deadlineDueAt = deadlineStatus === "completed" ? daysFromNow(-2 - index) : daysFromNow(5 + index);
+
     run(
       db,
       `INSERT INTO deadlines (
@@ -327,12 +339,12 @@ function seedCasesAndProcesses(db: DatabaseAdapter, timestamp: string): void {
       `Demo-Frist ${index}`,
       `Vertrauliche Demo-Frist ${index}`,
       "Synthetische Wiedervorlage für Demo-Dashboard.",
-      daysFromNow(index % 6 === 0 ? -2 : 5 + index),
-      daysFromNow(2 + index),
+      deadlineDueAt,
+      deadlineStatus === "completed" ? daysFromNow(-3 - index) : daysFromNow(2 + index),
       index % 3 === 0 ? "§ 178 Abs. 2 Satz 1 SGB IX" : "§ 164 Abs. 4 SGB IX",
       "demo_seed",
       ["normal", "important", "critical", "fatal"][index % 4],
-      index % 6 === 0 ? "completed" : "open",
+      deadlineStatus,
       index % 3 === 0 ? 1 : 0,
       daysFromNow(-3),
       timestamp,
@@ -511,7 +523,7 @@ function seedMeasures(db: DatabaseAdapter, caseId: string, caseIndex: number, ti
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 'sensibel', ?, ?)`,
       `demo-measure-note-${String(index).padStart(3, "0")}`,
       caseId,
-      type,
+      noteMeasureTypeFor(type),
       measureId,
       "Demo-Maßnahmennotiz",
       daysFromNow(-2 - offset),

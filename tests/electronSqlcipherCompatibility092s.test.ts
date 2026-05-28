@@ -32,9 +32,9 @@ describe('Electron-/SQLCipher-Kompatibilitätsvertrag', () => {
     expect(majorOf(packageLock.packages['node_modules/@types/node']?.version)).toBe(22);
   });
 
-  it('nutzt den npm-11-sicheren Wrapper, überlässt die native Rebuild-Kette aber weiterhin electron-builder', () => {
+  it('nutzt den npm-11-sicheren Wrapper explizit im Build und nicht mehr als postinstall-Seiteneffekt', () => {
     expect(packageJson.devDependencies?.['@electron/rebuild']).toBeUndefined();
-    expect(packageJson.scripts?.postinstall).toBe('node scripts/install-electron-app-deps.cjs');
+    expect(packageJson.scripts?.postinstall).toBeUndefined();
     expect(packageJson.scripts?.['native:install-app-deps']).toBe('node scripts/install-electron-app-deps.cjs');
     expect(packageJson.scripts?.['native:rebuild:electron']).toBe('node scripts/install-electron-app-deps.cjs');
   });

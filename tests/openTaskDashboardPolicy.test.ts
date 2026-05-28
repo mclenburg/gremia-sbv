@@ -24,7 +24,7 @@ function baseDeadline(overrides: Partial<DeadlineRecord> = {}): DeadlineRecord {
 }
 
 describe('open task dashboard policy', () => {
-  it('zeigt offene Aufgaben ohne konkretes Datum auf dem Dashboard an, wenn dashboard_from_at erreicht ist', () => {
-    expect(getDashboardState(baseDeadline(), new Date('2026-05-02T11:00:00.000Z'))).toBe('upcoming');
+  it('blendet offene Aufgaben ohne konkrete 48-Stunden-Fälligkeit auf dem Dashboard aus', () => {
+    expect(getDashboardState(baseDeadline(), new Date('2026-05-02T11:00:00.000Z'))).toBe('hidden');
   });
 });
