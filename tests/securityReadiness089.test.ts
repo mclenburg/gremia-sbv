@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 
-describe("0.8.9 security readiness", () => {
+describe("Security readiness", () => {
   it("does not add password fragments or sensitive passphrase data to persisted models", () => {
     const security = readFileSync("services/securityService.ts", "utf8");
     const backup = readFileSync("services/backupService.ts", "utf8");
@@ -18,7 +18,8 @@ describe("0.8.9 security readiness", () => {
 
     expect(docs).toContain("Backups sind eine primäre Offline-Angriffsfläche");
     expect(docs).toContain("scrypt N=131072, r=8, p=1");
-    expect(docs).toContain("Legacy-Backups");
+    expect(docs).not.toContain("Legacy-Backups");
+    expect(docs).toContain("verschlüsselt");
   });
 
   it("verankert Renderer-CSP und gehärtete Electron-WebPreferences", () => {

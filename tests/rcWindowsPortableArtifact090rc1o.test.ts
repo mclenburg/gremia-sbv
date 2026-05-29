@@ -41,7 +41,7 @@ describe('Windows portable artifact', () => {
 
   it('documents the portable Windows release decision', () => {
     expect(windowsBuildDoc).toContain('portable');
-    expect(windowsBuildDoc).toContain('kein Installer');
+    expect(windowsBuildDoc).toMatch(/kein(?:en)? verpflichtenden Installer|kein Installer/i);
     expect(buildDoc).toContain('portable Direktstart-EXE');
   });
 
