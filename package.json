@@ -164,7 +164,6 @@
       "THIRD_PARTY_NOTICES.txt",
       "LICENSES/**",
       "SECURITY.md",
-      "CHANGELOG.md",
       "docs/**"
     ],
     "directories": {

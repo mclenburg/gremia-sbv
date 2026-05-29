@@ -13,7 +13,7 @@ Bitte veröffentliche Sicherheitslücken nicht als öffentliches Issue und füge
 Bevorzugter Meldeweg nach Veröffentlichung des Repositories:
 
 1. GitHub Security Advisory im Repository öffnen, oder
-2. falls noch nicht verfügbar: eine private Kontaktadresse der Projektbetreuung nutzen, sobald sie in den Projektinformationen benannt ist.
+2. eine vertrauliche Kontaktadresse der Projektbetreuung nutzen, soweit diese in den Projektinformationen benannt ist.
 
 Eine gute Meldung enthält:
 

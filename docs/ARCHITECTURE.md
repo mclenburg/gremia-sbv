@@ -70,7 +70,7 @@ Für neue Features bedeutet das: Erst zentrale Komponente nutzen, dann fachliche
 
 ### Visuelles QA-Gate
 
-Das visuelle E2E-Gate `npm run test:e2e:visual` Es prüft die primären Arbeitsbereiche in Light- und Dark-Mode, verhindert dunkle Light-Mode-Restflächen, helle Dark-Mode-Leaks, runde Legacy-Pill-Badges und systemfremde Control-Flächen. Details stehen in `docs/UI_VISUAL_QA.md`.
+Das visuelle E2E-Gate `npm run test:e2e:visual` prüft die primären Arbeitsbereiche in Light- und Dark-Mode, verhindert dunkle Light-Mode-Restflächen, helle Dark-Mode-Leaks, runde überrundete Pill-Badges und systemfremde Control-Flächen. Details stehen in `docs/UI_VISUAL_QA.md`.
 
 ## Dashboard-Prinzip
 

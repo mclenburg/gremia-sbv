@@ -36,9 +36,17 @@ Beim Import in einer anderen Gremia.SBV-Instanz entstehen grundsätzlich lokale 
 
 Details stehen in `CASE_HANDOVER_TRANSFER.md`.
 
-## Legacy-Fälle
+## Ungeklärte Personenbindung
 
-Bestehende Fälle werden in der Migration nicht geratenhaft aus Freitexten verknüpft. Sichere vorhandene Links können übernommen werden; mehrdeutige oder fehlende Links erzeugen einen prüfpflichtigen Altfallstatus.
+Fallakten dürfen nicht geratenhaft aus Freitexten mit Personen verknüpft werden. Wenn beim Import, bei einer Übergabe oder bei einer Datenübernahme kein eindeutiger Personenbezug vorliegt, wird der Vorgang prüfpflichtig markiert.
+
+Die nutzende SBV entscheidet dann ausdrücklich, ob die Fallakte:
+
+- einer bestehenden Person zugeordnet,
+- als anonyme Anfrage weitergeführt,
+- begründet fortgespeichert,
+- anonymisiert oder
+- gelöscht wird.
 
 ## Datenschutzprüfung
 
@@ -48,8 +56,8 @@ Eine Fallakte wird prüfpflichtig bei:
 - Beschäftigung beendet,
 - Person anonymisiert,
 - Person gelöscht,
-- Altfall ohne sicheren Personenbezug,
-- importierte Übergabedaten nach Ablauf der Vertretungszeit.
+- ungeklärtem Personenbezug,
+- importierten Übergabedaten nach Ablauf der Vertretungszeit.
 
 Entscheidungsmöglichkeiten:
 

@@ -38,7 +38,7 @@ Vor öffentlicher Bereitstellung müssen grün laufen:
 - `npm run test:e2e:complete-tour`
 - `npm run test:e2e:a11y`
 - `npm run build:readiness:strict`
-- `npm run rc:check`
+- `npm run release:check`
 
 ## Visuelle Gates
 

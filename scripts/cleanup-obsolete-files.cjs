@@ -52,6 +52,7 @@ const allowedTopLevel = new Set([
   'PATCH_NOTES_0.9.1_MEASURE_NOTES.md',
   'PATCH_NOTES_0.9.1_MEASURE_NOTES_TS_FIX.md',
   'PATCH_NOTES_0.9.1_PERSONENBINDUNG.md',
+  'CHANGELOG.md',
 ]);
 
 function loadManifestPaths() {

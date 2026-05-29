@@ -3,12 +3,12 @@
 ## Grundregeln
 
 - Kleine, fokussierte Dateien.
-- Feature-Views nicht monolithisch aufbauen.
-- `App.tsx` verdrahtet nur; Feature-Handler gehören in Hooks.
+- Feature-Views orchestrieren nur; Feature-Handler gehören in Hooks.
 - Policies sind pure Functions.
 - Services enthalten Orchestrierung, aber keine UI-Logik.
 - Tests prüfen Verhalten statt Quelltext-Existenz, soweit möglich.
 - Barrierefreiheit und Responsivität sind Teil der Definition of Done.
+- Neue UI wird zuerst gegen die zentralen Komponenten geprüft.
 
 ## Standardprüfung
 
@@ -16,12 +16,12 @@
 npm run test
 npm run test:e2e
 npm run build
-npm run rc:check
+npm run release:check
 ```
 
-## vorherigen-Entwicklungsfokus
+## Entwicklungsfokus bei Änderungen an Kernmodulen
 
-Bei Änderungen am Personenmodul sind immer mitzuprüfen:
+Bei Änderungen an Personen, Fallakten, Fristen, Exporten oder Datenschutzfunktionen sind immer mitzuprüfen:
 
 - Import-Mapping inklusive Vollnamen-Spalten,
 - optionale Personalnummer,
@@ -30,8 +30,10 @@ Bei Änderungen am Personenmodul sind immer mitzuprüfen:
 - Datenschutz-Lifecycle,
 - Compliance Center,
 - iCal-Export,
-- alte Tests mit veralteten Annahmen.
+- Verhalten bestehender Nutzerflüsse und E2E-Tests.
 
 ## Testqualität
 
-String-Matching-Tests sind nur für Dokumentations- und Struktur-Gates akzeptabel. Fachlogik muss durch Behavior-Tests abgesichert werden. Neue Tests müssen plattformunabhängig sein und keine festen absoluten Pfade oder rohen Zeilenendungsannahmen enthalten.
+String-Matching-Tests sind nur für Dokumentations-, Plattform- und Architektur-Gates akzeptabel. Fachlogik muss durch Behavior-Tests, Service-Tests oder E2E-Flows abgesichert werden. Neue Tests müssen plattformunabhängig sein und dürfen keine festen absoluten Pfade oder rohen Zeilenendungsannahmen enthalten.
+
+Source-Tests dürfen nicht dazu dienen, gute Refactorings zu blockieren. Sie sind nur dann sinnvoll, wenn sie eine echte Architekturgrenze schützen, zum Beispiel zentrale UI-Komponenten, Offline-first-Garantien, Plattformunabhängigkeit oder Testhygiene.

@@ -26,7 +26,7 @@ Nicht hochgeladen werden sollen `.blockmap`, `latest*.yml`, zusätzliche ZIPs, D
 npm install
 npm run test
 npm run test:e2e
-npm run rc:check
+npm run release:check
 npm run build:linux
 npm run build:win
 npm run build:mac

@@ -9,7 +9,7 @@ Das Gate prüft keine Pixel-Snapshots. Es prüft Verhalten und sichtbare Designv
 - alle primären Arbeitsbereiche öffnen in Light- und Dark-Mode,
 - große zentrale Flächen fallen im Light-Mode nicht auf dunkle Altfarben zurück,
 - große zentrale Flächen werden im Dark-Mode nicht versehentlich hell,
-- Badges und Chips werden nicht wieder zu runden Legacy-Pills,
+- Badges und Chips werden nicht wieder zu überrundeten Pill-Badges,
 - zentrale Controls behalten im Light-Mode das Industrial-Chrome,
 - der Kurzbefehle-Dialog bleibt in beiden Themes visuell integriert.
 

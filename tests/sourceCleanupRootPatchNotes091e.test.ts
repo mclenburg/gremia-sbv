@@ -44,4 +44,36 @@ describe('root patch note cleanup', () => {
       rmSync(projectRoot, { recursive: true, force: true });
     }
   });
+  it('removes the root changelog through an explicit public-doc cleanup manifest', () => {
+    const projectRoot = createCleanupFixture('gremia-sbv-cleanup-root-changelog-');
+    const targetPath = join(projectRoot, 'CHANGELOG.md');
+    const manifestDir = join(projectRoot, 'maintenance', 'source-cleanup');
+    const manifestPath = join(manifestDir, 'public-docs-no-history.json');
+
+    mkdirSync(manifestDir, { recursive: true });
+    writeFileSync(targetPath, 'historical changelog', 'utf8');
+    writeFileSync(
+      manifestPath,
+      JSON.stringify({
+        version: 'public-initial-docs',
+        files: ['CHANGELOG.md'],
+        directories: [],
+      }),
+      'utf8',
+    );
+
+    const result = spawnSync(process.execPath, ['scripts/cleanup-obsolete-files.cjs'], {
+      cwd: projectRoot,
+      encoding: 'utf8',
+    });
+
+    try {
+      expect(result.status).toBe(0);
+      expect(result.stderr).not.toContain('Cleanup-Pfad muss in einem bekannten Source-/Projektbereich liegen');
+      expect(existsSync(targetPath)).toBe(false);
+    } finally {
+      rmSync(projectRoot, { recursive: true, force: true });
+    }
+  });
+
 });

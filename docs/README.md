@@ -24,6 +24,7 @@ Zweite Zielgruppe sind Personen, die Gremia.SBV betreiben, prüfen oder weiteren
 | `TEMPLATES_MODULE.md` | Vorlagen, Platzhalter und datensparsame Schreiben |
 | `KNOWLEDGE_BASE.md` | Wissensbasis und fachliche Hinweise |
 | `SBV_STEUERUNG.md` | SBV-Steuerung, Tätigkeitsbericht und Strukturarbeit |
+| `BETRIEBSGRENZEN.md` | Betriebsgrenzen und Prüfpunkte vor produktiver Nutzung |
 
 ## Datenschutz, Sicherheit und Freigabe
 

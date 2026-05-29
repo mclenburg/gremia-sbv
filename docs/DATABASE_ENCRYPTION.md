@@ -6,7 +6,7 @@ Die lokale Datenbank wird SQLCipher-kompatibel verschlüsselt. Das schützt den 
 
 ## Personenverzeichnis
 
-Namen im Personenverzeichnis sind direkte Identifikatoren für einen Schutzstatus. Sie bleiben in vorherigen innerhalb der SQLCipher-Datenbank, werden aber nicht zusätzlich feldverschlüsselt. Diese Entscheidung wird begründet mit:
+Namen im Personenverzeichnis sind direkte Identifikatoren für einen Schutzstatus. Sie bleiben innerhalb der SQLCipher-Datenbank, werden aber nicht zusätzlich feldverschlüsselt. Diese Entscheidung wird begründet mit:
 
 - erforderlicher Suchbarkeit,
 - Importabgleich,

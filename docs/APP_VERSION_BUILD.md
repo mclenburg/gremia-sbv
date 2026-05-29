@@ -6,7 +6,7 @@ Die Paketversion in `package.json` ist die führende Versionsquelle. Generierte 
 
 - `src/app/generated/appVersion.ts`,
 - `services/generated/appMetadata.ts`,
-- README und Roadmap.
+- generierte Metadatendateien.
 
 ## Generierung
 
@@ -18,4 +18,4 @@ npm run version:generate
 
 ## Tests
 
-Versions-Tests dürfen nicht hart auf historische Suffixe pinnen. Sie müssen dynamisch gegen `package.json` prüfen.
+Versions-Tests prüfen dynamisch gegen `package.json` und dürfen keine manuell gepflegten Dokumentationsstände voraussetzen.

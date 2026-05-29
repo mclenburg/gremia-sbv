@@ -1,0 +1,9 @@
+{
+  "version": "public-initial-docs",
+  "reason": "Die öffentliche Dokumentation beschreibt den aktuellen Produktstand ohne Änderungs- oder Vorveröffentlichungshistorie. Changelog- und Known-Issues-Dateien werden vor Build und Test aus dem aktiven Bestand entfernt; dauerhafte Betriebsgrenzen liegen in docs/BETRIEBSGRENZEN.md.",
+  "files": [
+    "CHANGELOG.md",
+    "docs/KNOWN_ISSUES.md"
+  ],
+  "directories": []
+}

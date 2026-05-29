@@ -39,7 +39,7 @@ Die Prüfung sollte insbesondere klären:
 | `CODE_SIGNING.md` | Strategie für nicht signierte und später signierte Build-Artefakte |
 | `LICENSE_POLICY.md` | Lizenzrahmen und Drittanbieter-Lizenzinventar |
 | `QUALITY_GATE.md` | verbindliche Qualitäts-, Test-, A11y-, Security- und Qualitätsgates |
-| `KNOWN_ISSUES.md` | bekannte Einschränkungen und transparente Betriebsrisiken |
+| `BETRIEBSGRENZEN.md` | Betriebsgrenzen, Prüfpunkte und transparente Betriebsrisiken |
 
 ## Wesentliche Datenschutzentscheidungen
 

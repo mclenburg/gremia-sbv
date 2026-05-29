@@ -1,10 +1,10 @@
 # SignPath-Code-Signatur für Windows-EXE-Artefakte
 
-Diese Vorbereitung ist bewusst kostenneutral im normalen Entwicklungsbetrieb. Der Workflow wird weder bei Pull Requests noch bei Pushes noch bei Tags automatisch ausgeführt. Er ist ausschließlich manuell über `workflow_dispatch` startbar und zusätzlich über die Repository-Variable `SIGNPATH_ENABLED` gesperrt.
+Dieses Dokument beschreibt die vorbereitete Signaturstrecke für Windows-Artefakte. Der Workflow wird nicht automatisch bei Pull Requests, Pushes oder Zeitplänen ausgeführt. Er ist ausschließlich manuell über `workflow_dispatch` startbar und zusätzlich über die Repository-Variable `SIGNPATH_ENABLED` gesperrt.
 
-## Zielbild bei Repository-Publication
+## Zielbild für signierte Windows-Artefakte
 
-Wenn das Repository öffentlich gestellt wird, kann die Windows-EXE über SignPath signiert werden, ohne dass private Schlüssel im Repository oder in GitHub Actions abgelegt werden. SignPath stellt dafür den GitHub-Trusted-Build-Weg bereit: Der Build erzeugt ein GitHub-Artefakt, die SignPath-Action reicht dessen GitHub-Artefakt-ID an SignPath weiter, und SignPath prüft die Herkunft des Artefakts über GitHub-Metadaten.
+Die Windows-EXE kann über SignPath signiert werden, ohne private Schlüssel im Repository oder in GitHub Actions abzulegen. SignPath stellt dafür den GitHub-Trusted-Build-Weg bereit: Der Build erzeugt ein GitHub-Artefakt, die SignPath-Action reicht dessen GitHub-Artefakt-ID an SignPath weiter, und SignPath prüft die Herkunft des Artefakts über GitHub-Metadaten.
 
 ## Dateien
 
@@ -18,14 +18,14 @@ Wenn das Repository öffentlich gestellt wird, kann die Windows-EXE über SignPa
 - `scripts/check-signpath-readiness.cjs`
   - lokale Struktur- und Konfigurationsprüfung
 
-## Freischaltungsschritte bei Repository-Publication
+## Aktivierung
 
 1. SignPath-Organisation vorbereiten.
 2. SignPath-Projekt für Gremia.SBV anlegen.
 3. GitHub.com als Trusted Build System in SignPath verknüpfen.
 4. SignPath GitHub App für das Repository installieren.
 5. Artifact Configuration `windows-exe` aus `.signpath/artifact-configurations/windows-exe.xml` in SignPath anlegen.
-6. Signing Policy für Releases anlegen, zum Beispiel `release-signing`.
+6. Signing Policy anlegen, zum Beispiel `artifact-signing`.
 7. GitHub Repository Variables setzen:
    - `SIGNPATH_ENABLED=true`
    - `SIGNPATH_ORGANIZATION_ID=<SignPath Organization ID>`
@@ -38,7 +38,7 @@ Wenn das Repository öffentlich gestellt wird, kann die Windows-EXE über SignPa
 
 ## Sicherheits- und Kostenlinie
 
-Der Workflow verursacht keine laufenden GitHub-Actions-Kosten, solange er nicht manuell gestartet wird. Zusätzlich verhindert `SIGNPATH_ENABLED != true`, dass ein versehentlicher manueller Start einen Runner belegt. Das passt zur Big-Bang-Linie: vorbereitet, aber nicht aktiv, solange das Repository privat und noch nicht veröffentlicht ist.
+Der Workflow verursacht keine laufenden GitHub-Actions-Kosten, solange er nicht manuell gestartet wird. Zusätzlich verhindert `SIGNPATH_ENABLED != true`, dass ein versehentlicher manueller Start einen Runner belegt.
 
 ## Prüfbefehl
 
@@ -53,10 +53,10 @@ SIGNPATH_ENABLED=true \
 SIGNPATH_API_TOKEN=dummy \
 SIGNPATH_ORGANIZATION_ID=dummy \
 SIGNPATH_PROJECT_SLUG=gremia-sbv \
-SIGNPATH_SIGNING_POLICY_SLUG=release-signing \
+SIGNPATH_SIGNING_POLICY_SLUG=artifact-signing \
 node scripts/check-signpath-readiness.cjs --env
 ```
 
 ## Hinweis zur Electron-Signaturtiefe
 
-Dieser vorbereitete Weg signiert die erzeugten Windows-EXE-Artefakte, die an SignPath übergeben werden. Für eine spätere vollständige Installer-Kette ist zu prüfen, ob zusätzlich innere App-Binaries vor dem finalen Installer-Packaging signiert werden müssen. Die erste Ausbaustufe ist bewusst auf die veröffentlichte EXE-Datei begrenzt, damit die Freischaltung schnell und kontrolliert erfolgen kann.
+Dieser vorbereitete Weg signiert die erzeugten Windows-EXE-Artefakte, die an SignPath übergeben werden. Für eine vollständige Signaturkette ist zusätzlich zu prüfen, ob innere App-Binaries vor dem finalen Packaging signiert werden müssen.
