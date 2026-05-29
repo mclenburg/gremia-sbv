@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import { AlertTriangle, Plus } from 'lucide-react';
-import { ModuleFeedback } from '../../shared/components/ModuleFeedback';
+import { CalendarPlus, Download } from 'lucide-react';
 import { GhostButton, IndustrialButton, ToolbarButton } from '../../shared/components/IndustrialButton';
+import { ModuleFeedback } from '../../shared/components/ModuleFeedback';
 import {
-  CheckboxField,
   DateTimeInput,
   FormActions,
   FormSection,
@@ -12,40 +11,27 @@ import {
   TextInput
 } from '../../shared/components/IndustrialForm';
 import {
-  IndustrialWarningPanel,
-  WorkbenchPage
+  WorkbenchPage,
+  WorkbenchSummary
 } from '../../shared/components/WorkbenchLayout';
 import { IndustrialModal } from '../../shared/dialogs/IndustrialDialogs';
 import type { CaseRecord } from '../../core/models/case.model';
 import type { CaseMeasureRecord } from '../../core/models/case-measure.model';
-import type { CreateDeadlineInput, DeadlineListFilters, DeadlineProcessType, DeadlineRecord, DeadlineSeverity, DeadlineType } from '../../core/models/deadline.model';
+import type { CreateDeadlineInput, DeadlineListFilters, DeadlineRecord, DeadlineSeverity } from '../../core/models/deadline.model';
 import { DeadlineListView } from './DeadlineListView';
-import { DeadlineIcalExportPanel } from './DeadlineIcalExportPanel';
+import { DeadlineIcalExportModal } from './DeadlineIcalExportPanel';
+import { DeadlineCreateModal } from './DeadlineCreateModal';
 import type { IcalExportPrivacyLevel } from './useIcalExportHandlers';
-import { formatCaseLabel, fromDateTimeLocalValue, toDateTimeLocalValue } from '../cases/caseWorkbenchFormat';
+import { toDateTimeLocalValue, fromDateTimeLocalValue } from '../cases/caseWorkbenchFormat';
+import { resolveDeadlineWorkSummary } from './deadlineViewLogic';
+import { deadlineSeverityLabels } from './deadlineLabels';
 
-const processOptions: Array<{ value: DeadlineProcessType; label: string }> = [
-  { value: 'case', label: 'Fall' },
-  { value: 'bem', label: 'BEM' },
-  { value: 'prevention', label: 'Prävention' },
-  { value: 'equalization', label: 'Gleichstellung' },
-  { value: 'termination_hearing', label: 'Kündigungsanhörung' },
-  { value: 'gdb', label: 'GdB' }
-];
-
-const deadlineTypeOptions: Array<{ value: DeadlineType; label: string }> = [
-  { value: 'follow_up', label: 'Wiedervorlage' },
-  { value: 'legal_deadline', label: 'Rechtsfrist' },
-  { value: 'workflow_step', label: 'Workflow-Schritt' },
-  { value: 'appointment', label: 'Termin' },
-  { value: 'warning', label: 'Warnung' }
-];
 
 const severityOptions: Array<{ value: DeadlineSeverity; label: string }> = [
-  { value: 'normal', label: 'normal' },
-  { value: 'important', label: 'wichtig' },
-  { value: 'critical', label: 'kritisch' },
-  { value: 'fatal', label: 'fatal' }
+  { value: 'normal', label: deadlineSeverityLabels.normal },
+  { value: 'important', label: deadlineSeverityLabels.important },
+  { value: 'critical', label: deadlineSeverityLabels.critical },
+  { value: 'fatal', label: deadlineSeverityLabels.fatal }
 ];
 
 export function DeadlinesView({
@@ -65,96 +51,50 @@ export function DeadlinesView({
   onCompleteDeadline: (deadline: DeadlineRecord) => void;
   onExportIcal: (privacyLevel: IcalExportPrivacyLevel, filters: DeadlineListFilters) => Promise<void>;
 }) {
-  const [title, setTitle] = useState('');
-  const [caseId, setCaseId] = useState('');
-  const [freeFollowUp, setFreeFollowUp] = useState(false);
-  const [dueAt, setDueAt] = useState('');
-  const [severity, setSeverity] = useState<DeadlineSeverity>('important');
-  const [processType, setProcessType] = useState<DeadlineProcessType>('case');
-  const [deadlineType, setDeadlineType] = useState<DeadlineType>('follow_up');
-  const [legalBasis, setLegalBasis] = useState('');
-  const [description, setDescription] = useState('');
-  const [error, setError] = useState('');
-
-  async function addDeadline(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setError('');
-    if (!title.trim() || !dueAt) {
-      setError('Bitte Titel und Fälligkeitsdatum erfassen.');
-      return;
-    }
-
-    if (!freeFollowUp && !caseId) {
-      setError('Bitte einen Fall auswählen. Ohne Fallbezug ist nur eine freie Wiedervorlage zulässig.');
-      return;
-    }
-
-    try {
-      await onCreateDeadline({
-        title: title.trim(),
-        caseId: freeFollowUp ? undefined : caseId,
-        processType: freeFollowUp ? 'custom' : processType,
-        deadlineType: freeFollowUp ? 'follow_up' : deadlineType,
-        dueAt: fromDateTimeLocalValue(dueAt),
-        severity,
-        legalBasis: legalBasis.trim() || undefined,
-        description: description.trim() || undefined,
-        isLegalDeadline: !freeFollowUp && deadlineType === 'legal_deadline',
-        calculationMode: 'manual'
-      });
-      setTitle('');
-      setDueAt('');
-      setLegalBasis('');
-      setDescription('');
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Frist konnte nicht angelegt werden.');
-    }
-  }
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [exportModalOpen, setExportModalOpen] = useState(false);
+  const summary = resolveDeadlineWorkSummary(deadlines);
 
   return (
     <WorkbenchPage
       title="Fristen & Wiedervorlagen"
       kicker="48h-Regel aktiv"
-      description="Echte Fristen gehören an eine Fallakte. Freie Einträge sind nur als einfache Wiedervorlagen ohne Rechtsfrist vorgesehen."
-    >
-      <ModuleFeedback items={[error ? { id: 'deadlines-error', tone: 'warning', message: error } : null]} />
-      <IndustrialWarningPanel>
-        <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-yellow-300" />
-        <p>
-          Fachregel: Rechtliche Fristen, BEM-Schritte, Präventionsvorgänge, Gleichstellungsverfahren und Kündigungsanhörungen werden immer einem Fall zugeordnet. Ohne Fallbezug erlaubt Gremia.SBV nur eine freie Wiedervorlage.
-        </p>
-      </IndustrialWarningPanel>
-
-      <form onSubmit={addDeadline} className="industrial-form industrial-form-deadline" noValidate>
-        <FormSection>
-          <div className="industrial-form-grid">
-            <TextInput label="Titel" value={title} onValueChange={setTitle} placeholder="z. B. Stellungnahme SBV" required />
-            <SelectInput
-              label="Fallbezug"
-              value={caseId}
-              disabled={freeFollowUp}
-              onValueChange={setCaseId}
-              options={[{ value: '', label: 'Fall auswählen' }, ...cases.map((record) => ({ value: record.id, label: formatCaseLabel(record) }))]}
-            />
-            <DateTimeInput label="Fällig am" value={dueAt} onValueChange={setDueAt} required />
-            <SelectInput label="Prozess" value={processType} disabled={freeFollowUp} onValueChange={(value) => setProcessType(value as DeadlineProcessType)} options={processOptions} />
-            <SelectInput label="Typ" value={deadlineType} disabled={freeFollowUp} onValueChange={(value) => setDeadlineType(value as DeadlineType)} options={deadlineTypeOptions} />
-            <SelectInput label="Stufe" value={severity} onValueChange={(value) => setSeverity(value as DeadlineSeverity)} options={severityOptions} />
-            <TextInput label="Rechtsbezug" value={legalBasis} disabled={freeFollowUp} onValueChange={setLegalBasis} placeholder="optional" />
-            <TextInput label="Notiz" value={description} onValueChange={setDescription} placeholder="optional" />
-            <CheckboxField label="freie Wiedervorlage ohne Fallbezug" checked={freeFollowUp} onCheckedChange={setFreeFollowUp} />
-          </div>
-        </FormSection>
-        <FormActions>
-          <IndustrialButton type="submit">
-            <Plus className="h-4 w-4" />
+      description="Übersicht, Priorisierung und Kontrolle zeitkritischer SBV-Arbeit. Rechtliche Fristen werden einem Fall oder Verfahren zugeordnet."
+      actions={
+        <>
+          <ToolbarButton onClick={() => setExportModalOpen(true)} data-e2e="open-deadline-ical-export">
+            <Download className="h-4 w-4" aria-hidden="true" />
+            Kalender exportieren
+          </ToolbarButton>
+          <IndustrialButton onClick={() => setCreateModalOpen(true)} data-e2e="open-deadline-create">
+            <CalendarPlus className="h-4 w-4" aria-hidden="true" />
             Frist anlegen
           </IndustrialButton>
-        </FormActions>
-      </form>
-      <DeadlineIcalExportPanel onExport={onExportIcal} />
+        </>
+      }
+    >
+      <WorkbenchSummary
+        ariaLabel="Fristenübersicht"
+        items={[
+          { label: 'überfällig', value: summary.overdueCount, tone: summary.overdueCount > 0 ? 'danger' : 'default' },
+          { label: 'kritisch', value: summary.criticalCount, tone: summary.criticalCount > 0 ? 'danger' : 'default' },
+          { label: 'innerhalb 48h', value: summary.dueSoonCount, tone: summary.dueSoonCount > 0 ? 'warning' : 'default' },
+          { label: 'offen gesamt', value: summary.openCount, tone: 'default' }
+        ]}
+      />
+
+      <p className="industrial-inline-rule">
+        Fachregel: Ohne Fallbezug kann nur eine freie Wiedervorlage angelegt werden. Rechtliche Fristen und Verfahrensschritte werden im Erfassungsdialog validiert.
+      </p>
 
       <DeadlineListView deadlines={deadlines} cases={cases} measures={measures} onEdit={onEditDeadline} onComplete={onCompleteDeadline} />
+
+      {createModalOpen ? (
+        <DeadlineCreateModal cases={cases} onCreateDeadline={onCreateDeadline} onClose={() => setCreateModalOpen(false)} />
+      ) : null}
+      {exportModalOpen ? (
+        <DeadlineIcalExportModal onExport={onExportIcal} onClose={() => setExportModalOpen(false)} />
+      ) : null}
     </WorkbenchPage>
   );
 }
@@ -213,7 +153,7 @@ export function DeadlineEditor({
         <FormSection>
           <TextInput label="Titel" value={title} onValueChange={setTitle} required />
           <DateTimeInput label="Fällig am" value={dueAt} onValueChange={setDueAt} required />
-          <SelectInput label="Stufe" value={severity} onValueChange={(value) => setSeverity(value as DeadlineSeverity)} options={severityOptions} />
+          <SelectInput label="Priorität" value={severity} onValueChange={(value) => setSeverity(value as DeadlineSeverity)} options={severityOptions} />
           <TextInput label="Rechtsbezug" value={legalBasis} onValueChange={setLegalBasis} />
           <TextInput label="Notiz" value={description} onValueChange={setDescription} />
           <TextInput label="Änderungsgrund / Audit" value={reason} onValueChange={setReason} />

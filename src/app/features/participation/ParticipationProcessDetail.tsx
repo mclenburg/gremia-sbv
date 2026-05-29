@@ -14,12 +14,13 @@ import type {
   ParticipationStatus,
   UpdateParticipationInput,
 } from "../../core/models/participation.model";
+import { ToolbarButton } from "../../shared/components/IndustrialButton";
 import {
-  IndustrialField,
-  IndustrialFormGrid,
-} from "../../shared/components/WorkbenchLayout";
+  DeferredDateTimeInput,
+  DeferredTextareaInput,
+  SelectInput,
+} from "../../shared/components/IndustrialForm";
 import { MeasureDetailFrame } from "../cases/measures/MeasureDetailFrame";
-import { TextCommandTextarea } from "../../shared/textCommands/TextCommandTextarea";
 import {
   getParticipationActionLabels,
   getParticipationDocumentRequirements,
@@ -116,7 +117,9 @@ export function ParticipationProcessDetail({
   const update = (input: UpdateParticipationInput) =>
     void onUpdate(process.id, input);
   const escalation = getParticipationEscalationAdvice(process);
-  const documentRequirements = getParticipationDocumentRequirements(process.measureType);
+  const documentRequirements = getParticipationDocumentRequirements(
+    process.measureType,
+  );
   const actionLabels = getParticipationActionLabels(process);
 
   return (
@@ -137,8 +140,7 @@ export function ParticipationProcessDetail({
           className="participation-check-matrix"
           aria-label="Prüfmatrix § 178 Abs. 2 SGB IX"
         >
-          <button
-            type="button"
+          <ToolbarButton
             className={
               process.informationComplete ? "check-ok" : "check-missing"
             }
@@ -147,9 +149,8 @@ export function ParticipationProcessDetail({
             }
           >
             <CheckCircle2 className="h-4 w-4" /> Unterrichtung vollständig
-          </button>
-          <button
-            type="button"
+          </ToolbarButton>
+          <ToolbarButton
             className={
               process.hearingBeforeDecision ? "check-ok" : "check-missing"
             }
@@ -158,16 +159,15 @@ export function ParticipationProcessDetail({
             }
           >
             <ShieldCheck className="h-4 w-4" /> Anhörung vor Entscheidung
-          </button>
-          <button
-            type="button"
+          </ToolbarButton>
+          <ToolbarButton
             className={process.decisionNotified ? "check-ok" : "check-missing"}
             onClick={() =>
               update({ decisionNotified: !process.decisionNotified })
             }
           >
             <FileWarning className="h-4 w-4" /> Entscheidung mitgeteilt
-          </button>
+          </ToolbarButton>
         </div>
 
         {(!process.informationComplete ||
@@ -190,24 +190,39 @@ export function ParticipationProcessDetail({
               <p className="industrial-kicker">Handlungslinie</p>
               <h3>{escalation.title}</h3>
             </div>
-            <span>{escalation.level === "critical" ? "kritisch" : escalation.level === "warning" ? "prüfen" : "stabil"}</span>
+            <span>
+              {escalation.level === "critical"
+                ? "kritisch"
+                : escalation.level === "warning"
+                  ? "prüfen"
+                  : "stabil"}
+            </span>
           </div>
           <p>{escalation.reason}</p>
-          <p><strong>Nächster sauberer Schritt:</strong> {escalation.nextStep}</p>
-          <div className="participation-action-chips" aria-label="Direkt ableitbare SBV-Aktionen">
+          <p>
+            <strong>Nächster sauberer Schritt:</strong> {escalation.nextStep}
+          </p>
+          <div
+            className="participation-action-chips"
+            aria-label="Direkt ableitbare SBV-Aktionen"
+          >
             {actionLabels.map((label) => (
-              <button type="button" className="industrial-button industrial-button-secondary" key={label}>
-                {label}
-              </button>
+              <ToolbarButton key={label}>{label}</ToolbarButton>
             ))}
           </div>
         </section>
 
-        <section className="participation-document-matrix" aria-label="Unterlagenmatrix nach Maßnahmentyp">
+        <section
+          className="participation-document-matrix"
+          aria-label="Unterlagenmatrix nach Maßnahmentyp"
+        >
           <div className="participation-section-head">
             <div>
               <p className="industrial-kicker">Unterlagenmatrix</p>
-              <h3>Für {measureLabels[process.measureType]} vor Stellungnahme prüfen</h3>
+              <h3>
+                Für {measureLabels[process.measureType]} vor Stellungnahme
+                prüfen
+              </h3>
             </div>
             <ClipboardList className="h-5 w-5" aria-hidden="true" />
           </div>
@@ -221,161 +236,121 @@ export function ParticipationProcessDetail({
           </ul>
         </section>
 
-        <IndustrialFormGrid columns={3}>
-          <IndustrialField label="Status">
-            <select
-              value={process.status}
-              onChange={(event) =>
-                update({ status: event.target.value as ParticipationStatus })
-              }
-            >
-              {statusOrder.map((item) => (
-                <option key={item} value={item}>
-                  {statusLabels[item]}
-                </option>
-              ))}
-            </select>
-          </IndustrialField>
-          <IndustrialField label="Arbeitgebermaßnahme">
-            <select
-              value={process.measureType}
-              onChange={(event) =>
-                update({
-                  measureType: event.target.value as ParticipationMeasureType,
-                })
-              }
-            >
-              {measureOrder.map((item) => (
-                <option key={item} value={item}>
-                  {measureLabels[item]}
-                </option>
-              ))}
-            </select>
-          </IndustrialField>
-          <IndustrialField label="Risiko">
-            <select
-              value={process.riskLevel}
-              onChange={(event) =>
-                update({
-                  riskLevel: event.target.value as ParticipationRiskLevel,
-                })
-              }
-            >
-              {riskOrder.map((item) => (
-                <option key={item} value={item}>
-                  {riskLabels[item]}
-                </option>
-              ))}
-            </select>
-          </IndustrialField>
-          <IndustrialField label="Personenstatus">
-            <select
-              value={process.personStatus}
-              onChange={(event) =>
-                update({
-                  personStatus: event.target.value as ParticipationPersonStatus,
-                })
-              }
-            >
-              {personStatusOrder.map((item) => (
-                <option key={item} value={item}>
-                  {personStatusLabels[item]}
-                </option>
-              ))}
-            </select>
-          </IndustrialField>
-          <IndustrialField label="Entscheidungsstand">
-            <select
-              value={process.decisionStage}
-              onChange={(event) =>
-                update({
-                  decisionStage: event.target
-                    .value as ParticipationDecisionStage,
-                })
-              }
-            >
-              {decisionStageOrder.map((item) => (
-                <option key={item} value={item}>
-                  {decisionStageLabels[item]}
-                </option>
-              ))}
-            </select>
-          </IndustrialField>
-          <IndustrialField label="Kenntnis der SBV">
-            <input
-              type="datetime-local"
-              defaultValue={toDateTimeLocal(process.firstKnownAt)}
-              onBlur={(event) =>
-                update({ firstKnownAt: fromDateTimeLocal(event.currentTarget.value) })
-              }
-            />
-          </IndustrialField>
-          <IndustrialField label="Unterrichtung erhalten">
-            <input
-              type="datetime-local"
-              defaultValue={toDateTimeLocal(process.informationReceivedAt)}
-              onBlur={(event) =>
-                update({
-                  informationReceivedAt: fromDateTimeLocal(event.currentTarget.value),
-                })
-              }
-            />
-          </IndustrialField>
-          <IndustrialField label="Stellungnahmefrist">
-            <input
-              type="datetime-local"
-              defaultValue={toDateTimeLocal(process.statementDueAt)}
-              onBlur={(event) =>
-                update({
-                  statementDueAt: fromDateTimeLocal(event.currentTarget.value),
-                })
-              }
-            />
-          </IndustrialField>
-          <IndustrialField label="Aussetzung verlangt">
-            <input
-              type="datetime-local"
-              defaultValue={toDateTimeLocal(process.suspensionRequestedAt)}
-              onBlur={(event) =>
-                update({
-                  suspensionRequestedAt: fromDateTimeLocal(event.currentTarget.value),
-                  status: event.currentTarget.value
-                    ? "aussetzung_verlangt"
-                    : process.status,
-                })
-              }
-            />
-          </IndustrialField>
-        </IndustrialFormGrid>
+        <div className="industrial-form-grid">
+          <SelectInput
+            label="Status"
+            value={process.status}
+            options={statusOrder.map((item) => ({
+              value: item,
+              label: statusLabels[item],
+            }))}
+            onValueChange={(value) =>
+              update({ status: value as ParticipationStatus })
+            }
+          />
+          <SelectInput
+            label="Arbeitgebermaßnahme"
+            value={process.measureType}
+            options={measureOrder.map((item) => ({
+              value: item,
+              label: measureLabels[item],
+            }))}
+            onValueChange={(value) =>
+              update({ measureType: value as ParticipationMeasureType })
+            }
+          />
+          <SelectInput
+            label="Risiko"
+            value={process.riskLevel}
+            options={riskOrder.map((item) => ({
+              value: item,
+              label: riskLabels[item],
+            }))}
+            onValueChange={(value) =>
+              update({ riskLevel: value as ParticipationRiskLevel })
+            }
+          />
+          <SelectInput
+            label="Personenstatus"
+            value={process.personStatus}
+            options={personStatusOrder.map((item) => ({
+              value: item,
+              label: personStatusLabels[item],
+            }))}
+            onValueChange={(value) =>
+              update({ personStatus: value as ParticipationPersonStatus })
+            }
+          />
+          <SelectInput
+            label="Entscheidungsstand"
+            value={process.decisionStage}
+            options={decisionStageOrder.map((item) => ({
+              value: item,
+              label: decisionStageLabels[item],
+            }))}
+            onValueChange={(value) =>
+              update({ decisionStage: value as ParticipationDecisionStage })
+            }
+          />
+          <DeferredDateTimeInput
+            label="Kenntnis der SBV"
+            value={toDateTimeLocal(process.firstKnownAt)}
+            onCommit={(value) =>
+              update({ firstKnownAt: fromDateTimeLocal(value) })
+            }
+          />
+          <DeferredDateTimeInput
+            label="Unterrichtung erhalten"
+            value={toDateTimeLocal(process.informationReceivedAt)}
+            onCommit={(value) =>
+              update({ informationReceivedAt: fromDateTimeLocal(value) })
+            }
+          />
+          <DeferredDateTimeInput
+            label="Stellungnahmefrist"
+            value={toDateTimeLocal(process.statementDueAt)}
+            onCommit={(value) =>
+              update({ statementDueAt: fromDateTimeLocal(value) })
+            }
+          />
+          <DeferredDateTimeInput
+            label="Aussetzung verlangt"
+            value={toDateTimeLocal(process.suspensionRequestedAt)}
+            onCommit={(value) =>
+              update({
+                suspensionRequestedAt: fromDateTimeLocal(value),
+                status: value ? "aussetzung_verlangt" : process.status,
+              })
+            }
+          />
+        </div>
 
-        <IndustrialFormGrid columns={2}>
-          <IndustrialField label="Pflichtverstoß / fehlende Unterlagen">
-            <TextCommandTextarea
-              fieldId="participation-violation-summary"
-              defaultValue={process.violationSummary ?? ""}
-              rows={4}
-              onBlur={(event) =>
-                update({ violationSummary: event.currentTarget.value })
-              }
-            />
-          </IndustrialField>
-          <IndustrialField label="SBV-Position / Stellungnahme-Kern">
-            <TextCommandTextarea
-              fieldId="participation-sbv-position"
-              defaultValue={process.sbvPosition ?? ""}
-              rows={4}
-              onBlur={(event) => update({ sbvPosition: event.currentTarget.value })}
-            />
-          </IndustrialField>
-          <IndustrialField label="Nächster Schritt" wide>
-            <TextCommandTextarea
-              fieldId="participation-next-step"
-              defaultValue={process.nextStep ?? ""}
-              rows={3}
-              onBlur={(event) => update({ nextStep: event.currentTarget.value })}
-            />
-          </IndustrialField>
-        </IndustrialFormGrid>
+        <div className="industrial-form-grid two-columns">
+          <DeferredTextareaInput
+            label="Pflichtverstoß / fehlende Unterlagen"
+            value={process.violationSummary ?? ""}
+            textCommandFieldId="participation-violation-summary"
+            rows={4}
+            onCommit={(value) => update({ violationSummary: value })}
+            wide
+          />
+          <DeferredTextareaInput
+            label="SBV-Position / Stellungnahme-Kern"
+            value={process.sbvPosition ?? ""}
+            textCommandFieldId="participation-sbv-position"
+            rows={4}
+            onCommit={(value) => update({ sbvPosition: value })}
+            wide
+          />
+          <DeferredTextareaInput
+            label="Nächster Schritt"
+            value={process.nextStep ?? ""}
+            textCommandFieldId="participation-next-step"
+            rows={3}
+            onCommit={(value) => update({ nextStep: value })}
+            wide
+          />
+        </div>
       </div>
     </MeasureDetailFrame>
   );

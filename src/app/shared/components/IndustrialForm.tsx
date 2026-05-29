@@ -1,11 +1,12 @@
 import type {
   ChangeEvent,
+  FocusEvent,
   InputHTMLAttributes,
   ReactNode,
   SelectHTMLAttributes,
   TextareaHTMLAttributes,
 } from "react";
-import { useId } from "react";
+import { isValidElement, useEffect, useId, useState } from "react";
 import { TextCommandTextarea } from "../textCommands/TextCommandTextarea";
 
 export type IndustrialFieldOption = {
@@ -68,7 +69,9 @@ export function FormSection({
             {title ? <h2 id={headingId}>{title}</h2> : null}
             {description ? <p>{description}</p> : null}
           </div>
-          {actions ? <div className="industrial-action-row">{actions}</div> : null}
+          {actions ? (
+            <div className="industrial-action-row">{actions}</div>
+          ) : null}
         </div>
       ) : null}
       {children}
@@ -161,7 +164,10 @@ export function TextInput({
         <input
           {...inputProps}
           id={id}
-          className={joinClassNames("industrial-input industrial-select", className)}
+          className={joinClassNames(
+            "industrial-input industrial-text-input",
+            className,
+          )}
           value={value}
           required={required}
           aria-required={required ? "true" : undefined}
@@ -185,7 +191,9 @@ export function DateTimeInput(props: Omit<TextInputProps, "type">) {
 }
 
 export function PasswordInput(props: Omit<TextInputProps, "type">) {
-  return <TextInput {...props} type="password" autoComplete="current-password" />;
+  return (
+    <TextInput {...props} type="password" autoComplete="current-password" />
+  );
 }
 
 type TextareaInputProps = Omit<
@@ -230,7 +238,10 @@ export function TextareaInput({
           {...textareaProps}
           id={id}
           fieldId={textCommandFieldId ?? id}
-          className={joinClassNames("industrial-input industrial-select", className)}
+          className={joinClassNames(
+            "industrial-input industrial-textarea-input",
+            className,
+          )}
           value={value}
           required={required}
           aria-required={required ? "true" : undefined}
@@ -241,6 +252,163 @@ export function TextareaInput({
           onChange={(event: ChangeEvent<HTMLTextAreaElement>) =>
             onValueChange(event.currentTarget.value)
           }
+        />
+      )}
+    </FormField>
+  );
+}
+
+type DeferredTextInputProps = Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  "id" | "value" | "defaultValue" | "onChange" | "onBlur"
+> & {
+  label: string;
+  value?: string | number | null;
+  onCommit: (value: string) => void | Promise<void>;
+  helpText?: ReactNode;
+  error?: ReactNode;
+  wide?: boolean;
+};
+
+function normalizeDeferredValue(
+  value: string | number | null | undefined,
+): string {
+  return value === null || value === undefined ? "" : String(value);
+}
+
+export function DeferredTextInput({
+  label,
+  value,
+  onCommit,
+  helpText,
+  error,
+  wide,
+  required,
+  className,
+  ...inputProps
+}: DeferredTextInputProps) {
+  const normalizedValue = normalizeDeferredValue(value);
+  const [draft, setDraft] = useState(normalizedValue);
+
+  useEffect(() => {
+    setDraft(normalizedValue);
+  }, [normalizedValue]);
+
+  function handleBlur(event: FocusEvent<HTMLInputElement>) {
+    const nextValue = event.currentTarget.value;
+    if (nextValue !== normalizedValue) {
+      void onCommit(nextValue);
+    }
+  }
+
+  return (
+    <FormField
+      label={label}
+      helpText={helpText}
+      error={error}
+      wide={wide}
+      required={required}
+    >
+      {({ id, describedBy, invalid }) => (
+        <input
+          {...inputProps}
+          id={id}
+          className={joinClassNames(
+            "industrial-input industrial-text-input",
+            className,
+          )}
+          value={draft}
+          required={required}
+          aria-required={required ? "true" : undefined}
+          aria-invalid={invalid ? "true" : undefined}
+          aria-describedby={describedBy}
+          onChange={(event: ChangeEvent<HTMLInputElement>) =>
+            setDraft(event.currentTarget.value)
+          }
+          onBlur={handleBlur}
+        />
+      )}
+    </FormField>
+  );
+}
+
+export function DeferredDateTimeInput(
+  props: Omit<DeferredTextInputProps, "type">,
+) {
+  return <DeferredTextInput {...props} type="datetime-local" />;
+}
+
+type DeferredTextareaInputProps = Omit<
+  TextareaHTMLAttributes<HTMLTextAreaElement>,
+  "id" | "value" | "defaultValue" | "onChange" | "onBlur"
+> & {
+  label: string;
+  value?: string | null;
+  onCommit: (value: string) => void | Promise<void>;
+  helpText?: ReactNode;
+  error?: ReactNode;
+  wide?: boolean;
+  textCommandFieldId?: string;
+  showCommandHint?: boolean;
+  globalCommandsEnabled?: boolean;
+};
+
+export function DeferredTextareaInput({
+  label,
+  value,
+  onCommit,
+  helpText,
+  error,
+  wide,
+  required,
+  className,
+  textCommandFieldId,
+  showCommandHint,
+  globalCommandsEnabled,
+  ...textareaProps
+}: DeferredTextareaInputProps) {
+  const normalizedValue = value ?? "";
+  const [draft, setDraft] = useState(normalizedValue);
+
+  useEffect(() => {
+    setDraft(normalizedValue);
+  }, [normalizedValue]);
+
+  function handleBlur(event: FocusEvent<HTMLTextAreaElement>) {
+    const nextValue = event.currentTarget.value;
+    if (nextValue !== normalizedValue) {
+      void onCommit(nextValue);
+    }
+  }
+
+  return (
+    <FormField
+      label={label}
+      helpText={helpText}
+      error={error}
+      wide={wide}
+      required={required}
+    >
+      {({ id, describedBy, invalid }) => (
+        <TextCommandTextarea
+          {...textareaProps}
+          id={id}
+          fieldId={textCommandFieldId ?? id}
+          className={joinClassNames(
+            "industrial-input industrial-textarea-input",
+            className,
+          )}
+          value={draft}
+          required={required}
+          aria-required={required ? "true" : undefined}
+          aria-invalid={invalid ? "true" : undefined}
+          aria-describedby={describedBy}
+          showCommandHint={showCommandHint}
+          globalCommandsEnabled={globalCommandsEnabled}
+          onChange={(event: ChangeEvent<HTMLTextAreaElement>) =>
+            setDraft(event.currentTarget.value)
+          }
+          onBlur={handleBlur}
         />
       )}
     </FormField>
@@ -284,7 +452,10 @@ export function SelectInput({
         <select
           {...selectProps}
           id={id}
-          className={joinClassNames("industrial-input industrial-select", className)}
+          className={joinClassNames(
+            "industrial-input industrial-select industrial-select-input",
+            className,
+          )}
           value={value}
           required={required}
           aria-required={required ? "true" : undefined}
@@ -349,6 +520,53 @@ export function CheckboxField({
         />
       )}
     </FormField>
+  );
+}
+
+function formErrorKey(error: ReactNode, occurrence: number): string {
+  if (typeof error === "string" || typeof error === "number") {
+    return `${String(error)}-${occurrence}`;
+  }
+
+  if (isValidElement(error) && error.key !== null) {
+    return `${String(error.key)}-${occurrence}`;
+  }
+
+  return `form-error-${occurrence}`;
+}
+
+export function FormErrorSummary({
+  errors,
+  title = "Bitte Eingaben prüfen",
+}: {
+  errors: Array<ReactNode | false | null | undefined>;
+  title?: string;
+}) {
+  const visibleErrors = errors.filter(Boolean);
+  if (!visibleErrors.length) return null;
+
+  const occurrences = new Map<string, number>();
+  const keyedErrors = visibleErrors.map((error) => {
+    const baseKey =
+      typeof error === "string" || typeof error === "number"
+        ? String(error)
+        : isValidElement(error) && error.key !== null
+          ? String(error.key)
+          : "form-error";
+    const occurrence = (occurrences.get(baseKey) ?? 0) + 1;
+    occurrences.set(baseKey, occurrence);
+    return { error, key: formErrorKey(error, occurrence) };
+  });
+
+  return (
+    <div className="industrial-form-error-summary" role="alert" tabIndex={-1}>
+      <strong>{title}</strong>
+      <ul>
+        {keyedErrors.map(({ error, key }) => (
+          <li key={key}>{error}</li>
+        ))}
+      </ul>
+    </div>
   );
 }
 

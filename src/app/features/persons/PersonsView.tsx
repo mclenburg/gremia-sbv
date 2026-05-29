@@ -92,8 +92,8 @@ export function PersonsView(props: PersonsViewProps) {
   }
 
   return (
-    <ModuleFrame title="Personenverzeichnis" kicker="Datenschutz-Lifecycle" description="Datensparsames Verzeichnis schwerbehinderter und gleichgestellter Personen mit Import, Statusablauf und Fristenintegration.">
-      <div className="industrial-alert"><ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-yellow-300" aria-hidden="true" /><p>Gremia.SBV speichert hier nur den Schutzstatus, nicht den GdB. Importdateien werden lokal verarbeitet und nicht dauerhaft gespeichert.</p></div>
+    <ModuleFrame title="SBV-Personen und Schutzstatus" kicker="Datenschutz-Lifecycle" description="Datensparsames SBV-Verzeichnis für Schutzstatus, Personenbindung, Import und Prüffristen.">
+      <div className="industrial-alert"><ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-yellow-300" aria-hidden="true" /><p>Gremia.SBV speichert hier nur den für die SBV-Arbeit erforderlichen Schutzstatus, nicht den GdB. Importdateien werden lokal verarbeitet und nicht dauerhaft gespeichert.</p></div>
       <PersonToolbar query={query} onQueryChange={setQuery} onOpenCreate={() => setPersonCreateOpen(true)} onOpenImport={() => setImportOpen(true)} onExportIcal={() => void exportIcal()} />
       <ModuleFeedback items={[
         message ? { id: 'persons-message', tone: 'success', message } : null,

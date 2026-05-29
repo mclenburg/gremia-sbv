@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { GremiaBrDashboardOverview, GremiaBrRelevanceMatch } from '../../core/models/gremia-br.model';
 import { waitForBridge } from '../../core/bridge/waitForBridge';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
+import { ToolbarButton } from '../../shared/components/IndustrialButton';
 
 const EMPTY_DASHBOARD: GremiaBrDashboardOverview = {
   upcomingMeetings: [],
@@ -104,9 +105,9 @@ export function GremiaBrDashboardPanel() {
           <p className="font-mono text-xs uppercase tracking-[0.22em] text-zinc-500">Gremia.BR-Lesecache</p>
           <h3 id="gremia-br-dashboard-title">BR-Sitzungen und Beschlüsse</h3>
         </div>
-        <button type="button" className="industrial-button industrial-button-secondary" disabled={busy} onClick={() => void refresh()}>
+        <ToolbarButton disabled={busy} onClick={() => void refresh()}>
           {busy ? 'Aktualisiere …' : 'Jetzt aus Gremia.BR abrufen'}
-        </button>
+        </ToolbarButton>
       </div>
 
       <p className="text-sm text-zinc-400">

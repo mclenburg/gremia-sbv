@@ -1,13 +1,14 @@
 import { AlertTriangle, Clock3, Pencil, ShieldCheck, Trash2, UserRoundCheck } from 'lucide-react';
 import type { PersonLifecycleState, ProtectedPersonRecord } from '../../core/models/protected-person.model';
 import { employmentStateLabels, lifecycleStateLabels, protectionStatusLabels } from '../../core/models/protected-person.model';
+import { IconButton } from '../../shared/components/IndustrialButton';
 
-function personLabel(person: ProtectedPersonRecord): string {
+export function personLabel(person: ProtectedPersonRecord): string {
   if (person.recordKind === 'pseudonymous_request') return person.pseudonymLabel || 'Anonyme Anfrage';
   return `${person.lastName}, ${person.firstName}`;
 }
 
-function lifecycleSeverity(state: PersonLifecycleState): 'ok' | 'warning' | 'critical' | 'muted' {
+export function lifecycleSeverity(state: PersonLifecycleState): 'ok' | 'warning' | 'critical' | 'muted' {
   if (state === 'expired_review_required' || state === 'anonymization_pending') return 'critical';
   if (state === 'expiring_soon' || state === 'retention_documented') return 'warning';
   if (state === 'anonymized' || state === 'deleted_marker') return 'muted';
@@ -52,26 +53,25 @@ export function PersonList({
                 <strong>{label}</strong>
                 <span>{protectionStatusLabels[person.protectionStatus]} · {employmentStateLabels[person.employmentState]}</span>
                 <small className={`person-lifecycle-badge ${severity}`}><LifecycleIcon severity={severity} />{lifecycleStateLabels[person.lifecycleState]}</small>
+                {person.recordKind === 'pseudonymous_request' ? <small className="person-privacy-badge">pseudonym · nicht re-identifizieren</small> : null}
               </button>
               <div className="person-list-actions">
-                <button
-                  type="button"
+                <IconButton
                   className="person-list-edit"
                   aria-label={`Person bearbeiten: ${label}`}
                   title={`Person bearbeiten: ${label}`}
                   onClick={() => onEdit(person)}
                 >
                   <Pencil className="h-4 w-4" aria-hidden="true" />
-                </button>
-                <button
-                  type="button"
+                </IconButton>
+                <IconButton
                   className="person-list-delete"
                   aria-label={`Person löschen: ${label}`}
                   title={`Person löschen: ${label}`}
                   onClick={() => onDelete(person)}
                 >
                   <Trash2 className="h-4 w-4" aria-hidden="true" />
-                </button>
+                </IconButton>
               </div>
             </div>
           );

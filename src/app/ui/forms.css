@@ -1,0 +1,671 @@
+/* Gremia.SBV 1.0 UI-Fundament: zentrale Formular-Control-Optik und Validierungs-Chrome. */
+
+.industrial-form-section {
+  display: grid;
+  gap: var(--space-4, 1rem);
+  min-width: 0;
+}
+
+.industrial-form-section.industrial-panel {
+  padding: var(--space-4, 1rem);
+}
+
+.industrial-field-label {
+  color: var(--industrial-text-muted);
+  font-size: 0.74rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.industrial-field-help,
+.industrial-field-error {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  letter-spacing: normal;
+  text-transform: none;
+}
+.template-filter-form select,
+.template-detail-fields select,
+.template-create-form select,
+.person-edit-form select,
+.knowledge-search-bar select {
+  min-height: var(--control-min-height);
+  border: 1px solid var(--industrial-border-strong);
+  border-radius: var(--control-radius);
+  background-color: var(--industrial-select-bg);
+  color: var(--industrial-text-strong, #f4f4f5);
+  padding: 0.68rem 2.8rem 0.68rem 0.75rem;
+  font: inherit;
+  outline: none;
+}
+
+.template-filter-form select:focus-visible,
+.template-detail-fields select:focus-visible,
+.template-create-form select:focus-visible,
+.person-edit-form select:focus-visible,
+.knowledge-search-bar select:focus-visible {
+  border-color: var(--industrial-accent);
+  outline: 2px solid var(--industrial-accent);
+  outline-offset: 2px;
+  box-shadow: var(--focus-ring);
+}
+
+html[data-theme='light'] .template-filter-form select,
+html[data-theme='light'] .template-detail-fields select,
+html[data-theme='light'] .template-create-form select,
+html[data-theme='light'] .person-edit-form select,
+html[data-theme='light'] .knowledge-search-bar select {
+  background-color: var(--industrial-select-bg);
+  color: #141414;
+}
+
+.industrial-field-help {
+  color: var(--industrial-text-muted);
+  font-weight: 500;
+}
+
+.industrial-field-error {
+  color: var(--industrial-danger);
+  font-weight: 800;
+}
+
+.industrial-field-invalid input,
+.industrial-field-invalid select,
+.industrial-field-invalid textarea {
+  border-color: var(--industrial-danger);
+  outline-color: var(--industrial-danger);
+}
+
+.industrial-checkbox-field {
+  align-content: start;
+  grid-template-columns: auto 1fr;
+  column-gap: var(--space-2, 0.5rem);
+}
+
+.industrial-checkbox-field input[type='checkbox'] {
+  width: auto;
+  min-width: 1.05rem;
+  min-height: 1.05rem;
+  margin-top: 0.2rem;
+  grid-row: 1 / span 3;
+}
+
+.industrial-checkbox-field .industrial-field-label {
+  color: var(--industrial-text);
+  font-size: 0.8rem;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.industrial-checkbox-field .industrial-field-help,
+.industrial-checkbox-field .industrial-field-error {
+  grid-column: 2;
+}
+
+.industrial-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3, 0.75rem);
+  align-items: center;
+  padding-top: var(--space-2, 0.5rem);
+}
+
+.industrial-form-actions-start {
+  justify-content: flex-start;
+}
+
+.industrial-form-actions-end {
+  justify-content: flex-end;
+}
+
+.industrial-form-actions-between {
+  justify-content: space-between;
+}
+
+/* Zentrales Formular-Chrome fuer das 1.0-UI-Fundament. */
+.industrial-input,
+.industrial-text-input,
+.industrial-textarea-input,
+.industrial-select-input,
+.industrial-field input,
+.industrial-field select,
+.industrial-field textarea {
+  border: 1px solid var(--industrial-control-border);
+  border-radius: var(--industrial-control-radius);
+  background: var(--industrial-control-bg);
+  color: var(--industrial-control-text);
+  font: inherit;
+  outline: none;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.industrial-input,
+.industrial-text-input,
+.industrial-select-input,
+.industrial-field input,
+.industrial-field select {
+  min-height: var(--control-min-height);
+  padding: var(--industrial-control-padding-y) var(--industrial-control-padding-x);
+}
+
+.industrial-textarea-input,
+.industrial-field textarea {
+  min-height: var(--industrial-textarea-min-height);
+  padding: var(--industrial-control-padding-y) var(--industrial-control-padding-x);
+  line-height: 1.55;
+  resize: vertical;
+}
+
+.industrial-input::placeholder,
+.industrial-text-input::placeholder,
+.industrial-textarea-input::placeholder,
+.industrial-field input::placeholder,
+.industrial-field textarea::placeholder {
+  color: var(--industrial-control-placeholder);
+  opacity: 1;
+}
+
+.industrial-input:hover,
+.industrial-text-input:hover,
+.industrial-textarea-input:hover,
+.industrial-select-input:hover,
+.industrial-field input:hover,
+.industrial-field select:hover,
+.industrial-field textarea:hover {
+  background-color: var(--industrial-control-bg-hover);
+}
+
+.industrial-input:focus-visible,
+.industrial-text-input:focus-visible,
+.industrial-textarea-input:focus-visible,
+.industrial-select-input:focus-visible,
+.industrial-field input:focus-visible,
+.industrial-field select:focus-visible,
+.industrial-field textarea:focus-visible {
+  border-color: var(--industrial-control-border-focus);
+  outline: 2px solid var(--industrial-control-border-focus);
+  outline-offset: 2px;
+  box-shadow: var(--focus-ring);
+}
+
+.industrial-field-help {
+  color: var(--industrial-control-help);
+}
+
+.industrial-field-invalid .industrial-input,
+.industrial-field-invalid .industrial-text-input,
+.industrial-field-invalid .industrial-textarea-input,
+.industrial-field-invalid .industrial-select-input,
+.industrial-field-invalid input,
+.industrial-field-invalid select,
+.industrial-field-invalid textarea {
+  border-color: var(--industrial-control-border-error);
+  outline-color: var(--industrial-control-border-error);
+}
+
+.industrial-form-error-summary {
+  display: grid;
+  gap: var(--space-2, 0.5rem);
+  border: 1px solid var(--industrial-danger, #ef4444);
+  border-left-width: 4px;
+  border-radius: var(--industrial-control-radius);
+  background: color-mix(in srgb, var(--industrial-danger, #ef4444) 11%, var(--industrial-panel, #09090b));
+  color: var(--industrial-text-strong, #f4f4f5);
+  padding: var(--space-3, 0.75rem) var(--space-4, 1rem);
+}
+
+.industrial-form-error-summary ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.industrial-form,
+.industrial-form-grid,
+.industrial-form-deadline,
+.industrial-modal-grid,
+.industrial-grid-two,
+.industrial-split-grid,
+.industrial-deadline-grid {
+  gap: var(--layout-gap);
+}
+
+.industrial-field > span .prefill-marker,
+.industrial-modal-grid label > span .prefill-marker {
+  vertical-align: baseline;
+}
+
+.case-detail-inline-form input,
+.case-detail-inline-form select,
+.case-detail-inline-form textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: var(--control-min-height, 2.5rem);
+  border: 1px solid var(--industrial-border-strong, var(--sbv-border-hard));
+  background: var(--industrial-bg, #050505);
+  color: var(--industrial-text-strong, #fafafa);
+  outline: none;
+  padding: 0.68rem 0.75rem;
+  border-radius: var(--control-radius);
+}
+
+.case-detail-inline-form textarea {
+  min-height: 8rem;
+  resize: vertical;
+  overflow: auto;
+}
+
+.case-detail-inline-form input:focus-visible,
+.case-detail-inline-form select:focus-visible,
+.case-detail-inline-form textarea:focus-visible {
+  border-color: var(--industrial-accent, var(--sbv-yellow));
+  outline: 2px solid var(--industrial-accent, var(--sbv-yellow));
+  outline-offset: 2px;
+  box-shadow: var(--focus-ring, 0 0 0 2px rgba(250,204,21,0.14));
+}
+
+.industrial-checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(15rem, 100%), 1fr));
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.industrial-checkbox-grid .industrial-checkbox-row {
+  min-width: 0;
+  height: 100%;
+}
+
+.industrial-checkbox-grid .industrial-checkbox-row label {
+  width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+html[data-theme='light'] .case-detail-inline-form input,
+html[data-theme='light'] .case-detail-inline-form select,
+html[data-theme='light'] .case-detail-inline-form textarea {
+  background: #f9f9f4;
+  color: #141414;
+}
+
+select.industrial-input,
+.industrial-select,
+.industrial-form select,
+.industrial-settings-form select,
+.industrial-modal-grid select,
+.industrial-field select,
+.case-detail-inline-form select,
+.template-filter-form select,
+.template-detail-fields select,
+.template-create-form select,
+.person-edit-form select,
+.knowledge-search-bar select {
+  appearance: none;
+  background-color: var(--industrial-select-bg);
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--industrial-select-arrow) 50%),
+    linear-gradient(135deg, var(--industrial-select-arrow) 50%, transparent 50%),
+    linear-gradient(to bottom, transparent 16%, var(--industrial-select-divider) 16%, var(--industrial-select-divider) 84%, transparent 84%);
+  background-position:
+    calc(100% - 1.05rem) calc(50% - 0.12rem),
+    calc(100% - 0.78rem) calc(50% - 0.12rem),
+    calc(100% - 2.35rem) 50%;
+  background-repeat: no-repeat;
+  background-size: 0.34rem 0.34rem, 0.34rem 0.34rem, 1px 1.65rem;
+  color: var(--industrial-text-strong, #f4f4f5);
+  padding-right: 2.8rem;
+  color-scheme: dark;
+}
+
+html[data-theme='light'] select.industrial-input,
+html[data-theme='light'] .industrial-select,
+html[data-theme='light'] .industrial-form select,
+html[data-theme='light'] .industrial-settings-form select,
+html[data-theme='light'] .industrial-modal-grid select,
+html[data-theme='light'] .industrial-field select,
+html[data-theme='light'] .case-detail-inline-form select,
+html[data-theme='light'] .template-filter-form select,
+html[data-theme='light'] .template-detail-fields select,
+html[data-theme='light'] .template-create-form select,
+html[data-theme='light'] .person-edit-form select,
+html[data-theme='light'] .knowledge-search-bar select {
+  color: #141414;
+  color-scheme: light;
+}
+
+select.industrial-input:hover,
+.industrial-select:hover,
+.industrial-form select:hover,
+.industrial-settings-form select:hover,
+.industrial-modal-grid select:hover,
+.industrial-field select:hover,
+.case-detail-inline-form select:hover,
+.template-filter-form select:hover,
+.template-detail-fields select:hover,
+.template-create-form select:hover,
+.person-edit-form select:hover,
+.knowledge-search-bar select:hover {
+  background-color: var(--industrial-select-bg-hover);
+  border-color: var(--industrial-accent, #facc15);
+}
+
+select.industrial-input option,
+.industrial-select option,
+.industrial-form select option,
+.industrial-settings-form select option,
+.industrial-modal-grid select option,
+.industrial-field select option,
+.case-detail-inline-form select option,
+.template-filter-form select option,
+.template-detail-fields select option,
+.template-create-form select option,
+.person-edit-form select option,
+.knowledge-search-bar select option {
+  background: var(--industrial-select-option-bg);
+  color: var(--industrial-text-strong, #f4f4f5);
+}
+
+html[data-theme='light'] select.industrial-input option,
+html[data-theme='light'] .industrial-select option,
+html[data-theme='light'] .industrial-form select option,
+html[data-theme='light'] .industrial-settings-form select option,
+html[data-theme='light'] .industrial-modal-grid select option,
+html[data-theme='light'] .industrial-field select option,
+html[data-theme='light'] .case-detail-inline-form select option,
+html[data-theme='light'] .template-filter-form select option,
+html[data-theme='light'] .template-detail-fields select option,
+html[data-theme='light'] .template-create-form select option,
+html[data-theme='light'] .person-edit-form select option,
+html[data-theme='light'] .knowledge-search-bar select option {
+  color: #141414;
+}
+
+.case-register-actions .industrial-input {
+  width: 100%;
+  min-width: 0;
+}
+
+.industrial-status-card,
+.industrial-record-card,
+.industrial-selection-card {
+  display: grid;
+  gap: 0.5rem;
+  border: 1px solid var(--industrial-border);
+  border-radius: var(--control-radius);
+  background: color-mix(in srgb, var(--industrial-panel-muted) 88%, black 12%);
+  color: var(--industrial-text);
+  padding: clamp(0.75rem, 1vw, 0.95rem);
+  min-width: 0;
+}
+
+.industrial-status-card h3,
+.industrial-status-card p,
+.industrial-record-card h3,
+.industrial-record-card p,
+.industrial-selection-card h3,
+.industrial-selection-card p {
+  margin: 0;
+}
+
+.industrial-status-card p,
+.industrial-status-card small,
+.industrial-record-card p,
+.industrial-record-card small,
+.industrial-selection-card p {
+  color: var(--industrial-text-muted);
+}
+
+.industrial-selection-card.is-active {
+  border-color: var(--industrial-accent);
+  box-shadow: inset 3px 0 0 var(--industrial-accent);
+}
+
+.sbv-resource-form label .industrial-input,
+.sbv-resource-form label textarea,
+.sbv-resource-form label select {
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 500;
+}
+
+.privacy-review-form textarea {
+  min-height: 6rem;
+  resize: vertical;
+}
+
+.person-edit-form textarea,
+.person-edit-form input,
+.person-edit-form select {
+  max-width: 100%;
+}
+
+.person-list-select {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 0.75rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.person-list-select:focus-visible,
+.person-list-delete:focus-visible {
+  outline: 2px solid var(--industrial-accent);
+  outline-offset: -2px;
+}
+
+.person-edit-form input,
+.person-edit-form select,
+.person-edit-form textarea {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  border: 1px solid var(--sbv-border);
+  background: #050505;
+  color: var(--sbv-text);
+  padding: 10px 12px;
+  font: inherit;
+  box-sizing: border-box;
+}
+
+.person-edit-form textarea {
+  min-height: 6.5rem;
+  resize: vertical;
+}
+
+.handover-import-file-row input {
+  min-width: 0;
+}
+
+.template-filter-form input,
+.template-filter-form select,
+.template-detail-fields input,
+.template-detail-fields select,
+.template-create-form input,
+.template-create-form select,
+.template-create-form textarea {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.template-create-form textarea {
+  min-height: 14rem;
+  resize: vertical;
+}
+
+.template-default-grid input,
+.template-default-grid textarea {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.template-default-grid textarea {
+  min-height: 7rem;
+  resize: vertical;
+}
+
+.knowledge-search-bar input,
+.knowledge-search-bar select {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.reports-card:hover,
+.reports-card.is-selected {
+  border-color: var(--sbv-accent);
+  box-shadow: 0 0 0 1px rgba(255, 213, 0, .35), 0 0 1.25rem rgba(255, 213, 0, .12);
+}
+
+.settings-hub-tab[aria-selected='true'] {
+  border-color: rgba(250, 204, 21, 0.75);
+  box-shadow: inset 0 -2px 0 rgba(250, 204, 21, 0.95);
+}
+
+.settings-hub-tab[aria-selected='true']:hover {
+  border-color: rgba(250, 204, 21, 0.75);
+  box-shadow: inset 0 -2px 0 rgba(250, 204, 21, 0.95);
+}
+
+.gremia-br-toggle-row input[type='checkbox'],
+.gremia-br-relevance-group input[type='checkbox'] {
+  width: 1rem;
+  height: 1rem;
+  flex: 0 0 auto;
+  accent-color: rgb(250, 204, 21);
+}
+
+.settings-hub-tab:hover,
+.settings-hub-tab[aria-selected='true']:hover {
+  transform: none;
+}
+
+.text-command-help-search input {
+  width: 100%;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 0;
+  background: rgba(15, 23, 42, 0.86);
+  color: rgb(226, 232, 240);
+  padding: 0.7rem 0.85rem;
+}
+
+.text-command-help-search input:focus-visible {
+  outline: 2px solid rgb(250, 204, 21);
+  outline-offset: 2px;
+}
+
+html[data-theme='light'] .industrial-subpanel h4,
+html[data-theme='light'] .industrial-subpanel p,
+html[data-theme='light'] .industrial-subpanel li,
+html[data-theme='light'] .industrial-subpanel summary,
+html[data-theme='light'] .industrial-record-card h3,
+html[data-theme='light'] .industrial-record-card p,
+html[data-theme='light'] .industrial-selection-card h3,
+html[data-theme='light'] .industrial-selection-card p,
+html[data-theme='light'] .industrial-status-card h3,
+html[data-theme='light'] .industrial-status-card p,
+html[data-theme='light'] .industrial-status-card small,
+html[data-theme='light'] .industrial-data-table td,
+html[data-theme='light'] .industrial-data-table-cell p,
+html[data-theme='light'] .industrial-data-table-cell span {
+  color: var(--text-primary);
+}
+
+html[data-theme='light'] .industrial-record-card small,
+html[data-theme='light'] .industrial-selection-card small,
+html[data-theme='light'] .industrial-empty-state span,
+html[data-theme='light'] .industrial-search-field span,
+html[data-theme='light'] .industrial-search-count,
+html[data-theme='light'] .knowledge-register-row small,
+html[data-theme='light'] .knowledge-case-link summary {
+  color: var(--text-muted);
+}
+
+html[data-theme='light'] .knowledge-register-row:hover,
+html[data-theme='light'] .knowledge-register-row:focus-visible,
+html[data-theme='light'] .knowledge-register-row.active,
+html[data-theme='light'] .industrial-selection-card.is-active,
+html[data-theme='light'] .industrial-record-card.is-active {
+  border-color: var(--accent);
+  background: linear-gradient(135deg, rgba(255, 248, 204, 0.86), rgba(239, 230, 190, 0.94));
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+html[data-theme='light'] .industrial-input,
+html[data-theme='light'] .industrial-form input,
+html[data-theme='light'] .industrial-form select,
+html[data-theme='light'] .industrial-form textarea,
+html[data-theme='light'] .industrial-settings-form input,
+html[data-theme='light'] .industrial-settings-form select,
+html[data-theme='light'] .industrial-settings-form textarea,
+html[data-theme='light'] .industrial-field input,
+html[data-theme='light'] .industrial-field select,
+html[data-theme='light'] .industrial-field textarea,
+html[data-theme='light'] .knowledge-search-bar input,
+html[data-theme='light'] .knowledge-search-bar select {
+  border-color: var(--border-strong);
+  background: #fbfaf2;
+  color: var(--text-primary);
+}
+
+html[data-theme='light'] .industrial-input::placeholder,
+html[data-theme='light'] .industrial-form input::placeholder,
+html[data-theme='light'] .industrial-form textarea::placeholder,
+html[data-theme='light'] .industrial-settings-form input::placeholder,
+html[data-theme='light'] .industrial-settings-form textarea::placeholder,
+html[data-theme='light'] .industrial-field input::placeholder,
+html[data-theme='light'] .industrial-field textarea::placeholder,
+html[data-theme='light'] .knowledge-search-bar input::placeholder {
+  color: #6a6a60;
+  opacity: 1;
+}
+
+.text-command-help-search input {
+  border-radius: 0;
+  border-color: var(--industrial-border-strong);
+  background: var(--industrial-bg);
+  color: var(--industrial-text);
+}
+
+.text-command-help-search input::placeholder {
+  color: var(--industrial-text-muted);
+}
+
+/* P10F: Light-Mode-Selektoren behalten ebenfalls die harte Kante. */
+html[data-theme='light'] .text-command-help-modal,
+html[data-theme='light'] .text-command-help-search,
+html[data-theme='light'] .text-command-help-group,
+html[data-theme='light'] .text-command-help-item,
+html[data-theme='light'] .text-command-help-empty,
+html[data-theme='light'] .text-command-help-search input,
+html[data-theme='light'] .text-command-help-modal .industrial-icon-button {
+  border-radius: 0;
+}
+
+/* P12A: Visual-QA misst background-color; Light-Mode-Flächen dürfen nicht nur ein Gradient-Image haben. */
+html[data-theme='light'] .industrial-empty-state,
+html[data-theme='light'] .text-command-help-modal,
+html[data-theme='light'] .text-command-help-group,
+html[data-theme='light'] .text-command-help-item,
+html[data-theme='light'] .text-command-help-search,
+html[data-theme='light'] .text-command-help-empty,
+html[data-theme='light'] .text-command-help-modal .industrial-inline-note,
+html[data-theme='light'] .text-command-help-search input,
+html[data-theme='light'] .text-command-help-modal .industrial-icon-button {
+  background-color: #fafaf5;
+}
+
+:where(.industrial-form-section, .industrial-field-label, .industrial-field-help, .industrial-field-error, .industrial-field-invalid, .industrial-checkbox-field, .industrial-form-actions) {
+}
+
+:where(.industrial-record-card, .industrial-selection-card, .industrial-status-card, .industrial-warning-panel, .industrial-danger-panel, .industrial-tone-warning, .industrial-tone-danger, .industrial-tone-ok) {
+}

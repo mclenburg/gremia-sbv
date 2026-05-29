@@ -242,19 +242,38 @@ button { border-radius: 0; }
 .industrial-input,
 .industrial-form input,
 .industrial-form select,
-.industrial-settings-form input {
+.industrial-form textarea,
+.industrial-settings-form input,
+.industrial-settings-form textarea {
   width: 100%;
   border: 1px solid var(--sbv-border-hard);
   background: #050505;
   color: #fafafa;
+  caret-color: var(--sbv-yellow);
+  color-scheme: dark;
   outline: none;
   padding: 11px 12px;
   border-radius: 0;
 }
+.industrial-form textarea,
+.industrial-settings-form textarea {
+  min-height: 92px;
+  resize: vertical;
+}
+.industrial-input::placeholder,
+.industrial-form input::placeholder,
+.industrial-form textarea::placeholder,
+.industrial-settings-form input::placeholder,
+.industrial-settings-form textarea::placeholder {
+  color: #8f8f99;
+  opacity: 1;
+}
 .industrial-input:focus,
 .industrial-form input:focus,
 .industrial-form select:focus,
-.industrial-settings-form input:focus { border-color: var(--sbv-yellow); box-shadow: 0 0 0 2px rgba(250,204,21,0.14); }
+.industrial-form textarea:focus,
+.industrial-settings-form input:focus,
+.industrial-settings-form textarea:focus { border-color: var(--sbv-yellow); box-shadow: 0 0 0 2px rgba(250,204,21,0.14); }
 
 .industrial-button {
   display: inline-flex;
@@ -787,18 +806,33 @@ html[data-theme='light'] .text-yellow-100 {
 }
 
 .industrial-modal-grid input,
-.industrial-modal-grid select {
+.industrial-modal-grid select,
+.industrial-modal-grid textarea {
   width: 100%;
   border: 1px solid var(--sbv-border-hard);
   background: #050505;
   color: #fafafa;
+  caret-color: var(--sbv-yellow);
+  color-scheme: dark;
   outline: none;
   padding: 11px 12px;
   border-radius: 0;
 }
 
+.industrial-modal-grid textarea {
+  min-height: 92px;
+  resize: vertical;
+}
+
+.industrial-modal-grid input::placeholder,
+.industrial-modal-grid textarea::placeholder {
+  color: #8f8f99;
+  opacity: 1;
+}
+
 .industrial-modal-grid input:focus,
-.industrial-modal-grid select:focus {
+.industrial-modal-grid select:focus,
+.industrial-modal-grid textarea:focus {
   border-color: var(--sbv-yellow);
   box-shadow: 0 0 0 2px rgba(250,204,21,0.14);
 }
@@ -829,10 +863,12 @@ html[data-theme='light'] .industrial-modal-preview {
 }
 
 html[data-theme='light'] .industrial-modal-grid input,
-html[data-theme='light'] .industrial-modal-grid select {
+html[data-theme='light'] .industrial-modal-grid select,
+html[data-theme='light'] .industrial-modal-grid textarea {
   background: #f8f8f2;
   color: #111111;
   border-color: #9a9a8d;
+  color-scheme: light;
 }
 
 html[data-theme='light'] .industrial-modal-preview {
@@ -860,6 +896,13 @@ html[data-theme='light'] .industrial-secondary-button,
 html[data-theme='light'] .industrial-table-actions button { background: #eeeeea; color: var(--sbv-text); }
 html[data-theme='light'] .industrial-checkbox-row { background: #eeeeea; }
 html[data-theme='light'] .industrial-settings-form select { background: #f7f7f2; color: var(--sbv-text); }
+html[data-theme='light'] .industrial-form textarea,
+html[data-theme='light'] .industrial-settings-form textarea {
+  background: #f8f8f2;
+  color: #111111;
+  border-color: #9a9a8d;
+  color-scheme: light;
+}
 
 @media (max-width: 1180px) { .industrial-form-deadline { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 760px) { .industrial-form-deadline, .industrial-form-wide { grid-template-columns: 1fr; } }

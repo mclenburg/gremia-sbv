@@ -1,20 +1,38 @@
-import { useEffect, useState } from 'react';
-import type { EqualizationProcessRecord, EqualizationStatus } from '../../core/models/equalization.model';
-import type { CaseNoteRecord } from '../../core/models/case-note.model';
-import { TextCommandTextarea } from '../../shared/textCommands/TextCommandTextarea';
-import { formatDateShort } from '../../shared/format/dates';
-import { waitForBridge } from '../../core/bridge/waitForBridge';
-import { ProcessDetailHeader, ProcessSection } from '../../shared/process/ProcessDetailHeader';
-import { fromDateTimeLocalValue, toDateTimeLocalValue } from '../cases/caseWorkbenchFormat';
-import { equalizationStatusLabel, equalizationStatusOrder } from './equalizationShared';
-import { buildEqualizationGuidance } from '@services/equalizationGuidancePolicy';
+import { useEffect, useState } from "react";
+import type { CaseNoteRecord } from "../../core/models/case-note.model";
+import type {
+  EqualizationProcessRecord,
+  EqualizationStatus,
+} from "../../core/models/equalization.model";
+import { waitForBridge } from "../../core/bridge/waitForBridge";
+import { ToolbarButton } from "../../shared/components/IndustrialButton";
+import {
+  DeferredDateTimeInput,
+  DeferredTextInput,
+  DeferredTextareaInput,
+  SelectInput,
+} from "../../shared/components/IndustrialForm";
+import { formatDateShort } from "../../shared/format/dates";
+import {
+  ProcessDetailHeader,
+  ProcessSection,
+} from "../../shared/process/ProcessDetailHeader";
+import {
+  fromDateTimeLocalValue,
+  toDateTimeLocalValue,
+} from "../cases/caseWorkbenchFormat";
+import { buildEqualizationGuidance } from "@services/equalizationGuidancePolicy";
+import {
+  equalizationStatusLabel,
+  equalizationStatusOrder,
+} from "./equalizationShared";
 
 function normalizeDateTime(value: string): string | undefined {
   return value ? fromDateTimeLocalValue(value) : undefined;
 }
 
 function stripEqualizationNoteMarker(content: string): string {
-  return content.replace(/^\[\[equalization:[^\]]+\]\]\s*/m, '').trim();
+  return content.replace(/^\[\[equalization:[^\]]+\]\]\s*/m, "").trim();
 }
 
 export function EqualizationProcessDetail({
@@ -22,23 +40,29 @@ export function EqualizationProcessDetail({
   onUpdate,
   onOpenTemplates,
   secureNotes = [],
-  onCreateSecureNote
+  onCreateSecureNote,
 }: {
   process: EqualizationProcessRecord;
-  onUpdate: (id: string, input: Partial<EqualizationProcessRecord>) => Promise<void>;
+  onUpdate: (
+    id: string,
+    input: Partial<EqualizationProcessRecord>,
+  ) => Promise<void>;
   onOpenTemplates?: (process: EqualizationProcessRecord) => void;
   secureNotes?: CaseNoteRecord[];
-  onCreateSecureNote?: (process: EqualizationProcessRecord, content: string) => Promise<void>;
+  onCreateSecureNote?: (
+    process: EqualizationProcessRecord,
+    content: string,
+  ) => Promise<void>;
 }) {
   const [warnings, setWarnings] = useState<string[]>([]);
-  const [secureNoteDraft, setSecureNoteDraft] = useState('');
+  const [secureNoteDraft, setSecureNoteDraft] = useState("");
   const guidance = buildEqualizationGuidance(process);
 
   async function saveSecureNote() {
     const content = secureNoteDraft.trim();
     if (!content || !onCreateSecureNote) return;
     await onCreateSecureNote(process, content);
-    setSecureNoteDraft('');
+    setSecureNoteDraft("");
   }
 
   useEffect(() => {
@@ -64,11 +88,22 @@ export function EqualizationProcessDetail({
         <ProcessDetailHeader
           title="Gleichstellung / GdB"
           description="Beratung, Antrag, Bescheid und Widerspruchsfrist sauber dokumentieren. Die SBV unterstützt, entscheidet aber nicht über Antrag oder Widerspruch."
-          documentAction={onOpenTemplates ? () => onOpenTemplates(process) : undefined}
+          documentAction={
+            onOpenTemplates ? () => onOpenTemplates(process) : undefined
+          }
           badges={[
-            { label: 'Status', value: equalizationStatusLabel(process.applicationStatus) },
-            { label: 'Bescheid', value: formatDateShort(process.decisionReceivedAt) },
-            { label: 'Widerspruch', value: formatDateShort(process.objectionDueAt) }
+            {
+              label: "Status",
+              value: equalizationStatusLabel(process.applicationStatus),
+            },
+            {
+              label: "Bescheid",
+              value: formatDateShort(process.decisionReceivedAt),
+            },
+            {
+              label: "Widerspruch",
+              value: formatDateShort(process.objectionDueAt),
+            },
           ]}
         />
 
@@ -78,47 +113,145 @@ export function EqualizationProcessDetail({
             <p>{guidance.objective}</p>
           </div>
           {guidance.suggestedNextStatus && (
-            <button type="button" className="industrial-secondary-button compact" onClick={() => void onUpdate(process.id, { applicationStatus: guidance.suggestedNextStatus })}>
-              Status vorschlagen: {equalizationStatusLabel(guidance.suggestedNextStatus)}
-            </button>
+            <ToolbarButton
+              onClick={() =>
+                void onUpdate(process.id, {
+                  applicationStatus: guidance.suggestedNextStatus,
+                })
+              }
+            >
+              Status vorschlagen:{" "}
+              {equalizationStatusLabel(guidance.suggestedNextStatus)}
+            </ToolbarButton>
           )}
+        </div>
+
+        <div className="industrial-message equalization-privacy-panel">
+          <strong>Gesundheitsdaten sparsam dokumentieren.</strong>
+          <p>
+            Für Gleichstellung und GdB reichen häufig Verfahrensstand, Fristen
+            und SBV-Handlungsschritte. Diagnosen und Bescheiddetails gehören nur
+            in verschlüsselte Notizen, wenn sie wirklich erforderlich sind.
+          </p>
         </div>
 
         {warnings.length > 0 && (
           <div className="industrial-message industrial-message-warning">
             <strong>Hinweise</strong>
-            <ul>{warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul>
+            <ul>
+              {warnings.map((warning) => (
+                <li key={warning}>{warning}</li>
+              ))}
+            </ul>
           </div>
         )}
 
         <div className="prevention-status-sections bem-status-sections">
-          <ProcessSection title="Status und Antrag" objective="Antragseinreichung, Geschäftszeichen und Bearbeitungsstand nachvollziehbar halten.">
-            <label><span>Status</span><select value={process.applicationStatus} onChange={(event) => void onUpdate(process.id, { applicationStatus: event.target.value as EqualizationStatus })}>{equalizationStatusOrder.map((status) => <option key={status} value={status}>{equalizationStatusLabel(status)}</option>)}</select></label>
-            <label><span>Geschäftszeichen / Agentur</span><input defaultValue={process.agencyReference ?? ''} onBlur={(event) => void onUpdate(process.id, { agencyReference: event.currentTarget.value })} /></label>
-            <label><span>Antrag eingereicht am</span><input type="datetime-local" defaultValue={toDateTimeLocalValue(process.applicationSubmittedAt)} onBlur={(event) => void onUpdate(process.id, { applicationSubmittedAt: normalizeDateTime(event.currentTarget.value) })} /></label>
+          <ProcessSection
+            title="Status und Antrag"
+            objective="Antragseinreichung, Geschäftszeichen und Bearbeitungsstand nachvollziehbar halten."
+          >
+            <div className="industrial-form-grid">
+              <SelectInput
+                label="Status"
+                value={process.applicationStatus}
+                options={equalizationStatusOrder.map((status) => ({
+                  value: status,
+                  label: equalizationStatusLabel(status),
+                }))}
+                onValueChange={(value) =>
+                  void onUpdate(process.id, {
+                    applicationStatus: value as EqualizationStatus,
+                  })
+                }
+              />
+              <DeferredTextInput
+                label="Geschäftszeichen / Agentur"
+                value={process.agencyReference ?? ""}
+                onCommit={(value) =>
+                  onUpdate(process.id, { agencyReference: value })
+                }
+              />
+              <DeferredDateTimeInput
+                label="Antrag eingereicht am"
+                value={toDateTimeLocalValue(process.applicationSubmittedAt)}
+                onCommit={(value) =>
+                  onUpdate(process.id, {
+                    applicationSubmittedAt: normalizeDateTime(value),
+                  })
+                }
+              />
+            </div>
           </ProcessSection>
 
-          <ProcessSection title="Bescheid und Widerspruch" objective="Bei Ablehnung ist die Widerspruchsfrist der kritische Punkt.">
-            <label><span>Bescheid erhalten am</span><input type="datetime-local" defaultValue={toDateTimeLocalValue(process.decisionReceivedAt)} onBlur={(event) => void onUpdate(process.id, { decisionReceivedAt: normalizeDateTime(event.currentTarget.value) })} /></label>
-            <label><span>Widerspruchsfrist</span><input type="datetime-local" defaultValue={toDateTimeLocalValue(process.objectionDueAt)} onBlur={(event) => void onUpdate(process.id, { objectionDueAt: normalizeDateTime(event.currentTarget.value) })} /></label>
-            <label className="case-note-content-input"><span>Ergebnis / Bescheid</span><TextCommandTextarea fieldId="equalization-outcome" defaultValue={process.outcome ?? ''} onBlur={(event) => void onUpdate(process.id, { outcome: event.currentTarget.value })} /></label>
+          <ProcessSection
+            title="Bescheid und Widerspruch"
+            objective="Bei Ablehnung ist die Widerspruchsfrist der kritische Punkt."
+          >
+            <div className="industrial-form-grid">
+              <DeferredDateTimeInput
+                label="Bescheid erhalten am"
+                value={toDateTimeLocalValue(process.decisionReceivedAt)}
+                onCommit={(value) =>
+                  onUpdate(process.id, {
+                    decisionReceivedAt: normalizeDateTime(value),
+                  })
+                }
+              />
+              <DeferredDateTimeInput
+                label="Widerspruchsfrist"
+                value={toDateTimeLocalValue(process.objectionDueAt)}
+                onCommit={(value) =>
+                  onUpdate(process.id, {
+                    objectionDueAt: normalizeDateTime(value),
+                  })
+                }
+              />
+            </div>
+            <DeferredTextareaInput
+              label="Ergebnis / Bescheid"
+              value={process.outcome ?? ""}
+              textCommandFieldId="equalization-outcome"
+              onCommit={(value) => onUpdate(process.id, { outcome: value })}
+              wide
+            />
           </ProcessSection>
 
-          <ProcessSection title="Verschlüsselte SBV-Notizen / nächste Schritte" objective="Notizen zu Gleichstellung, GdB und Gesundheit werden als verschlüsselte Fallnotizen geführt und nicht mehr im Gleichstellungsdatensatz gespeichert.">
+          <ProcessSection
+            title="Verschlüsselte SBV-Notizen / nächste Schritte"
+            objective="Notizen zu Gleichstellung, GdB und Gesundheit werden als verschlüsselte Fallnotizen geführt und nicht mehr im Gleichstellungsdatensatz gespeichert."
+          >
             {process.legacyPlaintextNotesPresent && (
-              <div className="industrial-message industrial-message-warning">Es gibt Alt-Notizen aus einer früheren Version. Bitte in eine verschlüsselte Fallnotiz übertragen und danach den Altbestand bereinigen.</div>
+              <div className="industrial-message industrial-message-warning">
+                Es gibt Alt-Notizen aus einer früheren Version. Bitte in eine
+                verschlüsselte Fallnotiz übertragen und danach den Altbestand
+                bereinigen.
+              </div>
             )}
             {secureNotes.length > 0 && (
               <div className="case-note-secure-list">
                 {secureNotes.map((note) => (
                   <article key={note.id} className="case-note-secure-item">
                     <strong>{note.title}</strong>
-                    <p>{stripEqualizationNoteMarker(note.content ?? '')}</p>
+                    <p>{stripEqualizationNoteMarker(note.content ?? "")}</p>
                   </article>
                 ))}
               </div>
             )}
-            <label className="case-note-content-input"><span>Neue verschlüsselte Notiz</span><TextCommandTextarea fieldId="equalization-secure-note" value={secureNoteDraft} onChange={(event) => setSecureNoteDraft(event.currentTarget.value)} onBlur={() => void saveSecureNote()} /></label>
+            <DeferredTextareaInput
+              label="Neue verschlüsselte Notiz"
+              value={secureNoteDraft}
+              textCommandFieldId="equalization-secure-note"
+              onCommit={setSecureNoteDraft}
+              helpText="Die Notiz wird erst über den Button gespeichert. Verlassen des Feldes legt keine neue verschlüsselte Notiz mehr an."
+              wide
+            />
+            <ToolbarButton
+              onClick={() => void saveSecureNote()}
+              disabled={!secureNoteDraft.trim() || !onCreateSecureNote}
+            >
+              Verschlüsselte Notiz speichern
+            </ToolbarButton>
           </ProcessSection>
         </div>
       </div>

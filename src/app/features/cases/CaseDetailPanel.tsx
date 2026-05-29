@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Download, Search } from 'lucide-react';
+import { ToolbarButton } from '../../shared/components/IndustrialButton';
 import type { CaseSearchHighlightSegment, CaseSearchSourceType } from '../../core/models/case-note.model';
 import type { CaseDetailPanelSearchProps } from './caseWorkbenchTypes';
 
@@ -29,9 +30,14 @@ function toggleSourceType(values: CaseSearchSourceType[], type: CaseSearchSource
 
 function renderExcerpt(segments?: CaseSearchHighlightSegment[], fallback = '') {
   const safeSegments = segments?.length ? segments : [{ text: fallback, match: false }];
-  return safeSegments.map((segment, index) => segment.match
-    ? <mark key={`${segment.text}-${index}`}>{segment.text}</mark>
-    : <span key={`${segment.text}-${index}`}>{segment.text}</span>);
+  let textOffset = 0;
+  return safeSegments.map((segment) => {
+    const key = `${segment.match ? 'match' : 'text'}-${textOffset}-${segment.text}`;
+    textOffset += segment.text.length;
+    return segment.match
+      ? <mark key={key}>{segment.text}</mark>
+      : <span key={key}>{segment.text}</span>;
+  });
 }
 
 export function CaseDetailPanel({
@@ -76,24 +82,23 @@ export function CaseDetailPanel({
           <span>nur diese Fallakte</span>
         </label>
         <div className="case-detail-search-actions">
-          <button
+          <ToolbarButton
             type="submit"
-            className="industrial-secondary-button case-detail-search-button"
+            className="case-detail-search-button"
             disabled={isSearching}
           >
             {isSearching ? 'Suche läuft …' : 'Suchen'}
-          </button>
+          </ToolbarButton>
           {onExportHandover && (
-            <button
-              type="button"
-              className="industrial-secondary-button case-detail-handover-export-button"
+            <ToolbarButton
+              className="case-detail-handover-export-button"
               disabled={!canExportHandover}
               onClick={onExportHandover}
               aria-label="Ausgewählte Fallakte als Übergabepaket exportieren"
             >
               <Download className="h-4 w-4" aria-hidden="true" />
               Übergabe exportieren
-            </button>
+            </ToolbarButton>
           )}
         </div>
       </form>
@@ -112,14 +117,12 @@ export function CaseDetailPanel({
 
       <fieldset className="case-search-source-filters" aria-label="Suchbereich einschränken">
         <legend>Suchbereiche</legend>
-        <button
-          type="button"
-          className="industrial-secondary-button compact"
+        <ToolbarButton
           onClick={() => onSearchSourceTypesChange([])}
           aria-pressed={selectedSearchSourceTypes.length === 0}
         >
           Alle Inhalte
-        </button>
+        </ToolbarButton>
         {SOURCE_FILTERS.map((filter) => (
           <label key={filter.type} className="industrial-checkbox-row compact">
             <input

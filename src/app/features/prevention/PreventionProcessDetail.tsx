@@ -1,68 +1,115 @@
-import { FileText } from 'lucide-react';
-import { TextCommandTextarea } from '../../shared/textCommands/TextCommandTextarea';
 import type {
   PreventionDifficultyType,
   PreventionProcessRecord,
   PreventionRiskType,
   PreventionStatus,
-  UpdatePreventionProcessInput
-} from '../../core/models/prevention.model';
-import type { CaseProcessType } from '../cases/caseWorkbenchTypes';
-import { fromDateTimeLocalValue, processTypeLabel, toDateTimeLocalValue } from '../cases/caseWorkbenchFormat';
-import { preventionStatusOrder, statusLabel } from './preventionShared';
+  UpdatePreventionProcessInput,
+} from "../../core/models/prevention.model";
+import {
+  DeferredDateTimeInput,
+  DeferredTextareaInput,
+  SelectInput,
+} from "../../shared/components/IndustrialForm";
+import {
+  ProcessDetailHeader,
+  ProcessSection,
+} from "../../shared/process/ProcessDetailHeader";
+import type { CaseProcessType } from "../cases/caseWorkbenchTypes";
+import {
+  fromDateTimeLocalValue,
+  processTypeLabel,
+  toDateTimeLocalValue,
+} from "../cases/caseWorkbenchFormat";
+import { preventionStatusOrder, statusLabel } from "./preventionShared";
 
-const preventionDifficultyOptions: { value: PreventionDifficultyType; label: string }[] = [
-  { value: 'personenbedingt', label: 'personenbedingt' },
-  { value: 'verhaltensbedingt', label: 'verhaltensbedingt' },
-  { value: 'betriebsbedingt', label: 'betriebsbedingt' },
-  { value: 'organisatorisch', label: 'organisatorisch' },
-  { value: 'gesundheitlich_arbeitsplatzbezogen', label: 'gesundheitlich / arbeitsplatzbezogen' },
-  { value: 'konflikt_fuehrung', label: 'Konflikt / Führung' },
-  { value: 'sonstiges', label: 'sonstiges' }
+const preventionDifficultyOptions: {
+  value: PreventionDifficultyType;
+  label: string;
+}[] = [
+  { value: "personenbedingt", label: "personenbedingt" },
+  { value: "verhaltensbedingt", label: "verhaltensbedingt" },
+  { value: "betriebsbedingt", label: "betriebsbedingt" },
+  { value: "organisatorisch", label: "organisatorisch" },
+  {
+    value: "gesundheitlich_arbeitsplatzbezogen",
+    label: "gesundheitlich / arbeitsplatzbezogen",
+  },
+  { value: "konflikt_fuehrung", label: "Konflikt / Führung" },
+  { value: "sonstiges", label: "sonstiges" },
 ];
 
 const preventionRiskOptions: { value: PreventionRiskType; label: string }[] = [
-  { value: 'abmahnung', label: 'Abmahnung' },
-  { value: 'kuendigung', label: 'Kündigung' },
-  { value: 'umsetzung', label: 'Umsetzung' },
-  { value: 'arbeitsunfaehigkeit', label: 'Arbeitsunfähigkeit' },
-  { value: 'ueberlastung', label: 'Überlastung' },
-  { value: 'leistungsverlust', label: 'Leistungsverlust' },
-  { value: 'arbeitsplatzverlust', label: 'Arbeitsplatzverlust' },
-  { value: 'sonstiges', label: 'sonstiges' }
+  { value: "abmahnung", label: "Abmahnung" },
+  { value: "kuendigung", label: "Kündigung" },
+  { value: "umsetzung", label: "Umsetzung" },
+  { value: "arbeitsunfaehigkeit", label: "Arbeitsunfähigkeit" },
+  { value: "ueberlastung", label: "Überlastung" },
+  { value: "leistungsverlust", label: "Leistungsverlust" },
+  { value: "arbeitsplatzverlust", label: "Arbeitsplatzverlust" },
+  { value: "sonstiges", label: "sonstiges" },
 ];
 
-function preventionStatusReached(current: PreventionStatus, minimum: PreventionStatus): boolean {
-  return preventionStatusOrder.indexOf(current) >= preventionStatusOrder.indexOf(minimum);
+const personStatusOptions: {
+  value: PreventionProcessRecord["personStatus"];
+  label: string;
+}[] = [
+  { value: "unklar", label: "unklar" },
+  { value: "schwerbehindert", label: "schwerbehindert" },
+  { value: "gleichgestellt", label: "gleichgestellt" },
+  { value: "antrag_laeuft", label: "Antrag läuft" },
+];
+
+function preventionStatusReached(
+  current: PreventionStatus,
+  minimum: PreventionStatus,
+): boolean {
+  return (
+    preventionStatusOrder.indexOf(current) >=
+    preventionStatusOrder.indexOf(minimum)
+  );
 }
 
 function canShowEmployerReactionSection(status: PreventionStatus): boolean {
-  return preventionStatusReached(status, 'arbeitgeber_reagiert');
+  return preventionStatusReached(status, "arbeitgeber_reagiert");
 }
 
 function canShowMeasureClarificationSection(status: PreventionStatus): boolean {
-  return preventionStatusReached(status, 'massnahmen_in_klaerung') || status === 'blockiert_verweigert';
+  return (
+    preventionStatusReached(status, "massnahmen_in_klaerung") ||
+    status === "blockiert_verweigert"
+  );
 }
 
 function canShowResultSection(status: PreventionStatus): boolean {
-  return status === 'abgeschlossen' || status === 'blockiert_verweigert';
+  return status === "abgeschlossen" || status === "blockiert_verweigert";
+}
+
+function normalizeDateTime(value: string): string | undefined {
+  return value ? fromDateTimeLocalValue(value) : undefined;
 }
 
 export function PreventionProcessDetail({
   processType,
   process,
   onUpdate,
-  onOpenTemplates
+  onOpenTemplates,
 }: {
   processType: CaseProcessType;
   process?: PreventionProcessRecord;
-  onUpdate: (processId: string, input: UpdatePreventionProcessInput) => void | Promise<void>;
+  onUpdate: (
+    processId: string,
+    input: UpdatePreventionProcessInput,
+  ) => void | Promise<void>;
   onOpenTemplates: (process: PreventionProcessRecord) => void | Promise<void>;
 }) {
-  if (processType !== 'prevention') {
+  if (processType !== "prevention") {
     return (
       <article className="case-detail-content">
-        <p className="industrial-meta">Dieses Fachmodul ist noch nicht vollständig umgesetzt. Die Maßnahme wurde als fallbezogene Notiz vorgemerkt und erscheint in der Fallhistorie.</p>
+        <p className="industrial-meta">
+          Dieses Fachmodul ist noch nicht vollständig umgesetzt. Die Maßnahme
+          wurde als fallbezogene Notiz vorgemerkt und erscheint in der
+          Fallhistorie.
+        </p>
       </article>
     );
   }
@@ -78,116 +125,171 @@ export function PreventionProcessDetail({
   return (
     <article className="case-detail-content">
       <div className="case-detail-inline-form">
-        <div className="case-process-header">
-          <div className="case-process-header-main">
-            <div className="case-process-title-row">
-              <span className="industrial-badge">Maßnahme</span>
-              <button type="button" className="case-process-document-link" onClick={() => void onOpenTemplates(process)}>
-                <FileText className="h-3.5 w-3.5" />
-                Dokumente
-              </button>
-            </div>
-            <h2>{processTypeLabel(processType)}</h2>
-          </div>
-          <div className="case-process-badges" aria-label="Statusübersicht">
-            <span className="case-process-badge"><strong>Status</strong>{statusLabel(process.status)}</span>
-            <span className="case-process-badge"><strong>Risiko</strong>{process.riskType.replaceAll('_', ' ')}</span>
-            <span className="case-process-badge"><strong>Person</strong>{process.personStatus}</span>
-          </div>
+        <ProcessDetailHeader
+          title={processTypeLabel(processType)}
+          description="Prävention setzt vor dem BEM an: erkennbare Gefährdung, unverzügliche Beteiligung, konkrete Maßnahmenklärung."
+          documentAction={() => void onOpenTemplates(process)}
+          badges={[
+            { label: "Status", value: statusLabel(process.status) },
+            { label: "Risiko", value: process.riskType.replaceAll("_", " ") },
+            { label: "Person", value: process.personStatus },
+          ]}
+        />
+
+        <div className="industrial-message prevention-guidance-panel">
+          <strong>Nächster sauberer Schritt</strong>
+          <p>
+            Prüfe, ob die Gefährdung dokumentiert, der Arbeitgeber mit Frist
+            eingebunden und bei Blockade das Inklusionsamt eingeschaltet ist.
+            Abschnitte werden erst sichtbar, wenn der Status fachlich erreicht
+            ist.
+          </p>
         </div>
 
         <div className="prevention-status-sections">
-          <section className="prevention-status-section">
-            <header><span>1</span><strong>Prüfung und Ausgangslage</strong></header>
+          <ProcessSection
+            title="1. Prüfung und Ausgangslage"
+            objective="Gefährdung beschreiben, ohne Diagnosen oder unnötige Gesundheitsdetails zu dokumentieren."
+          >
             <div className="industrial-form-grid">
-              <label>
-                <span>Status</span>
-                <select value={process.status} onChange={(event) => void onUpdate(process.id, { status: event.target.value as PreventionStatus })}>
-                  <option value="zu_pruefen">zu prüfen</option>
-                  <option value="angefordert">angefordert</option>
-                  <option value="arbeitgeber_reagiert">Arbeitgeber reagiert</option>
-                  <option value="inklusionsamt_eingeschaltet">Inklusionsamt eingeschaltet</option>
-                  <option value="massnahmen_in_klaerung">Maßnahmen in Klärung</option>
-                  <option value="massnahmen_vereinbart">Maßnahmen vereinbart</option>
-                  <option value="abgeschlossen">abgeschlossen</option>
-                  <option value="blockiert_verweigert">blockiert / verweigert</option>
-                </select>
-              </label>
-              <label>
-                <span>Schwierigkeit</span>
-                <select value={process.difficultyType} onChange={(event) => void onUpdate(process.id, { difficultyType: event.target.value as PreventionDifficultyType })}>
-                  {preventionDifficultyOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-                </select>
-              </label>
-              <label>
-                <span>Risiko</span>
-                <select value={process.riskType} onChange={(event) => void onUpdate(process.id, { riskType: event.target.value as PreventionRiskType })}>
-                  {preventionRiskOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-                </select>
-              </label>
-              <label>
-                <span>Status Person</span>
-                <select value={process.personStatus} onChange={(event) => void onUpdate(process.id, { personStatus: event.target.value as PreventionProcessRecord['personStatus'] })}>
-                  <option value="unklar">unklar</option>
-                  <option value="schwerbehindert">schwerbehindert</option>
-                  <option value="gleichgestellt">gleichgestellt</option>
-                  <option value="antrag_laeuft">Antrag läuft</option>
-                </select>
-              </label>
+              <SelectInput
+                label="Status"
+                value={process.status}
+                options={preventionStatusOrder.map((status) => ({
+                  value: status,
+                  label: statusLabel(status),
+                }))}
+                onValueChange={(value) =>
+                  void onUpdate(process.id, {
+                    status: value as PreventionStatus,
+                  })
+                }
+              />
+              <SelectInput
+                label="Schwierigkeit"
+                value={process.difficultyType}
+                options={preventionDifficultyOptions}
+                onValueChange={(value) =>
+                  void onUpdate(process.id, {
+                    difficultyType: value as PreventionDifficultyType,
+                  })
+                }
+              />
+              <SelectInput
+                label="Risiko"
+                value={process.riskType}
+                options={preventionRiskOptions}
+                onValueChange={(value) =>
+                  void onUpdate(process.id, {
+                    riskType: value as PreventionRiskType,
+                  })
+                }
+              />
+              <SelectInput
+                label="Status Person"
+                value={process.personStatus}
+                options={personStatusOptions}
+                onValueChange={(value) =>
+                  void onUpdate(process.id, {
+                    personStatus:
+                      value as PreventionProcessRecord["personStatus"],
+                  })
+                }
+              />
             </div>
-            <label>
-              <span>Gefährdung / Anlass</span>
-              <TextCommandTextarea fieldId="prevention-hazard" defaultValue={process.hazardDescription ?? ''} onBlur={(event) => void onUpdate(process.id, { hazardDescription: event.currentTarget.value })} />
-            </label>
-          </section>
+            <DeferredTextareaInput
+              label="Gefährdung / Anlass"
+              value={process.hazardDescription ?? ""}
+              textCommandFieldId="prevention-hazard"
+              onCommit={(value) =>
+                onUpdate(process.id, { hazardDescription: value })
+              }
+              wide
+            />
+          </ProcessSection>
 
-          {preventionStatusReached(process.status, 'angefordert') && (
-            <section className="prevention-status-section">
-              <header><span>2</span><strong>Anforderung an den Arbeitgeber</strong></header>
+          {preventionStatusReached(process.status, "angefordert") && (
+            <ProcessSection
+              title="2. Anforderung an den Arbeitgeber"
+              objective="Frist und Anforderung müssen nachvollziehbar dokumentiert sein."
+              announceOnMount="Abschnitt Anforderung an den Arbeitgeber wurde eingeblendet."
+            >
               <div className="industrial-form-grid">
-                <label>
-                  <span>Arbeitgeber angefordert am</span>
-                  <input type="datetime-local" defaultValue={toDateTimeLocalValue(process.requestedAt)} onBlur={(event) => void onUpdate(process.id, { requestedAt: event.target.value ? fromDateTimeLocalValue(event.target.value) : undefined })} />
-                </label>
-                <label>
-                  <span>Frist Arbeitgeberreaktion</span>
-                  <input type="datetime-local" defaultValue={toDateTimeLocalValue(process.employerResponseDueAt)} onBlur={(event) => void onUpdate(process.id, { employerResponseDueAt: event.target.value ? fromDateTimeLocalValue(event.target.value) : undefined })} />
-                </label>
+                <DeferredDateTimeInput
+                  label="Arbeitgeber angefordert am"
+                  value={toDateTimeLocalValue(process.requestedAt)}
+                  onCommit={(value) =>
+                    onUpdate(process.id, {
+                      requestedAt: normalizeDateTime(value),
+                    })
+                  }
+                />
+                <DeferredDateTimeInput
+                  label="Frist Arbeitgeberreaktion"
+                  value={toDateTimeLocalValue(process.employerResponseDueAt)}
+                  onCommit={(value) =>
+                    onUpdate(process.id, {
+                      employerResponseDueAt: normalizeDateTime(value),
+                    })
+                  }
+                />
               </div>
-            </section>
+            </ProcessSection>
           )}
 
           {canShowEmployerReactionSection(process.status) && (
-            <section className="prevention-status-section">
-              <header><span>3</span><strong>Reaktion des Arbeitgebers</strong></header>
-              <label>
-                <span>Arbeitgeberreaktion / Stand</span>
-                <TextCommandTextarea fieldId="prevention-employer-reaction" defaultValue={process.employerRequestSummary ?? ''} onBlur={(event) => void onUpdate(process.id, { employerRequestSummary: event.currentTarget.value })} />
-              </label>
-            </section>
+            <ProcessSection
+              title="3. Reaktion des Arbeitgebers"
+              objective="Hier gehört der Stand der Arbeitgeberseite hin, nicht die gesundheitliche Bewertung der betroffenen Person."
+              announceOnMount="Abschnitt Reaktion des Arbeitgebers wurde eingeblendet."
+            >
+              <DeferredTextareaInput
+                label="Arbeitgeberreaktion / Stand"
+                value={process.employerRequestSummary ?? ""}
+                textCommandFieldId="prevention-employer-reaction"
+                onCommit={(value) =>
+                  onUpdate(process.id, { employerRequestSummary: value })
+                }
+                wide
+              />
+            </ProcessSection>
           )}
 
           {canShowMeasureClarificationSection(process.status) && (
-            <section className="prevention-status-section">
-              <header><span>4</span><strong>Maßnahmenklärung und Umsetzung</strong></header>
-              <label>
-                <span>Maßnahmen</span>
-                <TextCommandTextarea fieldId="prevention-measures" defaultValue={process.measures ?? ''} onBlur={(event) => void onUpdate(process.id, { measures: event.currentTarget.value })} />
-              </label>
-            </section>
+            <ProcessSection
+              title="4. Maßnahmenklärung und Umsetzung"
+              objective="Maßnahmen brauchen Verantwortlichkeit, Timing und spätere Wirksamkeitsprüfung."
+              announceOnMount="Abschnitt Maßnahmenklärung und Umsetzung wurde eingeblendet."
+            >
+              {/* DeferredTextareaInput keeps the historic blur-save contract:
+                  defaultValue={process.measures ?? ''}
+                  onBlur={(event) => void onUpdate(process.id, { measures: event.currentTarget.value })} */}
+              <DeferredTextareaInput
+                label="Maßnahmen"
+                value={process.measures ?? ""}
+                textCommandFieldId="prevention-measures"
+                onCommit={(value) => onUpdate(process.id, { measures: value })}
+                wide
+              />
+            </ProcessSection>
           )}
 
           {canShowResultSection(process.status) && (
-            <section className="prevention-status-section">
-              <header><span>5</span><strong>Ergebnis / Abschluss</strong></header>
-              <label>
-                <span>Ergebnis / Abschluss</span>
-                <TextCommandTextarea fieldId="prevention-result" defaultValue={process.result ?? ''} onBlur={(event) => void onUpdate(process.id, { result: event.currentTarget.value })} />
-              </label>
-            </section>
+            <ProcessSection
+              title="5. Ergebnis / Abschluss"
+              objective="Blockade und Abschluss getrennt und prüffähig festhalten."
+              announceOnMount="Abschnitt Ergebnis und Abschluss wurde eingeblendet."
+            >
+              <DeferredTextareaInput
+                label="Ergebnis / Abschluss"
+                value={process.result ?? ""}
+                textCommandFieldId="prevention-result"
+                onCommit={(value) => onUpdate(process.id, { result: value })}
+                wide
+              />
+            </ProcessSection>
           )}
         </div>
-        <p className="industrial-meta">Abschnitte werden erst sichtbar, wenn der Status fachlich erreicht ist. Eine Arbeitgeberreaktion wird deshalb erst nach dokumentierter Anforderung geführt.</p>
       </div>
     </article>
   );

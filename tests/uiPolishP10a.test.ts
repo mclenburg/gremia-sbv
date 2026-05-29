@@ -5,6 +5,17 @@ function source(path: string): string {
   return readFileSync(path, "utf8");
 }
 
+function uiCss(): string {
+  return [
+    "src/app/ui/components.css",
+    "src/app/ui/workbench.css",
+    "src/app/ui/processes.css",
+    "src/app/ui/featureModules.css",
+    "src/app/ui/responsiveDesign.css",
+    "src/app/ui/forms.css",
+  ].map((path) => source(path)).join("\n");
+}
+
 function featureSources(dir: string): string {
   const chunks: string[] = [];
   function visit(path: string) {
@@ -23,10 +34,11 @@ function featureSources(dir: string): string {
 
 describe("UI-Politur nach P10", () => {
   it("behält das Industrial-Chrome für native Selects in noch nicht vollständig migrierten Modulen", () => {
-    const css = source("src/app/ui/responsiveDesign.css");
+    const css = uiCss();
     const form = source("src/app/shared/components/IndustrialForm.tsx");
 
-    expect(form).toContain("industrial-input industrial-select");
+    expect(form).toContain("industrial-input industrial-select industrial-select-input");
+    expect(form).toContain("industrial-input industrial-textarea-input");
     for (const selector of [
       "select.industrial-input",
       ".template-filter-form select",
@@ -42,7 +54,7 @@ describe("UI-Politur nach P10", () => {
 
   it("führt Pflichtfeldmarker inline und zeigt SBV-Nachweisfehler erst nach Interaktion oder Submit", () => {
     const form = source("src/app/shared/components/IndustrialForm.tsx");
-    const css = source("src/app/ui/responsiveDesign.css");
+    const css = uiCss();
     const sbvControl = featureSources("src/app/features/sbv-control");
 
     expect(form).toContain("industrial-field-required-marker");
@@ -55,7 +67,7 @@ describe("UI-Politur nach P10", () => {
   });
 
   it("entfernt den runden Personen-Lifecycle-Pill-Stil zugunsten harter Industrial-Kanten", () => {
-    const css = source("src/app/ui/responsiveDesign.css");
+    const css = uiCss();
     const badgeBlock = css.slice(
       css.indexOf(".person-lifecycle-badge"),
       css.indexOf(".person-lifecycle-badge.ok"),

@@ -1,0 +1,551 @@
+/* Gremia.SBV 1.0 UI-Fundament: zentrale Workbench- und Formularlayout-Strukturen. */
+
+.workbench-page {
+  display: grid;
+  gap: var(--layout-gap);
+  min-width: 0;
+}
+
+.workbench-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--layout-gap);
+  padding: clamp(0.8rem, 1vw, 1rem);
+  border: 1px solid var(--industrial-border);
+  background: color-mix(in srgb, var(--industrial-panel-muted) 88%, black 12%);
+  box-shadow: 0 10px 28px rgba(0,0,0,.18);
+}
+
+.workbench-header h2,
+.workbench-header p {
+  margin: 0;
+}
+
+.workbench-header > div:first-child {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.workbench-header > div:first-child > p:not(.industrial-kicker) {
+  color: var(--industrial-text-muted);
+}
+
+.workbench-sidebar,
+.workbench-content {
+  min-width: 0;
+}
+
+.workbench-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2, 0.5rem);
+  align-items: center;
+}
+
+.workbench-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--layout-gap);
+  align-items: stretch;
+  margin-block: var(--space-4, 1rem);
+}
+
+.workbench-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(8rem, 1fr));
+  gap: var(--space-3, 0.75rem);
+  min-width: 0;
+}
+
+.workbench-summary-card {
+  border: 1px solid var(--industrial-border);
+  background: linear-gradient(180deg, rgba(39,39,42,0.72), rgba(9,9,11,0.82));
+  padding: clamp(0.75rem, 1vw, 1rem);
+  min-width: 0;
+  box-shadow: 0 10px 28px rgba(0,0,0,.22);
+}
+
+.workbench-summary-card strong {
+  display: block;
+  color: var(--industrial-text-strong);
+  font-size: clamp(1.2rem, 2.1vw, 1.65rem);
+  line-height: 1;
+}
+
+.workbench-summary-card span {
+  display: block;
+  margin-top: 0.45rem;
+  color: var(--industrial-text-muted);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.workbench-summary-card-warning { border-color: color-mix(in srgb, var(--industrial-accent) 52%, var(--industrial-border)); }
+.workbench-summary-card-danger { border-color: color-mix(in srgb, var(--industrial-danger) 55%, var(--industrial-border)); }
+.workbench-summary-card-success { border-color: color-mix(in srgb, var(--industrial-ok) 55%, var(--industrial-border)); }
+
+.workbench-summary-actions {
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-end;
+}
+
+.workbench-summary-actions > * {
+  min-width: max-content;
+}
+
+.workbench-create-panel,
+.workbench-list-panel,
+.workbench-detail-panel {
+  border: 1px solid var(--industrial-border);
+  background: rgba(9,9,11,0.82);
+  box-shadow: 0 10px 28px rgba(0,0,0,.22);
+}
+
+.workbench-create-panel {
+  display: grid;
+  gap: var(--space-4, 1rem);
+  padding: clamp(0.9rem, 1.2vw, 1.2rem);
+  margin-bottom: var(--space-4, 1rem);
+}
+
+.workbench-panel-head {
+  display: grid;
+  gap: 0.25rem;
+  border-bottom: 1px solid var(--industrial-border);
+  padding-bottom: var(--space-3, 0.75rem);
+}
+
+.workbench-panel-head h2 {
+  margin: 0;
+  color: var(--industrial-text-strong);
+  font-size: 1rem;
+}
+
+.workbench-panel-head p {
+  margin: 0;
+  color: var(--industrial-text-muted);
+}
+
+.workbench-grid {
+  display: grid;
+  grid-template-columns: minmax(20rem, 0.78fr) minmax(28rem, 1.22fr);
+  gap: var(--layout-gap);
+  align-items: start;
+}
+
+.workbench-list-panel {
+  display: grid;
+  gap: 0;
+  max-height: clamp(22rem, calc(100vh - 16rem), 56rem);
+  overflow: auto;
+}
+
+.workbench-detail-panel {
+  display: grid;
+  gap: var(--space-4, 1rem);
+  padding: clamp(0.9rem, 1.2vw, 1.2rem);
+  min-width: 0;
+  position: sticky;
+  top: var(--space-3, 0.75rem);
+}
+
+.industrial-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 1fr));
+  gap: var(--space-3, 0.75rem);
+  align-items: start;
+  min-width: 0;
+}
+
+.industrial-form-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.industrial-form-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.industrial-form-grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+.industrial-field {
+  display: grid;
+  gap: 0.38rem;
+  min-width: 0;
+  color: var(--industrial-text);
+  font-weight: 700;
+}
+
+.industrial-field-label {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  width: fit-content;
+}
+
+.industrial-field-required-marker {
+  display: inline-flex;
+  align-items: baseline;
+  color: var(--industrial-danger);
+  font-weight: 900;
+  line-height: 1;
+}
+
+.industrial-field > span {
+  color: var(--industrial-text-muted);
+  font-size: 0.74rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.industrial-field input,
+.industrial-field select,
+.industrial-field textarea {
+  width: 100%;
+  min-width: 0;
+}
+
+.industrial-field-wide {
+  grid-column: 1 / -1;
+}
+
+.industrial-checkbox-row,
+.industrial-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3, 0.75rem);
+  align-items: center;
+}
+
+.industrial-checkbox-row label {
+  display: inline-flex;
+  flex-direction: row;
+  gap: var(--space-2, 0.5rem);
+  align-items: center;
+  min-height: 2rem;
+  color: var(--industrial-text);
+  font-weight: 700;
+}
+
+.industrial-checkbox-row input[type='checkbox'] {
+  min-height: auto;
+}
+
+@media (max-width: 1180px) {
+  .workbench-summary,
+  .workbench-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .workbench-summary-actions {
+    justify-content: stretch;
+  }
+
+  .workbench-summary-actions > * {
+    width: 100%;
+  }
+
+  .workbench-list-panel,
+  .workbench-detail-panel {
+    max-height: none;
+    position: static;
+  }
+}
+
+@media (max-width: 900px) {
+  .workbench-summary-grid,
+  .industrial-form-grid-2,
+  .industrial-form-grid-3,
+  .industrial-form-grid-4 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.industrial-field input,
+.industrial-field select,
+.industrial-field textarea {
+  border: 1px solid var(--industrial-border-strong);
+  background: var(--industrial-bg);
+  color: var(--industrial-text-strong);
+  outline: none;
+  padding: 0.68rem 0.75rem;
+  border-radius: var(--control-radius);
+}
+
+.industrial-field input:focus-visible,
+.industrial-field select:focus-visible,
+.industrial-field textarea:focus-visible {
+  border-color: var(--industrial-accent);
+  outline: 2px solid var(--industrial-accent);
+  outline-offset: 2px;
+  box-shadow: var(--focus-ring);
+}
+
+html[data-theme='light'] .industrial-field input,
+html[data-theme='light'] .industrial-field select,
+html[data-theme='light'] .industrial-field textarea {
+  background: #f9f9f4;
+  color: #141414;
+}
+
+html[data-theme='light'] .workbench-create-panel,
+html[data-theme='light'] .workbench-list-panel,
+html[data-theme='light'] .workbench-detail-panel,
+html[data-theme='light'] .module-frame,
+html[data-theme='light'] .industrial-card,
+html[data-theme='light'] .industrial-panel {
+  background: rgba(255, 255, 250, 0.82);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.10);
+}
+
+.industrial-shell,
+.industrial-content,
+.module-frame,
+.industrial-panel,
+.case-register-panel,
+.case-register-toolbar,
+.case-register-actions,
+.case-register-table-shell,
+.person-workbench-grid,
+.person-side-stack {
+  min-width: 0;
+}
+
+.case-workbench-grid,
+.case-workbench,
+.case-tree-panel,
+.case-detail-panel,
+.case-detail-content,
+.case-search-bar,
+.case-pagination {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.industrial-workspace-shell {
+  display: grid;
+  grid-template-columns: minmax(13rem, 18rem) minmax(0, 1fr);
+  gap: var(--layout-gap);
+  align-items: start;
+}
+
+.workbench-sidebar {
+  display: grid;
+  gap: var(--space-2, 0.5rem);
+  position: sticky;
+  top: var(--space-3, 0.75rem);
+}
+
+.industrial-workspace-nav {
+  display: grid;
+  gap: var(--space-2, 0.5rem);
+  position: sticky;
+  top: var(--space-3, 0.75rem);
+}
+
+.industrial-workspace-nav button {
+  display: grid;
+  gap: 0.25rem;
+  width: 100%;
+  border: 1px solid var(--industrial-border);
+  border-radius: var(--control-radius);
+  background: color-mix(in srgb, var(--industrial-panel) 88%, black 12%);
+  color: var(--industrial-text);
+  padding: 0.8rem 0.85rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.industrial-workspace-nav button:hover,
+.industrial-workspace-nav button:focus-visible {
+  border-color: var(--industrial-accent);
+  outline: 2px solid var(--industrial-accent);
+  outline-offset: 2px;
+  box-shadow: var(--focus-ring);
+}
+
+.industrial-workspace-nav button.is-active,
+.industrial-workspace-nav button[aria-current='page'] {
+  border-color: var(--industrial-accent);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--industrial-accent) 16%, transparent), color-mix(in srgb, var(--industrial-panel-muted) 88%, black 12%));
+  box-shadow: inset 3px 0 0 var(--industrial-accent);
+}
+
+.industrial-workspace-nav strong {
+  color: var(--industrial-text-strong);
+  font-size: 0.92rem;
+}
+
+.industrial-workspace-nav span {
+  color: var(--industrial-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.industrial-workspace-content {
+  display: grid;
+  gap: var(--layout-gap);
+  min-width: 0;
+}
+
+.person-workbench-grid {
+  display: grid;
+  grid-template-columns: minmax(18rem, 0.9fr) minmax(20rem, 1.1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+/* Zentralisierte App-Workbench-Regeln aus vormals getrennten Oberflächen-Stylesheets. */
+
+/* App-weiter Stilblock: caseWorkbench.css. */
+.case-workbench-footer {
+  display: grid;
+  gap: 1rem;
+  border-top: 1px solid var(--sbv-border);
+  padding-top: 1rem;
+}
+
+.case-workbench-footer-section {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.case-workbench-footer-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.case-workbench-footer-heading span {
+  color: var(--sbv-yellow);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.case-workbench-footer-heading small {
+  color: var(--sbv-muted);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.case-workbench-footer-actions {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.case-workbench-footer-actions-primary {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.case-workbench-footer-actions-secondary {
+  grid-template-columns: repeat(auto-fit, minmax(11.5rem, 1fr));
+}
+
+.case-workbench-footer-button {
+  width: 100%;
+  justify-content: flex-start;
+  align-items: flex-start;
+  text-align: left;
+  gap: 0.7rem;
+  padding: 0.8rem 0.9rem;
+  box-shadow: none;
+}
+
+.case-workbench-footer-button .h-4 {
+  margin-top: 0.1rem;
+  flex: 0 0 auto;
+}
+
+.case-workbench-footer-button-secondary {
+  background: rgba(9, 9, 11, 0.58);
+}
+
+.case-workbench-footer-button-secondary:hover:not(:disabled),
+.case-workbench-footer-button-secondary:focus-visible {
+  background: rgba(24, 24, 27, 0.88);
+}
+
+.case-workbench-footer-action-label {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.case-workbench-footer-action-label strong {
+  color: inherit;
+  font-size: 0.92rem;
+  font-weight: 850;
+  line-height: 1.2;
+}
+
+.case-workbench-footer-action-label small {
+  color: var(--sbv-muted);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.case-workbench-footer {
+  margin-top: 0.25rem;
+}
+
+.case-workbench-footer-actions {
+  align-items: stretch;
+}
+
+.case-workbench-footer-actions-primary {
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+}
+
+.case-workbench-footer-actions-secondary {
+  grid-template-columns: repeat(auto-fit, minmax(10.75rem, 1fr));
+}
+
+.case-workbench-footer-button {
+  min-height: 4.2rem;
+  border-radius: 0;
+}
+
+.case-workbench-footer-actions-secondary .case-workbench-footer-button {
+  min-height: 3.85rem;
+}
+
+.case-workbench-footer-actions-secondary .case-workbench-footer-action-label strong {
+  font-size: 0.86rem;
+}
+
+.case-workbench-footer-actions-secondary .case-workbench-footer-action-label small {
+  font-size: 0.68rem;
+}
+
+.case-workbench-footer-actions-secondary .case-workbench-footer-button .h-4 {
+  opacity: 0.82;
+}
+
+.template-workbench-grid {
+  display: grid;
+  grid-template-columns: minmax(18rem, 0.72fr) minmax(0, 1.28fr);
+  gap: clamp(0.75rem, 1.2vw, 1rem);
+  align-items: start;
+}
+
+html[data-theme='light'] .workbench-header,
+html[data-theme='light'] .industrial-search-toolbar,
+html[data-theme='light'] .industrial-filter-bar,
+html[data-theme='light'] .industrial-record-card,
+html[data-theme='light'] .industrial-selection-card,
+html[data-theme='light'] .industrial-status-card,
+html[data-theme='light'] .industrial-data-table-shell,
+html[data-theme='light'] .industrial-empty-state,
+html[data-theme='light'] .industrial-subpanel {
+  border-color: var(--border-muted);
+  background-color: #fafaf5;
+  background-image: linear-gradient(135deg, rgba(250, 250, 245, 0.96), rgba(225, 224, 214, 0.98));
+  color: var(--text-primary);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.55), 0 8px 18px rgba(0,0,0,0.08);
+}
+
+:where(.workbench-page, .workbench-header, .workbench-sidebar, .workbench-content, .workbench-toolbar) {
+}

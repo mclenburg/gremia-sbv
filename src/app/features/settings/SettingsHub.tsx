@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import type { CaseRecord } from '../../core/models/case.model';
 import { SettingsView, type ThemeMode } from '../../workflowViews';
 import { GremiaBrSettingsPanel } from './GremiaBrSettingsPanel';
+import { ToolbarButton } from '../../shared/components/IndustrialButton';
 import { SETTINGS_SECTIONS } from './settingsNavigation';
 
 export function SettingsHub({
@@ -30,10 +31,9 @@ export function SettingsHub({
 
       <div className="settings-hub-tabs" role="tablist" aria-label="Einstellungsbereiche">
         {SETTINGS_SECTIONS.map((section) => (
-          <button
+          <ToolbarButton
             key={section.id}
             id={`${section.id}-tab`}
-            type="button"
             role="tab"
             aria-selected={activeSectionId === section.id}
             aria-controls={`${section.id}-panel`}
@@ -42,7 +42,7 @@ export function SettingsHub({
           >
             <strong>{section.label}</strong>
             <span>{section.description}</span>
-          </button>
+          </ToolbarButton>
         ))}
       </div>
 
@@ -52,8 +52,11 @@ export function SettingsHub({
         aria-labelledby={`${activeSection.id}-tab`}
         className="settings-hub-panel"
       >
-        {activeSection.id === 'settings-general' && <SettingsView theme={theme} onThemeChange={onThemeChange} cases={cases} />}
-        {activeSection.id === 'settings-gremia-br' && <GremiaBrSettingsPanel />}
+        {activeSection.id === 'settings-gremia-br' ? (
+          <GremiaBrSettingsPanel />
+        ) : (
+          <SettingsView theme={theme} onThemeChange={onThemeChange} cases={cases} section={activeSection.id} />
+        )}
       </div>
     </section>
   );

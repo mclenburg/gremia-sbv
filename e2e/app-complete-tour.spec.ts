@@ -29,15 +29,20 @@ test('runs a complete synthetic 1.0 product tour across areas not covered by foc
   }
 
   await openRoute(page, 'Kontakte');
-  await page.getByLabel('Vorname').fill('Ada');
-  await page.getByLabel('Nachname').fill('E2E');
-  await page.getByLabel('Firma / Stelle').fill('Inklusionsamt Test');
-  await page.getByLabel('Rolle').fill('Fachberatung');
-  await page.getByLabel('Kategorie').selectOption('inklusionsamt');
-  await page.getByRole('button', { name: /Kontakt speichern/ }).click();
-  await expect(page.getByText(/Kontakt angelegt/)).toBeVisible();
-  await expect(page.getByLabel('Vorname')).toHaveValue('');
-  await expect(page.getByLabel('Nachname')).toHaveValue('');
+  await page.getByRole('button', { name: 'Kontakt anlegen' }).click();
+  const contactDialog = page.getByRole('dialog', { name: 'Kontakt anlegen' });
+  await expect(contactDialog).toBeVisible();
+  await contactDialog.getByLabel('Vorname').fill('Ada');
+  await contactDialog.getByLabel('Nachname').fill('E2E');
+  await contactDialog.getByLabel('Firma / Stelle').fill('Inklusionsamt Test');
+  await contactDialog.getByLabel('Rolle').fill('Fachberatung');
+  await contactDialog.getByLabel('Kategorie').selectOption('inklusionsamt');
+  await contactDialog.getByRole('button', { name: /Kontakt speichern/ }).click();
+  await expect(contactDialog).toBeHidden();
+  const contactFeedback = /Kontakt angelegt: E2E, Ada \(Inklusionsamt Test\)/;
+  const contactsRegion = page.getByLabel('Kontakte', { exact: true });
+  await expect(contactsRegion.locator('.industrial-message.industrial-message-ok').filter({ hasText: contactFeedback })).toBeVisible();
+  await expect(page.locator('.industrial-live-region[role="status"]').filter({ hasText: contactFeedback })).toHaveText(contactFeedback);
   const contactsList = page.getByLabel('Kontaktliste');
   await expect(contactsList.getByText(/E2E, Ada \(Inklusionsamt Test\)/)).toBeVisible();
 
@@ -67,7 +72,7 @@ test('runs a complete synthetic 1.0 product tour across areas not covered by foc
   await createTemplateDialog.getByLabel('Titel').fill('E2E Ergänzungsvorlage');
   await createTemplateDialog.getByLabel('Kategorie').selectOption('beteiligung');
   await createTemplateDialog.getByLabel('Betreff').fill('E2E Beteiligung');
-  await createTemplateDialog.getByLabel('Text').fill('Synthetischer Vorlagentext ohne Echtdaten.');
+  await createTemplateDialog.getByRole('textbox', { name: 'Text', exact: true }).fill('Synthetischer Vorlagentext ohne Echtdaten.');
   await createTemplateDialog.getByRole('button', { name: /Vorlage speichern/ }).click();
   const templatesRegion = page.getByLabel('Vorlagen', { exact: true });
   const templateFeedback = /Eigene Vorlage wurde gespeichert/;

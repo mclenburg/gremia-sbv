@@ -8,6 +8,7 @@ import { waitForBridge } from '../../core/bridge/waitForBridge';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 import { buildDashboardFocusSummary, type DashboardComplianceLike } from './dashboardFocusPolicy';
 import type { ViewId } from '../../core/navigation/modules';
+import { ToolbarButton } from '../../shared/components/IndustrialButton';
 
 type DashboardFocusOverviewProps = {
   cases: CaseRecord[];
@@ -230,9 +231,9 @@ export function DashboardFocusOverview({ cases, deadlines, dashboardItems, onNav
             <strong>Gremia.BR</strong>
             <span>{gremiaBrTile.relevantMeetingCount} relevante Sitzung(en) im Lesecache.</span>
             <small>Letzter Datenabruf: {gremiaBrTile.lastFetchedLabel}</small>
-            <button type="button" className="industrial-button industrial-button-secondary dashboard-focus-secondary-action" disabled={gremiaBrBusy} onClick={() => void refreshGremiaBrCache()}>
+            <ToolbarButton className="dashboard-focus-secondary-action" disabled={gremiaBrBusy} onClick={() => void refreshGremiaBrCache()}>
               {gremiaBrBusy ? 'Abruf läuft …' : 'Abrufen'}
-            </button>
+            </ToolbarButton>
           </div>
         )}
       </div>

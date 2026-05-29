@@ -13,6 +13,7 @@ import {
   isIsoBeforeNow,
   type ProcessOverviewCardModel
 } from '../../shared/process/ProcessOverview';
+import { ToolbarButton, IndustrialButton } from '../../shared/components/IndustrialButton';
 import { BEM_OVERVIEW_STATUS_ORDER, bemStatusLabel, isDoneBemStatus } from './bemShared';
 
 type BemOverviewCardModel = ProcessOverviewCardModel<BemStatus> & {
@@ -104,10 +105,10 @@ export function BemView({ cases, onOpenCaseNode }: { cases: CaseRecord[]; onOpen
         feedbackItems={[loading ? { id: 'bem-loading', message: 'BEM-Verfahren werden geladen …' } : null, error ? { id: 'bem-error', tone: 'warning', message: error } : null]}
         emptyText="Keine BEM-Verfahren in diesem Status."
         helpAction={(
-          <button type="button" className="industrial-secondary-button compact" onClick={() => setShowHelp(true)} aria-label="Hilfe zur BEM-Übersicht öffnen">
+          <ToolbarButton onClick={() => setShowHelp(true)} aria-label="Hilfe zur BEM-Übersicht öffnen">
             <HelpCircle className="h-4 w-4" />
             Hilfe
-          </button>
+          </ToolbarButton>
         )}
         renderItem={(card) => (
           <ProcessOverviewCard
@@ -127,7 +128,7 @@ export function BemView({ cases, onOpenCaseNode }: { cases: CaseRecord[]; onOpen
             <p>Diese Seite ist eine reine Übersicht. Mit einem Klick auf ein BEM-Verfahren öffnet sich die Fallakte direkt an der passenden Maßnahme.</p>
             <p>Neue BEM-Verfahren werden in der Fallakte über die Fußleiste angelegt, damit der Fallbezug eindeutig bleibt.</p>
             <div className="industrial-modal-actions">
-              <button type="button" className="industrial-button" onClick={() => setShowHelp(false)}>Verstanden</button>
+              <IndustrialButton onClick={() => setShowHelp(false)}>Verstanden</IndustrialButton>
             </div>
           </section>
         </div>

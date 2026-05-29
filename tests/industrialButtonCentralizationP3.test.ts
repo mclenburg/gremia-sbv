@@ -6,6 +6,21 @@ function source(path: string): string {
   return readFileSync(path, "utf8");
 }
 
+function uiCss(): string {
+  return [
+    'src/app/ui/designTokens.css',
+    'src/app/ui/base.css',
+    'src/app/ui/appShell.css',
+    'src/app/ui/components.css',
+    'src/app/ui/workbench.css',
+    'src/app/ui/processes.css',
+    'src/app/ui/featureModules.css',
+    'src/app/ui/responsiveDesign.css',
+    'src/app/ui/forms.css',
+
+  ].map((file) => source(file)).join('\n');
+}
+
 function featureSources(dir: string): string {
   const chunks: string[] = [];
   function visit(path: string) {
@@ -62,7 +77,7 @@ function nativeButtonLocations(path: string): string[] {
 describe("Button-Zentralisierung Patch P3", () => {
   it("stellt die zentrale Industrial-Button-Familie bereit", () => {
     const buttons = source("src/app/shared/components/IndustrialButton.tsx");
-    const css = source("src/app/ui/responsiveDesign.css");
+    const css = uiCss();
 
     for (const component of [
       "IndustrialButton",

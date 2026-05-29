@@ -26,8 +26,12 @@ export function LiveRegionProvider({ children }: { children: ReactNode }) {
   );
 }
 
+export function useOptionalAnnouncer() {
+  return useContext(LiveRegionContext);
+}
+
 export function useAnnouncer() {
-  const announce = useContext(LiveRegionContext);
+  const announce = useOptionalAnnouncer();
   if (!announce) {
     throw new Error('useAnnouncer must be used within LiveRegionProvider.');
   }

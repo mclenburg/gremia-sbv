@@ -8,6 +8,7 @@ import type {
 } from '../../core/models/gremia-br.model';
 import { waitForBridge } from '../../core/bridge/waitForBridge';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
+import { DangerButton, IndustrialButton, ToolbarButton } from '../../shared/components/IndustrialButton';
 
 const EMPTY_SETTINGS: GremiaBrPublicSettings = {
   enabled: false,
@@ -273,18 +274,18 @@ export function GremiaBrSettingsPanel() {
       </details>
 
       <div className="industrial-action-row">
-        <button type="button" className="industrial-button" disabled={busy} onClick={() => void save()}>
+        <IndustrialButton disabled={busy} onClick={() => void save()}>
           Einstellungen speichern
-        </button>
-        <button type="button" className="industrial-button industrial-button-secondary" disabled={busy} onClick={() => void testConnection()}>
+        </IndustrialButton>
+        <ToolbarButton disabled={busy} onClick={() => void testConnection()}>
           Verbindung prüfen
-        </button>
-        <button type="button" className="industrial-button industrial-button-secondary" disabled={busy || !enabled} onClick={() => void refreshCache()}>
+        </ToolbarButton>
+        <ToolbarButton disabled={busy || !enabled} onClick={() => void refreshCache()}>
           Lesecache aktualisieren
-        </button>
-        <button type="button" className="industrial-button industrial-button-danger" disabled={busy || !settings.hasStoredCredentials} onClick={() => void clearCredentials()}>
+        </ToolbarButton>
+        <DangerButton disabled={busy || !settings.hasStoredCredentials} onClick={() => void clearCredentials()}>
           Zugangsdaten löschen
-        </button>
+        </DangerButton>
       </div>
 
       <dl className="industrial-meta-grid">

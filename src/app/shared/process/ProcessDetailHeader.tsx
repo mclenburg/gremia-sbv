@@ -1,5 +1,8 @@
-import type { ReactNode } from 'react';
-import { FileText } from 'lucide-react';
+import type { ReactNode } from "react";
+import { useEffect, useId, useRef } from "react";
+import { FileText } from "lucide-react";
+import { ToolbarButton } from "../components/IndustrialButton";
+import { useOptionalAnnouncer } from "../a11y/LiveRegionProvider";
 
 export type ProcessDetailBadge = {
   label: string;
@@ -9,9 +12,9 @@ export type ProcessDetailBadge = {
 export function ProcessDetailHeader({
   title,
   description,
-  badgeLabel = 'Maßnahme',
+  badgeLabel = "Maßnahme",
   documentAction,
-  badges
+  badges,
 }: {
   title: string;
   description: string;
@@ -26,17 +29,23 @@ export function ProcessDetailHeader({
           <div className="case-process-title-row">
             <span className="industrial-badge">{badgeLabel}</span>
             {documentAction && (
-              <button type="button" className="case-process-document-link" onClick={documentAction}>
+              <ToolbarButton
+                className="case-process-document-link"
+                onClick={documentAction}
+              >
                 <FileText className="h-3.5 w-3.5" />
                 Dokumente
-              </button>
+              </ToolbarButton>
             )}
           </div>
           <h2>{title}</h2>
         </div>
         <div className="case-process-badges" aria-label="Statusübersicht">
           {badges.map((badge) => (
-            <span key={badge.label} className="case-process-badge"><strong>{badge.label}</strong>{badge.value}</span>
+            <span key={badge.label} className="case-process-badge">
+              <strong>{badge.label}</strong>
+              {badge.value}
+            </span>
           ))}
         </div>
       </div>
@@ -48,15 +57,41 @@ export function ProcessDetailHeader({
 export function ProcessSection({
   title,
   objective,
-  children
+  children,
+  announceOnMount,
+  focusOnMount = false,
 }: {
   title: string;
   objective?: string;
   children: ReactNode;
+  announceOnMount?: string;
+  focusOnMount?: boolean;
 }) {
+  const headingId = useId();
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const announce = useOptionalAnnouncer();
+
+  useEffect(() => {
+    if (announceOnMount) {
+      announce?.(announceOnMount);
+    }
+
+    if (focusOnMount && typeof window !== "undefined") {
+      const schedule = window.requestAnimationFrame ?? ((callback: FrameRequestCallback) => window.setTimeout(callback, 0));
+      schedule(() => {
+        sectionRef.current?.focus({ preventScroll: false });
+      });
+    }
+  }, [announce, announceOnMount, focusOnMount]);
+
   return (
-    <section>
-      <h3>{title}</h3>
+    <section
+      ref={sectionRef}
+      className="industrial-form-section process-detail-section"
+      aria-labelledby={headingId}
+      tabIndex={focusOnMount ? -1 : undefined}
+    >
+      <h3 id={headingId}>{title}</h3>
       {objective && <p className="industrial-meta">{objective}</p>}
       {children}
     </section>

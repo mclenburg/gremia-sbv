@@ -67,4 +67,19 @@ describe('plattformunabhängige Test-Suite 0.9.2', () => {
 
     expect(violations).toEqual([]);
   });
+
+  it('enthält keine fokussierten oder deaktivierten Tests im Release-Gate', () => {
+    const focusedPattern = new RegExp('\\.(?:only)\\s*\\(');
+    const skippedPattern = new RegExp('\\.(?:skip|fixme)\\s*\\(');
+
+    const violations = allRunnableTestFiles().flatMap((file) => {
+      const source = readFileSync(file, 'utf8');
+      const fileViolations: string[] = [];
+      if (focusedPattern.test(source)) fileViolations.push(`${file}: fokussierter Test`);
+      if (skippedPattern.test(source)) fileViolations.push(`${file}: deaktivierter Test`);
+      return fileViolations;
+    });
+
+    expect(violations).toEqual([]);
+  });
 });

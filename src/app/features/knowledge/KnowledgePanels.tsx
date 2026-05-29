@@ -1,6 +1,8 @@
 import type { FormEvent } from 'react';
 import { Search } from 'lucide-react';
 import { TextCommandTextarea } from '../../shared/textCommands/TextCommandTextarea';
+import { IndustrialButton, ToolbarButton } from '../../shared/components/IndustrialButton';
+import { SelectInput, TextInput } from '../../shared/components/IndustrialForm';
 import type { CaseRecord } from '../../core/models/case.model';
 import type { CaseLawRecord, CaseLegalReferenceRecord, LegalNormRecord, NormChecklistItemRecord, NormCommentRecord } from '../../core/models/knowledge.model';
 
@@ -22,13 +24,16 @@ export function KnowledgeSearchPanel({
   return (
     <section className="industrial-panel">
       <form onSubmit={onSubmit} className="knowledge-search-bar">
-        <Search className="h-4 w-4 text-yellow-300" />
-        <input className="industrial-input" value={query} onChange={(event) => onQueryChange(event.target.value)} placeholder="Norm, Stichwort oder Praxisbegriff suchen …" />
-        <select aria-label="Quelle der Wissenssuche" className="industrial-select" value={source} onChange={(event) => onSourceChange(event.target.value)}>
-          <option value="">alle Quellen</option>
-          {sources.map((item) => <option key={item} value={item}>{item}</option>)}
-        </select>
-        <button type="submit" className="industrial-button">Suchen</button>
+        <Search className="h-4 w-4 text-yellow-300" aria-hidden="true" />
+        <TextInput label="Suchbegriff" value={query} onValueChange={onQueryChange} placeholder="Norm, Stichwort oder Praxisbegriff suchen …" />
+        <SelectInput
+          label="Quelle"
+          aria-label="Quelle der Wissenssuche"
+          value={source}
+          onValueChange={onSourceChange}
+          options={[{ value: '', label: 'alle Quellen' }, ...sources.map((item) => ({ value: item, label: item }))]}
+        />
+        <IndustrialButton type="submit">Suchen</IndustrialButton>
       </form>
     </section>
   );
@@ -40,11 +45,11 @@ export function KnowledgeRegisterPanel({ norms, selectedNormId, onSelectNorm }: 
       <div className="industrial-panel-header compact"><div><p className="industrial-kicker">Normen</p><h2>Register</h2><p className="industrial-meta">{norms.length} Treffer</p></div></div>
       <div className="knowledge-register-list">
         {norms.map((norm) => (
-          <button key={norm.id} type="button" className={`knowledge-register-row ${selectedNormId === norm.id ? 'active' : ''}`} onClick={() => onSelectNorm(norm.id)}>
+          <ToolbarButton key={norm.id} type="button" className={`knowledge-register-row ${selectedNormId === norm.id ? 'active' : ''}`} onClick={() => onSelectNorm(norm.id)} aria-pressed={selectedNormId === norm.id}>
             <strong>{norm.paragraph}</strong>
             <span>{norm.title}</span>
             <small>{norm.source} · {norm.tags.slice(0, 3).join(', ')}</small>
-          </button>
+          </ToolbarButton>
         ))}
         {!norms.length && <div className="industrial-empty compact">Keine Normen gefunden.</div>}
       </div>
@@ -126,11 +131,14 @@ export function KnowledgeDetailPanel({
           <details className="industrial-subpanel mt-4 knowledge-case-link">
             <summary>Mit Fallakte verknüpfen</summary>
             <div className="industrial-form-grid compact">
-              <select aria-label="Fallakte für Rechtsbezug auswählen" className="industrial-select" value={linkCaseId} onChange={(event) => onLinkCaseIdChange(event.target.value)}>
-                <option value="">Fall auswählen</option>
-                {cases.map((record) => <option key={record.id} value={record.id}>{record.caseNumber} · {record.displayName}</option>)}
-              </select>
-              <button type="button" className="industrial-button" onClick={() => void onLinkSelectedNormToCase()}>Rechtsbezug setzen</button>
+              <SelectInput
+                label="Fallakte"
+                aria-label="Fallakte für Rechtsbezug auswählen"
+                value={linkCaseId}
+                onValueChange={onLinkCaseIdChange}
+                options={[{ value: '', label: 'Fall auswählen' }, ...cases.map((record) => ({ value: record.id, label: `${record.caseNumber} · ${record.displayName}` }))]}
+              />
+              <IndustrialButton onClick={() => void onLinkSelectedNormToCase()}>Rechtsbezug setzen</IndustrialButton>
             </div>
             <div className="mt-3">
               {caseReferences.map((reference) => <p key={reference.id} className="industrial-meta"><strong>{reference.caseNumber}</strong> · {reference.createdAt.slice(0, 10)}</p>)}
@@ -142,17 +150,29 @@ export function KnowledgeDetailPanel({
             <section className="industrial-subpanel">
               <h4>Checkliste</h4>
               {checklist.map((item) => <p key={item.id} className="industrial-meta">□ {item.text}</p>)}
-              <form onSubmit={onCreateChecklistItem} className="industrial-settings-form compact"><input value={checklistText} onChange={(event) => onChecklistTextChange(event.target.value)} placeholder="Checklisteneintrag" /><button className="industrial-secondary-button" type="submit">Ergänzen</button></form>
+              <form onSubmit={onCreateChecklistItem} className="industrial-settings-form compact">
+                <TextInput label="Checklisteneintrag" value={checklistText} onValueChange={onChecklistTextChange} placeholder="Checklisteneintrag" />
+                <ToolbarButton type="submit">Ergänzen</ToolbarButton>
+              </form>
             </section>
             <section className="industrial-subpanel">
               <h4>Eigene Kommentare</h4>
               {comments.map((comment) => <p key={comment.id} className="industrial-meta"><strong>{comment.title}</strong><br />{comment.content}</p>)}
-              <form onSubmit={onCreateComment} className="industrial-settings-form compact"><input value={commentTitle} onChange={(event) => onCommentTitleChange(event.target.value)} placeholder="Titel" /><TextCommandTextarea fieldId="knowledge-comment" value={commentText} onChange={(event) => onCommentTextChange(event.target.value)} placeholder="Kommentar" /><button className="industrial-secondary-button" type="submit">Speichern</button></form>
+              <form onSubmit={onCreateComment} className="industrial-settings-form compact">
+                <TextInput label="Titel" value={commentTitle} onValueChange={onCommentTitleChange} placeholder="Titel" />
+                <TextCommandTextarea fieldId="knowledge-comment" value={commentText} onChange={(event) => onCommentTextChange(event.target.value)} placeholder="Kommentar" />
+                <ToolbarButton type="submit">Speichern</ToolbarButton>
+              </form>
             </section>
             <section className="industrial-subpanel">
               <h4>Rechtsprechung</h4>
               {caseLaw.map((item) => <p key={item.id} className="industrial-meta"><strong>{item.court}, {item.fileNumber}</strong><br />{item.shortHolding}</p>)}
-              <form onSubmit={onCreateCaseLaw} className="industrial-settings-form compact"><input value={caseLawCourt} onChange={(event) => onCaseLawCourtChange(event.target.value)} placeholder="Gericht" /><input value={caseLawFileNumber} onChange={(event) => onCaseLawFileNumberChange(event.target.value)} placeholder="Aktenzeichen" /><TextCommandTextarea fieldId="knowledge-case-law-holding" value={caseLawHolding} onChange={(event) => onCaseLawHoldingChange(event.target.value)} placeholder="Kurzleitsatz / Relevanz" /><button className="industrial-secondary-button" type="submit">Speichern</button></form>
+              <form onSubmit={onCreateCaseLaw} className="industrial-settings-form compact">
+                <TextInput label="Gericht" value={caseLawCourt} onValueChange={onCaseLawCourtChange} placeholder="Gericht" />
+                <TextInput label="Aktenzeichen" value={caseLawFileNumber} onValueChange={onCaseLawFileNumberChange} placeholder="Aktenzeichen" />
+                <TextCommandTextarea fieldId="knowledge-case-law-holding" value={caseLawHolding} onChange={(event) => onCaseLawHoldingChange(event.target.value)} placeholder="Kurzleitsatz / Relevanz" />
+                <ToolbarButton type="submit">Speichern</ToolbarButton>
+              </form>
             </section>
           </div>
         </>

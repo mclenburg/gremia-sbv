@@ -12,6 +12,21 @@ function source(path: string): string {
   return readFileSync(path, "utf8");
 }
 
+function uiCss(): string {
+  return [
+    'src/app/ui/designTokens.css',
+    'src/app/ui/base.css',
+    'src/app/ui/appShell.css',
+    'src/app/ui/components.css',
+    'src/app/ui/workbench.css',
+    'src/app/ui/processes.css',
+    'src/app/ui/featureModules.css',
+    'src/app/ui/responsiveDesign.css',
+    'src/app/ui/forms.css',
+
+  ].map((file) => source(file)).join('\n');
+}
+
 function sourcesUnder(dir: string): string {
   const chunks: string[] = [];
   function visit(path: string) {
@@ -34,7 +49,7 @@ describe("Status-/Badge-Zentralisierung Patch P5", () => {
   it("stellt zentrale Badge-Komponenten und Mapper bereit", () => {
     const badges = source("src/app/shared/components/StatusBadges.tsx");
     const mappers = source("src/app/shared/status/statusTone.ts");
-    const css = source("src/app/ui/responsiveDesign.css");
+    const css = uiCss();
 
     for (const component of [
       "StatusBadge",

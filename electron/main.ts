@@ -40,12 +40,85 @@ import {
   registerRendererSecurityPolicy,
   registerSessionSecurityPolicy,
 } from "./security/electronSecurity.js";
+import {
+  buildStartupSplashHtml,
+  buildStartupStatusScript,
+  type StartupPhaseId,
+} from "./startupStatus.js";
 
 app.setName("Gremia.SBV");
 app.setAppUserModelId("de.gremia.sbv");
 
 let security: SecurityService;
 let mainWindow: BrowserWindow | null = null;
+let splashWindow: BrowserWindow | null = null;
+
+function focusStartupWindow(): void {
+  const target = mainWindow ?? splashWindow;
+  if (!target || target.isDestroyed()) return;
+  if (target.isMinimized()) target.restore();
+  target.show();
+  target.focus();
+}
+
+async function showStartupSplash(initialPhase: StartupPhaseId = "app"): Promise<void> {
+  if (splashWindow && !splashWindow.isDestroyed()) {
+    await updateStartupSplash(initialPhase);
+    focusStartupWindow();
+    return;
+  }
+
+  const splash = new BrowserWindow({
+    width: 760,
+    height: 460,
+    minWidth: 640,
+    minHeight: 420,
+    title: "Gremia.SBV wird gestartet",
+    icon: resolveAppIcon(),
+    show: false,
+    resizable: false,
+    maximizable: false,
+    fullscreenable: false,
+    backgroundColor: "#050505",
+    webPreferences: {
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+    },
+  });
+
+  splashWindow = splash;
+  splash.once("ready-to-show", () => {
+    if (!splash.isDestroyed()) splash.show();
+  });
+  splash.on("closed", () => {
+    if (splashWindow === splash) splashWindow = null;
+  });
+
+  await splash.loadURL(
+    `data:text/html;charset=utf-8,${encodeURIComponent(buildStartupSplashHtml(initialPhase))}`,
+  );
+
+  if (!splash.isDestroyed() && !splash.isVisible()) {
+    splash.show();
+  }
+}
+
+async function updateStartupSplash(phase: StartupPhaseId): Promise<void> {
+  const splash = splashWindow;
+  if (!splash || splash.isDestroyed()) return;
+  try {
+    await splash.webContents.executeJavaScript(buildStartupStatusScript(phase), true);
+  } catch (error) {
+    console.warn("Gremia.SBV splash status update failed", error);
+  }
+}
+
+function closeStartupSplash(): void {
+  const splash = splashWindow;
+  if (!splash || splash.isDestroyed()) return;
+  splash.close();
+}
 
 function resolveRuntimeDataDir(): string {
   if (isDemoMode()) {
@@ -231,7 +304,9 @@ async function createWindow(): Promise<void> {
   registerRendererSecurityPolicy(win);
 
   win.once("ready-to-show", () => {
+    void updateStartupSplash("ready");
     win.show();
+    closeStartupSplash();
   });
 
   // Falls ready-to-show bei einem Renderer-Fehler nie feuert, soll das Fenster trotzdem sichtbar sein.
@@ -241,6 +316,7 @@ async function createWindow(): Promise<void> {
         "Gremia.SBV window shown by fallback timer because ready-to-show did not fire.",
       );
       win.show();
+      closeStartupSplash();
     }
   }, 3000);
 
@@ -270,9 +346,8 @@ if (!singleInstanceLock) {
   app.quit();
 } else {
   app.on("second-instance", () => {
-    if (!mainWindow) return;
-    if (mainWindow.isMinimized()) mainWindow.restore();
-    mainWindow.focus();
+    void updateStartupSplash("already-running");
+    focusStartupWindow();
   });
 
   app
@@ -283,13 +358,18 @@ if (!singleInstanceLock) {
       }
 
       registerSessionSecurityPolicy();
+      await showStartupSplash("app");
+      await updateStartupSplash("policy");
 
       const demoMode = isDemoMode();
       const dataDirectory = resolveRuntimeDataDir();
+      await updateStartupSplash("storage");
       if (demoMode) {
+        await updateStartupSplash("demo");
         resetDemoDataDirectory(dataDirectory);
       }
 
+      await updateStartupSplash("security");
       security = new SecurityService(dataDirectory);
       if (demoMode) {
         await prepareDemoVault(security);
@@ -299,6 +379,7 @@ if (!singleInstanceLock) {
       } else {
         console.info("Gremia.SBV data directory:", dataDirectory);
       }
+      await updateStartupSplash("ipc");
       registerSecurityIpc(ipcMain, security);
       registerCaseIpc(ipcMain, security);
       registerCaseHandoverIpc(ipcMain, security);
@@ -319,10 +400,12 @@ if (!singleInstanceLock) {
       registerBackupIpc(ipcMain, security);
       registerRetentionIpc(ipcMain, security);
       registerSbvResourceIpc(ipcMain, security);
+      await updateStartupSplash("ui");
       return createWindow();
     })
     .catch((error) => {
       console.error("Gremia.SBV startup failed", error);
+      closeStartupSplash();
       app.quit();
     });
 }
@@ -336,5 +419,9 @@ app.on("window-all-closed", () => {
 });
 
 app.on("activate", () => {
+  if (splashWindow && !splashWindow.isDestroyed()) {
+    focusStartupWindow();
+    return;
+  }
   if (BrowserWindow.getAllWindows().length === 0) void createWindow();
 });

@@ -2,6 +2,8 @@ import type { CaseRecord } from '../../core/models/case.model';
 import type { PrivacyReviewActionInput, PrivacyReviewActionResult, PrivacyReviewItemRecord } from '../../core/models/privacy-review.model';
 import type { ProtectedPersonRecord, UpdateProtectedPersonInput } from '../../core/models/protected-person.model';
 import { employmentStateLabels, lifecycleStateLabels, protectionStatusLabels } from '../../core/models/protected-person.model';
+import { ToolbarButton } from '../../shared/components/IndustrialButton';
+import { StatusBadge } from '../../shared/components/StatusBadges';
 import { toInputDate } from './personImportUi';
 import { PersonLifecycleReviewDialog } from './PersonLifecycleReviewDialog';
 
@@ -56,10 +58,22 @@ export function PersonDetail({
           <h2 id="person-detail-heading">{displayName}</h2>
         </div>
         <div className="person-detail-actions">
-          <button type="button" className="industrial-secondary-button" data-e2e="create-case-from-selected-person" onClick={onOpenCaseCreate}>Fallakte anlegen</button>
-          <button type="button" className="industrial-secondary-button" disabled={person.lifecycleState === 'anonymized'} data-e2e="open-person-anonymize-dialog" onClick={onOpenAnonymize}>Person anonymisieren</button>
+          <ToolbarButton data-e2e="create-case-from-selected-person" onClick={onOpenCaseCreate}>Fallakte anlegen</ToolbarButton>
+          <ToolbarButton disabled={person.lifecycleState === 'anonymized'} data-e2e="open-person-anonymize-dialog" onClick={onOpenAnonymize}>Person anonymisieren</ToolbarButton>
         </div>
       </div>
+
+      <section className="person-lifecycle-card industrial-message" aria-label="Datenschutz-Lifecycle der ausgewählten Person">
+        <div>
+          <strong>Schutzstatus und Zweckbindung prüfen</strong>
+          <span>Die Personenansicht führt Schutzstatus, Beschäftigungsstatus und Datenschutz-Lifecycle zusammen. Gesundheitsdetails gehören nur in zweckgebundene Fallnotizen.</span>
+        </div>
+        <div className="case-overview-badges" aria-label="Personenstatus">
+          <StatusBadge label={protectionStatusLabels[person.protectionStatus]} tone={person.protectionStatus === 'expired' || person.protectionStatus === 'inactive' ? 'warning' : 'success'} />
+          <StatusBadge label={lifecycleStateLabels[person.lifecycleState]} tone={person.lifecycleState === 'expired_review_required' || person.lifecycleState === 'anonymization_pending' ? 'danger' : person.lifecycleState === 'expiring_soon' || person.lifecycleState === 'retention_documented' ? 'warning' : 'default'} />
+          <StatusBadge label={person.recordKind === 'pseudonymous_request' ? 'pseudonym' : 'identifiziert'} tone={person.recordKind === 'pseudonymous_request' ? 'info' : 'default'} />
+        </div>
+      </section>
       <dl className="person-detail-grid">
         <div><dt>Schutzstatus</dt><dd>{protectionStatusLabels[person.protectionStatus]}</dd></div>
         <div><dt>Beschäftigung</dt><dd>{employmentStateLabels[person.employmentState]}</dd></div>

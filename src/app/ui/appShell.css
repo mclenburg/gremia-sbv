@@ -1,0 +1,292 @@
+/* Gremia.SBV 1.0 UI-Fundament: App-Shell, Login-Shell und Hauptlayout. */
+
+.industrial-shell {
+  display: grid;
+  grid-template-columns: var(--layout-sidebar-width) minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+/* Auth surfaces must remain centered overlays.
+   .industrial-shell is a grid layout for the unlocked application shell;
+   LoginGate adds .login-shell to opt out of that grid without depending on
+   Tailwind utility generation or cascade order. */
+.industrial-shell.login-shell {
+  display: flex;
+  grid-template-columns: none;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  width: 100%;
+  padding: 2rem 1.5rem;
+}
+
+.login-shell .login-panel {
+  flex: 0 1 auto;
+  padding: clamp(1.75rem, 2.4vw, 2.25rem);
+}
+
+.login-shell .login-panel-compact {
+  --auth-panel-max-width: min(70vw, 54rem);
+  --auth-panel-min-height: auto;
+}
+
+.login-shell .login-panel-medium {
+  --auth-panel-max-width: min(78vw, 64rem);
+  --auth-panel-min-height: auto;
+}
+
+.login-shell .login-panel-wide {
+  --auth-panel-max-width: min(86vw, 72rem);
+  --auth-panel-min-height: auto;
+}
+
+.login-shell .login-panel-compact,
+.login-shell .login-panel-medium,
+.login-shell .login-panel-wide {
+  width: min(100%, var(--auth-panel-max-width));
+  max-width: var(--auth-panel-max-width);
+  min-height: var(--auth-panel-min-height);
+}
+
+.login-shell .auth-form {
+  display: grid;
+  gap: 1.15rem;
+}
+
+.login-shell .auth-field-label {
+  margin-bottom: 0.75rem;
+  line-height: 1.4;
+}
+
+.login-shell .auth-form .industrial-input,
+.login-shell .auth-form .industrial-button {
+  min-height: 3rem;
+}
+
+.industrial-sidebar {
+  position: sticky;
+  top: 0;
+  grid-column: 1;
+  width: var(--layout-sidebar-width);
+  height: 100vh;
+  overflow: auto;
+  scrollbar-color: color-mix(in srgb, var(--industrial-border-strong) 72%, transparent) color-mix(in srgb, var(--industrial-panel) 86%, transparent);
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+}
+
+.industrial-sidebar::-webkit-scrollbar {
+  width: 0.6rem;
+}
+
+.industrial-sidebar::-webkit-scrollbar-track {
+  background: color-mix(in srgb, var(--industrial-panel) 90%, transparent);
+  border-left: 1px solid color-mix(in srgb, var(--industrial-border) 72%, transparent);
+}
+
+.industrial-sidebar::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--industrial-border-strong) 70%, var(--industrial-panel) 30%);
+  border: 2px solid color-mix(in srgb, var(--industrial-panel) 90%, transparent);
+  border-radius: 0;
+}
+
+.industrial-sidebar:hover,
+.industrial-sidebar:focus-within {
+  scrollbar-color: color-mix(in srgb, var(--industrial-accent) 52%, var(--industrial-border-strong) 48%) color-mix(in srgb, var(--industrial-panel) 86%, transparent);
+}
+
+.industrial-sidebar:hover::-webkit-scrollbar-thumb,
+.industrial-sidebar:focus-within::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--industrial-accent) 55%, var(--industrial-border-strong) 45%),
+    color-mix(in srgb, var(--industrial-border-strong) 74%, var(--industrial-panel) 26%)
+  );
+}
+
+html[data-theme='light'] .industrial-sidebar {
+  scrollbar-color: color-mix(in srgb, var(--industrial-border-strong) 68%, transparent) color-mix(in srgb, var(--industrial-panel) 72%, transparent);
+}
+
+html[data-theme='light'] .industrial-sidebar::-webkit-scrollbar-track {
+  background: color-mix(in srgb, var(--industrial-panel) 78%, transparent);
+  border-left-color: color-mix(in srgb, var(--industrial-border) 74%, transparent);
+}
+
+html[data-theme='light'] .industrial-sidebar::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--industrial-border-strong) 66%, var(--industrial-panel) 34%);
+  border-color: color-mix(in srgb, var(--industrial-panel) 86%, transparent);
+}
+
+.industrial-content {
+  grid-column: 2;
+  width: min(100%, var(--layout-content-max));
+  margin-left: 0;
+  padding: var(--layout-page-padding);
+  scroll-margin-top: 1rem;
+}
+
+.industrial-content:focus-visible {
+  outline: 2px solid var(--industrial-accent);
+  outline-offset: -2px;
+}
+
+.industrial-topbar,
+.industrial-hero,
+.industrial-panel,
+.industrial-module-header,
+.industrial-settings-form,
+.module-frame,
+.case-workbench,
+.industrial-split-grid {
+  max-width: 100%;
+}
+
+.industrial-topbar {
+  gap: var(--layout-gap);
+}
+
+.industrial-topbar h2,
+.industrial-title,
+.industrial-card h2,
+.module-frame h1,
+.industrial-panel-header h2,
+.industrial-modal-header h2 {
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.industrial-hero,
+.industrial-panel,
+.industrial-module-header,
+.industrial-settings-form,
+.login-panel {
+  border-radius: var(--control-radius);
+}
+
+.industrial-panel-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.industrial-panel-header.compact {
+  margin-bottom: 0;
+}
+
+.industrial-panel-header h2 {
+  margin: 8px 0 0;
+  color: var(--sbv-text);
+  font-size: 26px;
+  font-weight: 950;
+  letter-spacing: -0.05em;
+  text-transform: uppercase;
+}
+
+.industrial-panel-header p {
+  margin: 8px 0 0;
+  max-width: 780px;
+  color: var(--sbv-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+:root {
+  --layout-content-max: none;
+  --layout-gap: clamp(0.65rem, 1.2vw, 1rem);
+  --layout-page-padding: clamp(0.75rem, 1.25vw, 1.1rem);
+}
+
+.industrial-content {
+  justify-self: stretch;
+  width: 100%;
+  max-width: none;
+  margin-left: 0 !important;
+  padding-inline-start: var(--layout-page-padding);
+}
+
+.module-frame,
+.industrial-panel,
+.industrial-module-header,
+.industrial-hero,
+.industrial-topbar {
+  width: 100%;
+}
+
+.industrial-topbar {
+  margin-bottom: clamp(0.75rem, 1.1vw, 1rem);
+}
+
+.industrial-hero,
+.industrial-panel,
+.industrial-module-header,
+.industrial-settings-form {
+  padding: clamp(0.85rem, 1.2vw, 1.15rem);
+}
+
+@media (min-width: 1051px) {
+  .industrial-shell {
+    column-gap: 0;
+  }
+}
+
+.industrial-content,
+.module-frame {
+  overflow-x: clip;
+}
+
+html[data-theme='light'] .industrial-version-badge {
+  border-color: var(--industrial-border);
+  background: linear-gradient(135deg, rgba(250, 250, 245, 0.95), rgba(226, 225, 214, 0.98));
+  color: var(--text-secondary);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.65);
+}
+
+html[data-theme='light'] .industrial-version-badge strong {
+  color: var(--industrial-accent);
+}
+
+.login-shell .login-panel-compact {
+  --auth-panel-max-width: min(70vw, 54rem);
+  --auth-panel-min-height: auto;
+}
+
+.login-shell .login-panel-compact,
+.login-shell .login-panel-medium,
+.login-shell .login-panel-wide {
+  width: min(100%, var(--auth-panel-max-width));
+  max-width: var(--auth-panel-max-width);
+  min-height: var(--auth-panel-min-height);
+}
+
+.industrial-nav-primary,
+.industrial-nav-group-items {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.industrial-nav-group {
+  display: grid;
+  gap: 0.35rem;
+  padding-top: 0.55rem;
+}
+
+.industrial-nav-group + .industrial-nav-group {
+  border-top: 1px solid rgba(148, 163, 184, 0.14);
+  margin-top: 0.35rem;
+}
+
+.industrial-nav-group-title {
+  color: var(--industrial-muted);
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace);
+  font-size: 0.63rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  line-height: 1.2;
+  margin: 0 0 0.1rem;
+  padding: 0 0.75rem;
+  text-transform: uppercase;
+}

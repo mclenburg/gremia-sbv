@@ -3,6 +3,7 @@ import type { WorkplaceAccommodationRecord } from '../../core/models/workplace-a
 import { workplaceAccommodationCategoryLabels, workplaceAccommodationStatusLabels } from '../../core/models/workplace-accommodation.model';
 import { WorkbenchDetailPanel, WorkbenchGrid, WorkbenchListPanel, WorkbenchSummary } from '../../shared/components/WorkbenchLayout';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
+import { GhostButton } from '../../shared/components/IndustrialButton';
 
 export function WorkplaceAccommodationView({
   items,
@@ -43,11 +44,11 @@ export function WorkplaceAccommodationView({
           </div>
           <div className="industrial-list compact">
             {items.map((item) => (
-              <button key={item.id} type="button" className="industrial-list-item" onClick={() => openAccommodation(item)}>
+              <GhostButton key={item.id} className="industrial-list-item" onClick={() => openAccommodation(item)}>
                 <strong>{item.title}</strong>
                 <span>{workplaceAccommodationCategoryLabels[item.category]} · {workplaceAccommodationStatusLabels[item.status]} · Risiko {item.riskLevel}</span>
                 <small>{item.nextStep || item.requestedAdjustment || 'Fallakte öffnen und Maßnahme fortschreiben.'}</small>
-              </button>
+              </GhostButton>
             ))}
             {!items.length && <div className="industrial-empty">Noch keine Arbeitsplatzgestaltungsmaßnahmen. Lege sie direkt in einer Fallakte über „Arbeitsplatz“ oder /anp an.</div>}
           </div>

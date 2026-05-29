@@ -3,7 +3,20 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const root = process.cwd();
-const css = fs.readFileSync(path.join(root, 'src/app/ui/responsiveDesign.css'), 'utf8');
+const uiCssFiles = [
+  'src/app/ui/designTokens.css',
+  'src/app/ui/base.css',
+  'src/app/ui/appShell.css',
+  'src/app/ui/components.css',
+  'src/app/ui/workbench.css',
+  'src/app/ui/processes.css',
+  'src/app/ui/featureModules.css',
+  'src/app/ui/responsiveDesign.css',
+  'src/app/ui/forms.css',
+];
+const css = uiCssFiles
+  .map((file) => fs.readFileSync(path.join(root, file), 'utf8'))
+  .join('\n');
 
 describe('text command help light polish P10F', () => {
   it('haelt den Kurzbefehle-Dialog kantig und in der zentralen Industrial-Sprache', () => {

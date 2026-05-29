@@ -102,7 +102,20 @@ function renderedControlsInside(panel: HtmlNode) {
 }
 
 function responsiveDesignCss(): string {
-  return readFileSync(join(process.cwd(), 'src/app/ui/responsiveDesign.css'), 'utf8').replace(/\s+/g, ' ');
+  return [
+    'src/app/ui/designTokens.css',
+    'src/app/ui/base.css',
+    'src/app/ui/appShell.css',
+    'src/app/ui/components.css',
+    'src/app/ui/workbench.css',
+    'src/app/ui/processes.css',
+    'src/app/ui/featureModules.css',
+    'src/app/ui/responsiveDesign.css',
+    'src/app/ui/forms.css',
+  ]
+    .map((file) => readFileSync(join(process.cwd(), file), 'utf8'))
+    .join('\n')
+    .replace(/\s+/g, ' ');
 }
 
 describe('LoginGate Overlay-Layout', () => {

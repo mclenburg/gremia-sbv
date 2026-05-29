@@ -16,9 +16,34 @@ const appWideCssFiles = new Set([
   "src/app/accessibility.css",
   "src/app/accessibilityLiveRegion.css",
   "src/app/caseModalResponsive.css",
+  "src/app/ui/designTokens.css",
+  "src/app/ui/base.css",
+  "src/app/ui/appShell.css",
+  "src/app/ui/components.css",
+  "src/app/ui/workbench.css",
+  "src/app/ui/processes.css",
+  "src/app/ui/featureModules.css",
   "src/app/ui/responsiveDesign.css",
+  "src/app/ui/forms.css",
   "src/styles/globals.css",
 ]);
+
+const centralUiCssFiles = [
+  "src/app/ui/base.css",
+  "src/app/ui/appShell.css",
+  "src/app/ui/components.css",
+  "src/app/ui/workbench.css",
+  "src/app/ui/processes.css",
+  "src/app/ui/featureModules.css",
+  "src/app/ui/responsiveDesign.css",
+  "src/app/ui/forms.css",
+];
+
+function centralUiCss(): string {
+  return centralUiCssFiles
+    .map((file) => readFileSync(path.join(projectRoot, file), "utf8"))
+    .join("\n");
+}
 
 const centralWorkbenchSelectors = [
   "industrial-workspace-shell",
@@ -245,10 +270,7 @@ describe("App-weite CSS-Architektur", () => {
   });
 
   it("definiert zentrale Industrial- und Workbench-Styles ausschließlich in der app-weiten Style-Basis", () => {
-    const centralCss = readFileSync(
-      path.join(projectRoot, "src/app/ui/responsiveDesign.css"),
-      "utf8",
-    );
+    const centralCss = centralUiCss();
     const missingCentralSelectors = centralWorkbenchSelectors.filter(
       (selector) => !centralCss.includes(`.${selector}`),
     );
@@ -258,7 +280,7 @@ describe("App-weite CSS-Architektur", () => {
     const cssFiles = walkFiles(path.join(projectRoot, "src"), (file) =>
       file.endsWith(".css"),
     )
-      .filter((file) => file !== "src/app/ui/responsiveDesign.css")
+      .filter((file) => !appWideCssFiles.has(file))
       .filter((file) => !pendingCleanup.has(file));
 
     const duplicateDefinitions = cssFiles.flatMap((file) => {

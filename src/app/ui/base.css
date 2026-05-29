@@ -1,0 +1,60 @@
+/* Gremia.SBV 1.0 UI-Fundament: Browser-, Fokus- und Basisregeln. */
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  min-width: 320px;
+}
+
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  min-height: var(--control-min-height);
+}
+
+textarea {
+  line-height: 1.45;
+  resize: vertical;
+}
+
+button,
+[role='button'] {
+  touch-action: manipulation;
+}
+
+button:disabled,
+[aria-disabled='true'] {
+  cursor: not-allowed;
+}
+
+.skip-link {
+  position: fixed;
+  z-index: 9999;
+  top: 0.75rem;
+  left: 0.75rem;
+  transform: translateY(-180%);
+  border: 2px solid var(--industrial-accent);
+  background: var(--industrial-bg);
+  color: var(--industrial-text-strong);
+  padding: 0.75rem 1rem;
+  font-weight: 900;
+  text-decoration: none;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+}
+
+.skip-link:focus,
+.skip-link:focus-visible {
+  transform: translateY(0);
+  outline: none;
+}

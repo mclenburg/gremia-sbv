@@ -6,6 +6,21 @@ function source(path: string): string {
   return readFileSync(path, 'utf8');
 }
 
+function uiCss(): string {
+  return [
+    'src/app/ui/designTokens.css',
+    'src/app/ui/base.css',
+    'src/app/ui/appShell.css',
+    'src/app/ui/components.css',
+    'src/app/ui/workbench.css',
+    'src/app/ui/processes.css',
+    'src/app/ui/featureModules.css',
+    'src/app/ui/responsiveDesign.css',
+    'src/app/ui/forms.css',
+
+  ].map((file) => source(file)).join('\n');
+}
+
 function featureSources(dir: string): string {
   const chunks: string[] = [];
   function visit(path: string) {
@@ -25,7 +40,7 @@ function featureSources(dir: string): string {
 describe('Listen-, Such- und Tabellenzentralisierung Patch P7', () => {
   it('stellt Suchleiste, Filterbar, RecordList, DataTable und EmptyState zentral bereit', () => {
     const layout = source('src/app/shared/components/WorkbenchLayout.tsx');
-    const css = source('src/app/ui/responsiveDesign.css');
+    const css = uiCss();
 
     for (const component of ['SearchToolbar', 'FilterBar', 'RecordList', 'DataTable', 'EmptyState']) {
       expect(layout).toContain(`function ${component}`);

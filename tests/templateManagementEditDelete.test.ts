@@ -11,10 +11,12 @@ describe("template management edit and delete", () => {
 
   it("offers edit and delete actions for existing templates", () => {
     const view = readFileSync("src/app/features/templates/TemplatesView.tsx", "utf8");
+    const catalogPanels = readFileSync("src/app/features/templates/TemplateCatalogPanels.tsx", "utf8");
+    const editorModal = readFileSync("src/app/features/templates/TemplateEditorModal.tsx", "utf8");
     expect(view).toContain("openEditTemplate");
     expect(view).toContain("saveEditedTemplate");
     expect(view).toContain("deleteTemplate");
-    expect(view).toContain("template-trash-button");
-    expect(view).toContain("Vorlage bearbeiten");
+    expect(catalogPanels).toContain("template-trash-button");
+    expect(editorModal).toContain("Vorlage bearbeiten");
   });
 });

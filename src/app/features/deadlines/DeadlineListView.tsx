@@ -12,27 +12,28 @@ import { caseMeasureTypeLabels } from '../../core/models/case-measure.model';
 import type { DeadlineRecord } from '../../core/models/deadline.model';
 import { getDashboardState, getHoursRemaining } from '../../core/deadlineLogic';
 import { DeadlineSeverityBadge, DeadlineStateBadge } from './DeadlineBadge';
+import { deadlineProcessTypeLabels, deadlineTypeLabels } from './deadlineLabels';
 
 function formatDueDate(iso: string): string {
   return new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(iso));
 }
 
-function formatCase(deadline: DeadlineRecord, casesById: Map<string, CaseRecord>): string {
-  if (deadline.caseId) {
-    const linkedCase = casesById.get(deadline.caseId);
-    return linkedCase?.caseNumber ?? 'nicht auflösbar';
+function formatReference(deadline: DeadlineRecord, casesById: Map<string, CaseRecord>, measuresById: Map<string, CaseMeasureRecord>): string {
+  const processLabel = deadlineProcessTypeLabels[deadline.processType];
+  const linkedCase = deadline.caseId ? casesById.get(deadline.caseId) : undefined;
+  const caseLabel = deadline.caseId ? linkedCase?.caseNumber ?? 'Fall nicht auflösbar' : undefined;
+
+  if (deadline.measureId) {
+    const measure = measuresById.get(deadline.measureId);
+    const measureLabel = measure ? `${caseMeasureTypeLabels[measure.type]} · ${measure.title}` : 'Maßnahme nicht auflösbar';
+    return caseLabel ? `${caseLabel} · ${measureLabel}` : measureLabel;
   }
 
-  return deadline.processType === 'custom' && deadline.deadlineType === 'follow_up'
-    ? 'Freie Wiedervorlage'
-    : 'Fallzuordnung fehlt';
-}
+  if (caseLabel) return `${caseLabel} · ${processLabel}`;
 
-function formatMeasure(deadline: DeadlineRecord, measuresById: Map<string, CaseMeasureRecord>): string {
-  if (!deadline.measureId) return '—';
-  const measure = measuresById.get(deadline.measureId);
-  if (!measure) return 'Maßnahme nicht auflösbar';
-  return `${caseMeasureTypeLabels[measure.type]} · ${measure.title}`;
+  return deadline.processType === 'custom' && deadline.deadlineType === 'follow_up'
+    ? 'Freie Wiedervorlage ohne Fallbezug'
+    : 'Fallzuordnung fehlt';
 }
 
 export function DeadlineListView({
@@ -61,19 +62,18 @@ export function DeadlineListView({
         <DeadlineStateBadge state={state} />,
         <>
           <p className="industrial-table-primary">{deadline.title}</p>
-          <p className="industrial-table-secondary">{deadline.deadlineType} · {deadline.processType}</p>
+          <p className="industrial-table-secondary">{deadlineTypeLabels[deadline.deadlineType]} · {deadlineProcessTypeLabels[deadline.processType]}</p>
         </>,
-        formatCase(deadline, casesById),
-        formatMeasure(deadline, measuresById),
+        formatReference(deadline, casesById, measuresById),
         formatDueDate(deadline.dueAt),
         hours < 0 ? 'überfällig' : `${Math.round(hours)} h`,
         <DeadlineSeverityBadge severity={deadline.severity} />,
         <div className="industrial-table-actions">
           <ToolbarButton onClick={() => onEdit?.(deadline)}>
-            <Edit3 className="h-4 w-4" /> Bearbeiten
+            <Edit3 className="h-4 w-4" aria-hidden="true" /> Bearbeiten
           </ToolbarButton>
           <ToolbarButton onClick={() => onComplete?.(deadline)}>
-            <CheckCircle2 className="h-4 w-4" /> Erledigt
+            <CheckCircle2 className="h-4 w-4" aria-hidden="true" /> Erledigt
           </ToolbarButton>
         </div>
       ]
@@ -83,13 +83,13 @@ export function DeadlineListView({
   return (
     <IndustrialPanel
       kicker="Fristenregister"
-      title="Alle offenen Fristen"
-      description="Rechtliche Fristen und Workflow-Schritte brauchen einen Fallbezug. Ohne Fallbezug ist nur eine freie Wiedervorlage zulässig."
+      title="Offene Fristen und Wiedervorlagen"
+      description="Arbeitsliste für fällige, kritische und nachzuhaltende SBV-Vorgänge."
     >
       <DataTable
-        headers={['Status', 'Frist', 'Fall', 'Maßnahme', 'Fällig', 'Restzeit', 'Schwere', 'Aktion']}
+        headers={['Status', 'Titel', 'Bezug', 'Fällig', 'Restzeit', 'Priorität', 'Aktionen']}
         rows={rows}
-        ariaLabel="Alle offenen Fristen"
+        ariaLabel="Offene Fristen und Wiedervorlagen"
         empty={<EmptyState title="Keine offenen Fristen" text="Keine offenen Fristen vorhanden." />}
       />
     </IndustrialPanel>

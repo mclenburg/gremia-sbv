@@ -44,13 +44,17 @@ test.describe('P12 core UI behavior contracts', () => {
     await openView(page, 'Fristen');
 
     await expect(page.getByText('Bitte Titel und Fälligkeitsdatum erfassen.')).toHaveCount(0);
-    const title = page.getByLabel('Titel').first();
+    await page.getByRole('button', { name: /Frist anlegen/ }).click();
+    const createDialog = page.getByRole('dialog', { name: /Frist oder Wiedervorlage anlegen/ });
+    await expect(createDialog).toBeVisible();
+
+    const title = createDialog.getByLabel('Titel');
     await title.focus();
     await title.blur();
     await expect(page.getByText('Bitte Titel und Fälligkeitsdatum erfassen.')).toHaveCount(0);
 
-    await page.getByRole('button', { name: /Frist anlegen/ }).click();
-    await expect(page.getByText('Bitte Titel und Fälligkeitsdatum erfassen.')).toBeVisible();
+    await createDialog.getByRole('button', { name: /Frist anlegen/ }).click();
+    await expect(createDialog.getByText('Bitte Titel und Fälligkeitsdatum erfassen.')).toBeVisible();
   });
 
   test('preserves inline command overlay behavior in centralized large textareas', async ({ page }) => {
@@ -108,9 +112,14 @@ test.describe('P12 core UI behavior contracts', () => {
     await page.goto('/');
     await openView(page, 'Fristen');
 
-    await page.locator('[data-e2e="deadline-ical-privacy-level"]').selectOption('privacy_first');
-    await page.locator('[data-e2e="export-deadlines-ical"]').click();
-    await expect(page.getByRole('status')).toContainText('Fristenexport wurde erstellt.');
+    await page.locator('[data-e2e="open-deadline-ical-export"]').click();
+    const exportDialog = page.getByRole('dialog', { name: /Kalenderdatei exportieren/ });
+    await expect(exportDialog).toBeVisible();
+    await exportDialog.locator('[data-e2e="deadline-ical-privacy-level"]').selectOption('privacy_first');
+    await exportDialog.locator('[data-e2e="export-deadlines-ical"]').click();
+    const exportFeedback = 'Fristenexport wurde erstellt.';
+    await expect(exportDialog.locator('.module-feedback[role="status"]').filter({ hasText: exportFeedback })).toBeVisible();
+    await expect(page.locator('.industrial-live-region[role="status"]').filter({ hasText: exportFeedback })).toHaveText(exportFeedback);
 
     const calls = await page.evaluate(() => (window as IcalDebugWindow).__GREMIA_SBV_E2E_ICAL_EXPORTS);
     expect(calls).toHaveLength(1);

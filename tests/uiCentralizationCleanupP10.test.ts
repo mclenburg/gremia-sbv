@@ -35,11 +35,17 @@ function nativeInteractiveLocations(files: string[]): JsxFinding[] {
 const finalizedFeatureViews = [
   'src/app/features/contacts/ContactsView.tsx',
   'src/app/features/deadlines/DeadlinesView.tsx',
+  'src/app/features/deadlines/DeadlineCreateModal.tsx',
   'src/app/features/deadlines/DeadlineIcalExportPanel.tsx',
   'src/app/features/deadlines/DeadlineDashboardPanel.tsx',
   'src/app/features/deadlines/DeadlineListView.tsx',
   'src/app/features/equalization/EqualizationView.tsx',
-  'src/app/features/reports/ReportsView.tsx'
+  'src/app/features/reports/ReportsView.tsx',
+  'src/app/features/templates/TemplatesView.tsx',
+  'src/app/features/templates/TemplateEditorModal.tsx',
+  'src/app/features/templates/TemplateCatalogPanels.tsx',
+  'src/app/features/templates/TemplateHelpModal.tsx',
+  'src/app/features/settings/SettingsHub.tsx'
 ];
 
 describe('UI-Zentralisierung Patch P10', () => {
@@ -47,23 +53,48 @@ describe('UI-Zentralisierung Patch P10', () => {
     expect(nativeInteractiveLocations(finalizedFeatureViews)).toEqual([]);
 
     const contacts = source('src/app/features/contacts/ContactsView.tsx');
+    const contactCreate = source('src/app/features/contacts/ContactCreateModal.tsx');
     expect(contacts).toContain('WorkbenchPage');
     expect(contacts).toContain('SearchToolbar');
     expect(contacts).toContain('RecordList');
-    expect(contacts).toContain('TextInput');
-    expect(contacts).toContain('SelectInput');
+    expect(contacts).toContain('ContactCreateModal');
+    expect(contactCreate).toContain('TextInput');
+    expect(contactCreate).toContain('SelectInput');
+    expect(contactCreate).toContain('IndustrialModal');
 
     const deadlines = source('src/app/features/deadlines/DeadlinesView.tsx');
+    const deadlineCreate = source('src/app/features/deadlines/DeadlineCreateModal.tsx');
+    const deadlineExport = source('src/app/features/deadlines/DeadlineIcalExportPanel.tsx');
     expect(deadlines).toContain('WorkbenchPage');
-    expect(deadlines).toContain('DateTimeInput');
-    expect(deadlines).toContain('CheckboxField');
-    expect(deadlines).toContain('IndustrialModal');
+    expect(deadlines).toContain('WorkbenchSummary');
+    expect(deadlines).toContain('DeadlineCreateModal');
+    expect(deadlineCreate).toContain('DateTimeInput');
+    expect(deadlineCreate).toContain('CheckboxField');
+    expect(deadlineCreate).toContain('IndustrialModal');
+    expect(deadlineExport).toContain('IndustrialModal');
 
     const reports = source('src/app/features/reports/ReportsView.tsx');
     expect(reports).toContain('WorkbenchPage');
     expect(reports).toContain('DateInput');
     expect(reports).toContain('ToolbarButton');
     expect(reports).toContain('EmptyState');
+
+    const templates = source('src/app/features/templates/TemplatesView.tsx');
+    const templateEditor = source('src/app/features/templates/TemplateEditorModal.tsx');
+    const templateCatalog = source('src/app/features/templates/TemplateCatalogPanels.tsx');
+    expect(templates).toContain('TemplateEditorModal');
+    expect(templateEditor).toContain('IndustrialModal');
+    expect(templateEditor).toContain('TextInput');
+    expect(templateEditor).toContain('TextareaInput');
+    expect(templateCatalog).toContain('ToolbarButton');
+    expect(templateCatalog).toContain('IconButton');
+    expect(source('src/app/features/templates/TemplateHelpModal.tsx')).toContain('IndustrialModal');
+
+    const settingsHub = source('src/app/features/settings/SettingsHub.tsx');
+    const settingsNavigation = source('src/app/features/settings/settingsNavigation.ts');
+    expect(settingsHub).toContain('ToolbarButton');
+    expect(settingsNavigation).toContain('settings-security');
+    expect(settingsNavigation).toContain('settings-data-protection');
   });
 
   it('zentralisiert prozessübergreifende Übersichtskarten statt Modulbuttons und lokale Empty-States nachzubauen', () => {

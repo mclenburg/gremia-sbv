@@ -13,6 +13,7 @@ import type { CaseNodeTarget } from '../../core/navigation/caseNodeTarget';
 import { waitForBridge } from '../../core/bridge/waitForBridge';
 import { ModuleFrame } from '../../shared/components/ModuleFrame';
 import { ModuleFeedback } from '../../shared/components/ModuleFeedback';
+import { GhostButton, IndustrialButton } from '../../shared/components/IndustrialButton';
 import {
   WorkbenchDetailPanel,
   WorkbenchGrid,
@@ -198,13 +199,13 @@ export function ParticipationView({
             const relatedCase = cases.find((item) => item.id === record.caseId);
             const critical = criticalCount(record);
             return (
-              <button type="button" key={record.id} className={`participation-card ${selected?.id === record.id ? 'participation-card-active' : ''}`} onClick={() => setSelectedId(record.id)}>
+              <GhostButton key={record.id} className={`participation-card ${selected?.id === record.id ? 'participation-card-active' : ''}`} onClick={() => setSelectedId(record.id)}>
                 <span className="participation-card-title">{record.title}</span>
                 <span>{caseLabel(relatedCase)}</span>
                 <span>{measureLabels[record.measureType]} · {statusLabels[record.status]} · Risiko {riskLabels[record.riskLevel]}</span>
                 <span>{record.statementDueAt ? `Stellungnahme bis ${formatDateShort(record.statementDueAt)}` : 'keine Stellungnahmefrist'}</span>
                 {critical > 0 && <span className="participation-card-warning"><AlertTriangle className="h-3.5 w-3.5" /> {critical} kritische Prüfung(en)</span>}
-              </button>
+              </GhostButton>
             );
           })}
         </WorkbenchListPanel>
@@ -214,7 +215,7 @@ export function ParticipationView({
             <>
               <div className="participation-detail-header">
                 <div><p className="industrial-kicker">{measureLabels[selected.measureType]} · {personStatusLabels[selected.personStatus]}</p><h2>{selected.title}</h2><p>{caseLabel(selectedCase)}</p></div>
-                <button type="button" className="industrial-button" onClick={() => onOpenCaseNode({ caseId: selected.caseId, nodeType: 'overview' })}>Fallakte öffnen</button>
+                <IndustrialButton onClick={() => onOpenCaseNode({ caseId: selected.caseId, nodeType: 'overview' })}>Fallakte öffnen</IndustrialButton>
               </div>
               <div className="participation-cockpit-summary">
                 <p><strong>Status:</strong> {statusLabels[selected.status]} · <strong>Risiko:</strong> {riskLabels[selected.riskLevel]} · <strong>Entscheidungsstand:</strong> {decisionStageLabels[selected.decisionStage]}</p>
@@ -239,7 +240,7 @@ export function ParticipationView({
                 <p className="industrial-meta">Dieses Cockpit ist die Kontrollsicht. Änderungen erfolgen in der Fallakte, damit Verlauf, Unterlagenprüfung und Maßnahme zusammen bleiben.</p>
               </div>
               <div className="industrial-card-actions">
-                <button type="button" className="industrial-button" onClick={() => onOpenCaseNode({ caseId: selected.caseId, nodeType: 'participation', nodeId: selected.id })}><ExternalLink className="h-4 w-4" /> Maßnahme in Fallakte öffnen</button>
+                <IndustrialButton onClick={() => onOpenCaseNode({ caseId: selected.caseId, nodeType: 'participation', nodeId: selected.id })}><ExternalLink className="h-4 w-4" /> Maßnahme in Fallakte öffnen</IndustrialButton>
               </div>
             </>
           )}

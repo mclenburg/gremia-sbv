@@ -1,0 +1,393 @@
+
+> gremia-sbv@0.9.2 test:e2e
+> node scripts/run-e2e.cjs
+
+E2E-Testumgebung: /tmp/gremia-sbv-e2e-qDISBR
+E2E-Schutz: GREMIA_SBV_DATA_DIR zeigt ausschließlich auf diese temporäre Testumgebung.
+
+Running 83 tests using 1 worker
+
+  ✘   1 [chromium-smoke] › e2e/accessibility-axe.spec.ts:56:7 › P15m Axe accessibility scan › keeps dashboard free of serious Axe violations in light mode (3.7s)
+
+
+  1) [chromium-smoke] › e2e/accessibility-axe.spec.ts:56:7 › P15m Axe accessibility scan › keeps dashboard free of serious Axe violations in light mode 
+
+    Test was interrupted.
+
+    Error: page.evaluate: Test ended.
+
+      45 |     .disableRules(['color-contrast'])
+      46 |     .exclude('.industrial-live-region')
+    > 47 |     .analyze();
+         |      ^
+      48 |
+      49 |   const blockingViolations = results.violations.filter((violation) => SERIOUS_IMPACTS.has(violation.impact ?? ''));
+      50 |   expect(blockingViolations, `${contextLabel}: keine serious/critical Axe-WCAG-Verstöße\n${describeViolations(blockingViolations)}`).toEqual([])  ✓   6 [chromium-smoke] › e2e/accessibility-axe.spec.ts:56:7 › P15m Axe accessibility scan › keeps prevention free of serious Axe violations in light mode (3.8s)
+  ✘   7 [chromium-smoke] › e2e/accessibility-axe.spec.ts:56:7 › P15m Axe accessibility scan › keeps participation free of serious Axe violations in light mode (426ms)
+  ✘   8 [chromium-smoke] › e2e/accessibility-axe.spec.ts:56:7 › P15m Axe accessibility scan › keeps workplace_accommodation free of serious Axe violations in light mode (715ms)
+  ✘   9 [chromium-smoke] › e2e/accessibility-axe.spec.ts:56:7 › P15m Axe accessibility scan › keeps equalization free of serious Axe violations in light mode (585ms)
+  ✘  10 [chromium-smoke] › e2e/accessibility-axe.spec.ts:56:7 › P15m Axe accessibility scan › keeps termination_hearing free of serious Axe violations in light mode (554ms)
+  ✘  11 [chromium-smoke] › e2e/accessibility-axe.spec.ts:56:7 › P15m Axe accessibility scan › keeps templates free of serious Axe violations in light mode (593ms)
+  ✘  12 [chromium-smoke] › e2e/accessibility-axe.spec.ts:56:7 › P15m Axe accessibility scan › keeps knowledge free of serious Axe violations in light mode (611ms)
+  ✘  13 [chromium-smoke] › e2e/accessibility-axe.spec.ts:56:7 › P15m Axe accessibility scan › keeps contacts free of serious Axe violations in light mode (564ms)
+  ✘  14 [chromium-smoke] › e2e/accessibility-axe.spec.ts:56:7 › P15m Axe accessibility scan › keeps compliance free of serious Axe violations in light mode (574ms)
+  ✘  15 [chromium-smoke] › e2e/accessibility-axe.spec.ts:56:7 › P15m Axe accessibility scan › keeps sbv_control free of serious Axe violations in light mode (855ms)
+  ✘  16 [chromium-smoke] › e2e/accessibility-axe.spec.ts:56:7 › P15m Axe accessibility scan › keeps reports free of serious Axe violations in light mode (598ms)
+  ✘  17 [chromium-smoke] › e2e/accessibility-axe.spec.ts:56:7 › P15m Axe accessibility scan › keeps settings free of serious Axe violations in light mode (56ms)
+
+
+  1) [chromium-smoke] › e2e/accessibility-axe.spec.ts:56:7 › P15m Axe accessibility scan › keeps participation free of serious Axe violations in light mode 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:5174/
+    Call log:
+    [2m  - navigating to "http://127.0.0.1:5174/", waiting until "load"[22m
+
+
+      56 |       test(`keeps ${route.id} free of serious Axe violations in ${theme} mode`, async ({ page }) => {
+      57 |         await setTheme(page, theme);
+    > 58 |         await page.goto('/');
+         |                    ^
+      59 |         await expect(mainNavigation(page)).toBeVisible();
+      60 |
+      61 |         await openRoute(page, route.navName);
+        at /home/dwaesnigk/git-repos/gremia-sbv/e2e/accessibility-axe.spec.ts:58:20
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/accessibility-axe-P15m-Axe-1bc2c-xe-violations-in-light-mode-chromium-smoke/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/accessibility-axe-P15m-Axe-1bc2c-xe-violations-in-light-mode-chromium-smoke/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/accessibility-axe-P15m-Axe-1bc2c-xe-violations-in-light-mode-chromium-smoke/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/accessibility-axe-P15m-Axe-1bc2c-xe-violations-in-light-mode-chromium-smoke/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/accessibility-axe-P15m-Axe-1bc2c-xe-violations-in-light-mode-chromium-smoke/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [chromium-smoke] › e2e/accessibility-axe.spec.ts:56:7 › P15m Axe accessibility scan › keeps workplace_accommodation free of serious Axe violations in light mode 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:5174/
+    Call log:
+    [2m  - navigating to "http://127.0.0.1:5174/", waiting until "load"[22m
+
+
+      56 |       test(`keeps ${route.id} free of serious Axe violations in ${theme} mode`, async ({ page }) => {
+      57 |         await setTheme(page, theme);
+    > 58 |         await page.goto('/');
+         |                    ^
+      59 |         await expect(mainNavigation(page)).toBeVisible();
+      60 |
+      61 |         await openRoute(page, route.navName);
+        at /home/dwaesnigk/git-repos/gremia-sbv/e2e/accessibility-axe.spec.ts:58:20
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/accessibility-axe-P15m-Axe-7e982-xe-violations-in-light-mode-chromium-smoke/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/accessibility-axe-P15m-Axe-7e982-xe-violations-in-light-mode-chromium-smoke/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/accessibility-axe-P15m-Axe-7e982-xe-violations-in-light-mode-chromium-smoke/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/accessibility-axe-P15m-Axe-7e982-xe-violations-in-light-mode-chromium-smoke/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/accessibility-axe-P15m-Axe-7e982-xe-violations-in-light-mode-chromium-smoke/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [chromium-smoke] › e2e/accessibility-axe.spec.ts:56:7 › P15m Axe accessibility scan › keeps equalization free of serious Axe violations in light mode 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:5174/
+    Call log:
+    [2m  - navigating to "http://127.0.0.1:5174/", waiting until "load"[22m
+
+
+      56 |       test(`keeps ${route.id} free of serious Axe violations in ${theme} mode`, async ({ page }) => {
+      57 |         await setTheme(page, theme);
+    > 58 |         await page.goto('/');
+         |                    ^
+      59 |         await expect(mainNavigation(page)).toBeVisible();
+      60 |
+      61 |         await openRoute(page, route.navName);
+        at /home/dwaesnigk/git-repos/gremia-sbv/e2e/accessibility-axe.spec.ts:58:20
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/accessibility-axe-P15m-Axe-58c03-xe-violations-in-light-mode-chromium-smoke/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/accessibility-axe-P15m-Axe-58c03-xe-violations-in-light-mode-chromium-smoke/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/accessibility-axe-P15m-Axe-58c03-xe-violations-in-light-mode-chromium-smoke/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/accessibility-axe-P15m-Axe-58c03-xe-violations-in-light-mode-chromium-smoke/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/accessibility-axe-P15m-Axe-58c03-xe-violations-in-light-mode-chromium-smoke/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4) [chromium-smoke] › e2e/accessibility-axe.spec.ts:56:7 › P15m Axe accessibility scan › keeps termination_hearing free of serious Axe violations in light mode 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:5174/
+    Call log:
+    [2m  - navigating to "http://127.0.0.1:5174/", waiting until "load"[22m
+
+
+      56 |       test(`keeps ${route.id} free of serious Axe violations in ${theme} mode`, async ({ page }) => {
+      57 |         await setTheme(page, theme);
+    > 58 |         await page.goto('/');
+         |                    ^
+      59 |         await expect(mainNavigation(page)).toBeVisible();
+      60 |
+      61 |         await openRoute(page, route.navName);
+        at /home/dwaesnigk/git-repos/gremia-sbv/e2e/accessibility-axe.spec.ts:58:20
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/accessibility-axe-P15m-Axe-577eb-xe-violations-in-light-mode-chromium-smoke/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/accessibility-axe-P15m-Axe-577eb-xe-violations-in-light-mode-chromium-smoke/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/accessibility-axe-P15m-Axe-577eb-xe-violations-in-light-mode-chromium-smoke/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/accessibility-axe-P15m-Axe-577eb-xe-violations-in-light-mode-chromium-smoke/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/accessibility-axe-P15m-Axe-577eb-xe-violations-in-light-mode-chromium-smoke/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  5) [chromium-smoke] › e2e/accessibility-axe.spec.ts:56:7 › P15m Axe accessibility scan › keeps templates free of serious Axe violations in light mode 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:5174/
+    Call log:
+    [2m  - navigating to "http://127.0.0.1:5174/", waiting until "load"[22m
+
+
+      56 |       test(`keeps ${route.id} free of serious Axe violations in ${theme} mode`, async ({ page }) => {
+      57 |         await setTheme(page, theme);
+    > 58 |         await page.goto('/');
+         |                    ^
+      59 |         await expect(mainNavigation(page)).toBeVisible();
+      60 |
+      61 |         await openRoute(page, route.navName);
+        at /home/dwaesnigk/git-repos/gremia-sbv/e2e/accessibility-axe.spec.ts:58:20
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/accessibility-axe-P15m-Axe-e76c8-xe-violations-in-light-mode-chromium-smoke/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/accessibility-axe-P15m-Axe-e76c8-xe-violations-in-light-mode-chromium-smoke/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/accessibility-axe-P15m-Axe-e76c8-xe-violations-in-light-mode-chromium-smoke/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/accessibility-axe-P15m-Axe-e76c8-xe-violations-in-light-mode-chromium-smoke/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/accessibility-axe-P15m-Axe-e76c8-xe-violations-in-light-mode-chromium-smoke/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  6) [chromium-smoke] › e2e/accessibility-axe.spec.ts:56:7 › P15m Axe accessibility scan › keeps knowledge free of serious Axe violations in light mode 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:5174/
+    Call log:
+    [2m  - navigating to "http://127.0.0.1:5174/", waiting until "load"[22m
+
+
+      56 |       test(`keeps ${route.id} free of serious Axe violations in ${theme} mode`, async ({ page }) => {
+      57 |         await setTheme(page, theme);
+    > 58 |         await page.goto('/');
+         |                    ^
+      59 |         await expect(mainNavigation(page)).toBeVisible();
+      60 |
+      61 |         await openRoute(page, route.navName);
+        at /home/dwaesnigk/git-repos/gremia-sbv/e2e/accessibility-axe.spec.ts:58:20
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/accessibility-axe-P15m-Axe-900e9-xe-violations-in-light-mode-chromium-smoke/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/accessibility-axe-P15m-Axe-900e9-xe-violations-in-light-mode-chromium-smoke/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/accessibility-axe-P15m-Axe-900e9-xe-violations-in-light-mode-chromium-smoke/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/accessibility-axe-P15m-Axe-900e9-xe-violations-in-light-mode-chromium-smoke/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/accessibility-axe-P15m-Axe-900e9-xe-violations-in-light-mode-chromium-smoke/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  7) [chromium-smoke] › e2e/accessibility-axe.spec.ts:56:7 › P15m Axe accessibility scan › keeps contacts free of serious Axe violations in light mode 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:5174/
+    Call log:
+    [2m  - navigating to "http://127.0.0.1:5174/", waiting until "load"[22m
+
+
+      56 |       test(`keeps ${route.id} free of serious Axe violations in ${theme} mode`, async ({ page }) => {
+      57 |         await setTheme(page, theme);
+    > 58 |         await page.goto('/');
+         |                    ^
+      59 |         await expect(mainNavigation(page)).toBeVisible();
+      60 |
+      61 |         await openRoute(page, route.navName);
+        at /home/dwaesnigk/git-repos/gremia-sbv/e2e/accessibility-axe.spec.ts:58:20
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/accessibility-axe-P15m-Axe-dbdb7-xe-violations-in-light-mode-chromium-smoke/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/accessibility-axe-P15m-Axe-dbdb7-xe-violations-in-light-mode-chromium-smoke/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/accessibility-axe-P15m-Axe-dbdb7-xe-violations-in-light-mode-chromium-smoke/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/accessibility-axe-P15m-Axe-dbdb7-xe-violations-in-light-mode-chromium-smoke/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/accessibility-axe-P15m-Axe-dbdb7-xe-violations-in-light-mode-chromium-smoke/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  8) [chromium-smoke] › e2e/accessibility-axe.spec.ts:56:7 › P15m Axe accessibility scan › keeps compliance free of serious Axe violations in light mode 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:5174/
+    Call log:
+    [2m  - navigating to "http://127.0.0.1:5174/", waiting until "load"[22m
+
+
+      56 |       test(`keeps ${route.id} free of serious Axe violations in ${theme} mode`, async ({ page }) => {
+      57 |         await setTheme(page, theme);
+    > 58 |         await page.goto('/');
+         |                    ^
+      59 |         await expect(mainNavigation(page)).toBeVisible();
+      60 |
+      61 |         await openRoute(page, route.navName);
+        at /home/dwaesnigk/git-repos/gremia-sbv/e2e/accessibility-axe.spec.ts:58:20
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/accessibility-axe-P15m-Axe-7231d-xe-violations-in-light-mode-chromium-smoke/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/accessibility-axe-P15m-Axe-7231d-xe-violations-in-light-mode-chromium-smoke/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/accessibility-axe-P15m-Axe-7231d-xe-violations-in-light-mode-chromium-smoke/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/accessibility-axe-P15m-Axe-7231d-xe-violations-in-light-mode-chromium-smoke/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/accessibility-axe-P15m-Axe-7231d-xe-violations-in-light-mode-chromium-smoke/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  9) [chromium-smoke] › e2e/accessibility-axe.spec.ts:56:7 › P15m Axe accessibility scan › keeps sbv_control free of serious Axe violations in light mode 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:5174/
+    Call log:
+    [2m  - navigating to "http://127.0.0.1:5174/", waiting until "load"[22m
+
+
+      56 |       test(`keeps ${route.id} free of serious Axe violations in ${theme} mode`, async ({ page }) => {
+      57 |         await setTheme(page, theme);
+    > 58 |         await page.goto('/');
+         |                    ^
+      59 |         await expect(mainNavigation(page)).toBeVisible();
+      60 |
+      61 |         await openRoute(page, route.navName);
+        at /home/dwaesnigk/git-repos/gremia-sbv/e2e/accessibility-axe.spec.ts:58:20
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/accessibility-axe-P15m-Axe-39b86-xe-violations-in-light-mode-chromium-smoke/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/accessibility-axe-P15m-Axe-39b86-xe-violations-in-light-mode-chromium-smoke/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/accessibility-axe-P15m-Axe-39b86-xe-violations-in-light-mode-chromium-smoke/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/accessibility-axe-P15m-Axe-39b86-xe-violations-in-light-mode-chromium-smoke/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/accessibility-axe-P15m-Axe-39b86-xe-violations-in-light-mode-chromium-smoke/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  10) [chromium-smoke] › e2e/accessibility-axe.spec.ts:56:7 › P15m Axe accessibility scan › keeps reports free of serious Axe violations in light mode 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:5174/
+    Call log:
+    [2m  - navigating to "http://127.0.0.1:5174/", waiting until "load"[22m
+
+
+      56 |       test(`keeps ${route.id} free of serious Axe violations in ${theme} mode`, async ({ page }) => {
+      57 |         await setTheme(page, theme);
+    > 58 |         await page.goto('/');
+         |                    ^
+      59 |         await expect(mainNavigation(page)).toBeVisible();
+      60 |
+      61 |         await openRoute(page, route.navName);
+        at /home/dwaesnigk/git-repos/gremia-sbv/e2e/accessibility-axe.spec.ts:58:20
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/accessibility-axe-P15m-Axe-4db33-xe-violations-in-light-mode-chromium-smoke/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/accessibility-axe-P15m-Axe-4db33-xe-violations-in-light-mode-chromium-smoke/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/accessibility-axe-P15m-Axe-4db33-xe-violations-in-light-mode-chromium-smoke/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/accessibility-axe-P15m-Axe-4db33-xe-violations-in-light-mode-chromium-smoke/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/accessibility-axe-P15m-Axe-4db33-xe-violations-in-light-mode-chromium-smoke/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  10 failed
+    [chromium-smoke] › e2e/accessibility-axe.spec.ts:56:7 › P15m Axe accessibility scan › keeps participation free of serious Axe violations in light mode 
+    [chromium-smoke] › e2e/accessibility-axe.spec.ts:56:7 › P15m Axe accessibility scan › keeps workplace_accommodation free of serious Axe violations in light mode 
+    [chromium-smoke] › e2e/accessibility-axe.spec.ts:56:7 › P15m Axe accessibility scan › keeps equalization free of serious Axe violations in light mode 
+    [chromium-smoke] › e2e/accessibility-axe.spec.ts:56:7 › P15m Axe accessibility scan › keeps termination_hearing free of serious Axe violations in light mode 
+    [chromium-smoke] › e2e/accessibility-axe.spec.ts:56:7 › P15m Axe accessibility scan › keeps templates free of serious Axe violations in light mode 
+    [chromium-smoke] › e2e/accessibility-axe.spec.ts:56:7 › P15m Axe accessibility scan › keeps knowledge free of serious Axe violations in light mode 
+    [chromium-smoke] › e2e/accessibility-axe.spec.ts:56:7 › P15m Axe accessibility scan › keeps contacts free of serious Axe violations in light mode 
+    [chromium-smoke] › e2e/accessibility-axe.spec.ts:56:7 › P15m Axe accessibility scan › keeps compliance free of serious Axe violations in light mode 
+    [chromium-smoke] › e2e/accessibility-axe.spec.ts:56:7 › P15m Axe accessibility scan › keeps sbv_control free of serious Axe violations in light mode 
+    [chromium-smoke] › e2e/accessibility-axe.spec.ts:56:7 › P15m Axe accessibility scan › keeps reports free of serious Axe violations in light mode 
+  1 interrupted
+    [chromium-smoke] › e2e/accessibility-axe.spec.ts:56:7 › P15m Axe accessibility scan › keeps settings free of serious Axe violations in light mode 
+  66 did not run
+  6 passed (51.9s)

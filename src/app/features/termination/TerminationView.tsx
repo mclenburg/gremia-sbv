@@ -13,6 +13,7 @@ import {
   isIsoBeforeNow,
   type ProcessOverviewCardModel
 } from '../../shared/process/ProcessOverview';
+import { ToolbarButton, IndustrialButton } from '../../shared/components/IndustrialButton';
 import { isDoneTerminationStatus, protectionStatusLabel, terminationStatusLabel, terminationStatusOrder, terminationTypeLabel } from './terminationShared';
 
 function toCard(process: TerminationHearingRecord, cases: CaseRecord[]): ProcessOverviewCardModel<TerminationHearingStatus> {
@@ -97,10 +98,10 @@ export function TerminationView({ cases, onOpenCaseNode }: { cases: CaseRecord[]
         feedbackItems={[loading ? { id: 'termination-loading', message: 'Kündigungsanhörungen werden geladen …' } : null, error ? { id: 'termination-error', tone: 'warning', message: error } : null]}
         emptyText="Keine Kündigungsanhörung in diesem Status."
         helpAction={(
-          <button type="button" className="industrial-secondary-button compact" onClick={() => setShowHelp(true)} aria-label="Hilfe zur Kündigungsanhörung öffnen">
+          <ToolbarButton onClick={() => setShowHelp(true)} aria-label="Hilfe zur Kündigungsanhörung öffnen">
             <HelpCircle className="h-4 w-4" />
             Hilfe
-          </button>
+          </ToolbarButton>
         )}
         renderItem={(card) => (
           <ProcessOverviewCard
@@ -118,7 +119,7 @@ export function TerminationView({ cases, onOpenCaseNode }: { cases: CaseRecord[]
             <p>Das Modul führt durch Eingang, Unterlagenprüfung, SBV-Anhörung, Integrationsamt und Stellungnahme.</p>
             <p>Besonders kritisch sind Eingangsdatum, Frist, Schutzstatus und die Frage, ob das Integrationsamt beteiligt werden muss.</p>
             <div className="industrial-modal-actions">
-              <button type="button" className="industrial-button" onClick={() => setShowHelp(false)}>Verstanden</button>
+              <IndustrialButton onClick={() => setShowHelp(false)}>Verstanden</IndustrialButton>
             </div>
           </section>
         </div>

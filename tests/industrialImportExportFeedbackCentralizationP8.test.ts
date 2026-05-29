@@ -6,6 +6,21 @@ function source(path: string): string {
   return readFileSync(path, "utf8");
 }
 
+function uiCss(): string {
+  return [
+    'src/app/ui/designTokens.css',
+    'src/app/ui/base.css',
+    'src/app/ui/appShell.css',
+    'src/app/ui/components.css',
+    'src/app/ui/workbench.css',
+    'src/app/ui/processes.css',
+    'src/app/ui/featureModules.css',
+    'src/app/ui/responsiveDesign.css',
+    'src/app/ui/forms.css',
+
+  ].map((file) => source(file)).join('\n');
+}
+
 function jsxTagNames(path: string): string[] {
   const text = source(path);
   const ast = ts.createSourceFile(
@@ -31,7 +46,7 @@ function jsxTagNames(path: string): string[] {
 describe("Export-/Import-Feedback-Zentralisierung Patch P8", () => {
   it("stellt zentrale Bausteine für Exportaktion, Speicherort und Importprüfung bereit", () => {
     const feedback = source("src/app/shared/components/ImportExportFeedback.tsx");
-    const css = source("src/app/ui/responsiveDesign.css");
+    const css = uiCss();
 
     for (const component of [
       "ExportAction",

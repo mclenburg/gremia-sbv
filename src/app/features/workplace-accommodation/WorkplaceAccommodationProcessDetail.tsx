@@ -13,12 +13,13 @@ import {
   workplaceAccommodationStatusLabels,
 } from "../../core/models/workplace-accommodation.model";
 import {
-  IndustrialCheckboxRow,
-  IndustrialField,
-  IndustrialFormGrid,
-} from "../../shared/components/WorkbenchLayout";
+  CheckboxField,
+  DeferredDateTimeInput,
+  DeferredTextInput,
+  DeferredTextareaInput,
+  SelectInput,
+} from "../../shared/components/IndustrialForm";
 import { MeasureDetailFrame } from "../cases/measures/MeasureDetailFrame";
-import { TextCommandTextarea } from "../../shared/textCommands/TextCommandTextarea";
 
 const statusOrder = Object.keys(
   workplaceAccommodationStatusLabels,
@@ -142,304 +143,214 @@ export function WorkplaceAccommodationProcessDetail({
           </div>
         )}
 
-        <IndustrialFormGrid columns={3}>
-          <IndustrialField label="Status">
-            <select
-              value={process.status}
-              onChange={(event) =>
-                update({
-                  status: event.target.value as WorkplaceAccommodationStatus,
-                })
-              }
-            >
-              {statusOrder.map((item) => (
-                <option key={item} value={item}>
-                  {workplaceAccommodationStatusLabels[item]}
-                </option>
-              ))}
-            </select>
-          </IndustrialField>
-          <IndustrialField label="Kategorie">
-            <select
-              value={process.category}
-              onChange={(event) =>
-                update({
-                  category: event.target
-                    .value as WorkplaceAccommodationCategory,
-                })
-              }
-            >
-              {categoryOrder.map((item) => (
-                <option key={item} value={item}>
-                  {workplaceAccommodationCategoryLabels[item]}
-                </option>
-              ))}
-            </select>
-          </IndustrialField>
-          <IndustrialField label="Risiko">
-            <select
-              value={process.riskLevel}
-              onChange={(event) =>
-                update({
-                  riskLevel: event.target
-                    .value as WorkplaceAccommodationRiskLevel,
-                })
-              }
-            >
-              {riskOrder.map((item) => (
-                <option key={item} value={item}>
-                  {riskLabels[item]}
-                </option>
-              ))}
-            </select>
-          </IndustrialField>
-          <IndustrialField label="Arbeitgeberreaktion">
-            <select
-              value={process.employerResponseStatus}
-              onChange={(event) =>
-                update({
-                  employerResponseStatus: event.target
-                    .value as WorkplaceAccommodationEmployerResponseStatus,
-                })
-              }
-            >
-              {employerResponseOrder.map((item) => (
-                <option key={item} value={item}>
-                  {employerResponseLabels[item]}
-                </option>
-              ))}
-            </select>
-          </IndustrialField>
-          <IndustrialField label="Reaktion erhalten">
-            <input
-              type="datetime-local"
-              defaultValue={toDateTimeLocal(process.employerResponseAt)}
-              onBlur={(event) =>
-                update({
-                  employerResponseAt: fromDateTimeLocal(event.currentTarget.value),
-                })
-              }
-            />
-          </IndustrialField>
-          <IndustrialField label="Umsetzung">
-            <select
-              value={process.implementationStatus}
-              onChange={(event) =>
-                update({
-                  implementationStatus: event.target
-                    .value as WorkplaceAccommodationImplementationStatus,
-                })
-              }
-            >
-              {implementationOrder.map((item) => (
-                <option key={item} value={item}>
-                  {implementationLabels[item]}
-                </option>
-              ))}
-            </select>
-          </IndustrialField>
-          <IndustrialField label="Umsetzung bis">
-            <input
-              type="datetime-local"
-              defaultValue={toDateTimeLocal(process.implementationDueAt)}
-              onBlur={(event) =>
-                update({
-                  implementationDueAt: fromDateTimeLocal(event.currentTarget.value),
-                })
-              }
-            />
-          </IndustrialField>
-          <IndustrialField label="Wirksamkeitsprüfung">
-            <input
-              type="datetime-local"
-              defaultValue={toDateTimeLocal(process.effectivenessReviewAt)}
-              onBlur={(event) =>
-                update({
-                  effectivenessReviewAt: fromDateTimeLocal(event.currentTarget.value),
-                })
-              }
-            />
-          </IndustrialField>
-          <IndustrialField label="Rechtsgrundlage">
-            <input
-              defaultValue={process.legalBasis}
-              onBlur={(event) => update({ legalBasis: event.currentTarget.value })}
-            />
-          </IndustrialField>
-        </IndustrialFormGrid>
-
-        <IndustrialFormGrid columns={2}>
-          <IndustrialField label="Gewünschte Gestaltung / Nachteilsausgleich">
-            <TextCommandTextarea
-              fieldId="workplace-requested-adjustment"
-              defaultValue={process.requestedAdjustment}
-              rows={4}
-              onBlur={(event) =>
-                update({ requestedAdjustment: event.currentTarget.value })
-              }
-            />
-          </IndustrialField>
-          <IndustrialField label="Barriere / Einschränkung im Arbeitskontext">
-            <TextCommandTextarea
-              fieldId="workplace-barrier-or-limitation"
-              defaultValue={process.barrierOrLimitation ?? ""}
-              rows={4}
-              onBlur={(event) =>
-                update({ barrierOrLimitation: event.currentTarget.value })
-              }
-            />
-          </IndustrialField>
-          <IndustrialField label="Arbeitsplatz / Arbeitsumfeld">
-            <TextCommandTextarea
-              fieldId="workplace-context"
-              defaultValue={process.workplaceContext ?? ""}
-              rows={3}
-              onBlur={(event) =>
-                update({ workplaceContext: event.currentTarget.value })
-              }
-            />
-          </IndustrialField>
-          <IndustrialField label="Lösungsvorschlag / konkrete Maßnahme">
-            <TextCommandTextarea
-              fieldId="workplace-proposed-solution"
-              defaultValue={process.proposedSolution ?? ""}
-              rows={3}
-              onBlur={(event) =>
-                update({ proposedSolution: event.currentTarget.value })
-              }
-            />
-          </IndustrialField>
-        </IndustrialFormGrid>
-
-        <div className="industrial-subsection compact">
-          <h3>
-            <CheckCircle2 className="mr-2 inline h-4 w-4" />
-            Prüfpunkte
-          </h3>
-          <div className="industrial-checkbox-grid">
-            <IndustrialCheckboxRow>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={process.technicalAidNeeded}
-                  onChange={(event) =>
-                    update({ technicalAidNeeded: event.target.checked })
-                  }
-                />{" "}
-                <span>technische Arbeitshilfe</span>
-              </label>
-            </IndustrialCheckboxRow>
-            <IndustrialCheckboxRow>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={process.organizationalAdjustmentNeeded}
-                  onChange={(event) =>
-                    update({
-                      organizationalAdjustmentNeeded: event.target.checked,
-                    })
-                  }
-                />{" "}
-                <span>Arbeitsorganisation</span>
-              </label>
-            </IndustrialCheckboxRow>
-            <IndustrialCheckboxRow>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={process.workingTimeAdjustmentNeeded}
-                  onChange={(event) =>
-                    update({
-                      workingTimeAdjustmentNeeded: event.target.checked,
-                    })
-                  }
-                />{" "}
-                <span>Arbeitszeit / Lage</span>
-              </label>
-            </IndustrialCheckboxRow>
-            <IndustrialCheckboxRow>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={process.qualificationNeeded}
-                  onChange={(event) =>
-                    update({ qualificationNeeded: event.target.checked })
-                  }
-                />{" "}
-                <span>Qualifizierung</span>
-              </label>
-            </IndustrialCheckboxRow>
-            <IndustrialCheckboxRow>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={process.fixedWorkplaceNeeded}
-                  onChange={(event) =>
-                    update({ fixedWorkplaceNeeded: event.target.checked })
-                  }
-                />{" "}
-                <span>fester Arbeitsplatz</span>
-              </label>
-            </IndustrialCheckboxRow>
-            <IndustrialCheckboxRow>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={process.homeofficeOrMobileWorkRelevant}
-                  onChange={(event) =>
-                    update({
-                      homeofficeOrMobileWorkRelevant: event.target.checked,
-                    })
-                  }
-                />{" "}
-                <span>Homeoffice / mobile Arbeit</span>
-              </label>
-            </IndustrialCheckboxRow>
-            <IndustrialCheckboxRow>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={process.inclusionOfficeInvolved}
-                  onChange={(event) =>
-                    update({ inclusionOfficeInvolved: event.target.checked })
-                  }
-                />{" "}
-                <span>Inklusionsamt einbezogen</span>
-              </label>
-            </IndustrialCheckboxRow>
-            <IndustrialCheckboxRow>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={process.rehabCarrierInvolved}
-                  onChange={(event) =>
-                    update({ rehabCarrierInvolved: event.target.checked })
-                  }
-                />{" "}
-                <span>Reha-Träger einbezogen</span>
-              </label>
-            </IndustrialCheckboxRow>
-          </div>
+        <div className="industrial-form-grid">
+          <SelectInput
+            label="Status"
+            value={process.status}
+            options={statusOrder.map((item) => ({
+              value: item,
+              label: workplaceAccommodationStatusLabels[item],
+            }))}
+            onValueChange={(value) =>
+              update({ status: value as WorkplaceAccommodationStatus })
+            }
+          />
+          <SelectInput
+            label="Kategorie"
+            value={process.category}
+            options={categoryOrder.map((item) => ({
+              value: item,
+              label: workplaceAccommodationCategoryLabels[item],
+            }))}
+            onValueChange={(value) =>
+              update({ category: value as WorkplaceAccommodationCategory })
+            }
+          />
+          <SelectInput
+            label="Risiko"
+            value={process.riskLevel}
+            options={riskOrder.map((item) => ({
+              value: item,
+              label: riskLabels[item],
+            }))}
+            onValueChange={(value) =>
+              update({ riskLevel: value as WorkplaceAccommodationRiskLevel })
+            }
+          />
+          <SelectInput
+            label="Arbeitgeberreaktion"
+            value={process.employerResponseStatus}
+            options={employerResponseOrder.map((item) => ({
+              value: item,
+              label: employerResponseLabels[item],
+            }))}
+            onValueChange={(value) =>
+              update({
+                employerResponseStatus:
+                  value as WorkplaceAccommodationEmployerResponseStatus,
+              })
+            }
+          />
+          <DeferredDateTimeInput
+            label="Reaktion erhalten"
+            value={toDateTimeLocal(process.employerResponseAt)}
+            onCommit={(value) =>
+              update({ employerResponseAt: fromDateTimeLocal(value) })
+            }
+          />
+          <SelectInput
+            label="Umsetzung"
+            value={process.implementationStatus}
+            options={implementationOrder.map((item) => ({
+              value: item,
+              label: implementationLabels[item],
+            }))}
+            onValueChange={(value) =>
+              update({
+                implementationStatus:
+                  value as WorkplaceAccommodationImplementationStatus,
+              })
+            }
+          />
+          <DeferredDateTimeInput
+            label="Umsetzung bis"
+            value={toDateTimeLocal(process.implementationDueAt)}
+            onCommit={(value) =>
+              update({ implementationDueAt: fromDateTimeLocal(value) })
+            }
+          />
+          <DeferredDateTimeInput
+            label="Wirksamkeitsprüfung"
+            value={toDateTimeLocal(process.effectivenessReviewAt)}
+            onCommit={(value) =>
+              update({ effectivenessReviewAt: fromDateTimeLocal(value) })
+            }
+          />
+          <DeferredTextInput
+            label="Rechtsgrundlage"
+            value={process.legalBasis}
+            onCommit={(value) => update({ legalBasis: value })}
+          />
         </div>
 
-        <IndustrialFormGrid columns={2}>
-          <IndustrialField label="Nächster Schritt">
-            <TextCommandTextarea
-              fieldId="workplace-next-step"
-              defaultValue={process.nextStep ?? ""}
-              rows={3}
-              onBlur={(event) => update({ nextStep: event.currentTarget.value })}
+        <div className="industrial-form-grid two-columns">
+          <DeferredTextareaInput
+            label="Gewünschte Gestaltung / Nachteilsausgleich"
+            value={process.requestedAdjustment}
+            textCommandFieldId="workplace-requested-adjustment"
+            rows={4}
+            onCommit={(value) => update({ requestedAdjustment: value })}
+            wide
+          />
+          <DeferredTextareaInput
+            label="Barriere / Einschränkung im Arbeitskontext"
+            value={process.barrierOrLimitation ?? ""}
+            textCommandFieldId="workplace-barrier-or-limitation"
+            rows={4}
+            onCommit={(value) => update({ barrierOrLimitation: value })}
+            wide
+          />
+          <DeferredTextareaInput
+            label="Arbeitsplatz / Arbeitsumfeld"
+            value={process.workplaceContext ?? ""}
+            textCommandFieldId="workplace-context"
+            rows={3}
+            onCommit={(value) => update({ workplaceContext: value })}
+            wide
+          />
+          <DeferredTextareaInput
+            label="Lösungsvorschlag / konkrete Maßnahme"
+            value={process.proposedSolution ?? ""}
+            textCommandFieldId="workplace-proposed-solution"
+            rows={3}
+            onCommit={(value) => update({ proposedSolution: value })}
+            wide
+          />
+        </div>
+
+        <fieldset className="industrial-subsection compact">
+          <legend>
+            <CheckCircle2 className="mr-2 inline h-4 w-4" />
+            Prüfpunkte
+          </legend>
+          <div className="industrial-checkbox-grid">
+            <CheckboxField
+              label="technische Arbeitshilfe"
+              checked={process.technicalAidNeeded}
+              onCheckedChange={(checked) =>
+                update({ technicalAidNeeded: checked })
+              }
             />
-          </IndustrialField>
-          <IndustrialField label="Ergebnis / Abschlussvermerk">
-            <TextCommandTextarea
-              fieldId="workplace-outcome"
-              defaultValue={process.outcome ?? ""}
-              rows={3}
-              onBlur={(event) => update({ outcome: event.currentTarget.value })}
+            <CheckboxField
+              label="Arbeitsorganisation"
+              checked={process.organizationalAdjustmentNeeded}
+              onCheckedChange={(checked) =>
+                update({ organizationalAdjustmentNeeded: checked })
+              }
             />
-          </IndustrialField>
-        </IndustrialFormGrid>
+            <CheckboxField
+              label="Arbeitszeit / Lage"
+              checked={process.workingTimeAdjustmentNeeded}
+              onCheckedChange={(checked) =>
+                update({ workingTimeAdjustmentNeeded: checked })
+              }
+            />
+            <CheckboxField
+              label="Qualifizierung"
+              checked={process.qualificationNeeded}
+              onCheckedChange={(checked) =>
+                update({ qualificationNeeded: checked })
+              }
+            />
+            <CheckboxField
+              label="fester Arbeitsplatz"
+              checked={process.fixedWorkplaceNeeded}
+              onCheckedChange={(checked) =>
+                update({ fixedWorkplaceNeeded: checked })
+              }
+            />
+            <CheckboxField
+              label="Homeoffice / mobile Arbeit"
+              checked={process.homeofficeOrMobileWorkRelevant}
+              onCheckedChange={(checked) =>
+                update({ homeofficeOrMobileWorkRelevant: checked })
+              }
+            />
+            <CheckboxField
+              label="Inklusionsamt einbezogen"
+              checked={process.inclusionOfficeInvolved}
+              onCheckedChange={(checked) =>
+                update({ inclusionOfficeInvolved: checked })
+              }
+            />
+            <CheckboxField
+              label="Reha-Träger einbezogen"
+              checked={process.rehabCarrierInvolved}
+              onCheckedChange={(checked) =>
+                update({ rehabCarrierInvolved: checked })
+              }
+            />
+          </div>
+        </fieldset>
+
+        <div className="industrial-form-grid two-columns">
+          <DeferredTextareaInput
+            label="Nächster Schritt"
+            value={process.nextStep ?? ""}
+            textCommandFieldId="workplace-next-step"
+            rows={3}
+            onCommit={(value) => update({ nextStep: value })}
+            wide
+          />
+          <DeferredTextareaInput
+            label="Ergebnis / Abschlussvermerk"
+            value={process.outcome ?? ""}
+            textCommandFieldId="workplace-outcome"
+            rows={3}
+            onCommit={(value) => update({ outcome: value })}
+            wide
+          />
+        </div>
       </div>
     </MeasureDetailFrame>
   );
