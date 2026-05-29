@@ -76,6 +76,6 @@ Nicht in die SBV-Steuerung gehören:
 - personenbezogene Fallbearbeitung,
 - medizinische Detaildokumentation,
 - allgemeine Lesetexte ohne Arbeitsfunktion,
-- Patchnotizen oder historische Umsetzungsdetails.
+- kurzlebige Umsetzungsnotizen oder historische Arbeitsdetails.
 
 Fallabschluss, Datenschutzprüfung und Löschpfade bleiben bei Fallakte und Compliance. Die SBV-Steuerung dient nur dort, wo ein Vorgang fallübergreifend als Arbeitsnachweis oder Strukturkontrolle geführt werden muss.

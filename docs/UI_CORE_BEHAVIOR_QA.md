@@ -1,6 +1,6 @@
-# UI-Core-Verhaltenstests P12
+# UI-Core-Verhaltenstests
 
-Patch 12 ergänzt zur visuellen QA ein kleines E2E-Vertragspaket für echte Bedienflüsse. Diese Tests sollen nicht prüfen, ob ein bestimmter Text zufällig in einer Datei steht, sondern ob zentrale UI-Bausteine im laufenden Renderer korrekt reagieren.
+Diese E2E-Tests prüfen echte Bedienflüsse. Sie sollen nicht feststellen, ob ein bestimmter Text zufällig in einer Datei steht, sondern ob zentrale UI-Bausteine im laufenden Renderer korrekt reagieren.
 
 ## Geprüfte Verträge
 
@@ -16,7 +16,7 @@ Patch 12 ergänzt zur visuellen QA ein kleines E2E-Vertragspaket für echte Bedi
 npm run test:e2e:core-ui-flows
 ```
 
-Für die Release-Vorprüfung steht zusätzlich zur Verfügung:
+Für die Qualitätsprüfung steht zusätzlich zur Verfügung:
 
 ```bash
 npm run release:check:core-ui
@@ -24,4 +24,4 @@ npm run release:check:core-ui
 
 ## Review-Regel
 
-Neue zentrale UI-Komponenten gelten erst dann als releasefähig, wenn neben Architektur-Gates mindestens ein realer Bedienfluss abgesichert ist. Architekturtests dürfen Abweichungen verhindern; sie ersetzen aber keine Nutzerfluss- und A11y-Verhaltenstests.
+Neue zentrale UI-Komponenten gelten erst dann als bereit, wenn neben Architektur-Gates mindestens ein realer Bedienfluss abgesichert ist. Architekturtests dürfen Abweichungen verhindern; sie ersetzen aber keine Nutzerfluss- und A11y-Verhaltenstests.

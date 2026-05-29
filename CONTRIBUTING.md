@@ -24,7 +24,7 @@ Gremia.SBV ist Fachsoftware für besonders sensible Arbeit. Beiträge sind willk
 
 Neue Funktionen brauchen Verhaltenstests. Reine Source-String-Tests sind nur letzte Wahl und müssen gut begründet sein.
 
-Bevor ein Patch fertig ist, sollten mindestens laufen:
+Bevor eine Änderung fertig ist, sollten mindestens laufen:
 
 ```bash
 npm run test
@@ -77,6 +77,6 @@ Sichtbare Statusänderungen brauchen Screen-Reader-Rückmeldung, insbesondere be
 Wenn ein Beitrag zentrale Dialoge, Formulare, Textareas, Exportfeedback oder Live-Regionen verändert, muss zusätzlich `npm run test:e2e:core-ui-flows` grün laufen. Neue Komponenten brauchen nach Möglichkeit einen echten Bedienflusstest statt bloßer String- oder Importprüfung.
 
 
-## Release-Vertrag
+## Qualitätsvertrag
 
 Vor einem Beitrag, der UI, Audit, Datenschutz, Accessibility oder Kernprozesse berührt, ist zusätzlich die Qualitätsfreigabe-Checkliste in `docs/QUALITY_GATE.md` maßgeblich. Abweichungen von zentralen Komponenten oder Architektur-Gates brauchen eine fachliche Begründung im Pull Request und einen Verhaltenstest.

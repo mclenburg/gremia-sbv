@@ -2,9 +2,9 @@
 
 Gremia.SBV verarbeitet besonders sensible SBV-Falldaten lokal und verschlüsselt. Sicherheitslücken werden deshalb vertraulich behandelt.
 
-## Unterstützte Versionen
+## Geltungsbereich
 
-Sicherheitsmeldungen werden für den aktuellen öffentlichen Release-Zweig und den jeweils neuesten Vorab-Release geprüft.
+Sicherheitsmeldungen werden für den aktuellen öffentlichen Projektstand geprüft.
 
 ## Sicherheitslücken melden
 
@@ -13,11 +13,11 @@ Bitte veröffentliche Sicherheitslücken nicht als öffentliches Issue und füge
 Bevorzugter Meldeweg nach Veröffentlichung des Repositories:
 
 1. GitHub Security Advisory im Repository öffnen, oder
-2. falls noch nicht verfügbar: eine private Kontaktadresse der Projektbetreuung nutzen, sobald sie in den Release-Informationen benannt ist.
+2. falls noch nicht verfügbar: eine private Kontaktadresse der Projektbetreuung nutzen, sobald sie in den Projektinformationen benannt ist.
 
 Eine gute Meldung enthält:
 
-- betroffene Version,
+- betroffener Build oder Commit,
 - Betriebssystem,
 - reproduzierbare Schritte,
 - erwartetes und tatsächliches Verhalten,

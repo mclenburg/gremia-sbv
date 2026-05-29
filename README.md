@@ -2,11 +2,13 @@
 
 **Gremia.SBV ist ein geschützter Arbeitsraum für Schwerbehindertenvertretungen.**
 
-Die Anwendung hilft SBVen, vertrauliche Beratung, Fallakten, Fristen, BEM, Prävention, Beteiligungen, Kündigungsanhörungen, Arbeitsplatzgestaltung, Vorlagen, Berichte und Übergaben an einem Ort zu organisieren. Alles läuft lokal auf dem eigenen Gerät. Es gibt keine Cloudpflicht, keine Telemetrie und keine Hintergrundverbindungen.
+Die Anwendung unterstützt SBVen dabei, vertrauliche Beratung, Fallakten, Fristen, BEM, Prävention, Beteiligungen, Kündigungsanhörungen, Arbeitsplatzgestaltung, Vorlagen, Berichte und Übergaben an einem Ort zu organisieren. Alles läuft lokal auf dem eigenen Gerät. Es gibt keine Cloudpflicht, keine Telemetrie und keine Hintergrundverbindungen.
+
+Der öffentliche Einstieg richtet sich zuerst an Anwenderinnen und Anwender. Technische Hintergründe, Architekturentscheidungen und Entwicklungsdetails liegen unter [`docs/`](docs/README.md).
 
 ## Gremia.SBV gefahrlos ausprobieren: Demo-Modus
 
-Wer Gremia.SBV nur ansehen, vorführen oder in einer Schulung testen möchte, muss keinen eigenen Tresor anlegen und keine echten Daten erfassen. Die fertige Anwendung kann direkt mit dem Zusatz `--demo` gestartet werden.
+Wer Gremia.SBV ansehen, vorführen oder in einer Schulung testen möchte, muss keinen eigenen Tresor anlegen und keine echten Daten erfassen. Die fertige Anwendung kann direkt mit dem Zusatz `--demo` gestartet werden.
 
 Unter Linux zum Beispiel:
 
@@ -38,7 +40,7 @@ Alle Demo-Daten sind frei erfunden. Der Modus ist für Vorführung, Schulung, En
 
 ## Warum sich ein genauer Blick lohnt
 
-SBV-Arbeit ist oft vertraulich, zeitkritisch und schwer in normalen Bürotools abzubilden. Ein Gespräch wird zur Maßnahme. Eine Maßnahme bekommt eine Frist. Eine Frist braucht Nachverfolgung. Ein BEM-Gespräch darf nicht zur Personalakte werden. Eine Vertretung braucht genau die Informationen, die sie für eine sichere Weiterbearbeitung benötigt – aber nicht mehr.
+SBV-Arbeit ist vertraulich, zeitkritisch und in normalen Bürotools schwer sauber abzubilden. Ein Gespräch wird zur Maßnahme. Eine Maßnahme bekommt eine Frist. Eine Frist braucht Nachverfolgung. Ein BEM-Gespräch darf nicht zur Personalakte werden. Eine Vertretung braucht genau die Informationen, die sie für eine sichere Weiterbearbeitung benötigt – aber nicht mehr.
 
 Gremia.SBV bündelt diese Arbeit in einem lokalen, verschlüsselten Arbeitsbereich. Der Anspruch ist:
 
@@ -58,7 +60,7 @@ Die Anwendung ist besonders hilfreich, wenn du:
 - Datenschutz und Löschung nicht erst am Ende bedenken willst,
 - mit Vorlagen, Wissensbausteinen und Berichten schneller arbeitsfähig sein möchtest.
 
-Zweite Zielgruppe sind Entwicklerinnen und Entwickler, die eine freie, datenschutzorientierte Fachanwendung für Interessenvertretungen mitentwickeln wollen. Der technische Einstieg steht weiter unten.
+Entwicklerinnen und Entwickler sind ausdrücklich willkommen. Der technische Einstieg ist aber bewusst nachgelagert und in der Dokumentation gebündelt: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) und [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## Was kann ich in Gremia.SBV tun?
 
@@ -104,7 +106,7 @@ Gremia.SBV behandelt SBV-Daten so, wie SBV-Daten behandelt werden müssen: lokal
 Die wichtigsten Punkte:
 
 - **Offline-first:** keine Hintergrundverbindungen und keine Cloudpflicht.
-- **Lokaler Tresor:** Daten liegen in einem verschlüsselten Vault auf dem eigenen Gerät.
+- **Lokaler Tresor:** Daten liegen in einem verschlüsselten SQLCipher-Vault auf dem eigenen Gerät.
 - **Keine Telemetrie:** die Anwendung sendet keine Nutzungsdaten an Dritte.
 - **Datenschutzpfade:** Löschung, Anonymisierung, Retention, Audit und Suchindex werden gemeinsam betrachtet.
 - **Datenminimierung:** gespeichert werden soll nur, was für die konkrete SBV-Arbeit erforderlich ist.
@@ -119,28 +121,25 @@ Gremia.SBV ist keine Personalakte, kein HR-System und keine Cloud-Plattform. Die
 
 ## Hinweise zu Signaturen und Sicherheitswarnungen
 
-Die öffentlichen Artefakte werden zunächst transparent als nicht signierte Community-Builds veröffentlicht. Je nach Betriebssystem können deshalb Warnhinweise erscheinen, insbesondere Windows SmartScreen oder macOS Gatekeeper. Das bedeutet nicht automatisch, dass die Anwendung kompromittiert ist; es bedeutet, dass für diesen Build noch kein kommerzielles Code-Signing-Zertifikat beziehungsweise keine notarisierten macOS-Artefakte verwendet werden.
+Öffentlich bereitgestellte Community-Builds können je nach Betriebssystem Sicherheitswarnungen auslösen, insbesondere Windows SmartScreen oder macOS Gatekeeper. Das bedeutet nicht automatisch, dass die Anwendung kompromittiert ist; es bedeutet, dass das jeweilige Artefakt vom Betriebssystem noch nicht als vertrauter Herausgeber erkannt wird.
 
-Die Code-Signing-Strategie und der Plan für signierte Artefakte stehen in [CODE_SIGNING.md](docs/CODE_SIGNING.md).
+Die Code-Signing-Strategie steht in [CODE_SIGNING.md](docs/CODE_SIGNING.md).
 
 ## Optional: Lesender Blick nach Gremia.BR
 
-Gremia.SBV kann eine **optionale, standardmäßig deaktivierte Lesebrücke** zu Gremia.BR nutzen. Diese Verbindung ist nur für ausdrücklich ausgelöste, lesende Zugriffe gedacht. Es gibt keine Hintergrundsynchronisation und kein Rückschreiben von SBV-Daten.
+Gremia.SBV kann eine **optionale, standardmäßig deaktivierte Lesebrücke** zu Gremia.BR nutzen. Diese Verbindung ist nur für ausdrücklich ausgelöste, lesende Zugriffe gedacht. Es gibt keine Hintergrundsynchronisation, keine automatische Übernahme von BR-Dokumenten und kein Rückschreiben von SBV-Daten.
 
 ## Für Mitentwickler
 
-Gremia.SBV ist eine lokale Electron- und React-Anwendung mit klarer Trennung zwischen Oberfläche, Bridge, IPC, Services und verschlüsseltem Speicher. Der technische Einstieg steht in [ARCHITECTURE.md](docs/ARCHITECTURE.md) und [CONTRIBUTING.md](CONTRIBUTING.md).
+Gremia.SBV ist eine lokale Electron- und React-Anwendung mit klarer Trennung zwischen Oberfläche, Bridge, IPC, Services und verschlüsseltem Speicher. Die README bleibt bewusst anwenderorientiert; der technische Einstieg steht in der Dokumentation.
 
-Kurzfassung:
+Wichtige technische Einstiege:
 
-- Electron + React,
-- Services im Main-/Backend-Layer,
-- Renderer ohne direkten Datenbank- oder Netzwerkzugriff,
-- typisierte Bridge/IPC,
-- SQLCipher-Vault,
-- Verhaltenstests vor Oberflächenkosmetik,
-- keine generischen Netzwerkbrücken,
-- keine verdeckten Hintergrundprozesse.
+- [Architektur](docs/ARCHITECTURE.md)
+- [Entwicklung](docs/DEVELOPMENT.md)
+- [Build und Tests](docs/BUILD.md)
+- [Qualitätsgate](docs/QUALITY_GATE.md)
+- [Mitwirken](CONTRIBUTING.md)
 
 Für Entwicklerinnen und Entwickler gibt es zusätzlich den Demo-Start aus dem Quellcode:
 
@@ -148,10 +147,8 @@ Für Entwicklerinnen und Entwickler gibt es zusätzlich den Demo-Start aus dem Q
 npm run dev:demo
 ```
 
-## Projektstatus und Qualität
+## Projektqualität
 
-Gremia.SBV ist eine aktiv entwickelte Open-Source-Anwendung. Der Fokus liegt auf einem belastbaren Kern für die tägliche SBV-Arbeit, nicht auf Feature-Fülle um jeden Preis.
+Gremia.SBV ist eine Open-Source-Anwendung für vertrauliche SBV-Arbeit. Willkommen sind Beiträge, die Fachlichkeit, Sicherheit, Barrierefreiheit, Testbarkeit oder Bedienbarkeit verbessern.
 
-Willkommen sind Beiträge, die Fachlichkeit, Sicherheit, Barrierefreiheit, Testbarkeit oder Bedienbarkeit verbessern.
-
-Die verbindlichen Qualitätsregeln stehen in [QUALITY_GATE.md](docs/QUALITY_GATE.md). Sie beschreiben Offline-first-Linie, Architektur-Gates, Accessibility-Gates, Visual-QA, Axe-A11y-Scan und die Tests, die vor der Veröffentlichung grün sein müssen.
+Die verbindlichen Qualitätsregeln stehen in [QUALITY_GATE.md](docs/QUALITY_GATE.md). Sie beschreiben Offline-first-Linie, Architektur-Gates, Accessibility-Gates, Visual-QA, Axe-A11y-Scan und die Tests, die vor einer öffentlichen Bereitstellung grün sein müssen.

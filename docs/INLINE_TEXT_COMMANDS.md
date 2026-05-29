@@ -6,7 +6,7 @@ Inline-Kurzbefehle beschleunigen die SBV-Dokumentation aus großen Textfeldern h
 
 ## Abgedeckte Befehle
 
-Die RC-kritischen Befehle sind vollständig abgedeckt:
+Die fachlich zentralen Befehle sind vollständig abgedeckt:
 
 ```text
 /bem, /praev, /bet, /kuend, /gleich, /anp, /fr

@@ -18,4 +18,4 @@ npm run version:generate
 
 ## Tests
 
-Versions-Tests dürfen nicht hart auf historische Hotfix-Suffixe pinnen. Sie müssen dynamisch gegen `package.json` prüfen.
+Versions-Tests dürfen nicht hart auf historische Suffixe pinnen. Sie müssen dynamisch gegen `package.json` prüfen.

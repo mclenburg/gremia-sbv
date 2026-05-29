@@ -9,7 +9,7 @@ Gremia.SBV bleibt offline-first und muss reproduzierbar aus öffentlichen Paketq
 - Der Bootstrap darf weder `npx` noch `npm exec` verwenden, damit npm-Workspace-Flags aus npm 11 nicht in `electron-builder` hineinlaufen.
 - `@electron/rebuild` wird nicht als direkte Projektabhängigkeit gepflegt; die Rebuild-Kette kommt über `electron-builder`.
 - Major-Updates von `electron`, `electron-builder` und `better-sqlite3-multiple-ciphers` werden nicht automatisch übernommen.
-- GitHub Actions werden für Dependabot-PRs nicht zusätzlich aktiviert; der Release-Workflow bleibt tagbasiert.
+- GitHub Actions werden für Dependabot-PRs nicht zusätzlich aktiviert; der Bereitstellungsworkflow bleibt tagbasiert.
 
 ## Lokale Prüfung vor Merge eines Dependabot-PRs
 

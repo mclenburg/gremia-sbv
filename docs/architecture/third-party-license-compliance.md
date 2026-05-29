@@ -14,7 +14,7 @@ Der Generator erzeugt:
 
 Die Zuordnung von Paket zu Lizenztext steht im Inventar. Paketbezogene Copyright- und Notice-Hinweise stehen gesammelt in `THIRD_PARTY_NOTICES.txt`.
 
-## Release-Regel
+## Qualitätsregel
 
 Nach jeder Dependency-Änderung muss `npm run licenses:generate` bewusst ausgeführt werden. Vor einer öffentlichen Bereitstellung muss `npm run licenses:check` grün sein.
 
@@ -36,4 +36,4 @@ Bei SPDX-ähnlichen `OR`-Ausdrücken dokumentiert der Generator die vollständig
 
 ## Testlauf
 
-Der normale Testlauf erzeugt keine neuen Lizenzartefakte. Er prüft nur, ob die vorhandenen Artefakte und Script-Verträge plausibel sind. Die Online-Aktualisierung bleibt ein expliziter Release- beziehungsweise Dependency-Pflegeschritt.
+Der normale Testlauf erzeugt keine neuen Lizenzartefakte. Er prüft nur, ob die vorhandenen Artefakte und Script-Verträge plausibel sind. Die Online-Aktualisierung bleibt ein expliziter Bereitstellungs- beziehungsweise Dependency-Pflegeschritt.

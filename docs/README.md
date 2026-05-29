@@ -1,6 +1,8 @@
 # Dokumentation
 
-Diese Dokumentation beschreibt das Gesamtprodukt Gremia.SBV. Sie ist nicht als Sammlung einzelner Patchnotizen gedacht, sondern als dauerhafte Arbeits-, Betriebs-, Datenschutz- und Entwicklungsdokumentation für eine lokale Fachanwendung der Schwerbehindertenvertretung.
+Diese Dokumentation beschreibt das Gesamtprodukt Gremia.SBV. Sie ist als dauerhafte Arbeits-, Betriebs-, Datenschutz- und Entwicklungsdokumentation für eine lokale Fachanwendung der Schwerbehindertenvertretung gedacht.
+
+Die README im Projektstamm erklärt Nutzen, Demo-Modus und Grundprinzipien aus Anwendersicht. Technische Details, Sicherheitsentscheidungen und Prüfunterlagen liegen hier unter `docs/`.
 
 ## Für wen ist diese Dokumentation gedacht?
 
@@ -8,7 +10,7 @@ Die wichtigste Zielgruppe sind Schwerbehindertenvertretungen und ihre Stellvertr
 
 Zweite Zielgruppe sind Personen, die Gremia.SBV betreiben, prüfen oder weiterentwickeln: Datenschutz, IT-Sicherheit, Administration und Entwicklung.
 
-## Einstieg
+## Einstieg für Anwenderinnen und Anwender
 
 | Datei | Zweck |
 | --- | --- |
@@ -17,58 +19,61 @@ Zweite Zielgruppe sind Personen, die Gremia.SBV betreiben, prüfen oder weiteren
 | `PROCESS_MODULES.md` | Fachmodule, Maßnahmen und Fristen im SBV-Alltag |
 | `CASE_HANDOVER_TRANSFER.md` | verschlüsselte Fallübergabe für Vertretung und Nachfolge |
 | `PRIVACY_AND_SECURITY.md` | Schutzprinzipien, Vault, Audit, Suche und Datenflüsse |
-| `DATENSCHUTZKONZEPT.md` | organisatorisches Datenschutzkonzept |
-| `DSGVO_SBV.md` | DSGVO-Hinweise für SBV-Nutzung und Betroffenenrechte |
-| `LOESCHKONZEPT_SBV.md` | Aufbewahrung, Löschung, Anonymisierung und Prüfpfade |
-| `VERARBEITUNGSVERZEICHNIS_SBV.md` | Grundlage für das Verzeichnis der Verarbeitungstätigkeiten |
-| `BACKUP_RESTORE.md` | Sicherung und Wiederherstellung des lokalen Vaults |
-| `ROADMAP.md` | Produktstatus, Stabilisierung vor der Veröffentlichung und spätere Themen |
+| `BACKUP_RESTORE.md` | lokale Sicherung und Wiederherstellung |
+| `REPORTS_PDF_EXPORT.md` | Berichte und PDF-Ausgaben |
+| `TEMPLATES_MODULE.md` | Vorlagen, Platzhalter und datensparsame Schreiben |
+| `KNOWLEDGE_BASE.md` | Wissensbasis und fachliche Hinweise |
+| `SBV_STEUERUNG.md` | SBV-Steuerung, Tätigkeitsbericht und Strukturarbeit |
 
-## Freigabeunterlagen für Datenschutz und IT-Security
+## Datenschutz, Sicherheit und Freigabe
 
 | Datei | Zweck |
 | --- | --- |
-| `FREIGABE_DSB_IT_SECURITY.md` | zentraler Einstieg für Datenschutzbeauftragte, IT-Security und interne Freigabe |
-| `DATENSCHUTZKONZEPT.md` | Datenschutzkonzept für Zweckbindung, Rollen, Datenminimierung und organisatorische Nutzung |
+| `DATENSCHUTZKONZEPT.md` | Datenschutzkonzept für die SBV-Nutzung |
 | `DSFA_SBV_TEMPLATE.md` | Vorlage für eine Datenschutz-Folgenabschätzung |
-| `VERARBEITUNGSVERZEICHNIS_SBV.md` | Grundlage für das Verzeichnis der Verarbeitungstätigkeiten |
-| `LOESCHKONZEPT_SBV.md` | Aufbewahrung, Löschung, Anonymisierung und Prüffälle |
-| `PRIVACY_AND_SECURITY.md` | Datenschutz- und Sicherheitsprinzipien der Anwendung |
-| `SECURITY.md` | technische Sicherheitsarchitektur |
-| `CODE_SIGNING.md` | Strategie für nicht signierte und später signierte Build-Artefakte |
-| `QUALITY_GATE.md` | verbindliche Qualitäts-, Test-, Security- und Accessibility-Gates |
+| `DSGVO_SBV.md` | DSGVO-Einordnung für SBV-Daten |
+| `VERARBEITUNGSVERZEICHNIS_SBV.md` | Vorlage für das Verzeichnis von Verarbeitungstätigkeiten |
+| `LOESCHKONZEPT_SBV.md` | Lösch- und Retention-Konzept |
+| `FREIGABE_DSB_IT_SECURITY.md` | Freigabeunterlagen für Datenschutz und IT-Security |
+| `SECURITY.md` | technische Sicherheitslinie |
+| `DATABASE_ENCRYPTION.md` | lokale Datenbankverschlüsselung |
+| `CODE_SIGNING.md` | Signaturstrategie für bereitgestellte Artefakte |
+| `LICENSE_POLICY.md` | Lizenz- und Drittkomponentenlinie |
 
-## Betrieb, Architektur und Entwicklung
+## Technische Dokumentation
 
 | Datei | Zweck |
 | --- | --- |
 | `ARCHITECTURE.md` | Architektur, Schichten, IPC und Modulgrenzen |
-| `ARCHITECTURE_DIAGRAMS.md` | Mermaid-Diagramme für Datenflüsse und Komponenten |
-| `SECURITY.md` | technische Sicherheitsgrundsätze |
-| `DATABASE_ENCRYPTION.md` | SQLCipher-Vault und Verschlüsselungsentscheidungen |
-| `DATABASE_MIGRATIONS.md` | Migrationen und Schema-Integrität |
-| `BUILD.md` | Build, Tests und Release-Artefakte |
-| `DEVELOPMENT.md` | Entwicklungsregeln, Clean Code und Tests |
-| `E2E_TESTS.md` | Ende-zu-Ende-Tests und isolierte Testumgebung |
-| `APP_VERSION_BUILD.md` | Versionsgenerierung |
-| `NATIVE_SQLCIPHER_DEPENDENCY.md` | native SQLCipher-Abhängigkeit |
-| `APPIMAGE_DATA_PATHS.md` | Datenpfade im AppImage-Betrieb |
-| `WINDOWS_BUILD.md` | Windows-Build-Hinweise |
+| `ARCHITECTURE_DIAGRAMS.md` | Architektur- und Datenflussdiagramme |
+| `DATABASE_MIGRATIONS.md` | Datenbankschema und Migrationen |
+| `NATIVE_SQLCIPHER_DEPENDENCY.md` | native SQLCipher-kompatible Abhängigkeit |
+| `BUILD.md` | Build, Tests und Artefakte |
+| `WINDOWS_BUILD.md` | portable Windows-Artefakte |
+| `APPIMAGE_DATA_PATHS.md` | Datenpfade bei AppImage-Nutzung |
+| `DEVELOPMENT.md` | Entwicklungsumgebung und lokale Arbeit |
+| `E2E_TESTS.md` | End-to-End-Tests |
+| `QUALITY_GATE.md` | verbindliche Qualitätsprüfungen |
+| `UI_VISUAL_QA.md` | visuelle UI-QA |
+| `UI_CORE_BEHAVIOR_QA.md` | Bedienfluss-QA |
+| `INLINE_TEXT_COMMANDS.md` | Textkommandos in Notiz- und Vorlagenfeldern |
 
-## Fachliche Dauerunterlagen
+## Gremia.BR-Lesebrücke
 
-| Datei | Zweck |
-| --- | --- |
-| `INLINE_TEXT_COMMANDS.md` | Inline-Kurzbefehle in großen Textfeldern |
-| `TEMPLATES_MODULE.md` | Vorlagenmodul |
-| `KNOWLEDGE_BASE.md` | Wissensbasis |
-| `REPORTS_PDF_EXPORT.md` | PDF- und Reportlogik |
-| `SBV_STEUERUNG.md` | Nachweise für Schulung, Heranziehung, Sachmittel sowie Strukturkontrollen |
-| `DSFA_SBV_TEMPLATE.md` | Vorlage für Datenschutz-Folgenabschätzung |
-| `KNOWN_ISSUES.md` | bekannte Einschränkungen vor produktiver Freigabe |
+Die Lesebrücke ist optional, standardmäßig deaktiviert und ausschließlich lesend. Es gibt keine Hintergrundsynchronisation, keine automatische Übernahme von BR-Dokumenten und kein Rückschreiben von SBV-Daten.
+
+Details stehen unter [`gremia-br/`](gremia-br/README.md).
 
 ## Dokumentationsregel
 
-Neue Dokumentation soll dauerhaft verwendbar sein. Kurzlebige Patchnotizen, historische Buildfix-Protokolle, Release Notes, Change Logs und temporäre Hotfix-Dokumente gehören nicht in den aktiven Dokumentationsbestand.
+Neue Dokumentation soll dauerhaft verwendbar sein. Sie erklärt, wie Gremia.SBV funktioniert, welche fachlichen Entscheidungen gelten und welche Pflichten die nutzende SBV beachten muss.
 
-Ein Dokument soll nicht erklären, warum ein bestimmter Patch entstanden ist. Es soll erklären, wie Gremia.SBV funktioniert, welche fachlichen Entscheidungen gelten und welche Pflichten die nutzende SBV beachten muss.
+Nicht in die aktive Dokumentation gehören:
+
+- kurzlebige Umsetzungsnotizen,
+- historische Arbeitsstände,
+- temporäre Fehlerbehebungsprotokolle,
+- fortlaufende Änderungshistorien,
+- manuell gepflegte Produktversionsstände.
+
+Technische Versionsinformationen werden aus den dafür vorgesehenen Projektdateien erzeugt. Die Dokumentation beschreibt den aktuellen Produktzustand und die geltende Architektur, nicht die Entstehungsgeschichte.

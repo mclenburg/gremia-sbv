@@ -1,6 +1,6 @@
 # E2E-Tests
 
-Die E2E-Tests prüfen RC-kritische Arbeitswege in einer isolierten synthetischen Testumgebung. Der Runner erzeugt ein temporäres `GREMIA_SBV_DATA_DIR`, damit keine produktiven Daten berührt werden.
+Die E2E-Tests prüfen kritische Arbeitswege in einer isolierten synthetischen Testumgebung. Der Runner erzeugt ein temporäres `GREMIA_SBV_DATA_DIR`, damit keine produktiven Daten berührt werden.
 
 ## Start
 
@@ -21,9 +21,9 @@ npm run test:e2e:debug
 - Responsive Layouts bleiben bei HD small, Laptop, Full HD und QHD stabil.
 - Compliance Light-/Dark-Mode bleibt lesbar.
 
-## vorherigen-Erweiterungen
+## Erweiterungen
 
-Neue E2E-Pfade müssen künftig zusätzlich prüfen:
+Neue E2E-Pfade müssen zusätzlich prüfen:
 
 - Person anlegen und Fallakte aus Person erstellen.
 - Anonyme Beratungsanfrage ohne Direktidentifikatoren anlegen.

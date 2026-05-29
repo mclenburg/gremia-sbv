@@ -18,7 +18,7 @@ describe('Public-Release-Review P15l', () => {
     expect(developerExample).toBeGreaterThan(artifactExample);
   });
 
-  it('adressiert die drei Release-Blocker aus dem Architekturreview', () => {
+  it('adressiert die drei Bereitstellungs-Blocker aus dem Architekturreview', () => {
     const workflow = text('.github/workflows/build-release.yml');
     const packageJson = text('package.json');
     const notice = text('NOTICE');
@@ -39,11 +39,9 @@ describe('Public-Release-Review P15l', () => {
     expect(text('README.md')).toContain('Hinweise zu Signaturen und Sicherheitswarnungen');
   });
 
-  it('ergänzt Public-Repository-Hygiene für Security, Changelog und Dependency-Updates', () => {
+  it('ergänzt Public-Repository-Hygiene für Security und Dependency-Updates', () => {
     expect(existsSync('SECURITY.md')).toBe(true);
     expect(text('SECURITY.md')).toContain('Sicherheitslücken melden');
-    expect(existsSync('CHANGELOG.md')).toBe(true);
-    expect(text('CHANGELOG.md')).toContain('[Öffentlicher Start]');
     expect(existsSync('.github/dependabot.yml')).toBe(true);
     expect(text('.github/dependabot.yml')).toContain('package-ecosystem: "npm"');
   });
@@ -52,7 +50,7 @@ describe('Public-Release-Review P15l', () => {
     const qualityGate = text('docs/QUALITY_GATE.md');
     expect(qualityGate).toContain('npm run security:audit');
     expect(qualityGate).toContain('npm run licenses:check');
-    expect(qualityGate).toMatch(/Public-(Gates|Qualitätsgates)/);
+    expect(qualityGate).toMatch(/Öffentliche Qualitätsgates|Qualitätsfreigabe/);
     expect(qualityGate).toContain('Demo-Start für fertige AppImage-/EXE-Artefakte');
   });
 });

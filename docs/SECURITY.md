@@ -21,9 +21,9 @@ Die Anwendung unterstützt Vertraulichkeit, Integrität, Datensparsamkeit und lo
 
 ### Datenbank
 
-Die lokale Datenbank wird SQLCipher-kompatibel verschlüsselt. Die Plattformintegration ist für die RC-Linie umgesetzt und wird über Build-/Readiness-Prüfungen für Electron, SQLCipher-kompatible native Abhängigkeiten und die unterstützten Zielplattformen abgesichert.
+Die lokale Datenbank wird SQLCipher-kompatibel verschlüsselt. Die Plattformintegration wird über Build-/Readiness-Prüfungen für Electron, SQLCipher-kompatible native Abhängigkeiten und die unterstützten Zielplattformen abgesichert.
 
-Strukturierte Personenstammdaten wie Name und dienstliche E-Mail liegen innerhalb der verschlüsselten Datenbank. Eine zusätzliche Feldverschlüsselung für Namen wird in vorherigen nicht eingeführt, weil Suchbarkeit, Importabgleich und Datenqualität erforderlich sind und der Zusatznutzen bei lokal verschlüsselter Datenbank nicht im Verhältnis zur Komplexität steht. Freitexte mit Gesundheitsbezug folgen weiterhin den bestehenden Schutz- und Exportregeln.
+Strukturierte Personenstammdaten wie Name und dienstliche E-Mail liegen innerhalb der verschlüsselten Datenbank. Eine zusätzliche Feldverschlüsselung für Namen wird nicht eingeführt, weil Suchbarkeit, Importabgleich und Datenqualität erforderlich sind und der Zusatznutzen bei lokal verschlüsselter Datenbank nicht im Verhältnis zur Komplexität steht. Freitexte mit Gesundheitsbezug folgen weiterhin den bestehenden Schutz- und Exportregeln.
 
 ### Passwort und Master-Key
 
@@ -39,17 +39,16 @@ Die Anwendung sperrt nach Inaktivität. Beim Sperren werden Schlüssel aus dem A
 
 ## Audit-Log
 
-Das Audit-Log ist append-only und über Hashes verkettet. Ab vorherigen gilt als verbindliche Sicherheitsregel: Audit-Einträge enthalten keine Namen, E-Mail-Adressen, Personalnummern oder sonstigen Direktidentifikatoren. Erlaubt sind UUIDs, Aktion, Zweck, Zeitstempel und technische Entitätsbezüge. Dadurch bleibt die Hash-Kette stabil, wenn Fachdaten anonymisiert oder gelöscht werden.
+Das Audit-Log ist append-only und über Hashes verkettet. Audit-Einträge enthalten keine Namen, E-Mail-Adressen, Personalnummern oder sonstigen Direktidentifikatoren. Erlaubt sind UUIDs, Aktion, Zweck, Zeitstempel und technische Entitätsbezüge. Dadurch bleibt die Hash-Kette stabil, wenn Fachdaten anonymisiert oder gelöscht werden.
 
 ## Export und iCal
 
-Exports sind bewusste lokale Aktionen. Der iCal-Export nutzt als Standard `process_type`: Termine zeigen den Prozesstyp, aber keine Personennamen, Diagnosen, Personalnummern oder Fallnotizen.
-
+Exports sind bewusste lokale Aktionen. Der iCal-Export nutzt als Standard eine datensparsame Benennung nach Vorgangstyp: Termine zeigen den Prozesstyp, aber keine Personennamen, Diagnosen, Personalnummern oder Fallnotizen.
 
 ## Backups als Offline-Angriffsfläche
 
-Backups sind eine primäre Offline-Angriffsfläche. Deshalb werden Backup-Payloads verschlüsselt und mit den aktuellen KDF-Parametern geschützt: scrypt N=131072, r=8, p=1. Legacy-Backups ohne explizite KDF-Metadaten bleiben nur aus Kompatibilitätsgründen lesbar und werden beim nächsten regulären Backup durch das aktuelle Format ersetzt.
+Backups sind eine primäre Offline-Angriffsfläche. Deshalb werden Backup-Payloads verschlüsselt und mit den aktuellen KDF-Parametern geschützt: scrypt N=131072, r=8, p=1.
 
-## RC-Readiness
+## Sicherheitsfreigabe
 
-Security, Datenschutz und Build-Artefakte werden über Tests, Release-Checkliste und Compliance Center geprüft. Die Lizenz oder die lokale Architektur ersetzt keine organisatorische Datenschutzfreigabe.
+Security, Datenschutz und Build-Artefakte werden über Tests, Qualitätsgate und Compliance Center geprüft. Die lokale Architektur ersetzt keine organisatorische Datenschutzfreigabe durch die zuständigen Stellen.

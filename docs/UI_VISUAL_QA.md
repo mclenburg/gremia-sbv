@@ -1,6 +1,6 @@
 # UI Visual QA für Gremia.SBV
 
-Gremia.SBV nutzt eine harte Industrial-UI mit zentralen Komponenten. Patch 11 ergänzt dafür ein visuelles QA-Gate, damit Light-Mode, Dark-Mode und zentrale Bausteine nicht wieder auseinanderlaufen.
+Gremia.SBV nutzt eine harte Industrial-UI mit zentralen Komponenten. Das visuelle QA-Gate verhindert, dass Light-Mode, Dark-Mode und zentrale Bausteine auseinanderlaufen.
 
 ## Ziel
 
@@ -33,4 +33,4 @@ Die Route-Matrix liegt zentral in `src/app/shared/theme/visualQa.ts`. Neue produ
 
 ## Review-Regel
 
-Ein UI-Patch ist nicht ausreichend, wenn er nur einzelne Screenshots korrigiert. Die Korrektur muss entweder über zentrale Komponenten, zentrale CSS-Token oder ein Verhalten im Visual-QA-Gate abgesichert sein.
+Eine UI-Korrektur ist nicht ausreichend, wenn sie nur einzelne Screenshots korrigiert. Die Korrektur muss entweder über zentrale Komponenten, zentrale CSS-Token oder ein Verhalten im Visual-QA-Gate abgesichert sein.

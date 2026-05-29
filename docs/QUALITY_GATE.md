@@ -1,6 +1,6 @@
 # Gremia.SBV Qualitätsfreigabe-Checkliste
 
-Diese Checkliste beschreibt den verbindlichen Stand für den öffentlichen Release. Sie ist kein Wunschzettel für spätere Arbeit, sondern ein Qualitätsgate.
+Diese Checkliste beschreibt den verbindlichen Qualitätsstand für die öffentliche Bereitstellung. Sie ist kein Wunschzettel für spätere Arbeit, sondern ein Qualitätsgate.
 
 ## Produktlinie
 
@@ -27,7 +27,7 @@ Diese Checkliste beschreibt den verbindlichen Stand für den öffentlichen Relea
 
 ## Test-/Build-Gates
 
-Vor Release müssen grün laufen:
+Vor öffentlicher Bereitstellung müssen grün laufen:
 
 - `npm run security:audit`
 - `npm run licenses:check`
@@ -52,11 +52,10 @@ Vor Release müssen grün laufen:
 Community-Beiträge müssen sich an die zentrale UI-Schicht, Audit-Builder, Datenschutzlinie und A11y-Gates halten. Abweichungen werden nur akzeptiert, wenn sie fachlich begründet, klein und getestet sind.
 
 
-## Public-Qualitätsgates
+## Öffentliche Qualitätsgates
 
 - `THIRD_PARTY_LICENSES.txt` ist erzeugt und aktuell.
 - Root-`SECURITY.md` beschreibt die vertrauliche Meldung von Sicherheitslücken.
-- `CHANGELOG.md` beschreibt den konsolidierten öffentlichen Stand.
 - Die Code-Signing-Strategie ist in `docs/CODE_SIGNING.md` dokumentiert.
 - Die README beschreibt den Demo-Start für fertige AppImage-/EXE-Artefakte vor den Entwicklerbefehlen.
 - Das Public-Qualitätsgate umfasst `npm run test:e2e:a11y` als automatisierten Axe-Scan.

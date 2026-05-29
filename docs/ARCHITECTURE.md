@@ -53,7 +53,7 @@ Die freigegebenen Gremia.BR-Endpunkte werden zentral in `services/gremiaBr/gremi
 
 ## UI-Zentralisierung und Architektur-Gates
 
-Seit der UI-Zentralisierung gilt für neue UI-Arbeit: Fachmodule bauen keine Standard-Shells, Panels, Buttons, Formulare, Badges, Dialoge, Empty-States, Suchleisten oder Tabellen mehr lokal nach. Vor einer neuen UI-Struktur ist zuerst die zentrale Schicht unter `src/app/shared/components`, `src/app/shared/dialogs` und `src/app/ui/responsiveDesign.css` zu prüfen.
+Für UI-Arbeit gilt: Fachmodule bauen keine Standard-Shells, Panels, Buttons, Formulare, Badges, Dialoge, Empty-States, Suchleisten oder Tabellen mehr lokal nach. Vor einer neuen UI-Struktur ist zuerst die zentrale Schicht unter `src/app/shared/components`, `src/app/shared/dialogs` und `src/app/ui/` zu prüfen.
 
 Verbindliche Bausteine:
 
@@ -70,7 +70,7 @@ Für neue Features bedeutet das: Erst zentrale Komponente nutzen, dann fachliche
 
 ### Visuelles QA-Gate
 
-Patch 11 ergänzt für die zentralisierte UI ein visuelles E2E-Gate: `npm run test:e2e:visual`. Es prüft die primären Arbeitsbereiche in Light- und Dark-Mode, verhindert dunkle Light-Mode-Restflächen, helle Dark-Mode-Leaks, runde Legacy-Pill-Badges und systemfremde Control-Flächen. Details stehen in `docs/UI_VISUAL_QA.md`.
+Das visuelle E2E-Gate `npm run test:e2e:visual` Es prüft die primären Arbeitsbereiche in Light- und Dark-Mode, verhindert dunkle Light-Mode-Restflächen, helle Dark-Mode-Leaks, runde Legacy-Pill-Badges und systemfremde Control-Flächen. Details stehen in `docs/UI_VISUAL_QA.md`.
 
 ## Dashboard-Prinzip
 
@@ -84,9 +84,9 @@ Das Dashboard ist keine Werbefläche für Module. Es zeigt nur Bereiche mit unmi
 Alles andere gehört in die Fachmodule.
 ### UI-Core-Verhaltenstests
 
-Zusätzlich zu Architektur-Gates und visueller QA beschreibt `docs/UI_CORE_BEHAVIOR_QA.md` die verpflichtenden P12-Bedienflussverträge für zentrale Dialoge, Formulare, Textareas, Screenreader-Live-Regionen und Exportfeedback.
+Zusätzlich zu Architektur-Gates und visueller QA beschreibt `docs/UI_CORE_BEHAVIOR_QA.md` die verpflichtenden Bedienflussverträge für zentrale Dialoge, Formulare, Textareas, Screenreader-Live-Regionen und Exportfeedback.
 
 
-## Release-Vertrag
+## Qualitätsvertrag
 
 Die verbindliche Qualitätsfreigabe-Linie ist in `docs/QUALITY_GATE.md` dokumentiert. Für neue Module gilt: Views orchestrieren, State liegt in Hooks, UI in kleinen Komponenten, Fachlogik in Logic-/Utility-Dateien. Zentrale UI-Komponenten, Audit-Builder, Live-Regionen und Light-/Dark-Mode-Verträge sind verbindlich.

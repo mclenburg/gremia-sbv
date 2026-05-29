@@ -59,9 +59,9 @@ Der Export ist ein Arbeitsentwurf. Vor Herausgabe bleiben organisatorisch erford
 - Schwärzung,
 - rechtliche beziehungsweise verantwortliche Freigabe.
 
-## Vor Veröffentlichung offen
+## Qualitätslinie
 
-Vor Veröffentlichung stehen keine neuen Großmodule im Vordergrund. Vorrang haben Stabilität und Verlässlichkeit:
+Neue Großmodule stehen nicht im Vordergrund. Vorrang haben Stabilität und Verlässlichkeit:
 
 - Echtdatennahe Prüfung der Migrationen und Altfallpfade,
 - Härtung der Fallübergabe gegen Fehlbedienung, Datenverlust und missverständliche Zusammenführung,
@@ -71,9 +71,9 @@ Vor Veröffentlichung stehen keine neuen Großmodule im Vordergrund. Vorrang hab
 - Dashboard, Einstellungen, Fallakten und Compliance Center visuell konsistent im harten Industrial-Design halten,
 - Build-, Test- und Qualitätsgates stabilisieren.
 
-## Zulässig bis Veröffentlichung
+## Änderungslinie
 
-Bis Veröffentlichung sollen nur noch Änderungen erfolgen, die eine dieser Kategorien erfüllen:
+Änderungen sollen eine dieser Kategorien erfüllen:
 
 - Security-Fix,
 - Datenverlust- oder Migrationsfix,
@@ -83,9 +83,9 @@ Bis Veröffentlichung sollen nur noch Änderungen erfolgen, die eine dieser Kate
 - offensichtlicher UI-Fehler ohne neue Fachlogik,
 - Korrektur einer bereits begonnenen Vorabfunktion, wenn sie sonst fachlich irreführend oder gefährlich wäre.
 
-## Spätere Folgestände-Themen
+## Weiterentwicklungsthemen
 
-Spätere Themen benötigen jeweils eine eigene Architektur- und Datenschutzentscheidung:
+Weiterentwicklungsthemen benötigen jeweils eine eigene Architektur- und Datenschutzentscheidung:
 
 - erweiterte datensparsame Auswertungen,
 - weitere Modularisierung großer Services,
@@ -102,7 +102,7 @@ Nicht geplant in der Referenzlinie:
 
 ## Dokumentationsregel
 
-Roadmap, README und Fachkonzepte beschreiben den aktuellen Produktzustand und die Zielarchitektur. Detailnotizen einzelner Patches, Buildfixes oder Review-Zwischenstände werden nicht als dauerhafte Roadmap geführt.
+Roadmap, README und Fachkonzepte beschreiben den aktuellen Produktzustand und die Zielarchitektur. Detailnotizen einzelner Umsetzungsarbeiten, Buildkorrekturen oder Review-Arbeitsstände werden nicht als dauerhafte Roadmap geführt.
 
 
 ## SBV-Steuerung

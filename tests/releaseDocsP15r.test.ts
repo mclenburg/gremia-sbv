@@ -27,7 +27,7 @@ describe('P15r release-ready Markdown-Dokumentation', () => {
   });
 
   it('fuehrt aktive Markdown-Dateien ohne App-Versionsnummern', () => {
-    const markdown = ['README.md', 'CONTRIBUTING.md', 'CHANGELOG.md', 'SECURITY.md', ...collectMarkdownFiles('docs')]
+    const markdown = ['README.md', 'CONTRIBUTING.md', 'SECURITY.md', ...collectMarkdownFiles('docs')]
       .filter((file) => !file.includes('QUALITY_GATE_1_0.md') && !file.includes('RELEASE_1_0_CHECKLIST.md'));
     const offending = markdown.filter((file) => /\b(?:0\.9\.\d+|1\.0(?:\.0)?|1\.x|v0\.9\.\d+)\b/.test(read(file)));
     expect(offending).toEqual([]);

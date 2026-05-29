@@ -14,7 +14,7 @@ Das ist transparent zu dokumentieren, weil Betriebssysteme bei nicht signierten 
 
 Für öffentliche Builds gilt:
 
-1. README und Release-Notes weisen prominent auf den unsignierten Status hin.
+1. README und Projektdokumentation weisen prominent auf den unsignierten Status hin.
 2. Build-Artefakte entstehen reproduzierbar aus GitHub Actions.
 3. Drittanbieter-Lizenzen werden als `THIRD_PARTY_LICENSES.txt` erzeugt und mit ausgeliefert.
 4. Sicherheitslücken werden über `SECURITY.md` vertraulich gemeldet.
@@ -28,7 +28,7 @@ Für die Folgelinie ist vorgesehen:
 - Windows-Signing in GitHub Actions über Secrets einbinden,
 - macOS Developer-ID und Notarisierung prüfen,
 - Build-Workflow so erweitern, dass signierte Artefakte und Checksummen gemeinsam veröffentlicht werden,
-- README und Release-Notes nach erfolgreicher Einführung aktualisieren.
+- README und Projektdokumentation nach erfolgreicher Einführung aktualisieren.
 
 ## Bewusste Abgrenzung
 
