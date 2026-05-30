@@ -6,38 +6,6 @@ Die Anwendung unterstützt SBVen dabei, vertrauliche Beratung, Fallakten, Friste
 
 Der öffentliche Einstieg richtet sich zuerst an Anwenderinnen und Anwender. Technische Hintergründe, Architekturentscheidungen und Entwicklungsdetails liegen unter [`docs/`](docs/README.md).
 
-## Gremia.SBV gefahrlos ausprobieren: Demo-Modus
-
-Wer Gremia.SBV ansehen, vorführen oder in einer Schulung testen möchte, muss keinen eigenen Tresor anlegen und keine echten Daten erfassen. Die fertige Anwendung kann direkt mit dem Zusatz `--demo` gestartet werden.
-
-Unter Linux zum Beispiel:
-
-```bash
-./Gremia.SBV-linux-x86_64.AppImage --demo
-```
-
-Unter Windows zum Beispiel:
-
-```powershell
-.\Gremia.SBV-win-x64.exe --demo
-```
-
-Wenn Gremia.SBV bereits installiert ist, reicht entsprechend der Programmname mit Zusatz:
-
-```powershell
-"Gremia.SBV.exe" --demo
-```
-
-Das Demo-Passwort lautet:
-
-```text
-gremia.sbv-demo
-```
-
-Der Demo-Modus nutzt **nicht** den normalen Datenbestand. Er legt bei jedem Start eine frische Testdatenbank im temporären Systemverzeichnis an, befüllt sie mit frei erfundenen Personen, Kontakten, Fallakten, Fristen, Prozessmodulen, Maßnahmen, Vorlagen und Compliance-Ereignissen und sperrt den Tresor anschließend. Dadurch kann die Anwendung realistisch ausprobiert werden, ohne echte SBV-Daten zu verwenden oder den eigenen Datenbestand zu berühren.
-
-Alle Demo-Daten sind frei erfunden. Der Modus ist für Vorführung, Schulung, Entwicklung und Tests gedacht.
-
 ## Warum sich ein genauer Blick lohnt
 
 SBV-Arbeit ist vertraulich, zeitkritisch und in normalen Bürotools schwer sauber abzubilden. Ein Gespräch wird zur Maßnahme. Eine Maßnahme bekommt eine Frist. Eine Frist braucht Nachverfolgung. Ein BEM-Gespräch darf nicht zur Personalakte werden. Eine Vertretung braucht genau die Informationen, die sie für eine sichere Weiterbearbeitung benötigt – aber nicht mehr.
@@ -98,6 +66,38 @@ Berichte, Tätigkeitsnachweise und Strukturinformationen helfen, SBV-Arbeit nach
 ### Fälle sicher übergeben
 
 Für Urlaubsvertretung, Krankheit oder Amtswechsel können ausgewählte Fallakten mit den erforderlichen Maßnahmen, Fristen, Notizen und Dokumenten als verschlüsseltes `.gsbvtransfer`-Paket exportiert und in einer eigenständigen Gremia.SBV-Instanz importiert werden.
+
+## Gremia.SBV gefahrlos ausprobieren: Demo-Modus
+
+Wer Gremia.SBV ansehen, vorführen oder in einer Schulung testen möchte, muss keinen eigenen Tresor anlegen und keine echten Daten erfassen. Die fertige Anwendung kann direkt mit dem Zusatz `--demo` gestartet werden.
+
+Unter Linux zum Beispiel:
+
+```bash
+./Gremia.SBV-linux-x86_64.AppImage --demo
+```
+
+Unter Windows zum Beispiel:
+
+```powershell
+.\Gremia.SBV-win-x64.exe --demo
+```
+
+Wenn Gremia.SBV bereits installiert ist, reicht entsprechend der Programmname mit Zusatz:
+
+```powershell
+"Gremia.SBV.exe" --demo
+```
+
+Das Demo-Passwort lautet:
+
+```text
+gremia.sbv-demo
+```
+
+Der Demo-Modus nutzt **nicht** den normalen Datenbestand. Er legt bei jedem Start eine frische Testdatenbank im temporären Systemverzeichnis an, befüllt sie mit frei erfundenen Personen, Kontakten, Fallakten, Fristen, Prozessmodulen, Maßnahmen, Vorlagen und Compliance-Ereignissen und sperrt den Tresor anschließend. Dadurch kann die Anwendung realistisch ausprobiert werden, ohne echte SBV-Daten zu verwenden oder den eigenen Datenbestand zu berühren.
+
+Alle Demo-Daten sind frei erfunden. Der Modus ist für Vorführung, Schulung, Entwicklung und Tests gedacht.
 
 ## Was passiert mit meinen Daten?
 
