@@ -99,6 +99,7 @@ Der Demo-Modus nutzt **nicht** den normalen Datenbestand. Er legt bei jedem Star
 
 Alle Demo-Daten sind frei erfunden. Der Modus ist für Vorführung, Schulung, Entwicklung und Tests gedacht.
 
+
 ## Was passiert mit meinen Daten?
 
 Gremia.SBV behandelt SBV-Daten so, wie SBV-Daten behandelt werden müssen: lokal, verschlüsselt, zweckgebunden, nachvollziehbar und ohne unnötige Datenflüsse.
@@ -118,6 +119,10 @@ Details stehen im [Datenschutz- und Sicherheitskonzept](docs/PRIVACY_AND_SECURIT
 ## Was Gremia.SBV bewusst nicht ist
 
 Gremia.SBV ist keine Personalakte, kein HR-System und keine Cloud-Plattform. Die Anwendung ersetzt keine rechtliche Beratung, keine Beschlussfassung des Betriebsrats und keine organisatorische Datenschutzfreigabe. Sie unterstützt die SBV dabei, ihre eigene Arbeit sauber, vertraulich und nachvollziehbar zu organisieren.
+
+## Fachliche Grenzen und Betriebsvoraussetzungen
+
+Gremia.SBV unterstützt vertrauliche SBV-Arbeit, ersetzt aber keine organisatorische Freigabe, keine rechtliche Einzelfallprüfung und keine Verantwortung der SBV für datensparsame Dokumentation. Vor Einführung sollten die fachlichen Grenzen, Betriebsgrenzen und Prüfpunkte bewusst gelesen werden: [Betriebsgrenzen und Prüfpunkte](docs/BETRIEBSGRENZEN.md).
 
 ## Hinweise zu Signaturen und Sicherheitswarnungen
 

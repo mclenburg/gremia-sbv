@@ -1,7 +1,8 @@
 import { AlertTriangle, Clock3, Pencil, ShieldCheck, Trash2, UserRoundCheck } from 'lucide-react';
 import type { PersonLifecycleState, ProtectedPersonRecord } from '../../core/models/protected-person.model';
 import { employmentStateLabels, lifecycleStateLabels, protectionStatusLabels } from '../../core/models/protected-person.model';
-import { IconButton } from '../../shared/components/IndustrialButton';
+import { GhostButton, IconButton, IndustrialButton } from '../../shared/components/IndustrialButton';
+import { EmptyState } from '../../shared/components/WorkbenchLayout';
 
 export function personLabel(person: ProtectedPersonRecord): string {
   if (person.recordKind === 'pseudonymous_request') return person.pseudonymLabel || 'Anonyme Anfrage';
@@ -26,13 +27,17 @@ export function PersonList({
   selectedId,
   onSelect,
   onEdit,
-  onDelete
+  onDelete,
+  onCreatePerson,
+  onImportPersons
 }: {
   persons: ProtectedPersonRecord[];
   selectedId?: string;
   onSelect: (person: ProtectedPersonRecord) => void;
   onEdit: (person: ProtectedPersonRecord) => void;
   onDelete: (person: ProtectedPersonRecord) => void;
+  onCreatePerson?: () => void;
+  onImportPersons?: () => void;
 }) {
   return (
     <section className="industrial-panel person-list-panel" aria-labelledby="person-list-heading">
@@ -76,7 +81,18 @@ export function PersonList({
             </div>
           );
         })}
-        {!persons.length && <p className="industrial-muted">Keine Personen gefunden.</p>}
+        {!persons.length && (
+          <EmptyState
+            title="Noch keine Personen im Verzeichnis"
+            text="Erfasse nur Personen, für die ein SBV-Arbeitszweck besteht, oder importiere eine geprüfte Liste. GdB-Werte gehören nicht in das Verzeichnis."
+            action={(onCreatePerson || onImportPersons) ? (
+              <>
+                {onCreatePerson ? <IndustrialButton compact onClick={onCreatePerson}>Erste Person erfassen</IndustrialButton> : null}
+                {onImportPersons ? <GhostButton compact onClick={onImportPersons}>Personen importieren</GhostButton> : null}
+              </>
+            ) : undefined}
+          />
+        )}
       </div>
     </section>
   );

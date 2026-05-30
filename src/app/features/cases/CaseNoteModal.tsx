@@ -77,6 +77,9 @@ export function CaseNoteModal({
 
   if (!open) return null;
 
+  const contentHelpId = 'case-note-content-privacy-help';
+  const nextStepsHelpId = 'case-note-next-steps-privacy-help';
+
   return (
     <div className="industrial-modal-backdrop" role="presentation">
       <section className="industrial-modal industrial-modal-wide" role="dialog" aria-modal="true" aria-labelledby="case-note-title">
@@ -93,8 +96,8 @@ export function CaseNoteModal({
           <label><span>Datum</span><input type="datetime-local" value={noteDate} onChange={(event) => onDateChange(event.target.value)} /></label>
           <label><span>Typ</span><select value={noteType} onChange={(event) => onNoteTypeChange(event.target.value as CaseNoteType)}><option value="gespraech">Gespräch</option><option value="protokoll">Protokoll</option><option value="telefonat">Telefonat</option><option value="videocall">Videocall</option><option value="email">E-Mail</option><option value="bem">BEM</option><option value="anhoerung">Anhörung</option><option value="interne_notiz">Interne Notiz</option><option value="sonstiges">Sonstiges</option></select></label>
           <label><span>Beteiligte</span><input value={participants} onChange={(event) => onParticipantsChange(event.target.value)} placeholder="optional" /></label>
-          <label className="case-note-content-input"><span>Inhalt</span><TextCommandTextarea fieldId="case-note-content" value={content} onChange={(event) => onProtocolTextChange('content', event.target.value)} onTextCommand={(command) => onProtocolTextCommand('content', command)} placeholder="Gesprächsinhalt / Protokoll …" /></label>
-          <label className="case-note-content-input"><span>Nächste Schritte</span><TextCommandTextarea fieldId="case-note-next-steps" value={nextSteps} onChange={(event) => onProtocolTextChange('nextSteps', event.target.value)} onTextCommand={(command) => onProtocolTextCommand('nextSteps', command)} placeholder="optional" /></label>
+          <label className="case-note-content-input"><span>Inhalt</span><TextCommandTextarea fieldId="case-note-content" value={content} onChange={(event) => onProtocolTextChange('content', event.target.value)} onTextCommand={(command) => onProtocolTextCommand('content', command)} placeholder="Gesprächsinhalt / Protokoll …" aria-describedby={contentHelpId} /><small id={contentHelpId} className="industrial-field-help">Datensparsam protokollieren: keine Diagnosen, keine unnötigen Gesundheitsdetails, nur arbeitsbezogene Beobachtungen und vereinbarte Schritte.</small></label>
+          <label className="case-note-content-input"><span>Nächste Schritte</span><TextCommandTextarea fieldId="case-note-next-steps" value={nextSteps} onChange={(event) => onProtocolTextChange('nextSteps', event.target.value)} onTextCommand={(command) => onProtocolTextCommand('nextSteps', command)} placeholder="optional" aria-describedby={nextStepsHelpId} /><small id={nextStepsHelpId} className="industrial-field-help">Konkrete Handlung festhalten: wer macht was bis wann, mit welchem Fall- oder Maßnahmenbezug.</small></label>
           <div className="case-note-link-panel">
             <span>Fallbezüge</span>
             <p className="industrial-meta">Eine Notiz kann mehreren Fallakten zugeordnet werden. Der aktuell ausgewählte Fall bleibt automatisch Bezug.</p>

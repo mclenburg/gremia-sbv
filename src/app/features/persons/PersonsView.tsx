@@ -92,15 +92,15 @@ export function PersonsView(props: PersonsViewProps) {
   }
 
   return (
-    <ModuleFrame title="SBV-Personen und Schutzstatus" kicker="Datenschutz-Lifecycle" description="Datensparsames SBV-Verzeichnis für Schutzstatus, Personenbindung, Import und Prüffristen.">
-      <div className="industrial-alert"><ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-yellow-300" aria-hidden="true" /><p>Gremia.SBV speichert hier nur den für die SBV-Arbeit erforderlichen Schutzstatus, nicht den GdB. Importdateien werden lokal verarbeitet und nicht dauerhaft gespeichert.</p></div>
+    <ModuleFrame title="Personenverzeichnis" kicker="Datenschutz-Lifecycle" description="Datensparsames Verzeichnis schwerbehinderter und gleichgestellter Personen mit Import, Statusablauf und Fristenintegration.">
+      <div className="industrial-alert"><ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-yellow-300" aria-hidden="true" /><p>Gremia.SBV speichert hier nur den Schutzstatus, nicht den GdB. Importdateien werden lokal verarbeitet und nicht dauerhaft gespeichert.</p></div>
       <PersonToolbar query={query} onQueryChange={setQuery} onOpenCreate={() => setPersonCreateOpen(true)} onOpenImport={() => setImportOpen(true)} onExportIcal={() => void exportIcal()} />
       <ModuleFeedback items={[
         message ? { id: 'persons-message', tone: 'success', message } : null,
         error ? { id: 'persons-error', tone: 'warning', message: error } : null
       ]} />
       <div className="person-workbench-grid" data-e2e="persons-workbench">
-        <PersonList persons={filtered} selectedId={selected?.id} onSelect={setSelected} onEdit={(person) => { setSelected(person); setPersonEditOpen(true); }} onDelete={(person) => { setSelected(person); setPersonPrivacyAction('delete'); }} />
+        <PersonList persons={filtered} selectedId={selected?.id} onSelect={setSelected} onEdit={(person) => { setSelected(person); setPersonEditOpen(true); }} onDelete={(person) => { setSelected(person); setPersonPrivacyAction('delete'); }} onCreatePerson={() => setPersonCreateOpen(true)} onImportPersons={() => setImportOpen(true)} />
         <div className="person-side-stack">
           <PersonDetail person={selected} cases={cases} onUpdate={updatePerson} privacyReviewOpen={privacyReviewOpen} privacyReviews={privacyReviews} privacyReviewLoading={privacyReviewLoading} onOpenPrivacyReview={openPrivacyReview} onClosePrivacyReview={() => setPrivacyReviewOpen(false)} onOpenCaseCreate={() => setCaseDialogOpen(true)} onOpenAnonymize={() => setPersonPrivacyAction('anonymize')} onDocumentRetention={onDocumentRetention} onScheduleLater={onScheduleReviewLater} onClearReview={onClearReview} onAnonymizeCase={onAnonymizeReviewCase} onDeleteCase={onDeleteReviewCase} onMessage={showMessage} onError={showError} />
           <PersonExpiryDashboardCard persons={persons} evaluating={expiryEvaluating} lastEvaluationMessage={expiryFeedback} onEvaluateExpiry={evaluateExpiry} onExportIcal={exportIcal} />

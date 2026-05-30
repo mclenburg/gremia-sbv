@@ -15,6 +15,9 @@ export function MeasureNoteFields({
   form: MeasureNoteFormState;
   onChange: (patch: Partial<MeasureNoteFormState>) => void;
 }) {
+  const protocolHelpId = `${fieldPrefix}-content-privacy-help`;
+  const nextStepsHelpId = `${fieldPrefix}-next-steps-help`;
+
   return (
     <>
       <IndustrialFormGrid columns={3}>
@@ -36,7 +39,9 @@ export function MeasureNoteFields({
             onChange={(event) => onChange({ content: event.currentTarget.value })}
             rows={6}
             placeholder="Was wurde besprochen, zugesagt oder offengelassen?"
+            aria-describedby={protocolHelpId}
           />
+          <small id={protocolHelpId} className="industrial-field-help">Datensparsam dokumentieren: Zusagen, offene Punkte und arbeitsbezogene Beobachtungen reichen regelmäßig aus.</small>
         </IndustrialField>
         <IndustrialField label="Nächste Schritte">
           <TextCommandTextarea
@@ -45,7 +50,9 @@ export function MeasureNoteFields({
             onChange={(event) => onChange({ nextSteps: event.currentTarget.value })}
             rows={6}
             placeholder="Wiedervorlage, Unterlagenanforderung, Frist, Eskalation …"
+            aria-describedby={nextStepsHelpId}
           />
+          <small id={nextStepsHelpId} className="industrial-field-help">Nächsten sauberen Schritt konkret erfassen: Verantwortliche, Termin und Eskalationspfad.</small>
         </IndustrialField>
       </IndustrialFormGrid>
     </>
@@ -69,6 +76,9 @@ export function MeasureNoteForm({
   onCancel: () => void;
   onSubmit: () => void;
 }) {
+  const protocolHelpId = `${fieldPrefix}-content-privacy-help`;
+  const nextStepsHelpId = `${fieldPrefix}-next-steps-help`;
+
   return (
     <>
       <MeasureNoteFields fieldPrefix={fieldPrefix} form={form} onChange={onChange} />

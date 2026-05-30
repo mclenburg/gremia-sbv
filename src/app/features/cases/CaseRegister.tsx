@@ -1,4 +1,6 @@
 import { Plus, Upload } from 'lucide-react';
+import { IndustrialButton, GhostButton } from '../../shared/components/IndustrialButton';
+import { EmptyState } from '../../shared/components/WorkbenchLayout';
 import type { CaseCategory, CaseRecord } from '../../core/models/case.model';
 
 export function CaseRegister({
@@ -32,6 +34,8 @@ export function CaseRegister({
   pageSize: number;
   onPageChange: (page: number) => void;
 }) {
+  const hasActiveFilter = caseFilter.trim().length > 0;
+
   return (
     <section className="industrial-panel case-register-panel compact">
       <div className="case-register-toolbar compact">
@@ -81,7 +85,17 @@ export function CaseRegister({
             ))}
           </tbody>
         </table>
-        {!visibleCases.length && <div className="industrial-empty">Keine passenden Fälle.</div>}
+        {!visibleCases.length && (
+          <EmptyState
+            title={hasActiveFilter ? 'Keine passenden Fälle' : 'Noch keine Fallakte'}
+            text={hasActiveFilter
+              ? 'Die aktuelle Suche liefert keine Fallakte. Filter anpassen oder zurücksetzen.'
+              : 'Lege die erste Fallakte an, um Beratung, Fristen, Notizen und Maßnahmen zusammenzuführen.'}
+            action={hasActiveFilter
+              ? <GhostButton compact onClick={() => onCaseFilterChange('')}>Filter zurücksetzen</GhostButton>
+              : <IndustrialButton compact onClick={onCreateCase}><Plus className="h-4 w-4" aria-hidden="true" />Ersten Fall anlegen</IndustrialButton>}
+          />
+        )}
       </div>
       <div className="case-pagination" aria-label="Falllisten-Seiten">
         <span>Seite {page} von {pageCount} · maximal {pageSize} Fälle pro Seite</span>
