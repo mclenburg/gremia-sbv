@@ -18,6 +18,7 @@ function uiCss(): string {
     'src/app/ui/base.css',
     'src/app/ui/appShell.css',
     'src/app/ui/components.css',
+  'src/app/ui/modal.css',
     'src/app/ui/workbench.css',
     'src/app/ui/processes.css',
     'src/app/ui/featureModules.css',

@@ -63,12 +63,12 @@ import "./ui/designTokens.css";
 import "./ui/base.css";
 import "./ui/appShell.css";
 import "./ui/components.css";
+import "./ui/modal.css";
 import "./ui/workbench.css";
 import "./ui/processes.css";
 import "./ui/featureModules.css";
 import "./ui/responsiveDesign.css";
 import "./ui/forms.css";
-import "./caseModalResponsive.css";
 
 
 const IMPLEMENTED_VIEW_IDS = new Set<ViewId>([

@@ -41,6 +41,7 @@ function uiCss(): string {
     'src/app/ui/base.css',
     'src/app/ui/appShell.css',
     'src/app/ui/components.css',
+  'src/app/ui/modal.css',
     'src/app/ui/workbench.css',
     'src/app/ui/processes.css',
     'src/app/ui/featureModules.css',
@@ -59,6 +60,7 @@ describe('UI-Fundament Block 2', () => {
       './ui/base.css',
       './ui/appShell.css',
       './ui/components.css',
+      './ui/modal.css',
       './ui/workbench.css',
       './ui/processes.css',
       './ui/featureModules.css',
@@ -96,7 +98,7 @@ describe('UI-Fundament Block 2', () => {
     expect(features).toContain('.person-list-item');
 
     expect(topLevelRuleHeads(responsive).every((head) => head.startsWith('@media'))).toBe(true);
-    expect(responsive).not.toContain(':root {');
+    expect(topLevelRuleHeads(responsive).some((head) => head === ':root')).toBe(false);
   });
 
   it('wendet den harten Industrial-Eckenvertrag in der zentralen UI-CSS-Basis konsequent an', () => {

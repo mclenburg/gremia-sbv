@@ -12,6 +12,7 @@ function uiCss(): string {
     'src/app/ui/base.css',
     'src/app/ui/appShell.css',
     'src/app/ui/components.css',
+  'src/app/ui/modal.css',
     'src/app/ui/workbench.css',
     'src/app/ui/processes.css',
     'src/app/ui/featureModules.css',
@@ -121,4 +122,65 @@ describe("Button-Zentralisierung Patch P3", () => {
     const nativeButtons = tsxFilesUnder("src/app/features/sbv-control").flatMap(nativeButtonLocations);
     expect(nativeButtons).toEqual([]);
   });
+  it("deckt native Feature-Buttons ueber alle Feature-Module als explizite Architekturschuld ab", () => {
+    const allowedNativeButtonCounts: Record<string, number> = {
+      "src/app/features/auth/LoginGate.tsx": 4,
+      "src/app/features/cases/CaseCreateModal.tsx": 3,
+      "src/app/features/cases/CaseDetailPanel.tsx": 1,
+      "src/app/features/cases/CaseDocumentDetail.tsx": 3,
+      "src/app/features/cases/CaseNoteEntityLinks.tsx": 1,
+      "src/app/features/cases/CaseNoteModal.tsx": 2,
+      "src/app/features/cases/CaseProcessDraftModal.tsx": 2,
+      "src/app/features/cases/CaseRegister.tsx": 5,
+      "src/app/features/cases/CaseTreePanel.tsx": 9,
+      "src/app/features/cases/CaseWorkbenchFooter.tsx": 1,
+      "src/app/features/cases/CasesViewRender.tsx": 3,
+      "src/app/features/cases/ContextualTemplateButton.tsx": 3,
+      "src/app/features/cases/LegacyCaseBindingDialog.tsx": 2,
+      "src/app/features/cases/ProcessTemplateDocumentsModal.tsx": 2,
+      "src/app/features/cases/inlineCommands/overlays/InlineAnonymizationOverlay.tsx": 2,
+      "src/app/features/cases/inlineCommands/overlays/InlineBemOverlay.tsx": 2,
+      "src/app/features/cases/inlineCommands/overlays/InlineCaseLinkOverlay.tsx": 2,
+      "src/app/features/cases/inlineCommands/overlays/InlineConfidentialityOverlay.tsx": 2,
+      "src/app/features/cases/inlineCommands/overlays/InlineContactOverlay.tsx": 3,
+      "src/app/features/cases/inlineCommands/overlays/InlineDeadlineOverlay.tsx": 2,
+      "src/app/features/cases/inlineCommands/overlays/InlineEqualizationOverlay.tsx": 2,
+      "src/app/features/cases/inlineCommands/overlays/InlineLegalNormOverlay.tsx": 2,
+      "src/app/features/cases/inlineCommands/overlays/InlineOpenTaskOverlay.tsx": 2,
+      "src/app/features/cases/inlineCommands/overlays/InlineParticipationOverlay.tsx": 2,
+      "src/app/features/cases/inlineCommands/overlays/InlinePreventionOverlay.tsx": 2,
+      "src/app/features/cases/inlineCommands/overlays/InlineRiskOverlay.tsx": 2,
+      "src/app/features/cases/inlineCommands/overlays/InlineTemplateOverlay.tsx": 2,
+      "src/app/features/cases/inlineCommands/overlays/InlineTerminationOverlay.tsx": 2,
+      "src/app/features/cases/inlineCommands/overlays/InlineWorkplaceAccommodationOverlay.tsx": 2,
+      "src/app/features/cases/measures/MeasureNoteCard.tsx": 2,
+      "src/app/features/cases/measures/MeasureNoteForm.tsx": 2,
+      "src/app/features/cases/measures/MeasureNotesPanel.tsx": 1,
+      "src/app/features/dashboard/DashboardFocusOverview.tsx": 3,
+      "src/app/features/persons/PersonCaseCreateDialog.tsx": 2,
+      "src/app/features/persons/PersonEditDialog.tsx": 2,
+      "src/app/features/persons/PersonExpiryDashboardCard.tsx": 2,
+      "src/app/features/persons/PersonForm.tsx": 2,
+      "src/app/features/persons/PersonImportWizard.tsx": 11,
+      "src/app/features/persons/PersonLifecycleReviewDialog.tsx": 4,
+      "src/app/features/persons/PersonList.tsx": 1,
+      "src/app/features/persons/PersonPrivacyActionDialog.tsx": 2,
+      "src/app/features/persons/PersonToolbar.tsx": 3,
+      "src/app/features/settings/BackupRestoreForm.tsx": 4,
+      "src/app/features/settings/ChangePasswordForm.tsx": 1,
+      "src/app/features/settings/RetentionSettingsPanel.tsx": 4,
+      "src/app/features/settings/TemplateDefaultSettingsForm.tsx": 1,
+      "src/app/features/settings/TemporaryFilesSettingsPanel.tsx": 1,
+      "src/app/features/settings/ThemeSettingsForm.tsx": 2,
+    };
+
+    const actualNativeButtonCounts = Object.fromEntries(
+      tsxFilesUnder("src/app/features")
+        .map((file) => [file, nativeButtonLocations(file).length] as const)
+        .filter(([, count]) => count > 0),
+    );
+
+    expect(actualNativeButtonCounts).toEqual(allowedNativeButtonCounts);
+  });
+
 });

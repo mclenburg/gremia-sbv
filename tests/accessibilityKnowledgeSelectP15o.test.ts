@@ -1,19 +1,25 @@
 import { describe, expect, it } from 'vitest';
 import { KnowledgeDetailPanel, KnowledgeSearchPanel } from '../src/app/features/knowledge/KnowledgePanels';
-import { descendants, renderComponent } from './helpers/renderedMarkup';
+import { classList, descendants, renderComponent, type RenderedNode } from './helpers/renderedMarkup';
 import type { CaseRecord } from '../src/app/core/models/case.model';
 import type { LegalNormRecord } from '../src/app/core/models/knowledge.model';
 
-function selectByAccessibleName(markup: string, expectedName: string) {
-  const { tree } = renderComponent(KnowledgeSearchPanel, {
-    query: 'Prävention',
-    source: 'SGB IX',
-    sources: ['SGB IX'],
-    onQueryChange: () => undefined,
-    onSourceChange: () => undefined,
-    onSubmit: () => undefined,
-  });
-  return descendants(tree).find((node) => node.tag === 'select' && node.attrs['aria-label'] === expectedName && markup.includes(expectedName));
+function findSelectByAriaLabel(root: RenderedNode, expectedName: string): RenderedNode {
+  const select = descendants(root).find(
+    (node) => node.tag === 'select' && node.attrs['aria-label'] === expectedName,
+  );
+
+  if (!select) {
+    throw new Error(`Select mit aria-label "${expectedName}" wurde nicht gerendert.`);
+  }
+
+  return select;
+}
+
+function hasSelectedOption(select: RenderedNode, value: string): boolean {
+  return select.children.some(
+    (option) => option.tag === 'option' && option.attrs.value === value && 'selected' in option.attrs,
+  );
 }
 
 const selectedNorm: LegalNormRecord = {
@@ -44,7 +50,7 @@ const caseRecord: CaseRecord = {
 
 describe('P15o knowledge accessibility select names', () => {
   it('gives the knowledge source filter an accessible name in rendered markup', () => {
-    const rendered = renderComponent(KnowledgeSearchPanel, {
+    const { tree } = renderComponent(KnowledgeSearchPanel, {
       query: 'Prävention',
       source: 'SGB IX',
       sources: ['SGB IX'],
@@ -53,9 +59,10 @@ describe('P15o knowledge accessibility select names', () => {
       onSubmit: () => undefined,
     });
 
-    const select = selectByAccessibleName(rendered.markup, 'Quelle der Wissenssuche');
-    expect(select?.attrs.class).toContain('industrial-select');
-    expect(select?.children.some((option) => option.tag === 'option' && option.attrs.value === 'SGB IX' && 'selected' in option.attrs)).toBe(true);
+    const select = findSelectByAriaLabel(tree, 'Quelle der Wissenssuche');
+    expect(classList(select)).toContain('industrial-select');
+    expect(classList(select)).toContain('industrial-select-input');
+    expect(hasSelectedOption(select, 'SGB IX')).toBe(true);
   });
 
   it('gives the case-link select an accessible name in rendered markup', () => {
@@ -86,8 +93,9 @@ describe('P15o knowledge accessibility select names', () => {
       onCreateCaseLaw: () => undefined,
     });
 
-    const select = descendants(tree).find((node) => node.tag === 'select' && node.attrs['aria-label'] === 'Fallakte für Rechtsbezug auswählen');
-    expect(select?.attrs.class).toContain('industrial-select');
-    expect(select?.children.some((option) => option.tag === 'option' && option.attrs.value === 'case-1' && 'selected' in option.attrs)).toBe(true);
+    const select = findSelectByAriaLabel(tree, 'Fallakte für Rechtsbezug auswählen');
+    expect(classList(select)).toContain('industrial-select');
+    expect(classList(select)).toContain('industrial-select-input');
+    expect(hasSelectedOption(select, 'case-1')).toBe(true);
   });
 });

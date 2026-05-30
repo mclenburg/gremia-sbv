@@ -8,6 +8,7 @@ const uiCssFiles = [
   'src/app/ui/base.css',
   'src/app/ui/appShell.css',
   'src/app/ui/components.css',
+  'src/app/ui/modal.css',
   'src/app/ui/workbench.css',
   'src/app/ui/processes.css',
   'src/app/ui/featureModules.css',
@@ -24,7 +25,6 @@ describe('text command help light polish P10F', () => {
     expect(css).toContain('.text-command-help-group {');
     expect(css).toContain('.text-command-help-item {');
     expect(css).toContain('.text-command-help-search input {');
-    expect(css).toContain('/* P10F: Light-Mode-Selektoren behalten ebenfalls die harte Kante. */');
     expect(css).toContain("html[data-theme='light'] .text-command-help-item,");
     expect(css).toContain('border-radius: 0;');
   });

@@ -1,0 +1,8 @@
+{
+  "version": "0.9.2",
+  "reason": "Die Modal-Responsive-Regeln gehoeren in die strukturierte UI-CSS-Schicht. Die fruehere Root-Datei war ein Late-Override und wird vor Build/Test entfernt.",
+  "files": [
+    "src/app/caseModalResponsive.css"
+  ],
+  "directories": []
+}

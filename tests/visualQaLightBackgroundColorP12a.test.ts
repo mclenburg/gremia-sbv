@@ -8,6 +8,7 @@ const uiCssFiles = [
   'src/app/ui/base.css',
   'src/app/ui/appShell.css',
   'src/app/ui/components.css',
+  'src/app/ui/modal.css',
   'src/app/ui/workbench.css',
   'src/app/ui/processes.css',
   'src/app/ui/featureModules.css',
@@ -23,7 +24,6 @@ describe('visual qa light background colors P12A', () => {
     expect(css).toContain("html[data-theme='light'] .industrial-empty-state");
     expect(css).toContain("html[data-theme='light'] .text-command-help-modal");
     expect(css).toContain("html[data-theme='light'] .text-command-help-group");
-    expect(css).toContain('/* P12A: Visual-QA misst background-color; Light-Mode-Flächen dürfen nicht nur ein Gradient-Image haben. */');
     expect(css).toContain('background-color: #fafaf5;');
   });
 
