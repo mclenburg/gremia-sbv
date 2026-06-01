@@ -52,6 +52,18 @@ describe('isolierte E2E-Werkzeugauflösung', () => {
     expect(browserInstaller.browserInstallArgs('win32', true)).toEqual(['install', 'chromium']);
   });
 
+  it('kann in GitHub Actions vorhandenen System-Chrome nutzen und den Playwright-Browserdownload ueberspringen', () => {
+    const browserInstaller = requireFromTest('../scripts/install-e2e-browsers.cjs') as {
+      browserInstallArgs: (platform?: string, isCi?: boolean) => string[];
+      shouldUseSystemChrome: (env?: NodeJS.ProcessEnv) => boolean;
+      systemChromeCandidates: (platform?: string) => string[];
+    };
+
+    expect(browserInstaller.shouldUseSystemChrome({ GREMIA_SBV_E2E_USE_SYSTEM_CHROME: '1' } as NodeJS.ProcessEnv)).toBe(true);
+    expect(browserInstaller.shouldUseSystemChrome({} as NodeJS.ProcessEnv)).toBe(false);
+    expect(browserInstaller.systemChromeCandidates('linux')).toContain('/usr/bin/google-chrome');
+  });
+
   it('haelt Playwright- und Axe-Imports in der Config und im Axe-Test vom App-node_modules entkoppelt', () => {
     const config = readFileSync('playwright.config.ts', 'utf8');
     const axeSpec = readFileSync('e2e/accessibility-axe.spec.ts', 'utf8');
@@ -59,6 +71,7 @@ describe('isolierte E2E-Werkzeugauflösung', () => {
 
     expect(config).not.toContain("from '@playwright/test'");
     expect(config).toContain('createRequire(isolatedToolsPackage)');
+    expect(config).toContain("channel: 'chrome'");
     expect(axeSpec).not.toContain("from '@axe-core/playwright'");
     expect(axeSpec).toContain("requireE2eTool('@axe-core/playwright')");
     expect(support).not.toContain("from '@playwright/test'");
@@ -66,6 +79,8 @@ describe('isolierte E2E-Werkzeugauflösung', () => {
 
     const workflow = readFileSync('.github/workflows/build-release.yml', 'utf8');
     expect(workflow).toContain('FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"');
+    expect(workflow).toContain('GREMIA_SBV_E2E_USE_SYSTEM_CHROME: "1"');
+    expect(workflow).toContain('PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"');
     expect(workflow).toContain('actions/checkout@v4');
     expect(workflow).toContain('actions/setup-node@v4');
   });

@@ -30,10 +30,11 @@ describe('Windows portable artifact', () => {
     expect(pkg.build.nsis).toBeUndefined();
   });
 
-  it('still uploads only the three end-user artifacts', () => {
+  it('uploads only the free-account release artifacts from the tagged workflow', () => {
     expect(workflow).toContain('release/*.AppImage');
     expect(workflow).toContain('release/*.exe');
-    expect(workflow).toContain('release/*.dmg');
+    expect(workflow).not.toContain('release/*.dmg');
+    expect(workflow).not.toContain('macos-latest');
     expect(workflow).not.toContain('release/*.blockmap');
     expect(workflow).not.toContain('release/latest.yml');
     expect(workflow).not.toContain('release/*.zip');

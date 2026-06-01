@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+const { existsSync } = require('node:fs');
 const { spawnSync } = require('node:child_process');
 const { resolveE2ePackage } = require('./e2e-tools.cjs');
 
@@ -19,9 +20,30 @@ function resolvePlaywrightCli() {
   }
 }
 
+function shouldUseSystemChrome(env = process.env) {
+  return env.GREMIA_SBV_E2E_USE_SYSTEM_CHROME === '1';
+}
+
+function systemChromeCandidates(platform = process.platform) {
+  if (platform === 'win32') {
+    return [
+      'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+      'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+    ];
+  }
+  if (platform === 'darwin') {
+    return ['/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'];
+  }
+  return ['/usr/bin/google-chrome', '/usr/bin/google-chrome-stable', '/usr/bin/chromium', '/usr/bin/chromium-browser'];
+}
+
+function resolveSystemChrome(platform = process.platform) {
+  return systemChromeCandidates(platform).find((candidate) => existsSync(candidate)) ?? null;
+}
+
 function browserInstallArgs(platform = process.platform, isCi = Boolean(process.env.CI)) {
   const args = ['install'];
-  if (platform === 'linux' && isCi) {
+  if (platform === 'linux' && isCi && !shouldUseSystemChrome()) {
     args.push('--with-deps');
   }
   args.push('chromium');
@@ -29,6 +51,18 @@ function browserInstallArgs(platform = process.platform, isCi = Boolean(process.
 }
 
 function run() {
+  if (shouldUseSystemChrome()) {
+    const chrome = resolveSystemChrome();
+    if (!chrome) {
+      console.error('E2E-Browserinstallation abgebrochen: System-Chrome wurde angefordert, aber kein Google-Chrome/Chromium-Binary gefunden.');
+      console.error('Entweder GREMIA_SBV_E2E_USE_SYSTEM_CHROME entfernen oder auf dem Runner Google Chrome bereitstellen.');
+      process.exit(4);
+    }
+    console.log(`Nutze vorhandenen System-Chrome für E2E-Tests: ${chrome}`);
+    console.log('Playwright-Browserdownload wird bewusst übersprungen, um GitHub-Free-Minuten und Cache-/Netzlast zu sparen.');
+    process.exit(0);
+  }
+
   const playwrightCli = resolvePlaywrightCli();
   const args = browserInstallArgs();
   console.log(`Installiere Playwright-Browser isoliert: ${process.execPath} ${playwrightCli} ${args.join(' ')}`);
@@ -52,4 +86,7 @@ if (require.main === module) {
 module.exports = {
   browserInstallArgs,
   resolvePlaywrightCli,
+  resolveSystemChrome,
+  shouldUseSystemChrome,
+  systemChromeCandidates,
 };

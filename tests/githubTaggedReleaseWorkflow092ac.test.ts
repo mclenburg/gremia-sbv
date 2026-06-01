@@ -36,13 +36,14 @@ describe('Taggebundener GitHub-Release-Build 0.9.2', () => {
     expect(taggedReleaseWorkflow).toContain('- quality-gates');
   });
 
-  it('baut Linux, Windows und macOS auf dem jeweiligen Zielsystem und veröffentlicht nur vorhandene Artefakte', () => {
+  it('baut Linux und Windows auf dem jeweiligen Zielsystem und veröffentlicht nur vorhandene Artefakte', () => {
     expect(taggedReleaseWorkflow).toContain('build_script: build:linux');
     expect(taggedReleaseWorkflow).toContain('build_script: build:win');
-    expect(taggedReleaseWorkflow).toContain('build_script: build:mac');
     expect(taggedReleaseWorkflow).toContain('release/*.AppImage');
     expect(taggedReleaseWorkflow).toContain('release/*.exe');
-    expect(taggedReleaseWorkflow).toContain('release/*.dmg');
+    expect(taggedReleaseWorkflow).not.toContain('build_script: build:mac');
+    expect(taggedReleaseWorkflow).not.toContain('macos-latest');
+    expect(taggedReleaseWorkflow).not.toContain('release/*.dmg');
     expect(taggedReleaseWorkflow).toContain('prepare-release:');
     expect(taggedReleaseWorkflow).toContain('gh release create');
     expect(taggedReleaseWorkflow).toContain('fail_on_unmatched_files: true');
@@ -75,6 +76,19 @@ describe('Taggebundener GitHub-Release-Build 0.9.2', () => {
     expect(taggedReleaseWorkflow).toContain('Upload platform asset directly to draft release');
     expect(taggedReleaseWorkflow).toContain('softprops/action-gh-release@v2');
     expect(taggedReleaseWorkflow).toContain('fail_on_unmatched_files: true');
+  });
+
+
+  it('spart GitHub-Free-Ressourcen durch direkte Release-Assets, System-Chrome und harte E2E-Timeouts', () => {
+    expect(taggedReleaseWorkflow).toContain('GREMIA_SBV_E2E_USE_SYSTEM_CHROME: "1"');
+    expect(taggedReleaseWorkflow).toContain('PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"');
+    expect(taggedReleaseWorkflow).toContain('timeout-minutes: 5');
+    expect(taggedReleaseWorkflow).toContain('timeout-minutes: 15');
+    expect(taggedReleaseWorkflow).not.toContain('actions/upload-artifact@v4');
+    expect(taggedReleaseWorkflow).not.toContain('actions/download-artifact@v4');
+    expect(taggedReleaseWorkflow).not.toContain('macos-latest');
+    expect(taggedReleaseWorkflow).not.toContain('build_script: build:mac');
+    expect(taggedReleaseWorkflow).not.toContain('release/*.dmg');
   });
 
   it('bietet einen gezielten lokalen Regressionstest für die Workflow-Verträge an', () => {

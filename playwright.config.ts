@@ -22,6 +22,7 @@ const { defineConfig, devices } = requirePlaywrightTest() as {
 
 const port = Number(process.env.GREMIA_SBV_E2E_PORT ?? 5174);
 const baseURL = process.env.GREMIA_SBV_E2E_BASE_URL ?? `http://127.0.0.1:${port}`;
+const useSystemChrome = process.env.GREMIA_SBV_E2E_USE_SYSTEM_CHROME === '1';
 
 export default defineConfig({
   testDir: './e2e',
@@ -41,7 +42,10 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium-smoke',
-      use: { ...(devices['Desktop Chrome'] as Record<string, unknown>) },
+      use: {
+        ...(devices['Desktop Chrome'] as Record<string, unknown>),
+        ...(useSystemChrome ? { channel: 'chrome' } : {}),
+      },
     },
   ],
   webServer: {
