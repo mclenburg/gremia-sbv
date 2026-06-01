@@ -26,6 +26,9 @@ concurrency:
   group: signpath-windows-exe-${{ github.ref }}
   cancel-in-progress: false
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 jobs:
   signpath-windows-exe:
     name: Build and submit Windows EXE to SignPath

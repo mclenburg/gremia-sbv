@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 const { mkdtempSync, rmSync, existsSync, mkdirSync } = require('node:fs');
-const { join, resolve } = require('node:path');
+const { delimiter, join, resolve } = require('node:path');
 const { tmpdir } = require('node:os');
 const { spawnSync } = require('node:child_process');
 const { createRequire } = require('node:module');
-const { e2eBin } = require('./e2e-tools.cjs');
+const { resolveE2ePackage } = require('./e2e-tools.cjs');
 
 function isSafeE2eDir(value) {
   if (!value) return false;
@@ -32,22 +32,24 @@ function resolveProjectPlaywrightCli(root = process.cwd()) {
   }
 }
 
-function resolveIsolatedPlaywrightBinary(root = process.cwd()) {
-  const binary = e2eBin('playwright', root);
-  if (!existsSync(binary)) return null;
-  return {
-    kind: 'isolated-bin',
-    command: binary,
-    argsPrefix: [],
-  };
+function resolveIsolatedPlaywrightCli(root = process.cwd()) {
+  try {
+    return {
+      kind: 'isolated-cli',
+      command: process.execPath,
+      argsPrefix: [resolveE2ePackage('@playwright/test/cli', root)],
+    };
+  } catch {
+    return null;
+  }
 }
 
 function resolvePlaywrightRunner(root = process.cwd()) {
   const projectCli = resolveProjectPlaywrightCli(root);
   if (projectCli) return projectCli;
 
-  const isolatedBinary = resolveIsolatedPlaywrightBinary(root);
-  if (isolatedBinary) return isolatedBinary;
+  const isolatedCli = resolveIsolatedPlaywrightCli(root);
+  if (isolatedCli) return isolatedCli;
 
   return null;
 }
@@ -95,8 +97,10 @@ function run() {
 
   const runner = assertPlaywrightRunner();
   const outputDir = join(dataDir, 'playwright-output');
+  const e2eNodeModules = join(process.cwd(), '.e2e-tools', 'node_modules');
   const env = {
     ...process.env,
+    NODE_PATH: [e2eNodeModules, process.env.NODE_PATH].filter(Boolean).join(delimiter),
     GREMIA_SBV_E2E: '1',
     GREMIA_SBV_E2E_DATA_DIR: dataDir,
     GREMIA_SBV_DATA_DIR: dataDir,
@@ -109,7 +113,7 @@ function run() {
   const result = spawnSync(runner.command, [...runner.argsPrefix, ...playwrightArgs], {
     stdio: 'inherit',
     env,
-    shell: process.platform === 'win32' && runner.kind === 'isolated-bin',
+    shell: false,
   });
 
   if (!keep && !providedDataDir) {
@@ -130,6 +134,6 @@ module.exports = {
   isSafeE2eDir,
   normalizeSpecPathArg,
   resolveProjectPlaywrightCli,
-  resolveIsolatedPlaywrightBinary,
+  resolveIsolatedPlaywrightCli,
   resolvePlaywrightRunner,
 };

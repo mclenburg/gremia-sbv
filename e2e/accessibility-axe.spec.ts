@@ -1,7 +1,30 @@
-import AxeBuilder from '@axe-core/playwright';
 import type { Page } from '@playwright/test';
-import { test, expect } from './support/test';
 import { VISUAL_QA_ROUTES, type VisualTheme } from '../src/app/shared/theme/visualQa';
+import { requireE2eTool } from './support/e2eToolResolver';
+import { test, expect } from './support/test';
+
+type AxeBuilderConstructor = {
+  new (options: { page: Page }): {
+    withTags(tags: string[]): {
+      disableRules(rules: string[]): {
+        exclude(selector: string): {
+          analyze(): Promise<{ violations: AxeViolation[] }>;
+        };
+      };
+    };
+  };
+};
+
+const axeModule = requireE2eTool('@axe-core/playwright') as { default?: AxeBuilderConstructor } | AxeBuilderConstructor;
+const AxeBuilder = ('default' in axeModule ? axeModule.default : axeModule) as AxeBuilderConstructor;
+
+type AxeViolation = {
+  id: string;
+  impact?: string | null;
+  help: string;
+  helpUrl: string;
+  nodes: Array<{ target: string[]; failureSummary?: string | null }>;
+};
 
 const SERIOUS_IMPACTS = new Set(['serious', 'critical']);
 
@@ -25,7 +48,7 @@ async function openRoute(page: Page, navName: string) {
   await mainNavigation(page).getByRole('button', { name: navName, exact: true }).click();
 }
 
-function describeViolations(violations: Awaited<ReturnType<AxeBuilder['analyze']>>['violations']) {
+function describeViolations(violations: AxeViolation[]) {
   return violations
     .map((violation) => {
       const nodes = violation.nodes
