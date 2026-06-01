@@ -1,5 +1,6 @@
 import { Plus, Upload } from 'lucide-react';
 import { IndustrialButton, GhostButton } from '../../shared/components/IndustrialButton';
+import { SearchInput } from '../../shared/components/IndustrialForm';
 import { EmptyState } from '../../shared/components/WorkbenchLayout';
 import type { CaseCategory, CaseRecord } from '../../core/models/case.model';
 
@@ -44,12 +45,13 @@ export function CaseRegister({
           <strong>{filteredCount} Fälle</strong>
         </div>
         <div className="case-register-actions">
-          <input
-            className="industrial-input"
-            data-global-search-target="cases"
+          <SearchInput
+            label="Fallakte suchen"
             value={caseFilter}
-            onChange={(event) => onCaseFilterChange(event.target.value)}
+            onValueChange={onCaseFilterChange}
             placeholder="Fälle filtern nach Aktenzeichen, Name, Kurzbeschreibung …"
+            data-global-search-target="cases"
+            className="case-register-search-input"
           />
           {Boolean(closedLegacyBulkCount) && (
             <button type="button" className="industrial-secondary-button compact" onClick={onBulkMarkClosedLegacyCases} data-e2e="bulk-mark-closed-legacy">

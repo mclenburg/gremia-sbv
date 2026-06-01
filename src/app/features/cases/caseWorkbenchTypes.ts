@@ -28,6 +28,7 @@ export type CaseTreePanelProps = {
   terminationProcesses: TerminationHearingRecord[];
   participationProcesses: ParticipationRecord[];
   workplaceAccommodationProcesses: WorkplaceAccommodationRecord[];
+  isLoading?: boolean;
   selection: CaseExplorerSelection;
   onSelect: (selection: CaseExplorerSelection) => void;
   formatProcessNodeSubtitle: (processType: CaseProcessType, status?: string) => string;

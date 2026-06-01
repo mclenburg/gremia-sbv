@@ -11,6 +11,7 @@ export function CaseTreePanel({
   terminationProcesses,
   participationProcesses,
   workplaceAccommodationProcesses,
+  isLoading = false,
   selection,
   onSelect,
   formatProcessNodeSubtitle,
@@ -22,8 +23,13 @@ export function CaseTreePanel({
       <p className="industrial-kicker">Fallakte</p>
       <h2>{selectedCase?.caseNumber ?? 'Keine Auswahl'}</h2>
       <p className="industrial-meta">{selectedCase?.displayName ?? 'Bitte oben einen Fall auswählen.'}</p>
+      {isLoading ? (
+        <p className="case-tree-loading" role="status" aria-live="polite">
+          Fallstruktur wird geladen …
+        </p>
+      ) : null}
 
-      <div className="case-tree-group process-drop-zone">
+      <div className="case-tree-group process-drop-zone" aria-busy={isLoading ? "true" : undefined}>
         <div className="case-tree-group-title"><Workflow className="h-4 w-4" /> Maßnahmen <span>{preventionProcesses.length + bemProcesses.length + equalizationProcesses.length + terminationProcesses.length + participationProcesses.length + workplaceAccommodationProcesses.length}</span></div>
         {preventionProcesses.map((process) => (
           <button

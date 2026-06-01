@@ -1,4 +1,5 @@
 import { Download, UploadCloud } from 'lucide-react';
+import { SearchInput } from '../../shared/components/IndustrialForm';
 
 interface PersonToolbarProps {
   query: string;
@@ -11,7 +12,13 @@ interface PersonToolbarProps {
 export function PersonToolbar({ query, onQueryChange, onOpenCreate, onOpenImport, onExportIcal }: PersonToolbarProps) {
   return (
     <div className="person-toolbar">
-      <label className="person-search"><span>Person suchen</span><input value={query} onChange={(event) => onQueryChange(event.target.value)} placeholder="Name, E-Mail, Organisationseinheit" /></label>
+      <SearchInput
+        label="Person suchen"
+        value={query}
+        onValueChange={onQueryChange}
+        placeholder="Name, E-Mail, Organisationseinheit"
+        className="person-search-input"
+      />
       <button type="button" className="industrial-button" data-e2e="open-person-create-dialog" onClick={onOpenCreate}>Person anlegen</button>
       <button type="button" className="industrial-button" onClick={onOpenImport} data-e2e="open-person-import-wizard"><UploadCloud className="h-4 w-4" aria-hidden="true" /> Personen importieren</button>
       <button type="button" className="industrial-secondary-button" onClick={onExportIcal}><Download className="h-4 w-4" aria-hidden="true" /> Fristen exportieren</button>

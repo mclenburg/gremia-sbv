@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { CaseRecord } from '../../core/models/case.model';
 import type { CaseDocumentRecord } from '../../core/models/case-document.model';
 import type { CaseNoteRecord } from '../../core/models/case-note.model';
@@ -37,6 +37,7 @@ export function useCaseWorkbenchData({
   const [caseWorkplaceAccommodationProcesses, setCaseWorkplaceAccommodationProcesses] = useState<WorkplaceAccommodationRecord[]>([]);
   const [selection, setSelection] = useState<CaseExplorerSelection>({ type: 'overview' });
   const [pendingCaseNodeTarget, setPendingCaseNodeTarget] = useState<CaseNodeTarget | null>(null);
+  const [isCaseChildrenLoading, setIsCaseChildrenLoading] = useState(false);
 
   useEffect(() => {
     if (!target) return;
@@ -57,7 +58,7 @@ export function useCaseWorkbenchData({
     }
   }, [cases, selectedCaseId, target, pendingCaseNodeTarget]);
 
-  function clearChildren() {
+  const clearChildren = useCallback(function clearChildren() {
     setNotes([]);
     setDocuments([]);
     setCaseLegalReferences([]);
@@ -67,7 +68,7 @@ export function useCaseWorkbenchData({
     setCaseTerminationProcesses([]);
     setCaseParticipationProcesses([]);
     setCaseWorkplaceAccommodationProcesses([]);
-  }
+  }, []);
 
   async function loadChildren(caseId: string) {
     const bridge = await waitForBridge();
@@ -104,10 +105,17 @@ export function useCaseWorkbenchData({
   useEffect(() => {
     if (!selectedCaseId) {
       clearChildren();
+      setIsCaseChildrenLoading(false);
       return;
     }
 
     let active = true;
+    clearChildren();
+    setIsCaseChildrenLoading(true);
+    if (!pendingCaseNodeTarget || pendingCaseNodeTarget.caseId !== selectedCaseId) {
+      setSelection({ type: 'overview' });
+    }
+
     async function loadCaseChildren() {
       try {
         const [noteRows, docRows, legalRefRows, preventionRows, bemRows, equalizationRows, terminationRows, participationRows, workplaceAccommodationRows] = await loadChildren(selectedCaseId);
@@ -124,6 +132,8 @@ export function useCaseWorkbenchData({
         applySelectionTarget(pendingCaseNodeTarget, selectedCaseId);
       } catch (error) {
         if (active) onError?.(error instanceof Error ? error.message : 'Fallakte konnte nicht geladen werden.');
+      } finally {
+        if (active) setIsCaseChildrenLoading(false);
       }
     }
 
@@ -135,16 +145,21 @@ export function useCaseWorkbenchData({
 
   async function reloadSelectedCaseChildren() {
     if (!selectedCaseId) return;
-    const [noteRows, docRows, legalRefRows, preventionRows, bemRows, equalizationRows, terminationRows, participationRows, workplaceAccommodationRows] = await loadChildren(selectedCaseId);
-    setNotes(noteRows);
+    setIsCaseChildrenLoading(true);
+    try {
+      const [noteRows, docRows, legalRefRows, preventionRows, bemRows, equalizationRows, terminationRows, participationRows, workplaceAccommodationRows] = await loadChildren(selectedCaseId);
+      setNotes(noteRows);
     setDocuments(docRows);
     setCaseLegalReferences(legalRefRows);
     setCasePreventionProcesses(preventionRows);
     setCaseBemProcesses(bemRows);
     setCaseEqualizationProcesses(equalizationRows);
-    setCaseTerminationProcesses(terminationRows);
-    setCaseParticipationProcesses(participationRows);
-    setCaseWorkplaceAccommodationProcesses(workplaceAccommodationRows);
+      setCaseTerminationProcesses(terminationRows);
+      setCaseParticipationProcesses(participationRows);
+      setCaseWorkplaceAccommodationProcesses(workplaceAccommodationRows);
+    } finally {
+      setIsCaseChildrenLoading(false);
+    }
   }
 
   return {
@@ -163,6 +178,7 @@ export function useCaseWorkbenchData({
     caseTerminationProcesses,
     caseParticipationProcesses,
     caseWorkplaceAccommodationProcesses,
+    isCaseChildrenLoading,
     setCasePreventionProcesses,
     selection,
     setSelection,

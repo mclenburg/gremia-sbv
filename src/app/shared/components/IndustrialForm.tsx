@@ -182,6 +182,16 @@ export function TextInput({
   );
 }
 
+export function SearchInput(props: Omit<TextInputProps, "type">) {
+  return (
+    <TextInput
+      {...props}
+      type="search"
+      className={joinClassNames("industrial-search-input", props.className)}
+    />
+  );
+}
+
 export function DateInput(props: Omit<TextInputProps, "type">) {
   return <TextInput {...props} type="date" />;
 }
