@@ -46,7 +46,10 @@ describe('Taggebundener GitHub-Release-Build 0.9.2', () => {
     expect(taggedReleaseWorkflow).not.toContain('macos-latest');
     expect(taggedReleaseWorkflow).not.toContain('release/*.dmg');
     expect(taggedReleaseWorkflow).toContain('prepare-release:');
-    expect(taggedReleaseWorkflow).toContain('gh release create');
+    expect(taggedReleaseWorkflow).toContain('GH_REPO: ${{ github.repository }}');
+    expect(taggedReleaseWorkflow).toContain('gh release view "${GITHUB_REF_NAME}" --repo "${GH_REPO}"');
+    expect(taggedReleaseWorkflow).toContain('--repo "${GH_REPO}"');
+    expect(taggedReleaseWorkflow).toContain('gh release create "${release_args[@]}"');
     expect(taggedReleaseWorkflow).toContain('fail_on_unmatched_files: true');
     expect(taggedReleaseWorkflow).toContain('Upload platform asset directly to draft release');
     expect(uses(taggedReleaseWorkflow, 'softprops/action-gh-release@v2')).toBe(true);
