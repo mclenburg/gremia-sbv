@@ -16,7 +16,7 @@ describe('P15m Axe accessibility gate', () => {
     expect(spec).toContain('inline-command-help-dialog');
   });
 
-  it('macht das Axe-Gate isoliert installierbar und releasefähig', () => {
+  it('macht das Axe-Gate isoliert installierbar und lokal releasefähig, ohne GitHub-Free-Build zu belasten', () => {
     const pkg = read('package.json');
     const e2eInstaller = read('scripts/install-e2e-tools.cjs');
     expect(e2eInstaller).toContain('@axe-core/playwright@4.10.2');
@@ -30,9 +30,9 @@ describe('P15m Axe accessibility gate', () => {
     expect(pkg).toContain('release:check:a11y');
 
     const workflow = read('.github/workflows/build-release.yml');
-    expect(workflow).toContain('npm run test:e2e:setup');
-    expect(workflow).toContain('npm run test:e2e:a11y');
-  });
+    expect(workflow).not.toContain('npm run test:e2e:setup');
+    expect(workflow).not.toContain('npm run test:e2e:a11y');
+    });
 
   it('dokumentiert Axe als Accessibility-Vertrag', () => {
     const qualityGate = read('docs/QUALITY_GATE.md');
