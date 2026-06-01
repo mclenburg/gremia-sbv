@@ -19,7 +19,7 @@ const uiCss = () =>
     readCss("src", "app", "ui", "featureModules.css"),
     readCss("src", "app", "ui", "responsiveDesign.css"),
     formsCss(),
-  ].join("\n");
+  ].join(String.fromCharCode(10));
 
 describe("Industrial-Textarea-Design", () => {
   it("gestaltet große Textfelder in Industrial-Formularen nicht mit Browser-Grau", () => {

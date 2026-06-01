@@ -253,7 +253,7 @@ export function classifyAnonymizationTarget(value: string): AnonymizationTargetK
   if (/\b(pers(?:onal)?\.?\s*nr|personalnummer|pnr|mitarbeiter(?:nummer)?|ma-?nr)\b/i.test(text) || /\b[A-Z]{0,3}-?\d{3,}\b/.test(text)) return 'personnel_number';
   if (/\b(gdb|diagnose|krank|erkrank|behinderung|depression|ptbs|adhs|autismus|krebs|tumor|sucht|therapie|medikation|reha)\b/i.test(text)) return 'health_detail';
   if (/\b(team|bereich|abteilung|referat|dezernat|standort|organisationseinheit|org[-\s]?einheit)\b/i.test(text)) return 'organizational_unit';
-  if (/\b(fall|akte|aktenzeichen|az|sbv-\d|bem-\d)\b/i.test(text)) return 'case_reference';
+  if (/\b(fall|fallakte|fallakten|akte|aktenzeichen|az|sbv-\d|bem-\d)\b/i.test(text)) return 'case_reference';
   if (/^[A-ZÄÖÜ][a-zäöüß]+(?:[-\s][A-ZÄÖÜ][a-zäöüß]+)+$/.test(text)) return 'name';
   return 'text_segment';
 }
