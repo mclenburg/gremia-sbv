@@ -26,7 +26,7 @@ function validateWorkflowContract(workflowText) {
   const hasManualTrigger = /^\s*workflow_dispatch:/m.test(workflowText);
   const hasAutomaticTrigger = /^\s*(push|pull_request|schedule):/m.test(workflowText);
   const isExplicitlyGated = workflowText.includes("vars.SIGNPATH_ENABLED == 'true'");
-  const uploadsGitHubArtifact = workflowText.includes('actions/upload-artifact@v7');
+  const uploadsGitHubArtifact = /actions\/upload-artifact@v[46]/.test(workflowText);
   const submitsToSignPath = workflowText.includes('signpath/github-action-submit-signing-request@v2');
   const usesReadOnlyPermissions = workflowText.includes('actions: read') && workflowText.includes('contents: read');
 

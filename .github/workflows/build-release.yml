@@ -14,6 +14,7 @@ concurrency:
 
 env:
   CSC_IDENTITY_AUTO_DISCOVERY: "false"
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 jobs:
   verify-tag:
@@ -24,12 +25,12 @@ jobs:
       prerelease: ${{ steps.version.outputs.prerelease }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
         with:
           persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version-file: .node-version
           cache: npm
@@ -62,12 +63,12 @@ jobs:
     timeout-minutes: 90
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
         with:
           persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version-file: .node-version
           cache: npm
@@ -103,12 +104,46 @@ jobs:
           npm run test:e2e:complete-tour
           npm run test:e2e:a11y
 
+  prepare-release:
+    name: Prepare draft GitHub release
+    runs-on: ubuntu-latest
+    needs:
+      - verify-tag
+      - quality-gates
+    timeout-minutes: 10
+    steps:
+      - name: Create draft release if missing
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PACKAGE_VERSION: ${{ needs.verify-tag.outputs.package_version }}
+          IS_PRERELEASE: ${{ needs.verify-tag.outputs.prerelease }}
+        run: |
+          set -euo pipefail
+          if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
+            echo "Release ${GITHUB_REF_NAME} already exists; platform jobs will upload assets directly."
+            exit 0
+          fi
+
+          release_args=(
+            "${GITHUB_REF_NAME}"
+            --draft
+            --title "Gremia.SBV ${PACKAGE_VERSION}"
+            --notes "Automatisch vorbereiteter Draft-Release für ${GITHUB_REF_NAME}."
+          )
+          if [[ "${IS_PRERELEASE}" == "true" ]]; then
+            release_args+=(--prerelease)
+          fi
+
+          gh release create "${release_args[@]}"
+
   build-artifacts:
     name: Build ${{ matrix.label }}
     runs-on: ${{ matrix.os }}
     needs:
       - verify-tag
       - quality-gates
+      - prepare-release
     timeout-minutes: 90
     strategy:
       fail-fast: false
@@ -118,24 +153,28 @@ jobs:
             label: Linux AppImage
             os: ubuntu-latest
             build_script: build:linux
-            artifact_name: gremia-sbv-linux-appimage
             artifact_glob: |
               release/*.AppImage
           - platform: windows
             label: Windows portable EXE
             os: windows-latest
             build_script: build:win
-            artifact_name: gremia-sbv-windows-portable
             artifact_glob: |
               release/*.exe
+          - platform: mac
+            label: macOS DMG
+            os: macos-latest
+            build_script: build:mac
+            artifact_glob: |
+              release/*.dmg
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
         with:
           persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version-file: .node-version
           cache: npm
@@ -155,34 +194,12 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
 
-      - name: Upload workflow artifact
-        uses: actions/upload-artifact@v6
-        with:
-          name: ${{ matrix.artifact_name }}-${{ needs.verify-tag.outputs.package_version }}
-          path: ${{ matrix.artifact_glob }}
-          if-no-files-found: error
-          retention-days: 14
-
-  publish-release:
-    name: Publish draft GitHub release
-    runs-on: ubuntu-latest
-    needs:
-      - verify-tag
-      - build-artifacts
-    timeout-minutes: 30
-    steps:
-      - name: Download platform artifacts
-        uses: actions/download-artifact@v8
-        with:
-          path: release-assets
-
-      - name: Upload assets to draft GitHub release
-        uses: softprops/action-gh-release@v3
+      - name: Upload platform asset directly to draft release
+        uses: softprops/action-gh-release@v2
         with:
           draft: true
           prerelease: ${{ needs.verify-tag.outputs.prerelease == 'true' }}
-          files: |
-            release-assets/**/*.AppImage
-            release-assets/**/*.exe
+          fail_on_unmatched_files: true
+          files: ${{ matrix.artifact_glob }}
         env:
           GITHUB_TOKEN: ${{ github.token }}

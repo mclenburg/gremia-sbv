@@ -36,30 +36,45 @@ describe('Taggebundener GitHub-Release-Build 0.9.2', () => {
     expect(taggedReleaseWorkflow).toContain('- quality-gates');
   });
 
-  it('baut Linux und Windows auf dem jeweiligen Zielsystem und veröffentlicht nur vorhandene Artefakte', () => {
+  it('baut Linux, Windows und macOS auf dem jeweiligen Zielsystem und veröffentlicht nur vorhandene Artefakte', () => {
     expect(taggedReleaseWorkflow).toContain('build_script: build:linux');
     expect(taggedReleaseWorkflow).toContain('build_script: build:win');
+    expect(taggedReleaseWorkflow).toContain('build_script: build:mac');
     expect(taggedReleaseWorkflow).toContain('release/*.AppImage');
     expect(taggedReleaseWorkflow).toContain('release/*.exe');
-    expect(taggedReleaseWorkflow).toContain('if-no-files-found: error');
-    expect(taggedReleaseWorkflow).toContain('publish-release:');
-    expect(uses(taggedReleaseWorkflow, 'actions/download-artifact@v8')).toBe(true);
-    expect(uses(taggedReleaseWorkflow, 'softprops/action-gh-release@v3')).toBe(true);
+    expect(taggedReleaseWorkflow).toContain('release/*.dmg');
+    expect(taggedReleaseWorkflow).toContain('prepare-release:');
+    expect(taggedReleaseWorkflow).toContain('gh release create');
+    expect(taggedReleaseWorkflow).toContain('fail_on_unmatched_files: true');
+    expect(taggedReleaseWorkflow).toContain('Upload platform asset directly to draft release');
+    expect(uses(taggedReleaseWorkflow, 'softprops/action-gh-release@v2')).toBe(true);
   });
 
-  it('verwendet Node-24-kompatible GitHub-Actions ohne FORCE_JAVASCRIPT_ACTIONS_TO_NODE24-Hack', () => {
+  it('nutzt den bestehenden Node-24-Kompatibilitätsvertrag der Repository-Tests', () => {
+    expect(taggedReleaseWorkflow).toContain('FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"');
+
     for (const workflow of [taggedReleaseWorkflow, signPathWorkflow]) {
-      expect(uses(workflow, 'actions/checkout@v5')).toBe(true);
-      expect(uses(workflow, 'actions/setup-node@v6')).toBe(true);
-      expect(workflow).not.toContain('FORCE_JAVASCRIPT_ACTIONS_TO_NODE24');
-      expect(workflow).not.toContain('actions/checkout@v4');
-      expect(workflow).not.toContain('actions/setup-node@v4');
+      expect(uses(workflow, 'actions/checkout@v4')).toBe(true);
+      expect(uses(workflow, 'actions/setup-node@v4')).toBe(true);
+      expect(workflow).not.toContain('actions/checkout@v5');
+      expect(workflow).not.toContain('actions/setup-node@v6');
       expect(workflow).not.toContain('actions/upload-artifact@v7');
     }
 
-    expect(uses(taggedReleaseWorkflow, 'actions/upload-artifact@v6')).toBe(true);
-    expect(uses(taggedReleaseWorkflow, 'actions/download-artifact@v8')).toBe(true);
-    expect(uses(signPathWorkflow, 'actions/upload-artifact@v6')).toBe(true);
+    expect(uses(taggedReleaseWorkflow, 'actions/upload-artifact@v4')).toBe(false);
+    expect(uses(taggedReleaseWorkflow, 'actions/download-artifact@v4')).toBe(false);
+    expect(uses(signPathWorkflow, 'actions/upload-artifact@v4')).toBe(true);
+  });
+
+
+  it('vermeidet dauerhafte Workflow-Artefakte im normalen taggebundenen Release-Build', () => {
+    expect(taggedReleaseWorkflow).not.toContain('Upload workflow artifact');
+    expect(taggedReleaseWorkflow).not.toContain('Download platform artifacts');
+    expect(taggedReleaseWorkflow).not.toContain('actions/upload-artifact@v4');
+    expect(taggedReleaseWorkflow).not.toContain('actions/download-artifact@v4');
+    expect(taggedReleaseWorkflow).toContain('Upload platform asset directly to draft release');
+    expect(taggedReleaseWorkflow).toContain('softprops/action-gh-release@v2');
+    expect(taggedReleaseWorkflow).toContain('fail_on_unmatched_files: true');
   });
 
   it('bietet einen gezielten lokalen Regressionstest für die Workflow-Verträge an', () => {

@@ -44,10 +44,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -81,7 +81,7 @@ jobs:
 
       - name: Upload unsigned EXE for SignPath
         id: upload-unsigned-artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: gremia-sbv-windows-exe-unsigned
           path: signpath-unsigned/*.exe
@@ -104,7 +104,7 @@ jobs:
             version: ${{ toJSON(inputs.version) }}
 
       - name: Upload signed EXE
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: gremia-sbv-windows-exe-signed
           path: signpath-signed/**/*
