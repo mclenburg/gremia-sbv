@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 /*
- * Gremia.SBV release-candidate readiness check.
+ * Gremia.SBV release readiness check.
  *
- * Dependency-free static checks for the final stabilization phase before
- * 0.9.0-rc.1. This does not replace npm run test/build; it catches broken
- * release wiring, stale documentation references and obsolete test scripts.
+ * Dependency-free static checks for the public baseline. This does not replace
+ * npm run test/build; it catches broken release wiring, stale documentation
+ * references and obsolete test scripts without forcing public docs to carry a
+ * manually maintained product version.
  */
 const fs = require('node:fs');
 const path = require('node:path');
@@ -33,16 +34,26 @@ function expect(condition, message) {
 
 function validateReadme(pkg) {
   const readme = read('README.md');
-  expect(readme.includes(`Stand: **${pkg.version}**`), 'README.md muss den aktuellen Paketstand ausweisen.');
+  expect(!readme.includes(`Stand: **${pkg.version}**`), 'README.md darf keinen manuell gepflegten Paketstand ausweisen.');
+  expect(!readme.includes('0.9.'), 'README.md darf keine voröffentliche Versionslinie enthalten.');
   for (const phrase of [
-    'offline-first',
-    'Fallakte führt',
-    'npm run test',
-    'npm run build:linux',
-    'docs/RELEASE_CHECKLIST.md',
-    'keine Rechtsberatung',
+    'Der öffentliche Einstieg richtet sich zuerst an Anwenderinnen und Anwender',
+    'Alles läuft lokal auf dem eigenen Gerät',
+    'Offline-first',
+    'Fallakten bündeln Beratung',
+    'Demo-Modus',
+    'Keine Telemetrie',
+    'Fachliche Grenzen und Betriebsvoraussetzungen',
+    'docs/BETRIEBSGRENZEN.md',
+    'keine rechtliche Beratung',
+    'keine Hintergrundsynchronisation',
+    'docs/README.md',
+    'docs/ARCHITECTURE.md',
+    'docs/DEVELOPMENT.md',
+    'docs/BUILD.md',
+    'docs/QUALITY_GATE.md',
   ]) {
-    expect(readme.includes(phrase), `README.md enthält den RC-relevanten Hinweis nicht: ${phrase}`);
+    expect(readme.includes(phrase), `README.md enthält den release-relevanten Produktvertrag nicht: ${phrase}`);
   }
 }
 
@@ -51,7 +62,6 @@ function validateDocs() {
     'docs/README.md',
     'docs/ARCHITECTURE.md',
     'docs/DEVELOPMENT.md',
-    'docs/RELEASE_CHECKLIST.md',
     'docs/SECURITY.md',
     'docs/DATENSCHUTZKONZEPT.md',
     'docs/DSFA_SBV_TEMPLATE.md',
@@ -64,15 +74,11 @@ function validateDocs() {
   }
 
   const docsReadme = read('docs/README.md');
-  expect(docsReadme.includes('RELEASE_CHECKLIST.md'), 'docs/README.md muss die Release-Checkliste aufführen.');
+  expect(docsReadme.includes('QUALITY_GATE.md'), 'docs/README.md muss das Qualitätsgate aufführen.');
   expect(!docsReadme.includes('RELEASE_NOTES_0.9.1.md'), 'docs/README.md darf vor Veröffentlichung keine Release Notes aufführen.');
   expect(!docsReadme.includes('CHANGELOG.md'), 'docs/README.md darf vor Veröffentlichung kein Changelog aufführen.');
   expect(!docsReadme.includes('| `PROCESS_MODULES.md` | fachliche Maßnahmenlogik |'), 'docs/README.md darf PROCESS_MODULES.md nicht doppelt aufführen.');
 
-  const releaseChecklist = read('docs/RELEASE_CHECKLIST.md');
-  for (const phrase of ['npm run rc:check', 'npm run test', 'npm run build', 'npm run build:linux']) {
-    expect(releaseChecklist.includes(phrase), `RELEASE_CHECKLIST.md enthält ${phrase} nicht.`);
-  }
 }
 
 function validatePackageScripts(pkg) {
