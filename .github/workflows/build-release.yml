@@ -29,11 +29,11 @@ jobs:
             artifact_glob: |
               release/*.exe
 
-          - platform: macos
-            os: macos-latest
-            build_script: build:mac
-            artifact_glob: |
-              release/*.dmg
+ #         - platform: macos
+ #           os: macos-latest
+ #           build_script: build:mac
+ #           artifact_glob: |
+ #             release/*.dmg
 
     steps:
       - name: Checkout code
@@ -88,12 +88,12 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
 
-      - name: Upload workflow artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: gremia-sbv-${{ matrix.platform }}
-          path: ${{ matrix.artifact_glob }}
-          if-no-files-found: error
+  #    - name: Upload workflow artifact
+  #      uses: actions/upload-artifact@v4
+  #      with:
+  #        name: gremia-sbv-${{ matrix.platform }}
+  #        path: ${{ matrix.artifact_glob }}
+  #        if-no-files-found: error
 
       - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v2
