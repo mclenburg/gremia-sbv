@@ -26,8 +26,6 @@ concurrency:
   group: signpath-windows-exe-${{ github.ref }}
   cancel-in-progress: false
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 jobs:
   signpath-windows-exe:
@@ -46,10 +44,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -83,7 +81,7 @@ jobs:
 
       - name: Upload unsigned EXE for SignPath
         id: upload-unsigned-artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v6
         with:
           name: gremia-sbv-windows-exe-unsigned
           path: signpath-unsigned/*.exe
@@ -106,7 +104,7 @@ jobs:
             version: ${{ toJSON(inputs.version) }}
 
       - name: Upload signed EXE
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v6
         with:
           name: gremia-sbv-windows-exe-signed
           path: signpath-signed/**/*

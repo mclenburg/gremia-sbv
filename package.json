@@ -109,7 +109,8 @@
     "release:public-check": "npm run security:audit && npm run licenses:check && npm run release:check && npm run test:e2e:visual && npm run test:e2e:core-ui-flows && npm run test:e2e:complete-tour && npm run test:e2e:a11y",
     "test:e2e:a11y": "node scripts/run-e2e.cjs e2e/accessibility-axe.spec.ts",
     "release:check:a11y": "npm run build:readiness:strict && npm run test:e2e:a11y",
-    "dependency:hygiene": "vitest run tests/dependencyHygiene092j.test.ts tests/dependabotPolicy092k.test.ts tests/tailwindPostcssContract092p.test.ts tests/electronBuilderConfig092t.test.ts"
+    "dependency:hygiene": "vitest run tests/dependencyHygiene092j.test.ts tests/dependabotPolicy092k.test.ts tests/tailwindPostcssContract092p.test.ts tests/electronBuilderConfig092t.test.ts",
+    "test:github-actions": "vitest run tests/githubTaggedReleaseWorkflow092ac.test.ts tests/signpathCodeSigning092u.test.ts"
   },
   "dependencies": {
     "argon2-browser": "^1.18.0",
