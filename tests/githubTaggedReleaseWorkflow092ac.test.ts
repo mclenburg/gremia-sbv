@@ -25,13 +25,14 @@ describe('Taggebundener GitHub-Release-Build 0.9.2', () => {
     expect(taggedReleaseWorkflow).toContain('needs: verify-tag');
   });
 
-  it('trennt Qualitätsgates vom plattformspezifischen Artefaktbau', () => {
+  it('trennt schnelle Qualitätsgates vom plattformspezifischen Artefaktbau', () => {
     expect(taggedReleaseWorkflow).toContain('quality-gates:');
     expect(taggedReleaseWorkflow).toContain('npm run release:check');
-    expect(taggedReleaseWorkflow).toContain('npm run test:e2e:visual');
-    expect(taggedReleaseWorkflow).toContain('npm run test:e2e:core-ui-flows');
-    expect(taggedReleaseWorkflow).toContain('npm run test:e2e:complete-tour');
-    expect(taggedReleaseWorkflow).toContain('npm run test:e2e:a11y');
+    expect(taggedReleaseWorkflow).not.toContain('npm run test:e2e:setup');
+    expect(taggedReleaseWorkflow).not.toContain('npm run test:e2e:visual');
+    expect(taggedReleaseWorkflow).not.toContain('npm run test:e2e:core-ui-flows');
+    expect(taggedReleaseWorkflow).not.toContain('npm run test:e2e:complete-tour');
+    expect(taggedReleaseWorkflow).not.toContain('npm run test:e2e:a11y');
     expect(taggedReleaseWorkflow).toContain('build-artifacts:');
     expect(taggedReleaseWorkflow).toContain('- quality-gates');
   });
@@ -79,11 +80,14 @@ describe('Taggebundener GitHub-Release-Build 0.9.2', () => {
   });
 
 
-  it('spart GitHub-Free-Ressourcen durch direkte Release-Assets, System-Chrome und harte E2E-Timeouts', () => {
-    expect(taggedReleaseWorkflow).toContain('GREMIA_SBV_E2E_USE_SYSTEM_CHROME: "1"');
-    expect(taggedReleaseWorkflow).toContain('PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"');
-    expect(taggedReleaseWorkflow).toContain('timeout-minutes: 5');
-    expect(taggedReleaseWorkflow).toContain('timeout-minutes: 15');
+  it('spart GitHub-Free-Ressourcen durch direkte Release-Assets und ohne E2E-/macOS-Ballast', () => {
+    expect(taggedReleaseWorkflow).not.toContain('GREMIA_SBV_E2E_USE_SYSTEM_CHROME');
+    expect(taggedReleaseWorkflow).not.toContain('PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD');
+    expect(taggedReleaseWorkflow).not.toContain('test:e2e:setup');
+    expect(taggedReleaseWorkflow).not.toContain('test:e2e:visual');
+    expect(taggedReleaseWorkflow).not.toContain('test:e2e:core-ui-flows');
+    expect(taggedReleaseWorkflow).not.toContain('test:e2e:complete-tour');
+    expect(taggedReleaseWorkflow).not.toContain('test:e2e:a11y');
     expect(taggedReleaseWorkflow).not.toContain('actions/upload-artifact@v4');
     expect(taggedReleaseWorkflow).not.toContain('actions/download-artifact@v4');
     expect(taggedReleaseWorkflow).not.toContain('macos-latest');

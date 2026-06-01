@@ -82,8 +82,9 @@ describe('isolierte E2E-Werkzeugauflösung', () => {
 
     const workflow = readFileSync('.github/workflows/build-release.yml', 'utf8');
     expect(workflow).toContain('FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"');
-    expect(workflow).toContain('GREMIA_SBV_E2E_USE_SYSTEM_CHROME: "1"');
-    expect(workflow).toContain('PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"');
+    expect(workflow).not.toContain('GREMIA_SBV_E2E_USE_SYSTEM_CHROME');
+    expect(workflow).not.toContain('PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD');
+    expect(workflow).not.toContain('test:e2e:setup');
     expect(workflow).toContain('actions/checkout@v4');
     expect(workflow).toContain('actions/setup-node@v4');
   });
