@@ -44,17 +44,17 @@ describe('isolierte E2E-Werkzeugauflösung', () => {
 
   it('installiert Chromium unter Linux-CI mit Systemabhängigkeiten, ohne Windows zu belasten', () => {
     const browserInstaller = requireFromTest('../scripts/install-e2e-browsers.cjs') as {
-      browserInstallArgs: (platform?: string, isCi?: boolean) => string[];
+      browserInstallArgs: (platform?: string, isCi?: boolean, env?: NodeJS.ProcessEnv) => string[];
     };
 
-    expect(browserInstaller.browserInstallArgs('linux', true)).toEqual(['install', '--with-deps', 'chromium']);
-    expect(browserInstaller.browserInstallArgs('linux', false)).toEqual(['install', 'chromium']);
-    expect(browserInstaller.browserInstallArgs('win32', true)).toEqual(['install', 'chromium']);
+    expect(browserInstaller.browserInstallArgs('linux', true, {} as NodeJS.ProcessEnv)).toEqual(['install', '--with-deps', 'chromium']);
+    expect(browserInstaller.browserInstallArgs('linux', false, {} as NodeJS.ProcessEnv)).toEqual(['install', 'chromium']);
+    expect(browserInstaller.browserInstallArgs('win32', true, {} as NodeJS.ProcessEnv)).toEqual(['install', 'chromium']);
   });
 
   it('kann in GitHub Actions vorhandenen System-Chrome nutzen und den Playwright-Browserdownload ueberspringen', () => {
     const browserInstaller = requireFromTest('../scripts/install-e2e-browsers.cjs') as {
-      browserInstallArgs: (platform?: string, isCi?: boolean) => string[];
+      browserInstallArgs: (platform?: string, isCi?: boolean, env?: NodeJS.ProcessEnv) => string[];
       shouldUseSystemChrome: (env?: NodeJS.ProcessEnv) => boolean;
       systemChromeCandidates: (platform?: string) => string[];
     };
@@ -62,6 +62,9 @@ describe('isolierte E2E-Werkzeugauflösung', () => {
     expect(browserInstaller.shouldUseSystemChrome({ GREMIA_SBV_E2E_USE_SYSTEM_CHROME: '1' } as NodeJS.ProcessEnv)).toBe(true);
     expect(browserInstaller.shouldUseSystemChrome({} as NodeJS.ProcessEnv)).toBe(false);
     expect(browserInstaller.systemChromeCandidates('linux')).toContain('/usr/bin/google-chrome');
+    expect(
+      browserInstaller.browserInstallArgs('linux', true, { GREMIA_SBV_E2E_USE_SYSTEM_CHROME: '1' } as NodeJS.ProcessEnv),
+    ).toEqual(['install', 'chromium']);
   });
 
   it('haelt Playwright- und Axe-Imports in der Config und im Axe-Test vom App-node_modules entkoppelt', () => {

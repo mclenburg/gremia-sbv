@@ -41,9 +41,9 @@ function resolveSystemChrome(platform = process.platform) {
   return systemChromeCandidates(platform).find((candidate) => existsSync(candidate)) ?? null;
 }
 
-function browserInstallArgs(platform = process.platform, isCi = Boolean(process.env.CI)) {
+function browserInstallArgs(platform = process.platform, isCi = Boolean(process.env.CI), env = process.env) {
   const args = ['install'];
-  if (platform === 'linux' && isCi && !shouldUseSystemChrome()) {
+  if (platform === 'linux' && isCi && !shouldUseSystemChrome(env)) {
     args.push('--with-deps');
   }
   args.push('chromium');
