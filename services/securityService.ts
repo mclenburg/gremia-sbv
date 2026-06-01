@@ -134,6 +134,10 @@ function normalizeScryptParams(params?: ScryptKdfParams): ScryptKdfParams {
   return params ?? LEGACY_SCRYPT_PARAMS;
 }
 
+function needsKdfUpgrade(params?: ScryptKdfParams): boolean {
+  return !params || params.N < CURRENT_SCRYPT_PARAMS.N || params.r !== CURRENT_SCRYPT_PARAMS.r || params.p !== CURRENT_SCRYPT_PARAMS.p;
+}
+
 function deriveSecretKey(
   secret: string,
   saltHex: string,
@@ -608,6 +612,7 @@ export class SecurityService {
       this.databaseKey = databaseKey;
       this.unlocked = true;
       this.resetUnlockDelay();
+      this.upgradePasswordKdfIfNeeded(store, password, databaseKey);
       this.auditSecurityEvent("unlock", "Tresor per Passwort entsperrt");
       return { ok: true, initialized: true, unlocked: true };
     } catch (error) {
@@ -1023,6 +1028,40 @@ export class SecurityService {
           : manifest.database.schemaInitializedAt,
       },
     });
+  }
+
+
+  private upgradePasswordKdfIfNeeded(
+    store: PasswordStore,
+    password: string,
+    databaseKey: Buffer,
+  ): void {
+    if (!needsKdfUpgrade(store.kdfParams) && !needsKdfUpgrade(store.databaseKeyWrap.kdfParams)) return;
+
+    const now = new Date().toISOString();
+    const salt = randomBytes(16).toString("hex");
+    const wrapSalt = randomBytes(16).toString("hex");
+    this.writeStore({
+      version: 4,
+      vaultId: store.vaultId,
+      kdf: "scrypt",
+      kdfParams: CURRENT_SCRYPT_PARAMS,
+      salt,
+      passwordVerifier: derivePasswordVerifier(
+        password,
+        salt,
+        CURRENT_SCRYPT_PARAMS,
+      ),
+      databaseKeyWrap: wrapDatabaseKey(
+        databaseKey,
+        password,
+        wrapSalt,
+        "gremia-sbv-dbkey-password-v1",
+      ),
+      createdAt: store.createdAt,
+      updatedAt: now,
+    });
+    this.touchManifest(now);
   }
 
   private assertStoreMatchesManifest(store: PasswordStore): void {

@@ -39,6 +39,17 @@ export interface CaseHandoverInspectResult {
   deadlineCount: number;
   matches: CaseHandoverCandidateMatch[];
   warnings: string[];
+  integrity?: {
+    verified: boolean;
+    algorithm: 'aes-256-gcm';
+    formatVersion: number;
+    legacyFormat: boolean;
+  };
+  file?: {
+    fileName: string;
+    sizeBytes: number;
+    isNetworkPath: boolean;
+  };
 }
 
 export interface CaseHandoverImportInput {

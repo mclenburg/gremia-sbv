@@ -66,6 +66,9 @@ type ImportPackageReviewProps = {
   matches: ImportPackageMatchOption[];
   mode: "create_new" | "merge_existing";
   targetId: string;
+  integrityLabel?: string;
+  fileNotice?: string;
+  warnings?: string[];
   onModeChange: (mode: "create_new" | "merge_existing") => void;
   onTargetChange: (targetId: string) => void;
 };
@@ -79,6 +82,9 @@ export function ImportPackageReview({
   matches,
   mode,
   targetId,
+  integrityLabel,
+  fileNotice,
+  warnings = [],
   onModeChange,
   onTargetChange,
 }: ImportPackageReviewProps) {
@@ -92,6 +98,15 @@ export function ImportPackageReview({
         {caseCount} Fallakte(n), {measureCount} Maßnahme(n), {documentCount}{" "}
         Dokument(e), {deadlineCount} Frist(en). Gültigkeit: {validUntilLabel}.
       </p>
+      {integrityLabel ? <p>{integrityLabel}</p> : null}
+      {fileNotice ? <p>{fileNotice}</p> : null}
+      {warnings.length ? (
+        <ul className="industrial-import-package-warnings">
+          {warnings.map((warning) => (
+            <li key={warning}>{warning}</li>
+          ))}
+        </ul>
+      ) : null}
       <fieldset className="industrial-import-package-options">
         <legend>Importentscheidung</legend>
         <label className="industrial-checkbox-row compact">

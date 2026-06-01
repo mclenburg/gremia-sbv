@@ -417,6 +417,17 @@ export function CaseHandoverTransferDialogs({
                 documentCount={importSelection.inspection.documentCount}
                 deadlineCount={importSelection.inspection.deadlineCount}
                 validUntilLabel={formatGermanDate(importSelection.inspection.expiresAt)}
+                integrityLabel={
+                  importSelection.inspection.integrity?.verified
+                    ? `Integrität kryptografisch bestätigt · Format ${importSelection.inspection.integrity.formatVersion}`
+                    : undefined
+                }
+                fileNotice={
+                  importSelection.inspection.file
+                    ? `${importSelection.inspection.file.fileName} · ${Math.max(1, Math.round(importSelection.inspection.file.sizeBytes / 1024))} KB`
+                    : undefined
+                }
+                warnings={importSelection.inspection.warnings}
                 matches={importSelection.inspection.matches.map((match) => ({
                   id: match.localCaseId,
                   label: `${match.caseNumber} · ${match.displayName}`,

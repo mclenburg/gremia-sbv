@@ -3,6 +3,8 @@ import type { DatabaseAdapter } from '../services/databaseService';
 import { GremiaBrSettingsService, decodeGremiaBrSecret } from '../services/gremiaBr/gremiaBrSettingsService';
 import { checkGremiaBrEndpoint, validateGremiaBrBaseUrl } from '../services/gremiaBr/gremiaBrPolicy';
 
+const TEST_DATABASE_KEY = Buffer.alloc(32, 7);
+
 class GremiaBrSettingsDb implements DatabaseAdapter {
   row: Record<string, unknown> | undefined;
 
@@ -47,7 +49,7 @@ class GremiaBrSettingsDb implements DatabaseAdapter {
 describe('Gremia.BR Einstellungen 0.9.2-A', () => {
   it('speichert Zugangsdaten ausschließlich als Secret und gibt sie nie öffentlich zurück', () => {
     const db = new GremiaBrSettingsDb();
-    const service = new GremiaBrSettingsService(() => db);
+    const service = new GremiaBrSettingsService(() => db, () => TEST_DATABASE_KEY);
 
     const saved = service.saveSettings({
       enabled: true,
@@ -63,12 +65,13 @@ describe('Gremia.BR Einstellungen 0.9.2-A', () => {
     expect(saved.relevanceSettings.groups.length).toBeGreaterThan(0);
     expect(JSON.stringify(saved)).not.toContain('streng-geheim');
     expect(String(db.row?.password_secret)).not.toBe('streng-geheim');
-    expect(String(db.row?.password_secret)).toMatch(/^b64:v1:/);
-    expect(String(db.row?.password_secret)).not.toMatch(/^vault:v1:/);
-    expect(decodeGremiaBrSecret(String(db.row?.password_secret))).toBe('streng-geheim');
+    expect(String(db.row?.password_secret)).toMatch(/^vault:v2:/);
+    expect(String(db.row?.password_secret)).not.toMatch(/^b64:v1:/);
+    expect(String(db.row?.password_secret)).not.toContain(Buffer.from('streng-geheim', 'utf8').toString('base64'));
+    expect(decodeGremiaBrSecret(String(db.row?.password_secret), TEST_DATABASE_KEY)).toBe('streng-geheim');
   });
 
-  it('liest Altbestand mit irreführendem vault-Präfix, schreibt neue Secrets aber als b64', () => {
+  it('liest Altbestand mit Base64-Präfixen, schreibt neue Secrets aber verschlüsselt', () => {
     const legacySecret = `vault:v1:${Buffer.from('alt-geheim', 'utf8').toString('base64')}`;
 
     expect(decodeGremiaBrSecret(legacySecret)).toBe('alt-geheim');
@@ -87,7 +90,7 @@ describe('Gremia.BR Einstellungen 0.9.2-A', () => {
   });
 
   it('liefert bei deaktivierter Verbindung einen Noop-Verbindungstest', () => {
-    const service = new GremiaBrSettingsService(() => new GremiaBrSettingsDb());
+    const service = new GremiaBrSettingsService(() => new GremiaBrSettingsDb(), () => TEST_DATABASE_KEY);
 
     expect(service.testStoredConfiguration().status).toBe('disabled');
   });

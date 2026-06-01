@@ -30,7 +30,6 @@ import { registerComplianceIpc } from "./ipc/complianceIpc.js";
 import { registerSbvResourceIpc } from "./ipc/sbvResourceIpc.js";
 import { SecurityService } from "../services/securityService.js";
 import {
-  DEMO_PASSWORD,
   isDemoMode,
   prepareDemoVault,
   resetDemoDataDirectory,
@@ -374,7 +373,7 @@ if (!singleInstanceLock) {
       if (demoMode) {
         await prepareDemoVault(security);
         console.info(
-          `Gremia.SBV demo mode active. Data directory: ${dataDirectory}. Demo password: ${DEMO_PASSWORD}`,
+          `Gremia.SBV demo mode active. Data directory: ${dataDirectory}. Demo password hint available in onboarding.`,
         );
       } else {
         console.info("Gremia.SBV data directory:", dataDirectory);

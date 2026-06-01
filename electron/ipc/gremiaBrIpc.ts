@@ -10,7 +10,10 @@ import type { CreateGremiaBrExternalReferenceInput, GremiaBrRelevanceSettings, G
 import { assertRecordInput } from './ipcValidation.js';
 
 export function registerGremiaBrIpc(ipcMain: IpcMain, security: SecurityService): void {
-  const settings = new GremiaBrSettingsService(() => security.getActiveDatabase());
+  const settings = new GremiaBrSettingsService(
+    () => security.getActiveDatabase(),
+    () => security.getActiveDatabaseKey(),
+  );
   const auth = new GremiaBrAuthService(
     settings,
     undefined,

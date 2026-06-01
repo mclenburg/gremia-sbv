@@ -2,12 +2,8 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto;
   gap: 0.6rem;
-  align-items: end;
+  align-items: center;
   max-width: 100%;
-}
-
-.case-register-actions .industrial-field {
-  min-width: 0;
 }
 
 .person-detail-actions {
@@ -75,24 +71,10 @@
   margin: 0.75rem 0 0;
 }
 
-.person-search,
-.person-toolbar .industrial-field {
+.person-search {
   flex: 1 1 18rem;
   display: grid;
   gap: 0.35rem;
-}
-
-.person-toolbar .industrial-field-label,
-.case-register-actions .industrial-field-label {
-  color: var(--industrial-text);
-  font-size: 0.8rem;
-  letter-spacing: normal;
-  text-transform: none;
-}
-
-.person-search-input,
-.case-register-search-input {
-  width: 100%;
 }
 
 .person-side-stack {
@@ -2310,18 +2292,16 @@ html[data-theme='light'] .text-command-help-modal .industrial-icon-button {
 :where(.industrial-record-card, .industrial-selection-card, .industrial-status-card, .industrial-warning-panel, .industrial-danger-panel, .industrial-tone-warning, .industrial-tone-danger, .industrial-tone-ok) {
 }
 
-.case-tree-loading {
-  border: 1px solid var(--industrial-control-border);
-  border-left: 4px solid var(--industrial-accent);
-  background: color-mix(in srgb, var(--industrial-panel-muted) 88%, black 12%);
-  color: var(--industrial-text-strong);
-  margin: 0.75rem 0;
-  padding: 0.65rem 0.75rem;
-  font-size: 0.85rem;
-  font-weight: 700;
+.industrial-import-package-warnings {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0.75rem 0.9rem 0.75rem 1.25rem;
+  border: 1px solid var(--warning-border, var(--industrial-border));
+  background: var(--warning-surface, var(--surface-elevated));
+  color: var(--warning-text, var(--industrial-text));
 }
 
-html[data-theme='light'] .case-tree-loading {
-  background: #fbfaf2;
-  color: var(--text-primary);
+.industrial-import-package-warnings li {
+  margin: 0;
 }

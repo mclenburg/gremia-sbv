@@ -1,3 +1,4 @@
+import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'node:crypto';
 import type { DatabaseAdapter } from '../databaseService.js';
 import type {
   GremiaBrConnectionTestResult,
@@ -58,21 +59,36 @@ function toPublicSettings(row?: SettingsRow | null): GremiaBrPublicSettings {
   };
 }
 
-const GREMIA_BR_SECRET_PREFIX = 'b64:v1:';
-const LEGACY_GREMIA_BR_SECRET_PREFIX = 'vault:v1:';
+const GREMIA_BR_SECRET_PREFIX = 'vault:v2:';
+const LEGACY_B64_GREMIA_BR_SECRET_PREFIX = 'b64:v1:';
+const LEGACY_VAULT_GREMIA_BR_SECRET_PREFIX = 'vault:v1:';
+const GREMIA_BR_SECRET_AAD = Buffer.from('gremia-sbv-gremia-br-secret-v2', 'utf8');
 
-function encodeSecret(value: string): string {
-  return value ? `${GREMIA_BR_SECRET_PREFIX}${Buffer.from(value, 'utf8').toString('base64')}` : '';
+interface GremiaBrEncryptedSecretEnvelope {
+  version: 2;
+  algorithm: 'aes-256-gcm';
+  iv: string;
+  tag: string;
+  ciphertext: string;
 }
 
-export function decodeGremiaBrSecret(secret?: string | null): string {
-  if (!secret) return '';
-  const prefix = secret.startsWith(GREMIA_BR_SECRET_PREFIX)
-    ? GREMIA_BR_SECRET_PREFIX
-    : secret.startsWith(LEGACY_GREMIA_BR_SECRET_PREFIX)
-      ? LEGACY_GREMIA_BR_SECRET_PREFIX
-      : '';
-  if (!prefix) return '';
+function safeDestroyBuffer(buffer?: Buffer): void {
+  if (!buffer) return;
+  try {
+    buffer.fill(0);
+  } catch {
+    // Best-effort: Secret-Zeroing darf die Einstellungslogik nicht verhindern.
+  }
+}
+
+function deriveGremiaBrSecretKey(databaseKey: Buffer): Buffer {
+  return createHash('sha256')
+    .update('gremia-sbv-gremia-br-secret-key-v1')
+    .update(databaseKey)
+    .digest();
+}
+
+function decodeLegacyBase64Secret(secret: string, prefix: string): string {
   try {
     return Buffer.from(secret.slice(prefix.length), 'base64').toString('utf8');
   } catch {
@@ -80,11 +96,87 @@ export function decodeGremiaBrSecret(secret?: string | null): string {
   }
 }
 
+function encodeSecret(value: string, databaseKey: Buffer): string {
+  if (!value) return '';
+  const key = deriveGremiaBrSecretKey(databaseKey);
+  const iv = randomBytes(12);
+  const cipher = createCipheriv('aes-256-gcm', key, iv);
+  cipher.setAAD(GREMIA_BR_SECRET_AAD);
+  try {
+    const ciphertext = Buffer.concat([cipher.update(value, 'utf8'), cipher.final()]);
+    const envelope: GremiaBrEncryptedSecretEnvelope = {
+      version: 2,
+      algorithm: 'aes-256-gcm',
+      iv: iv.toString('hex'),
+      tag: cipher.getAuthTag().toString('hex'),
+      ciphertext: ciphertext.toString('base64'),
+    };
+    return `${GREMIA_BR_SECRET_PREFIX}${Buffer.from(JSON.stringify(envelope), 'utf8').toString('base64')}`;
+  } finally {
+    safeDestroyBuffer(key);
+    safeDestroyBuffer(iv);
+  }
+}
+
+export function decodeGremiaBrSecret(secret?: string | null, databaseKey?: Buffer): string {
+  if (!secret) return '';
+  if (secret.startsWith(LEGACY_B64_GREMIA_BR_SECRET_PREFIX)) {
+    return decodeLegacyBase64Secret(secret, LEGACY_B64_GREMIA_BR_SECRET_PREFIX);
+  }
+  if (secret.startsWith(LEGACY_VAULT_GREMIA_BR_SECRET_PREFIX)) {
+    return decodeLegacyBase64Secret(secret, LEGACY_VAULT_GREMIA_BR_SECRET_PREFIX);
+  }
+  if (!secret.startsWith(GREMIA_BR_SECRET_PREFIX) || !databaseKey) return '';
+
+  const key = deriveGremiaBrSecretKey(databaseKey);
+  try {
+    const envelope = JSON.parse(
+      Buffer.from(secret.slice(GREMIA_BR_SECRET_PREFIX.length), 'base64').toString('utf8'),
+    ) as GremiaBrEncryptedSecretEnvelope;
+    if (envelope.version !== 2 || envelope.algorithm !== 'aes-256-gcm') return '';
+    const decipher = createDecipheriv('aes-256-gcm', key, Buffer.from(envelope.iv, 'hex'));
+    decipher.setAAD(GREMIA_BR_SECRET_AAD);
+    decipher.setAuthTag(Buffer.from(envelope.tag, 'hex'));
+    return Buffer.concat([
+      decipher.update(Buffer.from(envelope.ciphertext, 'base64')),
+      decipher.final(),
+    ]).toString('utf8');
+  } catch {
+    return '';
+  } finally {
+    safeDestroyBuffer(key);
+  }
+}
+
 export class GremiaBrSettingsService implements GremiaBrSettingsStore {
-  constructor(private readonly getDb: () => DatabaseAdapter) {}
+  constructor(
+    private readonly getDb: () => DatabaseAdapter,
+    private readonly getSecretKey?: () => Buffer,
+  ) {}
 
   private db(): DatabaseAdapter {
     return this.getDb();
+  }
+
+  private secretKey(): Buffer {
+    if (!this.getSecretKey) {
+      throw new Error('Gremia.BR-Zugangsdaten können ohne aktiven Tresorschlüssel nicht verarbeitet werden.');
+    }
+    return this.getSecretKey();
+  }
+
+  private decodeSecret(secret?: string | null): string {
+    return decodeGremiaBrSecret(secret, this.getSecretKey?.());
+  }
+
+  private encodeSecret(value: string): string {
+    return encodeSecret(value, this.secretKey());
+  }
+
+  private migrateSecretIfNeeded(secret?: string | null): string {
+    if (!secret || secret.startsWith(GREMIA_BR_SECRET_PREFIX)) return secret ?? '';
+    const decoded = this.decodeSecret(secret);
+    return decoded ? this.encodeSecret(decoded) : '';
   }
 
   private readRow(): SettingsRow | undefined {
@@ -100,7 +192,7 @@ export class GremiaBrSettingsService implements GremiaBrSettingsStore {
   }
 
   getPasswordForServiceUse(): string {
-    return decodeGremiaBrSecret(this.readRow()?.password_secret);
+    return this.decodeSecret(this.readRow()?.password_secret);
   }
 
   getServiceSettings(): GremiaBrServiceSettings {
@@ -109,7 +201,7 @@ export class GremiaBrSettingsService implements GremiaBrSettingsStore {
       enabled: Boolean(row?.enabled ?? 0),
       serverUrl: row?.server_url ?? '',
       username: row?.username ?? '',
-      password: decodeGremiaBrSecret(row?.password_secret),
+      password: this.decodeSecret(row?.password_secret),
     };
   }
 
@@ -126,8 +218,8 @@ export class GremiaBrSettingsService implements GremiaBrSettingsStore {
     const existing = this.readRow();
     const timestamp = nowIso();
     const passwordSecret = typeof input.password === 'string' && input.password.length > 0
-      ? encodeSecret(input.password)
-      : existing?.password_secret ?? '';
+      ? this.encodeSecret(input.password)
+      : this.migrateSecretIfNeeded(existing?.password_secret);
     const relevanceJson = serializeGremiaBrRelevanceSettings(input.relevanceSettings ?? parseGremiaBrRelevanceSettings(existing?.relevance_keywords_json));
 
     this.db().prepare(`

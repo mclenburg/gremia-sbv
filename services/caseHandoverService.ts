@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { createCipheriv, createDecipheriv, createHash, randomBytes, randomUUID, scryptSync } from 'node:crypto';
+import { createCipheriv, createDecipheriv, createHash, randomBytes, randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
 import type { CreatePersonalDataAuditInput } from '../src/app/core/models/audit.model.js';
@@ -20,6 +20,13 @@ import {
   packageRef,
   safeAuditMetadata,
 } from './caseHandoverPolicy.js';
+import {
+  assertCaseHandoverEnvelope,
+  decryptCaseHandoverEnvelope,
+  encryptCaseHandoverPayloadV2,
+  type CaseHandoverEnvelope,
+} from './caseHandoverCrypto.js';
+import { inspectCaseHandoverFilePath } from './caseHandoverFilePolicy.js';
 import type {
   CaseHandoverContinueExpiredInput,
   CaseHandoverContinueExpiredResult,
@@ -47,30 +54,19 @@ type PackagePayload = {
   documents: Array<{ ref: string; caseRef: string; measureRef?: string; data: Row; contentBase64: string }>;
 };
 
-type Envelope = {
-  format: string;
-  version: number;
-  packageId: string;
-  createdAt: string;
-  expiresAt?: string;
-  kdf: 'scrypt';
-  algorithm: 'aes-256-gcm';
-  salt: string;
-  iv: string;
-  tag: string;
-  aadHash: string;
-  payload: string;
+type DecryptedPackage = {
+  payload: PackagePayload;
+  transfer: {
+    formatVersion: number;
+    legacyFormat: boolean;
+    algorithm: 'aes-256-gcm';
+  };
 };
 
 function nowIso(): string { return new Date().toISOString(); }
-function toBase64UrlJson(value: unknown): string { return Buffer.from(JSON.stringify(value), 'utf8').toString('base64'); }
-function fromBase64Json<T>(value: string): T { return JSON.parse(Buffer.from(value, 'base64').toString('utf8')) as T; }
-function deriveKey(passphrase: string, salt: Buffer): Buffer { return scryptSync(passphrase, salt, 32, { N: 16384, r: 8, p: 1 }); }
-function stableStringify(value: unknown): string { return JSON.stringify(value, Object.keys(value as object).sort()); }
-function aadFor(envelope: Pick<Envelope, 'format' | 'version' | 'packageId' | 'createdAt' | 'expiresAt' | 'kdf' | 'algorithm'>): Buffer {
-  return Buffer.from(JSON.stringify({ format: envelope.format, version: envelope.version, packageId: envelope.packageId, createdAt: envelope.createdAt, expiresAt: envelope.expiresAt ?? null, kdf: envelope.kdf, algorithm: envelope.algorithm }), 'utf8');
-}
 function sha256(value: Buffer | string): string { return createHash('sha256').update(value).digest('hex'); }
+function isRecord(value: unknown): value is Record<string, unknown> { return typeof value === 'object' && value !== null && !Array.isArray(value); }
+
 function safeString(value: unknown, fallback = ''): string { return String(value ?? fallback); }
 function ensureArray(value?: string[]): string[] { return [...new Set((value ?? []).filter(Boolean))]; }
 
@@ -198,38 +194,96 @@ export class CaseHandoverService {
 
     let documentRows = this.rows(db, `SELECT * FROM case_documents WHERE case_id IN (${placeholders}) ORDER BY created_at`, ...caseIds);
     if (measureFilter.size) documentRows = documentRows.filter((d) => !d.measure_id || measureFilter.has(d.measure_id));
-    documentRows.forEach((doc, index) => payload.documents.push({ ref: packageRef('document', index), caseRef: caseIdToRef.get(doc.case_id)!, measureRef: doc.measure_id ? measureIdToRef.get(doc.measure_id) : undefined, data: { ...doc, storage_path: null, document_key: null, iv: null, auth_tag: null }, contentBase64: this.decryptDocument(doc).toString('base64') }));
+    documentRows.forEach((doc, index) => payload.documents.push({
+        ref: packageRef('document', index),
+        caseRef: caseIdToRef.get(doc.case_id)!,
+        measureRef: doc.measure_id ? measureIdToRef.get(doc.measure_id) : undefined,
+        data: this.sanitizeDocumentMetadata(doc),
+        contentBase64: this.decryptDocument(doc).toString('base64'),
+      }));
     return payload;
   }
 
-  private encryptPayload(payload: PackagePayload, passphrase: string): Envelope {
-    const salt = randomBytes(16);
-    const iv = randomBytes(12);
-    const key = deriveKey(passphrase, salt);
-    const header = { format: CASE_HANDOVER_FORMAT, version: CASE_HANDOVER_VERSION, packageId: payload.packageId, createdAt: payload.createdAt, expiresAt: payload.expiresAt, kdf: 'scrypt' as const, algorithm: 'aes-256-gcm' as const };
-    const aad = aadFor(header);
-    const cipher = createCipheriv('aes-256-gcm', key, iv);
-    cipher.setAAD(aad);
-    const plain = Buffer.from(JSON.stringify(payload), 'utf8');
-    const encrypted = Buffer.concat([cipher.update(plain), cipher.final()]);
-    return { ...header, salt: salt.toString('base64'), iv: iv.toString('base64'), tag: cipher.getAuthTag().toString('base64'), aadHash: sha256(aad), payload: encrypted.toString('base64') };
+  private sanitizeDocumentMetadata(doc: Row): Row {
+    const { storage_path: _storagePath, document_key: _documentKey, iv: _iv, auth_tag: _authTag, ...metadata } = doc;
+    return metadata;
   }
 
-  private decryptEnvelope(envelope: Envelope, passphrase: string): PackagePayload {
-    if (envelope.format !== CASE_HANDOVER_FORMAT || envelope.version !== CASE_HANDOVER_VERSION) throw new Error('Nicht unterstütztes Fallübergabeformat.');
-    const key = deriveKey(passphrase, Buffer.from(envelope.salt, 'base64'));
-    const aad = aadFor(envelope);
-    if (sha256(aad) !== envelope.aadHash) throw new Error('Fallübergabepaket wurde manipuliert oder ist beschädigt.');
-    const decipher = createDecipheriv('aes-256-gcm', key, Buffer.from(envelope.iv, 'base64'));
-    decipher.setAAD(aad);
-    decipher.setAuthTag(Buffer.from(envelope.tag, 'base64'));
-    const plain = Buffer.concat([decipher.update(Buffer.from(envelope.payload, 'base64')), decipher.final()]);
-    const payload = JSON.parse(plain.toString('utf8')) as PackagePayload;
+  private encryptPayload(payload: PackagePayload, passphrase: string): CaseHandoverEnvelope {
+    return encryptCaseHandoverPayloadV2({
+      payloadText: JSON.stringify(payload),
+      passphrase,
+      packageId: payload.packageId,
+      createdAt: payload.createdAt,
+      expiresAt: payload.expiresAt,
+    });
+  }
+
+  private decryptEnvelope(envelope: CaseHandoverEnvelope, passphrase: string): DecryptedPackage {
+    const decrypted = decryptCaseHandoverEnvelope(envelope, passphrase);
+    const parsed = JSON.parse(decrypted.payloadText) as unknown;
+    const payload = this.assertPayload(parsed, decrypted.formatVersion);
     if (payload.packageId !== envelope.packageId || payload.expiresAt !== envelope.expiresAt) throw new Error('Fallübergabepaket enthält widersprüchliche Metadaten.');
+    return {
+      payload,
+      transfer: {
+        formatVersion: decrypted.formatVersion,
+        legacyFormat: decrypted.legacyFormat,
+        algorithm: decrypted.algorithm,
+      },
+    };
+  }
+
+  private readEnvelope(filePath: string): CaseHandoverEnvelope {
+    const file = inspectCaseHandoverFilePath(filePath);
+    return assertCaseHandoverEnvelope(JSON.parse(fs.readFileSync(file.filePath, 'utf8')));
+  }
+
+  private assertPayload(value: unknown, formatVersion: number): PackagePayload {
+    if (!isRecord(value)) throw new Error('Fallübergabepaket enthält keine gültige Nutzdatenstruktur.');
+    if (value.format !== CASE_HANDOVER_FORMAT || typeof value.version !== 'number') throw new Error('Fallübergabepaket enthält keine gültige Nutzdatenstruktur.');
+    if (value.packageId === undefined || typeof value.packageId !== 'string') throw new Error('Fallübergabepaket enthält keine gültige Paketkennung.');
+    if (value.createdAt === undefined || typeof value.createdAt !== 'string') throw new Error('Fallübergabepaket enthält kein gültiges Erstellungsdatum.');
+    if (value.expiresAt !== undefined && typeof value.expiresAt !== 'string') throw new Error('Fallübergabepaket enthält kein gültiges Ablaufdatum.');
+    const payload = value as unknown as PackagePayload;
+    const arrayFields: Array<keyof Pick<PackagePayload, 'cases' | 'protectedPersons' | 'notes' | 'measures' | 'measureNotes' | 'deadlines' | 'documents'>> = ['cases', 'protectedPersons', 'notes', 'measures', 'measureNotes', 'deadlines', 'documents'];
+    for (const field of arrayFields) if (!Array.isArray(payload[field])) throw new Error('Fallübergabepaket enthält keine gültige Nutzdatenstruktur.');
+    if (!payload.cases.length) throw new Error('Fallübergabepaket enthält keine Fallakte.');
+    this.assertUniqueRefs('Fallakten', payload.cases.map((item) => item.ref));
+    this.assertUniqueRefs('Personen', payload.protectedPersons.map((item) => item.ref));
+    this.assertUniqueRefs('Notizen', payload.notes.map((item) => item.ref));
+    this.assertUniqueRefs('Maßnahmen', payload.measures.map((item) => item.ref));
+    this.assertUniqueRefs('Maßnahmennotizen', payload.measureNotes.map((item) => item.ref));
+    this.assertUniqueRefs('Fristen', payload.deadlines.map((item) => item.ref));
+    this.assertUniqueRefs('Dokumente', payload.documents.map((item) => item.ref));
+    const caseRefs = new Set(payload.cases.map((item) => item.ref));
+    const measureRefs = new Set(payload.measures.map((item) => item.ref));
+    for (const item of [...payload.notes, ...payload.measures]) if (!caseRefs.has(item.caseRef)) throw new Error('Fallübergabepaket enthält ungültige Fallreferenzen.');
+    for (const item of payload.measureNotes) {
+      if (!caseRefs.has(item.caseRef) || !measureRefs.has(item.measureRef)) throw new Error('Fallübergabepaket enthält ungültige Maßnahmenreferenzen.');
+    }
+    for (const item of payload.deadlines) {
+      if (item.caseRef && !caseRefs.has(item.caseRef)) throw new Error('Fallübergabepaket enthält ungültige Fristreferenzen.');
+      if (item.measureRef && !measureRefs.has(item.measureRef)) throw new Error('Fallübergabepaket enthält ungültige Fristreferenzen.');
+    }
+    for (const item of payload.documents) {
+      if (!caseRefs.has(item.caseRef)) throw new Error('Fallübergabepaket enthält ungültige Dokumentreferenzen.');
+      if (item.measureRef && !measureRefs.has(item.measureRef)) throw new Error('Fallübergabepaket enthält ungültige Dokumentreferenzen.');
+      if (typeof item.contentBase64 !== 'string') throw new Error('Fallübergabepaket enthält ungültige Dokumentdaten.');
+      const data = item.data ?? {};
+      const forbidden = ['storage_path', 'document_key', 'iv', 'auth_tag'].filter((field) => data[field] !== undefined && data[field] !== null && data[field] !== '');
+      if (forbidden.length) throw new Error('Fallübergabepaket enthält lokale Dokument-Schlüsseldaten.');
+      if (formatVersion >= CASE_HANDOVER_VERSION && Object.keys(data).some((field) => ['storage_path', 'document_key', 'iv', 'auth_tag'].includes(field))) {
+        throw new Error('Fallübergabepaket enthält lokale Dokument-Schlüsseldaten.');
+      }
+    }
     return payload;
   }
 
-  private readEnvelope(filePath: string): Envelope { return JSON.parse(fs.readFileSync(filePath, 'utf8')) as Envelope; }
+  private assertUniqueRefs(label: string, refs: string[]): void {
+    if (refs.some((ref) => typeof ref !== 'string' || !ref)) throw new Error(`${label} im Fallübergabepaket enthalten ungültige Referenzen.`);
+    if (new Set(refs).size !== refs.length) throw new Error(`${label} im Fallübergabepaket enthalten doppelte Referenzen.`);
+  }
 
   async exportToFile(input: CaseHandoverExportInput, targetPath: string): Promise<CaseHandoverExportResult> {
     const db = this.db();
@@ -243,15 +297,33 @@ export class CaseHandoverService {
 
   inspect(filePath: string, passphrase: string): CaseHandoverInspectResult {
     const db = this.db();
-    let envelope: Envelope | undefined;
-    try { envelope = this.readEnvelope(filePath); const payload = this.decryptEnvelope(envelope, passphrase); const firstCase = payload.cases[0]?.data ?? {}; const firstPersonId = firstCase.protected_person_id; const person = payload.protectedPersons.find((p) => p.data.id === firstPersonId)?.data;
+    let envelope: CaseHandoverEnvelope | undefined;
+    try { const file = inspectCaseHandoverFilePath(filePath); envelope = this.readEnvelope(file.filePath); const decrypted = this.decryptEnvelope(envelope, passphrase); const payload = decrypted.payload; const firstCase = payload.cases[0]?.data ?? {}; const firstPersonId = firstCase.protected_person_id; const person = payload.protectedPersons.find((p) => p.data.id === firstPersonId)?.data;
       const localCases = this.rows(db, `SELECT c.id, c.case_number, c.display_name, p.first_name AS protected_first_name, p.last_name AS protected_last_name FROM cases c LEFT JOIN protected_persons p ON p.id = c.protected_person_id`) as Array<{ id: string; case_number?: string; display_name?: string; protected_first_name?: string; protected_last_name?: string }>;
       const matches = buildCandidateMatches({ exportedCaseNumber: firstCase.case_number, exportedDisplayName: firstCase.display_name, exportedFirstName: person?.first_name, exportedLastName: person?.last_name, localCases });
       const expired = isExpired(payload.expiresAt);
       if (expired) {
         this.audit(db, auditCaseHandoverImportInspected({ packageId: payload.packageId, caseCount: payload.cases.length, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, validUntilPresent: Boolean(payload.expiresAt), result: 'failed', reasonCode: 'expired_transfer_package' }));
       }
-      return { valid: true, packageId: payload.packageId, createdAt: payload.createdAt, expiresAt: payload.expiresAt, isExpired: expired, caseCount: payload.cases.length, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, matches, warnings: expired ? ['Das Übergabepaket ist abgelaufen und darf nicht mehr importiert werden. Bitte eine neue Übergabedatei anfordern.'] : [] };
+      return {
+        valid: true,
+        packageId: payload.packageId,
+        createdAt: payload.createdAt,
+        expiresAt: payload.expiresAt,
+        isExpired: expired,
+        caseCount: payload.cases.length,
+        measureCount: payload.measures.length,
+        documentCount: payload.documents.length,
+        deadlineCount: payload.deadlines.length,
+        matches,
+        warnings: [
+          ...file.warnings,
+          ...(expired ? ['Das Übergabepaket ist abgelaufen und darf nicht mehr importiert werden. Bitte eine neue Übergabedatei anfordern.'] : []),
+          ...(decrypted.transfer.legacyFormat ? ['Dieses Übergabepaket wurde mit einem älteren Schutzformat erstellt. Der Import ist möglich, für neue Übergaben sollte ein aktuelles Paket erstellt werden.'] : []),
+        ],
+        integrity: { verified: true, algorithm: decrypted.transfer.algorithm, formatVersion: decrypted.transfer.formatVersion, legacyFormat: decrypted.transfer.legacyFormat },
+        file: { fileName: file.fileName, sizeBytes: file.sizeBytes, isNetworkPath: file.isNetworkPath },
+      };
     } catch (error) {
       this.audit(db, auditCaseHandoverImportInspected({ packageId: envelope?.packageId, result: 'failed', reasonCode: 'invalid_passphrase_or_tampered_package' }));
       throw error;
@@ -260,8 +332,10 @@ export class CaseHandoverService {
 
   async importFromFile(input: CaseHandoverImportInput): Promise<CaseHandoverImportResult> {
     const db = this.db();
-    const envelope = this.readEnvelope(input.filePath);
-    const payload = this.decryptEnvelope(envelope, input.passphrase);
+    const file = inspectCaseHandoverFilePath(input.filePath);
+    const envelope = this.readEnvelope(file.filePath);
+    const decrypted = this.decryptEnvelope(envelope, input.passphrase);
+    const payload = decrypted.payload;
     const expired = isExpired(payload.expiresAt);
     if (expired) {
       this.audit(db, auditCaseHandoverImported({ packageId: payload.packageId, caseCount: payload.cases.length, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, validUntilPresent: Boolean(payload.expiresAt), mode: input.mode, result: 'failed', reasonCode: 'expired_transfer_package' }));
