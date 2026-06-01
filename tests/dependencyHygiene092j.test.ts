@@ -79,4 +79,18 @@ describe('Dependency-Hygiene nach Dependabot-Updates', () => {
     expect(packageJson.scripts['test:e2e:setup']).not.toContain('npm install --no-save');
   });
 
+
+  it('hält optionale Rolldown-Plattformbindungen vollständig im Lockfile, damit npm ci auf GitHub reproduzierbar bleibt', () => {
+    const rolldown = packageLock.packages['node_modules/rolldown'] as {
+      optionalDependencies?: Record<string, string>;
+    } | undefined;
+
+    expect(rolldown?.optionalDependencies).toBeDefined();
+
+    for (const [dependencyName, dependencyVersion] of Object.entries(rolldown?.optionalDependencies ?? {})) {
+      const lockPath = `node_modules/${dependencyName}`;
+      expect(packageLock.packages[lockPath]?.version).toBe(dependencyVersion);
+    }
+  });
+
 });
