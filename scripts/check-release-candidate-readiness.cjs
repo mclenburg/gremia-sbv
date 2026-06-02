@@ -84,7 +84,9 @@ function validateDocs() {
 function validatePackageScripts(pkg) {
   const scripts = pkg.scripts ?? {};
   expect(scripts['rc:check']?.includes('check-release-candidate-readiness.cjs'), 'rc:check muss den RC-Readiness-Check ausführen.');
-  expect(scripts['release:check'] === 'npm run rc:check && npm run test:coverage && npm run build', 'release:check muss rc:check, test:coverage und build bündeln.');
+  expect(scripts['release:check'] === 'npm run rc:check && npm run test:coverage && npm run build:app', 'release:check muss rc:check, test:coverage und den reinen App-Build ohne zweiten Vitest-Lauf bündeln.');
+expect(scripts['build'] === 'npm run test && npm run build:app', 'build bleibt der lokale Qualitätsbuild mit Tests vor dem reinen App-Build.');
+expect(typeof scripts['build:app'] === 'string' && scripts['build:app'].includes('vite build'), 'build:app muss den reinen App-Build ohne Vitest ausführen.');
   expect(scripts['source:cleanup:verbose'] === 'node scripts/cleanup-obsolete-files.cjs --verbose', 'source:cleanup:verbose fehlt.');
 
   const missing = [];

@@ -9,7 +9,7 @@
     "dev": "concurrently -k --success first \"npm:dev:renderer\" \"npm:dev:electron\"",
     "dev:renderer": "vite --host 127.0.0.1",
     "dev:electron": "wait-on tcp:5173 && tsc -p tsconfig.electron.json && node scripts/write-electron-cjs-package.cjs && electron .",
-    "build": "npm run test && tsc -p tsconfig.json && vite build && tsc -p tsconfig.electron.json && node scripts/write-electron-cjs-package.cjs",
+    "build": "npm run test && npm run build:app",
     "preview": "vite preview",
     "lint": "eslint . --ext .ts,.tsx",
     "test": "vitest run",
@@ -33,7 +33,7 @@
     "build:all": "node scripts/build-current-platform.cjs",
     "debug:paths": "node -e \"console.log({cwd:process.cwd(),home:process.env.HOME,GREMIA_SBV_DATA_DIR:process.env.GREMIA_SBV_DATA_DIR})\"",
     "test:retention": "vitest run tests/retentionPolicy.test.ts",
-    "release:check": "npm run rc:check && npm run test:coverage && npm run build",
+    "release:check": "npm run rc:check && npm run test:coverage && npm run build:app",
     "test:privacy": "vitest run tests/contactPrivacyService.test.ts tests/reportPrivacyPolicy.test.ts tests/documentStoragePolicy.test.ts",
     "test:migrations": "vitest run tests/migrationService.test.ts",
     "test:backup": "vitest run tests/backupPolicy.test.ts",
@@ -110,7 +110,8 @@
     "test:e2e:a11y": "node scripts/run-e2e.cjs e2e/accessibility-axe.spec.ts",
     "release:check:a11y": "npm run build:readiness:strict && npm run test:e2e:a11y",
     "dependency:hygiene": "vitest run tests/dependencyHygiene092j.test.ts tests/dependabotPolicy092k.test.ts tests/tailwindPostcssContract092p.test.ts tests/electronBuilderConfig092t.test.ts",
-    "test:github-actions": "vitest run tests/githubTaggedReleaseWorkflow092ac.test.ts tests/signpathCodeSigning092u.test.ts"
+    "test:github-actions": "vitest run tests/githubTaggedReleaseWorkflow092ac.test.ts tests/signpathCodeSigning092u.test.ts",
+    "build:app": "npm run version:generate && tsc -p tsconfig.json && vite build && tsc -p tsconfig.electron.json && node scripts/write-electron-cjs-package.cjs"
   },
   "dependencies": {
     "argon2-browser": "^1.18.0",

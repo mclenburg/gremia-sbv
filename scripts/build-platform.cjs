@@ -62,6 +62,19 @@ function run(cmd, args, options = {}) {
   }
 }
 
+function runNodeScript(script, args = []) {
+  run(process.execPath, [script, ...args], { shell: false });
+}
+
+function runNpmScript(script) {
+  const npmCli = process.env.npm_execpath;
+  if (npmCli) {
+    run(process.execPath, [npmCli, 'run', script], { shell: false });
+    return;
+  }
+  run(command('npm'), ['run', script]);
+}
+
 const selected = TARGETS[target];
 if (!selected) {
   usage();
@@ -88,9 +101,9 @@ if (!existsSync(electronBuilder)) {
 console.log(`Baue Gremia.SBV für ${selected.label} ...`);
 console.log(`Plattform: ${process.platform}, Node: ${process.version}`);
 
-run(command('npm'), ['run', 'build']);
-run(command('npm'), ['run', 'native:rebuild:electron']);
-run(command('node'), ['scripts/run-electron-builder.cjs', ...selected.builderArgs]);
+runNpmScript('build:app');
+runNpmScript('native:rebuild:electron');
+runNodeScript('scripts/run-electron-builder.cjs', selected.builderArgs);
 
 console.log('');
 console.log('Fertig. Artefakte liegen unter:');

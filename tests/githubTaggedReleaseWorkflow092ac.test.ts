@@ -98,6 +98,16 @@ describe('Taggebundener GitHub-Release-Build 0.9.2', () => {
     expect(taggedReleaseWorkflow).not.toContain('release/*.dmg');
   });
 
+
+
+  it('vermeidet doppelte Vitest-Laeufe im GitHub-Free-Release-Gate', () => {
+    expect(packageJson.scripts['release:check']).toBe('npm run rc:check && npm run test:coverage && npm run build:app');
+    expect(packageJson.scripts.build).toBe('npm run test && npm run build:app');
+    expect(packageJson.scripts['build:app']).toContain('vite build');
+    expect(packageJson.scripts['build:app']).not.toContain('vitest run');
+    expect(packageJson.scripts['build:app']).not.toContain('npm run test');
+  });
+
   it('bietet einen gezielten lokalen Regressionstest für die Workflow-Verträge an', () => {
     expect(packageJson.scripts['test:github-actions']).toBe('vitest run tests/githubTaggedReleaseWorkflow092ac.test.ts tests/signpathCodeSigning092u.test.ts');
   });

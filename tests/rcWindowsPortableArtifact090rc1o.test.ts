@@ -40,6 +40,16 @@ describe('Windows portable artifact', () => {
     expect(workflow).not.toContain('release/*.zip');
   });
 
+
+
+  it('nutzt beim Plattformbau den reinen App-Build und startet Node-Skripte ueber process.execPath', () => {
+    expect(buildPlatform).toContain("runNpmScript('build:app')");
+    expect(buildPlatform).not.toContain("run(command('npm'), ['run', 'build'])");
+    expect(buildPlatform).toContain('runNodeScript');
+    expect(buildPlatform).toContain('process.execPath');
+    expect(buildPlatform).not.toContain("run(command('node')");
+  });
+
   it('documents the portable Windows release decision', () => {
     expect(windowsBuildDoc).toContain('portable');
     expect(windowsBuildDoc).toMatch(/kein(?:en)? verpflichtenden Installer|kein Installer/i);
