@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ShieldAlert, Trash2 } from "lucide-react";
 import type { ProtectedPersonRecord } from "../../core/models/protected-person.model";
+import { AUDIT_LOG_RETENTION_NOTICE } from "../../core/copy/privacyNotices";
 
 export type PersonPrivacyActionMode = "anonymize" | "delete";
 
@@ -137,6 +138,10 @@ export function PersonPrivacyActionDialog({
             <p id={descriptionId}>{texts.hint}</p>
           </div>
         </div>
+
+        <p className="industrial-message industrial-message-info" data-e2e="audit-log-retention-notice">
+          {AUDIT_LOG_RETENTION_NOTICE}
+        </p>
 
         <dl className="person-detail-grid privacy-context-grid">
           <div>

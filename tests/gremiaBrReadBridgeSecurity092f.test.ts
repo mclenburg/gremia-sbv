@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { checkGremiaBrEndpoint, validateGremiaBrBaseUrl } from '../services/gremiaBr/gremiaBrPolicy';
 import { GremiaBrHttpClient, type GremiaBrFetch } from '../services/gremiaBr/gremiaBrHttpClient';
@@ -65,4 +66,25 @@ describe('Gremia.BR Lesebrücke Security-Härtung 0.9.2-F', () => {
 
     await expect(client.request('GET', '/search', 'token', { query: { q: 'BEM' } })).rejects.toThrow(/umgeleitet/i);
   });
+
+  it('leert den lokalen BR-Lesecache bei Deaktivierung oder Credential-Clear der Anbindung', () => {
+    const ipc = readFileSync('electron/ipc/gremiaBrIpc.ts', 'utf8');
+
+    expect(ipc).toContain('if (!saved.enabled) cache.clear();');
+    expect(ipc).toContain('const next = settings.clearCredentials();');
+    expect(ipc).toContain('cache.clear();');
+  });
+
+
+  it('dokumentiert die 30-Tage-TTL des lokalen BR-Lesecaches als Datenschutzgrenze', () => {
+    const dsfa = readFileSync('docs/gremia-br/DSFA_TOM_VVT.md', 'utf8');
+    const readme = readFileSync('docs/gremia-br/README.md', 'utf8');
+    const privacy = readFileSync('docs/PRIVACY_AND_SECURITY.md', 'utf8');
+
+    expect(dsfa).toContain('30 Tage');
+    expect(readme).toContain('30 Tage');
+    expect(privacy).toContain('30-Tage-TTL');
+    expect(dsfa).toContain('Leeren des Lesecaches bei deaktivierter Gremia.BR-Anbindung');
+  });
+
 });

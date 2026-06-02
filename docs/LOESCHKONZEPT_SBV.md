@@ -11,7 +11,7 @@ Automatische Hard Deletes ohne dokumentierte Prüfung sind zu vermeiden.
 | Löschart | Bedeutung |
 |---|---|
 | Soft Delete | Datensatz wird ausgeblendet, bleibt aber wiederherstellbar |
-| Anonymisierung | Personenbezug wird entfernt oder ersetzt |
+| Anonymisierung | Personenbezug wird entfernt oder ersetzt; zugehörige Fall-Dokumentdateien und Dokumentmetadaten werden entfernt |
 | Hard Delete | endgültige Löschung aus aktiver Datenbank |
 | Backup-Ablauf | Löschung über Backup-Rotation |
 
@@ -40,7 +40,7 @@ Diese Fristen sind Vorschläge für die App und ersetzen keine rechtliche Prüfu
 | Arbeitsplatzanpassung | Abschluss + 3 bis 6 Jahre |
 | Konflikt / Diskriminierung | Abschluss + 3 bis 6 Jahre |
 | Exportdateien | sofortige Prüfung, spätestens 24 bis 90 Tage |
-| Audit-Logs | 12 bis 36 Monate, ohne Direktidentifikatoren |
+| Audit-Logs | 12 bis 36 Monate, ohne Direktidentifikatoren; Hinweis in Lösch- und Anonymisierungsdialogen |
 | Backups | rotierend, verschlüsselt, mit Ablaufdatum |
 
 ## 5. Löschprüfung
@@ -52,7 +52,7 @@ Vor Löschung ist zu prüfen:
 - Gibt es arbeitsrechtliche oder sozialrechtliche Risiken?
 - Sind Dritte betroffen?
 - Ist Anonymisierung ausreichend?
-- Sind Dokumente separat zu löschen?
+- Sind Dokumente separat zu löschen oder werden sie im bestätigten Fall-Anonymisierungspfad bereits mitvernichtet?
 - Sind Backups betroffen?
 - Muss ein Löschprotokoll erstellt werden?
 - Keine BR-Fristen übernehmen.
@@ -87,6 +87,8 @@ Zu anonymisieren sind insbesondere:
 - Freitextstellen mit Rückschluss auf Person.
 
 Freitexte werden nicht automatisch vollständig anonymisiert. Sie werden als prüfpflichtig markiert. Maßnahmennotizen (`case_measure_notes`) sind ausdrücklich einbezogen; Titel, Beteiligte, Protokoll und nächste Schritte werden im bestätigten Anonymisierungspfad wie andere fallbezogene Freitexte geprüft.
+
+Zugehörige Fall-Dokumentdateien werden bei der bestätigten Fall-Anonymisierung physisch aus dem Dokumentenspeicher entfernt. Das gilt auch für verschlüsselte `.gsbvdoc`-Container im Fall-Dokumentordner, die aus früheren oder abgebrochenen Importen noch ohne auswertbare Metadaten vorhanden sein können. Die zugehörigen Dokumentmetadaten, Dokument-FTS-Einträge und Suchindexverweise werden ebenfalls entfernt. Eine Fall-Anonymisierung darf daher keine verwaisten Dokumentdateien zurücklassen.
 
 ## 8. Personenbindung
 

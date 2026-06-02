@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { DatabaseAdapter } from '../services/databaseService';
-import { GremiaBrCacheService } from '../services/gremiaBr/gremiaBrCacheService';
+import { GREMIA_BR_CACHE_TTL_DAYS, GremiaBrCacheService } from '../services/gremiaBr/gremiaBrCacheService';
 import type { GremiaBrReadAdapter } from '../services/gremiaBr/gremiaBrTypes';
 
 interface CacheRow {
@@ -39,7 +39,19 @@ class CacheDb implements DatabaseAdapter {
           };
           self.rows.set(row.cache_key, row);
         }
-        if (/DELETE FROM gremia_br_cache_entries/i.test(sql)) self.rows.clear();
+        if (/DELETE FROM gremia_br_cache_entries/i.test(sql) && /WHERE fetched_at < \?/i.test(sql)) {
+          const cutoff = String(params[0]);
+          const before = self.rows.size;
+          for (const [key, row] of [...self.rows.entries()]) {
+            if (row.fetched_at < cutoff) self.rows.delete(key);
+          }
+          return { changes: before - self.rows.size };
+        }
+        if (/DELETE FROM gremia_br_cache_entries/i.test(sql)) {
+          const before = self.rows.size;
+          self.rows.clear();
+          return { changes: before };
+        }
         return { changes: 1 };
       },
     };
@@ -135,6 +147,23 @@ describe('Gremia.BR Lesecache 0.9.2-C', () => {
     expect(result.cached.overdueDecisions).toHaveLength(1);
     expect(result.cached.decisionStatistics).toMatchObject({ offen: 1 });
     expect(db.rows.size).toBe(10);
+  });
+
+
+
+  it('begrenzt BR-Lesecache technisch auf 30 Tage und entfernt abgelaufene Einträge', () => {
+    const db = new CacheDb();
+    const service = new GremiaBrCacheService(() => db);
+
+    service.saveEntry('decisions', [{ id: 'alt' }], '2026-04-01T00:00:00.000Z');
+    service.saveEntry('due_decisions', [{ id: 'frisch' }], '2026-05-15T00:00:00.000Z');
+
+    const deleted = service.purgeExpiredEntries(new Date('2026-06-01T00:00:00.000Z'));
+
+    expect(GREMIA_BR_CACHE_TTL_DAYS).toBe(30);
+    expect(deleted).toBe(1);
+    expect(service.getEntry('decisions')).toBeUndefined();
+    expect(service.getEntry('due_decisions')?.payload).toEqual([{ id: 'frisch' }]);
   });
 
   it('löscht gecachte BR-Daten ohne Settings oder Credentials zu berühren', () => {

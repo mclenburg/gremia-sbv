@@ -3,6 +3,7 @@ import { HelpCircle } from 'lucide-react';
 import type { PrivacyReviewActionInput, PrivacyReviewActionResult, PrivacyReviewItemRecord } from '../../core/models/privacy-review.model';
 import type { ProtectedPersonRecord } from '../../core/models/protected-person.model';
 import { employmentStateLabels, lifecycleStateLabels, protectionStatusLabels } from '../../core/models/protected-person.model';
+import { AUDIT_LOG_RETENTION_NOTICE } from '../../core/copy/privacyNotices';
 
 const reasonLabels: Record<string, string> = {
   status_expired: 'Status abgelaufen',
@@ -211,10 +212,15 @@ export function PersonLifecycleReviewDialog({
                   </label>
                 )}
                 {(action === 'anonymize' || action === 'delete') && (
-                  <label>
-                    <span>Bestätigung</span>
-                    <input value={confirmation} onChange={(event) => setConfirmation(event.target.value)} placeholder={action === 'anonymize' ? 'FALL ANONYMISIEREN' : 'FALL LÖSCHEN'} aria-describedby={formError ? formErrorId : undefined} required />
-                  </label>
+                  <>
+                    <p className="industrial-message industrial-message-info" data-e2e="audit-log-retention-notice">
+                      {AUDIT_LOG_RETENTION_NOTICE}
+                    </p>
+                    <label>
+                      <span>Bestätigung</span>
+                      <input value={confirmation} onChange={(event) => setConfirmation(event.target.value)} placeholder={action === 'anonymize' ? 'FALL ANONYMISIEREN' : 'FALL LÖSCHEN'} aria-describedby={formError ? formErrorId : undefined} required />
+                    </label>
+                  </>
                 )}
                 {formError && <p id={formErrorId} className="industrial-message industrial-message-warning" role="alert">{formError}</p>}
                 <div className="person-toolbar compact">

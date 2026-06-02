@@ -15,6 +15,7 @@ import { useConfirmDialog } from "../../shared/dialogs/ConfirmDialogProvider";
 import { useAnnouncer } from "../../shared/a11y/LiveRegionProvider";
 import { TEMPLATE_DEFAULT_FIELDS, EMPTY_TEMPLATE_DEFAULT_VALUES, loadTemplateDefaultValues, saveTemplateDefaultValues } from "../../shared/templates/templateDefaults";
 import type { ThemeMode } from "../../shared/theme/appTheme";
+import { AUDIT_LOG_RETENTION_NOTICE } from "../../core/copy/privacyNotices";
 
 export function RetentionSettingsPanel({ cases }: { cases: CaseRecord[] }) {
   const [dashboard, setDashboard] = useState<RetentionDashboard | null>(null);
@@ -296,6 +297,9 @@ export function RetentionSettingsPanel({ cases }: { cases: CaseRecord[] }) {
         <p className="industrial-settings-note">
           Diese Funktionen sind bewusst streng. Bitte vor Löschung ein Backup
           erstellen und den Grund dokumentieren.
+        </p>
+        <p className="industrial-message industrial-message-info" data-e2e="audit-log-retention-notice">
+          {AUDIT_LOG_RETENTION_NOTICE}
         </p>
         <label>
           <span>Fall</span>

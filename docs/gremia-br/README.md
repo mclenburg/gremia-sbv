@@ -54,4 +54,4 @@ Nicht freigegeben bleiben insbesondere Admin, Audit, DSGVO, Notizen, Abwesenheit
 
 ## Nutzung
 
-Die Verbindung wird unter **Einstellungen → Gremia.BR** eingerichtet. Das Dashboard zeigt nur gecachte Daten und aktualisiert diese ausschließlich durch eine bewusste Nutzeraktion.
+Die Verbindung wird unter **Einstellungen → Gremia.BR** eingerichtet. Das Dashboard zeigt nur gecachte Daten und aktualisiert diese ausschließlich durch eine bewusste Nutzeraktion. Der lokale Lesecache ist auf 30 Tage begrenzt; abgelaufene Einträge werden beim Lesen/Aktualisieren entfernt. Wird die Anbindung deaktiviert oder werden Zugangsdaten gelöscht, wird der Lesecache geleert.

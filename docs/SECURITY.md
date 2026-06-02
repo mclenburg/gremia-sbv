@@ -31,7 +31,7 @@ Das Benutzerpasswort wird nicht direkt als Datenbankschlüssel verwendet. Der lo
 
 ## Dokumente
 
-Dokumente werden nicht unverschlüsselt im Dateisystem abgelegt. Metadaten liegen in der Datenbank, Inhalte im verschlüsselten Dokumentenspeicher.
+Dokumente werden nicht unverschlüsselt im Dateisystem abgelegt. Metadaten liegen in der Datenbank, Inhalte im verschlüsselten Dokumentenspeicher. Bei bestätigter Fall-Anonymisierung werden die zugehörigen Dokumentcontainer und Dokumentmetadaten entfernt; die reine Trennung von Metadaten und Datei gilt nicht als ausreichende Anonymisierung.
 
 ## Automatische Sperre
 
@@ -39,7 +39,7 @@ Die Anwendung sperrt nach Inaktivität. Beim Sperren werden Schlüssel aus dem A
 
 ## Audit-Log
 
-Das Audit-Log ist append-only und über Hashes verkettet. Audit-Einträge enthalten keine Namen, E-Mail-Adressen, Personalnummern oder sonstigen Direktidentifikatoren. Erlaubt sind UUIDs, Aktion, Zweck, Zeitstempel und technische Entitätsbezüge. Dadurch bleibt die Hash-Kette stabil, wenn Fachdaten anonymisiert oder gelöscht werden.
+Das Audit-Log ist append-only und über Hashes verkettet. Audit-Einträge enthalten keine Namen, E-Mail-Adressen, Personalnummern oder sonstigen Direktidentifikatoren. Erlaubt sind UUIDs, Aktion, Zweck, Zeitstempel und technische Entitätsbezüge. Dadurch bleibt die Hash-Kette stabil, wenn Fachdaten anonymisiert oder gelöscht werden. Destruktive Datenschutzdialoge weisen darauf hin, dass diese Sicherheitseinträge ohne Direktidentifikatoren erhalten bleiben.
 
 ## Export und iCal
 

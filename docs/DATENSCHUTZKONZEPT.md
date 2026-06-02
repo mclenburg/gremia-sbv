@@ -23,7 +23,7 @@ Das Personenverzeichnis dient der SBV-Arbeitssteuerung, Beteiligungsprüfung, St
 
 ## Fallakten und Lifecycle
 
-Reguläre Fallakten werden an eine Person gebunden. Bei Statusablauf, Beschäftigungsende, Anonymisierung oder Löschung entsteht eine Datenschutzprüfung. Fortspeicherung benötigt Grund und erneuten Prüftermin. Freitexte werden nicht automatisch anonymisiert, sondern prüfpflichtig markiert.
+Reguläre Fallakten werden an eine Person gebunden. Bei Statusablauf, Beschäftigungsende, Anonymisierung oder Löschung entsteht eine Datenschutzprüfung. Fortspeicherung benötigt Grund und erneuten Prüftermin. Freitexte werden nicht automatisch anonymisiert, sondern prüfpflichtig markiert. Die bestätigte Fall-Anonymisierung entfernt zugehörige Dokumentdateien, Dokumentmetadaten, Dokument-Volltexttreffer und Suchindexverweise, damit keine de-referenzierten Dokumentcontainer im lokalen Speicher verbleiben.
 
 ## Rechtsgrundlagen
 
@@ -39,8 +39,17 @@ Zu dokumentieren sind insbesondere:
 
 ## Information der Beschäftigten
 
-Die Anwendung versendet keine eigenständigen Informationen nach Art. 13/14 DSGVO. Die Information der Beschäftigten ist organisatorisch über Arbeitgeber, Datenschutzinformation oder verantwortliche Stelle sicherzustellen.
+Die Anwendung versendet keine eigenständigen Informationen nach Art. 13/14 DSGVO. Die Information der Beschäftigten ist organisatorisch über Arbeitgeber, Datenschutzinformation oder verantwortliche Stelle sicherzustellen. Als Arbeitshilfe stellt Gremia.SBV eine anpassbare Vorlage `DATENSCHUTZINFORMATION_ART_13_14_TEMPLATE.md` bereit und macht diese zusätzlich im Compliance Center abrufbar.
 
+
+
+## Audit-Hinweis bei Löschung und Anonymisierung
+
+Bei destruktiven Datenschutzaktionen weist die Anwendung darauf hin, dass Sicherheitseinträge im Audit-Log aus Integritätsgründen erhalten bleiben. Diese Audit-Einträge enthalten keine Direktidentifikatoren wie Name, E-Mail oder Personalnummer. Der Hinweis verhindert, dass Nutzerinnen und Nutzer eine Löschung oder Anonymisierung als vollständige Entfernung auch der manipulationsgeschützten Sicherheitskette missverstehen.
+
+## Gremia.BR-Lesebrücke und Cache-Speicherbegrenzung
+
+Die optionale Gremia.BR-Anbindung bleibt eine manuell ausgelöste Read-only-Lesebrücke. Abgerufene BR-Kontextdaten werden nicht in SBV-Fallakten importiert. Der lokale Lesecache ist technisch auf 30 Tage begrenzt und wird bei deaktivierter Anbindung bzw. beim Löschen der Zugangsdaten geleert. Damit dient der Cache nur der kurzfristigen Arbeitsunterstützung und nicht der dauerhaften Aufbewahrung von Betriebsratsdaten im SBV-Vault.
 
 ## Fallübergabe / Vertretung
 

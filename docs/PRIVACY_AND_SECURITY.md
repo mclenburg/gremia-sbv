@@ -24,7 +24,7 @@ Für Transportvorgänge außerhalb des Vaults gelten strengere Regeln: Übergabe
 Der Suchindex enthält kopierte Textinhalte aus Fallakten, Notizen, Dokumenten, OCR-Ergebnissen und Prozessmodulen. Deshalb gilt:
 
 - Indexdaten liegen nur im verschlüsselten Vault.
-- Anonymisierung rebuildet oder löscht betroffene Indexeinträge.
+- Anonymisierung rebuildet oder löscht betroffene Indexeinträge; Dokument- und OCR-Treffer der anonymisierten Fallakte werden entfernt.
 - Falllöschung entfernt Indexeinträge vollständig.
 - Dokumentlöschung entfernt Dokument- und OCR-Treffer.
 - Suchbegriffe werden nicht in Audit-Logs geschrieben.
@@ -33,7 +33,7 @@ Der Suchindex enthält kopierte Textinhalte aus Fallakten, Notizen, Dokumenten, 
 
 Dokumenttext-Extraktion erfolgt lokal. OCR ist optional und darf den Upload-Workflow nicht blockieren. Wird OCR genutzt, muss sie lokal laufen; Cloud-Dienste sind ausgeschlossen.
 
-OCR-Treffer werden als maschinell erkannte Inhalte gekennzeichnet, weil OCR fehleranfällig sein kann.
+OCR-Treffer werden als maschinell erkannte Inhalte gekennzeichnet, weil OCR fehleranfällig sein kann. Wird eine Fallakte anonymisiert, löscht Gremia.SBV die zugehörigen verschlüsselten Dokumentcontainer aus dem Fall-Dokumentordner sowie die Dokumentmetadaten im Vault. Dadurch bleiben nach der Anonymisierung keine verwaisten Falldokumente ohne zuordenbare Metadaten zurück.
 
 ## Fallübergabe / Vertretung
 
@@ -62,11 +62,12 @@ Regeln:
 - harte Endpunkt-Whitelist,
 - JWT bevorzugt nur im Arbeitsspeicher,
 - Zugangsdaten im SQLCipher-Vault,
+- lokaler Gremia.BR-Lesecache mit fester 30-Tage-TTL und automatischem Leeren bei deaktivierter Anbindung,
 - Audit nur über Aktion, Zeitpunkt, Endpunkt und Ergebnis – nicht über Inhalte, Query-Werte oder Suchbegriffe.
 
 ## Audit
 
-Audit-Einträge sollen Nachvollziehbarkeit schaffen, ohne selbst zum Datenschutzproblem zu werden. Deshalb werden keine Passwörter, Tokens, Suchbegriffe, Dokumentinhalte, Diagnosen, Personennamen oder Falltitel protokolliert.
+Audit-Einträge sollen Nachvollziehbarkeit schaffen, ohne selbst zum Datenschutzproblem zu werden. Deshalb werden keine Passwörter, Tokens, Suchbegriffe, Dokumentinhalte, Diagnosen, Personennamen oder Falltitel protokolliert. Bei Lösch- und Anonymisierungsvorgängen zeigt die Oberfläche einen Hinweis, dass Sicherheitseinträge im Audit-Log ohne Direktidentifikatoren erhalten bleiben.
 
 ## Barrierefreiheit als Sicherheitsmerkmal
 

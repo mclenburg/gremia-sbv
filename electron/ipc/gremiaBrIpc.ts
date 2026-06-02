@@ -27,7 +27,9 @@ export function registerGremiaBrIpc(ipcMain: IpcMain, security: SecurityService)
 
   ipcMain.handle('gremia-br:settings:save', async (_event, input: unknown) => {
     auth.clearToken();
-    return settings.saveSettings(assertRecordInput<GremiaBrSettingsInput>(input, 'gremia-br:settings:save'));
+    const saved = settings.saveSettings(assertRecordInput<GremiaBrSettingsInput>(input, 'gremia-br:settings:save'));
+    if (!saved.enabled) cache.clear();
+    return saved;
   });
 
   ipcMain.handle('gremia-br:relevance:save', async (_event, input: unknown) => {
@@ -36,7 +38,9 @@ export function registerGremiaBrIpc(ipcMain: IpcMain, security: SecurityService)
 
   ipcMain.handle('gremia-br:credentials:clear', async () => {
     auth.clearToken();
-    return settings.clearCredentials();
+    const next = settings.clearCredentials();
+    cache.clear();
+    return next;
   });
 
   ipcMain.handle('gremia-br:connection:test', async () => auth.testConnection());

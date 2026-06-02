@@ -22,6 +22,7 @@ Die Prüfung sollte insbesondere klären:
 | `DSGVO_SBV.md` | Einordnung typischer DSGVO-Pflichten in der SBV-Arbeit |
 | `DSFA_SBV_TEMPLATE.md` | Vorlage für eine Datenschutz-Folgenabschätzung |
 | `VERARBEITUNGSVERZEICHNIS_SBV.md` | Grundlage für das Verzeichnis der Verarbeitungstätigkeiten |
+| `DATENSCHUTZINFORMATION_ART_13_14_TEMPLATE.md` | Vorlage für die Datenschutzinformation nach Art. 13/14 DSGVO |
 | `LOESCHKONZEPT_SBV.md` | Aufbewahrung, Löschung, Anonymisierung und Prüffälle |
 | `PRIVACY_AND_SECURITY.md` | Datenschutz- und Sicherheitsprinzipien der Anwendung |
 | `CASE_HANDOVER_TRANSFER.md` | Zweckbindung und Schutz der verschlüsselten Fallübergabe |
@@ -87,6 +88,7 @@ Für eine interne Freigabeakte sollten mindestens folgende Dokumente geprüft od
 - Datenschutzkonzept,
 - Datenschutz-Folgenabschätzung oder begründete Entscheidung zur Erforderlichkeit,
 - Verzeichnis der Verarbeitungstätigkeiten,
+- Datenschutzinformation nach Art. 13/14 DSGVO,
 - Löschkonzept,
 - Datenschutz- und Sicherheitskonzept,
 - technische Sicherheitsdokumentation,

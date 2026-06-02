@@ -165,6 +165,80 @@ function anonymizeRegisteredCasePrivacyEntities(db: DatabaseAdapter, caseId: str
   return affectedRows;
 }
 
+
+type CaseDocumentFileRow = {
+  id?: string;
+  storage_path?: string | null;
+};
+
+type CaseDocumentFileRemovalResult = {
+  affectedFiles: number;
+  errors: string[];
+};
+
+function isPathInside(parent: string, candidate: string): boolean {
+  const relative = path.relative(parent, candidate);
+  return relative === '' || (relative !== '..' && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative));
+}
+
+function listFilesRecursive(root: string): string[] {
+  if (!fs.existsSync(root)) return [];
+  const result: string[] = [];
+  const walk = (dir: string) => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const absolute = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        walk(absolute);
+      } else if (entry.isFile()) {
+        result.push(absolute);
+      }
+    }
+  };
+  walk(root);
+  return result;
+}
+
+function removeCaseDocumentFiles(dataDir: string, caseId: string, documents: CaseDocumentFileRow[]): CaseDocumentFileRemovalResult {
+  const errors: string[] = [];
+  let affectedFiles = 0;
+  const caseDir = path.resolve(dataDir, 'documents', caseId);
+  let caseDirFiles: string[] = [];
+  try {
+    caseDirFiles = listFilesRecursive(caseDir);
+  } catch (error) {
+    errors.push(error instanceof Error ? error.message : String(error));
+  }
+  const externalDocumentPaths = new Set<string>();
+
+  for (const document of documents) {
+    if (!document.storage_path) continue;
+    const absolute = path.resolve(document.storage_path);
+    if (isPathInside(caseDir, absolute)) continue;
+    externalDocumentPaths.add(absolute);
+  }
+
+  for (const absolute of externalDocumentPaths) {
+    if (!fs.existsSync(absolute)) continue;
+    try {
+      fs.rmSync(absolute, { force: true });
+      affectedFiles += 1;
+    } catch (error) {
+      errors.push(error instanceof Error ? error.message : String(error));
+    }
+  }
+
+  if (fs.existsSync(caseDir)) {
+    try {
+      fs.rmSync(caseDir, { recursive: true, force: true });
+      affectedFiles += caseDirFiles.length;
+    } catch (error) {
+      errors.push(error instanceof Error ? error.message : String(error));
+    }
+  }
+
+  return { affectedFiles, errors };
+}
+
 function listCleartextFiles(dataDir: string): string[] {
   const suspicious: string[] = [];
   const roots = ['documents', 'exports'];
@@ -354,6 +428,18 @@ export class RetentionService {
     const row = db.prepare<any>('SELECT id, case_number FROM cases WHERE id = ?').get(caseId);
     if (!row) return { ok: false, action: 'none', error: 'Fall nicht gefunden.' };
 
+    const documents = db.prepare<CaseDocumentFileRow>('SELECT id, storage_path FROM case_documents WHERE case_id = ?').all(caseId);
+    const fileRemoval = removeCaseDocumentFiles(this.dataDirProvider(), caseId, documents);
+    if (fileRemoval.errors.length) {
+      return {
+        ok: false,
+        action: 'none',
+        error: `Fall ${row.case_number} konnte nicht anonymisiert werden, weil zugehörige Dokumentdateien nicht vollständig gelöscht werden konnten.`,
+        affectedRows: 0,
+        affectedFiles: fileRemoval.affectedFiles,
+      };
+    }
+
     let affectedRows = 0;
     const stamp = `Anonymisiert am ${new Date().toLocaleDateString('de-DE')}`;
     const timestamp = nowIso();
@@ -363,9 +449,13 @@ export class RetentionService {
     affectedRows += safeRun(db, `DELETE FROM case_notes_fts WHERE case_id = ?`, caseId);
     affectedRows += new SearchIndexService(db).deleteCase(caseId);
     affectedRows += safeRun(db, `DELETE FROM case_documents_fts WHERE case_id = ?`, caseId);
+    if (tableExists(db, 'case_document_ocr_jobs')) {
+      affectedRows += safeRun(db, `DELETE FROM case_document_ocr_jobs WHERE document_id IN (SELECT id FROM case_documents WHERE case_id = ?)`, caseId);
+    }
+    affectedRows += safeRun(db, `DELETE FROM case_documents WHERE case_id = ?`, caseId);
     affectedRows += new SearchIndexService(db).reindexCase(caseId);
-    this.recordAction(db, 'case_anonymized', 'case', caseId, row.case_number, reason, affectedRows, 0);
-    return { ok: true, action: 'case_anonymized', message: `Fall ${row.case_number} wurde anonymisiert.`, affectedRows, affectedFiles: 0 };
+    this.recordAction(db, 'case_anonymized', 'case', caseId, row.case_number, reason, affectedRows, fileRemoval.affectedFiles);
+    return { ok: true, action: 'case_anonymized', message: `Fall ${row.case_number} wurde anonymisiert; zugehörige Dokumentdateien wurden gelöscht.`, affectedRows, affectedFiles: fileRemoval.affectedFiles };
   }
 
   async deleteCase(caseId: string, reason: string, confirmation: string): Promise<RetentionOperationResult> {
@@ -376,17 +466,25 @@ export class RetentionService {
     const row = db.prepare<any>('SELECT id, case_number FROM cases WHERE id = ?').get(caseId);
     if (!row) return { ok: false, action: 'none', error: 'Fall nicht gefunden.' };
 
-    const documents = db.prepare<any>('SELECT id, storage_path FROM case_documents WHERE case_id = ?').all(caseId);
-    let affectedRows = 0;
-    let affectedFiles = 0;
-    for (const document of documents) {
-      if (document.storage_path) {
-        await fs.promises.rm(document.storage_path, { force: true }).then(() => { affectedFiles += 1; }).catch(() => undefined);
-      }
+    const documents = db.prepare<CaseDocumentFileRow>('SELECT id, storage_path FROM case_documents WHERE case_id = ?').all(caseId);
+    const fileRemoval = removeCaseDocumentFiles(this.dataDirProvider(), caseId, documents);
+    if (fileRemoval.errors.length) {
+      return {
+        ok: false,
+        action: 'none',
+        error: `Fall ${row.case_number} konnte nicht gelöscht werden, weil zugehörige Dokumentdateien nicht vollständig gelöscht werden konnten.`,
+        affectedRows: 0,
+        affectedFiles: fileRemoval.affectedFiles,
+      };
     }
+    let affectedRows = 0;
+    const affectedFiles = fileRemoval.affectedFiles;
 
     affectedRows += new SearchIndexService(db).deleteCase(caseId);
     affectedRows += safeRun(db, `DELETE FROM case_documents_fts WHERE case_id = ?`, caseId);
+    if (tableExists(db, 'case_document_ocr_jobs')) {
+      affectedRows += safeRun(db, `DELETE FROM case_document_ocr_jobs WHERE document_id IN (SELECT id FROM case_documents WHERE case_id = ?)`, caseId);
+    }
     affectedRows += safeRun(db, `DELETE FROM case_documents WHERE case_id = ?`, caseId);
     const noteIds = db.prepare<any>('SELECT id FROM case_notes WHERE case_id = ?').all(caseId).map((note) => note.id);
     for (const noteId of noteIds) {
@@ -401,8 +499,6 @@ export class RetentionService {
     affectedRows += safeRun(db, `DELETE FROM deadlines WHERE case_id = ?`, caseId);
     affectedRows += safeRun(db, `DELETE FROM cases WHERE id = ?`, caseId);
 
-    const caseDir = path.join(this.dataDirProvider(), 'documents', caseId);
-    await fs.promises.rm(caseDir, { recursive: true, force: true }).catch(() => undefined);
     this.recordAction(db, 'case_deleted', 'case', caseId, row.case_number, reason, affectedRows, affectedFiles);
     return { ok: true, action: 'case_deleted', message: `Fall ${row.case_number} wurde gelöscht.`, affectedRows, affectedFiles };
   }

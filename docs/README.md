@@ -34,6 +34,7 @@ Zweite Zielgruppe sind Personen, die Gremia.SBV betreiben, prüfen oder weiteren
 | `DSFA_SBV_TEMPLATE.md` | Vorlage für eine Datenschutz-Folgenabschätzung |
 | `DSGVO_SBV.md` | DSGVO-Einordnung für SBV-Daten |
 | `VERARBEITUNGSVERZEICHNIS_SBV.md` | Vorlage für das Verzeichnis von Verarbeitungstätigkeiten |
+| `DATENSCHUTZINFORMATION_ART_13_14_TEMPLATE.md` | Vorlage für die Datenschutzinformation an betroffene Beschäftigte |
 | `LOESCHKONZEPT_SBV.md` | Lösch- und Retention-Konzept |
 | `FREIGABE_DSB_IT_SECURITY.md` | Freigabeunterlagen für Datenschutz und IT-Security |
 | `SECURITY.md` | technische Sicherheitslinie |

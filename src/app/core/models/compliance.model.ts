@@ -7,6 +7,7 @@ export type ComplianceDocumentType =
   | 'dsgvo_bdsg_matrix'
   | 'retention_schedule'
   | 'data_subject_rights'
+  | 'data_protection_notice'
   | 'export_policy'
   | 'dsb_it_security_approval'
   | 'data_protection_status'

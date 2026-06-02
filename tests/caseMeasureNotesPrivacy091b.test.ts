@@ -1,4 +1,5 @@
 import React from 'react';
+import fs from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -7,11 +8,17 @@ import { RetentionService } from '../services/retentionService';
 import { MeasureNoteFields } from '../src/app/features/cases/measures/MeasureNotesPanel';
 
 class RetentionMemoryDb {
+  constructor(documentStoragePath?: string) {
+    if (documentStoragePath) {
+      this.rows.case_documents[0].storage_path = documentStoragePath;
+    }
+  }
+
   rows: Record<string, any[]> = {
     cases: [{ id: 'case-1', case_number: 'SBV-2026-001', display_name: 'Max Muster', summary: 'personenbezogen' }],
     case_notes: [{ id: 'note-1', case_id: 'case-1', participants: 'Max, HR', content: 'Diagnosebezug', next_steps: 'Attest nachreichen', contains_health_data: 1 }],
     case_measure_notes: [{ id: 'measure-note-1', case_id: 'case-1', measure_type: 'participation', measure_id: 'measure-1', title: 'BEM-Termin Max', note_at: '2026-05-12T10:30:00.000Z', participants: 'Max, SBV', content: 'Arbeitsplatzbezogene Einschränkung besprochen.', next_steps: 'HR fragt Hilfsmittel an', contains_health_data: 1, confidential_level: 'sensibel' }],
-    case_documents: [{ id: 'doc-1', case_id: 'case-1', extracted_text: 'personenbezogener Volltext', display_title: 'Attest Max' }],
+    case_documents: [{ id: 'doc-1', case_id: 'case-1', extracted_text: 'personenbezogener Volltext', display_title: 'Attest Max', storage_path: undefined }],
     case_search_index: [{ id: 'measure_note:measure-note-1:case-1', case_id: 'case-1', source_type: 'measure_note', source_id: 'measure-note-1', title: 'BEM-Termin Max', content: 'Arbeitsplatzbezogene Einschränkung besprochen.', keywords: null }],
     case_search_index_fts: [{ index_id: 'measure_note:measure-note-1:case-1', title: 'BEM-Termin Max', content: 'Arbeitsplatzbezogene Einschränkung besprochen.' }],
     case_search_index_state: [{ case_id: 'case-1' }],
@@ -38,7 +45,7 @@ class RetentionMemoryDb {
           return Object.keys(firstRow).map((name) => ({ name }));
         }
         if (sql.includes('SELECT id, storage_path FROM case_documents WHERE case_id = ?')) {
-          return self.rows.case_documents.filter((row) => row.case_id === params[0]).map((row) => ({ id: row.id, storage_path: undefined }));
+          return self.rows.case_documents.filter((row) => row.case_id === params[0]).map((row) => ({ id: row.id, storage_path: row.storage_path }));
         }
         if (sql.includes('SELECT id FROM case_notes WHERE case_id = ?')) {
           return self.rows.case_notes.filter((row) => row.case_id === params[0]).map((row) => ({ id: row.id }));
@@ -111,6 +118,11 @@ class RetentionMemoryDb {
           self.rows.case_search_index_state.push({ case_id: params[0], indexed_at: params[1], last_source_updated_at: params[2], source_count: params[3], updated_at: params[4] });
           return { changes: 1 };
         }
+        if (sql.startsWith('DELETE FROM case_documents WHERE case_id = ?')) {
+          const before = self.rows.case_documents.length;
+          self.rows.case_documents = self.rows.case_documents.filter((row) => row.case_id !== params[0]);
+          return { changes: before - self.rows.case_documents.length };
+        }
         if (sql.includes('INSERT INTO retention_actions')) {
           self.rows.retention_actions.push({ action_type: params[1], entity_id: params[3] });
           return { changes: 1 };
@@ -128,9 +140,9 @@ class RetentionMemoryDb {
 type RetentionDbFactory = ConstructorParameters<typeof RetentionService>[0];
 type RetentionDb = ReturnType<RetentionDbFactory>;
 
-function createRetentionService(db: RetentionMemoryDb) {
+function createRetentionService(db: RetentionMemoryDb, dataDir = path.join(tmpdir(), 'gremia-sbv-retention-test')) {
   const dbFactory: RetentionDbFactory = () => db as unknown as RetentionDb;
-  return new RetentionService(dbFactory, () => path.join(tmpdir(), 'gremia-sbv-retention-test'));
+  return new RetentionService(dbFactory, () => dataDir);
 }
 
 describe('case measure note privacy behavior', () => {
@@ -151,6 +163,26 @@ describe('case measure note privacy behavior', () => {
     expect(db.rows.case_measure_notes[0].content).toMatch(/^Anonymisiert am /);
     expect(db.rows.case_search_index).toHaveLength(0);
     expect(db.rows.case_search_index_fts).toHaveLength(0);
+  });
+
+  it('deletes case document files and metadata when a case is anonymized', () => {
+    const dataDir = fs.mkdtempSync(path.join(tmpdir(), 'gremia-sbv-retention-docs-'));
+    const caseDir = path.join(dataDir, 'documents', 'case-1');
+    fs.mkdirSync(caseDir, { recursive: true });
+    const storagePath = path.join(caseDir, 'doc-1.gsbvdoc');
+    const orphanStoragePath = path.join(caseDir, 'orphan.gsbvdoc');
+    fs.writeFileSync(storagePath, 'encrypted document payload');
+    fs.writeFileSync(orphanStoragePath, 'orphaned encrypted payload');
+    const db = new RetentionMemoryDb(storagePath);
+    const service = createRetentionService(db, dataDir);
+
+    const result = service.anonymizeCase('case-1', 'Regelfrist erreicht', 'FALL ANONYMISIEREN');
+
+    expect(result).toMatchObject({ ok: true, action: 'case_anonymized', affectedFiles: 2 });
+    expect(fs.existsSync(storagePath)).toBe(false);
+    expect(fs.existsSync(orphanStoragePath)).toBe(false);
+    expect(fs.existsSync(caseDir)).toBe(false);
+    expect(db.rows.case_documents).toHaveLength(0);
   });
 
   it('keeps inline command support on protocol and next-step note fields', () => {

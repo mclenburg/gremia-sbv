@@ -22,6 +22,8 @@ describe("0.4.58 SBV privacy policy contracts", () => {
     expect(deletion).toContain("Kündigungsanhörung");
     expect(deletion).toContain("BEM");
     expect(deletion).toContain("Keine BR-Fristen übernehmen");
+    expect(deletion).toContain("Fall-Dokumentdateien werden bei der bestätigten Fall-Anonymisierung physisch");
+    expect(deletion).toContain("keine verwaisten Dokumentdateien zurücklassen");
   });
 
   it("documents SBV processing activities instead of BR proceedings", () => {

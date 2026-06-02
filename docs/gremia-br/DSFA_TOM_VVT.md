@@ -37,11 +37,13 @@ Nicht verarbeitet werden dürfen:
 - Keine Hintergrundsynchronisation.
 - Audit nur ohne Inhaltsdaten.
 - Lokaler Lesecache mit sichtbarem Aktualisierungsstand.
+- Feste Speicherbegrenzung des Lesecaches auf 30 Tage.
+- Automatisches Leeren des Lesecaches bei deaktivierter Gremia.BR-Anbindung oder gelöschten Zugangsdaten.
 - Löschung/Anonymisierung lokaler Referenzen folgt den Gremia.SBV-Datenschutzpfaden.
 
 ## Risikobewertung
 
-Hauptrisiko ist nicht die technische Verbindung an sich, sondern eine Zweckverschiebung: BR-Daten könnten mit SBV-Falldaten vermischt oder SBV-Daten könnten unbeabsichtigt an Gremia.BR gelangen. Dies wird durch Read-only-Policy, Whitelist, fehlende Schreibmethoden und getrennte lokale Speicherung begrenzt.
+Hauptrisiko ist nicht die technische Verbindung an sich, sondern eine Zweckverschiebung: BR-Daten könnten mit SBV-Falldaten vermischt oder SBV-Daten könnten unbeabsichtigt an Gremia.BR gelangen. Dies wird durch Read-only-Policy, Whitelist, fehlende Schreibmethoden, getrennte lokale Speicherung und eine technische Cache-TTL von 30 Tagen begrenzt.
 
 ## Bewertung
 
