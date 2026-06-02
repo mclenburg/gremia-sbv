@@ -70,6 +70,7 @@ import type {
   ParticipationWarning,
   UpdateParticipationInput,
 } from "./app/core/models/participation.model";
+import type { CreateSbvControlProtocolInput, SbvControlProtocolRecord, UpdateSbvControlProtocolInput } from "./app/core/models/sbv-control-protocol.model";
 import type {
   CreateWorkplaceAccommodationInput,
   UpdateWorkplaceAccommodationInput,
@@ -293,6 +294,13 @@ declare global {
         dashboard(): Promise<SbvResourceDashboardSummary>;
         create(input: CreateSbvResourceRecordInput): Promise<SbvResourceRecord>;
         update(id: string, input: UpdateSbvResourceRecordInput): Promise<SbvResourceRecord>;
+        delete(id: string): Promise<{ deleted: boolean }>;
+      };
+
+      sbvControlProtocols: {
+        list(): Promise<SbvControlProtocolRecord[]>;
+        create(input: CreateSbvControlProtocolInput): Promise<SbvControlProtocolRecord>;
+        update(id: string, input: UpdateSbvControlProtocolInput): Promise<SbvControlProtocolRecord>;
         delete(id: string): Promise<{ deleted: boolean }>;
       };
 

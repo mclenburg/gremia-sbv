@@ -4,11 +4,17 @@ import type {
   SbvResourceRecord,
   SbvResourceRecordKind,
 } from '../../core/models/sbv-resource.model';
+import type {
+  CreateSbvControlProtocolInput,
+  SbvControlProtocolRecord,
+  SbvControlProtocolTopic,
+} from '../../core/models/sbv-control-protocol.model';
 import { recordMatchesQuery } from '../../shared/components/WorkbenchLayout';
 import { getParticipationEscalationAdvice } from '../participation/participationPolicy';
 import type { ObligationItem } from './sbvControlTypes';
 
 export type ResourceFormState = CreateSbvResourceRecordInput;
+export type ProtocolFormState = CreateSbvControlProtocolInput;
 
 export const initialResourceForm: ResourceFormState = {
   kind: 'training',
@@ -24,6 +30,20 @@ export const initialResourceForm: ResourceFormState = {
   costNote: '',
   status: 'documented',
   notes: ''
+};
+
+
+export const initialProtocolForm: ProtocolFormState = {
+  title: '',
+  partner: 'employer',
+  topic: 'workplace_rules',
+  meetingAt: new Date().toISOString().slice(0, 10),
+  participants: '',
+  legalContext: '§ 178 Abs. 1 Satz 1 SGB IX, § 166 SGB IX',
+  discussion: '',
+  result: '',
+  nextSteps: '',
+  status: 'documented',
 };
 
 export function countCriticalParticipation(records: ParticipationRecord[]) {
@@ -45,6 +65,15 @@ export function formatDate(value?: string): string {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
   return date.toLocaleDateString('de-DE');
+}
+
+export function legalBasisForProtocolTopic(topic: SbvControlProtocolTopic): string {
+  if (topic === 'workplace_rules') return '§ 178 Abs. 1 Satz 1 SGB IX, § 166 SGB IX';
+  if (topic === 'inclusion_agreement') return '§ 166 SGB IX, § 182 SGB IX';
+  if (topic === 'accessibility') return '§ 164 Abs. 4 Satz 1 SGB IX';
+  if (topic === 'procedure') return '§ 178 Abs. 2 Satz 1 SGB IX';
+  if (topic === 'cooperation') return '§ 182 SGB IX';
+  return '§ 178 Abs. 1 SGB IX';
 }
 
 export function legalBasisForKind(kind: SbvResourceRecordKind): string {
@@ -116,5 +145,68 @@ export function resourceOperationAnnouncement(operation: ResourceOperation): str
 }
 
 export function isResourceTitleMissing(form: ResourceFormState) {
+  return !form.title?.trim();
+}
+
+
+export function protocolFormFromRecord(record: SbvControlProtocolRecord): ProtocolFormState {
+  return {
+    title: record.title,
+    partner: record.partner,
+    topic: record.topic,
+    meetingAt: record.meetingAt.slice(0, 10),
+    participants: record.participants ?? '',
+    legalContext: record.legalContext ?? '',
+    discussion: record.discussion ?? '',
+    result: record.result ?? '',
+    nextSteps: record.nextSteps ?? '',
+    status: record.status,
+  };
+}
+
+export function updateProtocolFormValue<K extends keyof ProtocolFormState>(
+  current: ProtocolFormState,
+  key: K,
+  value: ProtocolFormState[K]
+): ProtocolFormState {
+  const next = { ...current, [key]: value };
+  if (key === 'topic') next.legalContext = legalBasisForProtocolTopic(value as SbvControlProtocolTopic);
+  return next;
+}
+
+export function filterProtocolsForQuery(records: SbvControlProtocolRecord[], query: string) {
+  return records.filter((record) =>
+    recordMatchesQuery(
+      [
+        record.title,
+        record.partner,
+        record.topic,
+        record.status,
+        record.participants ?? '',
+        record.legalContext ?? '',
+        record.discussion ?? '',
+        record.result ?? '',
+        record.nextSteps ?? '',
+      ],
+      query
+    )
+  );
+}
+
+export type ProtocolOperation = 'create' | 'update' | 'delete';
+
+export function protocolOperationNotice(operation: ProtocolOperation): string {
+  if (operation === 'create') return 'Steuerungsprotokoll angelegt.';
+  if (operation === 'update') return 'Steuerungsprotokoll aktualisiert.';
+  return 'Steuerungsprotokoll gelöscht.';
+}
+
+export function protocolOperationAnnouncement(operation: ProtocolOperation): string {
+  if (operation === 'create') return 'Steuerungsprotokoll wurde angelegt.';
+  if (operation === 'update') return 'Steuerungsprotokoll wurde aktualisiert.';
+  return 'Steuerungsprotokoll wurde gelöscht.';
+}
+
+export function isProtocolTitleMissing(form: ProtocolFormState) {
   return !form.title?.trim();
 }

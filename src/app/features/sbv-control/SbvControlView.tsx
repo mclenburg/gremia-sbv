@@ -16,7 +16,9 @@ import { ParticipationPanel } from './components/ParticipationPanel';
 import { ObligationsList } from './components/ObligationsList';
 import { InclusionPanel } from './components/InclusionPanel';
 import { ReportsPanel } from './components/ReportsPanel';
+import { ProtocolSection } from './components/ProtocolSection';
 import { useSbvResources } from './hooks/useSbvResources';
+import { useSbvControlProtocols } from './hooks/useSbvControlProtocols';
 import {
   countCriticalParticipation,
   monthLabel,
@@ -43,6 +45,7 @@ export function SbvControlView({
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const resourcesState = useSbvResources();
+  const protocolsState = useSbvControlProtocols();
 
   useEffect(() => {
     let active = true;
@@ -53,6 +56,7 @@ export function SbvControlView({
         if (!active) return;
         if (bridge?.participation) setParticipations(await bridge.participation.list());
         await resourcesState.loadResources();
+        await protocolsState.loadProtocols();
       } catch (loadError) {
         if (active) {
           setError(
@@ -68,7 +72,7 @@ export function SbvControlView({
     return () => {
       active = false;
     };
-  }, [cases.length, resourcesState.loadResources]);
+  }, [cases.length, resourcesState.loadResources, protocolsState.loadProtocols]);
 
   const openDeadlines = deadlines.filter((deadline) => deadline.status !== 'done').length;
   const criticalParticipation = useMemo(
@@ -79,6 +83,7 @@ export function SbvControlView({
   const reportHints = [
     { label: 'Fallakten im Arbeitsbestand', value: cases.length },
     { label: 'Beteiligungsvorgänge', value: participations.length },
+    { label: 'Steuerungsprotokolle', value: protocolsState.protocols.length },
     { label: 'offene Fristen / Wiedervorlagen', value: openDeadlines },
     { label: 'Akten mit Datenschutzprüfung', value: privacyReviewCases },
   ];
@@ -92,6 +97,11 @@ export function SbvControlView({
       id: 'resources',
       title: 'Nachweise',
       summary: `${resourcesState.resources.length} Einträge`,
+    },
+    {
+      id: 'protocols',
+      title: 'Protokolle',
+      summary: `${protocolsState.openProtocolFollowUps} offen`,
     },
     {
       id: 'participation',
@@ -137,6 +147,11 @@ export function SbvControlView({
         items={[
           { label: 'Nachweise', value: resourcesState.resources.length, tone: 'default' },
           {
+            label: 'Steuerungsprotokolle',
+            value: protocolsState.protocols.length,
+            tone: protocolsState.openProtocolFollowUps > 0 ? 'warning' : 'default',
+          },
+          {
             label: 'offene Ressourcenanfragen',
             value: resourcesState.openResourceRequests,
             tone: resourcesState.openResourceRequests > 0 ? 'warning' : 'default',
@@ -173,6 +188,9 @@ export function SbvControlView({
       >
         {activeSection === 'resources' && (
           <ResourceSection state={resourcesState} onOperationResult={handleOperationResult} />
+        )}
+        {activeSection === 'protocols' && (
+          <ProtocolSection state={protocolsState} onOperationResult={handleOperationResult} />
         )}
         {activeSection === 'participation' && (
           <ParticipationPanel participations={participations} onNavigate={onNavigate} />

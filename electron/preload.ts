@@ -74,6 +74,7 @@ import type {
   ParticipationWarning,
   UpdateParticipationInput,
 } from "../src/app/core/models/participation.model.js";
+import type { CreateSbvControlProtocolInput, SbvControlProtocolRecord, UpdateSbvControlProtocolInput } from "../src/app/core/models/sbv-control-protocol.model.js";
 import type {
   CreateWorkplaceAccommodationInput,
   UpdateWorkplaceAccommodationInput,
@@ -367,6 +368,13 @@ const api = {
     create: (input: CreateSbvResourceRecordInput): Promise<SbvResourceRecord> => ipcRenderer.invoke("sbvResources:create", input),
     update: (id: string, input: UpdateSbvResourceRecordInput): Promise<SbvResourceRecord> => ipcRenderer.invoke("sbvResources:update", id, input),
     delete: (id: string): Promise<{ deleted: boolean }> => ipcRenderer.invoke("sbvResources:delete", id),
+  },
+
+  sbvControlProtocols: {
+    list: (): Promise<SbvControlProtocolRecord[]> => ipcRenderer.invoke("sbvControlProtocols:list"),
+    create: (input: CreateSbvControlProtocolInput): Promise<SbvControlProtocolRecord> => ipcRenderer.invoke("sbvControlProtocols:create", input),
+    update: (id: string, input: UpdateSbvControlProtocolInput): Promise<SbvControlProtocolRecord> => ipcRenderer.invoke("sbvControlProtocols:update", id, input),
+    delete: (id: string): Promise<{ deleted: boolean }> => ipcRenderer.invoke("sbvControlProtocols:delete", id),
   },
 
   workplaceAccommodation: {

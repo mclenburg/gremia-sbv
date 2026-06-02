@@ -42,6 +42,8 @@ describe('SBV-Steuerungsstruktur 0.9.2', () => {
     expect(nav).toContain("id: 'sbv_control'");
     expect(app).toContain('currentView === "sbv_control"');
     expect(view).toContain('activeSection');
+    expect(view).toContain("id: 'protocols'");
+    expect(view).toContain('ProtocolSection');
     expect(view).toContain('onNavigate');
     expect(view).toContain('WorkbenchPage');
     expect(view).toContain('WorkbenchWorkspace');

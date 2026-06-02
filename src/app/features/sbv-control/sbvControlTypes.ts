@@ -1,7 +1,9 @@
 import type { SbvResourceRecordKind, SbvResourceRecordStatus } from '../../core/models/sbv-resource.model';
+import type { SbvControlProtocolPartner, SbvControlProtocolStatus, SbvControlProtocolTopic } from '../../core/models/sbv-control-protocol.model';
 
 export type ControlSectionId =
   | 'resources'
+  | 'protocols'
   | 'participation'
   | 'obligations'
   | 'inclusion'
@@ -118,4 +120,28 @@ export const resourceStatusLabels: Record<SbvResourceRecordStatus, string> = {
   completed: 'durchgeführt',
   rejected: 'abgelehnt',
   documented: 'dokumentiert'
+};
+
+
+export const protocolPartnerLabels: Record<SbvControlProtocolPartner, string> = {
+  employer: 'Arbeitgeber',
+  works_council: 'Betriebsrat',
+  joint: 'Arbeitgeber und Betriebsrat',
+  other: 'Sonstige Beteiligte',
+};
+
+export const protocolTopicLabels: Record<SbvControlProtocolTopic, string> = {
+  workplace_rules: 'Betriebliche Regelung',
+  inclusion_agreement: 'Inklusionsvereinbarung',
+  accessibility: 'Barrierefreiheit / Arbeitsplatzgestaltung',
+  procedure: 'Verfahren / Beteiligung',
+  cooperation: 'Zusammenarbeit',
+  other: 'Sonstiges Grundsatzthema',
+};
+
+export const protocolStatusLabels: Record<SbvControlProtocolStatus, string> = {
+  draft: 'Entwurf',
+  documented: 'dokumentiert',
+  follow_up_open: 'Nachverfolgung offen',
+  closed: 'abgeschlossen',
 };

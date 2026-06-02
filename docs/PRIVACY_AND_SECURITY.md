@@ -82,3 +82,9 @@ Auch als Open-Source-Projekt bleibt die Referenzlinie von Gremia.SBV:
 - keine versteckten Datenflüsse,
 - keine automatische Kopplung mit Gremia.BR,
 - keine Vermischung von BR- und SBV-Akten.
+
+## Übergreifende SBV-Steuerungsprotokolle
+
+Übergreifende Protokolle in der SBV-Steuerung sind für Gespräche mit Arbeitgeber oder Betriebsrat vorgesehen, die keinem Einzelfall zugeordnet werden können. Beispiele sind betriebliche Regelungen, Anpassungen der Inklusionsvereinbarung, Barrierefreiheit, Verfahrensabsprachen oder strukturelle Beteiligungsfragen.
+
+Die Protokolle sind keine Ersatz-Fallakten. Sie sollen keine Diagnosen, ärztlichen Unterlagen oder personenbezogenen Einzelfalldetails enthalten. Die Anwendung trennt sie deshalb technisch von Fallakten und Fallnotizen. Audit-Einträge zu diesen Protokollen enthalten keine Protokollinhalte, sondern nur Metadaten zur Aktion, Themenkategorie und zum Status.

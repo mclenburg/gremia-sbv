@@ -28,6 +28,7 @@ import { registerTemplateIpc } from "./ipc/templateIpc.js";
 import { registerProtectedPersonIpc } from "./ipc/protectedPersonIpc.js";
 import { registerComplianceIpc } from "./ipc/complianceIpc.js";
 import { registerSbvResourceIpc } from "./ipc/sbvResourceIpc.js";
+import { registerSbvControlProtocolIpc } from "./ipc/sbvControlProtocolIpc.js";
 import { SecurityService } from "../services/securityService.js";
 import {
   isDemoMode,
@@ -399,6 +400,7 @@ if (!singleInstanceLock) {
       registerBackupIpc(ipcMain, security);
       registerRetentionIpc(ipcMain, security);
       registerSbvResourceIpc(ipcMain, security);
+      registerSbvControlProtocolIpc(ipcMain, security);
       await updateStartupSplash("ui");
       return createWindow();
     })

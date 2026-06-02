@@ -7,6 +7,7 @@ export const AUDIT_SUBJECT_TYPES = {
   complianceIncident: 'compliance_incident',
   caseHandover: 'case_handover',
   sbvResourceRecord: 'sbv_resource_record',
+  sbvControlProtocol: 'sbv_control_protocol',
   gremiaBrHttpRequest: 'gremia_br_http_request',
 } as const;
 
@@ -22,6 +23,8 @@ export const AUDIT_PURPOSES = {
   caseHandoverContinuedAfterExpiry: 'Weitere Bearbeitung abgelaufener Übergabedaten bestätigt.',
   sbvResourceChanged: 'SBV-Ressourcen- und Heranziehungsnachweis geändert.',
   sbvResourceRead: 'SBV-Ressourcen- und Heranziehungsnachweise anzeigen.',
+  sbvControlProtocolChanged: 'Übergreifendes SBV-Steuerungsprotokoll geändert.',
+  sbvControlProtocolRead: 'Übergreifende SBV-Steuerungsprotokolle anzeigen.',
   gremiaBrRequest: 'Gremia.BR-Lesebrücke: HTTP-Anfrage ohne Inhaltsdaten protokollieren.',
 } as const;
 
@@ -52,6 +55,13 @@ export type SbvResourceAuditArgs = {
   action: Extract<PersonalDataAuditAction, 'read' | 'create' | 'update' | 'delete'>;
   recordId?: string;
   recordType?: string;
+  status?: string;
+};
+
+export type SbvControlProtocolAuditArgs = {
+  action: Extract<PersonalDataAuditAction, 'read' | 'create' | 'update' | 'delete'>;
+  protocolId?: string;
+  topic?: string;
   status?: string;
 };
 
@@ -160,6 +170,16 @@ export function auditResourceRecordChanged(args: SbvResourceAuditArgs): CreatePe
     subjectId: args.recordId,
     purpose: args.action === 'read' ? AUDIT_PURPOSES.sbvResourceRead : AUDIT_PURPOSES.sbvResourceChanged,
     metadata: compactMetadata({ recordType: args.recordType, status: args.status }),
+  };
+}
+
+export function auditSbvControlProtocolChanged(args: SbvControlProtocolAuditArgs): CreatePersonalDataAuditInput {
+  return {
+    action: args.action,
+    subjectType: AUDIT_SUBJECT_TYPES.sbvControlProtocol,
+    subjectId: args.protocolId,
+    purpose: args.action === 'read' ? AUDIT_PURPOSES.sbvControlProtocolRead : AUDIT_PURPOSES.sbvControlProtocolChanged,
+    metadata: compactMetadata({ topic: args.topic, status: args.status }),
   };
 }
 

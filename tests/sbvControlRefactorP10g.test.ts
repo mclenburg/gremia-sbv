@@ -2,10 +2,16 @@ import { readFileSync, statSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import type { SbvResourceRecord } from '../src/app/core/models/sbv-resource.model';
 import {
+  filterProtocolsForQuery,
   filterResourcesForQuery,
+  initialProtocolForm,
   initialResourceForm,
+  isProtocolTitleMissing,
   isResourceTitleMissing,
   legalBasisForKind,
+  protocolOperationAnnouncement,
+  protocolOperationNotice,
+  updateProtocolFormValue,
   resourceFormFromRecord,
   resourceOperationAnnouncement,
   resourceOperationNotice,
@@ -49,6 +55,8 @@ describe('SBV-Steuerung Refactor P10g', () => {
     expect(statSync('src/app/features/sbv-control/components/ObligationsList.tsx').isFile()).toBe(true);
     expect(statSync('src/app/features/sbv-control/components/InclusionPanel.tsx').isFile()).toBe(true);
     expect(statSync('src/app/features/sbv-control/components/ReportsPanel.tsx').isFile()).toBe(true);
+    expect(statSync('src/app/features/sbv-control/components/ProtocolSection.tsx').isFile()).toBe(true);
+    expect(statSync('src/app/features/sbv-control/hooks/useSbvControlProtocols.ts').isFile()).toBe(true);
   });
 
   it('hält Ressourcen-Formularverhalten fachlich in zentralen Funktionen fest', () => {
@@ -69,6 +77,25 @@ describe('SBV-Steuerung Refactor P10g', () => {
     expect(form.startedAt).toBe('2026-05-20');
     expect(form.endedAt).toBe('2026-05-21');
     expect(form.provider).toBe('Gewerkschaft');
+  });
+
+  it('hält übergreifende Steuerungsprotokolle ohne Fallzuordnung fachlich zentral', () => {
+    expect(isProtocolTitleMissing(initialProtocolForm)).toBe(true);
+    const updated = updateProtocolFormValue(initialProtocolForm, 'topic', 'inclusion_agreement');
+    expect(updated.legalContext).toContain('§ 166 SGB IX');
+    expect(filterProtocolsForQuery([{
+      id: 'prot-1',
+      title: 'Regelung Homeoffice',
+      partner: 'employer',
+      topic: 'workplace_rules',
+      meetingAt: '2026-06-12',
+      legalContext: '§ 178 Abs. 1 SGB IX',
+      status: 'follow_up_open',
+      createdAt: '2026-06-12T08:00:00.000Z',
+      updatedAt: '2026-06-12T08:00:00.000Z',
+    }], 'homeoffice')).toHaveLength(1);
+    expect(protocolOperationNotice('create')).toBe('Steuerungsprotokoll angelegt.');
+    expect(protocolOperationAnnouncement('update')).toBe('Steuerungsprotokoll wurde aktualisiert.');
   });
 
   it('liefert konsistente Nutzer- und Screenreader-Rückmeldungen für Ressourcenoperationen', () => {

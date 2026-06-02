@@ -90,3 +90,9 @@ Zusätzlich zu Architektur-Gates und visueller QA beschreibt `docs/UI_CORE_BEHAV
 ## Qualitätsvertrag
 
 Die verbindliche Qualitätsfreigabe-Linie ist in `docs/QUALITY_GATE.md` dokumentiert. Für neue Module gilt: Views orchestrieren, State liegt in Hooks, UI in kleinen Komponenten, Fachlogik in Logic-/Utility-Dateien. Zentrale UI-Komponenten, Audit-Builder, Live-Regionen und Light-/Dark-Mode-Verträge sind verbindlich.
+
+## SBV-Steuerungsprotokolle ohne Fallzuordnung
+
+Die SBV-Steuerung enthält neben Nachweisen zu Schulung, Heranziehung und Sachmitteln einen eigenen Bereich für übergreifende Steuerungsprotokolle. Diese Protokolle sind bewusst nicht an eine Fallakte gebunden. Sie dienen der Dokumentation von Gesprächen mit Arbeitgeber, Betriebsrat oder gemeinsamen Runden zu betrieblichen Regelungen, Inklusionsvereinbarung, Barrierefreiheit, Beteiligungsverfahren und sonstigen Grundsatzthemen.
+
+Datenschutzfachlich ist der Bereich von Fallakten getrennt: Ein Steuerungsprotokoll darf keine ärztlichen Details, Diagnosen oder Einzelfallunterlagen aufnehmen. Personenbezüge sind auf das für Rollen, Teilnehmende und Nachverfolgung erforderliche Maß zu beschränken. Die Auditierung protokolliert nur Aktion, Status und Themenkategorie, nicht den Inhalt des Protokolls.
