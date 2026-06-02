@@ -12,6 +12,10 @@ describe("Startup-Bootstrap fuer sofortige sichtbare Rueckmeldung", () => {
     expect(bootstrap.indexOf('await showStartupSplash("app")')).toBeLessThan(
       bootstrap.indexOf('await import("./appRuntime.js")'),
     );
+    expect(bootstrap).toContain('show: true');
+    expect(bootstrap).toContain('markStartupPhase("splash:visible")');
+    expect(bootstrap).toContain('void splash');
+    expect(bootstrap).not.toContain('await splash.loadURL');
 
     expect(bootstrap).not.toContain("../services/securityService");
     expect(bootstrap).not.toContain("./ipc/");
@@ -33,6 +37,16 @@ describe("Startup-Bootstrap fuer sofortige sichtbare Rueckmeldung", () => {
     expect(runtime).toContain("export async function startApplication");
     expect(runtime).toContain("markStartupPhase");
     expect(runtime).toContain("runtime:ipc-registered");
+    expect(runtime).toContain("prepareDemoVaultInBackground");
+    expect(runtime).toContain("scheduleDemoVaultPreparation");
+    expect(runtime).toContain("runtime:demo-vault-background-scheduled");
+    expect(runtime).toContain("runtime:demo-vault-background-start");
+    expect(runtime.indexOf('await createWindow()')).toBeLessThan(
+      runtime.indexOf('scheduleDemoVaultPreparation(dataDirectory)'),
+    );
+    expect(runtime.indexOf('markStartupPhase("main-window:visible")')).toBeLessThan(
+      runtime.indexOf('scheduleDemoVaultPreparation(dataDirectory)'),
+    );
   });
 
   it("dokumentiert den Bootstrap-Vertrag im Architekturkonzept", () => {

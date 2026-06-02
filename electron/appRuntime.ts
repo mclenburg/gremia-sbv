@@ -29,6 +29,7 @@ import { registerProtectedPersonIpc } from "./ipc/protectedPersonIpc.js";
 import { registerComplianceIpc } from "./ipc/complianceIpc.js";
 import { registerSbvResourceIpc } from "./ipc/sbvResourceIpc.js";
 import { registerSbvControlProtocolIpc } from "./ipc/sbvControlProtocolIpc.js";
+import type { SecurityResult, SecurityStatus } from "../src/app/core/models/security.model.js";
 import { SecurityService } from "../services/securityService.js";
 import {
   isDemoMode,
@@ -53,6 +54,8 @@ app.setAppUserModelId("de.gremia.sbv");
 let security: SecurityService;
 let mainWindow: BrowserWindow | null = null;
 let splashWindow: BrowserWindow | null = null;
+let demoVaultPreparing = false;
+let demoVaultReady = false;
 
 function focusStartupWindow(): void {
   const target = mainWindow ?? splashWindow;
@@ -304,27 +307,39 @@ async function createWindow(): Promise<void> {
   registerDiagnostics(win);
   registerRendererSecurityPolicy(win);
 
-  win.once("ready-to-show", () => {
-    markStartupPhase("main-window:ready-to-show");
+  let mainWindowWasRevealed = false;
+  const revealMainWindow = (
+    reason: "ready-to-show" | "did-finish-load" | "load-complete" | "fallback",
+  ): void => {
+    if (mainWindowWasRevealed || win.isDestroyed()) return;
+    mainWindowWasRevealed = true;
+
+    if (reason === "ready-to-show") {
+      markStartupPhase("main-window:ready-to-show");
+    } else if (reason === "did-finish-load") {
+      markStartupPhase("main-window:did-finish-load");
+    } else if (reason === "load-complete") {
+      markStartupPhase("main-window:load-complete");
+    } else {
+      console.warn(
+        "Gremia.SBV window shown by fallback timer because renderer visibility was not confirmed.",
+      );
+      markStartupPhase("main-window:visible-fallback");
+    }
+
     void updateStartupSplash("ready");
     win.show();
     markStartupPhase("main-window:visible");
     closeStartupSplash();
-    logStartupTimeline("main-window-visible");
-  });
+    logStartupTimeline(`main-window-visible-${reason}`);
+  };
 
-  // Falls ready-to-show bei einem Renderer-Fehler nie feuert, soll das Fenster trotzdem sichtbar sein.
-  setTimeout(() => {
-    if (!win.isDestroyed() && !win.isVisible()) {
-      console.warn(
-        "Gremia.SBV window shown by fallback timer because ready-to-show did not fire.",
-      );
-      win.show();
-      markStartupPhase("main-window:visible-fallback");
-      closeStartupSplash();
-      logStartupTimeline("main-window-visible-fallback");
-    }
-  }, 3000);
+  win.once("ready-to-show", () => revealMainWindow("ready-to-show"));
+  win.webContents.once("did-finish-load", () => revealMainWindow("did-finish-load"));
+
+  // ready-to-show ist auf einigen Electron-/Linux-/AppImage-Kombinationen unzuverlaessig.
+  // Das Hauptfenster soll nach dem Renderer-Load sichtbar werden, bevor Demo-Seeding CPU-Zeit bekommt.
+  setTimeout(() => revealMainWindow("fallback"), 900);
 
   win.on("closed", () => {
     if (mainWindow === win) {
@@ -334,6 +349,7 @@ async function createWindow(): Promise<void> {
 
   if (!app.isPackaged) {
     await win.loadURL("http://127.0.0.1:5173");
+    revealMainWindow("load-complete");
     if (process.env.GREMIA_SBV_OPEN_DEVTOOLS === "1") {
       win.webContents.openDevTools({ mode: "detach" });
     }
@@ -341,9 +357,35 @@ async function createWindow(): Promise<void> {
     const indexHtml = resolvePackagedIndexHtml();
     console.info("Gremia.SBV renderer index:", indexHtml);
     await win.loadFile(indexHtml);
+    revealMainWindow("load-complete");
     if (process.env.GREMIA_SBV_OPEN_DEVTOOLS === "1") {
       win.webContents.openDevTools({ mode: "detach" });
     }
+  }
+}
+
+function scheduleDemoVaultPreparation(dataDirectory: string): void {
+  markStartupPhase("runtime:demo-vault-background-scheduled");
+  setTimeout(() => {
+    void prepareDemoVaultInBackground(dataDirectory);
+  }, 500);
+}
+
+async function prepareDemoVaultInBackground(dataDirectory: string): Promise<void> {
+  try {
+    markStartupPhase("runtime:demo-vault-background-start");
+    await prepareDemoVault(security);
+    demoVaultReady = true;
+    demoVaultPreparing = false;
+    markStartupPhase("runtime:demo-vault-ready");
+    console.info(
+      `Gremia.SBV demo vault ready. Data directory: ${dataDirectory}. Demo password hint available in onboarding.`,
+    );
+    logStartupTimeline("demo-vault-ready");
+  } catch (error) {
+    demoVaultPreparing = false;
+    demoVaultReady = false;
+    console.error("Gremia.SBV demo vault preparation failed", error);
   }
 }
 
@@ -373,6 +415,8 @@ export async function startApplication(existingSplashWindow?: BrowserWindow): Pr
   if (demoMode) {
     await updateStartupSplash("demo");
     resetDemoDataDirectory(dataDirectory);
+    demoVaultPreparing = true;
+    demoVaultReady = false;
     markStartupPhase("runtime:demo-reset-complete");
   }
 
@@ -380,16 +424,33 @@ export async function startApplication(existingSplashWindow?: BrowserWindow): Pr
   security = new SecurityService(dataDirectory);
   markStartupPhase("runtime:security-service-ready");
   if (demoMode) {
-    await prepareDemoVault(security);
-    markStartupPhase("runtime:demo-vault-ready");
     console.info(
-      `Gremia.SBV demo mode active. Data directory: ${dataDirectory}. Demo password hint available in onboarding.`,
+      `Gremia.SBV demo mode active. Data directory: ${dataDirectory}. Demo vault is prepared in the background.`,
     );
   } else {
     console.info("Gremia.SBV data directory:", dataDirectory);
   }
   await updateStartupSplash("ipc");
-  registerSecurityIpc(ipcMain, security);
+  registerSecurityIpc(ipcMain, security, demoMode ? {
+    status: async (): Promise<SecurityStatus> => {
+      if (!demoVaultPreparing || demoVaultReady) return security.status();
+      return {
+        initialized: true,
+        unlocked: false,
+        dataProtectionState: "locked",
+        recoveryRequired: false,
+      };
+    },
+    unlock: async (): Promise<SecurityResult | null> => {
+      if (!demoVaultPreparing || demoVaultReady) return null;
+      return {
+        ok: false,
+        initialized: true,
+        unlocked: false,
+        error: "Die Demoumgebung wird noch vorbereitet. Bitte kurz warten und erneut entsperren.",
+      };
+    },
+  } : undefined);
   registerCaseIpc(ipcMain, security);
   registerCaseHandoverIpc(ipcMain, security);
   registerCaseMeasureIpc(ipcMain, security);
@@ -414,6 +475,10 @@ export async function startApplication(existingSplashWindow?: BrowserWindow): Pr
   await updateStartupSplash("ui");
   await createWindow();
   markStartupPhase("runtime:create-window-complete");
+
+  if (demoMode) {
+    scheduleDemoVaultPreparation(dataDirectory);
+  }
 }
 
 app.on("before-quit", () => {

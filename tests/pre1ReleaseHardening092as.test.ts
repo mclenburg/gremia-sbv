@@ -31,7 +31,9 @@ describe('Pre-1.0 Release-Hardening', () => {
 
     const bootstrap = read('electron/main.ts');
     expect(bootstrap).toContain('markStartupPhase("bootstrap:module-loaded")');
-    expect(bootstrap).toContain('markStartupPhase("splash:visible');
+    expect(bootstrap).toContain('markStartupPhase("splash:visible");');
+    expect(bootstrap).toContain('show: true');
+    expect(bootstrap).not.toContain('await splash.loadURL');
     expect(bootstrap).toContain('markStartupPhase("runtime:import-start")');
     expect(bootstrap).toContain('markStartupPhase("runtime:import-complete")');
     expect(bootstrap.indexOf('await showStartupSplash("app")')).toBeLessThan(bootstrap.indexOf('await import("./appRuntime.js")'));
@@ -41,6 +43,13 @@ describe('Pre-1.0 Release-Hardening', () => {
     expect(runtime).toContain('markStartupPhase("runtime:ipc-registered")');
     expect(runtime).toContain('markStartupPhase("main-window:visible")');
     expect(runtime).toContain('logStartupTimeline("main-window-visible")');
+    expect(runtime).toContain('prepareDemoVaultInBackground');
+    expect(runtime).toContain('scheduleDemoVaultPreparation');
+    expect(runtime).toContain('main-window:did-finish-load');
+    expect(runtime).toContain('main-window:load-complete');
+    expect(runtime).toContain('setTimeout(() => revealMainWindow("fallback"), 900)');
+    expect(runtime.indexOf('await createWindow()')).toBeLessThan(runtime.indexOf('scheduleDemoVaultPreparation(dataDirectory)'));
+    expect(runtime.indexOf('markStartupPhase("main-window:visible")')).toBeLessThan(runtime.indexOf('scheduleDemoVaultPreparation(dataDirectory)'));
     expect(read('docs/ARCHITECTURE.md')).toContain('GREMIA_SBV_STARTUP_TIMING=1');
   });
 

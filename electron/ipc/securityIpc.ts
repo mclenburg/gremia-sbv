@@ -1,12 +1,19 @@
 import type { IpcMain } from "electron";
+import type { SecurityResult, SecurityStatus } from "../../src/app/core/models/security.model.js";
 import { SecurityService } from "../../services/securityService.js";
 import { assertAllowedEnum, assertString } from "./ipcValidation.js";
+
+export interface SecurityIpcRuntimeHooks {
+  readonly status?: () => Promise<SecurityStatus> | SecurityStatus;
+  readonly unlock?: (password: string) => Promise<SecurityResult | null> | SecurityResult | null;
+}
 
 export function registerSecurityIpc(
   ipcMain: IpcMain,
   security: SecurityService,
+  hooks: SecurityIpcRuntimeHooks = {},
 ): void {
-  ipcMain.handle("security:status", async () => security.status());
+  ipcMain.handle("security:status", async () => hooks.status?.() ?? security.status());
 
   ipcMain.handle("security:setup-initial-password", async (_event, password: unknown) =>
     security.setupInitialPassword(
@@ -14,9 +21,12 @@ export function registerSecurityIpc(
     ),
   );
 
-  ipcMain.handle("security:unlock", async (_event, password: unknown) =>
-    security.unlock(assertString(password, "security:unlock", "Passwort", { minLength: 1, maxLength: 512 })),
-  );
+  ipcMain.handle("security:unlock", async (_event, password: unknown) => {
+    const safePassword = assertString(password, "security:unlock", "Passwort", { minLength: 1, maxLength: 512 });
+    const hookedResult = await hooks.unlock?.(safePassword);
+    if (hookedResult) return hookedResult;
+    return security.unlock(safePassword);
+  });
 
   ipcMain.handle(
     "security:change-password",

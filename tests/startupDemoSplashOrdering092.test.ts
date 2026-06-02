@@ -11,23 +11,29 @@ function readElectronRuntime(): string {
 }
 
 describe("Demo-Start Splash-Reihenfolge 0.9.2", () => {
-  it("zeigt den Splash vor Demo-Reset und Demo-Tresoraufbau", () => {
+  it("zeigt Splash und Hauptfenster vor dem nachgelagerten Demo-Tresoraufbau", () => {
     const bootstrap = readElectronMain();
     const runtime = readElectronRuntime();
     const splashIndex = bootstrap.indexOf('const splash = await showStartupSplash("app")');
     const runtimeImportIndex = bootstrap.indexOf('await import("./appRuntime.js")');
     const resetIndex = runtime.indexOf("resetDemoDataDirectory(dataDirectory)");
-    const prepareIndex = runtime.indexOf("await prepareDemoVault(security)");
+    const prepareIndex = runtime.indexOf("scheduleDemoVaultPreparation(dataDirectory)");
     const windowIndex = runtime.indexOf("await createWindow()");
+    const visibleIndex = runtime.indexOf('markStartupPhase("main-window:visible")');
 
     expect(splashIndex).toBeGreaterThan(-1);
     expect(runtimeImportIndex).toBeGreaterThan(-1);
     expect(resetIndex).toBeGreaterThan(-1);
     expect(prepareIndex).toBeGreaterThan(-1);
     expect(windowIndex).toBeGreaterThan(-1);
+    expect(visibleIndex).toBeGreaterThan(-1);
     expect(splashIndex).toBeLessThan(runtimeImportIndex);
-    expect(resetIndex).toBeLessThan(prepareIndex);
-    expect(prepareIndex).toBeLessThan(windowIndex);
+    expect(resetIndex).toBeLessThan(windowIndex);
+    expect(windowIndex).toBeLessThan(prepareIndex);
+    expect(visibleIndex).toBeLessThan(prepareIndex);
+    expect(runtime).toContain("await prepareDemoVault(security)");
+    expect(runtime).toContain('win.webContents.once("did-finish-load", () => revealMainWindow("did-finish-load"))');
+    expect(runtime).toContain('revealMainWindow("load-complete")');
   });
 
   it("behandelt erneute Startversuche während des Splash-Zustands als laufende Instanz", () => {

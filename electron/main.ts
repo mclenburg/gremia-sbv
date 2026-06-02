@@ -45,7 +45,7 @@ async function showStartupSplash(initialPhase: StartupPhaseId = "app"): Promise<
     minWidth: 640,
     minHeight: 420,
     title: "Gremia.SBV wird gestartet",
-    show: false,
+    show: true,
     resizable: false,
     maximizable: false,
     fullscreenable: false,
@@ -58,27 +58,22 @@ async function showStartupSplash(initialPhase: StartupPhaseId = "app"): Promise<
   });
 
   splashWindow = splash;
+  markStartupPhase("splash:visible");
   splash.once("ready-to-show", () => {
     markStartupPhase("splash:ready-to-show");
-    if (!splash.isDestroyed()) {
-      splash.show();
-      markStartupPhase("splash:visible");
-    }
   });
   splash.on("closed", () => {
     if (splashWindow === splash) splashWindow = null;
   });
 
-  await splash.loadURL(
-    `data:text/html;charset=utf-8,${encodeURIComponent(buildStartupSplashHtml(initialPhase))}`,
-  );
-
-  markStartupPhase("splash:html-loaded");
-
-  if (!splash.isDestroyed() && !splash.isVisible()) {
-    splash.show();
-    markStartupPhase("splash:visible-fallback");
-  }
+  void splash
+    .loadURL(
+      `data:text/html;charset=utf-8,${encodeURIComponent(buildStartupSplashHtml(initialPhase))}`,
+    )
+    .then(() => markStartupPhase("splash:html-loaded"))
+    .catch((error) => {
+      console.warn("Gremia.SBV bootstrap splash could not load inline HTML", error);
+    });
 
   return splash;
 }
