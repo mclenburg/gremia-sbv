@@ -96,3 +96,9 @@ Die verbindliche Qualitätsfreigabe-Linie ist in `docs/QUALITY_GATE.md` dokument
 Die SBV-Steuerung enthält neben Nachweisen zu Schulung, Heranziehung und Sachmitteln einen eigenen Bereich für übergreifende Steuerungsprotokolle. Diese Protokolle sind bewusst nicht an eine Fallakte gebunden. Sie dienen der Dokumentation von Gesprächen mit Arbeitgeber, Betriebsrat oder gemeinsamen Runden zu betrieblichen Regelungen, Inklusionsvereinbarung, Barrierefreiheit, Beteiligungsverfahren und sonstigen Grundsatzthemen.
 
 Datenschutzfachlich ist der Bereich von Fallakten getrennt: Ein Steuerungsprotokoll darf keine ärztlichen Details, Diagnosen oder Einzelfallunterlagen aufnehmen. Personenbezüge sind auf das für Rollen, Teilnehmende und Nachverfolgung erforderliche Maß zu beschränken. Die Auditierung protokolliert nur Aktion, Status und Themenkategorie, nicht den Inhalt des Protokolls.
+
+## Startpfad und erste sichtbare Rückmeldung
+
+Der Electron-Einstieg `electron/main.ts` ist ein bewusst schlanker Bootstrap. Er darf keine Fachservices, IPC-Module, SQLCipher-/Vault-Services, Demo-Seed-Logik oder Dateisystem-Resolver der Anwendung top-level importieren. Seine Aufgabe ist nur: Single-Instance-Schutz setzen, nach `app.whenReady()` ein minimales Splash-Fenster anzeigen und erst danach die eigentliche Laufzeit über `electron/appRuntime.ts` dynamisch nachladen.
+
+Die schwere Initialisierung liegt in `electron/appRuntime.ts`: Sicherheitsrichtlinien, Datenverzeichnis, Demo-Vault, `SecurityService`, IPC-Registrierungen und das eigentliche Anwendungsfenster werden erst ausgeführt, wenn der Splash bereits sichtbar ist. Dadurch bekommt die Nutzerin sofort eine sichtbare Rückmeldung, auch wenn Vault-, Demo- oder IPC-Initialisierung auf langsameren Systemen mehrere Sekunden benötigt.

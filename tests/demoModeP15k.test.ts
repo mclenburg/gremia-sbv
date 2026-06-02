@@ -23,7 +23,7 @@ describe("P15k Demo-Modus", () => {
   });
 
   it("verdrahtet den Electron-Startpfad auf Demo-Daten, ohne produktive Datenverzeichnisse zu berühren", () => {
-    const main = source("electron/main.ts");
+    const main = source("electron/appRuntime.ts");
     expect(main).toContain("isDemoMode()");
     expect(main).toContain("resolveDemoDataDirectory()");
     expect(main).toContain("resetDemoDataDirectory(dataDirectory)");

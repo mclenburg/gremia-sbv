@@ -23,7 +23,7 @@ describe("Security readiness", () => {
   });
 
   it("verankert Renderer-CSP und gehärtete Electron-WebPreferences", () => {
-    const main = readFileSync("electron/main.ts", "utf8");
+    const main = readFileSync("electron/appRuntime.ts", "utf8");
     const reportIpc = readFileSync("electron/ipc/reportIpc.ts", "utf8");
     const electronSecurity = readFileSync("electron/security/electronSecurity.ts", "utf8");
 
