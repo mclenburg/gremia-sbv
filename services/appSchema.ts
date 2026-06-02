@@ -1,4 +1,4 @@
-export const APP_SCHEMA_VERSION = '0038';
+export const APP_SCHEMA_VERSION = '0039';
 
 export const DATABASE_SCHEMA_VERSION_KEY = 'database.schema.version';
 export const LEGACY_DATABASE_SCHEMA_VERSION_KEY = 'settings.database.schema.version';
@@ -280,6 +280,23 @@ export const SBV_RESOURCE_RECORDS_REQUIRED_COLUMNS = [
   'cost_note',
   'status',
   'notes',
+  'created_at',
+  'updated_at'
+] as const;
+
+
+export const SBV_CONTROL_PROTOCOLS_REQUIRED_COLUMNS = [
+  'id',
+  'title',
+  'partner',
+  'topic',
+  'meeting_at',
+  'participants',
+  'legal_context',
+  'discussion',
+  'result',
+  'next_steps',
+  'status',
   'created_at',
   'updated_at'
 ] as const;

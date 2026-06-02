@@ -17,6 +17,7 @@ import {
   GREMIA_BR_SETTINGS_REQUIRED_COLUMNS,
   PERSONAL_DATA_AUDIT_REQUIRED_COLUMNS,
   PROTECTED_PERSONS_REQUIRED_COLUMNS,
+  SBV_CONTROL_PROTOCOLS_REQUIRED_COLUMNS,
   SBV_RESOURCE_RECORDS_REQUIRED_COLUMNS,
 } from '../services/appSchema';
 
@@ -46,6 +47,7 @@ const completeSchema: TableMap = {
   case_handover_imports: CASE_HANDOVER_IMPORTS_REQUIRED_COLUMNS,
   case_handover_import_items: CASE_HANDOVER_IMPORT_ITEMS_REQUIRED_COLUMNS,
   sbv_resource_records: SBV_RESOURCE_RECORDS_REQUIRED_COLUMNS,
+  sbv_control_protocols: SBV_CONTROL_PROTOCOLS_REQUIRED_COLUMNS,
   compliance_incidents: COMPLIANCE_INCIDENTS_REQUIRED_COLUMNS,
 };
 
@@ -69,7 +71,7 @@ class SelfCheckDb implements DatabaseAdapter {
           const table = String(params[0] ?? '');
           return (self.tables[table] ? { value: 1 } : undefined) as T | undefined;
         }
-        if (sql.includes('MAX(version)')) return { value: '0038' } as T;
+        if (sql.includes('MAX(version)')) return { value: '0039' } as T;
         if (sql.includes('privacy_review_items') && sql.includes('due_at <')) return { value: self.values.overduePrivacyReviews ?? 0 } as T;
         if (sql.includes('privacy_review_items')) return { value: self.values.openPrivacyReviews ?? 0 } as T;
         if (sql.includes('compliance_incidents') && sql.includes("risk_level = 'high'")) return { value: self.values.highIncidents ?? 0 } as T;

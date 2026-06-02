@@ -3,7 +3,7 @@ import path from 'node:path';
 import type { DatabaseAdapter } from './databaseService.js';
 import { classifyCaseLegalReferencesColumns } from './knowledgeMigrationPolicy.js';
 import { APP_VERSION } from './generated/appMetadata.js';
-import { APP_SCHEMA_VERSION, COMPLIANCE_INCIDENTS_REQUIRED_COLUMNS, SBV_RESOURCE_RECORDS_REQUIRED_COLUMNS, CASE_HANDOVER_IMPORTS_REQUIRED_COLUMNS, CASE_HANDOVER_IMPORT_ITEMS_REQUIRED_COLUMNS, CASE_DOCUMENTS_REQUIRED_COLUMNS, CASE_DOCUMENT_OCR_JOBS_REQUIRED_COLUMNS, CASE_EXTERNAL_REFERENCES_REQUIRED_COLUMNS, CASES_REQUIRED_COLUMNS, CASE_MEASURES_REQUIRED_COLUMNS, CASE_MEASURE_PARTICIPATION_REQUIRED_COLUMNS, CASE_MEASURE_NOTES_REQUIRED_COLUMNS, CASE_MEASURE_WORKPLACE_ACCOMMODATION_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_STATE_REQUIRED_COLUMNS, GREMIA_BR_CACHE_REQUIRED_COLUMNS, GREMIA_BR_SETTINGS_REQUIRED_COLUMNS, PERSON_IMPORT_RUN_ITEMS_REQUIRED_COLUMNS, PROTECTED_PERSONS_REQUIRED_COLUMNS, DATABASE_SCHEMA_APP_VERSION_KEY, DATABASE_SCHEMA_VERSION_KEY, PERSONAL_DATA_AUDIT_REQUIRED_COLUMNS, SBV_PARTICIPATION_REQUIRED_COLUMNS, TERMINATION_HEARINGS_REQUIRED_COLUMNS } from './appSchema.js';
+import { APP_SCHEMA_VERSION, COMPLIANCE_INCIDENTS_REQUIRED_COLUMNS, SBV_CONTROL_PROTOCOLS_REQUIRED_COLUMNS, SBV_RESOURCE_RECORDS_REQUIRED_COLUMNS, CASE_HANDOVER_IMPORTS_REQUIRED_COLUMNS, CASE_HANDOVER_IMPORT_ITEMS_REQUIRED_COLUMNS, CASE_DOCUMENTS_REQUIRED_COLUMNS, CASE_DOCUMENT_OCR_JOBS_REQUIRED_COLUMNS, CASE_EXTERNAL_REFERENCES_REQUIRED_COLUMNS, CASES_REQUIRED_COLUMNS, CASE_MEASURES_REQUIRED_COLUMNS, CASE_MEASURE_PARTICIPATION_REQUIRED_COLUMNS, CASE_MEASURE_NOTES_REQUIRED_COLUMNS, CASE_MEASURE_WORKPLACE_ACCOMMODATION_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_STATE_REQUIRED_COLUMNS, GREMIA_BR_CACHE_REQUIRED_COLUMNS, GREMIA_BR_SETTINGS_REQUIRED_COLUMNS, PERSON_IMPORT_RUN_ITEMS_REQUIRED_COLUMNS, PROTECTED_PERSONS_REQUIRED_COLUMNS, DATABASE_SCHEMA_APP_VERSION_KEY, DATABASE_SCHEMA_VERSION_KEY, PERSONAL_DATA_AUDIT_REQUIRED_COLUMNS, SBV_PARTICIPATION_REQUIRED_COLUMNS, TERMINATION_HEARINGS_REQUIRED_COLUMNS } from './appSchema.js';
 
 interface MigrationRow {
   version: string;
@@ -331,6 +331,9 @@ export class MigrationService {
       case '0038':
         return this.tableExists('compliance_incidents')
           && COMPLIANCE_INCIDENTS_REQUIRED_COLUMNS.every((column) => this.columnExists('compliance_incidents', column));
+      case '0039':
+        return this.tableExists('sbv_control_protocols')
+          && SBV_CONTROL_PROTOCOLS_REQUIRED_COLUMNS.every((column) => this.columnExists('sbv_control_protocols', column));
       default:
         return false;
     }
@@ -574,6 +577,12 @@ export class MigrationService {
     if (!this.hasCompleteCaseHandoverSchema()) {
       this.ensureCaseHandoverSchema();
       diagnostics.push('Fallübergabe-Schema wurde auf Stand 0036 repariert.');
+    }
+
+
+    if (!this.tableExists('sbv_control_protocols') || !SBV_CONTROL_PROTOCOLS_REQUIRED_COLUMNS.every((column) => this.columnExists('sbv_control_protocols', column))) {
+      this.ensureSbvControlProtocolSchema();
+      diagnostics.push('SBV-Steuerungsprotokoll-Schema wurde auf Stand 0039 repariert.');
     }
   }
 
@@ -1195,7 +1204,8 @@ CREATE INDEX IF NOT EXISTS idx_case_measure_events_measure_created ON case_measu
       'case_external_references',
       'case_handover_imports',
       'case_handover_import_items',
-      'sbv_resource_records'
+      'sbv_resource_records',
+      'sbv_control_protocols'
     ];
 
     requiredTables.forEach((table) => {
@@ -1222,7 +1232,8 @@ CREATE INDEX IF NOT EXISTS idx_case_measure_events_measure_created ON case_measu
       case_external_references: [...CASE_EXTERNAL_REFERENCES_REQUIRED_COLUMNS],
       case_handover_imports: [...CASE_HANDOVER_IMPORTS_REQUIRED_COLUMNS],
       case_handover_import_items: [...CASE_HANDOVER_IMPORT_ITEMS_REQUIRED_COLUMNS],
-      sbv_resource_records: [...SBV_RESOURCE_RECORDS_REQUIRED_COLUMNS]
+      sbv_resource_records: [...SBV_RESOURCE_RECORDS_REQUIRED_COLUMNS],
+      sbv_control_protocols: [...SBV_CONTROL_PROTOCOLS_REQUIRED_COLUMNS]
     };
 
     Object.entries(requiredColumns).forEach(([table, columns]) => {
@@ -1236,6 +1247,31 @@ CREATE INDEX IF NOT EXISTS idx_case_measure_events_measure_created ON case_measu
     if (this.tableExists('bem_processes_legacy_0500')) {
       diagnostics.push('Frühe/defekte BEM-Tabelle wurde als bem_processes_legacy_0500 gesichert.');
     }
+  }
+
+
+  private ensureSbvControlProtocolSchema(): void {
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS sbv_control_protocols (
+        id TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        partner TEXT NOT NULL,
+        topic TEXT NOT NULL,
+        meeting_at TEXT NOT NULL,
+        participants TEXT,
+        legal_context TEXT,
+        discussion TEXT,
+        result TEXT,
+        next_steps TEXT,
+        status TEXT NOT NULL DEFAULT 'documented',
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_sbv_control_protocols_partner ON sbv_control_protocols(partner);
+      CREATE INDEX IF NOT EXISTS idx_sbv_control_protocols_topic ON sbv_control_protocols(topic);
+      CREATE INDEX IF NOT EXISTS idx_sbv_control_protocols_status ON sbv_control_protocols(status);
+      CREATE INDEX IF NOT EXISTS idx_sbv_control_protocols_meeting ON sbv_control_protocols(meeting_at DESC);
+    `);
   }
 
   private currentSchemaVersion(): string {

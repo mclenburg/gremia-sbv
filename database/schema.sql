@@ -1080,6 +1080,28 @@ CREATE INDEX IF NOT EXISTS idx_sbv_resource_records_kind ON sbv_resource_records
 CREATE INDEX IF NOT EXISTS idx_sbv_resource_records_status ON sbv_resource_records(status);
 CREATE INDEX IF NOT EXISTS idx_sbv_resource_records_started ON sbv_resource_records(started_at);
 
+
+-- 0039: Übergreifende SBV-Steuerungsprotokolle ohne Fallaktenbezug.
+CREATE TABLE IF NOT EXISTS sbv_control_protocols (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  partner TEXT NOT NULL,
+  topic TEXT NOT NULL,
+  meeting_at TEXT NOT NULL,
+  participants TEXT,
+  legal_context TEXT,
+  discussion TEXT,
+  result TEXT,
+  next_steps TEXT,
+  status TEXT NOT NULL DEFAULT 'documented',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_sbv_control_protocols_partner ON sbv_control_protocols(partner);
+CREATE INDEX IF NOT EXISTS idx_sbv_control_protocols_topic ON sbv_control_protocols(topic);
+CREATE INDEX IF NOT EXISTS idx_sbv_control_protocols_status ON sbv_control_protocols(status);
+CREATE INDEX IF NOT EXISTS idx_sbv_control_protocols_meeting ON sbv_control_protocols(meeting_at DESC);
+
 -- 0038: Datenschutzvorfälle und Sicherheitsereignisse im Compliance Center.
 CREATE TABLE IF NOT EXISTS compliance_incidents (
   id TEXT PRIMARY KEY,
