@@ -101,7 +101,7 @@ describe('Taggebundener GitHub-Release-Build 0.9.2', () => {
 
 
   it('vermeidet doppelte Vitest-Laeufe im GitHub-Free-Release-Gate', () => {
-    expect(packageJson.scripts['release:check']).toBe('npm run rc:check && npm run test:coverage && npm run build:app');
+    expect(packageJson.scripts['release:check']).toBe('npm run rc:check && npm run release:check:backup-restore && npm run test:coverage && npm run build:app');
     expect(packageJson.scripts.build).toBe('npm run test && npm run build:app');
     expect(packageJson.scripts['build:app']).toContain('vite build');
     expect(packageJson.scripts['build:app']).not.toContain('vitest run');

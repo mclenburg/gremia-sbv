@@ -32,6 +32,7 @@ export function TextCommandTextarea({
   showCommandHint = true,
   globalCommandsEnabled = true,
   placeholder,
+  className,
   'aria-describedby': ariaDescribedBy,
   ...props
 }: TextCommandTextareaProps) {
@@ -81,12 +82,14 @@ export function TextCommandTextarea({
 
   const describedBy = [ariaDescribedBy, hintId].filter(Boolean).join(' ') || undefined;
   const commandPlaceholder = showCommandHint ? (placeholder ? `${placeholder} · Strg+H: Kurzbefehle` : TEXT_COMMAND_HINT) : placeholder;
+  const textareaClassName = ['industrial-textarea-input', 'text-command-textarea', className].filter(Boolean).join(' ');
 
   return (
     <>
       <textarea
         ref={textareaRef}
         {...props}
+        className={textareaClassName}
         data-text-command-enabled="true"
         data-text-command-field={fieldId}
         aria-describedby={describedBy}

@@ -37,3 +37,21 @@ Dialoge müssen `role="dialog"`, `aria-modal`, stabile Labels und Fokus-Rückkeh
 ## Plattformhinweise
 
 Unter Windows nutzt der Runner `playwright.cmd`. E2E-Tests dürfen keine `/tmp`- oder Laufwerksannahmen enthalten.
+
+## Lokales Release-Gate
+
+GitHub Actions führt die Browser-E2E-Tests aus Kostengründen nicht im taggebundenen Free-Account-Release-Build aus. Für Releases ist stattdessen lokal verbindlich:
+
+```bash
+npm run release:local-e2e
+```
+
+Das Script führt in fester Reihenfolge aus:
+
+1. `npm run test:e2e:setup`
+2. `npm run test:e2e:visual`
+3. `npm run test:e2e:core-ui-flows`
+4. `npm run test:e2e:complete-tour`
+5. `npm run test:e2e:a11y`
+
+Damit bleibt die Browser-Abnahme erhalten, ohne GitHub-Runner-Minuten, Playwright-Downloads oder ffmpeg-Artefakte in der Release-Action zu verbrennen.

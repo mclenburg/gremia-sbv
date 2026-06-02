@@ -1,6 +1,8 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
   VISUAL_QA_ROUTES,
+  VISUAL_QA_CONTROL_SELECTORS,
   isDarkModeLightLeak,
   isLightModeDarkFallback,
   isReadableSurfaceContrast,
@@ -62,5 +64,22 @@ describe('P11 visual QA contract', () => {
   it('checks luminance contrast as behavior instead of screenshot snapshots', () => {
     expect(isReadableSurfaceContrast(sample({ backgroundLuminance: 235, textLuminance: 28 }))).toBe(true);
     expect(isReadableSurfaceContrast(sample({ backgroundLuminance: 128, textLuminance: 117 }))).toBe(false);
+  });
+
+  it('bindet alle nativen Modal-Controls an den zentralen Industrial-Formular-Chrome', () => {
+    const formsCss = readFileSync('src/app/ui/forms.css', 'utf8');
+
+    for (const selector of [
+      '.industrial-modal input:not([type="checkbox"]):not([type="radio"])',
+      '.industrial-modal select',
+      '.industrial-modal textarea',
+    ]) {
+      expect(formsCss).toContain(selector);
+      expect(VISUAL_QA_CONTROL_SELECTORS).toContain(selector);
+    }
+
+    expect(formsCss).toContain('background: var(--industrial-control-bg);');
+    expect(formsCss).toContain('border: 1px solid var(--industrial-control-border);');
+    expect(formsCss).toContain("html[data-theme='light'] .industrial-modal textarea");
   });
 });

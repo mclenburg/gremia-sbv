@@ -19,6 +19,8 @@ describe("Startup-Bootstrap fuer sofortige sichtbare Rueckmeldung", () => {
     expect(bootstrap).not.toContain("prepareDemoVault");
     expect(bootstrap).not.toContain("nativeImage");
     expect(bootstrap).not.toContain("existsSync");
+    expect(bootstrap).toContain("startupPerformance");
+    expect(bootstrap).toContain("splash:visible");
   });
 
   it("verschiebt schwere Sicherheits-, Demo- und IPC-Initialisierung in appRuntime", () => {
@@ -29,6 +31,8 @@ describe("Startup-Bootstrap fuer sofortige sichtbare Rueckmeldung", () => {
     expect(runtime).toContain("registerCaseIpc");
     expect(runtime).toContain("registerSbvControlProtocolIpc");
     expect(runtime).toContain("export async function startApplication");
+    expect(runtime).toContain("markStartupPhase");
+    expect(runtime).toContain("runtime:ipc-registered");
   });
 
   it("dokumentiert den Bootstrap-Vertrag im Architekturkonzept", () => {

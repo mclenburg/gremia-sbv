@@ -59,3 +59,29 @@ Community-Beiträge müssen sich an die zentrale UI-Schicht, Audit-Builder, Date
 - Die Code-Signing-Strategie ist in `docs/CODE_SIGNING.md` dokumentiert.
 - Die README beschreibt den Demo-Start für fertige AppImage-/EXE-Artefakte vor den Entwicklerbefehlen.
 - Das Public-Qualitätsgate umfasst `npm run test:e2e:a11y` als automatisierten Axe-Scan.
+
+## Lokale Freigabe vor öffentlicher Bereitstellung
+
+Die taggebundene GitHub-Action ist bewusst auf schnelle, günstige Gates begrenzt. Die Browser-basierten Prüfungen laufen deshalb lokal vor dem Push oder vor dem Tag:
+
+```bash
+npm run release:local-e2e
+```
+
+Dieses lokale Gate führt die isolierte Playwright-/Axe-Installation sowie Visual-, Core-UI-, Complete-Tour- und Accessibility-E2E-Tests aus. Ein Release-Tag darf erst gesetzt werden, wenn dieses Gate lokal grün war.
+
+Zusätzlich gehört zur Freigabe vor öffentlicher Bereitstellung der schnelle Backup-/Restore-Prozesscheck:
+
+```bash
+npm run release:check:backup-restore
+```
+
+Er erzeugt ein verschlüsseltes Testbackup, inspiziert das Manifest, stellt den Tresor wieder her und prüft, dass Dokumentcontainer bitgleich zurückkommen, während temporäre Dateien und verschachtelte Backups ausgeschlossen bleiben.
+
+Die UI-Konsistenz wird vor öffentlicher Bereitstellung außerdem statisch gesweept:
+
+```bash
+npm run ui:control-sweep
+```
+
+Der Sweep stellt sicher, dass native Inputs, Selects und Textareas über zentrale Industrial-Selektoren oder bewusst erlaubte zentrale Kontexte laufen.

@@ -45,6 +45,7 @@ import {
   buildStartupStatusScript,
   type StartupPhaseId,
 } from "./startupStatus.js";
+import { logStartupTimeline, markStartupPhase } from "./startupPerformance.js";
 
 app.setName("Gremia.SBV");
 app.setAppUserModelId("de.gremia.sbv");
@@ -304,9 +305,12 @@ async function createWindow(): Promise<void> {
   registerRendererSecurityPolicy(win);
 
   win.once("ready-to-show", () => {
+    markStartupPhase("main-window:ready-to-show");
     void updateStartupSplash("ready");
     win.show();
+    markStartupPhase("main-window:visible");
     closeStartupSplash();
+    logStartupTimeline("main-window-visible");
   });
 
   // Falls ready-to-show bei einem Renderer-Fehler nie feuert, soll das Fenster trotzdem sichtbar sein.
@@ -316,7 +320,9 @@ async function createWindow(): Promise<void> {
         "Gremia.SBV window shown by fallback timer because ready-to-show did not fire.",
       );
       win.show();
+      markStartupPhase("main-window:visible-fallback");
       closeStartupSplash();
+      logStartupTimeline("main-window-visible-fallback");
     }
   }, 3000);
 
@@ -357,20 +363,25 @@ export async function startApplication(existingSplashWindow?: BrowserWindow): Pr
 
   registerSessionSecurityPolicy();
   await showStartupSplash("app");
+  markStartupPhase("runtime:session-policy");
   await updateStartupSplash("policy");
 
   const demoMode = isDemoMode();
   const dataDirectory = resolveRuntimeDataDir();
+  markStartupPhase("runtime:data-directory-resolved");
   await updateStartupSplash("storage");
   if (demoMode) {
     await updateStartupSplash("demo");
     resetDemoDataDirectory(dataDirectory);
+    markStartupPhase("runtime:demo-reset-complete");
   }
 
   await updateStartupSplash("security");
   security = new SecurityService(dataDirectory);
+  markStartupPhase("runtime:security-service-ready");
   if (demoMode) {
     await prepareDemoVault(security);
+    markStartupPhase("runtime:demo-vault-ready");
     console.info(
       `Gremia.SBV demo mode active. Data directory: ${dataDirectory}. Demo password hint available in onboarding.`,
     );
@@ -399,8 +410,10 @@ export async function startApplication(existingSplashWindow?: BrowserWindow): Pr
   registerRetentionIpc(ipcMain, security);
   registerSbvResourceIpc(ipcMain, security);
   registerSbvControlProtocolIpc(ipcMain, security);
+  markStartupPhase("runtime:ipc-registered");
   await updateStartupSplash("ui");
   await createWindow();
+  markStartupPhase("runtime:create-window-complete");
 }
 
 app.on("before-quit", () => {

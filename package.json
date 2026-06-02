@@ -33,7 +33,7 @@
     "build:all": "node scripts/build-current-platform.cjs",
     "debug:paths": "node -e \"console.log({cwd:process.cwd(),home:process.env.HOME,GREMIA_SBV_DATA_DIR:process.env.GREMIA_SBV_DATA_DIR})\"",
     "test:retention": "vitest run tests/retentionPolicy.test.ts",
-    "release:check": "npm run rc:check && npm run test:coverage && npm run build:app",
+    "release:check": "npm run rc:check && npm run release:check:backup-restore && npm run test:coverage && npm run build:app",
     "test:privacy": "vitest run tests/contactPrivacyService.test.ts tests/reportPrivacyPolicy.test.ts tests/documentStoragePolicy.test.ts",
     "test:migrations": "vitest run tests/migrationService.test.ts",
     "test:backup": "vitest run tests/backupPolicy.test.ts",
@@ -106,12 +106,15 @@
     "security:audit": "npm audit --audit-level=high",
     "licenses:generate": "node scripts/generate-third-party-licenses.cjs",
     "licenses:check": "node scripts/check-third-party-licenses.cjs",
-    "release:public-check": "npm run security:audit && npm run licenses:check && npm run release:check && npm run test:e2e:visual && npm run test:e2e:core-ui-flows && npm run test:e2e:complete-tour && npm run test:e2e:a11y",
+    "release:public-check": "npm run security:audit && npm run licenses:check && npm run release:check && npm run release:local-e2e && npm run ui:control-sweep",
     "test:e2e:a11y": "node scripts/run-e2e.cjs e2e/accessibility-axe.spec.ts",
     "release:check:a11y": "npm run build:readiness:strict && npm run test:e2e:a11y",
     "dependency:hygiene": "vitest run tests/dependencyHygiene092j.test.ts tests/dependabotPolicy092k.test.ts tests/tailwindPostcssContract092p.test.ts tests/electronBuilderConfig092t.test.ts",
     "test:github-actions": "vitest run tests/githubTaggedReleaseWorkflow092ac.test.ts tests/signpathCodeSigning092u.test.ts",
-    "build:app": "npm run version:generate && tsc -p tsconfig.json && vite build && tsc -p tsconfig.electron.json && node scripts/write-electron-cjs-package.cjs"
+    "build:app": "npm run version:generate && tsc -p tsconfig.json && vite build && tsc -p tsconfig.electron.json && node scripts/write-electron-cjs-package.cjs",
+    "release:local-e2e": "node scripts/run-local-release-e2e.cjs",
+    "ui:control-sweep": "node scripts/check-industrial-ui-control-chrome.cjs",
+    "release:check:backup-restore": "npm run version:generate && tsx scripts/check-backup-restore-release.ts"
   },
   "dependencies": {
     "argon2-browser": "^1.18.0",

@@ -215,6 +215,7 @@ function validateStrictBuildArtifacts() {
     'scripts/write-electron-cjs-package.cjs',
     'electron/main.ts',
     'electron/appRuntime.ts',
+    'electron/startupPerformance.ts',
     'electron/preload.ts',
     'vite.config.ts',
     'tsconfig.json',
