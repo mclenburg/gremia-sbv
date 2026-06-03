@@ -76,8 +76,8 @@ export type RiskLevelCommand = 'low' | 'medium' | 'high' | 'critical';
 export type ConfidentialCommandLevel = 'normal' | 'sensibel' | 'hoch_sensibel';
 
 export const TEXT_COMMAND_REGISTRY: TextCommandDefinition[] = [
-  { kind: 'deadline', tokens: ['//', '/fr', '/frist'], label: 'Frist anlegen', description: 'Frist mit Datum direkt aus dem Protokoll anlegen.', requiresCase: true },
-  { kind: 'follow_up', tokens: ['/wv', '/wiedervorlage'], label: 'Wiedervorlage anlegen', description: 'Wiedervorlage mit Datum direkt aus dem Protokoll anlegen.', requiresCase: true },
+  { kind: 'deadline', tokens: ['//', '/fr', '/frist'], label: 'Frist anlegen', description: 'Frist mit Datum direkt aus dem Protokoll anlegen. In der Fallakte fallbezogen, in der SBV-Steuerung als übergreifende Wiedervorlage.', requiresCase: false },
+  { kind: 'follow_up', tokens: ['/wv', '/wiedervorlage'], label: 'Wiedervorlage anlegen', description: 'Wiedervorlage mit Datum direkt aus dem Protokoll anlegen. In der SBV-Steuerung ohne Fallzuordnung möglich.', requiresCase: false },
   { kind: 'contact', tokens: ['@@', '/kontakt'], label: 'Kontakt einfügen', description: 'Kontakt suchen oder anlegen und in den Text einfügen.' },
   { kind: 'case_reference', tokens: ['##', '/fall'], label: 'Fallbezug verknüpfen', description: 'Weiteren Fallbezug in Text und Notiz hinterlegen.' },
   { kind: 'legal_norm', tokens: ['§§', '/norm'], label: 'Rechtsnorm einfügen', description: 'Rechtsnorm suchen, einfügen und mit der Fallakte verknüpfen.' },

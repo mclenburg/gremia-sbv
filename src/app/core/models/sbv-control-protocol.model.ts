@@ -13,6 +13,7 @@ export interface SbvControlProtocolRecord {
   discussion?: string;
   result?: string;
   nextSteps?: string;
+  followUpDueAt?: string;
   status: SbvControlProtocolStatus;
   createdAt: string;
   updatedAt: string;
@@ -28,6 +29,7 @@ export interface CreateSbvControlProtocolInput {
   discussion?: string;
   result?: string;
   nextSteps?: string;
+  followUpDueAt?: string;
   status?: SbvControlProtocolStatus;
 }
 

@@ -17,7 +17,7 @@ export function resolveDeadlineWorkSummary(deadlines: DeadlineRecord[], referenc
     if (state === 'overdue') summary.overdueCount += 1;
     if (state === 'due_soon') summary.dueSoonCount += 1;
     if (state === 'critical') summary.criticalCount += 1;
-    if (deadline.processType === 'custom' && deadline.deadlineType === 'follow_up' && !deadline.caseId) summary.freeFollowUpCount += 1;
+    if ((deadline.processType === 'custom' || deadline.processType === 'sbv_control_protocol') && deadline.deadlineType === 'follow_up' && !deadline.caseId) summary.freeFollowUpCount += 1;
     return summary;
   }, {
     overdueCount: 0,

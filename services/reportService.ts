@@ -734,7 +734,7 @@ export class ReportService {
       db,
       `
       SELECT COUNT(*) AS value FROM deadlines
-      WHERE case_id IS NULL AND (is_legal_deadline = 1 OR process_type <> 'custom' OR severity IN ('critical', 'fatal'))
+      WHERE case_id IS NULL AND (is_legal_deadline = 1 OR process_type NOT IN ('custom', 'sbv_control_protocol') OR severity IN ('critical', 'fatal'))
     `,
     );
     const unanonymizedRefs = count(

@@ -65,6 +65,7 @@ export function ProtocolSection({
                     />
                   </span>
                   <em>{record.legalContext}</em>
+                  {record.followUpDueAt && <span>Wiedervorlage: {formatDate(record.followUpDueAt)}</span>}
                 </GhostButton>
                 <DangerButton
                   compact

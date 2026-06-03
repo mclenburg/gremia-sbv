@@ -93,12 +93,13 @@ describe('Fristenpanel Verhalten 0.9.2', () => {
       deadline({ id: 'deadline-2', dueAt: '2026-05-29T20:00:00.000Z', criticalThresholdHours: 4 }),
       deadline({ id: 'deadline-3', dueAt: '2026-05-30T20:00:00.000Z', criticalThresholdHours: 4 }),
       deadline({ id: 'deadline-4', processType: 'custom', deadlineType: 'follow_up', caseId: undefined }),
+      deadline({ id: 'deadline-5', processType: 'sbv_control_protocol', deadlineType: 'follow_up', caseId: undefined, processId: 'protocol-1' }),
     ], referenceDate)).toMatchObject({
       overdueCount: 1,
-      criticalCount: 1,
+      criticalCount: 2,
       dueSoonCount: 2,
-      openCount: 4,
-      freeFollowUpCount: 1,
+      openCount: 5,
+      freeFollowUpCount: 2,
     });
 
     expect(filtersForDeadlineExportScope('open')).toEqual({ status: ['open', 'overdue'] });

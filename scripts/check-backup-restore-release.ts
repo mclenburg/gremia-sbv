@@ -17,7 +17,7 @@ function sha256(content: Buffer | string): string {
 
 function createSecurityStub(dataDir: string) {
   const db: DbStub = {
-    prepare: () => ({ get: () => ({ value: '0039' }) }),
+    prepare: () => ({ get: () => ({ value: '0040' }) }),
     pragma: () => undefined,
   };
   return {

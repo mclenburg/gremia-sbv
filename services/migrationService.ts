@@ -333,6 +333,9 @@ export class MigrationService {
           && COMPLIANCE_INCIDENTS_REQUIRED_COLUMNS.every((column) => this.columnExists('compliance_incidents', column));
       case '0039':
         return this.tableExists('sbv_control_protocols')
+          && ['id', 'title', 'partner', 'topic', 'meeting_at', 'participants', 'legal_context', 'discussion', 'result', 'next_steps', 'status', 'created_at', 'updated_at'].every((column) => this.columnExists('sbv_control_protocols', column));
+      case '0040':
+        return this.tableExists('sbv_control_protocols')
           && SBV_CONTROL_PROTOCOLS_REQUIRED_COLUMNS.every((column) => this.columnExists('sbv_control_protocols', column));
       default:
         return false;
@@ -582,7 +585,7 @@ export class MigrationService {
 
     if (!this.tableExists('sbv_control_protocols') || !SBV_CONTROL_PROTOCOLS_REQUIRED_COLUMNS.every((column) => this.columnExists('sbv_control_protocols', column))) {
       this.ensureSbvControlProtocolSchema();
-      diagnostics.push('SBV-Steuerungsprotokoll-Schema wurde auf Stand 0039 repariert.');
+      diagnostics.push('SBV-Steuerungsprotokoll-Schema wurde auf Stand 0040 repariert.');
     }
   }
 
@@ -1263,6 +1266,7 @@ CREATE INDEX IF NOT EXISTS idx_case_measure_events_measure_created ON case_measu
         discussion TEXT,
         result TEXT,
         next_steps TEXT,
+        follow_up_due_at TEXT,
         status TEXT NOT NULL DEFAULT 'documented',
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL
@@ -1271,6 +1275,7 @@ CREATE INDEX IF NOT EXISTS idx_case_measure_events_measure_created ON case_measu
       CREATE INDEX IF NOT EXISTS idx_sbv_control_protocols_topic ON sbv_control_protocols(topic);
       CREATE INDEX IF NOT EXISTS idx_sbv_control_protocols_status ON sbv_control_protocols(status);
       CREATE INDEX IF NOT EXISTS idx_sbv_control_protocols_meeting ON sbv_control_protocols(meeting_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_sbv_control_protocols_follow_up ON sbv_control_protocols(follow_up_due_at);
     `);
   }
 

@@ -7,7 +7,7 @@ import type {
   TextareaHTMLAttributes,
 } from "react";
 import { isValidElement, useEffect, useId, useState } from "react";
-import { TextCommandTextarea } from "../textCommands/TextCommandTextarea";
+import { TextCommandTextarea, type TextCommandTextareaChange } from "../textCommands/TextCommandTextarea";
 
 export type IndustrialFieldOption = {
   value: string;
@@ -219,6 +219,7 @@ type TextareaInputProps = Omit<
   textCommandFieldId?: string;
   showCommandHint?: boolean;
   globalCommandsEnabled?: boolean;
+  onTextCommand?: (command: TextCommandTextareaChange) => void;
 };
 
 export function TextareaInput({
@@ -233,6 +234,7 @@ export function TextareaInput({
   textCommandFieldId,
   showCommandHint,
   globalCommandsEnabled,
+  onTextCommand,
   ...textareaProps
 }: TextareaInputProps) {
   return (
@@ -262,6 +264,7 @@ export function TextareaInput({
           onChange={(event: ChangeEvent<HTMLTextAreaElement>) =>
             onValueChange(event.currentTarget.value)
           }
+          onTextCommand={onTextCommand}
         />
       )}
     </FormField>
@@ -361,6 +364,7 @@ type DeferredTextareaInputProps = Omit<
   textCommandFieldId?: string;
   showCommandHint?: boolean;
   globalCommandsEnabled?: boolean;
+  onTextCommand?: (command: TextCommandTextareaChange) => void;
 };
 
 export function DeferredTextareaInput({
@@ -375,6 +379,7 @@ export function DeferredTextareaInput({
   textCommandFieldId,
   showCommandHint,
   globalCommandsEnabled,
+  onTextCommand,
   ...textareaProps
 }: DeferredTextareaInputProps) {
   const normalizedValue = value ?? "";
@@ -418,6 +423,7 @@ export function DeferredTextareaInput({
           onChange={(event: ChangeEvent<HTMLTextAreaElement>) =>
             setDraft(event.currentTarget.value)
           }
+          onTextCommand={onTextCommand}
           onBlur={handleBlur}
         />
       )}

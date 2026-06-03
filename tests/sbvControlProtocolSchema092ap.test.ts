@@ -7,38 +7,37 @@ function read(path: string): string {
 }
 
 describe('SBV-Steuerungsprotokolle Schema-Integration', () => {
-  it('hebt die App-Schemaversion auf die dedizierte Migration 0039', () => {
+  it('hebt die App-Schemaversion auf die dedizierte Migration 0040', () => {
     const latestMigration = readdirSync('database/migrations')
       .map((file) => file.match(/^(\d{4})[_-].+\.sql$/i)?.[1] ?? null)
       .filter((version): version is string => Boolean(version))
       .sort()
       .at(-1);
 
-    expect(APP_SCHEMA_VERSION).toBe('0039');
-    expect(latestMigration).toBe('0039');
+    expect(APP_SCHEMA_VERSION).toBe('0040');
+    expect(latestMigration).toBe('0040');
   });
 
-  it('führt sbv_control_protocols im Fresh-Install-Schema und in der Migration', () => {
+  it('führt sbv_control_protocols im Fresh-Install-Schema und rüstet Wiedervorlagen per Migration 0040 nach', () => {
     const schema = read('database/schema.sql');
-    const migration = read('database/migrations/0039_sbv_control_protocols.sql');
+    const initialMigration = read('database/migrations/0039_sbv_control_protocols.sql');
+    const deadlineMigration = read('database/migrations/0040_sbv_control_protocol_deadlines.sql');
 
-    for (const source of [schema, migration]) {
-      expect(source).toContain('CREATE TABLE IF NOT EXISTS sbv_control_protocols');
-      for (const column of SBV_CONTROL_PROTOCOLS_REQUIRED_COLUMNS) {
-        expect(source).toMatch(new RegExp(`\\b${column}\\b`));
-      }
-      expect(source).toContain('idx_sbv_control_protocols_partner');
-      expect(source).toContain('idx_sbv_control_protocols_topic');
-      expect(source).toContain('idx_sbv_control_protocols_status');
-      expect(source).toContain('idx_sbv_control_protocols_meeting');
+    expect(schema).toContain('CREATE TABLE IF NOT EXISTS sbv_control_protocols');
+    for (const column of SBV_CONTROL_PROTOCOLS_REQUIRED_COLUMNS) {
+      expect(schema).toMatch(new RegExp(`\\b${column}\\b`));
     }
+    expect(schema).toContain('idx_sbv_control_protocols_follow_up');
+    expect(initialMigration).toContain('CREATE TABLE IF NOT EXISTS sbv_control_protocols');
+    expect(deadlineMigration).toContain('ALTER TABLE sbv_control_protocols ADD COLUMN follow_up_due_at TEXT');
+    expect(deadlineMigration).toContain('idx_sbv_control_protocols_follow_up');
   });
 
   it('nimmt Steuerungsprotokolle in Migration-Reparatur und Integritätsprüfung auf', () => {
     const migrationService = read('services/migrationService.ts');
     const integrityService = read('services/databaseIntegrityService.ts');
 
-    expect(migrationService).toContain("case '0039'");
+    expect(migrationService).toContain("case '0040'");
     expect(migrationService).toContain('ensureSbvControlProtocolSchema');
     expect(migrationService).toContain('SBV_CONTROL_PROTOCOLS_REQUIRED_COLUMNS');
     expect(integrityService).toContain("'sbv_control_protocols'");

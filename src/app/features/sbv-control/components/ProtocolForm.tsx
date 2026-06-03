@@ -71,21 +71,38 @@ export function ProtocolForm({
         label="Besprochene Punkte"
         rows={4}
         value={protocolForm.discussion ?? ''}
-        onValueChange={(value) => state.updateProtocolForm('discussion', value)}
-        placeholder="Übergreifende Punkte ohne Fallzuordnung dokumentieren. Keine Diagnosen oder Einzelfallakten übertragen."
+        onValueChange={(value) => state.updateProtocolTextTarget('discussion', value)}
+        onTextCommand={(command) => state.handleProtocolTextCommand('discussion', command)}
+        textCommandFieldId="sbv-control-protocol-discussion"
+        placeholder="Übergreifende Punkte ohne Fallzuordnung dokumentieren. Fristen mit // 2026-07-01 Nachfassen vormerken. Keine Diagnosen oder Einzelfallakten übertragen."
       />
       <TextareaInput
         label="Ergebnis / Position der SBV"
         rows={3}
         value={protocolForm.result ?? ''}
-        onValueChange={(value) => state.updateProtocolForm('result', value)}
+        onValueChange={(value) => state.updateProtocolTextTarget('result', value)}
+        onTextCommand={(command) => state.handleProtocolTextCommand('result', command)}
+        textCommandFieldId="sbv-control-protocol-result"
       />
       <TextareaInput
         label="Nächste Schritte / Wiedervorlage"
         rows={3}
         value={protocolForm.nextSteps ?? ''}
-        onValueChange={(value) => state.updateProtocolForm('nextSteps', value)}
+        onValueChange={(value) => state.updateProtocolTextTarget('nextSteps', value)}
+        onTextCommand={(command) => state.handleProtocolTextCommand('nextSteps', command)}
+        textCommandFieldId="sbv-control-protocol-next-steps"
       />
+      <div className="sbv-resource-form-row">
+        <DateInput
+          label="Wiedervorlage / Frist"
+          value={protocolForm.followUpDueAt ?? ''}
+          onValueChange={(value) => state.updateProtocolForm('followUpDueAt', value)}
+        />
+        <p className="industrial-help-text">
+          Wird ein Datum gesetzt, erscheint die Wiedervorlage ohne Fallbezug im zentralen Fristenregister.
+        </p>
+      </div>
+
       <FormActions className="sbv-resource-actions">
         <IndustrialButton type="submit" disabled={!protocolForm.title?.trim()}>
           <Save className="h-4 w-4" />

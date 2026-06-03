@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
 import { auditSbvControlProtocolChanged } from './auditEventBuilders.js';
+import { DeadlineService } from './deadlineService.js';
 import type {
   CreateSbvControlProtocolInput,
   SbvControlProtocolPartner,
@@ -28,6 +29,15 @@ function normalizeOptional(value: unknown): string | null {
   if (typeof value !== 'string') return null;
   const trimmed = value.trim();
   return trimmed ? trimmed : null;
+}
+
+function normalizeFollowUpDueAt(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  const valueWithTime = /^\d{4}-\d{2}-\d{2}$/.test(trimmed) ? `${trimmed}T09:00:00.000Z` : trimmed;
+  const parsed = new Date(valueWithTime);
+  return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
 }
 
 function normalizeStatus(value: unknown): SbvControlProtocolStatus {
@@ -57,6 +67,7 @@ function mapRecord(row: any): SbvControlProtocolRecord {
     discussion: row.discussion ?? undefined,
     result: row.result ?? undefined,
     nextSteps: row.next_steps ?? undefined,
+    followUpDueAt: row.follow_up_due_at ?? undefined,
     status: row.status,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -81,6 +92,7 @@ export class SbvControlProtocolService {
         discussion TEXT,
         result TEXT,
         next_steps TEXT,
+        follow_up_due_at TEXT,
         status TEXT NOT NULL DEFAULT 'documented',
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL
@@ -89,6 +101,7 @@ export class SbvControlProtocolService {
       CREATE INDEX IF NOT EXISTS idx_sbv_control_protocols_topic ON sbv_control_protocols(topic);
       CREATE INDEX IF NOT EXISTS idx_sbv_control_protocols_status ON sbv_control_protocols(status);
       CREATE INDEX IF NOT EXISTS idx_sbv_control_protocols_meeting ON sbv_control_protocols(meeting_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_sbv_control_protocols_follow_up ON sbv_control_protocols(follow_up_due_at);
     `);
     new PersonalDataAuditLogService(this.db);
   }
@@ -99,6 +112,56 @@ export class SbvControlProtocolService {
     } catch (error) {
       console.warn('Gremia.SBV control protocol audit write failed', error);
     }
+  }
+
+  private linkedDeadlineId(protocolId: string): string | undefined {
+    const row = this.db.prepare<{ id?: string }>(
+      "SELECT id FROM deadlines WHERE process_type = 'sbv_control_protocol' AND process_id = ? AND source_event = 'sbv_control_protocol.follow_up' LIMIT 1"
+    ).get(protocolId);
+    return row?.id;
+  }
+
+  private deleteLinkedDeadline(protocolId: string): void {
+    const deadlineId = this.linkedDeadlineId(protocolId);
+    if (deadlineId) this.db.prepare('DELETE FROM deadlines WHERE id = ?').run(deadlineId);
+  }
+
+  private syncFollowUpDeadline(record: SbvControlProtocolRecord): void {
+    if (!record.followUpDueAt || record.status === 'closed') {
+      this.deleteLinkedDeadline(record.id);
+      return;
+    }
+
+    const title = `Steuerungsprotokoll: ${record.title}`;
+    const description = record.nextSteps ?? 'Wiedervorlage aus einem übergreifenden SBV-Steuerungsprotokoll.';
+    const deadlineId = this.linkedDeadlineId(record.id);
+    const deadlines = new DeadlineService(this.db);
+
+    if (deadlineId) {
+      deadlines.update(deadlineId, {
+        title,
+        description,
+        dueAt: record.followUpDueAt,
+        legalBasis: record.legalContext,
+        severity: record.status === 'follow_up_open' ? 'important' : 'normal',
+        reason: 'SBV-Steuerungsprotokoll aktualisiert',
+      });
+      return;
+    }
+
+    deadlines.create({
+      processId: record.id,
+      processType: 'sbv_control_protocol',
+      deadlineType: 'follow_up',
+      title,
+      description,
+      dueAt: record.followUpDueAt,
+      legalBasis: record.legalContext,
+      sourceEvent: 'sbv_control_protocol.follow_up',
+      severity: record.status === 'follow_up_open' ? 'important' : 'normal',
+      calculationMode: 'manual',
+      isLegalDeadline: false,
+    });
   }
 
   list(): SbvControlProtocolRecord[] {
@@ -119,8 +182,8 @@ export class SbvControlProtocolService {
     this.db.prepare(`
       INSERT INTO sbv_control_protocols (
         id, title, partner, topic, meeting_at, participants, legal_context,
-        discussion, result, next_steps, status, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        discussion, result, next_steps, follow_up_due_at, status, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       id,
       title,
@@ -132,12 +195,15 @@ export class SbvControlProtocolService {
       normalizeOptional(input.discussion),
       normalizeOptional(input.result),
       normalizeOptional(input.nextSteps),
+      normalizeFollowUpDueAt(input.followUpDueAt),
       status,
       timestamp,
       timestamp,
     );
     this.audit('create', id, topic, status);
-    return this.getById(id)!;
+    const record = this.getById(id)!;
+    this.syncFollowUpDeadline(record);
+    return record;
   }
 
   update(id: string, input: UpdateSbvControlProtocolInput): SbvControlProtocolRecord {
@@ -151,7 +217,7 @@ export class SbvControlProtocolService {
     this.db.prepare(`
       UPDATE sbv_control_protocols
       SET title = ?, partner = ?, topic = ?, meeting_at = ?, participants = ?, legal_context = ?,
-          discussion = ?, result = ?, next_steps = ?, status = ?, updated_at = ?
+          discussion = ?, result = ?, next_steps = ?, follow_up_due_at = ?, status = ?, updated_at = ?
       WHERE id = ?
     `).run(
       title,
@@ -163,18 +229,24 @@ export class SbvControlProtocolService {
       input.discussion !== undefined ? normalizeOptional(input.discussion) : existing.discussion ?? null,
       input.result !== undefined ? normalizeOptional(input.result) : existing.result ?? null,
       input.nextSteps !== undefined ? normalizeOptional(input.nextSteps) : existing.nextSteps ?? null,
+      input.followUpDueAt !== undefined ? normalizeFollowUpDueAt(input.followUpDueAt) : existing.followUpDueAt ?? null,
       status,
       timestamp,
       id,
     );
     this.audit('update', id, topic, status);
-    return this.getById(id)!;
+    const record = this.getById(id)!;
+    this.syncFollowUpDeadline(record);
+    return record;
   }
 
   delete(id: string): { deleted: boolean } {
     const result = this.db.prepare('DELETE FROM sbv_control_protocols WHERE id = ?').run(id) as { changes?: number };
     const deleted = Number(result.changes ?? 0) > 0;
-    if (deleted) this.audit('delete', id);
+    if (deleted) {
+      this.deleteLinkedDeadline(id);
+      this.audit('delete', id);
+    }
     return { deleted };
   }
 

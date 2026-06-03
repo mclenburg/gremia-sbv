@@ -42,7 +42,7 @@ describe('Pre-1.0 Release-Hardening', () => {
     expect(runtime).toContain('markStartupPhase("runtime:security-service-ready")');
     expect(runtime).toContain('markStartupPhase("runtime:ipc-registered")');
     expect(runtime).toContain('markStartupPhase("main-window:visible")');
-    expect(runtime).toContain('logStartupTimeline("main-window-visible")');
+    expect(runtime).toContain('logStartupTimeline(`main-window-visible-${reason}`)');
     expect(runtime).toContain('prepareDemoVaultInBackground');
     expect(runtime).toContain('scheduleDemoVaultPreparation');
     expect(runtime).toContain('main-window:did-finish-load');

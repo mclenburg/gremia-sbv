@@ -1,4 +1,4 @@
-export const APP_SCHEMA_VERSION = '0039';
+export const APP_SCHEMA_VERSION = '0040';
 
 export const DATABASE_SCHEMA_VERSION_KEY = 'database.schema.version';
 export const LEGACY_DATABASE_SCHEMA_VERSION_KEY = 'settings.database.schema.version';
@@ -296,6 +296,7 @@ export const SBV_CONTROL_PROTOCOLS_REQUIRED_COLUMNS = [
   'discussion',
   'result',
   'next_steps',
+  'follow_up_due_at',
   'status',
   'created_at',
   'updated_at'

@@ -12,6 +12,13 @@ import type {
 import { recordMatchesQuery } from '../../shared/components/WorkbenchLayout';
 import { getParticipationEscalationAdvice } from '../participation/participationPolicy';
 import type { ObligationItem } from './sbvControlTypes';
+import {
+  getTextCommandArgument,
+  getTextCommandKind,
+  getTextCommandRangeLength,
+  replaceCommandMarker,
+  type TextCommandToken,
+} from '@services/textCommandPolicy';
 
 export type ResourceFormState = CreateSbvResourceRecordInput;
 export type ProtocolFormState = CreateSbvControlProtocolInput;
@@ -43,6 +50,7 @@ export const initialProtocolForm: ProtocolFormState = {
   discussion: '',
   result: '',
   nextSteps: '',
+  followUpDueAt: '',
   status: 'documented',
 };
 
@@ -160,6 +168,7 @@ export function protocolFormFromRecord(record: SbvControlProtocolRecord): Protoc
     discussion: record.discussion ?? '',
     result: record.result ?? '',
     nextSteps: record.nextSteps ?? '',
+    followUpDueAt: record.followUpDueAt ? record.followUpDueAt.slice(0, 10) : '',
     status: record.status,
   };
 }
@@ -187,6 +196,7 @@ export function filterProtocolsForQuery(records: SbvControlProtocolRecord[], que
         record.discussion ?? '',
         record.result ?? '',
         record.nextSteps ?? '',
+        record.followUpDueAt ?? '',
       ],
       query
     )
@@ -209,4 +219,73 @@ export function protocolOperationAnnouncement(operation: ProtocolOperation): str
 
 export function isProtocolTitleMissing(form: ProtocolFormState) {
   return !form.title?.trim();
+}
+
+
+export type ProtocolTextTarget = 'discussion' | 'result' | 'nextSteps';
+
+export type ProtocolTextCommandApplication = {
+  target: ProtocolTextTarget;
+  value: string;
+  followUpDueAt: string;
+  message: string;
+};
+
+function toDateInputValue(year: string, month: string, day: string): string | null {
+  const normalizedMonth = month.padStart(2, '0');
+  const normalizedDay = day.padStart(2, '0');
+  const value = `${year}-${normalizedMonth}-${normalizedDay}`;
+  const date = new Date(`${value}T00:00:00.000Z`);
+  if (Number.isNaN(date.getTime())) return null;
+  if (date.toISOString().slice(0, 10) !== value) return null;
+  return value;
+}
+
+export function parseProtocolFollowUpCommandArgument(argument: string): { followUpDueAt: string; title: string } | null {
+  const trimmed = argument.trim();
+  const isoMatch = trimmed.match(/\b(\d{4})-(\d{1,2})-(\d{1,2})(?:[T\s]+\d{1,2}:\d{2})?\b/);
+  if (isoMatch) {
+    const followUpDueAt = toDateInputValue(isoMatch[1], isoMatch[2], isoMatch[3]);
+    if (!followUpDueAt) return null;
+    const title = trimmed.replace(isoMatch[0], '').replace(/\s+/g, ' ').trim() || 'Wiedervorlage';
+    return { followUpDueAt, title };
+  }
+
+  const germanMatch = trimmed.match(/\b(\d{1,2})\.(\d{1,2})\.(\d{4})\b/);
+  if (germanMatch) {
+    const followUpDueAt = toDateInputValue(germanMatch[3], germanMatch[2], germanMatch[1]);
+    if (!followUpDueAt) return null;
+    const title = trimmed.replace(germanMatch[0], '').replace(/\s+/g, ' ').trim() || 'Wiedervorlage';
+    return { followUpDueAt, title };
+  }
+
+  return null;
+}
+
+export function buildProtocolFollowUpText(token: TextCommandToken, followUpDueAt: string, title: string): string {
+  const prefix = getTextCommandKind(token) === 'deadline' ? 'Frist' : 'Wiedervorlage';
+  return `${prefix} bis ${formatDate(followUpDueAt)}: ${title.trim() || 'Wiedervorlage'}`;
+}
+
+export function applyProtocolFollowUpTextCommand(
+  target: ProtocolTextTarget,
+  value: string,
+  markerIndex: number,
+  token: TextCommandToken,
+): ProtocolTextCommandApplication | null {
+  const kind = getTextCommandKind(token);
+  if (kind !== 'deadline' && kind !== 'follow_up') return null;
+
+  const argument = getTextCommandArgument(value, markerIndex, token);
+  const parsed = parseProtocolFollowUpCommandArgument(argument);
+  if (!parsed) return null;
+
+  const replacement = buildProtocolFollowUpText(token, parsed.followUpDueAt, parsed.title);
+  const rangeLength = getTextCommandRangeLength(value, markerIndex, token);
+  return {
+    target,
+    followUpDueAt: parsed.followUpDueAt,
+    value: replaceCommandMarker(value, markerIndex, token, replacement, rangeLength),
+    message: `${replacement} wurde als Wiedervorlage für das Steuerungsprotokoll übernommen.`,
+  };
 }

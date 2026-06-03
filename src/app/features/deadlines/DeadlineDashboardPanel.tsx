@@ -24,6 +24,7 @@ function formatCaseRef(item: DeadlineDashboardItem, casesById: Map<string, CaseR
     return linkedCase?.caseNumber ? `Fall ${linkedCase.caseNumber}` : 'Fallzuordnung nicht auflösbar';
   }
 
+  if (item.processType === 'sbv_control_protocol') return 'SBV-Steuerungsprotokoll';
   if (item.processType === 'custom' && item.deadlineType === 'follow_up') return 'Freie Wiedervorlage';
   if (item.sourceEvent === 'protected_person.status_expiry_warning' || item.sourceEvent === 'protected_person.status_expired_privacy_review') return 'Personenverzeichnis';
 

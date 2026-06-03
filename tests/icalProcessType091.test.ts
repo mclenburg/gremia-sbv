@@ -56,6 +56,7 @@ describe('0.9.1 iCal process_type Export', () => {
       { ...base, id: 'case', processType: 'case' as const, deadlineType: 'legal_deadline' as const },
       { ...base, id: 'equalization', processType: 'equalization' as const, deadlineType: 'follow_up' as const },
       { ...base, id: 'gdb', processType: 'gdb' as const, deadlineType: 'follow_up' as const },
+      { ...base, id: 'control', processType: 'sbv_control_protocol' as const, deadlineType: 'follow_up' as const },
       { ...base, id: 'fallback', processType: 'custom' as const, deadlineType: 'follow_up' as const }
     ];
     expect(ical(deadlines, 'privacy_first')).toContain('SUMMARY:Gremia.SBV Wiedervorlage');
@@ -64,6 +65,7 @@ describe('0.9.1 iCal process_type Export', () => {
     expect(ical(deadlines, 'process_type')).toContain('Stellungnahmefrist prüfen');
     expect(ical(deadlines, 'process_type')).toContain('Gleichstellung prüfen');
     expect(ical(deadlines, 'process_type')).toContain('Statusverfahren prüfen');
+    expect(ical(deadlines, 'process_type')).toContain('Steuerungsprotokoll-Wiedervorlage');
   });
 
   it('lässt details nur für geprüfte, nicht identifizierende Titel durch', () => {
@@ -81,6 +83,7 @@ describe('0.9.1 iCal process_type Export', () => {
     expect(sanitizeIcalText('Max Mustermann')).toBe('Frist prüfen');
     expect(deadlineProcessTypeLabel({ processType: 'case', deadlineType: 'follow_up' })).toBe('Fall-Wiedervorlage');
     expect(deadlineProcessTypeLabel({ processType: 'custom', deadlineType: 'warning' })).toBe('Wiedervorlage');
+    expect(deadlineProcessTypeLabel({ processType: 'sbv_control_protocol', deadlineType: 'follow_up' })).toBe('Steuerungsprotokoll-Wiedervorlage');
   });
 
   it('faltet lange Zeilen und hält CRLF plattformunabhängig ein', () => {

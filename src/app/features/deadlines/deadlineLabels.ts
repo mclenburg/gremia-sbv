@@ -10,7 +10,8 @@ export const deadlineProcessTypeLabels: Record<DeadlineProcessType, string> = {
   equalization: 'Gleichstellung',
   termination_hearing: 'Kündigungsanhörung',
   gdb: 'GdB',
-  custom: 'Freie Wiedervorlage'
+  custom: 'Freie Wiedervorlage',
+  sbv_control_protocol: 'SBV-Steuerungsprotokoll'
 };
 
 export const deadlineTypeLabels: Record<DeadlineType, string> = {

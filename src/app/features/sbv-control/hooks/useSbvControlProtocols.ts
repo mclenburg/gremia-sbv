@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import type { SbvControlProtocolRecord } from '../../../core/models/sbv-control-protocol.model';
 import { useAnnouncer } from '../../../shared/a11y/LiveRegionProvider';
 import { waitForBridge } from '../../../core/bridge/waitForBridge';
+import type { TextCommandTextareaChange } from '../../../shared/textCommands/TextCommandTextarea';
 import {
   filterProtocolsForQuery,
   initialProtocolForm,
@@ -10,7 +11,9 @@ import {
   protocolOperationAnnouncement,
   protocolOperationNotice,
   updateProtocolFormValue,
+  applyProtocolFollowUpTextCommand,
   type ProtocolFormState,
+  type ProtocolTextTarget,
 } from '../sbvControlLogic';
 
 export function useSbvControlProtocols() {
@@ -29,6 +32,23 @@ export function useSbvControlProtocols() {
 
   function updateProtocolForm<K extends keyof ProtocolFormState>(key: K, value: ProtocolFormState[K]) {
     setProtocolForm((current) => updateProtocolFormValue(current, key, value));
+  }
+
+
+  function updateProtocolTextTarget(target: ProtocolTextTarget, value: string) {
+    updateProtocolForm(target, value as ProtocolFormState[typeof target]);
+  }
+
+  function handleProtocolTextCommand(target: ProtocolTextTarget, command: TextCommandTextareaChange) {
+    const applied = applyProtocolFollowUpTextCommand(target, command.value, command.index, command.token);
+    if (!applied) return;
+    setProtocolForm((current) => ({
+      ...current,
+      [target]: applied.value,
+      followUpDueAt: applied.followUpDueAt,
+      status: current.status === 'documented' ? 'follow_up_open' : current.status,
+    }));
+    announce(applied.message, 'polite');
   }
 
   function editProtocol(record: SbvControlProtocolRecord) {
@@ -101,6 +121,8 @@ export function useSbvControlProtocols() {
     editingProtocolId,
     loadProtocols,
     updateProtocolForm,
+    updateProtocolTextTarget,
+    handleProtocolTextCommand,
     editProtocol,
     resetProtocolForm,
     setProtocolTitleTouched,

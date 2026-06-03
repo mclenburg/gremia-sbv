@@ -146,6 +146,7 @@ export function getActionHint(deadline: DeadlineRecord): string {
   if (deadline.processType === 'prevention') return 'Präventionsverfahren prüfen: Arbeitgeberreaktion und Einschaltung Inklusionsamt nachhalten.';
   if (deadline.processType === 'equalization') return 'Gleichstellungsverfahren prüfen: Nachweise, Sachstand und ggf. Widerspruchsfrist klären.';
   if (deadline.processType === 'gdb') return 'Bescheid/Zugang/Rechtsbehelfsbelehrung prüfen; ggf. Beratung oder Rechtsvertretung empfehlen.';
+  if (deadline.processType === 'sbv_control_protocol') return 'Übergreifendes Steuerungsprotokoll prüfen: Arbeitgeber-/BR-Rückmeldung, Ergebnis und nächsten Schritt dokumentieren.';
   if (deadline.sourceEvent === 'protected_person.status_expiry_warning' || deadline.sourceEvent === 'protected_person.status_expired_privacy_review') {
     return 'Statusnachweis im Personenverzeichnis prüfen: Status aktualisieren, Fortspeicherung begründen oder Datenschutzprüfung starten.';
   }
@@ -156,9 +157,13 @@ export function getActionHint(deadline: DeadlineRecord): string {
 function validateCaseBinding(input: CreateDeadlineInput): void {
   const deadlineType = input.deadlineType ?? 'follow_up';
   const isFreeFollowUp = input.processType === 'custom' && ['follow_up', 'warning'].includes(deadlineType) && !input.isLegalDeadline;
+  const isSbvControlProtocolFollowUp = input.processType === 'sbv_control_protocol'
+    && deadlineType === 'follow_up'
+    && !input.isLegalDeadline
+    && Boolean(input.processId);
 
-  if (!input.caseId && !isFreeFollowUp) {
-    throw new Error('Fristen müssen einem Fall zugeordnet werden. Ohne Fallbezug ist nur eine freie Wiedervorlage erlaubt.');
+  if (!input.caseId && !isFreeFollowUp && !isSbvControlProtocolFollowUp) {
+    throw new Error('Fristen müssen einem Fall zugeordnet werden. Ohne Fallbezug ist nur eine freie Wiedervorlage oder eine SBV-Steuerungsprotokoll-Wiedervorlage erlaubt.');
   }
 
   if (!input.caseId && (input.isLegalDeadline || deadlineType === 'legal_deadline' || deadlineType === 'workflow_step')) {

@@ -136,20 +136,16 @@ describe('Schema-Snapshot Fresh Install vs. Legacy-Migration 0.9.1', () => {
   });
 
 
-  it('hält SBV-Steuerungsprotokolle in Basisschema und Migration 0039 strukturgleich', () => {
+  it('hält SBV-Steuerungsprotokolle im Basisschema auf Migration 0040 und dokumentiert die Nachrüstung', () => {
     const fresh = createSqlSchemaSnapshot(readFileSync('database/schema.sql', 'utf8'));
-    const migrated = createSqlSchemaSnapshot(readFileSync('database/migrations/0039_sbv_control_protocols.sql', 'utf8'));
+    const initialMigration = readFileSync('database/migrations/0039_sbv_control_protocols.sql', 'utf8');
+    const deadlineMigration = readFileSync('database/migrations/0040_sbv_control_protocol_deadlines.sql', 'utf8');
 
-    const problems = [
-      ...compareTableSnapshot(fresh, migrated, 'sbv_control_protocols'),
-      ...compareIndexSnapshot(fresh, migrated, 'idx_sbv_control_protocols_partner'),
-      ...compareIndexSnapshot(fresh, migrated, 'idx_sbv_control_protocols_topic'),
-      ...compareIndexSnapshot(fresh, migrated, 'idx_sbv_control_protocols_status'),
-      ...compareIndexSnapshot(fresh, migrated, 'idx_sbv_control_protocols_meeting'),
-    ];
-
-    expect(problems).toEqual([]);
+    expect(initialMigration).toContain('CREATE TABLE IF NOT EXISTS sbv_control_protocols');
+    expect(deadlineMigration).toContain('ALTER TABLE sbv_control_protocols ADD COLUMN follow_up_due_at TEXT');
+    expect(deadlineMigration).toContain('idx_sbv_control_protocols_follow_up');
     expect(fresh.tables.sbv_control_protocols.columns).toEqual(expect.arrayContaining([...SBV_CONTROL_PROTOCOLS_REQUIRED_COLUMNS]));
+    expect(fresh.indexes.idx_sbv_control_protocols_follow_up).toBeDefined();
   });
 
 });

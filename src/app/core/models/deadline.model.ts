@@ -5,7 +5,8 @@ export type DeadlineProcessType =
   | 'equalization'
   | 'termination_hearing'
   | 'gdb'
-  | 'custom';
+  | 'custom'
+  | 'sbv_control_protocol';
 
 export type DeadlineType = 'legal_deadline' | 'follow_up' | 'appointment' | 'warning' | 'workflow_step';
 export type DeadlineSeverity = 'normal' | 'important' | 'critical' | 'fatal';
