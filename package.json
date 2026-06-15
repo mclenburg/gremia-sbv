@@ -120,7 +120,7 @@
     "argon2-browser": "^1.18.0",
     "better-sqlite3-multiple-ciphers": "^12.10.0",
     "clsx": "^2.1.1",
-    "date-fns": "^4.3.0",
+    "date-fns": "^4.4.0",
     "docx": "^9.7.1",
     "ical-generator": "^10.2.0",
     "lucide-react": "^1.16.0",
