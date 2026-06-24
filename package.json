@@ -1,6 +1,6 @@
 {
   "name": "gremia-sbv",
-  "version": "0.9.2",
+  "version": "0.9.4",
   "private": true,
   "description": "Offline-first Desktop-App für die vertrauliche Fallarbeit der Schwerbehindertenvertretung.",
   "main": "dist-electron/electron/main.js",

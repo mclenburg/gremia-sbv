@@ -76,4 +76,45 @@ describe('root patch note cleanup', () => {
     }
   });
 
+  it('removes obsolete 0.9.3 root patch notes through an explicit cleanup manifest', () => {
+    const projectRoot = createCleanupFixture('gremia-sbv-cleanup-root-093-notes-');
+    const obsoletePatchNotes = [
+      'PATCH_0_9_3_A_ACTIVITY_JOURNAL.md',
+      'PATCH_0_9_3_A_R1_ACTIVITY_JOURNAL_ARCHITECTURE.md',
+      'PATCH_0_9_3_A_R2_RECOVERY_LOGIN.md',
+      'PATCH_0_9_3_A_R3_BUILD_FIXES.md',
+    ];
+    const manifestDir = join(projectRoot, 'maintenance', 'source-cleanup');
+    const manifestPath = join(manifestDir, 'obsolete-root-patch-notes-0.9.3.json');
+
+    mkdirSync(manifestDir, { recursive: true });
+    for (const fileName of obsoletePatchNotes) {
+      writeFileSync(join(projectRoot, fileName), `temporary ${fileName}`, 'utf8');
+    }
+    writeFileSync(
+      manifestPath,
+      JSON.stringify({
+        version: '0.9.4-c-r8-root-patch-notes-cleanup',
+        files: obsoletePatchNotes,
+        directories: [],
+      }),
+      'utf8',
+    );
+
+    const result = spawnSync(process.execPath, ['scripts/cleanup-obsolete-files.cjs'], {
+      cwd: projectRoot,
+      encoding: 'utf8',
+    });
+
+    try {
+      expect(result.status).toBe(0);
+      expect(result.stderr).not.toContain('Cleanup-Pfad muss in einem bekannten Source-/Projektbereich liegen');
+      for (const fileName of obsoletePatchNotes) {
+        expect(existsSync(join(projectRoot, fileName))).toBe(false);
+      }
+    } finally {
+      rmSync(projectRoot, { recursive: true, force: true });
+    }
+  });
+
 });

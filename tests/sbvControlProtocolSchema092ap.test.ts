@@ -7,15 +7,15 @@ function read(path: string): string {
 }
 
 describe('SBV-Steuerungsprotokolle Schema-Integration', () => {
-  it('hebt die App-Schemaversion auf die dedizierte Migration 0040', () => {
+  it('bleibt als Migration 0040 vorhanden, während 0042 Beteiligungsverstöße ergänzt', () => {
     const latestMigration = readdirSync('database/migrations')
       .map((file) => file.match(/^(\d{4})[_-].+\.sql$/i)?.[1] ?? null)
       .filter((version): version is string => Boolean(version))
       .sort()
       .at(-1);
 
-    expect(APP_SCHEMA_VERSION).toBe('0040');
-    expect(latestMigration).toBe('0040');
+    expect(APP_SCHEMA_VERSION).toBe('0043');
+    expect(latestMigration).toBe('0043');
   });
 
   it('führt sbv_control_protocols im Fresh-Install-Schema und rüstet Wiedervorlagen per Migration 0040 nach', () => {

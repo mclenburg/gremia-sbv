@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, BriefcaseBusiness, CheckCircle2, RefreshCw, ShieldCheck, TimerReset } from 'lucide-react';
+import { AlertTriangle, BriefcaseBusiness, CheckCircle2, Clock3, RefreshCw, ShieldCheck, TimerReset } from 'lucide-react';
 import type { CaseRecord } from '../../core/models/case.model';
 import type { DeadlineDashboardItem, DeadlineRecord } from '../../core/models/deadline.model';
+import type { ActivityJournalSummary } from '../../core/models/activity-journal.model';
 import { DeadlineDashboardPanel } from '../deadlines/DeadlineDashboardPanel';
 import type { GremiaBrDashboardOverview, GremiaBrRelevanceMatch } from '../../core/models/gremia-br.model';
 import { waitForBridge } from '../../core/bridge/waitForBridge';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
-import { buildDashboardFocusSummary, type DashboardComplianceLike } from './dashboardFocusPolicy';
+import { buildDashboardFocusSummary, resolveActivityJournalWeekReviewMarker, type DashboardComplianceLike } from './dashboardFocusPolicy';
 import type { ViewId } from '../../core/navigation/modules';
-import { ToolbarButton } from '../../shared/components/IndustrialButton';
+import { IndustrialButton, ToolbarButton } from '../../shared/components/IndustrialButton';
 
 type DashboardFocusOverviewProps = {
   cases: CaseRecord[];
@@ -115,6 +116,8 @@ export function DashboardFocusOverview({ cases, deadlines, dashboardItems, onNav
   const [gremiaBrBusy, setGremiaBrBusy] = useState(false);
   const [gremiaBrStatus, setGremiaBrStatus] = useState('');
   const [gremiaBrError, setGremiaBrError] = useState('');
+  const [journalSummary, setJournalSummary] = useState<ActivityJournalSummary | null>(null);
+  const [journalLastWeekEntryCount, setJournalLastWeekEntryCount] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -144,6 +147,38 @@ export function DashboardFocusOverview({ cases, deadlines, dashboardItems, onNav
     void loadComplianceStatus();
     return () => { active = false; };
   }, [announce]);
+
+  useEffect(() => {
+    let active = true;
+    async function loadJournalSummary() {
+      try {
+        const bridge = await waitForBridge();
+        if (!active || !bridge?.activityJournal) return;
+        const now = new Date();
+        const lastWeekEnd = new Date(now);
+        const daysSinceMonday = (now.getDay() + 6) % 7;
+        lastWeekEnd.setDate(now.getDate() - daysSinceMonday);
+        lastWeekEnd.setHours(0, 0, 0, 0);
+        const lastWeekStart = new Date(lastWeekEnd);
+        lastWeekStart.setDate(lastWeekEnd.getDate() - 7);
+        const [summary, lastWeekEntries] = await Promise.all([
+          bridge.activityJournal.summary(),
+          bridge.activityJournal.list({
+            from: lastWeekStart.toISOString().slice(0, 10),
+            to: lastWeekEnd.toISOString().slice(0, 10),
+            limit: 1,
+          }),
+        ]);
+        if (!active) return;
+        setJournalSummary(summary);
+        setJournalLastWeekEntryCount(lastWeekEntries.length);
+      } catch {
+        if (active) setJournalSummary(null);
+      }
+    }
+    void loadJournalSummary();
+    return () => { active = false; };
+  }, []);
 
   async function loadGremiaBrOverview(active = true) {
     const bridge = await waitForBridge();
@@ -192,6 +227,12 @@ export function DashboardFocusOverview({ cases, deadlines, dashboardItems, onNav
   const nextMeetingAgenda = resolveNextGremiaBrMeetingAgenda({ enabled: gremiaBrEnabled, overview: gremiaBrOverview });
   const nextMeeting = nextMeetingAgenda?.meeting;
   const nextAgenda = nextMeetingAgenda?.agenda ?? [];
+  const journalWeekReview = resolveActivityJournalWeekReviewMarker({
+    hasJournalHistory: Boolean(journalSummary && journalSummary.totalEntries > 0),
+    lastWeekEntryCount: journalLastWeekEntryCount,
+    hasDashboardActivity: dashboardItems.length > 0 || deadlinesForSummary.length > 0 || summary.cases.open > 0,
+    hasHigherPriorityCriticalMarker: summary.deadlines.marker === 'warning' || summary.compliance.marker === 'warning',
+  });
 
   return (
     <section className="dashboard-focus" aria-labelledby="dashboard-focus-title">
@@ -223,6 +264,16 @@ export function DashboardFocusOverview({ cases, deadlines, dashboardItems, onNav
           <span>{summary.compliance.ok ? 'Auditkette und Datenbankintegrität ohne Warnung.' : `${summary.compliance.warnings || 1} Warnung(en) prüfen.`}</span>
           {complianceError && <small>{complianceError}</small>}
         </button>
+
+        {journalSummary && journalSummary.totalEntries > 0 && (
+          <IndustrialButton variant="ghost" className="industrial-card dashboard-focus-card" onClick={() => onNavigate('activity_journal')}>
+            <span className={markerClass(journalSummary.openFollowUps.length > 0 ? 'attention' : journalWeekReview.visible ? journalWeekReview.marker : 'neutral')}>{journalSummary.openFollowUps.length > 0 ? 'Nachhalten' : journalWeekReview.visible ? 'Prüfen' : 'Info'}</span>
+            <Clock3 className="h-5 w-5" aria-hidden="true" />
+            <strong>{journalWeekReview.visible ? journalWeekReview.title : 'Tätigkeitsjournal'}</strong>
+            <span>{journalWeekReview.visible ? journalWeekReview.description : `${journalSummary.totalEntries} Einträge · diese Woche ${Math.floor(journalSummary.weekMinutes / 60)} h ${String(journalSummary.weekMinutes % 60).padStart(2, '0')} min`}</span>
+            {journalSummary.openFollowUps.length > 0 && <small>{journalSummary.openFollowUps.length} Journal-Wiedervorlage(n) offen.</small>}
+          </IndustrialButton>
+        )}
 
         {gremiaBrTile && (
           <div className="industrial-card no-card-hover dashboard-focus-card dashboard-focus-card-static" aria-label="Gremia.BR-Lesebrücke">

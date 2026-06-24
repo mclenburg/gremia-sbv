@@ -15,12 +15,14 @@ export function ProcessDetailHeader({
   badgeLabel = "Maßnahme",
   documentAction,
   badges,
+  actions,
 }: {
   title: string;
   description: string;
   badgeLabel?: string;
   documentAction?: () => void;
   badges: ProcessDetailBadge[];
+  actions?: ReactNode;
 }) {
   return (
     <>
@@ -37,6 +39,7 @@ export function ProcessDetailHeader({
                 Dokumente
               </ToolbarButton>
             )}
+            {actions}
           </div>
           <h2>{title}</h2>
         </div>

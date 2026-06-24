@@ -126,6 +126,34 @@ import type {
   UpdateTemplateInput,
 } from "./app/core/models/template.model";
 import type { CreateSbvResourceRecordInput, SbvResourceDashboardSummary, SbvResourceRecord, UpdateSbvResourceRecordInput } from "./app/core/models/sbv-resource.model";
+import type {
+  ActivityJournalCategoryPreferenceRecord,
+  ActivityJournalEntryRecord,
+  ActivityJournalExportOptions,
+  ActivityJournalExportResult,
+  ActivityJournalLinkRecord,
+  ActivityJournalLinkTarget,
+  ActivityJournalListFilter,
+  ActivityJournalPrefill,
+  ActivityJournalPrefillContext,
+  ActivityJournalSummary,
+  ActivityJournalSummaryFilter,
+  CreateActivityJournalEntryInput,
+  UpdateActivityJournalEntryInput,
+} from "./app/core/models/activity-journal.model";
+import type {
+  CreateSbvParticipationViolationInput,
+  SbvParticipationViolationDocumentResult,
+  SbvParticipationViolationEventRecord,
+  SbvParticipationViolationFollowUpResult,
+  SbvParticipationViolationGeneratedDocumentRecord,
+  SbvParticipationViolationListFilter,
+  SbvParticipationViolationRecord,
+  SbvParticipationViolationStatusChangeInput,
+  SbvParticipationViolationTemplateInput,
+  SbvParticipationViolationTemplateValidationResult,
+  UpdateSbvParticipationViolationInput,
+} from "./app/core/models/sbv-participation-violation.model";
 
 import type {
   CreateProtectedPersonInput,
@@ -383,6 +411,41 @@ declare global {
         deleteCase(input: PrivacyReviewActionInput): Promise<PrivacyReviewActionResult>;
         bulkMarkClosedLegacy(): Promise<PrivacyReviewBulkResult>;
       };
+
+      activityJournal: {
+        list(filter?: ActivityJournalListFilter): Promise<ActivityJournalEntryRecord[]>;
+        get(id: string): Promise<ActivityJournalEntryRecord | null>;
+        create(input: CreateActivityJournalEntryInput): Promise<ActivityJournalEntryRecord>;
+        update(id: string, input: UpdateActivityJournalEntryInput): Promise<ActivityJournalEntryRecord>;
+        delete(id: string): Promise<{ deleted: boolean }>;
+        listLinks(entryId: string): Promise<ActivityJournalLinkRecord[]>;
+        addLink(entryId: string, target: ActivityJournalLinkTarget): Promise<ActivityJournalLinkRecord>;
+        removeLink(entryId: string, linkId: string): Promise<{ deleted: boolean }>;
+        summary(filter?: ActivityJournalSummaryFilter): Promise<ActivityJournalSummary>;
+        export(filter?: ActivityJournalListFilter, mode?: "summary" | "detailed", options?: ActivityJournalExportOptions): Promise<ActivityJournalExportResult>;
+        buildPrefillFromContext(context: ActivityJournalPrefillContext): Promise<ActivityJournalPrefill>;
+        buildPrefillFromDeadline(deadline: DeadlineRecord): Promise<ActivityJournalPrefill>;
+        buildPrefillFromClosedDeadline(deadline: DeadlineRecord): Promise<ActivityJournalPrefill>;
+        getPreferredCategory(contextType: ActivityJournalPrefillContext["contextType"]): Promise<ActivityJournalCategoryPreferenceRecord["category"] | undefined>;
+        rememberCategory(contextType: ActivityJournalPrefillContext["contextType"], category: ActivityJournalCategoryPreferenceRecord["category"]): Promise<ActivityJournalCategoryPreferenceRecord>;
+      };
+
+
+      sbvParticipationViolations: {
+        list(filter?: SbvParticipationViolationListFilter): Promise<SbvParticipationViolationRecord[]>;
+        get(id: string): Promise<SbvParticipationViolationRecord | null>;
+        listEvents(id: string): Promise<SbvParticipationViolationEventRecord[]>;
+        create(input: CreateSbvParticipationViolationInput): Promise<SbvParticipationViolationRecord>;
+        update(id: string, input: UpdateSbvParticipationViolationInput): Promise<SbvParticipationViolationRecord>;
+        changeStatus(id: string, input: SbvParticipationViolationStatusChangeInput): Promise<SbvParticipationViolationRecord>;
+        validateTemplate(input: SbvParticipationViolationTemplateInput): Promise<SbvParticipationViolationTemplateValidationResult>;
+        generateDocument(id: string, options?: Partial<Pick<SbvParticipationViolationTemplateInput, "recipientLabel" | "privacyMode" | "includeLegalReviewHint" | "includeOwiHint">>): Promise<SbvParticipationViolationDocumentResult>;
+        listDocuments(id: string): Promise<SbvParticipationViolationGeneratedDocumentRecord[]>;
+        createFollowUp(id: string, dueAt?: string): Promise<SbvParticipationViolationFollowUpResult>;
+        buildJournalPrefill(id: string): Promise<ActivityJournalPrefill>;
+        delete(id: string): Promise<{ deleted: boolean }>;
+      };
+
       deadlines: {
         list(filters?: DeadlineListFilters): Promise<DeadlineRecord[]>;
         dashboard(): Promise<DeadlineDashboardItem[]>;

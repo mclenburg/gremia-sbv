@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
+  ACTIVITY_JOURNAL_CATEGORY_PREFERENCES_REQUIRED_COLUMNS,
+  ACTIVITY_JOURNAL_ENTRIES_REQUIRED_COLUMNS,
+  ACTIVITY_JOURNAL_LINKS_REQUIRED_COLUMNS,
   CASE_DOCUMENT_OCR_JOBS_REQUIRED_COLUMNS,
   CASE_DOCUMENTS_REQUIRED_COLUMNS,
   CASE_EXTERNAL_REFERENCES_REQUIRED_COLUMNS,
@@ -17,6 +20,10 @@ import {
   SBV_CONTROL_PROTOCOLS_REQUIRED_COLUMNS,
   SBV_RESOURCE_RECORDS_REQUIRED_COLUMNS,
   COMPLIANCE_INCIDENTS_REQUIRED_COLUMNS,
+  GENERATED_DOCUMENTS_REQUIRED_COLUMNS,
+  SBV_PARTICIPATION_VIOLATION_DOCUMENTS_REQUIRED_COLUMNS,
+  SBV_PARTICIPATION_VIOLATION_EVENTS_REQUIRED_COLUMNS,
+  SBV_PARTICIPATION_VIOLATIONS_REQUIRED_COLUMNS,
 } from '../services/appSchema';
 import { evaluateDatabaseIntegrity } from '../services/databaseIntegrityService';
 import type { DatabaseAdapter } from '../services/databaseService';
@@ -24,7 +31,7 @@ import type { DatabaseAdapter } from '../services/databaseService';
 class SchemaDb implements DatabaseAdapter {
   constructor(
     private readonly tables: Record<string, readonly string[]>,
-    private readonly schemaVersion = '0040',
+    private readonly schemaVersion = '0043',
   ) {}
 
   prepare<T = unknown>(sql: string) {
@@ -64,6 +71,7 @@ const completeSchema: Record<string, readonly string[]> = {
   cases: CASES_REQUIRED_COLUMNS,
   case_notes: ['id'],
   case_documents: CASE_DOCUMENTS_REQUIRED_COLUMNS,
+  generated_documents: GENERATED_DOCUMENTS_REQUIRED_COLUMNS,
   contacts: ['id'],
   deadlines: ['id', 'title', 'due_at', 'status'],
   protected_persons: PROTECTED_PERSONS_REQUIRED_COLUMNS,
@@ -84,6 +92,12 @@ const completeSchema: Record<string, readonly string[]> = {
   sbv_resource_records: SBV_RESOURCE_RECORDS_REQUIRED_COLUMNS,
   sbv_control_protocols: SBV_CONTROL_PROTOCOLS_REQUIRED_COLUMNS,
   compliance_incidents: COMPLIANCE_INCIDENTS_REQUIRED_COLUMNS,
+  activity_journal_entries: ACTIVITY_JOURNAL_ENTRIES_REQUIRED_COLUMNS,
+  activity_journal_links: ACTIVITY_JOURNAL_LINKS_REQUIRED_COLUMNS,
+  activity_journal_category_preferences: ACTIVITY_JOURNAL_CATEGORY_PREFERENCES_REQUIRED_COLUMNS,
+  sbv_participation_violations: SBV_PARTICIPATION_VIOLATIONS_REQUIRED_COLUMNS,
+  sbv_participation_violation_events: SBV_PARTICIPATION_VIOLATION_EVENTS_REQUIRED_COLUMNS,
+  sbv_participation_violation_documents: SBV_PARTICIPATION_VIOLATION_DOCUMENTS_REQUIRED_COLUMNS,
 };
 
 describe('database integrity status for compliance center', () => {
@@ -91,13 +105,13 @@ describe('database integrity status for compliance center', () => {
     const result = evaluateDatabaseIntegrity(new SchemaDb(completeSchema));
 
     expect(result.ok).toBe(true);
-    expect(result.appliedSchemaVersion).toBe('0040');
+    expect(result.appliedSchemaVersion).toBe('0043');
     expect(result.missingTables).toEqual([]);
     expect(result.missingColumns).toEqual({});
     expect(result.repairRequired).toBe(false);
   });
 
-  it('accepts the real person-link and privacy-review column names from schema 0040', () => {
+  it('accepts the real person-link and privacy-review column names through schema 0042', () => {
     const result = evaluateDatabaseIntegrity(new SchemaDb(completeSchema));
 
     expect(result.issues).not.toContain('Spalte person_case_links.person_id fehlt.');
@@ -119,7 +133,7 @@ describe('database integrity status for compliance center', () => {
     expect(result.issues).toContain('Spalte cases.handover_valid_until fehlt.');
   });
 
-  it('reports repair need when the handover import tables from schema 0040 are missing', () => {
+  it('reports repair need when the handover import tables through schema 0042 are missing', () => {
     const { case_handover_imports: _imports, case_handover_import_items: _items, ...brokenSchema } = completeSchema;
 
     const result = evaluateDatabaseIntegrity(new SchemaDb(brokenSchema));

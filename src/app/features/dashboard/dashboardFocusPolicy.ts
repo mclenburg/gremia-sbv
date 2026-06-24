@@ -113,3 +113,23 @@ export function buildDashboardFocusSummary(input: {
     },
   };
 }
+
+export type ActivityJournalWeekReviewMarkerInput = {
+  hasJournalHistory: boolean;
+  lastWeekEntryCount: number;
+  hasDashboardActivity: boolean;
+  hasHigherPriorityCriticalMarker?: boolean;
+};
+
+export function resolveActivityJournalWeekReviewMarker(input: ActivityJournalWeekReviewMarkerInput): { visible: boolean; marker: DashboardFocusMarker; title: string; description: string } {
+  const visible = input.hasJournalHistory
+    && input.lastWeekEntryCount === 0
+    && input.hasDashboardActivity
+    && !input.hasHigherPriorityCriticalMarker;
+  return {
+    visible,
+    marker: 'neutral',
+    title: 'Tätigkeitsjournal prüfen',
+    description: 'Für die vergangene Woche sind keine Tätigkeiten dokumentiert. Bei Bedarf jetzt nacherfassen.',
+  };
+}

@@ -21,6 +21,7 @@ import {
   toDateTimeLocalValue,
 } from "../cases/caseWorkbenchFormat";
 import { preventionStatusOrder, statusLabel } from "./preventionShared";
+import { ActivityJournalContextButton } from "../activity-journal/components/ActivityJournalContextButton";
 
 const preventionDifficultyOptions: {
   value: PreventionDifficultyType;
@@ -129,6 +130,16 @@ export function PreventionProcessDetail({
           title={processTypeLabel(processType)}
           description="Prävention setzt vor dem BEM an: erkennbare Gefährdung, unverzügliche Beteiligung, konkrete Maßnahmenklärung."
           documentAction={() => void onOpenTemplates(process)}
+          actions={
+            <ActivityJournalContextButton
+              context={{
+                contextType: "prevention_process",
+                contextId: process.id,
+                caseId: process.caseId,
+                title: "Präventionsverfahren",
+              }}
+            />
+          }
           badges={[
             { label: "Status", value: statusLabel(process.status) },
             { label: "Risiko", value: process.riskType.replaceAll("_", " ") },

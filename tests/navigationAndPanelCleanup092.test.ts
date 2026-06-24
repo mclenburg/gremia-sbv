@@ -34,7 +34,7 @@ describe('Navigation und Panel-Cleanup 0.9.2', () => {
     const text = visibleText(markup);
 
     expect(moduleGroups.map((group) => group.label)).toEqual(['Kernarbeit', 'SBV-Verfahren', 'Werkzeuge', 'Administration']);
-    expect(modules.filter((module) => module.group === 'core').map((module) => module.id)).toEqual(['persons', 'cases', 'deadlines']);
+    expect(modules.filter((module) => module.group === 'core').map((module) => module.id)).toEqual(['persons', 'cases', 'deadlines', 'activity_journal']);
     expect(text).toContain('Kernarbeit');
     expect(text).toContain('SBV-Verfahren');
     expect(text).toContain('Werkzeuge');

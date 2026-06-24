@@ -54,9 +54,31 @@ describe('retention policy', () => {
     expect(dashboard.candidates[0].type).toBe('cleartext_file_review');
   });
 
+
+  it('stellt fallfreie Journaleinträge nach der Prüffrist ein, ohne offene Wiedervorlagen zu löschen', () => {
+    const dashboard = buildRetentionDashboard({
+      now,
+      settings: { activityJournalReviewMonths: 12 },
+      journalEntries: [
+        { id: 'j1', title: 'SBV-Recherche', entryDate: '2024-01-01', status: 'final', category: 'research', caseLinked: false },
+        { id: 'j2', title: 'Nachfassung HR', entryDate: '2024-01-01', status: 'follow_up_open', category: 'employer_meeting', openFollowUp: true }
+      ]
+    });
+
+    expect(dashboard.candidates.map((candidate) => candidate.type)).toEqual(expect.arrayContaining([
+      'journal_entry_review_due',
+      'journal_entry_deferred_open_follow_up'
+    ]));
+    expect(dashboard.candidates.find((candidate) => candidate.entityId === 'j2')).toMatchObject({
+      riskLevel: 'warning',
+      entityType: 'activity_journal_entry'
+    });
+  });
+
   it('normalizes default settings', () => {
     const settings = normalizeRetentionSettings({ closedCaseReviewMonths: 18 });
     expect(settings.closedCaseReviewMonths).toBe(18);
     expect(settings.minimumGroupSizeForReports).toBeGreaterThanOrEqual(3);
+    expect(settings.activityJournalReviewMonths).toBe(36);
   });
 });

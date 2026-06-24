@@ -251,6 +251,16 @@ function normalizeStatus(value: unknown): string {
     termination_hearing: "Kündigungsanhörung",
     equalization: "Gleichstellung",
     gdb: "GdB/Feststellung",
+    request: "Freundliche Nachforderung",
+    formal_objection: "Förmliche Rüge",
+    abmahnung: "Abmahnung",
+    suspension_request: "Aussetzungsverlangen",
+    owi_preparation: "OWi-Vorbereitung",
+    draft: "Entwurf",
+    sent: "Versandt/dokumentiert",
+    remedied: "Geheilt",
+    escalated: "Eskaliert",
+    withdrawn: "Zurückgezogen",
   };
   return map[raw] ?? map[raw.toLowerCase()] ?? (raw || "—");
 }
@@ -655,6 +665,8 @@ export class ReportService {
     const preventionCreated = periodWhere("created_at", input);
     const terminationReceived = periodWhere("received_at", input);
     const equalizationCreated = periodWhere("created_at", input);
+    const journalPeriod = periodWhere("entry_date", input);
+    const violationPeriod = periodWhere("created_at", input);
 
     const newCases = count(db, `SELECT COUNT(*) AS value FROM cases ${opened.sql}`, opened.params);
     const closedCases = count(db, `SELECT COUNT(*) AS value FROM cases ${closed.sql}`, closed.params);
@@ -664,6 +676,16 @@ export class ReportService {
     const participationCount = count(db, `SELECT COUNT(*) AS value FROM case_measures cm WHERE cm.type = 'sbv_participation'${participationCreated.sql ? ' AND ' + participationCreated.sql.replace(/^ WHERE /, '') : ''}`, participationCreated.params);
     const terminationCount = count(db, `SELECT COUNT(*) AS value FROM termination_hearings ${terminationReceived.sql}`, terminationReceived.params);
     const equalizationCount = count(db, `SELECT COUNT(*) AS value FROM equalization_processes ${equalizationCreated.sql}`, equalizationCreated.params);
+    const journalCount = count(db, `SELECT COUNT(*) AS value FROM activity_journal_entries ${journalPeriod.sql}`, journalPeriod.params);
+    const journalMinutes = count(db, `SELECT COALESCE(SUM(duration_minutes), 0) AS value FROM activity_journal_entries ${journalPeriod.sql}`, journalPeriod.params);
+    const journalOpenFollowUps = count(db, `SELECT COUNT(*) AS value FROM activity_journal_entries WHERE status = 'follow_up_open'`);
+    const violationCount = count(db, `SELECT COUNT(*) AS value FROM sbv_participation_violations ${violationPeriod.sql}`, violationPeriod.params);
+    const violationOpen = count(db, `SELECT COUNT(*) AS value FROM sbv_participation_violations WHERE status IN ('draft','open','sent','escalated')`);
+    const journalCategories = rows(
+      db,
+      `SELECT category, COUNT(*) AS count, COALESCE(SUM(duration_minutes), 0) AS minutes FROM activity_journal_entries ${journalPeriod.sql} GROUP BY category ORDER BY minutes DESC, count DESC`,
+      journalPeriod.params,
+    );
 
     const metrics = {
       "Neue Fälle": newCases,
@@ -672,6 +694,10 @@ export class ReportService {
       "SBV-Beteiligungen": participationCount,
       "BEM/Prävention": bemCount + preventionCount,
       "Kündigungsanhörungen": terminationCount,
+      "Journal-Einträge": journalCount,
+      "Beteiligungsverstöße": violationCount,
+      "offene Verstoßvorgänge": violationOpen,
+      "dokumentierte SBV-Zeit (Min.)": journalMinutes,
     };
     const categories = rows(
       db,
@@ -686,13 +712,17 @@ export class ReportService {
       ["SBV-Beteiligungsprüfungen", participationCount],
       ["Kündigungsanhörungen", terminationCount],
       ["Gleichstellung/GdB", equalizationCount],
+      ["Tätigkeitsjournal", journalCount],
+      ["Journal-Wiedervorlagen offen", journalOpenFollowUps],
+      ["Beteiligungsverstoß-Protokolle", violationCount],
+      ["offene Beteiligungsverstoß-Vorgänge", violationOpen],
     ];
     const warnings: string[] = [];
     const rareCategories = categories.filter((row) => Number(row.value) > 0 && Number(row.value) < 3);
     if (rareCategories.length) {
       warnings.push("Einzelne Fallkategorien enthalten weniger als 3 Fälle. Für externe Tätigkeitsberichte sollten diese zusammengefasst oder ausgelassen werden.");
     }
-    if (newCases + bemCount + preventionCount + participationCount + terminationCount + equalizationCount < 3) {
+    if (newCases + bemCount + preventionCount + participationCount + terminationCount + equalizationCount + journalCount + violationCount < 3) {
       warnings.push("Der Berichtszeitraum enthält sehr wenige Vorgänge. Vor externer Weitergabe ist die Rückrechenbarkeit besonders zu prüfen.");
     }
 
@@ -701,6 +731,7 @@ export class ReportService {
       <section class="box"><h2>Arbeitsfelder im Berichtszeitraum</h2>${table(["Arbeitsfeld", "Anzahl"], processRows)}</section>
       <section class="box"><h2>Fallkategorien im Berichtszeitraum</h2>${table(["Kategorie", "Anzahl"], categories.map((row) => [normalizeStatus(row.category), row.value]))}</section>
       <section class="box"><h2>Fallstatus zum Stichtag</h2>${table(["Status", "Anzahl"], statuses.map((row) => [normalizeStatus(row.status), row.value]))}</section>
+      <section class="box"><h2>Tätigkeitsjournal / SBV-Zeit</h2>${table(["Kategorie", "Einträge", "Minuten"], journalCategories.map((row) => [normalizeStatus(row.category), row.count, row.minutes]))}<p>Die Werte sind Eigenaufzeichnungen der SBV und keine Arbeitgeber-Arbeitszeitabrechnung.</p></section>
       <section class="box"><h2>Datenschutz und Anonymisierung</h2><p>Dieser Tätigkeitsbericht enthält keine Namen, Aktenzeichen, Diagnosen, Dokumenttitel oder vertraulichen Freitexte. Bei kleinen Fallzahlen ist vor Weitergabe dennoch eine Rückrechenbarkeitsprüfung erforderlich.</p></section>`;
     return {
       title: "Tätigkeitsbericht der SBV",
@@ -1063,10 +1094,16 @@ export class ReportService {
     const missingInformation = count(db, `SELECT COUNT(*) AS value FROM ${participationFrom} AND p.information_complete = 0`);
     const lateHearing = count(db, `SELECT COUNT(*) AS value FROM ${participationFrom} AND p.hearing_before_decision = 0`);
     const decisionMissing = count(db, `SELECT COUNT(*) AS value FROM ${participationFrom} AND p.decision_notified = 0`);
+    const violationPeriod = periodWhere("created_at", input);
+    const violationProtocolCount = count(db, `SELECT COUNT(*) AS value FROM sbv_participation_violations ${violationPeriod.sql}`, violationPeriod.params);
+    const violationOpenProtocols = count(db, `SELECT COUNT(*) AS value FROM sbv_participation_violations WHERE status IN ('draft','open','sent','escalated')`);
+    const violationByStage = rows(db, `SELECT stage, COUNT(*) AS value FROM sbv_participation_violations ${violationPeriod.sql} GROUP BY stage ORDER BY value DESC`, violationPeriod.params);
+    const violationByStatus = rows(db, `SELECT status, COUNT(*) AS value FROM sbv_participation_violations ${violationPeriod.sql} GROUP BY status ORDER BY value DESC`, violationPeriod.params);
     const warnings: string[] = [];
     if (due) warnings.push(`${due} Beteiligungsvorgänge haben überfällige Stellungnahmefristen.`);
     if (violations) warnings.push(`${violations} Beteiligungsvorgänge enthalten dokumentierte Pflichtverstöße.`);
     if (missingInformation) warnings.push(`${missingInformation} Beteiligungsvorgänge sind als nicht vollständig unterrichtet markiert.`);
+    if (violationOpenProtocols) warnings.push(`${violationOpenProtocols} strukturierte Beteiligungsverstoß-Protokolle sind noch offen oder eskaliert.`);
     if (lateHearing) warnings.push(`${lateHearing} Beteiligungsvorgänge sind nicht als Anhörung vor Entscheidung bestätigt.`);
     const metrics = {
       "Beteiligungen gesamt": count(db, `SELECT COUNT(*) AS value FROM ${participationFrom}`),
@@ -1074,6 +1111,8 @@ export class ReportService {
       "Kritisch": critical,
       "Aussetzungen": suspensions,
       "Pflichtverstöße": violations,
+      "strukturierte Verstoßprotokolle": violationProtocolCount,
+      "offene Verstoßprotokolle": violationOpenProtocols,
       "Frist überfällig": due,
     };
     const content = `${metricCards(metrics)}
@@ -1088,7 +1127,8 @@ export class ReportService {
           ["Aussetzungsverlangen dokumentiert", suspensions],
           ["Pflichtverstoß dokumentiert", violations],
         ],
-      )}</section>`;
+      )}</section>
+      <section class="box"><h2>Strukturierte Beteiligungsverstoß-Protokolle</h2>${table(["Eskalationsstufe", "Anzahl"], violationByStage.map((row) => [normalizeStatus(row.stage), row.value]))}${table(["Status", "Anzahl"], violationByStatus.map((row) => [normalizeStatus(row.status), row.value]))}<p>Die Auswertung enthält keine Schreibenstexte, Maßnahmendetails oder Freitexte.</p></section>`;
     return {
       title: "SBV-Beteiligungsbericht",
       warnings,

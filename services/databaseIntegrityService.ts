@@ -1,6 +1,9 @@
 import type { DatabaseAdapter } from './databaseService.js';
 import {
   APP_SCHEMA_VERSION,
+  ACTIVITY_JOURNAL_CATEGORY_PREFERENCES_REQUIRED_COLUMNS,
+  ACTIVITY_JOURNAL_ENTRIES_REQUIRED_COLUMNS,
+  ACTIVITY_JOURNAL_LINKS_REQUIRED_COLUMNS,
   CASE_DOCUMENT_OCR_JOBS_REQUIRED_COLUMNS,
   CASE_DOCUMENTS_REQUIRED_COLUMNS,
   COMPLIANCE_INCIDENTS_REQUIRED_COLUMNS,
@@ -17,6 +20,10 @@ import {
   PERSONAL_DATA_AUDIT_REQUIRED_COLUMNS,
   PROTECTED_PERSONS_REQUIRED_COLUMNS,
   SBV_CONTROL_PROTOCOLS_REQUIRED_COLUMNS,
+  SBV_PARTICIPATION_VIOLATION_DOCUMENTS_REQUIRED_COLUMNS,
+  SBV_PARTICIPATION_VIOLATION_EVENTS_REQUIRED_COLUMNS,
+  SBV_PARTICIPATION_VIOLATIONS_REQUIRED_COLUMNS,
+  GENERATED_DOCUMENTS_REQUIRED_COLUMNS,
   SBV_RESOURCE_RECORDS_REQUIRED_COLUMNS,
 } from './appSchema.js';
 import type { ComplianceDatabaseIntegrityStatus } from '../src/app/core/models/compliance.model.js';
@@ -29,6 +36,7 @@ const REQUIRED_TABLES = [
   'cases',
   'case_notes',
   'case_documents',
+  'generated_documents',
   'contacts',
   'deadlines',
   'protected_persons',
@@ -49,6 +57,12 @@ const REQUIRED_TABLES = [
   'sbv_resource_records',
   'sbv_control_protocols',
   'compliance_incidents',
+  'activity_journal_entries',
+  'activity_journal_links',
+  'activity_journal_category_preferences',
+  'sbv_participation_violations',
+  'sbv_participation_violation_events',
+  'sbv_participation_violation_documents',
 ] as const;
 
 const REQUIRED_COLUMNS: Record<string, readonly string[]> = {
@@ -72,6 +86,13 @@ const REQUIRED_COLUMNS: Record<string, readonly string[]> = {
   sbv_resource_records: SBV_RESOURCE_RECORDS_REQUIRED_COLUMNS,
   sbv_control_protocols: SBV_CONTROL_PROTOCOLS_REQUIRED_COLUMNS,
   compliance_incidents: COMPLIANCE_INCIDENTS_REQUIRED_COLUMNS,
+  activity_journal_entries: ACTIVITY_JOURNAL_ENTRIES_REQUIRED_COLUMNS,
+  activity_journal_links: ACTIVITY_JOURNAL_LINKS_REQUIRED_COLUMNS,
+  activity_journal_category_preferences: ACTIVITY_JOURNAL_CATEGORY_PREFERENCES_REQUIRED_COLUMNS,
+  generated_documents: GENERATED_DOCUMENTS_REQUIRED_COLUMNS,
+  sbv_participation_violations: SBV_PARTICIPATION_VIOLATIONS_REQUIRED_COLUMNS,
+  sbv_participation_violation_events: SBV_PARTICIPATION_VIOLATION_EVENTS_REQUIRED_COLUMNS,
+  sbv_participation_violation_documents: SBV_PARTICIPATION_VIOLATION_DOCUMENTS_REQUIRED_COLUMNS,
 };
 
 function tableExists(db: DatabaseAdapter, table: string): boolean {

@@ -8,6 +8,7 @@ export const AUDIT_SUBJECT_TYPES = {
   caseHandover: 'case_handover',
   sbvResourceRecord: 'sbv_resource_record',
   sbvControlProtocol: 'sbv_control_protocol',
+  activityJournal: 'activity_journal',
   gremiaBrHttpRequest: 'gremia_br_http_request',
 } as const;
 
@@ -25,6 +26,8 @@ export const AUDIT_PURPOSES = {
   sbvResourceRead: 'SBV-Ressourcen- und Heranziehungsnachweise anzeigen.',
   sbvControlProtocolChanged: 'Übergreifendes SBV-Steuerungsprotokoll geändert.',
   sbvControlProtocolRead: 'Übergreifende SBV-Steuerungsprotokolle anzeigen.',
+  activityJournalChanged: 'SBV-Tätigkeitsjournal geändert; Audit enthält keine Freitexte.',
+  activityJournalRead: 'SBV-Tätigkeitsjournal anzeigen; Audit enthält keine Freitexte.',
   gremiaBrRequest: 'Gremia.BR-Lesebrücke: HTTP-Anfrage ohne Inhaltsdaten protokollieren.',
 } as const;
 
@@ -63,6 +66,16 @@ export type SbvControlProtocolAuditArgs = {
   protocolId?: string;
   topic?: string;
   status?: string;
+};
+
+export type ActivityJournalAuditArgs = {
+  action: Extract<PersonalDataAuditAction, 'read' | 'create' | 'update' | 'delete' | 'export'>;
+  entryId?: string;
+  category?: string;
+  status?: string;
+  entryDate?: string;
+  linkCount?: number;
+  hasTime?: boolean;
 };
 
 export type GremiaBrRequestAuditArgs = {
@@ -180,6 +193,23 @@ export function auditSbvControlProtocolChanged(args: SbvControlProtocolAuditArgs
     subjectId: args.protocolId,
     purpose: args.action === 'read' ? AUDIT_PURPOSES.sbvControlProtocolRead : AUDIT_PURPOSES.sbvControlProtocolChanged,
     metadata: compactMetadata({ topic: args.topic, status: args.status }),
+  };
+}
+
+
+export function auditActivityJournalChanged(args: ActivityJournalAuditArgs): CreatePersonalDataAuditInput {
+  return {
+    action: args.action,
+    subjectType: AUDIT_SUBJECT_TYPES.activityJournal,
+    subjectId: args.entryId,
+    purpose: args.action === 'read' ? AUDIT_PURPOSES.activityJournalRead : AUDIT_PURPOSES.activityJournalChanged,
+    metadata: compactMetadata({
+      category: args.category,
+      status: args.status,
+      entryDate: args.entryDate,
+      linkCount: args.linkCount,
+      hasTime: args.hasTime,
+    }),
   };
 }
 

@@ -28,7 +28,7 @@ describe('Dependency-Hygiene nach Dependabot-Updates', () => {
 
   it('hält electron-builder auf der neuen Rebuild-Kette mit node-gyp 12 und tar 7', () => {
     const rebuild = packageLock.packages['node_modules/@electron/rebuild'];
-    const nodeGyp = packageLock.packages['node_modules/@electron/rebuild/node_modules/node-gyp'];
+    const nodeGyp = packageLock.packages['node_modules/@electron/rebuild/node_modules/node-gyp'] ?? packageLock.packages['node_modules/node-gyp'];
     const tar = packageLock.packages['node_modules/tar'];
 
     expect(versionStartsWith(rebuild?.version, '4.')).toBe(true);

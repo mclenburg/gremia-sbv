@@ -3,7 +3,7 @@ import path from 'node:path';
 import type { DatabaseAdapter } from './databaseService.js';
 import { classifyCaseLegalReferencesColumns } from './knowledgeMigrationPolicy.js';
 import { APP_VERSION } from './generated/appMetadata.js';
-import { APP_SCHEMA_VERSION, COMPLIANCE_INCIDENTS_REQUIRED_COLUMNS, SBV_CONTROL_PROTOCOLS_REQUIRED_COLUMNS, SBV_RESOURCE_RECORDS_REQUIRED_COLUMNS, CASE_HANDOVER_IMPORTS_REQUIRED_COLUMNS, CASE_HANDOVER_IMPORT_ITEMS_REQUIRED_COLUMNS, CASE_DOCUMENTS_REQUIRED_COLUMNS, CASE_DOCUMENT_OCR_JOBS_REQUIRED_COLUMNS, CASE_EXTERNAL_REFERENCES_REQUIRED_COLUMNS, CASES_REQUIRED_COLUMNS, CASE_MEASURES_REQUIRED_COLUMNS, CASE_MEASURE_PARTICIPATION_REQUIRED_COLUMNS, CASE_MEASURE_NOTES_REQUIRED_COLUMNS, CASE_MEASURE_WORKPLACE_ACCOMMODATION_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_STATE_REQUIRED_COLUMNS, GREMIA_BR_CACHE_REQUIRED_COLUMNS, GREMIA_BR_SETTINGS_REQUIRED_COLUMNS, PERSON_IMPORT_RUN_ITEMS_REQUIRED_COLUMNS, PROTECTED_PERSONS_REQUIRED_COLUMNS, DATABASE_SCHEMA_APP_VERSION_KEY, DATABASE_SCHEMA_VERSION_KEY, PERSONAL_DATA_AUDIT_REQUIRED_COLUMNS, SBV_PARTICIPATION_REQUIRED_COLUMNS, TERMINATION_HEARINGS_REQUIRED_COLUMNS } from './appSchema.js';
+import { APP_SCHEMA_VERSION, ACTIVITY_JOURNAL_CATEGORY_PREFERENCES_REQUIRED_COLUMNS, ACTIVITY_JOURNAL_ENTRIES_REQUIRED_COLUMNS, ACTIVITY_JOURNAL_LINKS_REQUIRED_COLUMNS, COMPLIANCE_INCIDENTS_REQUIRED_COLUMNS, GENERATED_DOCUMENTS_REQUIRED_COLUMNS, SBV_PARTICIPATION_VIOLATION_DOCUMENTS_REQUIRED_COLUMNS, SBV_PARTICIPATION_VIOLATION_EVENTS_REQUIRED_COLUMNS, SBV_PARTICIPATION_VIOLATIONS_REQUIRED_COLUMNS, SBV_CONTROL_PROTOCOLS_REQUIRED_COLUMNS, SBV_RESOURCE_RECORDS_REQUIRED_COLUMNS, CASE_HANDOVER_IMPORTS_REQUIRED_COLUMNS, CASE_HANDOVER_IMPORT_ITEMS_REQUIRED_COLUMNS, CASE_DOCUMENTS_REQUIRED_COLUMNS, CASE_DOCUMENT_OCR_JOBS_REQUIRED_COLUMNS, CASE_EXTERNAL_REFERENCES_REQUIRED_COLUMNS, CASES_REQUIRED_COLUMNS, CASE_MEASURES_REQUIRED_COLUMNS, CASE_MEASURE_PARTICIPATION_REQUIRED_COLUMNS, CASE_MEASURE_NOTES_REQUIRED_COLUMNS, CASE_MEASURE_WORKPLACE_ACCOMMODATION_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_STATE_REQUIRED_COLUMNS, GREMIA_BR_CACHE_REQUIRED_COLUMNS, GREMIA_BR_SETTINGS_REQUIRED_COLUMNS, PERSON_IMPORT_RUN_ITEMS_REQUIRED_COLUMNS, PROTECTED_PERSONS_REQUIRED_COLUMNS, DATABASE_SCHEMA_APP_VERSION_KEY, DATABASE_SCHEMA_VERSION_KEY, PERSONAL_DATA_AUDIT_REQUIRED_COLUMNS, SBV_PARTICIPATION_REQUIRED_COLUMNS, TERMINATION_HEARINGS_REQUIRED_COLUMNS } from './appSchema.js';
 
 interface MigrationRow {
   version: string;
@@ -337,6 +337,22 @@ export class MigrationService {
       case '0040':
         return this.tableExists('sbv_control_protocols')
           && SBV_CONTROL_PROTOCOLS_REQUIRED_COLUMNS.every((column) => this.columnExists('sbv_control_protocols', column));
+      case '0041':
+        return this.tableExists('activity_journal_entries')
+          && this.tableExists('activity_journal_links')
+          && this.tableExists('activity_journal_category_preferences')
+          && ACTIVITY_JOURNAL_ENTRIES_REQUIRED_COLUMNS.every((column) => this.columnExists('activity_journal_entries', column))
+          && ACTIVITY_JOURNAL_LINKS_REQUIRED_COLUMNS.every((column) => this.columnExists('activity_journal_links', column))
+          && ACTIVITY_JOURNAL_CATEGORY_PREFERENCES_REQUIRED_COLUMNS.every((column) => this.columnExists('activity_journal_category_preferences', column));
+      case '0042':
+        return this.tableExists('sbv_participation_violations')
+          && this.tableExists('sbv_participation_violation_events')
+          && this.tableExists('sbv_participation_violation_documents')
+          && SBV_PARTICIPATION_VIOLATIONS_REQUIRED_COLUMNS.every((column) => this.columnExists('sbv_participation_violations', column))
+          && SBV_PARTICIPATION_VIOLATION_EVENTS_REQUIRED_COLUMNS.every((column) => this.columnExists('sbv_participation_violation_events', column))
+          && SBV_PARTICIPATION_VIOLATION_DOCUMENTS_REQUIRED_COLUMNS.every((column) => this.columnExists('sbv_participation_violation_documents', column));
+      case '0043':
+        return GENERATED_DOCUMENTS_REQUIRED_COLUMNS.every((column) => this.columnExists('generated_documents', column));
       default:
         return false;
     }
@@ -587,6 +603,71 @@ export class MigrationService {
       this.ensureSbvControlProtocolSchema();
       diagnostics.push('SBV-Steuerungsprotokoll-Schema wurde auf Stand 0040 repariert.');
     }
+
+    if (!this.hasCompleteActivityJournalSchema()) {
+      this.ensureActivityJournalSchema();
+      diagnostics.push('Tätigkeitsjournal-Schema wurde auf Stand 0041 repariert.');
+    }
+  }
+
+  private hasCompleteActivityJournalSchema(): boolean {
+    return this.tableExists('activity_journal_entries')
+      && this.tableExists('activity_journal_links')
+      && this.tableExists('activity_journal_category_preferences')
+      && ACTIVITY_JOURNAL_ENTRIES_REQUIRED_COLUMNS.every((column) => this.columnExists('activity_journal_entries', column))
+      && ACTIVITY_JOURNAL_LINKS_REQUIRED_COLUMNS.every((column) => this.columnExists('activity_journal_links', column))
+      && ACTIVITY_JOURNAL_CATEGORY_PREFERENCES_REQUIRED_COLUMNS.every((column) => this.columnExists('activity_journal_category_preferences', column));
+  }
+
+  private ensureActivityJournalSchema(): void {
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS activity_journal_entries (
+        id TEXT PRIMARY KEY,
+        entry_date TEXT NOT NULL,
+        started_at TEXT NULL,
+        ended_at TEXT NULL,
+        duration_minutes INTEGER NULL,
+        time_mode TEXT NOT NULL,
+        category TEXT NOT NULL,
+        title TEXT NOT NULL,
+        description TEXT NULL,
+        result_note TEXT NULL,
+        confidentiality_level TEXT NOT NULL,
+        status TEXT NOT NULL,
+        created_from TEXT NOT NULL,
+        follow_up_due_at TEXT NULL,
+        performed_outside_contract_work_time INTEGER NOT NULL DEFAULT 0,
+        exported_for_activity_report_at TEXT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        CHECK(time_mode IN ('none','duration','range','timer')),
+        CHECK(category IN ('case_work','consultation','bem_preparation','prevention','participation','employer_meeting','committee_work','sbv_steering','research','documentation','qualification','external_network','sbv_self_organization')),
+        CHECK(confidentiality_level IN ('normal','confidential','highly_confidential')),
+        CHECK(status IN ('draft','final','follow_up_open')),
+        CHECK(created_from IN ('manual','text_command','context_prefill','timer','import')),
+        CHECK(duration_minutes IS NULL OR duration_minutes >= 0),
+        CHECK(performed_outside_contract_work_time IN (0,1))
+      );
+      CREATE TABLE IF NOT EXISTS activity_journal_links (
+        id TEXT PRIMARY KEY,
+        entry_id TEXT NOT NULL REFERENCES activity_journal_entries(id) ON DELETE CASCADE,
+        target_type TEXT NOT NULL CHECK(target_type IN ('case','person','bem_process','prevention_process','sbv_participation','termination_hearing','equalization_process','sbv_control_protocol','deadline','document')),
+        target_id TEXT NOT NULL,
+        created_at TEXT NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS activity_journal_category_preferences (
+        context_type TEXT PRIMARY KEY CHECK(context_type IN ('case','person','bem_process','prevention_process','sbv_participation','termination_hearing','equalization_process','sbv_control_protocol','deadline','document','journal','fallfrei')),
+        category TEXT NOT NULL CHECK(category IN ('case_work','consultation','bem_preparation','prevention','participation','employer_meeting','committee_work','sbv_steering','research','documentation','qualification','external_network','sbv_self_organization')),
+        updated_at TEXT NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_activity_journal_entries_date ON activity_journal_entries(entry_date DESC, updated_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_activity_journal_entries_category ON activity_journal_entries(category, entry_date DESC);
+      CREATE INDEX IF NOT EXISTS idx_activity_journal_entries_status ON activity_journal_entries(status, entry_date DESC);
+      CREATE INDEX IF NOT EXISTS idx_activity_journal_entries_follow_up ON activity_journal_entries(follow_up_due_at);
+      CREATE INDEX IF NOT EXISTS idx_activity_journal_entries_exported ON activity_journal_entries(exported_for_activity_report_at);
+      CREATE INDEX IF NOT EXISTS idx_activity_journal_links_entry ON activity_journal_links(entry_id);
+      CREATE INDEX IF NOT EXISTS idx_activity_journal_links_target ON activity_journal_links(target_type, target_id);
+    `);
   }
 
   private hasCompleteCaseHandoverSchema(): boolean {
@@ -1208,7 +1289,14 @@ CREATE INDEX IF NOT EXISTS idx_case_measure_events_measure_created ON case_measu
       'case_handover_imports',
       'case_handover_import_items',
       'sbv_resource_records',
-      'sbv_control_protocols'
+      'sbv_control_protocols',
+      'activity_journal_entries',
+      'activity_journal_links',
+      'activity_journal_category_preferences',
+      'generated_documents',
+      'sbv_participation_violations',
+      'sbv_participation_violation_events',
+      'sbv_participation_violation_documents'
     ];
 
     requiredTables.forEach((table) => {
@@ -1236,7 +1324,14 @@ CREATE INDEX IF NOT EXISTS idx_case_measure_events_measure_created ON case_measu
       case_handover_imports: [...CASE_HANDOVER_IMPORTS_REQUIRED_COLUMNS],
       case_handover_import_items: [...CASE_HANDOVER_IMPORT_ITEMS_REQUIRED_COLUMNS],
       sbv_resource_records: [...SBV_RESOURCE_RECORDS_REQUIRED_COLUMNS],
-      sbv_control_protocols: [...SBV_CONTROL_PROTOCOLS_REQUIRED_COLUMNS]
+      sbv_control_protocols: [...SBV_CONTROL_PROTOCOLS_REQUIRED_COLUMNS],
+      activity_journal_entries: [...ACTIVITY_JOURNAL_ENTRIES_REQUIRED_COLUMNS],
+      activity_journal_links: [...ACTIVITY_JOURNAL_LINKS_REQUIRED_COLUMNS],
+      activity_journal_category_preferences: [...ACTIVITY_JOURNAL_CATEGORY_PREFERENCES_REQUIRED_COLUMNS],
+      generated_documents: [...GENERATED_DOCUMENTS_REQUIRED_COLUMNS],
+      sbv_participation_violations: [...SBV_PARTICIPATION_VIOLATIONS_REQUIRED_COLUMNS],
+      sbv_participation_violation_events: [...SBV_PARTICIPATION_VIOLATION_EVENTS_REQUIRED_COLUMNS],
+      sbv_participation_violation_documents: [...SBV_PARTICIPATION_VIOLATION_DOCUMENTS_REQUIRED_COLUMNS]
     };
 
     Object.entries(requiredColumns).forEach(([table, columns]) => {

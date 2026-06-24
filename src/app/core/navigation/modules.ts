@@ -3,6 +3,7 @@ import type { LucideProps } from 'lucide-react';
 import {
   BarChart3,
   BookOpen,
+  ClipboardList,
   ClipboardCheck,
   CalendarClock,
   FileText,
@@ -20,6 +21,8 @@ export type ViewId =
   | 'dashboard'
   | 'cases'
   | 'deadlines'
+  | 'activity_journal'
+  | 'participation_violations'
   | 'persons'
   | 'bem'
   | 'prevention'
@@ -88,6 +91,14 @@ export const modules: ModuleDefinition[] = [
     icon: CalendarClock,
     group: 'core'
   },
+  {
+    id: 'activity_journal',
+    title: 'Tätigkeitsjournal',
+    shortTitle: 'Journal',
+    text: 'SBV-Eigenaufzeichnung zu Tätigkeiten und optionaler SBV-Zeit.',
+    icon: ClipboardList,
+    group: 'core'
+  },
 
   {
     id: 'bem',
@@ -102,6 +113,15 @@ export const modules: ModuleDefinition[] = [
     title: 'Präventionsverfahren',
     shortTitle: 'Prävention',
     text: 'Frühzeitige Aktivierung nach § 167 Abs. 1 SGB IX.',
+    icon: ShieldAlert,
+    group: 'processes'
+  },
+
+  {
+    id: 'participation_violations',
+    title: 'Beteiligungsverstöße',
+    shortTitle: 'Verstöße',
+    text: 'Pflichtverletzungen bei SBV-Unterrichtung und Anhörung beweissicher protokollieren.',
     icon: ShieldAlert,
     group: 'processes'
   },

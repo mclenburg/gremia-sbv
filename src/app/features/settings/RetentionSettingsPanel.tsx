@@ -138,7 +138,7 @@ export function RetentionSettingsPanel({ cases }: { cases: CaseRecord[] }) {
       </div>
 
       {settings && (
-        <div className="grid gap-4 lg:grid-cols-5">
+        <div className="grid gap-4 lg:grid-cols-6">
           <label>
             <span>Abgeschlossene Fälle prüfen nach Monaten</span>
             <input
@@ -183,6 +183,17 @@ export function RetentionSettingsPanel({ cases }: { cases: CaseRecord[] }) {
                   "completedDeadlineRetentionMonths",
                   e.target.value,
                 )
+              }
+            />
+          </label>
+          <label>
+            <span>Journal-Einträge prüfen nach Monaten</span>
+            <input
+              type="number"
+              min={1}
+              value={settings.activityJournalReviewMonths}
+              onChange={(e) =>
+                updateSetting("activityJournalReviewMonths", e.target.value)
               }
             />
           </label>

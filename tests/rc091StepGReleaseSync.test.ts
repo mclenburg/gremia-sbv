@@ -9,7 +9,7 @@ function versionFromPackage(): string {
   return (JSON.parse(read('package.json')) as { version: string }).version;
 }
 
-describe('0.9.2 Step G Test-, Doku- und Release-Sync', () => {
+describe('Step G Test-, Doku- und Release-Sync', () => {
   it('hält generierte App-Metadaten an package.json gekoppelt', () => {
     const version = versionFromPackage();
 
@@ -43,7 +43,7 @@ describe('0.9.2 Step G Test-, Doku- und Release-Sync', () => {
     expect(readme.includes('zwischenstand')).toBe(false);
   });
 
-  it('bleibt auf die zentrale Version 0.9.2 ausgerichtet', () => {
-    expect(versionFromPackage()).toBe('0.9.2');
+  it('bleibt auf die zentrale Paketversion ausgerichtet', () => {
+    expect(versionFromPackage()).toMatch(/^0\.9\.\d+$/);
   });
 });

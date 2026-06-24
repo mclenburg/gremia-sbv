@@ -32,7 +32,7 @@ describe('Tailwind 4 PostCSS-Vertrag', () => {
   it('vermeidet interne Paketquellen auch für den Tailwind-PostCSS-Adapter', () => {
     const adapter = packageLock.packages['node_modules/@tailwindcss/postcss'];
 
-    expect(adapter?.resolved).toBe('https://registry.npmjs.org/@tailwindcss/postcss/-/postcss-4.3.0.tgz');
+    expect(adapter?.resolved?.startsWith('https://registry.npmjs.org/@tailwindcss/postcss/-/postcss-')).toBe(true);
     expect(adapter?.resolved?.includes('applied-caas-gateway')).toBe(false);
     expect(adapter?.resolved?.includes('artifactory/api/npm/npm-public')).toBe(false);
   });

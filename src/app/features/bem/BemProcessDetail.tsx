@@ -24,6 +24,7 @@ import {
   SelectInput,
 } from "../../shared/components/IndustrialForm";
 import { ToolbarButton } from "../../shared/components/IndustrialButton";
+import { ActivityJournalContextButton } from "../activity-journal/components/ActivityJournalContextButton";
 import { buildBemStatusGuidance } from "@services/bemGuidancePolicy";
 
 const triggerOptions: { value: BemTriggerType; label: string }[] = [
@@ -97,6 +98,16 @@ export function BemProcessDetail({
           description="BEM ist freiwillig, vertraulich und prozesshaft. Dokumentiere nur, was für die SBV-Arbeit wirklich erforderlich ist."
           documentAction={
             onOpenTemplates ? () => onOpenTemplates(process) : undefined
+          }
+          actions={
+            <ActivityJournalContextButton
+              context={{
+                contextType: "bem_process",
+                contextId: process.id,
+                caseId: process.caseId,
+                title: process.title,
+              }}
+            />
           }
           badges={[
             { label: "Status", value: bemStatusLabel(process.status) },

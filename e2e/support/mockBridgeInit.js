@@ -93,6 +93,56 @@
     },
   ];
 
+  const activityJournalEntries = [
+    {
+      id: 'journal-e2e-0001',
+      entryDate: '2026-04-20',
+      durationMinutes: 45,
+      timeMode: 'duration',
+      category: 'documentation',
+      title: 'Tätigkeitsbericht vorbereitet',
+      confidentialityLevel: 'confidential',
+      status: 'final',
+      createdFrom: 'manual',
+      performedOutsideContractWorkTime: false,
+      createdAt: now,
+      updatedAt: now,
+      links: [],
+    },
+  ];
+  const activityJournalPreferences = {};
+  function activityJournalSummary() {
+    const totalMinutes = activityJournalEntries.reduce((sum, entry) => sum + (entry.durationMinutes || 0), 0);
+    return {
+      totalEntries: activityJournalEntries.length,
+      entriesWithTime: activityJournalEntries.filter((entry) => entry.durationMinutes || entry.startedAt || entry.endedAt).length,
+      totalMinutes,
+      todayMinutes: 0,
+      weekMinutes: 0,
+      monthMinutes: totalMinutes,
+      byCategory: [{ category: 'documentation', count: activityJournalEntries.length, minutes: totalMinutes }],
+      byReferenceType: [{ referenceType: 'fallfrei', count: activityJournalEntries.length, minutes: totalMinutes }],
+      openFollowUps: activityJournalEntries.filter((entry) => entry.status === 'follow_up_open'),
+    };
+  }
+  function activityJournalPrefill(context) {
+    const category = context.category || activityJournalPreferences[context.contextType] || (context.contextType === 'case' ? 'case_work' : context.contextType === 'bem_process' ? 'bem_preparation' : context.contextType === 'prevention_process' ? 'prevention' : context.contextType === 'sbv_participation' || context.contextType === 'termination_hearing' ? 'participation' : 'documentation');
+    return {
+      sourceLabel: context.title || context.caseNumber || context.contextType,
+      privacyNotice: 'Vorbelegung aus bereits geöffnetem Kontext. Es wurde noch kein Journaleintrag gespeichert.',
+      preferenceContextType: context.contextType,
+      entry: {
+        entryDate: now.slice(0, 10),
+        timeMode: 'none',
+        category,
+        title: context.caseNumber ? `${context.caseNumber}: Tätigkeit dokumentiert` : context.contextType === 'prevention_process' ? 'Prävention: Sachstand dokumentiert' : 'SBV-Tätigkeit dokumentiert',
+        confidentialityLevel: 'confidential',
+        status: 'final',
+        createdFrom: 'context_prefill',
+      },
+    };
+  }
+
 
   const sbvResources = [];
 
@@ -400,6 +450,19 @@
 
   window.__GREMIA_SBV_E2E_ICAL_EXPORTS = [];
 
+
+  const authSearchParams = new URLSearchParams(window.location.search || '');
+  const authScenario = authSearchParams.get('auth') || 'unlocked';
+  let securityState = {
+    initialized: authScenario !== 'setup',
+    unlocked: authScenario !== 'locked' && authScenario !== 'recovery-required' && authScenario !== 'setup',
+    recoveryRequired: authScenario === 'recovery-required',
+    password: 'korrekt-pferd-batterie',
+    recoveryKey: 'ABCD-EFGH-IJKL-MNOP',
+    destroyed: false,
+    resetCalls: [],
+  };
+
   window.__GREMIA_SBV_E2E = {
     active: true,
     dataDir: '__GREMIA_SBV_E2E_DATA_DIR__',
@@ -408,8 +471,55 @@
 
   window.gremiaSbv = {
     security: {
-      status: async () => ({ initialized: true, unlocked: true, databaseProtected: true, recoveryRequired: false }),
-      lock: async () => ({ unlocked: false }),
+      status: async () => ({
+        initialized: securityState.initialized,
+        unlocked: securityState.unlocked,
+        databaseProtected: true,
+        recoveryRequired: securityState.recoveryRequired,
+      }),
+      unlock: async (password) => {
+        if (!securityState.initialized || securityState.destroyed) {
+          return { ok: false, unlocked: false, error: 'Kein initialisierter Datenbestand.' };
+        }
+        if (password !== securityState.password) {
+          return { ok: false, unlocked: false, error: 'Entsperren fehlgeschlagen.' };
+        }
+        securityState.unlocked = true;
+        securityState.recoveryRequired = false;
+        return { ok: true, initialized: true, unlocked: true };
+      },
+      setupInitialPassword: async (password) => {
+        securityState.initialized = true;
+        securityState.unlocked = true;
+        securityState.password = password;
+        securityState.recoveryRequired = false;
+        return { ok: true, initialized: true, unlocked: true, recoveryKey: securityState.recoveryKey };
+      },
+      resetPasswordWithRecoveryKey: async (recoveryKey, newPassword) => {
+        securityState.resetCalls.push({ recoveryKey, newPassword });
+        const normalized = String(recoveryKey || '').trim().replace(/\s+/g, '').replace(/-/g, '').toUpperCase();
+        if (normalized !== securityState.recoveryKey.replace(/-/g, '')) {
+          return { ok: false, initialized: true, unlocked: false, error: 'Recovery-Key ist ungültig.' };
+        }
+        securityState.password = newPassword;
+        securityState.unlocked = true;
+        securityState.recoveryRequired = false;
+        return { ok: true, initialized: true, unlocked: true };
+      },
+      destroyLocalVault: async (confirmation) => {
+        if (confirmation !== 'DATENBESTAND LÖSCHEN') {
+          return { ok: false, error: 'Bestätigung fehlt.' };
+        }
+        securityState.destroyed = true;
+        securityState.initialized = false;
+        securityState.unlocked = false;
+        securityState.recoveryRequired = false;
+        return { ok: true, initialized: false, unlocked: false };
+      },
+      lock: async () => {
+        securityState.unlocked = false;
+        return { unlocked: false };
+      },
       temporaryFileStatus: async () => ({ remaining: 0, files: [] }),
       purgeTemporaryFiles: async () => ({ removed: 0, remaining: 0 }),
     },
@@ -553,6 +663,42 @@
       },
     },
     contacts: { list: async () => contacts, create: createContactRecord, delete: deleteContactRecord },
+    activityJournal: {
+      list: async (filter = {}) => {
+        const from = filter.from || '';
+        const to = filter.to || '';
+        return activityJournalEntries.filter((entry) => (!from || entry.entryDate >= from) && (!to || entry.entryDate < to)).slice(0, filter.limit || activityJournalEntries.length);
+      },
+      get: async (id) => activityJournalEntries.find((entry) => entry.id === id) || null,
+      create: async (input) => {
+        const row = { id: `journal-${Date.now()}`, entryDate: input.entryDate || now.slice(0, 10), timeMode: input.timeMode || 'none', category: input.category || 'documentation', title: input.title, description: input.description, resultNote: input.resultNote, durationMinutes: input.durationMinutes, startedAt: input.startedAt, endedAt: input.endedAt, confidentialityLevel: input.confidentialityLevel || 'confidential', status: input.status || 'final', createdFrom: input.createdFrom || 'manual', followUpDueAt: input.followUpDueAt, performedOutsideContractWorkTime: !!input.performedOutsideContractWorkTime, createdAt: now, updatedAt: now, links: input.links || [] };
+        activityJournalEntries.unshift(row);
+        return row;
+      },
+      update: async (id, input) => {
+        const row = activityJournalEntries.find((entry) => entry.id === id);
+        Object.assign(row, input, { updatedAt: now });
+        return row;
+      },
+      delete: async (id) => {
+        const index = activityJournalEntries.findIndex((entry) => entry.id === id);
+        if (index >= 0) activityJournalEntries.splice(index, 1);
+        return { deleted: index >= 0 };
+      },
+      listLinks: async (entryId) => (activityJournalEntries.find((entry) => entry.id === entryId)?.links || []),
+      addLink: async () => ({ id: `journal-link-${Date.now()}`, entryId: 'journal-e2e-0001', targetType: 'case', targetId: 'case-test-0001', createdAt: now }),
+      removeLink: async () => ({ deleted: true }),
+      summary: async () => activityJournalSummary(),
+      export: async () => ({ generatedAt: now, mode: 'summary', heading: 'SBV-Tätigkeitsnachweis – Eigenaufzeichnung', notice: 'Eigenaufzeichnung der Schwerbehindertenvertretung.', totalEntries: activityJournalEntries.length, totalMinutes: activityJournalSummary().totalMinutes, text: 'SBV-Tätigkeitsnachweis – Eigenaufzeichnung', entries: [] }),
+      buildPrefillFromContext: async (context) => activityJournalPrefill(context),
+      buildPrefillFromDeadline: async (deadline) => activityJournalPrefill({ contextType: 'deadline', contextId: deadline.id, title: deadline.title }),
+      buildPrefillFromClosedDeadline: async (deadline) => ({ ...activityJournalPrefill({ contextType: 'deadline', contextId: deadline.id, title: deadline.title }), entry: { ...activityJournalPrefill({ contextType: 'deadline', contextId: deadline.id, title: deadline.title }).entry, title: 'Journal-Wiedervorlage: Ergebnis dokumentiert', resultNote: deadline.title } }),
+      getPreferredCategory: async (contextType) => activityJournalPreferences[contextType],
+      rememberCategory: async (contextType, category) => {
+        activityJournalPreferences[contextType] = category;
+        return { contextType, category, updatedAt: now };
+      },
+    },
     deadlines: {
       list: async () => deadlines,
       dashboard: async () => deadlines,
@@ -607,6 +753,15 @@
     equalization: { list: emptyList, create: createRecord, update: createRecord },
     termination: { list: emptyList, create: createRecord, update: createRecord },
     participation: { list: emptyList, create: createRecord, update: createRecord, warnings: emptyList },
+    sbvParticipationViolations: {
+      list: async () => [],
+      get: async () => null,
+      listEvents: async () => [],
+      create: async (input) => ({ id: `violation-${Date.now()}`, status: input.status || 'draft', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), ...input }),
+      update: async (id, input) => ({ id, status: input.status || 'draft', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), ...input }),
+      changeStatus: async (id, input) => ({ id, stage: 'request', status: input.status, violationType: 'not_heard', sourceContextType: 'case', sourceContextId: 'case-1', subject: 'Mock', measureDescription: 'Mock', wrongBehavior: 'Mock', requiredBehavior: 'Mock', legalBasis: '§ 178 Abs. 2 SGB IX', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }),
+      delete: async () => ({ deleted: true }),
+    },
     sbvResources: {
       list: async () => sbvResources,
       dashboard: async () => ({ total: sbvResources.length, openRequests: sbvResources.filter((item) => item.status === 'planned' || item.status === 'requested').length, byKind: {}, byStatus: {} }),

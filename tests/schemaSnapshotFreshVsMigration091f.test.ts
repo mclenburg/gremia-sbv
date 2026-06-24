@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { CASE_DOCUMENTS_REQUIRED_COLUMNS, CASE_DOCUMENT_OCR_JOBS_REQUIRED_COLUMNS, CASE_EXTERNAL_REFERENCES_REQUIRED_COLUMNS, COMPLIANCE_INCIDENTS_REQUIRED_COLUMNS, CASE_MEASURE_NOTES_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_STATE_REQUIRED_COLUMNS, GREMIA_BR_CACHE_REQUIRED_COLUMNS, GREMIA_BR_SETTINGS_REQUIRED_COLUMNS, SBV_CONTROL_PROTOCOLS_REQUIRED_COLUMNS } from '../services/appSchema';
+import { ACTIVITY_JOURNAL_CATEGORY_PREFERENCES_REQUIRED_COLUMNS, ACTIVITY_JOURNAL_ENTRIES_REQUIRED_COLUMNS, ACTIVITY_JOURNAL_LINKS_REQUIRED_COLUMNS, CASE_DOCUMENTS_REQUIRED_COLUMNS, CASE_DOCUMENT_OCR_JOBS_REQUIRED_COLUMNS, CASE_EXTERNAL_REFERENCES_REQUIRED_COLUMNS, COMPLIANCE_INCIDENTS_REQUIRED_COLUMNS, CASE_MEASURE_NOTES_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_STATE_REQUIRED_COLUMNS, GREMIA_BR_CACHE_REQUIRED_COLUMNS, GREMIA_BR_SETTINGS_REQUIRED_COLUMNS, SBV_CONTROL_PROTOCOLS_REQUIRED_COLUMNS, SBV_PARTICIPATION_VIOLATION_DOCUMENTS_REQUIRED_COLUMNS, SBV_PARTICIPATION_VIOLATION_EVENTS_REQUIRED_COLUMNS, SBV_PARTICIPATION_VIOLATIONS_REQUIRED_COLUMNS } from '../services/appSchema';
 import { compareIndexSnapshot, compareTableSnapshot, createSqlSchemaSnapshot } from '../services/schemaSnapshotPolicy';
 
 describe('Schema-Snapshot Fresh Install vs. Legacy-Migration 0.9.1', () => {
@@ -146,6 +146,45 @@ describe('Schema-Snapshot Fresh Install vs. Legacy-Migration 0.9.1', () => {
     expect(deadlineMigration).toContain('idx_sbv_control_protocols_follow_up');
     expect(fresh.tables.sbv_control_protocols.columns).toEqual(expect.arrayContaining([...SBV_CONTROL_PROTOCOLS_REQUIRED_COLUMNS]));
     expect(fresh.indexes.idx_sbv_control_protocols_follow_up).toBeDefined();
+  });
+
+
+  it('hält das Tätigkeitsjournal in Basisschema und Migration 0041 strukturgleich', () => {
+    const fresh = createSqlSchemaSnapshot(readFileSync('database/schema.sql', 'utf8'));
+    const migrated = createSqlSchemaSnapshot(readFileSync('database/migrations/0041_activity_journal.sql', 'utf8'));
+
+    const problems = [
+      ...compareTableSnapshot(fresh, migrated, 'activity_journal_entries'),
+      ...compareTableSnapshot(fresh, migrated, 'activity_journal_links'),
+      ...compareTableSnapshot(fresh, migrated, 'activity_journal_category_preferences'),
+      ...compareIndexSnapshot(fresh, migrated, 'idx_activity_journal_entries_date'),
+      ...compareIndexSnapshot(fresh, migrated, 'idx_activity_journal_links_target'),
+    ];
+
+    expect(problems).toEqual([]);
+    expect(fresh.tables.activity_journal_entries.columns).toEqual(expect.arrayContaining([...ACTIVITY_JOURNAL_ENTRIES_REQUIRED_COLUMNS]));
+    expect(fresh.tables.activity_journal_links.columns).toEqual(expect.arrayContaining([...ACTIVITY_JOURNAL_LINKS_REQUIRED_COLUMNS]));
+    expect(fresh.tables.activity_journal_category_preferences.columns).toEqual(expect.arrayContaining([...ACTIVITY_JOURNAL_CATEGORY_PREFERENCES_REQUIRED_COLUMNS]));
+  });
+
+
+  it('hält Beteiligungsverstöße in Basisschema und Migration 0042 strukturgleich', () => {
+    const fresh = createSqlSchemaSnapshot(readFileSync('database/schema.sql', 'utf8'));
+    const migrated = createSqlSchemaSnapshot(readFileSync('database/migrations/0042_sbv_participation_violations.sql', 'utf8'));
+
+    const problems = [
+      ...compareTableSnapshot(fresh, migrated, 'sbv_participation_violations'),
+      ...compareTableSnapshot(fresh, migrated, 'sbv_participation_violation_events'),
+      ...compareTableSnapshot(fresh, migrated, 'sbv_participation_violation_documents'),
+      ...compareIndexSnapshot(fresh, migrated, 'idx_sbv_participation_violations_status'),
+      ...compareIndexSnapshot(fresh, migrated, 'idx_sbv_participation_violations_source'),
+      ...compareIndexSnapshot(fresh, migrated, 'idx_sbv_participation_violation_events_violation'),
+    ];
+
+    expect(problems).toEqual([]);
+    expect(fresh.tables.sbv_participation_violations.columns).toEqual(expect.arrayContaining([...SBV_PARTICIPATION_VIOLATIONS_REQUIRED_COLUMNS]));
+    expect(fresh.tables.sbv_participation_violation_events.columns).toEqual(expect.arrayContaining([...SBV_PARTICIPATION_VIOLATION_EVENTS_REQUIRED_COLUMNS]));
+    expect(fresh.tables.sbv_participation_violation_documents.columns).toEqual(expect.arrayContaining([...SBV_PARTICIPATION_VIOLATION_DOCUMENTS_REQUIRED_COLUMNS]));
   });
 
 });

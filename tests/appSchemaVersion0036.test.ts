@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
+import { APP_SCHEMA_VERSION } from '../services/appSchema';
 
 function latestMigrationVersion(): string {
   const migrationsDir = path.join(process.cwd(), 'database', 'migrations');
@@ -15,9 +16,6 @@ function latestMigrationVersion(): string {
 
 describe('APP_SCHEMA_VERSION', () => {
   it('entspricht der neuesten Migration und verhindert Build-Readiness-Drift', () => {
-    const appSchema = fs.readFileSync(path.join(process.cwd(), 'services', 'appSchema.ts'), 'utf8');
-    const match = appSchema.match(/APP_SCHEMA_VERSION\s*=\s*['"](\d{4})['"]/);
-
-    expect(match?.[1]).toBe(latestMigrationVersion());
+    expect(APP_SCHEMA_VERSION).toBe(latestMigrationVersion());
   });
 });

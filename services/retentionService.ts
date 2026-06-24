@@ -12,10 +12,12 @@ import {
   DEFAULT_RETENTION_SETTINGS,
   buildRetentionDashboard,
   normalizeRetentionSettings,
+  type RetentionActivityJournalSnapshot,
   type RetentionCaseSnapshot,
   type RetentionContactSnapshot,
   type RetentionDeadlineSnapshot,
-  type RetentionDocumentSnapshot
+  type RetentionDocumentSnapshot,
+  type RetentionParticipationViolationSnapshot
 } from './retentionPolicy.js';
 import { directCasePrivacyEntities, resolveAnonymizationValue } from './privacyEntityRegistry.js';
 import { SearchIndexService } from './search/searchIndexService.js';
@@ -301,6 +303,8 @@ export class RetentionService {
       inactiveOpenCaseMonths: readNumberSetting(db, 'retention.inactiveOpenCaseMonths', DEFAULT_RETENTION_SETTINGS.inactiveOpenCaseMonths),
       orphanContactReviewDays: readNumberSetting(db, 'retention.orphanContactReviewDays', DEFAULT_RETENTION_SETTINGS.orphanContactReviewDays),
       completedDeadlineRetentionMonths: readNumberSetting(db, 'retention.completedDeadlineRetentionMonths', DEFAULT_RETENTION_SETTINGS.completedDeadlineRetentionMonths),
+      activityJournalReviewMonths: readNumberSetting(db, 'retention.activityJournalReviewMonths', DEFAULT_RETENTION_SETTINGS.activityJournalReviewMonths),
+      participationViolationReviewMonths: readNumberSetting(db, 'retention.participationViolationReviewMonths', DEFAULT_RETENTION_SETTINGS.participationViolationReviewMonths),
       minimumGroupSizeForReports: readNumberSetting(db, 'retention.minimumGroupSizeForReports', DEFAULT_RETENTION_SETTINGS.minimumGroupSizeForReports)
     });
   }
@@ -312,6 +316,8 @@ export class RetentionService {
     writeSetting(db, 'retention.inactiveOpenCaseMonths', next.inactiveOpenCaseMonths);
     writeSetting(db, 'retention.orphanContactReviewDays', next.orphanContactReviewDays);
     writeSetting(db, 'retention.completedDeadlineRetentionMonths', next.completedDeadlineRetentionMonths);
+    writeSetting(db, 'retention.activityJournalReviewMonths', next.activityJournalReviewMonths);
+    writeSetting(db, 'retention.participationViolationReviewMonths', next.participationViolationReviewMonths);
     writeSetting(db, 'retention.minimumGroupSizeForReports', next.minimumGroupSizeForReports);
     return next;
   }
@@ -322,6 +328,8 @@ export class RetentionService {
     const contacts = this.listContactSnapshots(db);
     const documents = this.listDocumentSnapshots(db);
     const deadlines = this.listDeadlineSnapshots(db);
+    const journalEntries = this.listActivityJournalSnapshots(db);
+    const participationViolations = this.listParticipationViolationSnapshots(db);
     const cleartextFiles = listCleartextFiles(this.dataDirProvider());
     return buildRetentionDashboard({
       settings: this.getSettings(),
@@ -329,6 +337,8 @@ export class RetentionService {
       contacts,
       documents,
       deadlines,
+      journalEntries,
+      participationViolations,
       cleartextFiles
     });
   }
@@ -387,7 +397,7 @@ export class RetentionService {
       LEFT JOIN cases c ON c.id = d.case_id
       ORDER BY d.created_at DESC
     `).all();
-    return rows.map((row) => ({
+    const caseDocuments = rows.map((row) => ({
       id: row.id,
       caseId: row.case_id,
       caseNumber: row.case_number,
@@ -396,6 +406,74 @@ export class RetentionService {
       hasMetadata: bool(row.storage_path) && bool(row.document_key) && bool(row.iv) && bool(row.auth_tag),
       fileExists: bool(row.storage_path) && fs.existsSync(row.storage_path),
       createdAt: row.created_at
+    }));
+    if (!tableExists(db, 'generated_documents')) return caseDocuments;
+    const generatedRows = db.prepare<any>(`
+      SELECT id, case_id, title, storage_path, document_key, iv, auth_tag, created_at
+      FROM generated_documents
+      WHERE document_kind = 'sbv_participation_violation'
+      ORDER BY created_at DESC
+    `).all();
+    return [
+      ...caseDocuments,
+      ...generatedRows.map((row) => ({
+        id: row.id,
+        caseId: row.case_id,
+        displayTitle: row.title ?? row.id,
+        storagePath: row.storage_path,
+        hasMetadata: bool(row.storage_path) && bool(row.document_key) && bool(row.iv) && bool(row.auth_tag),
+        fileExists: bool(row.storage_path) && fs.existsSync(row.storage_path),
+        createdAt: row.created_at
+      }))
+    ];
+  }
+
+  private listActivityJournalSnapshots(db: DatabaseAdapter): RetentionActivityJournalSnapshot[] {
+    if (!tableExists(db, 'activity_journal_entries')) return [];
+    const rows = db.prepare<any>(`
+      SELECT e.id, e.title, e.entry_date, e.status, e.category, e.follow_up_due_at, e.exported_for_activity_report_at,
+        EXISTS(SELECT 1 FROM activity_journal_links l WHERE l.entry_id = e.id AND l.target_type = 'case') AS case_linked,
+        EXISTS(
+          SELECT 1 FROM activity_journal_links l
+          JOIN cases c ON c.id = l.target_id
+          WHERE l.entry_id = e.id AND l.target_type = 'case' AND c.status <> 'abgeschlossen'
+        ) AS linked_active_case
+      FROM activity_journal_entries e
+      ORDER BY e.entry_date DESC
+    `).all();
+    return rows.map((row) => ({
+      id: row.id,
+      title: row.title,
+      entryDate: row.entry_date,
+      status: row.status,
+      category: row.category,
+      caseLinked: Boolean(row.case_linked),
+      linkedActiveCase: Boolean(row.linked_active_case),
+      openFollowUp: row.status === 'follow_up_open' || Boolean(row.follow_up_due_at),
+      exportedForActivityReportAt: row.exported_for_activity_report_at
+    }));
+  }
+
+
+  private listParticipationViolationSnapshots(db: DatabaseAdapter): RetentionParticipationViolationSnapshot[] {
+    if (!tableExists(db, 'sbv_participation_violations')) return [];
+    const rows = db.prepare<any>(`
+      SELECT v.id, v.stage, v.status, v.subject, v.case_id, v.related_deadline_id, v.created_at, v.updated_at, v.closed_at,
+        (SELECT COUNT(*) FROM sbv_participation_violation_documents d WHERE d.violation_id = v.id) AS document_count
+      FROM sbv_participation_violations v
+      ORDER BY v.updated_at DESC
+    `).all();
+    return rows.map((row) => ({
+      id: row.id,
+      stage: row.stage,
+      status: row.status,
+      subject: row.subject,
+      caseId: row.case_id,
+      relatedDeadlineId: row.related_deadline_id,
+      documentCount: Number(row.document_count ?? 0),
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      closedAt: row.closed_at,
     }));
   }
 

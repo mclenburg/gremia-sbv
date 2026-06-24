@@ -86,7 +86,7 @@ export class PersonalDataAuditLogService {
     const sequence = Number(previous?.sequence ?? 0) + 1;
     const previousHash = previous?.entry_hash ?? PERSONAL_DATA_AUDIT_GENESIS_HASH;
     const occurredAt = nowIso();
-    const metadataJson = normalizeAuditMetadata(input.metadata);
+    const metadataJson = normalizeAuditMetadata(input.metadata, input.subjectType);
     const id = randomUUID();
     const actor = sanitizeAuditActor(input.actor ?? this.actor);
     const purpose = sanitizeAuditPurpose(input.purpose);

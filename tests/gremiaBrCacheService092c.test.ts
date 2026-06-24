@@ -155,10 +155,14 @@ describe('Gremia.BR Lesecache 0.9.2-C', () => {
     const db = new CacheDb();
     const service = new GremiaBrCacheService(() => db);
 
-    service.saveEntry('decisions', [{ id: 'alt' }], '2026-04-01T00:00:00.000Z');
-    service.saveEntry('due_decisions', [{ id: 'frisch' }], '2026-05-15T00:00:00.000Z');
+    const now = new Date();
+    const oldFetchedAt = new Date(now.getTime() - (GREMIA_BR_CACHE_TTL_DAYS + 5) * 24 * 60 * 60 * 1000).toISOString();
+    const freshFetchedAt = new Date(now.getTime() - (GREMIA_BR_CACHE_TTL_DAYS - 5) * 24 * 60 * 60 * 1000).toISOString();
 
-    const deleted = service.purgeExpiredEntries(new Date('2026-06-01T00:00:00.000Z'));
+    service.saveEntry('decisions', [{ id: 'alt' }], oldFetchedAt);
+    service.saveEntry('due_decisions', [{ id: 'frisch' }], freshFetchedAt);
+
+    const deleted = service.purgeExpiredEntries(now);
 
     expect(GREMIA_BR_CACHE_TTL_DAYS).toBe(30);
     expect(deleted).toBe(1);
@@ -170,7 +174,7 @@ describe('Gremia.BR Lesecache 0.9.2-C', () => {
     const db = new CacheDb();
     const service = new GremiaBrCacheService(() => db);
 
-    service.saveEntry('decisions', [{ id: 'b1' }], '2026-05-22T10:00:00.000Z');
+    service.saveEntry('decisions', [{ id: 'b1' }], new Date().toISOString());
     expect(service.getOverview().decisions).toHaveLength(1);
 
     service.clear();

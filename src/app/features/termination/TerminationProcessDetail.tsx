@@ -32,6 +32,7 @@ import {
   terminationStatusObjective,
   suggestNextTerminationStatus,
 } from "@services/terminationWorkflowPolicy";
+import { ActivityJournalContextButton } from "../activity-journal/components/ActivityJournalContextButton";
 
 const terminationTypes: TerminationType[] = [
   "ordentlich",
@@ -98,6 +99,16 @@ export function TerminationProcessDetail({
           description="Fristen, Schutzstatus, Integrationsamt und SBV-Stellungnahme sind hier die kritischen Punkte."
           documentAction={
             onOpenTemplates ? () => onOpenTemplates(process) : undefined
+          }
+          actions={
+            <ActivityJournalContextButton
+              context={{
+                contextType: "termination_hearing",
+                contextId: process.id,
+                caseId: process.caseId,
+                title: "Kündigungsanhörung",
+              }}
+            />
           }
           badges={[
             { label: "Status", value: terminationStatusLabel(process.status) },

@@ -9,6 +9,7 @@ export type MeasureDetailFrameProps = {
   summary?: string;
   nextStep?: string;
   requiresFollowUp?: boolean;
+  actions?: ReactNode;
   children: ReactNode;
 };
 
@@ -21,6 +22,7 @@ export function MeasureDetailFrame({
   summary,
   nextStep,
   requiresFollowUp = false,
+  actions,
   children,
 }: MeasureDetailFrameProps) {
   return (
@@ -35,6 +37,7 @@ export function MeasureDetailFrame({
           {requiresFollowUp ? (
             <span className="measure-follow-up-badge">Nachbearbeitung</span>
           ) : null}
+          {actions}
         </div>
         <h2 className="measure-detail-title">{title}</h2>
         {summary ? <p className="measure-detail-meta">{summary}</p> : null}

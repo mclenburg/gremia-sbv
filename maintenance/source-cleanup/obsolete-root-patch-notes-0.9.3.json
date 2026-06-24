@@ -1,0 +1,11 @@
+{
+  "version": "0.9.4-c-r8-root-patch-notes-cleanup",
+  "reason": "Patchbezogene Zwischenstandsnotizen aus der 0.9.3-Entwicklung gehoeren nicht in den aktiven Projektroot. Dauerhafte Inhalte stehen in README, Security- und Fachdokumentation; der Build entfernt diese transienten Notizen ueber die konservative Source-Cleanup-Routine.",
+  "files": [
+    "PATCH_0_9_3_A_ACTIVITY_JOURNAL.md",
+    "PATCH_0_9_3_A_R1_ACTIVITY_JOURNAL_ARCHITECTURE.md",
+    "PATCH_0_9_3_A_R2_RECOVERY_LOGIN.md",
+    "PATCH_0_9_3_A_R3_BUILD_FIXES.md"
+  ],
+  "directories": []
+}

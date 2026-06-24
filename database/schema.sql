@@ -211,8 +211,18 @@ CREATE TABLE IF NOT EXISTS generated_documents (
   id TEXT PRIMARY KEY,
   case_id TEXT REFERENCES cases(id) ON DELETE SET NULL,
   template_id TEXT REFERENCES templates(id) ON DELETE SET NULL,
+  violation_id TEXT REFERENCES sbv_participation_violations(id) ON DELETE SET NULL,
+  document_kind TEXT CHECK (document_kind IN ('generic','sbv_participation_violation')) DEFAULT 'generic',
+  template_version TEXT,
   title TEXT NOT NULL,
   storage_path TEXT NOT NULL,
+  filename TEXT,
+  mime_type TEXT,
+  sha256 TEXT,
+  document_key TEXT,
+  iv TEXT,
+  auth_tag TEXT,
+  size_bytes INTEGER,
   created_at TEXT NOT NULL
 );
 
@@ -1125,3 +1135,111 @@ CREATE TABLE IF NOT EXISTS compliance_incidents (
 );
 CREATE INDEX IF NOT EXISTS idx_compliance_incidents_status ON compliance_incidents(status, discovered_at);
 CREATE INDEX IF NOT EXISTS idx_compliance_incidents_risk ON compliance_incidents(risk_level, discovered_at);
+
+-- 0041: SBV-Tätigkeitsjournal mit optionaler SBV-Zeit.
+-- Kein Arbeitgeber-Zeiterfassungssystem, sondern interne SBV-Eigenaufzeichnung.
+CREATE TABLE IF NOT EXISTS activity_journal_entries (
+  id TEXT PRIMARY KEY,
+  entry_date TEXT NOT NULL,
+  started_at TEXT NULL,
+  ended_at TEXT NULL,
+  duration_minutes INTEGER NULL,
+  time_mode TEXT NOT NULL,
+  category TEXT NOT NULL,
+  title TEXT NOT NULL,
+  description TEXT NULL,
+  result_note TEXT NULL,
+  confidentiality_level TEXT NOT NULL,
+  status TEXT NOT NULL,
+  created_from TEXT NOT NULL,
+  follow_up_due_at TEXT NULL,
+  performed_outside_contract_work_time INTEGER NOT NULL DEFAULT 0,
+  exported_for_activity_report_at TEXT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  CHECK(time_mode IN ('none','duration','range','timer')),
+  CHECK(category IN ('case_work','consultation','bem_preparation','prevention','participation','employer_meeting','committee_work','sbv_steering','research','documentation','qualification','external_network','sbv_self_organization')),
+  CHECK(confidentiality_level IN ('normal','confidential','highly_confidential')),
+  CHECK(status IN ('draft','final','follow_up_open')),
+  CHECK(created_from IN ('manual','text_command','context_prefill','timer','import')),
+  CHECK(duration_minutes IS NULL OR duration_minutes >= 0),
+  CHECK(performed_outside_contract_work_time IN (0,1))
+);
+
+CREATE TABLE IF NOT EXISTS activity_journal_links (
+  id TEXT PRIMARY KEY,
+  entry_id TEXT NOT NULL REFERENCES activity_journal_entries(id) ON DELETE CASCADE,
+  target_type TEXT NOT NULL CHECK(target_type IN ('case','person','bem_process','prevention_process','sbv_participation','termination_hearing','equalization_process','sbv_control_protocol','deadline','document')),
+  target_id TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS activity_journal_category_preferences (
+  context_type TEXT PRIMARY KEY CHECK(context_type IN ('case','person','bem_process','prevention_process','sbv_participation','termination_hearing','equalization_process','sbv_control_protocol','deadline','document','journal','fallfrei')),
+  category TEXT NOT NULL CHECK(category IN ('case_work','consultation','bem_preparation','prevention','participation','employer_meeting','committee_work','sbv_steering','research','documentation','qualification','external_network','sbv_self_organization')),
+  updated_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_activity_journal_entries_date ON activity_journal_entries(entry_date DESC, updated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_activity_journal_entries_category ON activity_journal_entries(category, entry_date DESC);
+CREATE INDEX IF NOT EXISTS idx_activity_journal_entries_status ON activity_journal_entries(status, entry_date DESC);
+CREATE INDEX IF NOT EXISTS idx_activity_journal_entries_follow_up ON activity_journal_entries(follow_up_due_at);
+CREATE INDEX IF NOT EXISTS idx_activity_journal_entries_exported ON activity_journal_entries(exported_for_activity_report_at);
+CREATE INDEX IF NOT EXISTS idx_activity_journal_links_entry ON activity_journal_links(entry_id);
+CREATE INDEX IF NOT EXISTS idx_activity_journal_links_target ON activity_journal_links(target_type, target_id);
+
+
+CREATE TABLE IF NOT EXISTS sbv_participation_violations (
+  id TEXT PRIMARY KEY,
+  stage TEXT NOT NULL CHECK (stage IN ('request','formal_objection','abmahnung','suspension_request','owi_preparation')),
+  status TEXT NOT NULL CHECK (status IN ('draft','open','sent','remedied','escalated','closed','withdrawn')),
+  violation_type TEXT NOT NULL CHECK (violation_type IN ('not_informed','late_informed','incomplete_information','not_heard','late_heard','implementation_without_participation','repeated_violation','other')),
+  source_context_type TEXT NOT NULL CHECK (source_context_type IN ('case','sbv_participation','termination_hearing','sbv_control_protocol','deadline','activity_journal')),
+  source_context_id TEXT NOT NULL,
+  case_id TEXT REFERENCES cases(id) ON DELETE SET NULL,
+  related_participation_id TEXT REFERENCES sbv_participations(id) ON DELETE SET NULL,
+  related_termination_hearing_id TEXT REFERENCES termination_hearings(id) ON DELETE SET NULL,
+  related_deadline_id TEXT REFERENCES deadlines(id) ON DELETE SET NULL,
+  related_activity_journal_entry_id TEXT REFERENCES activity_journal_entries(id) ON DELETE SET NULL,
+  related_sbv_control_protocol_id TEXT REFERENCES sbv_control_protocols(id) ON DELETE SET NULL,
+  subject TEXT NOT NULL,
+  measure_description TEXT NOT NULL,
+  wrong_behavior TEXT NOT NULL,
+  required_behavior TEXT NOT NULL,
+  consequence_warning TEXT,
+  legal_basis TEXT NOT NULL DEFAULT '§ 178 Abs. 2 SGB IX; § 238 Abs. 1 Nr. 8 SGB IX',
+  follow_up_due_at TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  sent_at TEXT,
+  closed_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_sbv_participation_violations_status ON sbv_participation_violations(status);
+CREATE INDEX IF NOT EXISTS idx_sbv_participation_violations_stage ON sbv_participation_violations(stage);
+CREATE INDEX IF NOT EXISTS idx_sbv_participation_violations_source ON sbv_participation_violations(source_context_type, source_context_id);
+CREATE INDEX IF NOT EXISTS idx_sbv_participation_violations_case ON sbv_participation_violations(case_id);
+
+CREATE TABLE IF NOT EXISTS sbv_participation_violation_events (
+  id TEXT PRIMARY KEY,
+  violation_id TEXT NOT NULL REFERENCES sbv_participation_violations(id) ON DELETE CASCADE,
+  event_type TEXT NOT NULL CHECK (event_type IN ('created','updated','status_changed','document_generated','marked_sent','deadline_created','deadline_closed','remedied','escalated','closed','withdrawn')),
+  from_status TEXT,
+  to_status TEXT,
+  note TEXT,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_sbv_participation_violation_events_violation
+  ON sbv_participation_violation_events(violation_id, created_at);
+
+CREATE TABLE IF NOT EXISTS sbv_participation_violation_documents (
+  id TEXT PRIMARY KEY,
+  violation_id TEXT NOT NULL REFERENCES sbv_participation_violations(id) ON DELETE CASCADE,
+  document_id TEXT NOT NULL REFERENCES generated_documents(id) ON DELETE RESTRICT,
+  stage TEXT NOT NULL CHECK (stage IN ('request','formal_objection','abmahnung','suspension_request','owi_preparation')),
+  template_key TEXT NOT NULL,
+  template_version TEXT NOT NULL,
+  immutable_snapshot INTEGER NOT NULL DEFAULT 1 CHECK (immutable_snapshot IN (0,1)),
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_sbv_participation_violation_documents_violation
+  ON sbv_participation_violation_documents(violation_id);

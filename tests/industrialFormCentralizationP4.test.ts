@@ -166,4 +166,12 @@ describe("Formular-Zentralisierung Patch P4", () => {
     const nativeControls = tsxFilesUnder("src/app/features/sbv-control").flatMap(nativeFormControlLocations);
     expect(nativeControls).toEqual([]);
   });
+  it("setzt Auth und Recovery auf zentrale Formularbausteine statt nativer Feature-Inputs", () => {
+    const auth = featureSources("src/app/features/auth");
+
+    expect(auth).toContain("TextInput");
+    expect(auth).toContain("FormActions");
+    const nativeControls = tsxFilesUnder("src/app/features/auth").flatMap(nativeFormControlLocations);
+    expect(nativeControls).toEqual([]);
+  });
 });

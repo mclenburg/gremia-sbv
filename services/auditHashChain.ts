@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { allowedAuditMetadataFields } from './auditMetadataPolicy.js';
 
 export const PERSONAL_DATA_AUDIT_HASH_ALGORITHM = 'sha256' as const;
 export const PERSONAL_DATA_AUDIT_CHAIN_VERSION = 1 as const;
@@ -86,34 +87,6 @@ export function sanitizeAuditActor(actor: string): string {
   return normalized.slice(0, 120);
 }
 
-const AUDIT_METADATA_ALLOWLIST = new Set([
-  'subjectId',
-  'caseId',
-  'action',
-  'purpose',
-  'timestamp',
-  // Technische Vorgangsdaten für Compliance-Ereignisse. Diese Werte sind bewusst
-  // auf Kategorien, Status- und Risikokennzeichen beschränkt und enthalten keine
-  // Falldaten, Namen, Gesundheitsdaten oder Freitextinhalte.
-  'category',
-  'riskLevel',
-  'status',
-  'authorityNotificationChecked',
-  // Zentrale P9-Audit-Builder: Fallübergabe, SBV-Ressourcen, Gremia.BR-Lesebrücke.
-  'packageId',
-  'caseCount',
-  'measureCount',
-  'documentCount',
-  'deadlineCount',
-  'validUntilPresent',
-  'mode',
-  'result',
-  'reasonCode',
-  'recordType',
-  'endpoint',
-  'outcome',
-  'statusCode',
-]);
 const AUDIT_SAFE_METADATA_TEXT_PATTERN = /^[\p{Letter}\p{Number}:_.\/ -]{2,180}$/u;
 
 function normalizeAllowedAuditMetadataValue(value: unknown): string | null {
@@ -128,10 +101,11 @@ function normalizeAllowedAuditMetadataValue(value: unknown): string | null {
   return null;
 }
 
-export function normalizeAuditMetadata(metadata?: Record<string, unknown>): string {
+export function normalizeAuditMetadata(metadata?: Record<string, unknown>, subjectType?: string): string {
   const normalized: Record<string, string> = {};
+  const allowedMetadataFields = allowedAuditMetadataFields(subjectType);
   for (const [key, value] of Object.entries(metadata ?? {})) {
-    if (!AUDIT_METADATA_ALLOWLIST.has(key)) continue;
+    if (!allowedMetadataFields.has(key)) continue;
     const safeValue = normalizeAllowedAuditMetadataValue(value);
     if (safeValue !== null) normalized[key] = safeValue;
   }

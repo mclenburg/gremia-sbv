@@ -35,6 +35,10 @@ import { TerminationView } from "./features/termination/TerminationView";
 import { ContactsView } from "./features/contacts/ContactsView";
 import { ReportsView } from "./features/reports/ReportsView";
 import { SbvControlView } from "./features/sbv-control/SbvControlView";
+import { ActivityJournalView } from "./features/activity-journal/ActivityJournalView";
+import { SbvParticipationViolationsView } from "./features/participation-violations/SbvParticipationViolationsView";
+import { ACTIVITY_JOURNAL_PREFILL_EVENT, type ActivityJournalPrefillEventDetail } from "./features/activity-journal/activityJournalEvents";
+import type { ActivityJournalPrefill } from "./core/models/activity-journal.model";
 import { ComplianceView } from "./features/compliance/ComplianceView";
 import { PersonsView } from "./features/persons/PersonsView";
 import { usePersonsHandlers } from "./features/persons/usePersonsHandlers";
@@ -75,6 +79,8 @@ const IMPLEMENTED_VIEW_IDS = new Set<ViewId>([
   "dashboard",
   "cases",
   "deadlines",
+  "activity_journal",
+  "participation_violations",
   "persons",
   "contacts",
   "knowledge",
@@ -150,6 +156,7 @@ export function App() {
   const [caseNodeTarget, setCaseNodeTarget] = useState<CaseNodeTarget | null>(
     null,
   );
+  const [activityJournalPrefill, setActivityJournalPrefill] = useState<ActivityJournalPrefill | null>(null);
 
   const currentModule = useMemo(
     () => modules.find((module) => module.id === currentView),
@@ -180,6 +187,18 @@ export function App() {
   useEffect(() => {
     applyTheme(theme);
   }, [theme]);
+
+  useEffect(() => {
+    function handleActivityJournalPrefill(event: Event) {
+      const detail = (event as CustomEvent<ActivityJournalPrefillEventDetail>).detail;
+      if (!detail?.prefill) return;
+      setActivityJournalPrefill(detail.prefill);
+      if (detail.navigate !== false) setCurrentView("activity_journal");
+    }
+
+    window.addEventListener(ACTIVITY_JOURNAL_PREFILL_EVENT, handleActivityJournalPrefill);
+    return () => window.removeEventListener(ACTIVITY_JOURNAL_PREFILL_EVENT, handleActivityJournalPrefill);
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -314,10 +333,15 @@ export function App() {
     const bridge = await waitForBridge();
     if (!bridge?.deadlines)
       throw new Error("Fristendienst ist nicht erreichbar.");
-    await bridge.deadlines.complete(
+    const completed = await bridge.deadlines.complete(
       deadline.id,
       "Über Dashboard/Fristenregister als erledigt markiert.",
     );
+    if (deadline.processType === "activity_journal" && bridge.activityJournal?.buildPrefillFromClosedDeadline) {
+      const prefill = await bridge.activityJournal.buildPrefillFromClosedDeadline(completed);
+      setActivityJournalPrefill(prefill);
+      setCurrentView("activity_journal");
+    }
     setSelectedDeadline(null);
     await reloadWorkData();
   }
@@ -443,6 +467,21 @@ export function App() {
                 onCreateContact={createContact}
                 onCasesChanged={reloadWorkData}
                 onTargetConsumed={() => setCaseNodeTarget(null)}
+              />
+            )}
+            {currentView === "activity_journal" && (
+              <ActivityJournalView
+                pendingPrefill={activityJournalPrefill}
+                onPrefillConsumed={() => setActivityJournalPrefill(null)}
+              />
+            )}
+            {currentView === "participation_violations" && (
+              <SbvParticipationViolationsView
+                cases={cases}
+                onOpenJournalPrefill={(prefill) => {
+                  setActivityJournalPrefill(prefill);
+                  setCurrentView("activity_journal");
+                }}
               />
             )}
             {currentView === "deadlines" && (

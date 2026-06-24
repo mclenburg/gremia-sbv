@@ -129,6 +129,34 @@ import type {
   UpdateTemplateInput,
 } from "../src/app/core/models/template.model.js";
 import type { CreateSbvResourceRecordInput, SbvResourceDashboardSummary, SbvResourceRecord, UpdateSbvResourceRecordInput } from "../src/app/core/models/sbv-resource.model.js";
+import type {
+  ActivityJournalCategoryPreferenceRecord,
+  ActivityJournalEntryRecord,
+  ActivityJournalExportOptions,
+  ActivityJournalExportResult,
+  ActivityJournalLinkRecord,
+  ActivityJournalLinkTarget,
+  ActivityJournalListFilter,
+  ActivityJournalPrefill,
+  ActivityJournalPrefillContext,
+  ActivityJournalSummary,
+  ActivityJournalSummaryFilter,
+  CreateActivityJournalEntryInput,
+  UpdateActivityJournalEntryInput,
+} from "../src/app/core/models/activity-journal.model.js";
+import type {
+  CreateSbvParticipationViolationInput,
+  SbvParticipationViolationDocumentResult,
+  SbvParticipationViolationEventRecord,
+  SbvParticipationViolationFollowUpResult,
+  SbvParticipationViolationGeneratedDocumentRecord,
+  SbvParticipationViolationListFilter,
+  SbvParticipationViolationRecord,
+  SbvParticipationViolationStatusChangeInput,
+  SbvParticipationViolationTemplateInput,
+  SbvParticipationViolationTemplateValidationResult,
+  UpdateSbvParticipationViolationInput,
+} from "../src/app/core/models/sbv-participation-violation.model.js";
 
 import type {
   CreateProtectedPersonInput,
@@ -615,6 +643,66 @@ const api = {
       ipcRenderer.invoke("backup:restore", passphrase, confirmation),
     openBackupFolder: (): Promise<{ opened: boolean }> =>
       ipcRenderer.invoke("backup:open-backup-folder"),
+  },
+
+  activityJournal: {
+    list: (filter?: ActivityJournalListFilter): Promise<ActivityJournalEntryRecord[]> =>
+      ipcRenderer.invoke("activityJournal:list", filter),
+    get: (id: string): Promise<ActivityJournalEntryRecord | null> =>
+      ipcRenderer.invoke("activityJournal:get", id),
+    create: (input: CreateActivityJournalEntryInput): Promise<ActivityJournalEntryRecord> =>
+      ipcRenderer.invoke("activityJournal:create", input),
+    update: (id: string, input: UpdateActivityJournalEntryInput): Promise<ActivityJournalEntryRecord> =>
+      ipcRenderer.invoke("activityJournal:update", id, input),
+    delete: (id: string): Promise<{ deleted: boolean }> =>
+      ipcRenderer.invoke("activityJournal:delete", id),
+    listLinks: (entryId: string): Promise<ActivityJournalLinkRecord[]> =>
+      ipcRenderer.invoke("activityJournal:links:list", entryId),
+    addLink: (entryId: string, target: ActivityJournalLinkTarget): Promise<ActivityJournalLinkRecord> =>
+      ipcRenderer.invoke("activityJournal:links:add", entryId, target),
+    removeLink: (entryId: string, linkId: string): Promise<{ deleted: boolean }> =>
+      ipcRenderer.invoke("activityJournal:links:remove", entryId, linkId),
+    summary: (filter?: ActivityJournalSummaryFilter): Promise<ActivityJournalSummary> =>
+      ipcRenderer.invoke("activityJournal:summary", filter),
+    export: (filter?: ActivityJournalListFilter, mode?: "summary" | "detailed", options?: ActivityJournalExportOptions): Promise<ActivityJournalExportResult> =>
+      ipcRenderer.invoke("activityJournal:export", filter, mode, options),
+    buildPrefillFromContext: (context: ActivityJournalPrefillContext): Promise<ActivityJournalPrefill> =>
+      ipcRenderer.invoke("activityJournal:prefill:context", context),
+    buildPrefillFromDeadline: (deadline: DeadlineRecord): Promise<ActivityJournalPrefill> =>
+      ipcRenderer.invoke("activityJournal:prefill:deadline", deadline),
+    buildPrefillFromClosedDeadline: (deadline: DeadlineRecord): Promise<ActivityJournalPrefill> =>
+      ipcRenderer.invoke("activityJournal:prefill:closed-deadline", deadline),
+    getPreferredCategory: (contextType: ActivityJournalPrefillContext["contextType"]): Promise<ActivityJournalCategoryPreferenceRecord["category"] | undefined> =>
+      ipcRenderer.invoke("activityJournal:preferences:get", contextType),
+    rememberCategory: (contextType: ActivityJournalPrefillContext["contextType"], category: ActivityJournalCategoryPreferenceRecord["category"]): Promise<ActivityJournalCategoryPreferenceRecord> =>
+      ipcRenderer.invoke("activityJournal:preferences:remember", contextType, category),
+  },
+
+  sbvParticipationViolations: {
+    list: (filter?: SbvParticipationViolationListFilter): Promise<SbvParticipationViolationRecord[]> =>
+      ipcRenderer.invoke("sbvParticipationViolations:list", filter),
+    get: (id: string): Promise<SbvParticipationViolationRecord | null> =>
+      ipcRenderer.invoke("sbvParticipationViolations:get", id),
+    listEvents: (id: string): Promise<SbvParticipationViolationEventRecord[]> =>
+      ipcRenderer.invoke("sbvParticipationViolations:events:list", id),
+    create: (input: CreateSbvParticipationViolationInput): Promise<SbvParticipationViolationRecord> =>
+      ipcRenderer.invoke("sbvParticipationViolations:create", input),
+    update: (id: string, input: UpdateSbvParticipationViolationInput): Promise<SbvParticipationViolationRecord> =>
+      ipcRenderer.invoke("sbvParticipationViolations:update", id, input),
+    changeStatus: (id: string, input: SbvParticipationViolationStatusChangeInput): Promise<SbvParticipationViolationRecord> =>
+      ipcRenderer.invoke("sbvParticipationViolations:status", id, input),
+    validateTemplate: (input: SbvParticipationViolationTemplateInput): Promise<SbvParticipationViolationTemplateValidationResult> =>
+      ipcRenderer.invoke("sbvParticipationViolations:template:validate", input),
+    generateDocument: (id: string, options?: Partial<Pick<SbvParticipationViolationTemplateInput, "recipientLabel" | "privacyMode" | "includeLegalReviewHint" | "includeOwiHint">>): Promise<SbvParticipationViolationDocumentResult> =>
+      ipcRenderer.invoke("sbvParticipationViolations:documents:generate", id, options),
+    listDocuments: (id: string): Promise<SbvParticipationViolationGeneratedDocumentRecord[]> =>
+      ipcRenderer.invoke("sbvParticipationViolations:documents:list", id),
+    createFollowUp: (id: string, dueAt?: string): Promise<SbvParticipationViolationFollowUpResult> =>
+      ipcRenderer.invoke("sbvParticipationViolations:followUp:create", id, dueAt),
+    buildJournalPrefill: (id: string): Promise<ActivityJournalPrefill> =>
+      ipcRenderer.invoke("sbvParticipationViolations:journal:prefill", id),
+    delete: (id: string): Promise<{ deleted: boolean }> =>
+      ipcRenderer.invoke("sbvParticipationViolations:delete", id),
   },
   diagnostics: {
     bridgeReady: true,

@@ -4,6 +4,13 @@ export type RetentionCandidateType =
   | 'orphan_contact_review'
   | 'orphan_document_review'
   | 'free_deadline_review'
+  | 'journal_entry_review_due'
+  | 'journal_entry_deferred_open_follow_up'
+  | 'journal_entry_linked_to_active_case'
+  | 'journal_entry_exported_review_required'
+  | 'participation_violation_open_review'
+  | 'participation_violation_closed_review'
+  | 'participation_violation_document_integrity'
   | 'cleartext_file_review';
 
 export type RetentionRiskLevel = 'info' | 'warning' | 'critical';
@@ -13,6 +20,8 @@ export interface RetentionSettings {
   inactiveOpenCaseMonths: number;
   orphanContactReviewDays: number;
   completedDeadlineRetentionMonths: number;
+  activityJournalReviewMonths: number;
+  participationViolationReviewMonths: number;
   minimumGroupSizeForReports: number;
 }
 
@@ -26,7 +35,7 @@ export interface RetentionCandidate {
   recommendedAction: 'pruefen' | 'anonymisieren' | 'loeschen' | 'archivieren';
   createdAt?: string;
   dueSince?: string;
-  entityType: 'case' | 'contact' | 'document' | 'deadline' | 'file' | 'system';
+  entityType: 'case' | 'contact' | 'document' | 'deadline' | 'activity_journal_entry' | 'sbv_participation_violation' | 'file' | 'system';
   entityId?: string;
 }
 
@@ -56,5 +65,7 @@ export interface UpdateRetentionSettingsInput {
   inactiveOpenCaseMonths?: number;
   orphanContactReviewDays?: number;
   completedDeadlineRetentionMonths?: number;
+  activityJournalReviewMonths?: number;
+  participationViolationReviewMonths?: number;
   minimumGroupSizeForReports?: number;
 }

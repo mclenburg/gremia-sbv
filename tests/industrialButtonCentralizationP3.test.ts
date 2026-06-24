@@ -122,9 +122,15 @@ describe("Button-Zentralisierung Patch P3", () => {
     const nativeButtons = tsxFilesUnder("src/app/features/sbv-control").flatMap(nativeButtonLocations);
     expect(nativeButtons).toEqual([]);
   });
+  it("setzt Auth und Recovery auf zentrale Button-Komponenten statt nativer Feature-Buttons", () => {
+    const auth = featureSources("src/app/features/auth");
+
+    expect(auth).toContain("IndustrialButton");
+    const nativeButtons = tsxFilesUnder("src/app/features/auth").flatMap(nativeButtonLocations);
+    expect(nativeButtons).toEqual([]);
+  });
   it("deckt native Feature-Buttons ueber alle Feature-Module als explizite Architekturschuld ab", () => {
     const allowedNativeButtonCounts: Record<string, number> = {
-      "src/app/features/auth/LoginGate.tsx": 4,
       "src/app/features/cases/CaseCreateModal.tsx": 3,
       "src/app/features/cases/CaseDetailPanel.tsx": 1,
       "src/app/features/cases/CaseDocumentDetail.tsx": 3,

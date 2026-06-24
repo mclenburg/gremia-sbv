@@ -3,6 +3,7 @@ import { AlertTriangle, ShieldCheck } from 'lucide-react';
 import type { CaseRecord } from '../../core/models/case.model';
 import { ToolbarButton } from '../../shared/components/IndustrialButton';
 import { StatusBadge } from '../../shared/components/StatusBadges';
+import { ActivityJournalContextButton } from '../activity-journal/components/ActivityJournalContextButton';
 
 export type CaseNextAction = {
   title: string;
@@ -113,6 +114,16 @@ export function CaseOverviewDetail({
         </div>
         {selectedCase ? (
           <div className="case-overview-badges" aria-label="Fallstatus">
+            <ActivityJournalContextButton
+              context={{
+                contextType: 'case',
+                contextId: selectedCase.id,
+                caseId: selectedCase.id,
+                caseNumber: selectedCase.caseNumber,
+                title: selectedCase.caseNumber,
+              }}
+              compact
+            />
             <StatusBadge label={selectedCase.status} tone={selectedCase.status === 'abgeschlossen' ? 'success' : 'default'} />
             <StatusBadge label={selectedCase.priority} tone={selectedCase.priority === 'kritisch' ? 'danger' : selectedCase.priority === 'wichtig' ? 'warning' : 'default'} />
             <StatusBadge label={bindingLabel(selectedCase)} tone={isLegacy || selectedCase.privacyReviewRequired ? 'warning' : 'success'} />

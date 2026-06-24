@@ -147,6 +147,8 @@ export function getActionHint(deadline: DeadlineRecord): string {
   if (deadline.processType === 'equalization') return 'Gleichstellungsverfahren prüfen: Nachweise, Sachstand und ggf. Widerspruchsfrist klären.';
   if (deadline.processType === 'gdb') return 'Bescheid/Zugang/Rechtsbehelfsbelehrung prüfen; ggf. Beratung oder Rechtsvertretung empfehlen.';
   if (deadline.processType === 'sbv_control_protocol') return 'Übergreifendes Steuerungsprotokoll prüfen: Arbeitgeber-/BR-Rückmeldung, Ergebnis und nächsten Schritt dokumentieren.';
+  if (deadline.processType === 'activity_journal') return 'Journal-Wiedervorlage prüfen: Ergebnis, Nachfassung oder Abschluss bewusst dokumentieren.';
+  if (deadline.processType === 'sbv_participation_violation') return 'Beteiligungsverstoß prüfen: Nachholung, Reaktion oder Eskalation bewusst dokumentieren.';
   if (deadline.sourceEvent === 'protected_person.status_expiry_warning' || deadline.sourceEvent === 'protected_person.status_expired_privacy_review') {
     return 'Statusnachweis im Personenverzeichnis prüfen: Status aktualisieren, Fortspeicherung begründen oder Datenschutzprüfung starten.';
   }
@@ -161,9 +163,17 @@ function validateCaseBinding(input: CreateDeadlineInput): void {
     && deadlineType === 'follow_up'
     && !input.isLegalDeadline
     && Boolean(input.processId);
+  const isActivityJournalFollowUp = input.processType === 'activity_journal'
+    && deadlineType === 'follow_up'
+    && !input.isLegalDeadline
+    && Boolean(input.processId);
+  const isParticipationViolationFollowUp = input.processType === 'sbv_participation_violation'
+    && deadlineType === 'follow_up'
+    && !input.isLegalDeadline
+    && Boolean(input.processId);
 
-  if (!input.caseId && !isFreeFollowUp && !isSbvControlProtocolFollowUp) {
-    throw new Error('Fristen müssen einem Fall zugeordnet werden. Ohne Fallbezug ist nur eine freie Wiedervorlage oder eine SBV-Steuerungsprotokoll-Wiedervorlage erlaubt.');
+  if (!input.caseId && !isFreeFollowUp && !isSbvControlProtocolFollowUp && !isActivityJournalFollowUp && !isParticipationViolationFollowUp) {
+    throw new Error('Fristen müssen einem Fall zugeordnet werden. Ohne Fallbezug ist nur eine freie Wiedervorlage, eine SBV-Steuerungsprotokoll-Wiedervorlage, eine Journal-Wiedervorlage oder eine Beteiligungsverstoß-Wiedervorlage erlaubt.');
   }
 
   if (!input.caseId && (input.isLegalDeadline || deadlineType === 'legal_deadline' || deadlineType === 'workflow_step')) {

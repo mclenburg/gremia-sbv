@@ -21,6 +21,7 @@ import {
   SelectInput,
 } from "../../shared/components/IndustrialForm";
 import { MeasureDetailFrame } from "../cases/measures/MeasureDetailFrame";
+import { ActivityJournalContextButton } from "../activity-journal/components/ActivityJournalContextButton";
 import {
   getParticipationActionLabels,
   getParticipationDocumentRequirements,
@@ -133,6 +134,17 @@ export function ParticipationProcessDetail({
       nextStep={process.nextStep}
       requiresFollowUp={
         !process.informationComplete || !process.hearingBeforeDecision
+      }
+      actions={
+        <ActivityJournalContextButton
+          context={{
+            contextType: "sbv_participation",
+            contextId: process.id,
+            caseId: process.caseId,
+            title: process.title,
+          }}
+          compact
+        />
       }
     >
       <div className="participation-case-detail">

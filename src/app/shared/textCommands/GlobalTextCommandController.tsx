@@ -54,6 +54,7 @@ type GlobalDraft = TextCommandTextareaChange & {
 
 function initialDraft(detail: TextCommandTextareaChange): GlobalDraft | null {
   if (!detail.fieldId) return null;
+  if (getTextCommandKind(detail.token) === "activity_journal_time") return null;
   const commandText = getTextCommandArgument(
     detail.value,
     detail.index,
@@ -203,6 +204,7 @@ export function GlobalTextCommandController({
     participation: "SBV-Beteiligung anlegen",
     workplace_accommodation: "Arbeitsplatzgestaltung anlegen",
     template: "Vorlage vormerken",
+    activity_journal_time: "Journalzeit übernehmen",
   } as const;
   const commandKind = getTextCommandKind(draft.token);
   const primaryActionLabel =

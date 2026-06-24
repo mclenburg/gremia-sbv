@@ -13,7 +13,7 @@ describe('release candidate freeze documentation', () => {
   it('hält technische Versionsquellen zentral und generiert', () => {
     const version = packageVersion();
 
-    expect(version).toBe('0.9.2');
+    expect(version).toMatch(/^0\.9\.\d+$/);
     expect(read('src/app/generated/appVersion.ts').includes(version)).toBe(true);
     expect(read('services/generated/appMetadata.ts').includes(version)).toBe(true);
   });

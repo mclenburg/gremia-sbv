@@ -5,6 +5,8 @@ export const DEFAULT_RETENTION_SETTINGS: RetentionSettings = {
   inactiveOpenCaseMonths: 6,
   orphanContactReviewDays: 90,
   completedDeadlineRetentionMonths: 36,
+  activityJournalReviewMonths: 36,
+  participationViolationReviewMonths: 36,
   minimumGroupSizeForReports: 3
 };
 
@@ -40,6 +42,32 @@ export interface RetentionDocumentSnapshot {
   createdAt?: string | null;
 }
 
+
+export interface RetentionParticipationViolationSnapshot {
+  id: string;
+  stage: string;
+  status: string;
+  subject: string;
+  caseId?: string | null;
+  relatedDeadlineId?: string | null;
+  documentCount?: number;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+  closedAt?: string | null;
+}
+
+export interface RetentionActivityJournalSnapshot {
+  id: string;
+  title: string;
+  entryDate: string;
+  status: string;
+  category: string;
+  caseLinked?: boolean;
+  linkedActiveCase?: boolean;
+  openFollowUp?: boolean;
+  exportedForActivityReportAt?: string | null;
+}
+
 export interface RetentionDeadlineSnapshot {
   id: string;
   title: string;
@@ -57,6 +85,8 @@ export interface RetentionScanInput {
   contacts?: RetentionContactSnapshot[];
   documents?: RetentionDocumentSnapshot[];
   deadlines?: RetentionDeadlineSnapshot[];
+  journalEntries?: RetentionActivityJournalSnapshot[];
+  participationViolations?: RetentionParticipationViolationSnapshot[];
   cleartextFiles?: string[];
 }
 
@@ -106,6 +136,8 @@ export function buildRetentionDashboard(input: RetentionScanInput): RetentionDas
   const inactiveCutoff = monthsAgo(now, settings.inactiveOpenCaseMonths);
   const orphanContactCutoff = daysAgo(now, settings.orphanContactReviewDays);
   const completedDeadlineCutoff = monthsAgo(now, settings.completedDeadlineRetentionMonths);
+  const journalCutoff = monthsAgo(now, settings.activityJournalReviewMonths);
+  const participationViolationCutoff = monthsAgo(now, settings.participationViolationReviewMonths);
 
   for (const record of input.cases ?? []) {
     if (record.status === 'abgeschlossen' && beforeOrEqual(record.closedAt, closedCutoff)) {
@@ -205,6 +237,105 @@ export function buildRetentionDashboard(input: RetentionScanInput): RetentionDas
         createdAt: deadline.completedAt ?? deadline.dueAt ?? undefined,
         entityType: 'deadline',
         entityId: deadline.id
+      });
+    }
+  }
+
+
+  for (const entry of input.journalEntries ?? []) {
+    if (entry.openFollowUp) {
+      pushCandidate(candidates, {
+        id: `journal-follow-up-${entry.id}`,
+        type: 'journal_entry_deferred_open_follow_up',
+        riskLevel: 'warning',
+        title: 'Journal-Eintrag mit offener Wiedervorlage',
+        reference: entry.title,
+        description: 'Offene Journal-Wiedervorlagen sperren automatische Löschung. Ergebnis oder Nachfassung prüfen.',
+        recommendedAction: 'pruefen',
+        dueSince: entry.entryDate,
+        entityType: 'activity_journal_entry',
+        entityId: entry.id
+      });
+      continue;
+    }
+
+    if (entry.exportedForActivityReportAt) {
+      pushCandidate(candidates, {
+        id: `journal-export-${entry.id}`,
+        type: 'journal_entry_exported_review_required',
+        riskLevel: 'warning',
+        title: 'Exportierter Journal-Eintrag prüfpflichtig',
+        reference: entry.title,
+        description: 'Der Eintrag war Teil eines Tätigkeitsnachweises. Aufbewahrung und Löschung gesondert prüfen; exported_for_activity_report_at ist keine Historie.',
+        recommendedAction: 'pruefen',
+        createdAt: entry.exportedForActivityReportAt,
+        entityType: 'activity_journal_entry',
+        entityId: entry.id
+      });
+    }
+
+    if (entry.linkedActiveCase) {
+      pushCandidate(candidates, {
+        id: `journal-active-case-${entry.id}`,
+        type: 'journal_entry_linked_to_active_case',
+        riskLevel: 'info',
+        title: 'Journal-Eintrag mit aktiver Fallverknüpfung',
+        reference: entry.title,
+        description: 'Fallbezogene Journaleinträge folgen grundsätzlich dem Retention-Status der verknüpften Fallakte.',
+        recommendedAction: 'pruefen',
+        createdAt: entry.entryDate,
+        entityType: 'activity_journal_entry',
+        entityId: entry.id
+      });
+      continue;
+    }
+
+    if (!entry.caseLinked && beforeOrEqual(entry.entryDate, journalCutoff)) {
+      pushCandidate(candidates, {
+        id: `journal-review-${entry.id}`,
+        type: 'journal_entry_review_due',
+        riskLevel: 'info',
+        title: 'Fallfreier Journal-Eintrag zur Aufbewahrungsprüfung',
+        reference: entry.title,
+        description: `Fallfreier Journaleintrag ist seit mindestens ${settings.activityJournalReviewMonths} Monaten dokumentiert. Prüfen, ob Reduktion auf Statistik oder Löschung möglich ist.`,
+        recommendedAction: 'pruefen',
+        createdAt: entry.entryDate,
+        entityType: 'activity_journal_entry',
+        entityId: entry.id
+      });
+    }
+  }
+
+
+  for (const violation of input.participationViolations ?? []) {
+    const isOpen = ['draft', 'open', 'sent', 'escalated'].includes(violation.status);
+    if (isOpen) {
+      pushCandidate(candidates, {
+        id: `participation-violation-open-${violation.id}`,
+        type: 'participation_violation_open_review',
+        riskLevel: violation.status === 'escalated' ? 'critical' : 'warning',
+        title: 'Offener Beteiligungsverstoß nachhalten',
+        reference: violation.subject,
+        description: 'Offene oder eskalierte Beteiligungsverstöße werden nicht automatisch gelöscht. Reaktion, Heilung, Frist oder weitere Eskalation prüfen.',
+        recommendedAction: 'pruefen',
+        createdAt: violation.updatedAt ?? violation.createdAt ?? undefined,
+        entityType: 'sbv_participation_violation',
+        entityId: violation.id,
+      });
+      continue;
+    }
+    if (beforeOrEqual(violation.closedAt ?? violation.updatedAt ?? violation.createdAt, participationViolationCutoff)) {
+      pushCandidate(candidates, {
+        id: `participation-violation-closed-${violation.id}`,
+        type: 'participation_violation_closed_review',
+        riskLevel: (violation.documentCount ?? 0) > 0 ? 'warning' : 'info',
+        title: 'Geschlossener Beteiligungsverstoß zur Aufbewahrungsprüfung',
+        reference: violation.subject,
+        description: `Geschlossener Verstoßvorgang ist seit mindestens ${settings.participationViolationReviewMonths} Monaten prüfpflichtig. Dokumente, Nachweisinteresse und Fallbezug bewerten.`,
+        recommendedAction: 'pruefen',
+        createdAt: violation.closedAt ?? violation.updatedAt ?? violation.createdAt ?? undefined,
+        entityType: 'sbv_participation_violation',
+        entityId: violation.id,
       });
     }
   }

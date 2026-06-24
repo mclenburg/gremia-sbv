@@ -36,7 +36,9 @@ export type TextCommandToken =
   | '/anpassung'
   | '/arbeitsplatz'
   | '/vl'
-  | '/vorlage';
+  | '/vorlage'
+  | '/zeit'
+  | '/t';
 
 export type TextCommandKind =
   | 'deadline'
@@ -54,7 +56,8 @@ export type TextCommandKind =
   | 'termination_measure'
   | 'participation'
   | 'workplace_accommodation'
-  | 'template';
+  | 'template'
+  | 'activity_journal_time';
 
 export interface TextCommandDefinition {
   kind: TextCommandKind;
@@ -91,7 +94,8 @@ export const TEXT_COMMAND_REGISTRY: TextCommandDefinition[] = [
   { kind: 'termination_measure', tokens: ['/kuend', '/kündigung', '/kuendigung'], label: 'Kündigungsanhörung anlegen', description: 'Kündigungsanhörung als Vorgang der aktuellen Fallakte anlegen.', requiresCase: true },
   { kind: 'participation', tokens: ['/bet', '/beteiligung'], label: 'SBV-Beteiligung anlegen', description: 'SBV-Beteiligung nach § 178 Abs. 2 SGB IX als Maßnahme der aktuellen Fallakte anlegen.', requiresCase: true },
   { kind: 'workplace_accommodation', tokens: ['/anp', '/anpassung', '/arbeitsplatz'], label: 'Arbeitsplatzgestaltung anlegen', description: 'Behinderungsgerechte Arbeitsplatzgestaltung nach § 164 Abs. 4 SGB IX als Maßnahme der aktuellen Fallakte anlegen.', requiresCase: true },
-  { kind: 'template', tokens: ['/vl', '/vorlage'], label: 'Vorlage vormerken', description: 'Vorlagenbezug im Protokoll vormerken; die Dokumenterzeugung erfolgt im Vorlagenbereich.' }
+  { kind: 'template', tokens: ['/vl', '/vorlage'], label: 'Vorlage vormerken', description: 'Vorlagenbezug im Protokoll vormerken; die Dokumenterzeugung erfolgt im Vorlagenbereich.' },
+  { kind: 'activity_journal_time', tokens: ['/zeit', '/t'], label: 'Journalzeit erfassen', description: 'Zeitangabe für einen Journaleintrag übernehmen. /zeit 45m oder /t 09:15-10:05.' }
 ];
 
 export const TEXT_COMMANDS = TEXT_COMMAND_REGISTRY.reduce((acc, definition) => {

@@ -1,3 +1,19 @@
+export const DEADLINE_PROCESS_TYPES = [
+  'case',
+  'bem',
+  'prevention',
+  'equalization',
+  'termination_hearing',
+  'gdb',
+  'custom',
+  'sbv_control_protocol',
+  'activity_journal',
+  'sbv_participation_violation',
+] as const;
+
+export const DEADLINE_TYPES = ['legal_deadline', 'follow_up', 'appointment', 'warning', 'workflow_step'] as const;
+export const DEADLINE_SEVERITIES = ['normal', 'important', 'critical', 'fatal'] as const;
+
 export type DeadlineProcessType =
   | 'case'
   | 'bem'
@@ -6,7 +22,9 @@ export type DeadlineProcessType =
   | 'termination_hearing'
   | 'gdb'
   | 'custom'
-  | 'sbv_control_protocol';
+  | 'sbv_control_protocol'
+  | 'activity_journal'
+  | 'sbv_participation_violation';
 
 export type DeadlineType = 'legal_deadline' | 'follow_up' | 'appointment' | 'warning' | 'workflow_step';
 export type DeadlineSeverity = 'normal' | 'important' | 'critical' | 'fatal';
