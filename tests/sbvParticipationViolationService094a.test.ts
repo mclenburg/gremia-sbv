@@ -17,7 +17,9 @@ class ViolationBehaviorDb implements DatabaseAdapter {
     const normalized = sql.replace(/\s+/g, ' ').trim();
     return {
       all(...params: unknown[]): T[] {
+        if (normalized.includes('PRAGMA table_info(sbv_participation_violations)')) return [{ name: 'related_case_measure_id' }] as T[];
         if (normalized.includes('SELECT * FROM sbv_participation_violations')) return self.violations as T[];
+        if (normalized.includes('SELECT document_id FROM sbv_participation_violation_documents WHERE violation_id = ?')) return [] as T[];
         if (normalized.includes('SELECT * FROM sbv_participation_violation_events WHERE violation_id = ?')) {
           return self.events.filter((event) => event.violation_id === params[0]) as T[];
         }
@@ -35,8 +37,8 @@ class ViolationBehaviorDb implements DatabaseAdapter {
         if (normalized.includes('INSERT INTO sbv_participation_violations')) {
           self.violations.push({
             id: params[0], stage: params[1], status: params[2], violation_type: params[3], source_context_type: params[4], source_context_id: params[5], case_id: params[6],
-            related_participation_id: params[7], related_termination_hearing_id: params[8], related_deadline_id: params[9], related_activity_journal_entry_id: params[10], related_sbv_control_protocol_id: params[11],
-            subject: params[12], measure_description: params[13], wrong_behavior: params[14], required_behavior: params[15], consequence_warning: params[16], legal_basis: params[17], follow_up_due_at: params[18], created_at: params[19], updated_at: params[20], sent_at: params[21], closed_at: params[22],
+            related_participation_id: params[7], related_case_measure_id: params[8], related_termination_hearing_id: params[9], related_deadline_id: params[10], related_activity_journal_entry_id: params[11], related_sbv_control_protocol_id: params[12],
+            subject: params[13], measure_description: params[14], wrong_behavior: params[15], required_behavior: params[16], consequence_warning: params[17], legal_basis: params[18], follow_up_due_at: params[19], created_at: params[20], updated_at: params[21], sent_at: params[22], closed_at: params[23],
           });
           return { changes: 1 };
         }
@@ -54,13 +56,14 @@ class ViolationBehaviorDb implements DatabaseAdapter {
           return { changes: 1 };
         }
         if (normalized.startsWith('UPDATE sbv_participation_violations SET stage = ?')) {
-          const row = self.violations.find((item) => item.id === params[19]);
+          const row = self.violations.find((item) => item.id === params[20]);
           if (!row) return { changes: 0 };
           Object.assign(row, {
-            stage: params[0], violation_type: params[2], source_context_type: params[3], source_context_id: params[4], case_id: params[5], related_participation_id: params[6], related_termination_hearing_id: params[7], related_deadline_id: params[8], related_activity_journal_entry_id: params[9], related_sbv_control_protocol_id: params[10], subject: params[11], measure_description: params[12], wrong_behavior: params[13], required_behavior: params[14], consequence_warning: params[15], legal_basis: params[16], follow_up_due_at: params[17], updated_at: params[18],
+            stage: params[0], violation_type: params[2], source_context_type: params[3], source_context_id: params[4], case_id: params[5], related_participation_id: params[6], related_case_measure_id: params[7], related_termination_hearing_id: params[8], related_deadline_id: params[9], related_activity_journal_entry_id: params[10], related_sbv_control_protocol_id: params[11], subject: params[12], measure_description: params[13], wrong_behavior: params[14], required_behavior: params[15], consequence_warning: params[16], legal_basis: params[17], follow_up_due_at: params[18], updated_at: params[19],
           });
           return { changes: 1 };
         }
+        if (normalized.includes('DELETE FROM generated_documents WHERE id = ? AND document_kind = ?')) return { changes: 0 };
         if (normalized.includes('DELETE FROM sbv_participation_violations WHERE id = ?')) {
           const before = self.violations.length;
           self.violations = self.violations.filter((row) => row.id !== params[0]);

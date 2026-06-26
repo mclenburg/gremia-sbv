@@ -458,7 +458,7 @@ export class RetentionService {
   private listParticipationViolationSnapshots(db: DatabaseAdapter): RetentionParticipationViolationSnapshot[] {
     if (!tableExists(db, 'sbv_participation_violations')) return [];
     const rows = db.prepare<any>(`
-      SELECT v.id, v.stage, v.status, v.subject, v.case_id, v.related_deadline_id, v.created_at, v.updated_at, v.closed_at,
+      SELECT v.id, v.stage, v.status, v.subject, v.case_id, v.source_context_type, v.source_context_id, v.related_case_measure_id, v.related_deadline_id, v.created_at, v.updated_at, v.closed_at,
         (SELECT COUNT(*) FROM sbv_participation_violation_documents d WHERE d.violation_id = v.id) AS document_count
       FROM sbv_participation_violations v
       ORDER BY v.updated_at DESC
@@ -469,6 +469,9 @@ export class RetentionService {
       status: row.status,
       subject: row.subject,
       caseId: row.case_id,
+      sourceContextType: row.source_context_type,
+      sourceContextId: row.source_context_id,
+      relatedCaseMeasureId: row.related_case_measure_id,
       relatedDeadlineId: row.related_deadline_id,
       documentCount: Number(row.document_count ?? 0),
       createdAt: row.created_at,

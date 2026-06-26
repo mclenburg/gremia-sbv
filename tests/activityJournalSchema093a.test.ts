@@ -13,7 +13,7 @@ describe('activity journal schema 0.9.3-a', () => {
   it('setzt Schema 0041 mit Journal-Kernstrukturen', () => {
     const schema = createSqlSchemaSnapshot(readFileSync('database/schema.sql', 'utf8'));
 
-    expect(APP_SCHEMA_VERSION).toBe('0043');
+    expect(APP_SCHEMA_VERSION).toBe('0044');
     expect(schema.tables.activity_journal_entries.columns).toEqual(expect.arrayContaining([...ACTIVITY_JOURNAL_ENTRIES_REQUIRED_COLUMNS]));
     expect(schema.tables.activity_journal_links.columns).toEqual(expect.arrayContaining([...ACTIVITY_JOURNAL_LINKS_REQUIRED_COLUMNS]));
     expect(schema.tables.activity_journal_category_preferences.columns).toEqual(expect.arrayContaining([...ACTIVITY_JOURNAL_CATEGORY_PREFERENCES_REQUIRED_COLUMNS]));

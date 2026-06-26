@@ -18,7 +18,15 @@ describe('activity report service behavior', () => {
       preventionProcesses: [{ status: 'offen' }],
       bemProcesses: [{ status: 'angenommen' }],
       equalizationProcesses: [{ applicationStatus: 'eingereicht' }],
-      terminationProcesses: [{ status: 'sbv_anhoerung_offen' }]
+      terminationProcesses: [{ status: 'sbv_anhoerung_offen' }],
+      activityJournalEntries: [
+        { category: 'participation', status: 'final', durationMinutes: 30, performedOutsideContractWorkTime: true },
+        { category: 'documentation', status: 'follow_up_open', durationMinutes: 15 }
+      ],
+      participationViolations: [
+        { status: 'open', stage: 'request' },
+        { status: 'closed', stage: 'formal_objection' }
+      ]
     });
 
     expect(report.title).toBe('SBV-Tätigkeitsbericht – April 2026');
@@ -29,6 +37,13 @@ describe('activity report service behavior', () => {
     expect(report.body).toContain('| davon überfällig | 1 |');
     expect(report.body).toContain('| BEM | 2 |');
     expect(report.body).toContain('| Prävention | 1 |');
+    expect(report.body).toContain('| Tätigkeitsjournal-Einträge | 2 |');
+    expect(report.body).toContain('| dokumentierte SBV-Zeit (Min.) | 45 |');
+    expect(report.body).toContain('| davon außerhalb Regelarbeitszeit (Einträge) | 1 |');
+    expect(report.body).toContain('| Beteiligungsverstöße | 2 |');
+    expect(report.body).toContain('## Tätigkeitsjournal nach Kategorie');
+    expect(report.body).toContain('| participation | 1 | 30 |');
+    expect(report.body).toContain('## Beteiligungsverstöße nach Status');
     expect(assertActivityReportHasNoSensitiveFreeText(report.body)).toBe(true);
   });
 

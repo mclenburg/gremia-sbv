@@ -15,6 +15,7 @@ Zweite Zielgruppe sind Personen, die Gremia.SBV betreiben, prüfen oder weiteren
 | Datei | Zweck |
 | --- | --- |
 | `../README.md` | öffentlicher Projekteinstieg und Produktüberblick |
+| `handbuch/README.md` | Benutzerhandbuch für die tägliche SBV-Arbeit |
 | `CASE_PROCESS_WORKFLOW.md` | Fallaktenarbeit, Personenbindung, anonyme Beratung und Datenschutzprüfung |
 | `PROCESS_MODULES.md` | Fachmodule, Maßnahmen und Fristen im SBV-Alltag |
 | `CASE_HANDOVER_TRANSFER.md` | verschlüsselte Fallübergabe für Vertretung und Nachfolge |
@@ -38,6 +39,8 @@ Zweite Zielgruppe sind Personen, die Gremia.SBV betreiben, prüfen oder weiteren
 | `LOESCHKONZEPT_SBV.md` | Lösch- und Retention-Konzept |
 | `FREIGABE_DSB_IT_SECURITY.md` | Freigabeunterlagen für Datenschutz und IT-Security |
 | `SECURITY.md` | technische Sicherheitslinie |
+| `PRIVACY_AND_SECURITY.md` | Datenschutz- und Sicherheitsarchitektur |
+| `ACCESSIBILITY.md` | Barrierefreiheit und bedienbare Sicherheit |
 | `DATABASE_ENCRYPTION.md` | lokale Datenbankverschlüsselung |
 | `CODE_SIGNING.md` | Signaturstrategie für bereitgestellte Artefakte |
 | `LICENSE_POLICY.md` | Lizenz- und Drittkomponentenlinie |

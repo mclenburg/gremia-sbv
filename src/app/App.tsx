@@ -37,6 +37,7 @@ import { ReportsView } from "./features/reports/ReportsView";
 import { SbvControlView } from "./features/sbv-control/SbvControlView";
 import { ActivityJournalView } from "./features/activity-journal/ActivityJournalView";
 import { SbvParticipationViolationsView } from "./features/participation-violations/SbvParticipationViolationsView";
+import type { SbvParticipationViolationPrefill } from "./features/participation-violations/sbvParticipationViolationViewLogic";
 import { ACTIVITY_JOURNAL_PREFILL_EVENT, type ActivityJournalPrefillEventDetail } from "./features/activity-journal/activityJournalEvents";
 import type { ActivityJournalPrefill } from "./core/models/activity-journal.model";
 import { ComplianceView } from "./features/compliance/ComplianceView";
@@ -157,6 +158,7 @@ export function App() {
     null,
   );
   const [activityJournalPrefill, setActivityJournalPrefill] = useState<ActivityJournalPrefill | null>(null);
+  const [participationViolationPrefill, setParticipationViolationPrefill] = useState<SbvParticipationViolationPrefill | null>(null);
 
   const currentModule = useMemo(
     () => modules.find((module) => module.id === currentView),
@@ -467,6 +469,10 @@ export function App() {
                 onCreateContact={createContact}
                 onCasesChanged={reloadWorkData}
                 onTargetConsumed={() => setCaseNodeTarget(null)}
+                onOpenParticipationViolationPrefill={(prefill) => {
+                  setParticipationViolationPrefill(prefill);
+                  setCurrentView("participation_violations");
+                }}
               />
             )}
             {currentView === "activity_journal" && (
@@ -478,6 +484,8 @@ export function App() {
             {currentView === "participation_violations" && (
               <SbvParticipationViolationsView
                 cases={cases}
+                pendingPrefill={participationViolationPrefill}
+                onPrefillConsumed={() => setParticipationViolationPrefill(null)}
                 onOpenJournalPrefill={(prefill) => {
                   setActivityJournalPrefill(prefill);
                   setCurrentView("activity_journal");

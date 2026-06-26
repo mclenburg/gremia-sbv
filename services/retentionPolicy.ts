@@ -49,6 +49,9 @@ export interface RetentionParticipationViolationSnapshot {
   status: string;
   subject: string;
   caseId?: string | null;
+  sourceContextType?: string | null;
+  sourceContextId?: string | null;
+  relatedCaseMeasureId?: string | null;
   relatedDeadlineId?: string | null;
   documentCount?: number;
   createdAt?: string | null;
@@ -308,6 +311,21 @@ export function buildRetentionDashboard(input: RetentionScanInput): RetentionDas
 
 
   for (const violation of input.participationViolations ?? []) {
+    if (violation.sourceContextType === 'case_measure_participation' && !violation.relatedCaseMeasureId) {
+      pushCandidate(candidates, {
+        id: `participation-violation-measure-link-${violation.id}`,
+        type: 'participation_violation_open_review',
+        riskLevel: 'critical',
+        title: 'Beteiligungsverstoß ohne Maßnahmekontext prüfen',
+        reference: violation.subject,
+        description: 'Der Verstoß wurde als Eskalation aus einer SBV-Beteiligungsmaßnahme angelegt, hat aber keinen gespeicherten related_case_measure_id-Bezug. Kontext reparieren oder Aufbewahrung gesondert begründen.',
+        recommendedAction: 'pruefen',
+        createdAt: violation.updatedAt ?? violation.createdAt ?? undefined,
+        entityType: 'sbv_participation_violation',
+        entityId: violation.id,
+      });
+    }
+
     const isOpen = ['draft', 'open', 'sent', 'escalated'].includes(violation.status);
     if (isOpen) {
       pushCandidate(candidates, {

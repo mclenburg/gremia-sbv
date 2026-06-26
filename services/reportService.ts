@@ -678,9 +678,21 @@ export class ReportService {
     const equalizationCount = count(db, `SELECT COUNT(*) AS value FROM equalization_processes ${equalizationCreated.sql}`, equalizationCreated.params);
     const journalCount = count(db, `SELECT COUNT(*) AS value FROM activity_journal_entries ${journalPeriod.sql}`, journalPeriod.params);
     const journalMinutes = count(db, `SELECT COALESCE(SUM(duration_minutes), 0) AS value FROM activity_journal_entries ${journalPeriod.sql}`, journalPeriod.params);
+    const journalOutsideEntries = count(db, `SELECT COUNT(*) AS value FROM activity_journal_entries ${journalPeriod.sql}${journalPeriod.sql ? ' AND' : ' WHERE'} performed_outside_contract_work_time = 1`, journalPeriod.params);
+    const journalOutsideMinutes = count(db, `SELECT COALESCE(SUM(duration_minutes), 0) AS value FROM activity_journal_entries ${journalPeriod.sql}${journalPeriod.sql ? ' AND' : ' WHERE'} performed_outside_contract_work_time = 1`, journalPeriod.params);
     const journalOpenFollowUps = count(db, `SELECT COUNT(*) AS value FROM activity_journal_entries WHERE status = 'follow_up_open'`);
     const violationCount = count(db, `SELECT COUNT(*) AS value FROM sbv_participation_violations ${violationPeriod.sql}`, violationPeriod.params);
     const violationOpen = count(db, `SELECT COUNT(*) AS value FROM sbv_participation_violations WHERE status IN ('draft','open','sent','escalated')`);
+    const violationStatuses = rows(
+      db,
+      `SELECT status, COUNT(*) AS value FROM sbv_participation_violations ${violationPeriod.sql} GROUP BY status ORDER BY value DESC`,
+      violationPeriod.params,
+    );
+    const violationStages = rows(
+      db,
+      `SELECT stage, COUNT(*) AS value FROM sbv_participation_violations ${violationPeriod.sql} GROUP BY stage ORDER BY value DESC`,
+      violationPeriod.params,
+    );
     const journalCategories = rows(
       db,
       `SELECT category, COUNT(*) AS count, COALESCE(SUM(duration_minutes), 0) AS minutes FROM activity_journal_entries ${journalPeriod.sql} GROUP BY category ORDER BY minutes DESC, count DESC`,
@@ -698,6 +710,7 @@ export class ReportService {
       "Beteiligungsverstöße": violationCount,
       "offene Verstoßvorgänge": violationOpen,
       "dokumentierte SBV-Zeit (Min.)": journalMinutes,
+      "SBV-Zeit außerhalb Regelarbeitszeit (Min.)": journalOutsideMinutes,
     };
     const categories = rows(
       db,
@@ -714,6 +727,7 @@ export class ReportService {
       ["Gleichstellung/GdB", equalizationCount],
       ["Tätigkeitsjournal", journalCount],
       ["Journal-Wiedervorlagen offen", journalOpenFollowUps],
+      ["Journal außerhalb Regelarbeitszeit", journalOutsideEntries],
       ["Beteiligungsverstoß-Protokolle", violationCount],
       ["offene Beteiligungsverstoß-Vorgänge", violationOpen],
     ];
@@ -731,7 +745,9 @@ export class ReportService {
       <section class="box"><h2>Arbeitsfelder im Berichtszeitraum</h2>${table(["Arbeitsfeld", "Anzahl"], processRows)}</section>
       <section class="box"><h2>Fallkategorien im Berichtszeitraum</h2>${table(["Kategorie", "Anzahl"], categories.map((row) => [normalizeStatus(row.category), row.value]))}</section>
       <section class="box"><h2>Fallstatus zum Stichtag</h2>${table(["Status", "Anzahl"], statuses.map((row) => [normalizeStatus(row.status), row.value]))}</section>
-      <section class="box"><h2>Tätigkeitsjournal / SBV-Zeit</h2>${table(["Kategorie", "Einträge", "Minuten"], journalCategories.map((row) => [normalizeStatus(row.category), row.count, row.minutes]))}<p>Die Werte sind Eigenaufzeichnungen der SBV und keine Arbeitgeber-Arbeitszeitabrechnung.</p></section>
+      <section class="box"><h2>Tätigkeitsjournal / SBV-Zeit</h2>${table(["Kategorie", "Einträge", "Minuten"], journalCategories.map((row) => [normalizeStatus(row.category), row.count, row.minutes]))}<p>Die Werte sind Eigenaufzeichnungen der SBV und keine Arbeitgeber-Arbeitszeitabrechnung. Außerhalb der Regelarbeitszeit dokumentierte Einträge werden nur aggregiert ausgewiesen.</p></section>
+      <section class="box"><h2>Beteiligungsverstöße nach Status</h2>${table(["Status", "Anzahl"], violationStatuses.map((row) => [normalizeStatus(row.status), row.value]))}</section>
+      <section class="box"><h2>Beteiligungsverstöße nach Eskalationsstufe</h2>${table(["Eskalationsstufe", "Anzahl"], violationStages.map((row) => [normalizeStatus(row.stage), row.value]))}</section>
       <section class="box"><h2>Datenschutz und Anonymisierung</h2><p>Dieser Tätigkeitsbericht enthält keine Namen, Aktenzeichen, Diagnosen, Dokumenttitel oder vertraulichen Freitexte. Bei kleinen Fallzahlen ist vor Weitergabe dennoch eine Rückrechenbarkeitsprüfung erforderlich.</p></section>`;
     return {
       title: "Tätigkeitsbericht der SBV",

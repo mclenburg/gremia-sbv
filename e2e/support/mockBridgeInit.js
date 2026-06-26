@@ -144,6 +144,27 @@
   }
 
 
+
+  const participationViolations = [
+    {
+      id: 'violation-e2e-0001',
+      stage: 'request',
+      status: 'open',
+      violationType: 'incomplete_information',
+      sourceContextType: 'case_measure_participation',
+      sourceContextId: 'measure-participation-e2e-0001',
+      relatedCaseMeasureId: 'measure-participation-e2e-0001',
+      caseId: 'case-test-0001',
+      subject: 'E2E Beteiligungsverstoß aus Maßnahme',
+      measureDescription: 'Synthetischer Ausgangsverstoß ohne Echtdaten.',
+      wrongBehavior: 'Unterrichtung unvollständig.',
+      requiredBehavior: 'Vor Entscheidung vollständig unterrichten und anhören.',
+      legalBasis: '§ 178 Abs. 2 Satz 1 und Satz 2 SGB IX; § 238 Abs. 1 Nr. 8 SGB IX',
+      createdAt: now,
+      updatedAt: now,
+    },
+  ];
+
   const sbvResources = [];
 
   const templates = [
@@ -754,13 +775,40 @@
     termination: { list: emptyList, create: createRecord, update: createRecord },
     participation: { list: emptyList, create: createRecord, update: createRecord, warnings: emptyList },
     sbvParticipationViolations: {
-      list: async () => [],
-      get: async () => null,
+      list: async () => participationViolations,
+      get: async (id) => participationViolations.find((item) => item.id === id) || null,
       listEvents: async () => [],
-      create: async (input) => ({ id: `violation-${Date.now()}`, status: input.status || 'draft', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), ...input }),
-      update: async (id, input) => ({ id, status: input.status || 'draft', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), ...input }),
-      changeStatus: async (id, input) => ({ id, stage: 'request', status: input.status, violationType: 'not_heard', sourceContextType: 'case', sourceContextId: 'case-1', subject: 'Mock', measureDescription: 'Mock', wrongBehavior: 'Mock', requiredBehavior: 'Mock', legalBasis: '§ 178 Abs. 2 SGB IX', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }),
-      delete: async () => ({ deleted: true }),
+      create: async (input) => {
+        const row = { id: `violation-${Date.now()}`, status: input.status || 'draft', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), ...input };
+        participationViolations.unshift(row);
+        return row;
+      },
+      update: async (id, input) => {
+        const row = participationViolations.find((item) => item.id === id);
+        if (!row) throw new Error('Beteiligungsverstoß nicht gefunden.');
+        Object.assign(row, input, { updatedAt: new Date().toISOString() });
+        return row;
+      },
+      changeStatus: async (id, input) => {
+        const row = participationViolations.find((item) => item.id === id);
+        if (!row) throw new Error('Beteiligungsverstoß nicht gefunden.');
+        Object.assign(row, { status: input.status, updatedAt: new Date().toISOString() });
+        return row;
+      },
+      generateDocument: async (id) => ({ violationId: id, filename: 'beteiligungsverstoss-e2e.docx', documentId: `document-${Date.now()}`, sizeBytes: 1024, sha256: 'e2e-sha256' }),
+      listDocuments: async () => [],
+      createFollowUp: async (id) => {
+        const dueAt = '2026-05-12T10:00:00.000Z';
+        const row = participationViolations.find((item) => item.id === id);
+        if (row) row.relatedDeadlineId = `deadline-${Date.now()}`;
+        return { violationId: id, deadlineId: row?.relatedDeadlineId || `deadline-${Date.now()}`, dueAt };
+      },
+      buildJournalPrefill: async (id) => activityJournalPrefill({ contextType: 'sbv_participation_violation', contextId: id, title: 'Beteiligungsverstoß dokumentiert', category: 'participation' }),
+      delete: async (id) => {
+        const index = participationViolations.findIndex((item) => item.id === id);
+        if (index >= 0) participationViolations.splice(index, 1);
+        return { deleted: true };
+      },
     },
     sbvResources: {
       list: async () => sbvResources,

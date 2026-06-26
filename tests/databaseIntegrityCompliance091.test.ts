@@ -31,7 +31,7 @@ import type { DatabaseAdapter } from '../services/databaseService';
 class SchemaDb implements DatabaseAdapter {
   constructor(
     private readonly tables: Record<string, readonly string[]>,
-    private readonly schemaVersion = '0043',
+    private readonly schemaVersion = '0044',
   ) {}
 
   prepare<T = unknown>(sql: string) {
@@ -105,7 +105,7 @@ describe('database integrity status for compliance center', () => {
     const result = evaluateDatabaseIntegrity(new SchemaDb(completeSchema));
 
     expect(result.ok).toBe(true);
-    expect(result.appliedSchemaVersion).toBe('0043');
+    expect(result.appliedSchemaVersion).toBe('0044');
     expect(result.missingTables).toEqual([]);
     expect(result.missingColumns).toEqual({});
     expect(result.repairRequired).toBe(false);

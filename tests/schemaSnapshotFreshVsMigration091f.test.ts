@@ -168,20 +168,22 @@ describe('Schema-Snapshot Fresh Install vs. Legacy-Migration 0.9.1', () => {
   });
 
 
-  it('hält Beteiligungsverstöße in Basisschema und Migration 0042 strukturgleich', () => {
+  it('hält Beteiligungsverstöße in Basisschema, Migration 0042 und Nachrüstung 0044 nachvollziehbar', () => {
     const fresh = createSqlSchemaSnapshot(readFileSync('database/schema.sql', 'utf8'));
-    const migrated = createSqlSchemaSnapshot(readFileSync('database/migrations/0042_sbv_participation_violations.sql', 'utf8'));
+    const baseMigration = createSqlSchemaSnapshot(readFileSync('database/migrations/0042_sbv_participation_violations.sql', 'utf8'));
+    const measureContextMigration = readFileSync('database/migrations/0044_participation_violation_measure_context.sql', 'utf8');
 
     const problems = [
-      ...compareTableSnapshot(fresh, migrated, 'sbv_participation_violations'),
-      ...compareTableSnapshot(fresh, migrated, 'sbv_participation_violation_events'),
-      ...compareTableSnapshot(fresh, migrated, 'sbv_participation_violation_documents'),
-      ...compareIndexSnapshot(fresh, migrated, 'idx_sbv_participation_violations_status'),
-      ...compareIndexSnapshot(fresh, migrated, 'idx_sbv_participation_violations_source'),
-      ...compareIndexSnapshot(fresh, migrated, 'idx_sbv_participation_violation_events_violation'),
+      ...compareTableSnapshot(fresh, baseMigration, 'sbv_participation_violation_events'),
+      ...compareTableSnapshot(fresh, baseMigration, 'sbv_participation_violation_documents'),
+      ...compareIndexSnapshot(fresh, baseMigration, 'idx_sbv_participation_violations_status'),
+      ...compareIndexSnapshot(fresh, baseMigration, 'idx_sbv_participation_violations_source'),
+      ...compareIndexSnapshot(fresh, baseMigration, 'idx_sbv_participation_violation_events_violation'),
     ];
 
     expect(problems).toEqual([]);
+    expect(measureContextMigration).toContain('related_case_measure_id TEXT REFERENCES case_measures(id) ON DELETE SET NULL');
+    expect(measureContextMigration).toContain("'case_measure_participation'");
     expect(fresh.tables.sbv_participation_violations.columns).toEqual(expect.arrayContaining([...SBV_PARTICIPATION_VIOLATIONS_REQUIRED_COLUMNS]));
     expect(fresh.tables.sbv_participation_violation_events.columns).toEqual(expect.arrayContaining([...SBV_PARTICIPATION_VIOLATION_EVENTS_REQUIRED_COLUMNS]));
     expect(fresh.tables.sbv_participation_violation_documents.columns).toEqual(expect.arrayContaining([...SBV_PARTICIPATION_VIOLATION_DOCUMENTS_REQUIRED_COLUMNS]));

@@ -35,6 +35,7 @@ export type ParticipationViolationType = typeof PARTICIPATION_VIOLATION_TYPES[nu
 
 export const PARTICIPATION_VIOLATION_SOURCE_CONTEXT_TYPES = [
   'case',
+  'case_measure_participation',
   'sbv_participation',
   'termination_hearing',
   'sbv_control_protocol',
@@ -79,6 +80,7 @@ export interface SbvParticipationViolationRecord {
   sourceContextId: string;
   caseId?: string;
   relatedParticipationId?: string;
+  relatedCaseMeasureId?: string;
   relatedTerminationHearingId?: string;
   relatedDeadlineId?: string;
   relatedActivityJournalEntryId?: string;
@@ -122,6 +124,7 @@ export interface CreateSbvParticipationViolationInput {
   sourceContextId: string;
   caseId?: string;
   relatedParticipationId?: string;
+  relatedCaseMeasureId?: string;
   relatedTerminationHearingId?: string;
   relatedDeadlineId?: string;
   relatedActivityJournalEntryId?: string;

@@ -23,7 +23,7 @@ function sha256(content: Buffer): string {
 
 function createSecurityStub(dataDir: string) {
   const db: DbStub = {
-    prepare: () => ({ get: () => ({ value: '0024' }) }),
+    prepare: () => ({ get: () => ({ value: '0044' }) }),
     pragma: () => undefined
   };
   return {
@@ -85,6 +85,24 @@ function createLegacyBackup(filePath: string, files: Array<{ relativePath: strin
   writeFileSync(filePath, `${JSON.stringify(envelope, null, 2)}\n`);
 }
 
+
+function writeVaultWithJournalAndViolationSentinel(dataDir: string): void {
+  mkdirSync(path.join(dataDir, 'documents', 'generated'), { recursive: true });
+  writeMinimalVault(dataDir);
+  writeFileSync(path.join(dataDir, 'gremia-sbv.vault.sqlite'), JSON.stringify({
+    schemaVersion: '0044',
+    tables: [
+      'activity_journal_entries',
+      'activity_journal_links',
+      'sbv_participation_violations',
+      'sbv_participation_violation_events',
+      'sbv_participation_violation_documents',
+      'generated_documents'
+    ]
+  }));
+  writeFileSync(path.join(dataDir, 'documents', 'generated', 'violation.gsbvdoc'), 'encrypted-violation-document');
+}
+
 describe('backup service behavior', () => {
   const createdDirs: string[] = [];
 
@@ -116,6 +134,28 @@ describe('backup service behavior', () => {
     ]));
     expect(inspected.files?.some((file) => file.relativePath.startsWith('tmp/'))).toBe(false);
     expect(inspected.files?.some((file) => file.relativePath.startsWith('backups/'))).toBe(false);
+  });
+
+
+  it('preserves activity journal and participation violation domain payloads during backup and restore', () => {
+    const dataDir = tempDir('gremia-sbv-backup-domain-data-');
+    const outDir = tempDir('gremia-sbv-backup-domain-out-');
+    createdDirs.push(dataDir, outDir);
+    writeVaultWithJournalAndViolationSentinel(dataDir);
+
+    const target = path.join(outDir, 'domain.gsbvbackup');
+    const service = new BackupService(createSecurityStub(dataDir) as never);
+    expect(service.createBackup(target, PASSPHRASE).ok).toBe(true);
+
+    rmSync(path.join(dataDir, 'gremia-sbv.vault.sqlite'), { force: true });
+    rmSync(path.join(dataDir, 'documents'), { recursive: true, force: true });
+    expect(service.restoreBackup(target, PASSPHRASE, 'BACKUP WIEDERHERSTELLEN').ok).toBe(true);
+
+    const restoredVault = readFileSync(path.join(dataDir, 'gremia-sbv.vault.sqlite'), 'utf8');
+    for (const tableName of ['activity_journal_entries', 'activity_journal_links', 'sbv_participation_violations', 'sbv_participation_violation_events', 'sbv_participation_violation_documents', 'generated_documents']) {
+      expect(restoredVault).toContain(tableName);
+    }
+    expect(readFileSync(path.join(dataDir, 'documents', 'generated', 'violation.gsbvdoc'), 'utf8')).toBe('encrypted-violation-document');
   });
 
   it('restores legacy backups that do not contain explicit kdfParams', () => {

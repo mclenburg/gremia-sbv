@@ -17,7 +17,7 @@ function sha256(content: Buffer | string): string {
 
 function createSecurityStub(dataDir: string) {
   const db: DbStub = {
-    prepare: () => ({ get: () => ({ value: '0041' }) }),
+    prepare: () => ({ get: () => ({ value: '0044' }) }),
     pragma: () => undefined,
   };
   return {
@@ -27,14 +27,28 @@ function createSecurityStub(dataDir: string) {
   };
 }
 
+const RELEASE_DOMAIN_SENTINEL = JSON.stringify({
+  schemaVersion: '0044',
+  requiredTables: [
+    'activity_journal_entries',
+    'activity_journal_links',
+    'sbv_participation_violations',
+    'sbv_participation_violation_events',
+    'sbv_participation_violation_documents',
+    'generated_documents'
+  ]
+});
+
 function writeReleaseVaultFixture(dataDir: string): void {
   mkdirSync(path.join(dataDir, 'documents', 'case-42'), { recursive: true });
+  mkdirSync(path.join(dataDir, 'documents', 'generated'), { recursive: true });
   mkdirSync(path.join(dataDir, 'tmp'), { recursive: true });
   mkdirSync(path.join(dataDir, 'backups'), { recursive: true });
-  writeFileSync(path.join(dataDir, 'gremia-sbv.vault.sqlite'), 'release-check-vault');
+  writeFileSync(path.join(dataDir, 'gremia-sbv.vault.sqlite'), RELEASE_DOMAIN_SENTINEL);
   writeFileSync(path.join(dataDir, 'security.json'), JSON.stringify({ version: 4 }));
   writeFileSync(path.join(dataDir, 'vault-manifest.json'), JSON.stringify({ version: 3, check: 'release' }));
   writeFileSync(path.join(dataDir, 'documents', 'case-42', 'attest.gsbvdoc'), 'encrypted-document-container');
+  writeFileSync(path.join(dataDir, 'documents', 'generated', 'participation-violation.gsbvdoc'), 'encrypted-participation-violation-document');
   writeFileSync(path.join(dataDir, 'tmp', 'must-not-restore.txt'), 'tmp');
   writeFileSync(path.join(dataDir, 'backups', 'nested.gsbvbackup'), 'nested');
 }
@@ -65,7 +79,7 @@ function main(): void {
     const inspection = service.inspectBackup(backupFile, PASSPHRASE);
     if (!inspection.ok) throw new Error(`Backup-Inspektion fehlgeschlagen: ${inspection.error}`);
     const paths = inspection.files?.map((file) => file.relativePath) ?? [];
-    for (const required of ['gremia-sbv.vault.sqlite', 'security.json', 'vault-manifest.json', 'documents/case-42/attest.gsbvdoc']) {
+    for (const required of ['gremia-sbv.vault.sqlite', 'security.json', 'vault-manifest.json', 'documents/case-42/attest.gsbvdoc', 'documents/generated/participation-violation.gsbvdoc']) {
       if (!paths.includes(required)) throw new Error(`Pflichtdatei fehlt im Backup-Manifest: ${required}`);
     }
     if (paths.some((entry) => entry.startsWith('tmp/') || entry.startsWith('backups/'))) {
@@ -79,8 +93,13 @@ function main(): void {
     const restored = service.restoreBackup(backupFile, PASSPHRASE, 'BACKUP WIEDERHERSTELLEN');
     if (!restored.ok) throw new Error(`Restore fehlgeschlagen: ${restored.error}`);
 
-    assertRestoredFile(dataDir, 'gremia-sbv.vault.sqlite', 'release-check-vault');
+    assertRestoredFile(dataDir, 'gremia-sbv.vault.sqlite', RELEASE_DOMAIN_SENTINEL);
+    const restoredVault = readFileSync(path.join(dataDir, 'gremia-sbv.vault.sqlite'), 'utf8');
+    for (const table of JSON.parse(RELEASE_DOMAIN_SENTINEL).requiredTables as string[]) {
+      if (!restoredVault.includes(table)) throw new Error(`Domain-Tabelle fehlt im wiederhergestellten Vault-Sentinel: ${table}`);
+    }
     assertRestoredFile(dataDir, 'documents/case-42/attest.gsbvdoc', 'encrypted-document-container');
+    assertRestoredFile(dataDir, 'documents/generated/participation-violation.gsbvdoc', 'encrypted-participation-violation-document');
     const restoredDocumentHash = sha256(readFileSync(path.join(dataDir, 'documents', 'case-42', 'attest.gsbvdoc')));
     if (restoredDocumentHash !== originalDocumentHash) throw new Error('Dokumentcontainer wurde nicht bitgleich wiederhergestellt.');
     if (!existsSync(path.join(dataDir, 'tmp'))) throw new Error('Restore hat den tmp-Arbeitsordner nicht wieder angelegt.');

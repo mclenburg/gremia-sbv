@@ -14,6 +14,9 @@ import type {
   ParticipationStatus,
   UpdateParticipationInput,
 } from "../../core/models/participation.model";
+import type { SbvParticipationViolationPrefill } from "../participation-violations/sbvParticipationViolationViewLogic";
+import { buildParticipationViolationPrefillFromMeasure } from "../participation-violations/sbvParticipationViolationViewLogic";
+import type { CaseRecord } from "../../core/models/case.model";
 import { ToolbarButton } from "../../shared/components/IndustrialButton";
 import {
   DeferredDateTimeInput,
@@ -96,12 +99,16 @@ function fromDateTimeLocal(value: string): string | undefined {
 export function ParticipationProcessDetail({
   process,
   onUpdate,
+  caseRecord,
+  onOpenViolationPrefill,
 }: {
   process?: ParticipationRecord;
   onUpdate: (
     processId: string,
     input: UpdateParticipationInput,
   ) => void | Promise<void>;
+  caseRecord?: CaseRecord;
+  onOpenViolationPrefill?: (prefill: SbvParticipationViolationPrefill) => void;
 }) {
   if (!process) {
     return (
@@ -136,15 +143,24 @@ export function ParticipationProcessDetail({
         !process.informationComplete || !process.hearingBeforeDecision
       }
       actions={
-        <ActivityJournalContextButton
-          context={{
-            contextType: "sbv_participation",
-            contextId: process.id,
-            caseId: process.caseId,
-            title: process.title,
-          }}
-          compact
-        />
+        <div className="industrial-search-actions">
+          <ActivityJournalContextButton
+            context={{
+              contextType: "sbv_participation",
+              contextId: process.id,
+              caseId: process.caseId,
+              title: process.title,
+            }}
+            compact
+          />
+          {onOpenViolationPrefill && (
+            <ToolbarButton
+              onClick={() => onOpenViolationPrefill(buildParticipationViolationPrefillFromMeasure(process, caseRecord))}
+            >
+              <FileWarning className="h-4 w-4" aria-hidden="true" /> Beteiligungsverstoß dokumentieren
+            </ToolbarButton>
+          )}
+        </div>
       }
     >
       <div className="participation-case-detail">

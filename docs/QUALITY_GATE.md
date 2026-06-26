@@ -2,6 +2,15 @@
 
 Diese Checkliste beschreibt den verbindlichen Qualitätsstand für die öffentliche Bereitstellung. Sie ist kein Wunschzettel für spätere Arbeit, sondern ein Qualitätsgate.
 
+
+## Versions- und RC-Gates
+
+- Öffentliche Builds nutzen eine stabile SemVer-Version ohne Arbeitsstand-Zusatz.
+- `package.json`, `package-lock.json`, `src/app/generated/appVersion.ts` und `services/generated/appMetadata.ts` müssen dieselbe Version ausweisen.
+- Entwicklungskennzeichen wie `-rc`, `-d1`, `-d4`, `alpha`, `beta` oder lokale Patchnamen dürfen nicht in die sichtbare App-Version gelangen.
+- Die verbindliche lokale Freigabelinie ist in diesem Qualitätsgate dokumentiert; Änderungen an Freigabe-Skripten müssen diese Datei mitprüfen.
+- Das Benutzerhandbuch unter `docs/handbuch/` gehört zum Releaseumfang und darf nicht hinter der Anwendung zurückbleiben.
+
 ## Produktlinie
 
 - Gremia.SBV bleibt offline-first und verarbeitet SBV-Falldaten lokal.
@@ -85,3 +94,89 @@ npm run ui:control-sweep
 ```
 
 Der Sweep stellt sicher, dass native Inputs, Selects und Textareas über zentrale Industrial-Selektoren oder bewusst erlaubte zentrale Kontexte laufen.
+
+
+## Freigabelinie für öffentliche Builds
+
+Diese Checkliste ersetzt kein Testprotokoll. Sie legt fest, welche Prüfungen vor einer öffentlichen Bereitstellung nicht übersprungen werden dürfen.
+
+### Versionierung
+
+Die sichtbare App-Version wird aus `package.json` erzeugt und in die generierten Metadaten geschrieben. Für öffentliche Builds gilt eine stabile SemVer-Version ohne Entwicklungsanhang.
+
+Vor der Freigabe muss gelten:
+
+- `package.json` und `package-lock.json` tragen dieselbe Version.
+- `src/app/generated/appVersion.ts` ist aus `package.json` erzeugt.
+- `services/generated/appMetadata.ts` ist aus `package.json` erzeugt.
+- Die Version enthält keinen Patch-, RC- oder Arbeitsstand-Zusatz.
+
+Die technische Prüfung läuft über:
+
+```bash
+npm run version:generate
+npm run rc:check
+```
+
+### Lokale Pflicht-Gates
+
+Vor einem Freigabe-Tag werden lokal ausgeführt:
+
+```bash
+npm run security:audit
+npm run licenses:check
+npm run release:check
+npm run release:local-e2e
+npm run ui:control-sweep
+```
+
+`release:check` deckt statische Readiness, Backup-/Restore-Prozesscheck, Coverage und App-Build ab. `release:local-e2e` deckt die Browser-, Accessibility- und Visual-Gates ab, die bewusst nicht in der taggebundenen Free-Account-Action laufen.
+
+### Fachliche Smoke-Tests
+
+Zusätzlich zu automatisierten Tests werden vor Veröffentlichung diese Arbeitswege manuell geprüft:
+
+1. App im Demo-Modus starten.
+2. Fallakte öffnen und Maßnahme ansehen.
+3. SBV-Beteiligung öffnen.
+4. Beteiligungsverstoß aus der SBV-Beteiligung heraus anlegen.
+5. Fehlerfall im Formular auslösen und wieder korrigieren.
+6. Verstoß speichern.
+7. Dokumententwurf erzeugen.
+8. Wiedervorlage anlegen.
+9. Journal-Eintrag aus Kontext vorbereiten.
+10. Tätigkeitsbericht erzeugen.
+11. Backup erstellen.
+12. Restore in leerem Testdatenverzeichnis prüfen.
+
+Bei diesen Schritten dürfen keine Namen, Diagnosen oder vertraulichen Freitexte unbeabsichtigt in Audit, Statusmeldungen, Dateinamen oder automatische Exporte gelangen.
+
+### Datenschutz- und Sicherheitsfreigabe
+
+Vor einer breiteren Nutzung müssen die Unterlagen unter `docs/` gegen die eigene Organisation geprüft werden:
+
+- `DATENSCHUTZKONZEPT.md`,
+- `DSFA_SBV_TEMPLATE.md`,
+- `VERARBEITUNGSVERZEICHNIS_SBV.md`,
+- `LOESCHKONZEPT_SBV.md`,
+- `FREIGABE_DSB_IT_SECURITY.md`,
+- `SECURITY.md`,
+- `PRIVACY_AND_SECURITY.md`,
+- `ACCESSIBILITY.md`.
+
+Die Anwendung liefert technische Schutzmechanismen. Sie ersetzt nicht die organisatorische Freigabe für den konkreten Einsatzort.
+
+### Freigabe-Blocker
+
+Ein öffentlicher Build ist blockiert, wenn einer der folgenden Punkte vorliegt:
+
+- Full-Suite oder Build rot.
+- Backup-/Restore-Prozesscheck rot.
+- E2E-Kernflow Beteiligungsverstoß rot.
+- Serious oder critical Accessibility-Befund in Kernflows.
+- Kritischer npm-Audit-Befund in produktionsrelevantem Renderer-/Electron-Pfad ohne dokumentierte Bewertung.
+- Versehentliche Direktidentifikatoren in Audit, Dateinamen, Live-Regionen oder Standardexporten.
+- Migration und Fresh-Schema weichen voneinander ab.
+- Dokumentation beschreibt einen anderen Fachfluss als die Anwendung.
+
+Erst wenn diese Gates erfüllt sind, ist der Build pilot- und releasefähig. Neue Features werden nach dieser Prüfung nicht mehr in denselben Freigabezweig aufgenommen; ab diesem Punkt werden nur noch Blocker behoben.

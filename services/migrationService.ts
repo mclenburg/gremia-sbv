@@ -353,6 +353,8 @@ export class MigrationService {
           && SBV_PARTICIPATION_VIOLATION_DOCUMENTS_REQUIRED_COLUMNS.every((column) => this.columnExists('sbv_participation_violation_documents', column));
       case '0043':
         return GENERATED_DOCUMENTS_REQUIRED_COLUMNS.every((column) => this.columnExists('generated_documents', column));
+      case '0044':
+        return this.columnExists('sbv_participation_violations', 'related_case_measure_id');
       default:
         return false;
     }

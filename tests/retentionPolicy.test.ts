@@ -75,6 +75,31 @@ describe('retention policy', () => {
     });
   });
 
+
+  it('markiert Verstoßvorgänge mit case_measure_participation aber fehlendem Maßnahmebezug als kritische Reparaturkandidaten', () => {
+    const dashboard = buildRetentionDashboard({
+      now,
+      participationViolations: [{
+        id: 'vio-broken-measure-link',
+        stage: 'request',
+        status: 'closed',
+        subject: 'Verstoß ohne Maßnahmebezug',
+        sourceContextType: 'case_measure_participation',
+        sourceContextId: 'measure-1',
+        relatedCaseMeasureId: null,
+        createdAt: '2026-04-01T00:00:00.000Z',
+        updatedAt: '2026-04-02T00:00:00.000Z',
+        closedAt: '2026-04-03T00:00:00.000Z'
+      }]
+    });
+
+    expect(dashboard.candidates[0]).toMatchObject({
+      id: 'participation-violation-measure-link-vio-broken-measure-link',
+      riskLevel: 'critical',
+      entityType: 'sbv_participation_violation'
+    });
+  });
+
   it('normalizes default settings', () => {
     const settings = normalizeRetentionSettings({ closedCaseReviewMonths: 18 });
     expect(settings.closedCaseReviewMonths).toBe(18);

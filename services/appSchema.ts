@@ -1,4 +1,4 @@
-export const APP_SCHEMA_VERSION = '0043';
+export const APP_SCHEMA_VERSION = '0044';
 
 export const DATABASE_SCHEMA_VERSION_KEY = 'database.schema.version';
 export const LEGACY_DATABASE_SCHEMA_VERSION_KEY = 'settings.database.schema.version';
@@ -368,6 +368,7 @@ export const SBV_PARTICIPATION_VIOLATIONS_REQUIRED_COLUMNS = [
   'source_context_id',
   'case_id',
   'related_participation_id',
+  'related_case_measure_id',
   'related_termination_hearing_id',
   'related_deadline_id',
   'related_activity_journal_entry_id',

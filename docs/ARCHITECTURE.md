@@ -51,6 +51,31 @@ Die Gremia.BR-Anbindung ist optional, standardmäßig deaktiviert und read-only.
 Die freigegebenen Gremia.BR-Endpunkte werden zentral in `services/gremiaBr/gremiaBrApiCatalog.ts` gepflegt. Policy, HTTP-Client, Audit-Label und ReadAdapter dürfen keine eigenen Nebenlisten aufbauen. Neue Lesemöglichkeiten aus der OpenAPI werden erst dort begründet aufgenommen, bevor ein Adapter sie nutzt. Schreib-, Verwaltungs-, DSGVO-, Mitglieder-, Abwesenheits-, Datei- und Upload-Pfade bleiben für Gremia.SBV gesperrt.
 
 
+
+## Beteiligungsverstoß als Eskalation zur SBV-Beteiligungsmaßnahme
+
+Der Beteiligungsverstoß ist kein eigenständiger Ersatzprozess neben der Fallakte. Fachlicher Standardanker ist die konkrete SBV-Beteiligungsmaßnahme in der Maßnahmenarchitektur:
+
+```text
+case_measures.type = 'sbv_participation'
+case_measure_participation.measure_id = case_measures.id
+sbv_participation_violations.source_context_type = 'case_measure_participation'
+sbv_participation_violations.related_case_measure_id = case_measures.id
+```
+
+Die zentrale Verstoßübersicht dient Suche, Nachverfolgung, Auswertung und bewusster Sonderanlage. Der normale Anlageweg startet aus der geöffneten SBV-Beteiligungsmaßnahme. Dadurch bleibt der Beteiligungsverstoß eine dokumentierte Rüge- und Eskalationsspur zu einer konkreten Beteiligungsprüfung nach § 178 Abs. 2 Satz 1 und Satz 2 SGB IX.
+
+Verbindliche Grenzen:
+
+- kein automatischer erster Fall als Default,
+- kein leerer Journal-Kontext als Fallback,
+- keine stille Persistenz durch Öffnen einer Fallakte oder Maßnahme,
+- keine Klarnamen-, Diagnose-, GdB- oder Gesundheitsdatenübernahme in Schreiben,
+- keine automatische Arbeitgeberkommunikation,
+- Legacy-Kontext `sbv_participation` bleibt nur für Altbestand.
+
+Servicevalidierung und UI-Validierung verfolgen unterschiedliche Zwecke. Der Main-Prozess bleibt die harte Sicherheitsinstanz für Kontext, Fallableitung und Relationen. Die Renderer-Validierung dient Bedienbarkeit, früher Fehlererkennung und Barrierefreiheit.
+
 ## UI-Zentralisierung und Architektur-Gates
 
 Für UI-Arbeit gilt: Fachmodule bauen keine Standard-Shells, Panels, Buttons, Formulare, Badges, Dialoge, Empty-States, Suchleisten oder Tabellen mehr lokal nach. Vor einer neuen UI-Struktur ist zuerst die zentrale Schicht unter `src/app/shared/components`, `src/app/shared/dialogs` und `src/app/ui/` zu prüfen.

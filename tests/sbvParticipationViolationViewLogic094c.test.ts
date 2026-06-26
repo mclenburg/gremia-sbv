@@ -1,13 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import type { CaseRecord } from '../src/app/core/models/case.model';
+import type { ParticipationRecord } from '../src/app/core/models/participation.model';
 import type { SbvParticipationViolationRecord } from '../src/app/core/models/sbv-participation-violation.model';
 import {
   applyViolationCaseContext,
+  applyViolationSourceContextType,
+  buildParticipationViolationPrefillFromMeasure,
   buildViolationCaseOptions,
   buildViolationSummaryItems,
+  buildViolationFieldErrors,
   createInitialViolationForm,
   getNextStatusActions,
   needsEscalationHint,
+  summarizeViolationDraftValidation,
+  validateViolationDraft,
 } from '../src/app/features/participation-violations/sbvParticipationViolationViewLogic';
 
 function caseRecord(overrides: Partial<CaseRecord> = {}): CaseRecord {
@@ -21,6 +27,25 @@ function caseRecord(overrides: Partial<CaseRecord> = {}): CaseRecord {
     openedAt: '2026-06-01',
     isPseudonymized: true,
     isLocked: false,
+    ...overrides,
+  };
+}
+
+function participation(overrides: Partial<ParticipationRecord> = {}): ParticipationRecord {
+  return {
+    id: 'measure-participation-1',
+    caseId: 'case-1',
+    title: 'SBV-Beteiligung ohne Klarnamen',
+    measureType: 'versetzung',
+    status: 'unterrichtung_pruefen',
+    riskLevel: 'kritisch',
+    personStatus: 'schwerbehindert',
+    decisionStage: 'entscheidung_getroffen',
+    informationComplete: false,
+    hearingBeforeDecision: false,
+    decisionNotified: true,
+    createdAt: '2026-06-01T10:00:00.000Z',
+    updatedAt: '2026-06-01T10:00:00.000Z',
     ...overrides,
   };
 }
@@ -46,34 +71,106 @@ function violation(overrides: Partial<SbvParticipationViolationRecord>): SbvPart
 }
 
 describe('Beteiligungsverstoß-View-Logik', () => {
-  it('vorbelegt fallbezogen datensparsam und fällt ohne Fall auf fallfreien Kontext zurück', () => {
+  it('startet ohne automatische Fallzuordnung und bevorzugt die konkrete SBV-Beteiligungsmaßnahme', () => {
     const withCase = createInitialViolationForm([caseRecord()]);
     const withoutCase = createInitialViolationForm([]);
 
-    expect(withCase.sourceContextType).toBe('case');
-    expect(withCase.sourceContextId).toBe('case-1');
-    expect(withCase.caseId).toBe('case-1');
+    expect(withCase.sourceContextType).toBe('case_measure_participation');
+    expect(withCase.sourceContextId).toBe('');
+    expect(withCase.caseId).toBeUndefined();
     expect(withCase.requiredBehavior).toContain('§ 178 Abs. 2 Satz 1 SGB IX');
 
-    expect(withoutCase.sourceContextType).toBe('activity_journal');
+    expect(withoutCase.sourceContextType).toBe('case_measure_participation');
     expect(withoutCase.sourceContextId).toBe('');
     expect(withoutCase.caseId).toBeUndefined();
   });
 
-  it('ändert Fallkontext ohne vorhandene manuelle Kontext-ID beim Abwählen zu überschreiben', () => {
-    const form = createInitialViolationForm([]);
-    const manuallyScoped = { ...form, sourceContextId: 'deadline-17' };
+  it('setzt Fallkontext nur nach bewusster Auswahl und löscht Maßnahmensonderbezug', () => {
+    const form = {
+      ...createInitialViolationForm([]),
+      sourceContextId: 'measure-participation-1',
+      relatedCaseMeasureId: 'measure-participation-1',
+    };
 
     expect(applyViolationCaseContext(form, 'case-1')).toMatchObject({
       sourceContextType: 'case',
       sourceContextId: 'case-1',
       caseId: 'case-1',
+      relatedCaseMeasureId: undefined,
     });
-    expect(applyViolationCaseContext(manuallyScoped, '')).toMatchObject({
-      sourceContextType: 'activity_journal',
-      sourceContextId: 'deadline-17',
+    expect(applyViolationCaseContext(form, '')).toMatchObject({
+      sourceContextType: 'case_measure_participation',
+      sourceContextId: 'measure-participation-1',
       caseId: undefined,
     });
+  });
+
+  it('wechselt Ausgangskontext ohne alte Relationen mitzuschleppen', () => {
+    const form = {
+      ...createInitialViolationForm([]),
+      sourceContextId: 'measure-participation-1',
+      caseId: 'case-1',
+      relatedCaseMeasureId: 'measure-participation-1',
+      relatedDeadlineId: 'deadline-1',
+    };
+
+    expect(applyViolationSourceContextType(form, 'deadline')).toMatchObject({
+      sourceContextType: 'deadline',
+      sourceContextId: '',
+      caseId: undefined,
+      relatedCaseMeasureId: undefined,
+      relatedDeadlineId: undefined,
+    });
+  });
+
+  it('baut aus der SBV-Beteiligungsmaßnahme einen nicht persistierten Entwurf mit Maßnahmekontext', () => {
+    const prefill = buildParticipationViolationPrefillFromMeasure(participation(), caseRecord());
+
+    expect(prefill.form).toMatchObject({
+      sourceContextType: 'case_measure_participation',
+      sourceContextId: 'measure-participation-1',
+      relatedCaseMeasureId: 'measure-participation-1',
+      caseId: 'case-1',
+      violationType: 'incomplete_information',
+    });
+    expect(prefill.sourceLabel).toContain('SBV-2026-004');
+    expect(prefill.privacyNotice).toContain('noch kein Beteiligungsverstoß gespeichert');
+  });
+
+
+
+  it('validiert den bewussten Entwurf branchbasiert vor Persistenz', () => {
+    const emptyDraft = createInitialViolationForm([]);
+    const issues = validateViolationDraft(emptyDraft);
+
+    expect(issues.map((issue) => issue.code)).toEqual([
+      'missing_source_context',
+      'missing_subject',
+      'missing_measure_description',
+      'missing_wrong_behavior',
+    ]);
+    expect(buildViolationFieldErrors(issues)).toMatchObject({
+      sourceContextId: expect.any(String),
+      subject: expect.any(String),
+      measureDescription: expect.any(String),
+      wrongBehavior: expect.any(String),
+    });
+    expect(summarizeViolationDraftValidation(issues)).toContain('Ausgangskontext');
+  });
+
+  it('erkennt widersprüchlichen allgemeinen Fallkontext ohne Stringtest auf UI-Text', () => {
+    const draft = {
+      ...createInitialViolationForm([]),
+      sourceContextType: 'case' as const,
+      sourceContextId: 'case-1',
+      caseId: 'case-2',
+      subject: 'Verstoß',
+      measureDescription: 'Maßnahme',
+      wrongBehavior: 'Fehler',
+      requiredBehavior: 'Richtiges Verfahren',
+    };
+
+    expect(validateViolationDraft(draft).map((issue) => issue.code)).toEqual(['case_context_mismatch']);
   });
 
   it('zeigt anwaltlichen Hinweis nur bei scharfen Eskalationsstufen und liefert erlaubte Statusaktionen', () => {
@@ -107,7 +204,7 @@ describe('Beteiligungsverstoß-View-Logik', () => {
       { label: 'Aussetzung', value: 1 },
     ]);
     expect(options).toEqual([
-      { value: '', label: 'Fallfrei / Kontext-ID manuell' },
+      { value: '', label: 'Kein Fall direkt gewählt' },
       { value: 'case-1', label: 'SBV-2026-004 · Fall SBV-2026-004' },
       { value: 'case-2', label: 'SBV-2026-005 · Fall SBV-2026-005' },
     ]);
