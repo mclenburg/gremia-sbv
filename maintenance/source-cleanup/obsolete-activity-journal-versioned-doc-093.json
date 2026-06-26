@@ -1,4 +1,6 @@
 {
+  "version": "0.9.3",
+  "reason": "Entfernt die fruehere versionierte Activity-Journal-Zwischendokumentation aus der aktiven Kerndokumentation. Dauerhafte Benutzer- und Architekturinhalte werden versionsfrei im Handbuch und in der Qualitaetsdokumentation gefuehrt.",
   "files": [
     "docs/ACTIVITY_JOURNAL_0_9_3.md"
   ],

@@ -1,4 +1,6 @@
 {
+  "version": "0.9.4",
+  "reason": "Entfernt eine versehentlich als aktive Kerndokumentation angelegte RC-Readiness-Markdown-Datei. Der dauerhafte Inhalt wurde in docs/QUALITY_GATE.md gebuendelt, damit docs/ keine transienten Release-/Patch-Dateien enthalten.",
   "files": [
     "docs/RELEASE_READINESS.md"
   ],
