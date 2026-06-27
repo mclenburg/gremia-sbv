@@ -8,10 +8,15 @@ import { SbvParticipationViolationTemplateService } from './sbvParticipationViol
 import type {
   SbvParticipationViolationDocumentResult,
   SbvParticipationViolationGeneratedDocumentRecord,
+  SbvParticipationViolationRecord,
   SbvParticipationViolationTemplateInput,
 } from '../src/app/core/models/sbv-participation-violation.model.js';
 
 const DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+
+type ParticipationViolationReader = {
+  get(violationId: string): SbvParticipationViolationRecord | null | undefined;
+};
 
 type ViolationDocumentRow = {
   id: string;
@@ -47,6 +52,7 @@ export class SbvParticipationViolationDocumentService {
   constructor(
     private readonly db: DatabaseAdapter,
     private readonly dataDirProvider: () => string,
+    private readonly violationService: ParticipationViolationReader = new SbvParticipationViolationService(db),
   ) {
     this.ensureSchema();
   }
@@ -73,8 +79,7 @@ export class SbvParticipationViolationDocumentService {
   }
 
   async generateDocument(violationId: string, options: Partial<Pick<SbvParticipationViolationTemplateInput, 'recipientLabel' | 'privacyMode' | 'includeLegalReviewHint' | 'includeOwiHint'>> = {}): Promise<SbvParticipationViolationDocumentResult> {
-    const violationService = new SbvParticipationViolationService(this.db);
-    const violation = violationService.get(violationId);
+    const violation = this.violationService.get(violationId);
     if (!violation) throw new Error(`Beteiligungsverstoß nicht gefunden: ${violationId}`);
     const input = this.templateService.buildInputFromViolation(violation, options);
     const validation = this.templateService.validate(input);

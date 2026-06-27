@@ -45,6 +45,9 @@ describe('SBV-Steuerungsstruktur 0.9.2', () => {
     expect(view).toContain("id: 'protocols'");
     expect(view).toContain('ProtocolSection');
     expect(view).toContain('onNavigate');
+    const protocolSection = readFileSync('src/app/features/sbv-control/components/ProtocolSection.tsx', 'utf8');
+    expect(protocolSection).toContain('ActivityJournalContextButton');
+    expect(protocolSection).toContain("contextType: 'sbv_control_protocol'");
     expect(view).toContain('WorkbenchPage');
     expect(view).toContain('WorkbenchWorkspace');
     expect(view).not.toContain('sbv-control-shell');

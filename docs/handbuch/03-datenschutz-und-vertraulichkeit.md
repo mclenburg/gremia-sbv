@@ -41,6 +41,21 @@ Ein Export für eine SBV-Versammlung braucht andere Inhalte als ein Export für 
 
 Gremia.SBV erzeugt keine automatische E-Mail an Arbeitgeber, Betriebsrat, Inklusionsamt oder betroffene Personen. Schreiben können vorbereitet werden, aber Versand und Empfängerkreis bleiben bewusste Entscheidung der SBV.
 
+
+## Compliance-Center
+
+Das Compliance-Center unterstützt dich dabei, Datenschutz- und Nachweispunkte nicht aus dem Blick zu verlieren. Es ersetzt keine Datenschutzberatung, macht aber sichtbar, wo eine Prüfung sinnvoll ist.
+
+Typische Hinweise betreffen:
+
+- offene Datenschutzprüfungen,
+- sensible Export- oder Berichtssituationen,
+- fehlende oder veraltete Nachweise,
+- Vorgänge mit besonderem Vertraulichkeitsbedarf,
+- Hinweise auf Datenminimierung und Zweckbindung.
+
+Bearbeite Compliance-Hinweise nicht mechanisch. Prüfe immer den fachlichen Zweck: Brauche ich diese Daten wirklich? Ist der Vorgang noch erforderlich? Muss ein Export personenbezogene Inhalte enthalten oder reicht eine Zusammenfassung?
+
 ## Zugriffsschutz
 
 Praktische Mindestregeln:

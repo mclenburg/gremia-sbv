@@ -50,7 +50,7 @@ Beim Einstieg solltest du nicht sofort echte Altdaten massenhaft übernehmen. Be
 5. Einen echten, überschaubaren Fall erfassen.
 6. Eine Wiedervorlage anlegen.
 7. Einen Journaleintrag erfassen.
-8. Einen Testexport ohne sensible Freitexte prüfen.
+8. Einen Testexport ohne sensible Freitexte prüfen: öffne **Berichte**, wähle den **Tätigkeitsbericht** und nutze **Export vorbereiten** bzw. die dort angebotene Vorschau.
 
 ## Grundregel
 

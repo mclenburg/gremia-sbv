@@ -116,8 +116,20 @@ export function SbvParticipationViolationsView({
                 onValueChange={(sourceContextType) => state.updateSourceContextType(sourceContextType as ParticipationViolationSourceContextType)}
                 helpText="Der Standardweg ist die konkrete SBV-Beteiligungsmaßnahme; Sonderkontexte müssen bewusst gewählt werden."
               />
-              <SelectInput label="Eskalationsstufe" value={state.form.stage} options={stageOptions} onValueChange={(stage) => state.updateForm({ stage: stage as ParticipationViolationStage })} />
-              <SelectInput label="Verstoßart" value={state.form.violationType} options={violationTypeOptions} onValueChange={(violationType) => state.updateForm({ violationType: violationType as ParticipationViolationType })} />
+              <SelectInput
+                label="Eskalationsstufe"
+                value={state.form.stage}
+                options={stageOptions}
+                onValueChange={(stage) => state.updateForm({ stage: stage as ParticipationViolationStage })}
+                helpText="Nachforderung und formale Rüge sind frühe Stufen; Abmahnung, Aussetzung und OWi-Vorbereitung sind scharfe Eskalationen und sollten fachlich abgestimmt werden."
+              />
+              <SelectInput
+                label="Verstoßart"
+                value={state.form.violationType}
+                options={violationTypeOptions}
+                onValueChange={(violationType) => state.updateForm({ violationType: violationType as ParticipationViolationType })}
+                helpText="Nicht informiert meint keine Unterrichtung; verspätet informiert meint Beteiligung erst nach Beginn oder kurz vor Entscheidung; unvollständig informiert meint fehlende Unterlagen."
+              />
               <SelectInput
                 label="Fall allgemein wählen"
                 value={state.form.sourceContextType === 'case' ? state.form.caseId ?? '' : ''}

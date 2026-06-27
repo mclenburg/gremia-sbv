@@ -13,6 +13,7 @@ import type { DeadlineRecord } from '../../core/models/deadline.model';
 import { getDashboardState, getHoursRemaining } from '../../core/deadlineLogic';
 import { DeadlineSeverityBadge, DeadlineStateBadge } from './DeadlineBadge';
 import { deadlineProcessTypeLabels, deadlineTypeLabels } from './deadlineLabels';
+import { ActivityJournalContextButton } from '../activity-journal/components/ActivityJournalContextButton';
 
 function formatDueDate(iso: string): string {
   return new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(iso));
@@ -74,6 +75,17 @@ export function DeadlineListView({
           <ToolbarButton onClick={() => onEdit?.(deadline)}>
             <Edit3 className="h-4 w-4" aria-hidden="true" /> Bearbeiten
           </ToolbarButton>
+          <ActivityJournalContextButton
+            compact
+            label="Tätigkeit zur Frist erfassen"
+            context={{
+              contextType: 'deadline',
+              contextId: deadline.id,
+              caseId: deadline.caseId,
+              title: deadline.title,
+              category: 'documentation',
+            }}
+          />
           <ToolbarButton onClick={() => onComplete?.(deadline)}>
             <CheckCircle2 className="h-4 w-4" aria-hidden="true" /> Erledigt
           </ToolbarButton>

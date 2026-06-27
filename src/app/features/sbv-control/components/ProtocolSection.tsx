@@ -2,6 +2,7 @@ import { ClipboardList, Trash2 } from 'lucide-react';
 import { DangerButton, GhostButton } from '../../../shared/components/IndustrialButton';
 import { EmptyState, IndustrialRecordCard, RecordList, SearchToolbar } from '../../../shared/components/WorkbenchLayout';
 import { ProcessStatusBadge } from '../../../shared/components/StatusBadges';
+import { ActivityJournalContextButton } from '../../activity-journal/components/ActivityJournalContextButton';
 import { formatDate } from '../sbvControlLogic';
 import { protocolPartnerLabels, protocolStatusLabels, protocolTopicLabels } from '../sbvControlTypes';
 import type { UseSbvControlProtocolsValue } from '../hooks/useSbvControlProtocols';
@@ -67,13 +68,26 @@ export function ProtocolSection({
                   <em>{record.legalContext}</em>
                   {record.followUpDueAt && <span>Wiedervorlage: {formatDate(record.followUpDueAt)}</span>}
                 </GhostButton>
-                <DangerButton
-                  compact
-                  aria-label={`Steuerungsprotokoll ${record.title} löschen`}
-                  onClick={() => void deleteProtocol(record.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </DangerButton>
+                <div className="industrial-table-actions">
+                  <ActivityJournalContextButton
+                    compact
+                    label="Tätigkeit zum Steuerungsprotokoll erfassen"
+                    context={{
+                      contextType: 'sbv_control_protocol',
+                      contextId: record.id,
+                      title: record.title,
+                      category: 'sbv_steering',
+                      followUpDueAt: record.followUpDueAt,
+                    }}
+                  />
+                  <DangerButton
+                    compact
+                    aria-label={`Steuerungsprotokoll ${record.title} löschen`}
+                    onClick={() => void deleteProtocol(record.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </DangerButton>
+                </div>
               </IndustrialRecordCard>
             )}
           />

@@ -90,4 +90,38 @@ describe('Beteiligungsverstoß-Dokumente 0.9.4-b', () => {
       rmSync(dir, { recursive: true, force: true });
     }
   });
+  it('nutzt einen injizierten Violation-Service statt im Dokumentpfad hart zu koppeln', async () => {
+    const db = new DocumentDb();
+    const dir = mkdtempSync(path.join(tmpdir(), 'gremia-violation-doc-injected-'));
+    const injectedReader = {
+      get: (violationId: string) => {
+        expect(violationId).toBe('vio-injected');
+        return {
+          id: 'vio-injected',
+          stage: 'request' as const,
+          status: 'open' as const,
+          violationType: 'not_heard' as const,
+          sourceContextType: 'case' as const,
+          sourceContextId: 'case-1',
+          caseId: 'case-1',
+          subject: 'Anhörung nachholen',
+          measureDescription: 'Eine SBV-relevante Maßnahme wurde vorbereitet.',
+          wrongBehavior: 'Die SBV wurde nicht vor der Entscheidung angehört.',
+          requiredBehavior: 'Die SBV ist vor der Entscheidung vollständig zu beteiligen.',
+          legalBasis: '§ 178 Abs. 2 SGB IX',
+          createdAt: '2026-06-01T10:00:00.000Z',
+          updatedAt: '2026-06-01T10:00:00.000Z',
+        };
+      },
+    };
+    try {
+      const result = await new SbvParticipationViolationDocumentService(db, () => dir, injectedReader).generateDocument('vio-injected');
+
+      expect(result.templateKey).toBe('sbv-participation-violation-request');
+      expect(db.generatedDocuments[0]).toMatchObject({ violation_id: 'vio-injected', document_kind: 'sbv_participation_violation' });
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
 });

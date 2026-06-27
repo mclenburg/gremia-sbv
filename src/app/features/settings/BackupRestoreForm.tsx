@@ -8,13 +8,11 @@ import type { RetentionCandidate, RetentionDashboard, RetentionOperationResult, 
 import type { BackupInspectionResult, BackupOperationResult } from "../../core/models/backup.model";
 import type { RenderedTemplateResult, ContextualTemplateAction } from "../../core/models/template.model";
 import { APP_VERSION } from "../../generated/appVersion";
-import { TextCommandTextarea } from "../../shared/textCommands/TextCommandTextarea";
+import { IndustrialButton } from "../../shared/components/IndustrialButton";
+import { FormActions, PasswordInput, TextInput } from "../../shared/components/IndustrialForm";
 import { buildExportWarningMessage, scanSensitiveExportText } from "@services/exportGuardPolicy";
 import { missingPlaceholderWarning } from "@services/templateContextPolicy";
-import { useConfirmDialog } from "../../shared/dialogs/ConfirmDialogProvider";
-import { useAnnouncer } from "../../shared/a11y/LiveRegionProvider";
 import { TEMPLATE_DEFAULT_FIELDS, EMPTY_TEMPLATE_DEFAULT_VALUES, loadTemplateDefaultValues, saveTemplateDefaultValues } from "../../shared/templates/templateDefaults";
-import type { ThemeMode } from "../../shared/theme/appTheme";
 
 export function BackupRestoreForm() {
   const [backupPassphrase, setBackupPassphrase] = useState("");
@@ -132,42 +130,32 @@ export function BackupRestoreForm() {
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="industrial-subpanel">
           <h4>Backup erstellen</h4>
-          <label>
-            <span>Backup-Passphrase</span>
-            <input
-              type="password"
-              value={backupPassphrase}
-              onChange={(event) => setBackupPassphrase(event.target.value)}
-            />
-          </label>
-          <button
-            type="button"
-            className="industrial-button"
-            disabled={busy}
-            onClick={() => void createBackup()}
-          >
-            <Save className="h-4 w-4" /> Backup speichern
-          </button>
+          <PasswordInput
+            label="Backup-Passphrase"
+            value={backupPassphrase}
+            onValueChange={setBackupPassphrase}
+            helpText="Mindestens 12 Zeichen. Diese Passphrase wird nicht gespeichert und ist für die Wiederherstellung erforderlich."
+          />
+          <FormActions align="start">
+            <IndustrialButton disabled={busy} onClick={() => void createBackup()}>
+              <Save className="h-4 w-4" aria-hidden="true" /> Backup speichern
+            </IndustrialButton>
+          </FormActions>
         </div>
 
         <div className="industrial-subpanel">
           <h4>Backup prüfen</h4>
-          <label>
-            <span>Backup-Passphrase</span>
-            <input
-              type="password"
-              value={verifyPassphrase}
-              onChange={(event) => setVerifyPassphrase(event.target.value)}
-            />
-          </label>
-          <button
-            type="button"
-            className="industrial-secondary-button"
-            disabled={busy}
-            onClick={() => void inspectBackup()}
-          >
-            Backup prüfen
-          </button>
+          <PasswordInput
+            label="Backup-Passphrase"
+            value={verifyPassphrase}
+            onValueChange={setVerifyPassphrase}
+            helpText="Prüft Manifest, Integrität und Wiederherstellbarkeit ohne den aktuellen Tresor zu verändern."
+          />
+          <FormActions align="start">
+            <IndustrialButton variant="secondary" disabled={busy} onClick={() => void inspectBackup()}>
+              Backup prüfen
+            </IndustrialButton>
+          </FormActions>
         </div>
 
         <div className="industrial-subpanel industrial-danger-zone">
@@ -176,40 +164,33 @@ export function BackupRestoreForm() {
             Ersetzt den aktuellen lokalen Datenbestand. Der bisherige Stand wird
             vorher in einen Sicherheitsordner verschoben.
           </p>
-          <label>
-            <span>Backup-Passphrase</span>
-            <input
-              type="password"
-              value={restorePassphrase}
-              onChange={(event) => setRestorePassphrase(event.target.value)}
-            />
-          </label>
-          <label>
-            <span>Bestätigung: BACKUP WIEDERHERSTELLEN</span>
-            <input
-              value={restoreConfirmation}
-              onChange={(event) => setRestoreConfirmation(event.target.value)}
-            />
-          </label>
-          <button
-            type="button"
-            className="industrial-danger-button"
-            disabled={busy}
-            onClick={() => void restoreBackup()}
-          >
-            Backup wiederherstellen
-          </button>
+          <PasswordInput
+            label="Backup-Passphrase"
+            value={restorePassphrase}
+            onValueChange={setRestorePassphrase}
+            helpText="Nur die Passphrase des ausgewählten Backups kann diesen Stand entschlüsseln."
+          />
+          <TextInput
+            label="Bestätigung: BACKUP WIEDERHERSTELLEN"
+            value={restoreConfirmation}
+            onValueChange={setRestoreConfirmation}
+            helpText="Schreibe die Bestätigung exakt aus, damit die Wiederherstellung bewusst ausgelöst wird."
+          />
+          <FormActions align="start">
+            <IndustrialButton variant="danger" disabled={busy} onClick={() => void restoreBackup()}>
+              Backup wiederherstellen
+            </IndustrialButton>
+          </FormActions>
         </div>
       </div>
 
       <div className="flex flex-wrap gap-3">
-        <button
-          type="button"
-          className="industrial-secondary-button"
+        <IndustrialButton
+          variant="secondary"
           onClick={() => void window.gremiaSbv?.backup?.openBackupFolder()}
         >
-          <FolderOpen className="h-4 w-4" /> Backup-Ordner öffnen
-        </button>
+          <FolderOpen className="h-4 w-4" aria-hidden="true" /> Backup-Ordner öffnen
+        </IndustrialButton>
       </div>
 
       {error && (

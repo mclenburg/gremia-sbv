@@ -61,6 +61,7 @@ describe('Fristenpanel Verhalten 0.9.2', () => {
     expect(text).toContain('Übersicht, Priorisierung und Kontrolle zeitkritischer SBV-Arbeit');
     expect(text).toContain('Fristenregister');
     expect(text).toContain('Kalender exportieren');
+    expect(text).toContain('Journal');
     expect(text).toContain('Frist anlegen');
     expect(text).not.toContain('Fristdaten');
     expect(text.indexOf('Fristenregister')).toBeLessThan(text.indexOf('BEM-Rückmeldung prüfen'));

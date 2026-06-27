@@ -42,9 +42,25 @@ Ein belastbarer Beteiligungsverstoß beschreibt:
 - welche Frist läuft,
 - welche Eskalationsstufe gewählt wurde.
 
+## Schreiben erzeugen
+
+Gremia.SBV kann aus einem dokumentierten Beteiligungsverstoß ein DOCX-Schreiben vorbereiten. Das Schreiben entsteht aus den strukturierten Angaben des Verstoßes, insbesondere Pflichtverletzung, richtigem Verfahren, Rechtsgrundlage, Frist und Eskalationsstufe.
+
+Typische Eskalationsstufen sind:
+
+- **Nachforderung**: fehlende oder unvollständige Unterlagen werden mit Frist angefordert.
+- **Förmliche Rüge**: die SBV dokumentiert den Verstoß und verlangt ordnungsgemäße Beteiligung.
+- **Abmahnende Eskalation**: die SBV weist ausdrücklich auf Konsequenzen und Wiederholungsrisiken hin.
+- **Aussetzung / Nachholung**: die SBV verlangt, dass Durchführung oder Vollziehung bis zur ordnungsgemäßen Beteiligung ausgesetzt wird.
+- **OWi-Prüfung**: eine mögliche Ordnungswidrigkeit wird vorbereitet, aber nicht automatisch angezeigt.
+
+Der Versand bleibt immer deine bewusste Entscheidung. Gremia.SBV sendet keine Schreiben automatisch an Arbeitgeber, Betriebsrat, Inklusionsamt oder andere Stellen.
+
+Bei Eskalationsstufen ab förmlicher Abmahnung, bei Aussetzungsverlangen, bei OWi-Prüfung oder wenn Nachteile für Betroffene drohen, solltest du den Entwurf vor Versand anwaltlich oder gewerkschaftlich abstimmen.
+
 ## Schreiben und Eskalation
 
-Gremia.SBV kann Schreiben vorbereiten. Der Versand bleibt deine bewusste Entscheidung. Bei scharfen Eskalationen, Ordnungswidrigkeiten, gerichtlicher Durchsetzung oder drohenden Nachteilen für Betroffene sollte rechtliche Beratung eingeholt werden.
+Nutze Schreiben nicht als Selbstzweck. Vor einer Eskalation sollte klar dokumentiert sein, welche Beteiligung fehlte, welche Unterlagen verlangt wurden, welche Frist läuft und welches Ziel die SBV verfolgt. Bei scharfen Eskalationen, Ordnungswidrigkeiten, gerichtlicher Durchsetzung oder drohenden Nachteilen für Betroffene sollte rechtliche Beratung eingeholt werden.
 
 ## Datenschutz
 

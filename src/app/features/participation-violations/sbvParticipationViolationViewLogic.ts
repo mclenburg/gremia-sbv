@@ -254,15 +254,27 @@ export type ViolationStatusAction = {
 };
 
 export function getNextStatusActions(status: ParticipationViolationStatus): ViolationStatusAction[] {
-  if (status === 'draft') return [{ label: 'Öffnen', targetStatus: 'open' }];
+  if (status === 'draft') return [
+    { label: 'Öffnen', targetStatus: 'open' },
+    { label: 'Zurückziehen', targetStatus: 'withdrawn' },
+  ];
   if (status === 'open') return [
     { label: 'Versand markieren', targetStatus: 'sent' },
+    { label: 'Zurückziehen', targetStatus: 'withdrawn' },
     { label: 'Schließen', targetStatus: 'closed' },
   ];
   if (status === 'sent') return [
     { label: 'Geheilt', targetStatus: 'remedied' },
+    { label: 'Eskalieren', targetStatus: 'escalated' },
     { label: 'Schließen', targetStatus: 'closed' },
   ];
-  if (status === 'remedied' || status === 'escalated') return [{ label: 'Schließen', targetStatus: 'closed' }];
+  if (status === 'remedied') return [
+    { label: 'Eskalieren', targetStatus: 'escalated' },
+    { label: 'Schließen', targetStatus: 'closed' },
+  ];
+  if (status === 'escalated') return [
+    { label: 'Zurück zu geheilt', targetStatus: 'remedied' },
+    { label: 'Schließen', targetStatus: 'closed' },
+  ];
   return [];
 }

@@ -29,6 +29,8 @@ Gremia.SBV folgt drei Grundsätzen:
 | [Backup, Restore und Notfall](11-backup-restore-und-notfall.md) | Sicherung, Wiederherstellung, Gerätewechsel |
 | [Barrierearme Bedienung](12-barrierearme-bedienung.md) | Tastatur, Screenreader, Fokus und Lesbarkeit |
 | [Glossar](13-glossar.md) | Fachbegriffe kurz erklärt |
+| [SBV-Steuerung](14-sbv-steuerung.md) | Übergreifende Protokolle, Arbeitgeberpflichten, Fristen und Journalbezug |
+| [Gleichstellung](15-gleichstellung.md) | Gleichstellungsverfahren datensparsam begleiten |
 
 ## Fachliche Grenze
 

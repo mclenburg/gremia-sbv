@@ -180,9 +180,11 @@ describe('Beteiligungsverstoß-View-Logik', () => {
     expect(needsEscalationHint('suspension_request')).toBe(true);
     expect(needsEscalationHint('owi_preparation')).toBe(true);
 
-    expect(getNextStatusActions('draft').map((action) => action.targetStatus)).toEqual(['open']);
-    expect(getNextStatusActions('open').map((action) => action.targetStatus)).toEqual(['sent', 'closed']);
-    expect(getNextStatusActions('sent').map((action) => action.targetStatus)).toEqual(['remedied', 'closed']);
+    expect(getNextStatusActions('draft').map((action) => action.targetStatus)).toEqual(['open', 'withdrawn']);
+    expect(getNextStatusActions('open').map((action) => action.targetStatus)).toEqual(['sent', 'withdrawn', 'closed']);
+    expect(getNextStatusActions('sent').map((action) => action.targetStatus)).toEqual(['remedied', 'escalated', 'closed']);
+    expect(getNextStatusActions('remedied').map((action) => action.targetStatus)).toEqual(['escalated', 'closed']);
+    expect(getNextStatusActions('escalated').map((action) => action.targetStatus)).toEqual(['remedied', 'closed']);
     expect(getNextStatusActions('closed')).toEqual([]);
     expect(getNextStatusActions('withdrawn')).toEqual([]);
   });

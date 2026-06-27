@@ -172,7 +172,6 @@ describe("Button-Zentralisierung Patch P3", () => {
       "src/app/features/persons/PersonList.tsx": 1,
       "src/app/features/persons/PersonPrivacyActionDialog.tsx": 2,
       "src/app/features/persons/PersonToolbar.tsx": 3,
-      "src/app/features/settings/BackupRestoreForm.tsx": 4,
       "src/app/features/settings/ChangePasswordForm.tsx": 1,
       "src/app/features/settings/RetentionSettingsPanel.tsx": 4,
       "src/app/features/settings/TemplateDefaultSettingsForm.tsx": 1,
