@@ -42,11 +42,23 @@ function normalizeIdentifier(value: string): string {
   return value.replace(/["`\[\]]/g, '').trim();
 }
 
+function isTableConstraintDefinition(part: string): boolean {
+  const upper = part.trim().toUpperCase();
+  return (
+    upper.startsWith('CONSTRAINT ') ||
+    upper.startsWith('PRIMARY ') ||
+    upper.startsWith('FOREIGN ') ||
+    upper.startsWith('UNIQUE ') ||
+    upper.startsWith('UNIQUE(') ||
+    upper.startsWith('CHECK ') ||
+    upper.startsWith('CHECK(')
+  );
+}
+
 function extractTableColumns(body: string): string[] {
-  const ignoredPrefixes = ['CONSTRAINT ', 'PRIMARY ', 'FOREIGN ', 'UNIQUE ', 'CHECK '];
   return splitTopLevelComma(body)
     .map((part) => part.trim())
-    .filter((part) => !ignoredPrefixes.some((prefix) => part.toUpperCase().startsWith(prefix)))
+    .filter((part) => !isTableConstraintDefinition(part))
     .map((part) => normalizeIdentifier(part.split(/\s+/)[0] ?? ''))
     .filter(Boolean);
 }

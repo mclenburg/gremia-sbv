@@ -11,6 +11,7 @@ export const deadlineProcessTypeLabels: Record<DeadlineProcessType, string> = {
   sbv_control_protocol: 'SBV-Steuerungsprotokoll',
   activity_journal: 'Tätigkeitsjournal',
   sbv_participation_violation: 'Beteiligungsverstoß',
+  recruiting_participation: 'Stellenbesetzung',
 };
 
 export const deadlineTypeLabels: Record<DeadlineType, string> = {

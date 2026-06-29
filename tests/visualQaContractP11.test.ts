@@ -32,6 +32,7 @@ describe('P11 visual QA contract', () => {
       'prevention',
       'participation_violations',
       'participation',
+      'recruiting_participations',
       'workplace_accommodation',
       'equalization',
       'termination_hearing',

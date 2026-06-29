@@ -22,7 +22,7 @@ export class ActivityJournalPreferenceService {
   ensureSchema(): void {
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS activity_journal_category_preferences (
-        context_type TEXT PRIMARY KEY CHECK(context_type IN ('case','person','bem_process','prevention_process','sbv_participation','termination_hearing','equalization_process','sbv_control_protocol','deadline','document','journal','fallfrei')),
+        context_type TEXT PRIMARY KEY CHECK(context_type IN ('case','person','bem_process','prevention_process','sbv_participation','termination_hearing','equalization_process','sbv_control_protocol','recruiting_participation','recruiting_interview','deadline','document','journal','fallfrei')),
         category TEXT NOT NULL CHECK(category IN ('case_work','consultation','bem_preparation','prevention','participation','employer_meeting','committee_work','sbv_steering','research','documentation','qualification','external_network','sbv_self_organization')),
         updated_at TEXT NOT NULL
       );

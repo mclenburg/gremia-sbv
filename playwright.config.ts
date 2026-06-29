@@ -23,6 +23,8 @@ const { defineConfig, devices } = requirePlaywrightTest() as {
 const port = Number(process.env.GREMIA_SBV_E2E_PORT ?? 5174);
 const baseURL = process.env.GREMIA_SBV_E2E_BASE_URL ?? `http://127.0.0.1:${port}`;
 const useSystemChrome = process.env.GREMIA_SBV_E2E_USE_SYSTEM_CHROME === '1';
+const configuredWorkers = Number(process.env.GREMIA_SBV_E2E_WORKERS ?? '2');
+const workers = Number.isFinite(configuredWorkers) && configuredWorkers > 0 ? Math.floor(configuredWorkers) : 2;
 
 export default defineConfig({
   testDir: './e2e',
@@ -31,7 +33,7 @@ export default defineConfig({
   fullyParallel: false,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
-  workers: 1,
+  workers,
   reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : 'list',
   use: {
     baseURL,

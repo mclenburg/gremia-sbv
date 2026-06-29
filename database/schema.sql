@@ -1169,13 +1169,14 @@ CREATE TABLE IF NOT EXISTS activity_journal_entries (
 CREATE TABLE IF NOT EXISTS activity_journal_links (
   id TEXT PRIMARY KEY,
   entry_id TEXT NOT NULL REFERENCES activity_journal_entries(id) ON DELETE CASCADE,
-  target_type TEXT NOT NULL CHECK(target_type IN ('case','person','bem_process','prevention_process','sbv_participation','termination_hearing','equalization_process','sbv_control_protocol','deadline','document')),
+  target_type TEXT NOT NULL CHECK(target_type IN ('case','person','bem_process','prevention_process','sbv_participation','termination_hearing','equalization_process','sbv_control_protocol','recruiting_participation','recruiting_interview','deadline','document')),
   target_id TEXT NOT NULL,
-  created_at TEXT NOT NULL
+  created_at TEXT NOT NULL,
+  UNIQUE(entry_id, target_type, target_id)
 );
 
 CREATE TABLE IF NOT EXISTS activity_journal_category_preferences (
-  context_type TEXT PRIMARY KEY CHECK(context_type IN ('case','person','bem_process','prevention_process','sbv_participation','termination_hearing','equalization_process','sbv_control_protocol','deadline','document','journal','fallfrei')),
+  context_type TEXT PRIMARY KEY CHECK(context_type IN ('case','person','bem_process','prevention_process','sbv_participation','termination_hearing','equalization_process','sbv_control_protocol','recruiting_participation','recruiting_interview','deadline','document','journal','fallfrei')),
   category TEXT NOT NULL CHECK(category IN ('case_work','consultation','bem_preparation','prevention','participation','employer_meeting','committee_work','sbv_steering','research','documentation','qualification','external_network','sbv_self_organization')),
   updated_at TEXT NOT NULL
 );
@@ -1189,12 +1190,67 @@ CREATE INDEX IF NOT EXISTS idx_activity_journal_links_entry ON activity_journal_
 CREATE INDEX IF NOT EXISTS idx_activity_journal_links_target ON activity_journal_links(target_type, target_id);
 
 
+-- Gremia.SBV 0.9.5-a: fallaktenunabhängige Stellenbesetzungs- und Vorstellungsgesprächsnachhaltung
+CREATE TABLE IF NOT EXISTS recruiting_participations (
+  id TEXT PRIMARY KEY,
+  vacancy_title TEXT NOT NULL,
+  vacancy_reference TEXT,
+  department TEXT,
+  location TEXT,
+  status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft','notice_received','interviews_scheduled','interviews_completed','hearing_pending','statement_submitted','decision_known','closed')),
+  employer_notice_date TEXT,
+  documents_received_date TEXT,
+  documents_complete INTEGER NOT NULL DEFAULT 0 CHECK (documents_complete IN (0,1)),
+  has_severely_disabled_applicants INTEGER NOT NULL DEFAULT 0 CHECK (has_severely_disabled_applicants IN (0,1)),
+  severely_disabled_applicant_count INTEGER,
+  interview_count INTEGER NOT NULL DEFAULT 0,
+  sbv_invited_to_all_known_interviews INTEGER CHECK (sbv_invited_to_all_known_interviews IN (0,1)),
+  sbv_participated INTEGER CHECK (sbv_participated IN (0,1)),
+  hearing_requested_date TEXT,
+  hearing_due_date TEXT,
+  statement_submitted_date TEXT,
+  decision_known_date TEXT,
+  decision_before_hearing INTEGER NOT NULL DEFAULT 0 CHECK (decision_before_hearing IN (0,1)),
+  br_procedure_date TEXT,
+  flagged_for_violation_review INTEGER NOT NULL DEFAULT 0 CHECK (flagged_for_violation_review IN (0,1)),
+  violation_review_reason TEXT CHECK (violation_review_reason IS NULL OR violation_review_reason IN ('decision_before_hearing','missing_hearing_after_interview','incomplete_information','sbv_not_invited','execution_without_remedy','manual_review')),
+  notes TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS recruiting_interview_events (
+  id TEXT PRIMARY KEY,
+  recruiting_participation_id TEXT NOT NULL REFERENCES recruiting_participations(id) ON DELETE CASCADE,
+  interview_date TEXT NOT NULL,
+  applicant_ref TEXT NOT NULL,
+  applicant_reference_mode TEXT NOT NULL DEFAULT 'anonymous_reference' CHECK (applicant_reference_mode IN ('anonymous_reference','pseudonymized_reference','clear_name')),
+  applicant_status TEXT NOT NULL DEFAULT 'unknown_or_not_relevant' CHECK (applicant_status IN ('severely_disabled','equal_status','unknown_or_not_relevant')),
+  sbv_invited INTEGER NOT NULL DEFAULT 0 CHECK (sbv_invited IN (0,1)),
+  sbv_invitation_date TEXT,
+  sbv_attended INTEGER NOT NULL DEFAULT 0 CHECK (sbv_attended IN (0,1)),
+  accessibility_check_status TEXT NOT NULL DEFAULT 'not_checked' CHECK (accessibility_check_status IN ('not_checked','not_relevant','contact_offered','format_checked','follow_up_needed')),
+  follow_up_needed INTEGER NOT NULL DEFAULT 0 CHECK (follow_up_needed IN (0,1)),
+  procedural_note TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_recruiting_participations_status ON recruiting_participations(status, updated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_recruiting_participations_notice ON recruiting_participations(employer_notice_date DESC);
+CREATE INDEX IF NOT EXISTS idx_recruiting_participations_hearing ON recruiting_participations(hearing_due_date, status);
+CREATE INDEX IF NOT EXISTS idx_recruiting_participations_violation_flag ON recruiting_participations(flagged_for_violation_review, updated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_recruiting_participations_reference ON recruiting_participations(vacancy_reference);
+CREATE INDEX IF NOT EXISTS idx_recruiting_interviews_participation ON recruiting_interview_events(recruiting_participation_id, interview_date);
+CREATE INDEX IF NOT EXISTS idx_recruiting_interviews_accessibility ON recruiting_interview_events(accessibility_check_status, follow_up_needed);
+
+
 CREATE TABLE IF NOT EXISTS sbv_participation_violations (
   id TEXT PRIMARY KEY,
   stage TEXT NOT NULL CHECK (stage IN ('request','formal_objection','abmahnung','suspension_request','owi_preparation')),
   status TEXT NOT NULL CHECK (status IN ('draft','open','sent','remedied','escalated','closed','withdrawn')),
   violation_type TEXT NOT NULL CHECK (violation_type IN ('not_informed','late_informed','incomplete_information','not_heard','late_heard','implementation_without_participation','repeated_violation','other')),
-  source_context_type TEXT NOT NULL CHECK (source_context_type IN ('case','case_measure_participation','sbv_participation','termination_hearing','sbv_control_protocol','deadline','activity_journal')),
+  source_context_type TEXT NOT NULL CHECK (source_context_type IN ('case','case_measure_participation','sbv_participation','termination_hearing','sbv_control_protocol','deadline','activity_journal','recruiting_participation')),
   source_context_id TEXT NOT NULL,
   case_id TEXT REFERENCES cases(id) ON DELETE SET NULL,
   related_participation_id TEXT REFERENCES sbv_participations(id) ON DELETE SET NULL,
@@ -1203,6 +1259,7 @@ CREATE TABLE IF NOT EXISTS sbv_participation_violations (
   related_deadline_id TEXT REFERENCES deadlines(id) ON DELETE SET NULL,
   related_activity_journal_entry_id TEXT REFERENCES activity_journal_entries(id) ON DELETE SET NULL,
   related_sbv_control_protocol_id TEXT REFERENCES sbv_control_protocols(id) ON DELETE SET NULL,
+  related_recruiting_participation_id TEXT REFERENCES recruiting_participations(id) ON DELETE SET NULL,
   subject TEXT NOT NULL,
   measure_description TEXT NOT NULL,
   wrong_behavior TEXT NOT NULL,
@@ -1219,6 +1276,7 @@ CREATE INDEX IF NOT EXISTS idx_sbv_participation_violations_status ON sbv_partic
 CREATE INDEX IF NOT EXISTS idx_sbv_participation_violations_stage ON sbv_participation_violations(stage);
 CREATE INDEX IF NOT EXISTS idx_sbv_participation_violations_source ON sbv_participation_violations(source_context_type, source_context_id);
 CREATE INDEX IF NOT EXISTS idx_sbv_participation_violations_case ON sbv_participation_violations(case_id);
+CREATE INDEX IF NOT EXISTS idx_sbv_participation_violations_recruiting ON sbv_participation_violations(related_recruiting_participation_id);
 
 CREATE TABLE IF NOT EXISTS sbv_participation_violation_events (
   id TEXT PRIMARY KEY,

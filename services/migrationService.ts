@@ -3,7 +3,7 @@ import path from 'node:path';
 import type { DatabaseAdapter } from './databaseService.js';
 import { classifyCaseLegalReferencesColumns } from './knowledgeMigrationPolicy.js';
 import { APP_VERSION } from './generated/appMetadata.js';
-import { APP_SCHEMA_VERSION, ACTIVITY_JOURNAL_CATEGORY_PREFERENCES_REQUIRED_COLUMNS, ACTIVITY_JOURNAL_ENTRIES_REQUIRED_COLUMNS, ACTIVITY_JOURNAL_LINKS_REQUIRED_COLUMNS, COMPLIANCE_INCIDENTS_REQUIRED_COLUMNS, GENERATED_DOCUMENTS_REQUIRED_COLUMNS, SBV_PARTICIPATION_VIOLATION_DOCUMENTS_REQUIRED_COLUMNS, SBV_PARTICIPATION_VIOLATION_EVENTS_REQUIRED_COLUMNS, SBV_PARTICIPATION_VIOLATIONS_REQUIRED_COLUMNS, SBV_CONTROL_PROTOCOLS_REQUIRED_COLUMNS, SBV_RESOURCE_RECORDS_REQUIRED_COLUMNS, CASE_HANDOVER_IMPORTS_REQUIRED_COLUMNS, CASE_HANDOVER_IMPORT_ITEMS_REQUIRED_COLUMNS, CASE_DOCUMENTS_REQUIRED_COLUMNS, CASE_DOCUMENT_OCR_JOBS_REQUIRED_COLUMNS, CASE_EXTERNAL_REFERENCES_REQUIRED_COLUMNS, CASES_REQUIRED_COLUMNS, CASE_MEASURES_REQUIRED_COLUMNS, CASE_MEASURE_PARTICIPATION_REQUIRED_COLUMNS, CASE_MEASURE_NOTES_REQUIRED_COLUMNS, CASE_MEASURE_WORKPLACE_ACCOMMODATION_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_STATE_REQUIRED_COLUMNS, GREMIA_BR_CACHE_REQUIRED_COLUMNS, GREMIA_BR_SETTINGS_REQUIRED_COLUMNS, PERSON_IMPORT_RUN_ITEMS_REQUIRED_COLUMNS, PROTECTED_PERSONS_REQUIRED_COLUMNS, DATABASE_SCHEMA_APP_VERSION_KEY, DATABASE_SCHEMA_VERSION_KEY, PERSONAL_DATA_AUDIT_REQUIRED_COLUMNS, SBV_PARTICIPATION_REQUIRED_COLUMNS, TERMINATION_HEARINGS_REQUIRED_COLUMNS } from './appSchema.js';
+import { APP_SCHEMA_VERSION, ACTIVITY_JOURNAL_CATEGORY_PREFERENCES_REQUIRED_COLUMNS, ACTIVITY_JOURNAL_ENTRIES_REQUIRED_COLUMNS, ACTIVITY_JOURNAL_LINKS_REQUIRED_COLUMNS, COMPLIANCE_INCIDENTS_REQUIRED_COLUMNS, GENERATED_DOCUMENTS_REQUIRED_COLUMNS, SBV_PARTICIPATION_VIOLATION_DOCUMENTS_REQUIRED_COLUMNS, SBV_PARTICIPATION_VIOLATION_EVENTS_REQUIRED_COLUMNS, SBV_PARTICIPATION_VIOLATIONS_REQUIRED_COLUMNS, SBV_CONTROL_PROTOCOLS_REQUIRED_COLUMNS, SBV_RESOURCE_RECORDS_REQUIRED_COLUMNS, RECRUITING_INTERVIEW_EVENTS_REQUIRED_COLUMNS, RECRUITING_PARTICIPATIONS_REQUIRED_COLUMNS, CASE_HANDOVER_IMPORTS_REQUIRED_COLUMNS, CASE_HANDOVER_IMPORT_ITEMS_REQUIRED_COLUMNS, CASE_DOCUMENTS_REQUIRED_COLUMNS, CASE_DOCUMENT_OCR_JOBS_REQUIRED_COLUMNS, CASE_EXTERNAL_REFERENCES_REQUIRED_COLUMNS, CASES_REQUIRED_COLUMNS, CASE_MEASURES_REQUIRED_COLUMNS, CASE_MEASURE_PARTICIPATION_REQUIRED_COLUMNS, CASE_MEASURE_NOTES_REQUIRED_COLUMNS, CASE_MEASURE_WORKPLACE_ACCOMMODATION_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_STATE_REQUIRED_COLUMNS, GREMIA_BR_CACHE_REQUIRED_COLUMNS, GREMIA_BR_SETTINGS_REQUIRED_COLUMNS, PERSON_IMPORT_RUN_ITEMS_REQUIRED_COLUMNS, PROTECTED_PERSONS_REQUIRED_COLUMNS, DATABASE_SCHEMA_APP_VERSION_KEY, DATABASE_SCHEMA_VERSION_KEY, PERSONAL_DATA_AUDIT_REQUIRED_COLUMNS, SBV_PARTICIPATION_REQUIRED_COLUMNS, TERMINATION_HEARINGS_REQUIRED_COLUMNS } from './appSchema.js';
 
 interface MigrationRow {
   version: string;
@@ -355,8 +355,77 @@ export class MigrationService {
         return GENERATED_DOCUMENTS_REQUIRED_COLUMNS.every((column) => this.columnExists('generated_documents', column));
       case '0044':
         return this.columnExists('sbv_participation_violations', 'related_case_measure_id');
+      case '0045':
+        return this.tableExists('recruiting_participations')
+          && this.tableExists('recruiting_interview_events')
+          && RECRUITING_PARTICIPATIONS_REQUIRED_COLUMNS.every((column) => this.columnExists('recruiting_participations', column))
+          && RECRUITING_INTERVIEW_EVENTS_REQUIRED_COLUMNS.every((column) => this.columnExists('recruiting_interview_events', column));
+      case '0046':
+        return this.activityJournalRecruitingContextsSupported();
+      case '0047':
+        return this.participationViolationRecruitingContextSupported();
       default:
         return false;
+    }
+  }
+
+  private activityJournalRecruitingContextsSupported(): boolean {
+    if (!this.tableExists('activity_journal_links') || !this.tableExists('activity_journal_category_preferences') || !this.tableExists('activity_journal_entries')) return false;
+    try {
+      const entryId = `migration-check-${Date.now()}`;
+      const linkId = `${entryId}-link`;
+      const timestamp = nowIso();
+      this.db.exec('BEGIN');
+      this.db.prepare(`
+        INSERT INTO activity_journal_entries (
+          id, entry_date, started_at, ended_at, duration_minutes, time_mode, category,
+          title, description, result_note, confidentiality_level, status, created_from,
+          follow_up_due_at, performed_outside_contract_work_time, exported_for_activity_report_at,
+          created_at, updated_at
+        ) VALUES (?, ?, NULL, NULL, NULL, 'none', 'participation', ?, NULL, NULL, 'confidential', 'draft', 'context_prefill', NULL, 0, NULL, ?, ?)
+      `).run(entryId, new Date().toISOString().slice(0, 10), 'Schema-Check Recruiting-Kontext', timestamp, timestamp);
+      this.db.prepare('INSERT INTO activity_journal_links (id, entry_id, target_type, target_id, created_at) VALUES (?, ?, ?, ?, ?)')
+        .run(linkId, entryId, 'recruiting_participation', 'schema-check-target', timestamp);
+      this.db.prepare('DELETE FROM activity_journal_entries WHERE id = ?').run(entryId);
+      this.db.exec('COMMIT');
+      return true;
+    } catch (_error) {
+      try { this.db.exec('ROLLBACK'); } catch {}
+      return false;
+    }
+  }
+
+
+  private participationViolationRecruitingContextSupported(): boolean {
+    if (!this.tableExists('sbv_participation_violations')) return false;
+    if (!this.columnExists('sbv_participation_violations', 'related_recruiting_participation_id')) return false;
+    try {
+      const violationId = `migration-check-${Date.now()}`;
+      const timestamp = nowIso();
+      this.db.exec('BEGIN');
+      this.db.prepare(`
+        INSERT INTO sbv_participation_violations (
+          id, stage, status, violation_type, source_context_type, source_context_id,
+          subject, measure_description, wrong_behavior, required_behavior,
+          legal_basis, created_at, updated_at
+        ) VALUES (?, 'request', 'draft', 'incomplete_information', 'recruiting_participation', ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        violationId,
+        'schema-check-recruiting',
+        'Schema-Check Stellenbesetzung',
+        'Prüfung des Recruiting-Kontexts',
+        'Keine produktive Bewertung',
+        'Nur Schema-Check',
+        '§ 178 Abs. 2 SGB IX',
+        timestamp,
+        timestamp,
+      );
+      this.db.prepare('DELETE FROM sbv_participation_violations WHERE id = ?').run(violationId);
+      this.db.exec('COMMIT');
+      return true;
+    } catch (_error) {
+      try { this.db.exec('ROLLBACK'); } catch {}
+      return false;
     }
   }
 
@@ -610,6 +679,74 @@ export class MigrationService {
       this.ensureActivityJournalSchema();
       diagnostics.push('Tätigkeitsjournal-Schema wurde auf Stand 0041 repariert.');
     }
+
+
+    if (!this.hasCompleteRecruitingParticipationSchema()) {
+      this.ensureRecruitingParticipationSchema();
+      diagnostics.push('Stellenbesetzungs-Schema wurde auf Stand 0045 repariert.');
+    }
+  }
+
+  private hasCompleteRecruitingParticipationSchema(): boolean {
+    return this.tableExists('recruiting_participations')
+      && this.tableExists('recruiting_interview_events')
+      && RECRUITING_PARTICIPATIONS_REQUIRED_COLUMNS.every((column) => this.columnExists('recruiting_participations', column))
+      && RECRUITING_INTERVIEW_EVENTS_REQUIRED_COLUMNS.every((column) => this.columnExists('recruiting_interview_events', column));
+  }
+
+  private ensureRecruitingParticipationSchema(): void {
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS recruiting_participations (
+        id TEXT PRIMARY KEY,
+        vacancy_title TEXT NOT NULL,
+        vacancy_reference TEXT,
+        department TEXT,
+        location TEXT,
+        status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft','notice_received','interviews_scheduled','interviews_completed','hearing_pending','statement_submitted','decision_known','closed')),
+        employer_notice_date TEXT,
+        documents_received_date TEXT,
+        documents_complete INTEGER NOT NULL DEFAULT 0 CHECK (documents_complete IN (0,1)),
+        has_severely_disabled_applicants INTEGER NOT NULL DEFAULT 0 CHECK (has_severely_disabled_applicants IN (0,1)),
+        severely_disabled_applicant_count INTEGER,
+        interview_count INTEGER NOT NULL DEFAULT 0,
+        sbv_invited_to_all_known_interviews INTEGER CHECK (sbv_invited_to_all_known_interviews IN (0,1)),
+        sbv_participated INTEGER CHECK (sbv_participated IN (0,1)),
+        hearing_requested_date TEXT,
+        hearing_due_date TEXT,
+        statement_submitted_date TEXT,
+        decision_known_date TEXT,
+        decision_before_hearing INTEGER NOT NULL DEFAULT 0 CHECK (decision_before_hearing IN (0,1)),
+        br_procedure_date TEXT,
+        flagged_for_violation_review INTEGER NOT NULL DEFAULT 0 CHECK (flagged_for_violation_review IN (0,1)),
+        violation_review_reason TEXT CHECK (violation_review_reason IS NULL OR violation_review_reason IN ('decision_before_hearing','missing_hearing_after_interview','incomplete_information','sbv_not_invited','execution_without_remedy','manual_review')),
+        notes TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS recruiting_interview_events (
+        id TEXT PRIMARY KEY,
+        recruiting_participation_id TEXT NOT NULL REFERENCES recruiting_participations(id) ON DELETE CASCADE,
+        interview_date TEXT NOT NULL,
+        applicant_ref TEXT NOT NULL,
+        applicant_reference_mode TEXT NOT NULL DEFAULT 'anonymous_reference' CHECK (applicant_reference_mode IN ('anonymous_reference','pseudonymized_reference','clear_name')),
+        applicant_status TEXT NOT NULL DEFAULT 'unknown_or_not_relevant' CHECK (applicant_status IN ('severely_disabled','equal_status','unknown_or_not_relevant')),
+        sbv_invited INTEGER NOT NULL DEFAULT 0 CHECK (sbv_invited IN (0,1)),
+        sbv_invitation_date TEXT,
+        sbv_attended INTEGER NOT NULL DEFAULT 0 CHECK (sbv_attended IN (0,1)),
+        accessibility_check_status TEXT NOT NULL DEFAULT 'not_checked' CHECK (accessibility_check_status IN ('not_checked','not_relevant','contact_offered','format_checked','follow_up_needed')),
+        follow_up_needed INTEGER NOT NULL DEFAULT 0 CHECK (follow_up_needed IN (0,1)),
+        procedural_note TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_recruiting_participations_status ON recruiting_participations(status, updated_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_recruiting_participations_notice ON recruiting_participations(employer_notice_date DESC);
+      CREATE INDEX IF NOT EXISTS idx_recruiting_participations_hearing ON recruiting_participations(hearing_due_date, status);
+      CREATE INDEX IF NOT EXISTS idx_recruiting_participations_violation_flag ON recruiting_participations(flagged_for_violation_review, updated_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_recruiting_participations_reference ON recruiting_participations(vacancy_reference);
+      CREATE INDEX IF NOT EXISTS idx_recruiting_interviews_participation ON recruiting_interview_events(recruiting_participation_id, interview_date);
+      CREATE INDEX IF NOT EXISTS idx_recruiting_interviews_accessibility ON recruiting_interview_events(accessibility_check_status, follow_up_needed);
+    `);
   }
 
   private hasCompleteActivityJournalSchema(): boolean {
@@ -653,12 +790,12 @@ export class MigrationService {
       CREATE TABLE IF NOT EXISTS activity_journal_links (
         id TEXT PRIMARY KEY,
         entry_id TEXT NOT NULL REFERENCES activity_journal_entries(id) ON DELETE CASCADE,
-        target_type TEXT NOT NULL CHECK(target_type IN ('case','person','bem_process','prevention_process','sbv_participation','termination_hearing','equalization_process','sbv_control_protocol','deadline','document')),
+        target_type TEXT NOT NULL CHECK(target_type IN ('case','person','bem_process','prevention_process','sbv_participation','termination_hearing','equalization_process','sbv_control_protocol','recruiting_participation','recruiting_interview','deadline','document')),
         target_id TEXT NOT NULL,
         created_at TEXT NOT NULL
       );
       CREATE TABLE IF NOT EXISTS activity_journal_category_preferences (
-        context_type TEXT PRIMARY KEY CHECK(context_type IN ('case','person','bem_process','prevention_process','sbv_participation','termination_hearing','equalization_process','sbv_control_protocol','deadline','document','journal','fallfrei')),
+        context_type TEXT PRIMARY KEY CHECK(context_type IN ('case','person','bem_process','prevention_process','sbv_participation','termination_hearing','equalization_process','sbv_control_protocol','recruiting_participation','recruiting_interview','deadline','document','journal','fallfrei')),
         category TEXT NOT NULL CHECK(category IN ('case_work','consultation','bem_preparation','prevention','participation','employer_meeting','committee_work','sbv_steering','research','documentation','qualification','external_network','sbv_self_organization')),
         updated_at TEXT NOT NULL
       );
@@ -1298,7 +1435,9 @@ CREATE INDEX IF NOT EXISTS idx_case_measure_events_measure_created ON case_measu
       'generated_documents',
       'sbv_participation_violations',
       'sbv_participation_violation_events',
-      'sbv_participation_violation_documents'
+      'sbv_participation_violation_documents',
+      'recruiting_participations',
+      'recruiting_interview_events'
     ];
 
     requiredTables.forEach((table) => {
@@ -1333,7 +1472,9 @@ CREATE INDEX IF NOT EXISTS idx_case_measure_events_measure_created ON case_measu
       generated_documents: [...GENERATED_DOCUMENTS_REQUIRED_COLUMNS],
       sbv_participation_violations: [...SBV_PARTICIPATION_VIOLATIONS_REQUIRED_COLUMNS],
       sbv_participation_violation_events: [...SBV_PARTICIPATION_VIOLATION_EVENTS_REQUIRED_COLUMNS],
-      sbv_participation_violation_documents: [...SBV_PARTICIPATION_VIOLATION_DOCUMENTS_REQUIRED_COLUMNS]
+      sbv_participation_violation_documents: [...SBV_PARTICIPATION_VIOLATION_DOCUMENTS_REQUIRED_COLUMNS],
+      recruiting_participations: [...RECRUITING_PARTICIPATIONS_REQUIRED_COLUMNS],
+      recruiting_interview_events: [...RECRUITING_INTERVIEW_EVENTS_REQUIRED_COLUMNS]
     };
 
     Object.entries(requiredColumns).forEach(([table, columns]) => {

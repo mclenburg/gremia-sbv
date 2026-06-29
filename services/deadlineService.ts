@@ -149,6 +149,7 @@ export function getActionHint(deadline: DeadlineRecord): string {
   if (deadline.processType === 'sbv_control_protocol') return 'Übergreifendes Steuerungsprotokoll prüfen: Arbeitgeber-/BR-Rückmeldung, Ergebnis und nächsten Schritt dokumentieren.';
   if (deadline.processType === 'activity_journal') return 'Journal-Wiedervorlage prüfen: Ergebnis, Nachfassung oder Abschluss bewusst dokumentieren.';
   if (deadline.processType === 'sbv_participation_violation') return 'Beteiligungsverstoß prüfen: Nachholung, Reaktion oder Eskalation bewusst dokumentieren.';
+  if (deadline.processType === 'recruiting_participation') return 'Stellenbesetzung prüfen: Unterlagen, Gesprächsnachhaltung oder Anhörung vor Auswahlentscheidung kontrollieren.';
   if (deadline.sourceEvent === 'protected_person.status_expiry_warning' || deadline.sourceEvent === 'protected_person.status_expired_privacy_review') {
     return 'Statusnachweis im Personenverzeichnis prüfen: Status aktualisieren, Fortspeicherung begründen oder Datenschutzprüfung starten.';
   }
@@ -171,9 +172,13 @@ function validateCaseBinding(input: CreateDeadlineInput): void {
     && deadlineType === 'follow_up'
     && !input.isLegalDeadline
     && Boolean(input.processId);
+  const isRecruitingParticipationFollowUp = input.processType === 'recruiting_participation'
+    && deadlineType === 'follow_up'
+    && !input.isLegalDeadline
+    && Boolean(input.processId);
 
-  if (!input.caseId && !isFreeFollowUp && !isSbvControlProtocolFollowUp && !isActivityJournalFollowUp && !isParticipationViolationFollowUp) {
-    throw new Error('Fristen müssen einem Fall zugeordnet werden. Ohne Fallbezug ist nur eine freie Wiedervorlage, eine SBV-Steuerungsprotokoll-Wiedervorlage, eine Journal-Wiedervorlage oder eine Beteiligungsverstoß-Wiedervorlage erlaubt.');
+  if (!input.caseId && !isFreeFollowUp && !isSbvControlProtocolFollowUp && !isActivityJournalFollowUp && !isParticipationViolationFollowUp && !isRecruitingParticipationFollowUp) {
+    throw new Error('Fristen müssen einem Fall zugeordnet werden. Ohne Fallbezug ist nur eine freie Wiedervorlage, eine SBV-Steuerungsprotokoll-Wiedervorlage, eine Journal-Wiedervorlage, eine Beteiligungsverstoß-Wiedervorlage oder eine Stellenbesetzungs-Wiedervorlage erlaubt.');
   }
 
   if (!input.caseId && (input.isLegalDeadline || deadlineType === 'legal_deadline' || deadlineType === 'workflow_step')) {
@@ -237,7 +242,8 @@ export class DeadlineService {
     );
 
     this.audit(id, 'created', undefined, JSON.stringify(input), 'Frist angelegt');
-    this.personalDataAudit('create', id, input.caseId, 'Frist personenbezogen angelegt', { processType: input.processType, deadlineType: input.deadlineType ?? 'follow_up', measureId: input.measureId ?? null, isLegalDeadline: Boolean(input.isLegalDeadline) });
+    const auditPurpose = input.caseId ? 'Frist personenbezogen angelegt' : 'Fallaktenunabhängige Wiedervorlage angelegt';
+    this.personalDataAudit('create', id, input.caseId, auditPurpose, { processType: input.processType, deadlineType: input.deadlineType ?? 'follow_up', measureId: input.measureId ?? null, isLegalDeadline: Boolean(input.isLegalDeadline) });
     return this.getById(id)!;
   }
 

@@ -145,6 +145,55 @@
 
 
 
+  const recruitingParticipations = [
+    {
+      id: 'recruiting-e2e-0001',
+      vacancyTitle: 'E2E Systemadministration',
+      vacancyReference: 'SBV-2026-01',
+      department: 'IT-Betrieb',
+      location: 'Rostock',
+      status: 'hearing_pending',
+      employerNoticeDate: '2026-05-01T12:00:00.000Z',
+      documentsReceivedDate: '2026-05-02T12:00:00.000Z',
+      documentsComplete: false,
+      hasSeverelyDisabledApplicants: true,
+      severelyDisabledApplicantCount: 1,
+      sbvInvitedToAllKnownInterviews: true,
+      sbvParticipated: true,
+      hearingRequestedDate: '2026-05-03T12:00:00.000Z',
+      hearingDueDate: '2026-05-10T12:00:00.000Z',
+      statementSubmittedDate: undefined,
+      decisionKnownDate: undefined,
+      decisionBeforeHearing: false,
+      brProcedureDate: undefined,
+      flaggedForViolationReview: false,
+      violationReviewReason: undefined,
+      notes: 'Synthetischer Recruiting-Vorgang ohne Echtdaten.',
+      interviewCount: 1,
+      createdAt: now,
+      updatedAt: now,
+    },
+  ];
+
+  const recruitingInterviews = [
+    {
+      id: 'recruiting-interview-e2e-0001',
+      recruitingParticipationId: 'recruiting-e2e-0001',
+      interviewDate: '2026-05-04T12:00:00.000Z',
+      applicantRef: 'Bewerbung 1',
+      applicantReferenceMode: 'anonymous_reference',
+      applicantStatus: 'severely_disabled',
+      sbvInvited: true,
+      sbvInvitationDate: '2026-05-02T12:00:00.000Z',
+      sbvAttended: true,
+      accessibilityCheckStatus: 'checked_no_issue',
+      followUpNeeded: false,
+      proceduralNote: undefined,
+      createdAt: now,
+      updatedAt: now,
+    },
+  ];
+
   const participationViolations = [
     {
       id: 'violation-e2e-0001',
@@ -723,7 +772,7 @@
     deadlines: {
       list: async () => deadlines,
       dashboard: async () => deadlines,
-      create: createRecord,
+      create: async (input) => { const row = { id: `deadline-${Date.now()}`, status: 'open', dashboardState: 'upcoming', hoursRemaining: 168, safeTitle: input.confidentialTitle || input.title, actionHint: 'Nachfassen', createdAt: now, updatedAt: now, ...input }; deadlines.unshift(row); return row; },
       update: createRecord,
       complete: async () => ({ completed: true }),
       exportIcal: async (filters, privacyLevel) => {
@@ -774,6 +823,61 @@
     equalization: { list: emptyList, create: createRecord, update: createRecord },
     termination: { list: emptyList, create: createRecord, update: createRecord },
     participation: { list: emptyList, create: createRecord, update: createRecord, warnings: emptyList },
+    recruitingParticipations: {
+      list: async () => recruitingParticipations.map((row) => ({ ...row, interviewCount: recruitingInterviews.filter((item) => item.recruitingParticipationId === row.id).length })),
+      get: async (id) => recruitingParticipations.find((item) => item.id === id) || null,
+      create: async (input) => {
+        const row = {
+          id: `recruiting-${Date.now()}`,
+          status: input.status || 'draft',
+          documentsComplete: Boolean(input.documentsComplete),
+          hasSeverelyDisabledApplicants: input.hasSeverelyDisabledApplicants !== false,
+          sbvInvitedToAllKnownInterviews: Boolean(input.sbvInvitedToAllKnownInterviews),
+          sbvParticipated: Boolean(input.sbvParticipated),
+          decisionBeforeHearing: Boolean(input.decisionBeforeHearing),
+          flaggedForViolationReview: Boolean(input.flaggedForViolationReview),
+          interviewCount: 0,
+          createdAt: now,
+          updatedAt: now,
+          ...input,
+        };
+        recruitingParticipations.unshift(row);
+        return row;
+      },
+      update: async (id, input) => {
+        const row = recruitingParticipations.find((item) => item.id === id);
+        if (!row) throw new Error('Stellenbesetzung nicht gefunden.');
+        Object.assign(row, input, { updatedAt: now });
+        return row;
+      },
+      delete: async (id) => {
+        const index = recruitingParticipations.findIndex((item) => item.id === id);
+        if (index >= 0) recruitingParticipations.splice(index, 1);
+        for (let i = recruitingInterviews.length - 1; i >= 0; i -= 1) {
+          if (recruitingInterviews[i].recruitingParticipationId === id) recruitingInterviews.splice(i, 1);
+        }
+        return { deleted: index >= 0 };
+      },
+      listInterviews: async (recruitingParticipationId) => recruitingInterviews.filter((item) => item.recruitingParticipationId === recruitingParticipationId),
+      addInterview: async (input) => {
+        const row = { id: `recruiting-interview-${Date.now()}`, createdAt: now, updatedAt: now, ...input };
+        recruitingInterviews.unshift(row);
+        const parent = recruitingParticipations.find((item) => item.id === input.recruitingParticipationId);
+        if (parent) parent.interviewCount = recruitingInterviews.filter((item) => item.recruitingParticipationId === parent.id).length;
+        return row;
+      },
+      updateInterview: async (id, input) => {
+        const row = recruitingInterviews.find((item) => item.id === id);
+        if (!row) throw new Error('Vorstellungsgespräch nicht gefunden.');
+        Object.assign(row, input, { updatedAt: now });
+        return row;
+      },
+      deleteInterview: async (id) => {
+        const index = recruitingInterviews.findIndex((item) => item.id === id);
+        if (index >= 0) recruitingInterviews.splice(index, 1);
+        return { deleted: index >= 0 };
+      },
+    },
     sbvParticipationViolations: {
       list: async () => participationViolations,
       get: async (id) => participationViolations.find((item) => item.id === id) || null,

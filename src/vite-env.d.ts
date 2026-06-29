@@ -70,6 +70,14 @@ import type {
   ParticipationWarning,
   UpdateParticipationInput,
 } from "./app/core/models/participation.model";
+import type {
+  CreateRecruitingInterviewEventInput,
+  CreateRecruitingParticipationInput,
+  RecruitingInterviewEventRecord,
+  RecruitingParticipationRecord,
+  UpdateRecruitingInterviewEventInput,
+  UpdateRecruitingParticipationInput,
+} from "./app/core/models/recruiting-participation.model";
 import type { CreateSbvControlProtocolInput, SbvControlProtocolRecord, UpdateSbvControlProtocolInput } from "./app/core/models/sbv-control-protocol.model";
 import type {
   CreateWorkplaceAccommodationInput,
@@ -315,6 +323,17 @@ declare global {
           input: UpdateParticipationInput,
         ): Promise<ParticipationRecord>;
         warnings(id: string): Promise<ParticipationWarning[]>;
+      };
+      recruitingParticipations: {
+        list(): Promise<RecruitingParticipationRecord[]>;
+        get(id: string): Promise<RecruitingParticipationRecord | null>;
+        create(input: CreateRecruitingParticipationInput): Promise<RecruitingParticipationRecord>;
+        update(id: string, input: UpdateRecruitingParticipationInput): Promise<RecruitingParticipationRecord>;
+        delete(id: string): Promise<{ deleted: boolean }>;
+        listInterviews(recruitingParticipationId: string): Promise<RecruitingInterviewEventRecord[]>;
+        addInterview(input: CreateRecruitingInterviewEventInput): Promise<RecruitingInterviewEventRecord>;
+        updateInterview(id: string, input: UpdateRecruitingInterviewEventInput): Promise<RecruitingInterviewEventRecord>;
+        deleteInterview(id: string): Promise<{ deleted: boolean }>;
       };
 
       sbvResources: {

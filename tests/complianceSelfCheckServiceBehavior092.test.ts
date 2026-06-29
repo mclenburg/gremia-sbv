@@ -26,6 +26,8 @@ import {
   SBV_PARTICIPATION_VIOLATION_DOCUMENTS_REQUIRED_COLUMNS,
   SBV_PARTICIPATION_VIOLATION_EVENTS_REQUIRED_COLUMNS,
   SBV_PARTICIPATION_VIOLATIONS_REQUIRED_COLUMNS,
+  RECRUITING_INTERVIEW_EVENTS_REQUIRED_COLUMNS,
+  RECRUITING_PARTICIPATIONS_REQUIRED_COLUMNS,
 } from '../services/appSchema';
 
 type TableMap = Record<string, readonly string[]>;
@@ -63,6 +65,8 @@ const completeSchema: TableMap = {
   sbv_participation_violations: SBV_PARTICIPATION_VIOLATIONS_REQUIRED_COLUMNS,
   sbv_participation_violation_events: SBV_PARTICIPATION_VIOLATION_EVENTS_REQUIRED_COLUMNS,
   sbv_participation_violation_documents: SBV_PARTICIPATION_VIOLATION_DOCUMENTS_REQUIRED_COLUMNS,
+  recruiting_participations: RECRUITING_PARTICIPATIONS_REQUIRED_COLUMNS,
+  recruiting_interview_events: RECRUITING_INTERVIEW_EVENTS_REQUIRED_COLUMNS,
 };
 
 class SelfCheckDb implements DatabaseAdapter {
@@ -85,7 +89,7 @@ class SelfCheckDb implements DatabaseAdapter {
           const table = String(params[0] ?? '');
           return (self.tables[table] ? { value: 1 } : undefined) as T | undefined;
         }
-        if (sql.includes('MAX(version)')) return { value: '0044' } as T;
+        if (sql.includes('MAX(version)')) return { value: '0047' } as T;
         if (sql.includes('privacy_review_items') && sql.includes('due_at <')) return { value: self.values.overduePrivacyReviews ?? 0 } as T;
         if (sql.includes('privacy_review_items')) return { value: self.values.openPrivacyReviews ?? 0 } as T;
         if (sql.includes('compliance_incidents') && sql.includes("risk_level = 'high'")) return { value: self.values.highIncidents ?? 0 } as T;

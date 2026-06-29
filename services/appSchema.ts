@@ -1,4 +1,4 @@
-export const APP_SCHEMA_VERSION = '0044';
+export const APP_SCHEMA_VERSION = '0047';
 
 export const DATABASE_SCHEMA_VERSION_KEY = 'database.schema.version';
 export const LEGACY_DATABASE_SCHEMA_VERSION_KEY = 'settings.database.schema.version';
@@ -359,6 +359,52 @@ export const ACTIVITY_JOURNAL_CATEGORY_PREFERENCES_REQUIRED_COLUMNS = [
 
 
 
+
+export const RECRUITING_PARTICIPATIONS_REQUIRED_COLUMNS = [
+  'id',
+  'vacancy_title',
+  'vacancy_reference',
+  'department',
+  'location',
+  'status',
+  'employer_notice_date',
+  'documents_received_date',
+  'documents_complete',
+  'has_severely_disabled_applicants',
+  'severely_disabled_applicant_count',
+  'interview_count',
+  'sbv_invited_to_all_known_interviews',
+  'sbv_participated',
+  'hearing_requested_date',
+  'hearing_due_date',
+  'statement_submitted_date',
+  'decision_known_date',
+  'decision_before_hearing',
+  'br_procedure_date',
+  'flagged_for_violation_review',
+  'violation_review_reason',
+  'notes',
+  'created_at',
+  'updated_at'
+] as const;
+
+export const RECRUITING_INTERVIEW_EVENTS_REQUIRED_COLUMNS = [
+  'id',
+  'recruiting_participation_id',
+  'interview_date',
+  'applicant_ref',
+  'applicant_reference_mode',
+  'applicant_status',
+  'sbv_invited',
+  'sbv_invitation_date',
+  'sbv_attended',
+  'accessibility_check_status',
+  'follow_up_needed',
+  'procedural_note',
+  'created_at',
+  'updated_at'
+] as const;
+
 export const SBV_PARTICIPATION_VIOLATIONS_REQUIRED_COLUMNS = [
   'id',
   'stage',
@@ -373,6 +419,7 @@ export const SBV_PARTICIPATION_VIOLATIONS_REQUIRED_COLUMNS = [
   'related_deadline_id',
   'related_activity_journal_entry_id',
   'related_sbv_control_protocol_id',
+  'related_recruiting_participation_id',
   'subject',
   'measure_description',
   'wrong_behavior',

@@ -31,6 +31,7 @@ import { registerSbvResourceIpc } from "./ipc/sbvResourceIpc.js";
 import { registerSbvControlProtocolIpc } from "./ipc/sbvControlProtocolIpc.js";
 import { registerActivityJournalIpc } from "./ipc/activityJournalIpc.js";
 import { registerSbvParticipationViolationIpc } from "./ipc/sbvParticipationViolationIpc.js";
+import { registerRecruitingParticipationIpc } from "./ipc/recruitingParticipationIpc.js";
 import type { SecurityResult, SecurityStatus } from "../src/app/core/models/security.model.js";
 import { SecurityService } from "../services/securityService.js";
 import {
@@ -475,6 +476,7 @@ export async function startApplication(existingSplashWindow?: BrowserWindow): Pr
   registerSbvControlProtocolIpc(ipcMain, security);
   registerActivityJournalIpc(ipcMain, security);
   registerSbvParticipationViolationIpc(ipcMain, security, resolveRuntimeDataDir);
+  registerRecruitingParticipationIpc(ipcMain, security);
   markStartupPhase("runtime:ipc-registered");
   await updateStartupSplash("ui");
   await createWindow();

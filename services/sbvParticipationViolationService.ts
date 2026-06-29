@@ -39,6 +39,7 @@ type ViolationRow = {
   related_deadline_id: string | null;
   related_activity_journal_entry_id: string | null;
   related_sbv_control_protocol_id: string | null;
+  related_recruiting_participation_id: string | null;
   subject: string;
   measure_description: string;
   wrong_behavior: string;
@@ -112,6 +113,7 @@ function mapRecord(row: ViolationRow): SbvParticipationViolationRecord {
     relatedDeadlineId: row.related_deadline_id ? String(row.related_deadline_id) : undefined,
     relatedActivityJournalEntryId: row.related_activity_journal_entry_id ? String(row.related_activity_journal_entry_id) : undefined,
     relatedSbvControlProtocolId: row.related_sbv_control_protocol_id ? String(row.related_sbv_control_protocol_id) : undefined,
+    relatedRecruitingParticipationId: row.related_recruiting_participation_id ? String(row.related_recruiting_participation_id) : undefined,
     subject: String(row.subject),
     measureDescription: String(row.measure_description),
     wrongBehavior: String(row.wrong_behavior),
@@ -150,7 +152,7 @@ export class SbvParticipationViolationService {
         stage TEXT NOT NULL CHECK (stage IN ('request','formal_objection','abmahnung','suspension_request','owi_preparation')),
         status TEXT NOT NULL CHECK (status IN ('draft','open','sent','remedied','escalated','closed','withdrawn')),
         violation_type TEXT NOT NULL CHECK (violation_type IN ('not_informed','late_informed','incomplete_information','not_heard','late_heard','implementation_without_participation','repeated_violation','other')),
-        source_context_type TEXT NOT NULL CHECK (source_context_type IN ('case','case_measure_participation','sbv_participation','termination_hearing','sbv_control_protocol','deadline','activity_journal')),
+        source_context_type TEXT NOT NULL CHECK (source_context_type IN ('case','case_measure_participation','sbv_participation','termination_hearing','sbv_control_protocol','deadline','activity_journal','recruiting_participation')),
         source_context_id TEXT NOT NULL,
         case_id TEXT REFERENCES cases(id) ON DELETE SET NULL,
         related_participation_id TEXT REFERENCES sbv_participations(id) ON DELETE SET NULL,
@@ -159,6 +161,7 @@ export class SbvParticipationViolationService {
         related_deadline_id TEXT REFERENCES deadlines(id) ON DELETE SET NULL,
         related_activity_journal_entry_id TEXT REFERENCES activity_journal_entries(id) ON DELETE SET NULL,
         related_sbv_control_protocol_id TEXT REFERENCES sbv_control_protocols(id) ON DELETE SET NULL,
+        related_recruiting_participation_id TEXT REFERENCES recruiting_participations(id) ON DELETE SET NULL,
         subject TEXT NOT NULL,
         measure_description TEXT NOT NULL,
         wrong_behavior TEXT NOT NULL,
@@ -175,6 +178,7 @@ export class SbvParticipationViolationService {
       CREATE INDEX IF NOT EXISTS idx_sbv_participation_violations_stage ON sbv_participation_violations(stage);
       CREATE INDEX IF NOT EXISTS idx_sbv_participation_violations_source ON sbv_participation_violations(source_context_type, source_context_id);
       CREATE INDEX IF NOT EXISTS idx_sbv_participation_violations_case ON sbv_participation_violations(case_id);
+      CREATE INDEX IF NOT EXISTS idx_sbv_participation_violations_recruiting ON sbv_participation_violations(related_recruiting_participation_id);
       CREATE TABLE IF NOT EXISTS sbv_participation_violation_events (
         id TEXT PRIMARY KEY,
         violation_id TEXT NOT NULL REFERENCES sbv_participation_violations(id) ON DELETE CASCADE,
@@ -187,7 +191,19 @@ export class SbvParticipationViolationService {
       CREATE INDEX IF NOT EXISTS idx_sbv_participation_violation_events_violation ON sbv_participation_violation_events(violation_id, created_at);
     `);
     this.ensureRelatedCaseMeasureColumn();
+    this.ensureRelatedRecruitingParticipationColumn();
     new PersonalDataAuditLogService(this.db);
+  }
+
+  private ensureRelatedRecruitingParticipationColumn(): void {
+    try {
+      const columns = this.db.prepare<{ name: string }>('PRAGMA table_info(sbv_participation_violations)').all().map((row) => row.name);
+      if (!columns.includes('related_recruiting_participation_id')) {
+        this.db.exec('ALTER TABLE sbv_participation_violations ADD COLUMN related_recruiting_participation_id TEXT REFERENCES recruiting_participations(id) ON DELETE SET NULL; CREATE INDEX IF NOT EXISTS idx_sbv_participation_violations_recruiting ON sbv_participation_violations(related_recruiting_participation_id);');
+      }
+    } catch (error) {
+      console.warn('Gremia.SBV participation violation recruiting schema compatibility check failed', error);
+    }
   }
 
   private ensureRelatedCaseMeasureColumn(): void {
@@ -239,6 +255,7 @@ export class SbvParticipationViolationService {
       sbv_control_protocol: 'sbv_control_protocols',
       deadline: 'deadlines',
       activity_journal: 'activity_journal_entries',
+      recruiting_participation: 'recruiting_participations',
     };
     const table = tableByContext[contextType];
     const exists = this.db.prepare<{ value?: number }>(`SELECT 1 AS value FROM ${table} WHERE id = ?`).get(contextId);
@@ -255,6 +272,7 @@ export class SbvParticipationViolationService {
     relatedDeadlineId?: string | null;
     relatedActivityJournalEntryId?: string | null;
     relatedSbvControlProtocolId?: string | null;
+    relatedRecruitingParticipationId?: string | null;
   }) {
     const explicitCaseId = normalizeText(input.caseId);
     const failCaseMismatch = (derivedCaseId: string | null | undefined) => {
@@ -279,6 +297,7 @@ export class SbvParticipationViolationService {
           relatedDeadlineId: null,
           relatedActivityJournalEntryId: null,
           relatedSbvControlProtocolId: null,
+          relatedRecruitingParticipationId: null,
         };
       }
       case 'case': {
@@ -292,6 +311,7 @@ export class SbvParticipationViolationService {
           relatedDeadlineId: normalizeText(input.relatedDeadlineId),
           relatedActivityJournalEntryId: normalizeText(input.relatedActivityJournalEntryId),
           relatedSbvControlProtocolId: normalizeText(input.relatedSbvControlProtocolId),
+          relatedRecruitingParticipationId: normalizeText(input.relatedRecruitingParticipationId),
         };
       }
       case 'termination_hearing': {
@@ -306,6 +326,7 @@ export class SbvParticipationViolationService {
           relatedDeadlineId: null,
           relatedActivityJournalEntryId: null,
           relatedSbvControlProtocolId: null,
+          relatedRecruitingParticipationId: null,
         };
       }
       case 'sbv_control_protocol':
@@ -318,6 +339,7 @@ export class SbvParticipationViolationService {
           relatedDeadlineId: null,
           relatedActivityJournalEntryId: null,
           relatedSbvControlProtocolId: input.sourceContextId,
+          relatedRecruitingParticipationId: null,
         };
       case 'deadline':
         this.ensureContextExists(input.sourceContextType, input.sourceContextId);
@@ -329,6 +351,7 @@ export class SbvParticipationViolationService {
           relatedDeadlineId: input.sourceContextId,
           relatedActivityJournalEntryId: normalizeText(input.relatedActivityJournalEntryId),
           relatedSbvControlProtocolId: normalizeText(input.relatedSbvControlProtocolId),
+          relatedRecruitingParticipationId: normalizeText(input.relatedRecruitingParticipationId),
         };
       case 'activity_journal':
         this.ensureContextExists(input.sourceContextType, input.sourceContextId);
@@ -340,6 +363,22 @@ export class SbvParticipationViolationService {
           relatedDeadlineId: normalizeText(input.relatedDeadlineId),
           relatedActivityJournalEntryId: input.sourceContextId,
           relatedSbvControlProtocolId: normalizeText(input.relatedSbvControlProtocolId),
+          relatedRecruitingParticipationId: normalizeText(input.relatedRecruitingParticipationId),
+        };
+      case 'recruiting_participation':
+        this.ensureContextExists(input.sourceContextType, input.sourceContextId);
+        if (explicitCaseId) {
+          throw new Error('Stellenbesetzungs-Verstöße bleiben fallaktenunabhängig. Bitte keinen Fallbezug automatisch setzen.');
+        }
+        return {
+          caseId: null,
+          relatedParticipationId: null,
+          relatedCaseMeasureId: null,
+          relatedTerminationHearingId: null,
+          relatedDeadlineId: null,
+          relatedActivityJournalEntryId: null,
+          relatedSbvControlProtocolId: null,
+          relatedRecruitingParticipationId: input.sourceContextId,
         };
       case 'sbv_participation':
         this.ensureContextExists(input.sourceContextType, input.sourceContextId);
@@ -351,6 +390,7 @@ export class SbvParticipationViolationService {
           relatedDeadlineId: null,
           relatedActivityJournalEntryId: null,
           relatedSbvControlProtocolId: null,
+          relatedRecruitingParticipationId: null,
         };
       default:
         throw new Error('Bitte zuerst die SBV-Beteiligung oder einen anderen Ausgangskontext auswählen.');
@@ -380,6 +420,7 @@ export class SbvParticipationViolationService {
       relatedDeadlineId: input.relatedDeadlineId !== undefined ? input.relatedDeadlineId : existing?.relatedDeadlineId ?? null,
       relatedActivityJournalEntryId: input.relatedActivityJournalEntryId !== undefined ? input.relatedActivityJournalEntryId : existing?.relatedActivityJournalEntryId ?? null,
       relatedSbvControlProtocolId: input.relatedSbvControlProtocolId !== undefined ? input.relatedSbvControlProtocolId : existing?.relatedSbvControlProtocolId ?? null,
+      relatedRecruitingParticipationId: input.relatedRecruitingParticipationId !== undefined ? input.relatedRecruitingParticipationId : existing?.relatedRecruitingParticipationId ?? null,
     });
     return {
       stage,
@@ -438,14 +479,14 @@ export class SbvParticipationViolationService {
       INSERT INTO sbv_participation_violations (
         id, stage, status, violation_type, source_context_type, source_context_id, case_id,
         related_participation_id, related_case_measure_id, related_termination_hearing_id, related_deadline_id,
-        related_activity_journal_entry_id, related_sbv_control_protocol_id,
+        related_activity_journal_entry_id, related_sbv_control_protocol_id, related_recruiting_participation_id,
         subject, measure_description, wrong_behavior, required_behavior, consequence_warning,
         legal_basis, follow_up_due_at, created_at, updated_at, sent_at, closed_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       id, data.stage, data.status, data.violationType, data.sourceContextType, data.sourceContextId, data.caseId,
       data.relatedParticipationId, data.relatedCaseMeasureId, data.relatedTerminationHearingId, data.relatedDeadlineId,
-      data.relatedActivityJournalEntryId, data.relatedSbvControlProtocolId,
+      data.relatedActivityJournalEntryId, data.relatedSbvControlProtocolId, data.relatedRecruitingParticipationId,
       data.subject, data.measureDescription, data.wrongBehavior, data.requiredBehavior, data.consequenceWarning,
       data.legalBasis, data.followUpDueAt, timestamp, timestamp,
       data.status === 'sent' ? timestamp : null,
@@ -469,14 +510,14 @@ export class SbvParticipationViolationService {
       UPDATE sbv_participation_violations
       SET stage = ?, status = ?, violation_type = ?, source_context_type = ?, source_context_id = ?, case_id = ?,
           related_participation_id = ?, related_case_measure_id = ?, related_termination_hearing_id = ?, related_deadline_id = ?,
-          related_activity_journal_entry_id = ?, related_sbv_control_protocol_id = ?, subject = ?,
+          related_activity_journal_entry_id = ?, related_sbv_control_protocol_id = ?, related_recruiting_participation_id = ?, subject = ?,
           measure_description = ?, wrong_behavior = ?, required_behavior = ?, consequence_warning = ?,
           legal_basis = ?, follow_up_due_at = ?, updated_at = ?
       WHERE id = ?
     `).run(
       data.stage, existing.status, data.violationType, data.sourceContextType, data.sourceContextId, data.caseId,
       data.relatedParticipationId, data.relatedCaseMeasureId, data.relatedTerminationHearingId, data.relatedDeadlineId,
-      data.relatedActivityJournalEntryId, data.relatedSbvControlProtocolId, data.subject,
+      data.relatedActivityJournalEntryId, data.relatedSbvControlProtocolId, data.relatedRecruitingParticipationId, data.subject,
       data.measureDescription, data.wrongBehavior, data.requiredBehavior, data.consequenceWarning,
       data.legalBasis, data.followUpDueAt, timestamp, id,
     );

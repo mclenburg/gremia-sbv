@@ -66,6 +66,20 @@ const PARTICIPATION_VIOLATION_DOCUMENT_METADATA_FIELDS = [
   'documentKind',
 ] as const;
 
+const RECRUITING_PARTICIPATION_METADATA_FIELDS = [
+  'scope',
+  'status',
+  'flaggedForViolationReview',
+  'interviewEventId',
+  'applicantReferenceMode',
+  'applicantStatus',
+  'sbvInvited',
+  'sbvAttended',
+  'proceduralNotePresent',
+  'proceduralNoteChanged',
+  'cascade',
+] as const;
+
 const DEADLINE_METADATA_FIELDS = [
   'processType',
   'deadlineType',
@@ -121,6 +135,7 @@ export const AUDIT_METADATA_POLICY_BY_SUBJECT_TYPE = {
   sbv_participation_violation: PARTICIPATION_VIOLATION_METADATA_FIELDS,
   sbv_participation_violation_document: PARTICIPATION_VIOLATION_DOCUMENT_METADATA_FIELDS,
   generated_document: PARTICIPATION_VIOLATION_DOCUMENT_METADATA_FIELDS,
+  recruiting_participation: RECRUITING_PARTICIPATION_METADATA_FIELDS,
   deadline: DEADLINE_METADATA_FIELDS,
   privacy_review: PRIVACY_REVIEW_METADATA_FIELDS,
   case_person_binding: PERSON_BINDING_METADATA_FIELDS,

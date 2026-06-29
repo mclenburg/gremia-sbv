@@ -74,6 +74,14 @@ import type {
   ParticipationWarning,
   UpdateParticipationInput,
 } from "../src/app/core/models/participation.model.js";
+import type {
+  CreateRecruitingInterviewEventInput,
+  CreateRecruitingParticipationInput,
+  RecruitingInterviewEventRecord,
+  RecruitingParticipationRecord,
+  UpdateRecruitingInterviewEventInput,
+  UpdateRecruitingParticipationInput,
+} from "../src/app/core/models/recruiting-participation.model.js";
 import type { CreateSbvControlProtocolInput, SbvControlProtocolRecord, UpdateSbvControlProtocolInput } from "../src/app/core/models/sbv-control-protocol.model.js";
 import type {
   CreateWorkplaceAccommodationInput,
@@ -388,6 +396,26 @@ const api = {
       ipcRenderer.invoke("participation:update", id, input),
     warnings: (id: string): Promise<ParticipationWarning[]> =>
       ipcRenderer.invoke("participation:warnings", id),
+  },
+  recruitingParticipations: {
+    list: (): Promise<RecruitingParticipationRecord[]> =>
+      ipcRenderer.invoke("recruitingParticipations:list"),
+    get: (id: string): Promise<RecruitingParticipationRecord | null> =>
+      ipcRenderer.invoke("recruitingParticipations:get", id),
+    create: (input: CreateRecruitingParticipationInput): Promise<RecruitingParticipationRecord> =>
+      ipcRenderer.invoke("recruitingParticipations:create", input),
+    update: (id: string, input: UpdateRecruitingParticipationInput): Promise<RecruitingParticipationRecord> =>
+      ipcRenderer.invoke("recruitingParticipations:update", id, input),
+    delete: (id: string): Promise<{ deleted: boolean }> =>
+      ipcRenderer.invoke("recruitingParticipations:delete", id),
+    listInterviews: (recruitingParticipationId: string): Promise<RecruitingInterviewEventRecord[]> =>
+      ipcRenderer.invoke("recruitingParticipations:interviews:list", recruitingParticipationId),
+    addInterview: (input: CreateRecruitingInterviewEventInput): Promise<RecruitingInterviewEventRecord> =>
+      ipcRenderer.invoke("recruitingParticipations:interviews:create", input),
+    updateInterview: (id: string, input: UpdateRecruitingInterviewEventInput): Promise<RecruitingInterviewEventRecord> =>
+      ipcRenderer.invoke("recruitingParticipations:interviews:update", id, input),
+    deleteInterview: (id: string): Promise<{ deleted: boolean }> =>
+      ipcRenderer.invoke("recruitingParticipations:interviews:delete", id),
   },
 
   sbvResources: {

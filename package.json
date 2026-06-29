@@ -1,6 +1,6 @@
 {
   "name": "gremia-sbv",
-  "version": "0.9.4",
+  "version": "0.9.5",
   "private": true,
   "description": "Offline-first Desktop-App für die vertrauliche Fallarbeit der Schwerbehindertenvertretung.",
   "main": "dist-electron/electron/main.js",
@@ -114,7 +114,8 @@
     "build:app": "npm run version:generate && tsc -p tsconfig.json && vite build && tsc -p tsconfig.electron.json && node scripts/write-electron-cjs-package.cjs",
     "release:local-e2e": "node scripts/run-local-release-e2e.cjs",
     "ui:control-sweep": "node scripts/check-industrial-ui-control-chrome.cjs",
-    "release:check:backup-restore": "npm run version:generate && tsx scripts/check-backup-restore-release.ts"
+    "release:check:backup-restore": "npm run version:generate && tsx scripts/check-backup-restore-release.ts",
+    "build:github": "node scripts/run-github-build-current-os.cjs"
   },
   "dependencies": {
     "argon2-browser": "^1.18.0",

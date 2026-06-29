@@ -35,3 +35,5 @@ Gremia.SBV folgt drei Grundsätzen:
 ## Fachliche Grenze
 
 Gremia.SBV ersetzt keine anwaltliche Beratung. Bei Kündigung, gerichtlicher Eskalation, Ordnungswidrigkeiten, schwierigen Datenschutzfragen oder drohenden Nachteilen für betroffene Beschäftigte sollte die SBV rechtliche Beratung hinzuziehen.
+
+- [16 Stellenbesetzungen](16-stellenbesetzungen.md)

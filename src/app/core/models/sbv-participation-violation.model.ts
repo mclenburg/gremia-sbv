@@ -41,6 +41,7 @@ export const PARTICIPATION_VIOLATION_SOURCE_CONTEXT_TYPES = [
   'sbv_control_protocol',
   'deadline',
   'activity_journal',
+  'recruiting_participation',
 ] as const;
 
 export type ParticipationViolationSourceContextType = typeof PARTICIPATION_VIOLATION_SOURCE_CONTEXT_TYPES[number];
@@ -85,6 +86,7 @@ export interface SbvParticipationViolationRecord {
   relatedDeadlineId?: string;
   relatedActivityJournalEntryId?: string;
   relatedSbvControlProtocolId?: string;
+  relatedRecruitingParticipationId?: string;
   subject: string;
   measureDescription: string;
   wrongBehavior: string;
@@ -129,6 +131,7 @@ export interface CreateSbvParticipationViolationInput {
   relatedDeadlineId?: string;
   relatedActivityJournalEntryId?: string;
   relatedSbvControlProtocolId?: string;
+  relatedRecruitingParticipationId?: string;
   subject: string;
   measureDescription: string;
   wrongBehavior: string;

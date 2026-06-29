@@ -24,6 +24,8 @@ import {
   SBV_PARTICIPATION_VIOLATION_DOCUMENTS_REQUIRED_COLUMNS,
   SBV_PARTICIPATION_VIOLATION_EVENTS_REQUIRED_COLUMNS,
   SBV_PARTICIPATION_VIOLATIONS_REQUIRED_COLUMNS,
+  RECRUITING_INTERVIEW_EVENTS_REQUIRED_COLUMNS,
+  RECRUITING_PARTICIPATIONS_REQUIRED_COLUMNS,
 } from '../services/appSchema';
 import { evaluateDatabaseIntegrity } from '../services/databaseIntegrityService';
 import type { DatabaseAdapter } from '../services/databaseService';
@@ -31,7 +33,7 @@ import type { DatabaseAdapter } from '../services/databaseService';
 class SchemaDb implements DatabaseAdapter {
   constructor(
     private readonly tables: Record<string, readonly string[]>,
-    private readonly schemaVersion = '0044',
+    private readonly schemaVersion = '0047',
   ) {}
 
   prepare<T = unknown>(sql: string) {
@@ -98,6 +100,8 @@ const completeSchema: Record<string, readonly string[]> = {
   sbv_participation_violations: SBV_PARTICIPATION_VIOLATIONS_REQUIRED_COLUMNS,
   sbv_participation_violation_events: SBV_PARTICIPATION_VIOLATION_EVENTS_REQUIRED_COLUMNS,
   sbv_participation_violation_documents: SBV_PARTICIPATION_VIOLATION_DOCUMENTS_REQUIRED_COLUMNS,
+  recruiting_participations: RECRUITING_PARTICIPATIONS_REQUIRED_COLUMNS,
+  recruiting_interview_events: RECRUITING_INTERVIEW_EVENTS_REQUIRED_COLUMNS,
 };
 
 describe('database integrity status for compliance center', () => {
@@ -105,7 +109,7 @@ describe('database integrity status for compliance center', () => {
     const result = evaluateDatabaseIntegrity(new SchemaDb(completeSchema));
 
     expect(result.ok).toBe(true);
-    expect(result.appliedSchemaVersion).toBe('0044');
+    expect(result.appliedSchemaVersion).toBe('0047');
     expect(result.missingTables).toEqual([]);
     expect(result.missingColumns).toEqual({});
     expect(result.repairRequired).toBe(false);

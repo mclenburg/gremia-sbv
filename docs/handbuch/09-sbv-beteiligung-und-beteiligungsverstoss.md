@@ -65,3 +65,8 @@ Nutze Schreiben nicht als Selbstzweck. Vor einer Eskalation sollte klar dokument
 ## Datenschutz
 
 Auch bei Beteiligungsverstößen gilt: keine unnötigen Klarnamen, Diagnosen oder medizinischen Details in Vorlagen. Schreibe so, dass der rechtliche Vorgang verständlich ist, ohne vertrauliche Informationen unnötig auszugeben.
+
+
+## Stellenbesetzungen ohne Fallbezug
+
+Stellenbesetzungsverfahren ohne Fallbezug werden nicht in der Fallakte dokumentiert. Nutze dafür das Modul **Stellenbesetzungen**. Dort hältst du Vorstellungsgespräche, Unterlagenstatus und die Anhörung der SBV vor der Auswahlentscheidung nach. Ein Beteiligungsverstoß kann anschließend bewusst aus diesem Vorgang heraus geprüft werden.

@@ -12,6 +12,7 @@ import {
   Scale,
   ShieldAlert,
   ShieldCheck,
+  BriefcaseBusiness,
   UserRoundCheck,
   Users,
   Wrench
@@ -27,6 +28,7 @@ export type ViewId =
   | 'bem'
   | 'prevention'
   | 'participation'
+  | 'recruiting_participations'
   | 'workplace_accommodation'
   | 'equalization'
   | 'termination_hearing'
@@ -131,6 +133,15 @@ export const modules: ModuleDefinition[] = [
     shortTitle: 'Beteiligung',
     text: 'Unterrichtung, Anhörung und Aussetzung nach § 178 Abs. 2 SGB IX.',
     icon: ShieldCheck,
+    group: 'processes'
+  },
+
+  {
+    id: 'recruiting_participations',
+    title: 'Stellenbesetzungen',
+    shortTitle: 'Stellenbesetzungen',
+    text: 'SBV-Beteiligung bei Bewerbungen schwerbehinderter Menschen fallaktenunabhängig nachhalten.',
+    icon: BriefcaseBusiness,
     group: 'processes'
   },
   {

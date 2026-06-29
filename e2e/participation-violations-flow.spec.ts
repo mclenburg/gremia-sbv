@@ -13,8 +13,10 @@ test('creates participation violation only after explicit context and announces 
   await expect(page.getByLabel('Fall allgemein wählen')).toBeDisabled();
 
   await page.getByRole('button', { name: /Verstoß bewusst speichern/ }).click();
-  await expect(page.getByText(/Bitte zuerst den Ausgangskontext eindeutig festlegen/)).toBeVisible();
-  await expect(page.locator('.industrial-live-region[role="alert"]')).toContainText('Ausgangskontext');
+  await expect(
+    page.locator('.industrial-message-warning').filter({ hasText: /Bitte zuerst den Ausgangskontext eindeutig festlegen/ }),
+  ).toBeVisible();
+  await expect(page.locator('.industrial-live-region[role="alert"]').filter({ hasText: /Ausgangskontext/ })).toBeVisible();
 
   await page.getByLabel('Maßnahmen-ID').fill('measure-participation-e2e-0002');
   await page.getByLabel('Betreff').fill('E2E Beteiligungsverstoß mit case_measure_participation');

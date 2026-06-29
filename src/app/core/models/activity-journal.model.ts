@@ -28,6 +28,8 @@ export type ActivityJournalTargetType =
   | 'termination_hearing'
   | 'equalization_process'
   | 'sbv_control_protocol'
+  | 'recruiting_participation'
+  | 'recruiting_interview'
   | 'deadline'
   | 'document';
 
@@ -40,6 +42,8 @@ export type ActivityJournalContextType =
   | 'termination_hearing'
   | 'equalization_process'
   | 'sbv_control_protocol'
+  | 'recruiting_participation'
+  | 'recruiting_interview'
   | 'deadline'
   | 'document'
   | 'journal'
@@ -195,6 +199,8 @@ export const ACTIVITY_JOURNAL_TARGET_TYPES: ActivityJournalTargetType[] = [
   'termination_hearing',
   'equalization_process',
   'sbv_control_protocol',
+  'recruiting_participation',
+  'recruiting_interview',
   'deadline',
   'document'
 ];

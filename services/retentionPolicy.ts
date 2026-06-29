@@ -52,6 +52,7 @@ export interface RetentionParticipationViolationSnapshot {
   sourceContextType?: string | null;
   sourceContextId?: string | null;
   relatedCaseMeasureId?: string | null;
+  relatedRecruitingParticipationId?: string | null;
   relatedDeadlineId?: string | null;
   documentCount?: number;
   createdAt?: string | null;
@@ -311,6 +312,21 @@ export function buildRetentionDashboard(input: RetentionScanInput): RetentionDas
 
 
   for (const violation of input.participationViolations ?? []) {
+    if (violation.sourceContextType === 'recruiting_participation' && !violation.relatedRecruitingParticipationId) {
+      pushCandidate(candidates, {
+        id: `participation-violation-recruiting-link-${violation.id}`,
+        type: 'participation_violation_open_review',
+        riskLevel: 'critical',
+        title: 'Beteiligungsverstoß ohne Stellenbesetzungskontext prüfen',
+        reference: violation.subject,
+        description: 'Der Verstoß wurde als Eskalation aus einer Stellenbesetzung angelegt, hat aber keinen gespeicherten related_recruiting_participation_id-Bezug. Kontext reparieren oder Aufbewahrung gesondert begründen.',
+        recommendedAction: 'pruefen',
+        createdAt: violation.updatedAt ?? violation.createdAt ?? undefined,
+        entityType: 'sbv_participation_violation',
+        entityId: violation.id,
+      });
+    }
+
     if (violation.sourceContextType === 'case_measure_participation' && !violation.relatedCaseMeasureId) {
       pushCandidate(candidates, {
         id: `participation-violation-measure-link-${violation.id}`,

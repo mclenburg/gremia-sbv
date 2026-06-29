@@ -50,3 +50,8 @@ Nicht jede Frist ist gleich kritisch. Verwende Prioritäten, damit dringende Vor
 ## Datenschutz
 
 Fristen sollten keine unnötigen Diagnosen oder privaten Details enthalten. Der Titel darf knapp sein. Details gehören in die Fallakte oder Maßnahme, wenn sie erforderlich sind.
+
+
+## Stellenbesetzungen
+
+Stellenbesetzungsverfahren können Wiedervorlagen auslösen, etwa zur Nachforderung fehlender Unterlagen, zur Anhörung der SBV vor der Auswahlentscheidung oder zur Nachhaltung einer Arbeitgeberentscheidung. Diese Fristen können fallaktenunabhängig mit dem Stellenbesetzungsvorgang verknüpft werden.

@@ -667,6 +667,7 @@ export class ReportService {
     const equalizationCreated = periodWhere("created_at", input);
     const journalPeriod = periodWhere("entry_date", input);
     const violationPeriod = periodWhere("created_at", input);
+    const recruitingPeriod = periodWhere("created_at", input);
 
     const newCases = count(db, `SELECT COUNT(*) AS value FROM cases ${opened.sql}`, opened.params);
     const closedCases = count(db, `SELECT COUNT(*) AS value FROM cases ${closed.sql}`, closed.params);
@@ -683,6 +684,10 @@ export class ReportService {
     const journalOpenFollowUps = count(db, `SELECT COUNT(*) AS value FROM activity_journal_entries WHERE status = 'follow_up_open'`);
     const violationCount = count(db, `SELECT COUNT(*) AS value FROM sbv_participation_violations ${violationPeriod.sql}`, violationPeriod.params);
     const violationOpen = count(db, `SELECT COUNT(*) AS value FROM sbv_participation_violations WHERE status IN ('draft','open','sent','escalated')`);
+    const recruitingCount = count(db, `SELECT COUNT(*) AS value FROM recruiting_participations ${recruitingPeriod.sql}`, recruitingPeriod.params);
+    const recruitingInterviews = count(db, `SELECT COUNT(*) AS value FROM recruiting_interview_events ${recruitingPeriod.sql}`, recruitingPeriod.params);
+    const recruitingOpenHearings = count(db, `SELECT COUNT(*) AS value FROM recruiting_participations WHERE has_severely_disabled_applicants = 1 AND statement_submitted_date IS NULL AND decision_known_date IS NULL`);
+    const recruitingMissingDocuments = count(db, `SELECT COUNT(*) AS value FROM recruiting_participations WHERE has_severely_disabled_applicants = 1 AND documents_complete = 0`);
     const violationStatuses = rows(
       db,
       `SELECT status, COUNT(*) AS value FROM sbv_participation_violations ${violationPeriod.sql} GROUP BY status ORDER BY value DESC`,
@@ -704,6 +709,8 @@ export class ReportService {
       "Abgeschlossene Fälle": closedCases,
       "Offen gesamt": count(db, `SELECT COUNT(*) AS value FROM cases WHERE status <> 'abgeschlossen'`),
       "SBV-Beteiligungen": participationCount,
+      "Stellenbesetzungen": recruitingCount,
+      "Vorstellungsgespräche SBV": recruitingInterviews,
       "BEM/Prävention": bemCount + preventionCount,
       "Kündigungsanhörungen": terminationCount,
       "Journal-Einträge": journalCount,
@@ -723,6 +730,10 @@ export class ReportService {
       ["BEM-Verfahren", bemCount],
       ["Präventionsverfahren", preventionCount],
       ["SBV-Beteiligungsprüfungen", participationCount],
+      ["Stellenbesetzungen", recruitingCount],
+      ["Vorstellungsgespräche als Beteiligungsereignisse", recruitingInterviews],
+      ["Anhörung vor Auswahlentscheidung offen", recruitingOpenHearings],
+      ["Stellenbesetzungsunterlagen offen", recruitingMissingDocuments],
       ["Kündigungsanhörungen", terminationCount],
       ["Gleichstellung/GdB", equalizationCount],
       ["Tätigkeitsjournal", journalCount],
@@ -736,7 +747,7 @@ export class ReportService {
     if (rareCategories.length) {
       warnings.push("Einzelne Fallkategorien enthalten weniger als 3 Fälle. Für externe Tätigkeitsberichte sollten diese zusammengefasst oder ausgelassen werden.");
     }
-    if (newCases + bemCount + preventionCount + participationCount + terminationCount + equalizationCount + journalCount + violationCount < 3) {
+    if (newCases + bemCount + preventionCount + participationCount + recruitingCount + terminationCount + equalizationCount + journalCount + violationCount < 3) {
       warnings.push("Der Berichtszeitraum enthält sehr wenige Vorgänge. Vor externer Weitergabe ist die Rückrechenbarkeit besonders zu prüfen.");
     }
 
@@ -1115,18 +1126,30 @@ export class ReportService {
     const violationOpenProtocols = count(db, `SELECT COUNT(*) AS value FROM sbv_participation_violations WHERE status IN ('draft','open','sent','escalated')`);
     const violationByStage = rows(db, `SELECT stage, COUNT(*) AS value FROM sbv_participation_violations ${violationPeriod.sql} GROUP BY stage ORDER BY value DESC`, violationPeriod.params);
     const violationByStatus = rows(db, `SELECT status, COUNT(*) AS value FROM sbv_participation_violations ${violationPeriod.sql} GROUP BY status ORDER BY value DESC`, violationPeriod.params);
+    const recruitingPeriod = periodWhere("created_at", input);
+    const recruitingCount = count(db, `SELECT COUNT(*) AS value FROM recruiting_participations ${recruitingPeriod.sql}`, recruitingPeriod.params);
+    const recruitingOpenHearings = count(db, `SELECT COUNT(*) AS value FROM recruiting_participations WHERE has_severely_disabled_applicants = 1 AND statement_submitted_date IS NULL AND decision_known_date IS NULL`);
+    const recruitingMissingInformation = count(db, `SELECT COUNT(*) AS value FROM recruiting_participations WHERE has_severely_disabled_applicants = 1 AND documents_complete = 0`);
+    const recruitingInterviews = count(db, `SELECT COUNT(*) AS value FROM recruiting_interview_events ${recruitingPeriod.sql}`, recruitingPeriod.params);
+    const recruitingViolations = count(db, `SELECT COUNT(*) AS value FROM sbv_participation_violations WHERE source_context_type = 'recruiting_participation'`);
     const warnings: string[] = [];
     if (due) warnings.push(`${due} Beteiligungsvorgänge haben überfällige Stellungnahmefristen.`);
     if (violations) warnings.push(`${violations} Beteiligungsvorgänge enthalten dokumentierte Pflichtverstöße.`);
     if (missingInformation) warnings.push(`${missingInformation} Beteiligungsvorgänge sind als nicht vollständig unterrichtet markiert.`);
     if (violationOpenProtocols) warnings.push(`${violationOpenProtocols} strukturierte Beteiligungsverstoß-Protokolle sind noch offen oder eskaliert.`);
     if (lateHearing) warnings.push(`${lateHearing} Beteiligungsvorgänge sind nicht als Anhörung vor Entscheidung bestätigt.`);
+    if (recruitingOpenHearings) warnings.push(`${recruitingOpenHearings} Stellenbesetzungsverfahren haben eine offene Anhörung vor Auswahlentscheidung.`);
+    if (recruitingMissingInformation) warnings.push(`${recruitingMissingInformation} Stellenbesetzungsverfahren haben unvollständige Unterlagen.`);
     const metrics = {
       "Beteiligungen gesamt": count(db, `SELECT COUNT(*) AS value FROM ${participationFrom}`),
       "Offen": open,
       "Kritisch": critical,
       "Aussetzungen": suspensions,
       "Pflichtverstöße": violations,
+      "Stellenbesetzungen": recruitingCount,
+      "Vorstellungsgespräche": recruitingInterviews,
+      "Anhörungen Stellenbesetzung offen": recruitingOpenHearings,
+      "Verstoßprotokolle aus Stellenbesetzung": recruitingViolations,
       "strukturierte Verstoßprotokolle": violationProtocolCount,
       "offene Verstoßprotokolle": violationOpenProtocols,
       "Frist überfällig": due,
@@ -1144,6 +1167,7 @@ export class ReportService {
           ["Pflichtverstoß dokumentiert", violations],
         ],
       )}</section>
+      <section class="box"><h2>Stellenbesetzungen ohne Fallbezug</h2>${table(["Prüffrage", "Befund"], [["Stellenbesetzungen im Zeitraum", recruitingCount], ["Vorstellungsgespräche als Beteiligungsereignis", recruitingInterviews], ["Anhörung vor Auswahlentscheidung offen", recruitingOpenHearings], ["Unterlagen unvollständig", recruitingMissingInformation], ["Verstoßprotokolle aus Stellenbesetzung", recruitingViolations]])}<p>Diese Auswertung enthält keine Bewerberreferenzen, Gesprächsnotizen, Diagnosen oder Eignungsbewertungen.</p></section>
       <section class="box"><h2>Strukturierte Beteiligungsverstoß-Protokolle</h2>${table(["Eskalationsstufe", "Anzahl"], violationByStage.map((row) => [normalizeStatus(row.stage), row.value]))}${table(["Status", "Anzahl"], violationByStatus.map((row) => [normalizeStatus(row.status), row.value]))}<p>Die Auswertung enthält keine Schreibenstexte, Maßnahmendetails oder Freitexte.</p></section>`;
     return {
       title: "SBV-Beteiligungsbericht",

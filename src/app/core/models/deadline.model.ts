@@ -9,6 +9,7 @@ export const DEADLINE_PROCESS_TYPES = [
   'sbv_control_protocol',
   'activity_journal',
   'sbv_participation_violation',
+  'recruiting_participation',
 ] as const;
 
 export const DEADLINE_TYPES = ['legal_deadline', 'follow_up', 'appointment', 'warning', 'workflow_step'] as const;
@@ -24,7 +25,8 @@ export type DeadlineProcessType =
   | 'custom'
   | 'sbv_control_protocol'
   | 'activity_journal'
-  | 'sbv_participation_violation';
+  | 'sbv_participation_violation'
+  | 'recruiting_participation';
 
 export type DeadlineType = 'legal_deadline' | 'follow_up' | 'appointment' | 'warning' | 'workflow_step';
 export type DeadlineSeverity = 'normal' | 'important' | 'critical' | 'fatal';

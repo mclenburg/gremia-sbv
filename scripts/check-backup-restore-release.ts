@@ -17,7 +17,7 @@ function sha256(content: Buffer | string): string {
 
 function createSecurityStub(dataDir: string) {
   const db: DbStub = {
-    prepare: () => ({ get: () => ({ value: '0044' }) }),
+    prepare: () => ({ get: () => ({ value: '0047' }) }),
     pragma: () => undefined,
   };
   return {
@@ -28,14 +28,16 @@ function createSecurityStub(dataDir: string) {
 }
 
 const RELEASE_DOMAIN_SENTINEL = JSON.stringify({
-  schemaVersion: '0044',
+  schemaVersion: '0047',
   requiredTables: [
     'activity_journal_entries',
     'activity_journal_links',
     'sbv_participation_violations',
     'sbv_participation_violation_events',
     'sbv_participation_violation_documents',
-    'generated_documents'
+    'generated_documents',
+    'recruiting_participations',
+    'recruiting_interview_events'
   ]
 });
 

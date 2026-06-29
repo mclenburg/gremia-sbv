@@ -10,7 +10,7 @@ function categoryForContext(context: ActivityJournalPrefillContext): CreateActiv
   if (context.contextType === 'case') return 'case_work';
   if (context.contextType === 'bem_process') return 'bem_preparation';
   if (context.contextType === 'prevention_process') return 'prevention';
-  if (context.contextType === 'sbv_participation' || context.contextType === 'termination_hearing') return 'participation';
+  if (context.contextType === 'sbv_participation' || context.contextType === 'termination_hearing' || context.contextType === 'recruiting_participation' || context.contextType === 'recruiting_interview') return 'participation';
   if (context.contextType === 'sbv_control_protocol') return 'sbv_steering';
   if (context.contextType === 'deadline') return 'documentation';
   return 'documentation';

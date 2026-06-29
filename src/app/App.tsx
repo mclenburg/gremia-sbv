@@ -37,6 +37,7 @@ import { ReportsView } from "./features/reports/ReportsView";
 import { SbvControlView } from "./features/sbv-control/SbvControlView";
 import { ActivityJournalView } from "./features/activity-journal/ActivityJournalView";
 import { SbvParticipationViolationsView } from "./features/participation-violations/SbvParticipationViolationsView";
+import { RecruitingParticipationsView } from "./features/recruiting/RecruitingParticipationsView";
 import type { SbvParticipationViolationPrefill } from "./features/participation-violations/sbvParticipationViolationViewLogic";
 import { ACTIVITY_JOURNAL_PREFILL_EVENT, type ActivityJournalPrefillEventDetail } from "./features/activity-journal/activityJournalEvents";
 import type { ActivityJournalPrefill } from "./core/models/activity-journal.model";
@@ -88,6 +89,7 @@ const IMPLEMENTED_VIEW_IDS = new Set<ViewId>([
   "bem",
   "prevention",
   "participation",
+  "recruiting_participations",
   "workplace_accommodation",
   "equalization",
   "termination_hearing",
@@ -545,6 +547,15 @@ export function App() {
             )}
             {currentView === "participation" && (
               <ParticipationView cases={cases} onOpenCaseNode={openCaseNode} />
+            )}
+            {currentView === "recruiting_participations" && (
+              <RecruitingParticipationsView
+                onCreateDeadline={createDeadline}
+                onOpenParticipationViolationPrefill={(prefill) => {
+                  setParticipationViolationPrefill(prefill);
+                  setCurrentView("participation_violations");
+                }}
+              />
             )}
 
             {currentView === "workplace_accommodation" && (

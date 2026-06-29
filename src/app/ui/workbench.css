@@ -62,10 +62,24 @@
 
 .workbench-summary-card {
   border: 1px solid var(--industrial-border);
-  background: linear-gradient(180deg, rgba(39,39,42,0.72), rgba(9,9,11,0.82));
+  background: color-mix(in srgb, var(--industrial-panel-muted) 88%, black 12%);
   padding: clamp(0.75rem, 1vw, 1rem);
   min-width: 0;
   box-shadow: 0 10px 28px rgba(0,0,0,.22);
+}
+
+html[data-theme='light'] .workbench-summary-card {
+  background: linear-gradient(180deg, var(--surface-panel), var(--surface-muted));
+  color: var(--text-primary);
+  box-shadow: 0 8px 22px rgba(20,20,20,.08);
+}
+
+html[data-theme='light'] .workbench-summary-card strong {
+  color: var(--text-primary);
+}
+
+html[data-theme='light'] .workbench-summary-card span {
+  color: var(--text-muted);
 }
 
 .workbench-summary-card strong {

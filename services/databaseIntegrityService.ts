@@ -25,6 +25,8 @@ import {
   SBV_PARTICIPATION_VIOLATIONS_REQUIRED_COLUMNS,
   GENERATED_DOCUMENTS_REQUIRED_COLUMNS,
   SBV_RESOURCE_RECORDS_REQUIRED_COLUMNS,
+  RECRUITING_INTERVIEW_EVENTS_REQUIRED_COLUMNS,
+  RECRUITING_PARTICIPATIONS_REQUIRED_COLUMNS,
 } from './appSchema.js';
 import type { ComplianceDatabaseIntegrityStatus } from '../src/app/core/models/compliance.model.js';
 
@@ -63,6 +65,8 @@ const REQUIRED_TABLES = [
   'sbv_participation_violations',
   'sbv_participation_violation_events',
   'sbv_participation_violation_documents',
+  'recruiting_participations',
+  'recruiting_interview_events',
 ] as const;
 
 const REQUIRED_COLUMNS: Record<string, readonly string[]> = {
@@ -93,6 +97,8 @@ const REQUIRED_COLUMNS: Record<string, readonly string[]> = {
   sbv_participation_violations: SBV_PARTICIPATION_VIOLATIONS_REQUIRED_COLUMNS,
   sbv_participation_violation_events: SBV_PARTICIPATION_VIOLATION_EVENTS_REQUIRED_COLUMNS,
   sbv_participation_violation_documents: SBV_PARTICIPATION_VIOLATION_DOCUMENTS_REQUIRED_COLUMNS,
+  recruiting_participations: RECRUITING_PARTICIPATIONS_REQUIRED_COLUMNS,
+  recruiting_interview_events: RECRUITING_INTERVIEW_EVENTS_REQUIRED_COLUMNS,
 };
 
 function tableExists(db: DatabaseAdapter, table: string): boolean {

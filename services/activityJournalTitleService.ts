@@ -15,6 +15,8 @@ export class ActivityJournalTitleService {
     if (context.contextType === 'bem_process' || category === 'bem_preparation') return 'BEM-Begleitung: Gespräch vorbereitet';
     if (context.contextType === 'prevention_process' || category === 'prevention') return 'Prävention: Sachstand dokumentiert';
     if (context.contextType === 'sbv_participation') return 'Beteiligung: Stellungnahme vorbereitet';
+    if (context.contextType === 'recruiting_participation') return 'Stellenbesetzung: SBV-Beteiligung nachgehalten';
+    if (context.contextType === 'recruiting_interview') return 'Vorstellungsgespräch: SBV-Teilnahme dokumentiert';
     if (context.contextType === 'termination_hearing') return 'Kündigungsanhörung: Unterlagen geprüft';
     if (context.contextType === 'equalization_process') return 'Gleichstellung: Sachstand dokumentiert';
     if (context.contextType === 'sbv_control_protocol' || category === 'sbv_steering') return 'SBV-Steuerung: Ergebnis dokumentiert';

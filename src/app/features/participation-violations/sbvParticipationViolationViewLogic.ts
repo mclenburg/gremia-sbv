@@ -1,5 +1,6 @@
 import type { CaseRecord } from '../../core/models/case.model';
 import type { ParticipationRecord } from '../../core/models/participation.model';
+import type { RecruitingParticipationRecord } from '../../core/models/recruiting-participation.model';
 import type {
   CreateSbvParticipationViolationInput,
   ParticipationViolationSourceContextType,
@@ -35,6 +36,7 @@ export const participationViolationSourceContextOptions: Array<{ value: Particip
   { value: 'sbv_control_protocol', label: 'Steuerungsprotokoll' },
   { value: 'deadline', label: 'Frist / Wiedervorlage' },
   { value: 'activity_journal', label: 'Tätigkeitsjournal-Eintrag' },
+  { value: 'recruiting_participation', label: 'Stellenbesetzung' },
   { value: 'sbv_participation', label: 'Legacy-Beteiligung' },
 ];
 
@@ -196,6 +198,7 @@ export function applyViolationSourceContextType(
     relatedDeadlineId: undefined,
     relatedActivityJournalEntryId: undefined,
     relatedSbvControlProtocolId: undefined,
+    relatedRecruitingParticipationId: undefined,
   };
 }
 
@@ -237,6 +240,45 @@ export function buildParticipationViolationPrefillFromMeasure(
     },
     sourceLabel: `Quelle: SBV-Beteiligungsmaßnahme ${measureLabel}${caseRecord ? ` · ${caseRecord.caseNumber}` : ''}`,
     privacyNotice: 'Der Entwurf wurde aus der Maßnahme vorbelegt. Es wurde noch kein Beteiligungsverstoß gespeichert und es werden keine Klarnamen oder medizinischen Details automatisch in Schreiben übernommen.',
+  };
+}
+
+
+export function buildParticipationViolationPrefillFromRecruiting(
+  record: RecruitingParticipationRecord,
+): SbvParticipationViolationPrefill {
+  const violationType: ParticipationViolationType = !record.sbvInvitedToAllKnownInterviews
+    ? 'not_informed'
+    : !record.documentsComplete
+      ? 'incomplete_information'
+      : record.decisionBeforeHearing
+        ? 'implementation_without_participation'
+        : 'not_heard';
+  const wrongBehavior = record.decisionBeforeHearing
+    ? 'Im Stellenbesetzungsverfahren ist eine Arbeitgeberentscheidung vor einer dokumentierten SBV-Anhörung vermerkt.'
+    : !record.documentsComplete
+      ? 'Die Unterlagen zur Stellenbesetzung sind nach aktuellem Stand nicht vollständig dokumentiert.'
+      : !record.sbvInvitedToAllKnownInterviews
+        ? 'Die SBV-Einladung zu allen bekannten Vorstellungsgesprächen ist nicht bestätigt.'
+        : 'Die Anhörung der SBV vor der Auswahlentscheidung ist nach aktuellem Stand nicht belastbar dokumentiert.';
+
+  return {
+    form: {
+      stage: 'request',
+      violationType,
+      sourceContextType: 'recruiting_participation',
+      sourceContextId: record.id,
+      relatedRecruitingParticipationId: record.id,
+      subject: `Beteiligungsverstoß Stellenbesetzung ${record.vacancyReference || record.vacancyTitle}`,
+      measureDescription: `Fallaktenunabhängiges Stellenbesetzungsverfahren: ${record.vacancyTitle}${record.vacancyReference ? ` (${record.vacancyReference})` : ''}.`,
+      wrongBehavior,
+      requiredBehavior: 'Die SBV ist nach § 178 Abs. 2 Satz 1 SGB IX unverzüglich und umfassend zu unterrichten und vor der Auswahlentscheidung anzuhören. Eine unterbliebene Beteiligung ist nach § 178 Abs. 2 Satz 2 SGB IX innerhalb von sieben Tagen nachzuholen; Durchführung oder Vollziehung sind auszusetzen.',
+      consequenceWarning: 'Der Entwurf übernimmt keine Bewerbernamen und keine Gesprächsinhalte. Versand oder Arbeitgeberkommunikation bleiben eine bewusste Entscheidung der SBV.',
+      legalBasis: '§ 178 Abs. 2 Satz 1 und Satz 2 SGB IX; § 238 Abs. 1 Nr. 8 SGB IX',
+      followUpDueAt: record.hearingDueDate,
+    },
+    sourceLabel: `Quelle: Stellenbesetzung ${record.vacancyReference || record.vacancyTitle}`,
+    privacyNotice: 'Der Entwurf wurde aus der Stellenbesetzungsnachhaltung vorbereitet. Es wurden keine Bewerbernamen, Gesprächsinhalte, Diagnosen oder Eignungsbewertungen übernommen.',
   };
 }
 
