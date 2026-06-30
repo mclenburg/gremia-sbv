@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import { IndustrialHelpButton } from "../help/IndustrialHelp";
+import type { HelpRegistryId } from "../help/helpRegistry";
 import { ModuleFrame } from "./ModuleFrame";
 import { StatusBadge } from "./StatusBadges";
 
@@ -211,6 +213,7 @@ export function WorkbenchPage({
   actions,
   children,
   compact = true,
+  helpId,
 }: {
   title: string;
   kicker?: string;
@@ -218,12 +221,14 @@ export function WorkbenchPage({
   actions?: ReactNode;
   children: ReactNode;
   compact?: boolean;
+  helpId?: HelpRegistryId;
 }) {
   return (
     <ModuleFrame
       title={title}
       kicker={kicker}
       description={description}
+      helpId={helpId}
       compact={compact}
     >
       <div className="workbench-page">
@@ -233,6 +238,7 @@ export function WorkbenchPage({
             kicker={kicker}
             description={description}
             actions={actions}
+            helpId={helpId}
             visuallyHiddenTitle
           />
         ) : null}
@@ -248,18 +254,23 @@ export function WorkbenchHeader({
   description,
   actions,
   visuallyHiddenTitle = false,
+  helpId,
 }: {
   title: string;
   kicker?: string;
   description?: string;
   actions?: ReactNode;
   visuallyHiddenTitle?: boolean;
+  helpId?: HelpRegistryId;
 }) {
   return (
     <header className="workbench-header">
       <div>
         {kicker ? <p className="industrial-kicker">{kicker}</p> : null}
-        <h2 className={visuallyHiddenTitle ? "sr-only" : undefined}>{title}</h2>
+        <div className="workbench-header-title-row">
+          <h2 className={visuallyHiddenTitle ? "sr-only" : undefined}>{title}</h2>
+          {helpId ? <IndustrialHelpButton helpId={helpId} label="Bereichshilfe öffnen" /> : null}
+        </div>
         {description ? <p>{description}</p> : null}
       </div>
       {actions ? <WorkbenchToolbar>{actions}</WorkbenchToolbar> : null}

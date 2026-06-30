@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test';
-import { VISUAL_QA_ROUTES, type VisualTheme } from '../src/app/shared/theme/visualQa';
+import { VISUAL_QA_ROUTES, isHelpDialogQaRoute, type VisualTheme } from '../src/app/shared/theme/visualQa';
 import { requireE2eTool } from './support/e2eToolResolver';
 import { test, expect } from './support/test';
 
@@ -98,4 +98,25 @@ test.describe('P15m Axe accessibility scan', () => {
     await expect(page.getByLabel(/Kurzbefehle durchsuchen/)).toBeFocused();
     await expectNoSeriousAxeViolations(page, 'inline-command-help-dialog');
   });
+
+  for (const theme of ['light', 'dark'] as const) {
+    for (const route of VISUAL_QA_ROUTES.filter((candidate) => isHelpDialogQaRoute(candidate.id))) {
+      test(`keeps ${route.id} help dialog free of serious Axe violations in ${theme} mode`, async ({ page }) => {
+        await setTheme(page, theme);
+        await page.goto('/');
+        await expect(mainNavigation(page)).toBeVisible();
+
+        await openRoute(page, route.navName);
+        await expect(page.getByRole('heading', { name: route.heading }).first()).toBeVisible();
+
+        const helpButton = page.locator('[data-e2e="industrial-help-button"]').first();
+        await expect(helpButton).toBeVisible();
+        await helpButton.click();
+        await expect(page.locator('[data-e2e="industrial-help-dialog"]')).toBeVisible();
+
+        await expectNoSeriousAxeViolations(page, `${theme}/${route.id}/help-dialog`);
+      });
+    }
+  }
+
 });

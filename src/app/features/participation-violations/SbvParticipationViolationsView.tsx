@@ -67,7 +67,8 @@ export function SbvParticipationViolationsView({
     <WorkbenchPage
       kicker="§ 178 Abs. 2 SGB IX"
       title="Beteiligungsverstöße"
-      description="Zentrale Nachverfolgung, Suche und Auswertung. Der Standardweg ist die Anlage aus einer konkreten SBV-Beteiligungsmaßnahme heraus."
+      description="Beteiligungsverstöße nachverfolgen und bearbeiten."
+      helpId="participationViolations.sourceContext"
     >
       <ModuleFeedback items={[
         state.message ? { id: 'participation-violation-message', tone: 'success', message: state.message } : null,
@@ -80,7 +81,8 @@ export function SbvParticipationViolationsView({
         <FormSection
           kicker="Bewusster Entwurf"
           title="Beteiligungsverstoß erfassen"
-          description="Neue Vorgänge werden nur mit bewusst gesetztem Ausgangskontext gespeichert. Für konkrete SBV-Beteiligungen bitte bevorzugt die Maßnahme in der Fallakte öffnen."
+          description="Entwurf mit nachvollziehbarem Ausgangskontext."
+          helpId="participationViolations.sourceContext"
           actions={<FileWarning className="h-5 w-5 text-yellow-300" aria-hidden="true" />}
         >
           {state.contextNotice && (
@@ -114,21 +116,21 @@ export function SbvParticipationViolationsView({
                 value={state.form.sourceContextType}
                 options={participationViolationSourceContextOptions}
                 onValueChange={(sourceContextType) => state.updateSourceContextType(sourceContextType as ParticipationViolationSourceContextType)}
-                helpText="Der Standardweg ist die konkrete SBV-Beteiligungsmaßnahme; Sonderkontexte müssen bewusst gewählt werden."
+                helpId="participationViolations.sourceContext"
               />
               <SelectInput
                 label="Eskalationsstufe"
                 value={state.form.stage}
                 options={stageOptions}
                 onValueChange={(stage) => state.updateForm({ stage: stage as ParticipationViolationStage })}
-                helpText="Nachforderung und formale Rüge sind frühe Stufen; Abmahnung, Aussetzung und OWi-Vorbereitung sind scharfe Eskalationen und sollten fachlich abgestimmt werden."
+                helpId="participationViolations.stageAndType"
               />
               <SelectInput
                 label="Verstoßart"
                 value={state.form.violationType}
                 options={violationTypeOptions}
                 onValueChange={(violationType) => state.updateForm({ violationType: violationType as ParticipationViolationType })}
-                helpText="Nicht informiert meint keine Unterrichtung; verspätet informiert meint Beteiligung erst nach Beginn oder kurz vor Entscheidung; unvollständig informiert meint fehlende Unterlagen."
+                helpId="participationViolations.stageAndType"
               />
               <SelectInput
                 label="Fall allgemein wählen"
@@ -137,14 +139,14 @@ export function SbvParticipationViolationsView({
                 onValueChange={state.updateCaseContext}
                 disabled={state.form.sourceContextType !== 'case'}
                 error={state.fieldErrors.caseId}
-                helpText="Nur aktiv, wenn als Ausgangskontext „Fall allgemein“ gewählt wurde."
+                helpId="participationViolations.sourceContext"
               />
               <TextInput
                 label={state.form.sourceContextType === 'case_measure_participation' ? 'Maßnahmen-ID' : 'Kontext-ID'}
                 value={state.form.sourceContextId}
                 required
                 error={state.fieldErrors.sourceContextId}
-                helpText={state.form.sourceContextType === 'case_measure_participation' ? 'Bevorzugt aus der SBV-Beteiligungsmaßnahme übernehmen; manuelle Eingabe ist bewusst möglich.' : 'Bitte den realen Ursprungsvorgang eindeutig referenzieren.'}
+                helpId="participationViolations.sourceContext"
                 onValueChange={(sourceContextId) => state.updateForm({ sourceContextId })}
               />
               <TextInput label="Betreff" value={state.form.subject} required error={state.fieldErrors.subject} onValueChange={(subject) => state.updateForm({ subject })} />
@@ -165,7 +167,8 @@ export function SbvParticipationViolationsView({
         <FormSection
           kicker="Nachverfolgung"
           title="Protokollierte Beteiligungsverstöße"
-          description="Statusänderungen laufen über die Transition-Map und erzeugen Verlaufseinträge. Die Übersicht ist Kontrollsicht, nicht der normale Anlageort."
+          description="Kontrollsicht für bereits protokollierte Vorgänge."
+          helpId="participationViolations.tracking"
           actions={<CheckCircle2 className="h-5 w-5 text-yellow-300" aria-hidden="true" />}
         >
           <DataTable

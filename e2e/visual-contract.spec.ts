@@ -4,6 +4,8 @@ import {
   VISUAL_QA_CONTROL_SELECTORS,
   VISUAL_QA_ROUTES,
   VISUAL_QA_SURFACE_SELECTORS,
+  WORKBENCH_LAYOUT_QA_ROUTES,
+  isHelpDialogQaRoute,
   isDarkModeLightLeak,
   isLightModeDarkFallback,
   isReadableSurfaceContrast,
@@ -136,6 +138,33 @@ function visualProbeScript({ surfaceSelectors, badgeSelectors, controlSelectors 
   };
 }
 
+
+
+async function collectModuleLayoutMetrics(page: Page) {
+  return page.evaluate(() => {
+    function toPx(value: string): number {
+      return Number.parseFloat(value) || 0;
+    }
+
+    const moduleFrame = document.querySelector<HTMLElement>('.module-frame');
+    const hero = moduleFrame?.querySelector<HTMLElement>('.industrial-hero') ?? null;
+    const workbenchPage = moduleFrame?.querySelector<HTMLElement>('.workbench-page') ?? null;
+    const sections = Array.from(document.querySelectorAll<HTMLElement>('.industrial-form-section'));
+
+    const heroStyle = hero ? getComputedStyle(hero) : null;
+    const pageStyle = workbenchPage ? getComputedStyle(workbenchPage) : null;
+    const firstSectionStyle = sections[0] ? getComputedStyle(sections[0]) : null;
+
+    return {
+      hasModuleFrame: Boolean(moduleFrame),
+      hasHero: Boolean(hero),
+      heroPaddingBlock: heroStyle ? Math.round(toPx(heroStyle.paddingTop) + toPx(heroStyle.paddingBottom)) : null,
+      workbenchGap: pageStyle ? Math.round(toPx(pageStyle.gap || pageStyle.rowGap)) : null,
+      sectionPaddingBlock: firstSectionStyle ? Math.round(toPx(firstSectionStyle.paddingTop) + toPx(firstSectionStyle.paddingBottom)) : null,
+    };
+  });
+}
+
 async function collectVisualSamples(page: Page) {
   return page.evaluate(visualProbeScript, {
     surfaceSelectors: VISUAL_QA_SURFACE_SELECTORS,
@@ -197,6 +226,70 @@ test.describe('P11 visual contract across light and dark mode', () => {
 
       await page.keyboard.press('Escape');
       await expect(dialog).toBeHidden();
+    }
+  });
+});
+
+
+test.describe('0.9.5-k HelpDialog visual contract', () => {
+  for (const theme of ['light', 'dark'] as const) {
+    test(`keeps help-on-demand dialogs visually integrated in ${theme} mode`, async ({ page }) => {
+      await setTheme(page, theme);
+      await page.goto('/');
+
+      for (const route of VISUAL_QA_ROUTES.filter((candidate) => isHelpDialogQaRoute(candidate.id))) {
+        await openRoute(page, route.navName);
+        await expect(page.getByRole('heading', { name: route.heading }).first()).toBeVisible();
+
+        const helpButton = page.locator('[data-e2e="industrial-help-button"]').first();
+        await expect(helpButton).toBeVisible();
+        await helpButton.click();
+
+        const dialog = page.locator('[data-e2e="industrial-help-dialog"]');
+        await expect(dialog).toBeVisible();
+
+        const samples = await collectVisualSamples(page);
+        const helpDialogViolations = samples.surfaces.filter((sample) =>
+          /industrial-help-dialog|industrial-modal/.test(sample.className)
+          && (theme === 'light' ? isLightModeDarkFallback(sample) : isDarkModeLightLeak(sample)),
+        );
+        const contrastViolations = samples.surfaces.filter((sample) =>
+          /industrial-help-dialog|industrial-modal/.test(sample.className) && !isReadableSurfaceContrast(sample),
+        );
+
+        expect(helpDialogViolations, `${theme}/${route.id}: Hilfe-Dialog nutzt keine falschen Theme-Flächen`).toEqual([]);
+        expect(contrastViolations, `${theme}/${route.id}: Hilfe-Dialog bleibt lesbar`).toEqual([]);
+
+        await page.keyboard.press('Escape');
+        await expect(dialog).toBeHidden();
+      }
+    });
+  }
+});
+
+
+test.describe('0.9.5-l Modul-Layout-Konsistenz', () => {
+  test('hält alle primären Arbeitsmodule im gemeinsamen Workbench-Abstandsmuster', async ({ page }) => {
+    await setTheme(page, 'light');
+    await page.goto('/');
+
+    for (const route of WORKBENCH_LAYOUT_QA_ROUTES.filter((candidate) => candidate.id !== 'dashboard')) {
+      await openRoute(page, route.navName);
+      await expect(page.getByRole('heading', { name: route.heading }).first()).toBeVisible();
+
+      const metrics = await collectModuleLayoutMetrics(page);
+      expect(metrics.hasModuleFrame, `${route.id}: nutzt ModuleFrame als gemeinsamen Modulrahmen`).toBe(true);
+      expect(metrics.hasHero, `${route.id}: nutzt Industrial-Hero als Modulkopf`).toBe(true);
+      expect(metrics.heroPaddingBlock, `${route.id}: Modulkopf nutzt Standard-Vertikalabstand`).toBeGreaterThanOrEqual(24);
+      expect(metrics.heroPaddingBlock, `${route.id}: Modulkopf nutzt keinen Sonderabstand`).toBeLessThanOrEqual(44);
+      if (metrics.workbenchGap !== null) {
+        expect(metrics.workbenchGap, `${route.id}: Workbench-Elemente nutzen Standard-Gap`).toBeGreaterThanOrEqual(12);
+        expect(metrics.workbenchGap, `${route.id}: Workbench-Elemente nutzen keinen Sonder-Gap`).toBeLessThanOrEqual(28);
+      }
+      if (metrics.sectionPaddingBlock !== null) {
+        expect(metrics.sectionPaddingBlock, `${route.id}: FormSection nutzt Standard-Vertikalabstand`).toBeGreaterThanOrEqual(24);
+        expect(metrics.sectionPaddingBlock, `${route.id}: FormSection nutzt keinen Sonderabstand`).toBeLessThanOrEqual(48);
+      }
     }
   });
 });

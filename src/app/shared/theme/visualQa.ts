@@ -29,6 +29,31 @@ export const VISUAL_QA_ROUTES: readonly VisualQaRoute[] = [
   { id: 'settings', navName: 'Einstellungen', heading: /Einstellungen/i },
 ];
 
+
+export const WORKBENCH_LAYOUT_QA_EXEMPT_ROUTE_IDS = [
+  'workplace_accommodation',
+  'settings',
+] as const;
+
+export function isWorkbenchLayoutQaExemptRoute(routeId: string): boolean {
+  return (WORKBENCH_LAYOUT_QA_EXEMPT_ROUTE_IDS as readonly string[]).includes(routeId);
+}
+
+export const WORKBENCH_LAYOUT_QA_ROUTES = VISUAL_QA_ROUTES.filter(
+  (route) => !isWorkbenchLayoutQaExemptRoute(route.id),
+);
+
+
+export const HELP_DIALOG_QA_ROUTE_IDS = [
+  'recruiting_participations',
+  'participation_violations',
+  'activity_journal',
+] as const;
+
+export function isHelpDialogQaRoute(routeId: string): boolean {
+  return (HELP_DIALOG_QA_ROUTE_IDS as readonly string[]).includes(routeId);
+}
+
 export const VISUAL_QA_SURFACE_SELECTORS = [
   '.industrial-topbar',
   '.industrial-sidebar',

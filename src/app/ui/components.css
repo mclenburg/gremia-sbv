@@ -1436,3 +1436,76 @@ html[data-theme='light'] .text-command-help-group p,
 html[data-theme='light'] .text-command-help-item span {
   color: var(--text-secondary);
 }
+
+.industrial-section-title-row,
+.workbench-header-title-row,
+.industrial-field-label {
+  gap: 0.45rem;
+}
+
+.industrial-section-title-row,
+.workbench-header-title-row {
+  display: inline-flex;
+  align-items: center;
+}
+
+.industrial-help-button {
+  min-width: 1.85rem;
+  min-height: 1.85rem;
+  width: 1.85rem;
+  height: 1.85rem;
+  padding: 0;
+  border-color: rgba(148, 163, 184, 0.38);
+  color: rgb(191, 219, 254);
+  background: rgba(15, 23, 42, 0.64);
+}
+
+.industrial-help-button:hover {
+  border-color: rgba(96, 165, 250, 0.72);
+  color: rgb(219, 234, 254);
+  background: rgba(30, 64, 175, 0.32);
+}
+
+.industrial-help-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.industrial-help-dialog-body {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.industrial-help-block p,
+.industrial-help-list {
+  margin: 0;
+}
+
+.industrial-help-list {
+  padding-left: 1.25rem;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.industrial-help-list li {
+  line-height: 1.45;
+}
+
+html[data-theme='light'] .industrial-help-button {
+  color: rgb(30, 64, 175);
+  border-color: rgba(59, 130, 246, 0.36);
+  background: rgb(239, 246, 255);
+}
+
+html[data-theme='light'] .industrial-help-button:hover {
+  color: rgb(30, 58, 138);
+  border-color: rgba(37, 99, 235, 0.68);
+  background: rgb(219, 234, 254);
+}
+
+.industrial-field-label-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}

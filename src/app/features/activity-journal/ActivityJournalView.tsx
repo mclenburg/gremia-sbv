@@ -82,7 +82,8 @@ export function ActivityJournalView({
     <WorkbenchPage
       kicker="SBV-Nachweislinie"
       title="Tätigkeitsjournal"
-      description="Interne Eigenaufzeichnung der Schwerbehindertenvertretung: keine Arbeitgeber-Zeiterfassung, keine stille Speicherung, keine automatische Übermittlung."
+      description="Interne SBV-Nachweislinie."
+      helpId="activityJournal.overview"
     >
       <ModuleFeedback items={[
         journal.message ? { id: 'activity-journal-message', tone: 'success', message: journal.message } : null,
@@ -93,7 +94,7 @@ export function ActivityJournalView({
         <FormSection
           kicker="Schnellerfassung"
           title="Tätigkeit erfassen"
-          description="Gespeichert wird erst mit Klick auf „Speichern“. Zeitangaben sind optional und bleiben SBV-Selbstdokumentation."
+          helpId="activityJournal.capture"
           actions={<Plus className="h-5 w-5 text-yellow-300" aria-hidden="true" />}
         >
           <div className="industrial-form-grid industrial-form-grid-auto">
@@ -149,7 +150,7 @@ export function ActivityJournalView({
               value={journal.form.description}
               wide
               textCommandFieldId="activity-journal-description"
-              helpText={journal.form.category === 'sbv_self_organization' ? 'Bei SBV-Selbstorganisation bitte konkret beschreiben, was organisiert wurde.' : undefined}
+              helpId="activityJournal.textCommands"
               onValueChange={journal.updateDescription}
             />
             <TextareaInput
@@ -180,8 +181,7 @@ export function ActivityJournalView({
               onCheckedChange={(performedOutsideContractWorkTime) => journal.setForm({ ...journal.form, performedOutsideContractWorkTime })}
             />
           </div>
-          <FormActions align="between">
-            <span className="industrial-settings-note">Hinweis: interne SBV-Selbstdokumentation, keine Arbeitgeberabrechnung.</span>
+          <FormActions align="end">
             <IndustrialButton loading={journal.busy} disabled={!journal.form.title.trim()} onClick={() => void journal.saveEntry()}>
               Speichern
             </IndustrialButton>

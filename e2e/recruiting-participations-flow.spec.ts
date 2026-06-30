@@ -42,7 +42,7 @@ test('tracks recruiting participation without case file and opens violation only
 
   await page.getByRole('button', { name: 'Beteiligungsverstoß prüfen', exact: true }).click();
   await expect(page.getByRole('heading', { name: /Beteiligungsverstöße/i }).first()).toBeVisible();
-  await expect(page.getByLabel('Ausgangskontext')).toHaveValue('recruiting_participation');
+  await expect(page.getByLabel('Ausgangskontext', { exact: true })).toHaveValue('recruiting_participation');
   await expect(page.getByLabel('Betreff')).toHaveValue(/Beteiligungsverstoß Stellenbesetzung REC-095E/);
   await expect(page.getByText('Klarname Test darf nicht ins Journal')).toHaveCount(0);
   await expect(page.getByRole('table', { name: 'Beteiligungsverstöße' })).not.toContainText('REC-095E');

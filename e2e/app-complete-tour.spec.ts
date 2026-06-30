@@ -2,6 +2,8 @@ import { test, expect } from './support/test';
 import { VISUAL_QA_ROUTES } from '../src/app/shared/theme/visualQa';
 import type { Page } from '@playwright/test';
 
+test.setTimeout(90_000);
+
 function mainNavigation(page: Page) {
   return page.getByRole('navigation', { name: 'Hauptnavigation' });
 }

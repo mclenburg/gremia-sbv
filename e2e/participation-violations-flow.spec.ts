@@ -9,7 +9,7 @@ test('creates participation violation only after explicit context and announces 
   await mainNavigation(page).getByRole('button', { name: 'Verstöße', exact: true }).click();
 
   await expect(page.getByRole('heading', { name: /Beteiligungsverstöße/i }).first()).toBeVisible();
-  await expect(page.getByLabel('Ausgangskontext')).toHaveValue('case_measure_participation');
+  await expect(page.getByLabel('Ausgangskontext', { exact: true })).toHaveValue('case_measure_participation');
   await expect(page.getByLabel('Fall allgemein wählen')).toBeDisabled();
 
   await page.getByRole('button', { name: /Verstoß bewusst speichern/ }).click();

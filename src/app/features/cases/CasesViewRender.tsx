@@ -1,4 +1,5 @@
 import { AlertTriangle, CheckCircle2, Trash2 } from "lucide-react";
+import { ModuleFrame } from "../../shared/components/ModuleFrame";
 import { CasesViewLayout } from "./CasesViewLayout";
 import { CasesViewHeader } from "./CasesViewHeader";
 import { CasesViewToolbar } from "./CasesViewToolbar";
@@ -94,27 +95,33 @@ export function CasesViewRender(props: CasesViewRenderProps) {
         }
         processTypeLabel={processTypeLabel}
       />
-      <CaseRegister
-        filteredCount={filteredCases.length}
-        visibleCases={visibleCases}
-        selectedCaseId={selectedCaseId}
-        caseFilter={caseFilter}
-        onCaseFilterChange={(value) => {
-          setCaseFilter(value);
-          setCaseRegisterPage(1);
-        }}
-        onSelectCase={setSelectedCaseId}
-        onCreateCase={openCaseCreateModal}
-        onImportHandover={props.onOpenImportHandover}
-        onBulkMarkClosedLegacyCases={() => void bulkMarkClosedLegacyCases()}
-        closedLegacyBulkCount={closedLegacyBulkCount}
-        page={normalizedCaseRegisterPage}
-        pageCount={caseRegisterPageCount}
-        pageSize={caseRegisterPageSize}
-        onPageChange={setCaseRegisterPage}
-      />
+      <ModuleFrame
+        title="Fälle"
+        kicker="Fallakten"
+        description="Fallakten, Notizen, Prozesse und Unterlagen bearbeiten."
+        compact
+      >
+        <CaseRegister
+          filteredCount={filteredCases.length}
+          visibleCases={visibleCases}
+          selectedCaseId={selectedCaseId}
+          caseFilter={caseFilter}
+          onCaseFilterChange={(value) => {
+            setCaseFilter(value);
+            setCaseRegisterPage(1);
+          }}
+          onSelectCase={setSelectedCaseId}
+          onCreateCase={openCaseCreateModal}
+          onImportHandover={props.onOpenImportHandover}
+          onBulkMarkClosedLegacyCases={() => void bulkMarkClosedLegacyCases()}
+          closedLegacyBulkCount={closedLegacyBulkCount}
+          page={normalizedCaseRegisterPage}
+          pageCount={caseRegisterPageCount}
+          pageSize={caseRegisterPageSize}
+          onPageChange={setCaseRegisterPage}
+        />
 
-      <section className="case-workbench">
+        <section className="case-workbench">
         <CaseTreePanel
           selectedCase={selectedCase}
           notes={notes}
@@ -396,7 +403,8 @@ export function CasesViewRender(props: CasesViewRenderProps) {
             onProcess={openCaseProcessDraft}
           />
         </CaseDetailPanel>
-      </section>
+        </section>
+      </ModuleFrame>
 
       <CaseCreateModal
         open={isCaseCreateModalOpen}

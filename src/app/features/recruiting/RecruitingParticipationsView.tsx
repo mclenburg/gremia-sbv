@@ -379,7 +379,8 @@ export function RecruitingParticipationsView({
     <ModuleFrame
       title="Stellenbesetzungen"
       kicker="§ 178 Abs. 2 SGB IX"
-      description="Fallaktenunabhängige Nachhaltung von Stellenbesetzungsverfahren mit schwerbehinderten oder gleichgestellten Bewerbungen. Fokus: Beteiligung, Unterlagen und Anhörung der SBV vor Auswahlentscheidung – kein Gesprächsprotokoll."
+      description="SBV-Beteiligung bei Stellenbesetzungen nachhalten."
+      helpId="recruiting.overview"
       compact
     >
       <ModuleFeedback items={[
@@ -425,7 +426,8 @@ export function RecruitingParticipationsView({
           <FormSection
             kicker="Verfahrensdaten"
             title={selected ? 'Stellenbesetzung bearbeiten' : 'Stellenbesetzung anlegen'}
-            description="Dokumentiere nur den Verfahrensstand. Keine Gesprächsinhalte, Diagnosen oder Eignungsbewertungen erfassen."
+            description="Verfahrensstand und Anhörung vor Auswahlentscheidung."
+            helpId="recruiting.procedureData"
             actions={selected ? (
               <ActivityJournalContextButton
                 compact
@@ -441,7 +443,7 @@ export function RecruitingParticipationsView({
           >
             <div className="industrial-form-grid">
               <TextInput label="Stelle / Bezeichnung" required value={form.vacancyTitle} onValueChange={(value) => updateForm({ vacancyTitle: value })} />
-              <TextInput label="Kennziffer" value={form.vacancyReference} onValueChange={(value) => updateForm({ vacancyReference: value })} helpText="Stellenkennziffer, keine Bewerberreferenz." />
+              <TextInput label="Kennziffer" value={form.vacancyReference} onValueChange={(value) => updateForm({ vacancyReference: value })} />
               <TextInput label="Organisationseinheit" value={form.department} onValueChange={(value) => updateForm({ department: value })} />
               <TextInput label="Ort / Standort" value={form.location} onValueChange={(value) => updateForm({ location: value })} />
               <SelectInput label="Status" value={form.status} options={statusOptions} onValueChange={(value) => updateForm({ status: value as RecruitingParticipationStatus })} />
@@ -458,9 +460,9 @@ export function RecruitingParticipationsView({
               <CheckboxField label="SBV zu allen bekannten Gesprächen eingeladen" checked={form.sbvInvitedToAllKnownInterviews} onCheckedChange={(checked) => updateForm({ sbvInvitedToAllKnownInterviews: checked })} />
               <CheckboxField label="SBV hat teilgenommen" checked={form.sbvParticipated} onCheckedChange={(checked) => updateForm({ sbvParticipated: checked })} />
               <CheckboxField label="Entscheidung vor SBV-Anhörung dokumentiert" checked={form.decisionBeforeHearing} onCheckedChange={(checked) => updateForm({ decisionBeforeHearing: checked, flaggedForViolationReview: checked ? true : form.flaggedForViolationReview, violationReviewReason: checked ? 'decision_before_hearing' : form.violationReviewReason })} />
-              <CheckboxField label="Zur Verstoßprüfung vormerken" checked={form.flaggedForViolationReview} onCheckedChange={(checked) => updateForm({ flaggedForViolationReview: checked })} helpText="Es wird noch kein Beteiligungsverstoß angelegt. Nutze die separate Aktion zur bewussten Verstoßprüfung." />
+              <CheckboxField label="Zur Verstoßprüfung vormerken" checked={form.flaggedForViolationReview} onCheckedChange={(checked) => updateForm({ flaggedForViolationReview: checked })} helpId="participationViolations.sourceContext" />
               {form.flaggedForViolationReview ? <SelectInput label="Prüfanlass" value={form.violationReviewReason} options={violationReasonOptions} onValueChange={(value) => updateForm({ violationReviewReason: value as RecruitingViolationReviewReason })} /> : null}
-              <TextareaInput label="Verfahrensnotiz" wide value={form.notes} onValueChange={(value) => updateForm({ notes: value })} helpText="Keine Diagnosen, Gesprächsinhalte oder Eignungsbewertungen dokumentieren." />
+              <TextareaInput label="Verfahrensnotiz" wide value={form.notes} onValueChange={(value) => updateForm({ notes: value })} helpId="recruiting.proceduralNote" />
             </div>
             <div className="industrial-action-row mt-4">
               {selected ? (
@@ -476,10 +478,10 @@ export function RecruitingParticipationsView({
 
           {selected ? (
             <>
-              <FormSection kicker="Vorstellungsgespräche" title="Beteiligungsereignis hinzufügen" description="Erfasst wird nur, ob und wie die SBV beteiligt war. Kein inhaltliches Gesprächsprotokoll.">
+              <FormSection kicker="Vorstellungsgespräche" title="Beteiligungsereignis hinzufügen" helpId="recruiting.interviewEvent">
                 <div className="industrial-form-grid">
                   <DateInput label="Gesprächsdatum" value={interviewForm.interviewDate} onValueChange={(value) => updateInterviewForm({ interviewDate: value })} />
-                  <TextInput label="Bewerbungsreferenz" value={interviewForm.applicantRef} onValueChange={(value) => updateInterviewForm({ applicantRef: value })} helpText="Standard ist eine anonyme Referenz wie Bewerbung 1. Klarnamen nur bewusst verwenden." />
+                  <TextInput label="Bewerbungsreferenz" value={interviewForm.applicantRef} onValueChange={(value) => updateInterviewForm({ applicantRef: value })} helpId="recruiting.applicantReference" />
                   <SelectInput label="Referenzmodus" value={interviewForm.applicantReferenceMode} options={applicantReferenceModeOptions} onValueChange={(value) => updateInterviewForm({ applicantReferenceMode: value as RecruitingApplicantReferenceMode })} />
                   <SelectInput label="Schutzstatus im Verfahren" value={interviewForm.applicantStatus} options={applicantStatusOptions} onValueChange={(value) => updateInterviewForm({ applicantStatus: value as RecruitingApplicantStatus })} />
                   <DateInput label="SBV-Einladung am" value={interviewForm.sbvInvitationDate} onValueChange={(value) => updateInterviewForm({ sbvInvitationDate: value })} />
@@ -487,14 +489,14 @@ export function RecruitingParticipationsView({
                   <CheckboxField label="SBV eingeladen" checked={interviewForm.sbvInvited} onCheckedChange={(checked) => updateInterviewForm({ sbvInvited: checked })} />
                   <CheckboxField label="SBV teilgenommen" checked={interviewForm.sbvAttended} onCheckedChange={(checked) => updateInterviewForm({ sbvAttended: checked })} />
                   <CheckboxField label="Nachhaltung erforderlich" checked={interviewForm.followUpNeeded} onCheckedChange={(checked) => updateInterviewForm({ followUpNeeded: checked })} />
-                  <TextareaInput label="Verfahrensnotiz zum Ereignis" wide value={interviewForm.proceduralNote} onValueChange={(value) => updateInterviewForm({ proceduralNote: value })} helpText="Der Inhalt wird nicht in Audit-Diffs gespiegelt. Keine Gesprächsinhalte, Diagnosen oder Bewertungen erfassen." />
+                  <TextareaInput label="Verfahrensnotiz zum Ereignis" wide value={interviewForm.proceduralNote} onValueChange={(value) => updateInterviewForm({ proceduralNote: value })} helpId="recruiting.proceduralNote" />
                 </div>
                 <div className="industrial-action-row mt-4">
                   <IndustrialButton loading={saving} onClick={() => void addInterview()}><BriefcaseBusiness className="h-4 w-4" /> Gespräch erfassen</IndustrialButton>
                 </div>
               </FormSection>
 
-              <FormSection kicker="Nachhaltung" title="Wiedervorlage bewusst anlegen" description="Fristen werden nicht still erzeugt. Lege sie nur an, wenn du Unterlagen, Anhörung oder Arbeitgeberentscheidung aktiv nachhalten willst.">
+              <FormSection kicker="Nachhaltung" title="Wiedervorlage anlegen" helpId="recruiting.deadlineFollowUp">
                 <div className="industrial-form-grid">
                   <DateInput label="Wiedervorlage am" value={followUpDueAt} onValueChange={setFollowUpDueAt} />
                 </div>

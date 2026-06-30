@@ -8,6 +8,8 @@ import type {
 } from "react";
 import { isValidElement, useEffect, useId, useState } from "react";
 import { TextCommandTextarea, type TextCommandTextareaChange } from "../textCommands/TextCommandTextarea";
+import { IndustrialHelpButton } from "../help/IndustrialHelp";
+import type { HelpRegistryId } from "../help/helpRegistry";
 
 export type IndustrialFieldOption = {
   value: string;
@@ -17,6 +19,7 @@ export type IndustrialFieldOption = {
 type FieldChromeProps = {
   label: string;
   helpText?: ReactNode;
+  helpId?: HelpRegistryId;
   error?: ReactNode;
   required?: boolean;
   wide?: boolean;
@@ -34,8 +37,8 @@ function joinClassNames(
   return classes.filter(Boolean).join(" ");
 }
 
-function describedById(helpId?: string, errorId?: string): string | undefined {
-  return [helpId, errorId].filter(Boolean).join(" ") || undefined;
+function describedById(helpTextId?: string, errorId?: string): string | undefined {
+  return [helpTextId, errorId].filter(Boolean).join(" ") || undefined;
 }
 
 export function FormSection({
@@ -46,6 +49,7 @@ export function FormSection({
   actions,
   className,
   ariaLabel,
+  helpId,
 }: {
   children: ReactNode;
   title?: string;
@@ -54,19 +58,27 @@ export function FormSection({
   actions?: ReactNode;
   className?: string;
   ariaLabel?: string;
+  helpId?: HelpRegistryId;
 }) {
   const headingId = useId();
   return (
     <section
-      className={joinClassNames("industrial-form-section", className)}
+      className={joinClassNames("industrial-form-section", "industrial-panel", className)}
       aria-label={ariaLabel ?? (title ? undefined : "Formularabschnitt")}
       aria-labelledby={title ? headingId : undefined}
     >
-      {title || description || actions ? (
+      {title || description || actions || helpId ? (
         <div className="industrial-panel-header compact">
           <div>
             {kicker ? <p className="industrial-kicker">{kicker}</p> : null}
-            {title ? <h2 id={headingId}>{title}</h2> : null}
+            {title ? (
+              <div className="industrial-section-title-row">
+                <h2 id={headingId}>{title}</h2>
+                {helpId ? <IndustrialHelpButton helpId={helpId} label="Abschnittshilfe öffnen" /> : null}
+              </div>
+            ) : helpId ? (
+              <IndustrialHelpButton helpId={helpId} label="Abschnittshilfe öffnen" />
+            ) : null}
             {description ? <p>{description}</p> : null}
           </div>
           {actions ? (
@@ -82,6 +94,7 @@ export function FormSection({
 export function FormField({
   label,
   helpText,
+  helpId: helpRegistryId,
   error,
   required = false,
   wide = false,
@@ -89,7 +102,7 @@ export function FormField({
   children,
 }: FieldChromeProps) {
   const id = useId();
-  const helpId = helpText ? `${id}-help` : undefined;
+  const helpTextId = helpText ? `${id}-help` : undefined;
   const errorId = error ? `${id}-error` : undefined;
   const invalid = Boolean(error);
 
@@ -102,21 +115,24 @@ export function FormField({
         className,
       )}
     >
-      <label className="industrial-field-label" htmlFor={id}>
-        <span>{label}</span>
-        {required ? (
-          <span className="industrial-field-required-marker" aria-hidden="true">
-            *
-          </span>
-        ) : null}
-      </label>
+      <div className="industrial-field-label-row">
+        <label className="industrial-field-label" htmlFor={id}>
+          <span className="industrial-field-label-text">{label}</span>
+          {required ? (
+            <span className="industrial-field-required-marker" aria-hidden="true">
+              *
+            </span>
+          ) : null}
+        </label>
+        {helpRegistryId ? <IndustrialHelpButton helpId={helpRegistryId} label="Feldhilfe öffnen" /> : null}
+      </div>
       {children({
         id,
-        describedBy: describedById(helpId, errorId),
+        describedBy: describedById(helpTextId, errorId),
         invalid,
       })}
       {helpText ? (
-        <p className="industrial-field-help" id={helpId}>
+        <p className="industrial-field-help" id={helpTextId}>
           {helpText}
         </p>
       ) : null}
@@ -137,6 +153,7 @@ type TextInputProps = Omit<
   value: string;
   onValueChange: (value: string) => void;
   helpText?: ReactNode;
+  helpId?: HelpRegistryId;
   error?: ReactNode;
   wide?: boolean;
 };
@@ -146,6 +163,7 @@ export function TextInput({
   value,
   onValueChange,
   helpText,
+  helpId: helpRegistryId,
   error,
   wide,
   required,
@@ -156,6 +174,7 @@ export function TextInput({
     <FormField
       label={label}
       helpText={helpText}
+      helpId={helpRegistryId}
       error={error}
       wide={wide}
       required={required}
@@ -214,6 +233,7 @@ type TextareaInputProps = Omit<
   value: string;
   onValueChange: (value: string) => void;
   helpText?: ReactNode;
+  helpId?: HelpRegistryId;
   error?: ReactNode;
   wide?: boolean;
   textCommandFieldId?: string;
@@ -227,6 +247,7 @@ export function TextareaInput({
   value,
   onValueChange,
   helpText,
+  helpId: helpRegistryId,
   error,
   wide,
   required,
@@ -241,6 +262,7 @@ export function TextareaInput({
     <FormField
       label={label}
       helpText={helpText}
+      helpId={helpRegistryId}
       error={error}
       wide={wide}
       required={required}
@@ -279,6 +301,7 @@ type DeferredTextInputProps = Omit<
   value?: string | number | null;
   onCommit: (value: string) => void | Promise<void>;
   helpText?: ReactNode;
+  helpId?: HelpRegistryId;
   error?: ReactNode;
   wide?: boolean;
 };
@@ -294,6 +317,7 @@ export function DeferredTextInput({
   value,
   onCommit,
   helpText,
+  helpId: helpRegistryId,
   error,
   wide,
   required,
@@ -318,6 +342,7 @@ export function DeferredTextInput({
     <FormField
       label={label}
       helpText={helpText}
+      helpId={helpRegistryId}
       error={error}
       wide={wide}
       required={required}
@@ -359,6 +384,7 @@ type DeferredTextareaInputProps = Omit<
   value?: string | null;
   onCommit: (value: string) => void | Promise<void>;
   helpText?: ReactNode;
+  helpId?: HelpRegistryId;
   error?: ReactNode;
   wide?: boolean;
   textCommandFieldId?: string;
@@ -372,6 +398,7 @@ export function DeferredTextareaInput({
   value,
   onCommit,
   helpText,
+  helpId: helpRegistryId,
   error,
   wide,
   required,
@@ -400,6 +427,7 @@ export function DeferredTextareaInput({
     <FormField
       label={label}
       helpText={helpText}
+      helpId={helpRegistryId}
       error={error}
       wide={wide}
       required={required}
@@ -440,6 +468,7 @@ type SelectInputProps = Omit<
   options: IndustrialFieldOption[];
   onValueChange: (value: string) => void;
   helpText?: ReactNode;
+  helpId?: HelpRegistryId;
   error?: ReactNode;
   wide?: boolean;
 };
@@ -450,6 +479,7 @@ export function SelectInput({
   options,
   onValueChange,
   helpText,
+  helpId: helpRegistryId,
   error,
   wide,
   required,
@@ -460,6 +490,7 @@ export function SelectInput({
     <FormField
       label={label}
       helpText={helpText}
+      helpId={helpRegistryId}
       error={error}
       wide={wide}
       required={required}
@@ -497,6 +528,7 @@ export function CheckboxField({
   checked,
   onCheckedChange,
   helpText,
+  helpId: helpRegistryId,
   error,
   wide = false,
   required = false,
@@ -510,6 +542,7 @@ export function CheckboxField({
   checked: boolean;
   onCheckedChange: (checked: boolean) => void;
   helpText?: ReactNode;
+  helpId?: HelpRegistryId;
   error?: ReactNode;
   wide?: boolean;
 }) {
@@ -517,6 +550,7 @@ export function CheckboxField({
     <FormField
       label={label}
       helpText={helpText}
+      helpId={helpRegistryId}
       error={error}
       wide={wide}
       required={required}

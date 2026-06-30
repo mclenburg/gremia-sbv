@@ -8,6 +8,7 @@ import { DEADLINE_PROCESS_TYPES } from '../src/app/core/models/deadline.model';
 import { buildFromContext } from '../services/activityJournalPrefill';
 import { LiveRegionProvider } from '../src/app/shared/a11y/LiveRegionProvider';
 import { renderElement, visibleText } from './helpers/renderedMarkup';
+import { HELP_REGISTRY } from '../src/app/shared/help/helpRegistry';
 
 function recruitingRecord(overrides: Partial<RecruitingParticipationRecord> = {}): RecruitingParticipationRecord {
   return {
@@ -45,7 +46,8 @@ describe('Stellenbesetzungen 0.9.5-b UI- und Kontextintegration', () => {
     const text = visibleText(markup);
 
     expect(text).toContain('Stellenbesetzungen');
-    expect(text).toContain('kein Gesprächsprotokoll');
+    expect(text).toContain('SBV-Beteiligung bei Stellenbesetzungen nachhalten.');
+    expect(JSON.stringify(HELP_REGISTRY['recruiting.overview'])).toContain('Gesprächsinhalte');
     expect(text).toContain('Anhörung offen');
     expect(text).toContain('Unterlagen offen');
     expect(text).toContain('Verstoßprüfung');

@@ -1,8 +1,11 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
+  HELP_DIALOG_QA_ROUTE_IDS,
   VISUAL_QA_ROUTES,
   VISUAL_QA_CONTROL_SELECTORS,
+  WORKBENCH_LAYOUT_QA_EXEMPT_ROUTE_IDS,
+  WORKBENCH_LAYOUT_QA_ROUTES,
   isDarkModeLightLeak,
   isLightModeDarkFallback,
   isReadableSurfaceContrast,
@@ -67,6 +70,30 @@ describe('P11 visual QA contract', () => {
   it('checks luminance contrast as behavior instead of screenshot snapshots', () => {
     expect(isReadableSurfaceContrast(sample({ backgroundLuminance: 235, textLuminance: 28 }))).toBe(true);
     expect(isReadableSurfaceContrast(sample({ backgroundLuminance: 128, textLuminance: 117 }))).toBe(false);
+  });
+
+
+
+  it('trennt Visual-/Axe-Abdeckung von strengem Workbench-Layout-Vertrag', () => {
+    expect(WORKBENCH_LAYOUT_QA_EXEMPT_ROUTE_IDS).toEqual(['workplace_accommodation', 'settings']);
+
+    const visualRouteIds = new Set(VISUAL_QA_ROUTES.map((route) => route.id));
+    const workbenchRouteIds = new Set(WORKBENCH_LAYOUT_QA_ROUTES.map((route) => route.id));
+
+    expect(visualRouteIds.has('workplace_accommodation')).toBe(true);
+    expect(visualRouteIds.has('settings')).toBe(true);
+    expect(workbenchRouteIds.has('workplace_accommodation')).toBe(false);
+    expect(workbenchRouteIds.has('settings')).toBe(false);
+    expect(workbenchRouteIds.has('recruiting_participations')).toBe(true);
+    expect(workbenchRouteIds.has('participation_violations')).toBe(true);
+  });
+
+
+  it('bindet priorisierte HelpDialog-Module an die Visual-QA-Matrix', () => {
+    const routeIds = new Set(VISUAL_QA_ROUTES.map((route) => route.id));
+    for (const routeId of HELP_DIALOG_QA_ROUTE_IDS) {
+      expect(routeIds.has(routeId)).toBe(true);
+    }
   });
 
   it('bindet alle nativen Modal-Controls an den zentralen Industrial-Formular-Chrome', () => {
