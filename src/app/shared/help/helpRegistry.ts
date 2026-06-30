@@ -99,6 +99,31 @@ export const HELP_REGISTRY = {
       },
     ],
   },
+
+  "bem.overview": {
+    id: "bem.overview",
+    kicker: "BEM",
+    title: "BEM-Übersicht",
+    summary: "Die Übersicht zeigt fallbezogene BEM-Verfahren und öffnet den jeweiligen Vorgang in der Fallakte.",
+    blocks: [
+      {
+        type: "paragraph",
+        text: "Neue BEM-Verfahren werden in der Fallakte angelegt, damit der Fallbezug eindeutig bleibt. Die Übersicht dient nur der Nachhaltung und Navigation.",
+      },
+    ],
+  },
+  "prevention.overview": {
+    id: "prevention.overview",
+    kicker: "Prävention",
+    title: "Präventionsübersicht",
+    summary: "Die Übersicht bündelt fallbezogene Präventionsverfahren und öffnet den jeweiligen Vorgang in der Fallakte.",
+    blocks: [
+      {
+        type: "paragraph",
+        text: "Die Bearbeitung bleibt in der Fallakte. Die Übersicht zeigt Status, Fristen und Risiken, damit offene Verfahren nicht untergehen.",
+      },
+    ],
+  },
   "activityJournal.overview": {
     id: "activityJournal.overview",
     kicker: "Tätigkeitsjournal",

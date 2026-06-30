@@ -2305,3 +2305,27 @@ html[data-theme='light'] .text-command-help-modal .industrial-icon-button {
 .industrial-import-package-warnings li {
   margin: 0;
 }
+
+html[data-theme='light'] .person-lifecycle-badge.ok {
+  border-color: rgba(21, 128, 61, 0.48);
+  background: rgba(187, 247, 208, 0.9);
+  color: #14532d;
+}
+
+html[data-theme='light'] .person-lifecycle-badge.warning {
+  border-color: rgba(161, 98, 7, 0.5);
+  background: rgba(254, 240, 138, 0.9);
+  color: #713f12;
+}
+
+html[data-theme='light'] .person-lifecycle-badge.critical {
+  border-color: rgba(185, 28, 28, 0.5);
+  background: rgba(254, 226, 226, 0.92);
+  color: #7f1d1d;
+}
+
+html[data-theme='light'] .person-lifecycle-badge.muted {
+  border-color: rgba(71, 85, 105, 0.34);
+  background: rgba(226, 232, 240, 0.86);
+  color: #334155;
+}

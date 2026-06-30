@@ -1509,3 +1509,28 @@ html[data-theme='light'] .industrial-help-button:hover {
   align-items: center;
   gap: 0.45rem;
 }
+
+
+/* Legacy help affordances are visually normalized until the owning modules migrate to IndustrialHelpButton. */
+.industrial-help-dot,
+.template-help-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.85rem;
+  min-height: 1.85rem;
+  width: 1.85rem;
+  height: 1.85rem;
+  padding: 0;
+  border: 1px solid rgba(148, 163, 184, 0.38);
+  border-radius: var(--control-radius);
+  color: rgb(191, 219, 254);
+  background: rgba(15, 23, 42, 0.64);
+}
+
+html[data-theme='light'] .industrial-help-dot,
+html[data-theme='light'] .template-help-button {
+  color: rgb(30, 64, 175);
+  border-color: rgba(59, 130, 246, 0.36);
+  background: rgb(239, 246, 255);
+}
