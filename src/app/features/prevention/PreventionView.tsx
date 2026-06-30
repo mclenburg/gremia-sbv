@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import { HelpCircle } from 'lucide-react';
 import type { CaseRecord } from '../../core/models/case.model';
 import type { PreventionProcessRecord, PreventionStatus } from '../../core/models/prevention.model';
 import type { CaseNodeTarget } from '../../core/navigation/caseNodeTarget';
@@ -13,15 +12,8 @@ import {
   isIsoBeforeNow,
   type ProcessOverviewCardModel
 } from '../../shared/process/ProcessOverview';
+import { IndustrialHelpButton } from '../../shared/help/IndustrialHelp';
 import { PREVENTION_OVERVIEW_STATUS_ORDER, isDonePreventionStatus, statusLabel } from './preventionShared';
-
-function StepTooltip({ text }: { text: string }) {
-  return (
-    <span className="industrial-help-dot" title={text} role="img" aria-label={text}>
-      <HelpCircle className="h-3.5 w-3.5" aria-hidden="true" />
-    </span>
-  );
-}
 
 export function PreventionView({
   cases,
@@ -108,7 +100,7 @@ export function PreventionView({
         groups={groups}
         feedbackItems={[loading ? { id: 'prevention-loading', message: 'Präventionsverfahren werden geladen …' } : null, error ? { id: 'prevention-error', tone: 'warning', message: error } : null]}
         emptyText="Keine Verfahren in diesem Status."
-        helpAction={<StepTooltip text="Klick auf eine Karte öffnet die Fallakte direkt am Präventionsverfahren." />}
+        helpAction={<IndustrialHelpButton helpId="prevention.overview" label="Bereichshilfe öffnen" />}
         renderItem={(item) => (
           <ProcessOverviewCard
             key={item.id}

@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import { HelpCircle } from 'lucide-react';
 import type { CaseRecord } from '../../core/models/case.model';
 import type { BemProcessRecord, BemStatus } from '../../core/models/bem.model';
 import type { CaseNodeTarget } from '../../core/navigation/caseNodeTarget';
@@ -13,7 +12,7 @@ import {
   isIsoBeforeNow,
   type ProcessOverviewCardModel
 } from '../../shared/process/ProcessOverview';
-import { ToolbarButton, IndustrialButton } from '../../shared/components/IndustrialButton';
+import { IndustrialHelpButton } from '../../shared/help/IndustrialHelp';
 import { BEM_OVERVIEW_STATUS_ORDER, bemStatusLabel, isDoneBemStatus } from './bemShared';
 
 type BemOverviewCardModel = ProcessOverviewCardModel<BemStatus> & {
@@ -42,7 +41,6 @@ export function BemView({ cases, onOpenCaseNode }: { cases: CaseRecord[]; onOpen
   const [processes, setProcesses] = useState<BemProcessRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [showHelp, setShowHelp] = useState(false);
   const announce = useAnnouncer();
 
   useEffect(() => {
@@ -104,12 +102,7 @@ export function BemView({ cases, onOpenCaseNode }: { cases: CaseRecord[]; onOpen
         groups={groups}
         feedbackItems={[loading ? { id: 'bem-loading', message: 'BEM-Verfahren werden geladen …' } : null, error ? { id: 'bem-error', tone: 'warning', message: error } : null]}
         emptyText="Keine BEM-Verfahren in diesem Status."
-        helpAction={(
-          <ToolbarButton onClick={() => setShowHelp(true)} aria-label="Hilfe zur BEM-Übersicht öffnen">
-            <HelpCircle className="h-4 w-4" />
-            Hilfe
-          </ToolbarButton>
-        )}
+        helpAction={<IndustrialHelpButton helpId="bem.overview" label="Bereichshilfe öffnen" />}
         renderItem={(card) => (
           <ProcessOverviewCard
             key={card.id}
@@ -121,18 +114,6 @@ export function BemView({ cases, onOpenCaseNode }: { cases: CaseRecord[]; onOpen
         {!loading && !error && groups.length === 0 && <div className="industrial-empty">Noch keine BEM-Verfahren vorhanden. Lege ein BEM-Verfahren in der Fallakte über die Fußleiste an.</div>}
       </ProcessOverviewPage>
 
-      {showHelp && (
-        <div className="industrial-modal-backdrop" role="dialog" aria-modal="true">
-          <section className="industrial-modal">
-            <h2>BEM-Übersicht</h2>
-            <p>Diese Seite ist eine reine Übersicht. Mit einem Klick auf ein BEM-Verfahren öffnet sich die Fallakte direkt an der passenden Maßnahme.</p>
-            <p>Neue BEM-Verfahren werden in der Fallakte über die Fußleiste angelegt, damit der Fallbezug eindeutig bleibt.</p>
-            <div className="industrial-modal-actions">
-              <IndustrialButton onClick={() => setShowHelp(false)}>Verstanden</IndustrialButton>
-            </div>
-          </section>
-        </div>
-      )}
     </>
   );
 }
