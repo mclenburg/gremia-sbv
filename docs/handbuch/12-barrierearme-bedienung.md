@@ -27,6 +27,15 @@ Formulare und Fehlermeldungen sollen so aufgebaut sein, dass Screenreader erkenn
 
 Live-Rückmeldungen sollen wichtige Änderungen ankündigen, aber nicht jeden kleinen Zustand übermäßig laut melden.
 
+
+## Hilfe auf Abruf
+
+Die Arbeitsmasken zeigen längere Erklärungen nicht dauerhaft an. Bereichshilfen öffnest du über den rechteckigen Button **? Hilfe**. Feldhilfen stehen direkt neben einzelnen Eingaben als kleinere Hilfe-Schaltfläche.
+
+Die Hilfen öffnen einen Dialog. Er ist per Tastatur erreichbar, kann mit Escape geschlossen werden und gibt den Fokus danach an den auslösenden Hilfe-Button zurück.
+
+Echte Warnungen werden nicht versteckt. Fehlermeldungen, Löschhinweise, Restore-/Backup-Warnungen und Hinweise bei scharfer Eskalation bleiben sichtbar in der Maske.
+
 ## Lesbarkeit
 
 Für gute Lesbarkeit wichtig:

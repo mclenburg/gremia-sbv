@@ -177,9 +177,6 @@ export function App() {
   const switchToLockedSession = useCallback(() => {
     setUnlocked(false);
     setAuthMode("login");
-    setCurrentView("dashboard");
-    setCaseNodeTarget(null);
-    setSelectedDeadline(null);
   }, []);
 
   useAutoLock({

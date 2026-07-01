@@ -1449,21 +1449,54 @@ html[data-theme='light'] .text-command-help-item span {
   align-items: center;
 }
 
+/* Hilfe-on-demand: einheitlicher Industrial-Hilfebutton im BEM-/Kündigungsstil. */
 .industrial-help-button {
-  min-width: 1.85rem;
-  min-height: 1.85rem;
-  width: 1.85rem;
-  height: 1.85rem;
-  padding: 0;
-  border-color: rgba(148, 163, 184, 0.38);
-  color: rgb(191, 219, 254);
-  background: rgba(15, 23, 42, 0.64);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 8px 10px;
+  border: 1px solid var(--sbv-border-hard, var(--industrial-border-strong));
+  border-radius: var(--control-radius);
+  background: rgba(9, 9, 11, 0.84);
+  color: var(--industrial-text, var(--sbv-text));
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
-.industrial-help-button:hover {
-  border-color: rgba(96, 165, 250, 0.72);
-  color: rgb(219, 234, 254);
-  background: rgba(30, 64, 175, 0.32);
+.industrial-help-button:hover,
+.industrial-help-button:focus-visible {
+  border-color: var(--industrial-accent);
+  color: var(--industrial-accent);
+  background: rgba(9, 9, 11, 0.84);
+}
+
+.industrial-help-button .industrial-help-button-text {
+  line-height: 1;
+}
+
+.industrial-help-button.is-compact,
+.industrial-field-label-row .industrial-help-button {
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0;
+}
+
+.industrial-help-button.is-compact svg,
+.industrial-field-label-row .industrial-help-button svg {
+  width: 0.85rem;
+  height: 0.85rem;
+}
+
+.industrial-help-button.is-compact .industrial-help-button-text,
+.industrial-field-label-row .industrial-help-button .industrial-help-button-text {
+  display: none;
 }
 
 .industrial-help-inline {
@@ -1493,15 +1526,15 @@ html[data-theme='light'] .text-command-help-item span {
 }
 
 html[data-theme='light'] .industrial-help-button {
-  color: rgb(30, 64, 175);
-  border-color: rgba(59, 130, 246, 0.36);
-  background: rgb(239, 246, 255);
+  background: #eeeeea;
+  color: var(--industrial-text, var(--sbv-text));
 }
 
-html[data-theme='light'] .industrial-help-button:hover {
-  color: rgb(30, 58, 138);
-  border-color: rgba(37, 99, 235, 0.68);
-  background: rgb(219, 234, 254);
+html[data-theme='light'] .industrial-help-button:hover,
+html[data-theme='light'] .industrial-help-button:focus-visible {
+  border-color: var(--industrial-accent);
+  color: var(--industrial-accent);
+  background: #eeeeea;
 }
 
 .industrial-field-label-row {
@@ -1510,27 +1543,44 @@ html[data-theme='light'] .industrial-help-button:hover {
   gap: 0.45rem;
 }
 
-
 /* Legacy help affordances are visually normalized until the owning modules migrate to IndustrialHelpButton. */
 .industrial-help-dot,
 .template-help-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 1.85rem;
-  min-height: 1.85rem;
-  width: 1.85rem;
-  height: 1.85rem;
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+  min-height: 36px;
   padding: 0;
-  border: 1px solid rgba(148, 163, 184, 0.38);
+  border: 1px solid var(--sbv-border-hard, var(--industrial-border-strong));
   border-radius: var(--control-radius);
-  color: rgb(191, 219, 254);
-  background: rgba(15, 23, 42, 0.64);
+  background: rgba(9, 9, 11, 0.84);
+  color: var(--industrial-text, var(--sbv-text));
+}
+
+.industrial-help-dot:hover,
+.industrial-help-dot:focus-visible,
+.template-help-button:hover,
+.template-help-button:focus-visible {
+  border-color: var(--industrial-accent);
+  color: var(--industrial-accent);
+  background: rgba(9, 9, 11, 0.84);
 }
 
 html[data-theme='light'] .industrial-help-dot,
 html[data-theme='light'] .template-help-button {
-  color: rgb(30, 64, 175);
-  border-color: rgba(59, 130, 246, 0.36);
-  background: rgb(239, 246, 255);
+  background: #eeeeea;
+  color: var(--industrial-text, var(--sbv-text));
 }
+
+html[data-theme='light'] .industrial-help-dot:hover,
+html[data-theme='light'] .industrial-help-dot:focus-visible,
+html[data-theme='light'] .template-help-button:hover,
+html[data-theme='light'] .template-help-button:focus-visible {
+  border-color: var(--industrial-accent);
+  color: var(--industrial-accent);
+  background: #eeeeea;
+}
+

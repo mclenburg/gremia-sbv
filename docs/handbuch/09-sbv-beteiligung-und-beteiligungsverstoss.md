@@ -4,7 +4,9 @@
 
 Die SBV ist in allen Angelegenheiten, die einzelne oder die schwerbehinderten Menschen als Gruppe berühren, unverzüglich und umfassend zu unterrichten und vor einer Entscheidung anzuhören. Die Beteiligung muss vor der Entscheidung erfolgen, nicht erst danach.
 
-In Gremia.SBV wird eine SBV-Beteiligung als fachliche Maßnahme innerhalb einer Fallakte geführt. Dort prüfst du insbesondere:
+Die Ansicht **Beteiligung** ist die Kontrollsicht für diese laufenden Beteiligungsprüfungen. Sie zeigt, ob Unterrichtung, Anhörung, Unterlagen, Stellungnahme und Arbeitgeberentscheidung nachvollziehbar dokumentiert sind. Die Bearbeitung erfolgt grundsätzlich im Ausgangsvorgang, also zum Beispiel in der Fallakte oder bei Stellenbesetzungen im Modul **Stellenbesetzungen**.
+
+In einer SBV-Beteiligung prüfst du insbesondere:
 
 - Worum geht es?
 - Ist ein schwerbehinderter oder gleichgestellter Mensch betroffen?
@@ -15,9 +17,11 @@ In Gremia.SBV wird eine SBV-Beteiligung als fachliche Maßnahme innerhalb einer 
 
 ## Beteiligungsverstoß
 
-Ein Beteiligungsverstoß ist kein eigenständiger Ersatzprozess. Er ist ein formalisierter Nachweis- und Rügevorgang zu einer konkreten SBV-Beteiligung.
+Die Ansicht **Verstöße** ist nicht der Ort für normale Beteiligungsarbeit. Sie ist der formalisierte Nachweis- und Eskalationsbereich, wenn die Beteiligung möglicherweise nicht ordnungsgemäß gelaufen ist.
 
-Der normale Weg ist deshalb:
+Ein Beteiligungsverstoß ersetzt also nicht die SBV-Beteiligung. Er baut auf einem Ausgangsvorgang auf, zum Beispiel einer SBV-Beteiligungsmaßnahme oder einem Stellenbesetzungsverfahren.
+
+Der normale Weg aus einer Fallakte ist deshalb:
 
 1. Fallakte öffnen.
 2. SBV-Beteiligungsmaßnahme öffnen.
@@ -28,7 +32,7 @@ Der normale Weg ist deshalb:
 
 ## Keine stille Anlage
 
-Das Öffnen einer Fallakte oder Beteiligung erzeugt keinen Verstoß. Ein Verstoß entsteht erst, wenn du ihn bewusst speicherst.
+Das Öffnen einer Fallakte, Beteiligung oder Stellenbesetzung erzeugt keinen Verstoß. Auch die Aktion **Beteiligungsverstoß prüfen** öffnet zunächst nur einen vorbereiteten Entwurf. Ein Verstoß entsteht erst, wenn du ihn in der Verstoßansicht bewusst speicherst.
 
 ## Inhalt eines guten Verstoßvermerks
 
@@ -70,3 +74,8 @@ Auch bei Beteiligungsverstößen gilt: keine unnötigen Klarnamen, Diagnosen ode
 ## Stellenbesetzungen ohne Fallbezug
 
 Stellenbesetzungsverfahren ohne Fallbezug werden nicht in der Fallakte dokumentiert. Nutze dafür das Modul **Stellenbesetzungen**. Dort hältst du Vorstellungsgespräche, Unterlagenstatus und die Anhörung der SBV vor der Auswahlentscheidung nach. Ein Beteiligungsverstoß kann anschließend bewusst aus diesem Vorgang heraus geprüft werden.
+
+Auch hier gilt die Trennung:
+
+- **Stellenbesetzungen** hält das Verfahren nach.
+- **Verstöße** hält die mögliche Pflichtverletzung und ihre Nachholung oder Eskalation nach.

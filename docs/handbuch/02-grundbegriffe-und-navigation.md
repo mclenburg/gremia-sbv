@@ -2,9 +2,9 @@
 
 ## Dashboard
 
-Das Dashboard ist der Einstieg in deine Arbeit. Es zeigt, wo Handlungsbedarf besteht: offene Fristen, anstehende Wiedervorlagen, aktuelle Vorgänge und Hinweise auf dringende Aufgaben.
+Das Dashboard ist die Startansicht nach einem echten Neustart der Anwendung. Es zeigt, wo Handlungsbedarf besteht: offene Fristen, anstehende Wiedervorlagen, aktuelle Vorgänge und Hinweise auf dringende Aufgaben.
 
-Nutze das Dashboard als tägliche Startseite. Es ersetzt nicht deine fachliche Prüfung, macht aber sichtbar, was nicht vergessen werden darf.
+Wenn du die Anwendung nur sperrst oder sie sich wegen Inaktivität sperrt, bleibt deine Arbeitsposition erhalten. Nach dem Entsperren kehrst du in die Ansicht zurück, in der du zuletzt gearbeitet hast.
 
 ## Fallakte
 
@@ -37,9 +37,22 @@ Gremia.SBV unterscheidet fachliche Fristen und organisatorische Nachhaltung. Tra
 
 Das Tätigkeitsjournal ist deine Eigenaufzeichnung der SBV-Arbeit. Es ist nicht die Fallakte und nicht die Personalakte. Es soll Arbeitszeit, Art der Tätigkeit und Nachweisbarkeit unterstützen, ohne unnötige sensible Details zu speichern.
 
+## SBV-Beteiligung
+
+Die Ansicht **Beteiligung** ist der Arbeitsbereich für laufende Beteiligungsprüfungen. Dort geht es um Unterrichtung, Anhörung, Unterlagen, Stellungnahme, Arbeitgeberentscheidung und Aussetzungsverlangen. Die Bearbeitung bleibt grundsätzlich im fachlichen Ursprungsvorgang, meist in der Fallakte.
+
 ## Beteiligungsverstoß
 
-Ein Beteiligungsverstoß dokumentiert, dass der Arbeitgeber die SBV möglicherweise nicht rechtzeitig, nicht vollständig oder nicht vor einer Entscheidung beteiligt hat. Der normale Ausgangspunkt ist die konkrete SBV-Beteiligungsmaßnahme.
+Die Ansicht **Verstöße** ist der Nachweis- und Eskalationsbereich. Dort dokumentierst du nicht die normale Beteiligung, sondern den Fall, dass die SBV möglicherweise nicht rechtzeitig, nicht vollständig oder nicht vor einer Entscheidung beteiligt wurde.
+
+Kurz gesagt:
+
+- **Beteiligung** = prüfen und nachhalten, ob das Verfahren ordnungsgemäß läuft.
+- **Verstöße** = dokumentieren, rügen, nachhalten und ggf. Schreiben vorbereiten, wenn die Beteiligung nicht ordnungsgemäß gelaufen ist.
+
+## Hilfe auf Abruf
+
+Längere Erläuterungen stehen nicht dauerhaft in der Arbeitsmaske. Nutze den rechteckigen Button **? Hilfe** in einem Bereich oder die kleine Feldhilfe neben einzelnen Eingaben, wenn du Details brauchst. Echte Warnungen, Fehlermeldungen und Sicherheits-/Eskalationshinweise bleiben sichtbar.
 
 ## Grundnavigation
 
@@ -48,5 +61,6 @@ Arbeite möglichst aus dem fachlichen Kontext heraus:
 - Beratung beginnt in der Fallakte.
 - BEM oder Prävention wird als Maßnahme geführt.
 - Fristen hängen an dem Vorgang, aus dem sie entstehen.
-- Ein Beteiligungsverstoß entsteht aus der SBV-Beteiligung, nicht aus einer beliebigen freien Notiz.
+- Eine SBV-Beteiligung dient der ordnungsgemäßen Prüfung und Nachhaltung.
+- Ein Beteiligungsverstoß entsteht erst aus einer konkreten Auffälligkeit, etwa aus einer SBV-Beteiligung oder einer Stellenbesetzung.
 - Das Journal kann aus Kontexten vorbelegt werden, wird aber erst durch bewusste Speicherung zum Eintrag.

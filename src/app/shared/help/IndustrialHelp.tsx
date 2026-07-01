@@ -1,5 +1,5 @@
 import { useRef, useState, type ReactNode } from 'react';
-import { HelpCircle, X } from 'lucide-react';
+import { HelpCircle } from 'lucide-react';
 import { IconButton, GhostButton } from '../components/IndustrialButton';
 import { IndustrialModal } from '../dialogs/IndustrialDialogs';
 import { getHelpEntry, type HelpRegistryId } from './helpRegistry';
@@ -8,6 +8,7 @@ type IndustrialHelpButtonProps = {
   helpId: HelpRegistryId;
   label?: string;
   className?: string;
+  compact?: boolean;
 };
 
 function renderHelpBlock(block: ReturnType<typeof getHelpEntry>['blocks'][number]): ReactNode {
@@ -23,16 +24,22 @@ function renderHelpBlock(block: ReturnType<typeof getHelpEntry>['blocks'][number
   return <p>{block.text}</p>;
 }
 
-export function IndustrialHelpButton({ helpId, label = 'Hilfe öffnen', className }: IndustrialHelpButtonProps) {
+export function IndustrialHelpButton({
+  helpId,
+  label = 'Bereichshilfe öffnen',
+  className,
+  compact,
+}: IndustrialHelpButtonProps) {
   const [open, setOpen] = useState(false);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const entry = getHelpEntry(helpId);
+  const compactMode = compact ?? label === 'Feldhilfe öffnen';
 
   return (
     <>
       <IconButton
         type="button"
-        className={className ? `industrial-help-button ${className}` : 'industrial-help-button'}
+        className={className ? `industrial-help-button ${compactMode ? 'is-compact' : ''} ${className}` : `industrial-help-button ${compactMode ? 'is-compact' : ''}`}
         aria-label={label}
         title={entry.title}
         data-help-title={entry.title}
@@ -41,6 +48,7 @@ export function IndustrialHelpButton({ helpId, label = 'Hilfe öffnen', classNam
         data-e2e="industrial-help-button"
       >
         <HelpCircle className="h-4 w-4" aria-hidden="true" />
+        {!compactMode ? <span className="industrial-help-button-text">Hilfe</span> : null}
       </IconButton>
       {open ? (
         <IndustrialModal

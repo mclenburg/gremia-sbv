@@ -2,7 +2,7 @@
 
 ## Beteiligungsverstoß
 
-Formalisierter Nachweis, dass die SBV möglicherweise nicht rechtzeitig, nicht vollständig oder nicht vor einer Arbeitgeberentscheidung beteiligt wurde.
+Formalisierter Nachweis- und Eskalationsvorgang, wenn die SBV möglicherweise nicht rechtzeitig, nicht vollständig oder nicht vor einer Arbeitgeberentscheidung beteiligt wurde. Er entsteht aus einem Ausgangsvorgang, nicht als normale Beteiligungsprüfung.
 
 ## BEM
 
@@ -10,7 +10,7 @@ Betriebliches Eingliederungsmanagement. Verfahren zur Überwindung von Arbeitsun
 
 ## Dashboard
 
-Startansicht mit Überblick über Fristen, Wiedervorlagen und aktuelle Aufgaben.
+Startansicht nach einem echten Neustart mit Überblick über Fristen, Wiedervorlagen und aktuelle Aufgaben. Nach Sperren und Entsperren bleibt die zuletzt genutzte Arbeitsansicht erhalten.
 
 ## Fallakte
 
@@ -42,7 +42,7 @@ Schwerbehindertenvertretung. Interessenvertretung der schwerbehinderten und glei
 
 ## SBV-Beteiligung
 
-Unterrichtung und Anhörung der SBV in Angelegenheiten, die einzelne oder die schwerbehinderten Menschen als Gruppe berühren.
+Unterrichtung und Anhörung der SBV in Angelegenheiten, die einzelne oder die schwerbehinderten Menschen als Gruppe berühren. In der App ist dies die normale Beteiligungs- und Prüfsicht; ein Beteiligungsverstoß ist erst die nachgelagerte Nachweis- und Eskalationssicht.
 
 ## Tresor
 
