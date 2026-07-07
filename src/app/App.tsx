@@ -5,6 +5,7 @@ import { ShellNav } from "./shell/ShellNav";
 import { modules, type ViewId } from "./core/navigation/modules";
 import { useModalKeyboardShortcuts } from "./core/keyboard/useModalKeyboardShortcuts";
 import { AUTO_LOCK_TIMEOUT_MS, useAutoLock } from "./core/security/useAutoLock";
+import { INITIAL_SESSION_VIEW, toLockedSessionState } from "./core/security/sessionLockState";
 import type { CaseCategory, CaseRecord } from "./core/models/case.model";
 import type { WorkplaceAccommodationRecord } from "./core/models/workplace-accommodation.model";
 import type { CaseMeasureRecord } from "./core/models/case-measure.model";
@@ -143,7 +144,7 @@ function WorkplaceAccommodationContainer({
 export function App() {
   const [authMode, setAuthMode] = useState<AuthMode>("loading");
   const [unlocked, setUnlocked] = useState(false);
-  const [currentView, setCurrentView] = useState<ViewId>("dashboard");
+  const [currentView, setCurrentView] = useState<ViewId>(INITIAL_SESSION_VIEW);
   const [cases, setCases] = useState<CaseRecord[]>([]);
   const [contacts, setContacts] = useState<ContactRecord[]>([]);
   const [deadlines, setDeadlines] = useState<DeadlineRecord[]>([]);
@@ -175,8 +176,9 @@ export function App() {
   useModalKeyboardShortcuts({ setCurrentView });
 
   const switchToLockedSession = useCallback(() => {
-    setUnlocked(false);
-    setAuthMode("login");
+    const lockedSession = toLockedSessionState({ unlocked: true, authMode: "login" as AuthMode });
+    setUnlocked(lockedSession.unlocked);
+    setAuthMode(lockedSession.authMode);
   }, []);
 
   useAutoLock({

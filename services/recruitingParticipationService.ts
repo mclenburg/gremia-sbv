@@ -37,6 +37,12 @@ function undefinedIfNull<T>(value: T | null | undefined): T | undefined {
   return value === null || value === undefined ? undefined : value;
 }
 
+function sqliteOptionalBoolean(value: unknown): 0 | 1 | null {
+  const normalized = normalizeOptionalBoolean(value);
+  if (normalized === null) return null;
+  return normalized ? 1 : 0;
+}
+
 function mapParticipation(row: any): RecruitingParticipationRecord {
   return {
     id: row.id,
@@ -244,8 +250,8 @@ export class RecruitingParticipationService {
       input.documentsComplete ? 1 : 0,
       input.hasSeverelyDisabledApplicants ? 1 : 0,
       normalizeNonNegativeInteger(input.severelyDisabledApplicantCount),
-      normalizeOptionalBoolean(input.sbvInvitedToAllKnownInterviews),
-      normalizeOptionalBoolean(input.sbvParticipated),
+      sqliteOptionalBoolean(input.sbvInvitedToAllKnownInterviews),
+      sqliteOptionalBoolean(input.sbvParticipated),
       normalizeOptionalIso(input.hearingRequestedDate),
       normalizeOptionalIso(input.hearingDueDate),
       normalizeOptionalIso(input.statementSubmittedDate),
@@ -292,8 +298,8 @@ export class RecruitingParticipationService {
       input.documentsComplete !== undefined ? (input.documentsComplete ? 1 : 0) : existing.documentsComplete ? 1 : 0,
       input.hasSeverelyDisabledApplicants !== undefined ? (input.hasSeverelyDisabledApplicants ? 1 : 0) : existing.hasSeverelyDisabledApplicants ? 1 : 0,
       input.severelyDisabledApplicantCount !== undefined ? normalizeNonNegativeInteger(input.severelyDisabledApplicantCount) : existing.severelyDisabledApplicantCount ?? null,
-      input.sbvInvitedToAllKnownInterviews !== undefined ? normalizeOptionalBoolean(input.sbvInvitedToAllKnownInterviews) : existing.sbvInvitedToAllKnownInterviews === undefined ? null : existing.sbvInvitedToAllKnownInterviews ? 1 : 0,
-      input.sbvParticipated !== undefined ? normalizeOptionalBoolean(input.sbvParticipated) : existing.sbvParticipated === undefined ? null : existing.sbvParticipated ? 1 : 0,
+      input.sbvInvitedToAllKnownInterviews !== undefined ? sqliteOptionalBoolean(input.sbvInvitedToAllKnownInterviews) : existing.sbvInvitedToAllKnownInterviews === undefined ? null : existing.sbvInvitedToAllKnownInterviews ? 1 : 0,
+      input.sbvParticipated !== undefined ? sqliteOptionalBoolean(input.sbvParticipated) : existing.sbvParticipated === undefined ? null : existing.sbvParticipated ? 1 : 0,
       input.hearingRequestedDate !== undefined ? normalizeOptionalIso(input.hearingRequestedDate) : existing.hearingRequestedDate ?? null,
       input.hearingDueDate !== undefined ? normalizeOptionalIso(input.hearingDueDate) : existing.hearingDueDate ?? null,
       input.statementSubmittedDate !== undefined ? normalizeOptionalIso(input.statementSubmittedDate) : existing.statementSubmittedDate ?? null,

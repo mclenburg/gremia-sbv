@@ -1,24 +1,41 @@
 import { describe, expect, it } from 'vitest';
-import { readFileSync } from 'node:fs';
+import type { ViewId } from '../src/app/core/navigation/modules';
+import { INITIAL_SESSION_VIEW, toLockedSessionState } from '../src/app/core/security/sessionLockState';
 
-describe('0.9.5-z Sperren bewahrt Arbeitsposition', () => {
-  it('setzt beim manuellen oder automatischen Sperren nicht auf das Dashboard zurück', () => {
-    const app = readFileSync('src/app/App.tsx', 'utf8');
-    const start = app.indexOf('const switchToLockedSession = useCallback(() => {');
-    const end = app.indexOf('useAutoLock({', start);
-    expect(start).toBeGreaterThan(0);
-    expect(end).toBeGreaterThan(start);
+type ExampleSession = {
+  unlocked: boolean;
+  authMode: 'login' | 'setup' | 'recovery' | 'loading' | 'unavailable';
+  currentView: ViewId;
+  caseNodeTarget: { caseId: string; nodeType: 'bem'; nodeId: string } | null;
+  selectedDeadline: { id: string; title: string } | null;
+  activityJournalPrefill: { title: string } | null;
+};
 
-    const lockBlock = app.slice(start, end);
-    expect(lockBlock).toContain('setUnlocked(false);');
-    expect(lockBlock).toContain('setAuthMode("login");');
-    expect(lockBlock).not.toContain('setCurrentView("dashboard")');
-    expect(lockBlock).not.toContain('setCaseNodeTarget(null)');
-    expect(lockBlock).not.toContain('setSelectedDeadline(null)');
+describe('0.9.5-ab Sperren ist ein Session-State-Verhalten, kein Navigation-Reset', () => {
+  it('setzt beim manuellen oder automatischen Sperren nur den Tresorstatus um', () => {
+    const activeSession: ExampleSession = {
+      unlocked: true,
+      authMode: 'login',
+      currentView: 'cases',
+      caseNodeTarget: { caseId: 'case-1', nodeType: 'bem', nodeId: 'bem-1' },
+      selectedDeadline: { id: 'deadline-1', title: 'Arbeitgeberantwort nachhalten' },
+      activityJournalPrefill: { title: 'BEM-Gespräch dokumentieren' },
+    };
+
+    const locked = toLockedSessionState(activeSession);
+
+    expect(locked).toEqual({
+      ...activeSession,
+      unlocked: false,
+      authMode: 'login',
+    });
+    expect(locked.currentView).toBe('cases');
+    expect(locked.caseNodeTarget).toBe(activeSession.caseNodeTarget);
+    expect(locked.selectedDeadline).toBe(activeSession.selectedDeadline);
+    expect(locked.activityJournalPrefill).toBe(activeSession.activityJournalPrefill);
   });
 
-  it('startet weiterhin mit Dashboard als initialer Ansicht nach einem echten Neustart', () => {
-    const app = readFileSync('src/app/App.tsx', 'utf8');
-    expect(app).toContain('const [currentView, setCurrentView] = useState<ViewId>("dashboard")');
+  it('definiert den echten Neustart weiterhin bewusst auf Dashboard', () => {
+    expect(INITIAL_SESSION_VIEW).toBe('dashboard');
   });
 });

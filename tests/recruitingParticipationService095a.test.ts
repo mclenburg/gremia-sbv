@@ -35,6 +35,10 @@ class RecruitingDb implements DatabaseAdapter {
         return undefined;
       },
       run(...params: unknown[]): { changes: number } {
+        for (const param of params) {
+          const bindable = param === null || ['number', 'string', 'bigint'].includes(typeof param) || param instanceof Uint8Array;
+          if (!bindable) throw new TypeError(`SQLite3 test adapter cannot bind ${typeof param}`);
+        }
         if (normalized.includes('INSERT INTO recruiting_participations')) {
           self.participations.push({
             id: params[0], vacancy_title: params[1], vacancy_reference: params[2], department: params[3], location: params[4], status: params[5],
@@ -129,4 +133,33 @@ describe('Stellenbesetzungen 0.9.5-a Servicebasis', () => {
     expect(getRecruitingStatusActions(record).map((action) => action.targetStatus)).not.toContain('violation_review');
     expect(shouldSuggestViolationReview(record)).toBe(true);
   });
+
+  it('bindet optionale SBV-Teilnahmefelder als SQLite-kompatible Zahlen statt Boolean-Werte', () => {
+    const db = new RecruitingDb();
+    const service = new RecruitingParticipationService(db);
+
+    const record = service.create({
+      vacancyTitle: 'Client-Endpoint-Management',
+      location: 'Schwerin',
+      hasSeverelyDisabledApplicants: true,
+      sbvInvitedToAllKnownInterviews: false,
+      sbvParticipated: true,
+    });
+
+    expect(record.sbvInvitedToAllKnownInterviews).toBe(false);
+    expect(record.sbvParticipated).toBe(true);
+    expect(db.participations[0].sbv_invited_to_all_known_interviews).toBe(0);
+    expect(db.participations[0].sbv_participated).toBe(1);
+
+    const updated = service.update(record.id, {
+      sbvInvitedToAllKnownInterviews: true,
+      sbvParticipated: false,
+    });
+
+    expect(updated.sbvInvitedToAllKnownInterviews).toBe(true);
+    expect(updated.sbvParticipated).toBe(false);
+    expect(db.participations[0].sbv_invited_to_all_known_interviews).toBe(1);
+    expect(db.participations[0].sbv_participated).toBe(0);
+  });
+
 });
