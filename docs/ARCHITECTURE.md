@@ -129,3 +129,36 @@ Der Electron-Einstieg `electron/main.ts` ist ein bewusst schlanker Bootstrap. Er
 Die schwere Initialisierung liegt in `electron/appRuntime.ts`: Sicherheitsrichtlinien, Datenverzeichnis, `SecurityService`, IPC-Registrierungen und das eigentliche Anwendungsfenster werden erst ausgeführt, wenn der Splash bereits sichtbar ist. Das Hauptfenster wird spätestens nach Renderer-Load sichtbar gemacht; erst danach wird die Demo-Vault-Erzeugung verzögert im Hintergrund gestartet. Während dieser kurzen Phase meldet die Sicherheitsbrücke einen gesperrten, initialisierten Demo-Tresor und blockiert Entsperrversuche mit einem klaren Wartehinweis. Dadurch bleibt die normale Produktivinitialisierung streng, während der Demo-Start nicht mehr das erste App-Fenster verzögert.
 
 Für lokale Diagnose kann `GREMIA_SBV_STARTUP_TIMING=1` gesetzt werden. Dann schreibt die App eine lokale Start-Timeline in die Konsole: Bootstrap-Modul, Electron-Ready, Splash-Sichtbarkeit, Runtime-Import, SecurityService, IPC-Registrierung, Renderer-Load, Hauptfenster-Sichtbarkeit und nachgelagerte Demo-Vault-Bereitstellung. Diese Messpunkte sind keine Telemetrie und verlassen das Gerät nicht.
+
+## Tätigkeitsbericht und Maßnahmen-Lifecycle
+
+Für Maßnahmenstatistiken existiert genau ein Auswertungspfad:
+
+`Fachservice → MeasureLifecycleAuditService → Audit-HashChain → ActivityReportProjectionService → ReportService`
+
+Der Audit-Zwecktext ist keine maschinelle Datenquelle. Berichtsfähige Merkmale werden ausschließlich über die freigegebenen, versionierten Lifecycle-Metadaten verarbeitet. Neue Maßnahmentypen und Ereignisse müssen zentral typisiert, datenschutzgeprüft und durch Verhaltenstests abgesichert werden. Physische Löschungen berichtsfähiger Maßnahmen sind zusammen mit dem Lifecycle-Ereignis atomar auszuführen.
+
+## Zentrale Service-Komposition im Electron-Hauptprozess
+
+Der Electron-Hauptprozess besitzt mit `electron/applicationServices.ts` eine zentrale Composition Root für Anwendungsservices. IPC-Module erzeugen keine Fachservices mehr selbst, sondern erhalten die bereits zusammengesetzte Service-Registry aus `appRuntime`.
+
+Services mit dynamischem Datenbankbezug werden je aktiver `DatabaseAdapter`-Instanz genau einmal erzeugt. Ein gesperrter und erneut geöffneter oder gewechselter Tresor erhält dadurch einen getrennten Service-Scope. Provider-basierte Services, die die aktive Datenbank erst beim Methodenaufruf auflösen, werden als stabile Laufzeitinstanzen gehalten.
+
+Die Composition Root verändert keine fachlichen Zuständigkeiten und führt keine Migrationen aus. Schema- und Baseline-Nebenwirkungen bestehender Servicekonstruktoren werden in einem gesonderten Architekturvorhaben aus den Fachservices entfernt. Bis dahin verhindert die zentrale Instanzverwaltung zumindest, dass solche Konstruktoren bei jedem IPC-Aufruf erneut ausgeführt werden.
+
+Neue IPC-Funktionen beziehen benötigte Services grundsätzlich aus `ApplicationServices`. Direkte `new ...Service(...)`-Aufrufe in IPC-Modulen sind nicht vorgesehen. Ausgenommen sind kurzlebige technische Adapter, die keine Datenbankschemata oder Fachdaten verändern.
+
+
+## Datenbankinitialisierung und Service-Lebenszyklus
+
+Nach dem Öffnen eines Tresors führt `SecurityService` zuerst alle versionierten SQL-Migrationen aus. Anschließend übernimmt `DatabaseRuntimeInitializer` einmalig die noch erforderlichen Kompatibilitätsprüfungen und die datensparsame Lifecycle-Baseline. Erst danach dürfen Fachservices verwendet werden.
+
+Fachservice-Konstruktoren sind nebenwirkungsfrei: Sie führen weder SQL aus noch erzeugen sie Baseline- oder Audit-Einträge. Die zentrale `ApplicationServices`-Composition-Root verwaltet danach genau eine Instanz je Servicetyp und aktiver Datenbank. Dadurch sind Initialisierung, Migration und laufende Fachlogik voneinander getrennt.
+
+## Transaktions- und Nebenwirkungsmodell
+
+Fachliche Schreibvorgänge bilden eine explizite Unit of Work. Der fachliche Datensatz, das strukturierte Maßnahmen-Lifecycle-Ereignis und das verpflichtende Änderungs-Audit werden in derselben Datenbanktransaktion geschrieben. Scheitert einer dieser Schritte, wird der gesamte Vorgang zurückgerollt.
+
+Lesende Zugriffs-Audits bleiben bewusst fehlertolerant: Ein vorübergehend nicht schreibbares Zugriffsprotokoll darf die Anzeige bereits vorhandener Daten nicht verhindern. Änderungs-Audits sind dagegen Bestandteil der fachlichen Konsistenz und dürfen nicht stillschweigend verworfen werden.
+
+Rekonstruierbare Projektionen gehören nicht in die fachliche Transaktion. Insbesondere Suchindex-Aktualisierungen erfolgen erst nach dem Commit. Ein Fehler des Suchindex darf deshalb keine bereits konsistent gespeicherte Fachänderung zurückrollen; der Index kann vollständig aus den Fachdaten neu aufgebaut werden.

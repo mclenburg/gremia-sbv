@@ -1,6 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
+import { DatabaseUnitOfWork } from './databaseUnitOfWork.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
+import { MeasureLifecycleAuditService } from './measureLifecycleAuditService.js';
 import { DeadlineService } from './deadlineService.js';
 import { defaultBemResponseDueAt } from './bemWorkflowPolicy.js';
 import type {
@@ -57,13 +59,7 @@ function mapProcess(row: any, contactIds: string[]): BemProcessRecord {
 }
 
 export class BemService {
-  constructor(private readonly db: DatabaseAdapter) {
-    this.ensureAuditSchema();
-  }
-
-  private ensureAuditSchema(): void {
-    new PersonalDataAuditLogService(this.db);
-  }
+  constructor(private readonly db: DatabaseAdapter) {}
 
   private audit(action: Parameters<PersonalDataAuditLogService['append']>[0]['action'], subjectId: string | undefined, caseId: string | undefined, purpose: string): void {
     try {
@@ -117,7 +113,8 @@ export class BemService {
         : null;
     const status: BemStatus = bemOfferedAt ? 'angebot_versendet' : 'zu_pruefen';
 
-    this.db.prepare(`
+    new DatabaseUnitOfWork(this.db).run(() => {
+      this.db.prepare(`
       INSERT INTO bem_processes (
         id, case_id, status, title, trigger_type, trigger_description, sickness_days_twelve_months,
         bem_offered_at, response_due_at, employee_response, employee_response_at, privacy_notice_at, consent_scope,
@@ -175,7 +172,9 @@ export class BemService {
       });
     }
 
-    this.audit('create', id, input.caseId, 'bem_process angelegt');
+      new MeasureLifecycleAuditService(this.db).created('bem', id, input.caseId, status, 'manual');
+      new PersonalDataAuditLogService(this.db).append({ action: 'create', subjectType: 'bem_process', subjectId: id, caseId: input.caseId, purpose: 'bem_process angelegt' });
+    });
     return this.getById(id)!;
   }
 
@@ -207,7 +206,8 @@ export class BemService {
       confidentialNotes: input.confidentialNotes !== undefined ? input.confidentialNotes : existing.confidentialNotes
     };
 
-    this.db.prepare(`
+    new DatabaseUnitOfWork(this.db).run(() => {
+      this.db.prepare(`
       UPDATE bem_processes
       SET status = ?, title = ?, trigger_type = ?, trigger_description = ?, sickness_days_twelve_months = ?,
           bem_offered_at = ?, response_due_at = ?, employee_response = ?, employee_response_at = ?, privacy_notice_at = ?,
@@ -242,7 +242,9 @@ export class BemService {
 
     if (input.contactIds) this.replaceContacts(id, input.contactIds);
     this.event(id, 'updated', 'BEM-Verfahren aktualisiert', JSON.stringify(input));
-    this.audit('update', id, existing.caseId, 'bem_process geändert');
+      new MeasureLifecycleAuditService(this.db).statusChanged('bem', id, existing.caseId, existing.status, next.status);
+      new PersonalDataAuditLogService(this.db).append({ action: 'update', subjectType: 'bem_process', subjectId: id, caseId: existing.caseId, purpose: 'bem_process geändert' });
+    });
     return this.getById(id)!;
   }
 

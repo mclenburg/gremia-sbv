@@ -1,6 +1,6 @@
 import type { IpcMain } from "electron";
-import { DeadlineService } from "../../services/deadlineService.js";
 import type { SecurityService } from "../../services/securityService.js";
+import type { ApplicationServices } from '../applicationServices.js';
 import type {
   CreateDeadlineInput,
   DeadlineListFilters,
@@ -16,8 +16,9 @@ import {
 export function registerDeadlineIpc(
   ipcMain: IpcMain,
   security: SecurityService,
+  services: ApplicationServices,
 ): void {
-  const deadlines = () => new DeadlineService(security.getActiveDatabase());
+  const deadlines = services.deadlines;
 
   ipcMain.handle("deadlines:list", async (_event, filters?: unknown) =>
     deadlines().list(

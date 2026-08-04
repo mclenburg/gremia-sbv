@@ -34,6 +34,7 @@ import { registerSbvParticipationViolationIpc } from "./ipc/sbvParticipationViol
 import { registerRecruitingParticipationIpc } from "./ipc/recruitingParticipationIpc.js";
 import type { SecurityResult, SecurityStatus } from "../src/app/core/models/security.model.js";
 import { SecurityService } from "../services/securityService.js";
+import { ApplicationServices } from "./applicationServices.js";
 import {
   isDemoMode,
   prepareDemoVault,
@@ -55,6 +56,7 @@ app.setName("Gremia.SBV");
 app.setAppUserModelId("de.gremia.sbv");
 
 let security: SecurityService;
+let applicationServices: ApplicationServices;
 let mainWindow: BrowserWindow | null = null;
 let splashWindow: BrowserWindow | null = null;
 let demoVaultPreparing = false;
@@ -425,6 +427,7 @@ export async function startApplication(existingSplashWindow?: BrowserWindow): Pr
 
   await updateStartupSplash("security");
   security = new SecurityService(dataDirectory);
+  applicationServices = new ApplicationServices(security, resolveRuntimeDataDir);
   markStartupPhase("runtime:security-service-ready");
   if (demoMode) {
     console.info(
@@ -454,29 +457,29 @@ export async function startApplication(existingSplashWindow?: BrowserWindow): Pr
       };
     },
   } : undefined);
-  registerCaseIpc(ipcMain, security);
-  registerCaseHandoverIpc(ipcMain, security);
-  registerCaseMeasureIpc(ipcMain, security);
-  registerContactIpc(ipcMain, security);
-  registerDeadlineIpc(ipcMain, security);
-  registerPreventionIpc(ipcMain, security);
-  registerParticipationIpc(ipcMain, security);
-  registerWorkplaceAccommodationIpc(ipcMain, security);
-  registerBemIpc(ipcMain, security);
-  registerEqualizationIpc(ipcMain, security);
-  registerTerminationIpc(ipcMain, security);
-  registerKnowledgeIpc(ipcMain, security);
-  registerTemplateIpc(ipcMain, security);
-  registerProtectedPersonIpc(ipcMain, security);
-  registerReportIpc(ipcMain, security);
-  registerComplianceIpc(ipcMain, security);
-  registerBackupIpc(ipcMain, security);
-  registerRetentionIpc(ipcMain, security);
-  registerSbvResourceIpc(ipcMain, security);
-  registerSbvControlProtocolIpc(ipcMain, security);
-  registerActivityJournalIpc(ipcMain, security);
-  registerSbvParticipationViolationIpc(ipcMain, security, resolveRuntimeDataDir);
-  registerRecruitingParticipationIpc(ipcMain, security);
+  registerCaseIpc(ipcMain, security, applicationServices);
+  registerCaseHandoverIpc(ipcMain, security, applicationServices);
+  registerCaseMeasureIpc(ipcMain, security, applicationServices);
+  registerContactIpc(ipcMain, security, applicationServices);
+  registerDeadlineIpc(ipcMain, security, applicationServices);
+  registerPreventionIpc(ipcMain, security, applicationServices);
+  registerParticipationIpc(ipcMain, security, applicationServices);
+  registerWorkplaceAccommodationIpc(ipcMain, security, applicationServices);
+  registerBemIpc(ipcMain, security, applicationServices);
+  registerEqualizationIpc(ipcMain, security, applicationServices);
+  registerTerminationIpc(ipcMain, security, applicationServices);
+  registerKnowledgeIpc(ipcMain, security, applicationServices);
+  registerTemplateIpc(ipcMain, security, applicationServices);
+  registerProtectedPersonIpc(ipcMain, security, applicationServices);
+  registerReportIpc(ipcMain, security, applicationServices);
+  registerComplianceIpc(ipcMain, security, applicationServices);
+  registerBackupIpc(ipcMain, security, applicationServices);
+  registerRetentionIpc(ipcMain, security, applicationServices);
+  registerSbvResourceIpc(ipcMain, security, applicationServices);
+  registerSbvControlProtocolIpc(ipcMain, security, applicationServices);
+  registerActivityJournalIpc(ipcMain, security, applicationServices);
+  registerSbvParticipationViolationIpc(ipcMain, security, resolveRuntimeDataDir, applicationServices);
+  registerRecruitingParticipationIpc(ipcMain, security, applicationServices);
   markStartupPhase("runtime:ipc-registered");
   await updateStartupSplash("ui");
   await createWindow();

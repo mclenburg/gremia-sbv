@@ -1,8 +1,11 @@
 import { randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
+import { DatabaseUnitOfWork } from './databaseUnitOfWork.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
+import { MeasureLifecycleAuditService } from './measureLifecycleAuditService.js';
 import { noteProcessTypeToCaseMeasureType } from '../src/app/core/models/case-measure.model.js';
 import { SearchIndexService } from './search/searchIndexService.js';
+import type { MeasureLifecycleCreationSource } from '../src/app/core/models/measure-lifecycle.model.js';
 import type {
   CaseMeasureCreatedFrom,
   CaseMeasureNoteProcessType,
@@ -23,6 +26,13 @@ function nowIso(): string {
 
 function toIso(value: string | undefined): string | null {
   return value ? new Date(value).toISOString() : null;
+}
+
+
+function lifecycleCreationSource(value: CaseMeasureCreatedFrom | undefined): MeasureLifecycleCreationSource {
+  if (value === 'inline_command' || value === 'import' || value === 'manual') return value;
+  if (value === 'migration') return 'migration_baseline';
+  return 'manual';
 }
 
 function boolToInt(value: boolean | undefined, fallback = false): number {
@@ -97,9 +107,7 @@ function mapMeasureNote(row: any): CaseMeasureNoteRecord {
 }
 
 export class CaseMeasureService {
-  constructor(private readonly db: DatabaseAdapter) {
-    this.ensureSchema();
-  }
+  constructor(private readonly db: DatabaseAdapter) {}
 
   ensureSchema(): void {
     this.db.exec(`
@@ -153,7 +161,6 @@ export class CaseMeasureService {
       CREATE INDEX IF NOT EXISTS idx_case_measure_notes_case ON case_measure_notes(case_id, note_at DESC);
     `);
     this.ensureHandoverColumns();
-    new PersonalDataAuditLogService(this.db);
   }
 
   private ensureHandoverColumns(): void {
@@ -171,9 +178,9 @@ export class CaseMeasureService {
     addColumn('handover_continue_reason', 'TEXT');
   }
 
-  private audit(action: Parameters<PersonalDataAuditLogService['append']>[0]['action'], subjectId: string | undefined, caseId: string | undefined, purpose: string): void {
+  private audit(action: Parameters<PersonalDataAuditLogService['append']>[0]['action'], subjectId: string | undefined, caseId: string | undefined, purpose: string, subjectType = 'case_measure'): void {
     try {
-      new PersonalDataAuditLogService(this.db).append({ action, subjectType: 'case_measure', subjectId, caseId, purpose });
+      new PersonalDataAuditLogService(this.db).append({ action, subjectType, subjectId, caseId, purpose });
     } catch (error) {
       console.warn('Gremia.SBV case measure audit write failed', error);
     }
@@ -218,7 +225,8 @@ export class CaseMeasureService {
     if (!input.title?.trim()) throw new Error('Eine Fallmaßnahme benötigt einen Titel.');
     const id = randomUUID();
     const timestamp = nowIso();
-    this.db.prepare(`
+    new DatabaseUnitOfWork(this.db).run(() => {
+      this.db.prepare(`
       INSERT INTO case_measures (
         id, case_id, type, title, status, risk_level, created_from, summary, next_step, due_at,
         opened_at, closed_at, requires_follow_up, source_id, created_at, updated_at
@@ -241,7 +249,9 @@ export class CaseMeasureService {
       timestamp,
       timestamp
     );
-    this.audit('create', id, input.caseId, `Fallmaßnahme angelegt (${input.type})`);
+      new MeasureLifecycleAuditService(this.db).created(input.type, id, input.caseId, input.status ?? 'open', lifecycleCreationSource(input.createdFrom));
+      new PersonalDataAuditLogService(this.db).append({ action: 'create', subjectType: 'case_measure', subjectId: id, caseId: input.caseId, purpose: `Fallmaßnahme angelegt (${input.type})` });
+    });
     new SearchIndexService(this.db).reindexSource('measure', id);
     return this.getById(id)!;
   }
@@ -249,7 +259,8 @@ export class CaseMeasureService {
   update(id: string, input: UpdateCaseMeasureInput): CaseMeasureRecord {
     const existing = this.getById(id);
     if (!existing) throw new Error(`Fallmaßnahme nicht gefunden: ${id}`);
-    this.db.prepare(`
+    new DatabaseUnitOfWork(this.db).run(() => {
+      this.db.prepare(`
       UPDATE case_measures
       SET title = ?, status = ?, risk_level = ?, summary = ?, next_step = ?, due_at = ?, closed_at = ?, requires_follow_up = ?, updated_at = ?
       WHERE id = ?
@@ -265,9 +276,22 @@ export class CaseMeasureService {
       nowIso(),
       id
     );
-    this.audit('update', id, existing.caseId, 'Fallmaßnahme geändert');
+      new MeasureLifecycleAuditService(this.db).statusChanged(existing.type, id, existing.caseId, existing.status, input.status ?? existing.status);
+      new PersonalDataAuditLogService(this.db).append({ action: 'update', subjectType: 'case_measure', subjectId: id, caseId: existing.caseId, purpose: 'Fallmaßnahme geändert' });
+    });
     new SearchIndexService(this.db).reindexSource('measure', id);
     return this.getById(id)!;
+  }
+
+  delete(id: string): void {
+    const existing = this.getById(id);
+    if (!existing) throw new Error(`Fallmaßnahme nicht gefunden: ${id}`);
+    new DatabaseUnitOfWork(this.db).run(() => {
+      new MeasureLifecycleAuditService(this.db).deleted(existing.type, id, existing.caseId, existing.status, 'single_measure');
+      this.db.prepare('DELETE FROM case_measures WHERE id = ?').run(id);
+      new PersonalDataAuditLogService(this.db).append({ action: 'delete', subjectType: 'case_measure', subjectId: id, caseId: existing.caseId, purpose: 'Fallmaßnahme gelöscht' });
+    });
+    new SearchIndexService(this.db).deleteSource('measure', id);
   }
 
   listNotes(caseId: string, measureType?: CaseMeasureNoteProcessType, measureId?: string): CaseMeasureNoteRecord[] {
@@ -308,7 +332,7 @@ export class CaseMeasureService {
       timestamp,
       timestamp
     );
-    this.audit('create', id, input.caseId, `Maßnahmennotiz angelegt (${input.measureType})`);
+    this.audit('create', id, input.caseId, `Maßnahmennotiz angelegt (${input.measureType})`, 'case_measure_note');
     new SearchIndexService(this.db).reindexSource('measure_note', id);
     return mapMeasureNote(this.db.prepare<any>('SELECT * FROM case_measure_notes WHERE id = ?').get(id));
   }
@@ -335,7 +359,7 @@ export class CaseMeasureService {
       nowIso(),
       id
     );
-    this.audit('update', id, existing.case_id, 'Maßnahmennotiz geändert');
+    this.audit('update', id, existing.case_id, 'Maßnahmennotiz geändert', 'case_measure_note');
     new SearchIndexService(this.db).reindexSource('measure_note', id);
     return mapMeasureNote(this.db.prepare<any>('SELECT * FROM case_measure_notes WHERE id = ?').get(id));
   }
@@ -344,7 +368,7 @@ export class CaseMeasureService {
     const existing = this.db.prepare<any>('SELECT * FROM case_measure_notes WHERE id = ?').get(id);
     new SearchIndexService(this.db).deleteSource('measure_note', id);
     const result = this.db.prepare<any>('DELETE FROM case_measure_notes WHERE id = ?').run(id) as { changes?: number } | undefined;
-    this.audit('delete', id, existing?.case_id, 'Maßnahmennotiz gelöscht');
+    this.audit('delete', id, existing?.case_id, 'Maßnahmennotiz gelöscht', 'case_measure_note');
     return { deleted: Boolean(result?.changes) };
   }
 }

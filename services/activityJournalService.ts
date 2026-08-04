@@ -158,9 +158,7 @@ function hasControlLink(links: ActivityJournalLinkRecord[]): boolean {
 }
 
 export class ActivityJournalService {
-  constructor(private readonly db: DatabaseAdapter) {
-    this.ensureSchema();
-  }
+  constructor(private readonly db: DatabaseAdapter) {}
 
   ensureSchema(): void {
     this.db.exec(`

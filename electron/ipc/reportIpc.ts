@@ -9,9 +9,9 @@ import {
   createHash,
   randomBytes,
 } from "node:crypto";
-import { ReportService } from "../../services/reportService.js";
 import { registerRendererSecurityPolicy } from "../security/electronSecurity.js";
 import type { SecurityService } from "../../services/securityService.js";
+import type { ApplicationServices } from '../applicationServices.js';
 import { normalizeReportType } from "../../src/app/core/models/report.model.js";
 import type {
   GenerateReportInput,
@@ -173,11 +173,9 @@ function writeTemporaryPlainPdf(
 export function registerReportIpc(
   ipcMain: IpcMain,
   security: SecurityService,
+  services: ApplicationServices,
 ): void {
-  const reports = new ReportService(
-    () => security.getActiveDatabase(),
-    () => security.getDataDirectory(),
-  );
+  const reports = services.reports;
 
   ipcMain.handle("reports:descriptors", async () => reports.descriptors());
   ipcMain.handle("reports:history", async (_event, limit?: unknown) =>

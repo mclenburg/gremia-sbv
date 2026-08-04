@@ -1,6 +1,6 @@
 import type { IpcMain } from "electron";
-import { KnowledgeService } from "../../services/knowledgeService.js";
 import type { SecurityService } from "../../services/securityService.js";
+import type { ApplicationServices } from '../applicationServices.js';
 import type {
   CreateCaseLawInput,
   CreateLegalNormInput,
@@ -19,8 +19,9 @@ import {
 export function registerKnowledgeIpc(
   ipcMain: IpcMain,
   security: SecurityService,
+  services: ApplicationServices,
 ): void {
-  const knowledge = new KnowledgeService(() => security.getActiveDatabase());
+  const knowledge = services.knowledge;
 
   ipcMain.handle("knowledge:norms:list", async (_event, filters?: unknown) =>
     knowledge.listNorms(

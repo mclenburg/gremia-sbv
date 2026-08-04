@@ -77,9 +77,7 @@ function mapChainRow(row: any): AuditChainRowInput {
 }
 
 export class PersonalDataAuditLogService {
-  constructor(private readonly db: DatabaseAdapter, private readonly actor = 'local-sbv-user') {
-    ensurePersonalDataAuditSchema(db);
-  }
+  constructor(private readonly db: DatabaseAdapter, private readonly actor = 'local-sbv-user') {}
 
   append(input: CreatePersonalDataAuditInput): PersonalDataAuditRecord {
     const previous = this.db.prepare<any>('SELECT sequence, entry_hash FROM personal_data_audit_log ORDER BY sequence DESC LIMIT 1').get();

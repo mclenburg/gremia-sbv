@@ -53,9 +53,7 @@ export class SbvParticipationViolationDocumentService {
     private readonly db: DatabaseAdapter,
     private readonly dataDirProvider: () => string,
     private readonly violationService: ParticipationViolationReader = new SbvParticipationViolationService(db),
-  ) {
-    this.ensureSchema();
-  }
+  ) {}
 
   ensureSchema(): void {
     this.db.exec(`

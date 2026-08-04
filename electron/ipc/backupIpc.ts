@@ -1,14 +1,15 @@
 import { dialog, shell, type IpcMain } from "electron";
 import path from "node:path";
-import { BackupService } from "../../services/backupService.js";
 import type { SecurityService } from "../../services/securityService.js";
+import type { ApplicationServices } from '../applicationServices.js';
 import { assertString, ensurePathInside } from "./ipcValidation.js";
 
 export function registerBackupIpc(
   ipcMain: IpcMain,
   security: SecurityService,
+  services: ApplicationServices,
 ): void {
-  const backups = new BackupService(security);
+  const backups = services.backup;
 
   ipcMain.handle("backup:create", async (_event, passphrase: unknown) => {
     const validatedPassphrase = assertString(passphrase, "backup:create", "Backup-Passphrase", { minLength: 1, maxLength: 512 });

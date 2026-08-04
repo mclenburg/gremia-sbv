@@ -1,6 +1,6 @@
 import type { IpcMain } from "electron";
-import { ContactService } from "../../services/contactService.js";
 import type { SecurityService } from "../../services/securityService.js";
+import type { ApplicationServices } from '../applicationServices.js';
 import type {
   ContactListFilters,
   CreateContactInput,
@@ -15,8 +15,9 @@ import {
 export function registerContactIpc(
   ipcMain: IpcMain,
   security: SecurityService,
+  services: ApplicationServices,
 ): void {
-  const contacts = new ContactService(() => security.getActiveDatabase());
+  const contacts = services.contacts;
 
   ipcMain.handle("contacts:list", async (_event, filters?: unknown) =>
     contacts.listContacts(

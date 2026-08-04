@@ -1,10 +1,10 @@
 import type { IpcMain } from "electron";
-import { TerminationService } from "../../services/terminationService.js";
 import {
   evaluateTerminationWarnings,
   TERMINATION_STATUS_ORDER,
 } from "../../services/terminationWorkflowPolicy.js";
 import type { SecurityService } from "../../services/securityService.js";
+import type { ApplicationServices } from '../applicationServices.js';
 import type {
   CreateTerminationHearingInput,
   UpdateTerminationHearingInput,
@@ -18,8 +18,9 @@ import {
 export function registerTerminationIpc(
   ipcMain: IpcMain,
   security: SecurityService,
+  services: ApplicationServices,
 ): void {
-  const termination = () => new TerminationService(security.getActiveDatabase());
+  const termination = services.termination;
 
   ipcMain.handle("termination:steps", async () => TERMINATION_STATUS_ORDER);
   ipcMain.handle("termination:list", async (_event, caseId?: unknown) =>

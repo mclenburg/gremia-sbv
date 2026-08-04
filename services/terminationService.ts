@@ -1,6 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
+import { DatabaseUnitOfWork } from './databaseUnitOfWork.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
+import { MeasureLifecycleAuditService } from './measureLifecycleAuditService.js';
 import type {
   CreateTerminationHearingInput,
   TerminationHearingRecord,
@@ -40,13 +42,7 @@ function mapTermination(row: any): TerminationHearingRecord {
 }
 
 export class TerminationService {
-  constructor(private readonly db: DatabaseAdapter) {
-    this.ensureAuditSchema();
-  }
-
-  private ensureAuditSchema(): void {
-    new PersonalDataAuditLogService(this.db);
-  }
+  constructor(private readonly db: DatabaseAdapter) {}
 
   private audit(action: Parameters<PersonalDataAuditLogService['append']>[0]['action'], subjectId: string | undefined, caseId: string | undefined, purpose: string): void {
     try {
@@ -74,7 +70,8 @@ export class TerminationService {
   create(input: CreateTerminationHearingInput): TerminationHearingRecord {
     const id = randomUUID();
     const timestamp = nowIso();
-    this.db.prepare(`
+    new DatabaseUnitOfWork(this.db).run(() => {
+      this.db.prepare(`
       INSERT INTO termination_hearings (
         id, case_id, status, termination_type, protection_status, received_at, employer_deadline_at,
         sbv_statement_due_at, works_council_hearing_at, integration_office_requested_at,
@@ -101,7 +98,9 @@ export class TerminationService {
       timestamp,
       timestamp
     );
-    this.audit('create', id, input.caseId, 'termination_hearing angelegt');
+      new MeasureLifecycleAuditService(this.db).created('termination_hearing', id, input.caseId, input.status ?? 'eingang', 'manual');
+      new PersonalDataAuditLogService(this.db).append({ action: 'create', subjectType: 'termination_hearing', subjectId: id, caseId: input.caseId, purpose: 'termination_hearing angelegt' });
+    });
     return this.getById(id)!;
   }
 
@@ -126,7 +125,8 @@ export class TerminationService {
       statement: input.statement !== undefined ? input.statement : existing.statement
     };
 
-    this.db.prepare(`
+    new DatabaseUnitOfWork(this.db).run(() => {
+      this.db.prepare(`
       UPDATE termination_hearings
       SET status = ?, termination_type = ?, protection_status = ?, received_at = ?, employer_deadline_at = ?,
           sbv_statement_due_at = ?, works_council_hearing_at = ?, integration_office_requested_at = ?,
@@ -151,8 +151,12 @@ export class TerminationService {
       nowIso(),
       id
     );
-    this.audit('update', id, existing.caseId, 'termination_hearing geändert');
-    return this.getById(id)!;
+      new MeasureLifecycleAuditService(this.db).statusChanged('termination_hearing', id, existing.caseId, existing.status, next.status);
+      new PersonalDataAuditLogService(this.db).append({ action: 'update', subjectType: 'termination_hearing', subjectId: id, caseId: existing.caseId, purpose: 'termination_hearing geändert' });
+    });
+    const row = this.db.prepare<any>('SELECT * FROM termination_hearings WHERE id = ?').get(id);
+    if (!row) throw new Error(`Termination hearing not found after update: ${id}`);
+    return mapTermination(row);
   }
 
   setStatus(id: string, status: TerminationHearingStatus): TerminationHearingRecord {

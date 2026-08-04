@@ -1,6 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
+import { DatabaseUnitOfWork } from './databaseUnitOfWork.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
+import { MeasureLifecycleAuditService } from './measureLifecycleAuditService.js';
 import { DeadlineService } from './deadlineService.js';
 import { defaultEmployerResponseDueAt, preventionReviewDueAtAfterEmployerDeadline } from './preventionWorkflowPolicy.js';
 import type {
@@ -40,13 +42,7 @@ function mapProcess(row: any, contactIds: string[]): PreventionProcessRecord {
 }
 
 export class PreventionService {
-  constructor(private readonly db: DatabaseAdapter) {
-    this.ensureAuditSchema();
-  }
-
-  private ensureAuditSchema(): void {
-    new PersonalDataAuditLogService(this.db);
-  }
+  constructor(private readonly db: DatabaseAdapter) {}
 
   private audit(action: Parameters<PersonalDataAuditLogService['append']>[0]['action'], subjectId: string | undefined, caseId: string | undefined, purpose: string): void {
     try {
@@ -87,7 +83,8 @@ export class PreventionService {
         ? defaultEmployerResponseDueAt(requestedAt)
         : null;
 
-    this.db.prepare(`
+    new DatabaseUnitOfWork(this.db).run(() => {
+      this.db.prepare(`
       INSERT INTO prevention_processes (
         id, case_id, status, first_knowledge_at, requested_at, employer_response_due_at,
         difficulty_type, risk_type, person_status, hazard_description, created_at, updated_at
@@ -132,7 +129,9 @@ export class PreventionService {
       });
     }
 
-    this.audit('create', id, input.caseId, 'prevention_process angelegt');
+      new MeasureLifecycleAuditService(this.db).created('prevention', id, input.caseId, 'zu_pruefen', 'manual');
+      new PersonalDataAuditLogService(this.db).append({ action: 'create', subjectType: 'prevention_process', subjectId: id, caseId: input.caseId, purpose: 'prevention_process angelegt' });
+    });
     return this.getById(id)!;
   }
 
@@ -157,7 +156,8 @@ export class PreventionService {
       nextReviewAt: input.nextReviewAt !== undefined ? input.nextReviewAt : existing.nextReviewAt
     };
 
-    this.db.prepare(`
+    new DatabaseUnitOfWork(this.db).run(() => {
+      this.db.prepare(`
       UPDATE prevention_processes
       SET status = ?, first_knowledge_at = ?, requested_at = ?, employer_response_due_at = ?, employer_responded_at = ?,
           integration_office_involved_at = ?, difficulty_type = ?, risk_type = ?, person_status = ?, hazard_description = ?,
@@ -184,7 +184,9 @@ export class PreventionService {
 
     if (input.contactIds) this.replaceContacts(id, input.contactIds);
     this.event(id, 'updated', 'Präventionsverfahren aktualisiert', JSON.stringify(input));
-    this.audit('update', id, existing.caseId, 'prevention_process geändert');
+      new MeasureLifecycleAuditService(this.db).statusChanged('prevention', id, existing.caseId, existing.status, next.status);
+      new PersonalDataAuditLogService(this.db).append({ action: 'update', subjectType: 'prevention_process', subjectId: id, caseId: existing.caseId, purpose: 'prevention_process geändert' });
+    });
     return this.getById(id)!;
   }
 

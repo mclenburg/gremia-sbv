@@ -1,11 +1,11 @@
 import type { IpcMain } from 'electron';
-import { SbvResourceService } from '../../services/sbvResourceService.js';
 import type { SecurityService } from '../../services/securityService.js';
+import type { ApplicationServices } from '../applicationServices.js';
 import type { CreateSbvResourceRecordInput, UpdateSbvResourceRecordInput } from '../../src/app/core/models/sbv-resource.model.js';
 import { assertRecordInput, assertString } from './ipcValidation.js';
 
-export function registerSbvResourceIpc(ipcMain: IpcMain, security: SecurityService): void {
-  const resources = () => new SbvResourceService(security.getActiveDatabase());
+export function registerSbvResourceIpc(ipcMain: IpcMain, security: SecurityService, services: ApplicationServices): void {
+  const resources = services.sbvResources;
 
   ipcMain.handle('sbvResources:list', async () => resources().list());
   ipcMain.handle('sbvResources:dashboard', async () => resources().dashboardSummary());

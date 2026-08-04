@@ -75,9 +75,7 @@ function mapRecord(row: any): SbvControlProtocolRecord {
 }
 
 export class SbvControlProtocolService {
-  constructor(private readonly db: DatabaseAdapter) {
-    this.ensureSchema();
-  }
+  constructor(private readonly db: DatabaseAdapter) {}
 
   ensureSchema(): void {
     this.db.exec(`

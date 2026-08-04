@@ -155,7 +155,7 @@ describe('SBV-Beteiligung Legacy-Migration', () => {
   it('legt bei falschen source_id-Kollisionen eine eigene SBV-Beteiligungsmaßnahme an', () => {
     const db = new ParticipationMigrationDb(true);
 
-    expect(() => new ParticipationService(db)).not.toThrow();
+    expect(() => new ParticipationService(db).ensureSchema()).not.toThrow();
 
     const migratedMeasure = db.rows.case_measures.find((row) => row.id === legacyRow.id);
     expect(migratedMeasure).toMatchObject({
@@ -181,7 +181,7 @@ describe('SBV-Beteiligung Legacy-Migration', () => {
       source_id: legacyRow.id,
     });
 
-    new ParticipationService(db);
+    new ParticipationService(db).ensureSchema();
 
     expect(db.rows.case_measures.filter((row) => row.type === 'sbv_participation')).toHaveLength(1);
     expect(db.rows.case_measure_participation[0]).toMatchObject({

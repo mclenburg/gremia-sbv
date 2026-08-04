@@ -364,6 +364,8 @@ export class MigrationService {
         return this.activityJournalRecruitingContextsSupported();
       case '0047':
         return this.participationViolationRecruitingContextSupported();
+      case '0048':
+        return this.indexExists('idx_personal_data_audit_lifecycle_period');
       default:
         return false;
     }

@@ -114,7 +114,6 @@ export class ComplianceIncidentService {
   private readonly audit: PersonalDataAuditLogService;
 
   constructor(private readonly db: DatabaseAdapter) {
-    ensureComplianceIncidentSchema(db);
     this.audit = new PersonalDataAuditLogService(db);
   }
 

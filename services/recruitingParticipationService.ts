@@ -1,6 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
+import { DatabaseUnitOfWork } from './databaseUnitOfWork.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
+import { MeasureLifecycleAuditService } from './measureLifecycleAuditService.js';
 import type {
   CreateRecruitingInterviewEventInput,
   CreateRecruitingParticipationInput,
@@ -93,9 +95,7 @@ function mapInterview(row: any): RecruitingInterviewEventRecord {
 }
 
 export class RecruitingParticipationService {
-  constructor(private readonly db: DatabaseAdapter) {
-    this.ensureSchema();
-  }
+  constructor(private readonly db: DatabaseAdapter) {}
 
   ensureSchema(): void {
     this.db.exec(`
@@ -228,7 +228,8 @@ export class RecruitingParticipationService {
     const flaggedForViolationReview = normalizeBoolean(input.flaggedForViolationReview);
     const violationReviewReason = flaggedForViolationReview ? normalizeViolationReviewReason(input.violationReviewReason) ?? 'manual_review' : null;
 
-    this.db.prepare(`
+    new DatabaseUnitOfWork(this.db).run(() => {
+      this.db.prepare(`
       INSERT INTO recruiting_participations (
         id, vacancy_title, vacancy_reference, department, location, status,
         employer_notice_date, documents_received_date, documents_complete,
@@ -264,7 +265,9 @@ export class RecruitingParticipationService {
       timestamp,
       timestamp
     );
-    this.audit('create', id, 'Stellenbesetzung angelegt; Audit enthält keine Bewerberdaten oder Gesprächsinhalte.', { status: normalizeRecruitingParticipationStatus(input.status), flaggedForViolationReview });
+      new MeasureLifecycleAuditService(this.db).created('recruiting', id, undefined, normalizeRecruitingParticipationStatus(input.status), 'manual');
+      new PersonalDataAuditLogService(this.db).append({ action: 'create', subjectType: 'recruiting_participation', subjectId: id, purpose: 'Stellenbesetzung angelegt; Audit enthält keine Bewerberdaten oder Gesprächsinhalte.', metadata: { status: normalizeRecruitingParticipationStatus(input.status), flaggedForViolationReview } });
+    });
     return this.getById(id)!;
   }
 
@@ -277,7 +280,8 @@ export class RecruitingParticipationService {
       : null;
     const nextStatus = input.status !== undefined ? normalizeRecruitingParticipationStatus(input.status) : existing.status;
 
-    this.db.prepare(`
+    new DatabaseUnitOfWork(this.db).run(() => {
+      this.db.prepare(`
       UPDATE recruiting_participations
       SET vacancy_title = ?, vacancy_reference = ?, department = ?, location = ?, status = ?,
           employer_notice_date = ?, documents_received_date = ?, documents_complete = ?,
@@ -312,7 +316,9 @@ export class RecruitingParticipationService {
       nowIso(),
       id
     );
-    this.audit('update', id, 'Stellenbesetzung aktualisiert; Audit enthält keine Freitexte aus Verfahrensnotizen.', { status: nextStatus, flaggedForViolationReview });
+      new MeasureLifecycleAuditService(this.db).statusChanged('recruiting', id, undefined, existing.status, nextStatus);
+      new PersonalDataAuditLogService(this.db).append({ action: 'update', subjectType: 'recruiting_participation', subjectId: id, purpose: 'Stellenbesetzung aktualisiert; Audit enthält keine Freitexte aus Verfahrensnotizen.', metadata: { status: nextStatus, flaggedForViolationReview } });
+    });
     return this.getById(id)!;
   }
 
@@ -321,10 +327,14 @@ export class RecruitingParticipationService {
   }
 
   delete(id: string): void {
-    this.ensureParticipationExists(id);
+    const existing = this.getById(id);
+    if (!existing) throw new Error(`Stellenbesetzung nicht gefunden: ${id}`);
     this.ensureParticipationCanBeDeleted(id);
-    this.db.prepare('DELETE FROM recruiting_participations WHERE id = ?').run(id);
-    this.audit('delete', id, 'Stellenbesetzung gelöscht; zugehörige Interview-Ereignisse wurden kaskadiert gelöscht.', { cascade: 'recruiting_interview_events' });
+    new DatabaseUnitOfWork(this.db).run(() => {
+      new MeasureLifecycleAuditService(this.db).deleted('recruiting', id, undefined, existing.status, 'single_measure');
+      this.db.prepare('DELETE FROM recruiting_participations WHERE id = ?').run(id);
+      new PersonalDataAuditLogService(this.db).append({ action: 'delete', subjectType: 'recruiting_participation', subjectId: id, purpose: 'Stellenbesetzung gelöscht; zugehörige Interview-Ereignisse wurden kaskadiert gelöscht.', metadata: { cascade: 'recruiting_interview_events' } });
+    });
   }
 
   listInterviews(recruitingParticipationId: string): RecruitingInterviewEventRecord[] {

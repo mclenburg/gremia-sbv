@@ -1,11 +1,11 @@
 import type { IpcMain } from 'electron';
-import { SbvControlProtocolService } from '../../services/sbvControlProtocolService.js';
 import type { SecurityService } from '../../services/securityService.js';
+import type { ApplicationServices } from '../applicationServices.js';
 import type { CreateSbvControlProtocolInput, UpdateSbvControlProtocolInput } from '../../src/app/core/models/sbv-control-protocol.model.js';
 import { assertRecordInput, assertString } from './ipcValidation.js';
 
-export function registerSbvControlProtocolIpc(ipcMain: IpcMain, security: SecurityService): void {
-  const protocols = () => new SbvControlProtocolService(security.getActiveDatabase());
+export function registerSbvControlProtocolIpc(ipcMain: IpcMain, security: SecurityService, services: ApplicationServices): void {
+  const protocols = services.sbvControlProtocols;
 
   ipcMain.handle('sbvControlProtocols:list', async () => protocols().list());
   ipcMain.handle('sbvControlProtocols:create', async (_event, input: unknown) =>

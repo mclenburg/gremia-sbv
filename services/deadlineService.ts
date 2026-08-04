@@ -187,9 +187,7 @@ function validateCaseBinding(input: CreateDeadlineInput): void {
 }
 
 export class DeadlineService {
-  constructor(private readonly db: DatabaseAdapter) {
-    new PersonalDataAuditLogService(this.db);
-  }
+  constructor(private readonly db: DatabaseAdapter) {}
 
   private personalDataAudit(action: Parameters<PersonalDataAuditLogService['append']>[0]['action'], subjectId: string | undefined, caseId: string | undefined, purpose: string, metadata?: Record<string, unknown>): void {
     try {

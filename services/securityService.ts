@@ -28,6 +28,7 @@ import {
 } from "./tempFileService.js";
 import type { DatabaseAdapter } from "./databaseService.js";
 import { MigrationService } from "./migrationService.js";
+import { DatabaseRuntimeInitializer } from "./databaseRuntimeInitializer.js";
 import { validateAppPassword } from "./passwordPolicy.js";
 
 interface KeyWrap {
@@ -1088,13 +1089,15 @@ export class SecurityService {
       schemaPath,
       migrationsDir,
     ).migrate();
+    const runtimeInitialization = new DatabaseRuntimeInitializer(db).initialize();
 
-    if (result.applied.length || result.inferred.length) {
+    if (result.applied.length || result.inferred.length || runtimeInitialization.baselineEntriesCreated > 0) {
       console.log("Gremia.SBV database migrations:", {
         applied: result.applied,
         inferred: result.inferred,
         schemaVersion: result.currentSchemaVersion,
         diagnostics: result.diagnostics,
+        lifecycleBaselineEntries: runtimeInitialization.baselineEntriesCreated,
       });
     }
   }

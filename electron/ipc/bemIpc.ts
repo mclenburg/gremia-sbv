@@ -1,7 +1,7 @@
 import type { IpcMain } from "electron";
-import { BemService } from "../../services/bemService.js";
 import { BEM_STEPS, evaluateBemWarnings } from "../../services/bemWorkflowPolicy.js";
 import type { SecurityService } from "../../services/securityService.js";
+import type { ApplicationServices } from '../applicationServices.js';
 import type {
   CreateBemProcessInput,
   UpdateBemProcessInput,
@@ -15,8 +15,9 @@ import {
 export function registerBemIpc(
   ipcMain: IpcMain,
   security: SecurityService,
+  services: ApplicationServices,
 ): void {
-  const bem = () => new BemService(security.getActiveDatabase());
+  const bem = services.bem;
 
   ipcMain.handle("bem:steps", async () => BEM_STEPS);
   ipcMain.handle("bem:list", async (_event, caseId?: unknown) =>

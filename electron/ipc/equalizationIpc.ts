@@ -1,10 +1,10 @@
 import type { IpcMain } from "electron";
-import { EqualizationService } from "../../services/equalizationService.js";
 import {
   EQUALIZATION_STATUS_ORDER,
   evaluateEqualizationWarnings,
 } from "../../services/equalizationWorkflowPolicy.js";
 import type { SecurityService } from "../../services/securityService.js";
+import type { ApplicationServices } from '../applicationServices.js';
 import type {
   CreateEqualizationProcessInput,
   UpdateEqualizationProcessInput,
@@ -18,8 +18,9 @@ import {
 export function registerEqualizationIpc(
   ipcMain: IpcMain,
   security: SecurityService,
+  services: ApplicationServices,
 ): void {
-  const equalization = () => new EqualizationService(security.getActiveDatabase());
+  const equalization = services.equalization;
 
   ipcMain.handle("equalization:steps", async () => EQUALIZATION_STATUS_ORDER);
   ipcMain.handle("equalization:list", async (_event, caseId?: unknown) =>

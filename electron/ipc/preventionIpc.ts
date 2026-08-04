@@ -1,7 +1,7 @@
 import type { IpcMain } from "electron";
-import { PreventionService } from "../../services/preventionService.js";
 import { PREVENTION_STEPS, evaluatePreventionWarnings } from "../../services/preventionWorkflowPolicy.js";
 import type { SecurityService } from "../../services/securityService.js";
+import type { ApplicationServices } from '../applicationServices.js';
 import type {
   CreatePreventionProcessInput,
   UpdatePreventionProcessInput,
@@ -15,8 +15,9 @@ import {
 export function registerPreventionIpc(
   ipcMain: IpcMain,
   security: SecurityService,
+  services: ApplicationServices,
 ): void {
-  const prevention = () => new PreventionService(security.getActiveDatabase());
+  const prevention = services.prevention;
 
   ipcMain.handle("prevention:steps", async () => PREVENTION_STEPS);
   ipcMain.handle("prevention:list", async (_event, caseId?: unknown) =>

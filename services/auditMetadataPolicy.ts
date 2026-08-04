@@ -125,6 +125,16 @@ const REPORT_METADATA_FIELDS = [
   'complianceDocumentType',
 ] as const;
 
+const MEASURE_LIFECYCLE_METADATA_FIELDS = [
+  'schemaVersion',
+  'eventName',
+  'measureType',
+  'previousStatus',
+  'nextStatus',
+  'creationSource',
+  'deletionScope',
+] as const;
+
 export const AUDIT_METADATA_POLICY_BY_SUBJECT_TYPE = {
   compliance_incident: COMPLIANCE_INCIDENT_METADATA_FIELDS,
   case_handover: CASE_HANDOVER_METADATA_FIELDS,
@@ -142,9 +152,10 @@ export const AUDIT_METADATA_POLICY_BY_SUBJECT_TYPE = {
   security_session: SECURITY_SESSION_METADATA_FIELDS,
   case_search_index: SEARCH_INDEX_METADATA_FIELDS,
   report: REPORT_METADATA_FIELDS,
+  measure_lifecycle: MEASURE_LIFECYCLE_METADATA_FIELDS,
   protected_person: ['reasonCode'] as const,
   contact: ['category'] as const,
-  case: ['category', 'bindingState', 'hasCaseFilter'] as const,
+  case: ['category', 'bindingState', 'hasCaseFilter', 'affectedRecordCount', 'affectedFileCount'] as const,
   case_content: ['category', 'bindingState', 'hasCaseFilter'] as const,
   case_document: ['category', 'bindingState', 'documentKind'] as const,
   bem_process: [] as const,
@@ -152,6 +163,7 @@ export const AUDIT_METADATA_POLICY_BY_SUBJECT_TYPE = {
   equalization_process: [] as const,
   termination_hearing: [] as const,
   case_measure: [] as const,
+  case_measure_note: [] as const,
   case_measure_participation: [] as const,
   case_measure_workplace_accommodation: [] as const,
   case_note: [] as const,

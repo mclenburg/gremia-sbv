@@ -15,9 +15,7 @@ function assertContextType(contextType: ActivityJournalContextType): void {
 }
 
 export class ActivityJournalPreferenceService {
-  constructor(private readonly db: DatabaseAdapter) {
-    this.ensureSchema();
-  }
+  constructor(private readonly db: DatabaseAdapter) {}
 
   ensureSchema(): void {
     this.db.exec(`

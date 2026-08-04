@@ -1,6 +1,6 @@
 import type { IpcMain } from 'electron';
-import { RecruitingParticipationService } from '../../services/recruitingParticipationService.js';
 import type { SecurityService } from '../../services/securityService.js';
+import type { ApplicationServices } from '../applicationServices.js';
 import type {
   CreateRecruitingInterviewEventInput,
   CreateRecruitingParticipationInput,
@@ -12,8 +12,9 @@ import { assertRecordInput, assertString } from './ipcValidation.js';
 export function registerRecruitingParticipationIpc(
   ipcMain: IpcMain,
   security: SecurityService,
+  services: ApplicationServices,
 ): void {
-  const recruiting = () => new RecruitingParticipationService(security.getActiveDatabase());
+  const recruiting = services.recruitingParticipation;
 
   ipcMain.handle('recruitingParticipations:list', async () => recruiting().list());
 

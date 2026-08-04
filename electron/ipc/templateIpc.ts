@@ -1,7 +1,6 @@
 import type { IpcMain } from "electron";
-import { TemplateService } from "../../services/templateService.js";
-import { TemplateDefaultService } from "../../services/templateDefaultService.js";
 import type { SecurityService } from "../../services/securityService.js";
+import type { ApplicationServices } from '../applicationServices.js';
 import { registerGremiaBrIpc } from "./gremiaBrIpc.js";
 import type {
   CreateTemplateInput,
@@ -20,10 +19,11 @@ import {
 export function registerTemplateIpc(
   ipcMain: IpcMain,
   security: SecurityService,
+  services: ApplicationServices,
 ): void {
-  const templates = new TemplateService(() => security.getActiveDatabase());
-  const templateDefaults = new TemplateDefaultService(() => security.getActiveDatabase());
-  registerGremiaBrIpc(ipcMain, security);
+  const templates = services.templates;
+  const templateDefaults = services.templateDefaults;
+  registerGremiaBrIpc(ipcMain, security, services);
 
 
   ipcMain.handle("template-defaults:list", async () => templateDefaults.list());

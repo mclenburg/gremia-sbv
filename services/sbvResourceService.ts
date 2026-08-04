@@ -60,9 +60,7 @@ function mapRecord(row: any): SbvResourceRecord {
 }
 
 export class SbvResourceService {
-  constructor(private readonly db: DatabaseAdapter) {
-    this.ensureSchema();
-  }
+  constructor(private readonly db: DatabaseAdapter) {}
 
   ensureSchema(): void {
     this.db.exec(`

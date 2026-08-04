@@ -141,9 +141,7 @@ function mapEvent(row: ViolationEventRow): SbvParticipationViolationEventRecord 
 }
 
 export class SbvParticipationViolationService {
-  constructor(private readonly db: DatabaseAdapter) {
-    this.ensureSchema();
-  }
+  constructor(private readonly db: DatabaseAdapter) {}
 
   ensureSchema(): void {
     this.db.exec(`

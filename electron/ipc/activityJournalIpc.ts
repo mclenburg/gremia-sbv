@@ -1,7 +1,6 @@
 import type { IpcMain } from 'electron';
 import type { SecurityService } from '../../services/securityService.js';
-import { ActivityJournalService } from '../../services/activityJournalService.js';
-import { ActivityJournalPreferenceService } from '../../services/activityJournalPreferenceService.js';
+import type { ApplicationServices } from '../applicationServices.js';
 import { buildFromClosedJournalDeadline, buildFromContext, buildFromDeadline } from '../../services/activityJournalPrefill.js';
 import type {
   ActivityJournalContextType,
@@ -16,9 +15,9 @@ import type {
 import { assertAllowedEnum, assertRecordInput, assertString } from './ipcValidation.js';
 import { ACTIVITY_JOURNAL_CATEGORIES, ACTIVITY_JOURNAL_CONTEXT_TYPES } from '../../src/app/core/models/activity-journal.model.js';
 
-export function registerActivityJournalIpc(ipcMain: IpcMain, security: SecurityService): void {
-  const journal = () => new ActivityJournalService(security.getActiveDatabase());
-  const preferences = () => new ActivityJournalPreferenceService(security.getActiveDatabase());
+export function registerActivityJournalIpc(ipcMain: IpcMain, security: SecurityService, services: ApplicationServices): void {
+  const journal = services.activityJournal;
+  const preferences = services.activityJournalPreferences;
 
   ipcMain.handle('activityJournal:list', async (_event, filter: unknown) =>
     journal().listEntries((filter ?? {}) as ActivityJournalListFilter)

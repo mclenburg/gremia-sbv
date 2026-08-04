@@ -153,11 +153,9 @@ export function evaluateParticipationWarnings(
 }
 
 export class ParticipationService {
-  constructor(private readonly db: DatabaseAdapter) {
-    this.ensureSchema();
-  }
+  constructor(private readonly db: DatabaseAdapter) {}
 
-  private ensureSchema(): void {
+  ensureSchema(): void {
     new CaseMeasureService(this.db).ensureSchema();
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS case_measure_participation (

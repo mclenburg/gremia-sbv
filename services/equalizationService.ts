@@ -1,6 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
+import { DatabaseUnitOfWork } from './databaseUnitOfWork.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
+import { MeasureLifecycleAuditService } from './measureLifecycleAuditService.js';
 import type { CreateEqualizationProcessInput, EqualizationProcessRecord, EqualizationStatus, UpdateEqualizationProcessInput } from '../src/app/core/models/equalization.model.js';
 
 function nowIso(): string {
@@ -29,13 +31,7 @@ function mapEqualization(row: any): EqualizationProcessRecord {
 }
 
 export class EqualizationService {
-  constructor(private readonly db: DatabaseAdapter) {
-    this.ensureAuditSchema();
-  }
-
-  private ensureAuditSchema(): void {
-    new PersonalDataAuditLogService(this.db);
-  }
+  constructor(private readonly db: DatabaseAdapter) {}
 
   private audit(action: Parameters<PersonalDataAuditLogService['append']>[0]['action'], subjectId: string | undefined, caseId: string | undefined, purpose: string): void {
     try {
@@ -57,7 +53,8 @@ export class EqualizationService {
   create(input: CreateEqualizationProcessInput): EqualizationProcessRecord {
     const id = randomUUID();
     const timestamp = nowIso();
-    this.db.prepare(`
+    new DatabaseUnitOfWork(this.db).run(() => {
+      this.db.prepare(`
       INSERT INTO equalization_processes (
         id, case_id, application_status, agency_reference, application_submitted_at,
         decision_received_at, objection_due_at, outcome, notes, created_at, updated_at
@@ -75,7 +72,9 @@ export class EqualizationService {
       timestamp,
       timestamp
     );
-    this.audit('create', id, input.caseId, 'equalization_process angelegt');
+      new MeasureLifecycleAuditService(this.db).created('equalization_gdb', id, input.caseId, input.applicationStatus ?? 'beratung', 'manual');
+      new PersonalDataAuditLogService(this.db).append({ action: 'create', subjectType: 'equalization_process', subjectId: id, caseId: input.caseId, purpose: 'equalization_process angelegt' });
+    });
     return this.getById(id)!;
   }
 
@@ -103,7 +102,8 @@ export class EqualizationService {
       notes: undefined
     };
 
-    this.db.prepare(`
+    new DatabaseUnitOfWork(this.db).run(() => {
+      this.db.prepare(`
       UPDATE equalization_processes
       SET application_status = ?, agency_reference = ?, application_submitted_at = ?,
           decision_received_at = ?, objection_due_at = ?, outcome = ?, notes = ?, updated_at = ?
@@ -120,10 +120,12 @@ export class EqualizationService {
       id
     );
 
-    const updated = this.getById(id);
-    if (!updated) throw new Error(`Equalization process not found after update: ${id}`);
-    this.audit('update', id, existing.caseId, 'equalization_process geändert');
-    return updated;
+      new MeasureLifecycleAuditService(this.db).statusChanged('equalization_gdb', id, existing.caseId, existing.applicationStatus, next.applicationStatus);
+      new PersonalDataAuditLogService(this.db).append({ action: 'update', subjectType: 'equalization_process', subjectId: id, caseId: existing.caseId, purpose: 'equalization_process geändert' });
+    });
+    const row = this.db.prepare<any>('SELECT * FROM equalization_processes WHERE id = ?').get(id);
+    if (!row) throw new Error(`Equalization process not found after update: ${id}`);
+    return mapEqualization(row);
   }
 
   setStatus(id: string, status: EqualizationStatus): EqualizationProcessRecord {

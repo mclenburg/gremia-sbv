@@ -1,11 +1,11 @@
 import { dialog, type IpcMain } from 'electron';
-import { CaseHandoverService } from '../../services/caseHandoverService.js';
 import type { SecurityService } from '../../services/securityService.js';
+import type { ApplicationServices } from '../applicationServices.js';
 import type { CaseHandoverExportInput, CaseHandoverImportInput } from '../../src/app/core/models/case-handover.model.js';
 import { assertRecordInput, assertString, sanitizeDialogFileName } from './ipcValidation.js';
 
-export function registerCaseHandoverIpc(ipcMain: IpcMain, security: SecurityService): void {
-  const handover = new CaseHandoverService(() => security.getActiveDatabase(), () => security.getDataDirectory());
+export function registerCaseHandoverIpc(ipcMain: IpcMain, security: SecurityService, services: ApplicationServices): void {
+  const handover = services.caseHandover;
 
   ipcMain.handle('caseHandover:export', async (_event, input: unknown, suggestedFileName?: unknown) => {
     const validated = assertRecordInput<CaseHandoverExportInput>(input, 'caseHandover:export');

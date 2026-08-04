@@ -1,17 +1,15 @@
 import type { IpcMain } from "electron";
-import { RetentionService } from "../../services/retentionService.js";
 import type { SecurityService } from "../../services/securityService.js";
+import type { ApplicationServices } from '../applicationServices.js';
 import type { UpdateRetentionSettingsInput } from "../../src/app/core/models/retention.model.js";
 import { assertRecordInput, assertString } from "./ipcValidation.js";
 
 export function registerRetentionIpc(
   ipcMain: IpcMain,
   security: SecurityService,
+  services: ApplicationServices,
 ): void {
-  const retention = new RetentionService(
-    () => security.getActiveDatabase(),
-    () => security.getDataDirectory(),
-  );
+  const retention = services.retention;
 
   ipcMain.handle("retention:dashboard", async () => retention.buildDashboard());
   ipcMain.handle("retention:settings:get", async () => retention.getSettings());

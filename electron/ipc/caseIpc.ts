@@ -1,6 +1,6 @@
 import { dialog, shell, type IpcMain } from "electron";
-import { CaseService } from "../../services/caseService.js";
 import type { SecurityService } from "../../services/securityService.js";
+import type { ApplicationServices } from '../applicationServices.js';
 import type {
   CaseContentSearchInput,
   CreateCaseNoteInput,
@@ -31,11 +31,9 @@ const DOCUMENT_IMPORT_EXTENSIONS = [
 export function registerCaseIpc(
   ipcMain: IpcMain,
   security: SecurityService,
+  services: ApplicationServices,
 ): void {
-  const cases = new CaseService(
-    () => security.getActiveDatabase(),
-    () => security.getDataDirectory(),
-  );
+  const cases = services.cases;
 
   ipcMain.handle("cases:list", async () => cases.listCases());
   ipcMain.handle("cases:create", async (_event, input: unknown) =>

@@ -1,8 +1,6 @@
 import type { IpcMain } from 'electron';
-import { SbvParticipationViolationService } from '../../services/sbvParticipationViolationService.js';
-import { SbvParticipationViolationDocumentService } from '../../services/sbvParticipationViolationDocumentService.js';
-import { SbvParticipationViolationTemplateService } from '../../services/sbvParticipationViolationTemplateService.js';
 import type { SecurityService } from '../../services/securityService.js';
+import type { ApplicationServices } from '../applicationServices.js';
 import type {
   CreateSbvParticipationViolationInput,
   SbvParticipationViolationListFilter,
@@ -12,10 +10,15 @@ import type {
 } from '../../src/app/core/models/sbv-participation-violation.model.js';
 import { assertRecordInput, assertString } from './ipcValidation.js';
 
-export function registerSbvParticipationViolationIpc(ipcMain: IpcMain, security: SecurityService, dataDirProvider: () => string): void {
-  const service = () => new SbvParticipationViolationService(security.getActiveDatabase());
-  const documents = () => new SbvParticipationViolationDocumentService(security.getActiveDatabase(), dataDirProvider);
-  const templates = () => new SbvParticipationViolationTemplateService();
+export function registerSbvParticipationViolationIpc(
+  ipcMain: IpcMain,
+  security: SecurityService,
+  dataDirProvider: () => string,
+  services: ApplicationServices,
+): void {
+  const service = services.sbvParticipationViolations;
+  const documents = services.sbvParticipationViolationDocuments;
+  const templates = () => services.participationViolationTemplates;
 
   ipcMain.handle('sbvParticipationViolations:list', async (_event, filter?: unknown) =>
     service().list(assertRecordInput<SbvParticipationViolationListFilter>(filter ?? {}, 'sbvParticipationViolations:list'))

@@ -1,27 +1,21 @@
 import type { IpcMain } from 'electron';
 import { dialog } from 'electron';
-import { ProtectedPersonService } from '../../services/protectedPersonService.js';
-import { PersonImportService } from '../../services/personImportService.js';
-import { PersonStatusExpiryService } from '../../services/personStatusExpiryService.js';
-import { PersonAnonymizationService } from '../../services/personAnonymizationService.js';
 import { exportDeadlinesToIcal, type DeadlineIcalPrivacyLevel } from '../../services/deadlineIcalExportService.js';
-import { DeadlineService } from '../../services/deadlineService.js';
-import { PrivacyReviewService } from '../../services/privacyReviewService.js';
-import { RetentionService } from '../../services/retentionService.js';
 import type { SecurityService } from '../../services/securityService.js';
+import type { ApplicationServices } from '../applicationServices.js';
 import type { CreateProtectedPersonInput, PersonImportExecuteInput, PersonImportPreviewInput, ProtectedPersonListFilters, UpdateProtectedPersonInput } from '../../src/app/core/models/protected-person.model.js';
 import type { DeadlineListFilters } from '../../src/app/core/models/deadline.model.js';
 import type { PrivacyReviewActionInput } from '../../src/app/core/models/privacy-review.model.js';
 import { assertOptionalObject, assertRecordInput, assertString } from './ipcValidation.js';
 
-export function registerProtectedPersonIpc(ipcMain: IpcMain, security: SecurityService): void {
-  const persons = () => new ProtectedPersonService(security.getActiveDatabase());
-  const imports = () => new PersonImportService(security.getActiveDatabase());
-  const expiry = () => new PersonStatusExpiryService(security.getActiveDatabase());
-  const anonymization = () => new PersonAnonymizationService(security.getActiveDatabase());
-  const deadlines = () => new DeadlineService(security.getActiveDatabase());
-  const privacyReviews = () => new PrivacyReviewService(security.getActiveDatabase());
-  const retention = () => new RetentionService(() => security.getActiveDatabase(), () => security.getDataDirectory());
+export function registerProtectedPersonIpc(ipcMain: IpcMain, security: SecurityService, services: ApplicationServices): void {
+  const persons = services.protectedPersons;
+  const imports = services.personImport;
+  const expiry = services.personStatusExpiry;
+  const anonymization = services.personAnonymization;
+  const deadlines = services.deadlines;
+  const privacyReviews = services.privacyReviews;
+  const retention = () => services.retention;
 
   ipcMain.handle('persons:list', async (_event, filters?: unknown) =>
     persons().list(assertOptionalObject<ProtectedPersonListFilters>(filters, 'persons:list', 'Filter') ?? {}),

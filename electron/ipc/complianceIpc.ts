@@ -1,14 +1,11 @@
 import type { IpcMain } from 'electron';
-import { PersonalDataAuditLogService } from '../../services/auditLogService.js';
 import { evaluateDatabaseIntegrity } from '../../services/databaseIntegrityService.js';
-import { DsarPrefillService } from '../../services/dsarPrefillService.js';
-import { ComplianceIncidentService } from '../../services/complianceIncidentService.js';
-import { ComplianceSelfCheckService } from '../../services/complianceSelfCheckService.js';
 import type { SecurityService } from '../../services/securityService.js';
+import type { ApplicationServices } from '../applicationServices.js';
 
-export function registerComplianceIpc(ipcMain: IpcMain, security: SecurityService): void {
+export function registerComplianceIpc(ipcMain: IpcMain, security: SecurityService, services: ApplicationServices): void {
   ipcMain.handle('compliance:audit-chain-status', async () =>
-    new PersonalDataAuditLogService(security.getActiveDatabase()).verifyChain(),
+    services.auditLog().verifyChain(),
   );
 
   ipcMain.handle('compliance:database-integrity-status', async () =>
@@ -16,22 +13,22 @@ export function registerComplianceIpc(ipcMain: IpcMain, security: SecurityServic
   );
 
   ipcMain.handle('compliance:dsar-prefill', async (_event, input) =>
-    new DsarPrefillService(security.getActiveDatabase()).buildPrefill(input),
+    services.dsarPrefill().buildPrefill(input),
   );
 
   ipcMain.handle('compliance:self-check', async () =>
-    new ComplianceSelfCheckService(security.getActiveDatabase()).evaluate(),
+    services.complianceSelfCheck().evaluate(),
   );
 
   ipcMain.handle('compliance:incidents:list', async () =>
-    new ComplianceIncidentService(security.getActiveDatabase()).list(),
+    services.complianceIncidents().list(),
   );
 
   ipcMain.handle('compliance:incidents:create', async (_event, input) =>
-    new ComplianceIncidentService(security.getActiveDatabase()).create(input),
+    services.complianceIncidents().create(input),
   );
 
   ipcMain.handle('compliance:incidents:update', async (_event, id, input) =>
-    new ComplianceIncidentService(security.getActiveDatabase()).update(id, input),
+    services.complianceIncidents().update(id, input),
   );
 }

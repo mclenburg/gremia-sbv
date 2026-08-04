@@ -1,27 +1,16 @@
 import type { IpcMain } from 'electron';
 import type { SecurityService } from '../../services/securityService.js';
-import { GremiaBrAuthService } from '../../services/gremiaBr/gremiaBrAuthService.js';
-import { GremiaBrCacheService } from '../../services/gremiaBr/gremiaBrCacheService.js';
+import type { ApplicationServices } from '../applicationServices.js';
 import { GremiaBrHttpReadAdapter } from '../../services/gremiaBr/gremiaBrHttpReadAdapter.js';
-import { GremiaBrExternalReferenceService } from '../../services/gremiaBr/gremiaBrExternalReferenceService.js';
-import { GremiaBrSettingsService } from '../../services/gremiaBr/gremiaBrSettingsService.js';
-import { PersonalDataAuditLogService } from '../../services/auditLogService.js';
 import type { CreateGremiaBrExternalReferenceInput, GremiaBrRelevanceSettings, GremiaBrSettingsInput } from '../../src/app/core/models/gremia-br.model.js';
 import { assertRecordInput } from './ipcValidation.js';
 
-export function registerGremiaBrIpc(ipcMain: IpcMain, security: SecurityService): void {
-  const settings = new GremiaBrSettingsService(
-    () => security.getActiveDatabase(),
-    () => security.getActiveDatabaseKey(),
-  );
-  const auth = new GremiaBrAuthService(
-    settings,
-    undefined,
-    () => new PersonalDataAuditLogService(security.getActiveDatabase()),
-  );
-  const cache = new GremiaBrCacheService(() => security.getActiveDatabase());
+export function registerGremiaBrIpc(ipcMain: IpcMain, security: SecurityService, services: ApplicationServices): void {
+  const settings = services.gremiaBrSettings;
+  const auth = services.gremiaBrAuth;
+  const cache = services.gremiaBrCache;
   const adapter = new GremiaBrHttpReadAdapter(auth);
-  const references = new GremiaBrExternalReferenceService(() => security.getActiveDatabase());
+  const references = services.gremiaBrReferences;
 
   ipcMain.handle('gremia-br:settings:get', async () => settings.getPublicSettings());
 

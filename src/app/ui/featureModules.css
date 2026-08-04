@@ -2329,3 +2329,27 @@ html[data-theme='light'] .person-lifecycle-badge.muted {
   background: rgba(226, 232, 240, 0.86);
   color: #334155;
 }
+
+.reports-period-error {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-weight: 700;
+}
+
+.reports-data-source-note,
+.reports-result-warnings {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid currentColor;
+  border-radius: var(--control-radius);
+}
+
+.reports-data-source-note h3,
+.reports-result-warnings h3 {
+  margin-top: 0;
+}
+
+.reports-result-warnings ul {
+  margin-bottom: 0;
+  padding-inline-start: 1.25rem;
+}

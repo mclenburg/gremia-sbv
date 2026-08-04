@@ -21,6 +21,9 @@ import {
 } from './retentionPolicy.js';
 import { directCasePrivacyEntities, resolveAnonymizationValue } from './privacyEntityRegistry.js';
 import { SearchIndexService } from './search/searchIndexService.js';
+import { MeasureLifecycleAuditService } from './measureLifecycleAuditService.js';
+import { PersonalDataAuditLogService } from './auditLogService.js';
+import type { ReportableMeasureType } from '../src/app/core/models/measure-lifecycle.model.js';
 
 const CASE_ANONYMIZE_CONFIRMATION = 'FALL ANONYMISIEREN';
 const CASE_DELETE_CONFIRMATION = 'FALL LÖSCHEN';
@@ -264,6 +267,28 @@ function listCleartextFiles(dataDir: string): string[] {
 
   for (const root of roots) walk(path.join(dataDir, root));
   return suspicious.sort((a, b) => a.localeCompare(b, 'de-DE'));
+}
+
+interface RetentionLifecycleRow {
+  id: string;
+  caseId?: string;
+  status?: string;
+  measureType: ReportableMeasureType;
+}
+
+function lifecycleRowsForCase(db: DatabaseAdapter, caseId: string): RetentionLifecycleRow[] {
+  const result: RetentionLifecycleRow[] = [];
+  const collect = (table: string, type: ReportableMeasureType, statusColumn: string, typeColumn?: string) => {
+    if (!tableExists(db, table)) return;
+    const rows = db.prepare<any>(`SELECT id, case_id, ${statusColumn} AS status${typeColumn ? `, ${typeColumn} AS measure_type` : ''} FROM ${table} WHERE case_id = ?`).all(caseId);
+    for (const row of rows) result.push({ id: row.id, caseId: row.case_id, status: row.status, measureType: typeColumn ? row.measure_type as ReportableMeasureType : type });
+  };
+  collect('case_measures', 'other', 'status', 'type');
+  collect('bem_processes', 'bem', 'status');
+  collect('prevention_processes', 'prevention', 'status');
+  collect('equalization_processes', 'equalization_gdb', 'application_status');
+  collect('termination_hearings', 'termination_hearing', 'status');
+  return result;
 }
 
 export class RetentionService {
@@ -537,6 +562,17 @@ export class RetentionService {
     affectedRows += safeRun(db, `DELETE FROM case_documents WHERE case_id = ?`, caseId);
     affectedRows += new SearchIndexService(db).reindexCase(caseId);
     this.recordAction(db, 'case_anonymized', 'case', caseId, row.case_number, reason, affectedRows, fileRemoval.affectedFiles);
+    new PersonalDataAuditLogService(db).append({
+      action: 'anonymize',
+      subjectType: 'case',
+      subjectId: caseId,
+      caseId,
+      purpose: 'Fallakte anonymisiert',
+      metadata: {
+        affectedRecordCount: affectedRows,
+        affectedFileCount: fileRemoval.affectedFiles,
+      },
+    });
     return { ok: true, action: 'case_anonymized', message: `Fall ${row.case_number} wurde anonymisiert; zugehörige Dokumentdateien wurden gelöscht.`, affectedRows, affectedFiles: fileRemoval.affectedFiles };
   }
 
@@ -561,27 +597,39 @@ export class RetentionService {
     }
     let affectedRows = 0;
     const affectedFiles = fileRemoval.affectedFiles;
+    const lifecycleRows = lifecycleRowsForCase(db, caseId);
 
+    db.exec('BEGIN IMMEDIATE');
+    try {
+      const lifecycle = new MeasureLifecycleAuditService(db);
+      for (const measure of lifecycleRows) {
+        lifecycle.deleted(measure.measureType, measure.id, measure.caseId, measure.status, 'case_cascade');
+      }
+      affectedRows += safeRun(db, `DELETE FROM case_documents_fts WHERE case_id = ?`, caseId);
+      if (tableExists(db, 'case_document_ocr_jobs')) {
+        affectedRows += safeRun(db, `DELETE FROM case_document_ocr_jobs WHERE document_id IN (SELECT id FROM case_documents WHERE case_id = ?)`, caseId);
+      }
+      affectedRows += safeRun(db, `DELETE FROM case_documents WHERE case_id = ?`, caseId);
+      const noteIds = db.prepare<any>('SELECT id FROM case_notes WHERE case_id = ?').all(caseId).map((note) => note.id);
+      for (const noteId of noteIds) {
+        affectedRows += safeRun(db, `DELETE FROM contact_text_references WHERE source_type = 'case_note' AND source_id = ?`, noteId);
+        affectedRows += safeRun(db, `DELETE FROM case_notes_fts WHERE id = ?`, noteId);
+      }
+      affectedRows += safeRun(db, `DELETE FROM case_note_cases WHERE case_id = ?`, caseId);
+      affectedRows += safeRun(db, `DELETE FROM case_notes WHERE case_id = ?`, caseId);
+      if (tableExists(db, 'case_measure_notes')) {
+        affectedRows += safeRun(db, `DELETE FROM case_measure_notes WHERE case_id = ?`, caseId);
+      }
+      affectedRows += safeRun(db, `DELETE FROM deadlines WHERE case_id = ?`, caseId);
+      affectedRows += safeRun(db, `DELETE FROM cases WHERE id = ?`, caseId);
+      this.recordAction(db, 'case_deleted', 'case', caseId, row.case_number, reason, affectedRows, affectedFiles);
+      db.exec('COMMIT');
+    } catch (error) {
+      db.exec('ROLLBACK');
+      throw error;
+    }
+    // Der Suchindex ist eine vollständig rekonstruierbare Projektion und gehört nicht zur fachlichen Transaktion.
     affectedRows += new SearchIndexService(db).deleteCase(caseId);
-    affectedRows += safeRun(db, `DELETE FROM case_documents_fts WHERE case_id = ?`, caseId);
-    if (tableExists(db, 'case_document_ocr_jobs')) {
-      affectedRows += safeRun(db, `DELETE FROM case_document_ocr_jobs WHERE document_id IN (SELECT id FROM case_documents WHERE case_id = ?)`, caseId);
-    }
-    affectedRows += safeRun(db, `DELETE FROM case_documents WHERE case_id = ?`, caseId);
-    const noteIds = db.prepare<any>('SELECT id FROM case_notes WHERE case_id = ?').all(caseId).map((note) => note.id);
-    for (const noteId of noteIds) {
-      affectedRows += safeRun(db, `DELETE FROM contact_text_references WHERE source_type = 'case_note' AND source_id = ?`, noteId);
-      affectedRows += safeRun(db, `DELETE FROM case_notes_fts WHERE id = ?`, noteId);
-    }
-    affectedRows += safeRun(db, `DELETE FROM case_note_cases WHERE case_id = ?`, caseId);
-    affectedRows += safeRun(db, `DELETE FROM case_notes WHERE case_id = ?`, caseId);
-    if (tableExists(db, 'case_measure_notes')) {
-      affectedRows += safeRun(db, `DELETE FROM case_measure_notes WHERE case_id = ?`, caseId);
-    }
-    affectedRows += safeRun(db, `DELETE FROM deadlines WHERE case_id = ?`, caseId);
-    affectedRows += safeRun(db, `DELETE FROM cases WHERE id = ?`, caseId);
-
-    this.recordAction(db, 'case_deleted', 'case', caseId, row.case_number, reason, affectedRows, affectedFiles);
     return { ok: true, action: 'case_deleted', message: `Fall ${row.case_number} wurde gelöscht.`, affectedRows, affectedFiles };
   }
 

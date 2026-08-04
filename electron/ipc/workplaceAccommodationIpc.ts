@@ -1,11 +1,11 @@
 import type { IpcMain } from 'electron';
-import { WorkplaceAccommodationService } from '../../services/workplaceAccommodationService.js';
 import type { SecurityService } from '../../services/securityService.js';
+import type { ApplicationServices } from '../applicationServices.js';
 import type { CreateWorkplaceAccommodationInput, UpdateWorkplaceAccommodationInput } from '../../src/app/core/models/workplace-accommodation.model.js';
 import { assertOptionalString, assertRecordInput, assertString } from './ipcValidation.js';
 
-export function registerWorkplaceAccommodationIpc(ipcMain: IpcMain, security: SecurityService): void {
-  const service = () => new WorkplaceAccommodationService(security.getActiveDatabase());
+export function registerWorkplaceAccommodationIpc(ipcMain: IpcMain, security: SecurityService, services: ApplicationServices): void {
+  const service = services.workplaceAccommodation;
 
   ipcMain.handle('workplaceAccommodation:list', async (_event, caseId?: unknown) =>
     service().list(assertOptionalString(caseId, 'workplaceAccommodation:list', 'Fall-ID', { maxLength: 120 }))

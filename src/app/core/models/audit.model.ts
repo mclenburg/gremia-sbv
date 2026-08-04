@@ -3,6 +3,8 @@ export type PersonalDataAuditAction =
   | 'search'
   | 'create'
   | 'update'
+  | 'complete'
+  | 'close'
   | 'delete'
   | 'export'
   | 'import'

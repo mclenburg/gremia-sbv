@@ -54,6 +54,10 @@ export function ReportsView() {
   const announce = useAnnouncer();
 
   const selectedDescriptor = descriptors.find((descriptor) => descriptor.type === selectedType) ?? descriptors[0];
+  const periodError = periodStart && periodEnd && periodStart > periodEnd
+    ? 'Das Von-Datum darf nicht nach dem Bis-Datum liegen.'
+    : '';
+  const isActivityReport = selectedDescriptor?.type === 'activity';
   const groupedDescriptors = useMemo(() => {
     const groups = new Map<string, ReportDescriptor[]>();
     for (const descriptor of descriptors) {
@@ -84,6 +88,11 @@ export function ReportsView() {
 
   async function generateReport(openAfterCreate = false) {
     if (!selectedDescriptor) return;
+    if (periodError) {
+      setMessage(periodError);
+      announce(periodError, 'assertive');
+      return;
+    }
     setLoading(true);
     setMessage('');
     setLastResult(null);
@@ -137,15 +146,16 @@ export function ReportsView() {
         <div className="reports-toolbar reports-toolbar-grid">
           <DateInput label="Von" value={periodStart} onValueChange={setPeriodStart} />
           <DateInput label="Bis" value={periodEnd} onValueChange={setPeriodEnd} />
+          {periodError && <p className="reports-period-error" role="alert">{periodError}</p>}
           <ToolbarButton onClick={() => void loadReports()} disabled={loading}>
             <RefreshCw className="h-4 w-4" />
             Aktualisieren
           </ToolbarButton>
-          <IndustrialButton onClick={() => void generateReport(false)} disabled={loading || !selectedDescriptor}>
+          <IndustrialButton onClick={() => void generateReport(false)} disabled={loading || !selectedDescriptor || Boolean(periodError)}>
             <Download className="h-4 w-4" />
             PDF erzeugen
           </IndustrialButton>
-          <IndustrialButton onClick={() => void generateReport(true)} disabled={loading || !selectedDescriptor}>
+          <IndustrialButton onClick={() => void generateReport(true)} disabled={loading || !selectedDescriptor || Boolean(periodError)}>
             <ExternalLink className="h-4 w-4" />
             PDF erzeugen & öffnen
           </IndustrialButton>
@@ -189,6 +199,19 @@ export function ReportsView() {
                   <div><dt>Zeitraum</dt><dd>{periodStart || '—'} bis {periodEnd || '—'}</dd></div>
                   <div><dt>Format</dt><dd>verschlüsselter .gsbvpdf-Container</dd></div>
                 </dl>
+                {isActivityReport && (
+                  <section className="reports-data-source-note" aria-labelledby="activity-report-source-title">
+                    <h3 id="activity-report-source-title">Einheitliche Datenbasis</h3>
+                    <p>Maßnahmenkennzahlen werden ausschließlich aus strukturierten Lifecycle-Ereignissen der vollständig geprüften Audit-HashChain erzeugt. Gelöschte Maßnahmen bleiben in historischen Zeiträumen erhalten.</p>
+                    <p>Der fertige Bericht kennzeichnet, ob der gewählte Zeitraum vollständig durch das Lifecycle-Protokoll abgedeckt ist.</p>
+                  </section>
+                )}
+                {lastResult?.ok && lastResult.reportType === selectedDescriptor.type && lastResult.warnings.length > 0 && (
+                  <section className="reports-result-warnings" aria-labelledby="report-warning-title">
+                    <h3 id="report-warning-title">Prüfhinweise</h3>
+                    <ul>{lastResult.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul>
+                  </section>
+                )}
                 {lastResult?.ok && lastResult.reportType === selectedDescriptor.type && (
                   <div className="reports-result-card">
                     <strong>Zuletzt erzeugt</strong>

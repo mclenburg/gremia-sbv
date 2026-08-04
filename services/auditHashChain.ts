@@ -87,7 +87,7 @@ export function sanitizeAuditActor(actor: string): string {
   return normalized.slice(0, 120);
 }
 
-const AUDIT_SAFE_METADATA_TEXT_PATTERN = /^[\p{Letter}\p{Number}:_.\/ -]{2,180}$/u;
+const AUDIT_SAFE_METADATA_TEXT_PATTERN = /^[\p{Letter}\p{Number}:_.\/ -]{1,180}$/u;
 
 function normalizeAllowedAuditMetadataValue(value: unknown): string | null {
   if (value == null) return null;

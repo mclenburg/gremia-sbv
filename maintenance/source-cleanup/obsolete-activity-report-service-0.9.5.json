@@ -1,0 +1,9 @@
+{
+  "version": "0.9.5-unified-activity-report",
+  "reason": "Die frühere Markdown-Tätigkeitsbericht-Implementierung wertete übergebene Live-Datensätze unabhängig vom produktiven PDF-Bericht aus. Der Tätigkeitsbericht besitzt nun genau einen produktiven Pfad über ActivityReportProjectionService und die verifizierte HashChain.",
+  "files": [
+    "services/activityReportService.ts",
+    "tests/activityReportServiceBehavior0813m.test.ts"
+  ],
+  "directories": []
+}

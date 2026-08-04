@@ -1,11 +1,11 @@
 import type { IpcMain } from 'electron';
-import { ParticipationService } from '../../services/participationService.js';
 import type { SecurityService } from '../../services/securityService.js';
+import type { ApplicationServices } from '../applicationServices.js';
 import type { CreateParticipationInput, UpdateParticipationInput } from '../../src/app/core/models/participation.model.js';
 import { assertOptionalString, assertRecordInput, assertString } from './ipcValidation.js';
 
-export function registerParticipationIpc(ipcMain: IpcMain, security: SecurityService): void {
-  const participation = () => new ParticipationService(security.getActiveDatabase());
+export function registerParticipationIpc(ipcMain: IpcMain, security: SecurityService, services: ApplicationServices): void {
+  const participation = services.participation;
 
   ipcMain.handle('participation:list', async (_event, caseId?: unknown) =>
     participation().list(assertOptionalString(caseId, 'participation:list', 'Fall-ID', { maxLength: 120 }))

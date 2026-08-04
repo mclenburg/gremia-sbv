@@ -1,11 +1,11 @@
 import type { IpcMain } from 'electron';
-import { CaseMeasureService } from '../../services/caseMeasureService.js';
 import type { SecurityService } from '../../services/securityService.js';
+import type { ApplicationServices } from '../applicationServices.js';
 import type { CaseMeasureNoteProcessType, CreateCaseMeasureInput, CreateCaseMeasureNoteInput, UpdateCaseMeasureInput, UpdateCaseMeasureNoteInput } from '../../src/app/core/models/case-measure.model.js';
 import { assertOptionalString, assertRecordInput, assertString } from './ipcValidation.js';
 
-export function registerCaseMeasureIpc(ipcMain: IpcMain, security: SecurityService): void {
-  const measures = () => new CaseMeasureService(security.getActiveDatabase());
+export function registerCaseMeasureIpc(ipcMain: IpcMain, security: SecurityService, services: ApplicationServices): void {
+  const measures = services.caseMeasures;
 
   ipcMain.handle('caseMeasures:list', async (_event, caseId?: unknown) =>
     measures().list(assertOptionalString(caseId, 'caseMeasures:list', 'Fall-ID', { maxLength: 120 }))

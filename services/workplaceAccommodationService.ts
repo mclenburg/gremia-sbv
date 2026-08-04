@@ -144,9 +144,7 @@ export function evaluateWorkplaceAccommodationWarnings(
 }
 
 export class WorkplaceAccommodationService {
-  constructor(private readonly db: DatabaseAdapter) {
-    this.ensureSchema();
-  }
+  constructor(private readonly db: DatabaseAdapter) {}
 
   ensureSchema(): void {
     new CaseMeasureService(this.db).ensureSchema();
