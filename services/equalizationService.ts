@@ -31,11 +31,15 @@ function mapEqualization(row: any): EqualizationProcessRecord {
 }
 
 export class EqualizationService {
-  constructor(private readonly db: DatabaseAdapter) {}
+  constructor(
+    private readonly db: DatabaseAdapter,
+    private readonly auditLog: PersonalDataAuditLogService = new PersonalDataAuditLogService(db),
+    private readonly lifecycleAudit: MeasureLifecycleAuditService = new MeasureLifecycleAuditService(db, auditLog),
+  ) {}
 
   private audit(action: Parameters<PersonalDataAuditLogService['append']>[0]['action'], subjectId: string | undefined, caseId: string | undefined, purpose: string): void {
     try {
-      new PersonalDataAuditLogService(this.db).append({ action, subjectType: 'equalization_process', subjectId, caseId, purpose });
+      this.auditLog.append({ action, subjectType: 'equalization_process', subjectId, caseId, purpose });
     } catch (error) {
       console.warn('Gremia.SBV audit log write failed', error);
     }
@@ -72,8 +76,8 @@ export class EqualizationService {
       timestamp,
       timestamp
     );
-      new MeasureLifecycleAuditService(this.db).created('equalization_gdb', id, input.caseId, input.applicationStatus ?? 'beratung', 'manual');
-      new PersonalDataAuditLogService(this.db).append({ action: 'create', subjectType: 'equalization_process', subjectId: id, caseId: input.caseId, purpose: 'equalization_process angelegt' });
+      this.lifecycleAudit.created('equalization_gdb', id, input.caseId, input.applicationStatus ?? 'beratung', 'manual');
+      this.auditLog.append({ action: 'create', subjectType: 'equalization_process', subjectId: id, caseId: input.caseId, purpose: 'equalization_process angelegt' });
     });
     return this.getById(id)!;
   }
@@ -120,8 +124,8 @@ export class EqualizationService {
       id
     );
 
-      new MeasureLifecycleAuditService(this.db).statusChanged('equalization_gdb', id, existing.caseId, existing.applicationStatus, next.applicationStatus);
-      new PersonalDataAuditLogService(this.db).append({ action: 'update', subjectType: 'equalization_process', subjectId: id, caseId: existing.caseId, purpose: 'equalization_process geändert' });
+      this.lifecycleAudit.statusChanged('equalization_gdb', id, existing.caseId, existing.applicationStatus, next.applicationStatus);
+      this.auditLog.append({ action: 'update', subjectType: 'equalization_process', subjectId: id, caseId: existing.caseId, purpose: 'equalization_process geändert' });
     });
     const row = this.db.prepare<any>('SELECT * FROM equalization_processes WHERE id = ?').get(id);
     if (!row) throw new Error(`Equalization process not found after update: ${id}`);

@@ -31,7 +31,7 @@ const legacyRow = {
 };
 
 class ParticipationMigrationDb implements DatabaseAdapter {
-  rows: Record<string, any[]> = {
+  rows: Record<string, Record<string, unknown>[]> = {
     case_measures: [],
     case_measure_participation: [],
     sbv_participations: [{ ...legacyRow }],

@@ -22,6 +22,7 @@ import type {
   PersonImportPreviewInput,
   PersonImportPreviewResult,
   PersonImportPreviewRow,
+  PersonImportRunItemRecord,
   ProtectedPersonRecord,
   UpdateProtectedPersonInput
 } from '../src/app/core/models/protected-person.model.js';
@@ -172,7 +173,7 @@ export class PersonImportService {
     const personService = new ProtectedPersonService(this.db);
     const { objects, sourceTextHash } = await this.readRows(input);
     const firstDataIndex = input.firstDataRowIndex ?? 1;
-    const items: any[] = [];
+    const items: Omit<PersonImportRunItemRecord, 'id' | 'runId' | 'createdAt'>[] = [];
     const imported: ProtectedPersonRecord[] = [];
     let createdCount = 0;
     let updatedCount = 0;

@@ -1,3 +1,4 @@
+import { registerIpcHandler } from './ipcHandler.js';
 import type { IpcMain } from "electron";
 import type { SecurityService } from "../../services/securityService.js";
 import type { ApplicationServices } from '../applicationServices.js';
@@ -11,14 +12,14 @@ export function registerRetentionIpc(
 ): void {
   const retention = services.retention;
 
-  ipcMain.handle("retention:dashboard", async () => retention.buildDashboard());
-  ipcMain.handle("retention:settings:get", async () => retention.getSettings());
-  ipcMain.handle("retention:settings:update", async (_event, input: unknown) =>
+  registerIpcHandler(ipcMain, "retention:dashboard", async () => retention.buildDashboard());
+  registerIpcHandler(ipcMain, "retention:settings:get", async () => retention.getSettings());
+  registerIpcHandler(ipcMain, "retention:settings:update", async (_event, input: unknown) =>
     retention.updateSettings(
       assertRecordInput<UpdateRetentionSettingsInput>(input, "retention:settings:update"),
     ),
   );
-  ipcMain.handle(
+  registerIpcHandler(ipcMain, 
     "retention:case:anonymize",
     async (_event, caseId: unknown, reason: unknown, confirmation: unknown) =>
       retention.anonymizeCase(
@@ -27,7 +28,7 @@ export function registerRetentionIpc(
         assertString(confirmation, "retention:case:anonymize", "Bestätigung", { minLength: 1, maxLength: 200 }),
       ),
   );
-  ipcMain.handle(
+  registerIpcHandler(ipcMain, 
     "retention:case:delete",
     async (_event, caseId: unknown, reason: unknown, confirmation: unknown) =>
       retention.deleteCase(

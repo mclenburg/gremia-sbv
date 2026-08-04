@@ -191,6 +191,18 @@ function validateCleanup(pkg) {
   expect(pkg.scripts['source:cleanup'] === 'node scripts/cleanup-obsolete-files.cjs', 'source:cleanup Script fehlt oder ist verändert.');
   expect(pkg.scripts['source:cleanup:dry-run'] === 'node scripts/cleanup-obsolete-files.cjs --dry-run', 'source:cleanup:dry-run Script fehlt oder ist verändert.');
   expect(
+    pkg.scripts['source:cleanup:strict'] === 'node scripts/cleanup-obsolete-files.cjs --strict-delete --verbose',
+    'source:cleanup:strict muss Löschfehler für Test- und Release-Builds hart behandeln.'
+  );
+  expect(
+    pkg.scripts['test:coverage'] === 'npm run source:cleanup:strict && vitest run --coverage',
+    'test:coverage muss vor der Testermittlung den strikten Source-Cleanup ausführen.'
+  );
+  expect(
+    pkg.scripts['build:app'] === 'npm run source:cleanup:strict && npm run version:generate && tsc -p tsconfig.json && vite build && tsc -p tsconfig.electron.json && node scripts/write-electron-cjs-package.cjs',
+    'build:app muss den strikten Source-Cleanup vor Compiler und Bundler ausführen.'
+  );
+  expect(
     pkg.scripts.prebuild === 'npm run version:generate && npm run source:cleanup && npm run build:readiness',
     'prebuild muss Versionserzeugung, Source-Cleanup und Build-Readiness-Guard in dieser Reihenfolge ausführen.'
   );

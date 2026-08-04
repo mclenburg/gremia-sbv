@@ -1,3 +1,4 @@
+import { registerIpcHandler } from './ipcHandler.js';
 import type { IpcMain } from 'electron';
 import type { SecurityService } from '../../services/securityService.js';
 import type { ApplicationServices } from '../applicationServices.js';
@@ -7,18 +8,18 @@ import { assertRecordInput, assertString } from './ipcValidation.js';
 export function registerSbvResourceIpc(ipcMain: IpcMain, security: SecurityService, services: ApplicationServices): void {
   const resources = services.sbvResources;
 
-  ipcMain.handle('sbvResources:list', async () => resources().list());
-  ipcMain.handle('sbvResources:dashboard', async () => resources().dashboardSummary());
-  ipcMain.handle('sbvResources:create', async (_event, input: unknown) =>
+  registerIpcHandler(ipcMain, 'sbvResources:list', async () => resources().list());
+  registerIpcHandler(ipcMain, 'sbvResources:dashboard', async () => resources().dashboardSummary());
+  registerIpcHandler(ipcMain, 'sbvResources:create', async (_event, input: unknown) =>
     resources().create(assertRecordInput<CreateSbvResourceRecordInput>(input, 'sbvResources:create'))
   );
-  ipcMain.handle('sbvResources:update', async (_event, id: unknown, input: unknown) =>
+  registerIpcHandler(ipcMain, 'sbvResources:update', async (_event, id: unknown, input: unknown) =>
     resources().update(
       assertString(id, 'sbvResources:update', 'Nachweis-ID', { minLength: 1, maxLength: 120 }),
       assertRecordInput<UpdateSbvResourceRecordInput>(input, 'sbvResources:update')
     )
   );
-  ipcMain.handle('sbvResources:delete', async (_event, id: unknown) =>
+  registerIpcHandler(ipcMain, 'sbvResources:delete', async (_event, id: unknown) =>
     resources().delete(assertString(id, 'sbvResources:delete', 'Nachweis-ID', { minLength: 1, maxLength: 120 }))
   );
 }

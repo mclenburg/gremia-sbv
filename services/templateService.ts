@@ -478,11 +478,7 @@ function categoryForMeasureType(measureType: string | undefined): string | null 
 export class TemplateService {
   constructor(private readonly dbProvider: () => DatabaseAdapter) {}
 
-  private get db(): DatabaseAdapter {
-    const db = this.dbProvider();
-    this.ensureSchema(db);
-    return db;
-  }
+  private get db(): DatabaseAdapter { return this.dbProvider(); }
 
   ensureSchema(db: DatabaseAdapter): void {
     db.exec(`
@@ -513,6 +509,10 @@ export class TemplateService {
       CREATE INDEX IF NOT EXISTS idx_document_templates_category ON document_templates(category);
       CREATE INDEX IF NOT EXISTS idx_template_renders_case ON template_renders(case_id, created_at);
     `);
+    this.seedDefaults(db);
+  }
+
+  seedReferenceData(db = this.dbProvider()): void {
     this.seedDefaults(db);
   }
 

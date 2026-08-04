@@ -42,11 +42,16 @@ function mapProcess(row: any, contactIds: string[]): PreventionProcessRecord {
 }
 
 export class PreventionService {
-  constructor(private readonly db: DatabaseAdapter) {}
+  constructor(
+    private readonly db: DatabaseAdapter,
+    private readonly auditLog: PersonalDataAuditLogService = new PersonalDataAuditLogService(db),
+    private readonly lifecycleAudit: MeasureLifecycleAuditService = new MeasureLifecycleAuditService(db, auditLog),
+    private readonly deadlines: DeadlineService = new DeadlineService(db),
+  ) {}
 
   private audit(action: Parameters<PersonalDataAuditLogService['append']>[0]['action'], subjectId: string | undefined, caseId: string | undefined, purpose: string): void {
     try {
-      new PersonalDataAuditLogService(this.db).append({ action, subjectType: 'prevention_process', subjectId, caseId, purpose });
+      this.auditLog.append({ action, subjectType: 'prevention_process', subjectId, caseId, purpose });
     } catch (error) {
       console.warn('Gremia.SBV audit log write failed', error);
     }
@@ -109,7 +114,7 @@ export class PreventionService {
     if (input.createDefaultDeadlines !== false && employerResponseDueAt) {
       const reviewDueAt = preventionReviewDueAtAfterEmployerDeadline(employerResponseDueAt);
       this.db.prepare('UPDATE prevention_processes SET next_review_at = ?, updated_at = ? WHERE id = ?').run(reviewDueAt, timestamp, id);
-      new DeadlineService(this.db).create({
+      this.deadlines.create({
         caseId: input.caseId,
         processId: id,
         processType: 'prevention',
@@ -129,8 +134,8 @@ export class PreventionService {
       });
     }
 
-      new MeasureLifecycleAuditService(this.db).created('prevention', id, input.caseId, 'zu_pruefen', 'manual');
-      new PersonalDataAuditLogService(this.db).append({ action: 'create', subjectType: 'prevention_process', subjectId: id, caseId: input.caseId, purpose: 'prevention_process angelegt' });
+      this.lifecycleAudit.created('prevention', id, input.caseId, 'zu_pruefen', 'manual');
+      this.auditLog.append({ action: 'create', subjectType: 'prevention_process', subjectId: id, caseId: input.caseId, purpose: 'prevention_process angelegt' });
     });
     return this.getById(id)!;
   }
@@ -184,8 +189,8 @@ export class PreventionService {
 
     if (input.contactIds) this.replaceContacts(id, input.contactIds);
     this.event(id, 'updated', 'Präventionsverfahren aktualisiert', JSON.stringify(input));
-      new MeasureLifecycleAuditService(this.db).statusChanged('prevention', id, existing.caseId, existing.status, next.status);
-      new PersonalDataAuditLogService(this.db).append({ action: 'update', subjectType: 'prevention_process', subjectId: id, caseId: existing.caseId, purpose: 'prevention_process geändert' });
+      this.lifecycleAudit.statusChanged('prevention', id, existing.caseId, existing.status, next.status);
+      this.auditLog.append({ action: 'update', subjectType: 'prevention_process', subjectId: id, caseId: existing.caseId, purpose: 'prevention_process geändert' });
     });
     return this.getById(id)!;
   }

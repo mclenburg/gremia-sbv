@@ -174,7 +174,6 @@ export class SearchIndexService {
   }
 
   reindexAll(): number {
-    this.ensureSchema();
     this.db.prepare('DELETE FROM case_search_index_fts').run();
     this.db.prepare('DELETE FROM case_search_index').run();
     this.db.prepare('DELETE FROM case_search_index_state').run();
@@ -194,7 +193,6 @@ export class SearchIndexService {
   }
 
   reindexCase(caseId: string): number {
-    this.ensureSchema();
     this.deleteCase(caseId);
     let count = 0;
     for (const provider of this.providers) {
@@ -209,7 +207,6 @@ export class SearchIndexService {
   }
 
   reindexSource(sourceType: string, sourceId: string): number {
-    this.ensureSchema();
     const caseIds = new Set<string>();
     const existing = this.db.prepare<{ case_id: string }>('SELECT case_id FROM case_search_index WHERE source_type = ? AND source_id = ?').all(sourceType, sourceId);
     existing.forEach((row) => caseIds.add(row.case_id));
@@ -238,7 +235,6 @@ export class SearchIndexService {
   }
 
   upsertDocument(document: CaseSearchDocument): void {
-    this.ensureSchema();
     const id = this.indexId(document.sourceType, document.sourceId, document.caseId);
     this.db.prepare('DELETE FROM case_search_index_fts WHERE index_id = ?').run(id);
     this.db.prepare('DELETE FROM case_search_index WHERE id = ?').run(id);
@@ -275,7 +271,6 @@ export class SearchIndexService {
   }
 
   deleteCase(caseId: string): number {
-    this.ensureSchema();
     const ids = this.db.prepare<{ id: string }>('SELECT id FROM case_search_index WHERE case_id = ?').all(caseId).map((row) => row.id);
     let count = 0;
     for (const id of ids) {
@@ -292,7 +287,6 @@ export class SearchIndexService {
   }
 
   deleteSource(sourceType: string, sourceId: string): number {
-    this.ensureSchema();
     const rows = this.db.prepare<{ id: string; case_id: string }>('SELECT id, case_id FROM case_search_index WHERE source_type = ? AND source_id = ?').all(sourceType, sourceId);
     const caseIds = new Set(rows.map((row) => row.case_id));
     let count = 0;
@@ -310,7 +304,6 @@ export class SearchIndexService {
   }
 
   search(input: CaseContentSearchInput): CaseSearchResult[] {
-    this.ensureSchema();
     const query = input.query.trim();
     if (query.length < 2) return [];
     const limit = Math.min(Math.max(input.limit ?? 50, 1), 100);

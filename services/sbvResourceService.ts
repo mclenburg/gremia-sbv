@@ -1,3 +1,4 @@
+import { DatabaseUnitOfWork } from './databaseUnitOfWork.js';
 import { randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
@@ -90,16 +91,11 @@ export class SbvResourceService {
   }
 
   private audit(action: 'read' | 'create' | 'update' | 'delete', subjectId: string | undefined, recordType?: string, status?: string): void {
-    try {
-      new PersonalDataAuditLogService(this.db).append(auditResourceRecordChanged({
-        action,
-        recordId: subjectId,
-        recordType,
-        status,
-      }));
-    } catch (error) {
-      console.warn('Gremia.SBV resource audit write failed', error);
-    }
+    const write = () => new PersonalDataAuditLogService(this.db).append(auditResourceRecordChanged({
+      action, recordId: subjectId, recordType, status,
+    }));
+    if (action !== 'read') { write(); return; }
+    try { write(); } catch (error) { console.warn('Gremia.SBV resource read audit failed', error); }
   }
 
   list(): SbvResourceRecord[] {
@@ -123,6 +119,7 @@ export class SbvResourceService {
   }
 
   create(input: CreateSbvResourceRecordInput): SbvResourceRecord {
+    return new DatabaseUnitOfWork(this.db).run(() => {
     const kind = normalizeKind(input.kind);
     const title = normalizeOptional(input.title);
     if (!title) throw new Error('Ein Nachweis benötigt einen Titel.');
@@ -153,9 +150,12 @@ export class SbvResourceService {
     );
     this.audit('create', id, kind, normalizeStatus(input.status));
     return this.getById(id)!;
+  
+    });
   }
 
   update(id: string, input: UpdateSbvResourceRecordInput): SbvResourceRecord {
+    return new DatabaseUnitOfWork(this.db).run(() => {
     const existing = this.getById(id);
     if (!existing) throw new Error(`SBV-Ressourcennachweis nicht gefunden: ${id}`);
     const kind = input.kind ? normalizeKind(input.kind) : existing.kind;
@@ -186,6 +186,8 @@ export class SbvResourceService {
     );
     this.audit('update', id, kind, input.status !== undefined ? normalizeStatus(input.status) : existing.status);
     return this.getById(id)!;
+  
+    });
   }
 
   delete(id: string): { deleted: boolean } {

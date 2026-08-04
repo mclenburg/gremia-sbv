@@ -14,7 +14,7 @@ describe('RC unit coverage gate', () => {
 
   it('offers an explicit coverage command without adding it to every local build', () => {
     const pkg = JSON.parse(readFileSync('package.json', 'utf8')) as { scripts: Record<string, string> };
-    expect(pkg.scripts['test:coverage']).toBe('vitest run --coverage');
+    expect(pkg.scripts['test:coverage']).toBe('npm run source:cleanup:strict && vitest run --coverage');
     expect(pkg.scripts.build).toContain('npm run test');
     expect(pkg.scripts.postinstall).toBeUndefined();
     expect(pkg.scripts['native:rebuild:electron']).toBe('node scripts/install-electron-app-deps.cjs');

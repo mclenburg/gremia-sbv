@@ -1,0 +1,9 @@
+{
+  "version": "0.9.6-h-domain-aggregate-consolidation",
+  "reason": "Entfernt den zweiten, ungenutzten Kündigungsanhörungsservice und sein abweichendes Datenmodell. Führendes Aggregat ist ausschließlich TerminationService auf termination_hearings.",
+  "files": [
+    "services/terminationHearingService.ts",
+    "src/app/core/models/termination-hearing.model.ts"
+  ],
+  "directories": []
+}

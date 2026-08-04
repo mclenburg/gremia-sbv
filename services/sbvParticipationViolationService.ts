@@ -1,3 +1,4 @@
+import { DatabaseUnitOfWork } from './databaseUnitOfWork.js';
 import { randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
@@ -216,25 +217,14 @@ export class SbvParticipationViolationService {
   }
 
   private audit(action: 'read' | 'create' | 'update' | 'delete', record?: SbvParticipationViolationRecord): void {
-    try {
-      new PersonalDataAuditLogService(this.db).append({
-        actor: 'sbv',
-        action,
-        subjectType: 'sbv_participation_violation',
-        subjectId: record?.id,
-        caseId: record?.caseId,
-        purpose: 'SBV-Beteiligungsverstoß-Protokollierung',
-        metadata: record ? {
-          stage: record.stage,
-          status: record.status,
-          violationType: record.violationType,
-          sourceContextType: record.sourceContextType,
-          hasFollowUp: Boolean(record.followUpDueAt),
-        } : undefined,
-      });
-    } catch (error) {
-      console.warn('Gremia.SBV participation violation audit write failed', error);
-    }
+    const write = () => new PersonalDataAuditLogService(this.db).append({
+      actor: 'sbv', action, subjectType: 'sbv_participation_violation', subjectId: record?.id,
+      caseId: record?.caseId, purpose: 'SBV-Beteiligungsverstoß-Protokollierung',
+      metadata: record ? { stage: record.stage, status: record.status, violationType: record.violationType,
+        sourceContextType: record.sourceContextType, hasFollowUp: Boolean(record.followUpDueAt) } : undefined,
+    });
+    if (action !== 'read') { write(); return; }
+    try { write(); } catch (error) { console.warn('Gremia.SBV participation violation read audit failed', error); }
   }
 
   private appendEvent(violationId: string, eventType: ParticipationViolationEventType, fromStatus?: ParticipationViolationStatus, toStatus?: ParticipationViolationStatus, note?: string): void {
@@ -470,6 +460,7 @@ export class SbvParticipationViolationService {
   }
 
   create(input: CreateSbvParticipationViolationInput): SbvParticipationViolationRecord {
+    return new DatabaseUnitOfWork(this.db).run(() => {
     const data = this.normalizeInput(input);
     const id = randomUUID();
     const timestamp = nowIso();
@@ -494,9 +485,12 @@ export class SbvParticipationViolationService {
     const record = this.get(id)!;
     this.audit('create', record);
     return record;
+  
+    });
   }
 
   update(id: string, input: UpdateSbvParticipationViolationInput): SbvParticipationViolationRecord {
+    return new DatabaseUnitOfWork(this.db).run(() => {
     const existing = this.get(id);
     if (!existing) throw new Error(`Beteiligungsverstoß nicht gefunden: ${id}`);
     if (existing.status === 'closed' || existing.status === 'withdrawn') {
@@ -523,6 +517,8 @@ export class SbvParticipationViolationService {
     const record = this.get(id)!;
     this.audit('update', record);
     return record;
+  
+    });
   }
 
   changeStatus(id: string, toStatus: ParticipationViolationStatus, note?: string): SbvParticipationViolationRecord {

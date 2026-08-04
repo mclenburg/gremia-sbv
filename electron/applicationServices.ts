@@ -2,6 +2,8 @@ import type { DatabaseAdapter } from '../services/databaseService.js';
 import { ActivityJournalPreferenceService } from '../services/activityJournalPreferenceService.js';
 import { ActivityJournalService } from '../services/activityJournalService.js';
 import { PersonalDataAuditLogService } from '../services/auditLogService.js';
+import { MeasureLifecycleAuditService } from '../services/measureLifecycleAuditService.js';
+import { SearchIndexService } from '../services/search/searchIndexService.js';
 import { BackupService } from '../services/backupService.js';
 import { BemService } from '../services/bemService.js';
 import { CaseHandoverService } from '../services/caseHandoverService.js';
@@ -111,13 +113,17 @@ export class ApplicationServices {
 
   auditLog = (): PersonalDataAuditLogService =>
     this.databaseService('auditLog', (database) => new PersonalDataAuditLogService(database));
+  lifecycleAudit = (): MeasureLifecycleAuditService =>
+    this.databaseService('lifecycleAudit', (database) => new MeasureLifecycleAuditService(database, this.auditLog()));
+  searchIndex = (): SearchIndexService =>
+    this.databaseService('searchIndex', (database) => new SearchIndexService(database));
   activityJournal = (): ActivityJournalService =>
     this.databaseService('activityJournal', (database) => new ActivityJournalService(database));
   activityJournalPreferences = (): ActivityJournalPreferenceService =>
     this.databaseService('activityJournalPreferences', (database) => new ActivityJournalPreferenceService(database));
-  bem = (): BemService => this.databaseService('bem', (database) => new BemService(database));
+  bem = (): BemService => this.databaseService('bem', (database) => new BemService(database, this.auditLog(), this.lifecycleAudit(), this.deadlines()));
   caseMeasures = (): CaseMeasureService =>
-    this.databaseService('caseMeasures', (database) => new CaseMeasureService(database));
+    this.databaseService('caseMeasures', (database) => new CaseMeasureService(database, this.auditLog(), this.lifecycleAudit(), this.searchIndex()));
   complianceIncidents = (): ComplianceIncidentService =>
     this.databaseService('complianceIncidents', (database) => new ComplianceIncidentService(database));
   complianceSelfCheck = (): ComplianceSelfCheckService =>
@@ -127,9 +133,9 @@ export class ApplicationServices {
   dsarPrefill = (): DsarPrefillService =>
     this.databaseService('dsarPrefill', (database) => new DsarPrefillService(database));
   equalization = (): EqualizationService =>
-    this.databaseService('equalization', (database) => new EqualizationService(database));
+    this.databaseService('equalization', (database) => new EqualizationService(database, this.auditLog(), this.lifecycleAudit()));
   participation = (): ParticipationService =>
-    this.databaseService('participation', (database) => new ParticipationService(database));
+    this.databaseService('participation', (database) => new ParticipationService(database, this.caseMeasures(), this.deadlines(), this.auditLog()));
   personAnonymization = (): PersonAnonymizationService =>
     this.databaseService('personAnonymization', (database) => new PersonAnonymizationService(database));
   personImport = (): PersonImportService =>
@@ -137,13 +143,13 @@ export class ApplicationServices {
   personStatusExpiry = (): PersonStatusExpiryService =>
     this.databaseService('personStatusExpiry', (database) => new PersonStatusExpiryService(database));
   prevention = (): PreventionService =>
-    this.databaseService('prevention', (database) => new PreventionService(database));
+    this.databaseService('prevention', (database) => new PreventionService(database, this.auditLog(), this.lifecycleAudit(), this.deadlines()));
   privacyReviews = (): PrivacyReviewService =>
     this.databaseService('privacyReviews', (database) => new PrivacyReviewService(database));
   protectedPersons = (): ProtectedPersonService =>
     this.databaseService('protectedPersons', (database) => new ProtectedPersonService(database));
   recruitingParticipation = (): RecruitingParticipationService =>
-    this.databaseService('recruitingParticipation', (database) => new RecruitingParticipationService(database));
+    this.databaseService('recruitingParticipation', (database) => new RecruitingParticipationService(database, this.auditLog(), this.lifecycleAudit()));
   sbvControlProtocols = (): SbvControlProtocolService =>
     this.databaseService('sbvControlProtocols', (database) => new SbvControlProtocolService(database));
   sbvParticipationViolations = (): SbvParticipationViolationService =>
@@ -156,7 +162,7 @@ export class ApplicationServices {
   sbvResources = (): SbvResourceService =>
     this.databaseService('sbvResources', (database) => new SbvResourceService(database));
   termination = (): TerminationService =>
-    this.databaseService('termination', (database) => new TerminationService(database));
+    this.databaseService('termination', (database) => new TerminationService(database, this.auditLog(), this.lifecycleAudit()));
   workplaceAccommodation = (): WorkplaceAccommodationService =>
-    this.databaseService('workplaceAccommodation', (database) => new WorkplaceAccommodationService(database));
+    this.databaseService('workplaceAccommodation', (database) => new WorkplaceAccommodationService(database, this.caseMeasures(), this.deadlines(), this.auditLog()));
 }

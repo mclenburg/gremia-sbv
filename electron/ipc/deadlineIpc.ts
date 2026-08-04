@@ -1,3 +1,4 @@
+import { registerIpcHandler } from './ipcHandler.js';
 import type { IpcMain } from "electron";
 import type { SecurityService } from "../../services/securityService.js";
 import type { ApplicationServices } from '../applicationServices.js';
@@ -20,18 +21,18 @@ export function registerDeadlineIpc(
 ): void {
   const deadlines = services.deadlines;
 
-  ipcMain.handle("deadlines:list", async (_event, filters?: unknown) =>
+  registerIpcHandler(ipcMain, "deadlines:list", async (_event, filters?: unknown) =>
     deadlines().list(
       assertOptionalObject<DeadlineListFilters>(filters, "deadlines:list", "Filter") ?? {},
     ),
   );
-  ipcMain.handle("deadlines:dashboard", async () => deadlines().listDashboard());
-  ipcMain.handle("deadlines:create", async (_event, input: unknown) =>
+  registerIpcHandler(ipcMain, "deadlines:dashboard", async () => deadlines().listDashboard());
+  registerIpcHandler(ipcMain, "deadlines:create", async (_event, input: unknown) =>
     deadlines().create(
       assertRecordInput<CreateDeadlineInput>(input, "deadlines:create"),
     ),
   );
-  ipcMain.handle(
+  registerIpcHandler(ipcMain, 
     "deadlines:update",
     async (_event, id: unknown, input: unknown) =>
       deadlines().update(
@@ -39,19 +40,19 @@ export function registerDeadlineIpc(
         assertRecordInput<UpdateDeadlineInput>(input, "deadlines:update"),
       ),
   );
-  ipcMain.handle("deadlines:complete", async (_event, id: unknown, note?: unknown) =>
+  registerIpcHandler(ipcMain, "deadlines:complete", async (_event, id: unknown, note?: unknown) =>
     deadlines().complete(
       assertString(id, "deadlines:complete", "Frist-ID", { minLength: 1, maxLength: 120 }),
       assertOptionalString(note, "deadlines:complete", "Notiz", { maxLength: 5_000 }),
     ),
   );
-  ipcMain.handle("deadlines:suspend", async (_event, id: unknown, reason: unknown) =>
+  registerIpcHandler(ipcMain, "deadlines:suspend", async (_event, id: unknown, reason: unknown) =>
     deadlines().suspend(
       assertString(id, "deadlines:suspend", "Frist-ID", { minLength: 1, maxLength: 120 }),
       assertString(reason, "deadlines:suspend", "Grund", { minLength: 1, maxLength: 5_000 }),
     ),
   );
-  ipcMain.handle("deadlines:cancel", async (_event, id: unknown, reason: unknown) =>
+  registerIpcHandler(ipcMain, "deadlines:cancel", async (_event, id: unknown, reason: unknown) =>
     deadlines().cancel(
       assertString(id, "deadlines:cancel", "Frist-ID", { minLength: 1, maxLength: 120 }),
       assertString(reason, "deadlines:cancel", "Grund", { minLength: 1, maxLength: 5_000 }),

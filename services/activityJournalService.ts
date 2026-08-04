@@ -1,3 +1,4 @@
+import { DatabaseUnitOfWork } from './databaseUnitOfWork.js';
 import { randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
 import { DeadlineService } from './deadlineService.js';
@@ -214,19 +215,12 @@ export class ActivityJournalService {
   }
 
   private audit(action: 'read' | 'create' | 'update' | 'delete' | 'export', entry?: ActivityJournalEntryRecord, linkCount = 0): void {
-    try {
-      new PersonalDataAuditLogService(this.db).append(auditActivityJournalChanged({
-        action,
-        entryId: entry?.id,
-        category: entry?.category,
-        status: entry?.status,
-        entryDate: entry?.entryDate,
-        linkCount,
-        hasTime: Boolean(entry?.durationMinutes || entry?.startedAt || entry?.endedAt)
-      }));
-    } catch (error) {
-      console.warn('Gremia.SBV activity journal audit write failed', error);
-    }
+    const write = () => new PersonalDataAuditLogService(this.db).append(auditActivityJournalChanged({
+      action, entryId: entry?.id, category: entry?.category, status: entry?.status, entryDate: entry?.entryDate,
+      linkCount, hasTime: Boolean(entry?.durationMinutes || entry?.startedAt || entry?.endedAt)
+    }));
+    if (action !== 'read') { write(); return; }
+    try { write(); } catch (error) { console.warn('Gremia.SBV activity journal read audit failed', error); }
   }
 
   private linkedDeadlineId(entryId: string): string | undefined {
@@ -293,6 +287,7 @@ export class ActivityJournalService {
   }
 
   createEntry(input: CreateActivityJournalEntryInput): ActivityJournalEntryRecord {
+    return new DatabaseUnitOfWork(this.db).run(() => {
     const title = normalizeOptional(input.title);
     if (!title) throw new Error('Ein Journaleintrag benötigt einen Titel.');
     const category = normalizeEnum(input.category, ACTIVITY_JOURNAL_CATEGORIES, 'documentation');
@@ -345,9 +340,12 @@ export class ActivityJournalService {
     const firstContext = input.links?.[0]?.targetType ?? 'fallfrei';
     new ActivityJournalPreferenceService(this.db).rememberCategory(firstContext, record.category);
     return record;
+  
+    });
   }
 
   updateEntry(id: string, input: UpdateActivityJournalEntryInput): ActivityJournalEntryRecord {
+    return new DatabaseUnitOfWork(this.db).run(() => {
     const existing = this.getEntry(id);
     if (!existing) throw new Error(`Journaleintrag nicht gefunden: ${id}`);
     const category = input.category !== undefined ? normalizeEnum(input.category, ACTIVITY_JOURNAL_CATEGORIES, existing.category) : existing.category;
@@ -404,6 +402,8 @@ export class ActivityJournalService {
     const firstContext = input.links?.[0]?.targetType ?? record.links?.[0]?.targetType ?? 'fallfrei';
     new ActivityJournalPreferenceService(this.db).rememberCategory(firstContext, record.category);
     return record;
+  
+    });
   }
 
   deleteEntry(id: string): { deleted: boolean } {

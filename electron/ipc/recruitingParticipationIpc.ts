@@ -1,3 +1,4 @@
+import { registerIpcHandler } from './ipcHandler.js';
 import type { IpcMain } from 'electron';
 import type { SecurityService } from '../../services/securityService.js';
 import type { ApplicationServices } from '../applicationServices.js';
@@ -16,44 +17,44 @@ export function registerRecruitingParticipationIpc(
 ): void {
   const recruiting = services.recruitingParticipation;
 
-  ipcMain.handle('recruitingParticipations:list', async () => recruiting().list());
+  registerIpcHandler(ipcMain, 'recruitingParticipations:list', async () => recruiting().list());
 
-  ipcMain.handle('recruitingParticipations:get', async (_event, id: unknown) =>
+  registerIpcHandler(ipcMain, 'recruitingParticipations:get', async (_event, id: unknown) =>
     recruiting().getById(assertString(id, 'recruitingParticipations:get', 'Stellenbesetzungs-ID', { minLength: 1, maxLength: 120 })) ?? null,
   );
 
-  ipcMain.handle('recruitingParticipations:create', async (_event, input: unknown) =>
+  registerIpcHandler(ipcMain, 'recruitingParticipations:create', async (_event, input: unknown) =>
     recruiting().create(assertRecordInput<CreateRecruitingParticipationInput>(input, 'recruitingParticipations:create')),
   );
 
-  ipcMain.handle('recruitingParticipations:update', async (_event, id: unknown, input: unknown) =>
+  registerIpcHandler(ipcMain, 'recruitingParticipations:update', async (_event, id: unknown, input: unknown) =>
     recruiting().update(
       assertString(id, 'recruitingParticipations:update', 'Stellenbesetzungs-ID', { minLength: 1, maxLength: 120 }),
       assertRecordInput<UpdateRecruitingParticipationInput>(input, 'recruitingParticipations:update'),
     ),
   );
 
-  ipcMain.handle('recruitingParticipations:delete', async (_event, id: unknown) => {
+  registerIpcHandler(ipcMain, 'recruitingParticipations:delete', async (_event, id: unknown) => {
     recruiting().delete(assertString(id, 'recruitingParticipations:delete', 'Stellenbesetzungs-ID', { minLength: 1, maxLength: 120 }));
     return { deleted: true };
   });
 
-  ipcMain.handle('recruitingParticipations:interviews:list', async (_event, participationId: unknown) =>
+  registerIpcHandler(ipcMain, 'recruitingParticipations:interviews:list', async (_event, participationId: unknown) =>
     recruiting().listInterviews(assertString(participationId, 'recruitingParticipations:interviews:list', 'Stellenbesetzungs-ID', { minLength: 1, maxLength: 120 })),
   );
 
-  ipcMain.handle('recruitingParticipations:interviews:create', async (_event, input: unknown) =>
+  registerIpcHandler(ipcMain, 'recruitingParticipations:interviews:create', async (_event, input: unknown) =>
     recruiting().addInterview(assertRecordInput<CreateRecruitingInterviewEventInput>(input, 'recruitingParticipations:interviews:create')),
   );
 
-  ipcMain.handle('recruitingParticipations:interviews:update', async (_event, id: unknown, input: unknown) =>
+  registerIpcHandler(ipcMain, 'recruitingParticipations:interviews:update', async (_event, id: unknown, input: unknown) =>
     recruiting().updateInterview(
       assertString(id, 'recruitingParticipations:interviews:update', 'Vorstellungsgespräch-ID', { minLength: 1, maxLength: 120 }),
       assertRecordInput<UpdateRecruitingInterviewEventInput>(input, 'recruitingParticipations:interviews:update'),
     ),
   );
 
-  ipcMain.handle('recruitingParticipations:interviews:delete', async (_event, id: unknown) => {
+  registerIpcHandler(ipcMain, 'recruitingParticipations:interviews:delete', async (_event, id: unknown) => {
     recruiting().deleteInterview(assertString(id, 'recruitingParticipations:interviews:delete', 'Vorstellungsgespräch-ID', { minLength: 1, maxLength: 120 }));
     return { deleted: true };
   });

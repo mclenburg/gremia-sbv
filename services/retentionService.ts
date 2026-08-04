@@ -297,11 +297,7 @@ export class RetentionService {
     private readonly dataDirProvider: () => string
   ) {}
 
-  private get db(): DatabaseAdapter {
-    const db = this.dbProvider();
-    this.ensureSchema(db);
-    return db;
-  }
+  private get db(): DatabaseAdapter { return this.dbProvider(); }
 
   ensureSchema(db = this.dbProvider()): void {
     db.exec(`

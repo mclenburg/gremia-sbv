@@ -31,7 +31,6 @@ export class PersonCaseBindingService {
   }
 
   bindNewCase(caseId: string, protectedPersonId: string | null | undefined, state: PersonBindingState = 'active'): void {
-    this.ensureSchema();
     assertCanCreateRegularCase({ protectedPersonId, personBindingState: state, isAnonymousRequest: state === 'anonymous_request' });
     this.db.prepare(`UPDATE cases SET protected_person_id = ?, person_binding_state = ?, privacy_review_required = 0, privacy_review_reason = NULL, updated_at = ? WHERE id = ?`)
       .run(protectedPersonId ?? null, state, nowIso(), caseId);
@@ -39,7 +38,6 @@ export class PersonCaseBindingService {
   }
 
   assignLegacyCase(caseId: string, protectedPersonId: string, reason: string): LegacyCaseAssignmentResult {
-    this.ensureSchema();
     const caseRow = this.db.prepare<any>(`SELECT id, person_binding_state, protected_person_id FROM cases WHERE id = ?`).get(caseId);
     if (!caseRow) throw new Error(`Fallakte nicht gefunden: ${caseId}`);
     const personRow = this.db.prepare<any>(`SELECT id FROM protected_persons WHERE id = ?`).get(protectedPersonId);
@@ -64,7 +62,6 @@ export class PersonCaseBindingService {
   }
 
   migrateLegacyBindings(referenceDate = new Date()): { migrated: number; legacyUnlinked: number; privacyReviewRequired: number } {
-    this.ensureSchema();
     const cases = this.db.prepare<any>(`SELECT id, status, closed_at FROM cases WHERE person_binding_state = 'legacy_unlinked' AND protected_person_id IS NULL ORDER BY opened_at ASC`).all();
     let migrated = 0;
     let legacyUnlinked = 0;

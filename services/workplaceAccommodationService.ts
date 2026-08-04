@@ -1,3 +1,4 @@
+import { DatabaseUnitOfWork } from './databaseUnitOfWork.js';
 import { randomUUID } from "node:crypto";
 import type { DatabaseAdapter } from "./databaseService.js";
 import { CaseMeasureService } from "./caseMeasureService.js";
@@ -144,10 +145,15 @@ export function evaluateWorkplaceAccommodationWarnings(
 }
 
 export class WorkplaceAccommodationService {
-  constructor(private readonly db: DatabaseAdapter) {}
+  constructor(
+    private readonly db: DatabaseAdapter,
+    private readonly caseMeasures: CaseMeasureService = new CaseMeasureService(db),
+    private readonly deadlines: DeadlineService = new DeadlineService(db),
+    private readonly auditLog: PersonalDataAuditLogService = new PersonalDataAuditLogService(db),
+  ) {}
 
   ensureSchema(): void {
-    new CaseMeasureService(this.db).ensureSchema();
+    this.caseMeasures.ensureSchema();
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS case_measure_workplace_accommodation (
         measure_id TEXT PRIMARY KEY,
@@ -180,7 +186,7 @@ export class WorkplaceAccommodationService {
       CREATE INDEX IF NOT EXISTS idx_case_measure_workplace_category ON case_measure_workplace_accommodation(category);
       CREATE INDEX IF NOT EXISTS idx_case_measure_workplace_review ON case_measure_workplace_accommodation(effectiveness_review_at);
     `);
-    new PersonalDataAuditLogService(this.db);
+    void this.auditLog;
   }
 
   private audit(
@@ -189,20 +195,13 @@ export class WorkplaceAccommodationService {
     caseId: string | undefined,
     purpose: string,
   ): void {
-    try {
-      new PersonalDataAuditLogService(this.db).append({
+      this.auditLog.append({
         action,
         subjectType: "case_measure_workplace_accommodation",
         subjectId,
         caseId,
         purpose,
       });
-    } catch (error) {
-      console.warn(
-        "Gremia.SBV workplace accommodation audit write failed",
-        error,
-      );
-    }
   }
 
   private event(
@@ -311,6 +310,7 @@ export class WorkplaceAccommodationService {
   create(
     input: CreateWorkplaceAccommodationInput,
   ): WorkplaceAccommodationRecord {
+    return new DatabaseUnitOfWork(this.db).run(() => {
     if (!input.caseId)
       throw new Error(
         "Arbeitsplatzgestaltung muss aus einer Fallakte heraus angelegt werden.",
@@ -321,7 +321,7 @@ export class WorkplaceAccommodationService {
     const status = input.status ?? "entwurf";
     const implementationDueAt = toIso(input.implementationDueAt);
     const effectivenessReviewAt = toIso(input.effectivenessReviewAt);
-    const measure = new CaseMeasureService(this.db).create({
+    const measure = this.caseMeasures.create({
       caseId: input.caseId,
       type: "workplace_accommodation",
       title: input.title.trim(),
@@ -383,7 +383,7 @@ export class WorkplaceAccommodationService {
     );
 
     if (input.createDefaultDeadlines !== false && implementationDueAt) {
-      new DeadlineService(this.db).create({
+      this.deadlines.create({
         caseId: input.caseId,
         processId: measure.id,
         processType: "custom",
@@ -404,7 +404,7 @@ export class WorkplaceAccommodationService {
     }
 
     if (input.createDefaultDeadlines !== false && effectivenessReviewAt) {
-      new DeadlineService(this.db).create({
+      this.deadlines.create({
         caseId: input.caseId,
         processId: measure.id,
         processType: "custom",
@@ -432,19 +432,22 @@ export class WorkplaceAccommodationService {
       "Arbeitsplatzgestaltung in Fallakte angelegt",
     );
     return this.getById(measure.id)!;
+  
+    });
   }
 
   update(
     id: string,
     input: UpdateWorkplaceAccommodationInput,
   ): WorkplaceAccommodationRecord {
+    return new DatabaseUnitOfWork(this.db).run(() => {
     const existing = this.getById(id);
     if (!existing)
       throw new Error(`Arbeitsplatzgestaltung nicht gefunden: ${id}`);
     const timestamp = nowIso();
     const nextStatus = input.status ?? existing.status;
 
-    new CaseMeasureService(this.db).update(id, {
+    this.caseMeasures.update(id, {
       title: input.title !== undefined ? input.title : existing.title,
       status: accommodationStatusToMeasureStatus(nextStatus),
       riskLevel: input.riskLevel ?? existing.riskLevel,
@@ -547,6 +550,8 @@ export class WorkplaceAccommodationService {
       "Arbeitsplatzgestaltung geändert",
     );
     return this.getById(id)!;
+  
+    });
   }
 
   warnings(id: string): WorkplaceAccommodationWarning[] {

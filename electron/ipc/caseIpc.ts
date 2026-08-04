@@ -1,3 +1,4 @@
+import { registerIpcHandler } from './ipcHandler.js';
 import { dialog, shell, type IpcMain } from "electron";
 import type { SecurityService } from "../../services/securityService.js";
 import type { ApplicationServices } from '../applicationServices.js';
@@ -35,22 +36,22 @@ export function registerCaseIpc(
 ): void {
   const cases = services.cases;
 
-  ipcMain.handle("cases:list", async () => cases.listCases());
-  ipcMain.handle("cases:create", async (_event, input: unknown) =>
+  registerIpcHandler(ipcMain, "cases:list", async () => cases.listCases());
+  registerIpcHandler(ipcMain, "cases:create", async (_event, input: unknown) =>
     cases.createCase(assertRecordInput<CreateCaseInput>(input, "cases:create")),
   );
-  ipcMain.handle("cases:bind-legacy", async (_event, input: unknown) =>
+  registerIpcHandler(ipcMain, "cases:bind-legacy", async (_event, input: unknown) =>
     cases.bindLegacyCase(assertRecordInput<LegacyCaseBindingInput>(input, "cases:bind-legacy")),
   );
-  ipcMain.handle("cases:notes:list", async (_event, caseId: unknown) =>
+  registerIpcHandler(ipcMain, "cases:notes:list", async (_event, caseId: unknown) =>
     cases.listNotes(assertString(caseId, "cases:notes:list", "Fall-ID", { minLength: 1, maxLength: 120 })),
   );
-  ipcMain.handle("cases:notes:create", async (_event, input: unknown) =>
+  registerIpcHandler(ipcMain, "cases:notes:create", async (_event, input: unknown) =>
     cases.createNote(
       assertRecordInput<CreateCaseNoteInput>(input, "cases:notes:create"),
     ),
   );
-  ipcMain.handle(
+  registerIpcHandler(ipcMain, 
     "cases:notes:update",
     async (_event, id: unknown, input: unknown) =>
       cases.updateNote(
@@ -58,26 +59,26 @@ export function registerCaseIpc(
         assertRecordInput<UpdateCaseNoteInput>(input, "cases:notes:update"),
       ),
   );
-  ipcMain.handle("cases:notes:delete", async (_event, id: unknown) =>
+  registerIpcHandler(ipcMain, "cases:notes:delete", async (_event, id: unknown) =>
     cases.deleteNote(assertString(id, "cases:notes:delete", "Notiz-ID", { minLength: 1, maxLength: 120 })),
   );
-  ipcMain.handle("cases:documents:list", async (_event, caseId: unknown, measureId?: unknown) =>
+  registerIpcHandler(ipcMain, "cases:documents:list", async (_event, caseId: unknown, measureId?: unknown) =>
     cases.listDocuments(
       assertString(caseId, "cases:documents:list", "Fall-ID", { minLength: 1, maxLength: 120 }),
       assertOptionalString(measureId, "cases:documents:list", "Maßnahmen-ID", { maxLength: 120 }),
     ),
   );
-  ipcMain.handle("cases:documents:delete", async (_event, id: unknown) =>
+  registerIpcHandler(ipcMain, "cases:documents:delete", async (_event, id: unknown) =>
     cases.deleteDocument(assertString(id, "cases:documents:delete", "Dokument-ID", { minLength: 1, maxLength: 120 })),
   );
-  ipcMain.handle("cases:documents:open", async (_event, id: unknown) => {
+  registerIpcHandler(ipcMain, "cases:documents:open", async (_event, id: unknown) => {
     const documentId = assertString(id, "cases:documents:open", "Dokument-ID", { minLength: 1, maxLength: 120 });
     const tempCopy = await cases.createTemporaryDocumentCopy(documentId);
     const error = await shell.openPath(tempCopy.filePath);
     if (error) throw new Error(error);
     return { opened: true, filePath: tempCopy.filePath };
   });
-  ipcMain.handle(
+  registerIpcHandler(ipcMain, 
     "cases:documents:export",
     async (_event, id: unknown, suggestedFileName?: unknown) => {
       const documentId = assertString(id, "cases:documents:export", "Dokument-ID", { minLength: 1, maxLength: 120 });
@@ -97,7 +98,7 @@ export function registerCaseIpc(
       return cases.exportDocument(documentId, result.filePath);
     },
   );
-  ipcMain.handle(
+  registerIpcHandler(ipcMain, 
     "cases:documents:select-and-import",
     async (_event, caseId: unknown, containsHealthData: unknown = true, measureId?: unknown) => {
       const validatedCaseId = assertString(
@@ -140,7 +141,7 @@ export function registerCaseIpc(
       return imported;
     },
   );
-  ipcMain.handle("cases:search", async (_event, input: unknown) =>
+  registerIpcHandler(ipcMain, "cases:search", async (_event, input: unknown) =>
     cases.searchContent(
       assertRecordInput<CaseContentSearchInput>(input, "cases:search"),
     ),

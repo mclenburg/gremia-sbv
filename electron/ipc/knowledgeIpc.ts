@@ -1,3 +1,4 @@
+import { registerIpcHandler } from './ipcHandler.js';
 import type { IpcMain } from "electron";
 import type { SecurityService } from "../../services/securityService.js";
 import type { ApplicationServices } from '../applicationServices.js';
@@ -23,36 +24,36 @@ export function registerKnowledgeIpc(
 ): void {
   const knowledge = services.knowledge;
 
-  ipcMain.handle("knowledge:norms:list", async (_event, filters?: unknown) =>
+  registerIpcHandler(ipcMain, "knowledge:norms:list", async (_event, filters?: unknown) =>
     knowledge.listNorms(
       assertOptionalObject<LegalNormSearchInput>(filters, "knowledge:norms:list", "Filter"),
     ),
   );
-  ipcMain.handle("knowledge:norms:get", async (_event, id: unknown) =>
+  registerIpcHandler(ipcMain, "knowledge:norms:get", async (_event, id: unknown) =>
     knowledge.getNorm(assertString(id, "knowledge:norms:get", "Norm-ID", { minLength: 1, maxLength: 120 })),
   );
-  ipcMain.handle("knowledge:norms:create", async (_event, input: unknown) =>
+  registerIpcHandler(ipcMain, "knowledge:norms:create", async (_event, input: unknown) =>
     knowledge.createNorm(
       assertRecordInput<CreateLegalNormInput>(input, "knowledge:norms:create"),
     ),
   );
-  ipcMain.handle("knowledge:norms:update", async (_event, id: unknown, input: unknown) =>
+  registerIpcHandler(ipcMain, "knowledge:norms:update", async (_event, id: unknown, input: unknown) =>
     knowledge.updateNorm(
       assertString(id, "knowledge:norms:update", "Norm-ID", { minLength: 1, maxLength: 120 }),
       assertRecordInput<UpdateLegalNormInput>(input, "knowledge:norms:update"),
     ),
   );
-  ipcMain.handle("knowledge:cases:link", async (_event, input: unknown) =>
+  registerIpcHandler(ipcMain, "knowledge:cases:link", async (_event, input: unknown) =>
     knowledge.linkNormToCase(
       assertRecordInput<LinkLegalNormToCaseInput>(input, "knowledge:cases:link"),
     ),
   );
-  ipcMain.handle("knowledge:cases:list", async (_event, caseId: unknown) =>
+  registerIpcHandler(ipcMain, "knowledge:cases:list", async (_event, caseId: unknown) =>
     knowledge.listCaseReferences(
       assertString(caseId, "knowledge:cases:list", "Fall-ID", { minLength: 1, maxLength: 120 }),
     ),
   );
-  ipcMain.handle(
+  registerIpcHandler(ipcMain, 
     "knowledge:cases:unlink",
     async (_event, caseId: unknown, legalNormId: unknown) =>
       knowledge.unlinkNormFromCase(
@@ -60,35 +61,35 @@ export function registerKnowledgeIpc(
         assertString(legalNormId, "knowledge:cases:unlink", "Norm-ID", { minLength: 1, maxLength: 120 }),
       ),
   );
-  ipcMain.handle("knowledge:comments:list", async (_event, legalNormId: unknown) =>
+  registerIpcHandler(ipcMain, "knowledge:comments:list", async (_event, legalNormId: unknown) =>
     knowledge.listComments(
       assertString(legalNormId, "knowledge:comments:list", "Norm-ID", { minLength: 1, maxLength: 120 }),
     ),
   );
-  ipcMain.handle("knowledge:comments:create", async (_event, input: unknown) =>
+  registerIpcHandler(ipcMain, "knowledge:comments:create", async (_event, input: unknown) =>
     knowledge.createComment(
       assertRecordInput<CreateNormCommentInput>(input, "knowledge:comments:create"),
     ),
   );
-  ipcMain.handle("knowledge:caselaw:list", async (_event, legalNormId: unknown) =>
+  registerIpcHandler(ipcMain, "knowledge:caselaw:list", async (_event, legalNormId: unknown) =>
     knowledge.listCaseLaw(
       assertString(legalNormId, "knowledge:caselaw:list", "Norm-ID", { minLength: 1, maxLength: 120 }),
     ),
   );
-  ipcMain.handle("knowledge:caselaw:create", async (_event, input: unknown) =>
+  registerIpcHandler(ipcMain, "knowledge:caselaw:create", async (_event, input: unknown) =>
     knowledge.createCaseLaw(
       assertRecordInput<CreateCaseLawInput>(input, "knowledge:caselaw:create"),
     ),
   );
-  ipcMain.handle("knowledge:checklist:list", async (_event, legalNormId: unknown) =>
+  registerIpcHandler(ipcMain, "knowledge:checklist:list", async (_event, legalNormId: unknown) =>
     knowledge.listChecklist(
       assertString(legalNormId, "knowledge:checklist:list", "Norm-ID", { minLength: 1, maxLength: 120 }),
     ),
   );
-  ipcMain.handle("knowledge:checklist:create", async (_event, input: unknown) =>
+  registerIpcHandler(ipcMain, "knowledge:checklist:create", async (_event, input: unknown) =>
     knowledge.createChecklistItem(
       assertRecordInput<CreateNormChecklistItemInput>(input, "knowledge:checklist:create"),
     ),
   );
-  ipcMain.handle("knowledge:export:preview", async () => knowledge.exportPreview());
+  registerIpcHandler(ipcMain, "knowledge:export:preview", async () => knowledge.exportPreview());
 }

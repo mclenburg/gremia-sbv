@@ -1,3 +1,4 @@
+import { DatabaseUnitOfWork } from './databaseUnitOfWork.js';
 import { randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
@@ -198,6 +199,7 @@ export class DeadlineService {
   }
 
   create(input: CreateDeadlineInput): DeadlineRecord {
+    return new DatabaseUnitOfWork(this.db).run(() => {
     validateCaseBinding(input);
     const id = randomUUID();
     const timestamp = nowIso();
@@ -243,6 +245,8 @@ export class DeadlineService {
     const auditPurpose = input.caseId ? 'Frist personenbezogen angelegt' : 'Fallaktenunabhängige Wiedervorlage angelegt';
     this.personalDataAudit('create', id, input.caseId, auditPurpose, { processType: input.processType, deadlineType: input.deadlineType ?? 'follow_up', measureId: input.measureId ?? null, isLegalDeadline: Boolean(input.isLegalDeadline) });
     return this.getById(id)!;
+  
+    });
   }
 
   createFromTemplate(input: CreateFromTemplateInput): DeadlineRecord {
@@ -352,6 +356,7 @@ export class DeadlineService {
   }
 
   update(id: string, input: UpdateDeadlineInput): DeadlineRecord {
+    return new DatabaseUnitOfWork(this.db).run(() => {
     const before = this.getById(id);
     if (!before) throw new Error(`Deadline not found: ${id}`);
     if (!before.isUserEditable && input.status !== 'done') throw new Error(`Deadline is not user-editable: ${id}`);
@@ -393,10 +398,15 @@ export class DeadlineService {
     this.audit(id, 'updated', JSON.stringify(before), JSON.stringify(input), input.reason ?? 'Frist geändert');
     this.personalDataAudit('update', id, before.caseId, 'Frist personenbezogen geändert', { status: nextStatus, reason: input.reason ?? null });
     return this.getById(id)!;
+  
+    });
   }
 
   complete(id: string, note?: string): DeadlineRecord {
+    return new DatabaseUnitOfWork(this.db).run(() => {
     return this.update(id, { status: 'done', completedNote: note, reason: note ?? 'Frist erledigt' });
+  
+    });
   }
 
   suspend(id: string, reason: string): DeadlineRecord {
@@ -404,7 +414,10 @@ export class DeadlineService {
   }
 
   cancel(id: string, reason: string): DeadlineRecord {
+    return new DatabaseUnitOfWork(this.db).run(() => {
     return this.update(id, { status: 'cancelled', cancelledReason: reason, reason });
+  
+    });
   }
 
   listTemplates(): DeadlineTemplateRecord[] {

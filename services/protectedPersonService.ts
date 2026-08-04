@@ -1,3 +1,4 @@
+import { DatabaseUnitOfWork } from './databaseUnitOfWork.js';
 import { randomUUID, createHash } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
 import { DeadlineService } from './deadlineService.js';
@@ -109,14 +110,11 @@ export class ProtectedPersonService {
   constructor(private readonly db: DatabaseAdapter) {}
 
   private audit(action: Parameters<PersonalDataAuditLogService['append']>[0]['action'], subjectId: string | undefined, purpose: string, metadata?: Record<string, unknown>): void {
-    try {
       new PersonalDataAuditLogService(this.db).append({ action, subjectType: 'protected_person', subjectId, purpose, metadata });
-    } catch (error) {
-      console.warn('Gremia.SBV protected person audit failed', error);
-    }
   }
 
   create(input: CreateProtectedPersonInput): ProtectedPersonRecord {
+    return new DatabaseUnitOfWork(this.db).run(() => {
     const recordKind = input.recordKind ?? 'identified_person';
     const firstName = normalizeOptional(input.firstName) ?? '';
     const lastName = normalizeOptional(input.lastName) ?? '';
@@ -157,9 +155,12 @@ export class ProtectedPersonService {
     );
     this.audit('create', id, 'Personenverzeichnis: geschützte Person angelegt', { source: input.statusSource ?? 'manual', recordKind, hasPersonnelNumber: Boolean(input.personnelNumber) });
     return this.get(id)!;
+  
+    });
   }
 
   update(id: string, input: UpdateProtectedPersonInput): ProtectedPersonRecord {
+    return new DatabaseUnitOfWork(this.db).run(() => {
     const before = this.get(id);
     if (!before) throw new Error(`Person nicht gefunden: ${id}`);
     const merged = { ...before, ...input };
@@ -201,6 +202,8 @@ export class ProtectedPersonService {
     );
     this.audit('update', id, 'Personenverzeichnis: geschützte Person geändert', { changedFields: Object.keys(input) });
     return this.get(id)!;
+  
+    });
   }
 
   get(id: string): ProtectedPersonRecord | undefined {
@@ -268,7 +271,7 @@ export class ProtectedPersonService {
     return run;
   }
 
-  recordImportRun(input: Omit<PersonImportRunRecord, 'id' | 'importedAt'> & { id?: string; importedAt?: string; items: Omit<PersonImportRunItemRecord, 'id' | 'runId' | 'createdAt'>[] }): PersonImportRunRecord {
+  recordImportRun(input: Omit<PersonImportRunRecord, 'id' | 'importedAt' | 'items'> & { id?: string; importedAt?: string; items: Omit<PersonImportRunItemRecord, 'id' | 'runId' | 'createdAt'>[] }): PersonImportRunRecord {
     const id = input.id ?? randomUUID();
     const importedAt = input.importedAt ?? nowIso();
     this.db.prepare(`
@@ -290,6 +293,7 @@ export class ProtectedPersonService {
   }
 
   anonymizeStructuredData(id: string, reason: string): ProtectedPersonRecord {
+    return new DatabaseUnitOfWork(this.db).run(() => {
     const before = this.get(id);
     if (!before) throw new Error(`Person nicht gefunden: ${id}`);
     const timestamp = nowIso();
@@ -332,6 +336,8 @@ export class ProtectedPersonService {
     });
     this.audit('anonymize', id, 'Personenverzeichnis: strukturierte Daten anonymisiert', { subjectId: id, timestamp, reasonCode: 'structured_person_anonymization' });
     return this.get(id)!;
+  
+    });
   }
 
   createStatusExpiryWarning(person: ProtectedPersonRecord, dueAt: string, referenceDate = new Date()): void {
@@ -388,6 +394,7 @@ export class ProtectedPersonService {
 
 
   createAnonymousRequest(sequenceLabel?: string): ProtectedPersonRecord {
+    return new DatabaseUnitOfWork(this.db).run(() => {
     const stamp = new Date().toISOString().slice(0, 10).replace(/-/g, '');
     const label = sequenceLabel?.trim() || `Anonyme Anfrage ${stamp}-${hashStableId(randomUUID()).slice(0, 4)}`;
     return this.create({
@@ -398,6 +405,8 @@ export class ProtectedPersonService {
       protectionStatus: 'unclear',
       employmentState: 'unknown',
       statusSource: 'manual'
+    });
+  
     });
   }
 

@@ -73,7 +73,7 @@ function ensureArray(value?: string[]): string[] { return [...new Set((value ?? 
 export class CaseHandoverService {
   constructor(private readonly dbProvider: () => DatabaseAdapter, private readonly dataDirProvider: () => string = () => path.join(process.cwd(), 'data')) {}
 
-  private db(): DatabaseAdapter { const db = this.dbProvider(); this.ensureSchema(db); return db; }
+  private db(): DatabaseAdapter { return this.dbProvider(); }
 
   ensureSchema(db: DatabaseAdapter): void {
     const tryExec = (sql: string) => {
@@ -135,7 +135,7 @@ export class CaseHandoverService {
   }
 
   private audit(db: DatabaseAdapter, event: CreatePersonalDataAuditInput): void {
-    try { new PersonalDataAuditLogService(db).append(event); } catch (error) { console.warn('Gremia.SBV case handover audit write failed', error); }
+    new PersonalDataAuditLogService(db).append(event);
   }
 
   private rows(db: DatabaseAdapter, sql: string, ...params: unknown[]): Row[] { try { return db.prepare<Row>(sql).all(...params); } catch { return []; } }

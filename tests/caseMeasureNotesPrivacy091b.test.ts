@@ -14,7 +14,7 @@ class RetentionMemoryDb {
     }
   }
 
-  rows: Record<string, any[]> = {
+  rows: Record<string, Record<string, unknown>[]> = {
     cases: [{ id: 'case-1', case_number: 'SBV-2026-001', display_name: 'Max Muster', summary: 'personenbezogen' }],
     case_notes: [{ id: 'note-1', case_id: 'case-1', participants: 'Max, HR', content: 'Diagnosebezug', next_steps: 'Attest nachreichen', contains_health_data: 1 }],
     case_measure_notes: [{ id: 'measure-note-1', case_id: 'case-1', measure_type: 'participation', measure_id: 'measure-1', title: 'BEM-Termin Max', note_at: '2026-05-12T10:30:00.000Z', participants: 'Max, SBV', content: 'Arbeitsplatzbezogene Einschränkung besprochen.', next_steps: 'HR fragt Hilfsmittel an', contains_health_data: 1, confidential_level: 'sensibel' }],
@@ -28,7 +28,7 @@ class RetentionMemoryDb {
   prepare(sql: string) {
     const self = this;
     return {
-      get(...params: any[]) {
+      get(...params: unknown[]) {
         if (sql.includes('sqlite_master')) {
           const table = String(params[0] ?? '');
           return table in self.rows ? { name: table } : undefined;
@@ -38,7 +38,7 @@ class RetentionMemoryDb {
         }
         return undefined;
       },
-      all(...params: any[]) {
+      all(...params: unknown[]) {
         if (sql.startsWith('PRAGMA table_info(')) {
           const table = sql.match(/PRAGMA table_info\(([^)]+)\)/)?.[1] ?? '';
           const firstRow = self.rows[table]?.[0] ?? {};
@@ -55,7 +55,7 @@ class RetentionMemoryDb {
         }
         return [];
       },
-      run(...params: any[]) {
+      run(...params: unknown[]) {
         if (sql.includes('UPDATE cases SET display_name')) {
           const row = self.rows.cases.find((entry) => entry.id === params[2]);
           if (!row) return { changes: 0 };

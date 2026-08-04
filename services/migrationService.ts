@@ -3,6 +3,7 @@ import path from 'node:path';
 import type { DatabaseAdapter } from './databaseService.js';
 import { classifyCaseLegalReferencesColumns } from './knowledgeMigrationPolicy.js';
 import { APP_VERSION } from './generated/appMetadata.js';
+import { getSchemaMigrationHook } from './schemaMigrationHooks.js';
 import { APP_SCHEMA_VERSION, ACTIVITY_JOURNAL_CATEGORY_PREFERENCES_REQUIRED_COLUMNS, ACTIVITY_JOURNAL_ENTRIES_REQUIRED_COLUMNS, ACTIVITY_JOURNAL_LINKS_REQUIRED_COLUMNS, COMPLIANCE_INCIDENTS_REQUIRED_COLUMNS, GENERATED_DOCUMENTS_REQUIRED_COLUMNS, SBV_PARTICIPATION_VIOLATION_DOCUMENTS_REQUIRED_COLUMNS, SBV_PARTICIPATION_VIOLATION_EVENTS_REQUIRED_COLUMNS, SBV_PARTICIPATION_VIOLATIONS_REQUIRED_COLUMNS, SBV_CONTROL_PROTOCOLS_REQUIRED_COLUMNS, SBV_RESOURCE_RECORDS_REQUIRED_COLUMNS, RECRUITING_INTERVIEW_EVENTS_REQUIRED_COLUMNS, RECRUITING_PARTICIPATIONS_REQUIRED_COLUMNS, CASE_HANDOVER_IMPORTS_REQUIRED_COLUMNS, CASE_HANDOVER_IMPORT_ITEMS_REQUIRED_COLUMNS, CASE_DOCUMENTS_REQUIRED_COLUMNS, CASE_DOCUMENT_OCR_JOBS_REQUIRED_COLUMNS, CASE_EXTERNAL_REFERENCES_REQUIRED_COLUMNS, CASES_REQUIRED_COLUMNS, CASE_MEASURES_REQUIRED_COLUMNS, CASE_MEASURE_PARTICIPATION_REQUIRED_COLUMNS, CASE_MEASURE_NOTES_REQUIRED_COLUMNS, CASE_MEASURE_WORKPLACE_ACCOMMODATION_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_STATE_REQUIRED_COLUMNS, GREMIA_BR_CACHE_REQUIRED_COLUMNS, GREMIA_BR_SETTINGS_REQUIRED_COLUMNS, PERSON_IMPORT_RUN_ITEMS_REQUIRED_COLUMNS, PROTECTED_PERSONS_REQUIRED_COLUMNS, DATABASE_SCHEMA_APP_VERSION_KEY, DATABASE_SCHEMA_VERSION_KEY, PERSONAL_DATA_AUDIT_REQUIRED_COLUMNS, SBV_PARTICIPATION_REQUIRED_COLUMNS, TERMINATION_HEARINGS_REQUIRED_COLUMNS } from './appSchema.js';
 
 interface MigrationRow {
@@ -141,6 +142,7 @@ export class MigrationService {
     if (this.isFreshDatabase()) {
       this.applyBaseSchema();
       const definitions = this.listMigrationDefinitions();
+      this.applyFreshSchemaHooks(definitions);
       definitions.forEach((definition) => {
         this.recordMigration(definition, 'baseline', 'Frische Datenbank wurde über database/schema.sql auf aktuellen Stand initialisiert.');
         inferred.push(definition.filename);
@@ -366,6 +368,9 @@ export class MigrationService {
         return this.participationViolationRecruitingContextSupported();
       case '0048':
         return this.indexExists('idx_personal_data_audit_lifecycle_period');
+      case '0049':
+        return this.tableExists('schema_migration_components')
+          && Boolean(this.db.prepare<{ count: number }>('SELECT COUNT(*) AS count FROM schema_migration_components WHERE migration_version = ?').get('0049')?.count);
       default:
         return false;
     }
@@ -431,6 +436,24 @@ export class MigrationService {
     }
   }
 
+  private applyFreshSchemaHooks(definitions: MigrationDefinition[]): void {
+    definitions.forEach((definition) => {
+      const schemaHook = getSchemaMigrationHook(definition.version);
+      if (!schemaHook) return;
+      const sql = normalizeSql(fs.readFileSync(definition.path, 'utf8'));
+      this.db.exec('BEGIN');
+      try {
+        this.applyAddColumnsSafely(sql);
+        this.executeStatements(sql, { skipAlterAddColumn: true });
+        schemaHook.apply(this.db);
+        this.db.exec('COMMIT');
+      } catch (error) {
+        this.db.exec('ROLLBACK');
+        throw new Error(`Schema-Hook ${definition.version} fehlgeschlagen: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    });
+  }
+
   private applyMigration(definition: MigrationDefinition): void {
     const rawSql = fs.readFileSync(definition.path, 'utf8');
     const sql = normalizeSql(rawSql);
@@ -451,7 +474,11 @@ export class MigrationService {
         this.applyAddColumnsSafely(sql);
         this.executeStatements(sql, { skipAlterAddColumn: true });
       }
-      this.recordMigration(definition, 'sql', 'Migration erfolgreich angewendet.');
+      const schemaHook = getSchemaMigrationHook(definition.version);
+      if (schemaHook) schemaHook.apply(this.db);
+      this.recordMigration(definition, schemaHook ? 'sql+schema-hook' : 'sql', schemaHook
+        ? `Migration erfolgreich angewendet; ${schemaHook.components.length} konsolidierte Schemakomponenten ausgeführt.`
+        : 'Migration erfolgreich angewendet.');
       this.db.exec('COMMIT');
     } catch (error) {
       this.db.exec('ROLLBACK');

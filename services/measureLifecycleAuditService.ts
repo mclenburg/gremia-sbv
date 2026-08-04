@@ -43,8 +43,11 @@ export interface AppendMeasureLifecycleInput {
 export class MeasureLifecycleAuditService {
   private readonly audit: PersonalDataAuditLogService;
 
-  constructor(private readonly db: DatabaseAdapter) {
-    this.audit = new PersonalDataAuditLogService(db);
+  constructor(
+    private readonly db: DatabaseAdapter,
+    audit?: PersonalDataAuditLogService,
+  ) {
+    this.audit = audit ?? new PersonalDataAuditLogService(db);
   }
 
   append(input: AppendMeasureLifecycleInput): void {

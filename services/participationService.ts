@@ -1,3 +1,4 @@
+import { DatabaseUnitOfWork } from './databaseUnitOfWork.js';
 import { randomUUID } from "node:crypto";
 import type { DatabaseAdapter } from "./databaseService.js";
 import { DeadlineService } from "./deadlineService.js";
@@ -153,10 +154,15 @@ export function evaluateParticipationWarnings(
 }
 
 export class ParticipationService {
-  constructor(private readonly db: DatabaseAdapter) {}
+  constructor(
+    private readonly db: DatabaseAdapter,
+    private readonly caseMeasures: CaseMeasureService = new CaseMeasureService(db),
+    private readonly deadlines: DeadlineService = new DeadlineService(db),
+    private readonly auditLog: PersonalDataAuditLogService = new PersonalDataAuditLogService(db),
+  ) {}
 
   ensureSchema(): void {
-    new CaseMeasureService(this.db).ensureSchema();
+    this.caseMeasures.ensureSchema();
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS case_measure_participation (
         measure_id TEXT PRIMARY KEY,
@@ -196,7 +202,7 @@ export class ParticipationService {
       CREATE INDEX IF NOT EXISTS idx_case_measure_participation_suspension_due ON case_measure_participation(suspension_deadline_at);
     `);
     this.migrateLegacyParticipations();
-    new PersonalDataAuditLogService(this.db);
+    void this.auditLog;
   }
 
   private migrateLegacyParticipations(): void {
@@ -295,17 +301,13 @@ export class ParticipationService {
     caseId: string | undefined,
     purpose: string,
   ): void {
-    try {
-      new PersonalDataAuditLogService(this.db).append({
+      this.auditLog.append({
         action,
         subjectType: "case_measure_participation",
         subjectId,
         caseId,
         purpose,
       });
-    } catch (error) {
-      console.warn("Gremia.SBV participation audit write failed", error);
-    }
   }
 
   private query(caseId?: string): ParticipationRecord[] {
@@ -389,6 +391,7 @@ export class ParticipationService {
   }
 
   create(input: CreateParticipationInput): ParticipationRecord {
+    return new DatabaseUnitOfWork(this.db).run(() => {
     if (!input.caseId)
       throw new Error(
         "Eine Beteiligungsmaßnahme muss aus einer Fallakte heraus angelegt werden.",
@@ -400,7 +403,7 @@ export class ParticipationService {
     const status: ParticipationStatus = input.informationReceivedAt
       ? "unterrichtung_pruefen"
       : "neu";
-    const measure = new CaseMeasureService(this.db).create({
+    const measure = this.caseMeasures.create({
       caseId: input.caseId,
       type: "sbv_participation",
       title: input.title.trim(),
@@ -453,7 +456,7 @@ export class ParticipationService {
     );
 
     if (input.createDefaultDeadlines !== false && input.statementDueAt) {
-      new DeadlineService(this.db).create({
+      this.deadlines.create({
         caseId: input.caseId,
         processId: measure.id,
         processType: "custom",
@@ -480,9 +483,12 @@ export class ParticipationService {
       "SBV-Beteiligungsmaßnahme in Fallakte angelegt",
     );
     return this.getById(measure.id)!;
+  
+    });
   }
 
   update(id: string, input: UpdateParticipationInput): ParticipationRecord {
+    return new DatabaseUnitOfWork(this.db).run(() => {
     const existing = this.getById(id);
     if (!existing)
       throw new Error(`SBV-Beteiligungsmaßnahme nicht gefunden: ${id}`);
@@ -502,7 +508,7 @@ export class ParticipationService {
       (input.suspensionRequestedAt ? "aussetzung_verlangt" : existing.status);
     const timestamp = nowIso();
 
-    new CaseMeasureService(this.db).update(id, {
+    this.caseMeasures.update(id, {
       title: input.title !== undefined ? input.title : existing.title,
       status: participationStatusToMeasureStatus(nextStatus),
       riskLevel: input.riskLevel ?? existing.riskLevel,
@@ -601,7 +607,7 @@ export class ParticipationService {
       );
 
     if (input.suspensionRequestedAt && suspensionDueAt) {
-      new DeadlineService(this.db).create({
+      this.deadlines.create({
         caseId: existing.caseId,
         processId: id,
         processType: "custom",
@@ -634,6 +640,8 @@ export class ParticipationService {
       "SBV-Beteiligungsmaßnahme geändert",
     );
     return this.getById(id)!;
+  
+    });
   }
 
   warnings(id: string): ParticipationWarning[] {

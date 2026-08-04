@@ -1,3 +1,4 @@
+import { DatabaseUnitOfWork } from './databaseUnitOfWork.js';
 import { randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
@@ -105,11 +106,9 @@ export class SbvControlProtocolService {
   }
 
   private audit(action: 'read' | 'create' | 'update' | 'delete', subjectId?: string, topic?: string, status?: string): void {
-    try {
-      new PersonalDataAuditLogService(this.db).append(auditSbvControlProtocolChanged({ action, protocolId: subjectId, topic, status }));
-    } catch (error) {
-      console.warn('Gremia.SBV control protocol audit write failed', error);
-    }
+    const write = () => new PersonalDataAuditLogService(this.db).append(auditSbvControlProtocolChanged({ action, protocolId: subjectId, topic, status }));
+    if (action !== 'read') { write(); return; }
+    try { write(); } catch (error) { console.warn('Gremia.SBV control protocol read audit failed', error); }
   }
 
   private linkedDeadlineId(protocolId: string): string | undefined {
@@ -171,6 +170,7 @@ export class SbvControlProtocolService {
   }
 
   create(input: CreateSbvControlProtocolInput): SbvControlProtocolRecord {
+    return new DatabaseUnitOfWork(this.db).run(() => {
     const title = normalizeOptional(input.title);
     if (!title) throw new Error('Ein Steuerungsprotokoll benötigt einen Titel.');
     const topic = normalizeTopic(input.topic);
@@ -202,9 +202,12 @@ export class SbvControlProtocolService {
     const record = this.getById(id)!;
     this.syncFollowUpDeadline(record);
     return record;
+  
+    });
   }
 
   update(id: string, input: UpdateSbvControlProtocolInput): SbvControlProtocolRecord {
+    return new DatabaseUnitOfWork(this.db).run(() => {
     const existing = this.getById(id);
     if (!existing) throw new Error(`Steuerungsprotokoll nicht gefunden: ${id}`);
     const topic = input.topic !== undefined ? normalizeTopic(input.topic) : existing.topic;
@@ -236,6 +239,8 @@ export class SbvControlProtocolService {
     const record = this.getById(id)!;
     this.syncFollowUpDeadline(record);
     return record;
+  
+    });
   }
 
   delete(id: string): { deleted: boolean } {

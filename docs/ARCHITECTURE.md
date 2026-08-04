@@ -162,3 +162,56 @@ Fachliche Schreibvorgänge bilden eine explizite Unit of Work. Der fachliche Dat
 Lesende Zugriffs-Audits bleiben bewusst fehlertolerant: Ein vorübergehend nicht schreibbares Zugriffsprotokoll darf die Anzeige bereits vorhandener Daten nicht verhindern. Änderungs-Audits sind dagegen Bestandteil der fachlichen Konsistenz und dürfen nicht stillschweigend verworfen werden.
 
 Rekonstruierbare Projektionen gehören nicht in die fachliche Transaktion. Insbesondere Suchindex-Aktualisierungen erfolgen erst nach dem Commit. Ein Fehler des Suchindex darf deshalb keine bereits konsistent gespeicherte Fachänderung zurückrollen; der Index kann vollständig aus den Fachdaten neu aufgebaut werden.
+
+## Injizierte Kernabhängigkeiten der Maßnahmenservices
+
+Die transaktionskritischen Maßnahmenservices erzeugen Audit-, Lifecycle-, Frist- und Suchindexdienste nicht mehr innerhalb ihrer Fachmethoden. `ApplicationServices` stellt diese Abhängigkeiten pro aktiver Datenbank einmalig bereit und injiziert dieselben Instanzen in BEM, Prävention, Gleichstellung, Kündigungsanhörung, Stellenbesetzung und allgemeine Fallmaßnahmen.
+
+Dadurch entscheidet ausschließlich die Composition Root über die konkrete Serviceverdrahtung. Fachservices bleiben für isolierte Tests weiterhin direkt konstruierbar; ihre optionalen Standardabhängigkeiten sind ein Kompatibilitätspfad und werden im produktiven Electron-Hauptprozess nicht verwendet. Neue produktive Fachservices dürfen keine konkreten Folgeservices innerhalb von Fachmethoden erzeugen, wenn diese an Auditierung, Transaktionen, Lifecycle oder rekonstruierbare Projektionen beteiligt sind.
+
+## Zentrale Datenbankinitialisierung
+
+Nach dem Öffnen eines Tresors führt `DatabaseRuntimeInitializer` sämtliche noch erforderlichen Kompatibilitätsinitialisierungen genau einmal aus. Dazu gehören auch die Schemata für Fallakten/FTS, Suche, Berichte, Vorlagen, Kontakte, Wissensdatenbank, Datenschutzprüfungen, Aufbewahrung, Fallübergaben und Dokument-OCR.
+
+Produktive Fachmethoden dürfen keine Tabellen, Spalten, virtuellen Tabellen oder Indizes erzeugen oder verändern. Sie arbeiten ausschließlich gegen das nach Migration und Initialisierung vollständig verfügbare Schema. Ein fehlendes Schema ist damit ein Start-/Migrationsfehler und wird nicht mehr während einer Nutzeraktion still repariert.
+
+## Verbindliches Schreib- und Auditmodell
+
+Fachliche Schreibvorgänge werden gemeinsam mit ihren verpflichtenden Audit- und Verknüpfungsschritten in einer `DatabaseUnitOfWork` ausgeführt. Die Unit of Work verwendet verschachtelbare SQLite-Savepoints, damit transaktionale Fachservices gefahrlos andere transaktionale Services aufrufen können.
+
+- Änderungs-Audits sind verpflichtend und dürfen nicht still verworfen werden.
+- Reine Lese-Audits bleiben bewusst fehlertolerant.
+- Rekonstruierbare Projektionen und Dateisystem-Aufräumarbeiten dürfen nach dem Commit beziehungsweise als ausdrücklich best-effort markierte Nebenwirkung laufen.
+- Ein fehlgeschlagenes Pflicht-Audit führt zum Rollback des gesamten fachlichen Schreibvorgangs.
+
+## Versionierte Schemaquelle
+
+Strukturelle Datenbankänderungen werden ausschließlich durch `MigrationService`
+ausgeführt. SQL-Dateien unter `database/migrations` bilden die geordnete
+Versionsfolge. Für historisch gewachsene, idempotente Kompatibilitätslogik gibt
+es seit Schema 0049 einen an die jeweilige SQL-Migration gebundenen
+`SchemaMigrationHook`.
+
+Der Hook 0049 führt die verbliebenen Kompatibilitätsschemata innerhalb derselben
+Migrationstransaktion aus und protokolliert jede Komponente in
+`schema_migration_components`. `DatabaseRuntimeInitializer` ist danach strikt
+auf Dateninitialisierung beschränkt: Referenzdaten und Lifecycle-Baselines. Er
+darf keine Tabellen, Spalten oder Indizes erzeugen oder verändern.
+
+Damit gilt beim Start:
+
+1. Basisschema beziehungsweise versionierte SQL-Migrationen,
+2. versionsgebundene Schema-Hooks,
+3. vollständige Schema-Validierung,
+4. Dateninitialisierung ohne DDL,
+5. Freigabe der Fachservices.
+
+## Führende Fachaggregate
+
+Die verbindlichen Identitäten, Erweiterungstabellen, Löschregeln und Berichtsdatenquellen sind unter `docs/architecture/domain-aggregates.md` festgelegt. `DomainAggregateIntegrityService` prüft die registrierten 1:1-Erweiterungen beim Start auf verwaiste Datensätze und falsche Root-Typen. Fachservices für Erweiterungen verwenden in der produktiven Composition Root denselben zentralen Root-Service, Fristendienst und Auditdienst.
+
+## Einheitliche Fehlergrenze zwischen Main Process und Renderer
+
+Alle `ipcMain.handle`-Registrierungen laufen über `registerIpcHandler`. Erfolgswerte und bewusst modellierte fachliche Resultate bleiben unverändert. Unbehandelte Fehler werden dagegen in ein datensparsames `ApplicationErrorPayload` mit stabilem Code, nutzergeeigneter Meldung und IPC-Operation übersetzt. Stacktraces, Ursachenobjekte, SQL und Dateiinhalte werden nicht über die Bridge transportiert.
+
+Der sandboxed Preload enthält seine schlanke `invokeIpc`-Grenze direkt und lädt außer `electron` keine lokalen Laufzeitmodule nach. Er rekonstruiert aus dem serialisierten Payload einen `RendererApplicationError`; unbekannte Electron- oder Transportfehler werden unverändert weitergeworfen. Damit bleibt bestehendes Promise-/Catch-Verhalten erhalten, während alle Anwendungsfehler einheitlich auswertbar sind.

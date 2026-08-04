@@ -156,7 +156,6 @@ function reindexNote(db: DatabaseAdapter, noteId: string): void {
 }
 
 export function scanCaseNoteContactReferences(db: DatabaseAdapter, noteId: string): { linkedReferences: number; linkedContacts: number } {
-  ensureContactPrivacySchema(db);
   if (!contactTableExists(db)) return { linkedReferences: 0, linkedContacts: 0 };
 
   const note = db.prepare<any>('SELECT id, title, participants, content, next_steps FROM case_notes WHERE id = ?').get(noteId);
@@ -214,7 +213,6 @@ export function scanCaseNoteContactReferences(db: DatabaseAdapter, noteId: strin
 }
 
 export function anonymizeContactReferences(db: DatabaseAdapter, contactId: string): { anonymizedReferences: number; touchedNotes: number } {
-  ensureContactPrivacySchema(db);
 
   const refs = db.prepare<any>(`
     SELECT source_type, source_id, field_name, matched_text, replacement_text

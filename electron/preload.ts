@@ -1,4 +1,60 @@
 import { contextBridge, ipcRenderer } from "electron";
+import type { ApplicationErrorCode, ApplicationErrorPayload } from "../src/app/core/models/application-error.model.js";
+const IPC_ERROR_PREFIX = "GREMIA_SBV_APPLICATION_ERROR:";
+
+class RendererApplicationError extends Error {
+  readonly name = "RendererApplicationError";
+
+  constructor(
+    readonly code: ApplicationErrorCode,
+    message: string,
+    readonly operation?: string,
+    options?: { cause?: unknown },
+  ) {
+    super(message, options);
+  }
+}
+
+function parseApplicationErrorPayload(message: string): ApplicationErrorPayload | null {
+  const markerIndex = message.indexOf(IPC_ERROR_PREFIX);
+  if (markerIndex < 0) return null;
+
+  try {
+    const parsed: unknown = JSON.parse(message.slice(markerIndex + IPC_ERROR_PREFIX.length));
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return null;
+
+    const payload = parsed as Record<string, unknown>;
+    if (typeof payload.code !== "string" || typeof payload.message !== "string") return null;
+    if (payload.operation !== undefined && typeof payload.operation !== "string") return null;
+
+    return {
+      code: payload.code as ApplicationErrorCode,
+      message: payload.message,
+      ...(typeof payload.operation === "string" ? { operation: payload.operation } : {}),
+    };
+  } catch {
+    return null;
+  }
+}
+
+async function invokeIpc<T = never>(channel: string, ...args: unknown[]): Promise<T> {
+  try {
+    return await ipcRenderer.invoke(channel, ...args) as T;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    const payload = parseApplicationErrorPayload(message);
+    if (payload) {
+      throw new RendererApplicationError(
+        payload.code,
+        payload.message,
+        payload.operation,
+        { cause: error },
+      );
+    }
+    throw error;
+  }
+}
+
 import type { CaseHandoverContinueExpiredResult, CaseHandoverExportInput, CaseHandoverExportResult, CaseHandoverImportInput, CaseHandoverImportResult, CaseHandoverInspectResult } from "../src/app/core/models/case-handover.model.js";
 import type { CaseDocumentRecord } from "../src/app/core/models/case-document.model.js";
 import type {
@@ -183,16 +239,16 @@ import type {
 const api = {
   security: {
     status: (): Promise<SecurityStatus> =>
-      ipcRenderer.invoke("security:status"),
+      invokeIpc("security:status"),
     setupInitialPassword: (password: string): Promise<SecurityResult> =>
-      ipcRenderer.invoke("security:setup-initial-password", password),
+      invokeIpc("security:setup-initial-password", password),
     unlock: (password: string): Promise<SecurityResult> =>
-      ipcRenderer.invoke("security:unlock", password),
+      invokeIpc("security:unlock", password),
     changePassword: (
       currentPassword: string,
       newPassword: string,
     ): Promise<SecurityResult> =>
-      ipcRenderer.invoke(
+      invokeIpc(
         "security:change-password",
         currentPassword,
         newPassword,
@@ -201,452 +257,452 @@ const api = {
       recoveryKey: string,
       newPassword: string,
     ): Promise<SecurityResult> =>
-      ipcRenderer.invoke(
+      invokeIpc(
         "security:reset-password-with-recovery-key",
         recoveryKey,
         newPassword,
       ),
     destroyLocalVault: (confirmation: string): Promise<SecurityResult> =>
-      ipcRenderer.invoke("security:destroy-local-vault", confirmation),
+      invokeIpc("security:destroy-local-vault", confirmation),
     lock: (reason?: "manual" | "auto"): Promise<{ locked: boolean }> =>
-      ipcRenderer.invoke("security:lock", reason),
+      invokeIpc("security:lock", reason),
     cleanupTemporaryFiles: (): Promise<{
       deleted: number;
       failed: number;
       remaining: number;
       bytesRemaining: number;
-    }> => ipcRenderer.invoke("security:temp-files:cleanup"),
+    }> => invokeIpc("security:temp-files:cleanup"),
     temporaryFileStatus: (): Promise<{
       root: string;
       remaining: number;
       bytesRemaining: number;
       oldestRemainingAt?: string;
-    }> => ipcRenderer.invoke("security:temp-files:status"),
+    }> => invokeIpc("security:temp-files:status"),
   },
   cases: {
-    list: (): Promise<CaseRecord[]> => ipcRenderer.invoke("cases:list"),
+    list: (): Promise<CaseRecord[]> => invokeIpc("cases:list"),
     create: (input: CreateCaseInput): Promise<CaseRecord> =>
-      ipcRenderer.invoke("cases:create", input),
+      invokeIpc("cases:create", input),
     bindLegacyCase: (input: LegacyCaseBindingInput): Promise<LegacyCaseBindingResult> =>
-      ipcRenderer.invoke("cases:bind-legacy", input),
+      invokeIpc("cases:bind-legacy", input),
     listNotes: (caseId: string): Promise<CaseNoteRecord[]> =>
-      ipcRenderer.invoke("cases:notes:list", caseId),
+      invokeIpc("cases:notes:list", caseId),
     createNote: (input: CreateCaseNoteInput): Promise<CaseNoteRecord> =>
-      ipcRenderer.invoke("cases:notes:create", input),
+      invokeIpc("cases:notes:create", input),
     updateNote: (
       id: string,
       input: UpdateCaseNoteInput,
     ): Promise<CaseNoteRecord> =>
-      ipcRenderer.invoke("cases:notes:update", id, input),
+      invokeIpc("cases:notes:update", id, input),
     deleteNote: (id: string): Promise<{ deleted: boolean }> =>
-      ipcRenderer.invoke("cases:notes:delete", id),
+      invokeIpc("cases:notes:delete", id),
     listDocuments: (caseId: string, measureId?: string): Promise<CaseDocumentRecord[]> =>
-      ipcRenderer.invoke("cases:documents:list", caseId, measureId),
+      invokeIpc("cases:documents:list", caseId, measureId),
     selectAndImportDocuments: (
       caseId: string,
       containsHealthData = true,
       measureId?: string,
     ): Promise<CaseDocumentRecord[]> =>
-      ipcRenderer.invoke(
+      invokeIpc(
         "cases:documents:select-and-import",
         caseId,
         containsHealthData,
         measureId,
       ),
     deleteDocument: (id: string): Promise<{ deleted: boolean }> =>
-      ipcRenderer.invoke("cases:documents:delete", id),
+      invokeIpc("cases:documents:delete", id),
     openDocument: (
       id: string,
     ): Promise<{ opened: boolean; filePath: string }> =>
-      ipcRenderer.invoke("cases:documents:open", id),
+      invokeIpc("cases:documents:open", id),
     exportDocument: (
       id: string,
       suggestedFileName?: string,
     ): Promise<{ exported: boolean; filePath: string }> =>
-      ipcRenderer.invoke("cases:documents:export", id, suggestedFileName),
+      invokeIpc("cases:documents:export", id, suggestedFileName),
     search: (input: CaseContentSearchInput): Promise<CaseSearchResult[]> =>
-      ipcRenderer.invoke("cases:search", input),
+      invokeIpc("cases:search", input),
   },
 
   caseHandover: {
     export: (input: CaseHandoverExportInput, suggestedFileName?: string): Promise<CaseHandoverExportResult> =>
-      ipcRenderer.invoke("caseHandover:export", input, suggestedFileName),
+      invokeIpc("caseHandover:export", input, suggestedFileName),
     selectFile: (): Promise<{ canceled: true } | { canceled: false; filePath: string; fileName: string }> =>
-      ipcRenderer.invoke("caseHandover:select-file"),
+      invokeIpc("caseHandover:select-file"),
     inspect: (filePath: string, passphrase: string): Promise<CaseHandoverInspectResult> =>
-      ipcRenderer.invoke("caseHandover:inspect", filePath, passphrase),
+      invokeIpc("caseHandover:inspect", filePath, passphrase),
     selectAndInspect: (passphrase: string): Promise<{ canceled: true } | { canceled: false; filePath: string; fileName: string; inspection: CaseHandoverInspectResult }> =>
-      ipcRenderer.invoke("caseHandover:select-and-inspect", passphrase),
+      invokeIpc("caseHandover:select-and-inspect", passphrase),
     import: (input: CaseHandoverImportInput): Promise<CaseHandoverImportResult> =>
-      ipcRenderer.invoke("caseHandover:import", input),
+      invokeIpc("caseHandover:import", input),
     continueExpired: (caseId: string, reason: string): Promise<CaseHandoverContinueExpiredResult> =>
-      ipcRenderer.invoke("caseHandover:continue-expired", caseId, reason),
+      invokeIpc("caseHandover:continue-expired", caseId, reason),
   },
 
   caseMeasures: {
     list: (caseId?: string): Promise<CaseMeasureRecord[]> =>
-      ipcRenderer.invoke("caseMeasures:list", caseId),
+      invokeIpc("caseMeasures:list", caseId),
     create: (input: CreateCaseMeasureInput): Promise<CaseMeasureRecord> =>
-      ipcRenderer.invoke("caseMeasures:create", input),
+      invokeIpc("caseMeasures:create", input),
     update: (
       id: string,
       input: UpdateCaseMeasureInput,
     ): Promise<CaseMeasureRecord> =>
-      ipcRenderer.invoke("caseMeasures:update", id, input),
+      invokeIpc("caseMeasures:update", id, input),
     listNotes: (
       caseId: string,
       measureType?: CaseMeasureNoteProcessType,
       measureId?: string,
     ): Promise<CaseMeasureNoteRecord[]> =>
-      ipcRenderer.invoke("caseMeasures:notes:list", caseId, measureType, measureId),
+      invokeIpc("caseMeasures:notes:list", caseId, measureType, measureId),
     createNote: (input: CreateCaseMeasureNoteInput): Promise<CaseMeasureNoteRecord> =>
-      ipcRenderer.invoke("caseMeasures:notes:create", input),
+      invokeIpc("caseMeasures:notes:create", input),
     updateNote: (
       id: string,
       input: UpdateCaseMeasureNoteInput,
     ): Promise<CaseMeasureNoteRecord> =>
-      ipcRenderer.invoke("caseMeasures:notes:update", id, input),
+      invokeIpc("caseMeasures:notes:update", id, input),
     deleteNote: (id: string): Promise<{ deleted: boolean }> =>
-      ipcRenderer.invoke("caseMeasures:notes:delete", id),
+      invokeIpc("caseMeasures:notes:delete", id),
   },
   contacts: {
     list: (filters?: ContactListFilters): Promise<ContactRecord[]> =>
-      ipcRenderer.invoke("contacts:list", filters),
+      invokeIpc("contacts:list", filters),
     create: (input: CreateContactInput): Promise<ContactRecord> =>
-      ipcRenderer.invoke("contacts:create", input),
+      invokeIpc("contacts:create", input),
     update: (id: string, input: UpdateContactInput): Promise<ContactRecord> =>
-      ipcRenderer.invoke("contacts:update", id, input),
+      invokeIpc("contacts:update", id, input),
     delete: (id: string): Promise<DeleteContactResult> =>
-      ipcRenderer.invoke("contacts:delete", id),
+      invokeIpc("contacts:delete", id),
   },
 
   knowledge: {
     listNorms: (filters?: LegalNormSearchInput): Promise<LegalNormRecord[]> =>
-      ipcRenderer.invoke("knowledge:norms:list", filters),
+      invokeIpc("knowledge:norms:list", filters),
     getNorm: (id: string): Promise<LegalNormRecord | null> =>
-      ipcRenderer.invoke("knowledge:norms:get", id),
+      invokeIpc("knowledge:norms:get", id),
     createNorm: (input: CreateLegalNormInput): Promise<LegalNormRecord> =>
-      ipcRenderer.invoke("knowledge:norms:create", input),
+      invokeIpc("knowledge:norms:create", input),
     updateNorm: (
       id: string,
       input: UpdateLegalNormInput,
     ): Promise<LegalNormRecord> =>
-      ipcRenderer.invoke("knowledge:norms:update", id, input),
+      invokeIpc("knowledge:norms:update", id, input),
     linkNormToCase: (
       input: LinkLegalNormToCaseInput,
     ): Promise<CaseLegalReferenceRecord> =>
-      ipcRenderer.invoke("knowledge:cases:link", input),
+      invokeIpc("knowledge:cases:link", input),
     listCaseReferences: (caseId: string): Promise<CaseLegalReferenceRecord[]> =>
-      ipcRenderer.invoke("knowledge:cases:list", caseId),
+      invokeIpc("knowledge:cases:list", caseId),
     unlinkNormFromCase: (
       caseId: string,
       legalNormId: string,
     ): Promise<{ deleted: boolean }> =>
-      ipcRenderer.invoke("knowledge:cases:unlink", caseId, legalNormId),
+      invokeIpc("knowledge:cases:unlink", caseId, legalNormId),
     listComments: (legalNormId: string): Promise<NormCommentRecord[]> =>
-      ipcRenderer.invoke("knowledge:comments:list", legalNormId),
+      invokeIpc("knowledge:comments:list", legalNormId),
     createComment: (
       input: CreateNormCommentInput,
     ): Promise<NormCommentRecord> =>
-      ipcRenderer.invoke("knowledge:comments:create", input),
+      invokeIpc("knowledge:comments:create", input),
     listCaseLaw: (legalNormId: string): Promise<CaseLawRecord[]> =>
-      ipcRenderer.invoke("knowledge:caselaw:list", legalNormId),
+      invokeIpc("knowledge:caselaw:list", legalNormId),
     createCaseLaw: (input: CreateCaseLawInput): Promise<CaseLawRecord> =>
-      ipcRenderer.invoke("knowledge:caselaw:create", input),
+      invokeIpc("knowledge:caselaw:create", input),
     listChecklist: (legalNormId: string): Promise<NormChecklistItemRecord[]> =>
-      ipcRenderer.invoke("knowledge:checklist:list", legalNormId),
+      invokeIpc("knowledge:checklist:list", legalNormId),
     createChecklistItem: (
       input: CreateNormChecklistItemInput,
     ): Promise<NormChecklistItemRecord> =>
-      ipcRenderer.invoke("knowledge:checklist:create", input),
+      invokeIpc("knowledge:checklist:create", input),
     exportPreview: (): Promise<KnowledgeExportPreview> =>
-      ipcRenderer.invoke("knowledge:export:preview"),
+      invokeIpc("knowledge:export:preview"),
   },
 
   prevention: {
     steps: (): Promise<PreventionStepDefinition[]> =>
-      ipcRenderer.invoke("prevention:steps"),
+      invokeIpc("prevention:steps"),
     list: (caseId?: string): Promise<PreventionProcessRecord[]> =>
-      ipcRenderer.invoke("prevention:list", caseId),
+      invokeIpc("prevention:list", caseId),
     dashboard: (): Promise<PreventionDashboardSummary> =>
-      ipcRenderer.invoke("prevention:dashboard"),
+      invokeIpc("prevention:dashboard"),
     create: (
       input: CreatePreventionProcessInput,
     ): Promise<PreventionProcessRecord> =>
-      ipcRenderer.invoke("prevention:create", input),
+      invokeIpc("prevention:create", input),
     update: (
       id: string,
       input: UpdatePreventionProcessInput,
     ): Promise<PreventionProcessRecord> =>
-      ipcRenderer.invoke("prevention:update", id, input),
+      invokeIpc("prevention:update", id, input),
     warnings: (id: string): Promise<PreventionWarning[]> =>
-      ipcRenderer.invoke("prevention:warnings", id),
+      invokeIpc("prevention:warnings", id),
   },
   participation: {
     list: (caseId?: string): Promise<ParticipationRecord[]> =>
-      ipcRenderer.invoke("participation:list", caseId),
+      invokeIpc("participation:list", caseId),
     dashboard: (): Promise<ParticipationDashboardSummary> =>
-      ipcRenderer.invoke("participation:dashboard"),
+      invokeIpc("participation:dashboard"),
     create: (input: CreateParticipationInput): Promise<ParticipationRecord> =>
-      ipcRenderer.invoke("participation:create", input),
+      invokeIpc("participation:create", input),
     update: (
       id: string,
       input: UpdateParticipationInput,
     ): Promise<ParticipationRecord> =>
-      ipcRenderer.invoke("participation:update", id, input),
+      invokeIpc("participation:update", id, input),
     warnings: (id: string): Promise<ParticipationWarning[]> =>
-      ipcRenderer.invoke("participation:warnings", id),
+      invokeIpc("participation:warnings", id),
   },
   recruitingParticipations: {
     list: (): Promise<RecruitingParticipationRecord[]> =>
-      ipcRenderer.invoke("recruitingParticipations:list"),
+      invokeIpc("recruitingParticipations:list"),
     get: (id: string): Promise<RecruitingParticipationRecord | null> =>
-      ipcRenderer.invoke("recruitingParticipations:get", id),
+      invokeIpc("recruitingParticipations:get", id),
     create: (input: CreateRecruitingParticipationInput): Promise<RecruitingParticipationRecord> =>
-      ipcRenderer.invoke("recruitingParticipations:create", input),
+      invokeIpc("recruitingParticipations:create", input),
     update: (id: string, input: UpdateRecruitingParticipationInput): Promise<RecruitingParticipationRecord> =>
-      ipcRenderer.invoke("recruitingParticipations:update", id, input),
+      invokeIpc("recruitingParticipations:update", id, input),
     delete: (id: string): Promise<{ deleted: boolean }> =>
-      ipcRenderer.invoke("recruitingParticipations:delete", id),
+      invokeIpc("recruitingParticipations:delete", id),
     listInterviews: (recruitingParticipationId: string): Promise<RecruitingInterviewEventRecord[]> =>
-      ipcRenderer.invoke("recruitingParticipations:interviews:list", recruitingParticipationId),
+      invokeIpc("recruitingParticipations:interviews:list", recruitingParticipationId),
     addInterview: (input: CreateRecruitingInterviewEventInput): Promise<RecruitingInterviewEventRecord> =>
-      ipcRenderer.invoke("recruitingParticipations:interviews:create", input),
+      invokeIpc("recruitingParticipations:interviews:create", input),
     updateInterview: (id: string, input: UpdateRecruitingInterviewEventInput): Promise<RecruitingInterviewEventRecord> =>
-      ipcRenderer.invoke("recruitingParticipations:interviews:update", id, input),
+      invokeIpc("recruitingParticipations:interviews:update", id, input),
     deleteInterview: (id: string): Promise<{ deleted: boolean }> =>
-      ipcRenderer.invoke("recruitingParticipations:interviews:delete", id),
+      invokeIpc("recruitingParticipations:interviews:delete", id),
   },
 
   sbvResources: {
-    list: (): Promise<SbvResourceRecord[]> => ipcRenderer.invoke("sbvResources:list"),
-    dashboard: (): Promise<SbvResourceDashboardSummary> => ipcRenderer.invoke("sbvResources:dashboard"),
-    create: (input: CreateSbvResourceRecordInput): Promise<SbvResourceRecord> => ipcRenderer.invoke("sbvResources:create", input),
-    update: (id: string, input: UpdateSbvResourceRecordInput): Promise<SbvResourceRecord> => ipcRenderer.invoke("sbvResources:update", id, input),
-    delete: (id: string): Promise<{ deleted: boolean }> => ipcRenderer.invoke("sbvResources:delete", id),
+    list: (): Promise<SbvResourceRecord[]> => invokeIpc("sbvResources:list"),
+    dashboard: (): Promise<SbvResourceDashboardSummary> => invokeIpc("sbvResources:dashboard"),
+    create: (input: CreateSbvResourceRecordInput): Promise<SbvResourceRecord> => invokeIpc("sbvResources:create", input),
+    update: (id: string, input: UpdateSbvResourceRecordInput): Promise<SbvResourceRecord> => invokeIpc("sbvResources:update", id, input),
+    delete: (id: string): Promise<{ deleted: boolean }> => invokeIpc("sbvResources:delete", id),
   },
 
   sbvControlProtocols: {
-    list: (): Promise<SbvControlProtocolRecord[]> => ipcRenderer.invoke("sbvControlProtocols:list"),
-    create: (input: CreateSbvControlProtocolInput): Promise<SbvControlProtocolRecord> => ipcRenderer.invoke("sbvControlProtocols:create", input),
-    update: (id: string, input: UpdateSbvControlProtocolInput): Promise<SbvControlProtocolRecord> => ipcRenderer.invoke("sbvControlProtocols:update", id, input),
-    delete: (id: string): Promise<{ deleted: boolean }> => ipcRenderer.invoke("sbvControlProtocols:delete", id),
+    list: (): Promise<SbvControlProtocolRecord[]> => invokeIpc("sbvControlProtocols:list"),
+    create: (input: CreateSbvControlProtocolInput): Promise<SbvControlProtocolRecord> => invokeIpc("sbvControlProtocols:create", input),
+    update: (id: string, input: UpdateSbvControlProtocolInput): Promise<SbvControlProtocolRecord> => invokeIpc("sbvControlProtocols:update", id, input),
+    delete: (id: string): Promise<{ deleted: boolean }> => invokeIpc("sbvControlProtocols:delete", id),
   },
 
   workplaceAccommodation: {
     list: (caseId?: string): Promise<WorkplaceAccommodationRecord[]> =>
-      ipcRenderer.invoke("workplaceAccommodation:list", caseId),
+      invokeIpc("workplaceAccommodation:list", caseId),
     dashboard: (): Promise<WorkplaceAccommodationDashboardSummary> =>
-      ipcRenderer.invoke("workplaceAccommodation:dashboard"),
+      invokeIpc("workplaceAccommodation:dashboard"),
     create: (input: CreateWorkplaceAccommodationInput): Promise<WorkplaceAccommodationRecord> =>
-      ipcRenderer.invoke("workplaceAccommodation:create", input),
+      invokeIpc("workplaceAccommodation:create", input),
     update: (
       id: string,
       input: UpdateWorkplaceAccommodationInput,
     ): Promise<WorkplaceAccommodationRecord> =>
-      ipcRenderer.invoke("workplaceAccommodation:update", id, input),
+      invokeIpc("workplaceAccommodation:update", id, input),
     warnings: (id: string): Promise<WorkplaceAccommodationWarning[]> =>
-      ipcRenderer.invoke("workplaceAccommodation:warnings", id),
+      invokeIpc("workplaceAccommodation:warnings", id),
   },
   bem: {
-    steps: (): Promise<BemStepDefinition[]> => ipcRenderer.invoke("bem:steps"),
+    steps: (): Promise<BemStepDefinition[]> => invokeIpc("bem:steps"),
     list: (caseId?: string): Promise<BemProcessRecord[]> =>
-      ipcRenderer.invoke("bem:list", caseId),
+      invokeIpc("bem:list", caseId),
     dashboard: (): Promise<BemDashboardSummary> =>
-      ipcRenderer.invoke("bem:dashboard"),
+      invokeIpc("bem:dashboard"),
     create: (input: CreateBemProcessInput): Promise<BemProcessRecord> =>
-      ipcRenderer.invoke("bem:create", input),
+      invokeIpc("bem:create", input),
     update: (
       id: string,
       input: UpdateBemProcessInput,
-    ): Promise<BemProcessRecord> => ipcRenderer.invoke("bem:update", id, input),
+    ): Promise<BemProcessRecord> => invokeIpc("bem:update", id, input),
     warnings: (id: string): Promise<BemWarning[]> =>
-      ipcRenderer.invoke("bem:warnings", id),
+      invokeIpc("bem:warnings", id),
   },
   equalization: {
-    steps: (): Promise<string[]> => ipcRenderer.invoke("equalization:steps"),
+    steps: (): Promise<string[]> => invokeIpc("equalization:steps"),
     list: (caseId?: string): Promise<EqualizationProcessRecord[]> =>
-      ipcRenderer.invoke("equalization:list", caseId),
+      invokeIpc("equalization:list", caseId),
     create: (
       input: CreateEqualizationProcessInput,
     ): Promise<EqualizationProcessRecord> =>
-      ipcRenderer.invoke("equalization:create", input),
+      invokeIpc("equalization:create", input),
     update: (
       id: string,
       input: UpdateEqualizationProcessInput,
     ): Promise<EqualizationProcessRecord> =>
-      ipcRenderer.invoke("equalization:update", id, input),
+      invokeIpc("equalization:update", id, input),
     warnings: (id: string): Promise<EqualizationWarning[]> =>
-      ipcRenderer.invoke("equalization:warnings", id),
+      invokeIpc("equalization:warnings", id),
   },
   termination: {
-    steps: (): Promise<string[]> => ipcRenderer.invoke("termination:steps"),
+    steps: (): Promise<string[]> => invokeIpc("termination:steps"),
     list: (caseId?: string): Promise<TerminationHearingRecord[]> =>
-      ipcRenderer.invoke("termination:list", caseId),
+      invokeIpc("termination:list", caseId),
     create: (
       input: CreateTerminationHearingInput,
     ): Promise<TerminationHearingRecord> =>
-      ipcRenderer.invoke("termination:create", input),
+      invokeIpc("termination:create", input),
     update: (
       id: string,
       input: UpdateTerminationHearingInput,
     ): Promise<TerminationHearingRecord> =>
-      ipcRenderer.invoke("termination:update", id, input),
+      invokeIpc("termination:update", id, input),
     warnings: (id: string): Promise<TerminationHearingWarning[]> =>
-      ipcRenderer.invoke("termination:warnings", id),
+      invokeIpc("termination:warnings", id),
   },
 
   compliance: {
     auditChainStatus: (): Promise<ComplianceAuditChainStatus> =>
-      ipcRenderer.invoke("compliance:audit-chain-status"),
+      invokeIpc("compliance:audit-chain-status"),
     databaseIntegrityStatus: (): Promise<ComplianceDatabaseIntegrityStatus> =>
-      ipcRenderer.invoke("compliance:database-integrity-status"),
+      invokeIpc("compliance:database-integrity-status"),
     prefillDsar: (input: DataSubjectAccessRequestInput): Promise<DataSubjectAccessPrefill> =>
-      ipcRenderer.invoke("compliance:dsar-prefill", input),
+      invokeIpc("compliance:dsar-prefill", input),
     selfCheck: (): Promise<ComplianceSelfCheckResult> =>
-      ipcRenderer.invoke("compliance:self-check"),
+      invokeIpc("compliance:self-check"),
     listIncidents: (): Promise<ComplianceIncidentRecord[]> =>
-      ipcRenderer.invoke("compliance:incidents:list"),
+      invokeIpc("compliance:incidents:list"),
     createIncident: (input: CreateComplianceIncidentInput): Promise<ComplianceIncidentRecord> =>
-      ipcRenderer.invoke("compliance:incidents:create", input),
+      invokeIpc("compliance:incidents:create", input),
     updateIncident: (id: string, input: UpdateComplianceIncidentInput): Promise<ComplianceIncidentRecord> =>
-      ipcRenderer.invoke("compliance:incidents:update", id, input),
+      invokeIpc("compliance:incidents:update", id, input),
   },
 
   persons: {
     list: (filters?: ProtectedPersonListFilters): Promise<ProtectedPersonRecord[]> =>
-      ipcRenderer.invoke("persons:list", filters),
+      invokeIpc("persons:list", filters),
     create: (input: CreateProtectedPersonInput): Promise<ProtectedPersonRecord> =>
-      ipcRenderer.invoke("persons:create", input),
+      invokeIpc("persons:create", input),
     createAnonymousRequest: (label?: string): Promise<ProtectedPersonRecord> =>
-      ipcRenderer.invoke("persons:create-anonymous-request", label),
+      invokeIpc("persons:create-anonymous-request", label),
     update: (id: string, input: UpdateProtectedPersonInput): Promise<ProtectedPersonRecord> =>
-      ipcRenderer.invoke("persons:update", id, input),
+      invokeIpc("persons:update", id, input),
     linkCase: (personId: string, caseId: string, reason?: string): Promise<PersonCaseLinkRecord> =>
-      ipcRenderer.invoke("persons:link-case", personId, caseId, reason),
+      invokeIpc("persons:link-case", personId, caseId, reason),
     previewImport: (input: PersonImportPreviewInput): Promise<PersonImportPreviewResult> =>
-      ipcRenderer.invoke("persons:import:preview", input),
+      invokeIpc("persons:import:preview", input),
     executeImport: (input: PersonImportExecuteInput): Promise<PersonImportExecuteResult> =>
-      ipcRenderer.invoke("persons:import:execute", input),
+      invokeIpc("persons:import:execute", input),
     selectImportFile: (): Promise<{ filePath: string; sourceFileName: string; fileType: 'csv' | 'xlsx' } | null> =>
-      ipcRenderer.invoke("persons:import:select-preview"),
+      invokeIpc("persons:import:select-preview"),
     evaluateExpiry: (referenceIso?: string): Promise<PersonStatusExpirySummary> =>
-      ipcRenderer.invoke("persons:expiry:evaluate", referenceIso),
+      invokeIpc("persons:expiry:evaluate", referenceIso),
     anonymize: (id: string, reason: string): Promise<PersonAnonymizationResult> =>
-      ipcRenderer.invoke("persons:anonymize", id, reason),
+      invokeIpc("persons:anonymize", id, reason),
     delete: (id: string, reason: string): Promise<{ ok: true; affectedCaseIds: string[]; deletedPersonId: string }> =>
-      ipcRenderer.invoke("persons:delete", id, reason),
+      invokeIpc("persons:delete", id, reason),
   },
 
   privacyReview: {
     listOpenForPerson: (protectedPersonId: string): Promise<PrivacyReviewItemRecord[]> =>
-      ipcRenderer.invoke("privacy-review:list-open-for-person", protectedPersonId),
+      invokeIpc("privacy-review:list-open-for-person", protectedPersonId),
     documentRetention: (input: PrivacyReviewActionInput): Promise<PrivacyReviewActionResult> =>
-      ipcRenderer.invoke("privacy-review:document-retention", input),
+      invokeIpc("privacy-review:document-retention", input),
     scheduleLater: (input: PrivacyReviewActionInput): Promise<PrivacyReviewActionResult> =>
-      ipcRenderer.invoke("privacy-review:schedule-later", input),
+      invokeIpc("privacy-review:schedule-later", input),
     clearCase: (input: PrivacyReviewActionInput): Promise<PrivacyReviewActionResult> =>
-      ipcRenderer.invoke("privacy-review:clear-case", input),
+      invokeIpc("privacy-review:clear-case", input),
     anonymizeCase: (input: PrivacyReviewActionInput): Promise<PrivacyReviewActionResult> =>
-      ipcRenderer.invoke("privacy-review:anonymize-case", input),
+      invokeIpc("privacy-review:anonymize-case", input),
     deleteCase: (input: PrivacyReviewActionInput): Promise<PrivacyReviewActionResult> =>
-      ipcRenderer.invoke("privacy-review:delete-case", input),
+      invokeIpc("privacy-review:delete-case", input),
     bulkMarkClosedLegacy: (): Promise<PrivacyReviewBulkResult> =>
-      ipcRenderer.invoke("privacy-review:bulk-mark-closed-legacy"),
+      invokeIpc("privacy-review:bulk-mark-closed-legacy"),
   },
   deadlines: {
     list: (filters?: DeadlineListFilters): Promise<DeadlineRecord[]> =>
-      ipcRenderer.invoke("deadlines:list", filters),
+      invokeIpc("deadlines:list", filters),
     dashboard: (): Promise<DeadlineDashboardItem[]> =>
-      ipcRenderer.invoke("deadlines:dashboard"),
+      invokeIpc("deadlines:dashboard"),
     create: (input: CreateDeadlineInput): Promise<DeadlineRecord> =>
-      ipcRenderer.invoke("deadlines:create", input),
+      invokeIpc("deadlines:create", input),
     update: (id: string, input: UpdateDeadlineInput): Promise<DeadlineRecord> =>
-      ipcRenderer.invoke("deadlines:update", id, input),
+      invokeIpc("deadlines:update", id, input),
     complete: (id: string, note?: string): Promise<DeadlineRecord> =>
-      ipcRenderer.invoke("deadlines:complete", id, note),
+      invokeIpc("deadlines:complete", id, note),
     suspend: (id: string, reason: string): Promise<DeadlineRecord> =>
-      ipcRenderer.invoke("deadlines:suspend", id, reason),
+      invokeIpc("deadlines:suspend", id, reason),
     cancel: (id: string, reason: string): Promise<DeadlineRecord> =>
-      ipcRenderer.invoke("deadlines:cancel", id, reason),
+      invokeIpc("deadlines:cancel", id, reason),
     exportIcal: (filters?: DeadlineListFilters, privacyLevel?: "privacy_first" | "process_type" | "case_reference" | "details"): Promise<string> =>
-      ipcRenderer.invoke("deadlines:ical-export", filters, privacyLevel),
+      invokeIpc("deadlines:ical-export", filters, privacyLevel),
   },
 
   gremiaBr: {
     getSettings: (): Promise<GremiaBrPublicSettings> =>
-      ipcRenderer.invoke("gremia-br:settings:get"),
+      invokeIpc("gremia-br:settings:get"),
     saveSettings: (input: GremiaBrSettingsInput): Promise<GremiaBrPublicSettings> =>
-      ipcRenderer.invoke("gremia-br:settings:save", input),
+      invokeIpc("gremia-br:settings:save", input),
     clearCredentials: (): Promise<GremiaBrPublicSettings> =>
-      ipcRenderer.invoke("gremia-br:credentials:clear"),
+      invokeIpc("gremia-br:credentials:clear"),
     saveRelevanceSettings: (input: GremiaBrRelevanceSettings): Promise<GremiaBrPublicSettings> =>
-      ipcRenderer.invoke("gremia-br:relevance:save", input),
+      invokeIpc("gremia-br:relevance:save", input),
     testConnection: (): Promise<GremiaBrConnectionTestResult> =>
-      ipcRenderer.invoke("gremia-br:connection:test"),
+      invokeIpc("gremia-br:connection:test"),
     getCachedOverview: (): Promise<GremiaBrCachedOverview> =>
-      ipcRenderer.invoke("gremia-br:cache:get"),
+      invokeIpc("gremia-br:cache:get"),
     getDashboardOverview: (): Promise<GremiaBrDashboardOverview> =>
-      ipcRenderer.invoke("gremia-br:dashboard:get"),
+      invokeIpc("gremia-br:dashboard:get"),
     refreshCache: (): Promise<GremiaBrCacheRefreshResult> =>
-      ipcRenderer.invoke("gremia-br:cache:refresh"),
+      invokeIpc("gremia-br:cache:refresh"),
     suggestInlineReferences: (query: string): Promise<GremiaBrInlineSuggestion[]> =>
-      ipcRenderer.invoke("gremia-br:inline:suggest", query),
+      invokeIpc("gremia-br:inline:suggest", query),
     listExternalReferences: (caseId: string): Promise<GremiaBrExternalReferenceRecord[]> =>
-      ipcRenderer.invoke("gremia-br:references:list", caseId),
+      invokeIpc("gremia-br:references:list", caseId),
     saveExternalReference: (input: CreateGremiaBrExternalReferenceInput): Promise<GremiaBrExternalReferenceRecord> =>
-      ipcRenderer.invoke("gremia-br:references:create", input),
+      invokeIpc("gremia-br:references:create", input),
     deleteExternalReference: (referenceId: string): Promise<{ deleted: boolean }> =>
-      ipcRenderer.invoke("gremia-br:references:delete", referenceId),
+      invokeIpc("gremia-br:references:delete", referenceId),
   },
   templateDefaults: {
     list: (): Promise<TemplateDefaultValues> =>
-      ipcRenderer.invoke("template-defaults:list"),
+      invokeIpc("template-defaults:list"),
     save: (values: TemplateDefaultValues): Promise<TemplateDefaultValues> =>
-      ipcRenderer.invoke("template-defaults:save", values),
+      invokeIpc("template-defaults:save", values),
   },
   reports: {
     descriptors: (): Promise<ReportDescriptor[]> =>
-      ipcRenderer.invoke("reports:descriptors"),
+      invokeIpc("reports:descriptors"),
     history: (limit?: number): Promise<ReportExportHistoryItem[]> =>
-      ipcRenderer.invoke("reports:history", limit),
+      invokeIpc("reports:history", limit),
     generate: (input: GenerateReportInput): Promise<ReportGenerationResult> =>
-      ipcRenderer.invoke("reports:generate", input),
+      invokeIpc("reports:generate", input),
     openExportFolder: (filePath?: string): Promise<{ opened: boolean }> =>
-      ipcRenderer.invoke("reports:open-export-folder", filePath),
+      invokeIpc("reports:open-export-folder", filePath),
   },
   templates: {
     list: (filters?: TemplateListFilters): Promise<TemplateRecord[]> =>
-      ipcRenderer.invoke("templates:list", filters),
+      invokeIpc("templates:list", filters),
     create: (input: CreateTemplateInput): Promise<TemplateRecord> =>
-      ipcRenderer.invoke("templates:create", input),
+      invokeIpc("templates:create", input),
     update: (id: string, input: UpdateTemplateInput): Promise<TemplateRecord> =>
-      ipcRenderer.invoke("templates:update", id, input),
+      invokeIpc("templates:update", id, input),
     delete: (id: string): Promise<{ deleted: boolean }> =>
-      ipcRenderer.invoke("templates:delete", id),
+      invokeIpc("templates:delete", id),
     render: (input: RenderTemplateInput): Promise<RenderedTemplateResult> =>
-      ipcRenderer.invoke("templates:render", input),
+      invokeIpc("templates:render", input),
     renderContext: (
       input: RenderContextTemplateInput,
     ): Promise<RenderedTemplateResult> =>
-      ipcRenderer.invoke("templates:render-context", input),
+      invokeIpc("templates:render-context", input),
   },
 
   retention: {
     dashboard: (): Promise<RetentionDashboard> =>
-      ipcRenderer.invoke("retention:dashboard"),
+      invokeIpc("retention:dashboard"),
     getSettings: (): Promise<RetentionSettings> =>
-      ipcRenderer.invoke("retention:settings:get"),
+      invokeIpc("retention:settings:get"),
     updateSettings: (
       input: UpdateRetentionSettingsInput,
     ): Promise<RetentionSettings> =>
-      ipcRenderer.invoke("retention:settings:update", input),
+      invokeIpc("retention:settings:update", input),
     anonymizeCase: (
       caseId: string,
       reason: string,
       confirmation: string,
     ): Promise<RetentionOperationResult> =>
-      ipcRenderer.invoke(
+      invokeIpc(
         "retention:case:anonymize",
         caseId,
         reason,
@@ -657,80 +713,80 @@ const api = {
       reason: string,
       confirmation: string,
     ): Promise<RetentionOperationResult> =>
-      ipcRenderer.invoke("retention:case:delete", caseId, reason, confirmation),
+      invokeIpc("retention:case:delete", caseId, reason, confirmation),
   },
   backup: {
     create: (passphrase: string): Promise<BackupOperationResult> =>
-      ipcRenderer.invoke("backup:create", passphrase),
+      invokeIpc("backup:create", passphrase),
     inspect: (passphrase: string): Promise<BackupInspectionResult> =>
-      ipcRenderer.invoke("backup:inspect", passphrase),
+      invokeIpc("backup:inspect", passphrase),
     restore: (
       passphrase: string,
       confirmation: string,
     ): Promise<BackupOperationResult> =>
-      ipcRenderer.invoke("backup:restore", passphrase, confirmation),
+      invokeIpc("backup:restore", passphrase, confirmation),
     openBackupFolder: (): Promise<{ opened: boolean }> =>
-      ipcRenderer.invoke("backup:open-backup-folder"),
+      invokeIpc("backup:open-backup-folder"),
   },
 
   activityJournal: {
     list: (filter?: ActivityJournalListFilter): Promise<ActivityJournalEntryRecord[]> =>
-      ipcRenderer.invoke("activityJournal:list", filter),
+      invokeIpc("activityJournal:list", filter),
     get: (id: string): Promise<ActivityJournalEntryRecord | null> =>
-      ipcRenderer.invoke("activityJournal:get", id),
+      invokeIpc("activityJournal:get", id),
     create: (input: CreateActivityJournalEntryInput): Promise<ActivityJournalEntryRecord> =>
-      ipcRenderer.invoke("activityJournal:create", input),
+      invokeIpc("activityJournal:create", input),
     update: (id: string, input: UpdateActivityJournalEntryInput): Promise<ActivityJournalEntryRecord> =>
-      ipcRenderer.invoke("activityJournal:update", id, input),
+      invokeIpc("activityJournal:update", id, input),
     delete: (id: string): Promise<{ deleted: boolean }> =>
-      ipcRenderer.invoke("activityJournal:delete", id),
+      invokeIpc("activityJournal:delete", id),
     listLinks: (entryId: string): Promise<ActivityJournalLinkRecord[]> =>
-      ipcRenderer.invoke("activityJournal:links:list", entryId),
+      invokeIpc("activityJournal:links:list", entryId),
     addLink: (entryId: string, target: ActivityJournalLinkTarget): Promise<ActivityJournalLinkRecord> =>
-      ipcRenderer.invoke("activityJournal:links:add", entryId, target),
+      invokeIpc("activityJournal:links:add", entryId, target),
     removeLink: (entryId: string, linkId: string): Promise<{ deleted: boolean }> =>
-      ipcRenderer.invoke("activityJournal:links:remove", entryId, linkId),
+      invokeIpc("activityJournal:links:remove", entryId, linkId),
     summary: (filter?: ActivityJournalSummaryFilter): Promise<ActivityJournalSummary> =>
-      ipcRenderer.invoke("activityJournal:summary", filter),
+      invokeIpc("activityJournal:summary", filter),
     export: (filter?: ActivityJournalListFilter, mode?: "summary" | "detailed", options?: ActivityJournalExportOptions): Promise<ActivityJournalExportResult> =>
-      ipcRenderer.invoke("activityJournal:export", filter, mode, options),
+      invokeIpc("activityJournal:export", filter, mode, options),
     buildPrefillFromContext: (context: ActivityJournalPrefillContext): Promise<ActivityJournalPrefill> =>
-      ipcRenderer.invoke("activityJournal:prefill:context", context),
+      invokeIpc("activityJournal:prefill:context", context),
     buildPrefillFromDeadline: (deadline: DeadlineRecord): Promise<ActivityJournalPrefill> =>
-      ipcRenderer.invoke("activityJournal:prefill:deadline", deadline),
+      invokeIpc("activityJournal:prefill:deadline", deadline),
     buildPrefillFromClosedDeadline: (deadline: DeadlineRecord): Promise<ActivityJournalPrefill> =>
-      ipcRenderer.invoke("activityJournal:prefill:closed-deadline", deadline),
+      invokeIpc("activityJournal:prefill:closed-deadline", deadline),
     getPreferredCategory: (contextType: ActivityJournalPrefillContext["contextType"]): Promise<ActivityJournalCategoryPreferenceRecord["category"] | undefined> =>
-      ipcRenderer.invoke("activityJournal:preferences:get", contextType),
+      invokeIpc("activityJournal:preferences:get", contextType),
     rememberCategory: (contextType: ActivityJournalPrefillContext["contextType"], category: ActivityJournalCategoryPreferenceRecord["category"]): Promise<ActivityJournalCategoryPreferenceRecord> =>
-      ipcRenderer.invoke("activityJournal:preferences:remember", contextType, category),
+      invokeIpc("activityJournal:preferences:remember", contextType, category),
   },
 
   sbvParticipationViolations: {
     list: (filter?: SbvParticipationViolationListFilter): Promise<SbvParticipationViolationRecord[]> =>
-      ipcRenderer.invoke("sbvParticipationViolations:list", filter),
+      invokeIpc("sbvParticipationViolations:list", filter),
     get: (id: string): Promise<SbvParticipationViolationRecord | null> =>
-      ipcRenderer.invoke("sbvParticipationViolations:get", id),
+      invokeIpc("sbvParticipationViolations:get", id),
     listEvents: (id: string): Promise<SbvParticipationViolationEventRecord[]> =>
-      ipcRenderer.invoke("sbvParticipationViolations:events:list", id),
+      invokeIpc("sbvParticipationViolations:events:list", id),
     create: (input: CreateSbvParticipationViolationInput): Promise<SbvParticipationViolationRecord> =>
-      ipcRenderer.invoke("sbvParticipationViolations:create", input),
+      invokeIpc("sbvParticipationViolations:create", input),
     update: (id: string, input: UpdateSbvParticipationViolationInput): Promise<SbvParticipationViolationRecord> =>
-      ipcRenderer.invoke("sbvParticipationViolations:update", id, input),
+      invokeIpc("sbvParticipationViolations:update", id, input),
     changeStatus: (id: string, input: SbvParticipationViolationStatusChangeInput): Promise<SbvParticipationViolationRecord> =>
-      ipcRenderer.invoke("sbvParticipationViolations:status", id, input),
+      invokeIpc("sbvParticipationViolations:status", id, input),
     validateTemplate: (input: SbvParticipationViolationTemplateInput): Promise<SbvParticipationViolationTemplateValidationResult> =>
-      ipcRenderer.invoke("sbvParticipationViolations:template:validate", input),
+      invokeIpc("sbvParticipationViolations:template:validate", input),
     generateDocument: (id: string, options?: Partial<Pick<SbvParticipationViolationTemplateInput, "recipientLabel" | "privacyMode" | "includeLegalReviewHint" | "includeOwiHint">>): Promise<SbvParticipationViolationDocumentResult> =>
-      ipcRenderer.invoke("sbvParticipationViolations:documents:generate", id, options),
+      invokeIpc("sbvParticipationViolations:documents:generate", id, options),
     listDocuments: (id: string): Promise<SbvParticipationViolationGeneratedDocumentRecord[]> =>
-      ipcRenderer.invoke("sbvParticipationViolations:documents:list", id),
+      invokeIpc("sbvParticipationViolations:documents:list", id),
     createFollowUp: (id: string, dueAt?: string): Promise<SbvParticipationViolationFollowUpResult> =>
-      ipcRenderer.invoke("sbvParticipationViolations:followUp:create", id, dueAt),
+      invokeIpc("sbvParticipationViolations:followUp:create", id, dueAt),
     buildJournalPrefill: (id: string): Promise<ActivityJournalPrefill> =>
-      ipcRenderer.invoke("sbvParticipationViolations:journal:prefill", id),
+      invokeIpc("sbvParticipationViolations:journal:prefill", id),
     delete: (id: string): Promise<{ deleted: boolean }> =>
-      ipcRenderer.invoke("sbvParticipationViolations:delete", id),
+      invokeIpc("sbvParticipationViolations:delete", id),
   },
   diagnostics: {
     bridgeReady: true,

@@ -19,7 +19,6 @@ const rcCriticalServiceCoverage = [
   'services/equalizationWorkflowPolicy.ts',
   'services/equalizationGuidancePolicy.ts',
   'services/terminationPrivacyPolicy.ts',
-  'services/terminationHearingService.ts',
   'services/terminationWorkflowPolicy.ts',
   'services/bemWorkflowPolicy.ts',
   'services/bemGuidancePolicy.ts',

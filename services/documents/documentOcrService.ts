@@ -129,7 +129,6 @@ export class DocumentOcrService {
   }
 
   enqueueIfUseful(documentId: string): boolean {
-    this.ensureSchema();
     const row = this.db.prepare<DocumentOcrRow>('SELECT id, case_id, filename, mime_type, storage_path, document_key, iv, auth_tag, extracted_text, ocr_status FROM case_documents WHERE id = ?').get(documentId);
     if (!row) return false;
     if (!isOcrCandidate(row.filename, row.mime_type ?? undefined, row.extracted_text ?? undefined)) {
@@ -147,7 +146,6 @@ export class DocumentOcrService {
   }
 
   async runPending(limit = 2): Promise<number> {
-    this.ensureSchema();
     const jobs = this.db.prepare<{ id: string; document_id: string; case_id: string; attempts: number }>(`
       SELECT id, document_id, case_id, attempts
       FROM case_document_ocr_jobs

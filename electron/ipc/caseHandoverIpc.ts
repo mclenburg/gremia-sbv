@@ -1,3 +1,4 @@
+import { registerIpcHandler } from './ipcHandler.js';
 import { dialog, type IpcMain } from 'electron';
 import type { SecurityService } from '../../services/securityService.js';
 import type { ApplicationServices } from '../applicationServices.js';
@@ -7,7 +8,7 @@ import { assertRecordInput, assertString, sanitizeDialogFileName } from './ipcVa
 export function registerCaseHandoverIpc(ipcMain: IpcMain, security: SecurityService, services: ApplicationServices): void {
   const handover = services.caseHandover;
 
-  ipcMain.handle('caseHandover:export', async (_event, input: unknown, suggestedFileName?: unknown) => {
+  registerIpcHandler(ipcMain, 'caseHandover:export', async (_event, input: unknown, suggestedFileName?: unknown) => {
     const validated = assertRecordInput<CaseHandoverExportInput>(input, 'caseHandover:export');
     const safeName = sanitizeDialogFileName(suggestedFileName, 'caseHandover:export', 'vorgeschlagener Dateiname') ?? 'falluebergabe.gsbvtransfer';
     const result = await dialog.showSaveDialog({
@@ -20,7 +21,7 @@ export function registerCaseHandoverIpc(ipcMain: IpcMain, security: SecurityServ
     return handover.exportToFile(validated, result.filePath);
   });
 
-  ipcMain.handle('caseHandover:select-file', async () => {
+  registerIpcHandler(ipcMain, 'caseHandover:select-file', async () => {
     const result = await dialog.showOpenDialog({
       title: 'Fallübergabepaket öffnen',
       properties: ['openFile'],
@@ -31,14 +32,14 @@ export function registerCaseHandoverIpc(ipcMain: IpcMain, security: SecurityServ
     return { canceled: false, filePath, fileName: filePath.split(/[\\/]/).pop() ?? 'Übergabepaket.gsbvtransfer' };
   });
 
-  ipcMain.handle('caseHandover:inspect', async (_event, filePath: unknown, passphrase: unknown) => {
+  registerIpcHandler(ipcMain, 'caseHandover:inspect', async (_event, filePath: unknown, passphrase: unknown) => {
     const validatedFilePath = assertString(filePath, 'caseHandover:inspect', 'Übergabedatei', { minLength: 1, maxLength: 2000 });
     const validatedPassphrase = assertString(passphrase, 'caseHandover:inspect', 'Transport-Passphrase', { minLength: 1, maxLength: 500 });
     if (!validatedFilePath.toLowerCase().endsWith('.gsbvtransfer')) throw new Error('Bitte eine Gremia.SBV-Übergabedatei (*.gsbvtransfer) auswählen.');
     return handover.inspect(validatedFilePath, validatedPassphrase);
   });
 
-  ipcMain.handle('caseHandover:select-and-inspect', async (_event, passphrase: unknown) => {
+  registerIpcHandler(ipcMain, 'caseHandover:select-and-inspect', async (_event, passphrase: unknown) => {
     const validatedPassphrase = assertString(passphrase, 'caseHandover:select-and-inspect', 'Transport-Passphrase', { minLength: 1, maxLength: 500 });
     const result = await dialog.showOpenDialog({
       title: 'Fallübergabepaket öffnen',
@@ -50,12 +51,12 @@ export function registerCaseHandoverIpc(ipcMain: IpcMain, security: SecurityServ
     return { canceled: false, filePath, fileName: filePath.split(/[\\/]/).pop() ?? 'Übergabepaket.gsbvtransfer', inspection: handover.inspect(filePath, validatedPassphrase) };
   });
 
-  ipcMain.handle('caseHandover:import', async (_event, input: unknown) => {
+  registerIpcHandler(ipcMain, 'caseHandover:import', async (_event, input: unknown) => {
     const validated = assertRecordInput<CaseHandoverImportInput>(input, 'caseHandover:import');
     return handover.importFromFile(validated);
   });
 
-  ipcMain.handle('caseHandover:continue-expired', async (_event, caseId: unknown, reason: unknown) => {
+  registerIpcHandler(ipcMain, 'caseHandover:continue-expired', async (_event, caseId: unknown, reason: unknown) => {
     const validatedCaseId = assertString(caseId, 'caseHandover:continue-expired', 'Fall-ID', { minLength: 1, maxLength: 120 });
     const validatedReason = assertString(reason, 'caseHandover:continue-expired', 'Begründung', { minLength: 3, maxLength: 2000 });
     return handover.continueExpired({ caseId: validatedCaseId, reason: validatedReason });

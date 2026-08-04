@@ -183,18 +183,15 @@ export class PrivacyReviewService {
   }
 
   listOpenForPerson(protectedPersonId: string): PrivacyReviewItemRecord[] {
-    this.ensureSchema();
     this.refreshOpenReviewContextsForPerson(protectedPersonId);
     return this.db.prepare<any>(`SELECT * FROM privacy_review_items WHERE protected_person_id = ? AND status = 'open' ORDER BY due_at ASC, priority ASC`).all(protectedPersonId).map(mapReviewItem);
   }
 
   listOpenForCase(caseId: string): PrivacyReviewItemRecord[] {
-    this.ensureSchema();
     return this.db.prepare<any>(`SELECT * FROM privacy_review_items WHERE case_id = ? AND status = 'open' ORDER BY due_at ASC`).all(caseId).map(mapReviewItem);
   }
 
   createForCase(caseId: string, protectedPersonId: string | null, reason: PrivacyReviewReason, context: PrivacyReviewContextInput = {}, dueAt = nowIso(), priority: 'critical' | 'high' | 'normal' | 'low' = 'normal'): void {
-    this.ensureSchema();
     const timestamp = nowIso();
     const contextSnapshot = isPrivacyReviewContextSnapshot(context)
       ? context
@@ -214,7 +211,6 @@ export class PrivacyReviewService {
   }
 
   markLinkedCasesForPerson(protectedPersonId: string, trigger: 'status_expired' | 'employment_ended' | 'linked_person_anonymized' | 'linked_person_deleted'): number {
-    this.ensureSchema();
     const cases = this.db.prepare<any>(`SELECT * FROM cases WHERE protected_person_id = ?`).all(protectedPersonId);
     let count = 0;
     for (const caseRow of cases) {
@@ -294,7 +290,6 @@ export class PrivacyReviewService {
 
 
   bulkMarkClosedLegacyCasesForAnonymization(referenceDate = new Date()): { reviewed: number; marked: number; skipped: number } {
-    this.ensureSchema();
     const rows = this.db.prepare<any>(`
       SELECT c.*, (SELECT COUNT(*) FROM deadlines d WHERE d.case_id = c.id AND d.status IN ('open','overdue')) AS open_deadline_count
       FROM cases c

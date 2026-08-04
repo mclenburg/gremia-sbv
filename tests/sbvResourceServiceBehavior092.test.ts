@@ -3,8 +3,8 @@ import { SbvResourceService } from '../services/sbvResourceService';
 import type { DatabaseAdapter } from '../services/databaseService';
 
 class ResourceDb implements DatabaseAdapter {
-  resources: any[] = [];
-  audit: any[] = [];
+  resources: Record<string, unknown>[] = [];
+  audit: Record<string, unknown>[] = [];
 
   prepare<T = unknown>(sql: string) {
     const self = this;

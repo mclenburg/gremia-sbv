@@ -59,11 +59,16 @@ function mapProcess(row: any, contactIds: string[]): BemProcessRecord {
 }
 
 export class BemService {
-  constructor(private readonly db: DatabaseAdapter) {}
+  constructor(
+    private readonly db: DatabaseAdapter,
+    private readonly auditLog: PersonalDataAuditLogService = new PersonalDataAuditLogService(db),
+    private readonly lifecycleAudit: MeasureLifecycleAuditService = new MeasureLifecycleAuditService(db, auditLog),
+    private readonly deadlines: DeadlineService = new DeadlineService(db),
+  ) {}
 
   private audit(action: Parameters<PersonalDataAuditLogService['append']>[0]['action'], subjectId: string | undefined, caseId: string | undefined, purpose: string): void {
     try {
-      new PersonalDataAuditLogService(this.db).append({ action, subjectType: 'bem_process', subjectId, caseId, purpose });
+      this.auditLog.append({ action, subjectType: 'bem_process', subjectId, caseId, purpose });
     } catch (error) {
       console.warn('Gremia.SBV audit log write failed', error);
     }
@@ -153,7 +158,7 @@ export class BemService {
     this.event(id, 'created', 'BEM-Verfahren angelegt', input.triggerDescription);
 
     if (input.createDefaultDeadlines !== false && responseDueAt) {
-      new DeadlineService(this.db).create({
+      this.deadlines.create({
         caseId: input.caseId,
         processId: id,
         processType: 'bem',
@@ -172,8 +177,8 @@ export class BemService {
       });
     }
 
-      new MeasureLifecycleAuditService(this.db).created('bem', id, input.caseId, status, 'manual');
-      new PersonalDataAuditLogService(this.db).append({ action: 'create', subjectType: 'bem_process', subjectId: id, caseId: input.caseId, purpose: 'bem_process angelegt' });
+      this.lifecycleAudit.created('bem', id, input.caseId, status, 'manual');
+      this.auditLog.append({ action: 'create', subjectType: 'bem_process', subjectId: id, caseId: input.caseId, purpose: 'bem_process angelegt' });
     });
     return this.getById(id)!;
   }
@@ -242,8 +247,8 @@ export class BemService {
 
     if (input.contactIds) this.replaceContacts(id, input.contactIds);
     this.event(id, 'updated', 'BEM-Verfahren aktualisiert', JSON.stringify(input));
-      new MeasureLifecycleAuditService(this.db).statusChanged('bem', id, existing.caseId, existing.status, next.status);
-      new PersonalDataAuditLogService(this.db).append({ action: 'update', subjectType: 'bem_process', subjectId: id, caseId: existing.caseId, purpose: 'bem_process geändert' });
+      this.lifecycleAudit.statusChanged('bem', id, existing.caseId, existing.status, next.status);
+      this.auditLog.append({ action: 'update', subjectType: 'bem_process', subjectId: id, caseId: existing.caseId, purpose: 'bem_process geändert' });
     });
     return this.getById(id)!;
   }

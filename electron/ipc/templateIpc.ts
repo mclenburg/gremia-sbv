@@ -1,3 +1,4 @@
+import { registerIpcHandler } from './ipcHandler.js';
 import type { IpcMain } from "electron";
 import type { SecurityService } from "../../services/securityService.js";
 import type { ApplicationServices } from '../applicationServices.js';
@@ -26,38 +27,38 @@ export function registerTemplateIpc(
   registerGremiaBrIpc(ipcMain, security, services);
 
 
-  ipcMain.handle("template-defaults:list", async () => templateDefaults.list());
-  ipcMain.handle("template-defaults:save", async (_event, input: unknown) =>
+  registerIpcHandler(ipcMain, "template-defaults:list", async () => templateDefaults.list());
+  registerIpcHandler(ipcMain, "template-defaults:save", async (_event, input: unknown) =>
     templateDefaults.save(
       assertRecordInput<Partial<TemplateDefaultValues>>(input, "template-defaults:save"),
     ),
   );
 
-  ipcMain.handle("templates:list", async (_event, filters?: unknown) =>
+  registerIpcHandler(ipcMain, "templates:list", async (_event, filters?: unknown) =>
     templates.listTemplates(
       assertOptionalObject<TemplateListFilters>(filters, "templates:list", "Filter"),
     ),
   );
-  ipcMain.handle("templates:create", async (_event, input: unknown) =>
+  registerIpcHandler(ipcMain, "templates:create", async (_event, input: unknown) =>
     templates.createTemplate(
       assertRecordInput<CreateTemplateInput>(input, "templates:create"),
     ),
   );
-  ipcMain.handle("templates:update", async (_event, id: unknown, input: unknown) =>
+  registerIpcHandler(ipcMain, "templates:update", async (_event, id: unknown, input: unknown) =>
     templates.updateTemplate(
       assertString(id, "templates:update", "Vorlagen-ID", { minLength: 1, maxLength: 120 }),
       assertRecordInput<UpdateTemplateInput>(input, "templates:update"),
     ),
   );
-  ipcMain.handle("templates:delete", async (_event, id: unknown) =>
+  registerIpcHandler(ipcMain, "templates:delete", async (_event, id: unknown) =>
     templates.deleteTemplate(assertString(id, "templates:delete", "Vorlagen-ID", { minLength: 1, maxLength: 120 })),
   );
-  ipcMain.handle("templates:render", async (_event, input: unknown) =>
+  registerIpcHandler(ipcMain, "templates:render", async (_event, input: unknown) =>
     templates.renderTemplate(
       assertRecordInput<RenderTemplateInput>(input, "templates:render"),
     ),
   );
-  ipcMain.handle("templates:render-context", async (_event, input: unknown) =>
+  registerIpcHandler(ipcMain, "templates:render-context", async (_event, input: unknown) =>
     templates.renderContextTemplate(
       assertRecordInput<RenderContextTemplateInput>(input, "templates:render-context"),
     ),

@@ -42,11 +42,15 @@ function mapTermination(row: any): TerminationHearingRecord {
 }
 
 export class TerminationService {
-  constructor(private readonly db: DatabaseAdapter) {}
+  constructor(
+    private readonly db: DatabaseAdapter,
+    private readonly auditLog: PersonalDataAuditLogService = new PersonalDataAuditLogService(db),
+    private readonly lifecycleAudit: MeasureLifecycleAuditService = new MeasureLifecycleAuditService(db, auditLog),
+  ) {}
 
   private audit(action: Parameters<PersonalDataAuditLogService['append']>[0]['action'], subjectId: string | undefined, caseId: string | undefined, purpose: string): void {
     try {
-      new PersonalDataAuditLogService(this.db).append({ action, subjectType: 'termination_hearing', subjectId, caseId, purpose });
+      this.auditLog.append({ action, subjectType: 'termination_hearing', subjectId, caseId, purpose });
     } catch (error) {
       console.warn('Gremia.SBV audit log write failed', error);
     }
@@ -98,8 +102,8 @@ export class TerminationService {
       timestamp,
       timestamp
     );
-      new MeasureLifecycleAuditService(this.db).created('termination_hearing', id, input.caseId, input.status ?? 'eingang', 'manual');
-      new PersonalDataAuditLogService(this.db).append({ action: 'create', subjectType: 'termination_hearing', subjectId: id, caseId: input.caseId, purpose: 'termination_hearing angelegt' });
+      this.lifecycleAudit.created('termination_hearing', id, input.caseId, input.status ?? 'eingang', 'manual');
+      this.auditLog.append({ action: 'create', subjectType: 'termination_hearing', subjectId: id, caseId: input.caseId, purpose: 'termination_hearing angelegt' });
     });
     return this.getById(id)!;
   }
@@ -151,8 +155,8 @@ export class TerminationService {
       nowIso(),
       id
     );
-      new MeasureLifecycleAuditService(this.db).statusChanged('termination_hearing', id, existing.caseId, existing.status, next.status);
-      new PersonalDataAuditLogService(this.db).append({ action: 'update', subjectType: 'termination_hearing', subjectId: id, caseId: existing.caseId, purpose: 'termination_hearing geändert' });
+      this.lifecycleAudit.statusChanged('termination_hearing', id, existing.caseId, existing.status, next.status);
+      this.auditLog.append({ action: 'update', subjectType: 'termination_hearing', subjectId: id, caseId: existing.caseId, purpose: 'termination_hearing geändert' });
     });
     const row = this.db.prepare<any>('SELECT * FROM termination_hearings WHERE id = ?').get(id);
     if (!row) throw new Error(`Termination hearing not found after update: ${id}`);

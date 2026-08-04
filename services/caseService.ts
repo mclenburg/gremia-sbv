@@ -187,7 +187,7 @@ export class CaseService {
     }
   }
 
-  private ensureCaseWorkSchemaSafe(db: DatabaseAdapter): void {
+  ensureSchema(db = this.dbProvider()): void {
     const tryExec = (sql: string) => {
       try {
         db.exec(sql);
@@ -302,11 +302,7 @@ export class CaseService {
     new SearchIndexService(db).ensureSchema();
   }
 
-  private getSafeDb(): DatabaseAdapter {
-    const db = this.dbProvider();
-    this.ensureCaseWorkSchemaSafe(db);
-    return db;
-  }
+  private getSafeDb(): DatabaseAdapter { return this.dbProvider(); }
 
   private normalizeNoteCaseIds(
     primaryCaseId: string,

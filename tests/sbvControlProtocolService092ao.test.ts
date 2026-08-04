@@ -3,10 +3,10 @@ import { SbvControlProtocolService } from '../services/sbvControlProtocolService
 import type { DatabaseAdapter } from '../services/databaseService';
 
 class ProtocolDb implements DatabaseAdapter {
-  protocols: any[] = [];
-  audit: any[] = [];
-  deadlines: any[] = [];
-  deadlineAudit: any[] = [];
+  protocols: Record<string, unknown>[] = [];
+  audit: Record<string, unknown>[] = [];
+  deadlines: Record<string, unknown>[] = [];
+  deadlineAudit: unknown[][] = [];
 
   prepare<T = unknown>(sql: string) {
     const self = this;

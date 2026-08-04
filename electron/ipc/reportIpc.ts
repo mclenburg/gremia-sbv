@@ -1,3 +1,4 @@
+import { registerIpcHandler } from './ipcHandler.js';
 import type { IpcMain } from "electron";
 import { BrowserWindow, shell } from "electron";
 import { pathToFileURL } from "node:url";
@@ -177,13 +178,13 @@ export function registerReportIpc(
 ): void {
   const reports = services.reports;
 
-  ipcMain.handle("reports:descriptors", async () => reports.descriptors());
-  ipcMain.handle("reports:history", async (_event, limit?: unknown) =>
+  registerIpcHandler(ipcMain, "reports:descriptors", async () => reports.descriptors());
+  registerIpcHandler(ipcMain, "reports:history", async (_event, limit?: unknown) =>
     reports.listHistory(
       assertOptionalPositiveInteger(limit, "reports:history", "Limit", { max: 500 }),
     ),
   );
-  ipcMain.handle(
+  registerIpcHandler(ipcMain, 
     "reports:generate",
     async (
       _event,
@@ -235,7 +236,7 @@ export function registerReportIpc(
       }
     },
   );
-  ipcMain.handle(
+  registerIpcHandler(ipcMain, 
     "reports:open-export-folder",
     async (_event, filePath?: unknown) => {
       const requestedPath = assertOptionalString(

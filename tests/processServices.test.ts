@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { BemService } from '../services/bemService';
 import { EqualizationService } from '../services/equalizationService';
-import { TerminationHearingService } from '../services/terminationHearingService';
+import { TerminationService } from '../services/terminationService';
 
 class MemoryDb {
-  rows: Record<string, any[]> = {
+  rows: Record<string, Record<string, unknown>[]> = {
     bem_processes: [],
     equalization_processes: [],
     termination_hearings: [],
@@ -14,7 +14,7 @@ class MemoryDb {
   prepare(sql: string) {
     const self = this;
     return {
-      run(...params: any[]) {
+      run(...params: unknown[]) {
         if (sql.includes('INSERT INTO personal_data_audit_log')) {
           self.rows.personal_data_audit_log.push({
             id: params[0],
@@ -94,18 +94,22 @@ class MemoryDb {
           self.rows.termination_hearings.push({
             id: params[0],
             case_id: params[1],
-            hearing_received_at: params[2],
-            employer_deadline_at: params[3],
-            termination_type: params[4],
-            sbv_hearing_complete: 0,
-            br_hearing_known: 0,
-            integration_office_approval_required: 1,
-            integration_office_approval_status: 'unbekannt',
-            statement_status: 'offen',
-            statement_sent_at: null,
-            risk_notes: null,
-            created_at: params[5],
-            updated_at: params[6]
+            status: params[2],
+            termination_type: params[3],
+            protection_status: params[4],
+            received_at: params[5],
+            employer_deadline_at: params[6],
+            sbv_statement_due_at: params[7],
+            works_council_hearing_at: params[8],
+            integration_office_requested_at: params[9],
+            integration_office_decision_at: params[10],
+            integration_office_decision: params[11],
+            employer_reason: params[12],
+            missing_information: params[13],
+            sbv_assessment: params[14],
+            statement: params[15],
+            created_at: params[16],
+            updated_at: params[17]
           });
         }
       },
@@ -121,7 +125,7 @@ class MemoryDb {
         if (sql.includes('termination_hearings')) return self.rows.termination_hearings.find((row) => row.id === id);
         return undefined;
       },
-      all(...params: any[]) {
+      all(...params: unknown[]) {
         if (sql.includes('bem_process_contacts')) return [];
         if (sql.includes('bem_processes')) return params[0]
           ? self.rows.bem_processes.filter((row) => row.case_id === params[0])
@@ -142,7 +146,7 @@ class MemoryDb {
 
 type BemDb = ConstructorParameters<typeof BemService>[0];
 type EqualizationDb = ConstructorParameters<typeof EqualizationService>[0];
-type TerminationDb = ConstructorParameters<typeof TerminationHearingService>[0];
+type TerminationDb = ConstructorParameters<typeof TerminationService>[0];
 
 function createBemService() {
   return new BemService(new MemoryDb() as unknown as BemDb);
@@ -153,7 +157,7 @@ function createEqualizationService() {
 }
 
 function createTerminationService() {
-  return new TerminationHearingService(new MemoryDb() as unknown as TerminationDb);
+  return new TerminationService(new MemoryDb() as unknown as TerminationDb);
 }
 
 describe('process services', () => {
@@ -172,8 +176,8 @@ describe('process services', () => {
 
   it('creates a termination hearing with critical dates', () => {
     const service = createTerminationService();
-    const hearing = service.create({ caseId: 'case-3', hearingReceivedAt: '2026-05-02T09:00:00.000Z' });
-    expect(hearing.statementStatus).toBe('offen');
-    expect(hearing.integrationOfficeApprovalRequired).toBe(true);
+    const hearing = service.create({ caseId: 'case-3', receivedAt: '2026-05-02T09:00:00.000Z', protectionStatus: 'schwerbehindert' });
+    expect(hearing.status).toBe('eingang');
+    expect(hearing.protectionStatus).toBe('schwerbehindert');
   });
 });

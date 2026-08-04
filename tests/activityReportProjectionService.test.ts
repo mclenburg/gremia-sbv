@@ -15,7 +15,7 @@ function chainRows(events: Array<{ occurredAt: string; metadata: Record<string, 
   });
 }
 
-function dbFor(rows: any[]): DatabaseAdapter {
+function dbFor(rows: Record<string, unknown>[]): DatabaseAdapter {
   return { prepare: () => ({ all: () => rows, get: () => undefined, run: () => ({ changes: 0 }) }), exec: () => undefined, pragma: () => [] } as unknown as DatabaseAdapter;
 }
 

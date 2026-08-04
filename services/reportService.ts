@@ -547,7 +547,6 @@ export class ReportService {
   }
 
   listHistory(limit = 25): ReportExportHistoryItem[] {
-    this.ensureSchema();
     const db = this.dbProvider();
     return rows(
       db,
@@ -572,7 +571,6 @@ export class ReportService {
   }
 
   build(input: GenerateReportInput): ReportBuildResult {
-    this.ensureSchema();
     switch (input.type) {
       case "activity":
         return this.buildActivityReport(input);
@@ -614,7 +612,6 @@ export class ReportService {
     input: GenerateReportInput,
     result: Omit<ReportGenerationResult, "ok">,
   ): void {
-    this.ensureSchema();
     const db = this.dbProvider();
     db.prepare(
       `

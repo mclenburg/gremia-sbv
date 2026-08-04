@@ -3,7 +3,7 @@ import { CaseMeasureService } from '../services/caseMeasureService';
 import { noteProcessTypeToCaseMeasureType } from '../src/app/core/models/case-measure.model';
 
 class MemoryDb {
-  rows: Record<string, any[]> = {
+  rows: Record<string, Record<string, unknown>[]> = {
     case_measures: [{ id: 'measure-1', case_id: 'case-1', type: 'sbv_participation', title: 'Beteiligung', status: 'open', risk_level: 'normal', created_from: 'manual', opened_at: '2026-05-12T10:00:00.000Z', requires_follow_up: 0, created_at: '2026-05-12T10:00:00.000Z', updated_at: '2026-05-12T10:00:00.000Z' }],
     case_measure_notes: [],
     personal_data_audit_log: []
@@ -12,7 +12,7 @@ class MemoryDb {
   prepare(sql: string) {
     const self = this;
     return {
-      run(...params: any[]) {
+      run(...params: unknown[]) {
         if (sql.includes('INSERT INTO case_measure_notes')) {
           self.rows.case_measure_notes.push({
             id: params[0], case_id: params[1], measure_type: params[2], measure_id: params[3], title: params[4], note_at: params[5], participants: params[6], content: params[7], next_steps: params[8], contains_health_data: params[9], confidential_level: params[10], created_at: params[11], updated_at: params[12]
@@ -37,13 +37,13 @@ class MemoryDb {
         }
         return { changes: 0 };
       },
-      get(...params: any[]) {
+      get(...params: unknown[]) {
         if (sql.includes('SELECT id AS id FROM case_measures')) return self.rows.case_measures.find((row) => row.id === params[0] && row.case_id === params[1] && (!sql.includes('AND type = ?') || row.type === params[2]));
         if (sql.includes('SELECT * FROM case_measure_notes WHERE id = ?')) return self.rows.case_measure_notes.find((row) => row.id === params[0]);
         if (sql.includes('personal_data_audit_log')) return undefined;
         return undefined;
       },
-      all(...params: any[]) {
+      all(...params: unknown[]) {
         if (sql.includes('case_measure_notes WHERE case_id = ? AND measure_type = ? AND measure_id = ?')) {
           return self.rows.case_measure_notes
             .filter((row) => row.case_id === params[0] && row.measure_type === params[1] && row.measure_id === params[2])

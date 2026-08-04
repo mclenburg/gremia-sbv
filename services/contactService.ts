@@ -44,7 +44,7 @@ export class ContactService {
     }
   }
 
-  private ensureSchema(db: DatabaseAdapter): void {
+  ensureSchema(db = this.dbProvider()): void {
     ensureContactPrivacySchema(db);
     db.exec(`
       CREATE TABLE IF NOT EXISTS contacts (
@@ -68,7 +68,6 @@ export class ContactService {
 
   private getSafeDb(): DatabaseAdapter {
     const db = this.dbProvider();
-    this.ensureSchema(db);
     return db;
   }
 

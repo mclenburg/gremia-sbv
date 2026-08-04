@@ -46,15 +46,25 @@ function isExplicitAnyAssertion(node: ts.Node) {
   return false;
 }
 
-function findExplicitAnyAssertions(filePath: string) {
+function isExplicitAnyArray(node: ts.Node): boolean {
+  if (ts.isArrayTypeNode(node)) {
+    return node.elementType.kind === ts.SyntaxKind.AnyKeyword;
+  }
+  if (ts.isTypeReferenceNode(node) && node.typeName.getText() === 'Array') {
+    return node.typeArguments?.some((argument) => argument.kind === ts.SyntaxKind.AnyKeyword) ?? false;
+  }
+  return false;
+}
+
+function findForbiddenAnyUsage(filePath: string) {
   const sourceText = readFileSync(filePath, 'utf8');
   const sourceFile = ts.createSourceFile(filePath, sourceText, ts.ScriptTarget.Latest, true, scriptKindFor(filePath));
   const findings: string[] = [];
 
   const visit = (node: ts.Node): void => {
-    if (isExplicitAnyAssertion(node)) {
+    if (isExplicitAnyAssertion(node) || isExplicitAnyArray(node)) {
       const position = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
-      findings.push(`${filePath}:${position.line + 1}:${position.character + 1}`);
+      findings.push(`${filePath}:${position.line + 1}:${position.character + 1} ${node.getText(sourceFile)}`);
     }
 
     ts.forEachChild(node, visit);
@@ -65,8 +75,8 @@ function findExplicitAnyAssertions(filePath: string) {
 }
 
 describe('Clean-Code-Grenze für TypeScript-Typumgehungen', () => {
-  it('verhindert explizite Any-Casts projektweit', () => {
-    const findings = collectSourceFiles().flatMap(findExplicitAnyAssertions);
+  it('verhindert explizite Any-Casts und Any-Arrays projektweit', () => {
+    const findings = collectSourceFiles().flatMap(findForbiddenAnyUsage);
 
     expect(findings).toEqual([]);
   });

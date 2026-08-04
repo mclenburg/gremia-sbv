@@ -1,3 +1,4 @@
+import { registerIpcHandler } from './ipcHandler.js';
 import type { IpcMain } from 'electron';
 import { dialog } from 'electron';
 import { exportDeadlinesToIcal, type DeadlineIcalPrivacyLevel } from '../../services/deadlineIcalExportService.js';
@@ -17,20 +18,20 @@ export function registerProtectedPersonIpc(ipcMain: IpcMain, security: SecurityS
   const privacyReviews = services.privacyReviews;
   const retention = () => services.retention;
 
-  ipcMain.handle('persons:list', async (_event, filters?: unknown) =>
+  registerIpcHandler(ipcMain, 'persons:list', async (_event, filters?: unknown) =>
     persons().list(assertOptionalObject<ProtectedPersonListFilters>(filters, 'persons:list', 'Filter') ?? {}),
   );
 
-  ipcMain.handle('persons:create', async (_event, input: unknown) =>
+  registerIpcHandler(ipcMain, 'persons:create', async (_event, input: unknown) =>
     persons().create(assertRecordInput<CreateProtectedPersonInput>(input, 'persons:create')),
   );
 
 
-  ipcMain.handle('persons:create-anonymous-request', async (_event, label?: unknown) =>
+  registerIpcHandler(ipcMain, 'persons:create-anonymous-request', async (_event, label?: unknown) =>
     persons().createAnonymousRequest(typeof label === 'string' ? label : undefined),
   );
 
-  ipcMain.handle('persons:update', async (_event, id: unknown, input: unknown) => {
+  registerIpcHandler(ipcMain, 'persons:update', async (_event, id: unknown, input: unknown) => {
     const checkedId = assertString(id, 'persons:update', 'Person-ID', { minLength: 1, maxLength: 120 });
     const checkedInput = assertRecordInput<UpdateProtectedPersonInput>(input, 'persons:update');
     const service = persons();
@@ -45,7 +46,7 @@ export function registerProtectedPersonIpc(ipcMain: IpcMain, security: SecurityS
     return updated;
   });
 
-  ipcMain.handle('persons:link-case', async (_event, personId: unknown, caseId: unknown, reason?: unknown) =>
+  registerIpcHandler(ipcMain, 'persons:link-case', async (_event, personId: unknown, caseId: unknown, reason?: unknown) =>
     persons().linkCase(
       assertString(personId, 'persons:link-case', 'Person-ID', { minLength: 1, maxLength: 120 }),
       assertString(caseId, 'persons:link-case', 'Fall-ID', { minLength: 1, maxLength: 120 }),
@@ -53,15 +54,15 @@ export function registerProtectedPersonIpc(ipcMain: IpcMain, security: SecurityS
     ),
   );
 
-  ipcMain.handle('persons:import:preview', async (_event, input: unknown) =>
+  registerIpcHandler(ipcMain, 'persons:import:preview', async (_event, input: unknown) =>
     imports().preview(assertRecordInput<PersonImportPreviewInput>(input, 'persons:import:preview')),
   );
 
-  ipcMain.handle('persons:import:execute', async (_event, input: unknown) =>
+  registerIpcHandler(ipcMain, 'persons:import:execute', async (_event, input: unknown) =>
     imports().execute(assertRecordInput<PersonImportExecuteInput>(input, 'persons:import:execute')),
   );
 
-  ipcMain.handle('persons:import:select-preview', async () => {
+  registerIpcHandler(ipcMain, 'persons:import:select-preview', async () => {
     const result = await dialog.showOpenDialog({
       title: 'Arbeitgeberliste importieren',
       properties: ['openFile'],
@@ -77,11 +78,11 @@ export function registerProtectedPersonIpc(ipcMain: IpcMain, security: SecurityS
     return { filePath, sourceFileName: filePath.split(/[\\/]/).pop() ?? 'Arbeitgeberliste', fileType };
   });
 
-  ipcMain.handle('persons:expiry:evaluate', async (_event, referenceIso?: unknown) =>
+  registerIpcHandler(ipcMain, 'persons:expiry:evaluate', async (_event, referenceIso?: unknown) =>
     expiry().evaluate(typeof referenceIso === 'string' ? new Date(referenceIso) : new Date()),
   );
 
-  ipcMain.handle('persons:anonymize', async (_event, id: unknown, reason: unknown) =>
+  registerIpcHandler(ipcMain, 'persons:anonymize', async (_event, id: unknown, reason: unknown) =>
     anonymization().anonymizeStructuredPersonData(
       assertString(id, 'persons:anonymize', 'Person-ID', { minLength: 1, maxLength: 120 }),
       assertString(reason, 'persons:anonymize', 'Grund', { minLength: 3, maxLength: 5_000 }),
@@ -89,7 +90,7 @@ export function registerProtectedPersonIpc(ipcMain: IpcMain, security: SecurityS
   );
 
 
-  ipcMain.handle('persons:delete', async (_event, id: unknown, reason: unknown) =>
+  registerIpcHandler(ipcMain, 'persons:delete', async (_event, id: unknown, reason: unknown) =>
     anonymization().deleteStructuredPersonData(
       assertString(id, 'persons:delete', 'Person-ID', { minLength: 1, maxLength: 120 }),
       assertString(reason, 'persons:delete', 'Grund', { minLength: 3, maxLength: 5_000 }),
@@ -98,11 +99,11 @@ export function registerProtectedPersonIpc(ipcMain: IpcMain, security: SecurityS
 
 
 
-  ipcMain.handle('privacy-review:list-open-for-person', async (_event, protectedPersonId: unknown) =>
+  registerIpcHandler(ipcMain, 'privacy-review:list-open-for-person', async (_event, protectedPersonId: unknown) =>
     privacyReviews().listOpenForPerson(assertString(protectedPersonId, 'privacy-review:list-open-for-person', 'Person-ID', { minLength: 1, maxLength: 120 })),
   );
 
-  ipcMain.handle('privacy-review:document-retention', async (_event, input: unknown) => {
+  registerIpcHandler(ipcMain, 'privacy-review:document-retention', async (_event, input: unknown) => {
     const checked = assertRecordInput<PrivacyReviewActionInput>(input, 'privacy-review:document-retention');
     privacyReviews().documentRetention(
       assertString(checked.caseId, 'privacy-review:document-retention', 'Fall-ID', { minLength: 1, maxLength: 120 }),
@@ -112,7 +113,7 @@ export function registerProtectedPersonIpc(ipcMain: IpcMain, security: SecurityS
     return { ok: true, message: 'Fortspeicherung wurde dokumentiert.' };
   });
 
-  ipcMain.handle('privacy-review:schedule-later', async (_event, input: unknown) => {
+  registerIpcHandler(ipcMain, 'privacy-review:schedule-later', async (_event, input: unknown) => {
     const checked = assertRecordInput<PrivacyReviewActionInput>(input, 'privacy-review:schedule-later');
     privacyReviews().scheduleLater(
       assertString(checked.caseId, 'privacy-review:schedule-later', 'Fall-ID', { minLength: 1, maxLength: 120 }),
@@ -122,7 +123,7 @@ export function registerProtectedPersonIpc(ipcMain: IpcMain, security: SecurityS
     return { ok: true, message: 'Datenschutzprüfung wurde erneut terminiert.' };
   });
 
-  ipcMain.handle('privacy-review:clear-case', async (_event, input: unknown) => {
+  registerIpcHandler(ipcMain, 'privacy-review:clear-case', async (_event, input: unknown) => {
     const checked = assertRecordInput<PrivacyReviewActionInput>(input, 'privacy-review:clear-case');
     privacyReviews().clearCaseReview(
       assertString(checked.caseId, 'privacy-review:clear-case', 'Fall-ID', { minLength: 1, maxLength: 120 }),
@@ -132,7 +133,7 @@ export function registerProtectedPersonIpc(ipcMain: IpcMain, security: SecurityS
   });
 
 
-  ipcMain.handle('privacy-review:anonymize-case', async (_event, input: unknown) => {
+  registerIpcHandler(ipcMain, 'privacy-review:anonymize-case', async (_event, input: unknown) => {
     const checked = assertRecordInput<PrivacyReviewActionInput>(input, 'privacy-review:anonymize-case');
     const caseId = assertString(checked.caseId, 'privacy-review:anonymize-case', 'Fall-ID', { minLength: 1, maxLength: 120 });
     return privacyReviews().anonymizeCaseStructuredData(
@@ -142,7 +143,7 @@ export function registerProtectedPersonIpc(ipcMain: IpcMain, security: SecurityS
     );
   });
 
-  ipcMain.handle('privacy-review:delete-case', async (_event, input: unknown) => {
+  registerIpcHandler(ipcMain, 'privacy-review:delete-case', async (_event, input: unknown) => {
     const checked = assertRecordInput<PrivacyReviewActionInput>(input, 'privacy-review:delete-case');
     const caseId = assertString(checked.caseId, 'privacy-review:delete-case', 'Fall-ID', { minLength: 1, maxLength: 120 });
     const result = await retention().deleteCase(
@@ -154,12 +155,12 @@ export function registerProtectedPersonIpc(ipcMain: IpcMain, security: SecurityS
     return result;
   });
 
-  ipcMain.handle('privacy-review:bulk-mark-closed-legacy', async () => {
+  registerIpcHandler(ipcMain, 'privacy-review:bulk-mark-closed-legacy', async () => {
     const result = privacyReviews().bulkMarkClosedLegacyCasesForAnonymization();
     return { ok: true, ...result, message: `${result.marked} abgeschlossene Altakten wurden zur Datenschutzprüfung vorgemerkt.` };
   });
 
-  ipcMain.handle('deadlines:ical-export', async (_event, filters?: unknown, privacyLevel?: unknown) => {
+  registerIpcHandler(ipcMain, 'deadlines:ical-export', async (_event, filters?: unknown, privacyLevel?: unknown) => {
     const rows = deadlines().list(assertOptionalObject<DeadlineListFilters>(filters, 'deadlines:ical-export', 'Filter') ?? {});
     return exportDeadlinesToIcal(rows, { privacyLevel: (privacyLevel === 'privacy_first' || privacyLevel === 'process_type' || privacyLevel === 'case_reference' || privacyLevel === 'details' ? privacyLevel : 'process_type') as DeadlineIcalPrivacyLevel });
   });

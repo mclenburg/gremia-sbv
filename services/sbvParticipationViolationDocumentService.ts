@@ -137,8 +137,7 @@ export class SbvParticipationViolationDocumentService {
   }
 
   private auditGenerated(violationId: string, documentId: string, caseId: string | undefined, templateKey: string, templateVersion: string, stage: string): void {
-    try {
-      new PersonalDataAuditLogService(this.db).append({
+    new PersonalDataAuditLogService(this.db).append({
         actor: 'sbv',
         action: 'create',
         subjectType: 'sbv_participation_violation_document',
@@ -147,8 +146,5 @@ export class SbvParticipationViolationDocumentService {
         purpose: 'SBV-Beteiligungsverstoß-Dokument erzeugen',
         metadata: { violationId, stage, templateKey, templateVersion, documentKind: 'sbv_participation_violation' },
       });
-    } catch (error) {
-      console.warn('Gremia.SBV participation violation document audit write failed', error);
-    }
   }
 }
