@@ -1,4 +1,5 @@
 {
+  "version": "0.9.6-l",
   "description": "Der sandboxed Electron-Preload muss ohne lokale Laufzeitmodule auskommen; invokeIpc ist deshalb im Preload selbst enthalten.",
   "files": [
     "electron/ipc/invokeIpc.ts"

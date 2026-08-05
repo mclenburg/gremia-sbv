@@ -76,4 +76,50 @@ describe('ActivityReportProjectionService', () => {
     const result = new ActivityReportProjectionService(dbFor(rows)).build({ start: '2026-03-01', end: '2026-03-31' });
     expect(result.coverage.status).toBe('complete');
   });
+
+  it('verifiziert Fall-Löschereignisse mit, ohne sie als Maßnahme zu zählen', () => {
+    const measureRows = chainRows([
+      { occurredAt: '2026-04-01T10:00:00.000Z', metadata: meta('created', 'bem') },
+    ]);
+    const previousHash = measureRows[0].entry_hash;
+    const metadataJson = JSON.stringify({
+      schemaVersion: '1',
+      eventName: 'deleted',
+      deletionMode: 'hard_delete',
+      deletedMeasureCount: '1',
+      deletedDocumentCount: '2',
+      affectedFileCount: '2',
+    });
+    const base = {
+      sequence: 2,
+      occurredAt: '2026-04-02T10:00:00.000Z',
+      actor: 'local-sbv-user',
+      action: 'delete',
+      subjectType: 'case',
+      subjectId: 'case-1',
+      caseId: 'case-1',
+      purpose: 'Fallakte endgültig gelöscht',
+      metadataJson,
+      previousHash,
+    };
+    const entryHash = computeAuditEntryHash(base);
+    const caseRow = {
+      ...base,
+      occurred_at: base.occurredAt,
+      subject_type: base.subjectType,
+      subject_id: base.subjectId,
+      case_id: base.caseId,
+      metadata_json: metadataJson,
+      previous_hash: base.previousHash,
+      entry_hash: entryHash,
+    };
+
+    const result = new ActivityReportProjectionService(dbFor([...measureRows, caseRow])).build();
+
+    expect(result.chain.checkedEntries).toBe(2);
+    expect(result.counters.created.bem).toBe(1);
+    expect(result.counters.deleted.bem).toBe(0);
+    expect(result.ignoredInvalidLifecycleEvents).toBe(0);
+  });
+
 });

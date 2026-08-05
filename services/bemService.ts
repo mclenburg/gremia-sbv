@@ -13,6 +13,16 @@ import type {
   UpdateBemProcessInput
 } from '../src/app/core/models/bem.model.js';
 
+/** SQLite row at the persistence boundary. Values remain scalar and must be
+ * normalized by the service mapper before entering the domain model. */
+type DatabaseScalar = string;
+type DatabaseRow = Record<string, DatabaseScalar> & {
+  status: BemProcessRecord['status'];
+  trigger_type: BemProcessRecord['triggerType'];
+  sickness_days_twelve_months: number;
+  employee_response: BemProcessRecord['employeeResponse'];
+};
+
 function nowIso(): string {
   return new Date().toISOString();
 }
@@ -26,7 +36,7 @@ function legacyPhaseForStatus(status: string): 'pruefung' | 'angebot' | 'reaktio
   return 'abschluss';
 }
 
-function mapProcess(row: any, contactIds: string[]): BemProcessRecord {
+function mapProcess(row: DatabaseRow, contactIds: string[]): BemProcessRecord {
   return {
     id: row.id,
     caseId: row.case_id,
@@ -77,8 +87,8 @@ export class BemService {
   list(caseId?: string): BemProcessRecord[] {
     this.audit('read', undefined, caseId, 'bem_process Liste anzeigen');
     const rows = caseId
-      ? this.db.prepare<any>('SELECT * FROM bem_processes WHERE case_id = ? ORDER BY COALESCE(bem_offered_at, first_meeting_at, created_at) DESC').all(caseId)
-      : this.db.prepare<any>('SELECT * FROM bem_processes ORDER BY COALESCE(bem_offered_at, first_meeting_at, created_at) DESC').all();
+      ? this.db.prepare<DatabaseRow>('SELECT * FROM bem_processes WHERE case_id = ? ORDER BY COALESCE(bem_offered_at, first_meeting_at, created_at) DESC').all(caseId)
+      : this.db.prepare<DatabaseRow>('SELECT * FROM bem_processes ORDER BY COALESCE(bem_offered_at, first_meeting_at, created_at) DESC').all();
     return rows.map((row) => mapProcess(row, this.contactIdsForProcess(row.id)));
   }
 
@@ -259,7 +269,7 @@ export class BemService {
 
   getById(id: string): BemProcessRecord | undefined {
     this.audit('read', id, undefined, 'bem_process Detail anzeigen');
-    const row = this.db.prepare<any>('SELECT * FROM bem_processes WHERE id = ?').get(id);
+    const row = this.db.prepare<DatabaseRow>('SELECT * FROM bem_processes WHERE id = ?').get(id);
     return row ? mapProcess(row, this.contactIdsForProcess(id)) : undefined;
   }
 

@@ -13,11 +13,20 @@ import type {
   UpdatePreventionProcessInput
 } from '../src/app/core/models/prevention.model.js';
 
+
+interface PreventionProcessRow {
+  id: string; case_id: string; status: PreventionStatus; first_knowledge_at: string | null; requested_at: string | null;
+  employer_response_due_at: string | null; employer_responded_at: string | null; integration_office_involved_at: string | null;
+  difficulty_type: PreventionProcessRecord['difficultyType'] | null; risk_type: PreventionProcessRecord['riskType'] | null;
+  person_status: PreventionProcessRecord['personStatus'] | null; hazard_description: string | null; employer_request_summary: string | null;
+  measures: string | null; result: string | null; next_review_at: string | null; created_at: string; updated_at: string;
+}
+
 function nowIso(): string {
   return new Date().toISOString();
 }
 
-function mapProcess(row: any, contactIds: string[]): PreventionProcessRecord {
+function mapProcess(row: PreventionProcessRow, contactIds: string[]): PreventionProcessRecord {
   return {
     id: row.id,
     caseId: row.case_id,
@@ -60,8 +69,8 @@ export class PreventionService {
   list(caseId?: string): PreventionProcessRecord[] {
     this.audit('read', undefined, caseId, 'prevention_process Liste anzeigen');
     const rows = caseId
-      ? this.db.prepare<any>('SELECT * FROM prevention_processes WHERE case_id = ? ORDER BY COALESCE(requested_at, first_knowledge_at, created_at) DESC').all(caseId)
-      : this.db.prepare<any>('SELECT * FROM prevention_processes ORDER BY COALESCE(requested_at, first_knowledge_at, created_at) DESC').all();
+      ? this.db.prepare<PreventionProcessRow>('SELECT * FROM prevention_processes WHERE case_id = ? ORDER BY COALESCE(requested_at, first_knowledge_at, created_at) DESC').all(caseId)
+      : this.db.prepare<PreventionProcessRow>('SELECT * FROM prevention_processes ORDER BY COALESCE(requested_at, first_knowledge_at, created_at) DESC').all();
     return rows.map((row) => mapProcess(row, this.contactIdsForProcess(row.id)));
   }
 
@@ -201,7 +210,7 @@ export class PreventionService {
 
   getById(id: string): PreventionProcessRecord | undefined {
     this.audit('read', id, undefined, 'prevention_process Detail anzeigen');
-    const row = this.db.prepare<any>('SELECT * FROM prevention_processes WHERE id = ?').get(id);
+    const row = this.db.prepare<PreventionProcessRow>('SELECT * FROM prevention_processes WHERE id = ?').get(id);
     return row ? mapProcess(row, this.contactIdsForProcess(id)) : undefined;
   }
 

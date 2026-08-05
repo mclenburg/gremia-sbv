@@ -1,0 +1,8 @@
+{
+  "version": "0.9.6-build-fix-23",
+  "reason": "Ersetzt eine transiente Patch-Dokumentation durch dauerhafte Qualitätsdokumentation.",
+  "files": [
+    "docs/quality/patch-s-test-contract-and-license-performance.md"
+  ],
+  "directories": []
+}

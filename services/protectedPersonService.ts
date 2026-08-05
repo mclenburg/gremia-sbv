@@ -12,8 +12,29 @@ import type {
   PersonImportRunRecord,
   ProtectedPersonListFilters,
   ProtectedPersonRecord,
-  UpdateProtectedPersonInput
+  UpdateProtectedPersonInput,
+  LeftCompanyReason
 } from '../src/app/core/models/protected-person.model.js';
+
+
+interface ProtectedPersonRow {
+  id: string; created_at: string; updated_at: string; record_kind: ProtectedPersonRecord['recordKind'] | null;
+  first_name: string | null; last_name: string | null; pseudonym_label: string | null; personnel_number: string | null;
+  work_email: string | null; organizational_unit: string | null; location: string | null; employment_state: ProtectedPersonRecord['employmentState'] | null;
+  left_company_at: string | null; left_company_reason: LeftCompanyReason | null; protection_status: ProtectedPersonRecord['protectionStatus'] | null;
+  status_valid_from: string | null; status_valid_until: string | null; evidence_checked_at: string | null; status_source: ProtectedPersonRecord['statusSource'] | null;
+  lifecycle_state: ProtectedPersonRecord['lifecycleState'] | null; expiry_warning_created_at: string | null; expiry_review_due_at: string | null;
+  retention_reason: string | null; retention_review_at: string | null; anonymized_at: string | null; anonymization_reason: string | null; notes: string | null;
+}
+interface PersonImportRunRow {
+  id: string; profile_id: string | null; source_file_name: string; source_file_hash: string; imported_at: string;
+  total_rows: number; created_count: number; updated_count: number; unchanged_count: number; conflict_count: number; skipped_count: number; missing_count: number;
+}
+interface PersonImportRunItemRow {
+  id: string; run_id: string; row_number: number; action: PersonImportRunItemRecord['action']; protected_person_id: string | null;
+  match_strategy: PersonImportRunItemRecord['matchStrategy'] | null; conflict_reason: string | null; validation_message: string | null; changed_fields_json: string; created_at: string;
+}
+interface ExistingDeadlineRow { id: string; }
 
 function nowIso(): string {
   return new Date().toISOString();
@@ -38,7 +59,7 @@ function resolveEmploymentState(requested: unknown, leftCompanyAt: string | null
   return isPastOrTodayDate(leftCompanyAt) ? 'left_company' : 'active_employee';
 }
 
-function mapPerson(row: any): ProtectedPersonRecord {
+function mapPerson(row: ProtectedPersonRow): ProtectedPersonRecord {
   return {
     id: row.id,
     createdAt: row.created_at,
@@ -70,7 +91,7 @@ function mapPerson(row: any): ProtectedPersonRecord {
   };
 }
 
-function mapImportRun(row: any): PersonImportRunRecord {
+function mapImportRun(row: PersonImportRunRow): PersonImportRunRecord {
   return {
     id: row.id,
     profileId: row.profile_id ?? undefined,
@@ -87,7 +108,7 @@ function mapImportRun(row: any): PersonImportRunRecord {
   };
 }
 
-function mapImportItem(row: any): PersonImportRunItemRecord {
+function mapImportItem(row: PersonImportRunItemRow): PersonImportRunItemRecord {
   return {
     id: row.id,
     runId: row.run_id,
@@ -97,9 +118,18 @@ function mapImportItem(row: any): PersonImportRunItemRecord {
     matchStrategy: row.match_strategy ?? undefined,
     conflictReason: row.conflict_reason ?? undefined,
     validationMessage: row.validation_message ?? undefined,
-    changedFields: JSON.parse(row.changed_fields_json ?? '[]'),
+    changedFields: parseChangedFields(row.changed_fields_json ?? '[]'),
     createdAt: row.created_at
   };
+}
+
+function parseChangedFields(value: string): string[] {
+  try {
+    const parsed: unknown = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed.filter((entry): entry is string => typeof entry === 'string') : [];
+  } catch {
+    return [];
+  }
 }
 
 function hashStableId(seed: string): string {
@@ -207,14 +237,14 @@ export class ProtectedPersonService {
   }
 
   get(id: string): ProtectedPersonRecord | undefined {
-    const row = this.db.prepare<any>('SELECT * FROM protected_persons WHERE id = ?').get(id);
+    const row = this.db.prepare<ProtectedPersonRow>('SELECT * FROM protected_persons WHERE id = ?').get(id);
     if (!row) return undefined;
     return mapPerson(row);
   }
 
   list(filters: ProtectedPersonListFilters = {}): ProtectedPersonRecord[] {
     this.audit('read', undefined, 'Personenverzeichnis angezeigt', { hasQuery: Boolean(filters.query) });
-    let rows = this.db.prepare<any>('SELECT * FROM protected_persons ORDER BY last_name, first_name').all().map(mapPerson);
+    let rows = this.db.prepare<ProtectedPersonRow>('SELECT * FROM protected_persons ORDER BY last_name, first_name').all().map(mapPerson);
     const query = filters.query?.trim().toLowerCase();
     if (query) {
       rows = rows.filter((person) => [person.firstName, person.lastName, person.personnelNumber, person.workEmail, person.organizationalUnit, person.location].some((value) => value?.toLowerCase().includes(query)));
@@ -233,19 +263,19 @@ export class ProtectedPersonService {
   findByPersonnelNumber(personnelNumber: string): ProtectedPersonRecord | undefined {
     const normalized = normalizeOptional(personnelNumber);
     if (!normalized) return undefined;
-    const row = this.db.prepare<any>('SELECT * FROM protected_persons WHERE personnel_number = ? LIMIT 1').get(normalized);
+    const row = this.db.prepare<ProtectedPersonRow>('SELECT * FROM protected_persons WHERE personnel_number = ? LIMIT 1').get(normalized);
     return row ? mapPerson(row) : undefined;
   }
 
   findByWorkEmail(workEmail: string): ProtectedPersonRecord | undefined {
     const normalized = normalizeOptional(workEmail)?.toLowerCase();
     if (!normalized) return undefined;
-    const row = this.db.prepare<any>('SELECT * FROM protected_persons WHERE lower(work_email) = ? LIMIT 1').get(normalized);
+    const row = this.db.prepare<ProtectedPersonRow>('SELECT * FROM protected_persons WHERE lower(work_email) = ? LIMIT 1').get(normalized);
     return row ? mapPerson(row) : undefined;
   }
 
   findNameConflict(firstName: string, lastName: string): ProtectedPersonRecord | undefined {
-    const row = this.db.prepare<any>('SELECT * FROM protected_persons WHERE lower(first_name) = lower(?) AND lower(last_name) = lower(?) LIMIT 1').get(firstName.trim(), lastName.trim());
+    const row = this.db.prepare<ProtectedPersonRow>('SELECT * FROM protected_persons WHERE lower(first_name) = lower(?) AND lower(last_name) = lower(?) LIMIT 1').get(firstName.trim(), lastName.trim());
     return row ? mapPerson(row) : undefined;
   }
 
@@ -260,14 +290,14 @@ export class ProtectedPersonService {
   }
 
   listImportRuns(limit = 20): PersonImportRunRecord[] {
-    return this.db.prepare<any>('SELECT * FROM person_import_runs ORDER BY imported_at DESC LIMIT ?').all(limit).map(mapImportRun);
+    return this.db.prepare<PersonImportRunRow>('SELECT * FROM person_import_runs ORDER BY imported_at DESC LIMIT ?').all(limit).map(mapImportRun);
   }
 
   getImportRun(id: string): PersonImportRunRecord | undefined {
-    const row = this.db.prepare<any>('SELECT * FROM person_import_runs WHERE id = ?').get(id);
+    const row = this.db.prepare<PersonImportRunRow>('SELECT * FROM person_import_runs WHERE id = ?').get(id);
     if (!row) return undefined;
     const run = mapImportRun(row);
-    run.items = this.db.prepare<any>('SELECT * FROM person_import_run_items WHERE run_id = ? ORDER BY row_number ASC').all(id).map(mapImportItem);
+    run.items = this.db.prepare<PersonImportRunItemRow>('SELECT * FROM person_import_run_items WHERE run_id = ? ORDER BY row_number ASC').all(id).map(mapImportItem);
     return run;
   }
 
@@ -341,7 +371,7 @@ export class ProtectedPersonService {
   }
 
   createStatusExpiryWarning(person: ProtectedPersonRecord, dueAt: string, referenceDate = new Date()): void {
-    const existing = this.db.prepare<any>(`
+    const existing = this.db.prepare<ExistingDeadlineRow>(`
       SELECT id FROM deadlines
       WHERE process_id = ? AND source_event = 'protected_person.status_expiry_warning' AND status IN ('open', 'overdue')
       LIMIT 1
@@ -367,7 +397,7 @@ export class ProtectedPersonService {
   }
 
   createStatusExpiredPrivacyReview(person: ProtectedPersonRecord, dueAt: string, referenceDate = new Date()): void {
-    const existing = this.db.prepare<any>(`
+    const existing = this.db.prepare<ExistingDeadlineRow>(`
       SELECT id FROM deadlines
       WHERE process_id = ? AND source_event = 'protected_person.status_expired_privacy_review' AND status IN ('open', 'overdue')
       LIMIT 1

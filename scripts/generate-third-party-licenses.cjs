@@ -4,12 +4,15 @@ const path = require('node:path');
 const https = require('node:https');
 const http = require('node:http');
 const zlib = require('node:zlib');
+const crypto = require('node:crypto');
 
 const root = process.cwd();
 const lockPath = path.join(root, 'package-lock.json');
 const inventoryPath = path.join(root, 'THIRD_PARTY_LICENSES.txt');
 const noticesPath = path.join(root, 'THIRD_PARTY_NOTICES.txt');
 const licensesRoot = path.join(root, 'LICENSES');
+const generationStatePath = path.join(root, 'maintenance', 'licenses', 'generation-state.json');
+const generatorSchemaVersion = 2;
 const registryBaseUrl = (process.env.NPM_REGISTRY_URL || 'https://registry.npmjs.org').replace(/\/+$/, '');
 const userAgent = 'gremia-sbv-license-generator/1.0';
 
@@ -31,6 +34,62 @@ const preferredDisjunctiveLicenses = [
 
 function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+}
+
+
+function sha256Buffer(buffer) {
+  return crypto.createHash('sha256').update(buffer).digest('hex');
+}
+
+function sha256File(filePath) {
+  return sha256Buffer(fs.readFileSync(filePath));
+}
+
+function listLicenseFiles() {
+  if (!fs.existsSync(licensesRoot)) return [];
+  return fs.readdirSync(licensesRoot)
+    .filter((entry) => fs.statSync(path.join(licensesRoot, entry)).isFile())
+    .sort();
+}
+
+function currentArtifactFingerprint() {
+  if (!fs.existsSync(inventoryPath) || !fs.existsSync(noticesPath) || !fs.existsSync(licensesRoot)) return null;
+  const licenseFiles = listLicenseFiles();
+  if (licenseFiles.length === 0) return null;
+  return {
+    inventorySha256: sha256File(inventoryPath),
+    noticesSha256: sha256File(noticesPath),
+    licenseFiles: licenseFiles.map((name) => ({ name, sha256: sha256File(path.join(licensesRoot, name)) })),
+  };
+}
+
+function readGenerationState() {
+  if (!fs.existsSync(generationStatePath)) return null;
+  try { return readJson(generationStatePath); } catch { return null; }
+}
+
+function isGenerationCurrent(lockSha256) {
+  const state = readGenerationState();
+  const artifacts = currentArtifactFingerprint();
+  return Boolean(
+    state && artifacts &&
+    state.schemaVersion === generatorSchemaVersion &&
+    state.lockSha256 === lockSha256 &&
+    state.inventorySha256 === artifacts.inventorySha256 &&
+    state.noticesSha256 === artifacts.noticesSha256 &&
+    JSON.stringify(state.licenseFiles) === JSON.stringify(artifacts.licenseFiles)
+  );
+}
+
+function writeGenerationState(lockSha256, packageCount) {
+  const artifacts = currentArtifactFingerprint();
+  if (!artifacts) throw new Error('Lizenzartefakte konnten für den Cache nicht fingerprinted werden.');
+  writeTextIfChanged(generationStatePath, `${JSON.stringify({
+    schemaVersion: generatorSchemaVersion,
+    lockSha256,
+    packageCount,
+    ...artifacts,
+  }, null, 2)}\n`);
 }
 
 function writeTextIfChanged(filePath, content) {
@@ -272,21 +331,30 @@ async function resolvePackageRecord(lockPackagePath, meta) {
     throw new Error(`Version fehlt für ${lockPackagePath}.`);
   }
 
-  let registryMetadata;
+  const fallback = installedPackageFallback(lockPackagePath);
+  let registryMetadata = {};
   let tarballEntries = [];
-  try {
-    registryMetadata = await requestRegistryVersionMetadata(name, version);
-    if (registryMetadata.dist?.tarball) {
-      tarballEntries = await readTarballEntries(registryMetadata.dist.tarball);
+  let tarPackageJson = {};
+
+  // licenses:generate läuft unmittelbar nach npm ci. Der installierte, exakt durch
+  // package-lock.json bestimmte Paketbaum ist daher die schnellste und zugleich
+  // verlässlichste Primärquelle. Netzwerkzugriffe sind nur für plattformspezifische
+  // optionale Pakete oder unvollständige Paketarchive erforderlich.
+  const localLicenseExpression = normalizeLicensesField(fallback.pkg);
+  if (!localLicenseExpression) {
+    try {
+      registryMetadata = await requestRegistryVersionMetadata(name, version);
+      if (registryMetadata.dist?.tarball) {
+        tarballEntries = await readTarballEntries(registryMetadata.dist.tarball);
+      }
+      const packageEntry = findFirstMatchingEntry(tarballEntries, (baseName) => baseName === 'package.json');
+      tarPackageJson = packageEntry ? JSON.parse(textFromEntry(packageEntry)) : {};
+    } catch (error) {
+      throw new Error(`Lizenzdaten konnten weder lokal noch online für ${name}@${version} geladen werden: ${error.message}`);
     }
-  } catch (error) {
-    throw new Error(`Lizenzdaten konnten nicht online für ${name}@${version} geladen werden: ${error.message}`);
   }
 
-  const packageEntry = findFirstMatchingEntry(tarballEntries, (baseName) => baseName === 'package.json');
-  const tarPackageJson = packageEntry ? JSON.parse(textFromEntry(packageEntry)) : {};
-  const fallback = installedPackageFallback(lockPackagePath);
-  const packageJson = { ...fallback.pkg, ...tarPackageJson, ...registryMetadata };
+  const packageJson = { ...tarPackageJson, ...registryMetadata, ...fallback.pkg };
   const licenseExpression = normalizeLicensesField(packageJson) || normalizeLicensesField(tarPackageJson) || normalizeLicensesField(fallback.pkg);
 
   if (!licenseExpression) {
@@ -296,8 +364,8 @@ async function resolvePackageRecord(lockPackagePath, meta) {
   const licenseEntry = findFirstMatchingEntry(tarballEntries, (baseName) => /^licen[cs]e(?:\.|$)|^copying(?:\.|$)/iu.test(baseName));
   const noticeEntry = findFirstMatchingEntry(tarballEntries, (baseName) => /^notice(?:\.|$)|^copyright(?:\.|$)/iu.test(baseName));
   const readmeEntry = findFirstMatchingEntry(tarballEntries, (baseName) => /^readme(?:\.|$)/iu.test(baseName));
-  const licenseText = textFromEntry(licenseEntry) || fallback.licenseText;
-  const noticeText = textFromEntry(noticeEntry) || fallback.noticeText;
+  const licenseText = fallback.licenseText || textFromEntry(licenseEntry);
+  const noticeText = fallback.noticeText || textFromEntry(noticeEntry);
   const readmeText = textFromEntry(readmeEntry);
   const selectedLicense = chooseLicenseExpression(licenseExpression);
   const copyrightHints = extractCopyrightHints(licenseText, noticeText, readmeText, packageJson.author?.name || packageJson.author || '');
@@ -426,31 +494,57 @@ function renderNotices(records) {
   return `${lines.join('\n')}\n`;
 }
 
+
+async function mapWithConcurrency(items, concurrency, mapper) {
+  const results = new Array(items.length);
+  let nextIndex = 0;
+  async function worker() {
+    while (true) {
+      const index = nextIndex;
+      nextIndex += 1;
+      if (index >= items.length) return;
+      results[index] = await mapper(items[index], index);
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(concurrency, items.length) }, () => worker()));
+  return results;
+}
+
 async function main() {
   if (!fs.existsSync(lockPath)) {
     throw new Error('package-lock.json fehlt; Lizenzinventar kann nicht erzeugt werden.');
   }
 
-  removeDirectoryContents(licensesRoot);
-  const lock = readJson(lockPath);
-  const packageEntries = packageRecordsFromLock(lock);
-  const resolvedRecords = [];
-
-  for (const entry of packageEntries) {
-    const record = await resolvePackageRecord(entry.lockPackagePath, entry.meta);
-    const files = writePackageLicenseFiles(record);
-    resolvedRecords.push({ ...record, ...files });
+  const lockSha256 = sha256File(lockPath);
+  if (isGenerationCurrent(lockSha256)) {
+    const state = readGenerationState();
+    console.log(`Third-party license artifacts unchanged (${state.packageCount} records); generation skipped.`);
+    return;
   }
 
-  resolvedRecords.sort((a, b) => `${a.name}@${a.version}`.localeCompare(`${b.name}@${b.version}`));
-  writeTextIfChanged(inventoryPath, renderInventory(resolvedRecords));
-  writeTextIfChanged(noticesPath, renderNotices(resolvedRecords));
-  console.log(`Wrote ${resolvedRecords.length} third-party license records to ${path.relative(root, inventoryPath)}.`);
+  const lock = readJson(lockPath);
+  const packageEntries = packageRecordsFromLock(lock);
+  const resolvedRecords = await mapWithConcurrency(packageEntries, 12, async (entry) => {
+    const record = await resolvePackageRecord(entry.lockPackagePath, entry.meta);
+    return record;
+  });
+
+  removeDirectoryContents(licensesRoot);
+  const completedRecords = resolvedRecords.map((record) => ({ ...record, ...writePackageLicenseFiles(record) }));
+  completedRecords.sort((a, b) => `${a.name}@${a.version}`.localeCompare(`${b.name}@${b.version}`));
+  writeTextIfChanged(inventoryPath, renderInventory(completedRecords));
+  writeTextIfChanged(noticesPath, renderNotices(completedRecords));
+  writeGenerationState(lockSha256, completedRecords.length);
+  console.log(`Wrote ${completedRecords.length} third-party license records to ${path.relative(root, inventoryPath)}.`);
   console.log(`Wrote shared license texts below ${path.relative(root, licensesRoot)}.`);
   console.log(`Wrote copyright notices to ${path.relative(root, noticesPath)}.`);
 }
 
-main().catch((error) => {
-  console.error(error.message);
-  process.exit(1);
-});
+module.exports = { isGenerationCurrent, mapWithConcurrency, packageRecordsFromLock, sha256File };
+
+if (require.main === module) {
+  main().catch((error) => {
+    console.error(error.message);
+    process.exit(1);
+  });
+}

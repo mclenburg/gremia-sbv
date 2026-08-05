@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 3,
+  "methodology": "docs/quality/test-quality-metrics.md",
+  "maximumSourceAssertionRatio": 0.1,
+  "maximumHybridFiles": 34,
+  "establishedFrom": {
+    "metric": "sourceAssertions / assertions",
+    "maximumRatio": 0.1,
+    "note": "Dateikategorien werden nur berichtet; das Release-Gate gilt für den Anteil echter Quelltext-Stringassertions."
+  }
+}

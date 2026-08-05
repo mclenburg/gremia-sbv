@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "description": "AST-basierte Null-Baseline für explizite TypeScript-any-Schlüsselwörter. Jede neue Fundstelle ist verboten.",
+  "scope": [
+    "**/*.ts",
+    "**/*.tsx",
+    "**/*.mts",
+    "**/*.cts"
+  ],
+  "ignored": [
+    ".git",
+    "coverage",
+    "dist",
+    "dist-electron",
+    "node_modules",
+    "playwright-report",
+    "release",
+    "test-results",
+    "**/*.d.ts"
+  ],
+  "remediationPlan": {
+    "status": "abgeschlossen mit Patch N6",
+    "policy": "AST-Ratchet und ESLint no-explicit-any müssen dauerhaft bei null bleiben."
+  },
+  "summary": {
+    "total": 0,
+    "files": 0,
+    "byArea": {},
+    "byCategory": {},
+    "byFile": {}
+  },
+  "findings": []
+}

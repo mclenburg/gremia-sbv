@@ -19,6 +19,14 @@ const DEFAULT_LEGAL_BASIS: Record<SbvResourceRecordKind, string> = {
   other: '§ 179 SGB IX',
 };
 
+
+interface SbvResourceRow {
+  id: string; kind: SbvResourceRecordKind; title: string; legal_basis: string; started_at: string | null; ended_at: string | null;
+  provider: string | null; participants: string | null; task_context: string | null; necessity_reason: string | null;
+  employer_reaction: string | null; cost_note: string | null; status: SbvResourceRecordStatus; notes: string | null;
+  created_at: string; updated_at: string;
+}
+
 function nowIso(): string {
   return new Date().toISOString();
 }
@@ -39,7 +47,7 @@ function normalizeKind(value: unknown): SbvResourceRecordKind {
   return allowed.includes(value as SbvResourceRecordKind) ? value as SbvResourceRecordKind : 'other';
 }
 
-function mapRecord(row: any): SbvResourceRecord {
+function mapRecord(row: SbvResourceRow): SbvResourceRecord {
   return {
     id: row.id,
     kind: row.kind,
@@ -100,7 +108,7 @@ export class SbvResourceService {
 
   list(): SbvResourceRecord[] {
     this.audit('read', undefined);
-    return this.db.prepare<any>(`
+    return this.db.prepare<SbvResourceRow>(`
       SELECT * FROM sbv_resource_records
       ORDER BY COALESCE(started_at, created_at) DESC, updated_at DESC
     `).all().map(mapRecord);
@@ -198,7 +206,7 @@ export class SbvResourceService {
   }
 
   getById(id: string): SbvResourceRecord | undefined {
-    const row = this.db.prepare<any>('SELECT * FROM sbv_resource_records WHERE id = ?').get(id);
+    const row = this.db.prepare<SbvResourceRow>('SELECT * FROM sbv_resource_records WHERE id = ?').get(id);
     return row ? mapRecord(row) : undefined;
   }
 }

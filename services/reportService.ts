@@ -106,7 +106,19 @@ const REPORT_DESCRIPTORS: ReportDescriptor[] = [
   },
 ];
 
-type Row = Record<string, any>;
+type DynamicReportRow = Record<string, unknown>;
+
+interface ReportExportHistoryRow extends DynamicReportRow {
+  id: string;
+  report_type: string;
+  title: string;
+  file_name: string;
+  file_path: string;
+  period_start: string | null;
+  period_end: string | null;
+  warning_count: number | string | null;
+  created_at: string;
+}
 
 interface ReportBuildResult {
   html: string;
@@ -117,6 +129,10 @@ interface ReportBuildResult {
 
 function nowIso(): string {
   return new Date().toISOString();
+}
+
+function reportText(value: unknown): string | undefined {
+  return typeof value === 'string' ? value : undefined;
 }
 
 function formatDateTime(value?: string | null): string {
@@ -192,9 +208,9 @@ function count(
   }
 }
 
-function rows(db: DatabaseAdapter, sql: string, params: unknown[] = []): Row[] {
+function rows<T extends DynamicReportRow = DynamicReportRow>(db: DatabaseAdapter, sql: string, params: unknown[] = []): T[] {
   try {
-    return db.prepare<Row>(sql).all(...params);
+    return db.prepare<T>(sql).all(...params);
   } catch (error) {
     if (isMissingTableError(error)) return [];
     throw error;
@@ -216,10 +232,10 @@ function scalarText(
   }
 }
 
-function pragmaRows(db: DatabaseAdapter, sql: string): Row[] {
+function pragmaRows(db: DatabaseAdapter, sql: string): DynamicReportRow[] {
   try {
     const result = db.pragma(sql);
-    return Array.isArray(result) ? (result as Row[]) : [];
+    return Array.isArray(result) ? (result as DynamicReportRow[]) : [];
   } catch {
     return [];
   }
@@ -523,13 +539,8 @@ export class ReportService {
     private readonly dataDirProvider: () => string,
   ) {}
 
-  descriptors(): ReportDescriptor[] {
-    return REPORT_DESCRIPTORS;
-  }
-
   ensureSchema(): void {
-    const db = this.dbProvider();
-    db.exec(`
+    this.dbProvider().exec(`
       CREATE TABLE IF NOT EXISTS report_exports (
         id TEXT PRIMARY KEY,
         report_type TEXT NOT NULL,
@@ -542,13 +553,16 @@ export class ReportService {
         created_at TEXT NOT NULL
       );
       CREATE INDEX IF NOT EXISTS idx_report_exports_created_at ON report_exports(created_at DESC);
-      CREATE INDEX IF NOT EXISTS idx_report_exports_type ON report_exports(report_type);
     `);
+  }
+
+  descriptors(): ReportDescriptor[] {
+    return REPORT_DESCRIPTORS;
   }
 
   listHistory(limit = 25): ReportExportHistoryItem[] {
     const db = this.dbProvider();
-    return rows(
+    return rows<ReportExportHistoryRow>(
       db,
       `
       SELECT id, report_type, title, file_name, file_path, period_start, period_end, warning_count, created_at
@@ -746,11 +760,11 @@ export class ReportService {
       ${metricCards(metrics)}
       <section class="box"><h2>Maßnahmen im Berichtszeitraum</h2>${table(["Maßnahmentyp", "Angelegt", "Abgeschlossen", "Wiedereröffnet", "Abgebrochen", "Gelöscht"], measureRows)}<p>Die Maßnahmenzähler wurden aus strukturierten Lifecycle-Ereignissen der verifizierten Audit-HashChain gebildet. Gelöschte Fachdaten bleiben dadurch in der historischen Zählung erhalten.</p></section>
       <section class="box"><h2>Weitere Arbeitsfelder</h2>${table(["Arbeitsfeld", "Anzahl"], processRows)}</section>
-      <section class="box"><h2>Fallkategorien im Berichtszeitraum</h2>${table(["Kategorie", "Anzahl"], categories.map((row) => [normalizeStatus(row.category), row.value]))}</section>
-      <section class="box"><h2>Fallstatus zum Stichtag</h2>${table(["Status", "Anzahl"], statuses.map((row) => [normalizeStatus(row.status), row.value]))}</section>
-      <section class="box"><h2>Tätigkeitsjournal / SBV-Zeit</h2>${table(["Kategorie", "Einträge", "Minuten"], journalCategories.map((row) => [normalizeStatus(row.category), row.count, row.minutes]))}<p>Die Werte sind Eigenaufzeichnungen der SBV und keine Arbeitgeber-Arbeitszeitabrechnung. Außerhalb der Regelarbeitszeit dokumentierte Einträge werden nur aggregiert ausgewiesen.</p></section>
-      <section class="box"><h2>Beteiligungsverstöße nach Status</h2>${table(["Status", "Anzahl"], violationStatuses.map((row) => [normalizeStatus(row.status), row.value]))}</section>
-      <section class="box"><h2>Beteiligungsverstöße nach Eskalationsstufe</h2>${table(["Eskalationsstufe", "Anzahl"], violationStages.map((row) => [normalizeStatus(row.stage), row.value]))}</section>
+      <section class="box"><h2>Fallkategorien im Berichtszeitraum</h2>${table(["Kategorie", "Anzahl"], categories.map((row) => [normalizeStatus(reportText(row.category)), row.value]))}</section>
+      <section class="box"><h2>Fallstatus zum Stichtag</h2>${table(["Status", "Anzahl"], statuses.map((row) => [normalizeStatus(typeof row.status === 'string' ? row.status : undefined), row.value]))}</section>
+      <section class="box"><h2>Tätigkeitsjournal / SBV-Zeit</h2>${table(["Kategorie", "Einträge", "Minuten"], journalCategories.map((row) => [normalizeStatus(reportText(row.category)), row.count, row.minutes]))}<p>Die Werte sind Eigenaufzeichnungen der SBV und keine Arbeitgeber-Arbeitszeitabrechnung. Außerhalb der Regelarbeitszeit dokumentierte Einträge werden nur aggregiert ausgewiesen.</p></section>
+      <section class="box"><h2>Beteiligungsverstöße nach Status</h2>${table(["Status", "Anzahl"], violationStatuses.map((row) => [normalizeStatus(typeof row.status === 'string' ? row.status : undefined), row.value]))}</section>
+      <section class="box"><h2>Beteiligungsverstöße nach Eskalationsstufe</h2>${table(["Eskalationsstufe", "Anzahl"], violationStages.map((row) => [normalizeStatus(reportText(row.stage)), row.value]))}</section>
       <section class="box"><h2>Datenqualität und Integritätsnachweis</h2><p><strong>Datenabdeckung:</strong> ${coverageLabel}${projection.coverage.lifecycleStartedAt ? ` · Lifecycle-Protokoll seit ${formatDate(projection.coverage.lifecycleStartedAt)}` : ''}.</p><p>HashChain vollständig geprüft: ja · geprüfte Einträge: ${projection.chain.checkedEntries} · letzte Sequenz: ${projection.chain.lastSequence ?? '—'} · letzter Hash: ${hashPreview}… · Chain-Version: ${projection.chain.chainVersion}.</p>${projection.ignoredBaselineEvents ? `<p>${projection.ignoredBaselineEvents} technische Baseline-Ereignisse wurden nicht als historische Tätigkeit gezählt.</p>` : ''}</section>
       <section class="box"><h2>Datenschutz und Anonymisierung</h2><p>Dieser Tätigkeitsbericht enthält keine Namen, Aktenzeichen, Diagnosen, Dokumenttitel, Fall-IDs oder vertraulichen Freitexte. Bei kleinen Fallzahlen ist vor Weitergabe dennoch eine Rückrechenbarkeitsprüfung erforderlich.</p></section>`;
     return {
@@ -923,16 +937,16 @@ export class ReportService {
       ${metricCards(metrics)}
       <section class="box"><h2>Fallstatus</h2>${table(
         ["Status", "Anzahl"],
-        openByStatus.map((row) => [normalizeStatus(row.status), row.value]),
+        openByStatus.map((row) => [normalizeStatus(typeof row.status === 'string' ? row.status : undefined), row.value]),
       )}</section>
       <section class="box"><h2>Kritische Fristen</h2>${table(
         ["Titel", "Fall", "Fällig", "Stufe", "Status"],
         criticalDeadlines.map((row) => [
           row.title,
           row.case_number ?? "Freie Wiedervorlage",
-          formatDateTime(row.due_at),
-          normalizeStatus(row.severity),
-          normalizeStatus(row.status),
+          formatDateTime(reportText(row.due_at)),
+          normalizeStatus(reportText(row.severity)),
+          normalizeStatus(typeof row.status === 'string' ? row.status : undefined),
         ]),
       )}</section>
       <section class="box"><h2>Offene Fälle ohne Wiedervorlage</h2>${table(
@@ -1014,10 +1028,10 @@ export class ReportService {
     };
     const content = `${metricCards(metrics)}<section class="box"><h2>BEM-Status</h2>${table(
       ["Status", "Anzahl"],
-      bemStatuses.map((row) => [normalizeStatus(row.status), row.value]),
+      bemStatuses.map((row) => [normalizeStatus(typeof row.status === 'string' ? row.status : undefined), row.value]),
     )}</section><section class="box"><h2>Präventionsstatus</h2>${table(
       ["Status", "Anzahl"],
-      preventionStatuses.map((row) => [normalizeStatus(row.status), row.value]),
+      preventionStatuses.map((row) => [normalizeStatus(typeof row.status === 'string' ? row.status : undefined), row.value]),
     )}</section><section class="box"><h2>Datenschutz-Hinweis</h2><p>Dieser Bericht ist aggregiert. Vertrauliche BEM-Notizen, Diagnosen und Freitextinhalte werden nicht ausgegeben.</p></section>`;
     return {
       title: "BEM- und Präventionsbericht",
@@ -1080,13 +1094,13 @@ export class ReportService {
     };
     const content = `${metricCards(metrics)}<section class="box"><h2>Kündigungsarten</h2>${table(
       ["Art", "Anzahl"],
-      typeRows.map((row) => [normalizeStatus(row.termination_type), row.value]),
+      typeRows.map((row) => [normalizeStatus(reportText(row.termination_type)), row.value]),
     )}</section><section class="box"><h2>Verfahrensstatus</h2>${table(
       ["Status", "Anzahl"],
-      statusRows.map((row) => [normalizeStatus(row.status), row.value]),
+      statusRows.map((row) => [normalizeStatus(typeof row.status === 'string' ? row.status : undefined), row.value]),
     )}</section><section class="box"><h2>Schutzstatus</h2>${table(
       ["Status", "Anzahl"],
-      protectionRows.map((row) => [normalizeStatus(row.protection_status), row.value]),
+      protectionRows.map((row) => [normalizeStatus(reportText(row.protection_status)), row.value]),
     )}</section><section class="box"><h2>Prüfhinweis</h2><p>Der Bericht nutzt die aktuelle Kündigungsanhörungsstruktur ab Schema 0017/0019. Er gibt keine Begründungsfreitexte oder personenbezogenen Details aus.</p></section>`;
     return {
       title: "Kündigungsanhörungsbericht",
@@ -1148,8 +1162,8 @@ export class ReportService {
       "Frist überfällig": due,
     };
     const content = `${metricCards(metrics)}
-      <section class="box"><h2>Status</h2>${table(["Status", "Anzahl"], byStatus.map((row) => [normalizeStatus(row.status), row.value]))}</section>
-      <section class="box"><h2>Maßnahmearten</h2>${table(["Maßnahme", "Anzahl"], byMeasure.map((row) => [normalizeStatus(row.measure_type), row.value]))}</section>
+      <section class="box"><h2>Status</h2>${table(["Status", "Anzahl"], byStatus.map((row) => [normalizeStatus(typeof row.status === 'string' ? row.status : undefined), row.value]))}</section>
+      <section class="box"><h2>Maßnahmearten</h2>${table(["Maßnahme", "Anzahl"], byMeasure.map((row) => [normalizeStatus(reportText(row.measure_type)), row.value]))}</section>
       <section class="box"><h2>§ 178 Abs. 2 SGB IX Prüfpunkte</h2>${table(
         ["Prüffrage", "Befund"],
         [
@@ -1161,7 +1175,7 @@ export class ReportService {
         ],
       )}</section>
       <section class="box"><h2>Stellenbesetzungen ohne Fallbezug</h2>${table(["Prüffrage", "Befund"], [["Stellenbesetzungen im Zeitraum", recruitingCount], ["Vorstellungsgespräche als Beteiligungsereignis", recruitingInterviews], ["Anhörung vor Auswahlentscheidung offen", recruitingOpenHearings], ["Unterlagen unvollständig", recruitingMissingInformation], ["Verstoßprotokolle aus Stellenbesetzung", recruitingViolations]])}<p>Diese Auswertung enthält keine Bewerberreferenzen, Gesprächsnotizen, Diagnosen oder Eignungsbewertungen.</p></section>
-      <section class="box"><h2>Strukturierte Beteiligungsverstoß-Protokolle</h2>${table(["Eskalationsstufe", "Anzahl"], violationByStage.map((row) => [normalizeStatus(row.stage), row.value]))}${table(["Status", "Anzahl"], violationByStatus.map((row) => [normalizeStatus(row.status), row.value]))}<p>Die Auswertung enthält keine Schreibenstexte, Maßnahmendetails oder Freitexte.</p></section>`;
+      <section class="box"><h2>Strukturierte Beteiligungsverstoß-Protokolle</h2>${table(["Eskalationsstufe", "Anzahl"], violationByStage.map((row) => [normalizeStatus(reportText(row.stage)), row.value]))}${table(["Status", "Anzahl"], violationByStatus.map((row) => [normalizeStatus(typeof row.status === 'string' ? row.status : undefined), row.value]))}<p>Die Auswertung enthält keine Schreibenstexte, Maßnahmendetails oder Freitexte.</p></section>`;
     return {
       title: "SBV-Beteiligungsbericht",
       warnings,
@@ -1189,7 +1203,7 @@ export class ReportService {
     };
     const content = `${metricCards(metrics)}<section class="box"><h2>Antragsstatus</h2>${table(
       ["Status", "Anzahl"],
-      byStatus.map((row) => [normalizeStatus(row.application_status), row.value]),
+      byStatus.map((row) => [normalizeStatus(reportText(row.application_status)), row.value]),
     )}</section><section class="box"><h2>Datenschutzhinweis</h2><p>Dieser Bericht ist intern. Er enthält keine Namen, keine Bescheiddetails und keine Gesundheitsdaten, kann aber aufgrund kleiner Fallzahlen rückrechenbar sein.</p></section>`;
     return {
       title: "Gleichstellungs- und GdB-Bericht",
@@ -1219,7 +1233,7 @@ export class ReportService {
     };
     const content = `${metricCards(metrics)}<section class="box"><h2>Lösch-/Aufbewahrungsaktionen</h2>${table(
       ["Aktion", "Anzahl", "Datensätze", "Dateien"],
-      byAction.map((row) => [normalizeStatus(row.action_type), row.value, row.affected_rows ?? 0, row.affected_files ?? 0]),
+      byAction.map((row) => [normalizeStatus(reportText(row.action_type)), row.value, row.affected_rows ?? 0, row.affected_files ?? 0]),
     )}</section><section class="box"><h2>Prüfhinweis</h2><p>Der Bericht zeigt technische und fachliche Aufbewahrungsrisiken. Eine Löschung ist vor Ausführung rechtlich und fachlich zu prüfen; besonders SBV-Vertraulichkeit, laufende Ansprüche und Nachweispflichten sind zu berücksichtigen.</p></section>`;
     return {
       title: "Lösch- und Aufbewahrungsbericht",
@@ -1249,10 +1263,10 @@ export class ReportService {
     };
     const content = `${metricCards(metrics)}<section class="box"><h2>Aktionen</h2>${table(
       ["Aktion", "Anzahl"],
-      byAction.map((row) => [normalizeStatus(row.action), row.value]),
+      byAction.map((row) => [normalizeStatus(reportText(row.action)), row.value]),
     )}</section><section class="box"><h2>Betroffene Bereiche</h2>${table(
       ["Bereich", "Anzahl"],
-      bySubject.map((row) => [normalizeStatus(row.subject_type), row.value]),
+      bySubject.map((row) => [normalizeStatus(reportText(row.subject_type)), row.value]),
     )}</section><section class="box"><h2>Hash-Chain</h2>${table(
       ["Kennzahl", "Wert"],
       [
@@ -1731,8 +1745,8 @@ export class ReportService {
         migrationRows.map((row) => [
           row.version,
           row.filename,
-          formatDateTime(row.applied_at),
-          normalizeStatus(row.mode),
+          formatDateTime(reportText(row.applied_at)),
+          normalizeStatus(typeof row.mode === 'string' ? row.mode : undefined),
         ]),
       )}</section>`;
     return {

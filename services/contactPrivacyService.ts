@@ -3,7 +3,9 @@ import type { DatabaseAdapter } from './databaseService.js';
 
 const CONTACT_PLACEHOLDER = '[Kontakt anonymisiert]';
 
-const NOTE_FIELD_TO_COLUMN: Record<string, string> = {
+type CaseNoteTextColumn = 'title' | 'participants' | 'content' | 'next_steps';
+
+const NOTE_FIELD_TO_COLUMN: Record<string, CaseNoteTextColumn> = {
   title: 'title',
   participants: 'participants',
   content: 'content',
@@ -16,6 +18,29 @@ type ContactRow = {
   last_name: string;
   organization?: string | null;
 };
+
+
+interface TableNameRow { name: string; }
+interface CaseNoteTextRow {
+  [column: string]: string | null;
+  id: string;
+  title: string | null;
+  participants: string | null;
+  content: string | null;
+  next_steps: string | null;
+}
+interface ReindexNoteRow extends CaseNoteTextRow {
+  case_id: string;
+  case_number: string | null;
+  case_numbers: string | null;
+}
+interface ContactTextReferenceRow {
+  source_type: string;
+  source_id: string;
+  field_name: string;
+  matched_text: string;
+  replacement_text: string;
+}
 
 function nowIso(): string {
   return new Date().toISOString();
@@ -90,7 +115,7 @@ function replaceAllExact(value: string | null | undefined, terms: string[], repl
 }
 
 function contactTableExists(db: DatabaseAdapter): boolean {
-  const row = db.prepare<any>("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'contacts'").get();
+  const row = db.prepare<TableNameRow>("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'contacts'").get();
   return Boolean(row);
 }
 
@@ -131,7 +156,7 @@ export function ensureContactPrivacySchema(db: DatabaseAdapter): void {
 }
 
 function reindexNote(db: DatabaseAdapter, noteId: string): void {
-  const row = db.prepare<any>(`
+  const row = db.prepare<ReindexNoteRow>(`
     SELECT n.*, c.case_number,
       (SELECT GROUP_CONCAT(DISTINCT lc.case_number) FROM case_note_cases cnc JOIN cases lc ON lc.id = cnc.case_id WHERE cnc.note_id = n.id) AS case_numbers
     FROM case_notes n
@@ -158,7 +183,7 @@ function reindexNote(db: DatabaseAdapter, noteId: string): void {
 export function scanCaseNoteContactReferences(db: DatabaseAdapter, noteId: string): { linkedReferences: number; linkedContacts: number } {
   if (!contactTableExists(db)) return { linkedReferences: 0, linkedContacts: 0 };
 
-  const note = db.prepare<any>('SELECT id, title, participants, content, next_steps FROM case_notes WHERE id = ?').get(noteId);
+  const note = db.prepare<CaseNoteTextRow>('SELECT id, title, participants, content, next_steps FROM case_notes WHERE id = ?').get(noteId);
   if (!note) return { linkedReferences: 0, linkedContacts: 0 };
 
   db.prepare("DELETE FROM contact_text_references WHERE source_type = 'case_note' AND source_id = ?").run(noteId);
@@ -214,7 +239,7 @@ export function scanCaseNoteContactReferences(db: DatabaseAdapter, noteId: strin
 
 export function anonymizeContactReferences(db: DatabaseAdapter, contactId: string): { anonymizedReferences: number; touchedNotes: number } {
 
-  const refs = db.prepare<any>(`
+  const refs = db.prepare<ContactTextReferenceRow>(`
     SELECT source_type, source_id, field_name, matched_text, replacement_text
     FROM contact_text_references
     WHERE contact_id = ? AND anonymized_at IS NULL
@@ -237,10 +262,10 @@ export function anonymizeContactReferences(db: DatabaseAdapter, contactId: strin
   const touchedNotes = new Set<string>();
 
   for (const [noteId, fields] of noteUpdates.entries()) {
-    const note = db.prepare<any>('SELECT id, title, participants, content, next_steps FROM case_notes WHERE id = ?').get(noteId);
+    const note = db.prepare<CaseNoteTextRow>('SELECT id, title, participants, content, next_steps FROM case_notes WHERE id = ?').get(noteId);
     if (!note) continue;
 
-    const nextValues: Record<string, string | null> = {};
+    const nextValues: Partial<Record<CaseNoteTextColumn, string | null>> = {};
     let changed = false;
 
     for (const [fieldName, terms] of fields.entries()) {

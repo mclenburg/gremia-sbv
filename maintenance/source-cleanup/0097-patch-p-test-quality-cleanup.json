@@ -1,0 +1,13 @@
+{
+  "version": "0.9.6-p",
+  "reason": "Patch P removes redundant source-inspection release and documentation tests whose contracts are covered by executable readiness, version, build and behavior checks.",
+  "files": [
+    "tests/publicReleaseReviewP15l.test.ts",
+    "tests/releaseDocsP15r.test.ts",
+    "tests/releaseReadinessP15.test.ts",
+    "tests/rc091DocsAndArchitecture.test.ts",
+    "tests/rc091StepGReleaseSync.test.ts",
+    "tests/rcFreeze090rc1.test.ts"
+  ],
+  "directories": []
+}

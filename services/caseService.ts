@@ -43,11 +43,27 @@ import { SearchIndexService } from "./search/searchIndexService.js";
 import { extractDocumentTextBestEffort, inferMimeType } from "./documents/documentTextExtractionService.js";
 import { DocumentOcrService } from "./documents/documentOcrService.js";
 
+/** SQLite row at the persistence boundary. Values remain scalar and must be
+ * normalized by the service mapper before entering the domain model. */
+type DatabaseScalar = string;
+type DatabaseRow = Record<string, DatabaseScalar> & {
+  handover_status: CaseRecord['handoverStatus'];
+  person_binding_state: CaseRecord['personBindingState'];
+  privacy_risk: 'normal' | 'low' | 'high' | 'critical';
+  privacy_review_priority: NonNullable<CaseRecord['privacyReviewPriority']>;
+  extraction_quality: NonNullable<CaseDocumentRecord['extractionQuality']>;
+  text_extraction_status: NonNullable<CaseDocumentRecord['textExtractionStatus']>;
+  target_type: CaseNoteLinkRecord['targetType'];
+  extraction_method: 'manual' | 'unknown' | 'structured' | 'native_text' | 'ocr';
+  extraction_status: 'unknown' | 'extracted' | 'empty' | 'unsupported' | 'failed';
+  ocr_status: CaseDocumentRecord['ocrStatus'];
+};
+
 function nowIso(): string {
   return new Date().toISOString();
 }
 
-function effectiveHandoverStatus(row: any): CaseRecord['handoverStatus'] {
+function effectiveHandoverStatus(row: DatabaseRow): CaseRecord['handoverStatus'] {
   const status = row.handover_status ?? 'none';
   if (status === 'active' && row.handover_valid_until) {
     const validUntil = new Date(row.handover_valid_until);
@@ -56,7 +72,8 @@ function effectiveHandoverStatus(row: any): CaseRecord['handoverStatus'] {
   return status;
 }
 
-function mapCase(row: any): CaseRecord {
+function mapCase(row: DatabaseRow | undefined): CaseRecord {
+  if (!row) throw new Error('Fall wurde nicht gefunden.');
   return {
     id: row.id,
     caseNumber: row.case_number,
@@ -94,7 +111,8 @@ function splitCsv(value: unknown): string[] {
     .filter(Boolean);
 }
 
-function mapNote(row: any): CaseNoteRecord {
+function mapNote(row: DatabaseRow | undefined): CaseNoteRecord {
+  if (!row) throw new Error('Fallnotiz wurde nicht gefunden.');
   const caseIds = splitCsv(row.case_ids);
   const caseNumbers = splitCsv(row.case_numbers);
   return {
@@ -120,7 +138,7 @@ function mapNote(row: any): CaseNoteRecord {
 }
 
 
-function mapNoteLink(row: any): CaseNoteLinkRecord {
+function mapNoteLink(row: DatabaseRow): CaseNoteLinkRecord {
   return {
     id: row.id,
     caseNoteId: row.case_note_id,
@@ -136,7 +154,8 @@ function mapNoteLink(row: any): CaseNoteLinkRecord {
   };
 }
 
-function mapDocument(row: any): CaseDocumentRecord {
+function mapDocument(row: DatabaseRow | undefined): CaseDocumentRecord {
+  if (!row) throw new Error('Dokument wurde nicht gefunden.');
   return {
     id: row.id,
     caseId: row.case_id,
@@ -318,7 +337,7 @@ export class CaseService {
     if (!caseIds.length)
       throw new Error("Bitte mindestens eine Fallakte als Bezug auswählen.");
     const found = db
-      .prepare<any>(
+      .prepare<DatabaseRow>(
         `SELECT id FROM cases WHERE id IN (${caseIds.map(() => "?").join(",")})`,
       )
       .all(...caseIds);
@@ -363,7 +382,7 @@ export class CaseService {
 
 
   private listNoteLinks(db: DatabaseAdapter, noteId: string): CaseNoteLinkRecord[] {
-    const rows = db.prepare<any>(`
+    const rows = db.prepare<DatabaseRow>(`
       SELECT l.*,
         CASE
           WHEN l.target_type = 'bem' AND NOT EXISTS (SELECT 1 FROM bem_processes b WHERE b.id = l.target_id) THEN 1
@@ -438,7 +457,7 @@ export class CaseService {
       purpose: "Fallaktenliste anzeigen",
     });
     const rows = db
-      .prepare<any>(
+      .prepare<DatabaseRow>(
         "SELECT * FROM cases ORDER BY opened_at DESC, case_number DESC",
       )
       .all();
@@ -469,7 +488,7 @@ export class CaseService {
     });
 
     const existing = db
-      .prepare<any>("SELECT id FROM cases WHERE case_number = ?")
+      .prepare<DatabaseRow>("SELECT id FROM cases WHERE case_number = ?")
       .get(caseNumber);
     if (existing)
       throw new Error(`Das Aktenzeichen ist bereits vergeben: ${caseNumber}`);
@@ -496,7 +515,7 @@ export class CaseService {
       now,
     );
 
-    const created = db.prepare<any>("SELECT * FROM cases WHERE id = ?").get(id);
+    const created = db.prepare<DatabaseRow>("SELECT * FROM cases WHERE id = ?").get(id);
     this.audit(db, {
       action: "create",
       subjectType: "case",
@@ -517,7 +536,7 @@ export class CaseService {
       purpose: "Fallnotizen anzeigen",
     });
     const rows = db
-      .prepare<any>(
+      .prepare<DatabaseRow>(
         this.noteSelectSql(`
       WHERE EXISTS (SELECT 1 FROM case_note_cases link WHERE link.note_id = n.id AND link.case_id = ?)
       GROUP BY n.id
@@ -570,7 +589,7 @@ export class CaseService {
     this.indexNote(db, id);
     new SearchIndexService(db).reindexSource("note", id);
     const created = db
-      .prepare<any>(this.noteSelectSql("WHERE n.id = ? GROUP BY n.id"))
+      .prepare<DatabaseRow>(this.noteSelectSql("WHERE n.id = ? GROUP BY n.id"))
       .get(id);
     this.audit(db, {
       action: "create",
@@ -592,7 +611,7 @@ export class CaseService {
   ): Promise<CaseNoteRecord> {
     const db = this.getSafeDb();
     const before = db
-      .prepare<any>("SELECT * FROM case_notes WHERE id = ?")
+      .prepare<DatabaseRow>("SELECT * FROM case_notes WHERE id = ?")
       .get(id);
     if (!before) throw new Error(`Gesprächsnotiz nicht gefunden: ${id}`);
 
@@ -645,7 +664,7 @@ export class CaseService {
     this.indexNote(db, id);
     new SearchIndexService(db).reindexSource("note", id);
     const updated = db
-      .prepare<any>(this.noteSelectSql("WHERE n.id = ? GROUP BY n.id"))
+      .prepare<DatabaseRow>(this.noteSelectSql("WHERE n.id = ? GROUP BY n.id"))
       .get(id);
     this.audit(db, {
       action: "update",
@@ -664,10 +683,10 @@ export class CaseService {
     db.prepare("DELETE FROM case_note_cases WHERE note_id = ?").run(id);
     db.prepare("DELETE FROM case_note_links WHERE case_note_id = ?").run(id);
     const before = db
-      .prepare<any>("SELECT case_id FROM case_notes WHERE id = ?")
+      .prepare<DatabaseRow>("SELECT case_id FROM case_notes WHERE id = ?")
       .get(id);
     const result = db
-      .prepare<any>("DELETE FROM case_notes WHERE id = ?")
+      .prepare<DatabaseRow>("DELETE FROM case_notes WHERE id = ?")
       .run(id) as { changes?: number } | undefined;
     this.audit(db, {
       action: "delete",
@@ -702,7 +721,7 @@ export class CaseService {
       purpose: "Falldokumente anzeigen",
     });
     const rows = db
-      .prepare<any>(
+      .prepare<DatabaseRow>(
         `
       SELECT d.*, c.case_number, m.title AS measure_title, m.type AS measure_type
       FROM case_documents d
@@ -724,7 +743,7 @@ export class CaseService {
   ): Promise<CaseDocumentRecord> {
     const db = this.getSafeDb();
     const caseRow = db
-      .prepare<any>("SELECT id, case_number FROM cases WHERE id = ?")
+      .prepare<DatabaseRow>("SELECT id, case_number FROM cases WHERE id = ?")
       .get(caseId);
     if (!caseRow) throw new Error(`Fall nicht gefunden: ${caseId}`);
 
@@ -788,7 +807,7 @@ export class CaseService {
     new SearchIndexService(db).reindexSource("document", id);
     this.scheduleDocumentOcrIfUseful(db, id);
     const created = db
-      .prepare<any>(
+      .prepare<DatabaseRow>(
         `
       SELECT d.*, c.case_number, m.title AS measure_title, m.type AS measure_type
       FROM case_documents d
@@ -818,7 +837,7 @@ export class CaseService {
     this.tempFiles().cleanup();
   }
 
-  private decryptDocumentRow(row: any): Buffer {
+  private decryptDocumentRow(row: DatabaseRow): Buffer {
     if (
       !row?.storage_path ||
       !row?.document_key ||
@@ -852,7 +871,7 @@ export class CaseService {
   ): Promise<{ filePath: string; fileName: string }> {
     const db = this.getSafeDb();
     const row = db
-      .prepare<any>("SELECT * FROM case_documents WHERE id = ?")
+      .prepare<DatabaseRow>("SELECT * FROM case_documents WHERE id = ?")
       .get(id);
     if (!row) throw new Error(`Dokument nicht gefunden: ${id}`);
     await this.cleanupTemporaryDocumentCopies();
@@ -882,7 +901,7 @@ export class CaseService {
   ): Promise<{ exported: boolean; filePath: string }> {
     const db = this.getSafeDb();
     const row = db
-      .prepare<any>("SELECT * FROM case_documents WHERE id = ?")
+      .prepare<DatabaseRow>("SELECT * FROM case_documents WHERE id = ?")
       .get(id);
     if (!row) throw new Error(`Dokument nicht gefunden: ${id}`);
     const plain = this.decryptDocumentRow(row);
@@ -901,7 +920,7 @@ export class CaseService {
   async deleteDocument(id: string): Promise<{ deleted: boolean }> {
     const db = this.getSafeDb();
     const row = db
-      .prepare<any>(
+      .prepare<DatabaseRow>(
         "SELECT storage_path, case_id FROM case_documents WHERE id = ?",
       )
       .get(id);
@@ -909,7 +928,7 @@ export class CaseService {
     new SearchIndexService(db).deleteSource("document", id);
     new SearchIndexService(db).deleteSource("document_ocr", id);
     const result = db
-      .prepare<any>("DELETE FROM case_documents WHERE id = ?")
+      .prepare<DatabaseRow>("DELETE FROM case_documents WHERE id = ?")
       .run(id) as { changes?: number } | undefined;
     if (row?.storage_path) {
       await fs.promises
@@ -928,7 +947,7 @@ export class CaseService {
 
   private indexNote(db: DatabaseAdapter, noteId: string): void {
     const row = db
-      .prepare<any>(
+      .prepare<DatabaseRow>(
         `
       SELECT n.*, c.case_number,
         (SELECT GROUP_CONCAT(DISTINCT lc.case_number) FROM case_note_cases cnc JOIN cases lc ON lc.id = cnc.case_id WHERE cnc.note_id = n.id) AS case_numbers
@@ -959,7 +978,7 @@ export class CaseService {
 
   private indexDocument(db: DatabaseAdapter, documentId: string): void {
     const row = db
-      .prepare<any>(
+      .prepare<DatabaseRow>(
         `
       SELECT d.*, c.case_number
       FROM case_documents d

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, BriefcaseBusiness, CalendarClock, ClipboardList, PlusCircle, Save } from 'lucide-react';
 import type { CreateDeadlineInput } from '../../core/models/deadline.model';
 import type {
@@ -218,7 +218,7 @@ export function RecruitingParticipationsView({
   const selected = useMemo(() => records.find((record) => record.id === selectedId) ?? null, [records, selectedId]);
   const riskHints = selected ? getRecruitingRiskHints(selected) : [];
 
-  async function reload(preferredId?: string | null) {
+  const reload = useCallback(async (preferredId?: string | null) => {
     setLoading(true);
     setError('');
     try {
@@ -243,11 +243,11 @@ export function RecruitingParticipationsView({
     } finally {
       setLoading(false);
     }
-  }
+  }, [selectedId]);
 
   useEffect(() => {
     void reload(null);
-  }, []);
+  }, [reload]);
 
   useEffect(() => {
     if (error) announce(error, 'assertive');

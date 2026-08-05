@@ -8,6 +8,84 @@ import type {
 } from './searchTypes.js';
 import type { ConfidentialLevel } from '../../src/app/core/models/case-note.model.js';
 
+interface SearchProviderRow extends Record<string, unknown> {
+  id: string;
+  case_id: string;
+  accommodation_status?: string | null;
+  agency_reference?: string | null;
+  application_status?: string | null;
+  barrier_or_limitation?: string | null;
+  case_number?: string | null;
+  category?: string | null;
+  completion_reason?: string | null;
+  confidential_level?: string | null;
+  confidential_notes?: string | null;
+  consent_scope?: string | null;
+  contains_health_data?: number | string | null;
+  content?: string | null;
+  created_at?: string | null;
+  data_retention_note?: string | null;
+  decision_notified?: number | string | null;
+  decision_stage?: string | null;
+  description?: string | null;
+  difficulty_type?: string | null;
+  display_name?: string | null;
+  display_title?: string | null;
+  employer_measure_type?: string | null;
+  employer_reason?: string | null;
+  employer_request_summary?: string | null;
+  employer_response_status?: string | null;
+  event_type?: string | null;
+  extracted_text?: string | null;
+  extraction_quality?: string | null;
+  filename?: string | null;
+  hazard_description?: string | null;
+  hearing_before_decision?: number | string | null;
+  implementation_status?: string | null;
+  information_complete?: number | string | null;
+  legal_basis?: string | null;
+  measure_id?: string | null;
+  measure_owners?: string | null;
+  measure_type?: string | null;
+  measures?: string | null;
+  mime_type?: string | null;
+  missing_information?: string | null;
+  next_step?: string | null;
+  next_steps?: string | null;
+  notes?: string | null;
+  occurred_at?: string | null;
+  ocr_engine?: string | null;
+  ocr_status?: string | null;
+  ocr_text?: string | null;
+  outcome?: string | null;
+  participants?: string | null;
+  participation_status?: string | null;
+  person_status?: string | null;
+  process_id?: string | null;
+  proposed_solution?: string | null;
+  protection_status?: string | null;
+  requested_adjustment?: string | null;
+  result?: string | null;
+  risk_level?: string | null;
+  risk_type?: string | null;
+  sbv_assessment?: string | null;
+  sbv_position?: string | null;
+  source_id?: string | null;
+  statement?: string | null;
+  status?: string | null;
+  summary?: string | null;
+  termination_type?: string | null;
+  text_extraction_status?: string | null;
+  text_extractor_id?: string | null;
+  title?: string | null;
+  trigger_description?: string | null;
+  trigger_type?: string | null;
+  type?: string | null;
+  updated_at?: string | null;
+  violation_summary?: string | null;
+  workplace_context?: string | null;
+}
+
 function nowIso(): string {
   return new Date().toISOString();
 }
@@ -42,7 +120,7 @@ type SqlProviderDefinition = {
   requiredTables: readonly string[];
   allSql: string;
   caseSql: string;
-  map(row: any): CaseSearchDocument;
+  map(row: SearchProviderRow): CaseSearchDocument;
 };
 
 function makeSqlProvider(definition: SqlProviderDefinition): CaseSearchProvider {
@@ -52,11 +130,11 @@ function makeSqlProvider(definition: SqlProviderDefinition): CaseSearchProvider 
     requiredTables: definition.requiredTables,
     collectAll(db) {
       if (!hasRequiredTables(db, definition.requiredTables)) return [];
-      return db.prepare<any>(definition.allSql).all().map(definition.map);
+      return db.prepare<SearchProviderRow>(definition.allSql).all().map(definition.map);
     },
     collectForCase(db, caseId) {
       if (!hasRequiredTables(db, definition.requiredTables)) return [];
-      return db.prepare<any>(definition.caseSql).all(caseId).map(definition.map);
+      return db.prepare<SearchProviderRow>(definition.caseSql).all(caseId).map(definition.map);
     },
     latestUpdatedAtForCase(db, caseId) {
       if (!hasRequiredTables(db, definition.requiredTables)) return undefined;
@@ -79,20 +157,20 @@ function makeSqlProvider(definition: SqlProviderDefinition): CaseSearchProvider 
 }
 
 function documentFromRow(
-  row: any,
+  row: SearchProviderRow,
   sourceType: CaseSearchSourceType,
   sourceLabel: string,
   title: string,
   content: string,
   navigationKind: CaseSearchNavigationKind,
-  navigationId: string,
+  navigationId: string | null | undefined,
   options: Partial<Pick<CaseSearchDocument, 'keywords' | 'occurredAt' | 'confidentiality' | 'containsHealthData' | 'extractionQuality'>> & { navigationSubId?: string } = {},
 ): CaseSearchDocument {
   return {
-    caseId: row.case_id,
+    caseId: String(row.case_id),
     caseNumber: row.case_number ?? undefined,
     sourceType,
-    sourceId: row.source_id ?? row.id,
+    sourceId: String(row.source_id ?? row.id),
     sourceLabel,
     title: title.trim() || sourceLabel,
     content: content.trim(),
@@ -104,7 +182,7 @@ function documentFromRow(
     extractionQuality: options.extractionQuality ?? 'structured',
     navigationTarget: {
       kind: navigationKind,
-      id: navigationId,
+      id: String(navigationId ?? row.source_id ?? row.id),
       subId: options.navigationSubId,
     },
   };
@@ -154,7 +232,7 @@ export const caseNotesSearchProvider = makeSqlProvider({
     'note',
     row.id,
     {
-      occurredAt: row.occurred_at,
+      occurredAt: row.occurred_at ?? undefined,
       containsHealthData: bool(row.contains_health_data),
       confidentiality: (row.confidential_level ?? 'sensibel') as ConfidentialLevel,
       extractionQuality: 'manual',
@@ -187,7 +265,7 @@ export const caseDocumentsSearchProvider = makeSqlProvider({
     row.id,
     {
       keywords: text(row.mime_type, row.text_extraction_status, row.extraction_quality, row.text_extractor_id, row.ocr_status, row.ocr_engine),
-      occurredAt: row.occurred_at,
+      occurredAt: row.occurred_at ?? undefined,
       containsHealthData: bool(row.contains_health_data),
       confidentiality: 'sensibel',
       extractionQuality: (row.extraction_quality ?? (row.extracted_text ? 'native_text' : 'unknown')) as CaseSearchExtractionQuality,
@@ -222,7 +300,7 @@ export const documentOcrSearchProvider = makeSqlProvider({
     row.id,
     {
       keywords: text(row.mime_type, row.ocr_status, row.ocr_engine),
-      occurredAt: row.occurred_at,
+      occurredAt: row.occurred_at ?? undefined,
       containsHealthData: bool(row.contains_health_data),
       confidentiality: 'sensibel',
       extractionQuality: 'ocr',
@@ -252,10 +330,10 @@ export const caseMeasureNotesSearchProvider = makeSqlProvider({
     row.title ?? 'Maßnahmennotiz',
     text(row.measure_type, row.participants, row.content, row.next_steps),
     'measure',
-    row.measure_id,
+    row.measure_id ?? undefined,
     {
-      navigationSubId: row.id,
-      occurredAt: row.occurred_at,
+      navigationSubId: row.id ?? undefined,
+      occurredAt: row.occurred_at ?? undefined,
       containsHealthData: bool(row.contains_health_data),
       confidentiality: (row.confidential_level ?? 'sensibel') as ConfidentialLevel,
       extractionQuality: 'manual',

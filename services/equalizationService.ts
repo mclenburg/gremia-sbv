@@ -5,6 +5,14 @@ import { PersonalDataAuditLogService } from './auditLogService.js';
 import { MeasureLifecycleAuditService } from './measureLifecycleAuditService.js';
 import type { CreateEqualizationProcessInput, EqualizationProcessRecord, EqualizationStatus, UpdateEqualizationProcessInput } from '../src/app/core/models/equalization.model.js';
 
+/** SQLite row at the persistence boundary. Values remain scalar and must be
+ * normalized by the service mapper before entering the domain model. */
+type DatabaseScalar = string;
+type DatabaseRow = Record<string, DatabaseScalar> & {
+  status: EqualizationStatus;
+  application_status: EqualizationStatus;
+};
+
 function nowIso(): string {
   return new Date().toISOString();
 }
@@ -13,7 +21,7 @@ function optionalIso(value?: string): string | null {
   return value ? new Date(value).toISOString() : null;
 }
 
-function mapEqualization(row: any): EqualizationProcessRecord {
+function mapEqualization(row: DatabaseRow): EqualizationProcessRecord {
   return {
     id: row.id,
     caseId: row.case_id,
@@ -50,7 +58,7 @@ export class EqualizationService {
       ? 'SELECT * FROM equalization_processes WHERE case_id = ? ORDER BY updated_at DESC'
       : 'SELECT * FROM equalization_processes ORDER BY updated_at DESC';
     this.audit('read', undefined, caseId, 'equalization_process Liste anzeigen');
-    const rows = caseId ? this.db.prepare<any>(sql).all(caseId) : this.db.prepare<any>(sql).all();
+    const rows = caseId ? this.db.prepare<DatabaseRow>(sql).all(caseId) : this.db.prepare<DatabaseRow>(sql).all();
     return rows.map(mapEqualization);
   }
 
@@ -88,7 +96,7 @@ export class EqualizationService {
 
   getById(id: string): EqualizationProcessRecord | undefined {
     this.audit('read', id, undefined, 'equalization_process Detail anzeigen');
-    const row = this.db.prepare<any>('SELECT * FROM equalization_processes WHERE id = ?').get(id);
+    const row = this.db.prepare<DatabaseRow>('SELECT * FROM equalization_processes WHERE id = ?').get(id);
     return row ? mapEqualization(row) : undefined;
   }
 
@@ -127,7 +135,7 @@ export class EqualizationService {
       this.lifecycleAudit.statusChanged('equalization_gdb', id, existing.caseId, existing.applicationStatus, next.applicationStatus);
       this.auditLog.append({ action: 'update', subjectType: 'equalization_process', subjectId: id, caseId: existing.caseId, purpose: 'equalization_process geändert' });
     });
-    const row = this.db.prepare<any>('SELECT * FROM equalization_processes WHERE id = ?').get(id);
+    const row = this.db.prepare<DatabaseRow>('SELECT * FROM equalization_processes WHERE id = ?').get(id);
     if (!row) throw new Error(`Equalization process not found after update: ${id}`);
     return mapEqualization(row);
   }

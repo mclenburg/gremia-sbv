@@ -5,6 +5,24 @@ import { PersonalDataAuditLogService } from '../auditLogService.js';
 import type { PersonalDataAuditAction } from '../../src/app/core/models/audit.model.js';
 import type { CaseSearchDocument, CaseSearchProvider } from './searchTypes.js';
 
+
+interface CaseSearchResultRow {
+  source_type: CaseSearchSourceType;
+  source_id: string;
+  source_label: string;
+  case_id: string;
+  case_number: string | null;
+  case_numbers?: string | null;
+  title: string | null;
+  excerpt: string | null;
+  extraction_quality: CaseSearchResult['extractionQuality'] | null;
+  navigation_kind: CaseSearchResult['navigationKind'] | null;
+  navigation_id: string | null;
+  navigation_sub_id: string | null;
+  occurred_at: string | null;
+  rank: number | string | null;
+}
+
 function nowIso(): string {
   return new Date().toISOString();
 }
@@ -97,7 +115,7 @@ function highlightQueryInExcerpt(excerpt: string, query: string): CaseSearchHigh
   return highlightSegments(excerpt.replace(new RegExp(`(${terms.join('|')})`, 'gi'), '[$1]'));
 }
 
-function mapRow(row: any): CaseSearchResult {
+function mapRow(row: CaseSearchResultRow): CaseSearchResult {
   const caseNumbers = typeof row.case_numbers === 'string' && row.case_numbers.trim()
     ? row.case_numbers.split(',').map((entry: string) => entry.trim()).filter(Boolean)
     : undefined;
@@ -275,7 +293,7 @@ export class SearchIndexService {
     let count = 0;
     for (const id of ids) {
       this.db.prepare('DELETE FROM case_search_index_fts WHERE index_id = ?').run(id);
-      const result = this.db.prepare<any>('DELETE FROM case_search_index WHERE id = ?').run(id) as { changes?: number } | undefined;
+      const result = this.db.prepare('DELETE FROM case_search_index WHERE id = ?').run(id) as { changes?: number } | undefined;
       count += Number(result?.changes ?? 0);
     }
     this.db.prepare('DELETE FROM case_search_index_state WHERE case_id = ?').run(caseId);
@@ -292,7 +310,7 @@ export class SearchIndexService {
     let count = 0;
     for (const row of rows) {
       this.db.prepare('DELETE FROM case_search_index_fts WHERE index_id = ?').run(row.id);
-      const result = this.db.prepare<any>('DELETE FROM case_search_index WHERE id = ?').run(row.id) as { changes?: number } | undefined;
+      const result = this.db.prepare('DELETE FROM case_search_index WHERE id = ?').run(row.id) as { changes?: number } | undefined;
       count += Number(result?.changes ?? 0);
     }
     for (const caseId of caseIds) this.invalidateCase(caseId);
@@ -315,7 +333,7 @@ export class SearchIndexService {
       const ftsQuery = escapeFtsQuery(query);
       const sourceFilter = sourceTypeFilterClause(sourceTypes);
       const rows = input.caseId
-        ? this.db.prepare<any>(`
+        ? this.db.prepare<CaseSearchResultRow>(`
             SELECT i.source_type, i.source_id, i.source_label, i.case_id, i.case_number, i.title,
               snippet(case_search_index_fts, 2, '[', ']', ' … ', 20) AS excerpt,
               i.occurred_at, i.extraction_quality, i.navigation_kind, i.navigation_id, i.navigation_sub_id,
@@ -326,7 +344,7 @@ export class SearchIndexService {
             ORDER BY rank, i.updated_at DESC
             LIMIT ?
           `).all(ftsQuery, input.caseId, ...sourceFilter.params, limit)
-        : this.db.prepare<any>(`
+        : this.db.prepare<CaseSearchResultRow>(`
             SELECT i.source_type, i.source_id, i.source_label, i.case_id, i.case_number, i.title,
               snippet(case_search_index_fts, 2, '[', ']', ' … ', 20) AS excerpt,
               i.occurred_at, i.extraction_quality, i.navigation_kind, i.navigation_id, i.navigation_sub_id,
@@ -452,7 +470,7 @@ export class SearchIndexService {
     const pattern = likePattern(query);
     const sourceFilter = fallbackSourceTypeFilterClause(sourceTypes);
     const rows = caseId
-      ? this.db.prepare<any>(`
+      ? this.db.prepare<CaseSearchResultRow>(`
           SELECT source_type, source_id, source_label, case_id, case_number, title,
             substr(COALESCE(content, title), 1, 220) AS excerpt,
             occurred_at, extraction_quality, navigation_kind, navigation_id, navigation_sub_id, 100 AS rank
@@ -462,7 +480,7 @@ export class SearchIndexService {
           ORDER BY updated_at DESC
           LIMIT ?
         `).all(caseId, pattern, pattern, pattern, pattern, ...sourceFilter.params, limit)
-      : this.db.prepare<any>(`
+      : this.db.prepare<CaseSearchResultRow>(`
           SELECT source_type, source_id, source_label, case_id, case_number, title,
             substr(COALESCE(content, title), 1, 220) AS excerpt,
             occurred_at, extraction_quality, navigation_kind, navigation_id, navigation_sub_id, 100 AS rank
@@ -471,7 +489,7 @@ export class SearchIndexService {
           ORDER BY updated_at DESC
           LIMIT ?
         `).all(pattern, pattern, pattern, pattern, ...sourceFilter.params, limit);
-    return rankResults(rows.map((row: any) => ({ ...mapRow(row), excerptSegments: highlightQueryInExcerpt(String(row.excerpt ?? ''), query) }))).slice(0, limit);
+    return rankResults(rows.map((row) => ({ ...mapRow(row), excerptSegments: highlightQueryInExcerpt(String(row.excerpt ?? ''), query) }))).slice(0, limit);
   }
 
   private indexId(sourceType: string, sourceId: string, caseId: string): string {

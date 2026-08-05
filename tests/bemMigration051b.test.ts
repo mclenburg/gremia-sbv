@@ -1,34 +1,47 @@
-import { describe, expect, it } from "vitest";
-import { indexOfPattern, readNormalizedSourceText } from "./helpers/sourceText";
+import path from 'node:path';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { MigrationService } from '../services/migrationService';
+import type { DatabaseAdapter } from '../services/databaseService';
+import { openTestDatabase } from './helpers/openTestDatabase';
 
-function readMigrationSql() {
-  return readNormalizedSourceText("database/migrations/0015_bem_process.sql");
+let db: DatabaseAdapter;
+
+beforeEach(async () => { db = await openTestDatabase(); });
+afterEach(() => db.close());
+
+function migrator(): MigrationService {
+  return new MigrationService(db, path.resolve('database/schema.sql'), path.resolve('database/migrations'));
 }
 
-const minimalBemProcessTablePattern = /CREATE TABLE IF NOT EXISTS bem_processes\s*\(\s*id TEXT PRIMARY KEY,\s*case_id TEXT\s*\);/m;
+describe('BEM-Schemamigration – ausführbarer Vertrag', () => {
+  it('erzeugt auf einer frischen Datenbank das vollständige BEM-Schema', () => {
+    const result = migrator().migrate();
+    const columns = db.prepare<{ name: string }>('PRAGMA table_info(bem_processes)').all().map((row) => row.name);
 
-describe("robust BEM migration", () => {
-  it("does not read unknown legacy columns from early bem_processes tables", () => {
-    const sql = readMigrationSql();
-
-    expect(sql).toContain("bem_processes_legacy_0500");
-    expect(sql).toContain("CREATE TABLE IF NOT EXISTS bem_processes");
-    expect(sql).toContain("status TEXT NOT NULL DEFAULT 'zu_pruefen'");
-    expect(sql).toContain("title TEXT NOT NULL DEFAULT 'BEM-Verfahren'");
-    expect(sql).not.toContain("SELECT");
-    expect(sql).not.toContain("COALESCE(title");
-    expect(sql).not.toContain("current_phase =");
+    expect(result.currentSchemaVersion).not.toBe('0000');
+    expect(columns).toEqual(expect.arrayContaining([
+      'id', 'case_id', 'status', 'title', 'trigger_type', 'employee_response',
+      'privacy_notice_at', 'consent_scope', 'measure_owners', 'completion_reason',
+      'created_at', 'updated_at',
+    ]));
+    expect(db.prepare<{ found: number }>("SELECT 1 AS found FROM sqlite_master WHERE type='table' AND name='bem_process_events'").get()?.found).toBe(1);
+    expect(db.prepare<{ found: number }>("SELECT 1 AS found FROM sqlite_master WHERE type='table' AND name='bem_process_contacts'").get()?.found).toBe(1);
   });
 
-  it("is fresh-install safe by creating a minimal table before rename", () => {
-    const sql = readMigrationSql();
+  it('ist idempotent und lässt bereits erzeugte BEM-Daten unverändert', () => {
+    migrator().migrate();
+    const now = new Date().toISOString();
+    db.prepare(`INSERT INTO cases (
+      id, case_number, display_name, category, status, priority, opened_at,
+      is_pseudonymized, is_locked, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)` )
+      .run('case-bem', 'SBV-TEST', 'Testperson', 'bem', 'offen', 'normal', now, 1, 0, now, now);
+    db.prepare(`INSERT INTO bem_processes (id, case_id, status, title, trigger_type, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?)`).run('bem-1', 'case-bem', 'offered', 'BEM-Test', 'absence', new Date().toISOString(), new Date().toISOString());
 
-    const dummyTable = indexOfPattern(sql, minimalBemProcessTablePattern);
-    const rename = sql.indexOf("ALTER TABLE bem_processes RENAME TO bem_processes_legacy_0500;");
-    const realTable = sql.lastIndexOf("CREATE TABLE IF NOT EXISTS bem_processes (");
-
-    expect(dummyTable).toBeGreaterThan(-1);
-    expect(rename).toBeGreaterThan(dummyTable);
-    expect(realTable).toBeGreaterThan(rename);
+    const second = migrator().migrate();
+    expect(second.applied).toEqual([]);
+    expect(db.prepare<{ title: string }>('SELECT title FROM bem_processes WHERE id = ?').get('bem-1')?.title).toBe('BEM-Test');
+    expect(db.prepare<{ count: number }>('SELECT COUNT(*) AS count FROM bem_processes WHERE id = ?').get('bem-1')?.count).toBe(1);
   });
 });

@@ -113,7 +113,21 @@ function isLifecycleMetadata(value: unknown): value is MeasureLifecycleAuditMeta
     && REPORTABLE_MEASURE_TYPES.includes(candidate.measureType as ReportableMeasureType);
 }
 
-function mapChainRow(row: any): AuditChainRowInput {
+interface PersonalDataAuditLogRow {
+  sequence: number | string;
+  occurred_at: string;
+  actor: string;
+  action: string;
+  subject_type: string;
+  subject_id: string | null;
+  case_id: string | null;
+  purpose: string;
+  metadata_json: string;
+  previous_hash: string;
+  entry_hash: string;
+}
+
+function mapChainRow(row: PersonalDataAuditLogRow): AuditChainRowInput {
   return {
     sequence: Number(row.sequence),
     occurredAt: row.occurred_at,
@@ -133,7 +147,7 @@ export class ActivityReportProjectionService {
   constructor(private readonly db: DatabaseAdapter) {}
 
   build(period: ActivityReportPeriod = {}): ActivityReportProjection {
-    const rows = this.db.prepare<any>('SELECT * FROM personal_data_audit_log ORDER BY sequence ASC').all();
+    const rows = this.db.prepare<PersonalDataAuditLogRow>('SELECT * FROM personal_data_audit_log ORDER BY sequence ASC').all();
     const verification = verifyAuditHashChain(rows.map(mapChainRow));
     if (!verification.ok) throw new ActivityReportIntegrityError(verification.firstBrokenSequence);
 

@@ -41,14 +41,10 @@ export interface AppendMeasureLifecycleInput {
 }
 
 export class MeasureLifecycleAuditService {
-  private readonly audit: PersonalDataAuditLogService;
-
   constructor(
     private readonly db: DatabaseAdapter,
-    audit?: PersonalDataAuditLogService,
-  ) {
-    this.audit = audit ?? new PersonalDataAuditLogService(db);
-  }
+    private readonly audit: PersonalDataAuditLogService = new PersonalDataAuditLogService(db),
+  ) {}
 
   append(input: AppendMeasureLifecycleInput): void {
     const metadata: MeasureLifecycleAuditMetadata = {
@@ -103,14 +99,20 @@ export class MeasureLifecycleAuditService {
   }): number {
     const exists = this.db.prepare<{ value: number }>("SELECT 1 AS value FROM sqlite_master WHERE type = 'table' AND name = ?").get(options.table);
     if (!exists) return 0;
-    const rows = this.db.prepare<any>(`
+    interface BaselineMeasureRow {
+      id: string;
+      status?: string | null;
+      case_id?: string | null;
+      measure_type?: string | null;
+    }
+    const rows = this.db.prepare<BaselineMeasureRow>(`
       SELECT id, ${options.statusColumn} AS status${options.caseColumn ? `, ${options.caseColumn} AS case_id` : ''}${options.typeColumn ? `, ${options.typeColumn} AS measure_type` : ''}
       FROM ${options.table}
     `).all();
     let created = 0;
     for (const row of rows) {
       if (this.hasLifecycleEntry(row.id)) continue;
-      this.created(options.typeMap && row.measure_type ? options.typeMap(row.measure_type) : options.measureType, row.id, row.case_id ?? undefined, row.status, 'migration_baseline');
+      this.created(options.typeMap && row.measure_type ? options.typeMap(row.measure_type) : options.measureType, row.id, row.case_id ?? undefined, row.status ?? undefined, 'migration_baseline');
       created += 1;
     }
     return created;

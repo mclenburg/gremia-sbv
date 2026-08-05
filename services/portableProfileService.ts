@@ -6,6 +6,16 @@ function nowIso(): string {
   return new Date().toISOString();
 }
 
+interface PortableProfileRow {
+  id: string;
+  is_portable_mode: number | boolean;
+  data_root: string;
+  document_root: string;
+  backup_root: string;
+  last_path_check_at: string | null;
+  notes: string | null;
+}
+
 export class PortableProfileService {
   constructor(private readonly db: DatabaseAdapter) {}
 
@@ -27,7 +37,7 @@ export class PortableProfileService {
   }
 
   get(): PortableProfile | undefined {
-    const row = this.db.prepare<any>("SELECT * FROM portable_profile WHERE id = 'default'").get();
+    const row = this.db.prepare<PortableProfileRow>("SELECT * FROM portable_profile WHERE id = 'default'").get();
     if (!row) return undefined;
     return {
       id: 'default',

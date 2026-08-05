@@ -20,6 +20,20 @@ import type {
   UpdateCaseMeasureNoteInput
 } from '../src/app/core/models/case-measure.model.js';
 
+/** SQLite row at the persistence boundary. Values remain scalar and must be
+ * normalized by the service mapper before entering the domain model. */
+type DatabaseScalar = string;
+type DatabaseRow = Record<string, DatabaseScalar> & {
+  handover_status: CaseMeasureRecord['handoverStatus'];
+  type: CaseMeasureRecord['type'];
+  status: CaseMeasureRecord['status'];
+  risk_level: CaseMeasureRecord['riskLevel'];
+  created_from: CaseMeasureRecord['createdFrom'];
+  measure_type: CaseMeasureNoteRecord['measureType'];
+  sensitivity: 'normal' | 'sensibel' | 'hoch_sensibel';
+  confidential_level: CaseMeasureNoteRecord['confidentialLevel'];
+};
+
 function nowIso(): string {
   return new Date().toISOString();
 }
@@ -52,7 +66,7 @@ function assertMeasureNoteType(value: CaseMeasureNoteProcessType): void {
   if (!MEASURE_SOURCE_TABLES[value]) throw new Error(`Unbekannter Maßnahmentyp: ${value}`);
 }
 
-function effectiveHandoverStatus(row: any): CaseMeasureRecord['handoverStatus'] {
+function effectiveHandoverStatus(row: DatabaseRow): CaseMeasureRecord['handoverStatus'] {
   const status = row.handover_status ?? 'none';
   if (status === 'active' && row.handover_valid_until) {
     const validUntil = new Date(row.handover_valid_until);
@@ -61,7 +75,7 @@ function effectiveHandoverStatus(row: any): CaseMeasureRecord['handoverStatus'] 
   return status;
 }
 
-function mapMeasure(row: any): CaseMeasureRecord {
+function mapMeasure(row: DatabaseRow): CaseMeasureRecord {
   return {
     id: row.id,
     caseId: row.case_id,
@@ -88,7 +102,8 @@ function mapMeasure(row: any): CaseMeasureRecord {
   };
 }
 
-function mapMeasureNote(row: any): CaseMeasureNoteRecord {
+function mapMeasureNote(row: DatabaseRow | undefined): CaseMeasureNoteRecord {
+  if (!row) throw new Error('Maßnahmennotiz wurde nicht gefunden.');
   return {
     id: row.id,
     caseId: row.case_id,
@@ -196,32 +211,32 @@ export class CaseMeasureService {
     const source = MEASURE_SOURCE_TABLES[type];
     const typeClause = source.typeColumn ? ` AND ${source.typeColumn} = ?` : '';
     const params = source.typeColumn ? [measureId, caseId, source.typeValue] : [measureId, caseId];
-    const row = this.db.prepare<any>(`SELECT ${source.idColumn} AS id FROM ${source.table} WHERE ${source.idColumn} = ? AND ${source.caseColumn} = ?${typeClause}`).get(...params);
+    const row = this.db.prepare<DatabaseRow>(`SELECT ${source.idColumn} AS id FROM ${source.table} WHERE ${source.idColumn} = ? AND ${source.caseColumn} = ?${typeClause}`).get(...params);
     if (!row) throw new Error('Die Maßnahme gehört nicht zur angegebenen Fallakte oder existiert nicht.');
   }
 
   list(caseId?: string): CaseMeasureRecord[] {
     this.audit('read', undefined, caseId, caseId ? 'Fallmaßnahmen einer Fallakte anzeigen' : 'Fallmaßnahmen-Cockpit anzeigen');
     const rows = caseId
-      ? this.db.prepare<any>('SELECT * FROM case_measures WHERE case_id = ? ORDER BY COALESCE(due_at, updated_at) DESC').all(caseId)
-      : this.db.prepare<any>('SELECT * FROM case_measures ORDER BY COALESCE(due_at, updated_at) DESC').all();
+      ? this.db.prepare<DatabaseRow>('SELECT * FROM case_measures WHERE case_id = ? ORDER BY COALESCE(due_at, updated_at) DESC').all(caseId)
+      : this.db.prepare<DatabaseRow>('SELECT * FROM case_measures ORDER BY COALESCE(due_at, updated_at) DESC').all();
     return rows.map(mapMeasure);
   }
 
   listByType(type: CaseMeasureType, caseId?: string): CaseMeasureRecord[] {
     const rows = caseId
-      ? this.db.prepare<any>('SELECT * FROM case_measures WHERE type = ? AND case_id = ? ORDER BY COALESCE(due_at, updated_at) DESC').all(type, caseId)
-      : this.db.prepare<any>('SELECT * FROM case_measures WHERE type = ? ORDER BY COALESCE(due_at, updated_at) DESC').all(type);
+      ? this.db.prepare<DatabaseRow>('SELECT * FROM case_measures WHERE type = ? AND case_id = ? ORDER BY COALESCE(due_at, updated_at) DESC').all(type, caseId)
+      : this.db.prepare<DatabaseRow>('SELECT * FROM case_measures WHERE type = ? ORDER BY COALESCE(due_at, updated_at) DESC').all(type);
     return rows.map(mapMeasure);
   }
 
   getById(id: string): CaseMeasureRecord | undefined {
-    const row = this.db.prepare<any>('SELECT * FROM case_measures WHERE id = ?').get(id);
+    const row = this.db.prepare<DatabaseRow>('SELECT * FROM case_measures WHERE id = ?').get(id);
     return row ? mapMeasure(row) : undefined;
   }
 
   findBySource(sourceId: string): CaseMeasureRecord | undefined {
-    const row = this.db.prepare<any>('SELECT * FROM case_measures WHERE source_id = ?').get(sourceId);
+    const row = this.db.prepare<DatabaseRow>('SELECT * FROM case_measures WHERE source_id = ?').get(sourceId);
     return row ? mapMeasure(row) : undefined;
   }
 
@@ -303,8 +318,8 @@ export class CaseMeasureService {
     if (!caseId?.trim()) throw new Error('Für Maßnahmennotizen ist eine Fallakte erforderlich.');
     this.audit('read', undefined, caseId, measureId ? 'Maßnahmennotizen anzeigen' : 'Maßnahmennotizen der Fallakte anzeigen');
     const rows = measureType && measureId
-      ? this.db.prepare<any>('SELECT * FROM case_measure_notes WHERE case_id = ? AND measure_type = ? AND measure_id = ? ORDER BY note_at DESC, created_at DESC').all(caseId, measureType, measureId)
-      : this.db.prepare<any>('SELECT * FROM case_measure_notes WHERE case_id = ? ORDER BY note_at DESC, created_at DESC').all(caseId);
+      ? this.db.prepare<DatabaseRow>('SELECT * FROM case_measure_notes WHERE case_id = ? AND measure_type = ? AND measure_id = ? ORDER BY note_at DESC, created_at DESC').all(caseId, measureType, measureId)
+      : this.db.prepare<DatabaseRow>('SELECT * FROM case_measure_notes WHERE case_id = ? ORDER BY note_at DESC, created_at DESC').all(caseId);
     return rows.map(mapMeasureNote);
   }
 
@@ -339,11 +354,11 @@ export class CaseMeasureService {
     );
     this.audit('create', id, input.caseId, `Maßnahmennotiz angelegt (${input.measureType})`, 'case_measure_note');
     this.searchIndex.reindexSource('measure_note', id);
-    return mapMeasureNote(this.db.prepare<any>('SELECT * FROM case_measure_notes WHERE id = ?').get(id));
+    return mapMeasureNote(this.db.prepare<DatabaseRow>('SELECT * FROM case_measure_notes WHERE id = ?').get(id));
   }
 
   updateNote(id: string, input: UpdateCaseMeasureNoteInput): CaseMeasureNoteRecord {
-    const existing = this.db.prepare<any>('SELECT * FROM case_measure_notes WHERE id = ?').get(id);
+    const existing = this.db.prepare<DatabaseRow>('SELECT * FROM case_measure_notes WHERE id = ?').get(id);
     if (!existing) throw new Error(`Maßnahmennotiz nicht gefunden: ${id}`);
     const nextTitle = input.title !== undefined ? input.title.trim() : existing.title;
     const nextContent = input.content !== undefined ? input.content.trim() : existing.content;
@@ -366,13 +381,13 @@ export class CaseMeasureService {
     );
     this.audit('update', id, existing.case_id, 'Maßnahmennotiz geändert', 'case_measure_note');
     this.searchIndex.reindexSource('measure_note', id);
-    return mapMeasureNote(this.db.prepare<any>('SELECT * FROM case_measure_notes WHERE id = ?').get(id));
+    return mapMeasureNote(this.db.prepare<DatabaseRow>('SELECT * FROM case_measure_notes WHERE id = ?').get(id));
   }
 
   deleteNote(id: string): { deleted: boolean } {
-    const existing = this.db.prepare<any>('SELECT * FROM case_measure_notes WHERE id = ?').get(id);
+    const existing = this.db.prepare<DatabaseRow>('SELECT * FROM case_measure_notes WHERE id = ?').get(id);
     this.searchIndex.deleteSource('measure_note', id);
-    const result = this.db.prepare<any>('DELETE FROM case_measure_notes WHERE id = ?').run(id) as { changes?: number } | undefined;
+    const result = this.db.prepare<DatabaseRow>('DELETE FROM case_measure_notes WHERE id = ?').run(id) as { changes?: number } | undefined;
     this.audit('delete', id, existing?.case_id, 'Maßnahmennotiz gelöscht', 'case_measure_note');
     return { deleted: Boolean(result?.changes) };
   }

@@ -2,6 +2,17 @@ import { randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
 import type { PersonCaseLinkRecord } from '../src/app/core/models/protected-person.model.js';
 
+
+interface PersonCaseLinkRow {
+  id: string;
+  protected_person_id: string;
+  case_file_id: string;
+  link_state: PersonCaseLinkRecord['linkState'] | null;
+  created_at: string;
+  anonymized_at: string | null;
+  link_reason: string | null;
+}
+
 function nowIso(): string {
   return new Date().toISOString();
 }
@@ -11,7 +22,7 @@ function normalizeOptional(value: unknown): string | null {
   return text.length ? text : null;
 }
 
-function mapLink(row: any): PersonCaseLinkRecord {
+function mapLink(row: PersonCaseLinkRow): PersonCaseLinkRecord {
   return {
     id: row.id,
     protectedPersonId: row.protected_person_id,
@@ -27,7 +38,7 @@ export class PersonCaseLinkService {
   constructor(private readonly db: DatabaseAdapter) {}
 
   linkCase(protectedPersonId: string, caseFileId: string, linkReason?: string): PersonCaseLinkRecord {
-    const existing = this.db.prepare<any>('SELECT * FROM person_case_links WHERE protected_person_id = ? AND case_file_id = ?').get(protectedPersonId, caseFileId);
+    const existing = this.db.prepare<PersonCaseLinkRow>('SELECT * FROM person_case_links WHERE protected_person_id = ? AND case_file_id = ?').get(protectedPersonId, caseFileId);
     if (existing) return mapLink(existing);
     const id = randomUUID();
     this.db.prepare(`
@@ -38,11 +49,11 @@ export class PersonCaseLinkService {
   }
 
   listCaseLinks(protectedPersonId: string): PersonCaseLinkRecord[] {
-    return this.db.prepare<any>('SELECT * FROM person_case_links WHERE protected_person_id = ? ORDER BY created_at DESC').all(protectedPersonId).map(mapLink);
+    return this.db.prepare<PersonCaseLinkRow>('SELECT * FROM person_case_links WHERE protected_person_id = ? ORDER BY created_at DESC').all(protectedPersonId).map(mapLink);
   }
 
   markPersonAnonymized(protectedPersonId: string, anonymizedAt = nowIso()): PersonCaseLinkRecord[] {
-    const activeLinks = this.db.prepare<any>('SELECT * FROM person_case_links WHERE protected_person_id = ? AND link_state = ?').all(protectedPersonId, 'active').map(mapLink);
+    const activeLinks = this.db.prepare<PersonCaseLinkRow>('SELECT * FROM person_case_links WHERE protected_person_id = ? AND link_state = ?').all(protectedPersonId, 'active').map(mapLink);
     this.db.prepare(`UPDATE person_case_links SET link_state = 'person_anonymized', anonymized_at = ? WHERE protected_person_id = ? AND link_state = 'active'`).run(anonymizedAt, protectedPersonId);
     return activeLinks;
   }

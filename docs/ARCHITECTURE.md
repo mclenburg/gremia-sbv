@@ -215,3 +215,43 @@ Die verbindlichen Identitäten, Erweiterungstabellen, Löschregeln und Berichtsd
 Alle `ipcMain.handle`-Registrierungen laufen über `registerIpcHandler`. Erfolgswerte und bewusst modellierte fachliche Resultate bleiben unverändert. Unbehandelte Fehler werden dagegen in ein datensparsames `ApplicationErrorPayload` mit stabilem Code, nutzergeeigneter Meldung und IPC-Operation übersetzt. Stacktraces, Ursachenobjekte, SQL und Dateiinhalte werden nicht über die Bridge transportiert.
 
 Der sandboxed Preload enthält seine schlanke `invokeIpc`-Grenze direkt und lädt außer `electron` keine lokalen Laufzeitmodule nach. Er rekonstruiert aus dem serialisierten Payload einen `RendererApplicationError`; unbekannte Electron- oder Transportfehler werden unverändert weitergeworfen. Damit bleibt bestehendes Promise-/Catch-Verhalten erhalten, während alle Anwendungsfehler einheitlich auswertbar sind.
+
+## Renderer-Sicherheits- und Lint-Baseline
+
+Der Renderer wird zusätzlich zu `contextIsolation: true` und `sandbox: true` durch eine
+Content-Security-Policy in `index.html` begrenzt. Externe HTTP-/HTTPS-Ziele werden nicht
+für den Renderer freigegeben; die optionale Gremia.BR-Lesebrücke arbeitet ausschließlich
+im Main-Prozess. Lokale WebSocket-Ziele sind nur für den Vite-Entwicklungsserver erlaubt.
+
+ESLint verwendet die Flat-Config `eslint.config.js`. Der produktive Plattform-Build führt
+nach dem strikten Source-Cleanup und vor TypeScript/Vite immer `npm run lint` aus. Das
+bestehende explizite `any` wird in Patch M zunächst vollständig AST-basiert erhoben und
+anschließend als schrumpfende Baseline behandelt; die ESLint-Regel wird nicht durch eine
+pauschale, intransparente Ordnerausnahme vorweggenommen.
+
+## Verbindliche Auditierung beim Fall-Hard-Delete
+
+Der endgültige Löschpfad einer Fallakte ist eine atomare fachliche Operation. Innerhalb eines
+SQLite-Savepoints werden zunächst die Lifecycle-Ereignisse der kaskadierend entfernten Maßnahmen
+und anschließend genau ein datensparsames Fallevent in `personal_data_audit_log` geschrieben.
+Erst danach wird die `cases`-Zeile gelöscht. Schlägt das obligatorische Fallevent fehl, rollt der
+Savepoint sämtliche Datenbanklöschungen zurück.
+
+Das Fallevent enthält ausschließlich technische Zählwerte und feste Enums (`deleted`,
+`hard_delete`). Fallnummer, Anzeigename, Löschbegründung, Notiz- oder Dokumentinhalte werden nicht
+in der Hash-Chain gespeichert. Der Suchindex bleibt eine rekonstruierbare Projektion und wird erst
+nach erfolgreichem Abschluss der fachlichen Transaktion bereinigt.
+
+## Reproduzierbare Testqualitätsmetriken
+
+Die Testbasis wird nicht mehr über eine einzelne, interpretationsbedürftige „Verhaltenstestquote“ beschrieben. `scripts/report-test-quality.cjs` weist Verhalten, hybride Tests und reine Source-Inspection getrennt aus und zählt Source-Text-Assertions zusätzlich unabhängig von der Dateikategorie. Definition, Grenzen und Ratchet-Regeln stehen in `docs/quality/test-quality-metrics.md`. Der Release-Check verhindert, dass die Zahl reiner Source-Inspection- oder hybrider Testdateien über die versionierte Baseline steigt.
+
+## Type-Safety-Ratchet für explizites `any` (Patch M)
+
+Explizites TypeScript-`any` wird projektweit AST-basiert inventarisiert. Die Baseline unter `maintenance/type-safety/explicit-any-baseline.json` enthält jede einzelne historische Fundstelle mit stabiler Identität. `npm run type-safety:any-check` blockiert sowohl neue Fundstellen als auch eine nicht im selben Patch abgesenkte Baseline.
+
+Der Check läuft vor ESLint und TypeScript in `build:app` sowie im Release-Check. Er ersetzt keine fachliche Typisierung: Datenbankzugriffe erhalten in den Folgepatches konkrete Row-Typen, externe Eingaben `unknown` plus Laufzeitvalidierung. Die Baseline ist ausschließlich ein kontrollierter Abbaupfad und darf nicht als allgemeine Ausnahme erweitert werden.
+
+### Robuste npm-Skriptverträge
+
+Release- und Build-Readiness-Prüfungen vergleichen verkettete npm-Skripte nicht als komplette Zeichenfolge. Pflichtschritte werden über `scripts/lib/npm-script-contract.cjs` als geordnete Sequenz validiert. Dadurch bleiben zusätzliche Quality Gates zulässig, während fehlende, vertauschte oder verbotene Schritte weiterhin den Build abbrechen.

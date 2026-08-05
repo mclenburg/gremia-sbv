@@ -47,7 +47,7 @@ function createFetch(routes: Record<string, unknown>): { fetch: GremiaBrFetch; c
 class MemoryAuditLog {
   entries: Array<{ action: string; subjectType: string; subjectId?: string; purpose: string; metadata?: Record<string, unknown> }> = [];
 
-  append(input: any): void {
+  append(input: { action: string; subjectType: string; subjectId?: string; purpose: string; metadata?: Record<string, unknown> }): void {
     this.entries.push(input);
   }
 }

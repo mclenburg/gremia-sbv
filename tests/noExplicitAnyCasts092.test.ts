@@ -1,83 +1,13 @@
-import { readdirSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
-import * as ts from 'typescript';
+import { execFileSync } from 'node:child_process';
 import { describe, expect, it } from 'vitest';
 
-const ignoredDirectories = new Set([
-  '.git',
-  'dist',
-  'dist-electron',
-  'node_modules',
-  'release',
-  'test-results',
-]);
+describe('AST-basierte Clean-Code-Grenze für explizites TypeScript-any', () => {
+  it('hält den aktuellen Bestand exakt auf der versionierten Baseline', () => {
+    const output = execFileSync(process.execPath, ['scripts/report-explicit-any.cjs', '--check'], {
+      cwd: process.cwd(),
+      encoding: 'utf8',
+    });
 
-const sourceExtensions = new Set(['.ts', '.tsx', '.mts', '.cts']);
-
-function extensionOf(filePath: string) {
-  const match = filePath.match(/\.[^.]+$/);
-  return match?.[0] ?? '';
-}
-
-function collectSourceFiles(directory = '.'): string[] {
-  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
-    const path = join(directory, entry.name);
-
-    if (entry.isDirectory()) {
-      return ignoredDirectories.has(entry.name) ? [] : collectSourceFiles(path);
-    }
-
-    if (!entry.isFile() || !sourceExtensions.has(extensionOf(entry.name))) {
-      return [];
-    }
-
-    return [path.replaceAll('\\', '/')];
-  });
-}
-
-function scriptKindFor(filePath: string) {
-  return filePath.endsWith('.tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS;
-}
-
-function isExplicitAnyAssertion(node: ts.Node) {
-  if (ts.isAsExpression(node) || ts.isTypeAssertionExpression(node)) {
-    return node.type.kind === ts.SyntaxKind.AnyKeyword;
-  }
-  return false;
-}
-
-function isExplicitAnyArray(node: ts.Node): boolean {
-  if (ts.isArrayTypeNode(node)) {
-    return node.elementType.kind === ts.SyntaxKind.AnyKeyword;
-  }
-  if (ts.isTypeReferenceNode(node) && node.typeName.getText() === 'Array') {
-    return node.typeArguments?.some((argument) => argument.kind === ts.SyntaxKind.AnyKeyword) ?? false;
-  }
-  return false;
-}
-
-function findForbiddenAnyUsage(filePath: string) {
-  const sourceText = readFileSync(filePath, 'utf8');
-  const sourceFile = ts.createSourceFile(filePath, sourceText, ts.ScriptTarget.Latest, true, scriptKindFor(filePath));
-  const findings: string[] = [];
-
-  const visit = (node: ts.Node): void => {
-    if (isExplicitAnyAssertion(node) || isExplicitAnyArray(node)) {
-      const position = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
-      findings.push(`${filePath}:${position.line + 1}:${position.character + 1} ${node.getText(sourceFile)}`);
-    }
-
-    ts.forEachChild(node, visit);
-  };
-
-  visit(sourceFile);
-  return findings;
-}
-
-describe('Clean-Code-Grenze für TypeScript-Typumgehungen', () => {
-  it('verhindert explizite Any-Casts und Any-Arrays projektweit', () => {
-    const findings = collectSourceFiles().flatMap(findForbiddenAnyUsage);
-
-    expect(findings).toEqual([]);
+    expect(output).toContain('Explicit-any-Ratchet: Baseline exakt eingehalten.');
   });
 });

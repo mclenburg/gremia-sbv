@@ -46,6 +46,8 @@ export function SbvControlView({
   const [notice, setNotice] = useState('');
   const resourcesState = useSbvResources();
   const protocolsState = useSbvControlProtocols();
+  const { loadResources } = resourcesState;
+  const { loadProtocols } = protocolsState;
 
   useEffect(() => {
     let active = true;
@@ -55,8 +57,8 @@ export function SbvControlView({
         const bridge = await waitForBridge();
         if (!active) return;
         if (bridge?.participation) setParticipations(await bridge.participation.list());
-        await resourcesState.loadResources();
-        await protocolsState.loadProtocols();
+        await loadResources();
+        await loadProtocols();
       } catch (loadError) {
         if (active) {
           setError(
@@ -72,7 +74,7 @@ export function SbvControlView({
     return () => {
       active = false;
     };
-  }, [cases.length, resourcesState.loadResources, protocolsState.loadProtocols]);
+  }, [cases.length, loadResources, loadProtocols]);
 
   const openDeadlines = deadlines.filter((deadline) => deadline.status !== 'done').length;
   const criticalParticipation = useMemo(

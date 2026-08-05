@@ -27,7 +27,12 @@ const rcCriticalServiceCoverage = [
   'services/privacyReviewPolicy.ts',
   'services/icalPrivacyPolicy.ts',
   'services/deadlineIcalExportService.ts',
-  'services/auditHashChain.ts'
+  'services/auditHashChain.ts',
+  'services/recruitingParticipationValidation.ts',
+  'services/personCaseLinkService.ts',
+  'services/tempFileService.ts',
+  'services/demoMode.ts',
+  'services/portableProfileService.ts'
 ];
 
 export default defineConfig({

@@ -13,6 +13,24 @@ import type {
   UpdateParticipationInput,
 } from "../src/app/core/models/participation.model.js";
 
+
+interface ParticipationRow {
+  id: string; case_id: string; title: string; measure_status?: string | null; risk_level: ParticipationRecord['riskLevel'] | null;
+  summary?: string | null; next_step: string | null; due_at?: string | null; employer_measure_type?: ParticipationRecord['measureType'] | null;
+  measure_type?: ParticipationRecord['measureType'] | null; person_status: ParticipationRecord['personStatus'] | null;
+  decision_stage: ParticipationRecord['decisionStage'] | null; participation_status?: ParticipationStatus | null; status?: ParticipationStatus | null;
+  sbv_knowledge_at?: string | null; first_known_at?: string | null; employer_information_at?: string | null;
+  information_received_at?: string | null; hearing_requested_at: string | null; sbv_statement_due_at?: string | null;
+  statement_due_at?: string | null; sbv_statement_submitted_at?: string | null; statement_submitted_at?: string | null;
+  employer_decision_at: string | null; implementation_at: string | null; information_complete: number;
+  hearing_before_decision: number; decision_notified: number; suspension_requested_at: string | null;
+  suspension_deadline_at?: string | null; suspension_due_at?: string | null; violation_summary?: string | null;
+  violation_assessment?: string | null; sbv_position: string | null; created_at: string; updated_at: string;
+}
+interface SqliteTableRow { name: string; }
+interface IdRow { id: string; }
+interface ParticipationDetailIdRow { measure_id: string; }
+
 function nowIso(): string {
   return new Date().toISOString();
 }
@@ -44,7 +62,7 @@ function participationStatusToMeasureStatus(
   return "open";
 }
 
-function mapRecord(row: any): ParticipationRecord {
+function mapRecord(row: ParticipationRow): ParticipationRecord {
   return {
     id: row.id,
     caseId: row.case_id,
@@ -207,15 +225,15 @@ export class ParticipationService {
 
   private migrateLegacyParticipations(): void {
     const hasLegacy = this.db
-      .prepare<any>(
+      .prepare<SqliteTableRow>(
         "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'sbv_participations'",
       )
       .get();
     if (!hasLegacy) return;
-    const rows = this.db.prepare<any>("SELECT * FROM sbv_participations").all();
+    const rows = this.db.prepare<ParticipationRow>("SELECT * FROM sbv_participations").all();
     for (const row of rows) {
       const existing = this.db
-        .prepare<any>(
+        .prepare<IdRow>(
           "SELECT id FROM case_measures WHERE (id = ? OR source_id = ?) AND type = 'sbv_participation'",
         )
         .get(row.id, row.id);
@@ -251,7 +269,7 @@ export class ParticipationService {
       }
       const measureId = existing?.id ?? row.id;
       const detail = this.db
-        .prepare<any>(
+        .prepare<ParticipationDetailIdRow>(
           "SELECT measure_id FROM case_measure_participation WHERE measure_id = ?",
         )
         .get(measureId);
@@ -325,8 +343,8 @@ export class ParticipationService {
       ORDER BY COALESCE(p.sbv_statement_due_at, p.suspension_deadline_at, cm.due_at, cm.updated_at) DESC
     `;
     const rows = caseId
-      ? this.db.prepare<any>(sql).all(caseId)
-      : this.db.prepare<any>(sql).all();
+      ? this.db.prepare<ParticipationRow>(sql).all(caseId)
+      : this.db.prepare<ParticipationRow>(sql).all();
     return rows.map(mapRecord);
   }
 
@@ -372,7 +390,7 @@ export class ParticipationService {
       "SBV-Beteiligungsmaßnahme Detail anzeigen",
     );
     const row = this.db
-      .prepare<any>(
+      .prepare<ParticipationRow>(
         `
       SELECT cm.id, cm.case_id, cm.title, cm.status AS measure_status, cm.risk_level, cm.summary, cm.next_step, cm.due_at,
              cm.created_at AS created_at, cm.updated_at AS updated_at,

@@ -22,6 +22,13 @@ const DEFAULT_LEGAL_CONTEXT: Record<SbvControlProtocolTopic, string> = {
   other: '§ 178 Abs. 1 SGB IX',
 };
 
+
+interface SbvControlProtocolRow {
+  id: string; title: string; partner: SbvControlProtocolPartner; topic: SbvControlProtocolTopic; meeting_at: string;
+  participants: string | null; legal_context: string | null; discussion: string | null; result: string | null;
+  next_steps: string | null; follow_up_due_at: string | null; status: SbvControlProtocolStatus; created_at: string; updated_at: string;
+}
+
 function nowIso(): string {
   return new Date().toISOString();
 }
@@ -56,7 +63,7 @@ function normalizeTopic(value: unknown): SbvControlProtocolTopic {
   return allowed.includes(value as SbvControlProtocolTopic) ? value as SbvControlProtocolTopic : 'workplace_rules';
 }
 
-function mapRecord(row: any): SbvControlProtocolRecord {
+function mapRecord(row: SbvControlProtocolRow): SbvControlProtocolRecord {
   return {
     id: row.id,
     title: row.title,
@@ -163,7 +170,7 @@ export class SbvControlProtocolService {
 
   list(): SbvControlProtocolRecord[] {
     this.audit('read');
-    return this.db.prepare<any>(`
+    return this.db.prepare<SbvControlProtocolRow>(`
       SELECT * FROM sbv_control_protocols
       ORDER BY meeting_at DESC, updated_at DESC
     `).all().map(mapRecord);
@@ -254,7 +261,7 @@ export class SbvControlProtocolService {
   }
 
   getById(id: string): SbvControlProtocolRecord | undefined {
-    const row = this.db.prepare<any>('SELECT * FROM sbv_control_protocols WHERE id = ?').get(id);
+    const row = this.db.prepare<SbvControlProtocolRow>('SELECT * FROM sbv_control_protocols WHERE id = ?').get(id);
     return row ? mapRecord(row) : undefined;
   }
 }

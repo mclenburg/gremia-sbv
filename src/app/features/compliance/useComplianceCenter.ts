@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { waitForBridge } from "../../core/bridge/waitForBridge";
 import { useAnnouncer } from "../../shared/a11y/LiveRegionProvider";
 import type {
@@ -46,7 +46,7 @@ export function useComplianceCenter() {
   const [incidents, setIncidents] = useState<ComplianceIncidentRecord[]>([]);
   const announce = useAnnouncer();
 
-  async function refreshStatus() {
+  const refreshStatus = useCallback(async () => {
     try {
       const next = await loadComplianceStatus();
       setStatusOverview(next);
@@ -57,9 +57,9 @@ export function useComplianceCenter() {
       setMessage(info);
       announce(info, "assertive");
     }
-  }
+  }, [announce]);
 
-  async function refreshSelfCheck() {
+  const refreshSelfCheck = useCallback(async () => {
     try {
       const bridge = await waitForBridge();
       if (!bridge?.compliance?.selfCheck) throw new Error("Compliance-Selbstcheck ist nicht erreichbar.");
@@ -71,9 +71,9 @@ export function useComplianceCenter() {
       setMessage(info);
       announce(info, "assertive");
     }
-  }
+  }, [announce]);
 
-  async function refreshIncidents() {
+  const refreshIncidents = useCallback(async () => {
     try {
       const bridge = await waitForBridge();
       if (!bridge?.compliance?.listIncidents) throw new Error("Vorfallliste ist nicht erreichbar.");
@@ -83,13 +83,13 @@ export function useComplianceCenter() {
       setMessage(info);
       announce(info, "assertive");
     }
-  }
+  }, [announce]);
 
   useEffect(() => {
     void refreshStatus();
     void refreshSelfCheck();
     void refreshIncidents();
-  }, []);
+  }, [refreshStatus, refreshSelfCheck, refreshIncidents]);
 
   function render(type: ComplianceDocumentType) {
     const next = renderComplianceDocument(type);

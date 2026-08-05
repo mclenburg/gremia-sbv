@@ -27,6 +27,24 @@ import {
   normalizeViolationReviewReason,
 } from './recruitingParticipationValidation.js';
 
+
+interface RecruitingParticipationRow {
+  id: string; vacancy_title: string; vacancy_reference: string | null; department: string | null; location: string | null;
+  status: RecruitingParticipationRecord['status']; employer_notice_date: string | null; documents_received_date: string | null;
+  documents_complete: number; has_severely_disabled_applicants: number; severely_disabled_applicant_count: number | null;
+  interview_count: number | null; sbv_invited_to_all_known_interviews: number | null; sbv_participated: number | null;
+  hearing_requested_date: string | null; hearing_due_date: string | null; statement_submitted_date: string | null;
+  decision_known_date: string | null; decision_before_hearing: number; br_procedure_date: string | null;
+  flagged_for_violation_review: number; violation_review_reason: string | null; notes: string | null; created_at: string; updated_at: string;
+}
+interface RecruitingInterviewRow {
+  id: string; recruiting_participation_id: string; interview_date: string; applicant_ref: string;
+  applicant_reference_mode: RecruitingInterviewEventRecord['applicantReferenceMode']; applicant_status: RecruitingInterviewEventRecord['applicantStatus'];
+  sbv_invited: number; sbv_invitation_date: string | null; sbv_attended: number;
+  accessibility_check_status: RecruitingInterviewEventRecord['accessibilityCheckStatus']; follow_up_needed: number;
+  procedural_note: string | null; created_at: string; updated_at: string;
+}
+
 function nowIso(): string {
   return new Date().toISOString();
 }
@@ -45,7 +63,7 @@ function sqliteOptionalBoolean(value: unknown): 0 | 1 | null {
   return normalized ? 1 : 0;
 }
 
-function mapParticipation(row: any): RecruitingParticipationRecord {
+function mapParticipation(row: RecruitingParticipationRow): RecruitingParticipationRecord {
   return {
     id: row.id,
     vacancyTitle: row.vacancy_title,
@@ -75,7 +93,7 @@ function mapParticipation(row: any): RecruitingParticipationRecord {
   };
 }
 
-function mapInterview(row: any): RecruitingInterviewEventRecord {
+function mapInterview(row: RecruitingInterviewRow): RecruitingInterviewEventRecord {
   return {
     id: row.id,
     recruitingParticipationId: row.recruiting_participation_id,
@@ -212,7 +230,7 @@ export class RecruitingParticipationService {
 
   list(): RecruitingParticipationRecord[] {
     this.audit('read', undefined, 'Stellenbesetzungen anzeigen', { scope: 'list' });
-    return this.db.prepare<any>(`
+    return this.db.prepare<RecruitingParticipationRow>(`
       SELECT * FROM recruiting_participations
       ORDER BY COALESCE(employer_notice_date, created_at) DESC, updated_at DESC
     `).all().map(mapParticipation);
@@ -220,7 +238,7 @@ export class RecruitingParticipationService {
 
   getById(id: string): RecruitingParticipationRecord | undefined {
     this.audit('read', id, 'Stellenbesetzung anzeigen', { scope: 'detail' });
-    const row = this.db.prepare<any>('SELECT * FROM recruiting_participations WHERE id = ?').get(id);
+    const row = this.db.prepare<RecruitingParticipationRow>('SELECT * FROM recruiting_participations WHERE id = ?').get(id);
     return row ? mapParticipation(row) : undefined;
   }
 
@@ -344,7 +362,7 @@ export class RecruitingParticipationService {
   listInterviews(recruitingParticipationId: string): RecruitingInterviewEventRecord[] {
     this.ensureParticipationExists(recruitingParticipationId);
     this.audit('read', recruitingParticipationId, 'Vorstellungsgesprächsereignisse anzeigen; Audit enthält keine Bewerberreferenzen.', { scope: 'interviews' });
-    return this.db.prepare<any>(`
+    return this.db.prepare<RecruitingInterviewRow>(`
       SELECT * FROM recruiting_interview_events
       WHERE recruiting_participation_id = ?
       ORDER BY interview_date ASC, created_at ASC
@@ -392,7 +410,7 @@ export class RecruitingParticipationService {
   }
 
   getInterviewById(id: string): RecruitingInterviewEventRecord | undefined {
-    const row = this.db.prepare<any>('SELECT * FROM recruiting_interview_events WHERE id = ?').get(id);
+    const row = this.db.prepare<RecruitingInterviewRow>('SELECT * FROM recruiting_interview_events WHERE id = ?').get(id);
     return row ? mapInterview(row) : undefined;
   }
 

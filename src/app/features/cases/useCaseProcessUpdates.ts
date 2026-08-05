@@ -1,8 +1,9 @@
 import { waitForBridge } from "../../core/bridge/waitForBridge";
 import { fromDateTimeLocalValue } from "./caseWorkbenchFormat";
-import type { FormEvent } from "react";
+import type { Dispatch, FormEvent, SetStateAction } from "react";
 import type { CaseNoteRecord } from "../../core/models/case-note.model";
 import type { CaseDocumentRecord } from "../../core/models/case-document.model";
+import type { CaseRecord } from "../../core/models/case.model";
 import type { TemplateRecord, RenderedTemplateResult } from "../../core/models/template.model";
 import type { UpdatePreventionProcessInput } from "../../core/models/prevention.model";
 import type { UpdateBemProcessInput } from "../../core/models/bem.model";
@@ -15,9 +16,14 @@ import { buildTerminationExportContext, terminationPrivacyExportNotice } from "@
 import { buildProcessTemplateValues, defaultCaseProcessDraft, downloadRenderedTemplate, isBemProcessRecord, isEqualizationProcessRecord, isTemplateConnectedToProcessStatus, isTerminationHearingRecord } from "./casesViewProcessUtils";
 import { loadTemplateDefaultValues } from "../../shared/templates/templateDefaults";
 
-type useCaseProcessUpdatesDeps = Record<string, any>;
+type UseCaseProcessUpdatesDeps = {
+  setNoteError: Dispatch<SetStateAction<string>>;
+  setNoteInfo: Dispatch<SetStateAction<string>>;
+  reloadSelectedCaseChildren: () => Promise<void>;
+  selectedCase?: CaseRecord;
+};
 
-export function useCaseProcessUpdates(deps: useCaseProcessUpdatesDeps) {
+export function useCaseProcessUpdates(deps: UseCaseProcessUpdatesDeps) {
   const { setNoteError, setNoteInfo, reloadSelectedCaseChildren, selectedCase } = deps;
   async function updateCasePreventionProcess(
     processId: string,

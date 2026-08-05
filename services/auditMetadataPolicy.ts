@@ -125,6 +125,15 @@ const REPORT_METADATA_FIELDS = [
   'complianceDocumentType',
 ] as const;
 
+const CASE_LIFECYCLE_METADATA_FIELDS = [
+  'schemaVersion',
+  'eventName',
+  'deletionMode',
+  'deletedMeasureCount',
+  'deletedDocumentCount',
+  'affectedFileCount',
+] as const;
+
 const MEASURE_LIFECYCLE_METADATA_FIELDS = [
   'schemaVersion',
   'eventName',
@@ -155,7 +164,14 @@ export const AUDIT_METADATA_POLICY_BY_SUBJECT_TYPE = {
   measure_lifecycle: MEASURE_LIFECYCLE_METADATA_FIELDS,
   protected_person: ['reasonCode'] as const,
   contact: ['category'] as const,
-  case: ['category', 'bindingState', 'hasCaseFilter', 'affectedRecordCount', 'affectedFileCount'] as const,
+  case: [
+    'category',
+    'bindingState',
+    'hasCaseFilter',
+    'affectedRecordCount',
+    'affectedFileCount',
+    ...CASE_LIFECYCLE_METADATA_FIELDS,
+  ] as const,
   case_content: ['category', 'bindingState', 'hasCaseFilter'] as const,
   case_document: ['category', 'bindingState', 'documentKind'] as const,
   bem_process: [] as const,

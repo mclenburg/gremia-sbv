@@ -1,18 +1,30 @@
 import { waitForBridge } from "../../core/bridge/waitForBridge";
 import { fromDateTimeLocalValue } from "./caseWorkbenchFormat";
-import type { FormEvent } from "react";
+import type { Dispatch, FormEvent, SetStateAction } from "react";
 import type { CaseNoteRecord } from "../../core/models/case-note.model";
 import type { CaseDocumentRecord } from "../../core/models/case-document.model";
+import type { CaseRecord } from "../../core/models/case.model";
+import type { CaseExplorerSelection } from "./caseWorkbenchTypes";
 import type { TemplateRecord, RenderedTemplateResult } from "../../core/models/template.model";
 import { buildExportWarningMessage, scanBemProcessExport, scanSensitiveExportText } from "@services/exportGuardPolicy";
 import { buildTerminationExportContext, terminationPrivacyExportNotice } from "@services/terminationPrivacyPolicy";
 import { buildProcessTemplateValues, defaultCaseProcessDraft, downloadRenderedTemplate, isBemProcessRecord, isEqualizationProcessRecord, isTemplateConnectedToProcessStatus, isTerminationHearingRecord } from "./casesViewProcessUtils";
 import { loadTemplateDefaultValues } from "../../shared/templates/templateDefaults";
-import type { CaseProcessType } from "./casesViewProcessUtils";
+import type { CaseProcessDraft, CaseProcessType } from "./casesViewProcessUtils";
 
-type useCaseProcessCreationDeps = Record<string, any>;
+type UseCaseProcessCreationDeps = {
+  selectedCase?: CaseRecord;
+  selectedCaseId: string;
+  caseProcessDraft: CaseProcessDraft | null;
+  setCaseProcessDraft: Dispatch<SetStateAction<CaseProcessDraft | null>>;
+  setSelection: (selection: CaseExplorerSelection) => void;
+  setNoteError: Dispatch<SetStateAction<string>>;
+  setNoteInfo: Dispatch<SetStateAction<string>>;
+  reloadSelectedCaseChildren: () => Promise<void>;
+  onCasesChanged: () => Promise<void>;
+};
 
-export function useCaseProcessCreation(deps: useCaseProcessCreationDeps) {
+export function useCaseProcessCreation(deps: UseCaseProcessCreationDeps) {
   const { selectedCase, selectedCaseId, caseProcessDraft, setCaseProcessDraft, setSelection, setNoteError, setNoteInfo, reloadSelectedCaseChildren, onCasesChanged } = deps;
   function openCaseProcessDraft(processType: CaseProcessType) {
     if (!selectedCaseId) {

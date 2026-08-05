@@ -9,6 +9,17 @@ import type { PrivacyReviewItemRecord, PrivacyReviewItemStatus, PrivacyReviewCon
 import { caseWhereSql, directCasePrivacyEntities } from './privacyEntityRegistry.js';
 import { SearchIndexService } from './search/searchIndexService.js';
 
+/** SQLite row at the persistence boundary. Values remain scalar and must be
+ * normalized by the service mapper before entering the domain model. */
+type DatabaseScalar = string;
+type DatabaseRow = Record<string, DatabaseScalar> & {
+  person_binding_state: CaseRecord['personBindingState'];
+  privacy_risk: 'normal' | 'low' | 'high' | 'critical';
+  privacy_review_priority: NonNullable<CaseRecord['privacyReviewPriority']>;
+  reason: PrivacyReviewItemRecord['reason'];
+  priority: PrivacyReviewItemRecord['priority'];
+};
+
 function nowIso(): string { return new Date().toISOString(); }
 function tryExec(db: DatabaseAdapter, sql: string): void { try { db.exec(sql); } catch { /* idempotent */ } }
 function columnExists(db: DatabaseAdapter, table: string, column: string): boolean {
@@ -26,7 +37,7 @@ function safeScalar(db: DatabaseAdapter, sql: string, ...params: unknown[]): num
   try { return Number(db.prepare<ScalarValueRow>(sql).get(...params)?.value ?? 0); } catch { return 0; }
 }
 
-function mapCase(row: any): CaseRecord {
+function mapCase(row: DatabaseRow): CaseRecord {
   return {
     id: row.id,
     caseNumber: row.case_number,
@@ -80,7 +91,7 @@ function isPrivacyReviewContextSnapshot(value: unknown): value is PrivacyReviewC
     && 'freeTextReviewRequired' in value;
 }
 
-function mapReviewItem(row: any): PrivacyReviewItemRecord {
+function mapReviewItem(row: DatabaseRow): PrivacyReviewItemRecord {
   return {
     id: row.id,
     caseId: row.case_id,
@@ -101,7 +112,7 @@ function replacePendingMarkersInRecordFields(db: DatabaseAdapter, table: string,
   if (!tableExists(db, table)) return 0;
   const existingFields = fields.filter((field) => columnExists(db, table, field));
   if (!existingFields.length || !columnExists(db, table, idColumn)) return 0;
-  const rows = db.prepare<any>(`SELECT ${idColumn}, ${existingFields.join(', ')} FROM ${table} ${whereSql}`).all(...whereParams);
+  const rows = db.prepare<DatabaseRow>(`SELECT ${idColumn}, ${existingFields.join(', ')} FROM ${table} ${whereSql}`).all(...whereParams);
   let affected = 0;
   const hasUpdatedAt = columnExists(db, table, 'updated_at');
   for (const row of rows) {
@@ -184,11 +195,11 @@ export class PrivacyReviewService {
 
   listOpenForPerson(protectedPersonId: string): PrivacyReviewItemRecord[] {
     this.refreshOpenReviewContextsForPerson(protectedPersonId);
-    return this.db.prepare<any>(`SELECT * FROM privacy_review_items WHERE protected_person_id = ? AND status = 'open' ORDER BY due_at ASC, priority ASC`).all(protectedPersonId).map(mapReviewItem);
+    return this.db.prepare<DatabaseRow>(`SELECT * FROM privacy_review_items WHERE protected_person_id = ? AND status = 'open' ORDER BY due_at ASC, priority ASC`).all(protectedPersonId).map(mapReviewItem);
   }
 
   listOpenForCase(caseId: string): PrivacyReviewItemRecord[] {
-    return this.db.prepare<any>(`SELECT * FROM privacy_review_items WHERE case_id = ? AND status = 'open' ORDER BY due_at ASC`).all(caseId).map(mapReviewItem);
+    return this.db.prepare<DatabaseRow>(`SELECT * FROM privacy_review_items WHERE case_id = ? AND status = 'open' ORDER BY due_at ASC`).all(caseId).map(mapReviewItem);
   }
 
   createForCase(caseId: string, protectedPersonId: string | null, reason: PrivacyReviewReason, context: PrivacyReviewContextInput = {}, dueAt = nowIso(), priority: 'critical' | 'high' | 'normal' | 'low' = 'normal'): void {
@@ -197,7 +208,7 @@ export class PrivacyReviewService {
       ? context
       : this.buildContextSnapshot(caseId, protectedPersonId ?? undefined, context);
     const contextJson = JSON.stringify(contextSnapshot);
-    const existing = this.db.prepare<any>(`SELECT id FROM privacy_review_items WHERE case_id = ? AND reason = ? AND status = 'open'`).get(caseId, reason);
+    const existing = this.db.prepare<DatabaseRow>(`SELECT id FROM privacy_review_items WHERE case_id = ? AND reason = ? AND status = 'open'`).get(caseId, reason);
     if (existing?.id) {
       this.db.prepare(`UPDATE privacy_review_items SET protected_person_id = ?, priority = ?, due_at = ?, free_text_review_required = 1, context_json = ?, updated_at = ? WHERE id = ?`)
         .run(protectedPersonId, priority, dueAt, contextJson, timestamp, existing.id);
@@ -211,7 +222,7 @@ export class PrivacyReviewService {
   }
 
   markLinkedCasesForPerson(protectedPersonId: string, trigger: 'status_expired' | 'employment_ended' | 'linked_person_anonymized' | 'linked_person_deleted'): number {
-    const cases = this.db.prepare<any>(`SELECT * FROM cases WHERE protected_person_id = ?`).all(protectedPersonId);
+    const cases = this.db.prepare<DatabaseRow>(`SELECT * FROM cases WHERE protected_person_id = ?`).all(protectedPersonId);
     let count = 0;
     for (const caseRow of cases) {
       const snapshot = this.buildContextSnapshot(caseRow.id, protectedPersonId, { trigger });
@@ -261,7 +272,7 @@ export class PrivacyReviewService {
     try {
       assertDestructivePrivacyConfirmation('anonymize', confirmation);
       if (!reason.trim()) throw new Error('Für die Anonymisierung ist ein dokumentierter Grund erforderlich.');
-      const row = this.db.prepare<any>('SELECT id, case_number FROM cases WHERE id = ?').get(caseId);
+      const row = this.db.prepare<DatabaseRow>('SELECT id, case_number FROM cases WHERE id = ?').get(caseId);
       if (!row) return { ok: false, error: 'Fall nicht gefunden.', affectedRows: 0, affectedFiles: 0 };
       const timestamp = nowIso();
       let affectedRows = 0;
@@ -290,7 +301,7 @@ export class PrivacyReviewService {
 
 
   bulkMarkClosedLegacyCasesForAnonymization(referenceDate = new Date()): { reviewed: number; marked: number; skipped: number } {
-    const rows = this.db.prepare<any>(`
+    const rows = this.db.prepare<DatabaseRow>(`
       SELECT c.*, (SELECT COUNT(*) FROM deadlines d WHERE d.case_id = c.id AND d.status IN ('open','overdue')) AS open_deadline_count
       FROM cases c
       WHERE c.person_binding_state = 'legacy_unlinked' AND c.status = 'abgeschlossen'
@@ -322,7 +333,7 @@ export class PrivacyReviewService {
   }
 
   private refreshOpenReviewContextsForPerson(protectedPersonId: string): void {
-    const rows = this.db.prepare<any>(`SELECT case_id FROM privacy_review_items WHERE protected_person_id = ? AND status = 'open'`).all(protectedPersonId);
+    const rows = this.db.prepare<DatabaseRow>(`SELECT case_id FROM privacy_review_items WHERE protected_person_id = ? AND status = 'open'`).all(protectedPersonId);
     const timestamp = nowIso();
     for (const row of rows) {
       const context = JSON.stringify(this.buildContextSnapshot(row.case_id, protectedPersonId));
@@ -331,13 +342,13 @@ export class PrivacyReviewService {
   }
 
   private createRetentionFollowUp(caseId: string, reason: string, reviewAt: string): void {
-    const row = this.db.prepare<any>('SELECT protected_person_id FROM cases WHERE id = ?').get(caseId);
+    const row = this.db.prepare<DatabaseRow>('SELECT protected_person_id FROM cases WHERE id = ?').get(caseId);
     this.createForCase(caseId, row?.protected_person_id ?? null, 'retention_due', { retentionReasonDocumented: true, reasonLength: reason.trim().length }, reviewAt, 'normal');
     this.db.prepare(`UPDATE privacy_review_items SET status = 'retention_documented' WHERE case_id = ? AND reason != 'retention_due' AND status = 'open'`).run(caseId);
   }
 
   private buildContextSnapshot(caseId: string, protectedPersonId?: string, extra: Record<string, unknown> = {}): PrivacyReviewContextSnapshot {
-    const caseRow = this.db.prepare<any>('SELECT * FROM cases WHERE id = ?').get(caseId);
+    const caseRow = this.db.prepare<DatabaseRow>('SELECT * FROM cases WHERE id = ?').get(caseId);
     const caseFile = caseRow ? mapCase(caseRow) : undefined;
     const personId = protectedPersonId ?? caseRow?.protected_person_id;
     const person = personId ? new ProtectedPersonService(this.db).get(personId) : undefined;

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { createCaseDocumentActions } from "./useCaseDocuments";
 import { useInlineCommands } from "./inlineCommands/useInlineCommands";
 import { useCaseWorkbenchData } from "./useCaseWorkbenchData";
@@ -260,7 +260,7 @@ export function CasesView({
       );
   }, [caseToast, announce]);
 
-  function pushCaseToast(text: string, variant: "ok" | "warning" = "ok") {
+  const pushCaseToast = useCallback((text: string, variant: "ok" | "warning" = "ok") => {
     const id = Date.now();
     setCaseToast({ id, text, variant });
     window.setTimeout(() => {
@@ -268,12 +268,40 @@ export function CasesView({
         current?.id === id ? null : current,
       );
     }, 4200);
-  }
+  }, []);
 
   useEffect(() => {
     ensureSelectedCaseLink();
-  }, [selectedCaseId, editingNote]);
+  }, [selectedCaseId, editingNote, ensureSelectedCaseLink]);
 
+  useEffect(() => {
+    if (!noteInfo) return;
+    pushCaseToast(noteInfo, "ok");
+    setNoteInfo("");
+  }, [noteInfo, pushCaseToast, setNoteInfo]);
+
+  useEffect(() => {
+    if (!noteError) return;
+    pushCaseToast(noteError, "warning");
+    setNoteError("");
+  }, [noteError, pushCaseToast, setNoteError]);
+
+  useEffect(() => {
+    if (!documentError) return;
+    pushCaseToast(documentError, "warning");
+    setDocumentError("");
+  }, [documentError, pushCaseToast, setDocumentError]);
+
+  useEffect(() => {
+    if (!searchError) return;
+    pushCaseToast(searchError, "warning");
+    setSearchError("");
+  }, [searchError, pushCaseToast, setSearchError]);
+
+  const { updateCasePreventionProcess, updateCaseBemProcess, updateCaseTerminationProcess, updateCaseParticipationProcess, updateCaseWorkplaceAccommodationProcess, createEqualizationSecureNote, updateCaseEqualizationProcess } = useCaseProcessUpdates({ setNoteError, setNoteInfo, reloadSelectedCaseChildren, selectedCase });
+  const { openProcessTemplateModal, renderAndDownloadProcessTemplate } = useProcessTemplateActions({ processTemplateModal, setProcessTemplateModal, selectedCase, confirmDialog });
+  const { openCaseProcessDraft, createCaseProcessFromDraft } = useCaseProcessCreation({ selectedCase, selectedCaseId, caseProcessDraft, setCaseProcessDraft, setSelection, setNoteError, setNoteInfo, reloadSelectedCaseChildren, onCasesChanged });
+  const { openCaseCreateModal, cancelCaseCreateModal, addCase, addAnonymousCase, deleteNote, importDocuments, openDocument, exportDocument, deleteDocument } = useCaseCrudActions({ setError, setIsCaseCreateModalOpen, caseNumber, displayName, category, summary, selectedProtectedPersonId, protectedPersons, onCreateCase, onCasesChanged, setCaseNumber, setDisplayName, setSummary, setSelectedProtectedPersonId, setNoteError, editingNote, noteEditor, reloadSelectedCaseChildren, setSelection, searchQuery, runSearch, setDocumentError, selectedCaseId, selectedCase, confirmDialog, announce });
   useEffect(() => {
     function openCaseModalFromShortcut() {
       openCaseCreateModal();
@@ -305,36 +333,8 @@ export function CasesView({
         focusCaseSearchFromShortcut,
       );
     };
-  }, []);
+  }, [openCaseCreateModal]);
 
-  useEffect(() => {
-    if (!noteInfo) return;
-    pushCaseToast(noteInfo, "ok");
-    setNoteInfo("");
-  }, [noteInfo]);
-
-  useEffect(() => {
-    if (!noteError) return;
-    pushCaseToast(noteError, "warning");
-    setNoteError("");
-  }, [noteError]);
-
-  useEffect(() => {
-    if (!documentError) return;
-    pushCaseToast(documentError, "warning");
-    setDocumentError("");
-  }, [documentError]);
-
-  useEffect(() => {
-    if (!searchError) return;
-    pushCaseToast(searchError, "warning");
-    setSearchError("");
-  }, [searchError]);
-
-  const { updateCasePreventionProcess, updateCaseBemProcess, updateCaseTerminationProcess, updateCaseParticipationProcess, updateCaseWorkplaceAccommodationProcess, createEqualizationSecureNote, updateCaseEqualizationProcess } = useCaseProcessUpdates({ setNoteError, setNoteInfo, reloadSelectedCaseChildren, selectedCase });
-  const { openProcessTemplateModal, renderAndDownloadProcessTemplate } = useProcessTemplateActions({ processTemplateModal, setProcessTemplateModal, selectedCase, confirmDialog });
-  const { openCaseProcessDraft, createCaseProcessFromDraft } = useCaseProcessCreation({ selectedCase, selectedCaseId, caseProcessDraft, setCaseProcessDraft, setSelection, setNoteError, setNoteInfo, reloadSelectedCaseChildren, onCasesChanged });
-  const { openCaseCreateModal, cancelCaseCreateModal, addCase, addAnonymousCase, deleteNote, importDocuments, openDocument, exportDocument, deleteDocument } = useCaseCrudActions({ setError, setIsCaseCreateModalOpen, caseNumber, displayName, category, summary, selectedProtectedPersonId, protectedPersons, onCreateCase, onCasesChanged, setCaseNumber, setDisplayName, setSummary, setSelectedProtectedPersonId, setNoteError, editingNote, noteEditor, reloadSelectedCaseChildren, setSelection, searchQuery, runSearch, setDocumentError, selectedCaseId, selectedCase, confirmDialog, announce });
   const legacyBindingHandlers = useLegacyCaseBindingHandlers({ onCasesChanged, announce });
   const closedLegacyBulkCount = cases.filter((record) => record.status === 'abgeschlossen' && record.personBindingState === 'legacy_unlinked' && !record.anonymizationRecommended).length;
 

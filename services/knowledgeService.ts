@@ -17,6 +17,11 @@ import type {
   UpdateLegalNormInput
 } from '../src/app/core/models/knowledge.model.js';
 
+/** SQLite row at the persistence boundary. Values remain scalar and must be
+ * normalized by the service mapper before entering the domain model. */
+type DatabaseScalar = string;
+type DatabaseRow = Record<string, DatabaseScalar>;
+
 function nowIso(): string {
   return new Date().toISOString();
 }
@@ -40,7 +45,7 @@ function parseTags(value: unknown): string[] {
   }
 }
 
-function mapNorm(row: any): LegalNormRecord {
+function mapNorm(row: DatabaseRow): LegalNormRecord {
   return {
     id: row.id,
     source: row.source,
@@ -59,7 +64,8 @@ function mapNorm(row: any): LegalNormRecord {
   };
 }
 
-function mapCaseReference(row: any): CaseLegalReferenceRecord {
+function mapCaseReference(row: DatabaseRow | undefined): CaseLegalReferenceRecord {
+  if (!row) throw new Error('Rechtsverknüpfung wurde nicht gefunden.');
   return {
     id: row.id,
     caseId: row.case_id,
@@ -73,7 +79,8 @@ function mapCaseReference(row: any): CaseLegalReferenceRecord {
   };
 }
 
-function mapComment(row: any): NormCommentRecord {
+function mapComment(row: DatabaseRow | undefined): NormCommentRecord {
+  if (!row) throw new Error('Normkommentar wurde nicht gefunden.');
   return {
     id: row.id,
     legalNormId: row.legal_norm_id,
@@ -84,7 +91,8 @@ function mapComment(row: any): NormCommentRecord {
   };
 }
 
-function mapCaseLaw(row: any): CaseLawRecord {
+function mapCaseLaw(row: DatabaseRow | undefined): CaseLawRecord {
+  if (!row) throw new Error('Rechtsprechungseintrag wurde nicht gefunden.');
   return {
     id: row.id,
     legalNormId: row.legal_norm_id,
@@ -99,7 +107,8 @@ function mapCaseLaw(row: any): CaseLawRecord {
   };
 }
 
-function mapChecklistItem(row: any): NormChecklistItemRecord {
+function mapChecklistItem(row: DatabaseRow | undefined): NormChecklistItemRecord {
+  if (!row) throw new Error('Checklistenpunkt wurde nicht gefunden.');
   return {
     id: row.id,
     legalNormId: row.legal_norm_id,
@@ -241,13 +250,13 @@ export class KnowledgeService {
 
   async listNorms(filters: LegalNormSearchInput = {}): Promise<LegalNormRecord[]> {
     const db = this.getSafeDb();
-    const rows = db.prepare<any>(`SELECT * FROM legal_norms ORDER BY source COLLATE NOCASE, paragraph COLLATE NOCASE LIMIT ?`).all(Math.min(filters.limit ?? 250, 500));
+    const rows = db.prepare<DatabaseRow>(`SELECT * FROM legal_norms ORDER BY source COLLATE NOCASE, paragraph COLLATE NOCASE LIMIT ?`).all(Math.min(filters.limit ?? 250, 500));
     const norms = rows.map(mapNorm);
     return norms.filter((norm) => (!filters.source || norm.source === filters.source) && normMatchesQuery({ ...norm, shortText: norm.shortText }, filters.query ?? ''));
   }
 
   async getNorm(id: string): Promise<LegalNormRecord | null> {
-    const row = this.getSafeDb().prepare<any>('SELECT * FROM legal_norms WHERE id = ?').get(id);
+    const row = this.getSafeDb().prepare<DatabaseRow>('SELECT * FROM legal_norms WHERE id = ?').get(id);
     return row ? mapNorm(row) : null;
   }
 
@@ -271,7 +280,7 @@ export class KnowledgeService {
 
   async updateNorm(id: string, input: UpdateLegalNormInput): Promise<LegalNormRecord> {
     const db = this.getSafeDb();
-    const before = db.prepare<any>('SELECT * FROM legal_norms WHERE id = ?').get(id);
+    const before = db.prepare<DatabaseRow>('SELECT * FROM legal_norms WHERE id = ?').get(id);
     if (!before) throw new Error(`Norm nicht gefunden: ${id}`);
     const timestamp = nowIso();
     db.prepare(`
@@ -298,23 +307,23 @@ export class KnowledgeService {
 
   async linkNormToCase(input: LinkLegalNormToCaseInput): Promise<CaseLegalReferenceRecord> {
     const db = this.getSafeDb();
-    const norm = db.prepare<any>('SELECT * FROM legal_norms WHERE id = ?').get(input.legalNormId);
+    const norm = db.prepare<DatabaseRow>('SELECT * FROM legal_norms WHERE id = ?').get(input.legalNormId);
     if (!norm) throw new Error('Rechtsnorm wurde nicht gefunden.');
-    const caseRow = db.prepare<any>('SELECT id FROM cases WHERE id = ?').get(input.caseId);
+    const caseRow = db.prepare<DatabaseRow>('SELECT id FROM cases WHERE id = ?').get(input.caseId);
     if (!caseRow) throw new Error('Fall wurde nicht gefunden.');
-    const existing = db.prepare<any>(`SELECT clr.*, c.case_number, n.paragraph, n.source, n.title FROM case_legal_references clr JOIN legal_norms n ON n.id = clr.legal_norm_id LEFT JOIN cases c ON c.id = clr.case_id WHERE clr.case_id = ? AND clr.legal_norm_id = ?`).get(input.caseId, input.legalNormId);
+    const existing = db.prepare<DatabaseRow>(`SELECT clr.*, c.case_number, n.paragraph, n.source, n.title FROM case_legal_references clr JOIN legal_norms n ON n.id = clr.legal_norm_id LEFT JOIN cases c ON c.id = clr.case_id WHERE clr.case_id = ? AND clr.legal_norm_id = ?`).get(input.caseId, input.legalNormId);
     if (existing) return mapCaseReference(existing);
     const id = randomUUID();
     const timestamp = nowIso();
     db.prepare('INSERT INTO case_legal_references (id, case_id, legal_norm_id, note, created_at) VALUES (?, ?, ?, ?, ?)')
       .run(id, input.caseId, input.legalNormId, normalizeOptional(input.note), timestamp);
-    const row = db.prepare<any>(`SELECT clr.*, c.case_number, n.paragraph, n.source, n.title FROM case_legal_references clr JOIN legal_norms n ON n.id = clr.legal_norm_id LEFT JOIN cases c ON c.id = clr.case_id WHERE clr.id = ?`).get(id);
+    const row = db.prepare<DatabaseRow>(`SELECT clr.*, c.case_number, n.paragraph, n.source, n.title FROM case_legal_references clr JOIN legal_norms n ON n.id = clr.legal_norm_id LEFT JOIN cases c ON c.id = clr.case_id WHERE clr.id = ?`).get(id);
     return mapCaseReference(row);
   }
 
   async listCaseReferences(caseId: string): Promise<CaseLegalReferenceRecord[]> {
     const db = this.getSafeDb();
-    const rows = db.prepare<any>(`SELECT clr.*, c.case_number, n.paragraph, n.source, n.title FROM case_legal_references clr JOIN legal_norms n ON n.id = clr.legal_norm_id LEFT JOIN cases c ON c.id = clr.case_id WHERE clr.case_id = ? ORDER BY n.source, n.paragraph`).all(caseId);
+    const rows = db.prepare<DatabaseRow>(`SELECT clr.*, c.case_number, n.paragraph, n.source, n.title FROM case_legal_references clr JOIN legal_norms n ON n.id = clr.legal_norm_id LEFT JOIN cases c ON c.id = clr.case_id WHERE clr.case_id = ? ORDER BY n.source, n.paragraph`).all(caseId);
     return rows.map(mapCaseReference);
   }
 
@@ -325,7 +334,7 @@ export class KnowledgeService {
   }
 
   async listComments(legalNormId: string): Promise<NormCommentRecord[]> {
-    const rows = this.getSafeDb().prepare<any>('SELECT * FROM norm_comments WHERE legal_norm_id = ? ORDER BY updated_at DESC').all(legalNormId);
+    const rows = this.getSafeDb().prepare<DatabaseRow>('SELECT * FROM norm_comments WHERE legal_norm_id = ? ORDER BY updated_at DESC').all(legalNormId);
     return rows.map(mapComment);
   }
 
@@ -338,11 +347,11 @@ export class KnowledgeService {
     const timestamp = nowIso();
     db.prepare('INSERT INTO norm_comments (id, legal_norm_id, title, content, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)')
       .run(id, input.legalNormId, title, content, timestamp, timestamp);
-    return mapComment(db.prepare<any>('SELECT * FROM norm_comments WHERE id = ?').get(id));
+    return mapComment(db.prepare<DatabaseRow>('SELECT * FROM norm_comments WHERE id = ?').get(id));
   }
 
   async listCaseLaw(legalNormId: string): Promise<CaseLawRecord[]> {
-    const rows = this.getSafeDb().prepare<any>('SELECT * FROM norm_case_law WHERE legal_norm_id = ? ORDER BY decision_date DESC, court COLLATE NOCASE').all(legalNormId);
+    const rows = this.getSafeDb().prepare<DatabaseRow>('SELECT * FROM norm_case_law WHERE legal_norm_id = ? ORDER BY decision_date DESC, court COLLATE NOCASE').all(legalNormId);
     return rows.map(mapCaseLaw);
   }
 
@@ -353,11 +362,11 @@ export class KnowledgeService {
     const timestamp = nowIso();
     db.prepare('INSERT INTO norm_case_law (id, legal_norm_id, court, decision_date, file_number, short_holding, relevance, source_url, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
       .run(id, input.legalNormId, input.court.trim(), normalizeOptional(input.decisionDate), input.fileNumber.trim(), input.shortHolding.trim(), normalizeOptional(input.relevance), normalizeOptional(input.sourceUrl), timestamp, timestamp);
-    return mapCaseLaw(db.prepare<any>('SELECT * FROM norm_case_law WHERE id = ?').get(id));
+    return mapCaseLaw(db.prepare<DatabaseRow>('SELECT * FROM norm_case_law WHERE id = ?').get(id));
   }
 
   async listChecklist(legalNormId: string): Promise<NormChecklistItemRecord[]> {
-    const rows = this.getSafeDb().prepare<any>('SELECT * FROM norm_checklist_items WHERE legal_norm_id = ? ORDER BY sort_order, text COLLATE NOCASE').all(legalNormId);
+    const rows = this.getSafeDb().prepare<DatabaseRow>('SELECT * FROM norm_checklist_items WHERE legal_norm_id = ? ORDER BY sort_order, text COLLATE NOCASE').all(legalNormId);
     return rows.map(mapChecklistItem);
   }
 
@@ -369,7 +378,7 @@ export class KnowledgeService {
     const timestamp = nowIso();
     db.prepare('INSERT INTO norm_checklist_items (id, legal_norm_id, text, sort_order, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)')
       .run(id, input.legalNormId, text, input.sortOrder ?? 100, timestamp, timestamp);
-    return mapChecklistItem(db.prepare<any>('SELECT * FROM norm_checklist_items WHERE id = ?').get(id));
+    return mapChecklistItem(db.prepare<DatabaseRow>('SELECT * FROM norm_checklist_items WHERE id = ?').get(id));
   }
 
   async exportPreview(): Promise<KnowledgeExportPreview> {

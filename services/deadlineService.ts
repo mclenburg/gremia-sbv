@@ -17,6 +17,26 @@ import type {
 
 const DASHBOARD_HOURS_BEFORE_DUE = 48;
 
+interface DeadlineRow {
+  id: string; case_id: string | null; measure_id: string | null; person_id: string | null; process_id: string | null;
+  process_type: DeadlineRecord['processType'] | null; deadline_type: DeadlineRecord['deadlineType'] | null; title: string;
+  confidential_title: string | null; description: string | null; notes: string | null; due_at: string; reminder_at: string | null;
+  legal_basis: string | null; source_event: string | null; severity: DeadlineRecord['severity'] | null; status: DeadlineStatus | null;
+  calculation_mode: DeadlineRecord['calculationMode'] | null; is_legal_deadline: number; is_user_editable: number | null;
+  warning_threshold_hours: number | null; critical_threshold_hours: number | null; dashboard_from_at: string | null;
+  completed_at: string | null; completed_note: string | null; cancelled_at: string | null; cancelled_reason: string | null;
+  created_at: string; updated_at: string;
+}
+interface DeadlineTemplateRow {
+  id: string; template_key: string; title: string; confidential_title: string | null; description: string | null;
+  process_type: DeadlineTemplateRecord['processType']; deadline_type: DeadlineTemplateRecord['deadlineType']; offset_days: number | null;
+  offset_hours: number | null; reminder_days_before: number | null; legal_basis: string | null; severity: DeadlineTemplateRecord['severity'];
+  is_legal_deadline: number; warning_threshold_hours: number | null; critical_threshold_hours: number | null; enabled: number;
+  created_at: string; updated_at: string;
+}
+interface DeadlineAuditRow { id: string; deadline_id: string; action: DeadlineAuditRecord['action']; old_value: string | null; new_value: string | null; reason: string | null; created_at: string; }
+
+
 function nowIso(): string {
   return new Date().toISOString();
 }
@@ -44,7 +64,7 @@ function bool(value: unknown): boolean {
   return Boolean(value);
 }
 
-function mapDeadline(row: any): DeadlineRecord {
+function mapDeadline(row: DeadlineRow): DeadlineRecord {
   const warningThresholdHours = Number(row.warning_threshold_hours ?? DASHBOARD_HOURS_BEFORE_DUE);
   const dueAt = row.due_at;
   return {
@@ -79,7 +99,7 @@ function mapDeadline(row: any): DeadlineRecord {
   };
 }
 
-function mapTemplate(row: any): DeadlineTemplateRecord {
+function mapTemplate(row: DeadlineTemplateRow): DeadlineTemplateRecord {
   return {
     id: row.id,
     templateKey: row.template_key,
@@ -102,7 +122,7 @@ function mapTemplate(row: any): DeadlineTemplateRecord {
   };
 }
 
-function mapAudit(row: any): DeadlineAuditRecord {
+function mapAudit(row: DeadlineAuditRow): DeadlineAuditRecord {
   return {
     id: row.id,
     deadlineId: row.deadline_id,
@@ -304,7 +324,7 @@ export class DeadlineService {
 
   list(filters: DeadlineListFilters = {}): DeadlineRecord[] {
     this.personalDataAudit('read', undefined, filters.caseId, 'Fristenliste anzeigen', { hasCaseFilter: Boolean(filters.caseId), dashboardOnly: Boolean(filters.dashboardOnly) });
-    const rows = this.db.prepare<any>(`SELECT * FROM deadlines ORDER BY due_at ASC`).all();
+    const rows = this.db.prepare<DeadlineRow>(`SELECT * FROM deadlines ORDER BY due_at ASC`).all();
     let deadlines = rows.map(mapDeadline).map((d: DeadlineRecord) => ({ ...d, status: normalizeStatus(d.status) }));
 
     if (filters.status?.length) deadlines = deadlines.filter((d: DeadlineRecord) => filters.status!.includes(d.status));
@@ -349,10 +369,10 @@ export class DeadlineService {
   }
 
   getById(id: string): DeadlineRecord | undefined {
-    const row = this.db.prepare<any>('SELECT * FROM deadlines WHERE id = ?').get(id);
+    const row = this.db.prepare<DeadlineRow>('SELECT * FROM deadlines WHERE id = ?').get(id);
     if (!row) return undefined;
     this.personalDataAudit('read', id, row.case_id ?? undefined, 'Fristendetail anzeigen');
-    return { ...mapDeadline(row), status: normalizeStatus(row.status) };
+    return { ...mapDeadline(row), status: normalizeStatus(row.status ?? undefined) };
   }
 
   update(id: string, input: UpdateDeadlineInput): DeadlineRecord {
@@ -421,16 +441,16 @@ export class DeadlineService {
   }
 
   listTemplates(): DeadlineTemplateRecord[] {
-    return this.db.prepare<any>('SELECT * FROM deadline_templates ORDER BY process_type, title').all().map(mapTemplate);
+    return this.db.prepare<DeadlineTemplateRow>('SELECT * FROM deadline_templates ORDER BY process_type, title').all().map(mapTemplate);
   }
 
   getTemplateByKey(templateKey: string): DeadlineTemplateRecord | undefined {
-    const row = this.db.prepare<any>('SELECT * FROM deadline_templates WHERE template_key = ?').get(templateKey);
+    const row = this.db.prepare<DeadlineTemplateRow>('SELECT * FROM deadline_templates WHERE template_key = ?').get(templateKey);
     return row ? mapTemplate(row) : undefined;
   }
 
   getAudit(deadlineId: string): DeadlineAuditRecord[] {
-    return this.db.prepare<any>('SELECT * FROM deadline_audit WHERE deadline_id = ? ORDER BY created_at ASC').all(deadlineId).map(mapAudit);
+    return this.db.prepare<DeadlineAuditRow>('SELECT * FROM deadline_audit WHERE deadline_id = ? ORDER BY created_at ASC').all(deadlineId).map(mapAudit);
   }
 
   private audit(deadlineId: string, action: string, oldValue?: string, newValue?: string, reason?: string): void {

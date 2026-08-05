@@ -1,17 +1,52 @@
 import { waitForBridge } from "../../core/bridge/waitForBridge";
 import { fromDateTimeLocalValue } from "./caseWorkbenchFormat";
-import type { FormEvent } from "react";
+import type { Dispatch, FormEvent, SetStateAction } from "react";
 import type { CaseNoteRecord } from "../../core/models/case-note.model";
 import type { CaseDocumentRecord } from "../../core/models/case-document.model";
+import type { CaseRecord, PersonBindingState } from "../../core/models/case.model";
+import type { ProtectedPersonRecord } from "../../core/models/protected-person.model";
+import type { CaseExplorerSelection } from "./caseWorkbenchTypes";
+import type { CasesViewProps } from "./casesViewTypes";
+import type { useCaseNoteEditor } from "./useCaseNoteEditor";
+import type { useCaseWorkbenchSearch } from "./useCaseWorkbenchSearch";
+import type { useConfirmDialog } from "../../shared/dialogs/ConfirmDialogProvider";
+import type { useAnnouncer } from "../../shared/a11y/LiveRegionProvider";
 import type { TemplateRecord, RenderedTemplateResult } from "../../core/models/template.model";
 import { buildExportWarningMessage, scanBemProcessExport, scanSensitiveExportText } from "@services/exportGuardPolicy";
 import { buildTerminationExportContext, terminationPrivacyExportNotice } from "@services/terminationPrivacyPolicy";
 import { buildProcessTemplateValues, defaultCaseProcessDraft, downloadRenderedTemplate, isBemProcessRecord, isEqualizationProcessRecord, isTemplateConnectedToProcessStatus, isTerminationHearingRecord } from "./casesViewProcessUtils";
 import { loadTemplateDefaultValues } from "../../shared/templates/templateDefaults";
 
-type useCaseCrudActionsDeps = Record<string, any>;
+type UseCaseCrudActionsDeps = {
+  setError: Dispatch<SetStateAction<string>>;
+  setIsCaseCreateModalOpen: Dispatch<SetStateAction<boolean>>;
+  caseNumber: string;
+  displayName: string;
+  category: Parameters<CasesViewProps["onCreateCase"]>[0]["category"];
+  summary: string;
+  selectedProtectedPersonId: string;
+  protectedPersons: ProtectedPersonRecord[];
+  onCreateCase: CasesViewProps["onCreateCase"];
+  onCasesChanged: CasesViewProps["onCasesChanged"];
+  setCaseNumber: Dispatch<SetStateAction<string>>;
+  setDisplayName: Dispatch<SetStateAction<string>>;
+  setSummary: Dispatch<SetStateAction<string>>;
+  setSelectedProtectedPersonId: Dispatch<SetStateAction<string>>;
+  setNoteError: Dispatch<SetStateAction<string>>;
+  editingNote: ReturnType<typeof useCaseNoteEditor>["editingNote"];
+  noteEditor: Pick<ReturnType<typeof useCaseNoteEditor>, "resetNoteForm">;
+  reloadSelectedCaseChildren: () => Promise<void>;
+  setSelection: (selection: CaseExplorerSelection) => void;
+  searchQuery: string;
+  runSearch: ReturnType<typeof useCaseWorkbenchSearch>["runSearch"];
+  setDocumentError: Dispatch<SetStateAction<string>>;
+  selectedCaseId: string;
+  selectedCase?: CaseRecord;
+  confirmDialog: ReturnType<typeof useConfirmDialog>;
+  announce: ReturnType<typeof useAnnouncer>;
+};
 
-export function useCaseCrudActions(deps: useCaseCrudActionsDeps) {
+export function useCaseCrudActions(deps: UseCaseCrudActionsDeps) {
   const { setError, setIsCaseCreateModalOpen, caseNumber, displayName, category, summary, selectedProtectedPersonId, protectedPersons, onCreateCase, onCasesChanged, setCaseNumber, setDisplayName, setSummary, setSelectedProtectedPersonId, setNoteError, editingNote, noteEditor, reloadSelectedCaseChildren, setSelection, searchQuery, runSearch, setDocumentError, selectedCaseId, selectedCase, confirmDialog, announce } = deps;
   function openCaseCreateModal() {
     setError("");
@@ -36,7 +71,7 @@ export function useCaseCrudActions(deps: useCaseCrudActionsDeps) {
 
     try {
       let protectedPersonId = selectedProtectedPersonId;
-      let bindingState = "active";
+      let bindingState: PersonBindingState = "active";
       let nextDisplayName = displayName.trim();
       if (mode === "anonymous") {
         const bridge = await waitForBridge();
@@ -46,7 +81,7 @@ export function useCaseCrudActions(deps: useCaseCrudActionsDeps) {
         bindingState = "anonymous_request";
         nextDisplayName = displayName.trim() || anonymousPerson.pseudonymLabel || "Anonyme Beratung";
       } else if (!nextDisplayName) {
-        const person = protectedPersons.find((entry: any) => entry.id === selectedProtectedPersonId);
+        const person = protectedPersons.find((entry) => entry.id === selectedProtectedPersonId);
         nextDisplayName = person?.pseudonymLabel || [person?.lastName, person?.firstName].filter(Boolean).join(", ") || "Personenbezogene Fallakte";
       }
       await onCreateCase({

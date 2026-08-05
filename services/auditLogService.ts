@@ -15,6 +15,11 @@ import {
   type AuditChainRowInput
 } from './auditHashChain.js';
 
+/** SQLite row at the persistence boundary. Values remain scalar and must be
+ * normalized by the service mapper before entering the domain model. */
+type DatabaseScalar = string;
+type DatabaseRow = Record<string, DatabaseScalar> & { action: PersonalDataAuditRecord['action']; };
+
 function nowIso(): string {
   return new Date().toISOString();
 }
@@ -43,7 +48,7 @@ export function ensurePersonalDataAuditSchema(db: DatabaseAdapter): void {
   `);
 }
 
-function mapAudit(row: any): PersonalDataAuditRecord {
+function mapAudit(row: DatabaseRow): PersonalDataAuditRecord {
   return {
     id: row.id,
     sequence: Number(row.sequence),
@@ -60,7 +65,7 @@ function mapAudit(row: any): PersonalDataAuditRecord {
   };
 }
 
-function mapChainRow(row: any): AuditChainRowInput {
+function mapChainRow(row: DatabaseRow): AuditChainRowInput {
   return {
     sequence: Number(row.sequence),
     occurredAt: row.occurred_at,
@@ -80,7 +85,7 @@ export class PersonalDataAuditLogService {
   constructor(private readonly db: DatabaseAdapter, private readonly actor = 'local-sbv-user') {}
 
   append(input: CreatePersonalDataAuditInput): PersonalDataAuditRecord {
-    const previous = this.db.prepare<any>('SELECT sequence, entry_hash FROM personal_data_audit_log ORDER BY sequence DESC LIMIT 1').get();
+    const previous = this.db.prepare<DatabaseRow>('SELECT sequence, entry_hash FROM personal_data_audit_log ORDER BY sequence DESC LIMIT 1').get();
     const sequence = Number(previous?.sequence ?? 0) + 1;
     const previousHash = previous?.entry_hash ?? PERSONAL_DATA_AUDIT_GENESIS_HASH;
     const occurredAt = nowIso();
@@ -120,7 +125,7 @@ export class PersonalDataAuditLogService {
       entryHash
     );
 
-    const created = this.db.prepare<any>('SELECT * FROM personal_data_audit_log WHERE id = ?').get(id);
+    const created = this.db.prepare<DatabaseRow>('SELECT * FROM personal_data_audit_log WHERE id = ?').get(id);
     if (created) return mapAudit(created);
 
     // Einige schlanke Test-/Diagnose-Adapter bilden INSERTs nach, geben aber
@@ -147,20 +152,20 @@ export class PersonalDataAuditLogService {
 
   list(limit = 500): PersonalDataAuditRecord[] {
     const safeLimit = Math.min(Math.max(limit, 1), 5000);
-    return this.db.prepare<any>('SELECT * FROM personal_data_audit_log ORDER BY sequence DESC LIMIT ?').all(safeLimit).map(mapAudit);
+    return this.db.prepare<DatabaseRow>('SELECT * FROM personal_data_audit_log ORDER BY sequence DESC LIMIT ?').all(safeLimit).map(mapAudit);
   }
 
   listForSubject(subjectType: string, subjectId?: string, limit = 500): PersonalDataAuditRecord[] {
     const safeLimit = Math.min(Math.max(limit, 1), 5000);
     if (subjectId) {
-      return this.db.prepare<any>(`
+      return this.db.prepare<DatabaseRow>(`
         SELECT * FROM personal_data_audit_log
         WHERE subject_type = ? AND subject_id = ?
         ORDER BY sequence DESC
         LIMIT ?
       `).all(subjectType, subjectId, safeLimit).map(mapAudit);
     }
-    return this.db.prepare<any>(`
+    return this.db.prepare<DatabaseRow>(`
       SELECT * FROM personal_data_audit_log
       WHERE subject_type = ?
       ORDER BY sequence DESC
@@ -170,7 +175,7 @@ export class PersonalDataAuditLogService {
 
   listForCase(caseId: string, limit = 500): PersonalDataAuditRecord[] {
     const safeLimit = Math.min(Math.max(limit, 1), 5000);
-    return this.db.prepare<any>(`
+    return this.db.prepare<DatabaseRow>(`
       SELECT * FROM personal_data_audit_log
       WHERE case_id = ?
       ORDER BY sequence DESC
@@ -179,15 +184,15 @@ export class PersonalDataAuditLogService {
   }
 
   verifyChain(): PersonalDataAuditChainStatus {
-    const auditRows = this.db.prepare<any>('SELECT * FROM personal_data_audit_log ORDER BY sequence ASC').all().map(mapChainRow);
+    const auditRows = this.db.prepare<DatabaseRow>('SELECT * FROM personal_data_audit_log ORDER BY sequence ASC').all().map(mapChainRow);
     return verifyAuditHashChain(auditRows);
   }
 
   integritySummary(): PersonalDataAuditChainStatus & { readEvents: number; changeEvents: number; exportEvents: number } {
     const status = this.verifyChain();
-    const readEvents = Number(this.db.prepare<any>(`SELECT COUNT(*) AS value FROM personal_data_audit_log WHERE action IN ('read', 'search', 'open')`).get()?.value ?? 0);
-    const changeEvents = Number(this.db.prepare<any>(`SELECT COUNT(*) AS value FROM personal_data_audit_log WHERE action IN ('create', 'update', 'delete', 'anonymize', 'restore', 'import')`).get()?.value ?? 0);
-    const exportEvents = Number(this.db.prepare<any>(`SELECT COUNT(*) AS value FROM personal_data_audit_log WHERE action IN ('export', 'backup')`).get()?.value ?? 0);
+    const readEvents = Number(this.db.prepare<DatabaseRow>(`SELECT COUNT(*) AS value FROM personal_data_audit_log WHERE action IN ('read', 'search', 'open')`).get()?.value ?? 0);
+    const changeEvents = Number(this.db.prepare<DatabaseRow>(`SELECT COUNT(*) AS value FROM personal_data_audit_log WHERE action IN ('create', 'update', 'delete', 'anonymize', 'restore', 'import')`).get()?.value ?? 0);
+    const exportEvents = Number(this.db.prepare<DatabaseRow>(`SELECT COUNT(*) AS value FROM personal_data_audit_log WHERE action IN ('export', 'backup')`).get()?.value ?? 0);
     return { ...status, readEvents, changeEvents, exportEvents };
   }
 }

@@ -4,6 +4,23 @@ import type { DatabaseAdapter } from './databaseService.js';
 import { anonymizeContactReferences, ensureContactPrivacySchema } from './contactPrivacyService.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
 
+
+interface ContactDatabaseRow {
+  id: string;
+  first_name: string;
+  last_name: string;
+  organization: string | null;
+  role: string | null;
+  category: ContactCategory;
+  email: string | null;
+  phone: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+interface ContactIdRow { id: string; }
+
 function nowIso(): string {
   return new Date().toISOString();
 }
@@ -13,7 +30,7 @@ function normalizeOptional(value?: string): string | null {
   return trimmed ? trimmed : null;
 }
 
-function mapContact(row: any): ContactRecord {
+function mapContact(row: ContactDatabaseRow): ContactRecord {
   return {
     id: row.id,
     firstName: row.first_name,
@@ -27,6 +44,11 @@ function mapContact(row: any): ContactRecord {
     createdAt: row.created_at,
     updatedAt: row.updated_at
   };
+}
+
+function requireContactRow(row: ContactDatabaseRow | undefined, id: string): ContactDatabaseRow {
+  if (!row) throw new Error(`Kontakt konnte nach dem Speichern nicht geladen werden: ${id}`);
+  return row;
 }
 
 function likePattern(query: string): string {
@@ -79,7 +101,7 @@ export class ContactService {
 
     if (query) {
       const pattern = likePattern(query);
-      const rows = db.prepare<any>(`
+      const rows = db.prepare<ContactDatabaseRow>(`
         SELECT * FROM contacts
         WHERE (? IS NULL OR category = ?)
           AND (
@@ -97,7 +119,7 @@ export class ContactService {
       return rows.map(mapContact);
     }
 
-    const rows = db.prepare<any>(`
+    const rows = db.prepare<ContactDatabaseRow>(`
       SELECT * FROM contacts
       WHERE (? IS NULL OR category = ?)
       ORDER BY last_name COLLATE NOCASE, first_name COLLATE NOCASE, organization COLLATE NOCASE
@@ -133,14 +155,14 @@ export class ContactService {
       timestamp
     );
 
-    const created = db.prepare<any>('SELECT * FROM contacts WHERE id = ?').get(id);
+    const created = db.prepare<ContactDatabaseRow>('SELECT * FROM contacts WHERE id = ?').get(id);
     this.audit(db, { action: 'create', subjectType: 'contact', subjectId: id, purpose: 'Kontakt angelegt', metadata: { category: input.category ?? 'sonstiges' } });
-    return mapContact(created);
+    return mapContact(requireContactRow(created, id));
   }
 
   async updateContact(id: string, input: UpdateContactInput): Promise<ContactRecord> {
     const db = this.getSafeDb();
-    const before = db.prepare<any>('SELECT * FROM contacts WHERE id = ?').get(id);
+    const before = db.prepare<ContactDatabaseRow>('SELECT * FROM contacts WHERE id = ?').get(id);
     if (!before) throw new Error(`Kontakt nicht gefunden: ${id}`);
 
     const firstName = input.firstName === undefined ? before.first_name : input.firstName.trim();
@@ -165,18 +187,18 @@ export class ContactService {
       id
     );
 
-    const updated = db.prepare<any>('SELECT * FROM contacts WHERE id = ?').get(id);
+    const updated = db.prepare<ContactDatabaseRow>('SELECT * FROM contacts WHERE id = ?').get(id);
     this.audit(db, { action: 'update', subjectType: 'contact', subjectId: id, purpose: 'Kontakt geändert' });
-    return mapContact(updated);
+    return mapContact(requireContactRow(updated, id));
   }
 
   async deleteContact(id: string): Promise<{ deleted: boolean; anonymizedReferences: number; touchedNotes: number }> {
     const db = this.getSafeDb();
-    const before = db.prepare<any>('SELECT id FROM contacts WHERE id = ?').get(id);
+    const before = db.prepare<ContactIdRow>('SELECT id FROM contacts WHERE id = ?').get(id);
     if (!before) return { deleted: false, anonymizedReferences: 0, touchedNotes: 0 };
 
     const privacyResult = anonymizeContactReferences(db, id);
-    const result = db.prepare<any>('DELETE FROM contacts WHERE id = ?').run(id) as { changes?: number } | undefined;
+    const result = db.prepare('DELETE FROM contacts WHERE id = ?').run(id) as { changes?: number } | undefined;
     this.audit(db, { action: 'delete', subjectType: 'contact', subjectId: id, purpose: 'Kontakt gelöscht und Referenzen anonymisiert', metadata: privacyResult });
     return { deleted: Boolean(result?.changes), ...privacyResult };
   }

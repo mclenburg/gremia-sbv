@@ -198,10 +198,30 @@ function validateCleanup(pkg) {
     pkg.scripts['test:coverage'] === 'npm run source:cleanup:strict && vitest run --coverage',
     'test:coverage muss vor der Testermittlung den strikten Source-Cleanup ausführen.'
   );
-  expect(
-    pkg.scripts['build:app'] === 'npm run source:cleanup:strict && npm run version:generate && tsc -p tsconfig.json && vite build && tsc -p tsconfig.electron.json && node scripts/write-electron-cjs-package.cjs',
-    'build:app muss den strikten Source-Cleanup vor Compiler und Bundler ausführen.'
-  );
+  const buildApp = pkg.scripts['build:app'];
+  expect(typeof buildApp === 'string' && buildApp.length > 0, 'build:app Script fehlt.');
+
+  const requiredBuildSteps = [
+    'npm run source:cleanup:strict',
+    'npm run type-safety:any-check',
+    'npm run lint',
+    'npm run version:generate',
+    'tsc -p tsconfig.json',
+    'vite build',
+    'tsc -p tsconfig.electron.json',
+    'node scripts/write-electron-cjs-package.cjs',
+  ];
+
+  let previousStepIndex = -1;
+  for (const step of requiredBuildSteps) {
+    const stepIndex = buildApp.indexOf(step);
+    expect(stepIndex >= 0, `build:app muss den Schritt "${step}" enthalten.`);
+    expect(
+      stepIndex > previousStepIndex,
+      `build:app muss den Schritt "${step}" nach allen vorherigen Quality Gates ausführen.`
+    );
+    previousStepIndex = stepIndex;
+  }
   expect(
     pkg.scripts.prebuild === 'npm run version:generate && npm run source:cleanup && npm run build:readiness',
     'prebuild muss Versionserzeugung, Source-Cleanup und Build-Readiness-Guard in dieser Reihenfolge ausführen.'

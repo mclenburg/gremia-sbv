@@ -1,0 +1,9 @@
+{
+  "version": "0.9.6-o-test-quality-metric-replacement",
+  "reason": "Die historische binäre Einteilung in Verhalten versus Source-String und die daraus abgeleitete Quotenaussage werden durch eine dokumentierte Dreiklassen-Metrik mit separater Assertion-Zählung und Ratchet ersetzt.",
+  "files": [
+    "tests/rc091TestQualityRatio.test.ts",
+    "tests/helpers/testQualityMetrics.ts"
+  ],
+  "directories": []
+}

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { ActivityJournalPrefillContext } from '../../../core/models/activity-journal.model';
 import { waitForBridge } from '../../../core/bridge/waitForBridge';
 
@@ -30,7 +30,8 @@ export function buildActivitySuggestionLabel(context: ActivityJournalPrefillCont
 }
 
 export function useActivityJournalSessionSuggestion(context: ActivityJournalPrefillContext, options: { minimumMinutes?: number } = {}) {
-  const openedAt = useMemo(() => Date.now(), [context.contextType, context.contextId, context.caseId, context.caseNumber, context.title]);
+  const contextKey = `${context.contextType}:${context.contextId}:${context.caseId ?? ''}:${context.caseNumber ?? ''}:${context.title ?? ''}`;
+  const [sessionStart, setSessionStart] = useState(() => ({ contextKey, openedAt: Date.now() }));
   const [now, setNow] = useState(() => Date.now());
   const [dismissed, setDismissed] = useState(false);
   const [hasPersistentJournalHistory, setHasPersistentJournalHistory] = useState(false);
@@ -39,6 +40,12 @@ export function useActivityJournalSessionSuggestion(context: ActivityJournalPref
     const timer = window.setInterval(() => setNow(Date.now()), 60000);
     return () => window.clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    const openedAt = Date.now();
+    setSessionStart({ contextKey, openedAt });
+    setNow(openedAt);
+  }, [contextKey]);
 
   useEffect(() => {
     setDismissed(false);
@@ -56,6 +63,7 @@ export function useActivityJournalSessionSuggestion(context: ActivityJournalPref
     return () => { active = false; };
   }, [context.contextType, context.contextId, context.caseId, context.caseNumber, context.title]);
 
+  const openedAt = sessionStart.contextKey === contextKey ? sessionStart.openedAt : now;
   const elapsedMinutes = minutesSince(openedAt, now);
   const visible = !dismissed && shouldOfferActivitySuggestion({
     hasPersistentJournalHistory,

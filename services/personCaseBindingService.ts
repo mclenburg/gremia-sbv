@@ -13,6 +13,17 @@ export interface LegacyCaseAssignmentResult {
   privacyReviewRequired: boolean;
 }
 
+
+interface CaseBindingRow {
+  id: string;
+  person_binding_state: PersonBindingState | null;
+  protected_person_id: string | null;
+}
+interface ExistingIdRow { id: string; }
+interface PersonLinkIdRow { protected_person_id: string; }
+interface LegacyCaseBindingRow { id: string; status: string; closed_at: string | null; }
+interface CountRow { value: number; }
+
 export class PersonCaseBindingService {
   constructor(private readonly db: DatabaseAdapter) {}
 
@@ -38,17 +49,17 @@ export class PersonCaseBindingService {
   }
 
   assignLegacyCase(caseId: string, protectedPersonId: string, reason: string): LegacyCaseAssignmentResult {
-    const caseRow = this.db.prepare<any>(`SELECT id, person_binding_state, protected_person_id FROM cases WHERE id = ?`).get(caseId);
+    const caseRow = this.db.prepare<CaseBindingRow>(`SELECT id, person_binding_state, protected_person_id FROM cases WHERE id = ?`).get(caseId);
     if (!caseRow) throw new Error(`Fallakte nicht gefunden: ${caseId}`);
-    const personRow = this.db.prepare<any>(`SELECT id FROM protected_persons WHERE id = ?`).get(protectedPersonId);
+    const personRow = this.db.prepare<ExistingIdRow>(`SELECT id FROM protected_persons WHERE id = ?`).get(protectedPersonId);
     if (!personRow) throw new Error(`Person nicht gefunden: ${protectedPersonId}`);
-    const activeLinks = this.db.prepare<any>(`SELECT protected_person_id FROM person_case_links WHERE case_file_id = ? AND link_state = 'active'`).all(caseId).map((link) => String(link.protected_person_id));
+    const activeLinks = this.db.prepare<PersonLinkIdRow>(`SELECT protected_person_id FROM person_case_links WHERE case_file_id = ? AND link_state = 'active'`).all(caseId).map((link) => String(link.protected_person_id));
     assertCanAssignLegacyCase({ caseBindingState: caseRow.person_binding_state, protectedPersonId: caseRow.protected_person_id, selectedPersonId: protectedPersonId, reason, activePersonLinkIds: activeLinks });
 
     const timestamp = nowIso();
     this.db.prepare(`UPDATE person_case_links SET link_state = 'removed', anonymized_at = ?, link_reason = COALESCE(link_reason, ?) WHERE case_file_id = ? AND link_state = 'active' AND protected_person_id <> ?`)
       .run(timestamp, 'Manuelle Legacy-Zuordnung ersetzt unklare Altverknüpfung.', caseId, protectedPersonId);
-    const existing = this.db.prepare<any>(`SELECT id FROM person_case_links WHERE protected_person_id = ? AND case_file_id = ?`).get(protectedPersonId, caseId);
+    const existing = this.db.prepare<ExistingIdRow>(`SELECT id FROM person_case_links WHERE protected_person_id = ? AND case_file_id = ?`).get(protectedPersonId, caseId);
     if (existing) {
       this.db.prepare(`UPDATE person_case_links SET link_state = 'active', anonymized_at = NULL, link_reason = ? WHERE id = ?`).run(reason.trim(), existing.id);
     } else {
@@ -62,14 +73,14 @@ export class PersonCaseBindingService {
   }
 
   migrateLegacyBindings(referenceDate = new Date()): { migrated: number; legacyUnlinked: number; privacyReviewRequired: number } {
-    const cases = this.db.prepare<any>(`SELECT id, status, closed_at FROM cases WHERE person_binding_state = 'legacy_unlinked' AND protected_person_id IS NULL ORDER BY opened_at ASC`).all();
+    const cases = this.db.prepare<LegacyCaseBindingRow>(`SELECT id, status, closed_at FROM cases WHERE person_binding_state = 'legacy_unlinked' AND protected_person_id IS NULL ORDER BY opened_at ASC`).all();
     let migrated = 0;
     let legacyUnlinked = 0;
     let privacyReviewRequired = 0;
     for (const row of cases) {
-      const links = this.db.prepare<any>(`SELECT protected_person_id FROM person_case_links WHERE case_file_id = ? AND link_state = 'active' ORDER BY created_at ASC`).all(row.id).map((link) => String(link.protected_person_id));
-      const openDeadlines = Number(this.db.prepare<any>(`SELECT COUNT(*) AS value FROM deadlines WHERE case_id = ? AND status IN ('open','overdue')`).get(row.id)?.value ?? 0) > 0;
-      const runningMeasures = Number(this.db.prepare<any>(`SELECT COUNT(*) AS value FROM case_measures WHERE case_id = ? AND status NOT IN ('done','completed','cancelled')`).get(row.id)?.value ?? 0) > 0;
+      const links = this.db.prepare<PersonLinkIdRow>(`SELECT protected_person_id FROM person_case_links WHERE case_file_id = ? AND link_state = 'active' ORDER BY created_at ASC`).all(row.id).map((link) => String(link.protected_person_id));
+      const openDeadlines = Number(this.db.prepare<CountRow>(`SELECT COUNT(*) AS value FROM deadlines WHERE case_id = ? AND status IN ('open','overdue')`).get(row.id)?.value ?? 0) > 0;
+      const runningMeasures = Number(this.db.prepare<CountRow>(`SELECT COUNT(*) AS value FROM case_measures WHERE case_id = ? AND status NOT IN ('done','completed','cancelled')`).get(row.id)?.value ?? 0) > 0;
       let decision;
       try {
         decision = decideLegacyCaseBindingMigration({ activePersonLinkIds: links, status: row.status, closedAt: row.closed_at, hasOpenDeadlines: openDeadlines, hasRunningMeasures: runningMeasures, referenceDate });

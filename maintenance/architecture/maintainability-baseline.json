@@ -1,0 +1,549 @@
+{
+  "schemaVersion": 1,
+  "description": "Obergrenzen fuer bestehende Architektur- und Dateigroessenschulden. Werte duerfen nur sinken.",
+  "roots": [
+    "electron",
+    "services",
+    "src"
+  ],
+  "limits": {
+    "physicalLines": 500,
+    "codeLines": 420,
+    "maxFunctionLines": 120,
+    "imports": 35
+  },
+  "summary": {
+    "filesScanned": 423,
+    "debtFiles": 88
+  },
+  "debt": {
+    "electron/appRuntime.ts": {
+      "physicalLines": 508,
+      "codeLines": 501,
+      "maxFunctionLines": 95,
+      "imports": 34
+    },
+    "electron/applicationServices.ts": {
+      "physicalLines": 169,
+      "codeLines": 153,
+      "maxFunctionLines": 22,
+      "imports": 42
+    },
+    "electron/ipc/protectedPersonIpc.ts": {
+      "physicalLines": 168,
+      "codeLines": 144,
+      "maxFunctionLines": 156,
+      "imports": 10
+    },
+    "electron/preload.ts": {
+      "physicalLines": 808,
+      "codeLines": 780,
+      "maxFunctionLines": 21,
+      "imports": 31
+    },
+    "electron/startupStatus.ts": {
+      "physicalLines": 276,
+      "codeLines": 254,
+      "maxFunctionLines": 161,
+      "imports": 0
+    },
+    "services/activityJournalService.ts": {
+      "physicalLines": 573,
+      "codeLines": 564,
+      "maxFunctionLines": 61,
+      "imports": 9
+    },
+    "services/appSchema.ts": {
+      "physicalLines": 475,
+      "codeLines": 426,
+      "maxFunctionLines": 0,
+      "imports": 0
+    },
+    "services/caseHandoverService.ts": {
+      "physicalLines": 484,
+      "codeLines": 472,
+      "maxFunctionLines": 113,
+      "imports": 12
+    },
+    "services/caseService.ts": {
+      "physicalLines": 1008,
+      "codeLines": 985,
+      "maxFunctionLines": 114,
+      "imports": 16
+    },
+    "services/complianceCenterService.ts": {
+      "physicalLines": 922,
+      "codeLines": 721,
+      "maxFunctionLines": 102,
+      "imports": 3
+    },
+    "services/deadlineService.ts": {
+      "physicalLines": 463,
+      "codeLines": 457,
+      "maxFunctionLines": 50,
+      "imports": 5
+    },
+    "services/demoSeedService.ts": {
+      "physicalLines": 707,
+      "codeLines": 703,
+      "maxFunctionLines": 131,
+      "imports": 1
+    },
+    "services/dsarPrefillService.ts": {
+      "physicalLines": 615,
+      "codeLines": 592,
+      "maxFunctionLines": 59,
+      "imports": 2
+    },
+    "services/migrationService.ts": {
+      "physicalLines": 1568,
+      "codeLines": 1535,
+      "maxFunctionLines": 152,
+      "imports": 7
+    },
+    "services/participationService.ts": {
+      "physicalLines": 690,
+      "codeLines": 669,
+      "maxFunctionLines": 156,
+      "imports": 7
+    },
+    "services/protectedPersonService.ts": {
+      "physicalLines": 443,
+      "codeLines": 427,
+      "maxFunctionLines": 47,
+      "imports": 8
+    },
+    "services/recruitingParticipationService.ts": {
+      "physicalLines": 456,
+      "codeLines": 436,
+      "maxFunctionLines": 55,
+      "imports": 7
+    },
+    "services/reportService.ts": {
+      "physicalLines": 1766,
+      "codeLines": 1743,
+      "maxFunctionLines": 443,
+      "imports": 9
+    },
+    "services/retentionPolicy.ts": {
+      "physicalLines": 404,
+      "codeLines": 386,
+      "maxFunctionLines": 269,
+      "imports": 1
+    },
+    "services/retentionService.ts": {
+      "physicalLines": 659,
+      "codeLines": 642,
+      "maxFunctionLines": 65,
+      "imports": 13
+    },
+    "services/sbvParticipationViolationService.ts": {
+      "physicalLines": 618,
+      "codeLines": 608,
+      "maxFunctionLines": 134,
+      "imports": 8
+    },
+    "services/search/searchIndexService.ts": {
+      "physicalLines": 507,
+      "codeLines": 498,
+      "maxFunctionLines": 46,
+      "imports": 6
+    },
+    "services/search/searchProviders.ts": {
+      "physicalLines": 504,
+      "codeLines": 496,
+      "maxFunctionLines": 32,
+      "imports": 3
+    },
+    "services/securityService.ts": {
+      "physicalLines": 1151,
+      "codeLines": 1124,
+      "maxFunctionLines": 123,
+      "imports": 11
+    },
+    "services/templateService.ts": {
+      "physicalLines": 752,
+      "codeLines": 730,
+      "maxFunctionLines": 412,
+      "imports": 4
+    },
+    "services/workplaceAccommodationService.ts": {
+      "physicalLines": 575,
+      "codeLines": 561,
+      "maxFunctionLines": 128,
+      "imports": 7
+    },
+    "src/app/App.tsx": {
+      "physicalLines": 600,
+      "codeLines": 563,
+      "maxFunctionLines": 456,
+      "imports": 60
+    },
+    "src/app/features/activity-journal/ActivityJournalView.tsx": {
+      "physicalLines": 239,
+      "codeLines": 233,
+      "maxFunctionLines": 204,
+      "imports": 11
+    },
+    "src/app/features/activity-journal/hooks/useActivityJournal.ts": {
+      "physicalLines": 259,
+      "codeLines": 249,
+      "maxFunctionLines": 168,
+      "imports": 5
+    },
+    "src/app/features/auth/LoginGate.tsx": {
+      "physicalLines": 510,
+      "codeLines": 472,
+      "maxFunctionLines": 222,
+      "imports": 9
+    },
+    "src/app/features/bem/BemProcessDetail.tsx": {
+      "physicalLines": 416,
+      "codeLines": 410,
+      "maxFunctionLines": 366,
+      "imports": 10
+    },
+    "src/app/features/cases/CaseHandoverTransferDialogs.tsx": {
+      "physicalLines": 475,
+      "codeLines": 472,
+      "maxFunctionLines": 393,
+      "imports": 8
+    },
+    "src/app/features/cases/CaseTreePanel.tsx": {
+      "physicalLines": 142,
+      "codeLines": 140,
+      "maxFunctionLines": 138,
+      "imports": 2
+    },
+    "src/app/features/cases/CasesView.tsx": {
+      "physicalLines": 432,
+      "codeLines": 429,
+      "maxFunctionLines": 408,
+      "imports": 22
+    },
+    "src/app/features/cases/CasesViewRender.tsx": {
+      "physicalLines": 622,
+      "codeLines": 617,
+      "maxFunctionLines": 449,
+      "imports": 55
+    },
+    "src/app/features/cases/ContextualTemplateButton.tsx": {
+      "physicalLines": 157,
+      "codeLines": 154,
+      "maxFunctionLines": 138,
+      "imports": 17
+    },
+    "src/app/features/cases/inlineCommands/inlineCommandOpeners.ts": {
+      "physicalLines": 262,
+      "codeLines": 259,
+      "maxFunctionLines": 183,
+      "imports": 6
+    },
+    "src/app/features/cases/inlineCommands/overlays/InlineAnonymizationOverlay.tsx": {
+      "physicalLines": 172,
+      "codeLines": 169,
+      "maxFunctionLines": 133,
+      "imports": 10
+    },
+    "src/app/features/cases/inlineCommands/overlays/InlineBemOverlay.tsx": {
+      "physicalLines": 245,
+      "codeLines": 242,
+      "maxFunctionLines": 205,
+      "imports": 11
+    },
+    "src/app/features/cases/inlineCommands/overlays/InlineCaseLinkOverlay.tsx": {
+      "physicalLines": 177,
+      "codeLines": 174,
+      "maxFunctionLines": 138,
+      "imports": 10
+    },
+    "src/app/features/cases/inlineCommands/overlays/InlineConfidentialityOverlay.tsx": {
+      "physicalLines": 178,
+      "codeLines": 175,
+      "maxFunctionLines": 139,
+      "imports": 10
+    },
+    "src/app/features/cases/inlineCommands/overlays/InlineContactOverlay.tsx": {
+      "physicalLines": 316,
+      "codeLines": 308,
+      "maxFunctionLines": 277,
+      "imports": 10
+    },
+    "src/app/features/cases/inlineCommands/overlays/InlineDeadlineOverlay.tsx": {
+      "physicalLines": 238,
+      "codeLines": 232,
+      "maxFunctionLines": 199,
+      "imports": 10
+    },
+    "src/app/features/cases/inlineCommands/overlays/InlineEqualizationOverlay.tsx": {
+      "physicalLines": 249,
+      "codeLines": 246,
+      "maxFunctionLines": 209,
+      "imports": 11
+    },
+    "src/app/features/cases/inlineCommands/overlays/InlineLegalNormOverlay.tsx": {
+      "physicalLines": 175,
+      "codeLines": 172,
+      "maxFunctionLines": 136,
+      "imports": 10
+    },
+    "src/app/features/cases/inlineCommands/overlays/InlineOpenTaskOverlay.tsx": {
+      "physicalLines": 204,
+      "codeLines": 201,
+      "maxFunctionLines": 165,
+      "imports": 10
+    },
+    "src/app/features/cases/inlineCommands/overlays/InlineParticipationOverlay.tsx": {
+      "physicalLines": 250,
+      "codeLines": 247,
+      "maxFunctionLines": 210,
+      "imports": 11
+    },
+    "src/app/features/cases/inlineCommands/overlays/InlinePreventionOverlay.tsx": {
+      "physicalLines": 289,
+      "codeLines": 286,
+      "maxFunctionLines": 249,
+      "imports": 11
+    },
+    "src/app/features/cases/inlineCommands/overlays/InlineRiskOverlay.tsx": {
+      "physicalLines": 193,
+      "codeLines": 190,
+      "maxFunctionLines": 154,
+      "imports": 10
+    },
+    "src/app/features/cases/inlineCommands/overlays/InlineTemplateOverlay.tsx": {
+      "physicalLines": 172,
+      "codeLines": 169,
+      "maxFunctionLines": 133,
+      "imports": 10
+    },
+    "src/app/features/cases/inlineCommands/overlays/InlineTerminationOverlay.tsx": {
+      "physicalLines": 303,
+      "codeLines": 300,
+      "maxFunctionLines": 263,
+      "imports": 11
+    },
+    "src/app/features/cases/inlineCommands/overlays/InlineWorkplaceAccommodationOverlay.tsx": {
+      "physicalLines": 305,
+      "codeLines": 302,
+      "maxFunctionLines": 265,
+      "imports": 11
+    },
+    "src/app/features/cases/measures/useMeasureNotes.ts": {
+      "physicalLines": 153,
+      "codeLines": 141,
+      "maxFunctionLines": 136,
+      "imports": 7
+    },
+    "src/app/features/cases/useCaseCrudActions.ts": {
+      "physicalLines": 230,
+      "codeLines": 219,
+      "maxFunctionLines": 181,
+      "imports": 18
+    },
+    "src/app/features/cases/useCaseNoteEditor.ts": {
+      "physicalLines": 206,
+      "codeLines": 193,
+      "maxFunctionLines": 197,
+      "imports": 7
+    },
+    "src/app/features/cases/useCaseProcessCreation.ts": {
+      "physicalLines": 266,
+      "codeLines": 262,
+      "maxFunctionLines": 239,
+      "imports": 13
+    },
+    "src/app/features/cases/useCaseProcessUpdates.ts": {
+      "physicalLines": 198,
+      "codeLines": 191,
+      "maxFunctionLines": 172,
+      "imports": 17
+    },
+    "src/app/features/cases/useCaseWorkbenchData.ts": {
+      "physicalLines": 188,
+      "codeLines": 168,
+      "maxFunctionLines": 171,
+      "imports": 15
+    },
+    "src/app/features/cases/useProcessTemplateActions.ts": {
+      "physicalLines": 230,
+      "codeLines": 225,
+      "maxFunctionLines": 196,
+      "imports": 16
+    },
+    "src/app/features/compliance/components/ComplianceIncidentsPanel.tsx": {
+      "physicalLines": 270,
+      "codeLines": 264,
+      "maxFunctionLines": 211,
+      "imports": 9
+    },
+    "src/app/features/compliance/useComplianceCenter.ts": {
+      "physicalLines": 231,
+      "codeLines": 225,
+      "maxFunctionLines": 202,
+      "imports": 7
+    },
+    "src/app/features/dashboard/DashboardFocusOverview.tsx": {
+      "physicalLines": 339,
+      "codeLines": 317,
+      "maxFunctionLines": 229,
+      "imports": 12
+    },
+    "src/app/features/equalization/EqualizationProcessDetail.tsx": {
+      "physicalLines": 261,
+      "codeLines": 248,
+      "maxFunctionLines": 223,
+      "imports": 11
+    },
+    "src/app/features/knowledge/KnowledgePanels.tsx": {
+      "physicalLines": 183,
+      "codeLines": 181,
+      "maxFunctionLines": 123,
+      "imports": 7
+    },
+    "src/app/features/knowledge/KnowledgeView.tsx": {
+      "physicalLines": 219,
+      "codeLines": 214,
+      "maxFunctionLines": 206,
+      "imports": 11
+    },
+    "src/app/features/participation-violations/SbvParticipationViolationsView.tsx": {
+      "physicalLines": 186,
+      "codeLines": 175,
+      "maxFunctionLines": 163,
+      "imports": 11
+    },
+    "src/app/features/participation-violations/hooks/useSbvParticipationViolations.ts": {
+      "physicalLines": 239,
+      "codeLines": 223,
+      "maxFunctionLines": 196,
+      "imports": 6
+    },
+    "src/app/features/participation/ParticipationProcessDetail.tsx": {
+      "physicalLines": 386,
+      "codeLines": 377,
+      "maxFunctionLines": 287,
+      "imports": 10
+    },
+    "src/app/features/participation/ParticipationView.tsx": {
+      "physicalLines": 252,
+      "codeLines": 243,
+      "maxFunctionLines": 125,
+      "imports": 13
+    },
+    "src/app/features/persons/PersonImportWizard.tsx": {
+      "physicalLines": 235,
+      "codeLines": 219,
+      "maxFunctionLines": 127,
+      "imports": 5
+    },
+    "src/app/features/persons/PersonLifecycleReviewDialog.tsx": {
+      "physicalLines": 238,
+      "codeLines": 233,
+      "maxFunctionLines": 187,
+      "imports": 6
+    },
+    "src/app/features/persons/PersonPrivacyActionDialog.tsx": {
+      "physicalLines": 204,
+      "codeLines": 201,
+      "maxFunctionLines": 153,
+      "imports": 4
+    },
+    "src/app/features/persons/usePersonsHandlers.ts": {
+      "physicalLines": 162,
+      "codeLines": 145,
+      "maxFunctionLines": 151,
+      "imports": 4
+    },
+    "src/app/features/prevention/PreventionProcessDetail.tsx": {
+      "physicalLines": 308,
+      "codeLines": 289,
+      "maxFunctionLines": 216,
+      "imports": 7
+    },
+    "src/app/features/recruiting/RecruitingParticipationsView.tsx": {
+      "physicalLines": 546,
+      "codeLines": 541,
+      "maxFunctionLines": 347,
+      "imports": 14
+    },
+    "src/app/features/reports/ReportsView.tsx": {
+      "physicalLines": 235,
+      "codeLines": 232,
+      "maxFunctionLines": 190,
+      "imports": 9
+    },
+    "src/app/features/sbv-control/SbvControlView.tsx": {
+      "physicalLines": 209,
+      "codeLines": 202,
+      "maxFunctionLines": 171,
+      "imports": 18
+    },
+    "src/app/features/settings/BackupRestoreForm.tsx": {
+      "physicalLines": 226,
+      "codeLines": 212,
+      "maxFunctionLines": 208,
+      "imports": 15
+    },
+    "src/app/features/settings/GremiaBrSettingsPanel.tsx": {
+      "physicalLines": 299,
+      "codeLines": 277,
+      "maxFunctionLines": 260,
+      "imports": 5
+    },
+    "src/app/features/settings/RetentionSettingsPanel.tsx": {
+      "physicalLines": 379,
+      "codeLines": 362,
+      "maxFunctionLines": 358,
+      "imports": 18
+    },
+    "src/app/features/templates/TemplateEditorModal.tsx": {
+      "physicalLines": 203,
+      "codeLines": 194,
+      "maxFunctionLines": 151,
+      "imports": 9
+    },
+    "src/app/features/templates/TemplatesView.tsx": {
+      "physicalLines": 238,
+      "codeLines": 235,
+      "maxFunctionLines": 198,
+      "imports": 13
+    },
+    "src/app/features/termination/TerminationProcessDetail.tsx": {
+      "physicalLines": 341,
+      "codeLines": 328,
+      "maxFunctionLines": 282,
+      "imports": 11
+    },
+    "src/app/features/workplace-accommodation/WorkplaceAccommodationProcessDetail.tsx": {
+      "physicalLines": 358,
+      "codeLines": 351,
+      "maxFunctionLines": 268,
+      "imports": 5
+    },
+    "src/app/shared/components/IndustrialForm.tsx": {
+      "physicalLines": 644,
+      "codeLines": 638,
+      "maxFunctionLines": 65,
+      "imports": 5
+    },
+    "src/app/shared/components/WorkbenchLayout.tsx": {
+      "physicalLines": 685,
+      "codeLines": 680,
+      "maxFunctionLines": 41,
+      "imports": 5
+    },
+    "src/app/shared/textCommands/GlobalTextCommandController.tsx": {
+      "physicalLines": 674,
+      "codeLines": 666,
+      "maxFunctionLines": 566,
+      "imports": 7
+    },
+    "src/app/shared/textCommands/TextCommandHelpModal.tsx": {
+      "physicalLines": 144,
+      "codeLines": 143,
+      "maxFunctionLines": 122,
+      "imports": 4
+    }
+  }
+}

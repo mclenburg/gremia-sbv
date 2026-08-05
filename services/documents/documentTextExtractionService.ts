@@ -1,5 +1,7 @@
 import path from 'node:path';
 import yauzl from 'yauzl';
+import type { Entry, ZipFile } from 'yauzl';
+import type { Readable } from 'node:stream';
 import type { CaseSearchExtractionQuality } from '../search/searchTypes.js';
 
 const TEXT_EXTRACTION_LIMIT = 300_000;
@@ -128,18 +130,18 @@ function readZipTextEntries(
 ): Promise<string[]> {
   return new Promise((resolve, reject) => {
     const chunks: string[] = [];
-    yauzl.open(filePath, { lazyEntries: true }, (openError: unknown, zipfile: any) => {
+    yauzl.open(filePath, { lazyEntries: true }, (openError: Error | null, zipfile: ZipFile | undefined) => {
       if (openError || !zipfile) {
         reject(openError ?? new Error('ZIP-Datei konnte nicht geöffnet werden.'));
         return;
       }
       zipfile.readEntry();
-      zipfile.on('entry', (entry: any) => {
+      zipfile.on('entry', (entry: Entry) => {
         if (!matcher(entry.fileName)) {
           zipfile.readEntry();
           return;
         }
-        zipfile.openReadStream(entry, (streamError: unknown, stream: any) => {
+        zipfile.openReadStream(entry, (streamError: Error | null, stream: Readable | undefined) => {
           if (streamError || !stream) {
             reject(streamError ?? new Error(`ZIP-Eintrag ${entry.fileName} konnte nicht gelesen werden.`));
             return;

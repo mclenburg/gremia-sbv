@@ -1,37 +1,59 @@
-import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { TemplateService } from '../services/templateService';
+import type { DatabaseAdapter } from '../services/databaseService';
+import { openTestDatabase } from './helpers/openTestDatabase';
 
-describe("0.4.57 template behavior contracts", () => {
-  it("supports creating, editing and deleting templates in the templates view", () => {
-    const templates = readFileSync("src/app/features/templates/TemplatesView.tsx", "utf8");
-    expect(templates).toContain("bridge.templates.create");
-    expect(templates).toContain("bridge.templates.update");
-    expect(templates).toContain("bridge.templates.delete");
-    expect(templates).toContain("editingTemplate");
-    expect(templates).toContain("setEditingTemplate");
+let db: DatabaseAdapter;
+let service: TemplateService;
+
+beforeEach(async () => {
+  db = await openTestDatabase();
+  db.exec(`CREATE TABLE cases (
+    id TEXT PRIMARY KEY, case_number TEXT NOT NULL, display_name TEXT NOT NULL,
+    category TEXT NOT NULL, status TEXT NOT NULL, summary TEXT, risk_level TEXT
+  );`);
+  service = new TemplateService(() => db);
+  service.ensureSchema(db);
+  db.prepare(`INSERT INTO cases (id, case_number, display_name, category, status, summary, risk_level)
+    VALUES (?, ?, ?, ?, ?, ?, ?)`).run('case-1', 'SBV-2026-001', 'Erika Muster', 'arbeitsplatz', 'offen', 'Kurzinfo', 'hoch');
+});
+
+afterEach(() => db.close());
+
+describe('Vorlagenrendering – positive und negative Funktionspfade', () => {
+  it('ersetzt Fall- und Zusatzwerte, archiviert das Ergebnis und meldet keine offenen Platzhalter', async () => {
+    const template = await service.createTemplate({
+      key: 'render-vertrag', title: 'Rendervertrag', category: 'sonstiges',
+      subject: '{{fall.aktenzeichen}} – {{frist.datum}}',
+      body: 'Person: {{fall.name}}; Status: {{fall.status}}',
+    });
+
+    const rendered = await service.renderTemplate({
+      templateId: template.id,
+      caseId: 'case-1',
+      values: { 'frist.datum': '31.08.2026' },
+    });
+
+    expect(rendered.subject).toBe('SBV-2026-001 – 31.08.2026');
+    expect(rendered.body).toBe('Person: Erika Muster; Status: offen');
+    expect(rendered.unresolvedPlaceholders).toEqual([]);
+    expect(rendered.archivedId).toBeTruthy();
+    expect(db.prepare<{ count: number }>('SELECT COUNT(*) AS count FROM template_renders WHERE id = ?').get(rendered.archivedId!)?.count).toBe(1);
   });
 
-  it("keeps tags and process status bindings editable", () => {
-    const templates = readFileSync("src/app/features/templates/TemplatesView.tsx", "utf8");
-    expect(templates).toContain("tags");
-    expect(templates).toContain("massnahme:prevention");
-    expect(templates).toContain("status:");
-    expect(templates).toContain("newTemplateProcessStatus");
+  it('meldet fehlende Platzhalter eindeutig und archiviert auf Wunsch nicht', async () => {
+    const template = await service.createTemplate({
+      title: 'Offener Wert', category: 'sonstiges', subject: '{{nicht.vorhanden}}', body: '{{fall.name}} / {{weiterer.wert}}',
+    });
+    const rendered = await service.renderTemplate({ templateId: template.id, caseId: 'case-1', archive: false });
+
+    expect(rendered.unresolvedPlaceholders).toEqual(['nicht.vorhanden', 'weiterer.wert']);
+    expect(rendered.archivedId).toBeUndefined();
+    expect(db.prepare<{ count: number }>('SELECT COUNT(*) AS count FROM template_renders').get()?.count).toBe(0);
   });
 
-  it("documents placeholder help and unresolved placeholders", () => {
-    const templates = readFileSync("src/app/features/templates/TemplatesView.tsx", "utf8");
-    const helpModal = readFileSync("src/app/features/templates/TemplateHelpModal.tsx", "utf8");
-    const model = readFileSync("src/app/core/models/template.model.ts", "utf8");
-    expect(templates).toContain("TemplateHelpModal");
-    expect(helpModal).toContain("Platzhalter");
-    expect(helpModal).toContain("sbv.name");
-    expect(model).toContain("unresolvedPlaceholders");
-  });
-
-  it("keeps rendered process documents warning about unresolved placeholders", () => {
-    const modal = readFileSync("src/app/features/cases/ProcessTemplateDocumentsModal.tsx", "utf8");
-    expect(modal).toContain("Offene Platzhalter");
-    expect(modal).toContain("state.rendered.unresolvedPlaceholders");
+  it('weist unbekannte Vorlagen zurück und erzeugt keinen Archivdatensatz', async () => {
+    await expect(service.renderTemplate({ templateId: 'missing', caseId: 'case-1' })).rejects.toThrow('Vorlage nicht gefunden.');
+    expect(db.prepare<{ count: number }>('SELECT COUNT(*) AS count FROM template_renders').get()?.count).toBe(0);
   });
 });

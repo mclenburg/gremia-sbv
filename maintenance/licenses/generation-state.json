@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 2,
+  "lockSha256": "9511e70c5e76b4dc056258e3ad9057e9ea125665185c9a52ed5eb02d7d5bdb67",
+  "packageCount": 577,
+  "inventorySha256": "eef9ce701ca7f7a5d6fe9e222ad2e8e688f71728d3bcdb35cb7b1ddb34cd0952",
+  "noticesSha256": "683c3e45d43c766e76fad582019065143c7700b33a82afc127751d54a7af19e9",
+  "licenseFiles": [
+    {
+      "name": "0BSD.txt",
+      "sha256": "92f3d752ecccc484c3c7b6dac2fbfb30ebb0e7c7fd9e9940e7ee68887c5daed4"
+    },
+    {
+      "name": "Apache-2.0.txt",
+      "sha256": "998974625737261b0b74a2e20819b383f784e95893d4acb5e26c932d378cfe11"
+    },
+    {
+      "name": "BSD-2-Clause.txt",
+      "sha256": "79a858f2ff17681e086421be789c14ef3ffa4d6f57244e95c7fa070c6d809e6e"
+    },
+    {
+      "name": "BSD-3-Clause.txt",
+      "sha256": "1cf03049ded95c2273caedb38690c45445ca32fa9b481af3b46bf7617e38686a"
+    },
+    {
+      "name": "BlueOak-1.0.0.txt",
+      "sha256": "814b8868771beee50ecaf134b7f33683b21400986a27709ab3280c7155491f36"
+    },
+    {
+      "name": "CC-BY-4.0.txt",
+      "sha256": "e950b759d0529f31c4b3aa4dfc6a768fe69be31c126896cc03eee2e199596935"
+    },
+    {
+      "name": "ISC.txt",
+      "sha256": "4ba9b30ccd38521f9520b2d4712f713be12b80b54759bae87bbc8183ea93c830"
+    },
+    {
+      "name": "MIT.txt",
+      "sha256": "9e251714c71f20c2055443d5f918d3372bbf4f1130e91de9fd8db97f53babcfa"
+    },
+    {
+      "name": "MIT_AND_Zlib.txt",
+      "sha256": "a34b336cb1a7c6b497c831863d592d324d120180073a7286df752cb3fa2858f2"
+    },
+    {
+      "name": "MPL-2.0.txt",
+      "sha256": "d5c7539a52f5ca1abaa142c897501a5bc08948564765abf7e396b3ed89c5bc2d"
+    },
+    {
+      "name": "Python-2.0.txt",
+      "sha256": "e02ffaa5d295d4ea65e568484350cd54e664609f6e277c57282dd8df64e83a2e"
+    },
+    {
+      "name": "WTFPL.txt",
+      "sha256": "1aed8bb8b6ce5dcad828d70b7f1d595c185c5604a567a293ec7373fe3ecb8ba9"
+    }
+  ]
+}

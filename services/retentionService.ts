@@ -23,10 +23,17 @@ import { directCasePrivacyEntities, resolveAnonymizationValue } from './privacyE
 import { SearchIndexService } from './search/searchIndexService.js';
 import { MeasureLifecycleAuditService } from './measureLifecycleAuditService.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
+import { CaseLifecycleAuditService } from './caseLifecycleAuditService.js';
+import { runCaseDeletionTransaction } from './caseDeletionTransaction.js';
 import type { ReportableMeasureType } from '../src/app/core/models/measure-lifecycle.model.js';
 
 const CASE_ANONYMIZE_CONFIRMATION = 'FALL ANONYMISIEREN';
 const CASE_DELETE_CONFIRMATION = 'FALL LÖSCHEN';
+
+/** SQLite row at the persistence boundary. Values remain scalar and must be
+ * normalized by the service mapper before entering the domain model. */
+type DatabaseScalar = string;
+type DatabaseRow = Record<string, DatabaseScalar>;
 
 function nowIso(): string {
   return new Date().toISOString();
@@ -55,17 +62,17 @@ function writeSetting(db: DatabaseAdapter, key: string, value: number): void {
 }
 
 function safeRun(db: DatabaseAdapter, sql: string, ...params: unknown[]): number {
-  const result = db.prepare<any>(sql).run(...params) as { changes?: number } | undefined;
+  const result = db.prepare<DatabaseRow>(sql).run(...params) as { changes?: number } | undefined;
   return Number(result?.changes ?? 0);
 }
 
 function tableExists(db: DatabaseAdapter, table: string): boolean {
-  return Boolean(db.prepare<any>("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?").get(table));
+  return Boolean(db.prepare<DatabaseRow>("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?").get(table));
 }
 
 function getColumns(db: DatabaseAdapter, table: string): string[] {
   try {
-    const rows = db.prepare<any>(`PRAGMA table_info(${table})`).all();
+    const rows = db.prepare<DatabaseRow>(`PRAGMA table_info(${table})`).all();
     return rows.map((row) => String(row.name));
   } catch {
     return [];
@@ -280,7 +287,7 @@ function lifecycleRowsForCase(db: DatabaseAdapter, caseId: string): RetentionLif
   const result: RetentionLifecycleRow[] = [];
   const collect = (table: string, type: ReportableMeasureType, statusColumn: string, typeColumn?: string) => {
     if (!tableExists(db, table)) return;
-    const rows = db.prepare<any>(`SELECT id, case_id, ${statusColumn} AS status${typeColumn ? `, ${typeColumn} AS measure_type` : ''} FROM ${table} WHERE case_id = ?`).all(caseId);
+    const rows = db.prepare<DatabaseRow>(`SELECT id, case_id, ${statusColumn} AS status${typeColumn ? `, ${typeColumn} AS measure_type` : ''} FROM ${table} WHERE case_id = ?`).all(caseId);
     for (const row of rows) result.push({ id: row.id, caseId: row.case_id, status: row.status, measureType: typeColumn ? row.measure_type as ReportableMeasureType : type });
   };
   collect('case_measures', 'other', 'status', 'type');
@@ -297,7 +304,11 @@ export class RetentionService {
     private readonly dataDirProvider: () => string
   ) {}
 
-  private get db(): DatabaseAdapter { return this.dbProvider(); }
+  private get db(): DatabaseAdapter {
+    const db = this.dbProvider();
+    this.ensureSchema(db);
+    return db;
+  }
 
   ensureSchema(db = this.dbProvider()): void {
     db.exec(`
@@ -370,7 +381,7 @@ export class RetentionService {
     const measureNoteCountExpression = tableExists(db, 'case_measure_notes')
       ? ' + (SELECT COUNT(*) FROM case_measure_notes mn WHERE mn.case_id = c.id)'
       : '';
-    const rows = db.prepare<any>(`
+    const rows = db.prepare<DatabaseRow>(`
       SELECT c.id, c.case_number, c.display_name, c.status, c.category, c.closed_at, c.opened_at,
         ${activity} AS last_activity_at,
         ((SELECT COUNT(*) FROM case_notes n WHERE n.case_id = c.id)${measureNoteCountExpression}) AS note_count,
@@ -396,7 +407,7 @@ export class RetentionService {
 
   private listContactSnapshots(db: DatabaseAdapter): RetentionContactSnapshot[] {
     if (!tableExists(db, 'contacts')) return [];
-    const rows = db.prepare<any>(`
+    const rows = db.prepare<DatabaseRow>(`
       SELECT c.id, c.first_name, c.last_name, c.organization, c.created_at,
         (SELECT COUNT(*) FROM contact_text_references r WHERE r.contact_id = c.id AND r.anonymized_at IS NULL) AS reference_count
       FROM contacts c
@@ -412,7 +423,7 @@ export class RetentionService {
 
   private listDocumentSnapshots(db: DatabaseAdapter): RetentionDocumentSnapshot[] {
     if (!tableExists(db, 'case_documents')) return [];
-    const rows = db.prepare<any>(`
+    const rows = db.prepare<DatabaseRow>(`
       SELECT d.*, c.case_number
       FROM case_documents d
       LEFT JOIN cases c ON c.id = d.case_id
@@ -429,7 +440,7 @@ export class RetentionService {
       createdAt: row.created_at
     }));
     if (!tableExists(db, 'generated_documents')) return caseDocuments;
-    const generatedRows = db.prepare<any>(`
+    const generatedRows = db.prepare<DatabaseRow>(`
       SELECT id, case_id, title, storage_path, document_key, iv, auth_tag, created_at
       FROM generated_documents
       WHERE document_kind = 'sbv_participation_violation'
@@ -451,7 +462,7 @@ export class RetentionService {
 
   private listActivityJournalSnapshots(db: DatabaseAdapter): RetentionActivityJournalSnapshot[] {
     if (!tableExists(db, 'activity_journal_entries')) return [];
-    const rows = db.prepare<any>(`
+    const rows = db.prepare<DatabaseRow>(`
       SELECT e.id, e.title, e.entry_date, e.status, e.category, e.follow_up_due_at, e.exported_for_activity_report_at,
         EXISTS(SELECT 1 FROM activity_journal_links l WHERE l.entry_id = e.id AND l.target_type = 'case') AS case_linked,
         EXISTS(
@@ -478,7 +489,7 @@ export class RetentionService {
 
   private listParticipationViolationSnapshots(db: DatabaseAdapter): RetentionParticipationViolationSnapshot[] {
     if (!tableExists(db, 'sbv_participation_violations')) return [];
-    const rows = db.prepare<any>(`
+    const rows = db.prepare<DatabaseRow>(`
       SELECT v.id, v.stage, v.status, v.subject, v.case_id, v.source_context_type, v.source_context_id, v.related_case_measure_id, v.related_recruiting_participation_id, v.related_deadline_id, v.created_at, v.updated_at, v.closed_at,
         (SELECT COUNT(*) FROM sbv_participation_violation_documents d WHERE d.violation_id = v.id) AS document_count
       FROM sbv_participation_violations v
@@ -507,7 +518,7 @@ export class RetentionService {
     const columns = getColumns(db, 'deadlines');
     const completedAt = columns.includes('completed_at') ? 'completed_at' : 'NULL AS completed_at';
     const isLegalDeadline = columns.includes('is_legal_deadline') ? 'is_legal_deadline' : '0 AS is_legal_deadline';
-    const rows = db.prepare<any>(`
+    const rows = db.prepare<DatabaseRow>(`
       SELECT id, title, status, case_id, due_at, ${completedAt}, ${isLegalDeadline}
       FROM deadlines
       ORDER BY due_at DESC
@@ -528,7 +539,7 @@ export class RetentionService {
       return { ok: false, action: 'none', error: `Bitte exakt „${CASE_ANONYMIZE_CONFIRMATION}“ eingeben.` };
     }
     const db = this.db;
-    const row = db.prepare<any>('SELECT id, case_number FROM cases WHERE id = ?').get(caseId);
+    const row = db.prepare<DatabaseRow>('SELECT id, case_number FROM cases WHERE id = ?').get(caseId);
     if (!row) return { ok: false, action: 'none', error: 'Fall nicht gefunden.' };
 
     const documents = db.prepare<CaseDocumentFileRow>('SELECT id, storage_path FROM case_documents WHERE case_id = ?').all(caseId);
@@ -577,7 +588,7 @@ export class RetentionService {
       return { ok: false, action: 'none', error: `Bitte exakt „${CASE_DELETE_CONFIRMATION}“ eingeben.` };
     }
     const db = this.db;
-    const row = db.prepare<any>('SELECT id, case_number FROM cases WHERE id = ?').get(caseId);
+    const row = db.prepare<DatabaseRow>('SELECT id, case_number FROM cases WHERE id = ?').get(caseId);
     if (!row) return { ok: false, action: 'none', error: 'Fall nicht gefunden.' };
 
     const documents = db.prepare<CaseDocumentFileRow>('SELECT id, storage_path FROM case_documents WHERE case_id = ?').all(caseId);
@@ -595,35 +606,44 @@ export class RetentionService {
     const affectedFiles = fileRemoval.affectedFiles;
     const lifecycleRows = lifecycleRowsForCase(db, caseId);
 
-    db.exec('BEGIN IMMEDIATE');
-    try {
-      const lifecycle = new MeasureLifecycleAuditService(db);
-      for (const measure of lifecycleRows) {
-        lifecycle.deleted(measure.measureType, measure.id, measure.caseId, measure.status, 'case_cascade');
-      }
-      affectedRows += safeRun(db, `DELETE FROM case_documents_fts WHERE case_id = ?`, caseId);
-      if (tableExists(db, 'case_document_ocr_jobs')) {
-        affectedRows += safeRun(db, `DELETE FROM case_document_ocr_jobs WHERE document_id IN (SELECT id FROM case_documents WHERE case_id = ?)`, caseId);
-      }
-      affectedRows += safeRun(db, `DELETE FROM case_documents WHERE case_id = ?`, caseId);
-      const noteIds = db.prepare<any>('SELECT id FROM case_notes WHERE case_id = ?').all(caseId).map((note) => note.id);
-      for (const noteId of noteIds) {
-        affectedRows += safeRun(db, `DELETE FROM contact_text_references WHERE source_type = 'case_note' AND source_id = ?`, noteId);
-        affectedRows += safeRun(db, `DELETE FROM case_notes_fts WHERE id = ?`, noteId);
-      }
-      affectedRows += safeRun(db, `DELETE FROM case_note_cases WHERE case_id = ?`, caseId);
-      affectedRows += safeRun(db, `DELETE FROM case_notes WHERE case_id = ?`, caseId);
-      if (tableExists(db, 'case_measure_notes')) {
-        affectedRows += safeRun(db, `DELETE FROM case_measure_notes WHERE case_id = ?`, caseId);
-      }
-      affectedRows += safeRun(db, `DELETE FROM deadlines WHERE case_id = ?`, caseId);
-      affectedRows += safeRun(db, `DELETE FROM cases WHERE id = ?`, caseId);
-      this.recordAction(db, 'case_deleted', 'case', caseId, row.case_number, reason, affectedRows, affectedFiles);
-      db.exec('COMMIT');
-    } catch (error) {
-      db.exec('ROLLBACK');
-      throw error;
-    }
+    runCaseDeletionTransaction(db, {
+      deleteDependentData: () => {
+        const lifecycle = new MeasureLifecycleAuditService(db);
+        for (const measure of lifecycleRows) {
+          lifecycle.deleted(measure.measureType, measure.id, measure.caseId, measure.status, 'case_cascade');
+        }
+        affectedRows += safeRun(db, `DELETE FROM case_documents_fts WHERE case_id = ?`, caseId);
+        if (tableExists(db, 'case_document_ocr_jobs')) {
+          affectedRows += safeRun(db, `DELETE FROM case_document_ocr_jobs WHERE document_id IN (SELECT id FROM case_documents WHERE case_id = ?)`, caseId);
+        }
+        affectedRows += safeRun(db, `DELETE FROM case_documents WHERE case_id = ?`, caseId);
+        const noteIds = db.prepare<DatabaseRow>('SELECT id FROM case_notes WHERE case_id = ?').all(caseId).map((note) => note.id);
+        for (const noteId of noteIds) {
+          affectedRows += safeRun(db, `DELETE FROM contact_text_references WHERE source_type = 'case_note' AND source_id = ?`, noteId);
+          affectedRows += safeRun(db, `DELETE FROM case_notes_fts WHERE id = ?`, noteId);
+        }
+        affectedRows += safeRun(db, `DELETE FROM case_note_cases WHERE case_id = ?`, caseId);
+        affectedRows += safeRun(db, `DELETE FROM case_notes WHERE case_id = ?`, caseId);
+        if (tableExists(db, 'case_measure_notes')) {
+          affectedRows += safeRun(db, `DELETE FROM case_measure_notes WHERE case_id = ?`, caseId);
+        }
+        affectedRows += safeRun(db, `DELETE FROM deadlines WHERE case_id = ?`, caseId);
+      },
+      appendMandatoryCaseAudit: () => {
+        new CaseLifecycleAuditService(db).deleted({
+          caseId,
+          deletedMeasureCount: lifecycleRows.length,
+          deletedDocumentCount: documents.length,
+          affectedFileCount: affectedFiles,
+        });
+      },
+      deleteCaseRecord: () => {
+        affectedRows += safeRun(db, `DELETE FROM cases WHERE id = ?`, caseId);
+      },
+      recordRetentionAction: () => {
+        this.recordAction(db, 'case_deleted', 'case', caseId, row.case_number, reason, affectedRows, affectedFiles);
+      },
+    });
     // Der Suchindex ist eine vollständig rekonstruierbare Projektion und gehört nicht zur fachlichen Transaktion.
     affectedRows += new SearchIndexService(db).deleteCase(caseId);
     return { ok: true, action: 'case_deleted', message: `Fall ${row.case_number} wurde gelöscht.`, affectedRows, affectedFiles };

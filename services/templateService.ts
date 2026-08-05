@@ -3,6 +3,11 @@ import type { DatabaseAdapter } from './databaseService.js';
 import { buildFallbackTemplateContext, normalizeTemplateKey, renderTemplateText, type TemplateContext } from './templatePolicy.js';
 import type { CreateTemplateInput, RenderContextTemplateInput, RenderTemplateInput, RenderedTemplateResult, TemplateCategory, TemplateListFilters, TemplateRecord, UpdateTemplateInput } from '../src/app/core/models/template.model.js';
 
+/** SQLite row at the persistence boundary. Values remain scalar and must be
+ * normalized by the service mapper before entering the domain model. */
+type DatabaseScalar = string;
+type DatabaseRow = Record<string, DatabaseScalar>;
+
 function nowIso(): string {
   return new Date().toISOString();
 }
@@ -26,7 +31,8 @@ function parseJsonArray(value: unknown): string[] {
   }
 }
 
-function mapTemplate(row: any): TemplateRecord {
+function mapTemplate(row: DatabaseRow | undefined): TemplateRecord {
+  if (!row) throw new Error('Vorlage wurde nicht gefunden.');
   return {
     id: row.id,
     key: row.template_key,
@@ -549,7 +555,7 @@ export class TemplateService {
 
     if (query) {
       const pattern = likePattern(query);
-      const rows = db.prepare<any>(`
+      const rows = db.prepare<DatabaseRow>(`
         SELECT * FROM document_templates
         WHERE (? IS NULL OR category = ?)
           AND (? IS NULL OR tags_json LIKE '%' || ? || '%' OR category = ?)
@@ -568,7 +574,7 @@ export class TemplateService {
       return rows.map(mapTemplate);
     }
 
-    const rows = db.prepare<any>(`
+    const rows = db.prepare<DatabaseRow>(`
       SELECT * FROM document_templates
       WHERE (? IS NULL OR category = ?)
         AND (? IS NULL OR tags_json LIKE '%' || ? || '%' OR category = ?)
@@ -607,12 +613,12 @@ export class TemplateService {
       timestamp,
       timestamp
     );
-    return mapTemplate(db.prepare<any>('SELECT * FROM document_templates WHERE id = ?').get(id));
+    return mapTemplate(db.prepare<DatabaseRow>('SELECT * FROM document_templates WHERE id = ?').get(id));
   }
 
   async updateTemplate(id: string, input: UpdateTemplateInput): Promise<TemplateRecord> {
     const db = this.db;
-    const before = db.prepare<any>('SELECT * FROM document_templates WHERE id = ?').get(id);
+    const before = db.prepare<DatabaseRow>('SELECT * FROM document_templates WHERE id = ?').get(id);
     if (!before) throw new Error('Vorlage nicht gefunden.');
     if (before.is_system) throw new Error('Systemvorlagen können nicht überschrieben werden. Bitte eigene Vorlage anlegen.');
 
@@ -631,21 +637,21 @@ export class TemplateService {
       nowIso(),
       id
     );
-    return mapTemplate(db.prepare<any>('SELECT * FROM document_templates WHERE id = ?').get(id));
+    return mapTemplate(db.prepare<DatabaseRow>('SELECT * FROM document_templates WHERE id = ?').get(id));
   }
 
   async deleteTemplate(id: string): Promise<{ deleted: boolean }> {
     const db = this.db;
-    const before = db.prepare<any>('SELECT is_system FROM document_templates WHERE id = ?').get(id);
+    const before = db.prepare<DatabaseRow>('SELECT is_system FROM document_templates WHERE id = ?').get(id);
     if (!before) return { deleted: false };
     if (before.is_system) throw new Error('Systemvorlagen können nicht gelöscht werden.');
-    const result = db.prepare<any>('DELETE FROM document_templates WHERE id = ?').run(id) as { changes?: number } | undefined;
+    const result = db.prepare<DatabaseRow>('DELETE FROM document_templates WHERE id = ?').run(id) as { changes?: number } | undefined;
     return { deleted: Boolean(result?.changes) };
   }
 
   async renderTemplate(input: RenderTemplateInput): Promise<RenderedTemplateResult> {
     const db = this.db;
-    const templateRow = db.prepare<any>('SELECT * FROM document_templates WHERE id = ?').get(input.templateId);
+    const templateRow = db.prepare<DatabaseRow>('SELECT * FROM document_templates WHERE id = ?').get(input.templateId);
     if (!templateRow) throw new Error('Vorlage nicht gefunden.');
     const template = mapTemplate(templateRow);
     const context = this.buildContext(db, input.caseId, input.values);
@@ -676,7 +682,7 @@ export class TemplateService {
 
   async renderContextTemplate(input: RenderContextTemplateInput): Promise<RenderedTemplateResult> {
     const db = this.db;
-    const template = db.prepare<any>('SELECT * FROM document_templates WHERE template_key = ?').get(input.templateKey);
+    const template = db.prepare<DatabaseRow>('SELECT * FROM document_templates WHERE template_key = ?').get(input.templateKey);
     if (!template) throw new Error(`Vorlage nicht gefunden: ${input.templateKey}`);
     const sourceValues = this.buildSourceContext(db, input);
     return this.renderTemplate({
@@ -696,7 +702,7 @@ export class TemplateService {
     if (input.sourceType) values['quelle.typ'] = input.sourceType;
 
     if (input.sourceType === 'prevention' && input.sourceId && this.tableExists(db, 'prevention_processes')) {
-      const row = db.prepare<any>('SELECT * FROM prevention_processes WHERE id = ?').get(input.sourceId);
+      const row = db.prepare<DatabaseRow>('SELECT * FROM prevention_processes WHERE id = ?').get(input.sourceId);
       if (row) {
         values['praevention.status'] = row.status ?? '';
         values['praevention.gefaehrdung'] = row.risk_type ?? '';
@@ -713,7 +719,7 @@ export class TemplateService {
   private buildContext(db: DatabaseAdapter, caseId?: string, values: Record<string, string> = {}): TemplateContext {
     const context: TemplateContext = { ...buildFallbackTemplateContext(), ...values };
     if (caseId) {
-      const caseRow = db.prepare<any>('SELECT * FROM cases WHERE id = ?').get(caseId);
+      const caseRow = db.prepare<DatabaseRow>('SELECT * FROM cases WHERE id = ?').get(caseId);
       if (caseRow) {
         context['fall.id'] = caseRow.id;
         context['fall.aktenzeichen'] = caseRow.case_number;
@@ -726,7 +732,7 @@ export class TemplateService {
       }
 
       if (this.tableExists(db, 'case_legal_references') && this.tableExists(db, 'legal_norms')) {
-        const norms = db.prepare<any>(`
+        const norms = db.prepare<DatabaseRow>(`
           SELECT n.paragraph, n.source
           FROM case_legal_references r
           JOIN legal_norms n ON n.id = r.legal_norm_id

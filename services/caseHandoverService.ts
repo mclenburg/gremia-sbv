@@ -37,7 +37,17 @@ import type {
   CaseHandoverInspectResult,
 } from '../src/app/core/models/case-handover.model.js';
 
-type Row = Record<string, any>;
+interface HandoverDatabaseRow extends Record<string, unknown> {
+  id: string;
+  case_id: string;
+  measure_id: string;
+  protected_person_id: string | null;
+  storage_path?: string | null;
+  document_key?: string | null;
+  iv?: string | null;
+  auth_tag?: string | null;
+}
+type Row = HandoverDatabaseRow;
 type PackagePayload = {
   format: string;
   version: number;
@@ -280,6 +290,10 @@ export class CaseHandoverService {
     return payload;
   }
 
+  private optionalPayloadString(value: unknown): string | undefined {
+    return typeof value === 'string' && value.length > 0 ? value : undefined;
+  }
+
   private assertUniqueRefs(label: string, refs: string[]): void {
     if (refs.some((ref) => typeof ref !== 'string' || !ref)) throw new Error(`${label} im Fallübergabepaket enthalten ungültige Referenzen.`);
     if (new Set(refs).size !== refs.length) throw new Error(`${label} im Fallübergabepaket enthalten doppelte Referenzen.`);
@@ -298,9 +312,9 @@ export class CaseHandoverService {
   inspect(filePath: string, passphrase: string): CaseHandoverInspectResult {
     const db = this.db();
     let envelope: CaseHandoverEnvelope | undefined;
-    try { const file = inspectCaseHandoverFilePath(filePath); envelope = this.readEnvelope(file.filePath); const decrypted = this.decryptEnvelope(envelope, passphrase); const payload = decrypted.payload; const firstCase = payload.cases[0]?.data ?? {}; const firstPersonId = firstCase.protected_person_id; const person = payload.protectedPersons.find((p) => p.data.id === firstPersonId)?.data;
+    try { const file = inspectCaseHandoverFilePath(filePath); envelope = this.readEnvelope(file.filePath); const decrypted = this.decryptEnvelope(envelope, passphrase); const payload = decrypted.payload; const firstCase = payload.cases[0]?.data; const firstPersonId = firstCase?.protected_person_id; const person = payload.protectedPersons.find((p) => p.data.id === firstPersonId)?.data;
       const localCases = this.rows(db, `SELECT c.id, c.case_number, c.display_name, p.first_name AS protected_first_name, p.last_name AS protected_last_name FROM cases c LEFT JOIN protected_persons p ON p.id = c.protected_person_id`) as Array<{ id: string; case_number?: string; display_name?: string; protected_first_name?: string; protected_last_name?: string }>;
-      const matches = buildCandidateMatches({ exportedCaseNumber: firstCase.case_number, exportedDisplayName: firstCase.display_name, exportedFirstName: person?.first_name, exportedLastName: person?.last_name, localCases });
+      const matches = buildCandidateMatches({ exportedCaseNumber: this.optionalPayloadString(firstCase?.case_number), exportedDisplayName: this.optionalPayloadString(firstCase?.display_name), exportedFirstName: this.optionalPayloadString(person?.first_name), exportedLastName: this.optionalPayloadString(person?.last_name), localCases });
       const expired = isExpired(payload.expiresAt);
       if (expired) {
         this.audit(db, auditCaseHandoverImportInspected({ packageId: payload.packageId, caseCount: payload.cases.length, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, validUntilPresent: Boolean(payload.expiresAt), result: 'failed', reasonCode: 'expired_transfer_package' }));

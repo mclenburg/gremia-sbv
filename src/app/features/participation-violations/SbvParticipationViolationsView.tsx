@@ -32,10 +32,11 @@ export function SbvParticipationViolationsView({
   onOpenJournalPrefill?: (prefill: ActivityJournalPrefill) => void;
 }) {
   const state = useSbvParticipationViolations({ cases, pendingPrefill, onPrefillConsumed, onOpenJournalPrefill });
+  const { loadInitial } = state;
 
   useEffect(() => {
-    void state.loadInitial();
-  }, [state.loadInitial]);
+    void loadInitial();
+  }, [loadInitial]);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
