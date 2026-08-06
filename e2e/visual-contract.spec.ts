@@ -275,7 +275,10 @@ test.describe('0.9.5-l Modul-Layout-Konsistenz', () => {
 
     for (const route of WORKBENCH_LAYOUT_QA_ROUTES.filter((candidate) => candidate.id !== 'dashboard')) {
       await openRoute(page, route.navName);
-      await expect(page.getByRole('heading', { name: route.heading }).first()).toBeVisible();
+      const moduleFrame = page.locator('.module-frame').filter({
+        has: page.getByRole('heading', { name: route.heading }),
+      });
+      await expect(moduleFrame).toBeVisible();
 
       const metrics = await collectModuleLayoutMetrics(page);
       expect(metrics.hasModuleFrame, `${route.id}: nutzt ModuleFrame als gemeinsamen Modulrahmen`).toBe(true);

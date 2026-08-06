@@ -8,12 +8,18 @@ function mainNavigation(page: Page) {
 async function openRecruiting(page: Page) {
   await page.goto('/');
   await mainNavigation(page).getByRole('button', { name: 'Stellenbesetzungen', exact: true }).click();
-  await expect(page.getByRole('heading', { name: /Stellenbesetzungen/i }).first()).toBeVisible();
+
+  const moduleFrame = page.locator('.module-frame').filter({
+    has: page.getByRole('heading', { name: 'Stellenbesetzungen', exact: true }),
+  });
+  await expect(moduleFrame).toBeVisible();
+  await expect(moduleFrame.getByRole('button', { name: 'Neue Stellenbesetzung', exact: true })).toBeVisible();
 }
 
 test('tracks recruiting participation without case file and opens violation only as explicit prefill', async ({ page }) => {
   await openRecruiting(page);
   await page.getByRole('button', { name: 'Neue Stellenbesetzung', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Stellenbesetzung anlegen', exact: true })).toBeVisible();
 
   await page.getByLabel(/Stelle \/ Bezeichnung/).fill('E2E Fachadministration');
   await page.getByLabel('Kennziffer').fill('REC-095E');
@@ -22,7 +28,7 @@ test('tracks recruiting participation without case file and opens violation only
   await page.getByLabel('Unterlagen erhalten').fill('2026-05-07');
   await page.getByLabel('Anhörung / Stellungnahme bis').fill('2026-05-14');
   await page.getByLabel('Zur Verstoßprüfung vormerken').check();
-  await page.getByRole('button', { name: /Stellenbesetzung anlegen/ }).click();
+  await page.getByRole('button', { name: 'Stellenbesetzung anlegen', exact: true }).click();
 
   await expect(page.locator('.industrial-live-region[role="status"]').filter({ hasText: /Stellenbesetzung wurde angelegt/ })).toBeVisible();
   await expect(page.locator('.industrial-record-card').filter({ hasText: 'E2E Fachadministration' }).first()).toBeVisible();
