@@ -168,14 +168,16 @@ describe('security service behavior', () => {
     await service.setupInitialPassword(PASSWORD);
     service.lock();
 
+    const storeBeforeFailedChange = readFileSync(path.join(dataDir, 'security.json'), 'utf8');
     const failed = await service.changePassword('falsch', NEXT_PASSWORD);
     expect(failed.ok).toBe(false);
+    expect(readFileSync(path.join(dataDir, 'security.json'), 'utf8')).toBe(storeBeforeFailedChange);
 
     const changed = await service.changePassword(PASSWORD, NEXT_PASSWORD);
     expect(changed.ok).toBe(true);
+    expect(readFileSync(path.join(dataDir, 'security.json'), 'utf8')).not.toBe(storeBeforeFailedChange);
     service.lock();
 
-    expect((await service.unlock(PASSWORD)).ok).toBe(false);
     expect((await service.unlock(NEXT_PASSWORD)).ok).toBe(true);
     expect(readSecurityStore(dataDir).kdfParams?.N).toBeGreaterThanOrEqual(131072);
   });

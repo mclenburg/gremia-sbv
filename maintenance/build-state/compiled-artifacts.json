@@ -615,8 +615,8 @@
     },
     {
       "path": "package.json",
-      "size": 14668,
-      "sha256": "5c10e5eab10531b1e8d5232771f634f9b9f7e764589b3b9bbf4738584f20a73a"
+      "size": 15026,
+      "sha256": "e8ab57b8b808a1c50a7047f4d8e53a95af82292166fcf8a5656a0ac214c3a251"
     },
     {
       "path": "services/activityJournalPreferenceService.ts",
@@ -2300,8 +2300,8 @@
     },
     {
       "path": "src/app/features/recruiting/RecruitingParticipationsView.tsx",
-      "size": 30207,
-      "sha256": "c99374009d78ef138b5a9815fe5e1ec1a46fb49c274f7891bf01a5f0f6ec3f56"
+      "size": 30447,
+      "sha256": "ac83476747bbb47ca304b11e897a4faf202485c8ac033beb138c7f9fd90ba75a"
     },
     {
       "path": "src/app/features/recruiting/recruitingViewLogic.ts",
@@ -2753,7 +2753,7 @@
     {
       "path": "dist/.vite/manifest.json",
       "size": 3138,
-      "sha256": "2685059b3d1580685a3f7af0ff9cce48da9eaaa4bc0dd3d39285282eb75ee3d0"
+      "sha256": "12a3d7172a409c8403a4e69f1b3f3215b9ab49bcb8129250f99e16e898f7eef1"
     },
     {
       "path": "dist/assets/512x512-FFLOWpww.png",
@@ -2761,14 +2761,14 @@
       "sha256": "7c96da3931629916f43f1eb642ee8cddda01f40ee5809a250fce28b2c6dd6009"
     },
     {
-      "path": "dist/assets/ComplianceView-D7px2slh.js",
+      "path": "dist/assets/ComplianceView-BF2erzLK.js",
       "size": 64251,
-      "sha256": "5a6feca9a2454f56e9cccab8a8284d29668431ef07fd7230051cb2e873637129"
+      "sha256": "90ff4e3098145e33653d4ac1a64edf4f92fe0d216e0ca91e22937b4084d2ee8e"
     },
     {
-      "path": "dist/assets/index-D-4JGTOr.js",
+      "path": "dist/assets/index-9C4jjd5S.js",
       "size": 555878,
-      "sha256": "92a65d0f388f989f68840d87ab465b294a52a15ccc7910aea6d19ae57201dd2d"
+      "sha256": "83763cdbff561644f531f61960a5dc720f02c11f4bf156fdb7d3410adc20cfa2"
     },
     {
       "path": "dist/assets/index-HMMxax5Y.css",
@@ -2776,19 +2776,19 @@
       "sha256": "648368f6bb058f14466e19f0a0bc609b934c74d566c7155408e74f485ff690b9"
     },
     {
-      "path": "dist/assets/KnowledgeView-uiEhOcgK.js",
+      "path": "dist/assets/KnowledgeView-DM18gxQ6.js",
       "size": 25684,
-      "sha256": "e6905df9659d45d0256dbf6f7fe875f038ac7078a8afeaac46307a18bc379793"
+      "sha256": "7568b1e50b9b6675969a4535f5b1911e8617cb16a661bd8aa66019482eaaf117"
     },
     {
-      "path": "dist/assets/RecruitingParticipationsView-BxvLwAWg.js",
-      "size": 19270,
-      "sha256": "30f77fae77ddf3c3b5d59df280933ee28e0546886201ae1e32a2830010314a4f"
+      "path": "dist/assets/RecruitingParticipationsView-DLE3d73H.js",
+      "size": 19381,
+      "sha256": "019c4aea77285db2da6492096e9f98ad40f0a126475d5fd4793f4056c86e8e66"
     },
     {
-      "path": "dist/assets/ReportsView-Dzhb3BIE.js",
+      "path": "dist/assets/ReportsView-CjVlYAgf.js",
       "size": 5918,
-      "sha256": "52f1e63bc37a6e5c7de9d01853204fb4d96715813a4fd5a0c04432fbee01e2bb"
+      "sha256": "63a19aea66a58bc4ba259c9aa4eb127545d3b1086a3cf7711ea656056f1b2fa7"
     },
     {
       "path": "dist/assets/rolldown-runtime-Bh1tDfsg.js",
@@ -2796,14 +2796,14 @@
       "sha256": "1b13387cb23dc39bf70e31677c21f6db5cad3377b96f286b6ee444496e5bfea7"
     },
     {
-      "path": "dist/assets/SettingsHub-tyXrBR5i.js",
+      "path": "dist/assets/SettingsHub-Ck9Qy04C.js",
       "size": 9190,
-      "sha256": "e917389216ca6558b258f456559b853791d3d50baf05af6281c8c0b920d95a79"
+      "sha256": "d81c0aabc2b682618c72120c7fe1f098da8dfff98e49261d2aad34607a8465ae"
     },
     {
-      "path": "dist/assets/TemplatesView-By90gcf3.js",
+      "path": "dist/assets/TemplatesView-DikLkxy1.js",
       "size": 16312,
-      "sha256": "aa70ca354e67b6253b14bfabb24132815a9b4965b11f8426ce42c72fc2a5a846"
+      "sha256": "55421bf00d1a8cda6e47d599fcb99555f841837a0967e0eee30d9c11bc5511e6"
     },
     {
       "path": "dist/assets/vendor-_LHVEQf9.js",
@@ -2813,7 +2813,7 @@
     {
       "path": "dist/index.html",
       "size": 951,
-      "sha256": "7737f72a7341ac82814fa67685efea1ea8f81a4ff30e420faeec97dcbf8c9225"
+      "sha256": "94f355e1694c34ffb9d0bf057c4eddbc4ccb50fb32eba741fcc86667bd099e83"
     },
     {
       "path": "dist-electron/electron/applicationServices.js",
