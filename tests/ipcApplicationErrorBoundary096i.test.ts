@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { ApplicationError } from '../src/app/core/models/application-error.model.js';
 import { normalizeApplicationError, registerIpcHandler, serializeApplicationError } from '../electron/ipc/ipcHandler.js';
+import { IPC_CHANNELS } from '../electron/ipc/channels.js';
 
 describe('zentrale IPC-Fehlergrenze', () => {
   it('klassifiziert Validierungs-, Integritäts- und Auditfehler stabil', () => {
@@ -28,15 +29,15 @@ describe('zentrale IPC-Fehlergrenze', () => {
         registered = handler;
       }),
     };
-    registerIpcHandler(ipcMain as never, 'test:operation', async (_event, value: unknown) => value);
-    await expect(registered?.({}, { ok: true })).resolves.toEqual({ ok: true });
-    await expect(registered?.({}, { ok: true }, 'unerwartet')).rejects.toThrow('VALIDATION_FAILED');
+    registerIpcHandler(ipcMain as never, IPC_CHANNELS.casesList, async () => ({ ok: true }));
+    await expect(registered?.({})).resolves.toEqual({ ok: true });
+    await expect(registered?.({}, 'unerwartet')).rejects.toThrow('VALIDATION_FAILED');
 
-    registerIpcHandler(ipcMain as never, 'test:operation', async () => {
+    registerIpcHandler(ipcMain as never, IPC_CHANNELS.casesList, async () => {
       throw new Error('Datei konnte nicht geschrieben werden');
     });
     await expect(registered?.({})).rejects.toThrow('GREMIA_SBV_APPLICATION_ERROR:');
-    const serialized = serializeApplicationError(new Error('Datei konnte nicht geschrieben werden'), 'test:operation');
+    const serialized = serializeApplicationError(new Error('Datei konnte nicht geschrieben werden'), IPC_CHANNELS.casesList);
     expect(serialized).toContain('"code":"FILE_OPERATION_FAILED"');
     expect(serialized).not.toContain('stack');
   });

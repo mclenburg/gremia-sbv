@@ -1,4 +1,4 @@
-import { registerIpcHandler } from './ipcHandler.js';
+import { IPC_CHANNELS, registerIpcHandler } from './ipcHandler.js';
 import type { IpcMain } from "electron";
 import {
   EQUALIZATION_STATUS_ORDER,
@@ -23,24 +23,24 @@ export function registerEqualizationIpc(
 ): void {
   const equalization = services.equalization;
 
-  registerIpcHandler(ipcMain, "equalization:steps", async () => EQUALIZATION_STATUS_ORDER);
-  registerIpcHandler(ipcMain, "equalization:list", async (_event, caseId?: unknown) =>
+  registerIpcHandler(ipcMain, IPC_CHANNELS.equalizationSteps, async () => EQUALIZATION_STATUS_ORDER);
+  registerIpcHandler(ipcMain, IPC_CHANNELS.equalizationList, async (_event, caseId?: unknown) =>
     equalization().list(
       assertOptionalString(caseId, "equalization:list", "Fall-ID", { maxLength: 120 }),
     ),
   );
-  registerIpcHandler(ipcMain, "equalization:create", async (_event, input: unknown) =>
+  registerIpcHandler(ipcMain, IPC_CHANNELS.equalizationCreate, async (_event, input: unknown) =>
     equalization().create(
       assertRecordInput<CreateEqualizationProcessInput>(input, "equalization:create"),
     ),
   );
-  registerIpcHandler(ipcMain, "equalization:update", async (_event, id: unknown, input: unknown) =>
+  registerIpcHandler(ipcMain, IPC_CHANNELS.equalizationUpdate, async (_event, id: unknown, input: unknown) =>
     equalization().update(
       assertString(id, "equalization:update", "Gleichstellungs-ID", { minLength: 1, maxLength: 120 }),
       assertRecordInput<UpdateEqualizationProcessInput>(input, "equalization:update"),
     ),
   );
-  registerIpcHandler(ipcMain, "equalization:warnings", async (_event, id: unknown) => {
+  registerIpcHandler(ipcMain, IPC_CHANNELS.equalizationWarnings, async (_event, id: unknown) => {
     const record = equalization().getById(
       assertString(id, "equalization:warnings", "Gleichstellungs-ID", { minLength: 1, maxLength: 120 }),
     );

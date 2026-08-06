@@ -1,4 +1,4 @@
-import { registerIpcHandler } from './ipcHandler.js';
+import { IPC_CHANNELS, registerIpcHandler } from './ipcHandler.js';
 import type { IpcMain } from 'electron';
 import type { SecurityService } from '../../services/securityService.js';
 import type { ApplicationServices } from '../applicationServices.js';
@@ -8,17 +8,17 @@ import { assertRecordInput, assertString } from './ipcValidation.js';
 export function registerSbvControlProtocolIpc(ipcMain: IpcMain, security: SecurityService, services: ApplicationServices): void {
   const protocols = services.sbvControlProtocols;
 
-  registerIpcHandler(ipcMain, 'sbvControlProtocols:list', async () => protocols().list());
-  registerIpcHandler(ipcMain, 'sbvControlProtocols:create', async (_event, input: unknown) =>
+  registerIpcHandler(ipcMain, IPC_CHANNELS.sbvControlProtocolsList, async () => protocols().list());
+  registerIpcHandler(ipcMain, IPC_CHANNELS.sbvControlProtocolsCreate, async (_event, input: unknown) =>
     protocols().create(assertRecordInput<CreateSbvControlProtocolInput>(input, 'sbvControlProtocols:create'))
   );
-  registerIpcHandler(ipcMain, 'sbvControlProtocols:update', async (_event, id: unknown, input: unknown) =>
+  registerIpcHandler(ipcMain, IPC_CHANNELS.sbvControlProtocolsUpdate, async (_event, id: unknown, input: unknown) =>
     protocols().update(
       assertString(id, 'sbvControlProtocols:update', 'Protokoll-ID', { minLength: 1, maxLength: 120 }),
       assertRecordInput<UpdateSbvControlProtocolInput>(input, 'sbvControlProtocols:update')
     )
   );
-  registerIpcHandler(ipcMain, 'sbvControlProtocols:delete', async (_event, id: unknown) =>
+  registerIpcHandler(ipcMain, IPC_CHANNELS.sbvControlProtocolsDelete, async (_event, id: unknown) =>
     protocols().delete(assertString(id, 'sbvControlProtocols:delete', 'Protokoll-ID', { minLength: 1, maxLength: 120 }))
   );
 }

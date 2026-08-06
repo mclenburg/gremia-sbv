@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "precedence": [
+    "security",
+    "architecture",
+    "integration",
+    "fast"
+  ],
+  "groups": {
+    "security": {
+      "description": "Security, privacy, cryptography, backup/restore, retention and destructive data paths.",
+      "patterns": [
+        "security",
+        "privacy",
+        "backup",
+        "restore",
+        "audit",
+        "crypto",
+        "retention",
+        "anonym",
+        "deletion",
+        "tempfile",
+        "ipcvalidation",
+        "exportguard",
+        "handoverfile",
+        "contentsecurity",
+        "demomode"
+      ]
+    },
+    "architecture": {
+      "description": "Static architecture, release artifacts, dependency policy and source-contract tests.",
+      "patterns": [
+        "architecture",
+        "maintainability",
+        "dependency",
+        "workflow",
+        "build",
+        "release",
+        "electronbuilder",
+        "signpath",
+        "package",
+        "license",
+        "platformindependent",
+        "source",
+        "markdown",
+        "docs",
+        "diagram",
+        "qualityratio",
+        "coveragegate"
+      ]
+    },
+    "integration": {
+      "description": "Database, migration, IPC bridge, service composition and cross-domain persistence tests.",
+      "patterns": [
+        "migration",
+        "database",
+        "schema",
+        "integration",
+        "compositionroot",
+        "bridge",
+        "readadapter",
+        "servicebehavior",
+        "freshinstall",
+        "domainaggregate",
+        "personimport",
+        "casebinding",
+        "lifecycleaudit"
+      ]
+    },
+    "fast": {
+      "description": "Remaining deterministic unit and policy behavior tests.",
+      "patterns": [
+        ".*"
+      ]
+    }
+  }
+}

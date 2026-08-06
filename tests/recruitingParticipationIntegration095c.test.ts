@@ -59,7 +59,8 @@ describe('Stellenbesetzungen 0.9.5-c Integration', () => {
     expect(script).toContain("npmRun('security:audit')");
     expect(script).toContain("npmRun('licenses:generate')");
     expect(script).toContain("npmRun('licenses:check')");
-    expect(script).toContain("npmRun('release:check')");
+    expect(script).toContain("npmRun('build:verify')");
+    expect(script).toContain("npmRun('build:compile')");
     expect(script).toContain("currentPlatformBuildScript()");
   });
 });

@@ -64,9 +64,10 @@ function assertRestoredFile(dataDir: string, relativePath: string, expectedConte
 
 function main(): void {
   const root = mkdtempSync(path.join(tmpdir(), 'gremia-sbv-backup-restore-release-'));
-  const dataDir = path.join(root, 'vault');
-  const backupDir = path.join(root, 'out');
-  const backupFile = path.join(backupDir, 'release-check.gsbvbackup');
+  const longSegment = 'langer-pfad-'.repeat(9);
+  const dataDir = path.join(root, 'Tresor mit Leerzeichen und Ümlauten', longSegment, 'vault');
+  const backupDir = path.join(root, 'Sicherungen ÄÖÜ', longSegment);
+  const backupFile = path.join(backupDir, 'release check ü.gsbvbackup');
 
   try {
     mkdirSync(dataDir, { recursive: true });

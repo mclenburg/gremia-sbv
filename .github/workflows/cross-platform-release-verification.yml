@@ -1,0 +1,95 @@
+name: Cross-platform release verification
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "electron/**"
+      - "services/**"
+      - "scripts/**"
+      - "tests/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cross-platform-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CSC_IDENTITY_AUTO_DISCOVERY: "false"
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+jobs:
+  verify-platform:
+    name: Verify ${{ matrix.label }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 75
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux
+            label: Ubuntu AppImage
+            os: ubuntu-latest
+            package_script: build:package:linux
+            platform_check: release:platform:linux
+          - platform: windows
+            label: Windows portable EXE
+            os: windows-latest
+            package_script: build:package:windows
+            platform_check: release:platform:windows
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install Linux runtime and packaging dependencies
+        if: matrix.platform == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libarchive-tools xvfb libgtk-3-0 libnss3 libasound2t64
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify native SQLCipher binding
+        run: npm run native:diagnose
+
+      - name: Run TypeScript, Vitest, lint and quality gates
+        run: npm run build:verify
+
+      - name: Compile application
+        run: npm run build:compile
+
+      - name: Package current platform
+        run: npm run ${{ matrix.package_script }}
+
+      - name: Run packaged startup and path/backup checks
+        if: matrix.platform == 'windows'
+        run: npm run ${{ matrix.platform_check }}
+
+      - name: Run packaged startup and path/backup checks under Xvfb
+        if: matrix.platform == 'linux'
+        run: xvfb-run -a npm run ${{ matrix.platform_check }}
+
+      - name: Upload verified release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gremia-sbv-${{ matrix.platform }}-${{ github.sha }}
+          path: |
+            release/*.AppImage
+            release/*.exe
+          if-no-files-found: error
+          retention-days: 7

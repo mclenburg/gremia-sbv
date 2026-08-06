@@ -4,41 +4,35 @@ const { join } = require('node:path');
 const { spawnSync } = require('node:child_process');
 
 const target = (process.argv[2] || '').toLowerCase();
-const allowCross = process.argv.includes('--allow-cross') || process.env.GREMIA_SBV_ALLOW_CROSS_BUILD === '1';
-
 const TARGETS = {
   linux: {
     os: 'linux',
     label: 'Linux AppImage',
     builderArgs: ['--linux', 'AppImage'],
-    supportedPlatforms: ['linux'],
     artifactHint: 'release/Gremia.SBV-<version>-linux-<arch>.AppImage'
   },
   win: {
     os: 'win',
     label: 'Windows portable x64 EXE',
     builderArgs: ['--win', 'portable', '--x64'],
-    supportedPlatforms: ['win32'],
     artifactHint: 'release/Gremia.SBV-<version>-win-x64.exe'
   },
   windows: {
     os: 'win',
     label: 'Windows portable x64 EXE',
     builderArgs: ['--win', 'portable', '--x64'],
-    supportedPlatforms: ['win32'],
     artifactHint: 'release/Gremia.SBV-<version>-win-x64.exe'
   },
   mac: {
     os: 'mac',
     label: 'macOS DMG',
     builderArgs: ['--mac', 'dmg'],
-    supportedPlatforms: ['darwin'],
     artifactHint: 'release/Gremia.SBV-<version>-mac-<arch>.dmg'
   }
 };
 
 function usage() {
-  console.error('Nutzung: node scripts/build-platform.cjs <linux|win|mac> [--allow-cross]');
+  console.error('Nutzung: node scripts/build-platform.cjs <linux|win|mac>');
 }
 
 function command(name) {
@@ -81,16 +75,6 @@ if (!selected) {
   process.exit(2);
 }
 
-if (!selected.supportedPlatforms.includes(process.platform) && !allowCross) {
-  console.error(`Build-Abbruch: ${selected.label} wird für die RC-Abnahme auf ${selected.supportedPlatforms.join(', ')} gebaut.`);
-  console.error(`Aktuelles System: ${process.platform}.`);
-  console.error('Nutze für echte Abnahme das Zielsystem selbst:');
-  console.error('  Linux:   npm run build:linux');
-  console.error('  Windows: npm run build:win');
-  console.error('  macOS:   npm run build:mac');
-  console.error('Cross-Builds sind bewusst nicht Standard. Für Diagnosezwecke: GREMIA_SBV_ALLOW_CROSS_BUILD=1 oder --allow-cross.');
-  process.exit(3);
-}
 
 const electronBuilder = localBin('electron-builder');
 if (!existsSync(electronBuilder)) {
@@ -101,9 +85,11 @@ if (!existsSync(electronBuilder)) {
 console.log(`Baue Gremia.SBV für ${selected.label} ...`);
 console.log(`Plattform: ${process.platform}, Node: ${process.version}`);
 
-runNpmScript('build:app');
+runNodeScript('scripts/build-artifact-state.cjs', ['check']);
 runNpmScript('native:rebuild:electron');
+const packagingStartedAt = Date.now();
 runNodeScript('scripts/run-electron-builder.cjs', selected.builderArgs);
+runNodeScript('scripts/verify-release-artifacts.cjs', [selected.os, '--since', String(packagingStartedAt)]);
 
 console.log('');
 console.log('Fertig. Artefakte liegen unter:');

@@ -1,4 +1,4 @@
-import { registerIpcHandler } from './ipcHandler.js';
+import { IPC_CHANNELS, registerIpcHandler } from './ipcHandler.js';
 import { dialog, shell, type IpcMain } from "electron";
 import type { SecurityService } from "../../services/securityService.js";
 import type { ApplicationServices } from '../applicationServices.js';
@@ -36,50 +36,48 @@ export function registerCaseIpc(
 ): void {
   const cases = services.cases;
 
-  registerIpcHandler(ipcMain, "cases:list", async () => cases.listCases());
-  registerIpcHandler(ipcMain, "cases:create", async (_event, input: unknown) =>
+  registerIpcHandler(ipcMain, IPC_CHANNELS.casesList, async () => cases.listCases());
+  registerIpcHandler(ipcMain, IPC_CHANNELS.casesCreate, async (_event, input: unknown) =>
     cases.createCase(assertRecordInput<CreateCaseInput>(input, "cases:create")),
   );
-  registerIpcHandler(ipcMain, "cases:bind-legacy", async (_event, input: unknown) =>
+  registerIpcHandler(ipcMain, IPC_CHANNELS.casesBindLegacy, async (_event, input: unknown) =>
     cases.bindLegacyCase(assertRecordInput<LegacyCaseBindingInput>(input, "cases:bind-legacy")),
   );
-  registerIpcHandler(ipcMain, "cases:notes:list", async (_event, caseId: unknown) =>
+  registerIpcHandler(ipcMain, IPC_CHANNELS.casesNotesList, async (_event, caseId: unknown) =>
     cases.listNotes(assertString(caseId, "cases:notes:list", "Fall-ID", { minLength: 1, maxLength: 120 })),
   );
-  registerIpcHandler(ipcMain, "cases:notes:create", async (_event, input: unknown) =>
+  registerIpcHandler(ipcMain, IPC_CHANNELS.casesNotesCreate, async (_event, input: unknown) =>
     cases.createNote(
       assertRecordInput<CreateCaseNoteInput>(input, "cases:notes:create"),
     ),
   );
-  registerIpcHandler(ipcMain, 
-    "cases:notes:update",
+  registerIpcHandler(ipcMain, IPC_CHANNELS.casesNotesUpdate,
     async (_event, id: unknown, input: unknown) =>
       cases.updateNote(
         assertString(id, "cases:notes:update", "Notiz-ID", { minLength: 1, maxLength: 120 }),
         assertRecordInput<UpdateCaseNoteInput>(input, "cases:notes:update"),
       ),
   );
-  registerIpcHandler(ipcMain, "cases:notes:delete", async (_event, id: unknown) =>
+  registerIpcHandler(ipcMain, IPC_CHANNELS.casesNotesDelete, async (_event, id: unknown) =>
     cases.deleteNote(assertString(id, "cases:notes:delete", "Notiz-ID", { minLength: 1, maxLength: 120 })),
   );
-  registerIpcHandler(ipcMain, "cases:documents:list", async (_event, caseId: unknown, measureId?: unknown) =>
+  registerIpcHandler(ipcMain, IPC_CHANNELS.casesDocumentsList, async (_event, caseId: unknown, measureId?: unknown) =>
     cases.listDocuments(
       assertString(caseId, "cases:documents:list", "Fall-ID", { minLength: 1, maxLength: 120 }),
       assertOptionalString(measureId, "cases:documents:list", "Maßnahmen-ID", { maxLength: 120 }),
     ),
   );
-  registerIpcHandler(ipcMain, "cases:documents:delete", async (_event, id: unknown) =>
+  registerIpcHandler(ipcMain, IPC_CHANNELS.casesDocumentsDelete, async (_event, id: unknown) =>
     cases.deleteDocument(assertString(id, "cases:documents:delete", "Dokument-ID", { minLength: 1, maxLength: 120 })),
   );
-  registerIpcHandler(ipcMain, "cases:documents:open", async (_event, id: unknown) => {
+  registerIpcHandler(ipcMain, IPC_CHANNELS.casesDocumentsOpen, async (_event, id: unknown) => {
     const documentId = assertString(id, "cases:documents:open", "Dokument-ID", { minLength: 1, maxLength: 120 });
     const tempCopy = await cases.createTemporaryDocumentCopy(documentId);
     const error = await shell.openPath(tempCopy.filePath);
     if (error) throw new Error(error);
     return { opened: true, filePath: tempCopy.filePath };
   });
-  registerIpcHandler(ipcMain, 
-    "cases:documents:export",
+  registerIpcHandler(ipcMain, IPC_CHANNELS.casesDocumentsExport,
     async (_event, id: unknown, suggestedFileName?: unknown) => {
       const documentId = assertString(id, "cases:documents:export", "Dokument-ID", { minLength: 1, maxLength: 120 });
       const safeSuggestedFileName = sanitizeDialogFileName(
@@ -98,8 +96,7 @@ export function registerCaseIpc(
       return cases.exportDocument(documentId, result.filePath);
     },
   );
-  registerIpcHandler(ipcMain, 
-    "cases:documents:select-and-import",
+  registerIpcHandler(ipcMain, IPC_CHANNELS.casesDocumentsSelectAndImport,
     async (_event, caseId: unknown, containsHealthData: unknown = true, measureId?: unknown) => {
       const validatedCaseId = assertString(
         caseId,
@@ -141,7 +138,7 @@ export function registerCaseIpc(
       return imported;
     },
   );
-  registerIpcHandler(ipcMain, "cases:search", async (_event, input: unknown) =>
+  registerIpcHandler(ipcMain, IPC_CHANNELS.casesSearch, async (_event, input: unknown) =>
     cases.searchContent(
       assertRecordInput<CaseContentSearchInput>(input, "cases:search"),
     ),

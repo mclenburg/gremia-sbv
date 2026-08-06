@@ -27,6 +27,20 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    emptyOutDir: true
+    emptyOutDir: true,
+    manifest: true,
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          groups: [
+            {
+              name: 'vendor',
+              test: /node_modules/,
+              priority: 10
+            }
+          ]
+        }
+      }
+    }
   }
 });

@@ -1,4 +1,4 @@
-import { registerIpcHandler } from './ipcHandler.js';
+import { IPC_CHANNELS, registerIpcHandler } from './ipcHandler.js';
 import type { IpcMain } from 'electron';
 import type { SecurityService } from '../../services/securityService.js';
 import type { ApplicationServices } from '../applicationServices.js';
@@ -13,33 +13,33 @@ export function registerGremiaBrIpc(ipcMain: IpcMain, security: SecurityService,
   const adapter = new GremiaBrHttpReadAdapter(auth);
   const references = services.gremiaBrReferences;
 
-  registerIpcHandler(ipcMain, 'gremia-br:settings:get', async () => settings.getPublicSettings());
+  registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrSettingsGet, async () => settings.getPublicSettings());
 
-  registerIpcHandler(ipcMain, 'gremia-br:settings:save', async (_event, input: unknown) => {
+  registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrSettingsSave, async (_event, input: unknown) => {
     auth.clearToken();
     const saved = settings.saveSettings(assertRecordInput<GremiaBrSettingsInput>(input, 'gremia-br:settings:save'));
     if (!saved.enabled) cache.clear();
     return saved;
   });
 
-  registerIpcHandler(ipcMain, 'gremia-br:relevance:save', async (_event, input: unknown) => {
+  registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrRelevanceSave, async (_event, input: unknown) => {
     return settings.saveRelevanceSettings(assertRecordInput<GremiaBrRelevanceSettings>(input, 'gremia-br:relevance:save'));
   });
 
-  registerIpcHandler(ipcMain, 'gremia-br:credentials:clear', async () => {
+  registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrCredentialsClear, async () => {
     auth.clearToken();
     const next = settings.clearCredentials();
     cache.clear();
     return next;
   });
 
-  registerIpcHandler(ipcMain, 'gremia-br:connection:test', async () => auth.testConnection());
+  registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrConnectionTest, async () => auth.testConnection());
 
-  registerIpcHandler(ipcMain, 'gremia-br:cache:get', async () => cache.getOverview());
+  registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrCacheGet, async () => cache.getOverview());
 
-  registerIpcHandler(ipcMain, 'gremia-br:dashboard:get', async () => cache.getDashboardOverview(settings.getRelevanceSettings()));
+  registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrDashboardGet, async () => cache.getDashboardOverview(settings.getRelevanceSettings()));
 
-  registerIpcHandler(ipcMain, 'gremia-br:cache:refresh', async () => {
+  registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrCacheRefresh, async () => {
     const result = await cache.refresh(adapter);
     return {
       ...result,
@@ -48,20 +48,20 @@ export function registerGremiaBrIpc(ipcMain: IpcMain, security: SecurityService,
   });
 
 
-  registerIpcHandler(ipcMain, 'gremia-br:inline:suggest', async (_event, query: unknown) => {
+  registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrInlineSuggest, async (_event, query: unknown) => {
     return references.suggestBrDecisions(adapter, typeof query === 'string' ? query : '');
   });
 
-  registerIpcHandler(ipcMain, 'gremia-br:references:list', async (_event, caseId: unknown) => {
+  registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrReferencesList, async (_event, caseId: unknown) => {
     if (typeof caseId !== 'string') throw new Error('Fallakten-ID fehlt.');
     return references.listForCase(caseId);
   });
 
-  registerIpcHandler(ipcMain, 'gremia-br:references:create', async (_event, input: unknown) => {
+  registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrReferencesCreate, async (_event, input: unknown) => {
     return references.createOrUpdate(assertRecordInput<CreateGremiaBrExternalReferenceInput>(input, 'gremia-br:references:create'));
   });
 
-  registerIpcHandler(ipcMain, 'gremia-br:references:delete', async (_event, referenceId: unknown) => {
+  registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrReferencesDelete, async (_event, referenceId: unknown) => {
     if (typeof referenceId !== 'string') throw new Error('Referenz-ID fehlt.');
     return references.delete(referenceId);
   });

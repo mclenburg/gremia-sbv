@@ -1,0 +1,232 @@
+{
+  "schemaVersion": 1,
+  "categories": {
+    "A": "Artefakt ist selbst der Vertrag",
+    "B": "Statische Architekturregel; AST- oder strukturbezogene Prüfung",
+    "C": "Durch Verhaltenstest zu ersetzen"
+  },
+  "entries": [
+    {
+      "file": "tests/activityJournalSchema093a.test.ts",
+      "category": "A",
+      "sourceAssertions": 3,
+      "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
+    },
+    {
+      "file": "tests/backupServiceBehavior0813f.test.ts",
+      "category": "A",
+      "sourceAssertions": 1,
+      "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
+    },
+    {
+      "file": "tests/crossPlatformPackagingP4.test.ts",
+      "category": "A",
+      "sourceAssertions": 25,
+      "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
+    },
+    {
+      "file": "tests/dependabotPolicy092k.test.ts",
+      "category": "A",
+      "sourceAssertions": 10,
+      "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
+    },
+    {
+      "file": "tests/dependencyHygiene092j.test.ts",
+      "category": "A",
+      "sourceAssertions": 1,
+      "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
+    },
+    {
+      "file": "tests/dsbTransparencyPatch092an.test.ts",
+      "category": "A",
+      "sourceAssertions": 12,
+      "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
+    },
+    {
+      "file": "tests/e2eIsolatedToolsResolution092.test.ts",
+      "category": "A",
+      "sourceAssertions": 13,
+      "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
+    },
+    {
+      "file": "tests/electronBuilderConfig092t.test.ts",
+      "category": "A",
+      "sourceAssertions": 5,
+      "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
+    },
+    {
+      "file": "tests/gremiaBrReadBridgeSecurity092f.test.ts",
+      "category": "A",
+      "sourceAssertions": 7,
+      "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
+    },
+    {
+      "file": "tests/measureLifecycleMigration048.test.ts",
+      "category": "A",
+      "sourceAssertions": 1,
+      "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
+    },
+    {
+      "file": "tests/migrationService095d.test.ts",
+      "category": "A",
+      "sourceAssertions": 10,
+      "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
+    },
+    {
+      "file": "tests/privacyLifecycleAudit091.test.ts",
+      "category": "A",
+      "sourceAssertions": 7,
+      "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
+    },
+    {
+      "file": "tests/rcFixCasePreventionCss090rc1d.test.ts",
+      "category": "A",
+      "sourceAssertions": 16,
+      "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
+    },
+    {
+      "file": "tests/rcFixCasePreventionCss090rc1e.test.ts",
+      "category": "A",
+      "sourceAssertions": 16,
+      "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
+    },
+    {
+      "file": "tests/rcWindowsPortableArtifact090rc1o.test.ts",
+      "category": "A",
+      "sourceAssertions": 20,
+      "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
+    },
+    {
+      "file": "tests/recruitingParticipationIntegration095c.test.ts",
+      "category": "A",
+      "sourceAssertions": 10,
+      "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
+    },
+    {
+      "file": "tests/recruitingParticipationSchema095a.test.ts",
+      "category": "A",
+      "sourceAssertions": 9,
+      "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
+    },
+    {
+      "file": "tests/review5UserGuidance092.test.ts",
+      "category": "A",
+      "sourceAssertions": 6,
+      "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
+    },
+    {
+      "file": "tests/sandboxedPreloadSelfContained096l.test.ts",
+      "category": "B",
+      "sourceAssertions": 12,
+      "rationale": "Der Test schützt eine statische Architektur-, Import-, Modul- oder Bereinigungsgrenze; eine Laufzeitausführung kann diese Grenze nicht gleichwertig belegen."
+    },
+    {
+      "file": "tests/sbvControlStructure092.test.ts",
+      "category": "B",
+      "sourceAssertions": 11,
+      "rationale": "Der Test schützt eine statische Architektur-, Import-, Modul- oder Bereinigungsgrenze; eine Laufzeitausführung kann diese Grenze nicht gleichwertig belegen."
+    },
+    {
+      "file": "tests/sbvParticipationViolationSchema094a.test.ts",
+      "category": "A",
+      "sourceAssertions": 21,
+      "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
+    },
+    {
+      "file": "tests/schemaSnapshotFreshVsMigration091f.test.ts",
+      "category": "A",
+      "sourceAssertions": 5,
+      "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
+    },
+    {
+      "file": "tests/securityHardening084.test.ts",
+      "category": "A",
+      "sourceAssertions": 10,
+      "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
+    },
+    {
+      "file": "tests/securityPrivacyReadiness0813.test.ts",
+      "category": "A",
+      "sourceAssertions": 9,
+      "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
+    },
+    {
+      "file": "tests/securityReadiness089.test.ts",
+      "category": "A",
+      "sourceAssertions": 13,
+      "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
+    },
+    {
+      "file": "tests/securityServiceBehavior0813f.test.ts",
+      "category": "A",
+      "sourceAssertions": 1,
+      "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
+    },
+    {
+      "file": "tests/serviceCoverageConfig0813f.test.ts",
+      "category": "A",
+      "sourceAssertions": 9,
+      "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
+    },
+    {
+      "file": "tests/serviceCoverageScope0813m.test.ts",
+      "category": "A",
+      "sourceAssertions": 18,
+      "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
+    },
+    {
+      "file": "tests/sourceCleanupBuildContract096k.test.ts",
+      "category": "B",
+      "sourceAssertions": 2,
+      "rationale": "Der Test schützt eine statische Architektur-, Import-, Modul- oder Bereinigungsgrenze; eine Laufzeitausführung kann diese Grenze nicht gleichwertig belegen."
+    },
+    {
+      "file": "tests/sourceTextPlatformIndependence0812g.test.ts",
+      "category": "B",
+      "sourceAssertions": 2,
+      "rationale": "Der Test schützt eine statische Architektur-, Import-, Modul- oder Bereinigungsgrenze; eine Laufzeitausführung kann diese Grenze nicht gleichwertig belegen."
+    },
+    {
+      "file": "tests/testQualityMetrics096o.test.ts",
+      "category": "A",
+      "sourceAssertions": 3,
+      "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
+    },
+    {
+      "file": "tests/unifiedActivityReportCleanup095.test.ts",
+      "category": "B",
+      "sourceAssertions": 2,
+      "rationale": "Der Test schützt eine statische Architektur-, Import-, Modul- oder Bereinigungsgrenze; eine Laufzeitausführung kann diese Grenze nicht gleichwertig belegen."
+    },
+    {
+      "file": "tests/unitCoverageGate0813d.test.ts",
+      "category": "A",
+      "sourceAssertions": 8,
+      "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
+    },
+    {
+      "file": "tests/unlockDelay089.test.ts",
+      "category": "A",
+      "sourceAssertions": 1,
+      "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
+    },
+    {
+      "file": "tests/visualQaContractP11.test.ts",
+      "category": "A",
+      "sourceAssertions": 4,
+      "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
+    },
+    {
+      "file": "tests/windowsUnsignedBuild0812j.test.ts",
+      "category": "A",
+      "sourceAssertions": 4,
+      "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
+    },
+    {
+      "file": "tests/workflowViewsPureIndex0811.test.ts",
+      "category": "B",
+      "sourceAssertions": 7,
+      "rationale": "Der Test schützt eine statische Architektur-, Import-, Modul- oder Bereinigungsgrenze; eine Laufzeitausführung kann diese Grenze nicht gleichwertig belegen."
+    }
+  ]
+}

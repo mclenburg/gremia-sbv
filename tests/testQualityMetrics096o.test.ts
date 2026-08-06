@@ -71,7 +71,8 @@ describe('reproduzierbare Testqualitätsmetriken', () => {
 
     expect(packageJson.scripts['test:quality-report']).toBe('node scripts/report-test-quality.cjs');
     expect(packageJson.scripts['test:quality-check']).toBe('node scripts/report-test-quality.cjs --check');
-    expect(packageJson.scripts['release:check']).toContain('npm run test:quality-check');
+    expect(packageJson.scripts['build:verify']).toContain('npm run test:quality-check');
+    expect(packageJson.scripts['release:check']).toContain('npm run build:verify');
     expect(cleanupManifest).not.toContain('68 Prozent Verhaltenstests');
   });
 });

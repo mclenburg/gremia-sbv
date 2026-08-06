@@ -1,0 +1,757 @@
+{
+  "schemaVersion": 1,
+  "categories": [
+    "positive",
+    "negative",
+    "boundary",
+    "persistence",
+    "rollback",
+    "privacy",
+    "integration",
+    "abuse"
+  ],
+  "functions": [
+    {
+      "id": "security.unlock",
+      "entryPoint": {
+        "file": "services/securityService.ts",
+        "symbol": "SecurityService.unlock"
+      },
+      "criticality": "security",
+      "mutatesData": true,
+      "tests": {
+        "positive": [
+          {
+            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "name": "unlocks with the correct password and resets failed-attempt delay state"
+          }
+        ],
+        "negative": [
+          {
+            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "name": "rejects an unlock attempt while the delay window is active"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "name": "serializes concurrent unlock attempts and keeps the second attempt outside database initialization"
+          }
+        ],
+        "persistence": [
+          {
+            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "name": "migriert schwächere KDF-Parameter beim erfolgreichen Entsperren automatisch"
+          }
+        ],
+        "rollback": null,
+        "privacy": [
+          {
+            "file": "tests/securityPrivacyReadiness0813.test.ts",
+            "name": "keeps E2E runs isolated and audit metadata datensparsam"
+          }
+        ],
+        "integration": [
+          {
+            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "name": "unlocks with the correct password and resets failed-attempt delay state"
+          }
+        ],
+        "abuse": [
+          {
+            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "name": "rejects invalid security JSON before database access"
+          },
+          {
+            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "name": "rejects a security artifact without vault id before database access"
+          },
+          {
+            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "name": "rejects a future security artifact version before database access"
+          },
+          {
+            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "name": "rejects abusive security KDF parameters before database access"
+          }
+        ]
+      },
+      "rationales": {
+        "rollback": "Unlock commits no multi-resource business mutation; failed attempts are covered by negative and abuse tests."
+      }
+    },
+    {
+      "id": "security.changePassword",
+      "entryPoint": {
+        "file": "services/securityService.ts",
+        "symbol": "SecurityService.changePassword"
+      },
+      "criticality": "security",
+      "mutatesData": true,
+      "tests": {
+        "positive": [
+          {
+            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "name": "changes the password only after verifying the current password"
+          }
+        ],
+        "negative": [
+          {
+            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "name": "changes the password only after verifying the current password"
+          }
+        ],
+        "boundary": null,
+        "persistence": [
+          {
+            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "name": "changes the password only after verifying the current password"
+          }
+        ],
+        "rollback": null,
+        "privacy": [
+          {
+            "file": "tests/securityPrivacyReadiness0813.test.ts",
+            "name": "keeps E2E runs isolated and audit metadata datensparsam"
+          }
+        ],
+        "integration": [
+          {
+            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "name": "changes the password only after verifying the current password"
+          }
+        ],
+        "abuse": [
+          {
+            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "name": "rejects invalid security JSON before database access"
+          },
+          {
+            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "name": "rejects a security artifact without vault id before database access"
+          },
+          {
+            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "name": "rejects a future security artifact version before database access"
+          },
+          {
+            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "name": "rejects abusive security KDF parameters before database access"
+          }
+        ]
+      },
+      "rationales": {
+        "boundary": "Password boundaries are enforced by the shared password policy and covered in its dedicated tests.",
+        "rollback": "The atomic writer preserves the previous security artifact on persistence failure; dedicated fault injection remains a Patch-1 follow-up."
+      }
+    },
+    {
+      "id": "backup.create",
+      "entryPoint": {
+        "file": "services/backupService.ts",
+        "symbol": "BackupService.createBackup"
+      },
+      "criticality": "security",
+      "mutatesData": true,
+      "tests": {
+        "positive": [
+          {
+            "file": "tests/backupServiceBehavior0813f.test.ts",
+            "name": "creates encrypted backups with current scrypt parameters and excludes tmp/nested backup files"
+          }
+        ],
+        "negative": [
+          {
+            "file": "tests/backupServiceBehavior0813f.test.ts",
+            "name": "rejects restore with wrong confirmation or too short passphrase"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/backupServiceBehavior0813f.test.ts",
+            "name": "creates encrypted backups with current scrypt parameters and excludes tmp/nested backup files"
+          }
+        ],
+        "persistence": [
+          {
+            "file": "tests/backupServiceBehavior0813f.test.ts",
+            "name": "preserves activity journal and participation violation domain payloads during backup and restore"
+          }
+        ],
+        "rollback": null,
+        "privacy": [
+          {
+            "file": "tests/backupServiceBehavior0813f.test.ts",
+            "name": "creates encrypted backups with current scrypt parameters and excludes tmp/nested backup files"
+          }
+        ],
+        "integration": [
+          {
+            "file": "tests/backupServiceBehavior0813f.test.ts",
+            "name": "preserves activity journal and participation violation domain payloads during backup and restore"
+          }
+        ],
+        "abuse": [
+          {
+            "file": "tests/backupServiceBehavior0813f.test.ts",
+            "name": "rejects malformed envelopes and abusive KDF parameters before key derivation"
+          }
+        ]
+      },
+      "rationales": {
+        "rollback": "Creation writes a new target atomically and does not replace the active vault."
+      }
+    },
+    {
+      "id": "backup.restore",
+      "entryPoint": {
+        "file": "services/backupService.ts",
+        "symbol": "BackupService.restoreBackup"
+      },
+      "criticality": "security",
+      "mutatesData": true,
+      "tests": {
+        "positive": [
+          {
+            "file": "tests/backupServiceBehavior0813f.test.ts",
+            "name": "preserves activity journal and participation violation domain payloads during backup and restore"
+          }
+        ],
+        "negative": [
+          {
+            "file": "tests/backupServiceBehavior0813f.test.ts",
+            "name": "rejects restore with wrong confirmation or too short passphrase"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/backupServiceBehavior0813f.test.ts",
+            "name": "restores legacy backups that do not contain explicit kdfParams"
+          }
+        ],
+        "persistence": [
+          {
+            "file": "tests/backupServiceBehavior0813f.test.ts",
+            "name": "preserves activity journal and participation violation domain payloads during backup and restore"
+          }
+        ],
+        "rollback": [
+          {
+            "file": "tests/backupServiceBehavior0813f.test.ts",
+            "name": "rejects duplicate, traversing and incomplete file manifests without changing the current vault"
+          }
+        ],
+        "privacy": [
+          {
+            "file": "tests/backupServiceBehavior0813f.test.ts",
+            "name": "creates encrypted backups with current scrypt parameters and excludes tmp/nested backup files"
+          }
+        ],
+        "integration": [
+          {
+            "file": "tests/backupServiceBehavior0813f.test.ts",
+            "name": "preserves activity journal and participation violation domain payloads during backup and restore"
+          }
+        ],
+        "abuse": [
+          {
+            "file": "tests/backupServiceBehavior0813f.test.ts",
+            "name": "rejects duplicate, traversing and incomplete file manifests without changing the current vault"
+          }
+        ]
+      },
+      "rationales": {}
+    },
+    {
+      "id": "demo.reset",
+      "entryPoint": {
+        "file": "services/demoMode.ts",
+        "symbol": "resetDemoDataDirectory"
+      },
+      "criticality": "security",
+      "mutatesData": true,
+      "tests": {
+        "positive": [
+          {
+            "file": "tests/demoModeBehavior096r.test.ts",
+            "name": "verwendet ein separates temporäres Verzeichnis und setzt es idempotent zurück"
+          }
+        ],
+        "negative": [
+          {
+            "file": "tests/demoModeBehavior096r.test.ts",
+            "name": "verweigert Reset außerhalb des Temp-Verzeichnisses und folgt keinen symbolischen Links"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/demoModeBehavior096r.test.ts",
+            "name": "verwendet ein separates temporäres Verzeichnis und setzt es idempotent zurück"
+          }
+        ],
+        "persistence": [
+          {
+            "file": "tests/demoModeBehavior096r.test.ts",
+            "name": "verwendet ein separates temporäres Verzeichnis und setzt es idempotent zurück"
+          }
+        ],
+        "rollback": null,
+        "privacy": [
+          {
+            "file": "tests/demoModeBehavior096r.test.ts",
+            "name": "verweigert Reset außerhalb des Temp-Verzeichnisses und folgt keinen symbolischen Links"
+          }
+        ],
+        "integration": [
+          {
+            "file": "tests/demoModeBehavior096r.test.ts",
+            "name": "verwendet ein separates temporäres Verzeichnis und setzt es idempotent zurück"
+          }
+        ],
+        "abuse": [
+          {
+            "file": "tests/demoModeBehavior096r.test.ts",
+            "name": "verweigert Reset außerhalb des Temp-Verzeichnisses und folgt keinen symbolischen Links"
+          }
+        ]
+      },
+      "rationales": {
+        "rollback": "Reset is an explicitly destructive demo-only operation; safety is provided by strict path isolation rather than rollback."
+      }
+    },
+    {
+      "id": "case.deleteTransaction",
+      "entryPoint": {
+        "file": "services/caseDeletionTransaction.ts",
+        "symbol": "runCaseDeletionTransaction"
+      },
+      "criticality": "data-integrity",
+      "mutatesData": true,
+      "tests": {
+        "positive": [
+          {
+            "file": "tests/caseDeletionTransaction096n.test.ts",
+            "name": "enforces dependency deletion, mandatory audit, case deletion and retention evidence in this order"
+          }
+        ],
+        "negative": [
+          {
+            "file": "tests/caseDeletionTransaction096n.test.ts",
+            "name": "rolls back and never deletes the case record when the mandatory audit fails"
+          }
+        ],
+        "boundary": null,
+        "persistence": [
+          {
+            "file": "tests/caseDeletionTransaction096n.test.ts",
+            "name": "enforces dependency deletion, mandatory audit, case deletion and retention evidence in this order"
+          }
+        ],
+        "rollback": [
+          {
+            "file": "tests/caseDeletionTransaction096n.test.ts",
+            "name": "rolls back and never deletes the case record when the mandatory audit fails"
+          }
+        ],
+        "privacy": null,
+        "integration": [
+          {
+            "file": "tests/caseDeletionTransaction096n.test.ts",
+            "name": "enforces dependency deletion, mandatory audit, case deletion and retention evidence in this order"
+          }
+        ],
+        "abuse": null
+      },
+      "rationales": {
+        "boundary": "The orchestration accepts no user-controlled scalar boundary values.",
+        "privacy": "It operates on identifiers only; content minimisation is enforced by the called services.",
+        "abuse": "Authorization is outside this domain transaction and belongs to IPC/context validation."
+      }
+    },
+    {
+      "id": "audit.verifyChain",
+      "entryPoint": {
+        "file": "services/auditHashChain.ts",
+        "symbol": "verifyAuditHashChain"
+      },
+      "criticality": "security",
+      "mutatesData": false,
+      "tests": {
+        "positive": [
+          {
+            "file": "tests/auditHashChainBranchCoverage092.test.ts",
+            "name": "bestaetigt leere, aktuelle und Legacy-kompatible Hash-Ketten"
+          }
+        ],
+        "negative": [
+          {
+            "file": "tests/auditHashChainBranchCoverage092.test.ts",
+            "name": "meldet Sequenz-, Hash- und Verkettungsfehler in einem Lauf"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/auditHashChainBranchCoverage092.test.ts",
+            "name": "bestaetigt leere, aktuelle und Legacy-kompatible Hash-Ketten"
+          }
+        ],
+        "persistence": null,
+        "rollback": null,
+        "privacy": [
+          {
+            "file": "tests/auditHashChainBranchCoverage092.test.ts",
+            "name": "serialisiert stabil und normalisiert sichere Audit-Metadaten datensparsam"
+          }
+        ],
+        "integration": null,
+        "abuse": [
+          {
+            "file": "tests/auditHashChainBranchCoverage092.test.ts",
+            "name": "meldet ungueltige Sequenzen separat"
+          }
+        ]
+      },
+      "rationales": {
+        "persistence": "Pure verification function.",
+        "rollback": "Pure verification function.",
+        "integration": "Deterministic hash-chain behavior is fully covered at service level."
+      }
+    },
+    {
+      "id": "tempFiles.cleanup",
+      "entryPoint": {
+        "file": "services/tempFileService.ts",
+        "symbol": "TempFileService.cleanup"
+      },
+      "criticality": "privacy",
+      "mutatesData": true,
+      "tests": {
+        "positive": [
+          {
+            "file": "tests/tempFileServiceBehavior096r.test.ts",
+            "name": "löscht bei sofortigem Cleanup alle Dateien und meldet einen leeren Status"
+          }
+        ],
+        "negative": [
+          {
+            "file": "tests/tempFileServiceBehavior096r.test.ts",
+            "name": "löscht nur hinreichend alte Dateien und erhält junge Arbeitskopien"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/tempFileServiceBehavior096r.test.ts",
+            "name": "löscht nur hinreichend alte Dateien und erhält junge Arbeitskopien"
+          }
+        ],
+        "persistence": [
+          {
+            "file": "tests/tempFileServiceBehavior096r.test.ts",
+            "name": "löscht bei sofortigem Cleanup alle Dateien und meldet einen leeren Status"
+          }
+        ],
+        "rollback": null,
+        "privacy": [
+          {
+            "file": "tests/tempFileServiceBehavior096r.test.ts",
+            "name": "legt alle Scopes an, säubert Dateinamen und schreibt Arbeitskopien mit restriktiven Rechten"
+          }
+        ],
+        "integration": null,
+        "abuse": [
+          {
+            "file": "tests/tempFileServiceBehavior096r.test.ts",
+            "name": "legt alle Scopes an, säubert Dateinamen und schreibt Arbeitskopien mit restriktiven Rechten"
+          }
+        ]
+      },
+      "rationales": {
+        "rollback": "Cleanup is best-effort deletion; individual failures are reported instead of restoring expired sensitive files.",
+        "integration": "Filesystem behavior is exercised against isolated real temporary directories."
+      }
+    },
+    {
+      "id": "filesystem.atomicWrite",
+      "entryPoint": {
+        "file": "services/secureFileOperations.ts",
+        "symbol": "atomicWriteFileSync"
+      },
+      "criticality": "security",
+      "mutatesData": true,
+      "tests": {
+        "positive": [
+          {
+            "file": "tests/secureFileOperationsCompletion.test.ts",
+            "name": "uses the Windows-compatible replacement fallback and removes all sibling artifacts"
+          }
+        ],
+        "negative": [
+          {
+            "file": "tests/secureFileOperationsCompletion.test.ts",
+            "name": "restores the old file when the second rename fails"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/secureFileOperationsCompletion.test.ts",
+            "name": "uses the Windows-compatible replacement fallback and removes all sibling artifacts"
+          }
+        ],
+        "persistence": [
+          {
+            "file": "tests/secureFileOperationsCompletion.test.ts",
+            "name": "uses the Windows-compatible replacement fallback and removes all sibling artifacts"
+          }
+        ],
+        "rollback": [
+          {
+            "file": "tests/secureFileOperationsCompletion.test.ts",
+            "name": "restores the old file when the second rename fails"
+          }
+        ],
+        "privacy": null,
+        "integration": [
+          {
+            "file": "tests/secureFileOperationsCompletion.test.ts",
+            "name": "uses the Windows-compatible replacement fallback and removes all sibling artifacts"
+          }
+        ],
+        "abuse": [
+          {
+            "file": "tests/secureFileOperationsCompletion.test.ts",
+            "name": "restores the old file when the second rename fails"
+          }
+        ]
+      },
+      "rationales": {
+        "privacy": "The primitive receives opaque bytes and never logs or interprets their contents."
+      }
+    },
+    {
+      "id": "security.recoveryReset",
+      "entryPoint": {
+        "file": "services/securityService.ts",
+        "symbol": "SecurityService.resetPasswordWithRecoveryKey"
+      },
+      "criticality": "security",
+      "mutatesData": true,
+      "tests": {
+        "positive": [
+          {
+            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "name": "resets the password with a recovery key and allows unlock with the new password"
+          }
+        ],
+        "negative": [
+          {
+            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "name": "rejects a wrong recovery key without creating a password store"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "name": "rejects truncated ciphertext and manipulated authentication tags before database access"
+          }
+        ],
+        "persistence": [
+          {
+            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "name": "resets the password with a recovery key and allows unlock with the new password"
+          }
+        ],
+        "rollback": [
+          {
+            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "name": "rolls back password store and manifest when the second security artifact write fails"
+          }
+        ],
+        "privacy": [
+          {
+            "file": "tests/securityPrivacyReadiness0813.test.ts",
+            "name": "keeps E2E runs isolated and audit metadata datensparsam"
+          }
+        ],
+        "integration": [
+          {
+            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "name": "resets the password with a recovery key and allows unlock with the new password"
+          }
+        ],
+        "abuse": [
+          {
+            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "name": "rejects truncated ciphertext and manipulated authentication tags before database access"
+          }
+        ]
+      },
+      "rationales": {}
+    },
+    {
+      "id": "demo.prepareVault",
+      "entryPoint": {
+        "file": "services/demoMode.ts",
+        "symbol": "prepareDemoVault"
+      },
+      "criticality": "privacy",
+      "mutatesData": true,
+      "tests": {
+        "positive": [
+          {
+            "file": "tests/demoModeBehavior096r.test.ts",
+            "name": "verwendet ein separates temporäres Verzeichnis und setzt es idempotent zurück"
+          }
+        ],
+        "negative": [
+          {
+            "file": "tests/demoModeBehavior096r.test.ts",
+            "name": "removes a partially initialized demo vault when seeding fails"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/demoModeBehavior096r.test.ts",
+            "name": "verweigert Reset außerhalb des Temp-Verzeichnisses und folgt keinen symbolischen Links"
+          }
+        ],
+        "persistence": [
+          {
+            "file": "tests/demoModeBehavior096r.test.ts",
+            "name": "verwendet ein separates temporäres Verzeichnis und setzt es idempotent zurück"
+          }
+        ],
+        "rollback": [
+          {
+            "file": "tests/demoModeBehavior096r.test.ts",
+            "name": "removes a partially initialized demo vault when seeding fails"
+          }
+        ],
+        "privacy": [
+          {
+            "file": "tests/demoModeBehavior096r.test.ts",
+            "name": "lets demo isolation win over a configured productive data directory without touching production data"
+          }
+        ],
+        "integration": [
+          {
+            "file": "tests/demoModeBehavior096r.test.ts",
+            "name": "removes a partially initialized demo vault when seeding fails"
+          }
+        ],
+        "abuse": [
+          {
+            "file": "tests/demoModeBehavior096r.test.ts",
+            "name": "verweigert Reset außerhalb des Temp-Verzeichnisses und folgt keinen symbolischen Links"
+          }
+        ]
+      },
+      "rationales": {}
+    },
+    {
+      "id": "ipc.validateInvocation",
+      "entryPoint": {
+        "file": "electron/preload/invoke.ts",
+        "symbol": "validateIpcInvocation"
+      },
+      "criticality": "security",
+      "mutatesData": false,
+      "tests": {
+        "positive": [
+          {
+            "file": "tests/ipcEndpointContractsCompletion.test.ts",
+            "name": "validates every exposed IPC endpoint contract at runtime"
+          }
+        ],
+        "negative": [
+          {
+            "file": "tests/ipcEndpointContractsCompletion.test.ts",
+            "name": "rejects renderer-controlled absolute POSIX and Windows paths before IPC dispatch"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/ipcEndpointContractsCompletion.test.ts",
+            "name": "validates every exposed IPC endpoint contract at runtime"
+          }
+        ],
+        "persistence": null,
+        "rollback": null,
+        "privacy": [
+          {
+            "file": "tests/ipcBridgeModularizationPatch5.test.ts",
+            "name": "does not serialize unexpected internal main-process details"
+          }
+        ],
+        "integration": [
+          {
+            "file": "tests/ipcBridgeModularizationPatch5.test.ts",
+            "name": "invokes a declared channel and returns a serializable result"
+          }
+        ],
+        "abuse": [
+          {
+            "file": "tests/ipcEndpointContractsCompletion.test.ts",
+            "name": "rejects renderer-controlled absolute POSIX and Windows paths before IPC dispatch"
+          }
+        ]
+      },
+      "rationales": {
+        "persistence": "Pure validation before dispatch.",
+        "rollback": "Pure validation before dispatch."
+      }
+    },
+    {
+      "id": "ipc.registerHandler",
+      "entryPoint": {
+        "file": "electron/ipc/ipcHandler.ts",
+        "symbol": "registerIpcHandler"
+      },
+      "criticality": "security",
+      "mutatesData": false,
+      "tests": {
+        "positive": [
+          {
+            "file": "tests/ipcRuntimeArgumentBoundary096j.test.ts",
+            "name": "rejects both missing and surplus arguments before the handler runs"
+          }
+        ],
+        "negative": [
+          {
+            "file": "tests/ipcBridgeModularizationPatch5.test.ts",
+            "name": "rejects calls from an untrusted renderer origin"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/ipcRuntimeArgumentBoundary096j.test.ts",
+            "name": "rejects both missing and surplus arguments before the handler runs"
+          }
+        ],
+        "persistence": null,
+        "rollback": null,
+        "privacy": [
+          {
+            "file": "tests/ipcBridgeModularizationPatch5.test.ts",
+            "name": "uses a structured safe main-process error without leaking its cause"
+          }
+        ],
+        "integration": [
+          {
+            "file": "tests/ipcBridgeModularizationPatch5.test.ts",
+            "name": "rejects a non-serializable handler result with a safe application error"
+          }
+        ],
+        "abuse": [
+          {
+            "file": "tests/ipcBridgeModularizationPatch5.test.ts",
+            "name": "rejects calls from an untrusted renderer origin"
+          }
+        ]
+      },
+      "rationales": {
+        "persistence": "Registration and validation do not mutate application data.",
+        "rollback": "Registration and validation do not mutate application data."
+      }
+    }
+  ]
+}

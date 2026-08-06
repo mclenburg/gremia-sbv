@@ -5,7 +5,7 @@ function modulesForGroup(group: ModuleGroupDefinition) {
   return modules.filter((module) => module.group === group.id);
 }
 
-export function ShellNav({ current, onNavigate }: { current: ViewId; onNavigate: (view: ViewId) => void }) {
+export function ShellNav({ current, onNavigate, onPreload }: { current: ViewId; onNavigate: (view: ViewId) => void; onPreload?: (view: ViewId) => void }) {
   return (
     <nav className="industrial-nav" aria-label="Hauptnavigation" data-e2e="main-nav">
       <div className="industrial-nav-primary">
@@ -31,6 +31,8 @@ export function ShellNav({ current, onNavigate }: { current: ViewId; onNavigate:
                   aria-current={current === module.id ? 'page' : undefined}
                   aria-disabled={module.status === 'planned' ? true : undefined}
                   onClick={() => onNavigate(module.id)}
+                  onFocus={() => onPreload?.(module.id)}
+                  onPointerEnter={() => onPreload?.(module.id)}
                   disabled={module.status === 'planned'}
                   title={module.status === 'planned' ? `In Entwicklung${module.plannedVersion ? `: ${module.plannedVersion}` : ''}` : module.text}
                 >
@@ -52,6 +54,8 @@ export function ShellNav({ current, onNavigate }: { current: ViewId; onNavigate:
             className={current === 'settings' ? 'active' : ''}
             aria-current={current === 'settings' ? 'page' : undefined}
             onClick={() => onNavigate('settings')}
+            onFocus={() => onPreload?.('settings')}
+            onPointerEnter={() => onPreload?.('settings')}
             title="Lokale Konfiguration und Sicherheitsoptionen"
           >
             <SettingsIcon className="h-4 w-4" />

@@ -1,20 +1,21 @@
 #!/usr/bin/env node
 const { spawnSync } = require('node:child_process');
 
-const map = {
-  linux: 'linux',
-  win32: 'win',
-  darwin: 'mac'
+const scripts = {
+  linux: 'build:linux',
+  win32: 'build:windows',
+  darwin: 'build:mac',
 };
 
-const target = map[process.platform];
-if (!target) {
+const script = scripts[process.platform];
+if (!script) {
   console.error(`Keine Paketierung für diese Plattform definiert: ${process.platform}`);
   process.exit(2);
 }
 
-const result = spawnSync(process.execPath, ['scripts/build-platform.cjs', target], {
+const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+const result = spawnSync(npmCommand, ['run', script], {
   stdio: 'inherit',
-  shell: process.platform === 'win32'
+  shell: process.platform === 'win32',
 });
 process.exit(result.status ?? 1);

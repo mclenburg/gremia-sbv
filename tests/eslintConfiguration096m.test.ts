@@ -11,6 +11,8 @@ interface PackageScripts {
   lint?: string;
   'lint:fix'?: string;
   'build:app'?: string;
+  'build:verify'?: string;
+  'build:compile'?: string;
   'release:check'?: string;
 }
 
@@ -61,16 +63,15 @@ describe('0.9.6-m ESLint- und Freigabevertrag', () => {
   });
 
   it('führt Cleanup und Lint vor der eigentlichen App-Kompilierung aus', () => {
-    const build = packageScripts()['build:app'] ?? '';
+    const verify = packageScripts()['build:verify'] ?? '';
+    const compile = packageScripts()['build:compile'] ?? '';
     const release = packageScripts()['release:check'] ?? '';
 
-    expect(build.indexOf('source:cleanup:strict')).toBeGreaterThanOrEqual(0);
-    expect(build.indexOf('npm run lint')).toBeGreaterThan(
-      build.indexOf('source:cleanup:strict'),
+    expect(verify.indexOf('source:cleanup:strict')).toBeGreaterThanOrEqual(0);
+    expect(verify.indexOf('npm run lint')).toBeGreaterThan(
+      verify.indexOf('source:cleanup:strict'),
     );
-    expect(build.indexOf('tsc -p tsconfig.json')).toBeGreaterThan(
-      build.indexOf('npm run lint'),
-    );
-    expect(release).toContain('npm run lint');
+    expect(compile).toContain('tsc -p tsconfig.json');
+    expect(release).toContain('npm run build:verify');
   });
 });

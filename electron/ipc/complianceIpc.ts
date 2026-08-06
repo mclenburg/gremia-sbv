@@ -1,4 +1,4 @@
-import { registerIpcHandler } from './ipcHandler.js';
+import { IPC_CHANNELS, registerIpcHandler } from './ipcHandler.js';
 import type { IpcMain } from 'electron';
 import { evaluateDatabaseIntegrity } from '../../services/databaseIntegrityService.js';
 import type { SecurityService } from '../../services/securityService.js';
@@ -79,31 +79,31 @@ function validateUpdateIncidentInput(value: unknown): UpdateComplianceIncidentIn
 }
 
 export function registerComplianceIpc(ipcMain: IpcMain, security: SecurityService, services: ApplicationServices): void {
-  registerIpcHandler(ipcMain, 'compliance:audit-chain-status', async () =>
+  registerIpcHandler(ipcMain, IPC_CHANNELS.complianceAuditChainStatus, async () =>
     services.auditLog().verifyChain(),
   );
 
-  registerIpcHandler(ipcMain, 'compliance:database-integrity-status', async () =>
+  registerIpcHandler(ipcMain, IPC_CHANNELS.complianceDatabaseIntegrityStatus, async () =>
     evaluateDatabaseIntegrity(security.getActiveDatabase()),
   );
 
-  registerIpcHandler(ipcMain, 'compliance:dsar-prefill', async (_event, input) =>
+  registerIpcHandler(ipcMain, IPC_CHANNELS.complianceDsarPrefill, async (_event, input) =>
     services.dsarPrefill().buildPrefill(validateDsarInput(input)),
   );
 
-  registerIpcHandler(ipcMain, 'compliance:self-check', async () =>
+  registerIpcHandler(ipcMain, IPC_CHANNELS.complianceSelfCheck, async () =>
     services.complianceSelfCheck().evaluate(),
   );
 
-  registerIpcHandler(ipcMain, 'compliance:incidents:list', async () =>
+  registerIpcHandler(ipcMain, IPC_CHANNELS.complianceIncidentsList, async () =>
     services.complianceIncidents().list(),
   );
 
-  registerIpcHandler(ipcMain, 'compliance:incidents:create', async (_event, input) =>
+  registerIpcHandler(ipcMain, IPC_CHANNELS.complianceIncidentsCreate, async (_event, input) =>
     services.complianceIncidents().create(validateCreateIncidentInput(input)),
   );
 
-  registerIpcHandler(ipcMain, 'compliance:incidents:update', async (_event, id, input) =>
+  registerIpcHandler(ipcMain, IPC_CHANNELS.complianceIncidentsUpdate, async (_event, id, input) =>
     services.complianceIncidents().update(
       assertString(id, 'compliance:incidents:update', 'Vorfall-ID', { minLength: 1, maxLength: 200 }),
       validateUpdateIncidentInput(input),

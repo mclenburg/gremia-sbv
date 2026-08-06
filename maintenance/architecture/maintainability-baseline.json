@@ -14,7 +14,7 @@
   },
   "summary": {
     "filesScanned": 423,
-    "debtFiles": 88
+    "debtFiles": 87
   },
   "debt": {
     "electron/appRuntime.ts": {
@@ -34,12 +34,6 @@
       "codeLines": 144,
       "maxFunctionLines": 156,
       "imports": 10
-    },
-    "electron/preload.ts": {
-      "physicalLines": 808,
-      "codeLines": 780,
-      "maxFunctionLines": 21,
-      "imports": 31
     },
     "electron/startupStatus.ts": {
       "physicalLines": 276,

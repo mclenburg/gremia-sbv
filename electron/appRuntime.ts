@@ -40,7 +40,9 @@ import {
   prepareDemoVault,
   resetDemoDataDirectory,
   resolveDemoDataDirectory,
-} from "../services/demoMode.js";
+  resolveApplicationDataDirectory,
+  finishPackagedStartupSmoke,
+} from "./runtimePlatformIntegration.js";
 import {
   registerRendererSecurityPolicy,
   registerSessionSecurityPolicy,
@@ -130,19 +132,7 @@ function closeStartupSplash(): void {
 }
 
 function resolveRuntimeDataDir(): string {
-  if (isDemoMode()) {
-    return resolveDemoDataDirectory();
-  }
-
-  if (process.env.GREMIA_SBV_DATA_DIR) {
-    return process.env.GREMIA_SBV_DATA_DIR;
-  }
-
-  if (app.isPackaged) {
-    return path.join(app.getPath("userData"), "data");
-  }
-
-  return path.join(process.cwd(), "data");
+  return resolveApplicationDataDirectory(app);
 }
 
 function resolvePreloadPath(): string {
@@ -398,7 +388,6 @@ export async function startApplication(existingSplashWindow?: BrowserWindow): Pr
   if (existingSplashWindow && !existingSplashWindow.isDestroyed()) {
     splashWindow = existingSplashWindow;
   }
-
   app.on("second-instance", () => {
     void updateStartupSplash("already-running");
     focusStartupWindow();
@@ -484,6 +473,7 @@ export async function startApplication(existingSplashWindow?: BrowserWindow): Pr
   await updateStartupSplash("ui");
   await createWindow();
   markStartupPhase("runtime:create-window-complete");
+  finishPackagedStartupSmoke(dataDirectory, app);
 
   if (demoMode) {
     scheduleDemoVaultPreparation(dataDirectory);

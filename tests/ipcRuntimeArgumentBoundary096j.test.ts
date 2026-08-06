@@ -1,12 +1,20 @@
-import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import { IPC_CHANNELS } from '../electron/ipc/channels';
+import { registerIpcHandler } from '../electron/ipc/ipcHandler';
 
 describe('IPC-Laufzeitgrenze', () => {
-  it('validiert die Argumentanzahl und ruft Handler ohne Tupel-Cast auf', () => {
-    const source = readFileSync('electron/ipc/ipcHandler.ts', 'utf8');
-
-    expect(source).toContain('assertIpcArgumentCount(channel, args, maximumArgumentCount)');
-    expect(source).toContain('Reflect.apply(handler, undefined, [event, ...args])');
-    expect(source).not.toMatch(/args\s+as\s+(?:unknown\s+as\s+)?Args/);
+  it('rejects both missing and surplus arguments before the handler runs', async () => {
+    let registered: ((event: object, ...args: unknown[]) => Promise<unknown>) | undefined;
+    let calls = 0;
+    const ipcMain = { handle: (_channel: string, handler: (event: object, ...args: unknown[]) => Promise<unknown>) => { registered = handler; } };
+    registerIpcHandler(ipcMain as never, IPC_CHANNELS.securityUnlock, async (_event, password: unknown) => {
+      calls += 1;
+      return { password };
+    });
+    const event = { senderFrame: { url: 'file:///app/index.html' } };
+    await expect(registered?.(event)).rejects.toThrow(/VALIDATION_FAILED/);
+    await expect(registered?.(event, 'secret', 'surplus')).rejects.toThrow(/VALIDATION_FAILED/);
+    await expect(registered?.(event, 'secret')).resolves.toEqual({ password: 'secret' });
+    expect(calls).toBe(1);
   });
 });

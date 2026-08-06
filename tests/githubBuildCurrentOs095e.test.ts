@@ -15,8 +15,9 @@ describe('0.9.5-e local GitHub build command', () => {
     expect(output).toContain('▶ npm run security:audit');
     expect(output).toContain('▶ npm run licenses:generate');
     expect(output).toContain('▶ npm run licenses:check');
-    expect(output).toContain('▶ npm run release:check');
-    expect(output).toMatch(/▶ npm run build:(linux|win|mac)/);
+    expect(output).toContain('▶ npm run build:verify');
+    expect(output).toContain('▶ npm run build:compile');
+    expect(output).toMatch(/▶ npm run build:package:(linux|windows|mac)/);
     expect(output).toContain('E2E-Tests laufen standardmäßig mit 2 Workern');
   });
 });

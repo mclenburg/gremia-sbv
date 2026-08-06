@@ -1,4 +1,4 @@
-import { registerIpcHandler } from './ipcHandler.js';
+import { IPC_CHANNELS, registerIpcHandler } from './ipcHandler.js';
 import { dialog, shell, type IpcMain } from "electron";
 import path from "node:path";
 import type { SecurityService } from "../../services/securityService.js";
@@ -12,7 +12,7 @@ export function registerBackupIpc(
 ): void {
   const backups = services.backup;
 
-  registerIpcHandler(ipcMain, "backup:create", async (_event, passphrase: unknown) => {
+  registerIpcHandler(ipcMain, IPC_CHANNELS.backupCreate, async (_event, passphrase: unknown) => {
     const validatedPassphrase = assertString(passphrase, "backup:create", "Backup-Passphrase", { minLength: 1, maxLength: 512 });
     const result = await dialog.showSaveDialog({
       title: "Gremia.SBV-Backup erstellen",
@@ -29,7 +29,7 @@ export function registerBackupIpc(
     return backups.createBackup(target, validatedPassphrase);
   });
 
-  registerIpcHandler(ipcMain, "backup:inspect", async (_event, passphrase: unknown) => {
+  registerIpcHandler(ipcMain, IPC_CHANNELS.backupInspect, async (_event, passphrase: unknown) => {
     const validatedPassphrase = assertString(passphrase, "backup:inspect", "Backup-Passphrase", { minLength: 1, maxLength: 512 });
     const result = await dialog.showOpenDialog({
       title: "Gremia.SBV-Backup prüfen",
@@ -42,7 +42,7 @@ export function registerBackupIpc(
     return backups.inspectBackup(result.filePaths[0], validatedPassphrase);
   });
 
-  registerIpcHandler(ipcMain, "backup:restore", async (_event, passphrase: unknown, confirmation: unknown) => {
+  registerIpcHandler(ipcMain, IPC_CHANNELS.backupRestore, async (_event, passphrase: unknown, confirmation: unknown) => {
     const validatedPassphrase = assertString(passphrase, "backup:restore", "Backup-Passphrase", { minLength: 1, maxLength: 512 });
     const validatedConfirmation = assertString(confirmation, "backup:restore", "Bestätigung", { minLength: 1, maxLength: 200 });
     const result = await dialog.showOpenDialog({
@@ -56,7 +56,7 @@ export function registerBackupIpc(
     return backups.restoreBackup(result.filePaths[0], validatedPassphrase, validatedConfirmation);
   });
 
-  registerIpcHandler(ipcMain, "backup:open-backup-folder", async () => {
+  registerIpcHandler(ipcMain, IPC_CHANNELS.backupOpenBackupFolder, async () => {
     const backupDir = ensurePathInside(
       path.join(security.getDataDirectory(), "backups"),
       security.getDataDirectory(),

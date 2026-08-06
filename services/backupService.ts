@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { createCipheriv, createDecipheriv, createHash, randomBytes, scryptSync } from 'node:crypto';
 import { gzipSync, gunzipSync } from 'node:zlib';
@@ -6,11 +6,33 @@ import type { SecurityService } from './securityService.js';
 import type { BackupFileSummary, BackupInspectionResult, BackupOperationResult } from '../src/app/core/models/backup.model.js';
 import { APP_VERSION } from './generated/appMetadata.js';
 import { APP_SCHEMA_VERSION, DATABASE_SCHEMA_VERSION_KEY, LEGACY_DATABASE_SCHEMA_VERSION_KEY } from './appSchema.js';
+import { atomicWriteFileSync } from './secureFileOperations.js';
+
+export interface BackupFileOperations {
+  readonly atomicWriteFileSync: typeof atomicWriteFileSync;
+  readonly mkdirSync: typeof mkdirSync;
+  readonly renameSync: typeof renameSync;
+  readonly rmSync: typeof rmSync;
+  readonly writeFileSync: typeof writeFileSync;
+}
+
+const DEFAULT_BACKUP_FILE_OPERATIONS: BackupFileOperations = Object.freeze({
+  atomicWriteFileSync,
+  mkdirSync,
+  renameSync,
+  rmSync,
+  writeFileSync,
+});
 
 const BACKUP_FORMAT = 'gremia-sbv-encrypted-backup';
 const BACKUP_VERSION = 1;
 const RESTORE_CONFIRMATION = 'BACKUP WIEDERHERSTELLEN';
 const MIN_BACKUP_PASSPHRASE_LENGTH = 12;
+const MAX_BACKUP_FILE_COUNT = 100_000;
+const MAX_BACKUP_FILE_SIZE = 4 * 1024 * 1024 * 1024;
+const MAX_BACKUP_TOTAL_SIZE = 8 * 1024 * 1024 * 1024;
+const MAX_BACKUP_SCRYPT_N = 262144;
+const MAX_BACKUP_SCRYPT_MEMORY = 512 * 1024 * 1024;
 
 interface ScryptKdfParams {
   N: number;
@@ -68,7 +90,11 @@ function assertPassphrase(passphrase: string): void {
 }
 
 function normalizeBackupKdfParams(params?: ScryptKdfParams): ScryptKdfParams {
-  return params ?? LEGACY_BACKUP_SCRYPT_PARAMS;
+  const effective = params ?? LEGACY_BACKUP_SCRYPT_PARAMS;
+  if (!Number.isInteger(effective.N) || effective.N < LEGACY_BACKUP_SCRYPT_PARAMS.N || effective.N > MAX_BACKUP_SCRYPT_N || (effective.N & (effective.N - 1)) !== 0 || effective.r !== 8 || effective.p !== 1 || !Number.isInteger(effective.maxmem) || effective.maxmem < LEGACY_BACKUP_SCRYPT_PARAMS.maxmem || effective.maxmem > MAX_BACKUP_SCRYPT_MEMORY) {
+    throw new Error('Das Backup enthält unzulässige KDF-Parameter.');
+  }
+  return effective;
 }
 
 function safeDestroyBuffer(buffer?: Buffer): void {
@@ -152,19 +178,32 @@ function readSchemaVersion(security: SecurityService): string | undefined {
 }
 
 function assertRelativePath(relativePath: string): void {
-  if (!relativePath || relativePath.startsWith('/') || relativePath.includes('..') || path.isAbsolute(relativePath)) {
+  if (!relativePath || relativePath.includes('\\') || path.posix.isAbsolute(relativePath)) {
+    throw new Error(`Ungültiger Pfad im Backup: ${relativePath}`);
+  }
+  const normalized = path.posix.normalize(relativePath);
+  if (normalized !== relativePath || normalized === '.' || normalized.startsWith('../') || normalized.includes('/../') || relativePath.split('/').some((segment) => segment === '' || segment === '.' || segment === '..')) {
     throw new Error(`Ungültiger Pfad im Backup: ${relativePath}`);
   }
 }
 
+function assertCanonicalBase64(value: string, label: string): void {
+  if (!/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(value)) {
+    throw new Error(`${label} enthält keine gültigen Base64-Daten.`);
+  }
+}
+
 export class BackupService {
-  constructor(private readonly security: SecurityService) {}
+  constructor(
+    private readonly security: SecurityService,
+    private readonly fileOperations: BackupFileOperations = DEFAULT_BACKUP_FILE_OPERATIONS,
+  ) {}
 
   createBackup(targetFilePath: string, passphrase: string): BackupOperationResult {
     try {
       assertPassphrase(passphrase);
       const dataDir = this.security.getDataDirectory();
-      mkdirSync(path.dirname(targetFilePath), { recursive: true });
+      this.fileOperations.mkdirSync(path.dirname(targetFilePath), { recursive: true });
 
       try {
         this.security.getActiveDatabase().pragma('wal_checkpoint(TRUNCATE)');
@@ -216,7 +255,7 @@ export class BackupService {
         payload: ciphertext.toString('base64')
       };
 
-      writeFileSync(targetFilePath, `${JSON.stringify(envelope, null, 2)}\n`, { encoding: 'utf8', mode: 0o600 });
+      this.fileOperations.atomicWriteFileSync(targetFilePath, `${JSON.stringify(envelope, null, 2)}\n`);
       safeDestroyBuffer(key);
 
       return {
@@ -261,98 +300,103 @@ export class BackupService {
   }
 
   restoreBackup(filePath: string, passphrase: string, confirmation: string): BackupOperationResult {
+    let stagingDir: string | undefined;
+    let backupOfCurrent: string | undefined;
     try {
-      if (confirmation !== RESTORE_CONFIRMATION) {
-        throw new Error(`Bitte exakt „${RESTORE_CONFIRMATION}“ eingeben.`);
-      }
-
+      if (confirmation !== RESTORE_CONFIRMATION) throw new Error(`Bitte exakt „${RESTORE_CONFIRMATION}“ eingeben.`);
       const payload = this.readBackupPayload(filePath, passphrase);
       this.verifyPayload(payload);
 
       const dataDir = this.security.getDataDirectory();
       const parentDir = path.dirname(dataDir);
-      const backupOfCurrent = path.join(parentDir, `${path.basename(dataDir)}.before-restore.${new Date().toISOString().replace(/[:.]/g, '-')}`);
+      const suffix = new Date().toISOString().replace(/[:.]/g, '-');
+      backupOfCurrent = path.join(parentDir, `${path.basename(dataDir)}.before-restore.${suffix}`);
+      stagingDir = path.join(parentDir, `.${path.basename(dataDir)}.restore-staging.${process.pid}.${suffix}`);
+      this.fileOperations.mkdirSync(parentDir, { recursive: true });
+      this.fileOperations.rmSync(stagingDir, { recursive: true, force: true });
+      this.fileOperations.mkdirSync(stagingDir, { recursive: false });
+
+      for (const file of payload.files) {
+        assertRelativePath(file.relativePath);
+        const content = Buffer.from(file.contentBase64, 'base64');
+        if (sha256(content) !== file.sha256 || content.length !== file.sizeBytes) throw new Error(`Prüfsumme nach Entschlüsselung ungültig: ${file.relativePath}`);
+        const target = path.join(stagingDir, ...file.relativePath.split('/'));
+        this.fileOperations.mkdirSync(path.dirname(target), { recursive: true });
+        this.fileOperations.writeFileSync(target, content, { mode: 0o600 });
+      }
+      this.fileOperations.mkdirSync(path.join(stagingDir, 'documents'), { recursive: true });
+      this.fileOperations.mkdirSync(path.join(stagingDir, 'exports'), { recursive: true });
+      this.fileOperations.mkdirSync(path.join(stagingDir, 'tmp'), { recursive: true });
+      this.fileOperations.mkdirSync(path.join(stagingDir, 'backups'), { recursive: true });
 
       this.security.lock();
-      mkdirSync(parentDir, { recursive: true });
-
-      if (existsSync(dataDir)) {
-        renameSync(dataDir, backupOfCurrent);
-      }
-      mkdirSync(dataDir, { recursive: true });
-
+      if (existsSync(dataDir)) this.fileOperations.renameSync(dataDir, backupOfCurrent);
       try {
-        for (const file of payload.files) {
-          assertRelativePath(file.relativePath);
-          const content = Buffer.from(file.contentBase64, 'base64');
-          if (sha256(content) !== file.sha256 || content.length !== file.sizeBytes) {
-            throw new Error(`Prüfsumme nach Entschlüsselung ungültig: ${file.relativePath}`);
-          }
-          const target = path.join(dataDir, file.relativePath);
-          mkdirSync(path.dirname(target), { recursive: true });
-          writeFileSync(target, content, { mode: 0o600 });
-        }
+        this.fileOperations.renameSync(stagingDir, dataDir);
+        stagingDir = undefined;
       } catch (error) {
-        rmSync(dataDir, { recursive: true, force: true });
-        if (existsSync(backupOfCurrent)) {
-          renameSync(backupOfCurrent, dataDir);
-        }
+        if (existsSync(dataDir)) this.fileOperations.rmSync(dataDir, { recursive: true, force: true });
+        if (backupOfCurrent && existsSync(backupOfCurrent)) this.fileOperations.renameSync(backupOfCurrent, dataDir);
         throw error;
       }
 
-      mkdirSync(path.join(dataDir, 'tmp'), { recursive: true });
-      mkdirSync(path.join(dataDir, 'backups'), { recursive: true });
-
       return {
         ok: true,
-        restoredAt: new Date().toISOString(),
-        filePath,
-        fileName: path.basename(filePath),
+        restoredAt: new Date().toISOString(), filePath, fileName: path.basename(filePath),
         fileCount: payload.files.length,
         totalBytes: payload.files.reduce((sum, file) => sum + file.sizeBytes, 0),
-        warnings: [
-          `Der vorherige Datenbestand wurde gesichert unter: ${backupOfCurrent}`,
-          ...buildBackupPrivacyWarnings(payload.files),
-          ...(schemaVersionWarning(payload.schemaVersion) ? [schemaVersionWarning(payload.schemaVersion)!] : [])
-        ],
+        warnings: [`Der vorherige Datenbestand wurde gesichert unter: ${backupOfCurrent}`, ...buildBackupPrivacyWarnings(payload.files), ...(schemaVersionWarning(payload.schemaVersion) ? [schemaVersionWarning(payload.schemaVersion)!] : [])],
         restartRequired: true
       };
     } catch (error) {
+      if (stagingDir) this.fileOperations.rmSync(stagingDir, { recursive: true, force: true });
       return { ok: false, filePath, fileName: path.basename(filePath), error: error instanceof Error ? error.message : String(error), warnings: [] };
     }
   }
 
   defaultBackupPath(): string {
     const backupsDir = path.join(this.security.getDataDirectory(), 'backups');
-    mkdirSync(backupsDir, { recursive: true });
+    this.fileOperations.mkdirSync(backupsDir, { recursive: true });
     return path.join(backupsDir, safeBackupFileName());
   }
 
   private readBackupPayload(filePath: string, passphrase: string): BackupPayload {
     assertPassphrase(passphrase);
-    const envelope = JSON.parse(readFileSync(filePath, 'utf8')) as BackupEnvelope;
-    if (envelope.format !== BACKUP_FORMAT || envelope.version !== BACKUP_VERSION || envelope.algorithm !== 'aes-256-gcm') {
-      throw new Error('Die Datei ist kein unterstütztes Gremia.SBV-Backup.');
-    }
+    let envelope: BackupEnvelope;
+    try { envelope = JSON.parse(readFileSync(filePath, 'utf8')) as BackupEnvelope; }
+    catch (error) { throw new Error(error instanceof SyntaxError ? 'Die Backup-Datei enthält kein gültiges JSON.' : String(error)); }
+    if (envelope.format !== BACKUP_FORMAT || envelope.version !== BACKUP_VERSION || envelope.algorithm !== 'aes-256-gcm' || envelope.kdf !== 'scrypt' || envelope.compression !== 'gzip') throw new Error('Die Datei ist kein unterstütztes Gremia.SBV-Backup.');
+    if (![envelope.salt, envelope.iv, envelope.tag].every((value) => typeof value === 'string' && /^[0-9a-f]+$/i.test(value))) throw new Error('Der Backup-Umschlag ist beschädigt.');
+    if (envelope.salt.length !== 32 || envelope.iv.length !== 24 || envelope.tag.length !== 32 || typeof envelope.payload !== 'string' || envelope.payload.length === 0) throw new Error('Der Backup-Umschlag ist unvollständig.');
+    assertCanonicalBase64(envelope.payload, 'Der Backup-Umschlag');
 
     const key = deriveBackupKey(passphrase, envelope.salt, envelope.kdfParams);
-    const decipher = createDecipheriv('aes-256-gcm', key, Buffer.from(envelope.iv, 'hex'));
-    decipher.setAAD(Buffer.from(`${BACKUP_FORMAT}:${BACKUP_VERSION}`, 'utf8'));
-    decipher.setAuthTag(Buffer.from(envelope.tag, 'hex'));
-    const compressed = Buffer.concat([decipher.update(Buffer.from(envelope.payload, 'base64')), decipher.final()]);
-    const payload = JSON.parse(gunzipSync(compressed).toString('utf8')) as BackupPayload;
-    safeDestroyBuffer(key);
-    return payload;
+    try {
+      const decipher = createDecipheriv('aes-256-gcm', key, Buffer.from(envelope.iv, 'hex'));
+      decipher.setAAD(Buffer.from(`${BACKUP_FORMAT}:${BACKUP_VERSION}`, 'utf8'));
+      decipher.setAuthTag(Buffer.from(envelope.tag, 'hex'));
+      const compressed = Buffer.concat([decipher.update(Buffer.from(envelope.payload, 'base64')), decipher.final()]);
+      return JSON.parse(gunzipSync(compressed).toString('utf8')) as BackupPayload;
+    } finally { safeDestroyBuffer(key); }
   }
 
   private verifyPayload(payload: BackupPayload): void {
-    if (payload.format !== BACKUP_FORMAT || payload.version !== BACKUP_VERSION || !Array.isArray(payload.files)) {
+    if (payload.format !== BACKUP_FORMAT || payload.version !== BACKUP_VERSION || !Array.isArray(payload.files) || payload.files.length > MAX_BACKUP_FILE_COUNT) {
       throw new Error('Das Backup-Manifest ist ungültig.');
     }
 
     const seen = new Set<string>();
+    let totalSize = 0;
     for (const file of payload.files) {
+      if (!file || typeof file.relativePath !== 'string' || typeof file.sha256 !== 'string' || !/^[0-9a-f]{64}$/i.test(file.sha256) || typeof file.contentBase64 !== 'string' || !Number.isSafeInteger(file.sizeBytes) || file.sizeBytes < 0 || file.sizeBytes > MAX_BACKUP_FILE_SIZE) {
+        throw new Error('Das Backup-Manifest enthält einen ungültigen Dateieintrag.');
+      }
       assertRelativePath(file.relativePath);
+      assertCanonicalBase64(file.contentBase64, `Datei ${file.relativePath}`);
+      totalSize += file.sizeBytes;
+      if (!Number.isSafeInteger(totalSize) || totalSize > MAX_BACKUP_TOTAL_SIZE) {
+        throw new Error('Das Backup überschreitet die zulässige Gesamtgröße.');
+      }
       if (seen.has(file.relativePath)) {
         throw new Error(`Doppelter Dateieintrag im Backup: ${file.relativePath}`);
       }

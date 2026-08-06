@@ -189,54 +189,29 @@ function validateElectronBuilderConfiguration(pkg) {
 
 function validateCleanup(pkg) {
   expect(pkg.scripts['source:cleanup'] === 'node scripts/cleanup-obsolete-files.cjs', 'source:cleanup Script fehlt oder ist verändert.');
-  expect(pkg.scripts['source:cleanup:dry-run'] === 'node scripts/cleanup-obsolete-files.cjs --dry-run', 'source:cleanup:dry-run Script fehlt oder ist verändert.');
-  expect(
-    pkg.scripts['source:cleanup:strict'] === 'node scripts/cleanup-obsolete-files.cjs --strict-delete --verbose',
-    'source:cleanup:strict muss Löschfehler für Test- und Release-Builds hart behandeln.'
-  );
-  expect(
-    pkg.scripts['test:coverage'] === 'npm run source:cleanup:strict && vitest run --coverage',
-    'test:coverage muss vor der Testermittlung den strikten Source-Cleanup ausführen.'
-  );
-  const buildApp = pkg.scripts['build:app'];
-  expect(typeof buildApp === 'string' && buildApp.length > 0, 'build:app Script fehlt.');
+  expect(pkg.scripts['source:cleanup:plan'] === 'node scripts/cleanup-obsolete-files.cjs --plan --verbose', 'source:cleanup:plan muss einen nachvollziehbaren Dry-Run liefern.');
+  expect(pkg.scripts['source:cleanup:dry-run'] === pkg.scripts['source:cleanup:plan'], 'source:cleanup:dry-run muss Alias des Cleanup-Plans sein.');
+  expect(pkg.scripts['source:cleanup:strict'] === 'node scripts/cleanup-obsolete-files.cjs --strict-delete --verbose', 'source:cleanup:strict muss Löschfehler hart behandeln.');
+  expect(pkg.scripts['test:coverage'] === 'vitest run --coverage', 'test:coverage darf den bereits im Verify-Schritt ausgeführten Cleanup nicht wiederholen.');
 
-  const requiredBuildSteps = [
-    'npm run source:cleanup:strict',
-    'npm run type-safety:any-check',
-    'npm run lint',
-    'npm run version:generate',
-    'tsc -p tsconfig.json',
-    'vite build',
-    'tsc -p tsconfig.electron.json',
-    'node scripts/write-electron-cjs-package.cjs',
-  ];
-
-  let previousStepIndex = -1;
-  for (const step of requiredBuildSteps) {
-    const stepIndex = buildApp.indexOf(step);
-    expect(stepIndex >= 0, `build:app muss den Schritt "${step}" enthalten.`);
-    expect(
-      stepIndex > previousStepIndex,
-      `build:app muss den Schritt "${step}" nach allen vorherigen Quality Gates ausführen.`
-    );
-    previousStepIndex = stepIndex;
-  }
-  expect(
-    pkg.scripts.prebuild === 'npm run version:generate && npm run source:cleanup && npm run build:readiness',
-    'prebuild muss Versionserzeugung, Source-Cleanup und Build-Readiness-Guard in dieser Reihenfolge ausführen.'
-  );
+  const verify = pkg.scripts['build:verify'];
+  const compile = pkg.scripts['build:compile'];
+  expect(typeof verify === 'string' && verify.includes('npm run source:cleanup:strict'), 'build:verify muss den strikten Cleanup ausführen.');
+  expect(typeof verify === 'string' && verify.includes('npm run lint') && verify.includes('npm run test:coverage'), 'build:verify muss Qualitätsgates und Coverage ausführen.');
+  expect(typeof compile === 'string' && compile.includes('tsc -p tsconfig.json') && compile.includes('vite build'), 'build:compile muss Renderer und TypeScript kompilieren.');
+  expect(compile.includes('tsc -p tsconfig.electron.json') && compile.includes('build-artifact-state.cjs write'), 'build:compile muss Electron kompilieren und den Artefaktzustand schreiben.');
+  expect(!compile.includes('npm run lint') && !compile.includes('vitest'), 'build:compile darf Verify-Schritte nicht wiederholen.');
+  expect(pkg.scripts['build:app'] === 'npm run build:compile', 'build:app bleibt kompatibler Alias für build:compile.');
 }
 
 function validateCleanupManifests() {
-  const manifestDir = path.join(root, 'maintenance', 'source-cleanup');
-  if (!fs.existsSync(manifestDir)) return;
-  const manifests = fs.readdirSync(manifestDir).filter((entry) => entry.endsWith('.json'));
-  for (const entry of manifests) {
-    const manifest = readJson(path.join('maintenance', 'source-cleanup', entry));
-    expect(typeof manifest.version === 'string' && manifest.version.length > 0, `${entry}: version fehlt.`);
-    expect(Array.isArray(manifest.files), `${entry}: files muss ein Array sein.`);
-    expect(Array.isArray(manifest.directories), `${entry}: directories muss ein Array sein.`);
+  const manifest = readJson(path.join('maintenance', 'source-cleanup', 'cleanup-manifest.json'));
+  expect(typeof manifest.version === 'string' && manifest.version.length > 0, 'cleanup-manifest.json: version fehlt.');
+  expect(Array.isArray(manifest.entries), 'cleanup-manifest.json: entries muss ein Array sein.');
+  for (const entry of manifest.entries) {
+    expect(entry && typeof entry.path === 'string' && entry.path.length > 0, 'Cleanup-Eintrag ohne Pfad.');
+    expect(entry.type === 'file' || entry.type === 'directory', `Ungültiger Cleanup-Typ für ${String(entry.path)}.`);
+    if (entry.sha256 !== undefined) expect(/^[a-f0-9]{64}$/.test(entry.sha256), `Ungültiger SHA-256 für ${entry.path}.`);
   }
 }
 

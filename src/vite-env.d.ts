@@ -498,7 +498,7 @@ declare global {
         descriptors(): Promise<ReportDescriptor[]>;
         history(limit?: number): Promise<ReportExportHistoryItem[]>;
         generate(input: GenerateReportInput): Promise<ReportGenerationResult>;
-        openExportFolder(filePath?: string): Promise<{ opened: boolean }>;
+        openExportFolder(fileName?: string): Promise<{ opened: boolean }>;
       };
       templates: {
         list(filters?: TemplateListFilters): Promise<TemplateRecord[]>;

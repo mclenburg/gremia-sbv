@@ -16,13 +16,10 @@ function includesNone(value: string, forbidden: string[]): boolean {
 function inspectTaggedReleaseWorkflow(workflow: string) {
   const releaseGateSteps = packageJson.scripts["release:check"].split("&&").map((step) => step.trim());
   const requiredReleaseSteps = [
-    "npm run rc:check",
+    "npm run build:verify",
     "npm run release:check:backup-restore",
-    "npm run test:quality-check",
-    "npm run type-safety:any-check",
-    "npm run lint",
-    "npm run test:coverage",
-    "npm run build:app",
+    "node scripts/check-release-candidate-readiness.cjs",
+    "npm run build:compile",
   ];
   const releaseStepsOrdered = requiredReleaseSteps.every((step, index) => {
     const position = releaseGateSteps.indexOf(step);
@@ -39,9 +36,9 @@ function inspectTaggedReleaseWorkflow(workflow: string) {
       "does not match package.json version",
       "needs: verify-tag",
     ]),
-    qualityAndArtifactSeparation: includesAll(workflow, ["quality-gates:", "npm run release:check", "build-artifacts:", "- quality-gates"]),
-    supportedPlatforms: includesAll(workflow, ["build_script: build:linux", "build_script: build:win", "release/*.AppImage", "release/*.exe"]),
-    unsupportedPlatformsAbsent: includesNone(workflow, ["build_script: build:mac", "macos-latest", "release/*.dmg"]),
+    qualityAndArtifactSeparation: includesAll(workflow, ["quality-gates:", "npm run build:verify", "build-artifacts:", "- quality-gates", "npm run build:compile"]),
+    supportedPlatforms: includesAll(workflow, ["build_script: build:package:linux", "build_script: build:package:windows", "release/*.AppImage", "release/*.exe"]),
+    unsupportedPlatformsAbsent: includesNone(workflow, ["build_script: build:package:mac", "macos-latest", "release/*.dmg"]),
     directDraftReleaseUpload: includesAll(workflow, [
       "prepare-release:",
       "GH_REPO: ${{ github.repository }}",
@@ -77,10 +74,11 @@ function inspectTaggedReleaseWorkflow(workflow: string) {
       "actions/upload-artifact@v7",
     ]),
     releaseStepsOrdered,
-    appBuildDoesNotRepeatTests: packageJson.scripts.build === "npm run test && npm run build:app"
-      && packageJson.scripts["build:app"].includes("vite build")
-      && !packageJson.scripts["build:app"].includes("vitest run")
-      && !packageJson.scripts["build:app"].includes("npm run test:coverage"),
+    appBuildDoesNotRepeatTests: packageJson.scripts.build === "npm run build:verify && npm run build:compile"
+      && packageJson.scripts["build:app"] === "npm run build:compile"
+      && packageJson.scripts["build:compile"].includes("vite build")
+      && !packageJson.scripts["build:compile"].includes("vitest run")
+      && !packageJson.scripts["build:compile"].includes("npm run test:coverage"),
     targetedRegressionScript: packageJson.scripts["test:github-actions"] === "vitest run tests/githubTaggedReleaseWorkflow092ac.test.ts tests/signpathCodeSigning092u.test.ts",
   };
 }

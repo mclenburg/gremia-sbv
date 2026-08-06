@@ -1,0 +1,821 @@
+{
+  "version": "pre-1.0-consolidated-cleanup",
+  "entries": [
+    {
+      "path": "tests/publicReleaseReviewP15l.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/releaseDocsP15r.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/releaseReadinessP15.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/rc091DocsAndArchitecture.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/rc091StepGReleaseSync.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/rcFreeze090rc1.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/accessibilityAxeP15m.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/accessibilityContractP15.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/accessibilityHelpDotP15n.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/activityJournalUiArchitecture093a.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/caseNoteLinksMigration0812.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/complianceRefactorP13.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/complianceSelfCheckOverflow092.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/dashboardLightPolishP10e.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/dashboardPolishP10c.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/demoModeP15k.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/industrialButtonCentralizationP3.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/industrialDialogCentralizationP6.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/industrialFormCentralizationP4.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/industrialImportExportFeedbackCentralizationP8.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/industrialPanelCardCentralizationP2.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/lightModePolishP10d.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/majorModuleRefactorP14.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/personAnonymizationService091.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/personsReviewFix091.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/recruitingParticipationHardening095d.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/sbvParticipationViolationReleaseHardening094d4.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/sbvPrivacyPolicy0458.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/securityDocReadiness0813c.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/startupDemoSplashOrdering092.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/terminationPrivacyPolicy073.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/textCommandHelpLightPolishP10f.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/textareaIndustrialDesign092ab.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/uiCentralizationCleanupP10.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/uiControlAudit092.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/uiPolishP10a.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/visualQaLightBackgroundColorP12a.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/workbenchCentralizationP1.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/workplaceAccessibility0810.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "docs/quality/patch-s-test-contract-and-license-performance.md",
+      "type": "file"
+    },
+    {
+      "path": "docs/release/signpath-code-signing.md",
+      "type": "file"
+    },
+    {
+      "path": "docs/RELEASE_READINESS.md",
+      "type": "file"
+    },
+    {
+      "path": "docs/ACTIVITY_JOURNAL_0_9_3.md",
+      "type": "file"
+    },
+    {
+      "path": "services/activityReportService.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/activityReportServiceBehavior0813m.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "src/app/caseModalResponsive.css",
+      "type": "file"
+    },
+    {
+      "path": "src/app/confirmDialog.css",
+      "type": "file"
+    },
+    {
+      "path": "tests/documentationProductFocus092.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/roadmapArt15Sync092.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "docs/CHANGELOG.md",
+      "type": "file"
+    },
+    {
+      "path": "docs/RELEASE_NOTES_0.9.1.md",
+      "type": "file"
+    },
+    {
+      "path": "docs/RELEASE_CHECKLIST.md",
+      "type": "file"
+    },
+    {
+      "path": "docs/releases",
+      "type": "directory"
+    },
+    {
+      "path": "docs/release-notes",
+      "type": "directory"
+    },
+    {
+      "path": "docs/patches",
+      "type": "directory"
+    },
+    {
+      "path": "docs/intermediate",
+      "type": "directory"
+    },
+    {
+      "path": "docs/zwischenstaende",
+      "type": "directory"
+    },
+    {
+      "path": "src/app/index.css",
+      "type": "file"
+    },
+    {
+      "path": "src/app/caseWorkbench.css",
+      "type": "file"
+    },
+    {
+      "path": "src/app/templateWorkbench.css",
+      "type": "file"
+    },
+    {
+      "path": "src/app/templateDefaults.css",
+      "type": "file"
+    },
+    {
+      "path": "src/app/processOverview.css",
+      "type": "file"
+    },
+    {
+      "path": "src/app/knowledgeWorkbench.css",
+      "type": "file"
+    },
+    {
+      "path": "src/app/complianceCenter.css",
+      "type": "file"
+    },
+    {
+      "path": "src/app/reportsWorkbench.css",
+      "type": "file"
+    },
+    {
+      "path": "src/app/settingsHub.css",
+      "type": "file"
+    },
+    {
+      "path": "src/app/shared/textCommands/textCommandHelp.css",
+      "type": "file"
+    },
+    {
+      "path": "src/app/features/participation/participationWorkbench.css",
+      "type": "file"
+    },
+    {
+      "path": "src/app/features/persons/personsWorkbench.css",
+      "type": "file"
+    },
+    {
+      "path": "src/app/features/sbv-control/sbvControlWorkbench.css",
+      "type": "file"
+    },
+    {
+      "path": "tests/postinstallGuard070.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/postinstallGuard072.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/postinstallGuard073.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/postinstallGuard080.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/postinstallGuard080b.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/postinstallGuard081.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/postinstallGuard0812.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/postinstallGuard082.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/postinstallGuard083.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/postinstallGuard083a.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/postinstallGuard084.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "electron/ipc/invokeIpc.ts",
+      "type": "file"
+    },
+    {
+      "path": "docs/QUALITY_GATE_1_0.md",
+      "type": "file"
+    },
+    {
+      "path": "docs/RELEASE_1_0_CHECKLIST.md",
+      "type": "file"
+    },
+    {
+      "path": "docs/RELEASE_NOTES_0.9.0-rc.1-b.md",
+      "type": "file"
+    },
+    {
+      "path": "docs/RELEASE_NOTES_0.9.0-rc.1-c.md",
+      "type": "file"
+    },
+    {
+      "path": "docs/RELEASE_NOTES_0.9.0-rc.1-d.md",
+      "type": "file"
+    },
+    {
+      "path": "docs/RELEASE_NOTES_0.9.0-rc.1-e.md",
+      "type": "file"
+    },
+    {
+      "path": "docs/RELEASE_NOTES_0.9.0-rc.1-f.md",
+      "type": "file"
+    },
+    {
+      "path": "docs/RELEASE_NOTES_0.9.0-rc.1-g.md",
+      "type": "file"
+    },
+    {
+      "path": "docs/RELEASE_NOTES_0.9.0-rc.1-h.md",
+      "type": "file"
+    },
+    {
+      "path": "docs/RELEASE_NOTES_0.9.0-rc.1-i.md",
+      "type": "file"
+    },
+    {
+      "path": "docs/RELEASE_NOTES_0.9.0-rc.1-j.md",
+      "type": "file"
+    },
+    {
+      "path": "docs/RELEASE_NOTES_0.9.0-rc.1-k.md",
+      "type": "file"
+    },
+    {
+      "path": "docs/RELEASE_NOTES_0.9.0-rc.1-l.md",
+      "type": "file"
+    },
+    {
+      "path": "docs/RELEASE_NOTES_0.9.0-rc.1-m.md",
+      "type": "file"
+    },
+    {
+      "path": "docs/RELEASE_NOTES_0.9.0-rc.1-o.md",
+      "type": "file"
+    },
+    {
+      "path": "docs/RELEASE_NOTES_0.9.0-rc.1-p.md",
+      "type": "file"
+    },
+    {
+      "path": "PATCH_NOTES_0.9.1_MEASURE_NOTES.md",
+      "type": "file"
+    },
+    {
+      "path": "PATCH_NOTES_0.9.1_MEASURE_NOTES_TS_FIX.md",
+      "type": "file"
+    },
+    {
+      "path": "PATCH_NOTES_0.9.1_PERSONENBINDUNG.md",
+      "type": "file"
+    },
+    {
+      "path": "PATCH_0_9_3_A_ACTIVITY_JOURNAL.md",
+      "type": "file"
+    },
+    {
+      "path": "PATCH_0_9_3_A_R1_ACTIVITY_JOURNAL_ARCHITECTURE.md",
+      "type": "file"
+    },
+    {
+      "path": "PATCH_0_9_3_A_R2_RECOVERY_LOGIN.md",
+      "type": "file"
+    },
+    {
+      "path": "PATCH_0_9_3_A_R3_BUILD_FIXES.md",
+      "type": "file"
+    },
+    {
+      "path": "tests/rcMeasureBlurPersistence090rc1n.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/rcReleaseArtifacts090rc1f.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/accessibilityKeyboard0457.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/accessibilityReadiness0813.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/accessibleDialogsLiveRegion.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/appMaintainabilityRefactor.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/auditChain084.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/auditChain084d.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/backupHardening058.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/backupKdfStrength089.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/backupLegacyRestore089.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/bemCompletion056.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/bemGuidance057.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/bemLegacyServiceFix0500b.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/bemMigration051a.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/bemModelModuleFix0500c.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/bemUi052.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/buildPlatforms088h.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/caseNoteLinkCoverage0813d.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/caseNoteLinkExportPrivacy0812.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/caseNoteLinkMissingTarget0812.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/caseNoteLinkRendering0812.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/caseNoteLinkTypeImports0812c.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/caseWorkbenchFooter088a.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/caseWorkbenchRegression0811.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/caseWorkbenchResponsivePolish088b.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/casesViewBuildIntegration0811d.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/casesViewCleanCode0811a.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/casesViewExtraction0811.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/complianceDocuments080.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/complianceLayoutPdf082.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/complianceStatus087.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/complianceStatus087a.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/complianceStatusBoundary088f.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/databaseDiagnostics054.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/dependencyRegistryReadiness0813l.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/dependencyWarningReadiness0813h.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/docsConsistency0813h.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/dropdownDesignReadiness090rc1b.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/dsarComplianceView081.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/dsgvoSbvDocumentation0458.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/e2eOptionalDependency088g2.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/e2eResponsiveLayoutReadiness0813.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/e2eSmokeActivePath088h2.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/equalizationTemplateStatus061d.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/exportPrivacyGuard0457.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/featureModuleBoundaries0813c.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/featureViewAnnouncerConsistency0810.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/finalRcQualityGate0813j.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/hotfixVersionGuards0812e.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/inlineCommandBemEntityLink0812.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/inlineCommandDeadlineEntityLink0812.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/inlineCommandIntegration0457.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/inlineCommandParticipationEntityLink0812.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/inlineCommands085e.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/inlineCommands086a.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/inlineCommands086d1.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/knowledgeWorkbenchAdvisor.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/licenseReadiness0813k.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/liveRegionCoverage055.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/measureArchitecture086b.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/measureArtifacts086c.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/measureLayoutReadiness090rc1a.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/migration0017Repair080b.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/migrationHardening054.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/modalAccessibilityCss.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/modalResponsiveCss.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/moduleBoundariesA11y055.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/moduleBoundaryImportFix055a.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/nativeMenuPolicy.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/noPackageVersionPinning0812f.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/noWorkflowViewLogic0811.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/participationLegalViolationUx0810.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/platformStability0813.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/preventionDeepLinkAppScope.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/preventionFeatureImports.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/processFramework056.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/publicReadmeReadiness0813.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/rcCleanup0813b.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/rcCrossPlatformTestReadiness090rc1m.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/rcCumulativePatch0813n.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/rcInlineCommandStability090rc1i.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/rcMigrationSmoke0813.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/rcTextCommandStability090rc1g.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/releaseCandidateReadiness088e.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/releaseInfrastructure0813h.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/reportLayout085a.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/reportTypeNormalization085g1.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/reviewTypeSafety0813d.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/roadmapReadiness0810.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/roadmapVersionReadiness0813c.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "services/terminationHearingService.ts",
+      "type": "file"
+    },
+    {
+      "path": "src/app/core/models/termination-hearing.model.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/rc091TestQualityRatio.test.ts",
+      "type": "file"
+    },
+    {
+      "path": "tests/helpers/testQualityMetrics.ts",
+      "type": "file"
+    },
+    {
+      "path": "src/app/features/portable/README.md",
+      "type": "file"
+    },
+    {
+      "path": "src/app/features/portable",
+      "type": "directory"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "type": "file"
+    },
+    {
+      "path": "docs/KNOWN_ISSUES.md",
+      "type": "file"
+    }
+  ]
+}

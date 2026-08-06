@@ -92,7 +92,7 @@ jobs:
         run: npm run licenses:check
 
       - name: Run RC, coverage and build gates
-        run: npm run release:check
+        run: npm run build:verify
 
   prepare-release:
     name: Prepare draft GitHub release
@@ -144,13 +144,15 @@ jobs:
           - platform: linux
             label: Linux AppImage
             os: ubuntu-latest
-            build_script: build:linux
+            build_script: build:package:linux
+            platform_check: release:platform:linux
             artifact_glob: |
               release/*.AppImage
           - platform: windows
             label: Windows portable EXE
             os: windows-latest
-            build_script: build:win
+            build_script: build:package:windows
+            platform_check: release:platform:windows
             artifact_glob: |
               release/*.exe
     steps:
@@ -175,10 +177,21 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build signed-off platform artifact
+      - name: Compile application once for this platform
+        run: npm run build:compile
+
+      - name: Package verified compiled artifact
         run: npm run ${{ matrix.build_script }}
         env:
           GH_TOKEN: ${{ github.token }}
+
+      - name: Verify Windows artifact, portable startup, paths and backup/restore
+        if: matrix.platform == 'windows'
+        run: npm run ${{ matrix.platform_check }}
+
+      - name: Verify Linux artifact, desktop startup, paths and backup/restore
+        if: matrix.platform == 'linux'
+        run: xvfb-run -a npm run ${{ matrix.platform_check }}
 
       - name: Upload platform asset directly to draft release
         uses: softprops/action-gh-release@v2

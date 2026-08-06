@@ -11,10 +11,13 @@ const pkg = JSON.parse(readFileSync('package.json', 'utf8'));
 const scripts = pkg.scripts || {};
 
 const expected = {
-  'build:linux': 'node scripts/build-platform.cjs linux',
-  'build:win': 'node scripts/build-platform.cjs win',
-  'build:windows': 'npm run build:win',
-  'build:mac': 'node scripts/build-platform.cjs mac',
+  'build:linux': 'npm run build:verify && npm run build:compile && npm run build:package:linux',
+  'build:win': 'npm run build:verify && npm run build:compile && npm run build:package:windows',
+  'build:windows': 'npm run build:verify && npm run build:compile && npm run build:package:windows',
+  'build:mac': 'npm run build:verify && npm run build:compile && npm run build:package:mac',
+  'build:package:linux': 'node scripts/build-platform.cjs linux',
+  'build:package:windows': 'node scripts/build-platform.cjs win',
+  'build:package:mac': 'node scripts/build-platform.cjs mac',
   'build:current': 'node scripts/build-current-platform.cjs',
   'native:clean': 'node scripts/clean-native-build.cjs'
 };
@@ -23,7 +26,7 @@ for (const [name, value] of Object.entries(expected)) {
   if (scripts[name] !== value) fail(`${name} muss "${value}" sein, ist aber "${scripts[name]}".`);
 }
 
-for (const name of ['build:linux', 'build:win', 'build:windows', 'build:mac']) {
+for (const name of ['build:linux', 'build:win', 'build:windows', 'build:mac', 'build:package:linux', 'build:package:windows', 'build:package:mac']) {
   if (/\bbash\b|\.sh\b/.test(scripts[name] || '')) {
     fail(`${name} darf nicht von Bash abhängig sein.`);
   }
@@ -32,7 +35,8 @@ for (const name of ['build:linux', 'build:win', 'build:windows', 'build:mac']) {
 for (const file of [
   'scripts/build-platform.cjs',
   'scripts/build-current-platform.cjs',
-  'scripts/clean-native-build.cjs'
+  'scripts/clean-native-build.cjs',
+  'scripts/build-artifact-state.cjs'
 ]) {
   if (!existsSync(join(process.cwd(), file))) fail(`${file} fehlt.`);
 }

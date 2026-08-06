@@ -10,14 +10,16 @@ describe('0.9.6-k verbindlicher Source-Cleanup im Build', () => {
     expect(pkg.scripts['source:cleanup:strict']).toBe(
       'node scripts/cleanup-obsolete-files.cjs --strict-delete --verbose',
     );
-    expect(pkg.scripts['test:coverage']).toBe(
-      'npm run source:cleanup:strict && vitest run --coverage',
-    );
-    const buildApp = pkg.scripts['build:app'];
-    const expectedSteps = [
+    expect(pkg.scripts['test:coverage']).toBe('vitest run --coverage');
+    const verify = pkg.scripts['build:verify'];
+    const compile = pkg.scripts['build:compile'];
+    const expectedVerifySteps = [
       'npm run source:cleanup:strict',
       'npm run type-safety:any-check',
       'npm run lint',
+      'npm run test:coverage',
+    ];
+    const expectedCompileSteps = [
       'npm run version:generate',
       'tsc -p tsconfig.json',
       'vite build',
@@ -26,8 +28,14 @@ describe('0.9.6-k verbindlicher Source-Cleanup im Build', () => {
     ];
 
     let previousIndex = -1;
-    for (const step of expectedSteps) {
-      const stepIndex = buildApp.indexOf(step);
+    for (const step of expectedVerifySteps) {
+      const stepIndex = verify.indexOf(step);
+      expect(stepIndex).toBeGreaterThan(previousIndex);
+      previousIndex = stepIndex;
+    }
+    previousIndex = -1;
+    for (const step of expectedCompileSteps) {
+      const stepIndex = compile.indexOf(step);
       expect(stepIndex).toBeGreaterThan(previousIndex);
       previousIndex = stepIndex;
     }
@@ -49,12 +57,14 @@ describe('0.9.6-k verbindlicher Source-Cleanup im Build', () => {
         version?: unknown;
         files?: unknown;
         directories?: unknown;
+        entries?: unknown;
       };
 
       expect(manifest.version, `${manifestFile}: version`).toEqual(expect.any(String));
       expect((manifest.version as string).trim().length, `${manifestFile}: version`).toBeGreaterThan(0);
-      expect(manifest.files, `${manifestFile}: files`).toEqual(expect.any(Array));
-      expect(manifest.directories, `${manifestFile}: directories`).toEqual(expect.any(Array));
+      const hasEntries = Array.isArray(manifest.entries);
+      const hasLegacyLists = Array.isArray(manifest.files) && Array.isArray(manifest.directories);
+      expect(hasEntries || hasLegacyLists, `${manifestFile}: cleanup entries`).toBe(true);
     }
   });
 

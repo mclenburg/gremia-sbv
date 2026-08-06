@@ -100,7 +100,7 @@ export function ReportsView() {
       if (!result.ok) throw new Error(result.error || 'Bericht konnte nicht erzeugt werden.');
       await loadReports();
       if (openAfterCreate) {
-        await bridge.reports.openExportFolder(result.filePath);
+        await bridge.reports.openExportFolder(result.fileName);
       }
       const info = `${result.title} wurde als verschlüsselter PDF-Report erzeugt.`;
       setMessage(info);
@@ -114,11 +114,11 @@ export function ReportsView() {
     }
   }
 
-  async function openReport(filePath: string) {
+  async function openReport(fileName: string) {
     try {
       const bridge = await waitForBridge();
       if (!bridge?.reports) throw new Error('Berichtsdienst ist nicht erreichbar.');
-      await bridge.reports.openExportFolder(filePath);
+      await bridge.reports.openExportFolder(fileName);
     } catch (error) {
       const info = error instanceof Error ? error.message : 'Bericht konnte nicht geöffnet werden.';
       setMessage(info);
@@ -193,7 +193,7 @@ export function ReportsView() {
                   <div className="reports-result-card">
                     <strong>Zuletzt erzeugt</strong>
                     <span>{lastResult.fileName}</span>
-                    <ToolbarButton onClick={() => void openReport(lastResult.filePath)}>
+                    <ToolbarButton onClick={() => void openReport(lastResult.fileName)}>
                       PDF öffnen
                     </ToolbarButton>
                   </div>
@@ -221,7 +221,7 @@ export function ReportsView() {
                   <span>{formatDateTime(item.generatedAt)} · {item.fileName}</span>
                   {item.warningCount > 0 && <em>{item.warningCount} Prüfhinweis(e)</em>}
                 </div>
-                <ToolbarButton onClick={() => void openReport(item.filePath)}>
+                <ToolbarButton onClick={() => void openReport(item.fileName)}>
                   Öffnen
                 </ToolbarButton>
               </IndustrialRecordCard>

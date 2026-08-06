@@ -109,13 +109,10 @@ function validatePackageScripts(pkg) {
   const releaseCheck = scripts['release:check'];
   expect(typeof releaseCheck === 'string', 'release:check Script fehlt.');
   const releaseProblems = missingOrOutOfOrderSteps(releaseCheck, [
-    'npm run rc:check',
+    'npm run build:verify',
     'npm run release:check:backup-restore',
-    'npm run test:quality-check',
-    'npm run type-safety:any-check',
-    'npm run lint',
-    'npm run test:coverage',
-    'npm run build:app',
+    'node scripts/check-release-candidate-readiness.cjs',
+    'npm run build:compile',
   ]);
   expect(
     releaseProblems.length === 0,
@@ -123,10 +120,10 @@ function validatePackageScripts(pkg) {
   );
 
   expect(scripts['release:check:backup-restore'] === 'npm run version:generate && tsx scripts/check-backup-restore-release.ts', 'release:check:backup-restore muss den verschluesselten Backup-/Restore-Prozesscheck ausfuehren.');
-  expect(scripts['build'] === 'npm run test && npm run build:app', 'build bleibt der lokale Qualitätsbuild mit Tests vor dem reinen App-Build.');
+  expect(scripts['build'] === 'npm run build:verify && npm run build:compile', 'build muss Verify und Compile genau einmal ausführen.');
 
   const buildApp = scripts['build:app'];
-  expect(typeof buildApp === 'string' && buildApp.includes('vite build'), 'build:app muss den reinen App-Build ausführen.');
+  expect(buildApp === 'npm run build:compile', 'build:app muss kompatibler Alias für build:compile sein.');
   const forbiddenBuildSteps = unexpectedSteps(buildApp, ['vitest run', 'npm run test', 'npm run test:coverage']);
   expect(forbiddenBuildSteps.length === 0, `build:app darf keine Tests erneut ausführen: ${forbiddenBuildSteps.join(', ')}`);
   expect(scripts['source:cleanup:verbose'] === 'node scripts/cleanup-obsolete-files.cjs --verbose', 'source:cleanup:verbose fehlt.');

@@ -1,4 +1,4 @@
-import { registerIpcHandler } from './ipcHandler.js';
+import { IPC_CHANNELS, registerIpcHandler } from './ipcHandler.js';
 import type { IpcMain } from "electron";
 import { BrowserWindow, shell } from "electron";
 import { pathToFileURL } from "node:url";
@@ -24,6 +24,7 @@ import {
   assertOptionalString,
   assertRecordInput,
   ensurePathInside,
+  sanitizeDialogFileName,
 } from "./ipcValidation.js";
 
 async function htmlToPdf(
@@ -146,11 +147,19 @@ function decryptReportPdf(
 
 function writeTemporaryPlainPdf(
   security: SecurityService,
-  encryptedPath: string,
+  exportedFileName: string,
 ): string {
+  const safePdfName = sanitizeDialogFileName(
+    exportedFileName,
+    "reports:open-export-folder",
+    "Berichtsdateiname",
+  );
+  if (!safePdfName || path.extname(safePdfName).toLowerCase() !== ".pdf") {
+    throw new Error("Der Berichtsdateiname muss auf .pdf enden.");
+  }
   const safeEncryptedPath = assertExtension(
     ensurePathInside(
-      encryptedPath,
+      path.join(security.getDataDirectory(), "exports", `${safePdfName}.gsbvpdf`),
       path.join(security.getDataDirectory(), "exports"),
       "reports:open-export-folder",
       "Berichtspfad",
@@ -178,14 +187,13 @@ export function registerReportIpc(
 ): void {
   const reports = services.reports;
 
-  registerIpcHandler(ipcMain, "reports:descriptors", async () => reports.descriptors());
-  registerIpcHandler(ipcMain, "reports:history", async (_event, limit?: unknown) =>
+  registerIpcHandler(ipcMain, IPC_CHANNELS.reportsDescriptors, async () => reports.descriptors());
+  registerIpcHandler(ipcMain, IPC_CHANNELS.reportsHistory, async (_event, limit?: unknown) =>
     reports.listHistory(
       assertOptionalPositiveInteger(limit, "reports:history", "Limit", { max: 500 }),
     ),
   );
-  registerIpcHandler(ipcMain, 
-    "reports:generate",
+  registerIpcHandler(ipcMain, IPC_CHANNELS.reportsGenerate,
     async (
       _event,
       input: unknown,
@@ -236,17 +244,16 @@ export function registerReportIpc(
       }
     },
   );
-  registerIpcHandler(ipcMain, 
-    "reports:open-export-folder",
-    async (_event, filePath?: unknown) => {
-      const requestedPath = assertOptionalString(
-        filePath,
+  registerIpcHandler(ipcMain, IPC_CHANNELS.reportsOpenExportFolder,
+    async (_event, fileName?: unknown) => {
+      const requestedFileName = assertOptionalString(
+        fileName,
         "reports:open-export-folder",
         "Berichtspfad",
         { maxLength: 2_000 },
       );
-      if (requestedPath) {
-        const pathToOpen = writeTemporaryPlainPdf(security, requestedPath);
+      if (requestedFileName) {
+        const pathToOpen = writeTemporaryPlainPdf(security, requestedFileName);
         await shell.openPath(pathToOpen);
         return { opened: true };
       }

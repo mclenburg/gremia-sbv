@@ -157,3 +157,8 @@ npm run dev:demo
 Gremia.SBV ist eine Open-Source-Anwendung für vertrauliche SBV-Arbeit. Willkommen sind Beiträge, die Fachlichkeit, Sicherheit, Barrierefreiheit, Testbarkeit oder Bedienbarkeit verbessern.
 
 Die verbindlichen Qualitätsregeln stehen in [QUALITY_GATE.md](docs/QUALITY_GATE.md). Sie beschreiben Offline-first-Linie, Architektur-Gates, Accessibility-Gates, Visual-QA, Axe-A11y-Scan und die Tests, die vor einer öffentlichen Bereitstellung grün sein müssen.
+
+<br><hr>
+<div align="center">
+  <sub>Erstellt mit KI-Unterstützung.</sub>
+</div>

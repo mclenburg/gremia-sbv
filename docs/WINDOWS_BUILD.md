@@ -23,3 +23,24 @@ Der Windows-Build wird durch plattformunabhängige Tests abgesichert. Testcode d
 ## Abgrenzung
 
 Ein signierter Installer kann gesondert bewertet werden. Für öffentliche Community-Artefakte bleibt die portable EXE die passende Form, weil Gremia.SBV lokal, offline-first und portabel nutzbar bleiben soll.
+
+## Portable Datenhaltung und Plattformabnahme
+
+Bei einer durch electron-builder gestarteten Portable-EXE verwendet Gremia.SBV standardmäßig
+`Gremia.SBV-Daten` neben der gestarteten EXE. `GREMIA_SBV_DATA_DIR` bleibt als ausdrücklich gesetzte
+administrative oder testbezogene Vorgabe vorrangig. Ohne Portable-Kontext verwendet ein paketierter
+Build weiterhin das Electron-`userData`-Verzeichnis unter AppData.
+
+Die Windows-CI führt auf `windows-latest` real aus:
+
+```text
+npm ci
+native:diagnose
+build:verify
+build:compile
+build:package:windows
+release:platform:windows
+```
+
+Der Plattformcheck startet die portable EXE mit einem isolierten Pfad, der Leerzeichen, Umlaute und
+einen langen Pfadabschnitt enthält. Anschließend werden Backup und Restore in derselben Pfadklasse geprüft.

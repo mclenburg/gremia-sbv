@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "maximumMainChunkBytes": 750000,
+  "maximumMainShareOfJavascript": 0.82,
+  "minimumDynamicChunks": 6,
+  "requiredLazyFeatureSources": [
+    "src/app/features/knowledge/KnowledgeView.tsx",
+    "src/app/features/templates/TemplatesView.tsx",
+    "src/app/features/reports/ReportsView.tsx",
+    "src/app/features/compliance/ComplianceView.tsx",
+    "src/app/features/recruiting/RecruitingParticipationsView.tsx",
+    "src/app/features/settings/SettingsHub.tsx"
+  ]
+}

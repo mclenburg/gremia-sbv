@@ -42,8 +42,9 @@ describe('Windows portable artifact', () => {
 
 
 
-  it('nutzt beim Plattformbau den reinen App-Build und startet Node-Skripte ueber process.execPath', () => {
-    expect(buildPlatform).toContain("runNpmScript('build:app')");
+  it('paketiert ausschließlich einen unveränderten, zuvor kompilierten Artefaktstand', () => {
+    expect(buildPlatform).toContain("runNodeScript('scripts/build-artifact-state.cjs', ['check'])");
+    expect(buildPlatform).not.toContain("runNpmScript('build:app')");
     expect(buildPlatform).not.toContain("run(command('npm'), ['run', 'build'])");
     expect(buildPlatform).toContain('runNodeScript');
     expect(buildPlatform).toContain('process.execPath');

@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { CheckCircle2, LogOut } from "lucide-react";
 import { PlaceholderView } from "./shared/components/PlaceholderView";
 import { ShellNav } from "./shell/ShellNav";
+import { LazyFeatureHost } from "./core/loading/LazyFeatureHost";
+import { preloadLazyFeature } from "./core/loading/lazyFeatureViews";
 import { modules, type ViewId } from "./core/navigation/modules";
 import { useModalKeyboardShortcuts } from "./core/keyboard/useModalKeyboardShortcuts";
 import { AUTO_LOCK_TIMEOUT_MS, useAutoLock } from "./core/security/useAutoLock";
@@ -26,7 +28,6 @@ import { ConfirmDialogProvider } from "./shared/dialogs/ConfirmDialogProvider";
 import { LiveRegionProvider } from "./shared/a11y/LiveRegionProvider";
 import { GlobalTextCommandController } from "./shared/textCommands/GlobalTextCommandController";
 import { TextCommandHelpModal } from "./shared/textCommands/TextCommandHelpModal";
-import { KnowledgeView } from "./features/knowledge/KnowledgeView";
 import { PreventionView } from "./features/prevention/PreventionView";
 import { ParticipationView } from "./features/participation/ParticipationView";
 import { WorkplaceAccommodationView } from "./features/workplace-accommodation/WorkplaceAccommodationView";
@@ -34,20 +35,15 @@ import { BemView } from "./features/bem/BemView";
 import { EqualizationView } from "./features/equalization/EqualizationView";
 import { TerminationView } from "./features/termination/TerminationView";
 import { ContactsView } from "./features/contacts/ContactsView";
-import { ReportsView } from "./features/reports/ReportsView";
 import { SbvControlView } from "./features/sbv-control/SbvControlView";
 import { ActivityJournalView } from "./features/activity-journal/ActivityJournalView";
 import { SbvParticipationViolationsView } from "./features/participation-violations/SbvParticipationViolationsView";
-import { RecruitingParticipationsView } from "./features/recruiting/RecruitingParticipationsView";
 import type { SbvParticipationViolationPrefill } from "./features/participation-violations/sbvParticipationViolationViewLogic";
 import { ACTIVITY_JOURNAL_PREFILL_EVENT, type ActivityJournalPrefillEventDetail } from "./features/activity-journal/activityJournalEvents";
 import type { ActivityJournalPrefill } from "./core/models/activity-journal.model";
-import { ComplianceView } from "./features/compliance/ComplianceView";
 import { PersonsView } from "./features/persons/PersonsView";
 import { usePersonsHandlers } from "./features/persons/usePersonsHandlers";
 import { useIcalExportHandlers } from "./features/deadlines/useIcalExportHandlers";
-import { TemplatesView } from "./features/templates/TemplatesView";
-import { SettingsHub } from "./features/settings/SettingsHub";
 import { DashboardFocusOverview } from "./features/dashboard/DashboardFocusOverview";
 import {
   applyTheme,
@@ -397,7 +393,7 @@ export function App() {
                 <span>LOCAL</span>
               </div>
             </div>
-            <ShellNav current={currentView} onNavigate={setCurrentView} />
+            <ShellNav current={currentView} onNavigate={setCurrentView} onPreload={(view) => { void preloadLazyFeature(view).catch(() => undefined); }} />
             <button
               type="button"
               className="industrial-lock-button"
@@ -537,7 +533,6 @@ export function App() {
                 onDeleteContact={deleteContact}
               />
             )}
-            {currentView === "knowledge" && <KnowledgeView cases={cases} />}
             {currentView === "bem" && (
               <BemView cases={cases} onOpenCaseNode={openCaseNode} />
             )}
@@ -547,16 +542,6 @@ export function App() {
             {currentView === "participation" && (
               <ParticipationView cases={cases} onOpenCaseNode={openCaseNode} />
             )}
-            {currentView === "recruiting_participations" && (
-              <RecruitingParticipationsView
-                onCreateDeadline={createDeadline}
-                onOpenParticipationViolationPrefill={(prefill) => {
-                  setParticipationViolationPrefill(prefill);
-                  setCurrentView("participation_violations");
-                }}
-              />
-            )}
-
             {currentView === "workplace_accommodation" && (
               <WorkplaceAccommodationContainer onOpenCaseNode={openCaseNode} />
             )}
@@ -566,17 +551,18 @@ export function App() {
             {currentView === "termination_hearing" && (
               <TerminationView cases={cases} onOpenCaseNode={openCaseNode} />
             )}
-            {currentView === "templates" && <TemplatesView />}
             {currentView === "sbv_control" && <SbvControlView cases={cases} deadlines={deadlines} onNavigate={setCurrentView} />}
-            {currentView === "reports" && <ReportsView />}
-            {currentView === "compliance" && <ComplianceView />}
-            {currentView === "settings" && (
-              <SettingsHub
-                theme={theme}
-                onThemeChange={setTheme}
-                cases={cases}
-              />
-            )}
+            <LazyFeatureHost
+              view={currentView}
+              cases={cases}
+              theme={theme}
+              onThemeChange={setTheme}
+              onCreateDeadline={createDeadline}
+              onOpenParticipationViolationPrefill={(prefill) => {
+                setParticipationViolationPrefill(prefill);
+                setCurrentView("participation_violations");
+              }}
+            />
             {!isImplementedView(currentView) && currentModule && (
               <PlaceholderView view={currentModule} />
             )}

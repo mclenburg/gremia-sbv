@@ -1,4 +1,4 @@
-import { registerIpcHandler } from './ipcHandler.js';
+import { IPC_CHANNELS, registerIpcHandler } from './ipcHandler.js';
 import type { IpcMain } from "electron";
 import type { SecurityService } from "../../services/securityService.js";
 import type { ApplicationServices } from '../applicationServices.js';
@@ -12,15 +12,14 @@ export function registerRetentionIpc(
 ): void {
   const retention = services.retention;
 
-  registerIpcHandler(ipcMain, "retention:dashboard", async () => retention.buildDashboard());
-  registerIpcHandler(ipcMain, "retention:settings:get", async () => retention.getSettings());
-  registerIpcHandler(ipcMain, "retention:settings:update", async (_event, input: unknown) =>
+  registerIpcHandler(ipcMain, IPC_CHANNELS.retentionDashboard, async () => retention.buildDashboard());
+  registerIpcHandler(ipcMain, IPC_CHANNELS.retentionSettingsGet, async () => retention.getSettings());
+  registerIpcHandler(ipcMain, IPC_CHANNELS.retentionSettingsUpdate, async (_event, input: unknown) =>
     retention.updateSettings(
       assertRecordInput<UpdateRetentionSettingsInput>(input, "retention:settings:update"),
     ),
   );
-  registerIpcHandler(ipcMain, 
-    "retention:case:anonymize",
+  registerIpcHandler(ipcMain, IPC_CHANNELS.retentionCaseAnonymize,
     async (_event, caseId: unknown, reason: unknown, confirmation: unknown) =>
       retention.anonymizeCase(
         assertString(caseId, "retention:case:anonymize", "Fall-ID", { minLength: 1, maxLength: 120 }),
@@ -28,8 +27,7 @@ export function registerRetentionIpc(
         assertString(confirmation, "retention:case:anonymize", "Bestätigung", { minLength: 1, maxLength: 200 }),
       ),
   );
-  registerIpcHandler(ipcMain, 
-    "retention:case:delete",
+  registerIpcHandler(ipcMain, IPC_CHANNELS.retentionCaseDelete,
     async (_event, caseId: unknown, reason: unknown, confirmation: unknown) =>
       retention.deleteCase(
         assertString(caseId, "retention:case:delete", "Fall-ID", { minLength: 1, maxLength: 120 }),

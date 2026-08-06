@@ -23,16 +23,29 @@ Nicht hochgeladen werden sollen `.blockmap`, `latest*.yml`, zusätzliche ZIPs, D
 ## Standardbefehle
 
 ```bash
-npm install
-npm run test
-npm run test:e2e
+npm ci
+npm run build:verify
+npm run build:compile
+npm run build:package:linux
+npm run build:package:windows
 npm run release:check
-npm run build:linux
-npm run build:win
-npm run build:mac
 ```
 
-`npm run build` führt vor dem Build `version:generate`, `source:cleanup` und `build:readiness` aus.
+Der Build ist in drei eindeutige Phasen getrennt:
+
+1. `build:verify` führt Cleanup, Readiness, Qualitätsgates, Lint und Coverage genau einmal aus.
+2. `build:compile` erzeugt Renderer- und Electron-Artefakte und schreibt anschließend ein SHA-256-Manifest unter `maintenance/build-state/compiled-artifacts.json`.
+3. `build:package:*` prüft dieses Manifest und verweigert Packaging, wenn Quellen, Buildkonfiguration oder kompilierte Artefakte seit dem Compile verändert wurden.
+
+Die Komfortbefehle `build:linux`, `build:windows` und `build:mac` führen diese drei Phasen vollständig in dieser Reihenfolge aus. CI-Jobs dürfen nach einem bereits erfolgreichen Verify-Schritt direkt `build:compile` und das passende `build:package:*` verwenden.
+
+Vor Cleanup-Änderungen ist der Plan auszuführen:
+
+```bash
+npm run source:cleanup:plan
+```
+
+Der Cleanup löscht nur explizit im konsolidierten Manifest aufgeführte Ziele. Er bricht bei falschem Dateityp, Symlinks, optional abweichendem SHA-256 oder noch vorhandenen Referenzen in `package.json`, Skripten, Workflows und Tests ab.
 
 Die Node-Baseline ist über `.nvmrc` und `.node-version` festgelegt. Beide Dateien müssen synchron bleiben.
 
@@ -85,3 +98,21 @@ Mindestens ein wesentlicher Anteil der aktiven Tests muss Verhalten, Ergebnisse,
 ## ModuleFeedback-Regel
 
 Feature-Views mit `ModuleFrame` müssen Rückmeldungen über den gemeinsamen `ModuleFeedback`-Baustein ausgeben. Prozessübersichten verwenden dafür `ProcessOverviewPage` mit `feedbackItems`. Feature-spezifische Inline-Fehlerbereiche außerhalb von Modalen sind nicht zulässig; Modal-Fehler bleiben im jeweiligen Dialog.
+
+## Cross-Platform-Abnahme
+
+Die Workflow-Datei `.github/workflows/cross-platform-release-verification.yml` führt die vollständige
+Abnahme nativ auf Ubuntu und Windows aus. Dazu gehören `npm ci`, der native SQLCipher-Diagnoselauf,
+TypeScript, Vitest/Coverage, Lint, Qualitätsgates, Compile, Packaging, Artefaktprüfung, Start-Smoke-Test
+sowie Backup/Restore mit Leerzeichen-, Umlaut- und Langpfaden.
+
+Nach dem Packaging prüfen `release:artifacts:linux` und `release:artifacts:windows` Dateiname, Version,
+Betriebssystem, Architektur, plausible Mindestgröße und Binärsignatur. Testdaten, temporäre Datenbanken,
+Logs, Source Maps und vergleichbare Debugartefakte im Releaseverzeichnis führen zum Abbruch.
+
+Der Linux-Desktopname ist ausdrücklich als `Gremia.SBV` konfiguriert; `linux.syncDesktopName` hält den
+Namen der Desktopintegration mit dem Produktnamen synchron.
+
+### Windows-Artefakt
+
+Für Windows wird ausschließlich die portable x64-EXE erzeugt. Ein Installer- oder ZIP-Ziel ist nicht Bestandteil des Releasevertrags. Der portable Datenbestand liegt ohne ausdrückliche Überschreibung neben der gestarteten EXE unter `Gremia.SBV-Daten`.

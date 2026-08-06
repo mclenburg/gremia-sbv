@@ -160,7 +160,7 @@ export function useComplianceCenter() {
       if (!bridge?.reports) throw new Error("Berichtsdienst ist nicht erreichbar.");
       const result = await bridge.reports.generate(buildComplianceReportInput(document));
       if (!result.ok) throw new Error(result.error ?? "PDF-Dokument konnte nicht erzeugt werden.");
-      if (openAfterExport) await bridge.reports.openExportFolder(result.filePath);
+      if (openAfterExport) await bridge.reports.openExportFolder(result.fileName);
       const info = openAfterExport
         ? `${document.title} wurde als PDF erzeugt und geöffnet: ${result.fileName}`
         : `${document.title} wurde als verschlüsselter PDF-Report erzeugt: ${result.fileName}`;

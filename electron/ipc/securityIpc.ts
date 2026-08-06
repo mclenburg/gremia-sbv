@@ -1,4 +1,4 @@
-import { registerIpcHandler } from './ipcHandler.js';
+import { IPC_CHANNELS, registerIpcHandler } from './ipcHandler.js';
 import type { IpcMain } from "electron";
 import type { SecurityResult, SecurityStatus } from "../../src/app/core/models/security.model.js";
 import { SecurityService } from "../../services/securityService.js";
@@ -14,23 +14,22 @@ export function registerSecurityIpc(
   security: SecurityService,
   hooks: SecurityIpcRuntimeHooks = {},
 ): void {
-  registerIpcHandler(ipcMain, "security:status", async () => hooks.status?.() ?? security.status());
+  registerIpcHandler(ipcMain, IPC_CHANNELS.securityStatus, async () => hooks.status?.() ?? security.status());
 
-  registerIpcHandler(ipcMain, "security:setup-initial-password", async (_event, password: unknown) =>
+  registerIpcHandler(ipcMain, IPC_CHANNELS.securitySetupInitialPassword, async (_event, password: unknown) =>
     security.setupInitialPassword(
       assertString(password, "security:setup-initial-password", "Passwort", { minLength: 1, maxLength: 512 }),
     ),
   );
 
-  registerIpcHandler(ipcMain, "security:unlock", async (_event, password: unknown) => {
+  registerIpcHandler(ipcMain, IPC_CHANNELS.securityUnlock, async (_event, password: unknown) => {
     const safePassword = assertString(password, "security:unlock", "Passwort", { minLength: 1, maxLength: 512 });
     const hookedResult = await hooks.unlock?.(safePassword);
     if (hookedResult) return hookedResult;
     return security.unlock(safePassword);
   });
 
-  registerIpcHandler(ipcMain, 
-    "security:change-password",
+  registerIpcHandler(ipcMain, IPC_CHANNELS.securityChangePassword,
     async (_event, currentPassword: unknown, newPassword: unknown) =>
       security.changePassword(
         assertString(currentPassword, "security:change-password", "aktuelles Passwort", { minLength: 1, maxLength: 512 }),
@@ -38,8 +37,7 @@ export function registerSecurityIpc(
       ),
   );
 
-  registerIpcHandler(ipcMain, 
-    "security:reset-password-with-recovery-key",
+  registerIpcHandler(ipcMain, IPC_CHANNELS.securityResetPasswordWithRecoveryKey,
     async (_event, recoveryKey: unknown, newPassword: unknown) =>
       security.resetPasswordWithRecoveryKey(
         assertString(recoveryKey, "security:reset-password-with-recovery-key", "Recovery-Key", { minLength: 1, maxLength: 2_000 }),
@@ -47,13 +45,13 @@ export function registerSecurityIpc(
       ),
   );
 
-  registerIpcHandler(ipcMain, "security:destroy-local-vault", async (_event, confirmation: unknown) =>
+  registerIpcHandler(ipcMain, IPC_CHANNELS.securityDestroyLocalVault, async (_event, confirmation: unknown) =>
     security.destroyLocalVault(
       assertString(confirmation, "security:destroy-local-vault", "Bestätigung", { minLength: 1, maxLength: 200 }),
     ),
   );
 
-  registerIpcHandler(ipcMain, "security:lock", async (_event, reason?: unknown) => {
+  registerIpcHandler(ipcMain, IPC_CHANNELS.securityLock, async (_event, reason?: unknown) => {
     const lockReason = reason === undefined || reason === null
       ? "manual"
       : assertAllowedEnum(reason, "security:lock", "Sperrgrund", ["manual", "auto"] as const);
@@ -61,6 +59,6 @@ export function registerSecurityIpc(
     return { locked: true };
   });
 
-  registerIpcHandler(ipcMain, "security:temp-files:cleanup", async () => security.cleanupTemporaryFiles());
-  registerIpcHandler(ipcMain, "security:temp-files:status", async () => security.temporaryFileStatus());
+  registerIpcHandler(ipcMain, IPC_CHANNELS.securityTempFilesCleanup, async () => security.cleanupTemporaryFiles());
+  registerIpcHandler(ipcMain, IPC_CHANNELS.securityTempFilesStatus, async () => security.temporaryFileStatus());
 }

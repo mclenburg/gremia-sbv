@@ -4,7 +4,6 @@ import {
   readFileSync,
   readdirSync,
   rmSync,
-  writeFileSync,
 } from "node:fs";
 import path from "node:path";
 import {
@@ -19,68 +18,23 @@ import type {
   SecurityResult,
   SecurityStatus,
 } from "../src/app/core/models/security.model.js";
-import { DatabaseService } from "./databaseService.js";
+import { DatabaseService, type DatabaseAdapter } from "./databaseService.js";
 import { PersonalDataAuditLogService } from "./auditLogService.js";
 import {
   TempFileService,
   type TempFileCleanupResult,
   type TempFileStatus,
 } from "./tempFileService.js";
-import type { DatabaseAdapter } from "./databaseService.js";
 import { MigrationService } from "./migrationService.js";
 import { DatabaseRuntimeInitializer } from "./databaseRuntimeInitializer.js";
-import { validateAppPassword } from "./passwordPolicy.js";
+import { atomicWriteFileSync, commitAtomicArtifacts } from "./secureFileOperations.js";
 
-interface KeyWrap {
-  version: 1;
-  algorithm: "aes-256-gcm";
-  kdf: "scrypt";
-  kdfParams?: ScryptKdfParams;
-  salt: string;
-  iv: string;
-  tag: string;
-  ciphertext: string;
+export interface SecurityFileOperations {
+  readonly atomicWriteFileSync: typeof atomicWriteFileSync;
 }
 
-interface PasswordStore {
-  version: 3 | 4;
-  vaultId: string;
-  kdf: "scrypt";
-  kdfParams?: ScryptKdfParams;
-  salt: string;
-  passwordVerifier: string;
-  databaseKeyWrap: KeyWrap;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface ScryptKdfParams {
-  N: number;
-  r: number;
-  p: number;
-  maxmem: number;
-}
-
-interface VaultManifest {
-  version: 2 | 3;
-  vaultId: string;
-  createdAt: string;
-  updatedAt: string;
-  database: {
-    fileName: string;
-    cipher: "sqlcipher";
-    createdAt: string;
-    schemaInitializedAt?: string;
-  };
-  recovery: {
-    kdf: "scrypt";
-    kdfParams?: ScryptKdfParams;
-    salt: string;
-    verifier: string;
-    databaseKeyWrap: KeyWrap;
-    createdAt: string;
-  };
-}
+const DEFAULT_SECURITY_FILE_OPERATIONS: SecurityFileOperations = Object.freeze({ atomicWriteFileSync });
+import { validateAppPassword, validatePasswordStore, validateVaultManifest, type KeyWrap, type PasswordStore, type ScryptKdfParams, type VaultManifest } from "./securityArtifactValidation.js";
 
 const STORE_FILE_NAME = "security.json";
 const VAULT_MANIFEST_FILE_NAME = "vault-manifest.json";
@@ -308,6 +262,7 @@ function formatVaultOpenError(error: unknown): string {
   return `Die Datenbank konnte nicht geöffnet werden. Technische Ursache: ${message}`;
 }
 
+
 export class SecurityService {
   private unlocked = false;
   private databaseKey?: Buffer;
@@ -319,9 +274,12 @@ export class SecurityService {
   private readonly vaultDatabasePath: string;
   private readonly databaseService = new DatabaseService();
   private readonly tempFiles: TempFileService;
+  private unlockInProgress = false;
+  private readonly fileOperations: SecurityFileOperations;
 
-  constructor(dataDir = getDataDir()) {
+  constructor(dataDir = getDataDir(), fileOperations: SecurityFileOperations = DEFAULT_SECURITY_FILE_OPERATIONS) {
     this.dataDir = dataDir;
+    this.fileOperations = fileOperations;
     this.storePath = path.join(dataDir, STORE_FILE_NAME);
     this.vaultManifestPath = path.join(dataDir, VAULT_MANIFEST_FILE_NAME);
     this.vaultDatabasePath = path.join(dataDir, VAULT_DATABASE_FILE_NAME);
@@ -521,15 +479,16 @@ export class SecurityService {
       updatedAt: now,
     };
 
-    this.writeManifest(manifest);
-    this.writeStore(store);
-
     try {
+      this.writeManifest(manifest);
+      this.writeStore(store);
       await this.openAndInitializeVaultDatabase(databaseKey);
+      this.touchManifest(new Date().toISOString(), true);
     } catch (error) {
-      this.databaseService.close();
+      this.databaseService.close(); this.tempFiles.cleanup();
       this.unlocked = false;
       this.destroyActiveDatabaseKey();
+      safeDestroyBuffer(databaseKey);
       // Sicherheitsdateien stehen nur dann, wenn auch die verschlüsselte DB initialisiert wurde.
       rmSync(this.storePath, { force: true });
       rmSync(this.vaultManifestPath, { force: true });
@@ -545,12 +504,23 @@ export class SecurityService {
     this.databaseKey = databaseKey;
     this.unlocked = true;
     this.resetUnlockDelay();
-    this.touchManifest(new Date().toISOString(), true);
 
     return { ok: true, initialized: true, unlocked: true, recoveryKey };
   }
 
   async unlock(password: string): Promise<SecurityResult> {
+    if (this.unlockInProgress) {
+      return { ok: false, initialized: true, unlocked: false, error: "Ein Entsperrversuch läuft bereits. Bitte kurz warten." };
+    }
+    this.unlockInProgress = true;
+    try {
+      return await this.performUnlock(password);
+    } finally {
+      this.unlockInProgress = false;
+    }
+  }
+
+  private async performUnlock(password: string): Promise<SecurityResult> {
     const activeDelay = this.currentUnlockDelay();
     if (activeDelay.remainingSeconds > 0) {
       return {
@@ -563,14 +533,11 @@ export class SecurityService {
       };
     }
 
-    const store = this.readStore();
-    if (!store) {
-      return {
-        ok: false,
-        initialized: false,
-        unlocked: false,
-        error: "Es ist noch kein Tresorpasswort eingerichtet.",
-      };
+    let store: PasswordStore;
+    try {
+      store = this.readStore();
+    } catch (error) {
+      return { ok: false, initialized: true, unlocked: false, error: error instanceof Error ? error.message : "Die Passwortdatei konnte nicht gelesen werden." };
     }
 
     if (!this.hasVaultManifest()) {
@@ -581,6 +548,12 @@ export class SecurityService {
         error:
           "Das Sicherheitsmanifest fehlt. Bitte Recovery prüfen oder ein Backup wiederherstellen.",
       };
+    }
+
+    try {
+      this.assertStoreMatchesManifest(store);
+    } catch (error) {
+      return { ok: false, initialized: true, unlocked: false, error: error instanceof Error ? error.message : "Das Tresor-Manifest konnte nicht gelesen werden." };
     }
 
     const verifier = derivePasswordVerifier(password, store.salt, store.kdfParams);
@@ -619,6 +592,8 @@ export class SecurityService {
     } catch (error) {
       this.unlocked = false;
       this.destroyActiveDatabaseKey();
+      this.databaseService.close();
+      this.tempFiles.cleanup();
       const delay = this.recordFailedUnlockAttempt();
       return {
         ok: false,
@@ -693,10 +668,19 @@ export class SecurityService {
       updatedAt: now,
     };
 
-    this.writeStore(nextStore);
-    this.touchManifest(now);
-    this.unlocked = true;
-    return { ok: true, initialized: true, unlocked: true };
+    try {
+      const currentManifest = this.readManifest();
+      this.commitSecurityArtifacts(nextStore, this.withManifestTimestamp(currentManifest, now));
+      this.unlocked = true;
+      return { ok: true, initialized: true, unlocked: true };
+    } catch {
+      return {
+        ok: false,
+        initialized: true,
+        unlocked: this.unlocked,
+        error: "Das neue Passwort konnte nicht dauerhaft gespeichert werden. Der bisherige Passwortstand bleibt gültig.",
+      };
+    }
   }
 
   async resetPasswordWithRecoveryKey(
@@ -750,12 +734,14 @@ export class SecurityService {
       };
     }
 
+    let recoveredDatabaseKey: Buffer | undefined;
     try {
       const databaseKey = unwrapDatabaseKey(
         manifest.recovery.databaseKeyWrap,
         normalizedRecoveryKey,
         "gremia-sbv-dbkey-recovery-v1",
       );
+      recoveredDatabaseKey = databaseKey;
       await this.openAndInitializeVaultDatabase(databaseKey);
 
       const now = new Date().toISOString();
@@ -782,9 +768,9 @@ export class SecurityService {
         updatedAt: now,
       };
 
-      this.writeStore(store);
-      this.touchManifest(now);
+      this.commitSecurityArtifacts(store, this.withManifestTimestamp(manifest, now));
       this.databaseKey = databaseKey;
+      recoveredDatabaseKey = undefined;
       this.unlocked = true;
       this.resetUnlockDelay();
       this.auditSecurityEvent("unlock", "Tresor per Recovery-Key entsperrt");
@@ -792,7 +778,9 @@ export class SecurityService {
     } catch (error) {
       this.unlocked = false;
       this.destroyActiveDatabaseKey();
+      safeDestroyBuffer(recoveredDatabaseKey);
       this.databaseService.close();
+      this.tempFiles.cleanup();
       return {
         ok: false,
         initialized: true,
@@ -974,52 +962,39 @@ export class SecurityService {
   }
 
   private readStore(): PasswordStore {
-    const raw = readFileSync(this.storePath, "utf8");
-    const parsed = JSON.parse(raw) as { version?: number };
-
-    if (parsed.version !== 3 && parsed.version !== 4) {
-      throw new Error(
-        "Veraltete Sicherheitsdatei erkannt. Bitte Entwicklungsdatenbestand zurücksetzen oder eine passende Migration einspielen.",
-      );
+    try {
+      return validatePasswordStore(JSON.parse(readFileSync(this.storePath, "utf8")) as unknown);
+    } catch (error) {
+      if (error instanceof SyntaxError) throw new Error("Passwortdatei ist beschädigt und enthält kein gültiges JSON.");
+      throw error;
     }
-
-    return parsed as PasswordStore;
   }
 
   private readManifest(): VaultManifest {
-    const raw = readFileSync(this.vaultManifestPath, "utf8");
-    const parsed = JSON.parse(raw) as { version?: number };
-
-    if (parsed.version !== 2 && parsed.version !== 3) {
-      throw new Error(
-        "Veraltetes Tresor-Manifest erkannt. Bitte Entwicklungsdatenbestand zurücksetzen oder eine passende Migration einspielen.",
-      );
+    try {
+      return validateVaultManifest(JSON.parse(readFileSync(this.vaultManifestPath, "utf8")) as unknown, VAULT_DATABASE_FILE_NAME);
+    } catch (error) {
+      if (error instanceof SyntaxError) throw new Error("Tresor-Manifest ist beschädigt und enthält kein gültiges JSON.");
+      throw error;
     }
-
-    return parsed as VaultManifest;
   }
 
   private writeStore(store: PasswordStore): void {
     mkdirSync(path.dirname(this.storePath), { recursive: true });
-    writeFileSync(this.storePath, `${JSON.stringify(store, null, 2)}\n`, {
-      encoding: "utf8",
-      mode: 0o600,
-    });
+    this.fileOperations.atomicWriteFileSync(this.storePath, `${JSON.stringify(store, null, 2)}\n`);
   }
 
   private writeManifest(manifest: VaultManifest): void {
     mkdirSync(path.dirname(this.vaultManifestPath), { recursive: true });
-    writeFileSync(
-      this.vaultManifestPath,
-      `${JSON.stringify(manifest, null, 2)}\n`,
-      { encoding: "utf8", mode: 0o600 },
-    );
+    this.fileOperations.atomicWriteFileSync(this.vaultManifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
   }
 
-  private touchManifest(updatedAt: string, schemaInitialized = false): void {
-    if (!this.hasVaultManifest()) return;
-    const manifest = this.readManifest();
-    this.writeManifest({
+  private withManifestTimestamp(
+    manifest: VaultManifest,
+    updatedAt: string,
+    schemaInitialized = false,
+  ): VaultManifest {
+    return {
       ...manifest,
       updatedAt,
       database: {
@@ -1028,7 +1003,19 @@ export class SecurityService {
           ? updatedAt
           : manifest.database.schemaInitializedAt,
       },
-    });
+    };
+  }
+
+  private touchManifest(updatedAt: string, schemaInitialized = false): void {
+    if (!this.hasVaultManifest()) return;
+    this.writeManifest(this.withManifestTimestamp(this.readManifest(), updatedAt, schemaInitialized));
+  }
+
+  private commitSecurityArtifacts(store: PasswordStore, manifest: VaultManifest): void {
+    commitAtomicArtifacts([
+      { path: this.storePath, content: `${JSON.stringify(store, null, 2)}\n` },
+      { path: this.vaultManifestPath, content: `${JSON.stringify(manifest, null, 2)}\n` },
+    ], this.fileOperations.atomicWriteFileSync);
   }
 
 
@@ -1042,7 +1029,7 @@ export class SecurityService {
     const now = new Date().toISOString();
     const salt = randomBytes(16).toString("hex");
     const wrapSalt = randomBytes(16).toString("hex");
-    this.writeStore({
+    const nextStore: PasswordStore = {
       version: 4,
       vaultId: store.vaultId,
       kdf: "scrypt",
@@ -1061,8 +1048,8 @@ export class SecurityService {
       ),
       createdAt: store.createdAt,
       updatedAt: now,
-    });
-    this.touchManifest(now);
+    };
+    this.commitSecurityArtifacts(nextStore, this.withManifestTimestamp(this.readManifest(), now));
   }
 
   private assertStoreMatchesManifest(store: PasswordStore): void {

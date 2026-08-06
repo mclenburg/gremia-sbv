@@ -1,232 +1,165 @@
 #!/usr/bin/env node
-/*
- * Gremia.SBV source cleanup helper.
- *
- * Removes obsolete source files listed by patch manifests before a build or test
- * run. The script is intentionally conservative: only explicit relative paths
- * under the project root are accepted; wildcards, absolute paths and parent
- * traversal are rejected.
- *
- * Windows note:
- * Obsolete files can occasionally be locked by an editor, antivirus scanner or
- * npm itself. Cleanup must not make the whole build unusable in that case.
- * Unsafe paths still fail hard; deletion failures are reported as warnings and
- * can be investigated later.
- */
 const fs = require('node:fs');
 const path = require('node:path');
+const crypto = require('node:crypto');
 
 const projectRoot = path.resolve(__dirname, '..');
-const defaultManifestDir = path.join(projectRoot, 'maintenance', 'source-cleanup');
-const dryRun = process.argv.includes('--dry-run');
+const manifestDir = path.join(projectRoot, 'maintenance', 'source-cleanup');
+const consolidatedManifest = path.join(manifestDir, 'cleanup-manifest.json');
+const dryRun = process.argv.includes('--dry-run') || process.argv.includes('--plan');
 const verbose = process.argv.includes('--verbose');
 const strictDelete = process.argv.includes('--strict-delete');
-const explicitManifests = process.argv
-  .slice(2)
-  .filter((arg) => arg !== '--dry-run' && arg !== '--verbose' && arg !== '--strict-delete')
+const explicitManifests = process.argv.slice(2)
+  .filter((arg) => !['--dry-run', '--plan', '--verbose', '--strict-delete'].includes(arg))
   .map((arg) => path.resolve(projectRoot, arg));
 
-const protectedTopLevel = new Set([
-  '.',
-  '',
-  'node_modules',
-  'dist',
-  'dist-electron',
-  'release',
-  '.git',
-  '.idea',
-  '.vscode',
-]);
-
+const protectedTopLevel = new Set(['.', '', 'node_modules', 'dist', 'dist-electron', 'release', '.git', '.idea', '.vscode']);
 const allowedTopLevel = new Set([
-  'src',
-  'services',
-  'electron',
-  'database',
-  'scripts',
-  'tests',
-  'docs',
-  'assets',
-  'maintenance',
-  'e2e',
-  'PATCH_NOTES_0.9.1_MEASURE_NOTES.md',
-  'PATCH_NOTES_0.9.1_MEASURE_NOTES_TS_FIX.md',
-  'PATCH_NOTES_0.9.1_PERSONENBINDUNG.md',
-  'PATCH_0_9_3_A_ACTIVITY_JOURNAL.md',
-  'PATCH_0_9_3_A_R1_ACTIVITY_JOURNAL_ARCHITECTURE.md',
-  'PATCH_0_9_3_A_R2_RECOVERY_LOGIN.md',
-  'PATCH_0_9_3_A_R3_BUILD_FIXES.md',
-  'CHANGELOG.md',
+  'src', 'services', 'electron', 'database', 'scripts', 'tests', 'docs', 'assets', 'maintenance', 'e2e',
+  'PATCH_NOTES_0.9.1_MEASURE_NOTES.md', 'PATCH_NOTES_0.9.1_MEASURE_NOTES_TS_FIX.md',
+  'PATCH_NOTES_0.9.1_PERSONENBINDUNG.md', 'PATCH_0_9_3_A_ACTIVITY_JOURNAL.md',
+  'PATCH_0_9_3_A_R1_ACTIVITY_JOURNAL_ARCHITECTURE.md', 'PATCH_0_9_3_A_R2_RECOVERY_LOGIN.md',
+  'PATCH_0_9_3_A_R3_BUILD_FIXES.md', 'CHANGELOG.md',
 ]);
+const referenceFiles = ['package.json', '.github', 'scripts', 'tests'];
+
+function sha256(filePath) {
+  return crypto.createHash('sha256').update(fs.readFileSync(filePath)).digest('hex');
+}
 
 function loadManifestPaths() {
-  if (explicitManifests.length > 0) {
-    return explicitManifests;
-  }
+  if (explicitManifests.length > 0) return explicitManifests;
+  if (fs.existsSync(consolidatedManifest)) return [consolidatedManifest];
+  if (!fs.existsSync(manifestDir)) return [];
+  return fs.readdirSync(manifestDir).filter((entry) => entry.endsWith('.json')).sort()
+    .map((entry) => path.join(manifestDir, entry));
+}
 
-  if (!fs.existsSync(defaultManifestDir)) {
-    return [];
-  }
-
-  return fs.readdirSync(defaultManifestDir)
-    .filter((entry) => entry.endsWith('.json'))
-    .sort((a, b) => a.localeCompare(b))
-    .map((entry) => path.join(defaultManifestDir, entry));
+function normalizeEntry(entry, type) {
+  if (typeof entry === 'string') return { path: entry, type };
+  if (!entry || typeof entry !== 'object') throw new Error(`Ungültiger Cleanup-Eintrag: ${String(entry)}`);
+  return { path: entry.path, type: entry.type || type, sha256: entry.sha256 };
 }
 
 function parseManifest(manifestPath) {
-  const raw = fs.readFileSync(manifestPath, 'utf8');
-  const data = JSON.parse(raw);
-  const files = Array.isArray(data.files) ? data.files : [];
-  const directories = Array.isArray(data.directories) ? data.directories : [];
-  return { files, directories, manifestPath };
+  const data = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  const entries = Array.isArray(data.entries)
+    ? data.entries.map((entry) => normalizeEntry(entry))
+    : [
+        ...(Array.isArray(data.files) ? data.files.map((entry) => normalizeEntry(entry, 'file')) : []),
+        ...(Array.isArray(data.directories) ? data.directories.map((entry) => normalizeEntry(entry, 'directory')) : []),
+      ];
+  return { entries, manifestPath };
 }
 
 function assertSafeRelativePath(relativePath, kind, manifestPath) {
-  if (typeof relativePath !== 'string' || relativePath.trim() === '') {
-    throw new Error(`Ungültiger ${kind}-Eintrag in ${manifestPath}: ${String(relativePath)}`);
-  }
-
-  if (relativePath.includes('*')) {
-    throw new Error(`Wildcards sind aus Sicherheitsgründen nicht erlaubt: ${relativePath}`);
-  }
-
-  if (path.isAbsolute(relativePath)) {
-    throw new Error(`Absolute Pfade sind nicht erlaubt: ${relativePath}`);
-  }
-
+  if (typeof relativePath !== 'string' || relativePath.trim() === '') throw new Error(`Ungültiger ${kind}-Eintrag in ${manifestPath}`);
+  if (relativePath.includes('*')) throw new Error(`Wildcards sind nicht erlaubt: ${relativePath}`);
+  if (path.isAbsolute(relativePath)) throw new Error(`Absolute Pfade sind nicht erlaubt: ${relativePath}`);
   const normalized = path.normalize(relativePath).replaceAll('\\', '/');
-  if (normalized === '..' || normalized.startsWith('../')) {
-    throw new Error(`Pfade außerhalb des Projekt-Roots sind nicht erlaubt: ${relativePath}`);
-  }
-
+  if (normalized === '..' || normalized.startsWith('../')) throw new Error(`Pfad verlässt Projekt-Root: ${relativePath}`);
   const [topLevel] = normalized.split('/');
-  if (protectedTopLevel.has(topLevel)) {
-    throw new Error(`Geschützter Pfad darf nicht per Cleanup entfernt werden: ${relativePath}`);
-  }
-
-  if (!allowedTopLevel.has(topLevel)) {
-    throw new Error(`Cleanup-Pfad muss in einem bekannten Source-/Projektbereich liegen: ${relativePath}`);
-  }
-
+  if (protectedTopLevel.has(topLevel)) throw new Error(`Geschützter Pfad: ${relativePath}`);
+  if (!allowedTopLevel.has(topLevel)) throw new Error(`Unbekannter Cleanup-Bereich: ${relativePath}`);
   const absolutePath = path.resolve(projectRoot, normalized);
   const relativeToRoot = path.relative(projectRoot, absolutePath);
-  if (relativeToRoot.startsWith('..') || path.isAbsolute(relativeToRoot)) {
-    throw new Error(`Pfad verlässt Projekt-Root: ${relativePath}`);
-  }
-
+  if (relativeToRoot.startsWith('..') || path.isAbsolute(relativeToRoot)) throw new Error(`Pfad verlässt Projekt-Root: ${relativePath}`);
   return { normalized, absolutePath };
 }
 
-function markDeletionFailure(result, normalized, error) {
-  const reason = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
-  result.failed.push({ path: normalized, reason });
-  if (strictDelete) {
-    throw error;
-  }
+function walkFiles(startPath) {
+  if (!fs.existsSync(startPath)) return [];
+  const stat = fs.lstatSync(startPath);
+  if (stat.isSymbolicLink()) return [];
+  if (stat.isFile()) return [startPath];
+  if (!stat.isDirectory()) return [];
+  return fs.readdirSync(startPath).flatMap((entry) => walkFiles(path.join(startPath, entry)));
 }
 
-function makeWritable(targetPath) {
-  try {
-    fs.chmodSync(targetPath, 0o666);
-  } catch {
-    // Best effort only. chmod is not reliable on Windows for every file type.
-  }
-}
-
-function removeFile(relativePath, manifestPath, result) {
-  const { normalized, absolutePath } = assertSafeRelativePath(relativePath, 'Datei', manifestPath);
-  if (!fs.existsSync(absolutePath)) {
-    result.alreadyClean.push(normalized);
-    return;
-  }
-  const stat = fs.statSync(absolutePath);
-  if (!stat.isFile()) {
-    throw new Error(`Als Datei gelistet, aber keine Datei: ${normalized}`);
-  }
-
-  if (dryRun) {
-    result.removed.push(normalized);
-    return;
-  }
-
-  try {
-    makeWritable(absolutePath);
-    fs.unlinkSync(absolutePath);
-    result.removed.push(normalized);
-  } catch (error) {
-    markDeletionFailure(result, normalized, error);
-  }
-}
-
-function removeDirectory(relativePath, manifestPath, result) {
-  const { normalized, absolutePath } = assertSafeRelativePath(relativePath, 'Verzeichnis', manifestPath);
-  const displayPath = `${normalized}/`;
-  if (!fs.existsSync(absolutePath)) {
-    result.alreadyClean.push(displayPath);
-    return;
-  }
-  const stat = fs.statSync(absolutePath);
-  if (!stat.isDirectory()) {
-    throw new Error(`Als Verzeichnis gelistet, aber kein Verzeichnis: ${normalized}`);
-  }
-
-  if (dryRun) {
-    result.removed.push(displayPath);
-    return;
-  }
-
-  try {
-    fs.rmSync(absolutePath, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
-    if (fs.existsSync(absolutePath)) {
-      throw new Error('Verzeichnis ist nach Löschversuch weiterhin vorhanden');
-    }
-    result.removed.push(displayPath);
-  } catch (error) {
-    markDeletionFailure(result, displayPath, error);
-  }
-}
-
-function main() {
-  const manifestPaths = loadManifestPaths();
-  const result = { removed: [], alreadyClean: [], failed: [] };
-
-  for (const manifestPath of manifestPaths) {
-    if (!fs.existsSync(manifestPath)) {
-      throw new Error(`Cleanup-Manifest nicht gefunden: ${manifestPath}`);
-    }
-    const { files, directories } = parseManifest(manifestPath);
-    directories.forEach((entry) => removeDirectory(entry, manifestPath, result));
-    files.forEach((entry) => removeFile(entry, manifestPath, result));
-  }
-
-  const action = dryRun ? 'würde entfernt' : 'entfernt';
-  if (result.removed.length === 0) {
-    console.log('Source-Cleanup: nichts zu entfernen.');
-  } else {
-    console.log(`Source-Cleanup: ${result.removed.length} ${action}.`);
-  }
-  if (verbose && result.removed.length > 0) {
-    console.log(`${dryRun ? 'Würde entfernen' : 'Entfernt'}: ${result.removed.join(', ')}`);
-  }
-  if (verbose && result.alreadyClean.length > 0) {
-    console.log(`Bereits bereinigt: ${result.alreadyClean.join(', ')}`);
-  }
-  if (result.failed.length > 0) {
-    console.warn(
-      `Source-Cleanup: ${result.failed.length} Datei(en)/Verzeichnis(se) konnten nicht entfernt werden; Build läuft weiter.`
-    );
-    if (verbose) {
-      for (const failure of result.failed) {
-        console.warn(`Nicht entfernt: ${failure.path} – ${failure.reason}`);
+function findReferences(normalized, manifestPath) {
+  const extension = path.extname(normalized);
+  const extensionless = extension ? normalized.slice(0, -extension.length) : normalized;
+  const basename = path.basename(normalized);
+  const basenameExtension = path.extname(basename);
+  const basenameExtensionless = basenameExtension ? basename.slice(0, -basenameExtension.length) : basename;
+  const needles = new Set([
+    normalized,
+    normalized.replaceAll('/', path.sep),
+    extensionless,
+    extensionless.replaceAll('/', path.sep),
+    basename,
+    basenameExtensionless,
+  ]);
+  const references = [];
+  for (const relativeStart of referenceFiles) {
+    const absoluteStart = path.join(projectRoot, relativeStart);
+    for (const filePath of walkFiles(absoluteStart)) {
+      if (filePath === manifestPath || filePath === path.resolve(__filename)) continue;
+      const ext = path.extname(filePath).toLowerCase();
+      if (!['.json', '.js', '.cjs', '.mjs', '.ts', '.tsx', '.yml', '.yaml', '.md'].includes(ext)) continue;
+      let content;
+      try { content = fs.readFileSync(filePath, 'utf8'); } catch { continue; }
+      if ([...needles].some((needle) => needle.length > 2 && content.includes(needle))) {
+        references.push(path.relative(projectRoot, filePath).replaceAll('\\', '/'));
       }
     }
   }
+  return [...new Set(references)].sort();
 }
 
-try {
-  main();
-} catch (error) {
-  console.error(error instanceof Error ? error.message : String(error));
-  process.exit(1);
+function validateEntry(entry, manifestPath) {
+  if (!['file', 'directory'].includes(entry.type)) throw new Error(`Ungültiger Dateityp für ${entry.path}: ${String(entry.type)}`);
+  const resolved = assertSafeRelativePath(entry.path, entry.type, manifestPath);
+  if (!fs.existsSync(resolved.absolutePath)) return { ...resolved, exists: false };
+  const stat = fs.lstatSync(resolved.absolutePath);
+  if (stat.isSymbolicLink()) throw new Error(`Symlink wird nicht gelöscht: ${resolved.normalized}`);
+  if (entry.type === 'file' && !stat.isFile()) throw new Error(`Als Datei gelistet, aber keine Datei: ${resolved.normalized}`);
+  if (entry.type === 'directory' && !stat.isDirectory()) throw new Error(`Als Verzeichnis gelistet, aber kein Verzeichnis: ${resolved.normalized}`);
+  if (entry.sha256) {
+    if (entry.type !== 'file') throw new Error(`SHA-256 ist nur für Dateien zulässig: ${resolved.normalized}`);
+    const actual = sha256(resolved.absolutePath);
+    if (actual !== entry.sha256) throw new Error(`Unerwarteter Inhalt; SHA-256 weicht ab: ${resolved.normalized}`);
+  }
+  const references = findReferences(resolved.normalized, manifestPath);
+  if (references.length > 0) throw new Error(`Cleanup-Ziel wird noch referenziert: ${resolved.normalized} (${references.join(', ')})`);
+  return { ...resolved, exists: true };
+}
+
+function main() {
+  const planned = [];
+  const alreadyClean = [];
+  const failed = [];
+  const seen = new Set();
+  for (const manifestPath of loadManifestPaths()) {
+    if (!fs.existsSync(manifestPath)) throw new Error(`Cleanup-Manifest nicht gefunden: ${manifestPath}`);
+    const { entries } = parseManifest(manifestPath);
+    for (const entry of entries) {
+      const key = `${entry.type}:${entry.path}`;
+      if (seen.has(key)) throw new Error(`Doppelter Cleanup-Eintrag: ${entry.path}`);
+      seen.add(key);
+      const target = validateEntry(entry, manifestPath);
+      const display = entry.type === 'directory' ? `${target.normalized}/` : target.normalized;
+      if (!target.exists) { alreadyClean.push(display); continue; }
+      planned.push(display);
+      if (dryRun) continue;
+      try {
+        if (entry.type === 'directory') fs.rmSync(target.absolutePath, { recursive: true, force: false, maxRetries: 3, retryDelay: 100 });
+        else fs.unlinkSync(target.absolutePath);
+      } catch (error) {
+        failed.push({ path: display, reason: error instanceof Error ? error.message : String(error) });
+        if (strictDelete) throw error;
+      }
+    }
+  }
+  console.log(dryRun ? 'Cleanup-Plan:' : 'Source-Cleanup:');
+  for (const entry of planned) console.log(`  ${dryRun ? 'WOULD DELETE' : 'DELETED'} ${entry}`);
+  if (verbose) for (const entry of alreadyClean) console.log(`  ALREADY CLEAN ${entry}`);
+  for (const entry of failed) console.error(`  FAILED ${entry.path}: ${entry.reason}`);
+  console.log(`${planned.length} Ziel(e), ${alreadyClean.length} bereits entfernt, ${failed.length} Fehler.`);
+  if (failed.length > 0) process.exitCode = 1;
+}
+
+try { main(); } catch (error) {
+  console.error(`Source-Cleanup abgebrochen: ${error instanceof Error ? error.message : String(error)}`);
+  process.exitCode = 1;
 }

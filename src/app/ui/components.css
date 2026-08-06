@@ -1584,3 +1584,36 @@ html[data-theme='light'] .template-help-button:focus-visible {
   background: #eeeeea;
 }
 
+
+.industrial-lazy-state {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  min-height: 8rem;
+  padding: 1.25rem;
+  border: 1px solid var(--industrial-border, #52525b);
+  border-radius: var(--industrial-corner-radius);
+  background: var(--industrial-surface, #18181b);
+}
+
+.industrial-lazy-state h3 { margin: 0 0 0.35rem; }
+.industrial-lazy-state p { margin: 0; max-width: 60ch; }
+.industrial-lazy-state-error { border-color: #f59e0b; }
+.industrial-loading-spinner {
+  width: 1.5rem;
+  height: 1.5rem;
+  flex: 0 0 auto;
+  border: 0.2rem solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: industrial-spin 0.8s linear infinite;
+}
+
+@keyframes industrial-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .industrial-loading-spinner { animation: none; border-right-color: currentColor; }
+}
+@media (forced-colors: active) {
+  .industrial-lazy-state { border: 1px solid CanvasText; background: Canvas; color: CanvasText; }
+  .industrial-loading-spinner { forced-color-adjust: none; border-color: CanvasText; border-right-color: transparent; }
+}
