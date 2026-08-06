@@ -35,6 +35,8 @@ const rcCriticalServiceCoverage = [
   'services/portableProfileService.ts'
 ];
 
+export const vitestExcludedSuites = ['e2e/**', 'e2e-product/**'] as const;
+
 export default defineConfig({
   resolve: {
     alias: {
@@ -50,7 +52,7 @@ export default defineConfig({
       '**/dist/**',
       '**/dist-electron/**',
       '**/release/**',
-      'e2e/**'
+      ...vitestExcludedSuites
     ],
     coverage: {
       provider: 'v8',
@@ -65,7 +67,7 @@ export default defineConfig({
         'src/**/*.d.ts',
         '**/*.test.ts',
         'tests/**',
-        'e2e/**'
+        ...vitestExcludedSuites
       ],
       thresholds: {
         branches: 70,

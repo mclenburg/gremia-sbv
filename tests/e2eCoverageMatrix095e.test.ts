@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { modules } from '../src/app/core/navigation/modules';
 import { HELP_DIALOG_QA_ROUTE_IDS, VISUAL_QA_ROUTES } from '../src/app/shared/theme/visualQa';
+import { vitestExcludedSuites } from '../vitest.config';
 
 describe('0.9.5-e E2E coverage matrix', () => {
   it('covers every active primary navigation module in the visual and Axe route matrix', () => {
@@ -21,6 +22,10 @@ describe('0.9.5-e E2E coverage matrix', () => {
     const routeIds = new Set(VISUAL_QA_ROUTES.map((route) => route.id));
     const missing = HELP_DIALOG_QA_ROUTE_IDS.filter((id) => !routeIds.has(id));
     expect(missing, `HelpDialog-Prioritätsmodule müssen in VISUAL_QA_ROUTES enthalten sein: ${missing.join(', ')}`).toEqual([]);
+  });
+
+  it('keeps browser and full-product E2E suites outside Vitest coverage collection', () => {
+    expect(vitestExcludedSuites).toEqual(['e2e/**', 'e2e-product/**']);
   });
 
 });

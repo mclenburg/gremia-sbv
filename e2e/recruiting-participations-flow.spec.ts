@@ -33,6 +33,15 @@ test('tracks recruiting participation without case file and opens violation only
   await expect(page.locator('.industrial-live-region[role="status"]').filter({ hasText: /Stellenbesetzung wurde angelegt/ })).toBeVisible();
   await expect(page.locator('.industrial-record-card').filter({ hasText: 'E2E Fachadministration' }).first()).toBeVisible();
 
+  await page.getByRole('button', { name: 'Neue Stellenbesetzung', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Stellenbesetzung anlegen', exact: true })).toBeVisible();
+  await expect(page.getByLabel(/Stelle \/ Bezeichnung/)).toHaveValue('');
+  await page.getByLabel(/Stelle \/ Bezeichnung/).fill('E2E Zweite Stellenbesetzung');
+  await page.getByLabel('Kennziffer').fill('REC-095E-2');
+  await page.getByRole('button', { name: 'Stellenbesetzung anlegen', exact: true }).click();
+  await expect(page.locator('.industrial-record-card').filter({ hasText: 'E2E Zweite Stellenbesetzung' }).first()).toBeVisible();
+
+  await page.locator('.industrial-record-card').filter({ hasText: 'E2E Fachadministration' }).first().click();
   await page.getByLabel('Gesprächsdatum').fill('2026-05-08');
   await page.getByLabel('Bewerbungsreferenz').fill('Klarname Test darf nicht ins Journal');
   await page.getByLabel('Referenzmodus').selectOption('clear_name');

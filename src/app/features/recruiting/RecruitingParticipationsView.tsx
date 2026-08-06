@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AlertTriangle, BriefcaseBusiness, CalendarClock, ClipboardList, PlusCircle, Save } from 'lucide-react';
 import type { CreateDeadlineInput } from '../../core/models/deadline.model';
 import type {
@@ -213,6 +213,7 @@ export function RecruitingParticipationsView({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const creatingRef = useRef(false);
   const announce = useAnnouncer();
 
   const selected = useMemo(() => records.find((record) => record.id === selectedId) ?? null, [records, selectedId]);
@@ -226,7 +227,8 @@ export function RecruitingParticipationsView({
       if (!bridge?.recruitingParticipations) throw new Error('Stellenbesetzungsdienst ist nicht erreichbar.');
       const rows = await bridge.recruitingParticipations.list();
       setRecords(rows);
-      const nextId = preferredId ?? selectedId ?? rows[0]?.id ?? null;
+      if (preferredId === undefined && creatingRef.current) { setSelectedId(null); setInterviews([]); return; }
+      const nextId = preferredId === undefined ? rows[0]?.id ?? null : preferredId;
       const resolvedId = nextId && rows.some((row) => row.id === nextId) ? nextId : rows[0]?.id ?? null;
       setSelectedId(resolvedId);
       if (resolvedId) {
@@ -243,25 +245,22 @@ export function RecruitingParticipationsView({
     } finally {
       setLoading(false);
     }
-  }, [selectedId]);
+  }, []);
 
   useEffect(() => {
-    void reload(null);
+    void reload();
   }, [reload]);
 
   useEffect(() => {
     if (error) announce(error, 'assertive');
   }, [error, announce]);
 
-  function updateForm(patch: Partial<ParticipationFormState>) {
-    setForm((current) => ({ ...current, ...patch }));
-  }
+  function updateForm(patch: Partial<ParticipationFormState>) { setForm((current) => ({ ...current, ...patch })); }
 
-  function updateInterviewForm(patch: Partial<InterviewFormState>) {
-    setInterviewForm((current) => ({ ...current, ...patch }));
-  }
+  function updateInterviewForm(patch: Partial<InterviewFormState>) { setInterviewForm((current) => ({ ...current, ...patch })); }
 
   async function selectRecord(id: string) {
+    creatingRef.current = false;
     const record = records.find((item) => item.id === id);
     setSelectedId(id);
     if (record) setForm(formFromRecord(record));
@@ -281,6 +280,7 @@ export function RecruitingParticipationsView({
       const bridge = await waitForBridge();
       if (!bridge?.recruitingParticipations) throw new Error('Stellenbesetzungsdienst ist nicht erreichbar.');
       const created = await bridge.recruitingParticipations.create(inputFromForm(form) as CreateRecruitingParticipationInput);
+      creatingRef.current = false;
       setMessage('Stellenbesetzung wurde angelegt.');
       announce('Stellenbesetzung wurde angelegt.');
       await reload(created.id);
@@ -397,7 +397,7 @@ export function RecruitingParticipationsView({
           { label: 'Unterlagen offen', value: stats.documentsOpen, tone: stats.documentsOpen > 0 ? 'warning' : 'default' },
           { label: 'Verstoßprüfung', value: stats.review, tone: stats.review > 0 ? 'danger' : 'default' },
         ]}
-        actions={<IndustrialButton variant="secondary" onClick={() => { setSelectedId(null); setForm(emptyParticipationForm()); setInterviews([]); }}>Neue Stellenbesetzung</IndustrialButton>}
+        actions={<IndustrialButton variant="secondary" onClick={() => { creatingRef.current = true; setSelectedId(null); setForm(emptyParticipationForm()); setInterviews([]); }}>Neue Stellenbesetzung</IndustrialButton>}
       />
 
       <WorkbenchGrid>
