@@ -56,6 +56,9 @@ try {
 
   const files = walk(releaseDir);
   const candidates = files.filter((file) => {
+    // Only top-level release files are end-user artifacts. Files such as
+    // release/win-unpacked/Gremia.SBV.exe are internal packaging output.
+    if (path.dirname(file) !== releaseDir) return false;
     if (!file.endsWith(contract.extension)) return false;
     return fs.statSync(file).mtimeMs >= since;
   });

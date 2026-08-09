@@ -14,14 +14,26 @@ const TARGETS = {
   win: {
     os: 'win',
     label: 'Windows portable x64 EXE',
-    builderArgs: ['--win', 'portable', '--x64'],
-    artifactHint: 'release/Gremia.SBV-<version>-win-x64.exe'
+    builderArgs: ['--win', 'portable', '--x64', '--config.artifactName=Gremia.SBV-${version}-win-x64-portable.${ext}'],
+    artifactHint: 'release/Gremia.SBV-<version>-win-x64-portable.exe'
   },
   windows: {
     os: 'win',
     label: 'Windows portable x64 EXE',
-    builderArgs: ['--win', 'portable', '--x64'],
-    artifactHint: 'release/Gremia.SBV-<version>-win-x64.exe'
+    builderArgs: ['--win', 'portable', '--x64', '--config.artifactName=Gremia.SBV-${version}-win-x64-portable.${ext}'],
+    artifactHint: 'release/Gremia.SBV-<version>-win-x64-portable.exe'
+  },
+  'win-portable': {
+    os: 'win',
+    label: 'Windows portable x64 EXE',
+    builderArgs: ['--win', 'portable', '--x64', '--config.artifactName=Gremia.SBV-${version}-win-x64-portable.${ext}'],
+    artifactHint: 'release/Gremia.SBV-<version>-win-x64-portable.exe'
+  },
+  'win-installer': {
+    os: 'win',
+    label: 'Windows x64 Installer',
+    builderArgs: ['--win', 'nsis', '--x64', '--config.artifactName=Gremia.SBV-${version}-win-x64-setup.${ext}'],
+    artifactHint: 'release/Gremia.SBV-<version>-win-x64-setup.exe'
   },
   mac: {
     os: 'mac',
@@ -32,7 +44,7 @@ const TARGETS = {
 };
 
 function usage() {
-  console.error('Nutzung: node scripts/build-platform.cjs <linux|win|mac>');
+  console.error('Nutzung: node scripts/build-platform.cjs <linux|win|win-portable|win-installer|mac>');
 }
 
 function command(name) {
@@ -75,7 +87,6 @@ if (!selected) {
   process.exit(2);
 }
 
-
 const electronBuilder = localBin('electron-builder');
 if (!existsSync(electronBuilder)) {
   console.error('Build-Abbruch: electron-builder ist nicht lokal installiert. Bitte zuerst ausführen: npm install');
@@ -88,7 +99,7 @@ console.log(`Plattform: ${process.platform}, Node: ${process.version}`);
 runNodeScript('scripts/build-artifact-state.cjs', ['check']);
 runNpmScript('native:rebuild:electron');
 const packagingStartedAt = Date.now();
-runNodeScript('scripts/run-electron-builder.cjs', selected.builderArgs);
+runNodeScript('scripts/run-electron-builder.cjs', [...selected.builderArgs, '--publish', 'never']);
 runNodeScript('scripts/verify-release-artifacts.cjs', [selected.os, '--since', String(packagingStartedAt)]);
 
 console.log('');

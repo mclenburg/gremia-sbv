@@ -4,17 +4,24 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Existing or new release tag to build/update, e.g. v0.9.6"
+        required: true
+        type: string
 
 permissions:
   contents: write
 
 concurrency:
-  group: tagged-release-${{ github.ref }}
+  group: tagged-release-${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}
   cancel-in-progress: false
 
 env:
   CSC_IDENTITY_AUTO_DISCOVERY: "false"
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+  RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}
 
 jobs:
   verify-tag:
@@ -42,9 +49,9 @@ jobs:
         run: |
           set -euo pipefail
           package_version="$(node -p "require('./package.json').version")"
-          tag_version="${GITHUB_REF_NAME#v}"
+          tag_version="${RELEASE_TAG#v}"
           if [[ "${package_version}" != "${tag_version}" ]]; then
-            echo "Tag version ${tag_version} does not match package.json version ${package_version}" >&2
+            echo "Release tag version ${tag_version} does not match package.json version ${package_version}" >&2
             exit 1
           fi
 
@@ -111,17 +118,17 @@ jobs:
           IS_PRERELEASE: ${{ needs.verify-tag.outputs.prerelease }}
         run: |
           set -euo pipefail
-          if gh release view "${GITHUB_REF_NAME}" --repo "${GH_REPO}" >/dev/null 2>&1; then
-            echo "Release ${GITHUB_REF_NAME} already exists; platform jobs will upload assets directly."
+          if gh release view "${RELEASE_TAG}" --repo "${GH_REPO}" >/dev/null 2>&1; then
+            echo "Release ${RELEASE_TAG} already exists; verified assets will be replaced in place."
             exit 0
           fi
 
           release_args=(
-            "${GITHUB_REF_NAME}"
+            "${RELEASE_TAG}"
             --repo "${GH_REPO}"
             --draft
             --title "Gremia.SBV ${PACKAGE_VERSION}"
-            --notes "Automatisch vorbereiteter Draft-Release für ${GITHUB_REF_NAME}."
+            --notes "Automatisch vorbereiteter Draft-Release für ${RELEASE_TAG}."
           )
           if [[ "${IS_PRERELEASE}" == "true" ]]; then
             release_args+=(--prerelease)
@@ -136,7 +143,7 @@ jobs:
       - verify-tag
       - quality-gates
       - prepare-release
-    timeout-minutes: 60
+    timeout-minutes: 75
     strategy:
       fail-fast: false
       matrix:
@@ -144,17 +151,10 @@ jobs:
           - platform: linux
             label: Linux AppImage
             os: ubuntu-latest
-            build_script: build:package:linux
-            platform_check: release:platform:linux
-            artifact_glob: |
-              release/*.AppImage
           - platform: windows
-            label: Windows portable EXE
+            label: Windows Installer + Portable
             os: windows-latest
-            build_script: build:package:windows
-            platform_check: release:platform:windows
-            artifact_glob: |
-              release/*.exe
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -180,25 +180,58 @@ jobs:
       - name: Compile application once for this platform
         run: npm run build:compile
 
-      - name: Package verified compiled artifact
-        run: npm run ${{ matrix.build_script }}
+      - name: Package Linux AppImage
+        if: matrix.platform == 'linux'
+        run: node scripts/build-platform.cjs linux
+
+      - name: Verify Linux packaged startup
+        if: matrix.platform == 'linux'
+        run: xvfb-run -a npm run release:smoke:linux
+
+      - name: Package Windows portable EXE
+        if: matrix.platform == 'windows'
+        run: node scripts/build-platform.cjs win-portable
+
+      - name: Verify Windows portable startup
+        if: matrix.platform == 'windows'
+        run: npm run release:smoke:windows
+
+      - name: Package Windows installer
+        if: matrix.platform == 'windows'
+        run: node scripts/build-platform.cjs win-installer
+
+      - name: Verify backup and restore
+        run: npm run release:check:backup-restore
+
+      - name: Replace Linux asset in release
+        if: matrix.platform == 'linux'
+        shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          gh release upload "${RELEASE_TAG}" release/*.AppImage --clobber --repo "${GH_REPO}"
 
-      - name: Verify Windows artifact, portable startup, paths and backup/restore
+      - name: Replace Windows assets in release
         if: matrix.platform == 'windows'
-        run: npm run ${{ matrix.platform_check }}
-
-      - name: Verify Linux artifact, desktop startup, paths and backup/restore
-        if: matrix.platform == 'linux'
-        run: xvfb-run -a npm run ${{ matrix.platform_check }}
-
-      - name: Upload platform asset directly to draft release
-        uses: softprops/action-gh-release@v2
-        with:
-          draft: true
-          prerelease: ${{ needs.verify-tag.outputs.prerelease == 'true' }}
-          fail_on_unmatched_files: true
-          files: ${{ matrix.artifact_glob }}
+        shell: bash
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PACKAGE_VERSION: ${{ needs.verify-tag.outputs.package_version }}
+        run: |
+          set -euo pipefail
+
+          legacy_asset="Gremia.SBV-${PACKAGE_VERSION}-win-x64.exe"
+          if gh release view "${RELEASE_TAG}" --repo "${GH_REPO}" --json assets \
+            --jq '.assets[].name' | grep -Fxq "${legacy_asset}"; then
+            echo "Removing legacy Windows asset ${legacy_asset}"
+            gh release delete-asset "${RELEASE_TAG}" "${legacy_asset}" --yes --repo "${GH_REPO}"
+          fi
+
+          gh release upload "${RELEASE_TAG}" \
+            release/*-win-x64-portable.exe \
+            release/*-win-x64-setup.exe \
+            --clobber \
+            --repo "${GH_REPO}"

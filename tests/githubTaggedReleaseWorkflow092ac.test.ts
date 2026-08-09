@@ -1,8 +1,12 @@
-import { readFileSync } from "node:fs";
+import { mkdtempSync, mkdirSync, openSync, closeSync, writeSync, ftruncateSync, readFileSync, rmSync } from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { spawnSync } from "node:child_process";
 import { describe, expect, it } from "vitest";
 
 const taggedReleaseWorkflow = readFileSync(".github/workflows/build-release.yml", "utf8");
 const signPathWorkflow = readFileSync(".github/workflows/signpath-windows-exe.yml", "utf8");
+const buildPlatformScript = readFileSync("scripts/build-platform.cjs", "utf8");
 const packageJson = JSON.parse(readFileSync("package.json", "utf8")) as { scripts: Record<string, string> };
 
 function includesAll(value: string, required: string[]): boolean {
@@ -28,26 +32,54 @@ function inspectTaggedReleaseWorkflow(workflow: string) {
   });
 
   return {
-    tagTriggerAndConcurrency: includesAll(workflow, ["tags:", '- "v*"', "group: tagged-release-${{ github.ref }}", "cancel-in-progress: false"]),
+    tagTriggerAndConcurrency: includesAll(workflow, [
+      "tags:",
+      '- "v*"',
+      "workflow_dispatch:",
+      "release_tag:",
+      "group: tagged-release-${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}",
+      "cancel-in-progress: false",
+    ]),
     tagVersionGuard: includesAll(workflow, [
       "verify-tag:",
-      "package_version=\"$(node -p \"require('./package.json').version\")\"",
-      'tag_version="${GITHUB_REF_NAME#v}"',
+      'tag_version="${RELEASE_TAG#v}"',
       "does not match package.json version",
       "needs: verify-tag",
     ]),
-    qualityAndArtifactSeparation: includesAll(workflow, ["quality-gates:", "npm run build:verify", "build-artifacts:", "- quality-gates", "npm run build:compile"]),
-    supportedPlatforms: includesAll(workflow, ["build_script: build:package:linux", "build_script: build:package:windows", "release/*.AppImage", "release/*.exe"]),
-    unsupportedPlatformsAbsent: includesNone(workflow, ["build_script: build:package:mac", "macos-latest", "release/*.dmg"]),
-    directDraftReleaseUpload: includesAll(workflow, [
-      "prepare-release:",
-      "GH_REPO: ${{ github.repository }}",
-      "gh release view",
-      "gh release create",
-      "softprops/action-gh-release@v2",
-      "fail_on_unmatched_files: true",
-      "Upload platform asset directly to draft release",
+    qualityAndArtifactSeparation: includesAll(workflow, [
+      "quality-gates:",
+      "npm run build:verify",
+      "build-artifacts:",
+      "- quality-gates",
+      "npm run build:compile",
     ]),
+    supportedPlatforms: includesAll(workflow, [
+      "node scripts/build-platform.cjs linux",
+      "node scripts/build-platform.cjs win-portable",
+      "node scripts/build-platform.cjs win-installer",
+      "Linux AppImage",
+      "Windows Installer + Portable",
+    ]),
+    windowsOutputsDistinct: includesAll(buildPlatformScript, [
+      "Gremia.SBV-${version}-win-x64-portable.${ext}",
+      "Gremia.SBV-${version}-win-x64-setup.${ext}",
+      "'--win', 'portable'",
+      "'--win', 'nsis'",
+    ]),
+    publishIsSingleOwner: includesAll(buildPlatformScript, ["'--publish', 'never'"])
+      && includesAll(workflow, ["gh release upload", "--clobber"])
+      && includesNone(workflow, ["softprops/action-gh-release@v2"]),
+    existingReleaseIsUpdatable: includesAll(workflow, [
+      "already exists; verified assets will be replaced in place",
+      "gh release upload \"${RELEASE_TAG}\"",
+      "--clobber",
+      "gh release delete-asset",
+      "legacy_asset=",
+    ]),
+    portableSmokeRunsBeforeInstallerBuild: workflow.indexOf("Verify Windows portable startup")
+      > workflow.indexOf("Package Windows portable EXE")
+      && workflow.indexOf("Package Windows installer")
+      > workflow.indexOf("Verify Windows portable startup"),
     noWorkflowArtifactRoundtrip: includesNone(workflow, [
       "Upload workflow artifact",
       "Download platform artifacts",
@@ -83,6 +115,16 @@ function inspectTaggedReleaseWorkflow(workflow: string) {
   };
 }
 
+function createSparsePe(pathname: string): void {
+  const fd = openSync(pathname, "w");
+  try {
+    writeSync(fd, Buffer.from([0x4d, 0x5a]), 0, 2, 0);
+    ftruncateSync(fd, 26 * 1024 * 1024);
+  } finally {
+    closeSync(fd);
+  }
+}
+
 describe("Taggebundener GitHub-Release-Build", () => {
   it("erfüllt den vollständigen semantischen Releasevertrag", () => {
     expect(inspectTaggedReleaseWorkflow(taggedReleaseWorkflow)).toEqual({
@@ -90,8 +132,10 @@ describe("Taggebundener GitHub-Release-Build", () => {
       tagVersionGuard: true,
       qualityAndArtifactSeparation: true,
       supportedPlatforms: true,
-      unsupportedPlatformsAbsent: true,
-      directDraftReleaseUpload: true,
+      windowsOutputsDistinct: true,
+      publishIsSingleOwner: true,
+      existingReleaseIsUpdatable: true,
+      portableSmokeRunsBeforeInstallerBuild: true,
       noWorkflowArtifactRoundtrip: true,
       noE2eInPackagingWorkflow: true,
       node24Compatibility: true,
@@ -100,5 +144,30 @@ describe("Taggebundener GitHub-Release-Build", () => {
       appBuildDoesNotRepeatTests: true,
       targetedRegressionScript: true,
     });
+  });
+
+  it("ignoriert interne win-unpacked EXEs bei der Endanwender-Artefaktprüfung", () => {
+    const temp = mkdtempSync(path.join(os.tmpdir(), "gremia-release-artifact-"));
+    try {
+      const releaseDir = path.join(temp, "release");
+      const unpackedDir = path.join(releaseDir, "win-unpacked");
+      mkdirSync(unpackedDir, { recursive: true });
+
+      const since = Date.now() - 1000;
+      createSparsePe(path.join(releaseDir, "Gremia.SBV-0.9.6-win-x64-portable.exe"));
+      createSparsePe(path.join(unpackedDir, "Gremia.SBV.exe"));
+
+      const verifier = path.resolve("scripts/verify-release-artifacts.cjs");
+      const result = spawnSync(process.execPath, [verifier, "win", "--since", String(since)], {
+        cwd: temp,
+        encoding: "utf8",
+      });
+
+      expect(result.status).toBe(0);
+      expect(result.stdout).toContain("Release-Artefakt OK");
+      expect(result.stderr).toBe("");
+    } finally {
+      rmSync(temp, { recursive: true, force: true });
+    }
   });
 });
