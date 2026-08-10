@@ -79,396 +79,116 @@ function reasonLabel(reason: string): string {
   return "Name/Pseudonym";
 }
 
-export function CaseHandoverTransferDialogs({
-  exportOpen,
-  importOpen,
-  selectedCase,
-  onCloseExport,
-  onCloseImport,
-  onExport,
-  onSelectImportFile,
-  onInspectImport,
-  onImport,
-}: CaseHandoverTransferDialogsProps) {
-  const [exportPassphrase, setExportPassphrase] = useState("");
-  const [exportValidUntil, setExportValidUntil] = useState("");
-  const [exportError, setExportError] = useState("");
-  const [exportBusy, setExportBusy] = useState(false);
-  const [exportResult, setExportResult] =
-    useState<CaseHandoverExportResult | null>(null);
 
-  const [importPassphrase, setImportPassphrase] = useState("");
-  const [importFile, setImportFile] = useState<ImportFileSelection | null>(null);
-  const [importSelection, setImportSelection] = useState<InspectSelection | null>(
-    null,
-  );
-  const [importMode, setImportMode] =
-    useState<CaseHandoverImportMode>("create_new");
+function useHandoverExport({ exportOpen, selectedCase, onExport }: Pick<CaseHandoverTransferDialogsProps, "exportOpen" | "selectedCase" | "onExport">) {
+  const [passphrase, setPassphrase] = useState("");
+  const [validUntil, setValidUntil] = useState("");
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<CaseHandoverExportResult | null>(null);
+  useEffect(() => { if (!exportOpen) { setPassphrase(""); setValidUntil(""); setError(""); setBusy(false); setResult(null); } }, [exportOpen]);
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault(); setError("");
+    if (!selectedCase) return setError("Bitte zuerst eine Fallakte auswählen.");
+    if (passphrase.trim().length < 10) return setError("Die Transport-Passphrase muss mindestens 10 Zeichen lang sein.");
+    if (validUntil.trim() && !toIsoEndOfDay(validUntil)) return setError("Bitte das Ablaufdatum im Format JJJJ-MM-TT eingeben.");
+    setBusy(true);
+    try {
+      const next = await onExport(passphrase, toIsoEndOfDay(validUntil));
+      if (!next.exported) return setError("Export wurde abgebrochen.");
+      setResult(next);
+    } catch (cause) { setError(cause instanceof Error ? cause.message : "Übergabepaket konnte nicht erstellt werden."); }
+    finally { setBusy(false); }
+  }
+  return { passphrase, setPassphrase, validUntil, setValidUntil, error, busy, result, submit };
+}
+
+function useHandoverImport({ importOpen, onCloseImport, onSelectImportFile, onInspectImport, onImport }: Pick<CaseHandoverTransferDialogsProps, "importOpen" | "onCloseImport" | "onSelectImportFile" | "onInspectImport" | "onImport">) {
+  const [passphrase, setPassphrase] = useState("");
+  const [file, setFile] = useState<ImportFileSelection | null>(null);
+  const [selection, setSelection] = useState<InspectSelection | null>(null);
+  const [mode, setMode] = useState<CaseHandoverImportMode>("create_new");
   const [targetCaseId, setTargetCaseId] = useState("");
-  const [importError, setImportError] = useState("");
-  const [importBusy, setImportBusy] = useState(false);
-
-  useEffect(() => {
-    if (!exportOpen) {
-      setExportPassphrase("");
-      setExportValidUntil("");
-      setExportError("");
-      setExportBusy(false);
-      setExportResult(null);
-    }
-  }, [exportOpen]);
-
-  useEffect(() => {
-    if (!importOpen) {
-      setImportPassphrase("");
-      setImportFile(null);
-      setImportSelection(null);
-      setImportMode("create_new");
-      setTargetCaseId("");
-      setImportError("");
-      setImportBusy(false);
-    }
-  }, [importOpen]);
-
-  async function submitExport(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setExportError("");
-    if (!selectedCase) {
-      setExportError("Bitte zuerst eine Fallakte auswählen.");
-      return;
-    }
-    if (exportPassphrase.trim().length < 10) {
-      setExportError(
-        "Die Transport-Passphrase muss mindestens 10 Zeichen lang sein.",
-      );
-      return;
-    }
-    if (exportValidUntil.trim() && !toIsoEndOfDay(exportValidUntil)) {
-      setExportError("Bitte das Ablaufdatum im Format JJJJ-MM-TT eingeben.");
-      return;
-    }
-    setExportBusy(true);
-    try {
-      const result = await onExport(
-        exportPassphrase,
-        toIsoEndOfDay(exportValidUntil),
-      );
-      if (!result.exported) {
-        setExportError("Export wurde abgebrochen.");
-        return;
-      }
-      setExportResult(result);
-    } catch (error) {
-      setExportError(
-        error instanceof Error
-          ? error.message
-          : "Übergabepaket konnte nicht erstellt werden.",
-      );
-    } finally {
-      setExportBusy(false);
-    }
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const resetSelection = () => { setSelection(null); setMode("create_new"); setTargetCaseId(""); };
+  useEffect(() => { if (!importOpen) { setPassphrase(""); setFile(null); resetSelection(); setError(""); setBusy(false); } }, [importOpen]);
+  async function selectFile() {
+    setError(""); resetSelection(); setBusy(true);
+    try { const next = await onSelectImportFile(); if (!next.canceled) setFile(next); }
+    catch (cause) { setError(cause instanceof Error ? cause.message : "Übergabedatei konnte nicht ausgewählt werden."); }
+    finally { setBusy(false); }
   }
-
-  async function selectImportFile() {
-    setImportError("");
-    setImportSelection(null);
-    setImportMode("create_new");
-    setTargetCaseId("");
-    setImportBusy(true);
+  async function inspect() {
+    setError(""); resetSelection();
+    if (!file || file.canceled) return setError("Bitte zuerst eine Übergabedatei auswählen.");
+    if (!passphrase.trim()) return setError("Bitte die Transport-Passphrase eingeben.");
+    setBusy(true);
     try {
-      const result = await onSelectImportFile();
-      if (result.canceled) return;
-      setImportFile(result);
-    } catch (error) {
-      setImportError(
-        error instanceof Error
-          ? error.message
-          : "Übergabedatei konnte nicht ausgewählt werden.",
-      );
-    } finally {
-      setImportBusy(false);
-    }
+      const inspection = await onInspectImport(file.filePath, passphrase);
+      if (inspection.isExpired) return setError("Das Übergabepaket ist abgelaufen und darf nicht importiert werden. Bitte eine neue Übergabedatei anfordern.");
+      setSelection({ filePath: file.filePath, fileName: file.fileName, inspection });
+      if (inspection.matches[0]) setTargetCaseId(inspection.matches[0].localCaseId);
+    } catch (cause) { setError(cause instanceof Error ? cause.message : "Übergabepaket konnte nicht geprüft werden."); }
+    finally { setBusy(false); }
   }
-
-  async function inspectImport() {
-    setImportError("");
-    setImportSelection(null);
-    setImportMode("create_new");
-    setTargetCaseId("");
-    if (!importFile || importFile.canceled) {
-      setImportError("Bitte zuerst eine Übergabedatei auswählen.");
-      return;
-    }
-    if (!importPassphrase.trim()) {
-      setImportError("Bitte die Transport-Passphrase eingeben.");
-      return;
-    }
-    setImportBusy(true);
-    try {
-      const inspection = await onInspectImport(importFile.filePath, importPassphrase);
-      if (inspection.isExpired) {
-        setImportError(
-          "Das Übergabepaket ist abgelaufen und darf nicht importiert werden. Bitte eine neue Übergabedatei anfordern.",
-        );
-        return;
-      }
-      setImportSelection({
-        filePath: importFile.filePath,
-        fileName: importFile.fileName,
-        inspection,
-      });
-      const firstMatch = inspection.matches[0];
-      if (firstMatch) setTargetCaseId(firstMatch.localCaseId);
-    } catch (error) {
-      setImportError(
-        error instanceof Error
-          ? error.message
-          : "Übergabepaket konnte nicht geprüft werden.",
-      );
-    } finally {
-      setImportBusy(false);
-    }
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault(); setError("");
+    if (!selection) return setError("Bitte zuerst ein gültiges Übergabepaket auswählen und prüfen.");
+    if (selection.inspection.isExpired) return setError("Das Übergabepaket ist abgelaufen und darf nicht importiert werden.");
+    if (mode === "merge_existing" && !targetCaseId) return setError("Bitte ein Gegenstück auswählen oder als neue Übergabeakte importieren.");
+    setBusy(true);
+    try { await onImport({ filePath: selection.filePath, passphrase, mode, targetCaseId: mode === "merge_existing" ? targetCaseId : undefined }); onCloseImport(); }
+    catch (cause) { setError(cause instanceof Error ? cause.message : "Übergabepaket konnte nicht importiert werden."); }
+    finally { setBusy(false); }
   }
+  const changePassphrase = (value: string) => { setPassphrase(value); resetSelection(); };
+  return { passphrase, changePassphrase, file, selection, mode, setMode, targetCaseId, setTargetCaseId, error, busy, selectFile, inspect, submit };
+}
 
-  async function submitImport(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setImportError("");
-    if (!importSelection) {
-      setImportError(
-        "Bitte zuerst ein gültiges Übergabepaket auswählen und prüfen.",
-      );
-      return;
-    }
-    if (importSelection.inspection.isExpired) {
-      setImportError(
-        "Das Übergabepaket ist abgelaufen und darf nicht importiert werden.",
-      );
-      return;
-    }
-    if (importMode === "merge_existing" && !targetCaseId) {
-      setImportError(
-        "Bitte ein Gegenstück auswählen oder als neue Übergabeakte importieren.",
-      );
-      return;
-    }
-    setImportBusy(true);
-    try {
-      await onImport({
-        filePath: importSelection.filePath,
-        passphrase: importPassphrase,
-        mode: importMode,
-        targetCaseId:
-          importMode === "merge_existing" ? targetCaseId : undefined,
-      });
-      onCloseImport();
-    } catch (error) {
-      setImportError(
-        error instanceof Error
-          ? error.message
-          : "Übergabepaket konnte nicht importiert werden.",
-      );
-    } finally {
-      setImportBusy(false);
-    }
-  }
+type ExportState = ReturnType<typeof useHandoverExport>;
+type ImportState = ReturnType<typeof useHandoverImport>;
 
-  return (
-    <>
-      {exportOpen && exportResult?.exported ? (
-        <ExportResultDialog
-          title="Übergabepaket exportiert"
-          filePath={exportResult.filePath}
-          description="Das verschlüsselte Übergabepaket wurde über den Systemdialog gespeichert. Der Speicherort bleibt sichtbares Nutzerfeedback und wird nicht als personenbezogener Inhalt ins Audit geschrieben."
-          onClose={onCloseExport}
-        />
-      ) : null}
+function HandoverExportDialog({ open, selectedCase, onClose, state }: { open: boolean; selectedCase?: CaseRecord; onClose: () => void; state: ExportState }) {
+  if (!open) return null;
+  if (state.result?.exported) return <ExportResultDialog title="Übergabepaket exportiert" filePath={state.result.filePath} description="Das verschlüsselte Übergabepaket wurde über den Systemdialog gespeichert. Der Speicherort bleibt sichtbares Nutzerfeedback und wird nicht als personenbezogener Inhalt ins Audit geschrieben." onClose={onClose} />;
+  return <IndustrialModal title="Übergabepaket exportieren" kicker="Fallübergabe / Vertretung" description="Die ausgewählte Fallakte wird verschlüsselt als eigenständiges Übergabepaket gespeichert. Der Speicherort wird über den Systemdialog gewählt; es gibt keinen Browser-Download." icon={<Download className="h-5 w-5" />} onClose={onClose}>
+    <form className="industrial-modal-grid" onSubmit={state.submit}>
+      <TextInput label="Fallakte" value={selectedCase ? `${selectedCase.caseNumber} · ${selectedCase.displayName}` : "Keine Fallakte ausgewählt"} readOnly wide onValueChange={() => undefined} />
+      <PasswordInput label="Transport-Passphrase" value={state.passphrase} minLength={10} required wide error={state.error && state.passphrase.trim().length < 10 ? state.error : undefined} onValueChange={state.setPassphrase} />
+      <DateInput label="Gültig bis (optional)" value={state.validUntil} wide onValueChange={state.setValidUntil} />
+      <p className="industrial-modal-preview industrial-modal-wide">Nach Ablauf darf die Übergabedatei nicht mehr importiert werden. Bereits importierte Vertretungsakten werden danach als abgelaufen markiert.</p>
+      {state.error && state.passphrase.trim().length >= 10 ? <div className="industrial-message industrial-message-warning industrial-modal-wide" role="alert"><AlertTriangle className="h-4 w-4" />{state.error}</div> : null}
+      <FormActions><GhostButton type="button" onClick={onClose} disabled={state.busy}>Abbrechen</GhostButton><ExportAction type="submit" disabled={state.busy || !selectedCase} loading={state.busy}>Übergabe exportieren</ExportAction></FormActions>
+    </form>
+  </IndustrialModal>;
+}
 
-      {exportOpen && !exportResult?.exported ? (
-        <IndustrialModal
-          title="Übergabepaket exportieren"
-          kicker="Fallübergabe / Vertretung"
-          description="Die ausgewählte Fallakte wird verschlüsselt als eigenständiges Übergabepaket gespeichert. Der Speicherort wird über den Systemdialog gewählt; es gibt keinen Browser-Download."
-          icon={<Download className="h-5 w-5" />}
-          onClose={onCloseExport}
-        >
-          <form className="industrial-modal-grid" onSubmit={submitExport}>
-            <TextInput
-              label="Fallakte"
-              value={
-                selectedCase
-                  ? `${selectedCase.caseNumber} · ${selectedCase.displayName}`
-                  : "Keine Fallakte ausgewählt"
-              }
-              readOnly
-              wide
-              onValueChange={() => undefined}
-            />
-            <PasswordInput
-              label="Transport-Passphrase"
-              value={exportPassphrase}
-              minLength={10}
-              required
-              wide
-              error={exportError && exportPassphrase.trim().length < 10 ? exportError : undefined}
-              onValueChange={setExportPassphrase}
-            />
-            <DateInput
-              label="Gültig bis (optional)"
-              value={exportValidUntil}
-              wide
-              onValueChange={setExportValidUntil}
-            />
-            <p className="industrial-modal-preview industrial-modal-wide">
-              Nach Ablauf darf die Übergabedatei nicht mehr importiert werden.
-              Bereits importierte Vertretungsakten werden danach als abgelaufen
-              markiert.
-            </p>
-            {exportError && exportPassphrase.trim().length >= 10 ? (
-              <div
-                className="industrial-message industrial-message-warning industrial-modal-wide"
-                role="alert"
-              >
-                <AlertTriangle className="h-4 w-4" />
-                {exportError}
-              </div>
-            ) : null}
-            <FormActions>
-              <GhostButton
-                type="button"
-                onClick={onCloseExport}
-                disabled={exportBusy}
-              >
-                Abbrechen
-              </GhostButton>
-              <ExportAction
-                type="submit"
-                disabled={exportBusy || !selectedCase}
-                loading={exportBusy}
-              >
-                Übergabe exportieren
-              </ExportAction>
-            </FormActions>
-          </form>
-        </IndustrialModal>
-      ) : null}
+function HandoverImportReview({ state }: { state: ImportState }) {
+  const inspection = state.selection?.inspection;
+  if (!inspection) return null;
+  return <ImportPackageReview caseCount={inspection.caseCount} measureCount={inspection.measureCount} documentCount={inspection.documentCount} deadlineCount={inspection.deadlineCount} validUntilLabel={formatGermanDate(inspection.expiresAt)} integrityLabel={inspection.integrity?.verified ? `Integrität kryptografisch bestätigt · Format ${inspection.integrity.formatVersion}` : undefined} fileNotice={inspection.file ? `${inspection.file.fileName} · ${Math.max(1, Math.round(inspection.file.sizeBytes / 1024))} KB` : undefined} warnings={inspection.warnings} matches={inspection.matches.map((match) => ({ id: match.localCaseId, label: `${match.caseNumber} · ${match.displayName}`, reasonLabel: reasonLabel(match.reason) }))} mode={state.mode} targetId={state.targetCaseId} onModeChange={state.setMode} onTargetChange={state.setTargetCaseId} />;
+}
 
-      {importOpen ? (
-        <IndustrialModal
-          title="Übergabepaket importieren"
-          kicker="Fallübergabe / Vertretung"
-          description="Import erzeugt grundsätzlich eigene lokale Daten. Bei passenden Gegenstücken entscheidest du bewusst über Zusammenführung oder Neuanlage."
-          icon={<Upload className="h-5 w-5" />}
-          wide
-          onClose={onCloseImport}
-        >
-          <form className="industrial-modal-grid" onSubmit={submitImport}>
-            <div className="industrial-modal-wide handover-import-file-step">
-              <span>Übergabedatei</span>
-              <div className="handover-import-file-row">
-                <TextInput
-                  label="Ausgewählte Übergabedatei"
-                  value={
-                    importFile && !importFile.canceled
-                      ? importFile.fileName
-                      : "Keine Übergabedatei ausgewählt"
-                  }
-                  readOnly
-                  onValueChange={() => undefined}
-                />
-                <ToolbarButton
-                  type="button"
-                  onClick={selectImportFile}
-                  disabled={importBusy}
-                >
-                  <Upload className="h-4 w-4" />
-                  Datei auswählen
-                </ToolbarButton>
-              </div>
-            </div>
-            <PasswordInput
-              label="Transport-Passphrase"
-              value={importPassphrase}
-              required
-              wide
-              error={
-                importError && !importPassphrase.trim() ? importError : undefined
-              }
-              onValueChange={(value) => {
-                setImportPassphrase(value);
-                setImportSelection(null);
-                setImportMode("create_new");
-                setTargetCaseId("");
-              }}
-            />
-            <FormActions className="handover-import-inspect-actions">
-              <ToolbarButton
-                type="button"
-                onClick={inspectImport}
-                disabled={importBusy || !importFile || importFile.canceled}
-              >
-                Paket prüfen
-              </ToolbarButton>
-            </FormActions>
+function HandoverImportDialog({ open, onClose, state }: { open: boolean; onClose: () => void; state: ImportState }) {
+  if (!open) return null;
+  return <IndustrialModal title="Übergabepaket importieren" kicker="Fallübergabe / Vertretung" description="Import erzeugt grundsätzlich eigene lokale Daten. Bei passenden Gegenstücken entscheidest du bewusst über Zusammenführung oder Neuanlage." icon={<Upload className="h-5 w-5" />} wide onClose={onClose}>
+    <form className="industrial-modal-grid" onSubmit={state.submit}>
+      <div className="industrial-modal-wide handover-import-file-step"><span>Übergabedatei</span><div className="handover-import-file-row"><TextInput label="Ausgewählte Übergabedatei" value={state.file && !state.file.canceled ? state.file.fileName : "Keine Übergabedatei ausgewählt"} readOnly onValueChange={() => undefined} /><ToolbarButton type="button" onClick={state.selectFile} disabled={state.busy}><Upload className="h-4 w-4" />Datei auswählen</ToolbarButton></div></div>
+      <PasswordInput label="Transport-Passphrase" value={state.passphrase} required wide error={state.error && !state.passphrase.trim() ? state.error : undefined} onValueChange={state.changePassphrase} />
+      <FormActions className="handover-import-inspect-actions"><ToolbarButton type="button" onClick={state.inspect} disabled={state.busy || !state.file || state.file.canceled}>Paket prüfen</ToolbarButton></FormActions>
+      <HandoverImportReview state={state} />
+      {state.error && state.passphrase.trim() ? <div className="industrial-message industrial-message-warning industrial-modal-wide" role="alert"><AlertTriangle className="h-4 w-4" />{state.error}</div> : null}
+      <FormActions><GhostButton type="button" onClick={onClose} disabled={state.busy}>Abbrechen</GhostButton><IndustrialButton type="submit" disabled={state.busy || !state.selection} loading={state.busy}><Upload className="h-4 w-4" />Übergabe importieren</IndustrialButton></FormActions>
+    </form>
+  </IndustrialModal>;
+}
 
-            {importSelection ? (
-              <ImportPackageReview
-                caseCount={importSelection.inspection.caseCount}
-                measureCount={importSelection.inspection.measureCount}
-                documentCount={importSelection.inspection.documentCount}
-                deadlineCount={importSelection.inspection.deadlineCount}
-                validUntilLabel={formatGermanDate(importSelection.inspection.expiresAt)}
-                integrityLabel={
-                  importSelection.inspection.integrity?.verified
-                    ? `Integrität kryptografisch bestätigt · Format ${importSelection.inspection.integrity.formatVersion}`
-                    : undefined
-                }
-                fileNotice={
-                  importSelection.inspection.file
-                    ? `${importSelection.inspection.file.fileName} · ${Math.max(1, Math.round(importSelection.inspection.file.sizeBytes / 1024))} KB`
-                    : undefined
-                }
-                warnings={importSelection.inspection.warnings}
-                matches={importSelection.inspection.matches.map((match) => ({
-                  id: match.localCaseId,
-                  label: `${match.caseNumber} · ${match.displayName}`,
-                  reasonLabel: reasonLabel(match.reason),
-                }))}
-                mode={importMode}
-                targetId={targetCaseId}
-                onModeChange={setImportMode}
-                onTargetChange={setTargetCaseId}
-              />
-            ) : null}
-
-            {importError && importPassphrase.trim() ? (
-              <div
-                className="industrial-message industrial-message-warning industrial-modal-wide"
-                role="alert"
-              >
-                <AlertTriangle className="h-4 w-4" />
-                {importError}
-              </div>
-            ) : null}
-            <FormActions>
-              <GhostButton
-                type="button"
-                onClick={onCloseImport}
-                disabled={importBusy}
-              >
-                Abbrechen
-              </GhostButton>
-              <IndustrialButton
-                type="submit"
-                disabled={importBusy || !importSelection}
-                loading={importBusy}
-              >
-                <Upload className="h-4 w-4" />
-                Übergabe importieren
-              </IndustrialButton>
-            </FormActions>
-          </form>
-        </IndustrialModal>
-      ) : null}
-    </>
-  );
+export function CaseHandoverTransferDialogs(props: CaseHandoverTransferDialogsProps) {
+  const exportState = useHandoverExport(props);
+  const importState = useHandoverImport(props);
+  return <>
+    <HandoverExportDialog open={props.exportOpen} selectedCase={props.selectedCase} onClose={props.onCloseExport} state={exportState} />
+    <HandoverImportDialog open={props.importOpen} onClose={props.onCloseImport} state={importState} />
+  </>;
 }

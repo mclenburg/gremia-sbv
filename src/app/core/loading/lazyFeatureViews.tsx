@@ -9,6 +9,56 @@ type LazyFeatureDefinition = {
 };
 
 const definitions: Partial<Record<ViewId, LazyFeatureDefinition>> = {
+
+  cases: {
+    label: "Fallakten",
+    load: async () => {
+      const module = await import("../../features/cases/CasesView");
+      return { default: module.CasesView as ComponentType<object> };
+    },
+  },
+  bem: {
+    label: "BEM-Verfahren",
+    load: async () => {
+      const module = await import("../../features/bem/BemView");
+      return { default: module.BemView as ComponentType<object> };
+    },
+  },
+  prevention: {
+    label: "Präventionsverfahren",
+    load: async () => {
+      const module = await import("../../features/prevention/PreventionView");
+      return { default: module.PreventionView as ComponentType<object> };
+    },
+  },
+  participation: {
+    label: "SBV-Beteiligungsmonitor",
+    load: async () => {
+      const module = await import("../../features/participation/ParticipationView");
+      return { default: module.ParticipationView as ComponentType<object> };
+    },
+  },
+  equalization: {
+    label: "Gleichstellung",
+    load: async () => {
+      const module = await import("../../features/equalization/EqualizationView");
+      return { default: module.EqualizationView as ComponentType<object> };
+    },
+  },
+  termination_hearing: {
+    label: "Kündigungsanhörung",
+    load: async () => {
+      const module = await import("../../features/termination/TerminationView");
+      return { default: module.TerminationView as ComponentType<object> };
+    },
+  },
+  sbv_control: {
+    label: "SBV-Control",
+    load: async () => {
+      const module = await import("../../features/sbv-control/SbvControlView");
+      return { default: module.SbvControlView as ComponentType<object> };
+    },
+  },
   knowledge: {
     label: "Wissensbereich",
     load: async () => {

@@ -132,18 +132,8 @@ export function normalizeRetentionSettings(input?: Partial<RetentionSettings>): 
   };
 }
 
-export function buildRetentionDashboard(input: RetentionScanInput): RetentionDashboard {
-  const now = input.now ?? new Date();
-  const settings = normalizeRetentionSettings(input.settings);
-  const candidates: RetentionCandidate[] = [];
-  const closedCutoff = monthsAgo(now, settings.closedCaseReviewMonths);
-  const inactiveCutoff = monthsAgo(now, settings.inactiveOpenCaseMonths);
-  const orphanContactCutoff = daysAgo(now, settings.orphanContactReviewDays);
-  const completedDeadlineCutoff = monthsAgo(now, settings.completedDeadlineRetentionMonths);
-  const journalCutoff = monthsAgo(now, settings.activityJournalReviewMonths);
-  const participationViolationCutoff = monthsAgo(now, settings.participationViolationReviewMonths);
-
-  for (const record of input.cases ?? []) {
+function appendCaseCandidates(candidates: RetentionCandidate[], input: RetentionScanInput, settings: RetentionSettings, closedCutoff: Date, inactiveCutoff: Date): void {
+for (const record of input.cases ?? []) {
     if (record.status === 'abgeschlossen' && beforeOrEqual(record.closedAt, closedCutoff)) {
       pushCandidate(candidates, {
         id: `case-review-${record.id}`,
@@ -174,8 +164,10 @@ export function buildRetentionDashboard(input: RetentionScanInput): RetentionDas
       });
     }
   }
+}
 
-  for (const contact of input.contacts ?? []) {
+function appendContactCandidates(candidates: RetentionCandidate[], input: RetentionScanInput, settings: RetentionSettings, orphanContactCutoff: Date): void {
+for (const contact of input.contacts ?? []) {
     if ((contact.referenceCount ?? 0) === 0 && beforeOrEqual(contact.createdAt, orphanContactCutoff)) {
       pushCandidate(candidates, {
         id: `contact-orphan-${contact.id}`,
@@ -191,8 +183,10 @@ export function buildRetentionDashboard(input: RetentionScanInput): RetentionDas
       });
     }
   }
+}
 
-  for (const document of input.documents ?? []) {
+function appendDocumentCandidates(candidates: RetentionCandidate[], input: RetentionScanInput): void {
+for (const document of input.documents ?? []) {
     if (!document.hasMetadata || !document.fileExists) {
       pushCandidate(candidates, {
         id: `document-integrity-${document.id}`,
@@ -210,8 +204,10 @@ export function buildRetentionDashboard(input: RetentionScanInput): RetentionDas
       });
     }
   }
+}
 
-  for (const deadline of input.deadlines ?? []) {
+function appendDeadlineCandidates(candidates: RetentionCandidate[], input: RetentionScanInput, settings: RetentionSettings, completedDeadlineCutoff: Date): void {
+for (const deadline of input.deadlines ?? []) {
     if (!deadline.caseId && deadline.status !== 'cancelled') {
       pushCandidate(candidates, {
         id: `deadline-free-${deadline.id}`,
@@ -244,9 +240,10 @@ export function buildRetentionDashboard(input: RetentionScanInput): RetentionDas
       });
     }
   }
+}
 
-
-  for (const entry of input.journalEntries ?? []) {
+function appendJournalCandidates(candidates: RetentionCandidate[], input: RetentionScanInput, settings: RetentionSettings, journalCutoff: Date): void {
+for (const entry of input.journalEntries ?? []) {
     if (entry.openFollowUp) {
       pushCandidate(candidates, {
         id: `journal-follow-up-${entry.id}`,
@@ -309,9 +306,10 @@ export function buildRetentionDashboard(input: RetentionScanInput): RetentionDas
       });
     }
   }
+}
 
-
-  for (const violation of input.participationViolations ?? []) {
+function appendParticipationViolationCandidates(candidates: RetentionCandidate[], input: RetentionScanInput, settings: RetentionSettings, participationViolationCutoff: Date): void {
+for (const violation of input.participationViolations ?? []) {
     if (violation.sourceContextType === 'recruiting_participation' && !violation.relatedRecruitingParticipationId) {
       pushCandidate(candidates, {
         id: `participation-violation-recruiting-link-${violation.id}`,
@@ -373,8 +371,10 @@ export function buildRetentionDashboard(input: RetentionScanInput): RetentionDas
       });
     }
   }
+}
 
-  for (const filePath of input.cleartextFiles ?? []) {
+function appendCleartextCandidates(candidates: RetentionCandidate[], input: RetentionScanInput): void {
+for (const filePath of input.cleartextFiles ?? []) {
     pushCandidate(candidates, {
       id: `cleartext-${filePath}`,
       type: 'cleartext_file_review',
@@ -386,8 +386,28 @@ export function buildRetentionDashboard(input: RetentionScanInput): RetentionDas
       entityType: 'file'
     });
   }
+}
 
-  candidates.sort((a, b) => riskOrder(a.riskLevel) - riskOrder(b.riskLevel) || a.title.localeCompare(b.title, 'de-DE'));
+export function buildRetentionDashboard(input: RetentionScanInput): RetentionDashboard {
+  const now = input.now ?? new Date();
+  const settings = normalizeRetentionSettings(input.settings);
+  const candidates: RetentionCandidate[] = [];
+  const closedCutoff = monthsAgo(now, settings.closedCaseReviewMonths);
+  const inactiveCutoff = monthsAgo(now, settings.inactiveOpenCaseMonths);
+  const orphanContactCutoff = daysAgo(now, settings.orphanContactReviewDays);
+  const completedDeadlineCutoff = monthsAgo(now, settings.completedDeadlineRetentionMonths);
+  const journalCutoff = monthsAgo(now, settings.activityJournalReviewMonths);
+  const participationViolationCutoff = monthsAgo(now, settings.participationViolationReviewMonths);
+
+  appendCaseCandidates(candidates, input, settings, closedCutoff, inactiveCutoff);
+  appendContactCandidates(candidates, input, settings, orphanContactCutoff);
+  appendDocumentCandidates(candidates, input);
+  appendDeadlineCandidates(candidates, input, settings, completedDeadlineCutoff);
+  appendJournalCandidates(candidates, input, settings, journalCutoff);
+  appendParticipationViolationCandidates(candidates, input, settings, participationViolationCutoff);
+  appendCleartextCandidates(candidates, input);
+
+candidates.sort((a, b) => riskOrder(a.riskLevel) - riskOrder(b.riskLevel) || a.title.localeCompare(b.title, 'de-DE'));
 
   return {
     generatedAt: now.toISOString(),

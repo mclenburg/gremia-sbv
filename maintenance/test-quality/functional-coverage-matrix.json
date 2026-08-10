@@ -22,56 +22,56 @@
       "tests": {
         "positive": [
           {
-            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "file": "tests/security/vault/securityServiceBehavior.test.ts",
             "name": "unlocks with the correct password and resets failed-attempt delay state"
           }
         ],
         "negative": [
           {
-            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "file": "tests/security/vault/securityServiceBehavior.test.ts",
             "name": "rejects an unlock attempt while the delay window is active"
           }
         ],
         "boundary": [
           {
-            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "file": "tests/security/vault/securityServiceBehavior.test.ts",
             "name": "serializes concurrent unlock attempts and keeps the second attempt outside database initialization"
           }
         ],
         "persistence": [
           {
-            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "file": "tests/security/vault/securityServiceBehavior.test.ts",
             "name": "migriert schwächere KDF-Parameter beim erfolgreichen Entsperren automatisch"
           }
         ],
         "rollback": null,
         "privacy": [
           {
-            "file": "tests/securityPrivacyReadiness0813.test.ts",
+            "file": "tests/security/vault/securityPrivacyReadiness.test.ts",
             "name": "keeps E2E runs isolated and audit metadata datensparsam"
           }
         ],
         "integration": [
           {
-            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "file": "tests/security/vault/securityServiceBehavior.test.ts",
             "name": "unlocks with the correct password and resets failed-attempt delay state"
           }
         ],
         "abuse": [
           {
-            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "file": "tests/security/vault/securityServiceBehavior.test.ts",
             "name": "rejects invalid security JSON before database access"
           },
           {
-            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "file": "tests/security/vault/securityServiceBehavior.test.ts",
             "name": "rejects a security artifact without vault id before database access"
           },
           {
-            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "file": "tests/security/vault/securityServiceBehavior.test.ts",
             "name": "rejects a future security artifact version before database access"
           },
           {
-            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "file": "tests/security/vault/securityServiceBehavior.test.ts",
             "name": "rejects abusive security KDF parameters before database access"
           }
         ]
@@ -91,51 +91,51 @@
       "tests": {
         "positive": [
           {
-            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "file": "tests/security/vault/securityServiceBehavior.test.ts",
             "name": "changes the password only after verifying the current password"
           }
         ],
         "negative": [
           {
-            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "file": "tests/security/vault/securityServiceBehavior.test.ts",
             "name": "changes the password only after verifying the current password"
           }
         ],
         "boundary": null,
         "persistence": [
           {
-            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "file": "tests/security/vault/securityServiceBehavior.test.ts",
             "name": "changes the password only after verifying the current password"
           }
         ],
         "rollback": null,
         "privacy": [
           {
-            "file": "tests/securityPrivacyReadiness0813.test.ts",
+            "file": "tests/security/vault/securityPrivacyReadiness.test.ts",
             "name": "keeps E2E runs isolated and audit metadata datensparsam"
           }
         ],
         "integration": [
           {
-            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "file": "tests/security/vault/securityServiceBehavior.test.ts",
             "name": "changes the password only after verifying the current password"
           }
         ],
         "abuse": [
           {
-            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "file": "tests/security/vault/securityServiceBehavior.test.ts",
             "name": "rejects invalid security JSON before database access"
           },
           {
-            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "file": "tests/security/vault/securityServiceBehavior.test.ts",
             "name": "rejects a security artifact without vault id before database access"
           },
           {
-            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "file": "tests/security/vault/securityServiceBehavior.test.ts",
             "name": "rejects a future security artifact version before database access"
           },
           {
-            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "file": "tests/security/vault/securityServiceBehavior.test.ts",
             "name": "rejects abusive security KDF parameters before database access"
           }
         ]
@@ -156,44 +156,44 @@
       "tests": {
         "positive": [
           {
-            "file": "tests/backupServiceBehavior0813f.test.ts",
+            "file": "tests/security/backup/backupServiceBehavior.test.ts",
             "name": "creates encrypted backups with current scrypt parameters and excludes tmp/nested backup files"
           }
         ],
         "negative": [
           {
-            "file": "tests/backupServiceBehavior0813f.test.ts",
+            "file": "tests/security/backup/backupServiceBehavior.test.ts",
             "name": "rejects restore with wrong confirmation or too short passphrase"
           }
         ],
         "boundary": [
           {
-            "file": "tests/backupServiceBehavior0813f.test.ts",
+            "file": "tests/security/backup/backupServiceBehavior.test.ts",
             "name": "creates encrypted backups with current scrypt parameters and excludes tmp/nested backup files"
           }
         ],
         "persistence": [
           {
-            "file": "tests/backupServiceBehavior0813f.test.ts",
+            "file": "tests/security/backup/backupServiceBehavior.test.ts",
             "name": "preserves activity journal and participation violation domain payloads during backup and restore"
           }
         ],
         "rollback": null,
         "privacy": [
           {
-            "file": "tests/backupServiceBehavior0813f.test.ts",
+            "file": "tests/security/backup/backupServiceBehavior.test.ts",
             "name": "creates encrypted backups with current scrypt parameters and excludes tmp/nested backup files"
           }
         ],
         "integration": [
           {
-            "file": "tests/backupServiceBehavior0813f.test.ts",
+            "file": "tests/security/backup/backupServiceBehavior.test.ts",
             "name": "preserves activity journal and participation violation domain payloads during backup and restore"
           }
         ],
         "abuse": [
           {
-            "file": "tests/backupServiceBehavior0813f.test.ts",
+            "file": "tests/security/backup/backupServiceBehavior.test.ts",
             "name": "rejects malformed envelopes and abusive KDF parameters before key derivation"
           }
         ]
@@ -213,49 +213,49 @@
       "tests": {
         "positive": [
           {
-            "file": "tests/backupServiceBehavior0813f.test.ts",
+            "file": "tests/security/backup/backupServiceBehavior.test.ts",
             "name": "preserves activity journal and participation violation domain payloads during backup and restore"
           }
         ],
         "negative": [
           {
-            "file": "tests/backupServiceBehavior0813f.test.ts",
+            "file": "tests/security/backup/backupServiceBehavior.test.ts",
             "name": "rejects restore with wrong confirmation or too short passphrase"
           }
         ],
         "boundary": [
           {
-            "file": "tests/backupServiceBehavior0813f.test.ts",
+            "file": "tests/security/backup/backupServiceBehavior.test.ts",
             "name": "restores legacy backups that do not contain explicit kdfParams"
           }
         ],
         "persistence": [
           {
-            "file": "tests/backupServiceBehavior0813f.test.ts",
+            "file": "tests/security/backup/backupServiceBehavior.test.ts",
             "name": "preserves activity journal and participation violation domain payloads during backup and restore"
           }
         ],
         "rollback": [
           {
-            "file": "tests/backupServiceBehavior0813f.test.ts",
+            "file": "tests/security/backup/backupServiceBehavior.test.ts",
             "name": "rejects duplicate, traversing and incomplete file manifests without changing the current vault"
           }
         ],
         "privacy": [
           {
-            "file": "tests/backupServiceBehavior0813f.test.ts",
+            "file": "tests/security/backup/backupServiceBehavior.test.ts",
             "name": "creates encrypted backups with current scrypt parameters and excludes tmp/nested backup files"
           }
         ],
         "integration": [
           {
-            "file": "tests/backupServiceBehavior0813f.test.ts",
+            "file": "tests/security/backup/backupServiceBehavior.test.ts",
             "name": "preserves activity journal and participation violation domain payloads during backup and restore"
           }
         ],
         "abuse": [
           {
-            "file": "tests/backupServiceBehavior0813f.test.ts",
+            "file": "tests/security/backup/backupServiceBehavior.test.ts",
             "name": "rejects duplicate, traversing and incomplete file manifests without changing the current vault"
           }
         ]
@@ -273,44 +273,44 @@
       "tests": {
         "positive": [
           {
-            "file": "tests/demoModeBehavior096r.test.ts",
+            "file": "tests/platform/demo/demoModeBehavior.test.ts",
             "name": "verwendet ein separates temporäres Verzeichnis und setzt es idempotent zurück"
           }
         ],
         "negative": [
           {
-            "file": "tests/demoModeBehavior096r.test.ts",
+            "file": "tests/platform/demo/demoModeBehavior.test.ts",
             "name": "verweigert Reset außerhalb des Temp-Verzeichnisses und folgt keinen symbolischen Links"
           }
         ],
         "boundary": [
           {
-            "file": "tests/demoModeBehavior096r.test.ts",
+            "file": "tests/platform/demo/demoModeBehavior.test.ts",
             "name": "verwendet ein separates temporäres Verzeichnis und setzt es idempotent zurück"
           }
         ],
         "persistence": [
           {
-            "file": "tests/demoModeBehavior096r.test.ts",
+            "file": "tests/platform/demo/demoModeBehavior.test.ts",
             "name": "verwendet ein separates temporäres Verzeichnis und setzt es idempotent zurück"
           }
         ],
         "rollback": null,
         "privacy": [
           {
-            "file": "tests/demoModeBehavior096r.test.ts",
+            "file": "tests/platform/demo/demoModeBehavior.test.ts",
             "name": "verweigert Reset außerhalb des Temp-Verzeichnisses und folgt keinen symbolischen Links"
           }
         ],
         "integration": [
           {
-            "file": "tests/demoModeBehavior096r.test.ts",
+            "file": "tests/platform/demo/demoModeBehavior.test.ts",
             "name": "verwendet ein separates temporäres Verzeichnis und setzt es idempotent zurück"
           }
         ],
         "abuse": [
           {
-            "file": "tests/demoModeBehavior096r.test.ts",
+            "file": "tests/platform/demo/demoModeBehavior.test.ts",
             "name": "verweigert Reset außerhalb des Temp-Verzeichnisses und folgt keinen symbolischen Links"
           }
         ]
@@ -330,33 +330,33 @@
       "tests": {
         "positive": [
           {
-            "file": "tests/caseDeletionTransaction096n.test.ts",
+            "file": "tests/features/cases/caseDeletionTransaction.test.ts",
             "name": "enforces dependency deletion, mandatory audit, case deletion and retention evidence in this order"
           }
         ],
         "negative": [
           {
-            "file": "tests/caseDeletionTransaction096n.test.ts",
+            "file": "tests/features/cases/caseDeletionTransaction.test.ts",
             "name": "rolls back and never deletes the case record when the mandatory audit fails"
           }
         ],
         "boundary": null,
         "persistence": [
           {
-            "file": "tests/caseDeletionTransaction096n.test.ts",
+            "file": "tests/features/cases/caseDeletionTransaction.test.ts",
             "name": "enforces dependency deletion, mandatory audit, case deletion and retention evidence in this order"
           }
         ],
         "rollback": [
           {
-            "file": "tests/caseDeletionTransaction096n.test.ts",
+            "file": "tests/features/cases/caseDeletionTransaction.test.ts",
             "name": "rolls back and never deletes the case record when the mandatory audit fails"
           }
         ],
         "privacy": null,
         "integration": [
           {
-            "file": "tests/caseDeletionTransaction096n.test.ts",
+            "file": "tests/features/cases/caseDeletionTransaction.test.ts",
             "name": "enforces dependency deletion, mandatory audit, case deletion and retention evidence in this order"
           }
         ],
@@ -379,19 +379,19 @@
       "tests": {
         "positive": [
           {
-            "file": "tests/auditHashChainBranchCoverage092.test.ts",
+            "file": "tests/privacy/auditHashChainBranchCoverage.test.ts",
             "name": "bestaetigt leere, aktuelle und Legacy-kompatible Hash-Ketten"
           }
         ],
         "negative": [
           {
-            "file": "tests/auditHashChainBranchCoverage092.test.ts",
+            "file": "tests/privacy/auditHashChainBranchCoverage.test.ts",
             "name": "meldet Sequenz-, Hash- und Verkettungsfehler in einem Lauf"
           }
         ],
         "boundary": [
           {
-            "file": "tests/auditHashChainBranchCoverage092.test.ts",
+            "file": "tests/privacy/auditHashChainBranchCoverage.test.ts",
             "name": "bestaetigt leere, aktuelle und Legacy-kompatible Hash-Ketten"
           }
         ],
@@ -399,14 +399,14 @@
         "rollback": null,
         "privacy": [
           {
-            "file": "tests/auditHashChainBranchCoverage092.test.ts",
+            "file": "tests/privacy/auditHashChainBranchCoverage.test.ts",
             "name": "serialisiert stabil und normalisiert sichere Audit-Metadaten datensparsam"
           }
         ],
         "integration": null,
         "abuse": [
           {
-            "file": "tests/auditHashChainBranchCoverage092.test.ts",
+            "file": "tests/privacy/auditHashChainBranchCoverage.test.ts",
             "name": "meldet ungueltige Sequenzen separat"
           }
         ]
@@ -428,39 +428,39 @@
       "tests": {
         "positive": [
           {
-            "file": "tests/tempFileServiceBehavior096r.test.ts",
+            "file": "tests/security/files/tempFileServiceBehavior.test.ts",
             "name": "löscht bei sofortigem Cleanup alle Dateien und meldet einen leeren Status"
           }
         ],
         "negative": [
           {
-            "file": "tests/tempFileServiceBehavior096r.test.ts",
+            "file": "tests/security/files/tempFileServiceBehavior.test.ts",
             "name": "löscht nur hinreichend alte Dateien und erhält junge Arbeitskopien"
           }
         ],
         "boundary": [
           {
-            "file": "tests/tempFileServiceBehavior096r.test.ts",
+            "file": "tests/security/files/tempFileServiceBehavior.test.ts",
             "name": "löscht nur hinreichend alte Dateien und erhält junge Arbeitskopien"
           }
         ],
         "persistence": [
           {
-            "file": "tests/tempFileServiceBehavior096r.test.ts",
+            "file": "tests/security/files/tempFileServiceBehavior.test.ts",
             "name": "löscht bei sofortigem Cleanup alle Dateien und meldet einen leeren Status"
           }
         ],
         "rollback": null,
         "privacy": [
           {
-            "file": "tests/tempFileServiceBehavior096r.test.ts",
+            "file": "tests/security/files/tempFileServiceBehavior.test.ts",
             "name": "legt alle Scopes an, säubert Dateinamen und schreibt Arbeitskopien mit restriktiven Rechten"
           }
         ],
         "integration": null,
         "abuse": [
           {
-            "file": "tests/tempFileServiceBehavior096r.test.ts",
+            "file": "tests/security/files/tempFileServiceBehavior.test.ts",
             "name": "legt alle Scopes an, säubert Dateinamen und schreibt Arbeitskopien mit restriktiven Rechten"
           }
         ]
@@ -481,44 +481,44 @@
       "tests": {
         "positive": [
           {
-            "file": "tests/secureFileOperationsCompletion.test.ts",
+            "file": "tests/security/files/secureFileOperationsCompletion.test.ts",
             "name": "uses the Windows-compatible replacement fallback and removes all sibling artifacts"
           }
         ],
         "negative": [
           {
-            "file": "tests/secureFileOperationsCompletion.test.ts",
+            "file": "tests/security/files/secureFileOperationsCompletion.test.ts",
             "name": "restores the old file when the second rename fails"
           }
         ],
         "boundary": [
           {
-            "file": "tests/secureFileOperationsCompletion.test.ts",
+            "file": "tests/security/files/secureFileOperationsCompletion.test.ts",
             "name": "uses the Windows-compatible replacement fallback and removes all sibling artifacts"
           }
         ],
         "persistence": [
           {
-            "file": "tests/secureFileOperationsCompletion.test.ts",
+            "file": "tests/security/files/secureFileOperationsCompletion.test.ts",
             "name": "uses the Windows-compatible replacement fallback and removes all sibling artifacts"
           }
         ],
         "rollback": [
           {
-            "file": "tests/secureFileOperationsCompletion.test.ts",
+            "file": "tests/security/files/secureFileOperationsCompletion.test.ts",
             "name": "restores the old file when the second rename fails"
           }
         ],
         "privacy": null,
         "integration": [
           {
-            "file": "tests/secureFileOperationsCompletion.test.ts",
+            "file": "tests/security/files/secureFileOperationsCompletion.test.ts",
             "name": "uses the Windows-compatible replacement fallback and removes all sibling artifacts"
           }
         ],
         "abuse": [
           {
-            "file": "tests/secureFileOperationsCompletion.test.ts",
+            "file": "tests/security/files/secureFileOperationsCompletion.test.ts",
             "name": "restores the old file when the second rename fails"
           }
         ]
@@ -538,49 +538,49 @@
       "tests": {
         "positive": [
           {
-            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "file": "tests/security/vault/securityServiceBehavior.test.ts",
             "name": "resets the password with a recovery key and allows unlock with the new password"
           }
         ],
         "negative": [
           {
-            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "file": "tests/security/vault/securityServiceBehavior.test.ts",
             "name": "rejects a wrong recovery key without creating a password store"
           }
         ],
         "boundary": [
           {
-            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "file": "tests/security/vault/securityServiceBehavior.test.ts",
             "name": "rejects truncated ciphertext and manipulated authentication tags before database access"
           }
         ],
         "persistence": [
           {
-            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "file": "tests/security/vault/securityServiceBehavior.test.ts",
             "name": "resets the password with a recovery key and allows unlock with the new password"
           }
         ],
         "rollback": [
           {
-            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "file": "tests/security/vault/securityServiceBehavior.test.ts",
             "name": "rolls back password store and manifest when the second security artifact write fails"
           }
         ],
         "privacy": [
           {
-            "file": "tests/securityPrivacyReadiness0813.test.ts",
+            "file": "tests/security/vault/securityPrivacyReadiness.test.ts",
             "name": "keeps E2E runs isolated and audit metadata datensparsam"
           }
         ],
         "integration": [
           {
-            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "file": "tests/security/vault/securityServiceBehavior.test.ts",
             "name": "resets the password with a recovery key and allows unlock with the new password"
           }
         ],
         "abuse": [
           {
-            "file": "tests/securityServiceBehavior0813f.test.ts",
+            "file": "tests/security/vault/securityServiceBehavior.test.ts",
             "name": "rejects truncated ciphertext and manipulated authentication tags before database access"
           }
         ]
@@ -598,49 +598,49 @@
       "tests": {
         "positive": [
           {
-            "file": "tests/demoModeBehavior096r.test.ts",
+            "file": "tests/platform/demo/demoModeBehavior.test.ts",
             "name": "verwendet ein separates temporäres Verzeichnis und setzt es idempotent zurück"
           }
         ],
         "negative": [
           {
-            "file": "tests/demoModeBehavior096r.test.ts",
+            "file": "tests/platform/demo/demoModeBehavior.test.ts",
             "name": "removes a partially initialized demo vault when seeding fails"
           }
         ],
         "boundary": [
           {
-            "file": "tests/demoModeBehavior096r.test.ts",
+            "file": "tests/platform/demo/demoModeBehavior.test.ts",
             "name": "verweigert Reset außerhalb des Temp-Verzeichnisses und folgt keinen symbolischen Links"
           }
         ],
         "persistence": [
           {
-            "file": "tests/demoModeBehavior096r.test.ts",
+            "file": "tests/platform/demo/demoModeBehavior.test.ts",
             "name": "verwendet ein separates temporäres Verzeichnis und setzt es idempotent zurück"
           }
         ],
         "rollback": [
           {
-            "file": "tests/demoModeBehavior096r.test.ts",
+            "file": "tests/platform/demo/demoModeBehavior.test.ts",
             "name": "removes a partially initialized demo vault when seeding fails"
           }
         ],
         "privacy": [
           {
-            "file": "tests/demoModeBehavior096r.test.ts",
+            "file": "tests/platform/demo/demoModeBehavior.test.ts",
             "name": "lets demo isolation win over a configured productive data directory without touching production data"
           }
         ],
         "integration": [
           {
-            "file": "tests/demoModeBehavior096r.test.ts",
+            "file": "tests/platform/demo/demoModeBehavior.test.ts",
             "name": "removes a partially initialized demo vault when seeding fails"
           }
         ],
         "abuse": [
           {
-            "file": "tests/demoModeBehavior096r.test.ts",
+            "file": "tests/platform/demo/demoModeBehavior.test.ts",
             "name": "verweigert Reset außerhalb des Temp-Verzeichnisses und folgt keinen symbolischen Links"
           }
         ]
@@ -658,19 +658,19 @@
       "tests": {
         "positive": [
           {
-            "file": "tests/ipcEndpointContractsCompletion.test.ts",
+            "file": "tests/architecture/ipcEndpointContractsCompletion.test.ts",
             "name": "validates every exposed IPC endpoint contract at runtime"
           }
         ],
         "negative": [
           {
-            "file": "tests/ipcEndpointContractsCompletion.test.ts",
+            "file": "tests/architecture/ipcEndpointContractsCompletion.test.ts",
             "name": "rejects renderer-controlled absolute POSIX and Windows paths before IPC dispatch"
           }
         ],
         "boundary": [
           {
-            "file": "tests/ipcEndpointContractsCompletion.test.ts",
+            "file": "tests/architecture/ipcEndpointContractsCompletion.test.ts",
             "name": "validates every exposed IPC endpoint contract at runtime"
           }
         ],
@@ -678,19 +678,19 @@
         "rollback": null,
         "privacy": [
           {
-            "file": "tests/ipcBridgeModularizationPatch5.test.ts",
+            "file": "tests/architecture/ipcBridgeModularization.test.ts",
             "name": "does not serialize unexpected internal main-process details"
           }
         ],
         "integration": [
           {
-            "file": "tests/ipcBridgeModularizationPatch5.test.ts",
+            "file": "tests/architecture/ipcBridgeModularization.test.ts",
             "name": "invokes a declared channel and returns a serializable result"
           }
         ],
         "abuse": [
           {
-            "file": "tests/ipcEndpointContractsCompletion.test.ts",
+            "file": "tests/architecture/ipcEndpointContractsCompletion.test.ts",
             "name": "rejects renderer-controlled absolute POSIX and Windows paths before IPC dispatch"
           }
         ]
@@ -711,19 +711,19 @@
       "tests": {
         "positive": [
           {
-            "file": "tests/ipcRuntimeArgumentBoundary096j.test.ts",
+            "file": "tests/platform/electron/ipcRuntimeArgumentBoundary.test.ts",
             "name": "rejects both missing and surplus arguments before the handler runs"
           }
         ],
         "negative": [
           {
-            "file": "tests/ipcBridgeModularizationPatch5.test.ts",
+            "file": "tests/architecture/ipcBridgeModularization.test.ts",
             "name": "rejects calls from an untrusted renderer origin"
           }
         ],
         "boundary": [
           {
-            "file": "tests/ipcRuntimeArgumentBoundary096j.test.ts",
+            "file": "tests/platform/electron/ipcRuntimeArgumentBoundary.test.ts",
             "name": "rejects both missing and surplus arguments before the handler runs"
           }
         ],
@@ -731,19 +731,19 @@
         "rollback": null,
         "privacy": [
           {
-            "file": "tests/ipcBridgeModularizationPatch5.test.ts",
+            "file": "tests/architecture/ipcBridgeModularization.test.ts",
             "name": "uses a structured safe main-process error without leaking its cause"
           }
         ],
         "integration": [
           {
-            "file": "tests/ipcBridgeModularizationPatch5.test.ts",
+            "file": "tests/architecture/ipcBridgeModularization.test.ts",
             "name": "rejects a non-serializable handler result with a safe application error"
           }
         ],
         "abuse": [
           {
-            "file": "tests/ipcBridgeModularizationPatch5.test.ts",
+            "file": "tests/architecture/ipcBridgeModularization.test.ts",
             "name": "rejects calls from an untrusted renderer origin"
           }
         ]

@@ -14,26 +14,20 @@ const TARGETS = {
   win: {
     os: 'win',
     label: 'Windows portable x64 EXE',
-    builderArgs: ['--win', 'portable', '--x64', '--config.artifactName=Gremia.SBV-${version}-win-x64-portable.${ext}'],
+    builderArgs: ['--win', 'portable', '--x64'],
     artifactHint: 'release/Gremia.SBV-<version>-win-x64-portable.exe'
   },
   windows: {
     os: 'win',
     label: 'Windows portable x64 EXE',
-    builderArgs: ['--win', 'portable', '--x64', '--config.artifactName=Gremia.SBV-${version}-win-x64-portable.${ext}'],
+    builderArgs: ['--win', 'portable', '--x64'],
     artifactHint: 'release/Gremia.SBV-<version>-win-x64-portable.exe'
   },
   'win-portable': {
     os: 'win',
     label: 'Windows portable x64 EXE',
-    builderArgs: ['--win', 'portable', '--x64', '--config.artifactName=Gremia.SBV-${version}-win-x64-portable.${ext}'],
+    builderArgs: ['--win', 'portable', '--x64'],
     artifactHint: 'release/Gremia.SBV-<version>-win-x64-portable.exe'
-  },
-  'win-installer': {
-    os: 'win',
-    label: 'Windows x64 Installer',
-    builderArgs: ['--win', 'nsis', '--x64', '--config.artifactName=Gremia.SBV-${version}-win-x64-setup.${ext}'],
-    artifactHint: 'release/Gremia.SBV-<version>-win-x64-setup.exe'
   },
   mac: {
     os: 'mac',
@@ -44,7 +38,7 @@ const TARGETS = {
 };
 
 function usage() {
-  console.error('Nutzung: node scripts/build-platform.cjs <linux|win|win-portable|win-installer|mac>');
+  console.error('Nutzung: node scripts/build-platform.cjs <linux|win|win-portable|mac>');
 }
 
 function command(name) {

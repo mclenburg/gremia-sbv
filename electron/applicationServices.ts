@@ -1,46 +1,4 @@
-import type { DatabaseAdapter } from '../services/databaseService.js';
-import { ActivityJournalPreferenceService } from '../services/activityJournalPreferenceService.js';
-import { ActivityJournalService } from '../services/activityJournalService.js';
-import { PersonalDataAuditLogService } from '../services/auditLogService.js';
-import { MeasureLifecycleAuditService } from '../services/measureLifecycleAuditService.js';
-import { SearchIndexService } from '../services/search/searchIndexService.js';
-import { BackupService } from '../services/backupService.js';
-import { BemService } from '../services/bemService.js';
-import { CaseHandoverService } from '../services/caseHandoverService.js';
-import { CaseMeasureService } from '../services/caseMeasureService.js';
-import { CaseService } from '../services/caseService.js';
-import { ComplianceIncidentService } from '../services/complianceIncidentService.js';
-import { ComplianceSelfCheckService } from '../services/complianceSelfCheckService.js';
-import { ContactService } from '../services/contactService.js';
-import { DeadlineService } from '../services/deadlineService.js';
-import { DsarPrefillService } from '../services/dsarPrefillService.js';
-import { EqualizationService } from '../services/equalizationService.js';
-import { GremiaBrAuthService } from '../services/gremiaBr/gremiaBrAuthService.js';
-import { GremiaBrCacheService } from '../services/gremiaBr/gremiaBrCacheService.js';
-import { GremiaBrExternalReferenceService } from '../services/gremiaBr/gremiaBrExternalReferenceService.js';
-import { GremiaBrSettingsService } from '../services/gremiaBr/gremiaBrSettingsService.js';
-import { KnowledgeService } from '../services/knowledgeService.js';
-import { ParticipationService } from '../services/participationService.js';
-import { PersonAnonymizationService } from '../services/personAnonymizationService.js';
-import { PersonImportService } from '../services/personImportService.js';
-import { PersonStatusExpiryService } from '../services/personStatusExpiryService.js';
-import { PreventionService } from '../services/preventionService.js';
-import { PrivacyReviewService } from '../services/privacyReviewService.js';
-import { ProtectedPersonService } from '../services/protectedPersonService.js';
-import { RecruitingParticipationService } from '../services/recruitingParticipationService.js';
-import { ReportService } from '../services/reportService.js';
-import { RetentionService } from '../services/retentionService.js';
-import { SbvControlProtocolService } from '../services/sbvControlProtocolService.js';
-import { SbvParticipationViolationDocumentService } from '../services/sbvParticipationViolationDocumentService.js';
-import { SbvParticipationViolationService } from '../services/sbvParticipationViolationService.js';
-import { SbvParticipationViolationTemplateService } from '../services/sbvParticipationViolationTemplateService.js';
-import { SbvResourceService } from '../services/sbvResourceService.js';
-import type { SecurityService } from '../services/securityService.js';
-import { TemplateDefaultService } from '../services/templateDefaultService.js';
-import { TemplateService } from '../services/templateService.js';
-import { TerminationService } from '../services/terminationService.js';
-import { WorkplaceAccommodationService } from '../services/workplaceAccommodationService.js';
-
+import { ActivityJournalPreferenceService, ActivityJournalService, PersonalDataAuditLogService, MeasureLifecycleAuditService, SearchIndexService, BackupService, BemService, CaseHandoverService, CaseMeasureService, CaseService, ComplianceIncidentService, ComplianceSelfCheckService, ContactService, DeadlineService, DsarPrefillService, EqualizationService, GremiaBrAuthService, GremiaBrCacheService, GremiaBrExternalReferenceService, GremiaBrSettingsService, KnowledgeService, ParticipationService, PersonAnonymizationService, PersonImportService, PersonStatusExpiryService, PreventionService, PrivacyReviewService, ProtectedPersonService, RecruitingParticipationService, ReportService, RetentionService, SbvControlProtocolService, SbvParticipationViolationDocumentService, SbvParticipationViolationService, SbvParticipationViolationTemplateService, SbvResourceService, TemplateDefaultService, TemplateService, TerminationService, WorkplaceAccommodationService, type DatabaseAdapter, type SecurityService } from './applicationServiceDependencies.js';
 /**
  * Central composition root for Electron main-process application services.
  *

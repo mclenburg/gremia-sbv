@@ -1,85 +1,16 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { createCipheriv, createDecipheriv, createHash, randomBytes, randomUUID } from 'node:crypto';
+import { createCipheriv, createDecipheriv, randomBytes, randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
 import type { CreatePersonalDataAuditInput } from '../src/app/core/models/audit.model.js';
-import {
-  auditCaseHandoverContinuedAfterExpiry,
-  auditCaseHandoverExported,
-  auditCaseHandoverImported,
-  auditCaseHandoverImportInspected,
-} from './auditEventBuilders.js';
+import { auditCaseHandoverContinuedAfterExpiry, auditCaseHandoverExported, auditCaseHandoverImported, auditCaseHandoverImportInspected } from './auditEventBuilders.js';
 import { SearchIndexService } from './search/searchIndexService.js';
-import {
-  buildCandidateMatches,
-  CASE_HANDOVER_FORMAT,
-  CASE_HANDOVER_VERSION,
-  createPackageId,
-  isExpired,
-  packageRef,
-  safeAuditMetadata,
-} from './caseHandoverPolicy.js';
-import {
-  assertCaseHandoverEnvelope,
-  decryptCaseHandoverEnvelope,
-  encryptCaseHandoverPayloadV2,
-  type CaseHandoverEnvelope,
-} from './caseHandoverCrypto.js';
+import { buildCandidateMatches, CASE_HANDOVER_FORMAT, CASE_HANDOVER_VERSION, createPackageId, isExpired, packageRef, safeAuditMetadata } from './caseHandoverPolicy.js';
+import { assertCaseHandoverEnvelope, decryptCaseHandoverEnvelope, encryptCaseHandoverPayloadV2, type CaseHandoverEnvelope } from './caseHandoverCrypto.js';
 import { inspectCaseHandoverFilePath } from './caseHandoverFilePolicy.js';
-import type {
-  CaseHandoverContinueExpiredInput,
-  CaseHandoverContinueExpiredResult,
-  CaseHandoverExportInput,
-  CaseHandoverExportResult,
-  CaseHandoverImportInput,
-  CaseHandoverImportResult,
-  CaseHandoverInspectResult,
-} from '../src/app/core/models/case-handover.model.js';
-
-interface HandoverDatabaseRow extends Record<string, unknown> {
-  id: string;
-  case_id: string;
-  measure_id: string;
-  protected_person_id: string | null;
-  storage_path?: string | null;
-  document_key?: string | null;
-  iv?: string | null;
-  auth_tag?: string | null;
-}
-type Row = HandoverDatabaseRow;
-type PackagePayload = {
-  format: string;
-  version: number;
-  packageId: string;
-  createdAt: string;
-  expiresAt?: string;
-  purpose: string;
-  cases: Array<{ ref: string; data: Row }>;
-  protectedPersons: Array<{ ref: string; data: Row }>;
-  notes: Array<{ ref: string; caseRef: string; data: Row }>;
-  measures: Array<{ ref: string; caseRef: string; data: Row }>;
-  measureNotes: Array<{ ref: string; caseRef: string; measureRef: string; data: Row }>;
-  deadlines: Array<{ ref: string; caseRef?: string; measureRef?: string; data: Row }>;
-  documents: Array<{ ref: string; caseRef: string; measureRef?: string; data: Row; contentBase64: string }>;
-};
-
-type DecryptedPackage = {
-  payload: PackagePayload;
-  transfer: {
-    formatVersion: number;
-    legacyFormat: boolean;
-    algorithm: 'aes-256-gcm';
-  };
-};
-
-function nowIso(): string { return new Date().toISOString(); }
-function sha256(value: Buffer | string): string { return createHash('sha256').update(value).digest('hex'); }
-function isRecord(value: unknown): value is Record<string, unknown> { return typeof value === 'object' && value !== null && !Array.isArray(value); }
-
-function safeString(value: unknown, fallback = ''): string { return String(value ?? fallback); }
-function ensureArray(value?: string[]): string[] { return [...new Set((value ?? []).filter(Boolean))]; }
-
+import type { CaseHandoverContinueExpiredInput, CaseHandoverContinueExpiredResult, CaseHandoverExportInput, CaseHandoverExportResult, CaseHandoverImportInput, CaseHandoverImportResult, CaseHandoverInspectResult } from '../src/app/core/models/case-handover.model.js';
+import { Row, PackagePayload, DecryptedPackage, nowIso, sha256, isRecord, safeString, ensureArray } from './caseHandoverSupport.js';
 export class CaseHandoverService {
   constructor(private readonly dbProvider: () => DatabaseAdapter, private readonly dataDirProvider: () => string = () => path.join(process.cwd(), 'data')) {}
 

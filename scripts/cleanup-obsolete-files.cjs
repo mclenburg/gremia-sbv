@@ -76,25 +76,30 @@ function walkFiles(startPath) {
   return fs.readdirSync(startPath).flatMap((entry) => walkFiles(path.join(startPath, entry)));
 }
 
-function findReferences(normalized, manifestPath) {
+function isScheduledForCleanup(filePath, cleanupScope) {
+  const relativePath = path.relative(projectRoot, filePath).replaceAll('\\', '/');
+  if (cleanupScope.files.has(relativePath)) return true;
+  return cleanupScope.directories.some((directory) => relativePath === directory || relativePath.startsWith(`${directory}/`));
+}
+
+function findReferences(normalized, manifestPath, cleanupScope) {
   const extension = path.extname(normalized);
   const extensionless = extension ? normalized.slice(0, -extension.length) : normalized;
-  const basename = path.basename(normalized);
-  const basenameExtension = path.extname(basename);
-  const basenameExtensionless = basenameExtension ? basename.slice(0, -basenameExtension.length) : basename;
+  // References must point to the obsolete path, not merely reuse the same basename.
+  // References originating from another cleanup target are irrelevant because that
+  // source disappears in the same validated cleanup transaction.
   const needles = new Set([
     normalized,
     normalized.replaceAll('/', path.sep),
     extensionless,
     extensionless.replaceAll('/', path.sep),
-    basename,
-    basenameExtensionless,
   ]);
   const references = [];
   for (const relativeStart of referenceFiles) {
     const absoluteStart = path.join(projectRoot, relativeStart);
     for (const filePath of walkFiles(absoluteStart)) {
       if (filePath === manifestPath || filePath === path.resolve(__filename)) continue;
+      if (isScheduledForCleanup(filePath, cleanupScope)) continue;
       const ext = path.extname(filePath).toLowerCase();
       if (!['.json', '.js', '.cjs', '.mjs', '.ts', '.tsx', '.yml', '.yaml', '.md'].includes(ext)) continue;
       let content;
@@ -107,7 +112,7 @@ function findReferences(normalized, manifestPath) {
   return [...new Set(references)].sort();
 }
 
-function validateEntry(entry, manifestPath) {
+function validateEntry(entry, manifestPath, cleanupScope) {
   if (!['file', 'directory'].includes(entry.type)) throw new Error(`Ungültiger Dateityp für ${entry.path}: ${String(entry.type)}`);
   const resolved = assertSafeRelativePath(entry.path, entry.type, manifestPath);
   if (!fs.existsSync(resolved.absolutePath)) return { ...resolved, exists: false };
@@ -120,39 +125,72 @@ function validateEntry(entry, manifestPath) {
     const actual = sha256(resolved.absolutePath);
     if (actual !== entry.sha256) throw new Error(`Unerwarteter Inhalt; SHA-256 weicht ab: ${resolved.normalized}`);
   }
-  const references = findReferences(resolved.normalized, manifestPath);
+  const references = findReferences(resolved.normalized, manifestPath, cleanupScope);
   if (references.length > 0) throw new Error(`Cleanup-Ziel wird noch referenziert: ${resolved.normalized} (${references.join(', ')})`);
   return { ...resolved, exists: true };
 }
 
 function main() {
-  const planned = [];
-  const alreadyClean = [];
-  const failed = [];
+  const manifestPaths = loadManifestPaths();
+  const records = [];
   const seen = new Set();
-  for (const manifestPath of loadManifestPaths()) {
+
+  for (const manifestPath of manifestPaths) {
     if (!fs.existsSync(manifestPath)) throw new Error(`Cleanup-Manifest nicht gefunden: ${manifestPath}`);
     const { entries } = parseManifest(manifestPath);
     for (const entry of entries) {
       const key = `${entry.type}:${entry.path}`;
       if (seen.has(key)) throw new Error(`Doppelter Cleanup-Eintrag: ${entry.path}`);
       seen.add(key);
-      const target = validateEntry(entry, manifestPath);
-      const display = entry.type === 'directory' ? `${target.normalized}/` : target.normalized;
-      if (!target.exists) { alreadyClean.push(display); continue; }
-      planned.push(display);
-      if (dryRun) continue;
-      try {
-        if (entry.type === 'directory') fs.rmSync(target.absolutePath, { recursive: true, force: false, maxRetries: 3, retryDelay: 100 });
-        else fs.unlinkSync(target.absolutePath);
-      } catch (error) {
-        failed.push({ path: display, reason: error instanceof Error ? error.message : String(error) });
-        if (strictDelete) throw error;
-      }
+      records.push({ entry, manifestPath });
     }
   }
+
+  // Build the complete cleanup scope before reference validation. This is essential
+  // for relocations where obsolete tests reference other obsolete tests: references
+  // from files that will disappear in the same cleanup transaction must not block it.
+  const cleanupScope = { files: new Set(), directories: [] };
+  for (const { entry, manifestPath } of records) {
+    const resolved = assertSafeRelativePath(entry.path, entry.type, manifestPath);
+    if (entry.type === 'directory') cleanupScope.directories.push(resolved.normalized);
+    else cleanupScope.files.add(resolved.normalized);
+  }
+  cleanupScope.directories.sort();
+
+  // Preflight every target before deleting anything. A late validation failure must
+  // never leave a 200+ file relocation half-applied.
+  const validated = records.map(({ entry, manifestPath }) => ({
+    entry,
+    target: validateEntry(entry, manifestPath, cleanupScope),
+  }));
+
+  const planned = [];
+  const alreadyClean = [];
+  for (const { entry, target } of validated) {
+    const display = entry.type === 'directory' ? `${target.normalized}/` : target.normalized;
+    if (!target.exists) alreadyClean.push(display);
+    else planned.push({ entry, target, display });
+  }
+
   console.log(dryRun ? 'Cleanup-Plan:' : 'Source-Cleanup:');
-  for (const entry of planned) console.log(`  ${dryRun ? 'WOULD DELETE' : 'DELETED'} ${entry}`);
+  if (dryRun) {
+    for (const item of planned) console.log(`  WOULD DELETE ${item.display}`);
+    if (verbose) for (const entry of alreadyClean) console.log(`  ALREADY CLEAN ${entry}`);
+    console.log(`${planned.length} Ziel(e), ${alreadyClean.length} bereits entfernt, 0 Fehler.`);
+    return;
+  }
+
+  const failed = [];
+  for (const { entry, target, display } of planned) {
+    try {
+      if (entry.type === 'directory') fs.rmSync(target.absolutePath, { recursive: true, force: false, maxRetries: 3, retryDelay: 100 });
+      else fs.unlinkSync(target.absolutePath);
+      console.log(`  DELETED ${display}`);
+    } catch (error) {
+      failed.push({ path: display, reason: error instanceof Error ? error.message : String(error) });
+      if (strictDelete) throw error;
+    }
+  }
   if (verbose) for (const entry of alreadyClean) console.log(`  ALREADY CLEAN ${entry}`);
   for (const entry of failed) console.error(`  FAILED ${entry.path}: ${entry.reason}`);
   console.log(`${planned.length} Ziel(e), ${alreadyClean.length} bereits entfernt, ${failed.length} Fehler.`);

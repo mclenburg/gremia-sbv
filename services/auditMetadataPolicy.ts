@@ -184,6 +184,8 @@ export const AUDIT_METADATA_POLICY_BY_SUBJECT_TYPE = {
   case_measure_workplace_accommodation: [] as const,
   case_note: [] as const,
   case_note_link: [] as const,
+  case_legal_reference: [] as const,
+  case_external_reference: [] as const,
 } as const satisfies Record<string, readonly string[]>;
 
 export type AuditMetadataPolicySubjectType = keyof typeof AUDIT_METADATA_POLICY_BY_SUBJECT_TYPE;

@@ -816,6 +816,1191 @@
     {
       "path": "docs/KNOWN_ISSUES.md",
       "type": "file"
+    },
+    {
+      "path": "tests/accessibilityKnowledgeSelectP15o.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/activityJournalIntegration093b.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/activityJournalPrefillBemBehavior093a.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/activityJournalPrefillCaseBehavior093a.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/activityJournalPrefillClosedDeadlineBehavior093a.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/activityJournalPrefillDeadlineBehavior093a.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/activityJournalPrefillParticipationBehavior093a.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/activityJournalPrefillPreventionBehavior093a.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/activityJournalSchema093a.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/activityJournalServiceBehavior093a.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/activityJournalTitleBehavior093a.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/activityJournalUsability093c.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/activityReportProjectionService.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/appSchemaVersion0036.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/appVersion.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/applicationServicesCompositionRoot.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/architectureDiagramsDocs091d.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/architectureImportBoundaries091f.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/auditBuilderCentralizationP9.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/auditHashChainBranchCoverage092.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/auditMetadataPolicy094c.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/auditService.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/backupPayloadPolicy.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/backupPolicy.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/backupServiceBehavior0813f.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/bemGuidanceBranchCoverage092.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/bemMigration051b.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/bemMigrationFreshInstall0812d.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/bemWorkflowPolicy0500.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/buildCleanupInfrastructurePatch2.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/buildReadinessInstalledDependencies092r.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/caseDeletionTransaction096n.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/caseHandoverCrypto092.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/caseHandoverCryptoBranchCoverage092.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/caseHandoverExportFeedback092.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/caseHandoverFilePolicy092.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/caseHandoverPlacement092.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/caseHandoverPolicy092.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/caseLifecycleAuditService096n.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/caseMeasureNotesBehavior091b.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/caseMeasureNotesDesign091c.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/caseMeasureNotesPrivacy091b.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/caseModalWorkflowPolicy.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/caseNodeTargetSelection091.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/caseNoteEntityLinkBehavior0813e.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/caseProcessPolicyBehavior0813m.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/caseSearchProviders091h.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/caseSearchUiBehavior091l.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/caseWorkbenchWorkflowPolicy.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/complianceAuditChainAutoCheck091.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/complianceDsarPrefill092.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/complianceIncidentServiceBehavior092.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/complianceSelfCheckServiceBehavior092.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/complianceStepE091.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/contactPrivacyService.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/contentSecurityPolicy096m.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/crossPlatformPackagingP4.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/dashboardFocusPolicy092g.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/dashboardFocusPresentation092h.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/databaseIntegrityCompliance091.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/databaseUnitOfWork.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/deadlineService.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/deadlinesPanelBehavior092.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/demoModeBehavior096r.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/demoModeSchemaCompleteness092v.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/demoSeedRelativeDates092aa.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/dependabotPolicy092k.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/dependencyHygiene092j.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/documentContainerService094c.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/documentOcrService091j.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/documentStoragePolicy.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/documentTextExtractionService091i.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/domainAggregateIntegrity096h.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/dsarPrefillService092.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/dsbTransparencyPatch092an.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/e2eCoverageMatrix095e.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/e2eIsolatedToolsResolution092.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/e2eRunnerPlaywrightResolution092.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/electronAppDepsPostinstall092i.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/electronBuilderConfig092t.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/electronSqlcipherCompatibility092s.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/ensureNodeNativeDepsPhase1.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/equalizationWorkflowAndGuidanceBehavior0813m.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/eslintConfiguration096m.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/explicitAnyAudit096p.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/exportGuardBem058.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/exportGuardPolicy.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/frontendLazyLoadingAccessibilityPatch7.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/githubBuildCurrentOs095e.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/githubTaggedReleaseWorkflow092ac.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/gremiaBrApiCatalog092g.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/gremiaBrAuthProfileContract092q.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/gremiaBrCacheService092c.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/gremiaBrExternalReferenceService092e.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/gremiaBrHttpReadAdapter092b.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/gremiaBrReadBridgeSecurity092f.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/gremiaBrRelevanceService092d.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/gremiaBrSettingsService092a.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/hashChainLifecycleCompleteness095ad.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/helpDialogInfrastructure095h.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/helpTextMigration095j.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/helpTextPolicyGate095k.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/helpVisualConsistency095u.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/icalProcessType091.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/industrialListSearchCentralizationP7.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/industrialStatusBadgeCentralizationP5.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/inlineCommandBehavior0456.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/inlineCommandPureBehavior0813e.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/inlineTextCommandRoutingBehavior096u.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/ipcApplicationErrorBoundary096i.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/ipcBridgeModularizationPatch5.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/ipcEndpointContractsCompletion.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/ipcRuntimeArgumentBoundary096j.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/ipcValidation084f.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/knowledgeMigrationCompatibility.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/knowledgePolicy.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/knowledgeService.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/labelMappingCentralization094c.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/loginGateCenteredOverlay092w.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/maintainabilityRatchet096.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/measureLifecycleAuditService.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/measureLifecycleDependencyInjection096.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/measureLifecycleMigration048.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/migrationService.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/migrationService095d.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/moduleCssArchitecture092.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/moduleFeedbackArchitecture091.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/nativeDependencyPostinstallContract.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/navigationAndPanelCleanup092.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/noExplicitAnyCasts092.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/npmScriptContract096r.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/openTaskDashboardPolicy.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/packagePostinstall059.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/participationLegacyMigration092z.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/passwordSecurityPolicyP10b.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/personAnonymizationPolicy091.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/personCaseBinding091.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/personCaseLinkServiceBehavior096r.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/personEditDialog091.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/personExpiryIcal091.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/personImport091.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/personImportWizard091.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/personalDataAuditCompletenessPhase4.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/platformIndependentTestSuite092.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/portableProfileServiceBehavior096r.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/pre1ReleaseHardening092as.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/preventionWorkflowPolicy.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/privacyEntityRegistry091f.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/privacyLifecycleAudit091.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/privacyReviewTooltipUx091.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/processServices.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/protectedPersons091.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/rc091CriticalPrivacyBehavior.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/rc091MarkdownDocsCurrent.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/rcFinalTestSync090rc1p.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/rcFixCasePreventionCss090rc1d.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/rcFixCasePreventionCss090rc1e.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/rcWindowsPortableArtifact090rc1o.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/recruitingParticipationIntegration095c.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/recruitingParticipationSchema095a.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/recruitingParticipationService095a.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/recruitingParticipationUi095b.test.tsx",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/recruitingParticipationValidationBehavior096r.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/rendererBundleContractPatch7.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/reportPrivacyPolicy.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/retentionPolicy.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/retentionPolicyBehavior0813f.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/review5UserGuidance092.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/runtimeDataDirectoryPlatformBehaviorP4.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/runtimeSchemaGuardsRemoved096e.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/sandboxedPreloadSelfContained096l.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/sbvControlProtocolSchema092ap.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/sbvControlProtocolService092ao.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/sbvControlProtocolTextCommands092aw.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/sbvControlRefactorP10g.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/sbvControlStructure092.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/sbvParticipationViolationDocuments094b.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/sbvParticipationViolationIntegration094c.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/sbvParticipationViolationSchema094a.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/sbvParticipationViolationService094a.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/sbvParticipationViolationTemplateBehavior094c.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/sbvParticipationViolationViewLogic094c.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/sbvResourceServiceBehavior092.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/schemaMigrationConsolidation096g.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/schemaSnapshotFreshVsMigration091f.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/searchIndexFunctionalCoverage091k.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/searchIndexService091h.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/secureFileOperationsCompletion.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/securityHardening084.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/securityPrivacyReadiness0813.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/securityReadiness089.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/securityServiceBehavior0813f.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/selectedFileCapabilityCompletion.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/serviceConstructionSideEffects096.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/serviceCoverageConfig0813f.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/serviceCoverageScope0813m.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/sessionLockViewPersistence095z.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/settingsNavigation092g.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/signpathCodeSigning092u.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/sourceAssertionClassificationPatch7.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/sourceCleanupBuildContract096k.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/sourceCleanupRootPatchNotes091e.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/sourceCleanupWindowsPath0812a.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/sourceTextPlatformIndependence0812g.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/startupBootstrapFastFeedback092aq.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/startupExperience092.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/tailwindPostcssContract092p.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/tempFileServiceBehavior096r.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/templateContextPolicy.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/templateDefaultsPersistence091g.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/templateManagementEditDelete.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/templatePolicy.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/templatesBehavior0457.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/terminationHardening072.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/terminationPrivacyPolicyBehavior0813m.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/terminationTemplates072.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/terminationWorkflowPolicyBehavior0813f.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/testControlMatrixPatch3.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/testQualityMetrics096o.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/testQualityRatioBehavior096q.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/textCommandPolicy.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/textCommandPolicyBranchCoverage092.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/thirdPartyLicenseFingerprintPortabilityPhase1.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/thirdPartyLicenseGeneration092y.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/thirdPartyLicensePerformance096s.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/uiFoundation092BestPractices.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/uiFoundation092Block1.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/uiFoundation092Block2.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/uiFoundation092Block3.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/uiFoundation092Block4Behavior.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/uiFoundation092Block5Behavior.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/unifiedActivityReportCleanup095.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/unitCoverageGate0813d.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/unlockDelay089.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/visualQaContractP11.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/windowsUnsignedBuild0812j.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
+    },
+    {
+      "path": "tests/workflowViewsPureIndex0811.test.ts",
+      "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
+      "type": "file"
     }
   ]
 }

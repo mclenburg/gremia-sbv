@@ -32,6 +32,12 @@ if (args.has('--check')) {
   if (summary.hybridFiles > baseline.maximumHybridFiles) {
     violations.push(`Hybride Dateien: ${summary.hybridFiles} > ${baseline.maximumHybridFiles}`);
   }
+  if (typeof baseline.minimumTotalFiles === 'number' && summary.totalFiles < baseline.minimumTotalFiles) {
+    violations.push(`Testdateien gesamt: ${summary.totalFiles} < ${baseline.minimumTotalFiles}`);
+  }
+  if (typeof baseline.minimumAssertions === 'number' && summary.assertions < baseline.minimumAssertions) {
+    violations.push(`Assertions gesamt: ${summary.assertions} < ${baseline.minimumAssertions}`);
+  }
   if (violations.length > 0) {
     console.error('Testqualitäts-Ratchet verletzt:');
     for (const violation of violations) console.error(`- ${violation}`);

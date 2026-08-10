@@ -1,0 +1,954 @@
+{
+  "schemaVersion": 1,
+  "movedTests": 237,
+  "entries": [
+    {
+      "from": "tests/accessibilityKnowledgeSelectP15o.test.ts",
+      "to": "tests/features/knowledge/accessibilityKnowledgeSelect.test.ts"
+    },
+    {
+      "from": "tests/activityJournalIntegration093b.test.ts",
+      "to": "tests/features/activity-journal/activityJournalIntegration.test.ts"
+    },
+    {
+      "from": "tests/activityJournalPrefillBemBehavior093a.test.ts",
+      "to": "tests/features/activity-journal/activityJournalPrefillBemBehavior.test.ts"
+    },
+    {
+      "from": "tests/activityJournalPrefillCaseBehavior093a.test.ts",
+      "to": "tests/features/activity-journal/activityJournalPrefillCaseBehavior.test.ts"
+    },
+    {
+      "from": "tests/activityJournalPrefillClosedDeadlineBehavior093a.test.ts",
+      "to": "tests/features/activity-journal/activityJournalPrefillClosedDeadlineBehavior.test.ts"
+    },
+    {
+      "from": "tests/activityJournalPrefillDeadlineBehavior093a.test.ts",
+      "to": "tests/features/activity-journal/activityJournalPrefillDeadlineBehavior.test.ts"
+    },
+    {
+      "from": "tests/activityJournalPrefillParticipationBehavior093a.test.ts",
+      "to": "tests/features/activity-journal/activityJournalPrefillParticipationBehavior.test.ts"
+    },
+    {
+      "from": "tests/activityJournalPrefillPreventionBehavior093a.test.ts",
+      "to": "tests/features/activity-journal/activityJournalPrefillPreventionBehavior.test.ts"
+    },
+    {
+      "from": "tests/activityJournalSchema093a.test.ts",
+      "to": "tests/features/activity-journal/activityJournalSchema.test.ts"
+    },
+    {
+      "from": "tests/activityJournalServiceBehavior093a.test.ts",
+      "to": "tests/features/activity-journal/activityJournalServiceBehavior.test.ts"
+    },
+    {
+      "from": "tests/activityJournalTitleBehavior093a.test.ts",
+      "to": "tests/features/activity-journal/activityJournalTitleBehavior.test.ts"
+    },
+    {
+      "from": "tests/activityJournalUsability093c.test.ts",
+      "to": "tests/features/activity-journal/activityJournalUsability.test.ts"
+    },
+    {
+      "from": "tests/activityReportProjectionService.test.ts",
+      "to": "tests/features/reports/activityReportProjectionService.test.ts"
+    },
+    {
+      "from": "tests/appSchemaVersion0036.test.ts",
+      "to": "tests/architecture/migrations/appSchemaVersion.test.ts"
+    },
+    {
+      "from": "tests/appVersion.test.ts",
+      "to": "tests/architecture/appVersion.test.ts"
+    },
+    {
+      "from": "tests/applicationServicesCompositionRoot.test.ts",
+      "to": "tests/architecture/services/applicationServicesCompositionRoot.test.ts"
+    },
+    {
+      "from": "tests/architectureDiagramsDocs091d.test.ts",
+      "to": "tests/architecture/architectureDiagramsDocs.test.ts"
+    },
+    {
+      "from": "tests/architectureImportBoundaries091f.test.ts",
+      "to": "tests/architecture/architectureImportBoundaries.test.ts"
+    },
+    {
+      "from": "tests/auditBuilderCentralizationP9.test.ts",
+      "to": "tests/privacy/auditBuilderCentralization.test.ts"
+    },
+    {
+      "from": "tests/auditHashChainBranchCoverage092.test.ts",
+      "to": "tests/privacy/auditHashChainBranchCoverage.test.ts"
+    },
+    {
+      "from": "tests/auditMetadataPolicy094c.test.ts",
+      "to": "tests/privacy/auditMetadataPolicy.test.ts"
+    },
+    {
+      "from": "tests/auditService.test.ts",
+      "to": "tests/privacy/auditService.test.ts"
+    },
+    {
+      "from": "tests/backupPayloadPolicy.test.ts",
+      "to": "tests/security/backup/backupPayloadPolicy.test.ts"
+    },
+    {
+      "from": "tests/backupPolicy.test.ts",
+      "to": "tests/security/backup/backupPolicy.test.ts"
+    },
+    {
+      "from": "tests/backupServiceBehavior0813f.test.ts",
+      "to": "tests/security/backup/backupServiceBehavior.test.ts"
+    },
+    {
+      "from": "tests/bemGuidanceBranchCoverage092.test.ts",
+      "to": "tests/features/bem/bemGuidanceBranchCoverage.test.ts"
+    },
+    {
+      "from": "tests/bemMigration051b.test.ts",
+      "to": "tests/features/bem/bemMigration.test.ts"
+    },
+    {
+      "from": "tests/bemMigrationFreshInstall0812d.test.ts",
+      "to": "tests/features/bem/bemMigrationFreshInstall.test.ts"
+    },
+    {
+      "from": "tests/bemWorkflowPolicy0500.test.ts",
+      "to": "tests/features/bem/bemWorkflowPolicy.test.ts"
+    },
+    {
+      "from": "tests/buildCleanupInfrastructurePatch2.test.ts",
+      "to": "tests/architecture/buildCleanupInfrastructure.test.ts"
+    },
+    {
+      "from": "tests/buildReadinessInstalledDependencies092r.test.ts",
+      "to": "tests/architecture/buildReadinessInstalledDependencies.test.ts"
+    },
+    {
+      "from": "tests/caseDeletionTransaction096n.test.ts",
+      "to": "tests/features/cases/caseDeletionTransaction.test.ts"
+    },
+    {
+      "from": "tests/caseHandoverCrypto092.test.ts",
+      "to": "tests/features/cases/handover/caseHandoverCrypto.test.ts"
+    },
+    {
+      "from": "tests/caseHandoverCryptoBranchCoverage092.test.ts",
+      "to": "tests/features/cases/handover/caseHandoverCryptoBranchCoverage.test.ts"
+    },
+    {
+      "from": "tests/caseHandoverExportFeedback092.test.ts",
+      "to": "tests/features/cases/handover/caseHandoverExportFeedback.test.ts"
+    },
+    {
+      "from": "tests/caseHandoverFilePolicy092.test.ts",
+      "to": "tests/features/cases/handover/caseHandoverFilePolicy.test.ts"
+    },
+    {
+      "from": "tests/caseHandoverPlacement092.test.ts",
+      "to": "tests/features/cases/handover/caseHandoverPlacement.test.ts"
+    },
+    {
+      "from": "tests/caseHandoverPolicy092.test.ts",
+      "to": "tests/features/cases/handover/caseHandoverPolicy.test.ts"
+    },
+    {
+      "from": "tests/caseLifecycleAuditService096n.test.ts",
+      "to": "tests/privacy/caseLifecycleAuditService.test.ts"
+    },
+    {
+      "from": "tests/caseMeasureNotesBehavior091b.test.ts",
+      "to": "tests/features/cases/caseMeasureNotesBehavior.test.ts"
+    },
+    {
+      "from": "tests/caseMeasureNotesDesign091c.test.ts",
+      "to": "tests/features/cases/caseMeasureNotesDesign.test.ts"
+    },
+    {
+      "from": "tests/caseMeasureNotesPrivacy091b.test.ts",
+      "to": "tests/privacy/caseMeasureNotesPrivacy.test.ts"
+    },
+    {
+      "from": "tests/caseModalWorkflowPolicy.test.ts",
+      "to": "tests/features/cases/caseModalWorkflowPolicy.test.ts"
+    },
+    {
+      "from": "tests/caseNodeTargetSelection091.test.ts",
+      "to": "tests/features/cases/caseNodeTargetSelection.test.ts"
+    },
+    {
+      "from": "tests/caseNoteEntityLinkBehavior0813e.test.ts",
+      "to": "tests/features/cases/notes/caseNoteEntityLinkBehavior.test.ts"
+    },
+    {
+      "from": "tests/caseProcessPolicyBehavior0813m.test.ts",
+      "to": "tests/features/cases/caseProcessPolicyBehavior.test.ts"
+    },
+    {
+      "from": "tests/caseSearchProviders091h.test.ts",
+      "to": "tests/features/cases/search/caseSearchProviders.test.ts"
+    },
+    {
+      "from": "tests/caseSearchUiBehavior091l.test.ts",
+      "to": "tests/features/cases/search/caseSearchUiBehavior.test.ts"
+    },
+    {
+      "from": "tests/caseWorkbenchWorkflowPolicy.test.ts",
+      "to": "tests/features/cases/caseWorkbenchWorkflowPolicy.test.ts"
+    },
+    {
+      "from": "tests/complianceAuditChainAutoCheck091.test.ts",
+      "to": "tests/privacy/complianceAuditChainAutoCheck.test.ts"
+    },
+    {
+      "from": "tests/complianceDsarPrefill092.test.ts",
+      "to": "tests/privacy/complianceDsarPrefill.test.ts"
+    },
+    {
+      "from": "tests/complianceIncidentServiceBehavior092.test.ts",
+      "to": "tests/features/compliance/complianceIncidentServiceBehavior.test.ts"
+    },
+    {
+      "from": "tests/complianceSelfCheckServiceBehavior092.test.ts",
+      "to": "tests/features/compliance/complianceSelfCheckServiceBehavior.test.ts"
+    },
+    {
+      "from": "tests/complianceStepE091.test.ts",
+      "to": "tests/features/compliance/complianceStepE.test.ts"
+    },
+    {
+      "from": "tests/contactPrivacyService.test.ts",
+      "to": "tests/privacy/contactPrivacyService.test.ts"
+    },
+    {
+      "from": "tests/contentSecurityPolicy096m.test.ts",
+      "to": "tests/security/vault/contentSecurityPolicy.test.ts"
+    },
+    {
+      "from": "tests/crossPlatformPackagingP4.test.ts",
+      "to": "tests/platform/electron/crossPlatformPackaging.test.ts"
+    },
+    {
+      "from": "tests/dashboardFocusPolicy092g.test.ts",
+      "to": "tests/features/dashboard/dashboardFocusPolicy.test.ts"
+    },
+    {
+      "from": "tests/dashboardFocusPresentation092h.test.ts",
+      "to": "tests/features/dashboard/dashboardFocusPresentation.test.ts"
+    },
+    {
+      "from": "tests/databaseIntegrityCompliance091.test.ts",
+      "to": "tests/features/compliance/databaseIntegrityCompliance.test.ts"
+    },
+    {
+      "from": "tests/databaseUnitOfWork.test.ts",
+      "to": "tests/architecture/services/databaseUnitOfWork.test.ts"
+    },
+    {
+      "from": "tests/deadlineService.test.ts",
+      "to": "tests/features/deadlines/deadlineService.test.ts"
+    },
+    {
+      "from": "tests/deadlinesPanelBehavior092.test.ts",
+      "to": "tests/features/deadlines/deadlinesPanelBehavior.test.ts"
+    },
+    {
+      "from": "tests/demoModeBehavior096r.test.ts",
+      "to": "tests/platform/demo/demoModeBehavior.test.ts"
+    },
+    {
+      "from": "tests/demoModeSchemaCompleteness092v.test.ts",
+      "to": "tests/platform/demo/demoModeSchemaCompleteness.test.ts"
+    },
+    {
+      "from": "tests/demoSeedRelativeDates092aa.test.ts",
+      "to": "tests/platform/demo/demoSeedRelativeDates.test.ts"
+    },
+    {
+      "from": "tests/dependabotPolicy092k.test.ts",
+      "to": "tests/architecture/dependencies/dependabotPolicy.test.ts"
+    },
+    {
+      "from": "tests/dependencyHygiene092j.test.ts",
+      "to": "tests/architecture/dependencyHygiene.test.ts"
+    },
+    {
+      "from": "tests/documentContainerService094c.test.ts",
+      "to": "tests/features/cases/documents/documentContainerService.test.ts"
+    },
+    {
+      "from": "tests/documentOcrService091j.test.ts",
+      "to": "tests/features/cases/documents/documentOcrService.test.ts"
+    },
+    {
+      "from": "tests/documentStoragePolicy.test.ts",
+      "to": "tests/features/cases/documents/documentStoragePolicy.test.ts"
+    },
+    {
+      "from": "tests/documentTextExtractionService091i.test.ts",
+      "to": "tests/features/cases/documents/documentTextExtractionService.test.ts"
+    },
+    {
+      "from": "tests/domainAggregateIntegrity096h.test.ts",
+      "to": "tests/architecture/services/domainAggregateIntegrity.test.ts"
+    },
+    {
+      "from": "tests/dsarPrefillService092.test.ts",
+      "to": "tests/privacy/dsarPrefillService.test.ts"
+    },
+    {
+      "from": "tests/dsbTransparencyPatch092an.test.ts",
+      "to": "tests/privacy/dsbTransparencyPatch.test.ts"
+    },
+    {
+      "from": "tests/e2eCoverageMatrix095e.test.ts",
+      "to": "tests/architecture/e2eCoverageMatrix.test.ts"
+    },
+    {
+      "from": "tests/e2eIsolatedToolsResolution092.test.ts",
+      "to": "tests/architecture/e2eIsolatedToolsResolution.test.ts"
+    },
+    {
+      "from": "tests/e2eRunnerPlaywrightResolution092.test.ts",
+      "to": "tests/architecture/e2eRunnerPlaywrightResolution.test.ts"
+    },
+    {
+      "from": "tests/electronAppDepsPostinstall092i.test.ts",
+      "to": "tests/platform/electron/electronAppDepsPostinstall.test.ts"
+    },
+    {
+      "from": "tests/electronBuilderConfig092t.test.ts",
+      "to": "tests/platform/electron/electronBuilderConfig.test.ts"
+    },
+    {
+      "from": "tests/electronSqlcipherCompatibility092s.test.ts",
+      "to": "tests/platform/electron/electronSqlcipherCompatibility.test.ts"
+    },
+    {
+      "from": "tests/ensureNodeNativeDepsPhase1.test.ts",
+      "to": "tests/architecture/ensureNodeNativeDeps.test.ts"
+    },
+    {
+      "from": "tests/equalizationWorkflowAndGuidanceBehavior0813m.test.ts",
+      "to": "tests/features/equalization/equalizationWorkflowAndGuidanceBehavior.test.ts"
+    },
+    {
+      "from": "tests/eslintConfiguration096m.test.ts",
+      "to": "tests/architecture/eslintConfiguration.test.ts"
+    },
+    {
+      "from": "tests/explicitAnyAudit096p.test.ts",
+      "to": "tests/privacy/explicitAnyAudit.test.ts"
+    },
+    {
+      "from": "tests/exportGuardBem058.test.ts",
+      "to": "tests/privacy/exportGuardBem.test.ts"
+    },
+    {
+      "from": "tests/exportGuardPolicy.test.ts",
+      "to": "tests/privacy/exportGuardPolicy.test.ts"
+    },
+    {
+      "from": "tests/frontendLazyLoadingAccessibilityPatch7.test.ts",
+      "to": "tests/ui/frontendLazyLoadingAccessibility.test.ts"
+    },
+    {
+      "from": "tests/githubBuildCurrentOs095e.test.ts",
+      "to": "tests/architecture/githubBuildCurrentOs.test.ts"
+    },
+    {
+      "from": "tests/githubTaggedReleaseWorkflow092ac.test.ts",
+      "to": "tests/architecture/githubTaggedReleaseWorkflow.test.ts"
+    },
+    {
+      "from": "tests/gremiaBrApiCatalog092g.test.ts",
+      "to": "tests/features/gremia-br/gremiaBrApiCatalog.test.ts"
+    },
+    {
+      "from": "tests/gremiaBrAuthProfileContract092q.test.ts",
+      "to": "tests/features/gremia-br/gremiaBrAuthProfileContract.test.ts"
+    },
+    {
+      "from": "tests/gremiaBrCacheService092c.test.ts",
+      "to": "tests/features/gremia-br/gremiaBrCacheService.test.ts"
+    },
+    {
+      "from": "tests/gremiaBrExternalReferenceService092e.test.ts",
+      "to": "tests/features/gremia-br/gremiaBrExternalReferenceService.test.ts"
+    },
+    {
+      "from": "tests/gremiaBrHttpReadAdapter092b.test.ts",
+      "to": "tests/features/gremia-br/gremiaBrHttpReadAdapter.test.ts"
+    },
+    {
+      "from": "tests/gremiaBrReadBridgeSecurity092f.test.ts",
+      "to": "tests/security/vault/gremiaBrReadBridgeSecurity.test.ts"
+    },
+    {
+      "from": "tests/gremiaBrRelevanceService092d.test.ts",
+      "to": "tests/features/gremia-br/gremiaBrRelevanceService.test.ts"
+    },
+    {
+      "from": "tests/gremiaBrSettingsService092a.test.ts",
+      "to": "tests/features/gremia-br/gremiaBrSettingsService.test.ts"
+    },
+    {
+      "from": "tests/hashChainLifecycleCompleteness095ad.test.ts",
+      "to": "tests/privacy/hashChainLifecycleCompleteness.test.ts"
+    },
+    {
+      "from": "tests/helpDialogInfrastructure095h.test.ts",
+      "to": "tests/features/help/helpDialogInfrastructure.test.ts"
+    },
+    {
+      "from": "tests/helpTextMigration095j.test.ts",
+      "to": "tests/features/help/helpTextMigration.test.ts"
+    },
+    {
+      "from": "tests/helpTextPolicyGate095k.test.ts",
+      "to": "tests/features/help/helpTextPolicyGate.test.ts"
+    },
+    {
+      "from": "tests/helpVisualConsistency095u.test.ts",
+      "to": "tests/features/help/helpVisualConsistency.test.ts"
+    },
+    {
+      "from": "tests/icalProcessType091.test.ts",
+      "to": "tests/features/deadlines/icalProcessType.test.ts"
+    },
+    {
+      "from": "tests/industrialListSearchCentralizationP7.test.ts",
+      "to": "tests/ui/industrialListSearchCentralization.test.ts"
+    },
+    {
+      "from": "tests/industrialStatusBadgeCentralizationP5.test.ts",
+      "to": "tests/ui/industrialStatusBadgeCentralization.test.ts"
+    },
+    {
+      "from": "tests/inlineCommandBehavior0456.test.ts",
+      "to": "tests/features/text-commands/inlineCommandBehavior.test.ts"
+    },
+    {
+      "from": "tests/inlineCommandPureBehavior0813e.test.ts",
+      "to": "tests/features/text-commands/inlineCommandPureBehavior.test.ts"
+    },
+    {
+      "from": "tests/inlineTextCommandRoutingBehavior096u.test.ts",
+      "to": "tests/features/text-commands/inlineTextCommandRoutingBehavior.test.ts"
+    },
+    {
+      "from": "tests/ipcApplicationErrorBoundary096i.test.ts",
+      "to": "tests/architecture/ipcApplicationErrorBoundary.test.ts"
+    },
+    {
+      "from": "tests/ipcBridgeModularizationPatch5.test.ts",
+      "to": "tests/architecture/ipcBridgeModularization.test.ts"
+    },
+    {
+      "from": "tests/ipcEndpointContractsCompletion.test.ts",
+      "to": "tests/architecture/ipcEndpointContractsCompletion.test.ts"
+    },
+    {
+      "from": "tests/ipcRuntimeArgumentBoundary096j.test.ts",
+      "to": "tests/platform/electron/ipcRuntimeArgumentBoundary.test.ts"
+    },
+    {
+      "from": "tests/ipcValidation084f.test.ts",
+      "to": "tests/architecture/ipcValidation.test.ts"
+    },
+    {
+      "from": "tests/knowledgeMigrationCompatibility.test.ts",
+      "to": "tests/features/knowledge/knowledgeMigrationCompatibility.test.ts"
+    },
+    {
+      "from": "tests/knowledgePolicy.test.ts",
+      "to": "tests/features/knowledge/knowledgePolicy.test.ts"
+    },
+    {
+      "from": "tests/knowledgeService.test.ts",
+      "to": "tests/features/knowledge/knowledgeService.test.ts"
+    },
+    {
+      "from": "tests/labelMappingCentralization094c.test.ts",
+      "to": "tests/ui/labelMappingCentralization.test.ts"
+    },
+    {
+      "from": "tests/loginGateCenteredOverlay092w.test.ts",
+      "to": "tests/security/vault/loginGateCenteredOverlay.test.ts"
+    },
+    {
+      "from": "tests/maintainabilityRatchet096.test.ts",
+      "to": "tests/architecture/maintainabilityRatchet.test.ts"
+    },
+    {
+      "from": "tests/measureLifecycleAuditService.test.ts",
+      "to": "tests/privacy/measureLifecycleAuditService.test.ts"
+    },
+    {
+      "from": "tests/measureLifecycleDependencyInjection096.test.ts",
+      "to": "tests/architecture/measureLifecycleDependencyInjection.test.ts"
+    },
+    {
+      "from": "tests/measureLifecycleMigration048.test.ts",
+      "to": "tests/architecture/migrations/measureLifecycleMigration.test.ts"
+    },
+    {
+      "from": "tests/migrationService.test.ts",
+      "to": "tests/architecture/migrations/migrationHelpers.test.ts"
+    },
+    {
+      "from": "tests/migrationService095d.test.ts",
+      "to": "tests/architecture/migrations/migrationInferenceHardening.test.ts"
+    },
+    {
+      "from": "tests/moduleCssArchitecture092.test.ts",
+      "to": "tests/architecture/moduleCssArchitecture.test.ts"
+    },
+    {
+      "from": "tests/moduleFeedbackArchitecture091.test.ts",
+      "to": "tests/architecture/moduleFeedbackArchitecture.test.ts"
+    },
+    {
+      "from": "tests/nativeDependencyPostinstallContract.test.ts",
+      "to": "tests/architecture/nativeDependencyPostinstallContract.test.ts"
+    },
+    {
+      "from": "tests/navigationAndPanelCleanup092.test.ts",
+      "to": "tests/ui/navigationAndPanelCleanup.test.ts"
+    },
+    {
+      "from": "tests/noExplicitAnyCasts092.test.ts",
+      "to": "tests/architecture/noExplicitAnyCasts.test.ts"
+    },
+    {
+      "from": "tests/npmScriptContract096r.test.ts",
+      "to": "tests/architecture/npmScriptContract.test.ts"
+    },
+    {
+      "from": "tests/openTaskDashboardPolicy.test.ts",
+      "to": "tests/features/dashboard/openTaskDashboardPolicy.test.ts"
+    },
+    {
+      "from": "tests/packagePostinstall059.test.ts",
+      "to": "tests/architecture/packagePostinstall.test.ts"
+    },
+    {
+      "from": "tests/participationLegacyMigration092z.test.ts",
+      "to": "tests/features/participation/participationLegacyMigration.test.ts"
+    },
+    {
+      "from": "tests/passwordSecurityPolicyP10b.test.ts",
+      "to": "tests/security/vault/passwordSecurityPolicy.test.ts"
+    },
+    {
+      "from": "tests/personAnonymizationPolicy091.test.ts",
+      "to": "tests/privacy/personAnonymizationPolicy.test.ts"
+    },
+    {
+      "from": "tests/personCaseBinding091.test.ts",
+      "to": "tests/features/cases/personCaseBinding.test.ts"
+    },
+    {
+      "from": "tests/personCaseLinkServiceBehavior096r.test.ts",
+      "to": "tests/features/cases/personCaseLinkServiceBehavior.test.ts"
+    },
+    {
+      "from": "tests/personEditDialog091.test.ts",
+      "to": "tests/features/persons/personEditDialog.test.ts"
+    },
+    {
+      "from": "tests/personExpiryIcal091.test.ts",
+      "to": "tests/features/deadlines/personExpiryIcal.test.ts"
+    },
+    {
+      "from": "tests/personImport091.test.ts",
+      "to": "tests/features/persons/personImport.test.ts"
+    },
+    {
+      "from": "tests/personImportWizard091.test.ts",
+      "to": "tests/features/persons/personImportWizard.test.ts"
+    },
+    {
+      "from": "tests/personalDataAuditCompletenessPhase4.test.ts",
+      "to": "tests/privacy/personalDataAuditCompleteness.test.ts"
+    },
+    {
+      "from": "tests/platformIndependentTestSuite092.test.ts",
+      "to": "tests/platform/electron/platformIndependentTestSuite.test.ts"
+    },
+    {
+      "from": "tests/portableProfileServiceBehavior096r.test.ts",
+      "to": "tests/platform/electron/portableProfileServiceBehavior.test.ts"
+    },
+    {
+      "from": "tests/pre1ReleaseHardening092as.test.ts",
+      "to": "tests/architecture/pre1ReleaseHardening.test.ts"
+    },
+    {
+      "from": "tests/preventionWorkflowPolicy.test.ts",
+      "to": "tests/features/prevention/preventionWorkflowPolicy.test.ts"
+    },
+    {
+      "from": "tests/privacyEntityRegistry091f.test.ts",
+      "to": "tests/privacy/privacyEntityRegistry.test.ts"
+    },
+    {
+      "from": "tests/privacyLifecycleAudit091.test.ts",
+      "to": "tests/privacy/privacyLifecycleAudit.test.ts"
+    },
+    {
+      "from": "tests/privacyReviewTooltipUx091.test.ts",
+      "to": "tests/privacy/privacyReviewTooltipUx.test.ts"
+    },
+    {
+      "from": "tests/processServices.test.ts",
+      "to": "tests/architecture/services/processServices.test.ts"
+    },
+    {
+      "from": "tests/protectedPersons091.test.ts",
+      "to": "tests/features/persons/protectedPersons.test.ts"
+    },
+    {
+      "from": "tests/rc091CriticalPrivacyBehavior.test.ts",
+      "to": "tests/privacy/rc.test.ts"
+    },
+    {
+      "from": "tests/rc091MarkdownDocsCurrent.test.ts",
+      "to": "tests/architecture/rc.test.ts"
+    },
+    {
+      "from": "tests/rcFinalTestSync090rc1p.test.ts",
+      "to": "tests/architecture/rcFinalTestSync.test.ts"
+    },
+    {
+      "from": "tests/rcFixCasePreventionCss090rc1d.test.ts",
+      "to": "tests/features/cases/casePreventionCssRegressionA.test.ts"
+    },
+    {
+      "from": "tests/rcFixCasePreventionCss090rc1e.test.ts",
+      "to": "tests/features/cases/casePreventionCssRegressionB.test.ts"
+    },
+    {
+      "from": "tests/rcWindowsPortableArtifact090rc1o.test.ts",
+      "to": "tests/platform/electron/rcWindowsPortableArtifact.test.ts"
+    },
+    {
+      "from": "tests/recruitingParticipationIntegration095c.test.ts",
+      "to": "tests/features/participation/recruitingParticipationIntegration.test.ts"
+    },
+    {
+      "from": "tests/recruitingParticipationSchema095a.test.ts",
+      "to": "tests/features/participation/recruitingParticipationSchema.test.ts"
+    },
+    {
+      "from": "tests/recruitingParticipationService095a.test.ts",
+      "to": "tests/features/participation/recruitingParticipationService.test.ts"
+    },
+    {
+      "from": "tests/recruitingParticipationUi095b.test.tsx",
+      "to": "tests/features/participation/recruitingParticipationUi.test.tsx"
+    },
+    {
+      "from": "tests/recruitingParticipationValidationBehavior096r.test.ts",
+      "to": "tests/features/participation/recruitingParticipationValidationBehavior.test.ts"
+    },
+    {
+      "from": "tests/rendererBundleContractPatch7.test.ts",
+      "to": "tests/architecture/rendererBundleContract.test.ts"
+    },
+    {
+      "from": "tests/reportPrivacyPolicy.test.ts",
+      "to": "tests/privacy/reportPrivacyPolicy.test.ts"
+    },
+    {
+      "from": "tests/retentionPolicy.test.ts",
+      "to": "tests/privacy/retentionPolicy.test.ts"
+    },
+    {
+      "from": "tests/retentionPolicyBehavior0813f.test.ts",
+      "to": "tests/privacy/retentionPolicyBehavior.test.ts"
+    },
+    {
+      "from": "tests/review5UserGuidance092.test.ts",
+      "to": "tests/ui/review5UserGuidance.test.ts"
+    },
+    {
+      "from": "tests/runtimeDataDirectoryPlatformBehaviorP4.test.ts",
+      "to": "tests/platform/electron/runtimeDataDirectoryPlatformBehavior.test.ts"
+    },
+    {
+      "from": "tests/runtimeSchemaGuardsRemoved096e.test.ts",
+      "to": "tests/platform/electron/runtimeSchemaGuardsRemoved.test.ts"
+    },
+    {
+      "from": "tests/sandboxedPreloadSelfContained096l.test.ts",
+      "to": "tests/platform/electron/sandboxedPreloadSelfContained.test.ts"
+    },
+    {
+      "from": "tests/sbvControlProtocolSchema092ap.test.ts",
+      "to": "tests/features/sbv-control/sbvControlProtocolSchema.test.ts"
+    },
+    {
+      "from": "tests/sbvControlProtocolService092ao.test.ts",
+      "to": "tests/features/sbv-control/sbvControlProtocolService.test.ts"
+    },
+    {
+      "from": "tests/sbvControlProtocolTextCommands092aw.test.ts",
+      "to": "tests/features/sbv-control/sbvControlProtocolTextCommands.test.ts"
+    },
+    {
+      "from": "tests/sbvControlRefactorP10g.test.ts",
+      "to": "tests/features/sbv-control/sbvControlRefactor.test.ts"
+    },
+    {
+      "from": "tests/sbvControlStructure092.test.ts",
+      "to": "tests/features/sbv-control/sbvControlStructure.test.ts"
+    },
+    {
+      "from": "tests/sbvParticipationViolationDocuments094b.test.ts",
+      "to": "tests/features/cases/documents/sbvParticipationViolationDocuments.test.ts"
+    },
+    {
+      "from": "tests/sbvParticipationViolationIntegration094c.test.ts",
+      "to": "tests/features/participation/sbvParticipationViolationIntegration.test.ts"
+    },
+    {
+      "from": "tests/sbvParticipationViolationSchema094a.test.ts",
+      "to": "tests/features/participation/sbvParticipationViolationSchema.test.ts"
+    },
+    {
+      "from": "tests/sbvParticipationViolationService094a.test.ts",
+      "to": "tests/features/participation/sbvParticipationViolationService.test.ts"
+    },
+    {
+      "from": "tests/sbvParticipationViolationTemplateBehavior094c.test.ts",
+      "to": "tests/features/participation/sbvParticipationViolationTemplateBehavior.test.ts"
+    },
+    {
+      "from": "tests/sbvParticipationViolationViewLogic094c.test.ts",
+      "to": "tests/features/participation/sbvParticipationViolationViewLogic.test.ts"
+    },
+    {
+      "from": "tests/sbvResourceServiceBehavior092.test.ts",
+      "to": "tests/architecture/sbvResourceServiceBehavior.test.ts"
+    },
+    {
+      "from": "tests/schemaMigrationConsolidation096g.test.ts",
+      "to": "tests/architecture/migrations/schemaMigrationConsolidation.test.ts"
+    },
+    {
+      "from": "tests/schemaSnapshotFreshVsMigration091f.test.ts",
+      "to": "tests/architecture/migrations/schemaSnapshotFreshVsMigration.test.ts"
+    },
+    {
+      "from": "tests/searchIndexFunctionalCoverage091k.test.ts",
+      "to": "tests/features/cases/search/searchIndexFunctionalCoverage.test.ts"
+    },
+    {
+      "from": "tests/searchIndexService091h.test.ts",
+      "to": "tests/features/cases/search/searchIndexService.test.ts"
+    },
+    {
+      "from": "tests/secureFileOperationsCompletion.test.ts",
+      "to": "tests/security/files/secureFileOperationsCompletion.test.ts"
+    },
+    {
+      "from": "tests/securityHardening084.test.ts",
+      "to": "tests/security/vault/securityHardening.test.ts"
+    },
+    {
+      "from": "tests/securityPrivacyReadiness0813.test.ts",
+      "to": "tests/security/vault/securityPrivacyReadiness.test.ts"
+    },
+    {
+      "from": "tests/securityReadiness089.test.ts",
+      "to": "tests/security/vault/securityReadiness.test.ts"
+    },
+    {
+      "from": "tests/securityServiceBehavior0813f.test.ts",
+      "to": "tests/security/vault/securityServiceBehavior.test.ts"
+    },
+    {
+      "from": "tests/selectedFileCapabilityCompletion.test.ts",
+      "to": "tests/platform/electron/selectedFileCapabilityCompletion.test.ts"
+    },
+    {
+      "from": "tests/serviceConstructionSideEffects096.test.ts",
+      "to": "tests/architecture/services/serviceConstructionSideEffects.test.ts"
+    },
+    {
+      "from": "tests/serviceCoverageConfig0813f.test.ts",
+      "to": "tests/architecture/serviceCoverageConfig.test.ts"
+    },
+    {
+      "from": "tests/serviceCoverageScope0813m.test.ts",
+      "to": "tests/architecture/serviceCoverageScope.test.ts"
+    },
+    {
+      "from": "tests/sessionLockViewPersistence095z.test.ts",
+      "to": "tests/security/vault/sessionLockViewPersistence.test.ts"
+    },
+    {
+      "from": "tests/settingsNavigation092g.test.ts",
+      "to": "tests/ui/settingsNavigation.test.ts"
+    },
+    {
+      "from": "tests/signpathCodeSigning092u.test.ts",
+      "to": "tests/architecture/signpathCodeSigning.test.ts"
+    },
+    {
+      "from": "tests/sourceAssertionClassificationPatch7.test.ts",
+      "to": "tests/architecture/sourceAssertionClassification.test.ts"
+    },
+    {
+      "from": "tests/sourceCleanupBuildContract096k.test.ts",
+      "to": "tests/architecture/sourceCleanupBuildContract.test.ts"
+    },
+    {
+      "from": "tests/sourceCleanupRootPatchNotes091e.test.ts",
+      "to": "tests/architecture/sourceCleanupRootPatchNotes.test.ts"
+    },
+    {
+      "from": "tests/sourceCleanupWindowsPath0812a.test.ts",
+      "to": "tests/architecture/sourceCleanupWindowsPath.test.ts"
+    },
+    {
+      "from": "tests/sourceTextPlatformIndependence0812g.test.ts",
+      "to": "tests/platform/electron/sourceTextPlatformIndependence.test.ts"
+    },
+    {
+      "from": "tests/startupBootstrapFastFeedback092aq.test.ts",
+      "to": "tests/platform/electron/startupBootstrapFastFeedback.test.ts"
+    },
+    {
+      "from": "tests/startupExperience092.test.ts",
+      "to": "tests/platform/electron/startupExperience.test.ts"
+    },
+    {
+      "from": "tests/tailwindPostcssContract092p.test.ts",
+      "to": "tests/architecture/tailwindPostcssContract.test.ts"
+    },
+    {
+      "from": "tests/tempFileServiceBehavior096r.test.ts",
+      "to": "tests/security/files/tempFileServiceBehavior.test.ts"
+    },
+    {
+      "from": "tests/templateContextPolicy.test.ts",
+      "to": "tests/features/templates/templateContextPolicy.test.ts"
+    },
+    {
+      "from": "tests/templateDefaultsPersistence091g.test.ts",
+      "to": "tests/features/templates/templateDefaultsPersistence.test.ts"
+    },
+    {
+      "from": "tests/templateManagementEditDelete.test.ts",
+      "to": "tests/features/templates/templateManagementEditDelete.test.ts"
+    },
+    {
+      "from": "tests/templatePolicy.test.ts",
+      "to": "tests/features/templates/templatePolicy.test.ts"
+    },
+    {
+      "from": "tests/templatesBehavior0457.test.ts",
+      "to": "tests/features/templates/templatesBehavior.test.ts"
+    },
+    {
+      "from": "tests/terminationHardening072.test.ts",
+      "to": "tests/features/termination/terminationHardening.test.ts"
+    },
+    {
+      "from": "tests/terminationPrivacyPolicyBehavior0813m.test.ts",
+      "to": "tests/privacy/terminationPrivacyPolicyBehavior.test.ts"
+    },
+    {
+      "from": "tests/terminationTemplates072.test.ts",
+      "to": "tests/features/templates/terminationTemplates.test.ts"
+    },
+    {
+      "from": "tests/terminationWorkflowPolicyBehavior0813f.test.ts",
+      "to": "tests/features/termination/terminationWorkflowPolicyBehavior.test.ts"
+    },
+    {
+      "from": "tests/testControlMatrixPatch3.test.ts",
+      "to": "tests/architecture/testControlMatrix.test.ts"
+    },
+    {
+      "from": "tests/testQualityMetrics096o.test.ts",
+      "to": "tests/architecture/testQualityMetrics.test.ts"
+    },
+    {
+      "from": "tests/testQualityRatioBehavior096q.test.ts",
+      "to": "tests/architecture/testQualityRatioBehavior.test.ts"
+    },
+    {
+      "from": "tests/textCommandPolicy.test.ts",
+      "to": "tests/features/text-commands/textCommandPolicy.test.ts"
+    },
+    {
+      "from": "tests/textCommandPolicyBranchCoverage092.test.ts",
+      "to": "tests/features/text-commands/textCommandPolicyBranchCoverage.test.ts"
+    },
+    {
+      "from": "tests/thirdPartyLicenseFingerprintPortabilityPhase1.test.ts",
+      "to": "tests/architecture/licenses/thirdPartyLicenseFingerprintPortability.test.ts"
+    },
+    {
+      "from": "tests/thirdPartyLicenseGeneration092y.test.ts",
+      "to": "tests/architecture/licenses/thirdPartyLicenseGeneration.test.ts"
+    },
+    {
+      "from": "tests/thirdPartyLicensePerformance096s.test.ts",
+      "to": "tests/architecture/licenses/thirdPartyLicensePerformance.test.ts"
+    },
+    {
+      "from": "tests/uiFoundation092BestPractices.test.ts",
+      "to": "tests/ui/uiFoundationBestPractices.test.ts"
+    },
+    {
+      "from": "tests/uiFoundation092Block1.test.ts",
+      "to": "tests/ui/uiFoundationTokensAndForms.test.ts"
+    },
+    {
+      "from": "tests/uiFoundation092Block2.test.ts",
+      "to": "tests/ui/uiFoundationStyleOrder.test.ts"
+    },
+    {
+      "from": "tests/uiFoundation092Block3.test.ts",
+      "to": "tests/ui/uiFoundationProcessFields.test.ts"
+    },
+    {
+      "from": "tests/uiFoundation092Block4Behavior.test.ts",
+      "to": "tests/ui/uiFoundationBehaviorComponents.test.ts"
+    },
+    {
+      "from": "tests/uiFoundation092Block5Behavior.test.ts",
+      "to": "tests/ui/uiFoundationSemanticSections.test.ts"
+    },
+    {
+      "from": "tests/unifiedActivityReportCleanup095.test.ts",
+      "to": "tests/features/reports/unifiedActivityReportCleanup.test.ts"
+    },
+    {
+      "from": "tests/unitCoverageGate0813d.test.ts",
+      "to": "tests/architecture/unitCoverageGate.test.ts"
+    },
+    {
+      "from": "tests/unlockDelay089.test.ts",
+      "to": "tests/security/vault/unlockDelay.test.ts"
+    },
+    {
+      "from": "tests/visualQaContractP11.test.ts",
+      "to": "tests/ui/visualQaContract.test.ts"
+    },
+    {
+      "from": "tests/windowsUnsignedBuild0812j.test.ts",
+      "to": "tests/architecture/windowsUnsignedBuild.test.ts"
+    },
+    {
+      "from": "tests/workflowViewsPureIndex0811.test.ts",
+      "to": "tests/architecture/services/workflowViewsPureIndex.test.ts"
+    }
+  ]
+}

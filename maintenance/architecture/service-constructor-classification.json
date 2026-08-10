@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "description": "Explizite Infrastruktur-Ausnahmen vom Fachservice-Konstruktorvertrag. Neue *Service-Klassen gelten standardmäßig als Fachservices und werden automatisch geprüft.",
+  "infrastructureExceptions": {
+    "services/securityService.ts": "Vault-/Security-Lifecycle-Infrastruktur. Die Konstruktorprüfung für Fachservices darf diese Infrastrukturklasse nicht als Fachservice klassifizieren; ihre Datei- und Tresor-Lebenszyklen werden durch Security-Verhaltenstests abgesichert."
+  }
+}

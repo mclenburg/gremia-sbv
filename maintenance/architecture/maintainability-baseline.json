@@ -13,26 +13,14 @@
     "imports": 35
   },
   "summary": {
-    "filesScanned": 423,
-    "debtFiles": 87
+    "filesScanned": 525,
+    "debtFiles": 59
   },
   "debt": {
-    "electron/appRuntime.ts": {
-      "physicalLines": 508,
-      "codeLines": 501,
-      "maxFunctionLines": 95,
-      "imports": 34
-    },
-    "electron/applicationServices.ts": {
-      "physicalLines": 169,
-      "codeLines": 153,
-      "maxFunctionLines": 22,
-      "imports": 42
-    },
     "electron/ipc/protectedPersonIpc.ts": {
-      "physicalLines": 168,
-      "codeLines": 144,
-      "maxFunctionLines": 156,
+      "physicalLines": 165,
+      "codeLines": 141,
+      "maxFunctionLines": 153,
       "imports": 10
     },
     "electron/startupStatus.ts": {
@@ -41,137 +29,29 @@
       "maxFunctionLines": 161,
       "imports": 0
     },
-    "services/activityJournalService.ts": {
-      "physicalLines": 573,
-      "codeLines": 564,
-      "maxFunctionLines": 61,
-      "imports": 9
-    },
-    "services/appSchema.ts": {
-      "physicalLines": 475,
-      "codeLines": 426,
-      "maxFunctionLines": 0,
-      "imports": 0
-    },
-    "services/caseHandoverService.ts": {
-      "physicalLines": 484,
-      "codeLines": 472,
-      "maxFunctionLines": 113,
-      "imports": 12
-    },
-    "services/caseService.ts": {
-      "physicalLines": 1008,
-      "codeLines": 985,
-      "maxFunctionLines": 114,
-      "imports": 16
-    },
-    "services/complianceCenterService.ts": {
-      "physicalLines": 922,
-      "codeLines": 721,
-      "maxFunctionLines": 102,
-      "imports": 3
-    },
-    "services/deadlineService.ts": {
-      "physicalLines": 463,
-      "codeLines": 457,
-      "maxFunctionLines": 50,
-      "imports": 5
-    },
-    "services/demoSeedService.ts": {
-      "physicalLines": 707,
-      "codeLines": 703,
+    "services/demoSeedCases.ts": {
+      "physicalLines": 346,
+      "codeLines": 345,
       "maxFunctionLines": 131,
-      "imports": 1
-    },
-    "services/dsarPrefillService.ts": {
-      "physicalLines": 615,
-      "codeLines": 592,
-      "maxFunctionLines": 59,
       "imports": 2
     },
-    "services/migrationService.ts": {
-      "physicalLines": 1568,
-      "codeLines": 1535,
-      "maxFunctionLines": 152,
-      "imports": 7
-    },
     "services/participationService.ts": {
-      "physicalLines": 690,
-      "codeLines": 669,
+      "physicalLines": 398,
+      "codeLines": 395,
       "maxFunctionLines": 156,
-      "imports": 7
-    },
-    "services/protectedPersonService.ts": {
-      "physicalLines": 443,
-      "codeLines": 427,
-      "maxFunctionLines": 47,
-      "imports": 8
-    },
-    "services/recruitingParticipationService.ts": {
-      "physicalLines": 456,
-      "codeLines": 436,
-      "maxFunctionLines": 55,
-      "imports": 7
-    },
-    "services/reportService.ts": {
-      "physicalLines": 1766,
-      "codeLines": 1743,
-      "maxFunctionLines": 443,
       "imports": 9
     },
-    "services/retentionPolicy.ts": {
-      "physicalLines": 404,
-      "codeLines": 386,
-      "maxFunctionLines": 269,
-      "imports": 1
-    },
-    "services/retentionService.ts": {
-      "physicalLines": 659,
-      "codeLines": 642,
-      "maxFunctionLines": 65,
-      "imports": 13
-    },
     "services/sbvParticipationViolationService.ts": {
-      "physicalLines": 618,
-      "codeLines": 608,
+      "physicalLines": 418,
+      "codeLines": 414,
       "maxFunctionLines": 134,
-      "imports": 8
-    },
-    "services/search/searchIndexService.ts": {
-      "physicalLines": 507,
-      "codeLines": 498,
-      "maxFunctionLines": 46,
-      "imports": 6
-    },
-    "services/search/searchProviders.ts": {
-      "physicalLines": 504,
-      "codeLines": 496,
-      "maxFunctionLines": 32,
-      "imports": 3
-    },
-    "services/securityService.ts": {
-      "physicalLines": 1151,
-      "codeLines": 1124,
-      "maxFunctionLines": 123,
-      "imports": 11
-    },
-    "services/templateService.ts": {
-      "physicalLines": 752,
-      "codeLines": 730,
-      "maxFunctionLines": 412,
-      "imports": 4
+      "imports": 10
     },
     "services/workplaceAccommodationService.ts": {
-      "physicalLines": 575,
-      "codeLines": 561,
+      "physicalLines": 395,
+      "codeLines": 390,
       "maxFunctionLines": 128,
-      "imports": 7
-    },
-    "src/app/App.tsx": {
-      "physicalLines": 600,
-      "codeLines": 563,
-      "maxFunctionLines": 456,
-      "imports": 60
+      "imports": 9
     },
     "src/app/features/activity-journal/ActivityJournalView.tsx": {
       "physicalLines": 239,
@@ -185,41 +65,23 @@
       "maxFunctionLines": 168,
       "imports": 5
     },
-    "src/app/features/auth/LoginGate.tsx": {
-      "physicalLines": 510,
-      "codeLines": 472,
+    "src/app/features/auth/AuthRecoveryViews.tsx": {
+      "physicalLines": 304,
+      "codeLines": 285,
       "maxFunctionLines": 222,
-      "imports": 9
+      "imports": 7
     },
-    "src/app/features/bem/BemProcessDetail.tsx": {
-      "physicalLines": 416,
-      "codeLines": 410,
-      "maxFunctionLines": 366,
+    "src/app/features/auth/LoginGate.tsx": {
+      "physicalLines": 214,
+      "codeLines": 195,
+      "maxFunctionLines": 203,
       "imports": 10
-    },
-    "src/app/features/cases/CaseHandoverTransferDialogs.tsx": {
-      "physicalLines": 475,
-      "codeLines": 472,
-      "maxFunctionLines": 393,
-      "imports": 8
     },
     "src/app/features/cases/CaseTreePanel.tsx": {
       "physicalLines": 142,
       "codeLines": 140,
       "maxFunctionLines": 138,
       "imports": 2
-    },
-    "src/app/features/cases/CasesView.tsx": {
-      "physicalLines": 432,
-      "codeLines": 429,
-      "maxFunctionLines": 408,
-      "imports": 22
-    },
-    "src/app/features/cases/CasesViewRender.tsx": {
-      "physicalLines": 622,
-      "codeLines": 617,
-      "maxFunctionLines": 449,
-      "imports": 55
     },
     "src/app/features/cases/ContextualTemplateButton.tsx": {
       "physicalLines": 157,
@@ -255,12 +117,6 @@
       "physicalLines": 178,
       "codeLines": 175,
       "maxFunctionLines": 139,
-      "imports": 10
-    },
-    "src/app/features/cases/inlineCommands/overlays/InlineContactOverlay.tsx": {
-      "physicalLines": 316,
-      "codeLines": 308,
-      "maxFunctionLines": 277,
       "imports": 10
     },
     "src/app/features/cases/inlineCommands/overlays/InlineDeadlineOverlay.tsx": {
@@ -413,12 +269,6 @@
       "maxFunctionLines": 196,
       "imports": 6
     },
-    "src/app/features/participation/ParticipationProcessDetail.tsx": {
-      "physicalLines": 386,
-      "codeLines": 377,
-      "maxFunctionLines": 287,
-      "imports": 10
-    },
     "src/app/features/participation/ParticipationView.tsx": {
       "physicalLines": 252,
       "codeLines": 243,
@@ -456,10 +306,10 @@
       "imports": 7
     },
     "src/app/features/recruiting/RecruitingParticipationsView.tsx": {
-      "physicalLines": 546,
-      "codeLines": 541,
+      "physicalLines": 363,
+      "codeLines": 352,
       "maxFunctionLines": 347,
-      "imports": 14
+      "imports": 15
     },
     "src/app/features/reports/ReportsView.tsx": {
       "physicalLines": 235,
@@ -514,24 +364,6 @@
       "codeLines": 351,
       "maxFunctionLines": 268,
       "imports": 5
-    },
-    "src/app/shared/components/IndustrialForm.tsx": {
-      "physicalLines": 644,
-      "codeLines": 638,
-      "maxFunctionLines": 65,
-      "imports": 5
-    },
-    "src/app/shared/components/WorkbenchLayout.tsx": {
-      "physicalLines": 685,
-      "codeLines": 680,
-      "maxFunctionLines": 41,
-      "imports": 5
-    },
-    "src/app/shared/textCommands/GlobalTextCommandController.tsx": {
-      "physicalLines": 674,
-      "codeLines": 666,
-      "maxFunctionLines": 566,
-      "imports": 7
     },
     "src/app/shared/textCommands/TextCommandHelpModal.tsx": {
       "physicalLines": 144,

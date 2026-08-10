@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from '../databaseService.js';
+import { PersonalDataAuditLogService } from '../auditLogService.js';
 import type {
   CreateGremiaBrExternalReferenceInput,
   GremiaBrExternalReferenceRecord,
@@ -132,8 +133,14 @@ export class GremiaBrExternalReferenceService {
     const sourceUrl = trimOrUndefined(input.sourceUrl, 1000);
     const timestamp = nowIso();
     const id = `gremia-br-ref:${randomUUID()}`;
+    const db = this.db();
+    const existing = db.prepare<ExternalReferenceRow>(`
+      SELECT id, case_id, source_system, source_type, source_id, title, description, source_url, fetched_at, snapshot_json, created_at, updated_at
+      FROM case_external_references
+      WHERE case_id = ? AND source_system = 'gremia_br' AND source_type = ? AND source_id = ?
+    `).get(caseId, sourceType, sourceId);
 
-    this.db().prepare(`
+    db.prepare(`
       INSERT INTO case_external_references (
         id, case_id, source_system, source_type, source_id, title, description, source_url, fetched_at, snapshot_json, created_at, updated_at
       ) VALUES (?, ?, 'gremia_br', ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -146,19 +153,41 @@ export class GremiaBrExternalReferenceService {
         updated_at = excluded.updated_at
     `).run(id, caseId, sourceType, sourceId, title, description ?? null, sourceUrl ?? null, timestamp, sanitizeSnapshot({ ...input, caseId, sourceType, sourceId, title, description, sourceUrl }), timestamp, timestamp);
 
-    const row = this.db().prepare<ExternalReferenceRow>(`
+    const row = db.prepare<ExternalReferenceRow>(`
       SELECT id, case_id, source_system, source_type, source_id, title, description, source_url, fetched_at, snapshot_json, created_at, updated_at
       FROM case_external_references
       WHERE case_id = ? AND source_system = 'gremia_br' AND source_type = ? AND source_id = ?
     `).get(caseId, sourceType, sourceId);
     if (!row) throw new Error('Gremia.BR-Referenz konnte nicht gespeichert werden.');
+    new PersonalDataAuditLogService(db).append({
+      action: existing ? 'update' : 'create',
+      subjectType: 'case_external_reference',
+      subjectId: row.id,
+      caseId,
+      purpose: existing ? 'Externe Gremia.BR-Referenz aktualisiert' : 'Externe Gremia.BR-Referenz mit Fallakte verknüpft',
+    });
     return rowToRecord(row);
   }
 
   delete(referenceId: string): { deleted: boolean } {
     const id = requireText(referenceId, 'Referenz-ID', 160);
-    const result = this.db().prepare('DELETE FROM case_external_references WHERE id = ?').run(id) as { changes?: number };
-    return { deleted: Number(result.changes ?? 0) > 0 };
+    const db = this.db();
+    const existing = db.prepare<ExternalReferenceRow>(`
+      SELECT id, case_id, source_system, source_type, source_id, title, description, source_url, fetched_at, snapshot_json, created_at, updated_at
+      FROM case_external_references WHERE id = ?
+    `).get(id);
+    const result = db.prepare('DELETE FROM case_external_references WHERE id = ?').run(id) as { changes?: number };
+    const deleted = Number(result.changes ?? 0) > 0;
+    if (deleted) {
+      new PersonalDataAuditLogService(db).append({
+        action: 'delete',
+        subjectType: 'case_external_reference',
+        subjectId: id,
+        caseId: existing?.case_id,
+        purpose: 'Externe Gremia.BR-Referenz aus Fallakte entfernt',
+      });
+    }
+    return { deleted };
   }
 
   async suggestBrDecisions(adapter: GremiaBrReadAdapter, query: string): Promise<GremiaBrInlineSuggestion[]> {

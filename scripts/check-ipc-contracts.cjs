@@ -117,7 +117,7 @@ function parseContracts() {
 const handlers = collect(handlerFiles, path.join(root, 'electron/ipc'), /registerIpcHandler\(ipcMain,\s*IPC_CHANNELS\.([A-Za-z0-9_]+)/g);
 const preload = collect(preloadFiles, path.join(root, 'electron/preload'), /invokeIpc\(\s*IPC_CHANNELS\.([A-Za-z0-9_]+)/g);
 const contracts = parseContracts();
-const behaviorTestSource = fs.readFileSync(path.join(root, 'tests/ipcEndpointContractsCompletion.test.ts'), 'utf8');
+const behaviorTestSource = fs.readFileSync(path.join(root, 'tests/architecture/ipcEndpointContractsCompletion.test.ts'), 'utf8');
 const errors = [];
 for (const [key, channel] of declared) {
   const contract = contracts.get(channel);

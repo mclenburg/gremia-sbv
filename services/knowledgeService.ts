@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
+import { PersonalDataAuditLogService } from './auditLogService.js';
 import { DEFAULT_LEGAL_NORMS, knowledgeExportPreview, normMatchesQuery } from './knowledgePolicy.js';
 import type {
   CaseLawRecord,
@@ -317,6 +318,13 @@ export class KnowledgeService {
     const timestamp = nowIso();
     db.prepare('INSERT INTO case_legal_references (id, case_id, legal_norm_id, note, created_at) VALUES (?, ?, ?, ?, ?)')
       .run(id, input.caseId, input.legalNormId, normalizeOptional(input.note), timestamp);
+    new PersonalDataAuditLogService(db).append({
+      action: 'create',
+      subjectType: 'case_legal_reference',
+      subjectId: id,
+      caseId: input.caseId,
+      purpose: 'Rechtsnorm mit Fallakte verknüpft',
+    });
     const row = db.prepare<DatabaseRow>(`SELECT clr.*, c.case_number, n.paragraph, n.source, n.title FROM case_legal_references clr JOIN legal_norms n ON n.id = clr.legal_norm_id LEFT JOIN cases c ON c.id = clr.case_id WHERE clr.id = ?`).get(id);
     return mapCaseReference(row);
   }
@@ -329,8 +337,19 @@ export class KnowledgeService {
 
   async unlinkNormFromCase(caseId: string, legalNormId: string): Promise<{ deleted: boolean }> {
     const db = this.getSafeDb();
-    db.prepare('DELETE FROM case_legal_references WHERE case_id = ? AND legal_norm_id = ?').run(caseId, legalNormId);
-    return { deleted: true };
+    const existing = db.prepare<DatabaseRow>('SELECT id FROM case_legal_references WHERE case_id = ? AND legal_norm_id = ?').get(caseId, legalNormId);
+    const result = db.prepare('DELETE FROM case_legal_references WHERE case_id = ? AND legal_norm_id = ?').run(caseId, legalNormId) as { changes?: number };
+    const deleted = Number(result.changes ?? (existing ? 1 : 0)) > 0;
+    if (deleted) {
+      new PersonalDataAuditLogService(db).append({
+        action: 'delete',
+        subjectType: 'case_legal_reference',
+        subjectId: existing?.id,
+        caseId,
+        purpose: 'Rechtsnorm-Verknüpfung aus Fallakte entfernt',
+      });
+    }
+    return { deleted };
   }
 
   async listComments(legalNormId: string): Promise<NormCommentRecord[]> {

@@ -152,7 +152,7 @@ jobs:
             label: Linux AppImage
             os: ubuntu-latest
           - platform: windows
-            label: Windows Installer + Portable
+            label: Windows portable EXE
             os: windows-latest
 
     steps:
@@ -184,24 +184,17 @@ jobs:
         if: matrix.platform == 'linux'
         run: node scripts/build-platform.cjs linux
 
-      - name: Verify Linux packaged startup
+      - name: Verify Linux artifact, desktop startup, paths and backup/restore
         if: matrix.platform == 'linux'
-        run: xvfb-run -a npm run release:smoke:linux
+        run: xvfb-run -a npm run release:platform:linux
 
       - name: Package Windows portable EXE
         if: matrix.platform == 'windows'
         run: node scripts/build-platform.cjs win-portable
 
-      - name: Verify Windows portable startup
+      - name: Verify Windows artifact, portable startup, paths and backup/restore
         if: matrix.platform == 'windows'
-        run: npm run release:smoke:windows
-
-      - name: Package Windows installer
-        if: matrix.platform == 'windows'
-        run: node scripts/build-platform.cjs win-installer
-
-      - name: Verify backup and restore
-        run: npm run release:check:backup-restore
+        run: npm run release:platform:windows
 
       - name: Replace Linux asset in release
         if: matrix.platform == 'linux'
@@ -231,7 +224,6 @@ jobs:
           fi
 
           gh release upload "${RELEASE_TAG}" \
-            release/*-win-x64-portable.exe \
-            release/*-win-x64-setup.exe \
+            release/*.exe \
             --clobber \
             --repo "${GH_REPO}"

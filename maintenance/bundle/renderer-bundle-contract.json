@@ -1,14 +1,21 @@
 {
   "schemaVersion": 1,
-  "maximumMainChunkBytes": 750000,
+  "maximumMainChunkBytes": 500000,
   "maximumMainShareOfJavascript": 0.82,
-  "minimumDynamicChunks": 6,
+  "minimumDynamicChunks": 13,
   "requiredLazyFeatureSources": [
+    "src/app/features/cases/CasesView.tsx",
     "src/app/features/knowledge/KnowledgeView.tsx",
     "src/app/features/templates/TemplatesView.tsx",
     "src/app/features/reports/ReportsView.tsx",
     "src/app/features/compliance/ComplianceView.tsx",
     "src/app/features/recruiting/RecruitingParticipationsView.tsx",
-    "src/app/features/settings/SettingsHub.tsx"
+    "src/app/features/settings/SettingsHub.tsx",
+    "src/app/features/bem/BemView.tsx",
+    "src/app/features/prevention/PreventionView.tsx",
+    "src/app/features/participation/ParticipationView.tsx",
+    "src/app/features/equalization/EqualizationView.tsx",
+    "src/app/features/termination/TerminationView.tsx",
+    "src/app/features/sbv-control/SbvControlView.tsx"
   ]
 }

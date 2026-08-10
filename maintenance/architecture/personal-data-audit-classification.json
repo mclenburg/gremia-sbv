@@ -1,0 +1,240 @@
+{
+  "version": 1,
+  "personalTables": [
+    "activity_journal_entries",
+    "activity_journal_links",
+    "bem_processes",
+    "bem_process_contacts",
+    "bem_process_events",
+    "case_handover_imports",
+    "case_handover_import_items",
+    "protected_persons",
+    "cases",
+    "case_measures",
+    "case_measure_notes",
+    "case_measure_participation",
+    "case_measure_workplace_accommodation",
+    "case_measure_events",
+    "case_notes",
+    "case_note_cases",
+    "case_note_links",
+    "case_documents",
+    "case_document_ocr_jobs",
+    "compliance_incidents",
+    "contacts",
+    "deadlines",
+    "deadline_audit",
+    "equalization_processes",
+    "case_external_references",
+    "case_legal_references",
+    "prevention_processes",
+    "prevention_process_contacts",
+    "prevention_process_events",
+    "privacy_review_items",
+    "person_case_links",
+    "person_import_runs",
+    "person_import_run_items",
+    "recruiting_participations",
+    "recruiting_interview_events",
+    "report_exports",
+    "sbv_control_protocols",
+    "generated_documents",
+    "sbv_participation_violation_documents",
+    "sbv_participation_violation_events",
+    "sbv_participation_violations",
+    "sbv_resource_records",
+    "termination_hearings"
+  ],
+  "exceptions": {
+    "services/activityJournalService.ts#ActivityJournalService.deleteLinkedDeadline": {
+      "classification": "delegated",
+      "owner": "ActivityJournalService.deleteEntry/updateEntry",
+      "reason": "Technische gekoppelte Fristbereinigung innerhalb einer fachlich auditierten Journal-Operation."
+    },
+    "services/activityJournalService.ts#ActivityJournalService.persistLinks": {
+      "classification": "delegated",
+      "owner": "ActivityJournalService.createEntry/updateEntry",
+      "reason": "Interne Link-Persistenz; Audit gehört zum fachlichen Journal-Eintrag."
+    },
+    "services/bemService.ts#BemService.replaceContacts": {
+      "classification": "delegated",
+      "owner": "BemService.create/update",
+      "reason": "Interne Kontakt-Synchronisierung innerhalb der auditierten BEM-Transaktion."
+    },
+    "services/bemService.ts#BemService.event": {
+      "classification": "delegated",
+      "owner": "BemService.create/update",
+      "reason": "Interner Verlaufsdatensatz innerhalb der auditierten BEM-Operation."
+    },
+    "services/caseHandoverService.ts#CaseHandoverService.insertItem": {
+      "classification": "delegated",
+      "owner": "CaseHandoverService.importFromFile",
+      "reason": "Technischer Importpositionsdatensatz; der Fallübergabe-Import ist Audit-Owner."
+    },
+    "services/cases/caseNoteService.ts#CaseNoteService.replaceNoteCaseLinks": {
+      "classification": "delegated",
+      "owner": "CaseNoteService.createNote/updateNote",
+      "reason": "Interne Zuordnungstabelle einer auditierten Notizmutation."
+    },
+    "services/cases/caseNoteService.ts#CaseNoteService.replaceNoteEntityLinks": {
+      "classification": "delegated",
+      "owner": "CaseNoteService.createNote/updateNote",
+      "reason": "Interne Entitätsverknüpfung einer auditierten Notizmutation."
+    },
+    "services/cases/caseSchemaService.ts#CaseSchemaService.ensureSchema": {
+      "classification": "infrastructure",
+      "reason": "Schema-/FTS-Initialisierung, keine Benutzeroperation."
+    },
+    "services/deadlineService.ts#DeadlineService.audit": {
+      "classification": "infrastructure",
+      "reason": "Schreibt selbst den spezialisierten Deadline-Auditdatensatz und ist kein zusätzlicher personenbezogener Fachvorgang."
+    },
+    "services/documents/documentOcrService.ts#DocumentOcrService.enqueueIfUseful": {
+      "classification": "derived",
+      "owner": "CaseDocumentService.importDocument",
+      "reason": "Technischer OCR-Status einer bereits auditierten Dokumentmutation."
+    },
+    "services/documents/documentOcrService.ts#DocumentOcrService.processJob": {
+      "classification": "derived",
+      "owner": "CaseDocumentService.importDocument",
+      "reason": "Asynchrone OCR-Projektion; kein eigener Benutzer-Fachvorgang."
+    },
+    "services/documents/documentOcrService.ts#DocumentOcrService.finishJob": {
+      "classification": "derived",
+      "owner": "CaseDocumentService.importDocument",
+      "reason": "Asynchrone OCR-Projektion; kein eigener Benutzer-Fachvorgang."
+    },
+    "services/migrations/migrationExecutor.ts#MigrationExecutor.ensureContactsSchema": {
+      "classification": "infrastructure",
+      "reason": "Schema-Migration ohne Benutzeraktion."
+    },
+    "services/migrations/migrationInference.ts#MigrationInference.activityJournalRecruitingContextsSupported": {
+      "classification": "infrastructure",
+      "reason": "Transaktionale Migrationsprobe mit anschließendem Rollback."
+    },
+    "services/migrations/migrationInference.ts#MigrationInference.participationViolationRecruitingContextSupported": {
+      "classification": "infrastructure",
+      "reason": "Transaktionale Migrationsprobe mit anschließendem Rollback."
+    },
+    "services/migrations/migrationRepairValidation.ts#MigrationRepairValidation.repairKnownSchemaDrift": {
+      "classification": "infrastructure",
+      "reason": "Schema-/Datenreparatur im Migrationspfad."
+    },
+    "services/participationService.ts#ParticipationService.event": {
+      "classification": "delegated",
+      "owner": "ParticipationService.create/update",
+      "reason": "Interner Verlaufsdatensatz; Audit gehört zur fachlichen Beteiligungsoperation."
+    },
+    "services/personCaseBindingService.ts#PersonCaseBindingService.migrateLegacyBindings": {
+      "classification": "infrastructure",
+      "reason": "Legacy-Bindungsmigration ohne Benutzeroperation."
+    },
+    "services/personCaseLinkService.ts#PersonCaseLinkService.linkCase": {
+      "classification": "delegated",
+      "owner": "ProtectedPersonService.linkCase",
+      "reason": "Technische Relation; Audit erfolgt auf dem fachlichen Personenverzeichnis-Vorgang."
+    },
+    "services/personCaseLinkService.ts#PersonCaseLinkService.markPersonAnonymized": {
+      "classification": "delegated",
+      "owner": "ProtectedPersonService.anonymizeStructuredData",
+      "reason": "Technischer Relationstatus innerhalb der auditierten Personenanonymisierung."
+    },
+    "services/preventionService.ts#PreventionService.replaceContacts": {
+      "classification": "delegated",
+      "owner": "PreventionService.create/update",
+      "reason": "Interne Kontakt-Synchronisierung innerhalb der auditierten Präventionsoperation."
+    },
+    "services/preventionService.ts#PreventionService.event": {
+      "classification": "delegated",
+      "owner": "PreventionService.create/update",
+      "reason": "Interner Verlaufsdatensatz innerhalb der auditierten Präventionsoperation."
+    },
+    "services/privacyReviewService.ts#PrivacyReviewService.scheduleLater": {
+      "classification": "delegated",
+      "owner": "PrivacyReviewService.createRetentionFollowUp/createForCase",
+      "reason": "Erzeugt eine auditiert angelegte Folgedatenschutzprüfung."
+    },
+    "services/privacyReviewService.ts#PrivacyReviewService.markCaseAnonymized": {
+      "classification": "delegated",
+      "owner": "PersonAnonymizationService.anonymizeStructuredPersonData",
+      "reason": "Technischer Review-/Fallstatus innerhalb der Personenanonymisierung."
+    },
+    "services/privacyReviewService.ts#PrivacyReviewService.markCaseDeleted": {
+      "classification": "delegated",
+      "owner": "RetentionService.deleteCase",
+      "reason": "Technischer Reviewstatus; fachlicher Löschvorgang wird als Fall-Lifecycle auditiert."
+    },
+    "services/privacyReviewService.ts#PrivacyReviewService.refreshOpenReviewContextsForPerson": {
+      "classification": "derived",
+      "owner": "PrivacyReviewService",
+      "reason": "Rekonstruiert nur Kontext-Snapshots bestehender Datenschutzprüfungen."
+    },
+    "services/privacyReviewService.ts#PrivacyReviewService.createRetentionFollowUp": {
+      "classification": "delegated",
+      "owner": "PrivacyReviewService.scheduleLater/documentRetention",
+      "reason": "Interne Folgeprüfung; createForCase erzeugt den Auditdatensatz."
+    },
+    "services/recruitingParticipationService.ts#RecruitingParticipationService.refreshInterviewCount": {
+      "classification": "derived",
+      "owner": "RecruitingParticipationService.addInterview/updateInterview/deleteInterview",
+      "reason": "Abgeleiteter Zähler aus auditierten Interviewereignissen."
+    },
+    "services/sbvControlProtocolService.ts#SbvControlProtocolService.deleteLinkedDeadline": {
+      "classification": "delegated",
+      "owner": "SbvControlProtocolService.update/delete",
+      "reason": "Technische gekoppelte Fristbereinigung innerhalb einer auditierten Protokolloperation."
+    },
+    "services/sbvParticipationViolationDocumentService.ts#SbvParticipationViolationDocumentService.generateDocument": {
+      "classification": "delegated",
+      "owner": "SbvParticipationViolationDocumentService",
+      "reason": "Dokument- und Ereignispersistenz bilden gemeinsam einen fachlichen Dokumentgenerierungsvorgang; Audit wird über den vorhandenen Dokument-/Verlaufsvertrag abgedeckt."
+    },
+    "services/sbvParticipationViolationService.ts#SbvParticipationViolationService.appendEvent": {
+      "classification": "delegated",
+      "owner": "SbvParticipationViolationService.create/update/changeStatus/createFollowUp",
+      "reason": "Interner Verlaufseintrag der jeweils auditierten Verletzungsoperation."
+    },
+    "services/workplaceAccommodationService.ts#WorkplaceAccommodationService.event": {
+      "classification": "delegated",
+      "owner": "WorkplaceAccommodationService.create/update",
+      "reason": "Interner Verlaufsdatensatz innerhalb der auditierten Arbeitsplatzanpassung."
+    },
+    "services/contactPrivacyService.ts#<module>.anonymizeContactReferences": {
+      "classification": "delegated",
+      "owner": "ContactService.delete",
+      "reason": "Technische Referenzanonymisierung innerhalb der fachlich auditierten Kontaktlöschung."
+    },
+    "services/demoSeedAncillary.ts#<module>.seedCompliance": {
+      "classification": "infrastructure",
+      "reason": "Synthetische Demo-Initialisierung ohne Benutzer-Fachoperation."
+    },
+    "services/demoSeedAncillary.ts#<module>.seedSbvResources": {
+      "classification": "infrastructure",
+      "reason": "Synthetische Demo-Initialisierung ohne Benutzer-Fachoperation."
+    },
+    "services/demoSeedCases.ts#<module>.seedCasesAndProcesses": {
+      "classification": "infrastructure",
+      "reason": "Synthetische Demo-Initialisierung ohne Benutzer-Fachoperation."
+    },
+    "services/demoSeedCases.ts#<module>.seedMeasures": {
+      "classification": "infrastructure",
+      "reason": "Synthetische Demo-Initialisierung ohne Benutzer-Fachoperation."
+    },
+    "services/demoSeedCases.ts#<module>.seedProcessRows": {
+      "classification": "infrastructure",
+      "reason": "Synthetische Demo-Initialisierung ohne Benutzer-Fachoperation."
+    },
+    "services/demoSeedPeople.ts#<module>.seedContacts": {
+      "classification": "infrastructure",
+      "reason": "Synthetische Demo-Initialisierung ohne Benutzer-Fachoperation."
+    },
+    "services/demoSeedPeople.ts#<module>.seedProtectedPersons": {
+      "classification": "infrastructure",
+      "reason": "Synthetische Demo-Initialisierung ohne Benutzer-Fachoperation."
+    },
+    "services/participationSchema.ts#<module>.migrateLegacyParticipations": {
+      "classification": "infrastructure",
+      "reason": "Legacy-Migration beim Schema-Aufbau, keine Benutzeroperation."
+    }
+  }
+}

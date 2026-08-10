@@ -4043,7 +4043,7 @@ Copyright notices:
 - COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 License text: LICENSES/MIT.txt
 
-nanoid@5.1.11
+nanoid@5.1.16
 License: MIT
 Repository: ai/nanoid
 Copyright notices:

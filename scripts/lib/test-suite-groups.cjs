@@ -11,10 +11,16 @@ function loadGroupConfig(root = process.cwd()) {
 
 function listTestFiles(root = process.cwd()) {
   const testsDir = join(root, 'tests');
-  return readdirSync(testsDir, { withFileTypes: true })
-    .filter((entry) => entry.isFile() && /\.test\.[cm]?[jt]sx?$/.test(entry.name))
-    .map((entry) => normalizePath(relative(root, join(testsDir, entry.name))))
-    .sort();
+  const files = [];
+  function walk(dir) {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const absolute = join(dir, entry.name);
+      if (entry.isDirectory()) walk(absolute);
+      else if (entry.isFile() && /\.test\.[cm]?[jt]sx?$/.test(entry.name)) files.push(normalizePath(relative(root, absolute)));
+    }
+  }
+  walk(testsDir);
+  return files.sort();
 }
 
 function classifyTestFiles(root = process.cwd()) {
@@ -27,7 +33,14 @@ function classifyTestFiles(root = process.cwd()) {
 
   for (const file of listTestFiles(root)) {
     const fileName = file.slice(file.lastIndexOf('/') + 1);
-    const group = config.precedence.find((candidate) => compiled[candidate].some((pattern) => pattern.test(fileName)));
+    const domainGroup = file === 'tests/platform/demo/demoModeBehavior.test.ts'
+      ? 'security'
+      : file.startsWith('tests/security/') || file.startsWith('tests/privacy/')
+        ? 'security'
+        : file.startsWith('tests/architecture/') || file.startsWith('tests/platform/')
+          ? 'architecture'
+          : null;
+    const group = domainGroup ?? config.precedence.find((candidate) => compiled[candidate].some((pattern) => pattern.test(fileName)));
     if (!group) throw new Error(`Keine Testgruppe für ${file}`);
     assignments[group].push(file);
   }

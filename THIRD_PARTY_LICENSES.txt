@@ -1282,7 +1282,7 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - nanoid@3.3.17
   License: MIT
   License text: LICENSES/MIT.txt
-- nanoid@5.1.11
+- nanoid@5.1.16
   License: MIT
   License text: LICENSES/MIT.txt
 - napi-build-utils@2.0.0

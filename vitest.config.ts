@@ -1,8 +1,11 @@
 import { defineConfig } from 'vitest/config';
 import { fileURLToPath, URL } from 'node:url';
 
+export const vitestExcludedSuites = ['e2e/**', 'e2e-product/**'];
+
 const rcCriticalServiceCoverage = [
   'services/securityService.ts',
+  'services/security/**/*.ts',
   'services/backupService.ts',
   'services/terminationWorkflowPolicy.ts',
   'services/preventionWorkflowPolicy.ts',
@@ -35,8 +38,6 @@ const rcCriticalServiceCoverage = [
   'services/portableProfileService.ts'
 ];
 
-export const vitestExcludedSuites = ['e2e/**', 'e2e-product/**'] as const;
-
 export default defineConfig({
   resolve: {
     alias: {
@@ -56,6 +57,7 @@ export default defineConfig({
     ],
     coverage: {
       provider: 'v8',
+      reporter: ['text', 'json', 'html'],
       reportsDirectory: './coverage',
       include: rcCriticalServiceCoverage,
       exclude: [

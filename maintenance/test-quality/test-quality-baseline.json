@@ -6,6 +6,8 @@
   "establishedFrom": {
     "metric": "sourceAssertions / assertions",
     "maximumRatio": 0.1,
-    "note": "Dateikategorien werden nur berichtet; das Release-Gate gilt für den Anteil echter Quelltext-Stringassertions."
-  }
+    "note": "Dateikategorien werden nur berichtet; das Release-Gate gilt f\u00fcr den Anteil echter Quelltext-Stringassertions."
+  },
+  "minimumTotalFiles": 260,
+  "minimumAssertions": 3265
 }
