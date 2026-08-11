@@ -88,7 +88,7 @@ Neue Großmodule stehen nicht im Vordergrund. Vorrang haben Stabilität und Verl
 Weiterentwicklungsthemen benötigen jeweils eine eigene Architektur- und Datenschutzentscheidung:
 
 - erweiterte datensparsame Auswertungen,
-- weitere Modularisierung großer Services,
+- Abbau verbleibender überlanger Funktionen und weiterer messbarer Maintainability-Schuld,
 - zusätzliche fachliche Berichte,
 - optionale Leseschnittstellen zu anderen Systemen,
 - eventuell weitergehende Rollen- oder Vertretungskonzepte.

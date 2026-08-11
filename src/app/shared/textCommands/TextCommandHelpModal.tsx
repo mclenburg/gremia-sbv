@@ -135,7 +135,7 @@ export function TextCommandHelpModal() {
         </div>
 
         <div className="industrial-modal-actions">
-          <button type="button" className="industrial-button" onClick={close}>Schließen</button>
+          <button type="button" className="industrial-secondary-button" onClick={close}>Schließen</button>
         </div>
       </section>
     </div>

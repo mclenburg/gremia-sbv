@@ -31,6 +31,7 @@ export type CaseTreePanelProps = {
   isLoading?: boolean;
   selection: CaseExplorerSelection;
   onSelect: (selection: CaseExplorerSelection) => void;
+  onDeleteProcess?: (target: { id: string; processType: CaseProcessType; label?: string }) => void;
   formatProcessNodeSubtitle: (processType: CaseProcessType, status?: string) => string;
   formatNoteDate: (value: string) => string;
   formatBytes: (value?: number) => string;

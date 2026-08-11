@@ -27,8 +27,9 @@ test('opens the case workbench with synthetic test cases only', async ({ page })
   await page.goto('/');
   await mainNavigation(page).getByRole('button', { name: 'Fallakte', exact: true }).click();
 
-  const alphaRow = page.getByRole('row', { name: /TEST-0001\s+Testperson Alpha/ });
+  const alphaRow = page.locator('[data-e2e="case-row-TEST-0001"]');
   await expect(alphaRow).toBeVisible();
+  await expect(alphaRow).toHaveAttribute('aria-label', 'Fall TEST-0001: Testperson Alpha');
   await expect(alphaRow.getByRole('cell', { name: 'Synthetischer E2E-Testfall ohne Echtdaten.' })).toBeVisible();
 
   await expect(page.getByRole('heading', { name: 'TEST-0001', exact: true })).toBeVisible();

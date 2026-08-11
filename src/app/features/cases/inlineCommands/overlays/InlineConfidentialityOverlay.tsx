@@ -129,7 +129,7 @@ export function InlineConfidentialityOverlay({ props }: { props: InlineCommandOv
         <div className="industrial-modal-grid">
           <label>
             <span>Stufe</span>
-            <select
+            <select className="industrial-select"
               value={inlineConfidentialityDraft.level}
               onChange={(event) =>
                 setInlineConfidentialityDraft((current) =>

@@ -314,7 +314,7 @@ export function RetentionSettingsPanel({ cases }: { cases: CaseRecord[] }) {
         </p>
         <label>
           <span>Fall</span>
-          <select
+          <select className="industrial-select"
             value={selectedCaseId}
             onChange={(event) => setSelectedCaseId(event.target.value)}
           >

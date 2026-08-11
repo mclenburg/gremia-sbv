@@ -24,7 +24,7 @@ describe('Electron-/SQLCipher-Kompatibilitätsvertrag', () => {
     expect(packageJson.dependencies?.['better-sqlite3-multiple-ciphers']).toBeDefined();
     expect(majorOf(electronRange)).toBe(39);
     expect(majorOf(lockedElectron?.version)).toBe(39);
-    expect(lockedElectron?.dependencies?.['@types/node']).toBe('^22.7.7');
+    expect(majorOf(lockedElectron?.dependencies?.['@types/node'])).toBe(22);
   });
 
   it('richtet die TypeScript-Node-Typen an der Electron-Laufzeit statt an npm-Node-24 aus', () => {

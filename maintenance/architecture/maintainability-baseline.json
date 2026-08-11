@@ -13,8 +13,8 @@
     "imports": 35
   },
   "summary": {
-    "filesScanned": 525,
-    "debtFiles": 59
+    "filesScanned": 529,
+    "debtFiles": 58
   },
   "debt": {
     "electron/ipc/protectedPersonIpc.ts": {
@@ -76,12 +76,6 @@
       "codeLines": 195,
       "maxFunctionLines": 203,
       "imports": 10
-    },
-    "src/app/features/cases/CaseTreePanel.tsx": {
-      "physicalLines": 142,
-      "codeLines": 140,
-      "maxFunctionLines": 138,
-      "imports": 2
     },
     "src/app/features/cases/ContextualTemplateButton.tsx": {
       "physicalLines": 157,

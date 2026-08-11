@@ -16,6 +16,8 @@ import type {
   CaseMeasureNoteRecord,
   CaseMeasureRecord,
   CreateCaseMeasureInput,
+  DeleteCaseProcessInput,
+  DeleteCaseProcessResult,
   CreateCaseMeasureNoteInput,
   UpdateCaseMeasureInput,
   UpdateCaseMeasureNoteInput,
@@ -251,6 +253,7 @@ declare global {
     caseMeasures: {
         list(caseId?: string): Promise<CaseMeasureRecord[]>;
         create(input: CreateCaseMeasureInput): Promise<CaseMeasureRecord>;
+        deleteProcess(input: DeleteCaseProcessInput): Promise<DeleteCaseProcessResult>;
         update(
           id: string,
           input: UpdateCaseMeasureInput,

@@ -14,6 +14,7 @@
 }
 
 .industrial-input,
+.industrial-select,
 .industrial-form input,
 .industrial-form select,
 .industrial-form textarea,
@@ -22,7 +23,8 @@
 .industrial-settings-form textarea,
 .industrial-modal-grid input,
 .industrial-modal-grid select,
-.industrial-modal-grid textarea {
+.industrial-modal-grid textarea,
+.privacy-review-form select {
   min-height: var(--control-min-height);
   border-radius: var(--control-radius);
 }
@@ -39,6 +41,7 @@
 .industrial-list-item:focus-visible,
 .industrial-table-actions button:focus-visible,
 .industrial-input:focus-visible,
+.industrial-select:focus-visible,
 .industrial-form input:focus-visible,
 .industrial-form select:focus-visible,
 .industrial-form textarea:focus-visible,
@@ -47,7 +50,8 @@
 .industrial-settings-form textarea:focus-visible,
 .industrial-modal-grid input:focus-visible,
 .industrial-modal-grid select:focus-visible,
-.industrial-modal-grid textarea:focus-visible {
+.industrial-modal-grid textarea:focus-visible,
+.privacy-review-form select:focus-visible {
   outline: 2px solid var(--industrial-accent);
   outline-offset: 3px;
   box-shadow: var(--focus-ring);
@@ -1082,6 +1086,14 @@ html[data-theme='light'] .industrial-panel-header p {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
+  transition: border-color 120ms ease, background-color 120ms ease, color 120ms ease;
+}
+
+.industrial-icon-button:hover:not(:disabled) {
+  border-color: var(--industrial-accent);
+  color: var(--industrial-accent);
+  background: color-mix(in srgb, var(--industrial-accent) 10%, rgba(15, 23, 42, 0.82));
 }
 
 .text-command-help-grid {

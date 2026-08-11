@@ -171,7 +171,7 @@ export function InlineParticipationOverlay({ props }: { props: InlineCommandOver
             >
               Risikostufe
             </FieldCaption>
-            <select
+            <select className="industrial-select"
               value={inlineParticipationDraft.riskLevel}
               onChange={(event) =>
                 setInlineParticipationDraft((current) =>

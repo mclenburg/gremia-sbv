@@ -206,10 +206,10 @@ function MappingStep({ preview, mapping, onMappingChange, onModeChange, onBack, 
       <p className="industrial-muted">Ordnen Sie die Spalten der Arbeitgeberliste den Zielfeldern zu. Nutzen Sie entweder Vollname oder getrennte Vor-/Nachnamen.</p>
       <div className="person-mapping-grid">
         {importFieldOptions.map((field) => (
-          <label key={field.key}><span>{field.label}</span><select aria-label={field.label} data-e2e={`person-import-field-${field.key}`} value={String(mapping[field.key] ?? '')} onChange={(event) => onMappingChange(field.key, event.target.value)}><option value="">Nicht importieren</option>{preview.columns.map((column) => <option key={column} value={column}>{column}</option>)}</select></label>
+          <label key={field.key}><span>{field.label}</span><select className="industrial-select" aria-label={field.label} data-e2e={`person-import-field-${field.key}`} value={String(mapping[field.key] ?? '')} onChange={(event) => onMappingChange(field.key, event.target.value)}><option value="">Nicht importieren</option>{preview.columns.map((column) => <option key={column} value={column}>{column}</option>)}</select></label>
         ))}
       </div>
-      {mapping.fullName && <label className="person-fullname-mode"><span>Format der Namensspalte</span><select aria-label="Format der Namensspalte" data-e2e="person-import-fullname-mode" value={mapping.fullNameMode ?? 'last_comma_first'} onChange={(event) => onModeChange(event.target.value as PersonImportColumnMapping['fullNameMode'])}><option value="last_comma_first">Nachname, Vorname</option><option value="first_last">Vorname Nachname</option></select></label>}
+      {mapping.fullName && <label className="person-fullname-mode"><span>Format der Namensspalte</span><select className="industrial-select" aria-label="Format der Namensspalte" data-e2e="person-import-fullname-mode" value={mapping.fullNameMode ?? 'last_comma_first'} onChange={(event) => onModeChange(event.target.value as PersonImportColumnMapping['fullNameMode'])}><option value="last_comma_first">Nachname, Vorname</option><option value="first_last">Vorname Nachname</option></select></label>}
       <div className="person-import-footer"><button type="button" className="industrial-secondary-button" onClick={onBack}>Zurück</button><button type="button" className="industrial-button" onClick={() => void onValidate()}>Mapping prüfen</button></div>
     </div>
   );
@@ -223,7 +223,7 @@ function ValidateStep({ preview, onBack, onExecute }: { preview: PersonImportPre
 
 function ResultStep({ result, onClose }: { result: PersonImportExecuteResult; onClose: () => void }) {
   return (
-    <div className="person-import-section"><h3><CalendarCheck className="inline-icon" aria-hidden="true" /> Import abgeschlossen</h3><div className="person-import-summary result"><span>Neu: {result.run.createdCount}</span><span>Aktualisiert: {result.run.updatedCount}</span><span>Unverändert: {result.run.unchangedCount}</span><span>Konflikte: {result.run.conflictCount}</span><span>Übersprungen: {result.run.skippedCount}</span></div><p className="industrial-muted">Die Importdatei wurde nicht dauerhaft gespeichert. Das Importprotokoll enthält keine Rohdaten.</p><div className="person-import-footer"><button type="button" className="industrial-button" data-e2e="person-import-close-result" onClick={onClose}>Schließen</button></div></div>
+    <div className="person-import-section"><h3><CalendarCheck className="inline-icon" aria-hidden="true" /> Import abgeschlossen</h3><div className="person-import-summary result"><span>Neu: {result.run.createdCount}</span><span>Aktualisiert: {result.run.updatedCount}</span><span>Unverändert: {result.run.unchangedCount}</span><span>Konflikte: {result.run.conflictCount}</span><span>Übersprungen: {result.run.skippedCount}</span></div><p className="industrial-muted">Die Importdatei wurde nicht dauerhaft gespeichert. Das Importprotokoll enthält keine Rohdaten.</p><div className="person-import-footer"><button type="button" className="industrial-secondary-button" data-e2e="person-import-close-result" onClick={onClose}>Schließen</button></div></div>
   );
 }
 

@@ -171,7 +171,7 @@ export function InlinePreventionOverlay({ props }: { props: InlineCommandOverlay
             >
               Schwierigkeit
             </FieldCaption>
-            <select
+            <select className="industrial-select"
               value={inlinePreventionDraft.difficultyType}
               onChange={(event) =>
                 setInlinePreventionDraft((current) =>
@@ -198,7 +198,7 @@ export function InlinePreventionOverlay({ props }: { props: InlineCommandOverlay
           </label>
           <label>
             <span>Risiko</span>
-            <select
+            <select className="industrial-select"
               value={inlinePreventionDraft.riskType}
               onChange={(event) =>
                 setInlinePreventionDraft((current) =>

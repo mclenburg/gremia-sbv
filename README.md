@@ -74,16 +74,16 @@ Wer Gremia.SBV ansehen, vorführen oder in einer Schulung testen möchte, muss k
 Unter Linux zum Beispiel:
 
 ```bash
-./Gremia.SBV-linux-x86_64.AppImage --demo
+./Gremia.SBV-<version>-linux-x86_64.AppImage --demo
 ```
 
 Unter Windows zum Beispiel:
 
 ```powershell
-.\Gremia.SBV-win-x64.exe --demo
+.\Gremia.SBV-<version>-win-x64-portable.exe --demo
 ```
 
-Wenn Gremia.SBV bereits installiert ist, reicht entsprechend der Programmname mit Zusatz:
+Wenn die portable Windows-Datei beispielsweise in `Gremia.SBV.exe` umbenannt wurde, reicht entsprechend der Dateiname mit Zusatz:
 
 ```powershell
 "Gremia.SBV.exe" --demo
@@ -157,8 +157,3 @@ npm run dev:demo
 Gremia.SBV ist eine Open-Source-Anwendung für vertrauliche SBV-Arbeit. Willkommen sind Beiträge, die Fachlichkeit, Sicherheit, Barrierefreiheit, Testbarkeit oder Bedienbarkeit verbessern.
 
 Die verbindlichen Qualitätsregeln stehen in [QUALITY_GATE.md](docs/QUALITY_GATE.md). Sie beschreiben Offline-first-Linie, Architektur-Gates, Accessibility-Gates, Visual-QA, Axe-A11y-Scan und die Tests, die vor einer öffentlichen Bereitstellung grün sein müssen.
-
-<br><hr>
-<div align="center">
-  <sub>Erstellt mit KI-Unterstützung.</sub>
-</div>

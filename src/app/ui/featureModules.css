@@ -1828,7 +1828,8 @@ html[data-theme='light'] .dashboard-focus-card-static.industrial-card:hover {
 .template-detail-fields select,
 .template-create-form select,
 .person-edit-form select,
-.knowledge-search-bar select {
+.knowledge-search-bar select,
+.privacy-review-form select {
   min-height: var(--control-min-height);
   border: 1px solid var(--industrial-border-strong);
   border-radius: var(--control-radius);
@@ -1854,7 +1855,8 @@ html[data-theme='light'] .template-filter-form select,
 html[data-theme='light'] .template-detail-fields select,
 html[data-theme='light'] .template-create-form select,
 html[data-theme='light'] .person-edit-form select,
-html[data-theme='light'] .knowledge-search-bar select {
+html[data-theme='light'] .knowledge-search-bar select,
+html[data-theme='light'] .privacy-review-form select {
   background-color: var(--industrial-select-bg);
   color: #141414;
 }
@@ -1970,7 +1972,8 @@ select.industrial-input:hover,
 .template-detail-fields select:hover,
 .template-create-form select:hover,
 .person-edit-form select:hover,
-.knowledge-search-bar select:hover {
+.knowledge-search-bar select:hover,
+.privacy-review-form select:hover {
   background-color: var(--industrial-select-bg-hover);
   border-color: var(--industrial-accent, #facc15);
 }
@@ -1986,7 +1989,8 @@ select.industrial-input option,
 .template-detail-fields select option,
 .template-create-form select option,
 .person-edit-form select option,
-.knowledge-search-bar select option {
+.knowledge-search-bar select option,
+.privacy-review-form select option {
   background: var(--industrial-select-option-bg);
   color: var(--industrial-text-strong, #f4f4f5);
 }
@@ -2002,7 +2006,8 @@ html[data-theme='light'] .template-filter-form select option,
 html[data-theme='light'] .template-detail-fields select option,
 html[data-theme='light'] .template-create-form select option,
 html[data-theme='light'] .person-edit-form select option,
-html[data-theme='light'] .knowledge-search-bar select option {
+html[data-theme='light'] .knowledge-search-bar select option,
+html[data-theme='light'] .privacy-review-form select option {
   color: #141414;
 }
 
@@ -2352,4 +2357,177 @@ html[data-theme='light'] .person-lifecycle-badge.muted {
 .reports-result-warnings ul {
   margin-bottom: 0;
   padding-inline-start: 1.25rem;
+}
+
+.case-tree-process-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
+  gap: var(--space-1, 0.25rem);
+}
+
+.case-tree-process-row > .case-tree-node {
+  min-width: 0;
+}
+
+.case-tree-process-delete {
+  align-self: center;
+}
+
+.case-tree-process-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.case-tree-privacy-marker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  flex: 0 0 auto;
+  padding: 0.05rem 0.2rem;
+  border: 1px solid currentColor;
+  border-radius: var(--industrial-corner-radius);
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.case-register-row-actions {
+  width: 1%;
+  white-space: nowrap;
+}
+
+/* Fall-Lifecycle: kompakte, barrierefreie Auswahl statt gestreckter Radio-Zeilen. */
+.case-privacy-action-dialog {
+  width: min(760px, calc(100vw - 2rem));
+}
+
+.case-privacy-action-form {
+  gap: 0.9rem;
+}
+
+.case-privacy-audit-note {
+  margin-block: 0.25rem 0;
+}
+
+.case-privacy-action-fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.case-privacy-action-fieldset > legend {
+  margin-bottom: 0.5rem;
+  font-weight: 800;
+}
+
+.case-privacy-action-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.case-privacy-action-option {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 0.65rem !important;
+  min-width: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--industrial-border);
+  background: color-mix(in srgb, var(--industrial-panel) 92%, transparent);
+  cursor: pointer;
+}
+
+.case-privacy-action-option:hover,
+.case-privacy-action-option:focus-within,
+.case-privacy-action-option.is-selected {
+  border-color: var(--industrial-accent);
+  background: color-mix(in srgb, var(--industrial-accent) 8%, var(--industrial-panel));
+}
+
+.case-privacy-action-option-danger.is-selected {
+  border-color: var(--industrial-danger);
+  background: color-mix(in srgb, var(--industrial-danger) 8%, var(--industrial-panel));
+}
+
+.case-privacy-action-option input[type='radio'] {
+  width: 1rem;
+  height: 1rem;
+  min-height: 1rem;
+  margin: 0.15rem 0 0;
+  accent-color: var(--industrial-accent);
+  cursor: pointer;
+}
+
+.case-privacy-action-option > span {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.case-privacy-action-option small {
+  line-height: 1.35;
+  color: var(--industrial-text-muted);
+}
+
+.case-privacy-action-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.case-privacy-action-fields textarea {
+  min-height: 5.5rem;
+  resize: vertical;
+}
+
+/* Gemeinsamer Lifecycle-Aktionsvertrag: Person, Fallakte und Maßnahme verwenden dasselbe destruktive Bedienmuster. */
+.privacy-destructive-action {
+  width: 2.75rem;
+  min-width: 2.75rem;
+  border: 0;
+  border-left: 1px solid var(--sbv-border);
+  background: rgba(255, 255, 255, 0.02);
+  color: #f6b0b0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
+.privacy-destructive-action:hover:not(:disabled),
+.privacy-destructive-action:focus-visible:not(:disabled) {
+  border-color: var(--sbv-border);
+  background: rgba(160, 0, 0, 0.22);
+  color: #ffd4d4;
+}
+
+.privacy-destructive-action:focus-visible {
+  outline: 2px solid var(--industrial-accent);
+  outline-offset: -2px;
+}
+
+.privacy-destructive-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.case-register-privacy-action {
+  min-height: 2.5rem;
+}
+
+.case-tree-process-delete {
+  align-self: stretch;
+}
+
+@media (max-width: 760px) {
+  .case-privacy-action-options,
+  .case-privacy-action-fields {
+    grid-template-columns: 1fr;
+  }
 }

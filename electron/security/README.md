@@ -1,6 +1,5 @@
 # Electron Security Notes
 
-Stand: **0.9.1**
 
 Electron-Sicherheitsregeln für Gremia.SBV:
 

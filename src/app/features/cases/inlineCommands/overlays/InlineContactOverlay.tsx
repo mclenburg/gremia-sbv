@@ -30,7 +30,7 @@ function ContactCreateFields({ props }: { props: ContactOverlayProps }) {
       <label><span>Nachname</span><input value={draft.lastName} onChange={(event) => update({ lastName: event.target.value })} /></label>
       <label><span>Firma / Stelle</span><input value={draft.organization} onChange={(event) => update({ organization: event.target.value })} /></label>
       <label><span>Rolle</span><input value={draft.role} onChange={(event) => update({ role: event.target.value })} placeholder="z. B. Personalleiter" /></label>
-      <label><span>Kategorie</span><select value={draft.category} onChange={(event) => update({ category: event.target.value as ContactCategory })}>
+      <label><span>Kategorie</span><select className="industrial-select" value={draft.category} onChange={(event) => update({ category: event.target.value as ContactCategory })}>
         <option value="arbeitgeber">Arbeitgeber</option><option value="inklusionsamt">Inklusionsamt</option><option value="agentur_fuer_arbeit">Agentur für Arbeit</option><option value="betriebsarzt">Betriebsarzt</option><option value="betriebsrat">Betriebsrat</option><option value="beratung">Beratung</option><option value="intern">intern</option><option value="sonstiges">sonstiges</option>
       </select></label>
       <label><span>E-Mail</span><input value={draft.email} onChange={(event) => update({ email: event.target.value })} /></label>

@@ -155,13 +155,13 @@ function SelectionFields({ kind, draft, setDraft, cases, contacts, replace }: { 
 
 function RiskAndConfidentialityFields({ kind, draft, setDraft }: { kind: CommandKind; draft: GlobalDraft; setDraft: DraftSetter }) {
   if (kind === "risk") return <div className="industrial-modal-grid">
-    <label><span>Risikostufe</span><select value={draft.riskLevel} onChange={(e) => updateDraft(setDraft, { riskLevel: e.target.value as RiskLevelCommand })}>
+    <label><span>Risikostufe</span><select className="industrial-select" value={draft.riskLevel} onChange={(e) => updateDraft(setDraft, { riskLevel: e.target.value as RiskLevelCommand })}>
       <option value="low">niedrig</option><option value="medium">mittel</option><option value="high">hoch</option><option value="critical">kritisch</option></select></label>
     <label className="industrial-modal-wide"><span>Hinweis</span><input value={draft.title} onChange={(e) => updateDraft(setDraft, { title: e.target.value })}
       autoFocus placeholder="z. B. Kündigungsrisiko, Chronifizierung, Blockade …" /></label>
   </div>;
   if (kind === "confidentiality") return <div className="industrial-modal-grid">
-    <label><span>Stufe</span><select value={draft.confidentiality} onChange={(e) => updateDraft(setDraft, { confidentiality: e.target.value as ConfidentialCommandLevel })}>
+    <label><span>Stufe</span><select className="industrial-select" value={draft.confidentiality} onChange={(e) => updateDraft(setDraft, { confidentiality: e.target.value as ConfidentialCommandLevel })}>
       <option value="normal">normal</option><option value="sensibel">sensibel</option><option value="hoch_sensibel">hoch sensibel</option></select></label>
     <div className="industrial-modal-preview"><Lock className="h-4 w-4" /> Wird eingefügt: <strong>{formatConfidentialityText(draft.confidentiality)}</strong></div>
   </div>;

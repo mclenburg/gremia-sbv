@@ -2,7 +2,7 @@ import { IPC_CHANNELS, registerIpcHandler } from './ipcHandler.js';
 import type { IpcMain } from 'electron';
 import type { SecurityService } from '../../services/securityService.js';
 import type { ApplicationServices } from '../applicationServices.js';
-import type { CaseMeasureNoteProcessType, CreateCaseMeasureInput, CreateCaseMeasureNoteInput, UpdateCaseMeasureInput, UpdateCaseMeasureNoteInput } from '../../src/app/core/models/case-measure.model.js';
+import type { CaseMeasureNoteProcessType, CreateCaseMeasureInput, CreateCaseMeasureNoteInput, DeleteCaseProcessInput, UpdateCaseMeasureInput, UpdateCaseMeasureNoteInput } from '../../src/app/core/models/case-measure.model.js';
 import { assertOptionalString, assertRecordInput, assertString } from './ipcValidation.js';
 
 export function registerCaseMeasureIpc(ipcMain: IpcMain, security: SecurityService, services: ApplicationServices): void {
@@ -22,6 +22,17 @@ export function registerCaseMeasureIpc(ipcMain: IpcMain, security: SecurityServi
       assertRecordInput<UpdateCaseMeasureInput>(input, 'caseMeasures:update')
     )
   );
+
+
+  registerIpcHandler(ipcMain, IPC_CHANNELS.caseMeasuresDeleteProcess, async (_event, input: unknown) => {
+    const checked = assertRecordInput<DeleteCaseProcessInput>(input, 'caseMeasures:delete-process');
+    return measures().deleteProcess({
+      caseId: assertString(checked.caseId, 'caseMeasures:delete-process', 'Fall-ID', { minLength: 1, maxLength: 120 }),
+      processType: assertString(checked.processType, 'caseMeasures:delete-process', 'Maßnahmentyp', { minLength: 1, maxLength: 80 }) as CaseMeasureNoteProcessType,
+      processId: assertString(checked.processId, 'caseMeasures:delete-process', 'Maßnahmen-ID', { minLength: 1, maxLength: 120 }),
+      reasonCode: assertString(checked.reasonCode, 'caseMeasures:delete-process', 'Löschgrund', { minLength: 1, maxLength: 80 }) as DeleteCaseProcessInput['reasonCode'],
+    });
+  });
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.caseMeasuresNotesList, async (_event, caseId: unknown, measureType?: unknown, measureId?: unknown) =>
     measures().listNotes(

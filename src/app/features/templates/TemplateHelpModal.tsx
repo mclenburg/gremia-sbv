@@ -11,7 +11,7 @@ export function TemplateHelpModal({ onClose }: { onClose: () => void }) {
       icon={<HelpCircle className="h-5 w-5" />}
       onClose={onClose}
       className="template-help-modal"
-      actions={<IndustrialButton onClick={onClose}>Schließen</IndustrialButton>}
+      actions={<IndustrialButton variant="secondary" onClick={onClose}>Schließen</IndustrialButton>}
     >
       <div className="template-placeholder-help">
         <section>

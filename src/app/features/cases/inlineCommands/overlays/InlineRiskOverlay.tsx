@@ -129,7 +129,7 @@ export function InlineRiskOverlay({ props }: { props: InlineCommandOverlaysProps
         <div className="industrial-modal-grid">
           <label>
             <span>Risikostufe</span>
-            <select
+            <select className="industrial-select"
               value={inlineRiskDraft.level}
               onChange={(event) =>
                 setInlineRiskDraft((current) =>

@@ -1,5 +1,5 @@
-import { Plus, Upload } from 'lucide-react';
-import { IndustrialButton, GhostButton } from '../../shared/components/IndustrialButton';
+import { Plus, Trash2, Upload } from 'lucide-react';
+import { IndustrialButton, GhostButton, IconButton } from '../../shared/components/IndustrialButton';
 import { SearchInput } from '../../shared/components/IndustrialForm';
 import { EmptyState } from '../../shared/components/WorkbenchLayout';
 import type { CaseCategory, CaseRecord } from '../../core/models/case.model';
@@ -13,6 +13,7 @@ export function CaseRegister({
   onSelectCase,
   onCreateCase,
   onImportHandover,
+  onPrivacyAction,
   onBulkMarkClosedLegacyCases,
   closedLegacyBulkCount,
   page,
@@ -28,6 +29,7 @@ export function CaseRegister({
   onSelectCase: (caseId: string) => void;
   onCreateCase: () => void;
   onImportHandover?: () => void;
+  onPrivacyAction?: (record: CaseRecord) => void;
   onBulkMarkClosedLegacyCases?: () => void;
   closedLegacyBulkCount?: number;
   page: number;
@@ -72,17 +74,19 @@ export function CaseRegister({
               <th>Status</th>
               <th>Bindung</th>
               <th>Kurzbeschreibung</th>
+              <th><span className="sr-only">Aktionen</span></th>
             </tr>
           </thead>
           <tbody>
             {visibleCases.map((record) => (
-              <tr key={record.id} data-e2e={`case-row-${record.caseNumber}`} className={record.id === selectedCaseId ? 'selected' : ''} onClick={() => onSelectCase(record.id)}>
+              <tr key={record.id} data-e2e={`case-row-${record.caseNumber}`} className={record.id === selectedCaseId ? 'selected' : ''} tabIndex={0} aria-label={`Fall ${record.caseNumber}: ${record.displayName}`} onClick={() => onSelectCase(record.id)} onKeyDown={(event) => { if (event.target !== event.currentTarget) return; if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onSelectCase(record.id); } }}>
                 <td><strong>{record.caseNumber}</strong></td>
                 <td>{record.displayName}</td>
                 <td>{record.category as CaseCategory}</td>
                 <td>{record.status}</td>
                 <td>{record.personBindingState === 'legacy_unlinked' ? 'Altfall' : record.personBindingState === 'anonymous_request' ? 'Anonym' : record.protectedPersonId ? 'Person' : '—'}</td>
                 <td>{record.summary ?? '—'}</td>
+                <td className="case-register-row-actions">{onPrivacyAction ? <IconButton className="privacy-destructive-action case-register-privacy-action" aria-label={`Fallakte löschen oder anonymisieren: ${record.caseNumber}`} title={`Fallakte löschen oder anonymisieren: ${record.caseNumber}`} onClick={(event) => { event.stopPropagation(); onPrivacyAction(record); }}><Trash2 className="h-4 w-4" aria-hidden="true" /></IconButton> : null}</td>
               </tr>
             ))}
           </tbody>

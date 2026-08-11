@@ -165,7 +165,7 @@ export function InlineBemOverlay({ props }: { props: InlineCommandOverlaysProps 
             <FieldCaption draft={inlineBemDraft} field="triggerType">
               Auslöser
             </FieldCaption>
-            <select
+            <select className="industrial-select"
               value={inlineBemDraft.triggerType}
               onChange={(event) =>
                 setInlineBemDraft((current) =>

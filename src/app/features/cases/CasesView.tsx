@@ -20,6 +20,10 @@ import type { CaseProcessDraft } from "./casesViewProcessUtils";
 import { caseRegisterSliceBounds, clampCaseRegisterPage } from "./casesViewUtils";
 import { useConfirmDialog } from "../../shared/dialogs/ConfirmDialogProvider";
 import { useAnnouncer } from "../../shared/a11y/LiveRegionProvider";
+import type { CaseProcessType } from "./caseWorkbenchTypes";
+import type { CaseProcessDeleteReason } from "../../core/models/case-measure.model";
+import { CasePrivacyActionDialog, type CasePrivacyActionMode } from "./CasePrivacyActionDialog";
+import { CaseProcessDeleteDialog } from "./CaseProcessDeleteDialog";
 
 function useCaseFormState() {
   const [caseNumber, setCaseNumber] = useState(""); const [displayName, setDisplayName] = useState("");
@@ -119,6 +123,8 @@ function useCaseKeyboardShortcuts(openCaseCreateModal: () => void) {
 export function CasesView(props: CasesViewProps) {
   const { cases, contacts, protectedPersons, target, onCreateCase, onCreateDeadline, onCreateContact, onCasesChanged, onTargetConsumed, onOpenParticipationViolationPrefill } = props;
   const form = useCaseFormState(); const register = useCaseRegister(cases); const confirmDialog = useConfirmDialog();
+  const [casePrivacyTarget, setCasePrivacyTarget] = useState<CaseRecord | null>(null);
+  const [processDeleteTarget, setProcessDeleteTarget] = useState<{ id: string; processType: CaseProcessType; label?: string } | null>(null);
   const [caseLoadError, setCaseLoadError] = useState("");
   const workbench = useCaseWorkbenchData({ cases, target, onTargetConsumed, onError: setCaseLoadError });
   const search = useCaseWorkbenchSearch({ selectedCaseId: workbench.selectedCaseId, onSelect: workbench.setSelection });
@@ -161,6 +167,27 @@ export function CasesView(props: CasesViewProps) {
   const assignLegacyCase = async (protectedPersonId: string, reason: string) => { if (!form.legacyBindingCase) return; form.setLegacyBindingError("");
     try { await legacy.bindLegacyCase(form.legacyBindingCase, protectedPersonId, reason); const id = form.legacyBindingCase.id; form.setLegacyBindingCase(null); workbench.setSelectedCaseId(id); }
     catch (error) { form.setLegacyBindingError(error instanceof Error ? error.message : "Legacy-Zuordnung konnte nicht gespeichert werden."); } };
+  const runCasePrivacyAction = async (input: { mode: CasePrivacyActionMode; reason: string; confirmation: string }) => {
+    if (!casePrivacyTarget) return;
+    const payload = { caseId: casePrivacyTarget.id, reason: input.reason, confirmation: input.confirmation };
+    const result = input.mode === 'anonymize' ? await window.gremiaSbv.privacyReview.anonymizeCase(payload) : await window.gremiaSbv.privacyReview.deleteCase(payload);
+    if (!result.ok) throw new Error(result.error ?? 'Die Datenschutzaktion konnte nicht abgeschlossen werden.');
+    feedback.pushCaseToast(result.message ?? (input.mode === 'anonymize' ? 'Fallakte wurde anonymisiert.' : 'Fallakte wurde gelöscht.'));
+    if (input.mode === 'delete' && workbench.selectedCaseId === casePrivacyTarget.id) {
+      workbench.setSelectedCaseId('');
+      workbench.setSelection({ type: 'overview' });
+    }
+    await onCasesChanged();
+    if (input.mode === 'anonymize' && workbench.selectedCaseId === casePrivacyTarget.id) await workbench.reloadSelectedCaseChildren();
+  };
+  const deleteCaseProcess = async (reasonCode: CaseProcessDeleteReason) => {
+    if (!processDeleteTarget || !workbench.selectedCaseId) return;
+    const result = await window.gremiaSbv.caseMeasures.deleteProcess({ caseId: workbench.selectedCaseId, processId: processDeleteTarget.id, processType: processDeleteTarget.processType, reasonCode });
+    workbench.setSelection({ type: 'overview' });
+    await workbench.reloadSelectedCaseChildren();
+    await onCasesChanged();
+    feedback.pushCaseToast(`Maßnahme wurde gelöscht. ${result.deletedNotes} Maßnahmennotiz(en) und ${result.deletedDeadlines} Frist(en) wurden entfernt${result.detachedDocuments ? `; ${result.detachedDocuments} Dokument(en) bleiben in der Fallakte erhalten.` : '.'}`);
+  };
   const documentActions = createCaseDocumentActions({ importDocuments: crud.importDocuments, openDocument: crud.openDocument, exportDocument: crud.exportDocument, deleteDocument: crud.deleteDocument });
   return <><CaseHandoverTransferDialogs exportOpen={handover.handoverExportOpen} importOpen={handover.handoverImportOpen} selectedCase={workbench.selectedCase}
     onCloseExport={() => handover.setHandoverExportOpen(false)} onCloseImport={() => handover.setHandoverImportOpen(false)} onExport={handover.exportSelectedCaseHandover}
@@ -170,5 +197,7 @@ export function CasesView(props: CasesViewProps) {
       onOpenExportHandover={() => handover.setHandoverExportOpen(true)} onOpenImportHandover={() => handover.setHandoverImportOpen(true)}
       onContinueExpiredHandover={handover.continueExpiredHandover} closeLegacyBindingDialog={() => form.setLegacyBindingCase(null)} openLegacyBindingDialog={openLegacyBindingDialog}
       assignLegacyCase={assignLegacyCase} closedLegacyBulkCount={closedLegacyBulkCount} bulkMarkClosedLegacyCases={bulkMarkClosedLegacyCases}
-      onOpenParticipationViolationPrefill={onOpenParticipationViolationPrefill} /></>;
+      onOpenParticipationViolationPrefill={onOpenParticipationViolationPrefill} onOpenCasePrivacyAction={setCasePrivacyTarget} onOpenProcessDelete={setProcessDeleteTarget} />
+    <CasePrivacyActionDialog open={Boolean(casePrivacyTarget)} record={casePrivacyTarget ?? undefined} onClose={() => setCasePrivacyTarget(null)} onSubmit={runCasePrivacyAction} />
+    <CaseProcessDeleteDialog target={processDeleteTarget} onClose={() => setProcessDeleteTarget(null)} onDelete={deleteCaseProcess} /></>;
 }

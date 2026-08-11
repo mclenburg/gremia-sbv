@@ -180,7 +180,7 @@ export function InlineWorkplaceAccommodationOverlay({ props }: { props: InlineCo
             >
               Kategorie
             </FieldCaption>
-            <select
+            <select className="industrial-select"
               value={inlineWorkplaceAccommodationDraft.category}
               onChange={(event) =>
                 setInlineWorkplaceAccommodationDraft((current) =>
@@ -219,7 +219,7 @@ export function InlineWorkplaceAccommodationOverlay({ props }: { props: InlineCo
             >
               Risikostufe
             </FieldCaption>
-            <select
+            <select className="industrial-select"
               value={inlineWorkplaceAccommodationDraft.riskLevel}
               onChange={(event) =>
                 setInlineWorkplaceAccommodationDraft((current) =>

@@ -78,3 +78,49 @@ test('supports keyboard-only anonymous request path and announces binding feedba
   await expect(page.locator('[data-e2e="case-row-TEST-A11Y-ANON"]')).toBeVisible();
   await expect(page.getByRole('status')).toContainText(/Anonyme Anfrage wurde angelegt|Fallakte wurde/);
 });
+
+
+test('keeps the measure deletion reason select readable and keyboard-operable in dark mode', async ({ page }) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem('gremia.sbv.theme', 'dark');
+    window.localStorage.setItem('gremia-sbv-theme', 'dark');
+    document.documentElement.dataset.theme = 'dark';
+  });
+  await page.goto('/');
+
+  const navigation = page.getByRole('navigation', { name: 'Hauptnavigation' });
+  await navigation.getByRole('button', { name: 'Fallakte', exact: true }).click();
+  await page.locator('[data-e2e="case-row-TEST-0001"]').click();
+  await page.getByRole('button', { name: 'BEM löschen', exact: true }).click();
+
+  const dialog = page.locator('[data-e2e="case-process-delete-dialog"]');
+  await expect(dialog).toBeVisible();
+  const reason = dialog.getByLabel('Löschgrund');
+  await expect(reason).toBeVisible();
+  await reason.focus();
+  await expect(reason).toBeFocused();
+  await reason.selectOption('duplicate');
+  await expect(reason).toHaveValue('duplicate');
+
+  const colors = await reason.evaluate((element) => {
+    const select = element as HTMLSelectElement;
+    const selectStyle = window.getComputedStyle(select);
+    const optionStyle = window.getComputedStyle(select.options[0]);
+    return {
+      selectColor: selectStyle.color,
+      selectBackground: selectStyle.backgroundColor,
+      colorScheme: selectStyle.colorScheme,
+      optionColor: optionStyle.color,
+      optionBackground: optionStyle.backgroundColor,
+    };
+  });
+  expect(colors.colorScheme).toContain('dark');
+  expect(colors.selectColor).not.toBe(colors.selectBackground);
+  expect(colors.optionColor).not.toBe(colors.optionBackground);
+  expect(colors.optionColor).not.toBe('rgba(0, 0, 0, 0)');
+  expect(colors.optionBackground).not.toBe('rgba(0, 0, 0, 0)');
+
+  await page.keyboard.press('Escape');
+  await expect(dialog).toBeHidden();
+  await expect(page.getByRole('button', { name: 'BEM löschen', exact: true })).toBeFocused();
+});

@@ -159,7 +159,7 @@ export function InlineDeadlineOverlay({ props }: { props: InlineCommandOverlaysP
           </label>
           <label>
             <span>Stufe</span>
-            <select
+            <select className="industrial-select"
               value={inlineDeadlineDraft.severity}
               onChange={(event) =>
                 setInlineDeadlineDraft((current) =>

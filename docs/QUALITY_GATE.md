@@ -48,6 +48,7 @@ Vor öffentlicher Bereitstellung müssen grün laufen:
 - `npm run test:e2e:a11y`
 - `npm run build:readiness:strict`
 - `npm run release:check`
+- `npm run build:github` auf jeder nativ freizugebenden Zielplattform
 
 ## Visuelle Gates
 

@@ -4,9 +4,19 @@ Der Windows-Build von Gremia.SBV erzeugt eine portable direkt startbare `.exe` u
 
 ## Build
 
+Für den normalen Windows-Build:
+
 ```bash
 npm run build:win
 ```
+
+Für die lokale Abnahme mit derselben Plattformsequenz wie im GitHub-Build:
+
+```bash
+npm run build:github
+```
+
+Dieser Lauf umfasst zusätzlich die Windows-Artefaktprüfung, den Start-Smoke-Test und den Backup/Restore-Plattformcheck.
 
 ## Erwartung
 

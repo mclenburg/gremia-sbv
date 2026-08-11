@@ -29,6 +29,7 @@ npm run build:compile
 npm run build:package:linux
 npm run build:package:windows
 npm run release:check
+npm run build:github
 ```
 
 Der Build ist in drei eindeutige Phasen getrennt:
@@ -38,6 +39,8 @@ Der Build ist in drei eindeutige Phasen getrennt:
 3. `build:package:*` prüft dieses Manifest und verweigert Packaging, wenn Quellen, Buildkonfiguration oder kompilierte Artefakte seit dem Compile verändert wurden.
 
 Die Komfortbefehle `build:linux`, `build:windows` und `build:mac` führen diese drei Phasen vollständig in dieser Reihenfolge aus. CI-Jobs dürfen nach einem bereits erfolgreichen Verify-Schritt direkt `build:compile` und das passende `build:package:*` verwenden.
+
+`npm run build:github` spiegelt auf dem aktuellen Betriebssystem die GitHub-Buildsequenz einschließlich der plattformspezifischen Release-Prüfung. Unter Linux endet die Sequenz mit `release:platform:linux`, unter Windows mit `release:platform:windows`. Dadurch sollen Artefakt-, Startup- und Backup/Restore-Fehler bereits lokal auf derselben Plattform reproduzierbar sein.
 
 Vor Cleanup-Änderungen ist der Plan auszuführen:
 
@@ -107,8 +110,11 @@ TypeScript, Vitest/Coverage, Lint, Qualitätsgates, Compile, Packaging, Artefakt
 sowie Backup/Restore mit Leerzeichen-, Umlaut- und Langpfaden.
 
 Nach dem Packaging prüfen `release:artifacts:linux` und `release:artifacts:windows` Dateiname, Version,
-Betriebssystem, Architektur, plausible Mindestgröße und Binärsignatur. Testdaten, temporäre Datenbanken,
-Logs, Source Maps und vergleichbare Debugartefakte im Releaseverzeichnis führen zum Abbruch.
+Betriebssystem, Architektur, plausible Mindestgröße und Binärsignatur. Das Packaging schreibt nach erfolgreicher
+Frischeprüfung einen Buildbeleg in das Releaseverzeichnis. Eine nachgelagerte Plattformprüfung ohne eigenen
+`--since`-Zeitstempel akzeptiert ein Artefakt nur, wenn dieser Buildbeleg noch exakt zum unveränderten Artefakt
+passt. Testdaten, temporäre Datenbanken, Logs, Source Maps und vergleichbare Debugartefakte im Releaseverzeichnis
+führen zum Abbruch.
 
 Der Linux-Desktopname ist ausdrücklich als `Gremia.SBV` konfiguriert; `linux.syncDesktopName` hält den
 Namen der Desktopintegration mit dem Produktnamen synchron.

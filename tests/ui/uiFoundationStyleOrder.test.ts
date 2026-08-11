@@ -119,4 +119,31 @@ describe('UI-Fundament Block 2', () => {
     expect(css).toContain('--control-radius: 0;');
     expect(css).toContain('--industrial-corner-radius: 0;');
   });
+
+  it('gibt Icon-Aktionen einen eindeutigen Zeiger- und Hoverzustand', () => {
+    const components = source('src/app/ui/components.css');
+    const features = source('src/app/ui/featureModules.css');
+    expect(components).toMatch(/\.industrial-icon-button\s*\{[\s\S]*?cursor:\s*pointer;/);
+    expect(components).toContain('.industrial-icon-button:hover:not(:disabled)');
+    expect(features).toMatch(/\.privacy-destructive-action\s*\{[\s\S]*?cursor:\s*pointer;/);
+    expect(features).toContain('.privacy-destructive-action:hover:not(:disabled)');
+    expect(features).toContain('.case-tree-process-delete {');
+    expect(features).toContain('.case-register-privacy-action {');
+  });
+
+  it('stylt Privacy-Lifecycle-Auswahllisten in Dark- und Light-Mode lesbar und fokussierbar', () => {
+    const components = source('src/app/ui/components.css');
+    const features = source('src/app/ui/featureModules.css');
+    expect(components).toContain('.privacy-review-form select:focus-visible');
+    expect(components).toContain('.industrial-select:focus-visible');
+    expect(features).toContain('.privacy-review-form select {');
+    expect(features).toContain('.privacy-review-form select:hover {');
+    expect(features).toContain('.privacy-review-form select option {');
+    expect(features).toContain("html[data-theme='light'] .privacy-review-form select");
+    expect(features).toContain("html[data-theme='light'] .privacy-review-form select option");
+    expect(features).toContain('background-color: var(--industrial-select-bg);');
+    expect(features).toContain('background: var(--industrial-select-option-bg);');
+    expect(features).toContain('color: var(--industrial-text-strong, #f4f4f5);');
+  });
+
 });

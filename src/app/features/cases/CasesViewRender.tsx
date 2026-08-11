@@ -1,5 +1,6 @@
 import { AlertTriangle, CheckCircle2, Trash2 } from "lucide-react";
 import { ModuleFrame } from "../../shared/components/ModuleFrame";
+import { DangerButton, ToolbarButton } from "../../shared/components/IndustrialButton";
 import { CaseRegister } from "./CaseRegister";
 import { CaseTreePanel } from "./CaseTreePanel";
 import { CaseDetailPanel } from "./CaseDetailPanel";
@@ -141,9 +142,9 @@ function CaseResourceContent({ props }: { props: CasesViewRenderProps }) {
       <CaseNoteEntityLinks links={selectedNote.links} onSelect={setSelection} />
       {selectedNote.nextSteps && <p className="case-note-next"><strong>Nächste Schritte:</strong> {selectedNote.nextSteps}</p>}
       <div className="industrial-card-actions">
-        <button type="button" className="industrial-secondary-button" onClick={() => startEditNote(selectedNote)}>Bearbeiten</button>
-        <button type="button" className="industrial-secondary-button" onClick={() => void deleteNote(selectedNote)}>
-          <Trash2 className="h-4 w-4" /> Löschen</button>
+        <ToolbarButton onClick={() => startEditNote(selectedNote)}>Bearbeiten</ToolbarButton>
+        <DangerButton compact onClick={() => void deleteNote(selectedNote)}>
+          <Trash2 className="h-4 w-4" /> Löschen</DangerButton>
       </div>
     </article>}
     <CaseDocumentDetail document={selectedDocument} formatNoteDate={formatNoteDate} formatBytes={formatBytes}
@@ -168,7 +169,7 @@ function CaseWorkbench({ props }: { props: CasesViewRenderProps }) {
     <CaseTreePanel selectedCase={selectedCase} notes={notes} documents={documents} preventionProcesses={casePreventionProcesses}
       bemProcesses={caseBemProcesses} equalizationProcesses={caseEqualizationProcesses} terminationProcesses={caseTerminationProcesses}
       participationProcesses={caseParticipationProcesses} workplaceAccommodationProcesses={caseWorkplaceAccommodationProcesses}
-      isLoading={isCaseChildrenLoading} selection={selection} onSelect={setSelection}
+      isLoading={isCaseChildrenLoading} selection={selection} onSelect={setSelection} onDeleteProcess={props.onOpenProcessDelete}
       formatProcessNodeSubtitle={formatProcessNodeSubtitle} formatNoteDate={formatNoteDate} formatBytes={formatBytes} />
     <CaseDetailPanel searchQuery={searchQuery} searchOnlySelectedCase={searchOnlySelectedCase} searchResults={searchResults}
       searchError={searchError} searchInfo={searchInfo} isSearching={isSearching} selectedSearchSourceTypes={selectedSearchSourceTypes}
@@ -231,6 +232,7 @@ export function CasesViewRender(props: CasesViewRenderProps) {
       <CaseRegister filteredCount={filteredCases.length} visibleCases={visibleCases} selectedCaseId={selectedCaseId}
         caseFilter={caseFilter} onCaseFilterChange={(value) => { setCaseFilter(value); setCaseRegisterPage(1); }}
         onSelectCase={props.setSelectedCaseId} onCreateCase={openCaseCreateModal} onImportHandover={props.onOpenImportHandover}
+        onPrivacyAction={props.onOpenCasePrivacyAction}
         onBulkMarkClosedLegacyCases={() => void bulkMarkClosedLegacyCases()} closedLegacyBulkCount={closedLegacyBulkCount}
         page={normalizedCaseRegisterPage} pageCount={caseRegisterPageCount} pageSize={caseRegisterPageSize}
         onPageChange={setCaseRegisterPage} />

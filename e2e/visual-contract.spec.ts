@@ -296,3 +296,60 @@ test.describe('0.9.5-l Modul-Layout-Konsistenz', () => {
     }
   });
 });
+
+
+test.describe('Lifecycle- und Aktionskonsistenz', () => {
+  test('stellt identische destruktive Listeneinstiege bei Person, Fallakte und Maßnahme gleich dar', async ({ page }) => {
+    await setTheme(page, 'dark');
+    await page.goto('/');
+
+    await page.locator('[data-e2e="main-nav-persons"]').click();
+    const personDelete = page.getByRole('button', { name: /Person löschen: Mustermann, Max/ });
+    await expect(personDelete).toBeVisible();
+    const personStyle = await personDelete.evaluate((element) => {
+      const style = getComputedStyle(element);
+      return {
+        cursor: style.cursor,
+        color: style.color,
+        borderColor: style.borderTopColor,
+        backgroundColor: style.backgroundColor,
+        borderRadius: style.borderRadius,
+      };
+    });
+
+    await page.locator('[data-e2e="main-nav-cases"]').click();
+    const caseDelete = page.getByRole('button', { name: /Fallakte löschen oder anonymisieren: TEST-0001/ });
+    await expect(caseDelete).toBeVisible();
+    const caseStyle = await caseDelete.evaluate((element) => {
+      const style = getComputedStyle(element);
+      return {
+        cursor: style.cursor,
+        color: style.color,
+        borderColor: style.borderTopColor,
+        backgroundColor: style.backgroundColor,
+        borderRadius: style.borderRadius,
+      };
+    });
+
+    await page.locator('[data-e2e="case-row-TEST-0001"]').click();
+    const processDelete = page.getByRole('button', { name: 'BEM löschen', exact: true });
+    await expect(processDelete).toBeVisible();
+    const processStyle = await processDelete.evaluate((element) => {
+      const style = getComputedStyle(element);
+      return {
+        cursor: style.cursor,
+        color: style.color,
+        borderColor: style.borderTopColor,
+        backgroundColor: style.backgroundColor,
+        borderRadius: style.borderRadius,
+      };
+    });
+
+    expect(caseStyle).toEqual(personStyle);
+    expect(processStyle).toEqual(personStyle);
+    expect(personStyle.cursor).toBe('pointer');
+    expect(personStyle.borderRadius).toBe('0px');
+  });
+
+
+});

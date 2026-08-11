@@ -1,5 +1,6 @@
 import { FileText, Trash2 } from 'lucide-react';
 import type { CaseDocumentRecord } from '../../core/models/case-document.model';
+import { DangerButton, ToolbarButton } from '../../shared/components/IndustrialButton';
 
 export function CaseDocumentDetail({
   document,
@@ -30,9 +31,9 @@ export function CaseDocumentDetail({
       {document.extractedText ? <p className="case-note-content">{document.extractedText.slice(0, 2000)}</p> : <p className="industrial-empty">Für dieses Dokument wurde kein lesbarer Volltext extrahiert. Dateiname und Metadaten sind trotzdem suchbar.</p>}
       <div className="industrial-message industrial-message-warning">Beim Öffnen oder Exportieren entsteht temporär bzw. bewusst eine Klartextkopie außerhalb des verschlüsselten Dokumentenspeichers.</div>
       <div className="industrial-card-actions">
-        <button type="button" className="industrial-secondary-button" onClick={() => onOpen(document)}><FileText className="h-4 w-4" /> Öffnen</button>
-        <button type="button" className="industrial-secondary-button" onClick={() => onExport(document)}>Exportieren</button>
-        <button type="button" className="industrial-secondary-button" onClick={() => onDelete(document)}><Trash2 className="h-4 w-4" /> Löschen</button>
+        <ToolbarButton onClick={() => onOpen(document)}><FileText className="h-4 w-4" /> Öffnen</ToolbarButton>
+        <ToolbarButton onClick={() => onExport(document)}>Exportieren</ToolbarButton>
+        <DangerButton compact onClick={() => onDelete(document)}><Trash2 className="h-4 w-4" /> Löschen</DangerButton>
       </div>
     </article>
   );

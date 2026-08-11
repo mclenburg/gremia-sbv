@@ -268,7 +268,7 @@ Copyright notices:
 - DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
 License text: LICENSES/BSD-2-Clause.txt
 
-@emnapi/core@1.10.0
+@emnapi/core@1.11.1
 License: MIT
 Repository: git+https://github.com/toyobayashi/emnapi.git
 Homepage: https://github.com/toyobayashi/emnapi#readme
@@ -278,7 +278,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@emnapi/runtime@1.10.0
+@emnapi/runtime@1.11.1
 License: MIT
 Repository: git+https://github.com/toyobayashi/emnapi.git
 Homepage: https://github.com/toyobayashi/emnapi#readme
@@ -288,7 +288,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@emnapi/wasi-threads@1.2.1
+@emnapi/wasi-threads@1.2.2
 License: MIT
 Repository: git+https://github.com/toyobayashi/emnapi.git
 Homepage: https://github.com/toyobayashi/emnapi#readme
@@ -516,7 +516,7 @@ Copyright notices:
 - that You distribute, all copyright, patent, trademark, and
 License text: LICENSES/Apache-2.0.txt
 
-@eslint/config-helpers@0.6.0
+@eslint/config-helpers@0.7.0
 License: Apache-2.0
 Repository: git+https://github.com/eslint/rewrite.git
 Homepage: https://github.com/eslint/rewrite/tree/main/packages/config-helpers#readme
@@ -623,7 +623,7 @@ Copyright notices:
 - * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
 License text: LICENSES/BSD-3-Clause.txt
 
-@hapi/tlds@1.1.6
+@hapi/tlds@1.1.7
 License: BSD-3-Clause
 Repository: git://github.com/hapijs/tlds
 Copyright notices:
@@ -799,7 +799,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@napi-rs/wasm-runtime@1.1.5
+@napi-rs/wasm-runtime@1.1.4
 License: MIT
 Repository: git+https://github.com/napi-rs/napi-rs.git
 Homepage: https://napi.rs/
@@ -826,7 +826,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@oxc-project/types@0.133.0
+@oxc-project/types@0.143.0
 License: MIT
 Repository: git+https://github.com/oxc-project/oxc.git
 Homepage: https://oxc.rs
@@ -877,105 +877,98 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@rolldown/binding-android-arm64@1.0.3
+@rolldown/binding-android-arm64@1.2.3
 License: MIT
 Repository: git+https://github.com/rolldown/rolldown.git
 Homepage: https://rolldown.rs/
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
-@rolldown/binding-darwin-arm64@1.0.3
+@rolldown/binding-darwin-arm64@1.2.3
 License: MIT
 Repository: git+https://github.com/rolldown/rolldown.git
 Homepage: https://rolldown.rs/
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
-@rolldown/binding-darwin-x64@1.0.3
+@rolldown/binding-darwin-x64@1.2.3
 License: MIT
 Repository: git+https://github.com/rolldown/rolldown.git
 Homepage: https://rolldown.rs/
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
-@rolldown/binding-freebsd-x64@1.0.3
+@rolldown/binding-freebsd-x64@1.2.3
 License: MIT
 Repository: git+https://github.com/rolldown/rolldown.git
 Homepage: https://rolldown.rs/
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
-@rolldown/binding-linux-arm-gnueabihf@1.0.3
+@rolldown/binding-linux-arm-gnueabihf@1.2.3
 License: MIT
 Repository: git+https://github.com/rolldown/rolldown.git
 Homepage: https://rolldown.rs/
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
-@rolldown/binding-linux-arm64-gnu@1.0.3
+@rolldown/binding-linux-arm64-gnu@1.2.3
 License: MIT
 Repository: git+https://github.com/rolldown/rolldown.git
 Homepage: https://rolldown.rs/
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
-@rolldown/binding-linux-arm64-musl@1.0.3
+@rolldown/binding-linux-arm64-musl@1.2.3
 License: MIT
 Repository: git+https://github.com/rolldown/rolldown.git
 Homepage: https://rolldown.rs/
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
-@rolldown/binding-linux-ppc64-gnu@1.0.3
+@rolldown/binding-linux-ppc64-gnu@1.2.3
 License: MIT
 Repository: git+https://github.com/rolldown/rolldown.git
 Homepage: https://rolldown.rs/
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
-@rolldown/binding-linux-s390x-gnu@1.0.3
+@rolldown/binding-linux-s390x-gnu@1.2.3
 License: MIT
 Repository: git+https://github.com/rolldown/rolldown.git
 Homepage: https://rolldown.rs/
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
-@rolldown/binding-linux-x64-gnu@1.0.3
+@rolldown/binding-linux-x64-gnu@1.2.3
 License: MIT
 Repository: git+https://github.com/rolldown/rolldown.git
 Homepage: https://rolldown.rs/
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
-@rolldown/binding-linux-x64-musl@1.0.3
+@rolldown/binding-linux-x64-musl@1.2.3
 License: MIT
 Repository: git+https://github.com/rolldown/rolldown.git
 Homepage: https://rolldown.rs/
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
-@rolldown/binding-openharmony-arm64@1.0.3
+@rolldown/binding-openharmony-arm64@1.2.3
 License: MIT
 Repository: git+https://github.com/rolldown/rolldown.git
 Homepage: https://rolldown.rs/
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
-@rolldown/binding-wasm32-wasi@1.0.3
+@rolldown/binding-win32-arm64-msvc@1.2.3
 License: MIT
 Repository: git+https://github.com/rolldown/rolldown.git
 Homepage: https://rolldown.rs/
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
-@rolldown/binding-win32-arm64-msvc@1.0.3
-License: MIT
-Repository: git+https://github.com/rolldown/rolldown.git
-Homepage: https://rolldown.rs/
-Copyright notices: none detected in package metadata or distributed notice files.
-License text: LICENSES/MIT.txt
-
-@rolldown/binding-win32-x64-msvc@1.0.3
+@rolldown/binding-win32-x64-msvc@1.2.3
 License: MIT
 Repository: git+https://github.com/rolldown/rolldown.git
 Homepage: https://rolldown.rs/
@@ -1275,7 +1268,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@types/node@22.19.21
+@types/node@22.20.1
 License: MIT
 Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
 Homepage: https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/node
@@ -1335,7 +1328,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@typescript-eslint/eslint-plugin@8.61.0
+@typescript-eslint/eslint-plugin@8.66.0
 License: MIT
 Repository: https://github.com/typescript-eslint/typescript-eslint.git
 Homepage: https://typescript-eslint.io/packages/eslint-plugin
@@ -1345,7 +1338,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@typescript-eslint/parser@8.61.1
+@typescript-eslint/parser@8.67.0
 License: MIT
 Repository: https://github.com/typescript-eslint/typescript-eslint.git
 Homepage: https://typescript-eslint.io/packages/parser
@@ -1355,7 +1348,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@typescript-eslint/project-service@8.61.0
+@typescript-eslint/project-service@8.66.0
 License: MIT
 Repository: https://github.com/typescript-eslint/typescript-eslint.git
 Homepage: https://typescript-eslint.io
@@ -1365,7 +1358,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@typescript-eslint/project-service@8.61.1
+@typescript-eslint/project-service@8.67.0
 License: MIT
 Repository: https://github.com/typescript-eslint/typescript-eslint.git
 Homepage: https://typescript-eslint.io
@@ -1375,7 +1368,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@typescript-eslint/scope-manager@8.61.0
+@typescript-eslint/scope-manager@8.66.0
 License: MIT
 Repository: https://github.com/typescript-eslint/typescript-eslint.git
 Homepage: https://typescript-eslint.io/packages/scope-manager
@@ -1385,7 +1378,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@typescript-eslint/scope-manager@8.61.1
+@typescript-eslint/scope-manager@8.67.0
 License: MIT
 Repository: https://github.com/typescript-eslint/typescript-eslint.git
 Homepage: https://typescript-eslint.io/packages/scope-manager
@@ -1395,7 +1388,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@typescript-eslint/tsconfig-utils@8.61.0
+@typescript-eslint/tsconfig-utils@8.66.0
 License: MIT
 Repository: https://github.com/typescript-eslint/typescript-eslint.git
 Homepage: https://typescript-eslint.io
@@ -1405,7 +1398,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@typescript-eslint/tsconfig-utils@8.61.1
+@typescript-eslint/tsconfig-utils@8.67.0
 License: MIT
 Repository: https://github.com/typescript-eslint/typescript-eslint.git
 Homepage: https://typescript-eslint.io
@@ -1415,7 +1408,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@typescript-eslint/type-utils@8.61.0
+@typescript-eslint/type-utils@8.66.0
 License: MIT
 Repository: https://github.com/typescript-eslint/typescript-eslint.git
 Homepage: https://typescript-eslint.io
@@ -1425,7 +1418,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@typescript-eslint/types@8.61.0
+@typescript-eslint/types@8.66.0
 License: MIT
 Repository: https://github.com/typescript-eslint/typescript-eslint.git
 Homepage: https://typescript-eslint.io
@@ -1435,7 +1428,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@typescript-eslint/types@8.61.1
+@typescript-eslint/types@8.67.0
 License: MIT
 Repository: https://github.com/typescript-eslint/typescript-eslint.git
 Homepage: https://typescript-eslint.io
@@ -1445,7 +1438,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@typescript-eslint/typescript-estree@8.61.0
+@typescript-eslint/typescript-estree@8.66.0
 License: MIT
 Repository: https://github.com/typescript-eslint/typescript-eslint.git
 Homepage: https://typescript-eslint.io/packages/typescript-estree
@@ -1455,7 +1448,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@typescript-eslint/typescript-estree@8.61.1
+@typescript-eslint/typescript-estree@8.67.0
 License: MIT
 Repository: https://github.com/typescript-eslint/typescript-eslint.git
 Homepage: https://typescript-eslint.io/packages/typescript-estree
@@ -1465,7 +1458,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@typescript-eslint/utils@8.61.0
+@typescript-eslint/utils@8.66.0
 License: MIT
 Repository: https://github.com/typescript-eslint/typescript-eslint.git
 Homepage: https://typescript-eslint.io/packages/utils
@@ -1475,7 +1468,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@typescript-eslint/visitor-keys@8.61.0
+@typescript-eslint/visitor-keys@8.66.0
 License: MIT
 Repository: https://github.com/typescript-eslint/typescript-eslint.git
 Homepage: https://typescript-eslint.io
@@ -1485,7 +1478,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@typescript-eslint/visitor-keys@8.61.1
+@typescript-eslint/visitor-keys@8.67.0
 License: MIT
 Repository: https://github.com/typescript-eslint/typescript-eslint.git
 Homepage: https://typescript-eslint.io
@@ -1495,7 +1488,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@vitejs/plugin-react@6.0.2
+@vitejs/plugin-react@6.0.5
 License: MIT
 Repository: git+https://github.com/vitejs/vite-plugin-react.git
 Homepage: https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#readme
@@ -1505,7 +1498,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@vitest/coverage-v8@4.1.9
+@vitest/coverage-v8@4.1.10
 License: MIT
 Repository: git+https://github.com/vitest-dev/vitest.git
 Homepage: https://vitest.dev/guide/coverage
@@ -1515,7 +1508,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@vitest/expect@4.1.9
+@vitest/expect@4.1.10
 License: MIT
 Repository: git+https://github.com/vitest-dev/vitest.git
 Homepage: https://vitest.dev/api/expect
@@ -1525,7 +1518,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@vitest/mocker@4.1.9
+@vitest/mocker@4.1.10
 License: MIT
 Repository: git+https://github.com/vitest-dev/vitest.git
 Homepage: https://github.com/vitest-dev/vitest/tree/main/packages/mocker
@@ -1535,7 +1528,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@vitest/pretty-format@4.1.9
+@vitest/pretty-format@4.1.10
 License: MIT
 Repository: git+https://github.com/vitest-dev/vitest.git
 Homepage: https://github.com/vitest-dev/vitest/tree/main/packages/pretty-format
@@ -1545,7 +1538,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@vitest/runner@4.1.9
+@vitest/runner@4.1.10
 License: MIT
 Repository: git+https://github.com/vitest-dev/vitest.git
 Homepage: https://vitest.dev/api/advanced/runner
@@ -1555,7 +1548,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@vitest/snapshot@4.1.9
+@vitest/snapshot@4.1.10
 License: MIT
 Repository: git+https://github.com/vitest-dev/vitest.git
 Homepage: https://vitest.dev/guide/snapshot
@@ -1565,7 +1558,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@vitest/spy@4.1.9
+@vitest/spy@4.1.10
 License: MIT
 Repository: git+https://github.com/vitest-dev/vitest.git
 Homepage: https://vitest.dev/api/mock
@@ -1575,7 +1568,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@vitest/utils@4.1.9
+@vitest/utils@4.1.10
 License: MIT
 Repository: git+https://github.com/vitest-dev/vitest.git
 Homepage: https://github.com/vitest-dev/vitest/tree/main/packages/utils
@@ -1776,7 +1769,7 @@ Copyright notices:
 - Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted, provided that the above copyright notice and this permission notice appear in all copies.
 License text: LICENSES/ISC.txt
 
-autoprefixer@10.5.0
+autoprefixer@10.5.4
 License: MIT
 Repository: postcss/autoprefixer
 Copyright notices:
@@ -1833,7 +1826,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-baseline-browser-mapping@2.10.25
+baseline-browser-mapping@2.11.13
 License: Apache-2.0
 Repository: git+https://github.com/web-platform-dx/baseline-browser-mapping.git
 Copyright notices:
@@ -1927,7 +1920,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-browserslist@4.28.2
+browserslist@4.28.8
 License: MIT
 Repository: browserslist/browserslist
 Copyright notices:
@@ -2025,7 +2018,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-caniuse-lite@1.0.30001791
+caniuse-lite@1.0.30001809
 License: CC-BY-4.0
 Repository: browserslist/caniuse-lite
 Copyright notices:
@@ -2467,7 +2460,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-electron-to-chromium@1.5.349
+electron-to-chromium@1.5.403
 License: ISC
 Repository: git+https://github.com/Kilian/electron-to-chromium.git
 Copyright notices:
@@ -2676,7 +2669,7 @@ Copyright notices:
 - that You distribute, all copyright, patent, trademark, and
 License text: LICENSES/Apache-2.0.txt
 
-eslint@10.5.0
+eslint@10.8.0
 License: MIT
 Repository: eslint/eslint
 Homepage: https://eslint.org
@@ -3296,7 +3289,7 @@ Copyright notices:
 - IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
 License text: LICENSES/MIT.txt
 
-ical-generator@10.2.0
+ical-generator@11.0.0
 License: MIT
 Repository: https://github.com/sebbo2002/ical-generator.git
 Homepage: https://github.com/sebbo2002/ical-generator
@@ -3495,7 +3488,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-joi@18.2.1
+joi@18.2.3
 License: BSD-3-Clause
 Repository: git://github.com/hapijs/joi.git
 Copyright notices:
@@ -3675,7 +3668,29 @@ Copyright notices:
 - You may add additional accurate notices of copyright ownership.
 License text: LICENSES/MPL-2.0.txt
 
+lightningcss-android-arm64@1.33.0
+License: MPL-2.0
+Repository: git+https://github.com/parcel-bundler/lightningcss.git
+Homepage: https://github.com/parcel-bundler/lightningcss#readme
+Copyright notices:
+- (c) under Patent Claims infringed by Covered Software in the absence of
+- applicable copyright doctrines of fair use, fair dealing, or other
+- (including copyright notices, patent notices, disclaimers of warranty,
+- You may add additional accurate notices of copyright ownership.
+License text: LICENSES/MPL-2.0.txt
+
 lightningcss-darwin-arm64@1.32.0
+License: MPL-2.0
+Repository: git+https://github.com/parcel-bundler/lightningcss.git
+Homepage: https://github.com/parcel-bundler/lightningcss#readme
+Copyright notices:
+- (c) under Patent Claims infringed by Covered Software in the absence of
+- applicable copyright doctrines of fair use, fair dealing, or other
+- (including copyright notices, patent notices, disclaimers of warranty,
+- You may add additional accurate notices of copyright ownership.
+License text: LICENSES/MPL-2.0.txt
+
+lightningcss-darwin-arm64@1.33.0
 License: MPL-2.0
 Repository: git+https://github.com/parcel-bundler/lightningcss.git
 Homepage: https://github.com/parcel-bundler/lightningcss#readme
@@ -3697,7 +3712,29 @@ Copyright notices:
 - You may add additional accurate notices of copyright ownership.
 License text: LICENSES/MPL-2.0.txt
 
+lightningcss-darwin-x64@1.33.0
+License: MPL-2.0
+Repository: git+https://github.com/parcel-bundler/lightningcss.git
+Homepage: https://github.com/parcel-bundler/lightningcss#readme
+Copyright notices:
+- (c) under Patent Claims infringed by Covered Software in the absence of
+- applicable copyright doctrines of fair use, fair dealing, or other
+- (including copyright notices, patent notices, disclaimers of warranty,
+- You may add additional accurate notices of copyright ownership.
+License text: LICENSES/MPL-2.0.txt
+
 lightningcss-freebsd-x64@1.32.0
+License: MPL-2.0
+Repository: git+https://github.com/parcel-bundler/lightningcss.git
+Homepage: https://github.com/parcel-bundler/lightningcss#readme
+Copyright notices:
+- (c) under Patent Claims infringed by Covered Software in the absence of
+- applicable copyright doctrines of fair use, fair dealing, or other
+- (including copyright notices, patent notices, disclaimers of warranty,
+- You may add additional accurate notices of copyright ownership.
+License text: LICENSES/MPL-2.0.txt
+
+lightningcss-freebsd-x64@1.33.0
 License: MPL-2.0
 Repository: git+https://github.com/parcel-bundler/lightningcss.git
 Homepage: https://github.com/parcel-bundler/lightningcss#readme
@@ -3719,7 +3756,29 @@ Copyright notices:
 - You may add additional accurate notices of copyright ownership.
 License text: LICENSES/MPL-2.0.txt
 
+lightningcss-linux-arm-gnueabihf@1.33.0
+License: MPL-2.0
+Repository: git+https://github.com/parcel-bundler/lightningcss.git
+Homepage: https://github.com/parcel-bundler/lightningcss#readme
+Copyright notices:
+- (c) under Patent Claims infringed by Covered Software in the absence of
+- applicable copyright doctrines of fair use, fair dealing, or other
+- (including copyright notices, patent notices, disclaimers of warranty,
+- You may add additional accurate notices of copyright ownership.
+License text: LICENSES/MPL-2.0.txt
+
 lightningcss-linux-arm64-gnu@1.32.0
+License: MPL-2.0
+Repository: git+https://github.com/parcel-bundler/lightningcss.git
+Homepage: https://github.com/parcel-bundler/lightningcss#readme
+Copyright notices:
+- (c) under Patent Claims infringed by Covered Software in the absence of
+- applicable copyright doctrines of fair use, fair dealing, or other
+- (including copyright notices, patent notices, disclaimers of warranty,
+- You may add additional accurate notices of copyright ownership.
+License text: LICENSES/MPL-2.0.txt
+
+lightningcss-linux-arm64-gnu@1.33.0
 License: MPL-2.0
 Repository: git+https://github.com/parcel-bundler/lightningcss.git
 Homepage: https://github.com/parcel-bundler/lightningcss#readme
@@ -3741,7 +3800,28 @@ Copyright notices:
 - You may add additional accurate notices of copyright ownership.
 License text: LICENSES/MPL-2.0.txt
 
+lightningcss-linux-arm64-musl@1.33.0
+License: MPL-2.0
+Repository: git+https://github.com/parcel-bundler/lightningcss.git
+Homepage: https://github.com/parcel-bundler/lightningcss#readme
+Copyright notices:
+- (c) under Patent Claims infringed by Covered Software in the absence of
+- applicable copyright doctrines of fair use, fair dealing, or other
+- (including copyright notices, patent notices, disclaimers of warranty,
+- You may add additional accurate notices of copyright ownership.
+License text: LICENSES/MPL-2.0.txt
+
 lightningcss-linux-x64-gnu@1.32.0
+License: MPL-2.0
+Repository: https://github.com/parcel-bundler/lightningcss.git
+Copyright notices:
+- (c) under Patent Claims infringed by Covered Software in the absence of
+- applicable copyright doctrines of fair use, fair dealing, or other
+- (including copyright notices, patent notices, disclaimers of warranty,
+- You may add additional accurate notices of copyright ownership.
+License text: LICENSES/MPL-2.0.txt
+
+lightningcss-linux-x64-gnu@1.33.0
 License: MPL-2.0
 Repository: https://github.com/parcel-bundler/lightningcss.git
 Copyright notices:
@@ -3753,7 +3833,19 @@ License text: LICENSES/MPL-2.0.txt
 
 lightningcss-linux-x64-musl@1.32.0
 License: MPL-2.0
-Repository: https://github.com/parcel-bundler/lightningcss.git
+Repository: git+https://github.com/parcel-bundler/lightningcss.git
+Homepage: https://github.com/parcel-bundler/lightningcss#readme
+Copyright notices:
+- (c) under Patent Claims infringed by Covered Software in the absence of
+- applicable copyright doctrines of fair use, fair dealing, or other
+- (including copyright notices, patent notices, disclaimers of warranty,
+- You may add additional accurate notices of copyright ownership.
+License text: LICENSES/MPL-2.0.txt
+
+lightningcss-linux-x64-musl@1.33.0
+License: MPL-2.0
+Repository: git+https://github.com/parcel-bundler/lightningcss.git
+Homepage: https://github.com/parcel-bundler/lightningcss#readme
 Copyright notices:
 - (c) under Patent Claims infringed by Covered Software in the absence of
 - applicable copyright doctrines of fair use, fair dealing, or other
@@ -3762,6 +3854,17 @@ Copyright notices:
 License text: LICENSES/MPL-2.0.txt
 
 lightningcss-win32-arm64-msvc@1.32.0
+License: MPL-2.0
+Repository: git+https://github.com/parcel-bundler/lightningcss.git
+Homepage: https://github.com/parcel-bundler/lightningcss#readme
+Copyright notices:
+- (c) under Patent Claims infringed by Covered Software in the absence of
+- applicable copyright doctrines of fair use, fair dealing, or other
+- (including copyright notices, patent notices, disclaimers of warranty,
+- You may add additional accurate notices of copyright ownership.
+License text: LICENSES/MPL-2.0.txt
+
+lightningcss-win32-arm64-msvc@1.33.0
 License: MPL-2.0
 Repository: git+https://github.com/parcel-bundler/lightningcss.git
 Homepage: https://github.com/parcel-bundler/lightningcss#readme
@@ -3783,7 +3886,28 @@ Copyright notices:
 - You may add additional accurate notices of copyright ownership.
 License text: LICENSES/MPL-2.0.txt
 
+lightningcss-win32-x64-msvc@1.33.0
+License: MPL-2.0
+Repository: git+https://github.com/parcel-bundler/lightningcss.git
+Homepage: https://github.com/parcel-bundler/lightningcss#readme
+Copyright notices:
+- (c) under Patent Claims infringed by Covered Software in the absence of
+- applicable copyright doctrines of fair use, fair dealing, or other
+- (including copyright notices, patent notices, disclaimers of warranty,
+- You may add additional accurate notices of copyright ownership.
+License text: LICENSES/MPL-2.0.txt
+
 lightningcss@1.32.0
+License: MPL-2.0
+Repository: https://github.com/parcel-bundler/lightningcss.git
+Copyright notices:
+- (c) under Patent Claims infringed by Covered Software in the absence of
+- applicable copyright doctrines of fair use, fair dealing, or other
+- (including copyright notices, patent notices, disclaimers of warranty,
+- You may add additional accurate notices of copyright ownership.
+License text: LICENSES/MPL-2.0.txt
+
+lightningcss@1.33.0
 License: MPL-2.0
 Repository: https://github.com/parcel-bundler/lightningcss.git
 Copyright notices:
@@ -4112,9 +4236,9 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-node-releases@2.0.38
+node-releases@2.0.53
 License: MIT
-Repository: git+https://github.com/chicoxyzzy/node-releases.git
+Repository: https://github.com/chicoxyzzy/node-releases.git
 Copyright notices:
 - Copyright (c) 2017 Sergey Rubanov (https://github.com/chicoxyzzy)
 - The above copyright notice and this permission notice shall be included in
@@ -4276,7 +4400,7 @@ Copyright notices:
 - copyright notice and this permission notice appear in all copies.
 License text: LICENSES/ISC.txt
 
-picomatch@4.0.4
+picomatch@4.0.5
 License: MIT
 Repository: micromatch/picomatch
 Homepage: https://github.com/micromatch/picomatch
@@ -4317,7 +4441,7 @@ Copyright notices:
 - NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
 License text: LICENSES/MIT.txt
 
-postcss@8.5.25
+postcss@8.5.26
 License: MIT
 Repository: postcss/postcss
 Homepage: https://postcss.org/
@@ -4593,7 +4717,7 @@ Copyright notices:
 - THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 License text: LICENSES/BSD-3-Clause.txt
 
-rolldown@1.0.3
+rolldown@1.2.3
 License: MIT
 Repository: git+https://github.com/rolldown/rolldown.git
 Homepage: https://rolldown.rs/
@@ -5091,13 +5215,13 @@ License text: LICENSES/MIT.txt
 
 tslib@2.8.1
 License: 0BSD
-Repository: https://github.com/Microsoft/tslib.git
+Repository: git+https://github.com/Microsoft/tslib.git
 Homepage: https://www.typescriptlang.org/
 Copyright notices:
 - Copyright (c) Microsoft Corporation.
 License text: LICENSES/0BSD.txt
 
-tsx@4.22.4
+tsx@4.23.5
 License: MIT
 Repository: privatenumber/tsx
 Homepage: https://tsx.hirok.io
@@ -5202,11 +5326,11 @@ Copyright notices:
 - Commits in this fork are (c) Ziggy Jonsson (ziggy.jonsson.nyc@gmail.com)
 License text: LICENSES/MIT.txt
 
-update-browserslist-db@1.2.3
+update-browserslist-db@1.3.1
 License: MIT
 Repository: browserslist/update-db
 Copyright notices:
-- Copyright 2022 Andrey Sitnik <andrey@sitnik.ru> and other contributors
+- Copyright 2022 Andrey Sitnik <andrey@sitnik.es> and other contributors
 - The above copyright notice and this permission notice shall be included in all
 - COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 License text: LICENSES/MIT.txt
@@ -5240,7 +5364,7 @@ Copyright notices:
 - NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
 License text: LICENSES/MIT.txt
 
-vite@8.0.16
+vite@8.2.0
 License: MIT
 Repository: git+https://github.com/vitejs/vite.git
 Homepage: https://vite.dev
@@ -5257,7 +5381,7 @@ Copyright notices:
 - > the copyright owner that is granting the License.
 License text: LICENSES/MIT.txt
 
-vitest@4.1.9
+vitest@4.1.10
 License: MIT
 Repository: git+https://github.com/vitest-dev/vitest.git
 Homepage: https://vitest.dev
@@ -5274,7 +5398,7 @@ Copyright notices:
 - > Copyright (c) 2018, Sinon.JS
 License text: LICENSES/MIT.txt
 
-wait-on@9.0.10
+wait-on@9.1.0
 License: MIT
 Repository: http://github.com/jeffbski/wait-on.git
 Copyright notices:

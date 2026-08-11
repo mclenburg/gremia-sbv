@@ -132,7 +132,7 @@ export function ImportPackageReview({
         {mode === "merge_existing" && hasMatches ? (
           <label className="industrial-import-package-target">
             <span>Passendes Gegenstück</span>
-            <select value={targetId} onChange={(event) => onTargetChange(event.currentTarget.value)}>
+            <select className="industrial-select" value={targetId} onChange={(event) => onTargetChange(event.currentTarget.value)}>
               {matches.map((match) => (
                 <option key={match.id} value={match.id}>
                   {match.label} · {match.reasonLabel}

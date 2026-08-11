@@ -360,13 +360,13 @@
     },
     {
       "path": "electron/ipc/caseMeasureIpc.ts",
-      "size": 2803,
-      "sha256": "c21f08e4336dea2406153184049140b9014d58cc59474831dbb3cc069abe7448"
+      "size": 3676,
+      "sha256": "d8f4a2f3bdb07f0754d6903dcf0b3863a98e43137d225db6f9c1875fe5c3635a"
     },
     {
       "path": "electron/ipc/channels.ts",
-      "size": 10518,
-      "sha256": "49715e9124cb28bf83fc5d1f56e8ac73a022e8805ee034e1dad2cf64436b863c"
+      "size": 10578,
+      "sha256": "9db7551daedec831d01b47bd15f3aab249aa5e4167a58571f71288080a73cc57"
     },
     {
       "path": "electron/ipc/complianceIpc.ts",
@@ -380,8 +380,8 @@
     },
     {
       "path": "electron/ipc/contracts.ts",
-      "size": 51786,
-      "sha256": "e85fb544e5fd12dfef5f53549a8da74fc920a49dbb97bbadb380dc6e18159d7a"
+      "size": 52045,
+      "sha256": "bd0cc7a1ed68019ec54c0fdd205f2a6fd9f95ac5073851ac0f20d27cbf3ab3e2"
     },
     {
       "path": "electron/ipc/deadlineIpc.ts",
@@ -510,8 +510,8 @@
     },
     {
       "path": "electron/preload/cases.ts",
-      "size": 7450,
-      "sha256": "a7007f9e0efb158e330f7418001d3aa45cbf857c621ace402cbab43fdb109196"
+      "size": 7659,
+      "sha256": "fba208143521bebb6f1312470858b30f1ec200e7df5e546d1fe4fcefba869e85"
     },
     {
       "path": "electron/preload/compliance-governance.ts",
@@ -605,8 +605,8 @@
     },
     {
       "path": "electron/security/README.md",
-      "size": 450,
-      "sha256": "686ec8622a27e70c48837904ed2309bf7569c3ce480a9d69bdfbbee95421fd2d"
+      "size": 433,
+      "sha256": "6b0624db3fee1c044149da09c6721a8777c6916d4949b6d3881d2055390d1e82"
     },
     {
       "path": "electron/startupPerformance.ts",
@@ -620,13 +620,13 @@
     },
     {
       "path": "package-lock.json",
-      "size": 287848,
-      "sha256": "0eaa1ed007c92821f66ab0b5ca9ced5fd24431398153bf95483e45efc1986327"
+      "size": 301621,
+      "sha256": "a1a1bbbfce15416a8fd0805a4887189bdeabbbab30492824e16d42926507c74b"
     },
     {
       "path": "package.json",
-      "size": 16219,
-      "sha256": "14c4551ea85b2f71ec35586652fde55eb18616ea09c0021a29f60a8a493b052b"
+      "size": 16217,
+      "sha256": "5cbe1769c00b017759609f5aa1114f1d24878dbd6b89fa10af306450f66aa328"
     },
     {
       "path": "services/activityJournalPreferenceService.ts",
@@ -690,8 +690,8 @@
     },
     {
       "path": "services/auditMetadataPolicy.ts",
-      "size": 5865,
-      "sha256": "3b13f1604b77f4da2ec1de114e40ae1266b4768106996b77ee9f7ed6d8213b15"
+      "size": 5877,
+      "sha256": "435bcf3ed094e5369dfb48a3694695a82229eaa2c384a560f99ad35afcbdbd7c"
     },
     {
       "path": "services/auditService.ts",
@@ -760,8 +760,13 @@
     },
     {
       "path": "services/caseMeasureService.ts",
-      "size": 19338,
-      "sha256": "ba21a56583ee8810d237901ce175d6c3fd1326162a7880620422e4b94451d5a9"
+      "size": 19632,
+      "sha256": "e4f78d71a17482b7cf855760b8dc57faff37a0936321f4e7e6137ae8cbebcdf4"
+    },
+    {
+      "path": "services/caseProcessDeletion.ts",
+      "size": 6224,
+      "sha256": "6d0f8fc9033267ee898ff559042ef3009df64f7e24c834f97505afd9e4a198d2"
     },
     {
       "path": "services/caseProcessPolicy.ts",
@@ -1635,8 +1640,8 @@
     },
     {
       "path": "src/app/core/models/case-measure.model.ts",
-      "size": 4015,
-      "sha256": "c9aede01c7acd1dbe1c11936d6256a1fe2861908869c5d3058f3e2c1e5f762cd"
+      "size": 4498,
+      "sha256": "33a39ed96a089ee59b78cd3fe92cdd1aee7eb2e98eee86db67c953c9a298671b"
     },
     {
       "path": "src/app/core/models/case-note-link.model.ts",
@@ -1865,8 +1870,8 @@
     },
     {
       "path": "src/app/features/cases/CaseCreateModal.tsx",
-      "size": 5029,
-      "sha256": "2dcb48ecd334f0315cce492eddf67dd5eb3b08f36b81ba3b90a77c6c0ec2bc8b"
+      "size": 5089,
+      "sha256": "80d6769ec58fdb8c914de5b35c85a8414a9bd6f65de1f321fc6aa4a3b5ba866b"
     },
     {
       "path": "src/app/features/cases/CaseDetailPanel.tsx",
@@ -1875,8 +1880,8 @@
     },
     {
       "path": "src/app/features/cases/CaseDocumentDetail.tsx",
-      "size": 2124,
-      "sha256": "ebf843d7c3cd109c9c57a5a085265f360c53e3798cd632200b01f13bdb9ab764"
+      "size": 2098,
+      "sha256": "1dbdcd391c1d083b2852597641de06e145c6d3903b5d5394b7442eeeff7efacc"
     },
     {
       "path": "src/app/features/cases/caseHandoverMessages.ts",
@@ -1900,8 +1905,8 @@
     },
     {
       "path": "src/app/features/cases/CaseNoteModal.tsx",
-      "size": 7371,
-      "sha256": "01f3c9d9f65e0b2dfe209d37288dafdd499f51cea50fa5ffb1d08eba65934f49"
+      "size": 7431,
+      "sha256": "c78a1dc9ea681bbe58119338e6ceb72ed8127bde7505150f8245d6e234e2ebe7"
     },
     {
       "path": "src/app/features/cases/CaseOverviewDetail.tsx",
@@ -1909,14 +1914,29 @@
       "sha256": "dded3889b779982987b1c0d37bc679098b5399e12d6d280158dc81f6a1ef40a9"
     },
     {
+      "path": "src/app/features/cases/CasePrivacyActionDialog.tsx",
+      "size": 5169,
+      "sha256": "8f9540fad6a71263574d04877df4ee9f2b1bebe6f71d0416cb24f4055ed978fc"
+    },
+    {
+      "path": "src/app/features/cases/CaseProcessDeleteDialog.tsx",
+      "size": 3905,
+      "sha256": "2f8c560a39e48f65f47551ed4e5fa24857124754eff7c6dc4193a171ecbd71a9"
+    },
+    {
       "path": "src/app/features/cases/CaseProcessDraftModal.tsx",
-      "size": 3253,
-      "sha256": "da9da48584228688dc7f560a118847f40c1430c0f3a80106cf24fc5cf2eaef9e"
+      "size": 3283,
+      "sha256": "20c96ae6835c2aab248d985610e2d42e36beb3e9161a2d2406bf1a583ba15811"
+    },
+    {
+      "path": "src/app/features/cases/caseProcessPrivacy.ts",
+      "size": 337,
+      "sha256": "ede90d9429ee9f1131432458aa815c5b5c8aa32dc8f2bfd4e1cb12389251b08a"
     },
     {
       "path": "src/app/features/cases/CaseRegister.tsx",
-      "size": 4872,
-      "sha256": "274971c31468ce7afc985c1702f6e1250e63c1b9eeb02898dedc736e1cea857f"
+      "size": 5732,
+      "sha256": "f0d90155e92b30841a1362eee924f205eefeb39633c4eb611ae64f893bd60061"
     },
     {
       "path": "src/app/features/cases/CaseSearchResultExcerpt.tsx",
@@ -1925,8 +1945,8 @@
     },
     {
       "path": "src/app/features/cases/CasesView.tsx",
-      "size": 18503,
-      "sha256": "33d9d9f725a33747d48b6daf4f54efbc1af00838ad429fb44351c9d4697912dd"
+      "size": 21241,
+      "sha256": "9a819378e2d7f6533f39fd478c93b0c276f2c7e992945b343c8886508caefa20"
     },
     {
       "path": "src/app/features/cases/CasesViewHeader.tsx",
@@ -1945,13 +1965,13 @@
     },
     {
       "path": "src/app/features/cases/CasesViewRender.tsx",
-      "size": 18064,
-      "sha256": "ad1dfba03c304a36ca2ad1096c30335a53a5d1a32c0ac9a7d2dc12a972a3a95e"
+      "size": 18178,
+      "sha256": "d017697b9723cc0a7cd351b96db1c47ff8186157e4a26288b792dd51a187dbcd"
     },
     {
       "path": "src/app/features/cases/casesViewRenderTypes.ts",
-      "size": 7505,
-      "sha256": "6bb9d9c8c6ccbc8e82aa62dabf2dfc2d56e537572b14019af586a411d717334c"
+      "size": 7682,
+      "sha256": "c6f2b5e3f3cb64272d54f68c619bf3cfffc995da17aeba6fab1e74a39e822907"
     },
     {
       "path": "src/app/features/cases/CasesViewToolbar.tsx",
@@ -1970,8 +1990,8 @@
     },
     {
       "path": "src/app/features/cases/CaseTreePanel.tsx",
-      "size": 6317,
-      "sha256": "aab507ba3af356f25efc2e0eb2e63782dd73f81cb992f5dcbb1901865b962b76"
+      "size": 7094,
+      "sha256": "cda506ceb8da8335294f9875eac2166d1a413bb045cc0399fbc4471d433483d8"
     },
     {
       "path": "src/app/features/cases/CaseWorkbenchFooter.tsx",
@@ -1985,8 +2005,8 @@
     },
     {
       "path": "src/app/features/cases/caseWorkbenchTypes.ts",
-      "size": 2491,
-      "sha256": "7f7404c88f056bb60b3b12fdbf0345b4195df6218f43ecbb0c3ef95050084e1f"
+      "size": 2591,
+      "sha256": "055081516bf6f8ca1fdd3b3f2f1e191f4d0d25cbf345b25ae6e38238e1f7bfdc"
     },
     {
       "path": "src/app/features/cases/ContextualTemplateButton.tsx",
@@ -2035,8 +2055,8 @@
     },
     {
       "path": "src/app/features/cases/inlineCommands/overlays/InlineBemOverlay.tsx",
-      "size": 8253,
-      "sha256": "ea1eae2bf9cec5c745898cdbcacca2033246f1564ba2ca97225c6e9f100e11d3"
+      "size": 8283,
+      "sha256": "ab42aa31f6ca9ecf5e5fc4bcc7f339ce92ccd6b999261e6f50ae4a75f71d4450"
     },
     {
       "path": "src/app/features/cases/inlineCommands/overlays/InlineCaseLinkOverlay.tsx",
@@ -2050,23 +2070,23 @@
     },
     {
       "path": "src/app/features/cases/inlineCommands/overlays/InlineConfidentialityOverlay.tsx",
-      "size": 5595,
-      "sha256": "99f9644d21e14d52104731752755b86d3a2fd406837373ebfe7d990d235d0524"
+      "size": 5625,
+      "sha256": "aef9c1df8ae87e9b80fc11ea0d397ae6922edf6c3041ce16a0a1ffa29ea23caa"
     },
     {
       "path": "src/app/features/cases/inlineCommands/overlays/InlineContactOverlay.tsx",
-      "size": 4902,
-      "sha256": "3ffa979b4a1a5c82afe7cee9ec3e67a5525dae68b4b0cdd81964c6e9c01de1ad"
+      "size": 4932,
+      "sha256": "6ba4422796ddb27ed60307eeb4e8856c037c36ddf946adaa9a69e748387f9f05"
     },
     {
       "path": "src/app/features/cases/inlineCommands/overlays/InlineDeadlineOverlay.tsx",
-      "size": 7527,
-      "sha256": "7b6aebb4508a080b93b65fa6f2c48d0f5fec67cb551b5d08d3ac2eb7eac8cb06"
+      "size": 7557,
+      "sha256": "58fa441ce5cf8cc26ce50f2db38db6cc07bcc6cd0a0c555771e0b95fac4159b9"
     },
     {
       "path": "src/app/features/cases/inlineCommands/overlays/InlineEqualizationOverlay.tsx",
-      "size": 8417,
-      "sha256": "4663b4a775e7a37b8bb687d21833de4eb37e25e5db4c5bb7d5d7387e2890e4e6"
+      "size": 8447,
+      "sha256": "5d613e6008b247bbd6046c68866731c4985b5d785a8dc4ffe17e6d60f90e86b3"
     },
     {
       "path": "src/app/features/cases/inlineCommands/overlays/InlineLegalNormOverlay.tsx",
@@ -2075,23 +2095,23 @@
     },
     {
       "path": "src/app/features/cases/inlineCommands/overlays/InlineOpenTaskOverlay.tsx",
-      "size": 6490,
-      "sha256": "f414ba16f355b3baad4f05bd05be9d04a95cc535efb7f92b5e9d236492701220"
+      "size": 6520,
+      "sha256": "94f2234884fe84ba69e1e7cafe33aa3af06ef534e832679e4df95b0b40596018"
     },
     {
       "path": "src/app/features/cases/inlineCommands/overlays/InlineParticipationOverlay.tsx",
-      "size": 8325,
-      "sha256": "64eb9bb5bd1e86d21d953b80fc9db22895be147702b8df9d505a040d4cd48426"
+      "size": 8355,
+      "sha256": "0813ca54786e15d0043de88e85e8f5a45105847accd28f5a02cd4de9e328c45c"
     },
     {
       "path": "src/app/features/cases/inlineCommands/overlays/InlinePreventionOverlay.tsx",
-      "size": 9936,
-      "sha256": "1f49c2e78b2fa7e53b656cb5e7d5e2825992f961b34c06d0d7c709b9bd8b1f8d"
+      "size": 9996,
+      "sha256": "35c42a4773dbb2a29a37e5a08735e9422366811798c08eff2998043114b91b07"
     },
     {
       "path": "src/app/features/cases/inlineCommands/overlays/InlineRiskOverlay.tsx",
-      "size": 6125,
-      "sha256": "a6066b2f07ebfda01b6b0a92b9394e61b56fd8a556a0fc15825666195fd4cb63"
+      "size": 6155,
+      "sha256": "9eff955dc80c0ae7e45318a010f78f55993f2be34b8b41ae177f0e95568cce35"
     },
     {
       "path": "src/app/features/cases/inlineCommands/overlays/InlineTemplateOverlay.tsx",
@@ -2100,13 +2120,13 @@
     },
     {
       "path": "src/app/features/cases/inlineCommands/overlays/InlineTerminationOverlay.tsx",
-      "size": 10335,
-      "sha256": "1a839522ffc052e83996cd41b852616d5e9f32b601787b2b64375e580b7144fe"
+      "size": 10395,
+      "sha256": "9c24813d5f81081314552f2bcc51406831b57b7b16e49b0a60e6252dcdfe5627"
     },
     {
       "path": "src/app/features/cases/inlineCommands/overlays/InlineWorkplaceAccommodationOverlay.tsx",
-      "size": 10454,
-      "sha256": "17c7425e9ba3551e12d3434b9d7c4193d0d65bedb320aa5a33377172a1c30ea3"
+      "size": 10514,
+      "sha256": "5c766154dee1536e29056dc963ad0b452dc424be89a7efb85893d7a3ccd35657"
     },
     {
       "path": "src/app/features/cases/inlineCommands/useInlineAccommodationCommands.ts",
@@ -2185,8 +2205,8 @@
     },
     {
       "path": "src/app/features/cases/LegacyCaseBindingDialog.tsx",
-      "size": 3822,
-      "sha256": "424ed0b1503afc09746aff71f4d8d5a6832f314e600dc8163a90f450eec6818b"
+      "size": 3852,
+      "sha256": "20565b26ad5c9fa70d06f3f889552712def32f0e7205e3618de2742a88821866"
     },
     {
       "path": "src/app/features/cases/measures/MeasureDetailFrame.tsx",
@@ -2195,8 +2215,8 @@
     },
     {
       "path": "src/app/features/cases/measures/MeasureNoteCard.tsx",
-      "size": 1468,
-      "sha256": "abe05b2129103f75df9a54bb37c2020f877d6a18de185ca6bc3bbe3f41473c06"
+      "size": 1485,
+      "sha256": "deb5d1d972c7be94dbfdbe5461497cd4dea79d8ac8f10b50f253664dfa831c40"
     },
     {
       "path": "src/app/features/cases/measures/MeasureNoteForm.tsx",
@@ -2520,8 +2540,8 @@
     },
     {
       "path": "src/app/features/persons/PersonCaseCreateDialog.tsx",
-      "size": 4298,
-      "sha256": "69a95f666e221752f68da6d79f42f7ec090398436abc01dc44a5def04f79b5e7"
+      "size": 4328,
+      "sha256": "2179de2bfb771475f3d3c735fd9735e4d6605781b8d9d87882a68cd4b8bf0151"
     },
     {
       "path": "src/app/features/persons/PersonDetail.tsx",
@@ -2530,8 +2550,8 @@
     },
     {
       "path": "src/app/features/persons/PersonEditDialog.tsx",
-      "size": 9054,
-      "sha256": "c0e3d052bdb91e089ad0d9c63097ed9ce0208bad59c817c893794578a7a10e6d"
+      "size": 9144,
+      "sha256": "ab5c0c4e191096f8fc492dfcbb73d42a7f2abc83ac38ca8fe8bfc875d60f2598"
     },
     {
       "path": "src/app/features/persons/PersonExpiryDashboardCard.tsx",
@@ -2540,8 +2560,8 @@
     },
     {
       "path": "src/app/features/persons/PersonForm.tsx",
-      "size": 4846,
-      "sha256": "8523603d1738838d5c6bfbdf87268649de813897d6458bc2485f47ff76baa683"
+      "size": 4876,
+      "sha256": "f5ab57a5e26ade8da9aea4f4191056df30fe2e91b694c9f9401e8903ef9e11fb"
     },
     {
       "path": "src/app/features/persons/personImportUi.ts",
@@ -2550,18 +2570,18 @@
     },
     {
       "path": "src/app/features/persons/PersonImportWizard.tsx",
-      "size": 13486,
-      "sha256": "1b7494262c636a05120763ba8f1c3dcc9d4ccc6d6d26386ce5a64382217245ac"
+      "size": 13556,
+      "sha256": "e48f1dd7173a621dd6430777c1379a86268e0cbfb41dbf2e63719484635d868a"
     },
     {
       "path": "src/app/features/persons/PersonLifecycleReviewDialog.tsx",
-      "size": 12089,
-      "sha256": "cd7d0d67aef0e5d752191ed7d4202790fbe728d38bad837392b6bc9daeed8814"
+      "size": 12149,
+      "sha256": "e149853c04f4d6c1e7c2c18a6169ea8d452c47faa5889511f22385ea156b12e7"
     },
     {
       "path": "src/app/features/persons/PersonList.tsx",
-      "size": 4845,
-      "sha256": "55c1d20efc5537ff5af4f790c095f361dd1680c8f00895a8dd688ab0dc55069a"
+      "size": 4872,
+      "sha256": "2aab7b2afa72b1e8f66165b6f5046ce0d6c71feb03e45e303399be71a620068f"
     },
     {
       "path": "src/app/features/persons/PersonPrivacyActionDialog.tsx",
@@ -2580,8 +2600,8 @@
     },
     {
       "path": "src/app/features/persons/PersonToolbar.tsx",
-      "size": 1220,
-      "sha256": "d672fae59607f988d2c8a41205c62139b0ba9369f7cf24ed4684bb66a062e258"
+      "size": 1218,
+      "sha256": "a5b42ff4a24540f31f585b38841eafab9607d123040f9a42824da10ecf2a1673"
     },
     {
       "path": "src/app/features/persons/useIcalExportHandlers.ts",
@@ -2750,8 +2770,8 @@
     },
     {
       "path": "src/app/features/settings/RetentionSettingsPanel.tsx",
-      "size": 12899,
-      "sha256": "7c0d7ae393d2aaf027c80c84522e2d918a54abfa60d1b27d1bf564e945d6413b"
+      "size": 12929,
+      "sha256": "52e0323d4488a696661c91781009fdaba96f43a297c53372fecb6131d36efa7a"
     },
     {
       "path": "src/app/features/settings/SettingsHub.tsx",
@@ -2805,8 +2825,8 @@
     },
     {
       "path": "src/app/features/templates/TemplateHelpModal.tsx",
-      "size": 2736,
-      "sha256": "3370dbf731918f6f6ebc9368ed906f2e2936e3e372026e139e08905ed6d34f7b"
+      "size": 2756,
+      "sha256": "c0970d4738f8ecca35e60b1286e4bf22d3c7cabf289aa65d8ceeb02e057205a6"
     },
     {
       "path": "src/app/features/templates/TemplatesView.tsx",
@@ -2860,8 +2880,8 @@
     },
     {
       "path": "src/app/shared/components/ImportExportFeedback.tsx",
-      "size": 4310,
-      "sha256": "6b3000776978b39a4f724df5c2e2be48007491305a8f0f3d67d1ed9fc29e5c57"
+      "size": 4340,
+      "sha256": "b365bf5448f23c7f7868277e220feb19a904a38beb9b67f2b020e7b86249ea22"
     },
     {
       "path": "src/app/shared/components/IndustrialButton.tsx",
@@ -2990,8 +3010,8 @@
     },
     {
       "path": "src/app/shared/textCommands/GlobalTextCommandController.tsx",
-      "size": 15400,
-      "sha256": "216add71b2609c01d4464de0b1df5e238bb17da07f99fa265d220c9390f6e71f"
+      "size": 15460,
+      "sha256": "03964f29f39a1a55ddfdd24de2d0e95503b927f004f140b9a7912166657cb5b9"
     },
     {
       "path": "src/app/shared/textCommands/gremiaBrInlineReferences.ts",
@@ -3000,8 +3020,8 @@
     },
     {
       "path": "src/app/shared/textCommands/TextCommandHelpModal.tsx",
-      "size": 5817,
-      "sha256": "732005b596cee9523fd067ec0ca18bba5e0d28cab3333795b679c295bc94d0ad"
+      "size": 5827,
+      "sha256": "8dc018f703d582dc125dcfb966b21a8fde77c4765d581088a87097dc1a2063aa"
     },
     {
       "path": "src/app/shared/textCommands/TextCommandTextarea.tsx",
@@ -3035,8 +3055,8 @@
     },
     {
       "path": "src/app/ui/components.css",
-      "size": 38027,
-      "sha256": "7cb15efa23865540c8af3898ec6b80fc9dff4ddfe3dd0fb16a663ce178d5c82e"
+      "size": 38473,
+      "sha256": "5a7e495643f7dc00c6ce989b12ee0df916f039cc4b215b7ca4730f1d58c86cb9"
     },
     {
       "path": "src/app/ui/designTokens.css",
@@ -3045,8 +3065,8 @@
     },
     {
       "path": "src/app/ui/featureModules.css",
-      "size": 51732,
-      "sha256": "240c6eb060347ca51914102db876954a78c9491432440de8b9bdf3da6b9f1fbe"
+      "size": 55722,
+      "sha256": "fcbf8b479ced281ab1482c5c0893e557ff82a52243eecedaa704ac900bf2e15a"
     },
     {
       "path": "src/app/ui/forms.css",
@@ -3090,8 +3110,8 @@
     },
     {
       "path": "src/vite-env.d.ts",
-      "size": 24863,
-      "sha256": "0b046b8c32a695ea8ac17f0ae29909c1b814c5cb1a74841b2e4eca053c48f121"
+      "size": 25004,
+      "sha256": "2f24dd37febc23b96faf4a25e23438a7a333625f51391f1c2cb2cc91533ef348"
     },
     {
       "path": "tsconfig.electron.json",
@@ -3112,8 +3132,8 @@
   "artifacts": [
     {
       "path": "dist/.vite/manifest.json",
-      "size": 7573,
-      "sha256": "db87663399281e35b91978808b0e6d0c3648f5083ea4c7eef9effd0a8897c35f"
+      "size": 8259,
+      "sha256": "56b5d3975f97523237fce9f8a648f5a19abe17603bcf57aa384590dfb5e3d703"
     },
     {
       "path": "dist/assets/512x512-FFLOWpww.png",
@@ -3126,19 +3146,19 @@
       "sha256": "833b34c7bc78f24a04e2b34feb0d744d5255117234eaa691bbb4a37624c9311d"
     },
     {
-      "path": "dist/assets/BemView-BftFOZBw.js",
-      "size": 2651,
-      "sha256": "294bdb35c8e70ff746193aa8f3b6715be2193c458e9a70d22461e1151e2a26ba"
+      "path": "dist/assets/BemView-CEPDHPmr.js",
+      "size": 2659,
+      "sha256": "a34d0395f6007ad6731315c728e8d3e052a26d50f7c05b33b070a00390963ce5"
     },
     {
-      "path": "dist/assets/CasesView-BNwBlmhi.js",
-      "size": 256857,
-      "sha256": "e0bc215f9a91e83b44c67a9564671c187f4f52e9c5ea909e05658d48de744f9c"
+      "path": "dist/assets/CasesView-z87xQNHk.js",
+      "size": 265899,
+      "sha256": "30bdbb13759bd041838199b139583a0ff1ff1c3aa5cb7ed61cc84529c04bafbf"
     },
     {
-      "path": "dist/assets/ComplianceView-TwPliT7P.js",
-      "size": 64370,
-      "sha256": "5599b748d9e6141303b07e8b3ee94e4b3f4cb3d2ea08732b8ca72482f9f6675f"
+      "path": "dist/assets/ComplianceView-Gld1SkjT.js",
+      "size": 64415,
+      "sha256": "70284a087c8928048be6b3b2cb336aabab82a6d441716ca9e8cda3f1f9207c9b"
     },
     {
       "path": "dist/assets/dates-D6WQa1jA.js",
@@ -3151,24 +3171,24 @@
       "sha256": "13c57021e0a05fb7f48814e1b3a82cfaf63b122d78d7ec702aef8f5adfece8a8"
     },
     {
-      "path": "dist/assets/EqualizationView-DLwppqS5.js",
-      "size": 3323,
-      "sha256": "500c0718acdd7bff2f10b295d0bf28d93918c590719b888716b2a8b5294d2816"
+      "path": "dist/assets/EqualizationView-DCZYEnsV.js",
+      "size": 3362,
+      "sha256": "683b4853529c1f10745a6e3cfc4cc2c196f9544ccbe4e103ddcdfc27c8678e3a"
     },
     {
-      "path": "dist/assets/index-DkGJCcAl.js",
-      "size": 246878,
-      "sha256": "2e4ebc7f05cef44d270b5ccd12d8c33496043fb0bed9a0677b7911192efb4f15"
+      "path": "dist/assets/index-Cm159lMQ.css",
+      "size": 180537,
+      "sha256": "35fe547c63f1ce0b84b9e9582f0ae1cf3efd86eb3379b9d6684cdae748f1443b"
     },
     {
-      "path": "dist/assets/index-HMMxax5Y.css",
-      "size": 177017,
-      "sha256": "648368f6bb058f14466e19f0a0bc609b934c74d566c7155408e74f485ff690b9"
+      "path": "dist/assets/index-ODZcnhe-.js",
+      "size": 214892,
+      "sha256": "f7b43b51f4169531d0444432eb09fbad8468b7b3af20cacb0eaed2dcb891a95b"
     },
     {
-      "path": "dist/assets/KnowledgeView-D4rZaChH.js",
-      "size": 25689,
-      "sha256": "b5a946cfa80e1a47db306c382d453da4f1ca797eb20deed6efd52c1ea28a8932"
+      "path": "dist/assets/KnowledgeView-DvrHgwLF.js",
+      "size": 25725,
+      "sha256": "cef34c4b72186d0911f612056d0fd71feb190168af108f391abe28515574f1be"
     },
     {
       "path": "dist/assets/participationPolicy-CsxAXGHv.js",
@@ -3176,9 +3196,9 @@
       "sha256": "da72be831b51b5850136d2115da42ec7bb7cd25f8e2e1b5bf00fbe319685da9e"
     },
     {
-      "path": "dist/assets/ParticipationView-DzSyscJU.js",
-      "size": 8515,
-      "sha256": "e2ee382546addf746ce23e7b98cda2695d5d937b30ed47fee22da11ba8e8a8dc"
+      "path": "dist/assets/ParticipationView-Vx8gGkfR.js",
+      "size": 8629,
+      "sha256": "d65e6ec95330d65a95ada6bae2e0c94b5c139eb5d4bb517287d00cc385d60b1c"
     },
     {
       "path": "dist/assets/preventionShared-BqWm2Aap.js",
@@ -3186,44 +3206,44 @@
       "sha256": "5f26b7694943af1ce72ffffd179e5d0309061feadb1c1cd8283fea998734de0b"
     },
     {
-      "path": "dist/assets/PreventionView-BZZiWljd.js",
-      "size": 2466,
-      "sha256": "8629e68ea9281a089bc4dbdcaf7feba240fc5b28235dda6e94b6da9a406a1ade"
+      "path": "dist/assets/PreventionView-BwvW-adw.js",
+      "size": 2482,
+      "sha256": "c96ec61fed8dcb925cb3df63fa21083012e61e43830d42a7b66366274ab018dd"
     },
     {
-      "path": "dist/assets/ProcessOverview-wZPyole4.js",
-      "size": 2661,
-      "sha256": "7b5a157ac1cb4c573e002f48c3ad309c817c890436e9861b1aed4f3fa87ab4e8"
+      "path": "dist/assets/ProcessOverview-Bl6UfZJ9.js",
+      "size": 2701,
+      "sha256": "36570c4735779c2bdceb3887e68bc0aec676a601d4590bc257b705f7737545ac"
     },
     {
-      "path": "dist/assets/RecruitingParticipationsView-NrAVALxj.js",
-      "size": 19393,
-      "sha256": "c929356904778e9d1378697c998a09f88c2316e93b524033bfba9049fc4b8768"
+      "path": "dist/assets/RecruitingParticipationsView-BXY86k81.js",
+      "size": 19441,
+      "sha256": "3d83678ce99ff3f5b175bca65fccb41177efa1c4703955bf8b295c8c091954e2"
     },
     {
-      "path": "dist/assets/ReportsView-B2Dgb3mF.js",
-      "size": 5921,
-      "sha256": "7b32690917ba791cd680a67785103a8848f996fd3f8285b05a9b15a2168b967c"
+      "path": "dist/assets/ReportsView-BEaSjJgb.js",
+      "size": 5959,
+      "sha256": "9efdf856615d32387df782b371c6dc7c2bb53bf4d6fc0bbc2d004c284c7ba372"
     },
     {
-      "path": "dist/assets/rolldown-runtime-Bh1tDfsg.js",
-      "size": 567,
-      "sha256": "1b13387cb23dc39bf70e31677c21f6db5cad3377b96f286b6ee444496e5bfea7"
+      "path": "dist/assets/rolldown-runtime-CbXtAM7H.js",
+      "size": 589,
+      "sha256": "bbf7c5086ae414dc3f33777e3eebf16ea8631325b8bb4690d25091c03567f31a"
     },
     {
-      "path": "dist/assets/SbvControlView-BP7PPsfp.js",
-      "size": 27249,
-      "sha256": "3a42b7ae427b1cbc103b62bcb0f828658bc8692cd16e7eb36c8d24498d8c2cf1"
+      "path": "dist/assets/SbvControlView-C5JfCrHV.js",
+      "size": 27273,
+      "sha256": "e220b8a2085a716dec9722b4cb9d7ebc766eff6e81aeebfd2b675d2ffad647ec"
     },
     {
-      "path": "dist/assets/SettingsHub-CoXLQ18F.js",
-      "size": 9193,
-      "sha256": "4e9f45690c63be1dadd8324d76f0eb69bcc1fa7da084e9c52d468d7793105863"
+      "path": "dist/assets/SettingsHub-CdDHhrUG.js",
+      "size": 9239,
+      "sha256": "b5c59c11f0ebd9bd973021596d110c8e0b2b87ab1271975cbdf1202607c46cb5"
     },
     {
-      "path": "dist/assets/TemplatesView-JRI37pIo.js",
-      "size": 16365,
-      "sha256": "1737d53e72f7b3c61cb332342a929639b3040959283021e888929b01f02408bf"
+      "path": "dist/assets/TemplatesView-BQlJySch.js",
+      "size": 16421,
+      "sha256": "2e7934c6b2690b479ef6edb0a87b8a0d26172b2261e591cec6be25e32b4e1ad1"
     },
     {
       "path": "dist/assets/terminationShared-BGFAg4La.js",
@@ -3231,19 +3251,24 @@
       "sha256": "99fdb6a2ce0416dbc10701da9cad5edf0775401bc85e98010b524d1c18615c2d"
     },
     {
-      "path": "dist/assets/TerminationView-Inu9tAk0.js",
-      "size": 3208,
-      "sha256": "aa8844c68d3360993d56ba7750ace9ddee9aacee35d61bcf7eb80ebbc36db557"
+      "path": "dist/assets/TerminationView-Cs2B3kqj.js",
+      "size": 3214,
+      "sha256": "aeb57948f461aa4e9837273b90085e7af2f76f6ccb5d3aa0db33dfda553c7373"
     },
     {
-      "path": "dist/assets/vendor-_LHVEQf9.js",
-      "size": 205178,
-      "sha256": "1625ef560362f3a8b0afa501b0e2e3804a39766f04bd28f19468ecb00599387b"
+      "path": "dist/assets/vendor-Hbqkg7KN.js",
+      "size": 205130,
+      "sha256": "205457dc4d769d6229db540b1caefd472f55dcff86369debbf156d1e142980f7"
+    },
+    {
+      "path": "dist/assets/waitForBridge-BrTf2joe.js",
+      "size": 32775,
+      "sha256": "5c9d067f88dd6aaf2acb15e348aa30ccb45edd187cc4920a63fae604a80a080a"
     },
     {
       "path": "dist/index.html",
-      "size": 951,
-      "sha256": "fdc978bb79d74048a524fa2771cd3262d1b7029ffb43dbac665563b056c8ddfe"
+      "size": 1036,
+      "sha256": "7aa9ba051e1f53689e73c8bdc02e0ba28297b0d678566562cb204fd0f9b4075b"
     },
     {
       "path": "dist-electron/electron/applicationServiceDependencies.js",
@@ -3292,13 +3317,13 @@
     },
     {
       "path": "dist-electron/electron/ipc/caseMeasureIpc.js",
-      "size": 2625,
-      "sha256": "eae31dad90f770fd32be064d9e94b6c09b771f9fbe3d29e13453ec3c4add9ec8"
+      "size": 3566,
+      "sha256": "50a6a1a66c47f85f9e149f2b2a78253ab1de59f91a1e3dbb7041da9d49dec1f0"
     },
     {
       "path": "dist-electron/electron/ipc/channels.js",
-      "size": 10938,
-      "sha256": "89b2c869a9e5ac58a0d72f4e36ab9becfe429cdcc8a7925cdcfabac000ad6be6"
+      "size": 11000,
+      "sha256": "5c6838f721fb35a03872d902217ec248af7346383060d3546f8961e082febe8e"
     },
     {
       "path": "dist-electron/electron/ipc/complianceIpc.js",
@@ -3312,8 +3337,8 @@
     },
     {
       "path": "dist-electron/electron/ipc/contracts.js",
-      "size": 51619,
-      "sha256": "5c64e32ee8d8d7f1d02b61b014562c322b0c0f9b3e6f716ee71baf1e8f6ea850"
+      "size": 51880,
+      "sha256": "4f6de3103080ba6a44b16545575a43793c7b39e35755c85ecb5acb0c427e4e82"
     },
     {
       "path": "dist-electron/electron/ipc/deadlineIpc.js",
@@ -3432,8 +3457,8 @@
     },
     {
       "path": "dist-electron/electron/preload.js",
-      "size": 87805,
-      "sha256": "b89a8bb51689be8f7ba874db46e32927daafc91ea79b5adc276c997a5147e109"
+      "size": 88220,
+      "sha256": "26d1bb738fd03c9fc49bc61d6cce42ec040d31e1443617f37619339f236f4b6e"
     },
     {
       "path": "dist-electron/electron/preload/audit.js",
@@ -3447,8 +3472,8 @@
     },
     {
       "path": "dist-electron/electron/preload/cases.js",
-      "size": 4451,
-      "sha256": "4a4c35d5e7dd30d2365fb00a804368ea2f287cc1ca62a973a13cf187ee4f8eef"
+      "size": 4561,
+      "sha256": "9b5c6f60659916c399e39f46abb5df734399bd75d2eae1f84ee08d46ad7f65ed"
     },
     {
       "path": "dist-electron/electron/preload/compliance-governance.js",
@@ -3622,8 +3647,8 @@
     },
     {
       "path": "dist-electron/services/auditMetadataPolicy.js",
-      "size": 5865,
-      "sha256": "c34731002a1cae3f6dc4d8bcd12f4079370184319e9d5274f1b5839c94a36f2f"
+      "size": 5877,
+      "sha256": "ff42cb53106175c781c5b8da1800a80ee755a49271ab36e191efae3a9da3916c"
     },
     {
       "path": "dist-electron/services/auditService.js",
@@ -3692,8 +3717,13 @@
     },
     {
       "path": "dist-electron/services/caseMeasureService.js",
-      "size": 17817,
-      "sha256": "5eaf275d1f4e40654d6a8afdf67f113e9783351bc77e3ab9b3243460725967cb"
+      "size": 18054,
+      "sha256": "2937ef8d7760f8de58546530d1897d6070bd8bbc76d3946d263aff964efded31"
+    },
+    {
+      "path": "dist-electron/services/caseProcessDeletion.js",
+      "size": 5380,
+      "sha256": "363fade31c621e6111ed8a63c9b298db584fcdbaa70e7ff7a30b7e22ad664daa"
     },
     {
       "path": "dist-electron/services/caseProcessPolicy.js",

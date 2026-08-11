@@ -31,6 +31,7 @@ export const IPC_CHANNELS = Object.freeze({
   caseHandoverSelectAndInspect: "caseHandover:select-and-inspect",
   caseHandoverSelectFile: "caseHandover:select-file",
   caseMeasuresCreate: "caseMeasures:create",
+  caseMeasuresDeleteProcess: "caseMeasures:delete-process",
   caseMeasuresList: "caseMeasures:list",
   caseMeasuresNotesCreate: "caseMeasures:notes:create",
   caseMeasuresNotesDelete: "caseMeasures:notes:delete",

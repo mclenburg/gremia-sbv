@@ -144,7 +144,7 @@ export function InlineOpenTaskOverlay({ props }: { props: InlineCommandOverlaysP
           </label>
           <label>
             <span>Stufe</span>
-            <select
+            <select className="industrial-select"
               value={inlineOpenTaskDraft.severity}
               onChange={(event) =>
                 setInlineOpenTaskDraft((current) =>

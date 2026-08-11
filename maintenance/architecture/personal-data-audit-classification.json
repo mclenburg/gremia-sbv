@@ -235,6 +235,16 @@
     "services/participationSchema.ts#<module>.migrateLegacyParticipations": {
       "classification": "infrastructure",
       "reason": "Legacy-Migration beim Schema-Aufbau, keine Benutzeroperation."
+    },
+    "services/caseProcessDeletion.ts#<module>.deleteLinksAndChildren": {
+      "classification": "delegated",
+      "owner": "services/caseProcessDeletion.ts#<module>.deleteCaseProcess",
+      "reason": "Interne abhängige Bereinigung innerhalb der unmittelbar auditierten Maßnahmenlöschung."
+    },
+    "services/caseProcessDeletion.ts#<module>.deleteProcessRecord": {
+      "classification": "delegated",
+      "owner": "services/caseProcessDeletion.ts#<module>.deleteCaseProcess",
+      "reason": "Löscht die Aggregatwurzel innerhalb der unmittelbar auditierten Maßnahmenlöschung."
     }
   }
 }

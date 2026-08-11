@@ -154,7 +154,7 @@ export function InlineTerminationOverlay({ props }: { props: InlineCommandOverla
             >
               Kündigungsart
             </FieldCaption>
-            <select
+            <select className="industrial-select"
               value={inlineTerminationDraft.terminationType}
               onChange={(event) =>
                 setInlineTerminationDraft((current) =>
@@ -189,7 +189,7 @@ export function InlineTerminationOverlay({ props }: { props: InlineCommandOverla
             >
               Schutzstatus
             </FieldCaption>
-            <select
+            <select className="industrial-select"
               value={inlineTerminationDraft.protectionStatus}
               onChange={(event) =>
                 setInlineTerminationDraft((current) =>

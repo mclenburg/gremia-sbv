@@ -9,6 +9,8 @@ test('opens persons module and shows status expiry workflow without horizontal o
   const toolbarButtons = page.locator('.person-toolbar button');
   await expect(toolbarButtons.nth(0)).toHaveText(/Person anlegen/);
   await expect(toolbarButtons.nth(1)).toHaveText(/Personen importieren/);
+  await expect(page.locator('[data-e2e="open-person-create-dialog"]')).toHaveClass(/industrial-button/);
+  await expect(page.locator('[data-e2e="open-person-import-wizard"]')).toHaveClass(/industrial-secondary-button/);
   await expect(toolbarButtons.nth(2)).toHaveText(/Fristen exportieren/);
   await expect(page.getByRole('button', { name: /Ablauf prüfen/ })).toBeVisible();
   await expect(page.getByText('Mustermann, Max')).toBeVisible();
@@ -42,12 +44,14 @@ test('guides CSV import through preview, mapping and validation', async ({ page 
 
   await expect(dialog.getByRole('heading', { name: 'Spaltenmapping' })).toBeVisible();
   await expect(dialog.locator('[data-e2e="person-import-field-fullName"]')).toHaveValue('Name');
+  await expect(dialog.locator('[data-e2e="person-import-field-fullName"]')).toHaveClass(/industrial-select/);
   await expect(dialog.locator('[data-e2e="person-import-field-personnelNumber"]')).toHaveValue('');
   await dialog.getByRole('button', { name: 'Mapping prüfen' }).click();
 
   await expect(dialog.getByRole('heading', { name: 'Importprüfung' })).toBeVisible();
   await dialog.getByRole('button', { name: 'Import ausführen' }).click();
   await expect(dialog.getByRole('heading', { name: 'Import abgeschlossen' })).toBeVisible();
+  await expect(dialog.locator('[data-e2e="person-import-close-result"]')).toHaveClass(/industrial-secondary-button/);
   await dialog.locator('[data-e2e="person-import-close-result"]').click();
   await expect(dialog).toBeHidden();
   await expect(page.getByText('Importperson, Ida')).toBeVisible();

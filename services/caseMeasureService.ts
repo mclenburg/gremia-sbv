@@ -5,6 +5,7 @@ import { PersonalDataAuditLogService } from './auditLogService.js';
 import { MeasureLifecycleAuditService } from './measureLifecycleAuditService.js';
 import { noteProcessTypeToCaseMeasureType } from '../src/app/core/models/case-measure.model.js';
 import { SearchIndexService } from './search/searchIndexService.js';
+import { deleteCaseProcess } from './caseProcessDeletion.js';
 import type { MeasureLifecycleCreationSource } from '../src/app/core/models/measure-lifecycle.model.js';
 import type {
   CaseMeasureCreatedFrom,
@@ -15,6 +16,8 @@ import type {
   CaseMeasureStatus,
   CaseMeasureType,
   CreateCaseMeasureInput,
+  DeleteCaseProcessInput,
+  DeleteCaseProcessResult,
   CreateCaseMeasureNoteInput,
   UpdateCaseMeasureInput,
   UpdateCaseMeasureNoteInput
@@ -312,6 +315,10 @@ export class CaseMeasureService {
       this.auditLog.append({ action: 'delete', subjectType: 'case_measure', subjectId: id, caseId: existing.caseId, purpose: 'Fallmaßnahme gelöscht' });
     });
     this.searchIndex.deleteSource('measure', id);
+  }
+
+  deleteProcess(input: DeleteCaseProcessInput): DeleteCaseProcessResult {
+    return deleteCaseProcess(this.db, this.auditLog, this.lifecycleAudit, this.searchIndex, input);
   }
 
   listNotes(caseId: string, measureType?: CaseMeasureNoteProcessType, measureId?: string): CaseMeasureNoteRecord[] {

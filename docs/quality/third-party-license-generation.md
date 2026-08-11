@@ -1,22 +1,26 @@
-# Die Implementierung – Testverträge und performante Drittlizenzen
+# Drittlizenz-Erzeugung
 
-## Korrektur der Testmigration
+## Ziel
 
-Vier von npm-Skripten referenzierte Tests werden nicht länger durch das Source-Cleanup entfernt. Sie wurden als ausführbare Verträge neu aufgebaut:
+Die Drittlizenz-Artefakte müssen reproduzierbar zum tatsächlich installierten Abhängigkeitsbaum passen, ohne unveränderte Builds durch unnötige Registry-Zugriffe auszubremsen.
 
-- Vorlagen anlegen, ändern, löschen sowie Schutz von Systemvorlagen,
-- Vorlagen rendern, archivieren, offene Platzhalter und Fehlerpfade,
-- frische und wiederholte BEM-Schemamigration,
-- Release-Readiness ohne verwaiste Testskripte.
+## Erzeugungsstrategie
 
-Die Tests importieren und führen Produktivcode aus. Positiv-, Negativ- und Idempotenzpfade werden geprüft.
-
-## Drittlizenz-Erzeugung
-
-Die Erzeugung verwendet nun drei Stufen:
+Die Erzeugung verwendet drei Stufen:
 
 1. Fingerprint-Schnellpfad für unveränderte Lockfile- und Ausgabe-Artefakte,
 2. lokale Paketdaten aus dem durch `npm ci` erzeugten exakten Paketbaum,
 3. paralleler Registry-/Tarball-Fallback nur für lokal nicht verfügbare Paketdaten.
 
-Der Schnellpfad ist durch einen Verhaltenstest abgesichert und führt keinerlei Registry-Zugriff aus. Änderungen an Lockfile oder Lizenzartefakten invalidieren den Zustand automatisch.
+Der Schnellpfad führt keine Registry-Zugriffe aus. Änderungen am Lockfile oder an den Lizenzartefakten invalidieren den Zustand automatisch.
+
+## Verbindliche Gates
+
+```bash
+npm run licenses:generate
+npm run licenses:check
+```
+
+`licenses:generate` erzeugt beziehungsweise aktualisiert das Inventar. `licenses:check` prüft Inventar, Lizenztexte und Notices gegen den aktuellen Projektzustand. Öffentliche Build- und Releasepfade dürfen die Lizenzprüfung nicht umgehen.
+
+Für kontrollierte Testumgebungen kann die Registry über `NPM_REGISTRY_URL` vorgegeben werden. Maßgeblich bleibt die konkrete Paketversion aus dem Lockfile; `latest` ist kein zulässiger Ersatz für die tatsächlich verwendete Version.

@@ -1,5 +1,32 @@
-import { FileText, MessageSquare, Workflow, Wrench } from 'lucide-react';
+import { FileText, MessageSquare, ShieldAlert, Trash2, Workflow } from 'lucide-react';
+import { IconButton } from '../../shared/components/IndustrialButton';
 import type { CaseTreePanelProps } from './caseWorkbenchTypes';
+import { requiresCaseProcessPrivacyReview } from './caseProcessPrivacy';
+
+
+function PrivacyReviewMarker() {
+  const message = 'Datenschutzprüfung erforderlich: weitere Speicherung der abgeschlossenen Maßnahme prüfen.';
+  return <span className="case-tree-privacy-marker" role="img" aria-label={message}
+    title="Datenschutzprüfung erforderlich: Prüfen, ob die weitere Speicherung dieser abgeschlossenen Maßnahme noch erforderlich ist.">
+    <ShieldAlert className="h-3.5 w-3.5" aria-hidden="true" />
+    <span aria-hidden="true">DS</span>
+  </span>;
+}
+
+function ProcessNode({ id, processType, label, status, selection, onSelect, onDeleteProcess, subtitle, disabled }: {
+  id: string; processType: Parameters<CaseTreePanelProps['formatProcessNodeSubtitle']>[0]; label: string; status?: string; selection: CaseTreePanelProps['selection'];
+  onSelect: CaseTreePanelProps['onSelect']; onDeleteProcess?: CaseTreePanelProps['onDeleteProcess']; subtitle: string; disabled?: boolean;
+}) {
+  return <div className="case-tree-process-row">
+    <button type="button" disabled={disabled} className={`case-tree-node ${selection.type === 'process' && selection.id === id ? 'active' : ''}`} onClick={() => onSelect({ type: 'process', processType, id })}>
+      <span className="case-tree-process-title">{label}{requiresCaseProcessPrivacyReview(processType, status) ? <PrivacyReviewMarker /> : null}</span>
+      <small>{subtitle}</small>
+    </button>
+    {onDeleteProcess ? <IconButton className="privacy-destructive-action case-tree-process-delete" aria-label={`${label} löschen`} title={`${label} löschen`} disabled={disabled} onClick={() => onDeleteProcess({ id, processType, label })}>
+      <Trash2 className="h-4 w-4" aria-hidden="true" />
+    </IconButton> : null}
+  </div>;
+}
 
 export function CaseTreePanel({
   selectedCase,
@@ -16,7 +43,8 @@ export function CaseTreePanel({
   onSelect,
   formatProcessNodeSubtitle,
   formatNoteDate,
-  formatBytes
+  formatBytes,
+  onDeleteProcess
 }: CaseTreePanelProps) {
   return (
     <aside className="industrial-panel case-tree-panel">
@@ -31,75 +59,12 @@ export function CaseTreePanel({
 
       <div className="case-tree-group process-drop-zone" aria-busy={isLoading ? "true" : undefined}>
         <div className="case-tree-group-title"><Workflow className="h-4 w-4" /> Maßnahmen <span>{preventionProcesses.length + bemProcesses.length + equalizationProcesses.length + terminationProcesses.length + participationProcesses.length + workplaceAccommodationProcesses.length}</span></div>
-        {preventionProcesses.map((process) => (
-          <button
-            key={process.id}
-            type="button"
-            className={`case-tree-node ${selection.type === 'process' && selection.id === process.id ? 'active' : ''}`}
-            onClick={() => onSelect({ type: 'process', processType: 'prevention', id: process.id })}
-          >
-            <span>Prävention</span>
-            <small>{formatProcessNodeSubtitle('prevention', process.status)}</small>
-          </button>
-        ))}
-        {bemProcesses.map((process) => (
-          <button
-            key={process.id}
-            type="button"
-            className={`case-tree-node ${selection.type === 'process' && selection.id === process.id ? 'active' : ''}`}
-            onClick={() => onSelect({ type: 'process', processType: 'bem', id: process.id })}
-          >
-            <span>BEM</span>
-            <small>{formatProcessNodeSubtitle('bem', process.status)}</small>
-          </button>
-        ))}
-        {equalizationProcesses.map((process) => (
-          <button
-            key={process.id}
-            type="button"
-            className={`case-tree-node ${selection.type === 'process' && selection.id === process.id ? 'active' : ''}`}
-            onClick={() => onSelect({ type: 'process', processType: 'equalization', id: process.id })}
-          >
-            <span>Gleichstellung</span>
-            <small>{formatProcessNodeSubtitle('equalization', process.applicationStatus)}</small>
-          </button>
-        ))}
-        {terminationProcesses.map((process) => (
-          <button
-            key={process.id}
-            type="button"
-            className={`case-tree-node ${selection.type === 'process' && selection.id === process.id ? 'active' : ''}`}
-            onClick={() => onSelect({ type: 'process', processType: 'termination_hearing', id: process.id })}
-          >
-            <span>Kündigung</span>
-            <small>{formatProcessNodeSubtitle('termination_hearing', process.status)}</small>
-          </button>
-        ))}
-
-        {participationProcesses.map((process) => (
-          <button
-            key={process.id}
-            type="button"
-            className={`case-tree-node ${selection.type === 'process' && selection.id === process.id ? 'active' : ''}`}
-            onClick={() => onSelect({ type: 'process', processType: 'participation', id: process.id })}
-          >
-            <span>SBV-Beteiligung</span>
-            <small>{formatProcessNodeSubtitle('participation', process.status)}</small>
-          </button>
-        ))}
-
-
-        {workplaceAccommodationProcesses.map((process) => (
-          <button
-            key={process.id}
-            type="button"
-            className={`case-tree-node ${selection.type === 'process' && selection.id === process.id ? 'active' : ''}`}
-            onClick={() => onSelect({ type: 'process', processType: 'workplace_accommodation', id: process.id })}
-          >
-            <span><Wrench className="mr-1 inline h-3.5 w-3.5" />Arbeitsplatzgestaltung</span>
-            <small>{formatProcessNodeSubtitle('workplace_accommodation', process.status)}</small>
-          </button>
-        ))}
+        {preventionProcesses.map((process) => <ProcessNode key={process.id} id={process.id} processType="prevention" label="Prävention" status={process.status} selection={selection} onSelect={onSelect} onDeleteProcess={onDeleteProcess} disabled={isLoading} subtitle={formatProcessNodeSubtitle('prevention', process.status)} />)}
+        {bemProcesses.map((process) => <ProcessNode key={process.id} id={process.id} processType="bem" label="BEM" status={process.status} selection={selection} onSelect={onSelect} onDeleteProcess={onDeleteProcess} disabled={isLoading} subtitle={formatProcessNodeSubtitle('bem', process.status)} />)}
+        {equalizationProcesses.map((process) => <ProcessNode key={process.id} id={process.id} processType="equalization" label="Gleichstellung" status={process.applicationStatus} selection={selection} onSelect={onSelect} onDeleteProcess={onDeleteProcess} disabled={isLoading} subtitle={formatProcessNodeSubtitle('equalization', process.applicationStatus)} />)}
+        {terminationProcesses.map((process) => <ProcessNode key={process.id} id={process.id} processType="termination_hearing" label="Kündigung" status={process.status} selection={selection} onSelect={onSelect} onDeleteProcess={onDeleteProcess} disabled={isLoading} subtitle={formatProcessNodeSubtitle('termination_hearing', process.status)} />)}
+        {participationProcesses.map((process) => <ProcessNode key={process.id} id={process.id} processType="participation" label="SBV-Beteiligung" status={process.status} selection={selection} onSelect={onSelect} onDeleteProcess={onDeleteProcess} disabled={isLoading} subtitle={formatProcessNodeSubtitle('participation', process.status)} />)}
+        {workplaceAccommodationProcesses.map((process) => <ProcessNode key={process.id} id={process.id} processType="workplace_accommodation" label="Arbeitsplatzgestaltung" status={process.status} selection={selection} onSelect={onSelect} onDeleteProcess={onDeleteProcess} disabled={isLoading} subtitle={formatProcessNodeSubtitle('workplace_accommodation', process.status)} />)}
         {!preventionProcesses.length && !bemProcesses.length && !equalizationProcesses.length && !terminationProcesses.length && !participationProcesses.length && !workplaceAccommodationProcesses.length && <p className="case-tree-empty">Noch keine Maßnahme in dieser Akte.</p>}
       </div>
 

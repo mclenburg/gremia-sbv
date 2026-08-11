@@ -20,6 +20,8 @@ import type {
   CaseMeasureNoteRecord,
   CaseMeasureRecord,
   CreateCaseMeasureInput,
+  DeleteCaseProcessInput,
+  DeleteCaseProcessResult,
   CreateCaseMeasureNoteInput,
   UpdateCaseMeasureInput,
   UpdateCaseMeasureNoteInput,
@@ -104,6 +106,8 @@ export function createCasesApi(invokeIpc: IpcInvoker) {
         invokeIpc(IPC_CHANNELS.caseMeasuresList, caseId),
       create: (input: CreateCaseMeasureInput): Promise<CaseMeasureRecord> =>
         invokeIpc(IPC_CHANNELS.caseMeasuresCreate, input),
+      deleteProcess: (input: DeleteCaseProcessInput): Promise<DeleteCaseProcessResult> =>
+        invokeIpc(IPC_CHANNELS.caseMeasuresDeleteProcess, input),
       update: (
         id: string,
         input: UpdateCaseMeasureInput,

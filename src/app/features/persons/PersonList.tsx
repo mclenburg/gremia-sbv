@@ -70,7 +70,7 @@ export function PersonList({
                   <Pencil className="h-4 w-4" aria-hidden="true" />
                 </IconButton>
                 <IconButton
-                  className="person-list-delete"
+                  className="privacy-destructive-action person-list-delete"
                   aria-label={`Person löschen: ${label}`}
                   title={`Person löschen: ${label}`}
                   onClick={() => onDelete(person)}

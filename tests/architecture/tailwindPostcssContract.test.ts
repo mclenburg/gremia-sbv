@@ -6,7 +6,11 @@ const packageJson = JSON.parse(readFileSync('package.json', 'utf8')) as {
   devDependencies?: Record<string, string>;
 };
 const packageLock = JSON.parse(readFileSync('package-lock.json', 'utf8')) as {
-  packages: Record<string, { version?: string; resolved?: string }>;
+  packages: Record<string, {
+    version?: string;
+    resolved?: string;
+    optionalDependencies?: Record<string, string>;
+  }>;
 };
 const postcssConfig = readFileSync('postcss.config.js', 'utf8');
 
@@ -26,7 +30,14 @@ describe('Tailwind 4 PostCSS-Vertrag', () => {
     expect(versionStartsWith(packageJson.devDependencies?.['@tailwindcss/postcss'], '^4.')).toBe(true);
     expect(versionStartsWith(packageLock.packages['node_modules/@tailwindcss/postcss']?.version, '4.')).toBe(true);
     expect(versionStartsWith(packageJson.devDependencies?.lightningcss, '^1.')).toBe(true);
-    expect(packageLock.packages['node_modules/lightningcss-linux-x64-gnu']?.version).toBe('1.32.0');
+
+    const lightningcss = packageLock.packages['node_modules/lightningcss'];
+    expect(versionStartsWith(lightningcss?.version, '1.')).toBe(true);
+    expect(lightningcss?.optionalDependencies).toBeDefined();
+
+    for (const [dependencyName, dependencyVersion] of Object.entries(lightningcss?.optionalDependencies ?? {})) {
+      expect(packageLock.packages[`node_modules/${dependencyName}`]?.version).toBe(dependencyVersion);
+    }
   });
 
   it('vermeidet interne Paketquellen auch für den Tailwind-PostCSS-Adapter', () => {

@@ -7,7 +7,7 @@ import { describe, expect, it } from "vitest";
 const taggedReleaseWorkflow = readFileSync(".github/workflows/build-release.yml", "utf8");
 const signPathWorkflow = readFileSync(".github/workflows/signpath-windows-exe.yml", "utf8");
 const buildPlatformScript = readFileSync("scripts/build-platform.cjs", "utf8");
-const packageJson = JSON.parse(readFileSync("package.json", "utf8")) as { scripts: Record<string, string> };
+const packageJson = JSON.parse(readFileSync("package.json", "utf8")) as { version: string; scripts: Record<string, string> };
 
 function includesAll(value: string, required: string[]): boolean {
   return required.every((entry) => value.includes(entry));
@@ -151,7 +151,7 @@ describe("Taggebundener GitHub-Release-Build", () => {
       mkdirSync(unpackedDir, { recursive: true });
 
       const since = Date.now() - 1000;
-      createSparsePe(path.join(releaseDir, "Gremia.SBV-0.9.6-win-x64-portable.exe"));
+      createSparsePe(path.join(releaseDir, `Gremia.SBV-${packageJson.version}-win-x64-portable.exe`));
       createSparsePe(path.join(unpackedDir, "Gremia.SBV.exe"));
 
       const verifier = path.resolve("scripts/verify-release-artifacts.cjs");
@@ -173,7 +173,7 @@ describe("Taggebundener GitHub-Release-Build", () => {
       const releaseDir = path.join(temp, "release");
       mkdirSync(releaseDir, { recursive: true });
       const since = Date.now() - 1000;
-      const artifact = path.join(releaseDir, "Gremia.SBV-0.9.6-win-x64-portable.exe");
+      const artifact = path.join(releaseDir, `Gremia.SBV-${packageJson.version}-win-x64-portable.exe`);
       createSparsePe(artifact);
 
       const verifier = path.resolve("scripts/verify-release-artifacts.cjs");

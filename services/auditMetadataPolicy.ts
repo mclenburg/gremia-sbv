@@ -178,7 +178,7 @@ export const AUDIT_METADATA_POLICY_BY_SUBJECT_TYPE = {
   prevention_process: [] as const,
   equalization_process: [] as const,
   termination_hearing: [] as const,
-  case_measure: [] as const,
+  case_measure: ['reasonCode'] as const,
   case_measure_note: [] as const,
   case_measure_participation: [] as const,
   case_measure_workplace_accommodation: [] as const,

@@ -87,7 +87,7 @@ export function PersonForm({
           <label><span>Nachname</span><input value={lastName} onChange={(event) => setLastName(event.target.value)} required /></label>
           <label>
             <span>Schutzstatus</span>
-            <select value={status} onChange={(event) => setStatus(event.target.value as ProtectionStatus)}>
+            <select className="industrial-select" value={status} onChange={(event) => setStatus(event.target.value as ProtectionStatus)}>
               {statusOptions.map((option) => <option key={option} value={option}>{protectionStatusLabels[option]}</option>)}
             </select>
           </label>

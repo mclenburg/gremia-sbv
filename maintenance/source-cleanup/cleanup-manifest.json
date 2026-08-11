@@ -2001,6 +2001,16 @@
       "path": "tests/workflowViewsPureIndex0811.test.ts",
       "reason": "Phase 5: Test nach Fachdomäne reorganisiert; alter Root-Pfad ist obsolet.",
       "type": "file"
+    },
+    {
+      "path": "PATCH-1-TECHNICAL-REPORT.md",
+      "reason": "Historischer Patch-Bericht widerspricht der aktiven Dokumentationsregel; dauerhafte Inhalte sind in Sicherheits-, Build- und Qualitätsdokumentation enthalten.",
+      "type": "file"
+    },
+    {
+      "path": "docs/quality/functional-test-gap-closure-096r.md",
+      "reason": "Versions-/patchbezogene Zwischenstandsdokumentation; die dauerhaft geltenden Testqualitätsregeln stehen in test-quality-metrics.md und QUALITY_GATE.md.",
+      "type": "file"
     }
   ]
 }

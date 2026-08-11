@@ -137,6 +137,25 @@ export interface CaseMeasureNoteRecord {
   updatedAt: string;
 }
 
+
+export type CaseProcessDeleteReason = 'created_by_mistake' | 'duplicate' | 'no_longer_required' | 'other';
+
+export interface DeleteCaseProcessInput {
+  caseId: string;
+  processType: CaseMeasureNoteProcessType;
+  processId: string;
+  reasonCode: CaseProcessDeleteReason;
+}
+
+export interface DeleteCaseProcessResult {
+  deleted: true;
+  processType: CaseMeasureNoteProcessType;
+  processId: string;
+  detachedDocuments: number;
+  deletedNotes: number;
+  deletedDeadlines: number;
+}
+
 export interface CreateCaseMeasureNoteInput {
   caseId: string;
   measureType: CaseMeasureNoteProcessType;

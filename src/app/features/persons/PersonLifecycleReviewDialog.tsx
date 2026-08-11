@@ -171,7 +171,7 @@ export function PersonLifecycleReviewDialog({
               <form className="privacy-review-form" onSubmit={submitAction}>
                 <label>
                   <span>Prüfpflichtige Fallakte</span>
-                  <select value={selectedReview?.caseId ?? ''} onChange={(event) => setSelectedCaseId(event.target.value)}>
+                  <select className="industrial-select" value={selectedReview?.caseId ?? ''} onChange={(event) => setSelectedCaseId(event.target.value)}>
                     {reviews.map((review) => (
                       <option key={review.id} value={review.caseId}>
                         {review.context.caseFile?.caseNumber ?? review.caseId} · {reasonLabels[review.reason] ?? review.reason} · Priorität {priorityLabels[review.priority] ?? review.priority}
@@ -193,7 +193,7 @@ export function PersonLifecycleReviewDialog({
 
                 <label>
                   <span>Aktion</span>
-                  <select value={action} onChange={(event) => setAction(event.target.value as typeof action)}>
+                  <select className="industrial-select" value={action} onChange={(event) => setAction(event.target.value as typeof action)}>
                     <option value="retention">Fortspeicherung begründen</option>
                     <option value="later">später erneut prüfen</option>
                     <option value="clear">Prüfung abschließen / Status aktualisiert</option>

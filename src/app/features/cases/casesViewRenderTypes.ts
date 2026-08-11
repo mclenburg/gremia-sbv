@@ -13,7 +13,7 @@ import type { ParticipationRecord } from "../../core/models/participation.model"
 import type { WorkplaceAccommodationRecord } from "../../core/models/workplace-accommodation.model";
 import type { CaseLegalReferenceRecord } from "../../core/models/knowledge.model";
 import type { CasesViewProps, CaseToast } from "./casesViewTypes";
-import type { CaseExplorerSelection } from "./caseWorkbenchTypes";
+import type { CaseExplorerSelection, CaseProcessType } from "./caseWorkbenchTypes";
 import type { CaseProcessDraft } from "./casesViewProcessUtils";
 import type { ProcessTemplateModalState } from "./ProcessTemplateDocumentsModal";
 import type { useCaseWorkbenchSearch } from "./useCaseWorkbenchSearch";
@@ -137,5 +137,7 @@ export type CasesViewRenderProps = {
   onOpenImportHandover: () => void;
   onContinueExpiredHandover: () => Promise<void>;
   onOpenParticipationViolationPrefill: CasesViewProps["onOpenParticipationViolationPrefill"];
+  onOpenCasePrivacyAction: (record: CaseRecord) => void;
+  onOpenProcessDelete: (target: { id: string; processType: CaseProcessType; label?: string }) => void;
 } & ProcessUpdateActions & Pick<TemplateActions, "openProcessTemplateModal"> & Pick<ProcessCreationActions, "openCaseProcessDraft"> & Pick<CrudActions, "deleteNote"> & Pick<NoteEditorActions, "startEditNote" | "openNewNoteModal">;
 

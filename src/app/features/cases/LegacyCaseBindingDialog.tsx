@@ -56,7 +56,7 @@ export function LegacyCaseBindingDialog({ open, legacyCase, persons, error, onCl
           </div>
         </div>
         <form onSubmit={(event) => void submit(event)} className="industrial-form case-create-form">
-          <label className="industrial-modal-wide"><span>Person</span><select value={personId} onChange={(event) => setPersonId(event.target.value)} autoFocus aria-describedby={descriptionIds}><option value="">Person auswählen …</option>{persons.map((person) => <option key={person.id} value={person.id}>{personLabel(person)}</option>)}</select></label>
+          <label className="industrial-modal-wide"><span>Person</span><select className="industrial-select" value={personId} onChange={(event) => setPersonId(event.target.value)} autoFocus aria-describedby={descriptionIds}><option value="">Person auswählen …</option>{persons.map((person) => <option key={person.id} value={person.id}>{personLabel(person)}</option>)}</select></label>
           <label className="industrial-modal-wide"><span>Prüfgrund</span><textarea value={reason} onChange={(event) => setReason(event.target.value)} placeholder="z. B. Zuordnung nach Aktenprüfung / Gespräch / vorhandener aktiver Altverknüpfung" aria-describedby={descriptionIds} /></label>
           {error && <div id="legacy-binding-error" className="industrial-message industrial-message-warning industrial-modal-wide" role="alert">{error}</div>}
           <div className="industrial-modal-actions industrial-modal-wide">

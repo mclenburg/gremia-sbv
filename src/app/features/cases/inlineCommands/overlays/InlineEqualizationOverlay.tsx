@@ -149,7 +149,7 @@ export function InlineEqualizationOverlay({ props }: { props: InlineCommandOverl
           </label>
           <label>
             <span>Status</span>
-            <select
+            <select className="industrial-select"
               value={inlineEqualizationDraft.status}
               onChange={(event) =>
                 setInlineEqualizationDraft((current) =>

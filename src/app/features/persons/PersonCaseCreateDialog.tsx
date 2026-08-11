@@ -76,7 +76,7 @@ export function PersonCaseCreateDialog({
         </div>
         <form className="industrial-form case-create-form" aria-label="Fallakte aus Person anlegen" onSubmit={(event) => void submit(event)}>
           <label><span>Aktenzeichen</span><input value={caseNumber} onChange={(event) => setCaseNumber(event.target.value)} placeholder="z. B. BEM-2026-004" ref={caseNumberRef} /></label>
-          <label><span>Kategorie</span><select value={caseCategory} onChange={(event) => setCaseCategory(event.target.value as CaseCategory)}>{categoryOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
+          <label><span>Kategorie</span><select className="industrial-select" value={caseCategory} onChange={(event) => setCaseCategory(event.target.value as CaseCategory)}>{categoryOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
           <label className="industrial-modal-wide"><span>Kurzbeschreibung</span><input value={caseSummary} onChange={(event) => setCaseSummary(event.target.value)} placeholder="knappe Sachebene" /></label>
           <div className="industrial-modal-actions industrial-modal-wide">
             <button type="button" className="industrial-secondary-button" onClick={onClose}>Abbrechen</button>
