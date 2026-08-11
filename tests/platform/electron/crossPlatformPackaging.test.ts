@@ -34,13 +34,13 @@ describe("Patch-4-Cross-Platform- und Packaging-Vertrag", () => {
   it("erzwingt Artefaktprüfung für das aktuelle Packaging und ignoriert Altartefakte", () => {
     expect(buildPlatform).toContain("scripts/verify-release-artifacts.cjs");
     expect(buildPlatform).toContain("const packagingStartedAt = Date.now()");
-    expect(buildPlatform).toContain("[selected.os, '--since', String(packagingStartedAt)]");
+    expect(buildPlatform).toContain("[selected.os, '--since', String(packagingStartedAt), '--write-receipt']");
     expect(buildPlatform).toMatch(
-      /runNpmScript\('native:rebuild:electron'\);\s*const packagingStartedAt = Date\.now\(\);\s*runNodeScript\('scripts\/run-electron-builder\.cjs', \[\.\.\.selected\.builderArgs, '--publish', 'never'\]\);\s*runNodeScript\('scripts\/verify-release-artifacts\.cjs', \[selected\.os, '--since', String\(packagingStartedAt\)\]\);/,
+      /runNpmScript\('native:rebuild:electron'\);\s*const packagingStartedAt = Date\.now\(\);\s*runNodeScript\('scripts\/run-electron-builder\.cjs', \[\.\.\.selected\.builderArgs, '--publish', 'never'\]\);\s*runNodeScript\('scripts\/verify-release-artifacts\.cjs', \[selected\.os, '--since', String\(packagingStartedAt\), '--write-receipt'\]\);/,
     );
     expect(buildPlatform).not.toContain("cleanPreviousEndUserArtifacts");
     expect(artifactVerifier).toContain("const sinceIndex = process.argv.indexOf('--since')");
-    expect(artifactVerifier).toContain("gültiger Buildstart-Zeitstempel fehlt");
+    expect(artifactVerifier).toContain("readReceipt(target)");
     expect(artifactVerifier).toContain("fs.statSync(file).mtimeMs >= since");
     expect(artifactVerifier).toContain("minimumBytes");
     expect(artifactVerifier).toContain("Dateisignatur");

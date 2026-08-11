@@ -94,7 +94,7 @@ runNodeScript('scripts/build-artifact-state.cjs', ['check']);
 runNpmScript('native:rebuild:electron');
 const packagingStartedAt = Date.now();
 runNodeScript('scripts/run-electron-builder.cjs', [...selected.builderArgs, '--publish', 'never']);
-runNodeScript('scripts/verify-release-artifacts.cjs', [selected.os, '--since', String(packagingStartedAt)]);
+runNodeScript('scripts/verify-release-artifacts.cjs', [selected.os, '--since', String(packagingStartedAt), '--write-receipt']);
 
 console.log('');
 console.log('Fertig. Artefakte liegen unter:');

@@ -167,4 +167,28 @@ describe("Taggebundener GitHub-Release-Build", () => {
       rmSync(temp, { recursive: true, force: true });
     }
   });
+  it("kann die Plattformprüfung nach dem Packaging über einen verifizierten Buildbeleg erneut ausführen", () => {
+    const temp = mkdtempSync(path.join(os.tmpdir(), "gremia-release-receipt-"));
+    try {
+      const releaseDir = path.join(temp, "release");
+      mkdirSync(releaseDir, { recursive: true });
+      const since = Date.now() - 1000;
+      const artifact = path.join(releaseDir, "Gremia.SBV-0.9.6-win-x64-portable.exe");
+      createSparsePe(artifact);
+
+      const verifier = path.resolve("scripts/verify-release-artifacts.cjs");
+      const first = spawnSync(process.execPath, [verifier, "win", "--since", String(since), "--write-receipt"], {
+        cwd: temp,
+        encoding: "utf8",
+      });
+      expect(first.status).toBe(0);
+
+      const repeated = spawnSync(process.execPath, [verifier, "win"], { cwd: temp, encoding: "utf8" });
+      expect(repeated.status).toBe(0);
+      expect(repeated.stdout).toContain("Release-Artefakt OK");
+    } finally {
+      rmSync(temp, { recursive: true, force: true });
+    }
+  });
+
 });

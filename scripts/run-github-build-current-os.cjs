@@ -14,12 +14,18 @@ function currentPlatformBuildScript() {
   return 'build:package:linux';
 }
 
+function currentPlatformReleaseScript() {
+  if (process.platform === 'win32') return 'release:platform:windows';
+  if (process.platform === 'linux') return 'release:platform:linux';
+  return null;
+}
+
 function npmRun(scriptName) {
   return ['npm', ['run', scriptName]];
 }
 
 function buildSequence() {
-  return [
+  const sequence = [
     ['npm', ['ci']],
     npmRun('security:audit'),
     npmRun('licenses:generate'),
@@ -28,6 +34,9 @@ function buildSequence() {
     npmRun('build:compile'),
     npmRun(currentPlatformBuildScript()),
   ];
+  const releaseScript = currentPlatformReleaseScript();
+  if (releaseScript) sequence.push(npmRun(releaseScript));
+  return sequence;
 }
 
 function run(command, args, options = {}) {
@@ -43,7 +52,7 @@ function run(command, args, options = {}) {
 function runGithubBuildCurrentOs() {
   console.log('Gremia.SBV GitHub-Build lokal – aktuelles OS');
   console.log(`Plattform: ${process.platform} (${os.release()})`);
-  console.log('Sequenz: npm ci → security:audit → licenses:generate/check → verify → compile → package');
+  console.log('Sequenz: npm ci → security:audit → licenses:generate/check → verify → compile → package → platform release checks');
   console.log('Hinweis: Dieser Befehl spiegelt den GitHub-Build nur für das aktuelle Betriebssystem. Er ersetzt keinen Cross-OS-Lauf für Windows, macOS und Linux.');
   console.log('Performance: E2E-Tests laufen standardmäßig mit 2 Workern; bei Bedarf GREMIA_SBV_E2E_WORKERS=1 setzen.');
   if (process.platform === 'linux') {
@@ -64,4 +73,4 @@ if (require.main === module) {
   runGithubBuildCurrentOs();
 }
 
-module.exports = { buildSequence, currentPlatformBuildScript, npmRun, runGithubBuildCurrentOs };
+module.exports = { buildSequence, currentPlatformBuildScript, currentPlatformReleaseScript, npmRun, runGithubBuildCurrentOs };
