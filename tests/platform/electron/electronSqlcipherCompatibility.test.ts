@@ -1,5 +1,8 @@
-import { readFileSync } from 'node:fs';
-import { describe, expect, it } from 'vitest';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import { afterEach, describe, expect, it } from 'vitest';
+import { DatabaseService, type DatabaseAdapter } from '../../../services/databaseService';
 
 const packageJson = JSON.parse(readFileSync('package.json', 'utf8')) as {
   scripts?: Record<string, string>;
@@ -10,6 +13,31 @@ const packageJson = JSON.parse(readFileSync('package.json', 'utf8')) as {
 const packageLock = JSON.parse(readFileSync('package-lock.json', 'utf8')) as {
   packages: Record<string, { version?: string; dependencies?: Record<string, string> }>;
 };
+
+
+
+type SqlCipherConstructor = new (filename: string) => DatabaseAdapter;
+const compatibilityDirs: string[] = [];
+
+afterEach(() => {
+  while (compatibilityDirs.length) rmSync(compatibilityDirs.pop()!, { recursive: true, force: true });
+});
+
+async function createSqlCipherV4Fixture(databasePath: string, keyHex: string): Promise<void> {
+  const loaded = await import('better-sqlite3-multiple-ciphers');
+  const candidate = (loaded as { default?: unknown }).default ?? loaded;
+  if (typeof candidate !== 'function') throw new Error('SQLCipher-Testtreiber konnte nicht geladen werden.');
+  const db = new (candidate as SqlCipherConstructor)(databasePath);
+  try {
+    db.pragma("cipher='sqlcipher'");
+    db.pragma('cipher_compatibility = 4');
+    db.pragma(`key = "x'${keyHex}'"`);
+    db.exec('CREATE TABLE legacy_probe (id TEXT PRIMARY KEY, value TEXT NOT NULL);');
+    db.prepare('INSERT INTO legacy_probe (id, value) VALUES (?, ?)').run('before-upgrade', 'Altbestand');
+  } finally {
+    db.close();
+  }
+}
 
 function majorOf(versionOrRange: string | undefined): number | null {
   const match = versionOrRange?.match(/^(?:[~^>=<\s]*)(\d+)\./);
@@ -34,6 +62,28 @@ describe('Electron-/SQLCipher-Kompatibilitätsvertrag', () => {
   it('richtet die TypeScript-Node-Typen an der Node-24-Laufzeit von Electron und Build aus', () => {
     expect(majorOf(packageJson.devDependencies?.['@types/node'])).toBe(24);
     expect(majorOf(packageLock.packages['node_modules/@types/node']?.version)).toBe(24);
+  });
+
+  it('öffnet einen bestehenden SQLCipher-v4-Datenbestand, schreibt weiter und öffnet ihn erneut', async () => {
+    const directory = mkdtempSync(path.join(tmpdir(), 'gremia-sqlcipher-compat-'));
+    compatibilityDirs.push(directory);
+    const databasePath = path.join(directory, 'gremia-sbv.sqlite3');
+    const keyHex = '31'.repeat(32);
+    await createSqlCipherV4Fixture(databasePath, keyHex);
+
+    const firstRuntime = new DatabaseService();
+    const firstDb = await firstRuntime.open(databasePath, keyHex);
+    expect(firstDb.prepare<{ value: string }>('SELECT value FROM legacy_probe WHERE id = ?').get('before-upgrade')?.value).toBe('Altbestand');
+    firstDb.prepare('INSERT INTO legacy_probe (id, value) VALUES (?, ?)').run('after-upgrade', 'Neuer Lauf');
+    firstRuntime.close();
+
+    const secondRuntime = new DatabaseService();
+    const secondDb = await secondRuntime.open(databasePath, keyHex);
+    expect(secondDb.prepare<{ id: string }>('SELECT id FROM legacy_probe ORDER BY id').all().map((row) => row.id)).toEqual(['after-upgrade', 'before-upgrade']);
+    secondRuntime.close();
+
+    const wrongKeyRuntime = new DatabaseService();
+    await expect(wrongKeyRuntime.open(databasePath, '32'.repeat(32))).rejects.toThrow();
   });
 
   it('nutzt den npm-11-sicheren Wrapper explizit im Build und nicht mehr als postinstall-Seiteneffekt', () => {

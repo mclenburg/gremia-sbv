@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createCipheriv, createHash, randomBytes, scryptSync } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -213,6 +213,29 @@ describe('security service behavior', () => {
     const migrated = readSecurityStore(dataDir);
     expect(migrated.kdfParams?.N).toBeGreaterThanOrEqual(131072);
     expect(migrated.databaseKeyWrap?.kdfParams?.N).toBeGreaterThanOrEqual(131072);
+  });
+
+  it('macht Lock zur technischen Zugriffsgrenze und entfernt temporäre Klartextdateien', async () => {
+    const dataDir = tempDataDir();
+    createdDirs.push(dataDir);
+    const service = createService(dataDir);
+    await service.setupInitialPassword(PASSWORD);
+
+    const temporary = service.writeTemporaryFile('document-preview', 'vertraulich.txt', Buffer.from('vertraulicher Inhalt'));
+    expect(existsSync(temporary)).toBe(true);
+    const activeKeyCopy = service.getActiveDatabaseKey();
+    expect(activeKeyCopy).toHaveLength(32);
+
+    service.lock('manual');
+
+    expect(service.isUnlocked()).toBe(false);
+    expect(existsSync(temporary)).toBe(false);
+    expect(() => service.getActiveDatabaseKey()).toThrow(/gesperrt/i);
+    expect(() => service.getActiveDatabase()).toThrow(/gesperrt/i);
+
+    // Eine vor dem Lock bewusst angeforderte Kopie bleibt Eigentum des Aufrufers; der Service darf sie nicht heimlich verändern.
+    expect(activeKeyCopy).not.toEqual(Buffer.alloc(32));
+    activeKeyCopy.fill(0);
   });
 
   it('destroys the local vault only with the exact confirmation phrase', async () => {

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { closeSync, mkdtempSync, openSync, rmSync, truncateSync } from 'node:fs';
+import { closeSync, mkdtempSync, openSync, rmSync, truncateSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { MAX_PERSON_IMPORT_FILE_BYTES, normalizeProtectionStatus, parseDelimitedText, splitFullName } from '../../../services/personImportParsing';
@@ -90,6 +90,30 @@ describe('Personenimport – feindliche Eingaben', () => {
       sourceFileName: 'too-large.csv',
       mapping: { firstName: 'Vorname', lastName: 'Nachname', protectionStatus: 'Status' },
     })).rejects.toThrow(/zu groß|maximal 25 MB/i);
+  });
+
+  it('begrenzt auch direkt eingefügten CSV-Text nach tatsächlicher UTF-8-Bytegröße', async () => {
+    const service = new PersonImportService(unusedDb);
+    const mapping = { firstName: 'Vorname', lastName: 'Nachname', protectionStatus: 'Status' } as const;
+    const tooLarge = `${'A'.repeat(MAX_PERSON_IMPORT_FILE_BYTES)}Ä`;
+
+    await expect(service.preview({ fileType: 'csv', csvText: tooLarge, sourceFileName: 'too-large-text.csv', mapping }))
+      .rejects.toThrow(/zu groß|maximal 25 MB/i);
+  });
+
+  it('weist beschädigte XLSX-Container kontrolliert zurück, bevor Fachdaten verarbeitet werden', async () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), 'gremia-person-import-xlsx-'));
+    importTempRoots.push(root);
+    const filePath = path.join(root, 'manipuliert.xlsx');
+    writeFileSync(filePath, Buffer.from('PK\u0003\u0004kein gueltiges ZIP'));
+    const service = new PersonImportService(unusedDb);
+
+    await expect(service.preview({
+      fileType: 'xlsx',
+      filePath,
+      sourceFileName: 'manipuliert.xlsx',
+      mapping: { firstName: 'Vorname', lastName: 'Nachname', protectionStatus: 'Status' },
+    })).rejects.toThrow();
   });
 
   it('weist CSV-Importe mit unvertretbar vielen Zeilen vor der fachlichen Verarbeitung zurück', async () => {

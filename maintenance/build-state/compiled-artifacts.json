@@ -600,8 +600,8 @@
     },
     {
       "path": "electron/security/electronSecurity.ts",
-      "size": 1659,
-      "sha256": "240d0d54a96c0a5d5e0a6897e8f9ea19dc49cf399c947b77d1e91ec28c7159df"
+      "size": 1687,
+      "sha256": "824b00081448c85dc6910cbb1d6b129fb5f5c2dc8b55769f9caf2555074021bd"
     },
     {
       "path": "electron/security/README.md",
@@ -610,8 +610,8 @@
     },
     {
       "path": "electron/security/rendererSecurityPolicy.ts",
-      "size": 2087,
-      "sha256": "0d92ff859fe9b9882a164915fc4d3a13a67eca43a2245f353fd60ed1f2ceeac4"
+      "size": 2671,
+      "sha256": "8dfc888227c26c49e1fb44d8dbbdf762dc22eacd9005e942820afd45d0288b55"
     },
     {
       "path": "electron/startupPerformance.ts",
@@ -620,8 +620,8 @@
     },
     {
       "path": "electron/startupStatus.ts",
-      "size": 10234,
-      "sha256": "1bbe7a562e7abc1be7bbc1d9f2099580695d7d860d10ecab37b74b49b669114b"
+      "size": 10283,
+      "sha256": "2d35617ea9737f8a54d314ba6c11d6e39076e11f3dd8edcab3bf103bc9ac5bd2"
     },
     {
       "path": "package-lock.json",
@@ -890,8 +890,8 @@
     },
     {
       "path": "services/databaseService.ts",
-      "size": 2417,
-      "sha256": "0e4a68e7980b2bc2dafc956a83c8449c6907d8a01cabdb7b3fbe0234ce06f7a7"
+      "size": 2510,
+      "sha256": "d0a7aebed4b3da4d4c02ef746d5e1fe11f5124c16d5314eb825e764a2360c538"
     },
     {
       "path": "services/databaseUnitOfWork.ts",
@@ -3582,13 +3582,13 @@
     },
     {
       "path": "dist-electron/electron/security/electronSecurity.js",
-      "size": 2101,
-      "sha256": "b0df0b3b53efaad0bd90746973b30ff995cdc03b7c3f27507e43d30767ffc7bf"
+      "size": 2115,
+      "sha256": "617427bc42b47370dbe1556803e3deb5504ee71788f1a59efdbefa3d291ae2ac"
     },
     {
       "path": "dist-electron/electron/security/rendererSecurityPolicy.js",
-      "size": 2551,
-      "sha256": "5374dfdaf08ee2547dcbc993131529abffa0fb41c29448cc2e14a50292ddc0ed"
+      "size": 3286,
+      "sha256": "39161febcf85b3ccc8a8c30410b3f9aa6eb554a274f2690f61df989934e01fa2"
     },
     {
       "path": "dist-electron/electron/startupPerformance.js",
@@ -3597,8 +3597,8 @@
     },
     {
       "path": "dist-electron/electron/startupStatus.js",
-      "size": 10332,
-      "sha256": "fda24c43a1ae52a82b2bb74f8e826ee268d8cda44ec32aa66d84e35f48c2ce6d"
+      "size": 10381,
+      "sha256": "690c4aabf4249a3d0858b8802e70168dd274ebd2af373b2c2c7b5b65ac1ff41a"
     },
     {
       "path": "dist-electron/package.json",
@@ -3867,8 +3867,8 @@
     },
     {
       "path": "dist-electron/services/databaseService.js",
-      "size": 3837,
-      "sha256": "8a32909fa29f0d06a1f32d1ca1b4c1940d50af0bbf1960e0fd737aab0918bd6d"
+      "size": 3980,
+      "sha256": "d2d74a20fbb34f38648025a7fb54fc3c3229c58fad1f05758a845648f283b81f"
     },
     {
       "path": "dist-electron/services/databaseUnitOfWork.js",

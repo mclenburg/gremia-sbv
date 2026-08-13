@@ -3,13 +3,13 @@ import {
   buildRendererContentSecurityPolicy,
   isAllowedRendererNavigationUrl,
   isAllowedRendererRequestUrl,
-  isReportRenderDocumentUrl,
+  allowsInlineTrustedStylesForDocumentUrl,
 } from './rendererSecurityPolicy.js';
 
 export function buildContentSecurityPolicy(url?: string): string {
   return buildRendererContentSecurityPolicy(
     app.isPackaged,
-    typeof url === 'string' && isReportRenderDocumentUrl(url),
+    typeof url === 'string' && allowsInlineTrustedStylesForDocumentUrl(url),
   );
 }
 

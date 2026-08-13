@@ -42,6 +42,7 @@ describe("Startup Experience 0.9.2", () => {
 
     expect(darkHtml).toContain("Gremia.SBV wird gestartet");
     expect(darkHtml).toContain('<html lang="de" data-theme="dark">');
+    expect(darkHtml).toContain('<meta name="gremia-startup-splash" content="1" />');
     expect(lightHtml).toContain('<html lang="de" data-theme="light">');
     expect(darkHtml).toContain('role="status"');
     expect(darkHtml).toContain('aria-live="polite"');

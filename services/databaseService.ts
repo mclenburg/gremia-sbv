@@ -46,17 +46,22 @@ export class DatabaseService {
     const Database = resolveDatabaseConstructor(await import(moduleName));
 
     const db = new Database(databasePath);
-    db.pragma("cipher='sqlcipher'");
-    db.pragma('cipher_compatibility = 4');
-    db.pragma(`key = "x'${keyHex}'"`);
-    applyDatabasePrivacyPragmas(db);
+    try {
+      db.pragma("cipher='sqlcipher'");
+      db.pragma('cipher_compatibility = 4');
+      db.pragma(`key = "x'${keyHex}'"`);
+      applyDatabasePrivacyPragmas(db);
 
-    // Erzwingt eine echte Leseoperation. Bei falschem Schlüssel oder kopierter DB ohne passenden
-    // Schlüssel schlägt diese Operation fehl, statt später unklar zu scheitern.
-    db.prepare('SELECT count(*) AS count FROM sqlite_master').get();
+      // Erzwingt eine echte Leseoperation. Bei falschem Schlüssel oder kopierter DB ohne passenden
+      // Schlüssel schlägt diese Operation fehl, statt später unklar zu scheitern.
+      db.prepare('SELECT count(*) AS count FROM sqlite_master').get();
 
-    this.db = db;
-    return db;
+      this.db = db;
+      return db;
+    } catch (error) {
+      db.close();
+      throw error;
+    }
   }
 
   get active(): DatabaseAdapter {

@@ -13,6 +13,30 @@ test('Sperren und Entsperren läuft über echten Preload, IPC und SecurityServic
   await assertNoRuntimeErrors(runtimeErrors);
 });
 
+test('Lock blendet Fachinhalte aus und sperrt IPC-Datenzugriffe bis zur erneuten Entsperrung', async ({ productPage, runtimeErrors }) => {
+  await productPage.getByRole('button', { name: 'Sperren', exact: true }).click();
+  await expect(productPage.getByLabel('App-Passwort', { exact: true })).toBeVisible();
+  await expect(productPage.getByRole('navigation', { name: 'Hauptnavigation' })).toBeHidden();
+
+  const lockedAccess = await productPage.evaluate(async () => {
+    try {
+      await window.gremiaSbv.cases.list();
+      return { rejected: false, message: '' };
+    } catch (error) {
+      return { rejected: true, message: error instanceof Error ? error.message : String(error) };
+    }
+  });
+  expect(lockedAccess.rejected).toBe(true);
+  expect(lockedAccess.message).toMatch(/gesperrt|Datenbankzugriff verweigert|unlock/i);
+
+  await productPage.getByLabel('App-Passwort', { exact: true }).fill(PRODUCT_PASSWORD);
+  await productPage.getByRole('button', { name: 'Entsperren' }).click();
+  await productPage.getByRole('navigation', { name: 'Hauptnavigation' }).waitFor({ state: 'visible' });
+  const cases = await productPage.evaluate(async () => window.gremiaSbv.cases.list());
+  expect(Array.isArray(cases)).toBe(true);
+  await assertNoRuntimeErrors(runtimeErrors);
+});
+
 test('Passwortänderung wird wirksam und altes Passwort abgelehnt', async ({ productPage, runtimeErrors }) => {
   const result = await productPage.evaluate(async ({ current, next }) => window.gremiaSbv.security.changePassword(current, next), { current: PRODUCT_PASSWORD, next: changedPassword });
   expect(result.ok).toBe(true);

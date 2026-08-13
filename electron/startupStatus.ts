@@ -128,7 +128,7 @@ export function buildStartupSplashHtml(
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Gremia.SBV wird gestartet</title>
+  <meta name="gremia-startup-splash" content="1" /><title>Gremia.SBV wird gestartet</title>
   <style>
     :root {
       color-scheme: dark;

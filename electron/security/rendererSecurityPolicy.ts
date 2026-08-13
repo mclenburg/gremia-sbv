@@ -24,6 +24,19 @@ export function isAllowedRendererRequestUrl(rawUrl: string, packaged: boolean): 
   return false;
 }
 
+
+export function isStartupSplashDocumentUrl(rawUrl: string): boolean {
+  if (!rawUrl.startsWith('data:text/html')) return false;
+  const commaIndex = rawUrl.indexOf(',');
+  if (commaIndex < 0) return false;
+  try {
+    const documentHtml = decodeURIComponent(rawUrl.slice(commaIndex + 1));
+    return documentHtml.includes('<meta name="gremia-startup-splash" content="1" />');
+  } catch {
+    return false;
+  }
+}
+
 export function isReportRenderDocumentUrl(rawUrl: string): boolean {
   const url = parsedUrl(rawUrl);
   if (!url || url.protocol !== 'file:') return false;
@@ -31,7 +44,11 @@ export function isReportRenderDocumentUrl(rawUrl: string): boolean {
   return normalizedPath.includes('/tmp/report-render/');
 }
 
-export function buildRendererContentSecurityPolicy(packaged: boolean, allowInlineReportStyles = false): string {
+export function allowsInlineTrustedStylesForDocumentUrl(rawUrl: string): boolean {
+  return isReportRenderDocumentUrl(rawUrl) || isStartupSplashDocumentUrl(rawUrl);
+}
+
+export function buildRendererContentSecurityPolicy(packaged: boolean, allowInlineTrustedStyles = false): string {
   const connectSrc = packaged
     ? "'self'"
     : "'self' http://127.0.0.1:5173 ws://127.0.0.1:5173 http://localhost:5173 ws://localhost:5173";
@@ -39,7 +56,7 @@ export function buildRendererContentSecurityPolicy(packaged: boolean, allowInlin
   return [
     "default-src 'self' file:",
     `script-src ${scriptSrc}`,
-    `style-src 'self'${allowInlineReportStyles ? " 'unsafe-inline'" : ""}`,
+    `style-src 'self'${allowInlineTrustedStyles ? " 'unsafe-inline'" : ""}`,
     "img-src 'self' data: blob: file:",
     "font-src 'self' data:",
     `connect-src ${connectSrc}`,

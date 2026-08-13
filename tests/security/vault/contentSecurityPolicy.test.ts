@@ -3,11 +3,14 @@ import os from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { describe, expect, it } from 'vitest';
+import { buildStartupSplashHtml } from '../../../electron/startupStatus';
 import {
+  allowsInlineTrustedStylesForDocumentUrl,
   buildRendererContentSecurityPolicy,
   isAllowedRendererNavigationUrl,
   isAllowedRendererRequestUrl,
   isReportRenderDocumentUrl,
+  isStartupSplashDocumentUrl,
 } from '../../../electron/security/rendererSecurityPolicy';
 
 function readMetaCsp(): string {
@@ -49,6 +52,22 @@ describe('Renderer-Sicherheitsgrenze', () => {
     const reportCsp = buildRendererContentSecurityPolicy(true, true);
     expect(reportCsp).toContain("style-src 'self' 'unsafe-inline'");
     expect(reportCsp).not.toContain("script-src 'self' 'unsafe-eval'");
+  });
+
+
+  it('erlaubt Inline-Styles für den intern markierten Splash, aber nicht für beliebige data-Dokumente', () => {
+    const splashUrl = `data:text/html;charset=utf-8,${encodeURIComponent(buildStartupSplashHtml('app'))}`;
+    const arbitraryDataUrl = `data:text/html;charset=utf-8,${encodeURIComponent('<!doctype html><style>body{color:red}</style>')}`;
+
+    expect(isStartupSplashDocumentUrl(splashUrl)).toBe(true);
+    expect(allowsInlineTrustedStylesForDocumentUrl(splashUrl)).toBe(true);
+    expect(isStartupSplashDocumentUrl(arbitraryDataUrl)).toBe(false);
+    expect(allowsInlineTrustedStylesForDocumentUrl(arbitraryDataUrl)).toBe(false);
+
+    const splashCsp = buildRendererContentSecurityPolicy(true, allowsInlineTrustedStylesForDocumentUrl(splashUrl));
+    expect(splashCsp).toContain("style-src 'self' 'unsafe-inline'");
+    expect(splashCsp).toContain("script-src 'self'");
+    expect(splashCsp).not.toContain("script-src 'self' 'unsafe-eval'");
   });
 
   it('erzeugt für Produktion eine CSP ohne Eval, Inline-Styles, Formulare, Frames oder Worker', () => {
