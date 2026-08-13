@@ -152,7 +152,7 @@ jobs:
             label: Linux AppImage
             os: ubuntu-latest
           - platform: windows
-            label: Windows portable EXE
+            label: Windows portable + setup EXE
             os: windows-latest
 
     steps:
@@ -188,11 +188,11 @@ jobs:
         if: matrix.platform == 'linux'
         run: xvfb-run -a npm run release:platform:linux
 
-      - name: Package Windows portable EXE
+      - name: Package Windows portable + setup EXE
         if: matrix.platform == 'windows'
-        run: node scripts/build-platform.cjs win-portable
+        run: node scripts/build-platform.cjs win
 
-      - name: Verify Windows artifact, portable startup, paths and backup/restore
+      - name: Verify Windows artifacts, portable startup, paths and backup/restore
         if: matrix.platform == 'windows'
         run: npm run release:platform:windows
 

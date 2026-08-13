@@ -103,7 +103,7 @@ export class SbvResourceService {
       action, recordId: subjectId, recordType, status,
     }));
     if (action !== 'read') { write(); return; }
-    try { write(); } catch (error) { console.warn('Gremia.SBV resource read audit failed', error); }
+    try { write(); } catch (error) { console.warn('Gremia.SBV resource read audit failed', error instanceof Error ? error.name : 'UnknownError'); }
   }
 
   list(): SbvResourceRecord[] {

@@ -24,6 +24,14 @@ describe('0.9.5-e E2E coverage matrix', () => {
     expect(missing, `HelpDialog-Prioritätsmodule müssen in VISUAL_QA_ROUTES enthalten sein: ${missing.join(', ')}`).toEqual([]);
   });
 
+  it('keeps every Axe route in one read-only session per theme without dropping route coverage', () => {
+    const routeIds = VISUAL_QA_ROUTES.map((route) => route.id);
+    expect(routeIds).toHaveLength(new Set(routeIds).size);
+    expect(routeIds).toContain('dashboard');
+    expect(routeIds).toContain('settings');
+    expect(HELP_DIALOG_QA_ROUTE_IDS.every((id) => routeIds.includes(id))).toBe(true);
+  });
+
   it('keeps browser and full-product E2E suites outside Vitest coverage collection', () => {
     expect(vitestExcludedSuites).toEqual(['e2e/**', 'e2e-product/**']);
   });

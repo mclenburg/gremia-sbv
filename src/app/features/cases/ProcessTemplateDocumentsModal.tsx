@@ -96,20 +96,20 @@ export function ProcessTemplateDocumentsModal({
   if (!state) return null;
 
   return (
-    <div className="industrial-modal-backdrop" role="dialog" aria-modal="true">
-      <section className="industrial-modal process-template-modal">
+    <div className="industrial-modal-backdrop" role="presentation">
+      <section className="industrial-modal process-template-modal" role="dialog" aria-modal="true" aria-labelledby="process-template-modal-title">
         <div className="industrial-panel-header compact">
           <div>
             <p className="industrial-kicker">Dokumente zur Maßnahme</p>
-            <h2>{processTemplateProcessLabel(state.processType)} · {processTemplateStatusLabel(state)}</h2>
+            <h2 id="process-template-modal-title">{processTemplateProcessLabel(state.processType)} · {processTemplateStatusLabel(state)}</h2>
             <p>Gezeigt werden Vorlagen der passenden Maßnahmeart, die mit dem aktuellen Status verbunden sind.</p>
           </div>
           <button type="button" className="industrial-secondary-button" onClick={onClose}>Schließen</button>
         </div>
 
         {state.loading && <div className="industrial-empty">Vorlagen werden geladen …</div>}
-        {state.error && <div className="industrial-message industrial-message-warning">{state.error}</div>}
-        {state.info && <div className="industrial-message industrial-message-ok">{state.info}</div>}
+        {state.error && <div className="industrial-message industrial-message-warning" role="alert">{state.error}</div>}
+        {state.info && <div className="industrial-message industrial-message-ok" role="status">{state.info}</div>}
         {state.processType === 'bem' && <div className="industrial-message industrial-message-warning">BEM-Dokumente enthalten regelmäßig Gesundheits-, Datenschutz- oder Einwilligungsinformationen. Jeder Download benötigt eine bewusste Exportbestätigung.</div>}
 
         {!state.loading && !state.templates.length && !state.error && (
@@ -140,7 +140,7 @@ export function ProcessTemplateDocumentsModal({
         {state.rendered && (
           <div className="industrial-subpanel mt-4">
             <h4>Zuletzt erzeugt</h4>
-            {state.rendered.unresolvedPlaceholders.length > 0 && <div className="industrial-message industrial-message-warning mb-3">Offene Platzhalter: {state.rendered.unresolvedPlaceholders.join(', ')}</div>}
+            {state.rendered.unresolvedPlaceholders.length > 0 && <div className="industrial-message industrial-message-warning mb-3" role="alert">Offene Platzhalter: {state.rendered.unresolvedPlaceholders.join(', ')}</div>}
             <p className="industrial-meta"><strong>Betreff:</strong> {state.rendered.subject}</p>
             <textarea className="industrial-output-area" value={state.rendered.body} readOnly />
           </div>

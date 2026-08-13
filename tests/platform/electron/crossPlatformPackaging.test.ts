@@ -25,7 +25,7 @@ describe("Patch-4-Cross-Platform- und Packaging-Vertrag", () => {
   });
 
   it("verifiziert auch im taggebundenen Releaseweg Startfähigkeit und Plattformpfade", () => {
-    expect(releaseWorkflow).toContain("Verify Windows artifact, portable startup, paths and backup/restore");
+    expect(releaseWorkflow).toContain("Verify Windows artifacts, portable startup, paths and backup/restore");
     expect(releaseWorkflow).toContain("Verify Linux artifact, desktop startup, paths and backup/restore");
     expect(releaseWorkflow).toContain("xvfb-run -a npm run release:platform:linux");
     expect(releaseWorkflow).toContain("run: npm run release:platform:windows");
@@ -44,6 +44,8 @@ describe("Patch-4-Cross-Platform- und Packaging-Vertrag", () => {
     expect(artifactVerifier).toContain("fs.statSync(file).mtimeMs >= since");
     expect(artifactVerifier).toContain("minimumBytes");
     expect(artifactVerifier).toContain("Dateisignatur");
+    expect(artifactVerifier).toContain("-win-x64-portable\\.exe");
+    expect(artifactVerifier).toContain("-win-x64-setup\\.exe");
   });
 
   it("prüft den gestarteten Build mit Leerzeichen-, Umlaut- und Langpfad", () => {
@@ -51,6 +53,7 @@ describe("Patch-4-Cross-Platform- und Packaging-Vertrag", () => {
     expect(startupSmoke).toContain("'langer-pfad-'.repeat(9)");
     expect(startupSmoke).toContain("--startup-smoke-test");
     expect(pkg.scripts["release:smoke:windows"]).toContain("run-packaged-startup-smoke.cjs win");
+    expect(startupSmoke).toContain("-win-x64-portable\\.exe");
   });
 
   it("konfiguriert die Linux-Desktopintegration eindeutig", () => {

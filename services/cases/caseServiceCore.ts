@@ -57,7 +57,7 @@ export class CaseServiceCore {
       try {
         new PersonalDataAuditLogService(db).append(input);
       } catch (error) {
-        console.warn("Gremia.SBV audit log write failed", error);
+        console.warn("Gremia.SBV audit log write failed", error instanceof Error ? error.name : 'UnknownError');
       }
     }
 

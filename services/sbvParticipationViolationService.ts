@@ -24,7 +24,7 @@ export class SbvParticipationViolationService {
         sourceContextType: record.sourceContextType, hasFollowUp: Boolean(record.followUpDueAt) } : undefined,
     });
     if (action !== 'read') { write(); return; }
-    try { write(); } catch (error) { console.warn('Gremia.SBV participation violation read audit failed', error); }
+    try { write(); } catch (error) { console.warn('Gremia.SBV participation violation read audit failed', error instanceof Error ? error.name : 'UnknownError'); }
   }
 
   private appendEvent(violationId: string, eventType: ParticipationViolationEventType, fromStatus?: ParticipationViolationStatus, toStatus?: ParticipationViolationStatus, note?: string): void {

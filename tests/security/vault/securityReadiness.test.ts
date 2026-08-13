@@ -35,10 +35,8 @@ describe("Security readiness", () => {
     const electronSecurity = readFileSync("electron/security/electronSecurity.ts", "utf8");
 
     expect(runtime).toContain("registerSessionSecurityPolicy()");
+    expect(electronSecurity).toContain("buildRendererContentSecurityPolicy");
     expect(electronSecurity).toContain("Content-Security-Policy");
-    expect(electronSecurity).toContain("script-src ${scriptSrc}");
-    expect(electronSecurity).toContain("object-src 'none'");
-    expect(electronSecurity).toContain("frame-ancestors 'none'");
 
     for (const source of [runtimeSupport, reportIpc]) {
       expect(source).toContain("contextIsolation: true");

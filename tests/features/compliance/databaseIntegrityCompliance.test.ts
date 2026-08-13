@@ -28,7 +28,7 @@ import {
   RECRUITING_PARTICIPATIONS_REQUIRED_COLUMNS,
 } from '../../../services/appSchema';
 import { evaluateDatabaseIntegrity } from '../../../services/databaseIntegrityService';
-import type { DatabaseAdapter } from '../../../services/databaseService';
+import { applyDatabasePrivacyPragmas, type DatabaseAdapter } from '../../../services/databaseService';
 
 class SchemaDb implements DatabaseAdapter {
   constructor(
@@ -103,6 +103,28 @@ const completeSchema: Record<string, readonly string[]> = {
   recruiting_participations: RECRUITING_PARTICIPATIONS_REQUIRED_COLUMNS,
   recruiting_interview_events: RECRUITING_INTERVIEW_EVENTS_REQUIRED_COLUMNS,
 };
+
+describe('database privacy runtime', () => {
+  it('verhindert persistente WAL-/Temp-Reste und überschreibt freigegebene Datenbankseiten', () => {
+    const pragmas: string[] = [];
+    const db: DatabaseAdapter = {
+      prepare: () => ({ all: () => [], get: () => undefined, run: () => ({}) }),
+      exec: () => undefined,
+      pragma: (sql) => { pragmas.push(sql); return undefined; },
+      close: () => undefined,
+    };
+
+    applyDatabasePrivacyPragmas(db);
+
+    expect(pragmas).toEqual([
+      'journal_mode = DELETE',
+      'secure_delete = ON',
+      'temp_store = MEMORY',
+      'cipher_memory_security = ON',
+      'foreign_keys = ON',
+    ]);
+  });
+});
 
 describe('database integrity status for compliance center', () => {
   it('reports ok when critical SBV schema elements are present', () => {

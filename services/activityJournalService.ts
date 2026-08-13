@@ -70,7 +70,7 @@ export class ActivityJournalService {
       linkCount, hasTime: Boolean(entry?.durationMinutes || entry?.startedAt || entry?.endedAt)
     }));
     if (action !== 'read') { write(); return; }
-    try { write(); } catch (error) { console.warn('Gremia.SBV activity journal read audit failed', error); }
+    try { write(); } catch (error) { console.warn('Gremia.SBV activity journal read audit failed', error instanceof Error ? error.name : 'UnknownError'); }
   }
 
   private linkedDeadlineId(entryId: string): string | undefined {

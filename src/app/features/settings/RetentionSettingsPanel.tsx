@@ -363,12 +363,12 @@ export function RetentionSettingsPanel({ cases }: { cases: CaseRecord[] }) {
       </div>
 
       {error && (
-        <div className="industrial-message industrial-message-warning">
+        <div className="industrial-message industrial-message-warning" role="alert">
           {error}
         </div>
       )}
       {message && (
-        <div className="industrial-message industrial-message-ok">
+        <div className="industrial-message industrial-message-ok" role="status">
           {message}
         </div>
       )}

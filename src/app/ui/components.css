@@ -619,17 +619,20 @@ html[data-theme='light'] .industrial-panel-header p {
   cursor: pointer;
 }
 
-.sbv-control-tabs button:hover,
+.sbv-control-tabs button:hover {
+  border-color: var(--accent);
+}
+
 .sbv-control-tabs button:focus-visible {
   border-color: var(--accent);
-  outline: none;
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
 }
 
 .sbv-control-tabs button.is-active {
   border-color: var(--accent);
   background: color-mix(in srgb, var(--surface-panel) 84%, var(--accent) 16%);
   box-shadow: inset 3px 0 0 var(--accent);
-  outline: none;
 }
 
 .sbv-control-tabs strong {

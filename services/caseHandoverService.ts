@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { createCipheriv, createDecipheriv, randomBytes, randomUUID } from 'node:crypto';
+import { createCipheriv, randomBytes, randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
 import type { CreatePersonalDataAuditInput } from '../src/app/core/models/audit.model.js';
@@ -11,6 +11,7 @@ import { assertCaseHandoverEnvelope, decryptCaseHandoverEnvelope, encryptCaseHan
 import { inspectCaseHandoverFilePath } from './caseHandoverFilePolicy.js';
 import type { CaseHandoverContinueExpiredInput, CaseHandoverContinueExpiredResult, CaseHandoverExportInput, CaseHandoverExportResult, CaseHandoverImportInput, CaseHandoverImportResult, CaseHandoverInspectResult } from '../src/app/core/models/case-handover.model.js';
 import { Row, PackagePayload, DecryptedPackage, nowIso, sha256, isRecord, safeString, ensureArray } from './caseHandoverSupport.js';
+import { encodeDocumentForHandover, sanitizeHandoverDocumentMetadata } from './caseHandoverDocumentCodec.js';
 export class CaseHandoverService {
   constructor(private readonly dbProvider: () => DatabaseAdapter, private readonly dataDirProvider: () => string = () => path.join(process.cwd(), 'data')) {}
 
@@ -82,14 +83,6 @@ export class CaseHandoverService {
   private rows(db: DatabaseAdapter, sql: string, ...params: unknown[]): Row[] { try { return db.prepare<Row>(sql).all(...params); } catch { return []; } }
   private row(db: DatabaseAdapter, sql: string, ...params: unknown[]): Row | undefined { try { return db.prepare<Row>(sql).get(...params); } catch { return undefined; } }
 
-  private decryptDocument(row: Row): Buffer {
-    if (!row.storage_path || !row.document_key || !row.iv || !row.auth_tag) return Buffer.alloc(0);
-    const encrypted = fs.readFileSync(row.storage_path);
-    const decipher = createDecipheriv('aes-256-gcm', Buffer.from(row.document_key, 'base64'), Buffer.from(row.iv, 'base64'));
-    decipher.setAuthTag(Buffer.from(row.auth_tag, 'base64'));
-    return Buffer.concat([decipher.update(encrypted), decipher.final()]);
-  }
-
   private collectPayload(db: DatabaseAdapter, input: CaseHandoverExportInput): PackagePayload {
     const caseIds = ensureArray(input.caseIds);
     if (!caseIds.length) throw new Error('Für eine Fallübergabe muss mindestens eine Fallakte ausgewählt sein.');
@@ -139,15 +132,10 @@ export class CaseHandoverService {
         ref: packageRef('document', index),
         caseRef: caseIdToRef.get(doc.case_id)!,
         measureRef: doc.measure_id ? measureIdToRef.get(doc.measure_id) : undefined,
-        data: this.sanitizeDocumentMetadata(doc),
-        contentBase64: this.decryptDocument(doc).toString('base64'),
+        data: sanitizeHandoverDocumentMetadata(doc),
+        contentBase64: encodeDocumentForHandover(doc, this.dataDirProvider()),
       }));
     return payload;
-  }
-
-  private sanitizeDocumentMetadata(doc: Row): Row {
-    const { storage_path: _storagePath, document_key: _documentKey, iv: _iv, auth_tag: _authTag, ...metadata } = doc;
-    return metadata;
   }
 
   private encryptPayload(payload: PackagePayload, passphrase: string): CaseHandoverEnvelope {

@@ -26,6 +26,7 @@ describe('DocumentContainerService 0.9.4-c-r6', () => {
       expect(readFileSync(result.storagePath).subarray(0, 2).toString()).not.toBe('PK');
 
       await expect(service.readEncryptedContainer({
+        storageRoot: dir,
         storagePath: result.storagePath,
         documentKey: result.documentKey,
         iv: result.iv,
@@ -78,6 +79,7 @@ describe('DocumentContainerService 0.9.4-c-r6', () => {
       });
 
       await expect(service.readEncryptedContainer({
+        storageRoot: dir,
         storagePath: result.storagePath,
         documentKey: result.documentKey,
         iv: result.iv,
@@ -86,6 +88,7 @@ describe('DocumentContainerService 0.9.4-c-r6', () => {
       })).rejects.toThrow(/Integritätsprüfung/);
 
       await expect(service.readEncryptedContainer({
+        storageRoot: dir,
         storagePath: result.storagePath.replace(/\.gsbvdoc$/, '.docx'),
         documentKey: result.documentKey,
         iv: result.iv,
@@ -94,6 +97,42 @@ describe('DocumentContainerService 0.9.4-c-r6', () => {
       })).rejects.toThrow(/\.gsbvdoc/);
     } finally {
       rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('verweigert Entschlüsselung außerhalb des angegebenen Tresorpfads und lehnt ungültige Kryptometadaten früh ab', async () => {
+    const vaultDir = mkdtempSync(path.join(tmpdir(), 'gremia-doc-vault-'));
+    const outsideDir = mkdtempSync(path.join(tmpdir(), 'gremia-doc-outside-'));
+    try {
+      const service = new DocumentContainerService();
+      const outside = await service.writeEncryptedContainer({
+        plain: Buffer.from('vertrauliche Nutzdaten'),
+        storageRoot: outsideDir,
+        subdirectory: 'documents',
+        documentId: 'outside-doc',
+        filename: 'outside.pdf',
+        mimeType: 'application/pdf',
+      });
+
+      await expect(service.readEncryptedContainer({
+        storageRoot: vaultDir,
+        storagePath: outside.storagePath,
+        documentKey: outside.documentKey,
+        iv: outside.iv,
+        authTag: outside.authTag,
+        expectedSha256: outside.sha256,
+      })).rejects.toThrow(/außerhalb des Datenspeichers/);
+
+      await expect(service.readEncryptedContainer({
+        storageRoot: outsideDir,
+        storagePath: outside.storagePath,
+        documentKey: Buffer.alloc(16).toString('base64'),
+        iv: outside.iv,
+        authTag: outside.authTag,
+      })).rejects.toThrow(/ungültige Kryptometadaten/);
+    } finally {
+      rmSync(vaultDir, { recursive: true, force: true });
+      rmSync(outsideDir, { recursive: true, force: true });
     }
   });
 

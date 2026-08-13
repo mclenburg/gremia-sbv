@@ -71,6 +71,25 @@ describe('Gremia.BR Einstellungen 0.9.2-A', () => {
     expect(decodeGremiaBrSecret(String(db.row?.password_secret), TEST_DATABASE_KEY)).toBe('streng-geheim');
   });
 
+  it('weist manipulierte Gremia.BR-Secrets ohne Klartextfreigabe zurück', () => {
+    const db = new GremiaBrSettingsDb();
+    const service = new GremiaBrSettingsService(() => db, () => TEST_DATABASE_KEY);
+    service.saveSettings({
+      enabled: true,
+      serverUrl: 'https://br.example.invalid/',
+      username: 'sbv@example.invalid',
+      password: 'streng-geheim',
+    });
+    const stored = String(db.row?.password_secret);
+    const encoded = stored.slice('vault:v2:'.length);
+    const envelope = JSON.parse(Buffer.from(encoded, 'base64').toString('utf8')) as Record<string, unknown>;
+
+    const invalidIv = `vault:v2:${Buffer.from(JSON.stringify({ ...envelope, iv: '00' }), 'utf8').toString('base64')}`;
+    const invalidTag = `vault:v2:${Buffer.from(JSON.stringify({ ...envelope, tag: 'zz'.repeat(16) }), 'utf8').toString('base64')}`;
+    expect(decodeGremiaBrSecret(invalidIv, TEST_DATABASE_KEY)).toBe('');
+    expect(decodeGremiaBrSecret(invalidTag, TEST_DATABASE_KEY)).toBe('');
+  });
+
   it('liest Altbestand mit Base64-Präfixen, schreibt neue Secrets aber verschlüsselt', () => {
     const legacySecret = `vault:v1:${Buffer.from('alt-geheim', 'utf8').toString('base64')}`;
 

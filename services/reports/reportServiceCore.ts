@@ -112,7 +112,7 @@ export class ReportServiceCore {
           },
         });
       } catch (error) {
-        console.warn("Gremia.SBV audit log write failed", error);
+        console.warn("Gremia.SBV audit log write failed", error instanceof Error ? error.name : 'UnknownError');
       }
     }
 

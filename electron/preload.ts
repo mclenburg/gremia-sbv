@@ -8,5 +8,5 @@ try {
   contextBridge.exposeInMainWorld("gremiaSbv", api);
   contextBridge.exposeInMainWorld("gremiaSbvPreload", Object.freeze({ ready: true, loadedAt: api.diagnostics.preloadLoadedAt }));
 } catch (error) {
-  console.error("Gremia.SBV preload bridge could not be exposed", error);
+  console.error("Gremia.SBV preload bridge could not be exposed", error instanceof Error ? error.name : "UnknownError");
 }

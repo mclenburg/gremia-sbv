@@ -27,12 +27,12 @@ export function CaseProcessDraftModal({
   }
 
   return (
-    <div className="industrial-modal-backdrop" role="dialog" aria-modal="true">
-      <section className="industrial-modal">
+    <div className="industrial-modal-backdrop" role="presentation">
+      <section className="industrial-modal" role="dialog" aria-modal="true" aria-labelledby="case-process-draft-title">
         <div className="industrial-panel-header compact">
           <div>
             <p className="industrial-kicker">Fallmaßnahme</p>
-            <h2><Workflow className="mr-2 inline h-5 w-5" />Maßnahme anlegen</h2>
+            <h2 id="case-process-draft-title"><Workflow className="mr-2 inline h-5 w-5" />Maßnahme anlegen</h2>
             <p>Die Maßnahme wird direkt im Fallbaum der aktuellen Fallakte ergänzt.</p>
           </div>
         </div>

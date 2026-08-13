@@ -55,13 +55,12 @@ function inspectTaggedReleaseWorkflow(workflow: string) {
     ]),
     supportedPlatforms: includesAll(workflow, [
       "node scripts/build-platform.cjs linux",
-      "node scripts/build-platform.cjs win-portable",
+      "node scripts/build-platform.cjs win",
       "Linux AppImage",
-      "Windows portable EXE",
+      "Windows portable + setup EXE",
     ]),
-    windowsPortableOnly: includesAll(buildPlatformScript, ["'--win', 'portable'", "'--x64'"])
-      && includesNone(buildPlatformScript, ["'--win', 'nsis'", "win-installer"])
-      && includesNone(workflow, ["Package Windows installer", "win-x64-setup.exe"]),
+    windowsDualArtifacts: includesAll(buildPlatformScript, ["'--win', '--x64'", "portable + setup"])
+      && includesAll(workflow, ["Package Windows portable + setup EXE", "release/*.exe"]),
     publishIsSingleOwner: includesAll(buildPlatformScript, ["'--publish', 'never'"])
       && includesAll(workflow, ["gh release upload", "--clobber"])
       && includesNone(workflow, ["softprops/action-gh-release@v2"]),
@@ -73,8 +72,8 @@ function inspectTaggedReleaseWorkflow(workflow: string) {
       "legacy_asset=",
     ]),
     platformVerificationFollowsPackaging:
-      workflow.indexOf("Verify Windows artifact, portable startup, paths and backup/restore")
-        > workflow.indexOf("Package Windows portable EXE")
+      workflow.indexOf("Verify Windows artifacts, portable startup, paths and backup/restore")
+        > workflow.indexOf("Package Windows portable + setup EXE")
       && workflow.indexOf("Verify Linux artifact, desktop startup, paths and backup/restore")
         > workflow.indexOf("Package Linux AppImage"),
     noWorkflowArtifactRoundtrip: includesNone(workflow, [
@@ -129,7 +128,7 @@ describe("Taggebundener GitHub-Release-Build", () => {
       tagVersionGuard: true,
       qualityAndArtifactSeparation: true,
       supportedPlatforms: true,
-      windowsPortableOnly: true,
+      windowsDualArtifacts: true,
       publishIsSingleOwner: true,
       existingReleaseIsUpdatable: true,
       platformVerificationFollowsPackaging: true,
@@ -152,6 +151,7 @@ describe("Taggebundener GitHub-Release-Build", () => {
 
       const since = Date.now() - 1000;
       createSparsePe(path.join(releaseDir, `Gremia.SBV-${packageJson.version}-win-x64-portable.exe`));
+      createSparsePe(path.join(releaseDir, `Gremia.SBV-${packageJson.version}-win-x64-setup.exe`));
       createSparsePe(path.join(unpackedDir, "Gremia.SBV.exe"));
 
       const verifier = path.resolve("scripts/verify-release-artifacts.cjs");
@@ -173,8 +173,10 @@ describe("Taggebundener GitHub-Release-Build", () => {
       const releaseDir = path.join(temp, "release");
       mkdirSync(releaseDir, { recursive: true });
       const since = Date.now() - 1000;
-      const artifact = path.join(releaseDir, `Gremia.SBV-${packageJson.version}-win-x64-portable.exe`);
-      createSparsePe(artifact);
+      const portable = path.join(releaseDir, `Gremia.SBV-${packageJson.version}-win-x64-portable.exe`);
+      const setup = path.join(releaseDir, `Gremia.SBV-${packageJson.version}-win-x64-setup.exe`);
+      createSparsePe(portable);
+      createSparsePe(setup);
 
       const verifier = path.resolve("scripts/verify-release-artifacts.cjs");
       const first = spawnSync(process.execPath, [verifier, "win", "--since", String(since), "--write-receipt"], {
@@ -186,6 +188,27 @@ describe("Taggebundener GitHub-Release-Build", () => {
       const repeated = spawnSync(process.execPath, [verifier, "win"], { cwd: temp, encoding: "utf8" });
       expect(repeated.status).toBe(0);
       expect(repeated.stdout).toContain("Release-Artefakt OK");
+    } finally {
+      rmSync(temp, { recursive: true, force: true });
+    }
+  });
+
+  it("verweigert einen Windows-Release, wenn der Setup-Installer fehlt", () => {
+    const temp = mkdtempSync(path.join(os.tmpdir(), "gremia-release-missing-setup-"));
+    try {
+      const releaseDir = path.join(temp, "release");
+      mkdirSync(releaseDir, { recursive: true });
+      const since = Date.now() - 1000;
+      createSparsePe(path.join(releaseDir, `Gremia.SBV-${packageJson.version}-win-x64-portable.exe`));
+
+      const verifier = path.resolve("scripts/verify-release-artifacts.cjs");
+      const result = spawnSync(process.execPath, [verifier, "win", "--since", String(since)], {
+        cwd: temp,
+        encoding: "utf8",
+      });
+
+      expect(result.status).not.toBe(0);
+      expect(result.stderr).toContain("setup-Artefakt erwartet");
     } finally {
       rmSync(temp, { recursive: true, force: true });
     }

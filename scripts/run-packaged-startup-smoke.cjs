@@ -15,8 +15,11 @@ const releaseDir = path.join(process.cwd(), 'release');
 const artifacts = fs.existsSync(releaseDir)
   ? fs.readdirSync(releaseDir).filter((name) => name.endsWith(extension)).map((name) => path.join(releaseDir, name))
   : [];
-if (artifacts.length !== 1) {
-  console.error(`Startup-Smoke-Test erwartet genau ein ${extension}-Artefakt, gefunden: ${artifacts.length}.`);
+const startupArtifacts = target === 'win' || target === 'windows'
+  ? artifacts.filter((artifact) => /-win-x64-portable\.exe$/i.test(path.basename(artifact)))
+  : artifacts;
+if (startupArtifacts.length !== 1) {
+  console.error(`Startup-Smoke-Test erwartet genau ein startbares ${extension}-Artefakt, gefunden: ${startupArtifacts.length}.`);
   process.exit(3);
 }
 
@@ -26,7 +29,7 @@ const dataDirectory = path.join(root, 'Pfad mit Leerzeichen und Ümlauten', long
 const marker = path.join(root, 'startup-ok.json');
 fs.mkdirSync(dataDirectory, { recursive: true });
 
-const artifact = artifacts[0];
+const artifact = startupArtifacts[0];
 if (target === 'linux') fs.chmodSync(artifact, 0o755);
 const env = {
   ...process.env,

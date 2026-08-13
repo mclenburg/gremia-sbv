@@ -1,5 +1,12 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
+import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { buildRetentionDashboard, normalizeRetentionSettings } from '../../services/retentionPolicy';
+import { removeCaseDocumentFiles } from '../../services/retentionSupport';
+
+const retentionRoots: string[] = [];
+afterEach(() => { while (retentionRoots.length) rmSync(retentionRoots.pop()!, { recursive: true, force: true }); });
 
 describe('retention policy', () => {
   const now = new Date('2026-05-02T12:00:00.000Z');
@@ -98,6 +105,30 @@ describe('retention policy', () => {
       riskLevel: 'critical',
       entityType: 'sbv_participation_violation'
     });
+  });
+
+
+  it('löscht bei Fallbereinigung niemals einen manipulierten Dokumentpfad außerhalb des Fall-Tresors', () => {
+    const dataDir = mkdtempSync(path.join(os.tmpdir(), 'gremia-retention-vault-'));
+    const externalDir = mkdtempSync(path.join(os.tmpdir(), 'gremia-retention-external-'));
+    retentionRoots.push(dataDir, externalDir);
+    const caseId = 'case-1';
+    const caseDir = path.join(dataDir, 'documents', caseId);
+    const inside = path.join(caseDir, 'inside.gsbvdoc');
+    const outside = path.join(externalDir, 'outside.txt');
+    mkdirSync(caseDir, { recursive: true });
+    writeFileSync(inside, 'encrypted');
+    writeFileSync(outside, 'must-survive');
+
+    const result = removeCaseDocumentFiles(dataDir, caseId, [
+      { id: 'inside', storage_path: inside },
+      { id: 'tampered', storage_path: outside },
+    ]);
+
+    expect(existsSync(inside)).toBe(false);
+    expect(existsSync(outside)).toBe(true);
+    expect(result.affectedFiles).toBe(1);
+    expect(result.errors.join(' ')).toMatch(/außerhalb des Fall-Tresors/i);
   });
 
   it('normalizes default settings', () => {

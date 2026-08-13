@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { checkGremiaBrEndpoint, validateGremiaBrBaseUrl } from '../../../services/gremiaBr/gremiaBrPolicy';
-import { GremiaBrHttpClient, type GremiaBrFetch } from '../../../services/gremiaBr/gremiaBrHttpClient';
+import { GremiaBrHttpClient, MAX_GREMIA_BR_RESPONSE_BYTES, type GremiaBrFetch } from '../../../services/gremiaBr/gremiaBrHttpClient';
 
 describe('Gremia.BR Lesebrücke Security-Härtung 0.9.2-F', () => {
   it('erlaubt nur explizit freigegebene Leseendpunkte und blockiert Verwaltungs- oder Schreibzugriffe vor dem Netzwerk', async () => {
@@ -65,6 +65,27 @@ describe('Gremia.BR Lesebrücke Security-Härtung 0.9.2-F', () => {
     const client = new GremiaBrHttpClient('https://br.example.local', fetchImpl);
 
     await expect(client.request('GET', '/search', 'token', { query: { q: 'BEM' } })).rejects.toThrow(/umgeleitet/i);
+  });
+
+
+  it('begrenzt Antworten der externen Lesebrücke vor der JSON-Verarbeitung', async () => {
+    const oversizedByHeader: GremiaBrFetch = async () => new Response('{}', {
+      status: 200,
+      headers: { 'content-type': 'application/json', 'content-length': String(MAX_GREMIA_BR_RESPONSE_BYTES + 1) },
+    });
+    const client = new GremiaBrHttpClient('https://br.example.local', oversizedByHeader);
+    await expect(client.request('GET', '/search', 'token', { query: { q: 'BEM' } })).rejects.toThrow(/zulässige Größe/i);
+
+    const chunk = 'x'.repeat(1024 * 1024);
+    const body = new ReadableStream<Uint8Array>({
+      start(controller) {
+        for (let index = 0; index < 6; index += 1) controller.enqueue(new TextEncoder().encode(chunk));
+        controller.close();
+      },
+    });
+    const oversizedStream: GremiaBrFetch = async () => new Response(body, { status: 200, headers: { 'content-type': 'text/plain' } });
+    const streamingClient = new GremiaBrHttpClient('https://br.example.local', oversizedStream);
+    await expect(streamingClient.request('GET', '/search', 'token', { query: { q: 'BEM' } })).rejects.toThrow(/zulässige Größe/i);
   });
 
   it('leert den lokalen BR-Lesecache bei Deaktivierung oder Credential-Clear der Anbindung', () => {

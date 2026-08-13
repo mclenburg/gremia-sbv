@@ -19,12 +19,14 @@ function encryptedFixture() {
 }
 
 class OcrDb implements DatabaseAdapter {
+  readonly dataDir: string;
   readonly document: Record<string, unknown>;
   readonly jobs = new Map<string, Record<string, unknown>>();
   readonly auditRows: Record<string, unknown>[] = [];
 
   constructor() {
     const fixture = encryptedFixture();
+    this.dataDir = path.dirname(fixture.storagePath);
     this.document = {
       id: 'doc-1',
       case_id: 'case-1',
@@ -113,7 +115,7 @@ describe('DocumentOcrService 0.9.1', () => {
       },
     };
     const db = new OcrDb();
-    const service = new DocumentOcrService(db, runner);
+    const service = new DocumentOcrService(db, runner, () => db.dataDir);
 
     expect(service.enqueueIfUseful('doc-1')).toBe(true);
     expect(db.document.ocr_status).toBe('queued');

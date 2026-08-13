@@ -1,8 +1,6 @@
 import {
-  useEffect,
   useId,
   useRef,
-  type KeyboardEvent,
   type ReactNode,
   type RefObject,
 } from "react";
@@ -14,6 +12,7 @@ import {
 } from "../components/IndustrialButton";
 import { FormActions, PasswordInput } from "../components/IndustrialForm";
 import { FileLocationNotice } from "../components/ImportExportFeedback";
+import { useDialogFocusManagement } from "./useDialogFocusManagement";
 
 type IndustrialDialogVariant = "default" | "warning" | "danger";
 
@@ -42,18 +41,6 @@ function joinClassNames(
   return classes.filter(Boolean).join(" ");
 }
 
-function focusableElements(dialog: HTMLElement): HTMLElement[] {
-  return Array.from(
-    dialog.querySelectorAll<HTMLElement>(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-    ),
-  ).filter(
-    (element) =>
-      !element.hasAttribute("disabled") &&
-      element.getAttribute("aria-hidden") !== "true",
-  );
-}
-
 export function IndustrialModal({
   title,
   kicker,
@@ -78,48 +65,12 @@ export function IndustrialModal({
   const descriptionId = description ? describedById ?? generatedDescriptionId : undefined;
   const dialogRef = useRef<HTMLElement | null>(null);
 
-  useEffect(() => {
-    const previousActiveElement =
-      document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const timer = window.setTimeout(() => {
-      const explicitTarget = initialFocusRef?.current;
-      if (explicitTarget) {
-        explicitTarget.focus();
-        return;
-      }
-      const first = dialogRef.current
-        ? focusableElements(dialogRef.current)[0]
-        : undefined;
-      first?.focus();
-    }, 0);
-
-    return () => {
-      window.clearTimeout(timer);
-      previousActiveElement?.focus();
-    };
-  }, [initialFocusRef]);
-
-  function handleKeyDown(event: KeyboardEvent<HTMLElement>) {
-    if (event.key === "Escape" && closeOnEscape && onClose) {
-      event.preventDefault();
-      onClose();
-      return;
-    }
-    if (event.key !== "Tab" || !dialogRef.current) return;
-
-    const focusable = focusableElements(dialogRef.current);
-    if (!focusable.length) return;
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-
-    if (event.shiftKey && document.activeElement === first) {
-      event.preventDefault();
-      last.focus();
-    } else if (!event.shiftKey && document.activeElement === last) {
-      event.preventDefault();
-      first.focus();
-    }
-  }
+  const handleKeyDown = useDialogFocusManagement({
+    dialogRef,
+    initialFocusRef,
+    onClose,
+    closeOnEscape,
+  });
 
   return (
     <div className="industrial-modal-backdrop" role="presentation">
@@ -132,11 +83,13 @@ export function IndustrialModal({
           className,
         )}
         role={role}
+        tabIndex={-1}
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={descriptionId}
         onKeyDown={handleKeyDown}
         data-industrial-modal="true"
+        data-focus-managed="true"
         data-e2e={dataE2e}
       >
         <div className="industrial-modal-header">

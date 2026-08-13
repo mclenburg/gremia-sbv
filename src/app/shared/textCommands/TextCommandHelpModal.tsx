@@ -1,7 +1,7 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import type { KeyboardEvent } from 'react';
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Keyboard, Search, X } from 'lucide-react';
 import { TEXT_COMMAND_HELP_GROUPS, TEXT_COMMAND_REGISTRY, type TextCommandDefinition } from '@services/textCommandPolicy';
+import { useDialogFocusManagement } from '../dialogs/useDialogFocusManagement';
 
 function definitionsForGroup(kinds: string[], query: string): TextCommandDefinition[] {
   const normalizedQuery = query.trim().toLowerCase();
@@ -12,11 +12,6 @@ function definitionsForGroup(kinds: string[], query: string): TextCommandDefinit
       if (!normalizedQuery) return true;
       return `${definition.tokens.join(' ')} ${definition.label} ${definition.description}`.toLowerCase().includes(normalizedQuery);
     });
-}
-
-function focusableElements(container: HTMLElement): HTMLElement[] {
-  return Array.from(container.querySelectorAll<HTMLElement>('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'))
-    .filter((element) => !element.hasAttribute('disabled') && element.tabIndex !== -1);
 }
 
 export function TextCommandHelpModal() {
@@ -32,53 +27,31 @@ export function TextCommandHelpModal() {
     [query]
   );
 
+  const close = useCallback(() => {
+    setOpen(false);
+    setQuery('');
+  }, []);
+
+  const handleDialogKeyDown = useDialogFocusManagement({
+    active: open,
+    dialogRef,
+    initialFocusRef: searchRef,
+    onClose: close,
+  });
+
   useLayoutEffect(() => {
     function handleKeyDown(event: globalThis.KeyboardEvent) {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'h') {
         event.preventDefault();
         event.stopPropagation();
-        setOpen((current) => !current);
+        if (open) close();
+        else setOpen(true);
       }
-      if (event.key === 'Escape') setOpen(false);
     }
 
     document.addEventListener('keydown', handleKeyDown, { capture: true });
     return () => document.removeEventListener('keydown', handleKeyDown, { capture: true });
-  }, []);
-
-  useEffect(() => {
-    if (!open) return;
-    const handle = window.setTimeout(() => searchRef.current?.focus(), 0);
-    return () => window.clearTimeout(handle);
-  }, [open]);
-
-  function close() {
-    setOpen(false);
-    setQuery('');
-  }
-
-  function handleDialogKeyDown(event: KeyboardEvent<HTMLElement>) {
-    if (event.key === 'Escape') {
-      event.preventDefault();
-      close();
-      return;
-    }
-    if (event.key !== 'Tab' || !dialogRef.current) return;
-
-    const focusables = focusableElements(dialogRef.current);
-    if (!focusables.length) return;
-    const first = focusables[0];
-    const last = focusables[focusables.length - 1];
-    const active = document.activeElement as HTMLElement | null;
-
-    if (event.shiftKey && active === first) {
-      event.preventDefault();
-      last.focus();
-    } else if (!event.shiftKey && active === last) {
-      event.preventDefault();
-      first.focus();
-    }
-  }
+  }, [close, open]);
 
   if (!open) return null;
 
@@ -88,7 +61,9 @@ export function TextCommandHelpModal() {
         ref={dialogRef}
         className="industrial-modal text-command-help-modal"
         data-e2e="inline-help-dialog"
+        data-focus-managed="true"
         role="dialog"
+        tabIndex={-1}
         aria-modal="true"
         aria-labelledby="text-command-help-title"
         aria-describedby="text-command-help-description"

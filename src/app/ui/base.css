@@ -56,5 +56,6 @@ button:disabled,
 .skip-link:focus,
 .skip-link:focus-visible {
   transform: translateY(0);
-  outline: none;
+  outline: 3px solid var(--industrial-accent);
+  outline-offset: 3px;
 }

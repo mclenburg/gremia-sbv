@@ -12,6 +12,15 @@ export interface DatabaseAdapter {
   close(): void;
 }
 
+export function applyDatabasePrivacyPragmas(db: DatabaseAdapter): void {
+  // Keine persistenten WAL-/Temp-Reste; gelöschte Datensätze werden in freien Seiten überschrieben.
+  db.pragma('journal_mode = DELETE');
+  db.pragma('secure_delete = ON');
+  db.pragma('temp_store = MEMORY');
+  db.pragma('cipher_memory_security = ON');
+  db.pragma('foreign_keys = ON');
+}
+
 type DatabaseConstructor = new (file: string) => DatabaseAdapter;
 
 function resolveDatabaseConstructor(moduleValue: unknown): DatabaseConstructor {
@@ -40,7 +49,7 @@ export class DatabaseService {
     db.pragma("cipher='sqlcipher'");
     db.pragma('cipher_compatibility = 4');
     db.pragma(`key = "x'${keyHex}'"`);
-    db.pragma('foreign_keys = ON');
+    applyDatabasePrivacyPragmas(db);
 
     // Erzwingt eine echte Leseoperation. Bei falschem Schlüssel oder kopierter DB ohne passenden
     // Schlüssel schlägt diese Operation fehl, statt später unklar zu scheitern.

@@ -77,19 +77,23 @@ function validateElectronSqlcipherCompatibility(pkg) {
   if (!sqlcipherRange) return;
 
   const electronMajor = parseMajorVersion(electronRange);
+  const sqlcipherMajor = parseMajorVersion(sqlcipherRange);
   expect(electronMajor !== null, 'electron-Version konnte nicht aus package.json gelesen werden.');
+  expect(sqlcipherMajor !== null, 'better-sqlite3-multiple-ciphers-Version konnte nicht aus package.json gelesen werden.');
   expect(
-    electronMajor <= 39,
-    'better-sqlite3-multiple-ciphers wird in Gremia.SBV derzeit bis zur Electron-39-Linie freigegeben. ' +
-      `Gefunden wurde ${electronRange}. Bitte Electron nicht höher ziehen, bis die native SQLCipher-Abhängigkeit neuere Electron/V8-ABIs unterstützt.`
+    electronMajor < 43 || sqlcipherMajor >= 13,
+    'Electron 43+ benötigt in Gremia.SBV better-sqlite3-multiple-ciphers 13+ mit Node-API-Prebuilds. ' +
+      `Gefunden wurden Electron ${electronRange} und better-sqlite3-multiple-ciphers ${sqlcipherRange}.`
   );
 
   const lock = readJson('package-lock.json');
   const lockedElectronMajor = parseMajorVersion(lock.packages?.['node_modules/electron']?.version);
+  const lockedSqlcipherMajor = parseMajorVersion(lock.packages?.['node_modules/better-sqlite3-multiple-ciphers']?.version);
   expect(lockedElectronMajor !== null, 'package-lock.json enthält keinen auflösbaren Electron-Eintrag.');
+  expect(lockedSqlcipherMajor !== null, 'package-lock.json enthält keinen auflösbaren better-sqlite3-multiple-ciphers-Eintrag.');
   expect(
-    lockedElectronMajor <= 39,
-    'package-lock.json enthält eine Electron-Version oberhalb der mit better-sqlite3-multiple-ciphers kompatiblen 39er Linie.'
+    lockedElectronMajor < 43 || lockedSqlcipherMajor >= 13,
+    'package-lock.json kombiniert Electron 43+ mit einer nicht dafür freigegebenen better-sqlite3-multiple-ciphers-Version.'
   );
 }
 

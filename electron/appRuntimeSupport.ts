@@ -76,7 +76,7 @@ export async function updateStartupSplash(phase: StartupPhaseId): Promise<void> 
   try {
     await splash.webContents.executeJavaScript(buildStartupStatusScript(phase), true);
   } catch (error) {
-    console.warn("Gremia.SBV splash status update failed", error);
+    console.warn("Gremia.SBV splash status update failed", error instanceof Error ? error.name : "UnknownError");
   }
 }
 
@@ -144,10 +144,7 @@ export function resolveAppIconPath(): string {
 
   const match = candidates.find((candidate) => existsSync(candidate));
   if (!match) {
-    console.warn(
-      "Gremia.SBV app icon not found. Checked:",
-      candidates.join(", "),
-    );
+    console.warn("Gremia.SBV app icon not found in configured locations.");
   }
   return match ?? candidates[0];
 }
@@ -156,7 +153,7 @@ export function resolveAppIcon() {
   const iconPath = resolveAppIconPath();
   const image = nativeImage.createFromPath(iconPath);
   if (image.isEmpty()) {
-    console.warn("Gremia.SBV app icon could not be loaded:", iconPath);
+    console.warn("Gremia.SBV app icon could not be loaded.");
     return iconPath;
   }
   return image;
@@ -189,35 +186,33 @@ export function resolvePackagedIndexHtml(): string {
 }
 
 export function registerDiagnostics(win: BrowserWindow): void {
-  win.webContents.on("preload-error", (_event, preloadPath, error) => {
-    console.error("Gremia.SBV preload error", preloadPath, error);
+  win.webContents.on("preload-error", (_event, _preloadPath, error) => {
+    console.error("Gremia.SBV preload error", { name: error.name });
   });
 
   win.webContents.on(
     "did-fail-load",
-    (_event, errorCode, errorDescription, validatedURL) => {
+    (_event, errorCode, errorDescription, _validatedURL) => {
       console.error("Gremia.SBV renderer load failed", {
         errorCode,
         errorDescription,
-        validatedURL,
       });
     },
   );
 
   win.webContents.on("did-finish-load", () => {
-    console.info("Gremia.SBV renderer loaded:", win.webContents.getURL());
+    console.info("Gremia.SBV renderer loaded.");
   });
 
-  win.webContents.on(
-    "console-message",
-    (_event, level, message, line, sourceId) => {
-      const prefix =
-        level >= 2
-          ? "Gremia.SBV renderer console error"
-          : "Gremia.SBV renderer console";
-      console.log(prefix, { level, message, line, sourceId });
-    },
-  );
+  if (!app.isPackaged && process.env.GREMIA_SBV_RENDERER_CONSOLE === "1") {
+    win.webContents.on(
+      "console-message",
+      (_event, level, message, line) => {
+        const prefix = level >= 2 ? "Gremia.SBV renderer console error" : "Gremia.SBV renderer console";
+        console.log(prefix, { level, message, line });
+      },
+    );
+  }
 
   win.webContents.on("render-process-gone", (_event, details) => {
     console.error("Gremia.SBV renderer process gone", details);
@@ -230,7 +225,7 @@ export function registerDiagnostics(win: BrowserWindow): void {
 
 export async function createWindow(): Promise<void> {
   const preload = resolvePreloadPath();
-  console.info("Gremia.SBV app icon:", resolveAppIconPath());
+  console.info("Gremia.SBV app icon resolved.");
 
   const win = new BrowserWindow({
     width: 1280,
@@ -305,7 +300,7 @@ export async function createWindow(): Promise<void> {
     }
   } else {
     const indexHtml = resolvePackagedIndexHtml();
-    console.info("Gremia.SBV renderer index:", indexHtml);
+    console.info("Gremia.SBV packaged renderer index resolved.");
     await win.loadFile(indexHtml);
     revealMainWindow("load-complete");
     if (process.env.GREMIA_SBV_OPEN_DEVTOOLS === "1") {

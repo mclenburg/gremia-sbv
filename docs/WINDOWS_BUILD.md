@@ -1,6 +1,6 @@
 # Windows-Build
 
-Der Windows-Build von Gremia.SBV erzeugt eine portable direkt startbare `.exe` und keinen verpflichtenden Installer.
+Der Windows-Build von Gremia.SBV erzeugt zwei Endanwender-Artefakte: eine portable direkt startbare `.exe` und zusätzlich einen NSIS-Installer. Die portable Variante bleibt vollständig erhalten; der Installer ist die empfohlene Variante, wenn ein schnellerer regulärer Programmstart ohne Portable-Self-Extract-Overhead gewünscht ist.
 
 ## Build
 
@@ -20,9 +20,9 @@ Dieser Lauf umfasst zusätzlich die Windows-Artefaktprüfung, den Start-Smoke-Te
 
 ## Erwartung
 
-- Zielartefakt: portable `.exe`
-- Upload: nur `release/*.exe`
-- keine verpflichtende Installation
+- Zielartefakte: `Gremia.SBV-<version>-win-x64-portable.exe` und `Gremia.SBV-<version>-win-x64-setup.exe`
+- Upload: beide Endanwender-EXEs aus `release/*.exe`
+- Installation bleibt optional; die portable Variante wird weiterhin angeboten
 - `requestedExecutionLevel`: `asInvoker`
 - bei nicht signierten Artefakten können SmartScreen-Hinweise auftreten
 
@@ -32,7 +32,7 @@ Der Windows-Build wird durch plattformunabhängige Tests abgesichert. Testcode d
 
 ## Abgrenzung
 
-Ein signierter Installer kann gesondert bewertet werden. Für öffentliche Community-Artefakte bleibt die portable EXE die passende Form, weil Gremia.SBV lokal, offline-first und portabel nutzbar bleiben soll.
+Portable EXE und Installer sind gleichwertige Release-Artefakte mit unterschiedlichen Start-/Bereitstellungsprofilen. Die portable EXE benötigt keine Installation, kann wegen des Self-Extract-Wrappers aber vor dem Electron-Splash deutlich länger benötigen. Der Installer beseitigt diesen Wrapper-Startweg für regulär installierte Nutzung.
 
 ## Portable Datenhaltung und Plattformabnahme
 
@@ -52,5 +52,4 @@ build:package:windows
 release:platform:windows
 ```
 
-Der Plattformcheck startet die portable EXE mit einem isolierten Pfad, der Leerzeichen, Umlaute und
-einen langen Pfadabschnitt enthält. Anschließend werden Backup und Restore in derselben Pfadklasse geprüft.
+Die Artefaktprüfung verlangt beide Windows-Endanwender-EXEs. Der Startup-Smoke startet bewusst die portable EXE mit einem isolierten Pfad, der Leerzeichen, Umlaute und einen langen Pfadabschnitt enthält; der Installer wird als PE-Artefakt, Name, Frische und Größe verifiziert. Anschließend werden Backup und Restore in derselben Pfadklasse geprüft.

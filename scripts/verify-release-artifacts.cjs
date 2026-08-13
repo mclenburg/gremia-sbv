@@ -14,17 +14,23 @@ const contracts = {
     extension: '.AppImage',
     magic: Buffer.from([0x7f, 0x45, 0x4c, 0x46]),
     minimumBytes: 25 * 1024 * 1024,
+    expectedArtifacts: [{ id: 'appimage', pattern: /\.AppImage$/ }],
   },
   win: {
     extension: '.exe',
     magic: Buffer.from([0x4d, 0x5a]),
     minimumBytes: 25 * 1024 * 1024,
+    expectedArtifacts: [
+      { id: 'portable', pattern: /-win-x64-portable\.exe$/ },
+      { id: 'setup', pattern: /-win-x64-setup\.exe$/ },
+    ],
   },
   windows: null,
   mac: {
     extension: '.dmg',
     magic: null,
     minimumBytes: 1 * 1024 * 1024,
+    expectedArtifacts: [{ id: 'dmg', pattern: /\.dmg$/ }],
   },
 };
 contracts.windows = contracts.win;
@@ -68,30 +74,35 @@ function readReceipt(value) {
   } catch (error) {
     fail(`Buildbeleg ist ungültig: ${error instanceof Error ? error.message : String(error)}`);
   }
-  if (receipt?.version !== 1 || receipt?.target !== canonicalTarget(value)) {
+  if (receipt?.version !== 2 || receipt?.target !== canonicalTarget(value)) {
     fail('Buildbeleg passt nicht zur angeforderten Plattform.');
   }
   if (!Number.isFinite(receipt.since) || receipt.since <= 0) {
     fail('Buildbeleg enthält keinen gültigen Buildstart-Zeitstempel.');
   }
-  if (typeof receipt.artifact !== 'string' || !receipt.artifact) {
-    fail('Buildbeleg enthält keinen gültigen Artefaktnamen.');
+  if (!Array.isArray(receipt.artifacts) || receipt.artifacts.length === 0) {
+    fail('Buildbeleg enthält keine gültige Artefaktliste.');
   }
-  if (!Number.isFinite(receipt.size) || receipt.size <= 0 || !Number.isFinite(receipt.mtimeMs) || receipt.mtimeMs <= 0) {
-    fail('Buildbeleg enthält keine gültigen Artefaktmetadaten.');
+  for (const artifact of receipt.artifacts) {
+    if (typeof artifact?.artifact !== 'string' || !artifact.artifact) fail('Buildbeleg enthält einen ungültigen Artefaktnamen.');
+    if (!Number.isFinite(artifact.size) || artifact.size <= 0 || !Number.isFinite(artifact.mtimeMs) || artifact.mtimeMs <= 0) {
+      fail('Buildbeleg enthält ungültige Artefaktmetadaten.');
+    }
   }
   return receipt;
 }
 
-function writeBuildReceipt(value, since, artifact, stat) {
+function writeBuildReceipt(value, since, artifacts) {
   const pathname = receiptPath(value);
   fs.writeFileSync(pathname, `${JSON.stringify({
-    version: 1,
+    version: 2,
     target: canonicalTarget(value),
     since,
-    artifact: path.basename(artifact),
-    size: stat.size,
-    mtimeMs: stat.mtimeMs,
+    artifacts: artifacts.map(({ artifact, stat }) => ({
+      artifact: path.basename(artifact),
+      size: stat.size,
+      mtimeMs: stat.mtimeMs,
+    })),
     verifiedAt: Date.now(),
   }, null, 2)}
 `, 'utf8');
@@ -117,27 +128,43 @@ try {
     if (!file.endsWith(contract.extension)) return false;
     return fs.statSync(file).mtimeMs >= since;
   });
-  if (candidates.length !== 1) fail(`genau ein im aktuellen Build erzeugtes ${contract.extension}-Endanwenderartefakt erwartet, gefunden: ${candidates.length}`);
 
-  const artifact = candidates[0];
-  const name = path.basename(artifact);
-  const stat = fs.statSync(artifact);
-  if (stat.size < contract.minimumBytes) fail(`Artefakt ist unplausibel klein (${stat.size} Bytes): ${name}`);
-  if (contract.magic) {
-    const header = Buffer.alloc(contract.magic.length);
-    const descriptor = fs.openSync(artifact, 'r');
-    try { fs.readSync(descriptor, header, 0, header.length, 0); } finally { fs.closeSync(descriptor); }
-    if (!header.equals(contract.magic)) fail(`Dateisignatur passt nicht zu ${contract.extension}: ${name}`);
+  const verifiedArtifacts = contract.expectedArtifacts.map((expected) => {
+    const matches = candidates.filter((file) => expected.pattern.test(path.basename(file)));
+    if (matches.length !== 1) {
+      fail(`genau ein aktuelles ${expected.id}-Artefakt erwartet, gefunden: ${matches.length}`);
+    }
+    const artifact = matches[0];
+    const name = path.basename(artifact);
+    const stat = fs.statSync(artifact);
+    if (stat.size < contract.minimumBytes) fail(`Artefakt ist unplausibel klein (${stat.size} Bytes): ${name}`);
+    if (contract.magic) {
+      const header = Buffer.alloc(contract.magic.length);
+      const descriptor = fs.openSync(artifact, 'r');
+      try { fs.readSync(descriptor, header, 0, header.length, 0); } finally { fs.closeSync(descriptor); }
+      if (!header.equals(contract.magic)) fail(`Dateisignatur passt nicht zu ${contract.extension}: ${name}`);
+    }
+    return { artifact, stat };
+  });
+
+  if (candidates.length !== verifiedArtifacts.length) {
+    const unexpected = candidates.filter((candidate) => !verifiedArtifacts.some(({ artifact }) => artifact === candidate));
+    fail(`unerwartete aktuelle ${contract.extension}-Endanwenderartefakte: ${unexpected.map(path.basename).join(', ') || candidates.length}`);
   }
 
   if (receipt) {
-    if (receipt.artifact !== name || receipt.size !== stat.size || Math.abs(receipt.mtimeMs - stat.mtimeMs) >= 1) {
-      fail(`Artefakt stimmt nicht mehr mit dem Buildbeleg überein: ${name}`);
+    const current = verifiedArtifacts.map(({ artifact, stat }) => ({ artifact: path.basename(artifact), size: stat.size, mtimeMs: stat.mtimeMs }))
+      .sort((a, b) => a.artifact.localeCompare(b.artifact));
+    const recorded = receipt.artifacts.slice().sort((a, b) => a.artifact.localeCompare(b.artifact));
+    if (JSON.stringify(current) !== JSON.stringify(recorded)) {
+      fail('Artefakte stimmen nicht mehr mit dem Buildbeleg überein.');
     }
   }
-  if (writeReceipt) writeBuildReceipt(target, since, artifact, stat);
+  if (writeReceipt) writeBuildReceipt(target, since, verifiedArtifacts);
 
-  console.log(`Release-Artefakt OK: ${name} (${stat.size} Bytes).`);
+  for (const { artifact, stat } of verifiedArtifacts) {
+    console.log(`Release-Artefakt OK: ${path.basename(artifact)} (${stat.size} Bytes).`);
+  }
 } catch (error) {
   console.error(error instanceof Error ? error.message : String(error));
   process.exitCode = 1;

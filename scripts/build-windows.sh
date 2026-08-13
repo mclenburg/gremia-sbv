@@ -22,4 +22,5 @@ echo "Fertig. Windows-Artefakte liegen unter:"
 echo "  $ROOT_DIR/release"
 echo
 echo "Erwartete Dateien:"
-echo "  Gremia.SBV-<version>-win-x64.exe              (portable EXE, kein Installer)"
+echo "  Gremia.SBV-<version>-win-x64-portable.exe     (portable EXE)
+  Gremia.SBV-<version>-win-x64-setup.exe        (NSIS-Installer)"

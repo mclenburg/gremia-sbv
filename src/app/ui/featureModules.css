@@ -112,11 +112,16 @@
 }
 
 .person-list-item:hover,
-.person-list-item:focus-visible,
 .person-list-item.active {
   border-color: var(--sbv-accent);
   background: rgba(255, 214, 0, 0.1);
-  outline: none;
+}
+
+.person-list-item:focus-visible {
+  border-color: var(--sbv-accent);
+  background: rgba(255, 214, 0, 0.1);
+  outline: 2px solid var(--industrial-accent);
+  outline-offset: 3px;
 }
 
 .person-list-item span,
@@ -1449,10 +1454,15 @@ button.dashboard-focus-card {
   cursor: pointer;
 }
 
-button.dashboard-focus-card:hover,
+button.dashboard-focus-card:hover {
+  border-color: rgba(250, 204, 21, 0.65);
+  box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.12);
+}
+
 button.dashboard-focus-card:focus-visible {
   border-color: rgba(250, 204, 21, 0.65);
-  outline: none;
+  outline: 2px solid var(--industrial-accent);
+  outline-offset: 3px;
   box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.12);
 }
 
@@ -1844,7 +1854,8 @@ html[data-theme='light'] .dashboard-focus-card-static.industrial-card:hover {
 .template-detail-fields select:focus-visible,
 .template-create-form select:focus-visible,
 .person-edit-form select:focus-visible,
-.knowledge-search-bar select:focus-visible {
+.knowledge-search-bar select:focus-visible,
+.privacy-review-form select:focus-visible {
   border-color: var(--industrial-accent);
   outline: 2px solid var(--industrial-accent);
   outline-offset: 2px;

@@ -49,7 +49,7 @@ export class EqualizationService {
     try {
       this.auditLog.append({ action, subjectType: 'equalization_process', subjectId, caseId, purpose });
     } catch (error) {
-      console.warn('Gremia.SBV audit log write failed', error);
+      console.warn('Gremia.SBV audit log write failed', error instanceof Error ? error.name : 'UnknownError');
     }
   }
 

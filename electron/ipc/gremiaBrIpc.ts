@@ -4,7 +4,7 @@ import type { SecurityService } from '../../services/securityService.js';
 import type { ApplicationServices } from '../applicationServices.js';
 import { GremiaBrHttpReadAdapter } from '../../services/gremiaBr/gremiaBrHttpReadAdapter.js';
 import type { CreateGremiaBrExternalReferenceInput, GremiaBrRelevanceSettings, GremiaBrSettingsInput } from '../../src/app/core/models/gremia-br.model.js';
-import { assertRecordInput } from './ipcValidation.js';
+import { assertRecordInput, assertString } from './ipcValidation.js';
 
 export function registerGremiaBrIpc(ipcMain: IpcMain, security: SecurityService, services: ApplicationServices): void {
   const settings = services.gremiaBrSettings;
@@ -49,12 +49,11 @@ export function registerGremiaBrIpc(ipcMain: IpcMain, security: SecurityService,
 
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrInlineSuggest, async (_event, query: unknown) => {
-    return references.suggestBrDecisions(adapter, typeof query === 'string' ? query : '');
+    return references.suggestBrDecisions(adapter, assertString(query, 'gremia-br:inline-suggest', 'Suchbegriff', { minLength: 1, maxLength: 120 }));
   });
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrReferencesList, async (_event, caseId: unknown) => {
-    if (typeof caseId !== 'string') throw new Error('Fallakten-ID fehlt.');
-    return references.listForCase(caseId);
+    return references.listForCase(assertString(caseId, 'gremia-br:references:list', 'Fallakten-ID', { minLength: 1, maxLength: 120 }));
   });
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrReferencesCreate, async (_event, input: unknown) => {
@@ -62,7 +61,6 @@ export function registerGremiaBrIpc(ipcMain: IpcMain, security: SecurityService,
   });
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrReferencesDelete, async (_event, referenceId: unknown) => {
-    if (typeof referenceId !== 'string') throw new Error('Referenz-ID fehlt.');
-    return references.delete(referenceId);
+    return references.delete(assertString(referenceId, 'gremia-br:references:delete', 'Referenz-ID', { minLength: 1, maxLength: 120 }));
   });
 }

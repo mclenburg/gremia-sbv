@@ -7,7 +7,7 @@ try {
         db.exec('ALTER TABLE sbv_participation_violations ADD COLUMN related_recruiting_participation_id TEXT REFERENCES recruiting_participations(id) ON DELETE SET NULL; CREATE INDEX IF NOT EXISTS idx_sbv_participation_violations_recruiting ON sbv_participation_violations(related_recruiting_participation_id);');
       }
     } catch (error) {
-      console.warn('Gremia.SBV participation violation recruiting schema compatibility check failed', error);
+      console.warn('Gremia.SBV participation violation recruiting schema compatibility check failed', error instanceof Error ? error.name : 'UnknownError');
     }
 }
 
@@ -18,7 +18,7 @@ try {
         db.exec('ALTER TABLE sbv_participation_violations ADD COLUMN related_case_measure_id TEXT REFERENCES case_measures(id) ON DELETE SET NULL;');
       }
     } catch (error) {
-      console.warn('Gremia.SBV participation violation schema compatibility check failed', error);
+      console.warn('Gremia.SBV participation violation schema compatibility check failed', error instanceof Error ? error.name : 'UnknownError');
     }
 }
 

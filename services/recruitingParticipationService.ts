@@ -79,7 +79,7 @@ export class RecruitingParticipationService {
         metadata,
       });
     } catch (error) {
-      console.warn('Gremia.SBV recruiting participation audit write failed', error);
+      console.warn('Gremia.SBV recruiting participation audit write failed', error instanceof Error ? error.name : 'UnknownError');
     }
   }
 

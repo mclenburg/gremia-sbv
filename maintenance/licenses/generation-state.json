@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "lockSha256": "a1a1bbbfce15416a8fd0805a4887189bdeabbbab30492824e16d42926507c74b",
+  "lockSha256": "e2a1b86e65fd1207e6289d6d61b96f4c864eada4a28b6bfe1155a0138377b83b",
   "packageCount": 588,
-  "inventorySha256": "990383c25e19a3a8dd8262b850a262bac622a3a9e0b794e18189231dcf9744ad",
-  "noticesSha256": "de2a35aba37ff62b84df3b9227b933a5457383d763a51e13adb58ebc30fc9ad7",
+  "inventorySha256": "1e0b1a1de68d51a83ebf61e8c4fd42e16219aff281ad87cda1d4d0d84bea3284",
+  "noticesSha256": "a4f0c7efbaa6f321791b76a4b560e7c78d62606c4b1df09f8f3b3c69fda41603",
   "licenseFiles": [
     {
       "name": "0BSD.txt",
@@ -15,7 +15,7 @@
     },
     {
       "name": "BSD-2-Clause.txt",
-      "sha256": "79a858f2ff17681e086421be789c14ef3ffa4d6f57244e95c7fa070c6d809e6e"
+      "sha256": "ddefe2dfd8e93ef8c2d3f1d4ac6dd016b0ecf13b4e91a35549cea33ab3f40754"
     },
     {
       "name": "BSD-3-Clause.txt",

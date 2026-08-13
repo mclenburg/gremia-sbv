@@ -115,7 +115,7 @@ export class SbvControlProtocolService {
   private audit(action: 'read' | 'create' | 'update' | 'delete', subjectId?: string, topic?: string, status?: string): void {
     const write = () => new PersonalDataAuditLogService(this.db).append(auditSbvControlProtocolChanged({ action, protocolId: subjectId, topic, status }));
     if (action !== 'read') { write(); return; }
-    try { write(); } catch (error) { console.warn('Gremia.SBV control protocol read audit failed', error); }
+    try { write(); } catch (error) { console.warn('Gremia.SBV control protocol read audit failed', error instanceof Error ? error.name : 'UnknownError'); }
   }
 
   private linkedDeadlineId(protocolId: string): string | undefined {

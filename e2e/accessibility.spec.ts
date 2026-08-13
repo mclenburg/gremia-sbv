@@ -17,17 +17,31 @@ test('supports keyboard navigation through primary RC areas', async ({ page }) =
   await expect(page.getByRole('heading', { name: /Compliance|Technischer Datenschutzstatus/i }).first()).toBeVisible();
 });
 
-test('keeps inline help accessible by dialog role, focus and Escape', async ({ page }) => {
+test('keeps inline help accessible by dialog role, trapped focus, Escape and focus return', async ({ page }) => {
   await page.goto('/');
+
+  const trigger = page.getByRole('navigation', { name: 'Hauptnavigation' })
+    .getByRole('button', { name: 'Fallakte', exact: true });
+  await trigger.focus();
   await page.keyboard.press(shortcutForHelp());
 
   const dialog = page.locator('[data-e2e="inline-help-dialog"]');
+  const search = page.getByLabel(/Kurzbefehle durchsuchen/);
+  const firstFocusable = dialog.getByRole('button', { name: 'Kurzbefehle schließen' });
+  const lastFocusable = dialog.getByRole('button', { name: 'Schließen', exact: true });
   await expect(dialog).toBeVisible();
   await expect(page.getByRole('dialog', { name: /Kurzbefehle/ })).toBeVisible();
-  await expect(page.getByLabel(/Kurzbefehle durchsuchen/)).toBeFocused();
+  await expect(search).toBeFocused();
+
+  await firstFocusable.focus();
+  await page.keyboard.press('Shift+Tab');
+  await expect(lastFocusable).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(firstFocusable).toBeFocused();
 
   await page.keyboard.press('Escape');
   await expect(dialog).toBeHidden();
+  await expect(trigger).toBeFocused();
 });
 
 test('renders note entity links with fachliche accessible labels instead of UUIDs', async ({ page }) => {
@@ -123,4 +137,102 @@ test('keeps the measure deletion reason select readable and keyboard-operable in
   await page.keyboard.press('Escape');
   await expect(dialog).toBeHidden();
   await expect(page.getByRole('button', { name: 'BEM löschen', exact: true })).toBeFocused();
+});
+
+
+test('keeps a clearly visible focus indicator on inline-command search results', async ({ page }) => {
+  await page.goto('/');
+  const navigation = page.getByRole('navigation', { name: 'Hauptnavigation' });
+  await navigation.getByRole('button', { name: 'Fallakte', exact: true }).click();
+  await page.getByRole('button', { name: /Notiz \/ Protokoll/ }).click();
+
+  const noteDialog = page.getByRole('dialog', { name: /Neue Gesprächsnotiz \/ neues Protokoll/ });
+  const content = noteDialog.getByLabel('Inhalt');
+  await content.fill('/fall TEST');
+
+  const commandDialog = page.getByRole('dialog', { name: 'Fallbezug einfügen' });
+  const searchInput = commandDialog.getByLabel('Fall suchen');
+  await expect(searchInput).toBeFocused();
+  await page.keyboard.press('Tab');
+
+  const result = commandDialog.locator('.industrial-command-results button').first();
+  await expect(result).toBeFocused();
+  const focusStyle = await result.evaluate((element) => {
+    const style = window.getComputedStyle(element);
+    return {
+      outlineStyle: style.outlineStyle,
+      outlineWidth: Number.parseFloat(style.outlineWidth),
+      outlineColor: style.outlineColor,
+    };
+  });
+
+  expect(focusStyle.outlineStyle).not.toBe('none');
+  expect(focusStyle.outlineWidth).toBeGreaterThanOrEqual(2);
+  expect(focusStyle.outlineColor).not.toBe('rgba(0, 0, 0, 0)');
+});
+
+
+test('provides a keyboard skip link to the main content', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('body').click({ position: { x: 1, y: 1 } });
+  await page.keyboard.press('Tab');
+  const skipLink = page.getByRole('link', { name: 'Zum Hauptinhalt springen' });
+  await expect(skipLink).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('#main-content')).toBeFocused();
+});
+
+test('keeps legacy modal focus contained and restores the trigger', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('[data-e2e="main-nav-cases"]').click();
+  await page.locator('[data-e2e="case-row-TEST-0001"]').click();
+  const trigger = page.getByRole('button', { name: /Notiz \/ Protokoll/ });
+  await trigger.focus();
+  await page.keyboard.press('Enter');
+
+  const dialog = page.getByRole('dialog', { name: /Neue Gesprächsnotiz \/ neues Protokoll/ });
+  const title = dialog.getByLabel('Titel');
+  await expect(title).toBeFocused();
+  const cancel = dialog.getByRole('button', { name: 'Abbrechen' });
+  const save = dialog.getByRole('button', { name: 'Speichern' });
+  await save.focus();
+  await page.keyboard.press('Tab');
+  await expect(title).toBeFocused();
+  await title.focus();
+  await page.keyboard.press('Shift+Tab');
+  await expect(save).toBeFocused();
+
+  await page.keyboard.press('Escape');
+  await expect(dialog).toBeHidden();
+  await expect(trigger).toBeFocused();
+  await expect(cancel).toBeHidden();
+});
+
+test('reflows without document-level horizontal scrolling at narrow viewport', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 720 });
+  await page.goto('/');
+  await page.locator('[data-e2e="main-nav-cases"]').click();
+  const dimensions = await page.evaluate(() => ({
+    viewport: document.documentElement.clientWidth,
+    documentWidth: document.documentElement.scrollWidth,
+  }));
+  expect(dimensions.documentWidth).toBeLessThanOrEqual(dimensions.viewport + 1);
+});
+
+test('honors reduced motion and exposes a visible forced-colors focus indicator', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce', forcedColors: 'active' });
+  await page.goto('/');
+  const navButton = page.locator('[data-e2e="main-nav-cases"]');
+  await navButton.focus();
+  const style = await navButton.evaluate((element) => {
+    const computed = getComputedStyle(element);
+    return {
+      outlineStyle: computed.outlineStyle,
+      outlineWidth: Number.parseFloat(computed.outlineWidth),
+      transitionDuration: computed.transitionDuration,
+    };
+  });
+  expect(style.outlineStyle).not.toBe('none');
+  expect(style.outlineWidth).toBeGreaterThanOrEqual(2);
+  expect(style.transitionDuration).toMatch(/0(?:\.0+)?s|0\.00001s|0\.01ms/);
 });

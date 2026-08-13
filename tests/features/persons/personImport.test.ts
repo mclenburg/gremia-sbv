@@ -1,5 +1,10 @@
-import { describe, expect, it } from 'vitest';
-import { normalizeProtectionStatus, parseDelimitedText, splitFullName } from '../../../services/personImportParsing';
+import { afterEach, describe, expect, it } from 'vitest';
+import { closeSync, mkdtempSync, openSync, rmSync, truncateSync } from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { MAX_PERSON_IMPORT_FILE_BYTES, normalizeProtectionStatus, parseDelimitedText, splitFullName } from '../../../services/personImportParsing';
+import { PersonImportService } from '../../../services/personImportService';
+import type { DatabaseAdapter } from '../../../services/databaseService';
 import { resolvePersonImportMatch } from '../../../services/personMatchingService';
 import type { ProtectedPersonRecord } from '../../../src/app/core/models/protected-person.model';
 
@@ -61,5 +66,42 @@ describe('0.9.1 CSV-Zeichenkodierung', () => {
     const detected = detectCsvEncoding(buffer);
     expect(detected.encoding).toBe('cp850');
     expect(detected.decodedText).toContain('Müller, Jörg');
+  });
+});
+
+
+const importTempRoots: string[] = [];
+afterEach(() => { while (importTempRoots.length) rmSync(importTempRoots.pop()!, { recursive: true, force: true }); });
+
+const unusedDb = {} as DatabaseAdapter;
+
+describe('Personenimport – feindliche Eingaben', () => {
+  it('weist übergroße Importdateien vor dem Einlesen zurück', async () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), 'gremia-person-import-limit-'));
+    importTempRoots.push(root);
+    const filePath = path.join(root, 'too-large.csv');
+    closeSync(openSync(filePath, 'w'));
+    truncateSync(filePath, MAX_PERSON_IMPORT_FILE_BYTES + 1);
+    const service = new PersonImportService(unusedDb);
+
+    await expect(service.preview({
+      fileType: 'csv',
+      filePath,
+      sourceFileName: 'too-large.csv',
+      mapping: { firstName: 'Vorname', lastName: 'Nachname', protectionStatus: 'Status' },
+    })).rejects.toThrow(/zu groß|maximal 25 MB/i);
+  });
+
+  it('weist CSV-Importe mit unvertretbar vielen Zeilen vor der fachlichen Verarbeitung zurück', async () => {
+    const service = new PersonImportService(unusedDb);
+    const lines = ['Vorname;Nachname;Status'];
+    for (let index = 0; index < 20_001; index += 1) lines.push(`Max${index};Muster;gleichgestellt`);
+
+    await expect(service.preview({
+      fileType: 'csv',
+      csvText: lines.join('\n'),
+      sourceFileName: 'rows.csv',
+      mapping: { firstName: 'Vorname', lastName: 'Nachname', protectionStatus: 'Status' },
+    })).rejects.toThrow(/mehr als 20000 Zeilen/i);
   });
 });

@@ -196,23 +196,11 @@ export function removeCaseDocumentFiles(dataDir: string, caseId: string, documen
   } catch (error) {
     errors.push(error instanceof Error ? error.message : String(error));
   }
-  const externalDocumentPaths = new Set<string>();
-
   for (const document of documents) {
     if (!document.storage_path) continue;
     const absolute = path.resolve(document.storage_path);
     if (isPathInside(caseDir, absolute)) continue;
-    externalDocumentPaths.add(absolute);
-  }
-
-  for (const absolute of externalDocumentPaths) {
-    if (!fs.existsSync(absolute)) continue;
-    try {
-      fs.rmSync(absolute, { force: true });
-      affectedFiles += 1;
-    } catch (error) {
-      errors.push(error instanceof Error ? error.message : String(error));
-    }
+    errors.push(`Dokumentpfad liegt außerhalb des Fall-Tresors und wurde nicht gelöscht: ${path.basename(absolute)}`);
   }
 
   if (fs.existsSync(caseDir)) {

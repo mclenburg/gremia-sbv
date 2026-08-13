@@ -75,8 +75,13 @@ describe('isolierte E2E-Werkzeugauflösung', () => {
     expect(config).not.toContain("from '@playwright/test'");
     expect(config).toContain('createRequire(isolatedToolsPackage)');
     expect(config).toContain("channel: 'chrome'");
+    expect(config).toContain('fullyParallel: true');
+    expect(config).toContain("GREMIA_SBV_E2E_WORKERS ?? '2'");
     expect(axeSpec).not.toContain("from '@axe-core/playwright'");
     expect(axeSpec).toContain("requireE2eTool('@axe-core/playwright')");
+    expect(axeSpec).toContain('for (const route of VISUAL_QA_ROUTES)');
+    expect(axeSpec).toContain('AXE_HELP_ROUTE_IDS.has(route.id)');
+    expect(axeSpec).not.toContain('batchItems(');
     expect(support).not.toContain("from '@playwright/test'");
     expect(support).toContain("requireE2eTool<");
 

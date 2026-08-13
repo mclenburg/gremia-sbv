@@ -5,13 +5,14 @@ const project = JSON.parse(readFileSync("package.json", "utf8"));
 const buildDocs = readFileSync("docs/BUILD.md", "utf8");
 
 describe("Windows RC build contract", () => {
-  it("builds only the portable Windows executable and no installer", () => {
+  it("builds portable Windows executable and NSIS installer as separate artifacts", () => {
     expect(project.build.win.signAndEditExecutable).toBe(false);
     expect(project.build.win.target).toEqual([
       expect.objectContaining({ target: "portable" }),
+      expect.objectContaining({ target: "nsis" }),
     ]);
-    expect(JSON.stringify(project.build.win.target)).not.toContain("nsis");
-    expect(project.build.nsis).toBeUndefined();
+    expect(project.build.portable.artifactName).toContain("-portable.");
+    expect(project.build.nsis.artifactName).toContain("-setup.");
   });
 
   it("keeps native dependency rebuild independent from Windows executable resource editing", () => {
@@ -20,6 +21,6 @@ describe("Windows RC build contract", () => {
     expect(project.scripts["native:rebuild:electron"]).toBe("node scripts/install-electron-app-deps.cjs");
     expect(buildDocs).toContain("signAndEditExecutable");
     expect(buildDocs).toContain("Cannot create symbolic link");
-    expect(buildDocs).toContain("portable Direktstart-EXE");
+    expect(buildDocs).toContain("portable `.exe` + NSIS-Setup `.exe`");
   });
 });

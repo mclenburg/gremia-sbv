@@ -27,7 +27,7 @@ async function updateStartupSplash(phase: StartupPhaseId): Promise<void> {
   try {
     await splash.webContents.executeJavaScript(buildStartupStatusScript(phase), true);
   } catch (error) {
-    console.warn("Gremia.SBV bootstrap splash status update failed", error);
+    console.warn("Gremia.SBV bootstrap splash status update failed", error instanceof Error ? error.name : "UnknownError");
   }
 }
 
@@ -72,7 +72,7 @@ async function showStartupSplash(initialPhase: StartupPhaseId = "app"): Promise<
     )
     .then(() => markStartupPhase("splash:html-loaded"))
     .catch((error) => {
-      console.warn("Gremia.SBV bootstrap splash could not load inline HTML", error);
+      console.warn("Gremia.SBV bootstrap splash could not load inline HTML", error instanceof Error ? error.name : "UnknownError");
     });
 
   return splash;
@@ -99,7 +99,7 @@ if (!singleInstanceLock) {
     markStartupPhase("runtime:import-complete");
     await runtime.startApplication(splash);
   }).catch((error) => {
-    console.error("Gremia.SBV bootstrap startup failed", error);
+    console.error("Gremia.SBV bootstrap startup failed", error instanceof Error ? error.name : "UnknownError");
     if (splashWindow && !splashWindow.isDestroyed()) splashWindow.close();
     app.quit();
   });

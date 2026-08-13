@@ -2,10 +2,11 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
-import { createDecipheriv, randomUUID } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from '../databaseService.js';
 import { SearchIndexService } from '../search/searchIndexService.js';
 import { inferMimeType } from './documentTextExtractionService.js';
+import { DocumentContainerService } from '../documentContainerService.js';
 
 const OCR_ERROR_LIMIT = 1_000;
 const OCR_TEXT_LIMIT = 300_000;
@@ -109,6 +110,7 @@ export class DocumentOcrService {
   constructor(
     private readonly db: DatabaseAdapter,
     private readonly runner: DocumentOcrRunner = new LocalTesseractOcrRunner(),
+    private readonly dataDirProvider: () => string = () => path.join(process.cwd(), 'data'),
   ) {}
 
   ensureSchema(): void {
@@ -171,9 +173,17 @@ export class DocumentOcrService {
       return;
     }
     try {
-      const result = this.runner.canRun(row)
-        ? await this.runner.run(row, this.decrypt(row))
-        : { status: 'unsupported' as const, text: '', engine: this.runner.id, error: 'Kein lokaler OCR-Runner für dieses Format verfügbar.' };
+      let result: DocumentOcrResult;
+      if (this.runner.canRun(row)) {
+        const plain = await this.decrypt(row);
+        try {
+          result = await this.runner.run(row, plain);
+        } finally {
+          plain.fill(0);
+        }
+      } else {
+        result = { status: 'unsupported', text: '', engine: this.runner.id, error: 'Kein lokaler OCR-Runner für dieses Format verfügbar.' };
+      }
       this.finishJob(jobId, documentId, result.status, result.text, result.engine, result.error);
       new SearchIndexService(this.db).reindexSource(result.status === 'completed' ? 'document_ocr' : 'document', documentId);
       if (result.status === 'completed') new SearchIndexService(this.db).reindexSource('document', documentId);
@@ -193,10 +203,13 @@ export class DocumentOcrService {
     this.db.prepare('UPDATE case_document_ocr_jobs SET status = ?, last_error = ?, updated_at = ? WHERE id = ?').run(status, error ?? null, completedAt, jobId);
   }
 
-  private decrypt(row: DocumentOcrRow): Buffer {
-    const encrypted = fs.readFileSync(row.storage_path);
-    const decipher = createDecipheriv('aes-256-gcm', Buffer.from(row.document_key, 'base64'), Buffer.from(row.iv, 'base64'));
-    decipher.setAuthTag(Buffer.from(row.auth_tag, 'base64'));
-    return Buffer.concat([decipher.update(encrypted), decipher.final()]);
+  private decrypt(row: DocumentOcrRow): Promise<Buffer> {
+    return new DocumentContainerService().readEncryptedContainer({
+      storageRoot: this.dataDirProvider(),
+      storagePath: row.storage_path,
+      documentKey: row.document_key,
+      iv: row.iv,
+      authTag: row.auth_tag,
+    });
   }
 }

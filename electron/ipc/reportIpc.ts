@@ -4,16 +4,11 @@ import { BrowserWindow, shell } from "electron";
 import { pathToFileURL } from "node:url";
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import {
-  createCipheriv,
-  createDecipheriv,
-  createHash,
-  randomBytes,
-} from "node:crypto";
 import { registerRendererSecurityPolicy } from "../security/electronSecurity.js";
 import type { SecurityService } from "../../services/securityService.js";
 import type { ApplicationServices } from '../applicationServices.js';
 import { normalizeReportType } from "../../src/app/core/models/report.model.js";
+import { decryptReportArchive, encryptReportArchive } from "../../services/reports/reportArchiveCrypto.js";
 import type {
   GenerateReportInput,
   ReportGenerationResult,
@@ -32,12 +27,18 @@ async function htmlToPdf(
   filePath: string,
   security: SecurityService,
 ): Promise<Buffer> {
-  const tempHtmlPath = security.writeTemporaryFile(
-    "report-render",
-    `${path.basename(filePath, ".gsbvpdf")}.html`,
-    Buffer.from(html, "utf8"),
-    "render",
-  );
+  const htmlBuffer = Buffer.from(html, "utf8");
+  let tempHtmlPath: string;
+  try {
+    tempHtmlPath = security.writeTemporaryFile(
+      "report-render",
+      `${path.basename(filePath, ".gsbvpdf")}.html`,
+      htmlBuffer,
+      "render",
+    );
+  } finally {
+    destroyBuffer(htmlBuffer);
+  }
 
   const win = new BrowserWindow({
     show: false,
@@ -57,7 +58,7 @@ async function htmlToPdf(
     return await win.webContents.printToPDF({
       printBackground: true,
       preferCSSPageSize: true,
-      margins: { marginType: "none" },
+      margins: { top: 0, bottom: 0, left: 0, right: 0 },
       pageSize: "A4",
     });
   } finally {
@@ -73,76 +74,8 @@ async function htmlToPdf(
   }
 }
 
-interface EncryptedReportEnvelope {
-  version: 1;
-  type: "gremia-sbv-encrypted-report-pdf";
-  algorithm: "aes-256-gcm";
-  originalFileName: string;
-  createdAt: string;
-  iv: string;
-  tag: string;
-  ciphertext: string;
-}
-
-function deriveReportArchiveKey(databaseKey: Buffer): Buffer {
-  return createHash("sha256")
-    .update("gremia-sbv-report-archive-v1")
-    .update(databaseKey)
-    .digest();
-}
-
-function encryptReportPdf(
-  pdf: Buffer,
-  originalFileName: string,
-  databaseKey: Buffer,
-): EncryptedReportEnvelope {
-  const key = deriveReportArchiveKey(databaseKey);
-  const iv = randomBytes(12);
-  const cipher = createCipheriv("aes-256-gcm", key, iv);
-  cipher.setAAD(Buffer.from(originalFileName, "utf8"));
-  const ciphertext = Buffer.concat([cipher.update(pdf), cipher.final()]);
-  return {
-    version: 1,
-    type: "gremia-sbv-encrypted-report-pdf",
-    algorithm: "aes-256-gcm",
-    originalFileName,
-    createdAt: new Date().toISOString(),
-    iv: iv.toString("hex"),
-    tag: cipher.getAuthTag().toString("hex"),
-    ciphertext: ciphertext.toString("base64"),
-  };
-}
-
-function decryptReportPdf(
-  encryptedPath: string,
-  databaseKey: Buffer,
-): { pdf: Buffer; originalFileName: string } {
-  const envelope = JSON.parse(
-    readFileSync(encryptedPath, "utf8"),
-  ) as EncryptedReportEnvelope;
-  if (
-    envelope.type !== "gremia-sbv-encrypted-report-pdf" ||
-    envelope.algorithm !== "aes-256-gcm"
-  ) {
-    throw new Error(
-      "Der Berichtsexport hat kein unterstütztes verschlüsseltes Gremia.SBV-Format.",
-    );
-  }
-  const key = deriveReportArchiveKey(databaseKey);
-  const decipher = createDecipheriv(
-    "aes-256-gcm",
-    key,
-    Buffer.from(envelope.iv, "hex"),
-  );
-  decipher.setAAD(Buffer.from(envelope.originalFileName, "utf8"));
-  decipher.setAuthTag(Buffer.from(envelope.tag, "hex"));
-  return {
-    pdf: Buffer.concat([
-      decipher.update(Buffer.from(envelope.ciphertext, "base64")),
-      decipher.final(),
-    ]),
-    originalFileName: envelope.originalFileName,
-  };
+function destroyBuffer(buffer?: Buffer): void {
+  try { buffer?.fill(0); } catch { /* Best-Effort-Speicherhygiene. */ }
 }
 
 function writeTemporaryPlainPdf(
@@ -167,17 +100,25 @@ function writeTemporaryPlainPdf(
     "reports:open-export-folder",
     ["gsbvpdf"] as const,
   );
-  const { pdf, originalFileName } = decryptReportPdf(
-    safeEncryptedPath,
-    security.getActiveDatabaseKey(),
-  );
+  const databaseKey = security.getActiveDatabaseKey();
+  let decrypted: { pdf: Buffer; originalFileName: string };
+  try {
+    decrypted = decryptReportArchive(readFileSync(safeEncryptedPath, "utf8"), databaseKey);
+  } finally {
+    destroyBuffer(databaseKey);
+  }
+  const { pdf, originalFileName } = decrypted;
   security.cleanupTemporaryFiles();
-  return security.writeTemporaryFile(
-    "report-preview",
-    path.basename(originalFileName),
-    pdf,
-    "preview",
-  );
+  try {
+    return security.writeTemporaryFile(
+      "report-preview",
+      path.basename(originalFileName),
+      pdf,
+      "preview",
+    );
+  } finally {
+    destroyBuffer(pdf);
+  }
 }
 
 export function registerReportIpc(
@@ -203,16 +144,14 @@ export function registerReportIpc(
         const built = reports.build(reportInput);
         const target = reports.createExportTarget(built.title);
         const pdf = await htmlToPdf(built.html, target.filePath, security);
-        const encryptedEnvelope = encryptReportPdf(
-          pdf,
-          target.fileName,
-          security.getActiveDatabaseKey(),
-        );
-        writeFileSync(
-          target.filePath,
-          JSON.stringify(encryptedEnvelope, null, 2),
-          "utf8",
-        );
+        const databaseKey = security.getActiveDatabaseKey();
+        try {
+          const encryptedEnvelope = encryptReportArchive(pdf, target.fileName, databaseKey);
+          writeFileSync(target.filePath, JSON.stringify(encryptedEnvelope, null, 2), "utf8");
+        } finally {
+          destroyBuffer(databaseKey);
+          destroyBuffer(pdf);
+        }
         const result: ReportGenerationResult = {
           ok: true,
           reportType: reportInput.type,

@@ -39,7 +39,7 @@ export function MeasureNotesPanel({
       <p className="industrial-meta">Termine und Verlauf direkt an „{measureTitle}“ protokollieren. Mehrere vertrauliche Notizen sind möglich.</p>
       <p className="industrial-meta">Maßnahmennotizen werden als sensible Falldaten gespeichert und bei der Fallanonymisierung mit anonymisiert.</p>
 
-      {state.error ? <div className="industrial-message industrial-message-warning">{state.error}</div> : null}
+      {state.error ? <div className="industrial-message industrial-message-warning" role="alert">{state.error}</div> : null}
 
       {state.isCreating ? (
         <div id={`${fieldPrefix}-form`} className="industrial-subsection compact">

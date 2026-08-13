@@ -96,18 +96,17 @@ export function ContextualTemplateButton({
       >
         {busy ? "Schreiben wird erzeugt …" : action.label}
       </button>
-      {error && <span className="industrial-inline-warning">{error}</span>}
+      {error && <span className="industrial-inline-warning" role="alert">{error}</span>}
       {rendered && (
         <div
           className="industrial-modal-backdrop"
-          role="dialog"
-          aria-modal="true"
+          role="presentation"
         >
-          <section className="industrial-modal industrial-modal-wide">
+          <section className="industrial-modal industrial-modal-wide" role="dialog" aria-modal="true" aria-labelledby="contextual-template-dialog-title">
             <div className="industrial-panel-header compact">
               <div>
                 <p className="industrial-kicker">Kontextschreiben</p>
-                <h2>{rendered.title}</h2>
+                <h2 id="contextual-template-dialog-title">{rendered.title}</h2>
                 <p>
                   Dieser Entwurf wurde aus dem aktuellen Vorgang erzeugt und der
                   Fallakte zugeordnet.
@@ -115,12 +114,12 @@ export function ContextualTemplateButton({
               </div>
             </div>
             {!!rendered.unresolvedPlaceholders.length && (
-              <div className="industrial-message industrial-message-warning mt-4">
+              <div className="industrial-message industrial-message-warning mt-4" role="alert">
                 {missingPlaceholderWarning(rendered.unresolvedPlaceholders)}
               </div>
             )}
             {message && (
-              <div className="industrial-message industrial-message-ok mt-4">
+              <div className="industrial-message industrial-message-ok mt-4" role="status">
                 {message}
               </div>
             )}

@@ -13,7 +13,7 @@ export class DeadlineService {
     try {
       new PersonalDataAuditLogService(this.db).append({ action, subjectType: 'deadline', subjectId, caseId, purpose, metadata });
     } catch (error) {
-      console.warn('Gremia.SBV audit log write failed', error);
+      console.warn('Gremia.SBV audit log write failed', error instanceof Error ? error.name : 'UnknownError');
     }
   }
 

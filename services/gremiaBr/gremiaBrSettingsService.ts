@@ -102,8 +102,9 @@ function encodeSecret(value: string, databaseKey: Buffer): string {
   const iv = randomBytes(12);
   const cipher = createCipheriv('aes-256-gcm', key, iv);
   cipher.setAAD(GREMIA_BR_SECRET_AAD);
+  let ciphertext: Buffer | undefined;
   try {
-    const ciphertext = Buffer.concat([cipher.update(value, 'utf8'), cipher.final()]);
+    ciphertext = Buffer.concat([cipher.update(value, 'utf8'), cipher.final()]);
     const envelope: GremiaBrEncryptedSecretEnvelope = {
       version: 2,
       algorithm: 'aes-256-gcm',
@@ -113,6 +114,7 @@ function encodeSecret(value: string, databaseKey: Buffer): string {
     };
     return `${GREMIA_BR_SECRET_PREFIX}${Buffer.from(JSON.stringify(envelope), 'utf8').toString('base64')}`;
   } finally {
+    safeDestroyBuffer(ciphertext);
     safeDestroyBuffer(key);
     safeDestroyBuffer(iv);
   }
@@ -129,21 +131,32 @@ export function decodeGremiaBrSecret(secret?: string | null, databaseKey?: Buffe
   if (!secret.startsWith(GREMIA_BR_SECRET_PREFIX) || !databaseKey) return '';
 
   const key = deriveGremiaBrSecretKey(databaseKey);
+  let serializedEnvelope: Buffer | undefined;
+  let iv: Buffer | undefined;
+  let tag: Buffer | undefined;
+  let ciphertext: Buffer | undefined;
+  let plaintext: Buffer | undefined;
   try {
-    const envelope = JSON.parse(
-      Buffer.from(secret.slice(GREMIA_BR_SECRET_PREFIX.length), 'base64').toString('utf8'),
-    ) as GremiaBrEncryptedSecretEnvelope;
+    serializedEnvelope = Buffer.from(secret.slice(GREMIA_BR_SECRET_PREFIX.length), 'base64');
+    const envelope = JSON.parse(serializedEnvelope.toString('utf8')) as GremiaBrEncryptedSecretEnvelope;
     if (envelope.version !== 2 || envelope.algorithm !== 'aes-256-gcm') return '';
-    const decipher = createDecipheriv('aes-256-gcm', key, Buffer.from(envelope.iv, 'hex'));
+    if (!/^[0-9a-f]{24}$/i.test(envelope.iv) || !/^[0-9a-f]{32}$/i.test(envelope.tag)) return '';
+    iv = Buffer.from(envelope.iv, 'hex');
+    tag = Buffer.from(envelope.tag, 'hex');
+    ciphertext = Buffer.from(envelope.ciphertext, 'base64');
+    const decipher = createDecipheriv('aes-256-gcm', key, iv);
     decipher.setAAD(GREMIA_BR_SECRET_AAD);
-    decipher.setAuthTag(Buffer.from(envelope.tag, 'hex'));
-    return Buffer.concat([
-      decipher.update(Buffer.from(envelope.ciphertext, 'base64')),
-      decipher.final(),
-    ]).toString('utf8');
+    decipher.setAuthTag(tag);
+    plaintext = Buffer.concat([decipher.update(ciphertext), decipher.final()]);
+    return plaintext.toString('utf8');
   } catch {
     return '';
   } finally {
+    safeDestroyBuffer(serializedEnvelope);
+    safeDestroyBuffer(iv);
+    safeDestroyBuffer(tag);
+    safeDestroyBuffer(ciphertext);
+    safeDestroyBuffer(plaintext);
     safeDestroyBuffer(key);
   }
 }
@@ -158,19 +171,28 @@ export class GremiaBrSettingsService implements GremiaBrSettingsStore {
     return this.getDb();
   }
 
-  private secretKey(): Buffer {
+  private withSecretKey<T>(operation: (key: Buffer) => T): T {
     if (!this.getSecretKey) {
       throw new Error('Gremia.BR-Zugangsdaten können ohne aktiven Tresorschlüssel nicht verarbeitet werden.');
     }
-    return this.getSecretKey();
+    const key = Buffer.from(this.getSecretKey());
+    try {
+      return operation(key);
+    } finally {
+      safeDestroyBuffer(key);
+    }
   }
 
   private decodeSecret(secret?: string | null): string {
-    return decodeGremiaBrSecret(secret, this.getSecretKey?.());
+    if (!secret) return '';
+    if (secret.startsWith(LEGACY_B64_GREMIA_BR_SECRET_PREFIX) || secret.startsWith(LEGACY_VAULT_GREMIA_BR_SECRET_PREFIX)) {
+      return decodeGremiaBrSecret(secret);
+    }
+    return this.withSecretKey((key) => decodeGremiaBrSecret(secret, key));
   }
 
   private encodeSecret(value: string): string {
-    return encodeSecret(value, this.secretKey());
+    return this.withSecretKey((key) => encodeSecret(value, key));
   }
 
   private migrateSecretIfNeeded(secret?: string | null): string {

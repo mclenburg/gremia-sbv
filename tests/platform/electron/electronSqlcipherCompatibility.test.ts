@@ -17,19 +17,23 @@ function majorOf(versionOrRange: string | undefined): number | null {
 }
 
 describe('Electron-/SQLCipher-Kompatibilitätsvertrag', () => {
-  it('hält Electron auf der mit better-sqlite3-multiple-ciphers und npm-audit vereinbaren 39er Linie', () => {
+  it('kombiniert Electron 43+ nur mit der Node-API-basierten SQLCipher-Treiberlinie 13+', () => {
     const electronRange = packageJson.devDependencies?.electron;
     const lockedElectron = packageLock.packages['node_modules/electron'];
 
-    expect(packageJson.dependencies?.['better-sqlite3-multiple-ciphers']).toBeDefined();
-    expect(majorOf(electronRange)).toBe(39);
-    expect(majorOf(lockedElectron?.version)).toBe(39);
-    expect(majorOf(lockedElectron?.dependencies?.['@types/node'])).toBe(22);
+    const sqlcipherRange = packageJson.dependencies?.['better-sqlite3-multiple-ciphers'];
+    const lockedSqlcipher = packageLock.packages['node_modules/better-sqlite3-multiple-ciphers'];
+
+    expect(majorOf(electronRange)).toBeGreaterThanOrEqual(43);
+    expect(majorOf(sqlcipherRange)).toBeGreaterThanOrEqual(13);
+    expect(majorOf(lockedElectron?.version)).toBeGreaterThanOrEqual(43);
+    expect(majorOf(lockedSqlcipher?.version)).toBeGreaterThanOrEqual(13);
+    expect(lockedSqlcipher?.dependencies?.['node-addon-api']).toBeDefined();
   });
 
-  it('richtet die TypeScript-Node-Typen an der Electron-Laufzeit statt an npm-Node-24 aus', () => {
-    expect(majorOf(packageJson.devDependencies?.['@types/node'])).toBe(22);
-    expect(majorOf(packageLock.packages['node_modules/@types/node']?.version)).toBe(22);
+  it('richtet die TypeScript-Node-Typen an der Node-24-Laufzeit von Electron und Build aus', () => {
+    expect(majorOf(packageJson.devDependencies?.['@types/node'])).toBe(24);
+    expect(majorOf(packageLock.packages['node_modules/@types/node']?.version)).toBe(24);
   });
 
   it('nutzt den npm-11-sicheren Wrapper explizit im Build und nicht mehr als postinstall-Seiteneffekt', () => {

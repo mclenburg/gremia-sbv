@@ -113,9 +113,9 @@ export function TerminationView({ cases, onOpenCaseNode }: { cases: CaseRecord[]
       />
 
       {showHelp && (
-        <div className="industrial-modal-backdrop" role="dialog" aria-modal="true">
-          <section className="industrial-modal">
-            <h2>Kündigungsanhörung</h2>
+        <div className="industrial-modal-backdrop" role="presentation">
+          <section className="industrial-modal" role="dialog" aria-modal="true" aria-labelledby="termination-help-title">
+            <h2 id="termination-help-title">Kündigungsanhörung</h2>
             <p>Das Modul führt durch Eingang, Unterlagenprüfung, SBV-Anhörung, Integrationsamt und Stellungnahme.</p>
             <p>Besonders kritisch sind Eingangsdatum, Frist, Schutzstatus und die Frage, ob das Integrationsamt beteiligt werden muss.</p>
             <div className="industrial-modal-actions">

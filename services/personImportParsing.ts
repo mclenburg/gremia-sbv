@@ -1,6 +1,17 @@
 import { createHash } from 'node:crypto';
+import { statSync } from 'node:fs';
 import yauzl from 'yauzl';
 import type { PersonImportColumnMapping, ProtectionStatus } from '../src/app/core/models/protected-person.model.js';
+
+export const MAX_PERSON_IMPORT_FILE_BYTES = 25 * 1024 * 1024;
+export const MAX_XLSX_ENTRY_BYTES = 8 * 1024 * 1024;
+export const MAX_XLSX_TOTAL_UNCOMPRESSED_BYTES = 40 * 1024 * 1024;
+export const MAX_PERSON_IMPORT_ROWS = 20_000;
+
+export function assertPersonImportFileSize(filePath: string): void {
+  const size = statSync(filePath).size;
+  if (size > MAX_PERSON_IMPORT_FILE_BYTES) throw new Error('Importdatei ist zu groß. Maximal 25 MB sind zulässig.');
+}
 
 export function sha256Text(value: string): string {
   return createHash('sha256').update(value).digest('hex');
@@ -88,11 +99,24 @@ async function openZipFile(filePath: string): Promise<yauzl.ZipFile> {
 }
 
 async function readZipEntries(filePath: string): Promise<Map<string, Buffer>> {
+  assertPersonImportFileSize(filePath);
   const zip = await openZipFile(filePath);
   const entries = new Map<string, Buffer>();
+  let totalUncompressed = 0;
   return await new Promise((resolve, reject) => {
     zip.readEntry();
     zip.on('entry', (entry) => {
+      if (entry.uncompressedSize > MAX_XLSX_ENTRY_BYTES) {
+        zip.close();
+        reject(new Error('XLSX enthält einen zu großen internen Eintrag.'));
+        return;
+      }
+      totalUncompressed += entry.uncompressedSize;
+      if (totalUncompressed > MAX_XLSX_TOTAL_UNCOMPRESSED_BYTES) {
+        zip.close();
+        reject(new Error('XLSX überschreitet die zulässige entpackte Gesamtgröße.'));
+        return;
+      }
       if (/\/$/.test(entry.fileName)) {
         zip.readEntry();
         return;
@@ -103,7 +127,16 @@ async function readZipEntries(filePath: string): Promise<Map<string, Buffer>> {
           return;
         }
         const chunks: Buffer[] = [];
-        stream.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
+        let streamedBytes = 0;
+        stream.on('data', (chunk) => {
+          const buffer = Buffer.from(chunk);
+          streamedBytes += buffer.byteLength;
+          if (streamedBytes > MAX_XLSX_ENTRY_BYTES) {
+            stream.destroy(new Error('XLSX enthält einen zu großen internen Eintrag.'));
+            return;
+          }
+          chunks.push(buffer);
+        });
         stream.on('error', reject);
         stream.on('end', () => {
           entries.set(entry.fileName, Buffer.concat(chunks));
@@ -153,7 +186,9 @@ function parseSheetRows(xml: string, sharedStrings: string[]): string[][] {
     }
     rows.push(cells.map((cell) => cell ?? ''));
   }
-  return rows.filter((current) => current.some((entry) => normalizeCell(entry).length > 0));
+  const filtered = rows.filter((current) => current.some((entry) => normalizeCell(entry).length > 0));
+  if (filtered.length > MAX_PERSON_IMPORT_ROWS) throw new Error(`Import enthält mehr als ${MAX_PERSON_IMPORT_ROWS} Zeilen.`);
+  return filtered;
 }
 
 export async function parseXlsxFile(filePath: string, sheetName?: string): Promise<{ rows: string[][]; sheetName: string; sheets: string[] }> {

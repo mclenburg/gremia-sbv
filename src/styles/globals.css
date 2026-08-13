@@ -1299,7 +1299,6 @@ html[data-theme="light"] .case-note-content-input textarea { background: #f8fafc
 .industrial-report-card.clickable:focus-visible {
   border-color: var(--industrial-accent);
   background: linear-gradient(135deg, var(--industrial-panel-muted), var(--industrial-panel));
-  outline: none;
   transform: translateY(-1px);
 }
 
@@ -1655,7 +1654,6 @@ html[data-theme='light'] .industrial-danger-button {
 .industrial-command-results button:hover,
 .industrial-command-results button:focus-visible {
   border-color: var(--sbv-yellow);
-  outline: none;
 }
 
 .industrial-command-results p {

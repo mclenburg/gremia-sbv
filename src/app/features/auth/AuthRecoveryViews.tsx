@@ -287,12 +287,12 @@ export function RecoveryGate({
         </div>
 
         {error && (
-          <div className="industrial-message industrial-message-warning mt-5">
+          <div className="industrial-message industrial-message-warning mt-5" role="alert">
             {error}
           </div>
         )}
         {message && (
-          <div className="industrial-message industrial-message-ok mt-5">
+          <div className="industrial-message industrial-message-ok mt-5" role="status">
             {message}
           </div>
         )}

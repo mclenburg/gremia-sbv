@@ -47,12 +47,12 @@ async function prepareDemoVaultInBackground(dataDirectory: string): Promise<void
     demoVaultReady = true;
     demoVaultPreparing = false;
     markStartupPhase("runtime:demo-vault-ready");
-    console.info(`Gremia.SBV demo vault ready. Data directory: ${dataDirectory}. Demo password hint available in onboarding.`);
+    console.info("Gremia.SBV demo vault ready. Demo password hint available in onboarding.");
     logStartupTimeline("demo-vault-ready");
   } catch (error) {
     demoVaultPreparing = false;
     demoVaultReady = false;
-    console.error("Gremia.SBV demo vault preparation failed", error);
+    console.error("Gremia.SBV demo vault preparation failed", error instanceof Error ? error.name : "UnknownError");
   }
 }
 
@@ -89,11 +89,9 @@ export async function startApplication(existingSplashWindow?: BrowserWindow): Pr
   applicationServices = new ApplicationServices(security, resolveRuntimeDataDir);
   markStartupPhase("runtime:security-service-ready");
   if (demoMode) {
-    console.info(
-      `Gremia.SBV demo mode active. Data directory: ${dataDirectory}. Demo vault is prepared in the background.`,
-    );
+    console.info("Gremia.SBV demo mode active. Demo vault is prepared in the background.");
   } else {
-    console.info("Gremia.SBV data directory:", dataDirectory);
+    console.info("Gremia.SBV data directory resolved.");
   }
   await updateStartupSplash("ipc");
   registerSecurityIpc(ipcMain, security, demoMode ? {

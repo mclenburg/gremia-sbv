@@ -61,7 +61,7 @@ export class TerminationService {
     try {
       this.auditLog.append({ action, subjectType: 'termination_hearing', subjectId, caseId, purpose });
     } catch (error) {
-      console.warn('Gremia.SBV audit log write failed', error);
+      console.warn('Gremia.SBV audit log write failed', error instanceof Error ? error.name : 'UnknownError');
     }
   }
 

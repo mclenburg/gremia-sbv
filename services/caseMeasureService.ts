@@ -205,7 +205,7 @@ export class CaseMeasureService {
     try {
       this.auditLog.append({ action, subjectType, subjectId, caseId, purpose });
     } catch (error) {
-      console.warn('Gremia.SBV case measure audit write failed', error);
+      console.warn('Gremia.SBV case measure audit write failed', error instanceof Error ? error.name : 'UnknownError');
     }
   }
 

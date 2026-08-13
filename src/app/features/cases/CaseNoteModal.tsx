@@ -112,8 +112,8 @@ export function CaseNoteModal({
           </div>
           <label><span>Vertraulichkeit</span><select className="industrial-select" value={confidentialLevel} onChange={(event) => onConfidentialLevelChange(event.target.value as ConfidentialLevel)}><option value="normal">normal</option><option value="sensibel">sensibel</option><option value="hoch_sensibel">hoch sensibel</option></select></label>
           <label className="industrial-checkbox-row"><input type="checkbox" checked={containsHealthData} onChange={(event) => onContainsHealthDataChange(event.target.checked)} /><span>enthält Gesundheits-/Behinderungsbezug</span></label>
-          {noteError && <div className="industrial-message industrial-message-warning industrial-modal-wide">{noteError}</div>}
-          {noteInfo && <div className="industrial-message industrial-message-ok industrial-modal-wide">{noteInfo}</div>}
+          {noteError && <div className="industrial-message industrial-message-warning industrial-modal-wide" role="alert">{noteError}</div>}
+          {noteInfo && <div className="industrial-message industrial-message-ok industrial-modal-wide" role="status">{noteInfo}</div>}
           <div className="industrial-modal-actions industrial-modal-wide"><button type="button" className="industrial-secondary-button" onClick={onCancel}>Abbrechen</button><button type="submit" className="industrial-button"><Save className="h-4 w-4" />Speichern</button></div>
         </form>
       </section>

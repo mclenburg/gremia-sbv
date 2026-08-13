@@ -62,7 +62,7 @@ export class PreventionService {
     try {
       this.auditLog.append({ action, subjectType: 'prevention_process', subjectId, caseId, purpose });
     } catch (error) {
-      console.warn('Gremia.SBV audit log write failed', error);
+      console.warn('Gremia.SBV audit log write failed', error instanceof Error ? error.name : 'UnknownError');
     }
   }
 

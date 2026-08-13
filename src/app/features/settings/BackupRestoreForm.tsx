@@ -194,12 +194,12 @@ export function BackupRestoreForm() {
       </div>
 
       {error && (
-        <div className="industrial-message industrial-message-warning">
+        <div className="industrial-message industrial-message-warning" role="alert">
           {error}
         </div>
       )}
       {result?.ok && (
-        <div className="industrial-message industrial-message-ok">
+        <div className="industrial-message industrial-message-ok" role="status">
           <strong>
             {result.restartRequired
               ? "Wiederherstellung vorbereitet."

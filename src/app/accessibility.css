@@ -1,4 +1,4 @@
-:where(button, input, select, textarea, a, [tabindex]):focus-visible {
+:is(button, input, select, textarea, a, [tabindex]):focus-visible {
   outline: 2px solid var(--accent, #facc15);
   outline-offset: 3px;
 }
@@ -51,4 +51,42 @@
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   text-transform: uppercase;
   letter-spacing: 0.12em;
+}
+
+
+/* Accessibility contract: reflow, non-color state cues and Windows forced-colors. */
+html, body, #root { max-width: 100%; }
+img, svg, canvas { max-width: 100%; }
+.industrial-content, .industrial-panel, .industrial-modal, .industrial-form, .industrial-settings-form, .industrial-workbench, .case-workbench { min-width: 0; }
+.industrial-message, .industrial-field-error, .industrial-meta, .industrial-settings-note { overflow-wrap: anywhere; }
+
+@media (forced-colors: active) {
+  :is(button, input, select, textarea, a, [tabindex]):focus-visible {
+    outline: 3px solid Highlight !important;
+    outline-offset: 3px !important;
+    forced-color-adjust: auto;
+  }
+
+  .industrial-button,
+  .industrial-secondary-button,
+  .industrial-icon-button,
+  .industrial-dashboard-card,
+  .industrial-panel,
+  .industrial-modal,
+  .industrial-message,
+  .industrial-status-badge,
+  .industrial-input,
+  input, select, textarea {
+    border-color: CanvasText !important;
+    background: Canvas !important;
+    color: CanvasText !important;
+    box-shadow: none !important;
+  }
+
+  .industrial-button,
+  .industrial-status-badge,
+  [aria-current="page"],
+  [aria-selected="true"] {
+    border-width: 2px !important;
+  }
 }

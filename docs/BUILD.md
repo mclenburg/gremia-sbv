@@ -7,7 +7,7 @@ Gremia.SBV wird als lokale Electron-App gebaut.
 | Plattform | Artefakt | Hinweis |
 | --- | --- | --- |
 | Linux | `.AppImage` | direkt startbares Linux-Artefakt |
-| Windows | portable `.exe` | portable Direktstart-EXE; kein verpflichtender Installer |
+| Windows | portable `.exe` + NSIS-Setup `.exe` | portable Nutzung oder reguläre Installation; beide Release-Artefakte |
 | macOS | `.dmg` | macOS-Artefakt; Signatur und Notarisierung richten sich nach der Signaturstrategie |
 
 Der GitHub-Workflow für bereitgestellte Artefakte liegt unter `.github/workflows/build-release.yml`. Hochgeladen werden sollen ausschließlich die Endanwender-Artefakte:
@@ -92,7 +92,7 @@ macOS-Artefakte richten sich nach der Signaturstrategie in `CODE_SIGNING.md`. Oh
 
 ## Windows
 
-Der Windows-Build bleibt portabel. `signAndEditExecutable` ist deaktiviert, solange keine durchgängige Signaturkette eingerichtet ist. Falls `electron-builder` in isolierten Umgebungen mit `Cannot create symbolic link` warnt, darf daraus kein `npx`- oder `npm exec`-Workaround entstehen; native Rebuilds bleiben an den workspace-sicheren `postinstall`-Bootstrap gekoppelt.
+Der Windows-Build liefert portable EXE und NSIS-Installer; die portable Nutzung bleibt vollständig unterstützt. `signAndEditExecutable` ist deaktiviert, solange keine durchgängige Signaturkette eingerichtet ist. Falls `electron-builder` in isolierten Umgebungen mit `Cannot create symbolic link` warnt, darf daraus kein `npx`- oder `npm exec`-Workaround entstehen; native Rebuilds bleiben an den workspace-sicheren `postinstall`-Bootstrap gekoppelt.
 
 ## Testqualität
 
@@ -121,4 +121,4 @@ Namen der Desktopintegration mit dem Produktnamen synchron.
 
 ### Windows-Artefakt
 
-Für Windows wird ausschließlich die portable x64-EXE erzeugt. Ein Installer- oder ZIP-Ziel ist nicht Bestandteil des Releasevertrags. Der portable Datenbestand liegt ohne ausdrückliche Überschreibung neben der gestarteten EXE unter `Gremia.SBV-Daten`.
+Für Windows werden zwei x64-Endanwender-Artefakte erzeugt: `Gremia.SBV-<version>-win-x64-portable.exe` und `Gremia.SBV-<version>-win-x64-setup.exe`. Beide müssen im Release vorhanden sein. Der portable Datenbestand liegt ohne ausdrückliche Überschreibung neben der gestarteten Portable-EXE unter `Gremia.SBV-Daten`; die installierte Variante verwendet den normalen Electron-`userData`-Pfad.

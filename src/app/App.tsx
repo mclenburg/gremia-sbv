@@ -82,7 +82,7 @@ function WorkplaceAccommodationContainer({
 
   return (
     <>
-      {error && <div className="industrial-message industrial-message-warning mb-4">{error}</div>}
+      {error && <div className="industrial-message industrial-message-warning mb-4" role="alert">{error}</div>}
       <WorkplaceAccommodationView
         items={items}
         onOpenCase={(caseId, processId) => onOpenCaseNode({ caseId, nodeType: "workplace_accommodation", nodeId: processId })}
@@ -255,7 +255,7 @@ function WorkspaceMain(props: PrimaryViewsProps & { currentModule?: (typeof modu
     <header className="industrial-topbar"><div><p className="font-mono text-xs uppercase tracking-[0.28em] text-zinc-500">Arbeitsplatz</p>
       <h2>{currentView === "dashboard" ? "Dashboard" : currentView === "settings" ? "Einstellungen" : currentModule?.title}</h2></div>
       <div className="industrial-state"><CheckCircle2 className="h-4 w-4 text-yellow-300" />entsperrt · {nowLabel()}</div></header>
-    {work.dataError && <div className="industrial-message industrial-message-warning mb-4">{work.dataError}</div>}
+    {work.dataError && <div className="industrial-message industrial-message-warning mb-4" role="alert">{work.dataError}</div>}
     <PrimaryViews {...props} />
     <ProcessViews currentView={currentView} setCurrentView={setCurrentView} work={work} caseNodeTarget={props.caseNodeTarget}
       setCaseNodeTarget={props.setCaseNodeTarget} openCaseNode={props.openCaseNode} theme={props.theme} setTheme={props.setTheme}

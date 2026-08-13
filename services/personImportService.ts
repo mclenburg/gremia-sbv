@@ -11,6 +11,9 @@ import {
   parseDelimitedText,
   parseXlsxFile,
   sha256Text,
+  assertPersonImportFileSize,
+  MAX_PERSON_IMPORT_FILE_BYTES,
+  MAX_PERSON_IMPORT_ROWS,
   splitFullName
 } from './personImportParsing.js';
 import { decodeCp850, detectCsvEncoding, type CsvEncodingDetectionResult } from './csvEncodingDetection.js';
@@ -108,8 +111,12 @@ export class PersonImportService {
 
   private decodeCsv(input: PersonImportPreviewInput): { text: string; hashSource: string; detection?: CsvEncodingDetectionResult } {
     if (input.csvText !== undefined) {
+      if (Buffer.byteLength(input.csvText, 'utf8') > MAX_PERSON_IMPORT_FILE_BYTES) {
+        throw new Error('CSV-Inhalt ist zu groß. Maximal 25 MB sind zulässig.');
+      }
       return { text: input.csvText, hashSource: input.csvText, detection: { encoding: 'utf-8', confidence: 'high', decodedText: input.csvText, warnings: ['CSV-Zeichenkodierung: eingefügter Text wird als UTF-8 verarbeitet.'] } };
     }
+    if (input.filePath) assertPersonImportFileSize(input.filePath);
     const buffer = input.filePath ? readFileSync(input.filePath) : Buffer.from('');
     const requested = input.csvEncoding && input.csvEncoding !== 'auto' ? input.csvEncoding : undefined;
     if (requested && requested !== 'cp850') {
@@ -133,6 +140,7 @@ export class PersonImportService {
     let csvDetection: CsvEncodingDetectionResult | undefined;
     if (fileType === 'xlsx') {
       if (!input.filePath) throw new Error('XLSX-Import benötigt einen Dateipfad.');
+      assertPersonImportFileSize(input.filePath);
       const parsed = await parseXlsxFile(input.filePath, input.sheetName);
       rows = parsed.rows;
       sourceHash = sha256Text(readFileSync(input.filePath).toString('base64'));
@@ -140,6 +148,7 @@ export class PersonImportService {
       const decoded = this.decodeCsv(input);
       csvDetection = decoded.detection;
       rows = parseDelimitedText(decoded.text, input.delimiter ?? ';');
+      if (rows.length > MAX_PERSON_IMPORT_ROWS) throw new Error(`Import enthält mehr als ${MAX_PERSON_IMPORT_ROWS} Zeilen.`);
       sourceHash = sha256Text(decoded.hashSource);
     }
     const { columns, objects } = rowsToObjects(rows, headerRowIndex);

@@ -14,6 +14,7 @@ export interface EncryptedDocumentContainerWriteInput {
 }
 
 export interface EncryptedDocumentContainerReadInput {
+  storageRoot: string;
   storagePath: string;
   documentKey: string;
   iv: string;
@@ -59,6 +60,20 @@ function assertSafeDocumentId(documentId: string): string {
   return documentId;
 }
 
+
+export function resolveEncryptedDocumentStoragePath(storageRoot: string, storagePath: string): string {
+  const root = path.resolve(storageRoot);
+  const resolved = path.resolve(storagePath);
+  if (!resolved.endsWith(ENCRYPTED_DOCUMENT_CONTAINER_EXTENSION)) {
+    throw new Error('Dokumentcontainer hat keine zulässige .gsbvdoc-Endung.');
+  }
+  const relative = path.relative(root, resolved);
+  if (relative === '..' || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
+    throw new Error('Dokumentcontainer darf nicht außerhalb des Datenspeichers liegen.');
+  }
+  return resolved;
+}
+
 export class DocumentContainerService {
   async writeEncryptedContainer(input: EncryptedDocumentContainerWriteInput): Promise<EncryptedDocumentContainerResult> {
     const documentId = assertSafeDocumentId(input.documentId);
@@ -71,41 +86,56 @@ export class DocumentContainerService {
 
     const documentKey = randomBytes(32);
     const iv = randomBytes(12);
-    const cipher = createCipheriv('aes-256-gcm', documentKey, iv);
-    const encrypted = Buffer.concat([cipher.update(input.plain), cipher.final()]);
-    const authTag = cipher.getAuthTag();
-    const storagePath = path.join(storageDir, `${documentId}${ENCRYPTED_DOCUMENT_CONTAINER_EXTENSION}`);
+    let authTag: Buffer | undefined;
+    try {
+      const cipher = createCipheriv('aes-256-gcm', documentKey, iv);
+      const encrypted = Buffer.concat([cipher.update(input.plain), cipher.final()]);
+      authTag = cipher.getAuthTag();
+      const storagePath = path.join(storageDir, `${documentId}${ENCRYPTED_DOCUMENT_CONTAINER_EXTENSION}`);
 
-    await fs.promises.mkdir(storageDir, { recursive: true });
-    await fs.promises.writeFile(storagePath, encrypted);
+      await fs.promises.mkdir(storageDir, { recursive: true });
+      await fs.promises.writeFile(storagePath, encrypted);
 
-    return {
-      storagePath,
-      filename: input.filename,
-      mimeType: input.mimeType,
-      sha256: sha256(input.plain),
-      documentKey: documentKey.toString('base64'),
-      iv: iv.toString('base64'),
-      authTag: authTag.toString('base64'),
-      sizeBytes: input.plain.length,
-    };
+      return {
+        storagePath,
+        filename: input.filename,
+        mimeType: input.mimeType,
+        sha256: sha256(input.plain),
+        documentKey: documentKey.toString('base64'),
+        iv: iv.toString('base64'),
+        authTag: authTag.toString('base64'),
+        sizeBytes: input.plain.length,
+      };
+    } finally {
+      documentKey.fill(0);
+      iv.fill(0);
+      authTag?.fill(0);
+    }
   }
 
   async readEncryptedContainer(input: EncryptedDocumentContainerReadInput): Promise<Buffer> {
-    if (!input.storagePath.endsWith(ENCRYPTED_DOCUMENT_CONTAINER_EXTENSION)) {
-      throw new Error('Dokumentcontainer hat keine zulässige .gsbvdoc-Endung.');
+    const storagePath = resolveEncryptedDocumentStoragePath(input.storageRoot, input.storagePath);
+
+    const documentKey = Buffer.from(input.documentKey, 'base64');
+    const iv = Buffer.from(input.iv, 'base64');
+    const authTag = Buffer.from(input.authTag, 'base64');
+    try {
+      if (documentKey.length !== 32 || iv.length !== 12 || authTag.length !== 16) {
+        throw new Error('Dokumentcontainer enthält ungültige Kryptometadaten.');
+      }
+      const encrypted = await fs.promises.readFile(storagePath);
+      const decipher = createDecipheriv('aes-256-gcm', documentKey, iv);
+      decipher.setAuthTag(authTag);
+      const plain = Buffer.concat([decipher.update(encrypted), decipher.final()]);
+      if (input.expectedSha256 && sha256(plain) !== input.expectedSha256) {
+        plain.fill(0);
+        throw new Error('Dokumentcontainer-Integritätsprüfung fehlgeschlagen.');
+      }
+      return plain;
+    } finally {
+      documentKey.fill(0);
+      iv.fill(0);
+      authTag.fill(0);
     }
-    const encrypted = await fs.promises.readFile(input.storagePath);
-    const decipher = createDecipheriv(
-      'aes-256-gcm',
-      Buffer.from(input.documentKey, 'base64'),
-      Buffer.from(input.iv, 'base64'),
-    );
-    decipher.setAuthTag(Buffer.from(input.authTag, 'base64'));
-    const plain = Buffer.concat([decipher.update(encrypted), decipher.final()]);
-    if (input.expectedSha256 && sha256(plain) !== input.expectedSha256) {
-      throw new Error('Dokumentcontainer-Integritätsprüfung fehlgeschlagen.');
-    }
-    return plain;
   }
 }

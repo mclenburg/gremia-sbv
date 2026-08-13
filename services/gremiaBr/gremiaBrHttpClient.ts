@@ -8,6 +8,7 @@ export type GremiaBrFetch = (input: string, init?: RequestInit) => Promise<Respo
 export type GremiaBrAuditSink = { append(input: CreatePersonalDataAuditInput): unknown };
 
 const DEFAULT_TIMEOUT_MS = 8_000;
+export const MAX_GREMIA_BR_RESPONSE_BYTES = 5 * 1024 * 1024;
 
 function appendQuery(url: URL, query?: GremiaBrRequestOptions['query']): void {
   if (!query) return;
@@ -28,9 +29,33 @@ function endpointLabel(method: string, path: string): string {
 
 async function readResponsePayload(response: Response): Promise<unknown> {
   if (response.status === 204) return null;
+  const declaredLength = Number(response.headers.get('content-length') ?? '0');
+  if (Number.isFinite(declaredLength) && declaredLength > MAX_GREMIA_BR_RESPONSE_BYTES) {
+    throw new Error('Gremia.BR-Antwort überschreitet die zulässige Größe.');
+  }
+
+  if (!response.body) return null;
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    if (!value) continue;
+    total += value.byteLength;
+    if (total > MAX_GREMIA_BR_RESPONSE_BYTES) {
+      await reader.cancel();
+      throw new Error('Gremia.BR-Antwort überschreitet die zulässige Größe.');
+    }
+    chunks.push(value);
+  }
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
+  const text = new TextDecoder('utf-8', { fatal: false }).decode(bytes);
   const contentType = response.headers.get('content-type') ?? '';
-  if (contentType.includes('application/json')) return response.json();
-  return response.text();
+  if (contentType.includes('application/json')) return text ? JSON.parse(text) : null;
+  return text;
 }
 
 export class GremiaBrHttpError extends Error {
@@ -85,14 +110,17 @@ export class GremiaBrHttpClient {
         redirect: 'manual',
         signal: controller.signal,
       });
-      this.auditRequest(endpoint, response.ok ? 'ok' : 'http_error', response.status);
       if (response.status >= 300 && response.status < 400) {
+        this.auditRequest(endpoint, 'http_error', response.status);
         throw new GremiaBrHttpError('Gremia.BR hat auf eine andere Adresse umgeleitet. Die Anfrage wurde aus Sicherheitsgründen abgebrochen.', response.status, endpoint);
       }
       if (!response.ok) {
+        this.auditRequest(endpoint, 'http_error', response.status);
         throw new GremiaBrHttpError(`Gremia.BR-Anfrage fehlgeschlagen (${response.status}).`, response.status, endpoint);
       }
-      return await readResponsePayload(response) as T;
+      const payload = await readResponsePayload(response) as T;
+      this.auditRequest(endpoint, 'ok', response.status);
+      return payload;
     } catch (error) {
       if ((error as Error).name === 'AbortError') {
         this.auditRequest(endpoint, 'timeout');
