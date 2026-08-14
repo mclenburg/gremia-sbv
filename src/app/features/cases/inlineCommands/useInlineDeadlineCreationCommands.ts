@@ -5,7 +5,7 @@ import type { InlineCommandRuntime } from "./inlineCommandRuntime";
 import type { InlineDeadlineDraft } from "./inlineCommandTypes";
 
 export function useInlineDeadlineCreationCommands(runtime: InlineCommandRuntime) {
-  const { selectedCaseId, selectedCase, noteTitle, setContent, setNextSteps, setNoteInfo, setNoteError, rememberEntityLink,
+  const { selectedCaseId, selectedCase, noteTitle, setContent, setNextSteps, setNoteInfo, setNoteError, rememberEntityLink, onStructuredActionCreated,
     drafts: { inlineDeadlineDraft, setInlineDeadlineDraft } } = runtime;
   function removeSlashCommand(draft: InlineDeadlineDraft) {
     if (draft.markerIndex === null) return;
@@ -90,6 +90,7 @@ export function useInlineDeadlineCreationCommands(runtime: InlineCommandRuntime)
         accessibleLabel: `Frist öffnen: ${created.title}`,
       });
       insertInlineDeadlineText(inlineDeadlineDraft);
+      await onStructuredActionCreated?.();
       setInlineDeadlineDraft(null);
       setNoteInfo(
         shouldInsertDeadlineText

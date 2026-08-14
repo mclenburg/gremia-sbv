@@ -3,6 +3,9 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { DatabaseService, type DatabaseAdapter } from '../../../services/databaseService';
+import { MigrationService } from '../../../services/migrationService';
+import { DeadlineService } from '../../../services/deadlineService';
+import { buildGlobalDeadlineInput } from '../../../src/app/shared/textCommands/globalTextCommandActions';
 
 const packageJson = JSON.parse(readFileSync('package.json', 'utf8')) as {
   scripts?: Record<string, string>;
@@ -37,6 +40,15 @@ async function createSqlCipherV4Fixture(databasePath: string, keyHex: string): P
   } finally {
     db.close();
   }
+}
+
+
+
+async function openMigratedDatabase(databasePath: string, keyHex: string): Promise<{ runtime: DatabaseService; db: DatabaseAdapter }> {
+  const runtime = new DatabaseService();
+  const db = await runtime.open(databasePath, keyHex);
+  new MigrationService(db, path.resolve('database/schema.sql'), path.resolve('database/migrations')).migrate();
+  return { runtime, db };
 }
 
 function majorOf(versionOrRange: string | undefined): number | null {
@@ -84,6 +96,42 @@ describe('Electron-/SQLCipher-Kompatibilitätsvertrag', () => {
 
     const wrongKeyRuntime = new DatabaseService();
     await expect(wrongKeyRuntime.open(databasePath, '32'.repeat(32))).rejects.toThrow();
+  });
+
+  it('persistiert eine per globalem //-Kurzbefehl angelegte Frist über Schließen und erneutes Öffnen der verschlüsselten Datenbank', async () => {
+    const directory = mkdtempSync(path.join(tmpdir(), 'gremia-deadline-persist-'));
+    compatibilityDirs.push(directory);
+    const databasePath = path.join(directory, 'gremia-sbv.sqlite3');
+    const keyHex = '41'.repeat(32);
+    const title = 'Persistente Kurzbefehlsfrist';
+    const input = buildGlobalDeadlineInput({ kind: 'deadline', title, dueAt: '2026-08-20T10:30', severity: 'critical' });
+
+    const first = await openMigratedDatabase(databasePath, keyHex);
+    const created = new DeadlineService(first.db).create(input);
+    expect(created.title).toBe(title);
+    expect(new DeadlineService(first.db).list().some((deadline) => deadline.id === created.id)).toBe(true);
+    first.runtime.close();
+
+    const second = await openMigratedDatabase(databasePath, keyHex);
+    const persisted = new DeadlineService(second.db).list().find((deadline) => deadline.id === created.id);
+    expect(persisted).toMatchObject({ title, dueAt: new Date('2026-08-20T10:30').toISOString(), status: 'open' });
+    second.runtime.close();
+  });
+
+  it('rollt eine Fristanlage vollständig zurück, wenn ein verpflichtender Audit-Schritt nach dem INSERT scheitert', async () => {
+    const directory = mkdtempSync(path.join(tmpdir(), 'gremia-deadline-rollback-'));
+    compatibilityDirs.push(directory);
+    const databasePath = path.join(directory, 'gremia-sbv.sqlite3');
+    const keyHex = '42'.repeat(32);
+    const opened = await openMigratedDatabase(databasePath, keyHex);
+    const service = new DeadlineService(opened.db);
+    opened.db.exec('DROP TABLE deadline_audit');
+
+    expect(() => service.create(buildGlobalDeadlineInput({
+      kind: 'deadline', title: 'Darf nicht teilweise gespeichert werden', dueAt: '2026-08-21T09:00', severity: 'important',
+    }))).toThrow();
+    expect(opened.db.prepare<{ count: number }>('SELECT COUNT(*) AS count FROM deadlines').get()?.count).toBe(0);
+    opened.runtime.close();
   });
 
   it('nutzt den npm-11-sicheren Wrapper explizit im Build und nicht mehr als postinstall-Seiteneffekt', () => {

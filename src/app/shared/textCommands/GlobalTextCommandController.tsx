@@ -3,6 +3,7 @@ import type { Dispatch, KeyboardEvent, SetStateAction } from "react";
 import { CalendarPlus, FileText, Link2, Lock, Search, ShieldAlert, UserPlus } from "lucide-react";
 import type { CaseRecord } from "../../core/models/case.model";
 import type { ContactRecord } from "../../core/models/contact.model";
+import type { CreateDeadlineInput } from "../../core/models/deadline.model";
 import {
   LEGAL_NORM_SUGGESTIONS,
   formatAnonymizationMarkerText,
@@ -26,6 +27,7 @@ import {
   type RiskLevelCommand,
 } from "@services/textCommandPolicy";
 import type { TextCommandTextareaChange, TextCommandTextareaReplacement } from "./TextCommandTextarea";
+import { buildGlobalDeadlineInput } from "./globalTextCommandActions";
 
 type GlobalDraft = TextCommandTextareaChange & {
   fieldId: string;
@@ -43,7 +45,7 @@ type DraftSetter = Dispatch<SetStateAction<GlobalDraft | null>>;
 type CommandKind = ReturnType<typeof getTextCommandKind>;
 
 const TITLE_BY_KIND: Record<CommandKind, string> = {
-  deadline: "Frist einfügen", follow_up: "Wiedervorlage einfügen", contact: "Kontakt einfügen",
+  deadline: "Frist anlegen", follow_up: "Wiedervorlage anlegen", contact: "Kontakt einfügen",
   case_reference: "Fallbezug einfügen", legal_norm: "Rechtsnorm einfügen", risk: "Risiko markieren",
   open_task: "Aufgabe einfügen", confidentiality: "Vertraulichkeit einfügen", anonymization: "Anonymisierung vormerken",
   bem_measure: "BEM-Vorgang anlegen", prevention_measure: "Prävention anlegen", equalization_measure: "Gleichstellung/GdB anlegen",
@@ -193,17 +195,36 @@ function CommandFields({ kind, draft, setDraft, cases, contacts, replace }: { ki
   </>;
 }
 
-export function GlobalTextCommandController({ cases, contacts }: { cases: CaseRecord[]; contacts: ContactRecord[] }) {
+export function GlobalTextCommandController({ cases, contacts, onCreateDeadline }: { cases: CaseRecord[]; contacts: ContactRecord[]; onCreateDeadline: (input: CreateDeadlineInput) => Promise<void> }) {
   const [draft, setDraft] = useDetectedCommand();
+  const [actionError, setActionError] = useState('');
+  const [actionPending, setActionPending] = useState(false);
   const dialogRef = useRef<HTMLElement | null>(null);
   if (!draft) return null;
   const kind = getTextCommandKind(draft.token);
-  const replace = (replacement: string) => { emitReplacement(draft, replacement); setDraft(null); };
-  const applyPrimaryAction = () => { const replacement = primaryReplacement(draft); if (replacement !== null) replace(replacement); };
-  const primaryActionLabel = kind === "deadline" || kind === "follow_up" ? "Einfügen" : kind === "template" ? "Vormerken" : MEASURE_KINDS.includes(kind) ? "Hinweis einfügen" : "Einfügen";
+  const replace = (replacement: string) => { emitReplacement(draft, replacement); setDraft(null); setActionError(''); };
+  const applyPrimaryAction = async () => {
+    setActionError('');
+    if (kind === 'deadline' || kind === 'follow_up') {
+      try {
+        setActionPending(true);
+        await onCreateDeadline(buildGlobalDeadlineInput({ kind, title: draft.title, dueAt: draft.dueAt, severity: draft.severity }));
+        const replacement = primaryReplacement(draft);
+        if (replacement !== null) replace(replacement);
+      } catch (error) {
+        setActionError(error instanceof Error ? error.message : 'Frist konnte nicht angelegt werden.');
+      } finally {
+        setActionPending(false);
+      }
+      return;
+    }
+    const replacement = primaryReplacement(draft);
+    if (replacement !== null) replace(replacement);
+  };
+  const primaryActionLabel = kind === "deadline" ? "Frist anlegen" : kind === "follow_up" ? "Wiedervorlage anlegen" : kind === "template" ? "Vormerken" : MEASURE_KINDS.includes(kind) ? "Hinweis einfügen" : "Einfügen";
   const handleDialogKeyDown = (event: KeyboardEvent<HTMLElement>) => {
-    if (event.key === "Escape") { event.preventDefault(); setDraft(null); }
-    else if ((event.ctrlKey || event.metaKey) && event.key === "Enter") { event.preventDefault(); applyPrimaryAction(); }
+    if (event.key === "Escape") { event.preventDefault(); setDraft(null); setActionError(''); }
+    else if ((event.ctrlKey || event.metaKey) && event.key === "Enter") { event.preventDefault(); void applyPrimaryAction(); }
   };
   return <div className="industrial-modal-backdrop" role="presentation">
     <section ref={dialogRef} className={kind === "anonymization" ? "industrial-modal inline-anonymization-modal" : "industrial-modal"}
@@ -214,9 +235,10 @@ export function GlobalTextCommandController({ cases, contacts }: { cases: CaseRe
         <p id="global-text-command-description">Dieser Befehl wirkt direkt auf das aktuell bearbeitete Textfeld. Strg+Enter speichert, Esc bricht ab.</p>
       </div></div>
       <CommandFields {...{ kind, draft, setDraft, cases, contacts, replace }} />
+      {actionError && <div className="industrial-message industrial-message-error" role="alert">{actionError}</div>}
       <div className="industrial-modal-actions">
-        <button type="button" className="industrial-secondary-button" onClick={() => setDraft(null)}>Abbrechen</button>
-        {!SELECTION_KINDS.includes(kind) && <button type="button" className="industrial-button" onClick={applyPrimaryAction}>{primaryActionLabel}</button>}
+        <button type="button" className="industrial-secondary-button" onClick={() => { setDraft(null); setActionError(''); }} disabled={actionPending}>Abbrechen</button>
+        {!SELECTION_KINDS.includes(kind) && <button type="button" className="industrial-button" onClick={() => void applyPrimaryAction()} disabled={actionPending}>{actionPending ? "Speichert …" : primaryActionLabel}</button>}
       </div>
     </section>
   </div>;

@@ -3,7 +3,7 @@ import { waitForBridge } from "../../../core/bridge/waitForBridge";
 import type { InlineCommandRuntime } from "./inlineCommandRuntime";
 
 export function useInlineOpenTaskCommands(runtime: InlineCommandRuntime) {
-  const { selectedCaseId, selectedCase, noteTitle, setNoteInfo, setNoteError, replaceInlineCommandWithToken, removeInlineCommand,
+  const { selectedCaseId, selectedCase, noteTitle, setNoteInfo, setNoteError, replaceInlineCommandWithToken, removeInlineCommand, onStructuredActionCreated,
     drafts: { inlineOpenTaskDraft, setInlineOpenTaskDraft } } = runtime;
   async function createOpenTaskFromProtocol() {
     setNoteError("");
@@ -42,6 +42,7 @@ export function useInlineOpenTaskCommands(runtime: InlineCommandRuntime) {
         warningThresholdHours: 999999,
         criticalThresholdHours: 999998,
       });
+      await onStructuredActionCreated?.();
       if (inlineOpenTaskDraft.markerIndex !== null) {
         replaceInlineCommandWithToken(
           inlineOpenTaskDraft.target,

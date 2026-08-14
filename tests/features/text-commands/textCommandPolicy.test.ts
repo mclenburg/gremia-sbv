@@ -1,7 +1,28 @@
 import { describe, expect, it } from 'vitest';
-import { applyPendingAnonymizationMarkers, classifyAnonymizationTarget, findFirstTextCommand, formatAnonymizationMarkerText, formatCaseReferenceText, formatLegalNormText, formatOpenTaskText, formatRiskText, getTextCommandArgument, getTextCommandRangeLength, replaceCommandMarker } from '../../../services/textCommandPolicy';
+import { TEXT_COMMAND_REGISTRY, applyPendingAnonymizationMarkers, classifyAnonymizationTarget, findFirstTextCommand, formatAnonymizationMarkerText, formatCaseReferenceText, formatLegalNormText, formatOpenTaskText, formatRiskText, getTextCommandArgument, getTextCommandKind, getTextCommandRangeLength, replaceCommandMarker } from '../../../services/textCommandPolicy';
+import { buildGlobalDeadlineInput } from '../../../src/app/shared/textCommands/globalTextCommandActions';
 
 describe('textCommandPolicy', () => {
+  it('erkennt jedes registrierte Kürzel und routet es auf die deklarierte Funktion', () => {
+    for (const definition of TEXT_COMMAND_REGISTRY) {
+      for (const token of definition.tokens) {
+        expect(findFirstTextCommand(`${token} Test`)).toEqual({ token, index: 0 });
+        expect(getTextCommandKind(token)).toBe(definition.kind);
+      }
+    }
+  });
+
+  it('baut globale Fristen und Wiedervorlagen als echte persistierbare Deadline-Eingaben', () => {
+    const deadline = buildGlobalDeadlineInput({ kind: 'deadline', title: 'Antwort Arbeitgeber', dueAt: '2026-08-20T10:30', severity: 'important' });
+    expect(deadline).toMatchObject({ processType: 'custom', deadlineType: 'follow_up', title: 'Antwort Arbeitgeber', sourceEvent: 'text_command.deadline', severity: 'important' });
+    expect(new Date(deadline.dueAt).toISOString()).toBe(deadline.dueAt);
+
+    const followUp = buildGlobalDeadlineInput({ kind: 'follow_up', title: 'Nachfassen', dueAt: '2026-08-21T09:00', severity: 'normal' });
+    expect(followUp).toMatchObject({ processType: 'custom', title: 'Nachfassen', sourceEvent: 'text_command.follow_up' });
+    expect(() => buildGlobalDeadlineInput({ kind: 'deadline', title: '', dueAt: '2026-08-20T10:30', severity: 'normal' })).toThrow(/Titel/);
+    expect(() => buildGlobalDeadlineInput({ kind: 'deadline', title: 'Test', dueAt: '', severity: 'normal' })).toThrow(/Fälligkeitsdatum/);
+  });
+
   it('erkennt den ersten Inline-Befehl nach Position im Text', () => {
     expect(findFirstTextCommand('Text @@ Kontakt und // Frist')).toEqual({ token: '@@', index: 5 });
     expect(findFirstTextCommand('Text ## Fall und §§ Norm')).toEqual({ token: '##', index: 5 });

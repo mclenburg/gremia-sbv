@@ -76,6 +76,49 @@ test.describe('P12 core UI behavior contracts', () => {
     await riskDialog.getByRole('button', { name: 'Einfügen' }).click();
     await expect(riskDialog).toBeHidden();
     await expect(content).not.toHaveValue(/\/risiko/);
+
+    const deadlineTitle = `Inline-Frist ${Date.now()}`;
+    await content.fill('//');
+    const deadlineDialog = page.getByRole('dialog', { name: /Frist aus Protokoll anlegen/ });
+    await expect(deadlineDialog).toBeVisible();
+    await deadlineDialog.getByLabel('Fristtitel').fill(deadlineTitle);
+    await deadlineDialog.getByLabel('Ablaufdatum').fill('2026-08-20T10:30');
+    await deadlineDialog.getByRole('button', { name: /Frist anlegen/ }).click();
+    await expect(deadlineDialog).toBeHidden();
+    await expect(content).not.toHaveValue(/\/\//);
+
+    const taskTitle = `Inline-Aufgabe ${Date.now()}`;
+    await content.fill('>>');
+    const taskDialog = page.getByRole('dialog', { name: /Offene Aufgabe ohne Datum/ });
+    await expect(taskDialog).toBeVisible();
+    await taskDialog.getByLabel('Aufgabe').fill(taskTitle);
+    await taskDialog.getByRole('button', { name: /Aufgabe anlegen/ }).click();
+    await expect(taskDialog).toBeHidden();
+
+    await noteDialog.getByRole('button', { name: 'Abbrechen' }).click();
+    await openView(page, 'Fristen');
+    await expect(page.getByText(deadlineTitle)).toBeVisible();
+    await expect(page.getByText(taskTitle)).toBeVisible();
+  });
+
+  test('persists a global // deadline command from a regular text field into the central deadline register', async ({ page }) => {
+    await page.goto('/');
+    await openView(page, 'Journal');
+
+    const description = page.getByLabel('Kurzbeschreibung / Kontext');
+    await description.fill('//');
+    const dialog = page.getByRole('dialog', { name: 'Frist anlegen' });
+    await expect(dialog).toBeVisible();
+
+    const title = `Globale Kurzbefehlsfrist ${Date.now()}`;
+    await dialog.getByLabel('Titel').fill(title);
+    await dialog.getByLabel('Datum').fill('2026-08-22T11:15');
+    await dialog.getByRole('button', { name: 'Frist anlegen' }).click();
+    await expect(dialog).toBeHidden();
+    await expect(description).not.toHaveValue(/\/\//);
+
+    await openView(page, 'Fristen');
+    await expect(page.getByText(title)).toBeVisible();
   });
 
   test('announces SBV resource create, update and delete operations to screen readers', async ({ page }) => {

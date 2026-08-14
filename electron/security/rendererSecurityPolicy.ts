@@ -53,10 +53,11 @@ export function buildRendererContentSecurityPolicy(packaged: boolean, allowInlin
     ? "'self'"
     : "'self' http://127.0.0.1:5173 ws://127.0.0.1:5173 http://localhost:5173 ws://localhost:5173";
   const scriptSrc = packaged ? "'self'" : "'self' 'unsafe-eval'";
+  const allowInlineStyles = !packaged || allowInlineTrustedStyles;
   return [
     "default-src 'self' file:",
     `script-src ${scriptSrc}`,
-    `style-src 'self'${allowInlineTrustedStyles ? " 'unsafe-inline'" : ""}`,
+    `style-src 'self'${allowInlineStyles ? " 'unsafe-inline'" : ""}`,
     "img-src 'self' data: blob: file:",
     "font-src 'self' data:",
     `connect-src ${connectSrc}`,

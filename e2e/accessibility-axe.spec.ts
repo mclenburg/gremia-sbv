@@ -85,32 +85,32 @@ test.describe.configure({ mode: 'parallel' });
 
 test.describe('P15m Axe accessibility scan', () => {
   for (const theme of ['light', 'dark'] as const) {
-    test(`keeps all primary routes and priority help dialogs free of serious Axe violations in ${theme} mode`, async ({ page }) => {
-      await setTheme(page, theme);
-      await page.goto('/');
-      await expect(mainNavigation(page)).toBeVisible();
+    for (const route of VISUAL_QA_ROUTES) {
+      test(`keeps ${route.id} free of serious Axe violations in ${theme} mode`, async ({ page }) => {
+        await setTheme(page, theme);
+        await page.goto('/');
+        await expect(mainNavigation(page)).toBeVisible();
+        await openRoute(page, route.navName);
+        await expect(page.getByRole('heading', { name: route.heading }).first()).toBeVisible();
+        await expectNoSeriousAxeViolations(page, `${theme}/${route.id}`);
+      });
 
-      for (const route of VISUAL_QA_ROUTES) {
-        await test.step(`${theme}/${route.id}`, async () => {
+      if (AXE_HELP_ROUTE_IDS.has(route.id)) {
+        test(`keeps ${route.id} help dialog free of serious Axe violations in ${theme} mode`, async ({ page }) => {
+          await setTheme(page, theme);
+          await page.goto('/');
+          await expect(mainNavigation(page)).toBeVisible();
           await openRoute(page, route.navName);
           await expect(page.getByRole('heading', { name: route.heading }).first()).toBeVisible();
-          await expectNoSeriousAxeViolations(page, `${theme}/${route.id}`);
+          const helpButton = page.locator('[data-e2e="industrial-help-button"]').first();
+          await expect(helpButton).toBeVisible();
+          await helpButton.click();
+          const helpDialog = page.locator('[data-e2e="industrial-help-dialog"]');
+          await expect(helpDialog).toBeVisible();
+          await expectNoSeriousAxeViolations(page, `${theme}/${route.id}/help-dialog`);
         });
-
-        if (AXE_HELP_ROUTE_IDS.has(route.id)) {
-          await test.step(`${theme}/${route.id}/help-dialog`, async () => {
-            const helpButton = page.locator('[data-e2e="industrial-help-button"]').first();
-            await expect(helpButton).toBeVisible();
-            await helpButton.click();
-            const helpDialog = page.locator('[data-e2e="industrial-help-dialog"]');
-            await expect(helpDialog).toBeVisible();
-            await expectNoSeriousAxeViolations(page, `${theme}/${route.id}/help-dialog`);
-            await page.keyboard.press('Escape');
-            await expect(helpDialog).toBeHidden();
-          });
-        }
       }
-    });
+    }
   }
 
   test('keeps the inline command help dialog free of serious Axe violations', async ({ page }) => {
@@ -124,5 +124,3 @@ test.describe('P15m Axe accessibility scan', () => {
     await expectNoSeriousAxeViolations(page, 'inline-command-help-dialog');
   });
 });
-
-

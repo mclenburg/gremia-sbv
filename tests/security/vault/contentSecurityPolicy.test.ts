@@ -34,12 +34,16 @@ describe('Renderer-Sicherheitsgrenze', () => {
     expect(isAllowedRendererRequestUrl('ws://localhost:5173', true)).toBe(false);
   });
 
-  it('beschränkt Entwicklungsfreigaben auf den lokalen Vite-Renderer', () => {
+  it('beschränkt Entwicklungsfreigaben auf den lokalen Vite-Renderer und erlaubt dessen Laufzeit-Styles nur außerhalb des Pakets', () => {
     expect(isAllowedRendererNavigationUrl('http://127.0.0.1:5173/', false)).toBe(true);
     expect(isAllowedRendererNavigationUrl('http://localhost:5173/cases', false)).toBe(true);
     expect(isAllowedRendererNavigationUrl('http://127.0.0.1:8080/', false)).toBe(false);
     expect(isAllowedRendererRequestUrl('ws://localhost:5173/socket', false)).toBe(true);
     expect(isAllowedRendererRequestUrl('https://example.invalid/', false)).toBe(false);
+
+    const developmentCsp = buildRendererContentSecurityPolicy(false);
+    expect(developmentCsp).toContain("script-src 'self' 'unsafe-eval'");
+    expect(developmentCsp).toContain("style-src 'self' 'unsafe-inline'");
   });
 
   it('erlaubt Inline-Styles ausschließlich für die lokale Report-Renderdatei', () => {

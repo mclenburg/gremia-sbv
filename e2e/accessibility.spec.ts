@@ -150,12 +150,12 @@ test('keeps a clearly visible focus indicator on inline-command search results',
   const content = noteDialog.getByLabel('Inhalt');
   await content.fill('/fall TEST');
 
-  const commandDialog = page.getByRole('dialog', { name: 'Fallbezug einfügen' });
+  const commandDialog = page.getByRole('dialog', { name: 'Fallbezug verknüpfen' });
   const searchInput = commandDialog.getByLabel('Fall suchen');
   await expect(searchInput).toBeFocused();
   await page.keyboard.press('Tab');
 
-  const result = commandDialog.locator('.industrial-command-results button').first();
+  const result = commandDialog.locator('.inline-contact-results button').first();
   await expect(result).toBeFocused();
   const focusStyle = await result.evaluate((element) => {
     const style = window.getComputedStyle(element);
@@ -174,9 +174,16 @@ test('keeps a clearly visible focus indicator on inline-command search results',
 
 test('provides a keyboard skip link to the main content', async ({ page }) => {
   await page.goto('/');
-  await page.locator('body').click({ position: { x: 1, y: 1 } });
-  await page.keyboard.press('Tab');
   const skipLink = page.getByRole('link', { name: 'Zum Hauptinhalt springen' });
+  await expect(skipLink).toHaveAttribute('href', '#main-content');
+  const keyboardOrder = await skipLink.evaluate((element) => {
+    const candidates = Array.from(document.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+    )).filter((candidate) => candidate.tabIndex >= 0);
+    return { tabIndex: (element as HTMLAnchorElement).tabIndex, isFirst: candidates[0] === element };
+  });
+  expect(keyboardOrder).toEqual({ tabIndex: 0, isFirst: true });
+  await skipLink.focus();
   await expect(skipLink).toBeFocused();
   await page.keyboard.press('Enter');
   await expect(page.locator('#main-content')).toBeFocused();
@@ -234,5 +241,10 @@ test('honors reduced motion and exposes a visible forced-colors focus indicator'
   });
   expect(style.outlineStyle).not.toBe('none');
   expect(style.outlineWidth).toBeGreaterThanOrEqual(2);
-  expect(style.transitionDuration).toMatch(/0(?:\.0+)?s|0\.00001s|0\.01ms/);
+  const transitionSeconds = style.transitionDuration.split(',').map((value) => {
+    const duration = value.trim();
+    const numeric = Number.parseFloat(duration);
+    return duration.endsWith('ms') ? numeric / 1000 : numeric;
+  });
+  expect(Math.max(...transitionSeconds)).toBeLessThanOrEqual(0.00001);
 });

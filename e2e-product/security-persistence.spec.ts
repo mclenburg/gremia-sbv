@@ -1,4 +1,4 @@
-import { test, expect, PRODUCT_PASSWORD, assertNoRuntimeErrors } from './support/productTest';
+import { test, expect, PRODUCT_PASSWORD, assertNoRuntimeErrors, openModule } from './support/productTest';
 
 test.describe.configure({ mode: 'serial' });
 
@@ -34,6 +34,37 @@ test('Lock blendet Fachinhalte aus und sperrt IPC-Datenzugriffe bis zur erneuten
   await productPage.getByRole('navigation', { name: 'Hauptnavigation' }).waitFor({ state: 'visible' });
   const cases = await productPage.evaluate(async () => window.gremiaSbv.cases.list());
   expect(Array.isArray(cases)).toBe(true);
+  await assertNoRuntimeErrors(runtimeErrors);
+});
+
+test('globales // legt über echte UI, Preload und IPC eine dauerhaft gelistete Frist an', async ({ productPage, runtimeErrors }) => {
+  await openModule(productPage, 'Journal');
+  const description = productPage.getByLabel('Kurzbeschreibung / Kontext');
+  const title = `Produkt-Kurzbefehlsfrist ${Date.now()}`;
+  await description.fill('//');
+
+  const dialog = productPage.getByRole('dialog', { name: 'Frist anlegen' });
+  await expect(dialog).toBeVisible();
+  await dialog.getByLabel('Titel').fill(title);
+  await dialog.getByLabel('Datum').fill('2026-08-24T12:00');
+  await dialog.getByRole('button', { name: 'Frist anlegen' }).click();
+  await expect(dialog).toBeHidden();
+
+  const created = await productPage.evaluate(async (expectedTitle) => {
+    const rows = await window.gremiaSbv.deadlines.list({ status: ['open', 'overdue'] });
+    return rows.find((row) => row.title === expectedTitle) ?? null;
+  }, title);
+  expect(created?.title).toBe(title);
+
+  await productPage.getByRole('button', { name: 'Sperren', exact: true }).click();
+  await productPage.getByLabel('App-Passwort', { exact: true }).fill(PRODUCT_PASSWORD);
+  await productPage.getByRole('button', { name: 'Entsperren' }).click();
+  await productPage.getByRole('navigation', { name: 'Hauptnavigation' }).waitFor({ state: 'visible' });
+  const afterUnlock = await productPage.evaluate(async (expectedTitle) => {
+    const rows = await window.gremiaSbv.deadlines.list({ status: ['open', 'overdue'] });
+    return rows.some((row) => row.title === expectedTitle);
+  }, title);
+  expect(afterUnlock).toBe(true);
   await assertNoRuntimeErrors(runtimeErrors);
 });
 

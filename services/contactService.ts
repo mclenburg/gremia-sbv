@@ -3,6 +3,7 @@ import type { ContactCategory, ContactListFilters, ContactRecord, CreateContactI
 import type { DatabaseAdapter } from './databaseService.js';
 import { anonymizeContactReferences, ensureContactPrivacySchema } from './contactPrivacyService.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
+import { DatabaseUnitOfWork } from './databaseUnitOfWork.js';
 
 
 interface ContactDatabaseRow {
@@ -197,9 +198,16 @@ export class ContactService {
     const before = db.prepare<ContactIdRow>('SELECT id FROM contacts WHERE id = ?').get(id);
     if (!before) return { deleted: false, anonymizedReferences: 0, touchedNotes: 0 };
 
-    const privacyResult = anonymizeContactReferences(db, id);
-    const result = db.prepare('DELETE FROM contacts WHERE id = ?').run(id) as { changes?: number } | undefined;
-    this.audit(db, { action: 'delete', subjectType: 'contact', subjectId: id, purpose: 'Kontakt gelöscht und Referenzen anonymisiert', metadata: privacyResult });
-    return { deleted: Boolean(result?.changes), ...privacyResult };
+    const outcome = new DatabaseUnitOfWork(db).run(() => {
+      const privacyResult = anonymizeContactReferences(db, id);
+      const result = db.prepare('DELETE FROM contacts WHERE id = ?').run(id) as { changes?: number } | undefined;
+      if (result?.changes !== 1) {
+        throw new Error(`Kontakt konnte nicht gelöscht werden: ${id}`);
+      }
+      return privacyResult;
+    });
+
+    this.audit(db, { action: 'delete', subjectType: 'contact', subjectId: id, purpose: 'Kontakt gelöscht und Referenzen anonymisiert', metadata: outcome });
+    return { deleted: true, ...outcome };
   }
 }
