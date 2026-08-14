@@ -53,7 +53,10 @@ export function TextCommandTextarea({
       if (index < 0) return;
 
       const rangeLength = detail.rangeLength ?? detail.token.length;
-      textarea.value = `${textarea.value.slice(0, index)}${detail.replacement}${textarea.value.slice(index + rangeLength)}`.replace(/ {2,}/g, ' ');
+      const nextValue = `${textarea.value.slice(0, index)}${detail.replacement}${textarea.value.slice(index + rangeLength)}`.replace(/ {2,}/g, ' ');
+      const nativeValueSetter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')?.set;
+      if (!nativeValueSetter) return;
+      nativeValueSetter.call(textarea, nextValue);
       textarea.dispatchEvent(new Event('input', { bubbles: true }));
       textarea.focus();
       const cursor = index + detail.replacement.length;

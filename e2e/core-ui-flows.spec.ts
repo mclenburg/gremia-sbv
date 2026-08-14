@@ -115,7 +115,11 @@ test.describe('P12 core UI behavior contracts', () => {
     await dialog.getByLabel('Datum').fill('2026-08-22T11:15');
     await dialog.getByRole('button', { name: 'Frist anlegen' }).click();
     await expect(dialog).toBeHidden();
-    await expect(description).not.toHaveValue(/\/\//);
+    const replacement = `Frist bis 22.08.2026, 11:15: ${title}`;
+    await expect(description).toHaveValue(replacement);
+
+    await page.getByLabel('Was wurde gemacht?').fill('React-Render nach Kurzbefehlsersetzung');
+    await expect(description).toHaveValue(replacement);
 
     await openView(page, 'Fristen');
     await expect(page.getByText(title)).toBeVisible();
