@@ -208,6 +208,7 @@ test.describe('P11 visual contract across light and dark mode', () => {
     for (const theme of ['light', 'dark'] as const) {
       await setTheme(page, theme);
       await page.goto('/');
+      await expect(page.getByRole('navigation', { name: 'Hauptnavigation' })).toBeVisible();
       await page.keyboard.press(shortcutForHelp());
 
       const dialog = page.getByRole('dialog', { name: /Kurzbefehle/i });

@@ -120,10 +120,10 @@ export function InlineBemOverlay({ props }: { props: InlineCommandOverlaysProps 
           </div>
           <div>
             <p className="industrial-kicker">Inline-Maßnahme</p>
-            <h2 id="inline-bem-title">BEM-Vorgang anlegen</h2>
+            <h2 id="inline-bem-title">BEM-Vorgang vormerken</h2>
             <p>
-              Legt einen BEM-Vorgang direkt in der aktuellen Fallakte an.
-              Details können nach dem Gespräch ergänzt werden.
+              Merkt einen BEM-Vorgang für die aktuelle Fallakte vor.
+              Angelegt wird er erst zusammen mit dem Speichern der Notiz.
             </p>
           </div>
         </div>
@@ -218,8 +218,7 @@ export function InlineBemOverlay({ props }: { props: InlineCommandOverlaysProps 
           </label>
         </div>
         <div className="industrial-modal-preview">
-          <HeartPulse className="h-4 w-4" /> Wird als Fallaktenvorgang
-          angelegt:{" "}
+          <HeartPulse className="h-4 w-4" /> Wird mit dem Speichern der Notiz als Fallaktenvorgang angelegt:{" "}
           <strong>{inlineBemDraft.title.trim() || "BEM-Vorgang"}</strong>
         </div>
         <div className="industrial-modal-actions">
@@ -235,7 +234,7 @@ export function InlineBemOverlay({ props }: { props: InlineCommandOverlaysProps 
             className="industrial-button"
             onClick={() => void createBemFromProtocol()}
           >
-            Anlegen und weiterprotokollieren
+            Vormerken und weiterprotokollieren
           </button>
         </div>
       </section>

@@ -108,7 +108,7 @@ export class CaseSchemaService extends CaseServiceCore {
         CREATE TABLE IF NOT EXISTS case_note_links (
           id TEXT PRIMARY KEY,
           case_note_id TEXT NOT NULL,
-          target_type TEXT NOT NULL CHECK (target_type IN ('bem', 'participation', 'deadline')),
+          target_type TEXT NOT NULL CHECK (target_type IN ('bem', 'prevention', 'participation', 'termination_hearing', 'equalization', 'workplace_accommodation', 'deadline')),
           target_id TEXT NOT NULL,
           case_id TEXT NOT NULL,
           label TEXT NOT NULL,

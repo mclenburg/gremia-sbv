@@ -1,7 +1,7 @@
 import type { Dispatch, SetStateAction } from "react";
 import type { CaseRecord } from "../../../core/models/case.model";
 import type { ContactRecord, CreateContactInput } from "../../../core/models/contact.model";
-import type { ConfidentialLevel } from "../../../core/models/case-note.model";
+import type { ConfidentialLevel, CaseNoteInlineActionInput } from "../../../core/models/case-note.model";
 import type { CaseLegalReferenceRecord } from "../../../core/models/knowledge.model";
 import type { CreateDeadlineInput } from "../../../core/models/deadline.model";
 import type { CreateCaseNoteLinkInput } from "../../../core/models/case-note-link.model";
@@ -29,6 +29,7 @@ export interface InlineCommandEnvironment {
   onCreateContact: (input: CreateContactInput) => Promise<ContactRecord>;
   onEntityLinkCreated?: (link: CreateCaseNoteLinkInput) => void;
   onStructuredActionCreated?: () => Promise<void> | void;
+  stageInlineAction?: (action: CaseNoteInlineActionInput) => void;
 }
 
 export interface InlineCommandRuntime extends InlineCommandEnvironment {
@@ -63,6 +64,7 @@ export interface InlineCommandRuntime extends InlineCommandEnvironment {
     },
     replacement: string,
   ) => void;
+  stageInlineAction: (action: CaseNoteInlineActionInput) => void;
   rememberEntityLink: (input: {
     targetType: CreateCaseNoteLinkInput["targetType"];
     targetId: string;

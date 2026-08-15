@@ -120,10 +120,10 @@ export function InlinePreventionOverlay({ props }: { props: InlineCommandOverlay
           </div>
           <div>
             <p className="industrial-kicker">Inline-Maßnahme</p>
-            <h2 id="inline-prevention-title">Prävention anlegen</h2>
+            <h2 id="inline-prevention-title">Prävention vormerken</h2>
             <p>
-              Legt ein Präventionsverfahren nach § 167 Abs. 1 SGB IX direkt
-              in der aktuellen Fallakte an.
+              Merkt ein Präventionsverfahren nach § 167 Abs. 1 SGB IX für die
+              aktuelle Fallakte vor. Angelegt wird es erst mit der Notiz.
             </p>
           </div>
         </div>
@@ -260,8 +260,7 @@ export function InlinePreventionOverlay({ props }: { props: InlineCommandOverlay
           </label>
         </div>
         <div className="industrial-modal-preview">
-          <ShieldAlert className="h-4 w-4" /> Wird als Fallaktenvorgang
-          angelegt:{" "}
+          <ShieldAlert className="h-4 w-4" /> Wird mit dem Speichern der Notiz als Fallaktenvorgang angelegt:{" "}
           <strong>
             {inlinePreventionDraft.title.trim() || "Präventionsverfahren"}
           </strong>
@@ -279,7 +278,7 @@ export function InlinePreventionOverlay({ props }: { props: InlineCommandOverlay
             className="industrial-button"
             onClick={() => void createPreventionFromProtocol()}
           >
-            Anlegen und weiterprotokollieren
+            Vormerken und weiterprotokollieren
           </button>
         </div>
       </section>

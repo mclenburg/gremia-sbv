@@ -1,4 +1,12 @@
 import type { CaseNoteLinkRecord, CreateCaseNoteLinkInput } from './case-note-link.model';
+import type { CreateDeadlineInput } from './deadline.model';
+import type { CreateBemProcessInput } from './bem.model';
+import type { CreatePreventionProcessInput } from './prevention.model';
+import type { CreateParticipationInput } from './participation.model';
+import type { CreateEqualizationProcessInput } from './equalization.model';
+import type { CreateWorkplaceAccommodationInput } from './workplace-accommodation.model';
+import type { CreateTerminationHearingInput } from './termination.model';
+import type { CreateContactInput } from './contact.model';
 
 export type CaseNoteType =
   | 'gespraech'
@@ -32,6 +40,18 @@ export interface CaseNoteRecord {
   links?: CaseNoteLinkRecord[];
 }
 
+
+export type CaseNoteInlineActionInput =
+  | { kind: 'contact'; input: CreateContactInput }
+  | { kind: 'legal_norm_case_link'; input: { caseId: string; legalNormId: string; note?: string }; displayLabel: string }
+  | { kind: 'deadline'; input: CreateDeadlineInput; linkLabel?: string; accessibleLabel?: string }
+  | { kind: 'bem'; input: CreateBemProcessInput; linkLabel: string; accessibleLabel: string }
+  | { kind: 'prevention'; input: CreatePreventionProcessInput; linkLabel: string; accessibleLabel: string }
+  | { kind: 'participation'; input: CreateParticipationInput; linkLabel: string; accessibleLabel: string }
+  | { kind: 'equalization'; input: CreateEqualizationProcessInput; linkLabel: string; accessibleLabel: string }
+  | { kind: 'workplace_accommodation'; input: CreateWorkplaceAccommodationInput; linkLabel: string; accessibleLabel: string }
+  | { kind: 'termination_hearing'; input: CreateTerminationHearingInput; linkLabel: string; accessibleLabel: string };
+
 export interface CreateCaseNoteInput {
   caseId: string;
   caseIds?: string[];
@@ -44,6 +64,7 @@ export interface CreateCaseNoteInput {
   containsHealthData?: boolean;
   confidentialLevel?: ConfidentialLevel;
   links?: CreateCaseNoteLinkInput[];
+  inlineActions?: CaseNoteInlineActionInput[];
 }
 
 export interface UpdateCaseNoteInput {
@@ -57,6 +78,7 @@ export interface UpdateCaseNoteInput {
   containsHealthData?: boolean;
   confidentialLevel?: ConfidentialLevel;
   links?: CreateCaseNoteLinkInput[];
+  inlineActions?: CaseNoteInlineActionInput[];
 }
 
 export type CaseSearchSourceType =

@@ -121,11 +121,11 @@ export function InlineWorkplaceAccommodationOverlay({ props }: { props: InlineCo
           <div>
             <p className="industrial-kicker">Inline-Maßnahme</p>
             <h2 id="inline-workplace-title">
-              Arbeitsplatzgestaltung anlegen
+              Arbeitsplatzgestaltung vormerken
             </h2>
             <p>
-              Legt eine Maßnahme nach § 164 Abs. 4 SGB IX direkt in der
-              aktuellen Fallakte an. Details können nach dem Gespräch
+              Merkt eine Maßnahme nach § 164 Abs. 4 SGB IX für die aktuelle
+              Fallakte vor. Angelegt wird sie erst mit der Notiz. Details können nach dem Gespräch
               ergänzt werden.
             </p>
           </div>
@@ -275,8 +275,7 @@ export function InlineWorkplaceAccommodationOverlay({ props }: { props: InlineCo
           </label>
         </div>
         <div className="industrial-modal-preview">
-          <Wrench className="h-4 w-4" /> Wird als Fallaktenmaßnahme
-          angelegt:{" "}
+          <Wrench className="h-4 w-4" /> Wird mit dem Speichern der Notiz als Fallaktenmaßnahme angelegt:{" "}
           <strong>
             {inlineWorkplaceAccommodationDraft.title.trim() ||
               "Arbeitsplatzgestaltung"}
@@ -295,7 +294,7 @@ export function InlineWorkplaceAccommodationOverlay({ props }: { props: InlineCo
             className="industrial-button"
             onClick={() => void createWorkplaceAccommodationFromProtocol()}
           >
-            Anlegen und weiterprotokollieren
+            Vormerken und weiterprotokollieren
           </button>
         </div>
       </section>

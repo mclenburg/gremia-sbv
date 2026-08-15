@@ -57,7 +57,7 @@ test.describe('P12 core UI behavior contracts', () => {
     await expect(createDialog.getByText('Bitte Titel und Fälligkeitsdatum erfassen.')).toBeVisible();
   });
 
-  test('preserves inline command overlay behavior in centralized large textareas', async ({ page }) => {
+  test('preserves the inline risk overlay in the centralized case-note textarea', async ({ page }) => {
     await page.goto('/');
     await openView(page, 'Fallakte');
     await expect(page.getByRole('heading', { name: /TEST-0001\s*·\s*Testperson Alpha/ })).toBeVisible();
@@ -72,33 +72,88 @@ test.describe('P12 core UI behavior contracts', () => {
     const riskDialog = page.getByRole('dialog', { name: /Risiko markieren/ });
     await expect(riskDialog).toBeVisible();
     await expect(riskDialog.locator('label', { hasText: 'Risikostufe' })).toBeVisible();
-
     await riskDialog.getByRole('button', { name: 'Einfügen' }).click();
     await expect(riskDialog).toBeHidden();
     await expect(content).not.toHaveValue(/\/risiko/);
+  });
+
+  test('discards staged deadline and task actions when the note is cancelled', async ({ page }) => {
+    await page.goto('/');
+    await openView(page, 'Fallakte');
+    await expect(page.getByRole('heading', { name: /TEST-0001\s*·\s*Testperson Alpha/ })).toBeVisible();
+
+    await page.getByRole('button', { name: /Notiz \/ Protokoll/ }).click();
+    const noteDialog = page.getByRole('dialog', { name: /Neue Gesprächsnotiz \/ neues Protokoll/ });
+    await expect(noteDialog).toBeVisible();
+    const content = noteDialog.getByLabel('Inhalt');
 
     const deadlineTitle = `Inline-Frist ${Date.now()}`;
     await content.fill('//');
-    const deadlineDialog = page.getByRole('dialog', { name: /Frist aus Protokoll anlegen/ });
+    const deadlineDialog = page.getByRole('dialog', { name: /Frist aus Protokoll vormerken/ });
     await expect(deadlineDialog).toBeVisible();
     await deadlineDialog.getByLabel('Fristtitel').fill(deadlineTitle);
     await deadlineDialog.getByLabel('Ablaufdatum').fill('2026-08-20T10:30');
-    await deadlineDialog.getByRole('button', { name: /Frist anlegen/ }).click();
+    await deadlineDialog.getByRole('button', { name: /Frist vormerken/ }).click();
     await expect(deadlineDialog).toBeHidden();
     await expect(content).not.toHaveValue(/\/\//);
+
+    await expect(noteDialog.getByText('Vorgemerkte Inline-Aktionen')).toBeVisible();
+    await expect(noteDialog.getByText(`Frist/Aufgabe: ${deadlineTitle}`)).toBeVisible();
+
+    await noteDialog.getByRole('button', { name: 'Abbrechen' }).click();
+    await openView(page, 'Fristen');
+    await expect(page.getByText(deadlineTitle)).toHaveCount(0);
+  });
+
+  test('discards a staged undated task when the note is cancelled', async ({ page }) => {
+    await page.goto('/');
+    await openView(page, 'Fallakte');
+    await expect(page.getByRole('heading', { name: /TEST-0001\s*·\s*Testperson Alpha/ })).toBeVisible();
+
+    await page.getByRole('button', { name: /Notiz \/ Protokoll/ }).click();
+    const noteDialog = page.getByRole('dialog', { name: /Neue Gesprächsnotiz \/ neues Protokoll/ });
+    await expect(noteDialog).toBeVisible();
+    const content = noteDialog.getByLabel('Inhalt');
 
     const taskTitle = `Inline-Aufgabe ${Date.now()}`;
     await content.fill('>>');
     const taskDialog = page.getByRole('dialog', { name: /Offene Aufgabe ohne Datum/ });
     await expect(taskDialog).toBeVisible();
     await taskDialog.getByLabel('Aufgabe').fill(taskTitle);
-    await taskDialog.getByRole('button', { name: /Aufgabe anlegen/ }).click();
+    await taskDialog.getByRole('button', { name: /Aufgabe vormerken/ }).click();
     await expect(taskDialog).toBeHidden();
+    await expect(noteDialog.getByText(`Frist/Aufgabe: ${taskTitle}`)).toBeVisible();
 
     await noteDialog.getByRole('button', { name: 'Abbrechen' }).click();
     await openView(page, 'Fristen');
+    await expect(page.getByText(taskTitle)).toHaveCount(0);
+  });
+
+  test('persists staged inline actions only when the note is saved', async ({ page }) => {
+    await page.goto('/');
+    await openView(page, 'Fallakte');
+    await expect(page.getByRole('heading', { name: /TEST-0001\s*·\s*Testperson Alpha/ })).toBeVisible();
+
+    await page.getByRole('button', { name: /Notiz \/ Protokoll/ }).click();
+    const noteDialog = page.getByRole('dialog', { name: /Neue Gesprächsnotiz \/ neues Protokoll/ });
+    await expect(noteDialog).toBeVisible();
+    await noteDialog.getByLabel('Titel').fill('Inline-Aktionen speichern');
+    const content = noteDialog.getByLabel('Inhalt');
+
+    await content.fill('//');
+    const deadlineDialog = page.getByRole('dialog', { name: /Frist aus Protokoll vormerken/ });
+    const deadlineTitle = 'Wiedervorlage: Inline-Aktionen speichern';
+    await expect(deadlineDialog.getByLabel('Fristtitel')).toHaveValue(deadlineTitle);
+    await deadlineDialog.getByLabel('Ablaufdatum').fill('2026-08-20T10:30');
+    await deadlineDialog.getByRole('button', { name: /Frist vormerken/ }).click();
+    await expect(deadlineDialog).toBeHidden();
+
+    await expect(noteDialog.getByText(`Frist/Aufgabe: ${deadlineTitle}`)).toBeVisible();
+
+    await noteDialog.getByRole('button', { name: 'Speichern', exact: true }).click();
+    await expect(noteDialog).toBeHidden();
+    await openView(page, 'Fristen');
     await expect(page.getByText(deadlineTitle)).toBeVisible();
-    await expect(page.getByText(taskTitle)).toBeVisible();
   });
 
   test('persists a global // deadline command from a regular text field into the central deadline register', async ({ page }) => {

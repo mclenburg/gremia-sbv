@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { ShieldAlert, Trash2 } from 'lucide-react';
 import type { CaseRecord } from '../../core/models/case.model';
+import type { CaseAnonymizationMode } from '../../core/models/privacy-review.model';
 import { AUDIT_LOG_RETENTION_NOTICE } from '../../core/copy/privacyNotices';
 import { DangerButton, GhostButton, IndustrialButton } from '../../shared/components/IndustrialButton';
 import { IndustrialModal } from '../../shared/dialogs/IndustrialDialogs';
+import { CaseAnonymizationModeFieldset } from '../../shared/privacy/CaseAnonymizationModeFieldset';
 
 export type CasePrivacyActionMode = 'anonymize' | 'delete';
 
@@ -16,11 +18,12 @@ export function CasePrivacyActionDialog({
   open: boolean;
   record?: CaseRecord;
   onClose: () => void;
-  onSubmit: (input: { mode: CasePrivacyActionMode; reason: string; confirmation: string }) => Promise<void>;
+  onSubmit: (input: { mode: CasePrivacyActionMode; reason: string; confirmation: string; anonymizationMode?: CaseAnonymizationMode }) => Promise<void>;
 }) {
   const [mode, setMode] = useState<CasePrivacyActionMode>('anonymize');
   const [reason, setReason] = useState('');
   const [confirmation, setConfirmation] = useState('');
+  const [anonymizationMode, setAnonymizationMode] = useState<CaseAnonymizationMode>('marked_free_text');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const cancelRef = useRef<HTMLButtonElement | null>(null);
@@ -30,6 +33,7 @@ export function CasePrivacyActionDialog({
     setMode('anonymize');
     setReason('');
     setConfirmation('');
+    setAnonymizationMode('marked_free_text');
     setError('');
   }, [open, record?.id]);
   if (!open || !record) return null;
@@ -43,7 +47,7 @@ export function CasePrivacyActionDialog({
     if (confirmation.trim() !== expectedConfirmation) return setError(`Bitte die Bestätigung exakt eingeben: ${expectedConfirmation}`);
     setBusy(true);
     try {
-      await onSubmit({ mode, reason: reason.trim(), confirmation: confirmation.trim() });
+      await onSubmit({ mode, reason: reason.trim(), confirmation: confirmation.trim(), anonymizationMode: mode === 'anonymize' ? anonymizationMode : undefined });
       setReason('');
       setConfirmation('');
       setMode('anonymize');
@@ -82,6 +86,7 @@ export function CasePrivacyActionDialog({
           </label>
         </div>
       </fieldset>
+      {mode === 'anonymize' ? <CaseAnonymizationModeFieldset value={anonymizationMode} onChange={setAnonymizationMode} name="case-anonymization-mode" /> : null}
       <div className="case-privacy-action-fields">
         <label><span>Grund</span><textarea rows={3} value={reason} onChange={(event) => setReason(event.target.value)} required aria-invalid={Boolean(error && !reason.trim())} aria-describedby={error ? errorId : undefined} /></label>
         <label><span>Bestätigung</span><input value={confirmation} onChange={(event) => setConfirmation(event.target.value)} placeholder={expectedConfirmation} required aria-invalid={Boolean(error && confirmation.trim() !== expectedConfirmation)} aria-describedby={error ? errorId : undefined} /><small className="industrial-muted">Zur Sicherheit exakt „{expectedConfirmation}“ eingeben.</small></label>

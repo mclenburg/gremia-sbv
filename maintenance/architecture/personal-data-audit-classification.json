@@ -245,6 +245,36 @@
       "classification": "delegated",
       "owner": "services/caseProcessDeletion.ts#<module>.deleteCaseProcess",
       "reason": "Löscht die Aggregatwurzel innerhalb der unmittelbar auditierten Maßnahmenlöschung."
+    },
+    "services/caseAnonymizationService.ts#<module>.removeIdentityAndContactLinks": {
+      "classification": "delegated",
+      "owner": "CaseAnonymizationService.anonymizeCase",
+      "reason": "Entfernt Personen- und Kontaktbezüge innerhalb der fachlich auditierten Fallanonymisierung."
+    },
+    "services/caseAnonymizationService.ts#<module>.removeDeletedDocumentJournalLinks": {
+      "classification": "delegated",
+      "owner": "CaseAnonymizationService.anonymizeCase",
+      "reason": "Entfernt veraltete Journal-Verknüpfungen zu im selben fachlich auditierten Anonymisierungsvorgang gelöschten Dokumenten."
+    },
+    "services/caseAnonymizationService.ts#<module>.removePersonJournalLinks": {
+      "classification": "delegated",
+      "owner": "CaseAnonymizationService.anonymizeCase",
+      "reason": "Entfernt direkte Personenverknüpfungen des Journals innerhalb der fachlich auditierten Fallanonymisierung."
+    },
+    "services/caseAnonymizationService.ts#<module>.replaceActivityJournalText": {
+      "classification": "delegated",
+      "owner": "CaseAnonymizationService.anonymizeCase",
+      "reason": "Anonymisiert fallbezogene Journal-Freitexte innerhalb der fachlich auditierten Fallanonymisierung."
+    },
+    "services/caseAnonymizationService.ts#<module>.insertDocumentEvidence": {
+      "classification": "delegated",
+      "owner": "CaseAnonymizationService.anonymizeCase",
+      "reason": "Erzeugt den neutralen Dokumentnachweis innerhalb der fachlich auditierten Fallanonymisierung."
+    },
+    "services/caseAnonymizationService.ts#<module>.removeGeneratedDocumentRows": {
+      "classification": "delegated",
+      "owner": "CaseAnonymizationService.anonymizeCase",
+      "reason": "Löscht generierte Falldokument-Datensätze und deren Zuordnung innerhalb der fachlich auditierten Fallanonymisierung; die Dateien selbst werden zuvor reversibel quarantänisiert."
     }
   }
 }

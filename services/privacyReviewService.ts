@@ -1,13 +1,10 @@
 import { randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
-import { assertDestructivePrivacyConfirmation, assertRetentionDecision, decideLegacyBulkPrivacyReview, decidePrivacyReviewForContext, type PrivacyReviewReason } from './privacyReviewPolicy.js';
+import { assertRetentionDecision, decideLegacyBulkPrivacyReview, decidePrivacyReviewForContext, type PrivacyReviewReason } from './privacyReviewPolicy.js';
 import { ProtectedPersonService } from './protectedPersonService.js';
-import { applyPendingAnonymizationMarkers } from './textCommandPolicy.js';
 import type { CaseCategory, CasePriority, CaseRecord, CaseStatus } from '../src/app/core/models/case.model.js';
 import type { PrivacyReviewItemRecord, PrivacyReviewItemStatus, PrivacyReviewContextSnapshot } from '../src/app/core/models/privacy-review.model.js';
-import { caseWhereSql, directCasePrivacyEntities } from './privacyEntityRegistry.js';
-import { SearchIndexService } from './search/searchIndexService.js';
 
 /** SQLite row at the persistence boundary. Values remain scalar and must be
  * normalized by the service mapper before entering the domain model. */
@@ -107,64 +104,6 @@ function mapReviewItem(row: DatabaseRow): PrivacyReviewItemRecord {
   };
 }
 
-
-function replacePendingMarkersInRecordFields(db: DatabaseAdapter, table: string, idColumn: string, whereSql: string, whereParams: unknown[], fields: string[], timestamp: string): number {
-  if (!tableExists(db, table)) return 0;
-  const existingFields = fields.filter((field) => columnExists(db, table, field));
-  if (!existingFields.length || !columnExists(db, table, idColumn)) return 0;
-  const rows = db.prepare<DatabaseRow>(`SELECT ${idColumn}, ${existingFields.join(', ')} FROM ${table} ${whereSql}`).all(...whereParams);
-  let affected = 0;
-  const hasUpdatedAt = columnExists(db, table, 'updated_at');
-  for (const row of rows) {
-    const updates: string[] = [];
-    const params: unknown[] = [];
-    for (const field of existingFields) {
-      const current = row[field] as string | null | undefined;
-      const next = applyPendingAnonymizationMarkers(current);
-      if (next !== current) {
-        updates.push(`${field} = ?`);
-        params.push(next);
-      }
-    }
-    if (!updates.length) continue;
-    if (hasUpdatedAt) {
-      updates.push('updated_at = ?');
-      params.push(timestamp);
-    }
-    params.push(row[idColumn]);
-    affected += Number((db.prepare(`UPDATE ${table} SET ${updates.join(', ')} WHERE ${idColumn} = ?`).run(...params) as { changes?: number }).changes ?? 0);
-  }
-  return affected;
-}
-
-function replacePendingAnonymizationMarkersForCase(db: DatabaseAdapter, caseId: string, timestamp: string): number {
-  let affected = 0;
-  for (const entity of directCasePrivacyEntities()) {
-    affected += replacePendingMarkersInRecordFields(
-      db,
-      entity.table,
-      entity.idColumn,
-      caseWhereSql(entity),
-      [caseId],
-      [...entity.pendingMarkerFields],
-      timestamp,
-    );
-  }
-
-  affected += replacePendingMarkersInRecordFields(db, 'bem_process_events', 'id', 'WHERE process_id IN (SELECT id FROM bem_processes WHERE case_id = ?)', [caseId], ['title', 'description'], timestamp);
-  affected += replacePendingMarkersInRecordFields(db, 'prevention_process_events', 'id', 'WHERE process_id IN (SELECT id FROM prevention_processes WHERE case_id = ?)', [caseId], ['title', 'description'], timestamp);
-  affected += replacePendingMarkersInRecordFields(db, 'sbv_participation_events', 'id', 'WHERE participation_id IN (SELECT id FROM sbv_participations WHERE case_id = ?)', [caseId], ['title', 'description'], timestamp);
-
-  const measureRows = tableExists(db, 'case_measures') ? db.prepare<{ id: string }>('SELECT id FROM case_measures WHERE case_id = ?').all(caseId) : [];
-  for (const measure of measureRows) {
-    affected += replacePendingMarkersInRecordFields(db, 'case_measure_participation', 'measure_id', 'WHERE measure_id = ?', [measure.id], ['violation_summary', 'sbv_position'], timestamp);
-    affected += replacePendingMarkersInRecordFields(db, 'case_measure_events', 'id', 'WHERE measure_id = ?', [measure.id], ['title', 'description'], timestamp);
-    affected += replacePendingMarkersInRecordFields(db, 'case_measure_workplace_accommodation', 'measure_id', 'WHERE measure_id = ?', [measure.id], [
-      'requested_adjustment', 'barrier_or_limitation', 'workplace_context', 'proposed_solution', 'outcome'
-    ], timestamp);
-  }
-  return affected;
-}
 
 export class PrivacyReviewService {
   constructor(private readonly db: DatabaseAdapter) {}
@@ -267,27 +206,6 @@ export class PrivacyReviewService {
     new PersonalDataAuditLogService(this.db).append({ action: 'update', subjectType: 'privacy_review', caseId, purpose: 'Datenschutzprüfung abgeschlossen', metadata: { cleared: true } });
   }
 
-
-  anonymizeCaseStructuredData(caseId: string, reason: string, confirmation: string): { ok: boolean; message?: string; error?: string; affectedRows?: number; affectedFiles?: number } {
-    try {
-      assertDestructivePrivacyConfirmation('anonymize', confirmation);
-      if (!reason.trim()) throw new Error('Für die Anonymisierung ist ein dokumentierter Grund erforderlich.');
-      const row = this.db.prepare<DatabaseRow>('SELECT id, case_number FROM cases WHERE id = ?').get(caseId);
-      if (!row) return { ok: false, error: 'Fall nicht gefunden.', affectedRows: 0, affectedFiles: 0 };
-      const timestamp = nowIso();
-      let affectedRows = 0;
-      affectedRows += Number((this.db.prepare(`UPDATE cases SET display_name = '[Fall anonymisiert]', protected_person_id = NULL, person_binding_state = 'anonymized', is_pseudonymized = 1, privacy_review_required = 1, privacy_review_reason = 'linked_person_anonymized', anonymized_at = ?, updated_at = ? WHERE id = ?`).run(timestamp, timestamp, caseId) as { changes?: number }).changes ?? 0);
-      affectedRows += replacePendingAnonymizationMarkersForCase(this.db, caseId, timestamp);
-      affectedRows += new SearchIndexService(this.db).deleteCase(caseId);
-      affectedRows += new SearchIndexService(this.db).reindexCase(caseId);
-      affectedRows += Number((this.db.prepare(`UPDATE person_case_links SET link_state = 'person_anonymized', anonymized_at = ? WHERE case_file_id = ? AND link_state = 'active'`).run(timestamp, caseId) as { changes?: number }).changes ?? 0);
-      this.db.prepare(`UPDATE privacy_review_items SET status = 'anonymized', updated_at = ? WHERE case_id = ? AND status = 'open'`).run(timestamp, caseId);
-      new PersonalDataAuditLogService(this.db).append({ action: 'update', subjectType: 'privacy_review', caseId, purpose: 'Fallakte strukturiert anonymisiert', metadata: { reasonDocumented: true, pendingMarkersApplied: true, unmarkedFreeTextReviewRequired: true } });
-      return { ok: true, message: `Fall ${row.case_number} wurde strukturiert anonymisiert. Vorgemerkte Freitextstellen wurden ersetzt; nicht markierte Freitexte bleiben prüfpflichtig.`, affectedRows, affectedFiles: 0 };
-    } catch (error) {
-      return { ok: false, error: error instanceof Error ? error.message : 'Fallakte konnte nicht anonymisiert werden.', affectedRows: 0, affectedFiles: 0 };
-    }
-  }
 
   markCaseAnonymized(caseId: string): void {
     const timestamp = nowIso();

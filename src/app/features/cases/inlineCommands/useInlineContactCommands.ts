@@ -11,7 +11,7 @@ export function useInlineContactCommands(runtime: InlineCommandRuntime) {
     setNextSteps,
     setNoteInfo,
     setNoteError,
-    onCreateContact,
+    stageInlineAction,
   } = runtime;
   function removeContactCommand(draft: InlineContactDraft) {
     const applyRemoval = (current: string) => {
@@ -31,7 +31,7 @@ export function useInlineContactCommands(runtime: InlineCommandRuntime) {
 
   function insertInlineContactText(
     draft: InlineContactDraft,
-    contact: ContactRecord,
+    contact: ContactRecord | Pick<ContactRecord, "firstName" | "lastName" | "organization">,
   ) {
     const replacement = formatContactReference(contact);
     const applyReplacement = (current: string) => {
@@ -65,28 +65,21 @@ export function useInlineContactCommands(runtime: InlineCommandRuntime) {
       return;
     }
 
-    try {
-      const created = await onCreateContact({
-        firstName: inlineContactDraft.firstName,
-        lastName: inlineContactDraft.lastName,
-        organization: inlineContactDraft.organization || undefined,
-        role: inlineContactDraft.role || undefined,
-        category: inlineContactDraft.category,
-        email: inlineContactDraft.email || undefined,
-        phone: inlineContactDraft.phone || undefined,
-      });
-      insertInlineContactText(inlineContactDraft, created);
-      setInlineContactDraft(null);
-      setNoteInfo(
-        `Kontakt angelegt und eingefügt: ${formatContactReference(created)}`,
-      );
-    } catch (error) {
-      setNoteError(
-        error instanceof Error
-          ? error.message
-          : "Kontakt konnte nicht angelegt werden.",
-      );
-    }
+    const contactInput = {
+      firstName: inlineContactDraft.firstName,
+      lastName: inlineContactDraft.lastName,
+      organization: inlineContactDraft.organization || undefined,
+      role: inlineContactDraft.role || undefined,
+      category: inlineContactDraft.category,
+      email: inlineContactDraft.email || undefined,
+      phone: inlineContactDraft.phone || undefined,
+    };
+    stageInlineAction({ kind: "contact", input: contactInput });
+    insertInlineContactText(inlineContactDraft, contactInput);
+    setInlineContactDraft(null);
+    setNoteInfo(
+      `Kontakt ist vorgemerkt und wird erst mit dem Speichern der Notiz angelegt: ${formatContactReference(contactInput)}`,
+    );
   }
 
   function cancelInlineContactDraft() {

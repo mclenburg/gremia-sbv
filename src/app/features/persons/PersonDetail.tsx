@@ -39,7 +39,7 @@ export function PersonDetail({
   onDocumentRetention: (input: PrivacyReviewActionInput) => Promise<PrivacyReviewActionResult>;
   onScheduleLater: (input: PrivacyReviewActionInput) => Promise<PrivacyReviewActionResult>;
   onClearReview: (input: PrivacyReviewActionInput) => Promise<PrivacyReviewActionResult>;
-  onAnonymizeCase: (input: Required<Pick<PrivacyReviewActionInput, 'caseId' | 'reason' | 'confirmation'>>) => Promise<PrivacyReviewActionResult>;
+  onAnonymizeCase: (input: Required<Pick<PrivacyReviewActionInput, 'caseId' | 'reason' | 'confirmation' | 'anonymizationMode'>>) => Promise<PrivacyReviewActionResult>;
   onDeleteCase: (input: Required<Pick<PrivacyReviewActionInput, 'caseId' | 'reason' | 'confirmation'>>) => Promise<PrivacyReviewActionResult>;
   onMessage: (message: string) => void;
   onError: (message: string) => void;

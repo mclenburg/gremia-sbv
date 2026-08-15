@@ -1,10 +1,9 @@
 import type { LegalNormRecord } from "../../../core/models/knowledge.model";
 import { formatLegalNormText, formatRiskText, type LegalNormSuggestion } from "@services/textCommandPolicy";
-import { waitForBridge } from "../../../core/bridge/waitForBridge";
 import type { InlineCommandRuntime } from "./inlineCommandRuntime";
 
 export function useInlineLegalRiskCommands(runtime: InlineCommandRuntime) {
-  const { selectedCaseId, confidentialLevel, setConfidentialLevel, setCaseLegalReferences, setNoteInfo, replaceInlineCommandWithToken, removeInlineCommand,
+  const { selectedCaseId, confidentialLevel, setConfidentialLevel, setNoteInfo, stageInlineAction, replaceInlineCommandWithToken, removeInlineCommand,
     drafts: { inlineLegalNormDraft, setInlineLegalNormDraft, inlineRiskDraft, setInlineRiskDraft } } = runtime;
   async function insertLegalNormFromProtocol(
     norm: LegalNormSuggestion | LegalNormRecord,
@@ -17,24 +16,16 @@ export function useInlineLegalRiskCommands(runtime: InlineCommandRuntime) {
       formatLegalNormText(norm),
     );
     if (selectedCaseId) {
-      try {
-        const bridge = await waitForBridge();
-        if (bridge?.knowledge) {
-          await bridge.knowledge.linkNormToCase({
-            caseId: selectedCaseId,
-            legalNormId: norm.id,
-            note: "Aus Protokoll mit §§ verknüpft.",
-          });
-          setCaseLegalReferences(
-            await bridge.knowledge.listCaseReferences(selectedCaseId),
-          );
-        }
-      } catch {
-        // Der Text bleibt eingefügt; der Fallbezug kann später im Wissensmodul nachgezogen werden.
-      }
+      stageInlineAction({
+        kind: "legal_norm_case_link",
+        input: { caseId: selectedCaseId, legalNormId: norm.id, note: "Aus Protokoll mit §§ verknüpft." },
+        displayLabel: `${norm.paragraph} · ${norm.title}`,
+      });
     }
     setInlineLegalNormDraft(null);
-    setNoteInfo(`Rechtsnorm eingefügt: ${norm.paragraph}`);
+    setNoteInfo(selectedCaseId
+      ? `Rechtsnorm eingefügt und Fallbezug vorgemerkt: ${norm.paragraph}`
+      : `Rechtsnorm eingefügt: ${norm.paragraph}`);
   }
 
   function cancelInlineLegalNormDraft() {

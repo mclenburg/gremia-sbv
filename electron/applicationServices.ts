@@ -1,4 +1,4 @@
-import { ActivityJournalPreferenceService, ActivityJournalService, PersonalDataAuditLogService, MeasureLifecycleAuditService, SearchIndexService, BackupService, BemService, CaseHandoverService, CaseMeasureService, CaseService, ComplianceIncidentService, ComplianceSelfCheckService, ContactService, DeadlineService, DsarPrefillService, EqualizationService, GremiaBrAuthService, GremiaBrCacheService, GremiaBrExternalReferenceService, GremiaBrSettingsService, KnowledgeService, ParticipationService, PersonAnonymizationService, PersonImportService, PersonStatusExpiryService, PreventionService, PrivacyReviewService, ProtectedPersonService, RecruitingParticipationService, ReportService, RetentionService, SbvControlProtocolService, SbvParticipationViolationDocumentService, SbvParticipationViolationService, SbvParticipationViolationTemplateService, SbvResourceService, TemplateDefaultService, TemplateService, TerminationService, WorkplaceAccommodationService, type DatabaseAdapter, type SecurityService } from './applicationServiceDependencies.js';
+import { ActivityJournalPreferenceService, ActivityJournalService, PersonalDataAuditLogService, MeasureLifecycleAuditService, SearchIndexService, BackupService, BemService, CaseAnonymizationService, CaseHandoverService, CaseMeasureService, CaseService, ComplianceIncidentService, ComplianceSelfCheckService, ContactService, DeadlineService, DsarPrefillService, EqualizationService, GremiaBrAuthService, GremiaBrCacheService, GremiaBrExternalReferenceService, GremiaBrSettingsService, KnowledgeService, ParticipationService, PersonAnonymizationService, PersonImportService, PersonStatusExpiryService, PreventionService, PrivacyReviewService, ProtectedPersonService, RecruitingParticipationService, ReportService, RetentionService, SbvControlProtocolService, SbvParticipationViolationDocumentService, SbvParticipationViolationService, SbvParticipationViolationTemplateService, SbvResourceService, TemplateDefaultService, TemplateService, TerminationService, WorkplaceAccommodationService, type DatabaseAdapter, type SecurityService } from './applicationServiceDependencies.js';
 /**
  * Central composition root for Electron main-process application services.
  *
@@ -28,6 +28,7 @@ export class ApplicationServices {
 
   readonly backup: BackupService;
   readonly cases: CaseService;
+  readonly caseAnonymization: CaseAnonymizationService;
   readonly caseHandover: CaseHandoverService;
   readonly contacts: ContactService;
   readonly knowledge: KnowledgeService;
@@ -50,6 +51,7 @@ export class ApplicationServices {
 
     this.backup = new BackupService(security);
     this.cases = new CaseService(databaseProvider, () => security.getDataDirectory());
+    this.caseAnonymization = new CaseAnonymizationService(databaseProvider, () => security.getDataDirectory());
     this.caseHandover = new CaseHandoverService(databaseProvider, () => security.getDataDirectory());
     this.contacts = new ContactService(databaseProvider);
     this.knowledge = new KnowledgeService(databaseProvider);

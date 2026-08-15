@@ -4,11 +4,11 @@ import { AlertTriangle, Download, HardDrive, Save, ShieldCheck } from "lucide-re
 import { waitForBridge } from "../../core/bridge/waitForBridge";
 import { formatDateShort } from "../../shared/format/dates";
 import type { CaseRecord } from "../../core/models/case.model";
-import type { RetentionCandidate, RetentionDashboard, RetentionOperationResult, RetentionSettings } from "../../core/models/retention.model";
+import type { RetentionCandidate, RetentionDashboard, RetentionSettings } from "../../core/models/retention.model";
+import { RetentionCasePrivacyActions } from "./RetentionCasePrivacyActions";
 import type { BackupInspectionResult, BackupOperationResult } from "../../core/models/backup.model";
 import type { RenderedTemplateResult, ContextualTemplateAction } from "../../core/models/template.model";
 import { APP_VERSION } from "../../generated/appVersion";
-import { TextCommandTextarea } from "../../shared/textCommands/TextCommandTextarea";
 import { buildExportWarningMessage, scanSensitiveExportText } from "@services/exportGuardPolicy";
 import { missingPlaceholderWarning } from "@services/templateContextPolicy";
 import { useConfirmDialog } from "../../shared/dialogs/ConfirmDialogProvider";
@@ -20,12 +20,9 @@ import { AUDIT_LOG_RETENTION_NOTICE } from "../../core/copy/privacyNotices";
 export function RetentionSettingsPanel({ cases }: { cases: CaseRecord[] }) {
   const [dashboard, setDashboard] = useState<RetentionDashboard | null>(null);
   const [settings, setSettings] = useState<RetentionSettings | null>(null);
-  const [reason, setReason] = useState("");
-  const [confirmation, setConfirmation] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const [selectedCaseId, setSelectedCaseId] = useState("");
 
   async function reloadRetention() {
     setError("");
@@ -60,49 +57,6 @@ export function RetentionSettingsPanel({ cases }: { cases: CaseRecord[] }) {
       const updated = await bridge.retention.updateSettings(settings);
       setSettings(updated);
       setMessage("Lösch- und Prüffristen wurden gespeichert.");
-      await reloadRetention();
-    } catch (error) {
-      setError(error instanceof Error ? error.message : String(error));
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function runCaseAction(action: "anonymize" | "delete") {
-    if (!selectedCaseId) {
-      setError("Bitte einen Fall auswählen.");
-      return;
-    }
-    if (!reason.trim()) {
-      setError("Bitte einen Grund dokumentieren.");
-      return;
-    }
-    setBusy(true);
-    setError("");
-    setMessage("");
-    try {
-      const bridge = await waitForBridge();
-      if (!bridge?.retention)
-        throw new Error("Löschdienst ist nicht erreichbar.");
-      const result: RetentionOperationResult =
-        action === "anonymize"
-          ? await bridge.retention.anonymizeCase(
-              selectedCaseId,
-              reason,
-              confirmation,
-            )
-          : await bridge.retention.deleteCase(
-              selectedCaseId,
-              reason,
-              confirmation,
-            );
-      if (!result.ok) {
-        setError(result.error ?? "Aktion konnte nicht durchgeführt werden.");
-        return;
-      }
-      setMessage(result.message ?? "Aktion wurde durchgeführt.");
-      setReason("");
-      setConfirmation("");
       await reloadRetention();
     } catch (error) {
       setError(error instanceof Error ? error.message : String(error));
@@ -303,64 +257,7 @@ export function RetentionSettingsPanel({ cases }: { cases: CaseRecord[] }) {
         </table>
       </div>
 
-      <div className="industrial-subpanel industrial-danger-zone">
-        <h4>Fall anonymisieren oder löschen</h4>
-        <p className="industrial-settings-note">
-          Diese Funktionen sind bewusst streng. Bitte vor Löschung ein Backup
-          erstellen und den Grund dokumentieren.
-        </p>
-        <p className="industrial-message industrial-message-info" data-e2e="audit-log-retention-notice">
-          {AUDIT_LOG_RETENTION_NOTICE}
-        </p>
-        <label>
-          <span>Fall</span>
-          <select className="industrial-select"
-            value={selectedCaseId}
-            onChange={(event) => setSelectedCaseId(event.target.value)}
-          >
-            <option value="">Fall auswählen</option>
-            {cases.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.caseNumber} · {item.displayName}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          <span>Grund / Dokumentation</span>
-          <TextCommandTextarea
-            fieldId="retention-reason"
-            value={reason}
-            onChange={(event) => setReason(event.target.value)}
-          />
-        </label>
-        <label>
-          <span>Bestätigung</span>
-          <input
-            value={confirmation}
-            onChange={(event) => setConfirmation(event.target.value)}
-            placeholder="FALL ANONYMISIEREN oder FALL LÖSCHEN"
-          />
-        </label>
-        <div className="flex flex-wrap gap-3">
-          <button
-            type="button"
-            className="industrial-secondary-button"
-            disabled={busy}
-            onClick={() => void runCaseAction("anonymize")}
-          >
-            Fall anonymisieren
-          </button>
-          <button
-            type="button"
-            className="industrial-danger-button"
-            disabled={busy}
-            onClick={() => void runCaseAction("delete")}
-          >
-            Fall löschen
-          </button>
-        </div>
-      </div>
+      <RetentionCasePrivacyActions cases={cases} busy={busy} setBusy={setBusy} setError={setError} setMessage={setMessage} reloadRetention={reloadRetention} />
 
       {error && (
         <div className="industrial-message industrial-message-warning" role="alert">

@@ -120,10 +120,10 @@ export function InlineParticipationOverlay({ props }: { props: InlineCommandOver
           </div>
           <div>
             <p className="industrial-kicker">Inline-Maßnahme</p>
-            <h2 id="inline-participation-title">SBV-Beteiligung anlegen</h2>
+            <h2 id="inline-participation-title">SBV-Beteiligung vormerken</h2>
             <p>
-              Legt die Beteiligung direkt als Maßnahme in der aktuellen
-              Fallakte an. Details können nach dem Gespräch ergänzt werden.
+              Merkt die Beteiligung als Maßnahme der aktuellen Fallakte vor.
+              Angelegt wird sie erst zusammen mit dem Speichern der Notiz.
             </p>
           </div>
         </div>
@@ -221,8 +221,7 @@ export function InlineParticipationOverlay({ props }: { props: InlineCommandOver
           </label>
         </div>
         <div className="industrial-modal-preview">
-          <ClipboardCheck className="h-4 w-4" /> Wird als Fallaktenmaßnahme
-          angelegt:{" "}
+          <ClipboardCheck className="h-4 w-4" /> Wird mit dem Speichern der Notiz als Fallaktenmaßnahme angelegt:{" "}
           <strong>
             {inlineParticipationDraft.title.trim() || "SBV-Beteiligung"}
           </strong>
@@ -240,7 +239,7 @@ export function InlineParticipationOverlay({ props }: { props: InlineCommandOver
             className="industrial-button"
             onClick={() => void createParticipationFromProtocol()}
           >
-            Anlegen und weiterprotokollieren
+            Vormerken und weiterprotokollieren
           </button>
         </div>
       </section>

@@ -206,7 +206,8 @@ function CaseDialogs({ props }: { props: CasesViewRenderProps }) {
     <CaseNoteModal open={isNoteModalOpen} editingNote={editingNote} noteTitle={noteTitle} noteDate={noteDate} noteType={noteType}
       participants={participants} content={content} nextSteps={nextSteps} cases={cases} linkedCaseIds={linkedCaseIds}
       selectedCaseId={selectedCaseId} confidentialLevel={confidentialLevel} containsHealthData={containsHealthData}
-      noteError={noteError} noteInfo={noteInfo} onTitleChange={setNoteTitle} onDateChange={setNoteDate}
+      noteError={noteError} noteInfo={noteInfo} pendingInlineActions={inlineCommands.pendingActions}
+      onRemovePendingInlineAction={inlineCommands.removePendingAction} onTitleChange={setNoteTitle} onDateChange={setNoteDate}
       onNoteTypeChange={setNoteType} onParticipantsChange={setParticipants} onProtocolTextChange={inlineCommands.handleProtocolTextChange}
       onProtocolTextCommand={inlineCommands.handleProtocolTextCommand} onToggleLinkedCase={toggleLinkedCase}
       onConfidentialLevelChange={setConfidentialLevel} onContainsHealthDataChange={setContainsHealthData}

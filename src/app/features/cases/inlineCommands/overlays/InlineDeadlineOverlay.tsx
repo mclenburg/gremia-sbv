@@ -119,9 +119,9 @@ export function InlineDeadlineOverlay({ props }: { props: InlineCommandOverlaysP
           </div>
           <div>
             <p className="industrial-kicker">Inline-Frist</p>
-            <h2 id="inline-deadline-title">Frist aus Protokoll anlegen</h2>
+            <h2 id="inline-deadline-title">Frist aus Protokoll vormerken</h2>
             <p>
-              Die Frist wird mit dem aktuell ausgewählten Fall verbunden:{" "}
+              Die Frist wird vorgemerkt und erst zusammen mit der Notiz gespeichert. Fallbezug:{" "}
               {selectedCase?.caseNumber ?? "—"}
             </p>
           </div>
@@ -228,7 +228,7 @@ export function InlineDeadlineOverlay({ props }: { props: InlineCommandOverlaysP
             onClick={() => void createInlineDeadlineFromProtocol()}
           >
             <CalendarPlus className="h-4 w-4" />
-            Frist anlegen
+            Frist vormerken
           </button>
         </div>
       </section>

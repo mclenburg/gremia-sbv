@@ -181,6 +181,10 @@ export class MigrationInference extends MigrationCore {
         case '0049':
           return this.tableExists('schema_migration_components')
             && Boolean(this.db.prepare<{ count: number }>('SELECT COUNT(*) AS count FROM schema_migration_components WHERE migration_version = ?').get('0049')?.count);
+        case '0050': {
+          const sql = this.db.prepare<{ sql: string | null }>("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'case_note_links'").get()?.sql ?? '';
+          return sql.includes('prevention') && sql.includes('termination_hearing') && sql.includes('equalization') && sql.includes('workplace_accommodation');
+        }
       default:
         return false;
     }

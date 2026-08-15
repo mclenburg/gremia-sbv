@@ -2,6 +2,10 @@ import { test, expect } from './support/test';
 
 test('opens and closes the keyboard command help with Ctrl+H and Esc', async ({ page }) => {
   await page.goto('/');
+  const trigger = page.getByRole('navigation', { name: 'Hauptnavigation' })
+    .getByRole('button', { name: 'Fallakte', exact: true });
+  await expect(trigger).toBeVisible();
+  await trigger.focus();
   await page.keyboard.press(process.platform === 'darwin' ? 'Meta+H' : 'Control+H');
 
   const dialog = page.getByRole('dialog', { name: /Kurzbefehle/ });

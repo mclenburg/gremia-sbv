@@ -47,6 +47,6 @@ export function InlineContactOverlay({ props }: { props: InlineCommandOverlaysPr
     <div className="industrial-modal-header"><div className="industrial-modal-icon"><Users className="h-5 w-5" /></div><div><p className="industrial-kicker">Inline-Kontakt</p><h2 id="inline-contact-title">Kontakt im Protokoll einfügen</h2><p>Nach dem Einfügen steht im Text: Name, Vorname (Firma).</p></div></div>
     <ContactSearch props={contactProps} />
     <ContactCreateFields props={contactProps} />
-    <div className="industrial-modal-actions"><button type="button" className="industrial-secondary-button" onClick={props.cancelInlineContactDraft}>Abbrechen</button><button type="button" className="industrial-button" onClick={() => void props.createAndInsertContactFromProtocol()}><Users className="h-4 w-4" />Kontakt anlegen und einfügen</button></div>
+    <div className="industrial-modal-actions"><button type="button" className="industrial-secondary-button" onClick={props.cancelInlineContactDraft}>Abbrechen</button><button type="button" className="industrial-button" onClick={() => void props.createAndInsertContactFromProtocol()}><Users className="h-4 w-4" />Kontakt vormerken und einfügen</button></div>
   </section></div>;
 }

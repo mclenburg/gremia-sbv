@@ -44,26 +44,11 @@ describe('0.9.1 Datenschutz-Lifecycle und Audit-Härtung', () => {
   });
 
 
-  it('ersetzt nur vorgemerkte Freitextstellen im Privacy-Review-Anonymisierungspfad', async () => {
-    const source = await import('node:fs').then((fs) => fs.readFileSync('services/privacyReviewService.ts', 'utf8'));
-    expect(source).toContain('anonymizeCaseStructuredData');
-    expect(source).toContain('replacePendingAnonymizationMarkersForCase');
-    expect(source).toContain('applyPendingAnonymizationMarkers');
-    expect(source).not.toMatch(/content\s*=\s*\?/);
-    expect(source).not.toContain("case_notes SET participants = '[anonymisiert]', content = ?");
-    expect(source).toContain('unmarkedFreeTextReviewRequired: true');
-  });
-
-
-
-  it('erfasst vorgemerkte Freitextstellen in Prozess- und Maßnahmentabellen der Fallakte', async () => {
+  it('registriert Freitextfelder der Fallakte einschließlich Prozess-, Maßnahmen- und Beteiligtenfeldern zentral', () => {
     const registeredTables = casePrivacyTables();
-    for (const table of ['bem_processes', 'bem_process_events', 'prevention_processes', 'prevention_process_events', 'equalization_processes', 'termination_hearings', 'sbv_participations', 'sbv_participation_events', 'case_measures', 'case_measure_notes']) {
+    for (const table of ['case_notes', 'bem_processes', 'bem_process_events', 'prevention_processes', 'prevention_process_events', 'equalization_processes', 'termination_hearings', 'sbv_participations', 'sbv_participation_events', 'case_measures', 'case_measure_notes', 'case_measure_workplace_accommodation']) {
       expect(registeredTables).toContain(table);
     }
-
-    const source = await import('node:fs').then((fs) => fs.readFileSync('services/privacyReviewService.ts', 'utf8'));
-    expect(source).toContain('case_measure_workplace_accommodation');
   });
 
   it('schützt Audit-Purpose und Actor vor direkten Identifikatoren', () => {

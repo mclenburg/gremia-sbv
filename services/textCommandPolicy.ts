@@ -277,27 +277,27 @@ export function formatTemplateMarkerText(query: string): string {
 }
 
 export function formatParticipationMarkerText(title: string): string {
-  return `SBV-Beteiligung angelegt: ${title.trim() || 'Beteiligung nach § 178 Abs. 2 SGB IX prüfen'}`;
+  return `SBV-Beteiligung: ${title.trim() || 'Beteiligung nach § 178 Abs. 2 SGB IX prüfen'}`;
 }
 
 export function formatWorkplaceAccommodationMarkerText(title: string): string {
-  return `Arbeitsplatzgestaltung angelegt: ${title.trim() || 'behinderungsgerechte Beschäftigung nach § 164 Abs. 4 SGB IX prüfen'}`;
+  return `Arbeitsplatzgestaltung: ${title.trim() || 'behinderungsgerechte Beschäftigung nach § 164 Abs. 4 SGB IX prüfen'}`;
 }
 
 export function formatBemMarkerText(title: string): string {
-  return `BEM-Vorgang angelegt: ${title.trim() || 'Betriebliches Eingliederungsmanagement prüfen'}`;
+  return `BEM-Vorgang: ${title.trim() || 'Betriebliches Eingliederungsmanagement prüfen'}`;
 }
 
 export function formatPreventionMarkerText(title: string): string {
-  return `Präventionsverfahren angelegt: ${title.trim() || 'Prävention nach § 167 Abs. 1 SGB IX prüfen'}`;
+  return `Präventionsverfahren: ${title.trim() || 'Prävention nach § 167 Abs. 1 SGB IX prüfen'}`;
 }
 
 export function formatEqualizationMarkerText(title: string): string {
-  return `Gleichstellung/GdB angelegt: ${title.trim() || 'Gleichstellung oder GdB-Beratung prüfen'}`;
+  return `Gleichstellung/GdB: ${title.trim() || 'Gleichstellung oder GdB-Beratung prüfen'}`;
 }
 
 export function formatTerminationMarkerText(title: string): string {
-  return `Kündigungsanhörung angelegt: ${title.trim() || 'Kündigungsanhörung prüfen'}`;
+  return `Kündigungsanhörung: ${title.trim() || 'Kündigungsanhörung prüfen'}`;
 }
 
 export function formatContactReferenceText(contact: { firstName?: string; lastName?: string; organization?: string; role?: string; email?: string }): string {

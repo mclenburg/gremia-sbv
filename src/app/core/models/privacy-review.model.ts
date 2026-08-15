@@ -12,6 +12,7 @@ export type PrivacyReviewReason =
   | 'retention_due';
 
 export type PrivacyReviewPriority = 'critical' | 'high' | 'normal' | 'low';
+export type CaseAnonymizationMode = 'marked_free_text' | 'replace_all_free_text';
 export type PrivacyReviewItemStatus = 'open' | 'cleared' | 'anonymized' | 'deleted' | 'retention_documented';
 
 export interface PrivacyReviewContextSnapshot {
@@ -43,6 +44,7 @@ export interface PrivacyReviewActionInput {
   reason: string;
   reviewAt?: string;
   confirmation?: string;
+  anonymizationMode?: CaseAnonymizationMode;
 }
 
 export interface PrivacyReviewActionResult {

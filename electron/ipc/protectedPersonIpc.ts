@@ -7,7 +7,7 @@ import type { ApplicationServices } from '../applicationServices.js';
 import type { CreateProtectedPersonInput, PersonImportExecuteInput, PersonImportPreviewInput, ProtectedPersonListFilters, UpdateProtectedPersonInput } from '../../src/app/core/models/protected-person.model.js';
 import type { DeadlineListFilters } from '../../src/app/core/models/deadline.model.js';
 import type { PrivacyReviewActionInput } from '../../src/app/core/models/privacy-review.model.js';
-import { assertOptionalObject, assertRecordInput, assertString } from './ipcValidation.js';
+import { assertAllowedEnum, assertOptionalObject, assertRecordInput, assertString } from './ipcValidation.js';
 
 export function registerProtectedPersonIpc(ipcMain: IpcMain, security: SecurityService, services: ApplicationServices): void {
   const persons = services.protectedPersons, imports = services.personImport, expiry = services.personStatusExpiry;
@@ -133,10 +133,10 @@ export function registerProtectedPersonIpc(ipcMain: IpcMain, security: SecurityS
   registerIpcHandler(ipcMain, IPC_CHANNELS.privacyReviewAnonymizeCase, async (_event, input: unknown) => {
     const checked = assertRecordInput<PrivacyReviewActionInput>(input, 'privacy-review:anonymize-case');
     const caseId = assertString(checked.caseId, 'privacy-review:anonymize-case', 'Fall-ID', { minLength: 1, maxLength: 120 });
-    return privacyReviews().anonymizeCaseStructuredData(
+    return services.caseAnonymization.anonymizeCase(
       caseId,
       assertString(checked.reason, 'privacy-review:anonymize-case', 'Grund', { minLength: 1, maxLength: 5_000 }),
-      assertString(checked.confirmation, 'privacy-review:anonymize-case', 'Bestätigung', { minLength: 1, maxLength: 200 })
+      assertString(checked.confirmation, 'privacy-review:anonymize-case', 'Bestätigung', { minLength: 1, maxLength: 200 }), assertAllowedEnum(checked.anonymizationMode, 'privacy-review:anonymize-case', 'Anonymisierungsmodus', ['marked_free_text', 'replace_all_free_text'] as const),
     );
   });
 

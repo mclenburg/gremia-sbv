@@ -1,25 +1,17 @@
-import { useRef, useState } from 'react';
-import type { FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import type { CaseNoteRecord, CaseNoteType, ConfidentialLevel } from '../../core/models/case-note.model';
 import type { CreateCaseNoteLinkInput } from '../../core/models/case-note-link.model';
 import type { CaseExplorerSelection } from './caseWorkbenchTypes';
 import { fromDateTimeLocalValue, toDateTimeLocalValue } from './caseWorkbenchFormat';
 import { waitForBridge } from '../../core/bridge/waitForBridge';
+import { useCaseNoteInlineActionBindings } from './useCaseNoteInlineActionBindings';
 
-export function useCaseNoteEditor({
-  selectedCaseId,
-  searchQuery,
-  reloadSelectedCaseChildren,
-  runSearch,
-  setSelection
-}: {
-  selectedCaseId: string;
-  searchQuery: string;
-  reloadSelectedCaseChildren: () => Promise<void>;
-  runSearch: () => Promise<void>;
-  setSelection: (selection: CaseExplorerSelection) => void;
+export function useCaseNoteEditor({ selectedCaseId, searchQuery, reloadSelectedCaseChildren, reloadWorkData, runSearch, setSelection }: {
+  selectedCaseId: string; searchQuery: string;
+  reloadSelectedCaseChildren: () => Promise<void>; reloadWorkData: () => Promise<void>;
+  runSearch: () => Promise<void>; setSelection: (selection: CaseExplorerSelection) => void;
 }) {
-  const clearInlineDraftsRef = useRef<() => void>(() => undefined);
+  const inlineActionBindings = useCaseNoteInlineActionBindings();
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<CaseNoteRecord | null>(null);
   const [noteTitle, setNoteTitle] = useState('');
@@ -35,10 +27,6 @@ export function useCaseNoteEditor({
   const [noteError, setNoteError] = useState('');
   const [noteInfo, setNoteInfo] = useState('');
 
-  function bindClearInlineDrafts(handler: () => void) {
-    clearInlineDraftsRef.current = handler;
-  }
-
   function resetNoteForm() {
     setEditingNote(null);
     setNoteTitle('');
@@ -51,11 +39,10 @@ export function useCaseNoteEditor({
     setConfidentialLevel('sensibel');
     setLinkedCaseIds(selectedCaseId ? [selectedCaseId] : []);
     setEntityLinks([]);
-    clearInlineDraftsRef.current();
+    inlineActionBindings.clearDrafts.current();
     setNoteError('');
     setNoteInfo('');
   }
-
   function startEditNote(note: CaseNoteRecord) {
     setEditingNote(note);
     setNoteTitle(note.title);
@@ -78,11 +65,10 @@ export function useCaseNoteEditor({
     })));
     setSelection({ type: 'note', id: note.id });
     setIsNoteModalOpen(true);
-    clearInlineDraftsRef.current();
+    inlineActionBindings.clearDrafts.current();
     setNoteError('');
     setNoteInfo('');
   }
-
   function toggleLinkedCase(caseId: string, checked: boolean) {
     setLinkedCaseIds((current) => {
       const next = checked ? [...current, caseId] : current.filter((id) => id !== caseId);
@@ -135,6 +121,7 @@ export function useCaseNoteEditor({
     try {
       const bridge = await waitForBridge();
       if (!bridge?.cases) throw new Error('Falldienst ist nicht erreichbar.');
+      const inlineActions = inlineActionBindings.getPending.current();
       const payload = {
         caseId: selectedCaseId,
         caseIds: normalizedLinkedCaseIds,
@@ -146,7 +133,8 @@ export function useCaseNoteEditor({
         nextSteps: nextSteps.trim() || undefined,
         containsHealthData,
         confidentialLevel,
-        links: entityLinks
+        links: entityLinks,
+        inlineActions,
       };
       const saved = editingNote
         ? await bridge.cases.updateNote(editingNote.id, payload)
@@ -154,6 +142,7 @@ export function useCaseNoteEditor({
       resetNoteForm();
       setIsNoteModalOpen(false);
       await reloadSelectedCaseChildren();
+      if (inlineActions.length) await reloadWorkData();
       setSelection({ type: 'note', id: saved.id });
       if (searchQuery.trim()) await runSearch();
     } catch (error) {
@@ -168,7 +157,8 @@ export function useCaseNoteEditor({
   }
 
   return {
-    bindClearInlineDrafts,
+    bindClearInlineDrafts: inlineActionBindings.bindClearDrafts,
+    bindGetPendingInlineActions: inlineActionBindings.bindGetPending,
     isNoteModalOpen,
     editingNote,
     noteTitle,

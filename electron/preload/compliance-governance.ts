@@ -2,6 +2,7 @@ import type { IpcInvoker } from "./invoke.js";
 import type { CreateSbvResourceRecordInput, SbvResourceDashboardSummary, SbvResourceRecord, UpdateSbvResourceRecordInput } from "../../src/app/core/models/sbv-resource.model.js";
 import { IPC_CHANNELS } from "../ipc/channels.js";
 import type { CreateSbvControlProtocolInput, SbvControlProtocolRecord, UpdateSbvControlProtocolInput } from "../../src/app/core/models/sbv-control-protocol.model.js";
+import type { CaseAnonymizationMode } from "../../src/app/core/models/privacy-review.model.js";
 import type { ComplianceAuditChainStatus, ComplianceDatabaseIntegrityStatus, ComplianceIncidentRecord, ComplianceSelfCheckResult, CreateComplianceIncidentInput, DataSubjectAccessPrefill, DataSubjectAccessRequestInput, UpdateComplianceIncidentInput } from "../../src/app/core/models/compliance.model.js";
 import type {
   RetentionDashboard,
@@ -54,12 +55,14 @@ export function createGovernanceApi(invokeIpc: IpcInvoker) {
           caseId: string,
           reason: string,
           confirmation: string,
+          anonymizationMode: CaseAnonymizationMode,
         ): Promise<RetentionOperationResult> =>
           invokeIpc(
             IPC_CHANNELS.retentionCaseAnonymize,
             caseId,
             reason,
             confirmation,
+            anonymizationMode,
           ),
         deleteCase: (
           caseId: string,

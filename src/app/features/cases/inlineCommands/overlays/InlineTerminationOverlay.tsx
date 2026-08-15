@@ -121,11 +121,11 @@ export function InlineTerminationOverlay({ props }: { props: InlineCommandOverla
           <div>
             <p className="industrial-kicker">Inline-Maßnahme</p>
             <h2 id="inline-termination-title">
-              Kündigungsanhörung anlegen
+              Kündigungsanhörung vormerken
             </h2>
             <p>
-              Legt einen Kündigungsanhörungsvorgang direkt in der aktuellen
-              Fallakte an. Fristen können sofort vorgemerkt werden.
+              Merkt einen Kündigungsanhörungsvorgang für die aktuelle Fallakte
+              vor. Angelegt wird er erst mit der Notiz. Fristen können sofort vorgemerkt werden.
             </p>
           </div>
         </div>
@@ -275,7 +275,7 @@ export function InlineTerminationOverlay({ props }: { props: InlineCommandOverla
           </label>
         </div>
         <div className="industrial-modal-preview">
-          <Siren className="h-4 w-4" /> Wird als Fallaktenvorgang angelegt:{" "}
+          <Siren className="h-4 w-4" /> Wird mit dem Speichern der Notiz als Fallaktenvorgang angelegt:{" "}
           <strong>
             {inlineTerminationDraft.title.trim() || "Kündigungsanhörung"}
           </strong>
@@ -293,7 +293,7 @@ export function InlineTerminationOverlay({ props }: { props: InlineCommandOverla
             className="industrial-button"
             onClick={() => void createTerminationFromProtocol()}
           >
-            Anlegen und weiterprotokollieren
+            Vormerken und weiterprotokollieren
           </button>
         </div>
       </section>

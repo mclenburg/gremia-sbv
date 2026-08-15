@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { HelpCircle } from 'lucide-react';
 import type { PrivacyReviewActionInput, PrivacyReviewActionResult, PrivacyReviewItemRecord } from '../../core/models/privacy-review.model';
-import type { ProtectedPersonRecord } from '../../core/models/protected-person.model';
-import { employmentStateLabels, lifecycleStateLabels, protectionStatusLabels } from '../../core/models/protected-person.model';
+import { employmentStateLabels, lifecycleStateLabels, protectionStatusLabels, type ProtectedPersonRecord } from '../../core/models/protected-person.model';
 import { AUDIT_LOG_RETENTION_NOTICE } from '../../core/copy/privacyNotices';
 
 const reasonLabels: Record<string, string> = {
@@ -42,7 +41,7 @@ export interface PersonLifecycleReviewDialogProps {
   onDocumentRetention: (input: PrivacyReviewActionInput) => Promise<PrivacyReviewActionResult>;
   onScheduleLater: (input: PrivacyReviewActionInput) => Promise<PrivacyReviewActionResult>;
   onClear: (input: PrivacyReviewActionInput) => Promise<PrivacyReviewActionResult>;
-  onAnonymizeCase: (input: Required<Pick<PrivacyReviewActionInput, 'caseId' | 'reason' | 'confirmation'>>) => Promise<PrivacyReviewActionResult>;
+  onAnonymizeCase: (input: Required<Pick<PrivacyReviewActionInput, 'caseId' | 'reason' | 'confirmation' | 'anonymizationMode'>>) => Promise<PrivacyReviewActionResult>;
   onDeleteCase: (input: Required<Pick<PrivacyReviewActionInput, 'caseId' | 'reason' | 'confirmation'>>) => Promise<PrivacyReviewActionResult>;
   onMessage: (message: string) => void;
   onError: (message: string) => void;
@@ -64,14 +63,13 @@ export function PersonLifecycleReviewDialog({
   onError
 }: PersonLifecycleReviewDialogProps) {
   const [selectedCaseId, setSelectedCaseId] = useState('');
-  const [action, setAction] = useState<'retention' | 'later' | 'clear' | 'anonymize' | 'delete'>('retention');
+  const [action, setAction] = useState<'retention' | 'later' | 'clear' | 'anonymize_marked' | 'anonymize_all' | 'delete'>('retention');
   const [reason, setReason] = useState('');
   const [reviewAt, setReviewAt] = useState('');
   const [confirmation, setConfirmation] = useState('');
   const openButtonRef = useRef<HTMLButtonElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
-  const dialogTitleId = `privacy-review-title-${person.id}`;
-  const dialogDescriptionId = `privacy-review-description-${person.id}`;
+  const dialogTitleId = `privacy-review-title-${person.id}`; const dialogDescriptionId = `privacy-review-description-${person.id}`;
   const formErrorId = `privacy-review-error-${person.id}`;
   const [formError, setFormError] = useState('');
 
@@ -109,7 +107,7 @@ export function PersonLifecycleReviewDialog({
       if (action === 'retention') result = await onDocumentRetention({ caseId, reason, reviewAt });
       else if (action === 'later') result = await onScheduleLater({ caseId, reason, reviewAt });
       else if (action === 'clear') result = await onClear({ caseId, reason });
-      else if (action === 'anonymize') result = await onAnonymizeCase({ caseId, reason, confirmation });
+      else if (action === 'anonymize_marked' || action === 'anonymize_all') result = await onAnonymizeCase({ caseId, reason, confirmation, anonymizationMode: action === 'anonymize_marked' ? 'marked_free_text' : 'replace_all_free_text' });
       else result = await onDeleteCase({ caseId, reason, confirmation });
       if (!result.ok) throw new Error(result.error ?? 'Die Aktion konnte nicht abgeschlossen werden.');
       setReason('');
@@ -197,7 +195,7 @@ export function PersonLifecycleReviewDialog({
                     <option value="retention">Fortspeicherung begründen</option>
                     <option value="later">später erneut prüfen</option>
                     <option value="clear">Prüfung abschließen / Status aktualisiert</option>
-                    <option value="anonymize">Fallakte anonymisieren</option>
+                    <option value="anonymize_marked">Fallakte anonymisieren · nur vorgemerkte Freitexte</option><option value="anonymize_all">Fallakte anonymisieren · alle Freitexte ersetzen</option>
                     <option value="delete">Fallakte löschen</option>
                   </select>
                 </label>
@@ -211,14 +209,15 @@ export function PersonLifecycleReviewDialog({
                     <input type="date" value={reviewAt} onChange={(event) => setReviewAt(event.target.value)} aria-describedby={formError ? formErrorId : undefined} required />
                   </label>
                 )}
-                {(action === 'anonymize' || action === 'delete') && (
+                {action === 'anonymize_marked' ? <p className="industrial-message industrial-message-warning" role="note">Nicht vorgemerkte personenbezogene Angaben in Freitexten bleiben erhalten und müssen anschließend manuell geprüft werden. Beteiligtenfelder und Personen-/Kontaktverknüpfungen werden immer entfernt.</p> : null}
+                {(action === 'anonymize_marked' || action === 'anonymize_all' || action === 'delete') && (
                   <>
                     <p className="industrial-message industrial-message-info" data-e2e="audit-log-retention-notice">
                       {AUDIT_LOG_RETENTION_NOTICE}
                     </p>
                     <label>
                       <span>Bestätigung</span>
-                      <input value={confirmation} onChange={(event) => setConfirmation(event.target.value)} placeholder={action === 'anonymize' ? 'FALL ANONYMISIEREN' : 'FALL LÖSCHEN'} aria-describedby={formError ? formErrorId : undefined} required />
+                      <input value={confirmation} onChange={(event) => setConfirmation(event.target.value)} placeholder={action === 'anonymize_marked' || action === 'anonymize_all' ? 'FALL ANONYMISIEREN' : 'FALL LÖSCHEN'} aria-describedby={formError ? formErrorId : undefined} required />
                     </label>
                   </>
                 )}

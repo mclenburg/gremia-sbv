@@ -121,11 +121,11 @@ export function InlineEqualizationOverlay({ props }: { props: InlineCommandOverl
           <div>
             <p className="industrial-kicker">Inline-Maßnahme</p>
             <h2 id="inline-equalization-title">
-              Gleichstellung/GdB anlegen
+              Gleichstellung/GdB vormerken
             </h2>
             <p>
-              Legt einen Beratungs-/Begleitvorgang zur Gleichstellung oder
-              zum GdB in der aktuellen Fallakte an.
+              Merkt einen Beratungs-/Begleitvorgang zur Gleichstellung oder
+              zum GdB für die aktuelle Fallakte vor. Angelegt wird er erst mit der Notiz.
             </p>
           </div>
         </div>
@@ -220,8 +220,7 @@ export function InlineEqualizationOverlay({ props }: { props: InlineCommandOverl
           </label>
         </div>
         <div className="industrial-modal-preview">
-          <BadgeCheck className="h-4 w-4" /> Wird als Fallaktenvorgang
-          angelegt:{" "}
+          <BadgeCheck className="h-4 w-4" /> Wird mit dem Speichern der Notiz als Fallaktenvorgang angelegt:{" "}
           <strong>
             {inlineEqualizationDraft.title.trim() || "Gleichstellung/GdB"}
           </strong>
@@ -239,7 +238,7 @@ export function InlineEqualizationOverlay({ props }: { props: InlineCommandOverl
             className="industrial-button"
             onClick={() => void createEqualizationFromProtocol()}
           >
-            Anlegen und weiterprotokollieren
+            Vormerken und weiterprotokollieren
           </button>
         </div>
       </section>

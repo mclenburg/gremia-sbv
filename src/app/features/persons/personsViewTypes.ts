@@ -5,6 +5,7 @@ import type { ImportSource } from './personImportUi';
 
 export type CreateCaseForPersonInput = { caseNumber: string; displayName: string; category: CaseCategory; summary?: string };
 export type ReviewCaseActionInput = Required<Pick<PrivacyReviewActionInput, 'caseId' | 'reason' | 'confirmation'>>;
+export type ReviewCaseAnonymizationInput = Required<Pick<PrivacyReviewActionInput, 'caseId' | 'reason' | 'confirmation' | 'anonymizationMode'>>;
 
 export type PersonsViewProps = {
   persons: ProtectedPersonRecord[];
@@ -21,7 +22,7 @@ export type PersonsViewProps = {
   onDocumentRetention: (input: PrivacyReviewActionInput) => Promise<PrivacyReviewActionResult>;
   onScheduleReviewLater: (input: PrivacyReviewActionInput) => Promise<PrivacyReviewActionResult>;
   onClearReview: (input: PrivacyReviewActionInput) => Promise<PrivacyReviewActionResult>;
-  onAnonymizeReviewCase: (input: ReviewCaseActionInput) => Promise<PrivacyReviewActionResult>;
+  onAnonymizeReviewCase: (input: ReviewCaseAnonymizationInput) => Promise<PrivacyReviewActionResult>;
   onDeleteReviewCase: (input: ReviewCaseActionInput) => Promise<PrivacyReviewActionResult>;
   onAnonymizePerson: (personId: string, reason: string) => Promise<void>;
   onDeletePerson: (personId: string, reason: string) => Promise<void>;

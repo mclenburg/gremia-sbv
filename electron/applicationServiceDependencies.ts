@@ -6,6 +6,7 @@ export { MeasureLifecycleAuditService } from '../services/measureLifecycleAuditS
 export { SearchIndexService } from '../services/search/searchIndexService.js';
 export { BackupService } from '../services/backupService.js';
 export { BemService } from '../services/bemService.js';
+export { CaseAnonymizationService } from '../services/caseAnonymizationService.js';
 export { CaseHandoverService } from '../services/caseHandoverService.js';
 export { CaseMeasureService } from '../services/caseMeasureService.js';
 export { CaseService } from '../services/caseService.js';

@@ -19,15 +19,15 @@ test('executes a case inline command inside a large case note textarea', async (
   const content = noteDialog.getByLabel('Inhalt');
   await content.fill('Gesprächsnotiz:\n/praev Arbeitsplatzgefährdung klären');
 
-  const preventionDialog = page.getByRole('dialog', { name: 'Prävention anlegen' });
+  const preventionDialog = page.getByRole('dialog', { name: 'Prävention vormerken' });
   await expect(preventionDialog).toBeVisible();
   await expect(page.getByRole('dialog', { name: 'Aufgabe einfügen' })).toHaveCount(0);
   await expect(preventionDialog.getByLabel('Titel')).not.toHaveValue('');
   await preventionDialog.getByLabel('Titel').fill('Arbeitsplatzgefährdung klären');
 
-  await preventionDialog.getByRole('button', { name: 'Anlegen und weiterprotokollieren' }).click();
+  await preventionDialog.getByRole('button', { name: 'Vormerken und weiterprotokollieren' }).click();
   await expect(preventionDialog).toBeHidden();
-  await expect(content).toHaveValue(/Präventionsverfahren angelegt: Arbeitsplatzgefährdung klären/);
+  await expect(content).toHaveValue(/Präventionsverfahren: Arbeitsplatzgefährdung klären/);
   await expect(content).not.toHaveValue(/\/praev/);
 });
 

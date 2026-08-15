@@ -36,7 +36,7 @@ import type {
   DeadlineRecord,
   UpdateDeadlineInput,
 } from "./app/core/models/deadline.model";
-import type { PrivacyReviewActionInput, PrivacyReviewActionResult, PrivacyReviewBulkResult, PrivacyReviewItemRecord } from "./app/core/models/privacy-review.model";
+import type { CaseAnonymizationMode, PrivacyReviewActionInput, PrivacyReviewActionResult, PrivacyReviewBulkResult, PrivacyReviewItemRecord } from "./app/core/models/privacy-review.model";
 import type {
   SecurityResult,
   SecurityStatus,
@@ -524,6 +524,7 @@ declare global {
           caseId: string,
           reason: string,
           confirmation: string,
+          anonymizationMode: CaseAnonymizationMode,
         ): Promise<RetentionOperationResult>;
         deleteCase(
           caseId: string,

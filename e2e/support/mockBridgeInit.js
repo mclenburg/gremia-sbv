@@ -495,6 +495,50 @@
   const contacts = [];
 
   const createRecord = async (input) => ({ id: `created-${Date.now()}`, ...input, createdAt: now, updatedAt: now });
+  const createCaseNoteRecord = async (input) => {
+    const noteId = `note-${Date.now()}`;
+    const inlineLinks = [];
+    for (const [index, action] of (input.inlineActions || []).entries()) {
+      if (action?.kind !== 'deadline') continue;
+      const deadlineId = `deadline-inline-${Date.now()}-${index}`;
+      const deadlineInput = action.input || {};
+      const deadline = {
+        id: deadlineId,
+        status: 'open',
+        dashboardState: 'upcoming',
+        hoursRemaining: 168,
+        safeTitle: deadlineInput.confidentialTitle || deadlineInput.title,
+        actionHint: 'Nachfassen',
+        createdAt: now,
+        updatedAt: now,
+        ...deadlineInput,
+      };
+      deadlines.unshift(deadline);
+      inlineLinks.push({
+        id: `link-inline-${Date.now()}-${index}`,
+        caseNoteId: noteId,
+        caseId: input.caseId,
+        targetType: 'deadline',
+        targetId: deadlineId,
+        label: action.linkLabel || deadline.title,
+        accessibleLabel: action.accessibleLabel || `Frist öffnen: ${deadline.title}`,
+        textStart: 0,
+        textEnd: String(action.linkLabel || deadline.title || '').length,
+        createdAt: now,
+        isMissingTarget: false,
+      });
+    }
+    const note = {
+      id: noteId,
+      ...input,
+      caseIds: input.caseIds || [input.caseId],
+      createdAt: now,
+      updatedAt: now,
+      links: [...(input.links || []), ...inlineLinks],
+    };
+    notes.unshift(note);
+    return note;
+  };
   const createContactRecord = async (input) => {
     const contact = {
       id: `contact-${Date.now()}`,
@@ -599,7 +643,7 @@
       bindLegacyCase: async (input) => { const row = cases.find((item) => item.id === input.caseId); Object.assign(row, { protectedPersonId: input.protectedPersonId, personBindingState: 'active', privacyReviewRequired: false }); return { caseId: input.caseId, protectedPersonId: input.protectedPersonId, personBindingState: 'active', privacyReviewRequired: false }; },
       listNotes: async () => notes,
       listDocuments: emptyList,
-      createNote: createRecord,
+      createNote: createCaseNoteRecord,
       deleteNote: async () => ({ deleted: true }),
       selectAndImportDocuments: emptyList,
       openDocument: async () => ({ opened: true }),
@@ -712,7 +756,10 @@
         const row = cases.find((item) => item.id === input.caseId);
         if (row) Object.assign(row, { personBindingState: 'anonymized', privacyReviewRequired: true, privacyReviewReason: 'linked_person_anonymized', anonymizedAt: now });
         privacyReviews.forEach((item) => { if (item.caseId === input.caseId && item.status === 'open') item.status = 'anonymized'; });
-        return { ok: true, message: 'Fallakte wurde anonymisiert.', affectedRows: 1, affectedFiles: 0 };
+        const modeLabel = input.anonymizationMode === 'replace_all_free_text'
+          ? 'alle Freitexte ersetzt'
+          : 'nur vorgemerkte Freitexte';
+        return { ok: true, message: `Fallakte wurde anonymisiert (${modeLabel}).`, affectedRows: 1, affectedFiles: 0 };
       },
       deleteCase: async (input) => {
         const index = cases.findIndex((item) => item.id === input.caseId);

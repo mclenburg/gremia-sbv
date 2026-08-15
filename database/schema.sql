@@ -81,7 +81,7 @@ CREATE TABLE IF NOT EXISTS case_note_cases (
 CREATE TABLE IF NOT EXISTS case_note_links (
   id TEXT PRIMARY KEY,
   case_note_id TEXT NOT NULL REFERENCES case_notes(id) ON DELETE CASCADE,
-  target_type TEXT NOT NULL CHECK (target_type IN ('bem', 'participation', 'deadline')),
+  target_type TEXT NOT NULL CHECK (target_type IN ('bem', 'prevention', 'participation', 'termination_hearing', 'equalization', 'workplace_accommodation', 'deadline')),
   target_id TEXT NOT NULL,
   case_id TEXT NOT NULL REFERENCES cases(id) ON DELETE CASCADE,
   label TEXT NOT NULL,

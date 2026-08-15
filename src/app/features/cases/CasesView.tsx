@@ -130,7 +130,8 @@ export function CasesView(props: CasesViewProps) {
   const search = useCaseWorkbenchSearch({ selectedCaseId: workbench.selectedCaseId, onSelect: workbench.setSelection });
   const selected = selectedEntities(workbench, search.searchResults);
   const noteEditor = useCaseNoteEditor({ selectedCaseId: workbench.selectedCaseId, searchQuery: search.searchQuery,
-    reloadSelectedCaseChildren: workbench.reloadSelectedCaseChildren, runSearch: search.runSearch, setSelection: workbench.setSelection });
+    reloadSelectedCaseChildren: workbench.reloadSelectedCaseChildren, reloadWorkData: onCasesChanged,
+    runSearch: search.runSearch, setSelection: workbench.setSelection });
   const setNoteError = noteEditor.setNoteError;
   useEffect(() => { if (caseLoadError) setNoteError(caseLoadError); }, [caseLoadError, setNoteError]);
   const inlineCommands = useInlineCommands({ selectedCaseId: workbench.selectedCaseId, selectedCase: workbench.selectedCase,
@@ -140,6 +141,7 @@ export function CasesView(props: CasesViewProps) {
     setNoteError: noteEditor.setNoteError, onCreateDeadline, onCreateContact, onEntityLinkCreated: noteEditor.addEntityLink,
     onStructuredActionCreated: async () => { await workbench.reloadSelectedCaseChildren(); await onCasesChanged(); } });
   noteEditor.bindClearInlineDrafts(inlineCommands.clearInlineDrafts);
+  noteEditor.bindGetPendingInlineActions(inlineCommands.getPendingActions);
   const feedback = useCaseFeedback({ noteInfo: noteEditor.noteInfo, setNoteInfo: noteEditor.setNoteInfo, noteError: noteEditor.noteError,
     setNoteError: noteEditor.setNoteError, documentError: form.documentError, setDocumentError: form.setDocumentError,
     searchError: search.searchError, setSearchError: search.setSearchError, error: form.error, caseLoadError,
@@ -167,9 +169,9 @@ export function CasesView(props: CasesViewProps) {
   const assignLegacyCase = async (protectedPersonId: string, reason: string) => { if (!form.legacyBindingCase) return; form.setLegacyBindingError("");
     try { await legacy.bindLegacyCase(form.legacyBindingCase, protectedPersonId, reason); const id = form.legacyBindingCase.id; form.setLegacyBindingCase(null); workbench.setSelectedCaseId(id); }
     catch (error) { form.setLegacyBindingError(error instanceof Error ? error.message : "Legacy-Zuordnung konnte nicht gespeichert werden."); } };
-  const runCasePrivacyAction = async (input: { mode: CasePrivacyActionMode; reason: string; confirmation: string }) => {
+  const runCasePrivacyAction = async (input: { mode: CasePrivacyActionMode; reason: string; confirmation: string; anonymizationMode?: 'marked_free_text' | 'replace_all_free_text' }) => {
     if (!casePrivacyTarget) return;
-    const payload = { caseId: casePrivacyTarget.id, reason: input.reason, confirmation: input.confirmation };
+    const payload = { caseId: casePrivacyTarget.id, reason: input.reason, confirmation: input.confirmation, anonymizationMode: input.anonymizationMode };
     const result = input.mode === 'anonymize' ? await window.gremiaSbv.privacyReview.anonymizeCase(payload) : await window.gremiaSbv.privacyReview.deleteCase(payload);
     if (!result.ok) throw new Error(result.error ?? 'Die Datenschutzaktion konnte nicht abgeschlossen werden.');
     feedback.pushCaseToast(result.message ?? (input.mode === 'anonymize' ? 'Fallakte wurde anonymisiert.' : 'Fallakte wurde gelöscht.'));

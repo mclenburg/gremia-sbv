@@ -121,8 +121,7 @@ export function InlineOpenTaskOverlay({ props }: { props: InlineCommandOverlaysP
             <p className="industrial-kicker">Inline-Aufgabe</p>
             <h2 id="inline-task-title">Offene Aufgabe ohne Datum</h2>
             <p>
-              Erzeugt eine Wiedervorlage ohne konkretes Ablaufdatum und
-              vermerkt den nächsten Schritt im Text.
+              Merkt eine Wiedervorlage ohne konkretes Ablaufdatum vor. Sie wird erst zusammen mit der Notiz gespeichert und im Text vermerkt.
             </p>
           </div>
         </div>
@@ -194,7 +193,7 @@ export function InlineOpenTaskOverlay({ props }: { props: InlineCommandOverlaysP
             className="industrial-button"
             onClick={() => void createOpenTaskFromProtocol()}
           >
-            Aufgabe anlegen
+            Aufgabe vormerken
           </button>
         </div>
       </section>

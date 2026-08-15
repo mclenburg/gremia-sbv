@@ -5,10 +5,9 @@ import type { DatabaseAdapter } from './databaseService.js';
 import { DEFAULT_RETENTION_SETTINGS, buildRetentionDashboard, normalizeRetentionSettings, type RetentionActivityJournalSnapshot, type RetentionCaseSnapshot, type RetentionContactSnapshot, type RetentionDeadlineSnapshot, type RetentionDocumentSnapshot, type RetentionParticipationViolationSnapshot } from './retentionPolicy.js';
 import { SearchIndexService } from './search/searchIndexService.js';
 import { MeasureLifecycleAuditService } from './measureLifecycleAuditService.js';
-import { PersonalDataAuditLogService } from './auditLogService.js';
 import { CaseLifecycleAuditService } from './caseLifecycleAuditService.js';
 import { runCaseDeletionTransaction } from './caseDeletionTransaction.js';
-import { CASE_ANONYMIZE_CONFIRMATION, CASE_DELETE_CONFIRMATION, DatabaseRow, nowIso, bool, readNumberSetting, writeSetting, safeRun, tableExists, getColumns, latestActivityExpression, anonymizeIndirectCaseSearchSources, anonymizeRegisteredCasePrivacyEntities, CaseDocumentFileRow, removeCaseDocumentFiles, listCleartextFiles, lifecycleRowsForCase } from './retentionSupport.js';
+import { CASE_DELETE_CONFIRMATION, DatabaseRow, nowIso, bool, readNumberSetting, writeSetting, safeRun, tableExists, getColumns, latestActivityExpression, CaseDocumentFileRow, removeCaseDocumentFiles, listCleartextFiles, lifecycleRowsForCase } from './retentionSupport.js';
 export class RetentionService {
   constructor(
     private readonly dbProvider: () => DatabaseAdapter,
@@ -243,55 +242,6 @@ export class RetentionService {
       completedAt: row.completed_at,
       isLegalDeadline: Boolean(row.is_legal_deadline)
     }));
-  }
-
-  anonymizeCase(caseId: string, reason: string, confirmation: string): RetentionOperationResult {
-    if (confirmation !== CASE_ANONYMIZE_CONFIRMATION) {
-      return { ok: false, action: 'none', error: `Bitte exakt „${CASE_ANONYMIZE_CONFIRMATION}“ eingeben.` };
-    }
-    const db = this.db;
-    const row = db.prepare<DatabaseRow>('SELECT id, case_number FROM cases WHERE id = ?').get(caseId);
-    if (!row) return { ok: false, action: 'none', error: 'Fall nicht gefunden.' };
-
-    const documents = db.prepare<CaseDocumentFileRow>('SELECT id, storage_path FROM case_documents WHERE case_id = ?').all(caseId);
-    const fileRemoval = removeCaseDocumentFiles(this.dataDirProvider(), caseId, documents);
-    if (fileRemoval.errors.length) {
-      return {
-        ok: false,
-        action: 'none',
-        error: `Fall ${row.case_number} konnte nicht anonymisiert werden, weil zugehörige Dokumentdateien nicht vollständig gelöscht werden konnten.`,
-        affectedRows: 0,
-        affectedFiles: fileRemoval.affectedFiles,
-      };
-    }
-
-    let affectedRows = 0;
-    const stamp = `Anonymisiert am ${new Date().toLocaleDateString('de-DE')}`;
-    const timestamp = nowIso();
-    affectedRows += safeRun(db, `UPDATE cases SET display_name = '[Fall anonymisiert]', summary = ?, is_pseudonymized = 1, updated_at = ? WHERE id = ?`, stamp, timestamp, caseId);
-    affectedRows += anonymizeRegisteredCasePrivacyEntities(db, caseId, stamp, timestamp);
-    affectedRows += anonymizeIndirectCaseSearchSources(db, caseId, stamp, timestamp);
-    affectedRows += safeRun(db, `DELETE FROM case_notes_fts WHERE case_id = ?`, caseId);
-    affectedRows += new SearchIndexService(db).deleteCase(caseId);
-    affectedRows += safeRun(db, `DELETE FROM case_documents_fts WHERE case_id = ?`, caseId);
-    if (tableExists(db, 'case_document_ocr_jobs')) {
-      affectedRows += safeRun(db, `DELETE FROM case_document_ocr_jobs WHERE document_id IN (SELECT id FROM case_documents WHERE case_id = ?)`, caseId);
-    }
-    affectedRows += safeRun(db, `DELETE FROM case_documents WHERE case_id = ?`, caseId);
-    affectedRows += new SearchIndexService(db).reindexCase(caseId);
-    this.recordAction(db, 'case_anonymized', 'case', caseId, row.case_number, reason, affectedRows, fileRemoval.affectedFiles);
-    new PersonalDataAuditLogService(db).append({
-      action: 'anonymize',
-      subjectType: 'case',
-      subjectId: caseId,
-      caseId,
-      purpose: 'Fallakte anonymisiert',
-      metadata: {
-        affectedRecordCount: affectedRows,
-        affectedFileCount: fileRemoval.affectedFiles,
-      },
-    });
-    return { ok: true, action: 'case_anonymized', message: `Fall ${row.case_number} wurde anonymisiert; zugehörige Dokumentdateien wurden gelöscht.`, affectedRows, affectedFiles: fileRemoval.affectedFiles };
   }
 
   async deleteCase(caseId: string, reason: string, confirmation: string): Promise<RetentionOperationResult> {

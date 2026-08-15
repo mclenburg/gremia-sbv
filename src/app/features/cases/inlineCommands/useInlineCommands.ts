@@ -1,4 +1,6 @@
+import { useCallback, useState } from "react";
 import type { CreateCaseNoteLinkInput } from "../../../core/models/case-note-link.model";
+import type { CaseNoteInlineActionInput } from "../../../core/models/case-note.model";
 import {
   removeCommandMarker,
   replaceCommandMarker,
@@ -29,6 +31,10 @@ export type * from "./inlineCommandTypes";
 
 export function useInlineCommands(environment: InlineCommandEnvironment) {
   const drafts = useInlineCommandDrafts();
+  const [pendingActions, setPendingActions] = useState<CaseNoteInlineActionInput[]>([]);
+  const stageInlineAction = useCallback((action: CaseNoteInlineActionInput) => setPendingActions((current) => [...current, action]), []);
+  const clearPendingActions = useCallback(() => setPendingActions([]), []);
+  const removePendingAction = useCallback((index: number) => setPendingActions((current) => current.filter((_, itemIndex) => itemIndex !== index)), []);
   const { content, nextSteps, selectedCase, noteTitle, selectedCaseId, setContent, setNextSteps, onEntityLinkCreated } = environment;
 
   const updateProtocolTarget = (target: ProtocolTextTarget, updater: (current: string) => string) => {
@@ -64,6 +70,7 @@ export function useInlineCommands(environment: InlineCommandEnvironment) {
     removeInlineCommand,
     replaceInlineMeasureCommandWithToken,
     rememberEntityLink,
+    stageInlineAction,
   };
 
   const hasOpenOverlay = () => hasAnyInlineCommandOverlay(
@@ -118,7 +125,11 @@ export function useInlineCommands(environment: InlineCommandEnvironment) {
     handleProtocolTextChange: routing.handleProtocolTextChange,
     handleProtocolTextCommand: routing.handleProtocolTextCommand,
     openCaseDeadlineDraft: caseReferences.openCaseDeadlineDraft,
-    clearInlineDrafts: drafts.clearInlineDrafts,
+    clearInlineDrafts: () => { drafts.clearInlineDrafts(); clearPendingActions(); },
+    getPendingActions: () => pendingActions,
+    pendingActions,
+    pendingActionCount: pendingActions.length,
+    removePendingAction,
     overlayProps: {
       ...caseReferences,
       ...legalRisk,

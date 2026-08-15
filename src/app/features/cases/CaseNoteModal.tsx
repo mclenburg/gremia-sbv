@@ -4,9 +4,40 @@ import { MessageSquare, Save } from 'lucide-react';
 import { TextCommandTextarea, type TextCommandTextareaChange } from '../../shared/textCommands/TextCommandTextarea';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 import type { CaseRecord } from '../../core/models/case.model';
-import type { CaseNoteRecord, CaseNoteType, ConfidentialLevel } from '../../core/models/case-note.model';
+import type { CaseNoteInlineActionInput, CaseNoteRecord, CaseNoteType, ConfidentialLevel } from '../../core/models/case-note.model';
 
 type ProtocolTextTarget = 'content' | 'nextSteps';
+
+function describePendingInlineAction(action: CaseNoteInlineActionInput): string {
+  if (action.kind === 'contact') {
+    return `Kontakt: ${action.input.firstName.trim()} ${action.input.lastName.trim()}`.trim();
+  }
+  if (action.kind === 'legal_norm_case_link') return `Rechtsnorm-Fallbezug: ${action.displayLabel}`;
+  if (action.kind === 'deadline') return `Frist/Aufgabe: ${action.input.title}`;
+  if (action.kind === 'bem') return `BEM: ${action.input.title ?? 'BEM-Vorgang'}`;
+  if (action.kind === 'prevention') return `Prävention: ${action.input.hazardDescription ?? 'Präventionsverfahren'}`;
+  if (action.kind === 'participation') return `SBV-Beteiligung: ${action.input.title}`;
+  if (action.kind === 'equalization') return `Gleichstellung/GdB: ${action.input.outcome ?? action.input.applicationStatus ?? 'Vorgang'}`;
+  if (action.kind === 'workplace_accommodation') return `Arbeitsplatzgestaltung: ${action.input.title}`;
+  return `Kündigungsanhörung: ${action.input.employerReason ?? action.input.terminationType ?? 'Vorgang'}`;
+}
+
+function PendingInlineActionsPanel({ actions, onRemove }: { actions: CaseNoteInlineActionInput[]; onRemove: (index: number) => void }) {
+  if (!actions.length) return null;
+  return <section className="case-note-link-panel industrial-modal-wide" aria-labelledby="pending-inline-actions-title">
+    <span id="pending-inline-actions-title">Vorgemerkte Inline-Aktionen</span>
+    <p className="industrial-meta">Diese Aktionen werden erst zusammen mit der Notiz gespeichert. Bei Abbrechen werden sie vollständig verworfen.</p>
+    <ul className="industrial-list" aria-live="polite">
+      {actions.map((action, index) => {
+        const description = describePendingInlineAction(action);
+        return <li key={`${action.kind}-${index}`} className="industrial-list-row">
+          <span>{description}</span>
+          <button type="button" className="industrial-secondary-button" onClick={() => onRemove(index)} aria-label={`Vorgemerkte Aktion entfernen: ${description}`}>Entfernen</button>
+        </li>;
+      })}
+    </ul>
+  </section>;
+}
 
 export function CaseNoteModal({
   open,
@@ -24,6 +55,8 @@ export function CaseNoteModal({
   containsHealthData,
   noteError,
   noteInfo,
+  pendingInlineActions,
+  onRemovePendingInlineAction,
   onTitleChange,
   onDateChange,
   onNoteTypeChange,
@@ -51,6 +84,8 @@ export function CaseNoteModal({
   containsHealthData: boolean;
   noteError: string;
   noteInfo: string;
+  pendingInlineActions: CaseNoteInlineActionInput[];
+  onRemovePendingInlineAction: (index: number) => void;
   onTitleChange: (value: string) => void;
   onDateChange: (value: string) => void;
   onNoteTypeChange: (value: CaseNoteType) => void;
@@ -110,6 +145,7 @@ export function CaseNoteModal({
               ))}
             </div>
           </div>
+          <PendingInlineActionsPanel actions={pendingInlineActions} onRemove={onRemovePendingInlineAction} />
           <label><span>Vertraulichkeit</span><select className="industrial-select" value={confidentialLevel} onChange={(event) => onConfidentialLevelChange(event.target.value as ConfidentialLevel)}><option value="normal">normal</option><option value="sensibel">sensibel</option><option value="hoch_sensibel">hoch sensibel</option></select></label>
           <label className="industrial-checkbox-row"><input type="checkbox" checked={containsHealthData} onChange={(event) => onContainsHealthDataChange(event.target.checked)} /><span>enthält Gesundheits-/Behinderungsbezug</span></label>
           {noteError && <div className="industrial-message industrial-message-warning industrial-modal-wide" role="alert">{noteError}</div>}

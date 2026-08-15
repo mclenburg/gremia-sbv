@@ -42,6 +42,8 @@ import { assertCanCreateRegularCase } from "../personCaseBindingPolicy.js";
 import { SearchIndexService } from "../search/searchIndexService.js";
 import { extractDocumentTextBestEffort, inferMimeType } from "../documents/documentTextExtractionService.js";
 import { DocumentOcrService } from "../documents/documentOcrService.js";
+import { DatabaseUnitOfWork } from "../databaseUnitOfWork.js";
+import { materializeCaseNoteInlineActions } from "./caseNoteInlineActionMaterializer.js";
 import { CaseRecordService } from './caseRecordService.js';
 import { mapNote, mapNoteLink, nowIso } from './caseSupport.js';
 import type { DatabaseRow } from './caseSupport.js';
@@ -172,6 +174,7 @@ export class CaseNoteService extends CaseRecordService {
       }
     }
 
+
   async listNotes(caseId: string): Promise<CaseNoteRecord[]> {
       const db = this.getSafeDb();
       this.audit(db, {
@@ -194,6 +197,7 @@ export class CaseNoteService extends CaseRecordService {
 
   async createNote(input: CreateCaseNoteInput): Promise<CaseNoteRecord> {
       const db = this.getSafeDb();
+      return new DatabaseUnitOfWork(db).run(() => {
       const caseIds = this.normalizeNoteCaseIds(input.caseId, input.caseIds);
       this.validateCaseLinks(db, caseIds);
       if (!input.title.trim()) throw new Error("Bitte einen Titel erfassen.");
@@ -229,7 +233,8 @@ export class CaseNoteService extends CaseRecordService {
       );
   
       this.replaceNoteCaseLinks(db, id, caseIds, input.caseId);
-      this.replaceNoteEntityLinks(db, id, input.links);
+      const inlineLinks = materializeCaseNoteInlineActions(db, input.inlineActions, input.caseId);
+      this.replaceNoteEntityLinks(db, id, [...(input.links ?? []), ...inlineLinks]);
       scanCaseNoteContactReferences(db, id);
       this.indexNote(db, id);
       new SearchIndexService(db).reindexSource("note", id);
@@ -248,13 +253,16 @@ export class CaseNoteService extends CaseRecordService {
         },
       });
       return this.attachNoteLinks(db, mapNote(created));
-    }
+      });
+  }
 
   async updateNote(
       id: string,
       input: UpdateCaseNoteInput,
     ): Promise<CaseNoteRecord> {
       const db = this.getSafeDb();
+      return new DatabaseUnitOfWork(db).run(() => {
+
       const before = db
         .prepare<DatabaseRow>("SELECT * FROM case_notes WHERE id = ?")
         .get(id);
@@ -304,7 +312,19 @@ export class CaseNoteService extends CaseRecordService {
   
       if (linkedCaseIds)
         this.replaceNoteCaseLinks(db, id, linkedCaseIds, before.case_id);
-      this.replaceNoteEntityLinks(db, id, input.links);
+      const inlineLinks = materializeCaseNoteInlineActions(db, input.inlineActions, before.case_id);
+      const existingLinks = input.links === undefined && inlineLinks.length
+        ? this.listNoteLinks(db, id).map((link): CreateCaseNoteLinkInput => ({
+            targetType: link.targetType,
+            targetId: link.targetId,
+            caseId: link.caseId,
+            label: link.label,
+            accessibleLabel: link.accessibleLabel,
+            textStart: link.textStart,
+            textEnd: link.textEnd,
+          }))
+        : input.links;
+      this.replaceNoteEntityLinks(db, id, existingLinks === undefined && !inlineLinks.length ? undefined : [...(existingLinks ?? []), ...inlineLinks]);
       scanCaseNoteContactReferences(db, id);
       this.indexNote(db, id);
       new SearchIndexService(db).reindexSource("note", id);
@@ -319,7 +339,8 @@ export class CaseNoteService extends CaseRecordService {
         purpose: "Fallnotiz geändert",
       });
       return this.attachNoteLinks(db, mapNote(updated));
-    }
+      });
+  }
 
   async deleteNote(id: string): Promise<{ deleted: boolean }> {
       const db = this.getSafeDb();

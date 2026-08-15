@@ -82,7 +82,7 @@ export function usePersonsHandlers(reloadWorkData: () => Promise<void>) {
     return result;
   }, [reloadWorkData]);
 
-  const anonymizePrivacyReviewCase = useCallback(async (input: Required<Pick<PrivacyReviewActionInput, 'caseId' | 'reason' | 'confirmation'>>) => {
+  const anonymizePrivacyReviewCase = useCallback(async (input: Required<Pick<PrivacyReviewActionInput, 'caseId' | 'reason' | 'confirmation' | 'anonymizationMode'>>) => {
     const bridge = await waitForBridge();
     if (!bridge?.privacyReview?.anonymizeCase) throw new Error('Anonymisierung ist nicht erreichbar.');
     const result = await bridge.privacyReview.anonymizeCase(input);

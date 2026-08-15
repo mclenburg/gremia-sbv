@@ -4,6 +4,7 @@ import type { SecurityService } from "../../services/securityService.js";
 import type { ApplicationServices } from '../applicationServices.js';
 import type { UpdateRetentionSettingsInput } from "../../src/app/core/models/retention.model.js";
 import { assertRecordInput, assertString } from "./ipcValidation.js";
+import { assertCaseAnonymizationMode } from "../../services/caseAnonymizationPolicy.js";
 
 export function registerRetentionIpc(
   ipcMain: IpcMain,
@@ -20,12 +21,14 @@ export function registerRetentionIpc(
     ),
   );
   registerIpcHandler(ipcMain, IPC_CHANNELS.retentionCaseAnonymize,
-    async (_event, caseId: unknown, reason: unknown, confirmation: unknown) =>
-      retention.anonymizeCase(
+    async (_event, caseId: unknown, reason: unknown, confirmation: unknown, anonymizationMode: unknown) => {
+      return services.caseAnonymization.anonymizeCase(
         assertString(caseId, "retention:case:anonymize", "Fall-ID", { minLength: 1, maxLength: 120 }),
         assertString(reason, "retention:case:anonymize", "Grund", { minLength: 1, maxLength: 5_000 }),
         assertString(confirmation, "retention:case:anonymize", "Bestätigung", { minLength: 1, maxLength: 200 }),
-      ),
+        assertCaseAnonymizationMode(anonymizationMode),
+      );
+    },
   );
   registerIpcHandler(ipcMain, IPC_CHANNELS.retentionCaseDelete,
     async (_event, caseId: unknown, reason: unknown, confirmation: unknown) =>

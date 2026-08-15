@@ -116,6 +116,7 @@ test.describe('P15m Axe accessibility scan', () => {
   test('keeps the inline command help dialog free of serious Axe violations', async ({ page }) => {
     await setTheme(page, 'light');
     await page.goto('/');
+    await expect(page.getByRole('navigation', { name: 'Hauptnavigation' })).toBeVisible();
     await page.keyboard.press(shortcutForHelp());
 
     const dialog = page.getByRole('dialog', { name: /Kurzbefehle/i });
