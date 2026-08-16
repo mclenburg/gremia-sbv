@@ -13,41 +13,41 @@ import {
 } from '../../shared/components/WorkbenchLayout';
 import { ResourceSection } from './components/ResourceSection';
 import { ParticipationPanel } from './components/ParticipationPanel';
-import { ObligationsList } from './components/ObligationsList';
-import { InclusionPanel } from './components/InclusionPanel';
 import { ReportsPanel } from './components/ReportsPanel';
+import { SbvOfficeSections } from './components/SbvOfficeSections';
 import { ProtocolSection } from './components/ProtocolSection';
 import { useSbvResources } from './hooks/useSbvResources';
 import { useSbvControlProtocols } from './hooks/useSbvControlProtocols';
+import { useSbvOfficeWorkflows } from './hooks/useSbvOfficeWorkflows';
 import {
   countCriticalParticipation,
   monthLabel,
 } from './sbvControlLogic';
-import {
-  employerObligations,
-  inclusionTopics,
-  type ControlSectionId,
-} from './sbvControlTypes';
+import { buildSbvControlSections, type ControlSectionId } from './sbvControlSections';
 
 type SbvControlViewProps = {
   cases: CaseRecord[];
   deadlines: DeadlineRecord[];
   onNavigate?: (viewId: ViewId) => void;
+  initialSection?: ControlSectionId;
 };
 
 export function SbvControlView({
   cases,
   deadlines,
   onNavigate,
+  initialSection = 'resources',
 }: SbvControlViewProps) {
   const [participations, setParticipations] = useState<ParticipationRecord[]>([]);
-  const [activeSection, setActiveSection] = useState<ControlSectionId>('resources');
+  const [activeSection, setActiveSection] = useState<ControlSectionId>(initialSection);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const resourcesState = useSbvResources();
   const protocolsState = useSbvControlProtocols();
+  const officeState = useSbvOfficeWorkflows();
   const { loadResources } = resourcesState;
   const { loadProtocols } = protocolsState;
+  const { load: loadOfficeWorkflows } = officeState;
 
   useEffect(() => {
     let active = true;
@@ -59,12 +59,13 @@ export function SbvControlView({
         if (bridge?.participation) setParticipations(await bridge.participation.list());
         await loadResources();
         await loadProtocols();
+        await loadOfficeWorkflows();
       } catch (loadError) {
         if (active) {
           setError(
             loadError instanceof Error
               ? loadError.message
-              : 'SBV-Steuerungsdaten konnten nicht geladen werden.',
+              : 'SBV-Dokumentationsdaten konnten nicht geladen werden.',
           );
         }
       }
@@ -74,7 +75,7 @@ export function SbvControlView({
     return () => {
       active = false;
     };
-  }, [cases.length, loadResources, loadProtocols]);
+  }, [cases.length, loadResources, loadProtocols, loadOfficeWorkflows]);
 
   const openDeadlines = deadlines.filter((deadline) => deadline.status !== 'done').length;
   const criticalParticipation = useMemo(
@@ -85,47 +86,16 @@ export function SbvControlView({
   const reportHints = [
     { label: 'Fallakten im Arbeitsbestand', value: cases.length },
     { label: 'Beteiligungsvorgänge', value: participations.length },
-    { label: 'Steuerungsprotokolle', value: protocolsState.protocols.length },
+    { label: 'Protokolle', value: protocolsState.protocols.length },
     { label: 'offene Fristen / Wiedervorlagen', value: openDeadlines },
     { label: 'Akten mit Datenschutzprüfung', value: privacyReviewCases },
   ];
 
-  const sectionTabs: Array<{
-    id: ControlSectionId;
-    title: string;
-    summary: string;
-  }> = [
-    {
-      id: 'resources',
-      title: 'Nachweise',
-      summary: `${resourcesState.resources.length} Einträge`,
-    },
-    {
-      id: 'protocols',
-      title: 'Protokolle',
-      summary: `${protocolsState.openProtocolFollowUps} offen`,
-    },
-    {
-      id: 'participation',
-      title: 'Beteiligung',
-      summary: `${criticalParticipation} kritisch`,
-    },
-    {
-      id: 'obligations',
-      title: 'Arbeitgeberpflichten',
-      summary: `${employerObligations.length} Prüfpunkte`,
-    },
-    {
-      id: 'inclusion',
-      title: 'Inklusionsvereinbarung',
-      summary: `${inclusionTopics.length} Regelungsfelder`,
-    },
-    {
-      id: 'reports',
-      title: 'Berichte',
-      summary: `${monthLabel()}`,
-    },
-  ];
+  const sectionTabs = buildSbvControlSections({
+    resources: resourcesState.resources.length, meetings: officeState.meetings.length, assemblies: officeState.assemblies.length, assemblyWarning: officeState.assemblyWarning,
+    complaints: officeState.complaints.length, openProtocolFollowUps: protocolsState.openProtocolFollowUps, criticalParticipation,
+    obligations: officeState.obligations.length, agreements: officeState.agreements.length, month: monthLabel(),
+  });
 
   function handleOperationResult(result: { ok: boolean; message: string }) {
     setError(result.ok ? '' : result.message);
@@ -134,9 +104,11 @@ export function SbvControlView({
 
   return (
     <WorkbenchPage
-      title="SBV-Steuerung"
-      kicker="Arbeitsplatz"
-      description="Arbeitsnachweise, Kontrollpunkte und Einstiege in bestehende Module. Kein Ersatz für Fallakten."
+      title={initialSection === 'meetings' ? 'Gremiensitzungen' : 'SBV-Dokumentation'}
+      kicker="SBV-Arbeit"
+      description={initialSection === 'meetings'
+        ? 'BR- und Ausschusssitzungen aus eigener SBV-Sicht vorbereiten, begleiten und dokumentieren.'
+        : 'Sitzungen, Protokolle, Nachweise, Arbeitgeberpflichten und weitere übergreifende SBV-Dokumentation. Kein Ersatz für Fallakten.'}
     >
       <ModuleFeedback
         items={[
@@ -145,11 +117,11 @@ export function SbvControlView({
         ]}
       />
       <WorkbenchSummary
-        ariaLabel="SBV-Steuerung Kennzahlen"
+        ariaLabel="SBV-Dokumentation Kennzahlen"
         items={[
           { label: 'Nachweise', value: resourcesState.resources.length, tone: 'default' },
           {
-            label: 'Steuerungsprotokolle',
+            label: 'Protokolle',
             value: protocolsState.protocols.length,
             tone: protocolsState.openProtocolFollowUps > 0 ? 'warning' : 'default',
           },
@@ -173,7 +145,7 @@ export function SbvControlView({
       />
 
       <WorkbenchWorkspace
-        ariaLabel="SBV-Steuerung Arbeitsbereiche"
+        ariaLabel="SBV-Dokumentation Arbeitsbereiche"
         ariaLive="polite"
         navigation={
           <WorkbenchNavigation
@@ -184,7 +156,7 @@ export function SbvControlView({
             }))}
             active={activeSection}
             onChange={setActiveSection}
-            ariaLabel="SBV-Steuerung Arbeitsbereiche"
+            ariaLabel="SBV-Dokumentation Arbeitsbereiche"
           />
         }
       >
@@ -197,8 +169,7 @@ export function SbvControlView({
         {activeSection === 'participation' && (
           <ParticipationPanel participations={participations} onNavigate={onNavigate} />
         )}
-        {activeSection === 'obligations' && <ObligationsList />}
-        {activeSection === 'inclusion' && <InclusionPanel />}
+        <SbvOfficeSections activeSection={activeSection} cases={cases} state={officeState} onNotice={setNotice} />
         {activeSection === 'reports' && (
           <ReportsPanel reportHints={reportHints} onNavigate={onNavigate} />
         )}

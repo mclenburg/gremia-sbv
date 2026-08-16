@@ -35,16 +35,19 @@ describe('SBV-Steuerungsstruktur 0.9.2', () => {
     expect(requirements).toContain('Integrationsamt');
   });
 
-  it('integriert SBV-Steuerung als App-konformes Modul', () => {
+  it('integriert SBV-Dokumentation als App-konformes Modul', () => {
     const nav = readFileSync('src/app/core/navigation/modules.ts', 'utf8');
     const app = readFileSync('src/app/App.tsx', 'utf8');
     const lazyViews = readFileSync('src/app/core/loading/lazyFeatureViews.tsx', 'utf8');
     const lazyHost = readFileSync('src/app/core/loading/LazyFeatureHost.tsx', 'utf8');
     const view = readFileSync('src/app/features/sbv-control/SbvControlView.tsx', 'utf8');
     expect(nav).toContain("id: 'sbv_control'");
+    expect(nav).toContain("title: 'SBV-Dokumentation'");
+    expect(nav).toContain("shortTitle: 'Dokumentation'");
     expect([app, lazyViews, lazyHost].join('\n')).toMatch(/LazyFeatureHost[\s\S]*sbv_control:[\s\S]*SbvControlView[\s\S]*view === \"sbv_control\"/);
     expect(view).toContain('activeSection');
-    expect(view).toContain("id: 'protocols'");
+    const sections = readFileSync('src/app/features/sbv-control/sbvControlSections.ts', 'utf8');
+    expect(sections).toContain("id: 'protocols'");
     expect(view).toContain('ProtocolSection');
     expect(view).toContain('onNavigate');
     const protocolSection = readFileSync('src/app/features/sbv-control/components/ProtocolSection.tsx', 'utf8');

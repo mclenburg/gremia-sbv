@@ -10,6 +10,9 @@ export const AUDIT_SUBJECT_TYPES = {
   sbvControlProtocol: 'sbv_control_protocol',
   activityJournal: 'activity_journal',
   gremiaBrHttpRequest: 'gremia_br_http_request',
+  retentionLegalHold: 'retention_legal_hold',
+  electionTransfer: 'election_transfer',
+  sbvOfficeDocument: 'sbv_office_document',
 } as const;
 
 export const AUDIT_PURPOSES = {
@@ -29,6 +32,9 @@ export const AUDIT_PURPOSES = {
   activityJournalChanged: 'SBV-Tätigkeitsjournal geändert; Audit enthält keine Freitexte.',
   activityJournalRead: 'SBV-Tätigkeitsjournal anzeigen; Audit enthält keine Freitexte.',
   gremiaBrRequest: 'Gremia.BR-Lesebrücke: HTTP-Anfrage ohne Inhaltsdaten protokollieren.',
+  retentionLegalHoldChanged: 'Aufbewahrungssperre eines SBV-Amtsvorgangs geändert; Audit enthält keine Freitexte.',
+  electionTransferProcessed: 'Geschützte Wahlaktenübergabe verarbeitet; Audit enthält nur technische Metadaten.',
+  sbvOfficeDocumentChanged: 'Verschlüsseltes Dokument eines SBV-Amtsvorgangs geändert; Audit enthält keine Dokumentinhalte.',
 } as const;
 
 export type AuditMetadataValue = string | number | boolean | null | Date | undefined;
@@ -76,6 +82,32 @@ export type ActivityJournalAuditArgs = {
   entryDate?: string;
   linkCount?: number;
   hasTime?: boolean;
+};
+
+
+export type RetentionLegalHoldAuditArgs = {
+  action: Extract<PersonalDataAuditAction, 'create' | 'update'>;
+  holdId: string;
+  ownerType: string;
+  ownerId: string;
+  reasonKey: string;
+  released?: boolean;
+};
+
+export type ElectionTransferAuditArgs = {
+  action: Extract<PersonalDataAuditAction, 'export' | 'import'>;
+  packageId: string;
+  formatVersion: number;
+  manifestHash: string;
+  result: 'success' | 'rejected';
+};
+
+export type SbvOfficeDocumentAuditArgs = {
+  action: Extract<PersonalDataAuditAction, 'create' | 'delete'>;
+  documentId: string;
+  ownerType: string;
+  ownerId: string;
+  documentClass: string;
 };
 
 export type GremiaBrRequestAuditArgs = {
@@ -209,6 +241,50 @@ export function auditActivityJournalChanged(args: ActivityJournalAuditArgs): Cre
       entryDate: args.entryDate,
       linkCount: args.linkCount,
       hasTime: args.hasTime,
+    }),
+  };
+}
+
+
+export function auditRetentionLegalHoldChanged(args: RetentionLegalHoldAuditArgs): CreatePersonalDataAuditInput {
+  return {
+    action: args.action,
+    subjectType: AUDIT_SUBJECT_TYPES.retentionLegalHold,
+    subjectId: args.holdId,
+    purpose: AUDIT_PURPOSES.retentionLegalHoldChanged,
+    metadata: compactMetadata({
+      ownerType: args.ownerType,
+      ownerId: args.ownerId,
+      reasonKey: args.reasonKey,
+      released: Boolean(args.released),
+    }),
+  };
+}
+
+export function auditElectionTransferProcessed(args: ElectionTransferAuditArgs): CreatePersonalDataAuditInput {
+  return {
+    action: args.action,
+    subjectType: AUDIT_SUBJECT_TYPES.electionTransfer,
+    subjectId: args.packageId,
+    purpose: AUDIT_PURPOSES.electionTransferProcessed,
+    metadata: compactMetadata({
+      formatVersion: args.formatVersion,
+      manifestHash: args.manifestHash,
+      result: args.result,
+    }),
+  };
+}
+
+export function auditSbvOfficeDocumentChanged(args: SbvOfficeDocumentAuditArgs): CreatePersonalDataAuditInput {
+  return {
+    action: args.action,
+    subjectType: AUDIT_SUBJECT_TYPES.sbvOfficeDocument,
+    subjectId: args.documentId,
+    purpose: AUDIT_PURPOSES.sbvOfficeDocumentChanged,
+    metadata: compactMetadata({
+      ownerType: args.ownerType,
+      ownerId: args.ownerId,
+      documentClass: args.documentClass,
     }),
   };
 }

@@ -103,6 +103,35 @@ describe('Audit-Metadatenpolicy 0.9.4c', () => {
     }
   });
 
+  it('beschraenkt 0.9.7-A-Auditmetadaten auf technische Referenzen', () => {
+    const hold = JSON.parse(normalizeAuditMetadata({
+      ownerType: 'election', ownerId: 'election-1', reasonKey: 'challenge.pending', released: false,
+      freeText: 'personenbezogene Begründung',
+    }, 'retention_legal_hold'));
+    expect(hold).toMatchObject({ ownerType: 'election', ownerId: 'election-1', reasonKey: 'challenge.pending', released: false });
+    expect(hold).not.toHaveProperty('freeText');
+
+    const transfer = JSON.parse(normalizeAuditMetadata({
+      formatVersion: 1, manifestHash: 'a'.repeat(64), result: 'imported', payload: 'Wahlakteninhalt',
+    }, 'election_transfer'));
+    expect(transfer).toMatchObject({ formatVersion: 1, manifestHash: 'a'.repeat(64), result: 'imported' });
+    expect(transfer).not.toHaveProperty('payload');
+
+    const document = JSON.parse(normalizeAuditMetadata({
+      ownerType: 'meeting', ownerId: 'meeting-1', documentClass: 'generated_document', title: 'Vertraulicher Titel',
+    }, 'sbv_office_document'));
+    expect(document).toMatchObject({ ownerType: 'meeting', ownerId: 'meeting-1', documentClass: 'generated_document' });
+    expect(document).not.toHaveProperty('title');
+
+    const election = JSON.parse(normalizeAuditMetadata({
+      entityType: 'candidate', officeType: 'representative', result: 'criteria_met',
+      personSnapshot: 'Max Mustermann', freeText: 'vertrauliche Wahlinformation',
+    }, 'election'));
+    expect(election).toMatchObject({ entityType: 'candidate', officeType: 'representative', result: 'criteria_met' });
+    expect(election).not.toHaveProperty('personSnapshot');
+    expect(election).not.toHaveProperty('freeText');
+  });
+
   it('haelt die neuen sensiblen 0.9.3/0.9.4-Ereignisfamilien getrennt', () => {
     expect(AUDIT_METADATA_POLICY_BY_SUBJECT_TYPE.activity_journal).toContain('entryDate');
     expect(AUDIT_METADATA_POLICY_BY_SUBJECT_TYPE.activity_journal).not.toContain('templateKey');

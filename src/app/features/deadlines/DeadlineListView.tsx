@@ -32,7 +32,7 @@ function formatReference(deadline: DeadlineRecord, casesById: Map<string, CaseRe
 
   if (caseLabel) return `${caseLabel} · ${processLabel}`;
 
-  if (deadline.processType === 'sbv_control_protocol') return 'SBV-Steuerungsprotokoll ohne Fallzuordnung';
+  if (deadline.processType === 'sbv_control_protocol') return 'SBV-Protokoll ohne Fallzuordnung';
 
   return deadline.processType === 'custom' && deadline.deadlineType === 'follow_up'
     ? 'Freie Wiedervorlage ohne Fallbezug'

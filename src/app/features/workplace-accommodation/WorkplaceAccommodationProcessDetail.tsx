@@ -1,16 +1,14 @@
 import { AlertTriangle, CheckCircle2 } from "lucide-react";
-import type {
-  UpdateWorkplaceAccommodationInput,
-  WorkplaceAccommodationCategory,
-  WorkplaceAccommodationEmployerResponseStatus,
-  WorkplaceAccommodationImplementationStatus,
-  WorkplaceAccommodationRecord,
-  WorkplaceAccommodationRiskLevel,
-  WorkplaceAccommodationStatus,
-} from "../../core/models/workplace-accommodation.model";
 import {
   workplaceAccommodationCategoryLabels,
   workplaceAccommodationStatusLabels,
+  type UpdateWorkplaceAccommodationInput,
+  type WorkplaceAccommodationCategory,
+  type WorkplaceAccommodationEmployerResponseStatus,
+  type WorkplaceAccommodationImplementationStatus,
+  type WorkplaceAccommodationRecord,
+  type WorkplaceAccommodationRiskLevel,
+  type WorkplaceAccommodationStatus,
 } from "../../core/models/workplace-accommodation.model";
 import {
   CheckboxField,
@@ -20,6 +18,7 @@ import {
   SelectInput,
 } from "../../shared/components/IndustrialForm";
 import { MeasureDetailFrame } from "../cases/measures/MeasureDetailFrame";
+import { WorkplaceAccommodationFundingSection } from "./WorkplaceAccommodationFundingSection";
 
 const statusOrder = Object.keys(
   workplaceAccommodationStatusLabels,
@@ -332,7 +331,7 @@ export function WorkplaceAccommodationProcessDetail({
             />
           </div>
         </fieldset>
-
+        <WorkplaceAccommodationFundingSection process={process} onUpdate={update} />
         <div className="industrial-form-grid two-columns">
           <DeferredTextareaInput
             label="Nächster Schritt"

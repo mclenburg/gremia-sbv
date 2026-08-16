@@ -21,7 +21,7 @@
     {
       "file": "tests/platform/electron/crossPlatformPackaging.test.ts",
       "category": "A",
-      "sourceAssertions": 29,
+      "sourceAssertions": 32,
       "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
     },
     {
@@ -117,7 +117,7 @@
     {
       "file": "tests/features/sbv-control/sbvControlStructure.test.ts",
       "category": "B",
-      "sourceAssertions": 11,
+      "sourceAssertions": 13,
       "rationale": "Der Test schützt eine statische Architektur-, Import-, Modul- oder Bereinigungsgrenze; eine Laufzeitausführung kann diese Grenze nicht gleichwertig belegen."
     },
     {
@@ -207,7 +207,7 @@
     {
       "file": "tests/ui/visualQaContract.test.ts",
       "category": "A",
-      "sourceAssertions": 4,
+      "sourceAssertions": 11,
       "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
     },
     {
@@ -221,6 +221,18 @@
       "category": "B",
       "sourceAssertions": 8,
       "rationale": "Der Test schützt eine statische Architektur-, Import-, Modul- oder Bereinigungsgrenze; eine Laufzeitausführung kann diese Grenze nicht gleichwertig belegen."
+    },
+    {
+      "file": "tests/architecture/migrations/schema0051SbvOfficeElection.behavior.test.ts",
+      "category": "A",
+      "sourceAssertions": 2,
+      "rationale": "Das Datenbankschema und die Upgrade-Migration 0051 sind selbst der persistente Vertrag; der Test vergleicht ihre Struktur und schützt zusätzlich die Negativanforderung gegen Individualstimmen."
+    },
+    {
+      "file": "tests/architecture/rc.test.ts",
+      "category": "A",
+      "sourceAssertions": 10,
+      "rationale": "Das Benutzerhandbuch und die sichtbaren Navigationsbezeichnungen sind selbst Bestandteil des stabilen Dokumentationsvertrags; der Test schützt ihre Synchronität."
     }
   ]
 }

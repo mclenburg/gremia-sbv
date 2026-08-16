@@ -12,14 +12,30 @@ if (!extension) {
 }
 
 const releaseDir = path.join(process.cwd(), 'release');
-const artifacts = fs.existsSync(releaseDir)
-  ? fs.readdirSync(releaseDir).filter((name) => name.endsWith(extension)).map((name) => path.join(releaseDir, name))
-  : [];
-const startupArtifacts = target === 'win' || target === 'windows'
-  ? artifacts.filter((artifact) => /-win-x64-portable\.exe$/i.test(path.basename(artifact)))
-  : artifacts;
+const canonicalTarget = target === 'windows' ? 'win' : target;
+const receiptPath = path.join(releaseDir, `.gremia-sbv-${canonicalTarget}-artifact.json`);
+let receipt;
+try {
+  receipt = JSON.parse(fs.readFileSync(receiptPath, 'utf8'));
+} catch (error) {
+  console.error(`Startup-Smoke-Test kann den verifizierten Buildbeleg nicht lesen: ${error instanceof Error ? error.message : String(error)}`);
+  process.exit(3);
+}
+if (receipt?.version !== 2 || receipt?.target !== canonicalTarget || !Array.isArray(receipt.artifacts)) {
+  console.error('Startup-Smoke-Test erhielt einen ungültigen oder plattformfremden Buildbeleg.');
+  process.exit(3);
+}
+const startupArtifacts = receipt.artifacts
+  .map((entry) => typeof entry?.artifact === 'string' ? entry.artifact : '')
+  .filter((name) => name.endsWith(extension))
+  .filter((name) => canonicalTarget !== 'win' || /-win-x64-portable\.exe$/i.test(name))
+  .map((name) => path.join(releaseDir, path.basename(name)));
 if (startupArtifacts.length !== 1) {
-  console.error(`Startup-Smoke-Test erwartet genau ein startbares ${extension}-Artefakt, gefunden: ${startupArtifacts.length}.`);
+  console.error(`Startup-Smoke-Test erwartet genau ein startbares ${extension}-Artefakt im aktuellen Buildbeleg, gefunden: ${startupArtifacts.length}.`);
+  process.exit(3);
+}
+if (!fs.existsSync(startupArtifacts[0])) {
+  console.error(`Startup-Smoke-Test findet das im aktuellen Buildbeleg verzeichnete Artefakt nicht: ${path.basename(startupArtifacts[0])}.`);
   process.exit(3);
 }
 

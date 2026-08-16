@@ -1,4 +1,4 @@
-import { GraduationCap, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import type { SbvResourceRecordKind, SbvResourceRecordStatus } from '../../../core/models/sbv-resource.model';
 import { DangerButton, GhostButton } from '../../../shared/components/IndustrialButton';
 import {
@@ -31,7 +31,6 @@ export function ResourceSection({
 
   return (
     <SbvControlPanel
-      icon={<GraduationCap className="h-5 w-5" />}
       kicker="§ 179 SGB IX"
       title="Schulungen, Heranziehungen und Sachmittel protokollieren"
     >

@@ -48,4 +48,18 @@ describe('retention policy behavior coverage', () => {
     expect(dashboard.candidates.map((candidate) => candidate.entityId)).toContain('old-opened');
     expect(dashboard.candidates.map((candidate) => candidate.entityId)).not.toContain('invalid');
   });
+
+  it('offers due non-case office workflows for review but respects active legal holds', () => {
+    const dashboard = buildRetentionDashboard({
+      now,
+      officeOwners: [
+        { ownerType: 'meeting', ownerId: 'm-due', reference: 'BR-Sitzung', retentionUntil: '2026-05-01T00:00:00.000Z', legalHoldActive: false },
+        { ownerType: 'election', ownerId: 'e-held', reference: 'SBV-Wahl', retentionUntil: '2026-04-01T00:00:00.000Z', legalHoldActive: true, legalHoldReasonKey: 'election_challenge' },
+      ],
+    });
+    expect(dashboard.candidates).toEqual([
+      expect.objectContaining({ type: 'office_workflow_review_due', entityType: 'meeting', entityId: 'm-due' }),
+    ]);
+  });
+
 });

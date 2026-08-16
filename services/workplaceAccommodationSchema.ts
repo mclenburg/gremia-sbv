@@ -1,8 +1,8 @@
 import type { DatabaseAdapter } from './databaseService.js';
 import type { CaseMeasureService } from './caseMeasureService.js';
 export function ensureWorkplaceAccommodationSchema(db: DatabaseAdapter, caseMeasures: CaseMeasureService): void {
-caseMeasures.ensureSchema();
-    db.exec(`
+  caseMeasures.ensureSchema();
+  db.exec(`
       CREATE TABLE IF NOT EXISTS case_measure_workplace_accommodation (
         measure_id TEXT PRIMARY KEY,
         category TEXT NOT NULL DEFAULT 'sonstiges',
@@ -28,11 +28,34 @@ caseMeasures.ensureSchema();
         outcome TEXT,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL,
+        funding_carrier TEXT,
+        funding_applied_at TEXT,
+        funding_documents_status TEXT,
+        funding_questions TEXT,
+        funding_decision TEXT,
+        funding_amount REAL,
+        ordered_at TEXT,
         FOREIGN KEY(measure_id) REFERENCES case_measures(id) ON DELETE CASCADE
       );
       CREATE INDEX IF NOT EXISTS idx_case_measure_workplace_status ON case_measure_workplace_accommodation(accommodation_status);
       CREATE INDEX IF NOT EXISTS idx_case_measure_workplace_category ON case_measure_workplace_accommodation(category);
       CREATE INDEX IF NOT EXISTS idx_case_measure_workplace_review ON case_measure_workplace_accommodation(effectiveness_review_at);
     `);
-    
+  const columns = new Set(
+      db.prepare<{ name: string }>("PRAGMA table_info(case_measure_workplace_accommodation)").all().map((row) => row.name),
+    );
+  const additions: Array<[string, string]> = [
+      ["funding_carrier", "TEXT"],
+      ["funding_applied_at", "TEXT"],
+      ["funding_documents_status", "TEXT"],
+      ["funding_questions", "TEXT"],
+      ["funding_decision", "TEXT"],
+      ["funding_amount", "REAL"],
+      ["ordered_at", "TEXT"],
+    ];
+  for (const [name, type] of additions) {
+    if (!columns.has(name)) {
+      db.exec(`ALTER TABLE case_measure_workplace_accommodation ADD COLUMN ${name} ${type}`);
+    }
+  }
 }

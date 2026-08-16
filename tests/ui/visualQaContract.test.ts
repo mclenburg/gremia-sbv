@@ -31,6 +31,7 @@ describe('P11 visual QA contract', () => {
       'cases',
       'deadlines',
       'activity_journal',
+      'meetings',
       'bem',
       'prevention',
       'participation_violations',
@@ -39,6 +40,7 @@ describe('P11 visual QA contract', () => {
       'workplace_accommodation',
       'equalization',
       'termination_hearing',
+      'elections',
       'templates',
       'knowledge',
       'contacts',
@@ -95,6 +97,31 @@ describe('P11 visual QA contract', () => {
       expect(routeIds.has(routeId)).toBe(true);
     }
   });
+
+
+  it('hält die SBV-Dokumentationsseiten an denselben Header-, Abschnitts- und Responsive-Vertrag', () => {
+    const workspaceFiles = [
+      'MeetingsWorkspace.tsx',
+      'AssemblyWorkspace.tsx',
+      'ComplaintsWorkspace.tsx',
+      'ObligationsWorkspace.tsx',
+      'InclusionAgreementWorkspace.tsx',
+    ];
+
+    for (const file of workspaceFiles) {
+      const source = readFileSync(`src/app/features/sbv-control/components/${file}`, 'utf8');
+      expect(source).toContain('actions={<IndustrialHelpButton');
+      expect(source).toContain('sbv-control-section');
+      expect(source).not.toContain('icon={<');
+    }
+
+    const css = readFileSync('src/app/ui/featureModules.css', 'utf8');
+    expect(css).toContain('.sbv-control-action-row');
+    expect(css).toContain('justify-content: flex-end;');
+    expect(css).toContain('.sbv-control-inline-action-grid');
+    expect(css).toContain('@media (max-width: 760px)');
+  });
+
 
   it('bindet alle nativen Modal-Controls an den zentralen Industrial-Formular-Chrome', () => {
     const formsCss = readFileSync('src/app/ui/forms.css', 'utf8');

@@ -50,7 +50,7 @@ const MODULE_GROUPS: readonly {
   {
     id: "administration",
     title: "Administration",
-    description: "Compliance, SBV-Steuerung und Einstellungen.",
+    description: "Compliance, SBV-Dokumentation und Einstellungen.",
     moduleIds: ["compliance", "sbv_control"],
   },
 ];

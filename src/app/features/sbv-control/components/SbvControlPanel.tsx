@@ -4,18 +4,18 @@ import { ToolbarButton } from '../../../shared/components/IndustrialButton';
 import { IndustrialPanel } from '../../../shared/components/WorkbenchLayout';
 
 export function SbvControlPanel({
-  icon,
   kicker,
   title,
   actionLabel,
   onAction,
+  actions,
   children,
 }: {
-  icon: ReactNode;
   kicker: string;
   title: string;
   actionLabel?: string;
   onAction?: () => void;
+  actions?: ReactNode;
   children: ReactNode;
 }) {
   return (
@@ -24,17 +24,14 @@ export function SbvControlPanel({
       kicker={kicker}
       title={title}
       actions={
-        actionLabel && onAction ? (
+        actions ?? (actionLabel && onAction ? (
           <ToolbarButton onClick={onAction}>
             {actionLabel}
             <ArrowRight className="h-4 w-4" />
           </ToolbarButton>
-        ) : undefined
+        ) : undefined)
       }
     >
-      <span className="sbv-control-panel-icon" aria-hidden="true">
-        {icon}
-      </span>
       {children}
     </IndustrialPanel>
   );

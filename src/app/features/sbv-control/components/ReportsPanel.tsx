@@ -1,4 +1,3 @@
-import { FileCheck2 } from 'lucide-react';
 import type { ViewId } from '../../../core/navigation/modules';
 import { IndustrialRecordCard } from '../../../shared/components/WorkbenchLayout';
 import { SbvControlPanel } from './SbvControlPanel';
@@ -14,7 +13,6 @@ export function ReportsPanel({
 }) {
   return (
     <SbvControlPanel
-      icon={<FileCheck2 className="h-5 w-5" />}
       kicker="Berichte"
       title="Tätigkeitsbericht vorbereiten"
       actionLabel="Berichte öffnen"

@@ -7,7 +7,7 @@ describe('Stellenbesetzungen 0.9.5-a Schema', () => {
     const migration = readFileSync('database/migrations/0045_recruiting_participations.sql', 'utf8');
     const schema = readFileSync('database/schema.sql', 'utf8');
 
-    expect(APP_SCHEMA_VERSION).toBe('0050');
+    expect(APP_SCHEMA_VERSION).toBe('0051');
     expect(migration).toContain('CREATE TABLE IF NOT EXISTS recruiting_participations');
     expect(migration).toContain('CREATE TABLE IF NOT EXISTS recruiting_interview_events');
     expect(schema).toContain('CREATE TABLE IF NOT EXISTS recruiting_participations');

@@ -2,7 +2,7 @@ import { randomBytes } from 'node:crypto';
 import path from 'node:path';
 import { IpcValidationError } from './ipcValidation.js';
 
-type SelectedFilePurpose = 'case-handover' | 'person-import';
+type SelectedFilePurpose = 'case-handover' | 'person-import' | 'election-transfer';
 
 interface SelectedFileCapability {
   readonly filePath: string;

@@ -218,6 +218,81 @@ export const HELP_REGISTRY = {
       },
     ],
   },
+  "elections.setup": {
+    id: "elections.setup", kicker: "Wahl", title: "Wahleinleitung",
+    summary: "Wahlgrund, Mindestschwelle und Verfahrensvorschlag werden dokumentiert; die Entscheidung bleibt beim zuständigen Wahlorgan.",
+    blocks: [{ type: "paragraph", text: "Offene Gleichstellungsanträge zählen nicht zur Mindestschwelle. Verfahrenshinweise sind Prüfhilfen und keine automatische Rechtsentscheidung." }],
+  },
+  "elections.body": {
+    id: "elections.body", kicker: "Wahlorgan", title: "Wahlvorstand oder Wahlleitung",
+    summary: "Das Wahlorgan wird passend zum bestätigten Verfahren dokumentiert.",
+    blocks: [{ type: "paragraph", text: "Förmliches und vereinfachtes Verfahren sowie die Nachwahl einer Stellvertretung bleiben als getrennte Verfahrenspfade nachvollziehbar." }],
+  },
+  "elections.voters": {
+    id: "elections.voters", kicker: "Wählerliste", title: "Wählerlisten-Snapshot und Einsprüche",
+    summary: "Die Anwendung hält einen nachvollziehbaren Snapshot der Wahlberechtigten und Einwände dagegen fest.",
+    blocks: [{ type: "paragraph", text: "Gespeichert wird die für die Wahl erforderliche Einordnung; offene Gleichstellungsanträge werden nicht als bestätigte Wahlberechtigung behandelt." }],
+  },
+  "elections.nominations": {
+    id: "elections.nominations", kicker: "Wahlvorschläge", title: "Kandidaturen und Wahlvorschläge",
+    summary: "Kandidaturen, Unterstützungen und Korrektur-/Nachfristen werden als Verfahrensstand geführt.",
+    blocks: [{ type: "paragraph", text: "Wählbarkeitsprüfungen sind fachliche Prüfhilfen. Die endgültige Entscheidung trifft das Wahlorgan." }],
+  },
+  "elections.documents": {
+    id: "elections.documents", kicker: "Dokumente", title: "Vorbereitende Wahlunterlagen",
+    summary: "Wahlausschreiben und weitere vorbereitende Unterlagen werden als menschenlesbare PDFs erzeugt und verschlüsselt abgelegt.",
+    blocks: [{ type: "paragraph", text: "Rechtsregel- und Vorlagenversion bleiben am Dokument nachvollziehbar. Ein erzeugtes Dokument startet keine Frist, sofern dafür ein gesondertes Ereignis erforderlich ist." }],
+  },
+  "elections.ballots": {
+    id: "elections.ballots", kicker: "Stimmabgabe", title: "Stimmzettel und Wahltag",
+    summary: "Die Wahlgänge für Vertrauensperson und Stellvertretung bleiben strikt getrennt.",
+    blocks: [{ type: "paragraph", text: "Gremia.SBV erzeugt Unterlagen und dokumentiert Checkpunkte, speichert aber niemals eine individuelle Stimmentscheidung." }],
+  },
+  "elections.mail": {
+    id: "elections.mail", kicker: "Briefwahl", title: "Briefwahlstatus",
+    summary: "Erfasst werden Ausgabe, Eingang, Erklärung, Übergabe an die Urne und die Behandlung verspäteter Wahlbriefe.",
+    blocks: [{ type: "paragraph", text: "Der Inhalt eines Stimmzettels gehört nicht in die Anwendung. Verspätete Wahlbriefe werden nur als Verfahrensstatus nachgehalten." }],
+  },
+  "elections.counting": {
+    id: "elections.counting", kicker: "Auszählung", title: "Aggregierte Stimmen und Losentscheid",
+    summary: "Gespeichert werden ausschließlich aggregierte Stimmenzahlen.",
+    blocks: [{ type: "paragraph", text: "Bei entscheidender Stimmengleichheit dokumentiert die Anwendung nur den real durchgeführten Losentscheid; sie trifft keinen Zufallsentscheid selbst." }],
+  },
+  "elections.acceptance": {
+    id: "elections.acceptance", kicker: "Ergebnis", title: "Benachrichtigung, Annahme und Nachrücken",
+    summary: "Benachrichtigung und Reaktion gewählter Personen werden nachvollziehbar geführt.",
+    blocks: [{ type: "paragraph", text: "Ablehnung oder Fristablauf werden dokumentiert; bei Bedarf wird der nächste Rang als Nachrückfall vorbereitet." }],
+  },
+  "elections.archive": {
+    id: "elections.archive", kicker: "Wahlakte", title: "Abschluss, Aufbewahrung und Transfer",
+    summary: "Bekanntmachung, Mitteilungen, physische Originale, PDF-Wahlakte, Legal Hold und geschützter Instanztransfer werden zusammengeführt.",
+    blocks: [{ type: "paragraph", text: "Digitale Exporte ersetzen physische Originale nicht. Importierte Wahlakten erhalten lokale IDs; fremde Auditketten werden nicht in die lokale HashChain übernommen." }],
+  },
+  "sbvOffice.meetings": {
+    id: "sbvOffice.meetings", kicker: "Gremien", title: "SBV-Sicht auf Sitzungen",
+    summary: "Dokumentiert werden Teilnahme, SBV-relevante Tagesordnungspunkte, eigene Position und gegebenenfalls die Aussetzung nach § 178 Abs. 4 SGB IX.",
+    blocks: [{ type: "paragraph", text: "Die Aufzeichnung ist eine SBV-Eigenaufzeichnung und kein Betriebsratsprotokoll. Bei erheblicher Beeinträchtigung wichtiger Interessen oder fehlender Beteiligung kann eine Aussetzung dokumentiert werden; die Wochenfrist wird zentral nachgehalten. Ist die Gremia.BR-Lesebrücke aktiviert, können Sitzung und Tagesordnung als eigene SBV-Arbeitskopie übernommen werden. SBV-Relevanz, Positionen und Bewertungen werden nicht automatisch gesetzt." }],
+  },
+  "sbvOffice.assembly": {
+    id: "sbvOffice.assembly", kicker: "Versammlung", title: "Schwerbehindertenversammlung",
+    summary: "Der Jahresworkflow unterstützt Planung, Einladung, Barrierefreiheitscheck, Arbeitgeberbericht, Protokoll und Folgeaufgaben.",
+    blocks: [{ type: "paragraph", text: "Der Arbeitgeberbericht nach § 166 Abs. 4 SGB IX wird als eigener Status geführt. Ein Entwurf darf unvollständig sein; der Status bereit setzt Termin und Einladung voraus." }],
+  },
+  "sbvOffice.obligations": {
+    id: "sbvOffice.obligations", kicker: "Überwachung", title: "Arbeitgeberpflichten prüfen",
+    summary: "Wiederkehrende Pflichten werden als getrennte Prüfvorgänge je Zeitraum geführt und nicht nur als statische Merkliste angezeigt.",
+    blocks: [{ type: "paragraph", text: "Die Anwendung dokumentiert Anforderung, Eingang, Prüfung, Feststellung und Folgeaktion. Sie trifft keine automatische Rechtsbewertung eines Arbeitgeberverstoßes." }],
+  },
+  "sbvOffice.inclusionAgreement": {
+    id: "sbvOffice.inclusionAgreement", kicker: "§ 166 SGB IX", title: "Inklusionsvereinbarung verhandeln und evaluieren",
+    summary: "Die Verhandlungsakte bildet Initiative, Themenmatrix, Verhandlung, Abschluss, Übermittlung und Review ab.",
+    blocks: [{ type: "paragraph", text: "Alle gesetzlichen Themenfelder werden sichtbar geführt. Nicht bearbeitete Felder werden nicht automatisch als Rechtsverstoß bewertet. Nach Abschluss werden die Übermittlungen an Agentur für Arbeit und Integrationsamt nachgehalten." }],
+  },
+  "sbvOffice.complaints": {
+    id: "sbvOffice.complaints", kicker: "Fallakte", title: "Anregungen und Beschwerden",
+    summary: "Beschwerden werden in der bestehenden Fallakte geprüft, mit dem Arbeitgeber nachgehalten und mit einer Rückmeldung zu Stand und Ergebnis abgeschlossen.",
+    blocks: [{ type: "paragraph", text: "Schnellfall-Vorlagen legen auf Wunsch eine Checkliste als Fallnotiz an. Sie unterstützen die Bearbeitung, treffen aber keine automatische Rechtsentscheidung." }],
+  },
 } as const satisfies Record<string, HelpRegistryEntry>;
 
 export type HelpRegistryId = keyof typeof HELP_REGISTRY;

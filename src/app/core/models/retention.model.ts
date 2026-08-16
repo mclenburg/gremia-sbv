@@ -1,3 +1,5 @@
+import type { RetentionOwnerType } from './retention-owner.model.js';
+
 export type RetentionCandidateType =
   | 'closed_case_review'
   | 'stale_case_review'
@@ -11,7 +13,8 @@ export type RetentionCandidateType =
   | 'participation_violation_open_review'
   | 'participation_violation_closed_review'
   | 'participation_violation_document_integrity'
-  | 'cleartext_file_review';
+  | 'cleartext_file_review'
+  | 'office_workflow_review_due';
 
 export type RetentionRiskLevel = 'info' | 'warning' | 'critical';
 
@@ -35,7 +38,7 @@ export interface RetentionCandidate {
   recommendedAction: 'pruefen' | 'anonymisieren' | 'loeschen' | 'archivieren';
   createdAt?: string;
   dueSince?: string;
-  entityType: 'case' | 'contact' | 'document' | 'deadline' | 'activity_journal_entry' | 'sbv_participation_violation' | 'file' | 'system';
+  entityType: RetentionOwnerType | 'contact' | 'document' | 'deadline' | 'activity_journal_entry' | 'sbv_participation_violation' | 'file' | 'system';
   entityId?: string;
 }
 

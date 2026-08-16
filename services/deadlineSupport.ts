@@ -155,6 +155,7 @@ export function getActionHint(deadline: DeadlineRecord): string {
   if (deadline.processType === 'activity_journal') return 'Journal-Wiedervorlage prüfen: Ergebnis, Nachfassung oder Abschluss bewusst dokumentieren.';
   if (deadline.processType === 'sbv_participation_violation') return 'Beteiligungsverstoß prüfen: Nachholung, Reaktion oder Eskalation bewusst dokumentieren.';
   if (deadline.processType === 'recruiting_participation') return 'Stellenbesetzung prüfen: Unterlagen, Gesprächsnachhaltung oder Anhörung vor Auswahlentscheidung kontrollieren.';
+  if (deadline.processType === 'election') return 'Wahlvorbereitung prüfen: Wahlorgan, Unterlagen und nächste gesetzliche Frist nachhalten.';
   if (deadline.sourceEvent === 'protected_person.status_expiry_warning' || deadline.sourceEvent === 'protected_person.status_expired_privacy_review') {
     return 'Statusnachweis im Personenverzeichnis prüfen: Status aktualisieren, Fortspeicherung begründen oder Datenschutzprüfung starten.';
   }
@@ -164,30 +165,17 @@ export function getActionHint(deadline: DeadlineRecord): string {
 
 export function validateCaseBinding(input: CreateDeadlineInput): void {
   const deadlineType = input.deadlineType ?? 'follow_up';
+  const officeOwnerTypes = new Set(['sbv_meeting','sbv_assembly','employer_obligation_review','inclusion_agreement','election']);
+  const isOfficeOwner = officeOwnerTypes.has(input.processType) && Boolean(input.processId);
   const isFreeFollowUp = input.processType === 'custom' && ['follow_up', 'warning'].includes(deadlineType) && !input.isLegalDeadline;
-  const isSbvControlProtocolFollowUp = input.processType === 'sbv_control_protocol'
-    && deadlineType === 'follow_up'
-    && !input.isLegalDeadline
-    && Boolean(input.processId);
-  const isActivityJournalFollowUp = input.processType === 'activity_journal'
-    && deadlineType === 'follow_up'
-    && !input.isLegalDeadline
-    && Boolean(input.processId);
-  const isParticipationViolationFollowUp = input.processType === 'sbv_participation_violation'
-    && deadlineType === 'follow_up'
-    && !input.isLegalDeadline
-    && Boolean(input.processId);
-  const isRecruitingParticipationFollowUp = input.processType === 'recruiting_participation'
-    && deadlineType === 'follow_up'
-    && !input.isLegalDeadline
-    && Boolean(input.processId);
+  const isNamedFollowUp = ['sbv_control_protocol','activity_journal','sbv_participation_violation','recruiting_participation'].includes(input.processType)
+    && deadlineType === 'follow_up' && !input.isLegalDeadline && Boolean(input.processId);
 
-  if (!input.caseId && !isFreeFollowUp && !isSbvControlProtocolFollowUp && !isActivityJournalFollowUp && !isParticipationViolationFollowUp && !isRecruitingParticipationFollowUp) {
-    throw new Error('Fristen müssen einem Fall zugeordnet werden. Ohne Fallbezug ist nur eine freie Wiedervorlage, eine SBV-Steuerungsprotokoll-Wiedervorlage, eine Journal-Wiedervorlage, eine Beteiligungsverstoß-Wiedervorlage oder eine Stellenbesetzungs-Wiedervorlage erlaubt.');
+  if (!input.caseId && !isFreeFollowUp && !isNamedFollowUp && !isOfficeOwner) {
+    throw new Error('Fristen benötigen einen Fallbezug oder einen ausdrücklich unterstützten fallunabhängigen SBV-Amtsvorgang.');
   }
-
-  if (!input.caseId && (input.isLegalDeadline || deadlineType === 'legal_deadline' || deadlineType === 'workflow_step')) {
-    throw new Error('Rechtliche Fristen und Workflow-Schritte dürfen nicht ohne Fallbezug angelegt werden.');
+  if (!input.caseId && (input.isLegalDeadline || deadlineType === 'legal_deadline' || deadlineType === 'workflow_step') && !isOfficeOwner) {
+    throw new Error('Rechtliche Fristen und Workflow-Schritte ohne Fallbezug sind nur für unterstützte SBV-Amtsvorgänge zulässig.');
   }
 }
 

@@ -52,6 +52,20 @@ const definitions: Partial<Record<ViewId, LazyFeatureDefinition>> = {
       return { default: module.TerminationView as ComponentType<object> };
     },
   },
+  elections: {
+    label: "SBV-Wahlen",
+    load: async () => {
+      const module = await import("../../features/elections/ElectionWorkbench");
+      return { default: module.ElectionWorkbench as ComponentType<object> };
+    },
+  },
+  meetings: {
+    label: "Gremiensitzungen",
+    load: async () => {
+      const module = await import("../../features/sbv-control/SbvControlView");
+      return { default: module.SbvControlView as ComponentType<object> };
+    },
+  },
   sbv_control: {
     label: "SBV-Control",
     load: async () => {

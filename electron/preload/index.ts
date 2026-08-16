@@ -10,6 +10,8 @@ import { createBackupApi } from "./backup.js";
 import { createAuditApi } from "./audit.js";
 import type { IpcInvoker } from "./invoke.js";
 import { deepFreeze } from "./freeze.js";
+import { createSbvOfficeApi } from "./sbv-office.js";
+import { createElectionsApi } from "./elections.js";
 
 export function createPreloadApi(invokeIpc: IpcInvoker, loadedAt = new Date().toISOString()) {
   return deepFreeze({
@@ -23,6 +25,8 @@ export function createPreloadApi(invokeIpc: IpcInvoker, loadedAt = new Date().to
     ...createTemplatesApi(invokeIpc),
     ...createBackupApi(invokeIpc),
     ...createAuditApi(invokeIpc),
+    ...createSbvOfficeApi(invokeIpc),
+    ...createElectionsApi(invokeIpc),
     diagnostics: Object.freeze({ bridgeReady: true, preloadLoadedAt: loadedAt }),
   });
 }

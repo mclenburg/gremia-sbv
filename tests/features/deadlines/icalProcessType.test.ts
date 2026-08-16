@@ -65,7 +65,7 @@ describe('0.9.1 iCal process_type Export', () => {
     expect(ical(deadlines, 'process_type')).toContain('Stellungnahmefrist prüfen');
     expect(ical(deadlines, 'process_type')).toContain('Gleichstellung prüfen');
     expect(ical(deadlines, 'process_type')).toContain('Statusverfahren prüfen');
-    expect(ical(deadlines, 'process_type')).toContain('Steuerungsprotokoll-Wiedervorlage');
+    expect(ical(deadlines, 'process_type')).toContain('SBV-Protokoll-Wiedervorlage');
   });
 
   it('lässt details nur für geprüfte, nicht identifizierende Titel durch', () => {
@@ -83,7 +83,7 @@ describe('0.9.1 iCal process_type Export', () => {
     expect(sanitizeIcalText('Max Mustermann')).toBe('Frist prüfen');
     expect(deadlineProcessTypeLabel({ processType: 'case', deadlineType: 'follow_up' })).toBe('Fall-Wiedervorlage');
     expect(deadlineProcessTypeLabel({ processType: 'custom', deadlineType: 'warning' })).toBe('Wiedervorlage');
-    expect(deadlineProcessTypeLabel({ processType: 'sbv_control_protocol', deadlineType: 'follow_up' })).toBe('Steuerungsprotokoll-Wiedervorlage');
+    expect(deadlineProcessTypeLabel({ processType: 'sbv_control_protocol', deadlineType: 'follow_up' })).toBe('SBV-Protokoll-Wiedervorlage');
   });
 
   it('faltet lange Zeilen und hält CRLF plattformunabhängig ein', () => {

@@ -41,3 +41,19 @@ export { TemplateDefaultService } from '../services/templateDefaultService.js';
 export { TemplateService } from '../services/templateService.js';
 export { TerminationService } from '../services/terminationService.js';
 export { WorkplaceAccommodationService } from '../services/workplaceAccommodationService.js';
+
+export { SbvMeetingService } from '../services/sbvMeetingService.js';
+export { SbvAssemblyService } from '../services/sbvAssemblyService.js';
+export { EmployerObligationService } from '../services/employerObligationService.js';
+export { InclusionAgreementService } from '../services/inclusionAgreementService.js';
+export { ComplaintWorkflowService } from '../services/complaintWorkflowService.js';
+
+export { SbvOfficeDocumentService } from '../services/sbvOfficeDocumentService.js';
+export { SbvOfficeWorkflowDocumentAdapter } from '../services/sbvOfficeWorkflowDocumentAdapter.js';
+
+export { SbvElectionService } from '../services/sbvElectionService.js';
+export { SbvElectionDocumentService } from '../services/sbvElectionDocumentService.js';
+
+export { ElectionExecutionService } from '../services/electionExecutionService.js';
+export { ElectionArchiveService } from '../services/electionArchiveService.js';
+export { ElectionTransferService } from '../services/electionTransferService.js';

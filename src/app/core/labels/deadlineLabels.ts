@@ -8,10 +8,15 @@ export const deadlineProcessTypeLabels: Record<DeadlineProcessType, string> = {
   termination_hearing: 'Kündigungsanhörung',
   gdb: 'GdB',
   custom: 'Freie Wiedervorlage',
-  sbv_control_protocol: 'SBV-Steuerungsprotokoll',
+  sbv_control_protocol: 'SBV-Protokoll',
   activity_journal: 'Tätigkeitsjournal',
   sbv_participation_violation: 'Beteiligungsverstoß',
   recruiting_participation: 'Stellenbesetzung',
+  sbv_meeting: 'Gremiensitzung',
+  sbv_assembly: 'Schwerbehindertenversammlung',
+  employer_obligation_review: 'Arbeitgeberpflicht',
+  inclusion_agreement: 'Inklusionsvereinbarung',
+  election: 'SBV-Wahl',
 };
 
 export const deadlineTypeLabels: Record<DeadlineType, string> = {

@@ -1,4 +1,6 @@
 import type { RetentionCandidate, RetentionDashboard, RetentionRiskLevel, RetentionSettings } from '../src/app/core/models/retention.model.js';
+import type { RetentionOwnerSnapshot } from '../src/app/core/models/retention-owner.model.js';
+import { buildOfficeOwnerRetentionCandidates } from './retentionOwnerPolicy.js';
 
 export const DEFAULT_RETENTION_SETTINGS: RetentionSettings = {
   closedCaseReviewMonths: 24,
@@ -92,6 +94,7 @@ export interface RetentionScanInput {
   journalEntries?: RetentionActivityJournalSnapshot[];
   participationViolations?: RetentionParticipationViolationSnapshot[];
   cleartextFiles?: string[];
+  officeOwners?: RetentionOwnerSnapshot[];
 }
 
 function monthsAgo(now: Date, months: number): Date {
@@ -388,6 +391,7 @@ for (const filePath of input.cleartextFiles ?? []) {
   }
 }
 
+
 export function buildRetentionDashboard(input: RetentionScanInput): RetentionDashboard {
   const now = input.now ?? new Date();
   const settings = normalizeRetentionSettings(input.settings);
@@ -406,6 +410,7 @@ export function buildRetentionDashboard(input: RetentionScanInput): RetentionDas
   appendJournalCandidates(candidates, input, settings, journalCutoff);
   appendParticipationViolationCandidates(candidates, input, settings, participationViolationCutoff);
   appendCleartextCandidates(candidates, input);
+  candidates.push(...buildOfficeOwnerRetentionCandidates(input.officeOwners ?? [], now));
 
 candidates.sort((a, b) => riskOrder(a.riskLevel) - riskOrder(b.riskLevel) || a.title.localeCompare(b.title, 'de-DE'));
 

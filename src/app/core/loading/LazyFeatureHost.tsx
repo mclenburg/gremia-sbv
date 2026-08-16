@@ -45,6 +45,7 @@ export function LazyFeatureHost({ view, cases, theme, onThemeChange, onCreateDea
     cases: CaseRecord[];
     deadlines: DeadlineRecord[];
     onNavigate?: (viewId: ViewId) => void;
+    initialSection?: "meetings";
   }>>;
   return (
     <LazyFeatureBoundary view={view} onRetry={() => { void preloadLazyFeature(view).catch(() => undefined); }}>
@@ -54,8 +55,8 @@ export function LazyFeatureHost({ view, cases, theme, onThemeChange, onCreateDea
         <CasesFeature cases={cases} />
       ) : ["bem", "prevention", "participation", "equalization", "termination_hearing"].includes(view) && onOpenCaseNode ? (
         <CaseNodeFeature cases={cases} onOpenCaseNode={onOpenCaseNode} />
-      ) : view === "sbv_control" ? (
-        <SbvControlFeature cases={cases} deadlines={deadlines} onNavigate={onNavigate} />
+      ) : view === "sbv_control" || view === "meetings" ? (
+        <SbvControlFeature cases={cases} deadlines={deadlines} onNavigate={onNavigate} initialSection={view === "meetings" ? "meetings" : undefined} />
       ) : view === "settings" ? (
         <SettingsFeature theme={theme} onThemeChange={onThemeChange} cases={cases} />
       ) : view === "recruiting_participations" ? (

@@ -6,6 +6,7 @@ import {
   ClipboardList,
   ClipboardCheck,
   CalendarClock,
+  CalendarDays,
   FileText,
   FolderKanban,
   HeartPulse,
@@ -15,7 +16,8 @@ import {
   BriefcaseBusiness,
   UserRoundCheck,
   Users,
-  Wrench
+  Wrench,
+  Vote
 } from 'lucide-react';
 
 export type ViewId =
@@ -23,6 +25,7 @@ export type ViewId =
   | 'cases'
   | 'deadlines'
   | 'activity_journal'
+  | 'meetings'
   | 'participation_violations'
   | 'persons'
   | 'bem'
@@ -32,6 +35,7 @@ export type ViewId =
   | 'workplace_accommodation'
   | 'equalization'
   | 'termination_hearing'
+  | 'elections'
   | 'templates'
   | 'knowledge'
   | 'contacts'
@@ -65,7 +69,7 @@ export const moduleGroups: ModuleGroupDefinition[] = [
   { id: 'core', label: 'Kernarbeit', description: 'Personen, Fallakten und Fristen.' },
   { id: 'processes', label: 'SBV-Verfahren', description: 'BEM, Prävention, Beteiligung und Schutzverfahren.' },
   { id: 'tools', label: 'Werkzeuge', description: 'Vorlagen, Wissen, Kontakte und Berichte.' },
-  { id: 'administration', label: 'Administration', description: 'Compliance, Steuerung und Einstellungen.' },
+  { id: 'administration', label: 'Administration', description: 'Compliance, Dokumentation und Einstellungen.' },
 ];
 
 export const modules: ModuleDefinition[] = [
@@ -99,6 +103,14 @@ export const modules: ModuleDefinition[] = [
     shortTitle: 'Journal',
     text: 'SBV-Eigenaufzeichnung zu Tätigkeiten und optionaler SBV-Zeit.',
     icon: ClipboardList,
+    group: 'core'
+  },
+  {
+    id: 'meetings',
+    title: 'Gremiensitzungen',
+    shortTitle: 'Sitzungen',
+    text: 'BR- und Ausschusssitzungen aus SBV-Sicht vorbereiten, begleiten und dokumentieren.',
+    icon: CalendarDays,
     group: 'core'
   },
 
@@ -169,6 +181,14 @@ export const modules: ModuleDefinition[] = [
     group: 'processes'
   },
   {
+    id: 'elections',
+    title: 'SBV-Wahlen',
+    shortTitle: 'Wahlen',
+    text: 'Wahleinleitung und Vorbereitung der örtlichen Schwerbehindertenvertretung.',
+    icon: Vote,
+    group: 'processes'
+  },
+  {
     id: 'templates',
     title: 'Vorlagen',
     shortTitle: 'Vorlagen',
@@ -202,9 +222,9 @@ export const modules: ModuleDefinition[] = [
   },
   {
     id: 'sbv_control',
-    title: 'SBV-Steuerung',
-    shortTitle: 'Steuerung',
-    text: 'Beteiligungsqualität, Inklusionsvereinbarung, Arbeitgeberpflichten, Ressourcen und Fallabschluss.',
+    title: 'SBV-Dokumentation',
+    shortTitle: 'Dokumentation',
+    text: 'Sitzungen, Protokolle, Nachweise, Arbeitgeberpflichten, Inklusionsvereinbarung und weitere SBV-Dokumentation.',
     icon: ClipboardCheck,
     group: 'administration'
   },

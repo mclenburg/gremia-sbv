@@ -47,6 +47,25 @@ describe('aktive Markdown-Dokumentation', () => {
     expect(docs.some(hasAppVersionNumber)).toBe(false);
   });
 
+  it('hält zentrale Navigation und Benutzerhandbuch bei Dokumentation, Sitzungen und Wahlen synchron', () => {
+    const modules = readFileSync('src/app/core/navigation/modules.ts', 'utf8');
+    const handbookIndex = readFileSync('docs/handbuch/README.md', 'utf8');
+    const navigationGuide = readFileSync('docs/handbuch/02-grundbegriffe-und-navigation.md', 'utf8');
+    const documentationGuide = readFileSync('docs/handbuch/14-dokumentation.md', 'utf8');
+    const electionGuide = readFileSync('docs/handbuch/17-wahlen.md', 'utf8');
+
+    expect(modules).toContain("shortTitle: 'Sitzungen'");
+    expect(modules).toContain("shortTitle: 'Dokumentation'");
+    expect(modules).toContain("shortTitle: 'Wahlen'");
+    expect(handbookIndex).toContain('[Dokumentation](14-dokumentation.md)');
+    expect(handbookIndex).toContain('[Wahlen](17-wahlen.md)');
+    expect(navigationGuide).toContain('## Sitzungen');
+    expect(navigationGuide).toContain('## Dokumentation');
+    expect(navigationGuide).toContain('## Wahlen');
+    expect(documentationGuide).toContain('## BR-Sitzung aus Gremia.BR übernehmen');
+    expect(electionGuide).toContain('## Wahlworkflow');
+  });
+
   it('verbannt Release- und Zwischenstandsdokumentation aus der aktiven Kerndoku', () => {
     const activeDocs = ['README.md', 'CONTRIBUTING.md', ...collectMarkdownFiles('docs')];
     const transientInCore = activeDocs.filter((file) => classifyMarkdownFile(file) === 'transient');

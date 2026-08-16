@@ -37,7 +37,7 @@ export function deadlineProcessTypeLabel(deadline: Pick<DeadlineRecord, 'process
     case 'termination_hearing': return 'Stellungnahmefrist prüfen';
     case 'gdb': return 'Statusverfahren prüfen';
     case 'case': return deadline.deadlineType === 'legal_deadline' ? 'Stellungnahmefrist prüfen' : 'Fall-Wiedervorlage';
-    case 'sbv_control_protocol': return 'Steuerungsprotokoll-Wiedervorlage';
+    case 'sbv_control_protocol': return 'SBV-Protokoll-Wiedervorlage';
     default: return 'Wiedervorlage';
   }
 }

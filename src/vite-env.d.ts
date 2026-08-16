@@ -179,6 +179,25 @@ import type {
   UpdateProtectedPersonInput,
 } from "./app/core/models/protected-person.model";
 
+import type {
+  SbvMeetingRecord, SbvMeetingAgendaItemRecord, CreateSbvMeetingInput, UpdateSbvMeetingInput, UpsertSbvMeetingAgendaInput,
+  SbvAssemblyRecord, SaveSbvAssemblyInput, EmployerObligationReviewRecord, SaveEmployerObligationReviewInput,
+  InclusionOfficerSnapshotRecord, SaveInclusionOfficerSnapshotInput, InclusionAgreementRecord, SaveInclusionAgreementInput,
+  InclusionAgreementTopicRecord, SaveInclusionAgreementTopicInput, ComplaintWorkflowRecord, SaveComplaintWorkflowInput, QuickCaseTemplate,
+} from "./app/core/models/sbv-office-workflow.model";
+import type {
+  ConfigureElectionSetupInput, CreateElectionInput, ElectionBoardMemberRecord, ElectionBoardSessionRecord, ElectionCandidateRecord,
+  ElectionObjectionRecord, ElectionPreparationOverview, ElectionProposalRecord, ElectionRecord, ElectionSetupAssessment, ElectionVoterRecord,
+  GenerateElectionPreparationDocumentInput, SaveElectionBoardMemberInput, SaveElectionBoardSessionInput, SaveElectionCandidateInput,
+  SaveElectionObjectionInput, SaveElectionProposalInput, SaveElectionVoterInput,
+} from "./app/core/models/election-workflow.model";
+import type {
+  ElectionCloseInput, ElectionDayChecklistInput, ElectionDocumentExportResult, ElectionExecutionOverview, ElectionMailBallotRecord, ElectionPhysicalRecord, ElectionResultRecord,
+  ElectionTransferFileExportResult, ElectionTransferFileSelection, ElectionTransferInspection, GenerateElectionExecutionDocumentInput, RecordElectionAcceptanceInput, RecordElectionLotInput,
+  RecordElectionTotalsInput, SaveElectionMailBallotInput, SaveElectionPhysicalRecordInput,
+} from "./app/core/models/election-execution.model";
+import type { ElectionTransferEnvelope } from "../services/electionTransferCryptoAdapter";
+import type { ElectionTransferImportResult } from "../services/electionTransferImportService";
 declare global {
   interface Window {
     gremiaSbv: {
@@ -514,6 +533,57 @@ declare global {
         ): Promise<RenderedTemplateResult>;
       };
 
+      elections: {
+        list(): Promise<ElectionRecord[]>;
+        get(id: string): Promise<ElectionRecord>;
+        create(input: CreateElectionInput): Promise<ElectionRecord>;
+        configureSetup(id: string, input: ConfigureElectionSetupInput): Promise<ElectionSetupAssessment>;
+        overview(id: string): Promise<ElectionPreparationOverview>;
+        saveVoter(id: string, input: SaveElectionVoterInput): Promise<ElectionVoterRecord>;
+        saveBoardMember(id: string, input: SaveElectionBoardMemberInput): Promise<ElectionBoardMemberRecord>;
+        saveBoardSession(id: string, input: SaveElectionBoardSessionInput): Promise<ElectionBoardSessionRecord>;
+        saveObjection(id: string, input: SaveElectionObjectionInput): Promise<ElectionObjectionRecord>;
+        saveCandidate(id: string, input: SaveElectionCandidateInput): Promise<ElectionCandidateRecord>;
+        saveProposal(id: string, input: SaveElectionProposalInput): Promise<ElectionProposalRecord>;
+        startGracePeriod(id: string, sourceDate: string): Promise<ElectionProposalRecord>;
+        recordNoticeIssued(id: string, issueDate: string): Promise<{ recorded: boolean }>;
+        markPreparation(id: string): Promise<ElectionRecord>;
+        journalPrefill(id: string, activity: 'preparation' | 'board_work' | 'voter_list' | 'nominations' | 'voting' | 'counting' | 'result' | 'archive'): Promise<ActivityJournalPrefill>;
+        generateDocument(id: string, input: GenerateElectionPreparationDocumentInput): Promise<{ id: string; filename: string; sha256: string }>;
+        executionOverview(id: string): Promise<ElectionExecutionOverview>;
+        recordElectionDayChecklist(id: string, input: ElectionDayChecklistInput): Promise<ElectionExecutionOverview>;
+        saveMailBallot(id: string, input: SaveElectionMailBallotInput): Promise<ElectionMailBallotRecord>;
+        recordTotals(id: string, input: RecordElectionTotalsInput): Promise<ElectionExecutionOverview>;
+        recordLotDecision(id: string, input: RecordElectionLotInput): Promise<ElectionResultRecord>;
+        recordAcceptance(id: string, input: RecordElectionAcceptanceInput): Promise<ElectionExecutionOverview>;
+        savePhysicalRecord(id: string, input: SaveElectionPhysicalRecordInput): Promise<ElectionPhysicalRecord>;
+        close(id: string, input: ElectionCloseInput): Promise<{ closed: boolean }>;
+        generateExecutionDocument(id: string, input: GenerateElectionExecutionDocumentInput): Promise<{ id: string; filename: string; sha256: string }>;
+        exportPdfArchive(id: string): Promise<{ id: string; filename: string; sha256: string }>;
+        exportDocument(documentId: string, suggestedFileName?: string): Promise<ElectionDocumentExportResult>;
+        exportTransfer(id: string, passphrase: string): Promise<ElectionTransferEnvelope>;
+        inspectTransfer(envelope: ElectionTransferEnvelope, passphrase: string): Promise<ElectionTransferInspection>;
+        importTransfer(envelope: ElectionTransferEnvelope, passphrase: string): Promise<ElectionTransferImportResult>;
+        exportTransferFile(id: string, passphrase: string, suggestedFileName?: string): Promise<ElectionTransferFileExportResult>;
+        selectTransferFile(passphrase: string): Promise<ElectionTransferFileSelection>;
+        importTransferFile(fileToken: string, passphrase: string): Promise<ElectionTransferImportResult>;
+      };
+      sbvOffice: {
+        meetings: {
+          list(): Promise<SbvMeetingRecord[]>;
+          create(input: CreateSbvMeetingInput): Promise<SbvMeetingRecord>;
+          update(id: string, input: UpdateSbvMeetingInput): Promise<SbvMeetingRecord>;
+          journalPrefill(id: string, activity: 'attendance' | 'preparation' | 'top_request' | 'suspension'): Promise<ActivityJournalPrefill>;
+          saveAgenda(id: string, input: UpsertSbvMeetingAgendaInput): Promise<SbvMeetingAgendaItemRecord>;
+          createAgendaFollowUp(agendaId: string, dueAt: string, title?: string): Promise<unknown>;
+        };
+        assemblies: { list(): Promise<SbvAssemblyRecord[]>; annualWarning(year: number): Promise<boolean>; createFollowUp(id: string, dueAt: string, title?: string): Promise<unknown>; generateDocument(id: string, kind: 'invitation' | 'agenda' | 'activity_report_draft' | 'result_minutes'): Promise<{ id: string; filename: string; sha256: string }>; save(input: SaveSbvAssemblyInput): Promise<SbvAssemblyRecord>; };
+        obligations: { list(): Promise<EmployerObligationReviewRecord[]>; ensureAnnual(year: number): Promise<EmployerObligationReviewRecord[]>; save(input: SaveEmployerObligationReviewInput): Promise<EmployerObligationReviewRecord>; };
+        officers: { list(): Promise<InclusionOfficerSnapshotRecord[]>; save(input: SaveInclusionOfficerSnapshotInput): Promise<InclusionOfficerSnapshotRecord>; };
+        agreements: { list(): Promise<InclusionAgreementRecord[]>; requestDraft(dueAt?: string): Promise<{ text: string; responseDueAt?: string }>; createResponseDeadline(id: string, dueAt: string): Promise<unknown>; save(input: SaveInclusionAgreementInput): Promise<InclusionAgreementRecord>; saveTopic(id: string, input: SaveInclusionAgreementTopicInput): Promise<InclusionAgreementTopicRecord>; };
+        documents: { selectAndAttach(ownerType: 'meeting' | 'assembly' | 'inclusion_agreement' | 'employer_obligation_review', ownerId: string, purpose: string): Promise<Array<{ id: string; filename: string; sha256: string }>>; };
+        complaints: { list(): Promise<ComplaintWorkflowRecord[]>; save(input: SaveComplaintWorkflowInput): Promise<ComplaintWorkflowRecord>; templates(): Promise<QuickCaseTemplate[]>; };
+      };
       retention: {
         dashboard(): Promise<RetentionDashboard>;
         getSettings(): Promise<RetentionSettings>;
