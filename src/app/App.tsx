@@ -44,6 +44,8 @@ const IMPLEMENTED_VIEW_IDS = new Set<ViewId>([
   "workplace_accommodation",
   "equalization",
   "termination_hearing",
+  "elections",
+  "meetings",
   "templates",
   "sbv_control",
   "reports",

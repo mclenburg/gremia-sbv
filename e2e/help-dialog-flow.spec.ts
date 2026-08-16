@@ -22,8 +22,7 @@ test.describe('0.9.5-k Hilfe-on-demand Dialoge', () => {
       const route = VISUAL_QA_ROUTES.find((candidate) => candidate.id === helpRoute.id);
       if (!route) throw new Error(`VISUAL_QA_ROUTE fehlt: ${helpRoute.id}`);
 
-      await page.goto('/');
-      await expect(mainNavigation(page)).toBeVisible();
+          await expect(mainNavigation(page)).toBeVisible();
       await openRoute(page, route.navName);
       await expect(page.getByRole('heading', { name: route.heading }).first()).toBeVisible();
 
@@ -48,8 +47,7 @@ test.describe('0.9.5-k Hilfe-on-demand Dialoge', () => {
     const route = VISUAL_QA_ROUTES.find((candidate) => candidate.id === 'participation_violations');
     if (!route) throw new Error('VISUAL_QA_ROUTE fehlt: participation_violations');
 
-    await page.goto('/');
-    await openRoute(page, route.navName);
+      await openRoute(page, route.navName);
     await expect(page.getByRole('heading', { name: route.heading }).first()).toBeVisible();
 
     await page.getByLabel('Eskalationsstufe').selectOption('abmahnung');

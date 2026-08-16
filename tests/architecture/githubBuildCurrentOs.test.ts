@@ -19,6 +19,7 @@ describe('0.9.5-e local GitHub build command', () => {
     expect(output).toContain('▶ npm run build:compile');
     expect(output).toMatch(/▶ npm run build:package:(linux|windows|mac)/);
     expect(output).toMatch(/▶ npm run release:platform:(linux|windows)/);
-    expect(output).toContain('E2E-Tests laufen standardmäßig mit 2 Workern');
+    expect(output).toContain('Browser-E2E nutzt automatisch bis zu 4 Worker');
+    expect(output).toContain('Full-Product-E2E bleibt separat auf maximal 2 persistente Tresor-Slots begrenzt');
   });
 });

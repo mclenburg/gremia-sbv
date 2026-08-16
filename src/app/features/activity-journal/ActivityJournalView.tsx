@@ -1,4 +1,4 @@
-import { Clock, FileText, Plus, Search, Trash2 } from 'lucide-react';
+import { Clock, FileText, Search, Trash2 } from 'lucide-react';
 import type { ActivityJournalCategory, ActivityJournalEntryRecord, ActivityJournalPrefill } from '../../core/models/activity-journal.model';
 import { ACTIVITY_JOURNAL_CATEGORIES } from '../../core/models/activity-journal.model';
 import { activityJournalCategoryLabels, activityJournalTimeModeLabels } from '../../core/labels/activityJournalLabels';
@@ -80,9 +80,7 @@ export function ActivityJournalView({
 
   return (
     <WorkbenchPage
-      kicker="SBV-Nachweislinie"
       title="Tätigkeitsjournal"
-      description="Interne SBV-Nachweislinie."
       helpId="activityJournal.overview"
     >
       <ModuleFeedback items={[
@@ -94,8 +92,6 @@ export function ActivityJournalView({
         <FormSection
           kicker="Schnellerfassung"
           title="Tätigkeit erfassen"
-          helpId="activityJournal.capture"
-          actions={<Plus className="h-5 w-5 text-yellow-300" aria-hidden="true" />}
         >
           <div className="industrial-form-grid industrial-form-grid-auto">
             <TextInput

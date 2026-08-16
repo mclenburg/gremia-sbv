@@ -43,7 +43,34 @@
     "sbv_participation_violation_events",
     "sbv_participation_violations",
     "sbv_resource_records",
-    "termination_hearings"
+    "termination_hearings",
+    "sbv_meetings",
+    "sbv_meeting_agenda_items",
+    "sbv_assemblies",
+    "sbv_employer_obligation_reviews",
+    "sbv_inclusion_officer_snapshots",
+    "sbv_inclusion_agreements",
+    "sbv_inclusion_agreement_topics",
+    "sbv_complaint_workflows",
+    "sbv_elections",
+    "sbv_election_board_members",
+    "sbv_election_voters",
+    "sbv_election_board_sessions",
+    "sbv_election_candidates",
+    "sbv_election_proposals",
+    "sbv_election_proposal_candidates",
+    "sbv_election_proposal_supporters",
+    "sbv_election_objections",
+    "sbv_election_mail_ballots",
+    "sbv_election_vote_totals",
+    "sbv_election_results",
+    "sbv_election_events",
+    "sbv_workflow_document_links",
+    "sbv_election_physical_records",
+    "sbv_election_archive_exports",
+    "sbv_election_transfer_imports",
+    "sbv_election_transfer_import_items",
+    "sbv_retention_legal_holds"
   ],
   "exceptions": {
     "services/activityJournalService.ts#ActivityJournalService.deleteLinkedDeadline": {
@@ -275,6 +302,166 @@
       "classification": "delegated",
       "owner": "CaseAnonymizationService.anonymizeCase",
       "reason": "Löscht generierte Falldokument-Datensätze und deren Zuordnung innerhalb der fachlich auditierten Fallanonymisierung; die Dateien selbst werden zuvor reversibel quarantänisiert."
+    },
+    "services/complaintWorkflowService.ts#ComplaintWorkflowService.insertNew": {
+      "classification": "delegated",
+      "owner": "ComplaintWorkflowService.save",
+      "reason": "Interner Insert-Schritt innerhalb des fachlich auditierten Speichervorgangs für Anregungen/Beschwerden."
+    },
+    "services/complaintWorkflowService.ts#ComplaintWorkflowService.updateExisting": {
+      "classification": "delegated",
+      "owner": "ComplaintWorkflowService.save",
+      "reason": "Interner Update-Schritt innerhalb des fachlich auditierten Speichervorgangs für Anregungen/Beschwerden."
+    },
+    "services/employerObligationService.ts#EmployerObligationService.insertReview": {
+      "classification": "delegated",
+      "owner": "EmployerObligationService.save",
+      "reason": "Interner Insert-Schritt innerhalb des fachlich auditierten Prüfvorgangs zu Arbeitgeberpflichten."
+    },
+    "services/employerObligationService.ts#EmployerObligationService.updateReview": {
+      "classification": "delegated",
+      "owner": "EmployerObligationService.save",
+      "reason": "Interner Update-Schritt innerhalb des fachlich auditierten Prüfvorgangs zu Arbeitgeberpflichten."
+    },
+    "services/inclusionAgreementService.ts#InclusionAgreementService.createRequiredTopics": {
+      "classification": "delegated",
+      "owner": "InclusionAgreementService.save",
+      "reason": "Initialisiert die gesetzliche Themenmatrix innerhalb des fachlich auditierten Anlegens einer Inklusionsvereinbarung."
+    },
+    "services/inclusionAgreementService.ts#InclusionAgreementService.insertAgreement": {
+      "classification": "delegated",
+      "owner": "InclusionAgreementService.save",
+      "reason": "Interner Insert-Schritt innerhalb des fachlich auditierten Speichervorgangs für Inklusionsvereinbarungen."
+    },
+    "services/inclusionAgreementService.ts#InclusionAgreementService.updateAgreement": {
+      "classification": "delegated",
+      "owner": "InclusionAgreementService.save",
+      "reason": "Interner Update-Schritt innerhalb des fachlich auditierten Speichervorgangs für Inklusionsvereinbarungen."
+    },
+    "services/sbvAssemblyService.ts#SbvAssemblyService.insertNew": {
+      "classification": "delegated",
+      "owner": "SbvAssemblyService.save",
+      "reason": "Interner Insert-Schritt innerhalb des fachlich auditierten Speichervorgangs für Schwerbehindertenversammlungen."
+    },
+    "services/sbvAssemblyService.ts#SbvAssemblyService.updateExisting": {
+      "classification": "delegated",
+      "owner": "SbvAssemblyService.save",
+      "reason": "Interner Update-Schritt innerhalb des fachlich auditierten Speichervorgangs für Schwerbehindertenversammlungen."
+    },
+    "services/electionPreparationRepository.ts#ElectionPreparationRepository.insertElection": {
+      "classification": "delegated",
+      "owner": "SbvElectionService.create",
+      "reason": "Persistenzadapter innerhalb des auditierten Anlegens eines Wahlvorgangs."
+    },
+    "services/electionPreparationRepository.ts#ElectionPreparationRepository.updateSetup": {
+      "classification": "delegated",
+      "owner": "SbvElectionService.configureSetup",
+      "reason": "Persistenzadapter innerhalb der auditierten Verfahrensprüfung."
+    },
+    "services/electionPreparationRepository.ts#ElectionPreparationRepository.updateStatus": {
+      "classification": "delegated",
+      "owner": "SbvElectionService.markPreparation/saveProposal",
+      "reason": "Statusmutation innerhalb auditierter Wahloperationen."
+    },
+    "services/electionPreparationRepository.ts#ElectionPreparationRepository.lockDeputyCount": {
+      "classification": "delegated",
+      "owner": "SbvElectionService.saveCandidate",
+      "reason": "Fixiert die Stellvertretungszahl innerhalb der auditierten Kandidaturerfassung."
+    },
+    "services/electionPreparationRepository.ts#ElectionPreparationRepository.saveVoter": {
+      "classification": "delegated",
+      "owner": "SbvElectionService.saveVoter",
+      "reason": "Persistenzadapter innerhalb der auditierten Wählerlistenerfassung."
+    },
+    "services/electionPreparationRepository.ts#ElectionPreparationRepository.saveBoardMember": {
+      "classification": "delegated",
+      "owner": "SbvElectionService.saveBoardMember",
+      "reason": "Persistenzadapter innerhalb der auditierten Wahlorganerfassung."
+    },
+    "services/electionPreparationRepository.ts#ElectionPreparationRepository.saveSession": {
+      "classification": "delegated",
+      "owner": "SbvElectionService.saveBoardSession",
+      "reason": "Persistenzadapter innerhalb der auditierten Wahlvorstandssitzung."
+    },
+    "services/electionPreparationRepository.ts#ElectionPreparationRepository.setSessionDocument": {
+      "classification": "delegated",
+      "owner": "SbvElectionDocumentService.generate",
+      "reason": "Verknüpft das verschlüsselte Dokument mit der Wahlvorstandssitzung; Dokumenterzeugung wird separat auditiert."
+    },
+    "services/electionPreparationRepository.ts#ElectionPreparationRepository.saveCandidate": {
+      "classification": "delegated",
+      "owner": "SbvElectionService.saveCandidate",
+      "reason": "Persistenzadapter innerhalb der auditierten Kandidaturerfassung."
+    },
+    "services/electionPreparationRepository.ts#ElectionPreparationRepository.saveProposal": {
+      "classification": "delegated",
+      "owner": "SbvElectionService.saveProposal/startGracePeriod",
+      "reason": "Mehrfachmutation der Wahlvorschlags-Aggregation innerhalb auditierter Wahloperationen."
+    },
+    "services/electionPreparationRepository.ts#ElectionPreparationRepository.saveObjection": {
+      "classification": "delegated",
+      "owner": "SbvElectionService.saveObjection",
+      "reason": "Persistenzadapter innerhalb des auditierten Einspruchsvorgangs."
+    },
+    "services/sbvElectionService.ts#SbvElectionService.ensureDeadline": {
+      "classification": "delegated",
+      "owner": "DeadlineService.create",
+      "reason": "Ergänzt Rechtsregel-Snapshot an einer unmittelbar durch DeadlineService auditierten zentralen Frist."
+    },
+    "services/electionArchiveService.ts#ElectionArchiveService.exportPdfArchive": {
+      "classification": "delegated",
+      "owner": "SbvOfficeWorkflowDocumentAdapter.store",
+      "reason": "Technischer Wahlaktenexport wird zusammen mit dem verschlüsselten, unmittelbar auditierten election-Dokument erzeugt; der Exportindex enthält nur technische Nachweisdaten."
+    },
+    "services/electionExecutionRepository.ts#ElectionExecutionRepository.promoteNext": {
+      "classification": "delegated",
+      "owner": "ElectionExecutionService.recordAcceptance",
+      "reason": "Persistenzschritt des auditierten Annahme-/Ablehnungsworkflows; Nachrücken ist Teil derselben atomaren Wahloperation."
+    },
+    "services/electionExecutionRepository.ts#ElectionExecutionRepository.replaceVoteTotals": {
+      "classification": "delegated",
+      "owner": "ElectionExecutionService.recordTotals",
+      "reason": "Persistenzadapter der auditierten aggregierten Auszählung; keine Individualstimmen werden gespeichert."
+    },
+    "services/electionExecutionRepository.ts#ElectionExecutionRepository.saveMailBallot": {
+      "classification": "delegated",
+      "owner": "ElectionExecutionService.saveMailBallot",
+      "reason": "Persistenzadapter des auditierten Briefwahlstatus; gespeichert wird kein Stimmzettelinhalt."
+    },
+    "services/electionExecutionRepository.ts#ElectionExecutionRepository.savePhysicalRecord": {
+      "classification": "delegated",
+      "owner": "ElectionExecutionService.savePhysicalRecord",
+      "reason": "Persistenzadapter des auditierten Bestandsverzeichnisses physischer Wahlunterlagen."
+    },
+    "services/electionExecutionService.ts#ElectionExecutionService.close": {
+      "classification": "delegated",
+      "owner": "ElectionExecutionService.auditMutation",
+      "reason": "Wahlabschluss erzeugt innerhalb derselben Unit of Work einen technischen Election-Auditeintrag über den zentralen Audit-Helper."
+    },
+    "services/electionExecutionService.ts#ElectionExecutionService.ensureEmployerNotificationFollowUp": {
+      "classification": "delegated",
+      "owner": "ElectionExecutionService.close",
+      "reason": "Interner, deduplizierter §163-Abs.-8-Folgeschritt des auditierten Wahlabschlusses; im Produktionspfad zusätzlich über EmployerObligationService.save auditiert."
+    },
+    "services/electionExecutionService.ts#ElectionExecutionService.recordAcceptance": {
+      "classification": "delegated",
+      "owner": "ElectionExecutionService.auditMutation",
+      "reason": "Annahme, Ablehnung und Statusfortschreibung werden innerhalb derselben Unit of Work über den zentralen Election-Audit-Helper auditiert."
+    },
+    "services/electionExecutionService.ts#ElectionExecutionService.recordLotDecision": {
+      "classification": "delegated",
+      "owner": "ElectionExecutionService.auditMutation",
+      "reason": "Dokumentierter tatsächlicher Losentscheid wird innerhalb derselben Unit of Work über den zentralen Election-Audit-Helper auditiert."
+    },
+    "services/electionExecutionSupport.ts#<module>.recordElectionEvent": {
+      "classification": "delegated",
+      "owner": "ElectionExecutionService.auditMutation",
+      "reason": "Technische, datensparsame Ereignisspur wird nur aus fachlichen Wahloperationen geschrieben, die parallel einen persönlichen Election-Auditeintrag erzeugen."
+    },
+    "services/electionExecutionSupport.ts#ElectionExecutionDeadlineCoordinator.ensure": {
+      "classification": "delegated",
+      "owner": "DeadlineService.create",
+      "reason": "Ergänzt Regel-Snapshotfelder an einer unmittelbar über DeadlineService.create angelegten und dort auditierten zentralen Frist."
     }
   }
 }

@@ -1,5 +1,6 @@
 (() => {
   const now = new Date('2026-05-05T10:00:00.000Z').toISOString();
+  const cloneForIpc = (value) => structuredClone(value);
   const cases = [
     {
       id: 'case-test-0001',
@@ -128,14 +129,14 @@
   function activityJournalPrefill(context) {
     const category = context.category || activityJournalPreferences[context.contextType] || (context.contextType === 'case' ? 'case_work' : context.contextType === 'bem_process' ? 'bem_preparation' : context.contextType === 'prevention_process' ? 'prevention' : context.contextType === 'sbv_participation' || context.contextType === 'termination_hearing' ? 'participation' : 'documentation');
     return {
-      sourceLabel: context.title || context.caseNumber || context.contextType,
+      sourceLabel: context.title || context.caseNumber || ({ case: 'Fallakte', person: 'Person', bem_process: 'BEM-Verfahren', prevention_process: 'Präventionsverfahren', sbv_participation: 'SBV-Beteiligung', termination_hearing: 'Kündigungsanhörung', equalization_process: 'Gleichstellungsverfahren', sbv_control_protocol: 'SBV-Dokumentation', recruiting_participation: 'Stellenbesetzung', recruiting_interview: 'Vorstellungsgespräch', deadline: 'Wiedervorlage', document: 'Dokument', journal: 'Tätigkeitsjournal', fallfrei: 'SBV-Tätigkeit' }[context.contextType] || 'SBV-Tätigkeit'),
       privacyNotice: 'Vorbelegung aus bereits geöffnetem Kontext. Es wurde noch kein Journaleintrag gespeichert.',
       preferenceContextType: context.contextType,
       entry: {
         entryDate: now.slice(0, 10),
         timeMode: 'none',
         category,
-        title: context.caseNumber ? `${context.caseNumber}: Tätigkeit dokumentiert` : context.contextType === 'prevention_process' ? 'Prävention: Sachstand dokumentiert' : 'SBV-Tätigkeit dokumentiert',
+        title: context.title || (context.caseNumber ? `${context.caseNumber}: Tätigkeit dokumentiert` : context.contextType === 'prevention_process' ? 'Prävention: Sachstand dokumentiert' : 'SBV-Tätigkeit dokumentiert'),
         confidentialityLevel: 'confidential',
         status: 'final',
         createdFrom: 'context_prefill',
@@ -215,6 +216,13 @@
   ];
 
   const sbvResources = [];
+  const sbvElections = [];
+  const sbvOfficeMeetings = [];
+  const sbvOfficeAssemblies = [];
+  const sbvOfficeObligations = [];
+  const sbvOfficeOfficers = [];
+  const sbvOfficeAgreements = [];
+  const sbvOfficeComplaints = [];
 
   const templates = [
     {
@@ -575,6 +583,59 @@
     recoveryKey: 'ABCD-EFGH-IJKL-MNOP',
     destroyed: false,
     resetCalls: [],
+  };
+
+  const resettableCollections = [
+    cases,
+    persons,
+    deadlines,
+    activityJournalEntries,
+    recruitingParticipations,
+    recruitingInterviews,
+    participationViolations,
+    sbvResources,
+    sbvElections,
+    sbvOfficeMeetings,
+    sbvOfficeAssemblies,
+    sbvOfficeObligations,
+    sbvOfficeOfficers,
+    sbvOfficeAgreements,
+    sbvOfficeComplaints,
+    templates,
+    knowledgeNorms,
+    knowledgeReferences,
+    knowledgeComments,
+    knowledgeCaseLaw,
+    knowledgeChecklist,
+    reportDescriptors,
+    reportHistory,
+    notes,
+    bemProcesses,
+    measures,
+    ocrTexts,
+    privacyReviews,
+    contacts,
+  ];
+  const resettableCollectionSnapshots = resettableCollections.map((collection) => cloneForIpc(collection));
+  const activityJournalPreferencesSnapshot = cloneForIpc(activityJournalPreferences);
+  const gremiaBrSettingsSnapshot = cloneForIpc(gremiaBrSettings);
+  const gremiaBrCacheSnapshot = cloneForIpc(gremiaBrCache);
+  const securityStateSnapshot = cloneForIpc(securityState);
+
+  const resetObject = (target, snapshot) => {
+    for (const key of Object.keys(target)) delete target[key];
+    Object.assign(target, cloneForIpc(snapshot));
+  };
+
+  window.__GREMIA_SBV_E2E_RESET = () => {
+    resettableCollections.forEach((collection, index) => {
+      collection.splice(0, collection.length, ...cloneForIpc(resettableCollectionSnapshots[index]));
+    });
+    resetObject(activityJournalPreferences, activityJournalPreferencesSnapshot);
+    gremiaBrSettings = cloneForIpc(gremiaBrSettingsSnapshot);
+    gremiaBrCache = cloneForIpc(gremiaBrCacheSnapshot);
+    securityState = cloneForIpc(securityStateSnapshot);
+    window.__GREMIA_SBV_E2E_ICAL_EXPORTS.splice(0, window.__GREMIA_SBV_E2E_ICAL_EXPORTS.length);
   };
 
   window.__GREMIA_SBV_E2E = {
@@ -960,6 +1021,73 @@
         if (index >= 0) participationViolations.splice(index, 1);
         return { deleted: true };
       },
+    },
+    elections: {
+      list: async () => sbvElections,
+      get: async (id) => sbvElections.find((item) => item.id === id),
+      create: async (input) => { const row = { id: `election-${Date.now()}`, legalRuleVersion: 'SGBIX-2026-01-16|SchwbVWO-2022-03-18', status: 'draft', eligibleDisabledEmployeeCount: 0, minimumThresholdMet: false, spatiallySeparated: false, eligibleCountSnapshot: 0, deputyCount: 1, voters: [], boardMembers: [], boardSessions: [], candidates: [], proposals: [], objections: [], createdAt: now, updatedAt: now, ...input }; if (input.kind === 'deputy_by_election') row.officeTermEnd = input.incumbentTermEnd || input.officeTermEnd; sbvElections.unshift(row); return row; },
+      configureSetup: async (id, input) => { const row = sbvElections.find((item) => item.id === id); const count = Number(input.confirmedSeverelyDisabledCount || 0) + Number(input.confirmedEqualizedCount || 0); const suggested = count < 50 && !input.spatiallySeparated ? 'simplified' : 'formal'; Object.assign(row, { procedure: input.procedure || suggested, status: count >= 5 ? 'procedure_confirmed' : 'draft', eligibilityCheckDate: input.eligibilityCheckDate, eligibleDisabledEmployeeCount: count, minimumThresholdMet: count >= 5, spatiallySeparated: Boolean(input.spatiallySeparated), eligibleCountSnapshot: count, deputyCount: input.deputyCount || row.deputyCount, electionDate: input.electionDate || row.electionDate, eligibilityCheckBasis: JSON.stringify({ confirmedSeverelyDisabledCount: input.confirmedSeverelyDisabledCount, confirmedEqualizedCount: input.confirmedEqualizedCount, pendingEqualizationCount: input.pendingEqualizationCount || 0 }), updatedAt: now }); return { eligibleCountSnapshot: count, minimumThresholdMet: count >= 5, suggestedProcedure: suggested, selectedProcedure: row.procedure, procedureDiffersFromSuggestion: row.procedure !== suggested, regularElectionDateValid: true, startReady: count >= 5, legalRuleVersion: row.legalRuleVersion }; },
+      overview: async (id) => { const election = sbvElections.find((item) => item.id === id); const conflicts = []; if (!election.minimumThresholdMet) conflicts.push('Mindestschwelle von fünf bestätigten Wahlberechtigten ist nicht erfüllt.'); if (!election.procedure) conflicts.push('Wahlverfahren ist noch nicht bestätigt.'); return { election, voters: election.voters, boardMembers: election.boardMembers, boardSessions: election.boardSessions, candidates: election.candidates, proposals: election.proposals, objections: election.objections, conflicts }; },
+      saveVoter: async (id, input) => { const e = sbvElections.find((item) => item.id === id); const eligible = input.eligibilityBasis === 'severely_disabled_confirmed' || input.eligibilityBasis === 'equalized_confirmed'; const row = { id: input.id || `voter-${Date.now()}`, electionId: id, listStatus: eligible ? 'eligible' : 'not_eligible', createdAt: now, updatedAt: now, ...input }; e.voters.push(row); return row; },
+      syncVotersFromPersons: async (id) => { const e = sbvElections.find((item) => item.id === id); const eligiblePersons = persons.filter((person) => person.recordKind !== 'pseudonymous_request' && person.employmentState === 'active_employee' && ['severely_disabled', 'equivalent'].includes(person.protectionStatus)); let created = 0; let updated = 0; let unchanged = 0; for (const person of eligiblePersons) { const voterId = `person-${id}-${person.id}`; let row = e.voters.find((item) => item.id === voterId); const next = { id: voterId, electionId: id, lastName: person.lastName, firstName: person.firstName, orgUnit: person.organizationalUnit, eligibilityBasis: person.protectionStatus === 'equivalent' ? 'equalized_confirmed' : 'severely_disabled_confirmed', eligibilityVerifiedAt: person.evidenceCheckedAt, listStatus: 'eligible', updatedAt: now }; if (!row) { row = { ...next, createdAt: now }; e.voters.push(row); created += 1; } else { Object.assign(row, next); updated += 1; } } return { eligiblePersons: eligiblePersons.length, created, updated, unchanged }; },
+      selectVoterImportFile: async () => ({ canceled: true }),
+      previewVoterImport: async () => ({ columns: ['Name', 'Status'], rows: [], warnings: [] }),
+      importVotersFromPersonFile: async (id) => { const e = sbvElections.find((item) => item.id === id); const row = { id: `file-voter-${Date.now()}`, electionId: id, lastName: 'Importperson', firstName: 'Ida', eligibilityBasis: 'equalized_confirmed', listStatus: 'eligible', createdAt: now, updatedAt: now }; e.voters.push(row); return { totalRows: 1, imported: 1, skipped: 0, warnings: [] }; },
+      saveBoardMember: async (id, input) => { const e = sbvElections.find((item) => item.id === id); const row = { id: input.id || `member-${Date.now()}-${e.boardMembers.length}`, electionId: id, createdAt: now, updatedAt: now, ...input }; e.boardMembers.push(row); return row; },
+      saveBoardSession: async (id, input) => { const e = sbvElections.find((item) => item.id === id); const row = { id: `session-${Date.now()}`, electionId: id, createdAt: now, updatedAt: now, ...input }; e.boardSessions.push(row); return row; },
+      saveObjection: async (id, input) => { const e = sbvElections.find((item) => item.id === id); let row = input.id ? e.objections.find((item) => item.id === input.id) : null; if (!row) { row = { id: `objection-${Date.now()}`, electionId: id, createdAt: now }; e.objections.push(row); } Object.assign(row, input, { updatedAt: now }); return row; },
+      saveCandidate: async (id, input) => { const e = sbvElections.find((item) => item.id === id); const row = { id: input.id || `candidate-${Date.now()}`, electionId: id, personSnapshot: input.personSnapshot, officeType: input.officeType, eligibilityStatus: input.ageOnElectionDay >= 18 ? 'policy_eligible' : 'policy_conflict', createdAt: now, updatedAt: now }; e.candidates.push(row); e.deputyCountLockedAt = now; return row; },
+      saveProposal: async (id, input) => { const e = sbvElections.find((item) => item.id === id); const row = { id: input.id || `proposal-${Date.now()}`, electionId: id, validityStatus: input.validityStatus || 'received', candidateIds: input.candidateIds || [], supporterVoterIds: input.supporterVoterIds || [], createdAt: now, updatedAt: now, ...input }; e.proposals.push(row); return row; },
+      startGracePeriod: async (id, sourceDate) => { const e = sbvElections.find((item) => item.id === id); const row = { id: `proposal-grace-${Date.now()}`, electionId: id, receivedAt: sourceDate, validityStatus: 'grace_period', candidateIds: [], supporterVoterIds: [], correctionDueAt: new Date(new Date(sourceDate).getTime() + 7 * 86400000).toISOString().slice(0, 10), createdAt: now, updatedAt: now }; e.proposals.push(row); return row; },
+      recordNoticeIssued: async () => ({ recorded: true }),
+      markPreparation: async (id) => { const e = sbvElections.find((item) => item.id === id); e.status = 'preparation'; return e; },
+      journalPrefill: async (id, activity) => { const labels = { preparation: 'Wahlvorbereitung', board_work: 'Arbeit des Wahlorgans', voter_list: 'Wählerliste', nominations: 'Wahlvorschläge', voting: 'Stimmabgabe', counting: 'Auszählung', result: 'Wahlergebnis', archive: 'Wahlabschluss' }; return activityJournalPrefill({ contextType: 'fallfrei', contextId: id, title: `SBV-Wahl: ${labels[activity] || 'Wahltätigkeit'}`, category: 'sbv_self_organization' }); },
+      generateDocument: async (id, input) => ({ id: `election-doc-${Date.now()}`, filename: `${input.kind}-${id}.pdf`, sha256: 'c'.repeat(64) }),
+      executionOverview: async (id) => { const e = sbvElections.find((item) => item.id === id); e.mailBallots ||= []; e.voteTotals ||= []; e.results ||= []; e.physicalRecords ||= []; e.events ||= []; return { mailBallots: e.mailBallots, voteTotals: e.voteTotals, results: e.results, physicalRecords: e.physicalRecords, events: e.events }; },
+      recordElectionDayChecklist: async (id, input) => { const e = sbvElections.find((item) => item.id === id); e.events ||= []; e.events.push({ eventType: 'election_day_checklist', occurredAt: input.recordedAt, metadata: { ...input } }); return { mailBallots: e.mailBallots || [], voteTotals: e.voteTotals || [], results: e.results || [], physicalRecords: e.physicalRecords || [], events: e.events }; },
+      saveMailBallot: async (id, input) => { const e = sbvElections.find((item) => item.id === id); e.mailBallots ||= []; let row = e.mailBallots.find((item) => item.voterId === input.voterId); if (!row) { row = { id: `mail-${Date.now()}`, electionId: id, voterId: input.voterId, createdAt: now }; e.mailBallots.push(row); } Object.assign(row, input, { destroyDueAt: input.lateReceivedAt && input.announcementDate ? new Date(new Date(input.announcementDate).getTime() + 30 * 86400000).toISOString().slice(0, 10) : row.destroyDueAt, updatedAt: now }); return row; },
+      recordTotals: async (id, input) => { const e = sbvElections.find((item) => item.id === id); e.voteTotals ||= []; e.results ||= []; e.voteTotals = e.voteTotals.filter((item) => item.officeType !== input.officeType); e.results = e.results.filter((item) => item.officeType !== input.officeType); const sorted = [...input.candidateVotes].sort((a, b) => b.votes - a.votes); const maxRank = input.officeType === 'representative' ? 1 : Number(e.deputyCount || 1); sorted.forEach((candidateVote, index) => { const previous = sorted[index - 1]; const rank = previous && previous.votes === candidateVote.votes ? (e.voteTotals.find((item) => item.candidateId === previous.candidateId)?.rank || index + 1) : index + 1; e.voteTotals.push({ id: `total-${Date.now()}-${index}`, electionId: id, officeType: input.officeType, candidateId: candidateVote.candidateId, votes: candidateVote.votes, rank, createdAt: now, updatedAt: now }); const tie = sorted.some((other, otherIndex) => otherIndex !== index && other.votes === candidateVote.votes && rank <= maxRank); e.results.push({ id: `result-${Date.now()}-${index}`, electionId: id, officeType: input.officeType, candidateId: candidateVote.candidateId, electedRank: rank <= maxRank ? rank : undefined, lotRequired: tie, acceptanceStatus: rank <= maxRank ? 'pending' : 'replaced', createdAt: now, updatedAt: now }); }); return { mailBallots: e.mailBallots || [], voteTotals: e.voteTotals, results: e.results, physicalRecords: e.physicalRecords || [], events: e.events || [] }; },
+      recordLotDecision: async (id, input) => { const e = sbvElections.find((item) => item.id === id); const result = (e.results || []).find((item) => item.officeType === input.officeType && item.candidateId === input.candidateId); if (result) { result.lotRequired = false; result.lotDecidedAt = input.decidedAt; result.electedRank = 1; result.acceptanceStatus = 'pending'; } (e.results || []).filter((item) => item.officeType === input.officeType && item.candidateId !== input.candidateId && item.electedRank === 1).forEach((item) => { item.electedRank = undefined; item.acceptanceStatus = 'replaced'; item.lotRequired = false; }); return result; },
+      recordAcceptance: async (id, input) => { const e = sbvElections.find((item) => item.id === id); const result = (e.results || []).find((item) => item.id === input.resultId); if (result) Object.assign(result, { notifiedAt: input.notifiedAt, acceptanceStatus: input.status, updatedAt: now }); return { mailBallots: e.mailBallots || [], voteTotals: e.voteTotals || [], results: e.results || [], physicalRecords: e.physicalRecords || [], events: e.events || [] }; },
+      savePhysicalRecord: async (id, input) => { const e = sbvElections.find((item) => item.id === id); e.physicalRecords ||= []; const row = { id: input.id || `physical-${Date.now()}`, electionId: id, quantity: input.quantity || 1, originalRequired: input.originalRequired !== false, createdAt: now, updatedAt: now, ...input }; e.physicalRecords.push(row); return row; },
+      close: async (id, input) => { const e = sbvElections.find((item) => item.id === id); Object.assign(e, { status: 'closed', retentionUntil: input.retentionUntil, legalHoldStatus: input.challengePending ? 'active' : 'none', updatedAt: now }); return { closed: true }; },
+      generateExecutionDocument: async (id, input) => ({ id: `election-exec-doc-${Date.now()}`, filename: `${input.kind}-${id}.pdf`, sha256: 'd'.repeat(64) }),
+      exportPdfArchive: async (id) => ({ id: `election-archive-${Date.now()}`, filename: `wahlakte-${id}.pdf`, sha256: 'e'.repeat(64) }),
+      exportDocument: async (_documentId, suggestedFileName) => ({ exported: true, fileName: suggestedFileName || 'wahlunterlage.pdf', sizeBytes: 2048 }),
+      exportTransferFile: async (id) => ({ exported: true, fileName: `wahlakte-${id}.gsbvelection`, packageId: `election_pkg_${Date.now()}`, electionId: id, createdAt: now, formatVersion: 1, legalRuleVersion: 'SGBIX-2026-01-16|SchwbVWO-2022-03-18', itemCount: 1, manifestHash: 'f'.repeat(64) }),
+      selectTransferFile: async () => ({ canceled: true }),
+      importTransferFile: async () => ({ importId: `import-${Date.now()}`, packageId: 'election_pkg', electionId: `election-import-${Date.now()}`, manifestHash: 'f'.repeat(64) }),
+    },
+    sbvOffice: {
+      meetings: {
+        list: async () => cloneForIpc(sbvOfficeMeetings),
+        create: async (input) => { const row = { id: `meeting-${Date.now()}`, attendanceStatus: 'planned', agenda: [], createdAt: now, updatedAt: now, ...input }; sbvOfficeMeetings.unshift(row); return cloneForIpc(row); },
+        update: async (id, input) => { const row = sbvOfficeMeetings.find((item) => item.id === id); Object.assign(row, input, { updatedAt: now }); return cloneForIpc(row); },
+        journalPrefill: async (id, activity) => {
+          const meeting = sbvOfficeMeetings.find((item) => item.id === id);
+          const labels = { attendance: 'Teilnahme', preparation: 'Vorbereitung', top_request: 'TOP-Antrag', suspension: 'Aussetzung' };
+          return activityJournalPrefill({
+            contextType: 'fallfrei',
+            contextId: id,
+            title: `${labels[activity] || 'Sitzung'}: ${meeting?.title || 'Sitzung'}`,
+            category: activity === 'attendance' || activity === 'preparation' ? 'committee_work' : 'sbv_steering',
+          });
+        },
+        saveAgenda: async (id, input) => { const row = sbvOfficeMeetings.find((item) => item.id === id); let agenda = input.id ? row.agenda.find((item) => item.id === input.id) : null; if (!agenda) { agenda = { id: input.id || `agenda-${Date.now()}`, meetingId: id, position: input.position || row.agenda.length + 1, sbvRelevance: false, requestedBySbv: false, significantImpairment: false, nonParticipation: false, status: 'open' }; row.agenda.push(agenda); } Object.assign(agenda, input); if (agenda.suspensionRequestedAt && agenda.resolutionAt && (agenda.significantImpairment || agenda.nonParticipation) && !agenda.suspensionDueAt) agenda.suspensionDueAt = new Date(new Date(agenda.resolutionAt).getTime() + 7 * 86400000).toISOString(); return cloneForIpc(agenda); },
+        createAgendaFollowUp: async (agendaId, dueAt) => ({ id: `deadline-${Date.now()}`, processId: agendaId, dueAt, status: 'open' }),
+      },
+      assemblies: {
+        list: async () => cloneForIpc(sbvOfficeAssemblies),
+        annualWarning: async (year) => new Date().getMonth() >= 9 && !sbvOfficeAssemblies.some((item) => item.year === year && (item.scheduledAt || item.status === 'held' || item.status === 'closed')),
+        createFollowUp: async (id, dueAt) => ({ id: `deadline-${Date.now()}`, processId: id, dueAt, status: 'open' }),
+        save: async (input) => { let row = input.id ? sbvOfficeAssemblies.find((item) => item.id === input.id) : null; if (!row) { row = { id: `assembly-${Date.now()}`, createdAt: now }; sbvOfficeAssemblies.unshift(row); } Object.assign(row, input, { updatedAt: now }); return cloneForIpc(row); },
+        generateDocument: async (id, kind) => ({ id: `doc-${Date.now()}`, filename: `assembly-${id}-${kind}.txt`, sha256: 'a'.repeat(64) }),
+      },
+      obligations: { list: async () => cloneForIpc(sbvOfficeObligations), ensureAnnual: async (year) => { if (!sbvOfficeObligations.some((item) => item.periodYear === year)) sbvOfficeObligations.push({ id: `obligation-${year}`, obligationKey: 'employment_report_163_2', periodYear: year, scopeKey: 'company', status: 'not_due', dueAt: `${year + 1}-03-31T23:59:59.000Z`, createdAt: now, updatedAt: now }); return cloneForIpc(sbvOfficeObligations); }, save: async (input) => { const row = sbvOfficeObligations.find((item) => item.id === input.id); if (!row) throw new Error('Prüfvorgang nicht gefunden.'); Object.assign(row, input, { updatedAt: now }); return cloneForIpc(row); } },
+      officers: { list: async () => cloneForIpc(sbvOfficeOfficers), save: async (input) => { const row = { id: `officer-${Date.now()}`, status: 'not_appointed', createdAt: now, updatedAt: now, ...input }; sbvOfficeOfficers.unshift(row); return cloneForIpc(row); } },
+      agreements: { list: async () => cloneForIpc(sbvOfficeAgreements), requestDraft: async (dueAt) => ({ text: `Verhandlungsanforderung${dueAt ? ` bis ${dueAt}` : ''}`, responseDueAt: dueAt }), createResponseDeadline: async (id, dueAt) => ({ id: `deadline-${Date.now()}`, processId: id, dueAt, status: 'open' }), save: async (input) => { let row = input.id ? sbvOfficeAgreements.find((item) => item.id === input.id) : null; if (!row) { const id = `agreement-${Date.now()}`; row = { id, topics: [{"id": "topic-0", "agreementId": "", "topicKey": "personnel_planning", "status": "open"}, {"id": "topic-1", "agreementId": "", "topicKey": "workplace_design", "status": "open"}, {"id": "topic-2", "agreementId": "", "topicKey": "work_environment", "status": "open"}, {"id": "topic-3", "agreementId": "", "topicKey": "work_organization", "status": "open"}, {"id": "topic-4", "agreementId": "", "topicKey": "working_time", "status": "open"}, {"id": "topic-5", "agreementId": "", "topicKey": "vacancies", "status": "open"}, {"id": "topic-6", "agreementId": "", "topicKey": "employment_quota", "status": "open"}, {"id": "topic-7", "agreementId": "", "topicKey": "part_time", "status": "open"}, {"id": "topic-8", "agreementId": "", "topicKey": "training_youth", "status": "open"}, {"id": "topic-9", "agreementId": "", "topicKey": "prevention_bem_health", "status": "open"}, {"id": "topic-10", "agreementId": "", "topicKey": "occupational_physician", "status": "open"}].map((topic) => ({ ...topic, agreementId: id })), createdAt: now }; sbvOfficeAgreements.unshift(row); } Object.assign(row, input, { updatedAt: now }); return cloneForIpc(row); }, saveTopic: async (id, input) => { const row = sbvOfficeAgreements.find((item) => item.id === id); if (!row) throw new Error('Inklusionsvereinbarung nicht gefunden.'); const topic = row.topics.find((item) => item.topicKey === input.topicKey); if (!topic) throw new Error('Themenfeld nicht gefunden.'); Object.assign(topic, input); return cloneForIpc(topic); } },
+      documents: { selectAndAttach: async (_ownerType, ownerId) => [{ id: `office-doc-${Date.now()}`, ownerId, filename: 'nachweis.pdf', sha256: 'b'.repeat(64) }] },
+      complaints: { list: async () => cloneForIpc(sbvOfficeComplaints), save: async (input) => { const row = { id: `complaint-${Date.now()}`, status: 'open', createdAt: now, updatedAt: now, ...input }; sbvOfficeComplaints.unshift(row); return cloneForIpc(row); }, templates: async () => [{ key: 'additional_leave', title: 'Zusatzurlaub', legalBasis: '§ 208 SGB IX', checklist: ['Anspruch prüfen'] }] },
     },
     sbvResources: {
       list: async () => sbvResources,

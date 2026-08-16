@@ -6,7 +6,6 @@ function mainNavigation(page: Page) {
 }
 
 test('executes a case inline command inside a large case note textarea', async ({ page }) => {
-  await page.goto('/');
   await expect(mainNavigation(page).getByRole('button', { name: 'Dashboard', exact: true })).toBeVisible();
 
   await mainNavigation(page).getByRole('button', { name: 'Fallakte', exact: true }).click();
@@ -32,7 +31,6 @@ test('executes a case inline command inside a large case note textarea', async (
 });
 
 test('keeps anonymization marker modal width stable while typing', async ({ page }) => {
-  await page.goto('/');
   await mainNavigation(page).getByRole('button', { name: 'Fallakte', exact: true }).click();
   await expect(page.getByRole('heading', { name: /TEST-0001\s*·\s*Testperson Alpha/ })).toBeVisible();
 

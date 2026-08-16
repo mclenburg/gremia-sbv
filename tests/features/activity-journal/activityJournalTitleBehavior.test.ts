@@ -10,4 +10,12 @@ describe('Tätigkeitsjournal Titelsynthese 0.9.3-a', () => {
     expect(titleService.synthesizeTitle({}, 'research')).toBe('Recherche / Recht dokumentiert');
     expect(titleService.synthesizeTitle({}, 'sbv_self_organization')).toBe('SBV-Selbstorganisation dokumentiert');
   });
+
+  it('bewahrt eine bewusst gesetzte fachliche Tätigkeit auch bei fallfreien Kategorien', () => {
+    const titleService = new ActivityJournalTitleService();
+
+    expect(titleService.synthesizeTitle({ contextType: 'fallfrei', title: 'SBV-Wahl: Wählerliste' }, 'sbv_self_organization')).toBe('SBV-Wahl: Wählerliste');
+    expect(titleService.synthesizeTitle({ contextType: 'fallfrei', title: 'Teilnahme: BR-Sitzung' }, 'committee_work')).toBe('Teilnahme: BR-Sitzung');
+    expect(titleService.synthesizeTitle({ contextType: 'fallfrei', title: 'TOP-Antrag: BR-Sitzung' }, 'sbv_steering')).toBe('TOP-Antrag: BR-Sitzung');
+  });
 });

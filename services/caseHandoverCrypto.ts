@@ -287,3 +287,100 @@ export function decryptCaseHandoverEnvelope(envelope: CaseHandoverEnvelope, pass
     safeDestroyBuffer(iv);
   }
 }
+
+export type AuthenticatedTransferEnvelopeV2 = {
+  format: string;
+  version: number;
+  packageId: string;
+  createdAt: string;
+  crypto: TransferCryptoHeader & { tag: string };
+  integrity: { aadSha256: string; ciphertextSha256: string };
+  payload: string;
+};
+
+/**
+ * Shared hardened v2 transfer primitive. Election transfer deliberately reuses the
+ * same scrypt/AES-GCM implementation as case handover instead of introducing a
+ * second cryptographic construction.
+ */
+export function encryptAuthenticatedTransferPayload(args: {
+  format: string;
+  version: number;
+  packageId: string;
+  createdAt: string;
+  payloadText: string;
+  passphrase: string;
+}): AuthenticatedTransferEnvelopeV2 {
+  if (!args.format.trim() || !Number.isInteger(args.version) || args.version < 1 || !args.packageId.trim() || !args.createdAt.trim()) {
+    throw new Error('Übergabe-Envelope enthält ungültige technische Metadaten.');
+  }
+  const salt = randomBytes(16);
+  const iv = randomBytes(12);
+  const key = deriveTransferKey(args.passphrase, salt, CURRENT_TRANSFER_SCRYPT_PARAMS);
+  try {
+    const header = {
+      format: args.format,
+      version: args.version,
+      packageId: args.packageId,
+      createdAt: args.createdAt,
+      crypto: {
+        algorithm: 'aes-256-gcm' as const,
+        kdf: 'scrypt' as const,
+        kdfParams: CURRENT_TRANSFER_SCRYPT_PARAMS,
+        salt: salt.toString('base64'),
+        iv: iv.toString('base64'),
+      },
+    };
+    const aad = buildAadV2(header);
+    const cipher = createCipheriv('aes-256-gcm', key, iv);
+    cipher.setAAD(aad);
+    const plain = Buffer.from(args.payloadText, 'utf8');
+    const encrypted = Buffer.concat([cipher.update(plain), cipher.final()]);
+    try {
+      return {
+        ...header,
+        crypto: { ...header.crypto, tag: cipher.getAuthTag().toString('base64') },
+        integrity: { aadSha256: sha256(aad), ciphertextSha256: sha256(encrypted) },
+        payload: encrypted.toString('base64'),
+      };
+    } finally {
+      safeDestroyBuffer(plain);
+      safeDestroyBuffer(encrypted);
+    }
+  } finally {
+    safeDestroyBuffer(key);
+    safeDestroyBuffer(salt);
+    safeDestroyBuffer(iv);
+  }
+}
+
+export function decryptAuthenticatedTransferPayload(
+  envelope: AuthenticatedTransferEnvelopeV2,
+  passphrase: string,
+  expected: { format: string; version: number },
+): string {
+  if (envelope.format !== expected.format || envelope.version !== expected.version) throw new Error('Nicht unterstütztes Übergabeformat.');
+  if (envelope.crypto.algorithm !== 'aes-256-gcm' || envelope.crypto.kdf !== 'scrypt') throw new Error('Nicht unterstützte Übergabekryptografie.');
+  const params = assertKdfParams(envelope.crypto.kdfParams);
+  const salt = Buffer.from(assertBase64(envelope.crypto.salt, 'salt'), 'base64');
+  const iv = Buffer.from(assertBase64(envelope.crypto.iv, 'iv'), 'base64');
+  const encrypted = Buffer.from(assertBase64(envelope.payload, 'payload'), 'base64');
+  const key = deriveTransferKey(passphrase, salt, params);
+  try {
+    const aad = buildAadV2(envelope);
+    if (sha256(aad) !== envelope.integrity.aadSha256 || sha256(encrypted) !== envelope.integrity.ciphertextSha256) {
+      throw new Error('Übergabepaket wurde manipuliert oder ist beschädigt.');
+    }
+    const decipher = createDecipheriv('aes-256-gcm', key, iv);
+    decipher.setAAD(aad);
+    decipher.setAuthTag(Buffer.from(assertBase64(envelope.crypto.tag, 'tag'), 'base64'));
+    const plain = Buffer.concat([decipher.update(encrypted), decipher.final()]);
+    try { return plain.toString('utf8'); }
+    finally { safeDestroyBuffer(plain); }
+  } finally {
+    safeDestroyBuffer(key);
+    safeDestroyBuffer(salt);
+    safeDestroyBuffer(iv);
+    safeDestroyBuffer(encrypted);
+  }
+}

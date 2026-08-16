@@ -7,6 +7,7 @@ import { SearchIndexService } from './search/searchIndexService.js';
 import { MeasureLifecycleAuditService } from './measureLifecycleAuditService.js';
 import { CaseLifecycleAuditService } from './caseLifecycleAuditService.js';
 import { runCaseDeletionTransaction } from './caseDeletionTransaction.js';
+import { RetentionOwnerRegistry } from './retentionOwnerRegistry.js';
 import { CASE_DELETE_CONFIRMATION, DatabaseRow, nowIso, bool, readNumberSetting, writeSetting, safeRun, tableExists, getColumns, latestActivityExpression, CaseDocumentFileRow, removeCaseDocumentFiles, listCleartextFiles, lifecycleRowsForCase } from './retentionSupport.js';
 export class RetentionService {
   constructor(
@@ -73,6 +74,7 @@ export class RetentionService {
     const journalEntries = this.listActivityJournalSnapshots(db);
     const participationViolations = this.listParticipationViolationSnapshots(db);
     const cleartextFiles = listCleartextFiles(this.dataDirProvider());
+    const officeOwners = new RetentionOwnerRegistry().listManagedSnapshots(db);
     return buildRetentionDashboard({
       settings: this.getSettings(),
       cases,
@@ -81,7 +83,8 @@ export class RetentionService {
       deadlines,
       journalEntries,
       participationViolations,
-      cleartextFiles
+      cleartextFiles,
+      officeOwners
     });
   }
 

@@ -1,10 +1,17 @@
 #!/usr/bin/env node
 const { mkdtempSync, rmSync, existsSync, mkdirSync } = require('node:fs');
 const { delimiter, join, resolve } = require('node:path');
-const { tmpdir } = require('node:os');
+const { availableParallelism, tmpdir } = require('node:os');
 const { spawnSync } = require('node:child_process');
 const { createRequire } = require('node:module');
 const { resolveE2ePackage } = require('./e2e-tools.cjs');
+
+
+function resolveE2eWorkerCount(env = process.env, parallelism = availableParallelism()) {
+  const configured = Number(env.GREMIA_SBV_E2E_WORKERS ?? '');
+  if (Number.isFinite(configured) && configured > 0) return Math.floor(configured);
+  return Math.max(1, Math.min(4, Math.floor(parallelism || 1)));
+}
 
 function isSafeE2eDir(value) {
   if (!value) return false;
@@ -102,6 +109,7 @@ function run() {
     ...process.env,
     NODE_PATH: [e2eNodeModules, process.env.NODE_PATH].filter(Boolean).join(delimiter),
     GREMIA_SBV_E2E: '1',
+    GREMIA_SBV_E2E_WORKERS: String(resolveE2eWorkerCount(process.env)),
     GREMIA_SBV_E2E_DATA_DIR: dataDir,
     GREMIA_SBV_DATA_DIR: dataDir,
     PLAYWRIGHT_HTML_REPORT: join(dataDir, 'playwright-report'),
@@ -110,6 +118,7 @@ function run() {
 
   console.log(`E2E-Testumgebung: ${dataDir}`);
   console.log('E2E-Schutz: GREMIA_SBV_DATA_DIR zeigt ausschließlich auf diese temporäre Testumgebung.');
+  console.log(`Browser-E2E-Worker: ${env.GREMIA_SBV_E2E_WORKERS} (automatisch bis 4; Override mit GREMIA_SBV_E2E_WORKERS).`);
   const result = spawnSync(runner.command, [...runner.argsPrefix, ...playwrightArgs], {
     stdio: 'inherit',
     env,
@@ -136,4 +145,5 @@ module.exports = {
   resolveProjectPlaywrightCli,
   resolveIsolatedPlaywrightCli,
   resolvePlaywrightRunner,
+  resolveE2eWorkerCount,
 };

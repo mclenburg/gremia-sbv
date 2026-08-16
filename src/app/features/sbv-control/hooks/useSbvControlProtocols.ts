@@ -68,13 +68,13 @@ export function useSbvControlProtocols() {
   async function saveProtocol() {
     setProtocolFormSubmitted(true);
     if (isProtocolTitleMissing(protocolForm)) {
-      announce('Titel ist für das Steuerungsprotokoll erforderlich.', 'assertive');
-      return { ok: false as const, message: 'Bitte einen Titel für das Steuerungsprotokoll angeben.' };
+      announce('Titel ist für das Protokoll erforderlich.', 'assertive');
+      return { ok: false as const, message: 'Bitte einen Titel für das Protokoll angeben.' };
     }
 
     try {
       const bridge = await waitForBridge();
-      if (!bridge?.sbvControlProtocols) throw new Error('SBV-Steuerungsprotokoll-Bridge ist nicht verfügbar.');
+      if (!bridge?.sbvControlProtocols) throw new Error('SBV-Protokoll-Bridge ist nicht verfügbar.');
 
       if (editingProtocolId) {
         await bridge.sbvControlProtocols.update(editingProtocolId, protocolForm);
@@ -88,7 +88,7 @@ export function useSbvControlProtocols() {
       await loadProtocols();
       return { ok: true as const, message: protocolOperationNotice(editingProtocolId ? 'update' : 'create') };
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Steuerungsprotokoll konnte nicht gespeichert werden.';
+      const message = error instanceof Error ? error.message : 'Protokoll konnte nicht gespeichert werden.';
       announce(message, 'assertive');
       return { ok: false as const, message };
     }
@@ -97,14 +97,14 @@ export function useSbvControlProtocols() {
   async function deleteProtocol(id: string) {
     try {
       const bridge = await waitForBridge();
-      if (!bridge?.sbvControlProtocols) throw new Error('SBV-Steuerungsprotokoll-Bridge ist nicht verfügbar.');
+      if (!bridge?.sbvControlProtocols) throw new Error('SBV-Protokoll-Bridge ist nicht verfügbar.');
       await bridge.sbvControlProtocols.delete(id);
       if (editingProtocolId === id) resetProtocolForm();
       announce(protocolOperationAnnouncement('delete'), 'polite');
       await loadProtocols();
       return { ok: true as const, message: protocolOperationNotice('delete') };
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Steuerungsprotokoll konnte nicht gelöscht werden.';
+      const message = error instanceof Error ? error.message : 'Protokoll konnte nicht gelöscht werden.';
       announce(message, 'assertive');
       return { ok: false as const, message };
     }
@@ -130,7 +130,7 @@ export function useSbvControlProtocols() {
     deleteProtocol,
     protocolTitleError:
       (protocolTitleTouched || protocolFormSubmitted) && isProtocolTitleMissing(protocolForm)
-        ? 'Titel ist für das Steuerungsprotokoll erforderlich.'
+        ? 'Titel ist für das Protokoll erforderlich.'
         : undefined,
     openProtocolFollowUps: protocols.filter((item) => item.status === 'draft' || item.status === 'follow_up_open').length,
   };

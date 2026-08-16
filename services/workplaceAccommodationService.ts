@@ -5,9 +5,8 @@ import { CaseMeasureService } from "./caseMeasureService.js";
 import { DeadlineService } from "./deadlineService.js";
 import { PersonalDataAuditLogService } from "./auditLogService.js";
 import type { CreateWorkplaceAccommodationInput, UpdateWorkplaceAccommodationInput, WorkplaceAccommodationDashboardSummary, WorkplaceAccommodationRecord, WorkplaceAccommodationWarning } from "../src/app/core/models/workplace-accommodation.model.js";
-import { WorkplaceAccommodationRow, nowIso, toIso, boolToInt, accommodationStatusToMeasureStatus, mapRecord, evaluateWorkplaceAccommodationWarnings } from './workplaceAccommodationSupport.js';
+import { WorkplaceAccommodationRow, nowIso, toIso, boolToInt, accommodationStatusToMeasureStatus, mapRecord, evaluateWorkplaceAccommodationWarnings, workplaceFundingCreateValues, workplaceFundingUpdateValues } from './workplaceAccommodationSupport.js';
 export { evaluateWorkplaceAccommodationWarnings } from './workplaceAccommodationSupport.js';
-
 import { ensureWorkplaceAccommodationSchema } from './workplaceAccommodationSchema.js';
 export class WorkplaceAccommodationService {
   constructor(
@@ -16,12 +15,10 @@ export class WorkplaceAccommodationService {
     private readonly deadlines: DeadlineService = new DeadlineService(db),
     private readonly auditLog: PersonalDataAuditLogService = new PersonalDataAuditLogService(db),
   ) {}
-
   ensureSchema(): void {
     ensureWorkplaceAccommodationSchema(this.db, this.caseMeasures);
     void this.auditLog;
   }
-
   private audit(
     action: Parameters<PersonalDataAuditLogService["append"]>[0]["action"],
     subjectId: string | undefined,
@@ -36,7 +33,6 @@ export class WorkplaceAccommodationService {
         purpose,
       });
   }
-
   private event(
     measureId: string,
     eventType: string,
@@ -56,7 +52,6 @@ export class WorkplaceAccommodationService {
         nowIso(),
       );
   }
-
   private query(caseId?: string): WorkplaceAccommodationRecord[] {
     const sql = `
       SELECT cm.id, cm.case_id, cm.title, cm.status AS measure_status, cm.risk_level, cm.next_step,
@@ -65,6 +60,7 @@ export class WorkplaceAccommodationService {
              w.workplace_context, w.proposed_solution, w.technical_aid_needed, w.organizational_adjustment_needed,
              w.working_time_adjustment_needed, w.qualification_needed, w.fixed_workplace_needed,
              w.homeoffice_or_mobile_work_relevant, w.inclusion_office_involved, w.rehab_carrier_involved,
+             w.funding_carrier, w.funding_applied_at, w.funding_documents_status, w.funding_questions, w.funding_decision, w.funding_amount, w.ordered_at,
              w.employer_response_status, w.employer_response_at, w.implementation_status, w.implementation_due_at,
              w.effectiveness_review_at, w.outcome
       FROM case_measures cm
@@ -77,7 +73,6 @@ export class WorkplaceAccommodationService {
       : this.db.prepare<WorkplaceAccommodationRow>(sql).all();
     return rows.map(mapRecord);
   }
-
   list(caseId?: string): WorkplaceAccommodationRecord[] {
     this.audit(
       "read",
@@ -144,10 +139,7 @@ export class WorkplaceAccommodationService {
     input: CreateWorkplaceAccommodationInput,
   ): WorkplaceAccommodationRecord {
     return new DatabaseUnitOfWork(this.db).run(() => {
-    if (!input.caseId)
-      throw new Error(
-        "Arbeitsplatzgestaltung muss aus einer Fallakte heraus angelegt werden.",
-      );
+    if (!input.caseId) throw new Error("Arbeitsplatzgestaltung muss aus einer Fallakte heraus angelegt werden.");
     if (!input.title?.trim())
       throw new Error("Arbeitsplatzgestaltung benötigt einen Titel.");
     const timestamp = nowIso();
@@ -176,9 +168,9 @@ export class WorkplaceAccommodationService {
         measure_id, category, accommodation_status, requested_adjustment, legal_basis, barrier_or_limitation,
         workplace_context, proposed_solution, technical_aid_needed, organizational_adjustment_needed,
         working_time_adjustment_needed, qualification_needed, fixed_workplace_needed, homeoffice_or_mobile_work_relevant,
-        inclusion_office_involved, rehab_carrier_involved, employer_response_status, employer_response_at,
+        inclusion_office_involved, rehab_carrier_involved, funding_carrier, funding_applied_at, funding_documents_status, funding_questions, funding_decision, funding_amount, ordered_at, employer_response_status, employer_response_at,
         implementation_status, implementation_due_at, effectiveness_review_at, outcome, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `,
       )
       .run(
@@ -198,6 +190,7 @@ export class WorkplaceAccommodationService {
         boolToInt(input.homeofficeOrMobileWorkRelevant),
         boolToInt(input.inclusionOfficeInvolved),
         boolToInt(input.rehabCarrierInvolved),
+        ...workplaceFundingCreateValues(input),
         input.employerResponseStatus ?? "offen",
         toIso(input.employerResponseAt),
         input.implementationStatus ?? "nicht_begonnen",
@@ -307,7 +300,7 @@ export class WorkplaceAccommodationService {
       SET category = ?, accommodation_status = ?, requested_adjustment = ?, legal_basis = ?, barrier_or_limitation = ?,
           workplace_context = ?, proposed_solution = ?, technical_aid_needed = ?, organizational_adjustment_needed = ?,
           working_time_adjustment_needed = ?, qualification_needed = ?, fixed_workplace_needed = ?, homeoffice_or_mobile_work_relevant = ?,
-          inclusion_office_involved = ?, rehab_carrier_involved = ?, employer_response_status = ?, employer_response_at = ?,
+          inclusion_office_involved = ?, rehab_carrier_involved = ?, funding_carrier = ?, funding_applied_at = ?, funding_documents_status = ?, funding_questions = ?, funding_decision = ?, funding_amount = ?, ordered_at = ?, employer_response_status = ?, employer_response_at = ?,
           implementation_status = ?, implementation_due_at = ?, effectiveness_review_at = ?, outcome = ?, updated_at = ?
       WHERE measure_id = ?
     `,
@@ -346,12 +339,9 @@ export class WorkplaceAccommodationService {
         input.homeofficeOrMobileWorkRelevant !== undefined
           ? boolToInt(input.homeofficeOrMobileWorkRelevant)
           : boolToInt(existing.homeofficeOrMobileWorkRelevant),
-        input.inclusionOfficeInvolved !== undefined
-          ? boolToInt(input.inclusionOfficeInvolved)
-          : boolToInt(existing.inclusionOfficeInvolved),
-        input.rehabCarrierInvolved !== undefined
-          ? boolToInt(input.rehabCarrierInvolved)
-          : boolToInt(existing.rehabCarrierInvolved),
+        input.inclusionOfficeInvolved !== undefined ? boolToInt(input.inclusionOfficeInvolved) : boolToInt(existing.inclusionOfficeInvolved),
+        input.rehabCarrierInvolved !== undefined ? boolToInt(input.rehabCarrierInvolved) : boolToInt(existing.rehabCarrierInvolved),
+        ...workplaceFundingUpdateValues(input, existing),
         input.employerResponseStatus ?? existing.employerResponseStatus,
         input.employerResponseAt !== undefined
           ? toIso(input.employerResponseAt)

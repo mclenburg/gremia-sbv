@@ -52,6 +52,9 @@ describe("Patch-4-Cross-Platform- und Packaging-Vertrag", () => {
     expect(startupSmoke).toContain("Pfad mit Leerzeichen und Ümlauten");
     expect(startupSmoke).toContain("'langer-pfad-'.repeat(9)");
     expect(startupSmoke).toContain("--startup-smoke-test");
+    expect(startupSmoke).toContain(".gremia-sbv-${canonicalTarget}-artifact.json");
+    expect(startupSmoke).toContain("receipt.artifacts");
+    expect(startupSmoke).not.toContain("fs.readdirSync(releaseDir).filter((name) => name.endsWith(extension))");
     expect(pkg.scripts["release:smoke:windows"]).toContain("run-packaged-startup-smoke.cjs win");
     expect(startupSmoke).toContain("-win-x64-portable\\.exe");
   });

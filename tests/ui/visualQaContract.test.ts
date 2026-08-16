@@ -1,9 +1,7 @@
-import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
   HELP_DIALOG_QA_ROUTE_IDS,
   VISUAL_QA_ROUTES,
-  VISUAL_QA_CONTROL_SELECTORS,
   WORKBENCH_LAYOUT_QA_EXEMPT_ROUTE_IDS,
   WORKBENCH_LAYOUT_QA_ROUTES,
   isDarkModeLightLeak,
@@ -31,6 +29,7 @@ describe('P11 visual QA contract', () => {
       'cases',
       'deadlines',
       'activity_journal',
+      'meetings',
       'bem',
       'prevention',
       'participation_violations',
@@ -39,6 +38,7 @@ describe('P11 visual QA contract', () => {
       'workplace_accommodation',
       'equalization',
       'termination_hearing',
+      'elections',
       'templates',
       'knowledge',
       'contacts',
@@ -96,20 +96,5 @@ describe('P11 visual QA contract', () => {
     }
   });
 
-  it('bindet alle nativen Modal-Controls an den zentralen Industrial-Formular-Chrome', () => {
-    const formsCss = readFileSync('src/app/ui/forms.css', 'utf8');
 
-    for (const selector of [
-      '.industrial-modal input:not([type="checkbox"]):not([type="radio"])',
-      '.industrial-modal select',
-      '.industrial-modal textarea',
-    ]) {
-      expect(formsCss).toContain(selector);
-      expect(VISUAL_QA_CONTROL_SELECTORS).toContain(selector);
-    }
-
-    expect(formsCss).toContain('background: var(--industrial-control-bg);');
-    expect(formsCss).toContain('border: 1px solid var(--industrial-control-border);');
-    expect(formsCss).toContain("html[data-theme='light'] .industrial-modal textarea");
-  });
 });

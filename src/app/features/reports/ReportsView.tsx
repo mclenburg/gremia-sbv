@@ -205,10 +205,10 @@ export function ReportsView() {
           </aside>
         </div>
 
-        <section className="reports-history" aria-label="Berichtshistorie">
+        <section className="reports-history" aria-label="Erzeugte Berichte">
           <div className="reports-preview-header">
             <div>
-              <p className="industrial-kicker">Historie</p>
+              <p className="industrial-kicker">Berichte</p>
               <h2>Zuletzt erzeugte verschlüsselte PDF-Reports</h2>
               <p>Beim Öffnen wird temporär eine Klartext-Arbeitskopie erzeugt und vom Sicherheitsmodul verwaltet.</p>
             </div>

@@ -7,8 +7,7 @@ import { DeadlineDashboardPanel } from '../deadlines/DeadlineDashboardPanel';
 import type { GremiaBrDashboardOverview, GremiaBrRelevanceMatch } from '../../core/models/gremia-br.model';
 import { waitForBridge } from '../../core/bridge/waitForBridge';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
-import { buildDashboardFocusSummary, resolveActivityJournalWeekReviewMarker, type DashboardComplianceLike } from './dashboardFocusPolicy';
-import type { ViewId } from '../../core/navigation/modules';
+import { buildDashboardFocusSummary, resolveActivityJournalWeekReviewMarker, SbvAssemblyDashboardAlert, type DashboardComplianceLike, type ViewId } from './dashboardFocus';
 import { IndustrialButton, ToolbarButton } from '../../shared/components/IndustrialButton';
 
 type DashboardFocusOverviewProps = {
@@ -263,8 +262,7 @@ export function DashboardFocusOverview({ cases, deadlines, dashboardItems, onNav
           <strong>Compliance-Center</strong>
           <span>{summary.compliance.ok ? 'Auditkette und Datenbankintegrität ohne Warnung.' : `${summary.compliance.warnings || 1} Warnung(en) prüfen.`}</span>
           {complianceError && <small>{complianceError}</small>}
-        </button>
-
+        </button><SbvAssemblyDashboardAlert onOpen={() => onNavigate('sbv_control')} />
         {journalSummary && journalSummary.totalEntries > 0 && (
           <IndustrialButton variant="ghost" className="industrial-card dashboard-focus-card" onClick={() => onNavigate('activity_journal')}>
             <span className={markerClass(journalSummary.openFollowUps.length > 0 ? 'attention' : journalWeekReview.visible ? journalWeekReview.marker : 'neutral')}>{journalSummary.openFollowUps.length > 0 ? 'Nachhalten' : journalWeekReview.visible ? 'Prüfen' : 'Info'}</span>

@@ -1,4 +1,3 @@
-import { Building2 } from 'lucide-react';
 import { RiskBadge } from '../../../shared/components/StatusBadges';
 import { DataTable, EmptyState } from '../../../shared/components/WorkbenchLayout';
 import { employerObligations } from '../sbvControlTypes';
@@ -7,7 +6,7 @@ import { SbvControlPanel } from './SbvControlPanel';
 
 export function ObligationsList() {
   return (
-    <SbvControlPanel icon={<Building2 className="h-5 w-5" />} kicker="Strukturmonitor" title="Arbeitgeberpflichten im Blick">
+    <SbvControlPanel kicker="Strukturmonitor" title="Arbeitgeberpflichten im Blick">
       <DataTable
         ariaLabel="Arbeitgeberpflichten"
         headers={['Pflicht', 'Nachweis', 'SBV-Aktion']}

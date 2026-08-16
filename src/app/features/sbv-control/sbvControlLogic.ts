@@ -206,15 +206,15 @@ export function filterProtocolsForQuery(records: SbvControlProtocolRecord[], que
 export type ProtocolOperation = 'create' | 'update' | 'delete';
 
 export function protocolOperationNotice(operation: ProtocolOperation): string {
-  if (operation === 'create') return 'Steuerungsprotokoll angelegt.';
-  if (operation === 'update') return 'Steuerungsprotokoll aktualisiert.';
-  return 'Steuerungsprotokoll gelöscht.';
+  if (operation === 'create') return 'Protokoll angelegt.';
+  if (operation === 'update') return 'Protokoll aktualisiert.';
+  return 'Protokoll gelöscht.';
 }
 
 export function protocolOperationAnnouncement(operation: ProtocolOperation): string {
-  if (operation === 'create') return 'Steuerungsprotokoll wurde angelegt.';
-  if (operation === 'update') return 'Steuerungsprotokoll wurde aktualisiert.';
-  return 'Steuerungsprotokoll wurde gelöscht.';
+  if (operation === 'create') return 'Protokoll wurde angelegt.';
+  if (operation === 'update') return 'Protokoll wurde aktualisiert.';
+  return 'Protokoll wurde gelöscht.';
 }
 
 export function isProtocolTitleMissing(form: ProtocolFormState) {
@@ -286,6 +286,6 @@ export function applyProtocolFollowUpTextCommand(
     target,
     followUpDueAt: parsed.followUpDueAt,
     value: replaceCommandMarker(value, markerIndex, token, replacement, rangeLength),
-    message: `${replacement} wurde als Wiedervorlage für das Steuerungsprotokoll übernommen.`,
+    message: `${replacement} wurde als Wiedervorlage für das Protokoll übernommen.`,
   };
 }

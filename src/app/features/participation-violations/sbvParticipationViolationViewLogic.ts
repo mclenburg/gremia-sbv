@@ -33,7 +33,7 @@ export const participationViolationSourceContextOptions: Array<{ value: Particip
   { value: 'case_measure_participation', label: 'SBV-Beteiligungsmaßnahme' },
   { value: 'case', label: 'Fall allgemein' },
   { value: 'termination_hearing', label: 'Kündigungsanhörung' },
-  { value: 'sbv_control_protocol', label: 'Steuerungsprotokoll' },
+  { value: 'sbv_control_protocol', label: 'SBV-Protokoll' },
   { value: 'deadline', label: 'Frist / Wiedervorlage' },
   { value: 'activity_journal', label: 'Tätigkeitsjournal-Eintrag' },
   { value: 'recruiting_participation', label: 'Stellenbesetzung' },

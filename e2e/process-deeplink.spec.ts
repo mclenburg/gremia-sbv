@@ -5,7 +5,6 @@ function navigation(page: import('@playwright/test').Page) {
 }
 
 test('öffnet ein BEM-Verfahren aus dem Cockpit direkt in der richtigen Fallakte', async ({ page }) => {
-  await page.goto('/');
   await navigation(page).getByRole('button', { name: 'BEM', exact: true }).click();
 
   await page.getByRole('button').filter({ hasText: 'TEST-0002' }).click();

@@ -94,8 +94,8 @@ describe('SBV-Steuerung Refactor P10g', () => {
       createdAt: '2026-06-12T08:00:00.000Z',
       updatedAt: '2026-06-12T08:00:00.000Z',
     }], 'homeoffice')).toHaveLength(1);
-    expect(protocolOperationNotice('create')).toBe('Steuerungsprotokoll angelegt.');
-    expect(protocolOperationAnnouncement('update')).toBe('Steuerungsprotokoll wurde aktualisiert.');
+    expect(protocolOperationNotice('create')).toBe('Protokoll angelegt.');
+    expect(protocolOperationAnnouncement('update')).toBe('Protokoll wurde aktualisiert.');
   });
 
   it('liefert konsistente Nutzer- und Screenreader-Rückmeldungen für Ressourcenoperationen', () => {

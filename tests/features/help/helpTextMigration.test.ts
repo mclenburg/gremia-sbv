@@ -32,7 +32,6 @@ describe('0.9.5-j Hilfetext-Migration Arbeitsmasken', () => {
     expect(violations).toContain('helpId="participationViolations.stageAndType"');
     expect(violations).toContain('helpId="participationViolations.tracking"');
     expect(journal).toContain('helpId="activityJournal.overview"');
-    expect(journal).toContain('helpId="activityJournal.capture"');
     expect(journal).toContain('helpId="activityJournal.textCommands"');
   });
 
@@ -56,7 +55,6 @@ describe('0.9.5-j Hilfetext-Migration Arbeitsmasken', () => {
         'participationViolations.stageAndType',
         'participationViolations.tracking',
         'activityJournal.overview',
-        'activityJournal.capture',
       ]),
     );
   });

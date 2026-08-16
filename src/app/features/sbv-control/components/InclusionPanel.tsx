@@ -1,4 +1,3 @@
-import { ClipboardCheck } from 'lucide-react';
 import { IndustrialSelectionCard } from '../../../shared/components/WorkbenchLayout';
 import { inclusionTopics } from '../sbvControlTypes';
 import { SbvControlPanel } from './SbvControlPanel';
@@ -6,7 +5,6 @@ import { SbvControlPanel } from './SbvControlPanel';
 export function InclusionPanel() {
   return (
     <SbvControlPanel
-      icon={<ClipboardCheck className="h-5 w-5" />}
       kicker="§ 166 SGB IX"
       title="Inklusionsvereinbarung fortschreiben"
     >

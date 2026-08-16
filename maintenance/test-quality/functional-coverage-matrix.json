@@ -752,6 +752,116 @@
         "persistence": "Registration and validation do not mutate application data.",
         "rollback": "Registration and validation do not mutate application data."
       }
+    },
+    {
+      "id": "election.configureSetup",
+      "entryPoint": {
+        "file": "services/sbvElectionService.ts",
+        "symbol": "SbvElectionService.configureSetup"
+      },
+      "criticality": "privacy",
+      "mutatesData": true,
+      "tests": {
+        "positive": [
+          {
+            "file": "tests/features/elections/electionPreparationWorkflow.behavior.test.ts",
+            "name": "suggests simplified for 49 and formal for 50 but preserves an election-body override"
+          }
+        ],
+        "negative": [
+          {
+            "file": "tests/features/elections/electionPreparationWorkflow.behavior.test.ts",
+            "name": "blocks 4 confirmed plus a pending equalization while allowing the fifth confirmed equalization"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/features/elections/electionPreparationWorkflow.behavior.test.ts",
+            "name": "suggests simplified for 49 and formal for 50 but preserves an election-body override"
+          }
+        ],
+        "persistence": [
+          {
+            "file": "tests/features/elections/electionPreparationWorkflow.behavior.test.ts",
+            "name": "keeps the historical threshold snapshot unchanged when later voter entries change"
+          }
+        ],
+        "rollback": null,
+        "privacy": [
+          {
+            "file": "tests/privacy/auditMetadataPolicy.test.ts",
+            "name": "beschraenkt 0.9.7-A-Auditmetadaten auf technische Referenzen"
+          }
+        ],
+        "integration": [
+          {
+            "file": "tests/features/elections/electionPreparationWorkflow.behavior.test.ts",
+            "name": "creates formal deadlines centrally and journal prefill without persisting an entry"
+          }
+        ],
+        "abuse": null
+      },
+      "rationales": {
+        "rollback": "Setup uses one aggregate update with nested transactional deadline creation.",
+        "abuse": "Typed local workflow input is covered by IPC validation and domain-negative tests."
+      }
+    },
+    {
+      "id": "election.generatePreparationPdf",
+      "entryPoint": {
+        "file": "services/sbvElectionDocumentService.ts",
+        "symbol": "SbvElectionDocumentService.generate"
+      },
+      "criticality": "privacy",
+      "mutatesData": true,
+      "tests": {
+        "positive": [
+          {
+            "file": "tests/features/elections/electionPreparationDocuments.behavior.test.ts",
+            "name": "creates a standalone PDF payload with readable text and German-character fallback"
+          }
+        ],
+        "negative": [
+          {
+            "file": "tests/features/elections/electionPreparationDocuments.behavior.test.ts",
+            "name": "accepts the complete sixteen-field election notice and rejects any missing mandatory item"
+          }
+        ],
+        "boundary": [
+          {
+            "file": "tests/features/elections/electionPreparationDocuments.behavior.test.ts",
+            "name": "accepts the complete sixteen-field election notice and rejects any missing mandatory item"
+          }
+        ],
+        "persistence": [
+          {
+            "file": "tests/features/sbv-office/sbvOfficeWorkflowDocumentAdapter.behavior.test.ts",
+            "name": "uses the existing encrypted document container and links the document to a non-case owner"
+          }
+        ],
+        "rollback": [
+          {
+            "file": "tests/features/sbv-office/sbvOfficeWorkflowDocumentAdapter.behavior.test.ts",
+            "name": "removes the encrypted file when the database mutation fails"
+          }
+        ],
+        "privacy": [
+          {
+            "file": "tests/privacy/auditMetadataPolicy.test.ts",
+            "name": "beschraenkt 0.9.7-A-Auditmetadaten auf technische Referenzen"
+          }
+        ],
+        "integration": [
+          {
+            "file": "tests/features/sbv-office/sbvOfficeWorkflowDocumentAdapter.behavior.test.ts",
+            "name": "uses the existing encrypted document container and links the document to a non-case owner"
+          }
+        ],
+        "abuse": null
+      },
+      "rationales": {
+        "abuse": "Transfer/container abuse handling belongs to dedicated transfer security functions; this generator accepts typed local data."
+      }
     }
   ]
 }

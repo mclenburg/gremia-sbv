@@ -27,6 +27,8 @@ import {
   SBV_RESOURCE_RECORDS_REQUIRED_COLUMNS,
   RECRUITING_INTERVIEW_EVENTS_REQUIRED_COLUMNS,
   RECRUITING_PARTICIPATIONS_REQUIRED_COLUMNS,
+  SBV_OFFICE_0051_REQUIRED_TABLES,
+  DEADLINE_RULE_SNAPSHOT_REQUIRED_COLUMNS,
 } from './appSchema.js';
 import type { ComplianceDatabaseIntegrityStatus } from '../src/app/core/models/compliance.model.js';
 
@@ -67,6 +69,7 @@ const REQUIRED_TABLES = [
   'sbv_participation_violation_documents',
   'recruiting_participations',
   'recruiting_interview_events',
+  ...Object.keys(SBV_OFFICE_0051_REQUIRED_TABLES),
 ] as const;
 
 const REQUIRED_COLUMNS: Record<string, readonly string[]> = {
@@ -77,7 +80,7 @@ const REQUIRED_COLUMNS: Record<string, readonly string[]> = {
   privacy_review_items: ['id', 'case_id', 'protected_person_id', 'reason', 'status', 'due_at'],
   personal_data_audit_log: PERSONAL_DATA_AUDIT_REQUIRED_COLUMNS,
   case_measure_notes: CASE_MEASURE_NOTES_REQUIRED_COLUMNS,
-  deadlines: ['id', 'title', 'due_at', 'status'],
+  deadlines: ['id', 'title', 'due_at', 'status', ...DEADLINE_RULE_SNAPSHOT_REQUIRED_COLUMNS],
   case_search_index: CASE_SEARCH_INDEX_REQUIRED_COLUMNS,
   case_search_index_state: CASE_SEARCH_INDEX_STATE_REQUIRED_COLUMNS,
   case_document_ocr_jobs: CASE_DOCUMENT_OCR_JOBS_REQUIRED_COLUMNS,
@@ -99,6 +102,7 @@ const REQUIRED_COLUMNS: Record<string, readonly string[]> = {
   sbv_participation_violation_documents: SBV_PARTICIPATION_VIOLATION_DOCUMENTS_REQUIRED_COLUMNS,
   recruiting_participations: RECRUITING_PARTICIPATIONS_REQUIRED_COLUMNS,
   recruiting_interview_events: RECRUITING_INTERVIEW_EVENTS_REQUIRED_COLUMNS,
+  ...SBV_OFFICE_0051_REQUIRED_TABLES,
 };
 
 function tableExists(db: DatabaseAdapter, table: string): boolean {

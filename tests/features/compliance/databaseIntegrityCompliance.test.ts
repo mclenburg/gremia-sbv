@@ -26,6 +26,8 @@ import {
   SBV_PARTICIPATION_VIOLATIONS_REQUIRED_COLUMNS,
   RECRUITING_INTERVIEW_EVENTS_REQUIRED_COLUMNS,
   RECRUITING_PARTICIPATIONS_REQUIRED_COLUMNS,
+  SBV_OFFICE_0051_REQUIRED_TABLES,
+  DEADLINE_RULE_SNAPSHOT_REQUIRED_COLUMNS,
 } from '../../../services/appSchema';
 import { evaluateDatabaseIntegrity } from '../../../services/databaseIntegrityService';
 import { applyDatabasePrivacyPragmas, type DatabaseAdapter } from '../../../services/databaseService';
@@ -33,7 +35,7 @@ import { applyDatabasePrivacyPragmas, type DatabaseAdapter } from '../../../serv
 class SchemaDb implements DatabaseAdapter {
   constructor(
     private readonly tables: Record<string, readonly string[]>,
-    private readonly schemaVersion = '0050',
+    private readonly schemaVersion = '0051',
   ) {}
 
   prepare<T = unknown>(sql: string) {
@@ -75,7 +77,7 @@ const completeSchema: Record<string, readonly string[]> = {
   case_documents: CASE_DOCUMENTS_REQUIRED_COLUMNS,
   generated_documents: GENERATED_DOCUMENTS_REQUIRED_COLUMNS,
   contacts: ['id'],
-  deadlines: ['id', 'title', 'due_at', 'status'],
+  deadlines: ['id', 'title', 'due_at', 'status', ...DEADLINE_RULE_SNAPSHOT_REQUIRED_COLUMNS],
   protected_persons: PROTECTED_PERSONS_REQUIRED_COLUMNS,
   person_case_links: ['id', 'protected_person_id', 'case_file_id', 'link_state'],
   privacy_review_items: ['id', 'case_id', 'protected_person_id', 'reason', 'status', 'due_at'],
@@ -102,6 +104,7 @@ const completeSchema: Record<string, readonly string[]> = {
   sbv_participation_violation_documents: SBV_PARTICIPATION_VIOLATION_DOCUMENTS_REQUIRED_COLUMNS,
   recruiting_participations: RECRUITING_PARTICIPATIONS_REQUIRED_COLUMNS,
   recruiting_interview_events: RECRUITING_INTERVIEW_EVENTS_REQUIRED_COLUMNS,
+  ...SBV_OFFICE_0051_REQUIRED_TABLES,
 };
 
 describe('database privacy runtime', () => {
@@ -131,7 +134,7 @@ describe('database integrity status for compliance center', () => {
     const result = evaluateDatabaseIntegrity(new SchemaDb(completeSchema));
 
     expect(result.ok).toBe(true);
-    expect(result.appliedSchemaVersion).toBe('0050');
+    expect(result.appliedSchemaVersion).toBe('0051');
     expect(result.missingTables).toEqual([]);
     expect(result.missingColumns).toEqual({});
     expect(result.repairRequired).toBe(false);

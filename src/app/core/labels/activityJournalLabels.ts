@@ -8,7 +8,7 @@ export const activityJournalCategoryLabels: Record<ActivityJournalCategory, stri
   participation: 'Beteiligung / Anhörung',
   employer_meeting: 'Arbeitgebergespräch',
   committee_work: 'BR-/Ausschussarbeit',
-  sbv_steering: 'SBV-Steuerung / Strategie',
+  sbv_steering: 'SBV-Dokumentation / Strategie',
   research: 'Recherche / Recht',
   documentation: 'Dokumentation / Nachbereitung',
   qualification: 'Schulung / Qualifizierung',

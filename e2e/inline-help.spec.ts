@@ -1,7 +1,6 @@
 import { test, expect } from './support/test';
 
 test('opens and closes the keyboard command help with Ctrl+H and Esc', async ({ page }) => {
-  await page.goto('/');
   const trigger = page.getByRole('navigation', { name: 'Hauptnavigation' })
     .getByRole('button', { name: 'Fallakte', exact: true });
   await expect(trigger).toBeVisible();

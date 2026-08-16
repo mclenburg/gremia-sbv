@@ -28,6 +28,8 @@ import {
   SBV_PARTICIPATION_VIOLATIONS_REQUIRED_COLUMNS,
   RECRUITING_INTERVIEW_EVENTS_REQUIRED_COLUMNS,
   RECRUITING_PARTICIPATIONS_REQUIRED_COLUMNS,
+  SBV_OFFICE_0051_REQUIRED_TABLES,
+  DEADLINE_RULE_SNAPSHOT_REQUIRED_COLUMNS,
 } from '../../../services/appSchema';
 
 type TableMap = Record<string, readonly string[]>;
@@ -40,7 +42,7 @@ const completeSchema: TableMap = {
   case_documents: CASE_DOCUMENTS_REQUIRED_COLUMNS,
   generated_documents: GENERATED_DOCUMENTS_REQUIRED_COLUMNS,
   contacts: ['id'],
-  deadlines: ['id', 'title', 'due_at', 'status'],
+  deadlines: ['id', 'title', 'due_at', 'status', ...DEADLINE_RULE_SNAPSHOT_REQUIRED_COLUMNS],
   protected_persons: PROTECTED_PERSONS_REQUIRED_COLUMNS,
   person_case_links: ['id', 'protected_person_id', 'case_file_id', 'link_state'],
   privacy_review_items: ['id', 'case_id', 'protected_person_id', 'reason', 'status', 'due_at'],
@@ -67,6 +69,7 @@ const completeSchema: TableMap = {
   sbv_participation_violation_documents: SBV_PARTICIPATION_VIOLATION_DOCUMENTS_REQUIRED_COLUMNS,
   recruiting_participations: RECRUITING_PARTICIPATIONS_REQUIRED_COLUMNS,
   recruiting_interview_events: RECRUITING_INTERVIEW_EVENTS_REQUIRED_COLUMNS,
+  ...SBV_OFFICE_0051_REQUIRED_TABLES,
 };
 
 class SelfCheckDb implements DatabaseAdapter {
@@ -89,7 +92,7 @@ class SelfCheckDb implements DatabaseAdapter {
           const table = String(params[0] ?? '');
           return (self.tables[table] ? { value: 1 } : undefined) as T | undefined;
         }
-        if (sql.includes('MAX(version)')) return { value: '0050' } as T;
+        if (sql.includes('MAX(version)')) return { value: '0051' } as T;
         if (sql.includes('privacy_review_items') && sql.includes('due_at <')) return { value: self.values.overduePrivacyReviews ?? 0 } as T;
         if (sql.includes('privacy_review_items')) return { value: self.values.openPrivacyReviews ?? 0 } as T;
         if (sql.includes('compliance_incidents') && sql.includes("risk_level = 'high'")) return { value: self.values.highIncidents ?? 0 } as T;

@@ -54,7 +54,7 @@ function runGithubBuildCurrentOs() {
   console.log(`Plattform: ${process.platform} (${os.release()})`);
   console.log('Sequenz: npm ci → security:audit → licenses:generate/check → verify → compile → package → platform release checks');
   console.log('Hinweis: Dieser Befehl spiegelt den GitHub-Build nur für das aktuelle Betriebssystem. Er ersetzt keinen Cross-OS-Lauf für Windows, macOS und Linux.');
-  console.log('Performance: E2E-Tests laufen standardmäßig mit 2 Workern; bei Bedarf GREMIA_SBV_E2E_WORKERS=1 setzen.');
+  console.log('Performance: Browser-E2E nutzt automatisch bis zu 4 Worker; GREMIA_SBV_E2E_WORKERS kann die Parallelität gezielt begrenzen. Full-Product-E2E bleibt separat auf maximal 2 persistente Tresor-Slots begrenzt.');
   if (process.platform === 'linux') {
     console.log('Linux-Hinweis: Der GitHub-Runner installiert libarchive-tools/bsdtar vor dem Paketbuild. Lokal muss diese Abhängigkeit im System vorhanden sein.');
   }

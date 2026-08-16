@@ -50,6 +50,18 @@ Kurz gesagt:
 - **Beteiligung** = prüfen und nachhalten, ob das Verfahren ordnungsgemäß läuft.
 - **Verstöße** = dokumentieren, rügen, nachhalten und ggf. Schreiben vorbereiten, wenn die Beteiligung nicht ordnungsgemäß gelaufen ist.
 
+## Dokumentation
+
+Die Ansicht **Dokumentation** bündelt übergreifende SBV-Arbeit, die nicht vollständig in eine einzelne Fallakte gehört. Dazu zählen Nachweise, Gremiensitzungen, Schwerbehindertenversammlung, Beschwerden, Protokolle, Beteiligungsüberblick, Arbeitgeberpflichten, Inklusionsvereinbarung und Berichtsvorbereitung.
+
+## Sitzungen
+
+**Sitzungen** ist ein direkter Hauptnavigationseinstieg in den Gremien-Arbeitsbereich der Dokumentation. Dort dokumentierst du BR- und Ausschusssitzungen aus eigener SBV-Sicht. Bei aktivierter Gremia.BR-Lesebrücke können BR-Sitzung und Tagesordnungspunkte bewusst in eine lokale SBV-Arbeitskopie übernommen werden. SBV-Relevanz, eigene Position und rechtliche Bewertung werden nicht automatisch gesetzt.
+
+## Wahlen
+
+Die Ansicht **Wahlen** führt die örtliche SBV-Wahl als eigene Wahlakte von der Einleitung über Stimmabgabe und Auszählung bis zu Annahme, Abschluss und geschützter Übergabe. Individuelle Stimmentscheidungen werden nicht gespeichert.
+
 ## Hilfe auf Abruf
 
 Längere Erläuterungen stehen nicht dauerhaft in der Arbeitsmaske. Nutze den rechteckigen Button **? Hilfe** in einem Bereich oder die kleine Feldhilfe neben einzelnen Eingaben, wenn du Details brauchst. Echte Warnungen, Fehlermeldungen und Sicherheits-/Eskalationshinweise bleiben sichtbar.
@@ -63,4 +75,7 @@ Arbeite möglichst aus dem fachlichen Kontext heraus:
 - Fristen hängen an dem Vorgang, aus dem sie entstehen.
 - Eine SBV-Beteiligung dient der ordnungsgemäßen Prüfung und Nachhaltung.
 - Ein Beteiligungsverstoß entsteht erst aus einer konkreten Auffälligkeit, etwa aus einer SBV-Beteiligung oder einer Stellenbesetzung.
+- Übergreifende Organisations- und Nachweisthemen gehören in die **Dokumentation**.
+- Für BR- und Ausschusssitzungen kannst du den direkten Einstieg **Sitzungen** nutzen.
+- Eine örtliche SBV-Wahl wird in **Wahlen** als eigener Wahlvorgang geführt.
 - Das Journal kann aus Kontexten vorbelegt werden, wird aber erst durch bewusste Speicherung zum Eintrag.

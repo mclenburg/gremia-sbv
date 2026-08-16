@@ -3,6 +3,9 @@ import type { SbvControlProtocolPartner, SbvControlProtocolStatus, SbvControlPro
 
 export type ControlSectionId =
   | 'resources'
+  | 'meetings'
+  | 'assembly'
+  | 'complaints'
   | 'protocols'
   | 'participation'
   | 'obligations'

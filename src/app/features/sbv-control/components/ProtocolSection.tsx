@@ -1,4 +1,4 @@
-import { ClipboardList, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { DangerButton, GhostButton } from '../../../shared/components/IndustrialButton';
 import { EmptyState, IndustrialRecordCard, RecordList, SearchToolbar } from '../../../shared/components/WorkbenchLayout';
 import { ProcessStatusBadge } from '../../../shared/components/StatusBadges';
@@ -26,13 +26,12 @@ export function ProtocolSection({
 
   return (
     <SbvControlPanel
-      icon={<ClipboardList className="h-5 w-5" />}
       kicker="§ 178 Abs. 1 SGB IX"
       title="Übergreifende Protokolle ohne Fallzuordnung"
     >
       <div className="sbv-resource-workbench">
         <ProtocolForm state={state} onSubmit={() => void saveProtocol()} />
-        <div className="sbv-resource-list" aria-label="SBV-Steuerungsprotokolle">
+        <div className="sbv-resource-list" aria-label="SBV-Protokolle">
           <SearchToolbar
             searchValue={state.protocolQuery}
             onSearchChange={state.setProtocolQuery}
@@ -43,10 +42,10 @@ export function ProtocolSection({
           <RecordList
             items={state.visibleProtocols}
             getKey={(record) => record.id}
-            ariaLabel="Gefilterte SBV-Steuerungsprotokolle"
+            ariaLabel="Gefilterte SBV-Protokolle"
             empty={
               <EmptyState
-                title={state.protocols.length === 0 ? 'Noch keine Steuerungsprotokolle' : 'Keine Treffer'}
+                title={state.protocols.length === 0 ? 'Noch keine Protokolle' : 'Keine Treffer'}
                 text={
                   state.protocols.length === 0
                     ? 'Erfasse hier Gespräche mit Arbeitgeber oder Betriebsrat zu übergreifenden Themen, die bewusst keiner Fallakte zugeordnet werden.'
@@ -71,7 +70,7 @@ export function ProtocolSection({
                 <div className="industrial-table-actions">
                   <ActivityJournalContextButton
                     compact
-                    label="Tätigkeit zum Steuerungsprotokoll erfassen"
+                    label="Tätigkeit zum Protokoll erfassen"
                     context={{
                       contextType: 'sbv_control_protocol',
                       contextId: record.id,
@@ -82,7 +81,7 @@ export function ProtocolSection({
                   />
                   <DangerButton
                     compact
-                    aria-label={`Steuerungsprotokoll ${record.title} löschen`}
+                    aria-label={`Protokoll ${record.title} löschen`}
                     onClick={() => void deleteProtocol(record.id)}
                   >
                     <Trash2 className="h-4 w-4" />

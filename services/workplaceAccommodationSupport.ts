@@ -1,4 +1,4 @@
-import type { WorkplaceAccommodationRecord, WorkplaceAccommodationStatus, WorkplaceAccommodationWarning } from "../src/app/core/models/workplace-accommodation.model.js";
+import type { CreateWorkplaceAccommodationInput, UpdateWorkplaceAccommodationInput, WorkplaceAccommodationRecord, WorkplaceAccommodationStatus, WorkplaceAccommodationWarning } from "../src/app/core/models/workplace-accommodation.model.js";
 export interface WorkplaceAccommodationRow {
   id: string; case_id: string; title: string; accommodation_status: WorkplaceAccommodationRecord['status'] | null;
   category: WorkplaceAccommodationRecord['category'] | null; risk_level: WorkplaceAccommodationRecord['riskLevel'] | null;
@@ -6,6 +6,8 @@ export interface WorkplaceAccommodationRow {
   proposed_solution: string | null; technical_aid_needed: number; organizational_adjustment_needed: number;
   working_time_adjustment_needed: number; qualification_needed: number; fixed_workplace_needed: number;
   homeoffice_or_mobile_work_relevant: number; inclusion_office_involved: number; rehab_carrier_involved: number;
+  funding_carrier: string | null; funding_applied_at: string | null; funding_documents_status: string | null; funding_questions: string | null;
+  funding_decision: string | null; funding_amount: number | null; ordered_at: string | null;
   employer_response_status: WorkplaceAccommodationRecord['employerResponseStatus'] | null; employer_response_at: string | null;
   implementation_status: WorkplaceAccommodationRecord['implementationStatus'] | null; implementation_due_at: string | null;
   effectiveness_review_at: string | null; next_step: string | null; outcome: string | null; created_at: string; updated_at: string;
@@ -73,6 +75,13 @@ export function mapRecord(row: WorkplaceAccommodationRow): WorkplaceAccommodatio
     ),
     inclusionOfficeInvolved: toBool(row.inclusion_office_involved),
     rehabCarrierInvolved: toBool(row.rehab_carrier_involved),
+    fundingCarrier: row.funding_carrier ?? undefined,
+    fundingAppliedAt: row.funding_applied_at ?? undefined,
+    fundingDocumentsStatus: row.funding_documents_status ?? undefined,
+    fundingQuestions: row.funding_questions ?? undefined,
+    fundingDecision: row.funding_decision ?? undefined,
+    fundingAmount: row.funding_amount ?? undefined,
+    orderedAt: row.ordered_at ?? undefined,
     employerResponseStatus: row.employer_response_status ?? "offen",
     employerResponseAt: row.employer_response_at ?? undefined,
     implementationStatus: row.implementation_status ?? "nicht_begonnen",
@@ -141,4 +150,14 @@ export function evaluateWorkplaceAccommodationWarnings(
   }
   return warnings;
 }
+export function workplaceFundingCreateValues(input: CreateWorkplaceAccommodationInput): unknown[] {
+  return [input.fundingCarrier?.trim() || null, toIso(input.fundingAppliedAt), input.fundingDocumentsStatus?.trim() || null, input.fundingQuestions?.trim() || null, input.fundingDecision?.trim() || null, input.fundingAmount ?? null, toIso(input.orderedAt)];
+}
 
+export function workplaceFundingUpdateValues(input: UpdateWorkplaceAccommodationInput, current: WorkplaceAccommodationRecord): unknown[] {
+  return [
+    input.fundingCarrier !== undefined ? input.fundingCarrier.trim() || null : (current.fundingCarrier ?? null), input.fundingAppliedAt !== undefined ? toIso(input.fundingAppliedAt) : (current.fundingAppliedAt ?? null),
+    input.fundingDocumentsStatus !== undefined ? input.fundingDocumentsStatus.trim() || null : (current.fundingDocumentsStatus ?? null), input.fundingQuestions !== undefined ? input.fundingQuestions.trim() || null : (current.fundingQuestions ?? null),
+    input.fundingDecision !== undefined ? input.fundingDecision.trim() || null : (current.fundingDecision ?? null), input.fundingAmount !== undefined ? input.fundingAmount : (current.fundingAmount ?? null), input.orderedAt !== undefined ? toIso(input.orderedAt) : (current.orderedAt ?? null),
+  ];
+}

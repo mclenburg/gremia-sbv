@@ -33,12 +33,13 @@ function shortcutForHelp() {
 }
 
 async function setTheme(page: Page, theme: VisualTheme) {
-  await page.addInitScript((value) => {
+  await page.evaluate((value) => {
     window.localStorage.setItem('gremia.sbv.theme', value);
     window.localStorage.setItem('gremia-sbv-theme', value);
     document.documentElement.dataset.theme = value;
   }, theme);
 }
+
 
 function mainNavigation(page: Page) {
   return page.getByRole('navigation', { name: 'Hauptnavigation' });
@@ -77,45 +78,36 @@ const AXE_HELP_ROUTE_IDS = new Set(
   VISUAL_QA_ROUTES.filter((candidate) => isHelpDialogQaRoute(candidate.id)).map((route) => route.id),
 );
 
-// Die Route- und Help-Dialog-Axe-Prüfungen sind read-only. Pro Theme wird deshalb eine
-// einzige App-Sitzung verwendet. Jeder fachliche Prüfpunkt bleibt als test.step sichtbar,
-// aber BrowserContext, App-Bootstrap, Lazy-Chunk-Initialisierung und Navigation werden nicht
-// dutzendfach neu bezahlt.
+// Jede Route bleibt ein eigener Testfall und damit klar unter dem globalen 30-Sekunden-Limit.
+// BrowserContext und Page werden über support/test.ts workerweit wiederverwendet; der
+// teure App-Bootstrap findet deshalb nicht pro Route erneut statt.
 test.describe.configure({ mode: 'parallel' });
 
 test.describe('P15m Axe accessibility scan', () => {
   for (const theme of ['light', 'dark'] as const) {
     for (const route of VISUAL_QA_ROUTES) {
-      test(`keeps ${route.id} free of serious Axe violations in ${theme} mode`, async ({ page }) => {
+      test(`${theme}/${route.id}: keine serious/critical Axe-Verstöße`, async ({ page }) => {
         await setTheme(page, theme);
-        await page.goto('/');
-        await expect(mainNavigation(page)).toBeVisible();
         await openRoute(page, route.navName);
         await expect(page.getByRole('heading', { name: route.heading }).first()).toBeVisible();
         await expectNoSeriousAxeViolations(page, `${theme}/${route.id}`);
-      });
 
-      if (AXE_HELP_ROUTE_IDS.has(route.id)) {
-        test(`keeps ${route.id} help dialog free of serious Axe violations in ${theme} mode`, async ({ page }) => {
-          await setTheme(page, theme);
-          await page.goto('/');
-          await expect(mainNavigation(page)).toBeVisible();
-          await openRoute(page, route.navName);
-          await expect(page.getByRole('heading', { name: route.heading }).first()).toBeVisible();
+        if (AXE_HELP_ROUTE_IDS.has(route.id)) {
           const helpButton = page.locator('[data-e2e="industrial-help-button"]').first();
           await expect(helpButton).toBeVisible();
           await helpButton.click();
           const helpDialog = page.locator('[data-e2e="industrial-help-dialog"]');
           await expect(helpDialog).toBeVisible();
           await expectNoSeriousAxeViolations(page, `${theme}/${route.id}/help-dialog`);
-        });
-      }
+          await page.keyboard.press('Escape');
+          await expect(helpDialog).toBeHidden();
+        }
+      });
     }
   }
 
   test('keeps the inline command help dialog free of serious Axe violations', async ({ page }) => {
     await setTheme(page, 'light');
-    await page.goto('/');
     await expect(page.getByRole('navigation', { name: 'Hauptnavigation' })).toBeVisible();
     await page.keyboard.press(shortcutForHelp());
 

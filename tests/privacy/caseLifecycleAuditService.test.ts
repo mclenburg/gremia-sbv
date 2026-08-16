@@ -65,12 +65,12 @@ describe('CaseLifecycleAuditService', () => {
       affectedFileCount: 0,
     });
     expect(JSON.parse(normalizeAuditMetadata(input?.metadata, 'case'))).toEqual({
-      affectedFileCount: '0',
-      deletedDocumentCount: '2',
-      deletedMeasureCount: '0',
+      affectedFileCount: 0,
+      deletedDocumentCount: 2,
+      deletedMeasureCount: 0,
       deletionMode: 'hard_delete',
       eventName: 'deleted',
-      schemaVersion: '1',
+      schemaVersion: 1,
     });
   });
 });

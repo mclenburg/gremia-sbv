@@ -43,6 +43,34 @@ const ACTIVITY_JOURNAL_METADATA_FIELDS = [
   'hasTime',
 ] as const;
 
+const RETENTION_LEGAL_HOLD_METADATA_FIELDS = [
+  'ownerType',
+  'ownerId',
+  'reasonKey',
+  'released',
+] as const;
+
+
+const ELECTION_METADATA_FIELDS = [
+  'entityType',
+  'status',
+  'procedure',
+  'officeType',
+  'result',
+] as const;
+
+const ELECTION_TRANSFER_METADATA_FIELDS = [
+  'formatVersion',
+  'manifestHash',
+  'result',
+] as const;
+
+const SBV_OFFICE_DOCUMENT_METADATA_FIELDS = [
+  'ownerType',
+  'ownerId',
+  'documentClass',
+] as const;
+
 const GREMIA_BR_REQUEST_METADATA_FIELDS = [
   'endpoint',
   'outcome',
@@ -151,6 +179,17 @@ export const AUDIT_METADATA_POLICY_BY_SUBJECT_TYPE = {
   sbv_control_protocol: CONTROL_PROTOCOL_METADATA_FIELDS,
   activity_journal: ACTIVITY_JOURNAL_METADATA_FIELDS,
   gremia_br_http_request: GREMIA_BR_REQUEST_METADATA_FIELDS,
+  retention_legal_hold: RETENTION_LEGAL_HOLD_METADATA_FIELDS,
+  election_transfer: ELECTION_TRANSFER_METADATA_FIELDS,
+  election: ELECTION_METADATA_FIELDS,
+  sbv_office_document: SBV_OFFICE_DOCUMENT_METADATA_FIELDS,
+  complaint_workflow: ['status'] as const,
+  employer_obligation_review: ['status'] as const,
+  inclusion_agreement: ['status'] as const,
+  inclusion_agreement_topic: ['status'] as const,
+  inclusion_officer_snapshot: ['status'] as const,
+  sbv_assembly: ['status'] as const,
+  sbv_meeting: ['status'] as const,
   sbv_participation_violation: PARTICIPATION_VIOLATION_METADATA_FIELDS,
   sbv_participation_violation_document: PARTICIPATION_VIOLATION_DOCUMENT_METADATA_FIELDS,
   generated_document: PARTICIPATION_VIOLATION_DOCUMENT_METADATA_FIELDS,

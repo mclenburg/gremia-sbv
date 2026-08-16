@@ -1,86 +1,74 @@
 #!/usr/bin/env node
-const { readFileSync, readdirSync, statSync } = require('node:fs');
+const { readdirSync, readFileSync } = require('node:fs');
 const path = require('node:path');
+const ts = require('typescript');
 
 const root = process.cwd();
-const cssFiles = [
-  'src/app/ui/forms.css',
-  'src/app/ui/components.css',
-  'src/app/ui/featureModules.css',
-  'src/app/ui/modal.css',
-].map((file) => path.join(root, file));
-const css = cssFiles.map((file) => readFileSync(file, 'utf8')).join('\n');
-
-const requiredSelectors = [
-  '.industrial-input',
-  '.industrial-textarea-input',
-  '.industrial-select-input',
-  '.industrial-field input',
-  '.industrial-field select',
-  '.industrial-field textarea',
-  '.industrial-form input',
-  '.industrial-form select',
-  '.industrial-form textarea',
-  '.industrial-settings-form input',
-  '.industrial-settings-form select',
-  '.industrial-settings-form textarea',
-  '.industrial-modal input:not([type="checkbox"]):not([type="radio"])',
-  '.industrial-modal select',
-  '.industrial-modal textarea',
-  '.case-detail-inline-form input',
-  '.case-detail-inline-form select',
-  '.case-detail-inline-form textarea',
-];
-
-const missingSelectors = requiredSelectors.filter((selector) => !css.includes(selector));
-if (missingSelectors.length > 0) {
-  console.error('Industrial-UI-Control-Chrome fehlt fuer Selektoren:');
-  for (const selector of missingSelectors) console.error(`- ${selector}`);
-  process.exit(1);
-}
-
-const allowedContextMarkers = [
-  'industrial-modal',
-  'industrial-form',
-  'industrial-field',
-  'industrial-input',
-  'industrial-textarea-input',
-  'industrial-select-input',
-  'industrial-settings-form',
-  'case-detail-inline-form',
-  'inline-command',
-  'industrial-output-area',
-  'industrial-checkbox-row',
-  'text-command-textarea',
+const moduleRoots = [
+  {
+    label: 'SBV-Dokumentation',
+    directory: path.join(root, 'src', 'app', 'features', 'sbv-control', 'components'),
+    forbiddenNativeTags: new Set(['input', 'select', 'textarea', 'label']),
+  },
+  {
+    label: 'SBV-Wahlen',
+    directory: path.join(root, 'src', 'app', 'features', 'elections'),
+    forbiddenNativeTags: new Set(['input', 'select', 'textarea', 'label', 'button']),
+  },
 ];
 
 function walk(directory) {
-  const entries = readdirSync(directory, { withFileTypes: true });
-  return entries.flatMap((entry) => {
+  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
     const fullPath = path.join(directory, entry.name);
     if (entry.isDirectory()) return walk(fullPath);
     return entry.isFile() && fullPath.endsWith('.tsx') ? [fullPath] : [];
   });
 }
 
+function jsxTagName(node) {
+  if (ts.isIdentifier(node.tagName)) return node.tagName.text;
+  return node.tagName.getText();
+}
+
 const findings = [];
-for (const file of walk(path.join(root, 'src', 'app'))) {
-  const text = readFileSync(file, 'utf8');
-  const hasAllowedContext = allowedContextMarkers.some((marker) => text.includes(marker));
-  const lines = text.split(/\r?\n/);
-  lines.forEach((line, index) => {
-    if (!/<(input|textarea|select)\b/.test(line)) return;
-    if (line.includes('className=') || hasAllowedContext) return;
-    findings.push({ file: path.relative(root, file), line: index + 1, source: line.trim() });
-  });
+const counts = [];
+
+for (const moduleRoot of moduleRoots) {
+  const files = walk(moduleRoot.directory);
+  counts.push(`${moduleRoot.label}: ${files.length}`);
+
+  for (const file of files) {
+    const source = readFileSync(file, 'utf8');
+    const sourceFile = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+
+    function visit(node) {
+      if (ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) {
+        const tag = jsxTagName(node);
+        if (moduleRoot.forbiddenNativeTags.has(tag)) {
+          const { line, character } = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
+          findings.push({
+            module: moduleRoot.label,
+            file: path.relative(root, file),
+            line: line + 1,
+            column: character + 1,
+            tag,
+          });
+        }
+      }
+      ts.forEachChild(node, visit);
+    }
+
+    visit(sourceFile);
+  }
 }
 
 if (findings.length > 0) {
-  console.error('Moeglich ungestylte native Formular-Controls gefunden:');
+  console.error('Industrial-Formulararchitektur verletzt:');
+  console.error('Native Formularcontrols und im Wahlmodul auch rohe Buttons sind in den gehärteten Modulen nicht zulässig; nutze zentrale Industrial-Komponenten.');
   for (const finding of findings) {
-    console.error(`- ${finding.file}:${finding.line} ${finding.source}`);
+    console.error(`- ${finding.module}: ${finding.file}:${finding.line}:${finding.column} <${finding.tag}>`);
   }
   process.exit(1);
 }
 
-console.log(`Industrial-UI-Control-Chrome OK: ${requiredSelectors.length} zentrale Selektoren geprueft.`);
+console.log(`Industrial-UI-Control-Chrome OK: ${counts.join(' · ')}; AST-basiert ohne native Formular-Sonderwege.`);

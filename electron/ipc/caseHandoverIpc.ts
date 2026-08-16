@@ -4,7 +4,7 @@ import type { SecurityService } from '../../services/securityService.js';
 import type { ApplicationServices } from '../applicationServices.js';
 import type { CaseHandoverExportInput, CaseHandoverImportInput } from '../../src/app/core/models/case-handover.model.js';
 import { assertRecordInput, assertString, sanitizeDialogFileName } from './ipcValidation.js';
-import { issueSelectedFileCapability, resolveSelectedFileCapability } from './selectedFileCapability.js';
+import { issueSelectedFileCapability, resolveSelectedFileCapability, SELECTED_FILE_PURPOSE } from './selectedFileCapability.js';
 
 export function registerCaseHandoverIpc(ipcMain: IpcMain, security: SecurityService, services: ApplicationServices): void {
   const handover = services.caseHandover;
@@ -30,13 +30,13 @@ export function registerCaseHandoverIpc(ipcMain: IpcMain, security: SecurityServ
     });
     if (result.canceled || !result.filePaths[0]) return { canceled: true };
     const filePath = result.filePaths[0];
-    const capability = issueSelectedFileCapability(filePath, 'case-handover');
+    const capability = issueSelectedFileCapability(filePath, SELECTED_FILE_PURPOSE.caseHandover);
     return { canceled: false, filePath: capability.fileToken, fileName: capability.fileName };
   });
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.caseHandoverInspect, async (_event, filePath: unknown, passphrase: unknown) => {
     const fileToken = assertString(filePath, 'caseHandover:inspect', 'Dateiauswahl', { minLength: 1, maxLength: 2000 });
-    const validatedFilePath = resolveSelectedFileCapability(fileToken, 'case-handover', 'caseHandover:inspect');
+    const validatedFilePath = resolveSelectedFileCapability(fileToken, SELECTED_FILE_PURPOSE.caseHandover, 'caseHandover:inspect');
     const validatedPassphrase = assertString(passphrase, 'caseHandover:inspect', 'Transport-Passphrase', { minLength: 1, maxLength: 500 });
     if (!validatedFilePath.toLowerCase().endsWith('.gsbvtransfer')) throw new Error('Bitte eine Gremia.SBV-Übergabedatei (*.gsbvtransfer) auswählen.');
     return handover.inspect(validatedFilePath, validatedPassphrase);
@@ -51,13 +51,13 @@ export function registerCaseHandoverIpc(ipcMain: IpcMain, security: SecurityServ
     });
     if (result.canceled || !result.filePaths[0]) return { canceled: true };
     const filePath = result.filePaths[0];
-    const capability = issueSelectedFileCapability(filePath, 'case-handover');
+    const capability = issueSelectedFileCapability(filePath, SELECTED_FILE_PURPOSE.caseHandover);
     return { canceled: false, filePath: capability.fileToken, fileName: capability.fileName, inspection: handover.inspect(filePath, validatedPassphrase) };
   });
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.caseHandoverImport, async (_event, input: unknown) => {
     const validated = assertRecordInput<CaseHandoverImportInput>(input, 'caseHandover:import');
-    const resolvedFilePath = resolveSelectedFileCapability(validated.filePath, 'case-handover', 'caseHandover:import');
+    const resolvedFilePath = resolveSelectedFileCapability(validated.filePath, SELECTED_FILE_PURPOSE.caseHandover, 'caseHandover:import');
     return handover.importFromFile({ ...validated, filePath: resolvedFilePath });
   });
 

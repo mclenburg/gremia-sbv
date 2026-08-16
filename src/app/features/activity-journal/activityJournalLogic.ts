@@ -16,6 +16,6 @@ export function entryReferenceLabel(entry: ActivityJournalEntryRecord): string {
   const links = entry.links ?? [];
   if (!links.length) return 'fallfrei';
   if (links.some((link) => link.targetType === 'case')) return 'fallbezogen';
-  if (links.some((link) => link.targetType === 'sbv_control_protocol')) return 'SBV-Steuerung';
+  if (links.some((link) => link.targetType === 'sbv_control_protocol')) return 'SBV-Dokumentation';
   return links.map((link) => link.targetType).join(', ');
 }

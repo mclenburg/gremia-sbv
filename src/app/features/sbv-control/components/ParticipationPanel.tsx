@@ -1,4 +1,3 @@
-import { ShieldAlert } from 'lucide-react';
 import type { ParticipationRecord } from '../../../core/models/participation.model';
 import type { ViewId } from '../../../core/navigation/modules';
 import { EmptyState, IndustrialRecordCard } from '../../../shared/components/WorkbenchLayout';
@@ -15,7 +14,6 @@ export function ParticipationPanel({
 }) {
   return (
     <SbvControlPanel
-      icon={<ShieldAlert className="h-5 w-5" />}
       kicker="§ 178 Abs. 2 Satz 1 SGB IX"
       title="Beteiligung steuern"
       actionLabel="Beteiligungsmonitor öffnen"

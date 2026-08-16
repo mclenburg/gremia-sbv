@@ -89,7 +89,7 @@ export function sanitizeAuditActor(actor: string): string {
 
 const AUDIT_SAFE_METADATA_TEXT_PATTERN = /^[\p{Letter}\p{Number}:_.\/ -]{1,180}$/u;
 
-function normalizeAllowedAuditMetadataValue(value: unknown): string | null {
+function normalizeAllowedAuditMetadataValue(value: unknown): string | number | boolean | null {
   if (value == null) return null;
   if (value instanceof Date) return value.toISOString();
   if (typeof value === 'string') {
@@ -97,12 +97,12 @@ function normalizeAllowedAuditMetadataValue(value: unknown): string | null {
     if (DIRECT_IDENTIFIER_PATTERNS.some((pattern) => pattern.test(text))) return null;
     return AUDIT_SAFE_METADATA_TEXT_PATTERN.test(text) ? text : null;
   }
-  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  if (typeof value === 'number' || typeof value === 'boolean') return value;
   return null;
 }
 
 export function normalizeAuditMetadata(metadata?: Record<string, unknown>, subjectType?: string): string {
-  const normalized: Record<string, string> = {};
+  const normalized: Record<string, string | number | boolean> = {};
   const allowedMetadataFields = allowedAuditMetadataFields(subjectType);
   for (const [key, value] of Object.entries(metadata ?? {})) {
     if (!allowedMetadataFields.has(key)) continue;

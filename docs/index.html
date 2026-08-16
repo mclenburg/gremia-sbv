@@ -1,0 +1,974 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#050505" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="description" content="Gremia.SBV – lokaler, geschützter Arbeitsraum für Schwerbehindertenvertretungen. Fallakten, Fristen, BEM, Prävention, Beteiligungen, Dokumente und sichere Übergaben." />
+  <title>Gremia.SBV – Fachsoftware für Schwerbehindertenvertretungen</title>
+
+  <link rel="icon" href="assets/gremia-sbv-icon-64.png" sizes="64x64" type="image/png" />
+  <link rel="icon" href="assets/gremia-sbv-icon-128.png" sizes="128x128" type="image/png" />
+  <link rel="apple-touch-icon" href="assets/gremia-sbv-icon-256.png" />
+
+  <style>
+    :root {
+      --sbv-black: #050505;
+      --sbv-panel: #09090b;
+      --sbv-panel-2: #121214;
+      --sbv-border: #2f2f33;
+      --sbv-border-hard: #4a4a50;
+      --sbv-text: #f4f4f5;
+      --sbv-muted: #a1a1aa;
+      --sbv-dim: #71717a;
+      --sbv-yellow: #facc15;
+      --sbv-yellow-strong: #fde047;
+      --sbv-yellow-soft: rgba(250, 204, 21, 0.12);
+      --sbv-danger: #ef4444;
+      --sbv-ok: #84cc16;
+      --page-max: 1180px;
+      --page-padding: clamp(1rem, 3vw, 2rem);
+      --focus-ring: 0 0 0 3px rgba(250, 204, 21, 0.24);
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+      background: var(--sbv-black);
+      color-scheme: dark;
+    }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      color: var(--sbv-text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(255,255,255,0.018) 1px, transparent 1px),
+        radial-gradient(circle at 18% 0%, rgba(250,204,21,0.09), transparent 30rem),
+        radial-gradient(circle at 92% 8%, rgba(82,82,91,0.18), transparent 34rem),
+        var(--sbv-black);
+      background-size: 32px 32px, 32px 32px, auto, auto, auto;
+    }
+
+    img, svg { max-width: 100%; }
+    a { color: inherit; }
+
+    .skip-link {
+      position: fixed;
+      z-index: 1000;
+      top: 0.75rem;
+      left: 0.75rem;
+      transform: translateY(-180%);
+      border: 2px solid var(--sbv-yellow);
+      background: var(--sbv-black);
+      color: #fff;
+      padding: 0.75rem 1rem;
+      font-weight: 900;
+      text-decoration: none;
+    }
+
+    .skip-link:focus { transform: translateY(0); }
+
+    :focus-visible {
+      outline: 2px solid var(--sbv-yellow);
+      outline-offset: 3px;
+      box-shadow: var(--focus-ring);
+    }
+
+    .shell {
+      width: min(100%, calc(var(--page-max) + 2 * var(--page-padding)));
+      margin: 0 auto;
+      padding: 0 var(--page-padding);
+    }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      border-bottom: 1px solid var(--sbv-border);
+      background: rgba(5, 5, 5, 0.92);
+      backdrop-filter: blur(14px);
+    }
+
+    .site-header-inner {
+      min-height: 66px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.7rem;
+      text-decoration: none;
+      font-weight: 950;
+      letter-spacing: -0.04em;
+    }
+
+    .brand img {
+      width: 36px;
+      height: 36px;
+      display: block;
+    }
+
+    .brand-wordmark { font-size: 1.08rem; }
+    .brand-wordmark .accent { color: var(--sbv-yellow); }
+
+    .site-nav {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .site-nav a {
+      min-height: 42px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid transparent;
+      padding: 0.55rem 0.75rem;
+      color: #d4d4d8;
+      text-decoration: none;
+      font-size: 0.82rem;
+      font-weight: 800;
+    }
+
+    .site-nav a:hover {
+      border-color: rgba(250,204,21,0.42);
+      background: linear-gradient(90deg, rgba(250,204,21,0.10), rgba(39,39,42,0.34));
+      color: var(--sbv-yellow-strong);
+    }
+
+    main { overflow: hidden; }
+
+    .hero {
+      min-height: calc(100vh - 66px);
+      display: grid;
+      grid-template-columns: minmax(0, 0.9fr) minmax(28rem, 1.1fr);
+      gap: clamp(2rem, 5vw, 5rem);
+      align-items: center;
+      padding: clamp(4rem, 9vw, 7rem) 0;
+    }
+
+    .kicker,
+    .eyebrow {
+      margin: 0 0 0.8rem;
+      color: var(--sbv-yellow);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.72rem;
+      font-weight: 850;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+    }
+
+    .hero h1 {
+      margin: 0;
+      max-width: 8ch;
+      color: #fff;
+      font-size: clamp(3.35rem, 8vw, 6.8rem);
+      line-height: 0.84;
+      font-weight: 950;
+      letter-spacing: -0.08em;
+    }
+
+    .hero h1 .dot,
+    .hero h1 .sbv { color: var(--sbv-yellow); }
+
+    .hero-lead {
+      max-width: 36rem;
+      margin: 1.6rem 0 0;
+      color: #d4d4d8;
+      font-size: clamp(1.18rem, 2.3vw, 1.55rem);
+      line-height: 1.45;
+      font-weight: 720;
+    }
+
+    .hero-copy {
+      max-width: 42rem;
+      margin: 1rem 0 0;
+      color: var(--sbv-muted);
+      font-size: 1rem;
+      line-height: 1.7;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 1.8rem;
+    }
+
+    .button {
+      min-height: 46px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.55rem;
+      border: 1px solid var(--sbv-border-hard);
+      background: var(--sbv-panel);
+      color: #fff;
+      padding: 0.72rem 1rem;
+      text-decoration: none;
+      font-size: 0.82rem;
+      font-weight: 900;
+      letter-spacing: 0.035em;
+      text-transform: uppercase;
+    }
+
+    .button-primary {
+      border-color: rgba(250,204,21,0.72);
+      background: linear-gradient(90deg, rgba(250,204,21,0.18), rgba(39,39,42,0.55));
+      color: var(--sbv-yellow-strong);
+      box-shadow: inset 3px 0 0 var(--sbv-yellow);
+    }
+
+    .button:hover {
+      border-color: var(--sbv-yellow);
+      color: var(--sbv-yellow-strong);
+      background: rgba(250,204,21,0.08);
+    }
+
+    .trust-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+      margin-top: 1.65rem;
+    }
+
+    .chip {
+      border: 1px solid rgba(250,204,21,0.34);
+      background: rgba(250,204,21,0.06);
+      color: #d4d4d8;
+      padding: 0.42rem 0.58rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .product-frame {
+      position: relative;
+      border: 1px solid var(--sbv-border-hard);
+      background: linear-gradient(145deg, rgba(18,18,20,0.98), rgba(5,5,5,0.98));
+      box-shadow: 0 28px 70px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.035);
+    }
+
+    .product-frame::before {
+      content: '';
+      position: absolute;
+      top: -1px;
+      left: 0;
+      width: 116px;
+      height: 2px;
+      background: var(--sbv-yellow);
+      box-shadow: 0 0 18px rgba(250,204,21,0.34);
+    }
+
+    .product-topbar {
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      border-bottom: 1px solid var(--sbv-border);
+      padding: 0.65rem 0.85rem;
+      background: rgba(9,9,11,0.88);
+    }
+
+    .product-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      font-size: 0.82rem;
+      font-weight: 900;
+    }
+
+    .product-brand img { width: 24px; height: 24px; }
+
+    .product-state {
+      color: var(--sbv-dim);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.64rem;
+      letter-spacing: 0.11em;
+      text-transform: uppercase;
+    }
+
+    .product-body {
+      display: grid;
+      grid-template-columns: 166px minmax(0, 1fr);
+      min-height: 430px;
+    }
+
+    .product-nav {
+      border-right: 1px solid var(--sbv-border);
+      background: linear-gradient(180deg, rgba(18,18,20,0.95), rgba(9,9,11,0.98));
+      padding: 0.75rem 0.6rem;
+    }
+
+    .product-nav-group + .product-nav-group {
+      border-top: 1px solid rgba(148,163,184,0.14);
+      margin-top: 0.6rem;
+      padding-top: 0.65rem;
+    }
+
+    .product-nav-label {
+      margin: 0 0 0.35rem;
+      padding: 0 0.5rem;
+      color: var(--sbv-dim);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.54rem;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .product-nav-item {
+      min-height: 31px;
+      display: flex;
+      align-items: center;
+      gap: 0.48rem;
+      border: 1px solid transparent;
+      padding: 0.4rem 0.5rem;
+      color: #d4d4d8;
+      font-size: 0.69rem;
+      font-weight: 760;
+    }
+
+    .product-nav-item.active {
+      border-color: rgba(250,204,21,0.5);
+      background: linear-gradient(90deg, rgba(250,204,21,0.14), rgba(39,39,42,0.42));
+      color: var(--sbv-yellow-strong);
+      box-shadow: inset 3px 0 0 var(--sbv-yellow);
+    }
+
+    .mini-icon {
+      width: 13px;
+      height: 13px;
+      display: inline-grid;
+      place-items: center;
+      border: 1px solid currentColor;
+      font-size: 0.52rem;
+      line-height: 1;
+    }
+
+    .product-content { padding: 1rem; }
+
+    .product-heading {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 0.85rem;
+    }
+
+    .product-heading h2 {
+      margin: 0;
+      color: #fff;
+      font-size: 1.2rem;
+      letter-spacing: -0.035em;
+    }
+
+    .product-heading span {
+      color: var(--sbv-dim);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.65rem;
+    }
+
+    .metric {
+      min-height: 92px;
+      border: 1px solid var(--sbv-border-hard);
+      background: var(--sbv-panel);
+      padding: 0.72rem;
+    }
+
+    .metric.warning { box-shadow: inset 3px 0 0 var(--sbv-yellow); }
+    .metric.danger { box-shadow: inset 3px 0 0 var(--sbv-danger); }
+
+    .metric span {
+      display: block;
+      color: var(--sbv-dim);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.54rem;
+      font-weight: 800;
+      letter-spacing: 0.11em;
+      text-transform: uppercase;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 0.5rem;
+      color: #fff;
+      font-size: 1.6rem;
+      line-height: 1;
+    }
+
+    .metric.warning strong { color: var(--sbv-yellow-strong); }
+    .metric.danger strong { color: #fecaca; }
+
+    .work-grid {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 0.65rem;
+      margin-top: 0.65rem;
+    }
+
+    .work-panel {
+      min-height: 205px;
+      border: 1px solid var(--sbv-border);
+      background: rgba(9,9,11,0.82);
+      padding: 0.8rem;
+    }
+
+    .work-panel h3 {
+      margin: 0 0 0.55rem;
+      color: #fff;
+      font-size: 0.8rem;
+    }
+
+    .work-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0.75rem;
+      align-items: center;
+      border-top: 1px solid var(--sbv-border);
+      padding: 0.58rem 0;
+      color: #d4d4d8;
+      font-size: 0.66rem;
+    }
+
+    .work-row:first-of-type { border-top: 0; }
+
+    .status {
+      color: var(--sbv-yellow-strong);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.57rem;
+      font-weight: 850;
+      text-transform: uppercase;
+    }
+
+    .status.danger { color: #fca5a5; }
+    .status.ok { color: #bef264; }
+
+    .section {
+      padding: clamp(4rem, 8vw, 7rem) 0;
+      border-top: 1px solid rgba(47,47,51,0.8);
+    }
+
+    .section-head {
+      display: grid;
+      grid-template-columns: 0.7fr 1.3fr;
+      gap: clamp(1.5rem, 5vw, 4rem);
+      align-items: start;
+      margin-bottom: 2rem;
+    }
+
+    .section h2 {
+      margin: 0;
+      color: #fff;
+      font-size: clamp(2rem, 4vw, 3.4rem);
+      line-height: 0.98;
+      letter-spacing: -0.055em;
+    }
+
+    .section-intro {
+      margin: 0;
+      max-width: 44rem;
+      color: var(--sbv-muted);
+      font-size: 1.02rem;
+      line-height: 1.72;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.8rem;
+    }
+
+    .feature-card {
+      position: relative;
+      min-height: 220px;
+      border: 1px solid var(--sbv-border);
+      background: linear-gradient(145deg, rgba(18,18,20,0.96), rgba(9,9,11,0.98));
+      padding: 1.1rem;
+    }
+
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: -1px;
+      left: 0;
+      width: 56px;
+      height: 2px;
+      background: var(--sbv-yellow);
+    }
+
+    .feature-index {
+      display: block;
+      color: var(--sbv-yellow);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.67rem;
+      font-weight: 900;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .feature-card h3 {
+      margin: 1.9rem 0 0;
+      color: #fff;
+      font-size: 1.06rem;
+      letter-spacing: -0.025em;
+    }
+
+    .feature-card p {
+      margin: 0.65rem 0 0;
+      color: var(--sbv-muted);
+      font-size: 0.88rem;
+      line-height: 1.6;
+    }
+
+    .principles {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      border: 1px solid var(--sbv-border-hard);
+      background: rgba(9,9,11,0.84);
+    }
+
+    .principle {
+      min-height: 170px;
+      padding: 1.25rem;
+      border-right: 1px solid var(--sbv-border);
+      border-bottom: 1px solid var(--sbv-border);
+    }
+
+    .principle:nth-child(2n) { border-right: 0; }
+    .principle:nth-last-child(-n+2) { border-bottom: 0; }
+
+    .principle strong {
+      display: block;
+      color: #fff;
+      font-size: 1rem;
+    }
+
+    .principle p {
+      margin: 0.55rem 0 0;
+      color: var(--sbv-muted);
+      font-size: 0.88rem;
+      line-height: 1.6;
+    }
+
+    .demo-panel {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 2rem;
+      align-items: center;
+      border: 1px solid var(--sbv-border-hard);
+      background:
+        linear-gradient(90deg, rgba(250,204,21,0.08), transparent 40%),
+        rgba(9,9,11,0.9);
+      padding: clamp(1.4rem, 3vw, 2rem);
+    }
+
+    .demo-panel::before {
+      content: '';
+      position: absolute;
+      top: -1px;
+      left: 0;
+      width: 110px;
+      height: 2px;
+      background: var(--sbv-yellow);
+    }
+
+    .demo-panel h2 { font-size: clamp(1.6rem, 3vw, 2.4rem); }
+    .demo-panel p {
+      margin: 0.7rem 0 0;
+      max-width: 48rem;
+      color: var(--sbv-muted);
+      line-height: 1.65;
+    }
+
+    .site-footer {
+      border-top: 1px solid var(--sbv-border);
+      background: rgba(5,5,5,0.88);
+      padding: 1.3rem 0 2rem;
+    }
+
+    .footer-inner {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      color: var(--sbv-dim);
+      font-size: 0.75rem;
+    }
+
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.9rem;
+    }
+
+    .footer-links a { color: var(--sbv-muted); text-decoration: none; }
+    .footer-links a:hover { color: var(--sbv-yellow); }
+
+    .noscript {
+      border: 1px solid var(--sbv-border-hard);
+      background: var(--sbv-panel);
+      color: var(--sbv-muted);
+      margin: 1rem auto;
+      padding: 0.8rem;
+      max-width: var(--page-max);
+      font-size: 0.85rem;
+    }
+
+    @media (max-width: 980px) {
+      .hero {
+        min-height: auto;
+        grid-template-columns: 1fr;
+      }
+      .hero h1 { max-width: none; }
+      .product-frame { max-width: 760px; }
+      .feature-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .section-head { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 680px) {
+      .site-header { position: static; }
+      .site-header-inner { align-items: flex-start; padding-block: 0.8rem; }
+      .site-nav { display: none; }
+      .hero { padding-top: 3rem; }
+      .product-body { grid-template-columns: 1fr; min-height: 0; }
+      .product-nav { display: none; }
+      .metric-grid { grid-template-columns: 1fr; }
+      .work-grid { grid-template-columns: 1fr; }
+      .feature-grid,
+      .principles { grid-template-columns: 1fr; }
+      .principle,
+      .principle:nth-child(2n),
+      .principle:nth-last-child(-n+2) {
+        border-right: 0;
+        border-bottom: 1px solid var(--sbv-border);
+      }
+      .principle:last-child { border-bottom: 0; }
+      .demo-panel { grid-template-columns: 1fr; }
+      .demo-panel .button { width: 100%; }
+    }
+
+    .version-inline {
+      margin-left: 0.55rem;
+      color: var(--sbv-yellow);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Zum Inhalt springen</a>
+
+  <header class="site-header">
+    <div class="shell site-header-inner">
+      <a class="brand" href="#top" aria-label="Gremia.SBV Startseite">
+        <img src="assets/gremia-sbv-icon-128.png" alt="" width="36" height="36" />
+        <span class="brand-wordmark">Gremia<span class="accent">.SBV</span></span>
+      </a>
+
+      <nav class="site-nav" aria-label="Seitennavigation">
+        <a href="#funktionen">Funktionen</a>
+        <a href="#prinzipien">Prinzipien</a>
+        <a href="#demo">Demo</a>
+        <a data-repo-link="" href="#">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <div class="shell" id="top">
+      <section class="hero" aria-labelledby="hero-title">
+        <div>
+          <p class="kicker">Open Source · SBV-Fachsoftware <span class="version-inline" data-app-version hidden></span></p>
+          <h1 id="hero-title">Gremia<span class="dot">.</span><span class="sbv">SBV</span></h1>
+          <p class="hero-lead">Der geschützte Arbeitsraum für Schwerbehindertenvertretungen.</p>
+          <p class="hero-copy">
+            Fälle, Fristen, BEM, Prävention, Beteiligungen und Dokumente in einer lokalen Anwendung – ohne Cloudpflicht, ohne Telemetrie und mit nachvollziehbaren Arbeitsabläufen.
+          </p>
+
+          <div class="hero-actions">
+            <a class="button button-primary" data-repo-link="releases/latest" href="#">Aktuelles Release</a>
+            <a class="button" data-repo-link="" href="#">Quellcode ansehen</a>
+          </div>
+
+          <div class="trust-row" aria-label="Kerneigenschaften">
+            <span class="chip">Lokal</span>
+            <span class="chip">Verschlüsselt</span>
+            <span class="chip">Offline-first</span>
+            <span class="chip">Keine Telemetrie</span>
+          </div>
+        </div>
+
+        <div class="product-frame" aria-label="Darstellung der Gremia.SBV-Arbeitsoberfläche">
+          <div class="product-topbar">
+            <div class="product-brand">
+              <img src="assets/gremia-sbv-icon-64.png" alt="" width="24" height="24" />
+              <span>Gremia.SBV</span>
+            </div>
+            <span class="product-state">Lokaler Arbeitsraum</span>
+          </div>
+
+          <div class="product-body">
+            <aside class="product-nav" aria-hidden="true">
+              <div class="product-nav-group">
+                <p class="product-nav-label">Kernarbeit</p>
+                <div class="product-nav-item active"><span class="mini-icon">•</span>Dashboard</div>
+                <div class="product-nav-item"><span class="mini-icon">•</span>Personen</div>
+                <div class="product-nav-item"><span class="mini-icon">•</span>Fallakte</div>
+                <div class="product-nav-item"><span class="mini-icon">•</span>Fristen</div>
+                <div class="product-nav-item"><span class="mini-icon">•</span>Journal</div>
+              </div>
+              <div class="product-nav-group">
+                <p class="product-nav-label">SBV-Verfahren</p>
+                <div class="product-nav-item"><span class="mini-icon">•</span>BEM</div>
+                <div class="product-nav-item"><span class="mini-icon">•</span>Prävention</div>
+                <div class="product-nav-item"><span class="mini-icon">•</span>Beteiligung</div>
+                <div class="product-nav-item"><span class="mini-icon">•</span>Arbeitsplatz</div>
+              </div>
+              <div class="product-nav-group">
+                <p class="product-nav-label">Werkzeuge</p>
+                <div class="product-nav-item"><span class="mini-icon">•</span>Vorlagen</div>
+                <div class="product-nav-item"><span class="mini-icon">•</span>Wissen</div>
+                <div class="product-nav-item"><span class="mini-icon">•</span>Berichte</div>
+              </div>
+            </aside>
+
+            <div class="product-content">
+              <div class="product-heading">
+                <h2>Dashboard</h2>
+                <span>Arbeitsübersicht</span>
+              </div>
+
+              <div class="metric-grid">
+                <div class="metric">
+                  <span>Offene Fallakten</span>
+                  <strong>12</strong>
+                </div>
+                <div class="metric warning">
+                  <span>Fristen</span>
+                  <strong>5</strong>
+                </div>
+                <div class="metric danger">
+                  <span>Überfällig</span>
+                  <strong>1</strong>
+                </div>
+              </div>
+
+              <div class="work-grid">
+                <section class="work-panel" aria-label="Beispielhafte Fallübersicht">
+                  <h3>Fallakten</h3>
+                  <div class="work-row"><span>Arbeitsplatzgestaltung</span><span class="status">In Arbeit</span></div>
+                  <div class="work-row"><span>BEM-Begleitung</span><span class="status">Offen</span></div>
+                  <div class="work-row"><span>SBV-Beteiligung</span><span class="status ok">Erledigt</span></div>
+                </section>
+
+                <section class="work-panel" aria-label="Beispielhafte Fristenübersicht">
+                  <h3>Fristen & Wiedervorlagen</h3>
+                  <div class="work-row"><span>Stellungnahme</span><span class="status danger">Heute</span></div>
+                  <div class="work-row"><span>BEM-Folgegespräch</span><span class="status">3 Tage</span></div>
+                  <div class="work-row"><span>Unterlagen prüfen</span><span class="status">7 Tage</span></div>
+                </section>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <section class="section" id="funktionen">
+      <div class="shell">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Arbeitsbereiche</p>
+            <h2>Für echte SBV-Arbeit gebaut.</h2>
+          </div>
+          <p class="section-intro">
+            Gremia.SBV bündelt die tägliche Einzelfallarbeit und wiederkehrende SBV-Verfahren an einem Ort. Die Oberfläche bleibt bewusst sachlich: relevante Informationen sichtbar, Details dort, wo sie gebraucht werden.
+          </p>
+        </div>
+
+        <div class="feature-grid">
+          <article class="feature-card">
+            <span class="feature-index">01 · Kernarbeit</span>
+            <h3>Fälle, Personen & Fristen</h3>
+            <p>Fallakten, Gesprächsnotizen, Maßnahmen, Dokumente, Wiedervorlagen und Tätigkeitsjournal zusammenführen.</p>
+          </article>
+          <article class="feature-card">
+            <span class="feature-index">02 · Verfahren</span>
+            <h3>BEM, Prävention & Beteiligung</h3>
+            <p>SBV-relevante Abläufe strukturiert nachhalten – einschließlich Beteiligungsverstößen und kritischen Fristen.</p>
+          </article>
+          <article class="feature-card">
+            <span class="feature-index">03 · Datenschutz</span>
+            <h3>Löschen, anonymisieren, übergeben</h3>
+            <p>Datenschutz-Lifecycle, Audit und verschlüsselte Fallübergaben sind Teil des Arbeitsablaufs, nicht nachträgliches Zubehör.</p>
+          </article>
+          <article class="feature-card">
+            <span class="feature-index">04 · Werkzeuge</span>
+            <h3>Vorlagen, Wissen & Berichte</h3>
+            <p>Wiederkehrende Schreiben, Wissensbausteine und anonymisierte Auswertungen unterstützen die tägliche Arbeit.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="prinzipien">
+      <div class="shell">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Produktprinzipien</p>
+            <h2>Vertraulichkeit ist Architektur.</h2>
+          </div>
+          <p class="section-intro">
+            Gremia.SBV ist keine Cloud-Plattform und keine Personalakte. Die Anwendung ist für einen geschützten lokalen SBV-Arbeitsplatz entworfen und behandelt sensible Daten entsprechend zurückhaltend.
+          </p>
+        </div>
+
+        <div class="principles">
+          <article class="principle">
+            <strong>Lokaler Tresor</strong>
+            <p>Die Arbeitsdaten liegen lokal in einem verschlüsselten SQLCipher-Vault. Es gibt keine Cloudpflicht.</p>
+          </article>
+          <article class="principle">
+            <strong>Keine Telemetrie</strong>
+            <p>Die Anwendung sendet keine Nutzungsdaten im Hintergrund an Dritte und ist offline-first ausgelegt.</p>
+          </article>
+          <article class="principle">
+            <strong>Nachvollziehbare Änderungen</strong>
+            <p>Personenbezogene Änderungen werden über eine datensparsame, integritätsgeschützte Auditspur nachvollziehbar gehalten.</p>
+          </article>
+          <article class="principle">
+            <strong>Barrierefreiheit als Qualitätsmerkmal</strong>
+            <p>Tastaturbedienung, Fokusführung, Screenreader-Kontexte und automatisierte Accessibility-Prüfungen gehören zum Qualitätsgate.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="demo">
+      <div class="shell">
+        <div class="demo-panel">
+          <div>
+            <p class="eyebrow">Ohne echte Daten ausprobieren</p>
+            <h2>Demo-Modus mit vollständig erfundenem Datenbestand.</h2>
+            <p>
+              Der Demo-Modus startet Gremia.SBV mit einer frischen Testdatenbank. So lässt sich die Anwendung ansehen oder vorführen, ohne den eigenen Tresor oder reale SBV-Daten zu verwenden.
+            </p>
+          </div>
+          <a class="button button-primary" data-repo-link="releases/latest" href="#">Release öffnen</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="shell footer-inner">
+      <span>Gremia.SBV <span data-app-version></span> · Open Source unter AGPL-3.0</span>
+      <div class="footer-links">
+        <a data-repo-link="blob/main/README.md" href="#">README</a>
+        <a data-repo-link="blob/main/docs/PRIVACY_AND_SECURITY.md" href="#">Datenschutz & Sicherheit</a>
+        <a data-repo-link="blob/main/SECURITY.md" href="#">Security</a>
+        <a data-repo-link="issues" href="#">Issues</a>
+      </div>
+    </div>
+  </footer>
+
+  <noscript>
+    <div class="noscript">
+      Die Seite funktioniert ohne JavaScript. Nur die automatisch aus der GitHub-Pages-Adresse abgeleiteten Repository-Links benötigen JavaScript.
+    </div>
+  </noscript>
+
+  <script>
+    (() => {
+      'use strict';
+
+      // Bei normaler GitHub-Pages-Nutzung wird die Repository-URL automatisch
+      // aus https://OWNER.github.io/REPOSITORY/ ermittelt.
+      // Für eine spätere Custom Domain kann hier alternativ die feste URL stehen.
+      const REPOSITORY_URL = '';
+
+      function inferRepositoryUrl() {
+        if (REPOSITORY_URL) return REPOSITORY_URL.replace(/\/$/, '');
+
+        const host = window.location.hostname;
+        const match = host.match(/^([^.]+)\.github\.io$/i);
+        if (!match) return '';
+
+        const owner = match[1];
+        const repository = window.location.pathname.split('/').filter(Boolean)[0];
+        if (!repository) return `https://github.com/${owner}`;
+
+        return `https://github.com/${owner}/${repository}`;
+      }
+
+      function applyVersion(version) {
+        if (!version || typeof version !== 'string') return;
+        document.querySelectorAll('[data-app-version]').forEach((target) => {
+          target.textContent = `v${version}`;
+          target.hidden = false;
+        });
+      }
+
+      async function loadPackageVersion(repositoryUrl) {
+        const match = repositoryUrl.match(/^https:\/\/github\.com\/([^/]+)\/([^/]+)$/i);
+        if (!match) return;
+
+        const [, owner, repository] = match;
+        const packageUrl = `https://raw.githubusercontent.com/${owner}/${repository}/main/package.json`;
+
+        try {
+          const response = await fetch(packageUrl, { cache: 'no-store' });
+          if (!response.ok) return;
+          const packageJson = await response.json();
+          applyVersion(packageJson.version);
+        } catch {
+          // Die Landingpage bleibt auch offline bzw. bei blockiertem Abruf vollständig nutzbar.
+        }
+      }
+
+      const repositoryUrl = inferRepositoryUrl();
+      if (!repositoryUrl) return;
+
+      document.querySelectorAll('[data-repo-link]').forEach((link) => {
+        const suffix = link.getAttribute('data-repo-link') || '';
+        link.href = suffix ? `${repositoryUrl}/${suffix.replace(/^\//, '')}` : repositoryUrl;
+      });
+
+      void loadPackageVersion(repositoryUrl);
+    })();
+  </script>
+</body>
+</html>

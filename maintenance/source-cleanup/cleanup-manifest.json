@@ -2011,6 +2011,21 @@
       "path": "docs/quality/functional-test-gap-closure-096r.md",
       "reason": "Versions-/patchbezogene Zwischenstandsdokumentation; die dauerhaft geltenden Testqualitätsregeln stehen in test-quality-metrics.md und QUALITY_GATE.md.",
       "type": "file"
+    },
+    {
+      "path": "docs/handbuch/14-sbv-steuerung.md",
+      "reason": "Handbuchbereich wurde fachlich in Dokumentation umbenannt und nach docs/handbuch/14-dokumentation.md überführt.",
+      "type": "file"
+    },
+    {
+      "path": "src/app/features/elections/ElectionHelpDialog.tsx",
+      "reason": "Nicht mehr referenzierter Wahl-spezifischer Legacy-Hilfedialog; der Wahlworkflow nutzt die zentrale IndustrialHelp-Infrastruktur.",
+      "type": "file"
+    },
+    {
+      "path": "e2e/support/readOnlyTest.ts",
+      "reason": "Browser-E2E verwendet eine gemeinsame workerweite Context/Page-Fixture für alle nicht ausdrücklich isolierten Tests; die separate Read-only-Sonderfixture ist obsolet.",
+      "type": "file"
     }
   ]
 }

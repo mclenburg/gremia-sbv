@@ -20,6 +20,7 @@ export type CaseCategory =
   | 'diskriminierung'
   | 'arbeitsplatzgestaltung'
   | 'teilzeit'
+  | 'anregung_beschwerde'
   | 'sonstiges';
 
 export interface CaseRecord {

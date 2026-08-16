@@ -128,7 +128,7 @@ export function useActivityJournal(pendingPrefill?: ActivityJournalPrefill | nul
   useEffect(() => {
     if (!pendingPrefill) return;
     setForm(formFromActivityJournalPrefill(pendingPrefill));
-    setMessage(`${pendingPrefill.sourceLabel}: Vorlage übernommen. Gespeichert wird erst nach bewusster Bestätigung.`);
+    setMessage('Vorbelegung übernommen.');
     onPrefillConsumed?.();
   }, [onPrefillConsumed, pendingPrefill]);
 

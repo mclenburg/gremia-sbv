@@ -5,7 +5,6 @@ function mainNavigation(page: import('@playwright/test').Page) {
 }
 
 test('creates participation violation only after explicit context and announces validation feedback', async ({ page }) => {
-  await page.goto('/');
   await mainNavigation(page).getByRole('button', { name: 'Verstöße', exact: true }).click();
 
   await expect(page.getByRole('heading', { name: /Beteiligungsverstöße/i }).first()).toBeVisible();

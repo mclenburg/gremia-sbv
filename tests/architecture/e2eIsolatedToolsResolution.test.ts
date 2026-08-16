@@ -7,6 +7,7 @@ import { describe, expect, it } from 'vitest';
 const requireFromTest = createRequire(import.meta.url);
 const runner = requireFromTest('../../scripts/run-e2e.cjs') as {
   resolvePlaywrightRunner(root: string): { kind: string; command: string; argsPrefix: string[] } | null;
+  resolveE2eWorkerCount(env?: NodeJS.ProcessEnv, parallelism?: number): number;
 };
 
 function withTempProject(testBody: (root: string) => void) {
@@ -29,6 +30,12 @@ function writeIsolatedPlaywrightPackage(root: string) {
 }
 
 describe('isolierte E2E-Werkzeugauflösung', () => {
+  it('begrenzt Browser-E2E automatisch auf vier Worker und respektiert einen expliziten Override', () => {
+    expect(runner.resolveE2eWorkerCount({} as NodeJS.ProcessEnv, 1)).toBe(1);
+    expect(runner.resolveE2eWorkerCount({} as NodeJS.ProcessEnv, 8)).toBe(4);
+    expect(runner.resolveE2eWorkerCount({ GREMIA_SBV_E2E_WORKERS: '2' } as NodeJS.ProcessEnv, 8)).toBe(2);
+  });
+
   it('nutzt die isolierte Playwright-CLI über node statt über die Plattform-.bin-Shell', () => {
     withTempProject((root) => {
       writeIsolatedPlaywrightPackage(root);

@@ -24,12 +24,11 @@ async function expectInViewport(locator: Locator) {
   expect(box!.y + box!.height).toBeLessThanOrEqual(viewport!.height + 1);
 }
 
+test.describe.configure({ mode: 'parallel' });
+
 for (const viewport of viewports) {
   test(`keeps RC-critical layout stable at ${viewport.name}`, async ({ page }) => {
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
-    await page.goto('/');
-
-    await expect(page.getByRole('navigation', { name: 'Hauptnavigation' })).toBeVisible();
     await expect(page.locator('[data-e2e="main-nav-cases"]')).toBeVisible();
     await expect(page.locator('[data-e2e="main-nav-compliance"]')).toBeVisible();
     expect(await hasHorizontalOverflow(page)).toBe(false);
@@ -47,7 +46,6 @@ for (const viewport of viewports) {
 
 test('keeps inline help dialog inside the viewport', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 720 });
-  await page.goto('/');
   await expect(page.getByRole('navigation', { name: 'Hauptnavigation' })).toBeVisible();
   await page.keyboard.press(process.platform === 'darwin' ? 'Meta+H' : 'Control+H');
 
@@ -55,4 +53,6 @@ test('keeps inline help dialog inside the viewport', async ({ page }) => {
   await expect(dialog).toBeVisible();
   await expectInViewport(dialog);
   expect(await hasHorizontalOverflow(page)).toBe(false);
+  await page.keyboard.press('Escape');
+  await expect(dialog).toBeHidden();
 });

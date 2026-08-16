@@ -12,7 +12,27 @@ const {
   unexpectedSteps(command: unknown, forbiddenSteps: string[]): string[];
 };
 
+const pkg = require('../../package.json') as {
+  scripts?: Record<string, string>;
+};
+
 describe('npm script contract', () => {
+
+  it('trennt persistente Browser-E2E von zwingend isolierten Browserprüfungen, während Full-Product separat bleibt', () => {
+    expect(pkg.scripts?.['test:e2e:ui-flows']).toBe('node scripts/run-e2e.cjs --project=ui-flows');
+    expect(pkg.scripts?.['test:e2e:visual-a11y']).toBe('node scripts/run-e2e.cjs --project=visual-a11y');
+    expect(pkg.scripts?.['test:e2e:isolated']).toBe('node scripts/run-e2e.cjs --project=isolated-browser --no-deps');
+    expect(pkg.scripts?.['test:e2e:full-product']).toBe('node scripts/run-full-product-e2e.cjs');
+  });
+
+  it('führt die vollständige TypeScript-Prüfung vor dem teuren Coverage-Lauf aus', () => {
+    expect(missingOrOutOfOrderSteps(pkg.scripts?.['build:verify'], [
+      'npm run lint',
+      'npm run typecheck',
+      'npm run test:coverage',
+    ])).toEqual([]);
+  });
+
   it('normalisiert verkettete npm-Schritte deterministisch', () => {
     expect(splitNpmScript(' npm run first && npm run second  &&  node task.cjs ')).toEqual([
       'npm run first',

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import { modules } from '../../src/app/core/navigation/modules';
 
 function collectMarkdownFiles(root: string): string[] {
   const result: string[] = [];
@@ -45,6 +46,24 @@ describe('aktive Markdown-Dokumentation', () => {
     expect(classified.some((entry) => entry.file === 'docs/PRIVACY_AND_SECURITY.md' && entry.kind === 'internal-durable')).toBe(true);
     expect(docs.some(hasManualVersionStandLine)).toBe(false);
     expect(docs.some(hasAppVersionNumber)).toBe(false);
+  });
+
+  it('hält zentrale Navigation und Benutzerhandbuch bei Dokumentation, Sitzungen und Wahlen synchron', () => {
+    const handbookIndex = readFileSync('docs/handbuch/README.md', 'utf8');
+    const navigationGuide = readFileSync('docs/handbuch/02-grundbegriffe-und-navigation.md', 'utf8');
+    const documentationGuide = readFileSync('docs/handbuch/14-dokumentation.md', 'utf8');
+    const electionGuide = readFileSync('docs/handbuch/17-wahlen.md', 'utf8');
+
+    expect(modules.find((module) => module.id === 'meetings')?.shortTitle).toBe('Sitzungen');
+    expect(modules.find((module) => module.id === 'sbv_control')?.shortTitle).toBe('Dokumentation');
+    expect(modules.find((module) => module.id === 'elections')?.shortTitle).toBe('Wahlen');
+    expect(handbookIndex).toContain('[Dokumentation](14-dokumentation.md)');
+    expect(handbookIndex).toContain('[Wahlen](17-wahlen.md)');
+    expect(navigationGuide).toContain('## Sitzungen');
+    expect(navigationGuide).toContain('## Dokumentation');
+    expect(navigationGuide).toContain('## Wahlen');
+    expect(documentationGuide).toContain('## BR-Sitzung aus Gremia.BR übernehmen');
+    expect(electionGuide).toContain('## Wahlworkflow');
   });
 
   it('verbannt Release- und Zwischenstandsdokumentation aus der aktiven Kerndoku', () => {

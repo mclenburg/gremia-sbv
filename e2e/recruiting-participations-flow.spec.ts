@@ -6,7 +6,6 @@ function mainNavigation(page: Page) {
 }
 
 async function openRecruiting(page: Page) {
-  await page.goto('/');
   await mainNavigation(page).getByRole('button', { name: 'Stellenbesetzungen', exact: true }).click();
 
   const moduleFrame = page.locator('.module-frame').filter({

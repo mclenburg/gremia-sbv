@@ -2,7 +2,7 @@
 
 Dieses Handbuch erklärt Gremia.SBV aus Sicht der Schwerbehindertenvertretung. Es beschreibt die tägliche Nutzung, typische Arbeitsabläufe und die fachlichen Grenzen der Anwendung.
 
-Gremia.SBV ist ein lokaler, verschlüsselter Arbeitsraum für vertrauliche SBV-Arbeit. Die Anwendung unterstützt Beratung, Fallakten, Fristen, BEM, Prävention, SBV-Beteiligungen, Beteiligungsverstöße, Tätigkeitsjournal, Dokumente, Vorlagen, Exporte und Fallübergaben.
+Gremia.SBV ist ein lokaler, verschlüsselter Arbeitsraum für vertrauliche SBV-Arbeit. Die Anwendung unterstützt Beratung, Fallakten, Fristen, BEM, Prävention, SBV-Beteiligungen, Beteiligungsverstöße, Tätigkeitsjournal, Dokumentation, Wahlen, Dokumente, Vorlagen, Exporte und Übergaben.
 
 ## Leitgedanken
 
@@ -29,11 +29,11 @@ Gremia.SBV folgt drei Grundsätzen:
 | [Backup, Restore und Notfall](11-backup-restore-und-notfall.md) | Sicherung, Wiederherstellung, Gerätewechsel |
 | [Barrierearme Bedienung](12-barrierearme-bedienung.md) | Tastatur, Screenreader, Fokus und Lesbarkeit |
 | [Glossar](13-glossar.md) | Fachbegriffe kurz erklärt |
-| [SBV-Steuerung](14-sbv-steuerung.md) | Übergreifende Protokolle, Arbeitgeberpflichten, Fristen und Journalbezug |
+| [Dokumentation](14-dokumentation.md) | Sitzungen, Protokolle, Nachweise, Arbeitgeberpflichten und weitere SBV-Dokumentation |
 | [Gleichstellung](15-gleichstellung.md) | Gleichstellungsverfahren datensparsam begleiten |
+| [Stellenbesetzungen](16-stellenbesetzungen.md) | Bewerbungsverfahren, Unterlagen und SBV-Anhörung nachhalten |
+| [Wahlen](17-wahlen.md) | Örtliche SBV-Wahl vorbereiten, durchführen, abschließen und geschützt übergeben |
 
 ## Fachliche Grenze
 
 Gremia.SBV ersetzt keine anwaltliche Beratung. Bei Kündigung, gerichtlicher Eskalation, Ordnungswidrigkeiten, schwierigen Datenschutzfragen oder drohenden Nachteilen für betroffene Beschäftigte sollte die SBV rechtliche Beratung hinzuziehen.
-
-- [16 Stellenbesetzungen](16-stellenbesetzungen.md)

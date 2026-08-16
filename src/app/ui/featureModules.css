@@ -2542,3 +2542,642 @@ html[data-theme='light'] .person-lifecycle-badge.muted {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Election workbench release polish */
+.election-summary-block {
+  margin-bottom: clamp(1rem, 1.5vw, 1.4rem);
+}
+
+.election-selector-panel {
+  margin-bottom: clamp(1rem, 1.5vw, 1.4rem);
+}
+
+.election-workflow-panel {
+  display: grid;
+  gap: clamp(1rem, 1.5vw, 1.4rem);
+  min-height: 18rem;
+}
+
+.election-workflow-header {
+  align-items: flex-start;
+  flex-wrap: nowrap;
+  gap: 1.25rem;
+}
+
+.election-workflow-header > :first-child {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.election-workflow-header > :last-child {
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+.election-workflow-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding-top: 0.15rem;
+}
+
+.election-workflow-panel .industrial-settings-form {
+  margin-top: 0 !important;
+  display: grid;
+  gap: clamp(1rem, 1.5vw, 1.4rem);
+}
+
+.election-workflow-panel .industrial-form-section > .industrial-panel-header > .industrial-action-row {
+  margin-left: auto;
+  justify-content: flex-end;
+}
+
+.election-workflow-panel fieldset {
+  display: grid;
+  gap: 0.9rem;
+}
+
+
+.election-section-stack {
+  display: grid;
+  gap: clamp(1rem, 1.5vw, 1.4rem);
+  min-width: 0;
+}
+
+.election-section-stack > .industrial-form-section {
+  min-width: 0;
+}
+
+.election-form-grid,
+.election-count-grid,
+.election-checklist-grid,
+.election-notice-grid {
+  align-items: start;
+}
+
+.election-record-list {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.election-record-list > li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-width: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--industrial-border);
+  background: color-mix(in srgb, var(--industrial-panel) 94%, var(--industrial-accent));
+}
+
+.election-record-list > li > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.election-acceptance-list > li {
+  align-items: flex-start;
+}
+
+.election-document-actions {
+  flex-wrap: wrap;
+}
+
+@media (max-width: 980px) {
+  .election-form-grid.industrial-form-grid-3,
+  .election-count-grid.industrial-form-grid-3,
+  .election-notice-grid.industrial-form-grid-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
+  .election-form-grid,
+  .election-count-grid,
+  .election-checklist-grid,
+  .election-notice-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .election-record-list > li,
+  .election-acceptance-list > li {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .election-document-actions > button,
+  .election-record-list .industrial-action-row > button {
+    width: 100%;
+  }
+}
+
+/* SBV meeting workspace: more breathing room and a clear Gremia.BR import boundary. */
+.sbv-meetings-section,
+.sbv-meetings-bridge {
+  display: grid;
+  gap: 1rem;
+  padding-block: 0.5rem;
+}
+
+.sbv-meetings-bridge {
+  padding: 1rem;
+  border: 1px solid var(--industrial-border);
+  background: color-mix(in srgb, var(--industrial-panel) 92%, var(--industrial-accent));
+}
+
+.sbv-meetings-bridge h3,
+.sbv-meetings-section h3 {
+  margin: 0;
+}
+
+.sbv-meetings-bridge-actions {
+  align-self: end;
+  justify-content: flex-start;
+}
+
+@media (max-width: 720px) {
+  .election-workflow-header {
+    gap: 0.8rem;
+  }
+}
+
+/* SBV-Dokumentation: einheitliche Abschnitts-, Aktions- und Responsive-Regeln. */
+.sbv-control-panel {
+  gap: clamp(1rem, 1.35vw, 1.35rem);
+  min-width: 0;
+}
+
+.sbv-control-panel > .industrial-panel-header {
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.sbv-control-panel > .industrial-panel-header > :first-child {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.sbv-control-panel > .industrial-panel-header > .industrial-action-row {
+  flex: 0 0 auto;
+  margin-left: auto;
+  justify-content: flex-end;
+}
+
+.sbv-control-section {
+  display: grid;
+  gap: clamp(0.9rem, 1.2vw, 1.2rem);
+  min-width: 0;
+  padding: clamp(0.9rem, 1.15vw, 1.15rem);
+  border: 1px solid var(--industrial-border);
+  background: color-mix(in srgb, var(--industrial-panel-muted) 88%, transparent);
+}
+
+.sbv-control-section-heading {
+  display: grid;
+  gap: 0.28rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--industrial-border);
+}
+
+.sbv-control-section-heading h3,
+.sbv-control-section-heading p,
+.sbv-control-section > h3,
+.sbv-control-section > p {
+  margin: 0;
+}
+
+.sbv-control-section-heading h3,
+.sbv-control-section > h3 {
+  color: var(--industrial-text-strong);
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+}
+
+.sbv-control-section-heading p {
+  color: var(--industrial-text-muted);
+  line-height: 1.5;
+}
+
+.sbv-control-action-row {
+  justify-content: flex-end;
+  align-items: center;
+  padding-top: 0.15rem;
+}
+
+.sbv-control-inline-action-grid {
+  grid-template-columns: minmax(min(18rem, 100%), 1fr) auto;
+  align-items: end;
+}
+
+.sbv-control-inline-action-grid > .industrial-action-row {
+  align-self: end;
+}
+
+.sbv-control-inline-action-grid > button,
+.sbv-control-inline-action-grid > .industrial-action-row {
+  min-width: max-content;
+}
+
+.sbv-control-topic-editor {
+  display: grid;
+  gap: 1rem;
+  margin: 0;
+}
+
+.sbv-control-topic-editor legend {
+  padding-inline: 0.35rem;
+  color: var(--industrial-text-strong);
+  font-weight: 800;
+}
+
+.sbv-control-panel .industrial-table-wrap {
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.sbv-control-panel .industrial-table {
+  min-width: min(100%, 42rem);
+}
+
+.sbv-control-panel .sbv-resource-workbench {
+  gap: clamp(1rem, 1.35vw, 1.35rem);
+}
+
+.sbv-control-panel .sbv-resource-form,
+.sbv-control-panel .sbv-resource-list {
+  min-width: 0;
+}
+
+@media (max-width: 1180px) {
+  .sbv-control-inline-action-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sbv-control-inline-action-grid > button,
+  .sbv-control-inline-action-grid > .industrial-action-row {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  .sbv-control-panel > .industrial-panel-header {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .sbv-control-panel > .industrial-panel-header > .industrial-action-row {
+    margin-left: auto;
+    width: auto;
+  }
+
+  .sbv-control-section {
+    padding: 0.8rem;
+  }
+
+  .sbv-control-action-row,
+  .sbv-control-inline-action-grid > .industrial-action-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .sbv-control-action-row > *,
+  .sbv-control-inline-action-grid > .industrial-action-row > *,
+  .sbv-control-inline-action-grid > button {
+    width: 100%;
+  }
+}
+
+/* Sitzungsregister: skalierbare Auswahl, konsistente Feldabstände und feste Aktionspositionen. */
+.sbv-meeting-create-grid {
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr) minmax(0, 1fr);
+  align-items: start;
+}
+
+.sbv-meeting-register-toolbar,
+.sbv-meeting-editor-header {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.sbv-meeting-register-toolbar > :first-child {
+  flex: 1 1 26rem;
+  max-width: 44rem;
+}
+
+.sbv-meeting-register-toolbar > strong {
+  flex: 0 0 auto;
+  padding-bottom: 0.55rem;
+}
+
+.sbv-meeting-register-table tbody tr {
+  cursor: pointer;
+}
+
+.sbv-meeting-register-table tbody tr.selected {
+  outline: 1px solid var(--industrial-accent);
+  outline-offset: -1px;
+  background: color-mix(in srgb, var(--industrial-accent) 8%, transparent);
+}
+
+.sbv-meeting-register-table tbody tr:focus-visible {
+  outline: 2px solid var(--industrial-accent);
+  outline-offset: -2px;
+}
+
+.sbv-meeting-pagination {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.sbv-meeting-pagination span {
+  margin-right: auto;
+}
+
+.sbv-meeting-editor-header {
+  align-items: flex-start;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--industrial-border);
+}
+
+.sbv-meeting-editor-header > :first-child {
+  min-width: 0;
+}
+
+.sbv-meeting-editor-header h3,
+.sbv-meeting-editor-header p {
+  margin: 0;
+}
+
+.sbv-meeting-editor-header h3 {
+  margin-top: 0.2rem;
+}
+
+.sbv-meeting-journal-actions {
+  flex: 0 0 auto;
+  margin-left: auto;
+  justify-content: flex-end;
+}
+
+.sbv-meeting-new-agenda-grid {
+  grid-template-columns: minmax(18rem, 1fr) auto;
+  align-items: end;
+}
+
+.sbv-meeting-new-agenda-grid .industrial-checkbox-field {
+  min-height: 2.65rem;
+  align-content: center;
+}
+
+@media (max-width: 980px) {
+  .sbv-meeting-create-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sbv-meeting-create-grid > :nth-child(2) {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .sbv-meeting-editor-header,
+  .sbv-meeting-register-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .sbv-meeting-register-toolbar > :first-child {
+    max-width: none;
+  }
+
+  .sbv-meeting-register-toolbar > strong,
+  .sbv-meeting-journal-actions {
+    margin-left: 0;
+    padding-bottom: 0;
+  }
+}
+
+@media (max-width: 680px) {
+  .sbv-meeting-create-grid,
+  .sbv-meeting-new-agenda-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sbv-meeting-create-grid > :nth-child(2) {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .sbv-meeting-journal-actions,
+  .sbv-meeting-pagination {
+    width: 100%;
+  }
+
+  .sbv-meeting-journal-actions > button,
+  .sbv-meeting-pagination > button {
+    flex: 1 1 auto;
+  }
+
+  .sbv-meeting-pagination span {
+    flex-basis: 100%;
+    margin-right: 0;
+  }
+}
+
+/* Sitzungsdokumentation: TOP-Editor folgt demselben Panel- und Formularraster wie die übrigen Workbenches. */
+.sbv-agenda-editor {
+  gap: clamp(1rem, 1.3vw, 1.35rem);
+  padding: clamp(0.9rem, 1.15vw, 1.15rem);
+}
+
+.sbv-agenda-editor > legend {
+  padding-inline: 0.4rem;
+  color: var(--industrial-text-strong);
+  font-weight: 800;
+}
+
+.sbv-agenda-section {
+  background: color-mix(in srgb, var(--industrial-panel-muted) 92%, transparent);
+}
+
+.sbv-control-section-heading-with-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.85rem 1.25rem;
+}
+
+.sbv-control-section-heading-with-actions > :first-child {
+  display: grid;
+  gap: 0.28rem;
+  min-width: min(24rem, 100%);
+  flex: 1 1 28rem;
+}
+
+.sbv-control-section-heading-with-actions > .industrial-action-row {
+  margin-left: auto;
+  justify-content: flex-end;
+  align-items: flex-start;
+  flex: 0 1 auto;
+}
+
+.sbv-agenda-basis-grid,
+.sbv-agenda-resolution-grid {
+  grid-template-columns: minmax(7rem, 0.65fr) minmax(12rem, 1fr) minmax(14rem, 1.35fr);
+  align-items: end;
+}
+
+.sbv-agenda-editor .industrial-field {
+  min-width: 0;
+}
+
+.sbv-agenda-editor .industrial-textarea-input {
+  width: 100%;
+  min-height: 6.5rem;
+}
+
+.sbv-agenda-editor .industrial-checkbox-field {
+  align-self: end;
+  min-height: var(--control-min-height);
+}
+
+@media (max-width: 1100px) {
+  .sbv-agenda-basis-grid,
+  .sbv-agenda-resolution-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .sbv-agenda-basis-grid > :last-child,
+  .sbv-agenda-resolution-grid > :first-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 760px) {
+  .sbv-control-section-heading-with-actions {
+    display: grid;
+  }
+
+  .sbv-control-section-heading-with-actions > .industrial-action-row {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .sbv-control-section-heading-with-actions > .industrial-action-row > button {
+    flex: 1 1 100%;
+  }
+
+  .sbv-agenda-basis-grid,
+  .sbv-agenda-resolution-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sbv-agenda-basis-grid > :last-child,
+  .sbv-agenda-resolution-grid > :first-child {
+    grid-column: auto;
+  }
+}
+
+/* Dokumentationsmodule: identisches Formular-Chrome und konsistente Aktionspositionen. */
+.sbv-control-section .industrial-field {
+  min-width: 0;
+}
+
+.sbv-control-section .industrial-input,
+.sbv-control-section .industrial-select,
+.sbv-control-section .industrial-textarea-input,
+.sbv-control-section .industrial-field input,
+.sbv-control-section .industrial-field select,
+.sbv-control-section .industrial-field textarea {
+  width: 100%;
+  min-width: 0;
+}
+
+.sbv-control-detail-grid {
+  display: grid;
+  gap: clamp(0.9rem, 1.15vw, 1.15rem);
+}
+
+.sbv-control-followup-grid {
+  align-items: end;
+}
+
+.sbv-control-field-action {
+  justify-content: flex-end;
+  align-self: end;
+  min-height: var(--control-min-height);
+}
+
+.sbv-control-status-actions,
+.sbv-control-topic-toolbar {
+  justify-content: flex-end;
+  padding: 0.2rem 0 0.15rem;
+}
+
+.sbv-assembly-plan-grid {
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .sbv-assembly-plan-grid,
+  .sbv-control-section .industrial-form-grid-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
+  .sbv-assembly-plan-grid,
+  .sbv-control-section .industrial-form-grid-2,
+  .sbv-control-section .industrial-form-grid-3,
+  .sbv-control-followup-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sbv-control-field-action,
+  .sbv-control-field-action > button,
+  .sbv-control-status-actions,
+  .sbv-control-status-actions > button,
+  .sbv-control-topic-toolbar,
+  .sbv-control-topic-toolbar > button {
+    width: 100%;
+  }
+
+  .sbv-control-status-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+}
+
+.election-manual-entry {
+  border: 1px solid var(--industrial-border);
+  border-radius: var(--industrial-control-radius);
+  background: var(--industrial-panel-muted);
+  padding: 0.75rem 1rem;
+}
+
+.election-manual-entry > summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.election-manual-entry-body,
+.election-import-panel {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.election-import-panel {
+  border-top: 1px solid var(--industrial-border);
+  padding-top: 1rem;
+}

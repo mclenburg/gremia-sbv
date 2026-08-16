@@ -12,6 +12,7 @@ export const VISUAL_QA_ROUTES: readonly VisualQaRoute[] = [
   { id: 'cases', navName: 'Fallakte', heading: /Fälle/i },
   { id: 'deadlines', navName: 'Fristen', heading: /Fristen/i },
   { id: 'activity_journal', navName: 'Journal', heading: /Tätigkeitsjournal/i },
+  { id: 'meetings', navName: 'Sitzungen', heading: /Gremiensitzungen/i },
   { id: 'bem', navName: 'BEM', heading: /BEM/i },
   { id: 'prevention', navName: 'Prävention', heading: /Präventionsverfahren/i },
   { id: 'participation_violations', navName: 'Verstöße', heading: /Beteiligungsverstöße/i },
@@ -20,11 +21,12 @@ export const VISUAL_QA_ROUTES: readonly VisualQaRoute[] = [
   { id: 'workplace_accommodation', navName: 'Arbeitsplatz', heading: /Arbeitsplatzgestaltung/i },
   { id: 'equalization', navName: 'Gleichstellung', heading: /Gleichstellung|GdB/i },
   { id: 'termination_hearing', navName: 'Kündigung', heading: /Kündigungsanhörung/i },
+  { id: 'elections', navName: 'Wahlen', heading: /SBV-Wahlen/i },
   { id: 'templates', navName: 'Vorlagen', heading: /Vorlagen/i },
   { id: 'knowledge', navName: 'Wissen', heading: /Wissen/i },
   { id: 'contacts', navName: 'Kontakte', heading: /Kontakte/i },
   { id: 'compliance', navName: 'Compliance', heading: /Compliance Center/i },
-  { id: 'sbv_control', navName: 'Steuerung', heading: /SBV-Steuerung/i },
+  { id: 'sbv_control', navName: 'Dokumentation', heading: /SBV-Dokumentation/i },
   { id: 'reports', navName: 'Berichte', heading: /Berichte/i },
   { id: 'settings', navName: 'Einstellungen', heading: /Einstellungen/i },
 ];
@@ -48,6 +50,7 @@ export const HELP_DIALOG_QA_ROUTE_IDS = [
   'recruiting_participations',
   'participation_violations',
   'activity_journal',
+  'elections',
 ] as const;
 
 export function isHelpDialogQaRoute(routeId: string): boolean {

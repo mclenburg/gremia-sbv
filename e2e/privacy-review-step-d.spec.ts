@@ -5,7 +5,6 @@ function navigation(page: import('@playwright/test').Page) {
 }
 
 test('öffnet Datenschutz-Prüfdialog mit Kontext und dokumentiert Fortspeicherung', async ({ page }) => {
-  await page.goto('/');
   await navigation(page).getByRole('button', { name: 'Personen', exact: true }).click();
   await page.getByText('Mustermann, Max').click();
   await page.locator('[data-e2e="open-privacy-review-dialog"]').click();
@@ -26,7 +25,6 @@ test('öffnet Datenschutz-Prüfdialog mit Kontext und dokumentiert Fortspeicheru
 });
 
 test('markiert abgeschlossene Altakten per Bulk-Aktion zur Datenschutzprüfung', async ({ page }) => {
-  await page.goto('/');
   await navigation(page).getByRole('button', { name: 'Fallakte', exact: true }).click();
   await expect(page.locator('[data-e2e="case-row-TEST-0003"]')).toBeVisible();
   await page.locator('[data-e2e="bulk-mark-closed-legacy"]').click();
@@ -47,8 +45,7 @@ for (const scenario of [
   }
 ] as const) {
   test(`überträgt den Fallanonymisierungsmodus ${scenario.option} bis zum Bridge-Aufruf`, async ({ page }) => {
-    await page.goto('/');
-    await navigation(page).getByRole('button', { name: 'Personen', exact: true }).click();
+      await navigation(page).getByRole('button', { name: 'Personen', exact: true }).click();
     await page.getByText('Mustermann, Max').click();
     await page.locator('[data-e2e="open-privacy-review-dialog"]').click();
 
