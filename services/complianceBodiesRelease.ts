@@ -121,7 +121,7 @@ export function releaseReadinessChecklistBody(generatedAt: string): string {
 | npm run build | fehlerfrei |  |
 | npm run build:linux | AppImage wird erzeugt |  |
 | frische Datenbank | Start und Einrichtung erfolgreich |  |
-| Migration Altstand | Schema wird konsistent auf aktuellen Stand gebracht |  |
+| Migration bestehender Daten | Schema wird konsistent auf aktuellen Stand gebracht |  |
 | Backup erzeugen | verschlüsselte .gsbvbackup-Datei |  |
 | Backup prüfen / Restore | Integrität und Schema-Version plausibel |  |
 | Berichte erzeugen | alle Reporttypen erzeugbar |  |

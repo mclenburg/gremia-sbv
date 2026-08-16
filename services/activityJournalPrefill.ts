@@ -5,6 +5,23 @@ function todayIsoDate(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
+const contextLabels: Record<ActivityJournalPrefillContext['contextType'], string> = {
+  case: 'Fallakte',
+  person: 'Person',
+  bem_process: 'BEM-Verfahren',
+  prevention_process: 'Präventionsverfahren',
+  sbv_participation: 'SBV-Beteiligung',
+  termination_hearing: 'Kündigungsanhörung',
+  equalization_process: 'Gleichstellungsverfahren',
+  sbv_control_protocol: 'SBV-Dokumentation',
+  recruiting_participation: 'Stellenbesetzung',
+  recruiting_interview: 'Vorstellungsgespräch',
+  deadline: 'Wiedervorlage',
+  document: 'Dokument',
+  journal: 'Tätigkeitsjournal',
+  fallfrei: 'SBV-Tätigkeit',
+};
+
 function categoryForContext(context: ActivityJournalPrefillContext): CreateActivityJournalEntryInput['category'] {
   if (context.category) return context.category;
   if (context.contextType === 'case') return 'case_work';
@@ -42,7 +59,7 @@ export function buildFromContext(context: ActivityJournalPrefillContext): Activi
       followUpDueAt: context.followUpDueAt,
       links: contextToLink(context)
     },
-    sourceLabel: context.title ?? context.caseNumber ?? context.contextType,
+    sourceLabel: context.title ?? context.caseNumber ?? contextLabels[context.contextType],
     privacyNotice: 'Vorbelegung aus bereits geöffnetem Kontext. Es wurde noch kein Journaleintrag gespeichert.',
     preferenceContextType: context.contextType
   };

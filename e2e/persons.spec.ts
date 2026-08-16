@@ -1,7 +1,6 @@
 import { test, expect } from './support/test';
 
 test('opens persons module and shows status expiry workflow without horizontal overflow', async ({ page }) => {
-  await page.goto('/');
   await page.locator('[data-e2e="main-nav-persons"]').click();
 
   await expect(page.getByRole('heading', { name: 'Personenverzeichnis' }).first()).toBeVisible();
@@ -26,7 +25,6 @@ test('opens persons module and shows status expiry workflow without horizontal o
 });
 
 test('guides CSV import through preview, mapping and validation', async ({ page }) => {
-  await page.goto('/');
   await page.locator('[data-e2e="main-nav-persons"]').click();
 
   await page.locator('[data-e2e="open-person-import-wizard"]').click();
@@ -58,7 +56,6 @@ test('guides CSV import through preview, mapping and validation', async ({ page 
 });
 
 test('legt Personen manuell ausschließlich im Modal-Overlay an und zeigt Auswahl rechts', async ({ page }) => {
-  await page.goto('/');
   await page.locator('[data-e2e="main-nav-persons"]').click();
 
   await page.getByText('Mustermann, Max').click();
@@ -79,7 +76,6 @@ test('legt Personen manuell ausschließlich im Modal-Overlay an und zeigt Auswah
 
 
 test('bearbeitet importierte oder manuell angelegte Personen im Modal', async ({ page }) => {
-  await page.goto('/');
   await page.locator('[data-e2e="main-nav-persons"]').click();
   await page.getByText('Mustermann, Max').click();
   await page.getByRole('button', { name: /Person bearbeiten: Mustermann, Max/ }).click();
@@ -98,7 +94,6 @@ test('bearbeitet importierte oder manuell angelegte Personen im Modal', async ({
 });
 
 test('führt Personenanonymisierung über geschützten Modalpfad aus', async ({ page }) => {
-  await page.goto('/');
   await page.locator('[data-e2e="main-nav-persons"]').click();
   await page.getByText('Mustermann, Max').click();
   await page.locator('[data-e2e="open-person-anonymize-dialog"]').click();
@@ -115,7 +110,6 @@ test('führt Personenanonymisierung über geschützten Modalpfad aus', async ({ 
 });
 
 test('führt Personenlöschung über geschützten Modalpfad aus', async ({ page }) => {
-  await page.goto('/');
   await page.locator('[data-e2e="main-nav-persons"]').click();
   await page.getByText('Mustermann, Max').click();
   await page.getByRole('button', { name: /Person löschen: Mustermann, Max/ }).click();

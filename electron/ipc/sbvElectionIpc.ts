@@ -4,8 +4,8 @@ import type { SecurityService } from '../../services/securityService.js';
 import type { ApplicationServices } from '../applicationServices.js';
 import { IPC_CHANNELS, registerIpcHandler } from './ipcHandler.js';
 import { assertRecordInput, assertString, sanitizeDialogFileName } from './ipcValidation.js';
-import { issueSelectedFileCapability, resolveSelectedFileCapability } from './selectedFileCapability.js';
-import type { ConfigureElectionSetupInput, CreateElectionInput, GenerateElectionPreparationDocumentInput, SaveElectionBoardMemberInput, SaveElectionBoardSessionInput, SaveElectionCandidateInput, SaveElectionObjectionInput, SaveElectionProposalInput, SaveElectionVoterInput } from '../../src/app/core/models/election-workflow.model.js';
+import { issueSelectedFileCapability, resolveSelectedFileCapability, SELECTED_FILE_PURPOSE } from './selectedFileCapability.js';
+import type { ConfigureElectionSetupInput, CreateElectionInput, GenerateElectionPreparationDocumentInput, SaveElectionBoardMemberInput, SaveElectionBoardSessionInput, SaveElectionCandidateInput, SaveElectionObjectionInput, SaveElectionProposalInput, SaveElectionVoterInput, ElectionVoterFileImportInput } from '../../src/app/core/models/election-workflow.model.js';
 import type { ElectionCloseInput, ElectionDayChecklistInput, GenerateElectionExecutionDocumentInput, RecordElectionAcceptanceInput, RecordElectionLotInput, RecordElectionTotalsInput, SaveElectionMailBallotInput, SaveElectionPhysicalRecordInput } from '../../src/app/core/models/election-execution.model.js';
 import type { ElectionTransferEnvelope } from '../../services/electionTransferCryptoAdapter.js';
 const eid=(value:unknown,channel:string)=>assertString(value,channel,'Wahl-ID',{minLength:1,maxLength:120});
@@ -16,6 +16,25 @@ export function registerSbvElectionIpc(ipcMain:IpcMain,_security:SecurityService
  registerIpcHandler(ipcMain,IPC_CHANNELS.electionsConfigureSetup,async(_e,id,input)=>services.elections().configureSetup(eid(id,'elections:configureSetup'),assertRecordInput<ConfigureElectionSetupInput>(input,'elections:configureSetup')));
  registerIpcHandler(ipcMain,IPC_CHANNELS.electionsOverview,async(_e,id)=>services.elections().overview(eid(id,'elections:overview')));
  registerIpcHandler(ipcMain,IPC_CHANNELS.electionsVoterSave,async(_e,id,input)=>services.elections().saveVoter(eid(id,'elections:voter:save'),assertRecordInput<SaveElectionVoterInput>(input,'elections:voter:save')));
+ registerIpcHandler(ipcMain,IPC_CHANNELS.electionsVotersSyncPersons,async(_e,id)=>services.elections().syncVotersFromPersons(eid(id,'elections:voters:sync-persons')));
+ registerIpcHandler(ipcMain,IPC_CHANNELS.electionsVotersSelectImportFile,async()=>{
+  const result=await dialog.showOpenDialog({title:'Wahlberechtigte aus Excel/CSV übernehmen',properties:['openFile'],filters:[{name:'Personenliste',extensions:['xlsx','csv']}]});
+  if(result.canceled||!result.filePaths[0])return{canceled:true};
+  const filePath=result.filePaths[0];
+  const capability=issueSelectedFileCapability(filePath,SELECTED_FILE_PURPOSE.electionVoterImport);
+  const extension=path.extname(filePath).toLowerCase();
+  return{canceled:false,fileToken:capability.fileToken,sourceFileName:capability.fileName,fileType:extension==='.xlsx'?'xlsx':'csv'} as const;
+ });
+ registerIpcHandler(ipcMain,IPC_CHANNELS.electionsVotersPreviewImport,async(_e,input)=>{
+  const request=assertRecordInput<ElectionVoterFileImportInput>(input,'elections:voters:preview-import');
+  const filePath=resolveSelectedFileCapability(assertString(request.fileToken,'elections:voters:preview-import','Dateiauswahl',{minLength:1,maxLength:200}),SELECTED_FILE_PURPOSE.electionVoterImport,'elections:voters:preview-import');
+  return services.elections().previewVoterImport({...request,filePath});
+ });
+ registerIpcHandler(ipcMain,IPC_CHANNELS.electionsVotersImportFile,async(_e,id,input)=>{
+  const request=assertRecordInput<ElectionVoterFileImportInput>(input,'elections:voters:import-file');
+  const filePath=resolveSelectedFileCapability(assertString(request.fileToken,'elections:voters:import-file','Dateiauswahl',{minLength:1,maxLength:200}),SELECTED_FILE_PURPOSE.electionVoterImport,'elections:voters:import-file');
+  return services.elections().importVotersFromPersonFile(eid(id,'elections:voters:import-file'),{...request,filePath});
+ });
  registerIpcHandler(ipcMain,IPC_CHANNELS.electionsBoardMemberSave,async(_e,id,input)=>services.elections().saveBoardMember(eid(id,'elections:boardMember:save'),assertRecordInput<SaveElectionBoardMemberInput>(input,'elections:boardMember:save')));
  registerIpcHandler(ipcMain,IPC_CHANNELS.electionsBoardSessionSave,async(_e,id,input)=>services.elections().saveBoardSession(eid(id,'elections:boardSession:save'),assertRecordInput<SaveElectionBoardSessionInput>(input,'elections:boardSession:save')));
  registerIpcHandler(ipcMain,IPC_CHANNELS.electionsObjectionSave,async(_e,id,input)=>services.elections().saveObjection(eid(id,'elections:objection:save'),assertRecordInput<SaveElectionObjectionInput>(input,'elections:objection:save')));
@@ -61,12 +80,12 @@ export function registerSbvElectionIpc(ipcMain:IpcMain,_security:SecurityService
   const result=await dialog.showOpenDialog({title:'Geschützte Gremia.SBV-Wahlakte öffnen',properties:['openFile'],filters:[{name:'Gremia.SBV Wahlakte',extensions:['gsbvelection']}]});
   if(result.canceled||!result.filePaths[0])return{canceled:true};
   const filePath=result.filePaths[0];
-  const capability=issueSelectedFileCapability(filePath,'election-transfer');
+  const capability=issueSelectedFileCapability(filePath,SELECTED_FILE_PURPOSE.electionTransfer);
   return{canceled:false,fileToken:capability.fileToken,fileName:capability.fileName,inspection:await services.electionTransfer().inspectFile(filePath,validatedPassphrase)};
  });
  registerIpcHandler(ipcMain,IPC_CHANNELS.electionsTransferImportFile,async(_e,fileToken,passphrase)=>{
   const validatedToken=assertString(fileToken,'elections:transfer:importFile','Dateiauswahl',{minLength:1,maxLength:200});
-  const filePath=resolveSelectedFileCapability(validatedToken,'election-transfer','elections:transfer:importFile');
+  const filePath=resolveSelectedFileCapability(validatedToken,SELECTED_FILE_PURPOSE.electionTransfer,'elections:transfer:importFile');
   return services.electionTransfer().importFromFile(filePath,assertString(passphrase,'elections:transfer:importFile','Passphrase',{minLength:10,maxLength:500}));
  });
 }

@@ -25,6 +25,15 @@ const baseURL = process.env.GREMIA_SBV_E2E_BASE_URL ?? `http://127.0.0.1:${port}
 const useSystemChrome = process.env.GREMIA_SBV_E2E_USE_SYSTEM_CHROME === '1';
 const configuredWorkers = Number(process.env.GREMIA_SBV_E2E_WORKERS ?? '2');
 const workers = Number.isFinite(configuredWorkers) && configuredWorkers > 0 ? Math.floor(configuredWorkers) : 2;
+const recordVideo = process.env.GREMIA_SBV_E2E_VIDEO === '1';
+const visualA11yTests = [
+  /accessibility-axe\.spec\.ts$/,
+  /accessibility\.spec\.ts$/,
+  /compliance-theme\.spec\.ts$/,
+  /responsive-layout\.spec\.ts$/,
+  /visual-contract\.spec\.ts$/,
+];
+const isolatedBrowserTests = [/app-smoke\.spec\.ts$/];
 
 export default defineConfig({
   testDir: './e2e',
@@ -37,13 +46,38 @@ export default defineConfig({
   reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : 'list',
   use: {
     baseURL,
+    actionTimeout: 7_500,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
+    // Trace + Screenshot liefern die für Fehleranalyse relevanten Zustände ohne den I/O-Aufwand,
+    // für jeden erfolgreichen Test ein Video mitzuschneiden und anschließend zu verwerfen.
+    video: recordVideo ? 'retain-on-failure' : 'off',
   },
   projects: [
     {
-      name: 'chromium-smoke',
+      name: 'ui-flows',
+      testIgnore: [...visualA11yTests, ...isolatedBrowserTests],
+      use: {
+        ...(devices['Desktop Chrome'] as Record<string, unknown>),
+        ...(useSystemChrome ? { channel: 'chrome' } : {}),
+        trace: 'off',
+        screenshot: 'off',
+      },
+    },
+    {
+      name: 'visual-a11y',
+      testMatch: visualA11yTests,
+      use: {
+        ...(devices['Desktop Chrome'] as Record<string, unknown>),
+        ...(useSystemChrome ? { channel: 'chrome' } : {}),
+        trace: 'off',
+        screenshot: 'off',
+      },
+    },
+    {
+      name: 'isolated-browser',
+      testMatch: isolatedBrowserTests,
+      dependencies: ['ui-flows', 'visual-a11y'],
       use: {
         ...(devices['Desktop Chrome'] as Record<string, unknown>),
         ...(useSystemChrome ? { channel: 'chrome' } : {}),

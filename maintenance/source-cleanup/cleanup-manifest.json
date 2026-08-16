@@ -2021,6 +2021,11 @@
       "path": "src/app/features/elections/ElectionHelpDialog.tsx",
       "reason": "Nicht mehr referenzierter Wahl-spezifischer Legacy-Hilfedialog; der Wahlworkflow nutzt die zentrale IndustrialHelp-Infrastruktur.",
       "type": "file"
+    },
+    {
+      "path": "e2e/support/readOnlyTest.ts",
+      "reason": "Browser-E2E verwendet eine gemeinsame workerweite Context/Page-Fixture für alle nicht ausdrücklich isolierten Tests; die separate Read-only-Sonderfixture ist obsolet.",
+      "type": "file"
     }
   ]
 }

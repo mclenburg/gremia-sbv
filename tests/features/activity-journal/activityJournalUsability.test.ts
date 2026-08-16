@@ -51,6 +51,13 @@ describe('activity journal usability 0.9.3-c', () => {
     expect(JSON.stringify(prefill)).not.toContain('Max Mustermann');
   });
 
+
+  it('verwendet bei fallfreien und technischen Kontexten ausschließlich fachliche Bezeichnungen', () => {
+    expect(buildFromContext({ contextType: 'fallfrei' }).sourceLabel).toBe('SBV-Tätigkeit');
+    expect(buildFromContext({ contextType: 'sbv_control_protocol' }).sourceLabel).toBe('SBV-Dokumentation');
+    expect(buildFromContext({ contextType: 'recruiting_interview' }).sourceLabel).toBe('Vorstellungsgespräch');
+  });
+
   it('erzeugt den Wochenabschlussmarker nur bei Historie, Aktivität und ohne Eintrag der Vorwoche', () => {
     expect(resolveActivityJournalWeekReviewMarker({ hasJournalHistory: false, lastWeekEntryCount: 0, hasDashboardActivity: true }).visible).toBe(false);
     expect(resolveActivityJournalWeekReviewMarker({ hasJournalHistory: true, lastWeekEntryCount: 1, hasDashboardActivity: true }).visible).toBe(false);

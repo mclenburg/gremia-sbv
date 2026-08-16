@@ -1,4 +1,4 @@
-import { IPC_CHANNELS, issueSelectedFileCapability, registerIpcHandler, resolveSelectedFileInput } from './ipcHandler.js';
+import { IPC_CHANNELS, issueSelectedFileCapability, registerIpcHandler, resolveSelectedFileInput, SELECTED_FILE_PURPOSE } from './ipcHandler.js';
 import type { IpcMain } from 'electron';
 import { dialog } from 'electron';
 import { exportDeadlinesToIcal, type DeadlineIcalPrivacyLevel } from '../../services/deadlineIcalExportService.js';
@@ -51,11 +51,11 @@ export function registerProtectedPersonIpc(ipcMain: IpcMain, security: SecurityS
   );
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.personsImportPreview, async (_event, input: unknown) =>
-    imports().preview(resolveSelectedFileInput(assertRecordInput<PersonImportPreviewInput>(input, 'persons:import:preview'), 'person-import', 'persons:import:preview')),
+    imports().preview(resolveSelectedFileInput(assertRecordInput<PersonImportPreviewInput>(input, 'persons:import:preview'), SELECTED_FILE_PURPOSE.personImport, 'persons:import:preview')),
   );
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.personsImportExecute, async (_event, input: unknown) =>
-    imports().execute(resolveSelectedFileInput(assertRecordInput<PersonImportExecuteInput>(input, 'persons:import:execute'), 'person-import', 'persons:import:execute')),
+    imports().execute(resolveSelectedFileInput(assertRecordInput<PersonImportExecuteInput>(input, 'persons:import:execute'), SELECTED_FILE_PURPOSE.personImport, 'persons:import:execute')),
   );
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.personsImportSelectPreview, async () => {
@@ -71,7 +71,7 @@ export function registerProtectedPersonIpc(ipcMain: IpcMain, security: SecurityS
     if (result.canceled || !result.filePaths[0]) return null;
     const filePath = result.filePaths[0];
     const fileType = filePath.toLowerCase().endsWith('.xlsx') ? 'xlsx' : 'csv';
-    const capability = issueSelectedFileCapability(filePath, 'person-import');
+    const capability = issueSelectedFileCapability(filePath, SELECTED_FILE_PURPOSE.personImport);
     return { filePath: capability.fileToken, sourceFileName: capability.fileName, fileType };
   });
 

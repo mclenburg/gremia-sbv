@@ -82,6 +82,40 @@ export interface SaveElectionVoterInput {
   listStatus?: string;
 }
 
+
+export interface ElectionVoterSyncResult {
+  eligiblePersons: number;
+  created: number;
+  updated: number;
+  unchanged: number;
+}
+
+export interface ElectionVoterImportFileSelection {
+  canceled: boolean;
+  fileToken?: string;
+  sourceFileName?: string;
+  fileType?: 'csv' | 'xlsx';
+}
+
+export interface ElectionVoterFileImportInput {
+  fileToken: string;
+  sourceFileName: string;
+  fileType: 'csv' | 'xlsx';
+  csvEncoding?: 'auto' | 'utf-8' | 'windows-1252' | 'iso-8859-1' | 'cp850';
+  sheetName?: string;
+  delimiter?: string;
+  headerRowIndex?: number;
+  firstDataRowIndex?: number;
+  mapping: import('./protected-person.model.js').PersonImportColumnMapping;
+}
+
+export interface ElectionVoterFileImportResult {
+  totalRows: number;
+  imported: number;
+  skipped: number;
+  warnings: string[];
+}
+
 export interface ElectionBoardMemberRecord {
   id: string;
   electionId: string;

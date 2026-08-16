@@ -15,8 +15,7 @@ async function openView(page: Page, name: string, exact = true) {
 
 test.describe('P12 core UI behavior contracts', () => {
   test('keeps the central deadline editor modal keyboard-safe and restores focus after Esc', async ({ page }) => {
-    await page.goto('/');
-    await openView(page, 'Fristen');
+      await openView(page, 'Fristen');
 
     const editButton = page.getByRole('button', { name: /Bearbeiten/ }).first();
     await expect(editButton).toBeVisible();
@@ -40,8 +39,7 @@ test.describe('P12 core UI behavior contracts', () => {
   });
 
   test('shows required-field feedback only after interaction or submit attempt', async ({ page }) => {
-    await page.goto('/');
-    await openView(page, 'Fristen');
+      await openView(page, 'Fristen');
 
     await expect(page.getByText('Bitte Titel und Fälligkeitsdatum erfassen.')).toHaveCount(0);
     await page.getByRole('button', { name: /Frist anlegen/ }).click();
@@ -58,8 +56,7 @@ test.describe('P12 core UI behavior contracts', () => {
   });
 
   test('preserves the inline risk overlay in the centralized case-note textarea', async ({ page }) => {
-    await page.goto('/');
-    await openView(page, 'Fallakte');
+      await openView(page, 'Fallakte');
     await expect(page.getByRole('heading', { name: /TEST-0001\s*·\s*Testperson Alpha/ })).toBeVisible();
 
     await page.getByRole('button', { name: /Notiz \/ Protokoll/ }).click();
@@ -78,8 +75,7 @@ test.describe('P12 core UI behavior contracts', () => {
   });
 
   test('discards staged deadline and task actions when the note is cancelled', async ({ page }) => {
-    await page.goto('/');
-    await openView(page, 'Fallakte');
+      await openView(page, 'Fallakte');
     await expect(page.getByRole('heading', { name: /TEST-0001\s*·\s*Testperson Alpha/ })).toBeVisible();
 
     await page.getByRole('button', { name: /Notiz \/ Protokoll/ }).click();
@@ -111,8 +107,7 @@ test.describe('P12 core UI behavior contracts', () => {
   });
 
   test('discards a staged undated task when the note is cancelled', async ({ page }) => {
-    await page.goto('/');
-    await openView(page, 'Fallakte');
+      await openView(page, 'Fallakte');
     await expect(page.getByRole('heading', { name: /TEST-0001\s*·\s*Testperson Alpha/ })).toBeVisible();
 
     await page.getByRole('button', { name: /Notiz \/ Protokoll/ }).click();
@@ -135,8 +130,7 @@ test.describe('P12 core UI behavior contracts', () => {
   });
 
   test('persists staged inline actions only when the note is saved', async ({ page }) => {
-    await page.goto('/');
-    await openView(page, 'Fallakte');
+      await openView(page, 'Fallakte');
     await expect(page.getByRole('heading', { name: /TEST-0001\s*·\s*Testperson Alpha/ })).toBeVisible();
 
     await page.getByRole('button', { name: /Notiz \/ Protokoll/ }).click();
@@ -162,8 +156,7 @@ test.describe('P12 core UI behavior contracts', () => {
   });
 
   test('persists a global // deadline command from a regular text field into the central deadline register', async ({ page }) => {
-    await page.goto('/');
-    await openView(page, 'Journal');
+      await openView(page, 'Journal');
 
     const description = page.getByLabel('Kurzbeschreibung / Kontext');
     await description.fill('//');
@@ -186,8 +179,7 @@ test.describe('P12 core UI behavior contracts', () => {
   });
 
   test('announces SBV resource create, update and delete operations to screen readers', async ({ page }) => {
-    await page.goto('/');
-    await openView(page, 'Dokumentation');
+      await openView(page, 'Dokumentation');
 
     const form = page.locator('.sbv-resource-form');
     await expect(form.getByLabel('Titel / Anlass')).toBeVisible();
@@ -216,8 +208,7 @@ test.describe('P12 core UI behavior contracts', () => {
   });
 
   test('keeps export feedback announced and datensparsam in the deadline iCal flow', async ({ page }) => {
-    await page.goto('/');
-    await openView(page, 'Fristen');
+      await openView(page, 'Fristen');
 
     await page.locator('[data-e2e="open-deadline-ical-export"]').click();
     const exportDialog = page.getByRole('dialog', { name: /Kalenderdatei exportieren/ });

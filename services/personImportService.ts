@@ -48,7 +48,7 @@ function isPastOrToday(value: string | undefined): boolean {
   return Boolean(value) && value! <= new Date().toISOString().slice(0, 10);
 }
 
-function buildPersonInput(rowObject: Record<string, string>, mapping: PersonImportColumnMapping): { input: CreateProtectedPersonInput; validationErrors: string[]; rawPreview: Record<string, string> } {
+export function buildPersonInput(rowObject: Record<string, string>, mapping: PersonImportColumnMapping): { input: CreateProtectedPersonInput; validationErrors: string[]; rawPreview: Record<string, string> } {
   const fullName = getMappedValue(rowObject, 'fullName', mapping);
   const split = fullName ? splitFullName(fullName, mapping.fullNameMode) : { firstName: '', lastName: '' };
   const firstName = normalizeCell(getMappedValue(rowObject, 'firstName', mapping) ?? split.firstName);

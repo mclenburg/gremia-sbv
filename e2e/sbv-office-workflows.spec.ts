@@ -5,7 +5,6 @@ function mainNavigation(page: import('@playwright/test').Page) {
 }
 
 async function openDocumentation(page: import('@playwright/test').Page) {
-  await page.goto('/');
   await mainNavigation(page).getByRole('button', { name: 'Dokumentation', exact: true }).click();
 }
 
@@ -22,8 +21,12 @@ test('Gremiensitzung: relevanter Beschluss kann zur Aussetzung geführt werden',
   await page.getByRole('button', { name: 'Arbeitsplatzverlagerung' }).click();
   await page.getByLabel('Beschlussdatum / Zeit').fill('2026-08-20T11:00');
   await page.getByLabel('erhebliche Beeinträchtigung wichtiger Interessen').check();
-  await page.getByRole('button', { name: /Aussetzung/ }).click();
-  await expect(page.getByText(/27\.8\.2026/)).toBeVisible();
+  await page.getByRole('button', { name: 'Aussetzung dokumentieren', exact: true }).click();
+  const journal = page.getByRole('region', { name: 'Tätigkeitsjournal' });
+  await expect(journal).toBeVisible();
+  const journalEntry = journal.getByRole('region', { name: 'Tätigkeit erfassen' });
+  await expect(journalEntry.getByLabel('Was wurde gemacht?')).toHaveValue('Aussetzung: BR-Sitzung E2E');
+  await expect(journalEntry.getByLabel('Kategorie')).toHaveValue('sbv_steering');
 });
 
 test('Schwerbehindertenversammlung: planen, Dokument erzeugen und durchführen', async ({ page }) => {
@@ -41,18 +44,26 @@ test('§ 163-Jahresprüfung: fällig, Eingang und Prüfung dokumentieren', async
   await openDocumentation(page);
   await page.getByRole('button', { name: /Arbeitgeberpflichten/ }).click();
   await page.getByRole('button', { name: /Jahresprüfung 2025 anlegen/ }).click();
-  await page.getByLabel('Prüfvorgang bearbeiten').selectOption({ label: /2025.*Anzeige und Verzeichnis/ });
+  const reviewSelect = page.getByRole('combobox', { name: 'Prüfvorgang', exact: true });
+  const reviewOption = reviewSelect.locator('option').filter({ hasText: /2025.*Anzeige und Verzeichnis/ });
+  await expect(reviewOption).toHaveCount(1);
+  await reviewSelect.selectOption(await reviewOption.getAttribute('value') ?? '');
   await page.getByRole('button', { name: 'Eingang dokumentieren' }).click();
   await page.getByRole('button', { name: 'Prüfung dokumentieren' }).click();
-  await expect(page.getByLabel('Prüfvorgang bearbeiten')).toHaveValue(/obligation-2025/);
+  await expect(reviewSelect).toHaveValue(/obligation-2025/);
 });
 
 test('Inklusionsvereinbarung: Antrag, Themenstatus und Evaluation', async ({ page }) => {
   await openDocumentation(page);
   await page.getByRole('button', { name: /Inklusionsvereinbarung/ }).click();
   await page.getByRole('button', { name: 'Verhandlungsakte anlegen' }).click();
-  await page.getByLabel('Verhandlungsakte').selectOption({ index: 1 });
-  await page.getByLabel('Themenfeld').selectOption({ label: /Personalplanung/ });
+  await page.getByLabel('Verhandlungsakte', { exact: true }).selectOption({ index: 1 });
+  const topicSelect = page.getByLabel('Themenfeld', { exact: true });
+  const personnelPlanningOption = topicSelect.locator('option').filter({ hasText: /^Personalplanung\b/ });
+  await expect(personnelPlanningOption).toHaveCount(1);
+  const personnelPlanningValue = await personnelPlanningOption.getAttribute('value');
+  expect(personnelPlanningValue).toBeTruthy();
+  await topicSelect.selectOption(personnelPlanningValue!);
   await page.getByLabel('SBV-Ziel').fill('Verbindliche Berücksichtigung');
   await page.getByLabel('Vereinbarung / Ergebnis').fill('In Verhandlung aufgenommen');
   await page.getByRole('button', { name: 'Themenfeld speichern' }).click();

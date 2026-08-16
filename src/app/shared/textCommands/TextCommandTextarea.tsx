@@ -29,7 +29,7 @@ export function TextCommandTextarea({
   fieldId,
   onChange,
   onTextCommand,
-  showCommandHint = true,
+  showCommandHint = false,
   globalCommandsEnabled = true,
   placeholder,
   className,

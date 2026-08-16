@@ -20,7 +20,6 @@ test('runs a complete synthetic 1.0 product tour across areas not covered by foc
   });
   page.on('pageerror', (error) => pageErrors.push(error.message));
 
-  await page.goto('/');
   await expect(page.getByRole('navigation', { name: 'Hauptnavigation' })).toBeVisible();
 
   for (const route of VISUAL_QA_ROUTES) {

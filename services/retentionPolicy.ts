@@ -270,7 +270,7 @@ for (const entry of input.journalEntries ?? []) {
         riskLevel: 'warning',
         title: 'Exportierter Journal-Eintrag prüfpflichtig',
         reference: entry.title,
-        description: 'Der Eintrag war Teil eines Tätigkeitsnachweises. Aufbewahrung und Löschung gesondert prüfen; exported_for_activity_report_at ist keine Historie.',
+        description: 'Der Eintrag war Teil eines Tätigkeitsnachweises. Aufbewahrung und Löschung gesondert prüfen; exported_for_activity_report_at ist kein eigenständiger Aufbewahrungsgrund.',
         recommendedAction: 'pruefen',
         createdAt: entry.exportedForActivityReportAt,
         entityType: 'activity_journal_entry',

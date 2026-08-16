@@ -15,7 +15,6 @@ function deadlineIcalExportCalls() {
 }
 
 test('exports deadline iCal with process_type as default privacy level', async ({ page }) => {
-  await page.goto('/');
   await page.locator('[data-e2e="main-nav-deadlines"]').click();
 
   await page.locator('[data-e2e="open-deadline-ical-export"]').click();
@@ -34,7 +33,6 @@ test('exports deadline iCal with process_type as default privacy level', async (
 });
 
 test('exports dashboard and privacy_first scopes without leaving the deadlines module', async ({ page }) => {
-  await page.goto('/');
   await page.locator('[data-e2e="main-nav-deadlines"]').click();
   await page.locator('[data-e2e="open-deadline-ical-export"]').click();
   const exportDialog = page.getByRole('dialog', { name: /Kalenderdatei exportieren/ });

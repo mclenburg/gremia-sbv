@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { FileText, Plus, Save } from 'lucide-react';
 import type { ConfigureElectionSetupInput, ElectionNoticeDetails, ElectionPreparationOverview } from '../../core/models/election-workflow.model';
+import { protectionStatusLabels, type PersonImportColumnMapping, type PersonImportPreviewResult } from '../../core/models/protected-person.model';
 import type { ElectionKind, ElectionProcedure } from '../../core/models/election.model';
 import { IndustrialButton } from '../../shared/components/IndustrialButton';
 import { CheckboxField, DateInput, FormActions, FormSection, SelectInput, TextInput } from '../../shared/components/IndustrialForm';
+import { buildDefaultPersonImportMapping, personImportFieldOptions, type PersonImportFieldKey, updatePersonImportColumnMapping } from '../../shared/import/personImportMapping';
 import { electionBoardRoleLabel, electionCandidateEligibilityLabel, electionVoterListStatusLabel, officeTypeLabels, proposalStatusLabels } from './electionPresentation';
 
 const today = () => new Date().toISOString().slice(0, 10);
@@ -135,19 +137,102 @@ export function VotersSection({ overview, run }: { overview: ElectionPreparation
   const [unit, setUnit] = useState('');
   const [basis, setBasis] = useState<'severely_disabled_confirmed' | 'equalized_confirmed' | 'pending_equalization_not_eligible'>('severely_disabled_confirmed');
   const [objection, setObjection] = useState('');
+  const [importSource, setImportSource] = useState<{ sourceFileName: string; fileType: 'csv' | 'xlsx'; fileToken: string } | null>(null);
+  const [importPreview, setImportPreview] = useState<PersonImportPreviewResult | null>(null);
+  const [importMapping, setImportMapping] = useState<PersonImportColumnMapping>({});
+
+  async function selectImportFile() {
+    const selection = await window.gremiaSbv.elections.selectVoterImportFile();
+    if (selection.canceled || !selection.fileToken || !selection.sourceFileName || !selection.fileType) return;
+    const source = { fileToken: selection.fileToken, sourceFileName: selection.sourceFileName, fileType: selection.fileType };
+    const discovery = await window.gremiaSbv.elections.previewVoterImport({
+      ...source, csvEncoding: 'auto', delimiter: ';', headerRowIndex: 0, firstDataRowIndex: 1, mapping: {},
+    });
+    const mapping = buildDefaultPersonImportMapping(discovery.columns);
+    const preview = await window.gremiaSbv.elections.previewVoterImport({
+      ...source, csvEncoding: 'auto', delimiter: ';', headerRowIndex: 0, firstDataRowIndex: 1, mapping,
+    });
+    setImportSource(source);
+    setImportMapping(mapping);
+    setImportPreview(preview);
+  }
+
+  async function refreshImportPreview(mapping: PersonImportColumnMapping) {
+    if (!importSource) return;
+    const preview = await window.gremiaSbv.elections.previewVoterImport({
+      ...importSource, csvEncoding: 'auto', delimiter: ';', headerRowIndex: 0, firstDataRowIndex: 1, mapping,
+    });
+    setImportMapping(mapping);
+    setImportPreview(preview);
+  }
+
+  const voterImportFields = personImportFieldOptions.filter((field) => ['fullName', 'firstName', 'lastName', 'protectionStatus', 'organizationalUnit', 'leftCompanyAt'].includes(field.key));
 
   return (
     <div className="election-section-stack">
-      <FormSection title="Wählerliste" actions={<IndustrialButton onClick={() => void run(async () => { await window.gremiaSbv.elections.saveVoter(overview.election.id, { lastName: last, firstName: first, birthDate: birth || undefined, orgUnit: unit || undefined, eligibilityBasis: basis, eligibilityVerifiedAt: today() }); setLast(''); setFirst(''); }, 'Wählerlisteneintrag gespeichert.')}><Plus className="h-4 w-4" /> Eintrag speichern</IndustrialButton>}>
-        <div className="industrial-form-grid industrial-form-grid-3 election-form-grid">
-          <TextInput label="Nachname" value={last} onValueChange={setLast} />
-          <TextInput label="Vorname" value={first} onValueChange={setFirst} />
-          <DateInput label="Geburtsdatum, falls erforderlich" value={birth} onValueChange={setBirth} />
-          <TextInput label="Betrieb/Dienststelle" value={unit} onValueChange={setUnit} />
-          <SelectInput label="Statusbasis" value={basis} options={[{ value: 'severely_disabled_confirmed', label: 'Schwerbehinderung bestätigt' }, { value: 'equalized_confirmed', label: 'Gleichstellung bestätigt' }, { value: 'pending_equalization_not_eligible', label: 'Gleichstellung beantragt' }]} onValueChange={(value) => setBasis(value as typeof basis)} />
-        </div>
-        {overview.voters.length ? <ul className="election-record-list">{overview.voters.map((voter) => <li key={voter.id}>{voter.lastName}, {voter.firstName} · {electionVoterListStatusLabel(voter.listStatus)}</li>)}</ul> : <p className="industrial-empty-state">Die Wählerliste ist noch leer.</p>}
+      <FormSection
+        title="Wählerliste übernehmen"
+        actions={(
+          <>
+            <IndustrialButton onClick={() => void run(() => window.gremiaSbv.elections.syncVotersFromPersons(overview.election.id), 'Wählerliste aus dem Personenverzeichnis aktualisiert.')}>
+              Personen übernehmen
+            </IndustrialButton>
+            <IndustrialButton variant="secondary" onClick={() => void selectImportFile()}>Excel-/CSV importieren</IndustrialButton>
+          </>
+        )}
+      >
+        {importSource && importPreview ? (
+          <div className="election-import-panel">
+            <div className="industrial-panel-header compact">
+              <div>
+                <h3>Importvorschau: {importSource.sourceFileName}</h3>
+                <p className="industrial-meta">Bis zu 50 Zeilen werden vorab angezeigt; der eigentliche Import verarbeitet die vollständige Datei.</p>
+              </div>
+              <IndustrialButton onClick={() => void run(async () => {
+                const result = await window.gremiaSbv.elections.importVotersFromPersonFile(overview.election.id, {
+                  ...importSource, csvEncoding: 'auto', delimiter: ';', headerRowIndex: 0, firstDataRowIndex: 1, mapping: importMapping,
+                });
+                setImportSource(null); setImportPreview(null);
+                return result;
+              }, 'Wahlberechtigte aus Excel/CSV übernommen.')}>Datei übernehmen</IndustrialButton>
+            </div>
+            <div className="industrial-form-grid industrial-form-grid-3 election-form-grid">
+              {voterImportFields.map((field) => (
+                <SelectInput
+                  key={field.key}
+                  label={field.label}
+                  value={String(importMapping[field.key as keyof PersonImportColumnMapping] ?? '')}
+                  options={[{ value: '', label: 'Nicht importieren' }, ...importPreview.columns.map((column) => ({ value: column, label: column }))]}
+                  onValueChange={(value) => void refreshImportPreview(updatePersonImportColumnMapping(importMapping, field.key as PersonImportFieldKey, value))}
+                />
+              ))}
+            </div>
+            {importPreview.rows.length ? (
+              <div className="industrial-table-wrap">
+                <table className="industrial-table">
+                  <thead><tr><th>Name</th><th>Status</th><th>Hinweise</th></tr></thead>
+                  <tbody>{importPreview.rows.slice(0, 8).map((row) => <tr key={row.rowNumber}><td>{row.lastName ?? '—'}, {row.firstName ?? '—'}</td><td>{row.protectionStatus ? protectionStatusLabels[row.protectionStatus] : '—'}</td><td>{row.validationErrors.join(' ') || 'übernehmbar'}</td></tr>)}</tbody>
+                </table>
+              </div>
+            ) : <p className="industrial-empty-state">Keine importierbaren Zeilen in der Vorschau.</p>}
+          </div>
+        ) : null}
+        {overview.voters.length ? <ul className="election-record-list">{overview.voters.map((voter) => <li key={voter.id}>{voter.lastName}, {voter.firstName}{voter.orgUnit ? ` · ${voter.orgUnit}` : ''} · {electionVoterListStatusLabel(voter.listStatus)}</li>)}</ul> : <p className="industrial-empty-state">Die Wählerliste ist noch leer. Übernehmen Sie zuerst die bestätigten Personen aus dem Personenverzeichnis.</p>}
       </FormSection>
+
+      <details className="election-manual-entry">
+        <summary>Einzelnen Eintrag manuell ergänzen</summary>
+        <div className="election-manual-entry-body">
+          <div className="industrial-form-grid industrial-form-grid-3 election-form-grid">
+            <TextInput label="Nachname" value={last} onValueChange={setLast} />
+            <TextInput label="Vorname" value={first} onValueChange={setFirst} />
+            <DateInput label="Geburtsdatum, falls erforderlich" value={birth} onValueChange={setBirth} />
+            <TextInput label="Betrieb/Dienststelle" value={unit} onValueChange={setUnit} />
+            <SelectInput label="Statusbasis" value={basis} options={[{ value: 'severely_disabled_confirmed', label: 'Schwerbehinderung bestätigt' }, { value: 'equalized_confirmed', label: 'Gleichstellung bestätigt' }, { value: 'pending_equalization_not_eligible', label: 'Gleichstellung beantragt' }]} onValueChange={(value) => setBasis(value as typeof basis)} />
+          </div>
+          <FormActions><IndustrialButton variant="secondary" onClick={() => void run(async () => { await window.gremiaSbv.elections.saveVoter(overview.election.id, { lastName: last, firstName: first, birthDate: birth || undefined, orgUnit: unit || undefined, eligibilityBasis: basis, eligibilityVerifiedAt: today() }); setLast(''); setFirst(''); }, 'Wählerlisteneintrag gespeichert.')}><Plus className="h-4 w-4" /> Eintrag speichern</IndustrialButton></FormActions>
+        </div>
+      </details>
 
       {overview.election.procedure === 'formal' ? (
         <FormSection title="Einspruch Wählerliste" actions={<IndustrialButton variant="secondary" onClick={() => void run(async () => { await window.gremiaSbv.elections.saveObjection(overview.election.id, { receivedAt: today(), subjectRef: objection }); setObjection(''); }, 'Einspruchseingang dokumentiert.')}>Eingang dokumentieren</IndustrialButton>}>

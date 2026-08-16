@@ -5,7 +5,6 @@ function mainNavigation(page: import('@playwright/test').Page) {
 }
 
 test('konfiguriert die optionale Gremia.BR-Lesebrücke ohne automatische Synchronisation', async ({ page }) => {
-  await page.goto('/');
   await mainNavigation(page).getByRole('button', { name: /Einstellungen/i }).click();
 
   await page.getByRole('tab', { name: /Gremia\.BR/i }).click();
@@ -25,7 +24,6 @@ test('konfiguriert die optionale Gremia.BR-Lesebrücke ohne automatische Synchro
 });
 
 test('zeigt Gremia.BR-Dashboarddaten nur bei aktivierter Lesebrücke und lädt Detaildaten nur nach Nutzeraktion', async ({ page }) => {
-  await page.goto('/');
 
   await expect(page.getByLabel('Gremia.BR-Lesebrücke')).toHaveCount(0);
   await expect(page.getByRole('region', { name: /Nächste BR-Sitzung mit Agenda/i })).toHaveCount(0);

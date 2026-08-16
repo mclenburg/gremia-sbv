@@ -26,7 +26,7 @@ async function openComplianceFromNavigation(page: Page) {
 }
 
 async function setTheme(page: Page, theme: 'dark' | 'light') {
-  await page.addInitScript((value) => {
+  await page.evaluate((value) => {
     window.localStorage.setItem('gremia.sbv.theme', value);
     window.localStorage.setItem('gremia-sbv-theme', value);
     document.documentElement.dataset.theme = value;
@@ -59,7 +59,6 @@ async function effectiveBackgroundColor(panel: Locator): Promise<string> {
 
 test('keeps the compliance status area dark in dark mode', async ({ page }) => {
   await setTheme(page, 'dark');
-  await page.goto('/');
   await openComplianceFromNavigation(page);
 
   const panel = page.getByRole('region', { name: /Technischer Datenschutz- und Integritätsstatus/i });
@@ -73,7 +72,6 @@ test('keeps the compliance status area dark in dark mode', async ({ page }) => {
 
 test('keeps compliance light mode light without dark fallback panels', async ({ page }) => {
   await setTheme(page, 'light');
-  await page.goto('/');
   await openComplianceFromNavigation(page);
 
   const panel = page.getByRole('region', { name: /Technischer Datenschutz- und Integritätsstatus/i });

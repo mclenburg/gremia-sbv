@@ -5,7 +5,6 @@ function shortcutForHelp() {
 }
 
 test('supports keyboard navigation through primary RC areas', async ({ page }) => {
-  await page.goto('/');
 
   const navigation = page.getByRole('navigation', { name: 'Hauptnavigation' });
   await navigation.getByRole('button', { name: 'Fallakte', exact: true }).focus();
@@ -18,7 +17,6 @@ test('supports keyboard navigation through primary RC areas', async ({ page }) =
 });
 
 test('keeps inline help accessible by dialog role, trapped focus, Escape and focus return', async ({ page }) => {
-  await page.goto('/');
 
   const trigger = page.getByRole('navigation', { name: 'Hauptnavigation' })
     .getByRole('button', { name: 'Fallakte', exact: true });
@@ -45,7 +43,6 @@ test('keeps inline help accessible by dialog role, trapped focus, Escape and foc
 });
 
 test('renders note entity links with fachliche accessible labels instead of UUIDs', async ({ page }) => {
-  await page.goto('/');
   await page.locator('[data-e2e="main-nav-cases"]').click();
   await page.locator('[data-e2e="case-row-TEST-0001"]').click();
   await page.getByRole('button', { name: /Synthetische Notiz mit Aktenbezug/ }).click();
@@ -57,7 +54,6 @@ test('renders note entity links with fachliche accessible labels instead of UUID
 });
 
 test('supports keyboard-only person selection and case creation from selected person', async ({ page }) => {
-  await page.goto('/');
   const navigation = page.getByRole('navigation', { name: 'Hauptnavigation' });
   await navigation.getByRole('button', { name: 'Personen', exact: true }).focus();
   await page.keyboard.press('Enter');
@@ -77,7 +73,6 @@ test('supports keyboard-only person selection and case creation from selected pe
 });
 
 test('supports keyboard-only anonymous request path and announces binding feedback', async ({ page }) => {
-  await page.goto('/');
   const navigation = page.getByRole('navigation', { name: 'Hauptnavigation' });
   await navigation.getByRole('button', { name: 'Fallakte', exact: true }).focus();
   await page.keyboard.press('Enter');
@@ -95,12 +90,11 @@ test('supports keyboard-only anonymous request path and announces binding feedba
 
 
 test('keeps the measure deletion reason select readable and keyboard-operable in dark mode', async ({ page }) => {
-  await page.addInitScript(() => {
+  await page.evaluate(() => {
     window.localStorage.setItem('gremia.sbv.theme', 'dark');
     window.localStorage.setItem('gremia-sbv-theme', 'dark');
     document.documentElement.dataset.theme = 'dark';
   });
-  await page.goto('/');
 
   const navigation = page.getByRole('navigation', { name: 'Hauptnavigation' });
   await navigation.getByRole('button', { name: 'Fallakte', exact: true }).click();
@@ -141,7 +135,6 @@ test('keeps the measure deletion reason select readable and keyboard-operable in
 
 
 test('keeps a clearly visible focus indicator on inline-command search results', async ({ page }) => {
-  await page.goto('/');
   const navigation = page.getByRole('navigation', { name: 'Hauptnavigation' });
   await navigation.getByRole('button', { name: 'Fallakte', exact: true }).click();
   await page.getByRole('button', { name: /Notiz \/ Protokoll/ }).click();
@@ -173,7 +166,6 @@ test('keeps a clearly visible focus indicator on inline-command search results',
 
 
 test('provides a keyboard skip link to the main content', async ({ page }) => {
-  await page.goto('/');
   const skipLink = page.getByRole('link', { name: 'Zum Hauptinhalt springen' });
   await expect(skipLink).toHaveAttribute('href', '#main-content');
   const keyboardOrder = await skipLink.evaluate((element) => {
@@ -190,7 +182,6 @@ test('provides a keyboard skip link to the main content', async ({ page }) => {
 });
 
 test('keeps legacy modal focus contained and restores the trigger', async ({ page }) => {
-  await page.goto('/');
   await page.locator('[data-e2e="main-nav-cases"]').click();
   await page.locator('[data-e2e="case-row-TEST-0001"]').click();
   const trigger = page.getByRole('button', { name: /Notiz \/ Protokoll/ });
@@ -217,7 +208,6 @@ test('keeps legacy modal focus contained and restores the trigger', async ({ pag
 
 test('reflows without document-level horizontal scrolling at narrow viewport', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 720 });
-  await page.goto('/');
   await page.locator('[data-e2e="main-nav-cases"]').click();
   const dimensions = await page.evaluate(() => ({
     viewport: document.documentElement.clientWidth,
@@ -228,9 +218,12 @@ test('reflows without document-level horizontal scrolling at narrow viewport', a
 
 test('honors reduced motion and exposes a visible forced-colors focus indicator', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce', forcedColors: 'active' });
-  await page.goto('/');
+  const dashboardButton = page.locator('[data-e2e="main-nav-dashboard"]');
   const navButton = page.locator('[data-e2e="main-nav-cases"]');
-  await navButton.focus();
+  await dashboardButton.focus();
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Tab');
+  await expect(navButton).toBeFocused();
   const style = await navButton.evaluate((element) => {
     const computed = getComputedStyle(element);
     return {

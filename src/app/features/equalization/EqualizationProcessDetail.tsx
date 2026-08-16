@@ -223,9 +223,9 @@ export function EqualizationProcessDetail({
           >
             {process.legacyPlaintextNotesPresent && (
               <div className="industrial-message industrial-message-warning">
-                Es gibt Alt-Notizen aus einer früheren Version. Bitte in eine
-                verschlüsselte Fallnotiz übertragen und danach den Altbestand
-                bereinigen.
+                Es gibt noch unverschlüsselte Notizen. Bitte in eine
+                verschlüsselte Fallnotiz übertragen und danach die unverschlüsselten
+                Notizen bereinigen.
               </div>
             )}
             {secureNotes.length > 0 && (

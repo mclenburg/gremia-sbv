@@ -5,7 +5,6 @@ function mainNavigation(page: import('@playwright/test').Page) {
 }
 
 test('uses /zeit start-time suggestion without persisting before save', async ({ page }) => {
-  await page.goto('/');
   await mainNavigation(page).getByRole('button', { name: 'Journal', exact: true }).click();
   await expect(page.getByRole('heading', { name: /Tätigkeitsjournal/i }).first()).toBeVisible();
 

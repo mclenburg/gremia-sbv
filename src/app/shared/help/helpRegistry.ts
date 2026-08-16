@@ -136,19 +136,6 @@ export const HELP_REGISTRY = {
       },
     ],
   },
-  "activityJournal.capture": {
-    id: "activityJournal.capture",
-    kicker: "Schnellerfassung",
-    title: "Tätigkeit erfassen",
-    summary:
-      "Zeitangaben sind optional und dienen der internen SBV-Selbstdokumentation.",
-    blocks: [
-      {
-        type: "paragraph",
-        text: "Kurzbefehle können im Textfeld genutzt werden. Gespeichert wird erst mit dem Speichern-Button.",
-      },
-    ],
-  },
   "activityJournal.textCommands": {
     id: "activityJournal.textCommands",
     kicker: "Tätigkeitsjournal",
@@ -230,8 +217,8 @@ export const HELP_REGISTRY = {
   },
   "elections.voters": {
     id: "elections.voters", kicker: "Wählerliste", title: "Wählerlisten-Snapshot und Einsprüche",
-    summary: "Die Anwendung hält einen nachvollziehbaren Snapshot der Wahlberechtigten und Einwände dagegen fest.",
-    blocks: [{ type: "paragraph", text: "Gespeichert wird die für die Wahl erforderliche Einordnung; offene Gleichstellungsanträge werden nicht als bestätigte Wahlberechtigung behandelt." }],
+    summary: "Wahlberechtigte werden vorrangig aus dem Personenverzeichnis übernommen oder über dieselbe Excel-/CSV-Struktur wie beim Personenimport eingelesen.",
+    blocks: [{ type: "paragraph", text: "Übernommen werden aktive Personen mit bestätigter Schwerbehinderung oder Gleichstellung. Die manuelle Erfassung bleibt für Sonderfälle verfügbar. Ein Dateiimport verändert das Personenverzeichnis nicht; offene Gleichstellungsanträge werden nicht als bestätigte Wahlberechtigung behandelt." }],
   },
   "elections.nominations": {
     id: "elections.nominations", kicker: "Wahlvorschläge", title: "Kandidaturen und Wahlvorschläge",

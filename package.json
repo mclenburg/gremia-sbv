@@ -66,6 +66,9 @@
     "rc:check": "npm run version:generate && npm run source:cleanup && npm run build:readiness:strict && npm run docs:diagrams:check && node scripts/check-release-candidate-readiness.cjs",
     "dev:renderer:e2e": "vite --host 127.0.0.1 --port 5174 --strictPort",
     "test:e2e": "node scripts/run-e2e.cjs",
+    "test:e2e:ui-flows": "node scripts/run-e2e.cjs --project=ui-flows",
+    "test:e2e:visual-a11y": "node scripts/run-e2e.cjs --project=visual-a11y",
+    "test:e2e:isolated": "node scripts/run-e2e.cjs --project=isolated-browser --no-deps",
     "test:e2e:headed": "node scripts/run-e2e.cjs --headed",
     "test:e2e:debug": "node scripts/run-e2e.cjs --debug",
     "test:e2e:install": "node scripts/install-e2e-browsers.cjs",
@@ -123,7 +126,7 @@
     "architecture:maintainability:check": "node scripts/report-maintainability.cjs --check",
     "architecture:maintainability:baseline": "node scripts/report-maintainability.cjs --write-baseline",
     "source:cleanup:plan": "node scripts/cleanup-obsolete-files.cjs --plan --verbose",
-    "build:verify": "npm run version:generate && npm run source:cleanup:strict && npm run build:readiness:strict && npm run docs:diagrams:check && npm run ipc:contracts:check && npm run test:matrix:check && npm run test:layout:check && npm run test:groups:check && npm run test:quality-check && npm run test:source-classification:check && npm run type-safety:any-check && npm run architecture:constructors:check && npm run architecture:audit-completeness:check && npm run architecture:maintainability:check && npm run lint && npm run test:coverage && npm run coverage:no-zero:check",
+    "build:verify": "npm run version:generate && npm run source:cleanup:strict && npm run build:readiness:strict && npm run docs:diagrams:check && npm run ipc:contracts:check && npm run test:matrix:check && npm run test:layout:check && npm run test:groups:check && npm run test:quality-check && npm run test:source-classification:check && npm run type-safety:any-check && npm run architecture:constructors:check && npm run architecture:audit-completeness:check && npm run architecture:maintainability:check && npm run lint && npm run typecheck && npm run test:coverage && npm run coverage:no-zero:check",
     "build:compile": "npm run version:generate && tsc -p tsconfig.json && vite build && npm run build:bundle:check && tsc -p tsconfig.electron.json && npm run build:preload && node scripts/write-electron-cjs-package.cjs && node scripts/build-artifact-state.cjs write",
     "build:package:linux": "node scripts/build-platform.cjs linux",
     "build:package:windows": "node scripts/build-platform.cjs win",
@@ -153,7 +156,8 @@
     "architecture:constructors:check": "node scripts/check-service-constructor-purity.cjs",
     "architecture:audit-completeness:check": "node scripts/check-personal-data-audit-completeness.cjs",
     "coverage:no-zero:check": "node scripts/check-no-zero-coverage.cjs",
-    "test:layout:check": "node scripts/check-test-layout.cjs"
+    "test:layout:check": "node scripts/check-test-layout.cjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.electron.json --noEmit"
   },
   "dependencies": {
     "argon2-browser": "^1.18.0",

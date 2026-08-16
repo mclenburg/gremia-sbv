@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DashboardOverview, groupDashboardModules, resolveDashboardWorkdaySummary } from '../../src/app/features/dashboard/DashboardOverview';
+import { TextCommandTextarea } from '../../src/app/shared/textCommands/TextCommandTextarea';
 import { bindingLabel, CaseOverviewDetail, resolveCaseNextAction } from '../../src/app/features/cases/CaseOverviewDetail';
 import { lifecycleSeverity, personLabel, PersonList } from '../../src/app/features/persons/PersonList';
 import type { CaseRecord } from '../../src/app/core/models/case.model';
@@ -69,6 +70,13 @@ function person(overrides: Partial<ProtectedPersonRecord> = {}): ProtectedPerson
 }
 
 describe('UI-Fundament Block 4 Verhalten', () => {
+
+  it('hält Kurzbefehlerklärungen standardmäßig aus Arbeitsfeldern heraus', () => {
+    const { markup } = renderComponent(TextCommandTextarea, { fieldId: 'test-field', value: '', onChange: () => undefined });
+    expect(visibleText(markup)).not.toContain('Strg+H');
+    expect(markup).not.toContain('text-command-hint');
+  });
+
   it('priorisiert das Dashboard nach kritischen Fristen, 48h-Fristen und Datenschutzprüfungen', () => {
     expect(resolveDashboardWorkdaySummary({
       cases: [caseRecord({ privacyReviewRequired: true })],

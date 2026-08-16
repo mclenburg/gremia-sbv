@@ -6,9 +6,9 @@ function nav(page: Page) {
 }
 
 async function openElection(page: Page) {
-  await page.goto('/');
   await nav(page).getByRole('button', { name: 'Wahlen', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'SBV-Wahlen', exact: true })).toBeVisible();
+  const electionRegion = page.getByRole('region', { name: 'SBV-Wahlen' });
+  await expect(electionRegion.getByRole('heading', { name: 'SBV-Wahlen', level: 1 })).toBeVisible();
 }
 
 test('Wahlbereich uses the common help-on-demand dialog and restores focus', async ({ page }) => {
@@ -39,7 +39,6 @@ test('Wahltag checklist remains usable without persisting an individual vote', a
 });
 
 test('office workflow help is available for the release-critical SBV work areas', async ({ page }) => {
-  await page.goto('/');
   await nav(page).getByRole('button', { name: 'Dokumentation', exact: true }).click();
   const sections = [
     ['Gremien', /Hilfe zu Gremiensitzungen öffnen/],

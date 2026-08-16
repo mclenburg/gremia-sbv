@@ -19,7 +19,6 @@ function mainNavigation(page: import('@playwright/test').Page) {
 }
 
 async function openCaseWorkbench(page: import('@playwright/test').Page) {
-  await page.goto('/');
   await mainNavigation(page).getByRole('button', { name: 'Fallakte', exact: true }).click();
   await expect(page.getByRole('heading', { name: /TEST-0001\s*·\s*Testperson Alpha/ })).toBeVisible();
 }

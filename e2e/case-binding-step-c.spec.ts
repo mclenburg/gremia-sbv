@@ -5,7 +5,6 @@ function navigation(page: import('@playwright/test').Page) {
 }
 
 test('legt Fallakte aus Person heraus personengebunden an', async ({ page }) => {
-  await page.goto('/');
   await navigation(page).getByRole('button', { name: 'Personen', exact: true }).click();
   await page.getByText('Mustermann, Max').click();
   await page.getByRole('button', { name: 'Fallakte anlegen' }).click();
@@ -19,7 +18,6 @@ test('legt Fallakte aus Person heraus personengebunden an', async ({ page }) => 
 });
 
 test('verhindert freie Fallakte und erlaubt den anonymen Sonderweg', async ({ page }) => {
-  await page.goto('/');
   await navigation(page).getByRole('button', { name: 'Fallakte', exact: true }).click();
   await page.locator('.case-register-actions').getByRole('button', { name: 'Fallakte', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'Neue Fallakte anlegen' });
@@ -32,7 +30,6 @@ test('verhindert freie Fallakte und erlaubt den anonymen Sonderweg', async ({ pa
 });
 
 test('zeigt Altfall-Hinweis und öffnet Legacy-Zuordnungsdialog barrierearm', async ({ page }) => {
-  await page.goto('/');
   await navigation(page).getByRole('button', { name: 'Fallakte', exact: true }).click();
   await page.locator('[data-e2e="case-row-TEST-0002"]').click();
   await expect(page.locator('[data-e2e="legacy-case-hint"]')).toBeVisible();
@@ -50,7 +47,6 @@ test('zeigt Altfall-Hinweis und öffnet Legacy-Zuordnungsdialog barrierearm', as
 });
 
 test('schließt Legacy-Zuordnungsdialog per Escape', async ({ page }) => {
-  await page.goto('/');
   await navigation(page).getByRole('button', { name: 'Fallakte', exact: true }).click();
   await page.locator('[data-e2e="case-row-TEST-0002"]').click();
   await page.getByRole('button', { name: 'Legacy-Zuordnung prüfen' }).click();

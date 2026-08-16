@@ -12,15 +12,19 @@ export class ActivityJournalTitleService {
       const caseReference = context.caseNumber?.trim() || context.title?.trim() || 'Fall';
       return `${caseReference}: Tätigkeit dokumentiert`;
     }
-    if (context.contextType === 'bem_process' || category === 'bem_preparation') return 'BEM-Begleitung: Gespräch vorbereitet';
-    if (context.contextType === 'prevention_process' || category === 'prevention') return 'Prävention: Sachstand dokumentiert';
+    if (context.contextType === 'bem_process') return 'BEM-Begleitung: Gespräch vorbereitet';
+    if (context.contextType === 'prevention_process') return 'Prävention: Sachstand dokumentiert';
     if (context.contextType === 'sbv_participation') return 'Beteiligung: Stellungnahme vorbereitet';
     if (context.contextType === 'recruiting_participation') return 'Stellenbesetzung: SBV-Beteiligung nachgehalten';
     if (context.contextType === 'recruiting_interview') return 'Vorstellungsgespräch: SBV-Teilnahme dokumentiert';
     if (context.contextType === 'termination_hearing') return 'Kündigungsanhörung: Unterlagen geprüft';
     if (context.contextType === 'equalization_process') return 'Gleichstellung: Sachstand dokumentiert';
-    if (context.contextType === 'sbv_control_protocol' || category === 'sbv_steering') return 'SBV-Steuerung: Ergebnis dokumentiert';
+    if (context.contextType === 'sbv_control_protocol') return 'SBV-Dokumentation: Ergebnis dokumentiert';
     if (context.contextType === 'deadline') return 'Frist: Ergebnis dokumentiert';
+    if (context.title?.trim()) return context.title.trim();
+    if (category === 'bem_preparation') return 'BEM-Begleitung: Gespräch vorbereitet';
+    if (category === 'prevention') return 'Prävention: Sachstand dokumentiert';
+    if (category === 'sbv_steering') return 'SBV-Dokumentation / Strategie dokumentiert';
     if (category === 'consultation') return 'Beratung / Sprechstunde dokumentiert';
     if (category === 'employer_meeting') return 'Arbeitgebergespräch dokumentiert';
     if (category === 'committee_work') return 'BR-/Ausschussarbeit dokumentiert';

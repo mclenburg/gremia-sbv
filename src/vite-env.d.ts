@@ -187,7 +187,7 @@ import type {
 } from "./app/core/models/sbv-office-workflow.model";
 import type {
   ConfigureElectionSetupInput, CreateElectionInput, ElectionBoardMemberRecord, ElectionBoardSessionRecord, ElectionCandidateRecord,
-  ElectionObjectionRecord, ElectionPreparationOverview, ElectionProposalRecord, ElectionRecord, ElectionSetupAssessment, ElectionVoterRecord,
+  ElectionObjectionRecord, ElectionPreparationOverview, ElectionProposalRecord, ElectionRecord, ElectionSetupAssessment, ElectionVoterFileImportInput, ElectionVoterFileImportResult, ElectionVoterImportFileSelection, ElectionVoterRecord, ElectionVoterSyncResult,
   GenerateElectionPreparationDocumentInput, SaveElectionBoardMemberInput, SaveElectionBoardSessionInput, SaveElectionCandidateInput,
   SaveElectionObjectionInput, SaveElectionProposalInput, SaveElectionVoterInput,
 } from "./app/core/models/election-workflow.model";
@@ -540,6 +540,10 @@ declare global {
         configureSetup(id: string, input: ConfigureElectionSetupInput): Promise<ElectionSetupAssessment>;
         overview(id: string): Promise<ElectionPreparationOverview>;
         saveVoter(id: string, input: SaveElectionVoterInput): Promise<ElectionVoterRecord>;
+        syncVotersFromPersons(id: string): Promise<ElectionVoterSyncResult>;
+        selectVoterImportFile(): Promise<ElectionVoterImportFileSelection>;
+        previewVoterImport(input: ElectionVoterFileImportInput): Promise<PersonImportPreviewResult>;
+        importVotersFromPersonFile(id: string, input: ElectionVoterFileImportInput): Promise<ElectionVoterFileImportResult>;
         saveBoardMember(id: string, input: SaveElectionBoardMemberInput): Promise<ElectionBoardMemberRecord>;
         saveBoardSession(id: string, input: SaveElectionBoardSessionInput): Promise<ElectionBoardSessionRecord>;
         saveObjection(id: string, input: SaveElectionObjectionInput): Promise<ElectionObjectionRecord>;

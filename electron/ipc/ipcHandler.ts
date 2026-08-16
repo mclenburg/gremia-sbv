@@ -3,7 +3,7 @@ import type { IpcChannel } from './channels.js';
 import { IPC_ENDPOINT_CONTRACTS } from './contracts.js';
 import { IpcValidationError } from './ipcValidation.js';
 import { IPC_ERROR_PREFIX } from './errorProtocol.js';
-export { issueSelectedFileCapability, resolveSelectedFileInput } from './selectedFileCapability.js';
+export { issueSelectedFileCapability, resolveSelectedFileInput, SELECTED_FILE_PURPOSE } from './selectedFileCapability.js';
 import {
   ApplicationError,
   type ApplicationErrorCode,

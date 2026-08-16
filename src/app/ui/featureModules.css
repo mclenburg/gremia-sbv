@@ -2588,6 +2588,11 @@ html[data-theme='light'] .person-lifecycle-badge.muted {
   gap: clamp(1rem, 1.5vw, 1.4rem);
 }
 
+.election-workflow-panel .industrial-form-section > .industrial-panel-header > .industrial-action-row {
+  margin-left: auto;
+  justify-content: flex-end;
+}
+
 .election-workflow-panel fieldset {
   display: grid;
   gap: 0.9rem;
@@ -2850,7 +2855,7 @@ html[data-theme='light'] .person-lifecycle-badge.muted {
 
 /* Sitzungsregister: skalierbare Auswahl, konsistente Feldabstände und feste Aktionspositionen. */
 .sbv-meeting-create-grid {
-  grid-template-columns: minmax(12rem, 0.9fr) minmax(16rem, 1.4fr) minmax(15rem, 1fr);
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr) minmax(0, 1fr);
   align-items: start;
 }
 
@@ -3151,4 +3156,28 @@ html[data-theme='light'] .person-lifecycle-badge.muted {
     display: grid;
     grid-template-columns: 1fr;
   }
+}
+
+.election-manual-entry {
+  border: 1px solid var(--industrial-border);
+  border-radius: var(--industrial-control-radius);
+  background: var(--industrial-panel-muted);
+  padding: 0.75rem 1rem;
+}
+
+.election-manual-entry > summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.election-manual-entry-body,
+.election-import-panel {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.election-import-panel {
+  border-top: 1px solid var(--industrial-border);
+  padding-top: 1rem;
 }

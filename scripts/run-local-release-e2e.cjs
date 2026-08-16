@@ -4,10 +4,9 @@ const { spawnSync } = require('node:child_process');
 const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const steps = [
   ['test:e2e:setup', 'isolierte Playwright-/Axe-Werkzeuge installieren'],
-  ['test:e2e:visual', 'visuellen Industrial-UI-Vertrag pruefen'],
-  ['test:e2e:core-ui-flows', 'zentrale UI-Flows pruefen'],
-  ['test:e2e:complete-tour', 'vollstaendige App-Tour pruefen'],
-  ['test:e2e:a11y', 'Axe-Accessibility-Gate pruefen'],
+  ['test:e2e:ui-flows', 'UI-Nutzerfluesse in einer gemeinsamen Browser-Suite pruefen'],
+  ['test:e2e:visual-a11y', 'Visual-/Responsive-/Accessibility-Matrix in workerweit persistenter App pruefen'],
+  ['test:e2e:isolated', 'Tests mit zwingend eigener Browserinstanz abschliessend pruefen'],
 ];
 
 for (const [script, description] of steps) {

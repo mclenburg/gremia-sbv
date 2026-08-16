@@ -84,6 +84,8 @@ function inspectTaggedReleaseWorkflow(workflow: string) {
     ]),
     noE2eInPackagingWorkflow: includesNone(workflow, [
       "test:e2e:setup",
+      "test:e2e:ui-flows",
+      "test:e2e:visual-a11y",
       "test:e2e:visual",
       "test:e2e:core-ui-flows",
       "test:e2e:complete-tour",
