@@ -5,8 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#050505" />
   <meta name="color-scheme" content="dark" />
-  <meta name="description" content="Gremia.SBV – lokaler, geschützter Arbeitsraum für Schwerbehindertenvertretungen. Fallakten, Fristen, BEM, Prävention, Beteiligungen, Dokumente und sichere Übergaben." />
-  <title>Gremia.SBV – Fachsoftware für Schwerbehindertenvertretungen</title>
+  <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
+  <meta name="description" content="Gremia.SBV ist Open-Source-SBV-Software für Schwerbehindertenvertretungen: Fallakten, Fristen, BEM, Prävention, Beteiligungen und Dokumentation lokal, verschlüsselt und ohne Cloudpflicht." />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="de_DE" />
+  <meta property="og:site_name" content="Gremia.SBV" />
+  <meta property="og:title" content="Gremia.SBV – SBV-Software für Schwerbehindertenvertretungen" />
+  <meta property="og:description" content="Open-Source-Fachsoftware für die vertrauliche Arbeit der Schwerbehindertenvertretung – lokal, verschlüsselt, offline-first und ohne Telemetrie." />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Gremia.SBV – SBV-Software für Schwerbehindertenvertretungen" />
+  <meta name="twitter:description" content="Open-Source-Fachsoftware für die vertrauliche Arbeit der Schwerbehindertenvertretung – lokal, verschlüsselt und ohne Cloudpflicht." />
+  <title>Gremia.SBV – SBV-Software für Schwerbehindertenvertretungen</title>
 
   <link rel="icon" href="assets/gremia-sbv-icon-64.png" sizes="64x64" type="image/png" />
   <link rel="icon" href="assets/gremia-sbv-icon-128.png" sizes="128x128" type="image/png" />
@@ -169,12 +178,26 @@
 
     .hero h1 {
       margin: 0;
-      max-width: 8ch;
       color: #fff;
+      font-weight: 950;
+    }
+
+    .hero h1 .product-name {
+      display: block;
+      max-width: 8ch;
       font-size: clamp(3.35rem, 8vw, 6.8rem);
       line-height: 0.84;
-      font-weight: 950;
       letter-spacing: -0.08em;
+    }
+
+    .hero h1 .product-purpose {
+      display: block;
+      max-width: 34rem;
+      margin-top: 1.15rem;
+      color: #f4f4f5;
+      font-size: clamp(1.45rem, 2.6vw, 2.15rem);
+      line-height: 1.08;
+      letter-spacing: -0.045em;
     }
 
     .hero h1 .dot,
@@ -658,7 +681,8 @@
       .metric-grid { grid-template-columns: 1fr; }
       .work-grid { grid-template-columns: 1fr; }
       .feature-grid,
-      .principles { grid-template-columns: 1fr; }
+      .principles,
+      .search-info { grid-template-columns: 1fr; }
       .principle,
       .principle:nth-child(2n),
       .principle:nth-last-child(-n+2) {
@@ -666,8 +690,42 @@
         border-bottom: 1px solid var(--sbv-border);
       }
       .principle:last-child { border-bottom: 0; }
+      .search-info article {
+        border-right: 0;
+        border-bottom: 1px solid var(--sbv-border);
+      }
+      .search-info article:last-child { border-bottom: 0; }
       .demo-panel { grid-template-columns: 1fr; }
       .demo-panel .button { width: 100%; }
+    }
+
+
+    .search-info {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      border: 1px solid var(--sbv-border);
+      background: rgba(9, 9, 11, 0.78);
+    }
+
+    .search-info article {
+      min-width: 0;
+      padding: 1.25rem;
+      border-right: 1px solid var(--sbv-border);
+    }
+
+    .search-info article:last-child { border-right: 0; }
+
+    .search-info h3 {
+      margin: 0;
+      color: #fff;
+      font-size: 1rem;
+      line-height: 1.35;
+    }
+
+    .search-info p {
+      margin: 0.6rem 0 0;
+      color: var(--sbv-muted);
+      line-height: 1.65;
     }
 
     .version-inline {
@@ -712,10 +770,13 @@
       <section class="hero" aria-labelledby="hero-title">
         <div>
           <p class="kicker">Open Source · SBV-Fachsoftware <span class="version-inline" data-app-version hidden></span></p>
-          <h1 id="hero-title">Gremia<span class="dot">.</span><span class="sbv">SBV</span></h1>
-          <p class="hero-lead">Der geschützte Arbeitsraum für Schwerbehindertenvertretungen.</p>
+          <h1 id="hero-title">
+            <span class="product-name">Gremia<span class="dot">.</span><span class="sbv">SBV</span></span>
+            <span class="product-purpose">Software für Schwerbehindertenvertretungen</span>
+          </h1>
+          <p class="hero-lead">Der geschützte Arbeitsraum für die Schwerbehindertenvertretung (SBV).</p>
           <p class="hero-copy">
-            Fälle, Fristen, BEM, Prävention, Beteiligungen und Dokumente in einer lokalen Anwendung – ohne Cloudpflicht, ohne Telemetrie und mit nachvollziehbaren Arbeitsabläufen.
+            Gremia.SBV unterstützt die vertrauliche SBV-Arbeit mit Fallakten, Fristen, BEM, Prävention, Beteiligungen und Dokumentation in einer lokalen Anwendung – ohne Cloudpflicht, ohne Telemetrie und mit nachvollziehbaren Arbeitsabläufen.
           </p>
 
           <div class="hero-actions">
@@ -812,10 +873,10 @@
         <div class="section-head">
           <div>
             <p class="eyebrow">Arbeitsbereiche</p>
-            <h2>Für echte SBV-Arbeit gebaut.</h2>
+            <h2>SBV-Software für die tägliche Arbeit der Schwerbehindertenvertretung.</h2>
           </div>
           <p class="section-intro">
-            Gremia.SBV bündelt die tägliche Einzelfallarbeit und wiederkehrende SBV-Verfahren an einem Ort. Die Oberfläche bleibt bewusst sachlich: relevante Informationen sichtbar, Details dort, wo sie gebraucht werden.
+            Gremia.SBV bündelt Einzelfallarbeit und wiederkehrende Aufgaben der Schwerbehindertenvertretung nach dem SGB IX an einem Ort. Die Fachsoftware unterstützt Organisation und Dokumentation, ohne rechtliche Entscheidungen zu automatisieren.
           </p>
         </div>
 
@@ -839,6 +900,35 @@
             <span class="feature-index">04 · Werkzeuge</span>
             <h3>Vorlagen, Wissen & Berichte</h3>
             <p>Wiederkehrende Schreiben, Wissensbausteine und anonymisierte Auswertungen unterstützen die tägliche Arbeit.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="sbv-software" aria-labelledby="sbv-software-title">
+      <div class="shell">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">SBV-Software</p>
+            <h2 id="sbv-software-title">Was ist Gremia.SBV?</h2>
+          </div>
+          <p class="section-intro">
+            Gremia.SBV ist eine Open-Source-Desktopanwendung für Schwerbehindertenvertretungen und ihre Stellvertretungen. Sie verbindet vertrauliche Fallarbeit, Fristen und SBV-Verfahren mit lokaler, verschlüsselter Datenhaltung.
+          </p>
+        </div>
+
+        <div class="search-info">
+          <article>
+            <h3>Für wen ist die Software gedacht?</h3>
+            <p>Für gewählte Schwerbehindertenvertretungen und Stellvertretungen, die ihre eigene SBV-Arbeit strukturiert, datensparsam und nachvollziehbar organisieren möchten.</p>
+          </article>
+          <article>
+            <h3>Welche SBV-Aufgaben werden unterstützt?</h3>
+            <p>Unter anderem Fallakten, Fristen, Tätigkeitsjournal, BEM, Prävention, Beteiligungen, Stellenbesetzungen, Arbeitsplatzgestaltung, Gleichstellung, Kündigungsanhörungen und SBV-Wahlen.</p>
+          </article>
+          <article>
+            <h3>Wo liegen die Daten?</h3>
+            <p>Die Arbeitsdaten verbleiben lokal in einem verschlüsselten Tresor. Gremia.SBV ist offline-first ausgelegt, benötigt keine Cloud und übermittelt keine Telemetriedaten.</p>
           </article>
         </div>
       </div>
@@ -934,6 +1024,31 @@
         return `https://github.com/${owner}/${repository}`;
       }
 
+      function applySearchMetadata() {
+        const canonicalUrl = new URL(window.location.href);
+        canonicalUrl.hash = '';
+        canonicalUrl.search = '';
+        if (canonicalUrl.pathname.endsWith('/index.html')) {
+          canonicalUrl.pathname = canonicalUrl.pathname.slice(0, -'index.html'.length);
+        }
+
+        let canonical = document.querySelector('link[rel="canonical"]');
+        if (!canonical) {
+          canonical = document.createElement('link');
+          canonical.rel = 'canonical';
+          document.head.appendChild(canonical);
+        }
+        canonical.href = canonicalUrl.href;
+
+        let openGraphUrl = document.querySelector('meta[property="og:url"]');
+        if (!openGraphUrl) {
+          openGraphUrl = document.createElement('meta');
+          openGraphUrl.setAttribute('property', 'og:url');
+          document.head.appendChild(openGraphUrl);
+        }
+        openGraphUrl.setAttribute('content', canonicalUrl.href);
+      }
+
       function applyVersion(version) {
         if (!version || typeof version !== 'string') return;
         document.querySelectorAll('[data-app-version]').forEach((target) => {
@@ -958,6 +1073,8 @@
           // Die Landingpage bleibt auch offline bzw. bei blockiertem Abruf vollständig nutzbar.
         }
       }
+
+      applySearchMetadata();
 
       const repositoryUrl = inferRepositoryUrl();
       if (!repositoryUrl) return;
