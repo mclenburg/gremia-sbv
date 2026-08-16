@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { IndustrialButton } from '../../../shared/components/IndustrialButton';
-import { SearchInput } from '../../../shared/components/IndustrialForm';
+import { CheckboxField, DateInput, DateTimeInput, SearchInput, SelectInput, TextareaInput, TextInput } from '../../../shared/components/IndustrialForm';
 import { IndustrialHelpButton } from '../../../shared/help/IndustrialHelp';
 import { waitForBridge } from '../../../core/bridge/waitForBridge';
 import type { ActivityJournalPrefill } from '../../../core/models/activity-journal.model';
@@ -161,7 +161,7 @@ function GremiaBrMeetingImport({ onCreate, onAgenda, onSelectedMeeting }: {
   return <section className="sbv-control-section sbv-meetings-bridge" aria-labelledby="gremia-br-meetings-heading">
     <div><p className="industrial-kicker">Gremia.BR</p><h3 id="gremia-br-meetings-heading">BR-Sitzung übernehmen</h3><p className="industrial-meta">Lesebrücke aktiv. Sitzung und Tagesordnung werden als eigene SBV-Arbeitskopie übernommen; SBV-Relevanz und Bewertungen bleiben bewusst manuell.</p></div>
     <div className="industrial-form-grid two-columns">
-      <label className="industrial-field"><span>Gremia.BR-Sitzung</span><select className="industrial-select" value={selectedId} onChange={(event) => setSelectedId(event.target.value)}><option value="">Auswählen …</option>{meetings.map((meeting) => <option key={meeting.sourceId} value={meeting.sourceId}>{new Date(meeting.startsAt).toLocaleString('de-DE')} · {meeting.title}</option>)}</select></label>
+      <SelectInput label="Gremia.BR-Sitzung" value={selectedId} onValueChange={setSelectedId} options={[{ value: '', label: 'Auswählen …' }, ...meetings.map((meeting) => ({ value: meeting.sourceId, label: `${new Date(meeting.startsAt).toLocaleString('de-DE')} · ${meeting.title}` }))]} />
       <div className="industrial-action-row sbv-meetings-bridge-actions"><IndustrialButton variant="secondary" disabled={busy} onClick={() => void refresh()}><RefreshCw className="h-4 w-4" />{busy ? 'Abruf läuft …' : 'Daten aktualisieren'}</IndustrialButton><IndustrialButton disabled={!selected || busy} onClick={() => void importMeeting()}>In SBV-Sitzung übernehmen</IndustrialButton></div>
     </div>
     {message ? <div className="industrial-message industrial-message-info" role="status">{message}</div> : null}
@@ -173,13 +173,20 @@ export function filterMeetings(records: SbvMeetingRecord[], query: string): SbvM
   const sorted = [...records].sort((a, b) => Date.parse(b.startsAt) - Date.parse(a.startsAt));
   if (!normalized) return sorted;
   return sorted.filter((record) => {
+    const startsAt = new Date(record.startsAt);
+    const paddedDate = new Intl.DateTimeFormat('de-DE', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    }).format(startsAt);
     const searchable = [
       record.title,
       meetingTypeLabels[record.meetingType],
       record.location ?? '',
       record.status,
-      new Date(record.startsAt).toLocaleDateString('de-DE'),
-      new Date(record.startsAt).toLocaleString('de-DE'),
+      startsAt.toLocaleDateString('de-DE'),
+      startsAt.toLocaleString('de-DE'),
+      paddedDate,
     ].join(' ').toLocaleLowerCase('de-DE');
     return searchable.includes(normalized);
   });
@@ -244,9 +251,9 @@ export function MeetingsWorkspace({ records, onCreate, onAgenda, onAgendaFollowU
       <section className="sbv-control-section sbv-meetings-section" aria-labelledby="meeting-create-heading">
         <div className="sbv-control-section-heading"><h3 id="meeting-create-heading">Sitzung manuell anlegen</h3></div>
         <div className="industrial-form-grid sbv-meeting-create-grid">
-          <label className="industrial-field"><span>Sitzungstyp</span><select className="industrial-select" value={type} onChange={(event) => setType(event.target.value as SbvMeetingType)}>{Object.entries(meetingTypeLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-          <label className="industrial-field"><span>Titel</span><input className="industrial-input" value={title} onChange={(event) => setTitle(event.target.value)} /></label>
-          <label className="industrial-field"><span>Datum / Zeit</span><input className="industrial-input" type="datetime-local" value={startsAt} onChange={(event) => setStartsAt(event.target.value)} /></label>
+          <SelectInput label="Sitzungstyp" value={type} onValueChange={(value) => setType(value as SbvMeetingType)} options={Object.entries(meetingTypeLabels).map(([value, label]) => ({ value, label }))} />
+          <TextInput label="Titel" value={title} onValueChange={setTitle} />
+          <DateTimeInput label="Datum / Zeit" value={startsAt} onValueChange={setStartsAt} />
         </div>
         <div className="industrial-action-row sbv-control-action-row"><IndustrialButton onClick={async () => { const created = await onCreate({ meetingType: type, title, startsAt: fromDateTimeLocal(startsAt) ?? startsAt }); setSelectedMeetingId(created.id); setTitle(''); setStartsAt(''); setMeetingFilter(''); setMeetingPage(1); }} disabled={!title.trim() || !startsAt}>Sitzung anlegen</IndustrialButton></div>
       </section>
@@ -278,8 +285,8 @@ export function MeetingsWorkspace({ records, onCreate, onAgenda, onAgendaFollowU
         </div>
         <div className="industrial-table-wrap"><table className="industrial-table"><thead><tr><th>Pos.</th><th>TOP</th><th>SBV</th><th>Aussetzung</th></tr></thead><tbody>{current.agenda.map((item) => <tr key={item.id}><td>{item.position}</td><td><button type="button" className="industrial-link-button" onClick={() => setSelectedAgendaId(item.id)}>{item.title}</button></td><td>{item.sbvRelevance ? 'relevant' : '—'}</td><td>{item.suspensionDueAt ? new Date(item.suspensionDueAt).toLocaleString('de-DE') : '—'}</td></tr>)}</tbody></table></div>
         <div className="industrial-form-grid sbv-meeting-new-agenda-grid">
-          <label className="industrial-field"><span>Neuer Tagesordnungspunkt</span><input className="industrial-input" value={newAgendaTitle} onChange={(event) => setNewAgendaTitle(event.target.value)} /></label>
-          <label className="industrial-checkbox"><input type="checkbox" checked={newAgendaRelevant} onChange={(event) => setNewAgendaRelevant(event.target.checked)} /><span>SBV-relevant</span></label>
+          <TextInput label="Neuer Tagesordnungspunkt" value={newAgendaTitle} onValueChange={setNewAgendaTitle} />
+          <CheckboxField label="SBV-relevant" checked={newAgendaRelevant} onCheckedChange={setNewAgendaRelevant} />
         </div>
         <div className="industrial-action-row sbv-control-action-row"><IndustrialButton onClick={async () => { const createdAgenda = await onAgenda(current.id, { title: newAgendaTitle, sbvRelevance: newAgendaRelevant, referenceScope: 'none', requestedBySbv: false, significantImpairment: false, nonParticipation: false }); setNewAgendaTitle(''); setSelectedAgendaId(createdAgenda.id); }} disabled={!newAgendaTitle.trim()}>TOP hinzufügen</IndustrialButton></div>
         {agenda ? <AgendaEditor meetingId={current.id} agenda={agenda} onAgenda={onAgenda} onAgendaFollowUp={onAgendaFollowUp} onJournal={journal} /> : null}
@@ -331,36 +338,55 @@ function AgendaEditor({ meetingId, agenda, onAgenda, onAgendaFollowUp, onJournal
   });
   const suspensionAvailable = Boolean(resolutionAt && (significantImpairment || nonParticipation));
 
-  return <fieldset className="industrial-subsection" aria-labelledby={`agenda-${agenda.id}-legend`}>
+  return <fieldset className="industrial-subsection sbv-agenda-editor" aria-labelledby={`agenda-${agenda.id}-legend`}>
     <legend id={`agenda-${agenda.id}-legend`}>TOP bearbeiten: {agenda.title}</legend>
-    <div className="industrial-form-grid">
-      <label><span>Position</span><input className="industrial-input" type="number" min="1" value={position} onChange={(event) => setPosition(event.target.value)} /></label>
-      <label><span>Bezug</span><select className="industrial-select" value={referenceScope} onChange={(event) => setReferenceScope(event.target.value)}><option value="none">ohne Personenbezug</option><option value="individual">Einzelbezug</option><option value="group">Gruppenbezug</option></select></label>
-      <label><span>Unterlagenstatus</span><input className="industrial-input" value={documentsStatus} onChange={(event) => setDocumentsStatus(event.target.value)} /></label>
-    </div>
-    <label><span>Eigene SBV-Position</span><textarea className="industrial-textarea" value={ownPosition} onChange={(event) => setOwnPosition(event.target.value)} /></label>
-    <IndustrialButton variant="secondary" onClick={() => onAgenda(meetingId, commonInput())}>TOP-Daten speichern</IndustrialButton>
 
-    <div className="industrial-form-grid two-columns">
-      <label><span>TOP-Antrag / Inhalt</span><textarea className="industrial-textarea" value={requestContent} onChange={(event) => setRequestContent(event.target.value)} /></label>
-      <label><span>Reaktion</span><textarea className="industrial-textarea" value={requestReaction} onChange={(event) => setRequestReaction(event.target.value)} /></label>
-    </div>
-    <div className="industrial-toolbar">
-      <IndustrialButton variant="secondary" onClick={async () => { await onAgenda(meetingId, { ...commonInput(), requestedBySbv: true, requestAt: agenda.requestAt ?? new Date().toISOString(), requestContent: requestContent || agenda.title }); await onJournal('top_request'); }}>TOP-Antrag dokumentieren</IndustrialButton>
-    </div>
-    <div className="industrial-form-grid"><label><span>Wiedervorlage TOP-Antrag</span><input className="industrial-input" type="date" value={followUpDueAt} onChange={(event) => setFollowUpDueAt(event.target.value)} /></label><IndustrialButton variant="secondary" disabled={!followUpDueAt} onClick={() => onAgendaFollowUp(agenda.id, followUpDueAt)}>Wiedervorlage anlegen</IndustrialButton></div>
+    <section className="sbv-control-section sbv-agenda-section" aria-labelledby={`agenda-${agenda.id}-basis`}>
+      <div className="sbv-control-section-heading sbv-control-section-heading-with-actions">
+        <div><h3 id={`agenda-${agenda.id}-basis`}>Grunddaten & SBV-Position</h3><p>Einordnung, Unterlagenstand und eigene Bewertung dieses Tagesordnungspunkts.</p></div>
+        <div className="industrial-action-row"><IndustrialButton variant="secondary" onClick={() => onAgenda(meetingId, commonInput())}>TOP-Daten speichern</IndustrialButton></div>
+      </div>
+      <div className="industrial-form-grid sbv-agenda-basis-grid">
+        <TextInput label="Position" type="number" min="1" value={position} onValueChange={setPosition} />
+        <SelectInput label="Bezug" value={referenceScope} onValueChange={setReferenceScope} options={[{ value: 'none', label: 'ohne Personenbezug' }, { value: 'individual', label: 'Einzelbezug' }, { value: 'group', label: 'Gruppenbezug' }]} />
+        <TextInput label="Unterlagenstatus" value={documentsStatus} onValueChange={setDocumentsStatus} />
+      </div>
+      <TextareaInput label="Eigene SBV-Position" value={ownPosition} onValueChange={setOwnPosition} wide />
+    </section>
 
-    <div className="industrial-form-grid">
-      <label><span>Beschlussdatum / Zeit</span><input className="industrial-input" type="datetime-local" value={resolutionAt} onChange={(event) => setResolutionAt(event.target.value)} /></label>
-      <label className="industrial-checkbox"><input type="checkbox" checked={significantImpairment} onChange={(event) => setSignificantImpairment(event.target.checked)} /><span>erhebliche Beeinträchtigung wichtiger Interessen</span></label>
-      <label className="industrial-checkbox"><input type="checkbox" checked={nonParticipation} onChange={(event) => setNonParticipation(event.target.checked)} /><span>Nichtbeteiligung der SBV</span></label>
-    </div>
-    <label><span>Beschlussergebnis – SBV-Eigenaufzeichnung</span><textarea className="industrial-textarea" value={resolutionSummary} onChange={(event) => setResolutionSummary(event.target.value)} /></label>
-    <label><span>Beeinträchtigungsbewertung</span><textarea className="industrial-textarea" value={impairmentAssessment} onChange={(event) => setImpairmentAssessment(event.target.value)} /></label>
-    <div className="industrial-toolbar">
-      <IndustrialButton variant="secondary" onClick={() => onAgenda(meetingId, commonInput())}>Beschlussbeobachtung speichern</IndustrialButton>
-      <IndustrialButton variant="secondary" disabled={!suspensionAvailable || Boolean(agenda.suspensionRequestedAt)} onClick={async () => { await onAgenda(meetingId, { ...commonInput(), suspensionRequestedAt: new Date().toISOString() }); await onJournal('suspension'); }}>Aussetzung dokumentieren</IndustrialButton>
-    </div>
-    {agenda.suspensionDueAt ? <div className="industrial-message industrial-message-warning" role="status">Aussetzungsfrist: {new Date(agenda.suspensionDueAt).toLocaleString('de-DE')}</div> : null}
+    <section className="sbv-control-section sbv-agenda-section" aria-labelledby={`agenda-${agenda.id}-request`}>
+      <div className="sbv-control-section-heading sbv-control-section-heading-with-actions">
+        <div><h3 id={`agenda-${agenda.id}-request`}>TOP-Antrag & Reaktion</h3><p>Eigener Antrag der SBV, Reaktion des Gremiums und optionale Wiedervorlage.</p></div>
+        <div className="industrial-action-row"><IndustrialButton variant="secondary" onClick={async () => { await onAgenda(meetingId, { ...commonInput(), requestedBySbv: true, requestAt: agenda.requestAt ?? new Date().toISOString(), requestContent: requestContent || agenda.title }); await onJournal('top_request'); }}>TOP-Antrag dokumentieren</IndustrialButton></div>
+      </div>
+      <div className="industrial-form-grid two-columns">
+        <TextareaInput label="TOP-Antrag / Inhalt" value={requestContent} onValueChange={setRequestContent} />
+        <TextareaInput label="Reaktion" value={requestReaction} onValueChange={setRequestReaction} />
+      </div>
+      <div className="industrial-form-grid sbv-control-inline-action-grid">
+        <DateInput label="Wiedervorlage TOP-Antrag" value={followUpDueAt} onValueChange={setFollowUpDueAt} />
+        <div className="industrial-action-row"><IndustrialButton variant="secondary" disabled={!followUpDueAt} onClick={() => onAgendaFollowUp(agenda.id, followUpDueAt)}>Wiedervorlage anlegen</IndustrialButton></div>
+      </div>
+    </section>
+
+    <section className="sbv-control-section sbv-agenda-section" aria-labelledby={`agenda-${agenda.id}-resolution`}>
+      <div className="sbv-control-section-heading sbv-control-section-heading-with-actions">
+        <div><h3 id={`agenda-${agenda.id}-resolution`}>Beschlussbeobachtung & Aussetzung</h3><p>SBV-Eigenaufzeichnung zum Ergebnis und zu möglichen Beteiligungsproblemen.</p></div>
+        <div className="industrial-action-row">
+          <IndustrialButton variant="secondary" onClick={() => onAgenda(meetingId, commonInput())}>Beschlussbeobachtung speichern</IndustrialButton>
+          <IndustrialButton variant="secondary" disabled={!suspensionAvailable || Boolean(agenda.suspensionRequestedAt)} onClick={async () => { await onAgenda(meetingId, { ...commonInput(), suspensionRequestedAt: new Date().toISOString() }); await onJournal('suspension'); }}>Aussetzung dokumentieren</IndustrialButton>
+        </div>
+      </div>
+      <div className="industrial-form-grid sbv-agenda-resolution-grid">
+        <DateTimeInput label="Beschlussdatum / Zeit" value={resolutionAt} onValueChange={setResolutionAt} />
+        <CheckboxField label="erhebliche Beeinträchtigung wichtiger Interessen" checked={significantImpairment} onCheckedChange={setSignificantImpairment} />
+        <CheckboxField label="Nichtbeteiligung der SBV" checked={nonParticipation} onCheckedChange={setNonParticipation} />
+      </div>
+      <div className="industrial-form-grid two-columns">
+        <TextareaInput label="Beschlussergebnis – SBV-Eigenaufzeichnung" value={resolutionSummary} onValueChange={setResolutionSummary} />
+        <TextareaInput label="Beeinträchtigungsbewertung" value={impairmentAssessment} onValueChange={setImpairmentAssessment} />
+      </div>
+      {agenda.suspensionDueAt ? <div className="industrial-message industrial-message-warning" role="status">Aussetzungsfrist: {new Date(agenda.suspensionDueAt).toLocaleString('de-DE')}</div> : null}
+    </section>
   </fieldset>;
 }

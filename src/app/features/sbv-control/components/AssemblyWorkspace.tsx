@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { IndustrialButton } from '../../../shared/components/IndustrialButton';
+import { DateInput, DateTimeInput, SelectInput, TextareaInput, TextInput } from '../../../shared/components/IndustrialForm';
 import { IndustrialHelpButton } from '../../../shared/help/IndustrialHelp';
 import type { EmployerReportStatus, SbvAssemblyRecord } from '../../../core/models/sbv-office-workflow.model';
 import { SbvControlPanel } from './SbvControlPanel';
@@ -56,44 +57,52 @@ export function AssemblyWorkspace({ records, onSave, onGenerateDocument, onCreat
       actions={<IndustrialHelpButton helpId="sbvOffice.assembly" label="Hilfe zur Schwerbehindertenversammlung öffnen" />}
     >
       <section className="sbv-control-section" aria-labelledby="assembly-plan-heading">
-        <div className="sbv-control-section-heading">
-          <h3 id="assembly-plan-heading">Planung und Vorbereitung</h3>
-          <p>Termin, Einladung, Barrierefreiheit und Unterlagen für die Jahresversammlung.</p>
+        <div className="sbv-control-section-heading-with-actions">
+          <div>
+            <h3 id="assembly-plan-heading">Planung und Vorbereitung</h3>
+            <p>Termin, Einladung, Barrierefreiheit und Unterlagen für die Jahresversammlung.</p>
+          </div>
+          <div className="industrial-action-row">
+            {existing ? <IndustrialButton variant="secondary" disabled={!scheduledAt} onClick={() => void save('held')}>Durchgeführt dokumentieren</IndustrialButton> : null}
+            <IndustrialButton onClick={() => void save(scheduledAt && invitationAt ? 'ready' : 'draft')}>Speichern</IndustrialButton>
+          </div>
         </div>
-        <div className="industrial-form-grid">
-          <label><span>Termin</span><input className="industrial-input" type="datetime-local" value={scheduledAt} onChange={(event) => setScheduledAt(event.target.value)} /></label>
-          <label><span>Ort / Format</span><input className="industrial-input" value={location} onChange={(event) => setLocation(event.target.value)} /></label>
-          <label><span>Einladung versandt am</span><input className="industrial-input" type="date" value={invitationAt} onChange={(event) => setInvitationAt(event.target.value)} /></label>
-          <label><span>Arbeitgeberbericht</span><select className="industrial-select" value={report} onChange={(event) => setReport(event.target.value as EmployerReportStatus)}><option value="not_requested">nicht angefordert</option><option value="requested">angefordert</option><option value="promised">zugesagt</option><option value="completed">erfolgt</option><option value="not_completed">nicht erfolgt</option></select></label>
-          <label><span>Barrierefreiheitscheck</span><select className="industrial-select" value={accessibility} onChange={(event) => setAccessibility(event.target.value)}><option value="open">offen</option><option value="checked">geprüft</option><option value="action_needed">Maßnahmen offen</option></select></label>
-          <label><span>Präsentation / Unterlagen</span><select className="industrial-select" value={materials} onChange={(event) => setMaterials(event.target.value)}><option value="open">offen</option><option value="in_progress">in Arbeit</option><option value="ready">bereit</option></select></label>
+        <div className="industrial-form-grid industrial-form-grid-3 sbv-assembly-plan-grid">
+          <DateTimeInput label="Termin" value={scheduledAt} onValueChange={setScheduledAt} />
+          <TextInput label="Ort / Format" value={location} onValueChange={setLocation} />
+          <DateInput label="Einladung versandt am" value={invitationAt} onValueChange={setInvitationAt} />
+          <SelectInput label="Arbeitgeberbericht" value={report} onValueChange={(value) => setReport(value as EmployerReportStatus)} options={[{ value: 'not_requested', label: 'nicht angefordert' }, { value: 'requested', label: 'angefordert' }, { value: 'promised', label: 'zugesagt' }, { value: 'completed', label: 'erfolgt' }, { value: 'not_completed', label: 'nicht erfolgt' }]} />
+          <SelectInput label="Barrierefreiheitscheck" value={accessibility} onValueChange={setAccessibility} options={[{ value: 'open', label: 'offen' }, { value: 'checked', label: 'geprüft' }, { value: 'action_needed', label: 'Maßnahmen offen' }]} />
+          <SelectInput label="Präsentation / Unterlagen" value={materials} onValueChange={setMaterials} options={[{ value: 'open', label: 'offen' }, { value: 'in_progress', label: 'in Arbeit' }, { value: 'ready', label: 'bereit' }]} />
         </div>
-        <label><span>Tagesordnung</span><textarea className="industrial-textarea" value={agenda} onChange={(event) => setAgenda(event.target.value)} /></label>
-        <div className="industrial-action-row sbv-control-action-row">
-          {existing ? <IndustrialButton variant="secondary" disabled={!scheduledAt} onClick={() => void save('held')}>Durchgeführt dokumentieren</IndustrialButton> : null}
-          <IndustrialButton onClick={() => void save(scheduledAt && invitationAt ? 'ready' : 'draft')}>Speichern</IndustrialButton>
-        </div>
+        <TextareaInput label="Tagesordnung" value={agenda} onValueChange={setAgenda} wide />
       </section>
 
       <section className="sbv-control-section" aria-labelledby="assembly-followup-heading">
-        <div className="sbv-control-section-heading">
-          <h3 id="assembly-followup-heading">Ergebnis und Nachbereitung</h3>
-          <p>Eigenes Ergebnisprotokoll, Folgeaufgaben und erzeugbare Unterlagen.</p>
+        <div className="sbv-control-section-heading-with-actions">
+          <div>
+            <h3 id="assembly-followup-heading">Ergebnis und Nachbereitung</h3>
+            <p>Eigenes Ergebnisprotokoll, Folgeaufgaben und erzeugbare Unterlagen.</p>
+          </div>
+          {existing ? (
+            <div className="industrial-action-row" aria-label="Dokumente erzeugen">
+              {(['invitation', 'agenda', 'activity_report_draft', 'result_minutes'] as AssemblyDocumentKind[]).map((kind) => (
+                <IndustrialButton key={kind} variant="secondary" onClick={() => void onGenerateDocument(existing.id, kind)}>
+                  {kind === 'invitation' ? 'Einladung' : kind === 'agenda' ? 'Tagesordnung' : kind === 'activity_report_draft' ? 'Tätigkeitsbericht' : 'Ergebnisprotokoll'}
+                </IndustrialButton>
+              ))}
+            </div>
+          ) : null}
         </div>
-        <label><span>SBV-Ergebnisprotokoll / Maßnahmen</span><textarea className="industrial-textarea" value={minutes} onChange={(event) => setMinutes(event.target.value)} /></label>
-        {existing ? <>
-          <div className="industrial-form-grid sbv-control-inline-action-grid">
-            <label><span>Folgeaufgabe / Wiedervorlage</span><input className="industrial-input" type="date" value={followUpDueAt} onChange={(event) => setFollowUpDueAt(event.target.value)} /></label>
-            <IndustrialButton variant="secondary" disabled={!followUpDueAt} onClick={() => void onCreateFollowUp(existing.id, followUpDueAt)}>Wiedervorlage anlegen</IndustrialButton>
+        <TextareaInput label="SBV-Ergebnisprotokoll / Maßnahmen" value={minutes} onValueChange={setMinutes} wide />
+        {existing ? (
+          <div className="industrial-form-grid industrial-form-grid-2 sbv-control-followup-grid">
+            <DateInput label="Folgeaufgabe / Wiedervorlage" value={followUpDueAt} onValueChange={setFollowUpDueAt} />
+            <div className="industrial-action-row sbv-control-field-action">
+              <IndustrialButton variant="secondary" disabled={!followUpDueAt} onClick={() => void onCreateFollowUp(existing.id, followUpDueAt)}>Wiedervorlage anlegen</IndustrialButton>
+            </div>
           </div>
-          <div className="industrial-action-row sbv-control-action-row" aria-label="Dokumente erzeugen">
-            {(['invitation', 'agenda', 'activity_report_draft', 'result_minutes'] as AssemblyDocumentKind[]).map((kind) => (
-              <IndustrialButton key={kind} variant="secondary" onClick={() => void onGenerateDocument(existing.id, kind)}>
-                {kind === 'invitation' ? 'Einladung' : kind === 'agenda' ? 'Tagesordnung' : kind === 'activity_report_draft' ? 'Tätigkeitsbericht' : 'Ergebnisprotokoll'}
-              </IndustrialButton>
-            ))}
-          </div>
-        </> : <p className="industrial-meta">Nach dem ersten Speichern stehen Wiedervorlagen und Dokumente zur Verfügung.</p>}
+        ) : <p className="industrial-meta">Nach dem ersten Speichern stehen Wiedervorlagen und Dokumente zur Verfügung.</p>}
       </section>
     </SbvControlPanel>
   );

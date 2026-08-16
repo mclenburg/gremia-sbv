@@ -1,10 +1,10 @@
 import { DashboardCard } from "../../shared/components/DashboardCard";
 import { DeadlineDashboardPanel } from "../deadlines/DeadlineDashboardPanel";
-import { modules, type ModuleDefinition, type ViewId } from "../../core/navigation/modules";
+import { moduleGroups, modules, type ModuleDefinition, type ModuleGroupId, type ViewId } from "../../core/navigation/modules";
 import type { CaseRecord } from "../../core/models/case.model";
 import type { DeadlineDashboardItem, DeadlineRecord } from "../../core/models/deadline.model";
 
-type DashboardModuleGroupId = "core" | "processes" | "tools" | "administration";
+type DashboardModuleGroupId = ModuleGroupId;
 
 export type DashboardModuleGroup = {
   id: DashboardModuleGroupId;
@@ -23,46 +23,19 @@ export type DashboardWorkdaySummary = {
   nextActionTone: "default" | "warning" | "danger";
 };
 
-const MODULE_GROUPS: readonly {
-  id: DashboardModuleGroupId;
-  title: string;
-  description: string;
-  moduleIds: readonly ModuleDefinition["id"][];
-}[] = [
-  {
-    id: "core",
-    title: "Kernarbeit",
-    description: "Tagessteuerung, Fallakten, Schutzstatus und Fristen.",
-    moduleIds: ["persons", "cases", "deadlines"],
-  },
-  {
-    id: "processes",
-    title: "SBV-Verfahren",
-    description: "BEM, Prävention, Beteiligung und sensible Einzelverfahren.",
-    moduleIds: ["bem", "prevention", "participation", "workplace_accommodation", "equalization", "termination_hearing"],
-  },
-  {
-    id: "tools",
-    title: "Werkzeuge",
-    description: "Vorlagen, Wissen, Kontakte und Berichte für die laufende Fallarbeit.",
-    moduleIds: ["templates", "knowledge", "contacts", "reports"],
-  },
-  {
-    id: "administration",
-    title: "Administration",
-    description: "Compliance, SBV-Dokumentation und Einstellungen.",
-    moduleIds: ["compliance", "sbv_control"],
-  },
-];
+const DASHBOARD_GROUP_DESCRIPTIONS: Record<DashboardModuleGroupId, string> = {
+  core: "Tagessteuerung, Fallakten, Fristen, Journal, Sitzungen und übergreifende SBV-Dokumentation.",
+  processes: "BEM, Prävention, Beteiligung und sensible Einzelverfahren.",
+  tools: "Vorlagen, Wissen, Kontakte und Berichte für die laufende Fallarbeit.",
+  administration: "Compliance und betriebliche Datenschutzkontrollen.",
+};
 
 export function groupDashboardModules(moduleDefinitions: ModuleDefinition[] = modules): DashboardModuleGroup[] {
-  return MODULE_GROUPS.map((group) => ({
+  return moduleGroups.map((group) => ({
     id: group.id,
-    title: group.title,
-    description: group.description,
-    modules: group.moduleIds
-      .map((moduleId) => moduleDefinitions.find((module) => module.id === moduleId))
-      .filter((module): module is ModuleDefinition => Boolean(module)),
+    title: group.label,
+    description: DASHBOARD_GROUP_DESCRIPTIONS[group.id] ?? group.description,
+    modules: moduleDefinitions.filter((module) => module.group === group.id),
   })).filter((group) => group.modules.length > 0);
 }
 

@@ -1,9 +1,7 @@
-import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
   HELP_DIALOG_QA_ROUTE_IDS,
   VISUAL_QA_ROUTES,
-  VISUAL_QA_CONTROL_SELECTORS,
   WORKBENCH_LAYOUT_QA_EXEMPT_ROUTE_IDS,
   WORKBENCH_LAYOUT_QA_ROUTES,
   isDarkModeLightLeak,
@@ -99,44 +97,4 @@ describe('P11 visual QA contract', () => {
   });
 
 
-  it('hält die SBV-Dokumentationsseiten an denselben Header-, Abschnitts- und Responsive-Vertrag', () => {
-    const workspaceFiles = [
-      'MeetingsWorkspace.tsx',
-      'AssemblyWorkspace.tsx',
-      'ComplaintsWorkspace.tsx',
-      'ObligationsWorkspace.tsx',
-      'InclusionAgreementWorkspace.tsx',
-    ];
-
-    for (const file of workspaceFiles) {
-      const source = readFileSync(`src/app/features/sbv-control/components/${file}`, 'utf8');
-      expect(source).toContain('actions={<IndustrialHelpButton');
-      expect(source).toContain('sbv-control-section');
-      expect(source).not.toContain('icon={<');
-    }
-
-    const css = readFileSync('src/app/ui/featureModules.css', 'utf8');
-    expect(css).toContain('.sbv-control-action-row');
-    expect(css).toContain('justify-content: flex-end;');
-    expect(css).toContain('.sbv-control-inline-action-grid');
-    expect(css).toContain('@media (max-width: 760px)');
-  });
-
-
-  it('bindet alle nativen Modal-Controls an den zentralen Industrial-Formular-Chrome', () => {
-    const formsCss = readFileSync('src/app/ui/forms.css', 'utf8');
-
-    for (const selector of [
-      '.industrial-modal input:not([type="checkbox"]):not([type="radio"])',
-      '.industrial-modal select',
-      '.industrial-modal textarea',
-    ]) {
-      expect(formsCss).toContain(selector);
-      expect(VISUAL_QA_CONTROL_SELECTORS).toContain(selector);
-    }
-
-    expect(formsCss).toContain('background: var(--industrial-control-bg);');
-    expect(formsCss).toContain('border: 1px solid var(--industrial-control-border);');
-    expect(formsCss).toContain("html[data-theme='light'] .industrial-modal textarea");
-  });
 });

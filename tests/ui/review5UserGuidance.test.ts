@@ -3,6 +3,9 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { CaseRegister } from '../../src/app/features/cases/CaseRegister';
 import { PersonList } from '../../src/app/features/persons/PersonList';
+import { CaseNoteModal } from '../../src/app/features/cases/CaseNoteModal';
+import { MeasureNoteFields } from '../../src/app/features/cases/measures/MeasureNoteForm';
+import { LiveRegionProvider } from '../../src/app/shared/a11y/LiveRegionProvider';
 import { readNormalizedSourceText } from '../helpers/sourceText';
 
 const noop = () => undefined;
@@ -53,14 +56,53 @@ describe('review 5 user guidance polish', () => {
     expect(markup).not.toContain('Keine Personen gefunden.');
   });
 
-  it('places privacy guidance at protocol and measure-note text entry points', () => {
-    const caseNoteModal = readNormalizedSourceText('src/app/features/cases/CaseNoteModal.tsx');
-    const measureNoteForm = readNormalizedSourceText('src/app/features/cases/measures/MeasureNoteForm.tsx');
+  it('places privacy guidance at rendered protocol and measure-note text entry points', () => {
+    const caseNoteMarkup = renderToStaticMarkup(
+      React.createElement(LiveRegionProvider, {
+        children: React.createElement(CaseNoteModal, {
+          open: true,
+          editingNote: null,
+          noteTitle: '',
+          noteDate: '2026-08-16T12:00',
+          noteType: 'gespraech',
+          participants: '',
+          content: '',
+          nextSteps: '',
+          cases: [],
+          linkedCaseIds: [],
+          selectedCaseId: '',
+          confidentialLevel: 'normal',
+          containsHealthData: false,
+          noteError: '',
+          noteInfo: '',
+          pendingInlineActions: [],
+          onRemovePendingInlineAction: noop,
+          onTitleChange: noop,
+          onDateChange: noop,
+          onNoteTypeChange: noop,
+          onParticipantsChange: noop,
+          onProtocolTextChange: noop,
+          onProtocolTextCommand: noop,
+          onToggleLinkedCase: noop,
+          onConfidentialLevelChange: noop,
+          onContainsHealthDataChange: noop,
+          onCancel: noop,
+          onSubmit: noop,
+        }),
+      }),
+    );
+    const measureMarkup = renderToStaticMarkup(
+      React.createElement(MeasureNoteFields, {
+        fieldPrefix: 'review-guidance',
+        form: { title: '', noteAt: '2026-08-16T12:00', participants: '', content: '', nextSteps: '' },
+        onChange: noop,
+      }),
+    );
 
-    expect(caseNoteModal).toContain('Datensparsam protokollieren');
-    expect(caseNoteModal).toContain('keine Diagnosen, keine unnötigen Gesundheitsdetails');
-    expect(measureNoteForm).toContain('Datensparsam dokumentieren');
-    expect(measureNoteForm).toContain('Nächsten sauberen Schritt konkret erfassen');
+    expect(caseNoteMarkup).toContain('Datensparsam protokollieren');
+    expect(caseNoteMarkup).toContain('keine Diagnosen, keine unnötigen Gesundheitsdetails');
+    expect(measureMarkup).toContain('Datensparsam dokumentieren');
+    expect(measureMarkup).toContain('Nächsten sauberen Schritt konkret erfassen');
   });
 
   it('links Betriebsgrenzen from the user-facing README', () => {

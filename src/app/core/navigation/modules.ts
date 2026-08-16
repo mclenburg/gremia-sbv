@@ -66,10 +66,10 @@ export interface ModuleGroupDefinition {
 }
 
 export const moduleGroups: ModuleGroupDefinition[] = [
-  { id: 'core', label: 'Kernarbeit', description: 'Personen, Fallakten und Fristen.' },
+  { id: 'core', label: 'Kernarbeit', description: 'Personen, Fallakten, Fristen, Journal, Sitzungen und Dokumentation.' },
   { id: 'processes', label: 'SBV-Verfahren', description: 'BEM, Prävention, Beteiligung und Schutzverfahren.' },
   { id: 'tools', label: 'Werkzeuge', description: 'Vorlagen, Wissen, Kontakte und Berichte.' },
-  { id: 'administration', label: 'Administration', description: 'Compliance, Dokumentation und Einstellungen.' },
+  { id: 'administration', label: 'Administration', description: 'Compliance und betriebliche Datenschutzkontrollen.' },
 ];
 
 export const modules: ModuleDefinition[] = [
@@ -226,7 +226,7 @@ export const modules: ModuleDefinition[] = [
     shortTitle: 'Dokumentation',
     text: 'Sitzungen, Protokolle, Nachweise, Arbeitgeberpflichten, Inklusionsvereinbarung und weitere SBV-Dokumentation.',
     icon: ClipboardCheck,
-    group: 'administration'
+    group: 'core'
   },
   {
     id: 'reports',

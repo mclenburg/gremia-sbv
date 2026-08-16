@@ -73,18 +73,6 @@
       "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
     },
     {
-      "file": "tests/features/cases/casePreventionCssRegressionA.test.ts",
-      "category": "A",
-      "sourceAssertions": 16,
-      "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
-    },
-    {
-      "file": "tests/features/cases/casePreventionCssRegressionB.test.ts",
-      "category": "A",
-      "sourceAssertions": 16,
-      "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
-    },
-    {
       "file": "tests/platform/electron/rcWindowsPortableArtifact.test.ts",
       "category": "A",
       "sourceAssertions": 21,
@@ -105,20 +93,8 @@
     {
       "file": "tests/ui/review5UserGuidance.test.ts",
       "category": "A",
-      "sourceAssertions": 6,
-      "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
-    },
-    {
-      "file": "tests/platform/electron/sandboxedPreloadSelfContained.test.ts",
-      "category": "B",
-      "sourceAssertions": 12,
-      "rationale": "Der Test schützt eine statische Architektur-, Import-, Modul- oder Bereinigungsgrenze; eine Laufzeitausführung kann diese Grenze nicht gleichwertig belegen."
-    },
-    {
-      "file": "tests/features/sbv-control/sbvControlStructure.test.ts",
-      "category": "B",
-      "sourceAssertions": 13,
-      "rationale": "Der Test schützt eine statische Architektur-, Import-, Modul- oder Bereinigungsgrenze; eine Laufzeitausführung kann diese Grenze nicht gleichwertig belegen."
+      "sourceAssertions": 2,
+      "rationale": "Die verbleibenden Prüfungen betreffen README-Verweis und Dokumentpfad; das Dokumentationsartefakt selbst ist der Vertrag. UI-Hinweise werden gerendert geprüft."
     },
     {
       "file": "tests/features/participation/sbvParticipationViolationSchema.test.ts",
@@ -169,28 +145,10 @@
       "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
     },
     {
-      "file": "tests/architecture/sourceCleanupBuildContract.test.ts",
-      "category": "B",
-      "sourceAssertions": 2,
-      "rationale": "Der Test schützt eine statische Architektur-, Import-, Modul- oder Bereinigungsgrenze; eine Laufzeitausführung kann diese Grenze nicht gleichwertig belegen."
-    },
-    {
-      "file": "tests/platform/electron/sourceTextPlatformIndependence.test.ts",
-      "category": "B",
-      "sourceAssertions": 2,
-      "rationale": "Der Test schützt eine statische Architektur-, Import-, Modul- oder Bereinigungsgrenze; eine Laufzeitausführung kann diese Grenze nicht gleichwertig belegen."
-    },
-    {
       "file": "tests/architecture/testQualityMetrics.test.ts",
       "category": "A",
       "sourceAssertions": 3,
       "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
-    },
-    {
-      "file": "tests/features/reports/unifiedActivityReportCleanup.test.ts",
-      "category": "B",
-      "sourceAssertions": 2,
-      "rationale": "Der Test schützt eine statische Architektur-, Import-, Modul- oder Bereinigungsgrenze; eine Laufzeitausführung kann diese Grenze nicht gleichwertig belegen."
     },
     {
       "file": "tests/architecture/unitCoverageGate.test.ts",
@@ -205,22 +163,10 @@
       "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
     },
     {
-      "file": "tests/ui/visualQaContract.test.ts",
-      "category": "A",
-      "sourceAssertions": 11,
-      "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
-    },
-    {
       "file": "tests/architecture/windowsUnsignedBuild.test.ts",
       "category": "A",
       "sourceAssertions": 5,
       "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
-    },
-    {
-      "file": "tests/architecture/services/workflowViewsPureIndex.test.ts",
-      "category": "B",
-      "sourceAssertions": 8,
-      "rationale": "Der Test schützt eine statische Architektur-, Import-, Modul- oder Bereinigungsgrenze; eine Laufzeitausführung kann diese Grenze nicht gleichwertig belegen."
     },
     {
       "file": "tests/architecture/migrations/schema0051SbvOfficeElection.behavior.test.ts",
@@ -231,8 +177,8 @@
     {
       "file": "tests/architecture/rc.test.ts",
       "category": "A",
-      "sourceAssertions": 10,
-      "rationale": "Das Benutzerhandbuch und die sichtbaren Navigationsbezeichnungen sind selbst Bestandteil des stabilen Dokumentationsvertrags; der Test schützt ihre Synchronität."
+      "sourceAssertions": 7,
+      "rationale": "Das Benutzerhandbuch ist selbst Bestandteil des stabilen Dokumentationsvertrags. Sichtbare Navigationsbezeichnungen werden über importierte Moduldefinitionen statt Source-Text geprüft."
     }
   ]
 }

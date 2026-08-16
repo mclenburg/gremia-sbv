@@ -1,17 +1,14 @@
-import { readFileSync } from "node:fs";
-import { describe, expect, it } from "vitest";
+import { spawnSync } from 'node:child_process';
+import { describe, expect, it } from 'vitest';
 
-const workflow = readFileSync("src/app/workflowViews.tsx", "utf8");
+describe('workflowViews pure index', () => {
+  it('besteht die AST-basierte Architekturgrenze für reine Re-Exports', () => {
+    const result = spawnSync(process.execPath, ['scripts/check-workflow-view-index.cjs'], {
+      cwd: process.cwd(),
+      encoding: 'utf8',
+    });
 
-describe("0.8.11 workflowViews pure index", () => {
-  it("keeps workflowViews as import/re-export orchestration only", () => {
-    expect(workflow).not.toContain('from "./features/cases/CasesView"');
-    expect(workflow).toContain('from "./shared/theme/appTheme"');
-    expect(workflow).toContain("export {");
-    expect(workflow).toContain("export type");
-    expect(workflow).not.toMatch(/function\s+\w+/);
-    expect(workflow).not.toContain("useState");
-    expect(workflow).not.toContain("useEffect");
-    expect(workflow).not.toContain("return (");
+    expect(result.status, result.stderr || result.stdout).toBe(0);
+    expect(result.stdout).toContain('workflowViews-Architektur OK:');
   });
 });

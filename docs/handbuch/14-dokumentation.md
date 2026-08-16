@@ -4,6 +4,8 @@
 
 Die Ansicht **Dokumentation** ist der Arbeitsbereich für übergreifende SBV-Arbeit, die nicht vollständig in eine einzelne Fallakte gehört. Sie bündelt Nachweise, Gremiensitzungen, die Schwerbehindertenversammlung, Beschwerden, Protokolle, Arbeitgeberpflichten, die Inklusionsvereinbarung und Berichtsvorbereitung.
 
+In der Hauptnavigation gehört **Dokumentation** zur **Kernarbeit**. Der Bereich ist keine Administration: Er enthält laufende fachliche SBV-Arbeit und deren Eigenaufzeichnung. Unter **Administration** verbleibt das Compliance Center; **Einstellungen** stehen separat unter **Konfiguration**.
+
 Die Dokumentation ersetzt keine Fallakte. Sobald ein Vorgang wesentlich eine konkrete betroffene Person betrifft, gehört der personenbezogene Sachverhalt grundsätzlich in den passenden Fallaktenkontext. Übergreifende Struktur-, Organisations- und Nachweisthemen bleiben in der Dokumentation.
 
 Die Arbeitsbereiche sind:

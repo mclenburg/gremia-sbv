@@ -9,6 +9,8 @@ import {
 import { dispatchActivityJournalPrefill } from '../activity-journal/activityJournalEvents';
 import type { HelpRegistryId } from '../../shared/help/helpRegistry';
 import { IndustrialHelpButton } from '../../shared/help/IndustrialHelp';
+import { IndustrialButton } from '../../shared/components/IndustrialButton';
+import { SelectInput } from '../../shared/components/IndustrialForm';
 import {
   BodySection,
   DocumentsSection,
@@ -24,6 +26,7 @@ import {
 } from './ElectionExecutionSections';
 import { ArchiveSection } from './ElectionArchiveSection';
 import { useElectionWorkbench } from './useElectionWorkbench';
+import { electionKindLabels, electionProcedureLabels, electionStatusLabels } from './electionPresentation';
 
 type Section = 'setup' | 'body' | 'voters' | 'nominations' | 'documents' | 'ballots' | 'mail' | 'counting' | 'acceptance' | 'archive';
 
@@ -60,13 +63,25 @@ function ElectionSummary({ state }: { state: ReturnType<typeof useElectionWorkbe
     { label: 'Wahlvorgänge', value: state.elections.length },
     { label: 'Wahlberechtigte Snapshot', value: overview?.election.eligibleCountSnapshot ?? 0 },
     { label: 'Mindestschwelle', value: overview?.election.minimumThresholdMet ? 'erfüllt' : 'offen', tone: overview?.election.minimumThresholdMet ? 'default' : 'warning' },
-    { label: 'Verfahren', value: overview?.election.procedure ?? 'offen' },
-    { label: 'Status', value: overview?.election.status ?? '—' },
+    { label: 'Verfahren', value: overview?.election.procedure ? electionProcedureLabels[overview.election.procedure] : 'offen' },
+    { label: 'Status', value: overview?.election.status ? electionStatusLabels[overview.election.status] : '—' },
   ]} /></div>;
 }
 
 function ElectionSelector({ state }: { state: ReturnType<typeof useElectionWorkbench> }) {
-  return <div className="industrial-panel election-selector-panel"><label><span>Wahlvorgang</span><select className="industrial-select" value={state.selectedId} onChange={(event) => void state.select(event.target.value)}><option value="">—</option>{state.elections.map((election) => <option key={election.id} value={election.id}>{election.kind} · {election.electionDate ?? election.createdAt.slice(0, 10)}</option>)}</select></label></div>;
+  return (
+    <div className="industrial-panel election-selector-panel">
+      <SelectInput
+        label="Wahlvorgang"
+        value={state.selectedId}
+        options={[
+          { value: '', label: '—' },
+          ...state.elections.map((election) => ({ value: election.id, label: `${electionKindLabels[election.kind]} · ${election.electionDate ?? election.createdAt.slice(0, 10)}` })),
+        ]}
+        onValueChange={(value) => void state.select(value)}
+      />
+    </div>
+  );
 }
 
 export function ElectionWorkbench() {
@@ -120,9 +135,9 @@ export function ElectionWorkbench() {
           </div>
           {overview && (
             <div className="election-workflow-actions">
-              <button type="button" className="industrial-secondary-button" onClick={() => void journal()}>
+              <IndustrialButton variant="secondary" onClick={() => void journal()}>
                 Tätigkeit erfassen
-              </button>
+              </IndustrialButton>
             </div>
           )}
 

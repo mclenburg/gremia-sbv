@@ -101,8 +101,13 @@ test.describe('P12 core UI behavior contracts', () => {
     await expect(noteDialog.getByText(`Frist/Aufgabe: ${deadlineTitle}`)).toBeVisible();
 
     await noteDialog.getByRole('button', { name: 'Abbrechen' }).click();
-    await openView(page, 'Fristen');
-    await expect(page.getByText(deadlineTitle)).toHaveCount(0);
+    await expect(noteDialog).toBeHidden();
+    const deadlinePersisted = await page.evaluate(async (title) => {
+      const bridge = (window as unknown as { gremiaSbv: { deadlines: { list: () => Promise<Array<{ title?: string; confidentialTitle?: string }>> } } }).gremiaSbv;
+      const records = await bridge.deadlines.list();
+      return records.some((record) => record.title === title || record.confidentialTitle === title);
+    }, deadlineTitle);
+    expect(deadlinePersisted).toBe(false);
   });
 
   test('discards a staged undated task when the note is cancelled', async ({ page }) => {
@@ -182,7 +187,7 @@ test.describe('P12 core UI behavior contracts', () => {
 
   test('announces SBV resource create, update and delete operations to screen readers', async ({ page }) => {
     await page.goto('/');
-    await openView(page, 'Steuerung');
+    await openView(page, 'Dokumentation');
 
     const form = page.locator('.sbv-resource-form');
     await expect(form.getByLabel('Titel / Anlass')).toBeVisible();

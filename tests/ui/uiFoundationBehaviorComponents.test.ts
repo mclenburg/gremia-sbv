@@ -96,8 +96,9 @@ describe('UI-Fundament Block 4 Verhalten', () => {
     const groups = groupDashboardModules();
 
     expect(groups.map((group) => group.id)).toEqual(['core', 'processes', 'tools', 'administration']);
-    expect(groups.find((group) => group.id === 'core')?.modules.map((module) => module.id)).toEqual(['persons', 'cases', 'deadlines']);
-    expect(groups.find((group) => group.id === 'processes')?.modules.map((module) => module.id)).toContain('termination_hearing');
+    expect(groups.find((group) => group.id === 'core')?.modules.map((module) => module.id)).toEqual(['persons', 'cases', 'deadlines', 'activity_journal', 'meetings', 'sbv_control']);
+    expect(groups.find((group) => group.id === 'processes')?.modules.map((module) => module.id)).toEqual(['bem', 'prevention', 'participation_violations', 'participation', 'recruiting_participations', 'workplace_accommodation', 'equalization', 'termination_hearing', 'elections']);
+    expect(groups.find((group) => group.id === 'administration')?.modules.map((module) => module.id)).toEqual(['compliance']);
   });
 
   it('rendert das Dashboard als Tagessteuerung vor den Modulgruppen', () => {

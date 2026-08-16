@@ -2016,6 +2016,11 @@
       "path": "docs/handbuch/14-sbv-steuerung.md",
       "reason": "Handbuchbereich wurde fachlich in Dokumentation umbenannt und nach docs/handbuch/14-dokumentation.md überführt.",
       "type": "file"
+    },
+    {
+      "path": "src/app/features/elections/ElectionHelpDialog.tsx",
+      "reason": "Nicht mehr referenzierter Wahl-spezifischer Legacy-Hilfedialog; der Wahlworkflow nutzt die zentrale IndustrialHelp-Infrastruktur.",
+      "type": "file"
     }
   ]
 }

@@ -30,7 +30,7 @@ test('Wahltag checklist remains usable without persisting an individual vote', a
   await page.getByRole('button', { name: 'Wahlvorgang anlegen' }).click();
   await page.getByLabel('Bestätigt schwerbehindert').fill('5');
   await page.getByRole('button', { name: 'Prüfung speichern' }).click();
-  await page.getByRole('button', { name: 'Stimmabgabe', exact: true }).click();
+  await page.getByRole('navigation', { name: 'SBV-Wahl Arbeitsbereiche' }).getByRole('button', { name: /^Stimmabgabe\b/ }).click();
   await page.getByLabel('Unbeobachtete Kennzeichnung gewährleistet').check();
   await page.getByLabel('Wahlurne gesichert').check();
   await page.getByRole('button', { name: /Checkpunkte dokumentieren/i }).click();
@@ -40,7 +40,7 @@ test('Wahltag checklist remains usable without persisting an individual vote', a
 
 test('office workflow help is available for the release-critical SBV work areas', async ({ page }) => {
   await page.goto('/');
-  await nav(page).getByRole('button', { name: 'Steuerung', exact: true }).click();
+  await nav(page).getByRole('button', { name: 'Dokumentation', exact: true }).click();
   const sections = [
     ['Gremien', /Hilfe zu Gremiensitzungen öffnen/],
     ['Versammlung', /Hilfe zur Schwerbehindertenversammlung öffnen/],

@@ -13,7 +13,7 @@ import {
   type VisualSurfaceSample,
   type VisualTheme,
 } from '../src/app/shared/theme/visualQa';
-import type { Page } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 
 function shortcutForHelp() {
   return process.platform === 'darwin' ? 'Meta+H' : 'Control+H';
@@ -138,6 +138,131 @@ function visualProbeScript({ surfaceSelectors, badgeSelectors, controlSelectors 
   };
 }
 
+
+
+async function collectIndustrialWorkspaceContract(root: Locator) {
+  return root.evaluate((panel) => {
+    function isVisible(element: Element): element is HTMLElement {
+      if (!(element instanceof HTMLElement)) return false;
+      const style = getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      return style.visibility !== 'hidden' && style.display !== 'none' && rect.width > 0 && rect.height > 0;
+    }
+
+    const controls = Array.from(panel.querySelectorAll('input:not([type="checkbox"]):not([type="radio"]), select, textarea')).filter(isVisible);
+    const checkboxes = Array.from(panel.querySelectorAll('input[type="checkbox"]')).filter(isVisible);
+    const controlViolations = controls.flatMap((control) => {
+      const style = getComputedStyle(control);
+      const rect = control.getBoundingClientRect();
+      const field = control.closest('.industrial-field');
+      const allowedClass = control.classList.contains('industrial-input')
+        || control.classList.contains('industrial-select')
+        || control.classList.contains('industrial-textarea-input');
+      const problems: string[] = [];
+      if (!field) problems.push('nicht in .industrial-field');
+      if (!allowedClass) problems.push('kein zentrales Industrial-Control');
+      if ((Number.parseFloat(style.borderTopWidth) || 0) < 1) problems.push('kein sichtbarer Rahmen');
+      if (style.backgroundColor === 'transparent' || style.backgroundColor === 'rgba(0, 0, 0, 0)') problems.push('transparenter Control-Hintergrund');
+      if (rect.height < 32) problems.push(`zu geringe Höhe ${Math.round(rect.height)}px`);
+      return problems.map((problem) => `${control.tagName.toLowerCase()}[${control.getAttribute('aria-label') ?? control.getAttribute('name') ?? control.id ?? ''}]: ${problem}`);
+    });
+
+    const checkboxViolations = checkboxes.flatMap((checkbox) => checkbox.closest('.industrial-checkbox-field') ? [] : ['Checkbox nutzt nicht das zentrale CheckboxField']);
+    const fieldSpacingViolations = Array.from(panel.querySelectorAll('.industrial-field')).filter(isVisible).flatMap((field) => {
+      const first = field.firstElementChild;
+      const control = field.querySelector('input, select, textarea');
+      if (!(first instanceof HTMLElement) || !(control instanceof HTMLElement)) return [];
+      const firstRect = first.getBoundingClientRect();
+      const controlRect = control.getBoundingClientRect();
+      return controlRect.top - firstRect.bottom < 4 ? ['Label und Control kleben ohne ausreichenden Abstand'] : [];
+    });
+
+    const actionHeaderViolations = Array.from(panel.querySelectorAll('.industrial-form-section > .industrial-panel-header')).filter(isVisible).flatMap((header) => {
+      const actionRow = Array.from(header.children).find((child) => child.classList.contains('industrial-action-row'));
+      if (!(actionRow instanceof HTMLElement) || !isVisible(actionRow)) return [];
+      const buttons = Array.from(actionRow.querySelectorAll('button')).filter(isVisible);
+      if (buttons.length === 0) return [];
+      const headerRect = header.getBoundingClientRect();
+      const rightMost = Math.max(...buttons.map((button) => button.getBoundingClientRect().right));
+      return headerRect.right - rightMost > 32 ? [`Abschnittsaktionen nicht rechtsbündig (${Math.round(headerRect.right - rightMost)}px Abstand)`] : [];
+    });
+
+    return {
+      controlCount: controls.length + checkboxes.length,
+      controlViolations,
+      checkboxViolations,
+      fieldSpacingViolations,
+      actionHeaderViolations,
+      horizontalOverflow: panel.scrollWidth > panel.clientWidth + 1,
+    };
+  });
+}
+
+async function collectDocumentationWorkspaceContract(page: Page) {
+  return page.locator('.sbv-control-panel').evaluate((panel) => {
+    function isVisible(element: Element): element is HTMLElement {
+      if (!(element instanceof HTMLElement)) return false;
+      const style = getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      return style.visibility !== 'hidden' && style.display !== 'none' && rect.width > 0 && rect.height > 0;
+    }
+
+    const controls = Array.from(panel.querySelectorAll('input:not([type="checkbox"]):not([type="radio"]), select, textarea')).filter(isVisible);
+    const checkboxes = Array.from(panel.querySelectorAll('input[type="checkbox"]')).filter(isVisible);
+    const controlViolations = controls.flatMap((control) => {
+      const style = getComputedStyle(control);
+      const rect = control.getBoundingClientRect();
+      const field = control.closest('.industrial-field');
+      const allowedClass = control.classList.contains('industrial-input')
+        || control.classList.contains('industrial-select')
+        || control.classList.contains('industrial-textarea-input');
+      const problems: string[] = [];
+      if (!field) problems.push('nicht in .industrial-field');
+      if (!allowedClass) problems.push('kein zentrales Industrial-Control');
+      if ((Number.parseFloat(style.borderTopWidth) || 0) < 1) problems.push('kein sichtbarer Rahmen');
+      if (style.backgroundColor === 'transparent' || style.backgroundColor === 'rgba(0, 0, 0, 0)') problems.push('transparenter Control-Hintergrund');
+      if (rect.height < 32) problems.push(`zu geringe Höhe ${Math.round(rect.height)}px`);
+      return problems.map((problem) => `${control.tagName.toLowerCase()}[${control.getAttribute('aria-label') ?? control.getAttribute('name') ?? control.id ?? ''}]: ${problem}`);
+    });
+
+    const checkboxViolations = checkboxes.flatMap((checkbox) => {
+      const field = checkbox.closest('.industrial-checkbox-field');
+      return field ? [] : ['Checkbox nutzt nicht das zentrale CheckboxField'];
+    });
+
+    const fieldSpacingViolations = Array.from(panel.querySelectorAll('.industrial-field')).filter(isVisible).flatMap((field) => {
+      const first = field.firstElementChild;
+      const control = field.querySelector('input, select, textarea');
+      if (!(first instanceof HTMLElement) || !(control instanceof HTMLElement)) return [];
+      const firstRect = first.getBoundingClientRect();
+      const controlRect = control.getBoundingClientRect();
+      return controlRect.top - firstRect.bottom < 4 ? ['Label und Control kleben ohne ausreichenden Abstand'] : [];
+    });
+
+    const actionHeaderViolations = Array.from(panel.querySelectorAll('.sbv-control-section-heading-with-actions')).filter(isVisible).flatMap((header) => {
+      const buttons = Array.from(header.querySelectorAll('button')).filter(isVisible);
+      if (buttons.length === 0) return [];
+      const headerRect = header.getBoundingClientRect();
+      const rightMost = Math.max(...buttons.map((button) => button.getBoundingClientRect().right));
+      return headerRect.right - rightMost > 32 ? [`Aktionen nicht rechtsbündig (${Math.round(headerRect.right - rightMost)}px Abstand)`] : [];
+    });
+
+    const helpButton = panel.querySelector('[data-e2e="industrial-help-button"]');
+    const panelRect = panel.getBoundingClientRect();
+    const helpRect = helpButton instanceof HTMLElement ? helpButton.getBoundingClientRect() : null;
+
+    return {
+      controlCount: controls.length + checkboxes.length,
+      controlViolations,
+      checkboxViolations,
+      fieldSpacingViolations,
+      actionHeaderViolations,
+      horizontalOverflow: panel.scrollWidth > panel.clientWidth + 1,
+      helpButtonVisible: helpButton instanceof HTMLElement && isVisible(helpButton),
+      helpButtonRightGap: helpRect ? Math.round(panelRect.right - helpRect.right) : null,
+    };
+  });
+}
 
 
 async function collectModuleLayoutMetrics(page: Page) {
@@ -353,4 +478,97 @@ test.describe('Lifecycle- und Aktionskonsistenz', () => {
   });
 
 
+});
+
+test.describe('SBV-Dokumentation – gerenderter UI-Vertrag', () => {
+  const workspaces = [
+    { nav: /^Gremien\b/i, title: /Sitzungen & Tagesordnung/i },
+    { nav: /^Versammlung\b/i, title: /Schwerbehindertenversammlung/i },
+    { nav: /^Beschwerden\b/i, title: /Anregungen und Beschwerden/i },
+    { nav: /^Arbeitgeberpflichten\b/i, title: /Arbeitgeberpflichten/i },
+    { nav: /^Inklusionsvereinbarung\b/i, title: /Inklusionsvereinbarung/i },
+  ] as const;
+
+  for (const viewport of [
+    { width: 900, height: 900 },
+    { width: 1024, height: 800 },
+    { width: 1280, height: 800 },
+    { width: 1440, height: 900 },
+  ]) {
+    test(`prüft Controls, Aktionsköpfe und Overflow bei ${viewport.width}px`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      await setTheme(page, 'dark');
+      await page.goto('/');
+      await openRoute(page, 'Dokumentation');
+
+      for (const workspace of workspaces) {
+        await page.getByRole('button', { name: workspace.nav }).first().click();
+        const panel = page.locator('.sbv-control-panel').filter({ has: page.getByRole('heading', { name: workspace.title }) }).first();
+        await expect(panel).toBeVisible();
+
+        const contract = await collectDocumentationWorkspaceContract(page);
+        expect(contract.controlCount, `${workspace.nav}: besitzt reale Formularcontrols`).toBeGreaterThan(0);
+        expect(contract.controlViolations, `${workspace.nav}: alle sichtbaren Controls nutzen den gerenderten Industrial-Formularvertrag`).toEqual([]);
+        expect(contract.checkboxViolations, `${workspace.nav}: Checkboxen nutzen ausschließlich CheckboxField`).toEqual([]);
+        expect(contract.fieldSpacingViolations, `${workspace.nav}: Labels und Controls besitzen sichtbaren Abstand`).toEqual([]);
+        expect(contract.actionHeaderViolations, `${workspace.nav}: Abschnittsaktionen stehen im rechten Kopfbereich`).toEqual([]);
+        expect(contract.horizontalOverflow, `${workspace.nav}: kein horizontaler Panel-Overflow`).toBe(false);
+        expect(contract.helpButtonVisible, `${workspace.nav}: Hilfe ist sichtbar`).toBe(true);
+        expect(contract.helpButtonRightGap, `${workspace.nav}: Hilfe sitzt rechts im Panelkopf`).not.toBeNull();
+        expect(contract.helpButtonRightGap!, `${workspace.nav}: Hilfe sitzt rechts im Panelkopf`).toBeLessThanOrEqual(32);
+      }
+    });
+  }
+});
+
+
+
+test.describe('SBV-Wahlen – gerenderter UI- und Formularvertrag', () => {
+  const electionSections = [
+    'Einleitung',
+    'Wahlorgan',
+    'Wählerliste',
+    'Vorschläge',
+    'Vorbereitung',
+    'Stimmabgabe',
+    'Briefwahl',
+    'Auszählung',
+    'Annahme',
+    'Abschluss',
+  ] as const;
+
+  for (const viewport of [
+    { width: 900, height: 900 },
+    { width: 1024, height: 800 },
+    { width: 1280, height: 800 },
+    { width: 1440, height: 900 },
+  ]) {
+    test(`prüft den vollständigen Wahlworkflow bei ${viewport.width}px gegen den zentralen UI-Vertrag`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      await setTheme(page, 'dark');
+      await page.goto('/');
+      await openRoute(page, 'Wahlen');
+
+      await page.getByLabel('Wahlart').selectOption('extraordinary_no_sbv');
+      await page.getByLabel('Wahlgrund').fill('UI-Vertrag');
+      await page.getByRole('button', { name: 'Wahlvorgang anlegen' }).click();
+      await page.getByLabel('Bestätigt schwerbehindert').fill('50');
+      await page.getByLabel('Verfahren').selectOption('formal');
+      await page.getByRole('button', { name: 'Prüfung speichern' }).click();
+
+      const navigation = page.getByRole('navigation', { name: 'SBV-Wahl Arbeitsbereiche' });
+      for (const section of electionSections) {
+        await navigation.getByRole('button', { name: new RegExp(`^${section}\\b`) }).click();
+        const panel = page.locator('.election-workflow-panel').first();
+        await expect(panel.getByRole('heading', { name: section, exact: true })).toBeVisible();
+
+        const contract = await collectIndustrialWorkspaceContract(panel);
+        expect(contract.controlViolations, `${section}: sichtbare Eingaben nutzen ausschließlich IndustrialForm`).toEqual([]);
+        expect(contract.checkboxViolations, `${section}: Checkboxen nutzen CheckboxField`).toEqual([]);
+        expect(contract.fieldSpacingViolations, `${section}: Label und Controls besitzen sichtbaren Abstand`).toEqual([]);
+        expect(contract.actionHeaderViolations, `${section}: Abschnittsaktionen stehen rechts im Kopfbereich`).toEqual([]);
+        expect(contract.horizontalOverflow, `${section}: kein horizontaler Workflow-Overflow`).toBe(false);
+      }
+    });
+  }
 });
