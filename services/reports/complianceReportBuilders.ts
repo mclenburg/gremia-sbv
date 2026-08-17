@@ -14,7 +14,7 @@ import type {
   ReportType,
 } from "../../src/app/core/models/report.model.js";
 import { ProcessReportBuilders } from './processReportBuilders.js';
-import { buildSystemIntegrityContent, buildSystemIntegrityWarnings, collectSystemIntegrityState, count, formatBytes, markdownToReportHtml, metricCards, normalizeStatus, periodWhere, reportShell, reportText, rows, table } from './reportSupport.js';
+import { buildSystemIntegrityContent, buildSystemIntegrityWarnings, collectSystemIntegrityState, count, formatBytes, markdownToReportBlocks, metricCards, normalizeStatus, paragraph, periodWhere, reportShell, reportText, rows, section, table } from './reportSupport.js';
 import type { ReportBuildResult } from './reportSupport.js';
 
 export class ComplianceReportBuilders extends ProcessReportBuilders {
@@ -36,15 +36,15 @@ export class ComplianceReportBuilders extends ProcessReportBuilders {
         "Alte abgeschl. Fälle": oldClosedCases,
         "Offene Fristen in abgeschl. Fällen": closedWithOpenDeadlines,
       };
-      const content = `${metricCards(metrics)}<section class="box"><h2>Lösch-/Aufbewahrungsaktionen</h2>${table(
+      const content = [metricCards(metrics), section('Lösch-/Aufbewahrungsaktionen', [table(
         ["Aktion", "Anzahl", "Datensätze", "Dateien"],
         byAction.map((row) => [normalizeStatus(reportText(row.action_type)), row.value, row.affected_rows ?? 0, row.affected_files ?? 0]),
-      )}</section><section class="box"><h2>Prüfhinweis</h2><p>Der Bericht zeigt technische und fachliche Aufbewahrungsrisiken. Eine Löschung ist vor Ausführung rechtlich und fachlich zu prüfen; besonders SBV-Vertraulichkeit, laufende Ansprüche und Nachweispflichten sind zu berücksichtigen.</p></section>`;
+      )]), section('Prüfhinweis', [paragraph('Der Bericht zeigt technische und fachliche Aufbewahrungsrisiken. Eine Löschung ist vor Ausführung rechtlich und fachlich zu prüfen; besonders SBV-Vertraulichkeit, laufende Ansprüche und Nachweispflichten sind zu berücksichtigen.')])];
       return {
         title: "Lösch- und Aufbewahrungsbericht",
         warnings,
         metrics,
-        html: reportShell("Lösch- und Aufbewahrungsbericht", this.periodLabel(input), "Technisch vertraulich", content, warnings),
+        document: reportShell("Lösch- und Aufbewahrungsbericht", this.periodLabel(input), "Technisch vertraulich", content, warnings),
       };
     }
 
@@ -66,13 +66,13 @@ export class ComplianceReportBuilders extends ProcessReportBuilders {
         "Export/Backup": auditChain.exportEvents,
         "Exportnahe Ereignisse": exportEvents,
       };
-      const content = `${metricCards(metrics)}<section class="box"><h2>Aktionen</h2>${table(
+      const content = [metricCards(metrics), section('Aktionen', [table(
         ["Aktion", "Anzahl"],
         byAction.map((row) => [normalizeStatus(reportText(row.action)), row.value]),
-      )}</section><section class="box"><h2>Betroffene Bereiche</h2>${table(
+      )]), section('Betroffene Bereiche', [table(
         ["Bereich", "Anzahl"],
         bySubject.map((row) => [normalizeStatus(reportText(row.subject_type)), row.value]),
-      )}</section><section class="box"><h2>Hash-Chain</h2>${table(
+      )]), section('Hash-Chain', [table(
         ["Kennzahl", "Wert"],
         [
           ["Status", auditChain.ok ? "intakt" : "auffällig / Manipulationsverdacht"],
@@ -81,12 +81,12 @@ export class ComplianceReportBuilders extends ProcessReportBuilders {
           ["Sequenzbereich", auditChain.checked ? `${auditChain.firstSequence ?? "—"} bis ${auditChain.lastSequence ?? "—"}` : "keine Einträge"],
           ["Letzter Hash", auditChain.latestHash],
         ],
-      )}</section>${auditChain.issues.length ? `<section class="box"><h2>Audit-Chain-Befunde</h2>${table(["Sequenz", "Art", "Befund"], auditChain.issues.slice(0, 50).map((issue) => [issue.sequence, issue.kind, issue.message]))}</section>` : ""}`;
+      )]), ...(auditChain.issues.length ? [section('Audit-Chain-Befunde', [table(['Sequenz', 'Art', 'Befund'], auditChain.issues.slice(0, 50).map((issue) => [issue.sequence, issue.kind, issue.message]))])] : [])];
       return {
         title: "Audit-Log- und Zugriffsbericht",
         warnings,
         metrics,
-        html: reportShell("Audit-Log- und Zugriffsbericht", this.periodLabel(input), "Technisch vertraulich", content, warnings),
+        document: reportShell("Audit-Log- und Zugriffsbericht", this.periodLabel(input), "Technisch vertraulich", content, warnings),
       };
     }
 
@@ -114,11 +114,11 @@ export class ComplianceReportBuilders extends ProcessReportBuilders {
           Quelle: "Compliance Center",
           Exportformat: "verschlüsselter PDF-Report",
         },
-        html: reportShell(
+        document: reportShell(
           title,
           subtitle,
           classification,
-          markdownToReportHtml(body),
+          markdownToReportBlocks(body),
           warnings,
         ),
       };
@@ -141,7 +141,7 @@ export class ComplianceReportBuilders extends ProcessReportBuilders {
         title: "System- und Integritätsbericht",
         warnings,
         metrics,
-        html: reportShell("System- und Integritätsbericht", this.periodLabel(input), "Technisch vertraulich", content, warnings),
+        document: reportShell("System- und Integritätsbericht", this.periodLabel(input), "Technisch vertraulich", content, warnings),
       };
     }
 }

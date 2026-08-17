@@ -14,7 +14,7 @@ import type {
   ReportType,
 } from "../../src/app/core/models/report.model.js";
 import { count, formatDateTime, normalizeStatus, pragmaRows, reportText, rows, scalarText } from './reportCoreSupport.js';
-import { formatBytes, hasPlainDocumentExtension, isPathInside, listFilesRecursive, metricCards, table } from './reportRenderingSupport.js';
+import { formatBytes, hasPlainDocumentExtension, isPathInside, listFilesRecursive, metricCards, section, table, type PdfBlock } from './reportRenderingSupport.js';
 
 export function collectIntegrityStorage(dataDir: string) {
   const vaultPath = path.join(dataDir, "gremia-sbv.vault.sqlite");
@@ -153,17 +153,19 @@ export function systemIntegrityDetailRows(state: SystemIntegrityState): unknown[
   ];
 }
 
-export function buildSystemIntegrityContent(state: SystemIntegrityState, metrics: Record<string, number | string>): string {
+export function buildSystemIntegrityContent(state: SystemIntegrityState, metrics: Record<string, number | string>): PdfBlock[] {
   const validationRows = systemIntegrityValidationRows(state).map((row) => [row[0], row[1], row[2] === "GRÜN" ? "GRÜN" : row[2] === "GELB" ? "GELB" : "ROT"]);
   const { dataDir, documentDir, documentFiles, encryptedDocumentFiles, backupDir, backupFiles, exportDir, exportFiles, documentRows,
     plainDocumentFiles, missingDocumentFiles, orphanEncryptedDocumentFiles, incompleteDocumentCrypto, tempStatus, auditChain, migrationRows } = state;
-  return `${metricCards(metrics)}
-    <section class="box"><h2>Datenbankvalidierung</h2>${table(["Prüfung", "Befund", "Ampel"], validationRows)}</section>
-    <section class="box"><h2>Datenbankdetails</h2>${table(["Eigenschaft", "Wert"], systemIntegrityDetailRows(state))}</section>
-    <section class="box"><h2>Speicherorte</h2>${table(["Bereich", "Pfad/Anzahl"], [["Datenordner", dataDir], ["Dokumente", `${documentDir} (${documentFiles}; davon ${encryptedDocumentFiles.length} verschlüsselte Container)`], ["Backups", `${backupDir} (${backupFiles})`], ["Exporte", `${exportDir} (${exportFiles})`]])}</section>
-    <section class="box"><h2>Dokumentenspeicher</h2>${table(["Prüfung", "Anzahl"], [["Dokumentdatensätze", documentRows.length], ["Verschlüsselte .gsbvdoc-Dateien", encryptedDocumentFiles.length], ["Mögliche Klartextdateien", plainDocumentFiles.length], ["Fehlende Container", missingDocumentFiles], ["Container ohne Datenbankeintrag", orphanEncryptedDocumentFiles], ["Unvollständige Kryptometadaten", incompleteDocumentCrypto]])}</section>
-    <section class="box"><h2>Temporäre Klartext-Arbeitskopien</h2>${table(["Prüfung", "Wert"], [["Status", tempStatus.remaining ? "Bereinigung empfohlen" : "OK"], ["Dateien", tempStatus.remaining], ["Größe", formatBytes(tempStatus.bytesRemaining)], ["Ordner", tempStatus.root], ["Älteste Datei", tempStatus.oldestRemainingAt ? formatDateTime(tempStatus.oldestRemainingAt) : "—"]])}</section>
-    <section class="box"><h2>Audit-Log und Hash-Chain</h2>${table(["Kennzahl", "Wert"], [["Status", auditChain.ok ? "Hash-Chain intakt" : "Auffällig / Manipulationsverdacht"], ["Geprüfte Einträge", auditChain.checked], ["Lese-/Such-/Öffnungsereignisse", auditChain.readEvents], ["Änderungsereignisse", auditChain.changeEvents], ["Export-/Backupereignisse", auditChain.exportEvents], ["Letzter Hash", auditChain.latestHash]])}</section>
-    ${auditChain.issues.length ? `<section class="box"><h2>Audit-Chain-Befunde</h2>${table(["Sequenz", "Art", "Befund"], auditChain.issues.slice(0, 25).map((issue) => [issue.sequence, issue.kind, issue.message]))}</section>` : ""}
-    <section class="box"><h2>Letzte Migrationen</h2>${table(["Version", "Datei", "Ausgeführt", "Modus"], migrationRows.map((row) => [row.version, row.filename, formatDateTime(reportText(row.applied_at)), normalizeStatus(typeof row.mode === 'string' ? row.mode : undefined)]))}</section>`;
+  return [
+    metricCards(metrics),
+    section('Datenbankvalidierung', [table(['Prüfung', 'Befund', 'Ampel'], validationRows)]),
+    section('Datenbankdetails', [table(['Eigenschaft', 'Wert'], systemIntegrityDetailRows(state))]),
+    section('Speicherorte', [table(['Bereich', 'Pfad/Anzahl'], [['Datenordner', dataDir], ['Dokumente', `${documentDir} (${documentFiles}; davon ${encryptedDocumentFiles.length} verschlüsselte Container)`], ['Backups', `${backupDir} (${backupFiles})`], ['Exporte', `${exportDir} (${exportFiles})`]])]),
+    section('Dokumentenspeicher', [table(['Prüfung', 'Anzahl'], [['Dokumentdatensätze', documentRows.length], ['Verschlüsselte .gsbvdoc-Dateien', encryptedDocumentFiles.length], ['Mögliche Klartextdateien', plainDocumentFiles.length], ['Fehlende Container', missingDocumentFiles], ['Container ohne Datenbankeintrag', orphanEncryptedDocumentFiles], ['Unvollständige Kryptometadaten', incompleteDocumentCrypto]])]),
+    section('Temporäre Klartext-Arbeitskopien', [table(['Prüfung', 'Wert'], [['Status', tempStatus.remaining ? 'Bereinigung empfohlen' : 'OK'], ['Dateien', tempStatus.remaining], ['Größe', formatBytes(tempStatus.bytesRemaining)], ['Ordner', tempStatus.root], ['Älteste Datei', tempStatus.oldestRemainingAt ? formatDateTime(tempStatus.oldestRemainingAt) : '—']])]),
+    section('Audit-Log und Hash-Chain', [table(['Kennzahl', 'Wert'], [['Status', auditChain.ok ? 'Hash-Chain intakt' : 'Auffällig / Manipulationsverdacht'], ['Geprüfte Einträge', auditChain.checked], ['Lese-/Such-/Öffnungsereignisse', auditChain.readEvents], ['Änderungsereignisse', auditChain.changeEvents], ['Export-/Backupereignisse', auditChain.exportEvents], ['Letzter Hash', auditChain.latestHash]])]),
+    ...(auditChain.issues.length ? [section('Audit-Chain-Befunde', [table(['Sequenz', 'Art', 'Befund'], auditChain.issues.slice(0, 25).map((issue) => [issue.sequence, issue.kind, issue.message]))])] : []),
+    section('Letzte Migrationen', [table(['Version', 'Datei', 'Ausgeführt', 'Modus'], migrationRows.map((row) => [row.version, row.filename, formatDateTime(reportText(row.applied_at)), normalizeStatus(typeof row.mode === 'string' ? row.mode : undefined)]))]),
+  ];
 }

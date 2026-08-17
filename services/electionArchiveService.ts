@@ -5,7 +5,7 @@ import {
   SbvOfficeWorkflowDocumentAdapter,
   type SbvOfficeDocumentRecord,
 } from './sbvOfficeWorkflowDocumentAdapter.js';
-import { createSimpleTextPdf } from './documents/simpleTextPdf.js';
+import { createAccessibleTextPdf } from './documents/pdfDocumentRenderer.js';
 import type { GenerateElectionExecutionDocumentInput } from '../src/app/core/models/election-execution.model.js';
 
 const TEMPLATE_VERSION = '0.9.7-D.1';
@@ -49,7 +49,7 @@ export class ElectionArchiveService {
       documentClass: 'generated_document',
       templateVersion: TEMPLATE_VERSION,
       legalRuleVersion: election.legal_rule_version,
-      plain: createSimpleTextPdf(title, lines),
+      plain: await createAccessibleTextPdf(title, lines),
     });
   }
 
@@ -71,7 +71,7 @@ export class ElectionArchiveService {
       documentClass: 'generated_document',
       templateVersion: TEMPLATE_VERSION,
       legalRuleVersion: election.legal_rule_version,
-      plain: createSimpleTextPdf('PDF-Gesamtwahlakte', lines),
+      plain: await createAccessibleTextPdf('PDF-Gesamtwahlakte', lines),
     });
     const linkedCount = this.db.prepare<{ count: number }>(`
       SELECT COUNT(*) AS count FROM sbv_workflow_document_links

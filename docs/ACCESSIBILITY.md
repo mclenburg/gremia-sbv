@@ -83,6 +83,14 @@ npm run release:local-e2e
 
 Für neue Flows gilt: Tests sollen vorrangig über Rollen, Labels, Fokuszustände und fachliche Branches prüfen. Reine Stringtests sind nur zulässig, wenn der Text selbst der Accessibility-Vertrag ist, zum Beispiel bei sichtbaren Pflichtwarnungen oder Screenreader-Ankündigungen.
 
+### PDF-Dokumente
+
+PDFs sind Teil der barrierefreien Produktoberfläche. Der gemeinsame PDFKit-Renderer erzeugt getaggte Dokumente mit deutscher Dokumentsprache, Titelmetadaten und einer logischen Struktur aus Überschriften, Absätzen, Listen und Tabellen. Dekorative Flächen sowie Seitenfußzeilen sind Artefakte und unterbrechen die Lesereihenfolge nicht. Tabellenköpfe werden auf Folgeseiten wiederholt; Warnungen und Statusangaben sind zusätzlich ausgeschrieben und nie ausschließlich farbcodiert.
+
+Die eingebettete Noto-Sans-Schrift erhält Unicode-Zeichen unverändert. Das ist für rechtlich relevante Wahlakten verbindlich: Umlaute, Eszett, Namen und Nachweistexte dürfen für die PDF-Erzeugung nicht ersetzt oder vereinfacht werden.
+
+Automatisierte Funktionstests öffnen das fertige PDF mit einem unabhängigen Parser und prüfen Sprache, Titel, tatsächlichen Textinhalt, Mehrseitigkeit und Strukturrollen. Die visuelle Prüfung eines gerenderten mehrseitigen Dokuments ergänzt diese Tests, ersetzt aber keine Prüfung mit assistiver Technologie vor einer öffentlichen Veröffentlichung.
+
 ## Manuelle Prüfpunkte vor Veröffentlichung
 
 Vor einer öffentlichen Bereitstellung wird mindestens geprüft:

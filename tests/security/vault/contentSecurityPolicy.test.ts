@@ -1,7 +1,4 @@
 import { readFileSync } from 'node:fs';
-import os from 'node:os';
-import path from 'node:path';
-import { pathToFileURL } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { buildStartupSplashHtml } from '../../../electron/startupStatus';
 import {
@@ -9,7 +6,6 @@ import {
   buildRendererContentSecurityPolicy,
   isAllowedRendererNavigationUrl,
   isAllowedRendererRequestUrl,
-  isReportRenderDocumentUrl,
   isStartupSplashDocumentUrl,
 } from '../../../electron/security/rendererSecurityPolicy';
 
@@ -45,19 +41,6 @@ describe('Renderer-Sicherheitsgrenze', () => {
     expect(developmentCsp).toContain("script-src 'self' 'unsafe-eval'");
     expect(developmentCsp).toContain("style-src 'self' 'unsafe-inline'");
   });
-
-  it('erlaubt Inline-Styles ausschließlich für die lokale Report-Renderdatei', () => {
-    const reportRenderUrl = pathToFileURL(path.join(os.tmpdir(), 'vault', 'tmp', 'report-render', 'report.html')).toString();
-    const reportPreviewUrl = pathToFileURL(path.join(os.tmpdir(), 'vault', 'tmp', 'report-preview', 'report.html')).toString();
-    expect(isReportRenderDocumentUrl(reportRenderUrl)).toBe(true);
-    expect(isReportRenderDocumentUrl(reportPreviewUrl)).toBe(false);
-    expect(isReportRenderDocumentUrl('https://example.invalid/report-render/report.html')).toBe(false);
-
-    const reportCsp = buildRendererContentSecurityPolicy(true, true);
-    expect(reportCsp).toContain("style-src 'self' 'unsafe-inline'");
-    expect(reportCsp).not.toContain("script-src 'self' 'unsafe-eval'");
-  });
-
 
   it('erlaubt Inline-Styles für den intern markierten Splash, aber nicht für beliebige data-Dokumente', () => {
     const splashUrl = `data:text/html;charset=utf-8,${encodeURIComponent(buildStartupSplashHtml('app'))}`;

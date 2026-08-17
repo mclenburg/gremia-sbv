@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
+const licenseGenerator = require('../../../scripts/generate-third-party-licenses.cjs') as {
+  inferLicenseExpression(licenseText: string): string;
+};
 
 function readText(relativePath: string): string {
   return readFileSync(path.join(process.cwd(), relativePath), 'utf8');
@@ -33,5 +39,18 @@ describe('Third-Party-Lizenzprüfung 0.9.2y', () => {
     const mitLicense = path.join(licensesPath, 'MIT.txt');
     expect(existsSync(mitLicense)).toBe(true);
     expect(statSync(mitLicense).isFile()).toBe(true);
+  });
+
+  it('erkennt einen verteilten MIT-Lizenztext, wenn alte Pakete kein license-Metadatum liefern', () => {
+    const text = [
+      'MIT License',
+      'Permission is hereby granted, free of charge, to any person obtaining a copy',
+      'of this software and associated documentation files (the "Software"), to deal',
+      'in the Software without restriction.',
+      'THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.',
+    ].join('\n');
+
+    expect(licenseGenerator.inferLicenseExpression(text)).toBe('MIT');
+    expect(licenseGenerator.inferLicenseExpression('individuelle oder mehrdeutige Lizenz')).toBe('');
   });
 });

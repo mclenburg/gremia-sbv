@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "lockSha256": "d84333b061171c06fedcb0f00db6e87545ae216825e2429612966755562fe03f",
-  "packageCount": 588,
-  "inventorySha256": "1e0b1a1de68d51a83ebf61e8c4fd42e16219aff281ad87cda1d4d0d84bea3284",
-  "noticesSha256": "a4f0c7efbaa6f321791b76a4b560e7c78d62606c4b1df09f8f3b3c69fda41603",
+  "lockSha256": "dfff13f4b3f56c3f6529478953823db6c2f953ad54f38e4e2c8fc1077c5ccd98",
+  "packageCount": 596,
+  "inventorySha256": "ac8c3c11b7ea2fd425ff1421847559d87a7d2d2a9413754207b8488fe4317f0c",
+  "noticesSha256": "9feafba0c18e293b1d13b5dcd862923149c9bcf511cf152e548bb29d68432a95",
   "licenseFiles": [
     {
       "name": "0BSD.txt",
@@ -44,6 +44,10 @@
     {
       "name": "MPL-2.0.txt",
       "sha256": "d5c7539a52f5ca1abaa142c897501a5bc08948564765abf7e396b3ed89c5bc2d"
+    },
+    {
+      "name": "OFL-1.1.txt",
+      "sha256": "6b791808f4e3e8eab41763070650d0090132681ad9f6af36204b19a649a571ae"
     },
     {
       "name": "Python-2.0.txt",

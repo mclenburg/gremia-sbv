@@ -37,15 +37,8 @@ export function isStartupSplashDocumentUrl(rawUrl: string): boolean {
   }
 }
 
-export function isReportRenderDocumentUrl(rawUrl: string): boolean {
-  const url = parsedUrl(rawUrl);
-  if (!url || url.protocol !== 'file:') return false;
-  const normalizedPath = decodeURIComponent(url.pathname).replace(/\\/g, '/').toLowerCase();
-  return normalizedPath.includes('/tmp/report-render/');
-}
-
 export function allowsInlineTrustedStylesForDocumentUrl(rawUrl: string): boolean {
-  return isReportRenderDocumentUrl(rawUrl) || isStartupSplashDocumentUrl(rawUrl);
+  return isStartupSplashDocumentUrl(rawUrl);
 }
 
 export function buildRendererContentSecurityPolicy(packaged: boolean, allowInlineTrustedStyles = false): string {

@@ -121,7 +121,7 @@ export interface ReportExportHistoryRow extends DynamicReportRow {
 }
 
 export interface ReportBuildResult {
-  html: string;
+  document: import('./reportRenderingSupport.js').PdfDocumentDefinition;
   title: string;
   warnings: string[];
   metrics: Record<string, number | string>;

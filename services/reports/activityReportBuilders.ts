@@ -14,7 +14,7 @@ import type {
   ReportType,
 } from "../../src/app/core/models/report.model.js";
 import { ReportServiceCore } from './reportServiceCore.js';
-import { count, formatDate, formatDateTime, metricCards, normalizeStatus, nowIso, periodWhere, reportShell, reportText, rows, table } from './reportSupport.js';
+import { count, formatDate, formatDateTime, metricCards, normalizeStatus, nowIso, paragraph, periodWhere, reportShell, reportText, rows, section, table } from './reportSupport.js';
 import type { ReportBuildResult } from './reportSupport.js';
 
 export class ActivityReportBuilders extends ReportServiceCore {
@@ -107,22 +107,33 @@ export class ActivityReportBuilders extends ReportServiceCore {
       if (newCases + createdTotal + journalCount + violationCount < 3) warnings.push("Der Berichtszeitraum enthält sehr wenige Vorgänge. Vor externer Weitergabe ist die Rückrechenbarkeit besonders zu prüfen.");
   
       const hashPreview = projection.chain.latestHash.slice(0, 12);
-      const content = `
-        ${metricCards(metrics)}
-        <section class="box"><h2>Maßnahmen im Berichtszeitraum</h2>${table(["Maßnahmentyp", "Angelegt", "Abgeschlossen", "Wiedereröffnet", "Abgebrochen", "Gelöscht"], measureRows)}<p>Die Maßnahmenzähler wurden aus strukturierten Lifecycle-Ereignissen der verifizierten Audit-HashChain gebildet. Gelöschte Fachdaten bleiben dadurch in der Zählung des Berichtszeitraums berücksichtigt.</p></section>
-        <section class="box"><h2>Weitere Arbeitsfelder</h2>${table(["Arbeitsfeld", "Anzahl"], processRows)}</section>
-        <section class="box"><h2>Fallkategorien im Berichtszeitraum</h2>${table(["Kategorie", "Anzahl"], categories.map((row) => [normalizeStatus(reportText(row.category)), row.value]))}</section>
-        <section class="box"><h2>Fallstatus zum Stichtag</h2>${table(["Status", "Anzahl"], statuses.map((row) => [normalizeStatus(typeof row.status === 'string' ? row.status : undefined), row.value]))}</section>
-        <section class="box"><h2>Tätigkeitsjournal / SBV-Zeit</h2>${table(["Kategorie", "Einträge", "Minuten"], journalCategories.map((row) => [normalizeStatus(reportText(row.category)), row.count, row.minutes]))}<p>Die Werte sind Eigenaufzeichnungen der SBV und keine Arbeitgeber-Arbeitszeitabrechnung. Außerhalb der Regelarbeitszeit dokumentierte Einträge werden nur aggregiert ausgewiesen.</p></section>
-        <section class="box"><h2>Beteiligungsverstöße nach Status</h2>${table(["Status", "Anzahl"], violationStatuses.map((row) => [normalizeStatus(typeof row.status === 'string' ? row.status : undefined), row.value]))}</section>
-        <section class="box"><h2>Beteiligungsverstöße nach Eskalationsstufe</h2>${table(["Eskalationsstufe", "Anzahl"], violationStages.map((row) => [normalizeStatus(reportText(row.stage)), row.value]))}</section>
-        <section class="box"><h2>Datenqualität und Integritätsnachweis</h2><p><strong>Datenabdeckung:</strong> ${coverageLabel}${projection.coverage.lifecycleStartedAt ? ` · Lifecycle-Protokoll seit ${formatDate(projection.coverage.lifecycleStartedAt)}` : ''}.</p><p>HashChain vollständig geprüft: ja · geprüfte Einträge: ${projection.chain.checkedEntries} · letzte Sequenz: ${projection.chain.lastSequence ?? '—'} · letzter Hash: ${hashPreview}… · Chain-Version: ${projection.chain.chainVersion}.</p>${projection.ignoredBaselineEvents ? `<p>${projection.ignoredBaselineEvents} technische Baseline-Ereignisse wurden nicht als Tätigkeit gezählt.</p>` : ''}</section>
-        <section class="box"><h2>Datenschutz und Anonymisierung</h2><p>Dieser Tätigkeitsbericht enthält keine Namen, Aktenzeichen, Diagnosen, Dokumenttitel, Fall-IDs oder vertraulichen Freitexte. Bei kleinen Fallzahlen ist vor Weitergabe dennoch eine Rückrechenbarkeitsprüfung erforderlich.</p></section>`;
+      const content = [
+        metricCards(metrics),
+        section('Maßnahmen im Berichtszeitraum', [
+          table(['Maßnahmentyp', 'Angelegt', 'Abgeschlossen', 'Wiedereröffnet', 'Abgebrochen', 'Gelöscht'], measureRows),
+          paragraph('Die Maßnahmenzähler wurden aus strukturierten Lifecycle-Ereignissen der verifizierten Audit-HashChain gebildet. Gelöschte Fachdaten bleiben dadurch in der Zählung des Berichtszeitraums berücksichtigt.'),
+        ]),
+        section('Weitere Arbeitsfelder', [table(['Arbeitsfeld', 'Anzahl'], processRows)]),
+        section('Fallkategorien im Berichtszeitraum', [table(['Kategorie', 'Anzahl'], categories.map((row) => [normalizeStatus(reportText(row.category)), row.value]))]),
+        section('Fallstatus zum Stichtag', [table(['Status', 'Anzahl'], statuses.map((row) => [normalizeStatus(typeof row.status === 'string' ? row.status : undefined), row.value]))]),
+        section('Tätigkeitsjournal / SBV-Zeit', [
+          table(['Kategorie', 'Einträge', 'Minuten'], journalCategories.map((row) => [normalizeStatus(reportText(row.category)), row.count, row.minutes])),
+          paragraph('Die Werte sind Eigenaufzeichnungen der SBV und keine Arbeitgeber-Arbeitszeitabrechnung. Außerhalb der Regelarbeitszeit dokumentierte Einträge werden nur aggregiert ausgewiesen.'),
+        ]),
+        section('Beteiligungsverstöße nach Status', [table(['Status', 'Anzahl'], violationStatuses.map((row) => [normalizeStatus(typeof row.status === 'string' ? row.status : undefined), row.value]))]),
+        section('Beteiligungsverstöße nach Eskalationsstufe', [table(['Eskalationsstufe', 'Anzahl'], violationStages.map((row) => [normalizeStatus(reportText(row.stage)), row.value]))]),
+        section('Datenqualität und Integritätsnachweis', [
+          paragraph(`Datenabdeckung: ${coverageLabel}${projection.coverage.lifecycleStartedAt ? ` · Lifecycle-Protokoll seit ${formatDate(projection.coverage.lifecycleStartedAt)}` : ''}.`),
+          paragraph(`HashChain vollständig geprüft: ja · geprüfte Einträge: ${projection.chain.checkedEntries} · letzte Sequenz: ${projection.chain.lastSequence ?? '—'} · letzter Hash: ${hashPreview}… · Chain-Version: ${projection.chain.chainVersion}.`),
+          ...(projection.ignoredBaselineEvents ? [paragraph(`${projection.ignoredBaselineEvents} technische Baseline-Ereignisse wurden nicht als Tätigkeit gezählt.`)] : []),
+        ]),
+        section('Datenschutz und Anonymisierung', [paragraph('Dieser Tätigkeitsbericht enthält keine Namen, Aktenzeichen, Diagnosen, Dokumenttitel, Fall-IDs oder vertraulichen Freitexte. Bei kleinen Fallzahlen ist vor Weitergabe dennoch eine Rückrechenbarkeitsprüfung erforderlich.')]),
+      ];
       return {
         title: "Tätigkeitsbericht der SBV",
         warnings,
         metrics,
-        html: reportShell("Tätigkeitsbericht der SBV", this.periodLabel(input), "Anonymisiert", content, warnings),
+        document: reportShell("Tätigkeitsbericht der SBV", this.periodLabel(input), "Anonymisiert", content, warnings),
       };
     }
 
@@ -209,12 +220,12 @@ export class ActivityReportBuilders extends ReportServiceCore {
           closedWithOpenDeadlines ? "GELB" : "GRÜN",
         ],
       ];
-      const content = `${metricCards(metrics)}<section class="box"><h2>Prüfpunkte</h2>${table(["Prüfpunkt", "Befund", "Ampel"], checks)}</section>`;
+      const content = [metricCards(metrics), section('Prüfpunkte', [table(['Prüfpunkt', 'Befund', 'Ampel'], checks)])];
       return {
         title: "Datenschutz-Audit",
         warnings,
         metrics,
-        html: reportShell(
+        document: reportShell(
           "Datenschutz-Audit",
           this.periodLabel(input),
           "Intern vertraulich",
@@ -283,13 +294,13 @@ export class ActivityReportBuilders extends ReportServiceCore {
           `SELECT COUNT(*) AS value FROM cases WHERE status <> 'abgeschlossen'`,
         ),
       };
-      const content = `
-        ${metricCards(metrics)}
-        <section class="box"><h2>Fallstatus</h2>${table(
+      const content = [
+        metricCards(metrics),
+        section('Fallstatus', [table(
           ["Status", "Anzahl"],
           openByStatus.map((row) => [normalizeStatus(typeof row.status === 'string' ? row.status : undefined), row.value]),
-        )}</section>
-        <section class="box"><h2>Kritische Fristen</h2>${table(
+        )]),
+        section('Kritische Fristen', [table(
           ["Titel", "Fall", "Fällig", "Stufe", "Status"],
           criticalDeadlines.map((row) => [
             row.title,
@@ -298,20 +309,21 @@ export class ActivityReportBuilders extends ReportServiceCore {
             normalizeStatus(reportText(row.severity)),
             normalizeStatus(typeof row.status === 'string' ? row.status : undefined),
           ]),
-        )}</section>
-        <section class="box"><h2>Offene Fälle ohne Wiedervorlage</h2>${table(
+        )]),
+        section('Offene Fälle ohne Wiedervorlage', [table(
           ["Aktenzeichen", "Person/Pseudonym", "Status"],
           casesWithoutFollowup.map((row) => [
             row.case_number,
             row.display_name,
             row.status,
           ]),
-        )}</section>`;
+        )]),
+      ];
       return {
         title: "Fall- und Fristen-Controlling",
         warnings,
         metrics,
-        html: reportShell(
+        document: reportShell(
           "Fall- und Fristen-Controlling",
           this.periodLabel(input),
           "Intern vertraulich",

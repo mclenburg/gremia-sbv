@@ -450,8 +450,8 @@
     },
     {
       "path": "electron/ipc/reportIpc.ts",
-      "size": 6458,
-      "sha256": "01315b8b7c6b8f6dbf7b2f18047e6e04978d7bbc867d2d403b5206e086db0a8b"
+      "size": 5183,
+      "sha256": "7f79a080a207ab398a4fc6189795f47531300a7083a4e2023ffe9863c2cc0958"
     },
     {
       "path": "electron/ipc/retentionIpc.ts",
@@ -640,8 +640,8 @@
     },
     {
       "path": "electron/security/rendererSecurityPolicy.ts",
-      "size": 2731,
-      "sha256": "7d729b0678fb5b9eef696c0f1e048e70f1ebab2f27d3aefa3c5abdbc445b6285"
+      "size": 2385,
+      "sha256": "e1ed2ae376dd172459f6b04bb3d2df1b39cb8f215ba420b2adcb6d6d3a32e121"
     },
     {
       "path": "electron/startupPerformance.ts",
@@ -655,13 +655,13 @@
     },
     {
       "path": "package-lock.json",
-      "size": 299622,
-      "sha256": "d84333b061171c06fedcb0f00db6e87545ae216825e2429612966755562fe03f"
+      "size": 304473,
+      "sha256": "dfff13f4b3f56c3f6529478953823db6c2f953ad54f38e4e2c8fc1077c5ccd98"
     },
     {
       "path": "package.json",
-      "size": 17021,
-      "sha256": "d90931103d42b415c574d23938a99075b021483275e0016ae4213122a4bba242"
+      "size": 17147,
+      "sha256": "da224a0d6dc601fc8acd1166a09f9e2434acb7fc4800327b40a153c06501f02e"
     },
     {
       "path": "services/activityJournalPreferenceService.ts",
@@ -1034,9 +1034,14 @@
       "sha256": "ee7664357e63296992c52a0fc0e1419d48a363038efbb0558408830f9baed57e"
     },
     {
-      "path": "services/documents/simpleTextPdf.ts",
-      "size": 3518,
-      "sha256": "6029f2f6e6d612061aa96fb001212f90149420529a78513c374c6b10e97988e0"
+      "path": "services/documents/pdfDocumentDefinition.ts",
+      "size": 1916,
+      "sha256": "b2dbeba3cc8a5b7b1d5552e406ba6dee26efcfded9eaa710c884b2b1610cb000"
+    },
+    {
+      "path": "services/documents/pdfDocumentRenderer.ts",
+      "size": 12255,
+      "sha256": "868e35f2355a2543a7f071f72203a74761a3302f5b8faa5a5966af3b66a440ef"
     },
     {
       "path": "services/documentStoragePolicy.ts",
@@ -1065,8 +1070,8 @@
     },
     {
       "path": "services/electionArchiveService.ts",
-      "size": 15234,
-      "sha256": "aecbc403d32a25f6f023f1cda31e024820490d9a07ecf1dfb3bed48592f63d45"
+      "size": 15264,
+      "sha256": "fea7d9dd1f0d9513ac81883a365eea3a25d1d7079483ddf8c43572fa697ce5e8"
     },
     {
       "path": "services/electionDeadlinePolicy.ts",
@@ -1435,18 +1440,18 @@
     },
     {
       "path": "services/reports/activityReportBuilders.ts",
-      "size": 18316,
-      "sha256": "1fd3bce42f9cf2ccbf42c67f4b77c663e6996846c2f35deb2f2832e752a37839"
+      "size": 18143,
+      "sha256": "131d4650fd262e51bef4b888fceb68ff009691a69017a0956464adba086e13f9"
     },
     {
       "path": "services/reports/complianceReportBuilders.ts",
-      "size": 8872,
-      "sha256": "916912fa546d379add694ddc5583b6f5cf0fe37d12ac2d0fb30c87775e354ff3"
+      "size": 8761,
+      "sha256": "76a2611bb8a1095f826d5076f8607a9a925617a45a7e5ee9f8666ea96c40adb1"
     },
     {
       "path": "services/reports/processReportBuilders.ts",
-      "size": 18124,
-      "sha256": "7b9343ef1e26d1939c4775440e01a1ce08b3f642fb35e8c75e2f7101087f8df8"
+      "size": 17901,
+      "sha256": "5a8dd8206c5a6da0de31060153657fb47ae952cf442b427d1db9016090ed5cd7"
     },
     {
       "path": "services/reports/reportArchiveCrypto.ts",
@@ -1455,18 +1460,18 @@
     },
     {
       "path": "services/reports/reportCoreSupport.ts",
-      "size": 8278,
-      "sha256": "053566e1062f2fd44fa610b54da799b6727413233d56323acfbd75834cc1bb7d"
+      "size": 8335,
+      "sha256": "658936c310bd5fc33597ccb8208a0b9273762b90e4b2de361be341fe2f885059"
     },
     {
       "path": "services/reports/reportIntegritySupport.ts",
-      "size": 15428,
-      "sha256": "47a619e2e0c29a7f9a402d7c1ba571a554fa1d9da72ea337ca8192deae49110f"
+      "size": 15248,
+      "sha256": "81077e3e8b22aa416e39db22441637075b1d47544dae45bf78848f65ee219d30"
     },
     {
       "path": "services/reports/reportRenderingSupport.ts",
-      "size": 9830,
-      "sha256": "68c8f216ebdbebc6c3745dfde025269acf3b1d2b2b07c88fe72b6912b341abad"
+      "size": 3579,
+      "sha256": "19a4350905ca03e89d0e6869f4540289a0ae1540f09b17b84cadb4a2750000dd"
     },
     {
       "path": "services/reports/reportServiceCore.ts",
@@ -1530,8 +1535,8 @@
     },
     {
       "path": "services/sbvElectionDocumentService.ts",
-      "size": 5948,
-      "sha256": "04e8e52f3fe0601439b67450891a50df81bcab448c7e8e55cfe6dd1cebb55727"
+      "size": 7941,
+      "sha256": "c500f71acafda0f213b50125643603ebb5636748a64efc0d16ae061669cafdf8"
     },
     {
       "path": "services/sbvElectionService.ts",
@@ -1645,8 +1650,8 @@
     },
     {
       "path": "services/security/securitySessionService.ts",
-      "size": 3659,
-      "sha256": "0629455dc5d3ca3de68b0e549985e0328082e958d4b7e0358f7eca0135e42a85"
+      "size": 3641,
+      "sha256": "7c0abefac8717ca32688923023b73f0308c4320f423ad01e108df47553d11b07"
     },
     {
       "path": "services/security/securitySupport.ts",
@@ -1685,8 +1690,8 @@
     },
     {
       "path": "services/tempFileService.ts",
-      "size": 3970,
-      "sha256": "6528d5cb6835851a35ec32e14b92763a57ad526d9ea3897698e178d0b2ddc92f"
+      "size": 3931,
+      "sha256": "3fef0f5bf320a1464e3abfb35df9a4fa17b84ed8dc099da27d695c37b54c9fae"
     },
     {
       "path": "services/templateContextPolicy.ts",
@@ -3503,7 +3508,7 @@
     {
       "path": "dist/.vite/manifest.json",
       "size": 9643,
-      "sha256": "763dbbb18020d88b68f162e69cf9cd3ee8062d579b3f4b6b3ceba69bf089764d"
+      "sha256": "4b3b1b53c2abd5de72b2673b88ba9ac6a555f19c31924d4d97d34fa0ce9082f2"
     },
     {
       "path": "dist/assets/512x512-FFLOWpww.png",
@@ -3521,19 +3526,19 @@
       "sha256": "833b34c7bc78f24a04e2b34feb0d744d5255117234eaa691bbb4a37624c9311d"
     },
     {
-      "path": "dist/assets/BemView-M_lcdjAL.js",
+      "path": "dist/assets/BemView-CVIEtbun.js",
       "size": 2703,
-      "sha256": "381023ee8ef5b99250ec0063fb9791ef497be731e327d9b7a630e48e97553327"
+      "sha256": "9bb01a152984c69d569ac031eb2bd83aff7ec05cebd4da2c3a0c0efc4af369c0"
     },
     {
-      "path": "dist/assets/CasesView-CubQv_TA.js",
+      "path": "dist/assets/CasesView-BHyeHzdT.js",
       "size": 269196,
-      "sha256": "b1641264520aebf19c2484beb69ef8c341807fe331ee5d32daf9a38695f9e757"
+      "sha256": "edb8aa29b20827c60974bc1612e0a925e1fc4ac0e10d682288dd8170050b959c"
     },
     {
-      "path": "dist/assets/ComplianceView-sau4XWBw.js",
+      "path": "dist/assets/ComplianceView-D_eT5hb_.js",
       "size": 64461,
-      "sha256": "fce2749e528099bcf2e0e52ac9641cc0de213fe81e545679b7d2ff3de2ff818c"
+      "sha256": "cde47728f9554ea505ba713366f885b90cd7304673dc987ed23e38df37e69514"
     },
     {
       "path": "dist/assets/dates-D6WQa1jA.js",
@@ -3541,9 +3546,9 @@
       "sha256": "b71a8a36cfa8975e0273b2192d72f2bd9694b803df31db523701afd063ee05ea"
     },
     {
-      "path": "dist/assets/ElectionWorkbench-1znuYjji.js",
+      "path": "dist/assets/ElectionWorkbench-IdYMmvgN.js",
       "size": 38137,
-      "sha256": "0fb163500a9758c02faa5ff5307c8c53940b03a36150a6adf471c025a8480cc2"
+      "sha256": "aacbc386f685b7198af9ec92f201acd1dcc7378f64ebe0e9902708e60fdb5709"
     },
     {
       "path": "dist/assets/equalizationShared-itq54AIS.js",
@@ -3551,24 +3556,24 @@
       "sha256": "13c57021e0a05fb7f48814e1b3a82cfaf63b122d78d7ec702aef8f5adfece8a8"
     },
     {
-      "path": "dist/assets/EqualizationView-qPJxrUPE.js",
+      "path": "dist/assets/EqualizationView-Btw6hEwz.js",
       "size": 3401,
-      "sha256": "84f773259026a7c6e7c3efec457414921d01b17a4c5644f36766a46f752020d7"
+      "sha256": "ed6278e0d8cdceb4fae98fdc8e14a003c67decd24749192f9593062870e86dd6"
     },
     {
-      "path": "dist/assets/index-BtAb-ieq.css",
-      "size": 194392,
-      "sha256": "d9289d4f25aa585e2219f87dff27fcd2c14545f9442f071985bbee68ffbfb92f"
+      "path": "dist/assets/index-BBSiBQ5i.css",
+      "size": 194350,
+      "sha256": "8cad9d0d6e4528b37e761bd562add9b45688e944d14fb8f932665dea7c526f40"
     },
     {
-      "path": "dist/assets/index-DFeM74_B.js",
+      "path": "dist/assets/index-BhLtWB7w.js",
       "size": 221974,
-      "sha256": "df66e5083233138e491fe2bf0edee8521d70aadcae78b24559efc1d976023165"
+      "sha256": "a382b641b3cd4c4b74ff78dd3e33d6e07801ddce6ce71b278b73624bf81b99e2"
     },
     {
-      "path": "dist/assets/KnowledgeView-CQmWKV4V.js",
+      "path": "dist/assets/KnowledgeView-BtzrTzNC.js",
       "size": 25764,
-      "sha256": "f7cb4afdce38e8646a2c9eaa91cb20f89d1b412ae27158c6608ef29a257aec23"
+      "sha256": "5cd365ab9a65e77586d2a1c69f74be424266cffb97f43b68950dea7aad27a0e4"
     },
     {
       "path": "dist/assets/ModuleFrame-DMB-AEqU.js",
@@ -3581,9 +3586,9 @@
       "sha256": "da72be831b51b5850136d2115da42ec7bb7cd25f8e2e1b5bf00fbe319685da9e"
     },
     {
-      "path": "dist/assets/ParticipationView-CMoTuxBh.js",
+      "path": "dist/assets/ParticipationView-C9LpcyRP.js",
       "size": 8668,
-      "sha256": "8c452df53e053180da6494a4c6fbc4ae652321bb27f78bd900bd501837da0b75"
+      "sha256": "496a85fbd421ddab4f7fe579b46eceed81ac0e93fcc6f54cc202c17686861d91"
     },
     {
       "path": "dist/assets/preventionShared-BqWm2Aap.js",
@@ -3591,24 +3596,24 @@
       "sha256": "5f26b7694943af1ce72ffffd179e5d0309061feadb1c1cd8283fea998734de0b"
     },
     {
-      "path": "dist/assets/PreventionView-C4Z3kHSh.js",
+      "path": "dist/assets/PreventionView-D_nyBW3C.js",
       "size": 2526,
-      "sha256": "8116dcd6071d71bd5e4925880c18db3ae6bb99f0d878f53385758cf5c23b040b"
+      "sha256": "e6ba58b8b0f359b039cd00bf1e4896f2baaf6fd1f4213e519589439c997bec88"
     },
     {
-      "path": "dist/assets/ProcessOverview-BtxpwXRl.js",
+      "path": "dist/assets/ProcessOverview-Bdjl_8vq.js",
       "size": 2704,
-      "sha256": "5bf723bea50e25166787ce324f8a423cd726325e51214e4d7658dd669c112130"
+      "sha256": "d979a4cf3d0aade8498016431542c0800da359c78056a18e0b698437b6394f7c"
     },
     {
-      "path": "dist/assets/RecruitingParticipationsView-CZkFIeV-.js",
+      "path": "dist/assets/RecruitingParticipationsView-CfJtldW0.js",
       "size": 19479,
-      "sha256": "2e70e75c0bbe081744e7cd9c6d2369d912c63a3a962c7c1cccc34e65407aa155"
+      "sha256": "652aec0b55f47628e7552da6790349a224f95d24b242e0d4ddfe65d2ca1c69ce"
     },
     {
-      "path": "dist/assets/ReportsView-TemWlglq.js",
+      "path": "dist/assets/ReportsView-BHDM9ywq.js",
       "size": 5999,
-      "sha256": "d49dfe773fb876bc0c6bd4c854d664c5a625f8c500d0069a8055c096b7aaa559"
+      "sha256": "739942a21bc1bef968abd01f0f682a86e6b2d72981cdb1cfe9a3cb41e847a022"
     },
     {
       "path": "dist/assets/rolldown-runtime-CbXtAM7H.js",
@@ -3616,19 +3621,19 @@
       "sha256": "bbf7c5086ae414dc3f33777e3eebf16ea8631325b8bb4690d25091c03567f31a"
     },
     {
-      "path": "dist/assets/SbvControlView-BB6IjnsZ.js",
+      "path": "dist/assets/SbvControlView-BZsrskGU.js",
       "size": 64570,
-      "sha256": "d851759c804b30484301f6743333aa81a3160db6fd9d63c198ef7c76a74768f2"
+      "sha256": "e27f1e6925e730fca352ac97e631f15926cd7326624c2f5858dee628e191e367"
     },
     {
-      "path": "dist/assets/SettingsHub-CPDQcSgl.js",
+      "path": "dist/assets/SettingsHub-COcREY_L.js",
       "size": 9283,
-      "sha256": "c8379ca8a98ab52997ee4095834f554fd11c6cf2eb0630b25de45205c768dae2"
+      "sha256": "b1f031770ecda13606359777ca66218a15af49f102638dcdb2bc2809aa238700"
     },
     {
-      "path": "dist/assets/TemplatesView-CCqZ2eAh.js",
+      "path": "dist/assets/TemplatesView-9giwrgRs.js",
       "size": 16455,
-      "sha256": "d437316e9fed5e9088aa55501fe309cdbbf221d2c19dd17b70f72e515fa5943c"
+      "sha256": "f763de74a78adf5b54d66589ef02edb6bfb84de45add619c5e09ff3d63608618"
     },
     {
       "path": "dist/assets/terminationShared-BGFAg4La.js",
@@ -3636,9 +3641,9 @@
       "sha256": "99fdb6a2ce0416dbc10701da9cad5edf0775401bc85e98010b524d1c18615c2d"
     },
     {
-      "path": "dist/assets/TerminationView-CpmvbdOC.js",
+      "path": "dist/assets/TerminationView-D7Ax7mix.js",
       "size": 3344,
-      "sha256": "296890c05cd5088b88cf754e8f20e87644cb30b6a761c1029ca7a0bc3a1a2706"
+      "sha256": "678da80272077d7daa84dd9f72f678acc760d0ba8fda6c345d12f6fa3973d74e"
     },
     {
       "path": "dist/assets/vendor-OhTwI9by.js",
@@ -3653,7 +3658,7 @@
     {
       "path": "dist/index.html",
       "size": 1190,
-      "sha256": "c874ac5c07475956da1299c86d9c6efef57fdd93c693848ba4a4c629490ed022"
+      "sha256": "d321518574a19631bf29993adeef515e54aa0403de147cb7c91a949cb0d122fc"
     },
     {
       "path": "dist-electron/electron/applicationServiceDependencies.js",
@@ -3746,11 +3751,6 @@
       "sha256": "6e7fe9a56dfa66ef62c2ba885f1f57e46d03b7b864698d1b255467ad7d6f1c68"
     },
     {
-      "path": "dist-electron/electron/ipc/invokeIpc.js",
-      "size": 1245,
-      "sha256": "fd1e2064ff7c0b0fb5b34e20fb53a2730ade9fbc0e0633d12dd27bc273f50343"
-    },
-    {
       "path": "dist-electron/electron/ipc/ipcHandler.js",
       "size": 7353,
       "sha256": "b66187e8363e6de3b0adf24088f66641f332a042209195160944a79d6a852d57"
@@ -3787,8 +3787,8 @@
     },
     {
       "path": "dist-electron/electron/ipc/reportIpc.js",
-      "size": 8065,
-      "sha256": "4aa4f5f2b4f07bd45cd5a5a185086864781b1dc912e372ff078e7fb344e14e66"
+      "size": 5344,
+      "sha256": "6804e494f27c4995240b7d5b0e448cafed87d07b4706af49d43d45dae3591833"
     },
     {
       "path": "dist-electron/electron/ipc/retentionIpc.js",
@@ -3972,8 +3972,8 @@
     },
     {
       "path": "dist-electron/electron/security/rendererSecurityPolicy.js",
-      "size": 3348,
-      "sha256": "8f2f4a1318f74addbc55f856af9a4c04501de8e211a6881795601632851f8134"
+      "size": 2948,
+      "sha256": "0779965cbfb9d448bd46115975fb103826ceafdbde1c705e9510de6d50055d4d"
     },
     {
       "path": "dist-electron/electron/startupPerformance.js",
@@ -4019,11 +4019,6 @@
       "path": "dist-electron/services/activityReportProjectionService.js",
       "size": 7665,
       "sha256": "4f21bec07e0c2dca44571c9485ee16aea1bd5354f5fcb34c69a5ad00a5aeac6c"
-    },
-    {
-      "path": "dist-electron/services/activityReportService.js",
-      "size": 7043,
-      "sha256": "7f4db09ba7055320f6c1618891c55164b5af7bfdc249bae4257ecd911bd331b4"
     },
     {
       "path": "dist-electron/services/appSchema.js",
@@ -4366,9 +4361,14 @@
       "sha256": "8c783e0b73a1f495861f054e7644610a0ac8196d60af49401aa1f0f76f2ddcee"
     },
     {
-      "path": "dist-electron/services/documents/simpleTextPdf.js",
-      "size": 3663,
-      "sha256": "746cb43361c33a986516b5e99b4577b78680fce8ab0558c5812a908d1fdd936c"
+      "path": "dist-electron/services/documents/pdfDocumentDefinition.js",
+      "size": 1333,
+      "sha256": "6310aac55e52c8e181efd2ef5ef3da48bf4a3fd22db16b6c54d97e346ebb31b8"
+    },
+    {
+      "path": "dist-electron/services/documents/pdfDocumentRenderer.js",
+      "size": 13640,
+      "sha256": "65a4e93213186ff22de5ba1b2a4289381a67fe1f2ed22293673eed2d1c2fa843"
     },
     {
       "path": "dist-electron/services/documentStoragePolicy.js",
@@ -4397,8 +4397,8 @@
     },
     {
       "path": "dist-electron/services/electionArchiveService.js",
-      "size": 14726,
-      "sha256": "03f2f2abb1ecebd8dd6d2857bf11082d3e7afd1430589622b87210a963730d80"
+      "size": 14770,
+      "sha256": "b02639f90b991b424d4119807db10a3355de6a41cc3bfffc66061b8ee6c31d1d"
     },
     {
       "path": "dist-electron/services/electionDeadlinePolicy.js",
@@ -4767,18 +4767,18 @@
     },
     {
       "path": "dist-electron/services/reports/activityReportBuilders.js",
-      "size": 19178,
-      "sha256": "66e1b1cfaad0f33ea19e27f326104aa39dc252b3db8d1b08095a62629a887451"
+      "size": 19635,
+      "sha256": "f7a5e926a6b3bd51a59a10cf699194a075836a8879ceb9cba7736bf38218b91a"
     },
     {
       "path": "dist-electron/services/reports/complianceReportBuilders.js",
-      "size": 8988,
-      "sha256": "63572ed3c198ba0b073403d459e04f9adc661c86d59c21d8ddee8dbf514eacac"
+      "size": 9071,
+      "sha256": "5d77ef1b3fe9f18519bc425c8503ffe2676b8fdab60743c30e2c07e931122c4e"
     },
     {
       "path": "dist-electron/services/reports/processReportBuilders.js",
-      "size": 19217,
-      "sha256": "44b758af556048dbfcac47c93965b8dd2567b06e1bceb4c3855241179a176610"
+      "size": 19538,
+      "sha256": "bce7e0b500ab2ae93fa33c361307334585508fb59321aaf35e4e5ace9a50e5e8"
     },
     {
       "path": "dist-electron/services/reports/reportArchiveCrypto.js",
@@ -4792,13 +4792,13 @@
     },
     {
       "path": "dist-electron/services/reports/reportIntegritySupport.js",
-      "size": 16984,
-      "sha256": "72f7074d9d69d37ab2d520c3d473ae02d538db94763c411cd4e6b06a3d1d4fff"
+      "size": 17078,
+      "sha256": "fb894d37b8d90b674c41c8b8d8fd1c2cddd4b296c3adf034edec26131768325e"
     },
     {
       "path": "dist-electron/services/reports/reportRenderingSupport.js",
-      "size": 10497,
-      "sha256": "9b43d22a686fde29d15147578e73e05238ca8736959157b69fa714ed735bbf57"
+      "size": 4913,
+      "sha256": "226a8a3324d186923df141cd3c18329ac548f1801101dca77ac3a25d17998dbc"
     },
     {
       "path": "dist-electron/services/reports/reportServiceCore.js",
@@ -4862,8 +4862,8 @@
     },
     {
       "path": "dist-electron/services/sbvElectionDocumentService.js",
-      "size": 6161,
-      "sha256": "465017b24e0a1d607aad4596819aca5bd4226e4b254836f994de5f13c3126c55"
+      "size": 8477,
+      "sha256": "53a4ecaca7dbb0c64d9c743eeb9d772fb879c252164275f7d63787007d155f82"
     },
     {
       "path": "dist-electron/services/sbvElectionService.js",
@@ -5017,8 +5017,8 @@
     },
     {
       "path": "dist-electron/services/tempFileService.js",
-      "size": 4271,
-      "sha256": "697393fbed2852cf520f7ebfe40a3ead3f506a3e035e85dd4f9afff3fad10935"
+      "size": 4250,
+      "sha256": "a541a9cbe33da55ced391a66b6c58b5ab2e0f4444760f8351111765b464c8360"
     },
     {
       "path": "dist-electron/services/templateContextPolicy.js",
@@ -5044,11 +5044,6 @@
       "path": "dist-electron/services/templateService.js",
       "size": 13321,
       "sha256": "dd01cdff47611ecd6e636ce8eed54f55a5dace64c0191c24b3cb3f1315c30db1"
-    },
-    {
-      "path": "dist-electron/services/terminationHearingService.js",
-      "size": 2287,
-      "sha256": "2cfb779b9ccb7aaa435a4ea7497f4560acef6219bee299b5c92c31a9a394725f"
     },
     {
       "path": "dist-electron/services/terminationPrivacyPolicy.js",
@@ -5281,11 +5276,6 @@
       "sha256": "d43aa81f5bc89faa359e0f97c814ba25155591ff078fbb9bfd40f8c7c9683230"
     },
     {
-      "path": "dist-electron/src/app/core/models/termination-hearing.model.js",
-      "size": 77,
-      "sha256": "d43aa81f5bc89faa359e0f97c814ba25155591ff078fbb9bfd40f8c7c9683230"
-    },
-    {
       "path": "dist-electron/src/app/core/models/termination.model.js",
       "size": 77,
       "sha256": "d43aa81f5bc89faa359e0f97c814ba25155591ff078fbb9bfd40f8c7c9683230"
@@ -5294,16 +5284,6 @@
       "path": "dist-electron/src/app/core/models/workplace-accommodation.model.js",
       "size": 1115,
       "sha256": "0bdafe809199ac805960bf42f0c201f8325f2cefeeb7cd2e03ca1701163eeb41"
-    },
-    {
-      "path": "dist-electron/tests/publicReleaseReviewP15l.test.ts",
-      "size": 1619,
-      "sha256": "41443d2cff32eb778e6689cd9840079954d9a5d7d7136e4e9908606eea369b50"
-    },
-    {
-      "path": "dist-electron/tests/releaseReadinessP15.test.ts",
-      "size": 3296,
-      "sha256": "383b9e0067a5f41cb42d1e772a7458be2b929302502a067b0004adb4d60e39a4"
     }
   ]
 }

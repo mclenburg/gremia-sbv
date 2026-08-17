@@ -1,12 +1,11 @@
 import { IPC_CHANNELS, registerIpcHandler } from './ipcHandler.js';
 import type { IpcMain } from "electron";
-import { BrowserWindow, shell } from "electron";
-import { pathToFileURL } from "node:url";
+import { shell } from "electron";
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { registerRendererSecurityPolicy } from "../security/electronSecurity.js";
 import type { SecurityService } from "../../services/securityService.js";
 import type { ApplicationServices } from '../applicationServices.js';
+import { createPdfDocument } from '../../services/documents/pdfDocumentRenderer.js';
 import { normalizeReportType } from "../../src/app/core/models/report.model.js";
 import { decryptReportArchive, encryptReportArchive } from "../../services/reports/reportArchiveCrypto.js";
 import type {
@@ -21,58 +20,6 @@ import {
   ensurePathInside,
   sanitizeDialogFileName,
 } from "./ipcValidation.js";
-
-async function htmlToPdf(
-  html: string,
-  filePath: string,
-  security: SecurityService,
-): Promise<Buffer> {
-  const htmlBuffer = Buffer.from(html, "utf8");
-  let tempHtmlPath: string;
-  try {
-    tempHtmlPath = security.writeTemporaryFile(
-      "report-render",
-      `${path.basename(filePath, ".gsbvpdf")}.html`,
-      htmlBuffer,
-      "render",
-    );
-  } finally {
-    destroyBuffer(htmlBuffer);
-  }
-
-  const win = new BrowserWindow({
-    show: false,
-    width: 1240,
-    height: 1754,
-    webPreferences: {
-      contextIsolation: true,
-      nodeIntegration: false,
-      sandbox: true,
-    },
-  });
-
-  registerRendererSecurityPolicy(win);
-
-  try {
-    await win.loadURL(pathToFileURL(tempHtmlPath).toString());
-    return await win.webContents.printToPDF({
-      printBackground: true,
-      preferCSSPageSize: true,
-      margins: { top: 0, bottom: 0, left: 0, right: 0 },
-      pageSize: "A4",
-    });
-  } finally {
-    win.destroy();
-    try {
-      // Temp-Datei enthält Berichtsinhalte und wird deshalb sofort wieder entfernt.
-      await import("node:fs/promises").then((fs) =>
-        fs.unlink(tempHtmlPath).catch(() => undefined),
-      );
-    } catch {
-      // no-op
-    }
-  }
-}
 
 function destroyBuffer(buffer?: Buffer): void {
   try { buffer?.fill(0); } catch { /* Best-Effort-Speicherhygiene. */ }
@@ -143,7 +90,7 @@ export function registerReportIpc(
         const reportInput = assertRecordInput<GenerateReportInput>(input, "reports:generate");
         const built = reports.build(reportInput);
         const target = reports.createExportTarget(built.title);
-        const pdf = await htmlToPdf(built.html, target.filePath, security);
+        const pdf = await createPdfDocument(built.document);
         const databaseKey = security.getActiveDatabaseKey();
         try {
           const encryptedEnvelope = encryptReportArchive(pdf, target.fileName, databaseKey);

@@ -11,7 +11,6 @@ import path from "node:path";
 export type TempFileScope =
   | "document-preview"
   | "report-preview"
-  | "report-render"
   | "misc";
 
 export interface TempFileCleanupResult {
@@ -31,7 +30,6 @@ const DEFAULT_MAX_AGE_MS = 10 * 60 * 1000;
 const TEMP_SCOPES: TempFileScope[] = [
   "document-preview",
   "report-preview",
-  "report-render",
   "misc",
 ];
 

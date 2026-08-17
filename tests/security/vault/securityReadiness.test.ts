@@ -31,14 +31,14 @@ describe("Security readiness", () => {
   it("verankert Renderer-CSP und gehärtete Electron-WebPreferences", () => {
     const runtime = readFileSync("electron/appRuntime.ts", "utf8");
     const runtimeSupport = readFileSync("electron/appRuntimeSupport.ts", "utf8");
-    const reportIpc = readFileSync("electron/ipc/reportIpc.ts", "utf8");
+    const startup = readFileSync("electron/main.ts", "utf8");
     const electronSecurity = readFileSync("electron/security/electronSecurity.ts", "utf8");
 
     expect(runtime).toContain("registerSessionSecurityPolicy()");
     expect(electronSecurity).toContain("buildRendererContentSecurityPolicy");
     expect(electronSecurity).toContain("Content-Security-Policy");
 
-    for (const source of [runtimeSupport, reportIpc]) {
+    for (const source of [runtimeSupport, startup]) {
       expect(source).toContain("contextIsolation: true");
       expect(source).toContain("nodeIntegration: false");
       expect(source).toContain("sandbox: true");

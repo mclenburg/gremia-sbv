@@ -90,7 +90,7 @@ export class SecuritySessionService extends VaultCredentialService {
     }
 
   writeTemporaryFile(
-      scope: "document-preview" | "report-preview" | "report-render" | "misc",
+      scope: "document-preview" | "report-preview" | "misc",
       originalFileName: string,
       content: Buffer,
       prefix?: string,

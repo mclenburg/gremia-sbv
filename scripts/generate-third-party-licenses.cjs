@@ -178,6 +178,19 @@ function normalizeLicensesField(pkg) {
   return '';
 }
 
+function inferLicenseExpression(licenseText) {
+  const normalized = String(licenseText || '').replace(/\s+/gu, ' ').trim();
+  if (!normalized) return '';
+  if (
+    /Permission is hereby granted, free of charge, to any person obtaining a copy/iu.test(normalized) &&
+    /THE SOFTWARE IS PROVIDED ["']AS IS["']/iu.test(normalized)
+  ) return 'MIT';
+  if (/Apache License,? Version 2\.0/iu.test(normalized)) return 'Apache-2.0';
+  if (/SIL OPEN FONT LICENSE Version 1\.1/iu.test(normalized)) return 'OFL-1.1';
+  if (/Mozilla Public License Version 2\.0/iu.test(normalized)) return 'MPL-2.0';
+  return '';
+}
+
 function chooseLicenseExpression(expression) {
   const normalized = String(expression || '').replace(/^\((.*)\)$/u, '$1').trim();
   if (!/\sOR\s/u.test(normalized)) {
@@ -355,18 +368,18 @@ async function resolvePackageRecord(lockPackagePath, meta) {
   }
 
   const packageJson = { ...tarPackageJson, ...registryMetadata, ...fallback.pkg };
-  const licenseExpression = normalizeLicensesField(packageJson) || normalizeLicensesField(tarPackageJson) || normalizeLicensesField(fallback.pkg);
-
-  if (!licenseExpression) {
-    throw new Error(`Keine Lizenzangabe für ${name}@${version} gefunden.`);
-  }
-
   const licenseEntry = findFirstMatchingEntry(tarballEntries, (baseName) => /^licen[cs]e(?:\.|$)|^copying(?:\.|$)/iu.test(baseName));
   const noticeEntry = findFirstMatchingEntry(tarballEntries, (baseName) => /^notice(?:\.|$)|^copyright(?:\.|$)/iu.test(baseName));
   const readmeEntry = findFirstMatchingEntry(tarballEntries, (baseName) => /^readme(?:\.|$)/iu.test(baseName));
   const licenseText = fallback.licenseText || textFromEntry(licenseEntry);
   const noticeText = fallback.noticeText || textFromEntry(noticeEntry);
   const readmeText = textFromEntry(readmeEntry);
+  const licenseExpression = normalizeLicensesField(packageJson) || normalizeLicensesField(tarPackageJson) || normalizeLicensesField(fallback.pkg) || inferLicenseExpression(licenseText);
+
+  if (!licenseExpression) {
+    throw new Error(`Keine Lizenzangabe für ${name}@${version} gefunden.`);
+  }
+
   const selectedLicense = chooseLicenseExpression(licenseExpression);
   const copyrightHints = extractCopyrightHints(licenseText, noticeText, readmeText, packageJson.author?.name || packageJson.author || '');
 
@@ -540,7 +553,7 @@ async function main() {
   console.log(`Wrote copyright notices to ${path.relative(root, noticesPath)}.`);
 }
 
-module.exports = { isGenerationCurrent, mapWithConcurrency, packageRecordsFromLock, sha256File };
+module.exports = { inferLicenseExpression, isGenerationCurrent, mapWithConcurrency, packageRecordsFromLock, sha256File };
 
 if (require.main === module) {
   main().catch((error) => {

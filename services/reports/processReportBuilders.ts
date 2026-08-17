@@ -14,7 +14,7 @@ import type {
   ReportType,
 } from "../../src/app/core/models/report.model.js";
 import { ActivityReportBuilders } from './activityReportBuilders.js';
-import { count, metricCards, normalizeStatus, nowIso, periodWhere, reportShell, reportText, rows, table } from './reportSupport.js';
+import { count, metricCards, normalizeStatus, nowIso, paragraph, periodWhere, reportShell, reportText, rows, section, table } from './reportSupport.js';
 import type { ReportBuildResult } from './reportSupport.js';
 
 export class ProcessReportBuilders extends ActivityReportBuilders {
@@ -73,18 +73,18 @@ export class ProcessReportBuilders extends ActivityReportBuilders {
         "BEM ohne Datenschutzhinweis": missingPrivacyNotice,
         "BEM mit vertraulichen Notizen": confidentialBemNotes,
       };
-      const content = `${metricCards(metrics)}<section class="box"><h2>BEM-Status</h2>${table(
+      const content = [metricCards(metrics), section('BEM-Status', [table(
         ["Status", "Anzahl"],
         bemStatuses.map((row) => [normalizeStatus(typeof row.status === 'string' ? row.status : undefined), row.value]),
-      )}</section><section class="box"><h2>Präventionsstatus</h2>${table(
+      )]), section('Präventionsstatus', [table(
         ["Status", "Anzahl"],
         preventionStatuses.map((row) => [normalizeStatus(typeof row.status === 'string' ? row.status : undefined), row.value]),
-      )}</section><section class="box"><h2>Datenschutz-Hinweis</h2><p>Dieser Bericht ist aggregiert. Vertrauliche BEM-Notizen, Diagnosen und Freitextinhalte werden nicht ausgegeben.</p></section>`;
+      )]), section('Datenschutz-Hinweis', [paragraph('Dieser Bericht ist aggregiert. Vertrauliche BEM-Notizen, Diagnosen und Freitextinhalte werden nicht ausgegeben.')])];
       return {
         title: "BEM- und Präventionsbericht",
         warnings,
         metrics,
-        html: reportShell(
+        document: reportShell(
           "BEM- und Präventionsbericht",
           this.periodLabel(input),
           "Anonymisiert",
@@ -139,21 +139,21 @@ export class ProcessReportBuilders extends ActivityReportBuilders {
         "Schutzstatus unklar": unclearProtection,
         "Unterlagenmängel": missingInfo,
       };
-      const content = `${metricCards(metrics)}<section class="box"><h2>Kündigungsarten</h2>${table(
+      const content = [metricCards(metrics), section('Kündigungsarten', [table(
         ["Art", "Anzahl"],
         typeRows.map((row) => [normalizeStatus(reportText(row.termination_type)), row.value]),
-      )}</section><section class="box"><h2>Verfahrensstatus</h2>${table(
+      )]), section('Verfahrensstatus', [table(
         ["Status", "Anzahl"],
         statusRows.map((row) => [normalizeStatus(typeof row.status === 'string' ? row.status : undefined), row.value]),
-      )}</section><section class="box"><h2>Schutzstatus</h2>${table(
+      )]), section('Schutzstatus', [table(
         ["Status", "Anzahl"],
         protectionRows.map((row) => [normalizeStatus(reportText(row.protection_status)), row.value]),
-      )}</section><section class="box"><h2>Prüfhinweis</h2><p>Der Bericht nutzt die aktuelle Kündigungsanhörungsstruktur ab Schema 0017/0019. Er gibt keine Begründungsfreitexte oder personenbezogenen Details aus.</p></section>`;
+      )]), section('Prüfhinweis', [paragraph('Der Bericht nutzt die aktuelle Kündigungsanhörungsstruktur ab Schema 0017/0019. Er gibt keine Begründungsfreitexte oder personenbezogenen Details aus.')])];
       return {
         title: "Kündigungsanhörungsbericht",
         warnings,
         metrics,
-        html: reportShell("Kündigungsanhörungsbericht", this.periodLabel(input), "Intern vertraulich", content, warnings),
+        document: reportShell("Kündigungsanhörungsbericht", this.periodLabel(input), "Intern vertraulich", content, warnings),
       };
     }
 
@@ -206,10 +206,10 @@ export class ProcessReportBuilders extends ActivityReportBuilders {
         "offene Verstoßprotokolle": violationOpenProtocols,
         "Frist überfällig": due,
       };
-      const content = `${metricCards(metrics)}
-        <section class="box"><h2>Status</h2>${table(["Status", "Anzahl"], byStatus.map((row) => [normalizeStatus(typeof row.status === 'string' ? row.status : undefined), row.value]))}</section>
-        <section class="box"><h2>Maßnahmearten</h2>${table(["Maßnahme", "Anzahl"], byMeasure.map((row) => [normalizeStatus(reportText(row.measure_type)), row.value]))}</section>
-        <section class="box"><h2>§ 178 Abs. 2 SGB IX Prüfpunkte</h2>${table(
+      const content = [metricCards(metrics),
+        section('Status', [table(['Status', 'Anzahl'], byStatus.map((row) => [normalizeStatus(typeof row.status === 'string' ? row.status : undefined), row.value]))]),
+        section('Maßnahmearten', [table(['Maßnahme', 'Anzahl'], byMeasure.map((row) => [normalizeStatus(reportText(row.measure_type)), row.value]))]),
+        section('§ 178 Abs. 2 SGB IX Prüfpunkte', [table(
           ["Prüffrage", "Befund"],
           [
             ["Unterrichtung unvollständig", missingInformation],
@@ -218,14 +218,22 @@ export class ProcessReportBuilders extends ActivityReportBuilders {
             ["Aussetzungsverlangen dokumentiert", suspensions],
             ["Pflichtverstoß dokumentiert", violations],
           ],
-        )}</section>
-        <section class="box"><h2>Stellenbesetzungen ohne Fallbezug</h2>${table(["Prüffrage", "Befund"], [["Stellenbesetzungen im Zeitraum", recruitingCount], ["Vorstellungsgespräche als Beteiligungsereignis", recruitingInterviews], ["Anhörung vor Auswahlentscheidung offen", recruitingOpenHearings], ["Unterlagen unvollständig", recruitingMissingInformation], ["Verstoßprotokolle aus Stellenbesetzung", recruitingViolations]])}<p>Diese Auswertung enthält keine Bewerberreferenzen, Gesprächsnotizen, Diagnosen oder Eignungsbewertungen.</p></section>
-        <section class="box"><h2>Strukturierte Beteiligungsverstoß-Protokolle</h2>${table(["Eskalationsstufe", "Anzahl"], violationByStage.map((row) => [normalizeStatus(reportText(row.stage)), row.value]))}${table(["Status", "Anzahl"], violationByStatus.map((row) => [normalizeStatus(typeof row.status === 'string' ? row.status : undefined), row.value]))}<p>Die Auswertung enthält keine Schreibenstexte, Maßnahmendetails oder Freitexte.</p></section>`;
+        )]),
+        section('Stellenbesetzungen ohne Fallbezug', [
+          table(['Prüffrage', 'Befund'], [['Stellenbesetzungen im Zeitraum', recruitingCount], ['Vorstellungsgespräche als Beteiligungsereignis', recruitingInterviews], ['Anhörung vor Auswahlentscheidung offen', recruitingOpenHearings], ['Unterlagen unvollständig', recruitingMissingInformation], ['Verstoßprotokolle aus Stellenbesetzung', recruitingViolations]]),
+          paragraph('Diese Auswertung enthält keine Bewerberreferenzen, Gesprächsnotizen, Diagnosen oder Eignungsbewertungen.'),
+        ]),
+        section('Strukturierte Beteiligungsverstoß-Protokolle', [
+          table(['Eskalationsstufe', 'Anzahl'], violationByStage.map((row) => [normalizeStatus(reportText(row.stage)), row.value])),
+          table(['Status', 'Anzahl'], violationByStatus.map((row) => [normalizeStatus(typeof row.status === 'string' ? row.status : undefined), row.value])),
+          paragraph('Die Auswertung enthält keine Schreibenstexte, Maßnahmendetails oder Freitexte.'),
+        ]),
+      ];
       return {
         title: "SBV-Beteiligungsbericht",
         warnings,
         metrics,
-        html: reportShell("SBV-Beteiligungsbericht", this.periodLabel(input), "Intern vertraulich", content, warnings),
+        document: reportShell("SBV-Beteiligungsbericht", this.periodLabel(input), "Intern vertraulich", content, warnings),
       };
     }
 
@@ -246,15 +254,15 @@ export class ProcessReportBuilders extends ActivityReportBuilders {
         "Überfällige Fristen": overdueObjections,
         "Ohne Ergebnisnotiz": missingOutcome,
       };
-      const content = `${metricCards(metrics)}<section class="box"><h2>Antragsstatus</h2>${table(
+      const content = [metricCards(metrics), section('Antragsstatus', [table(
         ["Status", "Anzahl"],
         byStatus.map((row) => [normalizeStatus(reportText(row.application_status)), row.value]),
-      )}</section><section class="box"><h2>Datenschutzhinweis</h2><p>Dieser Bericht ist intern. Er enthält keine Namen, keine Bescheiddetails und keine Gesundheitsdaten, kann aber aufgrund kleiner Fallzahlen rückrechenbar sein.</p></section>`;
+      )]), section('Datenschutzhinweis', [paragraph('Dieser Bericht ist intern. Er enthält keine Namen, keine Bescheiddetails und keine Gesundheitsdaten, kann aber aufgrund kleiner Fallzahlen rückrechenbar sein.')])];
       return {
         title: "Gleichstellungs- und GdB-Bericht",
         warnings,
         metrics,
-        html: reportShell("Gleichstellungs- und GdB-Bericht", this.periodLabel(input), "Intern vertraulich", content, warnings),
+        document: reportShell("Gleichstellungs- und GdB-Bericht", this.periodLabel(input), "Intern vertraulich", content, warnings),
       };
     }
 }
