@@ -50,17 +50,4 @@ describe('Stellenbesetzungen 0.9.5-c Integration', () => {
     expect(JSON.stringify(prefill.form)).not.toMatch(/Diagnose|GdB|medizinisch|Bewerbung 1|Max Mustermann/i);
   });
 
-  it('dokumentiert GitHub-nahe Build-Sequenz als lokalen npm-Befehl', () => {
-    const packageJson = JSON.parse(readFileSync('package.json', 'utf8'));
-    const script = readFileSync('scripts/run-github-build-current-os.cjs', 'utf8');
-
-    expect(packageJson.scripts['build:github']).toBe('node scripts/run-github-build-current-os.cjs');
-    expect(script).toContain("npm', ['ci']");
-    expect(script).toContain("npmRun('security:audit')");
-    expect(script).toContain("npmRun('licenses:generate')");
-    expect(script).toContain("npmRun('licenses:check')");
-    expect(script).toContain("npmRun('build:verify')");
-    expect(script).toContain("npmRun('build:compile')");
-    expect(script).toContain("currentPlatformBuildScript()");
-  });
 });

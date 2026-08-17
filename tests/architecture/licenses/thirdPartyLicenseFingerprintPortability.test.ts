@@ -9,6 +9,9 @@ const helper = require('../../../scripts/generate-third-party-licenses-fast.cjs'
   fileHashes(filePath: string): Set<string>;
   normalizedText(buffer: Buffer): string;
 };
+const generator = require('../../../scripts/generate-third-party-licenses.cjs') as {
+  canonicalizeLicenseText(licenseText: string): string;
+};
 
 describe('Drittlizenz-Fingerprint', () => {
   it('ist unabhängig von LF- und CRLF-Checkout-Zeilenenden', () => {
@@ -28,5 +31,13 @@ describe('Drittlizenz-Fingerprint', () => {
 
   it('normalisiert auch einzelne CR-Zeilenenden deterministisch', () => {
     expect(helper.normalizedText(Buffer.from('a\rb\r', 'utf8'))).toBe('a\nb\n');
+  });
+
+  it('entfernt nachgestellte Leerzeichen ohne den Lizenzinhalt zu verändern', () => {
+    const withPlatformAndEditorWhitespace = 'First line  \r\n  indented line\t\rfinal line \r';
+
+    expect(generator.canonicalizeLicenseText(withPlatformAndEditorWhitespace)).toBe(
+      'First line\n  indented line\nfinal line',
+    );
   });
 });

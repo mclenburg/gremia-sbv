@@ -81,7 +81,7 @@
     {
       "file": "tests/features/participation/recruitingParticipationIntegration.test.ts",
       "category": "A",
-      "sourceAssertions": 10,
+      "sourceAssertions": 3,
       "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
     },
     {

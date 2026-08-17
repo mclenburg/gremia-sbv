@@ -12,7 +12,7 @@ const inventoryPath = path.join(root, 'THIRD_PARTY_LICENSES.txt');
 const noticesPath = path.join(root, 'THIRD_PARTY_NOTICES.txt');
 const licensesRoot = path.join(root, 'LICENSES');
 const generationStatePath = path.join(root, 'maintenance', 'licenses', 'generation-state.json');
-const generatorSchemaVersion = 2;
+const generatorSchemaVersion = 3;
 const registryBaseUrl = (process.env.NPM_REGISTRY_URL || 'https://registry.npmjs.org').replace(/\/+$/, '');
 const userAgent = 'gremia-sbv-license-generator/1.0';
 
@@ -146,8 +146,9 @@ function sanitizeLicenseFileName(licenseExpression) {
 
 function canonicalizeLicenseText(licenseText) {
   const lines = String(licenseText || '')
-    .replace(/\r\n/gu, '\n')
+    .replace(/\r\n|\r/gu, '\n')
     .split('\n')
+    .map((line) => line.replace(/[\t ]+$/gu, ''))
     .filter((line) => !/copyright|©|\(c\)/iu.test(line.trim()));
   while (lines.length > 0 && !lines[0].trim()) lines.shift();
   while (lines.length > 0 && !lines[lines.length - 1].trim()) lines.pop();
@@ -553,7 +554,14 @@ async function main() {
   console.log(`Wrote copyright notices to ${path.relative(root, noticesPath)}.`);
 }
 
-module.exports = { inferLicenseExpression, isGenerationCurrent, mapWithConcurrency, packageRecordsFromLock, sha256File };
+module.exports = {
+  canonicalizeLicenseText,
+  inferLicenseExpression,
+  isGenerationCurrent,
+  mapWithConcurrency,
+  packageRecordsFromLock,
+  sha256File,
+};
 
 if (require.main === module) {
   main().catch((error) => {

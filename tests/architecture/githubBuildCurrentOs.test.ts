@@ -1,25 +1,21 @@
+import { createRequire } from 'node:module';
 import { describe, expect, it } from 'vitest';
-import { spawnSync } from 'node:child_process';
+
+const require = createRequire(import.meta.url);
+const githubBuild = require('../../scripts/run-github-build-current-os.cjs') as {
+  buildSequence(): Array<[string, string[]]>;
+};
 
 describe('0.9.5-e local GitHub build command', () => {
-  it('prints the GitHub-like quality-gate sequence in dry-run mode without executing it', () => {
-    const result = spawnSync(process.execPath, ['scripts/run-github-build-current-os.cjs', '--dry-run'], {
-      cwd: process.cwd(),
-      encoding: 'utf8',
-    });
+  it('uses the shared quality gate before compilation and packaging', () => {
+    const sequence = githubBuild.buildSequence().map(([command, args]) => [command, ...args].join(' '));
 
-    expect(result.status).toBe(0);
-    const output = `${result.stdout}\n${result.stderr}`;
-    expect(output).toContain('Dry-Run: Befehle werden nur ausgegeben, nicht ausgeführt.');
-    expect(output).toContain('▶ npm ci');
-    expect(output).toContain('▶ npm run security:audit');
-    expect(output).toContain('▶ npm run licenses:generate');
-    expect(output).toContain('▶ npm run licenses:check');
-    expect(output).toContain('▶ npm run build:verify');
-    expect(output).toContain('▶ npm run build:compile');
-    expect(output).toMatch(/▶ npm run build:package:(linux|windows|mac)/);
-    expect(output).toMatch(/▶ npm run release:platform:(linux|windows)/);
-    expect(output).toContain('Browser-E2E nutzt automatisch bis zu 4 Worker');
-    expect(output).toContain('Full-Product-E2E bleibt separat auf maximal 2 persistente Tresor-Slots begrenzt');
+    expect(sequence.slice(0, 3)).toEqual([
+      'npm ci',
+      'npm run build:quality',
+      'npm run build:compile',
+    ]);
+    expect(sequence.some((command) => /^npm run build:package:(linux|windows|mac)$/u.test(command))).toBe(true);
+    expect(sequence).not.toContain('npm run licenses:generate');
   });
 });

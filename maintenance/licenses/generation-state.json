@@ -1,9 +1,9 @@
 {
-  "schemaVersion": 2,
-  "lockSha256": "16d4f74d30b41e54f2fe80d6b78b4fc41a7d608cdbaa4a61a2fbe2568596ec53",
+  "schemaVersion": 3,
+  "lockSha256": "e040afb08484e393b78fc3960b8f9ea8e502c32e2d4463f0be174aa0f334aefe",
   "packageCount": 596,
-  "inventorySha256": "3892452cd9a83ada7506ffaf315177036266dee424255a8c9783bcd7cb9b0084",
-  "noticesSha256": "748dcb598e23e2ad44a2f7227396678e7fe5272960a18dcb8285e156c33991ff",
+  "inventorySha256": "705552dbf00c2bec2f4caf8d24d5ae437a93a31d4bd272281a1c53ba7bdee09d",
+  "noticesSha256": "07762fa4f87a5a94e3d955f0def350bc8b5c26dfd7ff071ac92579b9ff73ea00",
   "licenseFiles": [
     {
       "name": "0BSD.txt",
@@ -27,7 +27,7 @@
     },
     {
       "name": "CC-BY-4.0.txt",
-      "sha256": "e950b759d0529f31c4b3aa4dfc6a768fe69be31c126896cc03eee2e199596935"
+      "sha256": "5c43d9fc77148b5a37b9fa33859db55260393ef0c8b0d4dfc3ce73f57474dca5"
     },
     {
       "name": "ISC.txt",
@@ -51,7 +51,7 @@
     },
     {
       "name": "SEE_LICENSE_IN_README.md_AND_LICENSE.txt",
-      "sha256": "468fb30411dc6449705a9e71f2a5c90431a5b751a388e62b1b0ab600ef8173f1"
+      "sha256": "d2c2c40567a5611e1d166b0beb23b2af445a1fcb25d52e83d316008ffccc34fe"
     },
     {
       "name": "WTFPL.txt",

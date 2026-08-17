@@ -67,8 +67,8 @@ jobs:
       - name: Verify native SQLCipher binding
         run: npm run native:diagnose
 
-      - name: Run TypeScript, Vitest, lint and quality gates
-        run: npm run build:verify
+      - name: Run shared security, license and build quality gates
+        run: npm run build:quality
 
       - name: Compile application
         run: npm run build:compile

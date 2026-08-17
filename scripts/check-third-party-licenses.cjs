@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 const fs = require('node:fs');
 const path = require('node:path');
+const { cacheStatus } = require('./generate-third-party-licenses-fast.cjs');
 
 const root = process.cwd();
 const inventoryPath = path.join(root, 'THIRD_PARTY_LICENSES.txt');
@@ -36,6 +37,11 @@ for (const requiredPath of [inventoryPath, noticesPath, licensesRoot]) {
   if (!fs.existsSync(requiredPath)) {
     fail(`${path.relative(root, requiredPath)} fehlt. Führe npm run licenses:generate aus.`);
   }
+}
+
+const generationStatus = cacheStatus();
+if (!generationStatus.current) {
+  fail(`Generierte Drittlizenz-Artefakte sind nicht aktuell: ${generationStatus.reason}. Führe npm run licenses:generate aus und committe das Ergebnis.`);
 }
 
 const inventory = readText(inventoryPath);

@@ -89,17 +89,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Audit production and build dependencies
-        run: npm run security:audit
-
-      - name: Generate third-party license inventory
-        run: npm run licenses:generate
-
-      - name: Verify third-party license inventory
-        run: npm run licenses:check
-
-      - name: Run RC, coverage and build gates
-        run: npm run build:verify
+      - name: Run shared security, license and build quality gates
+        run: npm run build:quality
 
   prepare-release:
     name: Prepare draft GitHub release

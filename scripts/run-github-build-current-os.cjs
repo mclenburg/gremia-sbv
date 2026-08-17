@@ -27,10 +27,7 @@ function npmRun(scriptName) {
 function buildSequence() {
   const sequence = [
     ['npm', ['ci']],
-    npmRun('security:audit'),
-    npmRun('licenses:generate'),
-    npmRun('licenses:check'),
-    npmRun('build:verify'),
+    npmRun('build:quality'),
     npmRun('build:compile'),
     npmRun(currentPlatformBuildScript()),
   ];
@@ -52,7 +49,7 @@ function run(command, args, options = {}) {
 function runGithubBuildCurrentOs() {
   console.log('Gremia.SBV GitHub-Build lokal – aktuelles OS');
   console.log(`Plattform: ${process.platform} (${os.release()})`);
-  console.log('Sequenz: npm ci → security:audit → licenses:generate/check → verify → compile → package → platform release checks');
+  console.log('Sequenz: npm ci → gemeinsames Qualitäts-Gate → compile → package → platform release checks');
   console.log('Hinweis: Dieser Befehl spiegelt den GitHub-Build nur für das aktuelle Betriebssystem. Er ersetzt keinen Cross-OS-Lauf für Windows, macOS und Linux.');
   console.log('Performance: Browser-E2E nutzt automatisch bis zu 4 Worker; GREMIA_SBV_E2E_WORKERS kann die Parallelität gezielt begrenzen. Full-Product-E2E bleibt separat auf maximal 2 persistente Tresor-Slots begrenzt.');
   if (process.platform === 'linux') {

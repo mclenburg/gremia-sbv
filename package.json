@@ -105,6 +105,7 @@
     "security:audit": "npm audit --audit-level=high",
     "licenses:generate": "node scripts/generate-third-party-licenses-fast.cjs",
     "licenses:check": "node scripts/check-third-party-licenses.cjs",
+    "build:quality": "npm run security:audit && npm run licenses:check && npm run build:verify",
     "release:public-check": "npm run security:audit && npm run licenses:check && npm run release:check && npm run release:local-e2e && npm run ui:control-sweep",
     "test:e2e:a11y": "node scripts/run-e2e.cjs e2e/accessibility-axe.spec.ts",
     "release:check:a11y": "npm run build:readiness:strict && npm run test:e2e:a11y",

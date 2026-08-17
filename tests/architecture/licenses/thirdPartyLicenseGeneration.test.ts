@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { existsSync, readFileSync, statSync } from 'node:fs';
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs';
+import { createHash } from 'node:crypto';
+import os from 'node:os';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 
@@ -7,9 +17,16 @@ const require = createRequire(import.meta.url);
 const licenseGenerator = require('../../../scripts/generate-third-party-licenses.cjs') as {
   inferLicenseExpression(licenseText: string): string;
 };
+const fastLicenseGenerator = require('../../../scripts/generate-third-party-licenses-fast.cjs') as {
+  cacheStatus(projectRoot: string): { current: boolean; reason: string };
+};
 
 function readText(relativePath: string): string {
   return readFileSync(path.join(process.cwd(), relativePath), 'utf8');
+}
+
+function sha256(content: string): string {
+  return createHash('sha256').update(content).digest('hex');
 }
 
 describe('Third-Party-Lizenzprüfung 0.9.2y', () => {
@@ -52,5 +69,52 @@ describe('Third-Party-Lizenzprüfung 0.9.2y', () => {
 
     expect(licenseGenerator.inferLicenseExpression(text)).toBe('MIT');
     expect(licenseGenerator.inferLicenseExpression('individuelle oder mehrdeutige Lizenz')).toBe('');
+  });
+
+  it('verweigert inkonsistente generierte Artefakte offline mit konkreter Ursache', () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), 'gremia-license-check-'));
+    try {
+      mkdirSync(path.join(root, 'scripts'), { recursive: true });
+      mkdirSync(path.join(root, 'maintenance', 'licenses'), { recursive: true });
+      mkdirSync(path.join(root, 'LICENSES'), { recursive: true });
+
+      const lock = `${JSON.stringify({
+        lockfileVersion: 3,
+        packages: {
+          '': { dependencies: { sample: '1.0.0' } },
+          'node_modules/sample': { name: 'sample', version: '1.0.0' },
+        },
+      }, null, 2)}\n`;
+      const inventory = [
+        'THIRD-PARTY LICENSE INVENTORY',
+        'Gremia.SBV',
+        '',
+        '- sample@1.0.0',
+        '  License: MIT',
+        '  License text: LICENSES/MIT.txt',
+        '',
+      ].join('\n');
+      const notices = 'THIRD-PARTY NOTICES\nGremia.SBV\nCopyright notices: none detected.\n';
+      const license = 'MIT License\n\nPermission is hereby granted for this fixture.\n';
+
+      writeFileSync(path.join(root, 'package-lock.json'), lock);
+      writeFileSync(path.join(root, 'THIRD_PARTY_LICENSES.txt'), inventory);
+      writeFileSync(path.join(root, 'THIRD_PARTY_NOTICES.txt'), notices);
+      writeFileSync(path.join(root, 'LICENSES', 'MIT.txt'), license);
+      writeFileSync(path.join(root, 'maintenance', 'licenses', 'generation-state.json'), `${JSON.stringify({
+        schemaVersion: 3,
+        lockSha256: sha256(lock),
+        packageCount: 1,
+        inventorySha256: sha256(inventory),
+        noticesSha256: sha256(notices),
+        licenseFiles: [{ name: 'MIT.txt', sha256: sha256(`${license}changed`) }],
+      }, null, 2)}\n`);
+
+      const result = fastLicenseGenerator.cacheStatus(root);
+
+      expect(result).toEqual({ current: false, reason: 'license fingerprint changed: MIT.txt' });
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 });

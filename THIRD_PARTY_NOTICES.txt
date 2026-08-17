@@ -1426,7 +1426,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@types/react-dom@19.2.3
+@types/react-dom@19.2.4
 License: MIT
 Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
 Homepage: https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/react-dom
@@ -1436,7 +1436,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@types/react@19.2.17
+@types/react@19.2.18
 License: MIT
 Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
 Homepage: https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/react
@@ -2820,7 +2820,7 @@ Copyright notices:
 - that You distribute, all copyright, patent, trademark, and
 License text: LICENSES/Apache-2.0.txt
 
-eslint@10.8.0
+eslint@10.8.1
 License: MIT
 Repository: eslint/eslint
 Homepage: https://eslint.org
@@ -4700,9 +4700,9 @@ Copyright notices:
 - The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 License text: LICENSES/MIT.txt
 
-react-dom@19.2.7
+react-dom@19.2.8
 License: MIT
-Repository: https://github.com/facebook/react.git
+Repository: https://github.com/react/react.git
 Homepage: https://react.dev/
 Copyright notices:
 - Copyright (c) Meta Platforms, Inc. and affiliates.
@@ -4710,9 +4710,9 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-react@19.2.7
+react@19.2.8
 License: MIT
-Repository: https://github.com/facebook/react.git
+Repository: https://github.com/react/react.git
 Homepage: https://react.dev/
 Copyright notices:
 - Copyright (c) Meta Platforms, Inc. and affiliates.
@@ -5267,7 +5267,7 @@ Copyright notices:
 - Copyright (c) Microsoft Corporation.
 License text: LICENSES/0BSD.txt
 
-tsx@4.23.5
+tsx@4.23.12
 License: MIT
 Repository: privatenumber/tsx
 Homepage: https://tsx.hirok.io
@@ -5430,7 +5430,7 @@ Copyright notices:
 - NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
 License text: LICENSES/MIT.txt
 
-vite@8.2.0
+vite@8.2.1
 License: MIT
 Repository: git+https://github.com/vitejs/vite.git
 Homepage: https://vite.dev

@@ -18,7 +18,7 @@ describe("Patch-4-Cross-Platform- und Packaging-Vertrag", () => {
     expect(crossPlatformWorkflow).toContain("windows-latest");
     expect(crossPlatformWorkflow).toContain("run: npm ci");
     expect(crossPlatformWorkflow).toContain("run: npm run native:diagnose");
-    expect(crossPlatformWorkflow).toContain("run: npm run build:verify");
+    expect(crossPlatformWorkflow).toContain("run: npm run build:quality");
     expect(crossPlatformWorkflow).toContain("run: npm run build:compile");
     expect(crossPlatformWorkflow).toContain("release:platform:windows");
     expect(crossPlatformWorkflow).toContain("release:platform:linux");

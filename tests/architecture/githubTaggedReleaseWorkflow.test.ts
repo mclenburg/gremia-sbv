@@ -5,6 +5,7 @@ import { spawnSync } from "node:child_process";
 import { describe, expect, it } from "vitest";
 
 const taggedReleaseWorkflow = readFileSync(".github/workflows/build-release.yml", "utf8");
+const pullRequestWorkflow = readFileSync(".github/workflows/cross-platform-release-verification.yml", "utf8");
 const signPathWorkflow = readFileSync(".github/workflows/signpath-windows-exe.yml", "utf8");
 const buildPlatformScript = readFileSync("scripts/build-platform.cjs", "utf8");
 const packageJson = JSON.parse(readFileSync("package.json", "utf8")) as { version: string; scripts: Record<string, string> };
@@ -48,11 +49,17 @@ function inspectTaggedReleaseWorkflow(workflow: string) {
     ]),
     qualityAndArtifactSeparation: includesAll(workflow, [
       "quality-gates:",
-      "npm run build:verify",
+      "npm run build:quality",
       "build-artifacts:",
       "- quality-gates",
       "npm run build:compile",
     ]),
+    sharedPullRequestAndReleaseQualityGate:
+      includesAll(pullRequestWorkflow, ["pull_request:", "npm run build:quality"])
+      && !pullRequestWorkflow.includes("npm run licenses:generate")
+      && !workflow.includes("npm run licenses:generate"),
+    sharedQualityScript: packageJson.scripts["build:quality"].split("&&").map((step) => step.trim()).join(" -> ")
+      === "npm run security:audit -> npm run licenses:check -> npm run build:verify",
     supportedPlatforms: includesAll(workflow, [
       "node scripts/build-platform.cjs linux",
       "node scripts/build-platform.cjs win",
@@ -129,6 +136,8 @@ describe("Taggebundener GitHub-Release-Build", () => {
       tagTriggerAndConcurrency: true,
       tagVersionGuard: true,
       qualityAndArtifactSeparation: true,
+      sharedPullRequestAndReleaseQualityGate: true,
+      sharedQualityScript: true,
       supportedPlatforms: true,
       windowsDualArtifacts: true,
       publishIsSingleOwner: true,
