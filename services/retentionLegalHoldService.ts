@@ -4,7 +4,7 @@ import { DatabaseUnitOfWork } from './databaseUnitOfWork.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
 import { auditRetentionLegalHoldChanged } from './auditEventBuilders.js';
 import { RetentionOwnerRegistry } from './retentionOwnerRegistry.js';
-import type { RetentionOwnerRef } from '../src/app/core/models/retention-owner.model.js';
+import type { RetentionOwnerRef } from '../src/domain/models/retention-owner.model.js';
 
 export interface RetentionLegalHoldRecord {
   id: string;

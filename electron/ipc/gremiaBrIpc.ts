@@ -3,7 +3,7 @@ import type { IpcMain } from 'electron';
 import type { SecurityService } from '../../services/securityService.js';
 import type { ApplicationServices } from '../applicationServices.js';
 import { GremiaBrHttpReadAdapter } from '../../services/gremiaBr/gremiaBrHttpReadAdapter.js';
-import type { CreateGremiaBrExternalReferenceInput, GremiaBrRelevanceSettings, GremiaBrSettingsInput } from '../../src/app/core/models/gremia-br.model.js';
+import type { CreateGremiaBrExternalReferenceInput, GremiaBrRelevanceSettings, GremiaBrSettingsInput } from '../../src/domain/models/gremia-br.model.js';
 import { assertRecordInput, assertString } from './ipcValidation.js';
 
 export function registerGremiaBrIpc(ipcMain: IpcMain, security: SecurityService, services: ApplicationServices): void {

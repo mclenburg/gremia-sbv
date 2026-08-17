@@ -1,4 +1,4 @@
-import { type ParticipationViolationEventType, type ParticipationViolationSourceContextType, type ParticipationViolationStage, type ParticipationViolationStatus, type ParticipationViolationType, type SbvParticipationViolationEventRecord, type SbvParticipationViolationRecord } from '../src/app/core/models/sbv-participation-violation.model.js';
+import { type ParticipationViolationEventType, type ParticipationViolationSourceContextType, type ParticipationViolationStage, type ParticipationViolationStatus, type ParticipationViolationType, type SbvParticipationViolationEventRecord, type SbvParticipationViolationRecord } from '../src/domain/models/sbv-participation-violation.model.js';
 export const DEFAULT_LEGAL_BASIS = '§ 178 Abs. 2 SGB IX; § 238 Abs. 1 Nr. 8 SGB IX';
 
 export type ViolationRow = {
@@ -115,4 +115,3 @@ export function mapEvent(row: ViolationEventRow): SbvParticipationViolationEvent
     createdAt: String(row.created_at),
   };
 }
-

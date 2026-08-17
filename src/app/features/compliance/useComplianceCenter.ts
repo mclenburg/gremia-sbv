@@ -10,14 +10,14 @@ import type {
   CreateComplianceIncidentInput,
   DataSubjectAccessRequestInput,
   UpdateComplianceIncidentInput,
-} from "../../core/models/compliance.model";
+} from "../../../domain/models/compliance.model";
 import {
   buildComplianceReportInput,
   defaultDsarInput,
   listComplianceDocuments,
   renderComplianceDocument,
   renderDsarResponseDocument,
-} from "@services/complianceCenterService";
+} from "@/domain/compliance/complianceCenterService";
 import { type ComplianceWorkspace } from "./complianceConstants";
 import {
   buildFallbackSelfCheck,

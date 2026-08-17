@@ -1,5 +1,5 @@
-import type { CaseRecord } from '../../../core/models/case.model';
-import type { LegalNormSuggestion } from '@services/textCommandPolicy';
+import type { CaseRecord } from '../../../../domain/models/case.model';
+import type { LegalNormSuggestion } from '@/domain/textCommands/textCommandPolicy';
 
 export function filterCasesForInlineCommand(records: CaseRecord[], query: string): CaseRecord[] {
   const q = query.trim().toLowerCase();

@@ -41,7 +41,7 @@ describe('Sitzungsregister und Tagesordnung', () => {
       title: index === 3 ? 'Budget und Personal' : `Sitzung ${index}`,
       startsAt: new Date(Date.UTC(2026, 7, index + 1, 10)).toISOString(),
       attendanceStatus: '', status: 'planned', createdAt: '2026-08-01T00:00:00.000Z', updatedAt: '2026-08-01T00:00:00.000Z', agenda: [],
-    })) as import('../../../src/app/core/models/sbv-office-workflow.model').SbvMeetingRecord[];
+    })) as import('../../../src/domain/models/sbv-office-workflow.model').SbvMeetingRecord[];
 
     const sorted = filterMeetings(records, '');
     expect(sorted[0]?.id).toBe('m-11');

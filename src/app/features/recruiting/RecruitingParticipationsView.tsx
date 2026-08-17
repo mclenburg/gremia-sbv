@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AlertTriangle, BriefcaseBusiness, CalendarClock, ClipboardList, PlusCircle, Save } from 'lucide-react';
-import type { CreateDeadlineInput } from '../../core/models/deadline.model';
-import type { CreateRecruitingParticipationInput, RecruitingAccessibilityCheckStatus, RecruitingApplicantReferenceMode, RecruitingApplicantStatus, RecruitingInterviewEventRecord, RecruitingParticipationRecord, RecruitingParticipationStatus, RecruitingViolationReviewReason, UpdateRecruitingParticipationInput } from '../../core/models/recruiting-participation.model';
+import type { CreateDeadlineInput } from '../../../domain/models/deadline.model';
+import type { CreateRecruitingParticipationInput, RecruitingAccessibilityCheckStatus, RecruitingApplicantReferenceMode, RecruitingApplicantStatus, RecruitingInterviewEventRecord, RecruitingParticipationRecord, RecruitingParticipationStatus, RecruitingViolationReviewReason, UpdateRecruitingParticipationInput } from '../../../domain/models/recruiting-participation.model';
 import { waitForBridge } from '../../core/bridge/waitForBridge';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 import { GhostButton, IndustrialButton, ToolbarButton } from '../../shared/components/IndustrialButton';

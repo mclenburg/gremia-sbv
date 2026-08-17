@@ -1,6 +1,6 @@
 import { AlertTriangle, Clock3, Pencil, ShieldCheck, Trash2, UserRoundCheck } from 'lucide-react';
-import type { PersonLifecycleState, ProtectedPersonRecord } from '../../core/models/protected-person.model';
-import { employmentStateLabels, lifecycleStateLabels, protectionStatusLabels } from '../../core/models/protected-person.model';
+import type { PersonLifecycleState, ProtectedPersonRecord } from '../../../domain/models/protected-person.model';
+import { employmentStateLabels, lifecycleStateLabels, protectionStatusLabels } from '../../../domain/models/protected-person.model';
 import { GhostButton, IconButton, IndustrialButton } from '../../shared/components/IndustrialButton';
 import { EmptyState } from '../../shared/components/WorkbenchLayout';
 

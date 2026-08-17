@@ -3,7 +3,7 @@ import {
   selectionForLink,
   typeLabel,
 } from '../../../../src/app/features/cases/CaseNoteEntityLinks';
-import type { CaseNoteLinkRecord, CaseNoteLinkTargetType } from '../../../../src/app/core/models/case-note-link.model';
+import type { CaseNoteLinkRecord, CaseNoteLinkTargetType } from '../../../../src/domain/models/case-note-link.model';
 
 function link(targetType: CaseNoteLinkTargetType): CaseNoteLinkRecord {
   return {

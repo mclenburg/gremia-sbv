@@ -1,14 +1,15 @@
 import { useState } from 'react';
 import { FileText, Plus, Save } from 'lucide-react';
-import type { ConfigureElectionSetupInput, ElectionNoticeDetails, ElectionPreparationOverview } from '../../core/models/election-workflow.model';
-import { protectionStatusLabels, type PersonImportColumnMapping, type PersonImportPreviewResult } from '../../core/models/protected-person.model';
-import type { ElectionKind, ElectionProcedure } from '../../core/models/election.model';
+import type { ConfigureElectionSetupInput, ElectionNoticeDetails, ElectionPreparationOverview } from '../../../domain/models/election-workflow.model';
+import { protectionStatusLabels, type PersonImportColumnMapping, type PersonImportPreviewResult } from '../../../domain/models/protected-person.model';
+import type { ElectionKind, ElectionProcedure } from '../../../domain/models/election.model';
 import { IndustrialButton } from '../../shared/components/IndustrialButton';
 import { CheckboxField, DateInput, FormActions, FormSection, SelectInput, TextInput } from '../../shared/components/IndustrialForm';
 import { buildDefaultPersonImportMapping, personImportFieldOptions, type PersonImportFieldKey, updatePersonImportColumnMapping } from '../../shared/import/personImportMapping';
 import { electionBoardRoleLabel, electionCandidateEligibilityLabel, electionVoterListStatusLabel, officeTypeLabels, proposalStatusLabels } from './electionPresentation';
+import { isoInstant, legalToday } from '../../../domain/time/legalTime';
 
-const today = () => new Date().toISOString().slice(0, 10);
+const today = legalToday;
 
 const NOTICE_LABELS: Record<keyof ElectionNoticeDetails, string> = {
   issueDate: 'Erlassdatum',
@@ -124,7 +125,7 @@ export function BodySection({ overview, run }: { overview: ElectionPreparationOv
           <TextInput label="Name" value={name} onValueChange={setName} />
         </div>
         {overview.boardMembers.length ? <ul className="election-record-list">{overview.boardMembers.map((member) => <li key={member.id}>{electionBoardRoleLabel(member.role)}: {member.name}</li>)}</ul> : <p className="industrial-empty-state">Noch kein Mitglied des Wahlorgans erfasst.</p>}
-        {!simplified ? <FormActions><IndustrialButton variant="secondary" onClick={() => void run(() => window.gremiaSbv.elections.saveBoardSession(overview.election.id, { startsAt: new Date().toISOString(), participants: overview.boardMembers.filter((member) => member.role !== 'substitute').map((member) => member.name), decisionsText: 'Beschlüsse dokumentiert.' }), 'Wahlvorstandssitzung dokumentiert.')}>Wahlvorstandssitzung erfassen</IndustrialButton></FormActions> : null}
+        {!simplified ? <FormActions><IndustrialButton variant="secondary" onClick={() => void run(() => window.gremiaSbv.elections.saveBoardSession(overview.election.id, { startsAt: isoInstant(), participants: overview.boardMembers.filter((member) => member.role !== 'substitute').map((member) => member.name), decisionsText: 'Beschlüsse dokumentiert.' }), 'Wahlvorstandssitzung dokumentiert.')}>Wahlvorstandssitzung erfassen</IndustrialButton></FormActions> : null}
       </FormSection>
     </div>
   );

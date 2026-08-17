@@ -1,5 +1,5 @@
 import type { IpcRenderer } from "electron";
-import type { ApplicationErrorCode, ApplicationErrorPayload } from "../../src/app/core/models/application-error.model.js";
+import type { ApplicationErrorCode, ApplicationErrorPayload } from "../../src/domain/models/application-error.model.js";
 import type { IpcChannel } from "../ipc/channels.js";
 import { IPC_ENDPOINT_CONTRACTS, type IpcArgumentKind } from "../ipc/contracts.js";
 import { IPC_ERROR_PREFIX } from "../ipc/errorProtocol.js";

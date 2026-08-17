@@ -30,6 +30,30 @@ test('executes a case inline command inside a large case note textarea', async (
   await expect(content).not.toHaveValue(/\/praev/);
 });
 
+test('keeps keyboard focus inside an inline command dialog and restores it after Escape', async ({ page }) => {
+  await mainNavigation(page).getByRole('button', { name: 'Fallakte', exact: true }).click();
+  await expect(page.getByRole('heading', { name: /TEST-0001\s*·\s*Testperson Alpha/ })).toBeVisible();
+
+  await page.getByRole('button', { name: /Notiz \/ Protokoll/ }).click();
+  const noteDialog = page.getByRole('dialog', { name: /Neue Gesprächsnotiz \/ neues Protokoll/ });
+  const content = noteDialog.getByLabel('Inhalt');
+  await content.fill('/praev Arbeitsplatzgefährdung klären');
+
+  const preventionDialog = page.getByRole('dialog', { name: 'Prävention vormerken' });
+  const title = preventionDialog.getByLabel('Titel');
+  const lastAction = preventionDialog.getByRole('button', { name: 'Vormerken und weiterprotokollieren' });
+  await expect(title).toBeFocused();
+
+  await page.keyboard.press('Shift+Tab');
+  await expect(lastAction).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(title).toBeFocused();
+
+  await page.keyboard.press('Escape');
+  await expect(preventionDialog).toBeHidden();
+  await expect(content).toBeFocused();
+});
+
 test('keeps anonymization marker modal width stable while typing', async ({ page }) => {
   await mainNavigation(page).getByRole('button', { name: 'Fallakte', exact: true }).click();
   await expect(page.getByRole('heading', { name: /TEST-0001\s*·\s*Testperson Alpha/ })).toBeVisible();

@@ -4,7 +4,7 @@ import type {
   CreatePersonalDataAuditInput,
   PersonalDataAuditChainStatus,
   PersonalDataAuditRecord
-} from '../src/app/core/models/audit.model.js';
+} from '../src/domain/models/audit.model.js';
 import {
   computeAuditEntryHash,
   normalizeAuditMetadata,

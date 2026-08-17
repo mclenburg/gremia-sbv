@@ -1,7 +1,7 @@
-import type { CaseRecord } from '../../../core/models/case.model';
-import type { CaseMeasureRiskLevel } from '../../../core/models/case-measure.model';
-import type { ParticipationMeasureType } from '../../../core/models/participation.model';
-import type { WorkplaceAccommodationCategory } from '../../../core/models/workplace-accommodation.model';
+import type { CaseRecord } from '../../../../domain/models/case.model';
+import type { CaseMeasureRiskLevel } from '../../../../domain/models/case-measure.model';
+import type { ParticipationMeasureType } from '../../../../domain/models/participation.model';
+import type { WorkplaceAccommodationCategory } from '../../../../domain/models/workplace-accommodation.model';
 
 export type PrefillFieldState = 'prefilled' | 'manual';
 

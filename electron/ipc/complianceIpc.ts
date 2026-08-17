@@ -7,7 +7,7 @@ import type {
   CreateComplianceIncidentInput,
   DataSubjectAccessRequestInput,
   UpdateComplianceIncidentInput,
-} from '../../src/app/core/models/compliance.model.js';
+} from '../../src/domain/models/compliance.model.js';
 import {
   assertAllowedEnum,
   assertBoolean,

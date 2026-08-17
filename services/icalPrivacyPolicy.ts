@@ -1,4 +1,4 @@
-import type { DeadlineRecord } from '../src/app/core/models/deadline.model.js';
+import type { DeadlineRecord } from '../src/domain/models/deadline.model.js';
 
 export type IcalPrivacyLevel = 'privacy_first' | 'process_type' | 'case_reference' | 'details';
 

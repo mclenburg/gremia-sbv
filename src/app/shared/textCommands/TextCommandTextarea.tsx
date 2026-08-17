@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import type { ChangeEvent, TextareaHTMLAttributes } from 'react';
-import { TEXT_COMMAND_HINT, findFirstTextCommand, type TextCommandToken } from '@services/textCommandPolicy';
+import { TEXT_COMMAND_HINT, findFirstTextCommand, type TextCommandToken } from '@/domain/textCommands/textCommandPolicy';
 
 export type TextCommandTextareaChange = {
   token: TextCommandToken;

@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAnnouncer } from '../../../shared/a11y/LiveRegionProvider';
-import type { CaseRecord } from '../../../core/models/case.model';
-import type { ActivityJournalPrefill } from '../../../core/models/activity-journal.model';
+import type { CaseRecord } from '../../../../domain/models/case.model';
+import type { ActivityJournalPrefill } from '../../../../domain/models/activity-journal.model';
 import type {
   CreateSbvParticipationViolationInput,
   ParticipationViolationSourceContextType,
   ParticipationViolationStatus,
   SbvParticipationViolationRecord,
-} from '../../../core/models/sbv-participation-violation.model';
+} from '../../../../domain/models/sbv-participation-violation.model';
 import {
   applyViolationCaseContext,
   applyViolationSourceContextType,

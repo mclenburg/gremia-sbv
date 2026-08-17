@@ -7,7 +7,7 @@ import {
 import type {
   ComplianceDocument,
   ComplianceDocumentType,
-} from "../../../core/models/compliance.model";
+} from "../../../../domain/models/compliance.model";
 import { DOCUMENT_WORKSPACE_EXCLUDED_TYPES } from "../complianceConstants";
 import { ComplianceDocumentPreview } from "./ComplianceDocumentPreview";
 

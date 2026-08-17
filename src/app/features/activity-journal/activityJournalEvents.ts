@@ -1,4 +1,4 @@
-import type { ActivityJournalPrefill } from '../../core/models/activity-journal.model';
+import type { ActivityJournalPrefill } from '../../../domain/models/activity-journal.model';
 
 export const ACTIVITY_JOURNAL_PREFILL_EVENT = 'gremia-sbv:activity-journal-prefill-ready';
 

@@ -6,10 +6,10 @@ import {
   IndustrialPanel,
   type DataTableRow
 } from '../../shared/components/WorkbenchLayout';
-import type { CaseRecord } from '../../core/models/case.model';
-import type { CaseMeasureRecord } from '../../core/models/case-measure.model';
-import { caseMeasureTypeLabels } from '../../core/models/case-measure.model';
-import type { DeadlineRecord } from '../../core/models/deadline.model';
+import type { CaseRecord } from '../../../domain/models/case.model';
+import type { CaseMeasureRecord } from '../../../domain/models/case-measure.model';
+import { caseMeasureTypeLabels } from '../../../domain/models/case-measure.model';
+import type { DeadlineRecord } from '../../../domain/models/deadline.model';
 import { getDashboardState, getHoursRemaining } from '../../core/deadlineLogic';
 import { DeadlineSeverityBadge, DeadlineStateBadge } from './DeadlineBadge';
 import { deadlineProcessTypeLabels, deadlineTypeLabels } from './deadlineLabels';

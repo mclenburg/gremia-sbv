@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { CaseRecord } from '../../core/models/case.model';
-import type { DeadlineRecord } from '../../core/models/deadline.model';
-import type { ParticipationRecord } from '../../core/models/participation.model';
+import type { CaseRecord } from '../../../domain/models/case.model';
+import type { DeadlineRecord } from '../../../domain/models/deadline.model';
+import type { ParticipationRecord } from '../../../domain/models/participation.model';
 import type { ViewId } from '../../core/navigation/modules';
 import { waitForBridge } from '../../core/bridge/waitForBridge';
 import { ModuleFeedback } from '../../shared/components/ModuleFeedback';

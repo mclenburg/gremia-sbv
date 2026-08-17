@@ -1,4 +1,4 @@
-import type { GremiaBrPolicyCheckResult } from '../../src/app/core/models/gremia-br.model.js';
+import type { GremiaBrPolicyCheckResult } from '../../src/domain/models/gremia-br.model.js';
 import { findGremiaBrEndpointDefinition } from './gremiaBrApiCatalog.js';
 
 const BLOCKED_PREFIXES = [

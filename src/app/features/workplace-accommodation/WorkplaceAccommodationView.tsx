@@ -1,6 +1,6 @@
 import { AlertTriangle, FolderOpen, Wrench } from 'lucide-react';
-import type { WorkplaceAccommodationRecord } from '../../core/models/workplace-accommodation.model';
-import { workplaceAccommodationCategoryLabels, workplaceAccommodationStatusLabels } from '../../core/models/workplace-accommodation.model';
+import type { WorkplaceAccommodationRecord } from '../../../domain/models/workplace-accommodation.model';
+import { workplaceAccommodationCategoryLabels, workplaceAccommodationStatusLabels } from '../../../domain/models/workplace-accommodation.model';
 import { WorkbenchDetailPanel, WorkbenchGrid, WorkbenchListPanel, WorkbenchSummary } from '../../shared/components/WorkbenchLayout';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 import { GhostButton } from '../../shared/components/IndustrialButton';

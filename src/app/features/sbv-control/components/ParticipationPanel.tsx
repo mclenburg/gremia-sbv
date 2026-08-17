@@ -1,4 +1,4 @@
-import type { ParticipationRecord } from '../../../core/models/participation.model';
+import type { ParticipationRecord } from '../../../../domain/models/participation.model';
 import type { ViewId } from '../../../core/navigation/modules';
 import { EmptyState, IndustrialRecordCard } from '../../../shared/components/WorkbenchLayout';
 import { riskLevelToTone } from '../../../shared/status/statusTone';

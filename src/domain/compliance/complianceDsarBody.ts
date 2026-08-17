@@ -1,4 +1,4 @@
-import type { DataSubjectAccessRequestInput } from '../src/app/core/models/compliance.model.js';
+import type { DataSubjectAccessRequestInput } from '../models/compliance.model.js';
 import { header } from './complianceDocumentSupport.js';
 
 function displayDateTime(value: string): string {

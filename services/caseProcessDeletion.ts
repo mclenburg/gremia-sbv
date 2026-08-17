@@ -3,7 +3,7 @@ import { DatabaseUnitOfWork } from './databaseUnitOfWork.js';
 import type { PersonalDataAuditLogService } from './auditLogService.js';
 import type { MeasureLifecycleAuditService } from './measureLifecycleAuditService.js';
 import type { SearchIndexService } from './search/searchIndexService.js';
-import { noteProcessTypeToCaseMeasureType, type CaseMeasureNoteProcessType, type DeleteCaseProcessInput, type DeleteCaseProcessResult } from '../src/app/core/models/case-measure.model.js';
+import { noteProcessTypeToCaseMeasureType, type CaseMeasureNoteProcessType, type DeleteCaseProcessInput, type DeleteCaseProcessResult } from '../src/domain/models/case-measure.model.js';
 
 const PROCESS_SOURCES: Record<CaseMeasureNoteProcessType, { table: string; statusColumn: string; typeValue?: string }> = {
   prevention: { table: 'prevention_processes', statusColumn: 'status' },

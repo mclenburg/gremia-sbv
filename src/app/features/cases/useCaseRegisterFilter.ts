@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { CaseRecord } from '../../core/models/case.model';
+import type { CaseRecord } from '../../../domain/models/case.model';
 
 export function useCaseRegisterFilter(cases: CaseRecord[], caseFilter: string) {
   return useMemo(() => {

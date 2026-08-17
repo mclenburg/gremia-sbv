@@ -1,4 +1,4 @@
-import type { DeadlineListFilters, DeadlineRecord } from '../../core/models/deadline.model';
+import type { DeadlineListFilters, DeadlineRecord } from '../../../domain/models/deadline.model';
 import { getDashboardState } from '../../core/deadlineLogic';
 import type { DeadlineExportScope } from './deadlineLabels';
 

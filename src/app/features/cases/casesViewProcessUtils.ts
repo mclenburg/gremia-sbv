@@ -1,10 +1,10 @@
 import { formatDateShort } from "../../shared/format/dates";
-import type { CaseRecord } from "../../core/models/case.model";
-import type { PreventionProcessRecord, PreventionStatus } from "../../core/models/prevention.model";
-import type { BemProcessRecord, BemStatus } from "../../core/models/bem.model";
-import type { EqualizationProcessRecord } from "../../core/models/equalization.model";
-import type { TerminationHearingRecord } from "../../core/models/termination.model";
-import type { RenderedTemplateResult, TemplateRecord } from "../../core/models/template.model";
+import type { CaseRecord } from "../../../domain/models/case.model";
+import type { PreventionProcessRecord, PreventionStatus } from "../../../domain/models/prevention.model";
+import type { BemProcessRecord, BemStatus } from "../../../domain/models/bem.model";
+import type { EqualizationProcessRecord } from "../../../domain/models/equalization.model";
+import type { TerminationHearingRecord } from "../../../domain/models/termination.model";
+import type { RenderedTemplateResult, TemplateRecord } from "../../../domain/models/template.model";
 import { statusLabel } from "../prevention/preventionShared";
 import { bemStatusLabel } from "../bem/bemShared";
 import { processTypeLabel } from "./caseWorkbenchFormat";
@@ -273,4 +273,3 @@ export function buildProcessTemplateValues(
     "frist.datum": formatDateShort(process.employerResponseDueAt),
   };
 }
-

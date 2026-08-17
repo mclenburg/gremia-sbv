@@ -1,5 +1,5 @@
-import type { SbvResourceRecordKind, SbvResourceRecordStatus } from '../../core/models/sbv-resource.model';
-import type { SbvControlProtocolPartner, SbvControlProtocolStatus, SbvControlProtocolTopic } from '../../core/models/sbv-control-protocol.model';
+import type { SbvResourceRecordKind, SbvResourceRecordStatus } from '../../../domain/models/sbv-resource.model';
+import type { SbvControlProtocolPartner, SbvControlProtocolStatus, SbvControlProtocolTopic } from '../../../domain/models/sbv-control-protocol.model';
 
 export type ControlSectionId =
   | 'resources'

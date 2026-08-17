@@ -1,7 +1,7 @@
 import type {
   CaseMeasureNoteProcessType,
   CaseMeasureNoteRecord,
-} from "../../../core/models/case-measure.model";
+} from "../../../../domain/models/case-measure.model";
 import { toDateTimeLocal } from "../../../shared/format/dates";
 
 export type MeasureNotesPanelProps = {

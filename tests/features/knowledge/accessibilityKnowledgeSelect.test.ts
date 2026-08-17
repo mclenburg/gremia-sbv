@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { KnowledgeDetailPanel, KnowledgeSearchPanel } from '../../../src/app/features/knowledge/KnowledgePanels';
 import { classList, descendants, renderComponent, type RenderedNode } from '../../helpers/renderedMarkup';
-import type { CaseRecord } from '../../../src/app/core/models/case.model';
-import type { LegalNormRecord } from '../../../src/app/core/models/knowledge.model';
+import type { CaseRecord } from '../../../src/domain/models/case.model';
+import type { LegalNormRecord } from '../../../src/domain/models/knowledge.model';
 
 function findSelectByAriaLabel(root: RenderedNode, expectedName: string): RenderedNode {
   const select = descendants(root).find(

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { SearchIndexService } from '../../../../services/search/searchIndexService';
 import type { DatabaseAdapter } from '../../../../services/databaseService';
-import type { CaseSearchSourceType } from '../../../../src/app/core/models/case-note.model';
+import type { CaseSearchSourceType } from '../../../../src/domain/models/case-note.model';
 import type { CaseSearchDocument, CaseSearchProvider } from '../../../../services/search/searchTypes';
 
 function searchDocument(overrides: Partial<CaseSearchDocument> & Pick<CaseSearchDocument, 'sourceType' | 'sourceId' | 'sourceLabel' | 'title' | 'content'>): CaseSearchDocument {

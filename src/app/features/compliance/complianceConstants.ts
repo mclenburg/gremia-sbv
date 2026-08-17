@@ -3,7 +3,7 @@ import type {
   ComplianceIncidentCategory,
   ComplianceIncidentRiskLevel,
   ComplianceIncidentStatus,
-} from "../../core/models/compliance.model";
+} from "../../../domain/models/compliance.model";
 
 export type ComplianceWorkspace =
   | "system"

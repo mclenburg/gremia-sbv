@@ -1,6 +1,6 @@
-import type { CaseCategory, CaseRecord } from '../../core/models/case.model';
-import type { PrivacyReviewActionInput, PrivacyReviewActionResult, PrivacyReviewItemRecord } from '../../core/models/privacy-review.model';
-import type { CreateProtectedPersonInput, PersonImportExecuteInput, PersonImportExecuteResult, PersonImportPreviewInput, PersonImportPreviewResult, PersonStatusExpirySummary, ProtectedPersonRecord, UpdateProtectedPersonInput } from '../../core/models/protected-person.model';
+import type { CaseCategory, CaseRecord } from '../../../domain/models/case.model';
+import type { PrivacyReviewActionInput, PrivacyReviewActionResult, PrivacyReviewItemRecord } from '../../../domain/models/privacy-review.model';
+import type { CreateProtectedPersonInput, PersonImportExecuteInput, PersonImportExecuteResult, PersonImportPreviewInput, PersonImportPreviewResult, PersonStatusExpirySummary, ProtectedPersonRecord, UpdateProtectedPersonInput } from '../../../domain/models/protected-person.model';
 import type { ImportSource } from './personImportUi';
 
 export type CreateCaseForPersonInput = { caseNumber: string; displayName: string; category: CaseCategory; summary?: string };

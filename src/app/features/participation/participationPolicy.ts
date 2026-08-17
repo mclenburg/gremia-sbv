@@ -2,7 +2,7 @@ import type {
   ParticipationDecisionStage,
   ParticipationMeasureType,
   ParticipationRecord,
-} from '../../core/models/participation.model';
+} from '../../../domain/models/participation.model';
 
 export type ParticipationEscalationLevel = 'normal' | 'warning' | 'critical';
 

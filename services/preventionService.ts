@@ -11,7 +11,7 @@ import type {
   PreventionProcessRecord,
   PreventionStatus,
   UpdatePreventionProcessInput
-} from '../src/app/core/models/prevention.model.js';
+} from '../src/domain/models/prevention.model.js';
 
 
 interface PreventionProcessRow {

@@ -1,11 +1,11 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { AlertTriangle, Download, Upload } from "lucide-react";
-import type { CaseRecord } from "../../core/models/case.model";
+import type { CaseRecord } from "../../../domain/models/case.model";
 import type {
   CaseHandoverExportResult,
   CaseHandoverImportMode,
   CaseHandoverInspectResult,
-} from "../../core/models/case-handover.model";
+} from "../../../domain/models/case-handover.model";
 import {
   DateInput,
   FormActions,

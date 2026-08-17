@@ -1,4 +1,4 @@
-import type { CaseSearchResult, CaseSearchSourceType, CaseSearchHighlightSegment } from '../../src/app/core/models/case-note.model.js';
+import type { CaseSearchResult, CaseSearchSourceType, CaseSearchHighlightSegment } from '../../src/domain/models/case-note.model.js';
 import { CASE_SEARCH_PROVIDERS } from './searchProviders.js';
 export interface CaseSearchResultRow {
   source_type: CaseSearchSourceType;
@@ -131,4 +131,3 @@ export function mapRow(row: CaseSearchResultRow): CaseSearchResult {
     rank: Number(row.rank ?? 100),
   };
 }
-

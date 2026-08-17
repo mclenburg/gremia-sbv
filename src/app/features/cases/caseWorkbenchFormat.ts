@@ -1,4 +1,4 @@
-import type { CaseRecord } from '../../core/models/case.model';
+import type { CaseRecord } from '../../../domain/models/case.model';
 import type { CaseProcessType } from './caseWorkbenchTypes';
 
 export function toDateTimeLocalValue(iso?: string): string {

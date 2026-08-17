@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Plus, UserRoundPlus } from 'lucide-react';
-import type { CreateProtectedPersonInput, ProtectionStatus } from '../../core/models/protected-person.model';
-import { protectionStatusLabels } from '../../core/models/protected-person.model';
+import type { CreateProtectedPersonInput, ProtectionStatus } from '../../../domain/models/protected-person.model';
+import { protectionStatusLabels } from '../../../domain/models/protected-person.model';
+import { legalToday } from '../../../domain/time/legalTime';
 
 const statusOptions: ProtectionStatus[] = ['severely_disabled', 'equivalent', 'application_pending', 'unclear', 'expired', 'inactive'];
 
 function isPastOrToday(value: string): boolean {
-  return Boolean(value) && value <= new Date().toISOString().slice(0, 10);
+  return Boolean(value) && value <= legalToday();
 }
 
 export function PersonForm({

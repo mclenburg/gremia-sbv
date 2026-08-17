@@ -1,5 +1,5 @@
-import type { ActivityJournalCategory, ActivityJournalEntryRecord } from '../../core/models/activity-journal.model';
-import { activityJournalCategoryLabels } from '../../core/labels/activityJournalLabels';
+import type { ActivityJournalCategory, ActivityJournalEntryRecord } from '../../../domain/models/activity-journal.model';
+import { activityJournalCategoryLabels } from '../../../domain/labels/activityJournalLabels';
 
 export function formatDuration(minutes?: number): string {
   if (minutes === undefined) return 'ohne Zeit';

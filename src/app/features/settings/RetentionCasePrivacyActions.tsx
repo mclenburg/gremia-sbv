@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import type { CaseRecord } from '../../core/models/case.model';
-import type { CaseAnonymizationMode } from '../../core/models/privacy-review.model';
-import type { RetentionOperationResult } from '../../core/models/retention.model';
+import type { CaseRecord } from '../../../domain/models/case.model';
+import type { CaseAnonymizationMode } from '../../../domain/models/privacy-review.model';
+import type { RetentionOperationResult } from '../../../domain/models/retention.model';
 import { AUDIT_LOG_RETENTION_NOTICE } from '../../core/copy/privacyNotices';
 import { waitForBridge } from '../../core/bridge/waitForBridge';
 import { TextCommandTextarea } from '../../shared/textCommands/TextCommandTextarea';

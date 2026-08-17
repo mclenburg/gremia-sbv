@@ -4,7 +4,7 @@ import { ShellNav } from '../../src/app/shell/ShellNav';
 import { moduleGroups, modules } from '../../src/app/core/navigation/modules';
 import { ContactsView } from '../../src/app/features/contacts/ContactsView';
 import { ContactCreateModal } from '../../src/app/features/contacts/ContactCreateModal';
-import type { ContactRecord } from '../../src/app/core/models/contact.model';
+import type { ContactRecord } from '../../src/domain/models/contact.model';
 import { ConfirmDialogProvider } from '../../src/app/shared/dialogs/ConfirmDialogProvider';
 import { LiveRegionProvider } from '../../src/app/shared/a11y/LiveRegionProvider';
 import { renderComponent, renderElement, visibleText } from '../helpers/renderedMarkup';

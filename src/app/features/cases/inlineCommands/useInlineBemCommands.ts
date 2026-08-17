@@ -1,4 +1,4 @@
-import { formatBemMarkerText } from "@services/textCommandPolicy";
+import { formatBemMarkerText } from "@/domain/textCommands/textCommandPolicy";
 import { fromDateTimeLocalValue } from "../caseWorkbenchFormat";
 import type { InlineCommandRuntime } from "./inlineCommandRuntime";
 

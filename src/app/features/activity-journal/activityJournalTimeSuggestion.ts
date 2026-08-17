@@ -1,4 +1,5 @@
 import type { ActivityJournalFormState } from './hooks/useActivityJournal';
+export { legalToday } from '../../../domain/time/legalTime';
 
 export type ActivityJournalTimeSuggestion = {
   startTime: string;

@@ -1,12 +1,13 @@
 import { useMemo, useState } from 'react';
-import type { ElectionExecutionOverview } from '../../core/models/election-execution.model';
-import type { ElectionPreparationOverview } from '../../core/models/election-workflow.model';
+import type { ElectionExecutionOverview } from '../../../domain/models/election-execution.model';
+import type { ElectionPreparationOverview } from '../../../domain/models/election-workflow.model';
 import { IndustrialButton } from '../../shared/components/IndustrialButton';
 import { CheckboxField, DateInput, FormActions, FormSection, SelectInput, TextareaInput, TextInput } from '../../shared/components/IndustrialForm';
 import type { ElectionRunner } from './ElectionPreparationSections';
 import { acceptanceStatusLabels } from './electionPresentation';
+import { legalToday } from '../../../domain/time/legalTime';
 
-const today = () => new Date().toISOString().slice(0, 10);
+const today = legalToday;
 
 type SectionProps = {
   overview: ElectionPreparationOverview;

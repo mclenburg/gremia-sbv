@@ -13,10 +13,10 @@ import type {
   ParticipationRiskLevel,
   ParticipationStatus,
   UpdateParticipationInput,
-} from "../../core/models/participation.model";
+} from "../../../domain/models/participation.model";
 import type { SbvParticipationViolationPrefill } from "../participation-violations/sbvParticipationViolationViewLogic";
 import { buildParticipationViolationPrefillFromMeasure } from "../participation-violations/sbvParticipationViolationViewLogic";
-import type { CaseRecord } from "../../core/models/case.model";
+import type { CaseRecord } from "../../../domain/models/case.model";
 import { ToolbarButton } from "../../shared/components/IndustrialButton";
 import {
   DeferredDateTimeInput,

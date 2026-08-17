@@ -1,6 +1,6 @@
 import { IPC_CHANNELS, registerIpcHandler } from './ipcHandler.js';
 import type { IpcMain } from "electron";
-import type { SecurityResult, SecurityStatus } from "../../src/app/core/models/security.model.js";
+import type { SecurityResult, SecurityStatus } from "../../src/domain/models/security.model.js";
 import { SecurityService } from "../../services/securityService.js";
 import { assertAllowedEnum, assertString } from "./ipcValidation.js";
 

@@ -5,8 +5,8 @@ import type { ApplicationServices } from '../applicationServices.js';
 import { IPC_CHANNELS, registerIpcHandler } from './ipcHandler.js';
 import { assertRecordInput, assertString, sanitizeDialogFileName } from './ipcValidation.js';
 import { issueSelectedFileCapability, resolveSelectedFileCapability, SELECTED_FILE_PURPOSE } from './selectedFileCapability.js';
-import type { ConfigureElectionSetupInput, CreateElectionInput, GenerateElectionPreparationDocumentInput, SaveElectionBoardMemberInput, SaveElectionBoardSessionInput, SaveElectionCandidateInput, SaveElectionObjectionInput, SaveElectionProposalInput, SaveElectionVoterInput, ElectionVoterFileImportInput } from '../../src/app/core/models/election-workflow.model.js';
-import type { ElectionCloseInput, ElectionDayChecklistInput, GenerateElectionExecutionDocumentInput, RecordElectionAcceptanceInput, RecordElectionLotInput, RecordElectionTotalsInput, SaveElectionMailBallotInput, SaveElectionPhysicalRecordInput } from '../../src/app/core/models/election-execution.model.js';
+import type { ConfigureElectionSetupInput, CreateElectionInput, GenerateElectionPreparationDocumentInput, SaveElectionBoardMemberInput, SaveElectionBoardSessionInput, SaveElectionCandidateInput, SaveElectionObjectionInput, SaveElectionProposalInput, SaveElectionVoterInput, ElectionVoterFileImportInput } from '../../src/domain/models/election-workflow.model.js';
+import type { ElectionCloseInput, ElectionDayChecklistInput, GenerateElectionExecutionDocumentInput, RecordElectionAcceptanceInput, RecordElectionLotInput, RecordElectionTotalsInput, SaveElectionMailBallotInput, SaveElectionPhysicalRecordInput } from '../../src/domain/models/election-execution.model.js';
 import type { ElectionTransferEnvelope } from '../../services/electionTransferCryptoAdapter.js';
 const eid=(value:unknown,channel:string)=>assertString(value,channel,'Wahl-ID',{minLength:1,maxLength:120});
 export function registerSbvElectionIpc(ipcMain:IpcMain,_security:SecurityService,services:ApplicationServices):void{

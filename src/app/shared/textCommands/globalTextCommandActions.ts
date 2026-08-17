@@ -1,5 +1,5 @@
-import type { CreateDeadlineInput, DeadlineSeverity } from '../../core/models/deadline.model';
-import type { TextCommandKind } from '@services/textCommandPolicy';
+import type { CreateDeadlineInput, DeadlineSeverity } from '../../../domain/models/deadline.model';
+import type { TextCommandKind } from '@/domain/textCommands/textCommandPolicy';
 
 export interface GlobalDeadlineDraft {
   kind: Extract<TextCommandKind, 'deadline' | 'follow_up'>;

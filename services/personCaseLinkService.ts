@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
-import type { PersonCaseLinkRecord } from '../src/app/core/models/protected-person.model.js';
+import type { PersonCaseLinkRecord } from '../src/domain/models/protected-person.model.js';
 
 
 interface PersonCaseLinkRow {

@@ -4,7 +4,7 @@ export {
   deadlineProcessTypeLabels,
   deadlineSeverityLabels,
   deadlineTypeLabels,
-} from '../../core/labels/deadlineLabels';
+} from '../../../domain/labels/deadlineLabels';
 
 export type DeadlineExportScope = 'open' | 'dashboard' | 'all';
 

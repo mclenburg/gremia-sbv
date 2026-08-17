@@ -15,8 +15,8 @@ import type {
   CreateCaseInput,
   LegacyCaseBindingInput,
   LegacyCaseBindingResult,
-} from "../../src/app/core/models/case.model.js";
-import type { CaseDocumentRecord } from "../../src/app/core/models/case-document.model.js";
+} from "../../src/domain/models/case.model.js";
+import type { CaseDocumentRecord } from "../../src/domain/models/case-document.model.js";
 import type {
   CaseContentSearchInput,
   CaseNoteRecord,
@@ -25,11 +25,11 @@ import type {
   ConfidentialLevel,
   CreateCaseNoteInput,
   UpdateCaseNoteInput,
-} from "../../src/app/core/models/case-note.model.js";
+} from "../../src/domain/models/case-note.model.js";
 import type {
   CaseNoteLinkRecord,
   CreateCaseNoteLinkInput,
-} from "../../src/app/core/models/case-note-link.model.js";
+} from "../../src/domain/models/case-note-link.model.js";
 import type { DatabaseAdapter } from "../databaseService.js";
 import {
   ensureContactPrivacySchema,

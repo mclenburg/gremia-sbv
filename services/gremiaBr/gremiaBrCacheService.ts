@@ -6,7 +6,7 @@ import type {
   GremiaBrCacheRefreshResult,
   GremiaBrCacheSourceType,
   GremiaBrRelevanceSettings,
-} from '../../src/app/core/models/gremia-br.model.js';
+} from '../../src/domain/models/gremia-br.model.js';
 import type { GremiaBrReadAdapter } from './gremiaBrTypes.js';
 import { filterRelevantGremiaBrMeetings, getGremiaBrItemId } from './gremiaBrRelevanceService.js';
 

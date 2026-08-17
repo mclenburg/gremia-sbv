@@ -1,4 +1,4 @@
-import type { ContactRecord } from "../../../core/models/contact.model";
+import type { ContactRecord } from "../../../../domain/models/contact.model";
 import { formatContactReference } from "../../contacts/contactDisplay";
 import { replaceRange } from "./inlineCommandText";
 import type { InlineCommandRuntime } from "./inlineCommandRuntime";

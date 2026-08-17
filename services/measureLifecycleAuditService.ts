@@ -7,7 +7,7 @@ import {
   type MeasureLifecycleDeletionScope,
   type MeasureLifecycleEventName,
   type ReportableMeasureType,
-} from '../src/app/core/models/measure-lifecycle.model.js';
+} from '../src/domain/models/measure-lifecycle.model.js';
 
 export const MEASURE_LIFECYCLE_SUBJECT_TYPE = 'measure_lifecycle' as const;
 

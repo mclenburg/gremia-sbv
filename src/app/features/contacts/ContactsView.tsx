@@ -12,7 +12,7 @@ import {
 } from '../../shared/components/WorkbenchLayout';
 import { useConfirmDialog } from '../../shared/dialogs/ConfirmDialogProvider';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
-import type { ContactRecord, CreateContactInput, DeleteContactResult } from '../../core/models/contact.model';
+import type { ContactRecord, CreateContactInput, DeleteContactResult } from '../../../domain/models/contact.model';
 import { filterContactsForQuery, formatContactReference } from './contactDisplay';
 import { ContactCreateModal } from './ContactCreateModal';
 

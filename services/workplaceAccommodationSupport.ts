@@ -1,4 +1,4 @@
-import type { CreateWorkplaceAccommodationInput, UpdateWorkplaceAccommodationInput, WorkplaceAccommodationRecord, WorkplaceAccommodationStatus, WorkplaceAccommodationWarning } from "../src/app/core/models/workplace-accommodation.model.js";
+import type { CreateWorkplaceAccommodationInput, UpdateWorkplaceAccommodationInput, WorkplaceAccommodationRecord, WorkplaceAccommodationStatus, WorkplaceAccommodationWarning } from "../src/domain/models/workplace-accommodation.model.js";
 export interface WorkplaceAccommodationRow {
   id: string; case_id: string; title: string; accommodation_status: WorkplaceAccommodationRecord['status'] | null;
   category: WorkplaceAccommodationRecord['category'] | null; risk_level: WorkplaceAccommodationRecord['riskLevel'] | null;

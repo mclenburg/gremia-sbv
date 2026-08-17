@@ -1,4 +1,4 @@
-import { formatWorkplaceAccommodationMarkerText } from "@services/textCommandPolicy";
+import { formatWorkplaceAccommodationMarkerText } from "@/domain/textCommands/textCommandPolicy";
 import { fromDateTimeLocalValue } from "../caseWorkbenchFormat";
 import type { InlineCommandRuntime } from "./inlineCommandRuntime";
 

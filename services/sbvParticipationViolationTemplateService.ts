@@ -3,8 +3,8 @@ import {
   type SbvParticipationViolationRecord,
   type SbvParticipationViolationTemplateInput,
   type SbvParticipationViolationTemplateValidationResult,
-} from '../src/app/core/models/sbv-participation-violation.model.js';
-import { sbvParticipationViolationDocumentStageLabels } from '../src/app/core/labels/sbvParticipationViolationLabels.js';
+} from '../src/domain/models/sbv-participation-violation.model.js';
+import { sbvParticipationViolationDocumentStageLabels } from '../src/domain/labels/sbvParticipationViolationLabels.js';
 
 export const SBV_PARTICIPATION_VIOLATION_TEMPLATE_VERSION = '0.9.4-v1';
 

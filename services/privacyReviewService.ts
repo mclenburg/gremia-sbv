@@ -3,8 +3,8 @@ import type { DatabaseAdapter } from './databaseService.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
 import { assertRetentionDecision, decideLegacyBulkPrivacyReview, decidePrivacyReviewForContext, type PrivacyReviewReason } from './privacyReviewPolicy.js';
 import { ProtectedPersonService } from './protectedPersonService.js';
-import type { CaseCategory, CasePriority, CaseRecord, CaseStatus } from '../src/app/core/models/case.model.js';
-import type { PrivacyReviewItemRecord, PrivacyReviewItemStatus, PrivacyReviewContextSnapshot } from '../src/app/core/models/privacy-review.model.js';
+import type { CaseCategory, CasePriority, CaseRecord, CaseStatus } from '../src/domain/models/case.model.js';
+import type { PrivacyReviewItemRecord, PrivacyReviewItemStatus, PrivacyReviewContextSnapshot } from '../src/domain/models/privacy-review.model.js';
 
 /** SQLite row at the persistence boundary. Values remain scalar and must be
  * normalized by the service mapper before entering the domain model. */

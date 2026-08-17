@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import type { CaseNoteInlineActionInput } from '../../core/models/case-note.model';
+import type { CaseNoteInlineActionInput } from '../../../domain/models/case-note.model';
 
 export function useCaseNoteInlineActionBindings() {
   const clearDrafts = useRef<() => void>(() => undefined);

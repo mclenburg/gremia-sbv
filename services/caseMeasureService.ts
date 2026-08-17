@@ -3,10 +3,10 @@ import type { DatabaseAdapter } from './databaseService.js';
 import { DatabaseUnitOfWork } from './databaseUnitOfWork.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
 import { MeasureLifecycleAuditService } from './measureLifecycleAuditService.js';
-import { noteProcessTypeToCaseMeasureType } from '../src/app/core/models/case-measure.model.js';
+import { noteProcessTypeToCaseMeasureType } from '../src/domain/models/case-measure.model.js';
 import { SearchIndexService } from './search/searchIndexService.js';
 import { deleteCaseProcess } from './caseProcessDeletion.js';
-import type { MeasureLifecycleCreationSource } from '../src/app/core/models/measure-lifecycle.model.js';
+import type { MeasureLifecycleCreationSource } from '../src/domain/models/measure-lifecycle.model.js';
 import type {
   CaseMeasureCreatedFrom,
   CaseMeasureNoteProcessType,
@@ -21,7 +21,7 @@ import type {
   CreateCaseMeasureNoteInput,
   UpdateCaseMeasureInput,
   UpdateCaseMeasureNoteInput
-} from '../src/app/core/models/case-measure.model.js';
+} from '../src/domain/models/case-measure.model.js';
 
 /** SQLite row at the persistence boundary. Values remain scalar and must be
  * normalized by the service mapper before entering the domain model. */

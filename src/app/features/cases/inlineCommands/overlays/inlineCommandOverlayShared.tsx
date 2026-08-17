@@ -1,3 +1,5 @@
+export { IndustrialModalSurface } from "../../../../shared/dialogs/IndustrialDialogs";
+
 export type Setter<T> = (updater: (current: T | null) => T | null) => void;
 
 export function isPrefilled(

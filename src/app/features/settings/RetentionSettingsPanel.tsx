@@ -3,14 +3,14 @@ import type { FormEvent } from "react";
 import { AlertTriangle, Download, HardDrive, Save, ShieldCheck } from "lucide-react";
 import { waitForBridge } from "../../core/bridge/waitForBridge";
 import { formatDateShort } from "../../shared/format/dates";
-import type { CaseRecord } from "../../core/models/case.model";
-import type { RetentionCandidate, RetentionDashboard, RetentionSettings } from "../../core/models/retention.model";
+import type { CaseRecord } from "../../../domain/models/case.model";
+import type { RetentionCandidate, RetentionDashboard, RetentionSettings } from "../../../domain/models/retention.model";
 import { RetentionCasePrivacyActions } from "./RetentionCasePrivacyActions";
-import type { BackupInspectionResult, BackupOperationResult } from "../../core/models/backup.model";
-import type { RenderedTemplateResult, ContextualTemplateAction } from "../../core/models/template.model";
+import type { BackupInspectionResult, BackupOperationResult } from "../../../domain/models/backup.model";
+import type { RenderedTemplateResult, ContextualTemplateAction } from "../../../domain/models/template.model";
 import { APP_VERSION } from "../../generated/appVersion";
-import { buildExportWarningMessage, scanSensitiveExportText } from "@services/exportGuardPolicy";
-import { missingPlaceholderWarning } from "@services/templateContextPolicy";
+import { buildExportWarningMessage, scanSensitiveExportText } from "@/domain/privacy/exportGuardPolicy";
+import { missingPlaceholderWarning } from "@/domain/templates/templateContextPolicy";
 import { useConfirmDialog } from "../../shared/dialogs/ConfirmDialogProvider";
 import { useAnnouncer } from "../../shared/a11y/LiveRegionProvider";
 import { TEMPLATE_DEFAULT_FIELDS, EMPTY_TEMPLATE_DEFAULT_VALUES, loadTemplateDefaultValues, saveTemplateDefaultValues } from "../../shared/templates/templateDefaults";
@@ -272,4 +272,3 @@ export function RetentionSettingsPanel({ cases }: { cases: CaseRecord[] }) {
     </section>
   );
 }
-

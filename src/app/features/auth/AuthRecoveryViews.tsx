@@ -4,7 +4,7 @@ import { AlertTriangle, LockKeyhole, ShieldAlert } from "lucide-react";
 import { IndustrialButton } from "../../shared/components/IndustrialButton";
 import { FormActions, TextInput } from "../../shared/components/IndustrialForm";
 import { waitForBridge } from "../../core/bridge/waitForBridge";
-import { validateAppPassword } from "@services/passwordPolicy";
+import { validateAppPassword } from "../../../domain/security/passwordPolicy";
 export function SecurityUnavailable() {
   return (
     <main className="industrial-shell login-shell min-h-screen items-center justify-center text-zinc-100">
@@ -300,4 +300,3 @@ export function RecoveryGate({
     </main>
   );
 }
-

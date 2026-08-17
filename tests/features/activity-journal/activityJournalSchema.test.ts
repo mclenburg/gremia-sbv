@@ -7,7 +7,7 @@ import {
   APP_SCHEMA_VERSION,
 } from '../../../services/appSchema';
 import { createSqlSchemaSnapshot } from '../../../services/schemaSnapshotPolicy';
-import { ACTIVITY_JOURNAL_CATEGORIES, ACTIVITY_JOURNAL_TARGET_TYPES } from '../../../src/app/core/models/activity-journal.model';
+import { ACTIVITY_JOURNAL_CATEGORIES, ACTIVITY_JOURNAL_TARGET_TYPES } from '../../../src/domain/models/activity-journal.model';
 
 describe('activity journal schema 0.9.3-a', () => {
   it('setzt Schema 0041 mit Journal-Kernstrukturen', () => {

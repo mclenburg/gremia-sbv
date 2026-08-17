@@ -2,8 +2,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import type { DatabaseAdapter } from './databaseService.js';
 import { SbvOfficeWorkflowDocumentAdapter, type SbvOfficeDocumentRecord } from './sbvOfficeWorkflowDocumentAdapter.js';
-import type { RetentionOwnerRef } from '../src/app/core/models/retention-owner.model.js';
-import type { SbvAssemblyRecord } from '../src/app/core/models/sbv-office-workflow.model.js';
+import type { RetentionOwnerRef } from '../src/domain/models/retention-owner.model.js';
+import type { SbvAssemblyRecord } from '../src/domain/models/sbv-office-workflow.model.js';
 
 export type AssemblyDocumentKind = 'invitation' | 'agenda' | 'activity_report_draft' | 'result_minutes';
 

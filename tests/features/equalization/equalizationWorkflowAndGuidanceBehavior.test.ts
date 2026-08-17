@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { EqualizationProcessRecord, EqualizationStatus } from '../../../src/app/core/models/equalization.model';
+import type { EqualizationProcessRecord, EqualizationStatus } from '../../../src/domain/models/equalization.model';
 import { buildEqualizationGuidance, equalizationStatusObjective, suggestNextEqualizationStatus } from '../../../services/equalizationGuidancePolicy';
 import { evaluateEqualizationWarnings, equalizationStatusLabel, isDoneEqualizationStatus } from '../../../services/equalizationWorkflowPolicy';
 

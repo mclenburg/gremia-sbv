@@ -13,7 +13,7 @@ import type {
   NormChecklistItemRecord,
   NormCommentRecord,
   UpdateLegalNormInput,
-} from "../../src/app/core/models/knowledge.model.js";
+} from "../../src/domain/models/knowledge.model.js";
 import { IPC_CHANNELS } from "../ipc/channels.js";
 
 export function createKnowledgeApi(invokeIpc: IpcInvoker) {

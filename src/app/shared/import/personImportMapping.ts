@@ -1,4 +1,4 @@
-import type { PersonImportColumnMapping } from '../../core/models/protected-person.model';
+import type { PersonImportColumnMapping } from '../../../domain/models/protected-person.model';
 
 export const personImportFieldOptions = [
   { key: 'fullName', label: 'Vollname' },

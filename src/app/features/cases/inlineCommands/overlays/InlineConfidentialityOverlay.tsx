@@ -14,7 +14,7 @@ import {
   Siren,
   Users,
 } from "lucide-react";
-import type { LegalNormSuggestion } from "@services/textCommandPolicy";
+import type { LegalNormSuggestion } from "@/domain/textCommands/textCommandPolicy";
 import {
   LEGAL_NORM_SUGGESTIONS,
   formatAnonymizationMarkerText,
@@ -27,14 +27,14 @@ import {
   formatTerminationMarkerText,
   formatRiskText,
   formatTemplateMarkerText,
-} from "@services/textCommandPolicy";
-import type { ContactCategory } from "../../../../core/models/contact.model";
-import type { DeadlineSeverity } from "../../../../core/models/deadline.model";
-import type { ConfidentialCommandLevel, RiskLevelCommand } from "@services/textCommandPolicy";
+} from "@/domain/textCommands/textCommandPolicy";
+import type { ContactCategory } from "../../../../../domain/models/contact.model";
+import type { DeadlineSeverity } from "../../../../../domain/models/deadline.model";
+import type { ConfidentialCommandLevel, RiskLevelCommand } from "@/domain/textCommands/textCommandPolicy";
 import { filterContactsForQuery, formatContactReference } from "../../../contacts/contactDisplay";
 import { filterCasesForInlineCommand, filterNormsForInlineCommand } from "../inlineCommandSearch";
 import type { InlineCommandOverlaysProps } from "../InlineCommandOverlays";
-import { FieldCaption } from "./inlineCommandOverlayShared";
+import { FieldCaption, IndustrialModalSurface } from "./inlineCommandOverlayShared";
 
 export function InlineConfidentialityOverlay({ props }: { props: InlineCommandOverlaysProps }) {
   const {
@@ -106,13 +106,10 @@ export function InlineConfidentialityOverlay({ props }: { props: InlineCommandOv
   } = props;
 
   return inlineConfidentialityDraft ? (
-    <div className="industrial-modal-backdrop" role="presentation">
-      <section
-        className="industrial-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="inline-conf-title"
-      >
+    <IndustrialModalSurface
+      labelledById="inline-conf-title"
+      onClose={cancelInlineConfidentialityDraft}
+    >
         <div className="industrial-modal-header">
           <div className="industrial-modal-icon">
             <Lock className="h-5 w-5" />
@@ -171,7 +168,6 @@ export function InlineConfidentialityOverlay({ props }: { props: InlineCommandOv
             Übernehmen
           </button>
         </div>
-      </section>
-    </div>
+    </IndustrialModalSurface>
   ) : null;
 }

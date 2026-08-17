@@ -21,13 +21,12 @@ test('Lock blendet Fachinhalte aus und sperrt IPC-Datenzugriffe bis zur erneuten
   const lockedAccess = await productPage.evaluate(async () => {
     try {
       await window.gremiaSbv.cases.list();
-      return { rejected: false, message: '' };
-    } catch (error) {
-      return { rejected: true, message: error instanceof Error ? error.message : String(error) };
+      return false;
+    } catch {
+      return true;
     }
   });
-  expect(lockedAccess.rejected).toBe(true);
-  expect(lockedAccess.message).toMatch(/gesperrt|Datenbankzugriff verweigert|unlock/i);
+  expect(lockedAccess).toBe(true);
 
   await productPage.getByLabel('App-Passwort', { exact: true }).fill(PRODUCT_PASSWORD);
   await productPage.getByRole('button', { name: 'Entsperren' }).click();

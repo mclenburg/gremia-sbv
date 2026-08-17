@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import type { CaseHandoverCandidateMatch } from '../src/app/core/models/case-handover.model.js';
+import type { CaseHandoverCandidateMatch } from '../src/domain/models/case-handover.model.js';
 
 export const CASE_HANDOVER_FORMAT = 'gremia-sbv-case-handover';
 export const CASE_HANDOVER_LEGACY_VERSION = 1;

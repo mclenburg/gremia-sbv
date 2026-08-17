@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
-import type { RetentionOperationResult } from '../src/app/core/models/retention.model.js';
+import type { RetentionOperationResult } from '../src/domain/models/retention.model.js';
 import { applyPendingAnonymizationMarkers } from './textCommandPolicy.js';
 import { DocumentContainerService } from './documentContainerService.js';
 import { SearchIndexService } from './search/searchIndexService.js';

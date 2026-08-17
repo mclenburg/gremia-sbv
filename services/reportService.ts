@@ -1,5 +1,5 @@
 import { ComplianceReportBuilders } from './reports/complianceReportBuilders.js';
-import type { GenerateReportInput } from '../src/app/core/models/report.model.js';
+import type { GenerateReportInput } from '../src/domain/models/report.model.js';
 import type { ReportBuildResult } from './reports/reportSupport.js';
 
 export class ReportService extends ComplianceReportBuilders {

@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
-import type { PersonImportRunItemRecord, PersonImportRunRecord, ProtectedPersonRecord, LeftCompanyReason } from '../src/app/core/models/protected-person.model.js';
+import type { PersonImportRunItemRecord, PersonImportRunRecord, ProtectedPersonRecord, LeftCompanyReason } from '../src/domain/models/protected-person.model.js';
+import { legalToday } from '../src/domain/time/legalTime.js';
 export interface ProtectedPersonRow {
   id: string; created_at: string; updated_at: string; record_kind: ProtectedPersonRecord['recordKind'] | null;
   first_name: string | null; last_name: string | null; pseudonym_label: string | null; personnel_number: string | null;
@@ -32,8 +33,7 @@ export function isPastOrTodayDate(value: string | null | undefined): boolean {
   if (!value) return false;
   const dateOnly = value.slice(0, 10);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dateOnly)) return false;
-  const today = new Date().toISOString().slice(0, 10);
-  return dateOnly <= today;
+  return dateOnly <= legalToday();
 }
 
 export function resolveEmploymentState(requested: unknown, leftCompanyAt: string | null | undefined): ProtectedPersonRecord['employmentState'] {
@@ -118,4 +118,3 @@ export function parseChangedFields(value: string): string[] {
 export function hashStableId(seed: string): string {
   return createHash('sha256').update(seed).digest('hex').slice(0, 12);
 }
-

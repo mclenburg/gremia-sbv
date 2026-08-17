@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { Pencil } from 'lucide-react';
-import type { EmploymentState, ProtectedPersonRecord, ProtectedPersonStatusSource, ProtectionStatus, UpdateProtectedPersonInput } from '../../core/models/protected-person.model';
-import { employmentStateLabels, protectionStatusLabels } from '../../core/models/protected-person.model';
+import type { EmploymentState, ProtectedPersonRecord, ProtectedPersonStatusSource, ProtectionStatus, UpdateProtectedPersonInput } from '../../../domain/models/protected-person.model';
+import { employmentStateLabels, protectionStatusLabels } from '../../../domain/models/protected-person.model';
 import { toInputDate } from './personImportUi';
 
 const statusOptions: ProtectionStatus[] = ['severely_disabled', 'equivalent', 'application_pending', 'unclear', 'expired', 'inactive'];
@@ -21,6 +21,26 @@ function sourceLabel(value: ProtectedPersonStatusSource): string {
 function asOptional(value: string): string | undefined {
   const normalized = value.trim();
   return normalized || undefined;
+}
+
+function formFromPerson(person: ProtectedPersonRecord) {
+  return {
+    firstName: person.firstName ?? '',
+    lastName: person.lastName ?? '',
+    pseudonymLabel: person.pseudonymLabel ?? '',
+    personnelNumber: person.personnelNumber ?? '',
+    workEmail: person.workEmail ?? '',
+    organizationalUnit: person.organizationalUnit ?? '',
+    location: person.location ?? '',
+    protectionStatus: person.protectionStatus,
+    statusValidFrom: toInputDate(person.statusValidFrom),
+    statusValidUntil: toInputDate(person.statusValidUntil),
+    evidenceCheckedAt: toInputDate(person.evidenceCheckedAt),
+    statusSource: person.statusSource,
+    employmentState: person.employmentState,
+    leftCompanyAt: toInputDate(person.leftCompanyAt),
+    notes: person.notes ?? ''
+  };
 }
 
 export function PersonEditDialog({
@@ -44,24 +64,12 @@ export function PersonEditDialog({
 
   useEffect(() => {
     if (!open || !person) return;
+    setForm(formFromPerson(person));
+  }, [open, person]);
+
+  useEffect(() => {
+    if (!open || !person) return;
     returnFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    setForm({
-      firstName: person.firstName ?? '',
-      lastName: person.lastName ?? '',
-      pseudonymLabel: person.pseudonymLabel ?? '',
-      personnelNumber: person.personnelNumber ?? '',
-      workEmail: person.workEmail ?? '',
-      organizationalUnit: person.organizationalUnit ?? '',
-      location: person.location ?? '',
-      protectionStatus: person.protectionStatus,
-      statusValidFrom: toInputDate(person.statusValidFrom),
-      statusValidUntil: toInputDate(person.statusValidUntil),
-      evidenceCheckedAt: toInputDate(person.evidenceCheckedAt),
-      statusSource: person.statusSource,
-      employmentState: person.employmentState,
-      leftCompanyAt: toInputDate(person.leftCompanyAt),
-      notes: person.notes ?? ''
-    });
     const onKeyDown = (event: KeyboardEvent) => { if (event.key === 'Escape') onClose(); };
     document.addEventListener('keydown', onKeyDown);
     return () => {

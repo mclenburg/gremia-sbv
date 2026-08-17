@@ -5,7 +5,7 @@ import {
   normalizeTemplateDefaultValues,
   type TemplateDefaultKey,
   type TemplateDefaultValues,
-} from "../../core/models/template-default.model";
+} from "../../../domain/models/template-default.model";
 
 export {
   EMPTY_TEMPLATE_DEFAULT_VALUES,

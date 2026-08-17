@@ -1,4 +1,4 @@
-import type { DeadlineDashboardState, DeadlineRecord } from './models/deadline.model';
+import type { DeadlineDashboardState, DeadlineRecord } from '../../domain/models/deadline.model';
 
 export const DASHBOARD_HOURS_BEFORE_DUE = 48;
 

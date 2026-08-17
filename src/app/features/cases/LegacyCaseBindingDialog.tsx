@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link2 } from 'lucide-react';
-import type { CaseRecord } from '../../core/models/case.model';
-import type { ProtectedPersonRecord } from '../../core/models/protected-person.model';
+import type { CaseRecord } from '../../../domain/models/case.model';
+import type { ProtectedPersonRecord } from '../../../domain/models/protected-person.model';
 
 function personLabel(person: ProtectedPersonRecord): string {
   return person.pseudonymLabel || [person.lastName, person.firstName].filter(Boolean).join(', ') || person.id;

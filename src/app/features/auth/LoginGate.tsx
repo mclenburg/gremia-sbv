@@ -5,7 +5,7 @@ import { IndustrialButton } from "../../shared/components/IndustrialButton";
 import { TextInput } from "../../shared/components/IndustrialForm";
 import { waitForBridge } from "../../core/bridge/waitForBridge";
 import type { AuthMode } from "../../core/auth/authTypes";
-import { validateAppPassword } from "@services/passwordPolicy";
+import { validateAppPassword } from "../../../domain/security/passwordPolicy";
 import appIconUrl from "../../../../assets/icons/png/512x512.png";
 import { SecurityUnavailable, RecoveryGate, RecoveryKeyPanel } from './AuthRecoveryViews';
 export function LoginGate({

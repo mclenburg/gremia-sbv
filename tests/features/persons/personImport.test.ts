@@ -6,7 +6,7 @@ import { MAX_PERSON_IMPORT_FILE_BYTES, normalizeProtectionStatus, parseDelimited
 import { PersonImportService } from '../../../services/personImportService';
 import type { DatabaseAdapter } from '../../../services/databaseService';
 import { resolvePersonImportMatch } from '../../../services/personMatchingService';
-import type { ProtectedPersonRecord } from '../../../src/app/core/models/protected-person.model';
+import type { ProtectedPersonRecord } from '../../../src/domain/models/protected-person.model';
 
 const existing: ProtectedPersonRecord = {
   id: 'p1',

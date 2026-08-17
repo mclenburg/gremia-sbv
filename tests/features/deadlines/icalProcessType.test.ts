@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { exportDeadlinesToIcal } from '../../../services/deadlineIcalExportService';
 import { containsDirectIdentifier, deadlineProcessTypeLabel, sanitizeIcalText } from '../../../services/icalPrivacyPolicy';
-import type { DeadlineRecord } from '../../../src/app/core/models/deadline.model';
+import type { DeadlineRecord } from '../../../src/domain/models/deadline.model';
 import type { DeadlineIcalPrivacyLevel } from '../../../services/deadlineIcalExportService';
 
 const base: DeadlineRecord = {

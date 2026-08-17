@@ -15,9 +15,9 @@ import {
   WorkbenchSummary
 } from '../../shared/components/WorkbenchLayout';
 import { IndustrialModal } from '../../shared/dialogs/IndustrialDialogs';
-import type { CaseRecord } from '../../core/models/case.model';
-import type { CaseMeasureRecord } from '../../core/models/case-measure.model';
-import type { CreateDeadlineInput, DeadlineListFilters, DeadlineRecord, DeadlineSeverity } from '../../core/models/deadline.model';
+import type { CaseRecord } from '../../../domain/models/case.model';
+import type { CaseMeasureRecord } from '../../../domain/models/case-measure.model';
+import type { CreateDeadlineInput, DeadlineListFilters, DeadlineRecord, DeadlineSeverity } from '../../../domain/models/deadline.model';
 import { DeadlineListView } from './DeadlineListView';
 import { DeadlineIcalExportModal } from './DeadlineIcalExportPanel';
 import { DeadlineCreateModal } from './DeadlineCreateModal';

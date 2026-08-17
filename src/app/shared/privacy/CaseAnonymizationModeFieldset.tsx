@@ -1,4 +1,4 @@
-import type { CaseAnonymizationMode } from '../../core/models/privacy-review.model';
+import type { CaseAnonymizationMode } from '../../../domain/models/privacy-review.model';
 
 export function CaseAnonymizationModeFieldset({ value, onChange, name }: { value: CaseAnonymizationMode; onChange: (value: CaseAnonymizationMode) => void; name: string; }) {
   return <fieldset className="case-privacy-action-fieldset">

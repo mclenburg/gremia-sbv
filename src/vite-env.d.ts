@@ -1,16 +1,16 @@
 /// <reference types="vite/client" />
-import type { ComplianceAuditChainStatus, ComplianceDatabaseIntegrityStatus, ComplianceIncidentRecord, ComplianceSelfCheckResult, CreateComplianceIncidentInput, DataSubjectAccessPrefill, DataSubjectAccessRequestInput, UpdateComplianceIncidentInput } from "./app/core/models/compliance.model";
+import type { ComplianceAuditChainStatus, ComplianceDatabaseIntegrityStatus, ComplianceIncidentRecord, ComplianceSelfCheckResult, CreateComplianceIncidentInput, DataSubjectAccessPrefill, DataSubjectAccessRequestInput, UpdateComplianceIncidentInput } from "./domain/models/compliance.model";
 
-import type { CaseDocumentRecord } from "./app/core/models/case-document.model";
-import type { CaseHandoverContinueExpiredResult, CaseHandoverExportInput, CaseHandoverExportResult, CaseHandoverImportInput, CaseHandoverImportResult, CaseHandoverInspectResult } from "./app/core/models/case-handover.model";
-import type { CaseRecord, CreateCaseInput, LegacyCaseBindingInput, LegacyCaseBindingResult } from "./app/core/models/case.model";
+import type { CaseDocumentRecord } from "./domain/models/case-document.model";
+import type { CaseHandoverContinueExpiredResult, CaseHandoverExportInput, CaseHandoverExportResult, CaseHandoverImportInput, CaseHandoverImportResult, CaseHandoverInspectResult } from "./domain/models/case-handover.model";
+import type { CaseRecord, CreateCaseInput, LegacyCaseBindingInput, LegacyCaseBindingResult } from "./domain/models/case.model";
 import type {
   ContactListFilters,
   ContactRecord,
   CreateContactInput,
   DeleteContactResult,
   UpdateContactInput,
-} from "./app/core/models/contact.model";
+} from "./domain/models/contact.model";
 import type {
   CaseMeasureNoteProcessType,
   CaseMeasureNoteRecord,
@@ -21,42 +21,42 @@ import type {
   CreateCaseMeasureNoteInput,
   UpdateCaseMeasureInput,
   UpdateCaseMeasureNoteInput,
-} from "./app/core/models/case-measure.model";
+} from "./domain/models/case-measure.model";
 import type {
   CaseContentSearchInput,
   CaseNoteRecord,
   CaseSearchResult,
   CreateCaseNoteInput,
   UpdateCaseNoteInput,
-} from "./app/core/models/case-note.model";
+} from "./domain/models/case-note.model";
 import type {
   CreateDeadlineInput,
   DeadlineDashboardItem,
   DeadlineListFilters,
   DeadlineRecord,
   UpdateDeadlineInput,
-} from "./app/core/models/deadline.model";
-import type { CaseAnonymizationMode, PrivacyReviewActionInput, PrivacyReviewActionResult, PrivacyReviewBulkResult, PrivacyReviewItemRecord } from "./app/core/models/privacy-review.model";
+} from "./domain/models/deadline.model";
+import type { CaseAnonymizationMode, PrivacyReviewActionInput, PrivacyReviewActionResult, PrivacyReviewBulkResult, PrivacyReviewItemRecord } from "./domain/models/privacy-review.model";
 import type {
   SecurityResult,
   SecurityStatus,
-} from "./app/core/models/security.model";
+} from "./domain/models/security.model";
 import type {
   GenerateReportInput,
   ReportDescriptor,
   ReportExportHistoryItem,
   ReportGenerationResult,
-} from "./app/core/models/report.model";
+} from "./domain/models/report.model";
 import type {
   BackupInspectionResult,
   BackupOperationResult,
-} from "./app/core/models/backup.model";
+} from "./domain/models/backup.model";
 import type {
   RetentionDashboard,
   RetentionOperationResult,
   RetentionSettings,
   UpdateRetentionSettingsInput,
-} from "./app/core/models/retention.model";
+} from "./domain/models/retention.model";
 import type {
   CreatePreventionProcessInput,
   PreventionDashboardSummary,
@@ -64,14 +64,14 @@ import type {
   PreventionStepDefinition,
   PreventionWarning,
   UpdatePreventionProcessInput,
-} from "./app/core/models/prevention.model";
+} from "./domain/models/prevention.model";
 import type {
   CreateParticipationInput,
   ParticipationDashboardSummary,
   ParticipationRecord,
   ParticipationWarning,
   UpdateParticipationInput,
-} from "./app/core/models/participation.model";
+} from "./domain/models/participation.model";
 import type {
   CreateRecruitingInterviewEventInput,
   CreateRecruitingParticipationInput,
@@ -79,15 +79,15 @@ import type {
   RecruitingParticipationRecord,
   UpdateRecruitingInterviewEventInput,
   UpdateRecruitingParticipationInput,
-} from "./app/core/models/recruiting-participation.model";
-import type { CreateSbvControlProtocolInput, SbvControlProtocolRecord, UpdateSbvControlProtocolInput } from "./app/core/models/sbv-control-protocol.model";
+} from "./domain/models/recruiting-participation.model";
+import type { CreateSbvControlProtocolInput, SbvControlProtocolRecord, UpdateSbvControlProtocolInput } from "./domain/models/sbv-control-protocol.model";
 import type {
   CreateWorkplaceAccommodationInput,
   UpdateWorkplaceAccommodationInput,
   WorkplaceAccommodationDashboardSummary,
   WorkplaceAccommodationRecord,
   WorkplaceAccommodationWarning,
-} from "./app/core/models/workplace-accommodation.model";
+} from "./domain/models/workplace-accommodation.model";
 import type {
   BemDashboardSummary,
   BemProcessRecord,
@@ -95,19 +95,19 @@ import type {
   BemWarning,
   CreateBemProcessInput,
   UpdateBemProcessInput,
-} from "./app/core/models/bem.model";
+} from "./domain/models/bem.model";
 import type {
   CreateEqualizationProcessInput,
   EqualizationProcessRecord,
   EqualizationWarning,
   UpdateEqualizationProcessInput,
-} from "./app/core/models/equalization.model";
+} from "./domain/models/equalization.model";
 import type {
   CreateTerminationHearingInput,
   TerminationHearingRecord,
   TerminationHearingWarning,
   UpdateTerminationHearingInput,
-} from "./app/core/models/termination.model";
+} from "./domain/models/termination.model";
 import type {
   CaseLawRecord,
   CaseLegalReferenceRecord,
@@ -122,9 +122,9 @@ import type {
   NormChecklistItemRecord,
   NormCommentRecord,
   UpdateLegalNormInput,
-} from "./app/core/models/knowledge.model";
-import type { TemplateDefaultValues } from "./app/core/models/template-default.model";
-import type { CreateGremiaBrExternalReferenceInput, GremiaBrCachedOverview, GremiaBrCacheRefreshResult, GremiaBrConnectionTestResult, GremiaBrDashboardOverview, GremiaBrExternalReferenceRecord, GremiaBrInlineSuggestion, GremiaBrPublicSettings, GremiaBrRelevanceSettings, GremiaBrSettingsInput } from "./app/core/models/gremia-br.model";
+} from "./domain/models/knowledge.model";
+import type { TemplateDefaultValues } from "./domain/models/template-default.model";
+import type { CreateGremiaBrExternalReferenceInput, GremiaBrCachedOverview, GremiaBrCacheRefreshResult, GremiaBrConnectionTestResult, GremiaBrDashboardOverview, GremiaBrExternalReferenceRecord, GremiaBrInlineSuggestion, GremiaBrPublicSettings, GremiaBrRelevanceSettings, GremiaBrSettingsInput } from "./domain/models/gremia-br.model";
 
 import type {
   CreateTemplateInput,
@@ -134,8 +134,8 @@ import type {
   TemplateListFilters,
   TemplateRecord,
   UpdateTemplateInput,
-} from "./app/core/models/template.model";
-import type { CreateSbvResourceRecordInput, SbvResourceDashboardSummary, SbvResourceRecord, UpdateSbvResourceRecordInput } from "./app/core/models/sbv-resource.model";
+} from "./domain/models/template.model";
+import type { CreateSbvResourceRecordInput, SbvResourceDashboardSummary, SbvResourceRecord, UpdateSbvResourceRecordInput } from "./domain/models/sbv-resource.model";
 import type {
   ActivityJournalCategoryPreferenceRecord,
   ActivityJournalEntryRecord,
@@ -150,7 +150,7 @@ import type {
   ActivityJournalSummaryFilter,
   CreateActivityJournalEntryInput,
   UpdateActivityJournalEntryInput,
-} from "./app/core/models/activity-journal.model";
+} from "./domain/models/activity-journal.model";
 import type {
   CreateSbvParticipationViolationInput,
   SbvParticipationViolationDocumentResult,
@@ -163,7 +163,7 @@ import type {
   SbvParticipationViolationTemplateInput,
   SbvParticipationViolationTemplateValidationResult,
   UpdateSbvParticipationViolationInput,
-} from "./app/core/models/sbv-participation-violation.model";
+} from "./domain/models/sbv-participation-violation.model";
 
 import type {
   CreateProtectedPersonInput,
@@ -177,25 +177,25 @@ import type {
   ProtectedPersonListFilters,
   ProtectedPersonRecord,
   UpdateProtectedPersonInput,
-} from "./app/core/models/protected-person.model";
+} from "./domain/models/protected-person.model";
 
 import type {
   SbvMeetingRecord, SbvMeetingAgendaItemRecord, CreateSbvMeetingInput, UpdateSbvMeetingInput, UpsertSbvMeetingAgendaInput,
   SbvAssemblyRecord, SaveSbvAssemblyInput, EmployerObligationReviewRecord, SaveEmployerObligationReviewInput,
   InclusionOfficerSnapshotRecord, SaveInclusionOfficerSnapshotInput, InclusionAgreementRecord, SaveInclusionAgreementInput,
   InclusionAgreementTopicRecord, SaveInclusionAgreementTopicInput, ComplaintWorkflowRecord, SaveComplaintWorkflowInput, QuickCaseTemplate,
-} from "./app/core/models/sbv-office-workflow.model";
+} from "./domain/models/sbv-office-workflow.model";
 import type {
   ConfigureElectionSetupInput, CreateElectionInput, ElectionBoardMemberRecord, ElectionBoardSessionRecord, ElectionCandidateRecord,
   ElectionObjectionRecord, ElectionPreparationOverview, ElectionProposalRecord, ElectionRecord, ElectionSetupAssessment, ElectionVoterFileImportInput, ElectionVoterFileImportResult, ElectionVoterImportFileSelection, ElectionVoterRecord, ElectionVoterSyncResult,
   GenerateElectionPreparationDocumentInput, SaveElectionBoardMemberInput, SaveElectionBoardSessionInput, SaveElectionCandidateInput,
   SaveElectionObjectionInput, SaveElectionProposalInput, SaveElectionVoterInput,
-} from "./app/core/models/election-workflow.model";
+} from "./domain/models/election-workflow.model";
 import type {
   ElectionCloseInput, ElectionDayChecklistInput, ElectionDocumentExportResult, ElectionExecutionOverview, ElectionMailBallotRecord, ElectionPhysicalRecord, ElectionResultRecord,
   ElectionTransferFileExportResult, ElectionTransferFileSelection, ElectionTransferInspection, GenerateElectionExecutionDocumentInput, RecordElectionAcceptanceInput, RecordElectionLotInput,
   RecordElectionTotalsInput, SaveElectionMailBallotInput, SaveElectionPhysicalRecordInput,
-} from "./app/core/models/election-execution.model";
+} from "./domain/models/election-execution.model";
 import type { ElectionTransferEnvelope } from "../services/electionTransferCryptoAdapter";
 import type { ElectionTransferImportResult } from "../services/electionTransferImportService";
 declare global {

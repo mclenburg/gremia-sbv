@@ -10,7 +10,7 @@ import type {
   SbvResourceRecordKind,
   SbvResourceRecordStatus,
   UpdateSbvResourceRecordInput,
-} from '../src/app/core/models/sbv-resource.model.js';
+} from '../src/domain/models/sbv-resource.model.js';
 
 const DEFAULT_LEGAL_BASIS: Record<SbvResourceRecordKind, string> = {
   training: '§ 179 Abs. 4 Satz 3 SGB IX',

@@ -1,5 +1,5 @@
-import type { CaseRecord } from "../../../core/models/case.model";
-import { formatCaseReferenceText } from "@services/textCommandPolicy";
+import type { CaseRecord } from "../../../../domain/models/case.model";
+import { formatCaseReferenceText } from "@/domain/textCommands/textCommandPolicy";
 import { defaultDeadlineTitleForCase } from "../caseWorkbenchFormat";
 import type { InlineCommandRuntime } from "./inlineCommandRuntime";
 

@@ -5,7 +5,7 @@ import {
   type MeasureLifecycleAuditMetadata,
   type MeasureLifecycleEventName,
   type ReportableMeasureType,
-} from '../src/app/core/models/measure-lifecycle.model.js';
+} from '../src/domain/models/measure-lifecycle.model.js';
 import { MEASURE_LIFECYCLE_SUBJECT_TYPE } from './measureLifecycleAuditService.js';
 
 export const REPORTABLE_MEASURE_TYPES: readonly ReportableMeasureType[] = [

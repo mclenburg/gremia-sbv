@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import type { SbvControlProtocolRecord } from '../../../core/models/sbv-control-protocol.model';
+import type { SbvControlProtocolRecord } from '../../../../domain/models/sbv-control-protocol.model';
 import { useAnnouncer } from '../../../shared/a11y/LiveRegionProvider';
 import { waitForBridge } from '../../../core/bridge/waitForBridge';
 import type { TextCommandTextareaChange } from '../../../shared/textCommands/TextCommandTextarea';

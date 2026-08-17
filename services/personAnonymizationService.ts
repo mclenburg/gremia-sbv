@@ -3,7 +3,7 @@ import { ProtectedPersonService } from './protectedPersonService.js';
 import { PrivacyReviewService } from './privacyReviewService.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
 import { assertPersonPrivacyReason, decidePersonDeletion } from './personAnonymizationPolicy.js';
-import type { PersonAnonymizationResult } from '../src/app/core/models/protected-person.model.js';
+import type { PersonAnonymizationResult } from '../src/domain/models/protected-person.model.js';
 
 function nowIso(): string { return new Date().toISOString(); }
 

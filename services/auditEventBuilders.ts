@@ -1,7 +1,7 @@
 import type {
   CreatePersonalDataAuditInput,
   PersonalDataAuditAction,
-} from '../src/app/core/models/audit.model.js';
+} from '../src/domain/models/audit.model.js';
 
 export const AUDIT_SUBJECT_TYPES = {
   complianceIncident: 'compliance_incident',

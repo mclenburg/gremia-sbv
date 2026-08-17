@@ -2,7 +2,7 @@ import { IPC_CHANNELS, registerIpcHandler } from './ipcHandler.js';
 import { dialog, type IpcMain } from 'electron';
 import type { SecurityService } from '../../services/securityService.js';
 import type { ApplicationServices } from '../applicationServices.js';
-import type { CaseHandoverExportInput, CaseHandoverImportInput } from '../../src/app/core/models/case-handover.model.js';
+import type { CaseHandoverExportInput, CaseHandoverImportInput } from '../../src/domain/models/case-handover.model.js';
 import { assertRecordInput, assertString, sanitizeDialogFileName } from './ipcValidation.js';
 import { issueSelectedFileCapability, resolveSelectedFileCapability, SELECTED_FILE_PURPOSE } from './selectedFileCapability.js';
 

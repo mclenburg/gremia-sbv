@@ -14,7 +14,7 @@ import {
   Siren,
   Users,
 } from "lucide-react";
-import type { LegalNormSuggestion } from "@services/textCommandPolicy";
+import type { LegalNormSuggestion } from "@/domain/textCommands/textCommandPolicy";
 import {
   LEGAL_NORM_SUGGESTIONS,
   formatAnonymizationMarkerText,
@@ -27,14 +27,14 @@ import {
   formatTerminationMarkerText,
   formatRiskText,
   formatTemplateMarkerText,
-} from "@services/textCommandPolicy";
-import type { ContactCategory } from "../../../../core/models/contact.model";
-import type { DeadlineSeverity } from "../../../../core/models/deadline.model";
-import type { ConfidentialCommandLevel, RiskLevelCommand } from "@services/textCommandPolicy";
+} from "@/domain/textCommands/textCommandPolicy";
+import type { ContactCategory } from "../../../../../domain/models/contact.model";
+import type { DeadlineSeverity } from "../../../../../domain/models/deadline.model";
+import type { ConfidentialCommandLevel, RiskLevelCommand } from "@/domain/textCommands/textCommandPolicy";
 import { filterContactsForQuery, formatContactReference } from "../../../contacts/contactDisplay";
 import { filterCasesForInlineCommand, filterNormsForInlineCommand } from "../inlineCommandSearch";
 import type { InlineCommandOverlaysProps } from "../InlineCommandOverlays";
-import { FieldCaption } from "./inlineCommandOverlayShared";
+import { FieldCaption, IndustrialModalSurface } from "./inlineCommandOverlayShared";
 
 export function InlineLegalNormOverlay({ props }: { props: InlineCommandOverlaysProps }) {
   const {
@@ -106,13 +106,10 @@ export function InlineLegalNormOverlay({ props }: { props: InlineCommandOverlays
   } = props;
 
   return inlineLegalNormDraft ? (
-    <div className="industrial-modal-backdrop" role="presentation">
-      <section
-        className="industrial-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="inline-legal-title"
-      >
+    <IndustrialModalSurface
+      labelledById="inline-legal-title"
+      onClose={cancelInlineLegalNormDraft}
+    >
         <div className="industrial-modal-header">
           <div className="industrial-modal-icon">
             <Scale className="h-5 w-5" />
@@ -138,7 +135,6 @@ export function InlineLegalNormOverlay({ props }: { props: InlineCommandOverlays
                     : current,
                 )
               }
-              autoFocus
               placeholder="z. B. 178, Prävention, Kündigung, AGG …"
             />
           </label>
@@ -168,7 +164,6 @@ export function InlineLegalNormOverlay({ props }: { props: InlineCommandOverlays
             Abbrechen
           </button>
         </div>
-      </section>
-    </div>
+    </IndustrialModalSurface>
   ) : null;
 }

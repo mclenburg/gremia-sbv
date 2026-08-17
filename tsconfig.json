@@ -24,9 +24,6 @@
       "@/*": [
         "src/*"
       ],
-      "@services/*": [
-        "services/*"
-      ],
       "@database/*": [
         "database/*"
       ]

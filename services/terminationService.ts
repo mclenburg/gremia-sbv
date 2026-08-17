@@ -8,7 +8,7 @@ import type {
   TerminationHearingRecord,
   TerminationHearingStatus,
   UpdateTerminationHearingInput
-} from '../src/app/core/models/termination.model.js';
+} from '../src/domain/models/termination.model.js';
 
 
 interface TerminationHearingRow {

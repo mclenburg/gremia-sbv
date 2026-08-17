@@ -3,7 +3,7 @@ import { IPC_CHANNELS } from "../ipc/channels.js";
 import type {
   BackupInspectionResult,
   BackupOperationResult,
-} from "../../src/app/core/models/backup.model.js";
+} from "../../src/domain/models/backup.model.js";
 
 export function createBackupApi(invokeIpc: IpcInvoker) {
   return {

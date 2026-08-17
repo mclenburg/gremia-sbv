@@ -30,7 +30,7 @@ import {
   SBV_OFFICE_0051_REQUIRED_TABLES,
   DEADLINE_RULE_SNAPSHOT_REQUIRED_COLUMNS,
 } from './appSchema.js';
-import type { ComplianceDatabaseIntegrityStatus } from '../src/app/core/models/compliance.model.js';
+import type { ComplianceDatabaseIntegrityStatus } from '../src/domain/models/compliance.model.js';
 
 type ValueRow = { value?: unknown };
 type NameRow = { name?: unknown };

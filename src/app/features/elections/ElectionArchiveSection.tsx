@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import type { ElectionExecutionOverview } from '../../core/models/election-execution.model';
-import type { ElectionPreparationOverview } from '../../core/models/election-workflow.model';
+import type { ElectionExecutionOverview } from '../../../domain/models/election-execution.model';
+import type { ElectionPreparationOverview } from '../../../domain/models/election-workflow.model';
 import { IndustrialButton } from '../../shared/components/IndustrialButton';
 import { CheckboxField, DateInput, FormActions, FormSection, PasswordInput, TextInput } from '../../shared/components/IndustrialForm';
 import type { ElectionRunner } from './ElectionPreparationSections';

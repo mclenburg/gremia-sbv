@@ -818,7 +818,7 @@
         "positive": [
           {
             "file": "tests/features/elections/electionPreparationDocuments.behavior.test.ts",
-            "name": "creates a standalone PDF payload with readable text and German-character fallback"
+            "name": "preserves German characters in selectable PDF text"
           }
         ],
         "negative": [

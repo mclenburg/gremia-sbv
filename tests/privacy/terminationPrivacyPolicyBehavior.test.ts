@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { TerminationHearingRecord } from '../../src/app/core/models/termination.model';
+import type { TerminationHearingRecord } from '../../src/domain/models/termination.model';
 import { buildTerminationExportContext, TERMINATION_PRIVACY_FIELD_CLASSIFICATIONS, terminationPrivacyExportNotice } from '../../services/terminationPrivacyPolicy';
 
 const hearing: TerminationHearingRecord = {

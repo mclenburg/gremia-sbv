@@ -4,7 +4,7 @@ import {
   type RetentionOwnerRef,
   type RetentionOwnerSnapshot,
   type RetentionOwnerType,
-} from '../src/app/core/models/retention-owner.model.js';
+} from '../src/domain/models/retention-owner.model.js';
 
 export interface RetentionOwnerDescriptor {
   type: RetentionOwnerType;

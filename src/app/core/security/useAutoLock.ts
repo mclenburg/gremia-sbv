@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { waitForBridge } from "../bridge/waitForBridge";
+import { requestSecurityLock } from "./requestSecurityLock";
 
 export const AUTO_LOCK_TIMEOUT_MS = 10 * 60 * 1000;
 export const AUTO_LOCK_EVENTS = [
@@ -13,13 +14,15 @@ export const AUTO_LOCK_EVENTS = [
 export interface UseAutoLockOptions {
   enabled: boolean;
   timeoutMs?: number;
-  onLock: () => void;
+  onLocked: () => void;
+  onLockUnavailable: () => void;
 }
 
 export function useAutoLock({
   enabled,
   timeoutMs = AUTO_LOCK_TIMEOUT_MS,
-  onLock,
+  onLocked,
+  onLockUnavailable,
 }: UseAutoLockOptions): void {
   useEffect(() => {
     if (!enabled) return undefined;
@@ -31,14 +34,17 @@ export function useAutoLock({
       if (disposed) return;
       disposed = true;
       if (timer !== undefined) window.clearTimeout(timer);
+      let lockRequest;
       try {
         const bridge = await waitForBridge();
-        await bridge?.security?.lock?.(reason);
+        lockRequest = bridge?.security?.lock;
       } catch {
-        // UI muss unabhängig von IPC-Fehlern in den gesperrten Zustand wechseln.
-      } finally {
-        onLock();
+        onLockUnavailable();
+        return;
       }
+      const result = await requestSecurityLock(lockRequest, reason);
+      if (result === "locked") onLocked();
+      else onLockUnavailable();
     }
 
     function schedule() {
@@ -72,5 +78,5 @@ export function useAutoLock({
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("pagehide", handlePageHide);
     };
-  }, [enabled, onLock, timeoutMs]);
+  }, [enabled, onLocked, onLockUnavailable, timeoutMs]);
 }

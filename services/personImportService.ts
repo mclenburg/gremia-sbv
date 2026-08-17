@@ -28,7 +28,8 @@ import type {
   PersonImportRunItemRecord,
   ProtectedPersonRecord,
   UpdateProtectedPersonInput
-} from '../src/app/core/models/protected-person.model.js';
+} from '../src/domain/models/protected-person.model.js';
+import { legalToday } from '../src/domain/time/legalTime.js';
 
 function rowsToObjects(rows: string[][], headerRowIndex: number): { columns: string[]; objects: Record<string, string>[] } {
   const header = rows[headerRowIndex] ?? [];
@@ -45,7 +46,7 @@ function rowsToObjects(rows: string[][], headerRowIndex: number): { columns: str
 }
 
 function isPastOrToday(value: string | undefined): boolean {
-  return Boolean(value) && value! <= new Date().toISOString().slice(0, 10);
+  return Boolean(value) && value! <= legalToday();
 }
 
 export function buildPersonInput(rowObject: Record<string, string>, mapping: PersonImportColumnMapping): { input: CreateProtectedPersonInput; validationErrors: string[]; rawPreview: Record<string, string> } {

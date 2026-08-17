@@ -1,4 +1,4 @@
-import type { EmployerObligationKey, ObligationStatus } from '../src/app/core/models/sbv-office-workflow.model.js';
+import type { EmployerObligationKey, ObligationStatus } from '../src/domain/models/sbv-office-workflow.model.js';
 
 export const EMPLOYER_OBLIGATION_POLICY: Record<EmployerObligationKey, { cadence:string; legalBasis:string; title:string }> = {
   employment_report_163_2: { cadence:'annual', legalBasis:'§ 163 Abs. 2 SGB IX', title:'Anzeige und Verzeichnis' },

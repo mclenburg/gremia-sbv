@@ -4,14 +4,14 @@ import type {
   RecruitingApplicantStatus,
   RecruitingParticipationStatus,
   RecruitingViolationReviewReason,
-} from '../src/app/core/models/recruiting-participation.model.js';
+} from '../src/domain/models/recruiting-participation.model.js';
 import {
   RECRUITING_ACCESSIBILITY_CHECK_STATUSES,
   RECRUITING_APPLICANT_REFERENCE_MODES,
   RECRUITING_APPLICANT_STATUSES,
   RECRUITING_PARTICIPATION_STATUSES,
   RECRUITING_VIOLATION_REVIEW_REASONS,
-} from '../src/app/core/models/recruiting-participation.model.js';
+} from '../src/domain/models/recruiting-participation.model.js';
 
 export function normalizeOptionalText(value: unknown): string | null {
   if (typeof value !== 'string') return null;

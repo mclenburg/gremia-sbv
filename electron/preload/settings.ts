@@ -1,7 +1,7 @@
 import type { IpcInvoker } from "./invoke.js";
 import { IPC_CHANNELS } from "../ipc/channels.js";
-import type { CreateGremiaBrExternalReferenceInput, GremiaBrCachedOverview, GremiaBrCacheRefreshResult, GremiaBrConnectionTestResult, GremiaBrDashboardOverview, GremiaBrExternalReferenceRecord, GremiaBrInlineSuggestion, GremiaBrPublicSettings, GremiaBrRelevanceSettings, GremiaBrSettingsInput } from "../../src/app/core/models/gremia-br.model.js";
-import type { TemplateDefaultValues } from "../../src/app/core/models/template-default.model.js";
+import type { CreateGremiaBrExternalReferenceInput, GremiaBrCachedOverview, GremiaBrCacheRefreshResult, GremiaBrConnectionTestResult, GremiaBrDashboardOverview, GremiaBrExternalReferenceRecord, GremiaBrInlineSuggestion, GremiaBrPublicSettings, GremiaBrRelevanceSettings, GremiaBrSettingsInput } from "../../src/domain/models/gremia-br.model.js";
+import type { TemplateDefaultValues } from "../../src/domain/models/template-default.model.js";
 
 export function createSettingsApi(invokeIpc: IpcInvoker) {
   return {

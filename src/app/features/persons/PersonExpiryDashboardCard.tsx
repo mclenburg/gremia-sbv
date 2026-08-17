@@ -1,5 +1,5 @@
 import { CalendarCheck, Loader2 } from 'lucide-react';
-import type { ProtectedPersonRecord } from '../../core/models/protected-person.model';
+import type { ProtectedPersonRecord } from '../../../domain/models/protected-person.model';
 
 function isExpiringSoon(person: ProtectedPersonRecord): boolean {
   return person.lifecycleState === 'expiring_soon';

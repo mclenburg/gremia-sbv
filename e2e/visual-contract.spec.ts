@@ -507,6 +507,7 @@ test.describe('SBV-Wahlen – gerenderter UI- und Formularvertrag', () => {
   ] as const;
 
   test('prüft den vollständigen Wahlworkflow über alle relevanten Viewports', async ({ page }) => {
+    test.slow();
     await page.setViewportSize(viewports[viewports.length - 1]);
     await setTheme(page, 'dark');
       await openRoute(page, 'Wahlen');

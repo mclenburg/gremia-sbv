@@ -3,28 +3,23 @@ import path from 'node:path';
 import { createCipheriv, randomBytes, randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
-import type { CreatePersonalDataAuditInput } from '../src/app/core/models/audit.model.js';
+import type { CreatePersonalDataAuditInput } from '../src/domain/models/audit.model.js';
 import { auditCaseHandoverContinuedAfterExpiry, auditCaseHandoverExported, auditCaseHandoverImported, auditCaseHandoverImportInspected } from './auditEventBuilders.js';
 import { SearchIndexService } from './search/searchIndexService.js';
 import { buildCandidateMatches, CASE_HANDOVER_FORMAT, CASE_HANDOVER_VERSION, createPackageId, isExpired, packageRef, safeAuditMetadata } from './caseHandoverPolicy.js';
 import { assertCaseHandoverEnvelope, decryptCaseHandoverEnvelope, encryptCaseHandoverPayloadV2, type CaseHandoverEnvelope } from './caseHandoverCrypto.js';
 import { inspectCaseHandoverFilePath } from './caseHandoverFilePolicy.js';
-import type { CaseHandoverContinueExpiredInput, CaseHandoverContinueExpiredResult, CaseHandoverExportInput, CaseHandoverExportResult, CaseHandoverImportInput, CaseHandoverImportResult, CaseHandoverInspectResult } from '../src/app/core/models/case-handover.model.js';
+import type { CaseHandoverContinueExpiredInput, CaseHandoverContinueExpiredResult, CaseHandoverExportInput, CaseHandoverExportResult, CaseHandoverImportInput, CaseHandoverImportResult, CaseHandoverInspectResult } from '../src/domain/models/case-handover.model.js';
 import { Row, PackagePayload, DecryptedPackage, nowIso, sha256, isRecord, safeString, ensureArray } from './caseHandoverSupport.js';
 import { encodeDocumentForHandover, sanitizeHandoverDocumentMetadata } from './caseHandoverDocumentCodec.js';
+import { addColumnsIfMissing } from './migrations/schemaColumnMigration.js';
 export class CaseHandoverService {
   constructor(private readonly dbProvider: () => DatabaseAdapter, private readonly dataDirProvider: () => string = () => path.join(process.cwd(), 'data')) {}
 
   private db(): DatabaseAdapter { return this.dbProvider(); }
 
   ensureSchema(db: DatabaseAdapter): void {
-    const tryExec = (sql: string) => {
-      try { db.exec(sql); } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        if (!/duplicate column name|already exists/i.test(message)) throw error;
-      }
-    };
-    tryExec(`CREATE TABLE IF NOT EXISTS case_handover_imports (
+    db.exec(`CREATE TABLE IF NOT EXISTS case_handover_imports (
       id TEXT PRIMARY KEY,
       package_id TEXT NOT NULL,
       imported_at TEXT NOT NULL,
@@ -35,8 +30,8 @@ export class CaseHandoverService {
       updated_case_count INTEGER NOT NULL DEFAULT 0,
       metadata_json TEXT NOT NULL DEFAULT '{}'
     );`);
-    tryExec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_case_handover_package ON case_handover_imports(package_id);`);
-    tryExec(`CREATE TABLE IF NOT EXISTS case_handover_import_items (
+    db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_case_handover_package ON case_handover_imports(package_id);`);
+    db.exec(`CREATE TABLE IF NOT EXISTS case_handover_import_items (
       id TEXT PRIMARY KEY,
       handover_import_id TEXT NOT NULL,
       local_entity_type TEXT NOT NULL,
@@ -45,20 +40,18 @@ export class CaseHandoverService {
       created_at TEXT NOT NULL,
       FOREIGN KEY(handover_import_id) REFERENCES case_handover_imports(id) ON DELETE CASCADE
     );`);
-    tryExec(`CREATE INDEX IF NOT EXISTS idx_case_handover_items_local ON case_handover_import_items(local_entity_type, local_entity_id);`);
-    tryExec(`ALTER TABLE cases ADD COLUMN handover_import_id TEXT REFERENCES case_handover_imports(id) ON DELETE SET NULL;`);
-    tryExec(`ALTER TABLE cases ADD COLUMN handover_package_id TEXT;`);
-    tryExec(`ALTER TABLE cases ADD COLUMN handover_valid_until TEXT;`);
-    tryExec(`ALTER TABLE cases ADD COLUMN handover_status TEXT NOT NULL DEFAULT 'none';`);
-    tryExec(`ALTER TABLE cases ADD COLUMN handover_continue_confirmed_at TEXT;`);
-    tryExec(`ALTER TABLE cases ADD COLUMN handover_continue_reason TEXT;`);
-    tryExec(`ALTER TABLE case_measures ADD COLUMN handover_import_id TEXT REFERENCES case_handover_imports(id) ON DELETE SET NULL;`);
-    tryExec(`ALTER TABLE case_measures ADD COLUMN handover_package_id TEXT;`);
-    tryExec(`ALTER TABLE case_measures ADD COLUMN handover_valid_until TEXT;`);
-    tryExec(`ALTER TABLE case_measures ADD COLUMN handover_status TEXT NOT NULL DEFAULT 'none';`);
-    tryExec(`ALTER TABLE case_measures ADD COLUMN handover_continue_confirmed_at TEXT;`);
-    tryExec(`ALTER TABLE case_measures ADD COLUMN handover_continue_reason TEXT;`);
-    tryExec(`CREATE TABLE IF NOT EXISTS case_measure_notes (
+    db.exec(`CREATE INDEX IF NOT EXISTS idx_case_handover_items_local ON case_handover_import_items(local_entity_type, local_entity_id);`);
+    const handoverColumns = [
+      ['handover_import_id', 'TEXT REFERENCES case_handover_imports(id) ON DELETE SET NULL'],
+      ['handover_package_id', 'TEXT'],
+      ['handover_valid_until', 'TEXT'],
+      ['handover_status', "TEXT NOT NULL DEFAULT 'none'"],
+      ['handover_continue_confirmed_at', 'TEXT'],
+      ['handover_continue_reason', 'TEXT'],
+    ] as const;
+    addColumnsIfMissing(db, 'cases', handoverColumns);
+    addColumnsIfMissing(db, 'case_measures', handoverColumns);
+    db.exec(`CREATE TABLE IF NOT EXISTS case_measure_notes (
       id TEXT PRIMARY KEY,
       case_id TEXT NOT NULL,
       measure_type TEXT NOT NULL,

@@ -3,7 +3,7 @@ import type { SecurityService } from '../../services/securityService.js';
 import type { ApplicationServices } from '../applicationServices.js';
 import { IPC_CHANNELS, registerIpcHandler } from './ipcHandler.js';
 import { assertRecordInput, assertString } from './ipcValidation.js';
-import type { CreateSbvMeetingInput, SaveComplaintWorkflowInput, SaveEmployerObligationReviewInput, SaveInclusionAgreementInput, SaveInclusionAgreementTopicInput, SaveInclusionOfficerSnapshotInput, SaveSbvAssemblyInput, UpdateSbvMeetingInput, UpsertSbvMeetingAgendaInput } from '../../src/app/core/models/sbv-office-workflow.model.js';
+import type { CreateSbvMeetingInput, SaveComplaintWorkflowInput, SaveEmployerObligationReviewInput, SaveInclusionAgreementInput, SaveInclusionAgreementTopicInput, SaveInclusionOfficerSnapshotInput, SaveSbvAssemblyInput, UpdateSbvMeetingInput, UpsertSbvMeetingAgendaInput } from '../../src/domain/models/sbv-office-workflow.model.js';
 export function registerSbvOfficeWorkflowIpc(ipcMain:IpcMain,security:SecurityService,services:ApplicationServices):void{
  registerIpcHandler(ipcMain,IPC_CHANNELS.sbvOfficeMeetingsList,async()=>services.sbvMeetings().list());
  registerIpcHandler(ipcMain,IPC_CHANNELS.sbvOfficeMeetingsCreate,async(_e,i)=>services.sbvMeetings().create(assertRecordInput<CreateSbvMeetingInput>(i,'sbvOffice:meetings:create')));

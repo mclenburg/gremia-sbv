@@ -1,4 +1,4 @@
-import type { UpdateWorkplaceAccommodationInput, WorkplaceAccommodationRecord } from '../../core/models/workplace-accommodation.model';
+import type { UpdateWorkplaceAccommodationInput, WorkplaceAccommodationRecord } from '../../../domain/models/workplace-accommodation.model';
 import { DeferredDateTimeInput, DeferredTextInput, DeferredTextareaInput } from '../../shared/components/IndustrialForm';
 
 function toDateTimeLocal(iso?: string): string {

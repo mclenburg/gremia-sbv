@@ -3,7 +3,7 @@ import type { DatabaseAdapter } from './databaseService.js';
 import { DatabaseUnitOfWork } from './databaseUnitOfWork.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
 import { MeasureLifecycleAuditService } from './measureLifecycleAuditService.js';
-import type { CreateRecruitingInterviewEventInput, CreateRecruitingParticipationInput, RecruitingInterviewEventRecord, RecruitingParticipationRecord, UpdateRecruitingInterviewEventInput, UpdateRecruitingParticipationInput } from '../src/app/core/models/recruiting-participation.model.js';
+import type { CreateRecruitingInterviewEventInput, CreateRecruitingParticipationInput, RecruitingInterviewEventRecord, RecruitingParticipationRecord, UpdateRecruitingInterviewEventInput, UpdateRecruitingParticipationInput } from '../src/domain/models/recruiting-participation.model.js';
 import { defaultApplicantReference, normalizeAccessibilityCheckStatus, normalizeApplicantReferenceMode, normalizeApplicantStatus, normalizeBoolean, normalizeNonNegativeInteger, normalizeOptionalIso, normalizeOptionalText, normalizeRecruitingParticipationStatus, normalizeRequiredIso, normalizeViolationReviewReason } from './recruitingParticipationValidation.js';
 import { RecruitingParticipationRow, RecruitingInterviewRow, nowIso, sqliteOptionalBoolean, mapParticipation, mapInterview } from './recruitingParticipationSupport.js';
 export class RecruitingParticipationService {

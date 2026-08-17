@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import type { CaseRecord } from '../../core/models/case.model';
+import type { CaseRecord } from '../../../domain/models/case.model';
 import { SettingsView, type ThemeMode } from '../../workflowViews';
 import { GremiaBrSettingsPanel } from './GremiaBrSettingsPanel';
 import { ToolbarButton } from '../../shared/components/IndustrialButton';

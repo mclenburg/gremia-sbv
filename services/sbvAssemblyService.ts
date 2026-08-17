@@ -6,7 +6,7 @@ import { DeadlineService } from './deadlineService.js';
 import type {
   SaveSbvAssemblyInput,
   SbvAssemblyRecord,
-} from '../src/app/core/models/sbv-office-workflow.model.js';
+} from '../src/domain/models/sbv-office-workflow.model.js';
 import { canMarkAssemblyReady, shouldWarnAboutAnnualAssembly } from './sbvAssemblyPolicy.js';
 
 const nowIso = () => new Date().toISOString();

@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import type { CaseNoteRecord } from "../../core/models/case-note.model";
+import type { CaseNoteRecord } from "../../../domain/models/case-note.model";
 import type {
   EqualizationProcessRecord,
   EqualizationStatus,
-} from "../../core/models/equalization.model";
+} from "../../../domain/models/equalization.model";
 import { waitForBridge } from "../../core/bridge/waitForBridge";
 import { ToolbarButton } from "../../shared/components/IndustrialButton";
 import {
@@ -21,7 +21,7 @@ import {
   fromDateTimeLocalValue,
   toDateTimeLocalValue,
 } from "../cases/caseWorkbenchFormat";
-import { buildEqualizationGuidance } from "@services/equalizationGuidancePolicy";
+import { buildEqualizationGuidance } from "@/domain/equalization/equalizationGuidancePolicy";
 import {
   equalizationStatusLabel,
   equalizationStatusOrder,

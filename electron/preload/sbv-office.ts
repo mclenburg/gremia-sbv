@@ -1,4 +1,4 @@
-import type { ActivityJournalPrefill } from '../../src/app/core/models/activity-journal.model.js';
+import type { ActivityJournalPrefill } from '../../src/domain/models/activity-journal.model.js';
 import type {
   ComplaintWorkflowRecord,
   CreateSbvMeetingInput,
@@ -18,7 +18,7 @@ import type {
   SbvMeetingRecord,
   UpdateSbvMeetingInput,
   UpsertSbvMeetingAgendaInput,
-} from '../../src/app/core/models/sbv-office-workflow.model.js';
+} from '../../src/domain/models/sbv-office-workflow.model.js';
 import type { SbvOfficeDocumentRecord } from '../../services/sbvOfficeWorkflowDocumentAdapter.js';
 import { IPC_CHANNELS } from '../ipc/channels.js';
 import type { IpcInvoker } from './invoke.js';

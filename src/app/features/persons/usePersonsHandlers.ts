@@ -5,8 +5,8 @@ import type {
   PersonImportExecuteInput,
   PersonImportPreviewInput,
   UpdateProtectedPersonInput
-} from '../../core/models/protected-person.model';
-import type { PrivacyReviewActionInput } from '../../core/models/privacy-review.model';
+} from '../../../domain/models/protected-person.model';
+import type { PrivacyReviewActionInput } from '../../../domain/models/privacy-review.model';
 
 export function usePersonsHandlers(reloadWorkData: () => Promise<void>) {
   const createProtectedPerson = useCallback(async (input: CreateProtectedPersonInput) => {

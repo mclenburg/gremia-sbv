@@ -2,7 +2,7 @@ import { Plus, Trash2, Upload } from 'lucide-react';
 import { IndustrialButton, GhostButton, IconButton } from '../../shared/components/IndustrialButton';
 import { SearchInput } from '../../shared/components/IndustrialForm';
 import { EmptyState } from '../../shared/components/WorkbenchLayout';
-import type { CaseCategory, CaseRecord } from '../../core/models/case.model';
+import type { CaseCategory, CaseRecord } from '../../../domain/models/case.model';
 
 export function CaseRegister({
   filteredCount,

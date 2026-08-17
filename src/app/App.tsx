@@ -8,6 +8,7 @@ import { modules, type ViewId } from "./core/navigation/modules";
 import { useModalKeyboardShortcuts } from "./core/keyboard/useModalKeyboardShortcuts";
 import { AUTO_LOCK_TIMEOUT_MS, useAutoLock } from "./core/security/useAutoLock";
 import { INITIAL_SESSION_VIEW, toLockedSessionState } from "./core/security/sessionLockState";
+import { requestSecurityLock } from "./core/security/requestSecurityLock";
 import type { CaseCategory, CaseRecord, WorkplaceAccommodationRecord, CaseMeasureRecord, ProtectedPersonRecord, ContactRecord, CreateContactInput, DeleteContactResult, CreateDeadlineInput, DeadlineDashboardItem, DeadlineRecord, DeadlineSeverity, SbvParticipationViolationPrefill, ActivityJournalPrefill, AuthMode, CaseNodeTarget } from "./appTypes";
 import "./appStyles";
 import { APP_VERSION } from "./generated/appVersion";
@@ -100,7 +101,16 @@ function useSecuritySession() {
     const locked = toLockedSessionState({ unlocked: true, authMode: "login" as AuthMode });
     setUnlocked(locked.unlocked); setAuthMode(locked.authMode);
   }, []);
-  useAutoLock({ enabled: unlocked, timeoutMs: AUTO_LOCK_TIMEOUT_MS, onLock: switchToLockedSession });
+  const switchToUnavailableSession = useCallback(() => {
+    setUnlocked(false);
+    setAuthMode("unavailable");
+  }, []);
+  useAutoLock({
+    enabled: unlocked,
+    timeoutMs: AUTO_LOCK_TIMEOUT_MS,
+    onLocked: switchToLockedSession,
+    onLockUnavailable: switchToUnavailableSession,
+  });
   useEffect(() => {
     let active = true;
     void (async () => {
@@ -119,7 +129,14 @@ function useSecuritySession() {
     })();
     return () => { active = false; };
   }, []);
-  return { authMode, setAuthMode, unlocked, setUnlocked, switchToLockedSession };
+  return {
+    authMode,
+    setAuthMode,
+    unlocked,
+    setUnlocked,
+    switchToLockedSession,
+    switchToUnavailableSession,
+  };
 }
 
 function useActivityJournalNavigation(setCurrentView: (view: ViewId) => void) {
@@ -269,13 +286,13 @@ function WorkspaceMain(props: PrimaryViewsProps & { currentModule?: (typeof modu
   </main>;
 }
 
-function AppShell({ currentView, setCurrentView, switchToLockedSession, children }: { currentView: ViewId; setCurrentView: (view: ViewId) => void;
-  switchToLockedSession: () => void; children: React.ReactNode }) {
+function AppShell({ currentView, setCurrentView, onLock, children }: { currentView: ViewId; setCurrentView: (view: ViewId) => void;
+  onLock: () => Promise<void>; children: React.ReactNode }) {
   return <LiveRegionProvider><ConfirmDialogProvider><a className="skip-link" href="#main-content">Zum Hauptinhalt springen</a>
     <div className="industrial-shell min-h-screen text-zinc-100"><aside className="industrial-sidebar" aria-label="Gremia.SBV Navigation und Sitzung">
       <div className="brand-block"><div className="brand-mark">SBV</div><div><strong>Gremia.SBV</strong><span>LOCAL</span></div></div>
       <ShellNav current={currentView} onNavigate={setCurrentView} onPreload={(view) => { void preloadLazyFeature(view).catch(() => undefined); }} />
-      <button type="button" className="industrial-lock-button" onClick={async () => { try { await window.gremiaSbv?.security?.lock?.(); } catch { /* no-op */ } switchToLockedSession(); }}>
+      <button type="button" className="industrial-lock-button" onClick={() => void onLock()}>
         <LogOut className="h-4 w-4" />Sperren</button>
       <div className="industrial-version-badge" aria-label={`Gremia.SBV Version ${APP_VERSION}`}><span>Version</span><strong>{APP_VERSION}</strong></div>
     </aside>{children}</div></ConfirmDialogProvider></LiveRegionProvider>;
@@ -298,7 +315,15 @@ export function App() {
   const viewProps: PrimaryViewsProps = { currentView, setCurrentView, work, caseNodeTarget, setCaseNodeTarget,
     activityJournalPrefill: journal.activityJournalPrefill, setActivityJournalPrefill: journal.setActivityJournalPrefill,
     participationViolationPrefill, setParticipationViolationPrefill };
-  return <AppShell currentView={currentView} setCurrentView={setCurrentView} switchToLockedSession={security.switchToLockedSession}>
+  return <AppShell
+    currentView={currentView}
+    setCurrentView={setCurrentView}
+    onLock={async () => {
+      const result = await requestSecurityLock(window.gremiaSbv?.security?.lock, "manual");
+      if (result === "locked") security.switchToLockedSession();
+      else security.switchToUnavailableSession();
+    }}
+  >
     <WorkspaceMain {...viewProps} currentModule={currentModule} openCaseNode={openCaseNode} theme={theme} setTheme={setTheme} />
   </AppShell>;
 }

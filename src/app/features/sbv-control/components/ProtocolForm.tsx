@@ -1,5 +1,5 @@
 import { Plus, Save } from 'lucide-react';
-import type { SbvControlProtocolPartner, SbvControlProtocolStatus, SbvControlProtocolTopic } from '../../../core/models/sbv-control-protocol.model';
+import type { SbvControlProtocolPartner, SbvControlProtocolStatus, SbvControlProtocolTopic } from '../../../../domain/models/sbv-control-protocol.model';
 import { DateInput, FormActions, SelectInput, TextareaInput, TextInput } from '../../../shared/components/IndustrialForm';
 import { IndustrialButton, ToolbarButton } from '../../../shared/components/IndustrialButton';
 import { protocolPartnerLabels, protocolStatusLabels, protocolTopicLabels } from '../sbvControlTypes';

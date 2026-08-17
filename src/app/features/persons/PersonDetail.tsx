@@ -1,11 +1,12 @@
-import type { CaseRecord } from '../../core/models/case.model';
-import type { PrivacyReviewActionInput, PrivacyReviewActionResult, PrivacyReviewItemRecord } from '../../core/models/privacy-review.model';
-import type { ProtectedPersonRecord, UpdateProtectedPersonInput } from '../../core/models/protected-person.model';
-import { employmentStateLabels, lifecycleStateLabels, protectionStatusLabels } from '../../core/models/protected-person.model';
+import type { CaseRecord } from '../../../domain/models/case.model';
+import type { PrivacyReviewActionInput, PrivacyReviewActionResult, PrivacyReviewItemRecord } from '../../../domain/models/privacy-review.model';
+import type { ProtectedPersonRecord, UpdateProtectedPersonInput } from '../../../domain/models/protected-person.model';
+import { employmentStateLabels, lifecycleStateLabels, protectionStatusLabels } from '../../../domain/models/protected-person.model';
 import { ToolbarButton } from '../../shared/components/IndustrialButton';
 import { StatusBadge } from '../../shared/components/StatusBadges';
 import { toInputDate } from './personImportUi';
 import { PersonLifecycleReviewDialog } from './PersonLifecycleReviewDialog';
+import { legalToday } from '../../../domain/time/legalTime';
 
 export function PersonDetail({
   person,
@@ -88,7 +89,7 @@ export function PersonDetail({
       <PersonLifecycleReviewDialog person={person} open={privacyReviewOpen} reviews={privacyReviews} loading={privacyReviewLoading} onOpen={onOpenPrivacyReview} onClose={onClosePrivacyReview} onDocumentRetention={onDocumentRetention} onScheduleLater={onScheduleLater} onClear={onClearReview} onAnonymizeCase={onAnonymizeCase} onDeleteCase={onDeleteCase} onMessage={onMessage} onError={onError} />
       <div className="industrial-settings-form">
         <label><span>Status gültig bis</span><input type="date" defaultValue={toInputDate(person.statusValidUntil)} onBlur={(event) => void updateSelected({ statusValidUntil: event.target.value || undefined, protectionStatus: event.target.value ? person.protectionStatus : 'expired' })} /></label>
-        <label><span>Beschäftigungsende</span><input type="date" defaultValue={toInputDate(person.leftCompanyAt)} onBlur={(event) => { const value = event.target.value; const today = new Date().toISOString().slice(0, 10); void updateSelected({ employmentState: value && value <= today ? 'left_company' : 'active_employee', leftCompanyAt: value || undefined }); }} /></label>
+        <label><span>Beschäftigungsende</span><input type="date" defaultValue={toInputDate(person.leftCompanyAt)} onBlur={(event) => { const value = event.target.value; void updateSelected({ employmentState: value && value <= legalToday() ? 'left_company' : 'active_employee', leftCompanyAt: value || undefined }); }} /></label>
       </div>
       <p className="industrial-muted">Verknüpfte Fallakten werden bei einer Anonymisierung nicht mehr mit Namen angezeigt, sondern erhalten eine Datenschutz-Prüfmarkierung.</p>
       <p className="industrial-meta">Verknüpfte Fallakten: {linkedCaseCount}</p>

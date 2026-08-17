@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { HelpCircle } from 'lucide-react';
-import type { PrivacyReviewActionInput, PrivacyReviewActionResult, PrivacyReviewItemRecord } from '../../core/models/privacy-review.model';
-import { employmentStateLabels, lifecycleStateLabels, protectionStatusLabels, type ProtectedPersonRecord } from '../../core/models/protected-person.model';
+import type { PrivacyReviewActionInput, PrivacyReviewActionResult, PrivacyReviewItemRecord } from '../../../domain/models/privacy-review.model';
+import { employmentStateLabels, lifecycleStateLabels, protectionStatusLabels, type ProtectedPersonRecord } from '../../../domain/models/protected-person.model';
 import { AUDIT_LOG_RETENTION_NOTICE } from '../../core/copy/privacyNotices';
 
 const reasonLabels: Record<string, string> = {

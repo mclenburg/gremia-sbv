@@ -1,7 +1,7 @@
-import type { CaseSearchSourceType, ConfidentialLevel } from '../../src/app/core/models/case-note.model.js';
+import type { CaseSearchSourceType, ConfidentialLevel } from '../../src/domain/models/case-note.model.js';
 import type { DatabaseAdapter } from '../databaseService.js';
 
-export type { CaseSearchSourceType } from '../../src/app/core/models/case-note.model.js';
+export type { CaseSearchSourceType } from '../../src/domain/models/case-note.model.js';
 
 export type CaseSearchNavigationKind =
   | 'case'
@@ -49,4 +49,3 @@ export interface CaseSearchProvider {
   latestUpdatedAtForCase(db: DatabaseAdapter, caseId: string): string | undefined;
   latestUpdatedAtAll(db: DatabaseAdapter): string | undefined;
 }
-

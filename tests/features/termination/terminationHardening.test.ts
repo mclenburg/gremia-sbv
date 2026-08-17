@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { TerminationProcessDetail } from '../../../src/app/features/termination/TerminationProcessDetail';
-import type { TerminationHearingRecord } from '../../../src/app/core/models/termination.model';
+import type { TerminationHearingRecord } from '../../../src/domain/models/termination.model';
 import { evaluateTerminationWarnings, suggestedStatementDueAt } from '../../../services/terminationWorkflowPolicy';
 import { descendants, renderComponent, visibleText } from '../../helpers/renderedMarkup';
 

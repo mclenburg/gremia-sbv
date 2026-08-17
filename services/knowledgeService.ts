@@ -16,7 +16,7 @@ import type {
   NormChecklistItemRecord,
   NormCommentRecord,
   UpdateLegalNormInput
-} from '../src/app/core/models/knowledge.model.js';
+} from '../src/domain/models/knowledge.model.js';
 
 /** SQLite row at the persistence boundary. Values remain scalar and must be
  * normalized by the service mapper before entering the domain model. */

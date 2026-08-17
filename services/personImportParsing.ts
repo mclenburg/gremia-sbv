@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { statSync } from 'node:fs';
 import yauzl from 'yauzl';
-import type { PersonImportColumnMapping, ProtectionStatus } from '../src/app/core/models/protected-person.model.js';
+import type { PersonImportColumnMapping, ProtectionStatus } from '../src/domain/models/protected-person.model.js';
 
 export const MAX_PERSON_IMPORT_FILE_BYTES = 25 * 1024 * 1024;
 export const MAX_XLSX_ENTRY_BYTES = 8 * 1024 * 1024;

@@ -4,8 +4,8 @@ import { DatabaseUnitOfWork } from './databaseUnitOfWork.js';
 import { DeadlineService } from './deadlineService.js';
 import type { PersonalDataAuditLogService } from './auditLogService.js';
 import { buildFromContext } from './activityJournalPrefill.js';
-import type { ActivityJournalPrefill } from '../src/app/core/models/activity-journal.model.js';
-import type { CreateSbvMeetingInput, SbvMeetingAgendaItemRecord, SbvMeetingRecord, UpdateSbvMeetingInput, UpsertSbvMeetingAgendaInput } from '../src/app/core/models/sbv-office-workflow.model.js';
+import type { ActivityJournalPrefill } from '../src/domain/models/activity-journal.model.js';
+import type { CreateSbvMeetingInput, SbvMeetingAgendaItemRecord, SbvMeetingRecord, UpdateSbvMeetingInput, UpsertSbvMeetingAgendaInput } from '../src/domain/models/sbv-office-workflow.model.js';
 import { calculateSbvMeetingSuspensionDueAt } from './sbvMeetingPolicy.js';
 
 const iso=()=>new Date().toISOString();

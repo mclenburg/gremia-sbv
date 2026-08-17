@@ -1,8 +1,8 @@
 import { DashboardCard } from "../../shared/components/DashboardCard";
 import { DeadlineDashboardPanel } from "../deadlines/DeadlineDashboardPanel";
 import { moduleGroups, modules, type ModuleDefinition, type ModuleGroupId, type ViewId } from "../../core/navigation/modules";
-import type { CaseRecord } from "../../core/models/case.model";
-import type { DeadlineDashboardItem, DeadlineRecord } from "../../core/models/deadline.model";
+import type { CaseRecord } from "../../../domain/models/case.model";
+import type { DeadlineDashboardItem, DeadlineRecord } from "../../../domain/models/deadline.model";
 
 type DashboardModuleGroupId = ModuleGroupId;
 

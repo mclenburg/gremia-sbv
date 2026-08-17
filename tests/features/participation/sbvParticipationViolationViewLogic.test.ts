@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import type { CaseRecord } from '../../../src/app/core/models/case.model';
-import type { ParticipationRecord } from '../../../src/app/core/models/participation.model';
-import type { SbvParticipationViolationRecord } from '../../../src/app/core/models/sbv-participation-violation.model';
+import type { CaseRecord } from '../../../src/domain/models/case.model';
+import type { ParticipationRecord } from '../../../src/domain/models/participation.model';
+import type { SbvParticipationViolationRecord } from '../../../src/domain/models/sbv-participation-violation.model';
 import {
   applyViolationCaseContext,
   applyViolationSourceContextType,

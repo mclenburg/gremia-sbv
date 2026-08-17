@@ -9,7 +9,7 @@ import {
   type WorkplaceAccommodationRecord,
   type WorkplaceAccommodationRiskLevel,
   type WorkplaceAccommodationStatus,
-} from "../../core/models/workplace-accommodation.model";
+} from "../../../domain/models/workplace-accommodation.model";
 import {
   CheckboxField,
   DeferredDateTimeInput,

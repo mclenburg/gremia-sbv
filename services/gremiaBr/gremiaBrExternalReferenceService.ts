@@ -6,7 +6,7 @@ import type {
   GremiaBrExternalReferenceRecord,
   GremiaBrExternalReferenceType,
   GremiaBrInlineSuggestion,
-} from '../../src/app/core/models/gremia-br.model.js';
+} from '../../src/domain/models/gremia-br.model.js';
 import type { GremiaBrReadAdapter } from './gremiaBrTypes.js';
 import { getGremiaBrItemDate, getGremiaBrItemId, getGremiaBrItemTitle } from './gremiaBrRelevanceService.js';
 

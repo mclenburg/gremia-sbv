@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "lockSha256": "d84333b061171c06fedcb0f00db6e87545ae216825e2429612966755562fe03f",
-  "packageCount": 588,
-  "inventorySha256": "1e0b1a1de68d51a83ebf61e8c4fd42e16219aff281ad87cda1d4d0d84bea3284",
-  "noticesSha256": "a4f0c7efbaa6f321791b76a4b560e7c78d62606c4b1df09f8f3b3c69fda41603",
+  "lockSha256": "16d4f74d30b41e54f2fe80d6b78b4fc41a7d608cdbaa4a61a2fbe2568596ec53",
+  "packageCount": 596,
+  "inventorySha256": "3892452cd9a83ada7506ffaf315177036266dee424255a8c9783bcd7cb9b0084",
+  "noticesSha256": "748dcb598e23e2ad44a2f7227396678e7fe5272960a18dcb8285e156c33991ff",
   "licenseFiles": [
     {
       "name": "0BSD.txt",
@@ -48,6 +48,10 @@
     {
       "name": "Python-2.0.txt",
       "sha256": "e02ffaa5d295d4ea65e568484350cd54e664609f6e277c57282dd8df64e83a2e"
+    },
+    {
+      "name": "SEE_LICENSE_IN_README.md_AND_LICENSE.txt",
+      "sha256": "468fb30411dc6449705a9e71f2a5c90431a5b751a388e62b1b0ab600ef8173f1"
     },
     {
       "name": "WTFPL.txt",

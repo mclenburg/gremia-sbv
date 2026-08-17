@@ -1,5 +1,5 @@
 import type { DatabaseAdapter } from './databaseService.js';
-import type { DataSubjectAccessPrefillCase, DataSubjectAccessPrefillDeadline, DataSubjectAccessPrefillImportRun, DataSubjectAccessPrefillLifecycleEvent, DataSubjectAccessPrefillMeasure, DataSubjectAccessPrefillPerson, DataSubjectAccessRequestInput } from '../src/app/core/models/compliance.model.js';
+import type { DataSubjectAccessPrefillCase, DataSubjectAccessPrefillDeadline, DataSubjectAccessPrefillImportRun, DataSubjectAccessPrefillLifecycleEvent, DataSubjectAccessPrefillMeasure, DataSubjectAccessPrefillPerson, DataSubjectAccessRequestInput } from '../src/domain/models/compliance.model.js';
 /** SQLite row at the persistence boundary. Values remain scalar and must be
  * normalized by the service mapper before entering the domain model. */
 export type DatabaseScalar = string;
@@ -263,4 +263,3 @@ export const FREE_TEXT_SOURCES: FreeTextSource[] = [
   { table: 'contact_text_references', sourceType: 'contact_text_reference', sourceLabel: 'Kontakt-Freitextreferenz', idColumn: 'id', titleColumn: 'source_table', dateColumn: 'created_at', textColumns: ['source_table', 'source_column', 'excerpt'] },
   { table: 'case_search_index', sourceType: 'case_search_index', sourceLabel: 'Suchindex-Fundstelle', idColumn: 'id', titleColumn: 'title', caseIdColumn: 'case_id', dateColumn: 'occurred_at', textColumns: ['source_label', 'title', 'content', 'keywords'], joinCase: true },
 ];
-

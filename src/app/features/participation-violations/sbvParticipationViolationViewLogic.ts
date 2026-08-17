@@ -1,6 +1,6 @@
-import type { CaseRecord } from '../../core/models/case.model';
-import type { ParticipationRecord } from '../../core/models/participation.model';
-import type { RecruitingParticipationRecord } from '../../core/models/recruiting-participation.model';
+import type { CaseRecord } from '../../../domain/models/case.model';
+import type { ParticipationRecord } from '../../../domain/models/participation.model';
+import type { RecruitingParticipationRecord } from '../../../domain/models/recruiting-participation.model';
 import type {
   CreateSbvParticipationViolationInput,
   ParticipationViolationSourceContextType,
@@ -8,14 +8,14 @@ import type {
   ParticipationViolationStatus,
   ParticipationViolationType,
   SbvParticipationViolationRecord,
-} from '../../core/models/sbv-participation-violation.model';
+} from '../../../domain/models/sbv-participation-violation.model';
 import {
   sbvParticipationViolationStageLabels,
   sbvParticipationViolationStageOptions,
   sbvParticipationViolationStatusLabels,
   sbvParticipationViolationTypeLabels,
   sbvParticipationViolationTypeOptions,
-} from '../../core/labels/sbvParticipationViolationLabels';
+} from '../../../domain/labels/sbvParticipationViolationLabels';
 
 export const stageLabels = sbvParticipationViolationStageLabels;
 export const statusLabels = sbvParticipationViolationStatusLabels;

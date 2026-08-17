@@ -5,7 +5,7 @@ import type {
   GremiaBrPublicSettings,
   GremiaBrSettingsInput,
   GremiaBrRelevanceSettings,
-} from '../../src/app/core/models/gremia-br.model.js';
+} from '../../src/domain/models/gremia-br.model.js';
 import type { GremiaBrProfileSnapshot, GremiaBrServiceSettings, GremiaBrSettingsStore } from './gremiaBrTypes.js';
 import { validateGremiaBrBaseUrl } from './gremiaBrPolicy.js';
 import { DEFAULT_GREMIA_BR_RELEVANCE_SETTINGS, parseGremiaBrRelevanceSettings, serializeGremiaBrRelevanceSettings } from './gremiaBrRelevanceService.js';

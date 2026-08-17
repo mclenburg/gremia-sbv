@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { DatabaseRuntimeInitializer } from '../../../services/databaseRuntimeInitializer';
 import { getSchemaMigrationHook } from '../../../services/schemaMigrationHooks';
 import type { DatabaseAdapter } from '../../../services/databaseService';
+import { RetentionService } from '../../../services/retentionService';
 
 function dataOnlyDb(): DatabaseAdapter {
   return new Proxy({} as DatabaseAdapter, {
@@ -43,5 +44,11 @@ describe('Schema-Migrationskonsolidierung 0049', () => {
 
   it('hält die nachgelagerte Runtime-Initialisierung frei von strukturellem SQL', () => {
     expect(() => new DatabaseRuntimeInitializer(dataOnlyDb()).initialize()).not.toThrow(/Strukturelles SQL/);
+  });
+
+  it('führt auch während fachlicher Retention-Abfragen kein strukturelles SQL aus', () => {
+    const service = new RetentionService(() => dataOnlyDb(), () => '');
+
+    expect(() => service.getSettings()).not.toThrow(/Strukturelles SQL/);
   });
 });

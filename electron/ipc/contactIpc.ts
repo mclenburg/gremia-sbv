@@ -6,7 +6,7 @@ import type {
   ContactListFilters,
   CreateContactInput,
   UpdateContactInput,
-} from "../../src/app/core/models/contact.model.js";
+} from "../../src/domain/models/contact.model.js";
 import {
   assertOptionalObject,
   assertRecordInput,

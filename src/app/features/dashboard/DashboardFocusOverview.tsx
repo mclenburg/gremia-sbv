@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, BriefcaseBusiness, CheckCircle2, Clock3, RefreshCw, ShieldCheck, TimerReset } from 'lucide-react';
-import type { CaseRecord } from '../../core/models/case.model';
-import type { DeadlineDashboardItem, DeadlineRecord } from '../../core/models/deadline.model';
-import type { ActivityJournalSummary } from '../../core/models/activity-journal.model';
+import type { CaseRecord } from '../../../domain/models/case.model';
+import type { DeadlineDashboardItem, DeadlineRecord } from '../../../domain/models/deadline.model';
+import type { ActivityJournalSummary } from '../../../domain/models/activity-journal.model';
 import { DeadlineDashboardPanel } from '../deadlines/DeadlineDashboardPanel';
-import type { GremiaBrDashboardOverview, GremiaBrRelevanceMatch } from '../../core/models/gremia-br.model';
+import type { GremiaBrDashboardOverview, GremiaBrRelevanceMatch } from '../../../domain/models/gremia-br.model';
 import { waitForBridge } from '../../core/bridge/waitForBridge';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 import { buildDashboardFocusSummary, resolveActivityJournalWeekReviewMarker, SbvAssemblyDashboardAlert, type DashboardComplianceLike, type ViewId } from './dashboardFocus';
 import { IndustrialButton, ToolbarButton } from '../../shared/components/IndustrialButton';
+import { legalCalendarDate } from '../../../domain/time/legalTime';
 
 type DashboardFocusOverviewProps = {
   cases: CaseRecord[];
@@ -163,8 +164,8 @@ export function DashboardFocusOverview({ cases, deadlines, dashboardItems, onNav
         const [summary, lastWeekEntries] = await Promise.all([
           bridge.activityJournal.summary(),
           bridge.activityJournal.list({
-            from: lastWeekStart.toISOString().slice(0, 10),
-            to: lastWeekEnd.toISOString().slice(0, 10),
+            from: legalCalendarDate(lastWeekStart),
+            to: legalCalendarDate(lastWeekEnd),
             limit: 1,
           }),
         ]);

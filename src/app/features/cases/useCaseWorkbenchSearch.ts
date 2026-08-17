@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import type { CaseSearchResult, CaseSearchSourceType } from '../../core/models/case-note.model';
+import type { CaseSearchResult, CaseSearchSourceType } from '../../../domain/models/case-note.model';
 import type { CaseExplorerSelection } from './caseWorkbenchTypes';
 import { waitForBridge } from '../../core/bridge/waitForBridge';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';

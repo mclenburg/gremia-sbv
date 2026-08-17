@@ -1,10 +1,10 @@
 import { Download, FileText } from 'lucide-react';
-import type { PreventionProcessRecord } from '../../core/models/prevention.model';
-import type { BemProcessRecord } from '../../core/models/bem.model';
-import type { EqualizationProcessRecord } from '../../core/models/equalization.model';
-import type { TerminationHearingRecord } from '../../core/models/termination.model';
+import type { PreventionProcessRecord } from '../../../domain/models/prevention.model';
+import type { BemProcessRecord } from '../../../domain/models/bem.model';
+import type { EqualizationProcessRecord } from '../../../domain/models/equalization.model';
+import type { TerminationHearingRecord } from '../../../domain/models/termination.model';
 import { terminationStatusLabel } from '../termination/terminationShared';
-import type { RenderedTemplateResult, TemplateRecord } from '../../core/models/template.model';
+import type { RenderedTemplateResult, TemplateRecord } from '../../../domain/models/template.model';
 import { statusLabel } from '../prevention/preventionShared';
 import { bemStatusLabel } from '../bem/bemShared';
 import { equalizationStatusLabel } from '../equalization/equalizationShared';

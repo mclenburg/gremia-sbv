@@ -2,7 +2,7 @@ import { DatabaseUnitOfWork } from './databaseUnitOfWork.js';
 import { randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
-import type { CreateDeadlineInput, CreateFromTemplateInput, DeadlineAuditRecord, DeadlineDashboardItem, DeadlineListFilters, DeadlineRecord, DeadlineTemplateRecord, UpdateDeadlineInput } from '../src/app/core/models/deadline.model.js';
+import type { CreateDeadlineInput, CreateFromTemplateInput, DeadlineAuditRecord, DeadlineDashboardItem, DeadlineListFilters, DeadlineRecord, DeadlineTemplateRecord, UpdateDeadlineInput } from '../src/domain/models/deadline.model.js';
 import { DASHBOARD_HOURS_BEFORE_DUE, DeadlineRow, DeadlineTemplateRow, DeadlineAuditRow, nowIso, addOffset, subtractHours, mapDeadline, mapTemplate, mapAudit, normalizeStatus, getHoursRemaining, getDashboardState, getActionHint, validateCaseBinding } from './deadlineSupport.js';
 export { getHoursRemaining, getDashboardState, getActionHint } from './deadlineSupport.js';
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { PersonLifecycleReviewDialog } from '../../src/app/features/persons/PersonLifecycleReviewDialog';
-import type { PrivacyReviewItemRecord } from '../../src/app/core/models/privacy-review.model';
-import type { ProtectedPersonRecord } from '../../src/app/core/models/protected-person.model';
+import type { PrivacyReviewItemRecord } from '../../src/domain/models/privacy-review.model';
+import type { ProtectedPersonRecord } from '../../src/domain/models/protected-person.model';
 import { descendants, renderComponent, visibleText } from '../helpers/renderedMarkup';
 
 const person: ProtectedPersonRecord = {

@@ -7,6 +7,7 @@ import { getSchemaMigrationHook } from '../schemaMigrationHooks.js';
 import { APP_SCHEMA_VERSION, ACTIVITY_JOURNAL_CATEGORY_PREFERENCES_REQUIRED_COLUMNS, ACTIVITY_JOURNAL_ENTRIES_REQUIRED_COLUMNS, ACTIVITY_JOURNAL_LINKS_REQUIRED_COLUMNS, COMPLIANCE_INCIDENTS_REQUIRED_COLUMNS, GENERATED_DOCUMENTS_REQUIRED_COLUMNS, SBV_PARTICIPATION_VIOLATION_DOCUMENTS_REQUIRED_COLUMNS, SBV_PARTICIPATION_VIOLATION_EVENTS_REQUIRED_COLUMNS, SBV_PARTICIPATION_VIOLATIONS_REQUIRED_COLUMNS, SBV_CONTROL_PROTOCOLS_REQUIRED_COLUMNS, SBV_RESOURCE_RECORDS_REQUIRED_COLUMNS, RECRUITING_INTERVIEW_EVENTS_REQUIRED_COLUMNS, RECRUITING_PARTICIPATIONS_REQUIRED_COLUMNS, CASE_HANDOVER_IMPORTS_REQUIRED_COLUMNS, CASE_HANDOVER_IMPORT_ITEMS_REQUIRED_COLUMNS, CASE_DOCUMENTS_REQUIRED_COLUMNS, CASE_DOCUMENT_OCR_JOBS_REQUIRED_COLUMNS, CASE_EXTERNAL_REFERENCES_REQUIRED_COLUMNS, CASES_REQUIRED_COLUMNS, CASE_MEASURES_REQUIRED_COLUMNS, CASE_MEASURE_PARTICIPATION_REQUIRED_COLUMNS, CASE_MEASURE_NOTES_REQUIRED_COLUMNS, CASE_MEASURE_WORKPLACE_ACCOMMODATION_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_STATE_REQUIRED_COLUMNS, GREMIA_BR_CACHE_REQUIRED_COLUMNS, GREMIA_BR_SETTINGS_REQUIRED_COLUMNS, PERSON_IMPORT_RUN_ITEMS_REQUIRED_COLUMNS, PROTECTED_PERSONS_REQUIRED_COLUMNS, DATABASE_SCHEMA_APP_VERSION_KEY, DATABASE_SCHEMA_VERSION_KEY, PERSONAL_DATA_AUDIT_REQUIRED_COLUMNS, SBV_PARTICIPATION_REQUIRED_COLUMNS, TERMINATION_HEARINGS_REQUIRED_COLUMNS, SBV_OFFICE_0051_REQUIRED_TABLES, DEADLINE_RULE_SNAPSHOT_REQUIRED_COLUMNS } from '../appSchema.js';
 import { MigrationCore } from './migrationCore.js';
 import { nowIso } from './migrationSupport.js';
+import { legalToday } from '../../src/domain/time/legalTime.js';
 
 export class MigrationInference extends MigrationCore {
   protected inferAlreadyAppliedMigrations(inferred: string[]): void {
@@ -208,7 +209,7 @@ export class MigrationInference extends MigrationCore {
             follow_up_due_at, performed_outside_contract_work_time, exported_for_activity_report_at,
             created_at, updated_at
           ) VALUES (?, ?, NULL, NULL, NULL, 'none', 'participation', ?, NULL, NULL, 'confidential', 'draft', 'context_prefill', NULL, 0, NULL, ?, ?)
-        `).run(entryId, new Date().toISOString().slice(0, 10), 'Schema-Check Recruiting-Kontext', timestamp, timestamp);
+        `).run(entryId, legalToday(), 'Schema-Check Recruiting-Kontext', timestamp, timestamp);
         this.db.prepare('INSERT INTO activity_journal_links (id, entry_id, target_type, target_id, created_at) VALUES (?, ?, ?, ?, ?)')
           .run(linkId, entryId, 'recruiting_participation', 'schema-check-target', timestamp);
         this.db.prepare('DELETE FROM activity_journal_entries WHERE id = ?').run(entryId);

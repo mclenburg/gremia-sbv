@@ -1,4 +1,4 @@
-import { formatParticipationMarkerText } from "@services/textCommandPolicy";
+import { formatParticipationMarkerText } from "@/domain/textCommands/textCommandPolicy";
 import { fromDateTimeLocalValue } from "../caseWorkbenchFormat";
 import { buildParticipationPrefill } from "../measures/measurePrefill";
 import type { InlineCommandRuntime } from "./inlineCommandRuntime";

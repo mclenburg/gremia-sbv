@@ -10,7 +10,7 @@ import type {
   LegalNormSearchInput,
   LinkLegalNormToCaseInput,
   UpdateLegalNormInput,
-} from "../../src/app/core/models/knowledge.model.js";
+} from "../../src/domain/models/knowledge.model.js";
 import {
   assertOptionalObject,
   assertRecordInput,

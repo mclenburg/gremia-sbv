@@ -39,8 +39,8 @@ describe('Temporäre Dateien – Lebenszyklus und Sicherheitsverhalten', () => {
 
   it('löscht nur hinreichend alte Dateien und erhält junge Arbeitskopien', () => {
     const service = createService();
-    const oldFile = service.write('report-render', 'alt.txt', Buffer.from('alt'));
-    const newFile = service.write('report-render', 'neu.txt', Buffer.from('neu'));
+    const oldFile = service.write('document-preview', 'alt.txt', Buffer.from('alt'));
+    const newFile = service.write('document-preview', 'neu.txt', Buffer.from('neu'));
     const oldDate = new Date(Date.now() - 60_000);
     utimesSync(oldFile, oldDate, oldDate);
 

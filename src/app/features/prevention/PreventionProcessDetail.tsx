@@ -4,7 +4,7 @@ import type {
   PreventionRiskType,
   PreventionStatus,
   UpdatePreventionProcessInput,
-} from "../../core/models/prevention.model";
+} from "../../../domain/models/prevention.model";
 import {
   DeferredDateTimeInput,
   DeferredTextareaInput,

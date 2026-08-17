@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
 import { DEFAULT_TEMPLATES } from './templateDefaults.js';
 import { buildFallbackTemplateContext, normalizeTemplateKey, renderTemplateText, type TemplateContext } from './templatePolicy.js';
-import type { CreateTemplateInput, RenderContextTemplateInput, RenderTemplateInput, RenderedTemplateResult, TemplateCategory, TemplateListFilters, TemplateRecord, UpdateTemplateInput } from '../src/app/core/models/template.model.js';
+import type { CreateTemplateInput, RenderContextTemplateInput, RenderTemplateInput, RenderedTemplateResult, TemplateCategory, TemplateListFilters, TemplateRecord, UpdateTemplateInput } from '../src/domain/models/template.model.js';
 
 /** SQLite row at the persistence boundary. Values remain scalar and must be
  * normalized by the service mapper before entering the domain model. */

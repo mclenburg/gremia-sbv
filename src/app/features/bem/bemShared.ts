@@ -1,4 +1,4 @@
-import type { BemStatus } from '../../core/models/bem.model';
+import type { BemStatus } from '../../../domain/models/bem.model';
 
 export const BEM_OVERVIEW_STATUS_ORDER: BemStatus[] = [
   'zu_pruefen',

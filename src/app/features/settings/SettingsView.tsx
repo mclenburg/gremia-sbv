@@ -1,6 +1,6 @@
 import { ModuleFeedback } from '../../shared/components/ModuleFeedback';
 import { IndustrialPanel } from '../../shared/components/WorkbenchLayout';
-import type { CaseRecord } from '../../core/models/case.model';
+import type { CaseRecord } from '../../../domain/models/case.model';
 import type { ThemeMode } from '../../shared/theme/appTheme';
 
 import { ThemeSettingsForm } from './ThemeSettingsForm';

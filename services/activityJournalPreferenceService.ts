@@ -1,6 +1,6 @@
 import type { DatabaseAdapter } from './databaseService.js';
-import type { ActivityJournalCategory, ActivityJournalCategoryPreferenceRecord, ActivityJournalContextType } from '../src/app/core/models/activity-journal.model.js';
-import { ACTIVITY_JOURNAL_CATEGORIES, ACTIVITY_JOURNAL_CONTEXT_TYPES } from '../src/app/core/models/activity-journal.model.js';
+import type { ActivityJournalCategory, ActivityJournalCategoryPreferenceRecord, ActivityJournalContextType } from '../src/domain/models/activity-journal.model.js';
+import { ACTIVITY_JOURNAL_CATEGORIES, ACTIVITY_JOURNAL_CONTEXT_TYPES } from '../src/domain/models/activity-journal.model.js';
 
 function nowIso(): string {
   return new Date().toISOString();

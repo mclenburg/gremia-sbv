@@ -1,6 +1,6 @@
 import { AlertTriangle, CalendarClock, CheckCircle2, Edit3, ShieldAlert } from 'lucide-react';
-import type { CaseRecord } from '../../core/models/case.model';
-import type { DeadlineDashboardItem } from '../../core/models/deadline.model';
+import type { CaseRecord } from '../../../domain/models/case.model';
+import type { DeadlineDashboardItem } from '../../../domain/models/deadline.model';
 import { DeadlineSeverityBadge, DeadlineStateBadge } from './DeadlineBadge';
 import { ToolbarButton } from '../../shared/components/IndustrialButton';
 import { EmptyState, IndustrialPanel, IndustrialRecordCard, IndustrialWarningPanel } from '../../shared/components/WorkbenchLayout';

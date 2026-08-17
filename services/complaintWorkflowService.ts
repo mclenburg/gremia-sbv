@@ -6,7 +6,7 @@ import { complaintCanClose, listQuickCaseTemplates } from './complaintWorkflowPo
 import type {
   ComplaintWorkflowRecord,
   SaveComplaintWorkflowInput,
-} from '../src/app/core/models/sbv-office-workflow.model.js';
+} from '../src/domain/models/sbv-office-workflow.model.js';
 
 const nowIso = () => new Date().toISOString();
 const optionalText = (value: unknown) =>

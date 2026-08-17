@@ -1,10 +1,10 @@
-import type { ContactCategory } from "../../../core/models/contact.model";
-import type { DeadlineSeverity } from "../../../core/models/deadline.model";
+import type { ContactCategory } from "../../../../domain/models/contact.model";
+import type { DeadlineSeverity } from "../../../../domain/models/deadline.model";
 import type {
    ConfidentialCommandLevel,
    RiskLevelCommand,
    TextCommandToken,
-} from "@services/textCommandPolicy";
+} from "@/domain/textCommands/textCommandPolicy";
 
 export type ProtocolTextTarget = "content" | "nextSteps";
 

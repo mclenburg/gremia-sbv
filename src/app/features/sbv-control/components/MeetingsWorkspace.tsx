@@ -4,15 +4,15 @@ import { IndustrialButton } from '../../../shared/components/IndustrialButton';
 import { CheckboxField, DateInput, DateTimeInput, SearchInput, SelectInput, TextareaInput, TextInput } from '../../../shared/components/IndustrialForm';
 import { IndustrialHelpButton } from '../../../shared/help/IndustrialHelp';
 import { waitForBridge } from '../../../core/bridge/waitForBridge';
-import type { ActivityJournalPrefill } from '../../../core/models/activity-journal.model';
-import type { GremiaBrCachedOverview } from '../../../core/models/gremia-br.model';
+import type { ActivityJournalPrefill } from '../../../../domain/models/activity-journal.model';
+import type { GremiaBrCachedOverview } from '../../../../domain/models/gremia-br.model';
 import type {
   CreateSbvMeetingInput,
   SbvMeetingAgendaItemRecord,
   SbvMeetingRecord,
   SbvMeetingType,
   UpsertSbvMeetingAgendaInput,
-} from '../../../core/models/sbv-office-workflow.model';
+} from '../../../../domain/models/sbv-office-workflow.model';
 import { dispatchActivityJournalPrefill } from '../../activity-journal/activityJournalEvents';
 import { SbvControlPanel } from './SbvControlPanel';
 

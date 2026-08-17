@@ -14,7 +14,7 @@ import {
   Siren,
   Users,
 } from "lucide-react";
-import type { LegalNormSuggestion } from "@services/textCommandPolicy";
+import type { LegalNormSuggestion } from "@/domain/textCommands/textCommandPolicy";
 import {
   LEGAL_NORM_SUGGESTIONS,
   formatAnonymizationMarkerText,
@@ -27,15 +27,15 @@ import {
   formatTerminationMarkerText,
   formatRiskText,
   formatTemplateMarkerText,
-} from "@services/textCommandPolicy";
-import type { ContactCategory } from "../../../../core/models/contact.model";
-import type { DeadlineSeverity } from "../../../../core/models/deadline.model";
-import type { ConfidentialCommandLevel, RiskLevelCommand } from "@services/textCommandPolicy";
+} from "@/domain/textCommands/textCommandPolicy";
+import type { ContactCategory } from "../../../../../domain/models/contact.model";
+import type { DeadlineSeverity } from "../../../../../domain/models/deadline.model";
+import type { ConfidentialCommandLevel, RiskLevelCommand } from "@/domain/textCommands/textCommandPolicy";
 import { filterContactsForQuery, formatContactReference } from "../../../contacts/contactDisplay";
 import { filterCasesForInlineCommand, filterNormsForInlineCommand } from "../inlineCommandSearch";
 import type { InlineCommandOverlaysProps } from "../InlineCommandOverlays";
 import type { InlineParticipationDraft } from "../inlineCommandTypes";
-import { FieldCaption } from "./inlineCommandOverlayShared";
+import { FieldCaption, IndustrialModalSurface } from "./inlineCommandOverlayShared";
 
 export function InlineParticipationOverlay({ props }: { props: InlineCommandOverlaysProps }) {
   const {
@@ -107,13 +107,11 @@ export function InlineParticipationOverlay({ props }: { props: InlineCommandOver
   } = props;
 
   return inlineParticipationDraft ? (
-    <div className="industrial-modal-backdrop" role="presentation">
-      <section
-        className="industrial-modal inline-command-quick"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="inline-participation-title"
-      >
+    <IndustrialModalSurface
+      className="inline-command-quick"
+      labelledById="inline-participation-title"
+      onClose={cancelInlineParticipationDraft}
+    >
         <div className="industrial-modal-header">
           <div className="industrial-modal-icon">
             <ClipboardCheck className="h-5 w-5" />
@@ -141,7 +139,6 @@ export function InlineParticipationOverlay({ props }: { props: InlineCommandOver
                     : current,
                 )
               }
-              autoFocus
               placeholder="z. B. Versetzung ohne vorherige SBV-Anhörung"
             />
           </label>
@@ -242,7 +239,6 @@ export function InlineParticipationOverlay({ props }: { props: InlineCommandOver
             Vormerken und weiterprotokollieren
           </button>
         </div>
-      </section>
-    </div>
+    </IndustrialModalSurface>
   ) : null;
 }

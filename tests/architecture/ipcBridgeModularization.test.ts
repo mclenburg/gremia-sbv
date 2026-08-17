@@ -3,6 +3,7 @@ import { createIpcInvoker, RendererApplicationError } from "../../electron/prelo
 import { createPreloadApi } from "../../electron/preload/index";
 import { IPC_CHANNELS } from "../../electron/ipc/channels";
 import { registerIpcHandler } from "../../electron/ipc/ipcHandler";
+import { ApplicationError } from "../../src/domain/models/application-error.model";
 
 describe("Patch 5 modular preload and IPC contracts", () => {
   it("invokes a declared channel and returns a serializable result", async () => {
@@ -68,5 +69,22 @@ describe("Patch 5 modular preload and IPC contracts", () => {
     const ipc = createIpcInvoker({ invoke: vi.fn().mockRejectedValue(new Error(payload)) });
     await expect(ipc(IPC_CHANNELS.casesList)).rejects.toBeInstanceOf(RendererApplicationError);
     await expect(ipc(IPC_CHANNELS.casesList)).rejects.toMatchObject({ code: "NOT_FOUND", message: "Datensatz nicht gefunden." });
+  });
+
+  it("preserves a typed security failure across the main-process and preload boundary", async () => {
+    let registered: ((event: object) => Promise<unknown>) | undefined;
+    registerIpcHandler(
+      { handle: (_channel: string, handler: (event: object) => Promise<unknown>) => { registered = handler; } } as never,
+      IPC_CHANNELS.casesList,
+      async () => { throw new ApplicationError("SECURITY_OPERATION_FAILED", "Tresor ist gesperrt."); },
+    );
+    const ipc = createIpcInvoker({
+      invoke: vi.fn(async () => registered?.({ senderFrame: { url: "file:///app/index.html" } })),
+    });
+
+    await expect(ipc(IPC_CHANNELS.casesList)).rejects.toMatchObject({
+      code: "SECURITY_OPERATION_FAILED",
+      operation: "cases:list",
+    });
   });
 });

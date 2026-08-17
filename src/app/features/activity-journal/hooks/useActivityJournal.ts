@@ -8,9 +8,9 @@ import type {
   ActivityJournalPrefill,
   ActivityJournalSummary,
   CreateActivityJournalEntryInput,
-} from '../../../core/models/activity-journal.model';
+} from '../../../../domain/models/activity-journal.model';
 import { applyActivityJournalTextCommand } from '../activityJournalTextCommands';
-import { applyTimeSuggestion, buildTimeSuggestionFromStartTime, type ActivityJournalTimeSuggestion } from '../activityJournalTimeSuggestion';
+import { applyTimeSuggestion, buildTimeSuggestionFromStartTime, legalToday, type ActivityJournalTimeSuggestion } from '../activityJournalTimeSuggestion';
 
 export type ActivityJournalFormState = {
   title: string;
@@ -29,7 +29,7 @@ export type ActivityJournalFormState = {
 };
 
 function today(): string {
-  return new Date().toISOString().slice(0, 10);
+  return legalToday();
 }
 
 export function createEmptyActivityJournalForm(): ActivityJournalFormState {

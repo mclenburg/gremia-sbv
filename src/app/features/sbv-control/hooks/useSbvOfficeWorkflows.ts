@@ -8,7 +8,7 @@ import type {
   QuickCaseTemplate,
   SbvAssemblyRecord,
   SbvMeetingRecord,
-} from '../../../core/models/sbv-office-workflow.model';
+} from '../../../../domain/models/sbv-office-workflow.model';
 
 export function useSbvOfficeWorkflows() {
   const [assemblyWarning, setAssemblyWarning] = useState(false);

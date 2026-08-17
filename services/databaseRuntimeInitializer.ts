@@ -2,7 +2,7 @@ import type { DatabaseAdapter } from './databaseService.js';
 import { MeasureLifecycleAuditService } from './measureLifecycleAuditService.js';
 import { KnowledgeService } from './knowledgeService.js';
 import { TemplateService } from './templateService.js';
-import type { ReportableMeasureType } from '../src/app/core/models/measure-lifecycle.model.js';
+import type { ReportableMeasureType } from '../src/domain/models/measure-lifecycle.model.js';
 import { DomainAggregateIntegrityService } from './domainAggregateIntegrityService.js';
 
 /**

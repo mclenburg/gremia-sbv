@@ -1,25 +1,17 @@
 import type { DatabaseAdapter } from './databaseService.js';
 import { DEFAULT_LEGAL_BASIS } from './sbvParticipationViolationSupport.js';
+import { addColumnsIfMissing } from './migrations/schemaColumnMigration.js';
 function ensureRelatedRecruitingParticipationColumn(db: DatabaseAdapter): void {
-try {
-      const columns = db.prepare<{ name: string }>('PRAGMA table_info(sbv_participation_violations)').all().map((row) => row.name);
-      if (!columns.includes('related_recruiting_participation_id')) {
-        db.exec('ALTER TABLE sbv_participation_violations ADD COLUMN related_recruiting_participation_id TEXT REFERENCES recruiting_participations(id) ON DELETE SET NULL; CREATE INDEX IF NOT EXISTS idx_sbv_participation_violations_recruiting ON sbv_participation_violations(related_recruiting_participation_id);');
-      }
-    } catch (error) {
-      console.warn('Gremia.SBV participation violation recruiting schema compatibility check failed', error instanceof Error ? error.name : 'UnknownError');
-    }
+  addColumnsIfMissing(db, 'sbv_participation_violations', [
+    ['related_recruiting_participation_id', 'TEXT REFERENCES recruiting_participations(id) ON DELETE SET NULL'],
+  ]);
+  db.exec('CREATE INDEX IF NOT EXISTS idx_sbv_participation_violations_recruiting ON sbv_participation_violations(related_recruiting_participation_id)');
 }
 
 function ensureRelatedCaseMeasureColumn(db: DatabaseAdapter): void {
-try {
-      const columns = db.prepare<{ name: string }>('PRAGMA table_info(sbv_participation_violations)').all().map((row) => row.name);
-      if (!columns.includes('related_case_measure_id')) {
-        db.exec('ALTER TABLE sbv_participation_violations ADD COLUMN related_case_measure_id TEXT REFERENCES case_measures(id) ON DELETE SET NULL;');
-      }
-    } catch (error) {
-      console.warn('Gremia.SBV participation violation schema compatibility check failed', error instanceof Error ? error.name : 'UnknownError');
-    }
+  addColumnsIfMissing(db, 'sbv_participation_violations', [
+    ['related_case_measure_id', 'TEXT REFERENCES case_measures(id) ON DELETE SET NULL'],
+  ]);
 }
 
 export function ensureSbvParticipationViolationSchema(db: DatabaseAdapter): void {

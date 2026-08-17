@@ -7,7 +7,7 @@ import { decideStructuredPersonAnonymization, decidePersonDeletion } from '../..
 import { decideLegacyCaseBindingMigration } from '../../services/personCaseBindingPolicy';
 import { assertRetentionDecision, decidePrivacyReviewForContext } from '../../services/privacyReviewPolicy';
 import { applyPendingAnonymizationMarkers, formatAnonymizationMarkerText } from '../../services/textCommandPolicy';
-import type { DeadlineRecord } from '../../src/app/core/models/deadline.model';
+import type { DeadlineRecord } from '../../src/domain/models/deadline.model';
 
 function makeDeadline(overrides: Partial<DeadlineRecord> = {}): DeadlineRecord {
   return {

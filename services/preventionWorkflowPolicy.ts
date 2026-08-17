@@ -1,4 +1,4 @@
-import type { PreventionProcessRecord, PreventionStatus, PreventionStepDefinition, PreventionWarning } from '../src/app/core/models/prevention.model.js';
+import type { PreventionProcessRecord, PreventionStatus, PreventionStepDefinition, PreventionWarning } from '../src/domain/models/prevention.model.js';
 
 export const PREVENTION_STEPS: PreventionStepDefinition[] = [
   {

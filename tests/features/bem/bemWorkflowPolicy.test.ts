@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { BEM_STATUS_ORDER, bemStatusLabel, defaultBemResponseDueAt, evaluateBemWarnings } from "../../../services/bemWorkflowPolicy";
-import type { BemProcessRecord } from "../../../src/app/core/models/bem.model";
+import type { BemProcessRecord } from "../../../src/domain/models/bem.model";
 
 function baseBemProcess(patch: Partial<BemProcessRecord> = {}): BemProcessRecord {
   return {

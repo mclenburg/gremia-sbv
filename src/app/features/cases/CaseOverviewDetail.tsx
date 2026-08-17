@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { AlertTriangle, ShieldCheck } from 'lucide-react';
-import type { CaseRecord } from '../../core/models/case.model';
+import type { CaseRecord } from '../../../domain/models/case.model';
 import { ToolbarButton } from '../../shared/components/IndustrialButton';
 import { StatusBadge } from '../../shared/components/StatusBadges';
 import { ActivityJournalContextButton } from '../activity-journal/components/ActivityJournalContextButton';

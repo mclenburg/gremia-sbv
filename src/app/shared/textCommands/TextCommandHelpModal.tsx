@@ -1,6 +1,6 @@
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Keyboard, Search, X } from 'lucide-react';
-import { TEXT_COMMAND_HELP_GROUPS, TEXT_COMMAND_REGISTRY, type TextCommandDefinition } from '@services/textCommandPolicy';
+import { TEXT_COMMAND_HELP_GROUPS, TEXT_COMMAND_REGISTRY, type TextCommandDefinition } from '@/domain/textCommands/textCommandPolicy';
 import { useDialogFocusManagement } from '../dialogs/useDialogFocusManagement';
 
 function definitionsForGroup(kinds: string[], query: string): TextCommandDefinition[] {

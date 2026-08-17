@@ -3,9 +3,9 @@ import { DashboardOverview, groupDashboardModules, resolveDashboardWorkdaySummar
 import { TextCommandTextarea } from '../../src/app/shared/textCommands/TextCommandTextarea';
 import { bindingLabel, CaseOverviewDetail, resolveCaseNextAction } from '../../src/app/features/cases/CaseOverviewDetail';
 import { lifecycleSeverity, personLabel, PersonList } from '../../src/app/features/persons/PersonList';
-import type { CaseRecord } from '../../src/app/core/models/case.model';
-import type { DeadlineDashboardItem, DeadlineRecord } from '../../src/app/core/models/deadline.model';
-import type { ProtectedPersonRecord } from '../../src/app/core/models/protected-person.model';
+import type { CaseRecord } from '../../src/domain/models/case.model';
+import type { DeadlineDashboardItem, DeadlineRecord } from '../../src/domain/models/deadline.model';
+import type { ProtectedPersonRecord } from '../../src/domain/models/protected-person.model';
 import { descendants, renderComponent, visibleText } from '../helpers/renderedMarkup';
 
 function caseRecord(overrides: Partial<CaseRecord> = {}): CaseRecord {

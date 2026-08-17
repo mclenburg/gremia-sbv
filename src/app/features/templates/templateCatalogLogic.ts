@@ -1,4 +1,4 @@
-import type { TemplateCategory, TemplateRecord } from '../../core/models/template.model';
+import type { TemplateCategory, TemplateRecord } from '../../../domain/models/template.model';
 
 export const templateCategoryLabels: Record<TemplateCategory, string> = {
   praevention: 'Prävention',
@@ -42,4 +42,3 @@ export function groupTemplates(templates: TemplateRecord[], sortMode: TemplateSo
 export function clampTemplatePage(page: number, pageCount: number): number {
   return Math.min(Math.max(page, 1), Math.max(pageCount, 1));
 }
-

@@ -26,6 +26,8 @@ Das Check-Script blockiert insbesondere:
 - fehlende direkte Abhängigkeiten im Inventar,
 - defekte Verweise aus dem Inventar auf Lizenzdateien.
 
+Fehlt die Lizenzangabe in den Paketmetadaten, darf der Generator ausschließlich einen eindeutig erkannten, im Paket ausgelieferten Standardlizenztext verwenden. Nicht eindeutig erkennbare Texte bleiben ein harter Fehler; paketbezogene Ausnahmen sind nicht zulässig.
+
 ## Netzwerkverhalten
 
 Der Generator nutzt standardmäßig `https://registry.npmjs.org`. Für Tests oder kontrollierte Umgebungen kann `NPM_REGISTRY_URL` gesetzt werden. Die Zuordnung erfolgt immer gegen die konkrete Paketversion aus dem Lockfile, nicht gegen `latest`.

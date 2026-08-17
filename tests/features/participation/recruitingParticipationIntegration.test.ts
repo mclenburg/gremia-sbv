@@ -1,9 +1,9 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { APP_SCHEMA_VERSION, SBV_PARTICIPATION_VIOLATIONS_REQUIRED_COLUMNS } from '../../../services/appSchema';
-import { PARTICIPATION_VIOLATION_SOURCE_CONTEXT_TYPES } from '../../../src/app/core/models/sbv-participation-violation.model';
+import { PARTICIPATION_VIOLATION_SOURCE_CONTEXT_TYPES } from '../../../src/domain/models/sbv-participation-violation.model';
 import { buildParticipationViolationPrefillFromRecruiting } from '../../../src/app/features/participation-violations/sbvParticipationViolationViewLogic';
-import type { RecruitingParticipationRecord } from '../../../src/app/core/models/recruiting-participation.model';
+import type { RecruitingParticipationRecord } from '../../../src/domain/models/recruiting-participation.model';
 
 function recruitingRecord(overrides: Partial<RecruitingParticipationRecord> = {}): RecruitingParticipationRecord {
   return {

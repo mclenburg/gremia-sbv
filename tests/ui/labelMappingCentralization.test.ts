@@ -1,24 +1,24 @@
 import { describe, expect, it } from 'vitest';
-import { ACTIVITY_JOURNAL_CATEGORIES } from '../../src/app/core/models/activity-journal.model';
+import { ACTIVITY_JOURNAL_CATEGORIES } from '../../src/domain/models/activity-journal.model';
 import {
   activityJournalCategoryLabels,
   activityJournalTimeModeLabels,
-} from '../../src/app/core/labels/activityJournalLabels';
+} from '../../src/domain/labels/activityJournalLabels';
 import {
   deadlineProcessTypeLabels,
   deadlineSeverityLabels,
   deadlineTypeLabels,
-} from '../../src/app/core/labels/deadlineLabels';
+} from '../../src/domain/labels/deadlineLabels';
 import {
   DEADLINE_PROCESS_TYPES,
   DEADLINE_SEVERITIES,
   DEADLINE_TYPES,
-} from '../../src/app/core/models/deadline.model';
+} from '../../src/domain/models/deadline.model';
 import {
   PARTICIPATION_VIOLATION_STAGES,
   PARTICIPATION_VIOLATION_STATUS_TRANSITIONS,
   PARTICIPATION_VIOLATION_TYPES,
-} from '../../src/app/core/models/sbv-participation-violation.model';
+} from '../../src/domain/models/sbv-participation-violation.model';
 import {
   sbvParticipationViolationDocumentStageLabels,
   sbvParticipationViolationStageLabels,
@@ -26,7 +26,7 @@ import {
   sbvParticipationViolationStatusLabels,
   sbvParticipationViolationTypeLabels,
   sbvParticipationViolationTypeOptions,
-} from '../../src/app/core/labels/sbvParticipationViolationLabels';
+} from '../../src/domain/labels/sbvParticipationViolationLabels';
 import { categoryLabel } from '../../src/app/features/activity-journal/activityJournalLogic';
 import {
   stageLabels,

@@ -1,7 +1,7 @@
 import { useEffect, useRef, type FormEvent } from 'react';
 import { FolderKanban, UserRoundSearch } from 'lucide-react';
-import type { CaseCategory } from '../../core/models/case.model';
-import type { ProtectedPersonRecord } from '../../core/models/protected-person.model';
+import type { CaseCategory } from '../../../domain/models/case.model';
+import type { ProtectedPersonRecord } from '../../../domain/models/protected-person.model';
 
 export function CaseCreateModal({
   open,

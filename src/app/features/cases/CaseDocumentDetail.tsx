@@ -1,5 +1,5 @@
 import { FileText, Trash2 } from 'lucide-react';
-import type { CaseDocumentRecord } from '../../core/models/case-document.model';
+import type { CaseDocumentRecord } from '../../../domain/models/case-document.model';
 import { DangerButton, ToolbarButton } from '../../shared/components/IndustrialButton';
 
 export function CaseDocumentDetail({

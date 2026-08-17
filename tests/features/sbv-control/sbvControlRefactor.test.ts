@@ -1,6 +1,6 @@
 import { readFileSync, statSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import type { SbvResourceRecord } from '../../../src/app/core/models/sbv-resource.model';
+import type { SbvResourceRecord } from '../../../src/domain/models/sbv-resource.model';
 import {
   filterProtocolsForQuery,
   filterResourcesForQuery,

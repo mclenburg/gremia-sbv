@@ -6,8 +6,8 @@ import type {
   PersonImportExecuteResult,
   PersonImportPreviewInput,
   PersonImportPreviewResult
-} from '../../core/models/protected-person.model';
-import { protectionStatusLabels } from '../../core/models/protected-person.model';
+} from '../../../domain/models/protected-person.model';
+import { protectionStatusLabels } from '../../../domain/models/protected-person.model';
 import {
   buildDefaultMapping,
   countRowsWithErrors,

@@ -2,7 +2,7 @@ import type { DatabaseAdapter } from './databaseService.js';
 import {
   normalizeTemplateDefaultValues,
   type TemplateDefaultValues,
-} from '../src/app/core/models/template-default.model.js';
+} from '../src/domain/models/template-default.model.js';
 
 const TEMPLATE_DEFAULTS_SETTINGS_KEY = 'template.defaults.v1';
 

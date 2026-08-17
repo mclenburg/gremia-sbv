@@ -3,14 +3,14 @@ import type { FormEvent } from "react";
 import { AlertTriangle, Download, HardDrive, Moon, Save, ShieldCheck, Sun } from "lucide-react";
 import { waitForBridge } from "../../core/bridge/waitForBridge";
 import { formatDateShort } from "../../shared/format/dates";
-import type { CaseRecord } from "../../core/models/case.model";
-import type { RetentionCandidate, RetentionDashboard, RetentionOperationResult, RetentionSettings } from "../../core/models/retention.model";
-import type { BackupInspectionResult, BackupOperationResult } from "../../core/models/backup.model";
-import type { RenderedTemplateResult, ContextualTemplateAction } from "../../core/models/template.model";
+import type { CaseRecord } from "../../../domain/models/case.model";
+import type { RetentionCandidate, RetentionDashboard, RetentionOperationResult, RetentionSettings } from "../../../domain/models/retention.model";
+import type { BackupInspectionResult, BackupOperationResult } from "../../../domain/models/backup.model";
+import type { RenderedTemplateResult, ContextualTemplateAction } from "../../../domain/models/template.model";
 import { APP_VERSION } from "../../generated/appVersion";
 import { TextCommandTextarea } from "../../shared/textCommands/TextCommandTextarea";
-import { buildExportWarningMessage, scanSensitiveExportText } from "@services/exportGuardPolicy";
-import { missingPlaceholderWarning } from "@services/templateContextPolicy";
+import { buildExportWarningMessage, scanSensitiveExportText } from "@/domain/privacy/exportGuardPolicy";
+import { missingPlaceholderWarning } from "@/domain/templates/templateContextPolicy";
 import { useConfirmDialog } from "../../shared/dialogs/ConfirmDialogProvider";
 import { useAnnouncer } from "../../shared/a11y/LiveRegionProvider";
 import { TEMPLATE_DEFAULT_FIELDS, EMPTY_TEMPLATE_DEFAULT_VALUES, loadTemplateDefaultValues, saveTemplateDefaultValues } from "../../shared/templates/templateDefaults";
@@ -59,4 +59,3 @@ export function ThemeSettingsForm({
     </section>
   );
 }
-

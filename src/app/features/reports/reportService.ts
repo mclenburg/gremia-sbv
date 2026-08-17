@@ -1,4 +1,4 @@
-import type { GenerateReportInput, ReportDescriptor, ReportExportHistoryItem, ReportGenerationResult, ReportType } from '../../core/models/report.model';
+import type { GenerateReportInput, ReportDescriptor, ReportExportHistoryItem, ReportGenerationResult, ReportType } from '../../../domain/models/report.model';
 import { waitForBridge } from '../../core/bridge/waitForBridge';
 
 export const REPORT_TYPE_ORDER: ReportType[] = [

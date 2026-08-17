@@ -1,17 +1,17 @@
-import type { CaseSearchResult } from "../../core/models/case-note.model";
+import type { CaseSearchResult } from "../../../domain/models/case-note.model";
 import type { Dispatch, FormEvent, SetStateAction } from "react";
-import type { CaseCategory, CaseRecord } from "../../core/models/case.model";
-import type { CaseDocumentRecord } from "../../core/models/case-document.model";
-import type { CaseNoteRecord, CaseNoteType, ConfidentialLevel } from "../../core/models/case-note.model";
-import type { ProtectedPersonRecord } from "../../core/models/protected-person.model";
-import type { ContactRecord } from "../../core/models/contact.model";
-import type { PreventionProcessRecord } from "../../core/models/prevention.model";
-import type { BemProcessRecord } from "../../core/models/bem.model";
-import type { EqualizationProcessRecord } from "../../core/models/equalization.model";
-import type { TerminationHearingRecord } from "../../core/models/termination.model";
-import type { ParticipationRecord } from "../../core/models/participation.model";
-import type { WorkplaceAccommodationRecord } from "../../core/models/workplace-accommodation.model";
-import type { CaseLegalReferenceRecord } from "../../core/models/knowledge.model";
+import type { CaseCategory, CaseRecord } from "../../../domain/models/case.model";
+import type { CaseDocumentRecord } from "../../../domain/models/case-document.model";
+import type { CaseNoteRecord, CaseNoteType, ConfidentialLevel } from "../../../domain/models/case-note.model";
+import type { ProtectedPersonRecord } from "../../../domain/models/protected-person.model";
+import type { ContactRecord } from "../../../domain/models/contact.model";
+import type { PreventionProcessRecord } from "../../../domain/models/prevention.model";
+import type { BemProcessRecord } from "../../../domain/models/bem.model";
+import type { EqualizationProcessRecord } from "../../../domain/models/equalization.model";
+import type { TerminationHearingRecord } from "../../../domain/models/termination.model";
+import type { ParticipationRecord } from "../../../domain/models/participation.model";
+import type { WorkplaceAccommodationRecord } from "../../../domain/models/workplace-accommodation.model";
+import type { CaseLegalReferenceRecord } from "../../../domain/models/knowledge.model";
 import type { CasesViewProps, CaseToast } from "./casesViewTypes";
 import type { CaseExplorerSelection, CaseProcessType } from "./caseWorkbenchTypes";
 import type { CaseProcessDraft } from "./casesViewProcessUtils";
@@ -140,4 +140,3 @@ export type CasesViewRenderProps = {
   onOpenCasePrivacyAction: (record: CaseRecord) => void;
   onOpenProcessDelete: (target: { id: string; processType: CaseProcessType; label?: string }) => void;
 } & ProcessUpdateActions & Pick<TemplateActions, "openProcessTemplateModal"> & Pick<ProcessCreationActions, "openCaseProcessDraft"> & Pick<CrudActions, "deleteNote"> & Pick<NoteEditorActions, "startEditNote" | "openNewNoteModal">;
-

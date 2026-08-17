@@ -6,7 +6,7 @@ import {
 import {
   WorkbenchToolbar,
 } from "../../../shared/components/WorkbenchLayout";
-import type { ComplianceDocument } from "../../../core/models/compliance.model";
+import type { ComplianceDocument } from "../../../../domain/models/compliance.model";
 
 export function ComplianceDocumentPreview({
   document,

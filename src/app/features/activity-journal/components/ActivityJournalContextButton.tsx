@@ -1,6 +1,6 @@
 import { Clock3 } from 'lucide-react';
 import { useState } from 'react';
-import type { ActivityJournalPrefillContext } from '../../../core/models/activity-journal.model';
+import type { ActivityJournalPrefillContext } from '../../../../domain/models/activity-journal.model';
 import { waitForBridge } from '../../../core/bridge/waitForBridge';
 import { ToolbarButton } from '../../../shared/components/IndustrialButton';
 import { dispatchActivityJournalPrefill } from '../activityJournalEvents';

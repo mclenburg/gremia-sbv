@@ -16,8 +16,8 @@ import type {
   CreateTemplateInput,
   TemplateCategory,
   TemplateRecord,
-} from "../../core/models/template.model";
-import type { PreventionStatus } from "../../core/models/prevention.model";
+} from "../../../domain/models/template.model";
+import type { PreventionStatus } from "../../../domain/models/prevention.model";
 import {
   preventionStatusOrder,
   statusLabel,

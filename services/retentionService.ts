@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import { randomUUID } from 'node:crypto';
-import type { RetentionDashboard, RetentionOperationResult, RetentionSettings, UpdateRetentionSettingsInput } from '../src/app/core/models/retention.model.js';
+import type { RetentionDashboard, RetentionOperationResult, RetentionSettings, UpdateRetentionSettingsInput } from '../src/domain/models/retention.model.js';
 import type { DatabaseAdapter } from './databaseService.js';
 import { DEFAULT_RETENTION_SETTINGS, buildRetentionDashboard, normalizeRetentionSettings, type RetentionActivityJournalSnapshot, type RetentionCaseSnapshot, type RetentionContactSnapshot, type RetentionDeadlineSnapshot, type RetentionDocumentSnapshot, type RetentionParticipationViolationSnapshot } from './retentionPolicy.js';
 import { SearchIndexService } from './search/searchIndexService.js';
@@ -16,9 +16,7 @@ export class RetentionService {
   ) {}
 
   private get db(): DatabaseAdapter {
-    const db = this.dbProvider();
-    this.ensureSchema(db);
-    return db;
+    return this.dbProvider();
   }
 
   ensureSchema(db = this.dbProvider()): void {

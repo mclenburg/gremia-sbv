@@ -1,11 +1,11 @@
 import type { Dispatch, SetStateAction } from "react";
-import type { CaseRecord } from "../../../core/models/case.model";
-import type { ContactRecord, CreateContactInput } from "../../../core/models/contact.model";
-import type { ConfidentialLevel, CaseNoteInlineActionInput } from "../../../core/models/case-note.model";
-import type { CaseLegalReferenceRecord } from "../../../core/models/knowledge.model";
-import type { CreateDeadlineInput } from "../../../core/models/deadline.model";
-import type { CreateCaseNoteLinkInput } from "../../../core/models/case-note-link.model";
-import type { TextCommandToken } from "@services/textCommandPolicy";
+import type { CaseRecord } from "../../../../domain/models/case.model";
+import type { ContactRecord, CreateContactInput } from "../../../../domain/models/contact.model";
+import type { ConfidentialLevel, CaseNoteInlineActionInput } from "../../../../domain/models/case-note.model";
+import type { CaseLegalReferenceRecord } from "../../../../domain/models/knowledge.model";
+import type { CreateDeadlineInput } from "../../../../domain/models/deadline.model";
+import type { CreateCaseNoteLinkInput } from "../../../../domain/models/case-note-link.model";
+import type { TextCommandToken } from "@/domain/textCommands/textCommandPolicy";
 import type { ProtocolTextTarget } from "./inlineCommandTypes";
 import type { useInlineCommandDrafts } from "./useInlineCommandDrafts";
 

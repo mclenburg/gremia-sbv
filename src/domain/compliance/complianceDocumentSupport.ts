@@ -1,4 +1,5 @@
-import type { ComplianceDocumentDescriptor, ComplianceDocumentType } from '../src/app/core/models/compliance.model.js';
+import type { ComplianceDocumentDescriptor, ComplianceDocumentType } from '../models/compliance.model.js';
+import { legalCalendarDate } from '../time/legalTime.js';
 export const COMPLIANCE_DOCUMENTS: ComplianceDocumentDescriptor[] = [
   {
     type: 'toms',
@@ -85,7 +86,7 @@ export function plusDays(date: Date, days: number): Date {
   return next;
 }
 export function toDateInputValue(date: Date): string {
-  return date.toISOString().slice(0, 10);
+  return legalCalendarDate(date);
 }
 export function markdownFileName(type: ComplianceDocumentType, generatedAt: string): string {
   const stamp = generatedAt.replace(/[:.]/g, '-').slice(0, 19);

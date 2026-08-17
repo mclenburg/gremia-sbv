@@ -17,7 +17,8 @@ import {
 import type {
   SecurityResult,
   SecurityStatus,
-} from "../../src/app/core/models/security.model.js";
+} from "../../src/domain/models/security.model.js";
+import { ApplicationError } from "../../src/domain/models/application-error.model.js";
 import { DatabaseService, type DatabaseAdapter } from "../databaseService.js";
 import { PersonalDataAuditLogService } from "../auditLogService.js";
 import {
@@ -59,10 +60,18 @@ export class SecuritySessionService extends VaultCredentialService {
           { reason },
         );
       }
-      this.tempFiles.cleanup();
       this.unlocked = false;
       this.destroyActiveDatabaseKey();
-      this.databaseService.close();
+      try {
+        this.databaseService.close();
+      } catch {
+        // Der Zugriff ist bereits gesperrt und der aktive Schlüssel vernichtet.
+      }
+      try {
+        this.tempFiles.cleanup();
+      } catch {
+        // Klartextbereinigung ist wichtig, darf die technische Sperre aber nicht zurücknehmen.
+      }
     }
 
   cleanupTemporaryFiles(): TempFileCleanupResult {
@@ -90,7 +99,7 @@ export class SecuritySessionService extends VaultCredentialService {
     }
 
   writeTemporaryFile(
-      scope: "document-preview" | "report-preview" | "report-render" | "misc",
+      scope: "document-preview" | "report-preview" | "misc",
       originalFileName: string,
       content: Buffer,
       prefix?: string,
@@ -106,14 +115,22 @@ export class SecuritySessionService extends VaultCredentialService {
 
   getActiveDatabase(): DatabaseAdapter {
       if (!this.unlocked) {
-        throw new Error("Gremia.SBV ist gesperrt. Datenbankzugriff verweigert.");
+        throw new ApplicationError(
+          "SECURITY_OPERATION_FAILED",
+          "Gremia.SBV ist gesperrt. Datenbankzugriff verweigert.",
+          "security:database-access",
+        );
       }
       return this.databaseService.active;
     }
 
   getActiveDatabaseKey(): Buffer {
       if (!this.unlocked || !this.databaseKey) {
-        throw new Error("Gremia.SBV ist gesperrt. Schlüsselzugriff verweigert.");
+        throw new ApplicationError(
+          "SECURITY_OPERATION_FAILED",
+          "Gremia.SBV ist gesperrt. Schlüsselzugriff verweigert.",
+          "security:database-key-access",
+        );
       }
       return Buffer.from(this.databaseKey);
     }

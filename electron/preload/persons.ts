@@ -12,7 +12,7 @@ import type {
   ProtectedPersonListFilters,
   ProtectedPersonRecord,
   UpdateProtectedPersonInput,
-} from "../../src/app/core/models/protected-person.model.js";
+} from "../../src/domain/models/protected-person.model.js";
 
 export function createPersonsApi(invokeIpc: IpcInvoker) {
   return {
