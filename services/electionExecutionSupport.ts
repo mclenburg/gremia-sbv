@@ -2,14 +2,14 @@ import { randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
 import { DeadlineService } from './deadlineService.js';
 import { ElectionDeadlinePolicy } from './electionDeadlinePolicy.js';
-import type { OfficeType } from '../src/app/core/models/election.model.js';
+import type { OfficeType } from '../src/domain/models/election.model.js';
 import type {
   ElectionExecutionOverview,
   ElectionMailBallotRecord,
   ElectionPhysicalRecord,
   ElectionResultRecord,
   ElectionVoteTotalRecord,
-} from '../src/app/core/models/election-execution.model.js';
+} from '../src/domain/models/election-execution.model.js';
 
 export const electionNow = () => new Date().toISOString();
 export const cleanElectionText = (value?: string) => value?.trim() || null;

@@ -1,5 +1,6 @@
-import type { CreateRecruitingInterviewEventInput, CreateRecruitingParticipationInput, RecruitingAccessibilityCheckStatus, RecruitingApplicantReferenceMode, RecruitingApplicantStatus, RecruitingParticipationRecord, RecruitingParticipationStatus, RecruitingViolationReviewReason, UpdateRecruitingParticipationInput } from '../../core/models/recruiting-participation.model';
+import type { CreateRecruitingInterviewEventInput, CreateRecruitingParticipationInput, RecruitingAccessibilityCheckStatus, RecruitingApplicantReferenceMode, RecruitingApplicantStatus, RecruitingParticipationRecord, RecruitingParticipationStatus, RecruitingViolationReviewReason, UpdateRecruitingParticipationInput } from '../../../domain/models/recruiting-participation.model';
 import { recruitingAccessibilityStatusLabels, recruitingApplicantReferenceModeLabels, recruitingApplicantStatusLabels, recruitingStatusLabels, recruitingViolationReviewReasonLabels } from './recruitingViewLogic';
+import { legalCalendarDate, legalToday } from '../../../domain/time/legalTime';
 export type ParticipationFormState = {
   vacancyTitle: string;
   vacancyReference: string;
@@ -47,7 +48,7 @@ export function toDateInput(iso?: string): string {
   if (!iso) return '';
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return iso.slice(0, 10);
-  return date.toISOString().slice(0, 10);
+  return legalCalendarDate(date);
 }
 
 export function fromDateInput(value: string): string | undefined {
@@ -134,7 +135,7 @@ export function inputFromForm(form: ParticipationFormState): CreateRecruitingPar
 
 export function emptyInterviewForm(): InterviewFormState {
   return {
-    interviewDate: new Date().toISOString().slice(0, 10),
+    interviewDate: legalToday(),
     applicantRef: '',
     applicantReferenceMode: 'anonymous_reference',
     applicantStatus: 'severely_disabled',
@@ -162,4 +163,3 @@ export function interviewInputFromForm(recruitingParticipationId: string, form: 
     proceduralNote: form.proceduralNote.trim() || undefined,
   };
 }
-

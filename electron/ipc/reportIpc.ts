@@ -6,12 +6,12 @@ import path from "node:path";
 import type { SecurityService } from "../../services/securityService.js";
 import type { ApplicationServices } from '../applicationServices.js';
 import { createPdfDocument } from '../../services/documents/pdfDocumentRenderer.js';
-import { normalizeReportType } from "../../src/app/core/models/report.model.js";
+import { normalizeReportType } from "../../src/domain/models/report.model.js";
 import { decryptReportArchive, encryptReportArchive } from "../../services/reports/reportArchiveCrypto.js";
 import type {
   GenerateReportInput,
   ReportGenerationResult,
-} from "../../src/app/core/models/report.model.js";
+} from "../../src/domain/models/report.model.js";
 import {
   assertExtension,
   assertOptionalPositiveInteger,

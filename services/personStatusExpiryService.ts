@@ -2,7 +2,7 @@ import type { DatabaseAdapter } from './databaseService.js';
 import { ProtectedPersonService } from './protectedPersonService.js';
 import { decidePersonLifecycleTransition } from './personLifecyclePolicy.js';
 import { PrivacyReviewService } from './privacyReviewService.js';
-import type { PersonStatusExpirySummary, ProtectedPersonRecord } from '../src/app/core/models/protected-person.model.js';
+import type { PersonStatusExpirySummary, ProtectedPersonRecord } from '../src/domain/models/protected-person.model.js';
 
 function dueIso(dateOnly: string): string {
   return new Date(`${dateOnly}T09:00:00.000Z`).toISOString();

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { IndustrialButton } from '../../../shared/components/IndustrialButton';
 import { DateInput, DateTimeInput, SelectInput, TextareaInput, TextInput } from '../../../shared/components/IndustrialForm';
 import { IndustrialHelpButton } from '../../../shared/help/IndustrialHelp';
-import type { EmployerReportStatus, SbvAssemblyRecord } from '../../../core/models/sbv-office-workflow.model';
+import type { EmployerReportStatus, SbvAssemblyRecord } from '../../../../domain/models/sbv-office-workflow.model';
 import { SbvControlPanel } from './SbvControlPanel';
 
 type AssemblyDocumentKind = 'invitation' | 'agenda' | 'activity_report_draft' | 'result_minutes';

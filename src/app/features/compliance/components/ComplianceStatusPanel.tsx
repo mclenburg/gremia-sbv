@@ -5,7 +5,7 @@ import {
   IndustrialStatusCard,
 } from "../../../shared/components/WorkbenchLayout";
 import { complianceFindingToTone } from "../../../shared/status/statusTone";
-import type { ComplianceStatusOverview } from "../../../core/models/compliance.model";
+import type { ComplianceStatusOverview } from "../../../../domain/models/compliance.model";
 import { technicalLevelLabel } from "../complianceViewUtils";
 
 export function ComplianceStatusPanel({

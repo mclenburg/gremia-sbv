@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type { DatabaseAdapter } from "../databaseService.js";
-import type { CaseNoteInlineActionInput } from "../../src/app/core/models/case-note.model.js";
-import type { CreateCaseNoteLinkInput } from "../../src/app/core/models/case-note-link.model.js";
+import type { CaseNoteInlineActionInput } from "../../src/domain/models/case-note.model.js";
+import type { CreateCaseNoteLinkInput } from "../../src/domain/models/case-note-link.model.js";
 import { PersonalDataAuditLogService } from "../auditLogService.js";
 import { DeadlineService } from "../deadlineService.js";
 import { BemService } from "../bemService.js";

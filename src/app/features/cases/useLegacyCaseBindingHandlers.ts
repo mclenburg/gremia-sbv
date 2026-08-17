@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { waitForBridge } from '../../core/bridge/waitForBridge';
-import type { CaseRecord } from '../../core/models/case.model';
+import type { CaseRecord } from '../../../domain/models/case.model';
 
 type Announce = (message: string, politeness?: 'polite' | 'assertive') => void;
 

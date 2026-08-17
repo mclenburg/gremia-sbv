@@ -1,8 +1,8 @@
 import { type FormEvent, useEffect } from 'react';
 import { AlertTriangle, CheckCircle2, FileWarning, Plus } from 'lucide-react';
-import type { CaseRecord } from '../../core/models/case.model';
-import type { ActivityJournalPrefill } from '../../core/models/activity-journal.model';
-import type { ParticipationViolationSourceContextType, ParticipationViolationStage, ParticipationViolationType } from '../../core/models/sbv-participation-violation.model';
+import type { CaseRecord } from '../../../domain/models/case.model';
+import type { ActivityJournalPrefill } from '../../../domain/models/activity-journal.model';
+import type { ParticipationViolationSourceContextType, ParticipationViolationStage, ParticipationViolationType } from '../../../domain/models/sbv-participation-violation.model';
 import { IndustrialButton, ToolbarButton } from '../../shared/components/IndustrialButton';
 import { FormActions, FormSection, SelectInput, TextareaInput, TextInput } from '../../shared/components/IndustrialForm';
 import { ModuleFeedback } from '../../shared/components/ModuleFeedback';

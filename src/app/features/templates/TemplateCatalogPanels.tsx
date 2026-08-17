@@ -2,7 +2,7 @@ import type { FormEvent } from 'react';
 import { FileText, HelpCircle, Plus, Search, Trash2 } from 'lucide-react';
 import { IconButton, IndustrialButton, ToolbarButton } from '../../shared/components/IndustrialButton';
 import { SelectInput, TextInput } from '../../shared/components/IndustrialForm';
-import type { TemplateCategory, TemplateRecord } from '../../core/models/template.model';
+import type { TemplateCategory, TemplateRecord } from '../../../domain/models/template.model';
 import type { TemplateSortMode } from './templateCatalogLogic';
 import { TEMPLATE_PAGE_SIZE_OPTIONS, templateCategoryLabels } from './templateCatalogLogic';
 

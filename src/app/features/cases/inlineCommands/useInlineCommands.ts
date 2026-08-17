@@ -1,11 +1,11 @@
 import { useCallback, useState } from "react";
-import type { CreateCaseNoteLinkInput } from "../../../core/models/case-note-link.model";
-import type { CaseNoteInlineActionInput } from "../../../core/models/case-note.model";
+import type { CreateCaseNoteLinkInput } from "../../../../domain/models/case-note-link.model";
+import type { CaseNoteInlineActionInput } from "../../../../domain/models/case-note.model";
 import {
   removeCommandMarker,
   replaceCommandMarker,
   type TextCommandToken,
-} from "@services/textCommandPolicy";
+} from "@/domain/textCommands/textCommandPolicy";
 import { extractInlineCommandArgument, getInlineCommandRangeLength } from "../measures/measurePrefill";
 import { hasAnyInlineCommandOverlay } from "./inlineCommandSearch";
 import { openInlineCommandDraft } from "./inlineCommandOpeners";

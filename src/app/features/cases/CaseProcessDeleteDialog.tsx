@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Trash2 } from 'lucide-react';
 import type { CaseProcessType } from './caseWorkbenchTypes';
-import type { CaseProcessDeleteReason } from '../../core/models/case-measure.model';
+import type { CaseProcessDeleteReason } from '../../../domain/models/case-measure.model';
 import { DangerButton, GhostButton } from '../../shared/components/IndustrialButton';
 import { IndustrialModal } from '../../shared/dialogs/IndustrialDialogs';
 

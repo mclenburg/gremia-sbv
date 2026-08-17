@@ -22,9 +22,9 @@ import { EqualizationProcessDetail } from "../equalization/EqualizationProcessDe
 import { TerminationProcessDetail } from "../termination/TerminationProcessDetail";
 import { ParticipationProcessDetail } from "../participation/ParticipationProcessDetail";
 import { WorkplaceAccommodationProcessDetail } from "../workplace-accommodation/WorkplaceAccommodationProcessDetail";
-import { resolveContextualTemplateAction } from "@services/templateContextPolicy";
+import { resolveContextualTemplateAction } from "@/domain/templates/templateContextPolicy";
 import { formatBytes, formatNoteDate, formatProcessNodeSubtitle, processTypeLabel } from "./caseWorkbenchFormat";
-import type { CaseSearchResult } from '../../core/models/case-note.model';
+import type { CaseSearchResult } from '../../../domain/models/case-note.model';
 import type { CaseProcessType } from './caseWorkbenchTypes';
 import type { CasesViewRenderProps } from './casesViewRenderTypes';
 function renderSearchExcerpt(result: CaseSearchResult) {

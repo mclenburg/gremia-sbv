@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { auditChainStatusItem } from '../../src/app/features/compliance/complianceViewUtils';
-import type { ComplianceAuditChainStatus } from '../../src/app/core/models/compliance.model';
+import type { ComplianceAuditChainStatus } from '../../src/domain/models/compliance.model';
 
 describe('0.9.1 Compliance Audit-Hash-Chain', () => {
   it('bildet eine intakte Audit-Hash-Chain als OK-Status für die Compliance-Karte ab', () => {

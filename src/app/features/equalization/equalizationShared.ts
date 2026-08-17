@@ -1,4 +1,4 @@
-import type { EqualizationStatus } from '../../core/models/equalization.model';
+import type { EqualizationStatus } from '../../../domain/models/equalization.model';
 
 export const equalizationStatusOrder: EqualizationStatus[] = ['beratung', 'vorbereitung', 'eingereicht', 'nachfrage', 'bewilligt', 'abgelehnt', 'widerspruch', 'abgeschlossen'];
 

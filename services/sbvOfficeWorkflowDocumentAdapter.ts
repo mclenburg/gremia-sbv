@@ -6,8 +6,8 @@ import { DocumentContainerService } from './documentContainerService.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
 import { auditSbvOfficeDocumentChanged } from './auditEventBuilders.js';
 import { RetentionOwnerRegistry } from './retentionOwnerRegistry.js';
-import type { RetentionOwnerRef } from '../src/app/core/models/retention-owner.model.js';
-import type { ElectionDocumentClass } from '../src/app/core/models/election.model.js';
+import type { RetentionOwnerRef } from '../src/domain/models/retention-owner.model.js';
+import type { ElectionDocumentClass } from '../src/domain/models/election.model.js';
 
 export interface StoreSbvOfficeDocumentInput {
   owner: RetentionOwnerRef;

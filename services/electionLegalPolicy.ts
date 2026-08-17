@@ -8,7 +8,7 @@ import {
   type EligibilityBasis,
   type MinimumThresholdAssessment,
   type OfficeType,
-} from '../src/app/core/models/election.model.js';
+} from '../src/domain/models/election.model.js';
 
 const MINIMUM_ELECTION_THRESHOLD = 5;
 const SIMPLIFIED_PROCEDURE_MAX_EXCLUSIVE = 50;

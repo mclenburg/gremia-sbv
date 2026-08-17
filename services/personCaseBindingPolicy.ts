@@ -1,4 +1,4 @@
-import type { CaseStatus } from '../src/app/core/models/case.model.js';
+import type { CaseStatus } from '../src/domain/models/case.model.js';
 
 export type PersonBindingState =
   | 'active'

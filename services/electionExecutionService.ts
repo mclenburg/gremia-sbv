@@ -7,7 +7,7 @@ import { ElectionDeadlinePolicy } from './electionDeadlinePolicy.js';
 import { DeadlineService } from './deadlineService.js';
 import { RetentionLegalHoldService } from './retentionLegalHoldService.js';
 import type { EmployerObligationService } from './employerObligationService.js';
-import type { OfficeType } from '../src/app/core/models/election.model.js';
+import type { OfficeType } from '../src/domain/models/election.model.js';
 import { ElectionExecutionRepository } from './electionExecutionRepository.js';
 import {
   ElectionExecutionDeadlineCoordinator,
@@ -30,7 +30,7 @@ import type {
   RecordElectionTotalsInput,
   SaveElectionMailBallotInput,
   SaveElectionPhysicalRecordInput,
-} from '../src/app/core/models/election-execution.model.js';
+} from '../src/domain/models/election-execution.model.js';
 
 export class ElectionExecutionService {
   constructor(

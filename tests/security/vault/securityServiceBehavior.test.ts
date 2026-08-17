@@ -5,6 +5,7 @@ import path from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { SecurityService, type SecurityFileOperations } from '../../../services/securityService';
 import { atomicWriteFileSync } from '../../../services/secureFileOperations';
+import { ApplicationError } from '../../../src/domain/models/application-error.model';
 
 const PASSWORD = 'SehrSicheresPasswort!2026';
 const NEXT_PASSWORD = 'NochSichereresPasswort!2026';
@@ -49,6 +50,10 @@ type VaultDatabaseOpener = {
   openAndInitializeVaultDatabase(databaseKey: Buffer): Promise<void>;
 };
 
+type SecurityRuntimeInternals = {
+  tempFiles: { cleanup(): unknown };
+};
+
 function tempDataDir(): string {
   return mkdtempSync(path.join(tmpdir(), 'gremia-sbv-security-'));
 }
@@ -57,6 +62,17 @@ function createService(dataDir: string): SecurityService {
   const service = new SecurityService(dataDir);
   vi.spyOn(service as unknown as VaultDatabaseOpener, 'openAndInitializeVaultDatabase').mockResolvedValue(undefined);
   return service;
+}
+
+function expectLockedSecurityBoundary(action: () => unknown): void {
+  let thrown: unknown;
+  try {
+    action();
+  } catch (error) {
+    thrown = error;
+  }
+  expect(thrown).toBeInstanceOf(ApplicationError);
+  expect(thrown).toMatchObject({ code: 'SECURITY_OPERATION_FAILED' });
 }
 
 function readSecurityStore(dataDir: string): { passwordVerifier: string; kdfParams?: { N: number; r: number; p: number }; databaseKeyWrap?: { kdfParams?: { N: number; r: number; p: number } } } {
@@ -230,12 +246,28 @@ describe('security service behavior', () => {
 
     expect(service.isUnlocked()).toBe(false);
     expect(existsSync(temporary)).toBe(false);
-    expect(() => service.getActiveDatabaseKey()).toThrow(/gesperrt/i);
-    expect(() => service.getActiveDatabase()).toThrow(/gesperrt/i);
+    expectLockedSecurityBoundary(() => service.getActiveDatabaseKey());
+    expectLockedSecurityBoundary(() => service.getActiveDatabase());
 
     // Eine vor dem Lock bewusst angeforderte Kopie bleibt Eigentum des Aufrufers; der Service darf sie nicht heimlich verändern.
     expect(activeKeyCopy).not.toEqual(Buffer.alloc(32));
     activeKeyCopy.fill(0);
+  });
+
+  it('bleibt auch bei fehlgeschlagener Klartextbereinigung sicher gesperrt', async () => {
+    const dataDir = tempDataDir();
+    createdDirs.push(dataDir);
+    const service = createService(dataDir);
+    await service.setupInitialPassword(PASSWORD);
+    vi.spyOn(
+      (service as unknown as SecurityRuntimeInternals).tempFiles,
+      'cleanup',
+    ).mockImplementation(() => { throw new Error('Dateisystem nicht verfügbar'); });
+
+    expect(() => service.lock('manual')).not.toThrow();
+    expect(service.isUnlocked()).toBe(false);
+    expectLockedSecurityBoundary(() => service.getActiveDatabaseKey());
+    expectLockedSecurityBoundary(() => service.getActiveDatabase());
   });
 
   it('destroys the local vault only with the exact confirmation phrase', async () => {

@@ -1,7 +1,7 @@
-import type { CaseCategory, CaseRecord, PersonBindingState } from "../../core/models/case.model";
-import type { ProtectedPersonRecord } from "../../core/models/protected-person.model";
-import type { ContactRecord, CreateContactInput } from "../../core/models/contact.model";
-import type { CreateDeadlineInput } from "../../core/models/deadline.model";
+import type { CaseCategory, CaseRecord, PersonBindingState } from "../../../domain/models/case.model";
+import type { ProtectedPersonRecord } from "../../../domain/models/protected-person.model";
+import type { ContactRecord, CreateContactInput } from "../../../domain/models/contact.model";
+import type { CreateDeadlineInput } from "../../../domain/models/deadline.model";
 import type { CaseNodeTarget } from "../../core/navigation/caseNodeTarget";
 import type { SbvParticipationViolationPrefill } from "../participation-violations/sbvParticipationViolationViewLogic";
 

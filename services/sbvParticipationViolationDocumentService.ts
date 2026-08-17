@@ -10,7 +10,8 @@ import type {
   SbvParticipationViolationGeneratedDocumentRecord,
   SbvParticipationViolationRecord,
   SbvParticipationViolationTemplateInput,
-} from '../src/app/core/models/sbv-participation-violation.model.js';
+} from '../src/domain/models/sbv-participation-violation.model.js';
+import { addColumnsIfMissing } from './migrations/schemaColumnMigration.js';
 
 const DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 
@@ -69,11 +70,9 @@ export class SbvParticipationViolationDocumentService {
       );
       CREATE INDEX IF NOT EXISTS idx_sbv_participation_violation_documents_violation ON sbv_participation_violation_documents(violation_id);
     `);
-    for (const [column, type] of [
+    addColumnsIfMissing(this.db, 'generated_documents', [
       ['filename', 'TEXT'], ['mime_type', 'TEXT'], ['sha256', 'TEXT'], ['document_key', 'TEXT'], ['iv', 'TEXT'], ['auth_tag', 'TEXT'], ['size_bytes', 'INTEGER']
-    ] as const) {
-      try { this.db.exec(`ALTER TABLE generated_documents ADD COLUMN ${column} ${type}`); } catch { /* column already exists */ }
-    }
+    ]);
   }
 
   async generateDocument(violationId: string, options: Partial<Pick<SbvParticipationViolationTemplateInput, 'recipientLabel' | 'privacyMode' | 'includeLegalReviewHint' | 'includeOwiHint'>> = {}): Promise<SbvParticipationViolationDocumentResult> {

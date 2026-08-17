@@ -1,4 +1,4 @@
-import type { RecruitingInterviewEventRecord, RecruitingParticipationRecord, RecruitingViolationReviewReason } from '../src/app/core/models/recruiting-participation.model.js';
+import type { RecruitingInterviewEventRecord, RecruitingParticipationRecord, RecruitingViolationReviewReason } from '../src/domain/models/recruiting-participation.model.js';
 import { normalizeOptionalBoolean } from './recruitingParticipationValidation.js';
 export interface RecruitingParticipationRow {
   id: string; vacancy_title: string; vacancy_reference: string | null; department: string | null; location: string | null;
@@ -83,4 +83,3 @@ export function mapInterview(row: RecruitingInterviewRow): RecruitingInterviewEv
     updatedAt: row.updated_at,
   };
 }
-

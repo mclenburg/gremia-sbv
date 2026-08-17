@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { BemProcessRecord, BemStatus } from '../../../src/app/core/models/bem.model';
+import type { BemProcessRecord, BemStatus } from '../../../src/domain/models/bem.model';
 import { bemStatusObjective, buildBemStatusGuidance, suggestNextBemStatus } from '../../../services/bemGuidancePolicy';
 
 function process(status: BemStatus, patch: Partial<BemProcessRecord> = {}): BemProcessRecord {

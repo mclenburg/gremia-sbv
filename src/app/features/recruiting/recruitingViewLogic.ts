@@ -5,7 +5,7 @@ import type {
   RecruitingParticipationRecord,
   RecruitingParticipationStatus,
   RecruitingViolationReviewReason,
-} from '../../core/models/recruiting-participation.model';
+} from '../../../domain/models/recruiting-participation.model';
 
 export const recruitingStatusLabels: Record<RecruitingParticipationStatus, string> = {
   draft: 'Entwurf',

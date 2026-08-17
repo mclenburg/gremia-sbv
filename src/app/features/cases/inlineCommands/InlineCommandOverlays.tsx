@@ -1,6 +1,6 @@
-import type { CaseRecord } from "../../../core/models/case.model";
-import type { ContactRecord } from "../../../core/models/contact.model";
-import type { LegalNormSuggestion } from "@services/textCommandPolicy";
+import type { CaseRecord } from "../../../../domain/models/case.model";
+import type { ContactRecord } from "../../../../domain/models/contact.model";
+import type { LegalNormSuggestion } from "@/domain/textCommands/textCommandPolicy";
 import type {
   InlineAnonymizationDraft,
   InlineBemDraft,

@@ -1,4 +1,4 @@
-import type { AcceptanceStatus, ElectionKind, ElectionProcedure, ElectionStatus, OfficeType, ProposalStatus } from '../../core/models/election.model';
+import type { AcceptanceStatus, ElectionKind, ElectionProcedure, ElectionStatus, OfficeType, ProposalStatus } from '../../../domain/models/election.model';
 
 export const electionKindLabels: Record<ElectionKind, string> = {
   regular: 'Regelwahl',

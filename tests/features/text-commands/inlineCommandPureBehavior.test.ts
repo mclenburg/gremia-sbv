@@ -15,7 +15,7 @@ import {
   extractInlineCommandArgument,
   getInlineCommandRangeLength,
 } from '../../../src/app/features/cases/measures/measurePrefill';
-import type { CaseRecord } from '../../../src/app/core/models/case.model';
+import type { CaseRecord } from '../../../src/domain/models/case.model';
 
 const criticalCase: CaseRecord = {
   id: 'case-1',

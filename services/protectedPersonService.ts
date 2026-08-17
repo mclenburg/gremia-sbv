@@ -5,8 +5,9 @@ import { DeadlineService } from './deadlineService.js';
 import { PersonCaseLinkService } from './personCaseLinkService.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
 import { assertPersonPrivacyReason, decideStructuredPersonAnonymization } from './personAnonymizationPolicy.js';
-import type { CreateProtectedPersonInput, PersonCaseLinkRecord, PersonImportRunItemRecord, PersonImportRunRecord, ProtectedPersonListFilters, ProtectedPersonRecord, UpdateProtectedPersonInput } from '../src/app/core/models/protected-person.model.js';
+import type { CreateProtectedPersonInput, PersonCaseLinkRecord, PersonImportRunItemRecord, PersonImportRunRecord, ProtectedPersonListFilters, ProtectedPersonRecord, UpdateProtectedPersonInput } from '../src/domain/models/protected-person.model.js';
 import { ProtectedPersonRow, PersonImportRunRow, PersonImportRunItemRow, ExistingDeadlineRow, nowIso, normalizeOptional, resolveEmploymentState, mapPerson, mapImportRun, mapImportItem, hashStableId } from './protectedPersonSupport.js';
+import { legalToday } from '../src/domain/time/legalTime.js';
 export class ProtectedPersonService {
   constructor(private readonly db: DatabaseAdapter) {}
 
@@ -296,7 +297,7 @@ export class ProtectedPersonService {
 
   createAnonymousRequest(sequenceLabel?: string): ProtectedPersonRecord {
     return new DatabaseUnitOfWork(this.db).run(() => {
-    const stamp = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const stamp = legalToday().replace(/-/g, '');
     const label = sequenceLabel?.trim() || `Anonyme Anfrage ${stamp}-${hashStableId(randomUUID()).slice(0, 4)}`;
     return this.create({
       recordKind: 'pseudonymous_request',

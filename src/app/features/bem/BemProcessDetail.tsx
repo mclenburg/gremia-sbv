@@ -4,7 +4,7 @@ import type {
   BemStatus,
   BemTriggerType,
   UpdateBemProcessInput,
-} from "../../core/models/bem.model";
+} from "../../../domain/models/bem.model";
 import type { CaseProcessType } from "../cases/caseWorkbenchTypes";
 import { formatDateShort } from "../../shared/format/dates";
 import {
@@ -25,7 +25,7 @@ import {
 } from "../../shared/components/IndustrialForm";
 import { ToolbarButton } from "../../shared/components/IndustrialButton";
 import { ActivityJournalContextButton } from "../activity-journal/components/ActivityJournalContextButton";
-import { buildBemStatusGuidance } from "@services/bemGuidancePolicy";
+import { buildBemStatusGuidance } from "@/domain/bem/bemGuidancePolicy";
 
 const triggerOptions: { value: BemTriggerType; label: string }[] = [
   { value: "sechs_wochen_au", label: "mehr als 6 Wochen AU" },

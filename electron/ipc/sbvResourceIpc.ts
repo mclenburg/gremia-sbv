@@ -2,7 +2,7 @@ import { IPC_CHANNELS, registerIpcHandler } from './ipcHandler.js';
 import type { IpcMain } from 'electron';
 import type { SecurityService } from '../../services/securityService.js';
 import type { ApplicationServices } from '../applicationServices.js';
-import type { CreateSbvResourceRecordInput, UpdateSbvResourceRecordInput } from '../../src/app/core/models/sbv-resource.model.js';
+import type { CreateSbvResourceRecordInput, UpdateSbvResourceRecordInput } from '../../src/domain/models/sbv-resource.model.js';
 import { assertRecordInput, assertString } from './ipcValidation.js';
 
 export function registerSbvResourceIpc(ipcMain: IpcMain, security: SecurityService, services: ApplicationServices): void {

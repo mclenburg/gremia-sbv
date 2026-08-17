@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   getVersionFromFilename,
   isAlterAddColumnStatement,
@@ -6,6 +6,8 @@ import {
   parseAddColumnStatement,
   splitSqlStatements
 } from '../../../services/migrationService';
+import { addColumnsIfMissing } from '../../../services/migrations/schemaColumnMigration';
+import type { DatabaseAdapter } from '../../../services/databaseService';
 
 describe('migration service helpers', () => {
   it('extracts schema versions from migration filenames', () => {
@@ -32,5 +34,31 @@ describe('migration service helpers', () => {
   it('does not treat other ALTER statements as safe ADD COLUMN migrations', () => {
     expect(isAlterAddColumnStatement('ALTER TABLE deadlines RENAME TO old_deadlines')).toBe(false);
     expect(parseAddColumnStatement('CREATE TABLE x(id TEXT)')).toBeNull();
+  });
+
+  it('ergänzt nur tatsächlich fehlende Spalten und verschluckt keine Metadatenfehler', () => {
+    const exec = vi.fn();
+    const db = {
+      exec,
+      prepare: vi.fn(() => ({ all: () => [{ name: 'existing_column' }] })),
+    } as unknown as DatabaseAdapter;
+
+    addColumnsIfMissing(db, 'records', [
+      ['existing_column', 'TEXT'],
+      ['new_column', 'INTEGER NOT NULL DEFAULT 0'],
+    ]);
+
+    expect(exec).toHaveBeenCalledOnce();
+    expect(exec).toHaveBeenCalledWith(
+      'ALTER TABLE "records" ADD COLUMN "new_column" INTEGER NOT NULL DEFAULT 0',
+    );
+
+    const failingDb = {
+      prepare: () => {
+        throw new Error('Schema-Metadaten nicht lesbar');
+      },
+    } as unknown as DatabaseAdapter;
+    expect(() => addColumnsIfMissing(failingDb, 'records', [['new_column', 'TEXT']]))
+      .toThrow('Schema-Metadaten nicht lesbar');
   });
 });

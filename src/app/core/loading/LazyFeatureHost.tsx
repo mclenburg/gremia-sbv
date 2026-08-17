@@ -1,8 +1,8 @@
 import { useMemo, type ComponentType, type LazyExoticComponent } from "react";
-import type { CaseRecord } from "../models/case.model";
+import type { CaseRecord } from "../../../domain/models/case.model";
 import type { ViewId } from "../navigation/modules";
 import type { ThemeMode } from "../../shared/theme/appTheme";
-import type { CreateDeadlineInput, DeadlineRecord } from "../models/deadline.model";
+import type { CreateDeadlineInput, DeadlineRecord } from "../../../domain/models/deadline.model";
 import type { SbvParticipationViolationPrefill } from "../../features/participation-violations/sbvParticipationViolationViewLogic";
 import type { CaseNodeTarget } from "../navigation/caseNodeTarget";
 import type { CasesViewProps } from "../../features/cases/casesViewTypes";

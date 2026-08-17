@@ -9,7 +9,7 @@ import type { ApplicationServices } from '../applicationServices.js';
 import type {
   CreateEqualizationProcessInput,
   UpdateEqualizationProcessInput,
-} from "../../src/app/core/models/equalization.model.js";
+} from "../../src/domain/models/equalization.model.js";
 import {
   assertOptionalString,
   assertRecordInput,

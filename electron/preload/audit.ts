@@ -14,14 +14,14 @@ import type {
   ActivityJournalSummaryFilter,
   CreateActivityJournalEntryInput,
   UpdateActivityJournalEntryInput,
-} from "../../src/app/core/models/activity-journal.model.js";
+} from "../../src/domain/models/activity-journal.model.js";
 import type {
   CreateDeadlineInput,
   DeadlineDashboardItem,
   DeadlineListFilters,
   DeadlineRecord,
   UpdateDeadlineInput,
-} from "../../src/app/core/models/deadline.model.js";
+} from "../../src/domain/models/deadline.model.js";
 
 export function createAuditApi(invokeIpc: IpcInvoker) {
   return {

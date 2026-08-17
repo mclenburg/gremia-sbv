@@ -9,8 +9,7 @@ import { fileURLToPath, URL } from 'node:url';
 // das Fenster im AppImage weiß, weil file:///assets/... nicht existiert.
 //
 // TypeScript kennt die Alias-Pfade aus tsconfig.json bereits. Vite/Rollup
-// braucht dieselben Aliase zusätzlich hier, sonst scheitert der Production-Build
-// bei Imports wie @services/textCommandPolicy.
+// braucht dieselben Aliase zusätzlich hier.
 function developmentCspNoncePlugin(nonce: string) {
   const strictStyleDirective = "style-src 'self';";
   return {
@@ -40,7 +39,6 @@ export default defineConfig(({ command }) => {
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),
-        '@services': fileURLToPath(new URL('./services', import.meta.url)),
         '@database': fileURLToPath(new URL('./database', import.meta.url))
       }
     },

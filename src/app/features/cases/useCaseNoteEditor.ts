@@ -1,6 +1,6 @@
-import { useState, type FormEvent } from 'react';
-import type { CaseNoteRecord, CaseNoteType, ConfidentialLevel } from '../../core/models/case-note.model';
-import type { CreateCaseNoteLinkInput } from '../../core/models/case-note-link.model';
+import { useCallback, useState, type FormEvent } from 'react';
+import type { CaseNoteRecord, CaseNoteType, ConfidentialLevel } from '../../../domain/models/case-note.model';
+import type { CreateCaseNoteLinkInput } from '../../../domain/models/case-note-link.model';
 import type { CaseExplorerSelection } from './caseWorkbenchTypes';
 import { fromDateTimeLocalValue, toDateTimeLocalValue } from './caseWorkbenchFormat';
 import { waitForBridge } from '../../core/bridge/waitForBridge';
@@ -150,11 +150,15 @@ export function useCaseNoteEditor({ selectedCaseId, searchQuery, reloadSelectedC
     }
   }
 
-  function ensureSelectedCaseLink() {
+  const ensureSelectedCaseLink = useCallback(() => {
     if (selectedCaseId && !editingNote) {
-      setLinkedCaseIds([selectedCaseId]);
+      setLinkedCaseIds((current) => (
+        current.length === 1 && current[0] === selectedCaseId
+          ? current
+          : [selectedCaseId]
+      ));
     }
-  }
+  }, [editingNote, selectedCaseId]);
 
   return {
     bindClearInlineDrafts: inlineActionBindings.bindClearDrafts,

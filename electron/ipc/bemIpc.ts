@@ -6,7 +6,7 @@ import type { ApplicationServices } from '../applicationServices.js';
 import type {
   CreateBemProcessInput,
   UpdateBemProcessInput,
-} from "../../src/app/core/models/bem.model.js";
+} from "../../src/domain/models/bem.model.js";
 import {
   assertOptionalString,
   assertRecordInput,

@@ -5,14 +5,14 @@ import type { DatabaseAdapter } from "../databaseService.js";
 import { PersonalDataAuditLogService } from "../auditLogService.js";
 import { ActivityReportProjectionService } from "../activityReportProjectionService.js";
 import { TempFileService } from "../tempFileService.js";
-import { normalizeReportType } from "../../src/app/core/models/report.model.js";
+import { normalizeReportType } from "../../src/domain/models/report.model.js";
 import type {
   GenerateReportInput,
   ReportDescriptor,
   ReportExportHistoryItem,
   ReportGenerationResult,
   ReportType,
-} from "../../src/app/core/models/report.model.js";
+} from "../../src/domain/models/report.model.js";
 
 export const REPORT_DESCRIPTORS: ReportDescriptor[] = [
   {

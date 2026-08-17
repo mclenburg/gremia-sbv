@@ -1,4 +1,4 @@
-import type { PreventionStatus } from '../../core/models/prevention.model';
+import type { PreventionStatus } from '../../../domain/models/prevention.model';
 
 export const PREVENTION_OVERVIEW_STATUS_ORDER: PreventionStatus[] = [
   'zu_pruefen',

@@ -4,7 +4,7 @@ import type {
   TerminationHearingRecord,
   TerminationHearingStatus,
   TerminationType,
-} from "../../core/models/termination.model";
+} from "../../../domain/models/termination.model";
 import { waitForBridge } from "../../core/bridge/waitForBridge";
 import { formatDateShort } from "../../shared/format/dates";
 import { ToolbarButton } from "../../shared/components/IndustrialButton";
@@ -31,7 +31,7 @@ import {
   suggestedStatementDueAt,
   terminationStatusObjective,
   suggestNextTerminationStatus,
-} from "@services/terminationWorkflowPolicy";
+} from "@/domain/termination/terminationWorkflowPolicy";
 import { ActivityJournalContextButton } from "../activity-journal/components/ActivityJournalContextButton";
 
 const terminationTypes: TerminationType[] = [

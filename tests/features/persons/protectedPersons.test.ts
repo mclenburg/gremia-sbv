@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { decidePersonLifecycleTransition } from '../../../services/personLifecyclePolicy';
-import type { ProtectedPersonRecord } from '../../../src/app/core/models/protected-person.model';
+import type { ProtectedPersonRecord } from '../../../src/domain/models/protected-person.model';
 
 function person(statusValidUntil: string, lifecycleState: ProtectedPersonRecord['lifecycleState'] = 'active'): ProtectedPersonRecord {
   return {

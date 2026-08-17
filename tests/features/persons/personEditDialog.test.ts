@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { PersonEditDialog } from '../../../src/app/features/persons/PersonEditDialog';
-import type { ProtectedPersonRecord } from '../../../src/app/core/models/protected-person.model';
+import type { ProtectedPersonRecord } from '../../../src/domain/models/protected-person.model';
 import { descendants, renderComponent, visibleText } from '../../helpers/renderedMarkup';
 
 function person(overrides: Partial<ProtectedPersonRecord> = {}): ProtectedPersonRecord {

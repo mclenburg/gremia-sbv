@@ -8,7 +8,7 @@ import {
   ApplicationError,
   type ApplicationErrorCode,
   type ApplicationErrorPayload,
-} from '../../src/app/core/models/application-error.model.js';
+} from '../../src/domain/models/application-error.model.js';
 
 
 function messageOf(error: unknown): string {
@@ -24,21 +24,13 @@ function classifyError(error: unknown): ApplicationErrorCode {
     return 'DATABASE_INTEGRITY_FAILED';
   }
   if (error instanceof Error && error.name === 'GremiaBrHttpError') return 'SECURITY_OPERATION_FAILED';
-  const rawMessage = messageOf(error);
-  if (/(?:^|[^a-z0-9])(?:sqlite|sqlcipher|internal|secret|private)[a-z0-9_:-]*\s*=|\/private\/|\\private\\/i.test(rawMessage)) {
-    return 'UNEXPECTED_ERROR';
-  }
-  const message = rawMessage.toLowerCase();
-  if (/valid|ungültig|erforderlich|muss|darf nicht|format|eingabe/.test(message)) return 'VALIDATION_FAILED';
-  if (/nicht gefunden|not found|existiert nicht/.test(message)) return 'NOT_FOUND';
-  if (/integrität|integrity|hashchain|hash-chain|verwaist|foreign key/.test(message)) return 'DATABASE_INTEGRITY_FAILED';
-  if (/audit|protokoll.*fehl|hash.*schreib/.test(message)) return 'AUDIT_WRITE_FAILED';
-  if (/migration|schema/.test(message)) return 'MIGRATION_FAILED';
-  if (/export|bericht|pdf|ical|docx/.test(message)) return 'EXPORT_FAILED';
-  if (/datei|file|pfad|path|verzeichnis|directory/.test(message)) return 'FILE_OPERATION_FAILED';
-  if (/passwort|entsperr|vault|tresor|security|verschlüssel/.test(message)) return 'SECURITY_OPERATION_FAILED';
-  if (/berechtigung|permission|verweigert|forbidden/.test(message)) return 'PERMISSION_DENIED';
-  if (/bereits|konflikt|conflict|doppelt/.test(message)) return 'CONFLICT';
+  const systemCode = typeof error === 'object' && error !== null && 'code' in error
+    ? String(error.code)
+    : '';
+  if (systemCode === 'EACCES' || systemCode === 'EPERM') return 'PERMISSION_DENIED';
+  if (systemCode === 'ENOENT') return 'NOT_FOUND';
+  if (['EEXIST', 'SQLITE_CONSTRAINT', 'SQLITE_CONSTRAINT_UNIQUE'].includes(systemCode)) return 'CONFLICT';
+  if (['EIO', 'ENOSPC', 'EROFS', 'EMFILE', 'ENFILE'].includes(systemCode)) return 'FILE_OPERATION_FAILED';
   return 'UNEXPECTED_ERROR';
 }
 

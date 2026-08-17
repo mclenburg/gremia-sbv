@@ -1,7 +1,7 @@
 import type {
   DeadlineDashboardState,
   DeadlineSeverity,
-} from '../../core/models/deadline.model';
+} from '../../../domain/models/deadline.model';
 import { DeadlineBadge, RiskBadge } from '../../shared/components/StatusBadges';
 
 const stateLabels: Record<DeadlineDashboardState, string> = {

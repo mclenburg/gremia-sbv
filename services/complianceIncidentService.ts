@@ -6,7 +6,7 @@ import type {
   ComplianceIncidentStatus,
   CreateComplianceIncidentInput,
   UpdateComplianceIncidentInput,
-} from '../src/app/core/models/compliance.model.js';
+} from '../src/domain/models/compliance.model.js';
 import type { DatabaseAdapter } from './databaseService.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
 import { auditComplianceIncidentCreated, auditComplianceIncidentUpdated } from './auditEventBuilders.js';

@@ -1,4 +1,4 @@
-import type { CaseDocumentRecord } from '../../core/models/case-document.model';
+import type { CaseDocumentRecord } from '../../../domain/models/case-document.model';
 
 export type CaseDocumentActions = {
   importDocuments(): Promise<void>;

@@ -1,4 +1,4 @@
-import type { LegalNormRecord } from '../../core/models/knowledge.model';
+import type { LegalNormRecord } from '../../../domain/models/knowledge.model';
 
 export const SBV_ADVISOR_KNOWLEDGE_ENTRIES = [
   {

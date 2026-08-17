@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { getDashboardState } from '../../../services/deadlineService';
-import type { DeadlineRecord } from '../../../src/app/core/models/deadline.model';
+import type { DeadlineRecord } from '../../../src/domain/models/deadline.model';
 
 function baseDeadline(overrides: Partial<DeadlineRecord> = {}): DeadlineRecord {
   return {

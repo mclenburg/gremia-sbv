@@ -8,7 +8,7 @@ import {
   terminationStatusLabel,
   terminationStatusObjective
 } from '../../../services/terminationWorkflowPolicy';
-import type { TerminationHearingRecord } from '../../../src/app/core/models/termination.model';
+import type { TerminationHearingRecord } from '../../../src/domain/models/termination.model';
 
 function process(overrides: Partial<TerminationHearingRecord> = {}): TerminationHearingRecord {
   return {

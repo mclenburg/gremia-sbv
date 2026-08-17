@@ -11,7 +11,7 @@ import type {
   BemStatus,
   CreateBemProcessInput,
   UpdateBemProcessInput
-} from '../src/app/core/models/bem.model.js';
+} from '../src/domain/models/bem.model.js';
 
 /** SQLite row at the persistence boundary. Values remain scalar and must be
  * normalized by the service mapper before entering the domain model. */

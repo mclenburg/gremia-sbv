@@ -2,7 +2,7 @@ import { Plus, Save } from 'lucide-react';
 import type {
   SbvResourceRecordKind,
   SbvResourceRecordStatus,
-} from '../../../core/models/sbv-resource.model';
+} from '../../../../domain/models/sbv-resource.model';
 import {
   DateInput,
   FormActions,

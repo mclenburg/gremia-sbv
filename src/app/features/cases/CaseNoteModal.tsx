@@ -3,8 +3,8 @@ import type { FormEvent } from 'react';
 import { MessageSquare, Save } from 'lucide-react';
 import { TextCommandTextarea, type TextCommandTextareaChange } from '../../shared/textCommands/TextCommandTextarea';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
-import type { CaseRecord } from '../../core/models/case.model';
-import type { CaseNoteInlineActionInput, CaseNoteRecord, CaseNoteType, ConfidentialLevel } from '../../core/models/case-note.model';
+import type { CaseRecord } from '../../../domain/models/case.model';
+import type { CaseNoteInlineActionInput, CaseNoteRecord, CaseNoteType, ConfidentialLevel } from '../../../domain/models/case-note.model';
 
 type ProtocolTextTarget = 'content' | 'nextSteps';
 

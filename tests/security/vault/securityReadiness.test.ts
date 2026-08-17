@@ -11,7 +11,7 @@ describe("Security readiness", () => {
       "services/security/vaultCredentialService.ts",
     ].map((file) => readFileSync(file, "utf8")).join("\n");
     const backup = readFileSync("services/backupService.ts", "utf8");
-    const securityModel = readFileSync("src/app/core/models/security.model.ts", "utf8");
+    const securityModel = readFileSync("src/domain/models/security.model.ts", "utf8");
 
     expect(securityModel).toContain("unlockDelaySeconds?: number");
     expect(securityModel).toContain("unlockAvailableAt?: string");

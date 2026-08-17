@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { defaultDsarInput, renderDsarResponseDocument } from '../../services/complianceCenterService';
-import type { DataSubjectAccessPrefill } from '../../src/app/core/models/compliance.model';
+import type { DataSubjectAccessPrefill } from '../../src/domain/models/compliance.model';
 
 const prefill: DataSubjectAccessPrefill = {
   generatedAt: '2026-05-22T20:39:00.000Z',

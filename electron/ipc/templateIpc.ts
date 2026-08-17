@@ -9,8 +9,8 @@ import type {
   RenderTemplateInput,
   TemplateListFilters,
   UpdateTemplateInput,
-} from "../../src/app/core/models/template.model.js";
-import type { TemplateDefaultValues } from "../../src/app/core/models/template-default.model.js";
+} from "../../src/domain/models/template.model.js";
+import type { TemplateDefaultValues } from "../../src/domain/models/template-default.model.js";
 import {
   assertOptionalObject,
   assertRecordInput,

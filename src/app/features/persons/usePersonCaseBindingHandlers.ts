@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { waitForBridge } from '../../core/bridge/waitForBridge';
-import type { CaseCategory } from '../../core/models/case.model';
+import type { CaseCategory } from '../../../domain/models/case.model';
 
 export function usePersonCaseBindingHandlers(reloadWorkData: () => Promise<void>) {
   const createCaseForPerson = useCallback(async (input: { protectedPersonId: string; caseNumber: string; displayName: string; category: CaseCategory; summary?: string }) => {

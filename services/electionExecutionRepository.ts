@@ -1,8 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
 import { cleanElectionText, electionNow } from './electionExecutionSupport.js';
-import type { OfficeType } from '../src/app/core/models/election.model.js';
-import type { SaveElectionMailBallotInput, SaveElectionPhysicalRecordInput } from '../src/app/core/models/election-execution.model.js';
+import type { OfficeType } from '../src/domain/models/election.model.js';
+import type { SaveElectionMailBallotInput, SaveElectionPhysicalRecordInput } from '../src/domain/models/election-execution.model.js';
 
 interface RankedVote {
   candidateId: string;

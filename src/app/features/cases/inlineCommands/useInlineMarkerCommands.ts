@@ -1,4 +1,4 @@
-import { formatAnonymizationMarkerText, formatConfidentialityText, formatTemplateMarkerText } from "@services/textCommandPolicy";
+import { formatAnonymizationMarkerText, formatConfidentialityText, formatTemplateMarkerText } from "@/domain/textCommands/textCommandPolicy";
 import type { InlineCommandRuntime } from "./inlineCommandRuntime";
 
 export function useInlineMarkerCommands(runtime: InlineCommandRuntime) {

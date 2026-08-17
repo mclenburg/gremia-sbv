@@ -1,5 +1,5 @@
-import type { RetentionCandidate } from '../src/app/core/models/retention.model.js';
-import type { RetentionOwnerSnapshot } from '../src/app/core/models/retention-owner.model.js';
+import type { RetentionCandidate } from '../src/domain/models/retention.model.js';
+import type { RetentionOwnerSnapshot } from '../src/domain/models/retention-owner.model.js';
 
 function parseRetentionDate(value: string): Date | null {
   const parsed = new Date(value);

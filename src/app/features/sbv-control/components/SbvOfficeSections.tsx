@@ -1,4 +1,4 @@
-import type { CaseRecord } from '../../../core/models/case.model';
+import type { CaseRecord } from '../../../../domain/models/case.model';
 import { waitForBridge } from '../../../core/bridge/waitForBridge';
 import type { ControlSectionId } from '../sbvControlTypes';
 import type { useSbvOfficeWorkflows } from '../hooks/useSbvOfficeWorkflows';

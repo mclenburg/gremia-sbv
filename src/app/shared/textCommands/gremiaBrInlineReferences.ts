@@ -1,4 +1,4 @@
-import type { CreateGremiaBrExternalReferenceInput, GremiaBrInlineSuggestion } from '../../core/models/gremia-br.model';
+import type { CreateGremiaBrExternalReferenceInput, GremiaBrInlineSuggestion } from '../../../domain/models/gremia-br.model';
 import { waitForBridge } from '../../core/bridge/waitForBridge';
 
 export async function suggestGremiaBrInlineReferences(query: string): Promise<GremiaBrInlineSuggestion[]> {

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { HelpCircle } from 'lucide-react';
-import type { CaseRecord } from '../../core/models/case.model';
-import type { TerminationHearingRecord, TerminationHearingStatus } from '../../core/models/termination.model';
+import type { CaseRecord } from '../../../domain/models/case.model';
+import type { TerminationHearingRecord, TerminationHearingStatus } from '../../../domain/models/termination.model';
 import type { CaseNodeTarget } from '../../core/navigation/caseNodeTarget';
 import { waitForBridge } from '../../core/bridge/waitForBridge';
 import { formatDateShort } from '../../shared/format/dates';

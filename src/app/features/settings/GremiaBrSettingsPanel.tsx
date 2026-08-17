@@ -5,7 +5,7 @@ import type {
   GremiaBrPublicSettings,
   GremiaBrRelevanceKeywordGroup,
   GremiaBrSettingsInput,
-} from '../../core/models/gremia-br.model';
+} from '../../../domain/models/gremia-br.model';
 import { waitForBridge } from '../../core/bridge/waitForBridge';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 import { DangerButton, IndustrialButton, ToolbarButton } from '../../shared/components/IndustrialButton';

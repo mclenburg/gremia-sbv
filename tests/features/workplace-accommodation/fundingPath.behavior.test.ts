@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { workplaceFundingCreateValues, workplaceFundingUpdateValues } from '../../../services/workplaceAccommodationSupport';
-import type { WorkplaceAccommodationRecord } from '../../../src/app/core/models/workplace-accommodation.model';
+import type { WorkplaceAccommodationRecord } from '../../../src/domain/models/workplace-accommodation.model';
 
 const current: WorkplaceAccommodationRecord = {
   id: 'measure-1',

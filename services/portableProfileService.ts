@@ -1,6 +1,6 @@
 import path from 'node:path';
 import type { DatabaseAdapter } from './databaseService.js';
-import type { PortableProfile } from '../src/app/core/models/portable-profile.model.js';
+import type { PortableProfile } from '../src/domain/models/portable-profile.model.js';
 
 function nowIso(): string {
   return new Date().toISOString();

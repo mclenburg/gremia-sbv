@@ -3,7 +3,7 @@ import { CaseRegister } from '../../../../src/app/features/cases/CaseRegister';
 import { CaseDetailPanel } from '../../../../src/app/features/cases/CaseDetailPanel';
 import { CaseHandoverTransferDialogs } from '../../../../src/app/features/cases/CaseHandoverTransferDialogs';
 import { ImportPackageReview } from '../../../../src/app/shared/components/ImportExportFeedback';
-import type { CaseRecord } from '../../../../src/app/core/models/case.model';
+import type { CaseRecord } from '../../../../src/domain/models/case.model';
 import { descendants, findDescendants, renderComponent, visibleText } from '../../../helpers/renderedMarkup';
 
 const caseRecord: CaseRecord = {

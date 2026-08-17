@@ -4,8 +4,8 @@ import { DeadlinesView } from '../../../src/app/features/deadlines/DeadlinesView
 import { DeadlineCreateModal } from '../../../src/app/features/deadlines/DeadlineCreateModal';
 import { DeadlineIcalExportModal } from '../../../src/app/features/deadlines/DeadlineIcalExportPanel';
 import { filtersForDeadlineExportScope, resolveDeadlineWorkSummary } from '../../../src/app/features/deadlines/deadlineViewLogic';
-import type { CaseRecord } from '../../../src/app/core/models/case.model';
-import type { DeadlineRecord } from '../../../src/app/core/models/deadline.model';
+import type { CaseRecord } from '../../../src/domain/models/case.model';
+import type { DeadlineRecord } from '../../../src/domain/models/deadline.model';
 import { LiveRegionProvider } from '../../../src/app/shared/a11y/LiveRegionProvider';
 import { renderComponent, renderElement, visibleText } from '../../helpers/renderedMarkup';
 

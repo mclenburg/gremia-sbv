@@ -8,7 +8,7 @@ import type {
   SbvParticipationViolationStatusChangeInput,
   SbvParticipationViolationTemplateInput,
   UpdateSbvParticipationViolationInput,
-} from '../../src/app/core/models/sbv-participation-violation.model.js';
+} from '../../src/domain/models/sbv-participation-violation.model.js';
 import { assertRecordInput, assertString } from './ipcValidation.js';
 
 export function registerSbvParticipationViolationIpc(

@@ -1,7 +1,7 @@
 import { Clock, FileText, Search, Trash2 } from 'lucide-react';
-import type { ActivityJournalCategory, ActivityJournalEntryRecord, ActivityJournalPrefill } from '../../core/models/activity-journal.model';
-import { ACTIVITY_JOURNAL_CATEGORIES } from '../../core/models/activity-journal.model';
-import { activityJournalCategoryLabels, activityJournalTimeModeLabels } from '../../core/labels/activityJournalLabels';
+import type { ActivityJournalCategory, ActivityJournalEntryRecord, ActivityJournalPrefill } from '../../../domain/models/activity-journal.model';
+import { ACTIVITY_JOURNAL_CATEGORIES } from '../../../domain/models/activity-journal.model';
+import { activityJournalCategoryLabels, activityJournalTimeModeLabels } from '../../../domain/labels/activityJournalLabels';
 import { IndustrialButton, IconButton, ToolbarButton } from '../../shared/components/IndustrialButton';
 import { CheckboxField, DateInput, DateTimeInput, FormActions, FormSection, SelectInput, TextareaInput, TextInput } from '../../shared/components/IndustrialForm';
 import { ModuleFeedback } from '../../shared/components/ModuleFeedback';

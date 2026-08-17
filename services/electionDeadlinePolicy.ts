@@ -2,7 +2,7 @@ import {
   ELECTION_LEGAL_RULE_VERSION,
   type ElectionDeadlineRuleKey,
   type ElectionDeadlineRuleSnapshot,
-} from '../src/app/core/models/election.model.js';
+} from '../src/domain/models/election.model.js';
 
 const MS_PER_DAY = 86_400_000;
 

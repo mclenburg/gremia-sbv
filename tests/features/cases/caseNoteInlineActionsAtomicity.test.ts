@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { DatabaseAdapter } from '../../../services/databaseService';
 import { MigrationService } from '../../../services/migrationService';
 import { CaseService } from '../../../services/caseService';
-import type { CaseNoteInlineActionInput } from '../../../src/app/core/models/case-note.model';
+import type { CaseNoteInlineActionInput } from '../../../src/domain/models/case-note.model';
 import { openTestDatabase } from '../../helpers/openTestDatabase';
 
 let db: DatabaseAdapter;

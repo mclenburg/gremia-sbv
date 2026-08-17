@@ -4,8 +4,8 @@ import type { DatabaseAdapter } from './databaseService.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
 import { DeadlineService } from './deadlineService.js';
 import { buildFromContext } from './activityJournalPrefill.js';
-import { PARTICIPATION_VIOLATION_SOURCE_CONTEXT_TYPES, PARTICIPATION_VIOLATION_STAGES, PARTICIPATION_VIOLATION_STATUSES, PARTICIPATION_VIOLATION_STATUS_TRANSITIONS, PARTICIPATION_VIOLATION_TYPES, type CreateSbvParticipationViolationInput, type ParticipationViolationEventType, type ParticipationViolationSourceContextType, type ParticipationViolationStatus, type SbvParticipationViolationEventRecord, type SbvParticipationViolationListFilter, type SbvParticipationViolationRecord, type SbvParticipationViolationFollowUpResult, type UpdateSbvParticipationViolationInput } from '../src/app/core/models/sbv-participation-violation.model.js';
-import type { ActivityJournalPrefill } from '../src/app/core/models/activity-journal.model.js';
+import { PARTICIPATION_VIOLATION_SOURCE_CONTEXT_TYPES, PARTICIPATION_VIOLATION_STAGES, PARTICIPATION_VIOLATION_STATUSES, PARTICIPATION_VIOLATION_STATUS_TRANSITIONS, PARTICIPATION_VIOLATION_TYPES, type CreateSbvParticipationViolationInput, type ParticipationViolationEventType, type ParticipationViolationSourceContextType, type ParticipationViolationStatus, type SbvParticipationViolationEventRecord, type SbvParticipationViolationListFilter, type SbvParticipationViolationRecord, type SbvParticipationViolationFollowUpResult, type UpdateSbvParticipationViolationInput } from '../src/domain/models/sbv-participation-violation.model.js';
+import type { ActivityJournalPrefill } from '../src/domain/models/activity-journal.model.js';
 import { DEFAULT_LEGAL_BASIS, ViolationRow, ViolationEventRow, RunResult, nowIso, normalizeText, addDaysIso, normalizeIso, oneOf, mapRecord, mapEvent } from './sbvParticipationViolationSupport.js';
 import { ensureSbvParticipationViolationSchema } from './sbvParticipationViolationSchema.js';
 export class SbvParticipationViolationService {

@@ -1,14 +1,14 @@
-import type { ParticipationRecord } from '../../core/models/participation.model';
+import type { ParticipationRecord } from '../../../domain/models/participation.model';
 import type {
   CreateSbvResourceRecordInput,
   SbvResourceRecord,
   SbvResourceRecordKind,
-} from '../../core/models/sbv-resource.model';
+} from '../../../domain/models/sbv-resource.model';
 import type {
   CreateSbvControlProtocolInput,
   SbvControlProtocolRecord,
   SbvControlProtocolTopic,
-} from '../../core/models/sbv-control-protocol.model';
+} from '../../../domain/models/sbv-control-protocol.model';
 import { recordMatchesQuery } from '../../shared/components/WorkbenchLayout';
 import { getParticipationEscalationAdvice } from '../participation/participationPolicy';
 import type { ObligationItem } from './sbvControlTypes';
@@ -18,7 +18,8 @@ import {
   getTextCommandRangeLength,
   replaceCommandMarker,
   type TextCommandToken,
-} from '@services/textCommandPolicy';
+} from '@/domain/textCommands/textCommandPolicy';
+import { legalToday } from '../../../domain/time/legalTime';
 
 export type ResourceFormState = CreateSbvResourceRecordInput;
 export type ProtocolFormState = CreateSbvControlProtocolInput;
@@ -44,7 +45,7 @@ export const initialProtocolForm: ProtocolFormState = {
   title: '',
   partner: 'employer',
   topic: 'workplace_rules',
-  meetingAt: new Date().toISOString().slice(0, 10),
+  meetingAt: legalToday(),
   participants: '',
   legalContext: '§ 178 Abs. 1 Satz 1 SGB IX, § 166 SGB IX',
   discussion: '',

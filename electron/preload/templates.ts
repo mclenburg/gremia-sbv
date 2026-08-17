@@ -8,7 +8,7 @@ import type {
   TemplateListFilters,
   TemplateRecord,
   UpdateTemplateInput,
-} from "../../src/app/core/models/template.model.js";
+} from "../../src/domain/models/template.model.js";
 
 export function createTemplatesApi(invokeIpc: IpcInvoker) {
   return {

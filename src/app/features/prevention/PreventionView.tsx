@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { CaseRecord } from '../../core/models/case.model';
-import type { PreventionProcessRecord, PreventionStatus } from '../../core/models/prevention.model';
+import type { CaseRecord } from '../../../domain/models/case.model';
+import type { PreventionProcessRecord, PreventionStatus } from '../../../domain/models/prevention.model';
 import type { CaseNodeTarget } from '../../core/navigation/caseNodeTarget';
 import { waitForBridge } from '../../core/bridge/waitForBridge';
 import { formatDateShort } from '../../shared/format/dates';

@@ -1,13 +1,17 @@
 import { describe, expect, it, vi } from 'vitest';
-import { ApplicationError } from '../../src/app/core/models/application-error.model.js';
+import { ApplicationError } from '../../src/domain/models/application-error.model.js';
 import { normalizeApplicationError, registerIpcHandler, serializeApplicationError } from '../../electron/ipc/ipcHandler.js';
 import { IPC_CHANNELS } from '../../electron/ipc/channels.js';
 
 describe('zentrale IPC-Fehlergrenze', () => {
-  it('klassifiziert Validierungs-, Integritäts- und Auditfehler stabil', () => {
-    expect(normalizeApplicationError(new Error('Eingabe ist ungültig'), 'cases:create').code).toBe('VALIDATION_FAILED');
-    expect(normalizeApplicationError(new Error('Hash-Chain Integrität verletzt'), 'reports:generate').code).toBe('DATABASE_INTEGRITY_FAILED');
-    expect(normalizeApplicationError(new Error('Audit konnte nicht geschrieben werden'), 'bem:update').code).toBe('AUDIT_WRITE_FAILED');
+  it('leitet Fehlercodes aus Typen statt aus veränderlichen Meldungstexten ab', () => {
+    expect(normalizeApplicationError(new ApplicationError('VALIDATION_FAILED', 'Eingabe ist ungültig'), 'cases:create').code)
+      .toBe('VALIDATION_FAILED');
+    expect(normalizeApplicationError(new ApplicationError('AUDIT_WRITE_FAILED', 'Audit konnte nicht geschrieben werden'), 'bem:update').code)
+      .toBe('AUDIT_WRITE_FAILED');
+
+    expect(normalizeApplicationError(new Error('Passwort, Datei, PDF und Schema fehlen'), 'unknown').code)
+      .toBe('UNEXPECTED_ERROR');
   });
 
   it('bewahrt explizite Anwendungscodes und ergänzt nur die Operation', () => {
@@ -34,10 +38,13 @@ describe('zentrale IPC-Fehlergrenze', () => {
     await expect(registered?.({}, 'unerwartet')).rejects.toThrow('VALIDATION_FAILED');
 
     registerIpcHandler(ipcMain as never, IPC_CHANNELS.casesList, async () => {
-      throw new Error('Datei konnte nicht geschrieben werden');
+      throw new ApplicationError('FILE_OPERATION_FAILED', 'Datei konnte nicht geschrieben werden');
     });
     await expect(registered?.({})).rejects.toThrow('GREMIA_SBV_APPLICATION_ERROR:');
-    const serialized = serializeApplicationError(new Error('Datei konnte nicht geschrieben werden'), IPC_CHANNELS.casesList);
+    const serialized = serializeApplicationError(
+      new ApplicationError('FILE_OPERATION_FAILED', 'Datei konnte nicht geschrieben werden'),
+      IPC_CHANNELS.casesList,
+    );
     expect(serialized).toContain('"code":"FILE_OPERATION_FAILED"');
     expect(serialized).not.toContain('stack');
   });

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { ShieldAlert, Trash2 } from 'lucide-react';
-import type { CaseRecord } from '../../core/models/case.model';
-import type { CaseAnonymizationMode } from '../../core/models/privacy-review.model';
+import type { CaseRecord } from '../../../domain/models/case.model';
+import type { CaseAnonymizationMode } from '../../../domain/models/privacy-review.model';
 import { AUDIT_LOG_RETENTION_NOTICE } from '../../core/copy/privacyNotices';
 import { DangerButton, GhostButton, IndustrialButton } from '../../shared/components/IndustrialButton';
 import { IndustrialModal } from '../../shared/dialogs/IndustrialDialogs';

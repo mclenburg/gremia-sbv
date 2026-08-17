@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { formatGermanDateTime, resolveGremiaBrDashboardTile, resolveNextGremiaBrMeetingAgenda } from '../../../src/app/features/dashboard/DashboardFocusOverview';
-import type { GremiaBrDashboardOverview } from '../../../src/app/core/models/gremia-br.model';
+import type { GremiaBrDashboardOverview } from '../../../src/domain/models/gremia-br.model';
 
 const overview: GremiaBrDashboardOverview = {
   nextMeeting: { id: 'meeting-1', title: 'BR-Sitzung' },

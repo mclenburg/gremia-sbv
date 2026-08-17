@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, ExternalLink } from 'lucide-react';
-import type { CaseRecord } from '../../core/models/case.model';
+import type { CaseRecord } from '../../../domain/models/case.model';
 import type {
   ParticipationDecisionStage,
   ParticipationMeasureType,
@@ -8,7 +8,7 @@ import type {
   ParticipationRecord,
   ParticipationRiskLevel,
   ParticipationStatus,
-} from '../../core/models/participation.model';
+} from '../../../domain/models/participation.model';
 import type { CaseNodeTarget } from '../../core/navigation/caseNodeTarget';
 import { waitForBridge } from '../../core/bridge/waitForBridge';
 import { ModuleFrame } from '../../shared/components/ModuleFrame';

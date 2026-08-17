@@ -7,7 +7,7 @@ import type {
   RecruitingParticipationRecord,
   UpdateRecruitingInterviewEventInput,
   UpdateRecruitingParticipationInput,
-} from "../../src/app/core/models/recruiting-participation.model.js";
+} from "../../src/domain/models/recruiting-participation.model.js";
 
 export function createRecruitingApi(invokeIpc: IpcInvoker) {
   return {

@@ -1,5 +1,5 @@
-import type { CaseStatus } from '../src/app/core/models/case.model.js';
-import type { EmploymentState, ProtectionStatus } from '../src/app/core/models/protected-person.model.js';
+import type { CaseStatus } from '../src/domain/models/case.model.js';
+import type { EmploymentState, ProtectionStatus } from '../src/domain/models/protected-person.model.js';
 import type { PrivacyReviewPriority } from './personCaseBindingPolicy.js';
 
 export type PrivacyReviewLifecycleEvent =

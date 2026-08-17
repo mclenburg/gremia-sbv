@@ -1,13 +1,13 @@
-import type { CaseDocumentRecord } from '../../core/models/case-document.model';
-import type { CaseNoteRecord, CaseSearchResult, CaseSearchSourceType } from '../../core/models/case-note.model';
+import type { CaseDocumentRecord } from '../../../domain/models/case-document.model';
+import type { CaseNoteRecord, CaseSearchResult, CaseSearchSourceType } from '../../../domain/models/case-note.model';
 import type { FormEvent } from 'react';
-import type { PreventionProcessRecord } from '../../core/models/prevention.model';
-import type { BemProcessRecord } from '../../core/models/bem.model';
-import type { EqualizationProcessRecord } from '../../core/models/equalization.model';
-import type { TerminationHearingRecord } from '../../core/models/termination.model';
-import type { ParticipationRecord } from '../../core/models/participation.model';
-import type { WorkplaceAccommodationRecord } from '../../core/models/workplace-accommodation.model';
-import type { CaseRecord } from '../../core/models/case.model';
+import type { PreventionProcessRecord } from '../../../domain/models/prevention.model';
+import type { BemProcessRecord } from '../../../domain/models/bem.model';
+import type { EqualizationProcessRecord } from '../../../domain/models/equalization.model';
+import type { TerminationHearingRecord } from '../../../domain/models/termination.model';
+import type { ParticipationRecord } from '../../../domain/models/participation.model';
+import type { WorkplaceAccommodationRecord } from '../../../domain/models/workplace-accommodation.model';
+import type { CaseRecord } from '../../../domain/models/case.model';
 
 export type CaseProcessType = 'prevention' | 'bem' | 'termination_hearing' | 'equalization' | 'participation' | 'workplace_accommodation';
 

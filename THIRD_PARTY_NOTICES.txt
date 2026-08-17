@@ -590,23 +590,6 @@ Copyright notices:
 - that You distribute, all copyright, patent, trademark, and
 License text: LICENSES/Apache-2.0.txt
 
-@fontsource/noto-sans@5.3.0
-License: OFL-1.1
-Repository: git+https://github.com/fontsource/font-files.git
-Homepage: https://fontsource.org/fonts/noto-sans
-Copyright notices:
-- Copyright 2022 The Noto Project Authors (https://github.com/notofonts/latin-greek-cyrillic) NotoSans-Italic[wdth,wght].ttf: Copyright 2022 The Noto Project Authors (https://github.com/notofonts/latin-greek-cyrillic)
-- "Font Software" refers to the set of files released by the Copyright
-- copyright statement(s).
-- distributed by the Copyright Holder(s).
-- contains the above copyright notice and this license. These can be
-- Copyright Holder. This restriction only applies to the primary font name as
-- 4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font
-- Copyright Holder(s) and the Author(s) or with their explicit written
-- OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE
-- COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-License text: LICENSES/OFL-1.1.txt
-
 @hapi/address@5.1.1
 License: BSD-3-Clause
 Repository: git://github.com/hapijs/address
@@ -2444,6 +2427,23 @@ Copyright notices:
 - The above copyright notice and this permission notice shall be included in
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
+
+dejavu-fonts-ttf@2.37.3
+License: SEE LICENSE IN README.md AND LICENSE
+Repository: senotrusov/dejavu-fonts-ttf
+Homepage: https://github.com/senotrusov/dejavu-fonts-ttf
+Copyright notices:
+- Fonts are (c) Bitstream (see below). DejaVu changes are in public domain.
+- Glyphs imported from Arev fonts are (c) Tavmjong Bah (see below)
+- Bitstream Vera Fonts Copyright
+- Copyright (c) 2003 by Bitstream, Inc. All Rights Reserved. Bitstream Vera is
+- The above copyright and trademark notices and this permission notice shall
+- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF COPYRIGHT, PATENT,
+- Arev Fonts Copyright
+- Copyright (c) 2006 by Tavmjong Bah. All Rights Reserved.
+- The above copyright and trademark notices and this permission notice
+- OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL
+License text: LICENSES/SEE_LICENSE_IN_README.md_AND_LICENSE.txt
 
 delayed-stream@1.0.0
 License: MIT

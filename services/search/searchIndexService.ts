@@ -1,8 +1,8 @@
-import type { CaseContentSearchInput, CaseSearchResult, CaseSearchSourceType } from '../../src/app/core/models/case-note.model.js';
+import type { CaseContentSearchInput, CaseSearchResult, CaseSearchSourceType } from '../../src/domain/models/case-note.model.js';
 import type { DatabaseAdapter } from '../databaseService.js';
 import { CASE_SEARCH_PROVIDERS, caseSearchSourceLabels } from './searchProviders.js';
 import { PersonalDataAuditLogService } from '../auditLogService.js';
-import type { PersonalDataAuditAction } from '../../src/app/core/models/audit.model.js';
+import type { PersonalDataAuditAction } from '../../src/domain/models/audit.model.js';
 import type { CaseSearchDocument, CaseSearchProvider } from './searchTypes.js';
 import { CaseSearchResultRow, nowIso, likePattern, escapeFtsQuery, normalizeSourceTypes, rankResults, sourceTypeFilterClause, fallbackSourceTypeFilterClause, highlightQueryInExcerpt, mapRow } from './searchIndexSupport.js';
 export class SearchIndexService {

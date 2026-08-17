@@ -1,4 +1,4 @@
-import type { PersonImportColumnMapping, PersonImportPreviewInput, PersonImportPreviewResult } from '../../core/models/protected-person.model';
+import type { PersonImportColumnMapping, PersonImportPreviewInput, PersonImportPreviewResult } from '../../../domain/models/protected-person.model';
 import { buildDefaultPersonImportMapping, personImportFieldOptions, type PersonImportFieldKey, updatePersonImportColumnMapping } from '../../shared/import/personImportMapping';
 
 export const importFieldOptions = personImportFieldOptions;

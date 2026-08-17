@@ -5,7 +5,7 @@ import { GhostButton, IndustrialButton } from '../../shared/components/Industria
 import { FormActions, FormSection, SelectInput } from '../../shared/components/IndustrialForm';
 import { IndustrialModal } from '../../shared/dialogs/IndustrialDialogs';
 import { ModuleFeedback } from '../../shared/components/ModuleFeedback';
-import type { DeadlineListFilters } from '../../core/models/deadline.model';
+import type { DeadlineListFilters } from '../../../domain/models/deadline.model';
 import type { IcalExportPrivacyLevel } from './useIcalExportHandlers';
 import { filtersForDeadlineExportScope } from './deadlineViewLogic';
 import { icalPrivacyLevelHelp, icalPrivacyLevelLabels, icalScopeLabels, type DeadlineExportScope } from './deadlineLabels';

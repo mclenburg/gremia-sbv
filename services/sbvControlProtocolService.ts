@@ -11,7 +11,7 @@ import type {
   SbvControlProtocolStatus,
   SbvControlProtocolTopic,
   UpdateSbvControlProtocolInput,
-} from '../src/app/core/models/sbv-control-protocol.model.js';
+} from '../src/domain/models/sbv-control-protocol.model.js';
 
 const DEFAULT_LEGAL_CONTEXT: Record<SbvControlProtocolTopic, string> = {
   workplace_rules: '§ 178 Abs. 1 Satz 1 SGB IX, § 166 SGB IX',

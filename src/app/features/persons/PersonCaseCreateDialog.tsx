@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { FolderKanban, Plus } from 'lucide-react';
-import type { CaseCategory } from '../../core/models/case.model';
+import type { CaseCategory } from '../../../domain/models/case.model';
 
 const categoryOptions: Array<{ value: CaseCategory; label: string }> = [
   { value: 'bem', label: 'BEM' },

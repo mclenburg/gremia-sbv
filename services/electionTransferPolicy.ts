@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from 'node:crypto';
-import { ELECTION_LEGAL_RULE_VERSION } from '../src/app/core/models/election.model.js';
+import { ELECTION_LEGAL_RULE_VERSION } from '../src/domain/models/election.model.js';
 
 export const ELECTION_TRANSFER_FORMAT = 'gremia.sbv.election-transfer';
 export const ELECTION_TRANSFER_VERSION = 1;

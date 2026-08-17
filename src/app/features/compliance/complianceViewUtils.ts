@@ -7,7 +7,7 @@ import type {
   ComplianceStatusOverview,
   ComplianceTechnicalStatusItem,
   ComplianceTechnicalStatusLevel,
-} from "../../core/models/compliance.model";
+} from "../../../domain/models/compliance.model";
 
 export function downloadTextFile(document: ComplianceDocument) {
   const blob = new Blob([document.body], {

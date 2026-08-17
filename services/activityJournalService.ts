@@ -5,9 +5,10 @@ import { DeadlineService } from './deadlineService.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
 import { auditActivityJournalChanged } from './auditEventBuilders.js';
 import { ActivityJournalPreferenceService } from './activityJournalPreferenceService.js';
-import type { ActivityJournalCategory, ActivityJournalEntryRecord, ActivityJournalExportOptions, ActivityJournalExportResult, ActivityJournalLinkRecord, ActivityJournalLinkTarget, ActivityJournalListFilter, ActivityJournalSummary, ActivityJournalSummaryFilter, CreateActivityJournalEntryInput, UpdateActivityJournalEntryInput } from '../src/app/core/models/activity-journal.model.js';
-import { ACTIVITY_JOURNAL_CATEGORIES } from '../src/app/core/models/activity-journal.model.js';
+import type { ActivityJournalCategory, ActivityJournalEntryRecord, ActivityJournalExportOptions, ActivityJournalExportResult, ActivityJournalLinkRecord, ActivityJournalLinkTarget, ActivityJournalListFilter, ActivityJournalSummary, ActivityJournalSummaryFilter, CreateActivityJournalEntryInput, UpdateActivityJournalEntryInput } from '../src/domain/models/activity-journal.model.js';
+import { ACTIVITY_JOURNAL_CATEGORIES } from '../src/domain/models/activity-journal.model.js';
 import { TIME_MODES, CONFIDENTIALITY_LEVELS, STATUSES, CREATED_FROM, ActivityJournalEntryRow, ActivityJournalLinkRow, nowIso, todayIsoDate, normalizeOptional, normalizeDateOnly, normalizeIso, normalizeEnum, normalizeDuration, durationFromRange, mapLink, mapEntry, assertTarget, hasCaseLink, hasControlLink } from './activityJournalSupport.js';
+import { legalCalendarDate } from '../src/domain/time/legalTime.js';
 export class ActivityJournalService {
   constructor(private readonly db: DatabaseAdapter) {}
 
@@ -342,7 +343,7 @@ export class ActivityJournalService {
     const now = new Date();
     const monday = new Date(now);
     monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
-    const weekStart = monday.toISOString().slice(0, 10);
+    const weekStart = legalCalendarDate(monday);
     const monthStart = `${today.slice(0, 7)}-01`;
     const minutes = (entry: ActivityJournalEntryRecord) => entry.durationMinutes ?? 0;
     const byCategory = new Map<ActivityJournalCategory, { category: ActivityJournalCategory; count: number; minutes: number }>();

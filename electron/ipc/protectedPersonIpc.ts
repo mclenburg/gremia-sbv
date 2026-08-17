@@ -4,9 +4,9 @@ import { dialog } from 'electron';
 import { exportDeadlinesToIcal, type DeadlineIcalPrivacyLevel } from '../../services/deadlineIcalExportService.js';
 import type { SecurityService } from '../../services/securityService.js';
 import type { ApplicationServices } from '../applicationServices.js';
-import type { CreateProtectedPersonInput, PersonImportExecuteInput, PersonImportPreviewInput, ProtectedPersonListFilters, UpdateProtectedPersonInput } from '../../src/app/core/models/protected-person.model.js';
-import type { DeadlineListFilters } from '../../src/app/core/models/deadline.model.js';
-import type { PrivacyReviewActionInput } from '../../src/app/core/models/privacy-review.model.js';
+import type { CreateProtectedPersonInput, PersonImportExecuteInput, PersonImportPreviewInput, ProtectedPersonListFilters, UpdateProtectedPersonInput } from '../../src/domain/models/protected-person.model.js';
+import type { DeadlineListFilters } from '../../src/domain/models/deadline.model.js';
+import type { PrivacyReviewActionInput } from '../../src/domain/models/privacy-review.model.js';
 import { assertAllowedEnum, assertOptionalObject, assertRecordInput, assertString } from './ipcValidation.js';
 
 export function registerProtectedPersonIpc(ipcMain: IpcMain, security: SecurityService, services: ApplicationServices): void {

@@ -13,8 +13,8 @@ import {
 } from '../../shared/components/IndustrialForm';
 import { IndustrialModal } from '../../shared/dialogs/IndustrialDialogs';
 import { ModuleFeedback } from '../../shared/components/ModuleFeedback';
-import type { CaseRecord } from '../../core/models/case.model';
-import type { CreateDeadlineInput, DeadlineProcessType, DeadlineSeverity, DeadlineType } from '../../core/models/deadline.model';
+import type { CaseRecord } from '../../../domain/models/case.model';
+import type { CreateDeadlineInput, DeadlineProcessType, DeadlineSeverity, DeadlineType } from '../../../domain/models/deadline.model';
 import { formatCaseLabel, fromDateTimeLocalValue } from '../cases/caseWorkbenchFormat';
 import { deadlineProcessTypeLabels, deadlineSeverityLabels, deadlineTypeLabels } from './deadlineLabels';
 

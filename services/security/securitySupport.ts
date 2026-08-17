@@ -17,7 +17,7 @@ import {
 import type {
   SecurityResult,
   SecurityStatus,
-} from "../../src/app/core/models/security.model.js";
+} from "../../src/domain/models/security.model.js";
 import { DatabaseService, type DatabaseAdapter } from "../databaseService.js";
 import { PersonalDataAuditLogService } from "../auditLogService.js";
 import {

@@ -1,4 +1,4 @@
-import type { TextCommandToken } from "@services/textCommandPolicy";
+import type { TextCommandToken } from "@/domain/textCommands/textCommandPolicy";
 import type { TextCommandTextareaChange } from "../../../shared/textCommands/TextCommandTextarea";
 import type { InlineCommandRuntime } from "./inlineCommandRuntime";
 import type { ProtocolTextTarget } from "./inlineCommandTypes";

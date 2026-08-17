@@ -4,7 +4,7 @@ import type { DatabaseAdapter } from "./databaseService.js";
 import { DeadlineService } from "./deadlineService.js";
 import { PersonalDataAuditLogService } from "./auditLogService.js";
 import { CaseMeasureService } from "./caseMeasureService.js";
-import type { CreateParticipationInput, ParticipationDashboardSummary, ParticipationRecord, ParticipationStatus, ParticipationWarning, UpdateParticipationInput } from "../src/app/core/models/participation.model.js";
+import type { CreateParticipationInput, ParticipationDashboardSummary, ParticipationRecord, ParticipationStatus, ParticipationWarning, UpdateParticipationInput } from "../src/domain/models/participation.model.js";
 import { ParticipationRow, nowIso, toIso, addDaysIso, participationStatusToMeasureStatus, mapRecord, evaluateParticipationWarnings } from './participationSupport.js';
 export { evaluateParticipationWarnings } from './participationSupport.js';
 import { ensureParticipationSchema } from './participationSchema.js';

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { TemplateDefaultService } from '../../../services/templateDefaultService';
-import { EMPTY_TEMPLATE_DEFAULT_VALUES } from '../../../src/app/core/models/template-default.model';
+import { EMPTY_TEMPLATE_DEFAULT_VALUES } from '../../../src/domain/models/template-default.model';
 import type { DatabaseAdapter } from '../../../services/databaseService';
 
 function createSettingsDb(initial?: Record<string, string>): DatabaseAdapter {

@@ -1,4 +1,4 @@
-import type { QuickCaseTemplate, QuickCaseTemplateKey } from '../src/app/core/models/sbv-office-workflow.model.js';
+import type { QuickCaseTemplate, QuickCaseTemplateKey } from '../src/domain/models/sbv-office-workflow.model.js';
 const templates: Record<QuickCaseTemplateKey, QuickCaseTemplate> = {
  additional_leave:{key:'additional_leave',title:'Zusatzurlaub',legalBasis:'§ 208 SGB IX',checklist:['Schwerbehindertenstatus und Urlaubsjahr prüfen','Arbeitgeberinformation dokumentieren','Urlaubsstand und Hinweisobliegenheiten prüfen','Ergebnis und Rückmeldung festhalten']},
  overtime:{key:'overtime',title:'Mehrarbeit',legalBasis:'§ 207 SGB IX',checklist:['Anordnung und zeitlichen Umfang erfassen','Schwerbehindertenstatus prüfen','Verlangen auf Freistellung von Mehrarbeit dokumentieren','Arbeitgeberreaktion festhalten']},

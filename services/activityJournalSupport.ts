@@ -1,5 +1,6 @@
-import type { ActivityJournalCategory, ActivityJournalConfidentialityLevel, ActivityJournalCreatedFrom, ActivityJournalEntryRecord, ActivityJournalLinkRecord, ActivityJournalLinkTarget, ActivityJournalStatus, ActivityJournalTargetType, ActivityJournalTimeMode } from '../src/app/core/models/activity-journal.model.js';
-import { ACTIVITY_JOURNAL_TARGET_TYPES } from '../src/app/core/models/activity-journal.model.js';
+import type { ActivityJournalCategory, ActivityJournalConfidentialityLevel, ActivityJournalCreatedFrom, ActivityJournalEntryRecord, ActivityJournalLinkRecord, ActivityJournalLinkTarget, ActivityJournalStatus, ActivityJournalTargetType, ActivityJournalTimeMode } from '../src/domain/models/activity-journal.model.js';
+import { ACTIVITY_JOURNAL_TARGET_TYPES } from '../src/domain/models/activity-journal.model.js';
+import { legalCalendarDate, legalToday } from '../src/domain/time/legalTime.js';
 export const TIME_MODES: ActivityJournalTimeMode[] = ['none', 'duration', 'range', 'timer'];
 export const CONFIDENTIALITY_LEVELS: ActivityJournalConfidentialityLevel[] = ['normal', 'confidential', 'highly_confidential'];
 export const STATUSES: ActivityJournalStatus[] = ['draft', 'final', 'follow_up_open'];
@@ -39,7 +40,7 @@ export function nowIso(): string {
 }
 
 export function todayIsoDate(): string {
-  return new Date().toISOString().slice(0, 10);
+  return legalToday();
 }
 
 export function bool(value: unknown): boolean {
@@ -57,7 +58,7 @@ export function normalizeDateOnly(value: unknown): string {
   const trimmed = normalizeOptional(value) ?? fallback;
   if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
   const parsed = new Date(trimmed);
-  return Number.isNaN(parsed.getTime()) ? fallback : parsed.toISOString().slice(0, 10);
+  return Number.isNaN(parsed.getTime()) ? fallback : legalCalendarDate(parsed);
 }
 
 export function normalizeIso(value: unknown): string | null {
@@ -132,4 +133,3 @@ export function hasCaseLink(links: ActivityJournalLinkRecord[]): boolean {
 export function hasControlLink(links: ActivityJournalLinkRecord[]): boolean {
   return links.some((link) => link.targetType === 'sbv_control_protocol');
 }
-

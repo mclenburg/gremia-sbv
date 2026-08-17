@@ -1,9 +1,6 @@
 import { ActivityJournalTitleService } from './activityJournalTitleService.js';
-import type { ActivityJournalPrefill, ActivityJournalPrefillContext, CreateActivityJournalEntryInput } from '../src/app/core/models/activity-journal.model.js';
-
-function todayIsoDate(): string {
-  return new Date().toISOString().slice(0, 10);
-}
+import type { ActivityJournalPrefill, ActivityJournalPrefillContext, CreateActivityJournalEntryInput } from '../src/domain/models/activity-journal.model.js';
+import { legalToday } from '../src/domain/time/legalTime.js';
 
 const contextLabels: Record<ActivityJournalPrefillContext['contextType'], string> = {
   case: 'Fallakte',
@@ -49,7 +46,7 @@ export function buildFromContext(context: ActivityJournalPrefillContext): Activi
   const titleService = new ActivityJournalTitleService();
   return {
     entry: {
-      entryDate: context.entryDate ?? todayIsoDate(),
+      entryDate: context.entryDate ?? legalToday(),
       timeMode: 'none',
       category,
       title: titleService.synthesizeTitle(context, category),

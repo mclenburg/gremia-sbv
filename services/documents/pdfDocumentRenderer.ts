@@ -9,6 +9,7 @@ import {
   type PdfDocumentDefinition,
   type PdfScalar,
 } from './pdfDocumentDefinition';
+import { ApplicationError } from '../../src/domain/models/application-error.model.js';
 
 export {
   list,
@@ -36,9 +37,22 @@ const COLORS = {
   successInk: '#234b22',
 } as const;
 
-const FONT_REGULAR = 'NotoSans';
-const FONT_BOLD = 'NotoSans-Bold';
+const FONT_REGULAR = 'DejaVuSans';
+const FONT_BOLD = 'DejaVuSans-Bold';
 const CONTENT_WIDTH = 495;
+
+type PdfFontWeight = 'regular' | 'bold';
+type PdfTextOptions = PDFKit.Mixins.TextOptions;
+
+interface FontCoverage {
+  hasGlyphForCodePoint(codePoint: number): boolean;
+}
+
+interface FontkitModule {
+  openSync(filePath: string): FontCoverage;
+}
+
+let regularFontCoverage: FontCoverage | undefined;
 
 type AccessiblePdfDocumentOptions = Omit<PDFKit.PDFDocumentOptions, 'subset'> & {
   subset: PDFKit.Mixins.PDFSubsets | 'PDF/UA';
@@ -53,14 +67,38 @@ function packageRequire(): NodeRequire {
 
 function registerFonts(document: PDFKit.PDFDocument): void {
   const resolve = packageRequire().resolve;
-  document.registerFont(
-    FONT_REGULAR,
-    resolve('@fontsource/noto-sans/files/noto-sans-latin-400-normal.woff'),
-  );
-  document.registerFont(
-    FONT_BOLD,
-    resolve('@fontsource/noto-sans/files/noto-sans-latin-700-normal.woff'),
-  );
+  document.registerFont(FONT_REGULAR, resolve('dejavu-fonts-ttf/ttf/DejaVuSans.ttf'));
+  document.registerFont(FONT_BOLD, resolve('dejavu-fonts-ttf/ttf/DejaVuSans-Bold.ttf'));
+}
+
+function assertFontSupports(text: string): void {
+  const require = packageRequire();
+  regularFontCoverage ??= (require('fontkit') as FontkitModule)
+    .openSync(require.resolve('dejavu-fonts-ttf/ttf/DejaVuSans.ttf'));
+  for (const character of text) {
+    const codePoint = character.codePointAt(0);
+    if (codePoint === undefined) continue;
+    if (!regularFontCoverage.hasGlyphForCodePoint(codePoint)) {
+      throw new ApplicationError(
+        'EXPORT_FAILED',
+        `PDF-Dokument enthält ein nicht unterstütztes Unicode-Zeichen U+${codePoint.toString(16).toUpperCase().padStart(4, '0')}.`,
+      );
+    }
+  }
+}
+
+function drawUnicodeText(
+  document: PDFKit.PDFDocument,
+  text: string,
+  weight: PdfFontWeight,
+  options: PdfTextOptions,
+  x?: number,
+  y?: number,
+): void {
+  assertFontSupports(text);
+  document.font(weight === 'bold' ? FONT_BOLD : FONT_REGULAR);
+  if (x !== undefined && y !== undefined) document.text(text, x, y, options);
+  else document.text(text, options);
 }
 
 function addStructuredText(
@@ -80,10 +118,9 @@ function drawParagraph(
 ): void {
   addStructuredText(document, parent, 'P', text, () => {
     document
-      .font(FONT_REGULAR)
       .fontSize(10)
-      .fillColor(COLORS.ink)
-      .text(`${text} `, { width: CONTENT_WIDTH, lineGap: 2, paragraphGap: 6 });
+      .fillColor(COLORS.ink);
+    drawUnicodeText(document, `${text} `, 'regular', { width: CONTENT_WIDTH, lineGap: 2, paragraphGap: 6 });
   });
 }
 
@@ -139,14 +176,13 @@ function drawTable(
       const x = document.page.margins.left + (columnIndex * columnWidth);
       const cellStructure = document.struct(header ? 'TH' : 'TD', { actual: `${text} ` }, () => {
         document
-          .font(header ? FONT_BOLD : FONT_REGULAR)
           .fontSize(header ? 8 : 8.5)
-          .fillColor(header ? COLORS.accent : COLORS.ink)
-          .text(`${text} `, x + padding, rowY + padding, {
-            width: columnWidth - (2 * padding),
-            height: height - (2 * padding),
-            lineGap: 1,
-          });
+          .fillColor(header ? COLORS.accent : COLORS.ink);
+        drawUnicodeText(document, `${text} `, header ? 'bold' : 'regular', {
+          width: columnWidth - (2 * padding),
+          height: height - (2 * padding),
+          lineGap: 1,
+        }, x + padding, rowY + padding);
       });
       rowStructure.add(cellStructure);
     });
@@ -212,10 +248,9 @@ function drawBlock(
       parent.add(sectionStructure);
       addStructuredText(document, sectionStructure, 'H2', block.title, () => {
         document
-          .font(FONT_BOLD)
           .fontSize(13)
-          .fillColor(COLORS.accent)
-          .text(`${block.title} `, { width: CONTENT_WIDTH, paragraphGap: 6 });
+          .fillColor(COLORS.accent);
+        drawUnicodeText(document, `${block.title} `, 'bold', { width: CONTENT_WIDTH, paragraphGap: 6 });
       });
       for (const child of block.blocks) drawBlock(document, sectionStructure, child);
       sectionStructure.end();
@@ -242,27 +277,24 @@ function drawHeader(
 
   addStructuredText(document, root, 'H1', definition.title, () => {
     document
-      .font(FONT_BOLD)
       .fontSize(21)
-      .fillColor('#111827')
-      .text(`${definition.title} `, { width: 455, lineGap: 1 });
+      .fillColor('#111827');
+    drawUnicodeText(document, `${definition.title} `, 'bold', { width: 455, lineGap: 1 });
   });
   if (definition.subtitle) {
     addStructuredText(document, root, 'P', definition.subtitle, () => {
       document
-        .font(FONT_REGULAR)
         .fontSize(10)
-        .fillColor(COLORS.muted)
-        .text(`${definition.subtitle} `, { width: 455, paragraphGap: 4 });
+        .fillColor(COLORS.muted);
+      drawUnicodeText(document, `${definition.subtitle} `, 'regular', { width: 455, paragraphGap: 4 });
     });
   }
   if (definition.classification) {
     addStructuredText(document, root, 'P', definition.classification, () => {
       document
-        .font(FONT_BOLD)
         .fontSize(9)
-        .fillColor(COLORS.accent)
-        .text(`${definition.classification} `, { width: 455, paragraphGap: 4 });
+        .fillColor(COLORS.accent);
+      drawUnicodeText(document, `${definition.classification} `, 'bold', { width: 455, paragraphGap: 4 });
     });
   }
   document.x = 50;
@@ -282,21 +314,19 @@ function drawWarnings(
   root.add(warningSection);
   addStructuredText(document, warningSection, 'H2', title, () => {
     document
-      .font(FONT_BOLD)
       .fontSize(12)
-      .fillColor(warnings.length ? COLORS.warningInk : COLORS.successInk)
-      .text(`${title} `, { width: CONTENT_WIDTH, paragraphGap: 5 });
+      .fillColor(warnings.length ? COLORS.warningInk : COLORS.successInk);
+    drawUnicodeText(document, `${title} `, 'bold', { width: CONTENT_WIDTH, paragraphGap: 5 });
   });
   for (const message of messages) {
     addStructuredText(document, warningSection, 'P', message, () => {
       document
-        .font(FONT_REGULAR)
         .fontSize(9.5)
-        .fillColor(warnings.length ? COLORS.warningInk : COLORS.successInk)
-        .text(`${warnings.length ? 'Hinweis: ' : 'Status: '}${message} `, {
-          width: CONTENT_WIDTH,
-          paragraphGap: 5,
-        });
+        .fillColor(warnings.length ? COLORS.warningInk : COLORS.successInk);
+      drawUnicodeText(document, `${warnings.length ? 'Hinweis: ' : 'Status: '}${message} `, 'regular', {
+        width: CONTENT_WIDTH,
+        paragraphGap: 5,
+      });
     });
   }
   warningSection.end();

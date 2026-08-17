@@ -1,4 +1,4 @@
-import type { TerminationHearingStatus, TerminationType, DisabilityProtectionStatus } from '../../core/models/termination.model';
+import type { TerminationHearingStatus, TerminationType, DisabilityProtectionStatus } from '../../../domain/models/termination.model';
 
 export const terminationStatusOrder: TerminationHearingStatus[] = [
   'eingang',

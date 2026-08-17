@@ -1,5 +1,5 @@
 import type { IpcInvoker } from "./invoke.js";
-import type { PrivacyReviewActionInput, PrivacyReviewActionResult, PrivacyReviewBulkResult, PrivacyReviewItemRecord } from "../../src/app/core/models/privacy-review.model.js";
+import type { PrivacyReviewActionInput, PrivacyReviewActionResult, PrivacyReviewBulkResult, PrivacyReviewItemRecord } from "../../src/domain/models/privacy-review.model.js";
 import { IPC_CHANNELS } from "../ipc/channels.js";
 import type {
   CreateSbvParticipationViolationInput,
@@ -13,7 +13,7 @@ import type {
   SbvParticipationViolationTemplateInput,
   SbvParticipationViolationTemplateValidationResult,
   UpdateSbvParticipationViolationInput,
-} from "../../src/app/core/models/sbv-participation-violation.model.js";
+} from "../../src/domain/models/sbv-participation-violation.model.js";
 import type {
   ActivityJournalCategoryPreferenceRecord,
   ActivityJournalEntryRecord,
@@ -28,7 +28,7 @@ import type {
   ActivityJournalSummaryFilter,
   CreateActivityJournalEntryInput,
   UpdateActivityJournalEntryInput,
-} from "../../src/app/core/models/activity-journal.model.js";
+} from "../../src/domain/models/activity-journal.model.js";
 
 export function createPrivacyApi(invokeIpc: IpcInvoker) {
   return {

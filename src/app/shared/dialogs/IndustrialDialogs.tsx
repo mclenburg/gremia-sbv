@@ -35,10 +35,62 @@ type IndustrialModalProps = {
   dataE2e?: string;
 };
 
+type IndustrialModalSurfaceProps = {
+  children: ReactNode;
+  labelledById: string;
+  describedById?: string;
+  role?: "dialog" | "alertdialog";
+  className?: string;
+  initialFocusRef?: RefObject<HTMLElement | null>;
+  onClose?: () => void;
+  closeOnEscape?: boolean;
+  dataE2e?: string;
+};
+
 function joinClassNames(
   ...classes: Array<string | false | null | undefined>
 ): string {
   return classes.filter(Boolean).join(" ");
+}
+
+export function IndustrialModalSurface({
+  children,
+  labelledById,
+  describedById,
+  role = "dialog",
+  className,
+  initialFocusRef,
+  onClose,
+  closeOnEscape = true,
+  dataE2e,
+}: IndustrialModalSurfaceProps) {
+  const dialogRef = useRef<HTMLElement | null>(null);
+  const handleKeyDown = useDialogFocusManagement({
+    dialogRef,
+    initialFocusRef,
+    onClose,
+    closeOnEscape,
+  });
+
+  return (
+    <div className="industrial-modal-backdrop" role="presentation">
+      <section
+        ref={dialogRef}
+        className={joinClassNames("industrial-modal", className)}
+        role={role}
+        tabIndex={-1}
+        aria-modal="true"
+        aria-labelledby={labelledById}
+        aria-describedby={describedById}
+        onKeyDown={handleKeyDown}
+        data-industrial-modal="true"
+        data-focus-managed="true"
+        data-e2e={dataE2e}
+      >
+        {children}
+      </section>
+    </div>
+  );
 }
 
 export function IndustrialModal({
@@ -63,35 +115,21 @@ export function IndustrialModal({
   const generatedDescriptionId = useId();
   const titleId = labelledById ?? generatedTitleId;
   const descriptionId = description ? describedById ?? generatedDescriptionId : undefined;
-  const dialogRef = useRef<HTMLElement | null>(null);
-
-  const handleKeyDown = useDialogFocusManagement({
-    dialogRef,
-    initialFocusRef,
-    onClose,
-    closeOnEscape,
-  });
-
   return (
-    <div className="industrial-modal-backdrop" role="presentation">
-      <section
-        ref={dialogRef}
-        className={joinClassNames(
-          "industrial-modal",
+    <IndustrialModalSurface
+      className={joinClassNames(
           wide && "industrial-modal-wide",
           variant !== "default" && `industrial-modal-${variant}`,
           className,
-        )}
-        role={role}
-        tabIndex={-1}
-        aria-modal="true"
-        aria-labelledby={titleId}
-        aria-describedby={descriptionId}
-        onKeyDown={handleKeyDown}
-        data-industrial-modal="true"
-        data-focus-managed="true"
-        data-e2e={dataE2e}
-      >
+      )}
+      role={role}
+      labelledById={titleId}
+      describedById={descriptionId}
+      initialFocusRef={initialFocusRef}
+      onClose={onClose}
+      closeOnEscape={closeOnEscape}
+      dataE2e={dataE2e}
+    >
         <div className="industrial-modal-header">
           {icon ? <div className="industrial-modal-icon" aria-hidden="true">{icon}</div> : null}
           <div>
@@ -102,8 +140,7 @@ export function IndustrialModal({
         </div>
         {children}
         {actions ? <div className="industrial-modal-actions">{actions}</div> : null}
-      </section>
-    </div>
+    </IndustrialModalSurface>
   );
 }
 

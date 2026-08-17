@@ -1,4 +1,4 @@
-import type { CaseMeasureNoteRecord } from "../../../core/models/case-measure.model";
+import type { CaseMeasureNoteRecord } from "../../../../domain/models/case-measure.model";
 import type { MeasureNoteFormState } from "./measureNoteTypes";
 import { MeasureNoteCard } from "./MeasureNoteCard";
 import { MeasureNoteForm } from "./MeasureNoteForm";

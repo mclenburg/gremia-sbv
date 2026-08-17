@@ -1,4 +1,4 @@
-import { formatPreventionMarkerText } from "@services/textCommandPolicy";
+import { formatPreventionMarkerText } from "@/domain/textCommands/textCommandPolicy";
 import { fromDateTimeLocalValue } from "../caseWorkbenchFormat";
 import type { InlineCommandRuntime } from "./inlineCommandRuntime";
 

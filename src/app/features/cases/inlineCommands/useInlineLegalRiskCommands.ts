@@ -1,5 +1,5 @@
-import type { LegalNormRecord } from "../../../core/models/knowledge.model";
-import { formatLegalNormText, formatRiskText, type LegalNormSuggestion } from "@services/textCommandPolicy";
+import type { LegalNormRecord } from "../../../../domain/models/knowledge.model";
+import { formatLegalNormText, formatRiskText, type LegalNormSuggestion } from "@/domain/textCommands/textCommandPolicy";
 import type { InlineCommandRuntime } from "./inlineCommandRuntime";
 
 export function useInlineLegalRiskCommands(runtime: InlineCommandRuntime) {

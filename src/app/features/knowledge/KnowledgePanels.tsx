@@ -3,8 +3,8 @@ import { Search } from 'lucide-react';
 import { TextCommandTextarea } from '../../shared/textCommands/TextCommandTextarea';
 import { IndustrialButton, ToolbarButton } from '../../shared/components/IndustrialButton';
 import { SelectInput, TextInput } from '../../shared/components/IndustrialForm';
-import type { CaseRecord } from '../../core/models/case.model';
-import type { CaseLawRecord, CaseLegalReferenceRecord, LegalNormRecord, NormChecklistItemRecord, NormCommentRecord } from '../../core/models/knowledge.model';
+import type { CaseRecord } from '../../../domain/models/case.model';
+import type { CaseLawRecord, CaseLegalReferenceRecord, LegalNormRecord, NormChecklistItemRecord, NormCommentRecord } from '../../../domain/models/knowledge.model';
 
 export function KnowledgeSearchPanel({
   query,

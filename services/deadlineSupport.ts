@@ -1,4 +1,4 @@
-import type { CreateDeadlineInput, DeadlineAuditRecord, DeadlineDashboardState, DeadlineRecord, DeadlineStatus, DeadlineTemplateRecord } from '../src/app/core/models/deadline.model.js';
+import type { CreateDeadlineInput, DeadlineAuditRecord, DeadlineDashboardState, DeadlineRecord, DeadlineStatus, DeadlineTemplateRecord } from '../src/domain/models/deadline.model.js';
 export const DASHBOARD_HOURS_BEFORE_DUE = 48;
 
 export interface DeadlineRow {
@@ -178,4 +178,3 @@ export function validateCaseBinding(input: CreateDeadlineInput): void {
     throw new Error('Rechtliche Fristen und Workflow-Schritte ohne Fallbezug sind nur für unterstützte SBV-Amtsvorgänge zulässig.');
   }
 }
-

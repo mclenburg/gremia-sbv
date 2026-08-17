@@ -1,4 +1,4 @@
-import type { CaseHandoverExportResult } from '../../core/models/case-handover.model';
+import type { CaseHandoverExportResult } from '../../../domain/models/case-handover.model';
 
 export function formatCaseHandoverExportResultMessage(result: CaseHandoverExportResult): string {
   if (!result.exported) return 'Export wurde abgebrochen.';

@@ -6,8 +6,8 @@ import type {
   CaseContentSearchInput,
   CreateCaseNoteInput,
   UpdateCaseNoteInput,
-} from "../../src/app/core/models/case-note.model.js";
-import type { CreateCaseInput, LegacyCaseBindingInput } from "../../src/app/core/models/case.model.js";
+} from "../../src/domain/models/case-note.model.js";
+import type { CreateCaseInput, LegacyCaseBindingInput } from "../../src/domain/models/case.model.js";
 import {
   assertOptionalBoolean,
   assertOptionalString,

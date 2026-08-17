@@ -32,7 +32,7 @@ import type {
   ComplianceIncidentStatus,
   CreateComplianceIncidentInput,
   UpdateComplianceIncidentInput,
-} from "../../../core/models/compliance.model";
+} from "../../../../domain/models/compliance.model";
 import {
   INCIDENT_CATEGORIES,
   INCIDENT_STATUSES,

@@ -2,7 +2,7 @@ import { IPC_CHANNELS, registerIpcHandler } from './ipcHandler.js';
 import type { IpcMain } from 'electron';
 import type { SecurityService } from '../../services/securityService.js';
 import type { ApplicationServices } from '../applicationServices.js';
-import type { CaseMeasureNoteProcessType, CreateCaseMeasureInput, CreateCaseMeasureNoteInput, DeleteCaseProcessInput, UpdateCaseMeasureInput, UpdateCaseMeasureNoteInput } from '../../src/app/core/models/case-measure.model.js';
+import type { CaseMeasureNoteProcessType, CreateCaseMeasureInput, CreateCaseMeasureNoteInput, DeleteCaseProcessInput, UpdateCaseMeasureInput, UpdateCaseMeasureNoteInput } from '../../src/domain/models/case-measure.model.js';
 import { assertOptionalString, assertRecordInput, assertString } from './ipcValidation.js';
 
 export function registerCaseMeasureIpc(ipcMain: IpcMain, security: SecurityService, services: ApplicationServices): void {

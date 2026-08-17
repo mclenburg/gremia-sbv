@@ -1,4 +1,4 @@
-import type { GremiaBrConnectionTestResult } from '../../src/app/core/models/gremia-br.model.js';
+import type { GremiaBrConnectionTestResult } from '../../src/domain/models/gremia-br.model.js';
 import { GremiaBrHttpClient, type GremiaBrAuditSink, type GremiaBrFetch } from './gremiaBrHttpClient.js';
 import type { GremiaBrProfileSnapshot, GremiaBrRequestOptions, GremiaBrSettingsStore } from './gremiaBrTypes.js';
 

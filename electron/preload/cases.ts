@@ -5,16 +5,16 @@ import type {
   CreateCaseInput,
   LegacyCaseBindingInput,
   LegacyCaseBindingResult,
-} from "../../src/app/core/models/case.model.js";
+} from "../../src/domain/models/case.model.js";
 import type {
   CaseContentSearchInput,
   CaseNoteRecord,
   CaseSearchResult,
   CreateCaseNoteInput,
   UpdateCaseNoteInput,
-} from "../../src/app/core/models/case-note.model.js";
-import type { CaseDocumentRecord } from "../../src/app/core/models/case-document.model.js";
-import type { CaseHandoverContinueExpiredResult, CaseHandoverExportInput, CaseHandoverExportResult, CaseHandoverImportInput, CaseHandoverImportResult, CaseHandoverInspectResult } from "../../src/app/core/models/case-handover.model.js";
+} from "../../src/domain/models/case-note.model.js";
+import type { CaseDocumentRecord } from "../../src/domain/models/case-document.model.js";
+import type { CaseHandoverContinueExpiredResult, CaseHandoverExportInput, CaseHandoverExportResult, CaseHandoverImportInput, CaseHandoverImportResult, CaseHandoverInspectResult } from "../../src/domain/models/case-handover.model.js";
 import type {
   CaseMeasureNoteProcessType,
   CaseMeasureNoteRecord,
@@ -25,21 +25,21 @@ import type {
   CreateCaseMeasureNoteInput,
   UpdateCaseMeasureInput,
   UpdateCaseMeasureNoteInput,
-} from "../../src/app/core/models/case-measure.model.js";
+} from "../../src/domain/models/case-measure.model.js";
 import type {
   ContactListFilters,
   ContactRecord,
   CreateContactInput,
   DeleteContactResult,
   UpdateContactInput,
-} from "../../src/app/core/models/contact.model.js";
+} from "../../src/domain/models/contact.model.js";
 import type {
   CreateDeadlineInput,
   DeadlineDashboardItem,
   DeadlineListFilters,
   DeadlineRecord,
   UpdateDeadlineInput,
-} from "../../src/app/core/models/deadline.model.js";
+} from "../../src/domain/models/deadline.model.js";
 
 export function createCasesApi(invokeIpc: IpcInvoker) {
   return {

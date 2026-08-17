@@ -13,7 +13,7 @@ import {
 import type {
   ComplianceDocument,
   DataSubjectAccessRequestInput,
-} from "../../../core/models/compliance.model";
+} from "../../../../domain/models/compliance.model";
 import { ComplianceDocumentPreview } from "./ComplianceDocumentPreview";
 
 export function ComplianceDsarPanel({

@@ -12,9 +12,9 @@ import type {
   ActivityJournalLinkTarget,
   CreateActivityJournalEntryInput,
   UpdateActivityJournalEntryInput,
-} from '../../src/app/core/models/activity-journal.model.js';
+} from '../../src/domain/models/activity-journal.model.js';
 import { assertAllowedEnum, assertRecordInput, assertString } from './ipcValidation.js';
-import { ACTIVITY_JOURNAL_CATEGORIES, ACTIVITY_JOURNAL_CONTEXT_TYPES } from '../../src/app/core/models/activity-journal.model.js';
+import { ACTIVITY_JOURNAL_CATEGORIES, ACTIVITY_JOURNAL_CONTEXT_TYPES } from '../../src/domain/models/activity-journal.model.js';
 
 export function registerActivityJournalIpc(ipcMain: IpcMain, security: SecurityService, services: ApplicationServices): void {
   const journal = services.activityJournal;

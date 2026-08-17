@@ -200,9 +200,6 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - @eslint/plugin-kit@0.7.2
   License: Apache-2.0
   License text: LICENSES/Apache-2.0.txt
-- @fontsource/noto-sans@5.3.0
-  License: OFL-1.1
-  License text: LICENSES/OFL-1.1.txt
 - @hapi/address@5.1.1
   License: BSD-3-Clause
   License text: LICENSES/BSD-3-Clause.txt
@@ -785,6 +782,9 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - define-properties@1.2.1
   License: MIT
   License text: LICENSES/MIT.txt
+- dejavu-fonts-ttf@2.37.3
+  License: SEE LICENSE IN README.md AND LICENSE
+  License text: LICENSES/SEE_LICENSE_IN_README.md_AND_LICENSE.txt
 - delayed-stream@1.0.0
   License: MIT
   License text: LICENSES/MIT.txt

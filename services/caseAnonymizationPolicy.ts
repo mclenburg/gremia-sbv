@@ -2,8 +2,8 @@ export const CASE_ANONYMIZATION_CONFIRMATION = 'FALL ANONYMISIEREN';
 export const REMOVED_FREETEXT_PREFIX = '[Freitext im Rahmen der Fallanonymisierung entfernt]';
 export const REMOVED_PARTICIPANTS_TEXT = '[Beteiligte im Rahmen der Fallanonymisierung entfernt]';
 
-import type { CaseAnonymizationMode } from '../src/app/core/models/privacy-review.model.js';
-export type { CaseAnonymizationMode } from '../src/app/core/models/privacy-review.model.js';
+import type { CaseAnonymizationMode } from '../src/domain/models/privacy-review.model.js';
+export type { CaseAnonymizationMode } from '../src/domain/models/privacy-review.model.js';
 
 const LOREM = ' Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.';
 

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import type { CaseMeasureNoteRecord } from "../../../core/models/case-measure.model";
+import type { CaseMeasureNoteRecord } from "../../../../domain/models/case-measure.model";
 import { waitForBridge } from "../../../core/bridge/waitForBridge";
 import { useAnnouncer } from "../../../shared/a11y/LiveRegionProvider";
 import { fromDateTimeLocal } from "../../../shared/format/dates";

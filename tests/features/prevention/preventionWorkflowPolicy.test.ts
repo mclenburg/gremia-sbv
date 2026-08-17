@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { defaultEmployerResponseDueAt, evaluatePreventionWarnings, PREVENTION_STEPS } from '../../../services/preventionWorkflowPolicy';
-import type { PreventionProcessRecord } from '../../../src/app/core/models/prevention.model';
+import type { PreventionProcessRecord } from '../../../src/domain/models/prevention.model';
 
 const baseProcess: PreventionProcessRecord = {
   id: 'prevention-1',

@@ -3,7 +3,7 @@ import path from 'node:path';
 import { createCipheriv, createDecipheriv, createHash, randomBytes, scryptSync } from 'node:crypto';
 import { gzipSync, gunzipSync } from 'node:zlib';
 import type { SecurityService } from './securityService.js';
-import type { BackupFileSummary, BackupInspectionResult, BackupOperationResult } from '../src/app/core/models/backup.model.js';
+import type { BackupFileSummary, BackupInspectionResult, BackupOperationResult } from '../src/domain/models/backup.model.js';
 import { APP_VERSION } from './generated/appMetadata.js';
 import { APP_SCHEMA_VERSION, DATABASE_SCHEMA_VERSION_KEY, LEGACY_DATABASE_SCHEMA_VERSION_KEY } from './appSchema.js';
 import { atomicWriteFileSync } from './secureFileOperations.js';

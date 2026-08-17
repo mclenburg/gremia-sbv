@@ -1,5 +1,5 @@
 import type { DatabaseAdapter } from './databaseService.js';
-import type { DataSubjectAccessPrefill, DataSubjectAccessPrefillCase, DataSubjectAccessPrefillDeadline, DataSubjectAccessPrefillFreeTextMatch, DataSubjectAccessPrefillImportRun, DataSubjectAccessPrefillLifecycleEvent, DataSubjectAccessPrefillMeasure, DataSubjectAccessPrefillPerson, DataSubjectAccessRequestInput } from '../src/app/core/models/compliance.model.js';
+import type { DataSubjectAccessPrefill, DataSubjectAccessPrefillCase, DataSubjectAccessPrefillDeadline, DataSubjectAccessPrefillFreeTextMatch, DataSubjectAccessPrefillImportRun, DataSubjectAccessPrefillLifecycleEvent, DataSubjectAccessPrefillMeasure, DataSubjectAccessPrefillPerson, DataSubjectAccessRequestInput } from '../src/domain/models/compliance.model.js';
 import { DatabaseRow, nowIso, optional, unique, hasTable, searchTokens, nameVariants, allSearchTerms, placeholders, textOf, matchedTermsIn, excerpt, mapPerson, mapLegacyPerson, mapCase, mapDeadline, mapMeasure, mapImport, mapLifecycle, FreeTextSource, linkedCaseExpression, linkedCaseJoin, hasLinkedCase, FREE_TEXT_SOURCES } from './dsarPrefillSupport.js';
 export class DsarPrefillService {
   constructor(private readonly db: DatabaseAdapter) {}

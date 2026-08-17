@@ -6,7 +6,7 @@ import type {
   PreventionStepDefinition,
   PreventionWarning,
   UpdatePreventionProcessInput,
-} from "../../src/app/core/models/prevention.model.js";
+} from "../../src/domain/models/prevention.model.js";
 import { IPC_CHANNELS } from "../ipc/channels.js";
 import type {
   CreateParticipationInput,
@@ -14,14 +14,14 @@ import type {
   ParticipationRecord,
   ParticipationWarning,
   UpdateParticipationInput,
-} from "../../src/app/core/models/participation.model.js";
+} from "../../src/domain/models/participation.model.js";
 import type {
   CreateWorkplaceAccommodationInput,
   UpdateWorkplaceAccommodationInput,
   WorkplaceAccommodationDashboardSummary,
   WorkplaceAccommodationRecord,
   WorkplaceAccommodationWarning,
-} from "../../src/app/core/models/workplace-accommodation.model.js";
+} from "../../src/domain/models/workplace-accommodation.model.js";
 import type {
   BemDashboardSummary,
   BemProcessRecord,
@@ -29,19 +29,19 @@ import type {
   BemWarning,
   CreateBemProcessInput,
   UpdateBemProcessInput,
-} from "../../src/app/core/models/bem.model.js";
+} from "../../src/domain/models/bem.model.js";
 import type {
   CreateEqualizationProcessInput,
   EqualizationProcessRecord,
   EqualizationWarning,
   UpdateEqualizationProcessInput,
-} from "../../src/app/core/models/equalization.model.js";
+} from "../../src/domain/models/equalization.model.js";
 import type {
   CreateTerminationHearingInput,
   TerminationHearingRecord,
   TerminationHearingWarning,
   UpdateTerminationHearingInput,
-} from "../../src/app/core/models/termination.model.js";
+} from "../../src/domain/models/termination.model.js";
 
 export function createProcessesApi(invokeIpc: IpcInvoker) {
   return {

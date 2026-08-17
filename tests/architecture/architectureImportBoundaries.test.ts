@@ -8,6 +8,21 @@ type ImportEdge = {
   resolved?: string;
 };
 
+const SOURCE_ALIASES: ReadonlyArray<readonly [prefix: string, root: string]> = [
+  ['@services/', 'services'],
+  ['@database/', 'database'],
+  ['@/', 'src'],
+];
+
+function resolveProjectImport(file: string, specifier: string): string | undefined {
+  if (specifier.startsWith('.')) {
+    return normalize(join(dirname(file), specifier)).replaceAll('\\', '/');
+  }
+  const alias = SOURCE_ALIASES.find(([prefix]) => specifier.startsWith(prefix));
+  if (!alias) return undefined;
+  return normalize(join(alias[1], specifier.slice(alias[0].length))).replaceAll('\\', '/');
+}
+
 function collectFiles(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     const absolute = join(dir, entry.name);
@@ -22,10 +37,7 @@ function collectImports(file: string): ImportEdge[] {
   const importPattern = /import\s+(?:type\s+)?(?:[\s\S]*?\s+from\s+)?["']([^"']+)["']/g;
   for (const match of source.matchAll(importPattern)) {
     const specifier = match[1];
-    let resolvedPath: string | undefined;
-    if (specifier.startsWith('.')) {
-      resolvedPath = normalize(join(dirname(file), specifier)).replaceAll('\\', '/');
-    }
+    const resolvedPath = resolveProjectImport(file, specifier);
     edges.push({ file, specifier, resolved: resolvedPath });
   }
   return edges;
@@ -34,6 +46,7 @@ function collectImports(file: string): ImportEdge[] {
 function allImports(): ImportEdge[] {
   return [
     ...collectFiles('src/app'),
+    ...collectFiles('src/domain'),
     ...collectFiles('electron'),
     ...collectFiles('services'),
   ].flatMap(collectImports);
@@ -44,7 +57,9 @@ function isServiceImportFromRenderer(edge: ImportEdge): boolean {
   if (edge.specifier.startsWith('node:') || edge.specifier === 'electron' || edge.specifier.startsWith('electron/')) return true;
   if (!edge.resolved) return false;
   const absolute = resolve(edge.resolved);
-  return relative(resolve('services'), absolute).split(/[\\/]/)[0] !== '..';
+  return [resolve('services'), resolve('database')].some(
+    (root) => relative(root, absolute).split(/[\\/]/)[0] !== '..',
+  );
 }
 
 function isFeatureImportingElectronBoundary(edge: ImportEdge): boolean {
@@ -52,15 +67,33 @@ function isFeatureImportingElectronBoundary(edge: ImportEdge): boolean {
     && (edge.specifier === 'electron' || edge.specifier.startsWith('node:') || edge.specifier.startsWith('electron/'));
 }
 
-function isServiceImportingRendererUi(edge: ImportEdge): boolean {
-  if (!edge.file.startsWith('services/') || !edge.resolved) return false;
-  const normalized = edge.resolved.replaceAll('\\', '/');
-  return normalized.includes('/src/app/features/')
-    || normalized.includes('/src/app/shared/components/')
-    || normalized.includes('/src/app/shared/a11y/');
+function isBackendImportingRenderer(edge: ImportEdge): boolean {
+  if ((!edge.file.startsWith('services/') && !edge.file.startsWith('electron/')) || !edge.resolved) return false;
+  const absolute = resolve(edge.resolved);
+  return relative(resolve('src/app'), absolute).split(/[\\/]/)[0] !== '..';
+}
+
+function isDomainImportingPlatformOrRenderer(edge: ImportEdge): boolean {
+  if (!edge.file.startsWith('src/domain/')) return false;
+  if (edge.specifier.startsWith('node:') || edge.specifier === 'electron' || edge.specifier.startsWith('electron/')) return true;
+  if (!edge.resolved) return false;
+  const absolute = resolve(edge.resolved);
+  return [resolve('services'), resolve('electron'), resolve('src/app')].some(
+    (root) => relative(root, absolute).split(/[\\/]/)[0] !== '..',
+  );
 }
 
 describe('Architektur-Importgrenzen 0.9.1', () => {
+  it('löst auch Alias-Imports auf, bevor die Schichtgrenze bewertet wird', () => {
+    const edge: ImportEdge = {
+      file: 'src/app/features/example.ts',
+      specifier: '@services/exampleService',
+      resolved: resolveProjectImport('src/app/features/example.ts', '@services/exampleService'),
+    };
+
+    expect(isServiceImportFromRenderer(edge)).toBe(true);
+  });
+
   it('hält Renderer und Feature-Module frei von direktem Node-, Electron- und Servicezugriff', () => {
     const violations = allImports()
       .filter((edge) => isServiceImportFromRenderer(edge) || isFeatureImportingElectronBoundary(edge))
@@ -72,7 +105,7 @@ describe('Architektur-Importgrenzen 0.9.1', () => {
 
   it('verhindert Rückimporte aus Services in Renderer-UI und Feature-Komponenten', () => {
     const violations = allImports()
-      .filter(isServiceImportingRendererUi)
+      .filter((edge) => isBackendImportingRenderer(edge) || isDomainImportingPlatformOrRenderer(edge))
       .map((edge) => `${edge.file} -> ${edge.specifier}`)
       .sort();
 

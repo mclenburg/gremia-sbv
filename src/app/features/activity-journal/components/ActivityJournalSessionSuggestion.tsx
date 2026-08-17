@@ -1,5 +1,5 @@
 import { Clock3, X } from 'lucide-react';
-import type { ActivityJournalPrefillContext } from '../../../core/models/activity-journal.model';
+import type { ActivityJournalPrefillContext } from '../../../../domain/models/activity-journal.model';
 import { IndustrialButton, IconButton } from '../../../shared/components/IndustrialButton';
 import { useActivityJournalSessionSuggestion } from '../hooks/useActivityJournalSessionSuggestion';
 

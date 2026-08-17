@@ -1,5 +1,5 @@
 import { Trash2 } from 'lucide-react';
-import type { SbvResourceRecordKind, SbvResourceRecordStatus } from '../../../core/models/sbv-resource.model';
+import type { SbvResourceRecordKind, SbvResourceRecordStatus } from '../../../../domain/models/sbv-resource.model';
 import { DangerButton, GhostButton } from '../../../shared/components/IndustrialButton';
 import {
   EmptyState,

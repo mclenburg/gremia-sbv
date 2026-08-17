@@ -6,7 +6,7 @@ import type { ApplicationServices } from '../applicationServices.js';
 import type {
   CreatePreventionProcessInput,
   UpdatePreventionProcessInput,
-} from "../../src/app/core/models/prevention.model.js";
+} from "../../src/domain/models/prevention.model.js";
 import {
   assertOptionalString,
   assertRecordInput,

@@ -9,7 +9,7 @@ import type {
   ElectionNoticeDetails,
   ElectionRecord,
   GenerateElectionPreparationDocumentInput,
-} from '../src/app/core/models/election-workflow.model.js';
+} from '../src/domain/models/election-workflow.model.js';
 
 const TEMPLATE_VERSION = '0.9.7-C.1';
 

@@ -87,7 +87,7 @@ Für neue Flows gilt: Tests sollen vorrangig über Rollen, Labels, Fokuszuständ
 
 PDFs sind Teil der barrierefreien Produktoberfläche. Der gemeinsame PDFKit-Renderer erzeugt getaggte Dokumente mit deutscher Dokumentsprache, Titelmetadaten und einer logischen Struktur aus Überschriften, Absätzen, Listen und Tabellen. Dekorative Flächen sowie Seitenfußzeilen sind Artefakte und unterbrechen die Lesereihenfolge nicht. Tabellenköpfe werden auf Folgeseiten wiederholt; Warnungen und Statusangaben sind zusätzlich ausgeschrieben und nie ausschließlich farbcodiert.
 
-Die eingebettete Noto-Sans-Schrift erhält Unicode-Zeichen unverändert. Das ist für rechtlich relevante Wahlakten verbindlich: Umlaute, Eszett, Namen und Nachweistexte dürfen für die PDF-Erzeugung nicht ersetzt oder vereinfacht werden.
+Die eingebettete DejaVu-Sans-Schrift erhält unterstützte Unicode-Zeichen unverändert. Das ist für rechtlich relevante Wahlakten verbindlich: Umlaute, Eszett, Namen und Nachweistexte dürfen für die PDF-Erzeugung nicht ersetzt oder vereinfacht werden. Ist ein Zeichen in der eingebetteten Schrift nicht vorhanden, bricht die Erzeugung mit einem eindeutigen Exportfehler ab, statt den Inhalt still zu verfälschen.
 
 Automatisierte Funktionstests öffnen das fertige PDF mit einem unabhängigen Parser und prüfen Sprache, Titel, tatsächlichen Textinhalt, Mehrseitigkeit und Strukturrollen. Die visuelle Prüfung eines gerenderten mehrseitigen Dokuments ergänzt diese Tests, ersetzt aber keine Prüfung mit assistiver Technologie vor einer öffentlichen Veröffentlichung.
 

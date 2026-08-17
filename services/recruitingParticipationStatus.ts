@@ -1,4 +1,4 @@
-import type { RecruitingParticipationRecord, RecruitingParticipationStatus } from '../src/app/core/models/recruiting-participation.model.js';
+import type { RecruitingParticipationRecord, RecruitingParticipationStatus } from '../src/domain/models/recruiting-participation.model.js';
 
 export interface RecruitingStatusAction {
   label: string;

@@ -1,4 +1,4 @@
-import type { CreateProtectedPersonInput, PersonImportMatchStrategy, ProtectedPersonRecord } from '../src/app/core/models/protected-person.model.js';
+import type { CreateProtectedPersonInput, PersonImportMatchStrategy, ProtectedPersonRecord } from '../src/domain/models/protected-person.model.js';
 
 export interface PersonMatchLookup {
   findByPersonnelNumber(personnelNumber: string): ProtectedPersonRecord | undefined;

@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Save, UserRoundPlus } from 'lucide-react';
-import type { ContactCategory, ContactRecord, CreateContactInput } from '../../core/models/contact.model';
+import type { ContactCategory, ContactRecord, CreateContactInput } from '../../../domain/models/contact.model';
 import { IndustrialModal } from '../../shared/dialogs/IndustrialDialogs';
 import { GhostButton, IndustrialButton } from '../../shared/components/IndustrialButton';
 import { FormActions, FormSection, SelectInput, TextInput } from '../../shared/components/IndustrialForm';

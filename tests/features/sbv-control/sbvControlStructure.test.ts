@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { getParticipationDocumentRequirements, getParticipationEscalationAdvice } from '../../../src/app/features/participation/participationPolicy';
 import { modules } from '../../../src/app/core/navigation/modules';
 import { buildSbvControlSections } from '../../../src/app/features/sbv-control/sbvControlSections';
-import type { ParticipationRecord } from '../../../src/app/core/models/participation.model';
+import type { ParticipationRecord } from '../../../src/domain/models/participation.model';
 
 const baseRecord: ParticipationRecord = {
   id: 'p-1',

@@ -1,4 +1,4 @@
-import type { LegalNormRecord } from '../../core/models/knowledge.model';
+import type { LegalNormRecord } from '../../../domain/models/knowledge.model';
 import { SBV_ADVISOR_KNOWLEDGE_ENTRIES } from './knowledgeAdvisorData';
 
 function normalizeKnowledgeText(value: string): string {

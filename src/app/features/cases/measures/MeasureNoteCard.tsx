@@ -1,5 +1,5 @@
 import { Pencil, Trash2 } from "lucide-react";
-import type { CaseMeasureNoteRecord } from "../../../core/models/case-measure.model";
+import type { CaseMeasureNoteRecord } from "../../../../domain/models/case-measure.model";
 import { IndustrialActionRow } from "../../../shared/components/WorkbenchLayout";
 import { DangerButton, ToolbarButton } from "../../../shared/components/IndustrialButton";
 import { formatDateTimeShort } from "../../../shared/format/dates";

@@ -14,14 +14,14 @@ import { CasesViewRender } from "./CasesViewRender";
 import { CaseHandoverTransferDialogs } from "./CaseHandoverTransferDialogs";
 import { formatCaseHandoverExportResultMessage } from "./caseHandoverMessages";
 import type { CasesViewProps, CaseToast } from "./casesViewTypes";
-import type { CaseCategory, CaseRecord } from "../../core/models/case.model";
+import type { CaseCategory, CaseRecord } from "../../../domain/models/case.model";
 import type { ProcessTemplateModalState } from "./ProcessTemplateDocumentsModal";
 import type { CaseProcessDraft } from "./casesViewProcessUtils";
 import { caseRegisterSliceBounds, clampCaseRegisterPage } from "./casesViewUtils";
 import { useConfirmDialog } from "../../shared/dialogs/ConfirmDialogProvider";
 import { useAnnouncer } from "../../shared/a11y/LiveRegionProvider";
 import type { CaseProcessType } from "./caseWorkbenchTypes";
-import type { CaseProcessDeleteReason } from "../../core/models/case-measure.model";
+import type { CaseProcessDeleteReason } from "../../../domain/models/case-measure.model";
 import { CasePrivacyActionDialog, type CasePrivacyActionMode } from "./CasePrivacyActionDialog";
 import { CaseProcessDeleteDialog } from "./CaseProcessDeleteDialog";
 

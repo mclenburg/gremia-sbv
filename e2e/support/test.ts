@@ -27,6 +27,11 @@ type BrowserLike = {
   newContext(options: { baseURL: string }): Promise<BrowserContextLike>;
 };
 
+type ConsoleMessageLike = {
+  text(): string;
+  type(): string;
+};
+
 type PageLike = {
   close(): Promise<void>;
   emulateMedia(options: { colorScheme: 'light'; reducedMotion: 'no-preference'; forcedColors: 'none' }): Promise<void>;
@@ -36,6 +41,8 @@ type PageLike = {
   isClosed(): boolean;
   keyboard: { press(key: string): Promise<void> };
   locator(selector: string): LocatorLike;
+  off(event: 'console', listener: (message: ConsoleMessageLike) => void): void;
+  on(event: 'console', listener: (message: ConsoleMessageLike) => void): void;
   screenshot(options: { path: string; fullPage: boolean }): Promise<unknown>;
   setViewportSize(size: { width: number; height: number }): Promise<void>;
 };
@@ -65,6 +72,8 @@ type WorkerFixtures = {
 type E2eWindow = Window & {
   __GREMIA_SBV_E2E_RESET?: () => void;
 };
+
+const REACT_RENDER_LOOP_ERROR = 'Maximum update depth exceeded';
 
 async function closeTransientUi(page: PageLike) {
   for (let attempt = 0; attempt < 6 && await page.getByRole('dialog').count() > 0; attempt += 1) {
@@ -127,11 +136,19 @@ const test = (base as { extend: (fixtures: Record<string, unknown>) => unknown }
     { scope: 'worker' },
   ],
   page: async ({ sharedPage, sharedContext }: WorkerFixtures, providePage: (page: PageLike) => Promise<void>, testInfo: TestInfoLike) => {
+    const renderLoopErrors: string[] = [];
+    const collectRenderLoopError = (message: ConsoleMessageLike) => {
+      if (message.type() === 'error' && message.text().includes(REACT_RENDER_LOOP_ERROR)) {
+        renderLoopErrors.push(message.text());
+      }
+    };
+    sharedPage.on('console', collectRenderLoopError);
     await sharedContext.tracing.startChunk({ title: testInfo.title });
     try {
       await prepareSharedApp(sharedPage);
       await providePage(sharedPage);
     } finally {
+      sharedPage.off('console', collectRenderLoopError);
       const failed = testInfo.status !== testInfo.expectedStatus;
       if (failed && !sharedPage.isClosed()) {
         await sharedPage.screenshot({ path: testInfo.outputPath('test-failed.png'), fullPage: true }).catch(() => undefined);
@@ -139,6 +156,9 @@ const test = (base as { extend: (fixtures: Record<string, unknown>) => unknown }
       await sharedContext.tracing.stopChunk(failed ? { path: testInfo.outputPath('trace.zip') } : undefined).catch(() => undefined);
       if (!sharedPage.isClosed()) {
         await closeTransientUi(sharedPage);
+      }
+      if (renderLoopErrors.length > 0) {
+        throw new Error(`React-Render-Endlosschleife in „${testInfo.title}“ erkannt: ${renderLoopErrors[0]}`);
       }
     }
   },

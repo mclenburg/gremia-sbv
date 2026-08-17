@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { IndustrialButton } from '../../../shared/components/IndustrialButton';
 import { SelectInput, TextareaInput, TextInput } from '../../../shared/components/IndustrialForm';
 import { IndustrialHelpButton } from '../../../shared/help/IndustrialHelp';
-import type { CaseRecord } from '../../../core/models/case.model';
-import type { ComplaintAssessment, ComplaintWorkflowRecord, QuickCaseTemplate, SaveComplaintWorkflowInput } from '../../../core/models/sbv-office-workflow.model';
+import type { CaseRecord } from '../../../../domain/models/case.model';
+import type { ComplaintAssessment, ComplaintWorkflowRecord, QuickCaseTemplate, SaveComplaintWorkflowInput } from '../../../../domain/models/sbv-office-workflow.model';
 import { SbvControlPanel } from './SbvControlPanel';
 
 export function ComplaintsWorkspace({ cases, records, templates, onSave, onCreateQuickNote }: {

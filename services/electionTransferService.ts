@@ -17,7 +17,7 @@ import {
   sha256Canonical,
   type ElectionTransferPayload,
 } from './electionTransferPolicy.js';
-import type { ElectionTransferInspection } from '../src/app/core/models/election-execution.model.js';
+import type { ElectionTransferInspection } from '../src/domain/models/election-execution.model.js';
 
 const ELECTION_TABLES = ELECTION_TRANSFER_TABLE_REFS;
 

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ShieldAlert, Trash2 } from "lucide-react";
-import type { ProtectedPersonRecord } from "../../core/models/protected-person.model";
+import type { ProtectedPersonRecord } from "../../../domain/models/protected-person.model";
 import { AUDIT_LOG_RETENTION_NOTICE } from "../../core/copy/privacyNotices";
 
 export type PersonPrivacyActionMode = "anonymize" | "delete";

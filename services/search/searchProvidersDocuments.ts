@@ -1,6 +1,6 @@
 import { bool, documentFromRow, makeSqlProvider, text } from './searchProviderSupport.js';
 import type { CaseSearchExtractionQuality } from './searchTypes.js';
-import type { ConfidentialLevel } from '../../src/app/core/models/case-note.model.js';
+import type { ConfidentialLevel } from '../../src/domain/models/case-note.model.js';
 export const caseMetadataSearchProvider = makeSqlProvider({
   sourceType: 'case',
   label: 'Fallakte',
@@ -153,4 +153,3 @@ export const caseMeasureNotesSearchProvider = makeSqlProvider({
     },
   ),
 });
-

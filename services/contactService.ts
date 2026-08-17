@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import type { ContactCategory, ContactListFilters, ContactRecord, CreateContactInput, UpdateContactInput } from '../src/app/core/models/contact.model.js';
+import type { ContactCategory, ContactListFilters, ContactRecord, CreateContactInput, UpdateContactInput } from '../src/domain/models/contact.model.js';
 import type { DatabaseAdapter } from './databaseService.js';
 import { anonymizeContactReferences, ensureContactPrivacySchema } from './contactPrivacyService.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';

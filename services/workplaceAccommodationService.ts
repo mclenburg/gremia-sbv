@@ -4,7 +4,7 @@ import type { DatabaseAdapter } from "./databaseService.js";
 import { CaseMeasureService } from "./caseMeasureService.js";
 import { DeadlineService } from "./deadlineService.js";
 import { PersonalDataAuditLogService } from "./auditLogService.js";
-import type { CreateWorkplaceAccommodationInput, UpdateWorkplaceAccommodationInput, WorkplaceAccommodationDashboardSummary, WorkplaceAccommodationRecord, WorkplaceAccommodationWarning } from "../src/app/core/models/workplace-accommodation.model.js";
+import type { CreateWorkplaceAccommodationInput, UpdateWorkplaceAccommodationInput, WorkplaceAccommodationDashboardSummary, WorkplaceAccommodationRecord, WorkplaceAccommodationWarning } from "../src/domain/models/workplace-accommodation.model.js";
 import { WorkplaceAccommodationRow, nowIso, toIso, boolToInt, accommodationStatusToMeasureStatus, mapRecord, evaluateWorkplaceAccommodationWarnings, workplaceFundingCreateValues, workplaceFundingUpdateValues } from './workplaceAccommodationSupport.js';
 export { evaluateWorkplaceAccommodationWarnings } from './workplaceAccommodationSupport.js';
 import { ensureWorkplaceAccommodationSchema } from './workplaceAccommodationSchema.js';

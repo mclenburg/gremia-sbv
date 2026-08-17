@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { ActivityJournalPrefillContext } from '../../../core/models/activity-journal.model';
+import type { ActivityJournalPrefillContext } from '../../../../domain/models/activity-journal.model';
 import { waitForBridge } from '../../../core/bridge/waitForBridge';
 
 export type ActivityJournalSessionSuggestionState = {

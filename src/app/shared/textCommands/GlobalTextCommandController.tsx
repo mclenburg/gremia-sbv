@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Dispatch, KeyboardEvent, SetStateAction } from "react";
 import { CalendarPlus, FileText, Link2, Lock, Search, ShieldAlert, UserPlus } from "lucide-react";
-import type { CaseRecord } from "../../core/models/case.model";
-import type { ContactRecord } from "../../core/models/contact.model";
-import type { CreateDeadlineInput } from "../../core/models/deadline.model";
+import type { CaseRecord } from "../../../domain/models/case.model";
+import type { ContactRecord } from "../../../domain/models/contact.model";
+import type { CreateDeadlineInput } from "../../../domain/models/deadline.model";
 import {
   LEGAL_NORM_SUGGESTIONS,
   formatAnonymizationMarkerText,
@@ -25,7 +25,7 @@ import {
   getTextCommandRangeLength,
   type ConfidentialCommandLevel,
   type RiskLevelCommand,
-} from "@services/textCommandPolicy";
+} from "@/domain/textCommands/textCommandPolicy";
 import type { TextCommandTextareaChange, TextCommandTextareaReplacement } from "./TextCommandTextarea";
 import { buildGlobalDeadlineInput } from "./globalTextCommandActions";
 

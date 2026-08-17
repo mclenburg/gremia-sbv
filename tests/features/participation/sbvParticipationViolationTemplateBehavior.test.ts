@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { SbvParticipationViolationRecord, SbvParticipationViolationTemplateInput } from '../../../src/app/core/models/sbv-participation-violation.model';
+import type { SbvParticipationViolationRecord, SbvParticipationViolationTemplateInput } from '../../../src/domain/models/sbv-participation-violation.model';
 import { SbvParticipationViolationTemplateService } from '../../../services/sbvParticipationViolationTemplateService';
 
 function validTemplateInput(patch: Partial<SbvParticipationViolationTemplateInput> = {}): SbvParticipationViolationTemplateInput {

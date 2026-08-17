@@ -1,7 +1,7 @@
 import { checkGremiaBrEndpoint, validateGremiaBrBaseUrl } from './gremiaBrPolicy.js';
 import { toGremiaBrEndpointLabel } from './gremiaBrApiCatalog.js';
 import type { GremiaBrRequestOptions } from './gremiaBrTypes.js';
-import type { CreatePersonalDataAuditInput } from '../../src/app/core/models/audit.model.js';
+import type { CreatePersonalDataAuditInput } from '../../src/domain/models/audit.model.js';
 import { auditGremiaBrReadRequest } from '../auditEventBuilders.js';
 
 export type GremiaBrFetch = (input: string, init?: RequestInit) => Promise<Response>;

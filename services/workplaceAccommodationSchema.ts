@@ -1,5 +1,6 @@
 import type { DatabaseAdapter } from './databaseService.js';
 import type { CaseMeasureService } from './caseMeasureService.js';
+import { addColumnsIfMissing } from './migrations/schemaColumnMigration.js';
 export function ensureWorkplaceAccommodationSchema(db: DatabaseAdapter, caseMeasures: CaseMeasureService): void {
   caseMeasures.ensureSchema();
   db.exec(`
@@ -41,10 +42,7 @@ export function ensureWorkplaceAccommodationSchema(db: DatabaseAdapter, caseMeas
       CREATE INDEX IF NOT EXISTS idx_case_measure_workplace_category ON case_measure_workplace_accommodation(category);
       CREATE INDEX IF NOT EXISTS idx_case_measure_workplace_review ON case_measure_workplace_accommodation(effectiveness_review_at);
     `);
-  const columns = new Set(
-      db.prepare<{ name: string }>("PRAGMA table_info(case_measure_workplace_accommodation)").all().map((row) => row.name),
-    );
-  const additions: Array<[string, string]> = [
+  addColumnsIfMissing(db, 'case_measure_workplace_accommodation', [
       ["funding_carrier", "TEXT"],
       ["funding_applied_at", "TEXT"],
       ["funding_documents_status", "TEXT"],
@@ -52,10 +50,5 @@ export function ensureWorkplaceAccommodationSchema(db: DatabaseAdapter, caseMeas
       ["funding_decision", "TEXT"],
       ["funding_amount", "REAL"],
       ["ordered_at", "TEXT"],
-    ];
-  for (const [name, type] of additions) {
-    if (!columns.has(name)) {
-      db.exec(`ALTER TABLE case_measure_workplace_accommodation ADD COLUMN ${name} ${type}`);
-    }
-  }
+    ]);
 }

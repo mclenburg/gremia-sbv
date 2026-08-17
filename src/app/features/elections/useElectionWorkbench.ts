@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { ConfigureElectionSetupInput, CreateElectionInput, ElectionPreparationOverview, ElectionRecord } from '../../core/models/election-workflow.model';
-import type { ElectionExecutionOverview } from '../../core/models/election-execution.model';
+import type { ConfigureElectionSetupInput, CreateElectionInput, ElectionPreparationOverview, ElectionRecord } from '../../../domain/models/election-workflow.model';
+import type { ElectionExecutionOverview } from '../../../domain/models/election-execution.model';
 export function useElectionWorkbench(){
  const [elections,setElections]=useState<ElectionRecord[]>([]),[selectedId,setSelectedId]=useState(''),[overview,setOverview]=useState<ElectionPreparationOverview|null>(null),[execution,setExecution]=useState<ElectionExecutionOverview|null>(null),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const selectedIdRef=useRef('');

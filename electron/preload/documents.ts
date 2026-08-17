@@ -5,7 +5,7 @@ import type {
   ReportDescriptor,
   ReportExportHistoryItem,
   ReportGenerationResult,
-} from "../../src/app/core/models/report.model.js";
+} from "../../src/domain/models/report.model.js";
 
 export function createDocumentsApi(invokeIpc: IpcInvoker) {
   return {

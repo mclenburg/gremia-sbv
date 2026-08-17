@@ -1,4 +1,4 @@
-import type { CaseNoteLinkRecord } from '../../core/models/case-note-link.model';
+import type { CaseNoteLinkRecord } from '../../../domain/models/case-note-link.model';
 import type { CaseExplorerSelection } from './caseWorkbenchTypes';
 
 type Props = {

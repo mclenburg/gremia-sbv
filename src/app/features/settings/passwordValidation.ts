@@ -1,1 +1,1 @@
-export { validateAppPassword as validatePassword } from "@services/passwordPolicy";
+export { validateAppPassword as validatePassword } from "../../../domain/security/passwordPolicy";

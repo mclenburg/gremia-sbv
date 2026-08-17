@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { getDashboardState, getHoursRemaining } from '../../../src/app/core/deadlineLogic';
-import type { DeadlineRecord } from '../../../src/app/core/models/deadline.model';
+import type { DeadlineRecord } from '../../../src/domain/models/deadline.model';
 
 function deadline(hoursFromNow: number, overrides: Partial<DeadlineRecord> = {}): DeadlineRecord {
   const reference = new Date('2026-05-02T10:00:00.000Z');

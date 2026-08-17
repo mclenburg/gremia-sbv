@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Download, ExternalLink, FileText, RefreshCw } from 'lucide-react';
-import { ModuleFeedback } from '../../shared/components/ModuleFeedback';
 import { IndustrialButton, ToolbarButton } from '../../shared/components/IndustrialButton';
 import { DateInput } from '../../shared/components/IndustrialForm';
-import { EmptyState, IndustrialRecordCard, WorkbenchPage } from '../../shared/components/WorkbenchLayout';
+import { EmptyState, IndustrialRecordCard, ModuleFeedback, WorkbenchPage } from '../../shared/components/WorkbenchLayout';
 import { waitForBridge } from '../../core/bridge/waitForBridge';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 import type {
@@ -12,7 +11,8 @@ import type {
   ReportExportHistoryItem,
   ReportGenerationResult,
   ReportType,
-} from '../../core/models/report.model';
+} from '../../../domain/models/report.model';
+import { legalToday } from '../../../domain/time/legalTime';
 
 const GROUP_LABELS: Record<string, string> = {
   sbv: 'SBV-Fachberichte',
@@ -21,12 +21,11 @@ const GROUP_LABELS: Record<string, string> = {
 };
 
 function today(): string {
-  return new Date().toISOString().slice(0, 10);
+  return legalToday();
 }
 
 function startOfYear(): string {
-  const date = new Date();
-  return `${date.getFullYear()}-01-01`;
+  return `${legalToday().slice(0, 4)}-01-01`;
 }
 
 function formatDateTime(value?: string): string {

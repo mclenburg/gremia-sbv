@@ -1,15 +1,15 @@
 import type { IpcInvoker } from "./invoke.js";
-import type { CreateSbvResourceRecordInput, SbvResourceDashboardSummary, SbvResourceRecord, UpdateSbvResourceRecordInput } from "../../src/app/core/models/sbv-resource.model.js";
+import type { CreateSbvResourceRecordInput, SbvResourceDashboardSummary, SbvResourceRecord, UpdateSbvResourceRecordInput } from "../../src/domain/models/sbv-resource.model.js";
 import { IPC_CHANNELS } from "../ipc/channels.js";
-import type { CreateSbvControlProtocolInput, SbvControlProtocolRecord, UpdateSbvControlProtocolInput } from "../../src/app/core/models/sbv-control-protocol.model.js";
-import type { CaseAnonymizationMode } from "../../src/app/core/models/privacy-review.model.js";
-import type { ComplianceAuditChainStatus, ComplianceDatabaseIntegrityStatus, ComplianceIncidentRecord, ComplianceSelfCheckResult, CreateComplianceIncidentInput, DataSubjectAccessPrefill, DataSubjectAccessRequestInput, UpdateComplianceIncidentInput } from "../../src/app/core/models/compliance.model.js";
+import type { CreateSbvControlProtocolInput, SbvControlProtocolRecord, UpdateSbvControlProtocolInput } from "../../src/domain/models/sbv-control-protocol.model.js";
+import type { CaseAnonymizationMode } from "../../src/domain/models/privacy-review.model.js";
+import type { ComplianceAuditChainStatus, ComplianceDatabaseIntegrityStatus, ComplianceIncidentRecord, ComplianceSelfCheckResult, CreateComplianceIncidentInput, DataSubjectAccessPrefill, DataSubjectAccessRequestInput, UpdateComplianceIncidentInput } from "../../src/domain/models/compliance.model.js";
 import type {
   RetentionDashboard,
   RetentionOperationResult,
   RetentionSettings,
   UpdateRetentionSettingsInput,
-} from "../../src/app/core/models/retention.model.js";
+} from "../../src/domain/models/retention.model.js";
 
 export function createGovernanceApi(invokeIpc: IpcInvoker) {
   return {

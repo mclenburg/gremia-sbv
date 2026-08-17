@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import type { DatabaseAdapter } from './databaseService.js';
 import { directCasePrivacyEntities, resolveAnonymizationValue } from './privacyEntityRegistry.js';
-import type { ReportableMeasureType } from '../src/app/core/models/measure-lifecycle.model.js';
+import type { ReportableMeasureType } from '../src/domain/models/measure-lifecycle.model.js';
 export const CASE_ANONYMIZE_CONFIRMATION = 'FALL ANONYMISIEREN';
 export const CASE_DELETE_CONFIRMATION = 'FALL LÖSCHEN';
 
@@ -261,4 +261,3 @@ export function lifecycleRowsForCase(db: DatabaseAdapter, caseId: string): Reten
   collect('termination_hearings', 'termination_hearing', 'status');
   return result;
 }
-

@@ -9,7 +9,7 @@ import type { ApplicationServices } from '../applicationServices.js';
 import type {
   CreateTerminationHearingInput,
   UpdateTerminationHearingInput,
-} from "../../src/app/core/models/termination.model.js";
+} from "../../src/domain/models/termination.model.js";
 import {
   assertOptionalString,
   assertRecordInput,

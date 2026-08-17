@@ -6,7 +6,7 @@ import type {
   CreateDeadlineInput,
   DeadlineListFilters,
   UpdateDeadlineInput,
-} from "../../src/app/core/models/deadline.model.js";
+} from "../../src/domain/models/deadline.model.js";
 import {
   assertOptionalObject,
   assertOptionalString,

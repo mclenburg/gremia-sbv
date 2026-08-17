@@ -1,7 +1,8 @@
 import { Users } from "lucide-react";
-import type { ContactCategory } from "../../../../core/models/contact.model";
+import type { ContactCategory } from "../../../../../domain/models/contact.model";
 import { filterContactsForQuery, formatContactReference } from "../../../contacts/contactDisplay";
 import type { InlineCommandOverlaysProps } from "../InlineCommandOverlays";
+import { IndustrialModalSurface } from "../../../../shared/dialogs/IndustrialDialogs";
 
 type ContactOverlayProps = Pick<InlineCommandOverlaysProps,
   "inlineContactDraft" | "setInlineContactDraft" | "contacts" | "insertExistingContactFromProtocol" |
@@ -12,7 +13,7 @@ function ContactSearch({ props }: { props: ContactOverlayProps }) {
   if (!draft) return null;
   const matches = filterContactsForQuery(contacts, draft.query);
   return <>
-    <div className="industrial-modal-grid"><label className="industrial-modal-wide"><span>Bestehenden Kontakt suchen</span><input value={draft.query} onChange={(event) => setInlineContactDraft((current) => current ? { ...current, query: event.target.value } : current)} placeholder="Name, Organisation, Rolle, E-Mail …" autoFocus /></label></div>
+    <div className="industrial-modal-grid"><label className="industrial-modal-wide"><span>Bestehenden Kontakt suchen</span><input value={draft.query} onChange={(event) => setInlineContactDraft((current) => current ? { ...current, query: event.target.value } : current)} placeholder="Name, Organisation, Rolle, E-Mail …" /></label></div>
     <div className="inline-contact-results">
       {matches.map((contact) => <button key={contact.id} type="button" className="inline-contact-result" onClick={() => void insertExistingContactFromProtocol(contact)}><strong>{formatContactReference(contact)}</strong><span>{[contact.role, contact.email, contact.phone].filter(Boolean).join(" · ") || "Kontakt"}</span></button>)}
       {!matches.length && <div className="industrial-empty compact">Kein bestehender Kontakt gefunden. Unten neu erfassen.</div>}
@@ -43,10 +44,10 @@ function ContactCreateFields({ props }: { props: ContactOverlayProps }) {
 export function InlineContactOverlay({ props }: { props: InlineCommandOverlaysProps }) {
   if (!props.inlineContactDraft) return null;
   const contactProps: ContactOverlayProps = props;
-  return <div className="industrial-modal-backdrop" role="presentation"><section className="industrial-modal" role="dialog" aria-modal="true" aria-labelledby="inline-contact-title">
+  return <IndustrialModalSurface labelledById="inline-contact-title" onClose={props.cancelInlineContactDraft}>
     <div className="industrial-modal-header"><div className="industrial-modal-icon"><Users className="h-5 w-5" /></div><div><p className="industrial-kicker">Inline-Kontakt</p><h2 id="inline-contact-title">Kontakt im Protokoll einfügen</h2><p>Nach dem Einfügen steht im Text: Name, Vorname (Firma).</p></div></div>
     <ContactSearch props={contactProps} />
     <ContactCreateFields props={contactProps} />
     <div className="industrial-modal-actions"><button type="button" className="industrial-secondary-button" onClick={props.cancelInlineContactDraft}>Abbrechen</button><button type="button" className="industrial-button" onClick={() => void props.createAndInsertContactFromProtocol()}><Users className="h-4 w-4" />Kontakt vormerken und einfügen</button></div>
-  </section></div>;
+  </IndustrialModalSurface>;
 }

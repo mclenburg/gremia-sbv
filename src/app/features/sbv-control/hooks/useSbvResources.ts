@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import type { SbvResourceRecord } from '../../../core/models/sbv-resource.model';
+import type { SbvResourceRecord } from '../../../../domain/models/sbv-resource.model';
 import { useAnnouncer } from '../../../shared/a11y/LiveRegionProvider';
 import { waitForBridge } from '../../../core/bridge/waitForBridge';
 import {

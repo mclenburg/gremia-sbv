@@ -7,7 +7,7 @@ import type {
   CreateRecruitingParticipationInput,
   UpdateRecruitingInterviewEventInput,
   UpdateRecruitingParticipationInput,
-} from '../../src/app/core/models/recruiting-participation.model.js';
+} from '../../src/domain/models/recruiting-participation.model.js';
 import { assertRecordInput, assertString } from './ipcValidation.js';
 
 export function registerRecruitingParticipationIpc(

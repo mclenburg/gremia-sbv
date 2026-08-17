@@ -2,7 +2,7 @@ import { IPC_CHANNELS, registerIpcHandler } from './ipcHandler.js';
 import type { IpcMain } from 'electron';
 import type { SecurityService } from '../../services/securityService.js';
 import type { ApplicationServices } from '../applicationServices.js';
-import type { CreateSbvControlProtocolInput, UpdateSbvControlProtocolInput } from '../../src/app/core/models/sbv-control-protocol.model.js';
+import type { CreateSbvControlProtocolInput, UpdateSbvControlProtocolInput } from '../../src/domain/models/sbv-control-protocol.model.js';
 import { assertRecordInput, assertString } from './ipcValidation.js';
 
 export function registerSbvControlProtocolIpc(ipcMain: IpcMain, security: SecurityService, services: ApplicationServices): void {

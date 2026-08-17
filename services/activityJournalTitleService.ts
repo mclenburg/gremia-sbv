@@ -1,4 +1,4 @@
-import type { ActivityJournalCategory, ActivityJournalContextType } from '../src/app/core/models/activity-journal.model.js';
+import type { ActivityJournalCategory, ActivityJournalContextType } from '../src/domain/models/activity-journal.model.js';
 
 export interface ActivityJournalTitleContext {
   contextType?: ActivityJournalContextType;

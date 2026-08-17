@@ -1,4 +1,4 @@
-import type { CreateTemplateInput } from '../src/app/core/models/template.model.js';
+import type { CreateTemplateInput } from '../src/domain/models/template.model.js';
 
 export const DEFAULT_TEMPLATES: readonly CreateTemplateInput[] = [
     {

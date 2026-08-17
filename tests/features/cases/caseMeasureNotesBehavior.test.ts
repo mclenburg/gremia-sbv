@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { CaseMeasureService } from '../../../services/caseMeasureService';
-import { noteProcessTypeToCaseMeasureType } from '../../../src/app/core/models/case-measure.model';
+import { noteProcessTypeToCaseMeasureType } from '../../../src/domain/models/case-measure.model';
 
 class MemoryDb {
   rows: Record<string, Record<string, unknown>[]> = {

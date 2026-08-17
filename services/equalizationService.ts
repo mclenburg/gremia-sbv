@@ -3,7 +3,7 @@ import type { DatabaseAdapter } from './databaseService.js';
 import { DatabaseUnitOfWork } from './databaseUnitOfWork.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
 import { MeasureLifecycleAuditService } from './measureLifecycleAuditService.js';
-import type { CreateEqualizationProcessInput, EqualizationProcessRecord, EqualizationStatus, UpdateEqualizationProcessInput } from '../src/app/core/models/equalization.model.js';
+import type { CreateEqualizationProcessInput, EqualizationProcessRecord, EqualizationStatus, UpdateEqualizationProcessInput } from '../src/domain/models/equalization.model.js';
 
 /** SQLite row at the persistence boundary. Values remain scalar and must be
  * normalized by the service mapper before entering the domain model. */

@@ -1,4 +1,4 @@
-import type { PersonLifecycleState, ProtectedPersonRecord, ProtectionStatus } from '../src/app/core/models/protected-person.model.js';
+import type { PersonLifecycleState, ProtectedPersonRecord, ProtectionStatus } from '../src/domain/models/protected-person.model.js';
 
 export interface PersonLifecycleDecision {
   lifecycleState: PersonLifecycleState;

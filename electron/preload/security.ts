@@ -3,7 +3,7 @@ import { IPC_CHANNELS } from "../ipc/channels.js";
 import type {
   SecurityResult,
   SecurityStatus,
-} from "../../src/app/core/models/security.model.js";
+} from "../../src/domain/models/security.model.js";
 
 export function createSecurityApi(invokeIpc: IpcInvoker) {
   return {

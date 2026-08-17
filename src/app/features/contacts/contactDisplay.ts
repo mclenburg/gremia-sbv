@@ -1,4 +1,4 @@
-import type { ContactRecord } from '../../core/models/contact.model';
+import type { ContactRecord } from '../../../domain/models/contact.model';
 
 export function formatContactReference(contact: ContactRecord | Pick<ContactRecord, 'firstName' | 'lastName' | 'organization'>): string {
   const name = [contact.lastName, contact.firstName].filter(Boolean).join(', ');

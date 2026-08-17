@@ -2,7 +2,7 @@ import type {
   GremiaBrRelevanceKeywordGroup,
   GremiaBrRelevanceMatch,
   GremiaBrRelevanceSettings,
-} from '../../src/app/core/models/gremia-br.model.js';
+} from '../../src/domain/models/gremia-br.model.js';
 
 export const DEFAULT_GREMIA_BR_RELEVANCE_GROUPS: readonly GremiaBrRelevanceKeywordGroup[] = [
   { id: 'severe_disability', label: 'Schwerbehinderung', enabled: true, keywords: ['schwerbehind', 'gdb', 'nachteilsausgleich'] },

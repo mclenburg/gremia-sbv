@@ -1,5 +1,6 @@
-import type { DeadlineRecord } from '../src/app/core/models/deadline.model.js';
+import type { DeadlineRecord } from '../src/domain/models/deadline.model.js';
 import { containsDirectIdentifier, deadlineProcessTypeLabel, sanitizeIcalText, type IcalPrivacyLevel } from './icalPrivacyPolicy.js';
+import { legalCalendarDate } from '../src/domain/time/legalTime.js';
 
 export type DeadlineIcalPrivacyLevel = IcalPrivacyLevel;
 
@@ -31,7 +32,9 @@ function foldLine(line: string): string[] {
 }
 
 function dateOnly(iso: string): string {
-  return new Date(iso).toISOString().slice(0, 10).replace(/-/g, '');
+  const explicitDate = /^(\d{4}-\d{2}-\d{2})(?:$|T)/.exec(iso)?.[1];
+  const date = explicitDate ?? legalCalendarDate(new Date(iso));
+  return date.replace(/-/g, '');
 }
 
 function timestamp(date: Date): string {

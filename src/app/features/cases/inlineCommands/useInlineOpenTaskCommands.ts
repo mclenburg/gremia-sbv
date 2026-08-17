@@ -1,4 +1,4 @@
-import { formatOpenTaskText } from "@services/textCommandPolicy";
+import { formatOpenTaskText } from "@/domain/textCommands/textCommandPolicy";
 import type { InlineCommandRuntime } from "./inlineCommandRuntime";
 
 export function useInlineOpenTaskCommands(runtime: InlineCommandRuntime) {

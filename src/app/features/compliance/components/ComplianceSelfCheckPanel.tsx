@@ -2,7 +2,7 @@ import { ToolbarButton } from "../../../shared/components/IndustrialButton";
 import { ComplianceBadge } from "../../../shared/components/StatusBadges";
 import { IndustrialStatusCard } from "../../../shared/components/WorkbenchLayout";
 import { complianceFindingToTone } from "../../../shared/status/statusTone";
-import type { ComplianceSelfCheckResult } from "../../../core/models/compliance.model";
+import type { ComplianceSelfCheckResult } from "../../../../domain/models/compliance.model";
 
 function selfCheckStatusLabel(status: ComplianceSelfCheckResult["status"]): string {
   if (status === "ok") return "OK";

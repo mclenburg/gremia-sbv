@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { waitForBridge } from '../../core/bridge/waitForBridge';
-import type { DeadlineListFilters } from '../../core/models/deadline.model';
+import type { DeadlineListFilters } from '../../../domain/models/deadline.model';
 
 export type IcalExportPrivacyLevel = 'privacy_first' | 'process_type' | 'case_reference' | 'details';
 

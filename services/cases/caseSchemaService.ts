@@ -15,8 +15,8 @@ import type {
   CreateCaseInput,
   LegacyCaseBindingInput,
   LegacyCaseBindingResult,
-} from "../../src/app/core/models/case.model.js";
-import type { CaseDocumentRecord } from "../../src/app/core/models/case-document.model.js";
+} from "../../src/domain/models/case.model.js";
+import type { CaseDocumentRecord } from "../../src/domain/models/case-document.model.js";
 import type {
   CaseContentSearchInput,
   CaseNoteRecord,
@@ -25,11 +25,11 @@ import type {
   ConfidentialLevel,
   CreateCaseNoteInput,
   UpdateCaseNoteInput,
-} from "../../src/app/core/models/case-note.model.js";
+} from "../../src/domain/models/case-note.model.js";
 import type {
   CaseNoteLinkRecord,
   CreateCaseNoteLinkInput,
-} from "../../src/app/core/models/case-note-link.model.js";
+} from "../../src/domain/models/case-note-link.model.js";
 import type { DatabaseAdapter } from "../databaseService.js";
 import {
   ensureContactPrivacySchema,
@@ -43,40 +43,34 @@ import { SearchIndexService } from "../search/searchIndexService.js";
 import { extractDocumentTextBestEffort, inferMimeType } from "../documents/documentTextExtractionService.js";
 import { DocumentOcrService } from "../documents/documentOcrService.js";
 import { CaseServiceCore } from './caseServiceCore.js';
+import { addColumnsIfMissing } from '../migrations/schemaColumnMigration.js';
 
 export class CaseSchemaService extends CaseServiceCore {
   ensureSchema(db = this.dbProvider()): void {
-      const tryExec = (sql: string) => {
-        try {
-          db.exec(sql);
-        } catch (error) {
-          const message = error instanceof Error ? error.message : String(error);
-          if (!/duplicate column name|already exists/i.test(message)) throw error;
-        }
-      };
-  
-      tryExec(
-        `ALTER TABLE case_notes ADD COLUMN title TEXT DEFAULT 'Gesprächsnotiz';`,
-      );
-      tryExec(`ALTER TABLE case_documents ADD COLUMN display_title TEXT;`);
-      tryExec(`ALTER TABLE case_documents ADD COLUMN extracted_text TEXT;`);
-      tryExec(`ALTER TABLE case_documents ADD COLUMN document_key TEXT;`);
-      tryExec(`ALTER TABLE case_documents ADD COLUMN iv TEXT;`);
-      tryExec(`ALTER TABLE case_documents ADD COLUMN auth_tag TEXT;`);
-      tryExec(`ALTER TABLE case_documents ADD COLUMN size_bytes INTEGER;`);
-      tryExec(`ALTER TABLE case_documents ADD COLUMN imported_at TEXT;`);
-      tryExec(`ALTER TABLE case_documents ADD COLUMN extraction_quality TEXT DEFAULT 'unknown';`);
-      tryExec(`ALTER TABLE case_documents ADD COLUMN text_extraction_status TEXT DEFAULT 'unknown';`);
-      tryExec(`ALTER TABLE case_documents ADD COLUMN text_extracted_at TEXT;`);
-      tryExec(`ALTER TABLE case_documents ADD COLUMN text_extractor_id TEXT;`);
-      tryExec(`ALTER TABLE case_documents ADD COLUMN text_extraction_error TEXT;`);
-      tryExec(`ALTER TABLE case_documents ADD COLUMN ocr_status TEXT NOT NULL DEFAULT 'not_required';`);
-      tryExec(`ALTER TABLE case_documents ADD COLUMN ocr_text TEXT;`);
-      tryExec(`ALTER TABLE case_documents ADD COLUMN ocr_engine TEXT;`);
-      tryExec(`ALTER TABLE case_documents ADD COLUMN ocr_started_at TEXT;`);
-      tryExec(`ALTER TABLE case_documents ADD COLUMN ocr_completed_at TEXT;`);
-      tryExec(`ALTER TABLE case_documents ADD COLUMN ocr_error TEXT;`);
-      tryExec(`CREATE INDEX IF NOT EXISTS idx_case_documents_ocr_status ON case_documents(ocr_status, imported_at);`);
+      addColumnsIfMissing(db, 'case_notes', [
+        ['title', "TEXT DEFAULT 'Gesprächsnotiz'"],
+      ]);
+      addColumnsIfMissing(db, 'case_documents', [
+        ['display_title', 'TEXT'],
+        ['extracted_text', 'TEXT'],
+        ['document_key', 'TEXT'],
+        ['iv', 'TEXT'],
+        ['auth_tag', 'TEXT'],
+        ['size_bytes', 'INTEGER'],
+        ['imported_at', 'TEXT'],
+        ['extraction_quality', "TEXT DEFAULT 'unknown'"],
+        ['text_extraction_status', "TEXT DEFAULT 'unknown'"],
+        ['text_extracted_at', 'TEXT'],
+        ['text_extractor_id', 'TEXT'],
+        ['text_extraction_error', 'TEXT'],
+        ['ocr_status', "TEXT NOT NULL DEFAULT 'not_required'"],
+        ['ocr_text', 'TEXT'],
+        ['ocr_engine', 'TEXT'],
+        ['ocr_started_at', 'TEXT'],
+        ['ocr_completed_at', 'TEXT'],
+        ['ocr_error', 'TEXT'],
+      ]);
+      db.exec(`CREATE INDEX IF NOT EXISTS idx_case_documents_ocr_status ON case_documents(ocr_status, imported_at);`);
       new DocumentOcrService(db).ensureSchema();
   
       ensureContactPrivacySchema(db);

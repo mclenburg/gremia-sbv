@@ -1,9 +1,9 @@
 import type { Dispatch, SetStateAction } from "react";
-import type { CaseRecord } from "../../../core/models/case.model";
+import type { CaseRecord } from "../../../../domain/models/case.model";
 import {
   getTextCommandKind,
   type TextCommandToken,
-} from "@services/textCommandPolicy";
+} from "@/domain/textCommands/textCommandPolicy";
 import { defaultDeadlineTitleForCase } from "../caseWorkbenchFormat";
 import {
   buildBemPrefill,

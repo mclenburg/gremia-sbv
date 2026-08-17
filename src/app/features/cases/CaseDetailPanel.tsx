@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { Download, Search } from 'lucide-react';
 import { ToolbarButton } from '../../shared/components/IndustrialButton';
-import type { CaseSearchHighlightSegment, CaseSearchSourceType } from '../../core/models/case-note.model';
+import type { CaseSearchHighlightSegment, CaseSearchSourceType } from '../../../domain/models/case-note.model';
 import type { CaseDetailPanelSearchProps } from './caseWorkbenchTypes';
 
 const SOURCE_FILTERS: readonly { type: CaseSearchSourceType; label: string }[] = [

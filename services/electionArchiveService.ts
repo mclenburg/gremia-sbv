@@ -6,7 +6,7 @@ import {
   type SbvOfficeDocumentRecord,
 } from './sbvOfficeWorkflowDocumentAdapter.js';
 import { createAccessibleTextPdf } from './documents/pdfDocumentRenderer.js';
-import type { GenerateElectionExecutionDocumentInput } from '../src/app/core/models/election-execution.model.js';
+import type { GenerateElectionExecutionDocumentInput } from '../src/domain/models/election-execution.model.js';
 
 const TEMPLATE_VERSION = '0.9.7-D.1';
 

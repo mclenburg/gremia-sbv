@@ -21,7 +21,7 @@ PDF-Exports sind lokale Exporte und unterliegen denselben Datenschutzregeln wie 
 
 Alle Berichts- und Wahl-PDFs entstehen direkt im Electron-Main-Prozess mit PDFKit. Es gibt keinen HTML-Zwischenschritt, kein Chromium-Druckfenster und keine unverschlüsselte temporäre HTML-Datei. Die fachlichen Berichtsdienste liefern eine gemeinsame, rendererunabhängige Dokumentstruktur; der PDF-Renderer übernimmt ausschließlich Satz, Seitenumbrüche und PDF-Semantik.
 
-Der Renderer bettet Noto Sans ein und übernimmt fachliche Inhalte Unicode-getreu. Insbesondere Namen, Überschriften und Nachweistexte in Wahlakten dürfen nicht transliteriert oder anderweitig normalisiert werden. Wahlakten werden nach der Erzeugung weiterhin ausschließlich im verschlüsselten Dokumentenspeicher abgelegt.
+Der Renderer bettet DejaVu Sans ein und übernimmt fachliche Inhalte Unicode-getreu. Insbesondere Namen, Überschriften und Nachweistexte in Wahlakten dürfen nicht transliteriert oder anderweitig normalisiert werden. Nicht darstellbare Zeichen lösen einen Exportfehler aus und werden niemals still ersetzt. Wahlakten werden nach der Erzeugung weiterhin ausschließlich im verschlüsselten Dokumentenspeicher abgelegt.
 
 Erzeugte PDFs enthalten Titel, deutsche Dokumentsprache, logische Lesereihenfolge sowie Strukturkennzeichen für Überschriften, Absätze, Listen und Tabellen. Wiederholte Tabellenköpfe und Fußzeilen sind als solche behandelt; Status- und Warninformationen stehen immer als Text zur Verfügung und werden nicht allein durch Farbe vermittelt.
 

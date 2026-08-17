@@ -1,4 +1,4 @@
-import type { ParticipationRecord, ParticipationStatus, ParticipationWarning } from "../src/app/core/models/participation.model.js";
+import type { ParticipationRecord, ParticipationStatus, ParticipationWarning } from "../src/domain/models/participation.model.js";
 export interface ParticipationRow {
   id: string; case_id: string; title: string; measure_status?: string | null; risk_level: ParticipationRecord['riskLevel'] | null;
   summary?: string | null; next_step: string | null; due_at?: string | null; employer_measure_type?: ParticipationRecord['measureType'] | null;
@@ -155,4 +155,3 @@ export function evaluateParticipationWarnings(
 
   return warnings;
 }
-

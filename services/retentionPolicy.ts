@@ -1,5 +1,5 @@
-import type { RetentionCandidate, RetentionDashboard, RetentionRiskLevel, RetentionSettings } from '../src/app/core/models/retention.model.js';
-import type { RetentionOwnerSnapshot } from '../src/app/core/models/retention-owner.model.js';
+import type { RetentionCandidate, RetentionDashboard, RetentionRiskLevel, RetentionSettings } from '../src/domain/models/retention.model.js';
+import type { RetentionOwnerSnapshot } from '../src/domain/models/retention-owner.model.js';
 import { buildOfficeOwnerRetentionCandidates } from './retentionOwnerPolicy.js';
 
 export const DEFAULT_RETENTION_SETTINGS: RetentionSettings = {

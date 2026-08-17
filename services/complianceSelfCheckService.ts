@@ -1,4 +1,4 @@
-import type { ComplianceSelfCheckItem, ComplianceSelfCheckResult, ComplianceSelfCheckStatus } from '../src/app/core/models/compliance.model.js';
+import type { ComplianceSelfCheckItem, ComplianceSelfCheckResult, ComplianceSelfCheckStatus } from '../src/domain/models/compliance.model.js';
 import type { DatabaseAdapter } from './databaseService.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
 import { evaluateDatabaseIntegrity } from './databaseIntegrityService.js';

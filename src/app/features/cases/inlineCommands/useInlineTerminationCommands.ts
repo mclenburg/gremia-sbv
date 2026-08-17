@@ -1,4 +1,4 @@
-import { formatTerminationMarkerText } from "@services/textCommandPolicy";
+import { formatTerminationMarkerText } from "@/domain/textCommands/textCommandPolicy";
 import { fromDateTimeLocalValue } from "../caseWorkbenchFormat";
 import type { InlineCommandRuntime } from "./inlineCommandRuntime";
 
