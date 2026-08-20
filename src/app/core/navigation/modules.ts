@@ -42,6 +42,7 @@ export type ViewId =
   | 'sbv_control'
   | 'reports'
   | 'compliance'
+  | 'privacy_review'
   | 'settings';
 
 export type ModuleIcon = ForwardRefExoticComponent<Omit<LucideProps, 'ref'> & RefAttributes<SVGSVGElement>>;
@@ -55,6 +56,7 @@ export interface ModuleDefinition {
   status?: 'active' | 'planned';
   plannedVersion?: string;
   group: ModuleGroupId;
+  showInNavigation?: boolean;
 }
 
 export type ModuleGroupId = 'core' | 'processes' | 'tools' | 'administration';
@@ -120,7 +122,8 @@ export const modules: ModuleDefinition[] = [
     shortTitle: 'BEM',
     text: 'Einladung, Zustimmung, Maßnahmen, Evaluation.',
     icon: HeartPulse,
-    group: 'processes'
+    group: 'processes',
+    showInNavigation: false
   },
   {
     id: 'prevention',
@@ -128,7 +131,8 @@ export const modules: ModuleDefinition[] = [
     shortTitle: 'Prävention',
     text: 'Frühzeitige Aktivierung nach § 167 Abs. 1 SGB IX.',
     icon: ShieldAlert,
-    group: 'processes'
+    group: 'processes',
+    showInNavigation: false
   },
 
   {
@@ -217,6 +221,14 @@ export const modules: ModuleDefinition[] = [
     title: 'Compliance Center',
     shortTitle: 'Compliance',
     text: 'TOMs, DSFA, DSGVO/BDSG und Freigabeformular.',
+    icon: ShieldCheck,
+    group: 'administration'
+  },
+  {
+    id: 'privacy_review',
+    title: 'Datenschutzprüfung & Löschung',
+    shortTitle: 'Datenschutzprüfung',
+    text: 'Fällige Lösch-, Anonymisierungs- und Aufbewahrungsprüfungen vollständig bearbeiten.',
     icon: ShieldCheck,
     group: 'administration'
   },

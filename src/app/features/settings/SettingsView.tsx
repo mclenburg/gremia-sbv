@@ -1,6 +1,5 @@
 import { ModuleFeedback } from '../../shared/components/ModuleFeedback';
 import { IndustrialPanel } from '../../shared/components/WorkbenchLayout';
-import type { CaseRecord } from '../../../domain/models/case.model';
 import type { ThemeMode } from '../../shared/theme/appTheme';
 
 import { ThemeSettingsForm } from './ThemeSettingsForm';
@@ -30,12 +29,10 @@ function SettingsSectionIntro({
 export function SettingsView({
   theme,
   onThemeChange,
-  cases,
   section = 'settings-general',
 }: {
   theme: ThemeMode;
   onThemeChange: (theme: ThemeMode) => void;
-  cases: CaseRecord[];
   section?: SettingsSectionId;
 }) {
   return (
@@ -66,7 +63,7 @@ export function SettingsView({
           <SettingsSectionIntro title="Datenschutz & Löschung" description="Temporäre Dateien, Prüffristen und Löschentscheidungen bleiben sichtbar und dokumentiert." />
           <div className="grid gap-6 xl:grid-cols-2">
             <TemporaryFilesSettingsPanel />
-            <RetentionSettingsPanel cases={cases} />
+            <RetentionSettingsPanel />
           </div>
         </>
       )}

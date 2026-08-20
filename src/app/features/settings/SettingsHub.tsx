@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import type { CaseRecord } from '../../../domain/models/case.model';
 import { SettingsView, type ThemeMode } from '../../workflowViews';
 import { GremiaBrSettingsPanel } from './GremiaBrSettingsPanel';
 import { ToolbarButton } from '../../shared/components/IndustrialButton';
@@ -8,11 +7,9 @@ import { SETTINGS_SECTIONS } from './settingsNavigation';
 export function SettingsHub({
   theme,
   onThemeChange,
-  cases,
 }: {
   theme: ThemeMode;
   onThemeChange: (theme: ThemeMode) => void;
-  cases: CaseRecord[];
 }) {
   const [activeSectionId, setActiveSectionId] = useState(SETTINGS_SECTIONS[0]?.id ?? 'settings-general');
   const activeSection = useMemo(
@@ -55,7 +52,7 @@ export function SettingsHub({
         {activeSection.id === 'settings-gremia-br' ? (
           <GremiaBrSettingsPanel />
         ) : (
-          <SettingsView theme={theme} onThemeChange={onThemeChange} cases={cases} section={activeSection.id} />
+          <SettingsView theme={theme} onThemeChange={onThemeChange} section={activeSection.id} />
         )}
       </div>
     </section>

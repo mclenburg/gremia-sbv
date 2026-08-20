@@ -263,7 +263,7 @@ export function DashboardFocusOverview({ cases, deadlines, dashboardItems, onNav
           <span>{summary.compliance.ok ? 'Auditkette und Datenbankintegrität ohne Warnung.' : `${summary.compliance.warnings || 1} Warnung(en) prüfen.`}</span>
           {complianceError && <small>{complianceError}</small>}
         </button><SbvAssemblyDashboardAlert onOpen={() => onNavigate('sbv_control')} />
-        <RetentionDashboardCard onOpen={() => onNavigate('settings')} />
+        <RetentionDashboardCard onOpen={() => onNavigate('privacy_review')} />
         {journalSummary && journalSummary.totalEntries > 0 && (
           <IndustrialButton variant="ghost" className="industrial-card dashboard-focus-card" onClick={() => onNavigate('activity_journal')}>
             <span className={markerClass(journalSummary.openFollowUps.length > 0 ? 'attention' : journalWeekReview.visible ? journalWeekReview.marker : 'neutral')}>{journalSummary.openFollowUps.length > 0 ? 'Nachhalten' : journalWeekReview.visible ? 'Prüfen' : 'Info'}</span>

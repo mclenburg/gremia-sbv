@@ -31,7 +31,10 @@ export function LazyFeatureHost({ view, cases, theme, onThemeChange, onCreateDea
   const SettingsFeature = Feature as LazyExoticComponent<ComponentType<{
     theme: ThemeMode;
     onThemeChange: (theme: ThemeMode) => void;
+  }>>;
+  const PrivacyReviewFeature = Feature as LazyExoticComponent<ComponentType<{
     cases: CaseRecord[];
+    onNavigate: (view: ViewId) => void;
   }>>;
   const RecruitingFeature = Feature as LazyExoticComponent<ComponentType<{
     onCreateDeadline: (input: CreateDeadlineInput) => Promise<void>;
@@ -58,7 +61,9 @@ export function LazyFeatureHost({ view, cases, theme, onThemeChange, onCreateDea
       ) : view === "sbv_control" || view === "meetings" ? (
         <SbvControlFeature cases={cases} deadlines={deadlines} onNavigate={onNavigate} initialSection={view === "meetings" ? "meetings" : undefined} />
       ) : view === "settings" ? (
-        <SettingsFeature theme={theme} onThemeChange={onThemeChange} cases={cases} />
+        <SettingsFeature theme={theme} onThemeChange={onThemeChange} />
+      ) : view === "privacy_review" && onNavigate ? (
+        <PrivacyReviewFeature cases={cases} onNavigate={onNavigate} />
       ) : view === "recruiting_participations" ? (
         <RecruitingFeature
           onCreateDeadline={onCreateDeadline}

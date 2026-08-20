@@ -2,7 +2,7 @@ import { Settings as SettingsIcon, TerminalSquare } from 'lucide-react';
 import { moduleGroups, modules, type ModuleGroupDefinition, type ViewId } from '../core/navigation/modules';
 
 function modulesForGroup(group: ModuleGroupDefinition) {
-  return modules.filter((module) => module.group === group.id);
+  return modules.filter((module) => module.group === group.id && module.showInNavigation !== false);
 }
 
 export function ShellNav({ current, onNavigate, onPreload }: { current: ViewId; onNavigate: (view: ViewId) => void; onPreload?: (view: ViewId) => void }) {

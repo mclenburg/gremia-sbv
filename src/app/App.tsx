@@ -51,6 +51,7 @@ const IMPLEMENTED_VIEW_IDS = new Set<ViewId>([
   "sbv_control",
   "reports",
   "compliance",
+  "privacy_review",
   "settings",
 ]);
 

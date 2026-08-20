@@ -7,7 +7,7 @@ describe('0.9.5-e E2E coverage matrix', () => {
   it('covers every active primary navigation module in the visual and Axe route matrix', () => {
     const routeIds = new Set(VISUAL_QA_ROUTES.map((route) => route.id));
     const activeModuleIds = modules
-      .filter((module) => module.status !== 'planned')
+      .filter((module) => module.status !== 'planned' && module.showInNavigation !== false)
       .map((module) => module.id);
 
     expect(routeIds.has('dashboard')).toBe(true);
