@@ -41,6 +41,9 @@ describe('Navigation und Panel-Cleanup 0.9.2', () => {
     expect(text).toContain('Konfiguration');
     expect(text.indexOf('Kernarbeit')).toBeLessThan(text.indexOf('Personen'));
     expect(text.indexOf('Werkzeuge')).toBeLessThan(text.indexOf('Vorlagen'));
+    expect(text).toContain('Datenschutzprüfung');
+    expect(text).not.toContain('BEM');
+    expect(text).not.toContain('Prävention');
   });
 
   it('zeigt Kontakte als Register mit Modal-Erfassung statt als dauerhaft eingebettetes Anlegeformular', () => {

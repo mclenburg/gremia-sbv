@@ -34,7 +34,7 @@ describe('DSB-Transparenzpatch 0.9.2', () => {
     const noticeSource = read('src/app/core/copy/privacyNotices.ts');
     const lifecycleDialog = read('src/app/features/persons/PersonLifecycleReviewDialog.tsx');
     const personDialog = read('src/app/features/persons/PersonPrivacyActionDialog.tsx');
-    const retentionActions = read('src/app/features/settings/RetentionCasePrivacyActions.tsx');
+    const retentionActions = read('src/app/features/privacy-review/RetentionCasePrivacyActions.tsx');
 
     expect(noticeSource).toContain('Sicherheitseinträge im Audit-Log bleiben aus Integritätsgründen erhalten');
     expect(noticeSource).toContain('keine Direktidentifikatoren');

@@ -30,7 +30,7 @@ const DASHBOARD_GROUP_DESCRIPTIONS: Record<DashboardModuleGroupId, string> = {
   administration: "Compliance und betriebliche Datenschutzkontrollen.",
 };
 
-export function groupDashboardModules(moduleDefinitions: ModuleDefinition[] = modules): DashboardModuleGroup[] {
+export function groupDashboardModules(moduleDefinitions: ModuleDefinition[] = modules.filter((module) => module.showInNavigation !== false)): DashboardModuleGroup[] {
   return moduleGroups.map((group) => ({
     id: group.id,
     title: group.label,
@@ -117,7 +117,7 @@ export function DashboardOverview({
   onCompleteDeadline: (deadline: DeadlineRecord) => void;
 }) {
   const summary = resolveDashboardWorkdaySummary({ cases, deadlines, dashboardItems });
-  const moduleGroups = groupDashboardModules(modules);
+  const moduleGroups = groupDashboardModules();
 
   return (
     <div className="space-y-6">

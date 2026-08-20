@@ -8,12 +8,8 @@ import { TextCommandTextarea } from '../../shared/textCommands/TextCommandTextar
 import { CaseAnonymizationModeFieldset } from '../../shared/privacy/CaseAnonymizationModeFieldset';
 
 export function RetentionCasePrivacyActions({ cases, busy, setBusy, setError, setMessage, reloadRetention }: {
-  cases: CaseRecord[];
-  busy: boolean;
-  setBusy: (value: boolean) => void;
-  setError: (value: string) => void;
-  setMessage: (value: string) => void;
-  reloadRetention: () => Promise<void>;
+  cases: CaseRecord[]; busy: boolean; setBusy: (value: boolean) => void; setError: (value: string) => void;
+  setMessage: (value: string) => void; reloadRetention: () => Promise<void>;
 }) {
   const [reason, setReason] = useState('');
   const [confirmation, setConfirmation] = useState('');
@@ -42,8 +38,8 @@ export function RetentionCasePrivacyActions({ cases, busy, setBusy, setError, se
   }
 
   return <div className="industrial-subpanel industrial-danger-zone">
-    <h4>Fall anonymisieren oder löschen</h4>
-    <p className="industrial-settings-note">Diese Funktionen sind bewusst streng. Bitte vor Löschung ein Backup erstellen und den Grund dokumentieren.</p>
+    <h4>Manuelle Fallaktion</h4>
+    <p className="industrial-settings-note">Eine Fälligkeit löst niemals automatisch eine Löschung aus. Bitte den Vorgang zuerst prüfen, ein Backup erstellen und die Entscheidung begründen.</p>
     <p className="industrial-message industrial-message-info" data-e2e="audit-log-retention-notice">{AUDIT_LOG_RETENTION_NOTICE}</p>
     <label><span>Fall</span><select className="industrial-select" value={selectedCaseId} onChange={(event) => setSelectedCaseId(event.target.value)}>
       <option value="">Fall auswählen</option>{cases.map((item) => <option key={item.id} value={item.id}>{item.caseNumber} · {item.displayName}</option>)}

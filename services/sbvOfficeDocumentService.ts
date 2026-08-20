@@ -2,6 +2,14 @@ import fs from 'node:fs';
 import path from 'node:path';
 import type { DatabaseAdapter } from './databaseService.js';
 import { SbvOfficeWorkflowDocumentAdapter, type SbvOfficeDocumentRecord } from './sbvOfficeWorkflowDocumentAdapter.js';
+
+export type DocumentPreviewStatus = 'requested' | 'unavailable';
+
+export interface SbvOfficeDocumentGenerationResult {
+  document: SbvOfficeDocumentRecord;
+  previewStatus: DocumentPreviewStatus;
+  previewMessage?: string;
+}
 import type { RetentionOwnerRef } from '../src/domain/models/retention-owner.model.js';
 import type { SbvAssemblyRecord } from '../src/domain/models/sbv-office-workflow.model.js';
 import { paragraph, reportDocument, section, type PdfDocumentDefinition } from './documents/pdfDocumentDefinition.js';

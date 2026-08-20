@@ -6,11 +6,32 @@ import type { EmployerReportStatus, SbvAssemblyRecord } from '../../../../domain
 import { SbvControlPanel } from './SbvControlPanel';
 
 type AssemblyDocumentKind = 'invitation' | 'agenda' | 'activity_report_draft' | 'result_minutes';
+type AssemblyDocumentResult = Awaited<ReturnType<typeof window.gremiaSbv.sbvOffice.assemblies.generateDocument>>;
+
+const assemblyDocumentLabels: Record<AssemblyDocumentKind, string> = {
+  invitation: 'Einladung',
+  agenda: 'Tagesordnung',
+  activity_report_draft: 'Tätigkeitsbericht',
+  result_minutes: 'Ergebnisprotokoll',
+};
+
+function AssemblyDocumentActions({ current, onGenerate }: {
+  current: AssemblyDocumentKind | null;
+  onGenerate: (kind: AssemblyDocumentKind) => void;
+}) {
+  return <div className="industrial-action-row" aria-label="Dokumente erzeugen">
+    {(Object.keys(assemblyDocumentLabels) as AssemblyDocumentKind[]).map((kind) => (
+      <IndustrialButton key={kind} variant="secondary" disabled={current !== null} onClick={() => onGenerate(kind)}>
+        {current === kind ? 'PDF wird erzeugt …' : assemblyDocumentLabels[kind]}
+      </IndustrialButton>
+    ))}
+  </div>;
+}
 
 export function AssemblyWorkspace({ records, onSave, onGenerateDocument, onCreateFollowUp }: {
   records: SbvAssemblyRecord[];
   onSave: (input: { id?: string; year: number; scheduledAt?: string; locationOrMode?: string; invitationAt?: string; agenda?: string; accessibilityCheckStatus?: string; materialsStatus?: string; employerReportStatus: EmployerReportStatus; minutes?: string; status: string }) => Promise<void>;
-  onGenerateDocument: (id: string, kind: AssemblyDocumentKind) => Promise<void>;
+  onGenerateDocument: (id: string, kind: AssemblyDocumentKind) => Promise<AssemblyDocumentResult>;
   onCreateFollowUp: (id: string, dueAt: string) => Promise<void>;
 }) {
   const year = new Date().getFullYear();
@@ -59,8 +80,11 @@ export function AssemblyWorkspace({ records, onSave, onGenerateDocument, onCreat
     setDocumentStatus('');
     setDocumentError('');
     try {
-      await onGenerateDocument(existing.id, kind);
-      setDocumentStatus('Das PDF-Dokument wurde verschlüsselt gespeichert und als Vorschau geöffnet.');
+      const result = await onGenerateDocument(existing.id, kind);
+      setDocumentStatus(result.previewStatus === 'requested'
+        ? 'Das PDF-Dokument wurde verschlüsselt gespeichert und die externe Vorschau wurde angefordert.'
+        : `Das PDF-Dokument wurde verschlüsselt gespeichert (${result.document.filename}).`);
+      if (result.previewStatus === 'unavailable' && result.previewMessage) setDocumentError(result.previewMessage);
     } catch (error) {
       setDocumentError(error instanceof Error ? error.message : 'Das PDF-Dokument konnte nicht erzeugt werden.');
     } finally {
@@ -103,13 +127,7 @@ export function AssemblyWorkspace({ records, onSave, onGenerateDocument, onCreat
             <p>Eigenes Ergebnisprotokoll, Folgeaufgaben und erzeugbare Unterlagen.</p>
           </div>
           {existing ? (
-            <div className="industrial-action-row" aria-label="Dokumente erzeugen">
-              {(['invitation', 'agenda', 'activity_report_draft', 'result_minutes'] as AssemblyDocumentKind[]).map((kind) => (
-                <IndustrialButton key={kind} variant="secondary" disabled={generatingDocument !== null} onClick={() => void generateDocument(kind)}>
-                  {generatingDocument === kind ? 'PDF wird erzeugt …' : kind === 'invitation' ? 'Einladung' : kind === 'agenda' ? 'Tagesordnung' : kind === 'activity_report_draft' ? 'Tätigkeitsbericht' : 'Ergebnisprotokoll'}
-                </IndustrialButton>
-              ))}
-            </div>
+            <AssemblyDocumentActions current={generatingDocument} onGenerate={(kind) => void generateDocument(kind)} />
           ) : null}
         </div>
         {documentStatus ? <p className="industrial-meta" role="status" aria-live="polite">{documentStatus}</p> : null}

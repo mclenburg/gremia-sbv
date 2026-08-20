@@ -4,28 +4,94 @@ import type { ApplicationServices } from '../applicationServices.js';
 import { IPC_CHANNELS, registerIpcHandler } from './ipcHandler.js';
 import { assertAllowedEnum, assertRecordInput, assertString } from './ipcValidation.js';
 import type { CreateSbvMeetingInput, SaveComplaintWorkflowInput, SaveEmployerObligationReviewInput, SaveInclusionAgreementInput, SaveInclusionAgreementTopicInput, SaveInclusionOfficerSnapshotInput, SaveSbvAssemblyInput, UpdateSbvMeetingInput, UpsertSbvMeetingAgendaInput } from '../../src/domain/models/sbv-office-workflow.model.js';
-import type { AssemblyDocumentKind } from '../../services/sbvOfficeDocumentService.js';
+import type { AssemblyDocumentKind, SbvOfficeDocumentGenerationResult } from '../../services/sbvOfficeDocumentService.js';
+import { ApplicationError } from '../../src/domain/models/application-error.model.js';
+import { requestExternalPreview, type ExternalPreviewOpener } from './externalPreviewRequest.js';
+
+const externalPreviewOpener: ExternalPreviewOpener = process.env.GREMIA_SBV_E2E === '1'
+  ? async () => ''
+  : (previewPath) => shell.openPath(previewPath);
+
+async function documentStage<T>(
+  operation: string,
+  stage: string,
+  code: 'EXPORT_FAILED' | 'DATABASE_INTEGRITY_FAILED' | 'FILE_OPERATION_FAILED',
+  safeMessage: string,
+  action: () => T | Promise<T>,
+): Promise<T> {
+  try {
+    return await action();
+  } catch (error) {
+    if (error instanceof ApplicationError) throw error;
+    const systemCode = typeof error === 'object' && error !== null && 'code' in error ? String(error.code) : undefined;
+    console.error('Gremia.SBV document error', JSON.stringify({
+      operation,
+      stage,
+      code,
+      errorName: error instanceof Error ? error.name : typeof error,
+      ...(systemCode ? { systemCode } : {}),
+    }));
+    throw new ApplicationError(code, safeMessage, operation, { cause: error });
+  }
+}
 
 async function generateAndOpenAssemblyDocument(
   security: SecurityService,
   services: ApplicationServices,
   rawAssemblyId: unknown,
   rawKind: unknown,
-) {
+): Promise<SbvOfficeDocumentGenerationResult> {
   const assemblyId = assertString(rawAssemblyId, 'sbvOffice:assemblies:generateDocument', 'Versammlungs-ID', { minLength: 1, maxLength: 120 });
   const kind = assertAllowedEnum(rawKind, 'sbvOffice:assemblies:generateDocument', 'Dokumenttyp', [
     'invitation', 'agenda', 'activity_report_draft', 'result_minutes',
   ] as const) as AssemblyDocumentKind;
   const documents = services.sbvOfficeDocuments();
-  const record = await documents.generateAssemblyDocument(assemblyId, kind);
+  const operation = 'sbvOffice:assemblies:generateDocument';
+  const record = await documentStage(
+    operation,
+    'generate-and-store',
+    'EXPORT_FAILED',
+    'Das PDF-Dokument konnte nicht erzeugt oder verschlüsselt gespeichert werden.',
+    () => documents.generateAssemblyDocument(assemblyId, kind),
+  );
   let plain: Buffer | undefined;
   try {
-    plain = await documents.readDocument(record.id);
-    security.cleanupTemporaryFiles();
-    const previewPath = security.writeTemporaryFile('document-preview', record.filename, plain, 'preview');
-    const openError = await shell.openPath(previewPath);
-    if (openError) throw new Error(`Dokumentvorschau konnte nicht geöffnet werden: ${openError}`);
-    return record;
+    plain = await documentStage(
+      operation,
+      'decrypt-and-verify',
+      'DATABASE_INTEGRITY_FAILED',
+      'Das PDF wurde gespeichert, konnte für die Vorschau aber nicht entschlüsselt und geprüft werden.',
+      () => documents.readDocument(record.id),
+    );
+    await documentStage(
+      operation,
+      'cleanup-temporary-files',
+      'FILE_OPERATION_FAILED',
+      'Das PDF wurde gespeichert, vorhandene temporäre Vorschauen konnten aber nicht sicher bereinigt werden.',
+      () => security.cleanupTemporaryFiles(),
+    );
+    const previewPath = await documentStage(
+      operation,
+      'write-preview',
+      'FILE_OPERATION_FAILED',
+      'Das PDF wurde gespeichert, die temporäre Vorschau konnte aber nicht geschrieben werden.',
+      () => security.writeTemporaryFile('document-preview', record.filename, plain!, 'preview'),
+    );
+    if (requestExternalPreview(previewPath, externalPreviewOpener)) {
+      return { document: record, previewStatus: 'requested' };
+    }
+    return {
+      document: record,
+      previewStatus: 'unavailable',
+      previewMessage: 'Das PDF wurde verschlüsselt gespeichert, die externe Vorschau-Anwendung konnte aber nicht aufgerufen werden.',
+    };
+  } catch (error) {
+    if (!(error instanceof ApplicationError)) throw error;
+    return {
+      document: record,
+      previewStatus: 'unavailable',
+      previewMessage: error.message,
+    };
   } finally {
     plain?.fill(0);
   }
