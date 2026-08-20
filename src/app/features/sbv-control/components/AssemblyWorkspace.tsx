@@ -24,6 +24,9 @@ export function AssemblyWorkspace({ records, onSave, onGenerateDocument, onCreat
   const [minutes, setMinutes] = useState('');
   const [followUpDueAt, setFollowUpDueAt] = useState('');
   const [report, setReport] = useState<EmployerReportStatus>('not_requested');
+  const [generatingDocument, setGeneratingDocument] = useState<AssemblyDocumentKind | null>(null);
+  const [documentStatus, setDocumentStatus] = useState('');
+  const [documentError, setDocumentError] = useState('');
 
   useEffect(() => {
     setScheduledAt(existing?.scheduledAt?.slice(0, 16) ?? '');
@@ -49,6 +52,21 @@ export function AssemblyWorkspace({ records, onSave, onGenerateDocument, onCreat
     minutes,
     status,
   });
+
+  async function generateDocument(kind: AssemblyDocumentKind): Promise<void> {
+    if (!existing || generatingDocument) return;
+    setGeneratingDocument(kind);
+    setDocumentStatus('');
+    setDocumentError('');
+    try {
+      await onGenerateDocument(existing.id, kind);
+      setDocumentStatus('Das PDF-Dokument wurde verschlüsselt gespeichert und als Vorschau geöffnet.');
+    } catch (error) {
+      setDocumentError(error instanceof Error ? error.message : 'Das PDF-Dokument konnte nicht erzeugt werden.');
+    } finally {
+      setGeneratingDocument(null);
+    }
+  }
 
   return (
     <SbvControlPanel
@@ -87,13 +105,15 @@ export function AssemblyWorkspace({ records, onSave, onGenerateDocument, onCreat
           {existing ? (
             <div className="industrial-action-row" aria-label="Dokumente erzeugen">
               {(['invitation', 'agenda', 'activity_report_draft', 'result_minutes'] as AssemblyDocumentKind[]).map((kind) => (
-                <IndustrialButton key={kind} variant="secondary" onClick={() => void onGenerateDocument(existing.id, kind)}>
-                  {kind === 'invitation' ? 'Einladung' : kind === 'agenda' ? 'Tagesordnung' : kind === 'activity_report_draft' ? 'Tätigkeitsbericht' : 'Ergebnisprotokoll'}
+                <IndustrialButton key={kind} variant="secondary" disabled={generatingDocument !== null} onClick={() => void generateDocument(kind)}>
+                  {generatingDocument === kind ? 'PDF wird erzeugt …' : kind === 'invitation' ? 'Einladung' : kind === 'agenda' ? 'Tagesordnung' : kind === 'activity_report_draft' ? 'Tätigkeitsbericht' : 'Ergebnisprotokoll'}
                 </IndustrialButton>
               ))}
             </div>
           ) : null}
         </div>
+        {documentStatus ? <p className="industrial-meta" role="status" aria-live="polite">{documentStatus}</p> : null}
+        {documentError ? <p className="industrial-error" role="alert">{documentError}</p> : null}
         <TextareaInput label="SBV-Ergebnisprotokoll / Maßnahmen" value={minutes} onValueChange={setMinutes} wide />
         {existing ? (
           <div className="industrial-form-grid industrial-form-grid-2 sbv-control-followup-grid">

@@ -31,7 +31,7 @@ describe('Beteiligungsverstoß-Schema 0.9.4-a', () => {
     expect(schema).toContain("'case_measure_participation'");
   });
 
-  it('erweitert generated_documents für den späteren DOCX-Generator, ohne case_documents zu missbrauchen', () => {
+  it('erweitert generated_documents für den zentralen PDF-Generator, ohne case_documents zu missbrauchen', () => {
     expect(migration).toContain('ALTER TABLE generated_documents ADD COLUMN violation_id TEXT');
     expect(migration).toContain('document_kind TEXT');
     expect(migration).toContain("'sbv_participation_violation'");

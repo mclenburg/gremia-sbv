@@ -22,6 +22,9 @@ export function buildOfficeOwnerRetentionCandidates(owners: readonly RetentionOw
       dueSince: owner.retentionUntil,
       entityType: owner.ownerType,
       entityId: owner.ownerId,
+      privacyReviewRequired: true,
+      policyKey: owner.ownerType === 'election' ? 'election' as const : undefined,
+      legalBasis: owner.ownerType === 'election' ? '§ 177 SGB IX / SchwbVWO' : 'Art. 5 Abs. 1 lit. e DSGVO',
     }];
   });
 }

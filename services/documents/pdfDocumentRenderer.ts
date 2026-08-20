@@ -76,6 +76,7 @@ function assertFontSupports(text: string): void {
   regularFontCoverage ??= (require('fontkit') as FontkitModule)
     .openSync(require.resolve('dejavu-fonts-ttf/ttf/DejaVuSans.ttf'));
   for (const character of text) {
+    if (character === '\n' || character === '\r' || character === '\t') continue;
     const codePoint = character.codePointAt(0);
     if (codePoint === undefined) continue;
     if (!regularFontCoverage.hasGlyphForCodePoint(codePoint)) {

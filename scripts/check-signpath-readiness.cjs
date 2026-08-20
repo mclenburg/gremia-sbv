@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 const { existsSync, readFileSync } = require('node:fs');
 const { join } = require('node:path');
+const { load: parseYaml } = require('js-yaml');
 
 const REQUIRED_ENVIRONMENT = [
   'SIGNPATH_API_TOKEN',
@@ -23,21 +24,48 @@ function missingRequiredEnvironment(env) {
 }
 
 function validateWorkflowContract(workflowText) {
-  const hasManualTrigger = /^\s*workflow_dispatch:/m.test(workflowText);
-  const hasAutomaticTrigger = /^\s*(push|pull_request|schedule):/m.test(workflowText);
-  const isExplicitlyGated = workflowText.includes("vars.SIGNPATH_ENABLED == 'true'");
-  const uploadsGitHubArtifact = /actions\/upload-artifact@v[46]/.test(workflowText);
-  const submitsToSignPath = workflowText.includes('signpath/github-action-submit-signing-request@v2');
-  const usesReadOnlyPermissions = workflowText.includes('actions: read') && workflowText.includes('contents: read');
+  const workflow = parseYaml(workflowText);
+  const triggers = workflow?.on ?? {};
+  const jobs = workflow?.jobs ?? {};
+  const jobEntries = Object.entries(jobs);
+  const steps = jobEntries.flatMap(([, job]) => Array.isArray(job?.steps) ? job.steps : []);
+  const actionName = (step) => typeof step?.uses === 'string' ? step.uses.split('@')[0] : undefined;
+  const hasManualTrigger = Object.hasOwn(triggers, 'workflow_dispatch');
+  const hasAutomaticTrigger = ['push', 'pull_request', 'schedule'].some((trigger) => Object.hasOwn(triggers, trigger));
+  const isExplicitlyGated = jobEntries.every(([, job]) => String(job?.if ?? '').includes("vars.SIGNPATH_ENABLED == 'true'"));
+  const uploadsGitHubArtifact = steps.some((step) => actionName(step) === 'actions/upload-artifact');
+  const submitsToSignPath = steps.some((step) => actionName(step) === 'signpath/github-action-submit-signing-request');
+  const usesReadOnlyPermissions = workflow?.permissions?.actions === 'read' && workflow?.permissions?.contents === 'read';
+  const prepareJob = jobs['prepare-unsigned'];
+  const signingJob = jobs['signpath-windows-exe'];
+  const buildAndSigningSeparated = Boolean(prepareJob && signingJob && signingJob.needs === 'prepare-unsigned');
+  const secret = '${{ secrets.SIGNPATH_API_TOKEN }}';
+  const secretPaths = [];
+  const visit = (value, path = []) => {
+    if (value === secret) secretPaths.push(path.join('.'));
+    else if (Array.isArray(value)) value.forEach((item, index) => visit(item, [...path, String(index)]));
+    else if (value && typeof value === 'object') Object.entries(value).forEach(([key, item]) => visit(item, [...path, key]));
+  };
+  visit(workflow);
+  const signingSteps = Array.isArray(signingJob?.steps) ? signingJob.steps : [];
+  const submitIndex = signingSteps.findIndex((step) => actionName(step) === 'signpath/github-action-submit-signing-request');
+  const secretIsStepScoped = secretPaths.length === 1
+    && secretPaths[0] === `jobs.signpath-windows-exe.steps.${submitIndex}.with.api-token`;
+  const actionsPinned = steps.filter((step) => typeof step?.uses === 'string')
+    .every((step) => /^[^@]+@[0-9a-f]{40}$/i.test(step.uses));
 
   return {
-    ok: hasManualTrigger && !hasAutomaticTrigger && isExplicitlyGated && uploadsGitHubArtifact && submitsToSignPath && usesReadOnlyPermissions,
+    ok: hasManualTrigger && !hasAutomaticTrigger && isExplicitlyGated && uploadsGitHubArtifact && submitsToSignPath
+      && usesReadOnlyPermissions && buildAndSigningSeparated && secretIsStepScoped && actionsPinned,
     hasManualTrigger,
     hasAutomaticTrigger,
     isExplicitlyGated,
     uploadsGitHubArtifact,
     submitsToSignPath,
     usesReadOnlyPermissions,
+    buildAndSigningSeparated,
+    secretIsStepScoped,
+    actionsPinned,
   };
 }
 

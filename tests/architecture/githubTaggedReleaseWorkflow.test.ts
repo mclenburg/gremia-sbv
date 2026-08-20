@@ -2,13 +2,20 @@ import { mkdtempSync, mkdirSync, openSync, closeSync, writeSync, ftruncateSync, 
 import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
+import { createRequire } from "node:module";
 import { describe, expect, it } from "vitest";
+
+const require = createRequire(import.meta.url);
+const yaml = require("js-yaml") as { load(source: string): { jobs?: Record<string, { steps?: Array<{ uses?: string }> }> } };
 
 const taggedReleaseWorkflow = readFileSync(".github/workflows/build-release.yml", "utf8");
 const pullRequestWorkflow = readFileSync(".github/workflows/cross-platform-release-verification.yml", "utf8");
 const signPathWorkflow = readFileSync(".github/workflows/signpath-windows-exe.yml", "utf8");
 const buildPlatformScript = readFileSync("scripts/build-platform.cjs", "utf8");
 const packageJson = JSON.parse(readFileSync("package.json", "utf8")) as { version: string; scripts: Record<string, string> };
+const signPathActionNames = Object.values(yaml.load(signPathWorkflow).jobs ?? {})
+  .flatMap((job) => job.steps ?? [])
+  .flatMap((step) => step.uses ? [step.uses.split("@")[0]] : []);
 
 function includesAll(value: string, required: string[]): boolean {
   return required.every((entry) => value.includes(entry));
@@ -104,7 +111,7 @@ function inspectTaggedReleaseWorkflow(workflow: string) {
       'FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"',
       "actions/checkout@v4",
       "actions/setup-node@v4",
-    ]) && includesAll(signPathWorkflow, ["actions/checkout@v4", "actions/setup-node@v4", "actions/upload-artifact@v4"]),
+    ]) && ["actions/checkout", "actions/setup-node", "actions/upload-artifact"].every((action) => signPathActionNames.includes(action)),
     unsupportedActionMajorsAbsent: includesNone(`${workflow}\n${signPathWorkflow}`, [
       "actions/checkout@v5",
       "actions/setup-node@v6",

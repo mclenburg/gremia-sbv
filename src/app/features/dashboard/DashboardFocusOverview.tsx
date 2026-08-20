@@ -7,7 +7,7 @@ import { DeadlineDashboardPanel } from '../deadlines/DeadlineDashboardPanel';
 import type { GremiaBrDashboardOverview, GremiaBrRelevanceMatch } from '../../../domain/models/gremia-br.model';
 import { waitForBridge } from '../../core/bridge/waitForBridge';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
-import { buildDashboardFocusSummary, resolveActivityJournalWeekReviewMarker, SbvAssemblyDashboardAlert, type DashboardComplianceLike, type ViewId } from './dashboardFocus';
+import { buildDashboardFocusSummary, resolveActivityJournalWeekReviewMarker, RetentionDashboardCard, SbvAssemblyDashboardAlert, type DashboardComplianceLike, type ViewId } from './dashboardFocus';
 import { IndustrialButton, ToolbarButton } from '../../shared/components/IndustrialButton';
 import { legalCalendarDate } from '../../../domain/time/legalTime';
 
@@ -118,7 +118,6 @@ export function DashboardFocusOverview({ cases, deadlines, dashboardItems, onNav
   const [gremiaBrError, setGremiaBrError] = useState('');
   const [journalSummary, setJournalSummary] = useState<ActivityJournalSummary | null>(null);
   const [journalLastWeekEntryCount, setJournalLastWeekEntryCount] = useState(0);
-
   useEffect(() => {
     let active = true;
     async function loadComplianceStatus() {
@@ -264,6 +263,7 @@ export function DashboardFocusOverview({ cases, deadlines, dashboardItems, onNav
           <span>{summary.compliance.ok ? 'Auditkette und Datenbankintegrität ohne Warnung.' : `${summary.compliance.warnings || 1} Warnung(en) prüfen.`}</span>
           {complianceError && <small>{complianceError}</small>}
         </button><SbvAssemblyDashboardAlert onOpen={() => onNavigate('sbv_control')} />
+        <RetentionDashboardCard onOpen={() => onNavigate('settings')} />
         {journalSummary && journalSummary.totalEntries > 0 && (
           <IndustrialButton variant="ghost" className="industrial-card dashboard-focus-card" onClick={() => onNavigate('activity_journal')}>
             <span className={markerClass(journalSummary.openFollowUps.length > 0 ? 'attention' : journalWeekReview.visible ? journalWeekReview.marker : 'neutral')}>{journalSummary.openFollowUps.length > 0 ? 'Nachhalten' : journalWeekReview.visible ? 'Prüfen' : 'Info'}</span>

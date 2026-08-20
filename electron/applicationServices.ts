@@ -130,7 +130,7 @@ export class ApplicationServices {
   employerObligations = (): EmployerObligationService => this.databaseService('employerObligations', (database) => new EmployerObligationService(database, this.deadlines(), this.auditLog()));
   inclusionAgreements = (): InclusionAgreementService => this.databaseService('inclusionAgreements', (database) => new InclusionAgreementService(database, this.deadlines(), this.auditLog()));
   complaints = (): ComplaintWorkflowService => this.databaseService('complaints', (database) => new ComplaintWorkflowService(database, this.auditLog()));
-  sbvOfficeDocuments = (): SbvOfficeDocumentService => this.databaseService('sbvOfficeDocuments', (database) => new SbvOfficeDocumentService(database, new SbvOfficeWorkflowDocumentAdapter(database, this.dataDirectoryProvider())));
+  sbvOfficeDocuments = (): SbvOfficeDocumentService => this.databaseService('sbvOfficeDocuments', (database) => new SbvOfficeDocumentService(database, new SbvOfficeWorkflowDocumentAdapter(database, this.dataDirectoryProvider()), this.reports));
   elections = (): SbvElectionService => this.databaseService('elections', (database) => new SbvElectionService(database, this.deadlines(), this.auditLog()));
   electionDocuments = (): SbvElectionDocumentService => this.databaseService('electionDocuments', (database) => new SbvElectionDocumentService(database, new SbvOfficeWorkflowDocumentAdapter(database, this.dataDirectoryProvider())));
   electionExecution = (): ElectionExecutionService => this.databaseService('electionExecution', (database) => new ElectionExecutionService(database, this.deadlines(), this.auditLog(), undefined, undefined, undefined, this.employerObligations()));

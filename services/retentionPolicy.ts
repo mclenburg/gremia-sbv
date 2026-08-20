@@ -1,14 +1,16 @@
-import type { RetentionCandidate, RetentionDashboard, RetentionRiskLevel, RetentionSettings } from '../src/domain/models/retention.model.js';
+import type { RetentionCandidate, RetentionDashboard, RetentionModuleSnapshot, RetentionRiskLevel, RetentionSettings } from '../src/domain/models/retention.model.js';
 import type { RetentionOwnerSnapshot } from '../src/domain/models/retention-owner.model.js';
 import { buildOfficeOwnerRetentionCandidates } from './retentionOwnerPolicy.js';
+import { buildModuleRetentionCandidates, RETENTION_POLICY_CATALOG } from './retentionPolicyCatalog.js';
+import { buildRetentionIntegrityCandidates } from './retentionIntegrityPolicy.js';
 
 export const DEFAULT_RETENTION_SETTINGS: RetentionSettings = {
-  closedCaseReviewMonths: 24,
+  closedCaseReviewMonths: 36,
   inactiveOpenCaseMonths: 6,
-  orphanContactReviewDays: 90,
+  orphanContactReviewDays: 0,
   completedDeadlineRetentionMonths: 36,
   activityJournalReviewMonths: 36,
-  participationViolationReviewMonths: 36,
+  participationViolationReviewMonths: 48,
   minimumGroupSizeForReports: 3
 };
 
@@ -95,6 +97,7 @@ export interface RetentionScanInput {
   participationViolations?: RetentionParticipationViolationSnapshot[];
   cleartextFiles?: string[];
   officeOwners?: RetentionOwnerSnapshot[];
+  moduleRecords?: RetentionModuleSnapshot[];
 }
 
 function monthsAgo(now: Date, months: number): Date {
@@ -148,7 +151,10 @@ for (const record of input.cases ?? []) {
         recommendedAction: 'anonymisieren',
         createdAt: record.closedAt ?? undefined,
         entityType: 'case',
-        entityId: record.id
+        entityId: record.id,
+        privacyReviewRequired: true,
+        policyKey: 'case_file',
+        legalBasis: 'Art. 5 Abs. 1 lit. e DSGVO; §§ 195, 199 BGB',
       });
     }
 
@@ -182,28 +188,10 @@ for (const contact of input.contacts ?? []) {
         recommendedAction: 'loeschen',
         createdAt: contact.createdAt ?? undefined,
         entityType: 'contact',
-        entityId: contact.id
-      });
-    }
-  }
-}
-
-function appendDocumentCandidates(candidates: RetentionCandidate[], input: RetentionScanInput): void {
-for (const document of input.documents ?? []) {
-    if (!document.hasMetadata || !document.fileExists) {
-      pushCandidate(candidates, {
-        id: `document-integrity-${document.id}`,
-        type: 'orphan_document_review',
-        riskLevel: 'critical',
-        title: 'Dokumentenspeicher prüfen',
-        reference: document.caseNumber ? `${document.caseNumber} · ${document.displayTitle}` : document.displayTitle,
-        description: document.fileExists
-          ? 'Dokumentcontainer vorhanden, aber Metadaten/Verschlüsselungsdaten sind unvollständig.'
-          : 'Dokument-Metadaten vorhanden, aber verschlüsselter Container fehlt im Dateisystem.',
-        recommendedAction: 'pruefen',
-        createdAt: document.createdAt ?? undefined,
-        entityType: 'document',
-        entityId: document.id
+        entityId: contact.id,
+        privacyReviewRequired: true,
+        policyKey: 'protected_person',
+        legalBasis: 'Art. 5 Abs. 1 lit. e, Art. 17 DSGVO',
       });
     }
   }
@@ -258,7 +246,10 @@ for (const entry of input.journalEntries ?? []) {
         recommendedAction: 'pruefen',
         dueSince: entry.entryDate,
         entityType: 'activity_journal_entry',
-        entityId: entry.id
+        entityId: entry.id,
+        privacyReviewRequired: true,
+        policyKey: 'activity_journal',
+        legalBasis: '§ 178 SGB IX; Art. 5 Abs. 1 lit. c DSGVO',
       });
       continue;
     }
@@ -325,6 +316,9 @@ for (const violation of input.participationViolations ?? []) {
         createdAt: violation.updatedAt ?? violation.createdAt ?? undefined,
         entityType: 'sbv_participation_violation',
         entityId: violation.id,
+        privacyReviewRequired: true,
+        policyKey: 'sbv_participation',
+        legalBasis: '§§ 177, 178 SGB IX',
       });
     }
 
@@ -376,22 +370,6 @@ for (const violation of input.participationViolations ?? []) {
   }
 }
 
-function appendCleartextCandidates(candidates: RetentionCandidate[], input: RetentionScanInput): void {
-for (const filePath of input.cleartextFiles ?? []) {
-    pushCandidate(candidates, {
-      id: `cleartext-${filePath}`,
-      type: 'cleartext_file_review',
-      riskLevel: 'critical',
-      title: 'Mögliche Klartextdatei im geschützten Datenbereich',
-      reference: filePath,
-      description: 'Im Gremia.SBV-Datenverzeichnis liegt eine Datei, die nicht dem verschlüsselten Containerformat entspricht.',
-      recommendedAction: 'pruefen',
-      entityType: 'file'
-    });
-  }
-}
-
-
 export function buildRetentionDashboard(input: RetentionScanInput): RetentionDashboard {
   const now = input.now ?? new Date();
   const settings = normalizeRetentionSettings(input.settings);
@@ -405,18 +383,19 @@ export function buildRetentionDashboard(input: RetentionScanInput): RetentionDas
 
   appendCaseCandidates(candidates, input, settings, closedCutoff, inactiveCutoff);
   appendContactCandidates(candidates, input, settings, orphanContactCutoff);
-  appendDocumentCandidates(candidates, input);
+  candidates.push(...buildRetentionIntegrityCandidates(input.documents ?? [], input.cleartextFiles ?? []));
   appendDeadlineCandidates(candidates, input, settings, completedDeadlineCutoff);
   appendJournalCandidates(candidates, input, settings, journalCutoff);
   appendParticipationViolationCandidates(candidates, input, settings, participationViolationCutoff);
-  appendCleartextCandidates(candidates, input);
   candidates.push(...buildOfficeOwnerRetentionCandidates(input.officeOwners ?? [], now));
+  candidates.push(...buildModuleRetentionCandidates(input.moduleRecords ?? [], now));
 
 candidates.sort((a, b) => riskOrder(a.riskLevel) - riskOrder(b.riskLevel) || a.title.localeCompare(b.title, 'de-DE'));
 
   return {
     generatedAt: now.toISOString(),
     settings,
+    policies: RETENTION_POLICY_CATALOG.map((policy) => ({ ...policy, rule: { ...policy.rule } })),
     candidates,
     counts: {
       total: candidates.length,

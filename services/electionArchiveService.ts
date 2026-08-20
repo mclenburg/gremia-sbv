@@ -5,7 +5,8 @@ import {
   SbvOfficeWorkflowDocumentAdapter,
   type SbvOfficeDocumentRecord,
 } from './sbvOfficeWorkflowDocumentAdapter.js';
-import { createAccessibleTextPdf } from './documents/pdfDocumentRenderer.js';
+import { list, reportDocument, section } from './documents/pdfDocumentDefinition.js';
+import { PdfDocumentGenerationService } from './documents/pdfDocumentGenerationService.js';
 import type { GenerateElectionExecutionDocumentInput } from '../src/domain/models/election-execution.model.js';
 
 const TEMPLATE_VERSION = '0.9.7-D.1';
@@ -28,6 +29,7 @@ interface TotalRow { office_type: string; candidate_id: string; votes: number; r
 interface PhysicalRow { record_type: string; description: string | null; quantity: number; storage_location: string | null; sealed_status: string | null; original_required: number }
 
 export class ElectionArchiveService {
+  private readonly pdfDocuments = new PdfDocumentGenerationService();
   constructor(
     private readonly db: DatabaseAdapter,
     private readonly documents: SbvOfficeWorkflowDocumentAdapter,
@@ -49,7 +51,7 @@ export class ElectionArchiveService {
       documentClass: 'generated_document',
       templateVersion: TEMPLATE_VERSION,
       legalRuleVersion: election.legal_rule_version,
-      plain: await createAccessibleTextPdf(title, lines),
+      plain: await this.createElectionPdf(title, election, lines),
     });
   }
 
@@ -71,7 +73,7 @@ export class ElectionArchiveService {
       documentClass: 'generated_document',
       templateVersion: TEMPLATE_VERSION,
       legalRuleVersion: election.legal_rule_version,
-      plain: await createAccessibleTextPdf('PDF-Gesamtwahlakte', lines),
+      plain: await this.createElectionPdf('PDF-Gesamtwahlakte', election, lines),
     });
     const linkedCount = this.db.prepare<{ count: number }>(`
       SELECT COUNT(*) AS count FROM sbv_workflow_document_links
@@ -83,6 +85,20 @@ export class ElectionArchiveService {
       ) VALUES(?,?,?,?,?,?,?,NULL)
     `).run(randomUUID(), electionId, 'pdf_bundle', 1, record.createdAt, record.sha256, linkedCount);
     return record;
+  }
+
+  private createElectionPdf(title: string, election: ElectionRow, lines: readonly string[]): Promise<Buffer> {
+    return this.pdfDocuments.generate({
+      source: 'election',
+      privacyProfile: 'lawful_personal_data',
+      definition: reportDocument(
+        title,
+        `SBV-Wahl · ${election.procedure ?? 'Verfahren noch offen'}`,
+        'Rechtlich relevantes Wahldokument',
+        [section('Dokumentinhalt', [list(lines)])],
+        [],
+      ),
+    });
   }
 
   private archiveLines(election: ElectionRow): string[] {

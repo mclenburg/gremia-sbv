@@ -27,6 +27,8 @@ export function createTemplatesApi(invokeIpc: IpcInvoker) {
         input: RenderContextTemplateInput,
       ): Promise<RenderedTemplateResult> =>
         invokeIpc(IPC_CHANNELS.templatesRenderContext, input),
+      openPdf: (input: Pick<RenderedTemplateResult, 'title' | 'subject' | 'body'>): Promise<{ opened: boolean }> =>
+        invokeIpc(IPC_CHANNELS.templatesOpenPdf, input),
     }
   } as const;
 }

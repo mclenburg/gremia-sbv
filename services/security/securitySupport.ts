@@ -34,7 +34,19 @@ export interface SecurityFileOperations {
   readonly atomicWriteFileSync: typeof atomicWriteFileSync;
 }
 
+export interface SecurityRuntimeEnvironment {
+  readonly isPackaged: boolean;
+  readonly resourcesPath?: string;
+  readonly workingDirectory: string;
+}
+
 export const DEFAULT_SECURITY_FILE_OPERATIONS: SecurityFileOperations = Object.freeze({ atomicWriteFileSync });
+
+export const DEFAULT_SECURITY_RUNTIME_ENVIRONMENT: SecurityRuntimeEnvironment = Object.freeze({
+  isPackaged: false,
+  resourcesPath: undefined,
+  workingDirectory: process.cwd(),
+});
 
 export const STORE_FILE_NAME = "security.json";
 

@@ -531,6 +531,7 @@ declare global {
         renderContext(
           input: RenderContextTemplateInput,
         ): Promise<RenderedTemplateResult>;
+        openPdf(input: Pick<RenderedTemplateResult, 'title' | 'subject' | 'body'>): Promise<{ opened: boolean }>;
       };
 
       elections: {

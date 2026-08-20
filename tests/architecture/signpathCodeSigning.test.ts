@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 const require = createRequire(import.meta.url);
+const yaml = require('js-yaml') as { load(source: string): Record<string, unknown>; dump(value: unknown): string };
 const signPathReadiness = require('../../scripts/check-signpath-readiness.cjs') as {
   missingRequiredEnvironment(env: Record<string, string>): string[];
   validateArtifactConfiguration(source: string): { ok: boolean; signsExe: boolean; doesNotSignUnexpectedContainers: boolean };
@@ -13,7 +14,15 @@ const signPathReadiness = require('../../scripts/check-signpath-readiness.cjs') 
     artifactConfigurationText: string;
     checkEnvironment?: boolean;
   }): { ok: boolean; missingEnvironment: string[]; workflow: { ok: boolean; hasAutomaticTrigger: boolean } };
-  validateWorkflowContract(source: string): { ok: boolean; hasManualTrigger: boolean; hasAutomaticTrigger: boolean; isExplicitlyGated: boolean };
+  validateWorkflowContract(source: string): {
+    ok: boolean;
+    hasManualTrigger: boolean;
+    hasAutomaticTrigger: boolean;
+    isExplicitlyGated: boolean;
+    buildAndSigningSeparated: boolean;
+    secretIsStepScoped: boolean;
+    actionsPinned: boolean;
+  };
 };
 
 function projectFile(...segments: string[]): string {
@@ -31,6 +40,29 @@ describe('SignPath-Code-Signatur Vorbereitung 0.9.2', () => {
     expect(contract.hasAutomaticTrigger).toBe(false);
     expect(contract.isExplicitlyGated).toBe(true);
     expect(contract.ok).toBe(true);
+  });
+
+  it('isoliert den SignPath-Schlüssel vom Build und pinnt alle Actions unveränderlich', () => {
+    const contract = signPathReadiness.validateWorkflowContract(workflow);
+
+    expect(contract.buildAndSigningSeparated).toBe(true);
+    expect(contract.secretIsStepScoped).toBe(true);
+    expect(contract.actionsPinned).toBe(true);
+  });
+
+  it('weist einen auf Job-Ebene verfügbaren SignPath-Schlüssel zurück', () => {
+    const unsafe = yaml.load(workflow) as {
+      jobs: Record<string, { env?: Record<string, string>; steps: Array<{ uses?: string; with?: Record<string, string> }> }>;
+    };
+    const signingJob = unsafe.jobs['signpath-windows-exe'];
+    const submitStep = signingJob.steps.find((step) => step.uses?.startsWith('signpath/github-action-submit-signing-request@'));
+    signingJob.env = { ...signingJob.env, SIGNPATH_API_TOKEN: '${{ secrets.SIGNPATH_API_TOKEN }}' };
+    if (submitStep?.with) delete submitStep.with['api-token'];
+
+    const contract = signPathReadiness.validateWorkflowContract(yaml.dump(unsafe));
+
+    expect(contract.secretIsStepScoped).toBe(false);
+    expect(contract.ok).toBe(false);
   });
 
   it('signiert nur die für Release-Artefakte vorbereiteten Windows-EXE-Dateien', () => {

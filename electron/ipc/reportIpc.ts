@@ -5,7 +5,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import type { SecurityService } from "../../services/securityService.js";
 import type { ApplicationServices } from '../applicationServices.js';
-import { createPdfDocument } from '../../services/documents/pdfDocumentRenderer.js';
+import { PdfDocumentGenerationService } from '../../services/documents/pdfDocumentGenerationService.js';
 import { normalizeReportType } from "../../src/domain/models/report.model.js";
 import { decryptReportArchive, encryptReportArchive } from "../../services/reports/reportArchiveCrypto.js";
 import type {
@@ -74,6 +74,7 @@ export function registerReportIpc(
   services: ApplicationServices,
 ): void {
   const reports = services.reports;
+  const pdfDocuments = new PdfDocumentGenerationService();
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.reportsDescriptors, async () => reports.descriptors());
   registerIpcHandler(ipcMain, IPC_CHANNELS.reportsHistory, async (_event, limit?: unknown) =>
@@ -90,7 +91,11 @@ export function registerReportIpc(
         const reportInput = assertRecordInput<GenerateReportInput>(input, "reports:generate");
         const built = reports.build(reportInput);
         const target = reports.createExportTarget(built.title);
-        const pdf = await createPdfDocument(built.document);
+        const pdf = await pdfDocuments.generate({
+          source: reportInput.type === 'compliance_document' ? 'compliance' : 'report',
+          definition: built.document,
+          privacyProfile: reportInput.type === 'activity' ? 'anonymized' : 'confidential',
+        });
         const databaseKey = security.getActiveDatabaseKey();
         try {
           const encryptedEnvelope = encryptReportArchive(pdf, target.fileName, databaseKey);

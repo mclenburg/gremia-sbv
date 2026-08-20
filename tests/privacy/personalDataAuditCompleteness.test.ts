@@ -150,4 +150,51 @@ describe('Phase 4 – VaultDatabaseRuntime besitzt echte Verhaltensabdeckung', (
     expect(Number(db.prepare<{ value: number }>("SELECT COUNT(*) AS value FROM sqlite_master WHERE type = 'table' AND name = 'cases'").get()?.value ?? 0)).toBe(1);
     db.close();
   });
+
+  it('vertraut im Paketbetrieb ausschließlich den ausgelieferten Datenbankressourcen', () => {
+    const dataDir = mkdtempSync(path.join(tmpdir(), 'gremia-sbv-vault-runtime-data-'));
+    const untrustedRoot = mkdtempSync(path.join(tmpdir(), 'gremia-sbv-vault-runtime-cwd-'));
+    const resourcesRoot = mkdtempSync(path.join(tmpdir(), 'gremia-sbv-vault-runtime-resources-'));
+    tempDirectories.push(dataDir, untrustedRoot, resourcesRoot);
+    mkdirSync(path.join(untrustedRoot, 'database', 'migrations'), { recursive: true });
+    mkdirSync(path.join(resourcesRoot, 'database', 'migrations'), { recursive: true });
+    writeFileSync(path.join(untrustedRoot, 'database', 'schema.sql'), 'SELECT 1;');
+    writeFileSync(path.join(resourcesRoot, 'database', 'schema.sql'), 'SELECT 2;');
+
+    class PackagedVaultDatabaseRuntime extends VaultDatabaseRuntime {
+      public schemaPath(): string { return this.resolveSchemaPath(); }
+      public migrationsPath(): string { return this.resolveMigrationsDir(); }
+    }
+
+    const runtime = new PackagedVaultDatabaseRuntime(dataDir, undefined, {
+      isPackaged: true,
+      resourcesPath: resourcesRoot,
+      workingDirectory: untrustedRoot,
+    });
+
+    expect(runtime.schemaPath()).toBe(path.join(resourcesRoot, 'database', 'schema.sql'));
+    expect(runtime.migrationsPath()).toBe(path.join(resourcesRoot, 'database', 'migrations'));
+  });
+
+  it('bricht im Paketbetrieb ohne ausgelieferte Datenbankressourcen sicher ab', () => {
+    const dataDir = mkdtempSync(path.join(tmpdir(), 'gremia-sbv-vault-runtime-data-'));
+    const untrustedRoot = mkdtempSync(path.join(tmpdir(), 'gremia-sbv-vault-runtime-cwd-'));
+    tempDirectories.push(dataDir, untrustedRoot);
+    mkdirSync(path.join(untrustedRoot, 'database', 'migrations'), { recursive: true });
+    writeFileSync(path.join(untrustedRoot, 'database', 'schema.sql'), 'SELECT 1;');
+
+    class PackagedVaultDatabaseRuntime extends VaultDatabaseRuntime {
+      public schemaPath(): string { return this.resolveSchemaPath(); }
+      public migrationsPath(): string { return this.resolveMigrationsDir(); }
+    }
+
+    const runtime = new PackagedVaultDatabaseRuntime(dataDir, undefined, {
+      isPackaged: true,
+      resourcesPath: path.join(untrustedRoot, 'missing-resources'),
+      workingDirectory: untrustedRoot,
+    });
+
+    expect(() => runtime.schemaPath()).toThrow('Datenbankschema nicht gefunden');
+    expect(() => runtime.migrationsPath()).toThrow('Datenbankmigrationen nicht gefunden');
+  });
 });

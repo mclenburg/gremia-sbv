@@ -46,6 +46,14 @@ export type ActivityReportCoverage = 'complete' | 'partial' | 'empty';
 
 export interface ActivityReportProjection {
   counters: MeasureLifecycleCounters;
+  activities: {
+    createdBySubject: Record<string, number>;
+    caseCategories: Record<string, number>;
+    journalCategories: Record<string, number>;
+    timedJournalEntries: number;
+    violationStatuses: Record<string, number>;
+    violationStages: Record<string, number>;
+  };
   chain: {
     verified: true;
     checkedEntries: number;
@@ -84,6 +92,23 @@ function emptyCounters(): MeasureLifecycleCounters {
     cancelled: emptyByType(),
     deleted: emptyByType(),
   };
+}
+
+function increment(target: Record<string, number>, key: unknown): void {
+  if (typeof key !== 'string' || !key.trim()) return;
+  const normalized = key.trim();
+  target[normalized] = (target[normalized] ?? 0) + 1;
+}
+
+function safeMetadata(row: PersonalDataAuditLogRow): Record<string, unknown> | undefined {
+  try {
+    const value: unknown = JSON.parse(row.metadata_json);
+    return value && typeof value === 'object' && !Array.isArray(value)
+      ? value as Record<string, unknown>
+      : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 function parseBoundary(value: string | undefined, endExclusive: boolean): number | undefined {
@@ -152,20 +177,35 @@ export class ActivityReportProjectionService {
     if (!verification.ok) throw new ActivityReportIntegrityError(verification.firstBrokenSequence);
 
     const counters = emptyCounters();
+    const activities: ActivityReportProjection['activities'] = {
+      createdBySubject: {},
+      caseCategories: {},
+      journalCategories: {},
+      timedJournalEntries: 0,
+      violationStatuses: {},
+      violationStages: {},
+    };
     const lifecycleRows = rows.filter((row) => row.subject_type === MEASURE_LIFECYCLE_SUBJECT_TYPE);
     const lifecycleStartedAt = lifecycleRows.length > 0 ? String(lifecycleRows[0].occurred_at) : undefined;
     let ignoredBaselineEvents = 0;
     let ignoredInvalidLifecycleEvents = 0;
 
     for (const row of rows) {
-      if (row.subject_type !== MEASURE_LIFECYCLE_SUBJECT_TYPE || !inPeriod(row.occurred_at, period)) continue;
-      let metadata: unknown;
-      try {
-        metadata = JSON.parse(row.metadata_json);
-      } catch {
-        ignoredInvalidLifecycleEvents += 1;
-        continue;
+      if (!inPeriod(row.occurred_at, period)) continue;
+      const metadata = safeMetadata(row);
+      if (row.action === 'create') {
+        increment(activities.createdBySubject, row.subject_type);
+        if (row.subject_type === 'case') increment(activities.caseCategories, metadata?.category);
+        if (row.subject_type === 'activity_journal') {
+          increment(activities.journalCategories, metadata?.category);
+          if (metadata?.hasTime === true) activities.timedJournalEntries += 1;
+        }
+        if (row.subject_type === 'sbv_participation_violation') {
+          increment(activities.violationStatuses, metadata?.status);
+          increment(activities.violationStages, metadata?.stage);
+        }
       }
+      if (row.subject_type !== MEASURE_LIFECYCLE_SUBJECT_TYPE) continue;
       if (!isLifecycleMetadata(metadata)) {
         ignoredInvalidLifecycleEvents += 1;
         continue;
@@ -207,6 +247,7 @@ export class ActivityReportProjectionService {
 
     return {
       counters,
+      activities,
       chain: {
         verified: true,
         checkedEntries: verification.checked,

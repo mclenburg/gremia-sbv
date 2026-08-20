@@ -1,20 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
-import type { FormEvent } from "react";
-import { AlertTriangle, Download, HardDrive, Save, ShieldCheck } from "lucide-react";
+import { useState } from "react";
 import { waitForBridge } from "../../core/bridge/waitForBridge";
-import { formatDateShort } from "../../shared/format/dates";
-import type { CaseRecord } from "../../../domain/models/case.model";
-import type { RetentionCandidate, RetentionDashboard, RetentionOperationResult, RetentionSettings } from "../../../domain/models/retention.model";
-import type { BackupInspectionResult, BackupOperationResult } from "../../../domain/models/backup.model";
 import type { RenderedTemplateResult, ContextualTemplateAction } from "../../../domain/models/template.model";
-import { APP_VERSION } from "../../generated/appVersion";
-import { TextCommandTextarea } from "../../shared/textCommands/TextCommandTextarea";
 import { buildExportWarningMessage, scanSensitiveExportText } from "@/domain/privacy/exportGuardPolicy";
 import { missingPlaceholderWarning } from "@/domain/templates/templateContextPolicy";
 import { useConfirmDialog } from "../../shared/dialogs/ConfirmDialogProvider";
 import { useAnnouncer } from "../../shared/a11y/LiveRegionProvider";
-import { TEMPLATE_DEFAULT_FIELDS, EMPTY_TEMPLATE_DEFAULT_VALUES, loadTemplateDefaultValues, saveTemplateDefaultValues } from "../../shared/templates/templateDefaults";
-import type { ThemeMode } from "../../shared/theme/appTheme";
+import { ContextualTemplatePdfButton } from './ContextualTemplatePdfButton';
 
 export function ContextualTemplateButton({
   action,
@@ -146,6 +137,7 @@ export function ContextualTemplateButton({
               >
                 In Zwischenablage kopieren
               </button>
+              <ContextualTemplatePdfButton rendered={rendered} onOpened={setMessage} />
             </div>
           </section>
         </div>

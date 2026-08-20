@@ -14,7 +14,9 @@ export type RetentionCandidateType =
   | 'participation_violation_closed_review'
   | 'participation_violation_document_integrity'
   | 'cleartext_file_review'
-  | 'office_workflow_review_due';
+  | 'office_workflow_review_due'
+  | 'module_retention_review_due'
+  | 'immediate_purpose_expiry_review';
 
 export type RetentionRiskLevel = 'info' | 'warning' | 'critical';
 
@@ -38,13 +40,57 @@ export interface RetentionCandidate {
   recommendedAction: 'pruefen' | 'anonymisieren' | 'loeschen' | 'archivieren';
   createdAt?: string;
   dueSince?: string;
-  entityType: RetentionOwnerType | 'contact' | 'document' | 'deadline' | 'activity_journal_entry' | 'sbv_participation_violation' | 'file' | 'system';
+  entityType: RetentionOwnerType | RetentionModuleType | 'contact' | 'document' | 'deadline' | 'activity_journal_entry' | 'sbv_participation_violation' | 'file' | 'system';
   entityId?: string;
+  privacyReviewRequired?: boolean;
+  policyKey?: RetentionModuleType;
+  legalBasis?: string;
+}
+
+export type RetentionModuleType =
+  | 'recruiting'
+  | 'termination_hearing'
+  | 'bem'
+  | 'prevention'
+  | 'sbv_participation'
+  | 'case_file'
+  | 'activity_journal'
+  | 'protected_person'
+  | 'election'
+  | 'workplace_accommodation'
+  | 'equalization_gdb'
+  | 'compliance_incident';
+
+export type RetentionRule =
+  | { kind: 'months_after_completion'; months: number }
+  | { kind: 'months_after_completion_year_end'; months: number }
+  | { kind: 'term_related'; months: number }
+  | { kind: 'purpose_linked' }
+  | { kind: 'permanent_anonymized' };
+
+export interface RetentionPolicyDefinition {
+  module: RetentionModuleType;
+  label: string;
+  rule: RetentionRule;
+  legalBasis: string;
+  explanation: string;
+  immediateOnConsentWithdrawal?: boolean;
+}
+
+export interface RetentionModuleSnapshot {
+  module: RetentionModuleType;
+  id: string;
+  title: string;
+  status?: string;
+  completedAt?: string | null;
+  consentWithdrawnAt?: string | null;
+  purposeStillActive?: boolean;
 }
 
 export interface RetentionDashboard {
   generatedAt: string;
   settings: RetentionSettings;
+  policies: RetentionPolicyDefinition[];
   candidates: RetentionCandidate[];
   counts: {
     total: number;

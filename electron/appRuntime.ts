@@ -87,7 +87,11 @@ export async function startApplication(existingSplashWindow?: BrowserWindow): Pr
   }
 
   await updateStartupSplash("security");
-  security = new SecurityService(dataDirectory);
+  security = new SecurityService(dataDirectory, undefined, {
+    isPackaged: app.isPackaged,
+    resourcesPath: process.resourcesPath,
+    workingDirectory: process.cwd(),
+  });
   applicationServices = new ApplicationServices(security, resolveRuntimeDataDir);
   markStartupPhase("runtime:security-service-ready");
   if (demoMode) {
