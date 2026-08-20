@@ -1,9 +1,36 @@
-import { dialog, type IpcMain } from 'electron';
+import { dialog, shell, type IpcMain } from 'electron';
 import type { SecurityService } from '../../services/securityService.js';
 import type { ApplicationServices } from '../applicationServices.js';
 import { IPC_CHANNELS, registerIpcHandler } from './ipcHandler.js';
-import { assertRecordInput, assertString } from './ipcValidation.js';
+import { assertAllowedEnum, assertRecordInput, assertString } from './ipcValidation.js';
 import type { CreateSbvMeetingInput, SaveComplaintWorkflowInput, SaveEmployerObligationReviewInput, SaveInclusionAgreementInput, SaveInclusionAgreementTopicInput, SaveInclusionOfficerSnapshotInput, SaveSbvAssemblyInput, UpdateSbvMeetingInput, UpsertSbvMeetingAgendaInput } from '../../src/domain/models/sbv-office-workflow.model.js';
+import type { AssemblyDocumentKind } from '../../services/sbvOfficeDocumentService.js';
+
+async function generateAndOpenAssemblyDocument(
+  security: SecurityService,
+  services: ApplicationServices,
+  rawAssemblyId: unknown,
+  rawKind: unknown,
+) {
+  const assemblyId = assertString(rawAssemblyId, 'sbvOffice:assemblies:generateDocument', 'Versammlungs-ID', { minLength: 1, maxLength: 120 });
+  const kind = assertAllowedEnum(rawKind, 'sbvOffice:assemblies:generateDocument', 'Dokumenttyp', [
+    'invitation', 'agenda', 'activity_report_draft', 'result_minutes',
+  ] as const) as AssemblyDocumentKind;
+  const documents = services.sbvOfficeDocuments();
+  const record = await documents.generateAssemblyDocument(assemblyId, kind);
+  let plain: Buffer | undefined;
+  try {
+    plain = await documents.readDocument(record.id);
+    security.cleanupTemporaryFiles();
+    const previewPath = security.writeTemporaryFile('document-preview', record.filename, plain, 'preview');
+    const openError = await shell.openPath(previewPath);
+    if (openError) throw new Error(`Dokumentvorschau konnte nicht geöffnet werden: ${openError}`);
+    return record;
+  } finally {
+    plain?.fill(0);
+  }
+}
+
 export function registerSbvOfficeWorkflowIpc(ipcMain:IpcMain,security:SecurityService,services:ApplicationServices):void{
  registerIpcHandler(ipcMain,IPC_CHANNELS.sbvOfficeMeetingsList,async()=>services.sbvMeetings().list());
  registerIpcHandler(ipcMain,IPC_CHANNELS.sbvOfficeMeetingsCreate,async(_e,i)=>services.sbvMeetings().create(assertRecordInput<CreateSbvMeetingInput>(i,'sbvOffice:meetings:create')));
@@ -11,7 +38,7 @@ export function registerSbvOfficeWorkflowIpc(ipcMain:IpcMain,security:SecuritySe
  registerIpcHandler(ipcMain,IPC_CHANNELS.sbvOfficeMeetingsUpdate,async(_e,id,i)=>services.sbvMeetings().update(assertString(id,'sbvOffice:meetings:update','Sitzungs-ID',{minLength:1,maxLength:120}),assertRecordInput<UpdateSbvMeetingInput>(i,'sbvOffice:meetings:update')));
  registerIpcHandler(ipcMain,IPC_CHANNELS.sbvOfficeMeetingsAgendaSave,async(_e,id,i)=>services.sbvMeetings().upsertAgenda(assertString(id,'sbvOffice:meetings:agenda:save','Sitzungs-ID',{minLength:1,maxLength:120}),assertRecordInput<UpsertSbvMeetingAgendaInput>(i,'sbvOffice:meetings:agenda:save')));
  registerIpcHandler(ipcMain,IPC_CHANNELS.sbvOfficeMeetingsAgendaFollowUp,async(_e,id,dueAt,title)=>services.sbvMeetings().createAgendaFollowUp(assertString(id,'sbvOffice:meetings:agenda:followUp','TOP-ID',{minLength:1,maxLength:120}),assertString(dueAt,'sbvOffice:meetings:agenda:followUp','Wiedervorlage',{minLength:10,maxLength:60}),typeof title==='string'?title:undefined));
- registerIpcHandler(ipcMain,IPC_CHANNELS.sbvOfficeAssembliesList,async()=>services.sbvAssemblies().list()); registerIpcHandler(ipcMain,IPC_CHANNELS.sbvOfficeAssembliesAnnualWarning,async(_e,year)=>services.sbvAssemblies().annualWarning(Number(year))); registerIpcHandler(ipcMain,IPC_CHANNELS.sbvOfficeAssembliesCreateFollowUp,async(_e,id,dueAt,title)=>services.sbvAssemblies().createFollowUp(assertString(id,'sbvOffice:assemblies:createFollowUp','Versammlungs-ID',{minLength:1,maxLength:120}),assertString(dueAt,'sbvOffice:assemblies:createFollowUp','Wiedervorlage',{minLength:10,maxLength:60}),typeof title==='string'?title:undefined)); registerIpcHandler(ipcMain,IPC_CHANNELS.sbvOfficeAssembliesGenerateDocument,async(_e,id,kind)=>services.sbvOfficeDocuments().generateAssemblyDocument(assertString(id,'sbvOffice:assemblies:generateDocument','Versammlungs-ID',{minLength:1,maxLength:120}),assertString(kind,'sbvOffice:assemblies:generateDocument','Dokumenttyp',{minLength:1,maxLength:40}) as 'invitation'|'agenda'|'activity_report_draft'|'result_minutes')); registerIpcHandler(ipcMain,IPC_CHANNELS.sbvOfficeAssembliesSave,async(_e,i)=>services.sbvAssemblies().save(assertRecordInput<SaveSbvAssemblyInput>(i,'sbvOffice:assemblies:save')));
+ registerIpcHandler(ipcMain,IPC_CHANNELS.sbvOfficeAssembliesList,async()=>services.sbvAssemblies().list()); registerIpcHandler(ipcMain,IPC_CHANNELS.sbvOfficeAssembliesAnnualWarning,async(_e,year)=>services.sbvAssemblies().annualWarning(Number(year))); registerIpcHandler(ipcMain,IPC_CHANNELS.sbvOfficeAssembliesCreateFollowUp,async(_e,id,dueAt,title)=>services.sbvAssemblies().createFollowUp(assertString(id,'sbvOffice:assemblies:createFollowUp','Versammlungs-ID',{minLength:1,maxLength:120}),assertString(dueAt,'sbvOffice:assemblies:createFollowUp','Wiedervorlage',{minLength:10,maxLength:60}),typeof title==='string'?title:undefined)); registerIpcHandler(ipcMain,IPC_CHANNELS.sbvOfficeAssembliesGenerateDocument,async(_e,id,kind)=>generateAndOpenAssemblyDocument(security,services,id,kind)); registerIpcHandler(ipcMain,IPC_CHANNELS.sbvOfficeAssembliesSave,async(_e,i)=>services.sbvAssemblies().save(assertRecordInput<SaveSbvAssemblyInput>(i,'sbvOffice:assemblies:save')));
  registerIpcHandler(ipcMain,IPC_CHANNELS.sbvOfficeObligationsList,async()=>services.employerObligations().list()); registerIpcHandler(ipcMain,IPC_CHANNELS.sbvOfficeObligationsEnsureAnnual,async(_e,y)=>services.employerObligations().ensureAnnual(Number(y))); registerIpcHandler(ipcMain,IPC_CHANNELS.sbvOfficeObligationsSave,async(_e,i)=>services.employerObligations().save(assertRecordInput<SaveEmployerObligationReviewInput>(i,'sbvOffice:obligations:save')));
  registerIpcHandler(ipcMain,IPC_CHANNELS.sbvOfficeOfficersList,async()=>services.employerObligations().listInclusionOfficers()); registerIpcHandler(ipcMain,IPC_CHANNELS.sbvOfficeOfficersSave,async(_e,i)=>services.employerObligations().saveInclusionOfficer(assertRecordInput<SaveInclusionOfficerSnapshotInput>(i,'sbvOffice:officers:save')));
  registerIpcHandler(ipcMain,IPC_CHANNELS.sbvOfficeAgreementsList,async()=>services.inclusionAgreements().list()); registerIpcHandler(ipcMain,IPC_CHANNELS.sbvOfficeAgreementsRequestDraft,async(_e,dueAt)=>services.inclusionAgreements().negotiationRequestDraft(typeof dueAt==='string'?dueAt:undefined)); registerIpcHandler(ipcMain,IPC_CHANNELS.sbvOfficeAgreementsResponseDeadline,async(_e,id,dueAt)=>services.inclusionAgreements().createNegotiationResponseDeadline(assertString(id,'sbvOffice:agreements:responseDeadline','Vereinbarungs-ID',{minLength:1,maxLength:120}),assertString(dueAt,'sbvOffice:agreements:responseDeadline','Antwortfrist',{minLength:10,maxLength:60})));  registerIpcHandler(ipcMain,IPC_CHANNELS.sbvOfficeAgreementsSave,async(_e,i)=>services.inclusionAgreements().save(assertRecordInput<SaveInclusionAgreementInput>(i,'sbvOffice:agreements:save'))); registerIpcHandler(ipcMain,IPC_CHANNELS.sbvOfficeAgreementsTopicSave,async(_e,id,i)=>services.inclusionAgreements().saveTopic(assertString(id,'sbvOffice:agreements:topic:save','Vereinbarungs-ID',{minLength:1,maxLength:120}),assertRecordInput<SaveInclusionAgreementTopicInput>(i,'sbvOffice:agreements:topic:save')));

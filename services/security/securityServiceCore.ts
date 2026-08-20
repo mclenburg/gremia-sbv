@@ -29,8 +29,8 @@ import { MigrationService } from "../migrationService.js";
 import { DatabaseRuntimeInitializer } from "../databaseRuntimeInitializer.js";
 import { atomicWriteFileSync, commitAtomicArtifacts } from "../secureFileOperations.js";
 import { validateAppPassword, validatePasswordStore, validateVaultManifest, type KeyWrap, type PasswordStore, type ScryptKdfParams, type VaultManifest } from "../securityArtifactValidation.js";
-import { BACKUPS_DIR_NAME, DEFAULT_SECURITY_FILE_OPERATIONS, DOCUMENTS_DIR_NAME, EXPORTS_DIR_NAME, STORE_FILE_NAME, TMP_DIR_NAME, VAULT_DATABASE_FILE_NAME, VAULT_MANIFEST_FILE_NAME, getDataDir, safeDestroyBuffer } from './securitySupport.js';
-import type { SecurityFileOperations } from './securitySupport.js';
+import { BACKUPS_DIR_NAME, DEFAULT_SECURITY_FILE_OPERATIONS, DEFAULT_SECURITY_RUNTIME_ENVIRONMENT, DOCUMENTS_DIR_NAME, EXPORTS_DIR_NAME, STORE_FILE_NAME, TMP_DIR_NAME, VAULT_DATABASE_FILE_NAME, VAULT_MANIFEST_FILE_NAME, getDataDir, safeDestroyBuffer } from './securitySupport.js';
+import type { SecurityFileOperations, SecurityRuntimeEnvironment } from './securitySupport.js';
 
 export class SecurityServiceCore {
   protected unlocked = false;
@@ -57,9 +57,16 @@ export class SecurityServiceCore {
 
   protected readonly fileOperations: SecurityFileOperations;
 
-  constructor(dataDir = getDataDir(), fileOperations: SecurityFileOperations = DEFAULT_SECURITY_FILE_OPERATIONS) {
+  protected readonly runtimeEnvironment: SecurityRuntimeEnvironment;
+
+  constructor(
+    dataDir = getDataDir(),
+    fileOperations: SecurityFileOperations = DEFAULT_SECURITY_FILE_OPERATIONS,
+    runtimeEnvironment: SecurityRuntimeEnvironment = DEFAULT_SECURITY_RUNTIME_ENVIRONMENT,
+  ) {
       this.dataDir = dataDir;
       this.fileOperations = fileOperations;
+      this.runtimeEnvironment = runtimeEnvironment;
       this.storePath = path.join(dataDir, STORE_FILE_NAME);
       this.vaultManifestPath = path.join(dataDir, VAULT_MANIFEST_FILE_NAME);
       this.vaultDatabasePath = path.join(dataDir, VAULT_DATABASE_FILE_NAME);

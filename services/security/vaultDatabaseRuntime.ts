@@ -61,17 +61,15 @@ export class VaultDatabaseRuntime extends SecurityServiceCore {
     }
 
   protected resolveSchemaPath(): string {
-      const electronProcess = process as NodeJS.Process & {
-        resourcesPath?: string;
-      };
-      const candidates = [
-        path.join(process.cwd(), "database", "schema.sql"),
-        electronProcess.resourcesPath
-          ? path.join(electronProcess.resourcesPath, "database", "schema.sql")
-          : undefined,
-        path.join(__dirname, "../database/schema.sql"),
-        path.join(__dirname, "../../database/schema.sql"),
-      ].filter((candidate): candidate is string => Boolean(candidate));
+      const candidates = this.runtimeEnvironment.isPackaged
+        ? this.runtimeEnvironment.resourcesPath
+          ? [path.join(this.runtimeEnvironment.resourcesPath, "database", "schema.sql")]
+          : []
+        : [
+            path.join(this.runtimeEnvironment.workingDirectory, "database", "schema.sql"),
+            path.join(__dirname, "../database/schema.sql"),
+            path.join(__dirname, "../../database/schema.sql"),
+          ];
   
       const match = candidates.find((candidate) => existsSync(candidate));
       if (!match) {
@@ -84,17 +82,15 @@ export class VaultDatabaseRuntime extends SecurityServiceCore {
     }
 
   protected resolveMigrationsDir(): string {
-      const electronProcess = process as NodeJS.Process & {
-        resourcesPath?: string;
-      };
-      const candidates = [
-        path.join(process.cwd(), "database", "migrations"),
-        electronProcess.resourcesPath
-          ? path.join(electronProcess.resourcesPath, "database", "migrations")
-          : undefined,
-        path.join(__dirname, "../database/migrations"),
-        path.join(__dirname, "../../database/migrations"),
-      ].filter((candidate): candidate is string => Boolean(candidate));
+      const candidates = this.runtimeEnvironment.isPackaged
+        ? this.runtimeEnvironment.resourcesPath
+          ? [path.join(this.runtimeEnvironment.resourcesPath, "database", "migrations")]
+          : []
+        : [
+            path.join(this.runtimeEnvironment.workingDirectory, "database", "migrations"),
+            path.join(__dirname, "../database/migrations"),
+            path.join(__dirname, "../../database/migrations"),
+          ];
   
       const match = candidates.find((candidate) => existsSync(candidate));
       if (!match) {

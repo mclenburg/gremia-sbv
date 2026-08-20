@@ -247,6 +247,7 @@ export const IPC_CHANNELS = Object.freeze({
   templatesList: "templates:list",
   templatesRender: "templates:render",
   templatesRenderContext: "templates:render-context",
+  templatesOpenPdf: "templates:open-pdf",
   templatesUpdate: "templates:update",
   terminationCreate: "termination:create",
   terminationList: "termination:list",

@@ -1,5 +1,4 @@
 import { randomUUID } from 'node:crypto';
-import { Document, Packer, Paragraph, TextRun } from 'docx';
 import type { DatabaseAdapter } from './databaseService.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
 import { DocumentContainerService, safeDocumentFilePart } from './documentContainerService.js';
@@ -12,8 +11,10 @@ import type {
   SbvParticipationViolationTemplateInput,
 } from '../src/domain/models/sbv-participation-violation.model.js';
 import { addColumnsIfMissing } from './migrations/schemaColumnMigration.js';
+import { paragraph, reportDocument, section } from './documents/pdfDocumentDefinition.js';
+import { PdfDocumentGenerationService } from './documents/pdfDocumentGenerationService.js';
 
-const DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+const PDF_MIME = 'application/pdf';
 
 type ParticipationViolationReader = {
   get(violationId: string): SbvParticipationViolationRecord | null | undefined;
@@ -31,9 +32,6 @@ type ViolationDocumentRow = {
 };
 
 function nowIso(): string { return new Date().toISOString(); }
-function paragraphsFromText(text: string): Paragraph[] {
-  return text.split('\n').map((line) => new Paragraph({ children: [new TextRun(line)] }));
-}
 function mapViolationDocument(row: ViolationDocumentRow): SbvParticipationViolationGeneratedDocumentRecord {
   return {
     id: String(row.id),
@@ -49,6 +47,7 @@ function mapViolationDocument(row: ViolationDocumentRow): SbvParticipationViolat
 
 export class SbvParticipationViolationDocumentService {
   private readonly templateService = new SbvParticipationViolationTemplateService();
+  private readonly pdfDocuments = new PdfDocumentGenerationService();
 
   constructor(
     private readonly db: DatabaseAdapter,
@@ -84,19 +83,28 @@ export class SbvParticipationViolationDocumentService {
     const templateKey = this.templateService.getTemplateKey(violation.stage);
     const templateVersion = this.templateService.getTemplateVersion();
     const plainText = this.templateService.buildPlainText(input);
-    const document = new Document({ sections: [{ children: paragraphsFromText(plainText) }] });
-    const docxBuffer = await Packer.toBuffer(document);
+    const pdfBuffer = await this.pdfDocuments.generate({
+      source: 'measure',
+      privacyProfile: 'lawful_personal_data',
+      definition: reportDocument(
+        input.subject,
+        `SBV-Beteiligungsverstoß · ${templateKey}`,
+        input.privacyMode === 'personalized' ? 'Vertraulich · personenbezogen' : 'Vertraulich · Fallbezug',
+        [section('Schreiben', plainText.split(/\n\s*\n/u).map((text) => paragraph(text)))],
+        validation.warnings,
+      ),
+    });
     const documentId = randomUUID();
     const violationDocumentId = randomUUID();
     const timestamp = nowIso();
-    const filename = `${safeDocumentFilePart(violation.subject)}-${documentId}.docx`;
+    const filename = `${safeDocumentFilePart(violation.subject)}-${documentId}.pdf`;
     const container = await new DocumentContainerService().writeEncryptedContainer({
-      plain: docxBuffer,
+      plain: pdfBuffer,
       storageRoot: this.dataDirProvider(),
       subdirectory: 'generated-documents/sbv-participation-violations',
       documentId,
       filename,
-      mimeType: DOCX_MIME,
+      mimeType: PDF_MIME,
     });
     const title = `Beteiligungsverstoß: ${violation.subject}`;
     this.db.prepare(`
@@ -113,14 +121,14 @@ export class SbvParticipationViolationDocumentService {
     this.db.prepare(`
       INSERT INTO sbv_participation_violation_events (id, violation_id, event_type, from_status, to_status, note, created_at)
       VALUES (?, ?, 'document_generated', ?, ?, ?, ?)
-    `).run(randomUUID(), violation.id, violation.status, violation.status, 'DOCX-Dokument erzeugt und verschlüsselt abgelegt.', timestamp);
+    `).run(randomUUID(), violation.id, violation.status, violation.status, 'PDF-Dokument zentral erzeugt und verschlüsselt abgelegt.', timestamp);
     this.auditGenerated(violation.id, documentId, violation.caseId, templateKey, templateVersion, violation.stage);
     return {
       documentId,
       violationDocumentId,
       title,
       filename,
-      mimeType: DOCX_MIME,
+      mimeType: PDF_MIME,
       sha256: container.sha256,
       sizeBytes: container.sizeBytes,
       templateKey,

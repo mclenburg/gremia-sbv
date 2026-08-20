@@ -29,31 +29,10 @@ export class ActivityReportBuilders extends ReportServiceCore {
       const reopened = projection.counters.reopened;
       const cancelled = projection.counters.cancelled;
       const deleted = projection.counters.deleted;
-  
-      const opened = periodWhere("opened_at", input);
-      const closed = periodWhere("closed_at", input);
-      const notes = periodWhere("note_date", input);
-      const journalPeriod = periodWhere("entry_date", input);
-      const violationPeriod = periodWhere("created_at", input);
-      const recruitingPeriod = periodWhere("created_at", input);
-  
-      const newCases = count(db, `SELECT COUNT(*) AS value FROM cases ${opened.sql}`, opened.params);
-      const closedCases = count(db, `SELECT COUNT(*) AS value FROM cases ${closed.sql}`, closed.params);
-      const noteCount = count(db, `SELECT COUNT(*) AS value FROM case_notes ${notes.sql}`, notes.params);
-      const journalCount = count(db, `SELECT COUNT(*) AS value FROM activity_journal_entries ${journalPeriod.sql}`, journalPeriod.params);
-      const journalMinutes = count(db, `SELECT COALESCE(SUM(duration_minutes), 0) AS value FROM activity_journal_entries ${journalPeriod.sql}`, journalPeriod.params);
-      const journalOutsideEntries = count(db, `SELECT COUNT(*) AS value FROM activity_journal_entries ${journalPeriod.sql}${journalPeriod.sql ? ' AND' : ' WHERE'} performed_outside_contract_work_time = 1`, journalPeriod.params);
-      const journalOutsideMinutes = count(db, `SELECT COALESCE(SUM(duration_minutes), 0) AS value FROM activity_journal_entries ${journalPeriod.sql}${journalPeriod.sql ? ' AND' : ' WHERE'} performed_outside_contract_work_time = 1`, journalPeriod.params);
-      const journalOpenFollowUps = count(db, `SELECT COUNT(*) AS value FROM activity_journal_entries WHERE status = 'follow_up_open'`);
-      const violationCount = count(db, `SELECT COUNT(*) AS value FROM sbv_participation_violations ${violationPeriod.sql}`, violationPeriod.params);
-      const violationOpen = count(db, `SELECT COUNT(*) AS value FROM sbv_participation_violations WHERE status IN ('draft','open','sent','escalated')`);
-      const recruitingInterviews = count(db, `SELECT COUNT(*) AS value FROM recruiting_interview_events ${recruitingPeriod.sql}`, recruitingPeriod.params);
-      const recruitingOpenHearings = count(db, `SELECT COUNT(*) AS value FROM recruiting_participations WHERE has_severely_disabled_applicants = 1 AND statement_submitted_date IS NULL AND decision_known_date IS NULL`);
-      const recruitingMissingDocuments = count(db, `SELECT COUNT(*) AS value FROM recruiting_participations WHERE has_severely_disabled_applicants = 1 AND documents_complete = 0`);
-      const violationStatuses = rows(db, `SELECT status, COUNT(*) AS value FROM sbv_participation_violations ${violationPeriod.sql} GROUP BY status ORDER BY value DESC`, violationPeriod.params);
-      const violationStages = rows(db, `SELECT stage, COUNT(*) AS value FROM sbv_participation_violations ${violationPeriod.sql} GROUP BY stage ORDER BY value DESC`, violationPeriod.params);
-      const journalCategories = rows(db, `SELECT category, COUNT(*) AS count, COALESCE(SUM(duration_minutes), 0) AS minutes FROM activity_journal_entries ${journalPeriod.sql} GROUP BY category ORDER BY minutes DESC, count DESC`, journalPeriod.params);
-  
+      const createdSubjects = projection.activities.createdBySubject;
+      const newCases = createdSubjects.case ?? 0;
+      const journalCount = createdSubjects.activity_journal ?? 0;
+      const violationCount = createdSubjects.sbv_participation_violation ?? 0;
       const createdTotal = Object.values(created).reduce((sum, value) => sum + value, 0);
       const completedTotal = Object.values(completed).reduce((sum, value) => sum + value, 0);
       const coverageLabel = projection.coverage.status === 'complete'
@@ -63,24 +42,18 @@ export class ActivityReportBuilders extends ReportServiceCore {
           : 'keine Lifecycle-Daten vorhanden';
       const metrics = {
         "Neue Fälle": newCases,
-        "Abgeschlossene Fälle": closedCases,
-        "Offen gesamt": count(db, `SELECT COUNT(*) AS value FROM cases WHERE status <> 'abgeschlossen'`),
         "Neue Maßnahmen": createdTotal,
         "Abgeschlossene Maßnahmen": completedTotal,
         "SBV-Beteiligungen": created.sbv_participation,
         "Stellenbesetzungen": created.recruiting,
-        "Vorstellungsgespräche SBV": recruitingInterviews,
         "BEM/Prävention": created.bem + created.prevention,
         "Kündigungsanhörungen": created.termination_hearing,
         "Journal-Einträge": journalCount,
         "Beteiligungsverstöße": violationCount,
-        "offene Verstoßvorgänge": violationOpen,
-        "dokumentierte SBV-Zeit (Min.)": journalMinutes,
-        "SBV-Zeit außerhalb Regelarbeitszeit (Min.)": journalOutsideMinutes,
+        "Sitzungen": createdSubjects.sbv_meeting ?? 0,
+        "Schwerbehindertenversammlungen": createdSubjects.sbv_assembly ?? 0,
         "Datenabdeckung Maßnahmen": coverageLabel,
       };
-      const categories = rows(db, `SELECT category, COUNT(*) AS value FROM cases ${opened.sql} GROUP BY category ORDER BY value DESC`, opened.params);
-      const statuses = rows(db, `SELECT status, COUNT(*) AS value FROM cases GROUP BY status ORDER BY value DESC`);
       const measureLabels: Record<string, string> = {
         bem: 'BEM-Verfahren', prevention: 'Präventionsverfahren', sbv_participation: 'SBV-Beteiligungen',
         termination_hearing: 'Kündigungsanhörungen', equalization_gdb: 'Gleichstellung/GdB',
@@ -91,18 +64,17 @@ export class ActivityReportBuilders extends ReportServiceCore {
         reopened[type as keyof typeof reopened], cancelled[type as keyof typeof cancelled], deleted[type as keyof typeof deleted],
       ]);
       const processRows = [
-        ["Fallnotizen/Protokolle", noteCount],
-        ["Vorstellungsgespräche als Beteiligungsereignisse", recruitingInterviews],
-        ["Anhörung vor Auswahlentscheidung offen (Stichtag)", recruitingOpenHearings],
-        ["Stellenbesetzungsunterlagen offen (Stichtag)", recruitingMissingDocuments],
+        ["Fallnotizen/Protokolle", createdSubjects.case_note ?? 0],
         ["Tätigkeitsjournal", journalCount],
-        ["Journal-Wiedervorlagen offen (Stichtag)", journalOpenFollowUps],
-        ["Journal außerhalb Regelarbeitszeit", journalOutsideEntries],
         ["Beteiligungsverstoß-Protokolle", violationCount],
-        ["offene Beteiligungsverstoß-Vorgänge (Stichtag)", violationOpen],
+        ["Sitzungen", createdSubjects.sbv_meeting ?? 0],
+        ["Schwerbehindertenversammlungen", createdSubjects.sbv_assembly ?? 0],
+        ["Beschwerdevorgänge", createdSubjects.complaint_workflow ?? 0],
+        ["Prüfungen von Arbeitgeberpflichten", createdSubjects.employer_obligation_review ?? 0],
       ];
       const warnings: string[] = [...projection.warnings];
-      const rareCategories = categories.filter((row) => Number(row.value) > 0 && Number(row.value) < 3);
+      const categoryRows = Object.entries(projection.activities.caseCategories).sort((left, right) => right[1] - left[1]);
+      const rareCategories = categoryRows.filter(([, value]) => value > 0 && value < 3);
       if (rareCategories.length) warnings.push("Einzelne Fallkategorien enthalten weniger als 3 Fälle. Für externe Tätigkeitsberichte sollten diese zusammengefasst oder ausgelassen werden.");
       if (newCases + createdTotal + journalCount + violationCount < 3) warnings.push("Der Berichtszeitraum enthält sehr wenige Vorgänge. Vor externer Weitergabe ist die Rückrechenbarkeit besonders zu prüfen.");
   
@@ -114,17 +86,16 @@ export class ActivityReportBuilders extends ReportServiceCore {
           paragraph('Die Maßnahmenzähler wurden aus strukturierten Lifecycle-Ereignissen der verifizierten Audit-HashChain gebildet. Gelöschte Fachdaten bleiben dadurch in der Zählung des Berichtszeitraums berücksichtigt.'),
         ]),
         section('Weitere Arbeitsfelder', [table(['Arbeitsfeld', 'Anzahl'], processRows)]),
-        section('Fallkategorien im Berichtszeitraum', [table(['Kategorie', 'Anzahl'], categories.map((row) => [normalizeStatus(reportText(row.category)), row.value]))]),
-        section('Fallstatus zum Stichtag', [table(['Status', 'Anzahl'], statuses.map((row) => [normalizeStatus(typeof row.status === 'string' ? row.status : undefined), row.value]))]),
-        section('Tätigkeitsjournal / SBV-Zeit', [
-          table(['Kategorie', 'Einträge', 'Minuten'], journalCategories.map((row) => [normalizeStatus(reportText(row.category)), row.count, row.minutes])),
-          paragraph('Die Werte sind Eigenaufzeichnungen der SBV und keine Arbeitgeber-Arbeitszeitabrechnung. Außerhalb der Regelarbeitszeit dokumentierte Einträge werden nur aggregiert ausgewiesen.'),
+        section('Fallkategorien im Berichtszeitraum', [table(['Kategorie', 'Anzahl'], categoryRows.map(([category, value]) => [normalizeStatus(category), value]))]),
+        section('Tätigkeitsjournal', [
+          table(['Kategorie', 'Einträge'], Object.entries(projection.activities.journalCategories).map(([category, value]) => [normalizeStatus(category), value])),
+          paragraph(`${projection.activities.timedJournalEntries} Journaleinträge enthalten eine Zeitangabe. Die Audit-Chain speichert aus Datenschutzgründen keine Dauer oder vertraulichen Tätigkeitsinhalte.`),
         ]),
-        section('Beteiligungsverstöße nach Status', [table(['Status', 'Anzahl'], violationStatuses.map((row) => [normalizeStatus(typeof row.status === 'string' ? row.status : undefined), row.value]))]),
-        section('Beteiligungsverstöße nach Eskalationsstufe', [table(['Eskalationsstufe', 'Anzahl'], violationStages.map((row) => [normalizeStatus(reportText(row.stage)), row.value]))]),
+        section('Beteiligungsverstöße nach Status bei Anlage', [table(['Status', 'Anzahl'], Object.entries(projection.activities.violationStatuses).map(([status, value]) => [normalizeStatus(status), value]))]),
+        section('Beteiligungsverstöße nach Eskalationsstufe bei Anlage', [table(['Eskalationsstufe', 'Anzahl'], Object.entries(projection.activities.violationStages).map(([stage, value]) => [normalizeStatus(stage), value]))]),
         section('Datenqualität und Integritätsnachweis', [
           paragraph(`Datenabdeckung: ${coverageLabel}${projection.coverage.lifecycleStartedAt ? ` · Lifecycle-Protokoll seit ${formatDate(projection.coverage.lifecycleStartedAt)}` : ''}.`),
-          paragraph(`HashChain vollständig geprüft: ja · geprüfte Einträge: ${projection.chain.checkedEntries} · letzte Sequenz: ${projection.chain.lastSequence ?? '—'} · letzter Hash: ${hashPreview}… · Chain-Version: ${projection.chain.chainVersion}.`),
+          paragraph(`Einzige Datenquelle: verifizierte Audit-HashChain · geprüfte Einträge: ${projection.chain.checkedEntries} · letzte Sequenz: ${projection.chain.lastSequence ?? '—'} · letzter Hash: ${hashPreview}… · Chain-Version: ${projection.chain.chainVersion}.`),
           ...(projection.ignoredBaselineEvents ? [paragraph(`${projection.ignoredBaselineEvents} technische Baseline-Ereignisse wurden nicht als Tätigkeit gezählt.`)] : []),
         ]),
         section('Datenschutz und Anonymisierung', [paragraph('Dieser Tätigkeitsbericht enthält keine Namen, Aktenzeichen, Diagnosen, Dokumenttitel, Fall-IDs oder vertraulichen Freitexte. Bei kleinen Fallzahlen ist vor Weitergabe dennoch eine Rückrechenbarkeitsprüfung erforderlich.')]),

@@ -17,6 +17,14 @@ import { TEMPLATE_DEFAULT_FIELDS, EMPTY_TEMPLATE_DEFAULT_VALUES, loadTemplateDef
 import type { ThemeMode } from "../../shared/theme/appTheme";
 import { AUDIT_LOG_RETENTION_NOTICE } from "../../core/copy/privacyNotices";
 
+function retentionRuleLabel(rule: RetentionDashboard['policies'][number]['rule']): string {
+  if (rule.kind === 'months_after_completion') return `${rule.months} Monate nach Abschluss`;
+  if (rule.kind === 'months_after_completion_year_end') return `${rule.months / 12} Jahre nach Jahresende des Abschlusses`;
+  if (rule.kind === 'term_related') return `${rule.months / 12} Jahre / amtszeitbezogen`;
+  if (rule.kind === 'purpose_linked') return 'Sofort nach Zweckwegfall';
+  return 'Dauerhaft, ausschließlich anonymisiert';
+}
+
 export function RetentionSettingsPanel({ cases }: { cases: CaseRecord[] }) {
   const [dashboard, setDashboard] = useState<RetentionDashboard | null>(null);
   const [settings, setSettings] = useState<RetentionSettings | null>(null);
@@ -71,7 +79,7 @@ export function RetentionSettingsPanel({ cases }: { cases: CaseRecord[] }) {
   ) {
     const parsed = Number(value);
     if (!settings || !Number.isFinite(parsed)) return;
-    setSettings({ ...settings, [key]: Math.max(1, Math.trunc(parsed)) });
+    setSettings({ ...settings, [key]: Math.max(key === 'orphanContactReviewDays' ? 0 : 1, Math.trunc(parsed)) });
   }
 
   const candidates = dashboard?.candidates ?? [];
@@ -97,7 +105,7 @@ export function RetentionSettingsPanel({ cases }: { cases: CaseRecord[] }) {
             <span>Abgeschlossene Fälle prüfen nach Monaten</span>
             <input
               type="number"
-              min={1}
+              min={0}
               value={settings.closedCaseReviewMonths}
               onChange={(e) =>
                 updateSetting("closedCaseReviewMonths", e.target.value)
@@ -209,6 +217,27 @@ export function RetentionSettingsPanel({ cases }: { cases: CaseRecord[] }) {
         </div>
       )}
 
+      {dashboard && (
+        <details className="industrial-subpanel">
+          <summary>Standard-Aufbewahrungsfristen aller Module</summary>
+          <div className="industrial-table-shell mt-3">
+            <table className="industrial-table">
+              <thead><tr><th>Modul</th><th>Prüffrist</th><th>Rechtsrahmen</th><th>Regel</th></tr></thead>
+              <tbody>
+                {dashboard.policies.map((policy) => (
+                  <tr key={policy.module}>
+                    <td>{policy.label}</td>
+                    <td>{retentionRuleLabel(policy.rule)}</td>
+                    <td>{policy.legalBasis}</td>
+                    <td>{policy.explanation}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </details>
+      )}
+
       {!!criticalCandidates.length && (
         <div className="industrial-message industrial-message-warning">
           <strong>Kritische Datenschutz-/Integritätsprüfungen offen.</strong>
@@ -227,6 +256,7 @@ export function RetentionSettingsPanel({ cases }: { cases: CaseRecord[] }) {
               <th>Typ</th>
               <th>Bezug</th>
               <th>Empfehlung</th>
+              <th>Datenschutzprüfung</th>
               <th>Hinweis</th>
             </tr>
           </thead>
@@ -243,12 +273,13 @@ export function RetentionSettingsPanel({ cases }: { cases: CaseRecord[] }) {
                 <td>{candidate.title}</td>
                 <td>{candidate.reference ?? "—"}</td>
                 <td>{candidate.recommendedAction}</td>
+                <td>{candidate.privacyReviewRequired ? 'Pflicht' : 'Prüfen'}</td>
                 <td>{candidate.description}</td>
               </tr>
             ))}
             {!reviewCandidates.length && (
               <tr>
-                <td colSpan={5}>
+                <td colSpan={6}>
                   Keine Lösch- oder Aufbewahrungsprüfungen offen.
                 </td>
               </tr>

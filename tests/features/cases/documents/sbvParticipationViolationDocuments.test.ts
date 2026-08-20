@@ -71,16 +71,16 @@ describe('Beteiligungsverstoß-Dokumente 0.9.4-b', () => {
     expect(result.missingFields).toContain('Konsequenzwarnung');
   });
 
-  it('erzeugt ein DOCX nur bewusst, verschlüsselt als gsbvdoc und schreibt nur Metadaten in Verlauf und Audit', async () => {
+  it('erzeugt ein einheitliches PDF bewusst, verschlüsselt als gsbvdoc und schreibt nur Metadaten in Verlauf und Audit', async () => {
     const db = new DocumentDb();
     const dir = mkdtempSync(path.join(tmpdir(), 'gremia-violation-doc-'));
     try {
       const result = await new SbvParticipationViolationDocumentService(db, () => dir).generateDocument('vio-1');
 
-      expect(result.filename).toMatch(/\.docx$/);
+      expect(result.filename).toMatch(/\.pdf$/);
       expect(result.storagePath).toMatch(/\.gsbvdoc$/);
-      expect(readFileSync(result.storagePath).subarray(0, 2).toString()).not.toBe('PK');
-      expect(db.generatedDocuments[0]).toMatchObject({ document_kind: 'sbv_participation_violation', template_version: '0.9.4-v1', mime_type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+      expect(readFileSync(result.storagePath).subarray(0, 4).toString()).not.toBe('%PDF');
+      expect(db.generatedDocuments[0]).toMatchObject({ document_kind: 'sbv_participation_violation', template_version: '0.9.4-v1', mime_type: 'application/pdf' });
       expect(db.violationDocuments[0]).toMatchObject({ violation_id: 'vio-1', immutable_snapshot: 1 });
       expect(db.events.map((event) => event.event_type)).toContain('document_generated');
       const auditJson = db.audit.map((row) => String(row.metadata_json)).join('\n');

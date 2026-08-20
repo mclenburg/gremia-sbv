@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import { randomUUID } from 'node:crypto';
-import type { RetentionDashboard, RetentionOperationResult, RetentionSettings, UpdateRetentionSettingsInput } from '../src/domain/models/retention.model.js';
+import type { RetentionDashboard, RetentionModuleSnapshot, RetentionModuleType, RetentionOperationResult, RetentionSettings, UpdateRetentionSettingsInput } from '../src/domain/models/retention.model.js';
 import type { DatabaseAdapter } from './databaseService.js';
 import { DEFAULT_RETENTION_SETTINGS, buildRetentionDashboard, normalizeRetentionSettings, type RetentionActivityJournalSnapshot, type RetentionCaseSnapshot, type RetentionContactSnapshot, type RetentionDeadlineSnapshot, type RetentionDocumentSnapshot, type RetentionParticipationViolationSnapshot } from './retentionPolicy.js';
 import { SearchIndexService } from './search/searchIndexService.js';
@@ -73,6 +73,7 @@ export class RetentionService {
     const participationViolations = this.listParticipationViolationSnapshots(db);
     const cleartextFiles = listCleartextFiles(this.dataDirProvider());
     const officeOwners = new RetentionOwnerRegistry().listManagedSnapshots(db);
+    const moduleRecords = this.listModuleRetentionSnapshots(db);
     return buildRetentionDashboard({
       settings: this.getSettings(),
       cases,
@@ -82,8 +83,57 @@ export class RetentionService {
       journalEntries,
       participationViolations,
       cleartextFiles,
-      officeOwners
+      officeOwners,
+      moduleRecords,
     });
+  }
+
+  private listModuleRetentionSnapshots(db: DatabaseAdapter): RetentionModuleSnapshot[] {
+    const result: RetentionModuleSnapshot[] = [];
+    const append = (
+      table: string,
+      module: RetentionModuleType,
+      sql: string,
+      map: (row: DatabaseRow) => Omit<RetentionModuleSnapshot, 'module'>,
+    ): void => {
+      if (!tableExists(db, table)) return;
+      for (const row of db.prepare<DatabaseRow>(sql).all()) result.push({ module, ...map(row) });
+    };
+    append('recruiting_participations', 'recruiting', `
+      SELECT id, vacancy_title AS title, status, COALESCE(decision_known_date, updated_at) AS completed_at
+      FROM recruiting_participations WHERE status IN ('decision_known','closed')
+    `, (row) => ({ id: row.id, title: row.title, status: row.status, completedAt: row.completed_at }));
+    append('termination_hearings', 'termination_hearing', `
+      SELECT id, status, updated_at AS completed_at FROM termination_hearings WHERE status = 'abgeschlossen'
+    `, (row) => ({ id: row.id, title: 'Kündigungsanhörung', status: row.status, completedAt: row.completed_at }));
+    append('bem_processes', 'bem', `
+      SELECT id, title, status, updated_at AS completed_at, consent_withdrawn_at
+      FROM bem_processes WHERE status IN ('abgeschlossen','abgelehnt','abgebrochen') OR consent_withdrawn_at IS NOT NULL
+    `, (row) => ({ id: row.id, title: row.title || 'BEM-Verfahren', status: row.status, completedAt: row.completed_at, consentWithdrawnAt: row.consent_withdrawn_at }));
+    append('prevention_processes', 'prevention', `
+      SELECT id, status, updated_at AS completed_at FROM prevention_processes WHERE status = 'abgeschlossen'
+    `, (row) => ({ id: row.id, title: 'Präventionsverfahren', status: row.status, completedAt: row.completed_at }));
+    append('compliance_incidents', 'compliance_incident', `
+      SELECT id, summary AS title, status, COALESCE(closed_at, updated_at) AS completed_at
+      FROM compliance_incidents WHERE status = 'closed'
+    `, (row) => ({ id: row.id, title: row.title, status: row.status, completedAt: row.completed_at }));
+    if (tableExists(db, 'case_measures')) {
+      const rows = db.prepare<DatabaseRow>(`
+        SELECT id, title, type, status, COALESCE(closed_at, updated_at) AS completed_at
+        FROM case_measures WHERE status IN ('abgeschlossen','completed','closed')
+          AND type IN ('sbv_participation','workplace_accommodation','equalization_gdb')
+      `).all();
+      const moduleByType: Record<string, RetentionModuleType> = {
+        sbv_participation: 'sbv_participation',
+        workplace_accommodation: 'workplace_accommodation',
+        equalization_gdb: 'equalization_gdb',
+      };
+      for (const row of rows) {
+        const module = moduleByType[row.type];
+        if (module) result.push({ module, id: row.id, title: row.title, status: row.status, completedAt: row.completed_at });
+      }
+    }
+    return result;
   }
 
   private listCaseSnapshots(db: DatabaseAdapter): RetentionCaseSnapshot[] {

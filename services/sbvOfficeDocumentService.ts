@@ -4,6 +4,10 @@ import type { DatabaseAdapter } from './databaseService.js';
 import { SbvOfficeWorkflowDocumentAdapter, type SbvOfficeDocumentRecord } from './sbvOfficeWorkflowDocumentAdapter.js';
 import type { RetentionOwnerRef } from '../src/domain/models/retention-owner.model.js';
 import type { SbvAssemblyRecord } from '../src/domain/models/sbv-office-workflow.model.js';
+import { paragraph, reportDocument, section, type PdfDocumentDefinition } from './documents/pdfDocumentDefinition.js';
+import { PdfDocumentGenerationService } from './documents/pdfDocumentGenerationService.js';
+import type { GenerateReportInput } from '../src/domain/models/report.model.js';
+import type { ReportBuildResult } from './reports/reportSupport.js';
 
 export type AssemblyDocumentKind = 'invitation' | 'agenda' | 'activity_report_draft' | 'result_minutes';
 
@@ -16,6 +20,8 @@ interface AssemblyRow {
   minutes: string | null;
 }
 
+type ActivityReportBuilder = { build(input: GenerateReportInput): ReportBuildResult };
+
 const labels: Record<AssemblyDocumentKind, string> = {
   invitation: 'Einladung',
   agenda: 'Tagesordnung',
@@ -27,6 +33,8 @@ export class SbvOfficeDocumentService {
   constructor(
     private readonly db: DatabaseAdapter,
     private readonly adapter: SbvOfficeWorkflowDocumentAdapter,
+    private readonly reports?: ActivityReportBuilder,
+    private readonly pdfDocuments = new PdfDocumentGenerationService(),
   ) {}
 
   async generateAssemblyDocument(assemblyId: string, kind: AssemblyDocumentKind): Promise<SbvOfficeDocumentRecord> {
@@ -35,17 +43,22 @@ export class SbvOfficeDocumentService {
     ).get(assemblyId);
     if (!assembly) throw new Error('Schwerbehindertenversammlung nicht gefunden.');
 
-    const body = this.renderAssemblyText(assembly, kind);
-    const filename = `schwerbehindertenversammlung-${assembly.year}-${kind.replaceAll('_', '-')}.txt`;
+    const definition = this.buildAssemblyDocument(assembly, kind);
+    const body = await this.pdfDocuments.generate({
+      source: kind === 'activity_report_draft' ? 'report' : 'assembly',
+      definition,
+      privacyProfile: kind === 'activity_report_draft' ? 'anonymized' : 'confidential',
+    });
+    const filename = `schwerbehindertenversammlung-${assembly.year}-${kind.replaceAll('_', '-')}.pdf`;
     return this.adapter.store({
       owner: { type: 'assembly', id: assembly.id },
       title: `${labels[kind]} · Schwerbehindertenversammlung ${assembly.year}`,
       filename,
-      mimeType: 'text/plain; charset=utf-8',
+      mimeType: 'application/pdf',
       purpose: `Schwerbehindertenversammlung: ${labels[kind]}`,
       documentClass: 'generated_document',
       templateVersion: 'sbv-assembly-0.9.7',
-      plain: Buffer.from(body, 'utf8'),
+      plain: body,
     });
   }
 
@@ -59,14 +72,34 @@ export class SbvOfficeDocumentService {
     return result;
   }
 
-  private renderAssemblyText(assembly: AssemblyRow, kind: AssemblyDocumentKind): string {
-    const heading = `${labels[kind]}\nSchwerbehindertenversammlung ${assembly.year}`;
+  readDocument(documentId: string): Promise<Buffer> {
+    return this.adapter.read(documentId);
+  }
+
+  private buildAssemblyDocument(assembly: AssemblyRow, kind: AssemblyDocumentKind): PdfDocumentDefinition {
+    if (kind === 'activity_report_draft') {
+      if (!this.reports) throw new Error('Der zentrale Tätigkeitsbericht ist nicht verfügbar.');
+      return this.reports.build({
+        type: 'activity',
+        periodStart: `${assembly.year}-01-01`,
+        periodEnd: `${assembly.year}-12-31`,
+      }).document;
+    }
     const schedule = assembly.scheduled_at ? `Termin: ${assembly.scheduled_at}` : 'Termin: noch offen';
     const location = assembly.location_or_mode ? `Ort / Format: ${assembly.location_or_mode}` : 'Ort / Format: noch offen';
-    if (kind === 'agenda') return `${heading}\n\n${schedule}\n${location}\n\n${assembly.agenda?.trim() || 'Tagesordnung wird ergänzt.'}\n`;
-    if (kind === 'result_minutes') return `${heading}\n\n${schedule}\n${location}\n\n${assembly.minutes?.trim() || 'Ergebnisprotokoll wird ergänzt.'}\n`;
-    if (kind === 'activity_report_draft') return `${heading}\n\nBerichtsjahr: ${assembly.year}\n\nTätigkeiten und Schwerpunkte der Schwerbehindertenvertretung:\n\n`;
-    return `${heading}\n\n${schedule}\n${location}\n\nTagesordnung:\n${assembly.agenda?.trim() || 'wird gesondert bekanntgegeben'}\n`;
+    const content = kind === 'result_minutes'
+      ? assembly.minutes?.trim() || 'Ergebnisprotokoll wird ergänzt.'
+      : assembly.agenda?.trim() || (kind === 'agenda' ? 'Tagesordnung wird ergänzt.' : 'wird gesondert bekanntgegeben');
+    return reportDocument(
+      labels[kind],
+      `Schwerbehindertenversammlung ${assembly.year}`,
+      kind === 'result_minutes' ? 'Intern vertraulich' : 'Zur Weitergabe',
+      [
+        section('Rahmendaten', [paragraph(schedule), paragraph(location)]),
+        section(kind === 'result_minutes' ? 'Ergebnisse und Maßnahmen' : 'Tagesordnung', [paragraph(content)]),
+      ],
+      [],
+    );
   }
 }
 

@@ -4,7 +4,8 @@ import {
   type SbvOfficeDocumentRecord,
 } from './sbvOfficeWorkflowDocumentAdapter.js';
 import { ElectionPreparationRepository } from './electionPreparationRepository.js';
-import { createAccessibleTextPdf } from './documents/pdfDocumentRenderer.js';
+import { list, reportDocument, section } from './documents/pdfDocumentDefinition.js';
+import { PdfDocumentGenerationService } from './documents/pdfDocumentGenerationService.js';
 import type {
   ElectionNoticeDetails,
   ElectionRecord,
@@ -62,6 +63,7 @@ export function validateElectionNoticeDetails(
 
 export class SbvElectionDocumentService {
   private readonly repo: ElectionPreparationRepository;
+  private readonly pdfDocuments = new PdfDocumentGenerationService();
 
   constructor(
     db: DatabaseAdapter,
@@ -77,7 +79,17 @@ export class SbvElectionDocumentService {
     const election = this.repo.getElection(electionId);
     if (!election) throw new Error('Wahlvorgang wurde nicht gefunden.');
     const title = input.titleOverride?.trim() || DOCUMENT_TITLES[input.kind];
-    const plain = await createAccessibleTextPdf(title, this.lines(input, election));
+    const plain = await this.pdfDocuments.generate({
+      source: 'election',
+      privacyProfile: 'lawful_personal_data',
+      definition: reportDocument(
+        title,
+        `SBV-Wahl · ${election.procedure ?? 'Verfahren noch offen'}`,
+        input.kind === 'voter_list' ? 'Vertrauliches Wahldokument' : 'Rechtlich relevantes Wahldokument',
+        [section('Dokumentinhalt', [list(this.lines(input, election))])],
+        [],
+      ),
+    });
     const record = await this.documents.store({
       owner: { type: 'election', id: electionId },
       title,
