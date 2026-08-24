@@ -65,7 +65,7 @@ export function useSbvParticipationViolations({ cases, measures, pendingPrefill,
     }
   }, [reload]);
 
-  const createViolation = useCallback(async () => {
+  const createViolation = useCallback(async (): Promise<boolean> => {
     context.setValidationAttempted(true);
     const issues = validateViolationDraft(context.form);
     if (issues.length > 0) {
@@ -73,7 +73,7 @@ export function useSbvParticipationViolations({ cases, measures, pendingPrefill,
       setError(validationMessage);
       setMessage('');
       announce(validationMessage, 'assertive');
-      return;
+      return false;
     }
 
     setBusy(true);
@@ -86,10 +86,12 @@ export function useSbvParticipationViolations({ cases, measures, pendingPrefill,
       announce(successMessage);
       context.reset();
       await reload();
+      return true;
     } catch (err) {
       const errorMessage = toErrorMessage(err, 'Beteiligungsverstoß konnte nicht gespeichert werden.');
       setError(errorMessage);
       announce(errorMessage, 'assertive');
+      return false;
     } finally {
       setBusy(false);
     }
@@ -123,7 +125,7 @@ export function useSbvParticipationViolations({ cases, measures, pendingPrefill,
         includeLegalReviewHint: needsEscalationHint(record.stage),
         includeOwiHint: record.stage === 'owi_preparation',
       });
-      const successMessage = `DOCX wurde verschlüsselt abgelegt: ${result.filename}`;
+      const successMessage = `PDF wurde verschlüsselt abgelegt: ${result.filename}`;
       setMessage(successMessage);
       announce(successMessage);
       await reload();

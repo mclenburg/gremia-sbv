@@ -16,6 +16,7 @@ describe('modulübergreifender Aufbewahrungskatalog', () => {
     expect(rules.election).toEqual({ kind: 'term_related', months: 48 });
     expect(rules.activity_journal).toEqual({ kind: 'permanent_anonymized' });
     expect(rules.protected_person).toEqual({ kind: 'purpose_linked' });
+    expect(rules.equalization_gdb).toEqual({ kind: 'months_after_completion', months: 36 });
   });
 
   it('berechnet Kündigungsfristen ab Jahresende und markiert nur manuelle Prüfaufträge', () => {

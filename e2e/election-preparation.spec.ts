@@ -7,15 +7,42 @@ async function open(page: Page) {
   await expect(electionRegion.getByRole('heading', { name: 'SBV-Wahlen', level: 1 })).toBeVisible();
 }
 
-test('Wahl-Setup marks four confirmed plus pending equalization below the five-person threshold',async({page})=>{await open(page);await page.getByLabel('Wahlart').selectOption('extraordinary_no_sbv');await page.getByLabel('Wahlgrund').fill('SBV vakant');await page.getByRole('button',{name:'Wahlvorgang anlegen'}).click();await page.getByLabel('Bestätigt schwerbehindert').fill('4');await page.getByLabel('Offene Gleichstellungsanträge').fill('1');await page.getByRole('button',{name:'Prüfung speichern'}).click();await expect(page.getByText(/Mindestschwelle von fünf bestätigten Wahlberechtigten ist nicht erfüllt/)).toBeVisible();await page.getByLabel('Bestätigt gleichgestellt').fill('1');await page.getByLabel('Offene Gleichstellungsanträge').fill('0');await page.getByRole('button',{name:'Prüfung speichern'}).click();await expect(page.getByText(/Mindestschwelle von fünf/)).toHaveCount(0);});
+async function createElection(page: Page) {
+  await open(page);
+  await page.getByRole('button', { name: 'Wahlvorgang anlegen' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Neuen Wahlvorgang anlegen' });
+  await expect(dialog).toBeVisible();
+  await dialog.getByLabel('Wahlart').selectOption('extraordinary_no_sbv');
+  await dialog.getByLabel('Wahlgrund').fill('SBV vakant');
+  await dialog.getByRole('button', { name: 'Wahlvorgang anlegen' }).click();
+  await expect(dialog).toBeHidden();
+}
 
-test('Wahl-Setup proposes formal procedure at fifty and records a formal election board',async({page})=>{await open(page);await page.getByLabel('Wahlart').selectOption('extraordinary_no_sbv');await page.getByLabel('Wahlgrund').fill('SBV vakant');await page.getByRole('button',{name:'Wahlvorgang anlegen'}).click();await page.getByLabel('Bestätigt schwerbehindert').fill('50');await expect(page.getByText(/Vorschlag: förmliches Verfahren/)).toBeVisible();await page.getByRole('button',{name:'Prüfung speichern'}).click();await page.getByRole('navigation',{name:'SBV-Wahl Arbeitsbereiche'}).getByRole('button',{name:/^Wahlorgan\b/}).click();await page.getByLabel('Name').fill('Vorsitz Test');await page.getByRole('button',{name:'Speichern',exact:true}).click();await expect(page.getByText(/Vorsitz: Vorsitz Test/)).toBeVisible();});
+test('Wahl-Setup marks four confirmed plus pending equalization below the five-person threshold', async ({ page }) => {
+  await createElection(page);
+  await page.getByLabel('Bestätigt schwerbehindert').fill('4');
+  await page.getByLabel('Offene Gleichstellungsanträge').fill('1');
+  await page.getByRole('button', { name: 'Prüfung speichern' }).click();
+  await expect(page.getByText(/Mindestschwelle von fünf bestätigten Wahlberechtigten ist nicht erfüllt/)).toBeVisible();
+  await page.getByLabel('Bestätigt gleichgestellt').fill('1');
+  await page.getByLabel('Offene Gleichstellungsanträge').fill('0');
+  await page.getByRole('button', { name: 'Prüfung speichern' }).click();
+  await expect(page.getByText(/Mindestschwelle von fünf/)).toHaveCount(0);
+});
+
+test('Wahl-Setup proposes formal procedure at fifty and records a formal election board', async ({ page }) => {
+  await createElection(page);
+  await page.getByLabel('Bestätigt schwerbehindert').fill('50');
+  await expect(page.getByText(/Vorschlag: förmliches Verfahren/)).toBeVisible();
+  await page.getByRole('button', { name: 'Prüfung speichern' }).click();
+  await page.getByRole('navigation', { name: 'SBV-Wahl Arbeitsbereiche' }).getByRole('button', { name: /^Wahlorgan\b/ }).click();
+  await page.getByLabel('Name').fill('Vorsitz Test');
+  await page.getByRole('button', { name: 'Speichern', exact: true }).click();
+  await expect(page.getByText(/Vorsitz: Vorsitz Test/)).toBeVisible();
+});
 
 test('Wählerliste übernimmt standardmäßig bestätigte Personen und hält manuelle Erfassung nachrangig', async ({ page }) => {
-  await open(page);
-  await page.getByLabel('Wahlart').selectOption('extraordinary_no_sbv');
-  await page.getByLabel('Wahlgrund').fill('SBV vakant');
-  await page.getByRole('button', { name: 'Wahlvorgang anlegen' }).click();
+  await createElection(page);
   await page.getByRole('navigation', { name: 'SBV-Wahl Arbeitsbereiche' }).getByRole('button', { name: /^Wählerliste\b/ }).click();
 
   await expect(page.getByRole('button', { name: 'Personen übernehmen' })).toBeVisible();
@@ -33,17 +60,14 @@ test('Wählerliste übernimmt standardmäßig bestätigte Personen und hält man
 
 
 test('Wählerlistenarbeit wird im Tätigkeitsjournal als SBV-Wahl vorbelegt', async ({ page }) => {
-  await open(page);
-  await page.getByLabel('Wahlart').selectOption('extraordinary_no_sbv');
-  await page.getByLabel('Wahlgrund').fill('SBV vakant');
-  await page.getByRole('button', { name: 'Wahlvorgang anlegen' }).click();
+  await createElection(page);
   await page.getByRole('navigation', { name: 'SBV-Wahl Arbeitsbereiche' }).getByRole('button', { name: /^Wählerliste\b/ }).click();
   await page.getByRole('button', { name: 'Tätigkeit erfassen' }).click();
   await expect(page.getByRole('region', { name: 'Tätigkeitsjournal' }).getByRole('heading', { name: 'Tätigkeitsjournal', level: 1 })).toBeVisible();
-  const journalEntry = page.getByRole('region', { name: 'Tätigkeit erfassen' });
+  const journalEntry = page.getByRole('dialog', { name: 'Tätigkeit erfassen' });
+  await expect(journalEntry).toBeVisible();
   await expect(journalEntry.getByLabel('Was wurde gemacht?')).toHaveValue('SBV-Wahl: Wählerliste');
-  await expect(journalEntry.getByLabel('Kategorie')).toHaveValue('sbv_self_organization');
+  await expect(journalEntry.getByLabel('Kategorie')).toHaveValue('SBV-Selbstorganisation');
   await expect(page.getByText('Vorbelegung übernommen.')).toBeVisible();
   await expect(page.getByText(/voter_list/)).toHaveCount(0);
-  await expect(journalEntry.getByLabel('Kategorie').locator('option:checked')).toHaveText('SBV-Selbstorganisation');
 });

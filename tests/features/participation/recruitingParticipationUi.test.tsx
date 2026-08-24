@@ -1,6 +1,8 @@
 import { createElement } from 'react';
 import { describe, expect, it } from 'vitest';
 import { RecruitingParticipationsView } from '../../../src/app/features/recruiting/RecruitingParticipationsView';
+import { RecruitingProcedureForm } from '../../../src/app/features/recruiting/RecruitingProcedureForm';
+import { emptyParticipationForm } from '../../../src/app/features/recruiting/recruitingParticipationViewSupport';
 import { recruitingStatusLabels, getRecruitingRiskHints } from '../../../src/app/features/recruiting/recruitingViewLogic';
 import type { RecruitingParticipationRecord } from '../../../src/domain/models/recruiting-participation.model';
 import { ACTIVITY_JOURNAL_CONTEXT_TYPES, ACTIVITY_JOURNAL_TARGET_TYPES } from '../../../src/domain/models/activity-journal.model';
@@ -51,7 +53,19 @@ describe('Stellenbesetzungen 0.9.5-b UI- und Kontextintegration', () => {
     expect(text).toContain('Anhörung offen');
     expect(text).toContain('Unterlagen offen');
     expect(text).toContain('Verstoßprüfung');
-    expect(text).toContain('Stelle / Bezeichnung');
+    expect(text).toContain('Stellenbesetzung anlegen');
+
+    const creationDialog = renderElement(createElement(RecruitingProcedureForm, {
+      form: emptyParticipationForm(),
+      selected: null,
+      saving: false,
+      creating: true,
+      onFormChange: () => undefined,
+      onCreate: () => undefined,
+      onUpdate: () => undefined,
+      onClose: () => undefined,
+    }));
+    expect(visibleText(creationDialog.markup)).toContain('Stelle / Bezeichnung');
   });
 
   it('liefert Prüfhinweise für offene Anhörung und unvollständige Unterlagen', () => {

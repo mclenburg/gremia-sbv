@@ -14,14 +14,14 @@ import {
 
 type ViolationState = ReturnType<typeof useSbvParticipationViolations>;
 
-export function ViolationDraftForm({ state }: { state: ViolationState }) {
+export function ViolationDraftForm({ state, onCreated }: { state: ViolationState; onCreated?: () => void }) {
   const sourceContextOptions = participationViolationSourceContextOptions.some((option) => option.value === state.form.sourceContextType)
     ? participationViolationSourceContextOptions
     : [...participationViolationSourceContextOptions, { value: state.form.sourceContextType, label: 'Aus Fachvorgang übernommen' }];
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    void state.createViolation();
+    void state.createViolation().then((created) => { if (created) onCreated?.(); });
   }
 
   return <FormSection
@@ -29,7 +29,6 @@ export function ViolationDraftForm({ state }: { state: ViolationState }) {
     title="Beteiligungsverstoß erfassen"
     description="Entwurf mit nachvollziehbarem Ausgangskontext."
     helpId="participationViolations.sourceContext"
-    actions={<FileWarning className="h-5 w-5 text-yellow-300" aria-hidden="true" />}
   >
     {state.contextNotice && <IndustrialWarningPanel>
       <div className="flex items-start gap-3">

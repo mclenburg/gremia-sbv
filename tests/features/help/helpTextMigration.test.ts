@@ -9,9 +9,11 @@ import { createInitialViolationForm } from '../../../src/app/features/participat
 
 const MIGRATED_FEATURE_FILES = [
   'src/app/features/recruiting/RecruitingParticipationsView.tsx',
+  'src/app/features/recruiting/RecruitingProcedureForm.tsx',
   'src/app/features/participation-violations/SbvParticipationViolationsView.tsx',
   'src/app/features/participation-violations/ViolationDraftForm.tsx',
   'src/app/features/activity-journal/ActivityJournalView.tsx',
+  'src/app/features/activity-journal/ActivityJournalCreateDialog.tsx',
 ] as const;
 
 function source(path: string): string {
@@ -35,10 +37,16 @@ function renderedViolationDraft(): string {
 
 describe('0.9.5-j Hilfetext-Migration Arbeitsmasken', () => {
   it('verschiebt belehrende Langtexte der priorisierten Arbeitsmasken hinter helpIds', () => {
-    const recruiting = source('src/app/features/recruiting/RecruitingParticipationsView.tsx');
+    const recruiting = [
+      source('src/app/features/recruiting/RecruitingParticipationsView.tsx'),
+      source('src/app/features/recruiting/RecruitingProcedureForm.tsx'),
+    ].join('\n');
     const violations = source('src/app/features/participation-violations/SbvParticipationViolationsView.tsx');
     const violationDraft = renderedViolationDraft();
-    const journal = source('src/app/features/activity-journal/ActivityJournalView.tsx');
+    const journal = [
+      source('src/app/features/activity-journal/ActivityJournalView.tsx'),
+      source('src/app/features/activity-journal/ActivityJournalCreateDialog.tsx'),
+    ].join('\n');
 
     expect(recruiting).toContain('helpId="recruiting.overview"');
     expect(recruiting).toContain('helpId="recruiting.procedureData"');

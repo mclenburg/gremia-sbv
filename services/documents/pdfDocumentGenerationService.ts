@@ -31,6 +31,10 @@ function documentTexts(definition: PdfDocumentDefinition): string[] {
     definition.classification ?? '',
     ...(definition.warnings ?? []),
     definition.footer ?? '',
+    ...(definition.letterhead?.sender ?? []),
+    ...(definition.letterhead?.recipient ?? []),
+    definition.letterhead?.date ?? '',
+    definition.letterhead?.subject ?? '',
     ...definition.blocks.flatMap(blockTexts),
   ];
 }

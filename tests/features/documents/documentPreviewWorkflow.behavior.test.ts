@@ -74,4 +74,20 @@ describe('gemeinsamer PDF-Vorschauablauf', () => {
       operation,
     } satisfies Partial<ApplicationError>);
   });
+
+  it('bewahrt konkrete, sicher formulierte Validierungsfehler für die UI', async () => {
+    const action = generateAndRequestDocumentPreview({
+      operation: 'sbvOffice:assemblies:generateDocument',
+      generateFailureMessage: 'Versammlungsdokument fehlgeschlagen.',
+      security: security(),
+      opener: async () => '',
+      generate: async () => { throw new ApplicationError('VALIDATION_FAILED', 'Die Einladung benötigt einen Termin und einen Ort bzw. ein Format.'); },
+      read: async () => Buffer.alloc(0),
+    });
+
+    await expect(action).rejects.toMatchObject({
+      code: 'VALIDATION_FAILED',
+      message: 'Die Einladung benötigt einen Termin und einen Ort bzw. ein Format.',
+    });
+  });
 });

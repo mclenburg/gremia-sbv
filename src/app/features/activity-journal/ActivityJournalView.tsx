@@ -1,14 +1,16 @@
-import { Clock, FileText, Search, Trash2 } from 'lucide-react';
+import { Clock, Plus, Search, Trash2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import type { ActivityJournalCategory, ActivityJournalEntryRecord, ActivityJournalPrefill } from '../../../domain/models/activity-journal.model';
 import { ACTIVITY_JOURNAL_CATEGORIES } from '../../../domain/models/activity-journal.model';
 import { activityJournalCategoryLabels, activityJournalTimeModeLabels } from '../../../domain/labels/activityJournalLabels';
-import { IndustrialButton, IconButton, ToolbarButton } from '../../shared/components/IndustrialButton';
-import { CheckboxField, DateInput, DateTimeInput, FormActions, FormSection, SelectInput, TextareaInput, TextInput } from '../../shared/components/IndustrialForm';
+import { IconButton, IndustrialButton, ToolbarButton } from '../../shared/components/IndustrialButton';
+import { FormSection, SelectInput, TextInput } from '../../shared/components/IndustrialForm';
 import { ModuleFeedback } from '../../shared/components/ModuleFeedback';
-import { DataTable, EmptyState, IndustrialWarningPanel, WorkbenchGrid, WorkbenchPage, WorkbenchSummary } from '../../shared/components/WorkbenchLayout';
+import { DataTable, EmptyState, WorkbenchGrid, WorkbenchPage, WorkbenchSummary } from '../../shared/components/WorkbenchLayout';
 import { useConfirmDialog } from '../../shared/dialogs/ConfirmDialogProvider';
 import { categoryLabel, entryReferenceLabel, formatDuration } from './activityJournalLogic';
 import { useActivityJournal } from './hooks/useActivityJournal';
+import { ActivityJournalCreateDialog } from './ActivityJournalCreateDialog';
 
 const categoryOptions = ACTIVITY_JOURNAL_CATEGORIES.map((category) => ({
   value: category,
@@ -41,6 +43,8 @@ export function ActivityJournalView({
 }) {
   const journal = useActivityJournal(pendingPrefill, onPrefillConsumed);
   const confirmDialog = useConfirmDialog();
+  const [createOpen, setCreateOpen] = useState(Boolean(pendingPrefill));
+  useEffect(() => { if (pendingPrefill) setCreateOpen(true); }, [pendingPrefill]);
 
   async function confirmDelete(entry: ActivityJournalEntryRecord) {
     const ok = await confirmDialog({
@@ -82,112 +86,19 @@ export function ActivityJournalView({
     <WorkbenchPage
       title="Tätigkeitsjournal"
       helpId="activityJournal.overview"
+      actions={<IndustrialButton onClick={() => setCreateOpen(true)}><Plus className="h-4 w-4" aria-hidden="true" /> Tätigkeit erfassen</IndustrialButton>}
     >
       <ModuleFeedback items={[
         journal.message ? { id: 'activity-journal-message', tone: 'success', message: journal.message } : null,
         journal.error ? { id: 'activity-journal-error', tone: 'warning', message: journal.error } : null,
       ]} />
 
-      <WorkbenchGrid>
-        <FormSection
-          kicker="Schnellerfassung"
-          title="Tätigkeit erfassen"
-        >
-          <div className="industrial-form-grid industrial-form-grid-auto">
-            <TextInput
-              label="Was wurde gemacht?"
-              value={journal.form.title}
-              required
-              placeholder="z. B. Unterlagen für BEM-Gespräch geprüft"
-              onValueChange={(title) => journal.setForm({ ...journal.form, title })}
-            />
-            <DateInput
-              label="Datum"
-              value={journal.form.entryDate}
-              onValueChange={(entryDate) => journal.setForm({ ...journal.form, entryDate })}
-            />
-            <SelectInput
-              label="Kategorie"
-              value={journal.form.category}
-              options={categoryOptions}
-              onValueChange={(category) => journal.setForm({ ...journal.form, category: category as ActivityJournalCategory })}
-            />
-            <SelectInput
-              label="Zeitmodus"
-              value={journal.form.timeMode}
-              options={timeModeOptions}
-              onValueChange={(timeMode) => journal.setForm({ ...journal.form, timeMode: timeMode as typeof journal.form.timeMode })}
-            />
-            {journal.form.timeMode === 'duration' ? (
-              <TextInput
-                label="Minuten"
-                type="number"
-                min={0}
-                value={journal.form.durationMinutes}
-                onValueChange={(durationMinutes) => journal.setForm({ ...journal.form, durationMinutes })}
-              />
-            ) : null}
-            {journal.form.timeMode === 'range' ? (
-              <>
-                <DateTimeInput
-                  label="Start"
-                  value={journal.form.startedAt}
-                  onValueChange={(startedAt) => journal.setForm({ ...journal.form, startedAt })}
-                />
-                <DateTimeInput
-                  label="Ende"
-                  value={journal.form.endedAt}
-                  onValueChange={(endedAt) => journal.setForm({ ...journal.form, endedAt })}
-                />
-              </>
-            ) : null}
-            <TextareaInput
-              label="Kurzbeschreibung / Kontext"
-              value={journal.form.description}
-              wide
-              textCommandFieldId="activity-journal-description"
-              helpId="activityJournal.textCommands"
-              onValueChange={journal.updateDescription}
-            />
-            <TextareaInput
-              label="Ergebnis / nächster Schritt"
-              value={journal.form.resultNote}
-              wide
-              textCommandFieldId="activity-journal-result"
-              onValueChange={journal.updateResultNote}
-            />
-            {journal.timeSuggestion ? (
-              <IndustrialWarningPanel className="industrial-field-wide">
-                <strong>/zeit-Vorschlag</strong>
-                <p>{journal.timeSuggestion.label}</p>
-                <div className="industrial-action-row mt-2">
-                  <ToolbarButton onClick={journal.acceptTimeSuggestion}>Übernehmen</ToolbarButton>
-                  <ToolbarButton onClick={journal.dismissTimeSuggestion}>Verwerfen</ToolbarButton>
-                </div>
-              </IndustrialWarningPanel>
-            ) : null}
-            <DateInput
-              label="Wiedervorlage optional"
-              value={journal.form.followUpDueAt}
-              onValueChange={(followUpDueAt) => journal.setForm({ ...journal.form, followUpDueAt, status: followUpDueAt ? 'follow_up_open' : journal.form.status })}
-            />
-            <CheckboxField
-              label="Außerhalb der regulären Arbeitszeit angefallen"
-              checked={journal.form.performedOutsideContractWorkTime}
-              onCheckedChange={(performedOutsideContractWorkTime) => journal.setForm({ ...journal.form, performedOutsideContractWorkTime })}
-            />
-          </div>
-          <FormActions align="end">
-            <IndustrialButton loading={journal.busy} disabled={!journal.form.title.trim()} onClick={() => void journal.saveEntry()}>
-              Speichern
-            </IndustrialButton>
-          </FormActions>
-        </FormSection>
+      {createOpen ? <ActivityJournalCreateDialog journal={journal} categoryOptions={categoryOptions} timeModeOptions={timeModeOptions} onClose={() => setCreateOpen(false)} /> : null}
 
+      <WorkbenchGrid>
         <FormSection
           kicker="Lokale Suche"
           title="Journalübersicht"
-          actions={<FileText className="h-5 w-5 text-yellow-300" aria-hidden="true" />}
         >
           {journal.summary ? <WorkbenchSummary items={summaryItems} ariaLabel="Tätigkeitsjournal-Zusammenfassung" /> : null}
 

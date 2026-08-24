@@ -94,6 +94,29 @@ describe('ElectionArchiveService 0.9.7-D human-readable records', () => {
       expect(noticeText).toContain('Einsicht Wählerliste');
       expect(noticeText).toContain('Stützunterschriften');
 
+      const simplifiedService = new SbvElectionService(env.db);
+      const simplified = simplifiedService.create({ kind: 'regular', electionDate: '2026-10-12' });
+      simplifiedService.configureSetup(simplified.id, {
+        eligibilityCheckDate: '2026-08-20', confirmedSeverelyDisabledCount: 12, confirmedEqualizedCount: 2,
+        pendingEqualizationCount: 0, spatiallySeparated: false, electionDate: '2026-10-12',
+        procedure: 'simplified', deputyCount: 1,
+      });
+      const invitation = await preparation.generate(simplified.id, {
+        kind: 'simplified_invitation',
+        invitation: {
+          meetingStartsAt: '2026-10-12T10:00:00.000Z',
+          meetingPlace: 'Barrierefreier Konferenzraum A',
+          accessibilityNote: 'Gebärdensprachdolmetschung kann bei der Wahlleitung angefordert werden.',
+        },
+      });
+      const invitationText = (await inspectPdf(await documents.read(invitation.id))).textByPage.join(' ');
+      expect(invitationText).toContain('Sehr geehrte Kolleginnen und Kollegen');
+      expect(invitationText).toContain('Barrierefreier Konferenzraum A');
+      expect(invitationText).toContain('Gebärdensprachdolmetschung');
+      expect(invitationText).not.toContain('Wahl-ID');
+      expect(invitationText).not.toContain('Rechtsregel');
+      expect(invitationText).not.toContain('Prüfstatus');
+
       const archive = new ElectionArchiveService(env.db, documents);
       const ballot = await archive.generate(env.election.id, { kind: 'ballot_deputy' });
       const ballotPdf = await inspectPdf(await documents.read(ballot.id));

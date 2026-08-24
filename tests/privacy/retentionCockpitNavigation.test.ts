@@ -18,6 +18,8 @@ describe('Navigation aus dem Datenschutz-Cockpit', () => {
 
     expect(retentionCandidateCaseTarget(caseReview)).toEqual({ caseId: 'case-4711', nodeType: 'overview' });
     expect(retentionCandidateCaseTarget({ ...candidate('deadline'), entityId: 'deadline-1' })).toBeNull();
+    expect(retentionCandidateCaseTarget({ ...candidate('equalization_gdb'), entityId: 'eq-1', caseId: 'case-gdb' }))
+      .toEqual({ caseId: 'case-gdb', nodeType: 'equalization', nodeId: 'eq-1' });
   });
 
   it('führt eigenständige Prüfobjekte in ihren zuständigen Arbeitsbereich', () => {

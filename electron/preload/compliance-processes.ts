@@ -31,7 +31,9 @@ import type {
   UpdateBemProcessInput,
 } from "../../src/domain/models/bem.model.js";
 import type {
+  CreateEqualizationIntakeInput,
   CreateEqualizationProcessInput,
+  EqualizationIntakeResult,
   EqualizationProcessRecord,
   EqualizationWarning,
   UpdateEqualizationProcessInput,
@@ -117,6 +119,8 @@ export function createProcessesApi(invokeIpc: IpcInvoker) {
             input: CreateEqualizationProcessInput,
           ): Promise<EqualizationProcessRecord> =>
             invokeIpc(IPC_CHANNELS.equalizationCreate, input),
+          createIntake: (input: CreateEqualizationIntakeInput): Promise<EqualizationIntakeResult> =>
+            invokeIpc(IPC_CHANNELS.equalizationCreateIntake, input),
           update: (
             id: string,
             input: UpdateEqualizationProcessInput,

@@ -1,5 +1,3 @@
-import { createRequire } from 'node:module';
-import path from 'node:path';
 import PDFDocument from 'pdfkit';
 import {
   paragraph,
@@ -10,11 +8,21 @@ import {
   type PdfScalar,
 } from './pdfDocumentDefinition';
 import { ApplicationError } from '../../src/domain/models/application-error.model.js';
+import {
+  drawPdfUnicodeText as drawUnicodeText,
+  PDF_FONT_BOLD as FONT_BOLD,
+  PDF_FONT_REGULAR as FONT_REGULAR,
+  registerPdfFonts as registerFonts,
+} from './pdfDocumentFonts.js';
 
 export {
+  externalLetterDocument,
+  externalReportDocument,
+  legalRecordDocument,
   list,
   metricCards,
   paragraph,
+  publicNoticeDocument,
   reportDocument,
   section,
   spacer,
@@ -37,70 +45,11 @@ const COLORS = {
   successInk: '#234b22',
 } as const;
 
-const FONT_REGULAR = 'DejaVuSans';
-const FONT_BOLD = 'DejaVuSans-Bold';
 const CONTENT_WIDTH = 495;
-
-type PdfFontWeight = 'regular' | 'bold';
-type PdfTextOptions = PDFKit.Mixins.TextOptions;
-
-interface FontCoverage {
-  hasGlyphForCodePoint(codePoint: number): boolean;
-}
-
-interface FontkitModule {
-  openSync(filePath: string): FontCoverage;
-}
-
-let regularFontCoverage: FontCoverage | undefined;
 
 type AccessiblePdfDocumentOptions = Omit<PDFKit.PDFDocumentOptions, 'subset'> & {
   subset: PDFKit.Mixins.PDFSubsets | 'PDF/UA';
 };
-
-function packageRequire(): NodeRequire {
-  const base = typeof __filename === 'string'
-    ? __filename
-    : path.join(process.cwd(), 'services', 'documents', 'pdfDocumentRenderer.js');
-  return createRequire(base);
-}
-
-function registerFonts(document: PDFKit.PDFDocument): void {
-  const resolve = packageRequire().resolve;
-  document.registerFont(FONT_REGULAR, resolve('dejavu-fonts-ttf/ttf/DejaVuSans.ttf'));
-  document.registerFont(FONT_BOLD, resolve('dejavu-fonts-ttf/ttf/DejaVuSans-Bold.ttf'));
-}
-
-function assertFontSupports(text: string): void {
-  const require = packageRequire();
-  regularFontCoverage ??= (require('fontkit') as FontkitModule)
-    .openSync(require.resolve('dejavu-fonts-ttf/ttf/DejaVuSans.ttf'));
-  for (const character of text) {
-    if (character === '\n' || character === '\r' || character === '\t') continue;
-    const codePoint = character.codePointAt(0);
-    if (codePoint === undefined) continue;
-    if (!regularFontCoverage.hasGlyphForCodePoint(codePoint)) {
-      throw new ApplicationError(
-        'EXPORT_FAILED',
-        `PDF-Dokument enthält ein nicht unterstütztes Unicode-Zeichen U+${codePoint.toString(16).toUpperCase().padStart(4, '0')}.`,
-      );
-    }
-  }
-}
-
-function drawUnicodeText(
-  document: PDFKit.PDFDocument,
-  text: string,
-  weight: PdfFontWeight,
-  options: PdfTextOptions,
-  x?: number,
-  y?: number,
-): void {
-  assertFontSupports(text);
-  document.font(weight === 'bold' ? FONT_BOLD : FONT_REGULAR);
-  if (x !== undefined && y !== undefined) document.text(text, x, y, options);
-  else document.text(text, options);
-}
 
 function addStructuredText(
   document: PDFKit.PDFDocument,
@@ -302,6 +251,50 @@ function drawHeader(
   document.y = definition.subtitle || definition.classification ? 180 : 138;
 }
 
+function drawLetterHeader(
+  document: PDFKit.PDFDocument,
+  root: PDFKit.PDFStructureElement,
+  definition: PdfDocumentDefinition,
+): void {
+  const letterhead = definition.letterhead;
+  if (!letterhead) {
+    throw new ApplicationError('VALIDATION_FAILED', 'Externes Schreiben enthält keinen vollständigen Briefkopf.');
+  }
+  document.markContent('Artifact', { type: 'Layout' });
+  document.rect(50, 48, CONTENT_WIDTH, 4).fill(COLORS.accentBorder);
+  document.font(FONT_BOLD).fontSize(9).fillColor(COLORS.accent).text('Gremia.SBV', 405, 59, {
+    width: 140,
+    align: 'right',
+    lineBreak: false,
+  });
+  document.endMarkedContent();
+  document.x = 50;
+  document.y = 76;
+  const sender = letterhead.sender.join('\n');
+  const recipient = letterhead.recipient.join('\n');
+  addStructuredText(document, root, 'P', sender, () => {
+    document.fontSize(8).fillColor(COLORS.muted);
+    drawUnicodeText(document, sender, 'regular', { width: CONTENT_WIDTH, lineGap: 1 });
+  });
+  if (recipient) {
+    document.moveDown(1.4);
+    addStructuredText(document, root, 'P', recipient, () => {
+      document.fontSize(10).fillColor(COLORS.ink);
+      drawUnicodeText(document, recipient, 'regular', { width: 300, lineGap: 2 });
+    });
+  }
+  document.moveDown(1.2);
+  addStructuredText(document, root, 'P', letterhead.date, () => {
+    document.fontSize(9).fillColor(COLORS.muted);
+    drawUnicodeText(document, letterhead.date, 'regular', { width: CONTENT_WIDTH, align: 'right' });
+  });
+  document.moveDown(1.4);
+  addStructuredText(document, root, 'H1', letterhead.subject, () => {
+    document.fontSize(15).fillColor('#111827');
+    drawUnicodeText(document, letterhead.subject, 'bold', { width: CONTENT_WIDTH, paragraphGap: 8 });
+  });
+}
+
 function drawWarnings(
   document: PDFKit.PDFDocument,
   root: PDFKit.PDFStructureElement,
@@ -345,7 +338,7 @@ function addPageFooters(document: PDFKit.PDFDocument, footer: string): void {
       .fontSize(7.5)
       .fillColor(COLORS.muted)
       .text(
-        `${footer} · Seite ${index - range.start + 1} von ${range.count}`,
+        `${footer ? `${footer} · ` : ''}Seite ${index - range.start + 1} von ${range.count}`,
         50,
         812,
         { width: CONTENT_WIDTH, align: 'center', lineBreak: false },
@@ -386,9 +379,12 @@ export function createPdfDocument(definition: PdfDocumentDefinition): Promise<Bu
     registerFonts(document);
     const root = document.struct('Document', { lang: 'de-DE', title: definition.title });
     document.addStructure(root);
-    drawHeader(document, root, definition);
+    if (definition.profile === 'external_letter') drawLetterHeader(document, root, definition);
+    else drawHeader(document, root, definition);
     for (const block of definition.blocks) drawBlock(document, root, block);
-    if (definition.warnings) drawWarnings(document, root, definition.warnings);
+    if (definition.profile === 'internal_report' && definition.warnings) {
+      drawWarnings(document, root, definition.warnings);
+    }
     root.end();
     addPageFooters(document, definition.footer ?? 'Offline erzeugt durch Gremia.SBV.');
     document.end();
@@ -412,6 +408,7 @@ export function createAccessibleTextPdf(title: string, lines: readonly string[])
     }
   }
   return createPdfDocument({
+    profile: 'legal_record',
     title,
     subtitle: 'Gremia.SBV Wahldokument',
     classification: 'Intern vertraulich',

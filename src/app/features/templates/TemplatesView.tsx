@@ -193,9 +193,8 @@ export function TemplatesView() {
   }
 
   return (
-    <ModuleFrame title="Vorlagen" kicker="Schriftverkehr" description="Standardschreiben mit Platzhaltern. Tonalität: freundlich, rechtlich klar, verbindlich und ohne unnötige Diskussionsöffnung.">
+    <ModuleFrame title="Vorlagen" kicker="Schriftverkehr" description="Standardschreiben mit Platzhaltern. Tonalität: freundlich, rechtlich klar, verbindlich und ohne unnötige Diskussionsöffnung." actions={<TemplateCatalogToolbar onCreate={() => setIsCreateTemplateModalOpen(true)} onOpenHelp={() => setIsTemplateHelpOpen(true)} />}>
       <section className="industrial-panel">
-        <TemplateCatalogToolbar onCreate={() => setIsCreateTemplateModalOpen(true)} onOpenHelp={() => setIsTemplateHelpOpen(true)} />
         <TemplateFilterForm
           query={query}
           category={category}

@@ -97,7 +97,9 @@ import type {
   UpdateBemProcessInput,
 } from "./domain/models/bem.model";
 import type {
+  CreateEqualizationIntakeInput,
   CreateEqualizationProcessInput,
+  EqualizationIntakeResult,
   EqualizationProcessRecord,
   EqualizationWarning,
   UpdateEqualizationProcessInput,
@@ -400,6 +402,7 @@ declare global {
         create(
           input: CreateEqualizationProcessInput,
         ): Promise<EqualizationProcessRecord>;
+        createIntake(input: CreateEqualizationIntakeInput): Promise<EqualizationIntakeResult>;
         update(
           id: string,
           input: UpdateEqualizationProcessInput,

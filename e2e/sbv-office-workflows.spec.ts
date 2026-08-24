@@ -24,9 +24,10 @@ test('Gremiensitzung: relevanter Beschluss kann zur Aussetzung geführt werden',
   await page.getByRole('button', { name: 'Aussetzung dokumentieren', exact: true }).click();
   const journal = page.getByRole('region', { name: 'Tätigkeitsjournal' });
   await expect(journal).toBeVisible();
-  const journalEntry = journal.getByRole('region', { name: 'Tätigkeit erfassen' });
+  const journalEntry = page.getByRole('dialog', { name: 'Tätigkeit erfassen' });
+  await expect(journalEntry).toBeVisible();
   await expect(journalEntry.getByLabel('Was wurde gemacht?')).toHaveValue('Aussetzung: BR-Sitzung E2E');
-  await expect(journalEntry.getByLabel('Kategorie')).toHaveValue('sbv_steering');
+  await expect(journalEntry.getByLabel('Kategorie')).toHaveValue('SBV-Dokumentation / Strategie');
 });
 
 test('Schwerbehindertenversammlung: planen, Dokument erzeugen und durchführen', async ({ page }) => {
@@ -59,11 +60,8 @@ test('Inklusionsvereinbarung: Antrag, Themenstatus und Evaluation', async ({ pag
   await page.getByRole('button', { name: 'Verhandlungsakte anlegen' }).click();
   await page.getByLabel('Verhandlungsakte', { exact: true }).selectOption({ index: 1 });
   const topicSelect = page.getByLabel('Themenfeld', { exact: true });
-  const personnelPlanningOption = topicSelect.locator('option').filter({ hasText: /^Personalplanung\b/ });
-  await expect(personnelPlanningOption).toHaveCount(1);
-  const personnelPlanningValue = await personnelPlanningOption.getAttribute('value');
-  expect(personnelPlanningValue).toBeTruthy();
-  await topicSelect.selectOption(personnelPlanningValue!);
+  await topicSelect.fill('Personalplanung · open');
+  await expect(topicSelect).toHaveValue('Personalplanung · open');
   await page.getByLabel('SBV-Ziel').fill('Verbindliche Berücksichtigung');
   await page.getByLabel('Vereinbarung / Ergebnis').fill('In Verhandlung aufgenommen');
   await page.getByRole('button', { name: 'Themenfeld speichern' }).click();

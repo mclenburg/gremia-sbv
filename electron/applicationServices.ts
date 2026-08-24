@@ -1,4 +1,4 @@
-import { ActivityJournalPreferenceService, ActivityJournalService, PersonalDataAuditLogService, MeasureLifecycleAuditService, SearchIndexService, BackupService, BemService, CaseAnonymizationService, CaseHandoverService, CaseMeasureService, CaseService, ComplianceIncidentService, ComplianceSelfCheckService, ContactService, DeadlineService, DsarPrefillService, EqualizationService, GremiaBrAuthService, GremiaBrCacheService, GremiaBrExternalReferenceService, GremiaBrSettingsService, KnowledgeService, ParticipationService, PersonAnonymizationService, PersonImportService, PersonStatusExpiryService, PreventionService, PrivacyReviewService, ProtectedPersonService, RecruitingParticipationService, ReportService, RetentionService, SbvControlProtocolService, SbvParticipationViolationDocumentService, SbvParticipationViolationService, SbvParticipationViolationTemplateService, SbvResourceService, TemplateDefaultService, TemplateService, TerminationService, WorkplaceAccommodationService, SbvMeetingService, SbvAssemblyService, EmployerObligationService, InclusionAgreementService, ComplaintWorkflowService, SbvOfficeDocumentService, SbvOfficeWorkflowDocumentAdapter, SbvElectionService, SbvElectionDocumentService, ElectionExecutionService, ElectionArchiveService, ElectionTransferService, type DatabaseAdapter, type SecurityService } from './applicationServiceDependencies.js';
+import { ActivityJournalPreferenceService, ActivityJournalService, PersonalDataAuditLogService, MeasureLifecycleAuditService, SearchIndexService, BackupService, BemService, CaseAnonymizationService, CaseHandoverService, CaseMeasureService, CaseService, ComplianceIncidentService, ComplianceSelfCheckService, ContactService, DeadlineService, DsarPrefillService, EqualizationService, EqualizationIntakeService, GremiaBrAuthService, GremiaBrCacheService, GremiaBrExternalReferenceService, GremiaBrSettingsService, KnowledgeService, ParticipationService, PersonAnonymizationService, PersonImportService, PersonStatusExpiryService, PreventionService, PrivacyReviewService, ProtectedPersonService, RecruitingParticipationService, ReportService, RetentionService, SbvControlProtocolService, SbvParticipationViolationDocumentService, SbvParticipationViolationService, SbvParticipationViolationTemplateService, SbvResourceService, TemplateDefaultService, TemplateService, TerminationService, WorkplaceAccommodationService, SbvMeetingService, SbvAssemblyService, EmployerObligationService, InclusionAgreementService, ComplaintWorkflowService, SbvOfficeDocumentService, SbvOfficeWorkflowDocumentAdapter, SbvElectionService, SbvElectionDocumentService, ElectionExecutionService, ElectionArchiveService, ElectionTransferService, type DatabaseAdapter, type SecurityService } from './applicationServiceDependencies.js';
 /**
  * Central composition root for Electron main-process application services.
  *
@@ -94,6 +94,13 @@ export class ApplicationServices {
     this.databaseService('dsarPrefill', (database) => new DsarPrefillService(database));
   equalization = (): EqualizationService =>
     this.databaseService('equalization', (database) => new EqualizationService(database, this.auditLog(), this.lifecycleAudit()));
+  equalizationIntake = (): EqualizationIntakeService =>
+    this.databaseService('equalizationIntake', (database) => new EqualizationIntakeService(
+      database,
+      this.protectedPersons(),
+      this.cases,
+      this.equalization(),
+    ));
   participation = (): ParticipationService =>
     this.databaseService('participation', (database) => new ParticipationService(database, this.caseMeasures(), this.deadlines(), this.auditLog()));
   personAnonymization = (): PersonAnonymizationService =>

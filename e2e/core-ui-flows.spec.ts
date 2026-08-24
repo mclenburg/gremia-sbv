@@ -125,6 +125,7 @@ test.describe('P12 core UI behavior contracts', () => {
     await expect(noteDialog.getByText(`Frist/Aufgabe: ${taskTitle}`)).toBeVisible();
 
     await noteDialog.getByRole('button', { name: 'Abbrechen' }).click();
+    await expect(noteDialog).toBeHidden();
     await openView(page, 'Fristen');
     await expect(page.getByText(taskTitle)).toHaveCount(0);
   });
@@ -156,9 +157,12 @@ test.describe('P12 core UI behavior contracts', () => {
   });
 
   test('persists a global // deadline command from a regular text field into the central deadline register', async ({ page }) => {
-      await openView(page, 'Journal');
+    await openView(page, 'Journal');
 
-    const description = page.getByLabel('Kurzbeschreibung / Kontext');
+    await page.getByRole('button', { name: 'Tätigkeit erfassen' }).click();
+    const journalDialog = page.getByRole('dialog', { name: 'Tätigkeit erfassen' });
+    await expect(journalDialog).toBeVisible();
+    const description = journalDialog.getByLabel('Kurzbeschreibung / Kontext');
     await description.fill('//');
     const dialog = page.getByRole('dialog', { name: 'Frist anlegen' });
     await expect(dialog).toBeVisible();
@@ -171,9 +175,11 @@ test.describe('P12 core UI behavior contracts', () => {
     const replacement = `Frist bis 22.08.2026, 11:15: ${title}`;
     await expect(description).toHaveValue(replacement);
 
-    await page.getByLabel('Was wurde gemacht?').fill('React-Render nach Kurzbefehlsersetzung');
+    await journalDialog.getByLabel('Was wurde gemacht?').fill('React-Render nach Kurzbefehlsersetzung');
     await expect(description).toHaveValue(replacement);
 
+    await journalDialog.press('Escape');
+    await expect(journalDialog).toBeHidden();
     await openView(page, 'Fristen');
     await expect(page.getByText(title)).toBeVisible();
   });

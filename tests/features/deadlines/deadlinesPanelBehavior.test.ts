@@ -81,7 +81,8 @@ describe('Fristenpanel Verhalten 0.9.2', () => {
     }));
 
     expect(visibleText(create.markup)).toContain('Frist oder Wiedervorlage anlegen');
-    expect(visibleText(create.markup)).toContain('Freie Wiedervorlage ohne Fallbezug');
+    expect(visibleText(create.markup)).toContain('Kein Fallbezug');
+    expect(visibleText(create.markup)).toContain('Fallfreie Rechtsfristen und Verfahrensschritte sind zulässig');
     expect(visibleText(exportModal.markup)).toContain('Kalenderdatei exportieren');
     expect(visibleText(exportModal.markup)).toContain('Vorgangstyp · Standard');
     expect(visibleText(exportModal.markup)).not.toContain('process_type · Standard');

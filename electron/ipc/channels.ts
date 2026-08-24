@@ -71,6 +71,7 @@ export const IPC_CHANNELS = Object.freeze({
   deadlinesSuspend: "deadlines:suspend",
   deadlinesUpdate: "deadlines:update",
   equalizationCreate: "equalization:create",
+  equalizationCreateIntake: "equalization:create-intake",
   equalizationList: "equalization:list",
   equalizationSteps: "equalization:steps",
   equalizationUpdate: "equalization:update",

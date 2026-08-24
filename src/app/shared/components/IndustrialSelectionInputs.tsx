@@ -29,6 +29,23 @@ export function SelectInput({
   className,
   ...selectProps
 }: SelectInputProps) {
+  if (options.length > 5) {
+    return <SearchableSelectInput
+      label={label}
+      value={value}
+      options={options}
+      onValueChange={onValueChange}
+      helpText={helpText}
+      helpId={helpRegistryId}
+      error={error}
+      wide={wide}
+      required={required}
+      className={className}
+      disabled={selectProps.disabled}
+      name={selectProps.name}
+      autoFocus={selectProps.autoFocus}
+    />;
+  }
   return (
     <FormField
       label={label}
@@ -112,10 +129,6 @@ export function SearchableSelectInput({
             {...inputProps}
             id={id}
             type="search"
-            role="combobox"
-            aria-autocomplete="list"
-            aria-expanded="true"
-            aria-controls={listId}
             aria-describedby={[describedBy, resultId].filter(Boolean).join(" ") || undefined}
             aria-invalid={invalid ? "true" : undefined}
             aria-required={required ? "true" : undefined}

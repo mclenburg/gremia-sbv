@@ -25,9 +25,11 @@ test('Wahlbereich uses the common help-on-demand dialog and restores focus', asy
 
 test('Wahltag checklist remains usable without persisting an individual vote', async ({ page }) => {
   await openElection(page);
-  await page.getByLabel('Wahlart').selectOption('extraordinary_no_sbv');
-  await page.getByLabel('Wahlgrund').fill('Vakanz');
   await page.getByRole('button', { name: 'Wahlvorgang anlegen' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Neuen Wahlvorgang anlegen' });
+  await dialog.getByLabel('Wahlart').selectOption('extraordinary_no_sbv');
+  await dialog.getByLabel('Wahlgrund').fill('Vakanz');
+  await dialog.getByRole('button', { name: 'Wahlvorgang anlegen' }).click();
   await page.getByLabel('Bestätigt schwerbehindert').fill('5');
   await page.getByRole('button', { name: 'Prüfung speichern' }).click();
   await page.getByRole('navigation', { name: 'SBV-Wahl Arbeitsbereiche' }).getByRole('button', { name: /^Stimmabgabe\b/ }).click();

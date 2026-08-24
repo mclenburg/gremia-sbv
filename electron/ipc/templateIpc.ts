@@ -16,9 +16,10 @@ import {
   assertRecordInput,
   assertString,
 } from "./ipcValidation.js";
-import { paragraph, reportDocument, section } from '../../services/documents/pdfDocumentDefinition.js';
+import { externalLetterDocument, paragraph } from '../../services/documents/pdfDocumentDefinition.js';
 import { PdfDocumentGenerationService } from '../../services/documents/pdfDocumentGenerationService.js';
 import { safeDocumentFilePart } from '../../services/documentContainerService.js';
+import { requestExternalPreview } from './externalPreviewRequest.js';
 
 export function registerTemplateIpc(
   ipcMain: IpcMain,
@@ -77,12 +78,18 @@ export function registerTemplateIpc(
       pdf = await pdfDocuments.generate({
         source: 'template',
         privacyProfile: 'lawful_personal_data',
-        definition: reportDocument(title, subject, 'Vertrauliches SBV-Schreiben', [section('Schreiben', [paragraph(body)])], []),
+        definition: externalLetterDocument({
+          title,
+          sender: ['Schwerbehindertenvertretung'],
+          recipient: [],
+          date: new Intl.DateTimeFormat('de-DE').format(new Date()),
+          subject,
+          blocks: body.split(/\n\s*\n/u).map((text) => paragraph(text)),
+        }),
       });
       security.cleanupTemporaryFiles();
       const filePath = security.writeTemporaryFile('document-preview', `${safeDocumentFilePart(title)}.pdf`, pdf, 'preview');
-      const openError = await shell.openPath(filePath);
-      if (openError) throw new Error(`PDF-Vorschau konnte nicht geöffnet werden: ${openError}`);
+      requestExternalPreview(filePath, (previewPath) => shell.openPath(previewPath));
       return { opened: true };
     } finally {
       pdf?.fill(0);

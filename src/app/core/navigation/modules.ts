@@ -149,7 +149,8 @@ export const modules: ModuleDefinition[] = [
     shortTitle: 'Beteiligung',
     text: 'Unterrichtung, Anhörung und Aussetzung nach § 178 Abs. 2 SGB IX.',
     icon: ShieldCheck,
-    group: 'processes'
+    group: 'processes',
+    showInNavigation: false
   },
 
   {
@@ -166,7 +167,8 @@ export const modules: ModuleDefinition[] = [
     shortTitle: 'Arbeitsplatz',
     text: 'Behinderungsgerechte Beschäftigung nach § 164 Abs. 4 SGB IX.',
     icon: Wrench,
-    group: 'processes'
+    group: 'processes',
+    showInNavigation: false
   },
   {
     id: 'equalization',
@@ -182,7 +184,8 @@ export const modules: ModuleDefinition[] = [
     shortTitle: 'Kündigung',
     text: 'Kritischer Workflow für SBV-Anhörung und Integrationsamt-Prüfung.',
     icon: ShieldAlert,
-    group: 'processes'
+    group: 'processes',
+    showInNavigation: false
   },
   {
     id: 'elections',

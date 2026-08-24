@@ -71,8 +71,10 @@ describe('UI-Fundament Best-Practice-Nachschärfung', () => {
   });
 
   it('ordnet konkurrierende Toolbar-Aktionen nach Funktion statt nach Modulhistorie', () => {
-    const persons = source('src/app/features/persons/PersonToolbar.tsx');
-    expect(persons).toMatch(/<IndustrialButton[^>]*open-person-create-dialog/);
-    expect(persons).toMatch(/<ToolbarButton[^>]*open-person-import-wizard/);
+    const personsView = source('src/app/features/persons/PersonsView.tsx');
+    const personsToolbar = source('src/app/features/persons/PersonToolbar.tsx');
+    expect(personsView).toMatch(/actions={<IndustrialButton[^>]*open-person-create-dialog/);
+    expect(personsToolbar).toMatch(/<ToolbarButton[^>]*open-person-import-wizard/);
+    expect(personsToolbar).not.toContain('open-person-create-dialog');
   });
 });

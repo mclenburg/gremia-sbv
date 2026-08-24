@@ -14,7 +14,7 @@ import type {
   ReportType,
 } from "../../src/domain/models/report.model.js";
 import { ReportServiceCore } from './reportServiceCore.js';
-import { count, formatDate, formatDateTime, metricCards, normalizeStatus, nowIso, paragraph, periodWhere, reportShell, reportText, rows, section, table } from './reportSupport.js';
+import { count, externalReportShell, formatDate, formatDateTime, metricCards, normalizeStatus, nowIso, paragraph, periodWhere, reportShell, reportText, rows, section, table } from './reportSupport.js';
 import type { ReportBuildResult } from './reportSupport.js';
 
 export class ActivityReportBuilders extends ReportServiceCore {
@@ -78,7 +78,6 @@ export class ActivityReportBuilders extends ReportServiceCore {
       if (rareCategories.length) warnings.push("Einzelne Fallkategorien enthalten weniger als 3 Fälle. Für externe Tätigkeitsberichte sollten diese zusammengefasst oder ausgelassen werden.");
       if (newCases + createdTotal + journalCount + violationCount < 3) warnings.push("Der Berichtszeitraum enthält sehr wenige Vorgänge. Vor externer Weitergabe ist die Rückrechenbarkeit besonders zu prüfen.");
   
-      const hashPreview = projection.chain.latestHash.slice(0, 12);
       const content = [
         metricCards(metrics),
         section('Maßnahmen im Berichtszeitraum', [
@@ -93,10 +92,9 @@ export class ActivityReportBuilders extends ReportServiceCore {
         ]),
         section('Beteiligungsverstöße nach Status bei Anlage', [table(['Status', 'Anzahl'], Object.entries(projection.activities.violationStatuses).map(([status, value]) => [normalizeStatus(status), value]))]),
         section('Beteiligungsverstöße nach Eskalationsstufe bei Anlage', [table(['Eskalationsstufe', 'Anzahl'], Object.entries(projection.activities.violationStages).map(([stage, value]) => [normalizeStatus(stage), value]))]),
-        section('Datenqualität und Integritätsnachweis', [
+        section('Datenbasis', [
           paragraph(`Datenabdeckung: ${coverageLabel}${projection.coverage.lifecycleStartedAt ? ` · Lifecycle-Protokoll seit ${formatDate(projection.coverage.lifecycleStartedAt)}` : ''}.`),
-          paragraph(`Einzige Datenquelle: verifizierte Audit-HashChain · geprüfte Einträge: ${projection.chain.checkedEntries} · letzte Sequenz: ${projection.chain.lastSequence ?? '—'} · letzter Hash: ${hashPreview}… · Chain-Version: ${projection.chain.chainVersion}.`),
-          ...(projection.ignoredBaselineEvents ? [paragraph(`${projection.ignoredBaselineEvents} technische Baseline-Ereignisse wurden nicht als Tätigkeit gezählt.`)] : []),
+          paragraph('Der Tätigkeitsbericht wurde ausschließlich aus der vor der Erzeugung verifizierten Audit-Chain abgeleitet.'),
         ]),
         section('Datenschutz und Anonymisierung', [paragraph('Dieser Tätigkeitsbericht enthält keine Namen, Aktenzeichen, Diagnosen, Dokumenttitel, Fall-IDs oder vertraulichen Freitexte. Bei kleinen Fallzahlen ist vor Weitergabe dennoch eine Rückrechenbarkeitsprüfung erforderlich.')]),
       ];
@@ -104,7 +102,7 @@ export class ActivityReportBuilders extends ReportServiceCore {
         title: "Tätigkeitsbericht der SBV",
         warnings,
         metrics,
-        document: reportShell("Tätigkeitsbericht der SBV", this.periodLabel(input), "Anonymisiert", content, warnings),
+        document: externalReportShell("Tätigkeitsbericht der SBV", this.periodLabel(input), content),
       };
     }
 
@@ -127,13 +125,6 @@ export class ActivityReportBuilders extends ReportServiceCore {
         db,
         `SELECT COUNT(*) AS value FROM case_documents WHERE contains_health_data = 1`,
       );
-      const freeSensitiveDeadlines = count(
-        db,
-        `
-        SELECT COUNT(*) AS value FROM deadlines
-        WHERE case_id IS NULL AND (is_legal_deadline = 1 OR process_type NOT IN ('custom', 'sbv_control_protocol') OR severity IN ('critical', 'fatal'))
-      `,
-      );
       const unanonymizedRefs = count(
         db,
         `SELECT COUNT(*) AS value FROM contact_text_references WHERE anonymized_at IS NULL`,
@@ -146,10 +137,6 @@ export class ActivityReportBuilders extends ReportServiceCore {
         warnings.push(
           `${closedWithOpenDeadlines} abgeschlossene Fälle enthalten noch offene Fristen.`,
         );
-      if (freeSensitiveDeadlines)
-        warnings.push(
-          `${freeSensitiveDeadlines} freie Fristen wirken sensibel oder rechtlich relevant. Diese sollten einem Fall zugeordnet werden.`,
-        );
       if (orphanDocs)
         warnings.push(`${orphanDocs} Dokumente ohne Fallbezug gefunden.`);
       if (unanonymizedRefs)
@@ -161,7 +148,6 @@ export class ActivityReportBuilders extends ReportServiceCore {
         Gesundheitsnotizen: notesWithHealth,
         Gesundheitsdokumente: docsWithHealth,
         "Offene Fristen in abgeschl. Fällen": closedWithOpenDeadlines,
-        "Freie sensible Fristen": freeSensitiveDeadlines,
       };
       const checks = [
         [

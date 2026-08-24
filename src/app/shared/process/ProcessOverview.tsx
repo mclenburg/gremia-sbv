@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { ModuleFeedback, type ModuleFeedbackItem } from '../components/ModuleFeedback';
 import { ToolbarButton } from '../components/IndustrialButton';
-import { EmptyState, IndustrialPanel, IndustrialSelectionCard, WorkbenchPage, WorkbenchSummary } from '../components/WorkbenchLayout';
+import { EmptyState, IndustrialPanel, WorkbenchPage, WorkbenchSummary } from '../components/WorkbenchLayout';
 import { ProcessStatusBadge } from '../components/StatusBadges';
 
 export type ProcessOverviewStatusGroup<TStatus extends string, TRecord> = {
@@ -71,19 +71,17 @@ export function ProcessOverviewCard<TStatus extends string>({
       className={`process-overview-card ${item.isOverdue ? 'is-critical' : ''}`}
       onClick={() => onOpen(item)}
     >
-      <IndustrialSelectionCard tone={item.isOverdue ? 'danger' : 'default'}>
-        <div>
-          <strong>{item.caseNumber}</strong>
-          <span>{item.displayName}</span>
-          <p>{item.summary}</p>
-        </div>
-        <div className="process-overview-card-meta">
-          <ProcessStatusBadge status={item.statusLabel} label={item.statusLabel} />
-          {item.riskLabel && <ProcessStatusBadge status="info" label={item.riskLabel} />}
-          {item.dueLabel && <ProcessStatusBadge status={item.isOverdue ? 'overdue' : 'open'} label={`Frist: ${item.dueLabel}`} />}
-          {item.updatedLabel && <small>geändert: {item.updatedLabel}</small>}
-        </div>
-      </IndustrialSelectionCard>
+      <div>
+        <strong>{item.caseNumber}</strong>
+        <span>{item.displayName}</span>
+        <p>{item.summary}</p>
+      </div>
+      <div className="process-overview-card-meta">
+        <ProcessStatusBadge status={item.statusLabel} label={item.statusLabel} />
+        {item.riskLabel && <ProcessStatusBadge status="info" label={item.riskLabel} />}
+        {item.dueLabel && <ProcessStatusBadge status={item.isOverdue ? 'overdue' : 'open'} label={`Frist: ${item.dueLabel}`} />}
+        {item.updatedLabel && <small>geändert: {item.updatedLabel}</small>}
+      </div>
     </ToolbarButton>
   );
 }
@@ -123,6 +121,7 @@ export function ProcessOverviewPage<TStatus extends string>({
   renderItem,
   emptyText,
   helpAction,
+  pageActions,
   feedbackItems = [],
   children
 }: {
@@ -134,11 +133,12 @@ export function ProcessOverviewPage<TStatus extends string>({
   renderItem: (item: ProcessOverviewCardModel<TStatus>) => ReactNode;
   emptyText: string;
   helpAction?: ReactNode;
+  pageActions?: ReactNode;
   feedbackItems?: Array<ModuleFeedbackItem | null | undefined | false>;
   children?: ReactNode;
 }) {
   return (
-    <WorkbenchPage title={title} kicker={kicker} description={description}>
+    <WorkbenchPage title={title} kicker={kicker} description={description} actions={pageActions}>
       <ModuleFeedback items={feedbackItems} />
       <IndustrialPanel className="process-overview-panel">
         {helpAction && (

@@ -3,7 +3,6 @@ import type { FormEvent } from 'react';
 import { Plus } from 'lucide-react';
 import { GhostButton, IndustrialButton } from '../../shared/components/IndustrialButton';
 import {
-  CheckboxField,
   DateTimeInput,
   FormActions,
   FormSection,
@@ -53,7 +52,6 @@ export function DeadlineCreateModal({
 }) {
   const [title, setTitle] = useState('');
   const [caseId, setCaseId] = useState('');
-  const [freeFollowUp, setFreeFollowUp] = useState(false);
   const [dueAt, setDueAt] = useState('');
   const [severity, setSeverity] = useState<DeadlineSeverity>('important');
   const [processType, setProcessType] = useState<DeadlineProcessType>('case');
@@ -71,22 +69,17 @@ export function DeadlineCreateModal({
       return;
     }
 
-    if (!freeFollowUp && !caseId) {
-      setError('Bitte einen Fall auswählen. Ohne Fallbezug ist nur eine freie Wiedervorlage zulässig.');
-      return;
-    }
-
     try {
       await onCreateDeadline({
         title: title.trim(),
-        caseId: freeFollowUp ? undefined : caseId,
-        processType: freeFollowUp ? 'custom' : processType,
-        deadlineType: freeFollowUp ? 'follow_up' : deadlineType,
+        caseId: caseId || undefined,
+        processType,
+        deadlineType,
         dueAt: fromDateTimeLocalValue(dueAt),
         severity,
         legalBasis: legalBasis.trim() || undefined,
         description: description.trim() || undefined,
-        isLegalDeadline: !freeFollowUp && deadlineType === 'legal_deadline',
+        isLegalDeadline: deadlineType === 'legal_deadline',
         calculationMode: 'manual'
       });
       onClose();
@@ -99,7 +92,7 @@ export function DeadlineCreateModal({
     <IndustrialModal
       title="Frist oder Wiedervorlage anlegen"
       kicker="Fristenerfassung"
-      description="Rechtliche Fristen und Verfahrensschritte werden einem Fall zugeordnet. Ohne Fallbezug ist nur eine freie Wiedervorlage möglich."
+      description="Fristen können einem Fall zugeordnet oder bewusst fallunabhängig für allgemeine SBV-Aufgaben angelegt werden."
       onClose={onClose}
       wide
       dataE2e="deadline-create-modal"
@@ -112,21 +105,14 @@ export function DeadlineCreateModal({
             <SelectInput
               label="Fallbezug"
               value={caseId}
-              disabled={freeFollowUp}
               onValueChange={setCaseId}
-              options={[{ value: '', label: 'Fall auswählen' }, ...cases.map((record) => ({ value: record.id, label: formatCaseLabel(record) }))]}
-              helpText={freeFollowUp ? 'Freie Wiedervorlagen werden bewusst ohne Fallbezug angelegt.' : 'Rechtliche Fristen brauchen einen Fallbezug.'}
+              options={[{ value: '', label: 'Kein Fallbezug' }, ...cases.map((record) => ({ value: record.id, label: formatCaseLabel(record) }))]}
+              helpText="Optional. Fallfreie Rechtsfristen und Verfahrensschritte sind zulässig, wenn sie eine allgemeine SBV-Aufgabe betreffen."
             />
-            <SelectInput label="Vorgang" value={processType} disabled={freeFollowUp} onValueChange={(value) => setProcessType(value as DeadlineProcessType)} options={processOptions} />
-            <SelectInput label="Fristenart" value={deadlineType} disabled={freeFollowUp} onValueChange={(value) => setDeadlineType(value as DeadlineType)} options={deadlineTypeOptions} />
+            <SelectInput label="Vorgang" value={processType} onValueChange={(value) => setProcessType(value as DeadlineProcessType)} options={processOptions} />
+            <SelectInput label="Fristenart" value={deadlineType} onValueChange={(value) => setDeadlineType(value as DeadlineType)} options={deadlineTypeOptions} />
             <SelectInput label="Priorität" value={severity} onValueChange={(value) => setSeverity(value as DeadlineSeverity)} options={severityOptions} />
-            <TextInput label="Rechtsbezug" value={legalBasis} disabled={freeFollowUp} onValueChange={setLegalBasis} placeholder="optional" />
-            <CheckboxField
-              label="Freie Wiedervorlage ohne Fallbezug"
-              checked={freeFollowUp}
-              onCheckedChange={setFreeFollowUp}
-              helpText="Nur für einfache Erinnerung ohne Rechtsfrist oder Verfahrensbindung nutzen."
-            />
+            <TextInput label="Rechtsbezug" value={legalBasis} onValueChange={setLegalBasis} placeholder="optional" />
             <TextareaInput label="Notiz" value={description} onValueChange={setDescription} placeholder="optional" wide />
           </div>
         </FormSection>

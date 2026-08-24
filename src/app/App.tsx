@@ -225,7 +225,7 @@ type PrimaryViewsProps = { currentView: ViewId; setCurrentView: (view: ViewId) =
   setActivityJournalPrefill: (prefill: ActivityJournalPrefill | null) => void; participationViolationPrefill: SbvParticipationViolationPrefill | null;
   setParticipationViolationPrefill: (prefill: SbvParticipationViolationPrefill | null) => void; };
 
-function PrimaryViews(props: PrimaryViewsProps) {
+function PrimaryViews(props: PrimaryViewsProps & { openCaseNode: (target: CaseNodeTarget) => void }) {
   const { currentView, setCurrentView, work, caseNodeTarget, setCaseNodeTarget, activityJournalPrefill, setActivityJournalPrefill,
     participationViolationPrefill, setParticipationViolationPrefill } = props;
   const { cases, contacts, deadlines, persons, caseMeasures, dashboardDeadlines, setSelectedDeadline, createCase, createContact,
@@ -235,7 +235,8 @@ function PrimaryViews(props: PrimaryViewsProps) {
     dashboardItems={dashboardDeadlines} onEditDeadline={setSelectedDeadline} onCompleteDeadline={(d) => void completeDeadline(d)} />;
   if (currentView === "activity_journal") return <ActivityJournalView pendingPrefill={activityJournalPrefill} onPrefillConsumed={() => setActivityJournalPrefill(null)} />;
   if (currentView === "participation_violations") return <SbvParticipationViolationsView cases={cases} measures={caseMeasures} pendingPrefill={participationViolationPrefill}
-    onPrefillConsumed={() => setParticipationViolationPrefill(null)} onOpenJournalPrefill={(prefill) => { setActivityJournalPrefill(prefill); setCurrentView("activity_journal"); }} />;
+    onPrefillConsumed={() => setParticipationViolationPrefill(null)} onOpenCaseNode={props.openCaseNode}
+    onOpenJournalPrefill={(prefill) => { setActivityJournalPrefill(prefill); setCurrentView("activity_journal"); }} />;
   if (currentView === "deadlines") return <DeadlinesView cases={cases} measures={caseMeasures} deadlines={deadlines}
     onCreateDeadline={createDeadline} onEditDeadline={setSelectedDeadline} onCompleteDeadline={(d) => void completeDeadline(d)}
     onExportIcal={(privacyLevel, filters) => icalHandlers.exportIcal({ privacyLevel, filters })} />;
@@ -260,8 +261,9 @@ function ProcessViews({ currentView, setCurrentView, work, caseNodeTarget, setCa
 }) {
   const { cases, contacts, deadlines, persons, createCase, createContact, createDeadline, reloadWorkData } = work;
   if (currentView === "workplace_accommodation") return <WorkplaceAccommodationContainer onOpenCaseNode={openCaseNode} />;
-  return <LazyFeatureHost view={currentView} cases={cases} theme={theme} onThemeChange={setTheme} onCreateDeadline={createDeadline}
+  return <LazyFeatureHost view={currentView} cases={cases} persons={persons} theme={theme} onThemeChange={setTheme} onCreateDeadline={createDeadline}
     onOpenCaseNode={openCaseNode} deadlines={deadlines} onNavigate={setCurrentView}
+    onRecordsChanged={reloadWorkData}
     caseFeatureProps={{
       cases,
       contacts,

@@ -6,11 +6,10 @@ test('opens persons module and shows status expiry workflow without horizontal o
   await expect(page.getByRole('heading', { name: 'Personenverzeichnis' }).first()).toBeVisible();
   await expect(page.locator('[data-e2e="persons-workbench"]')).toBeVisible();
   const toolbarButtons = page.locator('.person-toolbar button');
-  await expect(toolbarButtons.nth(0)).toHaveText(/Person anlegen/);
-  await expect(toolbarButtons.nth(1)).toHaveText(/Personen importieren/);
+  await expect(toolbarButtons.nth(0)).toHaveText(/Personen importieren/);
+  await expect(toolbarButtons.nth(1)).toHaveText(/Fristen exportieren/);
   await expect(page.locator('[data-e2e="open-person-create-dialog"]')).toHaveClass(/industrial-button/);
   await expect(page.locator('[data-e2e="open-person-import-wizard"]')).toHaveClass(/industrial-secondary-button/);
-  await expect(toolbarButtons.nth(2)).toHaveText(/Fristen exportieren/);
   await expect(page.getByRole('button', { name: /Ablauf prüfen/ })).toBeVisible();
   await expect(page.getByText('Mustermann, Max')).toBeVisible();
   await expect(page.locator('.person-lifecycle-badge').first()).toBeVisible();

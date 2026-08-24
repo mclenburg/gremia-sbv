@@ -1,15 +1,16 @@
 import { useState } from 'react';
 import { FileText, Plus, Save } from 'lucide-react';
-import type { ConfigureElectionSetupInput, ElectionNoticeDetails, ElectionPreparationOverview } from '../../../domain/models/election-workflow.model';
+import type { ConfigureElectionSetupInput, ElectionInvitationDetails, ElectionNoticeDetails, ElectionPreparationOverview } from '../../../domain/models/election-workflow.model';
 import { protectionStatusLabels, type PersonImportColumnMapping, type PersonImportPreviewResult } from '../../../domain/models/protected-person.model';
 import type { ElectionKind, ElectionProcedure } from '../../../domain/models/election.model';
 import { IndustrialButton } from '../../shared/components/IndustrialButton';
-import { CheckboxField, DateInput, FormActions, FormSection, SelectInput, TextInput } from '../../shared/components/IndustrialForm';
+import { CheckboxField, DateInput, DateTimeInput, FormActions, FormSection, SelectInput, TextInput } from '../../shared/components/IndustrialForm';
 import { buildDefaultPersonImportMapping, personImportFieldOptions, type PersonImportFieldKey, updatePersonImportColumnMapping } from '../../shared/import/personImportMapping';
 import { electionBoardRoleLabel, electionCandidateEligibilityLabel, electionVoterListStatusLabel, officeTypeLabels, proposalStatusLabels } from './electionPresentation';
 import { isoInstant, legalToday } from '../../../domain/time/legalTime';
 import type { ElectionFeedback } from './electionDocumentFeedback';
 import { electionDocumentFeedback } from './electionDocumentFeedback';
+import { IndustrialModal } from '../../shared/dialogs/IndustrialDialogs';
 
 const today = legalToday;
 
@@ -47,11 +48,13 @@ export type ElectionRunner = <T>(
   feedback: string | ((result: T) => ElectionFeedback),
 ) => Promise<T | undefined>;
 
-export function SetupSection({ overview, create, configure, run }: {
+export function SetupSection({ overview, create, configure, run, createOpen, onCloseCreate }: {
   overview: ElectionPreparationOverview | null;
   create: (input: { kind: ElectionKind; triggerReason?: string; incumbentTermEnd?: string; electionDate?: string }) => Promise<void>;
   configure: (input: ConfigureElectionSetupInput) => Promise<unknown>;
   run: ElectionRunner;
+  createOpen: boolean;
+  onCloseCreate: () => void;
 }) {
   const [kind, setKind] = useState<ElectionKind>('regular');
   const [reason, setReason] = useState('');
@@ -67,10 +70,10 @@ export function SetupSection({ overview, create, configure, run }: {
 
   return (
     <div className="election-section-stack">
-      <FormSection
+      {createOpen ? <IndustrialModal title="Neuen Wahlvorgang anlegen" kicker="Wahlakte" description="Der neue Wahlvorgang wird anschließend im Wahlworkflow weiterbearbeitet." onClose={onCloseCreate} wide><FormSection
         title="Neuen Wahlvorgang anlegen"
         actions={(
-          <IndustrialButton onClick={() => void create({ kind, triggerReason: reason || undefined, incumbentTermEnd: termEnd || undefined, electionDate: date || undefined })}>
+          <IndustrialButton onClick={() => void create({ kind, triggerReason: reason || undefined, incumbentTermEnd: termEnd || undefined, electionDate: date || undefined }).then(onCloseCreate)}>
             <Plus className="h-4 w-4" /> Wahlvorgang anlegen
           </IndustrialButton>
         )}
@@ -81,7 +84,7 @@ export function SetupSection({ overview, create, configure, run }: {
           <DateInput label="Ende bestehende Amtszeit" value={termEnd} onValueChange={setTermEnd} />
           <DateInput label="Wahltag" value={date} onValueChange={setDate} />
         </div>
-      </FormSection>
+      </FormSection></IndustrialModal> : null}
 
       {overview ? (
         <FormSection
@@ -287,6 +290,11 @@ export function NominationsSection({ overview, run }: { overview: ElectionPrepar
 
 export function DocumentsSection({ overview, run }: { overview: ElectionPreparationOverview; run: ElectionRunner }) {
   const [notice, setNotice] = useState<ElectionNoticeDetails>(EMPTY_NOTICE);
+  const [invitation, setInvitation] = useState<ElectionInvitationDetails>({
+    meetingStartsAt: overview.election.electionDate ?? '',
+    meetingPlace: '',
+    accessibilityNote: '',
+  });
   const generate = (kind: Parameters<typeof window.gremiaSbv.elections.generateDocument>[1]['kind'], extra: Record<string, unknown> = {}) => run(
     () => window.gremiaSbv.elections.generateDocument(overview.election.id, { kind, ...extra }),
     electionDocumentFeedback,
@@ -300,9 +308,18 @@ export function DocumentsSection({ overview, run }: { overview: ElectionPreparat
           <IndustrialButton variant="secondary" onClick={() => void generate('voter_list')}>Wählerliste</IndustrialButton>
           <IndustrialButton variant="secondary" onClick={() => void generate('candidate_announcement')}>Kandidaturen</IndustrialButton>
           {overview.election.procedure === 'formal' ? <><IndustrialButton variant="secondary" onClick={() => void generate('board_appointment')}>Bestellung Wahlvorstand</IndustrialButton>{overview.boardSessions[0] ? <IndustrialButton variant="secondary" onClick={() => void generate('board_minutes', { boardSessionId: overview.boardSessions[0].id })}>Niederschrift Wahlvorstand</IndustrialButton> : null}<IndustrialButton variant="secondary" onClick={() => void generate('proposal_correction_notice')}>Korrekturaufforderung</IndustrialButton><IndustrialButton variant="secondary" onClick={() => void generate('proposal_grace_notice')}>Nachfrist-Bekanntmachung</IndustrialButton></> : null}
-          {overview.election.procedure === 'simplified' ? <><IndustrialButton variant="secondary" onClick={() => void generate('simplified_invitation')}>Einladung Wahlversammlung</IndustrialButton><IndustrialButton variant="secondary" onClick={() => void generate('election_leadership_minutes')}>Niederschrift Wahlleitung</IndustrialButton></> : null}
+          {overview.election.procedure === 'simplified' ? <IndustrialButton variant="secondary" onClick={() => void generate('election_leadership_minutes')}>Niederschrift Wahlleitung</IndustrialButton> : null}
         </FormActions>
       </FormSection>
+
+      {overview.election.procedure === 'simplified' ? <FormSection title="Einladung zur Wahlversammlung" description="Externes Schreiben an die wahlberechtigten Beschäftigten.">
+        <div className="industrial-form-grid industrial-form-grid-2 election-form-grid">
+          <DateTimeInput label="Termin und Uhrzeit" value={invitation.meetingStartsAt} onValueChange={(meetingStartsAt) => setInvitation((current) => ({ ...current, meetingStartsAt }))} required />
+          <TextInput label="Ort der Wahlversammlung" value={invitation.meetingPlace} onValueChange={(meetingPlace) => setInvitation((current) => ({ ...current, meetingPlace }))} required />
+          <TextInput label="Hinweis zur Barrierefreiheit" value={invitation.accessibilityNote ?? ''} onValueChange={(accessibilityNote) => setInvitation((current) => ({ ...current, accessibilityNote }))} wide />
+        </div>
+        <FormActions><IndustrialButton disabled={!invitation.meetingStartsAt || !invitation.meetingPlace.trim()} onClick={() => void generate('simplified_invitation', { invitation })}>Einladung als PDF erzeugen</IndustrialButton></FormActions>
+      </FormSection> : null}
 
       {overview.election.procedure === 'formal' ? (
         <FormSection title="Wahlausschreiben – 16 Pflichtangaben" actions={<><IndustrialButton variant="secondary" disabled={!notice.issueDate} onClick={() => void run(() => window.gremiaSbv.elections.recordNoticeIssued(overview.election.id, notice.issueDate), 'Erlass dokumentiert; Einspruchs- und Vorschlagsfristen gestartet.')}>Erlass/Fristen dokumentieren</IndustrialButton><IndustrialButton onClick={() => void generate('election_notice', { notice })}>Wahlausschreiben als PDF erzeugen</IndustrialButton></>}>

@@ -74,7 +74,8 @@ const decisionStageLabels: Record<ParticipationDecisionStage, string> = {
   unklar: "unklar",
 };
 
-const statusOrder = Object.keys(statusLabels) as ParticipationStatus[];
+const statusOrder = (Object.keys(statusLabels) as ParticipationStatus[])
+  .filter((status) => status !== 'pflichtverstoss_dokumentiert');
 const riskOrder = Object.keys(riskLabels) as ParticipationRiskLevel[];
 const measureOrder = Object.keys(measureLabels) as ParticipationMeasureType[];
 const personStatusOrder = Object.keys(
@@ -129,8 +130,12 @@ function ParticipationGuidance({ process }: { process: ParticipationRecord }) {
 }
 
 function ParticipationStructuredFields({ process, update }: { process: ParticipationRecord; update: ParticipationUpdate }) {
+  const statusOptions: Array<{ value: ParticipationStatus; label: string }> = statusOrder.map((item) => ({ value: item, label: statusLabels[item] }));
+  if (process.status === 'pflichtverstoss_dokumentiert') {
+    statusOptions.unshift({ value: process.status, label: 'Historischer Status: Verstoß noch strukturiert verknüpfen' });
+  }
   return <div className="industrial-form-grid">
-    <SelectInput label="Status" value={process.status} options={statusOrder.map((item) => ({ value: item, label: statusLabels[item] }))} onValueChange={(value) => update({ status: value as ParticipationStatus })} />
+    <SelectInput label="Status" value={process.status} options={statusOptions} onValueChange={(value) => update({ status: value as ParticipationStatus })} />
     <SelectInput label="Arbeitgebermaßnahme" value={process.measureType} options={measureOrder.map((item) => ({ value: item, label: measureLabels[item] }))} onValueChange={(value) => update({ measureType: value as ParticipationMeasureType })} />
     <SelectInput label="Risiko" value={process.riskLevel} options={riskOrder.map((item) => ({ value: item, label: riskLabels[item] }))} onValueChange={(value) => update({ riskLevel: value as ParticipationRiskLevel })} />
     <SelectInput label="Personenstatus" value={process.personStatus} options={personStatusOrder.map((item) => ({ value: item, label: personStatusLabels[item] }))} onValueChange={(value) => update({ personStatus: value as ParticipationPersonStatus })} />
@@ -144,7 +149,6 @@ function ParticipationStructuredFields({ process, update }: { process: Participa
 
 function ParticipationNarrativeFields({ process, update }: { process: ParticipationRecord; update: ParticipationUpdate }) {
   return <div className="industrial-form-grid two-columns">
-    <DeferredTextareaInput label="Pflichtverstoß / fehlende Unterlagen" value={process.violationSummary ?? ""} textCommandFieldId="participation-violation-summary" rows={4} onCommit={(value) => update({ violationSummary: value })} wide />
     <DeferredTextareaInput label="SBV-Position / Stellungnahme-Kern" value={process.sbvPosition ?? ""} textCommandFieldId="participation-sbv-position" rows={4} onCommit={(value) => update({ sbvPosition: value })} wide />
     <DeferredTextareaInput label="Nächster Schritt" value={process.nextStep ?? ""} textCommandFieldId="participation-next-step" rows={3} onCommit={(value) => update({ nextStep: value })} wide />
   </div>;
@@ -158,8 +162,9 @@ export function ParticipationProcessDetail({ process, onUpdate, caseRecord, onOp
 }) {
   if (!process) return <article className="case-detail-content"><h2>SBV-Beteiligung</h2><p>Wähle eine Beteiligungsmaßnahme im Fallbaum aus oder lege sie über „Maßnahme“ in dieser Fallakte an.</p></article>;
   const update: ParticipationUpdate = (input) => void onUpdate(process.id, input);
-  return <MeasureDetailFrame typeLabel="SBV-Beteiligung" title={process.title} statusLabel={statusLabels[process.status]} riskLevel={process.riskLevel} riskLabel={riskLabels[process.riskLevel]} summary={`§ 178 Abs. 2 SGB IX · ${measureLabels[process.measureType]} · Cockpit nur zur Übersicht`} nextStep={process.nextStep} requiresFollowUp={!process.informationComplete || !process.hearingBeforeDecision} actions={<div className="industrial-search-actions"><ActivityJournalContextButton context={{ contextType: "sbv_participation", contextId: process.id, caseId: process.caseId, title: process.title }} compact />{onOpenViolationPrefill && <ToolbarButton onClick={() => onOpenViolationPrefill(buildParticipationViolationPrefillFromMeasure(process, caseRecord))}><FileWarning className="h-4 w-4" aria-hidden="true" /> Beteiligungsverstoß dokumentieren</ToolbarButton>}</div>}>
+  return <MeasureDetailFrame typeLabel="SBV-Beteiligung" title={process.title} statusLabel={statusLabels[process.status]} riskLevel={process.riskLevel} riskLabel={riskLabels[process.riskLevel]} summary={`§ 178 Abs. 2 SGB IX · ${measureLabels[process.measureType]} · Bearbeitung in dieser Fallakte`} nextStep={process.nextStep} requiresFollowUp={!process.informationComplete || !process.hearingBeforeDecision} actions={<div className="industrial-search-actions"><ActivityJournalContextButton context={{ contextType: "sbv_participation", contextId: process.id, caseId: process.caseId, title: process.title }} compact />{onOpenViolationPrefill && <ToolbarButton onClick={() => onOpenViolationPrefill(buildParticipationViolationPrefillFromMeasure(process, caseRecord))}><FileWarning className="h-4 w-4" aria-hidden="true" /> Verstoß aus Maßnahme erfassen</ToolbarButton>}</div>}>
     <div className="participation-case-detail">
+      {process.violationSummary?.trim() ? <div className="industrial-message industrial-message-warning"><FileWarning className="h-4 w-4" aria-hidden="true" /> Historischer Verstoßhinweis vorhanden. Er wird beim Erstellen des strukturierten Verstoßvorgangs übernommen und bleibt bis zur Datenmigration unverändert erhalten.</div> : null}
       <ParticipationCheckMatrix process={process} update={update} />
       <ParticipationGuidance process={process} />
       <ParticipationStructuredFields process={process} update={update} />

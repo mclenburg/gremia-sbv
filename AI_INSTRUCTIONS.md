@@ -47,11 +47,16 @@ Die Oberfläche bildet den fachlichen Arbeitsablauf ab. Sie darf Nutzende nicht 
 - Navigation aus Cockpits und Empfehlungen führt zum konkreten Datensatz und erhält den fachlichen Kontext.
 - Sämtliche Funktionen sind mit Tastatur, Screenreader und Vergrößerung nutzbar. Fokusführung, Dialog-Fokusfalle, Rückgabe des Fokus, Kontraste, reduzierte Bewegung, semantische Überschriften und Live-Meldungen sind verpflichtend.
 - Visuelle Gestaltung und Interaktion verwenden die zentralen Gremia-Komponenten und das einheitliche Gremia-Design.
+- Die primäre Aktion zur Neuanlage eines eigenständigen Datensatzes steht rechts in der zentralen Modul-Kopfzeile. Die Erfassung erfolgt in einem barrierefreien Modal oder Drawer. Untergeordnete Datensätze werden dagegen ausschließlich im Kontext des ausgewählten Elternvorgangs angelegt.
+- Diese Neuanlage-Aktion ist in allen Modul-Kopfzeilen ein Primary-Button. Secondary-Buttons sind dort ausschließlich unterstützenden Aktionen wie Export oder Hilfe vorbehalten; kontextuelle Unteraktionen bleiben Secondary.
+- Gleiche Funktionen stehen modulübergreifend an derselben Stelle und verwenden dieselben zentralen Komponenten. Dekorative Icons, Hover-Effekte und Zeiger-Cursor sind nur auf tatsächlich interaktiven Elementen zulässig.
+- SBV-Beteiligungsmaßnahmen werden ausschließlich in der jeweiligen Fallakte bearbeitet. Eine zusätzliche Hauptnavigation oder parallele Querschnittsbearbeitung ist unzulässig. Ein Arbeitgeberverstoß wird als eigener strukturierter Verstoßvorgang geführt; entsteht er aus einer Beteiligungsmaßnahme, werden beide Vorgänge fachlich verknüpft und wechselseitig erreichbar gemacht. Allgemeine Arbeitgeberverstöße dürfen fall- und personenunabhängig bestehen.
 
 ## 6. Dokumente und PDF-Erzeugung
 
 - Alle Dokumente werden unabhängig von Modul und Ursprung über die zentrale Dokument-Pipeline erzeugt, gespeichert, entschlüsselt, für die externe Vorschau bereitgestellt und exportiert.
 - Dokumente aus Maßnahmen, Compliance, Wahlen, Versammlungen, Vorlagen und Berichten verwenden denselben Gremia-Stil, dieselben Layoutregeln, dieselbe Fehlerbehandlung und dieselben Sicherheitsmechanismen.
+- Die zentrale Dokument-Pipeline unterscheidet mindestens interne Prüfberichte, externe Berichte, externe Schreiben, öffentliche Bekanntmachungen und rechtliche Nachweisdokumente. Zielgruppe und Zweck bestimmen Inhalt und Layout; interne Prüfhinweise, technische IDs, Versionskennungen und Systemtexte dürfen nicht in externe Dokumente gelangen.
 - Vorlagen mit Platzhaltern werden zentral validiert und mit typisierten fachlichen Daten gefüllt. Fehlende Pflichtwerte werden vor der Generierung verständlich benannt.
 - PDF-Erzeugung erfolgt im Main-Prozess mit PDFKit beziehungsweise einer AGPL-3-kompatibel lizenzierten Abhängigkeit. Lizenz- und Drittanbieterhinweise bleiben korrekt.
 - Unicode-Inhalte werden unverändert und vollständig wiedergegeben. Umlaute, Namen und rechtlich relevante Inhalte dürfen weder transliteriert noch stillschweigend ersetzt oder gekürzt werden.

@@ -162,7 +162,7 @@ export function useActivityJournal(pendingPrefill?: ActivityJournalPrefill | nul
     setTimeSuggestion(null);
   }
 
-  async function saveEntry() {
+  async function saveEntry(): Promise<boolean> {
     setBusy(true);
     setError('');
     setMessage('');
@@ -175,9 +175,8 @@ export function useActivityJournal(pendingPrefill?: ActivityJournalPrefill | nul
       setTimeSuggestion(null);
       setMessage('Tätigkeit wurde bewusst als SBV-Eigenaufzeichnung gespeichert.');
       await reload();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-    } finally {
+      return true;
+    } catch (err) { setError(err instanceof Error ? err.message : String(err)); return false; } finally {
       setBusy(false);
     }
   }

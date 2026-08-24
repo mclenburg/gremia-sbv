@@ -80,7 +80,7 @@ describe('Beteiligungsverstoß-Template-Verhalten 0.9.4-c-r9', () => {
 
     expect(input).toMatchObject({
       stage: 'abmahnung',
-      sourceReference: 'Fallbezug SBV-2026-004',
+      sourceReference: 'Vorgang in der zugehörigen Fallakte',
       includeLegalReviewHint: true,
       includeOwiHint: false,
       privacyMode: 'case_reference',
@@ -102,6 +102,7 @@ describe('Beteiligungsverstoß-Template-Verhalten 0.9.4-c-r9', () => {
       includeLegalReviewHint: true,
     }));
     expect(plain).toMatch(/Aussetzung/);
-    expect(plain).toMatch(/nicht automatisch versandt/);
+    expect(plain).not.toMatch(/nicht automatisch versandt/);
+    expect(plain).not.toMatch(/Hinweis der App/);
   });
 });

@@ -47,14 +47,12 @@ describe('retention policy', () => {
     expect(dashboard.candidates).toEqual([]);
   });
 
-  it('marks cleartext files in protected storage as critical', () => {
+  it('delegiert Klartextartefakte an die automatische Sicherheitsbereinigung statt an manuelle Datenschutzaufträge', () => {
     const dashboard = buildRetentionDashboard({
       now,
-      cleartextFiles: ['documents/c1/anschreiben.pdf']
     });
 
-    expect(dashboard.counts.critical).toBe(1);
-    expect(dashboard.candidates[0].type).toBe('cleartext_file_review');
+    expect(dashboard.candidates.some((candidate) => candidate.type === 'cleartext_file_review')).toBe(false);
   });
 
 

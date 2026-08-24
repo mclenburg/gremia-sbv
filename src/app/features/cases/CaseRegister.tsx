@@ -61,7 +61,6 @@ export function CaseRegister({
             </button>
           )}
           {onImportHandover && <button type="button" className="industrial-secondary-button compact" onClick={onImportHandover}><Upload className="h-4 w-4" />Übergabe importieren</button>}
-          <button type="button" className="industrial-button" onClick={onCreateCase}><Plus className="h-4 w-4" />Fallakte</button>
         </div>
       </div>
       <div className="industrial-table-shell case-register-table-shell">

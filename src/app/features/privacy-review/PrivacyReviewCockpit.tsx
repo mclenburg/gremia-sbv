@@ -8,11 +8,20 @@ import { formatDateShort } from '../../shared/format/dates';
 import { IndustrialButton } from '../../shared/components/IndustrialButton';
 import { SearchInput, SelectInput } from '../../shared/components/IndustrialForm';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
+import { WorkbenchSummary } from '../../shared/components/WorkbenchLayout';
 
 type RiskFilter = 'all' | RetentionRiskLevel;
 const riskLabels: Record<RetentionRiskLevel, string> = { critical: 'Kritisch', warning: 'Prüfen', info: 'Hinweis' };
 const actionLabels: Record<RetentionCandidate['recommendedAction'], string> = {
   pruefen: 'Prüfen', anonymisieren: 'Anonymisieren', loeschen: 'Löschen', archivieren: 'Archivieren',
+};
+const retentionProcessNodeTypes: Partial<Record<RetentionCandidate['entityType'], CaseNodeTarget['nodeType']>> = {
+  bem: 'bem',
+  prevention: 'prevention',
+  sbv_participation: 'participation',
+  workplace_accommodation: 'workplace_accommodation',
+  equalization_gdb: 'equalization',
+  termination_hearing: 'termination_hearing',
 };
 
 export function retentionCandidateTarget(candidate: RetentionCandidate): ViewId | null {
@@ -34,9 +43,12 @@ export function retentionCandidateTarget(candidate: RetentionCandidate): ViewId 
 }
 
 export function retentionCandidateCaseTarget(candidate: RetentionCandidate): CaseNodeTarget | null {
-  return candidate.entityType === 'case' && candidate.entityId
-    ? { caseId: candidate.entityId, nodeType: 'overview' }
-    : null;
+  if (candidate.entityType === 'case' && candidate.entityId) return { caseId: candidate.entityId, nodeType: 'overview' };
+  if (!candidate.caseId) return null;
+  const processType = retentionProcessNodeTypes[candidate.entityType];
+  return processType
+    ? { caseId: candidate.caseId, nodeType: processType, nodeId: candidate.entityId }
+    : { caseId: candidate.caseId, nodeType: 'overview' };
 }
 
 export function PrivacyReviewCockpit({ onNavigate, onOpenCaseNode }: { onNavigate: (view: ViewId) => void; onOpenCaseNode: (target: CaseNodeTarget) => void }) {
@@ -76,12 +88,12 @@ export function PrivacyReviewCockpit({ onNavigate, onOpenCaseNode }: { onNavigat
         <p>Alle fälligen Prüfaufträge. Die Entscheidung und jede Löschung bleiben ausdrücklich manuell.</p></div>
       <IndustrialButton variant="secondary" onClick={() => void reloadRetention()}><RefreshCw className="h-4 w-4" aria-hidden="true" /> Aktualisieren</IndustrialButton>
     </div>
-    {dashboard && <div className="grid gap-4 md:grid-cols-4 mt-4" aria-label="Zusammenfassung der Prüfaufträge">
-      <div className="industrial-subpanel"><h4>Gesamt</h4><strong className="text-2xl">{dashboard.counts.total}</strong></div>
-      <div className="industrial-subpanel"><h4>Kritisch</h4><strong className="text-2xl text-red-300">{dashboard.counts.critical}</strong></div>
-      <div className="industrial-subpanel"><h4>Prüfen</h4><strong className="text-2xl text-yellow-300">{dashboard.counts.warning}</strong></div>
-      <div className="industrial-subpanel"><h4>Hinweis</h4><strong className="text-2xl">{dashboard.counts.info}</strong></div>
-    </div>}
+    {dashboard && <WorkbenchSummary ariaLabel="Zusammenfassung der Prüfaufträge" items={[
+      { label: 'Gesamt', value: dashboard.counts.total },
+      { label: 'Kritisch', value: dashboard.counts.critical, tone: 'danger' },
+      { label: 'Prüfen', value: dashboard.counts.warning, tone: 'warning' },
+      { label: 'Hinweis', value: dashboard.counts.info },
+    ]} />}
     <div className="industrial-form-grid industrial-form-grid-2 mt-4">
       <SelectInput label="Risiko filtern" value={riskFilter} onValueChange={(value) => setRiskFilter(value as RiskFilter)} options={[
         { value: 'all', label: 'Alle Risikostufen' }, { value: 'critical', label: 'Kritisch' },

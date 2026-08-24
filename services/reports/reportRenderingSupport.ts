@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {
+  externalReportDocument,
   list,
   metricCards,
   paragraph,
@@ -114,4 +115,12 @@ export function reportShell(
   warnings: readonly string[],
 ): PdfDocumentDefinition {
   return reportDocument(title, subtitle, classification, content, warnings);
+}
+
+export function externalReportShell(
+  title: string,
+  subtitle: string,
+  content: readonly PdfBlock[],
+): PdfDocumentDefinition {
+  return externalReportDocument(title, subtitle, content);
 }

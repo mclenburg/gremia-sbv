@@ -14,11 +14,8 @@ export const VISUAL_QA_ROUTES: readonly VisualQaRoute[] = [
   { id: 'activity_journal', navName: 'Journal', heading: /Tätigkeitsjournal/i },
   { id: 'meetings', navName: 'Sitzungen', heading: /Gremiensitzungen/i },
   { id: 'participation_violations', navName: 'Verstöße', heading: /Beteiligungsverstöße/i },
-  { id: 'participation', navName: 'Beteiligung', heading: /SBV-Beteiligung/i },
   { id: 'recruiting_participations', navName: 'Stellenbesetzungen', heading: /Stellenbesetzungen/i },
-  { id: 'workplace_accommodation', navName: 'Arbeitsplatz', heading: /Arbeitsplatzgestaltung/i },
   { id: 'equalization', navName: 'Gleichstellung', heading: /Gleichstellung|GdB/i },
-  { id: 'termination_hearing', navName: 'Kündigung', heading: /Kündigungsanhörung/i },
   { id: 'elections', navName: 'Wahlen', heading: /SBV-Wahlen/i },
   { id: 'templates', navName: 'Vorlagen', heading: /Vorlagen/i },
   { id: 'knowledge', navName: 'Wissen', heading: /Wissen/i },
@@ -32,7 +29,6 @@ export const VISUAL_QA_ROUTES: readonly VisualQaRoute[] = [
 
 
 export const WORKBENCH_LAYOUT_QA_EXEMPT_ROUTE_IDS = [
-  'workplace_accommodation',
   'privacy_review',
   'settings',
 ] as const;

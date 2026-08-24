@@ -3,7 +3,6 @@ import type { RetentionDocumentSnapshot } from './retentionPolicy.js';
 
 export function buildRetentionIntegrityCandidates(
   documents: readonly RetentionDocumentSnapshot[],
-  cleartextFiles: readonly string[],
 ): RetentionCandidate[] {
   const candidates: RetentionCandidate[] = [];
   for (const document of documents) {
@@ -21,18 +20,6 @@ export function buildRetentionIntegrityCandidates(
       createdAt: document.createdAt ?? undefined,
       entityType: 'document',
       entityId: document.id,
-    });
-  }
-  for (const filePath of cleartextFiles) {
-    candidates.push({
-      id: `cleartext-${filePath}`,
-      type: 'cleartext_file_review',
-      riskLevel: 'critical',
-      title: 'Mögliche Klartextdatei im geschützten Datenbereich',
-      reference: filePath,
-      description: 'Im Gremia.SBV-Datenverzeichnis liegt eine Datei, die nicht dem verschlüsselten Containerformat entspricht.',
-      recommendedAction: 'pruefen',
-      entityType: 'file',
     });
   }
   return candidates;

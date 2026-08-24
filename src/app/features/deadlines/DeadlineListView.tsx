@@ -35,7 +35,7 @@ function formatReference(deadline: DeadlineRecord, casesById: Map<string, CaseRe
   if (deadline.processType === 'sbv_control_protocol') return 'SBV-Protokoll ohne Fallzuordnung';
 
   return deadline.processType === 'custom' && deadline.deadlineType === 'follow_up'
-    ? 'Freie Wiedervorlage ohne Fallbezug'
+    ? 'Allgemeine SBV-Aufgabe ohne Fallbezug'
     : 'Fallzuordnung fehlt';
 }
 

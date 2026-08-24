@@ -512,9 +512,11 @@ test.describe('SBV-Wahlen – gerenderter UI- und Formularvertrag', () => {
     await setTheme(page, 'dark');
       await openRoute(page, 'Wahlen');
 
-    await page.getByLabel('Wahlart').selectOption('extraordinary_no_sbv');
-    await page.getByLabel('Wahlgrund').fill('UI-Vertrag');
     await page.getByRole('button', { name: 'Wahlvorgang anlegen' }).click();
+    const createDialog = page.getByRole('dialog', { name: 'Neuen Wahlvorgang anlegen' });
+    await createDialog.getByLabel('Wahlart').selectOption('extraordinary_no_sbv');
+    await createDialog.getByLabel('Wahlgrund').fill('UI-Vertrag');
+    await createDialog.getByRole('button', { name: 'Wahlvorgang anlegen' }).click();
     await page.getByLabel('Bestätigt schwerbehindert').fill('50');
     await page.getByLabel('Verfahren', { exact: true }).selectOption('formal');
     await page.getByRole('button', { name: 'Prüfung speichern' }).click();

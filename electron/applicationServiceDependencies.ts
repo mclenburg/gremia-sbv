@@ -16,6 +16,7 @@ export { ContactService } from '../services/contactService.js';
 export { DeadlineService } from '../services/deadlineService.js';
 export { DsarPrefillService } from '../services/dsarPrefillService.js';
 export { EqualizationService } from '../services/equalizationService.js';
+export { EqualizationIntakeService } from '../services/equalizationIntakeService.js';
 export { GremiaBrAuthService } from '../services/gremiaBr/gremiaBrAuthService.js';
 export { GremiaBrCacheService } from '../services/gremiaBr/gremiaBrCacheService.js';
 export { GremiaBrExternalReferenceService } from '../services/gremiaBr/gremiaBrExternalReferenceService.js';

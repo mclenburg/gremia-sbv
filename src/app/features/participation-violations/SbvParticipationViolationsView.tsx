@@ -1,12 +1,14 @@
-import { useEffect } from 'react';
-import { CheckCircle2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { ExternalLink, Plus } from 'lucide-react';
 import type { ActivityJournalPrefill } from '../../../domain/models/activity-journal.model';
-import { ToolbarButton } from '../../shared/components/IndustrialButton';
+import { IndustrialButton, ToolbarButton } from '../../shared/components/IndustrialButton';
 import { FormSection } from '../../shared/components/IndustrialForm';
 import { ModuleFeedback } from '../../shared/components/ModuleFeedback';
 import { DataTable, EmptyState, WorkbenchGrid, WorkbenchPage, WorkbenchSummary } from '../../shared/components/WorkbenchLayout';
 import { useSbvParticipationViolations } from './hooks/useSbvParticipationViolations';
 import type { ViolationDraftContextInput } from './hooks/useViolationDraftContext';
+import type { CaseNodeTarget } from '../../core/navigation/caseNodeTarget';
+import { IndustrialModal } from '../../shared/dialogs/IndustrialDialogs';
 import { ViolationDraftForm } from './ViolationDraftForm';
 import {
   getNextStatusActions,
@@ -22,17 +24,21 @@ export function SbvParticipationViolationsView({
   pendingPrefill,
   onPrefillConsumed,
   onOpenJournalPrefill,
+  onOpenCaseNode,
 }: ViolationDraftContextInput & {
   pendingPrefill?: SbvParticipationViolationPrefill | null;
   onPrefillConsumed?: () => void;
   onOpenJournalPrefill?: (prefill: ActivityJournalPrefill) => void;
+  onOpenCaseNode?: (target: CaseNodeTarget) => void;
 }) {
+  const [createOpen, setCreateOpen] = useState(Boolean(pendingPrefill));
   const state = useSbvParticipationViolations({ cases, measures, pendingPrefill, onPrefillConsumed, onOpenJournalPrefill });
   const { loadInitial } = state;
 
   useEffect(() => {
     void loadInitial();
   }, [loadInitial]);
+  useEffect(() => { if (pendingPrefill) setCreateOpen(true); }, [pendingPrefill]);
 
   const rows = state.items.map((item) => ({
     id: item.id,
@@ -48,7 +54,8 @@ export function SbvParticipationViolationsView({
             {action.label}
           </ToolbarButton>
         ))}
-        <ToolbarButton disabled={state.busy || state.documentBusyId === item.id} onClick={() => void state.generateDocument(item)}>DOCX erzeugen</ToolbarButton>
+        {item.relatedCaseMeasureId && item.caseId && onOpenCaseNode ? <ToolbarButton onClick={() => onOpenCaseNode({ caseId: item.caseId!, nodeType: 'participation', nodeId: item.relatedCaseMeasureId })}><ExternalLink className="h-4 w-4" aria-hidden="true" /> Beteiligungsmaßnahme</ToolbarButton> : null}
+        <ToolbarButton disabled={state.busy || state.documentBusyId === item.id} onClick={() => void state.generateDocument(item)}>PDF erzeugen</ToolbarButton>
         <ToolbarButton disabled={state.busy || state.followUpBusyId === item.id || Boolean(item.relatedDeadlineId)} onClick={() => void state.createFollowUp(item)}>+7-Tage-Wiedervorlage</ToolbarButton>
         <ToolbarButton disabled={state.busy || !onOpenJournalPrefill} onClick={() => void state.openJournalPrefill(item)}>Journal-Vorlage</ToolbarButton>
       </div>,
@@ -61,6 +68,7 @@ export function SbvParticipationViolationsView({
       title="Beteiligungsverstöße"
       description="Beteiligungsverstöße nachverfolgen und bearbeiten."
       helpId="participationViolations.sourceContext"
+      actions={<IndustrialButton onClick={() => setCreateOpen(true)}><Plus className="h-4 w-4" aria-hidden="true" /> Verstoß erfassen</IndustrialButton>}
     >
       <ModuleFeedback items={[
         state.message ? { id: 'participation-violation-message', tone: 'success', message: state.message } : null,
@@ -69,15 +77,15 @@ export function SbvParticipationViolationsView({
 
       <WorkbenchSummary items={state.summaryItems} />
 
+      {createOpen ? <IndustrialModal title="Beteiligungsverstoß erfassen" kicker="Neuer Vorgang" description="Der Ausgangskontext bestimmt, ob der Verstoß fallunabhängig oder mit einer Beteiligungsmaßnahme verknüpft wird." onClose={() => setCreateOpen(false)} wide>
+        <ViolationDraftForm state={state} onCreated={() => setCreateOpen(false)} />
+      </IndustrialModal> : null}
       <WorkbenchGrid>
-        <ViolationDraftForm state={state} />
-
         <FormSection
           kicker="Nachverfolgung"
           title="Protokollierte Beteiligungsverstöße"
           description="Kontrollsicht für bereits protokollierte Vorgänge."
           helpId="participationViolations.tracking"
-          actions={<CheckCircle2 className="h-5 w-5 text-yellow-300" aria-hidden="true" />}
         >
           <DataTable
             headers={['Betreff', 'Stufe', 'Verstoßart', 'Status', 'Rechtskern', 'Aktion']}
