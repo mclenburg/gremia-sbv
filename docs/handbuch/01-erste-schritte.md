@@ -17,7 +17,7 @@ Typische Aufgaben sind:
 
 ## Demo-Modus zuerst nutzen
 
-Wenn du Gremia.SBV kennenlernst, beginne im Demo-Modus. Dort kannst du Fallakten, Fristen, Maßnahmen und Exporte ausprobieren, ohne echte Daten zu erfassen. Demo-Daten sind frei erfunden und für Schulung, Vorführung und Tests gedacht.
+Wenn du Gremia.SBV kennenlernst, beginne im Demo-Modus. Dort kannst du Fallakten, Fristen, Maßnahmen und Exporte ausprobieren, ohne echte Daten zu erfassen. Demo-Daten sind frei erfunden und für Schulung, Vorführung und Tests gedacht. Dazu gehören auch eine vorbereitete förmliche Wahl mit Wählerliste und Kandidaturen sowie je ein fallfreier und ein maßnahmenbezogener Beteiligungsverstoß.
 
 Nutze den Demo-Modus besonders für:
 

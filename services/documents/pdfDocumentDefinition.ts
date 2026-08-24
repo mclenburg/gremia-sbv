@@ -20,6 +20,7 @@ export type PdfBlock =
   | { type: 'table'; headers: string[]; rows: PdfScalar[][]; empty: string }
   | { type: 'metrics'; entries: Array<[string, PdfScalar]> }
   | { type: 'section'; title: string; blocks: PdfBlock[] }
+  | { type: 'page_break' }
   | { type: 'spacer'; height: number };
 
 export interface PdfDocumentDefinition {
@@ -119,6 +120,10 @@ export function metricCards(metrics: Record<string, PdfScalar>): PdfBlock {
 
 export function section(title: string, blocks: readonly PdfBlock[]): PdfBlock {
   return { type: 'section', title, blocks: [...blocks] };
+}
+
+export function pageBreak(): PdfBlock {
+  return { type: 'page_break' };
 }
 
 export function spacer(height = 8): PdfBlock {

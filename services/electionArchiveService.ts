@@ -17,6 +17,7 @@ import {
 import { PdfDocumentGenerationService } from './documents/pdfDocumentGenerationService.js';
 import type { GenerateElectionExecutionDocumentInput } from '../src/domain/models/election-execution.model.js';
 import { ApplicationError } from '../src/domain/models/application-error.model.js';
+import { ElectionMailBallotPackageDefinition } from './electionMailBallotPackageDefinition.js';
 
 const TEMPLATE_VERSION = '0.9.7-D.1';
 
@@ -119,6 +120,9 @@ export class ElectionArchiveService {
     lines: readonly string[],
     input: GenerateElectionExecutionDocumentInput,
   ): PdfDocumentDefinition {
+    if (input.kind === 'mail_ballot_package') {
+      return new ElectionMailBallotPackageDefinition(this.db).build(election, input);
+    }
     const blocks = [section('Dokumentinhalt', [list(lines)])];
     if (input.kind === 'result_announcement') {
       return publicNoticeDocument(title, 'Wahl der Schwerbehindertenvertretung', blocks);
@@ -228,12 +232,7 @@ export class ElectionArchiveService {
         ];
       }
       case 'mail_ballot_package':
-        return [
-          ...this.publicHeader(election),
-          'Briefwahlpaket: Stimmzettel, Wahlumschlag, Freiumschlag, persönliche Erklärung.',
-          'Gremia.SBV speichert keinen Inhalt einer individuellen Stimmabgabe.',
-          'Verspätet eingehende Freiumschläge werden ungeöffnet behandelt und gesondert aufbewahrt.',
-        ];
+        return [];
       case 'election_day_checklist':
         return [
           ...this.publicHeader(election),

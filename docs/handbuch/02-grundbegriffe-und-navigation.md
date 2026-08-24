@@ -39,7 +39,7 @@ Das Tätigkeitsjournal ist deine Eigenaufzeichnung der SBV-Arbeit. Es ist nicht 
 
 ## SBV-Beteiligung
 
-Die Ansicht **Beteiligung** ist der Arbeitsbereich für laufende Beteiligungsprüfungen. Dort geht es um Unterrichtung, Anhörung, Unterlagen, Stellungnahme, Arbeitgeberentscheidung und Aussetzungsverlangen. Die Bearbeitung bleibt grundsätzlich im fachlichen Ursprungsvorgang, meist in der Fallakte.
+Eine SBV-Beteiligung wird im fachlichen Ursprungsvorgang bearbeitet, meist als Maßnahme in der Fallakte oder im eigenständigen Stellenbesetzungsverfahren. Dort hältst du Unterrichtung, Anhörung, Unterlagen, Stellungnahme, Arbeitgeberentscheidung und gegebenenfalls ein Aussetzungsverlangen im tatsächlichen Ablauf fest. Es gibt dafür bewusst keine parallele Hauptansicht mit einem zweiten Bearbeitungsweg.
 
 ## Beteiligungsverstoß
 
@@ -47,7 +47,7 @@ Die Ansicht **Verstöße** ist der Nachweis- und Eskalationsbereich. Dort dokume
 
 Kurz gesagt:
 
-- **Beteiligung** = prüfen und nachhalten, ob das Verfahren ordnungsgemäß läuft.
+- **Beteiligungsmaßnahme im Ursprungsvorgang** = prüfen und nachhalten, ob das Verfahren ordnungsgemäß läuft.
 - **Verstöße** = dokumentieren, rügen, nachhalten und ggf. Schreiben vorbereiten, wenn die Beteiligung nicht ordnungsgemäß gelaufen ist.
 
 ## Dokumentation

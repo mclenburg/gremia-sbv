@@ -80,7 +80,7 @@ export function EqualizationIntakeDialog({ persons, onClose, onCreate }: Equaliz
         </IndustrialButton>
       </>}
     >
-      <form id="equalization-intake-form" className="industrial-form" onSubmit={(event) => void submit(event)}>
+      <form id="equalization-intake-form" className="industrial-modal-form" onSubmit={(event) => void submit(event)}>
         <IntakeEffectNotice existingPerson={personMode === 'existing'} />
         <FormErrorSummary errors={[error]} />
         <div className="industrial-form-grid industrial-form-grid-2">

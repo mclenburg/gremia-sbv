@@ -7,6 +7,7 @@ import type { ElectionRunner } from './ElectionPreparationSections';
 import { acceptanceStatusLabels } from './electionPresentation';
 import { legalToday } from '../../../domain/time/legalTime';
 import { electionDocumentFeedback } from './electionDocumentFeedback';
+import { MailBallotPackageDialog } from './MailBallotPackageDialog';
 
 const today = legalToday;
 
@@ -24,7 +25,7 @@ export function BallotSection({ overview, run }: Omit<SectionProps, 'execution'>
   const [countPrepared, setCountPrepared] = useState(false);
   const electionId = overview.election.id;
 
-  const generate = (kind: 'ballot_representative' | 'ballot_deputy' | 'election_day_checklist') => run(
+  const generate = (kind: 'ballot_representative' | 'ballot_deputy') => run(
     () => window.gremiaSbv.elections.generateExecutionDocument(electionId, { kind }),
     electionDocumentFeedback,
   );
@@ -35,7 +36,6 @@ export function BallotSection({ overview, run }: Omit<SectionProps, 'execution'>
         <FormActions align="start" className="election-document-actions">
           <IndustrialButton variant="secondary" onClick={() => void generate('ballot_representative')}>Stimmzettel Vertrauensperson</IndustrialButton>
           <IndustrialButton variant="secondary" onClick={() => void generate('ballot_deputy')}>Stimmzettel Stellvertretung</IndustrialButton>
-          <IndustrialButton variant="secondary" onClick={() => void generate('election_day_checklist')}>Checkliste als PDF</IndustrialButton>
         </FormActions>
       </FormSection>
 
@@ -59,6 +59,7 @@ export function MailBallotSection({ overview, execution, run }: SectionProps) {
   const [receivedAt, setReceivedAt] = useState('');
   const [late, setLate] = useState(false);
   const [declarationValid, setDeclarationValid] = useState(true);
+  const [packageOpen, setPackageOpen] = useState(false);
   const eligibleVoters = overview.voters.filter((voter) => voter.listStatus === 'eligible');
 
   return (
@@ -75,9 +76,18 @@ export function MailBallotSection({ overview, execution, run }: SectionProps) {
           <CheckboxField label="Eingang nach Ende der Stimmabgabe" checked={late} onCheckedChange={setLate} />
         </div>
         {execution.mailBallots.length ? <ul className="election-record-list">{execution.mailBallots.map((mailBallot) => <li key={mailBallot.id}>{overview.voters.find((voter) => voter.id === mailBallot.voterId)?.lastName ?? mailBallot.voterId}{' · '}{mailBallot.lateReceivedAt ? 'verspätet' : 'im Verfahren'}{mailBallot.destroyDueAt ? ` · Vernichtung ab ${mailBallot.destroyDueAt}` : ''}</li>)}</ul> : <p className="industrial-empty-state">Noch kein Briefwahlvorgang dokumentiert.</p>}
-        <FormActions><IndustrialButton variant="secondary" onClick={() => void run(() => window.gremiaSbv.elections.generateExecutionDocument(overview.election.id, { kind: 'mail_ballot_package' }), electionDocumentFeedback)}>Briefwahlpaket/Merkblatt erzeugen</IndustrialButton></FormActions>
+        <FormActions><IndustrialButton variant="secondary" disabled={!eligibleVoters.length} onClick={() => setPackageOpen(true)}>Briefwahlpaket mit Merkblatt erzeugen</IndustrialButton></FormActions>
         <p className="industrial-meta">Erfasst wird der Verfahrensstatus, niemals der Inhalt des Stimmzettels.</p>
       </FormSection>
+      {packageOpen ? <MailBallotPackageDialog
+        overview={overview}
+        initialVoterId={voterId}
+        onClose={() => setPackageOpen(false)}
+        onGenerate={async (mailBallotPackage) => Boolean(await run(
+          () => window.gremiaSbv.elections.generateExecutionDocument(overview.election.id, { kind: 'mail_ballot_package', mailBallotPackage }),
+          electionDocumentFeedback,
+        ))}
+      /> : null}
     </div>
   );
 }

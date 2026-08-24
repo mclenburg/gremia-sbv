@@ -9,7 +9,7 @@ import { useSbvParticipationViolations } from './hooks/useSbvParticipationViolat
 import type { ViolationDraftContextInput } from './hooks/useViolationDraftContext';
 import type { CaseNodeTarget } from '../../core/navigation/caseNodeTarget';
 import { IndustrialModal } from '../../shared/dialogs/IndustrialDialogs';
-import { ViolationDraftForm } from './ViolationDraftForm';
+import { ViolationDraftForm, VIOLATION_DRAFT_FORM_ID } from './ViolationDraftForm';
 import {
   getNextStatusActions,
   stageLabels,
@@ -77,7 +77,20 @@ export function SbvParticipationViolationsView({
 
       <WorkbenchSummary items={state.summaryItems} />
 
-      {createOpen ? <IndustrialModal title="Beteiligungsverstoß erfassen" kicker="Neuer Vorgang" description="Der Ausgangskontext bestimmt, ob der Verstoß fallunabhängig oder mit einer Beteiligungsmaßnahme verknüpft wird." onClose={() => setCreateOpen(false)} wide>
+      {createOpen ? <IndustrialModal
+        title="Beteiligungsverstoß erfassen"
+        kicker="Neuer Vorgang"
+        description="Der Ausgangskontext bestimmt, ob der Verstoß fallunabhängig oder mit einer Beteiligungsmaßnahme verknüpft wird."
+        onClose={state.busy ? undefined : () => setCreateOpen(false)}
+        closeOnEscape={!state.busy}
+        wide
+        actions={<>
+          <ToolbarButton disabled={state.busy} onClick={() => setCreateOpen(false)}>Abbrechen</ToolbarButton>
+          <IndustrialButton type="submit" form={VIOLATION_DRAFT_FORM_ID} disabled={state.busy} loading={state.busy}>
+            <Plus className="h-4 w-4" aria-hidden="true" /> Verstoß bewusst speichern
+          </IndustrialButton>
+        </>}
+      >
         <ViolationDraftForm state={state} onCreated={() => setCreateOpen(false)} />
       </IndustrialModal> : null}
       <WorkbenchGrid>

@@ -10,6 +10,14 @@ test('creates a general violation without a case and progressively offers search
   await expect(page.getByRole('heading', { name: /Beteiligungsverstöße/i }).first()).toBeVisible();
   await page.getByRole('button', { name: 'Verstoß erfassen', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'Beteiligungsverstoß erfassen' });
+  const cancelButton = dialog.getByRole('button', { name: 'Abbrechen', exact: true });
+  await expect(cancelButton).toBeVisible();
+  await cancelButton.click();
+  await expect(dialog).toBeHidden();
+  await expect(page.getByRole('button', { name: 'Verstoß erfassen', exact: true })).toBeFocused();
+
+  await page.getByRole('button', { name: 'Verstoß erfassen', exact: true }).click();
+  await expect(dialog).toBeVisible();
   const sourceContext = dialog.getByLabel('Ausgangskontext', { exact: true });
   await expect(sourceContext).toHaveValue('general_employer_practice');
   await expect(dialog.getByLabel('Fallakte suchen und auswählen')).toHaveCount(0);

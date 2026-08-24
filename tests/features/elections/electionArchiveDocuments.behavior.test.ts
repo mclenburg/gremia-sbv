@@ -123,6 +123,31 @@ describe('ElectionArchiveService 0.9.7-D human-readable records', () => {
       expect(ballotPdf.textByPage.join(' ')).toContain('Müller, Anna');
       expect(ballotPdf.textByPage.join(' ')).toContain('Keine Unterschrift auf dem Stimmzettel');
 
+      const voter = env.raw.prepare("SELECT id FROM sbv_election_voters WHERE election_id=?").get(env.election.id) as { id: string };
+      const mailBallotPackage = await archive.generate(env.election.id, {
+        kind: 'mail_ballot_package',
+        mailBallotPackage: {
+          voterId: voter.id,
+          voterPostalAddress: 'Musterstraße 12\n12345 Musterstadt',
+          electionBoardPostalAddress: 'Wahlvorstand SBV\nBetrieb GmbH\nWahlweg 1\n12345 Musterstadt',
+          votingEndsAt: '2026-09-20T16:00',
+        },
+      });
+      const mailBallotPdf = await inspectPdf(await documents.read(mailBallotPackage.id));
+      const mailBallotText = mailBallotPdf.textByPage.join(' ');
+      expect(mailBallotPdf.textByPage.length).toBeGreaterThanOrEqual(4);
+      expect(mailBallotText).toContain('Merkblatt zur schriftlichen Stimmabgabe');
+      expect(mailBallotText).toContain('Jörg Müller');
+      expect(mailBallotText).toContain('Müller, Anna');
+      expect(mailBallotText).toContain('Persönliche Erklärung');
+      expect(mailBallotText).toContain('SCHRIFTLICHE STIMMABGABE');
+      expect(mailBallotText).toContain('Musterstraße 12');
+      expect(mailBallotText).toContain('Wahlvorstand SBV');
+      expect(mailBallotText).not.toContain('Wahl-ID');
+      expect(mailBallotText).not.toContain('Rechtsregel');
+      expect(mailBallotText).not.toContain('Gremia.SBV');
+      expect(mailBallotPdf.hasStructureTree).toBe(true);
+
       const archiveRecord = await archive.exportPdfArchive(env.election.id);
       const archivePdf = await inspectPdf(await documents.read(archiveRecord.id));
       const archiveText = archivePdf.textByPage.join(' ');

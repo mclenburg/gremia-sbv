@@ -206,6 +206,11 @@ function drawBlock(
       sectionStructure.end();
       return;
     }
+    case 'page_break':
+      document.addPage();
+      document.x = document.page.margins.left;
+      document.y = document.page.margins.top;
+      return;
     case 'spacer':
       document.y += block.height;
   }

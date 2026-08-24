@@ -1,8 +1,7 @@
 import { type FormEvent } from 'react';
-import { AlertTriangle, FileWarning, Plus } from 'lucide-react';
+import { AlertTriangle, FileWarning } from 'lucide-react';
 import type { ParticipationViolationSourceContextType, ParticipationViolationStage, ParticipationViolationType } from '../../../domain/models/sbv-participation-violation.model';
-import { IndustrialButton } from '../../shared/components/IndustrialButton';
-import { FormActions, FormSection, SearchableSelectInput, SelectInput, TextareaInput, TextInput } from '../../shared/components/IndustrialForm';
+import { FormSection, SearchableSelectInput, SelectInput, TextareaInput, TextInput } from '../../shared/components/IndustrialForm';
 import { IndustrialWarningPanel } from '../../shared/components/WorkbenchLayout';
 import type { useSbvParticipationViolations } from './hooks/useSbvParticipationViolations';
 import {
@@ -13,6 +12,7 @@ import {
 } from './sbvParticipationViolationViewLogic';
 
 type ViolationState = ReturnType<typeof useSbvParticipationViolations>;
+export const VIOLATION_DRAFT_FORM_ID = 'participation-violation-create-form';
 
 export function ViolationDraftForm({ state, onCreated }: { state: ViolationState; onCreated?: () => void }) {
   const sourceContextOptions = participationViolationSourceContextOptions.some((option) => option.value === state.form.sourceContextType)
@@ -47,7 +47,7 @@ export function ViolationDraftForm({ state, onCreated }: { state: ViolationState
       </div>
     </IndustrialWarningPanel>}
 
-    <form onSubmit={handleSubmit} noValidate aria-label="Beteiligungsverstoß bewusst speichern">
+    <form id={VIOLATION_DRAFT_FORM_ID} onSubmit={handleSubmit} noValidate aria-label="Beteiligungsverstoß bewusst speichern">
       <div className="industrial-form-grid industrial-form-grid-auto">
         <SelectInput
           label="Ausgangskontext"
@@ -95,11 +95,6 @@ export function ViolationDraftForm({ state, onCreated }: { state: ViolationState
       <TextareaInput label="Was war falsch?" value={state.form.wrongBehavior} required error={state.fieldErrors.wrongBehavior} onValueChange={(wrongBehavior) => state.updateForm({ wrongBehavior })} />
       <TextareaInput label="Was wäre richtig gewesen?" value={state.form.requiredBehavior} required error={state.fieldErrors.requiredBehavior} onValueChange={(requiredBehavior) => state.updateForm({ requiredBehavior })} />
       <TextareaInput label="Konsequenz-/Warnhinweis" value={state.form.consequenceWarning ?? ''} onValueChange={(consequenceWarning) => state.updateForm({ consequenceWarning })} />
-      <FormActions>
-        <IndustrialButton type="submit" disabled={state.busy} loading={state.busy}>
-          <Plus className="h-4 w-4" aria-hidden="true" /> Verstoß bewusst speichern
-        </IndustrialButton>
-      </FormActions>
     </form>
   </FormSection>;
 }

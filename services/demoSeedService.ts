@@ -3,6 +3,7 @@ import { DEMO_SEED_MARKER_KEY, DEMO_SEED_VERSION, nowIso, run } from "./demoSeed
 import { seedProtectedPersons, seedContacts } from "./demoSeedPeople.js";
 import { seedCasesAndProcesses } from "./demoSeedCases.js";
 import { seedSbvResources, seedCompliance, seedTemplates } from "./demoSeedAncillary.js";
+import { seedWorkflowExamples } from "./demoSeedWorkflows.js";
 export function seedDemoDatabase(db: DatabaseAdapter): void {
   const existing = db
     .prepare<{ value: string }>("SELECT value FROM settings WHERE key = ?")
@@ -15,6 +16,7 @@ export function seedDemoDatabase(db: DatabaseAdapter): void {
     seedProtectedPersons(db, timestamp);
     seedContacts(db, timestamp);
     seedCasesAndProcesses(db, timestamp);
+    seedWorkflowExamples(db, timestamp);
     seedSbvResources(db, timestamp);
     seedCompliance(db, timestamp);
     seedTemplates(db, timestamp);

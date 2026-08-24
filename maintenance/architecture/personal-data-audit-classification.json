@@ -259,6 +259,26 @@
       "classification": "infrastructure",
       "reason": "Synthetische Demo-Initialisierung ohne Benutzer-Fachoperation."
     },
+    "services/demoSeedWorkflows.ts#<module>.seedElection": {
+      "classification": "infrastructure",
+      "reason": "Synthetische Demo-Initialisierung ohne Benutzer-Fachoperation."
+    },
+    "services/demoSeedWorkflows.ts#<module>.seedElectionBoard": {
+      "classification": "infrastructure",
+      "reason": "Synthetische Demo-Initialisierung ohne Benutzer-Fachoperation."
+    },
+    "services/demoSeedWorkflows.ts#<module>.seedElectionCandidates": {
+      "classification": "infrastructure",
+      "reason": "Synthetische Demo-Initialisierung ohne Benutzer-Fachoperation."
+    },
+    "services/demoSeedWorkflows.ts#<module>.seedElectionVoters": {
+      "classification": "infrastructure",
+      "reason": "Synthetische Demo-Initialisierung ohne Benutzer-Fachoperation."
+    },
+    "services/demoSeedWorkflows.ts#<module>.seedParticipationViolations": {
+      "classification": "infrastructure",
+      "reason": "Synthetische Demo-Initialisierung ohne Benutzer-Fachoperation."
+    },
     "services/participationSchema.ts#<module>.migrateLegacyParticipations": {
       "classification": "infrastructure",
       "reason": "Legacy-Migration beim Schema-Aufbau, keine Benutzeroperation."
