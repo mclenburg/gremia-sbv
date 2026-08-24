@@ -71,7 +71,7 @@ export function CasePrivacyActionDialog({
     onClose={onClose}
     dataE2e="case-privacy-action-dialog"
   >
-    <p className="industrial-message industrial-message-info case-privacy-audit-note">{AUDIT_LOG_RETENTION_NOTICE}</p>
+    <p className="industrial-message industrial-message-info case-privacy-audit-note" data-e2e="audit-log-retention-notice">{AUDIT_LOG_RETENTION_NOTICE}</p>
     <form onSubmit={submit} className="privacy-review-form case-privacy-action-form">
       <fieldset className="case-privacy-action-fieldset">
         <legend>Gewünschte Aktion</legend>

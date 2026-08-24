@@ -59,7 +59,7 @@ export function DeadlinesView({
     <WorkbenchPage
       title="Fristen & Wiedervorlagen"
       kicker="48h-Regel aktiv"
-      description="Übersicht, Priorisierung und Kontrolle zeitkritischer SBV-Arbeit. Rechtliche Fristen werden einem Fall oder Verfahren zugeordnet."
+      description="Übersicht, Priorisierung und Kontrolle zeitkritischer SBV-Arbeit. Fristen können fallbezogen oder für allgemeine SBV-Aufgaben geführt werden."
       actions={
         <>
           <ToolbarButton onClick={() => setExportModalOpen(true)} data-e2e="open-deadline-ical-export">
@@ -84,7 +84,7 @@ export function DeadlinesView({
       />
 
       <p className="industrial-inline-rule">
-        Fachregel: Ohne Fallbezug kann nur eine freie Wiedervorlage angelegt werden. Rechtliche Fristen und Verfahrensschritte werden im Erfassungsdialog validiert.
+        Fachregel: Ein Fallbezug ist optional. Bei fallfreien Fristen muss der Titel den allgemeinen SBV-Vorgang nachvollziehbar beschreiben.
       </p>
 
       <DeadlineListView deadlines={deadlines} cases={cases} measures={measures} onEdit={onEditDeadline} onComplete={onCompleteDeadline} />
@@ -146,7 +146,7 @@ export function DeadlineEditor({
     <IndustrialModal
       title={deadline.title}
       kicker="Frist bearbeiten"
-      description={deadline.caseId ? `Fallbezug: ${cases.find((item: CaseRecord) => item.id === deadline.caseId)?.caseNumber ?? 'nicht auflösbar'}` : 'Freie Wiedervorlage ohne Fallbezug'}
+      description={deadline.caseId ? `Fallbezug: ${cases.find((item: CaseRecord) => item.id === deadline.caseId)?.caseNumber ?? 'nicht auflösbar'}` : 'Allgemeine SBV-Aufgabe ohne Fallbezug'}
       onClose={onClose}
     >
       <form onSubmit={submit} className="industrial-settings-form mt-5" noValidate>

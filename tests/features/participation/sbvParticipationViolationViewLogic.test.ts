@@ -1,12 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import type { CaseRecord } from '../../../src/domain/models/case.model';
 import type { ParticipationRecord } from '../../../src/domain/models/participation.model';
+import type { CaseMeasureRecord } from '../../../src/domain/models/case-measure.model';
 import type { SbvParticipationViolationRecord } from '../../../src/domain/models/sbv-participation-violation.model';
 import {
   applyViolationCaseContext,
+  applyViolationMeasureContext,
   applyViolationSourceContextType,
   buildParticipationViolationPrefillFromMeasure,
   buildViolationCaseOptions,
+  buildViolationMeasureOptions,
   buildViolationSummaryItems,
   buildViolationFieldErrors,
   createInitialViolationForm,
@@ -50,6 +53,23 @@ function participation(overrides: Partial<ParticipationRecord> = {}): Participat
   };
 }
 
+function caseMeasure(overrides: Partial<CaseMeasureRecord> = {}): CaseMeasureRecord {
+  return {
+    id: 'measure-1',
+    caseId: 'case-1',
+    type: 'sbv_participation',
+    title: 'Allgemeine Freistellungspraxis prüfen',
+    status: 'open',
+    riskLevel: 'kritisch',
+    createdFrom: 'manual',
+    openedAt: '2026-06-01',
+    requiresFollowUp: true,
+    createdAt: '2026-06-01T10:00:00.000Z',
+    updatedAt: '2026-06-01T10:00:00.000Z',
+    ...overrides,
+  };
+}
+
 function violation(overrides: Partial<SbvParticipationViolationRecord>): SbvParticipationViolationRecord {
   return {
     id: 'violation-1',
@@ -71,16 +91,26 @@ function violation(overrides: Partial<SbvParticipationViolationRecord>): SbvPart
 }
 
 describe('Beteiligungsverstoß-View-Logik', () => {
-  it('startet ohne automatische Fallzuordnung und bevorzugt die konkrete SBV-Beteiligungsmaßnahme', () => {
+  it('beginnt mit einem allgemeinen, fallfreien Arbeitgeberverstoß ohne technische Kontext-ID', () => {
+    const form = createInitialViolationForm([]);
+    expect(form).toMatchObject({ sourceContextType: 'general_employer_practice', sourceContextId: '' });
+    expect(validateViolationDraft({
+      ...form,
+      subject: 'Allgemeine Freistellungspraxis',
+      measureDescription: 'Arztbesuche sollen generell nicht mehr freigestellt werden.',
+      wrongBehavior: 'Die Anordnung missachtet die Beteiligungsrechte der SBV.',
+    })).toEqual([]);
+  });
+  it('startet unabhängig von vorhandenen Fällen im allgemeinen fallfreien Kontext', () => {
     const withCase = createInitialViolationForm([caseRecord()]);
     const withoutCase = createInitialViolationForm([]);
 
-    expect(withCase.sourceContextType).toBe('case_measure_participation');
+    expect(withCase.sourceContextType).toBe('general_employer_practice');
     expect(withCase.sourceContextId).toBe('');
     expect(withCase.caseId).toBeUndefined();
     expect(withCase.requiredBehavior).toContain('§ 178 Abs. 2 Satz 1 SGB IX');
 
-    expect(withoutCase.sourceContextType).toBe('case_measure_participation');
+    expect(withoutCase.sourceContextType).toBe('general_employer_practice');
     expect(withoutCase.sourceContextId).toBe('');
     expect(withoutCase.caseId).toBeUndefined();
   });
@@ -88,6 +118,7 @@ describe('Beteiligungsverstoß-View-Logik', () => {
   it('setzt Fallkontext nur nach bewusster Auswahl und löscht Maßnahmensonderbezug', () => {
     const form = {
       ...createInitialViolationForm([]),
+      sourceContextType: 'case_measure_participation' as const,
       sourceContextId: 'measure-participation-1',
       relatedCaseMeasureId: 'measure-participation-1',
     };
@@ -102,6 +133,25 @@ describe('Beteiligungsverstoß-View-Logik', () => {
       sourceContextType: 'case_measure_participation',
       sourceContextId: 'measure-participation-1',
       caseId: undefined,
+    });
+  });
+
+  it('bietet nur echte SBV-Beteiligungsmaßnahmen mit verständlicher Fallreferenz an und übernimmt deren Relationen', () => {
+    const measures = [
+      caseMeasure(),
+      caseMeasure({ id: 'measure-2', type: 'bem', title: 'Nicht auswählbares BEM' }),
+    ];
+    const options = buildViolationMeasureOptions(measures, [caseRecord()]);
+
+    expect(options).toEqual([{
+      value: 'measure-1',
+      label: 'Allgemeine Freistellungspraxis prüfen · SBV-2026-004',
+    }]);
+    expect(applyViolationMeasureContext(createInitialViolationForm([]), 'measure-1', measures)).toMatchObject({
+      sourceContextType: 'case_measure_participation',
+      sourceContextId: 'measure-1',
+      caseId: 'case-1',
+      relatedCaseMeasureId: 'measure-1',
     });
   });
 
@@ -144,18 +194,16 @@ describe('Beteiligungsverstoß-View-Logik', () => {
     const issues = validateViolationDraft(emptyDraft);
 
     expect(issues.map((issue) => issue.code)).toEqual([
-      'missing_source_context',
       'missing_subject',
       'missing_measure_description',
       'missing_wrong_behavior',
     ]);
     expect(buildViolationFieldErrors(issues)).toMatchObject({
-      sourceContextId: expect.any(String),
       subject: expect.any(String),
       measureDescription: expect.any(String),
       wrongBehavior: expect.any(String),
     });
-    expect(summarizeViolationDraftValidation(issues)).toContain('Ausgangskontext');
+    expect(summarizeViolationDraftValidation(issues)).toContain('Pflichtfelder');
   });
 
   it('erkennt widersprüchlichen allgemeinen Fallkontext ohne Stringtest auf UI-Text', () => {

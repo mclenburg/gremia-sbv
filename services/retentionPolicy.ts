@@ -1,4 +1,4 @@
-import type { RetentionCandidate, RetentionDashboard, RetentionModuleSnapshot, RetentionRiskLevel, RetentionSettings } from '../src/domain/models/retention.model.js';
+import type { RetentionCandidate, RetentionDashboard, RetentionModuleSnapshot, RetentionProtectedPersonSnapshot, RetentionRiskLevel, RetentionSettings } from '../src/domain/models/retention.model.js';
 import type { RetentionOwnerSnapshot } from '../src/domain/models/retention-owner.model.js';
 import { buildOfficeOwnerRetentionCandidates } from './retentionOwnerPolicy.js';
 import { buildModuleRetentionCandidates, RETENTION_POLICY_CATALOG } from './retentionPolicyCatalog.js';
@@ -91,11 +91,11 @@ export interface RetentionScanInput {
   settings?: Partial<RetentionSettings>;
   cases?: RetentionCaseSnapshot[];
   contacts?: RetentionContactSnapshot[];
+  protectedPersons?: RetentionProtectedPersonSnapshot[];
   documents?: RetentionDocumentSnapshot[];
   deadlines?: RetentionDeadlineSnapshot[];
   journalEntries?: RetentionActivityJournalSnapshot[];
   participationViolations?: RetentionParticipationViolationSnapshot[];
-  cleartextFiles?: string[];
   officeOwners?: RetentionOwnerSnapshot[];
   moduleRecords?: RetentionModuleSnapshot[];
 }
@@ -197,25 +197,39 @@ for (const contact of input.contacts ?? []) {
   }
 }
 
+function appendProtectedPersonCandidates(candidates: RetentionCandidate[], input: RetentionScanInput, orphanContactCutoff: Date): void {
+  for (const person of input.protectedPersons ?? []) {
+    if (['anonymized', 'deleted_marker'].includes(person.lifecycleState ?? '')) continue;
+    const employmentEnded = person.employmentState === 'left_company';
+    const requiredForParticipationChecks = !employmentEnded
+      && ['severely_disabled', 'equivalent'].includes(person.protectionStatus);
+    if (requiredForParticipationChecks) continue;
+    if (!employmentEnded && person.retainedReferenceCount > 0) continue;
+    const reviewReference = employmentEnded ? person.leftCompanyAt ?? person.createdAt : person.createdAt;
+    if (!beforeOrEqual(reviewReference, orphanContactCutoff)) continue;
+    const hasRetainedContext = person.retainedReferenceCount > 0;
+    pushCandidate(candidates, {
+      id: `protected-person-purpose-expired-${person.id}`,
+      type: 'orphan_person_review',
+      riskLevel: hasRetainedContext ? 'warning' : 'info',
+      title: employmentEnded ? 'Beschäftigungsverhältnis beendet' : 'Person ohne fortbestehenden Vorgangsbezug',
+      reference: person.displayName,
+      description: hasRetainedContext
+        ? 'Das Beschäftigungsverhältnis ist beendet, es bestehen aber noch aufzubewahrende Vorgangsbezüge. Zweck, Fristen und Verknüpfungen vor einer manuellen Aussonderung gemeinsam prüfen.'
+        : 'Die Person gehört nicht zum fortlaufend benötigten Verzeichnis der beschäftigten schwerbehinderten oder gleichgestellten Menschen und hat keinen aufzubewahrenden Vorgangsbezug. Zweckwegfall und manuelle Aussonderung prüfen.',
+      recommendedAction: 'pruefen',
+      createdAt: reviewReference ?? undefined,
+      entityType: 'protected_person',
+      entityId: person.id,
+      privacyReviewRequired: true,
+      policyKey: 'protected_person',
+      legalBasis: 'Art. 5 Abs. 1 lit. e, Art. 17 DSGVO',
+    });
+  }
+}
+
 function appendDeadlineCandidates(candidates: RetentionCandidate[], input: RetentionScanInput, settings: RetentionSettings, completedDeadlineCutoff: Date): void {
 for (const deadline of input.deadlines ?? []) {
-    if (!deadline.caseId && deadline.status !== 'cancelled') {
-      pushCandidate(candidates, {
-        id: `deadline-free-${deadline.id}`,
-        type: 'free_deadline_review',
-        riskLevel: deadline.isLegalDeadline ? 'critical' : 'info',
-        title: deadline.isLegalDeadline ? 'Rechtliche Frist ohne Fallbezug' : 'Freie Wiedervorlage ohne Fallbezug',
-        reference: deadline.title,
-        description: deadline.isLegalDeadline
-          ? 'Rechtliche Fristen müssen einem Fall oder Prozess zugeordnet werden.'
-          : 'Prüfen, ob die Wiedervorlage wirklich ohne Fallbezug bleiben soll.',
-        recommendedAction: 'pruefen',
-        dueSince: deadline.dueAt ?? undefined,
-        entityType: 'deadline',
-        entityId: deadline.id
-      });
-    }
-
     if (deadline.status === 'done' && beforeOrEqual(deadline.completedAt ?? deadline.dueAt, completedDeadlineCutoff)) {
       pushCandidate(candidates, {
         id: `deadline-completed-${deadline.id}`,
@@ -383,7 +397,8 @@ export function buildRetentionDashboard(input: RetentionScanInput): RetentionDas
 
   appendCaseCandidates(candidates, input, settings, closedCutoff, inactiveCutoff);
   appendContactCandidates(candidates, input, settings, orphanContactCutoff);
-  candidates.push(...buildRetentionIntegrityCandidates(input.documents ?? [], input.cleartextFiles ?? []));
+  appendProtectedPersonCandidates(candidates, input, orphanContactCutoff);
+  candidates.push(...buildRetentionIntegrityCandidates(input.documents ?? []));
   appendDeadlineCandidates(candidates, input, settings, completedDeadlineCutoff);
   appendJournalCandidates(candidates, input, settings, journalCutoff);
   appendParticipationViolationCandidates(candidates, input, settings, participationViolationCutoff);

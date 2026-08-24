@@ -243,4 +243,9 @@ export interface ElectionNoticeDetails {
   boardChairName: string;
   secondBoardMemberName: string;
 }
-export interface GenerateElectionPreparationDocumentInput { kind: ElectionPreparationDocumentKind; boardSessionId?: string; notice?: ElectionNoticeDetails; titleOverride?: string; }
+export interface ElectionInvitationDetails {
+  meetingStartsAt: string;
+  meetingPlace: string;
+  accessibilityNote?: string;
+}
+export interface GenerateElectionPreparationDocumentInput { kind: ElectionPreparationDocumentKind; boardSessionId?: string; notice?: ElectionNoticeDetails; invitation?: ElectionInvitationDetails; titleOverride?: string; }

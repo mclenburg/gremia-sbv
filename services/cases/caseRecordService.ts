@@ -38,6 +38,8 @@ import {
 import { PersonalDataAuditLogService } from "../auditLogService.js";
 import { TempFileService } from "../tempFileService.js";
 import { PersonCaseBindingService } from "../personCaseBindingService.js";
+import { PersonCaseLinkService } from "../personCaseLinkService.js";
+import { DatabaseUnitOfWork } from "../databaseUnitOfWork.js";
 import { assertCanCreateRegularCase } from "../personCaseBindingPolicy.js";
 import { SearchIndexService } from "../search/searchIndexService.js";
 import { extractDocumentTextBestEffort, inferMimeType } from "../documents/documentTextExtractionService.js";
@@ -67,10 +69,8 @@ export class CaseRecordService extends CaseSchemaService {
       return new PersonCaseBindingService(db).assignLegacyCase(input.caseId, input.protectedPersonId, input.reason);
     }
 
-  async createCase(input: CreateCaseInput): Promise<CaseRecord> {
+  createCase(input: CreateCaseInput): CaseRecord {
       const db = this.getSafeDb();
-      const now = nowIso();
-      const id = randomUUID();
       const caseNumber = input.caseNumber.trim();
       const displayName = input.displayName.trim();
   
@@ -90,38 +90,48 @@ export class CaseRecordService extends CaseSchemaService {
         .get(caseNumber);
       if (existing)
         throw new Error(`Das Aktenzeichen ist bereits vergeben: ${caseNumber}`);
-  
-      db.prepare(
+
+      return new DatabaseUnitOfWork(db).run(() => {
+        const now = nowIso();
+        const id = randomUUID();
+        db.prepare(
         `
         INSERT INTO cases (
           id, case_number, display_name, category, status, priority,
           opened_at, summary, is_pseudonymized, is_locked, protected_person_id, person_binding_state, created_at, updated_at
         ) VALUES (?, ?, ?, ?, 'offen', ?, ?, ?, ?, 0, ?, ?, ?, ?)
       `,
-      ).run(
-        id,
-        caseNumber,
-        displayName,
-        input.category,
-        input.priority ?? "normal",
-        now,
-        input.summary ?? null,
-        input.isPseudonymized === false ? 0 : 1,
-        input.protectedPersonId ?? null,
-        bindingState,
-        now,
-        now,
-      );
-  
-      const created = db.prepare<DatabaseRow>("SELECT * FROM cases WHERE id = ?").get(id);
-      this.audit(db, {
-        action: "create",
-        subjectType: "case",
-        subjectId: id,
-        caseId: id,
-        purpose: "Fallakte angelegt",
-        metadata: { category: input.category, bindingState },
+        ).run(
+          id,
+          caseNumber,
+          displayName,
+          input.category,
+          input.priority ?? "normal",
+          now,
+          input.summary ?? null,
+          input.isPseudonymized === false ? 0 : 1,
+          input.protectedPersonId ?? null,
+          bindingState,
+          now,
+          now,
+        );
+        if (input.protectedPersonId) {
+          new PersonCaseLinkService(db).linkCase(
+            input.protectedPersonId,
+            id,
+            "Bei der Fallanlage verknüpft.",
+          );
+        }
+        const created = db.prepare<DatabaseRow>("SELECT * FROM cases WHERE id = ?").get(id);
+        this.audit(db, {
+          action: "create",
+          subjectType: "case",
+          subjectId: id,
+          caseId: id,
+          purpose: "Fallakte angelegt",
+          metadata: { category: input.category, bindingState },
+        });
+        return mapCase(created);
       });
-      return mapCase(created);
     }
 }

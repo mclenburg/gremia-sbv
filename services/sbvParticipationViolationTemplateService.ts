@@ -94,8 +94,6 @@ export class SbvParticipationViolationTemplateService {
     if (!validation.valid) throw new Error(`Pflichtangaben fehlen: ${validation.missingFields.join(', ')}`);
     const salutation = input.recipientLabel ? `Sehr geehrte Damen und Herren,` : 'Sehr geehrte Damen und Herren,';
     const sections: string[] = [];
-    sections.push(sbvParticipationViolationDocumentStageLabels[input.stage]);
-    sections.push(`Betreff: ${input.subject}`);
     sections.push(`Bezug: ${input.sourceReference}`);
     sections.push(salutation);
     sections.push(`ich dokumentiere als Schwerbehindertenvertretung folgenden Vorgang im Zusammenhang mit der Beteiligung nach § 178 Abs. 2 Satz 1 SGB IX.`);
@@ -110,14 +108,18 @@ export class SbvParticipationViolationTemplateService {
       sections.push('Hinweis: Eine nicht, nicht richtig, nicht vollständig oder nicht rechtzeitig erfolgte Unterrichtung bzw. Anhörung der SBV kann nach § 238 Abs. 1 Nr. 8 SGB IX eine Ordnungswidrigkeit darstellen. Zuständige Verwaltungsbehörde ist nach § 238 Abs. 3 SGB IX die Bundesagentur für Arbeit.');
     }
     if (input.followUpDueAt) sections.push(`Frist / Wiedervorlage: ${new Date(input.followUpDueAt).toLocaleDateString('de-DE')}`);
-    if (input.includeLegalReviewHint) sections.push('Hinweis der App: Diese Eskalationsstufe sollte bei streitigen oder folgenreichen Sachverhalten anwaltlich abgestimmt werden.');
-    sections.push('Dieses Schreiben wird nicht automatisch versandt. Jede externe Verwendung bleibt eine bewusste Handlung der SBV.');
     sections.push('Mit freundlichen Grüßen\nSchwerbehindertenvertretung');
     return sections.join('\n\n');
   }
 
   private buildSourceReference(record: SbvParticipationViolationRecord): string {
-    if (record.caseId) return `Fallbezug ${record.caseId}`;
-    return `${record.sourceContextType}:${record.sourceContextId}`;
+    if (record.sourceContextType === 'case_measure_participation') {
+      return 'SBV-Beteiligungsmaßnahme in der zugehörigen Fallakte';
+    }
+    if (record.sourceContextType === 'general_employer_practice') {
+      return 'Allgemeine betriebliche Regelung oder Arbeitgeberpraxis';
+    }
+    if (record.caseId) return 'Vorgang in der zugehörigen Fallakte';
+    return sbvParticipationViolationDocumentStageLabels[record.stage];
   }
 }

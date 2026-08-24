@@ -12,32 +12,35 @@ async function openRecruiting(page: Page) {
     has: page.getByRole('heading', { name: 'Stellenbesetzungen', exact: true }),
   });
   await expect(moduleFrame).toBeVisible();
-  await expect(moduleFrame.getByRole('button', { name: 'Neue Stellenbesetzung', exact: true })).toBeVisible();
+  await expect(moduleFrame.getByRole('button', { name: 'Stellenbesetzung anlegen', exact: true })).toBeVisible();
 }
 
 test('tracks recruiting participation without case file and opens violation only as explicit prefill', async ({ page }) => {
   await openRecruiting(page);
-  await page.getByRole('button', { name: 'Neue Stellenbesetzung', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Stellenbesetzung anlegen', exact: true })).toBeVisible();
+  await page.locator('.industrial-hero-actions').getByRole('button', { name: 'Stellenbesetzung anlegen', exact: true }).click();
+  const createDialog = page.getByRole('dialog', { name: 'Stellenbesetzung anlegen' });
+  await expect(createDialog.getByRole('button', { name: 'Stellenbesetzung anlegen', exact: true })).toBeVisible();
 
-  await page.getByLabel(/Stelle \/ Bezeichnung/).fill('E2E Fachadministration');
-  await page.getByLabel('Kennziffer').fill('REC-095E');
-  await page.getByLabel('Organisationseinheit').fill('IT-Service');
-  await page.getByLabel('Unterrichtung erhalten').fill('2026-05-06');
-  await page.getByLabel('Unterlagen erhalten').fill('2026-05-07');
-  await page.getByLabel('Anhörung / Stellungnahme bis').fill('2026-05-14');
-  await page.getByLabel('Zur Verstoßprüfung vormerken').check();
-  await page.getByRole('button', { name: 'Stellenbesetzung anlegen', exact: true }).click();
+  await createDialog.getByLabel(/Stelle \/ Bezeichnung/).fill('E2E Fachadministration');
+  await createDialog.getByLabel('Kennziffer').fill('REC-095E');
+  await createDialog.getByLabel('Organisationseinheit').fill('IT-Service');
+  await createDialog.getByLabel('Unterrichtung erhalten').fill('2026-05-06');
+  await createDialog.getByLabel('Schwerbehinderte / gleichgestellte Bewerbung bekannt').check();
+  await createDialog.getByLabel('Unterlagen erhalten').fill('2026-05-07');
+  await createDialog.getByLabel('Anhörung / Stellungnahme bis').fill('2026-05-14');
+  await createDialog.getByLabel('Zur Verstoßprüfung vormerken').check();
+  await createDialog.getByRole('button', { name: 'Stellenbesetzung anlegen', exact: true }).click();
 
   await expect(page.locator('.industrial-live-region[role="status"]').filter({ hasText: /Stellenbesetzung wurde angelegt/ })).toBeVisible();
   await expect(page.locator('.industrial-record-card').filter({ hasText: 'E2E Fachadministration' }).first()).toBeVisible();
 
-  await page.getByRole('button', { name: 'Neue Stellenbesetzung', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Stellenbesetzung anlegen', exact: true })).toBeVisible();
-  await expect(page.getByLabel(/Stelle \/ Bezeichnung/)).toHaveValue('');
-  await page.getByLabel(/Stelle \/ Bezeichnung/).fill('E2E Zweite Stellenbesetzung');
-  await page.getByLabel('Kennziffer').fill('REC-095E-2');
-  await page.getByRole('button', { name: 'Stellenbesetzung anlegen', exact: true }).click();
+  await page.locator('.industrial-hero-actions').getByRole('button', { name: 'Stellenbesetzung anlegen', exact: true }).click();
+  const secondCreateDialog = page.getByRole('dialog', { name: 'Stellenbesetzung anlegen' });
+  await expect(secondCreateDialog).toBeVisible();
+  await expect(secondCreateDialog.getByLabel(/Stelle \/ Bezeichnung/)).toHaveValue('');
+  await secondCreateDialog.getByLabel(/Stelle \/ Bezeichnung/).fill('E2E Zweite Stellenbesetzung');
+  await secondCreateDialog.getByLabel('Kennziffer').fill('REC-095E-2');
+  await secondCreateDialog.getByRole('button', { name: 'Stellenbesetzung anlegen', exact: true }).click();
   await expect(page.locator('.industrial-record-card').filter({ hasText: 'E2E Zweite Stellenbesetzung' }).first()).toBeVisible();
 
   await page.locator('.industrial-record-card').filter({ hasText: 'E2E Fachadministration' }).first().click();

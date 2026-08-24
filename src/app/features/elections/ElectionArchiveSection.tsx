@@ -4,6 +4,7 @@ import type { ElectionPreparationOverview } from '../../../domain/models/electio
 import { IndustrialButton } from '../../shared/components/IndustrialButton';
 import { CheckboxField, DateInput, FormActions, FormSection, PasswordInput, TextInput } from '../../shared/components/IndustrialForm';
 import type { ElectionRunner } from './ElectionPreparationSections';
+import { electionDocumentFeedback } from './electionDocumentFeedback';
 
 type ArchiveSectionProps = { overview: ElectionPreparationOverview; execution: ElectionExecutionOverview; run: ElectionRunner };
 
@@ -48,10 +49,10 @@ export function ArchiveSection({ overview, execution, run }: ArchiveSectionProps
           <CheckboxField label="Wahlanfechtung/Verfahren offen – Legal Hold setzen" checked={challengePending} onCheckedChange={setChallengePending} />
         </div>
         <FormActions align="start" className="election-document-actions">
-          <IndustrialButton variant="secondary" onClick={() => void run(async () => { const document = await window.gremiaSbv.elections.generateExecutionDocument(overview.election.id, { kind: 'result_announcement' }); return window.gremiaSbv.elections.exportDocument(document.id, document.filename); }, 'Ergebnisbekanntmachung gespeichert; Dateiexport angeboten.')}>Bekanntmachung PDF</IndustrialButton>
-          <IndustrialButton variant="secondary" onClick={() => void run(async () => { const document = await window.gremiaSbv.elections.generateExecutionDocument(overview.election.id, { kind: 'physical_inventory' }); return window.gremiaSbv.elections.exportDocument(document.id, document.filename); }, 'Bestandsverzeichnis gespeichert; Dateiexport angeboten.')}>Bestandsverzeichnis PDF</IndustrialButton>
-          <IndustrialButton variant="secondary" onClick={() => void run(async () => { const document = await window.gremiaSbv.elections.generateExecutionDocument(overview.election.id, { kind: 'handover_protocol' }); return window.gremiaSbv.elections.exportDocument(document.id, document.filename); }, 'Übergabeprotokoll gespeichert; Dateiexport angeboten.')}>Übergabeprotokoll</IndustrialButton>
-          <IndustrialButton variant="secondary" onClick={() => void run(async () => { const document = await window.gremiaSbv.elections.exportPdfArchive(overview.election.id); return window.gremiaSbv.elections.exportDocument(document.id, document.filename); }, 'Menschenlesbare PDF-Wahlakte gespeichert; Dateiexport angeboten.')}>Gesamt-Wahlakte PDF</IndustrialButton>
+          <IndustrialButton variant="secondary" onClick={() => void run(() => window.gremiaSbv.elections.generateExecutionDocument(overview.election.id, { kind: 'result_announcement' }), electionDocumentFeedback)}>Bekanntmachung PDF</IndustrialButton>
+          <IndustrialButton variant="secondary" onClick={() => void run(() => window.gremiaSbv.elections.generateExecutionDocument(overview.election.id, { kind: 'physical_inventory' }), electionDocumentFeedback)}>Bestandsverzeichnis PDF</IndustrialButton>
+          <IndustrialButton variant="secondary" onClick={() => void run(() => window.gremiaSbv.elections.generateExecutionDocument(overview.election.id, { kind: 'handover_protocol' }), electionDocumentFeedback)}>Übergabeprotokoll</IndustrialButton>
+          <IndustrialButton variant="secondary" onClick={() => void run(() => window.gremiaSbv.elections.exportPdfArchive(overview.election.id), electionDocumentFeedback)}>Gesamt-Wahlakte PDF</IndustrialButton>
         </FormActions>
         <p className="industrial-message industrial-message-warning">Digitale Exporte ersetzen physische Originale, insbesondere Stimmzettel, nicht.</p>
       </FormSection>

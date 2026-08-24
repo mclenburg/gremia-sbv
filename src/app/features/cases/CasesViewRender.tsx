@@ -1,6 +1,6 @@
-import { AlertTriangle, CheckCircle2, Trash2 } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Plus, Trash2 } from "lucide-react";
 import { ModuleFrame } from "../../shared/components/ModuleFrame";
-import { DangerButton, ToolbarButton } from "../../shared/components/IndustrialButton";
+import { DangerButton, IndustrialButton, ToolbarButton } from "../../shared/components/IndustrialButton";
 import { CaseRegister } from "./CaseRegister";
 import { CaseTreePanel } from "./CaseTreePanel";
 import { CaseDetailPanel } from "./CaseDetailPanel";
@@ -229,7 +229,7 @@ export function CasesViewRender(props: CasesViewRenderProps) {
     </div>}
     <ProcessTemplateDocumentsModal state={processTemplateModal} onClose={() => setProcessTemplateModal(null)}
       onDownload={(template) => void renderAndDownloadProcessTemplate(template)} processTypeLabel={processTypeLabel} />
-    <ModuleFrame title="Fälle" kicker="Fallakten" description="Fallakten, Notizen, Prozesse und Unterlagen bearbeiten." compact>
+    <ModuleFrame title="Fälle" kicker="Fallakten" description="Fallakten, Notizen, Prozesse und Unterlagen bearbeiten." compact actions={<IndustrialButton onClick={openCaseCreateModal}><Plus className="h-4 w-4" aria-hidden="true" /> Fallakte anlegen</IndustrialButton>}>
       <CaseRegister filteredCount={filteredCases.length} visibleCases={visibleCases} selectedCaseId={selectedCaseId}
         caseFilter={caseFilter} onCaseFilterChange={(value) => { setCaseFilter(value); setCaseRegisterPage(1); }}
         onSelectCase={props.setSelectedCaseId} onCreateCase={openCaseCreateModal} onImportHandover={props.onOpenImportHandover}

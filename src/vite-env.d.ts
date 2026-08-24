@@ -97,7 +97,9 @@ import type {
   UpdateBemProcessInput,
 } from "./domain/models/bem.model";
 import type {
+  CreateEqualizationIntakeInput,
   CreateEqualizationProcessInput,
+  EqualizationIntakeResult,
   EqualizationProcessRecord,
   EqualizationWarning,
   UpdateEqualizationProcessInput,
@@ -400,6 +402,7 @@ declare global {
         create(
           input: CreateEqualizationProcessInput,
         ): Promise<EqualizationProcessRecord>;
+        createIntake(input: CreateEqualizationIntakeInput): Promise<EqualizationIntakeResult>;
         update(
           id: string,
           input: UpdateEqualizationProcessInput,
@@ -554,7 +557,7 @@ declare global {
         recordNoticeIssued(id: string, issueDate: string): Promise<{ recorded: boolean }>;
         markPreparation(id: string): Promise<ElectionRecord>;
         journalPrefill(id: string, activity: 'preparation' | 'board_work' | 'voter_list' | 'nominations' | 'voting' | 'counting' | 'result' | 'archive'): Promise<ActivityJournalPrefill>;
-        generateDocument(id: string, input: GenerateElectionPreparationDocumentInput): Promise<{ id: string; filename: string; sha256: string }>;
+        generateDocument(id: string, input: GenerateElectionPreparationDocumentInput): Promise<{ document: { id: string; filename: string; sha256: string }; previewStatus: 'requested' | 'unavailable'; previewMessage?: string }>;
         executionOverview(id: string): Promise<ElectionExecutionOverview>;
         recordElectionDayChecklist(id: string, input: ElectionDayChecklistInput): Promise<ElectionExecutionOverview>;
         saveMailBallot(id: string, input: SaveElectionMailBallotInput): Promise<ElectionMailBallotRecord>;
@@ -563,8 +566,8 @@ declare global {
         recordAcceptance(id: string, input: RecordElectionAcceptanceInput): Promise<ElectionExecutionOverview>;
         savePhysicalRecord(id: string, input: SaveElectionPhysicalRecordInput): Promise<ElectionPhysicalRecord>;
         close(id: string, input: ElectionCloseInput): Promise<{ closed: boolean }>;
-        generateExecutionDocument(id: string, input: GenerateElectionExecutionDocumentInput): Promise<{ id: string; filename: string; sha256: string }>;
-        exportPdfArchive(id: string): Promise<{ id: string; filename: string; sha256: string }>;
+        generateExecutionDocument(id: string, input: GenerateElectionExecutionDocumentInput): Promise<{ document: { id: string; filename: string; sha256: string }; previewStatus: 'requested' | 'unavailable'; previewMessage?: string }>;
+        exportPdfArchive(id: string): Promise<{ document: { id: string; filename: string; sha256: string }; previewStatus: 'requested' | 'unavailable'; previewMessage?: string }>;
         exportDocument(documentId: string, suggestedFileName?: string): Promise<ElectionDocumentExportResult>;
         exportTransfer(id: string, passphrase: string): Promise<ElectionTransferEnvelope>;
         inspectTransfer(envelope: ElectionTransferEnvelope, passphrase: string): Promise<ElectionTransferInspection>;
@@ -582,7 +585,7 @@ declare global {
           saveAgenda(id: string, input: UpsertSbvMeetingAgendaInput): Promise<SbvMeetingAgendaItemRecord>;
           createAgendaFollowUp(agendaId: string, dueAt: string, title?: string): Promise<unknown>;
         };
-        assemblies: { list(): Promise<SbvAssemblyRecord[]>; annualWarning(year: number): Promise<boolean>; createFollowUp(id: string, dueAt: string, title?: string): Promise<unknown>; generateDocument(id: string, kind: 'invitation' | 'agenda' | 'activity_report_draft' | 'result_minutes'): Promise<{ id: string; filename: string; sha256: string }>; save(input: SaveSbvAssemblyInput): Promise<SbvAssemblyRecord>; };
+        assemblies: { list(): Promise<SbvAssemblyRecord[]>; annualWarning(year: number): Promise<boolean>; createFollowUp(id: string, dueAt: string, title?: string): Promise<unknown>; generateDocument(id: string, kind: 'invitation' | 'agenda' | 'activity_report_draft' | 'result_minutes'): Promise<{ document: { id: string; filename: string; sha256: string }; previewStatus: 'requested' | 'unavailable'; previewMessage?: string }>; save(input: SaveSbvAssemblyInput): Promise<SbvAssemblyRecord>; };
         obligations: { list(): Promise<EmployerObligationReviewRecord[]>; ensureAnnual(year: number): Promise<EmployerObligationReviewRecord[]>; save(input: SaveEmployerObligationReviewInput): Promise<EmployerObligationReviewRecord>; };
         officers: { list(): Promise<InclusionOfficerSnapshotRecord[]>; save(input: SaveInclusionOfficerSnapshotInput): Promise<InclusionOfficerSnapshotRecord>; };
         agreements: { list(): Promise<InclusionAgreementRecord[]>; requestDraft(dueAt?: string): Promise<{ text: string; responseDueAt?: string }>; createResponseDeadline(id: string, dueAt: string): Promise<unknown>; save(input: SaveInclusionAgreementInput): Promise<InclusionAgreementRecord>; saveTopic(id: string, input: SaveInclusionAgreementTopicInput): Promise<InclusionAgreementTopicRecord>; };

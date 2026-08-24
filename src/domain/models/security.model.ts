@@ -24,6 +24,7 @@ export interface SecurityResult {
   initialized?: boolean;
   recoveryKey?: string;
   error?: string;
+  warning?: string;
   databaseProtected?: boolean;
   unlockDelaySeconds?: number;
   unlockAvailableAt?: string;

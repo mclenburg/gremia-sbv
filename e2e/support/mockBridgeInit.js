@@ -362,6 +362,21 @@
       createdAt: now,
       updatedAt: now,
     },
+    {
+      id: 'measure-participation-e2e-0002',
+      caseId: 'case-test-0001',
+      type: 'sbv_participation',
+      title: 'Beteiligung zur allgemeinen Arbeitszeitregelung',
+      status: 'open',
+      riskLevel: 'erhoeht',
+      createdFrom: 'manual',
+      summary: 'Synthetische SBV-Beteiligungsmaßnahme für die filterbare E2E-Auswahl.',
+      nextStep: 'Ordnungsgemäße Beteiligung prüfen.',
+      openedAt: now,
+      requiresFollowUp: true,
+      createdAt: now,
+      updatedAt: now,
+    },
   ];
 
 
@@ -575,11 +590,15 @@
 
   const authSearchParams = new URLSearchParams(window.location.search || '');
   const authScenario = authSearchParams.get('auth') || 'unlocked';
+  const startsLocked = authScenario === 'locked' || authScenario === 'locked-cleanup-warning';
   let securityState = {
     initialized: authScenario !== 'setup',
-    unlocked: authScenario !== 'locked' && authScenario !== 'recovery-required' && authScenario !== 'setup',
+    unlocked: !startsLocked && authScenario !== 'recovery-required' && authScenario !== 'setup',
     recoveryRequired: authScenario === 'recovery-required',
     password: 'korrekt-pferd-batterie',
+    maintenanceWarning: authScenario === 'locked-cleanup-warning'
+      ? 'Die automatische Klartextbereinigung konnte 1 Datei nicht sicher abschließen. Die Originaldatei blieb unverändert und wird in der Datenschutzprüfung angezeigt.'
+      : undefined,
     recoveryKey: 'ABCD-EFGH-IJKL-MNOP',
     destroyed: false,
     resetCalls: [],
@@ -661,7 +680,7 @@
         }
         securityState.unlocked = true;
         securityState.recoveryRequired = false;
-        return { ok: true, initialized: true, unlocked: true };
+        return { ok: true, initialized: true, unlocked: true, warning: securityState.maintenanceWarning };
       },
       setupInitialPassword: async (password) => {
         securityState.initialized = true;
@@ -757,6 +776,23 @@
     compliance: {
       auditChainStatus: async () => ({ ok: true, checked: 3, firstSequence: 1, lastSequence: 3, latestHash: 'abc123def4567890', algorithm: 'sha256', chainVersion: 1, issueCount: 0, issues: [] }),
       databaseIntegrityStatus: async () => ({ ok: true, schemaVersion: '0035', appliedSchemaVersion: '0035', missingTables: [], missingColumns: {}, issueCount: 0, issues: [], repairRequired: false }),
+    },
+
+    retention: {
+      dashboard: async () => ({
+        generatedAt: now,
+        settings: { closedCaseReviewMonths: 36, inactiveOpenCaseMonths: 36, orphanContactReviewDays: 0, completedDeadlineRetentionMonths: 36, activityJournalReviewMonths: 36, participationViolationReviewMonths: 36, minimumGroupSizeForReports: 5 },
+        policies: [],
+        candidates: [
+          { id: 'retention-case-test-0003', type: 'closed_case_review', riskLevel: 'critical', title: 'Abgeschlossene Fallakte prüfen', reference: 'TEST-0003', description: 'Die Aufbewahrungsfrist ist abgelaufen.', recommendedAction: 'anonymisieren', dueSince: '2026-02-05T00:00:00.000Z', entityType: 'case', entityId: 'case-test-0003', privacyReviewRequired: true, legalBasis: 'Art. 5 Abs. 1 lit. e DSGVO' },
+          { id: 'retention-deadline-test-0001', type: 'free_deadline_review', riskLevel: 'warning', title: 'Erledigte Frist prüfen', reference: 'Wiedervorlage', description: 'Die Frist benötigt eine manuelle Prüfung.', recommendedAction: 'loeschen', dueSince: '2026-04-01T00:00:00.000Z', entityType: 'deadline', entityId: 'deadline-test-0001', privacyReviewRequired: true, legalBasis: 'Art. 5 Abs. 1 lit. e DSGVO' },
+        ],
+        counts: { total: 2, critical: 1, warning: 1, info: 0 },
+      }),
+      getSettings: async () => ({ closedCaseReviewMonths: 36, inactiveOpenCaseMonths: 36, orphanContactReviewDays: 0, completedDeadlineRetentionMonths: 36, activityJournalReviewMonths: 36, participationViolationReviewMonths: 36, minimumGroupSizeForReports: 5 }),
+      updateSettings: async (settings) => settings,
+      anonymizeCase: async () => ({ ok: true, action: 'case_anonymized', message: 'Fallakte wurde anonymisiert.' }),
+      deleteCase: async () => ({ ok: true, action: 'case_deleted', message: 'Fallakte wurde gelöscht.' }),
     },
 
     persons: {
@@ -1042,7 +1078,7 @@
       recordNoticeIssued: async () => ({ recorded: true }),
       markPreparation: async (id) => { const e = sbvElections.find((item) => item.id === id); e.status = 'preparation'; return e; },
       journalPrefill: async (id, activity) => { const labels = { preparation: 'Wahlvorbereitung', board_work: 'Arbeit des Wahlorgans', voter_list: 'Wählerliste', nominations: 'Wahlvorschläge', voting: 'Stimmabgabe', counting: 'Auszählung', result: 'Wahlergebnis', archive: 'Wahlabschluss' }; return activityJournalPrefill({ contextType: 'fallfrei', contextId: id, title: `SBV-Wahl: ${labels[activity] || 'Wahltätigkeit'}`, category: 'sbv_self_organization' }); },
-      generateDocument: async (id, input) => ({ id: `election-doc-${Date.now()}`, filename: `${input.kind}-${id}.pdf`, sha256: 'c'.repeat(64) }),
+      generateDocument: async (id, input) => ({ document: { id: `election-doc-${Date.now()}`, filename: `${input.kind}-${id}.pdf`, sha256: 'c'.repeat(64) }, previewStatus: 'requested' }),
       executionOverview: async (id) => { const e = sbvElections.find((item) => item.id === id); e.mailBallots ||= []; e.voteTotals ||= []; e.results ||= []; e.physicalRecords ||= []; e.events ||= []; return { mailBallots: e.mailBallots, voteTotals: e.voteTotals, results: e.results, physicalRecords: e.physicalRecords, events: e.events }; },
       recordElectionDayChecklist: async (id, input) => { const e = sbvElections.find((item) => item.id === id); e.events ||= []; e.events.push({ eventType: 'election_day_checklist', occurredAt: input.recordedAt, metadata: { ...input } }); return { mailBallots: e.mailBallots || [], voteTotals: e.voteTotals || [], results: e.results || [], physicalRecords: e.physicalRecords || [], events: e.events }; },
       saveMailBallot: async (id, input) => { const e = sbvElections.find((item) => item.id === id); e.mailBallots ||= []; let row = e.mailBallots.find((item) => item.voterId === input.voterId); if (!row) { row = { id: `mail-${Date.now()}`, electionId: id, voterId: input.voterId, createdAt: now }; e.mailBallots.push(row); } Object.assign(row, input, { destroyDueAt: input.lateReceivedAt && input.announcementDate ? new Date(new Date(input.announcementDate).getTime() + 30 * 86400000).toISOString().slice(0, 10) : row.destroyDueAt, updatedAt: now }); return row; },
@@ -1051,8 +1087,8 @@
       recordAcceptance: async (id, input) => { const e = sbvElections.find((item) => item.id === id); const result = (e.results || []).find((item) => item.id === input.resultId); if (result) Object.assign(result, { notifiedAt: input.notifiedAt, acceptanceStatus: input.status, updatedAt: now }); return { mailBallots: e.mailBallots || [], voteTotals: e.voteTotals || [], results: e.results || [], physicalRecords: e.physicalRecords || [], events: e.events || [] }; },
       savePhysicalRecord: async (id, input) => { const e = sbvElections.find((item) => item.id === id); e.physicalRecords ||= []; const row = { id: input.id || `physical-${Date.now()}`, electionId: id, quantity: input.quantity || 1, originalRequired: input.originalRequired !== false, createdAt: now, updatedAt: now, ...input }; e.physicalRecords.push(row); return row; },
       close: async (id, input) => { const e = sbvElections.find((item) => item.id === id); Object.assign(e, { status: 'closed', retentionUntil: input.retentionUntil, legalHoldStatus: input.challengePending ? 'active' : 'none', updatedAt: now }); return { closed: true }; },
-      generateExecutionDocument: async (id, input) => ({ id: `election-exec-doc-${Date.now()}`, filename: `${input.kind}-${id}.pdf`, sha256: 'd'.repeat(64) }),
-      exportPdfArchive: async (id) => ({ id: `election-archive-${Date.now()}`, filename: `wahlakte-${id}.pdf`, sha256: 'e'.repeat(64) }),
+      generateExecutionDocument: async (id, input) => ({ document: { id: `election-exec-doc-${Date.now()}`, filename: `${input.kind}-${id}.pdf`, sha256: 'd'.repeat(64) }, previewStatus: 'requested' }),
+      exportPdfArchive: async (id) => ({ document: { id: `election-archive-${Date.now()}`, filename: `wahlakte-${id}.pdf`, sha256: 'e'.repeat(64) }, previewStatus: 'requested' }),
       exportDocument: async (_documentId, suggestedFileName) => ({ exported: true, fileName: suggestedFileName || 'wahlunterlage.pdf', sizeBytes: 2048 }),
       exportTransferFile: async (id) => ({ exported: true, fileName: `wahlakte-${id}.gsbvelection`, packageId: `election_pkg_${Date.now()}`, electionId: id, createdAt: now, formatVersion: 1, legalRuleVersion: 'SGBIX-2026-01-16|SchwbVWO-2022-03-18', itemCount: 1, manifestHash: 'f'.repeat(64) }),
       selectTransferFile: async () => ({ canceled: true }),
@@ -1081,7 +1117,7 @@
         annualWarning: async (year) => new Date().getMonth() >= 9 && !sbvOfficeAssemblies.some((item) => item.year === year && (item.scheduledAt || item.status === 'held' || item.status === 'closed')),
         createFollowUp: async (id, dueAt) => ({ id: `deadline-${Date.now()}`, processId: id, dueAt, status: 'open' }),
         save: async (input) => { let row = input.id ? sbvOfficeAssemblies.find((item) => item.id === input.id) : null; if (!row) { row = { id: `assembly-${Date.now()}`, createdAt: now }; sbvOfficeAssemblies.unshift(row); } Object.assign(row, input, { updatedAt: now }); return cloneForIpc(row); },
-        generateDocument: async (id, kind) => ({ id: `doc-${Date.now()}`, filename: `assembly-${id}-${kind}.txt`, sha256: 'a'.repeat(64) }),
+        generateDocument: async (id, kind) => ({ document: { id: `doc-${Date.now()}`, filename: `assembly-${id}-${kind}.pdf`, sha256: 'a'.repeat(64) }, previewStatus: 'requested' }),
       },
       obligations: { list: async () => cloneForIpc(sbvOfficeObligations), ensureAnnual: async (year) => { if (!sbvOfficeObligations.some((item) => item.periodYear === year)) sbvOfficeObligations.push({ id: `obligation-${year}`, obligationKey: 'employment_report_163_2', periodYear: year, scopeKey: 'company', status: 'not_due', dueAt: `${year + 1}-03-31T23:59:59.000Z`, createdAt: now, updatedAt: now }); return cloneForIpc(sbvOfficeObligations); }, save: async (input) => { const row = sbvOfficeObligations.find((item) => item.id === input.id); if (!row) throw new Error('Prüfvorgang nicht gefunden.'); Object.assign(row, input, { updatedAt: now }); return cloneForIpc(row); } },
       officers: { list: async () => cloneForIpc(sbvOfficeOfficers), save: async (input) => { const row = { id: `officer-${Date.now()}`, status: 'not_appointed', createdAt: now, updatedAt: now, ...input }; sbvOfficeOfficers.unshift(row); return cloneForIpc(row); } },

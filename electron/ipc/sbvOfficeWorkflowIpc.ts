@@ -4,31 +4,34 @@ import type { ApplicationServices } from '../applicationServices.js';
 import { IPC_CHANNELS, registerIpcHandler } from './ipcHandler.js';
 import { assertAllowedEnum, assertRecordInput, assertString } from './ipcValidation.js';
 import type { CreateSbvMeetingInput, SaveComplaintWorkflowInput, SaveEmployerObligationReviewInput, SaveInclusionAgreementInput, SaveInclusionAgreementTopicInput, SaveInclusionOfficerSnapshotInput, SaveSbvAssemblyInput, UpdateSbvMeetingInput, UpsertSbvMeetingAgendaInput } from '../../src/domain/models/sbv-office-workflow.model.js';
-import type { AssemblyDocumentKind } from '../../services/sbvOfficeDocumentService.js';
+import type { AssemblyDocumentKind, SbvOfficeDocumentGenerationResult } from '../../services/sbvOfficeDocumentService.js';
+import type { ExternalPreviewOpener } from './externalPreviewRequest.js';
+import { generateAndRequestDocumentPreview } from './documentPreviewWorkflow.js';
+
+const externalPreviewOpener: ExternalPreviewOpener = process.env.GREMIA_SBV_E2E === '1'
+  ? async () => ''
+  : (previewPath) => shell.openPath(previewPath);
 
 async function generateAndOpenAssemblyDocument(
   security: SecurityService,
   services: ApplicationServices,
   rawAssemblyId: unknown,
   rawKind: unknown,
-) {
+): Promise<SbvOfficeDocumentGenerationResult> {
   const assemblyId = assertString(rawAssemblyId, 'sbvOffice:assemblies:generateDocument', 'Versammlungs-ID', { minLength: 1, maxLength: 120 });
   const kind = assertAllowedEnum(rawKind, 'sbvOffice:assemblies:generateDocument', 'Dokumenttyp', [
     'invitation', 'agenda', 'activity_report_draft', 'result_minutes',
   ] as const) as AssemblyDocumentKind;
   const documents = services.sbvOfficeDocuments();
-  const record = await documents.generateAssemblyDocument(assemblyId, kind);
-  let plain: Buffer | undefined;
-  try {
-    plain = await documents.readDocument(record.id);
-    security.cleanupTemporaryFiles();
-    const previewPath = security.writeTemporaryFile('document-preview', record.filename, plain, 'preview');
-    const openError = await shell.openPath(previewPath);
-    if (openError) throw new Error(`Dokumentvorschau konnte nicht geöffnet werden: ${openError}`);
-    return record;
-  } finally {
-    plain?.fill(0);
-  }
+  const operation = 'sbvOffice:assemblies:generateDocument';
+  return generateAndRequestDocumentPreview({
+    operation,
+    generateFailureMessage: 'Das PDF-Dokument konnte nicht erzeugt oder verschlüsselt gespeichert werden.',
+    security,
+    opener: externalPreviewOpener,
+    generate: () => documents.generateAssemblyDocument(assemblyId, kind),
+    read: (documentId) => documents.readDocument(documentId),
+  });
 }
 
 export function registerSbvOfficeWorkflowIpc(ipcMain:IpcMain,security:SecurityService,services:ApplicationServices):void{

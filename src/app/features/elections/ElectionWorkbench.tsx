@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Plus } from 'lucide-react';
 import { ModuleFeedback } from '../../shared/components/ModuleFeedback';
 import {
   WorkbenchNavigation,
@@ -87,6 +88,7 @@ function ElectionSelector({ state }: { state: ReturnType<typeof useElectionWorkb
 export function ElectionWorkbench() {
   const state = useElectionWorkbench();
   const [section, setSection] = useState<Section>('setup');
+  const [createOpen, setCreateOpen] = useState(false);
   const overview = state.overview;
   const execution = state.execution;
 
@@ -104,6 +106,7 @@ export function ElectionWorkbench() {
       title="SBV-Wahlen"
       kicker="Wahlakte"
       description="Örtliche SBV-Wahl von der Einleitung bis zur dokumentierten Amtsübergabe."
+      actions={<IndustrialButton onClick={() => setCreateOpen(true)}><Plus className="h-4 w-4" aria-hidden="true" /> Wahlvorgang anlegen</IndustrialButton>}
     >
       <ModuleFeedback items={[
         state.error ? { id: 'election-error', tone: 'warning' as const, message: state.error } : null,
@@ -142,7 +145,7 @@ export function ElectionWorkbench() {
           )}
 
           {section === 'setup' && (
-            <SetupSection overview={overview} create={state.create} configure={state.configure} run={state.run} />
+            <SetupSection overview={overview} create={state.create} configure={state.configure} run={state.run} createOpen={createOpen} onCloseCreate={() => setCreateOpen(false)} />
           )}
           {overview && section === 'body' && <BodySection overview={overview} run={state.run} />}
           {overview && section === 'voters' && <VotersSection overview={overview} run={state.run} />}

@@ -2,12 +2,28 @@ import fs from 'node:fs';
 import path from 'node:path';
 import type { DatabaseAdapter } from './databaseService.js';
 import { SbvOfficeWorkflowDocumentAdapter, type SbvOfficeDocumentRecord } from './sbvOfficeWorkflowDocumentAdapter.js';
+
+export type DocumentPreviewStatus = 'requested' | 'unavailable';
+
+export interface SbvOfficeDocumentGenerationResult {
+  document: SbvOfficeDocumentRecord;
+  previewStatus: DocumentPreviewStatus;
+  previewMessage?: string;
+}
 import type { RetentionOwnerRef } from '../src/domain/models/retention-owner.model.js';
 import type { SbvAssemblyRecord } from '../src/domain/models/sbv-office-workflow.model.js';
-import { paragraph, reportDocument, section, type PdfDocumentDefinition } from './documents/pdfDocumentDefinition.js';
+import {
+  externalLetterDocument,
+  externalReportDocument,
+  legalRecordDocument,
+  paragraph,
+  section,
+  type PdfDocumentDefinition,
+} from './documents/pdfDocumentDefinition.js';
 import { PdfDocumentGenerationService } from './documents/pdfDocumentGenerationService.js';
 import type { GenerateReportInput } from '../src/domain/models/report.model.js';
 import type { ReportBuildResult } from './reports/reportSupport.js';
+import { ApplicationError } from '../src/domain/models/application-error.model.js';
 
 export type AssemblyDocumentKind = 'invitation' | 'agenda' | 'activity_report_draft' | 'result_minutes';
 
@@ -78,27 +94,53 @@ export class SbvOfficeDocumentService {
 
   private buildAssemblyDocument(assembly: AssemblyRow, kind: AssemblyDocumentKind): PdfDocumentDefinition {
     if (kind === 'activity_report_draft') {
-      if (!this.reports) throw new Error('Der zentrale Tätigkeitsbericht ist nicht verfügbar.');
+      if (!this.reports) throw new ApplicationError('EXPORT_FAILED', 'Der zentrale Tätigkeitsbericht ist nicht verfügbar.');
       return this.reports.build({
         type: 'activity',
         periodStart: `${assembly.year}-01-01`,
         periodEnd: `${assembly.year}-12-31`,
       }).document;
     }
-    const schedule = assembly.scheduled_at ? `Termin: ${assembly.scheduled_at}` : 'Termin: noch offen';
-    const location = assembly.location_or_mode ? `Ort / Format: ${assembly.location_or_mode}` : 'Ort / Format: noch offen';
-    const content = kind === 'result_minutes'
-      ? assembly.minutes?.trim() || 'Ergebnisprotokoll wird ergänzt.'
-      : assembly.agenda?.trim() || (kind === 'agenda' ? 'Tagesordnung wird ergänzt.' : 'wird gesondert bekanntgegeben');
-    return reportDocument(
-      labels[kind],
-      `Schwerbehindertenversammlung ${assembly.year}`,
-      kind === 'result_minutes' ? 'Intern vertraulich' : 'Zur Weitergabe',
-      [
-        section('Rahmendaten', [paragraph(schedule), paragraph(location)]),
-        section(kind === 'result_minutes' ? 'Ergebnisse und Maßnahmen' : 'Tagesordnung', [paragraph(content)]),
-      ],
-      [],
+    const scheduledAt = assembly.scheduled_at?.trim();
+    const location = assembly.location_or_mode?.trim();
+    const agenda = assembly.agenda?.trim();
+    if (kind === 'invitation') {
+      if (!scheduledAt || !location) {
+        throw new ApplicationError('VALIDATION_FAILED', 'Die Einladung benötigt einen Termin und einen Ort bzw. ein Format.');
+      }
+      const scheduleLabel = new Intl.DateTimeFormat('de-DE', { dateStyle: 'full', timeStyle: 'short' })
+        .format(new Date(scheduledAt));
+      return externalLetterDocument({
+        title: `Einladung zur Schwerbehindertenversammlung ${assembly.year}`,
+        sender: ['Schwerbehindertenvertretung'],
+        recipient: ['An die schwerbehinderten und gleichgestellten Beschäftigten des Betriebs'],
+        date: new Intl.DateTimeFormat('de-DE').format(new Date()),
+        subject: `Einladung zur Schwerbehindertenversammlung ${assembly.year}`,
+        blocks: [
+          paragraph('Sehr geehrte Kolleginnen und Kollegen,'),
+          paragraph(`hiermit lädt die Schwerbehindertenvertretung Sie zur Schwerbehindertenversammlung ${assembly.year} ein.`),
+          section('Termin und Ort', [paragraph(scheduleLabel), paragraph(location)]),
+          section('Tagesordnung', [paragraph(agenda || 'Die Tagesordnung wird rechtzeitig bekannt gegeben.')]),
+          paragraph('Bitte teilen Sie der Schwerbehindertenvertretung frühzeitig mit, wenn Sie für Ihre Teilnahme Unterstützung oder eine barrierefreie Anpassung benötigen.'),
+          paragraph('Mit freundlichen Grüßen\nIhre Schwerbehindertenvertretung'),
+        ],
+      });
+    }
+    if (kind === 'agenda') {
+      if (!agenda) throw new ApplicationError('VALIDATION_FAILED', 'Die Tagesordnung enthält noch keine Tagesordnungspunkte.');
+      return externalReportDocument(
+        `Tagesordnung der Schwerbehindertenversammlung ${assembly.year}`,
+        [scheduledAt, location].filter(Boolean).join(' · '),
+        [section('Tagesordnung', [paragraph(agenda)])],
+      );
+    }
+    const minutes = assembly.minutes?.trim();
+    if (!minutes) throw new ApplicationError('VALIDATION_FAILED', 'Das Ergebnisprotokoll enthält noch keine Ergebnisse oder Maßnahmen.');
+    return legalRecordDocument(
+      `Ergebnisprotokoll der Schwerbehindertenversammlung ${assembly.year}`,
+      [scheduledAt, location].filter(Boolean).join(' · '),
+      'Intern vertraulich',
+      [section('Ergebnisse und Maßnahmen', [paragraph(minutes)])],
     );
   }
 }

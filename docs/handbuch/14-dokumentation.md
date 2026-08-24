@@ -15,7 +15,7 @@ Die Arbeitsbereiche sind:
 - **Versammlung** für Planung und Nachbereitung der Schwerbehindertenversammlung,
 - **Beschwerden** für fallaktenbezogene Anregungen und Beschwerden,
 - **Protokolle** für übergreifende Gespräche ohne Fallzuordnung,
-- **Beteiligung** als Überblick über kritische Beteiligungsvorgänge,
+- **Beteiligung** als reine Kontrollsicht auf kritische Beteiligungsvorgänge; die Bearbeitung bleibt im Ausgangsvorgang,
 - **Arbeitgeberpflichten** für periodische Prüf- und Nachhaltevorgänge,
 - **Inklusionsvereinbarung** für Verhandlung, Themenfelder, Abschluss und Evaluation,
 - **Berichte** zur Vorbereitung des Tätigkeitsberichts.

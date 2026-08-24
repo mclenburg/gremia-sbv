@@ -1,47 +1,44 @@
-import { type FormEvent, useEffect } from 'react';
-import { AlertTriangle, CheckCircle2, FileWarning, Plus } from 'lucide-react';
-import type { CaseRecord } from '../../../domain/models/case.model';
+import { useEffect, useState } from 'react';
+import { ExternalLink, Plus } from 'lucide-react';
 import type { ActivityJournalPrefill } from '../../../domain/models/activity-journal.model';
-import type { ParticipationViolationSourceContextType, ParticipationViolationStage, ParticipationViolationType } from '../../../domain/models/sbv-participation-violation.model';
 import { IndustrialButton, ToolbarButton } from '../../shared/components/IndustrialButton';
-import { FormActions, FormSection, SelectInput, TextareaInput, TextInput } from '../../shared/components/IndustrialForm';
+import { FormSection } from '../../shared/components/IndustrialForm';
 import { ModuleFeedback } from '../../shared/components/ModuleFeedback';
-import { DataTable, EmptyState, IndustrialWarningPanel, WorkbenchGrid, WorkbenchPage, WorkbenchSummary } from '../../shared/components/WorkbenchLayout';
+import { DataTable, EmptyState, WorkbenchGrid, WorkbenchPage, WorkbenchSummary } from '../../shared/components/WorkbenchLayout';
 import { useSbvParticipationViolations } from './hooks/useSbvParticipationViolations';
+import type { ViolationDraftContextInput } from './hooks/useViolationDraftContext';
+import type { CaseNodeTarget } from '../../core/navigation/caseNodeTarget';
+import { IndustrialModal } from '../../shared/dialogs/IndustrialDialogs';
+import { ViolationDraftForm, VIOLATION_DRAFT_FORM_ID } from './ViolationDraftForm';
 import {
   getNextStatusActions,
-  needsEscalationHint,
-  participationViolationSourceContextOptions,
   stageLabels,
-  stageOptions,
   statusLabels,
   type SbvParticipationViolationPrefill,
   violationTypeLabels,
-  violationTypeOptions,
 } from './sbvParticipationViolationViewLogic';
 
 export function SbvParticipationViolationsView({
   cases,
+  measures,
   pendingPrefill,
   onPrefillConsumed,
   onOpenJournalPrefill,
-}: {
-  cases: CaseRecord[];
+  onOpenCaseNode,
+}: ViolationDraftContextInput & {
   pendingPrefill?: SbvParticipationViolationPrefill | null;
   onPrefillConsumed?: () => void;
   onOpenJournalPrefill?: (prefill: ActivityJournalPrefill) => void;
+  onOpenCaseNode?: (target: CaseNodeTarget) => void;
 }) {
-  const state = useSbvParticipationViolations({ cases, pendingPrefill, onPrefillConsumed, onOpenJournalPrefill });
+  const [createOpen, setCreateOpen] = useState(Boolean(pendingPrefill));
+  const state = useSbvParticipationViolations({ cases, measures, pendingPrefill, onPrefillConsumed, onOpenJournalPrefill });
   const { loadInitial } = state;
 
   useEffect(() => {
     void loadInitial();
   }, [loadInitial]);
-
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    void state.createViolation();
-  }
+  useEffect(() => { if (pendingPrefill) setCreateOpen(true); }, [pendingPrefill]);
 
   const rows = state.items.map((item) => ({
     id: item.id,
@@ -57,7 +54,8 @@ export function SbvParticipationViolationsView({
             {action.label}
           </ToolbarButton>
         ))}
-        <ToolbarButton disabled={state.busy || state.documentBusyId === item.id} onClick={() => void state.generateDocument(item)}>DOCX erzeugen</ToolbarButton>
+        {item.relatedCaseMeasureId && item.caseId && onOpenCaseNode ? <ToolbarButton onClick={() => onOpenCaseNode({ caseId: item.caseId!, nodeType: 'participation', nodeId: item.relatedCaseMeasureId })}><ExternalLink className="h-4 w-4" aria-hidden="true" /> Beteiligungsmaßnahme</ToolbarButton> : null}
+        <ToolbarButton disabled={state.busy || state.documentBusyId === item.id} onClick={() => void state.generateDocument(item)}>PDF erzeugen</ToolbarButton>
         <ToolbarButton disabled={state.busy || state.followUpBusyId === item.id || Boolean(item.relatedDeadlineId)} onClick={() => void state.createFollowUp(item)}>+7-Tage-Wiedervorlage</ToolbarButton>
         <ToolbarButton disabled={state.busy || !onOpenJournalPrefill} onClick={() => void state.openJournalPrefill(item)}>Journal-Vorlage</ToolbarButton>
       </div>,
@@ -70,6 +68,7 @@ export function SbvParticipationViolationsView({
       title="Beteiligungsverstöße"
       description="Beteiligungsverstöße nachverfolgen und bearbeiten."
       helpId="participationViolations.sourceContext"
+      actions={<IndustrialButton onClick={() => setCreateOpen(true)}><Plus className="h-4 w-4" aria-hidden="true" /> Verstoß erfassen</IndustrialButton>}
     >
       <ModuleFeedback items={[
         state.message ? { id: 'participation-violation-message', tone: 'success', message: state.message } : null,
@@ -78,99 +77,28 @@ export function SbvParticipationViolationsView({
 
       <WorkbenchSummary items={state.summaryItems} />
 
+      {createOpen ? <IndustrialModal
+        title="Beteiligungsverstoß erfassen"
+        kicker="Neuer Vorgang"
+        description="Der Ausgangskontext bestimmt, ob der Verstoß fallunabhängig oder mit einer Beteiligungsmaßnahme verknüpft wird."
+        onClose={state.busy ? undefined : () => setCreateOpen(false)}
+        closeOnEscape={!state.busy}
+        wide
+        actions={<>
+          <ToolbarButton disabled={state.busy} onClick={() => setCreateOpen(false)}>Abbrechen</ToolbarButton>
+          <IndustrialButton type="submit" form={VIOLATION_DRAFT_FORM_ID} disabled={state.busy} loading={state.busy}>
+            <Plus className="h-4 w-4" aria-hidden="true" /> Verstoß bewusst speichern
+          </IndustrialButton>
+        </>}
+      >
+        <ViolationDraftForm state={state} onCreated={() => setCreateOpen(false)} />
+      </IndustrialModal> : null}
       <WorkbenchGrid>
-        <FormSection
-          kicker="Bewusster Entwurf"
-          title="Beteiligungsverstoß erfassen"
-          description="Entwurf mit nachvollziehbarem Ausgangskontext."
-          helpId="participationViolations.sourceContext"
-          actions={<FileWarning className="h-5 w-5 text-yellow-300" aria-hidden="true" />}
-        >
-          {state.contextNotice && (
-            <IndustrialWarningPanel>
-              <div className="flex items-start gap-3">
-                <FileWarning className="mt-1 h-5 w-5 text-yellow-300" aria-hidden="true" />
-                <div>
-                  <strong>{state.contextNotice.sourceLabel}</strong>
-                  <p>{state.contextNotice.privacyNotice}</p>
-                </div>
-              </div>
-            </IndustrialWarningPanel>
-          )}
-
-          {needsEscalationHint(state.form.stage) && (
-            <IndustrialWarningPanel>
-              <div className="flex items-start gap-3">
-                <AlertTriangle className="mt-1 h-5 w-5 text-yellow-300" aria-hidden="true" />
-                <div>
-                  <strong>Scharfe Eskalationsstufe</strong>
-                  <p>Abmahnung, Aussetzungsverlangen und OWi-Vorbereitung sollten bei streitigen oder folgenreichen Sachverhalten anwaltlich abgestimmt werden.</p>
-                </div>
-              </div>
-            </IndustrialWarningPanel>
-          )}
-
-          <form onSubmit={handleSubmit} noValidate aria-label="Beteiligungsverstoß bewusst speichern">
-            <div className="industrial-form-grid industrial-form-grid-auto">
-              <SelectInput
-                label="Ausgangskontext"
-                value={state.form.sourceContextType}
-                options={participationViolationSourceContextOptions}
-                onValueChange={(sourceContextType) => state.updateSourceContextType(sourceContextType as ParticipationViolationSourceContextType)}
-                helpId="participationViolations.sourceContext"
-              />
-              <SelectInput
-                label="Eskalationsstufe"
-                value={state.form.stage}
-                options={stageOptions}
-                onValueChange={(stage) => state.updateForm({ stage: stage as ParticipationViolationStage })}
-                helpId="participationViolations.stageAndType"
-              />
-              <SelectInput
-                label="Verstoßart"
-                value={state.form.violationType}
-                options={violationTypeOptions}
-                onValueChange={(violationType) => state.updateForm({ violationType: violationType as ParticipationViolationType })}
-                helpId="participationViolations.stageAndType"
-              />
-              <SelectInput
-                label="Fall allgemein wählen"
-                value={state.form.sourceContextType === 'case' ? state.form.caseId ?? '' : ''}
-                options={state.caseOptions}
-                onValueChange={state.updateCaseContext}
-                disabled={state.form.sourceContextType !== 'case'}
-                error={state.fieldErrors.caseId}
-                helpId="participationViolations.sourceContext"
-              />
-              <TextInput
-                label={state.form.sourceContextType === 'case_measure_participation' ? 'Maßnahmen-ID' : 'Kontext-ID'}
-                value={state.form.sourceContextId}
-                required
-                error={state.fieldErrors.sourceContextId}
-                helpId="participationViolations.sourceContext"
-                onValueChange={(sourceContextId) => state.updateForm({ sourceContextId })}
-              />
-              <TextInput label="Betreff" value={state.form.subject} required error={state.fieldErrors.subject} onValueChange={(subject) => state.updateForm({ subject })} />
-              <TextInput label="Rechtsgrundlage" value={state.form.legalBasis ?? ''} onValueChange={(legalBasis) => state.updateForm({ legalBasis })} />
-            </div>
-            <TextareaInput label="Maßnahme / Sachverhalt" value={state.form.measureDescription} required error={state.fieldErrors.measureDescription} onValueChange={(measureDescription) => state.updateForm({ measureDescription })} />
-            <TextareaInput label="Was war falsch?" value={state.form.wrongBehavior} required error={state.fieldErrors.wrongBehavior} onValueChange={(wrongBehavior) => state.updateForm({ wrongBehavior })} />
-            <TextareaInput label="Was wäre richtig gewesen?" value={state.form.requiredBehavior} required error={state.fieldErrors.requiredBehavior} onValueChange={(requiredBehavior) => state.updateForm({ requiredBehavior })} />
-            <TextareaInput label="Konsequenz-/Warnhinweis" value={state.form.consequenceWarning ?? ''} onValueChange={(consequenceWarning) => state.updateForm({ consequenceWarning })} />
-            <FormActions>
-              <IndustrialButton type="submit" disabled={state.busy} loading={state.busy}>
-                <Plus className="h-4 w-4" aria-hidden="true" /> Verstoß bewusst speichern
-              </IndustrialButton>
-            </FormActions>
-          </form>
-        </FormSection>
-
         <FormSection
           kicker="Nachverfolgung"
           title="Protokollierte Beteiligungsverstöße"
           description="Kontrollsicht für bereits protokollierte Vorgänge."
           helpId="participationViolations.tracking"
-          actions={<CheckCircle2 className="h-5 w-5 text-yellow-300" aria-hidden="true" />}
         >
           <DataTable
             headers={['Betreff', 'Stufe', 'Verstoßart', 'Status', 'Rechtskern', 'Aktion']}

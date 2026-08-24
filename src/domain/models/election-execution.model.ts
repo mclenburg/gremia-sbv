@@ -137,6 +137,12 @@ export type ElectionExecutionDocumentKind =
 export interface GenerateElectionExecutionDocumentInput {
   kind: ElectionExecutionDocumentKind;
   resultId?: string;
+  mailBallotPackage?: {
+    voterId: string;
+    voterPostalAddress: string;
+    electionBoardPostalAddress: string;
+    votingEndsAt: string;
+  };
 }
 
 export interface ElectionCloseInput {

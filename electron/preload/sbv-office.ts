@@ -20,6 +20,7 @@ import type {
   UpsertSbvMeetingAgendaInput,
 } from '../../src/domain/models/sbv-office-workflow.model.js';
 import type { SbvOfficeDocumentRecord } from '../../services/sbvOfficeWorkflowDocumentAdapter.js';
+import type { SbvOfficeDocumentGenerationResult } from '../../services/sbvOfficeDocumentService.js';
 import { IPC_CHANNELS } from '../ipc/channels.js';
 import type { IpcInvoker } from './invoke.js';
 
@@ -38,7 +39,7 @@ export function createSbvOfficeApi(invokeIpc: IpcInvoker) {
         list: (): Promise<SbvAssemblyRecord[]> => invokeIpc(IPC_CHANNELS.sbvOfficeAssembliesList),
         annualWarning: (year: number): Promise<boolean> => invokeIpc(IPC_CHANNELS.sbvOfficeAssembliesAnnualWarning, year),
         createFollowUp: (id: string, dueAt: string, title?: string): Promise<unknown> => invokeIpc(IPC_CHANNELS.sbvOfficeAssembliesCreateFollowUp, id, dueAt, title),
-        generateDocument: (id: string, kind: 'invitation' | 'agenda' | 'activity_report_draft' | 'result_minutes'): Promise<SbvOfficeDocumentRecord> => invokeIpc(IPC_CHANNELS.sbvOfficeAssembliesGenerateDocument, id, kind),
+        generateDocument: (id: string, kind: 'invitation' | 'agenda' | 'activity_report_draft' | 'result_minutes'): Promise<SbvOfficeDocumentGenerationResult> => invokeIpc(IPC_CHANNELS.sbvOfficeAssembliesGenerateDocument, id, kind),
         save: (input: SaveSbvAssemblyInput): Promise<SbvAssemblyRecord> => invokeIpc(IPC_CHANNELS.sbvOfficeAssembliesSave, input),
       },
       obligations: {

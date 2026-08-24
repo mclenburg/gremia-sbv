@@ -45,6 +45,10 @@ Gremia.SBV speichert keine Information darüber, **welche Person welche Stimme a
 
 Für die Briefwahl können Versand und Eingang der Wahlunterlagen organisatorisch dokumentiert werden. Auch verspätete Wahlbriefe werden als Verfahrensereignis erfasst, ohne eine individuelle Wahlentscheidung zu speichern.
 
+Über **Briefwahlpaket mit Merkblatt erzeugen** entsteht ein mehrseitiges PDF für genau eine wahlberechtigte Person. Vor der Erzeugung wählst du die Person über die filterbare Wählerlistensuche aus und trägst ihre Postanschrift, die Postanschrift des Wahlvorstands sowie das Ende der Stimmabgabe ein. Diese Angaben werden für Stimmzettel, persönliche Erklärung, Umschlagbeschriftungen und das Merkblatt verwendet. Prüfe die Angaben vor dem Ausdruck sorgfältig.
+
+Das PDF ersetzt nicht das vollständige reale Versandpaket. Lege zusätzlich das gültige Wahlausschreiben, einen Wahlumschlag und einen ausreichend frankierten größeren Rückumschlag bei. Der Rückumschlag muss die Anschrift des Wahlvorstands, Namen und Anschrift der wahlberechtigten Person als Absender sowie den Vermerk **Schriftliche Stimmabgabe** tragen. Übergabe oder Versand werden anschließend im Briefwahltracking dokumentiert.
+
 Physische Wahlunterlagen bleiben physische Originale. Ein erzeugtes PDF oder eine digitale Wahlakte ersetzt insbesondere aufzubewahrende Stimmzettel oder andere gesetzlich beziehungsweise organisatorisch erforderliche Originalunterlagen nicht.
 
 ## Auszählung und Losentscheid
@@ -66,8 +70,7 @@ Der Abschluss bündelt Bekanntmachung, Benachrichtigungen, Aufbewahrungsangaben 
 Für die Wahlakte können unter anderem erzeugt werden:
 
 - Stimmzettel für Vertrauensperson und Stellvertretung,
-- Briefwahlunterlagen,
-- Wahltags- beziehungsweise Ablaufcheckliste,
+- Briefwahlpaket mit Merkblatt, persönlicher Erklärung und Umschlagbeschriftungen,
 - Ergebnisniederschrift,
 - Benachrichtigung,
 - Bekanntmachung des Wahlergebnisses,

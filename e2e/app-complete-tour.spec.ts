@@ -37,7 +37,7 @@ test('runs a complete synthetic 1.0 product tour across areas not covered by foc
   await contactDialog.getByLabel('Nachname').fill('E2E');
   await contactDialog.getByLabel('Firma / Stelle').fill('Inklusionsamt Test');
   await contactDialog.getByLabel('Rolle').fill('Fachberatung');
-  await contactDialog.getByLabel('Kategorie').selectOption('inklusionsamt');
+  await contactDialog.getByLabel('Kategorie').fill('Inklusionsamt');
   await contactDialog.getByRole('button', { name: /Kontakt speichern/ }).click();
   await expect(contactDialog).toBeHidden();
   const contactFeedback = /Kontakt angelegt: E2E, Ada \(Inklusionsamt Test\)/;
@@ -71,7 +71,7 @@ test('runs a complete synthetic 1.0 product tour across areas not covered by foc
   const createTemplateDialog = page.getByRole('dialog', { name: /Vorlage ergänzen/ });
   await expect(createTemplateDialog).toBeVisible();
   await createTemplateDialog.getByLabel('Titel').fill('E2E Ergänzungsvorlage');
-  await createTemplateDialog.getByLabel('Kategorie').selectOption('beteiligung');
+  await createTemplateDialog.getByLabel('Kategorie').fill('SBV-Beteiligung');
   await createTemplateDialog.getByLabel('Betreff').fill('E2E Beteiligung');
   await createTemplateDialog.getByRole('textbox', { name: 'Text', exact: true }).fill('Synthetischer Vorlagentext ohne Echtdaten.');
   await createTemplateDialog.getByRole('button', { name: /Vorlage speichern/ }).click();

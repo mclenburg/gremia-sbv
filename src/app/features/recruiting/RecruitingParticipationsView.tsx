@@ -1,18 +1,18 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AlertTriangle, BriefcaseBusiness, CalendarClock, ClipboardList, PlusCircle, Save } from 'lucide-react';
+import { AlertTriangle, BriefcaseBusiness, CalendarClock, ClipboardList, PlusCircle } from 'lucide-react';
 import type { CreateDeadlineInput } from '../../../domain/models/deadline.model';
-import type { CreateRecruitingParticipationInput, RecruitingAccessibilityCheckStatus, RecruitingApplicantReferenceMode, RecruitingApplicantStatus, RecruitingInterviewEventRecord, RecruitingParticipationRecord, RecruitingParticipationStatus, RecruitingViolationReviewReason, UpdateRecruitingParticipationInput } from '../../../domain/models/recruiting-participation.model';
+import type { CreateRecruitingParticipationInput, RecruitingAccessibilityCheckStatus, RecruitingApplicantReferenceMode, RecruitingApplicantStatus, RecruitingInterviewEventRecord, RecruitingParticipationRecord, UpdateRecruitingParticipationInput } from '../../../domain/models/recruiting-participation.model';
 import { waitForBridge } from '../../core/bridge/waitForBridge';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 import { GhostButton, IndustrialButton, ToolbarButton } from '../../shared/components/IndustrialButton';
 import { CheckboxField, DateInput, FormSection, SelectInput, TextInput, TextareaInput } from '../../shared/components/IndustrialForm';
 import { ModuleFeedback } from '../../shared/components/ModuleFeedback';
-import { ModuleFrame } from '../../shared/components/ModuleFrame';
-import { WorkbenchDetailPanel, WorkbenchGrid, WorkbenchListPanel, WorkbenchSummary } from '../../shared/components/WorkbenchLayout';
+import { EmptyState, WorkbenchDetailPanel, WorkbenchGrid, WorkbenchListPanel, WorkbenchPage, WorkbenchSummary } from '../../shared/components/WorkbenchLayout';
 import { ActivityJournalContextButton } from '../activity-journal/components/ActivityJournalContextButton';
 import { buildParticipationViolationPrefillFromRecruiting, type SbvParticipationViolationPrefill } from '../participation-violations/sbvParticipationViolationViewLogic';
-import { formatRecruitingDate, getRecruitingRiskHints, recruitingAccessibilityStatusLabels, recruitingApplicantStatusLabels, recruitingStatusLabels, suggestNextRecruitingStatus } from './recruitingViewLogic';
-import { ParticipationFormState, InterviewFormState, statusOptions, applicantStatusOptions, applicantReferenceModeOptions, accessibilityOptions, violationReasonOptions, fromDateInput, emptyParticipationForm, formFromRecord, inputFromForm, emptyInterviewForm, interviewInputFromForm } from './recruitingParticipationViewSupport';
+import { formatRecruitingDate, getRecruitingRiskHints, recruitingAccessibilityStatusLabels, recruitingApplicantStatusLabels, recruitingStatusLabels } from './recruitingViewLogic';
+import { ParticipationFormState, InterviewFormState, applicantStatusOptions, applicantReferenceModeOptions, accessibilityOptions, fromDateInput, emptyParticipationForm, formFromRecord, inputFromForm, emptyInterviewForm, interviewInputFromForm } from './recruitingParticipationViewSupport';
+import { RecruitingProcedureForm } from './RecruitingProcedureForm';
 export function RecruitingParticipationsView({
   onCreateDeadline,
   onOpenParticipationViolationPrefill,
@@ -30,6 +30,7 @@ export function RecruitingParticipationsView({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [createOpen, setCreateOpen] = useState(false);
   const creatingRef = useRef(false);
   const announce = useAnnouncer();
 
@@ -98,6 +99,7 @@ export function RecruitingParticipationsView({
       if (!bridge?.recruitingParticipations) throw new Error('Stellenbesetzungsdienst ist nicht erreichbar.');
       const created = await bridge.recruitingParticipations.create(inputFromForm(form) as CreateRecruitingParticipationInput);
       creatingRef.current = false;
+      setCreateOpen(false);
       setMessage('Stellenbesetzung wurde angelegt.');
       announce('Stellenbesetzung wurde angelegt.');
       await reload(created.id);
@@ -193,12 +195,13 @@ export function RecruitingParticipationsView({
   }), [records]);
 
   return (
-    <ModuleFrame
+    <WorkbenchPage
       title="Stellenbesetzungen"
       kicker="§ 178 Abs. 2 SGB IX"
       description="SBV-Beteiligung bei Stellenbesetzungen nachhalten."
       helpId="recruiting.overview"
       compact
+      actions={<IndustrialButton onClick={() => { creatingRef.current = true; setCreateOpen(true); setSelectedId(null); setForm(emptyParticipationForm()); setInterviews([]); }}><PlusCircle className="h-4 w-4" aria-hidden="true" /> Stellenbesetzung anlegen</IndustrialButton>}
     >
       <ModuleFeedback items={[
         error ? { id: 'recruiting-error', tone: 'warning', message: error } : null,
@@ -214,7 +217,6 @@ export function RecruitingParticipationsView({
           { label: 'Unterlagen offen', value: stats.documentsOpen, tone: stats.documentsOpen > 0 ? 'warning' : 'default' },
           { label: 'Verstoßprüfung', value: stats.review, tone: stats.review > 0 ? 'danger' : 'default' },
         ]}
-        actions={<IndustrialButton variant="secondary" onClick={() => { creatingRef.current = true; setSelectedId(null); setForm(emptyParticipationForm()); setInterviews([]); }}>Neue Stellenbesetzung</IndustrialButton>}
       />
 
       <WorkbenchGrid>
@@ -240,58 +242,16 @@ export function RecruitingParticipationsView({
         </WorkbenchListPanel>
 
         <WorkbenchDetailPanel ariaLabel="Stellenbesetzung Detail">
-          <FormSection
-            kicker="Verfahrensdaten"
-            title={selected ? 'Stellenbesetzung bearbeiten' : 'Stellenbesetzung anlegen'}
-            description="Verfahrensstand und Anhörung vor Auswahlentscheidung."
-            helpId="recruiting.procedureData"
-            actions={selected ? (
-              <ActivityJournalContextButton
-                compact
-                label="Tätigkeit erfassen"
-                context={{
-                  contextType: 'recruiting_participation',
-                  contextId: selected.id,
-                  title: selected.vacancyTitle,
-                  category: 'participation',
-                }}
-              />
-            ) : null}
-          >
-            <div className="industrial-form-grid">
-              <TextInput label="Stelle / Bezeichnung" required value={form.vacancyTitle} onValueChange={(value) => updateForm({ vacancyTitle: value })} />
-              <TextInput label="Kennziffer" value={form.vacancyReference} onValueChange={(value) => updateForm({ vacancyReference: value })} />
-              <TextInput label="Organisationseinheit" value={form.department} onValueChange={(value) => updateForm({ department: value })} />
-              <TextInput label="Ort / Standort" value={form.location} onValueChange={(value) => updateForm({ location: value })} />
-              <SelectInput label="Status" value={form.status} options={statusOptions} onValueChange={(value) => updateForm({ status: value as RecruitingParticipationStatus })} />
-              <DateInput label="Unterrichtung erhalten" value={form.employerNoticeDate} onValueChange={(value) => updateForm({ employerNoticeDate: value })} />
-              <DateInput label="Unterlagen erhalten" value={form.documentsReceivedDate} onValueChange={(value) => updateForm({ documentsReceivedDate: value })} />
-              <DateInput label="Anhörung angefordert am" value={form.hearingRequestedDate} onValueChange={(value) => updateForm({ hearingRequestedDate: value })} />
-              <DateInput label="Anhörung / Stellungnahme bis" value={form.hearingDueDate} onValueChange={(value) => updateForm({ hearingDueDate: value })} />
-              <DateInput label="Stellungnahme abgegeben" value={form.statementSubmittedDate} onValueChange={(value) => updateForm({ statementSubmittedDate: value })} />
-              <DateInput label="Entscheidung bekannt" value={form.decisionKnownDate} onValueChange={(value) => updateForm({ decisionKnownDate: value })} />
-              <DateInput label="BR-Verfahren / Vorlage bekannt" value={form.brProcedureDate} onValueChange={(value) => updateForm({ brProcedureDate: value })} />
-              <TextInput label="Anzahl bekannter schwerbehinderter/gleichgestellter Bewerbungen" type="number" min="0" value={form.severelyDisabledApplicantCount} onValueChange={(value) => updateForm({ severelyDisabledApplicantCount: value })} />
-              <CheckboxField label="Schwerbehinderte / gleichgestellte Bewerbung bekannt" checked={form.hasSeverelyDisabledApplicants} onCheckedChange={(checked) => updateForm({ hasSeverelyDisabledApplicants: checked })} />
-              <CheckboxField label="Unterlagen vollständig" checked={form.documentsComplete} onCheckedChange={(checked) => updateForm({ documentsComplete: checked })} />
-              <CheckboxField label="SBV zu allen bekannten Gesprächen eingeladen" checked={form.sbvInvitedToAllKnownInterviews} onCheckedChange={(checked) => updateForm({ sbvInvitedToAllKnownInterviews: checked })} />
-              <CheckboxField label="SBV hat teilgenommen" checked={form.sbvParticipated} onCheckedChange={(checked) => updateForm({ sbvParticipated: checked })} />
-              <CheckboxField label="Entscheidung vor SBV-Anhörung dokumentiert" checked={form.decisionBeforeHearing} onCheckedChange={(checked) => updateForm({ decisionBeforeHearing: checked, flaggedForViolationReview: checked ? true : form.flaggedForViolationReview, violationReviewReason: checked ? 'decision_before_hearing' : form.violationReviewReason })} />
-              <CheckboxField label="Zur Verstoßprüfung vormerken" checked={form.flaggedForViolationReview} onCheckedChange={(checked) => updateForm({ flaggedForViolationReview: checked })} helpId="participationViolations.sourceContext" />
-              {form.flaggedForViolationReview ? <SelectInput label="Prüfanlass" value={form.violationReviewReason} options={violationReasonOptions} onValueChange={(value) => updateForm({ violationReviewReason: value as RecruitingViolationReviewReason })} /> : null}
-              <TextareaInput label="Verfahrensnotiz" wide value={form.notes} onValueChange={(value) => updateForm({ notes: value })} helpId="recruiting.proceduralNote" />
-            </div>
-            <div className="industrial-action-row mt-4">
-              {selected ? (
-                <IndustrialButton loading={saving} onClick={() => void updateRecord()}><Save className="h-4 w-4" /> Speichern</IndustrialButton>
-              ) : (
-                <IndustrialButton loading={saving} onClick={() => void createRecord()}><PlusCircle className="h-4 w-4" /> Stellenbesetzung anlegen</IndustrialButton>
-              )}
-              {selected ? (
-                <ToolbarButton onClick={() => updateForm({ status: suggestNextRecruitingStatus({ ...selected, ...inputFromForm(form) } as RecruitingParticipationRecord) })}>Status vorschlagen</ToolbarButton>
-              ) : null}
-            </div>
-          </FormSection>
+          {selected || createOpen ? <RecruitingProcedureForm
+            form={form}
+            selected={selected}
+            saving={saving}
+            creating={createOpen}
+            onFormChange={updateForm}
+            onCreate={() => void createRecord()}
+            onUpdate={() => void updateRecord()}
+            onClose={() => { setCreateOpen(false); creatingRef.current = false; if (records[0]) void selectRecord(records[0].id); }}
+          /> : <EmptyState title="Keine Stellenbesetzung ausgewählt" text="Wähle einen Vorgang aus der Liste oder lege über die Kopfzeile eine neue Stellenbesetzung an." />}
 
           {selected ? (
             <>
@@ -357,6 +317,6 @@ export function RecruitingParticipationsView({
           ) : null}
         </WorkbenchDetailPanel>
       </WorkbenchGrid>
-    </ModuleFrame>
+    </WorkbenchPage>
   );
 }

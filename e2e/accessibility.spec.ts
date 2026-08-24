@@ -76,7 +76,7 @@ test('supports keyboard-only anonymous request path and announces binding feedba
   const navigation = page.getByRole('navigation', { name: 'Hauptnavigation' });
   await navigation.getByRole('button', { name: 'Fallakte', exact: true }).focus();
   await page.keyboard.press('Enter');
-  await page.locator('.case-register-actions').getByRole('button', { name: 'Fallakte', exact: true }).focus();
+  await page.getByRole('button', { name: 'Fallakte anlegen', exact: true }).focus();
   await page.keyboard.press('Enter');
 
   const dialog = page.getByRole('dialog', { name: 'Neue Fallakte anlegen' });

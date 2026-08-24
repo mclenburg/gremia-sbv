@@ -4,7 +4,7 @@
 
 Die SBV ist in allen Angelegenheiten, die einzelne oder die schwerbehinderten Menschen als Gruppe berühren, unverzüglich und umfassend zu unterrichten und vor einer Entscheidung anzuhören. Die Beteiligung muss vor der Entscheidung erfolgen, nicht erst danach.
 
-Die Ansicht **Beteiligung** ist die Kontrollsicht für diese laufenden Beteiligungsprüfungen. Sie zeigt, ob Unterrichtung, Anhörung, Unterlagen, Stellungnahme und Arbeitgeberentscheidung nachvollziehbar dokumentiert sind. Die Bearbeitung erfolgt grundsätzlich im Ausgangsvorgang, also zum Beispiel in der Fallakte oder bei Stellenbesetzungen im Modul **Stellenbesetzungen**.
+Die laufende Beteiligungsprüfung wird im Ausgangsvorgang bearbeitet: als Beteiligungsmaßnahme in der Fallakte oder bei Stellenbesetzungen im Modul **Stellenbesetzungen**. Dort dokumentierst du Unterrichtung, Anhörung, Unterlagen, Stellungnahme und Arbeitgeberentscheidung. Eine zusätzliche Beteiligungsübersicht im Hauptmenü gibt es bewusst nicht, damit kein zweiter, abweichender Bearbeitungsweg entsteht.
 
 In einer SBV-Beteiligung prüfst du insbesondere:
 
@@ -19,7 +19,7 @@ In einer SBV-Beteiligung prüfst du insbesondere:
 
 Die Ansicht **Verstöße** ist nicht der Ort für normale Beteiligungsarbeit. Sie ist der formalisierte Nachweis- und Eskalationsbereich, wenn die Beteiligung möglicherweise nicht ordnungsgemäß gelaufen ist.
 
-Ein Beteiligungsverstoß ersetzt also nicht die SBV-Beteiligung. Er baut auf einem Ausgangsvorgang auf, zum Beispiel einer SBV-Beteiligungsmaßnahme oder einem Stellenbesetzungsverfahren.
+Ein Beteiligungsverstoß ersetzt also nicht die SBV-Beteiligung. Entsteht er innerhalb eines Beteiligungsverfahrens, wird er aus der Beteiligungsmaßnahme oder dem Stellenbesetzungsverfahren vorbereitet und mit diesem Ausgangsvorgang verknüpft. Ein allgemeiner Arbeitgeberverstoß darf dagegen ohne Fall- und Personenbezug erfasst werden, wenn es keinen passenden personenbezogenen Ausgangsvorgang gibt.
 
 Der normale Weg aus einer Fallakte ist deshalb:
 
@@ -29,6 +29,8 @@ Der normale Weg aus einer Fallakte ist deshalb:
 4. Bei möglichem Verstoß „Beteiligungsverstoß dokumentieren“ wählen.
 5. Pflichtverletzung und richtiges Verfahren beschreiben.
 6. Speichern erst nach bewusster Prüfung.
+
+Mit **Abbrechen** verwirfst du den noch nicht gespeicherten Dialoginhalt und kehrst zur Verstoßübersicht zurück. Die Taste Escape führt zum gleichen Ergebnis, solange gerade kein Speichervorgang läuft.
 
 ## Keine stille Anlage
 
@@ -48,7 +50,7 @@ Ein belastbarer Beteiligungsverstoß beschreibt:
 
 ## Schreiben erzeugen
 
-Gremia.SBV kann aus einem dokumentierten Beteiligungsverstoß ein DOCX-Schreiben vorbereiten. Das Schreiben entsteht aus den strukturierten Angaben des Verstoßes, insbesondere Pflichtverletzung, richtigem Verfahren, Rechtsgrundlage, Frist und Eskalationsstufe.
+Gremia.SBV kann aus einem dokumentierten Beteiligungsverstoß ein PDF-Schreiben über die zentrale Dokumenterzeugung vorbereiten. Das Schreiben entsteht aus den strukturierten Angaben des Verstoßes, insbesondere Pflichtverletzung, richtigem Verfahren, Rechtsgrundlage, Frist und Eskalationsstufe.
 
 Typische Eskalationsstufen sind:
 

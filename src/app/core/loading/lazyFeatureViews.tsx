@@ -101,6 +101,13 @@ const definitions: Partial<Record<ViewId, LazyFeatureDefinition>> = {
       return { default: module.ComplianceView };
     },
   },
+  privacy_review: {
+    label: "Datenschutzprüfung und Löschung",
+    load: async () => {
+      const module = await import("../../features/privacy-review/PrivacyReviewCockpit");
+      return { default: module.PrivacyReviewCockpit as ComponentType<object> };
+    },
+  },
   recruiting_participations: {
     label: "Beteiligung bei Stellenbesetzungen",
     load: async () => {

@@ -1,6 +1,6 @@
 import type { DatabaseAdapter } from "./databaseService.js";
 export const DEMO_SEED_MARKER_KEY = "demo.seed.version";
-export const DEMO_SEED_VERSION = "1.0.0-demo-001";
+export const DEMO_SEED_VERSION = "1.0.0-demo-002";
 
 export function nowIso(): string {
   return new Date().toISOString();
@@ -133,4 +133,3 @@ export const CASE_MEASURE_NOTE_TYPES: Record<string, string> = {
 export function noteMeasureTypeFor(type: string): string {
   return CASE_MEASURE_NOTE_TYPES[type] ?? type;
 }
-

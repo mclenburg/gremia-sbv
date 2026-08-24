@@ -30,19 +30,15 @@ describe('P11 visual QA contract', () => {
       'deadlines',
       'activity_journal',
       'meetings',
-      'bem',
-      'prevention',
       'participation_violations',
-      'participation',
       'recruiting_participations',
-      'workplace_accommodation',
       'equalization',
-      'termination_hearing',
       'elections',
       'templates',
       'knowledge',
       'contacts',
       'compliance',
+      'privacy_review',
       'sbv_control',
       'reports',
       'settings',
@@ -75,15 +71,17 @@ describe('P11 visual QA contract', () => {
 
 
   it('trennt Visual-/Axe-Abdeckung von strengem Workbench-Layout-Vertrag', () => {
-    expect(WORKBENCH_LAYOUT_QA_EXEMPT_ROUTE_IDS).toEqual(['workplace_accommodation', 'settings']);
+    expect(WORKBENCH_LAYOUT_QA_EXEMPT_ROUTE_IDS).toEqual(['privacy_review', 'settings']);
 
     const visualRouteIds = new Set(VISUAL_QA_ROUTES.map((route) => route.id));
     const workbenchRouteIds = new Set(WORKBENCH_LAYOUT_QA_ROUTES.map((route) => route.id));
 
-    expect(visualRouteIds.has('workplace_accommodation')).toBe(true);
+    expect(visualRouteIds.has('workplace_accommodation')).toBe(false);
+    expect(visualRouteIds.has('termination_hearing')).toBe(false);
     expect(visualRouteIds.has('settings')).toBe(true);
-    expect(workbenchRouteIds.has('workplace_accommodation')).toBe(false);
+    expect(visualRouteIds.has('privacy_review')).toBe(true);
     expect(workbenchRouteIds.has('settings')).toBe(false);
+    expect(workbenchRouteIds.has('privacy_review')).toBe(false);
     expect(workbenchRouteIds.has('recruiting_participations')).toBe(true);
     expect(workbenchRouteIds.has('participation_violations')).toBe(true);
   });

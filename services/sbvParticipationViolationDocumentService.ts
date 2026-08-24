@@ -11,7 +11,7 @@ import type {
   SbvParticipationViolationTemplateInput,
 } from '../src/domain/models/sbv-participation-violation.model.js';
 import { addColumnsIfMissing } from './migrations/schemaColumnMigration.js';
-import { paragraph, reportDocument, section } from './documents/pdfDocumentDefinition.js';
+import { externalLetterDocument, paragraph } from './documents/pdfDocumentDefinition.js';
 import { PdfDocumentGenerationService } from './documents/pdfDocumentGenerationService.js';
 
 const PDF_MIME = 'application/pdf';
@@ -86,13 +86,14 @@ export class SbvParticipationViolationDocumentService {
     const pdfBuffer = await this.pdfDocuments.generate({
       source: 'measure',
       privacyProfile: 'lawful_personal_data',
-      definition: reportDocument(
-        input.subject,
-        `SBV-Beteiligungsverstoß · ${templateKey}`,
-        input.privacyMode === 'personalized' ? 'Vertraulich · personenbezogen' : 'Vertraulich · Fallbezug',
-        [section('Schreiben', plainText.split(/\n\s*\n/u).map((text) => paragraph(text)))],
-        validation.warnings,
-      ),
+      definition: externalLetterDocument({
+        title: input.subject,
+        sender: ['Schwerbehindertenvertretung'],
+        recipient: [input.recipientLabel || 'Arbeitgeber'],
+        date: new Intl.DateTimeFormat('de-DE').format(new Date()),
+        subject: input.subject,
+        blocks: plainText.split(/\n\s*\n/u).map((text) => paragraph(text)),
+      }),
     });
     const documentId = randomUUID();
     const violationDocumentId = randomUUID();

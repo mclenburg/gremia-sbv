@@ -1,21 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
-import type { FormEvent } from "react";
-import { AlertTriangle, Download, HardDrive, Save, ShieldCheck } from "lucide-react";
+import { useEffect, useState } from "react";
 import { waitForBridge } from "../../core/bridge/waitForBridge";
-import { formatDateShort } from "../../shared/format/dates";
-import type { CaseRecord } from "../../../domain/models/case.model";
-import type { RetentionCandidate, RetentionDashboard, RetentionSettings } from "../../../domain/models/retention.model";
-import { RetentionCasePrivacyActions } from "./RetentionCasePrivacyActions";
-import type { BackupInspectionResult, BackupOperationResult } from "../../../domain/models/backup.model";
-import type { RenderedTemplateResult, ContextualTemplateAction } from "../../../domain/models/template.model";
-import { APP_VERSION } from "../../generated/appVersion";
-import { buildExportWarningMessage, scanSensitiveExportText } from "@/domain/privacy/exportGuardPolicy";
-import { missingPlaceholderWarning } from "@/domain/templates/templateContextPolicy";
-import { useConfirmDialog } from "../../shared/dialogs/ConfirmDialogProvider";
 import { useAnnouncer } from "../../shared/a11y/LiveRegionProvider";
-import { TEMPLATE_DEFAULT_FIELDS, EMPTY_TEMPLATE_DEFAULT_VALUES, loadTemplateDefaultValues, saveTemplateDefaultValues } from "../../shared/templates/templateDefaults";
-import type { ThemeMode } from "../../shared/theme/appTheme";
-import { AUDIT_LOG_RETENTION_NOTICE } from "../../core/copy/privacyNotices";
+import type { RetentionDashboard, RetentionSettings } from "../../../domain/models/retention.model";
 
 function retentionRuleLabel(rule: RetentionDashboard['policies'][number]['rule']): string {
   if (rule.kind === 'months_after_completion') return `${rule.months} Monate nach Abschluss`;
@@ -25,7 +11,8 @@ function retentionRuleLabel(rule: RetentionDashboard['policies'][number]['rule']
   return 'Dauerhaft, ausschließlich anonymisiert';
 }
 
-export function RetentionSettingsPanel({ cases }: { cases: CaseRecord[] }) {
+export function RetentionSettingsPanel() {
+  const announce = useAnnouncer();
   const [dashboard, setDashboard] = useState<RetentionDashboard | null>(null);
   const [settings, setSettings] = useState<RetentionSettings | null>(null);
   const [message, setMessage] = useState("");
@@ -52,6 +39,9 @@ export function RetentionSettingsPanel({ cases }: { cases: CaseRecord[] }) {
   useEffect(() => {
     void reloadRetention();
   }, []);
+
+  useEffect(() => { if (error) announce(error, 'assertive'); }, [announce, error]);
+  useEffect(() => { if (message) announce(message, 'polite'); }, [announce, message]);
 
   async function saveSettings() {
     if (!settings) return;
@@ -81,12 +71,6 @@ export function RetentionSettingsPanel({ cases }: { cases: CaseRecord[] }) {
     if (!settings || !Number.isFinite(parsed)) return;
     setSettings({ ...settings, [key]: Math.max(key === 'orphanContactReviewDays' ? 0 : 1, Math.trunc(parsed)) });
   }
-
-  const candidates = dashboard?.candidates ?? [];
-  const criticalCandidates = candidates.filter(
-    (candidate) => candidate.riskLevel === "critical",
-  );
-  const reviewCandidates = candidates.slice(0, 12);
 
   return (
     <section className="industrial-settings-form xl:col-span-2">
@@ -193,31 +177,6 @@ export function RetentionSettingsPanel({ cases }: { cases: CaseRecord[] }) {
       </div>
 
       {dashboard && (
-        <div className="grid gap-4 md:grid-cols-4">
-          <div className="industrial-subpanel">
-            <h4>Gesamt</h4>
-            <strong className="text-2xl">{dashboard.counts.total}</strong>
-          </div>
-          <div className="industrial-subpanel">
-            <h4>Kritisch</h4>
-            <strong className="text-2xl text-red-300">
-              {dashboard.counts.critical}
-            </strong>
-          </div>
-          <div className="industrial-subpanel">
-            <h4>Prüfen</h4>
-            <strong className="text-2xl text-yellow-300">
-              {dashboard.counts.warning}
-            </strong>
-          </div>
-          <div className="industrial-subpanel">
-            <h4>Hinweis</h4>
-            <strong className="text-2xl">{dashboard.counts.info}</strong>
-          </div>
-        </div>
-      )}
-
-      {dashboard && (
         <details className="industrial-subpanel">
           <summary>Standard-Aufbewahrungsfristen aller Module</summary>
           <div className="industrial-table-shell mt-3">
@@ -237,58 +196,6 @@ export function RetentionSettingsPanel({ cases }: { cases: CaseRecord[] }) {
           </div>
         </details>
       )}
-
-      {!!criticalCandidates.length && (
-        <div className="industrial-message industrial-message-warning">
-          <strong>Kritische Datenschutz-/Integritätsprüfungen offen.</strong>
-          <p>
-            {criticalCandidates.length} Eintrag/Einträge sollten zeitnah geprüft
-            werden.
-          </p>
-        </div>
-      )}
-
-      <div className="industrial-table-shell">
-        <table className="industrial-table">
-          <thead>
-            <tr>
-              <th>Risiko</th>
-              <th>Typ</th>
-              <th>Bezug</th>
-              <th>Empfehlung</th>
-              <th>Datenschutzprüfung</th>
-              <th>Hinweis</th>
-            </tr>
-          </thead>
-          <tbody>
-            {reviewCandidates.map((candidate: RetentionCandidate) => (
-              <tr key={candidate.id}>
-                <td>
-                  {candidate.riskLevel === "critical"
-                    ? "Kritisch"
-                    : candidate.riskLevel === "warning"
-                      ? "Prüfen"
-                      : "Hinweis"}
-                </td>
-                <td>{candidate.title}</td>
-                <td>{candidate.reference ?? "—"}</td>
-                <td>{candidate.recommendedAction}</td>
-                <td>{candidate.privacyReviewRequired ? 'Pflicht' : 'Prüfen'}</td>
-                <td>{candidate.description}</td>
-              </tr>
-            ))}
-            {!reviewCandidates.length && (
-              <tr>
-                <td colSpan={6}>
-                  Keine Lösch- oder Aufbewahrungsprüfungen offen.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      <RetentionCasePrivacyActions cases={cases} busy={busy} setBusy={setBusy} setError={setError} setMessage={setMessage} reloadRetention={reloadRetention} />
 
       {error && (
         <div className="industrial-message industrial-message-warning" role="alert">

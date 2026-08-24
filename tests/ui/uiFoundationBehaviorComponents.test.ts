@@ -7,6 +7,7 @@ import type { CaseRecord } from '../../src/domain/models/case.model';
 import type { DeadlineDashboardItem, DeadlineRecord } from '../../src/domain/models/deadline.model';
 import type { ProtectedPersonRecord } from '../../src/domain/models/protected-person.model';
 import { descendants, renderComponent, visibleText } from '../helpers/renderedMarkup';
+import { SelectInput } from '../../src/app/shared/components/IndustrialForm';
 
 function caseRecord(overrides: Partial<CaseRecord> = {}): CaseRecord {
   return {
@@ -71,6 +72,19 @@ function person(overrides: Partial<ProtectedPersonRecord> = {}): ProtectedPerson
 
 describe('UI-Fundament Block 4 Verhalten', () => {
 
+  it('macht Auswahlen mit mehr als fünf Optionen automatisch filterbar', () => {
+    const { tree } = renderComponent(SelectInput, {
+      label: 'Vorgang auswählen',
+      value: '',
+      onValueChange: () => undefined,
+      options: Array.from({ length: 6 }, (_, index) => ({ value: String(index), label: `Vorgang ${index + 1}` })),
+    });
+    const nodes = descendants(tree);
+    expect(nodes.some((node) => node.tag === 'input' && node.attrs.type === 'search')).toBe(true);
+    expect(nodes.some((node) => node.tag === 'datalist')).toBe(true);
+    expect(nodes.some((node) => node.tag === 'select')).toBe(false);
+  });
+
   it('hält Kurzbefehlerklärungen standardmäßig aus Arbeitsfeldern heraus', () => {
     const { markup } = renderComponent(TextCommandTextarea, { fieldId: 'test-field', value: '', onChange: () => undefined });
     expect(visibleText(markup)).not.toContain('Strg+H');
@@ -105,8 +119,8 @@ describe('UI-Fundament Block 4 Verhalten', () => {
 
     expect(groups.map((group) => group.id)).toEqual(['core', 'processes', 'tools', 'administration']);
     expect(groups.find((group) => group.id === 'core')?.modules.map((module) => module.id)).toEqual(['persons', 'cases', 'deadlines', 'activity_journal', 'meetings', 'sbv_control']);
-    expect(groups.find((group) => group.id === 'processes')?.modules.map((module) => module.id)).toEqual(['bem', 'prevention', 'participation_violations', 'participation', 'recruiting_participations', 'workplace_accommodation', 'equalization', 'termination_hearing', 'elections']);
-    expect(groups.find((group) => group.id === 'administration')?.modules.map((module) => module.id)).toEqual(['compliance']);
+    expect(groups.find((group) => group.id === 'processes')?.modules.map((module) => module.id)).toEqual(['participation_violations', 'recruiting_participations', 'equalization', 'elections']);
+    expect(groups.find((group) => group.id === 'administration')?.modules.map((module) => module.id)).toEqual(['compliance', 'privacy_review']);
   });
 
   it('rendert das Dashboard als Tagessteuerung vor den Modulgruppen', () => {

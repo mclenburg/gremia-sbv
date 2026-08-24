@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { HelpCircle } from 'lucide-react';
+import { HelpCircle, Plus } from 'lucide-react';
 import { ToolbarButton, IndustrialButton } from '../../shared/components/IndustrialButton';
 import { EmptyState } from '../../shared/components/WorkbenchLayout';
 import { IndustrialModal } from '../../shared/dialogs/IndustrialDialogs';
 import type { CaseRecord } from '../../../domain/models/case.model';
 import type { EqualizationProcessRecord, EqualizationStatus } from '../../../domain/models/equalization.model';
+import type { CreateEqualizationIntakeInput, EqualizationIntakeResult } from '../../../domain/models/equalization.model';
+import type { ProtectedPersonRecord } from '../../../domain/models/protected-person.model';
 import type { CaseNodeTarget } from '../../core/navigation/caseNodeTarget';
 import { waitForBridge } from '../../core/bridge/waitForBridge';
 import { formatDateShort } from '../../shared/format/dates';
@@ -17,6 +19,7 @@ import {
   type ProcessOverviewCardModel
 } from '../../shared/process/ProcessOverview';
 import { equalizationStatusLabel, equalizationStatusOrder, isDoneEqualizationStatus } from './equalizationShared';
+import { EqualizationIntakeDialog } from './EqualizationIntakeDialog';
 
 function toCard(process: EqualizationProcessRecord, cases: CaseRecord[]): ProcessOverviewCardModel<EqualizationStatus> {
   const caseRecord = cases.find((item) => item.id === process.caseId);
@@ -35,11 +38,31 @@ function toCard(process: EqualizationProcessRecord, cases: CaseRecord[]): Proces
   };
 }
 
-export function EqualizationView({ cases, onOpenCaseNode }: { cases: CaseRecord[]; onOpenCaseNode: (target: CaseNodeTarget) => void }) {
+function EqualizationHelpDialog({ onClose }: { onClose: () => void }) {
+  return (
+    <IndustrialModal
+      title="Gleichstellung / GdB"
+      kicker="Hilfe"
+      description="Diese Übersicht zeigt Beratungs-, Antrags-, Bescheid- und Widerspruchsstände. Mit einem Klick öffnet sich die Fallakte direkt am Verfahren."
+      onClose={onClose}
+      actions={<IndustrialButton onClick={onClose}>Verstanden</IndustrialButton>}
+    >
+      <p>Wichtig sind Antragseinreichung, Geschäftszeichen, Bescheidzugang und Widerspruchsfrist.</p>
+    </IndustrialModal>
+  );
+}
+
+export function EqualizationView({ cases, persons, onOpenCaseNode, onRecordsChanged }: {
+  cases: CaseRecord[];
+  persons: ProtectedPersonRecord[];
+  onOpenCaseNode: (target: CaseNodeTarget) => void;
+  onRecordsChanged: () => Promise<void>;
+}) {
   const [processes, setProcesses] = useState<EqualizationProcessRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showHelp, setShowHelp] = useState(false);
+  const [showIntake, setShowIntake] = useState(false);
   const announce = useAnnouncer();
 
   useEffect(() => {
@@ -86,6 +109,18 @@ export function EqualizationView({ cases, onOpenCaseNode }: { cases: CaseRecord[
   const objectionCount = cards.filter((card) => card.status === 'widerspruch' || card.status === 'abgelehnt').length;
   const overdueCount = cards.filter((card) => card.isOverdue).length;
 
+  async function createIntake(input: CreateEqualizationIntakeInput): Promise<EqualizationIntakeResult> {
+    const bridge = await waitForBridge();
+    if (!bridge?.equalization?.createIntake) throw new Error('Geführte Gleichstellungs-/GdB-Erstanlage ist nicht erreichbar.');
+    const result = await bridge.equalization.createIntake(input);
+    const rows = await bridge.equalization.list();
+    setProcesses(rows);
+    await onRecordsChanged();
+    announce('Person, Fallakte und Verfahren wurden gemeinsam angelegt.', 'polite');
+    onOpenCaseNode({ caseId: result.caseRecord.id, nodeType: 'equalization', nodeId: result.process.id });
+    return result;
+  }
+
   return (
     <>
       <ProcessOverviewPage
@@ -107,6 +142,12 @@ export function EqualizationView({ cases, onOpenCaseNode }: { cases: CaseRecord[
             Hilfe
           </ToolbarButton>
         )}
+        pageActions={(
+          <IndustrialButton onClick={() => setShowIntake(true)}>
+            <Plus className="h-4 w-4" />
+            Vorgang anlegen
+          </IndustrialButton>
+        )}
         renderItem={(card) => (
           <ProcessOverviewCard
             key={card.id}
@@ -118,21 +159,14 @@ export function EqualizationView({ cases, onOpenCaseNode }: { cases: CaseRecord[
         {!loading && !error && groups.length === 0 && (
           <EmptyState
             title="Keine Verfahren"
-            text="Noch keine Gleichstellungs- oder GdB-Verfahren vorhanden. Lege das Verfahren in der Fallakte über die Fußleiste an."
+            text="Noch keine Gleichstellungs- oder GdB-Verfahren vorhanden. Über „Vorgang anlegen“ entstehen Person, verknüpfte Fallakte und Verfahren in einem Schritt."
           />
         )}
       </ProcessOverviewPage>
 
-      {showHelp && (
-        <IndustrialModal
-          title="Gleichstellung / GdB"
-          kicker="Hilfe"
-          description="Diese Übersicht zeigt Beratungs-, Antrags-, Bescheid- und Widerspruchsstände. Mit einem Klick öffnet sich die Fallakte direkt am Verfahren."
-          onClose={() => setShowHelp(false)}
-          actions={<IndustrialButton onClick={() => setShowHelp(false)}>Verstanden</IndustrialButton>}
-        >
-          <p>Wichtig sind Antragseinreichung, Geschäftszeichen, Bescheidzugang und Widerspruchsfrist.</p>
-        </IndustrialModal>
+      {showHelp && <EqualizationHelpDialog onClose={() => setShowHelp(false)} />}
+      {showIntake && (
+        <EqualizationIntakeDialog persons={persons} onClose={() => setShowIntake(false)} onCreate={createIntake} />
       )}
     </>
   );

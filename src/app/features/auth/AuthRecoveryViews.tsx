@@ -84,7 +84,7 @@ export function RecoveryGate({
   onCancel,
   triggeredFromLogin = false,
 }: {
-  onUnlock: () => void;
+  onUnlock: (warning?: string) => void;
   onResetToSetup: () => void;
   onCancel?: () => void;
   triggeredFromLogin?: boolean;
@@ -133,7 +133,7 @@ export function RecoveryGate({
         return;
       }
 
-      onUnlock();
+      onUnlock(result.warning);
     } catch (error) {
       console.error("Gremia.SBV recovery operation failed", error);
       setError(

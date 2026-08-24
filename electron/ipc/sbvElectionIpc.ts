@@ -1,14 +1,58 @@
-import { dialog, type IpcMain } from 'electron';
+import { dialog, shell, type IpcMain } from 'electron';
 import path from 'node:path';
 import type { SecurityService } from '../../services/securityService.js';
 import type { ApplicationServices } from '../applicationServices.js';
 import { IPC_CHANNELS, registerIpcHandler } from './ipcHandler.js';
-import { assertRecordInput, assertString, sanitizeDialogFileName } from './ipcValidation.js';
+import { assertAllowedEnum, assertRecordInput, assertString, sanitizeDialogFileName } from './ipcValidation.js';
 import { issueSelectedFileCapability, resolveSelectedFileCapability, SELECTED_FILE_PURPOSE } from './selectedFileCapability.js';
 import type { ConfigureElectionSetupInput, CreateElectionInput, GenerateElectionPreparationDocumentInput, SaveElectionBoardMemberInput, SaveElectionBoardSessionInput, SaveElectionCandidateInput, SaveElectionObjectionInput, SaveElectionProposalInput, SaveElectionVoterInput, ElectionVoterFileImportInput } from '../../src/domain/models/election-workflow.model.js';
 import type { ElectionCloseInput, ElectionDayChecklistInput, GenerateElectionExecutionDocumentInput, RecordElectionAcceptanceInput, RecordElectionLotInput, RecordElectionTotalsInput, SaveElectionMailBallotInput, SaveElectionPhysicalRecordInput } from '../../src/domain/models/election-execution.model.js';
 import type { ElectionTransferEnvelope } from '../../services/electionTransferCryptoAdapter.js';
+import type { SbvOfficeDocumentRecord } from '../../services/sbvOfficeWorkflowDocumentAdapter.js';
+import type { ExternalPreviewOpener } from './externalPreviewRequest.js';
+import { generateAndRequestDocumentPreview } from './documentPreviewWorkflow.js';
 const eid=(value:unknown,channel:string)=>assertString(value,channel,'Wahl-ID',{minLength:1,maxLength:120});
+const EXECUTION_DOCUMENT_KINDS = [
+ 'ballot_representative','ballot_deputy','mail_ballot_package','election_day_checklist','result_minutes',
+ 'elected_notification','result_announcement','physical_inventory','handover_protocol','archive_pdf',
+] as const;
+
+function executionDocumentInput(value: unknown, operation: string): GenerateElectionExecutionDocumentInput {
+ const request=assertRecordInput<GenerateElectionExecutionDocumentInput>(value,operation);
+ const kind=assertAllowedEnum(request.kind,operation,'Dokumentart',EXECUTION_DOCUMENT_KINDS);
+ if(kind!=='mail_ballot_package')return{...request,kind};
+ const packageInput=assertRecordInput<NonNullable<GenerateElectionExecutionDocumentInput['mailBallotPackage']>>(request.mailBallotPackage,operation,'Briefwahlpaket');
+ return{
+  kind,
+  mailBallotPackage:{
+   voterId:assertString(packageInput.voterId,operation,'Wahlberechtigte Person',{minLength:1,maxLength:120}),
+   voterPostalAddress:assertString(packageInput.voterPostalAddress,operation,'Postanschrift der wahlberechtigten Person',{minLength:3,maxLength:1000}),
+   electionBoardPostalAddress:assertString(packageInput.electionBoardPostalAddress,operation,'Postanschrift des Wahlvorstands',{minLength:3,maxLength:1000}),
+   votingEndsAt:assertString(packageInput.votingEndsAt,operation,'Ende der Stimmabgabe',{minLength:10,maxLength:40}),
+  },
+ };
+}
+
+const externalPreviewOpener: ExternalPreviewOpener = process.env.GREMIA_SBV_E2E === '1'
+  ? async () => ''
+  : (previewPath) => shell.openPath(previewPath);
+
+function generateElectionDocumentPreview(
+  security: SecurityService,
+  operation: string,
+  generate: () => Promise<SbvOfficeDocumentRecord>,
+  read: (documentId: string) => Promise<Buffer>,
+) {
+  return generateAndRequestDocumentPreview({
+    operation,
+    generateFailureMessage: 'Das Wahldokument konnte nicht erzeugt oder verschlüsselt in der Wahlakte gespeichert werden.',
+    security,
+    opener: externalPreviewOpener,
+    generate,
+    read,
+  });
+}
+
 export function registerSbvElectionIpc(ipcMain:IpcMain,_security:SecurityService,services:ApplicationServices):void{
  registerIpcHandler(ipcMain,IPC_CHANNELS.electionsList,async()=>services.elections().list());
  registerIpcHandler(ipcMain,IPC_CHANNELS.electionsGet,async(_e,id)=>services.elections().get(eid(id,'elections:get')));
@@ -44,7 +88,13 @@ export function registerSbvElectionIpc(ipcMain:IpcMain,_security:SecurityService
  registerIpcHandler(ipcMain,IPC_CHANNELS.electionsNoticeIssued,async(_e,id,date)=>{services.elections().recordElectionNoticeIssued(eid(id,'elections:notice:issued'),assertString(date,'elections:notice:issued','Erlassdatum',{minLength:10,maxLength:40}));return{recorded:true};});
  registerIpcHandler(ipcMain,IPC_CHANNELS.electionsMarkPreparation,async(_e,id)=>services.elections().markPreparation(eid(id,'elections:markPreparation')));
  registerIpcHandler(ipcMain,IPC_CHANNELS.electionsJournalPrefill,async(_e,id,activity)=>services.elections().journalPrefill(eid(id,'elections:journalPrefill'),assertString(activity,'elections:journalPrefill','Tätigkeit',{minLength:1,maxLength:40}) as 'preparation'|'board_work'|'voter_list'|'nominations'|'voting'|'counting'|'result'|'archive'));
- registerIpcHandler(ipcMain,IPC_CHANNELS.electionsGenerateDocument,async(_e,id,input)=>services.electionDocuments().generate(eid(id,'elections:document:generate'),assertRecordInput<GenerateElectionPreparationDocumentInput>(input,'elections:document:generate')));
+ registerIpcHandler(ipcMain,IPC_CHANNELS.electionsGenerateDocument,async(_e,id,input)=>{
+  const documents=services.electionDocuments();
+  const operation='elections:document:generate';
+  const electionId=eid(id,operation);
+  const request=assertRecordInput<GenerateElectionPreparationDocumentInput>(input,operation);
+  return generateElectionDocumentPreview(_security,operation,()=>documents.generate(electionId,request),(documentId)=>documents.readDocument(documentId));
+ });
  registerIpcHandler(ipcMain,IPC_CHANNELS.electionsExecutionOverview,async(_e,id)=>services.electionExecution().overview(eid(id,'elections:execution:overview')));
  registerIpcHandler(ipcMain,IPC_CHANNELS.electionsDayChecklistRecord,async(_e,id,input)=>services.electionExecution().recordElectionDayChecklist(eid(id,'elections:dayChecklist:record'),assertRecordInput<ElectionDayChecklistInput>(input,'elections:dayChecklist:record')));
  registerIpcHandler(ipcMain,IPC_CHANNELS.electionsMailBallotSave,async(_e,id,input)=>services.electionExecution().saveMailBallot(eid(id,'elections:mailBallot:save'),assertRecordInput<SaveElectionMailBallotInput>(input,'elections:mailBallot:save')));
@@ -53,8 +103,19 @@ export function registerSbvElectionIpc(ipcMain:IpcMain,_security:SecurityService
  registerIpcHandler(ipcMain,IPC_CHANNELS.electionsAcceptanceRecord,async(_e,id,input)=>services.electionExecution().recordAcceptance(eid(id,'elections:acceptance:record'),assertRecordInput<RecordElectionAcceptanceInput>(input,'elections:acceptance:record')));
  registerIpcHandler(ipcMain,IPC_CHANNELS.electionsPhysicalRecordSave,async(_e,id,input)=>services.electionExecution().savePhysicalRecord(eid(id,'elections:physicalRecord:save'),assertRecordInput<SaveElectionPhysicalRecordInput>(input,'elections:physicalRecord:save')));
  registerIpcHandler(ipcMain,IPC_CHANNELS.electionsClose,async(_e,id,input)=>{services.electionExecution().close(eid(id,'elections:close'),assertRecordInput<ElectionCloseInput>(input,'elections:close'));return{closed:true};});
- registerIpcHandler(ipcMain,IPC_CHANNELS.electionsExecutionDocumentGenerate,async(_e,id,input)=>services.electionArchive().generate(eid(id,'elections:executionDocument:generate'),assertRecordInput<GenerateElectionExecutionDocumentInput>(input,'elections:executionDocument:generate')));
- registerIpcHandler(ipcMain,IPC_CHANNELS.electionsArchivePdf,async(_e,id)=>services.electionArchive().exportPdfArchive(eid(id,'elections:archive:pdf')));
+ registerIpcHandler(ipcMain,IPC_CHANNELS.electionsExecutionDocumentGenerate,async(_e,id,input)=>{
+  const documents=services.electionArchive();
+  const operation='elections:executionDocument:generate';
+  const electionId=eid(id,operation);
+  const request=executionDocumentInput(input,operation);
+  return generateElectionDocumentPreview(_security,operation,()=>documents.generate(electionId,request),(documentId)=>documents.readDocument(documentId));
+ });
+ registerIpcHandler(ipcMain,IPC_CHANNELS.electionsArchivePdf,async(_e,id)=>{
+  const documents=services.electionArchive();
+  const operation='elections:archive:pdf';
+  const electionId=eid(id,operation);
+  return generateElectionDocumentPreview(_security,operation,()=>documents.exportPdfArchive(electionId),(documentId)=>documents.readDocument(documentId));
+ });
  registerIpcHandler(ipcMain,IPC_CHANNELS.electionsDocumentExport,async(_e,documentId,suggestedFileName)=>{
   const validatedDocumentId=assertString(documentId,'elections:document:export','Dokument-ID',{minLength:1,maxLength:120});
   const safeName=sanitizeDialogFileName(suggestedFileName,'elections:document:export','Dateiname')??'wahlunterlage.pdf';

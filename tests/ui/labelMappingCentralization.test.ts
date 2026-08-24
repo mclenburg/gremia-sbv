@@ -69,7 +69,7 @@ describe('zentrale Label- und Mapping-Verträge 0.9.4-c-r5', () => {
     expect(Object.keys(sbvParticipationViolationStatusLabels).sort()).toEqual(Object.keys(PARTICIPATION_VIOLATION_STATUS_TRANSITIONS).sort());
   });
 
-  it('trennt UI-Labels und dokumentfachliche Überschriften bewusst ohne doppelte lokale Maps', () => {
+  it('trennt UI-Labels von externen Schreiben ohne interne Statusüberschriften', () => {
     const service = new SbvParticipationViolationTemplateService();
 
     expect(sbvParticipationViolationStageLabels.suspension_request).toBe('Aussetzungsverlangen');
@@ -88,7 +88,9 @@ describe('zentrale Label- und Mapping-Verträge 0.9.4-c-r5', () => {
       privacyMode: 'case_reference',
     });
 
-    expect(text).toContain(sbvParticipationViolationDocumentStageLabels.suspension_request);
+    expect(text).toContain('§ 178 Abs. 2 Satz 2 SGB IX');
+    expect(text).not.toContain(sbvParticipationViolationDocumentStageLabels.suspension_request);
+    expect(text).not.toContain(sbvParticipationViolationStageLabels.suspension_request);
     expect(text).not.toContain('OWi-Hinweis / Vorbereitung Anzeige');
   });
 });

@@ -224,12 +224,16 @@ export function listCleartextFiles(dataDir: string): string[] {
     if (!fs.existsSync(dir)) return;
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
       const absolute = path.join(dir, entry.name);
+      const relative = path.relative(dataDir, absolute).split(path.sep).join('/');
+      if (entry.isSymbolicLink()) {
+        suspicious.push(relative);
+        continue;
+      }
       if (entry.isDirectory()) {
         walk(absolute);
         continue;
       }
       if (!entry.isFile()) continue;
-      const relative = path.relative(dataDir, absolute).split(path.sep).join('/');
       if (!allowed.has(path.extname(entry.name).toLowerCase())) {
         suspicious.push(relative);
       }

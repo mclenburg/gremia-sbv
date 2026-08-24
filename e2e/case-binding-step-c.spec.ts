@@ -19,7 +19,9 @@ test('legt Fallakte aus Person heraus personengebunden an', async ({ page }) => 
 
 test('verhindert freie Fallakte und erlaubt den anonymen Sonderweg', async ({ page }) => {
   await navigation(page).getByRole('button', { name: 'Fallakte', exact: true }).click();
-  await page.locator('.case-register-actions').getByRole('button', { name: 'Fallakte', exact: true }).click();
+  await expect(page.locator('[data-e2e="case-row-TEST-0001"]')).toBeVisible();
+  const createButton = page.locator('.industrial-hero-actions').getByRole('button', { name: 'Fallakte anlegen', exact: true });
+  await createButton.press('Enter');
   const dialog = page.getByRole('dialog', { name: 'Neue Fallakte anlegen' });
   await dialog.getByLabel('Aktenzeichen').fill('TEST-ANON-01');
   await dialog.getByRole('button', { name: 'Person auswählen →' }).click();
@@ -31,7 +33,9 @@ test('verhindert freie Fallakte und erlaubt den anonymen Sonderweg', async ({ pa
 
 test('zeigt Altfall-Hinweis und öffnet Legacy-Zuordnungsdialog barrierearm', async ({ page }) => {
   await navigation(page).getByRole('button', { name: 'Fallakte', exact: true }).click();
-  await page.locator('[data-e2e="case-row-TEST-0002"]').click();
+  const legacyRow = page.locator('[data-e2e="case-row-TEST-0002"]');
+  await expect(legacyRow).toBeVisible({ timeout: 20_000 });
+  await legacyRow.press('Enter');
   await expect(page.locator('[data-e2e="legacy-case-hint"]')).toBeVisible();
   await page.getByRole('button', { name: 'Legacy-Zuordnung prüfen' }).click();
 
@@ -48,7 +52,9 @@ test('zeigt Altfall-Hinweis und öffnet Legacy-Zuordnungsdialog barrierearm', as
 
 test('schließt Legacy-Zuordnungsdialog per Escape', async ({ page }) => {
   await navigation(page).getByRole('button', { name: 'Fallakte', exact: true }).click();
-  await page.locator('[data-e2e="case-row-TEST-0002"]').click();
+  const legacyRow = page.locator('[data-e2e="case-row-TEST-0002"]');
+  await expect(legacyRow).toBeVisible({ timeout: 20_000 });
+  await legacyRow.press('Enter');
   await page.getByRole('button', { name: 'Legacy-Zuordnung prüfen' }).click();
   await expect(page.locator('[data-e2e="legacy-case-binding-dialog"]')).toBeVisible();
   await page.keyboard.press('Escape');

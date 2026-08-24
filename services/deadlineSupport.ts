@@ -164,17 +164,7 @@ export function getActionHint(deadline: DeadlineRecord): string {
 
 
 export function validateCaseBinding(input: CreateDeadlineInput): void {
-  const deadlineType = input.deadlineType ?? 'follow_up';
-  const officeOwnerTypes = new Set(['sbv_meeting','sbv_assembly','employer_obligation_review','inclusion_agreement','election']);
-  const isOfficeOwner = officeOwnerTypes.has(input.processType) && Boolean(input.processId);
-  const isFreeFollowUp = input.processType === 'custom' && ['follow_up', 'warning'].includes(deadlineType) && !input.isLegalDeadline;
-  const isNamedFollowUp = ['sbv_control_protocol','activity_journal','sbv_participation_violation','recruiting_participation'].includes(input.processType)
-    && deadlineType === 'follow_up' && !input.isLegalDeadline && Boolean(input.processId);
-
-  if (!input.caseId && !isFreeFollowUp && !isNamedFollowUp && !isOfficeOwner) {
-    throw new Error('Fristen benötigen einen Fallbezug oder einen ausdrücklich unterstützten fallunabhängigen SBV-Amtsvorgang.');
-  }
-  if (!input.caseId && (input.isLegalDeadline || deadlineType === 'legal_deadline' || deadlineType === 'workflow_step') && !isOfficeOwner) {
-    throw new Error('Rechtliche Fristen und Workflow-Schritte ohne Fallbezug sind nur für unterstützte SBV-Amtsvorgänge zulässig.');
+  if (input.caseId !== undefined && !input.caseId.trim()) {
+    throw new Error('Ein angegebener Fallbezug darf nicht leer sein.');
   }
 }

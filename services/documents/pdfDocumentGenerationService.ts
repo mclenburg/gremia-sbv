@@ -20,6 +20,7 @@ function blockTexts(block: PdfBlock): string[] {
     case 'table': return [...block.headers, ...block.rows.flat().map(String), block.empty];
     case 'metrics': return block.entries.flat().map(String);
     case 'section': return [block.title, ...block.blocks.flatMap(blockTexts)];
+    case 'page_break': return [];
     case 'spacer': return [];
   }
 }
@@ -31,6 +32,10 @@ function documentTexts(definition: PdfDocumentDefinition): string[] {
     definition.classification ?? '',
     ...(definition.warnings ?? []),
     definition.footer ?? '',
+    ...(definition.letterhead?.sender ?? []),
+    ...(definition.letterhead?.recipient ?? []),
+    definition.letterhead?.date ?? '',
+    definition.letterhead?.subject ?? '',
     ...definition.blocks.flatMap(blockTexts),
   ];
 }

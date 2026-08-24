@@ -8,6 +8,7 @@ type ModuleFrameProps = {
   description?: string;
   helpId?: HelpRegistryId;
   compact?: boolean;
+  actions?: ReactNode;
   children: ReactNode;
 };
 
@@ -17,6 +18,7 @@ export function ModuleFrame({
   description,
   helpId,
   compact = false,
+  actions,
   children
 }: ModuleFrameProps) {
   const titleId = useId();
@@ -24,7 +26,7 @@ export function ModuleFrame({
   return (
     <section className="module-frame" aria-labelledby={title ? titleId : undefined}>
       <div className={`industrial-hero ${compact ? 'industrial-hero-compact' : ''}`}>
-        <div>
+        <div className="industrial-hero-content">
           {kicker ? <p className="industrial-kicker">{kicker}</p> : null}
           {title ? (
             <div className="industrial-section-title-row">
@@ -36,6 +38,7 @@ export function ModuleFrame({
           ) : null}
           {description ? <p>{description}</p> : null}
         </div>
+        {actions ? <div className="industrial-hero-actions">{actions}</div> : null}
       </div>
       {children}
     </section>

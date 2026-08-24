@@ -5,9 +5,19 @@ import {
   SbvOfficeWorkflowDocumentAdapter,
   type SbvOfficeDocumentRecord,
 } from './sbvOfficeWorkflowDocumentAdapter.js';
-import { list, reportDocument, section } from './documents/pdfDocumentDefinition.js';
+import {
+  externalLetterDocument,
+  legalRecordDocument,
+  list,
+  paragraph,
+  publicNoticeDocument,
+  section,
+  type PdfDocumentDefinition,
+} from './documents/pdfDocumentDefinition.js';
 import { PdfDocumentGenerationService } from './documents/pdfDocumentGenerationService.js';
 import type { GenerateElectionExecutionDocumentInput } from '../src/domain/models/election-execution.model.js';
+import { ApplicationError } from '../src/domain/models/application-error.model.js';
+import { ElectionMailBallotPackageDefinition } from './electionMailBallotPackageDefinition.js';
 
 const TEMPLATE_VERSION = '0.9.7-D.1';
 
@@ -51,7 +61,7 @@ export class ElectionArchiveService {
       documentClass: 'generated_document',
       templateVersion: TEMPLATE_VERSION,
       legalRuleVersion: election.legal_rule_version,
-      plain: await this.createElectionPdf(title, election, lines),
+      plain: await this.createElectionPdf(title, election, lines, input),
     });
   }
 
@@ -59,6 +69,10 @@ export class ElectionArchiveService {
     const plain = await this.documents.read(documentId);
     await fs.promises.writeFile(targetPath, plain, { mode: 0o600 });
     return { exported: true, sizeBytes: plain.length };
+  }
+
+  readDocument(documentId: string): Promise<Buffer> {
+    return this.documents.read(documentId);
   }
 
   async exportPdfArchive(electionId: string): Promise<SbvOfficeDocumentRecord> {
@@ -73,7 +87,7 @@ export class ElectionArchiveService {
       documentClass: 'generated_document',
       templateVersion: TEMPLATE_VERSION,
       legalRuleVersion: election.legal_rule_version,
-      plain: await this.createElectionPdf('PDF-Gesamtwahlakte', election, lines),
+      plain: await this.createElectionPdf('PDF-Gesamtwahlakte', election, lines, { kind: 'archive_pdf' }),
     });
     const linkedCount = this.db.prepare<{ count: number }>(`
       SELECT COUNT(*) AS count FROM sbv_workflow_document_links
@@ -87,18 +101,52 @@ export class ElectionArchiveService {
     return record;
   }
 
-  private createElectionPdf(title: string, election: ElectionRow, lines: readonly string[]): Promise<Buffer> {
+  private createElectionPdf(
+    title: string,
+    election: ElectionRow,
+    lines: readonly string[],
+    input: GenerateElectionExecutionDocumentInput,
+  ): Promise<Buffer> {
     return this.pdfDocuments.generate({
       source: 'election',
       privacyProfile: 'lawful_personal_data',
-      definition: reportDocument(
-        title,
-        `SBV-Wahl · ${election.procedure ?? 'Verfahren noch offen'}`,
-        'Rechtlich relevantes Wahldokument',
-        [section('Dokumentinhalt', [list(lines)])],
-        [],
-      ),
+      definition: this.executionDefinition(title, election, lines, input),
     });
+  }
+
+  private executionDefinition(
+    title: string,
+    election: ElectionRow,
+    lines: readonly string[],
+    input: GenerateElectionExecutionDocumentInput,
+  ): PdfDocumentDefinition {
+    if (input.kind === 'mail_ballot_package') {
+      return new ElectionMailBallotPackageDefinition(this.db).build(election, input);
+    }
+    const blocks = [section('Dokumentinhalt', [list(lines)])];
+    if (input.kind === 'result_announcement') {
+      return publicNoticeDocument(title, 'Wahl der Schwerbehindertenvertretung', blocks);
+    }
+    if (input.kind === 'elected_notification') {
+      const selected = this.results(election.id).find((item) => item.id === input.resultId);
+      const recipient = selected
+        ? this.candidates(election.id).find((candidate) => candidate.id === selected.candidate_id)?.person_snapshot
+        : undefined;
+      return externalLetterDocument({
+        title,
+        sender: ['Wahlvorstand der Schwerbehindertenvertretungswahl'],
+        recipient: [recipient || 'An die gewählte Person'],
+        date: new Intl.DateTimeFormat('de-DE').format(new Date()),
+        subject: 'Benachrichtigung über die Wahl',
+        blocks: [paragraph('Sehr geehrte Damen und Herren,'), ...blocks, paragraph('Mit freundlichen Grüßen\nDer Wahlvorstand')],
+      });
+    }
+    return legalRecordDocument(
+      title,
+      'Wahl der Schwerbehindertenvertretung',
+      input.kind.startsWith('ballot_') ? 'Stimmzettel' : 'Rechtlich relevantes Wahldokument',
+      blocks,
+    );
   }
 
   private archiveLines(election: ElectionRow): string[] {
@@ -168,7 +216,7 @@ export class ElectionArchiveService {
     switch (input.kind) {
       case 'ballot_representative':
         return [
-          ...this.header(election),
+          ...this.publicHeader(election),
           'Wahlgang Vertrauensperson',
           'Bitte genau eine Person kennzeichnen.',
           ...candidates.filter((candidate) => candidate.office_type === 'representative').map((candidate) => `☐ ${candidate.person_snapshot}`),
@@ -177,22 +225,17 @@ export class ElectionArchiveService {
       case 'ballot_deputy': {
         const deputyCount = this.db.prepare<{ deputy_count: number }>('SELECT deputy_count FROM sbv_elections WHERE id=?').get(election.id)?.deputy_count ?? 1;
         return [
-          ...this.header(election),
+          ...this.publicHeader(election),
           `Wahlgang Stellvertretung · höchstens ${deputyCount} Person(en) kennzeichnen.`,
           ...candidates.filter((candidate) => candidate.office_type === 'deputy').map((candidate) => `☐ ${candidate.person_snapshot}`),
           'Keine Unterschrift auf dem Stimmzettel.',
         ];
       }
       case 'mail_ballot_package':
-        return [
-          ...this.header(election),
-          'Briefwahlpaket: Stimmzettel, Wahlumschlag, Freiumschlag, persönliche Erklärung.',
-          'Gremia.SBV speichert keinen Inhalt einer individuellen Stimmabgabe.',
-          'Verspätet eingehende Freiumschläge werden ungeöffnet behandelt und gesondert aufbewahrt.',
-        ];
+        return [];
       case 'election_day_checklist':
         return [
-          ...this.header(election),
+          ...this.publicHeader(election),
           '☐ unbeobachtete Kennzeichnung gewährleistet',
           '☐ Wahlurne verschlossen',
           '☐ erforderliche Besetzung des Wahlorgans gewährleistet',
@@ -202,7 +245,7 @@ export class ElectionArchiveService {
         ];
       case 'result_minutes':
         return [
-          ...this.header(election),
+          ...this.publicHeader(election),
           'Ergebnisniederschrift',
           ...totals.map((item) => `${item.office_type}: ${name(item.candidate_id)} – ${item.votes} Stimme(n), Rang ${item.rank ?? '-'}`),
           'Gewählte',
@@ -211,9 +254,9 @@ export class ElectionArchiveService {
         ];
       case 'elected_notification': {
         const selected = results.find((item) => item.id === input.resultId);
-        if (!selected) throw new Error('Benachrichtigung benötigt ein gewähltes Ergebnis.');
+        if (!selected) throw new ApplicationError('VALIDATION_FAILED', 'Benachrichtigung benötigt ein gewähltes Ergebnis.');
         return [
-          ...this.header(election),
+          ...this.publicHeader(election),
           `Gewählte Person: ${name(selected.candidate_id)}`,
           `Wahlgang: ${selected.office_type}`,
           'Bitte Empfang bestätigen. Ablehnung kann binnen drei Arbeitstagen erklärt werden.',
@@ -222,7 +265,7 @@ export class ElectionArchiveService {
       }
       case 'result_announcement':
         return [
-          ...this.header(election),
+          ...this.publicHeader(election),
           'Endgültiges Wahlergebnis',
           ...results.filter((item) => item.elected_rank !== null && !['rejected', 'replaced'].includes(item.acceptance_status))
             .map((item) => `${item.office_type}: ${name(item.candidate_id)} · Rang ${item.elected_rank}`),
@@ -230,13 +273,13 @@ export class ElectionArchiveService {
         ];
       case 'physical_inventory':
         return [
-          ...this.header(election),
+          ...this.publicHeader(election),
           ...this.physical(election.id).map((item) => `${item.record_type}: ${item.description ?? '-'} | ${item.quantity} | ${item.storage_location ?? '-'} | ${item.sealed_status ?? '-'}`),
           'Physische Originale werden durch diesen Nachweis nicht ersetzt.',
         ];
       case 'handover_protocol':
         return [
-          ...this.header(election),
+          ...this.publicHeader(election),
           'Übergabe Wahlakte / Amtsunterlagen',
           'Digitale Wahlakte übergeben: ☐',
           'Physische Originale gemäß Bestandsverzeichnis übergeben: ☐',
@@ -296,6 +339,13 @@ export class ElectionArchiveService {
       `Legal Hold: ${election.legal_hold_status}`,
       `Rechtsregel: ${election.legal_rule_version}`,
       `Vorlagenversion: ${TEMPLATE_VERSION}`,
+    ];
+  }
+
+  private publicHeader(election: ElectionRow): string[] {
+    return [
+      `Wahl der Schwerbehindertenvertretung${election.election_date ? ` · Wahltag ${election.election_date}` : ''}`,
+      `Verfahren: ${election.procedure === 'simplified' ? 'vereinfachtes Wahlverfahren' : election.procedure === 'formal' ? 'förmliches Wahlverfahren' : 'noch nicht festgelegt'}`,
     ];
   }
 

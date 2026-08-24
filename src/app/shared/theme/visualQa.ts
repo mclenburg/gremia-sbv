@@ -13,19 +13,15 @@ export const VISUAL_QA_ROUTES: readonly VisualQaRoute[] = [
   { id: 'deadlines', navName: 'Fristen', heading: /Fristen/i },
   { id: 'activity_journal', navName: 'Journal', heading: /Tätigkeitsjournal/i },
   { id: 'meetings', navName: 'Sitzungen', heading: /Gremiensitzungen/i },
-  { id: 'bem', navName: 'BEM', heading: /BEM/i },
-  { id: 'prevention', navName: 'Prävention', heading: /Präventionsverfahren/i },
   { id: 'participation_violations', navName: 'Verstöße', heading: /Beteiligungsverstöße/i },
-  { id: 'participation', navName: 'Beteiligung', heading: /SBV-Beteiligung/i },
   { id: 'recruiting_participations', navName: 'Stellenbesetzungen', heading: /Stellenbesetzungen/i },
-  { id: 'workplace_accommodation', navName: 'Arbeitsplatz', heading: /Arbeitsplatzgestaltung/i },
   { id: 'equalization', navName: 'Gleichstellung', heading: /Gleichstellung|GdB/i },
-  { id: 'termination_hearing', navName: 'Kündigung', heading: /Kündigungsanhörung/i },
   { id: 'elections', navName: 'Wahlen', heading: /SBV-Wahlen/i },
   { id: 'templates', navName: 'Vorlagen', heading: /Vorlagen/i },
   { id: 'knowledge', navName: 'Wissen', heading: /Wissen/i },
   { id: 'contacts', navName: 'Kontakte', heading: /Kontakte/i },
   { id: 'compliance', navName: 'Compliance', heading: /Compliance Center/i },
+  { id: 'privacy_review', navName: 'Datenschutzprüfung', heading: /Datenschutzprüfung.*Löschung|Lösch- und Datenschutzprüfung/i },
   { id: 'sbv_control', navName: 'Dokumentation', heading: /SBV-Dokumentation/i },
   { id: 'reports', navName: 'Berichte', heading: /Berichte/i },
   { id: 'settings', navName: 'Einstellungen', heading: /Einstellungen/i },
@@ -33,7 +29,7 @@ export const VISUAL_QA_ROUTES: readonly VisualQaRoute[] = [
 
 
 export const WORKBENCH_LAYOUT_QA_EXEMPT_ROUTE_IDS = [
-  'workplace_accommodation',
+  'privacy_review',
   'settings',
 ] as const;
 

@@ -4,6 +4,7 @@ export type RetentionCandidateType =
   | 'closed_case_review'
   | 'stale_case_review'
   | 'orphan_contact_review'
+  | 'orphan_person_review'
   | 'orphan_document_review'
   | 'free_deadline_review'
   | 'journal_entry_review_due'
@@ -42,6 +43,7 @@ export interface RetentionCandidate {
   dueSince?: string;
   entityType: RetentionOwnerType | RetentionModuleType | 'contact' | 'document' | 'deadline' | 'activity_journal_entry' | 'sbv_participation_violation' | 'file' | 'system';
   entityId?: string;
+  caseId?: string;
   privacyReviewRequired?: boolean;
   policyKey?: RetentionModuleType;
   legalBasis?: string;
@@ -85,6 +87,18 @@ export interface RetentionModuleSnapshot {
   completedAt?: string | null;
   consentWithdrawnAt?: string | null;
   purposeStillActive?: boolean;
+  caseId?: string | null;
+}
+
+export interface RetentionProtectedPersonSnapshot {
+  id: string;
+  displayName: string;
+  createdAt?: string | null;
+  retainedReferenceCount: number;
+  lifecycleState?: string | null;
+  protectionStatus: import('./protected-person.model.js').ProtectionStatus;
+  employmentState: import('./protected-person.model.js').EmploymentState;
+  leftCompanyAt?: string | null;
 }
 
 export interface RetentionDashboard {

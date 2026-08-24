@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import { randomUUID } from 'node:crypto';
-import type { RetentionDashboard, RetentionModuleSnapshot, RetentionModuleType, RetentionOperationResult, RetentionSettings, UpdateRetentionSettingsInput } from '../src/domain/models/retention.model.js';
+import type { RetentionDashboard, RetentionModuleSnapshot, RetentionModuleType, RetentionOperationResult, RetentionProtectedPersonSnapshot, RetentionSettings, UpdateRetentionSettingsInput } from '../src/domain/models/retention.model.js';
 import type { DatabaseAdapter } from './databaseService.js';
 import { DEFAULT_RETENTION_SETTINGS, buildRetentionDashboard, normalizeRetentionSettings, type RetentionActivityJournalSnapshot, type RetentionCaseSnapshot, type RetentionContactSnapshot, type RetentionDeadlineSnapshot, type RetentionDocumentSnapshot, type RetentionParticipationViolationSnapshot } from './retentionPolicy.js';
 import { SearchIndexService } from './search/searchIndexService.js';
@@ -8,7 +8,7 @@ import { MeasureLifecycleAuditService } from './measureLifecycleAuditService.js'
 import { CaseLifecycleAuditService } from './caseLifecycleAuditService.js';
 import { runCaseDeletionTransaction } from './caseDeletionTransaction.js';
 import { RetentionOwnerRegistry } from './retentionOwnerRegistry.js';
-import { CASE_DELETE_CONFIRMATION, DatabaseRow, nowIso, bool, readNumberSetting, writeSetting, safeRun, tableExists, getColumns, latestActivityExpression, CaseDocumentFileRow, removeCaseDocumentFiles, listCleartextFiles, lifecycleRowsForCase } from './retentionSupport.js';
+import { CASE_DELETE_CONFIRMATION, DatabaseRow, nowIso, bool, readNumberSetting, writeSetting, safeRun, tableExists, getColumns, latestActivityExpression, CaseDocumentFileRow, removeCaseDocumentFiles, lifecycleRowsForCase } from './retentionSupport.js';
 export class RetentionService {
   constructor(
     private readonly dbProvider: () => DatabaseAdapter,
@@ -67,22 +67,22 @@ export class RetentionService {
     const db = this.db;
     const cases = this.listCaseSnapshots(db);
     const contacts = this.listContactSnapshots(db);
+    const protectedPersons = this.listProtectedPersonSnapshots(db);
     const documents = this.listDocumentSnapshots(db);
     const deadlines = this.listDeadlineSnapshots(db);
     const journalEntries = this.listActivityJournalSnapshots(db);
     const participationViolations = this.listParticipationViolationSnapshots(db);
-    const cleartextFiles = listCleartextFiles(this.dataDirProvider());
     const officeOwners = new RetentionOwnerRegistry().listManagedSnapshots(db);
     const moduleRecords = this.listModuleRetentionSnapshots(db);
     return buildRetentionDashboard({
       settings: this.getSettings(),
       cases,
       contacts,
+      protectedPersons,
       documents,
       deadlines,
       journalEntries,
       participationViolations,
-      cleartextFiles,
       officeOwners,
       moduleRecords,
     });
@@ -104,22 +104,29 @@ export class RetentionService {
       FROM recruiting_participations WHERE status IN ('decision_known','closed')
     `, (row) => ({ id: row.id, title: row.title, status: row.status, completedAt: row.completed_at }));
     append('termination_hearings', 'termination_hearing', `
-      SELECT id, status, updated_at AS completed_at FROM termination_hearings WHERE status = 'abgeschlossen'
-    `, (row) => ({ id: row.id, title: 'Kündigungsanhörung', status: row.status, completedAt: row.completed_at }));
+      SELECT id, case_id, status, updated_at AS completed_at FROM termination_hearings WHERE status = 'abgeschlossen'
+    `, (row) => ({ id: row.id, caseId: row.case_id, title: 'Kündigungsanhörung', status: row.status, completedAt: row.completed_at }));
     append('bem_processes', 'bem', `
-      SELECT id, title, status, updated_at AS completed_at, consent_withdrawn_at
+      SELECT id, case_id, title, status, updated_at AS completed_at, consent_withdrawn_at
       FROM bem_processes WHERE status IN ('abgeschlossen','abgelehnt','abgebrochen') OR consent_withdrawn_at IS NOT NULL
-    `, (row) => ({ id: row.id, title: row.title || 'BEM-Verfahren', status: row.status, completedAt: row.completed_at, consentWithdrawnAt: row.consent_withdrawn_at }));
+    `, (row) => ({ id: row.id, caseId: row.case_id, title: row.title || 'BEM-Verfahren', status: row.status, completedAt: row.completed_at, consentWithdrawnAt: row.consent_withdrawn_at }));
     append('prevention_processes', 'prevention', `
-      SELECT id, status, updated_at AS completed_at FROM prevention_processes WHERE status = 'abgeschlossen'
-    `, (row) => ({ id: row.id, title: 'Präventionsverfahren', status: row.status, completedAt: row.completed_at }));
+      SELECT id, case_id, status, updated_at AS completed_at FROM prevention_processes WHERE status = 'abgeschlossen'
+    `, (row) => ({ id: row.id, caseId: row.case_id, title: 'Präventionsverfahren', status: row.status, completedAt: row.completed_at }));
+    append('equalization_processes', 'equalization_gdb', `
+      SELECT e.id, e.case_id, e.application_status AS status, e.updated_at AS completed_at,
+        CASE WHEN c.category = 'gdb' THEN 'GdB-Verfahren' ELSE 'Gleichstellungsverfahren' END || ' · ' || c.case_number AS title
+      FROM equalization_processes e
+      JOIN cases c ON c.id = e.case_id
+      WHERE e.application_status IN ('bewilligt','abgeschlossen')
+    `, (row) => ({ id: row.id, caseId: row.case_id, title: row.title, status: row.status, completedAt: row.completed_at }));
     append('compliance_incidents', 'compliance_incident', `
       SELECT id, summary AS title, status, COALESCE(closed_at, updated_at) AS completed_at
       FROM compliance_incidents WHERE status = 'closed'
     `, (row) => ({ id: row.id, title: row.title, status: row.status, completedAt: row.completed_at }));
     if (tableExists(db, 'case_measures')) {
       const rows = db.prepare<DatabaseRow>(`
-        SELECT id, title, type, status, COALESCE(closed_at, updated_at) AS completed_at
+        SELECT id, case_id, title, type, status, COALESCE(closed_at, updated_at) AS completed_at
         FROM case_measures WHERE status IN ('abgeschlossen','completed','closed')
           AND type IN ('sbv_participation','workplace_accommodation','equalization_gdb')
       `).all();
@@ -130,7 +137,7 @@ export class RetentionService {
       };
       for (const row of rows) {
         const module = moduleByType[row.type];
-        if (module) result.push({ module, id: row.id, title: row.title, status: row.status, completedAt: row.completed_at });
+        if (module) result.push({ module, id: row.id, caseId: row.case_id, title: row.title, status: row.status, completedAt: row.completed_at });
       }
     }
     return result;
@@ -179,6 +186,45 @@ export class RetentionService {
       displayName: `${row.last_name}, ${row.first_name}${row.organization ? ` (${row.organization})` : ''}`,
       createdAt: row.created_at,
       referenceCount: Number(row.reference_count ?? 0)
+    }));
+  }
+
+  private listProtectedPersonSnapshots(db: DatabaseAdapter): RetentionProtectedPersonSnapshot[] {
+    if (!tableExists(db, 'protected_persons')) return [];
+    const hasLinks = tableExists(db, 'person_case_links');
+    const activeReferences = hasLinks
+      ? `(
+          SELECT COUNT(*) FROM cases linked_case
+          WHERE linked_case.protected_person_id = p.id
+            AND linked_case.person_binding_state IN ('active','migrated','anonymous_request')
+        ) + (
+          SELECT COUNT(*) FROM person_case_links link
+          WHERE link.protected_person_id = p.id AND link.link_state = 'active'
+            AND NOT EXISTS (SELECT 1 FROM cases direct_case WHERE direct_case.id = link.case_file_id AND direct_case.protected_person_id = p.id)
+        )`
+      : `(
+          SELECT COUNT(*) FROM cases linked_case
+          WHERE linked_case.protected_person_id = p.id
+            AND linked_case.person_binding_state IN ('active','migrated','anonymous_request')
+        )`;
+    const rows = db.prepare<DatabaseRow>(`
+      SELECT p.id, p.record_kind, p.pseudonym_label, p.first_name, p.last_name,
+        p.created_at, p.lifecycle_state, p.protection_status, p.employment_state, p.left_company_at,
+        ${activeReferences} AS active_reference_count
+      FROM protected_persons p
+      ORDER BY p.created_at ASC
+    `).all();
+    return rows.map((row) => ({
+      id: row.id,
+      displayName: row.record_kind === 'pseudonymous_request'
+        ? row.pseudonym_label || 'Pseudonyme Anfrage'
+        : `${row.first_name} ${row.last_name}`.trim(),
+      createdAt: row.created_at,
+      retainedReferenceCount: Number(row.active_reference_count ?? 0),
+      lifecycleState: row.lifecycle_state,
+      protectionStatus: row.protection_status as RetentionProtectedPersonSnapshot['protectionStatus'],
+      employmentState: row.employment_state as RetentionProtectedPersonSnapshot['employmentState'],
+      leftCompanyAt: row.left_company_at,
     }));
   }
 

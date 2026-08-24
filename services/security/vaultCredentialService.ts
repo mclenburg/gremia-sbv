@@ -31,6 +31,7 @@ import { atomicWriteFileSync, commitAtomicArtifacts } from "../secureFileOperati
 import { validateAppPassword, validatePasswordStore, validateVaultManifest, type KeyWrap, type PasswordStore, type ScryptKdfParams, type VaultManifest } from "../securityArtifactValidation.js";
 import { VaultSetupUnlockService } from './vaultSetupUnlockService.js';
 import { CURRENT_SCRYPT_PARAMS, VAULT_DATABASE_FILE_NAME, createRecoveryKey, derivePasswordVerifier, deriveRecoveryVerifier, needsKdfUpgrade, normalizeRecoveryKey, safeDestroyBuffer, safeEqualsHex, unwrapDatabaseKey, validatePassword, wrapDatabaseKey } from './securitySupport.js';
+import { buildLegacyPlaintextCleanupWarning } from './legacyPlaintextExportCleanupService.js';
 
 export class VaultCredentialService extends VaultSetupUnlockService {
   async changePassword(
@@ -197,7 +198,13 @@ export class VaultCredentialService extends VaultSetupUnlockService {
           this.unlocked = true;
           this.resetUnlockDelay();
           this.auditSecurityEvent("unlock", "Tresor per Recovery-Key entsperrt");
-          return { ok: true, initialized: true, unlocked: true };
+          const cleanup = this.cleanupLegacyPlaintextExports(databaseKey);
+          return {
+            ok: true,
+            initialized: true,
+            unlocked: true,
+            warning: buildLegacyPlaintextCleanupWarning(cleanup),
+          };
         } catch (error) {
           this.unlocked = false;
           this.destroyActiveDatabaseKey();

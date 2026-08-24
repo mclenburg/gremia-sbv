@@ -4,13 +4,22 @@ import {
   type SbvOfficeDocumentRecord,
 } from './sbvOfficeWorkflowDocumentAdapter.js';
 import { ElectionPreparationRepository } from './electionPreparationRepository.js';
-import { list, reportDocument, section } from './documents/pdfDocumentDefinition.js';
+import {
+  externalLetterDocument,
+  legalRecordDocument,
+  list,
+  paragraph,
+  publicNoticeDocument,
+  section,
+  type PdfDocumentDefinition,
+} from './documents/pdfDocumentDefinition.js';
 import { PdfDocumentGenerationService } from './documents/pdfDocumentGenerationService.js';
 import type {
   ElectionNoticeDetails,
   ElectionRecord,
   GenerateElectionPreparationDocumentInput,
 } from '../src/domain/models/election-workflow.model.js';
+import { ApplicationError } from '../src/domain/models/application-error.model.js';
 
 const TEMPLATE_VERSION = '0.9.7-C.1';
 
@@ -51,12 +60,12 @@ function noticeFields(notice: ElectionNoticeDetails): Array<[string, string]> {
 export function validateElectionNoticeDetails(
   notice: ElectionNoticeDetails | undefined,
 ): ElectionNoticeDetails {
-  if (!notice) throw new Error('Wahlausschreiben benötigt die 16 Pflichtangaben.');
+  if (!notice) throw new ApplicationError('VALIDATION_FAILED', 'Wahlausschreiben benötigt die 16 Pflichtangaben.');
   const missing = noticeFields(notice)
     .filter(([, value]) => !value.trim())
     .map(([label]) => label);
   if (missing.length) {
-    throw new Error(`Wahlausschreiben unvollständig: ${missing.join(', ')}.`);
+    throw new ApplicationError('VALIDATION_FAILED', `Wahlausschreiben unvollständig: ${missing.join(', ')}.`);
   }
   return notice;
 }
@@ -82,13 +91,7 @@ export class SbvElectionDocumentService {
     const plain = await this.pdfDocuments.generate({
       source: 'election',
       privacyProfile: 'lawful_personal_data',
-      definition: reportDocument(
-        title,
-        `SBV-Wahl · ${election.procedure ?? 'Verfahren noch offen'}`,
-        input.kind === 'voter_list' ? 'Vertrauliches Wahldokument' : 'Rechtlich relevantes Wahldokument',
-        [section('Dokumentinhalt', [list(this.lines(input, election))])],
-        [],
-      ),
+      definition: this.definition(title, input, election),
     });
     const record = await this.documents.store({
       owner: { type: 'election', id: electionId },
@@ -107,16 +110,17 @@ export class SbvElectionDocumentService {
     return record;
   }
 
+  readDocument(documentId: string): Promise<Buffer> {
+    return this.documents.read(documentId);
+  }
+
   private lines(
     input: GenerateElectionPreparationDocumentInput,
     election: ElectionRecord,
   ): string[] {
     const id = election.id;
-    const head = [
-      `Wahl-ID: ${id}`,
-      `Verfahren: ${election.procedure ?? 'noch nicht bestätigt'}`,
-      `Rechtsregel: ${election.legalRuleVersion}`,
-    ];
+    const procedure = election.procedure === 'simplified' ? 'vereinfachtes Wahlverfahren' : election.procedure === 'formal' ? 'förmliches Wahlverfahren' : 'Wahlverfahren';
+    const head = [`Verfahren: ${procedure}`];
     const voters = this.repo.listVoters(id);
     const members = this.repo.listBoardMembers(id);
     const candidates = this.repo.listCandidates(id);
@@ -142,7 +146,7 @@ export class SbvElectionDocumentService {
         const session = input.boardSessionId
           ? this.repo.listSessions(id).find((item) => item.id === input.boardSessionId)
           : undefined;
-        if (!session) throw new Error('Niederschrift benötigt eine Wahlvorstandssitzung.');
+        if (!session) throw new ApplicationError('VALIDATION_FAILED', 'Niederschrift benötigt eine Wahlvorstandssitzung.');
         return [
           ...head,
           `Sitzung: ${session.startsAt}`,
@@ -163,7 +167,7 @@ export class SbvElectionDocumentService {
         ];
       case 'election_notice': {
         if (election.procedure !== 'formal') {
-          throw new Error('Wahlausschreiben gehört zum förmlichen Verfahren.');
+          throw new ApplicationError('VALIDATION_FAILED', 'Wahlausschreiben gehört zum förmlichen Verfahren.');
         }
         const notice = validateElectionNoticeDetails(input.notice);
         return [
@@ -183,14 +187,9 @@ export class SbvElectionDocumentService {
         ];
       case 'simplified_invitation':
         if (election.procedure !== 'simplified') {
-          throw new Error('Einladung zur Wahlversammlung gehört zum vereinfachten Verfahren.');
+          throw new ApplicationError('VALIDATION_FAILED', 'Einladung zur Wahlversammlung gehört zum vereinfachten Verfahren.');
         }
-        return [
-          ...head,
-          'Einladung zur Wahlversammlung',
-          'Wahlzweck: Wahl der Schwerbehindertenvertretung',
-          `Termin: ${election.electionDate ?? 'noch einzutragen'}`,
-        ];
+        return [];
       case 'election_leadership_minutes':
         return [
           ...head,
@@ -211,5 +210,58 @@ export class SbvElectionDocumentService {
           'Frist: eine Woche gemäß gespeicherter zentraler Frist.',
         ];
     }
+  }
+
+  private definition(
+    title: string,
+    input: GenerateElectionPreparationDocumentInput,
+    election: ElectionRecord,
+  ): PdfDocumentDefinition {
+    if (input.kind === 'simplified_invitation') {
+      if (election.procedure !== 'simplified') {
+        throw new ApplicationError('VALIDATION_FAILED', 'Einladung zur Wahlversammlung gehört zum vereinfachten Verfahren.');
+      }
+      const invitation = input.invitation;
+      if (!invitation?.meetingStartsAt.trim() || !invitation.meetingPlace.trim()) {
+        throw new ApplicationError('VALIDATION_FAILED', 'Die Einladung benötigt Termin, Uhrzeit und Ort der Wahlversammlung.');
+      }
+      const meeting = new Intl.DateTimeFormat('de-DE', { dateStyle: 'full', timeStyle: 'short' })
+        .format(new Date(invitation.meetingStartsAt));
+      return externalLetterDocument({
+        title,
+        sender: ['Wahlleitung der Schwerbehindertenvertretungswahl'],
+        recipient: ['An die wahlberechtigten Beschäftigten des Betriebs'],
+        date: new Intl.DateTimeFormat('de-DE').format(new Date()),
+        subject: 'Einladung zur Wahlversammlung',
+        blocks: [
+          paragraph('Sehr geehrte Kolleginnen und Kollegen,'),
+          paragraph('hiermit laden wir Sie zur Wahlversammlung ein. In der Wahlversammlung wird die Schwerbehindertenvertretung gewählt.'),
+          section('Termin und Ort', [paragraph(meeting), paragraph(invitation.meetingPlace)]),
+          section('Gegenstand', [paragraph('Wahl der Vertrauensperson der schwerbehinderten Menschen und der stellvertretenden Mitglieder.')]),
+          paragraph(invitation.accessibilityNote?.trim() || 'Bitte teilen Sie der Wahlleitung frühzeitig mit, wenn Sie für Ihre Teilnahme Unterstützung oder eine barrierefreie Anpassung benötigen.'),
+          paragraph('Mit freundlichen Grüßen\nDie Wahlleitung'),
+        ],
+      });
+    }
+    const blocks = [section('Dokumentinhalt', [list(this.lines(input, election))])];
+    if (input.kind === 'election_notice' || input.kind === 'candidate_announcement' || input.kind === 'proposal_grace_notice') {
+      return publicNoticeDocument(title, 'Wahl der Schwerbehindertenvertretung', blocks);
+    }
+    if (input.kind === 'proposal_correction_notice') {
+      return externalLetterDocument({
+        title,
+        sender: ['Wahlvorstand der Schwerbehindertenvertretungswahl'],
+        recipient: ['An die einreichende Person oder Vorschlagsvertretung'],
+        date: new Intl.DateTimeFormat('de-DE').format(new Date()),
+        subject: title,
+        blocks: [paragraph('Sehr geehrte Damen und Herren,'), ...blocks, paragraph('Mit freundlichen Grüßen\nDer Wahlvorstand')],
+      });
+    }
+    return legalRecordDocument(
+      title,
+      'Wahl der Schwerbehindertenvertretung',
+      input.kind === 'voter_list' ? 'Vertrauliches Wahldokument' : 'Rechtlich relevantes Wahldokument',
+      blocks,
+    );
   }
 }

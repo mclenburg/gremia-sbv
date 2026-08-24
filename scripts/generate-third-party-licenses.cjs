@@ -354,7 +354,8 @@ async function resolvePackageRecord(lockPackagePath, meta) {
   // package-lock.json bestimmte Paketbaum ist daher die schnellste und zugleich
   // verlässlichste Primärquelle. Netzwerkzugriffe sind nur für plattformspezifische
   // optionale Pakete oder unvollständige Paketarchive erforderlich.
-  const localLicenseExpression = normalizeLicensesField(fallback.pkg);
+  const localPackageMetadata = { ...meta, ...fallback.pkg };
+  const localLicenseExpression = normalizeLicensesField(localPackageMetadata);
   if (!localLicenseExpression) {
     try {
       registryMetadata = await requestRegistryVersionMetadata(name, version);
@@ -368,7 +369,7 @@ async function resolvePackageRecord(lockPackagePath, meta) {
     }
   }
 
-  const packageJson = { ...tarPackageJson, ...registryMetadata, ...fallback.pkg };
+  const packageJson = { ...meta, ...tarPackageJson, ...registryMetadata, ...fallback.pkg };
   const licenseEntry = findFirstMatchingEntry(tarballEntries, (baseName) => /^licen[cs]e(?:\.|$)|^copying(?:\.|$)/iu.test(baseName));
   const noticeEntry = findFirstMatchingEntry(tarballEntries, (baseName) => /^notice(?:\.|$)|^copyright(?:\.|$)/iu.test(baseName));
   const readmeEntry = findFirstMatchingEntry(tarballEntries, (baseName) => /^readme(?:\.|$)/iu.test(baseName));
@@ -560,6 +561,7 @@ module.exports = {
   isGenerationCurrent,
   mapWithConcurrency,
   packageRecordsFromLock,
+  resolvePackageRecord,
   sha256File,
 };
 

@@ -94,11 +94,59 @@ describe('ElectionArchiveService 0.9.7-D human-readable records', () => {
       expect(noticeText).toContain('Einsicht Wählerliste');
       expect(noticeText).toContain('Stützunterschriften');
 
+      const simplifiedService = new SbvElectionService(env.db);
+      const simplified = simplifiedService.create({ kind: 'regular', electionDate: '2026-10-12' });
+      simplifiedService.configureSetup(simplified.id, {
+        eligibilityCheckDate: '2026-08-20', confirmedSeverelyDisabledCount: 12, confirmedEqualizedCount: 2,
+        pendingEqualizationCount: 0, spatiallySeparated: false, electionDate: '2026-10-12',
+        procedure: 'simplified', deputyCount: 1,
+      });
+      const invitation = await preparation.generate(simplified.id, {
+        kind: 'simplified_invitation',
+        invitation: {
+          meetingStartsAt: '2026-10-12T10:00:00.000Z',
+          meetingPlace: 'Barrierefreier Konferenzraum A',
+          accessibilityNote: 'Gebärdensprachdolmetschung kann bei der Wahlleitung angefordert werden.',
+        },
+      });
+      const invitationText = (await inspectPdf(await documents.read(invitation.id))).textByPage.join(' ');
+      expect(invitationText).toContain('Sehr geehrte Kolleginnen und Kollegen');
+      expect(invitationText).toContain('Barrierefreier Konferenzraum A');
+      expect(invitationText).toContain('Gebärdensprachdolmetschung');
+      expect(invitationText).not.toContain('Wahl-ID');
+      expect(invitationText).not.toContain('Rechtsregel');
+      expect(invitationText).not.toContain('Prüfstatus');
+
       const archive = new ElectionArchiveService(env.db, documents);
       const ballot = await archive.generate(env.election.id, { kind: 'ballot_deputy' });
       const ballotPdf = await inspectPdf(await documents.read(ballot.id));
       expect(ballotPdf.textByPage.join(' ')).toContain('Müller, Anna');
       expect(ballotPdf.textByPage.join(' ')).toContain('Keine Unterschrift auf dem Stimmzettel');
+
+      const voter = env.raw.prepare("SELECT id FROM sbv_election_voters WHERE election_id=?").get(env.election.id) as { id: string };
+      const mailBallotPackage = await archive.generate(env.election.id, {
+        kind: 'mail_ballot_package',
+        mailBallotPackage: {
+          voterId: voter.id,
+          voterPostalAddress: 'Musterstraße 12\n12345 Musterstadt',
+          electionBoardPostalAddress: 'Wahlvorstand SBV\nBetrieb GmbH\nWahlweg 1\n12345 Musterstadt',
+          votingEndsAt: '2026-09-20T16:00',
+        },
+      });
+      const mailBallotPdf = await inspectPdf(await documents.read(mailBallotPackage.id));
+      const mailBallotText = mailBallotPdf.textByPage.join(' ');
+      expect(mailBallotPdf.textByPage.length).toBeGreaterThanOrEqual(4);
+      expect(mailBallotText).toContain('Merkblatt zur schriftlichen Stimmabgabe');
+      expect(mailBallotText).toContain('Jörg Müller');
+      expect(mailBallotText).toContain('Müller, Anna');
+      expect(mailBallotText).toContain('Persönliche Erklärung');
+      expect(mailBallotText).toContain('SCHRIFTLICHE STIMMABGABE');
+      expect(mailBallotText).toContain('Musterstraße 12');
+      expect(mailBallotText).toContain('Wahlvorstand SBV');
+      expect(mailBallotText).not.toContain('Wahl-ID');
+      expect(mailBallotText).not.toContain('Rechtsregel');
+      expect(mailBallotText).not.toContain('Gremia.SBV');
+      expect(mailBallotPdf.hasStructureTree).toBe(true);
 
       const archiveRecord = await archive.exportPdfArchive(env.election.id);
       const archivePdf = await inspectPdf(await documents.read(archiveRecord.id));

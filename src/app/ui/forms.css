@@ -6,6 +6,13 @@
   min-width: 0;
 }
 
+.industrial-modal-form {
+  display: grid;
+  gap: var(--space-4, 1rem);
+  min-width: 0;
+  width: 100%;
+}
+
 .industrial-form-section.industrial-panel {
   padding: var(--space-4, 1rem);
 }
@@ -255,4 +262,3 @@ html[data-theme='light'] .industrial-modal-grid textarea::placeholder {
   color: #6a6a60;
   opacity: 1;
 }
-

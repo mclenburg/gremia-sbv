@@ -35,7 +35,7 @@ type ConsoleMessageLike = {
 type PageLike = {
   close(): Promise<void>;
   emulateMedia(options: { colorScheme: 'light'; reducedMotion: 'no-preference'; forcedColors: 'none' }): Promise<void>;
-  evaluate(pageFunction: () => void): Promise<void>;
+  evaluate(pageFunction: () => void | Promise<void>): Promise<void>;
   getByRole(role: string, options?: { name?: string | RegExp }): LocatorLike;
   goto(url: string): Promise<unknown>;
   isClosed(): boolean;
@@ -76,8 +76,21 @@ type E2eWindow = Window & {
 const REACT_RENDER_LOOP_ERROR = 'Maximum update depth exceeded';
 
 async function closeTransientUi(page: PageLike) {
-  for (let attempt = 0; attempt < 6 && await page.getByRole('dialog').count() > 0; attempt += 1) {
+  for (let attempt = 0; attempt < 10 && await page.getByRole('dialog').count() > 0; attempt += 1) {
+    await page.evaluate(() => {
+      const dialogs = document.querySelectorAll<HTMLElement>('[role="dialog"], [role="alertdialog"]');
+      dialogs.item(dialogs.length - 1)?.focus();
+    });
     await page.keyboard.press('Escape');
+    // React muss den durch Escape ausgelösten Zustandswechsel übernehmen, bevor
+    // ein eventuell darunterliegender Dialog ermittelt und geschlossen wird.
+    await page.evaluate(() => new Promise<void>((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+    }));
+  }
+
+  if (await page.locator('.industrial-modal-backdrop').count() > 0) {
+    throw new Error('Die E2E-Grundinitialisierung konnte einen modalen UI-Zustand nicht regulär schließen.');
   }
 }
 
@@ -92,6 +105,12 @@ async function prepareSharedApp(page: PageLike) {
   });
   await page.emulateMedia({ colorScheme: 'light', reducedMotion: 'no-preference', forcedColors: 'none' });
   await page.setViewportSize({ width: 1440, height: 900 });
+  // Der Mock-Reset kann eine im vorherigen Test vorgemerkte Fachnavigation noch einmal
+  // rendern. Schließe daraus erneut entstehende Modale regulär, bevor die Grundroute öffnet.
+  await page.evaluate(() => new Promise<void>((resolve) => {
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+  }));
+  await closeTransientUi(page);
 
   const dashboardButton = page.locator('[data-e2e="main-nav-dashboard"]');
   if (await dashboardButton.count()) {

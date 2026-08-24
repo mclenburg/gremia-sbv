@@ -512,9 +512,11 @@ test.describe('SBV-Wahlen – gerenderter UI- und Formularvertrag', () => {
     await setTheme(page, 'dark');
       await openRoute(page, 'Wahlen');
 
-    await page.getByLabel('Wahlart').selectOption('extraordinary_no_sbv');
-    await page.getByLabel('Wahlgrund').fill('UI-Vertrag');
     await page.getByRole('button', { name: 'Wahlvorgang anlegen' }).click();
+    const createDialog = page.getByRole('dialog', { name: 'Neuen Wahlvorgang anlegen' });
+    await createDialog.getByLabel('Wahlart').selectOption('extraordinary_no_sbv');
+    await createDialog.getByLabel('Wahlgrund').fill('UI-Vertrag');
+    await createDialog.getByRole('button', { name: 'Wahlvorgang anlegen' }).click();
     await page.getByLabel('Bestätigt schwerbehindert').fill('50');
     await page.getByLabel('Verfahren', { exact: true }).selectOption('formal');
     await page.getByRole('button', { name: 'Prüfung speichern' }).click();
@@ -538,4 +540,29 @@ test.describe('SBV-Wahlen – gerenderter UI- und Formularvertrag', () => {
       }
     }
   });
+});
+
+test('Gleichstellungs-/GdB-Erstanlage nutzt die Dialogbreite ohne gequetschte Formularspalten', async ({ page }) => {
+  await openRoute(page, 'Gleichstellung');
+  await page.getByRole('button', { name: 'Vorgang anlegen', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'Gleichstellungs-/GdB-Vorgang anlegen' });
+  await expect(dialog).toBeVisible();
+
+  const geometry = await dialog.evaluate((element) => {
+    const controls = Array.from(element.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>('input, select, textarea'))
+      .filter((control) => {
+        const rect = control.getBoundingClientRect();
+        return rect.width > 0 && rect.height > 0;
+      })
+      .map((control) => control.getBoundingClientRect());
+    return {
+      horizontalOverflow: element.scrollWidth > element.clientWidth + 1,
+      minimumControlWidth: Math.min(...controls.map((rect) => rect.width)),
+      controlsInsideDialog: controls.every((rect) => rect.left >= element.getBoundingClientRect().left && rect.right <= element.getBoundingClientRect().right),
+    };
+  });
+
+  expect(geometry.horizontalOverflow).toBe(false);
+  expect(geometry.minimumControlWidth).toBeGreaterThanOrEqual(220);
+  expect(geometry.controlsInsideDialog).toBe(true);
 });

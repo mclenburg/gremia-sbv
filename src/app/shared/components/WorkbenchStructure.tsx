@@ -28,18 +28,9 @@ export function WorkbenchPage({
       description={description}
       helpId={helpId}
       compact={compact}
+      actions={actions}
     >
       <div className="workbench-page">
-        {actions ? (
-          <WorkbenchHeader
-            title={title}
-            kicker={kicker}
-            description={description}
-            actions={actions}
-            helpId={helpId}
-            visuallyHiddenTitle
-          />
-        ) : null}
         {children}
       </div>
     </ModuleFrame>

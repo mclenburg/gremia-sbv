@@ -14,7 +14,7 @@ export function LoginGate({
   onResetToSetup,
 }: {
   mode: AuthMode;
-  onUnlock: () => void;
+  onUnlock: (warning?: string) => void;
   onResetToSetup: () => void;
 }) {
   const [password, setPassword] = useState("");
@@ -49,7 +49,7 @@ export function LoginGate({
 
   if (pendingRecoveryKey) {
     return (
-      <RecoveryKeyPanel recoveryKey={pendingRecoveryKey} onConfirm={onUnlock} />
+      <RecoveryKeyPanel recoveryKey={pendingRecoveryKey} onConfirm={() => onUnlock()} />
     );
   }
 
@@ -99,7 +99,7 @@ export function LoginGate({
         setError(result.error ?? "Entsperren fehlgeschlagen.");
         return;
       }
-      onUnlock();
+      onUnlock(result.warning);
     } catch (error) {
       console.error("Gremia.SBV security operation failed", error);
       setError(

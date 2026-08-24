@@ -50,6 +50,42 @@ test('Gleichstellung anlegen und aktualisieren', async ({ productPage, runtimeEr
   await assertNoRuntimeErrors(runtimeErrors);
 });
 
+test('Geführte Gleichstellungs-Erstanlage erzeugt sichtbar Person, Fall und Verfahren', async ({ productPage, runtimeErrors }) => {
+  await productPage.getByRole('navigation', { name: 'Hauptnavigation' }).getByRole('button', { name: 'Gleichstellung', exact: true }).click();
+  await productPage.getByRole('button', { name: 'Vorgang anlegen', exact: true }).click();
+  const dialog = productPage.getByRole('dialog', { name: 'Gleichstellungs-/GdB-Vorgang anlegen' });
+  await expect(dialog).toContainText('Personeneintrag');
+  await expect(dialog).toContainText('verknüpfte Fallakte');
+  await expect(dialog).toContainText('Die Löschung bleibt manuell');
+  await dialog.getByLabel('Vorname').fill('Geführte');
+  await dialog.getByLabel('Nachname').fill('Erstanlage');
+  await dialog.getByLabel('Aktenzeichen').fill('E2E-INTAKE-1');
+  await dialog.getByLabel('Kurzbeschreibung / Anliegen').fill('Funktionsprüfung des zusammengehörigen Anlagevorgangs');
+  await dialog.getByRole('button', { name: 'Person, Fall und Verfahren anlegen' }).click();
+  await expect(dialog).toBeHidden();
+
+  const state = await productPage.evaluate(async () => {
+    const [cases, persons, processes, retention] = await Promise.all([
+      window.gremiaSbv.cases.list(),
+      window.gremiaSbv.persons.list(),
+      window.gremiaSbv.equalization.list(),
+      window.gremiaSbv.retention.dashboard(),
+    ]);
+    const caseRecord = cases.find((item) => item.caseNumber === 'E2E-INTAKE-1');
+    const person = persons.find((item) => item.firstName === 'Geführte' && item.lastName === 'Erstanlage');
+    return {
+      caseRecord,
+      person,
+      process: processes.find((item) => item.caseId === caseRecord?.id),
+      personDeletionCandidate: retention.candidates.find((item) => item.entityType === 'protected_person' && item.entityId === person?.id),
+    };
+  });
+  expect(state.caseRecord?.protectedPersonId).toBe(state.person?.id);
+  expect(state.process?.applicationStatus).toBe('beratung');
+  expect(state.personDeletionCandidate).toBeUndefined();
+  await assertNoRuntimeErrors(runtimeErrors);
+});
+
 test('Kündigungsanhörung anlegen und aktualisieren', async ({ productPage, runtimeErrors }) => {
   const row = await productPage.evaluate(async ({ linkedCaseId }) => window.gremiaSbv.termination.create({ caseId: linkedCaseId, terminationType: 'ordentlich', protectionStatus: 'schwerbehindert', employerReason: 'E2E' }), { linkedCaseId: caseId });
   const updated = await productPage.evaluate(async ({ id }) => window.gremiaSbv.termination.update(id, { status: 'stellungnahme_in_arbeit', sbvAssessment: 'Nicht sozial gerechtfertigt' }), { id: row.id });

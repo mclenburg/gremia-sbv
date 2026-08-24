@@ -25,12 +25,15 @@ Bei Gleichstellungsvorgängen besteht schnell die Gefahr, Gesundheitsdaten zu de
 
 ## Typischer Ablauf
 
-1. **Beratung erfassen.** Halte Anlass, Ziel und vereinbarte nächste Schritte fest.
-2. **Unterlagen prüfen.** Erfasse nur, welche Unterlagen vorliegen oder fehlen; Inhalte nur soweit nötig.
-3. **Fristen setzen.** Lege Wiedervorlagen für Antrag, Rückmeldung der Agentur für Arbeit oder Arbeitgeberreaktionen an.
-4. **Arbeitsplatzbezug dokumentieren.** Beschreibe, welche berufliche Schwierigkeit durch die Gleichstellung abgesichert werden soll.
-5. **Maßnahmen verknüpfen.** Wenn Arbeitsplatzanpassung, BEM oder Prävention relevant sind, verknüpfe die Vorgänge über die Fallakte.
-6. **Tätigkeit journalisieren.** Erfasse deine SBV-Arbeit im Tätigkeitsjournal, ohne sensible Details zu wiederholen.
+1. **Vorgang anlegen.** Über die zentrale Aktion **Vorgang anlegen** erzeugst du geführt eine Person beziehungsweise wählst eine vorhandene Person aus. Gremia.SBV legt dazu gemeinsam eine verknüpfte Fallakte und ein Gleichstellungs-/GdB-Verfahren an. Im Dialog ist diese Wirkung vor dem Speichern sichtbar; **Abbrechen** verlässt ihn ohne neue Datensätze.
+2. **Beratung erfassen.** Halte Anlass, Ziel und vereinbarte nächste Schritte fest.
+3. **Unterlagen prüfen.** Erfasse nur, welche Unterlagen vorliegen oder fehlen; Inhalte nur soweit nötig.
+4. **Fristen setzen.** Lege Wiedervorlagen für Antrag, Rückmeldung der Agentur für Arbeit oder Arbeitgeberreaktionen an.
+5. **Arbeitsplatzbezug dokumentieren.** Beschreibe, welche berufliche Schwierigkeit durch die Gleichstellung abgesichert werden soll.
+6. **Maßnahmen verknüpfen.** Wenn Arbeitsplatzanpassung, BEM oder Prävention relevant sind, verknüpfe die Vorgänge über die Fallakte.
+7. **Tätigkeit journalisieren.** Erfasse deine SBV-Arbeit im Tätigkeitsjournal, ohne sensible Details zu wiederholen.
+
+Bei einer neuen namentlich bekannten Person sind Vor- und Nachname erforderlich. Für eine datensparsame Erstberatung kann stattdessen eine pseudonyme Anfrage angelegt werden. Eine bereits vorhandene Person wird nur verknüpft und nicht doppelt angelegt. Aufbewahrung und Löschprüfung folgen dem Verfahren und der Fallakte; die Löschung bleibt eine manuelle Entscheidung.
 
 ## Abgrenzung zur Schwerbehinderung
 

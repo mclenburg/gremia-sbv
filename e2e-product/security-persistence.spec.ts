@@ -38,7 +38,10 @@ test('Lock blendet Fachinhalte aus und sperrt IPC-Datenzugriffe bis zur erneuten
 
 test('globales // legt über echte UI, Preload und IPC eine dauerhaft gelistete Frist an', async ({ productPage, runtimeErrors }) => {
   await openModule(productPage, 'Journal');
-  const description = productPage.getByLabel('Kurzbeschreibung / Kontext');
+  await productPage.getByRole('button', { name: 'Tätigkeit erfassen' }).click();
+  const journalDialog = productPage.getByRole('dialog', { name: 'Tätigkeit erfassen' });
+  await expect(journalDialog).toBeVisible();
+  const description = journalDialog.getByLabel('Kurzbeschreibung / Kontext');
   const title = `Produkt-Kurzbefehlsfrist ${Date.now()}`;
   await description.fill('//');
 
@@ -55,6 +58,8 @@ test('globales // legt über echte UI, Preload und IPC eine dauerhaft gelistete 
   }, title);
   expect(created?.title).toBe(title);
 
+  await journalDialog.press('Escape');
+  await expect(journalDialog).toBeHidden();
   await productPage.getByRole('button', { name: 'Sperren', exact: true }).click();
   await productPage.getByLabel('App-Passwort', { exact: true }).fill(PRODUCT_PASSWORD);
   await productPage.getByRole('button', { name: 'Entsperren' }).click();

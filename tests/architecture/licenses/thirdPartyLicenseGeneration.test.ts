@@ -16,6 +16,11 @@ import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const licenseGenerator = require('../../../scripts/generate-third-party-licenses.cjs') as {
   inferLicenseExpression(licenseText: string): string;
+  resolvePackageRecord(lockPackagePath: string, meta: Record<string, unknown>): Promise<{
+    name: string;
+    version: string;
+    licenseExpression: string;
+  }>;
 };
 const fastLicenseGenerator = require('../../../scripts/generate-third-party-licenses-fast.cjs') as {
   cacheStatus(projectRoot: string): { current: boolean; reason: string };
@@ -69,6 +74,17 @@ describe('Third-Party-Lizenzprüfung 0.9.2y', () => {
 
     expect(licenseGenerator.inferLicenseExpression(text)).toBe('MIT');
     expect(licenseGenerator.inferLicenseExpression('individuelle oder mehrdeutige Lizenz')).toBe('');
+  });
+
+  it('verwendet Lizenzmetadaten aus dem Lockfile für nicht installierte optionale Pakete offline', async () => {
+    await expect(licenseGenerator.resolvePackageRecord(
+      'node_modules/@example/not-installed-optional-package',
+      { name: '@example/not-installed-optional-package', version: '1.2.3', license: 'MIT', optional: true },
+    )).resolves.toMatchObject({
+      name: '@example/not-installed-optional-package',
+      version: '1.2.3',
+      licenseExpression: 'MIT',
+    });
   });
 
   it('verweigert inkonsistente generierte Artefakte offline mit konkreter Ursache', () => {

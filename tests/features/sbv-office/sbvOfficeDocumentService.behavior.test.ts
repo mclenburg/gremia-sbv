@@ -36,7 +36,7 @@ describe('SbvOfficeDocumentService', () => {
     const adapter = { store: async (input: unknown) => { calls.push(input); return { id: 'd-2', filename: 'report.pdf', sha256: 'b'.repeat(64) }; } };
     const build = vi.fn((input: unknown) => ({
       title: 'Tätigkeitsbericht der SBV', warnings: [], metrics: {},
-      document: { title: 'Tätigkeitsbericht der SBV', blocks: [{ type: 'paragraph' as const, text: 'Nur aus der verifizierten Audit-Chain.' }] },
+      document: { profile: 'external_report' as const, title: 'Tätigkeitsbericht der SBV', blocks: [{ type: 'paragraph' as const, text: 'Nur aus der verifizierten Audit-Chain.' }] },
       input,
     }));
     const reports = { build };

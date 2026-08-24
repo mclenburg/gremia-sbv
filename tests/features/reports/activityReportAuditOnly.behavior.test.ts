@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { computeAuditEntryHash, PERSONAL_DATA_AUDIT_GENESIS_HASH } from '../../../services/auditHashChain';
 import type { DatabaseAdapter } from '../../../services/databaseService';
 import { ReportService } from '../../../services/reportService';
+import { createPdfDocument } from '../../../services/documents/pdfDocumentRenderer';
+import { inspectPdf } from '../../helpers/pdf';
 
 interface AuditSeed { action: string; subjectType: string; subjectId: string; metadata: Record<string, unknown> }
 
@@ -44,7 +46,7 @@ class AuditOnlyDatabase implements DatabaseAdapter {
 }
 
 describe('Tätigkeitsbericht aus der verifizierten Audit-Chain', () => {
-  it('erzeugt alle Kennzahlen ohne Zugriff auf Fachtabellen', () => {
+  it('erzeugt alle Kennzahlen ohne Zugriff auf Fachtabellen und hält technische Chain-Metadaten aus dem externen Bericht', async () => {
     const db = new AuditOnlyDatabase(auditChain([
       { action: 'create', subjectType: 'case', subjectId: 'case-1', metadata: { category: 'beratung' } },
       { action: 'create', subjectType: 'activity_journal', subjectId: 'journal-1', metadata: { category: 'documentation', status: 'final', hasTime: true } },
@@ -55,5 +57,11 @@ describe('Tätigkeitsbericht aus der verifizierten Audit-Chain', () => {
     expect(report.metrics).toMatchObject({ 'Neue Fälle': 1, 'Neue Maßnahmen': 1, 'Journal-Einträge': 1, 'Beteiligungsverstöße': 1 });
     expect(db.queries).toHaveLength(1);
     expect(report.document.blocks.length).toBeGreaterThan(2);
+    expect(report.document.profile).toBe('external_report');
+    const text = (await inspectPdf(await createPdfDocument(report.document))).textByPage.join(' ');
+    expect(text).toContain('ausschließlich aus der vor der Erzeugung verifizierten Audit-Chain');
+    expect(text).not.toContain('letzte Sequenz');
+    expect(text).not.toContain('letzter Hash');
+    expect(text).not.toContain('Prüfstatus');
   });
 });
