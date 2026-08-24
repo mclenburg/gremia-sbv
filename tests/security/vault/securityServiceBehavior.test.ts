@@ -5,6 +5,7 @@ import path from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { SecurityService, type SecurityFileOperations } from '../../../services/securityService';
 import { atomicWriteFileSync } from '../../../services/secureFileOperations';
+import { decryptReportArchive } from '../../../services/reports/reportArchiveCrypto';
 import { ApplicationError } from '../../../src/domain/models/application-error.model';
 
 const PASSWORD = 'SehrSicheresPasswort!2026';
@@ -108,6 +109,48 @@ describe('security service behavior', () => {
     expect(service.isUnlocked()).toBe(true);
   });
 
+  it('bereinigt alte Klartext-PDF-Exporte bei erfolgreichem Passwort-Unlock mit dem aktiven Tresorschlüssel', async () => {
+    const dataDir = tempDataDir();
+    createdDirs.push(dataDir);
+    const service = createService(dataDir);
+    await service.setupInitialPassword(PASSWORD);
+    const source = path.join(dataDir, 'exports', 'alter-tätigkeitsbericht.pdf');
+    const target = `${source}.gsbvpdf`;
+    const pdf = Buffer.from('%PDF-1.7\nGremia.SBV Tätigkeitsbericht mit ÄÖÜ äöü ß\n%%EOF', 'utf8');
+    writeFileSync(source, pdf);
+    service.lock();
+
+    const result = await service.unlock(PASSWORD);
+
+    expect(result).toMatchObject({ ok: true, unlocked: true });
+    expect(result.warning).toBeUndefined();
+    expect(existsSync(source)).toBe(false);
+    const key = service.getActiveDatabaseKey();
+    const verified = decryptReportArchive(readFileSync(target, 'utf8'), key);
+    expect(verified.originalFileName).toBe('alter-tätigkeitsbericht.pdf');
+    expect(verified.pdf).toEqual(pdf);
+    verified.pdf.fill(0);
+    key.fill(0);
+  });
+
+  it('entsperrt trotz nicht sicher überführbarer Datei ehrlich und lässt das Original zur Datenschutzprüfung bestehen', async () => {
+    const dataDir = tempDataDir();
+    createdDirs.push(dataDir);
+    const service = createService(dataDir);
+    await service.setupInitialPassword(PASSWORD);
+    const source = path.join(dataDir, 'exports', 'unbekannter-altbestand.pdf');
+    const unknownContent = Buffer.from('Dateiendung behauptet PDF, Inhalt ist aber unbekannt.');
+    writeFileSync(source, unknownContent);
+    service.lock();
+
+    const result = await service.unlock(PASSWORD);
+
+    expect(result).toMatchObject({ ok: true, unlocked: true });
+    expect(result.warning).toMatch(/1 Datei.*Originaldatei.*Datenschutzprüfung.*nächsten Entsperren/i);
+    expect(readFileSync(source)).toEqual(unknownContent);
+    expect(existsSync(`${source}.gsbvpdf`)).toBe(false);
+  });
+
   it('blocks unlock temporarily after repeated wrong passwords and does not persist the attempt counter', async () => {
     const dataDir = tempDataDir();
     createdDirs.push(dataDir);
@@ -153,11 +196,16 @@ describe('security service behavior', () => {
     const setup = await service.setupInitialPassword(PASSWORD);
     expect(setup.recoveryKey).toBeTruthy();
 
+    const source = path.join(dataDir, 'exports', 'recovery-altbestand.pdf');
+    const target = `${source}.gsbvpdf`;
+    writeFileSync(source, Buffer.from('%PDF-1.7\nRecovery-Altbestand\n%%EOF'));
     service.lock();
     rmSync(path.join(dataDir, 'security.json'), { force: true });
     const recovery = await service.resetPasswordWithRecoveryKey(setup.recoveryKey!, NEXT_PASSWORD);
 
     expect(recovery).toMatchObject({ ok: true, initialized: true, unlocked: true });
+    expect(existsSync(source)).toBe(false);
+    expect(existsSync(target)).toBe(true);
     service.lock();
     const unlock = await service.unlock(NEXT_PASSWORD);
     expect(unlock.ok).toBe(true);

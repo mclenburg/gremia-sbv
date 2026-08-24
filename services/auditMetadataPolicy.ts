@@ -138,6 +138,13 @@ const SECURITY_SESSION_METADATA_FIELDS = [
   'eventType',
   'result',
   'reasonCode',
+  'converted',
+  'recoveredExisting',
+  'invalidPdf',
+  'unsupported',
+  'symbolicLinks',
+  'failed',
+  'requiresReview',
 ] as const;
 
 const SEARCH_INDEX_METADATA_FIELDS = [

@@ -140,4 +140,30 @@ describe('Audit-Metadatenpolicy 0.9.4c', () => {
     expect(AUDIT_METADATA_POLICY_BY_SUBJECT_TYPE.sbv_participation_violation_document).toContain('templateVersion');
     expect(AUDIT_METADATA_POLICY_BY_SUBJECT_TYPE.sbv_participation_violation_document).not.toContain('wrongBehavior');
   });
+
+  it('protokolliert von der automatischen Klartextbereinigung nur datensparsame Zähler', () => {
+    const metadata = JSON.parse(normalizeAuditMetadata({
+      eventType: 'cleanup',
+      converted: 2,
+      recoveredExisting: 1,
+      invalidPdf: 1,
+      unsupported: 3,
+      symbolicLinks: 1,
+      failed: 1,
+      requiresReview: 6,
+      filePath: 'exports/vertraulicher-tätigkeitsbericht.pdf',
+    }, 'security_session'));
+
+    expect(metadata).toMatchObject({
+      eventType: 'cleanup',
+      converted: 2,
+      recoveredExisting: 1,
+      invalidPdf: 1,
+      unsupported: 3,
+      symbolicLinks: 1,
+      failed: 1,
+      requiresReview: 6,
+    });
+    expect(metadata).not.toHaveProperty('filePath');
+  });
 });

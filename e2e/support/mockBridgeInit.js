@@ -590,11 +590,15 @@
 
   const authSearchParams = new URLSearchParams(window.location.search || '');
   const authScenario = authSearchParams.get('auth') || 'unlocked';
+  const startsLocked = authScenario === 'locked' || authScenario === 'locked-cleanup-warning';
   let securityState = {
     initialized: authScenario !== 'setup',
-    unlocked: authScenario !== 'locked' && authScenario !== 'recovery-required' && authScenario !== 'setup',
+    unlocked: !startsLocked && authScenario !== 'recovery-required' && authScenario !== 'setup',
     recoveryRequired: authScenario === 'recovery-required',
     password: 'korrekt-pferd-batterie',
+    maintenanceWarning: authScenario === 'locked-cleanup-warning'
+      ? 'Die automatische Klartextbereinigung konnte 1 Datei nicht sicher abschließen. Die Originaldatei blieb unverändert und wird in der Datenschutzprüfung angezeigt.'
+      : undefined,
     recoveryKey: 'ABCD-EFGH-IJKL-MNOP',
     destroyed: false,
     resetCalls: [],
@@ -676,7 +680,7 @@
         }
         securityState.unlocked = true;
         securityState.recoveryRequired = false;
-        return { ok: true, initialized: true, unlocked: true };
+        return { ok: true, initialized: true, unlocked: true, warning: securityState.maintenanceWarning };
       },
       setupInitialPassword: async (password) => {
         securityState.initialized = true;

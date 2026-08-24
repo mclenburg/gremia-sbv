@@ -29,6 +29,7 @@ import { applyTheme, getInitialTheme, nowLabel, type ThemeMode } from "./workflo
 import { DeadlinesView, DeadlineEditor } from "./features/deadlines/DeadlinesView";
 import { LoginGate } from "./features/auth/LoginGate";
 import { waitForBridge } from "./core/bridge/waitForBridge";
+import { ToolbarButton } from "./shared/components/IndustrialButton";
 const IMPLEMENTED_VIEW_IDS = new Set<ViewId>([
   "dashboard",
   "cases",
@@ -98,13 +99,18 @@ function WorkplaceAccommodationContainer({
 function useSecuritySession() {
   const [authMode, setAuthMode] = useState<AuthMode>("loading");
   const [unlocked, setUnlocked] = useState(false);
+  const [maintenanceWarning, setMaintenanceWarning] = useState("");
   const switchToLockedSession = useCallback(() => {
     const locked = toLockedSessionState({ unlocked: true, authMode: "login" as AuthMode });
-    setUnlocked(locked.unlocked); setAuthMode(locked.authMode);
+    setMaintenanceWarning(""); setUnlocked(locked.unlocked); setAuthMode(locked.authMode);
   }, []);
   const switchToUnavailableSession = useCallback(() => {
-    setUnlocked(false);
+    setMaintenanceWarning(""); setUnlocked(false);
     setAuthMode("unavailable");
+  }, []);
+  const completeUnlock = useCallback((warning?: string) => {
+    setMaintenanceWarning(warning ?? "");
+    setUnlocked(true);
   }, []);
   useAutoLock({
     enabled: unlocked,
@@ -135,6 +141,9 @@ function useSecuritySession() {
     setAuthMode,
     unlocked,
     setUnlocked,
+    completeUnlock,
+    maintenanceWarning,
+    dismissMaintenanceWarning: () => setMaintenanceWarning(""),
     switchToLockedSession,
     switchToUnavailableSession,
   };
@@ -269,12 +278,19 @@ function ProcessViews({ currentView, setCurrentView, work, caseNodeTarget, setCa
 }
 
 function WorkspaceMain(props: PrimaryViewsProps & { currentModule?: (typeof modules)[number]; openCaseNode: (target: CaseNodeTarget) => void;
-  theme: ThemeMode; setTheme: (theme: ThemeMode) => void; }) {
+  theme: ThemeMode; setTheme: (theme: ThemeMode) => void; securityWarning?: string; onDismissSecurityWarning: () => void; }) {
   const { currentView, currentModule, setCurrentView, work } = props;
   return <main id="main-content" className="industrial-content" tabIndex={-1}>
     <header className="industrial-topbar"><div><p className="font-mono text-xs uppercase tracking-[0.28em] text-zinc-500">Arbeitsplatz</p>
       <h2>{currentView === "dashboard" ? "Dashboard" : currentView === "settings" ? "Einstellungen" : currentModule?.title}</h2></div>
       <div className="industrial-state"><CheckCircle2 className="h-4 w-4 text-yellow-300" />entsperrt · {nowLabel()}</div></header>
+    {props.securityWarning && <div className="industrial-message industrial-message-warning mb-4" role="alert">
+      <p>{props.securityWarning}</p>
+      <div className="industrial-search-actions mt-3">
+        <ToolbarButton onClick={() => setCurrentView("privacy_review")}>Datenschutzprüfung öffnen</ToolbarButton>
+        <ToolbarButton onClick={props.onDismissSecurityWarning}>Hinweis schließen</ToolbarButton>
+      </div>
+    </div>}
     {work.dataError && <div className="industrial-message industrial-message-warning mb-4" role="alert">{work.dataError}</div>}
     <PrimaryViews {...props} />
     <ProcessViews currentView={currentView} setCurrentView={setCurrentView} work={work} caseNodeTarget={props.caseNodeTarget}
@@ -311,7 +327,7 @@ export function App() {
   const openCaseNode = (target: CaseNodeTarget) => { setCaseNodeTarget(target); setCurrentView("cases"); };
   useModalKeyboardShortcuts({ setCurrentView });
   useEffect(() => { applyTheme(theme); }, [theme]);
-  if (!security.unlocked) return <LoginGate mode={security.authMode} onUnlock={() => security.setUnlocked(true)}
+  if (!security.unlocked) return <LoginGate mode={security.authMode} onUnlock={security.completeUnlock}
     onResetToSetup={() => { security.setUnlocked(false); security.setAuthMode("setup"); }} />;
   const viewProps: PrimaryViewsProps = { currentView, setCurrentView, work, caseNodeTarget, setCaseNodeTarget,
     activityJournalPrefill: journal.activityJournalPrefill, setActivityJournalPrefill: journal.setActivityJournalPrefill,
@@ -325,6 +341,7 @@ export function App() {
       else security.switchToUnavailableSession();
     }}
   >
-    <WorkspaceMain {...viewProps} currentModule={currentModule} openCaseNode={openCaseNode} theme={theme} setTheme={setTheme} />
+    <WorkspaceMain {...viewProps} currentModule={currentModule} openCaseNode={openCaseNode} theme={theme} setTheme={setTheme}
+      securityWarning={security.maintenanceWarning} onDismissSecurityWarning={security.dismissMaintenanceWarning} />
   </AppShell>;
 }

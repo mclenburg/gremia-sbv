@@ -31,8 +31,42 @@ import { atomicWriteFileSync, commitAtomicArtifacts } from "../secureFileOperati
 import { validateAppPassword, validatePasswordStore, validateVaultManifest, type KeyWrap, type PasswordStore, type ScryptKdfParams, type VaultManifest } from "../securityArtifactValidation.js";
 import { UnlockDelayService } from './unlockDelayService.js';
 import { CURRENT_SCRYPT_PARAMS, VAULT_DATABASE_FILE_NAME, createRecoveryKey, derivePasswordVerifier, deriveRecoveryVerifier, formatVaultOpenError, needsKdfUpgrade, normalizeRecoveryKey, safeDestroyBuffer, safeEqualsHex, unwrapDatabaseKey, validatePassword, wrapDatabaseKey } from './securitySupport.js';
+import {
+  LegacyPlaintextExportCleanupService,
+  buildLegacyPlaintextCleanupWarning,
+  type LegacyPlaintextExportCleanupResult,
+} from './legacyPlaintextExportCleanupService.js';
 
 export class VaultSetupUnlockService extends UnlockDelayService {
+  protected cleanupLegacyPlaintextExports(databaseKey: Buffer): LegacyPlaintextExportCleanupResult {
+        let result: LegacyPlaintextExportCleanupResult;
+        try {
+          result = new LegacyPlaintextExportCleanupService().cleanup({ dataDir: this.dataDir, databaseKey });
+        } catch {
+          result = {
+            converted: 0,
+            recoveredExisting: 0,
+            invalidPdf: 0,
+            unsupported: 0,
+            symbolicLinks: 0,
+            failed: 1,
+            requiresReview: 1,
+          };
+        }
+        if (result.converted + result.recoveredExisting + result.requiresReview > 0) {
+          this.auditSecurityEvent('cleanup', 'Automatische Prüfung alter Klartext-Berichtsexporte abgeschlossen', {
+            converted: result.converted,
+            recoveredExisting: result.recoveredExisting,
+            invalidPdf: result.invalidPdf,
+            unsupported: result.unsupported,
+            symbolicLinks: result.symbolicLinks,
+            failed: result.failed,
+            requiresReview: result.requiresReview,
+          });
+        }
+        return result;
+      }
+
   protected validateInitialSetup(password: string): SecurityResult | null {
         const validationError = validatePassword(password);
               if (validationError) {
@@ -276,7 +310,13 @@ export class VaultSetupUnlockService extends UnlockDelayService {
         this.resetUnlockDelay();
         this.upgradePasswordKdfIfNeeded(store, password, databaseKey);
         this.auditSecurityEvent("unlock", "Tresor per Passwort entsperrt");
-        return { ok: true, initialized: true, unlocked: true };
+        const cleanup = this.cleanupLegacyPlaintextExports(databaseKey);
+        return {
+          ok: true,
+          initialized: true,
+          unlocked: true,
+          warning: buildLegacyPlaintextCleanupWarning(cleanup),
+        };
       } catch (error) {
         this.unlocked = false;
         this.destroyActiveDatabaseKey();
