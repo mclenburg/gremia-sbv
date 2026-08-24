@@ -554,7 +554,7 @@ declare global {
         recordNoticeIssued(id: string, issueDate: string): Promise<{ recorded: boolean }>;
         markPreparation(id: string): Promise<ElectionRecord>;
         journalPrefill(id: string, activity: 'preparation' | 'board_work' | 'voter_list' | 'nominations' | 'voting' | 'counting' | 'result' | 'archive'): Promise<ActivityJournalPrefill>;
-        generateDocument(id: string, input: GenerateElectionPreparationDocumentInput): Promise<{ id: string; filename: string; sha256: string }>;
+        generateDocument(id: string, input: GenerateElectionPreparationDocumentInput): Promise<{ document: { id: string; filename: string; sha256: string }; previewStatus: 'requested' | 'unavailable'; previewMessage?: string }>;
         executionOverview(id: string): Promise<ElectionExecutionOverview>;
         recordElectionDayChecklist(id: string, input: ElectionDayChecklistInput): Promise<ElectionExecutionOverview>;
         saveMailBallot(id: string, input: SaveElectionMailBallotInput): Promise<ElectionMailBallotRecord>;
@@ -563,8 +563,8 @@ declare global {
         recordAcceptance(id: string, input: RecordElectionAcceptanceInput): Promise<ElectionExecutionOverview>;
         savePhysicalRecord(id: string, input: SaveElectionPhysicalRecordInput): Promise<ElectionPhysicalRecord>;
         close(id: string, input: ElectionCloseInput): Promise<{ closed: boolean }>;
-        generateExecutionDocument(id: string, input: GenerateElectionExecutionDocumentInput): Promise<{ id: string; filename: string; sha256: string }>;
-        exportPdfArchive(id: string): Promise<{ id: string; filename: string; sha256: string }>;
+        generateExecutionDocument(id: string, input: GenerateElectionExecutionDocumentInput): Promise<{ document: { id: string; filename: string; sha256: string }; previewStatus: 'requested' | 'unavailable'; previewMessage?: string }>;
+        exportPdfArchive(id: string): Promise<{ document: { id: string; filename: string; sha256: string }; previewStatus: 'requested' | 'unavailable'; previewMessage?: string }>;
         exportDocument(documentId: string, suggestedFileName?: string): Promise<ElectionDocumentExportResult>;
         exportTransfer(id: string, passphrase: string): Promise<ElectionTransferEnvelope>;
         inspectTransfer(envelope: ElectionTransferEnvelope, passphrase: string): Promise<ElectionTransferInspection>;

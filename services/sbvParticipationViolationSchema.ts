@@ -21,7 +21,7 @@ db.exec(`
         stage TEXT NOT NULL CHECK (stage IN ('request','formal_objection','abmahnung','suspension_request','owi_preparation')),
         status TEXT NOT NULL CHECK (status IN ('draft','open','sent','remedied','escalated','closed','withdrawn')),
         violation_type TEXT NOT NULL CHECK (violation_type IN ('not_informed','late_informed','incomplete_information','not_heard','late_heard','implementation_without_participation','repeated_violation','other')),
-        source_context_type TEXT NOT NULL CHECK (source_context_type IN ('case','case_measure_participation','sbv_participation','termination_hearing','sbv_control_protocol','deadline','activity_journal','recruiting_participation')),
+        source_context_type TEXT NOT NULL CHECK (source_context_type IN ('general_employer_practice','case','case_measure_participation','sbv_participation','termination_hearing','sbv_control_protocol','deadline','activity_journal','recruiting_participation')),
         source_context_id TEXT NOT NULL,
         case_id TEXT REFERENCES cases(id) ON DELETE SET NULL,
         related_participation_id TEXT REFERENCES sbv_participations(id) ON DELETE SET NULL,

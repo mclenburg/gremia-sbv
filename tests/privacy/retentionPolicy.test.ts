@@ -38,17 +38,13 @@ describe('retention policy', () => {
     expect(dashboard.counts.total).toBe(0);
   });
 
-  it('marks legal deadlines without case reference as critical', () => {
+  it('accepts legal deadlines without case reference as intentional standalone work', () => {
     const dashboard = buildRetentionDashboard({
       now,
       deadlines: [{ id: 'd1', title: 'SBV-Stellungnahme', status: 'open', isLegalDeadline: true, dueAt: '2026-05-03T12:00:00.000Z' }]
     });
 
-    expect(dashboard.counts.critical).toBe(1);
-    expect(dashboard.candidates[0]).toMatchObject({
-      type: 'free_deadline_review',
-      riskLevel: 'critical'
-    });
+    expect(dashboard.candidates).toEqual([]);
   });
 
   it('marks cleartext files in protected storage as critical', () => {

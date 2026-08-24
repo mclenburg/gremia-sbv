@@ -1,30 +1,22 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useAnnouncer } from '../../../shared/a11y/LiveRegionProvider';
-import type { CaseRecord } from '../../../../domain/models/case.model';
 import type { ActivityJournalPrefill } from '../../../../domain/models/activity-journal.model';
 import type {
-  CreateSbvParticipationViolationInput,
-  ParticipationViolationSourceContextType,
   ParticipationViolationStatus,
   SbvParticipationViolationRecord,
 } from '../../../../domain/models/sbv-participation-violation.model';
 import {
-  applyViolationCaseContext,
-  applyViolationSourceContextType,
-  buildViolationFieldErrors,
-  buildViolationCaseOptions,
   buildViolationSummaryItems,
-  createInitialViolationForm,
   needsEscalationHint,
   summarizeViolationDraftValidation,
   validateViolationDraft,
   type SbvParticipationViolationPrefill,
 } from '../sbvParticipationViolationViewLogic';
+import { useViolationDraftContext, type ViolationDraftContextInput } from './useViolationDraftContext';
 
 type ParticipationViolationBridge = NonNullable<Window['gremiaSbv']>['sbvParticipationViolations'];
 
-type UseSbvParticipationViolationsInput = {
-  cases: CaseRecord[];
+type UseSbvParticipationViolationsInput = ViolationDraftContextInput & {
   pendingPrefill?: SbvParticipationViolationPrefill | null;
   onPrefillConsumed?: () => void;
   onOpenJournalPrefill?: (prefill: ActivityJournalPrefill) => void;
@@ -40,34 +32,26 @@ function toErrorMessage(err: unknown, fallback: string): string {
   return err instanceof Error ? err.message : fallback;
 }
 
-export function useSbvParticipationViolations({ cases, pendingPrefill, onPrefillConsumed, onOpenJournalPrefill }: UseSbvParticipationViolationsInput) {
+export function useSbvParticipationViolations({ cases, measures, pendingPrefill, onPrefillConsumed, onOpenJournalPrefill }: UseSbvParticipationViolationsInput) {
   const [items, setItems] = useState<SbvParticipationViolationRecord[]>([]);
-  const [form, setForm] = useState<CreateSbvParticipationViolationInput>(() => createInitialViolationForm(cases));
-  const [contextNotice, setContextNotice] = useState<{ sourceLabel: string; privacyNotice: string } | null>(null);
+  const context = useViolationDraftContext({ cases, measures });
+  const { applyPrefill } = context;
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [documentBusyId, setDocumentBusyId] = useState<string | null>(null);
   const [followUpBusyId, setFollowUpBusyId] = useState<string | null>(null);
-  const [validationAttempted, setValidationAttempted] = useState(false);
   const announce = useAnnouncer();
-
-  const caseOptions = useMemo(() => buildViolationCaseOptions(cases), [cases]);
-  const summaryItems = useMemo(() => buildViolationSummaryItems(items), [items]);
-  const validationIssues = useMemo(() => validationAttempted ? validateViolationDraft(form) : [], [form, validationAttempted]);
-  const fieldErrors = useMemo(() => buildViolationFieldErrors(validationIssues), [validationIssues]);
 
   useEffect(() => {
     if (!pendingPrefill) return;
-    setForm(pendingPrefill.form);
-    setContextNotice({ sourceLabel: pendingPrefill.sourceLabel, privacyNotice: pendingPrefill.privacyNotice });
+    applyPrefill(pendingPrefill);
     const prefillMessage = 'Entwurf aus SBV-Beteiligungsmaßnahme übernommen. Bitte prüfen und bewusst speichern.';
     setMessage(prefillMessage);
     setError('');
-    setValidationAttempted(false);
     announce(prefillMessage);
     onPrefillConsumed?.();
-  }, [announce, onPrefillConsumed, pendingPrefill]);
+  }, [announce, applyPrefill, onPrefillConsumed, pendingPrefill]);
 
   const reload = useCallback(async () => {
     setItems(await requireBridge().list());
@@ -81,34 +65,9 @@ export function useSbvParticipationViolations({ cases, pendingPrefill, onPrefill
     }
   }, [reload]);
 
-  const updateCaseContext = useCallback((caseId: string) => {
-    setForm((current) => applyViolationCaseContext(current, caseId));
-    setValidationAttempted(false);
-    setContextNotice(caseId ? {
-      sourceLabel: 'Quelle: bewusst gewählter Fallkontext',
-      privacyNotice: 'Der Fallkontext ist allgemein. Für den Standardfall sollte der Verstoß aus der konkreten SBV-Beteiligungsmaßnahme heraus angelegt werden.',
-    } : null);
-  }, []);
-
-  const updateSourceContextType = useCallback((sourceContextType: ParticipationViolationSourceContextType) => {
-    setForm((current) => applyViolationSourceContextType(current, sourceContextType));
-    setValidationAttempted(false);
-    setContextNotice(sourceContextType === 'case_measure_participation' ? {
-      sourceLabel: 'Quelle: SBV-Beteiligungsmaßnahme',
-      privacyNotice: 'Bitte die konkrete Maßnahme in der Fallakte öffnen und dort „Beteiligungsverstoß dokumentieren“ nutzen oder die Maßnahmen-ID bewusst eintragen.',
-    } : {
-      sourceLabel: 'Quelle: bewusst gewählter Sonderkontext',
-      privacyNotice: 'Sonderkontexte speichern nur nach ausdrücklicher Bestätigung. Kein Kontext wird automatisch geraten.',
-    });
-  }, []);
-
-  const updateForm = useCallback((patch: Partial<CreateSbvParticipationViolationInput>) => {
-    setForm((current) => ({ ...current, ...patch }));
-  }, []);
-
   const createViolation = useCallback(async () => {
-    setValidationAttempted(true);
-    const issues = validateViolationDraft(form);
+    context.setValidationAttempted(true);
+    const issues = validateViolationDraft(context.form);
     if (issues.length > 0) {
       const validationMessage = summarizeViolationDraftValidation(issues);
       setError(validationMessage);
@@ -121,13 +80,11 @@ export function useSbvParticipationViolations({ cases, pendingPrefill, onPrefill
     setError('');
     setMessage('');
     try {
-      await requireBridge().create(form);
+      await requireBridge().create(context.form);
       const successMessage = 'Beteiligungsverstoß wurde protokolliert.';
       setMessage(successMessage);
       announce(successMessage);
-      setForm(createInitialViolationForm(cases));
-      setContextNotice(null);
-      setValidationAttempted(false);
+      context.reset();
       await reload();
     } catch (err) {
       const errorMessage = toErrorMessage(err, 'Beteiligungsverstoß konnte nicht gespeichert werden.');
@@ -136,7 +93,7 @@ export function useSbvParticipationViolations({ cases, pendingPrefill, onPrefill
     } finally {
       setBusy(false);
     }
-  }, [announce, cases, form, reload]);
+  }, [announce, context, reload]);
 
   const changeStatus = useCallback(async (record: SbvParticipationViolationRecord, status: ParticipationViolationStatus) => {
     setBusy(true);
@@ -213,22 +170,14 @@ export function useSbvParticipationViolations({ cases, pendingPrefill, onPrefill
 
   return {
     items,
-    form,
-    updateForm,
-    contextNotice,
+    ...context,
     busy,
     message,
     error,
     documentBusyId,
     followUpBusyId,
-    validationAttempted,
-    validationIssues,
-    fieldErrors,
-    caseOptions,
-    summaryItems,
+    summaryItems: buildViolationSummaryItems(items),
     loadInitial,
-    updateCaseContext,
-    updateSourceContextType,
     createViolation,
     changeStatus,
     generateDocument,

@@ -6,7 +6,7 @@ import { DeadlineService } from './deadlineService.js';
 import { buildFromContext } from './activityJournalPrefill.js';
 import { PARTICIPATION_VIOLATION_SOURCE_CONTEXT_TYPES, PARTICIPATION_VIOLATION_STAGES, PARTICIPATION_VIOLATION_STATUSES, PARTICIPATION_VIOLATION_STATUS_TRANSITIONS, PARTICIPATION_VIOLATION_TYPES, type CreateSbvParticipationViolationInput, type ParticipationViolationEventType, type ParticipationViolationSourceContextType, type ParticipationViolationStatus, type SbvParticipationViolationEventRecord, type SbvParticipationViolationListFilter, type SbvParticipationViolationRecord, type SbvParticipationViolationFollowUpResult, type UpdateSbvParticipationViolationInput } from '../src/domain/models/sbv-participation-violation.model.js';
 import type { ActivityJournalPrefill } from '../src/domain/models/activity-journal.model.js';
-import { DEFAULT_LEGAL_BASIS, ViolationRow, ViolationEventRow, RunResult, nowIso, normalizeText, addDaysIso, normalizeIso, oneOf, mapRecord, mapEvent } from './sbvParticipationViolationSupport.js';
+import { DEFAULT_LEGAL_BASIS, ViolationRow, ViolationEventRow, RunResult, nowIso, normalizeText, addDaysIso, normalizeIso, oneOf, mapRecord, mapEvent, emptyViolationRelations, sourceContextIdForNewViolation, assertMatchingCaseContext } from './sbvParticipationViolationSupport.js';
 import { ensureSbvParticipationViolationSchema } from './sbvParticipationViolationSchema.js';
 export class SbvParticipationViolationService {
   constructor(private readonly db: DatabaseAdapter) {}
@@ -36,6 +36,7 @@ export class SbvParticipationViolationService {
 
   private ensureContextExists(contextType: ParticipationViolationSourceContextType, contextId: string): void {
     const tableByContext: Record<ParticipationViolationSourceContextType, string> = {
+      general_employer_practice: 'sbv_participation_violations',
       case: 'cases',
       case_measure_participation: 'case_measures',
       sbv_participation: 'sbv_participations',
@@ -63,20 +64,16 @@ export class SbvParticipationViolationService {
     relatedRecruitingParticipationId?: string | null;
   }) {
     const explicitCaseId = normalizeText(input.caseId);
-    const failCaseMismatch = (derivedCaseId: string | null | undefined) => {
-      if (explicitCaseId && derivedCaseId && explicitCaseId !== derivedCaseId) {
-        throw new Error('Der Fallbezug passt nicht zum ausgewählten Ausgangsvorgang. Bitte Kontext neu auswählen.');
-      }
-    };
-
     switch (input.sourceContextType) {
+      case 'general_employer_practice':
+        return emptyViolationRelations();
       case 'case_measure_participation': {
         const measure = this.db.prepare<{ id: string; case_id: string; type: string }>('SELECT id, case_id, type FROM case_measures WHERE id = ?').get(input.sourceContextId);
         if (!measure) throw new Error('Bitte zuerst die SBV-Beteiligung oder einen anderen Ausgangskontext auswählen.');
         if (measure.type !== 'sbv_participation') throw new Error('Der ausgewählte Vorgang ist keine SBV-Beteiligung.');
         const participation = this.db.prepare<{ value?: number }>('SELECT 1 AS value FROM case_measure_participation WHERE measure_id = ?').get(input.sourceContextId);
         if (!participation) throw new Error('Der ausgewählte Vorgang ist keine vollständige SBV-Beteiligungsmaßnahme.');
-        failCaseMismatch(measure.case_id);
+        assertMatchingCaseContext(explicitCaseId, measure.case_id);
         return {
           caseId: measure.case_id,
           relatedParticipationId: null,
@@ -90,7 +87,7 @@ export class SbvParticipationViolationService {
       }
       case 'case': {
         this.ensureContextExists(input.sourceContextType, input.sourceContextId);
-        failCaseMismatch(input.sourceContextId);
+        assertMatchingCaseContext(explicitCaseId, input.sourceContextId);
         return {
           caseId: input.sourceContextId,
           relatedParticipationId: normalizeText(input.relatedParticipationId),
@@ -105,7 +102,7 @@ export class SbvParticipationViolationService {
       case 'termination_hearing': {
         const hearing = this.db.prepare<{ id: string; case_id: string }>('SELECT id, case_id FROM termination_hearings WHERE id = ?').get(input.sourceContextId);
         if (!hearing) throw new Error('Ausgangskontext termination_hearing wurde nicht gefunden.');
-        failCaseMismatch(hearing.case_id);
+        assertMatchingCaseContext(explicitCaseId, hearing.case_id);
         return {
           caseId: hearing.case_id,
           relatedParticipationId: null,
@@ -261,8 +258,8 @@ export class SbvParticipationViolationService {
 
   create(input: CreateSbvParticipationViolationInput): SbvParticipationViolationRecord {
     return new DatabaseUnitOfWork(this.db).run(() => {
-    const data = this.normalizeInput(input);
     const id = randomUUID();
+    const data = this.normalizeInput(sourceContextIdForNewViolation(id, input));
     const timestamp = nowIso();
     this.db.prepare(`
       INSERT INTO sbv_participation_violations (

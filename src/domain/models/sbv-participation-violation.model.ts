@@ -34,6 +34,7 @@ export const PARTICIPATION_VIOLATION_TYPES = [
 export type ParticipationViolationType = typeof PARTICIPATION_VIOLATION_TYPES[number];
 
 export const PARTICIPATION_VIOLATION_SOURCE_CONTEXT_TYPES = [
+  'general_employer_practice',
   'case',
   'case_measure_participation',
   'sbv_participation',

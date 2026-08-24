@@ -362,6 +362,21 @@
       createdAt: now,
       updatedAt: now,
     },
+    {
+      id: 'measure-participation-e2e-0002',
+      caseId: 'case-test-0001',
+      type: 'sbv_participation',
+      title: 'Beteiligung zur allgemeinen Arbeitszeitregelung',
+      status: 'open',
+      riskLevel: 'erhoeht',
+      createdFrom: 'manual',
+      summary: 'Synthetische SBV-Beteiligungsmaßnahme für die filterbare E2E-Auswahl.',
+      nextStep: 'Ordnungsgemäße Beteiligung prüfen.',
+      openedAt: now,
+      requiresFollowUp: true,
+      createdAt: now,
+      updatedAt: now,
+    },
   ];
 
 

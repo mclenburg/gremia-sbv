@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { RetentionCandidate } from '../../src/domain/models/retention.model';
-import { retentionCandidateTarget } from '../../src/app/features/privacy-review/PrivacyReviewCockpit';
+import { retentionCandidateCaseTarget, retentionCandidateTarget } from '../../src/app/features/privacy-review/PrivacyReviewCockpit';
 
 function candidate(entityType: RetentionCandidate['entityType']): RetentionCandidate {
   return { id: `candidate-${entityType}`, type: 'module_retention_review_due', riskLevel: 'warning', title: 'Prüfung', description: 'Fällig', recommendedAction: 'pruefen', entityType };
@@ -11,6 +11,13 @@ describe('Navigation aus dem Datenschutz-Cockpit', () => {
     for (const entityType of ['case', 'case_file', 'bem', 'prevention', 'sbv_participation', 'workplace_accommodation', 'equalization_gdb'] as const) {
       expect(retentionCandidateTarget(candidate(entityType))).toBe('cases');
     }
+  });
+
+  it('verlinkt eine konkrete Fallprüfung exakt in die betroffene Fallakte', () => {
+    const caseReview = { ...candidate('case'), entityId: 'case-4711' };
+
+    expect(retentionCandidateCaseTarget(caseReview)).toEqual({ caseId: 'case-4711', nodeType: 'overview' });
+    expect(retentionCandidateCaseTarget({ ...candidate('deadline'), entityId: 'deadline-1' })).toBeNull();
   });
 
   it('führt eigenständige Prüfobjekte in ihren zuständigen Arbeitsbereich', () => {

@@ -107,6 +107,10 @@ export class SbvElectionDocumentService {
     return record;
   }
 
+  readDocument(documentId: string): Promise<Buffer> {
+    return this.documents.read(documentId);
+  }
+
   private lines(
     input: GenerateElectionPreparationDocumentInput,
     election: ElectionRecord,

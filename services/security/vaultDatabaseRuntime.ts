@@ -30,6 +30,10 @@ import { DatabaseRuntimeInitializer } from "../databaseRuntimeInitializer.js";
 import { atomicWriteFileSync, commitAtomicArtifacts } from "../secureFileOperations.js";
 import { validateAppPassword, validatePasswordStore, validateVaultManifest, type KeyWrap, type PasswordStore, type ScryptKdfParams, type VaultManifest } from "../securityArtifactValidation.js";
 import { SecurityServiceCore } from './securityServiceCore.js';
+import { BACKUPS_DIR_NAME } from './securitySupport.js';
+import { createVerifiedPreMigrationVaultBackup } from '../preMigrationVaultBackup.js';
+
+const DESTRUCTIVE_MIGRATION_VERSION = '0052';
 
 export class VaultDatabaseRuntime extends SecurityServiceCore {
   protected async openAndInitializeVaultDatabase(
@@ -42,6 +46,12 @@ export class VaultDatabaseRuntime extends SecurityServiceCore {
       const keyHex = databaseKey.toString("hex");
       const db = await this.databaseService.open(this.vaultDatabasePath, keyHex);
       // keyHex ist ein JS-String und kann nicht zuverlässig überschrieben werden.
+      const preMigrationBackup = await createVerifiedPreMigrationVaultBackup({
+        db,
+        vaultPath: this.vaultDatabasePath,
+        backupDirectory: path.join(this.dataDir, BACKUPS_DIR_NAME),
+        migrationVersion: DESTRUCTIVE_MIGRATION_VERSION,
+      });
       const result = new MigrationService(
         db,
         schemaPath,
@@ -56,6 +66,9 @@ export class VaultDatabaseRuntime extends SecurityServiceCore {
           schemaVersion: result.currentSchemaVersion,
           diagnostics: result.diagnostics,
           lifecycleBaselineEntries: runtimeInitialization.baselineEntriesCreated,
+          preMigrationBackup: preMigrationBackup
+            ? { file: path.basename(preMigrationBackup.filePath), sizeBytes: preMigrationBackup.sizeBytes }
+            : undefined,
         });
       }
     }

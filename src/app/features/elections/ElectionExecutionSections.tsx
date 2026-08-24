@@ -6,6 +6,7 @@ import { CheckboxField, DateInput, FormActions, FormSection, SelectInput, Textar
 import type { ElectionRunner } from './ElectionPreparationSections';
 import { acceptanceStatusLabels } from './electionPresentation';
 import { legalToday } from '../../../domain/time/legalTime';
+import { electionDocumentFeedback } from './electionDocumentFeedback';
 
 const today = legalToday;
 
@@ -23,10 +24,10 @@ export function BallotSection({ overview, run }: Omit<SectionProps, 'execution'>
   const [countPrepared, setCountPrepared] = useState(false);
   const electionId = overview.election.id;
 
-  const generate = (kind: 'ballot_representative' | 'ballot_deputy' | 'election_day_checklist') => run(async () => {
-    const document = await window.gremiaSbv.elections.generateExecutionDocument(electionId, { kind });
-    return window.gremiaSbv.elections.exportDocument(document.id, document.filename);
-  }, 'Wahldokument verschlüsselt gespeichert; Dateiexport angeboten.');
+  const generate = (kind: 'ballot_representative' | 'ballot_deputy' | 'election_day_checklist') => run(
+    () => window.gremiaSbv.elections.generateExecutionDocument(electionId, { kind }),
+    electionDocumentFeedback,
+  );
 
   return (
     <div className="election-section-stack">
@@ -74,7 +75,7 @@ export function MailBallotSection({ overview, execution, run }: SectionProps) {
           <CheckboxField label="Eingang nach Ende der Stimmabgabe" checked={late} onCheckedChange={setLate} />
         </div>
         {execution.mailBallots.length ? <ul className="election-record-list">{execution.mailBallots.map((mailBallot) => <li key={mailBallot.id}>{overview.voters.find((voter) => voter.id === mailBallot.voterId)?.lastName ?? mailBallot.voterId}{' · '}{mailBallot.lateReceivedAt ? 'verspätet' : 'im Verfahren'}{mailBallot.destroyDueAt ? ` · Vernichtung ab ${mailBallot.destroyDueAt}` : ''}</li>)}</ul> : <p className="industrial-empty-state">Noch kein Briefwahlvorgang dokumentiert.</p>}
-        <FormActions><IndustrialButton variant="secondary" onClick={() => void run(async () => { const document = await window.gremiaSbv.elections.generateExecutionDocument(overview.election.id, { kind: 'mail_ballot_package' }); return window.gremiaSbv.elections.exportDocument(document.id, document.filename); }, 'Briefwahlpaket verschlüsselt gespeichert; Dateiexport angeboten.')}>Briefwahlpaket/Merkblatt erzeugen</IndustrialButton></FormActions>
+        <FormActions><IndustrialButton variant="secondary" onClick={() => void run(() => window.gremiaSbv.elections.generateExecutionDocument(overview.election.id, { kind: 'mail_ballot_package' }), electionDocumentFeedback)}>Briefwahlpaket/Merkblatt erzeugen</IndustrialButton></FormActions>
         <p className="industrial-meta">Erfasst wird der Verfahrensstatus, niemals der Inhalt des Stimmzettels.</p>
       </FormSection>
     </div>
@@ -104,7 +105,7 @@ export function CountResultSection({ overview, execution, run }: SectionProps) {
         </div>
         <TextareaInput label="Begründung einer manuellen Plausibilitätskorrektur (nur falls erforderlich)" value={correctionReason} onValueChange={setCorrectionReason} wide />
         {officeResults.length ? <ul className="election-record-list">{officeResults.map((result) => <li key={result.id}><span>{overview.candidates.find((candidate) => candidate.id === result.candidateId)?.personSnapshot}{' · '}Rang {result.electedRank ?? '—'}{' · '}{result.lotRequired ? 'Losentscheid erforderlich' : acceptanceStatusLabels[result.acceptanceStatus]}</span>{result.lotRequired ? <IndustrialButton compact variant="secondary" onClick={() => void run(() => window.gremiaSbv.elections.recordLotDecision(overview.election.id, { officeType, candidateId: result.candidateId, decidedAt: today() }), 'Losentscheid des Wahlorgans dokumentiert.')}>als Gewinner des realen Losentscheids dokumentieren</IndustrialButton> : null}</li>)}</ul> : <p className="industrial-empty-state">Für diesen Wahlgang liegt noch kein Ergebnis vor.</p>}
-        <FormActions><IndustrialButton variant="secondary" onClick={() => void run(async () => { const document = await window.gremiaSbv.elections.generateExecutionDocument(overview.election.id, { kind: 'result_minutes' }); return window.gremiaSbv.elections.exportDocument(document.id, document.filename); }, 'Ergebnisniederschrift verschlüsselt gespeichert; Dateiexport angeboten.')}>Ergebnisniederschrift erzeugen</IndustrialButton></FormActions>
+        <FormActions><IndustrialButton variant="secondary" onClick={() => void run(() => window.gremiaSbv.elections.generateExecutionDocument(overview.election.id, { kind: 'result_minutes' }), electionDocumentFeedback)}>Ergebnisniederschrift erzeugen</IndustrialButton></FormActions>
       </FormSection>
     </div>
   );
@@ -116,7 +117,7 @@ export function AcceptanceSection({ overview, execution, run }: SectionProps) {
   return (
     <div className="election-section-stack">
       <FormSection title="Benachrichtigung und Annahme">
-        {elected.length ? <ul className="election-record-list election-acceptance-list">{elected.map((result) => <li key={result.id}><span>{overview.candidates.find((candidate) => candidate.id === result.candidateId)?.personSnapshot}{' · '}{acceptanceStatusLabels[result.acceptanceStatus]}</span><div className="industrial-action-row"><IndustrialButton compact variant="secondary" onClick={() => void run(async () => { const document = await window.gremiaSbv.elections.generateExecutionDocument(overview.election.id, { kind: 'elected_notification', resultId: result.id }); return window.gremiaSbv.elections.exportDocument(document.id, document.filename); }, 'Benachrichtigung verschlüsselt gespeichert; Dateiexport angeboten.')}>Benachrichtigung PDF</IndustrialButton>{result.acceptanceStatus === 'pending' ? <><IndustrialButton compact variant="secondary" onClick={() => void run(() => window.gremiaSbv.elections.recordAcceptance(overview.election.id, { resultId: result.id, notifiedAt: today(), status: 'accepted_explicit', responseAt: today() }), 'Annahme dokumentiert.')}>Annahme</IndustrialButton><IndustrialButton compact variant="secondary" onClick={() => void run(() => window.gremiaSbv.elections.recordAcceptance(overview.election.id, { resultId: result.id, notifiedAt: today(), status: 'rejected', responseAt: today() }), 'Ablehnung dokumentiert; Nachrücken geprüft.')}>Ablehnung</IndustrialButton></> : null}</div></li>)}</ul> : <p className="industrial-empty-state">Noch keine gewählte Person zur Annahme dokumentiert.</p>}
+        {elected.length ? <ul className="election-record-list election-acceptance-list">{elected.map((result) => <li key={result.id}><span>{overview.candidates.find((candidate) => candidate.id === result.candidateId)?.personSnapshot}{' · '}{acceptanceStatusLabels[result.acceptanceStatus]}</span><div className="industrial-action-row"><IndustrialButton compact variant="secondary" onClick={() => void run(() => window.gremiaSbv.elections.generateExecutionDocument(overview.election.id, { kind: 'elected_notification', resultId: result.id }), electionDocumentFeedback)}>Benachrichtigung PDF</IndustrialButton>{result.acceptanceStatus === 'pending' ? <><IndustrialButton compact variant="secondary" onClick={() => void run(() => window.gremiaSbv.elections.recordAcceptance(overview.election.id, { resultId: result.id, notifiedAt: today(), status: 'accepted_explicit', responseAt: today() }), 'Annahme dokumentiert.')}>Annahme</IndustrialButton><IndustrialButton compact variant="secondary" onClick={() => void run(() => window.gremiaSbv.elections.recordAcceptance(overview.election.id, { resultId: result.id, notifiedAt: today(), status: 'rejected', responseAt: today() }), 'Ablehnung dokumentiert; Nachrücken geprüft.')}>Ablehnung</IndustrialButton></> : null}</div></li>)}</ul> : <p className="industrial-empty-state">Noch keine gewählte Person zur Annahme dokumentiert.</p>}
       </FormSection>
     </div>
   );

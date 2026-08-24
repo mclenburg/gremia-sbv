@@ -8,6 +8,8 @@ import { CheckboxField, DateInput, FormActions, FormSection, SelectInput, TextIn
 import { buildDefaultPersonImportMapping, personImportFieldOptions, type PersonImportFieldKey, updatePersonImportColumnMapping } from '../../shared/import/personImportMapping';
 import { electionBoardRoleLabel, electionCandidateEligibilityLabel, electionVoterListStatusLabel, officeTypeLabels, proposalStatusLabels } from './electionPresentation';
 import { isoInstant, legalToday } from '../../../domain/time/legalTime';
+import type { ElectionFeedback } from './electionDocumentFeedback';
+import { electionDocumentFeedback } from './electionDocumentFeedback';
 
 const today = legalToday;
 
@@ -40,7 +42,10 @@ const ELECTION_KIND_OPTIONS = [
   { value: 'deputy_by_election', label: 'Nachwahl Stellvertretung' },
 ];
 
-export type ElectionRunner = <T>(operation: () => Promise<T>, message: string) => Promise<T | undefined>;
+export type ElectionRunner = <T>(
+  operation: () => Promise<T>,
+  feedback: string | ((result: T) => ElectionFeedback),
+) => Promise<T | undefined>;
 
 export function SetupSection({ overview, create, configure, run }: {
   overview: ElectionPreparationOverview | null;
@@ -282,14 +287,14 @@ export function NominationsSection({ overview, run }: { overview: ElectionPrepar
 
 export function DocumentsSection({ overview, run }: { overview: ElectionPreparationOverview; run: ElectionRunner }) {
   const [notice, setNotice] = useState<ElectionNoticeDetails>(EMPTY_NOTICE);
-  const generate = (kind: Parameters<typeof window.gremiaSbv.elections.generateDocument>[1]['kind'], extra: Record<string, unknown> = {}) => run(async () => {
-    const document = await window.gremiaSbv.elections.generateDocument(overview.election.id, { kind, ...extra });
-    return window.gremiaSbv.elections.exportDocument(document.id, document.filename);
-  }, 'PDF-Dokument verschlüsselt gespeichert; Dateiexport angeboten.');
+  const generate = (kind: Parameters<typeof window.gremiaSbv.elections.generateDocument>[1]['kind'], extra: Record<string, unknown> = {}) => run(
+    () => window.gremiaSbv.elections.generateDocument(overview.election.id, { kind, ...extra }),
+    electionDocumentFeedback,
+  );
 
   return (
     <div className="election-section-stack">
-      <FormSection title="Vorbereitende Wahlunterlagen" description="Dokumente werden verschlüsselt in der Wahlakte gespeichert und anschließend zum Export angeboten.">
+      <FormSection title="Vorbereitende Wahlunterlagen" description="Dokumente werden verschlüsselt in der Wahlakte gespeichert und anschließend in der externen PDF-Anwendung angefordert.">
         <FormActions align="start" className="election-document-actions">
           <IndustrialButton variant="secondary" onClick={() => void generate('setup_summary')}><FileText className="h-4 w-4" /> Wahl-Setup</IndustrialButton>
           <IndustrialButton variant="secondary" onClick={() => void generate('voter_list')}>Wählerliste</IndustrialButton>

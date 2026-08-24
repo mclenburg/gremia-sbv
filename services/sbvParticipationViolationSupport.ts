@@ -1,4 +1,4 @@
-import { type ParticipationViolationEventType, type ParticipationViolationSourceContextType, type ParticipationViolationStage, type ParticipationViolationStatus, type ParticipationViolationType, type SbvParticipationViolationEventRecord, type SbvParticipationViolationRecord } from '../src/domain/models/sbv-participation-violation.model.js';
+import { type CreateSbvParticipationViolationInput, type ParticipationViolationEventType, type ParticipationViolationSourceContextType, type ParticipationViolationStage, type ParticipationViolationStatus, type ParticipationViolationType, type SbvParticipationViolationEventRecord, type SbvParticipationViolationRecord } from '../src/domain/models/sbv-participation-violation.model.js';
 export const DEFAULT_LEGAL_BASIS = '§ 178 Abs. 2 SGB IX; § 238 Abs. 1 Nr. 8 SGB IX';
 
 export type ViolationRow = {
@@ -40,6 +40,36 @@ export type ViolationEventRow = {
 };
 
 export type RunResult = { changes?: number } | undefined;
+
+export type ViolationRelations = {
+  caseId: string | null;
+  relatedParticipationId: string | null;
+  relatedCaseMeasureId: string | null;
+  relatedTerminationHearingId: string | null;
+  relatedDeadlineId: string | null;
+  relatedActivityJournalEntryId: string | null;
+  relatedSbvControlProtocolId: string | null;
+  relatedRecruitingParticipationId: string | null;
+};
+
+export function emptyViolationRelations(): ViolationRelations {
+  return {
+    caseId: null, relatedParticipationId: null, relatedCaseMeasureId: null,
+    relatedTerminationHearingId: null, relatedDeadlineId: null,
+    relatedActivityJournalEntryId: null, relatedSbvControlProtocolId: null,
+    relatedRecruitingParticipationId: null,
+  };
+}
+
+export function sourceContextIdForNewViolation(id: string, input: CreateSbvParticipationViolationInput): CreateSbvParticipationViolationInput {
+  return input.sourceContextType === 'general_employer_practice' ? { ...input, sourceContextId: id } : input;
+}
+
+export function assertMatchingCaseContext(explicitCaseId: string | null, derivedCaseId?: string | null): void {
+  if (explicitCaseId && derivedCaseId && explicitCaseId !== derivedCaseId) {
+    throw new Error('Der Fallbezug passt nicht zum ausgewählten Ausgangsvorgang. Bitte Kontext neu auswählen.');
+  }
+}
 
 export function nowIso(): string {
   return new Date().toISOString();

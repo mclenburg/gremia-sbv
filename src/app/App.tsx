@@ -225,7 +225,7 @@ function PrimaryViews(props: PrimaryViewsProps) {
   if (currentView === "dashboard") return <DashboardFocusOverview onNavigate={setCurrentView} cases={cases} deadlines={deadlines}
     dashboardItems={dashboardDeadlines} onEditDeadline={setSelectedDeadline} onCompleteDeadline={(d) => void completeDeadline(d)} />;
   if (currentView === "activity_journal") return <ActivityJournalView pendingPrefill={activityJournalPrefill} onPrefillConsumed={() => setActivityJournalPrefill(null)} />;
-  if (currentView === "participation_violations") return <SbvParticipationViolationsView cases={cases} pendingPrefill={participationViolationPrefill}
+  if (currentView === "participation_violations") return <SbvParticipationViolationsView cases={cases} measures={caseMeasures} pendingPrefill={participationViolationPrefill}
     onPrefillConsumed={() => setParticipationViolationPrefill(null)} onOpenJournalPrefill={(prefill) => { setActivityJournalPrefill(prefill); setCurrentView("activity_journal"); }} />;
   if (currentView === "deadlines") return <DeadlinesView cases={cases} measures={caseMeasures} deadlines={deadlines}
     onCreateDeadline={createDeadline} onEditDeadline={setSelectedDeadline} onCompleteDeadline={(d) => void completeDeadline(d)}

@@ -61,6 +61,10 @@ export class ElectionArchiveService {
     return { exported: true, sizeBytes: plain.length };
   }
 
+  readDocument(documentId: string): Promise<Buffer> {
+    return this.documents.read(documentId);
+  }
+
   async exportPdfArchive(electionId: string): Promise<SbvOfficeDocumentRecord> {
     const election = this.election(electionId);
     const lines = this.archiveLines(election);

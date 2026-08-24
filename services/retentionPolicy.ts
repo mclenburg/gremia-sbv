@@ -199,23 +199,6 @@ for (const contact of input.contacts ?? []) {
 
 function appendDeadlineCandidates(candidates: RetentionCandidate[], input: RetentionScanInput, settings: RetentionSettings, completedDeadlineCutoff: Date): void {
 for (const deadline of input.deadlines ?? []) {
-    if (!deadline.caseId && deadline.status !== 'cancelled') {
-      pushCandidate(candidates, {
-        id: `deadline-free-${deadline.id}`,
-        type: 'free_deadline_review',
-        riskLevel: deadline.isLegalDeadline ? 'critical' : 'info',
-        title: deadline.isLegalDeadline ? 'Rechtliche Frist ohne Fallbezug' : 'Freie Wiedervorlage ohne Fallbezug',
-        reference: deadline.title,
-        description: deadline.isLegalDeadline
-          ? 'Rechtliche Fristen müssen einem Fall oder Prozess zugeordnet werden.'
-          : 'Prüfen, ob die Wiedervorlage wirklich ohne Fallbezug bleiben soll.',
-        recommendedAction: 'pruefen',
-        dueSince: deadline.dueAt ?? undefined,
-        entityType: 'deadline',
-        entityId: deadline.id
-      });
-    }
-
     if (deadline.status === 'done' && beforeOrEqual(deadline.completedAt ?? deadline.dueAt, completedDeadlineCutoff)) {
       pushCandidate(candidates, {
         id: `deadline-completed-${deadline.id}`,

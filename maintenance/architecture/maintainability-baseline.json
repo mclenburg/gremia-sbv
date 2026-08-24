@@ -251,12 +251,6 @@
       "maxFunctionLines": 206,
       "imports": 11
     },
-    "src/app/features/participation-violations/SbvParticipationViolationsView.tsx": {
-      "physicalLines": 186,
-      "codeLines": 175,
-      "maxFunctionLines": 163,
-      "imports": 11
-    },
     "src/app/features/participation-violations/hooks/useSbvParticipationViolations.ts": {
       "physicalLines": 239,
       "codeLines": 223,

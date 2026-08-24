@@ -98,6 +98,17 @@ function createInput() {
 }
 
 describe('Beteiligungsverstoß-Service 0.9.4-a', () => {
+  it('speichert einen allgemeinen Arbeitgeberverstoß ohne Fall, Maßnahme oder eingegebene Kontext-ID', () => {
+    const service = new SbvParticipationViolationService(new ViolationBehaviorDb());
+    const created = service.create({
+      ...createInput(), sourceContextType: 'general_employer_practice', sourceContextId: '',
+      caseId: undefined, relatedCaseMeasureId: undefined, subject: 'Allgemeine Freistellungspraxis',
+    });
+    expect(created.sourceContextType).toBe('general_employer_practice');
+    expect(created.caseId).toBeUndefined();
+    expect(created.relatedCaseMeasureId).toBeUndefined();
+    expect(created.sourceContextId).toBe(created.id);
+  });
   it('protokolliert einen vollständigen Verstoß und schreibt Verlauf ohne Schreibenstext ins Audit', () => {
     const db = new ViolationBehaviorDb();
     const service = new SbvParticipationViolationService(db);

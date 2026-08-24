@@ -1,4 +1,5 @@
 import type { CaseRecord } from '../../../domain/models/case.model';
+import type { CaseMeasureRecord } from '../../../domain/models/case-measure.model';
 import type { ParticipationRecord } from '../../../domain/models/participation.model';
 import type { RecruitingParticipationRecord } from '../../../domain/models/recruiting-participation.model';
 import type {
@@ -30,14 +31,9 @@ export type SbvParticipationViolationPrefill = {
 };
 
 export const participationViolationSourceContextOptions: Array<{ value: ParticipationViolationSourceContextType; label: string }> = [
+  { value: 'general_employer_practice', label: 'Allgemeiner Arbeitgeberverstoß' },
   { value: 'case_measure_participation', label: 'SBV-Beteiligungsmaßnahme' },
   { value: 'case', label: 'Fall allgemein' },
-  { value: 'termination_hearing', label: 'Kündigungsanhörung' },
-  { value: 'sbv_control_protocol', label: 'SBV-Protokoll' },
-  { value: 'deadline', label: 'Frist / Wiedervorlage' },
-  { value: 'activity_journal', label: 'Tätigkeitsjournal-Eintrag' },
-  { value: 'recruiting_participation', label: 'Stellenbesetzung' },
-  { value: 'sbv_participation', label: 'Legacy-Beteiligung' },
 ];
 
 const participationMeasureLabels: Record<ParticipationRecord['measureType'], string> = {
@@ -56,7 +52,7 @@ export function createInitialViolationForm(_cases: CaseRecord[]): CreateSbvParti
   return {
     stage: 'request',
     violationType: 'incomplete_information',
-    sourceContextType: 'case_measure_participation',
+    sourceContextType: 'general_employer_practice',
     sourceContextId: '',
     caseId: undefined,
     subject: '',
@@ -99,7 +95,7 @@ function hasText(value: string | null | undefined): boolean {
 export function validateViolationDraft(form: CreateSbvParticipationViolationInput): ViolationDraftValidationIssue[] {
   const issues: ViolationDraftValidationIssue[] = [];
 
-  if (!hasText(form.sourceContextId)) {
+  if (form.sourceContextType !== 'general_employer_practice' && !hasText(form.sourceContextId)) {
     issues.push({
       field: 'sourceContextId',
       code: 'missing_source_context',
@@ -165,6 +161,29 @@ export function buildViolationCaseOptions(cases: CaseRecord[]): Array<{ value: s
     { value: '', label: 'Kein Fall direkt gewählt' },
     ...cases.map((caseFile) => ({ value: caseFile.id, label: `${caseFile.caseNumber} · ${caseFile.displayName}` })),
   ];
+}
+
+export function buildViolationMeasureOptions(measures: CaseMeasureRecord[], cases: CaseRecord[]): Array<{ value: string; label: string }> {
+  const caseNumbers = new Map(cases.map((record) => [record.id, record.caseNumber]));
+  return measures
+    .filter((measure) => measure.type === 'sbv_participation')
+    .map((measure) => ({ value: measure.id, label: `${measure.title} · ${caseNumbers.get(measure.caseId) ?? 'Fallakte'}` }));
+}
+
+export function applyViolationMeasureContext(
+  form: CreateSbvParticipationViolationInput,
+  measureId: string,
+  measures: CaseMeasureRecord[],
+): CreateSbvParticipationViolationInput {
+  const measure = measures.find((candidate) => candidate.id === measureId && candidate.type === 'sbv_participation');
+  if (!measure) return { ...form, sourceContextId: '', caseId: undefined, relatedCaseMeasureId: undefined };
+  return {
+    ...form,
+    sourceContextType: 'case_measure_participation',
+    sourceContextId: measure.id,
+    caseId: measure.caseId,
+    relatedCaseMeasureId: measure.id,
+  };
 }
 
 export function applyViolationCaseContext(

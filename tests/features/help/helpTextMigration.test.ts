@@ -1,11 +1,16 @@
 import { readFileSync } from 'node:fs';
+import { createElement, type ComponentProps } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { HELP_REGISTRY } from '../../../src/app/shared/help/helpRegistry';
 import { requiresHelpRegistryDecision } from '../../../src/app/shared/help/helpTextPolicy';
+import { ViolationDraftForm } from '../../../src/app/features/participation-violations/ViolationDraftForm';
+import { createInitialViolationForm } from '../../../src/app/features/participation-violations/sbvParticipationViolationViewLogic';
 
 const MIGRATED_FEATURE_FILES = [
   'src/app/features/recruiting/RecruitingParticipationsView.tsx',
   'src/app/features/participation-violations/SbvParticipationViolationsView.tsx',
+  'src/app/features/participation-violations/ViolationDraftForm.tsx',
   'src/app/features/activity-journal/ActivityJournalView.tsx',
 ] as const;
 
@@ -18,10 +23,21 @@ function visibleTextProps(fileSource: string): string[] {
   return Array.from(matches, (match) => match[1]);
 }
 
+function renderedViolationDraft(): string {
+  const noop = () => undefined;
+  const state = {
+    form: createInitialViolationForm([]), contextNotice: null, fieldErrors: {}, caseOptions: [], measureOptions: [],
+    busy: false, updateSourceContextType: noop, updateForm: noop, updateCaseContext: noop,
+    updateMeasureContext: noop, createViolation: async () => undefined,
+  } as unknown as ComponentProps<typeof ViolationDraftForm>['state'];
+  return renderToStaticMarkup(createElement(ViolationDraftForm, { state }));
+}
+
 describe('0.9.5-j Hilfetext-Migration Arbeitsmasken', () => {
   it('verschiebt belehrende Langtexte der priorisierten Arbeitsmasken hinter helpIds', () => {
     const recruiting = source('src/app/features/recruiting/RecruitingParticipationsView.tsx');
     const violations = source('src/app/features/participation-violations/SbvParticipationViolationsView.tsx');
+    const violationDraft = renderedViolationDraft();
     const journal = source('src/app/features/activity-journal/ActivityJournalView.tsx');
 
     expect(recruiting).toContain('helpId="recruiting.overview"');
@@ -29,7 +45,7 @@ describe('0.9.5-j Hilfetext-Migration Arbeitsmasken', () => {
     expect(recruiting).toContain('helpId="recruiting.interviewEvent"');
     expect(recruiting).toContain('helpId="recruiting.deadlineFollowUp"');
     expect(violations).toContain('helpId="participationViolations.sourceContext"');
-    expect(violations).toContain('helpId="participationViolations.stageAndType"');
+    expect(violationDraft).toContain(`data-help-title="${HELP_REGISTRY['participationViolations.stageAndType'].title}"`);
     expect(violations).toContain('helpId="participationViolations.tracking"');
     expect(journal).toContain('helpId="activityJournal.overview"');
     expect(journal).toContain('helpId="activityJournal.textCommands"');
