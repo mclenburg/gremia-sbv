@@ -1,5 +1,5 @@
 import { IPC_CHANNELS, registerIpcHandler } from './ipcHandler.js';
-import type { IpcMain } from 'electron';
+import { shell, type IpcMain } from 'electron';
 import type { SecurityService } from '../../services/securityService.js';
 import type { ApplicationServices } from '../applicationServices.js';
 import type {
@@ -10,6 +10,12 @@ import type {
   UpdateSbvParticipationViolationInput,
 } from '../../src/domain/models/sbv-participation-violation.model.js';
 import { assertRecordInput, assertString } from './ipcValidation.js';
+import type { ExternalPreviewOpener } from './externalPreviewRequest.js';
+import { generateAndRequestDocumentPreviewForRecord } from './documentPreviewWorkflow.js';
+
+const externalPreviewOpener: ExternalPreviewOpener = process.env.GREMIA_SBV_E2E === '1'
+  ? async () => ''
+  : (previewPath) => shell.openPath(previewPath);
 
 export function registerSbvParticipationViolationIpc(
   ipcMain: IpcMain,
@@ -58,12 +64,27 @@ export function registerSbvParticipationViolationIpc(
     templates().validate(assertRecordInput<SbvParticipationViolationTemplateInput>(input, 'sbvParticipationViolations:template:validate'))
   );
 
-  registerIpcHandler(ipcMain, IPC_CHANNELS.sbvParticipationViolationsDocumentsGenerate, async (_event, id: unknown, options?: unknown) =>
-    documents().generateDocument(
-      assertString(id, 'sbvParticipationViolations:documents:generate', 'Verstoß-ID', { minLength: 1, maxLength: 120 }),
-      assertRecordInput<Partial<Pick<SbvParticipationViolationTemplateInput, 'recipientLabel' | 'privacyMode' | 'includeLegalReviewHint' | 'includeOwiHint'>>>(options ?? {}, 'sbvParticipationViolations:documents:generate')
-    )
-  );
+  registerIpcHandler(ipcMain, IPC_CHANNELS.sbvParticipationViolationsDocumentsGenerate, async (_event, id: unknown, options?: unknown) => {
+    const operation = 'sbvParticipationViolations:documents:generate';
+    const documentService = documents();
+    const violationId = assertString(id, operation, 'Verstoß-ID', { minLength: 1, maxLength: 120 });
+    const input = assertRecordInput<Partial<Pick<SbvParticipationViolationTemplateInput, 'recipientLabel' | 'privacyMode' | 'includeLegalReviewHint' | 'includeOwiHint'>>>(options ?? {}, operation);
+    const result = await generateAndRequestDocumentPreviewForRecord({
+      operation,
+      generateFailureMessage: 'Das PDF-Dokument zum Beteiligungsverstoß konnte nicht erzeugt oder verschlüsselt gespeichert werden.',
+      security,
+      opener: externalPreviewOpener,
+      generate: () => documentService.generateDocument(violationId, input),
+      read: (documentId) => documentService.readDocument(documentId),
+      getDocumentId: (record) => record.documentId,
+      getFilename: (record) => record.filename,
+    });
+    return {
+      ...result.record,
+      previewStatus: result.previewStatus,
+      ...(result.previewMessage ? { previewMessage: result.previewMessage } : {}),
+    };
+  });
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.sbvParticipationViolationsDocumentsList, async (_event, id: unknown) =>
     documents().listDocuments(assertString(id, 'sbvParticipationViolations:documents:list', 'Verstoß-ID', { minLength: 1, maxLength: 120 }))

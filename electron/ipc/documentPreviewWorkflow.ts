@@ -13,6 +13,23 @@ interface DocumentPreviewWorkflowInput {
   read: (documentId: string) => Promise<Buffer>;
 }
 
+interface DocumentPreviewRecordWorkflowInput<TRecord> {
+  operation: string;
+  generateFailureMessage: string;
+  security: Pick<SecurityService, 'cleanupTemporaryFiles' | 'writeTemporaryFile'>;
+  opener: ExternalPreviewOpener;
+  generate: () => Promise<TRecord>;
+  read: (documentId: string) => Promise<Buffer>;
+  getDocumentId: (record: TRecord) => string;
+  getFilename: (record: TRecord) => string;
+}
+
+export interface DocumentPreviewRecordWorkflowResult<TRecord> {
+  record: TRecord;
+  previewStatus: 'requested' | 'unavailable';
+  previewMessage?: string;
+}
+
 async function documentStage<T>(
   operation: string,
   stage: string,
@@ -38,9 +55,9 @@ async function documentStage<T>(
   }
 }
 
-export async function generateAndRequestDocumentPreview(
-  input: DocumentPreviewWorkflowInput,
-): Promise<SbvOfficeDocumentGenerationResult> {
+export async function generateAndRequestDocumentPreviewForRecord<TRecord>(
+  input: DocumentPreviewRecordWorkflowInput<TRecord>,
+): Promise<DocumentPreviewRecordWorkflowResult<TRecord>> {
   const record = await documentStage(
     input.operation,
     'generate-and-store',
@@ -55,7 +72,7 @@ export async function generateAndRequestDocumentPreview(
       'decrypt-and-verify',
       'DATABASE_INTEGRITY_FAILED',
       'Das PDF wurde gespeichert, konnte für die Vorschau aber nicht entschlüsselt und geprüft werden.',
-      () => input.read(record.id),
+      () => input.read(input.getDocumentId(record)),
     );
     await documentStage(
       input.operation,
@@ -69,24 +86,39 @@ export async function generateAndRequestDocumentPreview(
       'write-preview',
       'FILE_OPERATION_FAILED',
       'Das PDF wurde gespeichert, die temporäre Vorschau konnte aber nicht geschrieben werden.',
-      () => input.security.writeTemporaryFile('document-preview', record.filename, plain!, 'preview'),
+      () => input.security.writeTemporaryFile('document-preview', input.getFilename(record), plain!, 'preview'),
     );
     if (requestExternalPreview(previewPath, input.opener)) {
-      return { document: record, previewStatus: 'requested' };
+      return { record, previewStatus: 'requested' };
     }
     return {
-      document: record,
+      record,
       previewStatus: 'unavailable',
       previewMessage: 'Das PDF wurde verschlüsselt gespeichert, der Auftrag an die externe Vorschau-Anwendung konnte aber nicht erteilt werden.',
     };
   } catch (error) {
     if (!(error instanceof ApplicationError)) throw error;
     return {
-      document: record,
+      record,
       previewStatus: 'unavailable',
       previewMessage: error.message,
     };
   } finally {
     plain?.fill(0);
   }
+}
+
+export async function generateAndRequestDocumentPreview(
+  input: DocumentPreviewWorkflowInput,
+): Promise<SbvOfficeDocumentGenerationResult> {
+  const result = await generateAndRequestDocumentPreviewForRecord({
+    ...input,
+    getDocumentId: (record) => record.id,
+    getFilename: (record) => record.filename,
+  });
+  return {
+    document: result.record,
+    previewStatus: result.previewStatus,
+    ...(result.previewMessage ? { previewMessage: result.previewMessage } : {}),
+  };
 }

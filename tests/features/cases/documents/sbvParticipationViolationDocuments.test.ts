@@ -30,6 +30,9 @@ class DocumentDb implements DatabaseAdapter {
       },
       get(...params: unknown[]): T | undefined {
         if (normalized.includes('SELECT * FROM sbv_participation_violations WHERE id = ?')) return self.violations.find((row) => row.id === params[0]) as T | undefined;
+        if (normalized.includes("FROM generated_documents WHERE id = ? AND document_kind = 'sbv_participation_violation'")) {
+          return self.generatedDocuments.find((row) => row.id === params[0] && row.document_kind === 'sbv_participation_violation') as T | undefined;
+        }
         if (normalized.includes('SELECT 1 AS value FROM cases WHERE id = ?')) return { value: 1 } as T;
         if (normalized.includes('SELECT sequence, entry_hash FROM personal_data_audit_log ORDER BY sequence DESC LIMIT 1')) return self.audit.at(-1) as T | undefined;
         return undefined;
@@ -80,6 +83,8 @@ describe('Beteiligungsverstoß-Dokumente 0.9.4-b', () => {
       expect(result.filename).toMatch(/\.pdf$/);
       expect(result.storagePath).toMatch(/\.gsbvdoc$/);
       expect(readFileSync(result.storagePath).subarray(0, 4).toString()).not.toBe('%PDF');
+      const plain = await new SbvParticipationViolationDocumentService(db, () => dir).readDocument(result.documentId);
+      expect(plain.subarray(0, 4).toString()).toBe('%PDF');
       expect(db.generatedDocuments[0]).toMatchObject({ document_kind: 'sbv_participation_violation', template_version: '0.9.4-v1', mime_type: 'application/pdf' });
       expect(db.violationDocuments[0]).toMatchObject({ violation_id: 'vio-1', immutable_snapshot: 1 });
       expect(db.events.map((event) => event.event_type)).toContain('document_generated');

@@ -31,6 +31,14 @@ type ViolationDocumentRow = {
   created_at: string;
 };
 
+type GeneratedViolationDocumentRow = {
+  storage_path: string;
+  document_key: string;
+  iv: string;
+  auth_tag: string;
+  sha256: string | null;
+};
+
 function nowIso(): string { return new Date().toISOString(); }
 function mapViolationDocument(row: ViolationDocumentRow): SbvParticipationViolationGeneratedDocumentRecord {
   return {
@@ -142,6 +150,23 @@ export class SbvParticipationViolationDocumentService {
 
   listDocuments(violationId: string): SbvParticipationViolationGeneratedDocumentRecord[] {
     return this.db.prepare<ViolationDocumentRow>('SELECT * FROM sbv_participation_violation_documents WHERE violation_id = ? ORDER BY created_at DESC').all(violationId).map(mapViolationDocument);
+  }
+
+  async readDocument(documentId: string): Promise<Buffer> {
+    const row = this.db.prepare<GeneratedViolationDocumentRow>(`
+      SELECT storage_path, document_key, iv, auth_tag, sha256
+      FROM generated_documents
+      WHERE id = ? AND document_kind = 'sbv_participation_violation'
+    `).get(documentId);
+    if (!row) throw new Error('Beteiligungsverstoß-Dokument wurde nicht gefunden.');
+    return new DocumentContainerService().readEncryptedContainer({
+      storageRoot: this.dataDirProvider(),
+      storagePath: row.storage_path,
+      documentKey: row.document_key,
+      iv: row.iv,
+      authTag: row.auth_tag,
+      expectedSha256: row.sha256 ?? undefined,
+    });
   }
 
   private auditGenerated(violationId: string, documentId: string, caseId: string | undefined, templateKey: string, templateVersion: string, stage: string): void {

@@ -42,6 +42,9 @@ test('Beteiligungsverstoß anlegen, ändern, Status wechseln, Wiedervorlage und 
   expect(opened.status).toBe('open');
   const followUp = await productPage.evaluate(async ({ id }) => window.gremiaSbv.sbvParticipationViolations.createFollowUp(id, new Date(Date.now() + 3_600_000).toISOString()), { id: violation.id });
   expect(followUp.deadlineId).toBeTruthy();
+  const documentResult = await productPage.evaluate(async ({ id }) => window.gremiaSbv.sbvParticipationViolations.generateDocument(id, { privacyMode: 'case_reference' }), { id: violation.id });
+  expect(documentResult.previewStatus).toBe('requested');
+  expect(documentResult.filename).toMatch(/\.pdf$/);
   expect((await productPage.evaluate(async ({ id }) => window.gremiaSbv.sbvParticipationViolations.listEvents(id), { id: violation.id })).length).toBeGreaterThan(1);
   expect((await productPage.evaluate(async ({ id }) => window.gremiaSbv.sbvParticipationViolations.delete(id), { id: violation.id })).deleted).toBe(true);
   await assertNoRuntimeErrors(runtimeErrors);

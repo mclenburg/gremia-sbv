@@ -1043,7 +1043,7 @@
         Object.assign(row, { status: input.status, updatedAt: new Date().toISOString() });
         return row;
       },
-      generateDocument: async (id) => ({ violationId: id, filename: 'beteiligungsverstoss-e2e.docx', documentId: `document-${Date.now()}`, sizeBytes: 1024, sha256: 'e2e-sha256' }),
+      generateDocument: async (id) => ({ violationId: id, filename: 'beteiligungsverstoss-e2e.pdf', documentId: `document-${Date.now()}`, sizeBytes: 1024, sha256: 'e2e-sha256', previewStatus: 'requested' }),
       listDocuments: async () => [],
       createFollowUp: async (id) => {
         const dueAt = '2026-05-12T10:00:00.000Z';

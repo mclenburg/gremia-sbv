@@ -8,7 +8,9 @@ import type {
   ParticipationViolationStage,
   ParticipationViolationStatus,
   ParticipationViolationType,
+  SbvParticipationViolationDocumentResult,
   SbvParticipationViolationRecord,
+  SbvParticipationViolationTemplateInput,
 } from '../../../domain/models/sbv-participation-violation.model';
 import {
   sbvParticipationViolationStageLabels,
@@ -23,6 +25,15 @@ export const statusLabels = sbvParticipationViolationStatusLabels;
 export const violationTypeLabels = sbvParticipationViolationTypeLabels;
 export const stageOptions = sbvParticipationViolationStageOptions;
 export const violationTypeOptions = sbvParticipationViolationTypeOptions;
+
+export function documentSuccessMessage(result: SbvParticipationViolationDocumentResult): string {
+  const previewText = result.previewStatus === 'unavailable' ? 'verschlüsselt gespeichert' : 'verschlüsselt gespeichert und an die externe Vorschau übergeben';
+  return `PDF wurde ${previewText}: ${result.filename}`;
+}
+
+export function documentGenerationOptions(record: SbvParticipationViolationRecord): Partial<Pick<SbvParticipationViolationTemplateInput, 'privacyMode' | 'includeLegalReviewHint' | 'includeOwiHint'>> {
+  return { privacyMode: 'case_reference', includeLegalReviewHint: needsEscalationHint(record.stage), includeOwiHint: record.stage === 'owi_preparation' };
+}
 
 export type SbvParticipationViolationPrefill = {
   form: CreateSbvParticipationViolationInput;
