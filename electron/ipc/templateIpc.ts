@@ -27,45 +27,43 @@ export function registerTemplateIpc(
   security: SecurityService,
   services: ApplicationServices,
 ): void {
-  const templates = services.templates;
-  const templateDefaults = services.templateDefaults;
   const pdfDocuments = new PdfDocumentGenerationService();
   registerGremiaBrIpc(ipcMain, security, services);
 
 
-  registerIpcHandler(ipcMain, IPC_CHANNELS.templateDefaultsList, async () => templateDefaults.list());
+  registerIpcHandler(ipcMain, IPC_CHANNELS.templateDefaultsList, async () => services.templateDefaults().list());
   registerIpcHandler(ipcMain, IPC_CHANNELS.templateDefaultsSave, async (_event, input: unknown) =>
-    templateDefaults.save(
+    services.templateDefaults().save(
       assertRecordInput<Partial<TemplateDefaultValues>>(input, "template-defaults:save"),
     ),
   );
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.templatesList, async (_event, filters?: unknown) =>
-    templates.listTemplates(
+    services.templates().listTemplates(
       assertOptionalObject<TemplateListFilters>(filters, "templates:list", "Filter"),
     ),
   );
   registerIpcHandler(ipcMain, IPC_CHANNELS.templatesCreate, async (_event, input: unknown) =>
-    templates.createTemplate(
+    services.templates().createTemplate(
       assertRecordInput<CreateTemplateInput>(input, "templates:create"),
     ),
   );
   registerIpcHandler(ipcMain, IPC_CHANNELS.templatesUpdate, async (_event, id: unknown, input: unknown) =>
-    templates.updateTemplate(
+    services.templates().updateTemplate(
       assertString(id, "templates:update", "Vorlagen-ID", { minLength: 1, maxLength: 120 }),
       assertRecordInput<UpdateTemplateInput>(input, "templates:update"),
     ),
   );
   registerIpcHandler(ipcMain, IPC_CHANNELS.templatesDelete, async (_event, id: unknown) =>
-    templates.deleteTemplate(assertString(id, "templates:delete", "Vorlagen-ID", { minLength: 1, maxLength: 120 })),
+    services.templates().deleteTemplate(assertString(id, "templates:delete", "Vorlagen-ID", { minLength: 1, maxLength: 120 })),
   );
   registerIpcHandler(ipcMain, IPC_CHANNELS.templatesRender, async (_event, input: unknown) =>
-    templates.renderTemplate(
+    services.templates().renderTemplate(
       assertRecordInput<RenderTemplateInput>(input, "templates:render"),
     ),
   );
   registerIpcHandler(ipcMain, IPC_CHANNELS.templatesRenderContext, async (_event, input: unknown) =>
-    templates.renderContextTemplate(
+    services.templates().renderContextTemplate(
       assertRecordInput<RenderContextTemplateInput>(input, "templates:render-context"),
     ),
   );
@@ -81,7 +79,7 @@ export function registerTemplateIpc(
         privacyProfile: 'lawful_personal_data',
         definition: externalLetterDocument({
           title,
-          sender: sbvSenderLines(templateDefaults.list()),
+          sender: sbvSenderLines(services.templateDefaults().list()),
           recipient: [],
           date: new Intl.DateTimeFormat('de-DE').format(new Date()),
           subject,
@@ -90,8 +88,8 @@ export function registerTemplateIpc(
       });
       security.cleanupTemporaryFiles();
       const filePath = security.writeTemporaryFile('document-preview', `${safeDocumentFilePart(title)}.pdf`, pdf, 'preview');
-      requestExternalPreview(filePath, (previewPath) => shell.openPath(previewPath));
-      return { opened: true };
+      const opened = await requestExternalPreview(filePath, (previewPath) => shell.openPath(previewPath));
+      return { opened };
     } finally {
       pdf?.fill(0);
     }

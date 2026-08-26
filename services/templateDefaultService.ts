@@ -38,15 +38,15 @@ export function templateDefaultValuesToContext(values: TemplateDefaultValues): R
 }
 
 export class TemplateDefaultService {
-  constructor(private readonly databaseProvider: () => DatabaseAdapter) {}
+  constructor(private readonly database: DatabaseAdapter) {}
 
   list(): TemplateDefaultValues {
-    return readTemplateDefaultValues(this.databaseProvider());
+    return readTemplateDefaultValues(this.database);
   }
 
   save(input: Partial<Record<string, unknown>>): TemplateDefaultValues {
     const normalized = normalizeTemplateDefaultValues(input);
-    writeStoredDefaults(this.databaseProvider(), normalized);
+    writeStoredDefaults(this.database, normalized);
     return normalized;
   }
 }

@@ -11,15 +11,15 @@ import { RetentionOwnerRegistry } from './retentionOwnerRegistry.js';
 import { CASE_DELETE_CONFIRMATION, DatabaseRow, nowIso, bool, readNumberSetting, writeSetting, safeRun, tableExists, getColumns, latestActivityExpression, CaseDocumentFileRow, removeCaseDocumentFiles, lifecycleRowsForCase } from './retentionSupport.js';
 export class RetentionService {
   constructor(
-    private readonly databaseProvider: () => DatabaseAdapter,
+    private readonly database: DatabaseAdapter,
     private readonly dataDirProvider: () => string
   ) {}
 
   private get db(): DatabaseAdapter {
-    return this.databaseProvider();
+    return this.database;
   }
 
-  ensureSchema(db = this.databaseProvider()): void {
+  ensureSchema(db = this.database): void {
     db.exec(`
       CREATE TABLE IF NOT EXISTS retention_actions (
         id TEXT PRIMARY KEY,

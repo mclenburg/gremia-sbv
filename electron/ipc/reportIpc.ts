@@ -20,6 +20,7 @@ import {
   ensurePathInside,
   sanitizeDialogFileName,
 } from "./ipcValidation.js";
+import { requestShellPathOpen } from './shellOpenPath.js';
 
 function destroyBuffer(buffer?: Buffer): void {
   try { buffer?.fill(0); } catch { /* Best-Effort-Speicherhygiene. */ }
@@ -145,11 +146,9 @@ export function registerReportIpc(
       );
       if (requestedFileName) {
         const pathToOpen = writeTemporaryPlainPdf(security, requestedFileName);
-        await shell.openPath(pathToOpen);
-        return { opened: true };
+        return requestShellPathOpen(pathToOpen, (targetPath) => shell.openPath(targetPath));
       }
-      await shell.openPath(path.join(security.getDataDirectory(), "exports"));
-      return { opened: true };
+      return requestShellPathOpen(path.join(security.getDataDirectory(), "exports"), (targetPath) => shell.openPath(targetPath));
     },
   );
 }

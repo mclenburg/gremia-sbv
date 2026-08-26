@@ -12,7 +12,7 @@ beforeEach(async () => {
     id TEXT PRIMARY KEY, case_number TEXT NOT NULL, display_name TEXT NOT NULL,
     category TEXT NOT NULL, status TEXT NOT NULL, summary TEXT, risk_level TEXT
   );`);
-  service = new TemplateService(() => db);
+  service = new TemplateService(db);
   service.ensureSchema(db);
 });
 

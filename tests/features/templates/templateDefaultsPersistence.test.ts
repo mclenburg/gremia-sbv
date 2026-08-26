@@ -39,7 +39,7 @@ function createSettingsDb(initial?: Record<string, string>): DatabaseAdapter {
 describe('Vorlagen-Standardwerte im verschlüsselten Tresor', () => {
   it('normalisiert fehlende Werte und speichert sie in der settings-Tabelle', () => {
     const db = createSettingsDb();
-    const service = new TemplateDefaultService(() => db);
+    const service = new TemplateDefaultService(db);
 
     const saved = service.save({
       'sbv.name': 'SBV Muster',
@@ -55,7 +55,7 @@ describe('Vorlagen-Standardwerte im verschlüsselten Tresor', () => {
 
   it('fällt bei ungültigen gespeicherten Daten auf sichere Standardwerte zurück', () => {
     const db = createSettingsDb({ 'template.defaults.v1': '{kaputt' });
-    const service = new TemplateDefaultService(() => db);
+    const service = new TemplateDefaultService(db);
 
     expect(service.list()).toEqual(EMPTY_TEMPLATE_DEFAULT_VALUES);
   });

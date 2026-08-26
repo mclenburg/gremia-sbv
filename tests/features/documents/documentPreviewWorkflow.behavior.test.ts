@@ -27,7 +27,7 @@ function security(write: () => string = () => '/isolierte-vorschau/einladung.pdf
 describe('gemeinsamer PDF-Vorschauablauf', () => {
   it('speichert, verifiziert und wertet den erteilten externen Öffnungsauftrag als Erfolg', async () => {
     const plain = Buffer.from('%PDF');
-    const opener = vi.fn(async () => 'spätere Diagnose ist für Gremia.SBV unerheblich');
+    const opener = vi.fn(async () => '');
     const result = await generateAndRequestDocumentPreview({
       operation: 'elections:document:generate',
       generateFailureMessage: 'Wahldokument fehlgeschlagen.',
@@ -55,6 +55,21 @@ describe('gemeinsamer PDF-Vorschauablauf', () => {
     expect(result.document).toBe(record);
     expect(result.previewStatus).toBe('unavailable');
     expect(result.previewMessage).toContain('temporäre Vorschau');
+  });
+
+  it('wertet einen abgelehnten Betriebssystem-Aufruf als gespeichertes Dokument ohne verfügbare Vorschau', async () => {
+    const result = await generateAndRequestDocumentPreview({
+      operation: 'elections:document:generate',
+      generateFailureMessage: 'Wahldokument fehlgeschlagen.',
+      security: security(),
+      opener: async () => 'No application associated',
+      generate: async () => record,
+      read: async () => Buffer.from('%PDF'),
+    });
+
+    expect(result.document).toBe(record);
+    expect(result.previewStatus).toBe('unavailable');
+    expect(result.previewMessage).toContain('externe Vorschau-Anwendung');
   });
 
   it('liefert bei einem Erzeugungsfehler eine stufengenaue sichere Anwendungsfehlermeldung', async () => {

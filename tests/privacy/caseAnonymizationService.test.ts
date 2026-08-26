@@ -168,7 +168,7 @@ describe('CaseAnonymizationService', () => {
       const chainBefore = db.prepare<Record<string, unknown>>('SELECT * FROM personal_data_audit_log ORDER BY sequence').all();
       const originalPaths = db.prepare<{ storage_path: string }>('SELECT storage_path FROM case_documents WHERE case_id = ?').all('case-1').map((row) => row.storage_path);
 
-      const result = await new CaseAnonymizationService(() => db, () => dataDir).anonymizeCase('case-1', 'Zweck entfallen', 'FALL ANONYMISIEREN', 'marked_free_text');
+      const result = await new CaseAnonymizationService(db, () => dataDir).anonymizeCase('case-1', 'Zweck entfallen', 'FALL ANONYMISIEREN', 'marked_free_text');
 
       expect(result.ok).toBe(true);
       expect(db.prepare<{ protected_person_id: string | null; person_binding_state: string }>('SELECT protected_person_id, person_binding_state FROM cases WHERE id = ?').get('case-1')).toEqual({ protected_person_id: null, person_binding_state: 'anonymized' });
@@ -229,7 +229,7 @@ describe('CaseAnonymizationService', () => {
     try {
       const original = 'Max Mustermann und weitere personenbezogene Angaben werden hier ausführlich beschrieben, damit der Ersatztext dieselbe Länge behalten kann.';
       await seedCase(db, dataDir, original);
-      await new CaseAnonymizationService(() => db, () => dataDir).anonymizeCase('case-1', 'Vollanonymisierung', 'FALL ANONYMISIEREN', 'replace_all_free_text');
+      await new CaseAnonymizationService(db, () => dataDir).anonymizeCase('case-1', 'Vollanonymisierung', 'FALL ANONYMISIEREN', 'replace_all_free_text');
 
       const note = db.prepare<{ title: string; participants: string; content: string }>('SELECT title, participants, content FROM case_notes WHERE id = ?').get('note-1');
       expect(note?.participants).toBe(REMOVED_PARTICIPANTS_TEXT);
@@ -252,7 +252,7 @@ describe('CaseAnonymizationService', () => {
       const personalChainBefore = db.prepare<Record<string, unknown>>('SELECT * FROM personal_data_audit_log ORDER BY sequence').all();
       const legacyChainBefore = db.prepare<Record<string, unknown>>('SELECT * FROM audit_log ORDER BY timestamp, id').all();
 
-      const result = await new CaseAnonymizationService(() => db, () => dataDir).anonymizeCase(
+      const result = await new CaseAnonymizationService(db, () => dataDir).anonymizeCase(
         'case-1',
         'Vollständige Fallanonymisierung',
         'FALL ANONYMISIEREN',
@@ -343,7 +343,7 @@ describe('CaseAnonymizationService', () => {
       await seedCase(db, dataDir, 'Nicht markierter Freitext zu Max Mustermann.');
       const { generatedPaths } = await seedExtendedCaseData(db, dataDir);
 
-      const result = await new CaseAnonymizationService(() => db, () => dataDir).anonymizeCase(
+      const result = await new CaseAnonymizationService(db, () => dataDir).anonymizeCase(
         'case-1',
         'Gezielte Marker-Anonymisierung',
         'FALL ANONYMISIEREN',
@@ -383,7 +383,7 @@ describe('CaseAnonymizationService', () => {
         WHEN NEW.action_type = 'case_anonymized'
         BEGIN SELECT RAISE(ABORT, 'fault injection retention'); END;`);
 
-      const result = await new CaseAnonymizationService(() => db, () => dataDir).anonymizeCase(
+      const result = await new CaseAnonymizationService(db, () => dataDir).anonymizeCase(
         'case-1',
         'Rollback erzwingen',
         'FALL ANONYMISIEREN',
@@ -415,7 +415,7 @@ describe('CaseAnonymizationService', () => {
           VALUES ('resurrected-link', OLD.protected_person_id, OLD.case_file_id, 'active', CURRENT_TIMESTAMP);
         END;`);
 
-      const result = await new CaseAnonymizationService(() => db, () => dataDir).anonymizeCase(
+      const result = await new CaseAnonymizationService(db, () => dataDir).anonymizeCase(
         'case-1',
         'Post-Check erzwingen',
         'FALL ANONYMISIEREN',

@@ -523,7 +523,7 @@ declare global {
         descriptors(): Promise<ReportDescriptor[]>;
         history(limit?: number): Promise<ReportExportHistoryItem[]>;
         generate(input: GenerateReportInput): Promise<ReportGenerationResult>;
-        openExportFolder(fileName?: string): Promise<{ opened: boolean }>;
+        openExportFolder(fileName?: string): Promise<{ opened: boolean; error?: string }>;
       };
       templates: {
         list(filters?: TemplateListFilters): Promise<TemplateRecord[]>;
@@ -534,7 +534,7 @@ declare global {
         renderContext(
           input: RenderContextTemplateInput,
         ): Promise<RenderedTemplateResult>;
-        openPdf(input: Pick<RenderedTemplateResult, 'title' | 'subject' | 'body'>): Promise<{ opened: boolean }>;
+        openPdf(input: Pick<RenderedTemplateResult, 'title' | 'subject' | 'body'>): Promise<{ opened: boolean; error?: string }>;
       };
 
       elections: {
@@ -617,7 +617,7 @@ declare global {
           passphrase: string,
           confirmation: string,
         ): Promise<BackupOperationResult>;
-        openBackupFolder(): Promise<{ opened: boolean }>;
+        openBackupFolder(): Promise<{ opened: boolean; error?: string }>;
       };
     };
     gremiaSbvPreload?: {

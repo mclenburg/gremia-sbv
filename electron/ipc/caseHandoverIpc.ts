@@ -7,8 +7,6 @@ import { assertRecordInput, assertString, sanitizeDialogFileName } from './ipcVa
 import { issueSelectedFileCapability, resolveSelectedFileCapability, SELECTED_FILE_PURPOSE } from './selectedFileCapability.js';
 
 export function registerCaseHandoverIpc(ipcMain: IpcMain, security: SecurityService, services: ApplicationServices): void {
-  const handover = services.caseHandover;
-
   registerIpcHandler(ipcMain, IPC_CHANNELS.caseHandoverExport, async (_event, input: unknown, suggestedFileName?: unknown) => {
     const validated = assertRecordInput<CaseHandoverExportInput>(input, 'caseHandover:export');
     const safeName = sanitizeDialogFileName(suggestedFileName, 'caseHandover:export', 'vorgeschlagener Dateiname') ?? 'falluebergabe.gsbvtransfer';
@@ -19,7 +17,7 @@ export function registerCaseHandoverIpc(ipcMain: IpcMain, security: SecurityServ
       filters: [{ name: 'Gremia.SBV Fallübergabe', extensions: ['gsbvtransfer'] }],
     });
     if (result.canceled || !result.filePath) return { exported: false, filePath: '', packageId: '', caseCount: 0, measureCount: 0, documentCount: 0, deadlineCount: 0 };
-    return handover.exportToFile(validated, result.filePath);
+    return services.caseHandover().exportToFile(validated, result.filePath);
   });
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.caseHandoverSelectFile, async () => {
@@ -39,7 +37,7 @@ export function registerCaseHandoverIpc(ipcMain: IpcMain, security: SecurityServ
     const validatedFilePath = resolveSelectedFileCapability(fileToken, SELECTED_FILE_PURPOSE.caseHandover, 'caseHandover:inspect');
     const validatedPassphrase = assertString(passphrase, 'caseHandover:inspect', 'Transport-Passphrase', { minLength: 1, maxLength: 500 });
     if (!validatedFilePath.toLowerCase().endsWith('.gsbvtransfer')) throw new Error('Bitte eine Gremia.SBV-Übergabedatei (*.gsbvtransfer) auswählen.');
-    return handover.inspect(validatedFilePath, validatedPassphrase);
+    return services.caseHandover().inspect(validatedFilePath, validatedPassphrase);
   });
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.caseHandoverSelectAndInspect, async (_event, passphrase: unknown) => {
@@ -52,18 +50,18 @@ export function registerCaseHandoverIpc(ipcMain: IpcMain, security: SecurityServ
     if (result.canceled || !result.filePaths[0]) return { canceled: true };
     const filePath = result.filePaths[0];
     const capability = issueSelectedFileCapability(filePath, SELECTED_FILE_PURPOSE.caseHandover);
-    return { canceled: false, filePath: capability.fileToken, fileName: capability.fileName, inspection: handover.inspect(filePath, validatedPassphrase) };
+    return { canceled: false, filePath: capability.fileToken, fileName: capability.fileName, inspection: services.caseHandover().inspect(filePath, validatedPassphrase) };
   });
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.caseHandoverImport, async (_event, input: unknown) => {
     const validated = assertRecordInput<CaseHandoverImportInput>(input, 'caseHandover:import');
     const resolvedFilePath = resolveSelectedFileCapability(validated.filePath, SELECTED_FILE_PURPOSE.caseHandover, 'caseHandover:import');
-    return handover.importFromFile({ ...validated, filePath: resolvedFilePath });
+    return services.caseHandover().importFromFile({ ...validated, filePath: resolvedFilePath });
   });
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.caseHandoverContinueExpired, async (_event, caseId: unknown, reason: unknown) => {
     const validatedCaseId = assertString(caseId, 'caseHandover:continue-expired', 'Fall-ID', { minLength: 1, maxLength: 120 });
     const validatedReason = assertString(reason, 'caseHandover:continue-expired', 'Begründung', { minLength: 3, maxLength: 2000 });
-    return handover.continueExpired({ caseId: validatedCaseId, reason: validatedReason });
+    return services.caseHandover().continueExpired({ caseId: validatedCaseId, reason: validatedReason });
   });
 }

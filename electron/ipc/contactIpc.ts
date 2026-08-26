@@ -18,25 +18,23 @@ export function registerContactIpc(
   security: SecurityService,
   services: ApplicationServices,
 ): void {
-  const contacts = services.contacts;
-
   registerIpcHandler(ipcMain, IPC_CHANNELS.contactsList, async (_event, filters?: unknown) =>
-    contacts.listContacts(
+    services.contacts().listContacts(
       assertOptionalObject<ContactListFilters>(filters, "contacts:list", "Filter"),
     ),
   );
   registerIpcHandler(ipcMain, IPC_CHANNELS.contactsCreate, async (_event, input: unknown) =>
-    contacts.createContact(
+    services.contacts().createContact(
       assertRecordInput<CreateContactInput>(input, "contacts:create"),
     ),
   );
   registerIpcHandler(ipcMain, IPC_CHANNELS.contactsUpdate, async (_event, id: unknown, input: unknown) =>
-    contacts.updateContact(
+    services.contacts().updateContact(
       assertString(id, "contacts:update", "Kontakt-ID", { minLength: 1, maxLength: 120 }),
       assertRecordInput<UpdateContactInput>(input, "contacts:update"),
     ),
   );
   registerIpcHandler(ipcMain, IPC_CHANNELS.contactsDelete, async (_event, id: unknown) =>
-    contacts.deleteContact(assertString(id, "contacts:delete", "Kontakt-ID", { minLength: 1, maxLength: 120 })),
+    services.contacts().deleteContact(assertString(id, "contacts:delete", "Kontakt-ID", { minLength: 1, maxLength: 120 })),
   );
 }

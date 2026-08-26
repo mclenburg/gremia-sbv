@@ -263,14 +263,14 @@ function insertDocumentEvidence(db: DatabaseAdapter, caseId: string, caseNumber:
 }
 
 export class CaseAnonymizationService {
-  constructor(private readonly databaseProvider: () => DatabaseAdapter, private readonly dataDirProvider: () => string) {}
+  constructor(private readonly database: DatabaseAdapter, private readonly dataDirProvider: () => string) {}
 
   async anonymizeCase(caseId: string, reason: string, confirmation: string, mode: CaseAnonymizationMode): Promise<RetentionOperationResult> {
     if (confirmation !== CASE_ANONYMIZATION_CONFIRMATION) return { ok: false, action: 'none', error: `Bitte exakt „${CASE_ANONYMIZATION_CONFIRMATION}“ eingeben.` };
     if (!reason.trim()) return { ok: false, action: 'none', error: 'Für die Anonymisierung ist ein dokumentierter Grund erforderlich.' };
     if (mode !== 'marked_free_text' && mode !== 'replace_all_free_text') return { ok: false, action: 'none', error: 'Bitte einen gültigen Anonymisierungsmodus auswählen.' };
 
-    const db = this.databaseProvider();
+    const db = this.database;
     const dataDir = this.dataDirProvider();
     const row = db.prepare<{ id: string; case_number: string; person_id: string | null; protected_person_id: string | null; handover_import_id: string | null }>(
       'SELECT id, case_number, person_id, protected_person_id, handover_import_id FROM cases WHERE id = ?',

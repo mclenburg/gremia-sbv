@@ -88,7 +88,7 @@ export async function generateAndRequestDocumentPreviewForRecord<TRecord>(
       'Das PDF wurde gespeichert, die temporäre Vorschau konnte aber nicht geschrieben werden.',
       () => input.security.writeTemporaryFile('document-preview', input.getFilename(record), plain!, 'preview'),
     );
-    if (requestExternalPreview(previewPath, input.opener)) {
+    if (await requestExternalPreview(previewPath, input.opener)) {
       return { record, previewStatus: 'requested' };
     }
     return {

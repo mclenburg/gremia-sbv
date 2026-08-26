@@ -55,7 +55,7 @@ describe('Schema-Migrationskonsolidierung 0049', () => {
   });
 
   it('führt auch während fachlicher Retention-Abfragen kein strukturelles SQL aus', () => {
-    const service = new RetentionService(() => dataOnlyDb(), () => '');
+    const service = new RetentionService(dataOnlyDb(), () => '');
 
     expect(() => service.getSettings()).not.toThrow(/Strukturelles SQL/);
   });

@@ -38,7 +38,7 @@ beforeEach(async () => {
     );
   `);
   ensurePersonalDataAuditSchema(db);
-  const service = new ContactService(() => db);
+  const service = new ContactService(db);
   service.ensureSchema(db);
 
   db.prepare('INSERT INTO cases (id, case_number) VALUES (?, ?)').run('case-1', 'SBV-1');
@@ -65,7 +65,7 @@ afterEach(() => db.close());
 
 describe('ContactService – atomare Kontaktlöschung', () => {
   it('löscht Kontakt und anonymisiert Referenzen als eine gemeinsame Transaktion', async () => {
-    const service = new ContactService(() => db);
+    const service = new ContactService(db);
 
     await expect(service.deleteContact('contact-1')).resolves.toEqual({
       deleted: true,
@@ -88,7 +88,7 @@ describe('ContactService – atomare Kontaktlöschung', () => {
         SELECT RAISE(ABORT, 'forced contact delete failure');
       END;
     `);
-    const service = new ContactService(() => db);
+    const service = new ContactService(db);
 
     await expect(service.deleteContact('contact-1')).rejects.toThrow(/forced contact delete failure/i);
 
