@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { readFileSync } from 'node:fs';
 import { DatabaseRuntimeInitializer } from '../../../services/databaseRuntimeInitializer';
 import { getSchemaMigrationHook } from '../../../services/schemaMigrationHooks';
 import type { DatabaseAdapter } from '../../../services/databaseService';
@@ -40,6 +41,13 @@ describe('Schema-Migrationskonsolidierung 0049', () => {
       'reports',
       'templates',
     ]));
+  });
+
+  it('instanziiert im Migrationshook keine Fachservices als zweite Schemaquelle', () => {
+    const source = readFileSync('services/schemaMigrationHooks.ts', 'utf8');
+
+    expect(source).not.toMatch(/new\s+\w+Service\s*\(/);
+    expect(source).not.toContain('.ensureSchema(');
   });
 
   it('hält die nachgelagerte Runtime-Initialisierung frei von strukturellem SQL', () => {

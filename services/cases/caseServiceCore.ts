@@ -44,11 +44,17 @@ import { extractDocumentTextBestEffort, inferMimeType } from "../documents/docum
 import { DocumentOcrService } from "../documents/documentOcrService.js";
 
 export class CaseServiceCore {
+  protected readonly dbProvider: () => DatabaseAdapter;
+  protected readonly dataDirProvider: () => string;
+
   constructor(
-      protected readonly dbProvider: () => DatabaseAdapter,
-      protected readonly dataDirProvider: () => string = () =>
+      databaseProvider: () => DatabaseAdapter,
+      dataDirectoryProvider: () => string = () =>
         path.join(process.cwd(), "data"),
-    ) {}
+    ) {
+      this.dbProvider = databaseProvider;
+      this.dataDirProvider = dataDirectoryProvider;
+    }
 
   protected audit(
       db: DatabaseAdapter,

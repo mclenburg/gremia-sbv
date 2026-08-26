@@ -17,10 +17,16 @@ import { REPORT_DESCRIPTORS, formatDate, rows, slug } from './reportSupport.js';
 import type { ReportExportHistoryRow } from './reportSupport.js';
 
 export class ReportServiceCore {
+  protected readonly dbProvider: () => DatabaseAdapter;
+  protected readonly dataDirProvider: () => string;
+
   constructor(
-      protected readonly dbProvider: () => DatabaseAdapter,
-      protected readonly dataDirProvider: () => string,
-    ) {}
+      databaseProvider: () => DatabaseAdapter,
+      dataDirectoryProvider: () => string,
+    ) {
+      this.dbProvider = databaseProvider;
+      this.dataDirProvider = dataDirectoryProvider;
+    }
 
   ensureSchema(): void {
       this.dbProvider().exec(`

@@ -10,14 +10,14 @@ export { evaluateParticipationWarnings } from './participationSupport.js';
 import { ensureParticipationSchema } from './participationSchema.js';
 export class ParticipationService {
   constructor(
-    private readonly db: DatabaseAdapter,
-    private readonly caseMeasures: CaseMeasureService = new CaseMeasureService(db),
-    private readonly deadlines: DeadlineService = new DeadlineService(db),
-    private readonly auditLog: PersonalDataAuditLogService = new PersonalDataAuditLogService(db),
+    private readonly database: DatabaseAdapter,
+    private readonly caseMeasures: CaseMeasureService = new CaseMeasureService(database),
+    private readonly deadlines: DeadlineService = new DeadlineService(database),
+    private readonly auditLog: PersonalDataAuditLogService = new PersonalDataAuditLogService(database),
   ) {}
 
   ensureSchema(): void {
-    ensureParticipationSchema(this.db, this.caseMeasures);
+    ensureParticipationSchema(this.database, this.caseMeasures);
     void this.auditLog;
   }
 
@@ -51,8 +51,8 @@ export class ParticipationService {
       ORDER BY COALESCE(p.sbv_statement_due_at, p.suspension_deadline_at, cm.due_at, cm.updated_at) DESC
     `;
     const rows = caseId
-      ? this.db.prepare<ParticipationRow>(sql).all(caseId)
-      : this.db.prepare<ParticipationRow>(sql).all();
+      ? this.database.prepare<ParticipationRow>(sql).all(caseId)
+      : this.database.prepare<ParticipationRow>(sql).all();
     return rows.map(mapRecord);
   }
 
@@ -97,7 +97,7 @@ export class ParticipationService {
       undefined,
       "SBV-Beteiligungsmaßnahme Detail anzeigen",
     );
-    const row = this.db
+    const row = this.database
       .prepare<ParticipationRow>(
         `
       SELECT cm.id, cm.case_id, cm.title, cm.status AS measure_status, cm.risk_level, cm.summary, cm.next_step, cm.due_at,
@@ -117,7 +117,7 @@ export class ParticipationService {
   }
 
   create(input: CreateParticipationInput): ParticipationRecord {
-    return new DatabaseUnitOfWork(this.db).run(() => {
+    return new DatabaseUnitOfWork(this.database).run(() => {
     if (!input.caseId)
       throw new Error(
         "Eine Beteiligungsmaßnahme muss aus einer Fallakte heraus angelegt werden.",
@@ -143,7 +143,7 @@ export class ParticipationService {
       requiresFollowUp: input.requiresFollowUp ?? true,
     });
 
-    this.db
+    this.database
       .prepare(
         `
       INSERT INTO case_measure_participation (
@@ -214,7 +214,7 @@ export class ParticipationService {
   }
 
   update(id: string, input: UpdateParticipationInput): ParticipationRecord {
-    return new DatabaseUnitOfWork(this.db).run(() => {
+    return new DatabaseUnitOfWork(this.database).run(() => {
     const existing = this.getById(id);
     if (!existing)
       throw new Error(`SBV-Beteiligungsmaßnahme nicht gefunden: ${id}`);
@@ -259,7 +259,7 @@ export class ParticipationService {
       ].includes(nextStatus),
     });
 
-    this.db
+    this.database
       .prepare(
         `
       UPDATE case_measure_participation
@@ -381,7 +381,7 @@ export class ParticipationService {
     title: string,
     description?: string,
   ): void {
-    this.db
+    this.database
       .prepare(
         "INSERT INTO case_measure_events (id, measure_id, event_type, title, description, created_at) VALUES (?, ?, ?, ?, ?, ?)",
       )

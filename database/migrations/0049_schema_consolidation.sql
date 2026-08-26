@@ -1,6 +1,6 @@
--- Konsolidiert alle verbliebenen Kompatibilitäts-Schemata in den versionierten
--- Migrationslauf. Die zugehörigen idempotenten Struktur-Hooks werden durch
--- MigrationService innerhalb derselben Migrationstransaktion ausgeführt.
+-- Dokumentiert die abgeschlossene Konsolidierung der verbliebenen
+-- Kompatibilitäts-Schemata. Strukturänderungen liegen ausschließlich in den
+-- versionierten Migrationen und Migrations-Reparaturpfaden.
 CREATE TABLE IF NOT EXISTS schema_migration_components (
   migration_version TEXT NOT NULL,
   component TEXT NOT NULL,

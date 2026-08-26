@@ -52,10 +52,10 @@ function mapProcess(row: PreventionProcessRow, contactIds: string[]): Prevention
 
 export class PreventionService {
   constructor(
-    private readonly db: DatabaseAdapter,
-    private readonly auditLog: PersonalDataAuditLogService = new PersonalDataAuditLogService(db),
-    private readonly lifecycleAudit: MeasureLifecycleAuditService = new MeasureLifecycleAuditService(db, auditLog),
-    private readonly deadlines: DeadlineService = new DeadlineService(db),
+    private readonly database: DatabaseAdapter,
+    private readonly auditLog: PersonalDataAuditLogService = new PersonalDataAuditLogService(database),
+    private readonly lifecycleAudit: MeasureLifecycleAuditService = new MeasureLifecycleAuditService(database, auditLog),
+    private readonly deadlines: DeadlineService = new DeadlineService(database),
   ) {}
 
   private audit(action: Parameters<PersonalDataAuditLogService['append']>[0]['action'], subjectId: string | undefined, caseId: string | undefined, purpose: string): void {
@@ -69,8 +69,8 @@ export class PreventionService {
   list(caseId?: string): PreventionProcessRecord[] {
     this.audit('read', undefined, caseId, 'prevention_process Liste anzeigen');
     const rows = caseId
-      ? this.db.prepare<PreventionProcessRow>('SELECT * FROM prevention_processes WHERE case_id = ? ORDER BY COALESCE(requested_at, first_knowledge_at, created_at) DESC').all(caseId)
-      : this.db.prepare<PreventionProcessRow>('SELECT * FROM prevention_processes ORDER BY COALESCE(requested_at, first_knowledge_at, created_at) DESC').all();
+      ? this.database.prepare<PreventionProcessRow>('SELECT * FROM prevention_processes WHERE case_id = ? ORDER BY COALESCE(requested_at, first_knowledge_at, created_at) DESC').all(caseId)
+      : this.database.prepare<PreventionProcessRow>('SELECT * FROM prevention_processes ORDER BY COALESCE(requested_at, first_knowledge_at, created_at) DESC').all();
     return rows.map((row) => mapProcess(row, this.contactIdsForProcess(row.id)));
   }
 
@@ -97,8 +97,8 @@ export class PreventionService {
         ? defaultEmployerResponseDueAt(requestedAt)
         : null;
 
-    new DatabaseUnitOfWork(this.db).run(() => {
-      this.db.prepare(`
+    new DatabaseUnitOfWork(this.database).run(() => {
+      this.database.prepare(`
       INSERT INTO prevention_processes (
         id, case_id, status, first_knowledge_at, requested_at, employer_response_due_at,
         difficulty_type, risk_type, person_status, hazard_description, created_at, updated_at
@@ -122,7 +122,7 @@ export class PreventionService {
 
     if (input.createDefaultDeadlines !== false && employerResponseDueAt) {
       const reviewDueAt = preventionReviewDueAtAfterEmployerDeadline(employerResponseDueAt);
-      this.db.prepare('UPDATE prevention_processes SET next_review_at = ?, updated_at = ? WHERE id = ?').run(reviewDueAt, timestamp, id);
+      this.database.prepare('UPDATE prevention_processes SET next_review_at = ?, updated_at = ? WHERE id = ?').run(reviewDueAt, timestamp, id);
       this.deadlines.create({
         caseId: input.caseId,
         processId: id,
@@ -170,8 +170,8 @@ export class PreventionService {
       nextReviewAt: input.nextReviewAt !== undefined ? input.nextReviewAt : existing.nextReviewAt
     };
 
-    new DatabaseUnitOfWork(this.db).run(() => {
-      this.db.prepare(`
+    new DatabaseUnitOfWork(this.database).run(() => {
+      this.database.prepare(`
       UPDATE prevention_processes
       SET status = ?, first_knowledge_at = ?, requested_at = ?, employer_response_due_at = ?, employer_responded_at = ?,
           integration_office_involved_at = ?, difficulty_type = ?, risk_type = ?, person_status = ?, hazard_description = ?,
@@ -210,25 +210,25 @@ export class PreventionService {
 
   getById(id: string): PreventionProcessRecord | undefined {
     this.audit('read', id, undefined, 'prevention_process Detail anzeigen');
-    const row = this.db.prepare<PreventionProcessRow>('SELECT * FROM prevention_processes WHERE id = ?').get(id);
+    const row = this.database.prepare<PreventionProcessRow>('SELECT * FROM prevention_processes WHERE id = ?').get(id);
     return row ? mapProcess(row, this.contactIdsForProcess(id)) : undefined;
   }
 
   private contactIdsForProcess(processId: string): string[] {
-    return this.db.prepare<{ contact_id: string }>('SELECT contact_id FROM prevention_process_contacts WHERE process_id = ? ORDER BY created_at ASC')
+    return this.database.prepare<{ contact_id: string }>('SELECT contact_id FROM prevention_process_contacts WHERE process_id = ? ORDER BY created_at ASC')
       .all(processId)
       .map((row) => row.contact_id);
   }
 
   private replaceContacts(processId: string, contactIds: string[]): void {
     const timestamp = nowIso();
-    this.db.prepare('DELETE FROM prevention_process_contacts WHERE process_id = ?').run(processId);
-    const insert = this.db.prepare('INSERT OR IGNORE INTO prevention_process_contacts (process_id, contact_id, created_at) VALUES (?, ?, ?)');
+    this.database.prepare('DELETE FROM prevention_process_contacts WHERE process_id = ?').run(processId);
+    const insert = this.database.prepare('INSERT OR IGNORE INTO prevention_process_contacts (process_id, contact_id, created_at) VALUES (?, ?, ?)');
     [...new Set(contactIds)].filter(Boolean).forEach((contactId) => insert.run(processId, contactId, timestamp));
   }
 
   private event(processId: string, eventType: string, title: string, description?: string): void {
-    this.db.prepare('INSERT INTO prevention_process_events (id, process_id, event_type, title, description, created_at) VALUES (?, ?, ?, ?, ?, ?)')
+    this.database.prepare('INSERT INTO prevention_process_events (id, process_id, event_type, title, description, created_at) VALUES (?, ?, ?, ?, ?, ?)')
       .run(randomUUID(), processId, eventType, title, description ?? null, nowIso());
   }
 }

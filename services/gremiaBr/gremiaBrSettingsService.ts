@@ -163,12 +163,12 @@ export function decodeGremiaBrSecret(secret?: string | null, databaseKey?: Buffe
 
 export class GremiaBrSettingsService implements GremiaBrSettingsStore {
   constructor(
-    private readonly getDb: () => DatabaseAdapter,
+    private readonly databaseProvider: () => DatabaseAdapter,
     private readonly getSecretKey?: () => Buffer,
   ) {}
 
   private db(): DatabaseAdapter {
-    return this.getDb();
+    return this.databaseProvider();
   }
 
   private withSecretKey<T>(operation: (key: Buffer) => T): T {

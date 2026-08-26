@@ -75,10 +75,10 @@ export class SbvElectionDocumentService {
   private readonly pdfDocuments = new PdfDocumentGenerationService();
 
   constructor(
-    db: DatabaseAdapter,
+    database: DatabaseAdapter,
     private readonly documents: SbvOfficeWorkflowDocumentAdapter,
   ) {
-    this.repo = new ElectionPreparationRepository(db);
+    this.repo = new ElectionPreparationRepository(database);
   }
 
   async generate(

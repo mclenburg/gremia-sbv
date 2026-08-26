@@ -40,9 +40,9 @@ function mapEqualization(row: DatabaseRow): EqualizationProcessRecord {
 
 export class EqualizationService {
   constructor(
-    private readonly db: DatabaseAdapter,
-    private readonly auditLog: PersonalDataAuditLogService = new PersonalDataAuditLogService(db),
-    private readonly lifecycleAudit: MeasureLifecycleAuditService = new MeasureLifecycleAuditService(db, auditLog),
+    private readonly database: DatabaseAdapter,
+    private readonly auditLog: PersonalDataAuditLogService = new PersonalDataAuditLogService(database),
+    private readonly lifecycleAudit: MeasureLifecycleAuditService = new MeasureLifecycleAuditService(database, auditLog),
   ) {}
 
   private audit(action: Parameters<PersonalDataAuditLogService['append']>[0]['action'], subjectId: string | undefined, caseId: string | undefined, purpose: string): void {
@@ -58,15 +58,15 @@ export class EqualizationService {
       ? 'SELECT * FROM equalization_processes WHERE case_id = ? ORDER BY updated_at DESC'
       : 'SELECT * FROM equalization_processes ORDER BY updated_at DESC';
     this.audit('read', undefined, caseId, 'equalization_process Liste anzeigen');
-    const rows = caseId ? this.db.prepare<DatabaseRow>(sql).all(caseId) : this.db.prepare<DatabaseRow>(sql).all();
+    const rows = caseId ? this.database.prepare<DatabaseRow>(sql).all(caseId) : this.database.prepare<DatabaseRow>(sql).all();
     return rows.map(mapEqualization);
   }
 
   create(input: CreateEqualizationProcessInput): EqualizationProcessRecord {
     const id = randomUUID();
     const timestamp = nowIso();
-    new DatabaseUnitOfWork(this.db).run(() => {
-      this.db.prepare(`
+    new DatabaseUnitOfWork(this.database).run(() => {
+      this.database.prepare(`
       INSERT INTO equalization_processes (
         id, case_id, application_status, agency_reference, application_submitted_at,
         decision_received_at, objection_due_at, outcome, notes, created_at, updated_at
@@ -96,7 +96,7 @@ export class EqualizationService {
 
   getById(id: string): EqualizationProcessRecord | undefined {
     this.audit('read', id, undefined, 'equalization_process Detail anzeigen');
-    const row = this.db.prepare<DatabaseRow>('SELECT * FROM equalization_processes WHERE id = ?').get(id);
+    const row = this.database.prepare<DatabaseRow>('SELECT * FROM equalization_processes WHERE id = ?').get(id);
     return row ? mapEqualization(row) : undefined;
   }
 
@@ -114,8 +114,8 @@ export class EqualizationService {
       notes: undefined
     };
 
-    new DatabaseUnitOfWork(this.db).run(() => {
-      this.db.prepare(`
+    new DatabaseUnitOfWork(this.database).run(() => {
+      this.database.prepare(`
       UPDATE equalization_processes
       SET application_status = ?, agency_reference = ?, application_submitted_at = ?,
           decision_received_at = ?, objection_due_at = ?, outcome = ?, notes = ?, updated_at = ?
@@ -135,7 +135,7 @@ export class EqualizationService {
       this.lifecycleAudit.statusChanged('equalization_gdb', id, existing.caseId, existing.applicationStatus, next.applicationStatus);
       this.auditLog.append({ action: 'update', subjectType: 'equalization_process', subjectId: id, caseId: existing.caseId, purpose: 'equalization_process geändert' });
     });
-    const row = this.db.prepare<DatabaseRow>('SELECT * FROM equalization_processes WHERE id = ?').get(id);
+    const row = this.database.prepare<DatabaseRow>('SELECT * FROM equalization_processes WHERE id = ?').get(id);
     if (!row) throw new Error(`Equalization process not found after update: ${id}`);
     return mapEqualization(row);
   }

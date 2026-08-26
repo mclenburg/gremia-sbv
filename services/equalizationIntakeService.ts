@@ -29,10 +29,10 @@ function personDisplayName(person: ProtectedPersonRecord): string {
  */
 export class EqualizationIntakeService {
   constructor(
-    private readonly db: DatabaseAdapter,
-    private readonly persons: ProtectedPersonService = new ProtectedPersonService(db),
-    private readonly cases: CaseService = new CaseService(() => db),
-    private readonly equalization: EqualizationService = new EqualizationService(db),
+    private readonly database: DatabaseAdapter,
+    private readonly persons: ProtectedPersonService = new ProtectedPersonService(database),
+    private readonly cases: CaseService = new CaseService(() => database),
+    private readonly equalization: EqualizationService = new EqualizationService(database),
   ) {}
 
   create(input: CreateEqualizationIntakeInput): EqualizationIntakeResult {
@@ -41,7 +41,7 @@ export class EqualizationIntakeService {
       throw new Error('Bitte Gleichstellung oder GdB-Antrag als Vorgang wählen.');
     }
 
-    return new DatabaseUnitOfWork(this.db).run(() => {
+    return new DatabaseUnitOfWork(this.database).run(() => {
       const person = this.resolvePerson(input.person);
       const personBindingState = person.recordKind === 'pseudonymous_request' ? 'anonymous_request' : 'active';
       const caseRecord = this.cases.createCase({

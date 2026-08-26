@@ -2,7 +2,7 @@ import type { DatabaseAdapter } from './databaseService.js';
 import type { DataSubjectAccessPrefill, DataSubjectAccessPrefillCase, DataSubjectAccessPrefillDeadline, DataSubjectAccessPrefillFreeTextMatch, DataSubjectAccessPrefillImportRun, DataSubjectAccessPrefillLifecycleEvent, DataSubjectAccessPrefillMeasure, DataSubjectAccessPrefillPerson, DataSubjectAccessRequestInput } from '../src/domain/models/compliance.model.js';
 import { DatabaseRow, nowIso, optional, unique, hasTable, searchTokens, nameVariants, allSearchTerms, placeholders, textOf, matchedTermsIn, excerpt, mapPerson, mapLegacyPerson, mapCase, mapDeadline, mapMeasure, mapImport, mapLifecycle, FreeTextSource, linkedCaseExpression, linkedCaseJoin, hasLinkedCase, FREE_TEXT_SOURCES } from './dsarPrefillSupport.js';
 export class DsarPrefillService {
-  constructor(private readonly db: DatabaseAdapter) {}
+  constructor(private readonly database: DatabaseAdapter) {}
 
   buildPrefill(input: DataSubjectAccessRequestInput): DataSubjectAccessPrefill {
     const tokens = searchTokens(input);
@@ -48,7 +48,7 @@ export class DsarPrefillService {
     const terms = unique([...nameVariants(input), ...tokens]);
     if (!terms.length) return [];
 
-    if (hasTable(this.db, 'protected_persons')) {
+    if (hasTable(this.database, 'protected_persons')) {
       const lowerName = input.requesterName.trim().toLowerCase();
       const whereParts: string[] = [];
       const params: string[] = [];
@@ -65,7 +65,7 @@ export class DsarPrefillService {
         whereParts.push(`lower(coalesce(first_name, '') || ' ' || coalesce(last_name, '') || ' ' || coalesce(pseudonym_label, '') || ' ' || coalesce(personnel_number, '') || ' ' || coalesce(work_email, '') || ' ' || coalesce(notes, '')) LIKE ?`);
         params.push(like);
       }
-      const rows = whereParts.length ? this.db.prepare<DatabaseRow>(`
+      const rows = whereParts.length ? this.database.prepare<DatabaseRow>(`
         SELECT * FROM protected_persons
         WHERE ${whereParts.map((part) => `(${part})`).join(' OR ')}
         ORDER BY last_name COLLATE NOCASE, first_name COLLATE NOCASE, created_at DESC
@@ -74,7 +74,7 @@ export class DsarPrefillService {
       rows.forEach((row) => rowsByKey.set(`protected:${row.id}`, row));
     }
 
-    if (hasTable(this.db, 'persons')) {
+    if (hasTable(this.database, 'persons')) {
       const whereParts: string[] = [];
       const params: string[] = [];
       const lowerName = input.requesterName.trim().toLowerCase();
@@ -91,7 +91,7 @@ export class DsarPrefillService {
         whereParts.push(`lower(coalesce(first_name, '') || ' ' || coalesce(last_name, '') || ' ' || coalesce(display_name, '') || ' ' || coalesce(email, '') || ' ' || coalesce(department, '') || ' ' || coalesce(notes, '')) LIKE ?`);
         params.push(like);
       }
-      const rows = whereParts.length ? this.db.prepare<DatabaseRow>(`
+      const rows = whereParts.length ? this.database.prepare<DatabaseRow>(`
         SELECT * FROM persons
         WHERE ${whereParts.map((part) => `(${part})`).join(' OR ')}
         ORDER BY last_name COLLATE NOCASE, first_name COLLATE NOCASE, updated_at DESC
@@ -104,10 +104,10 @@ export class DsarPrefillService {
   }
 
   private findCases(input: DataSubjectAccessRequestInput, tokens: string[], protectedPersonIds: string[], legacyPersonIds: string[]): DataSubjectAccessPrefillCase[] {
-    if (!hasTable(this.db, 'cases')) return [];
+    if (!hasTable(this.database, 'cases')) return [];
     const rowsById = new Map<string, DataSubjectAccessPrefillCase>();
-    if (protectedPersonIds.length && hasTable(this.db, 'person_case_links')) {
-      const rows = this.db.prepare<DatabaseRow>(`
+    if (protectedPersonIds.length && hasTable(this.database, 'person_case_links')) {
+      const rows = this.database.prepare<DatabaseRow>(`
         SELECT DISTINCT c.* FROM cases c
         LEFT JOIN person_case_links pcl ON pcl.case_file_id = c.id AND pcl.link_state = 'active'
         WHERE c.protected_person_id IN (${placeholders(protectedPersonIds)}) OR pcl.protected_person_id IN (${placeholders(protectedPersonIds)})
@@ -116,7 +116,7 @@ export class DsarPrefillService {
       `).all(...protectedPersonIds, ...protectedPersonIds).map(mapCase);
       rows.forEach((row) => rowsById.set(row.id, row));
     } else if (protectedPersonIds.length) {
-      const rows = this.db.prepare<DatabaseRow>(`
+      const rows = this.database.prepare<DatabaseRow>(`
         SELECT DISTINCT * FROM cases
         WHERE protected_person_id IN (${placeholders(protectedPersonIds)})
         ORDER BY opened_at DESC
@@ -126,7 +126,7 @@ export class DsarPrefillService {
     }
 
     if (legacyPersonIds.length) {
-      const rows = this.db.prepare<DatabaseRow>(`
+      const rows = this.database.prepare<DatabaseRow>(`
         SELECT DISTINCT * FROM cases
         WHERE person_id IN (${placeholders(legacyPersonIds)})
         ORDER BY opened_at DESC
@@ -146,7 +146,7 @@ export class DsarPrefillService {
         params.push(like);
       }
       if (whereParts.length) {
-        const rows = this.db.prepare<DatabaseRow>(`
+        const rows = this.database.prepare<DatabaseRow>(`
           SELECT * FROM cases
           WHERE ${whereParts.map((part) => `(${part})`).join(' OR ')}
           ORDER BY opened_at DESC
@@ -159,8 +159,8 @@ export class DsarPrefillService {
   }
 
   private findCasesByIds(caseIds: string[]): DataSubjectAccessPrefillCase[] {
-    if (!caseIds.length || !hasTable(this.db, 'cases')) return [];
-    return this.db.prepare<DatabaseRow>(`
+    if (!caseIds.length || !hasTable(this.database, 'cases')) return [];
+    return this.database.prepare<DatabaseRow>(`
       SELECT * FROM cases
       WHERE id IN (${placeholders(caseIds)})
       ORDER BY opened_at DESC
@@ -196,7 +196,7 @@ export class DsarPrefillService {
   }
 
   private findFreeTextMatchesInSource(source: FreeTextSource, terms: string[], matchKind: DataSubjectAccessPrefillFreeTextMatch['matchKind'], knownCaseIds: string[]): DataSubjectAccessPrefillFreeTextMatch[] {
-    if (!hasTable(this.db, source.table)) return [];
+    if (!hasTable(this.database, source.table)) return [];
     const params: string[] = [];
     const textSql = source.textColumns.map((column) => `coalesce(t.${column}, '')`).join(` || ' ' || `);
     const where = terms.map((term) => {
@@ -208,7 +208,7 @@ export class DsarPrefillService {
     const caseNumberSelect = caseJoin.includes(' cases c ') ? 'c.case_number' : (source.table === 'cases' ? 't.case_number' : 'NULL');
     const titleSelect = source.titleColumn ? `coalesce(t.${source.titleColumn}, t.${source.idColumn})` : `t.${source.idColumn}`;
     const dateSelect = source.dateColumn ? `t.${source.dateColumn}` : 'NULL';
-    const rows = this.db.prepare<DatabaseRow>(`
+    const rows = this.database.prepare<DatabaseRow>(`
       SELECT t.*, ${caseSelect} AS __case_id, ${caseNumberSelect} AS __case_number, ${titleSelect} AS __title, ${dateSelect} AS __occurred_at
       FROM ${source.table} t
       ${caseJoin}
@@ -220,13 +220,13 @@ export class DsarPrefillService {
   }
 
   private findLinkedCaseFreeTextMatchesInSource(source: FreeTextSource, caseIds: string[], existing: Set<string>): DataSubjectAccessPrefillFreeTextMatch[] {
-    if (!hasLinkedCase(source) || !hasTable(this.db, source.table)) return [];
+    if (!hasLinkedCase(source) || !hasTable(this.database, source.table)) return [];
     const caseJoin = linkedCaseJoin(source);
     const caseExpr = linkedCaseExpression(source);
     const caseNumberSelect = caseJoin.includes(' cases c ') ? 'c.case_number' : (source.table === 'cases' ? 't.case_number' : 'NULL');
     const titleSelect = source.titleColumn ? `coalesce(t.${source.titleColumn}, t.${source.idColumn})` : `t.${source.idColumn}`;
     const dateSelect = source.dateColumn ? `t.${source.dateColumn}` : 'NULL';
-    const rows = this.db.prepare<DatabaseRow>(`
+    const rows = this.database.prepare<DatabaseRow>(`
       SELECT t.*, ${caseExpr} AS __case_id, ${caseNumberSelect} AS __case_number, ${titleSelect} AS __title, ${dateSelect} AS __occurred_at
       FROM ${source.table} t
       ${caseJoin}
@@ -265,7 +265,7 @@ export class DsarPrefillService {
   }
 
   private findDeadlines(protectedPersonIds: string[], legacyPersonIds: string[], caseIds: string[], measureIds: string[]): DataSubjectAccessPrefillDeadline[] {
-    if (!hasTable(this.db, 'deadlines')) return [];
+    if (!hasTable(this.database, 'deadlines')) return [];
     const whereParts: string[] = [];
     const params: string[] = [];
     if (caseIds.length) {
@@ -285,7 +285,7 @@ export class DsarPrefillService {
       params.push(...measureIds);
     }
     if (!whereParts.length) return [];
-    return this.db.prepare<DatabaseRow>(`
+    return this.database.prepare<DatabaseRow>(`
       SELECT * FROM deadlines
       WHERE ${whereParts.map((part) => `(${part})`).join(' OR ')}
       ORDER BY due_at ASC
@@ -294,8 +294,8 @@ export class DsarPrefillService {
   }
 
   private findMeasures(caseIds: string[]): DataSubjectAccessPrefillMeasure[] {
-    if (!caseIds.length || !hasTable(this.db, 'case_measures')) return [];
-    return this.db.prepare<DatabaseRow>(`
+    if (!caseIds.length || !hasTable(this.database, 'case_measures')) return [];
+    return this.database.prepare<DatabaseRow>(`
       SELECT * FROM case_measures
       WHERE case_id IN (${placeholders(caseIds)})
       ORDER BY opened_at DESC, updated_at DESC
@@ -304,8 +304,8 @@ export class DsarPrefillService {
   }
 
   private findImportRuns(protectedPersonIds: string[]): DataSubjectAccessPrefillImportRun[] {
-    if (!protectedPersonIds.length || !hasTable(this.db, 'person_import_run_items') || !hasTable(this.db, 'person_import_runs')) return [];
-    return this.db.prepare<DatabaseRow>(`
+    if (!protectedPersonIds.length || !hasTable(this.database, 'person_import_run_items') || !hasTable(this.database, 'person_import_runs')) return [];
+    return this.database.prepare<DatabaseRow>(`
       SELECT r.id, r.source_file_name, r.imported_at, i.action, i.changed_fields_json
       FROM person_import_run_items i
       JOIN person_import_runs r ON r.id = i.run_id
@@ -316,7 +316,7 @@ export class DsarPrefillService {
   }
 
   private findLifecycleEvents(protectedPersonIds: string[], legacyPersonIds: string[], caseIds: string[]): DataSubjectAccessPrefillLifecycleEvent[] {
-    if (!hasTable(this.db, 'personal_data_audit_log')) return [];
+    if (!hasTable(this.database, 'personal_data_audit_log')) return [];
     const whereParts: string[] = [];
     const params: string[] = [];
     const subjectIds = unique([...protectedPersonIds, ...legacyPersonIds]);
@@ -329,7 +329,7 @@ export class DsarPrefillService {
       params.push(...caseIds);
     }
     if (!whereParts.length) return [];
-    return this.db.prepare<DatabaseRow>(`
+    return this.database.prepare<DatabaseRow>(`
       SELECT id, occurred_at, action, subject_type, subject_id, case_id, purpose
       FROM personal_data_audit_log
       WHERE ${whereParts.map((part) => `(${part})`).join(' OR ')}

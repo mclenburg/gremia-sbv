@@ -3,7 +3,7 @@ import type { FormEvent } from "react";
 import { AlertTriangle, LockKeyhole, ShieldAlert } from "lucide-react";
 import { IndustrialButton } from "../../shared/components/IndustrialButton";
 import { FormActions, TextInput } from "../../shared/components/IndustrialForm";
-import { waitForBridge } from "../../core/bridge/waitForBridge";
+import { recordRendererDiagnostic, waitForBridge } from "../../core/bridge/waitForBridge";
 import { validateAppPassword } from "../../../domain/security/passwordPolicy";
 export function SecurityUnavailable() {
   return (
@@ -135,7 +135,7 @@ export function RecoveryGate({
 
       onUnlock(result.warning);
     } catch (error) {
-      console.error("Gremia.SBV recovery operation failed", error);
+      recordRendererDiagnostic("error", "Wiederherstellungsoperation konnte nicht verarbeitet werden.", error);
       setError(
         "Der Sicherheitsdienst konnte die Anfrage nicht verarbeiten. Bitte Anwendung neu starten.",
       );
@@ -169,7 +169,7 @@ export function RecoveryGate({
       );
       onResetToSetup();
     } catch (error) {
-      console.error("Gremia.SBV destructive reset failed", error);
+      recordRendererDiagnostic("error", "Lokaler Datenbestand konnte nicht verworfen werden.", error);
       setError(
         "Der Sicherheitsdienst konnte die Anfrage nicht verarbeiten. Bitte Anwendung neu starten.",
       );

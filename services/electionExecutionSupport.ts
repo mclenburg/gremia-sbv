@@ -124,7 +124,7 @@ export type ExecutionDeadlineKey =
 
 export class ElectionExecutionDeadlineCoordinator {
   constructor(
-    private readonly db: DatabaseAdapter,
+    private readonly database: DatabaseAdapter,
     private readonly deadlines: DeadlineService,
     private readonly policy: ElectionDeadlinePolicy,
   ) {}
@@ -139,7 +139,7 @@ export class ElectionExecutionDeadlineCoordinator {
     discriminator?: string,
   ): string {
     const sourceEvent = discriminator ? `${ruleKey}:${discriminator}` : ruleKey;
-    const existing = this.db.prepare<{ id: string }>(`
+    const existing = this.database.prepare<{ id: string }>(`
       SELECT id FROM deadlines
       WHERE process_type='election' AND process_id=? AND source_event=? AND due_at=? LIMIT 1
     `).get(electionId, sourceEvent, noon(dueDate));
@@ -149,14 +149,14 @@ export class ElectionExecutionDeadlineCoordinator {
       dueAt: noon(dueDate), legalBasis: legalReference, sourceEvent, severity: 'important',
       calculationMode: 'legal', isLegalDeadline: true,
     });
-    this.db.prepare(`
+    this.database.prepare(`
       UPDATE deadlines SET rule_key=?,source_date=?,legal_rule_version=?,original_due_at=? WHERE id=?
     `).run(ruleKey, sourceDate.slice(0, 10), this.policy.legalRuleVersion, noon(dueDate), deadline.id);
     return deadline.id;
   }
 
   complete(electionId: string, ruleKey: string, discriminator: string, note: string): void {
-    const deadline = this.db.prepare<{ id: string }>(`
+    const deadline = this.database.prepare<{ id: string }>(`
       SELECT id FROM deadlines
       WHERE process_type='election' AND process_id=? AND source_event=? AND status IN ('open','overdue','suspended')
       ORDER BY created_at DESC LIMIT 1

@@ -106,10 +106,10 @@ function mapReviewItem(row: DatabaseRow): PrivacyReviewItemRecord {
 
 
 export class PrivacyReviewService {
-  constructor(private readonly db: DatabaseAdapter) {}
+  constructor(private readonly database: DatabaseAdapter) {}
 
   ensureSchema(): void {
-    tryExec(this.db, `CREATE TABLE IF NOT EXISTS privacy_review_items (
+    tryExec(this.database, `CREATE TABLE IF NOT EXISTS privacy_review_items (
       id TEXT PRIMARY KEY,
       case_id TEXT NOT NULL REFERENCES cases(id) ON DELETE CASCADE,
       protected_person_id TEXT REFERENCES protected_persons(id) ON DELETE SET NULL,
@@ -122,23 +122,23 @@ export class PrivacyReviewService {
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL
     );`);
-    addColumnIfMissing(this.db, 'privacy_review_items', 'protected_person_id', 'TEXT REFERENCES protected_persons(id) ON DELETE SET NULL');
-    addColumnIfMissing(this.db, 'privacy_review_items', 'priority', "TEXT NOT NULL DEFAULT 'normal'");
-    addColumnIfMissing(this.db, 'privacy_review_items', 'due_at', 'TEXT');
-    addColumnIfMissing(this.db, 'privacy_review_items', 'free_text_review_required', 'INTEGER NOT NULL DEFAULT 1');
-    addColumnIfMissing(this.db, 'privacy_review_items', 'context_json', "TEXT NOT NULL DEFAULT '{}'");
-    addColumnIfMissing(this.db, 'privacy_review_items', 'status', "TEXT NOT NULL DEFAULT 'open'");
-    tryExec(this.db, `CREATE INDEX IF NOT EXISTS idx_privacy_review_items_case ON privacy_review_items(case_id, status);`);
-    tryExec(this.db, `CREATE INDEX IF NOT EXISTS idx_privacy_review_items_person ON privacy_review_items(protected_person_id, status);`);
+    addColumnIfMissing(this.database, 'privacy_review_items', 'protected_person_id', 'TEXT REFERENCES protected_persons(id) ON DELETE SET NULL');
+    addColumnIfMissing(this.database, 'privacy_review_items', 'priority', "TEXT NOT NULL DEFAULT 'normal'");
+    addColumnIfMissing(this.database, 'privacy_review_items', 'due_at', 'TEXT');
+    addColumnIfMissing(this.database, 'privacy_review_items', 'free_text_review_required', 'INTEGER NOT NULL DEFAULT 1');
+    addColumnIfMissing(this.database, 'privacy_review_items', 'context_json', "TEXT NOT NULL DEFAULT '{}'");
+    addColumnIfMissing(this.database, 'privacy_review_items', 'status', "TEXT NOT NULL DEFAULT 'open'");
+    tryExec(this.database, `CREATE INDEX IF NOT EXISTS idx_privacy_review_items_case ON privacy_review_items(case_id, status);`);
+    tryExec(this.database, `CREATE INDEX IF NOT EXISTS idx_privacy_review_items_person ON privacy_review_items(protected_person_id, status);`);
   }
 
   listOpenForPerson(protectedPersonId: string): PrivacyReviewItemRecord[] {
     this.refreshOpenReviewContextsForPerson(protectedPersonId);
-    return this.db.prepare<DatabaseRow>(`SELECT * FROM privacy_review_items WHERE protected_person_id = ? AND status = 'open' ORDER BY due_at ASC, priority ASC`).all(protectedPersonId).map(mapReviewItem);
+    return this.database.prepare<DatabaseRow>(`SELECT * FROM privacy_review_items WHERE protected_person_id = ? AND status = 'open' ORDER BY due_at ASC, priority ASC`).all(protectedPersonId).map(mapReviewItem);
   }
 
   listOpenForCase(caseId: string): PrivacyReviewItemRecord[] {
-    return this.db.prepare<DatabaseRow>(`SELECT * FROM privacy_review_items WHERE case_id = ? AND status = 'open' ORDER BY due_at ASC`).all(caseId).map(mapReviewItem);
+    return this.database.prepare<DatabaseRow>(`SELECT * FROM privacy_review_items WHERE case_id = ? AND status = 'open' ORDER BY due_at ASC`).all(caseId).map(mapReviewItem);
   }
 
   createForCase(caseId: string, protectedPersonId: string | null, reason: PrivacyReviewReason, context: PrivacyReviewContextInput = {}, dueAt = nowIso(), priority: 'critical' | 'high' | 'normal' | 'low' = 'normal'): void {
@@ -147,21 +147,21 @@ export class PrivacyReviewService {
       ? context
       : this.buildContextSnapshot(caseId, protectedPersonId ?? undefined, context);
     const contextJson = JSON.stringify(contextSnapshot);
-    const existing = this.db.prepare<DatabaseRow>(`SELECT id FROM privacy_review_items WHERE case_id = ? AND reason = ? AND status = 'open'`).get(caseId, reason);
+    const existing = this.database.prepare<DatabaseRow>(`SELECT id FROM privacy_review_items WHERE case_id = ? AND reason = ? AND status = 'open'`).get(caseId, reason);
     if (existing?.id) {
-      this.db.prepare(`UPDATE privacy_review_items SET protected_person_id = ?, priority = ?, due_at = ?, free_text_review_required = 1, context_json = ?, updated_at = ? WHERE id = ?`)
+      this.database.prepare(`UPDATE privacy_review_items SET protected_person_id = ?, priority = ?, due_at = ?, free_text_review_required = 1, context_json = ?, updated_at = ? WHERE id = ?`)
         .run(protectedPersonId, priority, dueAt, contextJson, timestamp, existing.id);
     } else {
-      this.db.prepare(`INSERT INTO privacy_review_items (id, case_id, protected_person_id, reason, priority, due_at, free_text_review_required, context_json, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?, ?)`)
+      this.database.prepare(`INSERT INTO privacy_review_items (id, case_id, protected_person_id, reason, priority, due_at, free_text_review_required, context_json, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?, ?)`)
         .run(randomUUID(), caseId, protectedPersonId, reason, priority, dueAt, contextJson, timestamp, timestamp);
     }
-    this.db.prepare(`UPDATE cases SET privacy_review_required = 1, privacy_review_reason = ?, privacy_review_due_at = ?, privacy_review_priority = ?, updated_at = ? WHERE id = ?`)
+    this.database.prepare(`UPDATE cases SET privacy_review_required = 1, privacy_review_reason = ?, privacy_review_due_at = ?, privacy_review_priority = ?, updated_at = ? WHERE id = ?`)
       .run(reason, dueAt, priority, timestamp, caseId);
-    new PersonalDataAuditLogService(this.db).append({ action: 'create', subjectType: 'privacy_review', subjectId: protectedPersonId ?? undefined, caseId, purpose: 'Datenschutzprüfung angelegt', metadata: { reason, priority } });
+    new PersonalDataAuditLogService(this.database).append({ action: 'create', subjectType: 'privacy_review', subjectId: protectedPersonId ?? undefined, caseId, purpose: 'Datenschutzprüfung angelegt', metadata: { reason, priority } });
   }
 
   markLinkedCasesForPerson(protectedPersonId: string, trigger: 'status_expired' | 'employment_ended' | 'linked_person_anonymized' | 'linked_person_deleted'): number {
-    const cases = this.db.prepare<DatabaseRow>(`SELECT * FROM cases WHERE protected_person_id = ?`).all(protectedPersonId);
+    const cases = this.database.prepare<DatabaseRow>(`SELECT * FROM cases WHERE protected_person_id = ?`).all(protectedPersonId);
     let count = 0;
     for (const caseRow of cases) {
       const snapshot = this.buildContextSnapshot(caseRow.id, protectedPersonId, { trigger });
@@ -184,42 +184,42 @@ export class PrivacyReviewService {
   documentRetention(caseId: string, reason: string, reviewAt: string): void {
     assertRetentionDecision(reason, reviewAt);
     const timestamp = nowIso();
-    this.db.prepare(`UPDATE cases SET privacy_review_required = 0, privacy_review_reason = 'retention_reason_documented', privacy_review_due_at = ?, updated_at = ? WHERE id = ?`).run(reviewAt, timestamp, caseId);
-    this.db.prepare(`UPDATE privacy_review_items SET status = 'retention_documented', updated_at = ? WHERE case_id = ? AND status = 'open'`).run(timestamp, caseId);
+    this.database.prepare(`UPDATE cases SET privacy_review_required = 0, privacy_review_reason = 'retention_reason_documented', privacy_review_due_at = ?, updated_at = ? WHERE id = ?`).run(reviewAt, timestamp, caseId);
+    this.database.prepare(`UPDATE privacy_review_items SET status = 'retention_documented', updated_at = ? WHERE case_id = ? AND status = 'open'`).run(timestamp, caseId);
     this.createRetentionFollowUp(caseId, reason, reviewAt);
-    new PersonalDataAuditLogService(this.db).append({ action: 'update', subjectType: 'privacy_review', caseId, purpose: 'Fortspeicherung begründet', metadata: { reviewAt, reasonDocumented: true } });
+    new PersonalDataAuditLogService(this.database).append({ action: 'update', subjectType: 'privacy_review', caseId, purpose: 'Fortspeicherung begründet', metadata: { reviewAt, reasonDocumented: true } });
   }
 
   scheduleLater(caseId: string, reason: string, reviewAt: string): void {
     assertRetentionDecision(reason, reviewAt);
     const timestamp = nowIso();
-    this.db.prepare(`UPDATE cases SET privacy_review_required = 1, privacy_review_reason = 'retention_due', privacy_review_due_at = ?, updated_at = ? WHERE id = ?`).run(reviewAt, timestamp, caseId);
-    this.db.prepare(`UPDATE privacy_review_items SET status = 'retention_documented', updated_at = ? WHERE case_id = ? AND status = 'open'`).run(timestamp, caseId);
+    this.database.prepare(`UPDATE cases SET privacy_review_required = 1, privacy_review_reason = 'retention_due', privacy_review_due_at = ?, updated_at = ? WHERE id = ?`).run(reviewAt, timestamp, caseId);
+    this.database.prepare(`UPDATE privacy_review_items SET status = 'retention_documented', updated_at = ? WHERE case_id = ? AND status = 'open'`).run(timestamp, caseId);
     this.createRetentionFollowUp(caseId, reason, reviewAt);
   }
 
   clearCaseReview(caseId: string, reason: string): void {
     if (!reason.trim()) throw new Error('Für das Abschließen der Datenschutzprüfung ist ein kurzer Grund erforderlich.');
     const timestamp = nowIso();
-    this.db.prepare(`UPDATE cases SET privacy_review_required = 0, privacy_review_reason = NULL, privacy_review_due_at = NULL, updated_at = ? WHERE id = ?`).run(timestamp, caseId);
-    this.db.prepare(`UPDATE privacy_review_items SET status = 'cleared', updated_at = ? WHERE case_id = ? AND status = 'open'`).run(timestamp, caseId);
-    new PersonalDataAuditLogService(this.db).append({ action: 'update', subjectType: 'privacy_review', caseId, purpose: 'Datenschutzprüfung abgeschlossen', metadata: { cleared: true } });
+    this.database.prepare(`UPDATE cases SET privacy_review_required = 0, privacy_review_reason = NULL, privacy_review_due_at = NULL, updated_at = ? WHERE id = ?`).run(timestamp, caseId);
+    this.database.prepare(`UPDATE privacy_review_items SET status = 'cleared', updated_at = ? WHERE case_id = ? AND status = 'open'`).run(timestamp, caseId);
+    new PersonalDataAuditLogService(this.database).append({ action: 'update', subjectType: 'privacy_review', caseId, purpose: 'Datenschutzprüfung abgeschlossen', metadata: { cleared: true } });
   }
 
 
   markCaseAnonymized(caseId: string): void {
     const timestamp = nowIso();
-    this.db.prepare(`UPDATE cases SET person_binding_state = 'anonymized', privacy_review_required = 1, privacy_review_reason = 'linked_person_anonymized', anonymized_at = ?, updated_at = ? WHERE id = ?`).run(timestamp, timestamp, caseId);
-    this.db.prepare(`UPDATE privacy_review_items SET status = 'anonymized', updated_at = ? WHERE case_id = ? AND status = 'open'`).run(timestamp, caseId);
+    this.database.prepare(`UPDATE cases SET person_binding_state = 'anonymized', privacy_review_required = 1, privacy_review_reason = 'linked_person_anonymized', anonymized_at = ?, updated_at = ? WHERE id = ?`).run(timestamp, timestamp, caseId);
+    this.database.prepare(`UPDATE privacy_review_items SET status = 'anonymized', updated_at = ? WHERE case_id = ? AND status = 'open'`).run(timestamp, caseId);
   }
 
   markCaseDeleted(caseId: string): void {
-    this.db.prepare(`UPDATE privacy_review_items SET status = 'deleted', updated_at = ? WHERE case_id = ? AND status = 'open'`).run(nowIso(), caseId);
+    this.database.prepare(`UPDATE privacy_review_items SET status = 'deleted', updated_at = ? WHERE case_id = ? AND status = 'open'`).run(nowIso(), caseId);
   }
 
 
   bulkMarkClosedLegacyCasesForAnonymization(referenceDate = new Date()): { reviewed: number; marked: number; skipped: number } {
-    const rows = this.db.prepare<DatabaseRow>(`
+    const rows = this.database.prepare<DatabaseRow>(`
       SELECT c.*, (SELECT COUNT(*) FROM deadlines d WHERE d.case_id = c.id AND d.status IN ('open','overdue')) AS open_deadline_count
       FROM cases c
       WHERE c.person_binding_state = 'legacy_unlinked' AND c.status = 'abgeschlossen'
@@ -243,39 +243,39 @@ export class PrivacyReviewService {
       }
       const context = this.buildContextSnapshot(row.id, undefined, { freeTextReviewRequired: true, bulkAction: 'closed_legacy_cases' });
       this.createForCase(row.id, null, 'legacy_unlinked', context, dueAt, decision.priority);
-      this.db.prepare(`UPDATE cases SET anonymization_recommended = 1, privacy_review_priority = ?, updated_at = ? WHERE id = ?`).run(decision.priority, nowIso(), row.id);
+      this.database.prepare(`UPDATE cases SET anonymization_recommended = 1, privacy_review_priority = ?, updated_at = ? WHERE id = ?`).run(decision.priority, nowIso(), row.id);
       marked += 1;
     }
-    new PersonalDataAuditLogService(this.db).append({ action: 'update', subjectType: 'privacy_review', purpose: 'Bulk-Aktion abgeschlossene Altakten vormerken', metadata: { reviewed, marked, skipped } });
+    new PersonalDataAuditLogService(this.database).append({ action: 'update', subjectType: 'privacy_review', purpose: 'Bulk-Aktion abgeschlossene Altakten vormerken', metadata: { reviewed, marked, skipped } });
     return { reviewed, marked, skipped };
   }
 
   private refreshOpenReviewContextsForPerson(protectedPersonId: string): void {
-    const rows = this.db.prepare<DatabaseRow>(`SELECT case_id FROM privacy_review_items WHERE protected_person_id = ? AND status = 'open'`).all(protectedPersonId);
+    const rows = this.database.prepare<DatabaseRow>(`SELECT case_id FROM privacy_review_items WHERE protected_person_id = ? AND status = 'open'`).all(protectedPersonId);
     const timestamp = nowIso();
     for (const row of rows) {
       const context = JSON.stringify(this.buildContextSnapshot(row.case_id, protectedPersonId));
-      this.db.prepare(`UPDATE privacy_review_items SET context_json = ?, updated_at = ? WHERE case_id = ? AND protected_person_id = ? AND status = 'open'`).run(context, timestamp, row.case_id, protectedPersonId);
+      this.database.prepare(`UPDATE privacy_review_items SET context_json = ?, updated_at = ? WHERE case_id = ? AND protected_person_id = ? AND status = 'open'`).run(context, timestamp, row.case_id, protectedPersonId);
     }
   }
 
   private createRetentionFollowUp(caseId: string, reason: string, reviewAt: string): void {
-    const row = this.db.prepare<DatabaseRow>('SELECT protected_person_id FROM cases WHERE id = ?').get(caseId);
+    const row = this.database.prepare<DatabaseRow>('SELECT protected_person_id FROM cases WHERE id = ?').get(caseId);
     this.createForCase(caseId, row?.protected_person_id ?? null, 'retention_due', { retentionReasonDocumented: true, reasonLength: reason.trim().length }, reviewAt, 'normal');
-    this.db.prepare(`UPDATE privacy_review_items SET status = 'retention_documented' WHERE case_id = ? AND reason != 'retention_due' AND status = 'open'`).run(caseId);
+    this.database.prepare(`UPDATE privacy_review_items SET status = 'retention_documented' WHERE case_id = ? AND reason != 'retention_due' AND status = 'open'`).run(caseId);
   }
 
   private buildContextSnapshot(caseId: string, protectedPersonId?: string, extra: Record<string, unknown> = {}): PrivacyReviewContextSnapshot {
-    const caseRow = this.db.prepare<DatabaseRow>('SELECT * FROM cases WHERE id = ?').get(caseId);
+    const caseRow = this.database.prepare<DatabaseRow>('SELECT * FROM cases WHERE id = ?').get(caseId);
     const caseFile = caseRow ? mapCase(caseRow) : undefined;
     const personId = protectedPersonId ?? caseRow?.protected_person_id;
-    const person = personId ? new ProtectedPersonService(this.db).get(personId) : undefined;
-    const openDeadlineCount = safeScalar(this.db, `SELECT COUNT(*) AS value FROM deadlines WHERE case_id = ? AND status IN ('open','overdue')`, caseId);
-    const runningMeasureCount = safeScalar(this.db, `SELECT COUNT(*) AS value FROM case_measures WHERE case_id = ? AND status NOT IN ('abgeschlossen','verworfen')`, caseId);
-    const linkedDocumentCount = safeScalar(this.db, `SELECT COUNT(*) AS value FROM case_documents WHERE case_id = ?`, caseId);
+    const person = personId ? new ProtectedPersonService(this.database).get(personId) : undefined;
+    const openDeadlineCount = safeScalar(this.database, `SELECT COUNT(*) AS value FROM deadlines WHERE case_id = ? AND status IN ('open','overdue')`, caseId);
+    const runningMeasureCount = safeScalar(this.database, `SELECT COUNT(*) AS value FROM case_measures WHERE case_id = ? AND status NOT IN ('abgeschlossen','verworfen')`, caseId);
+    const linkedDocumentCount = safeScalar(this.database, `SELECT COUNT(*) AS value FROM case_documents WHERE case_id = ?`, caseId);
     let lastActivityAt = caseFile?.openedAt;
     try {
-      lastActivityAt = this.db.prepare<ScalarValueRow>(`SELECT MAX(value) AS value FROM (
+      lastActivityAt = this.database.prepare<ScalarValueRow>(`SELECT MAX(value) AS value FROM (
         SELECT updated_at AS value FROM cases WHERE id = ?
         UNION ALL SELECT updated_at AS value FROM case_notes WHERE case_id = ?
         UNION ALL SELECT created_at AS value FROM case_documents WHERE case_id = ?

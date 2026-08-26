@@ -3,7 +3,7 @@ import type { FormEvent } from "react";
 import { AlertTriangle, Lock, LockKeyhole } from "lucide-react";
 import { IndustrialButton } from "../../shared/components/IndustrialButton";
 import { TextInput } from "../../shared/components/IndustrialForm";
-import { waitForBridge } from "../../core/bridge/waitForBridge";
+import { recordRendererDiagnostic, waitForBridge } from "../../core/bridge/waitForBridge";
 import type { AuthMode } from "../../core/auth/authTypes";
 import { validateAppPassword } from "../../../domain/security/passwordPolicy";
 import appIconUrl from "../../../../assets/icons/png/512x512.png";
@@ -101,7 +101,7 @@ export function LoginGate({
       }
       onUnlock(result.warning);
     } catch (error) {
-      console.error("Gremia.SBV security operation failed", error);
+      recordRendererDiagnostic("error", "Sicherheitsoperation konnte nicht verarbeitet werden.", error);
       setError(
         "Der Sicherheitsdienst konnte die Anfrage nicht verarbeiten. Bitte Anwendung neu starten.",
       );

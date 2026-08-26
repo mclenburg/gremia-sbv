@@ -69,10 +69,10 @@ function mapRecord(row: SbvResourceRow): SbvResourceRecord {
 }
 
 export class SbvResourceService {
-  constructor(private readonly db: DatabaseAdapter) {}
+  constructor(private readonly database: DatabaseAdapter) {}
 
   ensureSchema(): void {
-    this.db.exec(`
+    this.database.exec(`
       CREATE TABLE IF NOT EXISTS sbv_resource_records (
         id TEXT PRIMARY KEY,
         kind TEXT NOT NULL,
@@ -95,11 +95,11 @@ export class SbvResourceService {
       CREATE INDEX IF NOT EXISTS idx_sbv_resource_records_status ON sbv_resource_records(status);
       CREATE INDEX IF NOT EXISTS idx_sbv_resource_records_started ON sbv_resource_records(started_at);
     `);
-    new PersonalDataAuditLogService(this.db);
+    new PersonalDataAuditLogService(this.database);
   }
 
   private audit(action: 'read' | 'create' | 'update' | 'delete', subjectId: string | undefined, recordType?: string, status?: string): void {
-    const write = () => new PersonalDataAuditLogService(this.db).append(auditResourceRecordChanged({
+    const write = () => new PersonalDataAuditLogService(this.database).append(auditResourceRecordChanged({
       action, recordId: subjectId, recordType, status,
     }));
     if (action !== 'read') { write(); return; }
@@ -108,7 +108,7 @@ export class SbvResourceService {
 
   list(): SbvResourceRecord[] {
     this.audit('read', undefined);
-    return this.db.prepare<SbvResourceRow>(`
+    return this.database.prepare<SbvResourceRow>(`
       SELECT * FROM sbv_resource_records
       ORDER BY COALESCE(started_at, created_at) DESC, updated_at DESC
     `).all().map(mapRecord);
@@ -127,13 +127,13 @@ export class SbvResourceService {
   }
 
   create(input: CreateSbvResourceRecordInput): SbvResourceRecord {
-    return new DatabaseUnitOfWork(this.db).run(() => {
+    return new DatabaseUnitOfWork(this.database).run(() => {
     const kind = normalizeKind(input.kind);
     const title = normalizeOptional(input.title);
     if (!title) throw new Error('Ein Nachweis benötigt einen Titel.');
     const timestamp = nowIso();
     const id = randomUUID();
-    this.db.prepare(`
+    this.database.prepare(`
       INSERT INTO sbv_resource_records (
         id, kind, title, legal_basis, started_at, ended_at, provider, participants,
         task_context, necessity_reason, employer_reaction, cost_note, status, notes, created_at, updated_at
@@ -163,14 +163,14 @@ export class SbvResourceService {
   }
 
   update(id: string, input: UpdateSbvResourceRecordInput): SbvResourceRecord {
-    return new DatabaseUnitOfWork(this.db).run(() => {
+    return new DatabaseUnitOfWork(this.database).run(() => {
     const existing = this.getById(id);
     if (!existing) throw new Error(`SBV-Ressourcennachweis nicht gefunden: ${id}`);
     const kind = input.kind ? normalizeKind(input.kind) : existing.kind;
     const title = input.title !== undefined ? normalizeOptional(input.title) : existing.title;
     if (!title) throw new Error('Ein Nachweis benötigt einen Titel.');
     const timestamp = nowIso();
-    this.db.prepare(`
+    this.database.prepare(`
       UPDATE sbv_resource_records
       SET kind = ?, title = ?, legal_basis = ?, started_at = ?, ended_at = ?, provider = ?, participants = ?,
           task_context = ?, necessity_reason = ?, employer_reaction = ?, cost_note = ?, status = ?, notes = ?, updated_at = ?
@@ -199,14 +199,14 @@ export class SbvResourceService {
   }
 
   delete(id: string): { deleted: boolean } {
-    const result = this.db.prepare('DELETE FROM sbv_resource_records WHERE id = ?').run(id) as { changes?: number };
+    const result = this.database.prepare('DELETE FROM sbv_resource_records WHERE id = ?').run(id) as { changes?: number };
     const deleted = Number(result.changes ?? 0) > 0;
     if (deleted) this.audit('delete', id);
     return { deleted };
   }
 
   getById(id: string): SbvResourceRecord | undefined {
-    const row = this.db.prepare<SbvResourceRow>('SELECT * FROM sbv_resource_records WHERE id = ?').get(id);
+    const row = this.database.prepare<SbvResourceRow>('SELECT * FROM sbv_resource_records WHERE id = ?').get(id);
     return row ? mapRecord(row) : undefined;
   }
 }

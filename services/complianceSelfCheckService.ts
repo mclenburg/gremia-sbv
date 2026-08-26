@@ -41,17 +41,17 @@ function score(items: ComplianceSelfCheckItem[]): number {
 }
 
 export class ComplianceSelfCheckService {
-  constructor(private readonly db: DatabaseAdapter) {}
+  constructor(private readonly database: DatabaseAdapter) {}
 
   evaluate(): ComplianceSelfCheckResult {
-    const database = evaluateDatabaseIntegrity(this.db);
-    const audit = new PersonalDataAuditLogService(this.db).verifyChain();
-    const openPrivacyReviews = count(this.db, "SELECT COUNT(*) AS value FROM privacy_review_items WHERE status IN ('open', 'scheduled')");
-    const overduePrivacyReviews = count(this.db, "SELECT COUNT(*) AS value FROM privacy_review_items WHERE status IN ('open', 'scheduled') AND due_at < date('now')");
-    const openIncidents = count(this.db, "SELECT COUNT(*) AS value FROM compliance_incidents WHERE status <> 'closed'");
-    const highIncidents = count(this.db, "SELECT COUNT(*) AS value FROM compliance_incidents WHERE status <> 'closed' AND risk_level = 'high'");
-    const expiredHandoverCases = count(this.db, "SELECT COUNT(*) AS value FROM cases WHERE handover_valid_until IS NOT NULL AND handover_valid_until < date('now') AND COALESCE(handover_status, '') <> 'continued'");
-    const lastAuditExport = scalarDate(this.db, "SELECT MAX(occurred_at) AS value FROM personal_data_audit_log WHERE action IN ('export', 'case_handover_export', 'backup')");
+    const database = evaluateDatabaseIntegrity(this.database);
+    const audit = new PersonalDataAuditLogService(this.database).verifyChain();
+    const openPrivacyReviews = count(this.database, "SELECT COUNT(*) AS value FROM privacy_review_items WHERE status IN ('open', 'scheduled')");
+    const overduePrivacyReviews = count(this.database, "SELECT COUNT(*) AS value FROM privacy_review_items WHERE status IN ('open', 'scheduled') AND due_at < date('now')");
+    const openIncidents = count(this.database, "SELECT COUNT(*) AS value FROM compliance_incidents WHERE status <> 'closed'");
+    const highIncidents = count(this.database, "SELECT COUNT(*) AS value FROM compliance_incidents WHERE status <> 'closed' AND risk_level = 'high'");
+    const expiredHandoverCases = count(this.database, "SELECT COUNT(*) AS value FROM cases WHERE handover_valid_until IS NOT NULL AND handover_valid_until < date('now') AND COALESCE(handover_status, '') <> 'continued'");
+    const lastAuditExport = scalarDate(this.database, "SELECT MAX(occurred_at) AS value FROM personal_data_audit_log WHERE action IN ('export', 'case_handover_export', 'backup')");
 
     const items: ComplianceSelfCheckItem[] = [
       item(

@@ -18,19 +18,19 @@ function nextSavepointName(): string {
  * Recoverable projections must run after this method returns.
  */
 export class DatabaseUnitOfWork {
-  constructor(private readonly db: DatabaseAdapter) {}
+  constructor(private readonly database: DatabaseAdapter) {}
 
   run<T>(operation: () => T, _options: UnitOfWorkOptions = {}): T {
     const savepoint = nextSavepointName();
-    this.db.exec(`SAVEPOINT ${savepoint}`);
+    this.database.exec(`SAVEPOINT ${savepoint}`);
     try {
       const result = operation();
-      this.db.exec(`RELEASE SAVEPOINT ${savepoint}`);
+      this.database.exec(`RELEASE SAVEPOINT ${savepoint}`);
       return result;
     } catch (error) {
       try {
-        this.db.exec(`ROLLBACK TO SAVEPOINT ${savepoint}`);
-        this.db.exec(`RELEASE SAVEPOINT ${savepoint}`);
+        this.database.exec(`ROLLBACK TO SAVEPOINT ${savepoint}`);
+        this.database.exec(`RELEASE SAVEPOINT ${savepoint}`);
       } catch {
         // Preserve the original failure. Cleanup failure is secondary.
       }

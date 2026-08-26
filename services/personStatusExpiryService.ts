@@ -9,10 +9,10 @@ function dueIso(dateOnly: string): string {
 }
 
 export class PersonStatusExpiryService {
-  constructor(private readonly db: DatabaseAdapter) {}
+  constructor(private readonly database: DatabaseAdapter) {}
 
   evaluate(referenceDate = new Date(), warningDays = 30): PersonStatusExpirySummary {
-    const personService = new ProtectedPersonService(this.db);
+    const personService = new ProtectedPersonService(this.database);
     const persons = personService.list({ employmentState: ['active_employee', 'unknown'] });
     const expiringSoon: ProtectedPersonRecord[] = [];
     const expiredReviewRequired: ProtectedPersonRecord[] = [];
@@ -24,7 +24,7 @@ export class PersonStatusExpiryService {
       const updated = personService.update(person.id, decision);
       if (decision.lifecycleState === 'expired_review_required') {
         personService.createStatusExpiredPrivacyReview(updated, decision.expiryReviewDueAt ?? referenceDate.toISOString(), referenceDate);
-        new PrivacyReviewService(this.db).markLinkedCasesForPerson(updated.id, 'status_expired');
+        new PrivacyReviewService(this.database).markLinkedCasesForPerson(updated.id, 'status_expired');
         expiredReviewRequired.push(updated);
       } else if (decision.lifecycleState === 'expiring_soon' && person.statusValidUntil) {
         personService.createStatusExpiryWarning(updated, dueIso(person.statusValidUntil), referenceDate);

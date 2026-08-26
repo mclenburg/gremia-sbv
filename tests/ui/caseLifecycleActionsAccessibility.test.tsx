@@ -53,9 +53,9 @@ describe('barrierefreie Fall- und Maßnahmen-Lifecycle-Aktionen', () => {
   });
 
   it('verlangt im Maßnahmen-Löschdialog Grund und Bestätigung', () => {
-    const html = renderToStaticMarkup(<CaseProcessDeleteDialog target={{ id: 'bem-1', processType: 'bem', label: 'BEM' }} onClose={noop} onDelete={async () => undefined} />);
+    const html = renderToStaticMarkup(<CaseProcessDeleteDialog target={{ id: 'bem-1', processType: 'bem', label: 'BEM' }} onClose={noop} onSubmit={async () => undefined} />);
     expect(html).toContain('role="alertdialog"');
-    expect(html).toContain('MASSNAHME LÖSCHEN');
+    expect(html).toContain('BEM ANONYMISIEREN');
     expect(html).toContain('required=""');
     expect(html).toContain('class="industrial-select case-process-delete-reason"');
   });

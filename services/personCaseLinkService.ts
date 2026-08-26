@@ -35,13 +35,13 @@ function mapLink(row: PersonCaseLinkRow): PersonCaseLinkRecord {
 }
 
 export class PersonCaseLinkService {
-  constructor(private readonly db: DatabaseAdapter) {}
+  constructor(private readonly database: DatabaseAdapter) {}
 
   linkCase(protectedPersonId: string, caseFileId: string, linkReason?: string): PersonCaseLinkRecord {
-    const existing = this.db.prepare<PersonCaseLinkRow>('SELECT * FROM person_case_links WHERE protected_person_id = ? AND case_file_id = ?').get(protectedPersonId, caseFileId);
+    const existing = this.database.prepare<PersonCaseLinkRow>('SELECT * FROM person_case_links WHERE protected_person_id = ? AND case_file_id = ?').get(protectedPersonId, caseFileId);
     if (existing) return mapLink(existing);
     const id = randomUUID();
-    this.db.prepare(`
+    this.database.prepare(`
       INSERT INTO person_case_links (id, protected_person_id, case_file_id, link_state, created_at, link_reason)
       VALUES (?, ?, ?, 'active', ?, ?)
     `).run(id, protectedPersonId, caseFileId, nowIso(), normalizeOptional(linkReason));
@@ -49,12 +49,12 @@ export class PersonCaseLinkService {
   }
 
   listCaseLinks(protectedPersonId: string): PersonCaseLinkRecord[] {
-    return this.db.prepare<PersonCaseLinkRow>('SELECT * FROM person_case_links WHERE protected_person_id = ? ORDER BY created_at DESC').all(protectedPersonId).map(mapLink);
+    return this.database.prepare<PersonCaseLinkRow>('SELECT * FROM person_case_links WHERE protected_person_id = ? ORDER BY created_at DESC').all(protectedPersonId).map(mapLink);
   }
 
   markPersonAnonymized(protectedPersonId: string, anonymizedAt = nowIso()): PersonCaseLinkRecord[] {
-    const activeLinks = this.db.prepare<PersonCaseLinkRow>('SELECT * FROM person_case_links WHERE protected_person_id = ? AND link_state = ?').all(protectedPersonId, 'active').map(mapLink);
-    this.db.prepare(`UPDATE person_case_links SET link_state = 'person_anonymized', anonymized_at = ? WHERE protected_person_id = ? AND link_state = 'active'`).run(anonymizedAt, protectedPersonId);
+    const activeLinks = this.database.prepare<PersonCaseLinkRow>('SELECT * FROM person_case_links WHERE protected_person_id = ? AND link_state = ?').all(protectedPersonId, 'active').map(mapLink);
+    this.database.prepare(`UPDATE person_case_links SET link_state = 'person_anonymized', anonymized_at = ? WHERE protected_person_id = ? AND link_state = 'active'`).run(anonymizedAt, protectedPersonId);
     return activeLinks;
   }
 }

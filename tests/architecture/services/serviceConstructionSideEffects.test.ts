@@ -112,7 +112,7 @@ describe('complete service constructor architecture contract', () => {
   it('accepts dependency wiring and pure path/configuration assignments', () => {
     const source = `
       export class CleanFeatureService {
-        constructor(private readonly dbProvider: () => unknown, private readonly label: string) {
+        constructor(private readonly databaseProvider: () => unknown, private readonly label: string) {
           this.label = label.trim();
         }
       }

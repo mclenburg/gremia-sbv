@@ -49,20 +49,20 @@ function mapAssembly(row: AssemblyRow): SbvAssemblyRecord {
 
 export class SbvAssemblyService {
   constructor(
-    private db: DatabaseAdapter,
+    private database: DatabaseAdapter,
     private audit?: PersonalDataAuditLogService,
-    private deadlines: DeadlineService = new DeadlineService(db),
+    private deadlines: DeadlineService = new DeadlineService(database),
   ) {}
 
   list(): SbvAssemblyRecord[] {
-    return this.db
+    return this.database
       .prepare<AssemblyRow>('SELECT * FROM sbv_assemblies ORDER BY year DESC, scheduled_at DESC')
       .all()
       .map(mapAssembly);
   }
 
   save(input: SaveSbvAssemblyInput): SbvAssemblyRecord {
-    return new DatabaseUnitOfWork(this.db).run(() => {
+    return new DatabaseUnitOfWork(this.database).run(() => {
       const existing = input.id
         ? this.list().find((assembly) => assembly.id === input.id)
         : undefined;
@@ -132,7 +132,7 @@ export class SbvAssemblyService {
     invitationAt: string | undefined,
     updatedAt: string,
   ): void {
-    this.db
+    this.database
       .prepare(
         'UPDATE sbv_assemblies SET year=?,scheduled_at=?,location_or_mode=?,invitation_at=?,agenda=?,accessibility_check_status=?,materials_status=?,employer_report_status=?,minutes=?,status=?,updated_at=? WHERE id=?',
       )
@@ -160,7 +160,7 @@ export class SbvAssemblyService {
     invitationAt: string | undefined,
     createdAt: string,
   ): void {
-    this.db
+    this.database
       .prepare(
         'INSERT INTO sbv_assemblies(id,year,scheduled_at,location_or_mode,invitation_at,agenda,accessibility_check_status,materials_status,employer_report_status,minutes,status,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)',
       )

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import { AlertTriangle, Download, HardDrive, Save, ShieldCheck } from "lucide-react";
 import { waitForBridge } from "../../core/bridge/waitForBridge";
+import { recordRendererDiagnostic } from "../../core/diagnostics/rendererDiagnostics";
 import { formatDateShort } from "../../shared/format/dates";
 import type { CaseRecord } from "../../../domain/models/case.model";
 import type { RetentionCandidate, RetentionDashboard, RetentionOperationResult, RetentionSettings } from "../../../domain/models/retention.model";
@@ -63,7 +64,7 @@ export function ChangePasswordForm() {
       setRepeatPassword("");
       setMessage("Passwort wurde geändert.");
     } catch (error) {
-      console.error("Gremia.SBV security operation failed", error);
+      recordRendererDiagnostic("error", "Passwortänderung konnte nicht verarbeitet werden.", error);
       setError(
         "Der Sicherheitsdienst konnte die Anfrage nicht verarbeiten. Bitte Anwendung neu starten.",
       );

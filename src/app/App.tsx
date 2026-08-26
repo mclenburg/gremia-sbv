@@ -29,6 +29,7 @@ import { applyTheme, getInitialTheme, nowLabel, type ThemeMode } from "./workflo
 import { DeadlinesView, DeadlineEditor } from "./features/deadlines/DeadlinesView";
 import { LoginGate } from "./features/auth/LoginGate";
 import { waitForBridge } from "./core/bridge/waitForBridge";
+import { recordRendererDiagnostic } from "./core/diagnostics/rendererDiagnostics";
 import { ToolbarButton } from "./shared/components/IndustrialButton";
 const IMPLEMENTED_VIEW_IDS = new Set<ViewId>([
   "dashboard",
@@ -130,7 +131,7 @@ function useSecuritySession() {
         setUnlocked(status.unlocked);
         setAuthMode(status.recoveryRequired ? "recovery" : status.initialized ? "login" : "setup");
       } catch (error) {
-        console.error("Gremia.SBV security status failed", error);
+        recordRendererDiagnostic("error", "Sicherheitsstatus konnte nicht geladen werden.", error);
         if (active) { setUnlocked(false); setAuthMode("unavailable"); }
       }
     })();
@@ -212,7 +213,7 @@ function useWorkData(unlocked: boolean, setCurrentView: (view: ViewId) => void, 
   useEffect(() => {
     if (!unlocked) return;
     let active = true;
-    reloadWorkData().catch((error) => { console.error("Gremia.SBV work data load failed", error); if (active) setDataError(error instanceof Error ? error.message : "Arbeitsdaten konnten nicht geladen werden."); });
+    reloadWorkData().catch((error) => { recordRendererDiagnostic("error", "Arbeitsdaten konnten nicht geladen werden.", error); if (active) setDataError(error instanceof Error ? error.message : "Arbeitsdaten konnten nicht geladen werden."); });
     return () => { active = false; };
   }, [unlocked, reloadWorkData]);
   return { cases, contacts, deadlines, persons, caseMeasures, dashboardDeadlines, selectedDeadline, setSelectedDeadline, dataError,

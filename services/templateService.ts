@@ -74,9 +74,9 @@ function categoryForMeasureType(measureType: string | undefined): string | null 
 }
 
 export class TemplateService {
-  constructor(private readonly dbProvider: () => DatabaseAdapter) {}
+  constructor(private readonly databaseProvider: () => DatabaseAdapter) {}
 
-  private get db(): DatabaseAdapter { return this.dbProvider(); }
+  private get db(): DatabaseAdapter { return this.databaseProvider(); }
 
   ensureSchema(db: DatabaseAdapter): void {
     db.exec(`
@@ -110,7 +110,7 @@ export class TemplateService {
     this.seedDefaults(db);
   }
 
-  seedReferenceData(db = this.dbProvider()): void {
+  seedReferenceData(db = this.databaseProvider()): void {
     this.seedDefaults(db);
   }
 

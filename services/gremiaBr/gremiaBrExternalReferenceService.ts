@@ -105,10 +105,10 @@ function toInlineSuggestion(item: unknown): GremiaBrInlineSuggestion | null {
 }
 
 export class GremiaBrExternalReferenceService {
-  constructor(private readonly getDb: () => DatabaseAdapter) {}
+  constructor(private readonly databaseProvider: () => DatabaseAdapter) {}
 
   private db(): DatabaseAdapter {
-    return this.getDb();
+    return this.databaseProvider();
   }
 
   listForCase(caseId: string): GremiaBrExternalReferenceRecord[] {

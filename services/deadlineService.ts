@@ -7,18 +7,18 @@ import { DASHBOARD_HOURS_BEFORE_DUE, DeadlineRow, DeadlineTemplateRow, DeadlineA
 export { getHoursRemaining, getDashboardState, getActionHint } from './deadlineSupport.js';
 
 export class DeadlineService {
-  constructor(private readonly db: DatabaseAdapter) {}
+  constructor(private readonly database: DatabaseAdapter) {}
 
   private personalDataAudit(action: Parameters<PersonalDataAuditLogService['append']>[0]['action'], subjectId: string | undefined, caseId: string | undefined, purpose: string, metadata?: Record<string, unknown>): void {
     try {
-      new PersonalDataAuditLogService(this.db).append({ action, subjectType: 'deadline', subjectId, caseId, purpose, metadata });
+      new PersonalDataAuditLogService(this.database).append({ action, subjectType: 'deadline', subjectId, caseId, purpose, metadata });
     } catch (error) {
       console.warn('Gremia.SBV audit log write failed', error instanceof Error ? error.name : 'UnknownError');
     }
   }
 
   create(input: CreateDeadlineInput): DeadlineRecord {
-    return new DatabaseUnitOfWork(this.db).run(() => {
+    return new DatabaseUnitOfWork(this.database).run(() => {
     validateCaseBinding(input);
     const id = randomUUID();
     const timestamp = nowIso();
@@ -27,7 +27,7 @@ export class DeadlineService {
     const dueAt = new Date(input.dueAt).toISOString();
     const dashboardFromAt = dueAt.startsWith('9999-') ? timestamp : subtractHours(dueAt, DASHBOARD_HOURS_BEFORE_DUE);
 
-    this.db.prepare(`
+    this.database.prepare(`
       INSERT INTO deadlines (
         id, case_id, measure_id, person_id, process_id, process_type, deadline_type,
         title, confidential_title, description, due_at, reminder_at, legal_basis, source_event,
@@ -123,7 +123,7 @@ export class DeadlineService {
 
   list(filters: DeadlineListFilters = {}): DeadlineRecord[] {
     this.personalDataAudit('read', undefined, filters.caseId, 'Fristenliste anzeigen', { hasCaseFilter: Boolean(filters.caseId), dashboardOnly: Boolean(filters.dashboardOnly) });
-    const rows = this.db.prepare<DeadlineRow>(`SELECT * FROM deadlines ORDER BY due_at ASC`).all();
+    const rows = this.database.prepare<DeadlineRow>(`SELECT * FROM deadlines ORDER BY due_at ASC`).all();
     let deadlines = rows.map(mapDeadline).map((d: DeadlineRecord) => ({ ...d, status: normalizeStatus(d.status) }));
 
     if (filters.status?.length) deadlines = deadlines.filter((d: DeadlineRecord) => filters.status!.includes(d.status));
@@ -168,14 +168,14 @@ export class DeadlineService {
   }
 
   getById(id: string): DeadlineRecord | undefined {
-    const row = this.db.prepare<DeadlineRow>('SELECT * FROM deadlines WHERE id = ?').get(id);
+    const row = this.database.prepare<DeadlineRow>('SELECT * FROM deadlines WHERE id = ?').get(id);
     if (!row) return undefined;
     this.personalDataAudit('read', id, row.case_id ?? undefined, 'Fristendetail anzeigen');
     return { ...mapDeadline(row), status: normalizeStatus(row.status ?? undefined) };
   }
 
   update(id: string, input: UpdateDeadlineInput): DeadlineRecord {
-    return new DatabaseUnitOfWork(this.db).run(() => {
+    return new DatabaseUnitOfWork(this.database).run(() => {
     const before = this.getById(id);
     if (!before) throw new Error(`Deadline not found: ${id}`);
     if (!before.isUserEditable && input.status !== 'done') throw new Error(`Deadline is not user-editable: ${id}`);
@@ -187,7 +187,7 @@ export class DeadlineService {
     const completedAt = nextStatus === 'done' && !before.completedAt ? nowIso() : before.completedAt;
     const cancelledAt = nextStatus === 'cancelled' && !before.cancelledAt ? nowIso() : before.cancelledAt;
 
-    this.db.prepare(`
+    this.database.prepare(`
       UPDATE deadlines SET
         title = ?, confidential_title = ?, description = ?, due_at = ?, reminder_at = ?, legal_basis = ?, source_event = ?,
         severity = ?, status = ?, completed_at = ?, completed_note = ?, cancelled_at = ?, cancelled_reason = ?,
@@ -222,7 +222,7 @@ export class DeadlineService {
   }
 
   complete(id: string, note?: string): DeadlineRecord {
-    return new DatabaseUnitOfWork(this.db).run(() => {
+    return new DatabaseUnitOfWork(this.database).run(() => {
     return this.update(id, { status: 'done', completedNote: note, reason: note ?? 'Frist erledigt' });
   
     });
@@ -233,27 +233,27 @@ export class DeadlineService {
   }
 
   cancel(id: string, reason: string): DeadlineRecord {
-    return new DatabaseUnitOfWork(this.db).run(() => {
+    return new DatabaseUnitOfWork(this.database).run(() => {
     return this.update(id, { status: 'cancelled', cancelledReason: reason, reason });
   
     });
   }
 
   listTemplates(): DeadlineTemplateRecord[] {
-    return this.db.prepare<DeadlineTemplateRow>('SELECT * FROM deadline_templates ORDER BY process_type, title').all().map(mapTemplate);
+    return this.database.prepare<DeadlineTemplateRow>('SELECT * FROM deadline_templates ORDER BY process_type, title').all().map(mapTemplate);
   }
 
   getTemplateByKey(templateKey: string): DeadlineTemplateRecord | undefined {
-    const row = this.db.prepare<DeadlineTemplateRow>('SELECT * FROM deadline_templates WHERE template_key = ?').get(templateKey);
+    const row = this.database.prepare<DeadlineTemplateRow>('SELECT * FROM deadline_templates WHERE template_key = ?').get(templateKey);
     return row ? mapTemplate(row) : undefined;
   }
 
   getAudit(deadlineId: string): DeadlineAuditRecord[] {
-    return this.db.prepare<DeadlineAuditRow>('SELECT * FROM deadline_audit WHERE deadline_id = ? ORDER BY created_at ASC').all(deadlineId).map(mapAudit);
+    return this.database.prepare<DeadlineAuditRow>('SELECT * FROM deadline_audit WHERE deadline_id = ? ORDER BY created_at ASC').all(deadlineId).map(mapAudit);
   }
 
   private audit(deadlineId: string, action: string, oldValue?: string, newValue?: string, reason?: string): void {
-    this.db.prepare(`
+    this.database.prepare(`
       INSERT INTO deadline_audit (id, deadline_id, action, old_value, new_value, reason, created_at)
       VALUES (?, ?, ?, ?, ?, ?, ?)
     `).run(randomUUID(), deadlineId, action, oldValue ?? null, newValue ?? null, reason ?? null, nowIso());

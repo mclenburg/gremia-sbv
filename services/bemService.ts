@@ -70,10 +70,10 @@ function mapProcess(row: DatabaseRow, contactIds: string[]): BemProcessRecord {
 
 export class BemService {
   constructor(
-    private readonly db: DatabaseAdapter,
-    private readonly auditLog: PersonalDataAuditLogService = new PersonalDataAuditLogService(db),
-    private readonly lifecycleAudit: MeasureLifecycleAuditService = new MeasureLifecycleAuditService(db, auditLog),
-    private readonly deadlines: DeadlineService = new DeadlineService(db),
+    private readonly database: DatabaseAdapter,
+    private readonly auditLog: PersonalDataAuditLogService = new PersonalDataAuditLogService(database),
+    private readonly lifecycleAudit: MeasureLifecycleAuditService = new MeasureLifecycleAuditService(database, auditLog),
+    private readonly deadlines: DeadlineService = new DeadlineService(database),
   ) {}
 
   private audit(action: Parameters<PersonalDataAuditLogService['append']>[0]['action'], subjectId: string | undefined, caseId: string | undefined, purpose: string): void {
@@ -87,8 +87,8 @@ export class BemService {
   list(caseId?: string): BemProcessRecord[] {
     this.audit('read', undefined, caseId, 'bem_process Liste anzeigen');
     const rows = caseId
-      ? this.db.prepare<DatabaseRow>('SELECT * FROM bem_processes WHERE case_id = ? ORDER BY COALESCE(bem_offered_at, first_meeting_at, created_at) DESC').all(caseId)
-      : this.db.prepare<DatabaseRow>('SELECT * FROM bem_processes ORDER BY COALESCE(bem_offered_at, first_meeting_at, created_at) DESC').all();
+      ? this.database.prepare<DatabaseRow>('SELECT * FROM bem_processes WHERE case_id = ? ORDER BY COALESCE(bem_offered_at, first_meeting_at, created_at) DESC').all(caseId)
+      : this.database.prepare<DatabaseRow>('SELECT * FROM bem_processes ORDER BY COALESCE(bem_offered_at, first_meeting_at, created_at) DESC').all();
     return rows.map((row) => mapProcess(row, this.contactIdsForProcess(row.id)));
   }
 
@@ -128,8 +128,8 @@ export class BemService {
         : null;
     const status: BemStatus = bemOfferedAt ? 'angebot_versendet' : 'zu_pruefen';
 
-    new DatabaseUnitOfWork(this.db).run(() => {
-      this.db.prepare(`
+    new DatabaseUnitOfWork(this.database).run(() => {
+      this.database.prepare(`
       INSERT INTO bem_processes (
         id, case_id, status, title, trigger_type, trigger_description, sickness_days_twelve_months,
         bem_offered_at, response_due_at, employee_response, employee_response_at, privacy_notice_at, consent_scope,
@@ -221,8 +221,8 @@ export class BemService {
       confidentialNotes: input.confidentialNotes !== undefined ? input.confidentialNotes : existing.confidentialNotes
     };
 
-    new DatabaseUnitOfWork(this.db).run(() => {
-      this.db.prepare(`
+    new DatabaseUnitOfWork(this.database).run(() => {
+      this.database.prepare(`
       UPDATE bem_processes
       SET status = ?, title = ?, trigger_type = ?, trigger_description = ?, sickness_days_twelve_months = ?,
           bem_offered_at = ?, response_due_at = ?, employee_response = ?, employee_response_at = ?, privacy_notice_at = ?,
@@ -269,25 +269,25 @@ export class BemService {
 
   getById(id: string): BemProcessRecord | undefined {
     this.audit('read', id, undefined, 'bem_process Detail anzeigen');
-    const row = this.db.prepare<DatabaseRow>('SELECT * FROM bem_processes WHERE id = ?').get(id);
+    const row = this.database.prepare<DatabaseRow>('SELECT * FROM bem_processes WHERE id = ?').get(id);
     return row ? mapProcess(row, this.contactIdsForProcess(id)) : undefined;
   }
 
   private contactIdsForProcess(processId: string): string[] {
-    return this.db.prepare<{ contact_id: string }>('SELECT contact_id FROM bem_process_contacts WHERE process_id = ? ORDER BY created_at ASC')
+    return this.database.prepare<{ contact_id: string }>('SELECT contact_id FROM bem_process_contacts WHERE process_id = ? ORDER BY created_at ASC')
       .all(processId)
       .map((row) => row.contact_id);
   }
 
   private replaceContacts(processId: string, contactIds: string[]): void {
     const timestamp = nowIso();
-    this.db.prepare('DELETE FROM bem_process_contacts WHERE process_id = ?').run(processId);
-    const insert = this.db.prepare('INSERT OR IGNORE INTO bem_process_contacts (process_id, contact_id, created_at) VALUES (?, ?, ?)');
+    this.database.prepare('DELETE FROM bem_process_contacts WHERE process_id = ?').run(processId);
+    const insert = this.database.prepare('INSERT OR IGNORE INTO bem_process_contacts (process_id, contact_id, created_at) VALUES (?, ?, ?)');
     [...new Set(contactIds)].filter(Boolean).forEach((contactId) => insert.run(processId, contactId, timestamp));
   }
 
   private event(processId: string, eventType: string, title: string, description?: string): void {
-    this.db.prepare('INSERT INTO bem_process_events (id, process_id, event_type, title, description, created_at) VALUES (?, ?, ?, ?, ?, ?)')
+    this.database.prepare('INSERT INTO bem_process_events (id, process_id, event_type, title, description, created_at) VALUES (?, ?, ?, ?, ?, ?)')
       .run(randomUUID(), processId, eventType, title, description ?? null, nowIso());
   }
 }

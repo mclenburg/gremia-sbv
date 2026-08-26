@@ -69,6 +69,21 @@ describe('Löschen einzelner Fallmaßnahmen', () => {
     expect(events).toEqual(['lifecycle', 'audit', 'reindex:case-1']);
   });
 
+  it('anonymisiert ein BEM ohne den Prozessdatensatz hart zu löschen', () => {
+    const db = new LifecycleDeleteDb('bem');
+    const events: string[] = [];
+    const result = serviceFor(db, events).deleteProcess({ caseId: 'case-1', processType: 'bem', processId: 'bem-1', reasonCode: 'no_longer_required', action: 'anonymize' });
+    const sql = db.statements.map((entry) => entry.sql).join('\n');
+
+    expect(result).toMatchObject({ deleted: false, anonymized: true, deletedNotes: 0, anonymizedNotes: 1, deletedDeadlines: 3, detachedDocuments: 1 });
+    expect(sql).toContain('UPDATE bem_processes');
+    expect(sql).toContain('UPDATE bem_process_events');
+    expect(sql).toContain('DELETE FROM bem_process_contacts');
+    expect(sql).toContain('UPDATE case_measure_notes');
+    expect(sql).not.toContain('DELETE FROM bem_processes');
+    expect(events).toEqual(['audit', 'reindex:case-1']);
+  });
+
   it('löscht eine SBV-Beteiligung über die zentrale case_measures-Aggregatwurzel', () => {
     const db = new LifecycleDeleteDb('participation');
     const events: string[] = [];

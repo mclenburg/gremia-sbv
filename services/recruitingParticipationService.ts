@@ -8,13 +8,13 @@ import { defaultApplicantReference, normalizeAccessibilityCheckStatus, normalize
 import { RecruitingParticipationRow, RecruitingInterviewRow, nowIso, sqliteOptionalBoolean, mapParticipation, mapInterview } from './recruitingParticipationSupport.js';
 export class RecruitingParticipationService {
   constructor(
-    private readonly db: DatabaseAdapter,
-    private readonly auditLog: PersonalDataAuditLogService = new PersonalDataAuditLogService(db),
-    private readonly lifecycleAudit: MeasureLifecycleAuditService = new MeasureLifecycleAuditService(db, auditLog),
+    private readonly database: DatabaseAdapter,
+    private readonly auditLog: PersonalDataAuditLogService = new PersonalDataAuditLogService(database),
+    private readonly lifecycleAudit: MeasureLifecycleAuditService = new MeasureLifecycleAuditService(database, auditLog),
   ) {}
 
   ensureSchema(): void {
-    this.db.exec(`
+    this.database.exec(`
       CREATE TABLE IF NOT EXISTS recruiting_participations (
         id TEXT PRIMARY KEY,
         vacancy_title TEXT NOT NULL,
@@ -84,12 +84,12 @@ export class RecruitingParticipationService {
   }
 
   private tableExists(tableName: string): boolean {
-    const row = this.db.prepare<{ value: number }>("SELECT 1 AS value FROM sqlite_master WHERE type = 'table' AND name = ?").get(tableName);
+    const row = this.database.prepare<{ value: number }>("SELECT 1 AS value FROM sqlite_master WHERE type = 'table' AND name = ?").get(tableName);
     return Boolean(row);
   }
 
   private ensureParticipationExists(id: string): void {
-    const row = this.db.prepare<{ value: number }>('SELECT 1 AS value FROM recruiting_participations WHERE id = ?').get(id);
+    const row = this.database.prepare<{ value: number }>('SELECT 1 AS value FROM recruiting_participations WHERE id = ?').get(id);
     if (!row) throw new Error(`Stellenbesetzung nicht gefunden: ${id}`);
   }
 
@@ -103,7 +103,7 @@ export class RecruitingParticipationService {
       .filter((check) => this.tableExists(check.table))
       .map((check) => {
         const params = check.sql.includes('source_context_type') ? [id, id] : [id];
-        const row = this.db.prepare<{ count: number }>(check.sql).get(...params);
+        const row = this.database.prepare<{ count: number }>(check.sql).get(...params);
         return { label: check.label, count: Number(row?.count ?? 0) };
       })
       .filter((check) => check.count > 0);
@@ -113,18 +113,18 @@ export class RecruitingParticipationService {
   }
 
   private interviewCount(participationId: string): number {
-    const row = this.db.prepare<{ count: number }>('SELECT COUNT(*) AS count FROM recruiting_interview_events WHERE recruiting_participation_id = ?').get(participationId);
+    const row = this.database.prepare<{ count: number }>('SELECT COUNT(*) AS count FROM recruiting_interview_events WHERE recruiting_participation_id = ?').get(participationId);
     return Number(row?.count ?? 0);
   }
 
   private refreshInterviewCount(participationId: string): void {
     const count = this.interviewCount(participationId);
-    this.db.prepare('UPDATE recruiting_participations SET interview_count = ?, updated_at = ? WHERE id = ?').run(count, nowIso(), participationId);
+    this.database.prepare('UPDATE recruiting_participations SET interview_count = ?, updated_at = ? WHERE id = ?').run(count, nowIso(), participationId);
   }
 
   list(): RecruitingParticipationRecord[] {
     this.audit('read', undefined, 'Stellenbesetzungen anzeigen', { scope: 'list' });
-    return this.db.prepare<RecruitingParticipationRow>(`
+    return this.database.prepare<RecruitingParticipationRow>(`
       SELECT * FROM recruiting_participations
       ORDER BY COALESCE(employer_notice_date, created_at) DESC, updated_at DESC
     `).all().map(mapParticipation);
@@ -132,7 +132,7 @@ export class RecruitingParticipationService {
 
   getById(id: string): RecruitingParticipationRecord | undefined {
     this.audit('read', id, 'Stellenbesetzung anzeigen', { scope: 'detail' });
-    const row = this.db.prepare<RecruitingParticipationRow>('SELECT * FROM recruiting_participations WHERE id = ?').get(id);
+    const row = this.database.prepare<RecruitingParticipationRow>('SELECT * FROM recruiting_participations WHERE id = ?').get(id);
     return row ? mapParticipation(row) : undefined;
   }
 
@@ -144,8 +144,8 @@ export class RecruitingParticipationService {
     const flaggedForViolationReview = normalizeBoolean(input.flaggedForViolationReview);
     const violationReviewReason = flaggedForViolationReview ? normalizeViolationReviewReason(input.violationReviewReason) ?? 'manual_review' : null;
 
-    new DatabaseUnitOfWork(this.db).run(() => {
-      this.db.prepare(`
+    new DatabaseUnitOfWork(this.database).run(() => {
+      this.database.prepare(`
       INSERT INTO recruiting_participations (
         id, vacancy_title, vacancy_reference, department, location, status,
         employer_notice_date, documents_received_date, documents_complete,
@@ -196,8 +196,8 @@ export class RecruitingParticipationService {
       : null;
     const nextStatus = input.status !== undefined ? normalizeRecruitingParticipationStatus(input.status) : existing.status;
 
-    new DatabaseUnitOfWork(this.db).run(() => {
-      this.db.prepare(`
+    new DatabaseUnitOfWork(this.database).run(() => {
+      this.database.prepare(`
       UPDATE recruiting_participations
       SET vacancy_title = ?, vacancy_reference = ?, department = ?, location = ?, status = ?,
           employer_notice_date = ?, documents_received_date = ?, documents_complete = ?,
@@ -246,9 +246,9 @@ export class RecruitingParticipationService {
     const existing = this.getById(id);
     if (!existing) throw new Error(`Stellenbesetzung nicht gefunden: ${id}`);
     this.ensureParticipationCanBeDeleted(id);
-    new DatabaseUnitOfWork(this.db).run(() => {
+    new DatabaseUnitOfWork(this.database).run(() => {
       this.lifecycleAudit.deleted('recruiting', id, undefined, existing.status, 'single_measure');
-      this.db.prepare('DELETE FROM recruiting_participations WHERE id = ?').run(id);
+      this.database.prepare('DELETE FROM recruiting_participations WHERE id = ?').run(id);
       this.auditLog.append({ action: 'delete', subjectType: 'recruiting_participation', subjectId: id, purpose: 'Stellenbesetzung gelöscht; zugehörige Interview-Ereignisse wurden kaskadiert gelöscht.', metadata: { cascade: 'recruiting_interview_events' } });
     });
   }
@@ -256,7 +256,7 @@ export class RecruitingParticipationService {
   listInterviews(recruitingParticipationId: string): RecruitingInterviewEventRecord[] {
     this.ensureParticipationExists(recruitingParticipationId);
     this.audit('read', recruitingParticipationId, 'Vorstellungsgesprächsereignisse anzeigen; Audit enthält keine Bewerberreferenzen.', { scope: 'interviews' });
-    return this.db.prepare<RecruitingInterviewRow>(`
+    return this.database.prepare<RecruitingInterviewRow>(`
       SELECT * FROM recruiting_interview_events
       WHERE recruiting_participation_id = ?
       ORDER BY interview_date ASC, created_at ASC
@@ -269,7 +269,7 @@ export class RecruitingParticipationService {
     const timestamp = nowIso();
     const nextSequence = this.interviewCount(input.recruitingParticipationId) + 1;
     const applicantRef = normalizeOptionalText(input.applicantRef) ?? defaultApplicantReference(nextSequence);
-    this.db.prepare(`
+    this.database.prepare(`
       INSERT INTO recruiting_interview_events (
         id, recruiting_participation_id, interview_date, applicant_ref, applicant_reference_mode,
         applicant_status, sbv_invited, sbv_invitation_date, sbv_attended,
@@ -304,14 +304,14 @@ export class RecruitingParticipationService {
   }
 
   getInterviewById(id: string): RecruitingInterviewEventRecord | undefined {
-    const row = this.db.prepare<RecruitingInterviewRow>('SELECT * FROM recruiting_interview_events WHERE id = ?').get(id);
+    const row = this.database.prepare<RecruitingInterviewRow>('SELECT * FROM recruiting_interview_events WHERE id = ?').get(id);
     return row ? mapInterview(row) : undefined;
   }
 
   updateInterview(id: string, input: UpdateRecruitingInterviewEventInput): RecruitingInterviewEventRecord {
     const existing = this.getInterviewById(id);
     if (!existing) throw new Error(`Vorstellungsgesprächsereignis nicht gefunden: ${id}`);
-    this.db.prepare(`
+    this.database.prepare(`
       UPDATE recruiting_interview_events
       SET interview_date = ?, applicant_ref = ?, applicant_reference_mode = ?, applicant_status = ?,
           sbv_invited = ?, sbv_invitation_date = ?, sbv_attended = ?, accessibility_check_status = ?,
@@ -342,7 +342,7 @@ export class RecruitingParticipationService {
   deleteInterview(id: string): void {
     const existing = this.getInterviewById(id);
     if (!existing) throw new Error(`Vorstellungsgesprächsereignis nicht gefunden: ${id}`);
-    this.db.prepare('DELETE FROM recruiting_interview_events WHERE id = ?').run(id);
+    this.database.prepare('DELETE FROM recruiting_interview_events WHERE id = ?').run(id);
     this.refreshInterviewCount(existing.recruitingParticipationId);
     this.audit('delete', existing.recruitingParticipationId, 'Vorstellungsgesprächsereignis gelöscht.', { interviewEventId: id });
   }

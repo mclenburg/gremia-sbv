@@ -42,8 +42,8 @@ export interface AppendMeasureLifecycleInput {
 
 export class MeasureLifecycleAuditService {
   constructor(
-    private readonly db: DatabaseAdapter,
-    private readonly audit: PersonalDataAuditLogService = new PersonalDataAuditLogService(db),
+    private readonly database: DatabaseAdapter,
+    private readonly audit: PersonalDataAuditLogService = new PersonalDataAuditLogService(database),
   ) {}
 
   append(input: AppendMeasureLifecycleInput): void {
@@ -82,7 +82,7 @@ export class MeasureLifecycleAuditService {
   }
 
   hasLifecycleEntry(subjectId: string): boolean {
-    return Boolean(this.db.prepare<{ value: number }>(`
+    return Boolean(this.database.prepare<{ value: number }>(`
       SELECT 1 AS value FROM personal_data_audit_log
       WHERE subject_type = ? AND subject_id = ?
       LIMIT 1
@@ -97,7 +97,7 @@ export class MeasureLifecycleAuditService {
     typeColumn?: string;
     typeMap?: (value: string) => ReportableMeasureType;
   }): number {
-    const exists = this.db.prepare<{ value: number }>("SELECT 1 AS value FROM sqlite_master WHERE type = 'table' AND name = ?").get(options.table);
+    const exists = this.database.prepare<{ value: number }>("SELECT 1 AS value FROM sqlite_master WHERE type = 'table' AND name = ?").get(options.table);
     if (!exists) return 0;
     interface BaselineMeasureRow {
       id: string;
@@ -105,7 +105,7 @@ export class MeasureLifecycleAuditService {
       case_id?: string | null;
       measure_type?: string | null;
     }
-    const rows = this.db.prepare<BaselineMeasureRow>(`
+    const rows = this.database.prepare<BaselineMeasureRow>(`
       SELECT id, ${options.statusColumn} AS status${options.caseColumn ? `, ${options.caseColumn} AS case_id` : ''}${options.typeColumn ? `, ${options.typeColumn} AS measure_type` : ''}
       FROM ${options.table}
     `).all();

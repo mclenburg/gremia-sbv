@@ -139,20 +139,24 @@ export interface CaseMeasureNoteRecord {
 
 
 export type CaseProcessDeleteReason = 'created_by_mistake' | 'duplicate' | 'no_longer_required' | 'other';
+export type CaseProcessPrivacyAction = 'delete' | 'anonymize';
 
 export interface DeleteCaseProcessInput {
   caseId: string;
   processType: CaseMeasureNoteProcessType;
   processId: string;
   reasonCode: CaseProcessDeleteReason;
+  action?: CaseProcessPrivacyAction;
 }
 
 export interface DeleteCaseProcessResult {
-  deleted: true;
+  deleted: boolean;
+  anonymized: boolean;
   processType: CaseMeasureNoteProcessType;
   processId: string;
   detachedDocuments: number;
   deletedNotes: number;
+  anonymizedNotes: number;
   deletedDeadlines: number;
 }
 

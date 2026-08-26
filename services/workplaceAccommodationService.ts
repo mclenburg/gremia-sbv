@@ -10,13 +10,13 @@ export { evaluateWorkplaceAccommodationWarnings } from './workplaceAccommodation
 import { ensureWorkplaceAccommodationSchema } from './workplaceAccommodationSchema.js';
 export class WorkplaceAccommodationService {
   constructor(
-    private readonly db: DatabaseAdapter,
-    private readonly caseMeasures: CaseMeasureService = new CaseMeasureService(db),
-    private readonly deadlines: DeadlineService = new DeadlineService(db),
-    private readonly auditLog: PersonalDataAuditLogService = new PersonalDataAuditLogService(db),
+    private readonly database: DatabaseAdapter,
+    private readonly caseMeasures: CaseMeasureService = new CaseMeasureService(database),
+    private readonly deadlines: DeadlineService = new DeadlineService(database),
+    private readonly auditLog: PersonalDataAuditLogService = new PersonalDataAuditLogService(database),
   ) {}
   ensureSchema(): void {
-    ensureWorkplaceAccommodationSchema(this.db, this.caseMeasures);
+    ensureWorkplaceAccommodationSchema(this.database, this.caseMeasures);
     void this.auditLog;
   }
   private audit(
@@ -39,7 +39,7 @@ export class WorkplaceAccommodationService {
     title: string,
     description?: string,
   ): void {
-    this.db
+    this.database
       .prepare(
         "INSERT INTO case_measure_events (id, measure_id, event_type, title, description, created_at) VALUES (?, ?, ?, ?, ?, ?)",
       )
@@ -69,8 +69,8 @@ export class WorkplaceAccommodationService {
       ORDER BY COALESCE(w.implementation_due_at, w.effectiveness_review_at, cm.due_at, cm.updated_at) DESC
     `;
     const rows = caseId
-      ? this.db.prepare<WorkplaceAccommodationRow>(sql).all(caseId)
-      : this.db.prepare<WorkplaceAccommodationRow>(sql).all();
+      ? this.database.prepare<WorkplaceAccommodationRow>(sql).all(caseId)
+      : this.database.prepare<WorkplaceAccommodationRow>(sql).all();
     return rows.map(mapRecord);
   }
   list(caseId?: string): WorkplaceAccommodationRecord[] {
@@ -113,7 +113,7 @@ export class WorkplaceAccommodationService {
   }
 
   getById(id: string): WorkplaceAccommodationRecord | undefined {
-    const row = this.db
+    const row = this.database
       .prepare<WorkplaceAccommodationRow>(
         `
       SELECT cm.id, cm.case_id, cm.title, cm.status AS measure_status, cm.risk_level, cm.next_step,
@@ -138,7 +138,7 @@ export class WorkplaceAccommodationService {
   create(
     input: CreateWorkplaceAccommodationInput,
   ): WorkplaceAccommodationRecord {
-    return new DatabaseUnitOfWork(this.db).run(() => {
+    return new DatabaseUnitOfWork(this.database).run(() => {
     if (!input.caseId) throw new Error("Arbeitsplatzgestaltung muss aus einer Fallakte heraus angelegt werden.");
     if (!input.title?.trim())
       throw new Error("Arbeitsplatzgestaltung benötigt einen Titel.");
@@ -161,7 +161,7 @@ export class WorkplaceAccommodationService {
       requiresFollowUp: input.requiresFollowUp ?? status !== "abgeschlossen",
     });
 
-    this.db
+    this.database
       .prepare(
         `
       INSERT INTO case_measure_workplace_accommodation (
@@ -266,7 +266,7 @@ export class WorkplaceAccommodationService {
     id: string,
     input: UpdateWorkplaceAccommodationInput,
   ): WorkplaceAccommodationRecord {
-    return new DatabaseUnitOfWork(this.db).run(() => {
+    return new DatabaseUnitOfWork(this.database).run(() => {
     const existing = this.getById(id);
     if (!existing)
       throw new Error(`Arbeitsplatzgestaltung nicht gefunden: ${id}`);
@@ -293,7 +293,7 @@ export class WorkplaceAccommodationService {
       requiresFollowUp: nextStatus !== "abgeschlossen",
     });
 
-    this.db
+    this.database
       .prepare(
         `
       UPDATE case_measure_workplace_accommodation

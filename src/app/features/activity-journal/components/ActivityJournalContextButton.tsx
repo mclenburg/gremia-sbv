@@ -2,6 +2,7 @@ import { Clock3 } from 'lucide-react';
 import { useState } from 'react';
 import type { ActivityJournalPrefillContext } from '../../../../domain/models/activity-journal.model';
 import { waitForBridge } from '../../../core/bridge/waitForBridge';
+import { recordRendererDiagnostic } from '../../../core/diagnostics/rendererDiagnostics';
 import { ToolbarButton } from '../../../shared/components/IndustrialButton';
 import { dispatchActivityJournalPrefill } from '../activityJournalEvents';
 import { ActivityJournalSessionSuggestion } from './ActivityJournalSessionSuggestion';
@@ -25,7 +26,7 @@ export function ActivityJournalContextButton({
       const prefill = await bridge.activityJournal.buildPrefillFromContext(context);
       dispatchActivityJournalPrefill(prefill, true);
     } catch (error) {
-      console.warn('Tätigkeitsjournal-Vorbelegung konnte nicht erzeugt werden.', error);
+      recordRendererDiagnostic('warning', 'Tätigkeitsjournal-Vorbelegung konnte nicht erzeugt werden.', error);
     } finally {
       setBusy(false);
     }
