@@ -4,6 +4,7 @@ import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import type { DatabaseAdapter } from '../../../services/databaseService';
 import { createVerifiedPreMigrationVaultBackup } from '../../../services/preMigrationVaultBackup';
+import { isOwnerOnlyFileMode, posixModeBits, supportsPosixPermissionBits } from '../../../services/secureFilePermissions';
 
 class MigrationStateDatabase implements DatabaseAdapter {
   constructor(
@@ -61,7 +62,8 @@ describe('verifizierte Sicherung vor Migration 0052', () => {
 
     expect(result).toBeDefined();
     expect(fs.readFileSync(result!.filePath)).toEqual(files.encryptedVaultBytes);
-    expect(fs.statSync(result!.filePath).mode & 0o777).toBe(0o600);
+    expect(fs.statSync(result!.filePath).isFile()).toBe(true);
+    if (supportsPosixPermissionBits()) expect(isOwnerOnlyFileMode(posixModeBits(result!.filePath))).toBe(true);
   });
 
   it('legt für einen bereits migrierten oder noch leeren Tresor keine unnötige Kopie an', async () => {

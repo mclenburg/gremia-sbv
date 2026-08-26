@@ -7,6 +7,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import path from "node:path";
+import { OWNER_ONLY_FILE_MODE, restrictFileToOwnerSync } from "./secureFilePermissions.js";
 
 export type TempFileScope =
   | "document-preview"
@@ -93,7 +94,8 @@ export class TempFileService {
     prefix = "preview",
   ): string {
     const target = this.buildPath(scope, originalFileName, prefix);
-    writeFileSync(target, content, { mode: 0o600 });
+    writeFileSync(target, content, { mode: OWNER_ONLY_FILE_MODE });
+    restrictFileToOwnerSync(target);
     return target;
   }
 

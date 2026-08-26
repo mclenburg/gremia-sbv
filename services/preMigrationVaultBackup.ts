@@ -1,8 +1,9 @@
 import { createHash, randomBytes } from 'node:crypto';
 import { createReadStream } from 'node:fs';
-import { chmod, copyFile, mkdir, rm, stat } from 'node:fs/promises';
+import { copyFile, mkdir, rm, stat } from 'node:fs/promises';
 import path from 'node:path';
 import type { DatabaseAdapter } from './databaseService.js';
+import { OWNER_ONLY_DIRECTORY_MODE, restrictDirectoryToOwner, restrictFileToOwner } from './secureFilePermissions.js';
 
 export interface PreMigrationVaultBackupResult {
   filePath: string;
@@ -59,8 +60,8 @@ export async function createVerifiedPreMigrationVaultBackup(input: {
     // Der Tresor nutzt regulär journal_mode=DELETE; dann existiert kein WAL zum Checkpointen.
   }
 
-  await mkdir(input.backupDirectory, { recursive: true, mode: 0o700 });
-  await chmod(input.backupDirectory, 0o700);
+  await mkdir(input.backupDirectory, { recursive: true, mode: OWNER_ONLY_DIRECTORY_MODE });
+  await restrictDirectoryToOwner(input.backupDirectory);
   const filename = [
     'pre-migration',
     input.migrationVersion,
@@ -71,7 +72,7 @@ export async function createVerifiedPreMigrationVaultBackup(input: {
 
   try {
     await copyFile(input.vaultPath, filePath);
-    await chmod(filePath, 0o600);
+    await restrictFileToOwner(filePath);
     const [sourceStat, backupStat, sourceHash, backupHash] = await Promise.all([
       stat(input.vaultPath),
       stat(filePath),

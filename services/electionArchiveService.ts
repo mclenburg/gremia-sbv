@@ -18,6 +18,7 @@ import { PdfDocumentGenerationService } from './documents/pdfDocumentGenerationS
 import type { GenerateElectionExecutionDocumentInput } from '../src/domain/models/election-execution.model.js';
 import { ApplicationError } from '../src/domain/models/application-error.model.js';
 import { ElectionMailBallotPackageDefinition } from './electionMailBallotPackageDefinition.js';
+import { OWNER_ONLY_FILE_MODE, restrictFileToOwner } from './secureFilePermissions.js';
 
 const TEMPLATE_VERSION = '0.9.7-D.1';
 
@@ -67,7 +68,8 @@ export class ElectionArchiveService {
 
   async exportDocumentToFile(documentId: string, targetPath: string): Promise<{ exported: true; sizeBytes: number }> {
     const plain = await this.documents.read(documentId);
-    await fs.promises.writeFile(targetPath, plain, { mode: 0o600 });
+    await fs.promises.writeFile(targetPath, plain, { mode: OWNER_ONLY_FILE_MODE });
+    await restrictFileToOwner(targetPath);
     return { exported: true, sizeBytes: plain.length };
   }
 

@@ -640,8 +640,8 @@
     },
     {
       "path": "electron/runtimePlatformIntegration.ts",
-      "size": 1257,
-      "sha256": "0b22254c2838b15468d874118b77488437c5a15959466aebe313a0402a0a2df8"
+      "size": 1440,
+      "sha256": "36a8da9f364b8432f2600852bf4f138fa0971349a3ccbb7c7f40121c320e47ca"
     },
     {
       "path": "electron/security/electronSecurity.ts",
@@ -760,8 +760,8 @@
     },
     {
       "path": "services/backupService.ts",
-      "size": 18340,
-      "sha256": "dfd2d1d12127e0e1024e51975f243b7e79ff6d19f7e41139a763c73a4653e457"
+      "size": 18422,
+      "sha256": "f771e240f71887d7160687ad892cdf25a0799265cef4052337dc167ba75fcd41"
     },
     {
       "path": "services/bemGuidancePolicy.ts",
@@ -830,8 +830,8 @@
     },
     {
       "path": "services/caseHandoverService.ts",
-      "size": 32548,
-      "sha256": "54f7809742ee924c5c18a26ff73684f76bfa842043874295bd85a8b336bef8ec"
+      "size": 32694,
+      "sha256": "e79d8cd7594c13ff9a2c4a694aab3d20e56c4a8e61d3171856184a3a30835115"
     },
     {
       "path": "services/caseHandoverSupport.ts",
@@ -860,8 +860,8 @@
     },
     {
       "path": "services/cases/caseDocumentService.ts",
-      "size": 10980,
-      "sha256": "46e8f6c69f9610a9a83d261b3b65838dc5df2e3eaeb95941af0b32d615f29ee3"
+      "size": 11131,
+      "sha256": "d253217423ceb06a8346920b11e1c413424e0b682175fc126c40ce0b01b4ce34"
     },
     {
       "path": "services/cases/caseNoteInlineActionMaterializer.ts",
@@ -1075,8 +1075,8 @@
     },
     {
       "path": "services/electionArchiveService.ts",
-      "size": 17978,
-      "sha256": "c3c01ae0e61e9e1e3472fed7077e6cd04953f305236fca746846949c383e03b0"
+      "size": 18124,
+      "sha256": "6dec76bed28dcea33cf327b43d7f36a58a4487edb8abda404589c75cba422ecd"
     },
     {
       "path": "services/electionDeadlinePolicy.ts",
@@ -1130,8 +1130,8 @@
     },
     {
       "path": "services/electionTransferService.ts",
-      "size": 12399,
-      "sha256": "b10b9a4552ac7e83518242cfa2b2916cf246a8ce3b6e2c0f21aa497e57cad3f7"
+      "size": 12545,
+      "sha256": "dda17a36d79939c8725edb8a1e9d30a6ca050023e3ec79e375b2e3cc06de2940"
     },
     {
       "path": "services/employerObligationPolicy.ts",
@@ -1400,8 +1400,8 @@
     },
     {
       "path": "services/preMigrationVaultBackup.ts",
-      "size": 3036,
-      "sha256": "b548d1dce152bdc39f3077522df39febf7e3f5327b469649a7085ca5f401c898"
+      "size": 3187,
+      "sha256": "d5d4ee597534016303bdcc0e418fa84cc1a00c5ebed3ab26b621f8db6c2e4017"
     },
     {
       "path": "services/preventionService.ts",
@@ -1679,6 +1679,11 @@
       "sha256": "f5c1c4109c963f74ec6aabb928c5d2ca1267d3cca745fbeb89298d35c4ee82cd"
     },
     {
+      "path": "services/secureFilePermissions.ts",
+      "size": 1183,
+      "sha256": "7715676eecfae7ad8049473e1ce5f60711e591c81a4bf1560d183ecae9b29688"
+    },
+    {
       "path": "services/security/legacyPlaintextExportCleanupService.ts",
       "size": 7879,
       "sha256": "e766828489e7bb05b4ad2d9d4e3565b9ef9d09acba2d077d4dfcc27f9af6f3f6"
@@ -1730,8 +1735,8 @@
     },
     {
       "path": "services/tempFileService.ts",
-      "size": 3931,
-      "sha256": "3fef0f5bf320a1464e3abfb35df9a4fa17b84ed8dc099da27d695c37b54c9fae"
+      "size": 4075,
+      "sha256": "c4fe372fa8b567e155750049ea35d5f24dae1d33c91765aefc447641b904fd7f"
     },
     {
       "path": "services/templateContextPolicy.ts",
@@ -4167,8 +4172,8 @@
     },
     {
       "path": "dist-electron/electron/runtimePlatformIntegration.js",
-      "size": 2049,
-      "sha256": "dc6e09c77dd5f3371c82f8d127147856feeb66dc63c557be7bc0c806e3531960"
+      "size": 2297,
+      "sha256": "c236a5434ed6e4e9ff4e8d9abde824044a257ed9fdb1a9ccb507e5ef82a321e8"
     },
     {
       "path": "dist-electron/electron/security/electronSecurity.js",
@@ -4282,8 +4287,8 @@
     },
     {
       "path": "dist-electron/services/backupService.js",
-      "size": 19367,
-      "sha256": "237a533562604631bdf3c50826bb0a80e0bda3685b7050158bdb36e07e1838ca"
+      "size": 19483,
+      "sha256": "008437088cebb0420a9add9af348b4cc74bbfb7acdb85e9dbd87441f84afd6f8"
     },
     {
       "path": "dist-electron/services/bemGuidancePolicy.js",
@@ -4352,8 +4357,8 @@
     },
     {
       "path": "dist-electron/services/caseHandoverService.js",
-      "size": 34656,
-      "sha256": "bdfc30931696c243039a54c2972ed02826e180a9ea64e02da03eb17d5cde2474"
+      "size": 34851,
+      "sha256": "eee6f5f1181e86587b59ff71392d06a6aade9d55dc599a4d232f518c6994662b"
     },
     {
       "path": "dist-electron/services/caseHandoverSupport.js",
@@ -4382,8 +4387,8 @@
     },
     {
       "path": "dist-electron/services/cases/caseDocumentService.js",
-      "size": 10161,
-      "sha256": "23dd2aa84cded35f5ee55bc6323ae4efa8de9e76f70aaaf81f01eb543e335362"
+      "size": 10361,
+      "sha256": "9ebd9063079e7f21a5ea45d904d8fa22c0454ec440aafa8927ece0eb7858c5d7"
     },
     {
       "path": "dist-electron/services/cases/caseNoteInlineActionMaterializer.js",
@@ -4627,8 +4632,8 @@
     },
     {
       "path": "dist-electron/services/electionArchiveService.js",
-      "size": 17474,
-      "sha256": "5213e9b5e8a0a9e66e1fa3133d94c26519092455d008fdd05acbce0e059db19e"
+      "size": 17669,
+      "sha256": "fc1ff171360883a17a97a4aac1abeee1ada8c059f1677bc5c72dad76355bc181"
     },
     {
       "path": "dist-electron/services/electionDeadlinePolicy.js",
@@ -4682,8 +4687,8 @@
     },
     {
       "path": "dist-electron/services/electionTransferService.js",
-      "size": 12585,
-      "sha256": "81be4da041113d4f1a0962ce390a274410b3505bc0b3556647a191cacab3ff82"
+      "size": 12780,
+      "sha256": "757fa2fa92419c76cc953dab3a05cd18c748b9bed6742902c649d5f1a73473cd"
     },
     {
       "path": "dist-electron/services/employerObligationPolicy.js",
@@ -4952,8 +4957,8 @@
     },
     {
       "path": "dist-electron/services/preMigrationVaultBackup.js",
-      "size": 3150,
-      "sha256": "c14d5a503bf52db04007f9c3baeda1ef7534a074010c92719d193aef53cad946"
+      "size": 3322,
+      "sha256": "80ec000d1394a955c9b64fe6afcf528383f22b7ce6990f9ea71a1f28a547ea52"
     },
     {
       "path": "dist-electron/services/preventionService.js",
@@ -5231,6 +5236,11 @@
       "sha256": "7f180721b96cd9a67999cb3964ef2c54aeba5813d669a70ae692bffd6fa5645b"
     },
     {
+      "path": "dist-electron/services/secureFilePermissions.js",
+      "size": 1664,
+      "sha256": "c42834dcb7409888b91baeebac56d1af78d532bf4f461ea8091fada94c45d42e"
+    },
+    {
       "path": "dist-electron/services/security/legacyPlaintextExportCleanupService.js",
       "size": 7720,
       "sha256": "7283612178270af9f0d0d1bfb7efca3f1d2ee487a1d1aab900ffb5d1e28448cb"
@@ -5282,8 +5292,8 @@
     },
     {
       "path": "dist-electron/services/tempFileService.js",
-      "size": 4250,
-      "sha256": "a541a9cbe33da55ced391a66b6c58b5ab2e0f4444760f8351111765b464c8360"
+      "size": 4439,
+      "sha256": "ab18a80869eb473110f15203af15eda6d207161b3d58336b8628355c94e60dea"
     },
     {
       "path": "dist-electron/services/templateContextPolicy.js",

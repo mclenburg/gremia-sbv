@@ -4,6 +4,7 @@ import type { DatabaseAdapter } from './databaseService.js';
 import { DatabaseUnitOfWork } from './databaseUnitOfWork.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
 import { auditElectionTransferProcessed } from './auditEventBuilders.js';
+import { OWNER_ONLY_FILE_MODE, restrictFileToOwner } from './secureFilePermissions.js';
 import {
   ElectionTransferCryptoAdapter,
   type ElectionTransferEnvelope,
@@ -62,7 +63,8 @@ export class ElectionTransferService {
 
   async exportToFile(electionId: string, sourceVaultId: string, passphrase: string, targetPath: string): Promise<ElectionTransferInspection> {
     const envelope = this.export(electionId, sourceVaultId, passphrase);
-    await fs.promises.writeFile(targetPath, JSON.stringify(envelope, null, 2), { mode: 0o600 });
+    await fs.promises.writeFile(targetPath, JSON.stringify(envelope, null, 2), { mode: OWNER_ONLY_FILE_MODE });
+    await restrictFileToOwner(targetPath);
     return this.inspect(envelope, passphrase);
   }
 

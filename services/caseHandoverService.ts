@@ -13,6 +13,7 @@ import type { CaseHandoverContinueExpiredInput, CaseHandoverContinueExpiredResul
 import { Row, PackagePayload, DecryptedPackage, nowIso, sha256, isRecord, safeString, ensureArray } from './caseHandoverSupport.js';
 import { encodeDocumentForHandover, sanitizeHandoverDocumentMetadata } from './caseHandoverDocumentCodec.js';
 import { addColumnsIfMissing } from './migrations/schemaColumnMigration.js';
+import { OWNER_ONLY_FILE_MODE, restrictFileToOwner } from './secureFilePermissions.js';
 export class CaseHandoverService {
   constructor(private readonly databaseProvider: () => DatabaseAdapter, private readonly dataDirProvider: () => string = () => path.join(process.cwd(), 'data')) {}
 
@@ -216,7 +217,8 @@ export class CaseHandoverService {
     const payload = this.collectPayload(db, input);
     const envelope = this.encryptPayload(payload, input.passphrase);
     await fs.promises.mkdir(path.dirname(targetPath), { recursive: true });
-    await fs.promises.writeFile(targetPath, JSON.stringify(envelope, null, 2), { mode: 0o600 });
+    await fs.promises.writeFile(targetPath, JSON.stringify(envelope, null, 2), { mode: OWNER_ONLY_FILE_MODE });
+    await restrictFileToOwner(targetPath);
     this.audit(db, auditCaseHandoverExported({ packageId: payload.packageId, caseCount: payload.cases.length, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, validUntilPresent: Boolean(payload.expiresAt), result: 'success' }));
     return { exported: true, filePath: targetPath, packageId: payload.packageId, caseCount: payload.cases.length, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, expiresAt: payload.expiresAt };
   }
