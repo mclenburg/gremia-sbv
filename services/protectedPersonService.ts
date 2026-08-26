@@ -151,6 +151,10 @@ export class ProtectedPersonService {
     return row ? mapPerson(row) : undefined;
   }
 
+  findNameMatches(firstName: string, lastName: string): ProtectedPersonRecord[] {
+    return this.database.prepare<ProtectedPersonRow>('SELECT * FROM protected_persons WHERE lower(first_name) = lower(?) AND lower(last_name) = lower(?) ORDER BY updated_at DESC').all(firstName.trim(), lastName.trim()).map(mapPerson);
+  }
+
   linkCase(protectedPersonId: string, caseFileId: string, linkReason?: string): PersonCaseLinkRecord {
     const link = new PersonCaseLinkService(this.database).linkCase(protectedPersonId, caseFileId, linkReason);
     this.audit('update', protectedPersonId, 'Personenverzeichnis: Fallakte verknüpft', { caseFileId });

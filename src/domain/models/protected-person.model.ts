@@ -116,6 +116,9 @@ export interface PersonImportColumnMapping {
   organizationalUnit?: string;
   location?: string;
   protectionStatus?: string;
+  severelyDisabledSince?: string;
+  equivalentPresentedAt?: string;
+  applicationFiledAt?: string;
   statusValidFrom?: string;
   statusValidUntil?: string;
   evidenceCheckedAt?: string;
@@ -146,13 +149,15 @@ export interface PersonImportPreviewRow {
   personnelNumber?: string;
   workEmail?: string;
   protectionStatus?: ProtectionStatus;
+  statusReason?: string;
+  statusWarnings?: string[];
   statusValidUntil?: string;
   validationErrors: string[];
   rawPreview: Record<string, string>;
 }
 
 export type PersonImportAction = 'created' | 'updated' | 'unchanged' | 'conflict' | 'skipped' | 'not_in_list';
-export type PersonImportMatchStrategy = 'personnel_number' | 'work_email' | 'name_only_conflict' | 'none';
+export type PersonImportMatchStrategy = 'personnel_number' | 'work_email' | 'name_exact_unique' | 'name_only_conflict' | 'none';
 
 export interface PersonImportRunItemRecord {
   id: string;

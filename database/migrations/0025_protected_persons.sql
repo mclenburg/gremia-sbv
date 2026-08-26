@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS person_import_run_items (
   row_number INTEGER NOT NULL,
   action TEXT NOT NULL CHECK (action IN ('created', 'updated', 'unchanged', 'conflict', 'skipped', 'not_in_list')),
   protected_person_id TEXT REFERENCES protected_persons(id) ON DELETE SET NULL,
-  match_strategy TEXT CHECK (match_strategy IN ('personnel_number', 'work_email', 'name_only_conflict', 'none')),
+  match_strategy TEXT CHECK (match_strategy IN ('personnel_number', 'work_email', 'name_exact_unique', 'name_only_conflict', 'none')),
   conflict_reason TEXT,
   validation_message TEXT,
   changed_fields_json TEXT NOT NULL DEFAULT '[]',

@@ -7,7 +7,6 @@ import {
   getMappedValue,
   normalizeCell,
   normalizeDateString,
-  normalizeProtectionStatus,
   parseDelimitedText,
   parseXlsxFile,
   sha256Text,
@@ -16,6 +15,7 @@ import {
   MAX_PERSON_IMPORT_ROWS,
   splitFullName
 } from './personImportParsing.js';
+import { resolvePersonImportStatus } from './personImportStatusResolver.js';
 import { decodeCp850, detectCsvEncoding, type CsvEncodingDetectionResult } from './csvEncodingDetection.js';
 import type {
   CreateProtectedPersonInput,
@@ -49,12 +49,12 @@ function isPastOrToday(value: string | undefined): boolean {
   return Boolean(value) && value! <= legalToday();
 }
 
-export function buildPersonInput(rowObject: Record<string, string>, mapping: PersonImportColumnMapping): { input: CreateProtectedPersonInput; validationErrors: string[]; rawPreview: Record<string, string> } {
+export function buildPersonInput(rowObject: Record<string, string>, mapping: PersonImportColumnMapping): { input: CreateProtectedPersonInput; validationErrors: string[]; rawPreview: Record<string, string>; statusReason: string; statusWarnings: string[] } {
   const fullName = getMappedValue(rowObject, 'fullName', mapping);
   const split = fullName ? splitFullName(fullName, mapping.fullNameMode) : { firstName: '', lastName: '' };
   const firstName = normalizeCell(getMappedValue(rowObject, 'firstName', mapping) ?? split.firstName);
   const lastName = normalizeCell(getMappedValue(rowObject, 'lastName', mapping) ?? split.lastName);
-  const protectionStatus = normalizeProtectionStatus(getMappedValue(rowObject, 'protectionStatus', mapping));
+  const statusResolution = resolvePersonImportStatus(rowObject, mapping);
   const employmentStateRaw = normalizeCell(getMappedValue(rowObject, 'employmentState', mapping)).toLowerCase();
   const leftCompanyAt = normalizeDateString(getMappedValue(rowObject, 'leftCompanyAt', mapping));
   const rawIndicatesLeft = /ausgeschieden|ende|left|inaktiv/.test(employmentStateRaw);
@@ -69,10 +69,10 @@ export function buildPersonInput(rowObject: Record<string, string>, mapping: Per
     employmentState,
     leftCompanyAt,
     leftCompanyReason: leftCompanyAt ? 'known_departure' : undefined,
-    protectionStatus,
-    statusValidFrom: normalizeDateString(getMappedValue(rowObject, 'statusValidFrom', mapping)),
+    protectionStatus: statusResolution.protectionStatus,
+    statusValidFrom: normalizeDateString(getMappedValue(rowObject, 'statusValidFrom', mapping)) ?? statusResolution.statusValidFrom,
     statusValidUntil: normalizeDateString(getMappedValue(rowObject, 'statusValidUntil', mapping)),
-    evidenceCheckedAt: normalizeDateString(getMappedValue(rowObject, 'evidenceCheckedAt', mapping)),
+    evidenceCheckedAt: normalizeDateString(getMappedValue(rowObject, 'evidenceCheckedAt', mapping)) ?? statusResolution.evidenceCheckedAt,
     statusSource: 'employer_list',
     notes: normalizeCell(getMappedValue(rowObject, 'notes', mapping)) || undefined
   };
@@ -80,15 +80,48 @@ export function buildPersonInput(rowObject: Record<string, string>, mapping: Per
   if (!input.firstName) validationErrors.push('Vorname fehlt. Bei Vollnamen-Spalten ggf. Modus Vorname Nachname oder Nachname, Vorname wählen.');
   if (!input.lastName) validationErrors.push('Nachname fehlt.');
   if (!mapping.firstName && !mapping.lastName && !mapping.fullName) validationErrors.push('Mapping unvollständig: Name muss über getrennte Spalten oder eine Vollnamen-Spalte zugeordnet werden.');
-  if (!mapping.protectionStatus) validationErrors.push('Mapping unvollständig: Schutzstatus ist erforderlich.');
-  return { input, validationErrors, rawPreview: Object.fromEntries(Object.entries(rowObject).filter(([key]) => !key.toLowerCase().includes('gdb')).slice(0, 12)) };
+  if (!mapping.protectionStatus && !mapping.severelyDisabledSince && !mapping.equivalentPresentedAt && !mapping.applicationFiledAt) {
+    validationErrors.push('Mapping unvollständig: Schutzstatus ist über eine Statusspalte oder über Nachweis-/Antragsdatumsspalten erforderlich.');
+  }
+  return {
+    input,
+    validationErrors,
+    rawPreview: Object.fromEntries(Object.entries(rowObject).filter(([key]) => !key.toLowerCase().includes('gdb')).slice(0, 12)),
+    statusReason: statusResolution.reason,
+    statusWarnings: statusResolution.warnings,
+  };
 }
 
 function setPersonImportUpdateField<K extends keyof CreateProtectedPersonInput>(update: UpdateProtectedPersonInput, key: K, value: CreateProtectedPersonInput[K] | undefined): void {
   update[key] = value;
 }
 
-function diffPerson(existing: ProtectedPersonRecord, next: CreateProtectedPersonInput): { changed: string[]; update: UpdateProtectedPersonInput } {
+const protectionStatusRank: Record<CreateProtectedPersonInput['protectionStatus'], number> = {
+  inactive: 0,
+  expired: 0,
+  unclear: 1,
+  application_pending: 2,
+  equivalent: 4,
+  severely_disabled: 5,
+};
+
+function shouldUpdateProtectionStatus(existing: ProtectedPersonRecord, next: CreateProtectedPersonInput): boolean {
+  if (existing.protectionStatus === next.protectionStatus) return false;
+  return protectionStatusRank[next.protectionStatus] >= protectionStatusRank[existing.protectionStatus];
+}
+
+function shouldUpdateImportedField(existing: ProtectedPersonRecord, next: CreateProtectedPersonInput, key: keyof CreateProtectedPersonInput): boolean {
+  const nextValue = next[key];
+  if (nextValue === undefined || nextValue === '') return false;
+  const existingValue = existing[key as keyof ProtectedPersonRecord];
+  if ((existingValue ?? '') === nextValue) return false;
+  if (key === 'protectionStatus') return shouldUpdateProtectionStatus(existing, next);
+  if ((key === 'statusValidFrom' || key === 'evidenceCheckedAt' || key === 'notes') && existingValue) return false;
+  if (key === 'statusValidUntil' && existing.protectionStatus === 'severely_disabled' && next.protectionStatus === 'unclear') return false;
+  return true;
+}
+
+export function planPersonImportUpdate(existing: ProtectedPersonRecord, next: CreateProtectedPersonInput): { changed: string[]; update: UpdateProtectedPersonInput } {
   const update: UpdateProtectedPersonInput = {};
   const changed: string[] = [];
   const keys: (keyof CreateProtectedPersonInput)[] = [
@@ -97,9 +130,7 @@ function diffPerson(existing: ProtectedPersonRecord, next: CreateProtectedPerson
     'statusValidUntil', 'evidenceCheckedAt', 'statusSource', 'notes'
   ];
   keys.forEach((key) => {
-    const existingValue = existing[key as keyof ProtectedPersonRecord] ?? '';
-    const nextValue = next[key] ?? '';
-    if (existingValue !== nextValue) {
+    if (shouldUpdateImportedField(existing, next, key)) {
       setPersonImportUpdateField(update, key, next[key] || undefined);
       changed.push(String(key));
     }
@@ -169,6 +200,8 @@ export class PersonImportService {
         workEmail: mapped.input.workEmail,
         protectionStatus: mapped.input.protectionStatus,
         statusValidUntil: mapped.input.statusValidUntil,
+        statusReason: mapped.statusReason,
+        statusWarnings: mapped.statusWarnings,
         validationErrors: mapped.validationErrors,
         rawPreview: mapped.rawPreview
       };
@@ -218,7 +251,7 @@ export class PersonImportService {
         continue;
       }
 
-      const diff = diffPerson(existing, mapped.input);
+      const diff = planPersonImportUpdate(existing, mapped.input);
       if (!diff.changed.length) {
         unchangedCount += 1;
         items.push({ rowNumber, action: 'unchanged', protectedPersonId: existing.id, matchStrategy, changedFields: [] });

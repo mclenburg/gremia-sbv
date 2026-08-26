@@ -4,6 +4,7 @@ export interface PersonMatchLookup {
   findByPersonnelNumber(personnelNumber: string): ProtectedPersonRecord | undefined;
   findByWorkEmail(workEmail: string): ProtectedPersonRecord | undefined;
   findNameConflict(firstName: string, lastName: string): ProtectedPersonRecord | undefined;
+  findNameMatches?(firstName: string, lastName: string): ProtectedPersonRecord[];
 }
 
 export interface PersonMatchResult {
@@ -19,6 +20,33 @@ export function resolvePersonImportMatch(input: CreateProtectedPersonInput, look
 
   const byMail = input.workEmail ? lookup.findByWorkEmail(input.workEmail) : undefined;
   if (byMail) return { existing: byMail, matchStrategy: 'work_email' };
+
+  const nameMatches = lookup.findNameMatches?.(input.firstName, input.lastName);
+  if (nameMatches && nameMatches.length === 1) {
+    const [match] = nameMatches;
+    if (input.personnelNumber && match.personnelNumber && input.personnelNumber !== match.personnelNumber) {
+      return {
+        conflict: match,
+        matchStrategy: 'name_only_conflict',
+        conflictReason: 'Name/Vorname passt, aber die Personalnummer widerspricht dem Bestand. Bitte manuell prüfen.',
+      };
+    }
+    if (input.workEmail && match.workEmail && input.workEmail.toLowerCase() !== match.workEmail.toLowerCase()) {
+      return {
+        conflict: match,
+        matchStrategy: 'name_only_conflict',
+        conflictReason: 'Name/Vorname passt, aber die dienstliche E-Mail widerspricht dem Bestand. Bitte manuell prüfen.',
+      };
+    }
+    return { existing: match, matchStrategy: 'name_exact_unique' };
+  }
+  if (nameMatches && nameMatches.length > 1) {
+    return {
+      conflict: nameMatches[0],
+      matchStrategy: 'name_only_conflict',
+      conflictReason: 'Mehrere bestehende Personen passen zu Name/Vorname. Bitte manuell prüfen.',
+    };
+  }
 
   const nameConflict = lookup.findNameConflict(input.firstName, input.lastName);
   if (nameConflict) {

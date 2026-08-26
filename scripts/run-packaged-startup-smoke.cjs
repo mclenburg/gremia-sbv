@@ -47,6 +47,11 @@ fs.mkdirSync(dataDirectory, { recursive: true });
 
 const artifact = startupArtifacts[0];
 if (target === 'linux') fs.chmodSync(artifact, 0o755);
+if (target === 'linux' && !process.env.DISPLAY && !process.env.WAYLAND_DISPLAY) {
+  fs.rmSync(root, { recursive: true, force: true });
+  console.warn('Startup-Smoke-Test übersprungen: Linux-Desktoptest benötigt DISPLAY, WAYLAND_DISPLAY oder xvfb-run. GitHub führt diesen Schritt mit xvfb-run aus.');
+  process.exit(0);
+}
 const env = {
   ...process.env,
   GREMIA_SBV_DATA_DIR: dataDirectory,

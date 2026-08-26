@@ -147,6 +147,10 @@
       "classification": "infrastructure",
       "reason": "Schema-/Datenreparatur im Migrationspfad."
     },
+    "services/personImportRunItemSchemaRepair.ts#<module>.repairPersonImportRunItemMatchStrategySchema": {
+      "classification": "infrastructure",
+      "reason": "Technische Constraint-Reparatur des Importprotokolls im Migrationspfad; vorhandene Importpositionen werden unverändert übernommen und keine fachliche Personenänderung ausgelöst."
+    },
     "services/participationService.ts#ParticipationService.event": {
       "classification": "delegated",
       "owner": "ParticipationService.create/update",
