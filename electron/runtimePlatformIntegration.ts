@@ -10,6 +10,7 @@ import {
   completeStartupSmokeTest,
   resolveRuntimeDataDirectory,
 } from "./runtimeDataDirectory.js";
+import { OWNER_ONLY_FILE_MODE, restrictFileToOwnerSync } from "../services/secureFilePermissions.js";
 
 export {
   isDemoMode,
@@ -34,11 +35,14 @@ export function finishPackagedStartupSmoke(dataDirectory: string, app: App): voi
     argv: process.argv,
     markerPath: process.env.GREMIA_SBV_STARTUP_SMOKE_MARKER,
     dataDirectory,
-    writeMarker: (markerPath, content) => writeFileSync(markerPath, content, {
-      encoding: "utf8",
-      mode: 0o600,
-      flag: "wx",
-    }),
+    writeMarker: (markerPath, content) => {
+      writeFileSync(markerPath, content, {
+        encoding: "utf8",
+        mode: OWNER_ONLY_FILE_MODE,
+        flag: "wx",
+      });
+      restrictFileToOwnerSync(markerPath);
+    },
     quit: () => app.quit(),
   });
 }

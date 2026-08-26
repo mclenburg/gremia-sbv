@@ -18,6 +18,8 @@ import { PdfDocumentGenerationService } from './documents/pdfDocumentGenerationS
 import type { GenerateElectionExecutionDocumentInput } from '../src/domain/models/election-execution.model.js';
 import { ApplicationError } from '../src/domain/models/application-error.model.js';
 import { ElectionMailBallotPackageDefinition } from './electionMailBallotPackageDefinition.js';
+import { OWNER_ONLY_FILE_MODE, restrictFileToOwner } from './secureFilePermissions.js';
+import { appendOperationContext, documentDefaultsForDatabase } from './documents/documentIdentityPolicy.js';
 
 const TEMPLATE_VERSION = '0.9.7-D.1';
 
@@ -67,7 +69,8 @@ export class ElectionArchiveService {
 
   async exportDocumentToFile(documentId: string, targetPath: string): Promise<{ exported: true; sizeBytes: number }> {
     const plain = await this.documents.read(documentId);
-    await fs.promises.writeFile(targetPath, plain, { mode: 0o600 });
+    await fs.promises.writeFile(targetPath, plain, { mode: OWNER_ONLY_FILE_MODE });
+    await restrictFileToOwner(targetPath);
     return { exported: true, sizeBytes: plain.length };
   }
 
@@ -123,9 +126,13 @@ export class ElectionArchiveService {
     if (input.kind === 'mail_ballot_package') {
       return new ElectionMailBallotPackageDefinition(this.database).build(election, input);
     }
+    const electionSubtitle = appendOperationContext(
+      'Wahl der Schwerbehindertenvertretung',
+      documentDefaultsForDatabase(this.database),
+    );
     const blocks = [section('Dokumentinhalt', [list(lines)])];
     if (input.kind === 'result_announcement') {
-      return publicNoticeDocument(title, 'Wahl der Schwerbehindertenvertretung', blocks);
+      return publicNoticeDocument(title, electionSubtitle, blocks);
     }
     if (input.kind === 'elected_notification') {
       const selected = this.results(election.id).find((item) => item.id === input.resultId);
@@ -143,7 +150,7 @@ export class ElectionArchiveService {
     }
     return legalRecordDocument(
       title,
-      'Wahl der Schwerbehindertenvertretung',
+      electionSubtitle,
       input.kind.startsWith('ballot_') ? 'Stimmzettel' : 'Rechtlich relevantes Wahldokument',
       blocks,
     );

@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -8,6 +8,7 @@ import {
 } from '../../../services/security/legacyPlaintextExportCleanupService';
 import { decryptReportArchive } from '../../../services/reports/reportArchiveCrypto';
 import { listCleartextFiles } from '../../../services/retentionSupport';
+import { isOwnerOnlyFileMode, posixModeBits, supportsPosixPermissionBits } from '../../../services/secureFilePermissions';
 
 const DATABASE_KEY = Buffer.alloc(32, 23);
 
@@ -46,7 +47,7 @@ describe('automatische Bereinigung alter Klartext-Berichtsexporte', () => {
     expect(verified.originalFileName).toBe('Tätigkeitsbericht-2025.pdf');
     expect(verified.pdf).toEqual(pdf);
     verified.pdf.fill(0);
-    if (process.platform !== 'win32') expect(statSync(target).mode & 0o777).toBe(0o600);
+    if (supportsPosixPermissionBits()) expect(isOwnerOnlyFileMode(posixModeBits(target))).toBe(true);
   });
 
   it('behält den Klartext bei einem Löschfehler und schließt die Bereinigung beim nächsten Lauf über den verifizierten Container ab', () => {

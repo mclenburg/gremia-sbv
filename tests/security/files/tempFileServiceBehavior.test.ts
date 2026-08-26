@@ -4,6 +4,7 @@ import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { rmSync } from 'node:fs';
 import { TempFileService } from '../../../services/tempFileService';
+import { isOwnerOnlyFileMode, posixModeBits, supportsPosixPermissionBits } from '../../../services/secureFilePermissions';
 
 const roots: string[] = [];
 function createService(): TempFileService {
@@ -21,7 +22,8 @@ describe('Temporäre Dateien – Lebenszyklus und Sicherheitsverhalten', () => {
 
     expect(path.dirname(target)).toBe(service.scopeDir('document-preview'));
     expect(path.basename(target)).not.toMatch(/[/?\\]/);
-    expect(statSync(target).mode & 0o777).toBe(0o600);
+    expect(statSync(target).isFile()).toBe(true);
+    if (supportsPosixPermissionBits()) expect(isOwnerOnlyFileMode(posixModeBits(target))).toBe(true);
     expect(service.status()).toMatchObject({ remaining: 1, bytesRemaining: 6, failed: 0 });
   });
 

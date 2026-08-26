@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 import type { DatabaseAdapter } from '../../../../services/databaseService';
 import { SbvParticipationViolationDocumentService } from '../../../../services/sbvParticipationViolationDocumentService';
 import { SbvParticipationViolationTemplateService } from '../../../../services/sbvParticipationViolationTemplateService';
+import { inspectPdf } from '../../../helpers/pdf';
 
 type Row = Record<string, unknown>;
 
@@ -18,6 +19,7 @@ class DocumentDb implements DatabaseAdapter {
   generatedDocuments: Row[] = [];
   violationDocuments: Row[] = [];
   audit: Row[] = [];
+  templateDefaults?: Row;
 
   prepare<T = unknown>(sql: string) {
     const self = this;
@@ -30,6 +32,7 @@ class DocumentDb implements DatabaseAdapter {
       },
       get(...params: unknown[]): T | undefined {
         if (normalized.includes('SELECT * FROM sbv_participation_violations WHERE id = ?')) return self.violations.find((row) => row.id === params[0]) as T | undefined;
+        if (normalized.includes('SELECT value FROM settings WHERE key = ?')) return self.templateDefaults as T | undefined;
         if (normalized.includes("FROM generated_documents WHERE id = ? AND document_kind = 'sbv_participation_violation'")) {
           return self.generatedDocuments.find((row) => row.id === params[0] && row.document_kind === 'sbv_participation_violation') as T | undefined;
         }
@@ -95,6 +98,38 @@ describe('Beteiligungsverstoß-Dokumente 0.9.4-b', () => {
       rmSync(dir, { recursive: true, force: true });
     }
   });
+
+  it('füllt Arbeitgeber-Empfänger und SBV-Signatur aus den zentralen Vorlagenvorgaben', async () => {
+    const db = new DocumentDb();
+    db.templateDefaults = {
+      value: JSON.stringify({
+        'sbv.name': 'SBV Team Standort Nord',
+        'sbv.funktion': 'Schwerbehindertenvertretung',
+        'sbv.email': 'sbv-nord@example.invalid',
+        'sbv.telefon': '01234 5678',
+        'sbv.signatur': 'Mit kollegialen Grüßen\nSBV Team Standort Nord',
+        'arbeitgeber.ansprechpartner': 'Frau Personal',
+        'arbeitgeber.personalabteilung': 'People & Culture',
+        'arbeitgeber.name': 'Musterarbeitgeber GmbH',
+      }),
+    };
+    const dir = mkdtempSync(path.join(tmpdir(), 'gremia-violation-doc-defaults-'));
+    try {
+      const result = await new SbvParticipationViolationDocumentService(db, () => dir).generateDocument('vio-1');
+      const plain = await new SbvParticipationViolationDocumentService(db, () => dir).readDocument(result.documentId);
+      const text = (await inspectPdf(plain)).textByPage.join(' ');
+
+      expect(text).toContain('Frau Personal');
+      expect(text).toContain('People & Culture');
+      expect(text).toContain('Musterarbeitgeber GmbH');
+      expect(text).toContain('sbv-nord@example.invalid');
+      expect(text).toContain('Mit kollegialen Grüßen');
+      expect(text).not.toContain('Mit freundlichen Grüßen Schwerbehindertenvertretung');
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   it('nutzt einen injizierten Violation-Service statt im Dokumentpfad hart zu koppeln', async () => {
     const db = new DocumentDb();
     const dir = mkdtempSync(path.join(tmpdir(), 'gremia-violation-doc-injected-'));

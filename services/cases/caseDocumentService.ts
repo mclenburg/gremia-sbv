@@ -37,6 +37,7 @@ import { assertCanCreateRegularCase } from "../personCaseBindingPolicy.js";
 import { SearchIndexService } from "../search/searchIndexService.js";
 import { extractDocumentTextBestEffort, inferMimeType } from "../documents/documentTextExtractionService.js";
 import { DocumentOcrService } from "../documents/documentOcrService.js";
+import { OWNER_ONLY_FILE_MODE, restrictFileToOwner } from "../secureFilePermissions.js";
 import { CaseNoteService } from './caseNoteService.js';
 import { mapDocument, nowIso } from './caseSupport.js';
 import type { DatabaseRow } from './caseSupport.js';
@@ -248,7 +249,8 @@ export class CaseDocumentService extends CaseNoteService {
       const plain = await this.decryptDocumentRow(row);
       try {
         await fs.promises.mkdir(path.dirname(targetPath), { recursive: true });
-        await fs.promises.writeFile(targetPath, plain, { mode: 0o600 });
+        await fs.promises.writeFile(targetPath, plain, { mode: OWNER_ONLY_FILE_MODE });
+        await restrictFileToOwner(targetPath);
         this.audit(db, {
           action: "export",
           subjectType: "case_document",

@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
 import { DEFAULT_TEMPLATES } from './templateDefaults.js';
+import { readTemplateDefaultValues, templateDefaultValuesToContext } from './templateDefaultService.js';
 import { buildFallbackTemplateContext, normalizeTemplateKey, renderTemplateText, type TemplateContext } from './templatePolicy.js';
 import type { CreateTemplateInput, RenderContextTemplateInput, RenderTemplateInput, RenderedTemplateResult, TemplateCategory, TemplateListFilters, TemplateRecord, UpdateTemplateInput } from '../src/domain/models/template.model.js';
 
@@ -309,7 +310,11 @@ export class TemplateService {
   }
 
   private buildContext(db: DatabaseAdapter, caseId?: string, values: Record<string, string> = {}): TemplateContext {
-    const context: TemplateContext = { ...buildFallbackTemplateContext(), ...values };
+    const context: TemplateContext = {
+      ...buildFallbackTemplateContext(),
+      ...templateDefaultValuesToContext(readTemplateDefaultValues(db)),
+      ...values,
+    };
     if (caseId) {
       const caseRow = db.prepare<DatabaseRow>('SELECT * FROM cases WHERE id = ?').get(caseId);
       if (caseRow) {

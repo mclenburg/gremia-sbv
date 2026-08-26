@@ -7,6 +7,7 @@ import type { BackupFileSummary, BackupInspectionResult, BackupOperationResult }
 import { APP_VERSION } from './generated/appMetadata.js';
 import { APP_SCHEMA_VERSION, DATABASE_SCHEMA_VERSION_KEY, LEGACY_DATABASE_SCHEMA_VERSION_KEY } from './appSchema.js';
 import { atomicWriteFileSync } from './secureFileOperations.js';
+import { OWNER_ONLY_FILE_MODE } from './secureFilePermissions.js';
 
 export interface BackupFileOperations {
   readonly atomicWriteFileSync: typeof atomicWriteFileSync;
@@ -322,7 +323,7 @@ export class BackupService {
         if (sha256(content) !== file.sha256 || content.length !== file.sizeBytes) throw new Error(`Prüfsumme nach Entschlüsselung ungültig: ${file.relativePath}`);
         const target = path.join(stagingDir, ...file.relativePath.split('/'));
         this.fileOperations.mkdirSync(path.dirname(target), { recursive: true });
-        this.fileOperations.writeFileSync(target, content, { mode: 0o600 });
+        this.fileOperations.writeFileSync(target, content, { mode: OWNER_ONLY_FILE_MODE });
       }
       this.fileOperations.mkdirSync(path.join(stagingDir, 'documents'), { recursive: true });
       this.fileOperations.mkdirSync(path.join(stagingDir, 'exports'), { recursive: true });

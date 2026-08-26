@@ -89,7 +89,10 @@ export class SbvParticipationViolationTemplateService {
     return { valid: missingFields.length === 0, missingFields, warnings };
   }
 
-  buildPlainText(input: SbvParticipationViolationTemplateInput): string {
+  buildPlainText(
+    input: SbvParticipationViolationTemplateInput,
+    options: { signature?: string } = {},
+  ): string {
     const validation = this.validate(input);
     if (!validation.valid) throw new Error(`Pflichtangaben fehlen: ${validation.missingFields.join(', ')}`);
     const salutation = input.recipientLabel ? `Sehr geehrte Damen und Herren,` : 'Sehr geehrte Damen und Herren,';
@@ -108,7 +111,7 @@ export class SbvParticipationViolationTemplateService {
       sections.push('Hinweis: Eine nicht, nicht richtig, nicht vollständig oder nicht rechtzeitig erfolgte Unterrichtung bzw. Anhörung der SBV kann nach § 238 Abs. 1 Nr. 8 SGB IX eine Ordnungswidrigkeit darstellen. Zuständige Verwaltungsbehörde ist nach § 238 Abs. 3 SGB IX die Bundesagentur für Arbeit.');
     }
     if (input.followUpDueAt) sections.push(`Frist / Wiedervorlage: ${new Date(input.followUpDueAt).toLocaleDateString('de-DE')}`);
-    sections.push('Mit freundlichen Grüßen\nSchwerbehindertenvertretung');
+    sections.push(options.signature?.trim() || 'Mit freundlichen Grüßen\nSchwerbehindertenvertretung');
     return sections.join('\n\n');
   }
 

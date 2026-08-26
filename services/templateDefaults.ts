@@ -19,8 +19,7 @@ Bitte teilen Sie mir bis zum {{frist.datum}} mit, wann das Verfahren eingeleitet
 
 Ich weise vorsorglich darauf hin, dass eine weitere Verzögerung die rechtliche und tatsächliche Risikolage für den Arbeitgeber erhöht. Ziel der Schwerbehindertenvertretung ist weiterhin eine sachgerechte, lösungsorientierte und belastbare Klärung im Interesse des betroffenen Menschen.
 
-Mit freundlichen Grüßen
-{{sbv.name}}`
+{{sbv.signatur}}`
     },
     {
       key: 'sbv-beteiligung-unterlagen-nachfordern',
@@ -38,8 +37,7 @@ Die SBV ist in allen Angelegenheiten, die einzelne schwerbehinderte oder gleichg
 
 Bitte stellen Sie mir die hierzu erforderlichen Unterlagen und den aktuellen Sachstand bis zum {{frist.datum}} zur Verfügung. Bis zur ordnungsgemäßen Beteiligung gehe ich davon aus, dass keine abschließende Entscheidung getroffen oder umgesetzt wird.
 
-Mit freundlichen Grüßen
-{{sbv.name}}`
+{{sbv.signatur}}`
     },
     {
       key: 'bem-verfahren-nachhalten',
@@ -57,8 +55,7 @@ Ein wirksames BEM ist kein Einzelgespräch, sondern ein strukturierter Klärungs
 
 Bitte teilen Sie mir bis zum {{frist.datum}} mit, welche nächsten Schritte vorgesehen sind und wann eine gemeinsame Auswertung der bisherigen Maßnahmen erfolgen soll.
 
-Mit freundlichen Grüßen
-{{sbv.name}}`
+{{sbv.signatur}}`
     },
     {
       key: 'bem-angebot-datenschutz',
@@ -78,8 +75,7 @@ Im BEM werden nur die Informationen verarbeitet, die für die Klärung geeignete
 
 Bitte teilen Sie bis zum {{bem.reaktionsfrist}} mit, ob Sie das Angebot annehmen möchten und welche Personen beteiligt werden sollen.
 
-Mit freundlichen Grüßen
-{{sbv.name}}`
+{{sbv.signatur}}`
     },
     {
       key: 'bem-einwilligung-beteiligte',
@@ -202,8 +198,7 @@ BEM-Unterlagen sind getrennt und zweckgebunden aufzubewahren. Nicht erforderlich
 Abschlussdatum:
 {{datum.heute}}
 
-Mit freundlichen Grüßen
-{{sbv.name}}`
+{{sbv.signatur}}`
     },
     {
       key: 'kuendigung-frist-schutzstatus-check',
@@ -249,8 +244,7 @@ Es fehlen insbesondere:
 
 Bitte reichen Sie die fehlenden Informationen unverzüglich nach. Bis zur vollständigen Unterrichtung kann die Schwerbehindertenvertretung die Angelegenheit nicht abschließend bewerten.
 
-Mit freundlichen Grüßen
-{{sbv.name}}`
+{{sbv.signatur}}`
     },
     {
       key: 'kuendigung-integrationsamt-hinweis',
@@ -272,8 +266,7 @@ Stand Integrationsamt:
 
 Aus Sicht der Schwerbehindertenvertretung darf eine Kündigung schwerbehinderter oder gleichgestellter Menschen ohne die erforderliche Beteiligung und Zustimmung des Integrationsamts nicht umgesetzt werden.
 
-Mit freundlichen Grüßen
-{{sbv.name}}`
+{{sbv.signatur}}`
     },
     {
       key: 'kuendigung-sbv-stellungnahme',
@@ -324,8 +317,7 @@ Für die betriebliche Begründung sollten insbesondere folgende Punkte geprüft 
 Nächste Schritte:
 {{gleichstellung.notizen}}
 
-Mit freundlichen Grüßen
-{{sbv.name}}`
+{{sbv.signatur}}`
     },
     {
       key: 'gleichstellung-unterlagen-nachfordern',
@@ -346,8 +338,7 @@ Aus Sicht der Schwerbehindertenvertretung sind insbesondere der aktuelle Verfahr
 
 Bitte übersenden Sie die Informationen bis zum {{frist.datum}}.
 
-Mit freundlichen Grüßen
-{{sbv.name}}`
+{{sbv.signatur}}`
     },
     {
       key: 'gleichstellung-widerspruch-frist',
@@ -387,8 +378,7 @@ Bitte reichen Sie bis zum {{frist.datum}} die vollständigen entscheidungserhebl
 
 Ich weise darauf hin, dass die Anhörung nach § 178 Abs. 2 Satz 1 SGB IX vor einer Entscheidung zu erfolgen hat. Eine nachträgliche Information ersetzt die gesetzlich vorgesehene Beteiligung nicht.
 
-Mit freundlichen Grüßen
-{{sbv.name}}`
+{{sbv.signatur}}`
     },
     {
       key: 'freundliche-fristerinnerung',
@@ -406,7 +396,6 @@ Für die weitere Bearbeitung durch die Schwerbehindertenvertretung benötige ich
 
 Sollte eine vollständige Rückmeldung bis dahin nicht möglich sein, bitte ich um eine kurze Mitteilung, wann mit einer belastbaren Antwort zu rechnen ist.
 
-Mit freundlichen Grüßen
-{{sbv.name}}`
+{{sbv.signatur}}`
     }
   ];;
