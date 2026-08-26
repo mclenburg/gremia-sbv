@@ -16,6 +16,7 @@ const FORBIDDEN_METHODS = new Set([
 ]);
 const FORBIDDEN_PROVIDER_NAMES = /(?:^|_)(?:db|database|dataDir|dataDirectory|secret|vault|security).*Provider$/i;
 const FORBIDDEN_GETTERS = /^(?:getDb|getDatabase|getActiveDatabase|getActiveDatabaseKey|getDataDir|getDataDirectory|getSecretKey|getVault|resolveDataDirectory)$/;
+const FORBIDDEN_CONSTRUCTOR_PARAMETER_NAMES = new Set(['db', 'dbProvider', 'getDb']);
 
 function normalizeRelative(filePath) {
   return path.relative(root, filePath).split(path.sep).join('/');
@@ -60,6 +61,13 @@ function expressionText(sourceFile, node) {
 
 function analyzeConstructor(sourceFile, className, constructorNode) {
   const violations = [];
+  for (const parameter of constructorNode.parameters) {
+    if (!ts.isIdentifier(parameter.name)) continue;
+    const name = parameter.name.text;
+    if (FORBIDDEN_CONSTRUCTOR_PARAMETER_NAMES.has(name)) {
+      violations.push({ className, kind: 'constructor-signature', expression: name, position: sourceFile.getLineAndCharacterOfPosition(parameter.name.getStart(sourceFile)).line + 1 });
+    }
+  }
   function visit(node) {
     if (ts.isCallExpression(node)) {
       const name = callName(node.expression);
@@ -136,4 +144,4 @@ function main() {
 }
 
 if (require.main === module) main();
-module.exports = { analyzeSource, scanProject, formatReport, FORBIDDEN_METHODS };
+module.exports = { analyzeSource, scanProject, formatReport, FORBIDDEN_METHODS, FORBIDDEN_CONSTRUCTOR_PARAMETER_NAMES };

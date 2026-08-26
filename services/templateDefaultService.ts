@@ -31,15 +31,15 @@ function writeStoredDefaults(db: DatabaseAdapter, values: TemplateDefaultValues)
 }
 
 export class TemplateDefaultService {
-  constructor(private readonly getDb: () => DatabaseAdapter) {}
+  constructor(private readonly databaseProvider: () => DatabaseAdapter) {}
 
   list(): TemplateDefaultValues {
-    return readStoredDefaults(this.getDb());
+    return readStoredDefaults(this.databaseProvider());
   }
 
   save(input: Partial<Record<string, unknown>>): TemplateDefaultValues {
     const normalized = normalizeTemplateDefaultValues(input);
-    writeStoredDefaults(this.getDb(), normalized);
+    writeStoredDefaults(this.databaseProvider(), normalized);
     return normalized;
   }
 }

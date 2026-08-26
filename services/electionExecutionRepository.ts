@@ -13,15 +13,15 @@ interface RankedVote {
 }
 
 export class ElectionExecutionRepository {
-  constructor(private readonly db: DatabaseAdapter) {}
+  constructor(private readonly database: DatabaseAdapter) {}
 
   saveMailBallot(electionId: string, input: SaveElectionMailBallotInput, destroyDue: string | null): string {
-    const existing = this.db.prepare<{ id: string }>(
+    const existing = this.database.prepare<{ id: string }>(
       'SELECT id FROM sbv_election_mail_ballots WHERE election_id=? AND voter_id=?',
     ).get(electionId, input.voterId);
     const id = existing?.id ?? randomUUID();
     const timestamp = electionNow();
-    this.db.prepare(`
+    this.database.prepare(`
       INSERT INTO sbv_election_mail_ballots(
         id,election_id,voter_id,requested_at,sent_at,received_at,declaration_valid,
         transferred_to_urn_at,late_received_at,destroy_due_at,destroyed_at,created_at,updated_at
@@ -42,26 +42,26 @@ export class ElectionExecutionRepository {
   }
 
   replaceVoteTotals(electionId: string, officeType: OfficeType, rankings: readonly RankedVote[], deputyCount: number): void {
-    this.db.prepare('DELETE FROM sbv_election_vote_totals WHERE election_id=? AND office_type=?').run(electionId, officeType);
-    this.db.prepare('DELETE FROM sbv_election_results WHERE election_id=? AND office_type=?').run(electionId, officeType);
+    this.database.prepare('DELETE FROM sbv_election_vote_totals WHERE election_id=? AND office_type=?').run(electionId, officeType);
+    this.database.prepare('DELETE FROM sbv_election_results WHERE election_id=? AND office_type=?').run(electionId, officeType);
     const timestamp = electionNow();
     for (const ranking of rankings) {
-      this.db.prepare(`INSERT INTO sbv_election_vote_totals(id,election_id,office_type,candidate_id,votes,rank,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)`)
+      this.database.prepare(`INSERT INTO sbv_election_vote_totals(id,election_id,office_type,candidate_id,votes,rank,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)`)
         .run(randomUUID(), electionId, ranking.officeType, ranking.candidateId, ranking.votes, ranking.provisionalRank, timestamp, timestamp);
       const elected = officeType === 'representative' ? ranking.provisionalRank === 1 : ranking.provisionalRank <= deputyCount;
-      if (elected) this.db.prepare(`
+      if (elected) this.database.prepare(`
         INSERT INTO sbv_election_results(id,election_id,office_type,candidate_id,elected_rank,lot_required,acceptance_status,created_at,updated_at)
         VALUES(?,?,?,?,?,?,'pending',?,?)
       `).run(randomUUID(), electionId, officeType, ranking.candidateId, ranking.provisionalRank, ranking.lotRequired ? 1 : 0, timestamp, timestamp);
     }
-    this.db.prepare("UPDATE sbv_elections SET status='counting',updated_at=? WHERE id=?").run(timestamp, electionId);
+    this.database.prepare("UPDATE sbv_elections SET status='counting',updated_at=? WHERE id=?").run(timestamp, electionId);
   }
 
   savePhysicalRecord(electionId: string, input: SaveElectionPhysicalRecordInput): string {
     const id = input.id ?? randomUUID();
     const timestamp = electionNow();
     const quantity = input.quantity ?? 1;
-    this.db.prepare(`
+    this.database.prepare(`
       INSERT INTO sbv_election_physical_records(
         id,election_id,record_type,description,quantity,storage_location,sealed_status,
         original_required,handed_over_at,handed_over_to,notes_minimal,created_at,updated_at
@@ -81,26 +81,26 @@ export class ElectionExecutionRepository {
 
   promoteNext(electionId: string, officeType: OfficeType, rejectedRank: number, resultId: string): void {
     const timestamp = electionNow();
-    this.db.prepare("UPDATE sbv_election_results SET elected_rank=NULL, acceptance_status='replaced', updated_at=? WHERE id=?")
+    this.database.prepare("UPDATE sbv_election_results SET elected_rank=NULL, acceptance_status='replaced', updated_at=? WHERE id=?")
       .run(timestamp, resultId);
-    const next = this.db.prepare<{ candidate_id: string; rank: number }>(`
+    const next = this.database.prepare<{ candidate_id: string; rank: number }>(`
       SELECT candidate_id,rank FROM sbv_election_vote_totals WHERE election_id=? AND office_type=? AND rank>? ORDER BY rank,candidate_id LIMIT 1
     `).get(electionId, officeType, rejectedRank);
     if (!next) return;
-    const existing = this.db.prepare<{ id: string }>('SELECT id FROM sbv_election_results WHERE election_id=? AND office_type=? AND candidate_id=?')
+    const existing = this.database.prepare<{ id: string }>('SELECT id FROM sbv_election_results WHERE election_id=? AND office_type=? AND candidate_id=?')
       .get(electionId, officeType, next.candidate_id);
-    if (existing) this.db.prepare(`UPDATE sbv_election_results SET elected_rank=?, acceptance_status='pending', lot_required=0, notified_at=NULL, response_due_at=NULL, updated_at=? WHERE id=?`)
+    if (existing) this.database.prepare(`UPDATE sbv_election_results SET elected_rank=?, acceptance_status='pending', lot_required=0, notified_at=NULL, response_due_at=NULL, updated_at=? WHERE id=?`)
       .run(rejectedRank, timestamp, existing.id);
-    else this.db.prepare(`INSERT INTO sbv_election_results(id,election_id,office_type,candidate_id,elected_rank,lot_required,acceptance_status,created_at,updated_at) VALUES(?,?,?,?,?,0,'pending',?,?)`)
+    else this.database.prepare(`INSERT INTO sbv_election_results(id,election_id,office_type,candidate_id,elected_rank,lot_required,acceptance_status,created_at,updated_at) VALUES(?,?,?,?,?,0,'pending',?,?)`)
       .run(randomUUID(), electionId, officeType, next.candidate_id, rejectedRank, timestamp, timestamp);
   }
 
   requiredRoundsHaveResults(electionId: string): boolean {
-    const kind = this.db.prepare<{ kind: string }>('SELECT kind FROM sbv_elections WHERE id=?').get(electionId)?.kind;
+    const kind = this.database.prepare<{ kind: string }>('SELECT kind FROM sbv_elections WHERE id=?').get(electionId)?.kind;
     const required: OfficeType[] = kind === 'deputy_by_election' ? ['deputy'] : ['representative', 'deputy'];
     return required.every((officeType) => {
-      const totals = this.db.prepare<{ count: number }>('SELECT COUNT(*) AS count FROM sbv_election_vote_totals WHERE election_id=? AND office_type=?').get(electionId, officeType)?.count ?? 0;
-      const results = this.db.prepare<{ count: number }>('SELECT COUNT(*) AS count FROM sbv_election_results WHERE election_id=? AND office_type=? AND elected_rank IS NOT NULL').get(electionId, officeType)?.count ?? 0;
+      const totals = this.database.prepare<{ count: number }>('SELECT COUNT(*) AS count FROM sbv_election_vote_totals WHERE election_id=? AND office_type=?').get(electionId, officeType)?.count ?? 0;
+      const results = this.database.prepare<{ count: number }>('SELECT COUNT(*) AS count FROM sbv_election_results WHERE election_id=? AND office_type=? AND elected_rank IS NOT NULL').get(electionId, officeType)?.count ?? 0;
       return totals > 0 && results > 0;
     });
   }

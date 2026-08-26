@@ -169,10 +169,10 @@ function mapChainRow(row: PersonalDataAuditLogRow): AuditChainRowInput {
 }
 
 export class ActivityReportProjectionService {
-  constructor(private readonly db: DatabaseAdapter) {}
+  constructor(private readonly database: DatabaseAdapter) {}
 
   build(period: ActivityReportPeriod = {}): ActivityReportProjection {
-    const rows = this.db.prepare<PersonalDataAuditLogRow>('SELECT * FROM personal_data_audit_log ORDER BY sequence ASC').all();
+    const rows = this.database.prepare<PersonalDataAuditLogRow>('SELECT * FROM personal_data_audit_log ORDER BY sequence ASC').all();
     const verification = verifyAuditHashChain(rows.map(mapChainRow));
     if (!verification.ok) throw new ActivityReportIntegrityError(verification.firstBrokenSequence);
 

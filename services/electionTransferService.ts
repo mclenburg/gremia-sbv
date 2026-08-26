@@ -31,16 +31,16 @@ export class ElectionTransferService {
   private readonly crypto = new ElectionTransferCryptoAdapter();
   private readonly importer: ElectionTransferImportService;
 
-  constructor(private readonly db: DatabaseAdapter) {
-    this.importer = new ElectionTransferImportService(db, this.crypto);
+  constructor(private readonly database: DatabaseAdapter) {
+    this.importer = new ElectionTransferImportService(database, this.crypto);
   }
 
   export(electionId: string, sourceVaultId: string, passphrase: string): ElectionTransferEnvelope {
     const payload = this.createPayload(electionId, sourceVaultId);
     const envelope = this.crypto.encrypt(payload, passphrase);
     const manifestHash = electionManifestHash(payload.manifest);
-    new DatabaseUnitOfWork(this.db).run(() => {
-      this.db.prepare(`
+    new DatabaseUnitOfWork(this.database).run(() => {
+      this.database.prepare(`
         INSERT INTO sbv_election_archive_exports(
           id,election_id,export_type,format_version,created_at,manifest_hash,file_count,destination_path_metadata_minimal
         ) VALUES(?,?,?,?,?,?,?,NULL)
@@ -48,7 +48,7 @@ export class ElectionTransferService {
         randomUUID(), electionId, 'transfer_container', payload.manifest.formatVersion,
         payload.manifest.createdAt, manifestHash, payload.manifest.items.length,
       );
-      new PersonalDataAuditLogService(this.db).append(auditElectionTransferProcessed({
+      new PersonalDataAuditLogService(this.database).append(auditElectionTransferProcessed({
         action: 'export',
         packageId: payload.manifest.packageId,
         formatVersion: payload.manifest.formatVersion,
@@ -103,15 +103,15 @@ export class ElectionTransferService {
   }
 
   private createPayload(electionId: string, sourceVaultId: string): ElectionTransferPayload {
-    if (!this.db.prepare<{ id: string }>('SELECT id FROM sbv_elections WHERE id=?').get(electionId)) {
+    if (!this.database.prepare<{ id: string }>('SELECT id FROM sbv_elections WHERE id=?').get(electionId)) {
       throw new Error('Wahlvorgang wurde nicht gefunden.');
     }
     const data: Record<string, unknown> = {};
     for (const table of ELECTION_TABLES) data[table] = this.readElectionTable(table, electionId);
-    data.deadlines = this.db.prepare<Record<string, unknown>>(`
+    data.deadlines = this.database.prepare<Record<string, unknown>>(`
       SELECT * FROM deadlines WHERE process_type='election' AND process_id=? ORDER BY id
     `).all(electionId);
-    data.sbv_retention_legal_holds = this.db.prepare<Record<string, unknown>>(`
+    data.sbv_retention_legal_holds = this.database.prepare<Record<string, unknown>>(`
       SELECT * FROM sbv_retention_legal_holds WHERE owner_type='election' AND owner_id=? ORDER BY id
     `).all(electionId);
 
@@ -130,16 +130,16 @@ export class ElectionTransferService {
 
   private readElectionTable(table: typeof ELECTION_TABLES[number], electionId: string): Record<string, unknown>[] {
     if (table === 'sbv_elections') {
-      return this.db.prepare<Record<string, unknown>>('SELECT * FROM sbv_elections WHERE id=?').all(electionId);
+      return this.database.prepare<Record<string, unknown>>('SELECT * FROM sbv_elections WHERE id=?').all(electionId);
     }
     if (table === 'sbv_election_proposal_candidates' || table === 'sbv_election_proposal_supporters') {
-      return this.db.prepare<Record<string, unknown>>(`
+      return this.database.prepare<Record<string, unknown>>(`
         SELECT child.* FROM ${table} child
         JOIN sbv_election_proposals proposal ON proposal.id=child.proposal_id
         WHERE proposal.election_id=? ORDER BY child.id
       `).all(electionId);
     }
-    return this.db.prepare<Record<string, unknown>>(`
+    return this.database.prepare<Record<string, unknown>>(`
       SELECT * FROM ${table} WHERE election_id=? ORDER BY id
     `).all(electionId);
   }
@@ -222,7 +222,7 @@ export class ElectionTransferService {
     const columns = Object.keys(copy);
     if (!columns.length) throw new Error(`Wahlaktenpaket enthält leeren Datensatz für ${table}.`);
     if (columns.some((column) => !/^[a-z0-9_]+$/i.test(column))) throw new Error('Wahlaktenpaket enthält ungültige Spaltennamen.');
-    this.db.prepare(`INSERT INTO ${table}(${columns.join(',')}) VALUES(${columns.map(() => '?').join(',')})`)
+    this.database.prepare(`INSERT INTO ${table}(${columns.join(',')}) VALUES(${columns.map(() => '?').join(',')})`)
       .run(...columns.map((column) => copy[column]));
   }
 

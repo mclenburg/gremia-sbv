@@ -21,7 +21,7 @@ import { caseRegisterSliceBounds, clampCaseRegisterPage } from "./casesViewUtils
 import { useConfirmDialog } from "../../shared/dialogs/ConfirmDialogProvider";
 import { useAnnouncer } from "../../shared/a11y/LiveRegionProvider";
 import type { CaseProcessType } from "./caseWorkbenchTypes";
-import type { CaseProcessDeleteReason } from "../../../domain/models/case-measure.model";
+import type { CaseProcessDeleteReason, CaseProcessPrivacyAction } from "../../../domain/models/case-measure.model";
 import { CasePrivacyActionDialog, type CasePrivacyActionMode } from "./CasePrivacyActionDialog";
 import { CaseProcessDeleteDialog } from "./CaseProcessDeleteDialog";
 
@@ -182,13 +182,15 @@ export function CasesView(props: CasesViewProps) {
     await onCasesChanged();
     if (input.mode === 'anonymize' && workbench.selectedCaseId === casePrivacyTarget.id) await workbench.reloadSelectedCaseChildren();
   };
-  const deleteCaseProcess = async (reasonCode: CaseProcessDeleteReason) => {
+  const deleteCaseProcess = async ({ reasonCode, action }: { reasonCode: CaseProcessDeleteReason; action: CaseProcessPrivacyAction }) => {
     if (!processDeleteTarget || !workbench.selectedCaseId) return;
-    const result = await window.gremiaSbv.caseMeasures.deleteProcess({ caseId: workbench.selectedCaseId, processId: processDeleteTarget.id, processType: processDeleteTarget.processType, reasonCode });
+    const result = await window.gremiaSbv.caseMeasures.deleteProcess({ caseId: workbench.selectedCaseId, processId: processDeleteTarget.id, processType: processDeleteTarget.processType, reasonCode, action });
     workbench.setSelection({ type: 'overview' });
     await workbench.reloadSelectedCaseChildren();
     await onCasesChanged();
-    feedback.pushCaseToast(`Maßnahme wurde gelöscht. ${result.deletedNotes} Maßnahmennotiz(en) und ${result.deletedDeadlines} Frist(en) wurden entfernt${result.detachedDocuments ? `; ${result.detachedDocuments} Dokument(en) bleiben in der Fallakte erhalten.` : '.'}`);
+    feedback.pushCaseToast(result.anonymized
+      ? `BEM wurde anonymisiert. ${result.anonymizedNotes} Maßnahmennotiz(en) wurden neutralisiert, ${result.deletedDeadlines} Frist(en) entfernt${result.detachedDocuments ? `; ${result.detachedDocuments} Dokument(en) bleiben in der Fallakte erhalten.` : '.'}`
+      : `Maßnahme wurde gelöscht. ${result.deletedNotes} Maßnahmennotiz(en) und ${result.deletedDeadlines} Frist(en) wurden entfernt${result.detachedDocuments ? `; ${result.detachedDocuments} Dokument(en) bleiben in der Fallakte erhalten.` : '.'}`);
   };
   const documentActions = createCaseDocumentActions({ importDocuments: crud.importDocuments, openDocument: crud.openDocument, exportDocument: crud.exportDocument, deleteDocument: crud.deleteDocument });
   return <><CaseHandoverTransferDialogs exportOpen={handover.handoverExportOpen} importOpen={handover.handoverImportOpen} selectedCase={workbench.selectedCase}
@@ -201,5 +203,5 @@ export function CasesView(props: CasesViewProps) {
       assignLegacyCase={assignLegacyCase} closedLegacyBulkCount={closedLegacyBulkCount} bulkMarkClosedLegacyCases={bulkMarkClosedLegacyCases}
       onOpenParticipationViolationPrefill={onOpenParticipationViolationPrefill} onOpenCasePrivacyAction={setCasePrivacyTarget} onOpenProcessDelete={setProcessDeleteTarget} />
     <CasePrivacyActionDialog open={Boolean(casePrivacyTarget)} record={casePrivacyTarget ?? undefined} onClose={() => setCasePrivacyTarget(null)} onSubmit={runCasePrivacyAction} />
-    <CaseProcessDeleteDialog target={processDeleteTarget} onClose={() => setProcessDeleteTarget(null)} onDelete={deleteCaseProcess} /></>;
+    <CaseProcessDeleteDialog target={processDeleteTarget} onClose={() => setProcessDeleteTarget(null)} onSubmit={deleteCaseProcess} /></>;
 }

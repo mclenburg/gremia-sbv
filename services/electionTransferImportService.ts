@@ -19,7 +19,7 @@ export type ElectionTransferImporter = (payload: ElectionTransferPayload, contex
 };
 
 export class ElectionTransferImportService {
-  constructor(private readonly db: DatabaseAdapter, private readonly crypto = new ElectionTransferCryptoAdapter()) {}
+  constructor(private readonly database: DatabaseAdapter, private readonly crypto = new ElectionTransferCryptoAdapter()) {}
 
   importAtomically(envelope: ElectionTransferEnvelope, passphrase: string, importer: ElectionTransferImporter): ElectionTransferImportResult {
     const payload = this.crypto.decrypt(envelope, passphrase);
@@ -28,17 +28,17 @@ export class ElectionTransferImportService {
     const now = new Date().toISOString();
     let importedElectionId = '';
     try {
-      new DatabaseUnitOfWork(this.db).run(() => {
+      new DatabaseUnitOfWork(this.database).run(() => {
         const imported = importer(payload, { importId });
         if (!imported.importedElectionId.trim()) throw new Error('Import hat keine lokale Wahl-ID geliefert.');
         importedElectionId = imported.importedElectionId;
-        this.db.prepare(`
+        this.database.prepare(`
           INSERT INTO sbv_election_transfer_imports (
             id, source_package_id, imported_at, format_version, source_vault_id_hash,
             source_manifest_hash, status, imported_election_id, metadata_json_minimal
           ) VALUES (?, ?, ?, ?, ?, ?, 'imported', ?, ?)
         `).run(importId, payload.manifest.packageId, now, payload.manifest.formatVersion, payload.manifest.sourceVaultIdHash, manifestHash, importedElectionId, JSON.stringify({ itemCount: imported.importedItems.length }));
-        const insertItem = this.db.prepare(`
+        const insertItem = this.database.prepare(`
           INSERT INTO sbv_election_transfer_import_items (
             id, import_id, package_ref, local_entity_type, local_entity_id, created_at
           ) VALUES (?, ?, ?, ?, ?, ?)
@@ -46,7 +46,7 @@ export class ElectionTransferImportService {
         for (const item of imported.importedItems) {
           insertItem.run(randomUUID(), importId, item.packageRef, item.localEntityType, item.localEntityId, now);
         }
-        new PersonalDataAuditLogService(this.db).append(auditElectionTransferProcessed({
+        new PersonalDataAuditLogService(this.database).append(auditElectionTransferProcessed({
           action: 'import', packageId: payload.manifest.packageId, formatVersion: payload.manifest.formatVersion, manifestHash, result: 'success',
         }));
       });

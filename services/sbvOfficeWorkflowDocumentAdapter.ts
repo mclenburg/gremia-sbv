@@ -44,7 +44,7 @@ interface DocumentRow {
 
 export class SbvOfficeWorkflowDocumentAdapter {
   constructor(
-    private readonly db: DatabaseAdapter,
+    private readonly database: DatabaseAdapter,
     private readonly storageRoot: string,
     private readonly containers = new DocumentContainerService(),
     private readonly owners = new RetentionOwnerRegistry(),
@@ -52,7 +52,7 @@ export class SbvOfficeWorkflowDocumentAdapter {
 
   async store(input: StoreSbvOfficeDocumentInput): Promise<SbvOfficeDocumentRecord> {
     if (input.owner.type === 'case') throw new Error('Fallbezogene Dokumente verwenden weiterhin die Fallakten-Dokumentablage.');
-    if (!this.owners.exists(this.db, input.owner)) throw new Error('Dokument kann nur einem vorhandenen SBV-Amtsvorgang zugeordnet werden.');
+    if (!this.owners.exists(this.database, input.owner)) throw new Error('Dokument kann nur einem vorhandenen SBV-Amtsvorgang zugeordnet werden.');
     const title = input.title.trim();
     const purpose = input.purpose.trim();
     if (!title || !purpose) throw new Error('Dokument benötigt Titel und Zweck.');
@@ -68,8 +68,8 @@ export class SbvOfficeWorkflowDocumentAdapter {
     });
     const now = new Date().toISOString();
     try {
-      new DatabaseUnitOfWork(this.db).run(() => {
-        this.db.prepare(`
+      new DatabaseUnitOfWork(this.database).run(() => {
+        this.database.prepare(`
           INSERT INTO generated_documents (
             id, case_id, template_id, violation_id, document_kind, template_version, title,
             storage_path, filename, mime_type, sha256, document_key, iv, auth_tag, size_bytes, created_at
@@ -78,12 +78,12 @@ export class SbvOfficeWorkflowDocumentAdapter {
           documentId, title, container.storagePath, container.filename, container.mimeType, container.sha256,
           container.documentKey, container.iv, container.authTag, container.sizeBytes, now,
         );
-        this.db.prepare(`
+        this.database.prepare(`
           INSERT INTO sbv_workflow_document_links (
             id, owner_type, owner_id, document_id, purpose, document_class, template_version, legal_rule_version, created_at
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         `).run(linkId, input.owner.type, input.owner.id, documentId, purpose, input.documentClass, input.templateVersion?.trim() || null, input.legalRuleVersion?.trim() || null, now);
-        new PersonalDataAuditLogService(this.db).append(auditSbvOfficeDocumentChanged({
+        new PersonalDataAuditLogService(this.database).append(auditSbvOfficeDocumentChanged({
           action: 'create', documentId, ownerType: input.owner.type, ownerId: input.owner.id, documentClass: input.documentClass,
         }));
       });
@@ -108,7 +108,7 @@ export class SbvOfficeWorkflowDocumentAdapter {
   }
 
   async read(documentId: string): Promise<Buffer> {
-    const row = this.db.prepare<DocumentRow>(`
+    const row = this.database.prepare<DocumentRow>(`
       SELECT d.*, l.owner_type, l.owner_id, l.purpose, l.document_class
       FROM generated_documents d
       JOIN sbv_workflow_document_links l ON l.document_id = d.id

@@ -108,7 +108,7 @@ function diffPerson(existing: ProtectedPersonRecord, next: CreateProtectedPerson
 }
 
 export class PersonImportService {
-  constructor(private readonly db: DatabaseAdapter) {}
+  constructor(private readonly database: DatabaseAdapter) {}
 
   private decodeCsv(input: PersonImportPreviewInput): { text: string; hashSource: string; detection?: CsvEncodingDetectionResult } {
     if (input.csvText !== undefined) {
@@ -180,7 +180,7 @@ export class PersonImportService {
   }
 
   async execute(input: PersonImportExecuteInput): Promise<PersonImportExecuteResult> {
-    const personService = new ProtectedPersonService(this.db);
+    const personService = new ProtectedPersonService(this.database);
     const { objects, sourceTextHash } = await this.readRows(input);
     const firstDataIndex = input.firstDataRowIndex ?? 1;
     const items: Omit<PersonImportRunItemRecord, 'id' | 'runId' | 'createdAt'>[] = [];

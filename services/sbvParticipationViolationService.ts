@@ -9,15 +9,15 @@ import type { ActivityJournalPrefill } from '../src/domain/models/activity-journ
 import { DEFAULT_LEGAL_BASIS, ViolationRow, ViolationEventRow, RunResult, nowIso, normalizeText, addDaysIso, normalizeIso, oneOf, mapRecord, mapEvent, emptyViolationRelations, sourceContextIdForNewViolation, assertMatchingCaseContext } from './sbvParticipationViolationSupport.js';
 import { ensureSbvParticipationViolationSchema } from './sbvParticipationViolationSchema.js';
 export class SbvParticipationViolationService {
-  constructor(private readonly db: DatabaseAdapter) {}
+  constructor(private readonly database: DatabaseAdapter) {}
 
   ensureSchema(): void {
-    ensureSbvParticipationViolationSchema(this.db);
-    new PersonalDataAuditLogService(this.db);
+    ensureSbvParticipationViolationSchema(this.database);
+    new PersonalDataAuditLogService(this.database);
   }
 
   private audit(action: 'read' | 'create' | 'update' | 'delete', record?: SbvParticipationViolationRecord): void {
-    const write = () => new PersonalDataAuditLogService(this.db).append({
+    const write = () => new PersonalDataAuditLogService(this.database).append({
       actor: 'sbv', action, subjectType: 'sbv_participation_violation', subjectId: record?.id,
       caseId: record?.caseId, purpose: 'SBV-Beteiligungsverstoß-Protokollierung',
       metadata: record ? { stage: record.stage, status: record.status, violationType: record.violationType,
@@ -28,7 +28,7 @@ export class SbvParticipationViolationService {
   }
 
   private appendEvent(violationId: string, eventType: ParticipationViolationEventType, fromStatus?: ParticipationViolationStatus, toStatus?: ParticipationViolationStatus, note?: string): void {
-    this.db.prepare(`
+    this.database.prepare(`
       INSERT INTO sbv_participation_violation_events (id, violation_id, event_type, from_status, to_status, note, created_at)
       VALUES (?, ?, ?, ?, ?, ?, ?)
     `).run(randomUUID(), violationId, eventType, fromStatus ?? null, toStatus ?? null, normalizeText(note), nowIso());
@@ -47,7 +47,7 @@ export class SbvParticipationViolationService {
       recruiting_participation: 'recruiting_participations',
     };
     const table = tableByContext[contextType];
-    const exists = this.db.prepare<{ value?: number }>(`SELECT 1 AS value FROM ${table} WHERE id = ?`).get(contextId);
+    const exists = this.database.prepare<{ value?: number }>(`SELECT 1 AS value FROM ${table} WHERE id = ?`).get(contextId);
     if (!exists) throw new Error(`Ausgangskontext ${contextType}:${contextId} wurde nicht gefunden.`);
   }
 
@@ -68,10 +68,10 @@ export class SbvParticipationViolationService {
       case 'general_employer_practice':
         return emptyViolationRelations();
       case 'case_measure_participation': {
-        const measure = this.db.prepare<{ id: string; case_id: string; type: string }>('SELECT id, case_id, type FROM case_measures WHERE id = ?').get(input.sourceContextId);
+        const measure = this.database.prepare<{ id: string; case_id: string; type: string }>('SELECT id, case_id, type FROM case_measures WHERE id = ?').get(input.sourceContextId);
         if (!measure) throw new Error('Bitte zuerst die SBV-Beteiligung oder einen anderen Ausgangskontext auswählen.');
         if (measure.type !== 'sbv_participation') throw new Error('Der ausgewählte Vorgang ist keine SBV-Beteiligung.');
-        const participation = this.db.prepare<{ value?: number }>('SELECT 1 AS value FROM case_measure_participation WHERE measure_id = ?').get(input.sourceContextId);
+        const participation = this.database.prepare<{ value?: number }>('SELECT 1 AS value FROM case_measure_participation WHERE measure_id = ?').get(input.sourceContextId);
         if (!participation) throw new Error('Der ausgewählte Vorgang ist keine vollständige SBV-Beteiligungsmaßnahme.');
         assertMatchingCaseContext(explicitCaseId, measure.case_id);
         return {
@@ -100,7 +100,7 @@ export class SbvParticipationViolationService {
         };
       }
       case 'termination_hearing': {
-        const hearing = this.db.prepare<{ id: string; case_id: string }>('SELECT id, case_id FROM termination_hearings WHERE id = ?').get(input.sourceContextId);
+        const hearing = this.database.prepare<{ id: string; case_id: string }>('SELECT id, case_id FROM termination_hearings WHERE id = ?').get(input.sourceContextId);
         if (!hearing) throw new Error('Ausgangskontext termination_hearing wurde nicht gefunden.');
         assertMatchingCaseContext(explicitCaseId, hearing.case_id);
         return {
@@ -226,7 +226,7 @@ export class SbvParticipationViolationService {
 
   list(filter: SbvParticipationViolationListFilter = {}): SbvParticipationViolationRecord[] {
     this.audit('read');
-    const rows = this.db.prepare<ViolationRow>(`SELECT * FROM sbv_participation_violations ORDER BY updated_at DESC, created_at DESC`).all();
+    const rows = this.database.prepare<ViolationRow>(`SELECT * FROM sbv_participation_violations ORDER BY updated_at DESC, created_at DESC`).all();
     return rows.map(mapRecord).filter((record) => {
       if (filter.caseId && record.caseId !== filter.caseId) return false;
       if (filter.sourceContextType && record.sourceContextType !== filter.sourceContextType) return false;
@@ -248,20 +248,20 @@ export class SbvParticipationViolationService {
   }
 
   get(id: string): SbvParticipationViolationRecord | null {
-    const row = this.db.prepare<ViolationRow>('SELECT * FROM sbv_participation_violations WHERE id = ?').get(id);
+    const row = this.database.prepare<ViolationRow>('SELECT * FROM sbv_participation_violations WHERE id = ?').get(id);
     return row ? mapRecord(row) : null;
   }
 
   listEvents(violationId: string): SbvParticipationViolationEventRecord[] {
-    return this.db.prepare<ViolationEventRow>(`SELECT * FROM sbv_participation_violation_events WHERE violation_id = ? ORDER BY created_at ASC`).all(violationId).map(mapEvent);
+    return this.database.prepare<ViolationEventRow>(`SELECT * FROM sbv_participation_violation_events WHERE violation_id = ? ORDER BY created_at ASC`).all(violationId).map(mapEvent);
   }
 
   create(input: CreateSbvParticipationViolationInput): SbvParticipationViolationRecord {
-    return new DatabaseUnitOfWork(this.db).run(() => {
+    return new DatabaseUnitOfWork(this.database).run(() => {
     const id = randomUUID();
     const data = this.normalizeInput(sourceContextIdForNewViolation(id, input));
     const timestamp = nowIso();
-    this.db.prepare(`
+    this.database.prepare(`
       INSERT INTO sbv_participation_violations (
         id, stage, status, violation_type, source_context_type, source_context_id, case_id,
         related_participation_id, related_case_measure_id, related_termination_hearing_id, related_deadline_id,
@@ -287,7 +287,7 @@ export class SbvParticipationViolationService {
   }
 
   update(id: string, input: UpdateSbvParticipationViolationInput): SbvParticipationViolationRecord {
-    return new DatabaseUnitOfWork(this.db).run(() => {
+    return new DatabaseUnitOfWork(this.database).run(() => {
     const existing = this.get(id);
     if (!existing) throw new Error(`Beteiligungsverstoß nicht gefunden: ${id}`);
     if (existing.status === 'closed' || existing.status === 'withdrawn') {
@@ -295,7 +295,7 @@ export class SbvParticipationViolationService {
     }
     const data = this.normalizeInput(input, existing);
     const timestamp = nowIso();
-    this.db.prepare(`
+    this.database.prepare(`
       UPDATE sbv_participation_violations
       SET stage = ?, status = ?, violation_type = ?, source_context_type = ?, source_context_id = ?, case_id = ?,
           related_participation_id = ?, related_case_measure_id = ?, related_termination_hearing_id = ?, related_deadline_id = ?,
@@ -327,7 +327,7 @@ export class SbvParticipationViolationService {
       throw new Error(`Statuswechsel von ${existing.status} nach ${nextStatus} ist nicht zulässig.`);
     }
     const timestamp = nowIso();
-    this.db.prepare(`
+    this.database.prepare(`
       UPDATE sbv_participation_violations
       SET status = ?, updated_at = ?, sent_at = CASE WHEN ? = 'sent' AND sent_at IS NULL THEN ? ELSE sent_at END,
           closed_at = CASE WHEN ? IN ('closed','withdrawn') AND closed_at IS NULL THEN ? ELSE closed_at END
@@ -346,7 +346,7 @@ export class SbvParticipationViolationService {
     if (!violation) throw new Error(`Beteiligungsverstoß nicht gefunden: ${violationId}`);
     const followUpDueAt = normalizeIso(dueAt) ?? addDaysIso(new Date(), 7);
     const title = 'Nachholung der SBV-Beteiligung prüfen';
-    const deadline = new DeadlineService(this.db).create({
+    const deadline = new DeadlineService(this.database).create({
       caseId: violation.caseId,
       processId: violation.id,
       processType: 'sbv_participation_violation',
@@ -363,7 +363,7 @@ export class SbvParticipationViolationService {
       isUserEditable: true,
     });
     const timestamp = nowIso();
-    this.db.prepare(`
+    this.database.prepare(`
       UPDATE sbv_participation_violations
       SET related_deadline_id = ?, follow_up_due_at = ?, updated_at = ?
       WHERE id = ?
@@ -400,12 +400,12 @@ export class SbvParticipationViolationService {
 
   delete(id: string): { deleted: boolean } {
     const existing = this.get(id);
-    const documentRows = this.db.prepare<{ document_id: string }>('SELECT document_id FROM sbv_participation_violation_documents WHERE violation_id = ?').all(id);
-    const result = this.db.prepare('DELETE FROM sbv_participation_violations WHERE id = ?').run(id) as RunResult;
+    const documentRows = this.database.prepare<{ document_id: string }>('SELECT document_id FROM sbv_participation_violation_documents WHERE violation_id = ?').all(id);
+    const result = this.database.prepare('DELETE FROM sbv_participation_violations WHERE id = ?').run(id) as RunResult;
     const deleted = Number(result?.changes ?? 0) > 0;
     if (deleted) {
       for (const row of documentRows) {
-        this.db.prepare('DELETE FROM generated_documents WHERE id = ? AND document_kind = ?').run(row.document_id, 'sbv_participation_violation');
+        this.database.prepare('DELETE FROM generated_documents WHERE id = ? AND document_kind = ?').run(row.document_id, 'sbv_participation_violation');
       }
     }
     if (existing) this.audit('delete', existing);

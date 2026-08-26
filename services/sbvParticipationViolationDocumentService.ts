@@ -31,6 +31,14 @@ type ViolationDocumentRow = {
   created_at: string;
 };
 
+type GeneratedViolationDocumentRow = {
+  storage_path: string;
+  document_key: string;
+  iv: string;
+  auth_tag: string;
+  sha256: string | null;
+};
+
 function nowIso(): string { return new Date().toISOString(); }
 function mapViolationDocument(row: ViolationDocumentRow): SbvParticipationViolationGeneratedDocumentRecord {
   return {
@@ -50,13 +58,13 @@ export class SbvParticipationViolationDocumentService {
   private readonly pdfDocuments = new PdfDocumentGenerationService();
 
   constructor(
-    private readonly db: DatabaseAdapter,
+    private readonly database: DatabaseAdapter,
     private readonly dataDirProvider: () => string,
-    private readonly violationService: ParticipationViolationReader = new SbvParticipationViolationService(db),
+    private readonly violationService: ParticipationViolationReader = new SbvParticipationViolationService(database),
   ) {}
 
   ensureSchema(): void {
-    this.db.exec(`
+    this.database.exec(`
       CREATE TABLE IF NOT EXISTS sbv_participation_violation_documents (
         id TEXT PRIMARY KEY,
         violation_id TEXT NOT NULL REFERENCES sbv_participation_violations(id) ON DELETE CASCADE,
@@ -69,7 +77,7 @@ export class SbvParticipationViolationDocumentService {
       );
       CREATE INDEX IF NOT EXISTS idx_sbv_participation_violation_documents_violation ON sbv_participation_violation_documents(violation_id);
     `);
-    addColumnsIfMissing(this.db, 'generated_documents', [
+    addColumnsIfMissing(this.database, 'generated_documents', [
       ['filename', 'TEXT'], ['mime_type', 'TEXT'], ['sha256', 'TEXT'], ['document_key', 'TEXT'], ['iv', 'TEXT'], ['auth_tag', 'TEXT'], ['size_bytes', 'INTEGER']
     ]);
   }
@@ -108,18 +116,18 @@ export class SbvParticipationViolationDocumentService {
       mimeType: PDF_MIME,
     });
     const title = `Beteiligungsverstoß: ${violation.subject}`;
-    this.db.prepare(`
+    this.database.prepare(`
       INSERT INTO generated_documents (id, case_id, template_id, violation_id, document_kind, template_version, title, storage_path, filename, mime_type, sha256, document_key, iv, auth_tag, size_bytes, created_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       documentId, violation.caseId ?? null, null, violation.id, 'sbv_participation_violation', templateVersion, title, container.storagePath,
       container.filename, container.mimeType, container.sha256, container.documentKey, container.iv, container.authTag, container.sizeBytes, timestamp,
     );
-    this.db.prepare(`
+    this.database.prepare(`
       INSERT INTO sbv_participation_violation_documents (id, violation_id, document_id, stage, template_key, template_version, immutable_snapshot, created_at)
       VALUES (?, ?, ?, ?, ?, ?, 1, ?)
     `).run(violationDocumentId, violation.id, documentId, violation.stage, templateKey, templateVersion, timestamp);
-    this.db.prepare(`
+    this.database.prepare(`
       INSERT INTO sbv_participation_violation_events (id, violation_id, event_type, from_status, to_status, note, created_at)
       VALUES (?, ?, 'document_generated', ?, ?, ?, ?)
     `).run(randomUUID(), violation.id, violation.status, violation.status, 'PDF-Dokument zentral erzeugt und verschlüsselt abgelegt.', timestamp);
@@ -141,11 +149,28 @@ export class SbvParticipationViolationDocumentService {
   }
 
   listDocuments(violationId: string): SbvParticipationViolationGeneratedDocumentRecord[] {
-    return this.db.prepare<ViolationDocumentRow>('SELECT * FROM sbv_participation_violation_documents WHERE violation_id = ? ORDER BY created_at DESC').all(violationId).map(mapViolationDocument);
+    return this.database.prepare<ViolationDocumentRow>('SELECT * FROM sbv_participation_violation_documents WHERE violation_id = ? ORDER BY created_at DESC').all(violationId).map(mapViolationDocument);
+  }
+
+  async readDocument(documentId: string): Promise<Buffer> {
+    const row = this.database.prepare<GeneratedViolationDocumentRow>(`
+      SELECT storage_path, document_key, iv, auth_tag, sha256
+      FROM generated_documents
+      WHERE id = ? AND document_kind = 'sbv_participation_violation'
+    `).get(documentId);
+    if (!row) throw new Error('Beteiligungsverstoß-Dokument wurde nicht gefunden.');
+    return new DocumentContainerService().readEncryptedContainer({
+      storageRoot: this.dataDirProvider(),
+      storagePath: row.storage_path,
+      documentKey: row.document_key,
+      iv: row.iv,
+      authTag: row.auth_tag,
+      expectedSha256: row.sha256 ?? undefined,
+    });
   }
 
   private auditGenerated(violationId: string, documentId: string, caseId: string | undefined, templateKey: string, templateVersion: string, stage: string): void {
-    new PersonalDataAuditLogService(this.db).append({
+    new PersonalDataAuditLogService(this.database).append({
         actor: 'sbv',
         action: 'create',
         subjectType: 'sbv_participation_violation_document',

@@ -17,7 +17,7 @@ interface PortableProfileRow {
 }
 
 export class PortableProfileService {
-  constructor(private readonly db: DatabaseAdapter) {}
+  constructor(private readonly database: DatabaseAdapter) {}
 
   ensureDefaultProfile(appRoot: string): PortableProfile {
     const existing = this.get();
@@ -26,7 +26,7 @@ export class PortableProfileService {
     const dataRoot = './data';
     const documentRoot = './data/documents';
     const backupRoot = './backups';
-    this.db.prepare(`
+    this.database.prepare(`
       INSERT INTO portable_profile (id, is_portable_mode, data_root, document_root, backup_root, last_path_check_at, updated_at)
       VALUES ('default', 1, ?, ?, ?, ?, ?)
     `).run(dataRoot, documentRoot, backupRoot, nowIso(), nowIso());
@@ -37,7 +37,7 @@ export class PortableProfileService {
   }
 
   get(): PortableProfile | undefined {
-    const row = this.db.prepare<PortableProfileRow>("SELECT * FROM portable_profile WHERE id = 'default'").get();
+    const row = this.database.prepare<PortableProfileRow>("SELECT * FROM portable_profile WHERE id = 'default'").get();
     if (!row) return undefined;
     return {
       id: 'default',

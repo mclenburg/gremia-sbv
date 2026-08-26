@@ -73,6 +73,12 @@
       "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
     },
     {
+      "file": "tests/architecture/migrations/schemaMigrationConsolidation.test.ts",
+      "category": "B",
+      "sourceAssertions": 2,
+      "rationale": "Statische Architekturregel: Der versionierte Migrationshook darf keine Fachservices als zweite Schemaquelle instanziieren."
+    },
+    {
       "file": "tests/platform/electron/rcWindowsPortableArtifact.test.ts",
       "category": "A",
       "sourceAssertions": 21,

@@ -47,14 +47,14 @@ const labels: Record<AssemblyDocumentKind, string> = {
 
 export class SbvOfficeDocumentService {
   constructor(
-    private readonly db: DatabaseAdapter,
+    private readonly database: DatabaseAdapter,
     private readonly adapter: SbvOfficeWorkflowDocumentAdapter,
     private readonly reports?: ActivityReportBuilder,
     private readonly pdfDocuments = new PdfDocumentGenerationService(),
   ) {}
 
   async generateAssemblyDocument(assemblyId: string, kind: AssemblyDocumentKind): Promise<SbvOfficeDocumentRecord> {
-    const assembly = this.db.prepare<AssemblyRow>(
+    const assembly = this.database.prepare<AssemblyRow>(
       'SELECT id, year, scheduled_at, location_or_mode, agenda, minutes FROM sbv_assemblies WHERE id = ?',
     ).get(assemblyId);
     if (!assembly) throw new Error('Schwerbehindertenversammlung nicht gefunden.');

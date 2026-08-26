@@ -55,3 +55,21 @@ test('creates a general violation without a case and progressively offers search
   await secondSourceContext.selectOption('general_employer_practice');
   await expect(measureSelection).toHaveCount(0);
 });
+
+test('uses the full tracking width and requests an external PDF preview', async ({ page }) => {
+  await mainNavigation(page).getByRole('button', { name: 'Verstöße', exact: true }).click();
+
+  const trackingPanel = page
+    .getByRole('heading', { name: 'Protokollierte Beteiligungsverstöße' })
+    .locator('xpath=ancestor::section[1]');
+  await expect(page.getByRole('table', { name: 'Beteiligungsverstöße' })).toBeVisible();
+  await expect(async () => {
+    const box = await trackingPanel.boundingBox();
+    expect(box?.width ?? 0).toBeGreaterThan(700);
+  }).toPass();
+
+  const row = page.getByRole('row', { name: /E2E Beteiligungsverstoß aus Maßnahme/ });
+  await row.getByRole('button', { name: 'PDF erzeugen', exact: true }).click();
+  await expect(page.locator('.industrial-live-region[role="status"]')).toContainText('an die externe Vorschau übergeben');
+  await expect(page.locator('.industrial-message-ok')).toContainText('beteiligungsverstoss-e2e.pdf');
+});

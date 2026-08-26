@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { GenerateReportInput, ReportDescriptor, ReportExportHistoryItem, ReportGenerationResult, ReportType } from '../../../domain/models/report.model';
+import { recordRendererDiagnostic } from '../../core/diagnostics/rendererDiagnostics';
 import { defaultReportPeriod, generateReportDocument, loadReportMetadata } from './reportService';
 
 export function useReports() {
@@ -20,7 +21,7 @@ export function useReports() {
 
   useEffect(() => {
     loadReportsMeta().catch((error) => {
-      console.error('Gremia.SBV report metadata failed', error);
+      recordRendererDiagnostic('error', 'Berichtsmetadaten konnten nicht geladen werden.', error);
       setError(error instanceof Error ? error.message : 'Berichtsmodul konnte nicht geladen werden.');
     });
   }, []);

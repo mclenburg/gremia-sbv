@@ -61,13 +61,13 @@ function mapTopic(row: TopicRow): InclusionAgreementTopicRecord {
 
 export class InclusionAgreementService {
   constructor(
-    private db: DatabaseAdapter,
-    private deadlines: DeadlineService = new DeadlineService(db),
+    private database: DatabaseAdapter,
+    private deadlines: DeadlineService = new DeadlineService(database),
     private audit?: PersonalDataAuditLogService,
   ) {}
 
   list(): InclusionAgreementRecord[] {
-    return this.db
+    return this.database
       .prepare<AgreementRow>(
         'SELECT * FROM sbv_inclusion_agreements ORDER BY COALESCE(review_due_at,created_at) DESC',
       )
@@ -90,7 +90,7 @@ export class InclusionAgreementService {
   }
 
   save(input: SaveInclusionAgreementInput): InclusionAgreementRecord {
-    return new DatabaseUnitOfWork(this.db).run(() => {
+    return new DatabaseUnitOfWork(this.database).run(() => {
       if (!input.title?.trim()) {
         throw new Error('Inklusionsvereinbarung benötigt einen Titel.');
       }
@@ -128,13 +128,13 @@ export class InclusionAgreementService {
     agreementId: string,
     input: SaveInclusionAgreementTopicInput,
   ): InclusionAgreementTopicRecord {
-    return new DatabaseUnitOfWork(this.db).run(() => {
+    return new DatabaseUnitOfWork(this.database).run(() => {
       const existing = this.topics(agreementId).find(
         (topic) => topic.topicKey === input.topicKey,
       );
       if (!existing) throw new Error('Themenfeld nicht gefunden.');
 
-      this.db
+      this.database
         .prepare(
           'UPDATE sbv_inclusion_agreement_topics SET current_state=?,sbv_target=?,employer_position=?,council_position=?,result_text=?,status=?,updated_at=? WHERE id=?',
         )
@@ -189,7 +189,7 @@ export class InclusionAgreementService {
   }
 
   private topics(agreementId: string): InclusionAgreementTopicRecord[] {
-    return this.db
+    return this.database
       .prepare<TopicRow>(
         'SELECT * FROM sbv_inclusion_agreement_topics WHERE agreement_id=? ORDER BY topic_key',
       )
@@ -223,7 +223,7 @@ export class InclusionAgreementService {
     status: InclusionAgreementRecord['status'],
     updatedAt: string,
   ): void {
-    this.db
+    this.database
       .prepare(
         'UPDATE sbv_inclusion_agreements SET title=?,status=?,requested_at=?,employer_response_at=?,integration_office_invited_at=?,signed_at=?,sent_agency_at=?,sent_integration_office_at=?,review_due_at=?,updated_at=? WHERE id=?',
       )
@@ -248,7 +248,7 @@ export class InclusionAgreementService {
     status: InclusionAgreementRecord['status'],
     createdAt: string,
   ): void {
-    this.db
+    this.database
       .prepare(
         'INSERT INTO sbv_inclusion_agreements(id,title,status,requested_at,employer_response_at,integration_office_invited_at,signed_at,sent_agency_at,sent_integration_office_at,review_due_at,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',
       )
@@ -270,7 +270,7 @@ export class InclusionAgreementService {
 
   private createRequiredTopics(agreementId: string, createdAt: string): void {
     for (const key of REQUIRED_INCLUSION_TOPICS) {
-      this.db
+      this.database
         .prepare(
           'INSERT INTO sbv_inclusion_agreement_topics(id,agreement_id,topic_key,status,created_at,updated_at) VALUES(?,?,?,?,?,?)',
         )
@@ -279,7 +279,7 @@ export class InclusionAgreementService {
   }
 
   private ensureReviewDeadline(agreementId: string, dueAt: string): void {
-    const existingDeadline = this.db
+    const existingDeadline = this.database
       .prepare<{ id: string }>(
         "SELECT id FROM deadlines WHERE process_type='inclusion_agreement' AND process_id=? AND source_event='inclusion_agreement_review' AND status!='cancelled'",
       )

@@ -7,7 +7,8 @@ import type {
 } from '../../../../domain/models/sbv-participation-violation.model';
 import {
   buildViolationSummaryItems,
-  needsEscalationHint,
+  documentGenerationOptions,
+  documentSuccessMessage,
   summarizeViolationDraftValidation,
   validateViolationDraft,
   type SbvParticipationViolationPrefill,
@@ -120,13 +121,10 @@ export function useSbvParticipationViolations({ cases, measures, pendingPrefill,
     setError('');
     setMessage('');
     try {
-      const result = await requireBridge().generateDocument(record.id, {
-        privacyMode: 'case_reference',
-        includeLegalReviewHint: needsEscalationHint(record.stage),
-        includeOwiHint: record.stage === 'owi_preparation',
-      });
-      const successMessage = `PDF wurde verschlüsselt abgelegt: ${result.filename}`;
+      const result = await requireBridge().generateDocument(record.id, documentGenerationOptions(record));
+      const successMessage = documentSuccessMessage(result);
       setMessage(successMessage);
+      if (result.previewStatus === 'unavailable' && result.previewMessage) setError(result.previewMessage);
       announce(successMessage);
       await reload();
     } catch (err) {

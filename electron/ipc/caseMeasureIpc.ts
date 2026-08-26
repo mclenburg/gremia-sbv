@@ -31,6 +31,7 @@ export function registerCaseMeasureIpc(ipcMain: IpcMain, security: SecurityServi
       processType: assertString(checked.processType, 'caseMeasures:delete-process', 'Maßnahmentyp', { minLength: 1, maxLength: 80 }) as CaseMeasureNoteProcessType,
       processId: assertString(checked.processId, 'caseMeasures:delete-process', 'Maßnahmen-ID', { minLength: 1, maxLength: 120 }),
       reasonCode: assertString(checked.reasonCode, 'caseMeasures:delete-process', 'Löschgrund', { minLength: 1, maxLength: 80 }) as DeleteCaseProcessInput['reasonCode'],
+      action: checked.action ? assertString(checked.action, 'caseMeasures:delete-process', 'Datenschutzaktion', { minLength: 1, maxLength: 40 }) as DeleteCaseProcessInput['action'] : undefined,
     });
   });
 

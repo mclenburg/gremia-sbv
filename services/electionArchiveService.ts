@@ -41,7 +41,7 @@ interface PhysicalRow { record_type: string; description: string | null; quantit
 export class ElectionArchiveService {
   private readonly pdfDocuments = new PdfDocumentGenerationService();
   constructor(
-    private readonly db: DatabaseAdapter,
+    private readonly database: DatabaseAdapter,
     private readonly documents: SbvOfficeWorkflowDocumentAdapter,
   ) {}
 
@@ -89,11 +89,11 @@ export class ElectionArchiveService {
       legalRuleVersion: election.legal_rule_version,
       plain: await this.createElectionPdf('PDF-Gesamtwahlakte', election, lines, { kind: 'archive_pdf' }),
     });
-    const linkedCount = this.db.prepare<{ count: number }>(`
+    const linkedCount = this.database.prepare<{ count: number }>(`
       SELECT COUNT(*) AS count FROM sbv_workflow_document_links
       WHERE owner_type='election' AND owner_id=?
     `).get(electionId)?.count ?? 0;
-    this.db.prepare(`
+    this.database.prepare(`
       INSERT INTO sbv_election_archive_exports(
         id,election_id,export_type,format_version,created_at,manifest_hash,file_count,destination_path_metadata_minimal
       ) VALUES(?,?,?,?,?,?,?,NULL)
@@ -121,7 +121,7 @@ export class ElectionArchiveService {
     input: GenerateElectionExecutionDocumentInput,
   ): PdfDocumentDefinition {
     if (input.kind === 'mail_ballot_package') {
-      return new ElectionMailBallotPackageDefinition(this.db).build(election, input);
+      return new ElectionMailBallotPackageDefinition(this.database).build(election, input);
     }
     const blocks = [section('Dokumentinhalt', [list(lines)])];
     if (input.kind === 'result_announcement') {
@@ -151,21 +151,21 @@ export class ElectionArchiveService {
 
   private archiveLines(election: ElectionRow): string[] {
     const candidates = this.candidates(election.id);
-    const voters = this.db.prepare<{ last_name: string; first_name: string; eligibility_basis: string; list_status: string }>(`
+    const voters = this.database.prepare<{ last_name: string; first_name: string; eligibility_basis: string; list_status: string }>(`
       SELECT last_name,first_name,eligibility_basis,list_status
       FROM sbv_election_voters WHERE election_id=? ORDER BY last_name COLLATE NOCASE,first_name COLLATE NOCASE
     `).all(election.id);
-    const board = this.db.prepare<{ role: string; name: string; appointed_at: string | null }>(`
+    const board = this.database.prepare<{ role: string; name: string; appointed_at: string | null }>(`
       SELECT role,name,appointed_at FROM sbv_election_board_members WHERE election_id=? ORDER BY role,name
     `).all(election.id);
-    const mail = this.db.prepare<{ sent_at: string | null; received_at: string | null; late_received_at: string | null; declaration_valid: number | null; destroy_due_at: string | null }>(`
+    const mail = this.database.prepare<{ sent_at: string | null; received_at: string | null; late_received_at: string | null; declaration_valid: number | null; destroy_due_at: string | null }>(`
       SELECT sent_at,received_at,late_received_at,declaration_valid,destroy_due_at
       FROM sbv_election_mail_ballots WHERE election_id=? ORDER BY created_at
     `).all(election.id);
     const totals = this.totals(election.id);
     const results = this.results(election.id);
     const physical = this.physical(election.id);
-    const links = this.db.prepare<{ title: string; filename: string | null; purpose: string; sha256: string | null; template_version: string | null; legal_rule_version: string | null }>(`
+    const links = this.database.prepare<{ title: string; filename: string | null; purpose: string; sha256: string | null; template_version: string | null; legal_rule_version: string | null }>(`
       SELECT d.title,d.filename,l.purpose,d.sha256,l.template_version,l.legal_rule_version
       FROM sbv_workflow_document_links l JOIN generated_documents d ON d.id=l.document_id
       WHERE l.owner_type='election' AND l.owner_id=? ORDER BY l.created_at
@@ -223,7 +223,7 @@ export class ElectionArchiveService {
           'Keine Unterschrift auf dem Stimmzettel.',
         ];
       case 'ballot_deputy': {
-        const deputyCount = this.db.prepare<{ deputy_count: number }>('SELECT deputy_count FROM sbv_elections WHERE id=?').get(election.id)?.deputy_count ?? 1;
+        const deputyCount = this.database.prepare<{ deputy_count: number }>('SELECT deputy_count FROM sbv_elections WHERE id=?').get(election.id)?.deputy_count ?? 1;
         return [
           ...this.publicHeader(election),
           `Wahlgang Stellvertretung · höchstens ${deputyCount} Person(en) kennzeichnen.`,
@@ -294,34 +294,34 @@ export class ElectionArchiveService {
   }
 
   private election(id: string): ElectionRow {
-    const election = this.db.prepare<ElectionRow>('SELECT * FROM sbv_elections WHERE id=?').get(id);
+    const election = this.database.prepare<ElectionRow>('SELECT * FROM sbv_elections WHERE id=?').get(id);
     if (!election) throw new Error('Wahlvorgang wurde nicht gefunden.');
     return election;
   }
 
   private candidates(electionId: string): CandidateRow[] {
-    return this.db.prepare<CandidateRow>(`
+    return this.database.prepare<CandidateRow>(`
       SELECT id,office_type,person_snapshot FROM sbv_election_candidates
       WHERE election_id=? ORDER BY person_snapshot COLLATE NOCASE
     `).all(electionId);
   }
 
   private results(electionId: string): ResultRow[] {
-    return this.db.prepare<ResultRow>(`
+    return this.database.prepare<ResultRow>(`
       SELECT id,office_type,candidate_id,elected_rank,acceptance_status,lot_required,lot_decided_at
       FROM sbv_election_results WHERE election_id=? ORDER BY office_type,elected_rank,candidate_id
     `).all(electionId);
   }
 
   private totals(electionId: string): TotalRow[] {
-    return this.db.prepare<TotalRow>(`
+    return this.database.prepare<TotalRow>(`
       SELECT office_type,candidate_id,votes,rank FROM sbv_election_vote_totals
       WHERE election_id=? ORDER BY office_type,rank,candidate_id
     `).all(electionId);
   }
 
   private physical(electionId: string): PhysicalRow[] {
-    return this.db.prepare<PhysicalRow>(`
+    return this.database.prepare<PhysicalRow>(`
       SELECT record_type,description,quantity,storage_location,sealed_status,original_required
       FROM sbv_election_physical_records WHERE election_id=? ORDER BY record_type
     `).all(electionId);

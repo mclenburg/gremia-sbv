@@ -14,9 +14,9 @@ import { Row, PackagePayload, DecryptedPackage, nowIso, sha256, isRecord, safeSt
 import { encodeDocumentForHandover, sanitizeHandoverDocumentMetadata } from './caseHandoverDocumentCodec.js';
 import { addColumnsIfMissing } from './migrations/schemaColumnMigration.js';
 export class CaseHandoverService {
-  constructor(private readonly dbProvider: () => DatabaseAdapter, private readonly dataDirProvider: () => string = () => path.join(process.cwd(), 'data')) {}
+  constructor(private readonly databaseProvider: () => DatabaseAdapter, private readonly dataDirProvider: () => string = () => path.join(process.cwd(), 'data')) {}
 
-  private db(): DatabaseAdapter { return this.dbProvider(); }
+  private db(): DatabaseAdapter { return this.databaseProvider(); }
 
   ensureSchema(db: DatabaseAdapter): void {
     db.exec(`CREATE TABLE IF NOT EXISTS case_handover_imports (

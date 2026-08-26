@@ -57,7 +57,7 @@ function likePattern(query: string): string {
 }
 
 export class ContactService {
-  constructor(private readonly dbProvider: () => DatabaseAdapter) {}
+  constructor(private readonly databaseProvider: () => DatabaseAdapter) {}
 
   private audit(db: DatabaseAdapter, input: Parameters<PersonalDataAuditLogService['append']>[0]): void {
     try {
@@ -67,7 +67,7 @@ export class ContactService {
     }
   }
 
-  ensureSchema(db = this.dbProvider()): void {
+  ensureSchema(db = this.databaseProvider()): void {
     ensureContactPrivacySchema(db);
     db.exec(`
       CREATE TABLE IF NOT EXISTS contacts (
@@ -90,7 +90,7 @@ export class ContactService {
   }
 
   private getSafeDb(): DatabaseAdapter {
-    const db = this.dbProvider();
+    const db = this.databaseProvider();
     return db;
   }
 

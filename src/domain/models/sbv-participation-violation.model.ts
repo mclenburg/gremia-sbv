@@ -203,4 +203,6 @@ export interface SbvParticipationViolationDocumentResult {
   storagePath: string;
   legalReviewHint: boolean;
   warnings: string[];
+  previewStatus?: 'requested' | 'unavailable';
+  previewMessage?: string;
 }

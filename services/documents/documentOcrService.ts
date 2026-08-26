@@ -108,13 +108,13 @@ function runTesseract(command: string, args: string[]): Promise<string> {
 
 export class DocumentOcrService {
   constructor(
-    private readonly db: DatabaseAdapter,
+    private readonly database: DatabaseAdapter,
     private readonly runner: DocumentOcrRunner = new LocalTesseractOcrRunner(),
     private readonly dataDirProvider: () => string = () => path.join(process.cwd(), 'data'),
   ) {}
 
   ensureSchema(): void {
-    this.db.exec(`
+    this.database.exec(`
       CREATE TABLE IF NOT EXISTS case_document_ocr_jobs (
         id TEXT PRIMARY KEY,
         document_id TEXT NOT NULL REFERENCES case_documents(id) ON DELETE CASCADE,
@@ -131,24 +131,24 @@ export class DocumentOcrService {
   }
 
   enqueueIfUseful(documentId: string): boolean {
-    const row = this.db.prepare<DocumentOcrRow>('SELECT id, case_id, filename, mime_type, storage_path, document_key, iv, auth_tag, extracted_text, ocr_status FROM case_documents WHERE id = ?').get(documentId);
+    const row = this.database.prepare<DocumentOcrRow>('SELECT id, case_id, filename, mime_type, storage_path, document_key, iv, auth_tag, extracted_text, ocr_status FROM case_documents WHERE id = ?').get(documentId);
     if (!row) return false;
     if (!isOcrCandidate(row.filename, row.mime_type ?? undefined, row.extracted_text ?? undefined)) {
-      this.db.prepare("UPDATE case_documents SET ocr_status = 'not_required' WHERE id = ? AND COALESCE(ocr_status, '') <> 'not_required'").run(documentId);
+      this.database.prepare("UPDATE case_documents SET ocr_status = 'not_required' WHERE id = ? AND COALESCE(ocr_status, '') <> 'not_required'").run(documentId);
       return false;
     }
     const timestamp = nowIso();
-    this.db.prepare(`
+    this.database.prepare(`
       INSERT INTO case_document_ocr_jobs (id, document_id, case_id, status, attempts, created_at, updated_at)
       VALUES (?, ?, ?, 'queued', 0, ?, ?)
       ON CONFLICT(document_id) DO UPDATE SET status = CASE WHEN status IN ('completed','processing') THEN status ELSE 'queued' END, updated_at = excluded.updated_at
     `).run(randomUUID(), row.id, row.case_id, timestamp, timestamp);
-    this.db.prepare("UPDATE case_documents SET ocr_status = 'queued', ocr_error = NULL WHERE id = ?").run(row.id);
+    this.database.prepare("UPDATE case_documents SET ocr_status = 'queued', ocr_error = NULL WHERE id = ?").run(row.id);
     return true;
   }
 
   async runPending(limit = 2): Promise<number> {
-    const jobs = this.db.prepare<{ id: string; document_id: string; case_id: string; attempts: number }>(`
+    const jobs = this.database.prepare<{ id: string; document_id: string; case_id: string; attempts: number }>(`
       SELECT id, document_id, case_id, attempts
       FROM case_document_ocr_jobs
       WHERE status = 'queued'
@@ -165,9 +165,9 @@ export class DocumentOcrService {
 
   private async processJob(jobId: string, documentId: string, caseId: string, attempts: number): Promise<void> {
     const startedAt = nowIso();
-    this.db.prepare("UPDATE case_document_ocr_jobs SET status = 'processing', attempts = ?, updated_at = ? WHERE id = ?").run(attempts + 1, startedAt, jobId);
-    this.db.prepare("UPDATE case_documents SET ocr_status = 'processing', ocr_started_at = ? WHERE id = ?").run(startedAt, documentId);
-    const row = this.db.prepare<DocumentOcrRow>('SELECT id, case_id, filename, mime_type, storage_path, document_key, iv, auth_tag, extracted_text, ocr_status FROM case_documents WHERE id = ?').get(documentId);
+    this.database.prepare("UPDATE case_document_ocr_jobs SET status = 'processing', attempts = ?, updated_at = ? WHERE id = ?").run(attempts + 1, startedAt, jobId);
+    this.database.prepare("UPDATE case_documents SET ocr_status = 'processing', ocr_started_at = ? WHERE id = ?").run(startedAt, documentId);
+    const row = this.database.prepare<DocumentOcrRow>('SELECT id, case_id, filename, mime_type, storage_path, document_key, iv, auth_tag, extracted_text, ocr_status FROM case_documents WHERE id = ?').get(documentId);
     if (!row) {
       this.finishJob(jobId, documentId, 'failed', '', this.runner.id, 'Dokument wurde vor OCR-Lauf gelöscht.');
       return;
@@ -185,8 +185,8 @@ export class DocumentOcrService {
         result = { status: 'unsupported', text: '', engine: this.runner.id, error: 'Kein lokaler OCR-Runner für dieses Format verfügbar.' };
       }
       this.finishJob(jobId, documentId, result.status, result.text, result.engine, result.error);
-      new SearchIndexService(this.db).reindexSource(result.status === 'completed' ? 'document_ocr' : 'document', documentId);
-      if (result.status === 'completed') new SearchIndexService(this.db).reindexSource('document', documentId);
+      new SearchIndexService(this.database).reindexSource(result.status === 'completed' ? 'document_ocr' : 'document', documentId);
+      if (result.status === 'completed') new SearchIndexService(this.database).reindexSource('document', documentId);
     } catch (error) {
       this.finishJob(jobId, documentId, 'failed', '', this.runner.id, normalizeError(error));
     }
@@ -195,12 +195,12 @@ export class DocumentOcrService {
   private finishJob(jobId: string, documentId: string, status: DocumentOcrResult['status'], text: string, engine: string, error?: string): void {
     const completedAt = nowIso();
     const normalizedText = normalizeText(text);
-    this.db.prepare(`
+    this.database.prepare(`
       UPDATE case_documents
       SET ocr_status = ?, ocr_text = ?, ocr_engine = ?, ocr_completed_at = ?, ocr_error = ?
       WHERE id = ?
     `).run(status, normalizedText || null, engine, completedAt, error ?? null, documentId);
-    this.db.prepare('UPDATE case_document_ocr_jobs SET status = ?, last_error = ?, updated_at = ? WHERE id = ?').run(status, error ?? null, completedAt, jobId);
+    this.database.prepare('UPDATE case_document_ocr_jobs SET status = ?, last_error = ?, updated_at = ? WHERE id = ?').run(status, error ?? null, completedAt, jobId);
   }
 
   private decrypt(row: DocumentOcrRow): Promise<Buffer> {

@@ -44,19 +44,19 @@ function mapComplaintWorkflow(row: ComplaintWorkflowRow): ComplaintWorkflowRecor
 
 export class ComplaintWorkflowService {
   constructor(
-    private db: DatabaseAdapter,
+    private database: DatabaseAdapter,
     private audit?: PersonalDataAuditLogService,
   ) {}
 
   list(): ComplaintWorkflowRecord[] {
-    return this.db
+    return this.database
       .prepare<ComplaintWorkflowRow>('SELECT * FROM sbv_complaint_workflows ORDER BY received_at DESC')
       .all()
       .map(mapComplaintWorkflow);
   }
 
   save(input: SaveComplaintWorkflowInput): ComplaintWorkflowRecord {
-    return new DatabaseUnitOfWork(this.db).run(() => {
+    return new DatabaseUnitOfWork(this.database).run(() => {
       const existing = this.list().find((workflow) => workflow.caseId === input.caseId);
       const status = input.status ?? existing?.status ?? 'open';
       const resultSummary = input.resultSummary ?? existing?.resultSummary;
@@ -105,7 +105,7 @@ export class ComplaintWorkflowService {
     personInformedAt: string | undefined,
     updatedAt: string,
   ): void {
-    this.db
+    this.database
       .prepare(
         'UPDATE sbv_complaint_workflows SET received_at=?,assessment_status=?,employer_contacted_at=?,negotiation_status=?,result_summary=?,person_informed_at=?,status=?,updated_at=? WHERE id=?',
       )
@@ -130,7 +130,7 @@ export class ComplaintWorkflowService {
     personInformedAt: string | undefined,
     createdAt: string,
   ): void {
-    this.db
+    this.database
       .prepare(
         'INSERT INTO sbv_complaint_workflows(id,case_id,received_at,assessment_status,employer_contacted_at,negotiation_status,result_summary,person_informed_at,status,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)',
       )

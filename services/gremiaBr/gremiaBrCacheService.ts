@@ -87,10 +87,10 @@ function cacheAgeLabel(fetchedAt?: string): string | undefined {
 }
 
 export class GremiaBrCacheService {
-  constructor(private readonly getDb: () => DatabaseAdapter) {}
+  constructor(private readonly databaseProvider: () => DatabaseAdapter) {}
 
   private db(): DatabaseAdapter {
-    return this.getDb();
+    return this.databaseProvider();
   }
 
   private readEntry(cacheKey: GremiaBrCacheSourceType): GremiaBrCacheEntry | undefined {

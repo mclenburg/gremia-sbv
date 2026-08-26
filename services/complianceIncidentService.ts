@@ -113,12 +113,12 @@ export function ensureComplianceIncidentSchema(db: DatabaseAdapter): void {
 export class ComplianceIncidentService {
   private readonly audit: PersonalDataAuditLogService;
 
-  constructor(private readonly db: DatabaseAdapter) {
-    this.audit = new PersonalDataAuditLogService(db);
+  constructor(private readonly database: DatabaseAdapter) {
+    this.audit = new PersonalDataAuditLogService(database);
   }
 
   list(): ComplianceIncidentRecord[] {
-    return this.db.prepare<ComplianceIncidentRow>(`
+    return this.database.prepare<ComplianceIncidentRow>(`
       SELECT * FROM compliance_incidents
       ORDER BY discovered_at DESC, created_at DESC
     `).all().map(mapIncident);
@@ -133,7 +133,7 @@ export class ComplianceIncidentService {
     const occurredAt = requireText(input.occurredAt, 'Zeitpunkt des Vorfalls');
     const discoveredAt = requireText(input.discoveredAt, 'Zeitpunkt der Kenntnis');
 
-    this.db.prepare(`
+    this.database.prepare(`
       INSERT INTO compliance_incidents (
         id, occurred_at, discovered_at, category, risk_level, status, summary,
         affected_data_categories, immediate_measures, authority_notification_checked,
@@ -170,7 +170,7 @@ export class ComplianceIncidentService {
     const status = input.status ? requireEnum(input.status, STATUSES, 'Status') : current.status;
     const riskLevel = input.riskLevel ? requireEnum(input.riskLevel, RISK_LEVELS, 'Risikostufe') : current.riskLevel;
 
-    this.db.prepare(`
+    this.database.prepare(`
       UPDATE compliance_incidents SET
         status = ?,
         risk_level = ?,
@@ -210,7 +210,7 @@ export class ComplianceIncidentService {
   }
 
   private getRequired(id: string): ComplianceIncidentRecord {
-    const row = this.db.prepare<ComplianceIncidentRow>('SELECT * FROM compliance_incidents WHERE id = ?').get(id);
+    const row = this.database.prepare<ComplianceIncidentRow>('SELECT * FROM compliance_incidents WHERE id = ?').get(id);
     if (!row) throw new Error('Datenschutzvorfall wurde nicht gefunden.');
     return mapIncident(row);
   }

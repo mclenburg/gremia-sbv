@@ -28,7 +28,7 @@ interface VoterRow {
 }
 
 export class ElectionMailBallotPackageDefinition {
-  constructor(private readonly db: DatabaseAdapter) {}
+  constructor(private readonly database: DatabaseAdapter) {}
 
   build(
     election: MailBallotElection,
@@ -37,7 +37,7 @@ export class ElectionMailBallotPackageDefinition {
     const packageInput = this.validatedInput(election.id, input);
     const voter = this.voter(election.id, packageInput.voterId);
     const candidates = this.candidates(election.id);
-    const deputyCount = this.db.prepare<{ deputy_count: number }>(
+    const deputyCount = this.database.prepare<{ deputy_count: number }>(
       'SELECT deputy_count FROM sbv_elections WHERE id=?',
     ).get(election.id)?.deputy_count ?? 1;
     const representativeCandidates = candidates.filter((candidate) => candidate.office_type === 'representative');
@@ -140,7 +140,7 @@ export class ElectionMailBallotPackageDefinition {
   }
 
   private voter(electionId: string, voterId: string): VoterRow {
-    const voter = this.db.prepare<VoterRow>(`
+    const voter = this.database.prepare<VoterRow>(`
       SELECT first_name,last_name,list_status FROM sbv_election_voters
       WHERE election_id=? AND id=?
     `).get(electionId, voterId);
@@ -149,7 +149,7 @@ export class ElectionMailBallotPackageDefinition {
   }
 
   private candidates(electionId: string): CandidateRow[] {
-    return this.db.prepare<CandidateRow>(`
+    return this.database.prepare<CandidateRow>(`
       SELECT office_type,person_snapshot FROM sbv_election_candidates
       WHERE election_id=? ORDER BY person_snapshot COLLATE NOCASE
     `).all(electionId);

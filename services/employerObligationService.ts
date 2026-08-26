@@ -87,13 +87,13 @@ function mapOfficer(row: OfficerRow): InclusionOfficerSnapshotRecord {
 
 export class EmployerObligationService {
   constructor(
-    private db: DatabaseAdapter,
-    private deadlines: DeadlineService = new DeadlineService(db),
+    private database: DatabaseAdapter,
+    private deadlines: DeadlineService = new DeadlineService(database),
     private audit?: PersonalDataAuditLogService,
   ) {}
 
   list(): EmployerObligationReviewRecord[] {
-    return this.db
+    return this.database
       .prepare<ObligationRow>(
         'SELECT * FROM sbv_employer_obligation_reviews ORDER BY period_year DESC, obligation_key',
       )
@@ -102,7 +102,7 @@ export class EmployerObligationService {
   }
 
   ensureAnnual(periodYear: number): EmployerObligationReviewRecord[] {
-    return new DatabaseUnitOfWork(this.db).run(() => {
+    return new DatabaseUnitOfWork(this.database).run(() => {
       for (const key of Object.keys(EMPLOYER_OBLIGATION_POLICY) as ObligationKey[]) {
         if (EMPLOYER_OBLIGATION_POLICY[key].cadence === 'event') continue;
         if (this.annualReviewExists(key, periodYear)) continue;
@@ -113,7 +113,7 @@ export class EmployerObligationService {
   }
 
   save(input: SaveEmployerObligationReviewInput): EmployerObligationReviewRecord {
-    return new DatabaseUnitOfWork(this.db).run(() => {
+    return new DatabaseUnitOfWork(this.database).run(() => {
       const existing = input.id
         ? this.list().find((review) => review.id === input.id)
         : undefined;
@@ -142,7 +142,7 @@ export class EmployerObligationService {
   }
 
   listInclusionOfficers(): InclusionOfficerSnapshotRecord[] {
-    return this.db
+    return this.database
       .prepare<OfficerRow>(
         'SELECT * FROM sbv_inclusion_officer_snapshots ORDER BY COALESCE(verified_at,created_at) DESC',
       )
@@ -151,10 +151,10 @@ export class EmployerObligationService {
   }
 
   saveInclusionOfficer(input: SaveInclusionOfficerSnapshotInput): InclusionOfficerSnapshotRecord {
-    return new DatabaseUnitOfWork(this.db).run(() => {
+    return new DatabaseUnitOfWork(this.database).run(() => {
       const id = randomUUID();
       const createdAt = nowIso();
-      this.db
+      this.database
         .prepare(
           'INSERT INTO sbv_inclusion_officer_snapshots(id,name,function,appointed_at,notification_agency_at,notification_integration_office_at,verified_at,status,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?)',
         )
@@ -183,7 +183,7 @@ export class EmployerObligationService {
 
   private annualReviewExists(key: ObligationKey, periodYear: number): boolean {
     return Boolean(
-      this.db
+      this.database
         .prepare<{ id: string }>(
           'SELECT id FROM sbv_employer_obligation_reviews WHERE obligation_key=? AND period_year=? AND scope_key=?',
         )
@@ -200,7 +200,7 @@ export class EmployerObligationService {
       ? deriveAnnualReportStatus(periodYear, new Date())
       : 'not_due';
 
-    this.db
+    this.database
       .prepare(
         'INSERT INTO sbv_employer_obligation_reviews(id,obligation_key,period_year,scope_key,due_at,status,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)',
       )
@@ -238,7 +238,7 @@ export class EmployerObligationService {
     dueAt: string | undefined,
     updatedAt: string,
   ): void {
-    this.db
+    this.database
       .prepare(
         'UPDATE sbv_employer_obligation_reviews SET due_at=?,requested_at=?,received_at=?,reviewed_at=?,status=?,finding=?,next_action=?,follow_up_due_at=?,updated_at=? WHERE id=?',
       )
@@ -264,7 +264,7 @@ export class EmployerObligationService {
     dueAt: string | undefined,
     createdAt: string,
   ): void {
-    this.db
+    this.database
       .prepare(
         'INSERT INTO sbv_employer_obligation_reviews(id,obligation_key,period_year,scope_key,due_at,requested_at,received_at,reviewed_at,status,finding,next_action,follow_up_due_at,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
       )
@@ -294,7 +294,7 @@ export class EmployerObligationService {
     const followUpDueAt = input.followUpDueAt ?? existing?.followUpDueAt;
     if (!followUpDueAt) return;
 
-    const deadline = this.db
+    const deadline = this.database
       .prepare<{ id: string }>(
         "SELECT id FROM deadlines WHERE process_type='employer_obligation_review' AND process_id=? AND source_event='employer_obligation_follow_up' AND status!='cancelled' AND status!='done'",
       )

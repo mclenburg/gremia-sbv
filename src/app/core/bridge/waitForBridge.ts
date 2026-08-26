@@ -1,3 +1,5 @@
+export { recordRendererDiagnostic } from '../diagnostics/rendererDiagnostics';
+
 function getBridge(): Window['gremiaSbv'] | null {
   return window.gremiaSbv ?? null;
 }

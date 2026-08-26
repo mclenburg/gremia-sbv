@@ -12,17 +12,17 @@ import { DomainAggregateIntegrityService } from './domainAggregateIntegrityServi
  * compatibility belongs exclusively to MigrationService and its versioned hooks.
  */
 export class DatabaseRuntimeInitializer {
-  constructor(private readonly db: DatabaseAdapter) {}
+  constructor(private readonly database: DatabaseAdapter) {}
 
   initialize(): { baselineEntriesCreated: number; aggregateExtensionsChecked: number } {
-    const aggregateExtensionsChecked = new DomainAggregateIntegrityService(this.db).verify().checkedExtensions;
-    new KnowledgeService(() => this.db).seedReferenceData(this.db);
-    new TemplateService(() => this.db).seedReferenceData(this.db);
+    const aggregateExtensionsChecked = new DomainAggregateIntegrityService(this.database).verify().checkedExtensions;
+    new KnowledgeService(() => this.database).seedReferenceData(this.database);
+    new TemplateService(() => this.database).seedReferenceData(this.database);
     return { baselineEntriesCreated: this.ensureMeasureLifecycleBaselines(), aggregateExtensionsChecked };
   }
 
   private ensureMeasureLifecycleBaselines(): number {
-    const lifecycle = new MeasureLifecycleAuditService(this.db);
+    const lifecycle = new MeasureLifecycleAuditService(this.database);
     let created = 0;
     created += lifecycle.ensureBaselineForTable({
       table: 'case_measures',

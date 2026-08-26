@@ -25,8 +25,8 @@ function nonNegativeInteger(value: number): number {
 export class CaseLifecycleAuditService {
   private readonly audit: CaseAuditWriter;
 
-  constructor(db: DatabaseAdapter, audit?: CaseAuditWriter) {
-    this.audit = audit ?? new PersonalDataAuditLogService(db);
+  constructor(database: DatabaseAdapter, audit?: CaseAuditWriter) {
+    this.audit = audit ?? new PersonalDataAuditLogService(database);
   }
 
   deleted(input: CaseDeletionAuditInput): void {

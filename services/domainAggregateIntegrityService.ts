@@ -15,7 +15,7 @@ export class DomainAggregateIntegrityError extends Error {
 }
 
 export class DomainAggregateIntegrityService {
-  constructor(private readonly db: DatabaseAdapter) {}
+  constructor(private readonly database: DatabaseAdapter) {}
 
   verify(): { checkedExtensions: number } {
     const issues: DomainAggregateIntegrityIssue[] = [];
@@ -23,7 +23,7 @@ export class DomainAggregateIntegrityService {
     for (const aggregate of DOMAIN_AGGREGATES) {
       for (const extension of aggregate.extensions) {
         checkedExtensions += 1;
-        const orphan = this.db.prepare<{ count: number }>(`
+        const orphan = this.database.prepare<{ count: number }>(`
           SELECT COUNT(*) AS count
           FROM ${extension.table} e
           LEFT JOIN ${aggregate.rootTable} r ON r.${aggregate.idColumn} = e.${extension.foreignKey}
@@ -32,7 +32,7 @@ export class DomainAggregateIntegrityService {
         if (orphan > 0) issues.push({ extensionTable: extension.table, issue: 'orphan_extension', count: orphan });
 
         if (extension.discriminatorColumn && extension.discriminatorValue) {
-          const wrongType = this.db.prepare<{ count: number }>(`
+          const wrongType = this.database.prepare<{ count: number }>(`
             SELECT COUNT(*) AS count
             FROM ${extension.table} e
             JOIN ${aggregate.rootTable} r ON r.${aggregate.idColumn} = e.${extension.foreignKey}

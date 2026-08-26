@@ -10,10 +10,10 @@ import { ACTIVITY_JOURNAL_CATEGORIES } from '../src/domain/models/activity-journ
 import { TIME_MODES, CONFIDENTIALITY_LEVELS, STATUSES, CREATED_FROM, ActivityJournalEntryRow, ActivityJournalLinkRow, nowIso, todayIsoDate, normalizeOptional, normalizeDateOnly, normalizeIso, normalizeEnum, normalizeDuration, durationFromRange, mapLink, mapEntry, assertTarget, hasCaseLink, hasControlLink } from './activityJournalSupport.js';
 import { legalCalendarDate } from '../src/domain/time/legalTime.js';
 export class ActivityJournalService {
-  constructor(private readonly db: DatabaseAdapter) {}
+  constructor(private readonly database: DatabaseAdapter) {}
 
   ensureSchema(): void {
-    this.db.exec(`
+    this.database.exec(`
       CREATE TABLE IF NOT EXISTS activity_journal_entries (
         id TEXT PRIMARY KEY,
         entry_date TEXT NOT NULL,
@@ -62,11 +62,11 @@ export class ActivityJournalService {
       CREATE INDEX IF NOT EXISTS idx_activity_journal_links_entry ON activity_journal_links(entry_id);
       CREATE INDEX IF NOT EXISTS idx_activity_journal_links_target ON activity_journal_links(target_type, target_id);
     `);
-    new PersonalDataAuditLogService(this.db);
+    new PersonalDataAuditLogService(this.database);
   }
 
   private audit(action: 'read' | 'create' | 'update' | 'delete' | 'export', entry?: ActivityJournalEntryRecord, linkCount = 0): void {
-    const write = () => new PersonalDataAuditLogService(this.db).append(auditActivityJournalChanged({
+    const write = () => new PersonalDataAuditLogService(this.database).append(auditActivityJournalChanged({
       action, entryId: entry?.id, category: entry?.category, status: entry?.status, entryDate: entry?.entryDate,
       linkCount, hasTime: Boolean(entry?.durationMinutes || entry?.startedAt || entry?.endedAt)
     }));
@@ -75,7 +75,7 @@ export class ActivityJournalService {
   }
 
   private linkedDeadlineId(entryId: string): string | undefined {
-    const row = this.db.prepare<{ id?: string }>(
+    const row = this.database.prepare<{ id?: string }>(
       "SELECT id FROM deadlines WHERE process_type = 'activity_journal' AND process_id = ? AND source_event = 'activity_journal.follow_up' LIMIT 1"
     ).get(entryId);
     return row?.id;
@@ -83,7 +83,7 @@ export class ActivityJournalService {
 
   private deleteLinkedDeadline(entryId: string): void {
     const deadlineId = this.linkedDeadlineId(entryId);
-    if (deadlineId) this.db.prepare('DELETE FROM deadlines WHERE id = ?').run(deadlineId);
+    if (deadlineId) this.database.prepare('DELETE FROM deadlines WHERE id = ?').run(deadlineId);
   }
 
   syncFollowUpDeadline(entry: ActivityJournalEntryRecord): void {
@@ -95,7 +95,7 @@ export class ActivityJournalService {
     const title = `Journal: ${entry.title}`;
     const description = 'Wiedervorlage aus einem SBV-Tätigkeitsjournaleintrag.';
     const deadlineId = this.linkedDeadlineId(entry.id);
-    const deadlines = new DeadlineService(this.db);
+    const deadlines = new DeadlineService(this.database);
 
     if (deadlineId) {
       deadlines.update(deadlineId, {
@@ -128,7 +128,7 @@ export class ActivityJournalService {
     for (const target of links) {
       assertTarget(target);
       const id = randomUUID();
-      this.db.prepare(`
+      this.database.prepare(`
         INSERT INTO activity_journal_links (id, entry_id, target_type, target_id, created_at)
         VALUES (?, ?, ?, ?, ?)
       `).run(id, entryId, target.targetType, target.targetId.trim(), timestamp);
@@ -138,7 +138,7 @@ export class ActivityJournalService {
   }
 
   createEntry(input: CreateActivityJournalEntryInput): ActivityJournalEntryRecord {
-    return new DatabaseUnitOfWork(this.db).run(() => {
+    return new DatabaseUnitOfWork(this.database).run(() => {
     const title = normalizeOptional(input.title);
     if (!title) throw new Error('Ein Journaleintrag benötigt einen Titel.');
     const category = normalizeEnum(input.category, ACTIVITY_JOURNAL_CATEGORIES, 'documentation');
@@ -158,7 +158,7 @@ export class ActivityJournalService {
         : normalizeDuration(input.durationMinutes);
     const status = normalizeEnum(input.status, STATUSES, input.followUpDueAt ? 'follow_up_open' : 'final');
 
-    this.db.prepare(`
+    this.database.prepare(`
       INSERT INTO activity_journal_entries (
         id, entry_date, started_at, ended_at, duration_minutes, time_mode, category, title,
         description, result_note, confidentiality_level, status, created_from, follow_up_due_at,
@@ -189,14 +189,14 @@ export class ActivityJournalService {
     this.audit('create', record, record.links?.length ?? 0);
     this.syncFollowUpDeadline(record);
     const firstContext = input.links?.[0]?.targetType ?? 'fallfrei';
-    new ActivityJournalPreferenceService(this.db).rememberCategory(firstContext, record.category);
+    new ActivityJournalPreferenceService(this.database).rememberCategory(firstContext, record.category);
     return record;
   
     });
   }
 
   updateEntry(id: string, input: UpdateActivityJournalEntryInput): ActivityJournalEntryRecord {
-    return new DatabaseUnitOfWork(this.db).run(() => {
+    return new DatabaseUnitOfWork(this.database).run(() => {
     const existing = this.getEntry(id);
     if (!existing) throw new Error(`Journaleintrag nicht gefunden: ${id}`);
     const category = input.category !== undefined ? normalizeEnum(input.category, ACTIVITY_JOURNAL_CATEGORIES, existing.category) : existing.category;
@@ -217,7 +217,7 @@ export class ActivityJournalService {
         : existing.durationMinutes ?? null;
     const timestamp = nowIso();
 
-    this.db.prepare(`
+    this.database.prepare(`
       UPDATE activity_journal_entries
       SET entry_date = ?, started_at = ?, ended_at = ?, duration_minutes = ?, time_mode = ?, category = ?, title = ?,
           description = ?, result_note = ?, confidentiality_level = ?, status = ?, created_from = ?, follow_up_due_at = ?,
@@ -243,7 +243,7 @@ export class ActivityJournalService {
     );
 
     if (input.links) {
-      this.db.prepare('DELETE FROM activity_journal_links WHERE entry_id = ?').run(id);
+      this.database.prepare('DELETE FROM activity_journal_links WHERE entry_id = ?').run(id);
       this.persistLinks(id, input.links);
     }
 
@@ -251,7 +251,7 @@ export class ActivityJournalService {
     this.audit('update', record, record.links?.length ?? 0);
     this.syncFollowUpDeadline(record);
     const firstContext = input.links?.[0]?.targetType ?? record.links?.[0]?.targetType ?? 'fallfrei';
-    new ActivityJournalPreferenceService(this.db).rememberCategory(firstContext, record.category);
+    new ActivityJournalPreferenceService(this.database).rememberCategory(firstContext, record.category);
     return record;
   
     });
@@ -259,7 +259,7 @@ export class ActivityJournalService {
 
   deleteEntry(id: string): { deleted: boolean } {
     const existing = this.getEntry(id);
-    const result = this.db.prepare('DELETE FROM activity_journal_entries WHERE id = ?').run(id) as { changes?: number };
+    const result = this.database.prepare('DELETE FROM activity_journal_entries WHERE id = ?').run(id) as { changes?: number };
     const deleted = Number(result.changes ?? 0) > 0;
     if (deleted) {
       this.deleteLinkedDeadline(id);
@@ -269,7 +269,7 @@ export class ActivityJournalService {
   }
 
   getEntry(id: string): ActivityJournalEntryRecord | undefined {
-    const row = this.db.prepare<ActivityJournalEntryRow>('SELECT * FROM activity_journal_entries WHERE id = ?').get(id);
+    const row = this.database.prepare<ActivityJournalEntryRow>('SELECT * FROM activity_journal_entries WHERE id = ?').get(id);
     if (!row) return undefined;
     const record = mapEntry(row);
     record.links = this.listLinks(id);
@@ -277,7 +277,7 @@ export class ActivityJournalService {
   }
 
   listLinks(entryId: string): ActivityJournalLinkRecord[] {
-    return this.db.prepare<ActivityJournalLinkRow>('SELECT * FROM activity_journal_links WHERE entry_id = ? ORDER BY created_at ASC').all(entryId).map(mapLink);
+    return this.database.prepare<ActivityJournalLinkRow>('SELECT * FROM activity_journal_links WHERE entry_id = ? ORDER BY created_at ASC').all(entryId).map(mapLink);
   }
 
   addLink(entryId: string, target: ActivityJournalLinkTarget): ActivityJournalLinkRecord {
@@ -289,7 +289,7 @@ export class ActivityJournalService {
   }
 
   removeLink(entryId: string, linkId: string): { deleted: boolean } {
-    const result = this.db.prepare('DELETE FROM activity_journal_links WHERE entry_id = ? AND id = ?').run(entryId, linkId) as { changes?: number };
+    const result = this.database.prepare('DELETE FROM activity_journal_links WHERE entry_id = ? AND id = ?').run(entryId, linkId) as { changes?: number };
     const record = this.getEntry(entryId);
     this.audit('update', record, record?.links?.length ?? 0);
     return { deleted: Number(result.changes ?? 0) > 0 };
@@ -330,7 +330,7 @@ export class ActivityJournalService {
       sql += ' LIMIT ?';
       params.push(Math.min(Math.max(Math.trunc(filter.limit), 1), 500));
     }
-    return this.db.prepare<ActivityJournalEntryRow>(sql).all(...params).map((row) => {
+    return this.database.prepare<ActivityJournalEntryRow>(sql).all(...params).map((row) => {
       const record = mapEntry(row);
       record.links = this.listLinks(record.id);
       return record;
@@ -386,7 +386,7 @@ export class ActivityJournalService {
     const shouldMarkExported = Boolean(options.markAsExported);
     if (shouldMarkExported) {
       for (const entry of entries) {
-        this.db.prepare('UPDATE activity_journal_entries SET exported_for_activity_report_at = ?, updated_at = ? WHERE id = ?').run(generatedAt, generatedAt, entry.id);
+        this.database.prepare('UPDATE activity_journal_entries SET exported_for_activity_report_at = ?, updated_at = ? WHERE id = ?').run(generatedAt, generatedAt, entry.id);
       }
     }
     const totalMinutes = entries.reduce((sum, entry) => sum + (entry.durationMinutes ?? 0), 0);

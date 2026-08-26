@@ -7,12 +7,12 @@ import type { CaseSearchDocument, CaseSearchProvider } from './searchTypes.js';
 import { CaseSearchResultRow, nowIso, likePattern, escapeFtsQuery, normalizeSourceTypes, rankResults, sourceTypeFilterClause, fallbackSourceTypeFilterClause, highlightQueryInExcerpt, mapRow } from './searchIndexSupport.js';
 export class SearchIndexService {
   constructor(
-    private readonly db: DatabaseAdapter,
+    private readonly database: DatabaseAdapter,
     private readonly providers: readonly CaseSearchProvider[] = CASE_SEARCH_PROVIDERS,
   ) {}
 
   ensureSchema(): void {
-    this.db.exec(`
+    this.database.exec(`
       CREATE TABLE IF NOT EXISTS case_search_index (
         id TEXT PRIMARY KEY,
         case_id TEXT NOT NULL,
@@ -59,13 +59,13 @@ export class SearchIndexService {
   }
 
   reindexAll(): number {
-    this.db.prepare('DELETE FROM case_search_index_fts').run();
-    this.db.prepare('DELETE FROM case_search_index').run();
-    this.db.prepare('DELETE FROM case_search_index_state').run();
+    this.database.prepare('DELETE FROM case_search_index_fts').run();
+    this.database.prepare('DELETE FROM case_search_index').run();
+    this.database.prepare('DELETE FROM case_search_index_state').run();
     let count = 0;
     const touchedCaseIds = new Set<string>();
     for (const provider of this.providers) {
-      for (const document of this.safeCollect(() => provider.collectAll(this.db))) {
+      for (const document of this.safeCollect(() => provider.collectAll(this.database))) {
         this.upsertDocument(document);
         touchedCaseIds.add(document.caseId);
         count += 1;
@@ -81,7 +81,7 @@ export class SearchIndexService {
     this.deleteCase(caseId);
     let count = 0;
     for (const provider of this.providers) {
-      for (const document of this.safeCollect(() => provider.collectForCase(this.db, caseId))) {
+      for (const document of this.safeCollect(() => provider.collectForCase(this.database, caseId))) {
         this.upsertDocument(document);
         count += 1;
       }
@@ -93,7 +93,7 @@ export class SearchIndexService {
 
   reindexSource(sourceType: string, sourceId: string): number {
     const caseIds = new Set<string>();
-    const existing = this.db.prepare<{ case_id: string }>('SELECT case_id FROM case_search_index WHERE source_type = ? AND source_id = ?').all(sourceType, sourceId);
+    const existing = this.database.prepare<{ case_id: string }>('SELECT case_id FROM case_search_index WHERE source_type = ? AND source_id = ?').all(sourceType, sourceId);
     existing.forEach((row) => caseIds.add(row.case_id));
     this.deleteSource(sourceType, sourceId);
 
@@ -101,14 +101,14 @@ export class SearchIndexService {
     if (!provider) return 0;
 
     if (!caseIds.size) {
-      for (const document of this.safeCollect(() => provider.collectAll(this.db)).filter((document) => document.sourceId === sourceId)) {
+      for (const document of this.safeCollect(() => provider.collectAll(this.database)).filter((document) => document.sourceId === sourceId)) {
         caseIds.add(document.caseId);
       }
     }
 
     let count = 0;
     for (const caseId of caseIds) {
-      for (const document of this.safeCollect(() => provider.collectForCase(this.db, caseId)).filter((document) => document.sourceId === sourceId)) {
+      for (const document of this.safeCollect(() => provider.collectForCase(this.database, caseId)).filter((document) => document.sourceId === sourceId)) {
         this.upsertDocument(document);
         count += 1;
       }
@@ -121,9 +121,9 @@ export class SearchIndexService {
 
   upsertDocument(document: CaseSearchDocument): void {
     const id = this.indexId(document.sourceType, document.sourceId, document.caseId);
-    this.db.prepare('DELETE FROM case_search_index_fts WHERE index_id = ?').run(id);
-    this.db.prepare('DELETE FROM case_search_index WHERE id = ?').run(id);
-    this.db.prepare(`
+    this.database.prepare('DELETE FROM case_search_index_fts WHERE index_id = ?').run(id);
+    this.database.prepare('DELETE FROM case_search_index WHERE id = ?').run(id);
+    this.database.prepare(`
       INSERT INTO case_search_index (
         id, case_id, case_number, source_type, source_id, source_label, title, content, keywords,
         occurred_at, updated_at, confidentiality, contains_health_data, extraction_quality,
@@ -149,21 +149,21 @@ export class SearchIndexService {
       document.navigationTarget.subId ?? null,
       nowIso(),
     );
-    this.db.prepare(`
+    this.database.prepare(`
       INSERT INTO case_search_index_fts (index_id, title, content, keywords, source_label)
       VALUES (?, ?, ?, ?, ?)
     `).run(id, document.title, document.content, document.keywords ?? '', document.sourceLabel);
   }
 
   deleteCase(caseId: string): number {
-    const ids = this.db.prepare<{ id: string }>('SELECT id FROM case_search_index WHERE case_id = ?').all(caseId).map((row) => row.id);
+    const ids = this.database.prepare<{ id: string }>('SELECT id FROM case_search_index WHERE case_id = ?').all(caseId).map((row) => row.id);
     let count = 0;
     for (const id of ids) {
-      this.db.prepare('DELETE FROM case_search_index_fts WHERE index_id = ?').run(id);
-      const result = this.db.prepare('DELETE FROM case_search_index WHERE id = ?').run(id) as { changes?: number } | undefined;
+      this.database.prepare('DELETE FROM case_search_index_fts WHERE index_id = ?').run(id);
+      const result = this.database.prepare('DELETE FROM case_search_index WHERE id = ?').run(id) as { changes?: number } | undefined;
       count += Number(result?.changes ?? 0);
     }
-    this.db.prepare('DELETE FROM case_search_index_state WHERE case_id = ?').run(caseId);
+    this.database.prepare('DELETE FROM case_search_index_state WHERE case_id = ?').run(caseId);
     this.clearGlobalState();
     if (count > 0) {
       this.audit('delete', 'Suchindex der Fallakte gelöscht', { caseId, subjectId: caseId, metadata: { entriesDeleted: count } });
@@ -172,12 +172,12 @@ export class SearchIndexService {
   }
 
   deleteSource(sourceType: string, sourceId: string): number {
-    const rows = this.db.prepare<{ id: string; case_id: string }>('SELECT id, case_id FROM case_search_index WHERE source_type = ? AND source_id = ?').all(sourceType, sourceId);
+    const rows = this.database.prepare<{ id: string; case_id: string }>('SELECT id, case_id FROM case_search_index WHERE source_type = ? AND source_id = ?').all(sourceType, sourceId);
     const caseIds = new Set(rows.map((row) => row.case_id));
     let count = 0;
     for (const row of rows) {
-      this.db.prepare('DELETE FROM case_search_index_fts WHERE index_id = ?').run(row.id);
-      const result = this.db.prepare('DELETE FROM case_search_index WHERE id = ?').run(row.id) as { changes?: number } | undefined;
+      this.database.prepare('DELETE FROM case_search_index_fts WHERE index_id = ?').run(row.id);
+      const result = this.database.prepare('DELETE FROM case_search_index WHERE id = ?').run(row.id) as { changes?: number } | undefined;
       count += Number(result?.changes ?? 0);
     }
     for (const caseId of caseIds) this.invalidateCase(caseId);
@@ -200,7 +200,7 @@ export class SearchIndexService {
       const ftsQuery = escapeFtsQuery(query);
       const sourceFilter = sourceTypeFilterClause(sourceTypes);
       const rows = input.caseId
-        ? this.db.prepare<CaseSearchResultRow>(`
+        ? this.database.prepare<CaseSearchResultRow>(`
             SELECT i.source_type, i.source_id, i.source_label, i.case_id, i.case_number, i.title,
               snippet(case_search_index_fts, 2, '[', ']', ' … ', 20) AS excerpt,
               i.occurred_at, i.extraction_quality, i.navigation_kind, i.navigation_id, i.navigation_sub_id,
@@ -211,7 +211,7 @@ export class SearchIndexService {
             ORDER BY rank, i.updated_at DESC
             LIMIT ?
           `).all(ftsQuery, input.caseId, ...sourceFilter.params, limit)
-        : this.db.prepare<CaseSearchResultRow>(`
+        : this.database.prepare<CaseSearchResultRow>(`
             SELECT i.source_type, i.source_id, i.source_label, i.case_id, i.case_number, i.title,
               snippet(case_search_index_fts, 2, '[', ']', ' … ', 20) AS excerpt,
               i.occurred_at, i.extraction_quality, i.navigation_kind, i.navigation_id, i.navigation_sub_id,
@@ -234,7 +234,7 @@ export class SearchIndexService {
 
   private audit(action: PersonalDataAuditAction, purpose: string, input: { caseId?: string; subjectId?: string; metadata?: Record<string, unknown> } = {}): void {
     try {
-      new PersonalDataAuditLogService(this.db).append({
+      new PersonalDataAuditLogService(this.database).append({
         action,
         subjectType: 'case_search_index',
         subjectId: input.subjectId,
@@ -254,20 +254,20 @@ export class SearchIndexService {
   }
 
   private ensureCaseFresh(caseId: string): void {
-    const state = this.db.prepare<{ indexed_at?: string; last_source_updated_at?: string; source_count?: number }>(
+    const state = this.database.prepare<{ indexed_at?: string; last_source_updated_at?: string; source_count?: number }>(
       'SELECT indexed_at, last_source_updated_at, source_count FROM case_search_index_state WHERE case_id = ?',
     ).get(caseId);
-    const indexedCount = Number(this.db.prepare<{ count: number }>('SELECT COUNT(*) AS count FROM case_search_index WHERE case_id = ?').get(caseId)?.count ?? 0);
+    const indexedCount = Number(this.database.prepare<{ count: number }>('SELECT COUNT(*) AS count FROM case_search_index WHERE case_id = ?').get(caseId)?.count ?? 0);
     const latest = this.latestUpdatedAtForCase(caseId);
     const latestChanged = Boolean(latest && latest !== state?.last_source_updated_at);
     if (!state || latestChanged || (latest && indexedCount === 0)) this.reindexCase(caseId);
   }
 
   private ensureAllFresh(): void {
-    const state = this.db.prepare<{ indexed_at?: string; last_source_updated_at?: string; source_count?: number }>(
+    const state = this.database.prepare<{ indexed_at?: string; last_source_updated_at?: string; source_count?: number }>(
       'SELECT indexed_at, last_source_updated_at, source_count FROM case_search_index_state WHERE case_id = ?',
     ).get('__all__');
-    const indexedCount = Number(this.db.prepare<{ count: number }>('SELECT COUNT(*) AS count FROM case_search_index').get()?.count ?? 0);
+    const indexedCount = Number(this.database.prepare<{ count: number }>('SELECT COUNT(*) AS count FROM case_search_index').get()?.count ?? 0);
     const latest = this.latestUpdatedAtAll();
     const latestChanged = Boolean(latest && latest !== state?.last_source_updated_at);
     if (!state || latestChanged || (latest && indexedCount === 0)) this.reindexAll();
@@ -275,7 +275,7 @@ export class SearchIndexService {
 
   private latestUpdatedAtForCase(caseId: string): string | undefined {
     return this.providers
-      .map((provider) => this.safeRead(() => provider.latestUpdatedAtForCase(this.db, caseId)))
+      .map((provider) => this.safeRead(() => provider.latestUpdatedAtForCase(this.database, caseId)))
       .filter((value): value is string => Boolean(value))
       .sort()
       .slice(-1)[0];
@@ -283,7 +283,7 @@ export class SearchIndexService {
 
   private latestUpdatedAtAll(): string | undefined {
     return this.providers
-      .map((provider) => this.safeRead(() => provider.latestUpdatedAtAll(this.db)))
+      .map((provider) => this.safeRead(() => provider.latestUpdatedAtAll(this.database)))
       .filter((value): value is string => Boolean(value))
       .sort()
       .slice(-1)[0];
@@ -292,8 +292,8 @@ export class SearchIndexService {
   private markCaseIndexed(caseId: string): void {
     const timestamp = nowIso();
     const latest = this.latestUpdatedAtForCase(caseId);
-    const count = Number(this.db.prepare<{ count: number }>('SELECT COUNT(*) AS count FROM case_search_index WHERE case_id = ?').get(caseId)?.count ?? 0);
-    this.db.prepare(`
+    const count = Number(this.database.prepare<{ count: number }>('SELECT COUNT(*) AS count FROM case_search_index WHERE case_id = ?').get(caseId)?.count ?? 0);
+    this.database.prepare(`
       INSERT INTO case_search_index_state (case_id, indexed_at, last_source_updated_at, source_count, updated_at)
       VALUES (?, ?, ?, ?, ?)
       ON CONFLICT(case_id) DO UPDATE SET
@@ -306,7 +306,7 @@ export class SearchIndexService {
 
   private markGlobalIndexed(sourceCount: number): void {
     const timestamp = nowIso();
-    this.db.prepare(`
+    this.database.prepare(`
       INSERT INTO case_search_index_state (case_id, indexed_at, last_source_updated_at, source_count, updated_at)
       VALUES (?, ?, ?, ?, ?)
       ON CONFLICT(case_id) DO UPDATE SET
@@ -318,11 +318,11 @@ export class SearchIndexService {
   }
 
   private invalidateCase(caseId: string): void {
-    this.db.prepare('DELETE FROM case_search_index_state WHERE case_id = ?').run(caseId);
+    this.database.prepare('DELETE FROM case_search_index_state WHERE case_id = ?').run(caseId);
   }
 
   private clearGlobalState(): void {
-    this.db.prepare('DELETE FROM case_search_index_state WHERE case_id = ?').run('__all__');
+    this.database.prepare('DELETE FROM case_search_index_state WHERE case_id = ?').run('__all__');
   }
 
   private safeRead<T>(producer: () => T): T | undefined {
@@ -337,7 +337,7 @@ export class SearchIndexService {
     const pattern = likePattern(query);
     const sourceFilter = fallbackSourceTypeFilterClause(sourceTypes);
     const rows = caseId
-      ? this.db.prepare<CaseSearchResultRow>(`
+      ? this.database.prepare<CaseSearchResultRow>(`
           SELECT source_type, source_id, source_label, case_id, case_number, title,
             substr(COALESCE(content, title), 1, 220) AS excerpt,
             occurred_at, extraction_quality, navigation_kind, navigation_id, navigation_sub_id, 100 AS rank
@@ -347,7 +347,7 @@ export class SearchIndexService {
           ORDER BY updated_at DESC
           LIMIT ?
         `).all(caseId, pattern, pattern, pattern, pattern, ...sourceFilter.params, limit)
-      : this.db.prepare<CaseSearchResultRow>(`
+      : this.database.prepare<CaseSearchResultRow>(`
           SELECT source_type, source_id, source_label, case_id, case_number, title,
             substr(COALESCE(content, title), 1, 220) AS excerpt,
             occurred_at, extraction_quality, navigation_kind, navigation_id, navigation_sub_id, 100 AS rank

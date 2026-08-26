@@ -1,5 +1,6 @@
 import { Component, Suspense, createRef, useEffect, type ErrorInfo, type ReactNode } from "react";
 import type { ViewId } from "../navigation/modules";
+import { recordRendererDiagnostic } from "../diagnostics/rendererDiagnostics";
 import { useOptionalAnnouncer } from "../../shared/a11y/LiveRegionProvider";
 import { lazyFeatureLabel } from "./lazyFeatureViews";
 
@@ -42,7 +43,7 @@ export class LazyFeatureBoundary extends Component<BoundaryProps, BoundaryState>
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    console.error("Lazy feature load failed", { feature: this.props.view, errorName: error.name, componentStack: info.componentStack });
+    recordRendererDiagnostic("error", `Bereich ${this.props.view} konnte nicht geladen werden.`, { name: error.name, message: info.componentStack });
   }
 
   componentDidUpdate(_previousProps: BoundaryProps, previousState: BoundaryState) {

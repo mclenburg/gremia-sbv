@@ -28,9 +28,14 @@ function changes(value: unknown): number {
   return Number((value as { changes?: number } | undefined)?.changes ?? 0);
 }
 
+function nowIso(): string {
+  return new Date().toISOString();
+}
+
 function assertDeletionInput(input: DeleteCaseProcessInput): void {
   if (!input.caseId?.trim() || !input.processId?.trim()) throw new Error('Fall-ID und Maßnahmen-ID sind erforderlich.');
   if (!DELETE_REASON_CODES.has(input.reasonCode)) throw new Error('Bitte einen gültigen Löschgrund auswählen.');
+  if (input.action === 'anonymize' && input.processType !== 'bem') throw new Error('Eine Einzelanonymisierung ist derzeit nur für BEM-Verfahren vorgesehen.');
 }
 
 function findProcess(db: DatabaseAdapter, input: DeleteCaseProcessInput): { id: string; case_id: string; status: string } {
@@ -60,6 +65,54 @@ function deleteLinksAndChildren(db: DatabaseAdapter, input: DeleteCaseProcessInp
   return { detachedDocuments, deletedNotes, deletedDeadlines };
 }
 
+function anonymizeBemProcess(db: DatabaseAdapter, input: DeleteCaseProcessInput): Pick<DeleteCaseProcessResult, 'detachedDocuments' | 'deletedNotes' | 'deletedDeadlines' | 'anonymizedNotes'> {
+  const timestamp = nowIso();
+  const detachedDocuments = changes(db.prepare('UPDATE case_documents SET measure_id = NULL WHERE case_id = ? AND measure_id = ?').run(input.caseId, input.processId));
+  const anonymizedNotes = changes(db.prepare(`
+    UPDATE case_measure_notes
+    SET title = '[BEM-Maßnahmennotiz anonymisiert]',
+        participants = NULL,
+        content = '[BEM-Maßnahmennotiz anonymisiert]',
+        next_steps = NULL,
+        updated_at = ?
+    WHERE case_id = ? AND measure_type = 'bem' AND measure_id = ?
+  `).run(timestamp, input.caseId, input.processId));
+  const deletedDeadlines = changes(db.prepare('DELETE FROM deadlines WHERE case_id = ? AND (process_id = ? OR measure_id = ?)').run(input.caseId, input.processId, input.processId));
+  db.prepare('DELETE FROM bem_process_contacts WHERE process_id = ?').run(input.processId);
+  db.prepare(`
+    UPDATE bem_process_events
+    SET title = '[BEM-Ereignis anonymisiert]',
+        description = NULL
+    WHERE process_id = ?
+  `).run(input.processId);
+  db.prepare(`
+    UPDATE bem_processes
+    SET title = '[BEM-Verfahren anonymisiert]',
+        trigger_description = NULL,
+        consent_scope = NULL,
+        data_retention_note = 'BEM-Verfahren wurde manuell anonymisiert.',
+        participants = NULL,
+        measures = NULL,
+        measure_owners = NULL,
+        result = NULL,
+        completion_reason = NULL,
+        confidential_notes = NULL,
+        updated_at = ?
+    WHERE id = ? AND case_id = ?
+  `).run(timestamp, input.processId, input.caseId);
+  db.prepare(`
+    UPDATE case_measures
+    SET title = '[BEM-Maßnahme anonymisiert]',
+        summary = NULL,
+        next_step = NULL,
+        updated_at = ?
+    WHERE case_id = ? AND type = 'bem' AND source_id = ?
+  `).run(timestamp, input.caseId, input.processId);
+  db.prepare('DELETE FROM activity_journal_links WHERE target_type = ? AND target_id = ?').run('bem_process', input.processId);
+  db.prepare('DELETE FROM case_note_links WHERE target_type = ? AND target_id = ?').run('bem', input.processId);
+  return { detachedDocuments, deletedNotes: 0, deletedDeadlines, anonymizedNotes };
+}
+
 function deleteProcessRecord(db: DatabaseAdapter, input: DeleteCaseProcessInput): void {
   const source = PROCESS_SOURCES[input.processType];
   if (source.table === 'case_measures') {
@@ -83,15 +136,20 @@ export function deleteCaseProcess(
   assertDeletionInput(input);
   const existing = findProcess(db, input);
   const reportableType = noteProcessTypeToCaseMeasureType(input.processType) ?? 'other';
-  let result: Pick<DeleteCaseProcessResult, 'detachedDocuments' | 'deletedNotes' | 'deletedDeadlines'> = { detachedDocuments: 0, deletedNotes: 0, deletedDeadlines: 0 };
+  let result: Pick<DeleteCaseProcessResult, 'detachedDocuments' | 'deletedNotes' | 'deletedDeadlines' | 'anonymizedNotes'> = { detachedDocuments: 0, deletedNotes: 0, deletedDeadlines: 0, anonymizedNotes: 0 };
 
   new DatabaseUnitOfWork(db).run(() => {
+    if (input.action === 'anonymize') {
+      auditLog.append({ action: 'update', subjectType: 'case_measure', subjectId: input.processId, caseId: input.caseId, purpose: `Fallmaßnahme anonymisiert (${reportableType})`, metadata: { reasonCode: input.reasonCode, processType: input.processType } });
+      result = anonymizeBemProcess(db, input);
+      return;
+    }
     lifecycleAudit.deleted(reportableType, input.processId, input.caseId, existing.status, 'single_measure');
-    auditLog.append({ action: 'delete', subjectType: 'case_measure', subjectId: input.processId, caseId: input.caseId, purpose: `Fallmaßnahme gelöscht (${reportableType})`, metadata: { reasonCode: input.reasonCode } });
-    result = deleteLinksAndChildren(db, input);
+    auditLog.append({ action: 'delete', subjectType: 'case_measure', subjectId: input.processId, caseId: input.caseId, purpose: `Fallmaßnahme gelöscht (${reportableType})`, metadata: { reasonCode: input.reasonCode, processType: input.processType } });
+    result = { ...deleteLinksAndChildren(db, input), anonymizedNotes: 0 };
     deleteProcessRecord(db, input);
   });
 
   searchIndex.reindexCase(input.caseId);
-  return { deleted: true, processType: input.processType, processId: input.processId, ...result };
+  return { deleted: input.action !== 'anonymize', anonymized: input.action === 'anonymize', processType: input.processType, processId: input.processId, ...result };
 }

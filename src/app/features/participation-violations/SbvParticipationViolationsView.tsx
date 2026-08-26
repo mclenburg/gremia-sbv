@@ -4,7 +4,7 @@ import type { ActivityJournalPrefill } from '../../../domain/models/activity-jou
 import { IndustrialButton, ToolbarButton } from '../../shared/components/IndustrialButton';
 import { FormSection } from '../../shared/components/IndustrialForm';
 import { ModuleFeedback } from '../../shared/components/ModuleFeedback';
-import { DataTable, EmptyState, WorkbenchGrid, WorkbenchPage, WorkbenchSummary } from '../../shared/components/WorkbenchLayout';
+import { DataTable, EmptyState, WorkbenchPage, WorkbenchSummary } from '../../shared/components/WorkbenchLayout';
 import { useSbvParticipationViolations } from './hooks/useSbvParticipationViolations';
 import type { ViolationDraftContextInput } from './hooks/useViolationDraftContext';
 import type { CaseNodeTarget } from '../../core/navigation/caseNodeTarget';
@@ -93,21 +93,19 @@ export function SbvParticipationViolationsView({
       >
         <ViolationDraftForm state={state} onCreated={() => setCreateOpen(false)} />
       </IndustrialModal> : null}
-      <WorkbenchGrid>
-        <FormSection
-          kicker="Nachverfolgung"
-          title="Protokollierte Beteiligungsverstöße"
-          description="Kontrollsicht für bereits protokollierte Vorgänge."
-          helpId="participationViolations.tracking"
-        >
-          <DataTable
-            headers={['Betreff', 'Stufe', 'Verstoßart', 'Status', 'Rechtskern', 'Aktion']}
-            rows={rows}
-            ariaLabel="Beteiligungsverstöße"
-            empty={<EmptyState title="Keine Beteiligungsverstöße" text="Es sind noch keine Beteiligungsverstöße protokolliert." />}
-          />
-        </FormSection>
-      </WorkbenchGrid>
+      <FormSection
+        kicker="Nachverfolgung"
+        title="Protokollierte Beteiligungsverstöße"
+        description="Kontrollsicht für bereits protokollierte Vorgänge."
+        helpId="participationViolations.tracking"
+      >
+        <DataTable
+          headers={['Betreff', 'Stufe', 'Verstoßart', 'Status', 'Rechtskern', 'Aktion']}
+          rows={rows}
+          ariaLabel="Beteiligungsverstöße"
+          empty={<EmptyState title="Keine Beteiligungsverstöße" text="Es sind noch keine Beteiligungsverstöße protokolliert." />}
+        />
+      </FormSection>
     </WorkbenchPage>
   );
 }

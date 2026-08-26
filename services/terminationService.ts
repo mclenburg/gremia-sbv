@@ -52,9 +52,9 @@ function mapTermination(row: TerminationHearingRow): TerminationHearingRecord {
 
 export class TerminationService {
   constructor(
-    private readonly db: DatabaseAdapter,
-    private readonly auditLog: PersonalDataAuditLogService = new PersonalDataAuditLogService(db),
-    private readonly lifecycleAudit: MeasureLifecycleAuditService = new MeasureLifecycleAuditService(db, auditLog),
+    private readonly database: DatabaseAdapter,
+    private readonly auditLog: PersonalDataAuditLogService = new PersonalDataAuditLogService(database),
+    private readonly lifecycleAudit: MeasureLifecycleAuditService = new MeasureLifecycleAuditService(database, auditLog),
   ) {}
 
   private audit(action: Parameters<PersonalDataAuditLogService['append']>[0]['action'], subjectId: string | undefined, caseId: string | undefined, purpose: string): void {
@@ -70,21 +70,21 @@ export class TerminationService {
       ? 'SELECT * FROM termination_hearings WHERE case_id = ? ORDER BY updated_at DESC'
       : 'SELECT * FROM termination_hearings ORDER BY updated_at DESC';
     this.audit('read', undefined, caseId, 'termination_hearing Liste anzeigen');
-    const rows = caseId ? this.db.prepare<TerminationHearingRow>(sql).all(caseId) : this.db.prepare<TerminationHearingRow>(sql).all();
+    const rows = caseId ? this.database.prepare<TerminationHearingRow>(sql).all(caseId) : this.database.prepare<TerminationHearingRow>(sql).all();
     return rows.map(mapTermination);
   }
 
   getById(id: string): TerminationHearingRecord | undefined {
     this.audit('read', id, undefined, 'termination_hearing Detail anzeigen');
-    const row = this.db.prepare<TerminationHearingRow>('SELECT * FROM termination_hearings WHERE id = ?').get(id);
+    const row = this.database.prepare<TerminationHearingRow>('SELECT * FROM termination_hearings WHERE id = ?').get(id);
     return row ? mapTermination(row) : undefined;
   }
 
   create(input: CreateTerminationHearingInput): TerminationHearingRecord {
     const id = randomUUID();
     const timestamp = nowIso();
-    new DatabaseUnitOfWork(this.db).run(() => {
-      this.db.prepare(`
+    new DatabaseUnitOfWork(this.database).run(() => {
+      this.database.prepare(`
       INSERT INTO termination_hearings (
         id, case_id, status, termination_type, protection_status, received_at, employer_deadline_at,
         sbv_statement_due_at, works_council_hearing_at, integration_office_requested_at,
@@ -138,8 +138,8 @@ export class TerminationService {
       statement: input.statement !== undefined ? input.statement : existing.statement
     };
 
-    new DatabaseUnitOfWork(this.db).run(() => {
-      this.db.prepare(`
+    new DatabaseUnitOfWork(this.database).run(() => {
+      this.database.prepare(`
       UPDATE termination_hearings
       SET status = ?, termination_type = ?, protection_status = ?, received_at = ?, employer_deadline_at = ?,
           sbv_statement_due_at = ?, works_council_hearing_at = ?, integration_office_requested_at = ?,
@@ -167,7 +167,7 @@ export class TerminationService {
       this.lifecycleAudit.statusChanged('termination_hearing', id, existing.caseId, existing.status, next.status);
       this.auditLog.append({ action: 'update', subjectType: 'termination_hearing', subjectId: id, caseId: existing.caseId, purpose: 'termination_hearing geändert' });
     });
-    const row = this.db.prepare<TerminationHearingRow>('SELECT * FROM termination_hearings WHERE id = ?').get(id);
+    const row = this.database.prepare<TerminationHearingRow>('SELECT * FROM termination_hearings WHERE id = ?').get(id);
     if (!row) throw new Error(`Termination hearing not found after update: ${id}`);
     return mapTermination(row);
   }

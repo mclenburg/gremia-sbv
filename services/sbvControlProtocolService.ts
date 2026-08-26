@@ -83,10 +83,10 @@ function mapRecord(row: SbvControlProtocolRow): SbvControlProtocolRecord {
 }
 
 export class SbvControlProtocolService {
-  constructor(private readonly db: DatabaseAdapter) {}
+  constructor(private readonly database: DatabaseAdapter) {}
 
   ensureSchema(): void {
-    this.db.exec(`
+    this.database.exec(`
       CREATE TABLE IF NOT EXISTS sbv_control_protocols (
         id TEXT PRIMARY KEY,
         title TEXT NOT NULL,
@@ -109,17 +109,17 @@ export class SbvControlProtocolService {
       CREATE INDEX IF NOT EXISTS idx_sbv_control_protocols_meeting ON sbv_control_protocols(meeting_at DESC);
       CREATE INDEX IF NOT EXISTS idx_sbv_control_protocols_follow_up ON sbv_control_protocols(follow_up_due_at);
     `);
-    new PersonalDataAuditLogService(this.db);
+    new PersonalDataAuditLogService(this.database);
   }
 
   private audit(action: 'read' | 'create' | 'update' | 'delete', subjectId?: string, topic?: string, status?: string): void {
-    const write = () => new PersonalDataAuditLogService(this.db).append(auditSbvControlProtocolChanged({ action, protocolId: subjectId, topic, status }));
+    const write = () => new PersonalDataAuditLogService(this.database).append(auditSbvControlProtocolChanged({ action, protocolId: subjectId, topic, status }));
     if (action !== 'read') { write(); return; }
     try { write(); } catch (error) { console.warn('Gremia.SBV control protocol read audit failed', error instanceof Error ? error.name : 'UnknownError'); }
   }
 
   private linkedDeadlineId(protocolId: string): string | undefined {
-    const row = this.db.prepare<{ id?: string }>(
+    const row = this.database.prepare<{ id?: string }>(
       "SELECT id FROM deadlines WHERE process_type = 'sbv_control_protocol' AND process_id = ? AND source_event = 'sbv_control_protocol.follow_up' LIMIT 1"
     ).get(protocolId);
     return row?.id;
@@ -127,7 +127,7 @@ export class SbvControlProtocolService {
 
   private deleteLinkedDeadline(protocolId: string): void {
     const deadlineId = this.linkedDeadlineId(protocolId);
-    if (deadlineId) this.db.prepare('DELETE FROM deadlines WHERE id = ?').run(deadlineId);
+    if (deadlineId) this.database.prepare('DELETE FROM deadlines WHERE id = ?').run(deadlineId);
   }
 
   private syncFollowUpDeadline(record: SbvControlProtocolRecord): void {
@@ -139,7 +139,7 @@ export class SbvControlProtocolService {
     const title = `Steuerungsprotokoll: ${record.title}`;
     const description = record.nextSteps ?? 'Wiedervorlage aus einem übergreifenden SBV-Steuerungsprotokoll.';
     const deadlineId = this.linkedDeadlineId(record.id);
-    const deadlines = new DeadlineService(this.db);
+    const deadlines = new DeadlineService(this.database);
 
     if (deadlineId) {
       deadlines.update(deadlineId, {
@@ -170,21 +170,21 @@ export class SbvControlProtocolService {
 
   list(): SbvControlProtocolRecord[] {
     this.audit('read');
-    return this.db.prepare<SbvControlProtocolRow>(`
+    return this.database.prepare<SbvControlProtocolRow>(`
       SELECT * FROM sbv_control_protocols
       ORDER BY meeting_at DESC, updated_at DESC
     `).all().map(mapRecord);
   }
 
   create(input: CreateSbvControlProtocolInput): SbvControlProtocolRecord {
-    return new DatabaseUnitOfWork(this.db).run(() => {
+    return new DatabaseUnitOfWork(this.database).run(() => {
     const title = normalizeOptional(input.title);
     if (!title) throw new Error('Ein Steuerungsprotokoll benötigt einen Titel.');
     const topic = normalizeTopic(input.topic);
     const status = normalizeStatus(input.status);
     const timestamp = nowIso();
     const id = randomUUID();
-    this.db.prepare(`
+    this.database.prepare(`
       INSERT INTO sbv_control_protocols (
         id, title, partner, topic, meeting_at, participants, legal_context,
         discussion, result, next_steps, follow_up_due_at, status, created_at, updated_at
@@ -214,7 +214,7 @@ export class SbvControlProtocolService {
   }
 
   update(id: string, input: UpdateSbvControlProtocolInput): SbvControlProtocolRecord {
-    return new DatabaseUnitOfWork(this.db).run(() => {
+    return new DatabaseUnitOfWork(this.database).run(() => {
     const existing = this.getById(id);
     if (!existing) throw new Error(`Steuerungsprotokoll nicht gefunden: ${id}`);
     const topic = input.topic !== undefined ? normalizeTopic(input.topic) : existing.topic;
@@ -222,7 +222,7 @@ export class SbvControlProtocolService {
     if (!title) throw new Error('Ein Steuerungsprotokoll benötigt einen Titel.');
     const status = input.status !== undefined ? normalizeStatus(input.status) : existing.status;
     const timestamp = nowIso();
-    this.db.prepare(`
+    this.database.prepare(`
       UPDATE sbv_control_protocols
       SET title = ?, partner = ?, topic = ?, meeting_at = ?, participants = ?, legal_context = ?,
           discussion = ?, result = ?, next_steps = ?, follow_up_due_at = ?, status = ?, updated_at = ?
@@ -251,7 +251,7 @@ export class SbvControlProtocolService {
   }
 
   delete(id: string): { deleted: boolean } {
-    const result = this.db.prepare('DELETE FROM sbv_control_protocols WHERE id = ?').run(id) as { changes?: number };
+    const result = this.database.prepare('DELETE FROM sbv_control_protocols WHERE id = ?').run(id) as { changes?: number };
     const deleted = Number(result.changes ?? 0) > 0;
     if (deleted) {
       this.deleteLinkedDeadline(id);
@@ -261,7 +261,7 @@ export class SbvControlProtocolService {
   }
 
   getById(id: string): SbvControlProtocolRecord | undefined {
-    const row = this.db.prepare<SbvControlProtocolRow>('SELECT * FROM sbv_control_protocols WHERE id = ?').get(id);
+    const row = this.database.prepare<SbvControlProtocolRow>('SELECT * FROM sbv_control_protocols WHERE id = ?').get(id);
     return row ? mapRecord(row) : undefined;
   }
 }

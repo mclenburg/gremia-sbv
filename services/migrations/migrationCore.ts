@@ -9,11 +9,15 @@ import { MIGRATION_TABLE_SQL, checksum, getVersionFromFilename, nowIso, rowToBoo
 import type { MigrationDefinition, MigrationRow } from './migrationSupport.js';
 
 export class MigrationCore {
+  protected readonly db: DatabaseAdapter;
+
   constructor(
-      protected readonly db: DatabaseAdapter,
+      database: DatabaseAdapter,
       private readonly schemaPath: string,
       private readonly migrationsDir: string
-    ) {}
+    ) {
+      this.db = database;
+    }
 
   protected ensureMigrationTables(): void {
       this.db.exec(MIGRATION_TABLE_SQL);
