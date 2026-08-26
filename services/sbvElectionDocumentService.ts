@@ -14,6 +14,11 @@ import {
   type PdfDocumentDefinition,
 } from './documents/pdfDocumentDefinition.js';
 import { PdfDocumentGenerationService } from './documents/pdfDocumentGenerationService.js';
+import {
+  appendOperationContext,
+  documentDefaultsForDatabase,
+  operationContextLine,
+} from './documents/documentIdentityPolicy.js';
 import type {
   ElectionNoticeDetails,
   ElectionRecord,
@@ -75,7 +80,7 @@ export class SbvElectionDocumentService {
   private readonly pdfDocuments = new PdfDocumentGenerationService();
 
   constructor(
-    database: DatabaseAdapter,
+    private readonly database: DatabaseAdapter,
     private readonly documents: SbvOfficeWorkflowDocumentAdapter,
   ) {
     this.repo = new ElectionPreparationRepository(database);
@@ -217,6 +222,9 @@ export class SbvElectionDocumentService {
     input: GenerateElectionPreparationDocumentInput,
     election: ElectionRecord,
   ): PdfDocumentDefinition {
+    const defaults = documentDefaultsForDatabase(this.database);
+    const electionSubtitle = appendOperationContext('Wahl der Schwerbehindertenvertretung', defaults);
+    const operationContext = operationContextLine(defaults);
     if (input.kind === 'simplified_invitation') {
       if (election.procedure !== 'simplified') {
         throw new ApplicationError('VALIDATION_FAILED', 'Einladung zur Wahlversammlung gehört zum vereinfachten Verfahren.');
@@ -236,6 +244,7 @@ export class SbvElectionDocumentService {
         blocks: [
           paragraph('Sehr geehrte Kolleginnen und Kollegen,'),
           paragraph('hiermit laden wir Sie zur Wahlversammlung ein. In der Wahlversammlung wird die Schwerbehindertenvertretung gewählt.'),
+          ...(operationContext ? [section('Betrieb / Standort', [paragraph(operationContext)])] : []),
           section('Termin und Ort', [paragraph(meeting), paragraph(invitation.meetingPlace)]),
           section('Gegenstand', [paragraph('Wahl der Vertrauensperson der schwerbehinderten Menschen und der stellvertretenden Mitglieder.')]),
           paragraph(invitation.accessibilityNote?.trim() || 'Bitte teilen Sie der Wahlleitung frühzeitig mit, wenn Sie für Ihre Teilnahme Unterstützung oder eine barrierefreie Anpassung benötigen.'),
@@ -245,7 +254,7 @@ export class SbvElectionDocumentService {
     }
     const blocks = [section('Dokumentinhalt', [list(this.lines(input, election))])];
     if (input.kind === 'election_notice' || input.kind === 'candidate_announcement' || input.kind === 'proposal_grace_notice') {
-      return publicNoticeDocument(title, 'Wahl der Schwerbehindertenvertretung', blocks);
+      return publicNoticeDocument(title, electionSubtitle, blocks);
     }
     if (input.kind === 'proposal_correction_notice') {
       return externalLetterDocument({
@@ -259,7 +268,7 @@ export class SbvElectionDocumentService {
     }
     return legalRecordDocument(
       title,
-      'Wahl der Schwerbehindertenvertretung',
+      electionSubtitle,
       input.kind === 'voter_list' ? 'Vertrauliches Wahldokument' : 'Rechtlich relevantes Wahldokument',
       blocks,
     );

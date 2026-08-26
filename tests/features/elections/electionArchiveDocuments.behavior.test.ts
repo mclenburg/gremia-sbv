@@ -96,6 +96,16 @@ describe('ElectionArchiveService 0.9.7-D human-readable records', () => {
 
       const simplifiedService = new SbvElectionService(env.db);
       const simplified = simplifiedService.create({ kind: 'regular', electionDate: '2026-10-12' });
+      env.db.prepare('INSERT INTO settings (key, value, updated_at) VALUES (?, ?, ?)').run(
+        'template.defaults.v1',
+        JSON.stringify({
+          'sbv.name': 'SBV Team Standort Nord',
+          'sbv.signatur': 'Mit kollegialen Grüßen\nSBV Team Standort Nord',
+          'unternehmen.name': 'Musterbetrieb',
+          'standort.name': 'Standort Nord',
+        }),
+        '2026-08-26T10:00:00.000Z',
+      );
       simplifiedService.configureSetup(simplified.id, {
         eligibilityCheckDate: '2026-08-20', confirmedSeverelyDisabledCount: 12, confirmedEqualizedCount: 2,
         pendingEqualizationCount: 0, spatiallySeparated: false, electionDate: '2026-10-12',
@@ -113,6 +123,9 @@ describe('ElectionArchiveService 0.9.7-D human-readable records', () => {
       expect(invitationText).toContain('Sehr geehrte Kolleginnen und Kollegen');
       expect(invitationText).toContain('Barrierefreier Konferenzraum A');
       expect(invitationText).toContain('Gebärdensprachdolmetschung');
+      expect(invitationText).toContain('Musterbetrieb · Standort Nord');
+      expect(invitationText).toContain('Die Wahlleitung');
+      expect(invitationText).not.toContain('Mit kollegialen Grüßen');
       expect(invitationText).not.toContain('Wahl-ID');
       expect(invitationText).not.toContain('Rechtsregel');
       expect(invitationText).not.toContain('Prüfstatus');

@@ -38,8 +38,10 @@ export function normalizeTemplateKey(title: string): string {
 }
 
 export function buildFallbackTemplateContext(now = new Date()): TemplateContext {
+  const today = now.toLocaleDateString('de-DE');
   return {
-    heute: now.toLocaleDateString('de-DE'),
+    heute: today,
+    'datum.heute': today,
     'sbv.bezeichnung': 'Schwerbehindertenvertretung',
     'sbv.name': 'Schwerbehindertenvertretung',
     'arbeitgeber.ansprechpartner': 'Personalabteilung',

@@ -19,6 +19,7 @@ import type { GenerateElectionExecutionDocumentInput } from '../src/domain/model
 import { ApplicationError } from '../src/domain/models/application-error.model.js';
 import { ElectionMailBallotPackageDefinition } from './electionMailBallotPackageDefinition.js';
 import { OWNER_ONLY_FILE_MODE, restrictFileToOwner } from './secureFilePermissions.js';
+import { appendOperationContext, documentDefaultsForDatabase } from './documents/documentIdentityPolicy.js';
 
 const TEMPLATE_VERSION = '0.9.7-D.1';
 
@@ -125,9 +126,13 @@ export class ElectionArchiveService {
     if (input.kind === 'mail_ballot_package') {
       return new ElectionMailBallotPackageDefinition(this.database).build(election, input);
     }
+    const electionSubtitle = appendOperationContext(
+      'Wahl der Schwerbehindertenvertretung',
+      documentDefaultsForDatabase(this.database),
+    );
     const blocks = [section('Dokumentinhalt', [list(lines)])];
     if (input.kind === 'result_announcement') {
-      return publicNoticeDocument(title, 'Wahl der Schwerbehindertenvertretung', blocks);
+      return publicNoticeDocument(title, electionSubtitle, blocks);
     }
     if (input.kind === 'elected_notification') {
       const selected = this.results(election.id).find((item) => item.id === input.resultId);
@@ -145,7 +150,7 @@ export class ElectionArchiveService {
     }
     return legalRecordDocument(
       title,
-      'Wahl der Schwerbehindertenvertretung',
+      electionSubtitle,
       input.kind.startsWith('ballot_') ? 'Stimmzettel' : 'Rechtlich relevantes Wahldokument',
       blocks,
     );

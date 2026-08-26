@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
 import { DatabaseUnitOfWork } from './databaseUnitOfWork.js';
 import { DeadlineService } from './deadlineService.js';
+import { documentDefaultsForDatabase, sbvSignature } from './documents/documentIdentityPolicy.js';
 import type { PersonalDataAuditLogService } from './auditLogService.js';
 import {
   REQUIRED_INCLUSION_TOPICS,
@@ -182,8 +183,9 @@ export class InclusionAgreementService {
     const deadline = responseDueAt
       ? `\n\nBitte teilen Sie uns bis zum ${responseDueAt} mit, wann die Verhandlungen aufgenommen werden können.`
       : '';
+    const signature = sbvSignature(documentDefaultsForDatabase(this.database));
     return {
-      text: `Sehr geehrte Damen und Herren,\n\ndie Schwerbehindertenvertretung beantragt die Aufnahme von Verhandlungen über eine Inklusionsvereinbarung gemäß § 166 Abs. 1 SGB IX.${deadline}\n\nMit freundlichen Grüßen\nSchwerbehindertenvertretung`,
+      text: `Sehr geehrte Damen und Herren,\n\ndie Schwerbehindertenvertretung beantragt die Aufnahme von Verhandlungen über eine Inklusionsvereinbarung gemäß § 166 Abs. 1 SGB IX.${deadline}\n\n${signature}`,
       responseDueAt,
     };
   }

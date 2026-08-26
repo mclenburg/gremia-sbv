@@ -13,6 +13,12 @@ import type {
 import { addColumnsIfMissing } from './migrations/schemaColumnMigration.js';
 import { externalLetterDocument, paragraph } from './documents/pdfDocumentDefinition.js';
 import { PdfDocumentGenerationService } from './documents/pdfDocumentGenerationService.js';
+import {
+  documentDefaultsForDatabase,
+  employerRecipientLines,
+  sbvSenderLines,
+  sbvSignature,
+} from './documents/documentIdentityPolicy.js';
 
 const PDF_MIME = 'application/pdf';
 
@@ -88,16 +94,19 @@ export class SbvParticipationViolationDocumentService {
     const input = this.templateService.buildInputFromViolation(violation, options);
     const validation = this.templateService.validate(input);
     if (!validation.valid) throw new Error(`Dokument kann nicht erzeugt werden. Pflichtangaben fehlen: ${validation.missingFields.join(', ')}`);
+    const defaults = documentDefaultsForDatabase(this.database);
     const templateKey = this.templateService.getTemplateKey(violation.stage);
     const templateVersion = this.templateService.getTemplateVersion();
-    const plainText = this.templateService.buildPlainText(input);
+    const plainText = this.templateService.buildPlainText(input, { signature: sbvSignature(defaults) });
     const pdfBuffer = await this.pdfDocuments.generate({
       source: 'measure',
       privacyProfile: 'lawful_personal_data',
       definition: externalLetterDocument({
         title: input.subject,
-        sender: ['Schwerbehindertenvertretung'],
-        recipient: [input.recipientLabel || 'Arbeitgeber'],
+        sender: sbvSenderLines(defaults),
+        recipient: input.recipientLabel?.trim() && input.recipientLabel.trim() !== 'Arbeitgeber'
+          ? [input.recipientLabel.trim()]
+          : employerRecipientLines(defaults),
         date: new Intl.DateTimeFormat('de-DE').format(new Date()),
         subject: input.subject,
         blocks: plainText.split(/\n\s*\n/u).map((text) => paragraph(text)),

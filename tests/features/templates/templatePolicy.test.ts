@@ -26,6 +26,7 @@ describe('templatePolicy', () => {
     const context = buildFallbackTemplateContext(new Date('2026-05-02T12:00:00.000Z'));
     expect(context['sbv.bezeichnung']).toBe('Schwerbehindertenvertretung');
     expect(context['arbeitgeber.ansprechpartner']).toBe('Personalabteilung');
+    expect(context['datum.heute']).toMatch(/2\.5\.2026|02\.05\.2026/);
     expect(context.heute).toMatch(/2\.5\.2026|02\.05\.2026/);
   });
 });

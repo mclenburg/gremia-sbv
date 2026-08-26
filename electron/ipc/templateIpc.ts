@@ -18,6 +18,7 @@ import {
 } from "./ipcValidation.js";
 import { externalLetterDocument, paragraph } from '../../services/documents/pdfDocumentDefinition.js';
 import { PdfDocumentGenerationService } from '../../services/documents/pdfDocumentGenerationService.js';
+import { sbvSenderLines } from '../../services/documents/documentIdentityPolicy.js';
 import { safeDocumentFilePart } from '../../services/documentContainerService.js';
 import { requestExternalPreview } from './externalPreviewRequest.js';
 
@@ -80,7 +81,7 @@ export function registerTemplateIpc(
         privacyProfile: 'lawful_personal_data',
         definition: externalLetterDocument({
           title,
-          sender: ['Schwerbehindertenvertretung'],
+          sender: sbvSenderLines(templateDefaults.list()),
           recipient: [],
           date: new Intl.DateTimeFormat('de-DE').format(new Date()),
           subject,

@@ -21,6 +21,12 @@ import {
   type PdfDocumentDefinition,
 } from './documents/pdfDocumentDefinition.js';
 import { PdfDocumentGenerationService } from './documents/pdfDocumentGenerationService.js';
+import {
+  documentDefaultsForDatabase,
+  operationContextLine,
+  sbvSenderLines,
+  sbvSignature,
+} from './documents/documentIdentityPolicy.js';
 import type { GenerateReportInput } from '../src/domain/models/report.model.js';
 import type { ReportBuildResult } from './reports/reportSupport.js';
 import { ApplicationError } from '../src/domain/models/application-error.model.js';
@@ -93,6 +99,8 @@ export class SbvOfficeDocumentService {
   }
 
   private buildAssemblyDocument(assembly: AssemblyRow, kind: AssemblyDocumentKind): PdfDocumentDefinition {
+    const defaults = documentDefaultsForDatabase(this.database);
+    const operationContext = operationContextLine(defaults);
     if (kind === 'activity_report_draft') {
       if (!this.reports) throw new ApplicationError('EXPORT_FAILED', 'Der zentrale Tätigkeitsbericht ist nicht verfügbar.');
       return this.reports.build({
@@ -112,17 +120,18 @@ export class SbvOfficeDocumentService {
         .format(new Date(scheduledAt));
       return externalLetterDocument({
         title: `Einladung zur Schwerbehindertenversammlung ${assembly.year}`,
-        sender: ['Schwerbehindertenvertretung'],
+        sender: sbvSenderLines(defaults),
         recipient: ['An die schwerbehinderten und gleichgestellten Beschäftigten des Betriebs'],
         date: new Intl.DateTimeFormat('de-DE').format(new Date()),
         subject: `Einladung zur Schwerbehindertenversammlung ${assembly.year}`,
         blocks: [
           paragraph('Sehr geehrte Kolleginnen und Kollegen,'),
           paragraph(`hiermit lädt die Schwerbehindertenvertretung Sie zur Schwerbehindertenversammlung ${assembly.year} ein.`),
+          ...(operationContext ? [section('Betrieb / Standort', [paragraph(operationContext)])] : []),
           section('Termin und Ort', [paragraph(scheduleLabel), paragraph(location)]),
           section('Tagesordnung', [paragraph(agenda || 'Die Tagesordnung wird rechtzeitig bekannt gegeben.')]),
           paragraph('Bitte teilen Sie der Schwerbehindertenvertretung frühzeitig mit, wenn Sie für Ihre Teilnahme Unterstützung oder eine barrierefreie Anpassung benötigen.'),
-          paragraph('Mit freundlichen Grüßen\nIhre Schwerbehindertenvertretung'),
+          paragraph(sbvSignature(defaults)),
         ],
       });
     }
@@ -130,7 +139,7 @@ export class SbvOfficeDocumentService {
       if (!agenda) throw new ApplicationError('VALIDATION_FAILED', 'Die Tagesordnung enthält noch keine Tagesordnungspunkte.');
       return externalReportDocument(
         `Tagesordnung der Schwerbehindertenversammlung ${assembly.year}`,
-        [scheduledAt, location].filter(Boolean).join(' · '),
+        [scheduledAt, location, operationContext].filter(Boolean).join(' · '),
         [section('Tagesordnung', [paragraph(agenda)])],
       );
     }

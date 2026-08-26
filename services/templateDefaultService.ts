@@ -10,7 +10,7 @@ function nowIso(): string {
   return new Date().toISOString();
 }
 
-function readStoredDefaults(db: DatabaseAdapter): TemplateDefaultValues {
+export function readTemplateDefaultValues(db: DatabaseAdapter): TemplateDefaultValues {
   try {
     const row = db
       .prepare<{ value: string }>('SELECT value FROM settings WHERE key = ?')
@@ -30,11 +30,18 @@ function writeStoredDefaults(db: DatabaseAdapter, values: TemplateDefaultValues)
   `).run(TEMPLATE_DEFAULTS_SETTINGS_KEY, JSON.stringify(values), nowIso());
 }
 
+export function templateDefaultValuesToContext(values: TemplateDefaultValues): Record<string, string> {
+  return {
+    ...values,
+    'sbv.bezeichnung': values['sbv.funktion'] || values['sbv.name'],
+  };
+}
+
 export class TemplateDefaultService {
   constructor(private readonly databaseProvider: () => DatabaseAdapter) {}
 
   list(): TemplateDefaultValues {
-    return readStoredDefaults(this.databaseProvider());
+    return readTemplateDefaultValues(this.databaseProvider());
   }
 
   save(input: Partial<Record<string, unknown>>): TemplateDefaultValues {
