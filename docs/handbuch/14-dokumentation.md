@@ -62,7 +62,7 @@ Die Lesebrücke bleibt technisch read-only: Gremia.SBV schreibt keine Sitzungsno
 
 Im Arbeitsbereich **Versammlung** kannst du den Jahresworkflow der Schwerbehindertenversammlung dokumentieren. Dazu gehören insbesondere Termin und Ort, Einladung, Tagesordnung, Arbeitgeberbericht, Barrierefreiheitscheck sowie Präsentation und Unterlagen.
 
-Nach der Durchführung kannst du ein eigenes SBV-Ergebnisprotokoll beziehungsweise Maßnahmen festhalten, Folgeaufgaben als Wiedervorlage anlegen und die vorgesehenen Versammlungsdokumente erzeugen.
+Nach der Durchführung kannst du ein eigenes SBV-Ergebnisprotokoll beziehungsweise Maßnahmen festhalten, Folgeaufgaben als Wiedervorlage anlegen und die vorgesehenen Versammlungsdokumente erzeugen. Die Dokumentaktionen heißen bewusst **Einladung erzeugen & öffnen**, **Tagesordnung erzeugen & öffnen**, **Tätigkeitsbericht erzeugen & öffnen** und **Ergebnisprotokoll erzeugen & öffnen**. Gremia.SBV speichert das PDF verschlüsselt und fordert anschließend die externe Vorschau an; ob der externe Viewer den Auftrag sichtbar öffnet, liegt außerhalb der Anwendung.
 
 ## Beschwerden
 

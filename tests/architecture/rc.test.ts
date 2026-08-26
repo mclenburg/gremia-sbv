@@ -59,6 +59,7 @@ describe('aktive Markdown-Dokumentation', () => {
     expect(modules.find((module) => module.id === 'elections')?.shortTitle).toBe('Wahlen');
     expect(handbookIndex).toContain('[Dokumentation](14-dokumentation.md)');
     expect(handbookIndex).toContain('[Wahlen](17-wahlen.md)');
+    expect(handbookIndex.indexOf('[Glossar](18-glossar.md)')).toBeGreaterThan(handbookIndex.indexOf('[Wahlen](17-wahlen.md)'));
     expect(navigationGuide).toContain('## Sitzungen');
     expect(navigationGuide).toContain('## Dokumentation');
     expect(navigationGuide).toContain('## Wahlen');

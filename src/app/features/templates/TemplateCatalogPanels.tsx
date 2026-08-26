@@ -36,7 +36,7 @@ export function TemplateCatalogToolbar({
         </div>
       </div>
       <IndustrialButton onClick={onCreate}>
-        <Plus className="h-4 w-4" aria-hidden="true" /> Neue Vorlage
+        <Plus className="h-4 w-4" aria-hidden="true" /> Vorlage anlegen
       </IndustrialButton>
     </div>
   );

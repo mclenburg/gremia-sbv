@@ -142,7 +142,7 @@ export function ReportsView() {
           </ToolbarButton>
           <IndustrialButton onClick={() => void generateReport(false)} disabled={loading || !selectedDescriptor}>
             <Download className="h-4 w-4" />
-            PDF erzeugen
+            PDF speichern
           </IndustrialButton>
           <IndustrialButton onClick={() => void generateReport(true)} disabled={loading || !selectedDescriptor}>
             <ExternalLink className="h-4 w-4" />
