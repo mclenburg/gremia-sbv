@@ -164,7 +164,8 @@ export function useCaseCrudActions(deps: UseCaseCrudActionsDeps) {
     try {
       const bridge = await waitForBridge();
       if (!bridge?.cases) throw new Error("Falldienst ist nicht erreichbar.");
-      await bridge.cases.openDocument(document.id);
+      const result = await bridge.cases.openDocument(document.id);
+      if (!result.opened) { const message = result.error ?? "Das Falldokument wurde temporär bereitgestellt, konnte aber nicht an die externe Vorschau-Anwendung übergeben werden."; setDocumentError(message); announce(message, "assertive"); }
     } catch (error) {
       setDocumentError(
         error instanceof Error
@@ -223,7 +224,6 @@ export function useCaseCrudActions(deps: UseCaseCrudActionsDeps) {
       );
     }
   }
-
 
   return { openCaseCreateModal, cancelCaseCreateModal, addCase, addAnonymousCase, deleteNote, importDocuments, openDocument, exportDocument, deleteDocument };
 }

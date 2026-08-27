@@ -24,10 +24,26 @@ interface DocumentPreviewRecordWorkflowInput<TRecord> {
   getFilename: (record: TRecord) => string;
 }
 
+interface PlainDocumentPreviewWorkflowInput {
+  operation: string;
+  readFailureMessage: string;
+  security: Pick<SecurityService, 'cleanupTemporaryFiles' | 'writeTemporaryFile'>;
+  opener: ExternalPreviewOpener;
+  fileName: string;
+  read: () => Promise<Buffer> | Buffer;
+  tempPurpose?: Parameters<Pick<SecurityService, 'writeTemporaryFile'>['writeTemporaryFile']>[0];
+}
+
 export interface DocumentPreviewRecordWorkflowResult<TRecord> {
   record: TRecord;
   previewStatus: 'requested' | 'unavailable';
   previewMessage?: string;
+}
+
+export interface PlainDocumentPreviewWorkflowResult {
+  opened: boolean;
+  filePath: string;
+  error?: string;
 }
 
 async function documentStage<T>(
@@ -102,6 +118,45 @@ export async function generateAndRequestDocumentPreviewForRecord<TRecord>(
       record,
       previewStatus: 'unavailable',
       previewMessage: error.message,
+    };
+  } finally {
+    plain?.fill(0);
+  }
+}
+
+export async function requestPlainDocumentPreview(
+  input: PlainDocumentPreviewWorkflowInput,
+): Promise<PlainDocumentPreviewWorkflowResult> {
+  let plain: Buffer | undefined;
+  try {
+    plain = await documentStage(
+      input.operation,
+      'read-and-verify',
+      'DATABASE_INTEGRITY_FAILED',
+      input.readFailureMessage,
+      input.read,
+    );
+    await documentStage(
+      input.operation,
+      'cleanup-temporary-files',
+      'FILE_OPERATION_FAILED',
+      'Das Dokument konnte gelesen werden, vorhandene temporäre Vorschauen konnten aber nicht sicher bereinigt werden.',
+      () => input.security.cleanupTemporaryFiles(),
+    );
+    const previewPath = await documentStage(
+      input.operation,
+      'write-preview',
+      'FILE_OPERATION_FAILED',
+      'Das Dokument konnte gelesen werden, die temporäre Vorschau konnte aber nicht geschrieben werden.',
+      () => input.security.writeTemporaryFile(input.tempPurpose ?? 'document-preview', input.fileName, plain!, 'preview'),
+    );
+    if (await requestExternalPreview(previewPath, input.opener)) {
+      return { opened: true, filePath: previewPath };
+    }
+    return {
+      opened: false,
+      filePath: previewPath,
+      error: 'Der Auftrag an die externe Vorschau-Anwendung konnte nicht erteilt werden.',
     };
   } finally {
     plain?.fill(0);

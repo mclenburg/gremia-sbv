@@ -254,7 +254,7 @@ declare global {
         deleteDocument(id: string): Promise<{ deleted: boolean }>;
         openDocument(
           id: string,
-        ): Promise<{ opened: boolean; filePath: string }>;
+        ): Promise<{ opened: boolean; filePath: string; error?: string }>;
         exportDocument(
           id: string,
           suggestedFileName?: string,

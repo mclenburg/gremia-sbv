@@ -1,5 +1,4 @@
 import { useState, type FormEvent } from 'react';
-import { FileSpreadsheet, HelpCircle, X } from 'lucide-react';
 import {
   protectionStatusLabels,
   type PersonImportColumnMapping,
@@ -20,6 +19,7 @@ import {
   updateColumnMapping
 } from './personImportUi';
 import { PersonImportResultStep } from './PersonImportResultStep';
+import { IndustrialButton, IndustrialModal, SelectInput } from '../../shared/components/IndustrialControls';
 
 export function PersonImportWizard({
   open,
@@ -115,21 +115,20 @@ export function PersonImportWizard({
   }
 
   return (
-    <div className="person-import-overlay" role="presentation">
-      <section className="person-import-dialog" role="dialog" aria-modal="true" aria-labelledby="person-import-title" data-e2e="person-import-wizard">
-        <header className="person-import-header">
-          <div>
-            <p className="industrial-kicker">Import-Assistent</p>
-            <h2 id="person-import-title">Personen importieren</h2>
-          </div>
-          <button type="button" className="industrial-icon-button" onClick={resetAndClose} aria-label="Import-Assistent schließen" data-e2e="person-import-close-icon">
-            <X className="h-4 w-4" aria-hidden="true" />
-          </button>
-        </header>
+    <IndustrialModal
+      title="Personen importieren"
+      kicker="Import-Assistent"
+      description="Excel- oder CSV-Arbeitgeberlisten lokal prüfen, Spalten zuordnen und Änderungen bewusst übernehmen."
+      wide
+      className="person-import-dialog"
+      onClose={resetAndClose}
+      dataE2e="person-import-wizard"
+      actions={<IndustrialButton type="button" variant="secondary" onClick={resetAndClose} data-e2e="person-import-close-icon">Schließen</IndustrialButton>}
+    >
         <ImportSteps currentStep={step} />
-        <button type="button" className="industrial-link-button person-help-toggle" onClick={() => setShowHelp((current) => !current)} aria-expanded={showHelp}>
-          <HelpCircle className="h-4 w-4" aria-hidden="true" /> Wie funktioniert der Import?
-        </button>
+        <IndustrialButton type="button" variant="secondary" compact className="person-help-toggle" onClick={() => setShowHelp((current) => !current)} aria-expanded={showHelp}>
+          Wie funktioniert der Import?
+        </IndustrialButton>
         {showHelp && <ImportHelp />}
         {step === 'source' && (
           <SourceStep csvText={csvText} onCsvTextChange={setCsvText} onLoadFile={loadFileForPreview} onPreviewPastedCsv={previewPastedCsv} />
@@ -144,8 +143,7 @@ export function PersonImportWizard({
           <ValidateStep preview={preview} onBack={() => setStep('mapping')} onExecute={executeImport} />
         )}
         {step === 'result' && result && <PersonImportResultStep result={result} onClose={resetAndClose} />}
-      </section>
-    </div>
+    </IndustrialModal>
   );
 }
 
@@ -180,12 +178,12 @@ function SourceStep({ csvText, onCsvTextChange, onLoadFile, onPreviewPastedCsv }
   return (
     <div className="person-import-section">
       <p className="industrial-muted">Die Datei wird lokal verarbeitet und nicht dauerhaft gespeichert. Der genaue GdB wird nicht importiert.</p>
-      <button type="button" className="industrial-button" onClick={onLoadFile}><FileSpreadsheet className="h-4 w-4" aria-hidden="true" /> Excel-/CSV-Datei auswählen</button>
+      <IndustrialButton type="button" onClick={onLoadFile}>Excel-/CSV-Datei auswählen</IndustrialButton>
       <details className="person-csv-details">
         <summary>Erweiterte Option: CSV direkt einfügen</summary>
         <form onSubmit={onPreviewPastedCsv} className="industrial-settings-form person-import-csv-form">
           <label className="span-2"><span>CSV-Daten</span><textarea value={csvText} onChange={(event) => onCsvTextChange(event.target.value)} rows={5} placeholder={'Name;Status;Gültig bis\nMustermann, Max;gleichgestellt;15.06.2026'} /></label>
-          <button type="submit" className="industrial-secondary-button">CSV-Vorschau erzeugen</button>
+          <IndustrialButton type="submit" variant="secondary">CSV-Vorschau erzeugen</IndustrialButton>
         </form>
       </details>
     </div>
@@ -199,30 +197,31 @@ function PreviewStep({ sourceName, preview, onBack, onNext }: { sourceName: stri
       <p className="industrial-muted">Gezeigt werden die ersten importierbaren Zeilen. Im nächsten Schritt ordnen Sie die echten Spalten der Datei den Zielfeldern zu.</p>
       {preview.detectedEncoding && <p className="industrial-message industrial-message-info">Zeichenkodierung: {preview.detectedEncoding} ({preview.encodingConfidence ?? 'unbekannt'}). Umlaute werden anhand dieser Kodierung verarbeitet.</p>}
       <ImportPreviewTable preview={preview} />
-      <div className="person-import-footer"><button type="button" className="industrial-secondary-button" onClick={onBack}>Zurück</button><button type="button" className="industrial-button" onClick={onNext}>Weiter zum Spaltenmapping</button></div>
+      <div className="person-import-footer"><IndustrialButton type="button" variant="secondary" onClick={onBack}>Zurück</IndustrialButton><IndustrialButton type="button" onClick={onNext}>Weiter zum Spaltenmapping</IndustrialButton></div>
     </div>
   );
 }
 
 function MappingStep({ preview, mapping, onMappingChange, onModeChange, onBack, onValidate }: { preview: PersonImportPreviewResult; mapping: PersonImportColumnMapping; onMappingChange: (key: ImportFieldKey, value: string) => void; onModeChange: (mode: PersonImportColumnMapping['fullNameMode']) => void; onBack: () => void; onValidate: () => void }) {
+  const columnOptions = [{ value: '', label: 'Nicht importieren' }, ...preview.columns.map((column) => ({ value: column, label: column }))];
   return (
     <div className="person-import-section">
       <h3>Spaltenmapping</h3>
       <p className="industrial-muted">Ordnen Sie die Spalten der Arbeitgeberliste den Zielfeldern zu. Nutzen Sie entweder Vollname oder getrennte Vor-/Nachnamen.</p>
       <div className="person-mapping-grid">
         {importFieldOptions.map((field) => (
-          <label key={field.key}><span>{field.label}</span><select className="industrial-select" aria-label={field.label} data-e2e={`person-import-field-${field.key}`} value={String(mapping[field.key] ?? '')} onChange={(event) => onMappingChange(field.key, event.target.value)}><option value="">Nicht importieren</option>{preview.columns.map((column) => <option key={column} value={column}>{column}</option>)}</select></label>
+          <SelectInput key={field.key} label={field.label} data-e2e={`person-import-field-${field.key}`} value={String(mapping[field.key] ?? '')} onValueChange={(value) => onMappingChange(field.key, value)} options={columnOptions} />
         ))}
       </div>
-      {mapping.fullName && <label className="person-fullname-mode"><span>Format der Namensspalte</span><select className="industrial-select" aria-label="Format der Namensspalte" data-e2e="person-import-fullname-mode" value={mapping.fullNameMode ?? 'last_comma_first'} onChange={(event) => onModeChange(event.target.value as PersonImportColumnMapping['fullNameMode'])}><option value="last_comma_first">Nachname, Vorname</option><option value="first_last">Vorname Nachname</option></select></label>}
-      <div className="person-import-footer"><button type="button" className="industrial-secondary-button" onClick={onBack}>Zurück</button><button type="button" className="industrial-button" onClick={() => void onValidate()}>Mapping prüfen</button></div>
+      {mapping.fullName && <SelectInput className="person-fullname-mode" label="Format der Namensspalte" data-e2e="person-import-fullname-mode" value={mapping.fullNameMode ?? 'last_comma_first'} onValueChange={(value) => onModeChange(value as PersonImportColumnMapping['fullNameMode'])} options={[{ value: 'last_comma_first', label: 'Nachname, Vorname' }, { value: 'first_last', label: 'Vorname Nachname' }]} />}
+      <div className="person-import-footer"><IndustrialButton type="button" variant="secondary" onClick={onBack}>Zurück</IndustrialButton><IndustrialButton type="button" onClick={() => void onValidate()}>Mapping prüfen</IndustrialButton></div>
     </div>
   );
 }
 
 function ValidateStep({ preview, onBack, onExecute }: { preview: PersonImportPreviewResult; onBack: () => void; onExecute: () => void }) {
   return (
-    <div className="person-import-section"><h3>Importprüfung</h3>{preview.detectedEncoding && <p className="industrial-message industrial-message-info">Zeichenkodierung: {preview.detectedEncoding} ({preview.encodingConfidence ?? 'unbekannt'}).</p>}<div className="person-import-summary"><span>{preview.rows.length} Zeilen in der Vorschau</span><span>{countRowsWithErrors(preview)} Zeilen mit Hinweisen</span><span>{preview.warnings.length} allgemeine Hinweise</span></div>{preview.warnings.map((warning) => <p key={warning} className="industrial-message industrial-message-warning">{warning}</p>)}<ImportPreviewTable preview={preview} /><div className="person-import-footer"><button type="button" className="industrial-secondary-button" onClick={onBack}>Zurück</button><button type="button" className="industrial-button" onClick={() => void onExecute()}>Import ausführen</button></div></div>
+    <div className="person-import-section"><h3>Importprüfung</h3>{preview.detectedEncoding && <p className="industrial-message industrial-message-info">Zeichenkodierung: {preview.detectedEncoding} ({preview.encodingConfidence ?? 'unbekannt'}).</p>}<div className="person-import-summary"><span>{preview.rows.length} Zeilen in der Vorschau</span><span>{countRowsWithErrors(preview)} Zeilen mit Hinweisen</span><span>{preview.warnings.length} allgemeine Hinweise</span></div>{preview.warnings.map((warning) => <p key={warning} className="industrial-message industrial-message-warning">{warning}</p>)}<ImportPreviewTable preview={preview} /><div className="person-import-footer"><IndustrialButton type="button" variant="secondary" onClick={onBack}>Zurück</IndustrialButton><IndustrialButton type="button" onClick={() => void onExecute()}>Import ausführen</IndustrialButton></div></div>
   );
 }
 
