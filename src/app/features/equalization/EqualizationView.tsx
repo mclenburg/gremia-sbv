@@ -52,6 +52,21 @@ function EqualizationHelpDialog({ onClose }: { onClose: () => void }) {
   );
 }
 
+function EqualizationEmptyState({ onCreate }: { onCreate: () => void }) {
+  return (
+    <EmptyState
+      title="Noch kein Gleichstellungs-/GdB-Vorgang"
+      text="Die Erstanlage erzeugt sichtbar zusammengehörig Person, Fallakte und Verfahren. Aufbewahrung und Löschprüfung folgen dem Vorgang und der verknüpften Fallakte; gelöscht wird weiterhin nur manuell."
+      action={(
+        <IndustrialButton onClick={onCreate}>
+          <Plus className="h-4 w-4" />
+          Vorgang anlegen
+        </IndustrialButton>
+      )}
+    />
+  );
+}
+
 export function EqualizationView({ cases, persons, onOpenCaseNode, onRecordsChanged }: {
   cases: CaseRecord[];
   persons: ProtectedPersonRecord[];
@@ -133,7 +148,7 @@ export function EqualizationView({ cases, persons, onOpenCaseNode, onRecordsChan
           { label: 'überfällig', value: overdueCount },
           { label: 'gesamt', value: cards.length }
         ]}
-        groups={groups}
+        groups={cards.length === 0 ? [] : groups}
         feedbackItems={[loading ? { id: 'equalization-loading', message: 'Gleichstellungsverfahren werden geladen …' } : null, error ? { id: 'equalization-error', tone: 'warning', message: error } : null]}
         emptyText="Keine Verfahren in diesem Status."
         helpAction={(
@@ -156,11 +171,8 @@ export function EqualizationView({ cases, persons, onOpenCaseNode, onRecordsChan
           />
         )}
       >
-        {!loading && !error && groups.length === 0 && (
-          <EmptyState
-            title="Keine Verfahren"
-            text="Noch keine Gleichstellungs- oder GdB-Verfahren vorhanden. Über „Vorgang anlegen“ entstehen Person, verknüpfte Fallakte und Verfahren in einem Schritt."
-          />
+        {!loading && !error && cards.length === 0 && (
+          <EqualizationEmptyState onCreate={() => setShowIntake(true)} />
         )}
       </ProcessOverviewPage>
 

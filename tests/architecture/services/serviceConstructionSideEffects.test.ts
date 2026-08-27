@@ -5,18 +5,25 @@ import { ActivityJournalPreferenceService } from '../../../services/activityJour
 import { ActivityJournalService } from '../../../services/activityJournalService.js';
 import { PersonalDataAuditLogService } from '../../../services/auditLogService.js';
 import { BemService } from '../../../services/bemService.js';
+import { CaseAnonymizationService } from '../../../services/caseAnonymizationService.js';
 import { CaseMeasureService } from '../../../services/caseMeasureService.js';
+import { CaseHandoverService } from '../../../services/caseHandoverService.js';
 import { ComplianceIncidentService } from '../../../services/complianceIncidentService.js';
+import { ContactService } from '../../../services/contactService.js';
 import { DeadlineService } from '../../../services/deadlineService.js';
 import { EqualizationService } from '../../../services/equalizationService.js';
+import { KnowledgeService } from '../../../services/knowledgeService.js';
 import { ParticipationService } from '../../../services/participationService.js';
 import { PreventionService } from '../../../services/preventionService.js';
 import { RecruitingParticipationService } from '../../../services/recruitingParticipationService.js';
+import { RetentionService } from '../../../services/retentionService.js';
 import { SbvControlProtocolService } from '../../../services/sbvControlProtocolService.js';
 import { SbvParticipationViolationService } from '../../../services/sbvParticipationViolationService.js';
 import { SbvParticipationViolationDocumentService } from '../../../services/sbvParticipationViolationDocumentService.js';
 import { SbvResourceService } from '../../../services/sbvResourceService.js';
 import { TerminationService } from '../../../services/terminationService.js';
+import { TemplateService } from '../../../services/templateService.js';
+import { TemplateDefaultService } from '../../../services/templateDefaultService.js';
 import { WorkplaceAccommodationService } from '../../../services/workplaceAccommodationService.js';
 import { ApplicationServices } from '../../../electron/applicationServices.js';
 import type { SecurityService } from '../../../services/securityService.js';
@@ -58,18 +65,25 @@ describe('database-bound service construction', () => {
       () => new ActivityJournalService(db),
       () => new PersonalDataAuditLogService(db),
       () => new BemService(db),
+      () => new CaseAnonymizationService(db, () => ''),
       () => new CaseMeasureService(db),
+      () => new CaseHandoverService(db, () => ''),
       () => new ComplianceIncidentService(db),
+      () => new ContactService(db),
       () => new DeadlineService(db),
       () => new EqualizationService(db),
+      () => new KnowledgeService(db),
       () => new ParticipationService(db),
       () => new PreventionService(db),
       () => new RecruitingParticipationService(db),
+      () => new RetentionService(db, () => ''),
       () => new SbvControlProtocolService(db),
       () => new SbvParticipationViolationService(db),
       () => new SbvParticipationViolationDocumentService(db, () => ''),
       () => new SbvResourceService(db),
       () => new TerminationService(db),
+      () => new TemplateService(db),
+      () => new TemplateDefaultService(db),
       () => new WorkplaceAccommodationService(db),
     ];
 

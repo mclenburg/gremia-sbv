@@ -27,6 +27,8 @@ Der Button **? Hilfe** rechts oben im jeweiligen Arbeitsbereich erklärt den akt
 
 Zu Beginn wird ein Wahlvorgang angelegt und der organisatorische Rahmen dokumentiert. Dazu gehören der Wahlgrund, die festgestellte Mindestschwelle, das anzuwendende Verfahren und das zuständige Wahlorgan.
 
+Solange noch keine Wahlakte vorhanden ist, zeigt der Wahlbereich nur den Startzustand mit **Wahlvorgang anlegen**. Erst nach dieser bewussten Anlage werden die weiteren Abschnitte mit ihren fachlich passenden Feldern und Dokumentaktionen sinnvoll befüllbar.
+
 Die Anwendung dient dabei als Dokumentations- und Arbeitswerkzeug. Sie ersetzt nicht die rechtliche Prüfung, welches Verfahren im konkreten Betrieb tatsächlich anzuwenden ist.
 
 ## Wählerliste und Wahlvorschläge

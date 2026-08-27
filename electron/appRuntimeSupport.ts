@@ -5,6 +5,10 @@ import { resolveApplicationDataDirectory } from "./runtimePlatformIntegration.js
 import { registerRendererSecurityPolicy } from "./security/electronSecurity.js";
 import { buildStartupSplashHtml, buildStartupStatusScript, type StartupPhaseId } from "./startupStatus.js";
 import { logStartupTimeline, markStartupPhase } from "./startupPerformance.js";
+import {
+  buildRendererConsoleDiagnostic,
+  shouldForwardRendererConsoleDiagnostics,
+} from "./rendererConsoleDiagnostics.js";
 app.setName("Gremia.SBV");
 app.setAppUserModelId("de.gremia.sbv");
 
@@ -204,12 +208,12 @@ export function registerDiagnostics(win: BrowserWindow): void {
     console.info("Gremia.SBV renderer loaded.");
   });
 
-  if (!app.isPackaged && process.env.GREMIA_SBV_RENDERER_CONSOLE === "1") {
+  if (shouldForwardRendererConsoleDiagnostics(app.isPackaged, process.env.GREMIA_SBV_RENDERER_CONSOLE)) {
     win.webContents.on(
       "console-message",
       (_event, level, message, line) => {
-        const prefix = level >= 2 ? "Gremia.SBV renderer console error" : "Gremia.SBV renderer console";
-        console.log(prefix, { level, message, line });
+        const diagnostic = buildRendererConsoleDiagnostic(level, message, line);
+        console.log(diagnostic.prefix, diagnostic.metadata);
       },
     );
   }

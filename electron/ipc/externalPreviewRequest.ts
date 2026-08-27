@@ -1,10 +1,7 @@
-export type ExternalPreviewOpener = (previewPath: string) => Promise<string>;
+import { requestShellPathOpen, type ShellPathOpener } from './shellOpenPath.js';
 
-export function requestExternalPreview(previewPath: string, opener: ExternalPreviewOpener): boolean {
-  try {
-    void opener(previewPath).catch(() => undefined);
-    return true;
-  } catch {
-    return false;
-  }
+export type ExternalPreviewOpener = ShellPathOpener;
+
+export async function requestExternalPreview(previewPath: string, opener: ExternalPreviewOpener): Promise<boolean> {
+  return (await requestShellPathOpen(previewPath, opener)).opened;
 }

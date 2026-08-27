@@ -165,6 +165,19 @@
   margin: 1rem 0;
 }
 
+.person-import-review {
+  display: grid;
+  gap: 0.75rem;
+  margin-block: 1rem;
+}
+
+.person-import-review h4 {
+  margin: 0;
+  color: var(--industrial-text-strong);
+  font-size: 1rem;
+  font-weight: 850;
+}
+
 .person-lifecycle-review {
   margin: 1rem 0;
 }
@@ -3180,4 +3193,59 @@ html[data-theme='light'] .person-lifecycle-badge.muted {
 .election-import-panel {
   border-top: 1px solid var(--industrial-border);
   padding-top: 1rem;
+}
+
+/* Beteiligungsverstöße: Nachverfolgung ist eine Kontrollsicht, keine enge Formularspalte. */
+.participation-violations-tracking {
+  width: 100%;
+}
+
+.participation-violations-tracking .industrial-data-table {
+  min-width: min(58rem, 100%);
+}
+
+.participation-violations-tracking .industrial-data-table th:last-child,
+.participation-violations-tracking .industrial-data-table td:last-child {
+  width: 15rem;
+}
+
+.participation-violation-actions {
+  display: grid;
+  gap: 0.55rem;
+  justify-items: stretch;
+  min-width: min(13rem, 100%);
+}
+
+.participation-violation-actions > button,
+.participation-violation-more-actions button {
+  width: 100%;
+  justify-content: center;
+}
+
+.participation-violation-more-actions {
+  border: 1px solid var(--industrial-border);
+  background: color-mix(in srgb, var(--industrial-panel-muted) 92%, transparent);
+}
+
+.participation-violation-more-actions > summary {
+  min-height: var(--control-min-height);
+  padding: 0.55rem 0.65rem;
+  cursor: pointer;
+  color: var(--industrial-text);
+  font-size: 0.76rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.participation-violation-more-actions > summary:focus-visible {
+  outline: 2px solid var(--industrial-accent);
+  outline-offset: 2px;
+}
+
+.participation-violation-more-actions-menu {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0 0.55rem 0.55rem;
 }

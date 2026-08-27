@@ -16,8 +16,8 @@ export class DatabaseRuntimeInitializer {
 
   initialize(): { baselineEntriesCreated: number; aggregateExtensionsChecked: number } {
     const aggregateExtensionsChecked = new DomainAggregateIntegrityService(this.database).verify().checkedExtensions;
-    new KnowledgeService(() => this.database).seedReferenceData(this.database);
-    new TemplateService(() => this.database).seedReferenceData(this.database);
+    new KnowledgeService(this.database).seedReferenceData(this.database);
+    new TemplateService(this.database).seedReferenceData(this.database);
     return { baselineEntriesCreated: this.ensureMeasureLifecycleBaselines(), aggregateExtensionsChecked };
   }
 

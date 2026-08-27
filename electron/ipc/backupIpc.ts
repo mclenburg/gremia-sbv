@@ -4,6 +4,7 @@ import path from "node:path";
 import type { SecurityService } from "../../services/securityService.js";
 import type { ApplicationServices } from '../applicationServices.js';
 import { assertString, ensurePathInside } from "./ipcValidation.js";
+import { requestShellPathOpen } from './shellOpenPath.js';
 
 export function registerBackupIpc(
   ipcMain: IpcMain,
@@ -63,7 +64,6 @@ export function registerBackupIpc(
       "backup:open-backup-folder",
       "Backup-Ordner",
     );
-    await shell.openPath(backupDir);
-    return { opened: true };
+    return requestShellPathOpen(backupDir, (targetPath) => shell.openPath(targetPath));
   });
 }

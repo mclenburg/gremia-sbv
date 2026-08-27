@@ -1,24 +1,72 @@
 import { describe, expect, it } from 'vitest';
-import { readFileSync, readdirSync, statSync } from 'node:fs';
-import { join, relative } from 'node:path';
+import { ApplicationServices } from '../../../electron/applicationServices.js';
+import type { DatabaseAdapter } from '../../../services/databaseService.js';
+import type { SecurityService } from '../../../services/securityService.js';
 
-function serviceSourceFiles(directory = join(process.cwd(), 'services')): string[] {
-  return readdirSync(directory).flatMap((entry) => {
-    const absolute = join(directory, entry);
-    const stat = statSync(absolute);
-    if (stat.isDirectory()) return serviceSourceFiles(absolute);
-    return entry.endsWith('.ts') && !entry.endsWith('.d.ts') ? [absolute] : [];
-  });
+function serviceDb(label: string): DatabaseAdapter {
+  return {
+    prepare: () => {
+      throw new Error(`Unexpected SQL access while resolving ${label} service`);
+    },
+    exec: () => undefined,
+    pragma: () => undefined,
+    close: () => undefined,
+  } as unknown as DatabaseAdapter;
 }
 
-describe('Konstruktor-Signaturen im Service-Layer', () => {
-  it('vermeidet die uneinheitlichen Parameter-Namen db, dbProvider und getDb', () => {
-    const offenders = serviceSourceFiles().flatMap((file) => {
-      const source = readFileSync(file, 'utf8');
-      const matches = source.matchAll(/constructor\s*\([^)]*\b(?:db|dbProvider|getDb)\b/g);
-      return Array.from(matches, () => relative(process.cwd(), file));
-    });
+function applicationServicesForDatabases(databases: { active: DatabaseAdapter }): ApplicationServices {
+  const testDataDirectory = 'gremia-sbv-test-data';
+  const security = {
+    getActiveDatabase: () => databases.active,
+    getDataDirectory: () => testDataDirectory,
+    getActiveDatabaseKey: () => Buffer.alloc(32),
+  } as unknown as SecurityService;
+  return new ApplicationServices(security, () => testDataDirectory);
+}
 
-    expect(offenders).toEqual([]);
+describe('datenbankgebundene Service-Komposition', () => {
+  it('scoped fachlich datenbankgebundene Services je aktivem Tresor statt sie als Singleton mit Lazy-Provider zu halten', () => {
+    const firstDatabase = serviceDb('first');
+    const secondDatabase = serviceDb('second');
+    const state = { active: firstDatabase };
+    const services = applicationServicesForDatabases(state);
+
+    const firstScope = {
+      handover: services.caseHandover(),
+      caseAnonymization: services.caseAnonymization(),
+      contacts: services.contacts(),
+      knowledge: services.knowledge(),
+      retention: services.retention(),
+      templates: services.templates(),
+      templateDefaults: services.templateDefaults(),
+    };
+    const repeatedFirstScope = {
+      handover: services.caseHandover(),
+      caseAnonymization: services.caseAnonymization(),
+      contacts: services.contacts(),
+      knowledge: services.knowledge(),
+      retention: services.retention(),
+      templates: services.templates(),
+      templateDefaults: services.templateDefaults(),
+    };
+    state.active = secondDatabase;
+    const secondScope = {
+      handover: services.caseHandover(),
+      caseAnonymization: services.caseAnonymization(),
+      contacts: services.contacts(),
+      knowledge: services.knowledge(),
+      retention: services.retention(),
+      templates: services.templates(),
+      templateDefaults: services.templateDefaults(),
+    };
+
+    expect(repeatedFirstScope).toEqual(firstScope);
+    expect(secondScope.handover).not.toBe(firstScope.handover);
+    expect(secondScope.caseAnonymization).not.toBe(firstScope.caseAnonymization);
+    expect(secondScope.contacts).not.toBe(firstScope.contacts);
+    expect(secondScope.knowledge).not.toBe(firstScope.knowledge);
+    expect(secondScope.retention).not.toBe(firstScope.retention);
+    expect(secondScope.templates).not.toBe(firstScope.templates);
+    expect(secondScope.templateDefaults).not.toBe(firstScope.templateDefaults);
   });
 });

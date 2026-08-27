@@ -28,11 +28,11 @@ Gremia.SBV folgt drei Grundsätzen:
 | [Dokumente, Vorlagen und Exporte](10-dokumente-vorlagen-und-exporte.md) | Schreiben, Berichte, datensparsame Ausleitung |
 | [Backup, Restore und Notfall](11-backup-restore-und-notfall.md) | Sicherung, Wiederherstellung, Gerätewechsel |
 | [Barrierearme Bedienung](12-barrierearme-bedienung.md) | Tastatur, Screenreader, Fokus und Lesbarkeit |
-| [Glossar](13-glossar.md) | Fachbegriffe kurz erklärt |
 | [Dokumentation](14-dokumentation.md) | Sitzungen, Protokolle, Nachweise, Arbeitgeberpflichten und weitere SBV-Dokumentation |
 | [Gleichstellung](15-gleichstellung.md) | Gleichstellungsverfahren datensparsam begleiten |
 | [Stellenbesetzungen](16-stellenbesetzungen.md) | Bewerbungsverfahren, Unterlagen und SBV-Anhörung nachhalten |
 | [Wahlen](17-wahlen.md) | Örtliche SBV-Wahl vorbereiten, durchführen, abschließen und geschützt übergeben |
+| [Glossar](18-glossar.md) | Fachbegriffe kurz erklärt |
 
 ## Fachliche Grenze
 

@@ -15,6 +15,7 @@ import {
   assertString,
   sanitizeDialogFileName,
 } from "./ipcValidation.js";
+import { requestShellPathOpen } from "./shellOpenPath.js";
 
 const DOCUMENT_IMPORT_EXTENSIONS = [
   "pdf",
@@ -73,8 +74,8 @@ export function registerCaseIpc(
   registerIpcHandler(ipcMain, IPC_CHANNELS.casesDocumentsOpen, async (_event, id: unknown) => {
     const documentId = assertString(id, "cases:documents:open", "Dokument-ID", { minLength: 1, maxLength: 120 });
     const tempCopy = await cases.createTemporaryDocumentCopy(documentId);
-    const error = await shell.openPath(tempCopy.filePath);
-    if (error) throw new Error(error);
+    const openResult = await requestShellPathOpen(tempCopy.filePath, (targetPath) => shell.openPath(targetPath));
+    if (!openResult.opened) throw new Error(openResult.error);
     return { opened: true, filePath: tempCopy.filePath };
   });
   registerIpcHandler(ipcMain, IPC_CHANNELS.casesDocumentsExport,

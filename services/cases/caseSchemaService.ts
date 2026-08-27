@@ -39,7 +39,6 @@ import { PersonalDataAuditLogService } from "../auditLogService.js";
 import { TempFileService } from "../tempFileService.js";
 import { PersonCaseBindingService } from "../personCaseBindingService.js";
 import { assertCanCreateRegularCase } from "../personCaseBindingPolicy.js";
-import { SearchIndexService } from "../search/searchIndexService.js";
 import { extractDocumentTextBestEffort, inferMimeType } from "../documents/documentTextExtractionService.js";
 import { DocumentOcrService } from "../documents/documentOcrService.js";
 import { CaseServiceCore } from './caseServiceCore.js';
@@ -151,6 +150,5 @@ export class CaseSchemaService extends CaseServiceCore {
         WHERE NOT EXISTS (SELECT 1 FROM case_documents_fts f WHERE f.id = d.id);
       `);
   
-      new SearchIndexService(db).ensureSchema();
     }
 }

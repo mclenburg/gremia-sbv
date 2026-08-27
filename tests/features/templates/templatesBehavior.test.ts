@@ -17,7 +17,7 @@ beforeEach(async () => {
     value TEXT NOT NULL,
     updated_at TEXT NOT NULL
   );`);
-  service = new TemplateService(() => db);
+  service = new TemplateService(db);
   service.ensureSchema(db);
   db.prepare(`INSERT INTO cases (id, case_number, display_name, category, status, summary, risk_level)
     VALUES (?, ?, ?, ?, ?, ?, ?)`).run('case-1', 'SBV-2026-001', 'Erika Muster', 'arbeitsplatz', 'offen', 'Kurzinfo', 'hoch');

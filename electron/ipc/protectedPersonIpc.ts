@@ -12,7 +12,7 @@ import { assertAllowedEnum, assertOptionalObject, assertRecordInput, assertStrin
 export function registerProtectedPersonIpc(ipcMain: IpcMain, security: SecurityService, services: ApplicationServices): void {
   const persons = services.protectedPersons, imports = services.personImport, expiry = services.personStatusExpiry;
   const anonymization = services.personAnonymization, deadlines = services.deadlines, privacyReviews = services.privacyReviews;
-  const retention = () => services.retention;
+  const retention = () => services.retention();
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.personsList, async (_event, filters?: unknown) =>
     persons().list(assertOptionalObject<ProtectedPersonListFilters>(filters, 'persons:list', 'Filter') ?? {}),
@@ -133,7 +133,7 @@ export function registerProtectedPersonIpc(ipcMain: IpcMain, security: SecurityS
   registerIpcHandler(ipcMain, IPC_CHANNELS.privacyReviewAnonymizeCase, async (_event, input: unknown) => {
     const checked = assertRecordInput<PrivacyReviewActionInput>(input, 'privacy-review:anonymize-case');
     const caseId = assertString(checked.caseId, 'privacy-review:anonymize-case', 'Fall-ID', { minLength: 1, maxLength: 120 });
-    return services.caseAnonymization.anonymizeCase(
+    return services.caseAnonymization().anonymizeCase(
       caseId,
       assertString(checked.reason, 'privacy-review:anonymize-case', 'Grund', { minLength: 1, maxLength: 5_000 }),
       assertString(checked.confirmation, 'privacy-review:anonymize-case', 'Bestätigung', { minLength: 1, maxLength: 200 }), assertAllowedEnum(checked.anonymizationMode, 'privacy-review:anonymize-case', 'Anonymisierungsmodus', ['marked_free_text', 'replace_all_free_text'] as const),

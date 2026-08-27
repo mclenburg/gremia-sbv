@@ -72,7 +72,7 @@ class FakeTemplateDb implements DatabaseAdapter {
 describe('0.7.2 Kündigungsvorlagen', () => {
   it('legt den Sofortcheck für Frist und Schutzstatus als Systemvorlage an', async () => {
     const db = new FakeTemplateDb();
-    const service = new TemplateService(() => db);
+    const service = new TemplateService(db);
     service.seedReferenceData(db);
 
     const templates = await service.listTemplates({ category: 'kuendigung', includeSystem: true });
@@ -87,7 +87,7 @@ describe('0.7.2 Kündigungsvorlagen', () => {
 
   it('hält Stellungnahmevorlagen an SBV-Rechten und besonderem Kündigungsschutz fest', async () => {
     const db = new FakeTemplateDb();
-    const service = new TemplateService(() => db);
+    const service = new TemplateService(db);
     service.seedReferenceData(db);
 
     const templates = await service.listTemplates({ category: 'kuendigung', includeSystem: true });

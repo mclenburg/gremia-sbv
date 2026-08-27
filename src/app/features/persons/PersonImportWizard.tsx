@@ -1,13 +1,13 @@
 import { useState, type FormEvent } from 'react';
-import { CalendarCheck, FileSpreadsheet, HelpCircle, X } from 'lucide-react';
-import type {
-  PersonImportColumnMapping,
-  PersonImportExecuteInput,
-  PersonImportExecuteResult,
-  PersonImportPreviewInput,
-  PersonImportPreviewResult
+import { FileSpreadsheet, HelpCircle, X } from 'lucide-react';
+import {
+  protectionStatusLabels,
+  type PersonImportColumnMapping,
+  type PersonImportExecuteInput,
+  type PersonImportExecuteResult,
+  type PersonImportPreviewInput,
+  type PersonImportPreviewResult
 } from '../../../domain/models/protected-person.model';
-import { protectionStatusLabels } from '../../../domain/models/protected-person.model';
 import {
   buildDefaultMapping,
   countRowsWithErrors,
@@ -19,6 +19,7 @@ import {
   type ImportStep,
   updateColumnMapping
 } from './personImportUi';
+import { PersonImportResultStep } from './PersonImportResultStep';
 
 export function PersonImportWizard({
   open,
@@ -97,8 +98,8 @@ export function PersonImportWizard({
 
   async function validateImport() {
     if (!source) return;
-    if (!hasMappedName(mapping) || !mapping.protectionStatus) {
-      onError('Bitte ordnen Sie einen Namen und den Schutzstatus zu.');
+    if (!hasMappedName(mapping) || !hasMappedStatusSource(mapping)) {
+      onError('Bitte ordnen Sie einen Namen und eine Statusquelle zu: Statusspalte oder Nachweis-/Antragsdatum.');
       return;
     }
     await refreshPreview(mapping);
@@ -142,10 +143,14 @@ export function PersonImportWizard({
         {step === 'validate' && preview && (
           <ValidateStep preview={preview} onBack={() => setStep('mapping')} onExecute={executeImport} />
         )}
-        {step === 'result' && result && <ResultStep result={result} onClose={resetAndClose} />}
+        {step === 'result' && result && <PersonImportResultStep result={result} onClose={resetAndClose} />}
       </section>
     </div>
   );
+}
+
+function hasMappedStatusSource(mapping: PersonImportColumnMapping): boolean {
+  return Boolean(mapping.protectionStatus || mapping.severelyDisabledSince || mapping.equivalentPresentedAt || mapping.applicationFiledAt);
 }
 
 function ImportSteps({ currentStep }: { currentStep: ImportStep }) {
@@ -166,7 +171,7 @@ function ImportSteps({ currentStep }: { currentStep: ImportStep }) {
 function ImportHelp() {
   return (
     <div className="industrial-alert person-import-help">
-      <p>Wählen Sie eine Excel- oder CSV-Datei aus, prüfen Sie die Vorschau und ordnen Sie danach die Spalten den Zielfeldern zu. Personalnummer ist optional. Name und Vorname können getrennt oder in einer Vollnamen-Spalte stehen.</p>
+      <p>Wählen Sie eine Excel- oder CSV-Datei aus, prüfen Sie die Vorschau und ordnen Sie danach die Spalten den Zielfeldern zu. Personalnummer ist optional. Name und Vorname können getrennt oder in einer Vollnamen-Spalte stehen. Der Schutzstatus kann aus einer Statusspalte oder aus Nachweis-Datumsspalten wie „schwerbehindert seit“ und „Gleichstellung vorgelegt“ ermittelt werden.</p>
     </div>
   );
 }
@@ -221,14 +226,8 @@ function ValidateStep({ preview, onBack, onExecute }: { preview: PersonImportPre
   );
 }
 
-function ResultStep({ result, onClose }: { result: PersonImportExecuteResult; onClose: () => void }) {
-  return (
-    <div className="person-import-section"><h3><CalendarCheck className="inline-icon" aria-hidden="true" /> Import abgeschlossen</h3><div className="person-import-summary result"><span>Neu: {result.run.createdCount}</span><span>Aktualisiert: {result.run.updatedCount}</span><span>Unverändert: {result.run.unchangedCount}</span><span>Konflikte: {result.run.conflictCount}</span><span>Übersprungen: {result.run.skippedCount}</span></div><p className="industrial-muted">Die Importdatei wurde nicht dauerhaft gespeichert. Das Importprotokoll enthält keine Rohdaten.</p><div className="person-import-footer"><button type="button" className="industrial-secondary-button" data-e2e="person-import-close-result" onClick={onClose}>Schließen</button></div></div>
-  );
-}
-
 function ImportPreviewTable({ preview }: { preview: PersonImportPreviewResult }) {
   return (
-    <div className="person-preview-table-wrapper"><table className="industrial-table person-preview-table"><thead><tr><th>Zeile</th><th>Name</th><th>Status</th><th>Gültig bis</th><th>Hinweise</th></tr></thead><tbody>{preview.rows.slice(0, 8).map((row) => <tr key={row.rowNumber}><td>{row.rowNumber}</td><td>{[row.lastName, row.firstName].filter(Boolean).join(', ') || '—'}</td><td>{row.protectionStatus ? protectionStatusLabels[row.protectionStatus] : '—'}</td><td>{row.statusValidUntil ?? '—'}</td><td>{row.validationErrors.length ? row.validationErrors.join(' · ') : 'ok'}</td></tr>)}</tbody></table></div>
+    <div className="person-preview-table-wrapper"><table className="industrial-table person-preview-table"><thead><tr><th>Zeile</th><th>Name</th><th>Status</th><th>Gültig bis</th><th>Erkennung / Hinweise</th></tr></thead><tbody>{preview.rows.slice(0, 8).map((row) => <tr key={row.rowNumber}><td>{row.rowNumber}</td><td>{[row.lastName, row.firstName].filter(Boolean).join(', ') || '—'}</td><td>{row.protectionStatus ? protectionStatusLabels[row.protectionStatus] : '—'}</td><td>{row.statusValidUntil ?? '—'}</td><td>{[row.statusReason, ...(row.statusWarnings ?? []), ...row.validationErrors].filter(Boolean).join(' · ') || 'ok'}</td></tr>)}</tbody></table></div>
   );
 }

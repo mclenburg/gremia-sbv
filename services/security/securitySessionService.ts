@@ -90,10 +90,6 @@ export class SecuritySessionService extends VaultCredentialService {
       return result;
     }
 
-  cleanupStaleTemporaryFiles(): TempFileCleanupResult {
-      return this.tempFiles.cleanupStale();
-    }
-
   temporaryFileStatus(): TempFileStatus {
       return this.tempFiles.status();
     }

@@ -108,7 +108,7 @@ describe('Gleichstellungs-/GdB-Erstanlage als fachlicher Verbund', () => {
     db.prepare(`UPDATE equalization_processes SET application_status = 'abgeschlossen', updated_at = ? WHERE id = ?`)
       .run('2023-01-01T00:00:00.000Z', result.process.id);
 
-    const dashboard = new RetentionService(() => db, () => '').buildDashboard();
+    const dashboard = new RetentionService(db, () => '').buildDashboard();
 
     expect(dashboard.candidates).toContainEqual(expect.objectContaining({
       entityType: 'equalization_gdb',

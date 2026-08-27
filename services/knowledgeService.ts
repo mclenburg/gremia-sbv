@@ -195,18 +195,18 @@ export function ensureKnowledgeSchema(db: DatabaseAdapter): void {
 }
 
 export class KnowledgeService {
-  constructor(private readonly databaseProvider: () => DatabaseAdapter) {}
+  constructor(private readonly database: DatabaseAdapter) {}
 
-  ensureSchema(db = this.databaseProvider()): void {
+  ensureSchema(db = this.database): void {
     ensureKnowledgeSchema(db);
     this.seedReferenceData(db);
   }
 
-  seedReferenceData(db = this.databaseProvider()): void {
+  seedReferenceData(db = this.database): void {
     this.seedDefaults(db);
   }
 
-  private getSafeDb(): DatabaseAdapter { return this.databaseProvider(); }
+  private getSafeDb(): DatabaseAdapter { return this.database; }
 
   private seedDefaults(db: DatabaseAdapter): void {
     const timestamp = nowIso();

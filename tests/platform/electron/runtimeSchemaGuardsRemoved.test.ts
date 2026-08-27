@@ -35,13 +35,13 @@ describe('zentrale Datenbankinitialisierung', () => {
     const db = runtimeDb();
 
     await expect(new CaseService(() => db).listCases()).resolves.toEqual([]);
-    await expect(new ContactService(() => db).listContacts()).resolves.toEqual([]);
+    await expect(new ContactService(db).listContacts()).resolves.toEqual([]);
     expect(new DocumentOcrService(db).enqueueIfUseful('missing')).toBe(false);
-    await expect(new KnowledgeService(() => db).listNorms()).resolves.toEqual([]);
+    await expect(new KnowledgeService(db).listNorms()).resolves.toEqual([]);
     expect(new PersonCaseBindingService(db).migrateLegacyBindings()).toEqual({ migrated: 0, legacyUnlinked: 0, privacyReviewRequired: 0 });
     expect(new PrivacyReviewService(db).listOpenForCase('case-1')).toEqual([]);
     expect(new ReportService(() => db, () => '').listHistory()).toEqual([]);
     expect(new SearchIndexService(db).search({ query: 'test' })).toEqual([]);
-    await expect(new TemplateService(() => db).listTemplates()).resolves.toEqual([]);
+    await expect(new TemplateService(db).listTemplates()).resolves.toEqual([]);
   });
 });

@@ -15,9 +15,9 @@ import { encodeDocumentForHandover, sanitizeHandoverDocumentMetadata } from './c
 import { addColumnsIfMissing } from './migrations/schemaColumnMigration.js';
 import { OWNER_ONLY_FILE_MODE, restrictFileToOwner } from './secureFilePermissions.js';
 export class CaseHandoverService {
-  constructor(private readonly databaseProvider: () => DatabaseAdapter, private readonly dataDirProvider: () => string = () => path.join(process.cwd(), 'data')) {}
+  constructor(private readonly database: DatabaseAdapter, private readonly dataDirProvider: () => string = () => path.join(process.cwd(), 'data')) {}
 
-  private db(): DatabaseAdapter { return this.databaseProvider(); }
+  private db(): DatabaseAdapter { return this.database; }
 
   ensureSchema(db: DatabaseAdapter): void {
     db.exec(`CREATE TABLE IF NOT EXISTS case_handover_imports (

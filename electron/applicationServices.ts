@@ -28,14 +28,7 @@ export class ApplicationServices {
 
   readonly backup: BackupService;
   readonly cases: CaseService;
-  readonly caseAnonymization: CaseAnonymizationService;
-  readonly caseHandover: CaseHandoverService;
-  readonly contacts: ContactService;
-  readonly knowledge: KnowledgeService;
   readonly reports: ReportService;
-  readonly retention: RetentionService;
-  readonly templates: TemplateService;
-  readonly templateDefaults: TemplateDefaultService;
   readonly gremiaBrSettings: GremiaBrSettingsService;
   readonly gremiaBrAuth: GremiaBrAuthService;
   readonly gremiaBrCache: GremiaBrCacheService;
@@ -51,14 +44,7 @@ export class ApplicationServices {
 
     this.backup = new BackupService(security);
     this.cases = new CaseService(databaseProvider, () => security.getDataDirectory());
-    this.caseAnonymization = new CaseAnonymizationService(databaseProvider, () => security.getDataDirectory());
-    this.caseHandover = new CaseHandoverService(databaseProvider, () => security.getDataDirectory());
-    this.contacts = new ContactService(databaseProvider);
-    this.knowledge = new KnowledgeService(databaseProvider);
     this.reports = new ReportService(databaseProvider, () => security.getDataDirectory());
-    this.retention = new RetentionService(databaseProvider, () => security.getDataDirectory());
-    this.templates = new TemplateService(databaseProvider);
-    this.templateDefaults = new TemplateDefaultService(databaseProvider);
     this.gremiaBrSettings = new GremiaBrSettingsService(databaseProvider, () => security.getActiveDatabaseKey());
     this.gremiaBrAuth = new GremiaBrAuthService(this.gremiaBrSettings, undefined, auditProvider);
     this.gremiaBrCache = new GremiaBrCacheService(databaseProvider);
@@ -84,6 +70,12 @@ export class ApplicationServices {
   bem = (): BemService => this.databaseService('bem', (database) => new BemService(database, this.auditLog(), this.lifecycleAudit(), this.deadlines()));
   caseMeasures = (): CaseMeasureService =>
     this.databaseService('caseMeasures', (database) => new CaseMeasureService(database, this.auditLog(), this.lifecycleAudit(), this.searchIndex()));
+  caseHandover = (): CaseHandoverService =>
+    this.databaseService('caseHandover', (database) => new CaseHandoverService(database, () => this.security.getDataDirectory()));
+  caseAnonymization = (): CaseAnonymizationService =>
+    this.databaseService('caseAnonymization', (database) => new CaseAnonymizationService(database, () => this.security.getDataDirectory()));
+  contacts = (): ContactService =>
+    this.databaseService('contacts', (database) => new ContactService(database));
   complianceIncidents = (): ComplianceIncidentService =>
     this.databaseService('complianceIncidents', (database) => new ComplianceIncidentService(database));
   complianceSelfCheck = (): ComplianceSelfCheckService =>
@@ -92,6 +84,8 @@ export class ApplicationServices {
     this.databaseService('deadlines', (database) => new DeadlineService(database));
   dsarPrefill = (): DsarPrefillService =>
     this.databaseService('dsarPrefill', (database) => new DsarPrefillService(database));
+  knowledge = (): KnowledgeService =>
+    this.databaseService('knowledge', (database) => new KnowledgeService(database));
   equalization = (): EqualizationService =>
     this.databaseService('equalization', (database) => new EqualizationService(database, this.auditLog(), this.lifecycleAudit()));
   equalizationIntake = (): EqualizationIntakeService =>
@@ -117,6 +111,8 @@ export class ApplicationServices {
     this.databaseService('protectedPersons', (database) => new ProtectedPersonService(database));
   recruitingParticipation = (): RecruitingParticipationService =>
     this.databaseService('recruitingParticipation', (database) => new RecruitingParticipationService(database, this.auditLog(), this.lifecycleAudit()));
+  retention = (): RetentionService =>
+    this.databaseService('retention', (database) => new RetentionService(database, () => this.security.getDataDirectory()));
   sbvControlProtocols = (): SbvControlProtocolService =>
     this.databaseService('sbvControlProtocols', (database) => new SbvControlProtocolService(database));
   sbvParticipationViolations = (): SbvParticipationViolationService =>
@@ -130,6 +126,10 @@ export class ApplicationServices {
     this.databaseService('sbvResources', (database) => new SbvResourceService(database));
   termination = (): TerminationService =>
     this.databaseService('termination', (database) => new TerminationService(database, this.auditLog(), this.lifecycleAudit()));
+  templates = (): TemplateService =>
+    this.databaseService('templates', (database) => new TemplateService(database));
+  templateDefaults = (): TemplateDefaultService =>
+    this.databaseService('templateDefaults', (database) => new TemplateDefaultService(database));
   workplaceAccommodation = (): WorkplaceAccommodationService =>
     this.databaseService('workplaceAccommodation', (database) => new WorkplaceAccommodationService(database, this.caseMeasures(), this.deadlines(), this.auditLog()));
   sbvMeetings = (): SbvMeetingService => this.databaseService('sbvMeetings', (database) => new SbvMeetingService(database, this.deadlines(), this.auditLog()));

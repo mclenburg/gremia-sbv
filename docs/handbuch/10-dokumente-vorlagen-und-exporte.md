@@ -10,6 +10,8 @@ Lege Dokumente nur ab, wenn sie für die SBV-Arbeit erforderlich sind. Prüfe be
 
 Vorlagen helfen bei wiederkehrenden Schreiben und Vermerken. Sie ersetzen nicht die Prüfung des Einzelfalls. Passe jede Vorlage an den konkreten Vorgang an.
 
+Neue Vorlagen legst du über **Vorlage anlegen** an. Die Aktion befindet sich im Vorlagenkatalog oben rechts wie andere zentrale Anlegen-Aktionen in Gremia.SBV.
+
 Gute Vorlagen:
 
 - sind sachlich,
@@ -58,3 +60,5 @@ Vor jedem Export:
 ## Berichte
 
 Berichte sollten möglichst aggregiert sein. Ein Tätigkeitsbericht soll SBV-Arbeit sichtbar machen, nicht vertrauliche Einzelfälle offenlegen.
+
+Bei Berichten unterscheidet Gremia.SBV bewusst zwischen **PDF speichern** und **PDF erzeugen & öffnen**. Speichern legt den verschlüsselten Export ab; Öffnen fordert zusätzlich die externe Vorschau beziehungsweise den lokalen PDF-Viewer an.

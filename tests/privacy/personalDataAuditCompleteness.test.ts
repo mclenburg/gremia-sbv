@@ -72,7 +72,7 @@ describe('Phase 4 – personenbezogene Audit-Vollständigkeit', () => {
       db.prepare('INSERT INTO cases (id, case_number) VALUES (?, ?)').run('case-1', 'A-1');
       ensureKnowledgeSchema(db);
       ensurePersonalDataAuditSchema(db);
-      const service = new KnowledgeService(() => db);
+      const service = new KnowledgeService(db);
       const norm = await service.createNorm({ source: 'SGB IX', paragraph: '§ 178', title: 'SBV', shortText: 'Beteiligung' });
       const linked = await service.linkNormToCase({ caseId: 'case-1', legalNormId: norm.id, note: 'vertrauliche interne Notiz' });
       expect((await service.unlinkNormFromCase('case-1', norm.id)).deleted).toBe(true);

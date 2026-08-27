@@ -17,6 +17,71 @@ import {
   type SbvParticipationViolationPrefill,
   violationTypeLabels,
 } from './sbvParticipationViolationViewLogic';
+import type { SbvParticipationViolationRecord } from '../../../domain/models/sbv-participation-violation.model';
+
+function ParticipationViolationRowActions({
+  item,
+  busy,
+  documentBusyId,
+  followUpBusyId,
+  canOpenJournal,
+  onChangeStatus,
+  onGenerateDocument,
+  onCreateFollowUp,
+  onOpenJournalPrefill,
+  onOpenCaseNode,
+}: {
+  item: SbvParticipationViolationRecord;
+  busy: boolean;
+  documentBusyId: string | null;
+  followUpBusyId: string | null;
+  canOpenJournal: boolean;
+  onChangeStatus: ReturnType<typeof useSbvParticipationViolations>['changeStatus'];
+  onGenerateDocument: ReturnType<typeof useSbvParticipationViolations>['generateDocument'];
+  onCreateFollowUp: ReturnType<typeof useSbvParticipationViolations>['createFollowUp'];
+  onOpenJournalPrefill: ReturnType<typeof useSbvParticipationViolations>['openJournalPrefill'];
+  onOpenCaseNode?: (target: CaseNodeTarget) => void;
+}) {
+  const statusActions = getNextStatusActions(item.status);
+  const hasCaseMeasureLink = Boolean(item.relatedCaseMeasureId && item.caseId && onOpenCaseNode);
+  const hasFurtherActions = statusActions.length > 0 || hasCaseMeasureLink || !item.relatedDeadlineId || canOpenJournal;
+
+  return (
+    <div className="participation-violation-actions" aria-label={`Aktionen zu ${item.subject}`}>
+      <ToolbarButton disabled={busy || documentBusyId === item.id} onClick={() => void onGenerateDocument(item)}>
+        {documentBusyId === item.id ? 'PDF wird erzeugt …' : 'PDF erzeugen & öffnen'}
+      </ToolbarButton>
+      {hasFurtherActions ? (
+        <details className="participation-violation-more-actions">
+          <summary>Weitere Schritte</summary>
+          <div className="participation-violation-more-actions-menu">
+            {statusActions.length ? <span className="industrial-meta">Status fortschreiben</span> : null}
+            {statusActions.map((action) => (
+              <ToolbarButton key={action.targetStatus} disabled={busy} onClick={() => void onChangeStatus(item, action.targetStatus)}>
+                {action.label}
+              </ToolbarButton>
+            ))}
+            {hasCaseMeasureLink ? (
+              <ToolbarButton onClick={() => onOpenCaseNode?.({ caseId: item.caseId!, nodeType: 'participation', nodeId: item.relatedCaseMeasureId! })}>
+                <ExternalLink className="h-4 w-4" aria-hidden="true" /> Beteiligungsmaßnahme öffnen
+              </ToolbarButton>
+            ) : null}
+            {!item.relatedDeadlineId ? (
+              <ToolbarButton disabled={busy || followUpBusyId === item.id} onClick={() => void onCreateFollowUp(item)}>
+                +7-Tage-Wiedervorlage
+              </ToolbarButton>
+            ) : null}
+            {canOpenJournal ? (
+              <ToolbarButton disabled={busy} onClick={() => void onOpenJournalPrefill(item)}>
+                Journal-Vorlage
+              </ToolbarButton>
+            ) : null}
+          </div>
+        </details>
+      ) : null}
+    </div>
+  );
+}
 
 export function SbvParticipationViolationsView({
   cases,
@@ -48,17 +113,19 @@ export function SbvParticipationViolationsView({
       violationTypeLabels[item.violationType],
       statusLabels[item.status],
       item.legalBasis,
-      <div key="actions" className="industrial-search-actions">
-        {getNextStatusActions(item.status).map((action) => (
-          <ToolbarButton key={action.targetStatus} disabled={state.busy} onClick={() => void state.changeStatus(item, action.targetStatus)}>
-            {action.label}
-          </ToolbarButton>
-        ))}
-        {item.relatedCaseMeasureId && item.caseId && onOpenCaseNode ? <ToolbarButton onClick={() => onOpenCaseNode({ caseId: item.caseId!, nodeType: 'participation', nodeId: item.relatedCaseMeasureId })}><ExternalLink className="h-4 w-4" aria-hidden="true" /> Beteiligungsmaßnahme</ToolbarButton> : null}
-        <ToolbarButton disabled={state.busy || state.documentBusyId === item.id} onClick={() => void state.generateDocument(item)}>PDF erzeugen</ToolbarButton>
-        <ToolbarButton disabled={state.busy || state.followUpBusyId === item.id || Boolean(item.relatedDeadlineId)} onClick={() => void state.createFollowUp(item)}>+7-Tage-Wiedervorlage</ToolbarButton>
-        <ToolbarButton disabled={state.busy || !onOpenJournalPrefill} onClick={() => void state.openJournalPrefill(item)}>Journal-Vorlage</ToolbarButton>
-      </div>,
+      <ParticipationViolationRowActions
+        key="actions"
+        item={item}
+        busy={state.busy}
+        documentBusyId={state.documentBusyId}
+        followUpBusyId={state.followUpBusyId}
+        canOpenJournal={Boolean(onOpenJournalPrefill)}
+        onChangeStatus={state.changeStatus}
+        onGenerateDocument={state.generateDocument}
+        onCreateFollowUp={state.createFollowUp}
+        onOpenJournalPrefill={state.openJournalPrefill}
+        onOpenCaseNode={onOpenCaseNode}
+      />,
     ],
   }));
 
@@ -98,6 +165,7 @@ export function SbvParticipationViolationsView({
         title="Protokollierte Beteiligungsverstöße"
         description="Kontrollsicht für bereits protokollierte Vorgänge."
         helpId="participationViolations.tracking"
+        className="participation-violations-tracking"
       >
         <DataTable
           headers={['Betreff', 'Stufe', 'Verstoßart', 'Status', 'Rechtskern', 'Aktion']}
