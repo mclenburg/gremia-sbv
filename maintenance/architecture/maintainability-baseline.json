@@ -293,12 +293,6 @@
       "maxFunctionLines": 307,
       "imports": 15
     },
-    "src/app/features/reports/ReportsView.tsx": {
-      "physicalLines": 234,
-      "codeLines": 231,
-      "maxFunctionLines": 190,
-      "imports": 9
-    },
     "src/app/features/sbv-control/SbvControlView.tsx": {
       "physicalLines": 180,
       "codeLines": 169,

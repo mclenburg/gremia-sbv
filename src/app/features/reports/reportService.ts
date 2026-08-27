@@ -99,6 +99,20 @@ export function buildReportPdfExportFeedback(input: {
   return buildPdfExportFeedback(input);
 }
 
+export function isReportGenerationActionDisabled(input: {
+  isGenerating: boolean;
+  hasSelectedDescriptor: boolean;
+}): boolean {
+  return input.isGenerating || !input.hasSelectedDescriptor;
+}
+
+export function isReportOpenActionDisabled(input: {
+  openingFileName?: string | null;
+  fileName: string;
+}): boolean {
+  return input.openingFileName === input.fileName;
+}
+
 export async function loadReportMetadata(): Promise<{ descriptors: ReportDescriptor[]; history: ReportExportHistoryItem[] }> {
   const bridge = await waitForBridge();
   if (!bridge?.reports) throw new Error('Berichtsdienst ist nicht erreichbar.');
