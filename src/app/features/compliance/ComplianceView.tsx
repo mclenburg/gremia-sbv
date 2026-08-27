@@ -61,7 +61,6 @@ export function ComplianceView() {
               selectedType={state.selectedType}
               document={state.document}
               onRender={state.render}
-              onDownload={state.downloadCurrent}
               onExportPdf={(open) => void state.exportPdfCurrent(open)}
             />
           )}
@@ -72,7 +71,6 @@ export function ComplianceView() {
               onInputChange={state.updateDsarInput}
               onPrefill={() => void state.prefillDsar()}
               onRenderDsar={state.renderDsar}
-              onDownload={state.downloadCurrent}
               onExportPdf={(open) => void state.exportPdfCurrent(open)}
             />
           )}

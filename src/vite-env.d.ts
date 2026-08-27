@@ -523,7 +523,7 @@ declare global {
         descriptors(): Promise<ReportDescriptor[]>;
         history(limit?: number): Promise<ReportExportHistoryItem[]>;
         generate(input: GenerateReportInput): Promise<ReportGenerationResult>;
-        openExportFolder(fileName?: string): Promise<{ opened: boolean; error?: string }>;
+        openExportFolder(fileName?: string): Promise<{ opened: boolean; filePath?: string; error?: string }>;
       };
       templates: {
         list(filters?: TemplateListFilters): Promise<TemplateRecord[]>;

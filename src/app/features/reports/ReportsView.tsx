@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Download, ExternalLink, FileText, RefreshCw } from 'lucide-react';
 import { IndustrialButton, ToolbarButton } from '../../shared/components/IndustrialButton';
 import { DateInput } from '../../shared/components/IndustrialForm';
@@ -12,60 +12,30 @@ import type {
   ReportGenerationResult,
   ReportType,
 } from '../../../domain/models/report.model';
-import { legalToday } from '../../../domain/time/legalTime';
-
-const GROUP_LABELS: Record<string, string> = {
-  sbv: 'SBV-Fachberichte',
-  datenschutz: 'Datenschutz & Compliance',
-  system: 'Systemberichte',
-};
-
-function today(): string {
-  return legalToday();
-}
-
-function startOfYear(): string {
-  return `${legalToday().slice(0, 4)}-01-01`;
-}
-
-function formatDateTime(value?: string): string {
-  if (!value) return '—';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 'short' }).format(date);
-}
-
-function confidentialityLabel(value: ReportDescriptor['confidentiality']): string {
-  if (value === 'anonymized') return 'Anonymisiert';
-  if (value === 'technical') return 'Technisch vertraulich';
-  return 'Intern vertraulich';
-}
+import {
+  buildReportPdfExportFeedback,
+  defaultReportDateRange,
+  formatReportDateTime,
+  groupReportDescriptorsByPriority,
+  REPORT_GROUP_LABELS,
+  reportConfidentialityDisplayLabel,
+  sortReportDescriptorsByPriority,
+} from './reportService';
 
 export function ReportsView() {
+  const defaultDateRange = defaultReportDateRange();
   const [descriptors, setDescriptors] = useState<ReportDescriptor[]>([]);
   const [history, setHistory] = useState<ReportExportHistoryItem[]>([]);
   const [selectedType, setSelectedType] = useState<ReportType>('activity');
-  const [periodStart, setPeriodStart] = useState(startOfYear);
-  const [periodEnd, setPeriodEnd] = useState(today);
+  const [periodStart, setPeriodStart] = useState(defaultDateRange.periodStart);
+  const [periodEnd, setPeriodEnd] = useState(defaultDateRange.periodEnd);
   const [lastResult, setLastResult] = useState<ReportGenerationResult | null>(null);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const announce = useAnnouncer();
 
   const selectedDescriptor = descriptors.find((descriptor) => descriptor.type === selectedType) ?? descriptors[0];
-  const groupedDescriptors = useMemo(() => {
-    const groups = new Map<string, ReportDescriptor[]>();
-    for (const descriptor of descriptors) {
-      const group = descriptor.group ?? 'sbv';
-      const current = groups.get(group) ?? [];
-      current.push(descriptor);
-      groups.set(group, current);
-    }
-    return Array.from(groups.entries()).map(([group, items]) => [
-      group,
-      items.sort((left, right) => left.shortTitle.localeCompare(right.shortTitle, 'de')),
-    ] as const);
-  }, [descriptors]);
+  const groupedDescriptors = groupReportDescriptorsByPriority(descriptors);
 
   const loadReports = useCallback(async () => {
     const bridge = await waitForBridge();
@@ -74,7 +44,7 @@ export function ReportsView() {
       bridge.reports.descriptors(),
       bridge.reports.history(25),
     ]);
-    setDescriptors(nextDescriptors);
+    setDescriptors(sortReportDescriptorsByPriority(nextDescriptors));
     setHistory(nextHistory);
     if (nextDescriptors.length && !nextDescriptors.some((descriptor: ReportDescriptor) => descriptor.type === selectedType)) {
       setSelectedType(nextDescriptors[0].type);
@@ -98,12 +68,17 @@ export function ReportsView() {
       setLastResult(result);
       if (!result.ok) throw new Error(result.error || 'Bericht konnte nicht erzeugt werden.');
       await loadReports();
-      if (openAfterCreate) {
-        await bridge.reports.openExportFolder(result.fileName);
-      }
-      const info = `${result.title} wurde als verschlüsselter PDF-Report erzeugt.`;
-      setMessage(info);
-      announce(info, 'polite');
+      const openResult = openAfterCreate
+        ? await bridge.reports.openExportFolder(result.fileName)
+        : undefined;
+      const feedback = buildReportPdfExportFeedback({
+        title: result.title,
+        fileName: result.fileName,
+        openRequested: openAfterCreate,
+        openResult,
+      });
+      setMessage(feedback.message);
+      announce(feedback.message, feedback.announceMode);
     } catch (error) {
       const info = error instanceof Error ? error.message : 'Bericht konnte nicht erzeugt werden.';
       setMessage(info);
@@ -117,7 +92,11 @@ export function ReportsView() {
     try {
       const bridge = await waitForBridge();
       if (!bridge?.reports) throw new Error('Berichtsdienst ist nicht erreichbar.');
-      await bridge.reports.openExportFolder(fileName);
+      const result = await bridge.reports.openExportFolder(fileName);
+      if (!result.opened) throw new Error(result.error ?? 'Bericht wurde bereitgestellt, konnte aber nicht an die externe Vorschau übergeben werden.');
+      const info = `Bericht wurde an die externe Vorschau übergeben: ${fileName}`;
+      setMessage(info);
+      announce(info, 'polite');
     } catch (error) {
       const info = error instanceof Error ? error.message : 'Bericht konnte nicht geöffnet werden.';
       setMessage(info);
@@ -155,7 +134,7 @@ export function ReportsView() {
           <section className="reports-catalog" aria-label="Berichtskatalog">
             {groupedDescriptors.map(([group, items]) => (
               <div className="reports-group" key={group}>
-                <h2>{GROUP_LABELS[group] ?? group}</h2>
+                <h2>{REPORT_GROUP_LABELS[group] ?? group}</h2>
                 <div className="reports-card-list">
                   {items.map((descriptor) => (
                     <ToolbarButton
@@ -168,7 +147,7 @@ export function ReportsView() {
                       <span className="reports-card-body">
                         <strong>{descriptor.shortTitle}</strong>
                         <small>{descriptor.description}</small>
-                        <em>{confidentialityLabel(descriptor.confidentiality)}</em>
+                        <em>{reportConfidentialityDisplayLabel(descriptor.confidentiality)}</em>
                       </span>
                     </ToolbarButton>
                   ))}
@@ -184,7 +163,7 @@ export function ReportsView() {
                 <h2>{selectedDescriptor.title}</h2>
                 <p>{selectedDescriptor.description}</p>
                 <dl className="reports-meta-list">
-                  <div><dt>Vertraulichkeit</dt><dd>{confidentialityLabel(selectedDescriptor.confidentiality)}</dd></div>
+                  <div><dt>Vertraulichkeit</dt><dd>{reportConfidentialityDisplayLabel(selectedDescriptor.confidentiality)}</dd></div>
                   <div><dt>Zeitraum</dt><dd>{periodStart || '—'} bis {periodEnd || '—'}</dd></div>
                   <div><dt>Format</dt><dd>verschlüsselter .gsbvpdf-Container</dd></div>
                 </dl>
@@ -217,7 +196,7 @@ export function ReportsView() {
               <IndustrialRecordCard className="reports-history-item" key={item.id}>
                 <div>
                   <strong>{item.title}</strong>
-                  <span>{formatDateTime(item.generatedAt)} · {item.fileName}</span>
+                  <span>{formatReportDateTime(item.generatedAt)} · {item.fileName}</span>
                   {item.warningCount > 0 && <em>{item.warningCount} Prüfhinweis(e)</em>}
                 </div>
                 <ToolbarButton onClick={() => void openReport(item.fileName)}>

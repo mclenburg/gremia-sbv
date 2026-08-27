@@ -20,6 +20,12 @@ export const COMPLIANCE_DOCUMENTS: ComplianceDocumentDescriptor[] = [
     buttonLabel: 'DSFA abrufen'
   },
   {
+    type: 'data_protection_notice',
+    title: 'Datenschutzinformation Art. 13/14 DSGVO',
+    description: 'Anpassbare Vorlage für die proaktive Datenschutzinformation betroffener Beschäftigter.',
+    buttonLabel: 'Datenschutzinformation abrufen'
+  },
+  {
     type: 'dsgvo_bdsg_matrix',
     title: 'DSGVO-/BDSG-Compliance-Auswertung',
     description: 'Matrix zu Anforderungen, Umsetzung, Bewertung und offenen Punkten.',
@@ -38,12 +44,6 @@ export const COMPLIANCE_DOCUMENTS: ComplianceDocumentDescriptor[] = [
     buttonLabel: 'Betroffenenrechte abrufen'
   },
   {
-    type: 'data_protection_notice',
-    title: 'Datenschutzinformation Art. 13/14 DSGVO',
-    description: 'Anpassbare Vorlage für die proaktive Datenschutzinformation betroffener Beschäftigter.',
-    buttonLabel: 'Datenschutzinformation abrufen'
-  },
-  {
     type: 'export_policy',
     title: 'Export- und Weitergaberegeln',
     description: 'Interne Nutzungsregel für Klartextexporte, PDF-Abrufe und externe Weitergabe.',
@@ -60,12 +60,6 @@ export const COMPLIANCE_DOCUMENTS: ComplianceDocumentDescriptor[] = [
     title: 'Technischer Datenschutzstatus vor Produktivnutzung',
     description: 'Prüfliste für Auto-Lock, Backup, Audit, temporäre Dateien, DSFA/TOM/VVT und organisatorische Freigaben.',
     buttonLabel: 'Technischen Status abrufen'
-  },
-  {
-    type: 'release_readiness_checklist',
-    title: '1.0-Release-Checkliste',
-    description: 'Abnahmeliste für Build, Migration, Backup/Restore, Berichte, Overlay, Datenschutz und Known Issues.',
-    buttonLabel: 'Release-Checkliste abrufen'
   },
   {
     type: 'dsar_response',
@@ -88,9 +82,9 @@ export function plusDays(date: Date, days: number): Date {
 export function toDateInputValue(date: Date): string {
   return legalCalendarDate(date);
 }
-export function markdownFileName(type: ComplianceDocumentType, generatedAt: string): string {
+export function complianceDocumentFileName(type: ComplianceDocumentType, generatedAt: string): string {
   const stamp = generatedAt.replace(/[:.]/g, '-').slice(0, 19);
-  return `gremia-sbv-${type}-${stamp}.md`;
+  return `gremia-sbv-${type}-${stamp}.pdf`;
 }
 export function header(title: string, generatedAt: string): string {
   return `# ${title}

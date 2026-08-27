@@ -1,9 +1,9 @@
 import type { GenerateReportInput } from '../models/report.model.js';
 import type { ComplianceDocument, ComplianceDocumentDescriptor, ComplianceDocumentType, DataSubjectAccessRequestInput } from '../models/compliance.model.js';
-import { COMPLIANCE_DOCUMENTS, markdownFileName, nowIso, plusDays, toDateInputValue } from './complianceDocumentSupport.js';
+import { COMPLIANCE_DOCUMENTS, complianceDocumentFileName, nowIso, plusDays, toDateInputValue } from './complianceDocumentSupport.js';
 import { tomsBody, vvtBody, dsfaBody, matrixBody } from './complianceBodiesCore.js';
 import { retentionScheduleBody, dataSubjectRightsBody, dataProtectionNoticeBody, exportPolicyBody } from './complianceBodiesPrivacy.js';
-import { approvalBody, dataProtectionStatusBody, releaseReadinessChecklistBody } from './complianceBodiesRelease.js';
+import { approvalBody, dataProtectionStatusBody } from './complianceBodiesRelease.js';
 import { dsarBody } from './complianceDsarBody.js';
 export { COMPLIANCE_DOCUMENTS } from './complianceDocumentSupport.js';
 
@@ -19,7 +19,6 @@ function bodyFor(type: ComplianceDocumentType, generatedAt: string, dsarInput?: 
     case 'export_policy': return exportPolicyBody(generatedAt);
     case 'dsb_it_security_approval': return approvalBody(generatedAt);
     case 'data_protection_status': return dataProtectionStatusBody(generatedAt);
-    case 'release_readiness_checklist': return releaseReadinessChecklistBody(generatedAt);
     case 'dsar_response': return dsarBody(dsarInput ?? defaultDsarInput(), generatedAt);
     default: {
       const exhaustive: never = type;
@@ -39,7 +38,7 @@ export function renderComplianceDocument(type: ComplianceDocumentType): Complian
     type: descriptor.type,
     title: descriptor.title,
     description: descriptor.description,
-    filename: markdownFileName(descriptor.type, generatedAt),
+    filename: complianceDocumentFileName(descriptor.type, generatedAt),
     body: bodyFor(descriptor.type, generatedAt),
     generatedAt
   };
@@ -65,7 +64,7 @@ export function renderDsarResponseDocument(input: DataSubjectAccessRequestInput)
     type: 'dsar_response',
     title: descriptor.title,
     description: descriptor.description,
-    filename: markdownFileName('dsar_response', generatedAt),
+    filename: complianceDocumentFileName('dsar_response', generatedAt),
     body: bodyFor('dsar_response', generatedAt, input),
     generatedAt
   };
@@ -81,7 +80,6 @@ export function complianceClassificationFor(type: ComplianceDocumentType): strin
     case 'data_protection_notice':
     case 'export_policy':
     case 'data_protection_status':
-    case 'release_readiness_checklist':
       return 'Intern / Compliance';
     case 'dsfa':
     case 'dsb_it_security_approval':

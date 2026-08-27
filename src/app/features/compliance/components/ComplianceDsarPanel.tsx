@@ -22,7 +22,6 @@ export function ComplianceDsarPanel({
   onInputChange,
   onPrefill,
   onRenderDsar,
-  onDownload,
   onExportPdf,
 }: {
   dsarInput: DataSubjectAccessRequestInput;
@@ -33,7 +32,6 @@ export function ComplianceDsarPanel({
   ) => void;
   onPrefill: () => void;
   onRenderDsar: () => void;
-  onDownload: () => void;
   onExportPdf: (open: boolean) => void;
 }) {
   return (
@@ -116,7 +114,6 @@ export function ComplianceDsarPanel({
       </FormSection>
       <ComplianceDocumentPreview
         document={document}
-        onDownload={onDownload}
         onExportPdf={onExportPdf}
       />
     </div>

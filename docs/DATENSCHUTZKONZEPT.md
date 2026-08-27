@@ -59,4 +59,4 @@ Abgelaufene Übergabepakete dürfen nicht importiert werden. Bereits importierte
 
 ## Auskunft nach Art. 15 DSGVO
 
-Mit dem Personenverzeichnis unterstützt die App Auskunftsfähigkeit: verknüpfte Fallakten, Fristen, Maßnahmen, Importläufe und Lifecycle-Ereignisse sind auffindbar. Im Compliance Center kann eine Antwort auf ein Art.-15-Auskunftsersuchen aus Personen-, Fallakten-, Fristen-, Maßnahmen-, Import- und Lifecycle-Daten vorbefüllt, erzeugt und als Markdown oder PDF exportiert werden. Dieser Export ist ein Arbeitsentwurf; Identitätsprüfung, Drittdatenprüfung, Schwärzung und rechtliche Freigabe bleiben organisatorische Schritte.
+Mit dem Personenverzeichnis unterstützt die App Auskunftsfähigkeit: verknüpfte Fallakten, Fristen, Maßnahmen, Importläufe und Lifecycle-Ereignisse sind auffindbar. Im Compliance Center kann eine Antwort auf ein Art.-15-Auskunftsersuchen aus Personen-, Fallakten-, Fristen-, Maßnahmen-, Import- und Lifecycle-Daten vorbefüllt, erzeugt und als verschlüsselter PDF-Report bereitgestellt werden. Dieser Export ist ein Arbeitsentwurf; Identitätsprüfung, Drittdatenprüfung, Schwärzung und rechtliche Freigabe bleiben organisatorische Schritte.

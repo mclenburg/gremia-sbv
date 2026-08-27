@@ -11,7 +11,6 @@ export type ComplianceDocumentType =
   | 'export_policy'
   | 'dsb_it_security_approval'
   | 'data_protection_status'
-  | 'release_readiness_checklist'
   | 'dsar_response';
 
 export interface ComplianceDocument {

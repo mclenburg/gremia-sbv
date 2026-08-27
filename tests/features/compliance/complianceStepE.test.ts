@@ -51,6 +51,26 @@ describe('0.9.1 Step E Compliance Center', () => {
     expect(report.complianceBody).toContain('Audit-Hash-Kette ohne Direktidentifikatoren');
   });
 
+  it('nutzt den zentralen Aufbewahrungskatalog im Lösch- und Aufbewahrungskonzept', () => {
+    const body = renderComplianceDocument('retention_schedule').body;
+
+    expect(body).toContain('dieselbe fachliche Quelle');
+    expect(body).toContain('Stellenbesetzungen');
+    expect(body).toContain('6 Monate nach Abschluss');
+    expect(body).toContain('Kündigungsanhörungen');
+    expect(body).toContain('3 Jahre nach Jahresende des Verfahrensabschlusses');
+    expect(body).toContain('Wahlen und Wahlakten');
+    expect(body).toContain('Wahlinhalte bleiben unverändert');
+  });
+
+  it('beschreibt Exportregeln ohne Markdown-Sonderexport im Renderer', () => {
+    const body = renderComplianceDocument('export_policy').body;
+
+    expect(body).toContain('zentralen Report-Service');
+    expect(body).not.toContain('Markdown-Exporte');
+    expect(body).not.toContain('Klartextexporte');
+  });
+
   it('hält Compliance-Bausteine als Generatorinhalt statt statischer Markdown-Pflege vor', () => {
     expect(personDirectoryProcessingActivitySection()).toContain('Fallaktenbindung');
     expect(stepELegalBasesSection()).toContain('§ 164 Abs. 4 SGB IX');

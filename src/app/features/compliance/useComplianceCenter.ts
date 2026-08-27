@@ -20,9 +20,9 @@ import {
 } from "@/domain/compliance/complianceCenterService";
 import { type ComplianceWorkspace } from "./complianceConstants";
 import {
+  buildPdfExportFeedback,
   buildFallbackSelfCheck,
   buildFallbackStatus,
-  downloadTextFile,
   loadComplianceStatus,
 } from "./complianceViewUtils";
 
@@ -147,25 +147,23 @@ export function useComplianceCenter() {
     }
   }
 
-  function downloadCurrent() {
-    downloadTextFile(document);
-    const info = `${document.title} wurde als Markdown exportiert.`;
-    setMessage(info);
-    announce(info, "polite");
-  }
-
   async function exportPdfCurrent(openAfterExport = false) {
     try {
       const bridge = await waitForBridge();
       if (!bridge?.reports) throw new Error("Berichtsdienst ist nicht erreichbar.");
       const result = await bridge.reports.generate(buildComplianceReportInput(document));
       if (!result.ok) throw new Error(result.error ?? "PDF-Dokument konnte nicht erzeugt werden.");
-      if (openAfterExport) await bridge.reports.openExportFolder(result.fileName);
-      const info = openAfterExport
-        ? `${document.title} wurde als PDF erzeugt und geöffnet: ${result.fileName}`
-        : `${document.title} wurde als verschlüsselter PDF-Report erzeugt: ${result.fileName}`;
-      setMessage(info);
-      announce(info, "polite");
+      const openResult = openAfterExport
+        ? await bridge.reports.openExportFolder(result.fileName)
+        : undefined;
+      const feedback = buildPdfExportFeedback({
+        title: document.title,
+        fileName: result.fileName,
+        openRequested: openAfterExport,
+        openResult,
+      });
+      setMessage(feedback.message);
+      announce(feedback.message, feedback.announceMode);
     } catch (error) {
       const info = error instanceof Error ? error.message : "PDF-Dokument konnte nicht erzeugt werden.";
       setMessage(info);
@@ -220,7 +218,6 @@ export function useComplianceCenter() {
     updateDsarInput,
     renderDsar,
     prefillDsar,
-    downloadCurrent,
     exportPdfCurrent,
     createIncident,
     updateIncident,

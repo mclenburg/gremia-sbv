@@ -1,27 +1,56 @@
 import { header } from './complianceDocumentSupport.js';
 import { informationAndAccessRightsSection } from './complianceStepEContent.js';
+import { RETENTION_POLICY_CATALOG } from '../retention/retentionPolicyCatalog.js';
+
+function retentionRuleLabel(policy: (typeof RETENTION_POLICY_CATALOG)[number]): string {
+  const { rule } = policy;
+  if (rule.kind === 'months_after_completion') {
+    const years = rule.months / 12;
+    return Number.isInteger(years) && years >= 1
+      ? `${years} Jahre nach Abschluss`
+      : `${rule.months} Monate nach Abschluss`;
+  }
+  if (rule.kind === 'months_after_completion_year_end') {
+    const years = rule.months / 12;
+    return Number.isInteger(years) && years >= 1
+      ? `${years} Jahre nach Jahresende des Verfahrensabschlusses`
+      : `${rule.months} Monate nach Jahresende des Verfahrensabschlusses`;
+  }
+  if (rule.kind === 'term_related') {
+    const years = rule.months / 12;
+    return Number.isInteger(years) && years >= 1
+      ? `amtszeitbezogen, regulär ${years} Jahre`
+      : `amtszeitbezogen, regulär ${rule.months} Monate`;
+  }
+  if (rule.kind === 'permanent_anonymized') return 'dauerhaft nur anonymisiert/gremienbezogen';
+  return 'zweck- und vorgangsbezogen';
+}
+
+function retentionPolicyRows(): string {
+  return RETENTION_POLICY_CATALOG
+    .map((policy) => `| ${policy.label} | ${retentionRuleLabel(policy)} | ${policy.legalBasis} | ${policy.explanation}${policy.immediateOnConsentWithdrawal ? ' Widerruf löst eine sofortige Zweck- und Löschprüfung aus.' : ''} |`)
+    .join('\n');
+}
+
 export function retentionScheduleBody(generatedAt: string): string {
   return `${header('Lösch- und Aufbewahrungskonzept Gremia.SBV', generatedAt)}## 1. Grundsatz
 
-Personenbezogene Daten werden nur solange gespeichert, wie sie für die konkrete SBV-Aufgabe, Nachweisführung oder Rechtsverteidigung erforderlich sind. Danach sind sie zu löschen oder zu anonymisieren.
+Personenbezogene Daten werden nur solange gespeichert, wie sie für die konkrete SBV-Aufgabe, Nachweisführung oder Rechtsverteidigung erforderlich sind. Danach sind sie zu löschen, zu anonymisieren oder einer dokumentierten Fortspeicherungsprüfung zuzuführen. Gremia.SBV löst keine automatische Löschung aus; jede Löschung bleibt eine bewusste manuelle Entscheidung.
 
-## 2. Regelmäßige Prüfung
+## 2. Verbindlicher Standardkatalog in Gremia.SBV
 
-- Fallakten: Review spätestens nach Abschluss und anschließend turnusmäßig.
-- Fristen und Wiedervorlagen: Löschung oder Archivierung nach Zweckerfüllung.
-- Berichte: anonymisierte Berichte bevorzugen; interne Prüfberichte vertraulich behandeln.
-- Exporte: außerhalb des Tresors besonders kurz halten und gesondert schützen.
+Die folgenden Standardregeln sind dieselbe fachliche Quelle, die auch das Dashboard „Datenschutzprüfung & Löschung“ für fällige Prüfaufträge verwendet.
 
-## 3. Arbeitsvorschlag für Fristen
+| Modul / Vorgangstyp | Standard-Löschprüfung | Rechtsrahmen | Anwendung in Gremia.SBV |
+|---|---|---|---|
+${retentionPolicyRows()}
 
-| Datenbereich | Review-Auslöser | Maßnahme |
-|---|---|---|
-| offene Fallakte | laufender Vorgang | weiterführen, Datenminimierung prüfen |
-| abgeschlossene Fallakte | Abschluss + Review | löschen, anonymisieren oder begründet aufbewahren |
-| BEM/Prävention | Abschluss / Maßnahmenevaluation | Zweckfortfall prüfen |
-| Kündigungsanhörung | Abschluss des Verfahrens | Nachweisinteresse prüfen |
-| Gleichstellung/GdB | Abschluss Beratung / Antrag | Zweckbindung prüfen |
-| Exporte | unmittelbare Zweckverwendung beendet | löschen oder gesichert ablegen |
+## 3. Regelmäßige Prüfung
+
+- Fällige Prüfaufträge werden im Datenschutz-Cockpit angezeigt und müssen dort fachlich bewertet werden.
+- Rechtliche Fristen ohne Fallbezug sind zulässig, wenn der Anlass eigenständig dokumentiert ist.
+- Exporte außerhalb des Tresors sind besonders kurz zu halten und gesondert zu schützen.
+- Personen ohne Schwerbehinderung oder Gleichstellung sowie ausgeschiedene Beschäftigte werden nur dann zur Aussonderungsprüfung vorgemerkt, wenn kein aktiver Zweckbezug mehr erkennbar ist.
 
 ## 4. Verantwortlichkeit
 
@@ -187,11 +216,7 @@ Daten bleiben grundsätzlich im verschlüsselten Gremia.SBV-Tresor. Exporte sind
 - Beim Abruf als PDF wird eine temporäre Klartextkopie für den externen PDF-Viewer erzeugt.
 - Temporäre Klartextkopien sind nach Nutzung zu löschen; externe Viewer können eigene Caches erzeugen.
 
-## 3. Markdown-Exporte
-
-Markdown-Exporte aus dem Compliance Center sind Klartextexporte. Sie dürfen nur genutzt werden, wenn dies fachlich erforderlich ist und der Ablageort geschützt ist.
-
-## 4. Weitergabe an Dritte
+## 3. Weitergabe an Dritte
 
 Vor jeder Weitergabe ist zu prüfen:
 
@@ -200,8 +225,9 @@ Vor jeder Weitergabe ist zu prüfen:
 - Welche Inhalte sind wirklich erforderlich?
 - Müssen Namen, Aktenzeichen oder Gesundheitsdetails geschwärzt werden?
 - Ist eine verschlüsselte Übermittlung erforderlich?
+- Handelt es sich um eine interne Prüfunterlage oder um ein extern verwendbares Dokument?
 
-## 5. Dokumentation
+## 4. Dokumentation
 
 Exporte und Weitergaben sollen nachvollziehbar dokumentiert werden, insbesondere bei Gesundheitsdaten, BEM, Prävention, Gleichstellung/GdB und Kündigungsvorgängen.
 `;

@@ -1,4 +1,3 @@
-import { Download } from "lucide-react";
 import {
   IndustrialButton,
   ToolbarButton,
@@ -10,11 +9,9 @@ import type { ComplianceDocument } from "../../../../domain/models/compliance.mo
 
 export function ComplianceDocumentPreview({
   document,
-  onDownload,
   onExportPdf,
 }: {
   document: ComplianceDocument;
-  onDownload: () => void;
   onExportPdf: (open: boolean) => void;
 }) {
   return (
@@ -28,16 +25,12 @@ export function ComplianceDocumentPreview({
           <h2>{document.title}</h2>
           <p>{document.description}</p>
         </div>
-        <WorkbenchToolbar ariaLabel="Exportaktionen">
-          <ToolbarButton onClick={onDownload}>
-            <Download className="h-4 w-4" />
-            Markdown exportieren
-          </ToolbarButton>
+        <WorkbenchToolbar ariaLabel="PDF-Aktionen">
           <ToolbarButton onClick={() => onExportPdf(false)}>
             PDF erzeugen
           </ToolbarButton>
           <IndustrialButton onClick={() => onExportPdf(true)}>
-            PDF abrufen
+            PDF erzeugen und öffnen
           </IndustrialButton>
         </WorkbenchToolbar>
       </div>
