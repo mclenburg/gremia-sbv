@@ -149,7 +149,6 @@ export function ElectionWorkbench() {
             <EmptyState
               title="Noch keine Wahlakte"
               text="Lege zuerst einen Wahlvorgang an. Danach führt Gremia.SBV schrittweise durch Wahlorgan, Wählerliste, Wahlvorschläge, Dokumente, Stimmabgabe, Auszählung und Übergabe."
-              action={<IndustrialButton onClick={() => setCreateOpen(true)}><Plus className="h-4 w-4" aria-hidden="true" /> Wahlvorgang anlegen</IndustrialButton>}
             />
           ) : null}
           {section === 'setup' && (

@@ -52,17 +52,11 @@ function EqualizationHelpDialog({ onClose }: { onClose: () => void }) {
   );
 }
 
-function EqualizationEmptyState({ onCreate }: { onCreate: () => void }) {
+function EqualizationEmptyState() {
   return (
     <EmptyState
       title="Noch kein Gleichstellungs-/GdB-Vorgang"
       text="Die Erstanlage erzeugt sichtbar zusammengehörig Person, Fallakte und Verfahren. Aufbewahrung und Löschprüfung folgen dem Vorgang und der verknüpften Fallakte; gelöscht wird weiterhin nur manuell."
-      action={(
-        <IndustrialButton onClick={onCreate}>
-          <Plus className="h-4 w-4" />
-          Vorgang anlegen
-        </IndustrialButton>
-      )}
     />
   );
 }
@@ -172,7 +166,7 @@ export function EqualizationView({ cases, persons, onOpenCaseNode, onRecordsChan
         )}
       >
         {!loading && !error && cards.length === 0 && (
-          <EqualizationEmptyState onCreate={() => setShowIntake(true)} />
+          <EqualizationEmptyState />
         )}
       </ProcessOverviewPage>
 

@@ -12,6 +12,7 @@ import { safeRun, tableExists } from './retentionSupport.js';
 import { DatabaseUnitOfWork } from './databaseUnitOfWork.js';
 import { CaseAnonymizationFileQuarantine } from './caseAnonymizationFileQuarantine.js';
 import { CaseAnonymizationVerificationService, snapshotCaseAnonymizationHashChains } from './caseAnonymizationVerificationService.js';
+import { ensureRetentionRuntimeSchema } from './runtimeSchemaCompatibility.js';
 
 type DatabaseRow = Record<string, string | number | null | undefined>;
 interface CaseDocumentRow { id: string; storage_path?: string | null; }
@@ -328,10 +329,7 @@ export class CaseAnonymizationService {
         affected += new SearchIndexService(db).deleteCase(caseId);
         affected += new SearchIndexService(db).reindexCase(caseId);
 
-        db.exec(`CREATE TABLE IF NOT EXISTS retention_actions (
-          id TEXT PRIMARY KEY, action_type TEXT NOT NULL, entity_type TEXT NOT NULL, entity_id TEXT, reference TEXT,
-          reason TEXT, affected_rows INTEGER NOT NULL DEFAULT 0, affected_files INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL
-        )`);
+        ensureRetentionRuntimeSchema(db);
         db.prepare(`INSERT INTO retention_actions (id, action_type, entity_type, entity_id, reference, reason, affected_rows, affected_files, created_at)
           VALUES (?, 'case_anonymized', 'case', ?, ?, ?, ?, ?, ?)`)
           .run(randomUUID(), caseId, row.case_number, reason.trim(), affected, quarantine.affectedFiles, timestamp);

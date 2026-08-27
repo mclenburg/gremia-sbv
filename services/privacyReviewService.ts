@@ -5,6 +5,7 @@ import { assertRetentionDecision, decideLegacyBulkPrivacyReview, decidePrivacyRe
 import { ProtectedPersonService } from './protectedPersonService.js';
 import type { CaseCategory, CasePriority, CaseRecord, CaseStatus } from '../src/domain/models/case.model.js';
 import type { PrivacyReviewItemRecord, PrivacyReviewItemStatus, PrivacyReviewContextSnapshot } from '../src/domain/models/privacy-review.model.js';
+import { ensurePrivacyReviewRuntimeSchema } from './runtimeSchemaCompatibility.js';
 
 /** SQLite row at the persistence boundary. Values remain scalar and must be
  * normalized by the service mapper before entering the domain model. */
@@ -18,16 +19,6 @@ type DatabaseRow = Record<string, DatabaseScalar> & {
 };
 
 function nowIso(): string { return new Date().toISOString(); }
-function tryExec(db: DatabaseAdapter, sql: string): void { try { db.exec(sql); } catch { /* idempotent */ } }
-function columnExists(db: DatabaseAdapter, table: string, column: string): boolean {
-  try { return db.prepare<{ name: string }>(`PRAGMA table_info(${table})`).all().some((row) => row.name === column); } catch { return false; }
-}
-function tableExists(db: DatabaseAdapter, table: string): boolean {
-  try { return Boolean(db.prepare<{ name: string }>("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?").get(table)?.name); } catch { return false; }
-}
-function addColumnIfMissing(db: DatabaseAdapter, table: string, column: string, definition: string): void {
-  if (!columnExists(db, table, column)) tryExec(db, `ALTER TABLE ${table} ADD COLUMN ${column} ${definition};`);
-}
 type ScalarValueRow = { value?: string | number | null };
 
 function safeScalar(db: DatabaseAdapter, sql: string, ...params: unknown[]): number {
@@ -109,27 +100,7 @@ export class PrivacyReviewService {
   constructor(private readonly database: DatabaseAdapter) {}
 
   ensureSchema(): void {
-    tryExec(this.database, `CREATE TABLE IF NOT EXISTS privacy_review_items (
-      id TEXT PRIMARY KEY,
-      case_id TEXT NOT NULL REFERENCES cases(id) ON DELETE CASCADE,
-      protected_person_id TEXT REFERENCES protected_persons(id) ON DELETE SET NULL,
-      reason TEXT NOT NULL,
-      priority TEXT NOT NULL,
-      due_at TEXT NOT NULL,
-      free_text_review_required INTEGER NOT NULL DEFAULT 1,
-      context_json TEXT NOT NULL DEFAULT '{}',
-      status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open','cleared','anonymized','deleted','retention_documented')),
-      created_at TEXT NOT NULL,
-      updated_at TEXT NOT NULL
-    );`);
-    addColumnIfMissing(this.database, 'privacy_review_items', 'protected_person_id', 'TEXT REFERENCES protected_persons(id) ON DELETE SET NULL');
-    addColumnIfMissing(this.database, 'privacy_review_items', 'priority', "TEXT NOT NULL DEFAULT 'normal'");
-    addColumnIfMissing(this.database, 'privacy_review_items', 'due_at', 'TEXT');
-    addColumnIfMissing(this.database, 'privacy_review_items', 'free_text_review_required', 'INTEGER NOT NULL DEFAULT 1');
-    addColumnIfMissing(this.database, 'privacy_review_items', 'context_json', "TEXT NOT NULL DEFAULT '{}'");
-    addColumnIfMissing(this.database, 'privacy_review_items', 'status', "TEXT NOT NULL DEFAULT 'open'");
-    tryExec(this.database, `CREATE INDEX IF NOT EXISTS idx_privacy_review_items_case ON privacy_review_items(case_id, status);`);
-    tryExec(this.database, `CREATE INDEX IF NOT EXISTS idx_privacy_review_items_person ON privacy_review_items(protected_person_id, status);`);
+    ensurePrivacyReviewRuntimeSchema(this.database);
   }
 
   listOpenForPerson(protectedPersonId: string): PrivacyReviewItemRecord[] {

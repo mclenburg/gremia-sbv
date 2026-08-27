@@ -9,10 +9,10 @@ type AssemblyDocumentKind = 'invitation' | 'agenda' | 'activity_report_draft' | 
 type AssemblyDocumentResult = Awaited<ReturnType<typeof window.gremiaSbv.sbvOffice.assemblies.generateDocument>>;
 
 const assemblyDocumentLabels: Record<AssemblyDocumentKind, string> = {
-  invitation: 'Einladung erzeugen & öffnen',
-  agenda: 'Tagesordnung erzeugen & öffnen',
-  activity_report_draft: 'Tätigkeitsbericht erzeugen & öffnen',
-  result_minutes: 'Ergebnisprotokoll erzeugen & öffnen',
+  invitation: 'Einladung',
+  agenda: 'Tagesordnung',
+  activity_report_draft: 'Tätigkeitsbericht',
+  result_minutes: 'Ergebnisprotokoll',
 };
 
 function AssemblyDocumentActions({ current, onGenerate }: {

@@ -24,6 +24,13 @@ const retentionProcessNodeTypes: Partial<Record<RetentionCandidate['entityType']
   termination_hearing: 'termination_hearing',
 };
 
+interface RetentionCandidateUiAction {
+  buttonLabel: string;
+  targetDescription: string;
+  view: ViewId | null;
+  caseTarget: CaseNodeTarget | null;
+}
+
 export function retentionCandidateTarget(candidate: RetentionCandidate): ViewId | null {
   switch (candidate.entityType) {
     case 'case': case 'case_file': case 'bem': case 'prevention': case 'sbv_participation':
@@ -44,11 +51,50 @@ export function retentionCandidateTarget(candidate: RetentionCandidate): ViewId 
 
 export function retentionCandidateCaseTarget(candidate: RetentionCandidate): CaseNodeTarget | null {
   if (candidate.entityType === 'case' && candidate.entityId) return { caseId: candidate.entityId, nodeType: 'overview' };
+  if (candidate.entityType === 'document' && candidate.caseId && candidate.entityId) return { caseId: candidate.caseId, nodeType: 'document', nodeId: candidate.entityId };
+  if (candidate.entityType === 'deadline' && candidate.caseId && candidate.entityId) return { caseId: candidate.caseId, nodeType: 'deadline', nodeId: candidate.entityId };
   if (!candidate.caseId) return null;
   const processType = retentionProcessNodeTypes[candidate.entityType];
   return processType
     ? { caseId: candidate.caseId, nodeType: processType, nodeId: candidate.entityId }
     : { caseId: candidate.caseId, nodeType: 'overview' };
+}
+
+export function retentionCandidateUiAction(candidate: RetentionCandidate): RetentionCandidateUiAction {
+  const caseTarget = retentionCandidateCaseTarget(candidate);
+  if (caseTarget) {
+    return {
+      buttonLabel: caseTarget.nodeType === 'overview' ? 'Fallakte öffnen' : 'Betroffene Stelle öffnen',
+      targetDescription: caseTarget.nodeType === 'overview'
+        ? 'Konkrete Fallakte'
+        : `Konkreter Fallaktenbereich: ${caseTarget.nodeType}`,
+      view: 'cases',
+      caseTarget,
+    };
+  }
+  const view = retentionCandidateTarget(candidate);
+  if (candidate.entityType === 'file' || candidate.entityType === 'system') {
+    return {
+      buttonLabel: 'Technische Prüfung öffnen',
+      targetDescription: 'Sicherheits- und Compliance-Prüfung; Bereinigung erfolgt durch die Software, soweit sicher möglich.',
+      view,
+      caseTarget: null,
+    };
+  }
+  if (candidate.entityType === 'document') {
+    return {
+      buttonLabel: 'Dokumentprüfung öffnen',
+      targetDescription: 'Dokumentenspeicher-Prüfung; keine manuelle Falllöschung im Cockpit.',
+      view,
+      caseTarget: null,
+    };
+  }
+  return {
+    buttonLabel: view ? 'Arbeitsbereich öffnen' : 'Nicht verfügbar',
+    targetDescription: view ? 'Zuständiger Arbeitsbereich' : 'Kein sicherer Zielbereich ermittelbar',
+    view,
+    caseTarget: null,
+  };
 }
 
 export function PrivacyReviewCockpit({ onNavigate, onOpenCaseNode }: { onNavigate: (view: ViewId) => void; onOpenCaseNode: (target: CaseNodeTarget) => void }) {
@@ -103,16 +149,16 @@ export function PrivacyReviewCockpit({ onNavigate, onOpenCaseNode }: { onNavigat
     </div>
     <div className="industrial-table-shell mt-4"><table className="industrial-table">
       <caption className="sr-only">Fällige Lösch- und Datenschutzprüfungen</caption>
-      <thead><tr><th>Risiko</th><th>Prüfauftrag</th><th>Fällig seit</th><th>Empfehlung</th><th>Rechtsgrundlage</th><th>Vorgang</th></tr></thead>
-      <tbody>{candidates.map((candidate) => { const view = retentionCandidateTarget(candidate); const caseTarget = retentionCandidateCaseTarget(candidate); return <tr key={candidate.id}>
+      <thead><tr><th>Risiko</th><th>Prüfauftrag</th><th>Fällig seit</th><th>Empfehlung</th><th>Rechtsgrundlage</th><th>Arbeitsbereich / Aktion</th></tr></thead>
+      <tbody>{candidates.map((candidate) => { const action = retentionCandidateUiAction(candidate); return <tr key={candidate.id}>
         <td>{candidate.riskLevel === 'critical' ? <AlertTriangle className="h-4 w-4 inline" aria-hidden="true" /> : <ShieldCheck className="h-4 w-4 inline" aria-hidden="true" />} {riskLabels[candidate.riskLevel]}</td>
         <td><strong>{candidate.title}</strong><br /><span>{candidate.reference ?? 'Ohne Referenz'}</span><br /><small>{candidate.description}</small></td>
         <td>{formatDateShort(candidate.dueSince ?? candidate.createdAt)}</td>
         <td>{actionLabels[candidate.recommendedAction]}{candidate.privacyReviewRequired ? ' · Datenschutzprüfung erforderlich' : ''}</td>
         <td>{candidate.legalBasis ?? '—'}</td>
-        <td>{caseTarget
-          ? <IndustrialButton variant="secondary" onClick={() => onOpenCaseNode(caseTarget)}>Fallakte öffnen</IndustrialButton>
-          : view ? <IndustrialButton variant="secondary" onClick={() => onNavigate(view)}>Vorgang öffnen</IndustrialButton> : '—'}</td>
+        <td><small>{action.targetDescription}</small><br />{action.caseTarget
+          ? <IndustrialButton variant="secondary" onClick={() => onOpenCaseNode(action.caseTarget!)}>{action.buttonLabel}</IndustrialButton>
+          : action.view ? <IndustrialButton variant="secondary" onClick={() => onNavigate(action.view!)}>{action.buttonLabel}</IndustrialButton> : '—'}</td>
       </tr>; })}
       {!candidates.length && <tr><td colSpan={6}>{dashboard ? 'Keine passenden Prüfaufträge offen.' : 'Prüfaufträge werden geladen …'}</td></tr>}</tbody>
     </table></div>

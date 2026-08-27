@@ -49,6 +49,10 @@ const artifact = startupArtifacts[0];
 if (target === 'linux') fs.chmodSync(artifact, 0o755);
 if (target === 'linux' && !process.env.DISPLAY && !process.env.WAYLAND_DISPLAY) {
   fs.rmSync(root, { recursive: true, force: true });
+  if (process.env.CI) {
+    console.error('Startup-Smoke-Test abgebrochen: Linux-CI benötigt DISPLAY, WAYLAND_DISPLAY oder xvfb-run. Der PR-/Release-Build darf den Desktop-Smoke nicht still überspringen.');
+    process.exit(7);
+  }
   console.warn('Startup-Smoke-Test übersprungen: Linux-Desktoptest benötigt DISPLAY, WAYLAND_DISPLAY oder xvfb-run. GitHub führt diesen Schritt mit xvfb-run aus.');
   process.exit(0);
 }

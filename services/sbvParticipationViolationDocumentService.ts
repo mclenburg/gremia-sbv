@@ -10,7 +10,6 @@ import type {
   SbvParticipationViolationRecord,
   SbvParticipationViolationTemplateInput,
 } from '../src/domain/models/sbv-participation-violation.model.js';
-import { addColumnsIfMissing } from './migrations/schemaColumnMigration.js';
 import { externalLetterDocument, paragraph } from './documents/pdfDocumentDefinition.js';
 import { PdfDocumentGenerationService } from './documents/pdfDocumentGenerationService.js';
 import {
@@ -19,6 +18,7 @@ import {
   sbvSenderLines,
   sbvSignature,
 } from './documents/documentIdentityPolicy.js';
+import { ensureSbvParticipationViolationDocumentRuntimeSchema } from './runtimeSchemaCompatibility.js';
 
 const PDF_MIME = 'application/pdf';
 
@@ -70,22 +70,7 @@ export class SbvParticipationViolationDocumentService {
   ) {}
 
   ensureSchema(): void {
-    this.database.exec(`
-      CREATE TABLE IF NOT EXISTS sbv_participation_violation_documents (
-        id TEXT PRIMARY KEY,
-        violation_id TEXT NOT NULL REFERENCES sbv_participation_violations(id) ON DELETE CASCADE,
-        document_id TEXT NOT NULL REFERENCES generated_documents(id) ON DELETE RESTRICT,
-        stage TEXT NOT NULL CHECK (stage IN ('request','formal_objection','abmahnung','suspension_request','owi_preparation')),
-        template_key TEXT NOT NULL,
-        template_version TEXT NOT NULL,
-        immutable_snapshot INTEGER NOT NULL DEFAULT 1 CHECK (immutable_snapshot IN (0,1)),
-        created_at TEXT NOT NULL
-      );
-      CREATE INDEX IF NOT EXISTS idx_sbv_participation_violation_documents_violation ON sbv_participation_violation_documents(violation_id);
-    `);
-    addColumnsIfMissing(this.database, 'generated_documents', [
-      ['filename', 'TEXT'], ['mime_type', 'TEXT'], ['sha256', 'TEXT'], ['document_key', 'TEXT'], ['iv', 'TEXT'], ['auth_tag', 'TEXT'], ['size_bytes', 'INTEGER']
-    ]);
+    ensureSbvParticipationViolationDocumentRuntimeSchema(this.database);
   }
 
   async generateDocument(violationId: string, options: Partial<Pick<SbvParticipationViolationTemplateInput, 'recipientLabel' | 'privacyMode' | 'includeLegalReviewHint' | 'includeOwiHint'>> = {}): Promise<SbvParticipationViolationDocumentResult> {

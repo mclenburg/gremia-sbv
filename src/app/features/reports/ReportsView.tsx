@@ -146,7 +146,7 @@ export function ReportsView() {
           </IndustrialButton>
           <IndustrialButton onClick={() => void generateReport(true)} disabled={loading || !selectedDescriptor}>
             <ExternalLink className="h-4 w-4" />
-            PDF erzeugen & öffnen
+            PDF erzeugen
           </IndustrialButton>
         </div>
 
