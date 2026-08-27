@@ -185,6 +185,12 @@
       "category": "A",
       "sourceAssertions": 7,
       "rationale": "Das Benutzerhandbuch ist selbst Bestandteil des stabilen Dokumentationsvertrags. Sichtbare Navigationsbezeichnungen werden über importierte Moduldefinitionen statt Source-Text geprüft."
+    },
+    {
+      "file": "tests/architecture/rendererConsolePolicy.test.ts",
+      "category": "B",
+      "sourceAssertions": 2,
+      "rationale": "Statische Architekturregel: Die Main-Prozess-Weiterleitung von Renderer-Konsolenmeldungen darf nur über die zentrale Diagnostik-Policy verdrahtet sein und keine Rohmeldungen protokollieren."
     }
   ]
 }

@@ -292,6 +292,11 @@
       "owner": "services/caseProcessDeletion.ts#<module>.deleteCaseProcess",
       "reason": "Interne abhängige Bereinigung innerhalb der unmittelbar auditierten Maßnahmenlöschung."
     },
+    "services/caseProcessDeletion.ts#<module>.detachDocumentsForProcess": {
+      "classification": "delegated",
+      "owner": "services/caseProcessDeletion.ts#<module>.deleteCaseProcess",
+      "reason": "Entkoppelt Dokumentbezüge innerhalb der unmittelbar auditierten Maßnahmenlöschung oder BEM-Anonymisierung."
+    },
     "services/caseProcessDeletion.ts#<module>.anonymizeBemProcess": {
       "classification": "delegated",
       "owner": "services/caseProcessDeletion.ts#<module>.deleteCaseProcess",

@@ -41,4 +41,16 @@ describe('Renderer-Diagnostik', () => {
     expect(JSON.stringify(diagnostic)).not.toContain('Erika');
     expect(JSON.stringify(diagnostic)).not.toContain('GdB');
   });
+
+  it('verdrahtet die Main-Prozess-Weiterleitung ausschließlich über die zentrale Policy', () => {
+    const source = readFileSync('electron/appRuntimeSupport.ts', 'utf8');
+    const consoleMessageIndex = source.indexOf('"console-message"');
+    const policyIndex = source.indexOf('shouldForwardRendererConsoleDiagnostics(');
+
+    expect(consoleMessageIndex).toBeGreaterThan(0);
+    expect(policyIndex).toBeGreaterThan(0);
+    expect(policyIndex).toBeLessThan(consoleMessageIndex);
+    expect(source).toContain('buildRendererConsoleDiagnostic(level, message, line)');
+    expect(source).not.toMatch(/console\.log\([^)]*\bmessage\b/);
+  });
 });

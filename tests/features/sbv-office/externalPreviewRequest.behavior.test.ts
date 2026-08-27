@@ -1,7 +1,13 @@
 import { describe, expect, it, vi } from 'vitest';
-import { requestExternalPreview } from '../../../electron/ipc/externalPreviewRequest';
+import { createExternalPreviewOpener, requestExternalPreview } from '../../../electron/ipc/externalPreviewRequest';
 
 describe('externer Dokumentaufruf', () => {
+  it('zentralisiert den E2E-Stub für externe Vorschauen', async () => {
+    const opener = createExternalPreviewOpener({ GREMIA_SBV_E2E: '1' });
+
+    await expect(opener('/isolierte-vorschau/einladung.pdf')).resolves.toBe('');
+  });
+
   it('wertet den ausgelösten Programmaufruf unabhängig von dessen späterem Ergebnis als angefordert', async () => {
     const opener = vi.fn(async () => '');
 

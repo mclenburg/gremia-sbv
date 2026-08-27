@@ -420,8 +420,8 @@
     },
     {
       "path": "electron/ipc/externalPreviewRequest.ts",
-      "size": 322,
-      "sha256": "d59c8d87e3d6b1ea4eaff46d970c734fc5171fc54f55bcc19c8f82704a99cad7"
+      "size": 572,
+      "sha256": "a360c9f34831087628a1aca5fd81d3d66a4bb8399136ada3c8f1598f31757938"
     },
     {
       "path": "electron/ipc/gremiaBrIpc.ts",
@@ -480,18 +480,18 @@
     },
     {
       "path": "electron/ipc/sbvElectionIpc.ts",
-      "size": 16353,
-      "sha256": "03b9449c1d6de6e926c0b076dc0b6c9347fa3d29c7f29cf26eca56146408d5f4"
+      "size": 16251,
+      "sha256": "27da3f5b82b8667ff445584eabf86a33df0918fc47e0301190ab7d8b29d49161"
     },
     {
       "path": "electron/ipc/sbvOfficeWorkflowIpc.ts",
-      "size": 8169,
-      "sha256": "b35976d9184bd97d48c57dd2e82fca591613e67747532bb76aa866a3c3f74675"
+      "size": 8067,
+      "sha256": "3d90d89164d8cf5d5b9920ba60157be88452b2a91e87543a11318677b2e98c09"
     },
     {
       "path": "electron/ipc/sbvParticipationViolationIpc.ts",
-      "size": 5864,
-      "sha256": "6e42ae1275b8375c8daa7f993a24844a012560d231a7cf8aeebeb798c74b41d7"
+      "size": 5769,
+      "sha256": "b3110784c2578c704b1ccb831d0dd3aa9fe6f3187bb582283c0f14279771dd32"
     },
     {
       "path": "electron/ipc/sbvResourceIpc.ts",
@@ -515,8 +515,8 @@
     },
     {
       "path": "electron/ipc/templateIpc.ts",
-      "size": 5555,
-      "sha256": "7e81af588b0dae25df03477db50c369a558294cae343e506c5fdc226eb5af305"
+      "size": 5703,
+      "sha256": "9fa2706f52db86ab787a815d9b5ac83057233435ff85690ebd19451f0643f53b"
     },
     {
       "path": "electron/ipc/terminationIpc.ts",
@@ -860,8 +860,8 @@
     },
     {
       "path": "services/caseProcessDeletion.ts",
-      "size": 9312,
-      "sha256": "8e471e6d9cbf0230c97dc403bff40c34251a0069ceb4747bc8c19ca63f4165ad"
+      "size": 10066,
+      "sha256": "e97fd798ac17a3a09f3963dac4d47d07ff08884f0a7bd1628a1752a83a729e58"
     },
     {
       "path": "services/caseProcessPolicy.ts",
@@ -3987,8 +3987,8 @@
     },
     {
       "path": "dist-electron/electron/ipc/externalPreviewRequest.js",
-      "size": 348,
-      "sha256": "623aa32b2775072e047bf7396bc12072f3edb1f72585c3c5eb9f27b2aed3643c"
+      "size": 661,
+      "sha256": "699397920ceef2ff9d0bb1464f898ca5107385f6b1af834f53423182cbcec5d1"
     },
     {
       "path": "dist-electron/electron/ipc/gremiaBrIpc.js",
@@ -4052,18 +4052,18 @@
     },
     {
       "path": "dist-electron/electron/ipc/sbvElectionIpc.js",
-      "size": 18587,
-      "sha256": "fa5bb0c30df917063322e8cead332223eb703e72f246a0cf79641713547a91ee"
+      "size": 18608,
+      "sha256": "9e0274ac99a3b1756960c3a75fa79f84cf1e2c80b506b4f8bd36ed35e3cfa9bd"
     },
     {
       "path": "dist-electron/electron/ipc/sbvOfficeWorkflowIpc.js",
-      "size": 8992,
-      "sha256": "d50400d3fadab57341dbf02f66d609abb5615a127371a9b6cf3f034d2bce2ca5"
+      "size": 9013,
+      "sha256": "ddb1fae4960d9cd56faa4de0e7fb7d8134d0a7907fe4a79d790cfc91298eaad7"
     },
     {
       "path": "dist-electron/electron/ipc/sbvParticipationViolationIpc.js",
-      "size": 5751,
-      "sha256": "51706565b6e6522dca0a56d06e55ec8416d47d889a664cee25c4cf22eb38a81b"
+      "size": 5732,
+      "sha256": "b5b767e83220f7275800088b69f1a1b52e6408b453fc26069e8f105561361752"
     },
     {
       "path": "dist-electron/electron/ipc/sbvResourceIpc.js",
@@ -4087,8 +4087,8 @@
     },
     {
       "path": "dist-electron/electron/ipc/templateIpc.js",
-      "size": 6078,
-      "sha256": "150c16b2b873cda7d8e7fa9bc4401bada2552a15f8c909390e64c658732de116"
+      "size": 6178,
+      "sha256": "6bfcb55ed88610102ab18365e80470fcff3510843832b4fd64506c8d87c4d6e6"
     },
     {
       "path": "dist-electron/electron/ipc/terminationIpc.js",
@@ -4427,8 +4427,8 @@
     },
     {
       "path": "dist-electron/services/caseProcessDeletion.js",
-      "size": 8347,
-      "sha256": "059d5e50372cc8e1a47163db3574a26d6328c14d01c2ed7d2364fec57ed8d66b"
+      "size": 9038,
+      "sha256": "fcf882516c419d9ee4a077b0594a8eb5a8aa74ea6a04c7495a1446253545eadc"
     },
     {
       "path": "dist-electron/services/caseProcessPolicy.js",

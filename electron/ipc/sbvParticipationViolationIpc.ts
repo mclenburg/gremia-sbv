@@ -10,12 +10,10 @@ import type {
   UpdateSbvParticipationViolationInput,
 } from '../../src/domain/models/sbv-participation-violation.model.js';
 import { assertRecordInput, assertString } from './ipcValidation.js';
-import type { ExternalPreviewOpener } from './externalPreviewRequest.js';
+import { createExternalPreviewOpener } from './externalPreviewRequest.js';
 import { generateAndRequestDocumentPreviewForRecord } from './documentPreviewWorkflow.js';
 
-const externalPreviewOpener: ExternalPreviewOpener = process.env.GREMIA_SBV_E2E === '1'
-  ? async () => ''
-  : (previewPath) => shell.openPath(previewPath);
+const externalPreviewOpener = createExternalPreviewOpener();
 
 export function registerSbvParticipationViolationIpc(
   ipcMain: IpcMain,

@@ -50,13 +50,30 @@ function findProcess(db: DatabaseAdapter, input: DeleteCaseProcessInput): { id: 
   return row;
 }
 
+function linkedCaseMeasureIds(db: DatabaseAdapter, input: DeleteCaseProcessInput): string[] {
+  const linkedType = noteProcessTypeToCaseMeasureType(input.processType);
+  if (!linkedType) return [];
+  return db.prepare<{ id: string }>(`
+    SELECT id FROM case_measures
+    WHERE case_id = ? AND type = ? AND source_id = ? AND id <> ?
+  `).all(input.caseId, linkedType, input.processId, input.processId).map((row) => row.id);
+}
+
+function detachDocumentsForProcess(db: DatabaseAdapter, input: DeleteCaseProcessInput): number {
+  let detachedDocuments = changes(db.prepare('UPDATE case_documents SET measure_id = NULL WHERE case_id = ? AND measure_id = ?').run(input.caseId, input.processId));
+  for (const linkedMeasureId of linkedCaseMeasureIds(db, input)) {
+    detachedDocuments += changes(db.prepare('UPDATE case_documents SET measure_id = NULL WHERE case_id = ? AND measure_id = ?').run(input.caseId, linkedMeasureId));
+  }
+  return detachedDocuments;
+}
+
 function deleteLinksAndChildren(db: DatabaseAdapter, input: DeleteCaseProcessInput): Pick<DeleteCaseProcessResult, 'detachedDocuments' | 'deletedNotes' | 'deletedDeadlines'> {
   let deletedNotes = changes(db.prepare('DELETE FROM case_measure_notes WHERE case_id = ? AND measure_type = ? AND measure_id = ?').run(input.caseId, input.processType, input.processId));
   if (input.processType === 'equalization') {
     deletedNotes += changes(db.prepare('DELETE FROM case_notes WHERE case_id = ? AND content LIKE ?').run(input.caseId, `[[equalization:${input.processId}]]%`));
   }
   const deletedDeadlines = changes(db.prepare('DELETE FROM deadlines WHERE case_id = ? AND (process_id = ? OR measure_id = ?)').run(input.caseId, input.processId, input.processId));
-  const detachedDocuments = changes(db.prepare('UPDATE case_documents SET measure_id = NULL WHERE case_id = ? AND measure_id = ?').run(input.caseId, input.processId));
+  const detachedDocuments = detachDocumentsForProcess(db, input);
   const journalTarget = ACTIVITY_TARGET_TYPES[input.processType];
   if (journalTarget) db.prepare('DELETE FROM activity_journal_links WHERE target_type = ? AND target_id = ?').run(journalTarget, input.processId);
   if (input.processType === 'bem' || input.processType === 'participation') {
@@ -67,7 +84,7 @@ function deleteLinksAndChildren(db: DatabaseAdapter, input: DeleteCaseProcessInp
 
 function anonymizeBemProcess(db: DatabaseAdapter, input: DeleteCaseProcessInput): Pick<DeleteCaseProcessResult, 'detachedDocuments' | 'deletedNotes' | 'deletedDeadlines' | 'anonymizedNotes'> {
   const timestamp = nowIso();
-  const detachedDocuments = changes(db.prepare('UPDATE case_documents SET measure_id = NULL WHERE case_id = ? AND measure_id = ?').run(input.caseId, input.processId));
+  const detachedDocuments = detachDocumentsForProcess(db, input);
   const anonymizedNotes = changes(db.prepare(`
     UPDATE case_measure_notes
     SET title = '[BEM-Maßnahmennotiz anonymisiert]',

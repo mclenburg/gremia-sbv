@@ -1,16 +1,14 @@
-import { dialog, shell, type IpcMain } from 'electron';
+import { dialog, type IpcMain } from 'electron';
 import type { SecurityService } from '../../services/securityService.js';
 import type { ApplicationServices } from '../applicationServices.js';
 import { IPC_CHANNELS, registerIpcHandler } from './ipcHandler.js';
 import { assertAllowedEnum, assertRecordInput, assertString } from './ipcValidation.js';
 import type { CreateSbvMeetingInput, SaveComplaintWorkflowInput, SaveEmployerObligationReviewInput, SaveInclusionAgreementInput, SaveInclusionAgreementTopicInput, SaveInclusionOfficerSnapshotInput, SaveSbvAssemblyInput, UpdateSbvMeetingInput, UpsertSbvMeetingAgendaInput } from '../../src/domain/models/sbv-office-workflow.model.js';
 import type { AssemblyDocumentKind, SbvOfficeDocumentGenerationResult } from '../../services/sbvOfficeDocumentService.js';
-import type { ExternalPreviewOpener } from './externalPreviewRequest.js';
+import { createExternalPreviewOpener } from './externalPreviewRequest.js';
 import { generateAndRequestDocumentPreview } from './documentPreviewWorkflow.js';
 
-const externalPreviewOpener: ExternalPreviewOpener = process.env.GREMIA_SBV_E2E === '1'
-  ? async () => ''
-  : (previewPath) => shell.openPath(previewPath);
+const externalPreviewOpener = createExternalPreviewOpener();
 
 async function generateAndOpenAssemblyDocument(
   security: SecurityService,

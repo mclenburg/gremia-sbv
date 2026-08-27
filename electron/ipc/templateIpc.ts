@@ -1,5 +1,5 @@
 import { IPC_CHANNELS, registerIpcHandler } from './ipcHandler.js';
-import { shell, type IpcMain } from "electron";
+import type { IpcMain } from "electron";
 import type { SecurityService } from "../../services/securityService.js";
 import type { ApplicationServices } from '../applicationServices.js';
 import { registerGremiaBrIpc } from "./gremiaBrIpc.js";
@@ -22,6 +22,7 @@ import { sbvSenderLines } from '../../services/documents/documentIdentityPolicy.
 import { safeDocumentFilePart } from '../../services/documentContainerService.js';
 import { GeneratedDocumentStoreService } from '../../services/generatedDocumentStoreService.js';
 import { generateAndRequestDocumentPreviewForRecord } from './documentPreviewWorkflow.js';
+import { createExternalPreviewOpener } from './externalPreviewRequest.js';
 
 export function registerTemplateIpc(
   ipcMain: IpcMain,
@@ -29,6 +30,7 @@ export function registerTemplateIpc(
   services: ApplicationServices,
 ): void {
   const pdfDocuments = new PdfDocumentGenerationService();
+  const externalPreviewOpener = createExternalPreviewOpener();
   registerGremiaBrIpc(ipcMain, security, services);
 
 
@@ -78,7 +80,7 @@ export function registerTemplateIpc(
       operation: 'templates:open-pdf',
       generateFailureMessage: 'Das PDF aus der Vorlage konnte nicht erzeugt oder verschlüsselt gespeichert werden.',
       security,
-      opener: (previewPath) => shell.openPath(previewPath),
+      opener: externalPreviewOpener,
       getDocumentId: (record) => record.id,
       getFilename: (record) => record.filename,
       read: (documentId) => generatedDocuments.read(documentId),
