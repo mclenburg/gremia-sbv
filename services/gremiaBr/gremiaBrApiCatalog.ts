@@ -31,6 +31,22 @@ export const GREMIA_BR_READ_API_CATALOG: readonly GremiaBrEndpointDefinition[] =
   { method: 'GET', template: '/protokolle/beschluesse/ueberfaellig', auth: 'bearer', purpose: 'Überfällige BR-Beschlüsse lesen' },
   { method: 'GET', template: '/protokolle/beschluesse/statistik', auth: 'bearer', purpose: 'BR-Beschlussstatistik lesen' },
   { method: 'GET', template: '/protokolle/beschluesse/statistik-extended', auth: 'bearer', purpose: 'Erweiterte BR-Beschlussstatistik lesen' },
+  { method: 'POST', template: '/api/v1/auth/login', auth: 'anonymous', purpose: 'Gremia.BR-2.0-Session für explizite Nutzeraktion öffnen' },
+  { method: 'GET', template: '/api/v1/auth/session', auth: 'bearer', purpose: 'Gremia.BR-2.0-Sessionstatus prüfen' },
+  { method: 'GET', template: '/api/v1/me/bodies', auth: 'bearer', purpose: 'Eigene berechtigte Gremien in Gremia.BR 2.0 lesen' },
+  { method: 'GET', template: '/api/v1/bodies/{bodyId}', auth: 'bearer', purpose: 'Berechtigtes Gremium in Gremia.BR 2.0 lesen' },
+  { method: 'GET', template: '/api/v1/bodies/{bodyId}/meetings', auth: 'bearer', purpose: 'Sitzungen eines berechtigten Gremiums in Gremia.BR 2.0 lesen' },
+  { method: 'GET', template: '/api/v1/meetings/{meetingId}', auth: 'bearer', purpose: 'Sitzungsdetails in Gremia.BR 2.0 lesen' },
+  { method: 'GET', template: '/api/v1/meetings/{meetingId}/agenda', auth: 'bearer', purpose: 'Tagesordnung in Gremia.BR 2.0 lesen' },
+  { method: 'GET', template: '/api/v1/meetings/{meetingId}/agenda/versions', auth: 'bearer', purpose: 'Tagesordnungsversionen in Gremia.BR 2.0 lesen' },
+  { method: 'GET', template: '/api/v1/meetings/{meetingId}/decisions', auth: 'bearer', purpose: 'Beschlüsse einer Sitzung in Gremia.BR 2.0 lesen' },
+  { method: 'GET', template: '/api/v1/meetings/decisions/{decisionId}', auth: 'bearer', purpose: 'Beschlussdetails in Gremia.BR 2.0 lesen' },
+  { method: 'GET', template: '/api/v1/meetings/{meetingId}/minutes', auth: 'bearer', purpose: 'Protokoll einer Sitzung in Gremia.BR 2.0 lesen' },
+  { method: 'GET', template: '/api/v1/documents', auth: 'bearer', purpose: 'Dokumente eines ausdrücklich gewählten Sicherheitsbereichs in Gremia.BR 2.0 lesen' },
+  { method: 'POST', template: '/api/v1/documents/search', auth: 'bearer', purpose: 'Dokumente in einem ausdrücklich gewählten Sicherheitsbereich in Gremia.BR 2.0 suchen' },
+  { method: 'GET', template: '/api/v1/documents/{documentId}', auth: 'bearer', purpose: 'Dokumentmetadaten in Gremia.BR 2.0 lesen' },
+  { method: 'GET', template: '/api/v1/documents/{documentId}/versions', auth: 'bearer', purpose: 'Dokumentversionen in Gremia.BR 2.0 lesen' },
+  { method: 'GET', template: '/api/v1/documents/versions/{documentVersionId}/content', auth: 'bearer', purpose: 'Dokumentversion nach expliziter Nutzeraktion aus Gremia.BR 2.0 laden' },
 ] as const;
 
 function normalizePath(path: string): string {

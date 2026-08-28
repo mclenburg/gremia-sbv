@@ -19,6 +19,12 @@ describe('Gremia.BR Lesebrücke Security-Härtung 0.9.2-F', () => {
     expect(checkGremiaBrEndpoint('GET', '/protokolle/beschluesse/statistik-extended').allowed).toBe(true);
     expect(checkGremiaBrEndpoint('GET', '/search/suggest?q=BEM').allowed).toBe(true);
     expect(checkGremiaBrEndpoint('POST', '/auth/login').allowed).toBe(true);
+    expect(checkGremiaBrEndpoint('POST', '/api/v1/auth/login').allowed).toBe(true);
+    expect(checkGremiaBrEndpoint('GET', '/api/v1/auth/session').allowed).toBe(true);
+    expect(checkGremiaBrEndpoint('GET', '/api/v1/me/bodies').allowed).toBe(true);
+    expect(checkGremiaBrEndpoint('GET', '/api/v1/bodies/body-1/meetings').allowed).toBe(true);
+    expect(checkGremiaBrEndpoint('GET', '/api/v1/meetings/meeting-1/agenda').allowed).toBe(true);
+    expect(checkGremiaBrEndpoint('POST', '/api/v1/documents/search').allowed).toBe(true);
 
     for (const [method, path] of [
       ['GET', '/admin/health'],
@@ -29,6 +35,10 @@ describe('Gremia.BR Lesebrücke Security-Härtung 0.9.2-F', () => {
       ['GET', '/dokumente'],
       ['GET', '/files/unterlage.pdf'],
       ['POST', '/auth/refresh'],
+      ['POST', '/api/v1/documents'],
+      ['POST', '/api/v1/documents/document-1/shares'],
+      ['POST', '/api/v1/documents/shares/share-1/revocation'],
+      ['DELETE', '/api/v1/sessions/session-1'],
       ['POST', '/protokolle/beschluesse'],
       ['PATCH', '/sitzungen/s1'],
       ['DELETE', '/files/unterlage.pdf'],
