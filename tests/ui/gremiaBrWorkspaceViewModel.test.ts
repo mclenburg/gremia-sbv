@@ -1,0 +1,72 @@
+import { describe, expect, it } from "vitest";
+import type { GremiaBrDashboardOverview, GremiaBrPublicSettings } from "../../src/domain/models/gremia-br.model";
+import {
+  resolveGremiaBrDecisionRows,
+  resolveGremiaBrMeetingRows,
+  resolveGremiaBrWorkspaceSummary,
+} from "../../src/app/features/gremia-br/GremiaBrWorkspaceView";
+
+const SETTINGS: GremiaBrPublicSettings = {
+  enabled: true,
+  serverUrl: "https://br.example.invalid",
+  username: "sbv",
+  hasStoredCredentials: true,
+  apiMode: "gremia_br_v2",
+  selectedBodyId: "body-1",
+  selectedBodyName: "SBV Testbetrieb",
+  relevanceSettings: { groups: [] },
+};
+
+function overview(): GremiaBrDashboardOverview {
+  const relevantMeeting = {
+    id: "meeting-1",
+    title: "SBV-Jahresplanung",
+    plannedStart: "2026-10-01T09:00:00.000Z",
+  };
+  return {
+    upcomingMeetings: [
+      relevantMeeting,
+      { id: "meeting-2", title: "Regelsitzung", plannedStart: "2026-10-08T09:00:00.000Z" },
+    ],
+    meetingAgendas: {},
+    pendingFollowUps: [],
+    decisions: [
+      { id: "decision-1", text: "Barrierefreie Unterlage anfordern", decidedAt: "2026-10-01T10:00:00.000Z", status: "FINAL" },
+    ],
+    dueDecisions: [],
+    overdueDecisions: [],
+    relevanceSettings: { groups: [] },
+    relevantMeetings: [{ item: relevantMeeting, matchedGroups: ["Schwerbehinderung"], matchedKeywords: ["sbv"] }],
+    openDecisionCount: 1,
+    dueDecisionCount: 0,
+    overdueDecisionCount: 0,
+  };
+}
+
+describe("Gremia.BR-Arbeitsbereich View-Model", () => {
+  it("fasst den gewählten v2-Arbeitsbereich und lokalen Lesecache zusammen", () => {
+    const summary = resolveGremiaBrWorkspaceSummary(SETTINGS, overview());
+
+    expect(summary).toEqual([
+      { label: "API-Modus", value: "2.0" },
+      { label: "Sitzungen im Cache", value: "2" },
+      { label: "SBV-Treffer", value: "1", tone: "warning" },
+      { label: "Beschlüsse", value: "1" },
+    ]);
+  });
+
+  it("bereitet gelesene Sitzungen und Beschlüsse ohne technische Eingabe-IDs für zentrale Tabellen auf", () => {
+    const state = overview();
+
+    expect(resolveGremiaBrMeetingRows(state)[0].cells).toEqual([
+      "SBV-Jahresplanung",
+      "2026-10-01T09:00:00.000Z",
+      "SBV-relevant",
+    ]);
+    expect(resolveGremiaBrDecisionRows(state)[0].cells).toEqual([
+      "Barrierefreie Unterlage anfordern",
+      "2026-10-01T10:00:00.000Z",
+      "FINAL",
+    ]);
+  });
+});
