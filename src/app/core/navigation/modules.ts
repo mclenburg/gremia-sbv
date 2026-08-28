@@ -10,6 +10,7 @@ import {
   FileText,
   FolderKanban,
   HeartPulse,
+  Network,
   Scale,
   ShieldAlert,
   ShieldCheck,
@@ -43,6 +44,7 @@ export type ViewId =
   | 'reports'
   | 'compliance'
   | 'privacy_review'
+  | 'gremia_br'
   | 'settings';
 
 export type ModuleIcon = ForwardRefExoticComponent<Omit<LucideProps, 'ref'> & RefAttributes<SVGSVGElement>>;
@@ -57,6 +59,7 @@ export interface ModuleDefinition {
   plannedVersion?: string;
   group: ModuleGroupId;
   showInNavigation?: boolean;
+  visibility?: 'gremia_br_configured';
 }
 
 export type ModuleGroupId = 'core' | 'processes' | 'tools' | 'administration';
@@ -236,6 +239,16 @@ export const modules: ModuleDefinition[] = [
     group: 'administration'
   },
   {
+    id: 'gremia_br',
+    title: 'Gremia.BR',
+    shortTitle: 'Gremia.BR',
+    text: 'Optionale Gremiumsanbindung für Gremia.BR-Lesekontext und bewusst geprüfte PDF-Übergaben.',
+    icon: Network,
+    group: 'administration',
+    showInNavigation: false,
+    visibility: 'gremia_br_configured'
+  },
+  {
     id: 'sbv_control',
     title: 'SBV-Dokumentation',
     shortTitle: 'Dokumentation',
@@ -252,3 +265,16 @@ export const modules: ModuleDefinition[] = [
     group: 'tools'
   }
 ];
+
+export interface NavigationVisibilityContext {
+  gremiaBrConfigured?: boolean;
+}
+
+export function isNavigationModuleVisible(module: ModuleDefinition, context: NavigationVisibilityContext = {}): boolean {
+  if (module.visibility === 'gremia_br_configured') return Boolean(context.gremiaBrConfigured);
+  return module.showInNavigation !== false;
+}
+
+export function getNavigationModules(context: NavigationVisibilityContext = {}): ModuleDefinition[] {
+  return modules.filter((module) => isNavigationModuleVisible(module, context));
+}

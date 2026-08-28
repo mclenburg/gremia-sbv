@@ -46,6 +46,24 @@ describe('Navigation und Panel-Cleanup 0.9.2', () => {
     expect(text).not.toContain('Prävention');
     expect(text).not.toContain('Arbeitsplatz');
     expect(text).not.toContain('Kündigung');
+    expect(text).not.toContain('Gremia.BR');
+  });
+
+  it('zeigt den eigenständigen Gremia.BR-Bereich nur bei konfigurierter Anbindung', () => {
+    const hidden = renderComponent(ShellNav, {
+      current: 'dashboard',
+      onNavigate: () => undefined,
+      gremiaBrConfigured: false,
+    });
+    const visible = renderComponent(ShellNav, {
+      current: 'gremia_br',
+      onNavigate: () => undefined,
+      gremiaBrConfigured: true,
+    });
+
+    expect(visibleText(hidden.markup)).not.toContain('Gremia.BR');
+    expect(visibleText(visible.markup)).toContain('Gremia.BR');
+    expect(visible.markup).toContain('data-e2e="main-nav-gremia_br"');
   });
 
   it('zeigt Kontakte als Register mit Modal-Erfassung statt als dauerhaft eingebettetes Anlegeformular', () => {

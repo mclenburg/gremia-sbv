@@ -1,11 +1,22 @@
 import { Settings as SettingsIcon, TerminalSquare } from 'lucide-react';
-import { moduleGroups, modules, type ModuleGroupDefinition, type ViewId } from '../core/navigation/modules';
+import { getNavigationModules, moduleGroups, type ModuleGroupDefinition, type ModuleDefinition, type ViewId } from '../core/navigation/modules';
 
-function modulesForGroup(group: ModuleGroupDefinition) {
-  return modules.filter((module) => module.group === group.id && module.showInNavigation !== false);
+function modulesForGroup(group: ModuleGroupDefinition, visibleModules: ModuleDefinition[]) {
+  return visibleModules.filter((module) => module.group === group.id);
 }
 
-export function ShellNav({ current, onNavigate, onPreload }: { current: ViewId; onNavigate: (view: ViewId) => void; onPreload?: (view: ViewId) => void }) {
+export function ShellNav({
+  current,
+  onNavigate,
+  onPreload,
+  gremiaBrConfigured = false,
+}: {
+  current: ViewId;
+  onNavigate: (view: ViewId) => void;
+  onPreload?: (view: ViewId) => void;
+  gremiaBrConfigured?: boolean;
+}) {
+  const visibleModules = getNavigationModules({ gremiaBrConfigured });
   return (
     <nav className="industrial-nav" aria-label="Hauptnavigation" data-e2e="main-nav">
       <div className="industrial-nav-primary">
@@ -16,7 +27,7 @@ export function ShellNav({ current, onNavigate, onPreload }: { current: ViewId; 
       </div>
 
       {moduleGroups.map((group) => {
-        const groupModules = modulesForGroup(group);
+        const groupModules = modulesForGroup(group, visibleModules);
         if (!groupModules.length) return null;
         return (
           <section key={group.id} className="industrial-nav-group" aria-labelledby={`main-nav-group-${group.id}`}>

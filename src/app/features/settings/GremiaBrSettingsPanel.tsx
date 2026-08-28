@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type {
   GremiaBrCachedOverview,
   GremiaBrConnectionTestResult,
+  GremiaBrApiMode,
   GremiaBrPublicSettings,
   GremiaBrRelevanceKeywordGroup,
   GremiaBrSettingsInput,
@@ -37,6 +38,12 @@ function statusText(result?: GremiaBrConnectionTestResult): string {
   return result.message;
 }
 
+const GREMIA_BR_SETTINGS_CHANGED_EVENT = 'gremia-sbv:gremia-br-settings-changed';
+
+function notifyGremiaBrSettingsChanged(): void {
+  window.dispatchEvent(new Event(GREMIA_BR_SETTINGS_CHANGED_EVENT));
+}
+
 export function GremiaBrSettingsPanel() {
   const announce = useAnnouncer();
   const [settings, setSettings] = useState<GremiaBrPublicSettings>(EMPTY_SETTINGS);
@@ -45,6 +52,7 @@ export function GremiaBrSettingsPanel() {
   const [serverUrl, setServerUrl] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [apiMode, setApiMode] = useState<GremiaBrApiMode>('legacy_read_bridge');
   const [relevanceGroups, setRelevanceGroups] = useState<GremiaBrRelevanceKeywordGroup[]>([]);
   const [status, setStatus] = useState('');
   const [busy, setBusy] = useState(false);
@@ -61,6 +69,7 @@ export function GremiaBrSettingsPanel() {
     setServerUrl(next.serverUrl);
     setUsername(next.username);
     setPassword('');
+    setApiMode(next.apiMode);
     setRelevanceGroups(next.relevanceSettings.groups);
   }
 
@@ -79,6 +88,7 @@ export function GremiaBrSettingsPanel() {
         setEnabled(next.enabled);
         setServerUrl(next.serverUrl);
         setUsername(next.username);
+        setApiMode(next.apiMode);
         setRelevanceGroups(next.relevanceSettings.groups);
       } catch (err) {
         if (active) {
@@ -99,11 +109,18 @@ export function GremiaBrSettingsPanel() {
     try {
       const bridge = await waitForBridge();
       if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Einstellungsdienst ist nicht erreichbar.');
-      const input: GremiaBrSettingsInput = { enabled, serverUrl, username, relevanceSettings: { groups: relevanceGroups } };
+      const input: GremiaBrSettingsInput = {
+        enabled,
+        serverUrl,
+        username,
+        apiMode,
+        relevanceSettings: { groups: relevanceGroups },
+      };
       if (password.trim()) input.password = password;
       const next = await bridge.gremiaBr.saveSettings(input);
       setSettings(next);
       setPassword('');
+      notifyGremiaBrSettingsChanged();
       setStatus('Gremia.BR-Einstellungen wurden im verschlüsselten Vault gespeichert.');
       announce('Gremia.BR-Einstellungen wurden gespeichert.', 'polite');
     } catch (err) {
@@ -126,6 +143,7 @@ export function GremiaBrSettingsPanel() {
       setSettings(next);
       setEnabled(next.enabled);
       setPassword('');
+      notifyGremiaBrSettingsChanged();
       setStatus('Gremia.BR-Zugangsdaten wurden gelöscht.');
       announce('Gremia.BR-Zugangsdaten wurden gelöscht.', 'polite');
     } catch (err) {
@@ -192,11 +210,11 @@ export function GremiaBrSettingsPanel() {
   return (
     <section className="gremia-br-settings-layout" aria-labelledby="gremia-br-settings-title">
       <div>
-        <p className="font-mono text-xs uppercase tracking-[0.22em] text-zinc-500">Optionale Lesebrücke</p>
+        <p className="font-mono text-xs uppercase tracking-[0.22em] text-zinc-500">Optionale Gremiumsanbindung</p>
         <h3 id="gremia-br-settings-title">Gremia.BR</h3>
         <p className="text-sm text-zinc-400 mt-2">
-          Gremia.SBV ruft Gremia.BR-Daten nur auf ausdrückliche Nutzeraktion ab. Es gibt keine Hintergrundsynchronisation,
-          kein Rückschreiben und keine Übertragung von SBV-Falldaten an Gremia.BR.
+          Gremia.SBV ruft Gremia.BR-Daten nur auf ausdrückliche Nutzeraktion ab. Schreibende Aktionen erfolgen ausschließlich im eigenen Gremia.BR-Bereich
+          und nur für von Gremia.SBV erzeugte PDF-Dokumente.
         </p>
       </div>
 
@@ -211,6 +229,15 @@ export function GremiaBrSettingsPanel() {
       </div>
 
       <div className="gremia-br-settings-credentials">
+        <label className="industrial-field">
+          <span>API-Modus</span>
+          <select value={apiMode} onChange={(event) => setApiMode(event.target.value as GremiaBrApiMode)}>
+            <option value="legacy_read_bridge">Legacy-Lesebrücke</option>
+            <option value="gremia_br_v2">Gremia.BR 2.0</option>
+          </select>
+          <small>Gremia.BR 2.0 behandelt die SBV als eigenes berechtigtes Gremium mit eigenem Arbeitsbereich.</small>
+        </label>
+
         <label className="industrial-field">
           <span>Serveradresse / URL</span>
           <input
@@ -244,6 +271,16 @@ export function GremiaBrSettingsPanel() {
           {settings.hasStoredCredentials && <small>Ein Passwort ist im verschlüsselten Vault hinterlegt. Leer lassen, um es beizubehalten.</small>}
         </label>
       </div>
+
+      {enabled && apiMode === 'gremia_br_v2' && (
+        <div className="industrial-subsection compact">
+          <p className="industrial-kicker">SBV-Gremium in Gremia.BR</p>
+          <p className="text-sm text-zinc-400 mt-2">
+            Die Auswahl des SBV-Gremiums erfolgt im nächsten Schritt über eine filterbare Gremienauswahl aus Gremia.BR.
+            Technische IDs werden nicht als manuelle Eingabe verlangt.
+          </p>
+        </div>
+      )}
 
       <details className="industrial-subsection compact" open>
         <summary>Lokaler Relevanzfilter für Dashboard-Sitzungen</summary>
