@@ -81,6 +81,116 @@ export function resolveGremiaBrDecisionRows(overview: GremiaBrDashboardOverview)
   }));
 }
 
+function DisabledGremiaBrWorkspace() {
+  return (
+    <section className="industrial-card no-card-hover" aria-labelledby="gremia-br-workspace-title">
+      <p className="industrial-kicker">Optionale Gremiumsanbindung</p>
+      <h1 id="gremia-br-workspace-title">Gremia.BR</h1>
+      <p className="text-sm text-zinc-400 mt-2">
+        Die Gremia.BR-Anbindung ist nicht aktiviert. Gremia.SBV arbeitet vollständig lokal weiter.
+      </p>
+    </section>
+  );
+}
+
+function GremiaBrWorkspaceHeader() {
+  return (
+    <div className="industrial-card no-card-hover">
+      <p className="industrial-kicker">Optionale Gremiumsanbindung</p>
+      <h1 id="gremia-br-workspace-title">Gremia.BR</h1>
+      <p className="text-sm text-zinc-400 mt-2">
+        Zentrale Stelle für Gremia.BR-Lesekontext und später bewusst geprüfte PDF-Übergaben. Gremia.SBV synchronisiert keine Fallakten automatisch.
+      </p>
+    </div>
+  );
+}
+
+function GremiaBrWorkspaceFeedback({ error, status }: { error: string; status: string }) {
+  return (
+    <>
+      {error && <div className="industrial-message industrial-message-warning" role="alert">{error}</div>}
+      {status && <div className="industrial-message industrial-message-ok" role="status">{status}</div>}
+    </>
+  );
+}
+
+function GremiaBrConfigurationCard({ settings }: { settings: GremiaBrPublicSettings }) {
+  return (
+    <div className="industrial-card no-card-hover">
+      <p className="industrial-kicker">Konfiguration</p>
+      <h2>Verbundene Instanz</h2>
+      <dl className="industrial-meta-grid mt-3">
+        <div><dt>Server</dt><dd>{settings.serverUrl}</dd></div>
+        <div><dt>Benutzerkonto</dt><dd>{settings.username}</dd></div>
+        <div><dt>API-Modus</dt><dd>{settings.apiMode === "gremia_br_v2" ? "Gremia.BR 2.0" : "Legacy-Lesebrücke"}</dd></div>
+        <div><dt>SBV-Gremium</dt><dd>{workspaceLabel(settings)}</dd></div>
+      </dl>
+      {settings.apiMode === "gremia_br_v2" && !settings.selectedBodyId ? (
+        <div className="industrial-message industrial-message-warning mt-4" role="status">
+          Für Gremia.BR 2.0 muss in den Einstellungen ein berechtigtes SBV-Gremium ausgewählt sein, bevor Sitzungen oder PDF-Übergaben genutzt werden.
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function GremiaBrActionCards({ busy, onRefreshReadContext }: { busy: boolean; onRefreshReadContext: () => void }) {
+  return (
+    <div className="industrial-grid-two">
+      <article className="industrial-card no-card-hover">
+        <p className="industrial-kicker">Lesekontext</p>
+        <h2>BR-/Gremienkontext abrufen</h2>
+        <p className="text-sm text-zinc-400 mt-2">
+          Sitzungen, Tagesordnungen und Beschlüsse werden nur auf ausdrückliche Aktion geladen und lokal als Lesekontext genutzt.
+        </p>
+        <div className="industrial-action-row mt-4">
+          <ToolbarButton disabled={busy} onClick={onRefreshReadContext}>{busy ? "Abruf läuft …" : "Lesekontext abrufen"}</ToolbarButton>
+        </div>
+      </article>
+      <article className="industrial-card no-card-hover">
+        <p className="industrial-kicker">PDF-Übergaben</p>
+        <h2>Von Gremia.SBV erzeugte PDFs</h2>
+        <p className="text-sm text-zinc-400 mt-2">
+          Der nächste Umsetzungsschritt aktiviert hier die geprüfte Übergabe zentral erzeugter PDF-Dokumente an das ausgewählte SBV-Gremium.
+          Im Legacy-Modus bleibt dieser Bereich bewusst inaktiv.
+        </p>
+      </article>
+      <article className="industrial-card no-card-hover">
+        <p className="industrial-kicker">Freigaben</p>
+        <h2>Weitergabe an BR oder andere Gremien</h2>
+        <p className="text-sm text-zinc-400 mt-2">Freigaben werden später ausschließlich hier vorbereitet, begründet, übertragen und widerrufen.</p>
+      </article>
+    </div>
+  );
+}
+
+function GremiaBrCacheTables({ overview }: { overview: GremiaBrDashboardOverview }) {
+  return (
+    <div className="industrial-grid-two">
+      <article className="industrial-card no-card-hover">
+        <p className="industrial-kicker">Gelesene Sitzungen</p>
+        <h2>Sitzungen im lokalen Cache</h2>
+        <DataTable
+          ariaLabel="Gremia.BR-Sitzungen im lokalen Cache"
+          headers={["Sitzung", "Termin", "Einordnung"]}
+          rows={resolveGremiaBrMeetingRows(overview)}
+          empty={<EmptyState title="Kein Lesekontext" text="Noch keine Sitzungen aus Gremia.BR abgerufen." />}
+        />
+      </article>
+      <article className="industrial-card no-card-hover">
+        <p className="industrial-kicker">Gelesene Beschlüsse</p>
+        <h2>Beschlüsse im lokalen Cache</h2>
+        <DataTable
+          ariaLabel="Gremia.BR-Beschlüsse im lokalen Cache"
+          headers={["Beschluss", "Datum", "Status"]}
+          rows={resolveGremiaBrDecisionRows(overview)}
+          empty={<EmptyState title="Keine Beschlüsse" text="Noch keine Beschlüsse aus Gremia.BR im lokalen Cache." />}
+        />
+      </article>
+    </div>
+  );
+}
+
 export function GremiaBrWorkspaceView() {
   const announce = useAnnouncer();
   const [settings, setSettings] = useState<GremiaBrPublicSettings>(EMPTY_SETTINGS);
@@ -140,106 +250,20 @@ export function GremiaBrWorkspaceView() {
   }
 
   if (!settings.enabled) {
-    return (
-      <section className="industrial-card no-card-hover" aria-labelledby="gremia-br-workspace-title">
-        <p className="industrial-kicker">Optionale Gremiumsanbindung</p>
-        <h1 id="gremia-br-workspace-title">Gremia.BR</h1>
-        <p className="text-sm text-zinc-400 mt-2">
-          Die Gremia.BR-Anbindung ist nicht aktiviert. Gremia.SBV arbeitet vollständig lokal weiter.
-        </p>
-      </section>
-    );
+    return <DisabledGremiaBrWorkspace />;
   }
 
   return (
     <section className="feature-stack" aria-labelledby="gremia-br-workspace-title">
-      <div className="industrial-card no-card-hover">
-        <p className="industrial-kicker">Optionale Gremiumsanbindung</p>
-        <h1 id="gremia-br-workspace-title">Gremia.BR</h1>
-        <p className="text-sm text-zinc-400 mt-2">
-          Zentrale Stelle für Gremia.BR-Lesekontext und später bewusst geprüfte PDF-Übergaben. Gremia.SBV synchronisiert keine Fallakten automatisch.
-        </p>
-      </div>
-
-      {error && <div className="industrial-message industrial-message-warning" role="alert">{error}</div>}
-      {status && <div className="industrial-message industrial-message-ok" role="status">{status}</div>}
-
-      <div className="industrial-card no-card-hover">
-        <p className="industrial-kicker">Konfiguration</p>
-        <h2>Verbundene Instanz</h2>
-        <dl className="industrial-meta-grid mt-3">
-          <div><dt>Server</dt><dd>{settings.serverUrl}</dd></div>
-          <div><dt>Benutzerkonto</dt><dd>{settings.username}</dd></div>
-          <div><dt>API-Modus</dt><dd>{settings.apiMode === "gremia_br_v2" ? "Gremia.BR 2.0" : "Legacy-Lesebrücke"}</dd></div>
-          <div><dt>SBV-Gremium</dt><dd>{workspaceLabel(settings)}</dd></div>
-        </dl>
-        {settings.apiMode === "gremia_br_v2" && !settings.selectedBodyId ? (
-          <div className="industrial-message industrial-message-warning mt-4" role="status">
-            Für Gremia.BR 2.0 muss in den Einstellungen ein berechtigtes SBV-Gremium ausgewählt sein, bevor Sitzungen oder PDF-Übergaben genutzt werden.
-          </div>
-        ) : null}
-      </div>
-
+      <GremiaBrWorkspaceHeader />
+      <GremiaBrWorkspaceFeedback error={error} status={status} />
+      <GremiaBrConfigurationCard settings={settings} />
       <WorkbenchSummary
         ariaLabel="Gremia.BR-Arbeitsbereich Zusammenfassung"
         items={resolveGremiaBrWorkspaceSummary(settings, overview)}
       />
-
-      <div className="industrial-grid-two">
-        <article className="industrial-card no-card-hover">
-          <p className="industrial-kicker">Lesekontext</p>
-          <h2>BR-/Gremienkontext abrufen</h2>
-          <p className="text-sm text-zinc-400 mt-2">
-            Sitzungen, Tagesordnungen und Beschlüsse werden nur auf ausdrückliche Aktion geladen und lokal als Lesekontext genutzt.
-          </p>
-          <div className="industrial-action-row mt-4">
-            <ToolbarButton disabled={busy} onClick={() => void refreshReadContext()}>
-              {busy ? "Abruf läuft …" : "Lesekontext abrufen"}
-            </ToolbarButton>
-          </div>
-        </article>
-
-        <article className="industrial-card no-card-hover">
-          <p className="industrial-kicker">PDF-Übergaben</p>
-          <h2>Von Gremia.SBV erzeugte PDFs</h2>
-          <p className="text-sm text-zinc-400 mt-2">
-            Der nächste Umsetzungsschritt aktiviert hier die geprüfte Übergabe zentral erzeugter PDF-Dokumente an das ausgewählte SBV-Gremium.
-            Im Legacy-Modus bleibt dieser Bereich bewusst inaktiv.
-          </p>
-        </article>
-
-        <article className="industrial-card no-card-hover">
-          <p className="industrial-kicker">Freigaben</p>
-          <h2>Weitergabe an BR oder andere Gremien</h2>
-          <p className="text-sm text-zinc-400 mt-2">
-            Freigaben werden später ausschließlich hier vorbereitet, begründet, übertragen und widerrufen.
-          </p>
-        </article>
-      </div>
-
-      <div className="industrial-grid-two">
-        <article className="industrial-card no-card-hover">
-          <p className="industrial-kicker">Gelesene Sitzungen</p>
-          <h2>Sitzungen im lokalen Cache</h2>
-          <DataTable
-            ariaLabel="Gremia.BR-Sitzungen im lokalen Cache"
-            headers={["Sitzung", "Termin", "Einordnung"]}
-            rows={resolveGremiaBrMeetingRows(overview)}
-            empty={<EmptyState title="Kein Lesekontext" text="Noch keine Sitzungen aus Gremia.BR abgerufen." />}
-          />
-        </article>
-
-        <article className="industrial-card no-card-hover">
-          <p className="industrial-kicker">Gelesene Beschlüsse</p>
-          <h2>Beschlüsse im lokalen Cache</h2>
-          <DataTable
-            ariaLabel="Gremia.BR-Beschlüsse im lokalen Cache"
-            headers={["Beschluss", "Datum", "Status"]}
-            rows={resolveGremiaBrDecisionRows(overview)}
-            empty={<EmptyState title="Keine Beschlüsse" text="Noch keine Beschlüsse aus Gremia.BR im lokalen Cache." />}
-          />
-        </article>
-      </div>
+      <GremiaBrActionCards busy={busy} onRefreshReadContext={() => void refreshReadContext()} />
+      <GremiaBrCacheTables overview={overview} />
     </section>
   );
 }
