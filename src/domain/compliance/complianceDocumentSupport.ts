@@ -63,9 +63,9 @@ export const COMPLIANCE_DOCUMENTS: ComplianceDocumentDescriptor[] = [
   },
   {
     type: 'dsar_response',
-    title: 'Antwort auf DSGVO-Auskunftsersuchen',
-    description: 'Strukturierte Antwort nach Art. 15 DSGVO mit Prüfliste, Datenkategorien und Rechtsbehelfsbelehrung.',
-    buttonLabel: 'Auskunftsantwort abrufen'
+    title: 'SBV-Zuarbeit zur Art.-15-Auskunft',
+    description: 'Geprüfte Zuarbeit der SBV für Datenschutzkontakt oder verantwortliche Stelle; DSB optional, keine ungeprüfte Direktantwort.',
+    buttonLabel: 'Art.-15-Zuarbeit abrufen'
   }
 ];
 export function nowIso(): string {

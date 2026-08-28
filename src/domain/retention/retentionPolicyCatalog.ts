@@ -1,5 +1,7 @@
 import type {
   RetentionCandidate,
+  RetentionModuleRuleOverrides,
+  RetentionModuleRules,
   RetentionModuleSnapshot,
   RetentionPolicyDefinition,
   RetentionRule,
@@ -21,6 +23,55 @@ export const RETENTION_POLICY_CATALOG: readonly RetentionPolicyDefinition[] = [
 ] as const;
 
 const POLICY_BY_MODULE = new Map(RETENTION_POLICY_CATALOG.map((policy) => [policy.module, policy] as const));
+const MONTH_RULE_KINDS = new Set<RetentionRule['kind']>([
+  'months_after_completion',
+  'months_after_completion_year_end',
+  'term_related',
+]);
+const MINIMUM_RETENTION_MONTHS = 1;
+const MAXIMUM_RETENTION_MONTHS = 600;
+
+function clampRetentionMonths(value: unknown, fallback: number): number {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.min(MAXIMUM_RETENTION_MONTHS, Math.max(MINIMUM_RETENTION_MONTHS, Math.trunc(parsed)));
+}
+
+export function defaultRetentionModuleRules(): RetentionModuleRules {
+  return Object.fromEntries(
+    RETENTION_POLICY_CATALOG.map((policy) => [policy.module, { ...policy.rule }]),
+  ) as RetentionModuleRules;
+}
+
+export function normalizeRetentionRuleOverride(rule: unknown, fallback: RetentionRule): RetentionRule {
+  if (!rule || typeof rule !== 'object' || !('kind' in rule)) return { ...fallback };
+  const kind = (rule as { kind?: unknown }).kind;
+  if (kind === 'purpose_linked' || kind === 'permanent_anonymized') return { kind };
+  if (!MONTH_RULE_KINDS.has(kind as RetentionRule['kind'])) return { ...fallback };
+  const fallbackMonths = 'months' in fallback ? fallback.months : 36;
+  return {
+    kind: kind as 'months_after_completion' | 'months_after_completion_year_end' | 'term_related',
+    months: clampRetentionMonths((rule as { months?: unknown }).months, fallbackMonths),
+  };
+}
+
+export function normalizeRetentionModuleRules(overrides?: RetentionModuleRuleOverrides): RetentionModuleRules {
+  const rules = defaultRetentionModuleRules();
+  for (const policy of RETENTION_POLICY_CATALOG) {
+    rules[policy.module] = normalizeRetentionRuleOverride(overrides?.[policy.module], policy.rule);
+  }
+  return rules;
+}
+
+export function retentionPolicyDefinitionsWithRules(
+  moduleRules?: RetentionModuleRuleOverrides,
+): RetentionPolicyDefinition[] {
+  const rules = normalizeRetentionModuleRules(moduleRules);
+  return RETENTION_POLICY_CATALOG.map((policy) => ({
+    ...policy,
+    rule: { ...rules[policy.module] },
+  }));
+}
 
 function addCalendarMonths(value: Date, months: number): Date {
   const result = new Date(value.getTime());
@@ -46,10 +97,12 @@ export function retentionReviewDueAt(completedAt: string, rule: RetentionRule): 
 export function buildModuleRetentionCandidates(
   snapshots: readonly RetentionModuleSnapshot[],
   now: Date,
+  policies: readonly RetentionPolicyDefinition[] = RETENTION_POLICY_CATALOG,
 ): RetentionCandidate[] {
   const candidates: RetentionCandidate[] = [];
+  const policyByModule = new Map(policies.map((policy) => [policy.module, policy] as const));
   for (const snapshot of snapshots) {
-    const policy = POLICY_BY_MODULE.get(snapshot.module);
+    const policy = policyByModule.get(snapshot.module) ?? POLICY_BY_MODULE.get(snapshot.module);
     if (!policy) continue;
     if (snapshot.module === 'bem' && snapshot.consentWithdrawnAt) {
       candidates.push({

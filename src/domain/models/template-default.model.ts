@@ -8,7 +8,12 @@ export type TemplateDefaultKey =
   | "arbeitgeber.personalabteilung"
   | "arbeitgeber.name"
   | "unternehmen.name"
-  | "standort.name";
+  | "standort.name"
+  | "datenschutz.verantwortliche_stelle"
+  | "datenschutz.kontakt.name"
+  | "datenschutz.kontakt.email"
+  | "datenschutz.dsb.name"
+  | "datenschutz.dsb.email";
 
 export type TemplateDefaultValues = Record<TemplateDefaultKey, string>;
 
@@ -69,6 +74,31 @@ export const TEMPLATE_DEFAULT_FIELDS: Array<{
     label: "{{standort.name}}",
     description: "Standard-Standort.",
   },
+  {
+    key: "datenschutz.verantwortliche_stelle",
+    label: "{{datenschutz.verantwortliche_stelle}}",
+    description: "Verantwortliche Stelle für Datenschutzanfragen, z. B. Arbeitgeber oder Dienststelle.",
+  },
+  {
+    key: "datenschutz.kontakt.name",
+    label: "{{datenschutz.kontakt.name}}",
+    description: "Datenschutzkontakt, falls kein Datenschutzbeauftragter benannt oder bekannt ist.",
+  },
+  {
+    key: "datenschutz.kontakt.email",
+    label: "{{datenschutz.kontakt.email}}",
+    description: "E-Mail des Datenschutzkontakts oder der verantwortlichen Stelle.",
+  },
+  {
+    key: "datenschutz.dsb.name",
+    label: "{{datenschutz.dsb.name}}",
+    description: "Optional: benannte*r Datenschutzbeauftragte*r.",
+  },
+  {
+    key: "datenschutz.dsb.email",
+    label: "{{datenschutz.dsb.email}}",
+    description: "Optional: E-Mail der/des Datenschutzbeauftragten.",
+  },
 ];
 
 export const EMPTY_TEMPLATE_DEFAULT_VALUES: TemplateDefaultValues = {
@@ -82,6 +112,11 @@ export const EMPTY_TEMPLATE_DEFAULT_VALUES: TemplateDefaultValues = {
   "arbeitgeber.name": "",
   "unternehmen.name": "",
   "standort.name": "",
+  "datenschutz.verantwortliche_stelle": "",
+  "datenschutz.kontakt.name": "",
+  "datenschutz.kontakt.email": "",
+  "datenschutz.dsb.name": "",
+  "datenschutz.dsb.email": "",
 };
 
 export function normalizeTemplateDefaultValues(

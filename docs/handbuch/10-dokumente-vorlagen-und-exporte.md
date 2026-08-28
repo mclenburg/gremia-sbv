@@ -62,3 +62,5 @@ Vor jedem Export:
 Berichte sollten möglichst aggregiert sein. Ein Tätigkeitsbericht soll SBV-Arbeit sichtbar machen, nicht vertrauliche Einzelfälle offenlegen.
 
 Bei Berichten unterscheidet Gremia.SBV bewusst zwischen **PDF speichern** und **PDF erzeugen & öffnen**. Speichern legt den verschlüsselten Export ab; Öffnen fordert zusätzlich die externe Vorschau beziehungsweise den lokalen PDF-Viewer an.
+
+Auskunftsersuchen nach Art. 15 DSGVO sind kein gewöhnlicher Bericht. Die Funktion im Compliance Center erstellt eine vertrauliche SBV-Zuarbeit für Datenschutzkontakt oder verantwortliche Stelle. Der Ablauf ist im Kapitel [Art.-15-Auskunft und SBV-Zuarbeit](13-art-15-auskunft.md) beschrieben.

@@ -41,7 +41,7 @@ export const WORKSPACES: Array<{
   {
     id: "dsar",
     title: "Art. 15",
-    description: "Auskunftsersuchen vorbereiten und vorbefüllen.",
+    description: "SBV-Zuarbeit für Auskunftsersuchen vorbereiten.",
   },
 ];
 

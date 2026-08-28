@@ -53,7 +53,15 @@ export function defaultDsarInput(): DataSubjectAccessRequestInput {
     caseReference: '',
     identityVerified: false,
     requestScope: 'Auskunft über die in Gremia.SBV verarbeiteten personenbezogenen Daten.',
-    preparedBy: 'Schwerbehindertenvertretung'
+    preparedBy: 'Schwerbehindertenvertretung',
+    responsibleEntity: '',
+    privacyContactRole: 'unknown',
+    privacyContactName: '',
+    privacyContactEmail: '',
+    requestForwardedAt: '',
+    sbvReviewCompleted: false,
+    handedOverAt: '',
+    handoverRecipient: '',
   };
 }
 
@@ -83,8 +91,9 @@ export function complianceClassificationFor(type: ComplianceDocumentType): strin
       return 'Intern / Compliance';
     case 'dsfa':
     case 'dsb_it_security_approval':
-    case 'dsar_response':
       return 'Intern vertraulich';
+    case 'dsar_response':
+      return 'SBV-Zuarbeit / Datenschutz vertraulich';
     default: {
       const exhaustive: never = type;
       return String(exhaustive);

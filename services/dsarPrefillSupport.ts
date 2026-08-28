@@ -217,7 +217,7 @@ export interface FreeTextSource {
   dateColumn?: string;
   textColumns: string[];
   joinCase?: boolean;
-  linkVia?: 'measure' | 'bem_process' | 'prevention_process' | 'sbv_participation';
+  linkVia?: 'measure' | 'bem_process' | 'prevention_process' | 'sbv_participation' | 'activity_journal_case';
 }
 
 export function linkedCaseExpression(source: FreeTextSource): string {
@@ -226,6 +226,7 @@ export function linkedCaseExpression(source: FreeTextSource): string {
   if (source.linkVia === 'bem_process') return 'bp.case_id';
   if (source.linkVia === 'prevention_process') return 'pp.case_id';
   if (source.linkVia === 'sbv_participation') return 'sp.case_id';
+  if (source.linkVia === 'activity_journal_case') return 'ajl.target_id';
   return 'NULL';
 }
 
@@ -235,6 +236,7 @@ export function linkedCaseJoin(source: FreeTextSource): string {
   if (source.linkVia === 'bem_process') return 'LEFT JOIN bem_processes bp ON bp.id = t.process_id LEFT JOIN cases c ON c.id = bp.case_id';
   if (source.linkVia === 'prevention_process') return 'LEFT JOIN prevention_processes pp ON pp.id = t.process_id LEFT JOIN cases c ON c.id = pp.case_id';
   if (source.linkVia === 'sbv_participation') return 'LEFT JOIN sbv_participations sp ON sp.id = t.participation_id LEFT JOIN cases c ON c.id = sp.case_id';
+  if (source.linkVia === 'activity_journal_case') return `LEFT JOIN activity_journal_links ajl ON ajl.entry_id = t.id AND ajl.target_type = 'case' LEFT JOIN cases c ON c.id = ajl.target_id`;
   return '';
 }
 
@@ -260,6 +262,32 @@ export const FREE_TEXT_SOURCES: FreeTextSource[] = [
   { table: 'termination_hearings', sourceType: 'termination_hearing', sourceLabel: 'Kündigungsanhörung', idColumn: 'id', titleColumn: 'termination_type', caseIdColumn: 'case_id', dateColumn: 'created_at', textColumns: ['termination_type', 'protection_status', 'employer_reason', 'missing_information', 'sbv_assessment', 'statement'], joinCase: true },
   { table: 'sbv_participations', sourceType: 'sbv_participation', sourceLabel: 'SBV-Beteiligungsmonitor', idColumn: 'id', titleColumn: 'title', caseIdColumn: 'case_id', dateColumn: 'created_at', textColumns: ['title', 'measure_type', 'person_status', 'decision_stage', 'violation_summary', 'sbv_position', 'next_step'], joinCase: true },
   { table: 'sbv_participation_events', sourceType: 'sbv_participation_event', sourceLabel: 'SBV-Beteiligungsereignis', idColumn: 'id', titleColumn: 'title', dateColumn: 'created_at', textColumns: ['event_type', 'title', 'description'], linkVia: 'sbv_participation' },
+  { table: 'sbv_participation_violations', sourceType: 'participation_violations', sourceLabel: 'Beteiligungsverstoß', idColumn: 'id', titleColumn: 'subject', caseIdColumn: 'case_id', dateColumn: 'created_at', textColumns: ['subject', 'measure_description', 'wrong_behavior', 'required_behavior', 'consequence_warning', 'legal_basis'], joinCase: true },
+  { table: 'sbv_participation_violation_events', sourceType: 'participation_violation_event', sourceLabel: 'Verstoßereignis', idColumn: 'id', titleColumn: 'event_type', dateColumn: 'created_at', textColumns: ['event_type', 'note'] },
+  { table: 'generated_documents', sourceType: 'generated_documents', sourceLabel: 'Erzeugtes Dokument', idColumn: 'id', titleColumn: 'title', caseIdColumn: 'case_id', dateColumn: 'created_at', textColumns: ['title', 'filename', 'document_kind', 'template_version'], joinCase: true },
+  { table: 'contacts', sourceType: 'contacts', sourceLabel: 'Kontakt', idColumn: 'id', titleColumn: 'last_name', dateColumn: 'updated_at', textColumns: ['first_name', 'last_name', 'organization', 'role', 'category', 'email', 'phone', 'notes'] },
+  { table: 'activity_journal_entries', sourceType: 'activity_journal', sourceLabel: 'Tätigkeitsjournal', idColumn: 'id', titleColumn: 'title', dateColumn: 'entry_date', textColumns: ['title', 'description', 'result_note', 'category', 'status'] },
+  { table: 'activity_journal_entries', sourceType: 'activity_journal', sourceLabel: 'Tätigkeitsjournal-Fallbezug', idColumn: 'id', titleColumn: 'title', dateColumn: 'entry_date', textColumns: ['title', 'description', 'result_note', 'category', 'status'], linkVia: 'activity_journal_case' },
+  { table: 'recruiting_participations', sourceType: 'recruiting', sourceLabel: 'Stellenbesetzung', idColumn: 'id', titleColumn: 'vacancy_title', dateColumn: 'created_at', textColumns: ['vacancy_title', 'vacancy_reference', 'department', 'location', 'violation_review_reason', 'notes'] },
+  { table: 'recruiting_interview_events', sourceType: 'recruiting_interview', sourceLabel: 'Vorstellungsgespräch', idColumn: 'id', titleColumn: 'applicant_ref', dateColumn: 'interview_date', textColumns: ['applicant_ref', 'applicant_reference_mode', 'applicant_status', 'procedural_note'] },
+  { table: 'privacy_review_items', sourceType: 'privacy_reviews', sourceLabel: 'Datenschutzprüfung', idColumn: 'id', titleColumn: 'reason', caseIdColumn: 'case_id', dateColumn: 'due_at', textColumns: ['reason', 'priority', 'context_json', 'status'], joinCase: true },
+  { table: 'retention_actions', sourceType: 'privacy_reviews', sourceLabel: 'Lösch-/Aufbewahrungsentscheidung', idColumn: 'id', titleColumn: 'reference', dateColumn: 'created_at', textColumns: ['action_type', 'entity_type', 'entity_id', 'reference', 'reason'] },
+  { table: 'case_external_references', sourceType: 'external_references', sourceLabel: 'Gremia.BR-Referenz', idColumn: 'id', titleColumn: 'title', caseIdColumn: 'case_id', dateColumn: 'updated_at', textColumns: ['source_type', 'title', 'description', 'source_url', 'snapshot_json'], joinCase: true },
+  { table: 'sbv_meetings', sourceType: 'sbv_office', sourceLabel: 'SBV-Sitzung', idColumn: 'id', titleColumn: 'title', dateColumn: 'starts_at', textColumns: ['meeting_type', 'title', 'location', 'notes'] },
+  { table: 'sbv_meeting_agenda_items', sourceType: 'sbv_office', sourceLabel: 'SBV-Tagesordnungspunkt', idColumn: 'id', titleColumn: 'title', dateColumn: 'updated_at', textColumns: ['title', 'documents_status', 'own_position', 'request_content', 'request_reaction', 'resolution_summary', 'impairment_assessment', 'outcome'] },
+  { table: 'sbv_assemblies', sourceType: 'sbv_office', sourceLabel: 'Schwerbehindertenversammlung', idColumn: 'id', titleColumn: 'year', dateColumn: 'scheduled_at', textColumns: ['location_or_mode', 'agenda', 'accessibility_check_status', 'materials_status', 'minutes'] },
+  { table: 'sbv_employer_obligation_reviews', sourceType: 'sbv_office', sourceLabel: 'Arbeitgeberpflichten-Prüfung', idColumn: 'id', titleColumn: 'obligation_key', dateColumn: 'updated_at', textColumns: ['obligation_key', 'scope_key', 'finding', 'next_action', 'status'] },
+  { table: 'sbv_inclusion_officer_snapshots', sourceType: 'sbv_office', sourceLabel: 'Inklusionsbeauftragte*r', idColumn: 'id', titleColumn: 'name', dateColumn: 'updated_at', textColumns: ['name', 'function', 'status'] },
+  { table: 'sbv_inclusion_agreements', sourceType: 'sbv_office', sourceLabel: 'Inklusionsvereinbarung', idColumn: 'id', titleColumn: 'title', dateColumn: 'updated_at', textColumns: ['title', 'status'] },
+  { table: 'sbv_inclusion_agreement_topics', sourceType: 'sbv_office', sourceLabel: 'Thema Inklusionsvereinbarung', idColumn: 'id', titleColumn: 'topic_key', dateColumn: 'updated_at', textColumns: ['topic_key', 'current_state', 'sbv_target', 'employer_position', 'council_position', 'result_text', 'status'] },
+  { table: 'sbv_complaint_workflows', sourceType: 'sbv_office', sourceLabel: 'Beschwerdeverfahren', idColumn: 'id', titleColumn: 'assessment_status', caseIdColumn: 'case_id', dateColumn: 'received_at', textColumns: ['assessment_status', 'negotiation_status', 'result_summary', 'status'], joinCase: true },
+  { table: 'sbv_election_voters', sourceType: 'elections', sourceLabel: 'Wählerliste', idColumn: 'id', titleColumn: 'last_name', dateColumn: 'updated_at', textColumns: ['last_name', 'first_name', 'birth_date_optional', 'org_unit', 'eligibility_basis', 'list_status'] },
+  { table: 'sbv_election_board_members', sourceType: 'elections', sourceLabel: 'Wahlvorstand', idColumn: 'id', titleColumn: 'name', dateColumn: 'updated_at', textColumns: ['role', 'name'] },
+  { table: 'sbv_election_candidates', sourceType: 'elections', sourceLabel: 'Kandidatur', idColumn: 'id', titleColumn: 'person_snapshot', dateColumn: 'updated_at', textColumns: ['person_snapshot', 'birth_date', 'occupation', 'eligibility_status'] },
+  { table: 'sbv_election_objections', sourceType: 'elections', sourceLabel: 'Wahleinspruch/Wählerlisten-Einwand', idColumn: 'id', titleColumn: 'subject_ref', dateColumn: 'received_at', textColumns: ['subject_ref', 'decision'] },
+  { table: 'sbv_election_mail_ballots', sourceType: 'elections', sourceLabel: 'Briefwahlstatus', idColumn: 'id', titleColumn: 'voter_id', dateColumn: 'updated_at', textColumns: ['voter_id', 'requested_at', 'sent_at', 'received_at', 'destroy_due_at', 'destroyed_at'] },
+  { table: 'sbv_election_results', sourceType: 'elections', sourceLabel: 'Wahlergebnisannahme', idColumn: 'id', titleColumn: 'candidate_id', dateColumn: 'updated_at', textColumns: ['candidate_id', 'office_type', 'acceptance_status'] },
+  { table: 'sbv_election_physical_records', sourceType: 'elections', sourceLabel: 'Physische Wahlakte', idColumn: 'id', titleColumn: 'record_type', dateColumn: 'updated_at', textColumns: ['record_type', 'description', 'storage_location', 'sealed_status', 'handed_over_to', 'notes_minimal'] },
   { table: 'contact_text_references', sourceType: 'contact_text_reference', sourceLabel: 'Kontakt-Freitextreferenz', idColumn: 'id', titleColumn: 'source_table', dateColumn: 'created_at', textColumns: ['source_table', 'source_column', 'excerpt'] },
   { table: 'case_search_index', sourceType: 'case_search_index', sourceLabel: 'Suchindex-Fundstelle', idColumn: 'id', titleColumn: 'title', caseIdColumn: 'case_id', dateColumn: 'occurred_at', textColumns: ['source_label', 'title', 'content', 'keywords'], joinCase: true },
 ];

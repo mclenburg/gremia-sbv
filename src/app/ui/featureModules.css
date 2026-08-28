@@ -1202,6 +1202,47 @@
   min-width: 0;
 }
 
+.compliance-dsar-layout {
+  align-items: start;
+}
+
+.compliance-dsar-steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+  gap: .5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.compliance-dsar-steps li {
+  border: 1px solid var(--industrial-border);
+  padding: .65rem .75rem;
+  color: var(--industrial-muted);
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  font-size: .72rem;
+  font-weight: 800;
+}
+
+.compliance-dsar-steps li.done {
+  border-color: color-mix(in srgb, var(--industrial-ok, #64d16d) 55%, var(--industrial-border));
+  color: var(--industrial-text);
+  background: color-mix(in srgb, var(--industrial-ok, #64d16d) 9%, transparent);
+}
+
+.compliance-dsar-steps li.blocked {
+  border-color: color-mix(in srgb, var(--industrial-warning, #ffd000) 65%, var(--industrial-border));
+  color: var(--industrial-accent);
+  background: color-mix(in srgb, var(--industrial-accent) 8%, transparent);
+}
+
+.compliance-dsar-subsection {
+  border: 1px solid var(--industrial-border);
+  padding: var(--space-4, 1rem);
+  background: color-mix(in srgb, var(--industrial-panel) 82%, transparent);
+}
+
 .compliance-output {
   min-height: 38rem;
   width: 100%;

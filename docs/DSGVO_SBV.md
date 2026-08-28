@@ -44,4 +44,6 @@ Die App informiert Beschäftigte nicht selbst. Die Information über Arbeitgeber
 
 ## Art. 15 DSGVO
 
-Die App unterstützt Auskunftsfähigkeit, indem Personen, Fallakten, Fristen, Maßnahmen, Importläufe und Lifecycle-Events nachvollziehbar verknüpft sind. Im Compliance Center kann ein Art.-15-Antwortentwurf aus Personen-, Fallakten-, Fristen-, Maßnahmen-, Import- und Lifecycle-Daten vorbefüllt, erzeugt und als verschlüsselter PDF-Report bereitgestellt werden. Vor Herausgabe bleiben Identitätsprüfung, Drittdatenprüfung, Schwärzung und rechtliche Freigabe erforderlich.
+Die App unterstützt Auskunftsfähigkeit, indem personenbezogene Datenquellen systematisch inventarisiert werden. Im Compliance Center wird keine ungeprüfte Direktantwort erzeugt, sondern eine SBV-Zuarbeit zur Art.-15-Auskunft. Sie sammelt die in Gremia.SBV gespeicherten Personen-, Fallakten-, Fristen-, Maßnahmen-, Kontakt-, Dokument-, Wahl-, Stellenbesetzungs-, Verstoß-, Datenschutzprüfungs- und Auditbezüge.
+
+Die Zuarbeit richtet sich an Datenschutzkontakt, verantwortliche Stelle oder – falls vorhanden – Datenschutzbeauftragte*n. Gremia.SBV muss auch in Betrieben ohne benannte*n DSB funktionieren; deshalb ist der DSB optional. Identitäts-/Berechtigungsprüfung, Drittdatenprüfung, Schwärzung, Rechtsbewertung und Herausgabeentscheidung bleiben organisatorische Schritte der verantwortlichen Stelle.

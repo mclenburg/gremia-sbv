@@ -67,8 +67,11 @@ export function ComplianceView() {
           {state.workspace === "dsar" && (
             <ComplianceDsarPanel
               dsarInput={state.dsarInput}
+              dsarReadiness={state.dsarReadiness}
+              persons={state.persons}
               document={state.document}
               onInputChange={state.updateDsarInput}
+              onPersonSelect={state.selectDsarPerson}
               onPrefill={() => void state.prefillDsar()}
               onRenderDsar={state.renderDsar}
               onExportPdf={(open) => void state.exportPdfCurrent(open)}

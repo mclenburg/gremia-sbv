@@ -1,6 +1,8 @@
 import type { DatabaseAdapter } from './databaseService.js';
 import type { DataSubjectAccessPrefill, DataSubjectAccessPrefillCase, DataSubjectAccessPrefillDeadline, DataSubjectAccessPrefillFreeTextMatch, DataSubjectAccessPrefillImportRun, DataSubjectAccessPrefillLifecycleEvent, DataSubjectAccessPrefillMeasure, DataSubjectAccessPrefillPerson, DataSubjectAccessRequestInput } from '../src/domain/models/compliance.model.js';
 import { DatabaseRow, nowIso, optional, unique, hasTable, searchTokens, nameVariants, allSearchTerms, placeholders, textOf, matchedTermsIn, excerpt, mapPerson, mapLegacyPerson, mapCase, mapDeadline, mapMeasure, mapImport, mapLifecycle, FreeTextSource, linkedCaseExpression, linkedCaseJoin, hasLinkedCase, FREE_TEXT_SOURCES } from './dsarPrefillSupport.js';
+import { buildDsarReviewItems, buildDsarSourceInventory } from './dsarPrefillInventory.js';
+
 export class DsarPrefillService {
   constructor(private readonly database: DatabaseAdapter) {}
 
@@ -21,6 +23,16 @@ export class DsarPrefillService {
     const deadlines = this.findDeadlines(protectedPersonIds, legacyPersonIds, caseIds, measures.map((item) => item.id));
     const importRuns = this.findImportRuns(protectedPersonIds);
     const lifecycleEvents = this.findLifecycleEvents(protectedPersonIds, legacyPersonIds, caseIds);
+    const sourceInventory = buildDsarSourceInventory(this.database, {
+      persons,
+      cases: allCases,
+      deadlines,
+      measures,
+      importRuns,
+      lifecycleEvents,
+      freeTextMatches,
+    });
+    const reviewItems = buildDsarReviewItems(freeTextMatches);
 
     return {
       generatedAt: nowIso(),
@@ -32,6 +44,8 @@ export class DsarPrefillService {
       importRuns,
       lifecycleEvents,
       freeTextMatches,
+      sourceInventory,
+      reviewItems,
     };
   }
 
@@ -46,12 +60,16 @@ export class DsarPrefillService {
   private findPersons(input: DataSubjectAccessRequestInput, tokens: string[]): DataSubjectAccessPrefillPerson[] {
     const rowsByKey = new Map<string, DataSubjectAccessPrefillPerson>();
     const terms = unique([...nameVariants(input), ...tokens]);
-    if (!terms.length) return [];
+    if (!terms.length && !input.subjectPersonId) return [];
 
     if (hasTable(this.database, 'protected_persons')) {
       const lowerName = input.requesterName.trim().toLowerCase();
       const whereParts: string[] = [];
       const params: string[] = [];
+      if (input.subjectPersonId) {
+        whereParts.push(`id = ?`);
+        params.push(input.subjectPersonId);
+      }
       if (lowerName) {
         whereParts.push(`lower(trim(first_name || ' ' || last_name)) = ?`);
         params.push(lowerName);
@@ -78,6 +96,10 @@ export class DsarPrefillService {
       const whereParts: string[] = [];
       const params: string[] = [];
       const lowerName = input.requesterName.trim().toLowerCase();
+      if (input.subjectPersonId) {
+        whereParts.push(`id = ?`);
+        params.push(input.subjectPersonId);
+      }
       if (lowerName) {
         whereParts.push(`lower(trim(first_name || ' ' || last_name)) = ?`);
         params.push(lowerName);
@@ -273,7 +295,7 @@ export class DsarPrefillService {
       params.push(...caseIds);
     }
     if (protectedPersonIds.length) {
-      whereParts.push(`process_id IN (${placeholders(protectedPersonIds)})`);
+      whereParts.push(`process_type = 'custom' AND source_event IN ('protected_person.status_expiry_warning', 'protected_person.status_expired_privacy_review') AND process_id IN (${placeholders(protectedPersonIds)})`);
       params.push(...protectedPersonIds);
     }
     if (legacyPersonIds.length) {
@@ -337,4 +359,5 @@ export class DsarPrefillService {
       LIMIT 100
     `).all(...params).map(mapLifecycle);
   }
+
 }

@@ -154,4 +154,106 @@ describe('retention policy behavior coverage', () => {
     ]);
   });
 
+  it('verwendet individuell konfigurierte Modulfristen für Datenschutzprüfungen', () => {
+    const dashboard = buildRetentionDashboard({
+      now,
+      settings: {
+        moduleRules: {
+          recruiting: { kind: 'months_after_completion', months: 12 },
+          case_file: { kind: 'months_after_completion_year_end', months: 36 },
+        },
+      },
+      moduleRecords: [{
+        module: 'recruiting',
+        id: 'rec-too-fresh-for-custom-rule',
+        title: 'Stellenbesetzung mit verlängerter Frist',
+        status: 'closed',
+        completedAt: '2025-08-01T00:00:00.000Z',
+      }],
+      cases: [{
+        id: 'case-year-end-due',
+        caseNumber: 'SBV-JE-001',
+        status: 'abgeschlossen',
+        closedAt: '2022-05-01T00:00:00.000Z',
+      }],
+    });
+
+    expect(dashboard.policies.find((policy) => policy.module === 'recruiting')?.rule)
+      .toEqual({ kind: 'months_after_completion', months: 12 });
+    expect(dashboard.candidates.map((candidate) => candidate.entityId))
+      .not.toContain('rec-too-fresh-for-custom-rule');
+    expect(dashboard.candidates).toContainEqual(expect.objectContaining({
+      entityType: 'case',
+      entityId: 'case-year-end-due',
+      policyKey: 'case_file',
+    }));
+  });
+
+  it('wendet individuelle Personen- und Journalfristen auch auf bestehende Spezialpfade an', () => {
+    const dashboard = buildRetentionDashboard({
+      now,
+      settings: {
+        orphanContactReviewDays: 0,
+        activityJournalReviewMonths: 36,
+        moduleRules: {
+          protected_person: { kind: 'months_after_completion', months: 6 },
+          activity_journal: { kind: 'months_after_completion', months: 24 },
+        },
+      },
+      contacts: [
+        { id: 'fresh-contact', displayName: 'Neuer Kontakt', createdAt: '2026-03-01T00:00:00.000Z', referenceCount: 0 },
+        { id: 'old-contact', displayName: 'Alter Kontakt', createdAt: '2025-01-01T00:00:00.000Z', referenceCount: 0 },
+      ],
+      protectedPersons: [
+        {
+          id: 'fresh-person',
+          displayName: 'Neue Person',
+          createdAt: '2026-03-01T00:00:00.000Z',
+          retainedReferenceCount: 0,
+          lifecycleState: 'active',
+          protectionStatus: 'application_pending',
+          employmentState: 'active_employee',
+        },
+        {
+          id: 'old-person',
+          displayName: 'Alte Person',
+          createdAt: '2025-01-01T00:00:00.000Z',
+          retainedReferenceCount: 0,
+          lifecycleState: 'active',
+          protectionStatus: 'application_pending',
+          employmentState: 'active_employee',
+        },
+      ],
+      journalEntries: [
+        { id: 'fresh-journal', title: 'Frischer Journal-Eintrag', entryDate: '2025-01-01T00:00:00.000Z', status: 'final', category: 'general', caseLinked: false },
+        { id: 'old-journal', title: 'Alter Journal-Eintrag', entryDate: '2023-01-01T00:00:00.000Z', status: 'final', category: 'general', caseLinked: false },
+      ],
+    });
+
+    const entityIds = dashboard.candidates.map((candidate) => candidate.entityId);
+    expect(entityIds).toEqual(expect.arrayContaining(['old-contact', 'old-journal', 'old-person']));
+    expect(entityIds).not.toContain('fresh-contact');
+    expect(entityIds).not.toContain('fresh-journal');
+    expect(entityIds).not.toContain('fresh-person');
+  });
+
+  it('normalisiert ungültige Aufbewahrungseinstellungen auf sichere Standardwerte', () => {
+    const dashboard = buildRetentionDashboard({
+      now,
+      settings: {
+        closedCaseReviewMonths: Number.NaN,
+        orphanContactReviewDays: -10,
+        minimumGroupSizeForReports: 1,
+        moduleRules: {
+          recruiting: { kind: 'months_after_completion', months: Number.POSITIVE_INFINITY },
+        },
+      },
+    });
+
+    expect(dashboard.settings.closedCaseReviewMonths).toBe(36);
+    expect(dashboard.settings.orphanContactReviewDays).toBe(0);
+    expect(dashboard.settings.minimumGroupSizeForReports).toBe(2);
+    expect(dashboard.settings.moduleRules.recruiting).toEqual({ kind: 'months_after_completion', months: 6 });
+  });
+
 });

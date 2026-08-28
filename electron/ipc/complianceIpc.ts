@@ -36,12 +36,26 @@ function validateDsarInput(value: unknown): DataSubjectAccessRequestInput {
   const input = assertPlainObject(value, channel);
   return {
     requesterName: assertString(input.requesterName, channel, 'Name der anfragenden Person', { minLength: 1, maxLength: 300 }),
+    subjectPersonId: assertOptionalString(input.subjectPersonId, channel, 'Personenbezug', { maxLength: 200 }),
     requestReceivedAt: assertString(input.requestReceivedAt, channel, 'Eingangsdatum', { minLength: 1, maxLength: 80 }),
     responseDueAt: assertString(input.responseDueAt, channel, 'Antwortfrist', { minLength: 1, maxLength: 80 }),
     caseReference: assertString(input.caseReference, channel, 'Fallbezug', { maxLength: 300 }),
     identityVerified: assertBoolean(input.identityVerified, channel, 'Identität geprüft'),
     requestScope: assertString(input.requestScope, channel, 'Umfang der Anfrage', { maxLength: 4_000 }),
     preparedBy: assertString(input.preparedBy, channel, 'Bearbeitet durch', { maxLength: 300 }),
+    responsibleEntity: assertString(input.responsibleEntity, channel, 'Verantwortliche Stelle', { maxLength: 300 }),
+    privacyContactRole: assertAllowedEnum(
+      input.privacyContactRole,
+      channel,
+      'Datenschutzkontakt-Rolle',
+      ['data_protection_officer', 'responsible_entity', 'unknown'] as const,
+    ),
+    privacyContactName: assertString(input.privacyContactName, channel, 'Datenschutzkontakt', { maxLength: 300 }),
+    privacyContactEmail: assertString(input.privacyContactEmail, channel, 'Datenschutzkontakt E-Mail', { maxLength: 300 }),
+    requestForwardedAt: assertString(input.requestForwardedAt, channel, 'Weiterleitung', { maxLength: 80 }),
+    sbvReviewCompleted: assertBoolean(input.sbvReviewCompleted, channel, 'SBV-Prüfung abgeschlossen'),
+    handedOverAt: assertString(input.handedOverAt, channel, 'Übergabe', { maxLength: 80 }),
+    handoverRecipient: assertString(input.handoverRecipient, channel, 'Übergabeempfänger', { maxLength: 300 }),
   };
 }
 

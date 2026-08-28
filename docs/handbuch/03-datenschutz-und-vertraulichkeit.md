@@ -56,6 +56,12 @@ Typische Hinweise betreffen:
 
 Bearbeite Compliance-Hinweise nicht mechanisch. Prüfe immer den fachlichen Zweck: Brauche ich diese Daten wirklich? Ist der Vorgang noch erforderlich? Muss ein Export personenbezogene Inhalte enthalten oder reicht eine Zusammenfassung?
 
+## Aufbewahrungs- und Prüffristen einstellen
+
+Unter **Einstellungen → Datenschutz & Löschung** kannst du die Prüffristen der Anwendung pflegen. Neben technischen Prüffristen, etwa für Kontakte ohne Bezug oder erledigte Fristen, sind dort auch die fachlichen Standard-Aufbewahrungsfristen aller Module sichtbar und editierbar.
+
+Die Einstellungen steuern, ab wann ein Vorgang im Datenschutz-Cockpit zur manuellen Prüfung vorgemerkt wird. Gremia.SBV löscht dadurch weiterhin nichts automatisch. Eine abweichende betriebliche oder rechtliche Bewertung muss bewusst eingetragen und später fachlich geprüft werden.
+
 ## Zugriffsschutz
 
 Praktische Mindestregeln:

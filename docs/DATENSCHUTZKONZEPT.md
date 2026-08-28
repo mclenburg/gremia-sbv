@@ -59,4 +59,6 @@ Abgelaufene Übergabepakete dürfen nicht importiert werden. Bereits importierte
 
 ## Auskunft nach Art. 15 DSGVO
 
-Mit dem Personenverzeichnis unterstützt die App Auskunftsfähigkeit: verknüpfte Fallakten, Fristen, Maßnahmen, Importläufe und Lifecycle-Ereignisse sind auffindbar. Im Compliance Center kann eine Antwort auf ein Art.-15-Auskunftsersuchen aus Personen-, Fallakten-, Fristen-, Maßnahmen-, Import- und Lifecycle-Daten vorbefüllt, erzeugt und als verschlüsselter PDF-Report bereitgestellt werden. Dieser Export ist ein Arbeitsentwurf; Identitätsprüfung, Drittdatenprüfung, Schwärzung und rechtliche Freigabe bleiben organisatorische Schritte.
+Mit dem Personenverzeichnis unterstützt die App Auskunftsfähigkeit: verknüpfte Fallakten, Fristen, Maßnahmen, Kontakte, Dokumente, Arbeitgeberlisten-Importe, Wahlbezüge, Beteiligungsverstöße, Datenschutzprüfungen und Lifecycle-Ereignisse sind auffindbar. Im Compliance Center erstellt die SBV eine Zuarbeit zur Art.-15-Auskunft für Datenschutzkontakt, verantwortliche Stelle oder – falls vorhanden – Datenschutzbeauftragte*n.
+
+Die App setzt keinen benannten DSB voraus. Kleine Betriebe können stattdessen die verantwortliche Stelle oder einen Datenschutzkontakt hinterlegen. Identitäts-/Berechtigungsprüfung, Drittdatenprüfung, Schwärzung, Rechtsbewertung und Herausgabeentscheidung bleiben organisatorische Schritte der verantwortlichen Stelle.

@@ -104,6 +104,31 @@ export interface DataSubjectAccessPrefillLifecycleEvent {
   purpose: string;
 }
 
+export type DataSubjectAccessReleaseMode =
+  | 'direct_summary'
+  | 'review_required'
+  | 'metadata_only';
+
+export type DataSubjectAccessSourceStatus =
+  | 'found'
+  | 'none'
+  | 'not_available';
+
+export interface DataSubjectAccessSourceInventoryItem {
+  id: string;
+  module: string;
+  label: string;
+  status: DataSubjectAccessSourceStatus;
+  foundCount: number;
+  dataCategories: string[];
+  purposes: string[];
+  recipients: string[];
+  retentionRule: string;
+  origin: string;
+  releaseMode: DataSubjectAccessReleaseMode;
+  reviewNote?: string;
+}
+
 export interface DataSubjectAccessPrefillFreeTextMatch {
   id: string;
   sourceType: string;
@@ -118,6 +143,21 @@ export interface DataSubjectAccessPrefillFreeTextMatch {
   requiresManualReview: boolean;
 }
 
+export interface DataSubjectAccessReviewItem {
+  id: string;
+  sourceId: string;
+  sourceLabel: string;
+  title: string;
+  caseReference?: string;
+  recommendation:
+    | 'include_summary'
+    | 'redact_before_release'
+    | 'metadata_only'
+    | 'exclude_third_party';
+  reason: string;
+  excerpt?: string;
+}
+
 export interface DataSubjectAccessPrefill {
   generatedAt: string;
   matchReason: string;
@@ -128,16 +168,32 @@ export interface DataSubjectAccessPrefill {
   importRuns: DataSubjectAccessPrefillImportRun[];
   lifecycleEvents: DataSubjectAccessPrefillLifecycleEvent[];
   freeTextMatches: DataSubjectAccessPrefillFreeTextMatch[];
+  sourceInventory: DataSubjectAccessSourceInventoryItem[];
+  reviewItems: DataSubjectAccessReviewItem[];
 }
+
+export type DataSubjectAccessPrivacyContactRole =
+  | 'data_protection_officer'
+  | 'responsible_entity'
+  | 'unknown';
 
 export interface DataSubjectAccessRequestInput {
   requesterName: string;
+  subjectPersonId?: string;
   requestReceivedAt: string;
   responseDueAt: string;
   caseReference: string;
   identityVerified: boolean;
   requestScope: string;
   preparedBy: string;
+  responsibleEntity: string;
+  privacyContactRole: DataSubjectAccessPrivacyContactRole;
+  privacyContactName: string;
+  privacyContactEmail: string;
+  requestForwardedAt: string;
+  sbvReviewCompleted: boolean;
+  handedOverAt: string;
+  handoverRecipient: string;
   prefill?: DataSubjectAccessPrefill;
 }
 
