@@ -58,6 +58,7 @@ function configuredSettings(): GremiaBrServiceSettings {
     serverUrl: 'https://br.example.invalid/api',
     username: 'sbv@example.invalid',
     password: 'streng-geheim',
+    apiMode: 'legacy_read_bridge',
   };
 }
 

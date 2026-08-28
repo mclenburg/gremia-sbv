@@ -190,6 +190,10 @@ export class MigrationInference extends MigrationCore {
           return Object.entries(SBV_OFFICE_0051_REQUIRED_TABLES).every(([table, columns]) =>
             this.tableExists(table) && columns.every((column) => this.columnExists(table, column))
           ) && DEADLINE_RULE_SNAPSHOT_REQUIRED_COLUMNS.every((column) => this.columnExists('deadlines', column));
+        case '0053':
+          return this.tableExists('gremia_br_settings')
+            && ['api_mode', 'selected_body_id', 'selected_body_name', 'selected_organization_id', 'selected_security_domain']
+              .every((column) => this.columnExists('gremia_br_settings', column));
       default:
         return false;
     }

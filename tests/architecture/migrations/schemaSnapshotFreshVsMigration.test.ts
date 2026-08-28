@@ -80,9 +80,9 @@ describe('Schema-Snapshot Fresh Install vs. Legacy-Migration 0.9.1', () => {
   });
 
 
-  it('hält Gremia.BR-Einstellungen in Basisschema und Migration 0032 plus 0034 strukturgleich', () => {
+  it('hält Gremia.BR-Einstellungen in Basisschema und Migration 0032 plus 0034 plus 0053 strukturgleich', () => {
     const fresh = createSqlSchemaSnapshot(readFileSync('database/schema.sql', 'utf8'));
-    const migrated = createSqlSchemaSnapshot(`${readFileSync('database/migrations/0032_gremia_br_settings.sql', 'utf8')}\n${readFileSync('database/migrations/0034_gremia_br_relevance_settings.sql', 'utf8')}`);
+    const migrated = createSqlSchemaSnapshot(`${readFileSync('database/migrations/0032_gremia_br_settings.sql', 'utf8')}\n${readFileSync('database/migrations/0034_gremia_br_relevance_settings.sql', 'utf8')}\n${readFileSync('database/migrations/0053_gremia_br_v2_workspace_settings.sql', 'utf8')}`);
 
     const problems = compareTableSnapshot(fresh, migrated, 'gremia_br_settings');
 

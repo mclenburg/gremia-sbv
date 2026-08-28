@@ -1,9 +1,16 @@
+import type { GremiaBrApiMode } from '../../src/domain/models/gremia-br.model.js';
+
 export interface GremiaBrStoredSettings {
   id: 'default';
   enabled: boolean;
   serverUrl: string;
   username: string;
   passwordSecret: string;
+  apiMode: GremiaBrApiMode;
+  selectedBodyId?: string;
+  selectedBodyName?: string;
+  selectedOrganizationId?: string;
+  selectedSecurityDomain?: string;
   lastConnectionTestAt?: string;
   lastSuccessfulLoginAt?: string;
   profileJson?: string;
@@ -16,6 +23,11 @@ export interface GremiaBrServiceSettings {
   serverUrl: string;
   username: string;
   password: string;
+  apiMode: GremiaBrApiMode;
+  selectedBodyId?: string;
+  selectedBodyName?: string;
+  selectedOrganizationId?: string;
+  selectedSecurityDomain?: string;
 }
 
 export interface GremiaBrProfileSnapshot {

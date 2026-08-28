@@ -1,8 +1,15 @@
+export type GremiaBrApiMode = 'legacy_read_bridge' | 'gremia_br_v2';
+
 export interface GremiaBrSettingsInput {
   enabled: boolean;
   serverUrl: string;
   username: string;
   password?: string;
+  apiMode?: GremiaBrApiMode;
+  selectedBodyId?: string;
+  selectedBodyName?: string;
+  selectedOrganizationId?: string;
+  selectedSecurityDomain?: string;
   relevanceSettings?: GremiaBrRelevanceSettings;
 }
 
@@ -11,6 +18,11 @@ export interface GremiaBrPublicSettings {
   serverUrl: string;
   username: string;
   hasStoredCredentials: boolean;
+  apiMode: GremiaBrApiMode;
+  selectedBodyId?: string;
+  selectedBodyName?: string;
+  selectedOrganizationId?: string;
+  selectedSecurityDomain?: string;
   lastConnectionTestAt?: string;
   lastSuccessfulLoginAt?: string;
   profileDisplayName?: string;

@@ -178,6 +178,11 @@ export const GREMIA_BR_SETTINGS_REQUIRED_COLUMNS = [
   'server_url',
   'username',
   'password_secret',
+  'api_mode',
+  'selected_body_id',
+  'selected_body_name',
+  'selected_organization_id',
+  'selected_security_domain',
   'last_connection_test_at',
   'last_successful_login_at',
   'profile_json',
@@ -211,4 +216,3 @@ export const CASE_EXTERNAL_REFERENCES_REQUIRED_COLUMNS = [
   'created_at',
   'updated_at'
 ] as const;
-

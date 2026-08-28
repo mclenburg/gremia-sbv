@@ -15,6 +15,7 @@ const EMPTY_SETTINGS: GremiaBrPublicSettings = {
   serverUrl: '',
   username: '',
   hasStoredCredentials: false,
+  apiMode: 'legacy_read_bridge',
   relevanceSettings: { groups: [] },
 };
 

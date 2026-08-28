@@ -126,6 +126,11 @@ export class MigrationProcessSchemasC extends MigrationProcessSchemasB {
           server_url TEXT NOT NULL DEFAULT '',
           username TEXT NOT NULL DEFAULT '',
           password_secret TEXT NOT NULL DEFAULT '',
+          api_mode TEXT NOT NULL DEFAULT 'legacy_read_bridge' CHECK (api_mode IN ('legacy_read_bridge','gremia_br_v2')),
+          selected_body_id TEXT,
+          selected_body_name TEXT,
+          selected_organization_id TEXT,
+          selected_security_domain TEXT,
           last_connection_test_at TEXT,
           last_successful_login_at TEXT,
           profile_json TEXT,
@@ -135,6 +140,11 @@ export class MigrationProcessSchemasC extends MigrationProcessSchemasB {
         );
       `);
       this.addColumnIfMissing('gremia_br_settings', 'relevance_keywords_json', 'TEXT');
+      this.addColumnIfMissing('gremia_br_settings', 'api_mode', "TEXT NOT NULL DEFAULT 'legacy_read_bridge'");
+      this.addColumnIfMissing('gremia_br_settings', 'selected_body_id', 'TEXT');
+      this.addColumnIfMissing('gremia_br_settings', 'selected_body_name', 'TEXT');
+      this.addColumnIfMissing('gremia_br_settings', 'selected_organization_id', 'TEXT');
+      this.addColumnIfMissing('gremia_br_settings', 'selected_security_domain', 'TEXT');
     }
 
   protected ensureGremiaBrCacheSchema(): void {
