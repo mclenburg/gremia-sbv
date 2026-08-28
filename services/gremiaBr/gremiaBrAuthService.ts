@@ -1,6 +1,6 @@
 import type { GremiaBrConnectionTestResult } from '../../src/domain/models/gremia-br.model.js';
 import { GremiaBrHttpClient, type GremiaBrAuditSink, type GremiaBrFetch } from './gremiaBrHttpClient.js';
-import type { GremiaBrProfileSnapshot, GremiaBrRequestOptions, GremiaBrSettingsStore } from './gremiaBrTypes.js';
+import type { GremiaBrProfileSnapshot, GremiaBrReadContext, GremiaBrRequestOptions, GremiaBrSettingsStore } from './gremiaBrTypes.js';
 
 function nowIso(): string {
   return new Date().toISOString();
@@ -75,6 +75,14 @@ export class GremiaBrAuthService {
   clearToken(): void {
     this.token = '';
     this.sessionCookie = '';
+  }
+
+  getReadContext(): GremiaBrReadContext {
+    const settings = this.settingsStore.getServiceSettings();
+    return {
+      apiMode: settings.apiMode,
+      selectedBodyId: settings.selectedBodyId,
+    };
   }
 
   async testConnection(): Promise<GremiaBrConnectionTestResult> {

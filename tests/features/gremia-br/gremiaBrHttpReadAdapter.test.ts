@@ -62,6 +62,20 @@ function configuredSettings(): GremiaBrServiceSettings {
   };
 }
 
+function configuredV2Settings(): GremiaBrServiceSettings {
+  return {
+    enabled: true,
+    serverUrl: 'https://br.example.invalid',
+    username: 'sbv@example.invalid',
+    password: 'streng-geheim',
+    apiMode: 'gremia_br_v2',
+    selectedBodyId: 'sbv-body',
+    selectedBodyName: 'SBV Testbetrieb',
+    selectedOrganizationId: 'org-1',
+    selectedSecurityDomain: 'sd-sbv',
+  };
+}
+
 describe('Gremia.BR HTTP-ReadAdapter 0.9.2-B', () => {
   it('meldet sich an, prüft das Profil und gibt keine Zugangsdaten im Ergebnis zurück', async () => {
     const { fetch, calls } = createFetch({
@@ -118,6 +132,35 @@ describe('Gremia.BR HTTP-ReadAdapter 0.9.2-B', () => {
       const method = String(call.init?.method ?? 'GET');
       return method === 'GET' || new URL(call.url).pathname === '/api/auth/login';
     })).toBe(true);
+  });
+
+  it('nutzt im Gremia.BR-2.0-Modus den ausgewählten SBV-Arbeitsbereich statt Legacy-Endpunkte', async () => {
+    const { fetch, calls } = createFetch({
+      'POST /api/v1/auth/login': { access_token: 'v2-token' },
+      'GET /api/v1/bodies/sbv-body/meetings': [
+        { id: 'm1', bodyId: 'sbv-body', plannedStart: '2099-01-08T09:00:00.000Z', status: 'INVITED' },
+        { id: 'm2', bodyId: 'sbv-body', plannedStart: '2099-01-15T09:00:00.000Z', status: 'MINUTES_DRAFT' },
+      ],
+      'GET /api/v1/meetings/m1/agenda': { id: 'agenda-1', items: [{ id: 'a1', title: 'BEM-Unterrichtung' }] },
+      'GET /api/v1/meetings/m1/minutes': { id: 'minutes-1', meetingId: 'm1', contentComplete: true },
+      'GET /api/v1/meetings/m1/decisions': [{ id: 'd1', meetingId: 'm1', text: 'BEM-Beschluss' }],
+      'GET /api/v1/meetings/m2/decisions': [{ id: 'd2', meetingId: 'm2', text: 'Arbeitsplatzgestaltung' }],
+    });
+    const adapter = new GremiaBrHttpReadAdapter(new GremiaBrAuthService(new MemoryGremiaBrSettings(configuredV2Settings()), fetch));
+
+    await expect(adapter.getNextMeeting()).resolves.toMatchObject({ id: 'm1' });
+    await expect(adapter.getMeetingAgenda('m1')).resolves.toEqual([{ id: 'a1', title: 'BEM-Unterrichtung' }]);
+    await expect(adapter.getProtocolByMeeting('m1')).resolves.toMatchObject({ id: 'minutes-1' });
+    await expect(adapter.listRelevantDecisions()).resolves.toHaveLength(2);
+    await expect(adapter.searchDecisions('Arbeitsplatz')).resolves.toEqual([{ id: 'd2', meetingId: 'm2', text: 'Arbeitsplatzgestaltung' }]);
+
+    const callSignatures = calls.map((call) => `${call.init?.method} ${new URL(call.url).pathname}`);
+    expect(callSignatures).toContain('GET /api/v1/bodies/sbv-body/meetings');
+    expect(callSignatures).toContain('GET /api/v1/meetings/m1/agenda');
+    expect(callSignatures).toContain('GET /api/v1/meetings/m1/minutes');
+    expect(callSignatures).toContain('GET /api/v1/meetings/m1/decisions');
+    expect(callSignatures).not.toContain('GET /api/sitzungen/kommende');
+    expect(callSignatures).not.toContain('GET /api/protokolle/beschluesse');
   });
 
   it('protokolliert jede freigegebene HTTP-Leseanfrage im Audit-Log ohne Inhalte', async () => {

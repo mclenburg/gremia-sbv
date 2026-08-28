@@ -43,6 +43,11 @@ export interface GremiaBrRequestOptions {
   timeoutMs?: number;
 }
 
+export interface GremiaBrReadContext {
+  apiMode: GremiaBrApiMode;
+  selectedBodyId?: string;
+}
+
 export interface GremiaBrReadAdapter {
   listWorksAgreements(): Promise<unknown[]>;
   listRelevantMeetings(): Promise<unknown[]>;
