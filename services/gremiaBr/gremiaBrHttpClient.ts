@@ -82,6 +82,10 @@ export class GremiaBrHttpClient {
   }
 
   async request<T>(method: string, path: string, token?: string, options: GremiaBrRequestOptions = {}): Promise<T> {
+    return (await this.requestDetailed<T>(method, path, token, options)).payload;
+  }
+
+  async requestDetailed<T>(method: string, path: string, token?: string, options: GremiaBrRequestOptions = {}): Promise<{ payload: T; headers: Headers }> {
     const endpoint = endpointLabel(method, path);
     const policy = checkGremiaBrEndpoint(method, path);
     if (!policy.allowed) {
@@ -102,6 +106,7 @@ export class GremiaBrHttpClient {
         body = JSON.stringify(options.body);
       }
       if (token) headers.Authorization = `Bearer ${token}`;
+      if (options.sessionCookie) headers.Cookie = options.sessionCookie;
 
       const response = await this.fetchImpl(url.toString(), {
         method: method.trim().toUpperCase(),
@@ -120,7 +125,7 @@ export class GremiaBrHttpClient {
       }
       const payload = await readResponsePayload(response) as T;
       this.auditRequest(endpoint, 'ok', response.status);
-      return payload;
+      return { payload, headers: response.headers };
     } catch (error) {
       if ((error as Error).name === 'AbortError') {
         this.auditRequest(endpoint, 'timeout');

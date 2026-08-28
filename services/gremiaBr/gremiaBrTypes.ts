@@ -39,6 +39,7 @@ export interface GremiaBrProfileSnapshot {
 export interface GremiaBrRequestOptions {
   query?: Record<string, string | number | boolean | Array<string | number | boolean> | undefined>;
   body?: unknown;
+  sessionCookie?: string;
   timeoutMs?: number;
 }
 
