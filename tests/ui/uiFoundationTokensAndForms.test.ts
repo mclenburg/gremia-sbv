@@ -77,7 +77,7 @@ describe('UI-Fundament Block 1', () => {
   it('nutzt zentrale Button-Wrapper fuer Gremia.BR- und Beteiligungsaktionen', () => {
     const dashboardFocus = source('src/app/features/dashboard/DashboardFocusOverview.tsx');
     const dashboardPanel = source('src/app/features/dashboard/GremiaBrDashboardPanel.tsx');
-    const settings = source('src/app/features/settings/GremiaBrSettingsPanel.tsx');
+    const settings = source('src/app/features/settings/GremiaBrSettingsSections.tsx');
     const participation = source('src/app/features/participation/ParticipationProcessDetail.tsx');
 
     expect(dashboardFocus).toContain('ToolbarButton');

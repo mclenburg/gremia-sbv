@@ -14,8 +14,8 @@ describe('SBV-Steuerungsprotokolle Schema-Integration', () => {
       .sort()
       .at(-1);
 
-    expect(APP_SCHEMA_VERSION).toBe('0052');
-    expect(latestMigration).toBe('0052');
+    expect(APP_SCHEMA_VERSION).toBe('0053');
+    expect(latestMigration).toBe('0053');
   });
 
   it('führt sbv_control_protocols im Fresh-Install-Schema und rüstet Wiedervorlagen per Migration 0040 nach', () => {

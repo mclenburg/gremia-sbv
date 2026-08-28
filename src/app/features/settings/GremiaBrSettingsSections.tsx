@@ -75,7 +75,7 @@ export function GremiaBrCredentialsSection({
     <div className="gremia-br-settings-credentials">
       <label className="industrial-field">
         <span>API-Modus</span>
-        <select value={apiMode} onChange={(event) => onApiModeChange(event.target.value as GremiaBrApiMode)}>
+        <select className="industrial-select" value={apiMode} onChange={(event) => onApiModeChange(event.target.value as GremiaBrApiMode)}>
           <option value="legacy_read_bridge">Legacy-Lesebrücke</option>
           <option value="gremia_br_v2">Gremia.BR 2.0</option>
         </select>

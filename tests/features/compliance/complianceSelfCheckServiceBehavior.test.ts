@@ -30,6 +30,7 @@ import {
   RECRUITING_PARTICIPATIONS_REQUIRED_COLUMNS,
   SBV_OFFICE_0051_REQUIRED_TABLES,
   DEADLINE_RULE_SNAPSHOT_REQUIRED_COLUMNS,
+  APP_SCHEMA_VERSION,
 } from '../../../services/appSchema';
 
 type TableMap = Record<string, readonly string[]>;
@@ -92,7 +93,7 @@ class SelfCheckDb implements DatabaseAdapter {
           const table = String(params[0] ?? '');
           return (self.tables[table] ? { value: 1 } : undefined) as T | undefined;
         }
-        if (sql.includes('MAX(version)')) return { value: '0052' } as T;
+        if (sql.includes('MAX(version)')) return { value: APP_SCHEMA_VERSION } as T;
         if (sql.includes('privacy_review_items') && sql.includes('due_at <')) return { value: self.values.overduePrivacyReviews ?? 0 } as T;
         if (sql.includes('privacy_review_items')) return { value: self.values.openPrivacyReviews ?? 0 } as T;
         if (sql.includes('compliance_incidents') && sql.includes("risk_level = 'high'")) return { value: self.values.highIncidents ?? 0 } as T;
