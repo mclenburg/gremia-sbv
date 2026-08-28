@@ -82,7 +82,7 @@ describe('Gremia.BR Auth-Profilvertrag 0.9.2-Q', () => {
     expect(result.profileRole).toBe('sbv');
   });
 
-  it('nutzt für Gremia.BR 2.0 Login und Session der v1-API ohne Zugangsdaten im Ergebnis', async () => {
+  it('nutzt für Gremia.BR 2.0 Login und Session der v2-API ohne Zugangsdaten im Ergebnis', async () => {
     const calls: Array<{ signature: string; cookie?: string; authorization?: string }> = [];
     const fetch: GremiaBrFetch = async (url, init) => {
       const parsed = new URL(url);

@@ -463,7 +463,7 @@
       .map((item, index) => toSearchResult(item, input.query, index + 1));
   };
 
-  let gremiaBrSettings = { enabled: false, serverUrl: '', username: '', hasStoredCredentials: false, relevanceSettings: { groups: [] } };
+  let gremiaBrSettings = { enabled: false, serverUrl: '', username: '', hasStoredCredentials: false, apiMode: 'legacy_read_bridge', relevanceSettings: { groups: [] } };
   let gremiaBrCache = { upcomingMeetings: [], meetingAgendas: {}, decisions: [], dueDecisions: [], overdueDecisions: [] };
   const gremiaBrSampleCache = () => ({
     nextMeeting: { id: 'br-meeting-2026-05-29', title: 'BR-Sitzung Mai', date: '2026-05-29T09:00:00.000Z' },
@@ -741,13 +741,18 @@
           serverUrl: input.serverUrl || '',
           username: input.username || '',
           hasStoredCredentials: !!input.password || gremiaBrSettings.hasStoredCredentials,
+          apiMode: input.apiMode || gremiaBrSettings.apiMode || 'legacy_read_bridge',
+          selectedBodyId: input.selectedBodyId || gremiaBrSettings.selectedBodyId,
+          selectedBodyName: input.selectedBodyName || gremiaBrSettings.selectedBodyName,
+          selectedOrganizationId: input.selectedOrganizationId || gremiaBrSettings.selectedOrganizationId,
+          selectedSecurityDomain: input.selectedSecurityDomain || gremiaBrSettings.selectedSecurityDomain,
           relevanceSettings: input.relevanceSettings || { groups: [] },
           updatedAt: now,
         };
         return { ...gremiaBrSettings };
       },
       clearCredentials: async () => {
-        gremiaBrSettings = { enabled: false, serverUrl: '', username: '', hasStoredCredentials: false, relevanceSettings: { groups: [] }, updatedAt: now };
+        gremiaBrSettings = { enabled: false, serverUrl: '', username: '', hasStoredCredentials: false, apiMode: 'legacy_read_bridge', relevanceSettings: { groups: [] }, updatedAt: now };
         gremiaBrCache = { upcomingMeetings: [], meetingAgendas: {}, decisions: [], dueDecisions: [], overdueDecisions: [] };
         return { ...gremiaBrSettings };
       },
@@ -758,6 +763,16 @@
       testConnection: async () => gremiaBrSettings.enabled
         ? ({ status: 'ok', message: 'Die Gremia.BR-Lesebrücke ist erreichbar.', checkedAt: now, profileDisplayName: 'SBV E2E', profileRole: 'read-only' })
         : ({ status: 'disabled', message: 'Die Gremia.BR-Anbindung ist deaktiviert.', checkedAt: now }),
+      listWorkspaceBodies: async () => [
+        {
+          bodyId: 'sbv-body-e2e',
+          bodyName: 'Schwerbehindertenvertretung E2E',
+          bodyType: 'SEVERELY_DISABLED_REPRESENTATION',
+          organizationId: 'org-e2e',
+          securityDomain: 'sbv-e2e',
+          contentProtectionClass: 'HIGH',
+        },
+      ],
       getCachedOverview: async () => ({ ...gremiaBrCache }),
       getDashboardOverview: async () => gremiaBrDashboardOverview(),
       refreshCache: async () => {

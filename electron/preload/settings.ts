@@ -1,6 +1,6 @@
 import type { IpcInvoker } from "./invoke.js";
 import { IPC_CHANNELS } from "../ipc/channels.js";
-import type { CreateGremiaBrExternalReferenceInput, GremiaBrCachedOverview, GremiaBrCacheRefreshResult, GremiaBrConnectionTestResult, GremiaBrDashboardOverview, GremiaBrExternalReferenceRecord, GremiaBrInlineSuggestion, GremiaBrPublicSettings, GremiaBrRelevanceSettings, GremiaBrSettingsInput } from "../../src/domain/models/gremia-br.model.js";
+import type { CreateGremiaBrExternalReferenceInput, GremiaBrCachedOverview, GremiaBrCacheRefreshResult, GremiaBrConnectionTestResult, GremiaBrDashboardOverview, GremiaBrExternalReferenceRecord, GremiaBrInlineSuggestion, GremiaBrPublicSettings, GremiaBrRelevanceSettings, GremiaBrSettingsInput, GremiaBrWorkspaceBody } from "../../src/domain/models/gremia-br.model.js";
 import type { TemplateDefaultValues } from "../../src/domain/models/template-default.model.js";
 
 export function createSettingsApi(invokeIpc: IpcInvoker) {
@@ -16,6 +16,8 @@ export function createSettingsApi(invokeIpc: IpcInvoker) {
         invokeIpc(IPC_CHANNELS.gremiaBrRelevanceSave, input),
       testConnection: (): Promise<GremiaBrConnectionTestResult> =>
         invokeIpc(IPC_CHANNELS.gremiaBrConnectionTest),
+      listWorkspaceBodies: (): Promise<GremiaBrWorkspaceBody[]> =>
+        invokeIpc(IPC_CHANNELS.gremiaBrWorkspaceBodiesList),
       getCachedOverview: (): Promise<GremiaBrCachedOverview> =>
         invokeIpc(IPC_CHANNELS.gremiaBrCacheGet),
       getDashboardOverview: (): Promise<GremiaBrDashboardOverview> =>

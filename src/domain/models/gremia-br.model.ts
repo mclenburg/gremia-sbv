@@ -41,6 +41,16 @@ export interface GremiaBrConnectionTestResult {
   checkedAt: string;
 }
 
+export interface GremiaBrWorkspaceBody {
+  bodyId: string;
+  bodyName: string;
+  bodyType: string;
+  organizationId: string;
+  securityDomain?: string;
+  contentProtectionClass?: string;
+  termValidUntil?: string;
+}
+
 export interface GremiaBrPolicyCheckResult {
   allowed: boolean;
   reason?: string;

@@ -126,7 +126,7 @@ import type {
   UpdateLegalNormInput,
 } from "./domain/models/knowledge.model";
 import type { TemplateDefaultValues } from "./domain/models/template-default.model";
-import type { CreateGremiaBrExternalReferenceInput, GremiaBrCachedOverview, GremiaBrCacheRefreshResult, GremiaBrConnectionTestResult, GremiaBrDashboardOverview, GremiaBrExternalReferenceRecord, GremiaBrInlineSuggestion, GremiaBrPublicSettings, GremiaBrRelevanceSettings, GremiaBrSettingsInput } from "./domain/models/gremia-br.model";
+import type { CreateGremiaBrExternalReferenceInput, GremiaBrCachedOverview, GremiaBrCacheRefreshResult, GremiaBrConnectionTestResult, GremiaBrDashboardOverview, GremiaBrExternalReferenceRecord, GremiaBrInlineSuggestion, GremiaBrPublicSettings, GremiaBrRelevanceSettings, GremiaBrSettingsInput, GremiaBrWorkspaceBody } from "./domain/models/gremia-br.model";
 
 import type {
   CreateTemplateInput,
@@ -507,6 +507,7 @@ declare global {
         clearCredentials(): Promise<GremiaBrPublicSettings>;
         saveRelevanceSettings(input: GremiaBrRelevanceSettings): Promise<GremiaBrPublicSettings>;
         testConnection(): Promise<GremiaBrConnectionTestResult>;
+        listWorkspaceBodies(): Promise<GremiaBrWorkspaceBody[]>;
         getCachedOverview(): Promise<GremiaBrCachedOverview>;
         getDashboardOverview(): Promise<GremiaBrDashboardOverview>;
         refreshCache(): Promise<GremiaBrCacheRefreshResult>;

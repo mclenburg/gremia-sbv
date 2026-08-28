@@ -6,6 +6,7 @@ import type {
   GremiaBrPublicSettings,
   GremiaBrRelevanceKeywordGroup,
   GremiaBrSettingsInput,
+  GremiaBrWorkspaceBody,
 } from '../../../domain/models/gremia-br.model';
 import { waitForBridge } from '../../core/bridge/waitForBridge';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
@@ -53,6 +54,12 @@ export function GremiaBrSettingsPanel() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [apiMode, setApiMode] = useState<GremiaBrApiMode>('legacy_read_bridge');
+  const [selectedBodyId, setSelectedBodyId] = useState('');
+  const [selectedBodyName, setSelectedBodyName] = useState('');
+  const [selectedOrganizationId, setSelectedOrganizationId] = useState('');
+  const [selectedSecurityDomain, setSelectedSecurityDomain] = useState('');
+  const [workspaceBodies, setWorkspaceBodies] = useState<GremiaBrWorkspaceBody[]>([]);
+  const [bodySearch, setBodySearch] = useState('');
   const [relevanceGroups, setRelevanceGroups] = useState<GremiaBrRelevanceKeywordGroup[]>([]);
   const [status, setStatus] = useState('');
   const [busy, setBusy] = useState(false);
@@ -70,6 +77,10 @@ export function GremiaBrSettingsPanel() {
     setUsername(next.username);
     setPassword('');
     setApiMode(next.apiMode);
+    setSelectedBodyId(next.selectedBodyId ?? '');
+    setSelectedBodyName(next.selectedBodyName ?? '');
+    setSelectedOrganizationId(next.selectedOrganizationId ?? '');
+    setSelectedSecurityDomain(next.selectedSecurityDomain ?? '');
     setRelevanceGroups(next.relevanceSettings.groups);
   }
 
@@ -89,6 +100,10 @@ export function GremiaBrSettingsPanel() {
         setServerUrl(next.serverUrl);
         setUsername(next.username);
         setApiMode(next.apiMode);
+        setSelectedBodyId(next.selectedBodyId ?? '');
+        setSelectedBodyName(next.selectedBodyName ?? '');
+        setSelectedOrganizationId(next.selectedOrganizationId ?? '');
+        setSelectedSecurityDomain(next.selectedSecurityDomain ?? '');
         setRelevanceGroups(next.relevanceSettings.groups);
       } catch (err) {
         if (active) {
@@ -102,25 +117,38 @@ export function GremiaBrSettingsPanel() {
     return () => { active = false; };
   }, [announce]);
 
+  function currentSettingsInput(): GremiaBrSettingsInput {
+    const input: GremiaBrSettingsInput = {
+      enabled,
+      serverUrl,
+      username,
+      apiMode,
+      selectedBodyId,
+      selectedBodyName,
+      selectedOrganizationId,
+      selectedSecurityDomain,
+      relevanceSettings: { groups: relevanceGroups },
+    };
+    if (password.trim()) input.password = password;
+    return input;
+  }
+
+  async function persistSettings(): Promise<GremiaBrPublicSettings> {
+    const bridge = await waitForBridge();
+    if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Einstellungsdienst ist nicht erreichbar.');
+    const next = await bridge.gremiaBr.saveSettings(currentSettingsInput());
+    setSettings(next);
+    setPassword('');
+    notifyGremiaBrSettingsChanged();
+    return next;
+  }
+
   async function save() {
     setBusy(true);
     setError('');
     setStatus('');
     try {
-      const bridge = await waitForBridge();
-      if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Einstellungsdienst ist nicht erreichbar.');
-      const input: GremiaBrSettingsInput = {
-        enabled,
-        serverUrl,
-        username,
-        apiMode,
-        relevanceSettings: { groups: relevanceGroups },
-      };
-      if (password.trim()) input.password = password;
-      const next = await bridge.gremiaBr.saveSettings(input);
-      setSettings(next);
-      setPassword('');
-      notifyGremiaBrSettingsChanged();
+      await persistSettings();
       setStatus('Gremia.BR-Einstellungen wurden im verschlüsselten Vault gespeichert.');
       announce('Gremia.BR-Einstellungen wurden gespeichert.', 'polite');
     } catch (err) {
@@ -142,6 +170,11 @@ export function GremiaBrSettingsPanel() {
       const next = await bridge.gremiaBr.clearCredentials();
       setSettings(next);
       setEnabled(next.enabled);
+      setSelectedBodyId('');
+      setSelectedBodyName('');
+      setSelectedOrganizationId('');
+      setSelectedSecurityDomain('');
+      setWorkspaceBodies([]);
       setPassword('');
       notifyGremiaBrSettingsChanged();
       setStatus('Gremia.BR-Zugangsdaten wurden gelöscht.');
@@ -160,7 +193,7 @@ export function GremiaBrSettingsPanel() {
     setError('');
     setStatus('');
     try {
-      await save();
+      await persistSettings();
       const bridge = await waitForBridge();
       if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Einstellungsdienst ist nicht erreichbar.');
       const result = await bridge.gremiaBr.testConnection();
@@ -198,6 +231,40 @@ export function GremiaBrSettingsPanel() {
     }
   }
 
+  async function loadWorkspaceBodies() {
+    setBusy(true);
+    setError('');
+    setStatus('');
+    try {
+      await persistSettings();
+      const bridge = await waitForBridge();
+      if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Einstellungsdienst ist nicht erreichbar.');
+      const bodies = await bridge.gremiaBr.listWorkspaceBodies();
+      setWorkspaceBodies(bodies);
+      const message = bodies.length
+        ? `${bodies.length} berechtigte SBV-Gremien aus Gremia.BR geladen.`
+        : 'Gremia.BR meldet für dieses Konto kein aktuell berechtigtes SBV-Gremium.';
+      setStatus(message);
+      announce(message, bodies.length ? 'polite' : 'assertive');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Gremia.BR-Gremien konnten nicht geladen werden.';
+      setError(message);
+      announce(message, 'assertive');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function selectWorkspaceBody(body: GremiaBrWorkspaceBody) {
+    setSelectedBodyId(body.bodyId);
+    setSelectedBodyName(body.bodyName);
+    setSelectedOrganizationId(body.organizationId);
+    setSelectedSecurityDomain(body.securityDomain ?? '');
+    const message = `${body.bodyName} ist für den Gremia.BR-Arbeitsbereich vorgemerkt. Bitte Einstellungen speichern.`;
+    setStatus(message);
+    announce(message, 'polite');
+  }
+
   function updateRelevanceGroupKeywords(groupId: string, value: string) {
     const keywords = value.split(',').map((item) => item.trim()).filter(Boolean);
     setRelevanceGroups((groups) => groups.map((group) => group.id === groupId ? { ...group, keywords } : group));
@@ -206,6 +273,11 @@ export function GremiaBrSettingsPanel() {
   function toggleRelevanceGroup(groupId: string, checked: boolean) {
     setRelevanceGroups((groups) => groups.map((group) => group.id === groupId ? { ...group, enabled: checked } : group));
   }
+
+  const normalizedBodySearch = bodySearch.trim().toLowerCase();
+  const filteredWorkspaceBodies = normalizedBodySearch
+    ? workspaceBodies.filter((body) => body.bodyName.toLowerCase().includes(normalizedBodySearch))
+    : workspaceBodies;
 
   return (
     <section className="gremia-br-settings-layout" aria-labelledby="gremia-br-settings-title">
@@ -276,9 +348,47 @@ export function GremiaBrSettingsPanel() {
         <div className="industrial-subsection compact">
           <p className="industrial-kicker">SBV-Gremium in Gremia.BR</p>
           <p className="text-sm text-zinc-400 mt-2">
-            Die Auswahl des SBV-Gremiums erfolgt im nächsten Schritt über eine filterbare Gremienauswahl aus Gremia.BR.
+            Wählen Sie den SBV-Arbeitsbereich aus den Gremien, für die Ihr Gremia.BR-Konto aktuell berechtigt ist.
             Technische IDs werden nicht als manuelle Eingabe verlangt.
           </p>
+          {selectedBodyName && (
+            <div className="industrial-message mt-3" role="status">
+              Ausgewählter Arbeitsbereich: {selectedBodyName}
+            </div>
+          )}
+          <div className="industrial-action-row mt-3">
+            <ToolbarButton disabled={busy || !enabled} onClick={() => void loadWorkspaceBodies()}>
+              SBV-Gremien aus Gremia.BR laden
+            </ToolbarButton>
+          </div>
+          {workspaceBodies.length > 5 && (
+            <label className="industrial-field mt-3">
+              <span>Gremien filtern</span>
+              <input
+                type="search"
+                value={bodySearch}
+                onChange={(event) => setBodySearch(event.target.value)}
+                placeholder="Name des SBV-Gremiums"
+              />
+            </label>
+          )}
+          {workspaceBodies.length > 0 && (
+            <div className="industrial-list mt-3" role="list" aria-label="Berechtigte SBV-Gremien aus Gremia.BR">
+              {filteredWorkspaceBodies.map((body) => (
+                <div className="industrial-list-row" role="listitem" key={body.bodyId}>
+                  <div>
+                    <strong>{body.bodyName}</strong>
+                    <p className="text-sm text-zinc-500">
+                      {body.contentProtectionClass ? `Schutzklasse ${body.contentProtectionClass}` : 'Schutzklasse von Gremia.BR vorgegeben'}
+                    </p>
+                  </div>
+                  <ToolbarButton disabled={busy} onClick={() => selectWorkspaceBody(body)}>
+                    Auswählen
+                  </ToolbarButton>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

@@ -3,6 +3,7 @@ import type { IpcMain } from 'electron';
 import type { SecurityService } from '../../services/securityService.js';
 import type { ApplicationServices } from '../applicationServices.js';
 import { GremiaBrHttpReadAdapter } from '../../services/gremiaBr/gremiaBrHttpReadAdapter.js';
+import { GremiaBrV2WorkspaceService } from '../../services/gremiaBr/gremiaBrV2WorkspaceService.js';
 import type { CreateGremiaBrExternalReferenceInput, GremiaBrRelevanceSettings, GremiaBrSettingsInput } from '../../src/domain/models/gremia-br.model.js';
 import { assertRecordInput, assertString } from './ipcValidation.js';
 
@@ -11,6 +12,7 @@ export function registerGremiaBrIpc(ipcMain: IpcMain, security: SecurityService,
   const auth = services.gremiaBrAuth;
   const cache = services.gremiaBrCache;
   const adapter = new GremiaBrHttpReadAdapter(auth);
+  const workspace = new GremiaBrV2WorkspaceService(auth);
   const references = services.gremiaBrReferences;
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrSettingsGet, async () => settings.getPublicSettings());
@@ -34,6 +36,8 @@ export function registerGremiaBrIpc(ipcMain: IpcMain, security: SecurityService,
   });
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrConnectionTest, async () => auth.testConnection());
+
+  registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrWorkspaceBodiesList, async () => workspace.listSbvWorkspaceBodies());
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrCacheGet, async () => cache.getOverview());
 
