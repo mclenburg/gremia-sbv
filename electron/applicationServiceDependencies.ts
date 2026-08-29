@@ -21,6 +21,7 @@ export { GremiaBrAuthService } from '../services/gremiaBr/gremiaBrAuthService.js
 export { GremiaBrCacheService } from '../services/gremiaBr/gremiaBrCacheService.js';
 export { GremiaBrExternalReferenceService } from '../services/gremiaBr/gremiaBrExternalReferenceService.js';
 export { GremiaBrSettingsService } from '../services/gremiaBr/gremiaBrSettingsService.js';
+export { GremiaBrWorkspaceActionService } from '../services/gremiaBr/gremiaBrWorkspaceActionService.js';
 export { KnowledgeService } from '../services/knowledgeService.js';
 export { ParticipationService } from '../services/participationService.js';
 export { PersonAnonymizationService } from '../services/personAnonymizationService.js';

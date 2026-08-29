@@ -175,6 +175,16 @@ export interface GremiaBrGeneratedPdfDocument {
   createdAt: string;
 }
 
+export interface GremiaBrCreatedPdfDocument {
+  id: string;
+  title: string;
+  filename: string;
+  mimeType: 'application/pdf';
+  sha256: string;
+  sizeBytes: number;
+  createdAt: string;
+}
+
 export interface CreateGremiaBrCaseSummaryInput {
   caseId: string;
   purpose: string;

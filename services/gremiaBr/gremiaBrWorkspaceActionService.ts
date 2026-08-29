@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from '../databaseService.js';
 import { DatabaseUnitOfWork } from '../databaseUnitOfWork.js';
-import { GeneratedDocumentStoreService, type GeneratedDocumentRecord } from '../generatedDocumentStoreService.js';
+import { GeneratedDocumentStoreService } from '../generatedDocumentStoreService.js';
 import { PersonalDataAuditLogService } from '../auditLogService.js';
 import { safeDocumentFilePart } from '../documentContainerService.js';
 import { PdfDocumentGenerationService } from '../documents/pdfDocumentGenerationService.js';
@@ -9,6 +9,7 @@ import { auditGremiaBrWorkspaceAction } from '../auditEventBuilders.js';
 import type {
   CreateGremiaBrCaseSummaryInput,
   GremiaBrAgendaItemRequestResult,
+  GremiaBrCreatedPdfDocument,
   GremiaBrDocumentTransferResult,
   GremiaBrGeneratedPdfDocument,
   GremiaBrProtectionClass,
@@ -70,7 +71,7 @@ export class GremiaBrWorkspaceActionService {
     }));
   }
 
-  async createCaseSummaryDocument(input: CreateGremiaBrCaseSummaryInput): Promise<GeneratedDocumentRecord> {
+  async createCaseSummaryDocument(input: CreateGremiaBrCaseSummaryInput): Promise<GremiaBrCreatedPdfDocument> {
     const caseId = trimRequired(input.caseId, 'Fallakte');
     const purpose = trimRequired(input.purpose, 'Zweck der BR-Information');
     const caseSummary = this.caseSummary(caseId);
@@ -87,7 +88,7 @@ export class GremiaBrWorkspaceActionService {
         references: this.referenceRows(caseId),
       }),
     });
-    return this.documentStore.store({
+    const stored = await this.documentStore.store({
       source: 'document',
       caseId,
       title: `Fallzusammenfassung für Gremia.BR: ${caseSummary.case_number}`,
@@ -95,6 +96,15 @@ export class GremiaBrWorkspaceActionService {
       mimeType: GREMIA_BR_PDF_MIME_TYPE,
       plain: pdf,
     });
+    return {
+      id: stored.id,
+      title: stored.title,
+      filename: stored.filename,
+      mimeType: GREMIA_BR_PDF_MIME_TYPE,
+      sha256: stored.sha256,
+      sizeBytes: stored.sizeBytes,
+      createdAt: stored.createdAt,
+    };
   }
 
   async transferGeneratedPdf(input: TransferGremiaBrDocumentInput): Promise<GremiaBrDocumentTransferResult> {
