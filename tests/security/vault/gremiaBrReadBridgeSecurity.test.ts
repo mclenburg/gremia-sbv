@@ -4,7 +4,7 @@ import { checkGremiaBrEndpoint, validateGremiaBrBaseUrl } from '../../../service
 import { GremiaBrHttpClient, MAX_GREMIA_BR_RESPONSE_BYTES, type GremiaBrFetch } from '../../../services/gremiaBr/gremiaBrHttpClient';
 
 describe('Gremia.BR Lesebrücke Security-Härtung 0.9.2-F', () => {
-  it('erlaubt nur explizit freigegebene Leseendpunkte und blockiert Verwaltungs- oder Schreibzugriffe vor dem Netzwerk', async () => {
+  it('erlaubt nur explizit freigegebene Lese- und Arbeitsbereichsendpunkte und blockiert Verwaltungszugriffe vor dem Netzwerk', async () => {
     expect(checkGremiaBrEndpoint('GET', '/sitzungen/kommende').allowed).toBe(true);
     expect(checkGremiaBrEndpoint('GET', '/sitzungen/aktuelle').allowed).toBe(true);
     expect(checkGremiaBrEndpoint('GET', '/sitzungen/wiedervorlagen?datum=2026-05-27').allowed).toBe(true);
@@ -25,6 +25,9 @@ describe('Gremia.BR Lesebrücke Security-Härtung 0.9.2-F', () => {
     expect(checkGremiaBrEndpoint('GET', '/api/v1/bodies/body-1/meetings').allowed).toBe(true);
     expect(checkGremiaBrEndpoint('GET', '/api/v1/meetings/meeting-1/agenda').allowed).toBe(true);
     expect(checkGremiaBrEndpoint('POST', '/api/v1/documents/search').allowed).toBe(true);
+    expect(checkGremiaBrEndpoint('POST', '/api/v1/documents').allowed).toBe(true);
+    expect(checkGremiaBrEndpoint('POST', '/api/v1/documents/document-1/shares').allowed).toBe(true);
+    expect(checkGremiaBrEndpoint('POST', '/api/v1/meetings/meeting-1/agenda').allowed).toBe(true);
 
     for (const [method, path] of [
       ['GET', '/admin/health'],
@@ -35,9 +38,8 @@ describe('Gremia.BR Lesebrücke Security-Härtung 0.9.2-F', () => {
       ['GET', '/dokumente'],
       ['GET', '/files/unterlage.pdf'],
       ['POST', '/auth/refresh'],
-      ['POST', '/api/v1/documents'],
-      ['POST', '/api/v1/documents/document-1/shares'],
-      ['POST', '/api/v1/documents/shares/share-1/revocation'],
+      ['POST', '/api/v1/documents/document-1/transfer'],
+      ['POST', '/api/v1/documents/shares/share-1/approval'],
       ['DELETE', '/api/v1/sessions/session-1'],
       ['POST', '/protokolle/beschluesse'],
       ['PATCH', '/sitzungen/s1'],

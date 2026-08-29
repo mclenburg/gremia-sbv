@@ -32,6 +32,7 @@ export const AUDIT_PURPOSES = {
   activityJournalChanged: 'SBV-Tätigkeitsjournal geändert; Audit enthält keine Freitexte.',
   activityJournalRead: 'SBV-Tätigkeitsjournal anzeigen; Audit enthält keine Freitexte.',
   gremiaBrRequest: 'Gremia.BR-Lesebrücke: HTTP-Anfrage ohne Inhaltsdaten protokollieren.',
+  gremiaBrWorkspaceAction: 'Gremia.BR-Arbeitsbereich: bewusste Aktion ohne Inhaltsdaten protokollieren.',
   retentionLegalHoldChanged: 'Aufbewahrungssperre eines SBV-Amtsvorgangs geändert; Audit enthält keine Freitexte.',
   electionTransferProcessed: 'Geschützte Wahlaktenübergabe verarbeitet; Audit enthält nur technische Metadaten.',
   sbvOfficeDocumentChanged: 'Verschlüsseltes Dokument eines SBV-Amtsvorgangs geändert; Audit enthält keine Dokumentinhalte.',
@@ -111,6 +112,7 @@ export type SbvOfficeDocumentAuditArgs = {
 };
 
 export type GremiaBrRequestAuditArgs = {
+  action?: Extract<PersonalDataAuditAction, 'read' | 'export' | 'update' | 'delete'>;
   endpoint: string;
   outcome: string;
   status?: number;
@@ -290,11 +292,12 @@ export function auditSbvOfficeDocumentChanged(args: SbvOfficeDocumentAuditArgs):
 }
 
 export function auditGremiaBrReadRequest(args: GremiaBrRequestAuditArgs): CreatePersonalDataAuditInput {
+  const action = args.action ?? (args.endpoint.startsWith('GET ') ? 'read' : 'security');
   return {
-    action: args.endpoint.startsWith('GET ') ? 'read' : 'security',
+    action,
     subjectType: AUDIT_SUBJECT_TYPES.gremiaBrHttpRequest,
     subjectId: args.endpoint,
-    purpose: AUDIT_PURPOSES.gremiaBrRequest,
+    purpose: action === 'read' || action === 'security' ? AUDIT_PURPOSES.gremiaBrRequest : AUDIT_PURPOSES.gremiaBrWorkspaceAction,
     metadata: compactMetadata({ endpoint: args.endpoint, outcome: args.outcome, status: args.status }),
   };
 }

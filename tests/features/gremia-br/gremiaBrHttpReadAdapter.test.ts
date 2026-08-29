@@ -183,6 +183,39 @@ describe('Gremia.BR HTTP-ReadAdapter 0.9.2-B', () => {
     expect(JSON.stringify(audit.entries[0])).not.toContain('jwt-token');
   });
 
+  it('überträgt FormData für explizite Gremia.BR-Arbeitsbereichsaktionen ohne JSON-Content-Type und auditiert als Export', async () => {
+    const audit = new MemoryAuditLog();
+    const calls: Array<{ url: string; init?: RequestInit }> = [];
+    const fetch: GremiaBrFetch = async (url, init) => {
+      calls.push({ url, init });
+      return jsonResponse({ id: 'remote-document-1', latestVersionId: 'version-1' });
+    };
+    const formData = new FormData();
+    formData.append('title', 'Fallzusammenfassung');
+    formData.append('file', new Blob([new Uint8Array([37, 80, 68, 70])], { type: 'application/pdf' }), 'fall.pdf');
+    const client = new GremiaBrHttpClient('https://br.example.invalid', fetch, audit);
+
+    const result = await client.request<{ id: string }>('POST', '/api/v1/documents', 'jwt-token', {
+      query: { securityDomain: 'sd-sbv', organizationId: 'org-1' },
+      formData,
+    });
+
+    expect(result).toMatchObject({ id: 'remote-document-1' });
+    expect(calls).toHaveLength(1);
+    const headers = calls[0]?.init?.headers as Record<string, string>;
+    expect(headers.Authorization).toBe('Bearer jwt-token');
+    expect(headers['Content-Type']).toBeUndefined();
+    expect(calls[0]?.init?.body).toBe(formData);
+    expect(new URL(calls[0]!.url).searchParams.get('securityDomain')).toBe('sd-sbv');
+    expect(audit.entries[0]).toMatchObject({
+      action: 'export',
+      subjectType: 'gremia_br_http_request',
+      subjectId: 'POST /api/v1/documents',
+    });
+    expect(JSON.stringify(audit.entries[0])).not.toContain('Fallzusammenfassung');
+    expect(JSON.stringify(audit.entries[0])).not.toContain('jwt-token');
+  });
+
   it('blockiert Endpunkte außerhalb der Gremia.SBV-Whitelist vor dem Netzwerkzugriff', async () => {
     const calls: string[] = [];
     const fetch: GremiaBrFetch = async (url, init) => {

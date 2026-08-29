@@ -82,6 +82,9 @@ export class GremiaBrAuthService {
     return {
       apiMode: settings.apiMode,
       selectedBodyId: settings.selectedBodyId,
+      selectedBodyName: settings.selectedBodyName,
+      selectedOrganizationId: settings.selectedOrganizationId,
+      selectedSecurityDomain: settings.selectedSecurityDomain,
     };
   }
 
@@ -116,20 +119,28 @@ export class GremiaBrAuthService {
   }
 
   async get<T>(path: string, options: GremiaBrRequestOptions = {}): Promise<T> {
+    return this.authenticatedRequest<T>('GET', path, options);
+  }
+
+  async post<T>(path: string, options: GremiaBrRequestOptions = {}): Promise<T> {
+    return this.authenticatedRequest<T>('POST', path, options);
+  }
+
+  private async authenticatedRequest<T>(method: 'GET' | 'POST', path: string, options: GremiaBrRequestOptions = {}): Promise<T> {
     const settings = this.settingsStore.getServiceSettings();
     const auth = settings.apiMode === 'gremia_br_v2'
       ? await this.ensureV2Auth()
       : { token: await this.ensureToken(), sessionCookie: undefined };
     const client = this.client();
     try {
-      return await client.request<T>('GET', path, auth.token, { ...options, sessionCookie: auth.sessionCookie });
+      return await client.request<T>(method, path, auth.token, { ...options, sessionCookie: auth.sessionCookie });
     } catch (error) {
       if (error && typeof error === 'object' && 'status' in error && (error as { status?: number }).status === 401) {
         this.clearToken();
         const retryAuth = settings.apiMode === 'gremia_br_v2'
           ? await this.ensureV2Auth()
           : { token: await this.ensureToken(), sessionCookie: undefined };
-        return await client.request<T>('GET', path, retryAuth.token, { ...options, sessionCookie: retryAuth.sessionCookie });
+        return await client.request<T>(method, path, retryAuth.token, { ...options, sessionCookie: retryAuth.sessionCookie });
       }
       throw error;
     }

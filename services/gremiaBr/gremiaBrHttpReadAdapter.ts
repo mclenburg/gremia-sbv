@@ -1,29 +1,15 @@
 import { GremiaBrAuthService } from './gremiaBrAuthService.js';
 import type { GremiaBrReadAdapter } from './gremiaBrTypes.js';
-
-function arrayFromResponse(payload: unknown): unknown[] {
-  if (Array.isArray(payload)) return payload;
-  if (payload && typeof payload === 'object') {
-    const record = payload as Record<string, unknown>;
-    if (Array.isArray(record.results)) return record.results;
-    if (Array.isArray(record.items)) return record.items;
-    if (Array.isArray(record.data)) return record.data;
-  }
-  return [];
-}
-
-function record(value: unknown): Record<string, unknown> | undefined {
-  return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : undefined;
-}
+import { gremiaBrArrayFromResponse, gremiaBrRecord } from './gremiaBrPayload.js';
 
 function idFromItem(item: unknown): string | undefined {
-  const source = record(item);
+  const source = gremiaBrRecord(item);
   const id = source?.id ?? source?.uuid ?? source?.meetingId ?? source?.sitzungId ?? source?.decisionId ?? source?.beschlussId;
   return typeof id === 'string' && id.trim() ? id.trim() : undefined;
 }
 
 function dateFromItem(item: unknown): number {
-  const source = record(item);
+  const source = gremiaBrRecord(item);
   const value = source?.plannedStart ?? source?.date ?? source?.datum ?? source?.start;
   if (typeof value !== 'string') return Number.POSITIVE_INFINITY;
   const timestamp = Date.parse(value);
@@ -50,7 +36,7 @@ export class GremiaBrHttpReadAdapter implements GremiaBrReadAdapter {
 
   async getDecisionById(id: string): Promise<unknown | null> {
     if (this.isV2()) return await this.auth.get<unknown | null>(`/api/v1/meetings/decisions/${encodeURIComponent(id)}`);
-    const results = arrayFromResponse(await this.auth.get<unknown>('/search', {
+    const results = gremiaBrArrayFromResponse(await this.auth.get<unknown>('/search', {
       query: { q: id, types: ['beschluss'], limit: 1 },
     }));
     return results[0] ?? null;
@@ -68,7 +54,7 @@ export class GremiaBrHttpReadAdapter implements GremiaBrReadAdapter {
   async getCurrentMeeting(): Promise<unknown | null> {
     if (this.isV2()) {
       return (await this.listV2BodyMeetings())
-        .filter((meeting) => record(meeting)?.status === 'IN_PROGRESS')
+        .filter((meeting) => gremiaBrRecord(meeting)?.status === 'IN_PROGRESS')
         .sort((left, right) => dateFromItem(left) - dateFromItem(right))[0] ?? null;
     }
     return await this.auth.get<unknown | null>('/sitzungen/aktuelle');
@@ -79,17 +65,17 @@ export class GremiaBrHttpReadAdapter implements GremiaBrReadAdapter {
       const now = Date.now();
       return (await this.listV2BodyMeetings())
         .filter((meeting) => {
-          const item = record(meeting);
+          const item = gremiaBrRecord(meeting);
           return item?.status !== 'CANCELLED' && dateFromItem(meeting) >= now;
         })
         .sort((left, right) => dateFromItem(left) - dateFromItem(right));
     }
-    return arrayFromResponse(await this.auth.get<unknown>('/sitzungen/kommende'));
+    return gremiaBrArrayFromResponse(await this.auth.get<unknown>('/sitzungen/kommende'));
   }
 
   async getPendingFollowUps(date?: string): Promise<unknown[]> {
     if (this.isV2()) return [];
-    return arrayFromResponse(await this.auth.get<unknown>('/sitzungen/wiedervorlagen', {
+    return gremiaBrArrayFromResponse(await this.auth.get<unknown>('/sitzungen/wiedervorlagen', {
       query: { datum: date },
     }));
   }
@@ -100,8 +86,8 @@ export class GremiaBrHttpReadAdapter implements GremiaBrReadAdapter {
   }
 
   async getMeetingAgenda(id: string): Promise<unknown[]> {
-    if (this.isV2()) return arrayFromResponse(await this.auth.get<unknown>(`/api/v1/meetings/${encodeURIComponent(id)}/agenda`));
-    return arrayFromResponse(await this.auth.get<unknown>(`/sitzungen/${encodeURIComponent(id)}/agenda`));
+    if (this.isV2()) return gremiaBrArrayFromResponse(await this.auth.get<unknown>(`/api/v1/meetings/${encodeURIComponent(id)}/agenda`));
+    return gremiaBrArrayFromResponse(await this.auth.get<unknown>(`/sitzungen/${encodeURIComponent(id)}/agenda`));
   }
 
   async getMeetingProtocolStatus(id: string): Promise<unknown | null> {
@@ -111,7 +97,7 @@ export class GremiaBrHttpReadAdapter implements GremiaBrReadAdapter {
 
   async listProtocols(): Promise<unknown[]> {
     if (this.isV2()) return [];
-    return arrayFromResponse(await this.auth.get<unknown>('/protokolle'));
+    return gremiaBrArrayFromResponse(await this.auth.get<unknown>('/protokolle'));
   }
 
   async getProtocolById(id: string): Promise<unknown | null> {
@@ -125,23 +111,23 @@ export class GremiaBrHttpReadAdapter implements GremiaBrReadAdapter {
   }
 
   async listProtocolDecisions(id: string): Promise<unknown[]> {
-    if (this.isV2()) return arrayFromResponse(await this.auth.get<unknown>(`/api/v1/meetings/${encodeURIComponent(id)}/decisions`));
-    return arrayFromResponse(await this.auth.get<unknown>(`/protokolle/${encodeURIComponent(id)}/beschluesse`));
+    if (this.isV2()) return gremiaBrArrayFromResponse(await this.auth.get<unknown>(`/api/v1/meetings/${encodeURIComponent(id)}/decisions`));
+    return gremiaBrArrayFromResponse(await this.auth.get<unknown>(`/protokolle/${encodeURIComponent(id)}/beschluesse`));
   }
 
   async listRelevantDecisions(): Promise<unknown[]> {
     if (this.isV2()) return this.listV2Decisions();
-    return arrayFromResponse(await this.auth.get<unknown>('/protokolle/beschluesse'));
+    return gremiaBrArrayFromResponse(await this.auth.get<unknown>('/protokolle/beschluesse'));
   }
 
   async getDueDecisions(): Promise<unknown[]> {
     if (this.isV2()) return [];
-    return arrayFromResponse(await this.auth.get<unknown>('/protokolle/beschluesse/faellig'));
+    return gremiaBrArrayFromResponse(await this.auth.get<unknown>('/protokolle/beschluesse/faellig'));
   }
 
   async getOverdueDecisions(): Promise<unknown[]> {
     if (this.isV2()) return [];
-    return arrayFromResponse(await this.auth.get<unknown>('/protokolle/beschluesse/ueberfaellig'));
+    return gremiaBrArrayFromResponse(await this.auth.get<unknown>('/protokolle/beschluesse/ueberfaellig'));
   }
 
   async getDecisionStatistics(): Promise<unknown | null> {
@@ -156,14 +142,14 @@ export class GremiaBrHttpReadAdapter implements GremiaBrReadAdapter {
 
   async searchDecisions(query: string): Promise<unknown[]> {
     if (this.isV2()) return (await this.listV2Decisions()).filter((decision) => textMatchesQuery(decision, query));
-    return arrayFromResponse(await this.auth.get<unknown>('/search', {
+    return gremiaBrArrayFromResponse(await this.auth.get<unknown>('/search', {
       query: { q: query, types: ['beschluss', 'protokoll'], limit: 20 },
     }));
   }
 
   async suggestForInlineCommand(q: string): Promise<unknown[]> {
     if (this.isV2()) return (await this.searchDecisions(q)).slice(0, 10);
-    return arrayFromResponse(await this.auth.get<unknown>('/search/suggest', {
+    return gremiaBrArrayFromResponse(await this.auth.get<unknown>('/search/suggest', {
       query: { q, types: ['beschluss'], limit: 10 },
     }));
   }
@@ -185,7 +171,7 @@ export class GremiaBrHttpReadAdapter implements GremiaBrReadAdapter {
 
   private async loadV2BodyMeetings(): Promise<unknown[]> {
     const bodyId = this.selectedV2BodyId();
-    return arrayFromResponse(await this.auth.get<unknown>(`/api/v1/bodies/${encodeURIComponent(bodyId)}/meetings`));
+    return gremiaBrArrayFromResponse(await this.auth.get<unknown>(`/api/v1/bodies/${encodeURIComponent(bodyId)}/meetings`));
   }
 
   private async listV2Decisions(): Promise<unknown[]> {
@@ -200,7 +186,7 @@ export class GremiaBrHttpReadAdapter implements GremiaBrReadAdapter {
       .slice(0, 12);
     const decisions: unknown[] = [];
     for (const meetingId of meetingIds) {
-      decisions.push(...arrayFromResponse(await this.auth.get<unknown>(`/api/v1/meetings/${encodeURIComponent(meetingId)}/decisions`)));
+      decisions.push(...gremiaBrArrayFromResponse(await this.auth.get<unknown>(`/api/v1/meetings/${encodeURIComponent(meetingId)}/decisions`)));
     }
     return decisions;
   }
