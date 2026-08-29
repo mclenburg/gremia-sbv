@@ -158,3 +158,67 @@ export interface GremiaBrInlineSuggestion {
   date?: string;
   label: string;
 }
+
+export type GremiaBrProtectionClass = 'INTERNAL' | 'CONFIDENTIAL' | 'HIGH' | 'RESTRICTED';
+
+export interface GremiaBrGeneratedPdfDocument {
+  id: string;
+  title: string;
+  filename: string;
+  mimeType: 'application/pdf';
+  caseId?: string;
+  caseNumber?: string;
+  caseDisplayName?: string;
+  documentKind: string;
+  sha256?: string;
+  sizeBytes?: number;
+  createdAt: string;
+}
+
+export interface CreateGremiaBrCaseSummaryInput {
+  caseId: string;
+  purpose: string;
+  recipientLabel?: string;
+}
+
+export interface TransferGremiaBrDocumentInput {
+  documentId: string;
+  purpose: string;
+  targetSecurityDomain: string;
+  targetBodyId?: string;
+  targetBodyName?: string;
+  protectionClass?: GremiaBrProtectionClass;
+  validUntil?: string;
+  soloJustification?: string;
+}
+
+export interface GremiaBrDocumentTransferResult {
+  id: string;
+  localDocumentId: string;
+  localDocumentTitle: string;
+  remoteDocumentId: string;
+  remoteShareId?: string;
+  targetSecurityDomain: string;
+  targetBodyName?: string;
+  status: 'uploaded' | 'shared';
+  message: string;
+  createdAt: string;
+}
+
+export interface RequestGremiaBrAgendaItemInput {
+  meetingId: string;
+  title: string;
+  description?: string;
+  protectionClass?: GremiaBrProtectionClass;
+  timeAllocationMinutes?: number;
+}
+
+export interface GremiaBrAgendaItemRequestResult {
+  id: string;
+  meetingId: string;
+  agendaVersionId?: string;
+  title: string;
+  status: 'requested';
+  message: string;
+  createdAt: string;
+}

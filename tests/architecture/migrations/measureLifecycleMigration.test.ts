@@ -6,7 +6,7 @@ const migration = readFileSync('database/migrations/0048_measure_lifecycle_audit
 
 describe('Schema 0048', () => {
   it('führt den Zeitraumindex für Lifecycle-Auswertungen ein', () => {
-    expect(APP_SCHEMA_VERSION).toBe('0053');
+    expect(APP_SCHEMA_VERSION).toBe('0054');
     expect(migration).toContain('idx_personal_data_audit_lifecycle_period');
   });
 });

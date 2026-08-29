@@ -203,6 +203,23 @@ export const GREMIA_BR_CACHE_REQUIRED_COLUMNS = [
   'updated_at'
 ] as const;
 
+export const GREMIA_BR_WORKSPACE_ACTIONS_REQUIRED_COLUMNS = [
+  'id',
+  'action_type',
+  'local_document_id',
+  'case_id',
+  'target_body_id',
+  'target_body_name',
+  'target_security_domain',
+  'remote_document_id',
+  'remote_share_id',
+  'remote_meeting_id',
+  'remote_agenda_version_id',
+  'purpose',
+  'status',
+  'created_at'
+] as const;
+
 
 
 export const CASE_EXTERNAL_REFERENCES_REQUIRED_COLUMNS = [
