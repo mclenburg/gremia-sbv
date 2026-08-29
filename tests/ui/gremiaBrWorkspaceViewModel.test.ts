@@ -1,10 +1,13 @@
 import { describe, expect, it } from "vitest";
 import type { GremiaBrDashboardOverview, GremiaBrPublicSettings } from "../../src/domain/models/gremia-br.model";
 import {
+  caseOptions,
+  documentOptions,
+  meetingOptions,
   resolveGremiaBrDecisionRows,
   resolveGremiaBrMeetingRows,
   resolveGremiaBrWorkspaceSummary,
-} from "../../src/app/features/gremia-br/GremiaBrWorkspaceView";
+} from "../../src/app/features/gremia-br/gremiaBrWorkspaceModel";
 
 const SETTINGS: GremiaBrPublicSettings = {
   enabled: true,
@@ -68,5 +71,25 @@ describe("Gremia.BR-Arbeitsbereich View-Model", () => {
       "2026-10-01T10:00:00.000Z",
       "FINAL",
     ]);
+  });
+
+  it("bereitet umfangreiche Fall-, Dokument- und Sitzungsauswahlen für filterbare Standardfelder auf", () => {
+    const state = overview();
+
+    expect(caseOptions([
+      { id: "case-b", caseNumber: "SBV-002", displayName: "Arbeitsplatz", category: "arbeitsplatzgestaltung", status: "offen", priority: "normal", openedAt: "2026-01-02", isPseudonymized: false, isLocked: false },
+      { id: "case-a", caseNumber: "SBV-001", displayName: "BEM", category: "bem", status: "offen", priority: "normal", openedAt: "2026-01-01", isPseudonymized: false, isLocked: false },
+    ])).toEqual([
+      { value: "", label: "Fallakte auswählen …" },
+      { value: "case-a", label: "SBV-001 · BEM" },
+      { value: "case-b", label: "SBV-002 · Arbeitsplatz" },
+    ]);
+    expect(documentOptions([
+      { id: "doc-1", title: "Fallzusammenfassung", filename: "fall.pdf", mimeType: "application/pdf", caseNumber: "SBV-001", documentKind: "gremia_br_case_summary", createdAt: "2026-10-01" },
+    ])[1].label).toContain("Fall SBV-001");
+    expect(meetingOptions(state)[1]).toEqual({
+      value: "meeting-1",
+      label: "2026-10-01T09:00:00.000Z · SBV-Jahresplanung",
+    });
   });
 });

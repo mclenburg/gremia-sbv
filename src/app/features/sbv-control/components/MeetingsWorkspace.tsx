@@ -6,6 +6,7 @@ import { IndustrialHelpButton } from '../../../shared/help/IndustrialHelp';
 import { waitForBridge } from '../../../core/bridge/waitForBridge';
 import type { ActivityJournalPrefill } from '../../../../domain/models/activity-journal.model';
 import type { GremiaBrCachedOverview } from '../../../../domain/models/gremia-br.model';
+import { buildBrMeetingDrafts } from '../../gremia-br/gremiaBrWorkspaceModel';
 import type {
   CreateSbvMeetingInput,
   SbvMeetingAgendaItemRecord,
@@ -26,72 +27,7 @@ const meetingTypeLabels: Record<SbvMeetingType, string> = {
 };
 type JournalActivity = 'attendance' | 'preparation' | 'top_request' | 'suspension';
 
-type BrMeetingDraft = {
-  sourceId: string;
-  title: string;
-  startsAt: string;
-  location?: string;
-  agenda: string[];
-};
-
-function toRecord(value: unknown): Record<string, unknown> | null {
-  return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : null;
-}
-
-function firstString(record: Record<string, unknown>, keys: string[]): string | undefined {
-  for (const key of keys) {
-    const value = record[key];
-    if (typeof value === 'string' && value.trim()) return value.trim();
-  }
-  return undefined;
-}
-
-function brMeetingId(item: unknown): string | undefined {
-  const record = toRecord(item);
-  return record ? firstString(record, ['id', 'uuid', 'sitzungId']) : undefined;
-}
-
-function brMeetingTitle(item: unknown): string {
-  const record = toRecord(item);
-  return record ? firstString(record, ['titel', 'title', 'name']) ?? 'Betriebsratssitzung' : 'Betriebsratssitzung';
-}
-
-function brMeetingStartsAt(item: unknown): string | undefined {
-  const record = toRecord(item);
-  if (!record) return undefined;
-  return firstString(record, ['startsAt', 'startAt', 'beginn', 'datum', 'date']);
-}
-
-function brMeetingLocation(item: unknown): string | undefined {
-  const record = toRecord(item);
-  return record ? firstString(record, ['ort', 'location', 'raum', 'room']) : undefined;
-}
-
-function brAgendaTitle(item: unknown): string | undefined {
-  const record = toRecord(item);
-  return record ? firstString(record, ['titel', 'title', 'name', 'bezeichnung', 'text']) : undefined;
-}
-
-export function buildBrMeetingDrafts(overview: GremiaBrCachedOverview | null): BrMeetingDraft[] {
-  if (!overview) return [];
-  const raw = [overview.currentMeeting, overview.nextMeeting, ...overview.upcomingMeetings].filter(Boolean);
-  const seen = new Set<string>();
-  const result: BrMeetingDraft[] = [];
-  for (const item of raw) {
-    const sourceId = brMeetingId(item);
-    const startsAt = brMeetingStartsAt(item);
-    if (!sourceId || !startsAt || seen.has(sourceId)) continue;
-    seen.add(sourceId);
-    result.push({
-      sourceId,
-      title: brMeetingTitle(item),
-      startsAt,
-      location: brMeetingLocation(item),
-      agenda: (overview.meetingAgendas[sourceId] ?? []).map(brAgendaTitle).filter((title): title is string => Boolean(title)),
-    });
-  }
-  return result.sort((a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt));
-}
+export { buildBrMeetingDrafts };
 
 function toDateTimeLocal(value?: string): string {
   if (!value) return '';
