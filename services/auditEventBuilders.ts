@@ -10,6 +10,7 @@ export const AUDIT_SUBJECT_TYPES = {
   sbvControlProtocol: 'sbv_control_protocol',
   activityJournal: 'activity_journal',
   gremiaBrHttpRequest: 'gremia_br_http_request',
+  gremiaBrWorkspaceAction: 'gremia_br_workspace_action',
   retentionLegalHold: 'retention_legal_hold',
   electionTransfer: 'election_transfer',
   sbvOfficeDocument: 'sbv_office_document',
@@ -116,6 +117,17 @@ export type GremiaBrRequestAuditArgs = {
   endpoint: string;
   outcome: string;
   status?: number;
+};
+
+export type GremiaBrWorkspaceActionAuditArgs = {
+  action: Extract<PersonalDataAuditAction, 'export' | 'update' | 'delete'>;
+  actionId: string;
+  actionType: string;
+  status: string;
+  caseId?: string;
+  localDocumentId?: string;
+  remoteDocumentId?: string;
+  targetSecurityDomain?: string;
 };
 
 function compactMetadata(metadata: AuditMetadata): Record<string, unknown> {
@@ -299,6 +311,23 @@ export function auditGremiaBrReadRequest(args: GremiaBrRequestAuditArgs): Create
     subjectId: args.endpoint,
     purpose: action === 'read' || action === 'security' ? AUDIT_PURPOSES.gremiaBrRequest : AUDIT_PURPOSES.gremiaBrWorkspaceAction,
     metadata: compactMetadata({ endpoint: args.endpoint, outcome: args.outcome, status: args.status }),
+  };
+}
+
+export function auditGremiaBrWorkspaceAction(args: GremiaBrWorkspaceActionAuditArgs): CreatePersonalDataAuditInput {
+  return {
+    action: args.action,
+    subjectType: AUDIT_SUBJECT_TYPES.gremiaBrWorkspaceAction,
+    subjectId: args.actionId,
+    caseId: args.caseId,
+    purpose: AUDIT_PURPOSES.gremiaBrWorkspaceAction,
+    metadata: compactMetadata({
+      actionType: args.actionType,
+      status: args.status,
+      localDocumentId: args.localDocumentId,
+      remoteDocumentId: args.remoteDocumentId,
+      targetSecurityDomain: args.targetSecurityDomain,
+    }),
   };
 }
 
