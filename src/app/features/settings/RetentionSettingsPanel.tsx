@@ -1,6 +1,7 @@
 import { RetentionModuleRuleEditor } from "./RetentionModuleRuleEditor";
 import { RetentionOperationalSettingsGrid } from "./RetentionOperationalSettingsGrid";
 import { useRetentionSettings } from "./useRetentionSettings";
+import { IndustrialButton, ToolbarButton } from "../../shared/components/IndustrialButton";
 
 export function RetentionSettingsPanel() {
   const {
@@ -41,12 +42,12 @@ export function RetentionSettingsPanel() {
       )}
 
       <div className="flex flex-wrap gap-3">
-        <button type="button" className="industrial-button" disabled={busy} onClick={() => void saveSettings()}>
+        <IndustrialButton loading={busy} onClick={() => void saveSettings()}>
           Einstellungen speichern
-        </button>
-        <button type="button" className="industrial-secondary-button" disabled={busy} onClick={() => void reloadRetention()}>
+        </IndustrialButton>
+        <ToolbarButton disabled={busy} onClick={() => void reloadRetention()}>
           Prüfung aktualisieren
-        </button>
+        </ToolbarButton>
       </div>
 
       {dashboard && (

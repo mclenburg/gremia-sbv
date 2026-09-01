@@ -17,8 +17,9 @@ export function GremiaBrSettingsIntro() {
       <p className="font-mono text-xs uppercase tracking-[0.22em] text-zinc-500">Optionale Gremiumsanbindung</p>
       <h3 id="gremia-br-settings-title">Gremia.BR</h3>
       <p className="text-sm text-zinc-400 mt-2">
-        Gremia.SBV ruft Gremia.BR-Daten nur auf ausdrückliche Nutzeraktion ab. Schreibende Aktionen erfolgen ausschließlich im eigenen Gremia.BR-Bereich
-        und nur für von Gremia.SBV erzeugte PDF-Dokumente.
+        Gremia.SBV arbeitet mit klarer Datensouveränität: keine Hintergrundsynchronisation, kein Rückschreiben nach Gremia.BR ohne ausdrückliche Aktion.
+        Lesecache und schreibende Aktionen erfolgen nur auf ausdrückliche Nutzeraktion; PDF-Übergaben ausschließlich im eigenen Gremia.BR-Bereich
+        und nur mit von Gremia.SBV erzeugten PDF-Dokumenten.
       </p>
     </div>
   );

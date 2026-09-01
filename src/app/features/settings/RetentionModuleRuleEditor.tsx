@@ -3,6 +3,9 @@ import type {
   RetentionPolicyDefinition,
   RetentionRule,
 } from "../../../domain/models/retention.model";
+import type { IndustrialFieldOption } from "../../shared/components/IndustrialFormCore";
+import { SelectInput } from "../../shared/components/IndustrialSelectionInputs";
+import { TextInput } from "../../shared/components/IndustrialTextInputs";
 import { retentionRuleKindLabels, retentionRuleLabel, ruleMonths } from "./retentionSettingsPresentation";
 
 type MonthRetentionRule = Extract<RetentionRule, { months: number }>;
@@ -14,6 +17,11 @@ const editableKinds: RetentionRule["kind"][] = [
   "purpose_linked",
   "permanent_anonymized",
 ];
+
+const editableKindOptions: IndustrialFieldOption[] = editableKinds.map((kind) => ({
+  value: kind,
+  label: retentionRuleKindLabels[kind],
+}));
 
 function hasMonthValue(rule: RetentionRule): rule is MonthRetentionRule {
   return "months" in rule;
@@ -60,26 +68,25 @@ export function RetentionModuleRuleEditor({
                 <p className="industrial-settings-note mt-1">{policy.explanation}</p>
               </td>
               <td>
-                <select
+                <SelectInput
                   aria-label={`Regelart für ${policy.label}`}
-                  className="industrial-select"
+                  label={`Regelart für ${policy.label}`}
+                  options={editableKindOptions}
                   value={policy.rule.kind}
-                  onChange={(event) => onRuleChange(policy.module, changedRuleKind(policy.rule, event.target.value as RetentionRule["kind"]))}
-                >
-                  {editableKinds.map((kind) => (
-                    <option key={kind} value={kind}>{retentionRuleKindLabels[kind]}</option>
-                  ))}
-                </select>
+                  onValueChange={(value) => onRuleChange(policy.module, changedRuleKind(policy.rule, value as RetentionRule["kind"]))}
+                />
               </td>
               <td>
-                <input
+                <TextInput
                   aria-label={`Monate für ${policy.label}`}
+                  label={`Monate für ${policy.label}`}
                   type="number"
                   min={1}
                   max={600}
                   disabled={!hasMonthValue(policy.rule)}
-                  value={hasMonthValue(policy.rule) ? policy.rule.months : ""}
-                  onChange={(event) => onRuleChange(policy.module, changedRuleMonths(policy.rule, event.target.value))}
+                  value={hasMonthValue(policy.rule) ? String(policy.rule.months) : ""}
+                  helpText={hasMonthValue(policy.rule) ? undefined : "Für diese Regelart wird keine Monatsfrist eingetragen."}
+                  onValueChange={(value) => onRuleChange(policy.module, changedRuleMonths(policy.rule, value))}
                 />
               </td>
               <td>{retentionRuleLabel(policy.rule)}</td>

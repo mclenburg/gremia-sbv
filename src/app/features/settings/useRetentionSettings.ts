@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 import type { RetentionDashboard, RetentionModuleType, RetentionRule, RetentionSettings } from "../../../domain/models/retention.model";
 import { waitForBridge } from "../../core/bridge/waitForBridge";
 import { useAnnouncer } from "../../shared/a11y/LiveRegionProvider";
-
-type NumericRetentionSetting = Exclude<keyof RetentionSettings, "moduleRules">;
+import type { NumericRetentionSetting } from "./RetentionOperationalSettingsGrid";
 
 export function useRetentionSettings() {
   const announce = useAnnouncer();
@@ -57,14 +56,7 @@ export function useRetentionSettings() {
     if (!settings || !Number.isFinite(parsed)) return;
     const minimum = key === "orphanContactReviewDays" ? 0 : key === "minimumGroupSizeForReports" ? 2 : 1;
     const nextValue = Math.max(minimum, Math.trunc(parsed));
-    const nextSettings: RetentionSettings = { ...settings, [key]: nextValue };
-    if (key === "closedCaseReviewMonths") {
-      nextSettings.moduleRules = { ...settings.moduleRules, case_file: { kind: "months_after_completion", months: nextValue } };
-    }
-    if (key === "participationViolationReviewMonths") {
-      nextSettings.moduleRules = { ...settings.moduleRules, sbv_participation: { kind: "term_related", months: nextValue } };
-    }
-    setSettings(nextSettings);
+    setSettings({ ...settings, [key]: nextValue });
   }
 
   function updateModuleRule(module: RetentionModuleType, rule: RetentionRule) {
@@ -72,6 +64,7 @@ export function useRetentionSettings() {
     const nextSettings: RetentionSettings = { ...settings, moduleRules: { ...settings.moduleRules, [module]: rule } };
     if (module === "case_file" && rule.kind === "months_after_completion") nextSettings.closedCaseReviewMonths = rule.months;
     if (module === "sbv_participation" && "months" in rule) nextSettings.participationViolationReviewMonths = rule.months;
+    if (module === "activity_journal" && "months" in rule) nextSettings.activityJournalReviewMonths = rule.months;
     setSettings(nextSettings);
   }
 
