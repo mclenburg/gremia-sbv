@@ -2,7 +2,6 @@ import { IPC_CHANNELS, registerIpcHandler } from './ipcHandler.js';
 import type { IpcMain } from "electron";
 import type { SecurityService } from "../../services/securityService.js";
 import type { ApplicationServices } from '../applicationServices.js';
-import { registerGremiaBrIpc } from "./gremiaBrIpc.js";
 import type {
   CreateTemplateInput,
   RenderContextTemplateInput,
@@ -31,8 +30,6 @@ export function registerTemplateIpc(
 ): void {
   const pdfDocuments = new PdfDocumentGenerationService();
   const externalPreviewOpener = createExternalPreviewOpener();
-  registerGremiaBrIpc(ipcMain, security, services);
-
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.templateDefaultsList, async () => services.templateDefaults().list());
   registerIpcHandler(ipcMain, IPC_CHANNELS.templateDefaultsSave, async (_event, input: unknown) =>

@@ -21,7 +21,6 @@ export function registerGremiaBrIpc(ipcMain: IpcMain, security: SecurityService,
   const adapter = new GremiaBrHttpReadAdapter(auth);
   const workspace = new GremiaBrV2WorkspaceService(auth);
   const references = services.gremiaBrReferences;
-  const workspaceActions = services.gremiaBrWorkspaceActions();
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrSettingsGet, async () => settings.getPublicSettings());
 
@@ -48,19 +47,19 @@ export function registerGremiaBrIpc(ipcMain: IpcMain, security: SecurityService,
   registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrWorkspaceBodiesList, async () => workspace.listSbvWorkspaceBodies());
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrDocumentsList, async (_event, limit: unknown) => {
-    return workspaceActions.listTransferableDocuments(typeof limit === 'number' ? limit : undefined);
+    return services.gremiaBrWorkspaceActions().listTransferableDocuments(typeof limit === 'number' ? limit : undefined);
   });
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrCaseSummaryCreate, async (_event, input: unknown) => {
-    return workspaceActions.createCaseSummaryDocument(assertRecordInput<CreateGremiaBrCaseSummaryInput>(input, 'gremia-br:case-summary:create'));
+    return services.gremiaBrWorkspaceActions().createCaseSummaryDocument(assertRecordInput<CreateGremiaBrCaseSummaryInput>(input, 'gremia-br:case-summary:create'));
   });
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrDocumentTransfer, async (_event, input: unknown) => {
-    return workspaceActions.transferGeneratedPdf(assertRecordInput<TransferGremiaBrDocumentInput>(input, 'gremia-br:documents:transfer'));
+    return services.gremiaBrWorkspaceActions().transferGeneratedPdf(assertRecordInput<TransferGremiaBrDocumentInput>(input, 'gremia-br:documents:transfer'));
   });
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrAgendaItemRequest, async (_event, input: unknown) => {
-    return workspaceActions.requestAgendaItem(assertRecordInput<RequestGremiaBrAgendaItemInput>(input, 'gremia-br:agenda:item-request'));
+    return services.gremiaBrWorkspaceActions().requestAgendaItem(assertRecordInput<RequestGremiaBrAgendaItemInput>(input, 'gremia-br:agenda:item-request'));
   });
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrCacheGet, async () => cache.getOverview());

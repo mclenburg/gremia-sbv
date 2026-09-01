@@ -350,8 +350,8 @@
     },
     {
       "path": "electron/appRuntime.ts",
-      "size": 7946,
-      "sha256": "563d0663a84d0f0f68e2dff7de643b30cb2f4f684c52bc6db415ff7369fbdf68"
+      "size": 8069,
+      "sha256": "d72d2ec464844282b85ba4db044494eadc681de098e93a4291d46c410d4860d9"
     },
     {
       "path": "electron/appRuntimeSupport.ts",
@@ -435,8 +435,8 @@
     },
     {
       "path": "electron/ipc/gremiaBrIpc.ts",
-      "size": 4779,
-      "sha256": "e14749a9a130549b51851b8022a6f164df8ff43819c6c953c151b03a0b254da7"
+      "size": 4791,
+      "sha256": "73d677c3d61ef06ae3a668ee076f35973951459364e3f5da7813879b3e765476"
     },
     {
       "path": "electron/ipc/ipcHandler.ts",
@@ -525,8 +525,8 @@
     },
     {
       "path": "electron/ipc/templateIpc.ts",
-      "size": 5703,
-      "sha256": "9fa2706f52db86ab787a815d9b5ac83057233435ff85690ebd19451f0643f53b"
+      "size": 5594,
+      "sha256": "6e2d44987eb1ccf92efd72b13d9887eb8d8a97da925c632ee5d4ba242ca49cba"
     },
     {
       "path": "electron/ipc/terminationIpc.ts",
@@ -3120,8 +3120,8 @@
     },
     {
       "path": "src/app/features/settings/GremiaBrSettingsSections.tsx",
-      "size": 9212,
-      "sha256": "94d3940060eb71179ca5deacf7ad91aef05b40fa16b10a3f5c1eb0b335a53462"
+      "size": 9364,
+      "sha256": "bba73f057187aa1d28c021d4489260d504007bce900f3e06fe908ec4b055740c"
     },
     {
       "path": "src/app/features/settings/gremiaBrSettingsState.ts",
@@ -3140,18 +3140,18 @@
     },
     {
       "path": "src/app/features/settings/RetentionModuleRuleEditor.tsx",
-      "size": 3348,
-      "sha256": "9aefeae52343569e0d25cdf6b428f0396a851ed01c1d947f76bc41d06addc2e2"
+      "size": 3791,
+      "sha256": "79eb4ca241198efa2e44a64cc2e59211d37f973eeaf43a43aebf17d475433293"
     },
     {
       "path": "src/app/features/settings/RetentionOperationalSettingsGrid.tsx",
-      "size": 1540,
-      "sha256": "1e295c6eb7f2cdada0bbb25785eab12b6274e0eeb3719a51d6460684fe70e9bb"
+      "size": 1939,
+      "sha256": "80ff57cd509680fcb476d9625ada0709825d2d30b877d210b11109d4eb376074"
     },
     {
       "path": "src/app/features/settings/RetentionSettingsPanel.tsx",
-      "size": 2642,
-      "sha256": "d572a781ca34bb14041c7e76653daec9819407485224cf1de0e5aae32affc97a"
+      "size": 2669,
+      "sha256": "12fe8a682671a6c7c278e932f695b5048c61d31d85f6be1608924b46f17910e9"
     },
     {
       "path": "src/app/features/settings/retentionSettingsPresentation.ts",
@@ -3190,8 +3190,8 @@
     },
     {
       "path": "src/app/features/settings/useRetentionSettings.ts",
-      "size": 3756,
-      "sha256": "ce045c743e1cb1f5be57d02f1b160b8ecd1c6e22c78ecd36de0aabe4281c981e"
+      "size": 3448,
+      "sha256": "4485dc4abc3e5acbc070603889844d3ef5dfd8e2ffc750fc07643b8a32baa46b"
     },
     {
       "path": "src/app/features/templates/README.md",
@@ -3873,7 +3873,7 @@
     {
       "path": "dist/.vite/manifest.json",
       "size": 10882,
-      "sha256": "af01a1245f53624bd73e3a12d536b7550eb7670defd60c4c1d9e30c9540d81e4"
+      "sha256": "7b2fb328f42dd08625d8e42f6c2c3748c61a74bb58ff303f95d7904af844ee76"
     },
     {
       "path": "dist/assets/512x512-FFLOWpww.png",
@@ -3886,19 +3886,19 @@
       "sha256": "833b34c7bc78f24a04e2b34feb0d744d5255117234eaa691bbb4a37624c9311d"
     },
     {
-      "path": "dist/assets/BemView-CeY9wKjZ.js",
+      "path": "dist/assets/BemView-DJFqF1PD.js",
       "size": 2701,
-      "sha256": "25e4cf1c4858d8b9cb6feef50eca06929fbcbc709dba242a8613849849b4b161"
+      "sha256": "41c1101abfe019b69889e70dd3c8a025a48ff2d13639a0a4aefaece33a18e7ee"
     },
     {
-      "path": "dist/assets/CasesView-DdKUdk8a.js",
+      "path": "dist/assets/CasesView-J75O1pPz.js",
       "size": 269440,
-      "sha256": "74a260a18794c3708d792b91638db24809a291d845cd0390d7346b0ce1d97b20"
+      "sha256": "5167939634cfc2f79e7f0e17b915cd1a6fc291e4febd439a151c7a14d0433de2"
     },
     {
-      "path": "dist/assets/ComplianceView-ceEff3A7.js",
+      "path": "dist/assets/ComplianceView-v33h_hMN.js",
       "size": 77298,
-      "sha256": "bdd138f24549c5b0876d7477bcc0f0621a944f97ad7e358ace797dfb83727eb2"
+      "sha256": "a5cd17ebecd05fa6dac784fb524ef50210ec433303adbbf52581ab74c373fa4e"
     },
     {
       "path": "dist/assets/dates-D6WQa1jA.js",
@@ -3906,9 +3906,9 @@
       "sha256": "b71a8a36cfa8975e0273b2192d72f2bd9694b803df31db523701afd063ee05ea"
     },
     {
-      "path": "dist/assets/ElectionWorkbench-CxUUIOJ9.js",
+      "path": "dist/assets/ElectionWorkbench-ByxAUTZZ.js",
       "size": 40791,
-      "sha256": "e95fa9e6b56a87cc24b8f987b6f298e45a9751b8cc3cda16403544ee4eef2920"
+      "sha256": "f6689b564108502c1ebfff1b00574f8b78a8f8c323032535d8055369a7476f2a"
     },
     {
       "path": "dist/assets/equalizationShared-itq54AIS.js",
@@ -3916,9 +3916,9 @@
       "sha256": "13c57021e0a05fb7f48814e1b3a82cfaf63b122d78d7ec702aef8f5adfece8a8"
     },
     {
-      "path": "dist/assets/EqualizationView-Bdijx9tX.js",
+      "path": "dist/assets/EqualizationView-BmIWBG70.js",
       "size": 7852,
-      "sha256": "420b5ab298a14555a04fac6bb62fb230fb584b4a79b708de5b8901dd7978250d"
+      "sha256": "92c12d64e7980e5b2ca8fa5f2ee000d2a5a3e613ef57e39ff576408315753bfa"
     },
     {
       "path": "dist/assets/gremiaBrWorkspaceModel-CRO1Elcg.js",
@@ -3926,9 +3926,9 @@
       "sha256": "81837d6c73b3436e2bcdfdcf6ed32908b216389e58969244e2869b6255f8cec3"
     },
     {
-      "path": "dist/assets/GremiaBrWorkspaceView-CzlExI8E.js",
+      "path": "dist/assets/GremiaBrWorkspaceView-kweHIozI.js",
       "size": 14052,
-      "sha256": "fbbb0e89a0e8686bad88a451a13a10a1bb36029cc0f2052d54de6b9864c13caf"
+      "sha256": "ac61e77c04f2983b6e563e11fa76c230acc0aa5d69268480f2159e3a5af0995b"
     },
     {
       "path": "dist/assets/index-B_IzX_uq.css",
@@ -3936,9 +3936,9 @@
       "sha256": "d9d92323af85acab63adbc3e739aacf450497401263fba2be571b9e538ee3352"
     },
     {
-      "path": "dist/assets/index-B5U2_R-Y.js",
-      "size": 227927,
-      "sha256": "f6120d56f22c0954a408d7b36f641c00c4522c2bce670e2ab22c6ca3787bffe4"
+      "path": "dist/assets/index-BUZXe5ib.js",
+      "size": 227772,
+      "sha256": "c0c537555c92f520f08c2e4c6282b589d976c60cb9724ea03bc3a0fa9cbbc323"
     },
     {
       "path": "dist/assets/KnowledgeView-C4yFxoI8.js",
@@ -3956,9 +3956,9 @@
       "sha256": "da72be831b51b5850136d2115da42ec7bb7cd25f8e2e1b5bf00fbe319685da9e"
     },
     {
-      "path": "dist/assets/ParticipationView-DZNF-rJJ.js",
+      "path": "dist/assets/ParticipationView-CwVVY1FQ.js",
       "size": 8671,
-      "sha256": "33ecc7e83d27941a9bcbdaa36bd859b98c7f5fe8f6261db937e918b1e49b1035"
+      "sha256": "de542c883758b5e1cd8f93ba5652e1f1af4cea23c8d26963edcb0c2ef1c3857a"
     },
     {
       "path": "dist/assets/pdfExportFeedback-BLwP-eKc.js",
@@ -3971,29 +3971,29 @@
       "sha256": "5f26b7694943af1ce72ffffd179e5d0309061feadb1c1cd8283fea998734de0b"
     },
     {
-      "path": "dist/assets/PreventionView-MAl7MTGf.js",
+      "path": "dist/assets/PreventionView-DXJzxCYS.js",
       "size": 2524,
-      "sha256": "43e57cf1c2896f45fb99125bf2eabcef297e32c71d66f287353dfc4aa5f84acc"
+      "sha256": "edeb345d43d4b3a4fc2dfc93fab2a842aef2bde3ae78c1849f6dabb0f78c88f7"
     },
     {
-      "path": "dist/assets/PrivacyReviewCockpit-BGCe-TOH.js",
+      "path": "dist/assets/PrivacyReviewCockpit-gOJGW2I4.js",
       "size": 6878,
-      "sha256": "ab6f0da8d6102f401f44006afc2704e0d7921d5134beda349cf66033063fe152"
+      "sha256": "be0a7bc3476149e20be607f7c6ec950d2462383ec082b3f317d3db189a757fe3"
     },
     {
-      "path": "dist/assets/ProcessOverview-DPXn50_X.js",
+      "path": "dist/assets/ProcessOverview-1WjKH-zA.js",
       "size": 2665,
-      "sha256": "af425f0a0dea03d08c6452dc1bba138382354fba2345215df4d9d98b39bf432c"
+      "sha256": "9039053e0323d9b48010f4970d0852e1e28274779ecf46d950cc116ec5a22672"
     },
     {
-      "path": "dist/assets/RecruitingParticipationsView-BhomBhwT.js",
+      "path": "dist/assets/RecruitingParticipationsView-Bzd72jN0.js",
       "size": 20415,
-      "sha256": "ada7fb208e8466dc13c6a94f61ef969f8528aa8d926e2d65727ff4e473bddffb"
+      "sha256": "77fe98ca608e1d2b67b1f74ba9baaf4e1e64df31534b0be6aa53f0f045f463d8"
     },
     {
-      "path": "dist/assets/ReportsView-ZRiQcJMq.js",
+      "path": "dist/assets/ReportsView-DegJXd3O.js",
       "size": 8210,
-      "sha256": "17c95a7c5f10ad081ade71131cfe30fa68b969384d3ef9de4480abaa70d22c7b"
+      "sha256": "cba778e1d23319bfab89f795ceed658115f683fcf56ce161d2acedeaa3aff05c"
     },
     {
       "path": "dist/assets/rolldown-runtime-CbXtAM7H.js",
@@ -4001,19 +4001,19 @@
       "sha256": "bbf7c5086ae414dc3f33777e3eebf16ea8631325b8bb4690d25091c03567f31a"
     },
     {
-      "path": "dist/assets/SbvControlView-CS_XGjIZ.js",
+      "path": "dist/assets/SbvControlView-8MkL_4Zi.js",
       "size": 64503,
-      "sha256": "9c05047853443fde3b2e1d7b8b5cb09af519f34f00897e27b2b10cf9f3b724ef"
+      "sha256": "65f3d6badbf47fcdb7f8d3acc380980f9dd3a9dd93799a283cd7a1331db41d8f"
     },
     {
-      "path": "dist/assets/SettingsHub-D6qQJuHH.js",
-      "size": 14374,
-      "sha256": "88093ccfe1d93cfc0f5becc7da92eaa39282a96a0eba950675656c8765b72dc6"
+      "path": "dist/assets/SettingsHub-Ss6Rh9LC.js",
+      "size": 14518,
+      "sha256": "4fa44ccabbaff90e482855cc9386496eb02d830c1be150ae60cbb6842a285e5d"
     },
     {
-      "path": "dist/assets/TemplatesView-C7CMBj0r.js",
+      "path": "dist/assets/TemplatesView-x854Xblb.js",
       "size": 16472,
-      "sha256": "484bb7ad64c6da958aa426f8fadbca89fd329f57b267d0b2de12878bbde6b234"
+      "sha256": "771a529cb6e4da6587aab9151c3b4e36d6413fe6b2a527c323e45adafec76da7"
     },
     {
       "path": "dist/assets/terminationShared-BGFAg4La.js",
@@ -4021,9 +4021,9 @@
       "sha256": "99fdb6a2ce0416dbc10701da9cad5edf0775401bc85e98010b524d1c18615c2d"
     },
     {
-      "path": "dist/assets/TerminationView-DNeL5Msu.js",
+      "path": "dist/assets/TerminationView-CrGXU6Nr.js",
       "size": 3348,
-      "sha256": "c03b479c9e0bf40af5adcce0ac893213aa8da9fef4e5f17f132236d557314fb1"
+      "sha256": "36893a4b29e62eb164c12feb5c5db9e41394f25f8d3ebf208019f4e2fdc7d772"
     },
     {
       "path": "dist/assets/vendor-BKKHlQ6u.js",
@@ -4038,7 +4038,7 @@
     {
       "path": "dist/index.html",
       "size": 1100,
-      "sha256": "71e02969dae258ec659e4ffbb5540ddc0dfc657db6cd801105fbecc4048516c0"
+      "sha256": "c33bb94798cbca14c7e01db82051a18a6317406f637f6dfb2dfc93c1aac33205"
     },
     {
       "path": "dist-electron/electron/applicationServiceDependencies.js",
@@ -4052,8 +4052,8 @@
     },
     {
       "path": "dist-electron/electron/appRuntime.js",
-      "size": 9967,
-      "sha256": "a323ed00980aa7d254fd92d14768dcad0d26731caa210411fa67d646f8943858"
+      "size": 10123,
+      "sha256": "63a8f39029f40ba3d98e62bf27b94107b655f733f88cba8139e8d69d2ca08f94"
     },
     {
       "path": "dist-electron/electron/appRuntimeSupport.js",
@@ -4137,8 +4137,8 @@
     },
     {
       "path": "dist-electron/electron/ipc/gremiaBrIpc.js",
-      "size": 5174,
-      "sha256": "4b6779ce089d43d45f4853d09d83f7841f30b7b906e809ec612765428d9713c1"
+      "size": 5184,
+      "sha256": "4ca457e60ad1be27027105ee9cf7097807eb546f4858dfc8888c37dbb74af3a4"
     },
     {
       "path": "dist-electron/electron/ipc/invokeIpc.js",
@@ -4232,8 +4232,8 @@
     },
     {
       "path": "dist-electron/electron/ipc/templateIpc.js",
-      "size": 6178,
-      "sha256": "6bfcb55ed88610102ab18365e80470fcff3510843832b4fd64506c8d87c4d6e6"
+      "size": 6048,
+      "sha256": "f6ee8b10116c01556938ffd924be98d447f24f74f289617dc3cdb7d8cbba9d66"
     },
     {
       "path": "dist-electron/electron/ipc/terminationIpc.js",
