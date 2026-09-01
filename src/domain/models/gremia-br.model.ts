@@ -210,7 +210,7 @@ export interface GremiaBrDocumentTransferResult {
   remoteShareId?: string;
   targetSecurityDomain: string;
   targetBodyName?: string;
-  status: 'uploaded' | 'shared';
+  status: 'uploaded' | 'shared' | 'requested';
   message: string;
   createdAt: string;
 }

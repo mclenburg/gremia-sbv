@@ -1,9 +1,11 @@
-import { AlertTriangle, CalendarClock, CheckCircle2, Edit3, ShieldAlert } from 'lucide-react';
+import { AlertTriangle, CalendarClock, CheckCircle2, Edit3, ExternalLink, ShieldAlert, TimerReset } from 'lucide-react';
 import type { CaseRecord } from '../../../domain/models/case.model';
+import type { CaseMeasureRecord } from '../../../domain/models/case-measure.model';
 import type { DeadlineDashboardItem } from '../../../domain/models/deadline.model';
 import { DeadlineSeverityBadge, DeadlineStateBadge } from './DeadlineBadge';
 import { ToolbarButton } from '../../shared/components/IndustrialButton';
 import { EmptyState, IndustrialPanel, IndustrialRecordCard, IndustrialWarningPanel } from '../../shared/components/WorkbenchLayout';
+import { resolveDeadlineContextInfo } from './deadlineContext';
 
 function formatDueDate(iso: string): string {
   return new Intl.DateTimeFormat('de-DE', {
@@ -18,31 +20,25 @@ function formatRemaining(hours: number): string {
   return `${Math.round(hours)} h verbleibend`;
 }
 
-function formatCaseRef(item: DeadlineDashboardItem, casesById: Map<string, CaseRecord>): string {
-  if (item.caseId) {
-    const linkedCase = casesById.get(item.caseId);
-    return linkedCase?.caseNumber ? `Fall ${linkedCase.caseNumber}` : 'Fallzuordnung nicht auflösbar';
-  }
-
-  if (item.processType === 'sbv_control_protocol') return 'SBV-Protokoll';
-  if (item.processType === 'custom' && item.deadlineType === 'follow_up') return 'Freie Wiedervorlage';
-  if (item.sourceEvent === 'protected_person.status_expiry_warning' || item.sourceEvent === 'protected_person.status_expired_privacy_review') return 'Personenverzeichnis';
-
-  return 'Fallzuordnung fehlt';
-}
-
 export function DeadlineDashboardPanel({
   items,
   onEdit,
   onComplete,
-  cases = []
+  onExtend,
+  onOpenContext,
+  cases = [],
+  measures = []
 }: {
   items: DeadlineDashboardItem[];
   onEdit?: (deadline: DeadlineDashboardItem) => void;
   onComplete?: (deadline: DeadlineDashboardItem) => void;
+  onExtend?: (deadline: DeadlineDashboardItem) => void;
+  onOpenContext?: (deadline: DeadlineDashboardItem) => void;
   cases?: CaseRecord[];
+  measures?: CaseMeasureRecord[];
 }) {
   const casesById = new Map(cases.map((item) => [item.id, item]));
+  const measuresById = new Map(measures.map((item) => [item.id, item]));
   const criticalCount = items.filter((item) => item.dashboardState === 'critical' || item.dashboardState === 'overdue').length;
 
   return (
@@ -74,14 +70,19 @@ export function DeadlineDashboardPanel({
       {!items.length && <EmptyState title="Keine offenen Fristen" text="Keine offenen Fristen im 48h-Fenster." />}
 
       <div className="industrial-deadline-grid">
-        {items.map((item) => (
+        {items.map((item) => {
+          const context = resolveDeadlineContextInfo(item, casesById, measuresById);
+          return (
           <IndustrialRecordCard key={item.id} className="industrial-deadline-card">
             <div className="industrial-card-status-row">
               <DeadlineStateBadge state={item.dashboardState} />
               <DeadlineSeverityBadge severity={item.severity} />
             </div>
             <h3>{item.safeTitle}</h3>
-            <p className="industrial-meta">{formatCaseRef(item, casesById)} · {item.processType}</p>
+            <div className="industrial-deadline-context">
+              <p><span>Kontext</span>{context.primary}</p>
+              <p><span>Vorgang</span>{context.secondary}</p>
+            </div>
             <div className="industrial-data-strip">
               <p>Fällig: {formatDueDate(item.dueAt)}</p>
               <span>{formatRemaining(item.hoursRemaining)}</span>
@@ -92,17 +93,25 @@ export function DeadlineDashboardPanel({
               <p>{item.actionHint}</p>
             </div>
             <div className="industrial-card-actions">
+              <ToolbarButton onClick={() => onOpenContext?.(item)}>
+                <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                {context.actionLabel}
+              </ToolbarButton>
               <ToolbarButton onClick={() => onEdit?.(item)}>
-                <Edit3 className="h-4 w-4" />
+                <Edit3 className="h-4 w-4" aria-hidden="true" />
                 Bearbeiten
               </ToolbarButton>
+              <ToolbarButton onClick={() => onExtend?.(item)}>
+                <TimerReset className="h-4 w-4" aria-hidden="true" />
+                Verlängern
+              </ToolbarButton>
               <ToolbarButton onClick={() => onComplete?.(item)}>
-                <CheckCircle2 className="h-4 w-4" />
+                <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
                 Erledigt
               </ToolbarButton>
             </div>
           </IndustrialRecordCard>
-        ))}
+        );})}
       </div>
     </IndustrialPanel>
   );

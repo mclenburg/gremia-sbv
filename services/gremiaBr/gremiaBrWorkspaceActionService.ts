@@ -20,6 +20,9 @@ import { gremiaBrArrayFromResponse } from './gremiaBrPayload.js';
 import { buildGremiaBrCaseSummaryDocument } from './gremiaBrCaseSummaryDocument.js';
 import {
   boundedLimit,
+  acceptedDocumentUploadFromResponse,
+  documentShareAcceptanceFromResponse,
+  documentShareMessage,
   existingAgendaItemFromPayload,
   GREMIA_BR_PDF_MIME_TYPE,
   nowIso,
@@ -120,8 +123,8 @@ export class GremiaBrWorkspaceActionService {
         query: { organizationId: context.selectedOrganizationId, securityDomain: context.selectedSecurityDomain },
         formData: this.documentUploadForm(document, plain, context.selectedBodyId, input.protectionClass ?? 'HIGH', purpose),
       });
-      const remoteDocumentId = responseId(uploadPayload, 'documentId');
-      if (!remoteDocumentId) throw new Error('Gremia.BR hat nach dem Dokument-Upload keine Dokument-ID zurückgegeben.');
+      const upload = acceptedDocumentUploadFromResponse(uploadPayload);
+      const remoteDocumentId = upload.documentId;
       const uploadedActionId = this.recordDocumentUpload(input, document, targetSecurityDomain, remoteDocumentId, purpose);
       const sharePayload = await this.auth.post<unknown>(`/api/v1/documents/${encodeURIComponent(remoteDocumentId)}/shares`, {
         query: { organizationId: context.selectedOrganizationId, securityDomain: context.selectedSecurityDomain },
@@ -129,21 +132,22 @@ export class GremiaBrWorkspaceActionService {
           targetSecurityDomain,
           purpose,
           validUntil: optionalText(input.validUntil),
+          documentVersionId: upload.documentVersionId,
           soloJustification: optionalText(input.soloJustification),
         },
       });
-      const remoteShareId = responseId(sharePayload, 'shareId');
-      const sharedActionId = this.recordDocumentShare(input, document, targetSecurityDomain, remoteDocumentId, remoteShareId, purpose);
+      const share = documentShareAcceptanceFromResponse(sharePayload);
+      const sharedActionId = this.recordDocumentShare(input, document, targetSecurityDomain, remoteDocumentId, share.shareId, purpose, share.status);
       return {
-        id: remoteShareId ? sharedActionId : uploadedActionId,
+        id: share.shareId ? sharedActionId : uploadedActionId,
         localDocumentId: document.id,
         localDocumentTitle: document.title,
         remoteDocumentId,
-        remoteShareId,
+        remoteShareId: share.shareId,
         targetSecurityDomain,
         targetBodyName: input.targetBodyName ?? context.selectedBodyName,
-        status: 'shared',
-        message: 'PDF wurde in Gremia.BR hochgeladen und für den gewählten Sicherheitsbereich freigegeben.',
+        status: share.status,
+        message: documentShareMessage(share),
         createdAt: nowIso(),
       };
     } finally {
@@ -214,7 +218,7 @@ export class GremiaBrWorkspaceActionService {
     });
   }
 
-  private recordDocumentShare(input: TransferGremiaBrDocumentInput, document: GeneratedDocumentRow, targetSecurityDomain: string, remoteDocumentId: string, remoteShareId: string | undefined, purpose: string): string {
+  private recordDocumentShare(input: TransferGremiaBrDocumentInput, document: GeneratedDocumentRow, targetSecurityDomain: string, remoteDocumentId: string, remoteShareId: string | undefined, purpose: string, status: 'shared' | 'requested'): string {
     const context = requireV2WorkspaceContext(this.auth.getReadContext());
     return this.recordAction({
       actionType: 'document_shared',
@@ -226,7 +230,7 @@ export class GremiaBrWorkspaceActionService {
       remoteDocumentId,
       remoteShareId,
       purpose,
-      status: 'shared',
+      status,
     });
   }
 

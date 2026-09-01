@@ -4,7 +4,9 @@ import { DeadlinesView } from '../../../src/app/features/deadlines/DeadlinesView
 import { DeadlineCreateModal } from '../../../src/app/features/deadlines/DeadlineCreateModal';
 import { DeadlineIcalExportModal } from '../../../src/app/features/deadlines/DeadlineIcalExportPanel';
 import { filtersForDeadlineExportScope, resolveDeadlineWorkSummary } from '../../../src/app/features/deadlines/deadlineViewLogic';
+import { resolveDeadlineContextInfo, resolveDeadlineOpenTarget } from '../../../src/app/features/deadlines/deadlineContext';
 import type { CaseRecord } from '../../../src/domain/models/case.model';
+import type { CaseMeasureRecord } from '../../../src/domain/models/case-measure.model';
 import type { DeadlineRecord } from '../../../src/domain/models/deadline.model';
 import { LiveRegionProvider } from '../../../src/app/shared/a11y/LiveRegionProvider';
 import { renderComponent, renderElement, visibleText } from '../../helpers/renderedMarkup';
@@ -45,14 +47,33 @@ function deadline(overrides: Partial<DeadlineRecord> = {}): DeadlineRecord {
   };
 }
 
+function measure(overrides: Partial<CaseMeasureRecord> = {}): CaseMeasureRecord {
+  return {
+    id: 'measure-1',
+    caseId: 'case-1',
+    type: 'bem',
+    title: 'BEM-Gespräch vorbereiten',
+    status: 'open',
+    riskLevel: 'normal',
+    createdFrom: 'manual',
+    openedAt: '2026-05-01T08:00:00.000Z',
+    requiresFollowUp: true,
+    createdAt: '2026-05-01T08:00:00.000Z',
+    updatedAt: '2026-05-01T08:00:00.000Z',
+    ...overrides,
+  };
+}
+
 describe('Fristenpanel Verhalten 0.9.2', () => {
   it('rendert die Fristenseite als Arbeitsübersicht statt als eingebettetes Erfassungsformular', () => {
     const { markup } = renderComponent(DeadlinesView, {
       cases: [caseRecord()],
       deadlines: [deadline()],
-      measures: [],
+      measures: [measure()],
       onCreateDeadline: async () => undefined,
       onEditDeadline: () => undefined,
+      onExtendDeadline: () => undefined,
+      onOpenDeadlineContext: () => undefined,
       onCompleteDeadline: () => undefined,
       onExportIcal: async () => undefined,
     });
@@ -62,9 +83,29 @@ describe('Fristenpanel Verhalten 0.9.2', () => {
     expect(text).toContain('Fristenregister');
     expect(text).toContain('Kalender exportieren');
     expect(text).toContain('Journal');
+    expect(text).toContain('Verlängern');
     expect(text).toContain('Frist anlegen');
     expect(text).not.toContain('Fristdaten');
     expect(text.indexOf('Fristenregister')).toBeLessThan(text.indexOf('BEM-Rückmeldung prüfen'));
+  });
+
+  it('löst Dashboard-Fristen auf ihren fachlichen Kontext und das nächste übergeordnete Objekt auf', () => {
+    const casesById = new Map([[caseRecord().id, caseRecord()]]);
+    const measuresById = new Map([[measure().id, measure({ type: 'sbv_participation', title: 'Unterrichtung nachfordern' })]]);
+    const measureDeadline = deadline({ caseId: 'case-1', measureId: 'measure-1', processType: 'case' });
+    const freeDeadline = deadline({ id: 'deadline-free', caseId: undefined, processType: 'custom', deadlineType: 'follow_up' });
+
+    expect(resolveDeadlineContextInfo(measureDeadline, casesById, measuresById)).toMatchObject({
+      primary: 'SBV-2026-001 · Testfall',
+      secondary: 'SBV-Beteiligung · Unterrichtung nachfordern',
+      actionLabel: 'Maßnahme öffnen',
+    });
+    expect(resolveDeadlineOpenTarget(measureDeadline, measuresById)).toEqual({
+      kind: 'case',
+      target: { caseId: 'case-1', nodeType: 'participation', nodeId: 'measure-1' },
+    });
+    expect(resolveDeadlineContextInfo(freeDeadline).actionLabel).toBe('Fristenregister öffnen');
+    expect(resolveDeadlineOpenTarget(freeDeadline)).toEqual({ kind: 'view', view: 'deadlines' });
   });
 
   it('trennt Erfassung und Export in zentrale Modal-Komponenten', () => {

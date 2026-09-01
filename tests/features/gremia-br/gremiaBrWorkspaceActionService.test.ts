@@ -26,6 +26,8 @@ class GremiaBrActionAuthFake {
       selectedSecurityDomain: 'SBV',
     },
     private readonly agenda: unknown = [],
+    private readonly uploadResponse: unknown = { documentId: 'br-doc-1', documentVersionId: 'br-version-1', state: 'READY' },
+    private readonly shareResponse: unknown = { id: 'share-1', status: 'ACTIVE', requirement: 'NONE' },
   ) {}
 
   getReadContext(): GremiaBrReadContext {
@@ -39,8 +41,8 @@ class GremiaBrActionAuthFake {
 
   async post<T>(requestPath: string, options?: GremiaBrRequestOptions): Promise<T> {
     this.posted.push({ path: requestPath, options });
-    if (requestPath === '/api/v1/documents') return { documentId: 'br-doc-1' } as T;
-    if (requestPath.includes('/shares')) return { shareId: 'share-1' } as T;
+    if (requestPath === '/api/v1/documents') return this.uploadResponse as T;
+    if (requestPath.includes('/shares')) return this.shareResponse as T;
     if (requestPath.includes('/agenda')) return { agendaVersionId: 'agenda-version-2' } as T;
     throw new Error(`Unerwartete Gremia.BR-Testaktion: ${requestPath}`);
   }
@@ -206,6 +208,7 @@ describe('GremiaBrWorkspaceActionService', () => {
       expect(auth.posted[1].options?.body).toMatchObject({
         targetSecurityDomain: 'BR',
         purpose: 'BR soll die Beteiligung in der nächsten Sitzung behandeln.',
+        documentVersionId: 'br-version-1',
       });
       expect(result).toMatchObject({
         localDocumentId: document.id,
@@ -219,6 +222,67 @@ describe('GremiaBrWorkspaceActionService', () => {
         { action_type: 'document_shared', status: 'shared', remote_document_id: 'br-doc-1', remote_share_id: 'share-1' },
       ]);
       expect(audits?.count).toBe(2);
+    } finally {
+      database.close();
+      fs.rmSync(storageRoot, { recursive: true, force: true });
+    }
+  });
+
+  it('meldet einen von Gremia.BR abgelehnten Dokument-Upload ohne nachfolgende Freigabe', async () => {
+    const { database, storageRoot } = await createFixture();
+    try {
+      insertCaseFixture(database);
+      const document = await new GeneratedDocumentStoreService(database, storageRoot).store({
+        source: 'document',
+        caseId: 'case-1',
+        title: 'Fallzusammenfassung für BR',
+        filename: 'fallzusammenfassung.pdf',
+        mimeType: 'application/pdf',
+        plain: Buffer.from('%PDF-1.7\nSBV Dokument'),
+      });
+      const auth = new GremiaBrActionAuthFake(undefined, [], { uploadId: 'upload-1', state: 'REJECTED', failureCode: 'POLICY' });
+      const service = new GremiaBrWorkspaceActionService(database, () => storageRoot, auth);
+
+      await expect(service.transferGeneratedPdf({
+        documentId: document.id,
+        targetSecurityDomain: 'BR',
+        purpose: 'BR soll informiert werden.',
+      })).rejects.toThrow('nicht angenommen');
+
+      expect(auth.posted.map((request) => request.path)).toEqual(['/api/v1/documents']);
+    } finally {
+      database.close();
+      fs.rmSync(storageRoot, { recursive: true, force: true });
+    }
+  });
+
+  it('weist bei Gremia.BR-Freigaben mit Genehmigungspflicht auf den offenen externen Schritt hin', async () => {
+    const { database, storageRoot } = await createFixture();
+    try {
+      insertCaseFixture(database);
+      const document = await new GeneratedDocumentStoreService(database, storageRoot).store({
+        source: 'document',
+        caseId: 'case-1',
+        title: 'Fallzusammenfassung für BR',
+        filename: 'fallzusammenfassung.pdf',
+        mimeType: 'application/pdf',
+        plain: Buffer.from('%PDF-1.7\nSBV Dokument'),
+      });
+      const auth = new GremiaBrActionAuthFake(undefined, [], undefined, { id: 'share-approval-1', status: 'REQUESTED', requirement: 'APPROVAL_AND_STEP_UP' });
+      const service = new GremiaBrWorkspaceActionService(database, () => storageRoot, auth);
+
+      const result = await service.transferGeneratedPdf({
+        documentId: document.id,
+        targetSecurityDomain: 'BR',
+        purpose: 'BR soll informiert werden.',
+      });
+      const shareAction = database.prepare<{ status: string }>(
+        "SELECT status FROM gremia_br_workspace_actions WHERE action_type = 'document_shared'",
+      ).get();
+
+      expect(result.status).toBe('requested');
+      expect(result.message).toContain('wartet dort auf Genehmigung');
+      expect(shareAction?.status).toBe('requested');
     } finally {
       database.close();
       fs.rmSync(storageRoot, { recursive: true, force: true });

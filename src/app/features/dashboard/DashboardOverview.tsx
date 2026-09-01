@@ -2,6 +2,7 @@ import { DashboardCard } from "../../shared/components/DashboardCard";
 import { DeadlineDashboardPanel } from "../deadlines/DeadlineDashboardPanel";
 import { moduleGroups, modules, type ModuleDefinition, type ModuleGroupId, type ViewId } from "../../core/navigation/modules";
 import type { CaseRecord } from "../../../domain/models/case.model";
+import type { CaseMeasureRecord } from "../../../domain/models/case-measure.model";
 import type { DeadlineDashboardItem, DeadlineRecord } from "../../../domain/models/deadline.model";
 
 type DashboardModuleGroupId = ModuleGroupId;
@@ -104,16 +105,22 @@ export function resolveDashboardWorkdaySummary({
 export function DashboardOverview({
   onNavigate,
   cases,
+  measures = [],
   deadlines,
   dashboardItems,
   onEditDeadline,
+  onExtendDeadline,
+  onOpenDeadlineContext,
   onCompleteDeadline,
 }: {
   onNavigate: (view: ViewId) => void;
   cases: CaseRecord[];
+  measures?: CaseMeasureRecord[];
   deadlines: DeadlineRecord[];
   dashboardItems: DeadlineDashboardItem[];
   onEditDeadline: (deadline: DeadlineRecord) => void;
+  onExtendDeadline?: (deadline: DeadlineRecord) => void;
+  onOpenDeadlineContext?: (deadline: DeadlineRecord) => void;
   onCompleteDeadline: (deadline: DeadlineRecord) => void;
 }) {
   const summary = resolveDashboardWorkdaySummary({ cases, deadlines, dashboardItems });
@@ -144,7 +151,10 @@ export function DashboardOverview({
       <DeadlineDashboardPanel
         items={dashboardItems}
         cases={cases}
+        measures={measures}
         onEdit={onEditDeadline}
+        onExtend={onExtendDeadline}
+        onOpenContext={onOpenDeadlineContext}
         onComplete={onCompleteDeadline}
       />
 

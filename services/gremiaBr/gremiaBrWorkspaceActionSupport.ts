@@ -102,6 +102,101 @@ export type WorkspaceActionInput = {
   status: 'uploaded' | 'shared' | 'requested' | 'failed';
 };
 
+type GremiaBrUploadState =
+  | 'CREATED'
+  | 'QUARANTINED'
+  | 'VALIDATED'
+  | 'SCANNED'
+  | 'ENCRYPTED'
+  | 'STORED'
+  | 'READY'
+  | 'REJECTED'
+  | 'INFECTED'
+  | 'SCAN_UNAVAILABLE'
+  | 'FAILED';
+
+type GremiaBrShareStatus = 'REQUESTED' | 'ACTIVE' | 'EXPIRED' | 'REVOKED';
+type GremiaBrShareRequirement = 'NONE' | 'APPROVAL' | 'STEP_UP' | 'APPROVAL_AND_STEP_UP';
+
+export type AcceptedDocumentUpload = {
+  documentId: string;
+  documentVersionId?: string;
+  state: GremiaBrUploadState;
+};
+
+export type DocumentShareAcceptance = {
+  shareId: string;
+  status: 'shared' | 'requested';
+  remoteStatus: GremiaBrShareStatus;
+  requirement: GremiaBrShareRequirement;
+};
+
+const uploadStates = new Set<GremiaBrUploadState>([
+  'CREATED',
+  'QUARANTINED',
+  'VALIDATED',
+  'SCANNED',
+  'ENCRYPTED',
+  'STORED',
+  'READY',
+  'REJECTED',
+  'INFECTED',
+  'SCAN_UNAVAILABLE',
+  'FAILED',
+]);
+
+const failedUploadStates = new Set<GremiaBrUploadState>(['REJECTED', 'INFECTED', 'SCAN_UNAVAILABLE', 'FAILED']);
+const shareStatuses = new Set<GremiaBrShareStatus>(['REQUESTED', 'ACTIVE', 'EXPIRED', 'REVOKED']);
+const shareRequirements = new Set<GremiaBrShareRequirement>(['NONE', 'APPROVAL', 'STEP_UP', 'APPROVAL_AND_STEP_UP']);
+
+function enumText<T extends string>(value: unknown, allowed: Set<T>): T | undefined {
+  if (typeof value !== 'string') return undefined;
+  const normalized = value.trim().toUpperCase();
+  return allowed.has(normalized as T) ? normalized as T : undefined;
+}
+
+export function acceptedDocumentUploadFromResponse(payload: unknown): AcceptedDocumentUpload {
+  const root = gremiaBrRecord(payload);
+  const state = enumText(root?.state, uploadStates);
+  if (!state) throw new Error('Gremia.BR hat nach dem Dokument-Upload keinen auswertbaren Verarbeitungsstatus zurückgegeben.');
+
+  const failureCode = optionalText(root?.failureCode);
+  if (failedUploadStates.has(state)) {
+    throw new Error(`Gremia.BR hat den Dokument-Upload nicht angenommen (${state}${failureCode ? `, Code ${failureCode}` : ''}).`);
+  }
+  if (state !== 'READY') {
+    throw new Error(`Gremia.BR verarbeitet den Dokument-Upload noch (${state}). Bitte später erneut übertragen.`);
+  }
+
+  const documentId = responseId(payload, 'documentId');
+  if (!documentId) throw new Error('Gremia.BR hat nach dem fertigen Dokument-Upload keine Dokument-ID zurückgegeben.');
+  return {
+    documentId,
+    documentVersionId: responseId(payload, 'documentVersionId', 'versionId'),
+    state,
+  };
+}
+
+export function documentShareAcceptanceFromResponse(payload: unknown): DocumentShareAcceptance {
+  const root = gremiaBrRecord(payload);
+  const remoteStatus = enumText(root?.status, shareStatuses);
+  const requirement = enumText(root?.requirement, shareRequirements) ?? 'NONE';
+  const shareId = responseId(payload, 'shareId');
+  if (!remoteStatus) throw new Error('Gremia.BR hat nach der Dokumentfreigabe keinen auswertbaren Freigabestatus zurückgegeben.');
+  if (!shareId) throw new Error('Gremia.BR hat nach der Dokumentfreigabe keine Freigabe-ID zurückgegeben.');
+  if (remoteStatus === 'ACTIVE') return { shareId, status: 'shared', remoteStatus, requirement };
+  if (remoteStatus === 'REQUESTED') return { shareId, status: 'requested', remoteStatus, requirement };
+  throw new Error(`Gremia.BR hat die Dokumentfreigabe nicht aktiviert (${remoteStatus}).`);
+}
+
+export function documentShareMessage(acceptance: DocumentShareAcceptance): string {
+  if (acceptance.status === 'shared') return 'PDF wurde in Gremia.BR hochgeladen und für den gewählten Sicherheitsbereich freigegeben.';
+  if (acceptance.requirement === 'APPROVAL') return 'PDF wurde in Gremia.BR hochgeladen; die Freigabe wartet dort auf Genehmigung.';
+  if (acceptance.requirement === 'STEP_UP') return 'PDF wurde in Gremia.BR hochgeladen; die Freigabe wartet dort auf zusätzliche Authentifizierung.';
+  if (acceptance.requirement === 'APPROVAL_AND_STEP_UP') return 'PDF wurde in Gremia.BR hochgeladen; die Freigabe wartet dort auf Genehmigung und zusätzliche Authentifizierung.';
+  return 'PDF wurde in Gremia.BR hochgeladen; die Freigabe wurde dort angefordert.';
+}
+
 export function nowIso(): string {
   return new Date().toISOString();
 }

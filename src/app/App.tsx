@@ -26,7 +26,8 @@ import { usePersonsHandlers } from "./features/persons/usePersonsHandlers";
 import { useIcalExportHandlers } from "./features/deadlines/useIcalExportHandlers";
 import { DashboardFocusOverview } from "./features/dashboard/DashboardFocusOverview";
 import { applyTheme, getInitialTheme, nowLabel, type ThemeMode } from "./workflowViews";
-import { DeadlinesView, DeadlineEditor } from "./features/deadlines/DeadlinesView";
+import { DeadlinesView, DeadlineEditor, DeadlineExtensionModal } from "./features/deadlines/DeadlinesView";
+import { resolveDeadlineOpenTarget } from "./features/deadlines/deadlineContext";
 import { LoginGate } from "./features/auth/LoginGate";
 import { waitForBridge } from "./core/bridge/waitForBridge";
 import { recordRendererDiagnostic } from "./core/diagnostics/rendererDiagnostics";
@@ -172,6 +173,7 @@ function useWorkData(unlocked: boolean, setCurrentView: (view: ViewId) => void, 
   const [caseMeasures, setCaseMeasures] = useState<CaseMeasureRecord[]>([]);
   const [dashboardDeadlines, setDashboardDeadlines] = useState<DeadlineDashboardItem[]>([]);
   const [selectedDeadline, setSelectedDeadline] = useState<DeadlineRecord | null>(null); const [dataError, setDataError] = useState("");
+  const [deadlineExtensionTarget, setDeadlineExtensionTarget] = useState<DeadlineRecord | null>(null);
   const reloadWorkData = useCallback(async () => {
     const bridge = await waitForBridge();
     if (!bridge?.cases || !bridge.contacts || !bridge.deadlines) throw new Error("Datenbrücke ist nicht geladen.");
@@ -217,7 +219,8 @@ function useWorkData(unlocked: boolean, setCurrentView: (view: ViewId) => void, 
     reloadWorkData().catch((error) => { recordRendererDiagnostic("error", "Arbeitsdaten konnten nicht geladen werden.", error); if (active) setDataError(error instanceof Error ? error.message : "Arbeitsdaten konnten nicht geladen werden."); });
     return () => { active = false; };
   }, [unlocked, reloadWorkData]);
-  return { cases, contacts, deadlines, persons, caseMeasures, dashboardDeadlines, selectedDeadline, setSelectedDeadline, dataError,
+  return { cases, contacts, deadlines, persons, caseMeasures, dashboardDeadlines, selectedDeadline, setSelectedDeadline,
+    deadlineExtensionTarget, setDeadlineExtensionTarget, dataError,
     reloadWorkData, createCase, createContact, deleteContact, createDeadline, updateDeadline, completeDeadline };
 }
 
@@ -270,16 +273,23 @@ function PrimaryViews(props: PrimaryViewsProps & { openCaseNode: (target: CaseNo
   const { currentView, setCurrentView, work, caseNodeTarget, setCaseNodeTarget, activityJournalPrefill, setActivityJournalPrefill,
     participationViolationPrefill, setParticipationViolationPrefill } = props;
   const { cases, contacts, deadlines, persons, caseMeasures, dashboardDeadlines, setSelectedDeadline, createCase, createContact,
-    deleteContact, createDeadline, completeDeadline, reloadWorkData } = work;
+    deleteContact, createDeadline, completeDeadline, reloadWorkData, setDeadlineExtensionTarget } = work;
   const personHandlers = usePersonsHandlers(reloadWorkData); const icalHandlers = useIcalExportHandlers();
+  const openDeadlineContext = (deadline: DeadlineRecord) => {
+    const target = resolveDeadlineOpenTarget(deadline, new Map(caseMeasures.map((item) => [item.id, item])));
+    if (target.kind === "case") props.openCaseNode(target.target);
+    else setCurrentView(target.view);
+  };
   if (currentView === "dashboard") return <DashboardFocusOverview onNavigate={setCurrentView} cases={cases} deadlines={deadlines}
-    dashboardItems={dashboardDeadlines} onEditDeadline={setSelectedDeadline} onCompleteDeadline={(d) => void completeDeadline(d)} />;
+    measures={caseMeasures} dashboardItems={dashboardDeadlines} onEditDeadline={setSelectedDeadline}
+    onExtendDeadline={setDeadlineExtensionTarget} onOpenDeadlineContext={openDeadlineContext} onCompleteDeadline={(d) => void completeDeadline(d)} />;
   if (currentView === "activity_journal") return <ActivityJournalView pendingPrefill={activityJournalPrefill} onPrefillConsumed={() => setActivityJournalPrefill(null)} />;
   if (currentView === "participation_violations") return <SbvParticipationViolationsView cases={cases} measures={caseMeasures} pendingPrefill={participationViolationPrefill}
     onPrefillConsumed={() => setParticipationViolationPrefill(null)} onOpenCaseNode={props.openCaseNode}
     onOpenJournalPrefill={(prefill) => { setActivityJournalPrefill(prefill); setCurrentView("activity_journal"); }} />;
   if (currentView === "deadlines") return <DeadlinesView cases={cases} measures={caseMeasures} deadlines={deadlines}
-    onCreateDeadline={createDeadline} onEditDeadline={setSelectedDeadline} onCompleteDeadline={(d) => void completeDeadline(d)}
+    onCreateDeadline={createDeadline} onEditDeadline={setSelectedDeadline} onExtendDeadline={setDeadlineExtensionTarget}
+    onOpenDeadlineContext={openDeadlineContext} onCompleteDeadline={(d) => void completeDeadline(d)}
     onExportIcal={(privacyLevel, filters) => icalHandlers.exportIcal({ privacyLevel, filters })} />;
   if (currentView === "persons") return <PersonsView persons={persons} cases={cases}
     onCreateCaseForPerson={async (person, input) => createCase({ ...input, protectedPersonId: person.id, personBindingState: person.recordKind === "pseudonymous_request" ? "anonymous_request" : "active", isPseudonymized: true })}
@@ -343,6 +353,8 @@ function WorkspaceMain(props: PrimaryViewsProps & { currentModule?: (typeof modu
     <GlobalTextCommandController cases={work.cases} contacts={work.contacts} onCreateDeadline={work.createDeadline} /><TextCommandHelpModal />
     {work.selectedDeadline && <DeadlineEditor deadline={work.selectedDeadline} cases={work.cases} onClose={() => work.setSelectedDeadline(null)}
       onSave={work.updateDeadline} onComplete={work.completeDeadline} />}
+    {work.deadlineExtensionTarget && <DeadlineExtensionModal deadline={work.deadlineExtensionTarget} cases={work.cases}
+      onClose={() => work.setDeadlineExtensionTarget(null)} onSave={work.updateDeadline} />}
   </main>;
 }
 

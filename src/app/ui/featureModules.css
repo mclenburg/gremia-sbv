@@ -1842,6 +1842,28 @@ button.dashboard-focus-card:focus-visible {
   margin: 0;
 }
 
+.industrial-deadline-context {
+  display: grid;
+  gap: 0.35rem;
+  margin-block: 0.45rem 0.75rem;
+}
+
+.industrial-deadline-context p {
+  display: grid;
+  gap: 0.15rem;
+  margin: 0;
+  color: var(--sbv-text);
+}
+
+.industrial-deadline-context span {
+  color: var(--sbv-muted);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
 html[data-theme='light'] .settings-hub.industrial-card:hover,
 html[data-theme='light'] .dashboard-support-card.industrial-card:hover,
 html[data-theme='light'] .dashboard-focus-card-static.industrial-card:hover {
