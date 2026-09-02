@@ -75,8 +75,8 @@
     {
       "file": "tests/architecture/migrations/schemaMigrationConsolidation.test.ts",
       "category": "B",
-      "sourceAssertions": 2,
-      "rationale": "Statische Architekturregel: Der versionierte Migrationshook darf keine Fachservices als zweite Schemaquelle instanziieren."
+      "sourceAssertions": 3,
+      "rationale": "Statische Architekturregel: Der versionierte Migrationshook darf keine Fachservices als zweite Schemaquelle instanziieren und Runtime-Fassaden dürfen keine zweite strukturelle Schemaquelle enthalten."
     },
     {
       "file": "tests/platform/electron/rcWindowsPortableArtifact.test.ts",
@@ -189,7 +189,7 @@
     {
       "file": "tests/architecture/rendererConsolePolicy.test.ts",
       "category": "B",
-      "sourceAssertions": 2,
+      "sourceAssertions": 3,
       "rationale": "Statische Architekturregel: Die Main-Prozess-Weiterleitung von Renderer-Konsolenmeldungen darf nur über die zentrale Diagnostik-Policy verdrahtet sein und keine Rohmeldungen protokollieren."
     }
   ]
