@@ -65,7 +65,7 @@ Neue Großmodule stehen nicht im Vordergrund. Vorrang haben Stabilität und Verl
 
 - Echtdatennahe Prüfung der Migrationen und Altfallpfade,
 - Härtung der Fallübergabe gegen Fehlbedienung, Datenverlust und missverständliche Zusammenführung,
-- Audit-Log ohne Direktidentifikatoren in allen Import-, Export- und Lesebrückenpfaden,
+- Audit-Log ohne Direktidentifikatoren in allen Import-, Export- und Gremia.BR-Kooperationspfaden,
 - Art.-15-Auskunft organisatorisch klar dokumentieren,
 - Barrierefreiheit und Tastaturbedienung in allen kritischen Dialogen sichern,
 - Dashboard, Einstellungen, Fallakten und Compliance Center visuell konsistent im harten Industrial-Design halten,

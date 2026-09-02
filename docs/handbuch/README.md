@@ -2,7 +2,7 @@
 
 Dieses Handbuch erklärt Gremia.SBV aus Sicht der Schwerbehindertenvertretung. Es beschreibt die tägliche Nutzung, typische Arbeitsabläufe und die fachlichen Grenzen der Anwendung.
 
-Gremia.SBV ist ein lokaler, verschlüsselter Arbeitsraum für vertrauliche SBV-Arbeit. Die Anwendung unterstützt Beratung, Fallakten, Fristen, BEM, Prävention, SBV-Beteiligungen, Beteiligungsverstöße, Tätigkeitsjournal, Dokumentation, Wahlen, Dokumente, Vorlagen, Exporte und Übergaben.
+Gremia.SBV ist ein lokaler, verschlüsselter Arbeitsraum für vertrauliche SBV-Arbeit. Die Anwendung unterstützt Beratung, Fallakten, Fristen, BEM, Prävention, SBV-Beteiligungen, Beteiligungsverstöße, Tätigkeitsjournal, Dokumentation, Wahlen, Dokumente, Vorlagen, Exporte, Übergaben und die optionale Gremia.BR-Kooperation.
 
 ## Leitgedanken
 
@@ -34,6 +34,8 @@ Gremia.SBV folgt drei Grundsätzen:
 | [Stellenbesetzungen](16-stellenbesetzungen.md) | Bewerbungsverfahren, Unterlagen und SBV-Anhörung nachhalten |
 | [Wahlen](17-wahlen.md) | Örtliche SBV-Wahl vorbereiten, durchführen, abschließen und geschützt übergeben |
 | [Glossar](18-glossar.md) | Fachbegriffe kurz erklärt |
+
+Das Glossar steht bewusst am Ende, damit es die fachlichen Arbeitsabläufe nicht unterbricht.
 
 ## Fachliche Grenze
 
