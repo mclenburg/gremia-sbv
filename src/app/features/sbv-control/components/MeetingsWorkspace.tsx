@@ -70,7 +70,7 @@ function GremiaBrMeetingImport({ onCreate, onAgenda, onSelectedMeeting }: {
     setBusy(true); setMessage('');
     try {
       const bridge = await waitForBridge();
-      if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Lesebrücke ist nicht verfügbar.');
+      if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Kooperationsbrücke ist nicht verfügbar.');
       const result = await bridge.gremiaBr.refreshCache();
       setOverview(result.cached); setMessage(result.message);
     } catch (error) {
@@ -95,7 +95,7 @@ function GremiaBrMeetingImport({ onCreate, onAgenda, onSelectedMeeting }: {
 
   if (!enabled) return null;
   return <section className="sbv-control-section sbv-meetings-bridge" aria-labelledby="gremia-br-meetings-heading">
-    <div><p className="industrial-kicker">Gremia.BR</p><h3 id="gremia-br-meetings-heading">BR-Sitzung übernehmen</h3><p className="industrial-meta">Lesebrücke aktiv. Sitzung und Tagesordnung werden als eigene SBV-Arbeitskopie übernommen; SBV-Relevanz und Bewertungen bleiben bewusst manuell.</p></div>
+    <div><p className="industrial-kicker">Gremia.BR</p><h3 id="gremia-br-meetings-heading">BR-Sitzung übernehmen</h3><p className="industrial-meta">Kooperationsbrücke aktiv. Sitzung und Tagesordnung werden als eigene SBV-Arbeitskopie übernommen; SBV-Relevanz und Bewertungen bleiben bewusst manuell.</p></div>
     <div className="industrial-form-grid two-columns">
       <SelectInput label="Gremia.BR-Sitzung" value={selectedId} onValueChange={setSelectedId} options={[{ value: '', label: 'Auswählen …' }, ...meetings.map((meeting) => ({ value: meeting.sourceId, label: `${new Date(meeting.startsAt).toLocaleString('de-DE')} · ${meeting.title}` }))]} />
       <div className="industrial-action-row sbv-meetings-bridge-actions"><IndustrialButton variant="secondary" disabled={busy} onClick={() => void refresh()}><RefreshCw className="h-4 w-4" />{busy ? 'Abruf läuft …' : 'Daten aktualisieren'}</IndustrialButton><IndustrialButton disabled={!selected || busy} onClick={() => void importMeeting()}>In SBV-Sitzung übernehmen</IndustrialButton></div>

@@ -56,7 +56,7 @@ Die Ansicht **Dokumentation** bündelt übergreifende SBV-Arbeit, die nicht voll
 
 ## Sitzungen
 
-**Sitzungen** ist ein direkter Hauptnavigationseinstieg in den Gremien-Arbeitsbereich der Dokumentation. Dort dokumentierst du BR- und Ausschusssitzungen aus eigener SBV-Sicht. Bei aktivierter Gremia.BR-Lesebrücke können BR-Sitzung und Tagesordnungspunkte bewusst in eine lokale SBV-Arbeitskopie übernommen werden. SBV-Relevanz, eigene Position und rechtliche Bewertung werden nicht automatisch gesetzt.
+**Sitzungen** ist ein direkter Hauptnavigationseinstieg in den Gremien-Arbeitsbereich der Dokumentation. Dort dokumentierst du BR- und Ausschusssitzungen aus eigener SBV-Sicht. Bei aktivierter Gremia.BR-Kooperationsbrücke können BR-Sitzung und Tagesordnungspunkte bewusst in eine lokale SBV-Arbeitskopie übernommen werden. SBV-Relevanz, eigene Position und rechtliche Bewertung werden nicht automatisch gesetzt.
 
 ## Wahlen
 

@@ -258,7 +258,7 @@ export const HELP_REGISTRY = {
   "sbvOffice.meetings": {
     id: "sbvOffice.meetings", kicker: "Gremien", title: "SBV-Sicht auf Sitzungen",
     summary: "Dokumentiert werden Teilnahme, SBV-relevante Tagesordnungspunkte, eigene Position und gegebenenfalls die Aussetzung nach § 178 Abs. 4 SGB IX.",
-    blocks: [{ type: "paragraph", text: "Die Aufzeichnung ist eine SBV-Eigenaufzeichnung und kein Betriebsratsprotokoll. Bei erheblicher Beeinträchtigung wichtiger Interessen oder fehlender Beteiligung kann eine Aussetzung dokumentiert werden; die Wochenfrist wird zentral nachgehalten. Ist die Gremia.BR-Lesebrücke aktiviert, können Sitzung und Tagesordnung als eigene SBV-Arbeitskopie übernommen werden. SBV-Relevanz, Positionen und Bewertungen werden nicht automatisch gesetzt." }],
+    blocks: [{ type: "paragraph", text: "Die Aufzeichnung ist eine SBV-Eigenaufzeichnung und kein Betriebsratsprotokoll. Bei erheblicher Beeinträchtigung wichtiger Interessen oder fehlender Beteiligung kann eine Aussetzung dokumentiert werden; die Wochenfrist wird zentral nachgehalten. Ist die Gremia.BR-Kooperationsbrücke aktiviert, können Sitzung und Tagesordnung als eigene SBV-Arbeitskopie übernommen werden. SBV-Relevanz, Positionen und Bewertungen werden nicht automatisch gesetzt." }],
   },
   "sbvOffice.assembly": {
     id: "sbvOffice.assembly", kicker: "Versammlung", title: "Schwerbehindertenversammlung",

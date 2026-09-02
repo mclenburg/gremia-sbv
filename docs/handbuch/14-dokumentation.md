@@ -45,7 +45,7 @@ Vorbereitung, Teilnahme, TOP-Antrag und Aussetzung können bewusst in das Tätig
 
 ## BR-Sitzung aus Gremia.BR übernehmen
 
-Wenn die optionale **Gremia.BR-Lesebrücke** unter **Einstellungen → Gremia.BR** aktiviert ist, kann der Sitzungsbereich vorhandenen BR-Kontext aus dem lokalen Lesecache anzeigen und auf ausdrückliche Nutzeraktion aktualisieren.
+Wenn die optionale **Gremia.BR-Kooperationsbrücke** unter **Einstellungen → Gremia.BR** aktiviert ist, kann der Sitzungsbereich vorhandenen BR-Kontext aus dem lokalen Lesecache anzeigen und auf ausdrückliche Nutzeraktion aktualisieren.
 
 Über **BR-Sitzung übernehmen** kannst du eine verfügbare BR-Sitzung in eine eigene lokale SBV-Arbeitskopie übernehmen. Dabei werden – soweit im Lesecache vorhanden – insbesondere übernommen:
 
@@ -56,7 +56,7 @@ Wenn die optionale **Gremia.BR-Lesebrücke** unter **Einstellungen → Gremia.BR
 
 Die Übernahme erzeugt einen eigenen SBV-Sitzungsvorgang. Sie ist keine gemeinsame Akte und keine Synchronisation. Gremia.SBV setzt bei übernommenen Tagesordnungspunkten insbesondere **keine SBV-Relevanz, keine eigene SBV-Position und keine rechtliche Bewertung automatisch**. Diese Einordnung bleibt Aufgabe der SBV.
 
-Die Lesebrücke bleibt technisch read-only: Gremia.SBV schreibt keine Sitzungsnotizen, Bewertungen oder sonstigen SBV-Daten nach Gremia.BR zurück.
+Die Sitzungsübernahme bleibt eine lokale Arbeitskopie: Gremia.SBV schreibt keine Sitzungsnotizen, Bewertungen oder sonstigen SBV-Einordnungen in die BR-Sitzung zurück. Freigaben und Tagesordnungspunkt-Anforderungen laufen ausschließlich im eigenen Gremia.BR-Bereich.
 
 ## Schwerbehindertenversammlung
 

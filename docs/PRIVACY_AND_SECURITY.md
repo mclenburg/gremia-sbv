@@ -48,17 +48,17 @@ Regeln:
 - weitere Bearbeitung abgelaufener Übergabedaten nur nach begründeter Bestätigung,
 - Export und Import ohne personenbezogene Inhalte auditieren.
 
-## Gremia.BR-Lesebrücke
+## Gremia.BR-Kooperationsbrücke
 
-Die Gremia.BR-Anbindung dient ausschließlich der Zusammenarbeit zwischen BR und SBV. Sie ist optional und standardmäßig deaktiviert. Die Schnittstelle ist als Read-only-Lesebrücke ausgelegt und erlaubt keine Schreibzugriffe von Gremia.SBV nach Gremia.BR.
+Die Gremia.BR-Anbindung dient ausschließlich der Zusammenarbeit zwischen BR und SBV. Sie ist optional und standardmäßig deaktiviert. Die Schnittstelle ist als kontrollierte Kooperationsbrücke ausgelegt: lesende Abrufe liefern BR-Kontext, ausdrücklich freigegebene SBV-Arbeitsbereichsaktionen ermöglichen die Übergabe zentral erzeugter Gremia.SBV-PDF-Dokumente und die Anforderung von Tagesordnungspunkten.
 
 Regeln:
 
 - keine automatische Synchronisation,
 - keine Hintergrundabfragen,
-- kein Rückschreiben nach Gremia.BR,
-- keine Übermittlung von SBV-Falldaten,
-- nur explizit ausgelöste lesende Zugriffe,
+- keine generischen Schreibzugriffe nach Gremia.BR,
+- keine Massentransfers vollständiger SBV-Falldaten,
+- nur explizit ausgelöste lesende Zugriffe und ausdrücklich modellierte SBV-Arbeitsbereichsaktionen,
 - harte Endpunkt-Whitelist,
 - JWT bevorzugt nur im Arbeitsspeicher,
 - Zugangsdaten im SQLCipher-Vault,

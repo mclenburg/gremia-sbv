@@ -9,7 +9,7 @@ export async function suggestGremiaBrInlineReferences(query: string): Promise<Gr
 
 export async function saveGremiaBrInlineReference(input: CreateGremiaBrExternalReferenceInput) {
   const bridge = await waitForBridge();
-  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Lesebrücke ist nicht verfügbar.');
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Kooperationsbrücke ist nicht verfügbar.');
   return bridge.gremiaBr.saveExternalReference(input);
 }
 

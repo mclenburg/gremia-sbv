@@ -273,7 +273,7 @@ export function DashboardFocusOverview({ cases, measures, deadlines, dashboardIt
         )}
 
         {gremiaBrTile && (
-          <div className="industrial-card no-card-hover dashboard-focus-card dashboard-focus-card-static" aria-label="Gremia.BR-Lesebrücke">
+          <div className="industrial-card no-card-hover dashboard-focus-card dashboard-focus-card-static" aria-label="Gremia.BR-Kooperationsbrücke">
             <span className="dashboard-focus-marker dashboard-focus-marker-attention">Aktiv</span>
             <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
             <strong>Gremia.BR</strong>

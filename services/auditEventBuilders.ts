@@ -32,7 +32,7 @@ export const AUDIT_PURPOSES = {
   sbvControlProtocolRead: 'Übergreifende SBV-Steuerungsprotokolle anzeigen.',
   activityJournalChanged: 'SBV-Tätigkeitsjournal geändert; Audit enthält keine Freitexte.',
   activityJournalRead: 'SBV-Tätigkeitsjournal anzeigen; Audit enthält keine Freitexte.',
-  gremiaBrRequest: 'Gremia.BR-Lesebrücke: HTTP-Anfrage ohne Inhaltsdaten protokollieren.',
+  gremiaBrRequest: 'Gremia.BR-Kooperationsbrücke: HTTP-Anfrage ohne Inhaltsdaten protokollieren.',
   gremiaBrWorkspaceAction: 'Gremia.BR-Arbeitsbereich: bewusste Aktion ohne Inhaltsdaten protokollieren.',
   retentionLegalHoldChanged: 'Aufbewahrungssperre eines SBV-Amtsvorgangs geändert; Audit enthält keine Freitexte.',
   electionTransferProcessed: 'Geschützte Wahlaktenübergabe verarbeitet; Audit enthält nur technische Metadaten.',

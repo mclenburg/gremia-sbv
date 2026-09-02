@@ -44,11 +44,11 @@ Die Fallübergabe ist ein eigenständiger, verschlüsselter Transferpfad für au
 
 Die Importentscheidung bleibt fachlich bei der nutzenden Person. Mögliche Gegenstücke können vorgeschlagen werden, aber es gibt keine stille Zusammenführung. Ablaufdatum, Importablehnung abgelaufener Pakete und begründungspflichtige Weiterbearbeitung bereits importierter abgelaufener Daten sind Teil der Fachlogik.
 
-### Gremia.BR-Lesebrücke
+### Gremia.BR-Kooperationsbrücke
 
-Die Gremia.BR-Anbindung ist optional, standardmäßig deaktiviert und read-only. Sie nutzt eine harte Endpunkt-Whitelist, speichert Zugangsdaten im Vault und führt Netzwerkzugriffe nur auf explizite Nutzeraktion aus. Der lokale Lesecache ist auf 30 Tage begrenzt und wird bei deaktivierter Anbindung geleert.
+Die Gremia.BR-Anbindung ist optional, standardmäßig deaktiviert und nur im konfigurierten Gremia.BR-Bereich sichtbar. Sie nutzt eine harte Endpunkt-Whitelist, speichert Zugangsdaten im Vault und führt Netzwerkzugriffe nur auf explizite Nutzeraktion aus. Lesende Abrufe liefern BR-Kontext; schreibende Aktionen sind auf ausdrücklich modellierte SBV-Arbeitsbereichsaktionen begrenzt. Der lokale Lesecache ist auf 30 Tage begrenzt und wird bei deaktivierter Anbindung geleert.
 
-Die freigegebenen Gremia.BR-Endpunkte werden zentral in `services/gremiaBr/gremiaBrApiCatalog.ts` gepflegt. Policy, HTTP-Client, Audit-Label und ReadAdapter dürfen keine eigenen Nebenlisten aufbauen. Neue Lesemöglichkeiten aus der OpenAPI werden erst dort begründet aufgenommen, bevor ein Adapter sie nutzt. Schreib-, Verwaltungs-, DSGVO-, Mitglieder-, Abwesenheits-, Datei- und Upload-Pfade bleiben für Gremia.SBV gesperrt.
+Die freigegebenen Gremia.BR-Endpunkte werden zentral in `services/gremiaBr/gremiaBrApiCatalog.ts` gepflegt. Policy, HTTP-Client, Audit-Label und Adapter dürfen keine eigenen Nebenlisten aufbauen. Neue Lesemöglichkeiten oder SBV-Arbeitsbereichsaktionen aus der OpenAPI werden erst dort begründet aufgenommen, bevor ein Adapter sie nutzt. Verwaltungs-, DSGVO-, Mitglieder-, Abwesenheits- und generische Upload-Pfade bleiben für Gremia.SBV gesperrt.
 
 
 
@@ -104,7 +104,7 @@ Das Dashboard ist keine Werbefläche für Module. Es zeigt nur Bereiche mit unmi
 - Fälle,
 - Fristen,
 - Compliance-Center,
-- Gremia.BR-Lesebrücke.
+- Gremia.BR-Kooperationsbrücke.
 
 Alles andere gehört in die Fachmodule.
 ### UI-Core-Verhaltenstests
@@ -220,7 +220,7 @@ Der sandboxed Preload enthält seine schlanke `invokeIpc`-Grenze direkt und läd
 
 Der Renderer wird zusätzlich zu `contextIsolation: true` und `sandbox: true` durch eine
 Content-Security-Policy in `index.html` begrenzt. Externe HTTP-/HTTPS-Ziele werden nicht
-für den Renderer freigegeben; die optionale Gremia.BR-Lesebrücke arbeitet ausschließlich
+für den Renderer freigegeben; die optionale Gremia.BR-Kooperationsbrücke arbeitet ausschließlich
 im Main-Prozess. Lokale WebSocket-Ziele sind nur für den Vite-Entwicklungsserver erlaubt.
 
 ESLint verwendet die Flat-Config `eslint.config.js`. Der produktive Plattform-Build führt

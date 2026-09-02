@@ -63,9 +63,9 @@ Zweite Zielgruppe sind Personen, die Gremia.SBV betreiben, prüfen oder weiteren
 | `UI_CORE_BEHAVIOR_QA.md` | Bedienfluss-QA |
 | `INLINE_TEXT_COMMANDS.md` | Textkommandos in Notiz- und Vorlagenfeldern |
 
-## Gremia.BR-Lesebrücke
+## Gremia.BR-Kooperationsbrücke
 
-Die Lesebrücke ist optional, standardmäßig deaktiviert und ausschließlich lesend. Es gibt keine Hintergrundsynchronisation, keine automatische Übernahme von BR-Dokumenten und kein Rückschreiben von SBV-Daten.
+Die Kooperationsbrücke ist optional und standardmäßig deaktiviert. Sie ruft BR-Kontext nur auf ausdrückliche Nutzeraktion ab und erlaubt im Gremia.BR-2.0-Modus ausschließlich modellierte SBV-Arbeitsbereichsaktionen wie PDF-Übergabe und Tagesordnungspunkt-Anforderung. Es gibt keine Hintergrundsynchronisation und keine automatische Übernahme von BR-Dokumenten.
 
 Details stehen unter [`gremia-br/`](gremia-br/README.md).
 

@@ -1,14 +1,14 @@
-# Datenschutzbewertung zur Gremia.BR-Lesebrücke
+# Datenschutzbewertung zur Gremia.BR-Kooperationsbrücke
 
-Dieses Dokument beschreibt die datenschutzrechtliche Einordnung der optionalen Gremia.BR-Lesebrücke in Gremia.SBV.
+Dieses Dokument beschreibt die datenschutzrechtliche Einordnung der optionalen Gremia.BR-Kooperationsbrücke in Gremia.SBV.
 
 ## Verarbeitungstätigkeit
 
-**Bezeichnung:** Lesender Abruf ausgewählter BR-Informationen aus Gremia.BR  
+**Bezeichnung:** Kontrollierte Kooperation zwischen Gremia.SBV und dem SBV-Arbeitsbereich in Gremia.BR  
 **Zweck:** Unterstützung der Zusammenarbeit zwischen Betriebsrat und Schwerbehindertenvertretung  
 **System:** Gremia.SBV, lokaler SQLCipher-Vault  
 **Quelle:** Gremia.BR-Server des Betriebsrats  
-**Richtung:** Gremia.BR → Gremia.SBV, ausschließlich lesend
+**Richtung:** Gremia.BR → Gremia.SBV für Lesekontext; Gremia.SBV → Gremia.BR nur für ausdrücklich ausgelöste SBV-Arbeitsbereichsaktionen
 
 ## Verarbeitete Daten
 
@@ -19,11 +19,12 @@ Möglich sind:
 - Beschlussmetadaten,
 - Beschlusstitel und ggf. Beschlusstexte, soweit aus Gremia.BR bereitgestellt,
 - technische Verbindungsdaten,
-- lokale Referenzen auf BR-Elemente.
+- lokale Referenzen auf BR-Elemente,
+- zentral erzeugte Gremia.SBV-PDF-Dokumente, wenn die SBV deren Übergabe ausdrücklich auslöst.
 
 Nicht verarbeitet werden dürfen:
 
-- SBV-Falldaten auf dem Gremia.BR-Server,
+- vollständige SBV-Falldaten oder interne SBV-Notizen auf dem Gremia.BR-Server,
 - Gesundheitsdaten aus Gremia.SBV,
 - Passwörter oder Tokens in Logs,
 - Suchbegriffe im Audit-Log.
@@ -32,7 +33,7 @@ Nicht verarbeitet werden dürfen:
 
 - Standardmäßig deaktivierte Verbindung.
 - Konfiguration im verschlüsselten Vault.
-- Harte Endpunkt-Whitelist.
+- Harte Endpunkt-Whitelist für lesende Endpunkte und ausdrücklich freigegebene SBV-Arbeitsbereichsaktionen.
 - Keine generische HTTP-Bridge im Renderer.
 - Keine Hintergrundsynchronisation.
 - Audit nur ohne Inhaltsdaten.
@@ -43,8 +44,8 @@ Nicht verarbeitet werden dürfen:
 
 ## Risikobewertung
 
-Hauptrisiko ist nicht die technische Verbindung an sich, sondern eine Zweckverschiebung: BR-Daten könnten mit SBV-Falldaten vermischt oder SBV-Daten könnten unbeabsichtigt an Gremia.BR gelangen. Dies wird durch Read-only-Policy, Whitelist, fehlende Schreibmethoden, getrennte lokale Speicherung und eine technische Cache-TTL von 30 Tagen begrenzt.
+Hauptrisiko ist nicht die technische Verbindung an sich, sondern eine Zweckverschiebung: BR-Daten könnten mit SBV-Falldaten vermischt oder SBV-Daten könnten unbeabsichtigt an Gremia.BR gelangen. Dies wird durch eine ausdrückliche Aktionspolicy, Whitelist, getrennte lokale Speicherung, fachlich begrenzte PDF-Übergaben und eine technische Cache-TTL von 30 Tagen begrenzt.
 
 ## Bewertung
 
-Die Lesebrücke ist vertretbar, wenn sie optional bleibt, keine Hintergrundprozesse auslöst und ausschließlich durch bewusste Nutzeraktion arbeitet. Die SBV-Datenhoheit bleibt bei Gremia.SBV.
+Die Kooperationsbrücke ist vertretbar, wenn sie optional bleibt, keine Hintergrundprozesse auslöst und ausschließlich durch bewusste Nutzeraktion arbeitet. Die SBV-Datenhoheit bleibt bei Gremia.SBV; jede Übergabe an Gremia.BR muss fachlich sichtbar, begrenzt und nachvollziehbar bleiben.
