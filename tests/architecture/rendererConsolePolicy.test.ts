@@ -3,6 +3,7 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import {
   buildRendererConsoleDiagnostic,
+  emitRendererConsoleDiagnostic,
   shouldForwardRendererConsoleDiagnostics,
 } from '../../electron/rendererConsoleDiagnostics';
 
@@ -42,6 +43,24 @@ describe('Renderer-Diagnostik', () => {
     expect(JSON.stringify(diagnostic)).not.toContain('GdB');
   });
 
+  it('kapselt die Ausgabe ohne Rohinhalt und ohne direkten console.log-Pfad', () => {
+    const calls: Array<{ method: string; prefix: string; metadata: unknown }> = [];
+    const sink = {
+      error: (prefix: string, metadata: unknown) => calls.push({ method: 'error', prefix, metadata }),
+      info: (prefix: string, metadata: unknown) => calls.push({ method: 'info', prefix, metadata }),
+      warn: (prefix: string, metadata: unknown) => calls.push({ method: 'warn', prefix, metadata }),
+    };
+
+    emitRendererConsoleDiagnostic(sink, 2, 'Name: Erika Muster, GdB 80', 42);
+
+    expect(calls).toEqual([{
+      method: 'error',
+      prefix: 'Gremia.SBV renderer console error',
+      metadata: { level: 2, line: 42, messageLength: 26 },
+    }]);
+    expect(JSON.stringify(calls)).not.toContain('Erika');
+  });
+
   it('verdrahtet die Main-Prozess-Weiterleitung ausschließlich über die zentrale Policy', () => {
     const source = readFileSync('electron/appRuntimeSupport.ts', 'utf8');
     const consoleMessageIndex = source.indexOf('"console-message"');
@@ -50,7 +69,8 @@ describe('Renderer-Diagnostik', () => {
     expect(consoleMessageIndex).toBeGreaterThan(0);
     expect(policyIndex).toBeGreaterThan(0);
     expect(policyIndex).toBeLessThan(consoleMessageIndex);
-    expect(source).toContain('buildRendererConsoleDiagnostic(level, message, line)');
+    expect(source).toContain('emitRendererConsoleDiagnostic(console, level, message, line)');
+    expect(source).not.toContain('console.log(');
     expect(source).not.toMatch(/console\.log\([^)]*\bmessage\b/);
   });
 });
