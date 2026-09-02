@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { CalendarCheck } from 'lucide-react';
 import type { PersonImportExecuteResult, PersonImportRunItemRecord } from '../../../domain/models/protected-person.model';
-import { GhostButton, ToolbarButton } from '../../shared/components/IndustrialButton';
+import { IndustrialButton, ToolbarButton } from '../../shared/components/IndustrialButton';
 import { SearchInput } from '../../shared/components/IndustrialForm';
 
 function importActionLabel(action: PersonImportRunItemRecord['action']): string {
@@ -75,7 +75,11 @@ export function PersonImportResultStep({ result, onClose, onOpenPerson }: { resu
       <div className="person-import-summary result"><span>Neu: {result.run.createdCount}</span><span>Aktualisiert: {result.run.updatedCount}</span><span>Unverändert: {result.run.unchangedCount}</span><span>Konflikte: {result.run.conflictCount}</span><span>Übersprungen: {result.run.skippedCount}</span></div>
       <p className="industrial-muted">Die Importdatei wurde nicht dauerhaft gespeichert. Das Importprotokoll enthält keine Rohdaten.</p>
       {reviewItems.length ? <ImportReviewItems items={reviewItems} onOpenPerson={onOpenPerson} /> : <p className="industrial-message industrial-message-ok" role="status">Keine offenen Konflikte oder übersprungenen Zeilen im Importprotokoll.</p>}
-      <div className="person-import-footer"><GhostButton type="button" data-e2e="person-import-close-result" onClick={onClose}>Schließen</GhostButton></div>
+      <div className="person-import-footer">
+        <IndustrialButton type="button" variant="secondary" data-e2e="person-import-close-result" onClick={onClose}>
+          Schließen
+        </IndustrialButton>
+      </div>
     </div>
   );
 }
