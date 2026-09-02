@@ -28,6 +28,7 @@ export function PersonImportWizard({
   onPreviewImport,
   onExecuteImport,
   onImported,
+  onOpenPerson,
   onError
 }: {
   open: boolean;
@@ -36,6 +37,7 @@ export function PersonImportWizard({
   onPreviewImport: (input: PersonImportPreviewInput) => Promise<PersonImportPreviewResult>;
   onExecuteImport: (input: PersonImportExecuteInput) => Promise<PersonImportExecuteResult>;
   onImported: (message: string) => void;
+  onOpenPerson?: (id: string) => void;
   onError: (message: string) => void;
 }) {
   const [step, setStep] = useState<ImportStep>('source');
@@ -142,7 +144,7 @@ export function PersonImportWizard({
         {step === 'validate' && preview && (
           <ValidateStep preview={preview} onBack={() => setStep('mapping')} onExecute={executeImport} />
         )}
-        {step === 'result' && result && <PersonImportResultStep result={result} onClose={resetAndClose} />}
+        {step === 'result' && result && <PersonImportResultStep result={result} onClose={resetAndClose} onOpenPerson={onOpenPerson ? (id) => { onOpenPerson(id); resetAndClose(); } : undefined} />}
     </IndustrialModal>
   );
 }
