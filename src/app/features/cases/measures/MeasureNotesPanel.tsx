@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { CheckCircle2, PlusCircle } from "lucide-react";
 import { ToolbarButton } from "../../../shared/components/IndustrialButton";
+import { IndustrialHelpButton } from "../../../shared/help/IndustrialHelp";
 import { MeasureNoteForm } from "./MeasureNoteForm";
 import { MeasureNoteList } from "./MeasureNoteList";
 import type { MeasureNotesPanelProps } from "./measureNoteTypes";
@@ -22,11 +23,14 @@ export function MeasureNotesPanel({
 
   return (
     <section className="industrial-subsection compact" aria-labelledby={`${fieldPrefix}-heading`}>
-      <div className="case-process-title-row">
-        <h3 id={`${fieldPrefix}-heading`}>
-          <CheckCircle2 className="mr-2 inline h-4 w-4" />
-          Maßnahmennotizen
-        </h3>
+      <div className="case-process-title-row case-process-title-row-actions">
+        <div className="case-process-title-heading">
+          <h3 id={`${fieldPrefix}-heading`}>
+            <CheckCircle2 className="mr-2 inline h-4 w-4" />
+            Maßnahmennotizen
+          </h3>
+          <IndustrialHelpButton helpId="cases.measureNotes" label="Maßnahmennotizen-Hilfe öffnen" />
+        </div>
         <ToolbarButton
           type="button"
           aria-expanded={state.isCreating}
@@ -36,8 +40,9 @@ export function MeasureNotesPanel({
           <PlusCircle className="h-4 w-4" /> Notiz anlegen
         </ToolbarButton>
       </div>
-      <p className="industrial-meta">Termine und Verlauf direkt an „{measureTitle}“ protokollieren. Mehrere vertrauliche Notizen sind möglich.</p>
-      <p className="industrial-meta">Maßnahmennotizen werden als sensible Falldaten gespeichert und bei der Fallanonymisierung mit anonymisiert.</p>
+      <p className="industrial-meta">
+        Notizen werden direkt an „{measureTitle}“ gespeichert.
+      </p>
 
       {state.error ? <div className="industrial-message industrial-message-warning" role="alert">{state.error}</div> : null}
 

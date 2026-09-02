@@ -87,6 +87,18 @@
   margin-bottom: 0.45rem;
 }
 
+.case-process-title-row-actions {
+  justify-content: space-between;
+}
+
+.case-process-title-heading {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  min-width: 0;
+}
+
 .case-process-badges {
   justify-content: flex-end;
   max-width: min(38rem, 48vw);

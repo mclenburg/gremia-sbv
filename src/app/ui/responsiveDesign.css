@@ -193,7 +193,7 @@
   }
 }
 
-@media (max-width: 1500px) {
+@media (max-width: 1180px) {
   .case-workbench {
     grid-template-columns: 1fr !important;
   }

@@ -131,6 +131,26 @@ describe('UI-Fundament Block 2', () => {
     expect(features).toContain('.case-register-privacy-action {');
   });
 
+  it('bewahrt Basis-Chrome fuer Navigation, Fallbaum und Fallaktensuche', () => {
+    const components = source('src/app/ui/components.css');
+    const workbench = source('src/app/ui/workbench.css');
+    const features = source('src/app/ui/featureModules.css');
+    const responsive = source('src/app/ui/responsiveDesign.css');
+
+    expect(components).toMatch(/\.industrial-nav button,\s*\.industrial-lock-button\s*\{[\s\S]*?background:\s*transparent;/);
+    expect(components).toMatch(/\.industrial-nav button,\s*\.industrial-lock-button\s*\{[\s\S]*?cursor:\s*pointer;/);
+    expect(components).toContain('.industrial-nav button:hover:not(:disabled)');
+    expect(workbench).toMatch(/\.case-workbench\s*\{[\s\S]*?display:\s*grid;/);
+    expect(workbench).toMatch(/\.case-workbench\s*\{[\s\S]*?grid-template-columns:/);
+    expect(features).toMatch(/\.case-tree-node\s*\{[\s\S]*?background:\s*rgba\(9, 9, 11, 0\.54\);/);
+    expect(features).toMatch(/\.case-tree-node\s*\{[\s\S]*?cursor:\s*pointer;/);
+    expect(features).toMatch(/\.case-search-result\s*\{[\s\S]*?cursor:\s*pointer;/);
+    expect(features).toContain('.case-tree-node:hover:not(:disabled)');
+    expect(features).toContain('.case-search-result:hover:not(:disabled)');
+    expect(responsive).toMatch(/@media \(max-width: 1180px\)\s*\{[\s\S]*?\.case-workbench\s*\{/);
+    expect(responsive).not.toMatch(/@media \(max-width: 1500px\)\s*\{[\s\S]*?\.case-workbench\s*\{/);
+  });
+
   it('stylt Privacy-Lifecycle-Auswahllisten in Dark- und Light-Mode lesbar und fokussierbar', () => {
     const forms = source('src/app/ui/forms.css');
     expect(forms).toContain('.privacy-review-form select:focus-visible');

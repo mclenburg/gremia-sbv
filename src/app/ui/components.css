@@ -116,7 +116,9 @@
 .industrial-secondary-button:disabled,
 .industrial-danger-button:disabled,
 .industrial-ghost-button:disabled,
-.industrial-icon-button:disabled {
+.industrial-icon-button:disabled,
+.industrial-lock-button:disabled,
+.industrial-nav button:disabled {
   cursor: not-allowed;
   opacity: 0.58;
   filter: grayscale(0.35);
@@ -156,11 +158,55 @@ html[data-theme='light'] .industrial-danger-button {
   color: #7f1d1d;
 }
 
+.industrial-nav button,
+.industrial-lock-button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--industrial-text);
+  cursor: pointer;
+  padding: 9px 10px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  transition:
+    border-color 120ms ease,
+    background 120ms ease,
+    color 120ms ease,
+    transform 120ms ease;
+}
+
+.industrial-nav button:hover:not(:disabled),
+.industrial-lock-button:hover:not(:disabled),
+.industrial-nav button.active,
 .industrial-nav button[aria-current='page'] {
   border-color: rgba(250, 204, 21, 0.62);
   background: linear-gradient(90deg, rgba(250,204,21,0.16), rgba(39,39,42,0.48));
   color: #fde047;
+}
+
+.industrial-nav button.active,
+.industrial-nav button[aria-current='page'] {
   box-shadow: inset 3px 0 0 var(--industrial-accent);
+}
+
+.industrial-lock-button {
+  border-color: var(--industrial-border);
+  background: rgba(9, 9, 11, 0.7);
+  color: var(--industrial-accent);
+}
+
+html[data-theme='light'] .industrial-nav button,
+html[data-theme='light'] .industrial-lock-button {
+  color: var(--industrial-text);
+}
+
+html[data-theme='light'] .industrial-lock-button {
+  background: rgba(244, 244, 239, 0.88);
 }
 
 .industrial-version-badge {

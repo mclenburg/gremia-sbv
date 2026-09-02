@@ -404,6 +404,26 @@ html[data-theme='light'] .industrial-panel {
   min-width: 0;
 }
 
+.case-workbench {
+  display: grid;
+  grid-template-columns: minmax(14rem, 18rem) minmax(0, 1fr);
+  gap: var(--layout-gap);
+  align-items: start;
+}
+
+.case-tree-panel {
+  position: sticky;
+  top: var(--space-3, 0.75rem);
+  display: grid;
+  gap: 1rem;
+  align-self: start;
+}
+
+.case-detail-panel {
+  display: grid;
+  gap: 1rem;
+}
+
 .person-workbench-grid {
   display: grid;
   grid-template-columns: minmax(18rem, 0.9fr) minmax(20rem, 1.1fr);
