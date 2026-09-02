@@ -12,6 +12,7 @@ const ignoredDirectories = new Set([
 ]);
 const allowedCssImporters = new Set(["src/main.tsx", "src/app/App.tsx", "src/app/appStyles.ts"]);
 const appWideCssFiles = new Set([
+  "src/styles/tailwind.css",
   "src/app/accessibility.css",
   "src/app/accessibilityLiveRegion.css",
   "src/app/ui/modal.css",
@@ -25,7 +26,6 @@ const appWideCssFiles = new Set([
   "src/app/ui/featureModules.css",
   "src/app/ui/responsiveDesign.css",
   "src/app/ui/forms.css",
-  "src/styles/globals.css",
 ]);
 
 const centralUiCssFiles = [
@@ -34,10 +34,10 @@ const centralUiCssFiles = [
   "src/app/ui/components.css",
   "src/app/ui/modal.css",
   "src/app/ui/workbench.css",
+  "src/app/ui/forms.css",
   "src/app/ui/processes.css",
   "src/app/ui/featureModules.css",
   "src/app/ui/responsiveDesign.css",
-  "src/app/ui/forms.css",
 ];
 
 function centralUiCss(): string {

@@ -17,6 +17,74 @@
   padding: var(--space-4, 1rem);
 }
 
+.industrial-form {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) minmax(180px, 240px) minmax(180px, 220px) auto;
+  align-items: end;
+  border: 1px solid var(--industrial-border);
+  background: rgba(9,9,11,0.92);
+  padding: 16px;
+}
+
+.industrial-settings-form {
+  display: grid;
+  gap: 14px;
+}
+
+.industrial-settings-form h3 {
+  margin: 0 0 4px;
+  color: var(--industrial-text-strong);
+  font-size: 20px;
+  font-weight: 950;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+}
+
+.industrial-theme-switch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.industrial-theme-switch button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 48px;
+  border: 1px solid var(--industrial-border-strong);
+  background: var(--industrial-panel-muted);
+  color: var(--industrial-text);
+  cursor: pointer;
+  font-weight: 950;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+.industrial-theme-switch button:hover,
+.industrial-theme-switch button.active {
+  border-color: var(--industrial-accent);
+  background: var(--industrial-accent-soft);
+  color: var(--industrial-text);
+  box-shadow: inset 3px 0 0 var(--industrial-accent);
+}
+
+.industrial-form label,
+.industrial-settings-form label {
+  display: block;
+}
+
+.industrial-form span,
+.industrial-settings-form span {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--industrial-text-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
 .industrial-field-label {
   color: var(--industrial-text-muted);
   font-size: 0.74rem;
@@ -35,20 +103,13 @@
 
 
 .industrial-field-help {
-  color: var(--industrial-text-muted);
+  color: var(--industrial-control-help);
   font-weight: 500;
 }
 
 .industrial-field-error {
   color: var(--industrial-danger);
   font-weight: 800;
-}
-
-.industrial-field-invalid input,
-.industrial-field-invalid select,
-.industrial-field-invalid textarea {
-  border-color: var(--industrial-danger);
-  outline-color: var(--industrial-danger);
 }
 
 .industrial-checkbox-field {
@@ -99,16 +160,29 @@
 
 /* Zentrales Formular-Chrome fuer das 1.0-UI-Fundament. */
 .industrial-input,
+.industrial-select,
 .industrial-text-input,
 .industrial-textarea-input,
 .industrial-select-input,
+.industrial-form input,
+.industrial-form select,
+.industrial-form textarea,
+.industrial-settings-form input,
+.industrial-settings-form select,
+.industrial-settings-form textarea,
+.case-detail-inline-form input,
+.case-detail-inline-form select,
+.case-detail-inline-form textarea,
 .industrial-field input,
 .industrial-field select,
 .industrial-field textarea,
+.industrial-modal-grid input,
+.industrial-modal-grid select,
 .industrial-modal input:not([type="checkbox"]):not([type="radio"]),
 .industrial-modal select,
 .industrial-modal textarea,
-.industrial-modal-grid textarea {
+.industrial-modal-grid textarea,
+.privacy-review-form select {
   border: 1px solid var(--industrial-control-border);
   border-radius: var(--industrial-control-radius);
   background: var(--industrial-control-bg);
@@ -122,17 +196,30 @@
 }
 
 .industrial-input,
+.industrial-select,
 .industrial-text-input,
 .industrial-select-input,
+.industrial-form input,
+.industrial-form select,
+.industrial-settings-form input,
+.industrial-settings-form select,
+.case-detail-inline-form input,
+.case-detail-inline-form select,
 .industrial-field input,
 .industrial-field select,
+.industrial-modal-grid input,
+.industrial-modal-grid select,
 .industrial-modal input:not([type="checkbox"]):not([type="radio"]),
-.industrial-modal select {
+.industrial-modal select,
+.privacy-review-form select {
   min-height: var(--control-min-height);
   padding: var(--industrial-control-padding-y) var(--industrial-control-padding-x);
 }
 
 .industrial-textarea-input,
+.industrial-form textarea,
+.industrial-settings-form textarea,
+.case-detail-inline-form textarea,
 .industrial-field textarea,
 .industrial-modal textarea,
 .industrial-modal-grid textarea {
@@ -145,8 +232,15 @@
 .industrial-input::placeholder,
 .industrial-text-input::placeholder,
 .industrial-textarea-input::placeholder,
+.industrial-form input::placeholder,
+.industrial-form textarea::placeholder,
+.industrial-settings-form input::placeholder,
+.industrial-settings-form textarea::placeholder,
+.case-detail-inline-form input::placeholder,
+.case-detail-inline-form textarea::placeholder,
 .industrial-field input::placeholder,
 .industrial-field textarea::placeholder,
+.industrial-modal-grid input::placeholder,
 .industrial-modal input::placeholder,
 .industrial-modal textarea::placeholder,
 .industrial-modal-grid textarea::placeholder {
@@ -155,41 +249,64 @@
 }
 
 .industrial-input:hover,
+.industrial-select:hover,
 .industrial-text-input:hover,
 .industrial-textarea-input:hover,
 .industrial-select-input:hover,
+.industrial-form input:hover,
+.industrial-form select:hover,
+.industrial-form textarea:hover,
+.industrial-settings-form input:hover,
+.industrial-settings-form select:hover,
+.industrial-settings-form textarea:hover,
+.case-detail-inline-form input:hover,
+.case-detail-inline-form select:hover,
+.case-detail-inline-form textarea:hover,
 .industrial-field input:hover,
 .industrial-field select:hover,
 .industrial-field textarea:hover,
+.industrial-modal-grid input:hover,
+.industrial-modal-grid select:hover,
 .industrial-modal input:not([type="checkbox"]):not([type="radio"]):hover,
 .industrial-modal select:hover,
 .industrial-modal textarea:hover,
-.industrial-modal-grid textarea:hover {
+.industrial-modal-grid textarea:hover,
+.privacy-review-form select:hover {
   background-color: var(--industrial-control-bg-hover);
 }
 
 .industrial-input:focus-visible,
+.industrial-select:focus-visible,
 .industrial-text-input:focus-visible,
 .industrial-textarea-input:focus-visible,
 .industrial-select-input:focus-visible,
+.industrial-form input:focus-visible,
+.industrial-form select:focus-visible,
+.industrial-form textarea:focus-visible,
+.industrial-settings-form input:focus-visible,
+.industrial-settings-form select:focus-visible,
+.industrial-settings-form textarea:focus-visible,
+.case-detail-inline-form input:focus-visible,
+.case-detail-inline-form select:focus-visible,
+.case-detail-inline-form textarea:focus-visible,
 .industrial-field input:focus-visible,
 .industrial-field select:focus-visible,
 .industrial-field textarea:focus-visible,
+.industrial-modal-grid input:focus-visible,
+.industrial-modal-grid select:focus-visible,
 .industrial-modal input:not([type="checkbox"]):not([type="radio"]):focus-visible,
 .industrial-modal select:focus-visible,
 .industrial-modal textarea:focus-visible,
-.industrial-modal-grid textarea:focus-visible {
+.industrial-modal-grid textarea:focus-visible,
+.privacy-review-form select:focus-visible {
   border-color: var(--industrial-control-border-focus);
   outline: 2px solid var(--industrial-control-border-focus);
   outline-offset: 2px;
   box-shadow: var(--focus-ring);
 }
 
-.industrial-field-help {
-  color: var(--industrial-control-help);
-}
-
 .industrial-field-invalid .industrial-input,
+.industrial-field-invalid .industrial-select,
 .industrial-field-invalid .industrial-text-input,
 .industrial-field-invalid .industrial-textarea-input,
 .industrial-field-invalid .industrial-select-input,
@@ -202,6 +319,45 @@
 .industrial-field-invalid .industrial-modal-grid textarea {
   border-color: var(--industrial-control-border-error);
   outline-color: var(--industrial-control-border-error);
+}
+
+select.industrial-input,
+.industrial-select,
+.industrial-select-input,
+.industrial-form select,
+.industrial-settings-form select,
+.case-detail-inline-form select,
+.industrial-modal-grid select,
+.industrial-field select,
+.privacy-review-form select {
+  appearance: none;
+  background-color: var(--industrial-select-bg);
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--industrial-select-arrow) 50%),
+    linear-gradient(135deg, var(--industrial-select-arrow) 50%, transparent 50%),
+    linear-gradient(to bottom, transparent 16%, var(--industrial-select-divider) 16%, var(--industrial-select-divider) 84%, transparent 84%);
+  background-position:
+    calc(100% - 1.05rem) calc(50% - 0.12rem),
+    calc(100% - 0.78rem) calc(50% - 0.12rem),
+    calc(100% - 2.35rem) 50%;
+  background-repeat: no-repeat;
+  background-size: 0.34rem 0.34rem, 0.34rem 0.34rem, 1px 1.65rem;
+  color: var(--industrial-text-strong, #f4f4f5);
+  color-scheme: dark;
+  padding-right: 2.8rem;
+}
+
+select.industrial-input option,
+.industrial-select option,
+.industrial-select-input option,
+.industrial-form select option,
+.industrial-settings-form select option,
+.case-detail-inline-form select option,
+.industrial-modal-grid select option,
+.industrial-field select option,
+.privacy-review-form select option {
+  background: var(--industrial-select-option-bg);
+  color: var(--industrial-text-strong, #f4f4f5);
 }
 
 .industrial-form-error-summary {
@@ -225,8 +381,7 @@
 .industrial-form-deadline,
 .industrial-modal-grid,
 .industrial-grid-two,
-.industrial-split-grid,
-.industrial-deadline-grid {
+.industrial-split-grid {
   gap: var(--layout-gap);
 }
 
@@ -236,26 +391,72 @@
 }
 
 html[data-theme='light'] .industrial-input,
+html[data-theme='light'] .industrial-select,
 html[data-theme='light'] .industrial-text-input,
 html[data-theme='light'] .industrial-textarea-input,
 html[data-theme='light'] .industrial-select-input,
+html[data-theme='light'] .industrial-form input,
+html[data-theme='light'] .industrial-form select,
+html[data-theme='light'] .industrial-form textarea,
+html[data-theme='light'] .industrial-settings-form input,
+html[data-theme='light'] .industrial-settings-form select,
+html[data-theme='light'] .industrial-settings-form textarea,
+html[data-theme='light'] .case-detail-inline-form input,
+html[data-theme='light'] .case-detail-inline-form select,
+html[data-theme='light'] .case-detail-inline-form textarea,
 html[data-theme='light'] .industrial-field input,
 html[data-theme='light'] .industrial-field select,
 html[data-theme='light'] .industrial-field textarea,
+html[data-theme='light'] .industrial-modal-grid input,
+html[data-theme='light'] .industrial-modal-grid select,
 html[data-theme='light'] .industrial-modal input:not([type="checkbox"]):not([type="radio"]),
 html[data-theme='light'] .industrial-modal select,
 html[data-theme='light'] .industrial-modal textarea,
-html[data-theme='light'] .industrial-modal-grid textarea {
+html[data-theme='light'] .industrial-modal-grid textarea,
+html[data-theme='light'] .privacy-review-form select {
   border-color: var(--border-strong);
   background: #fbfaf2;
   color: var(--text-primary);
 }
 
+html[data-theme='light'] select.industrial-input,
+html[data-theme='light'] .industrial-select,
+html[data-theme='light'] .industrial-select-input,
+html[data-theme='light'] .industrial-form select,
+html[data-theme='light'] .industrial-settings-form select,
+html[data-theme='light'] .case-detail-inline-form select,
+html[data-theme='light'] .industrial-modal-grid select,
+html[data-theme='light'] .industrial-field select,
+html[data-theme='light'] .privacy-review-form select {
+  background-color: var(--industrial-select-bg);
+  color: #141414;
+  color-scheme: light;
+}
+
+html[data-theme='light'] select.industrial-input option,
+html[data-theme='light'] .industrial-select option,
+html[data-theme='light'] .industrial-select-input option,
+html[data-theme='light'] .industrial-form select option,
+html[data-theme='light'] .industrial-settings-form select option,
+html[data-theme='light'] .case-detail-inline-form select option,
+html[data-theme='light'] .industrial-modal-grid select option,
+html[data-theme='light'] .industrial-field select option,
+html[data-theme='light'] .privacy-review-form select option {
+  color: #141414;
+}
+
 html[data-theme='light'] .industrial-input::placeholder,
 html[data-theme='light'] .industrial-text-input::placeholder,
 html[data-theme='light'] .industrial-textarea-input::placeholder,
+html[data-theme='light'] .industrial-form input::placeholder,
+html[data-theme='light'] .industrial-form textarea::placeholder,
+html[data-theme='light'] .industrial-settings-form input::placeholder,
+html[data-theme='light'] .industrial-settings-form textarea::placeholder,
+html[data-theme='light'] .case-detail-inline-form input::placeholder,
+html[data-theme='light'] .case-detail-inline-form textarea::placeholder,
 html[data-theme='light'] .industrial-field input::placeholder,
 html[data-theme='light'] .industrial-field textarea::placeholder,
+html[data-theme='light'] .industrial-modal-grid input::placeholder,
 html[data-theme='light'] .industrial-modal input::placeholder,
 html[data-theme='light'] .industrial-modal textarea::placeholder,
 html[data-theme='light'] .industrial-modal-grid textarea::placeholder {

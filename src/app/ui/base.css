@@ -2,11 +2,20 @@
 
 html {
   -webkit-text-size-adjust: 100%;
+  color-scheme: dark;
+  background: var(--industrial-bg);
   text-size-adjust: 100%;
 }
 
 body {
+  margin: 0;
   min-width: 320px;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(250, 204, 21, 0.10), transparent 30rem),
+    radial-gradient(circle at 92% 8%, rgba(82, 82, 91, 0.18), transparent 34rem),
+    var(--industrial-bg);
+  color: var(--industrial-text);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 img,
@@ -20,7 +29,12 @@ button,
 input,
 select,
 textarea {
+  font: inherit;
   min-height: var(--control-min-height);
+}
+
+button {
+  border-radius: var(--control-radius);
 }
 
 textarea {
@@ -36,6 +50,47 @@ button,
 button:disabled,
 [aria-disabled='true'] {
   cursor: not-allowed;
+}
+
+html[data-theme='light'] {
+  color-scheme: light;
+  background: var(--industrial-bg);
+}
+
+html[data-theme='light'] body {
+  background:
+    radial-gradient(circle at 18% 0%, rgba(196, 138, 0, 0.12), transparent 30rem),
+    radial-gradient(circle at 92% 8%, rgba(82, 82, 91, 0.10), transparent 34rem),
+    var(--industrial-bg);
+  color: var(--industrial-text);
+}
+
+html[data-theme='light'] .text-zinc-100,
+html[data-theme='light'] .text-zinc-300,
+html[data-theme='light'] .text-zinc-400,
+html[data-theme='light'] .text-zinc-500,
+html[data-theme='light'] .text-yellow-100,
+html[data-theme='light'] .text-yellow-300 {
+  color: var(--industrial-text) !important;
+}
+
+html[data-theme='light'] .text-red-100,
+html[data-theme='light'] .text-red-300 {
+  color: var(--industrial-danger) !important;
+}
+
+html[data-theme='light'] .border-zinc-700,
+html[data-theme='light'] .border-zinc-800,
+html[data-theme='light'] .border-yellow-500\/40,
+html[data-theme='light'] .border-yellow-500\/50 {
+  border-color: var(--industrial-border-strong) !important;
+}
+
+html[data-theme='light'] .bg-zinc-950\/95,
+html[data-theme='light'] .bg-yellow-500\/10,
+html[data-theme='light'] .bg-yellow-400\/10,
+html[data-theme='light'] .bg-red-500\/5 {
+  background-color: var(--industrial-panel) !important;
 }
 
 .skip-link {

@@ -47,6 +47,152 @@
   overflow-wrap: anywhere;
 }
 
+.case-create-form {
+  grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 1fr));
+}
+
+.case-create-form .industrial-modal-wide,
+.case-create-form .industrial-modal-actions {
+  grid-column: 1 / -1;
+}
+
+.case-tree-group {
+  display: grid;
+  gap: 6px;
+  border-top: 1px solid var(--sbv-border);
+  padding-top: 12px;
+}
+
+.case-tree-group-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--sbv-yellow);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.case-tree-group-title span {
+  margin-left: auto;
+  color: var(--sbv-muted);
+}
+
+.case-search-results {
+  display: grid;
+  gap: 8px;
+  max-height: 210px;
+  overflow: auto;
+  border-bottom: 1px solid var(--sbv-border);
+  padding-bottom: 12px;
+}
+
+.case-detail-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.case-note-form {
+  grid-template-columns: repeat(4, minmax(160px, 1fr));
+}
+
+.case-note-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.case-note-card-header > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.case-note-content,
+.case-note-next {
+  white-space: pre-wrap;
+  color: var(--sbv-text);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.case-note-next {
+  border-left: 3px solid var(--sbv-yellow);
+  background: color-mix(in srgb, var(--sbv-yellow) 7%, transparent);
+  padding: 10px 12px;
+}
+
+.case-note-link-panel {
+  grid-column: 1 / -1;
+  border: 1px solid var(--sbv-border-hard);
+  background: var(--sbv-panel-2);
+  padding: 0.85rem;
+}
+
+.case-note-link-panel > span {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: var(--sbv-text);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.case-note-link-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 0.45rem 0.75rem;
+  margin-top: 0.65rem;
+}
+
+.inline-contact-results {
+  display: grid;
+  gap: 0.5rem;
+  max-height: 14rem;
+  overflow: auto;
+  border: 1px solid var(--industrial-border, rgba(250, 204, 21, 0.25));
+  background: var(--industrial-panel, rgba(9, 9, 11, 0.92));
+  padding: 0.75rem;
+}
+
+.inline-contact-result {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  border: 1px solid var(--industrial-border, rgba(250, 204, 21, 0.25));
+  background: var(--industrial-card, rgba(24, 24, 27, 0.95));
+  color: var(--industrial-text, #f4f4f5);
+  padding: 0.65rem 0.75rem;
+  text-align: left;
+}
+
+.inline-contact-result:hover {
+  border-color: var(--industrial-accent, #facc15);
+  box-shadow: inset 3px 0 0 var(--industrial-accent, #facc15);
+}
+
+.inline-contact-result strong {
+  color: var(--industrial-text-strong, #fff);
+  font-size: 0.9rem;
+}
+
+.inline-contact-result span {
+  color: var(--industrial-muted, #a1a1aa);
+  font-size: 0.75rem;
+}
+
+.process-drop-zone {
+  border-top: 1px solid var(--industrial-border);
+  border-bottom: 1px solid var(--industrial-border);
+  padding-block: 0.75rem;
+}
+
 .case-create-path-actions {
   display: flex;
   flex-wrap: wrap;
@@ -207,8 +353,7 @@
 }
 
 .person-import-header,
-.person-import-footer,
-.person-source-actions {
+.person-import-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -302,17 +447,12 @@
   overflow: auto;
 }
 
-.person-create-dialog,
-.person-edit-dialog {
+.person-create-dialog {
   width: min(48rem, calc(100vw - 2rem));
   max-width: calc(100vw - 2rem);
   max-height: calc(100vh - 2rem);
   overflow-x: hidden;
   overflow-y: auto;
-}
-
-.person-edit-dialog {
-  width: min(60rem, calc(100vw - 2rem));
 }
 
 .person-create-form,
@@ -324,10 +464,6 @@
 
 .person-create-form {
   grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
-}
-
-.person-edit-form {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .person-create-form label,
@@ -469,47 +605,6 @@
   white-space: nowrap;
 }
 
-.person-edit-dialog {
-  width: min(76rem, calc(100vw - 2rem)) !important;
-  max-width: calc(100vw - 2rem) !important;
-  overflow-x: hidden !important;
-  overflow-y: auto;
-}
-
-.person-edit-form {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.9rem;
-  align-items: start;
-  border: 1px solid var(--sbv-border);
-  background: rgba(9, 9, 11, 0.92);
-  padding: 16px;
-  min-width: 0;
-  max-width: 100%;
-  overflow: hidden;
-}
-
-.person-edit-form label {
-  display: block;
-  min-width: 0;
-  max-width: 100%;
-}
-
-.person-edit-form label > span {
-  margin-bottom: 7px;
-  display: block;
-  color: var(--sbv-muted);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-}
-
-.person-edit-form .span-2,
-.person-edit-form .industrial-modal-wide {
-  grid-column: 1 / -1;
-}
-
 .person-detail-header {
   display: flex;
   justify-content: space-between;
@@ -587,13 +682,6 @@
 .case-handover-actions p {
   margin: 0.25rem 0 0;
   color: var(--text-muted);
-}
-
-.case-handover-actions-buttons {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  justify-content: flex-end;
 }
 
 .case-handover-validity {
@@ -1280,10 +1368,6 @@
   margin-top: .35rem;
 }
 
-.compliance-export-actions {
-  justify-content: flex-end;
-}
-
 .compliance-dsar-prefill-summary {
   margin: 0;
   border: 1px solid var(--industrial-border);
@@ -1333,20 +1417,6 @@
   border-radius: 0;
   padding: 1rem;
   background: rgba(15, 23, 42, .25);
-}
-
-.reports-export-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: .5rem;
-  justify-content: flex-end;
-}
-
-.reports-output {
-  min-height: 38rem;
-  width: 100%;
-  white-space: pre-wrap;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
 .reports-toolbar-grid {
@@ -1550,18 +1620,6 @@ button.dashboard-focus-card:focus-visible {
   box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.12);
 }
 
-.dashboard-focus-card-static {
-  cursor: default;
-  transform: none;
-}
-
-.dashboard-focus-card-static:hover {
-  border-color: rgba(148, 163, 184, 0.18);
-  background: linear-gradient(145deg, rgba(24,24,27,0.98), rgba(9,9,11,1));
-  box-shadow: none;
-  transform: none;
-}
-
 .dashboard-focus-secondary-action {
   margin-top: auto;
   min-height: 2rem;
@@ -1644,8 +1702,11 @@ button.dashboard-focus-card:focus-visible {
   background: rgba(8, 8, 12, 0.72);
   color: inherit;
   cursor: pointer;
+  min-height: 3.75rem;
   padding: 0.85rem 0.95rem;
+  justify-content: flex-start;
   text-align: left;
+  transition: border-color 120ms ease, background 120ms ease, color 120ms ease, box-shadow 120ms ease;
 }
 
 .settings-hub-tab:hover {
@@ -1704,30 +1765,9 @@ button.dashboard-focus-card:focus-visible {
 }
 
 .dashboard-focus-marker,
-.settings-hub-tab,
 .gremia-br-relevance-group,
 .case-search-source-filters {
   border-radius: 0;
-}
-
-.settings-hub-tab {
-  background: rgba(8, 8, 12, 0.72);
-  transition: border-color 120ms ease, background 120ms ease, color 120ms ease, box-shadow 120ms ease;
-}
-
-.settings-hub.industrial-card,
-.dashboard-support-card.industrial-card,
-.dashboard-focus-card-static.industrial-card {
-  cursor: default;
-}
-
-.settings-hub.industrial-card:hover,
-.dashboard-support-card.industrial-card:hover,
-.dashboard-focus-card-static.industrial-card:hover {
-  transform: none;
-  border-color: var(--sbv-border);
-  background: linear-gradient(145deg, rgba(24,24,27,0.98), rgba(9,9,11,1));
-  box-shadow: none;
 }
 
 /* App-weiter Stilblock: index.css. */
@@ -1872,20 +1912,6 @@ button.dashboard-focus-card:focus-visible {
   text-transform: uppercase;
 }
 
-html[data-theme='light'] .settings-hub.industrial-card:hover,
-html[data-theme='light'] .dashboard-support-card.industrial-card:hover,
-html[data-theme='light'] .dashboard-focus-card-static.industrial-card:hover {
-  transform: none;
-  border-color: var(--sbv-border);
-  background: linear-gradient(135deg, rgba(244,244,239,0.96), rgba(222,222,216,0.98));
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.48), 0 10px 24px rgba(0,0,0,0.10);
-}
-
-.industrial-dashboard-card {
-  border-radius: var(--industrial-corner-radius);
-}
-
-
 .industrial-inline-rule {
   border: 1px solid color-mix(in srgb, var(--industrial-accent) 44%, var(--industrial-border));
   background: color-mix(in srgb, var(--industrial-accent) 8%, transparent);
@@ -1905,85 +1931,15 @@ html[data-theme='light'] .dashboard-focus-card-static.industrial-card:hover {
   margin-bottom: 0;
 }
 
-.settings-hub-tab {
-  justify-content: flex-start;
-  min-height: 3.75rem;
-  text-align: left;
-}
-
 .settings-hub-tab[aria-selected="true"] {
   border-color: var(--industrial-accent);
   box-shadow: inset 3px 0 0 var(--industrial-accent);
-}
-
-/* Feature-spezifische Formular- und Kontextregeln.
-   Zentraler Formular-Chrome bleibt in forms.css; modulnahe Selektoren liegen hier. */
-.template-filter-form select,
-.template-detail-fields select,
-.template-create-form select,
-.person-edit-form select,
-.knowledge-search-bar select,
-.privacy-review-form select {
-  min-height: var(--control-min-height);
-  border: 1px solid var(--industrial-border-strong);
-  border-radius: var(--control-radius);
-  background-color: var(--industrial-select-bg);
-  color: var(--industrial-text-strong, #f4f4f5);
-  padding: 0.68rem 2.8rem 0.68rem 0.75rem;
-  font: inherit;
-  outline: none;
-}
-
-.template-filter-form select:focus-visible,
-.template-detail-fields select:focus-visible,
-.template-create-form select:focus-visible,
-.person-edit-form select:focus-visible,
-.knowledge-search-bar select:focus-visible,
-.privacy-review-form select:focus-visible {
-  border-color: var(--industrial-accent);
-  outline: 2px solid var(--industrial-accent);
-  outline-offset: 2px;
-  box-shadow: var(--focus-ring);
-}
-
-html[data-theme='light'] .template-filter-form select,
-html[data-theme='light'] .template-detail-fields select,
-html[data-theme='light'] .template-create-form select,
-html[data-theme='light'] .person-edit-form select,
-html[data-theme='light'] .knowledge-search-bar select,
-html[data-theme='light'] .privacy-review-form select {
-  background-color: var(--industrial-select-bg);
-  color: #141414;
-}
-
-
-.case-detail-inline-form input,
-.case-detail-inline-form select,
-.case-detail-inline-form textarea {
-  width: 100%;
-  min-width: 0;
-  min-height: var(--control-min-height, 2.5rem);
-  border: 1px solid var(--industrial-border-strong, var(--sbv-border-hard));
-  background: var(--industrial-bg, #050505);
-  color: var(--industrial-text-strong, #fafafa);
-  outline: none;
-  padding: 0.68rem 0.75rem;
-  border-radius: var(--control-radius);
 }
 
 .case-detail-inline-form textarea {
   min-height: 8rem;
   resize: vertical;
   overflow: auto;
-}
-
-.case-detail-inline-form input:focus-visible,
-.case-detail-inline-form select:focus-visible,
-.case-detail-inline-form textarea:focus-visible {
-  border-color: var(--industrial-accent, var(--sbv-yellow));
-  outline: 2px solid var(--industrial-accent, var(--sbv-yellow));
-  outline-offset: 2px;
-  box-shadow: var(--focus-ring, 0 0 0 2px rgba(250,204,21,0.14));
 }
 
 .industrial-checkbox-grid {
@@ -2004,123 +1960,8 @@ html[data-theme='light'] .privacy-review-form select {
   overflow-wrap: anywhere;
 }
 
-html[data-theme='light'] .case-detail-inline-form input,
-html[data-theme='light'] .case-detail-inline-form select,
-html[data-theme='light'] .case-detail-inline-form textarea {
-  background: #f9f9f4;
-  color: #141414;
-}
-
-select.industrial-input,
-.industrial-select,
-.industrial-form select,
-.industrial-settings-form select,
-.industrial-modal-grid select,
-.industrial-field select,
-.case-detail-inline-form select,
-.template-filter-form select,
-.template-detail-fields select,
-.template-create-form select,
-.person-edit-form select,
-.knowledge-search-bar select {
-  appearance: none;
-  background-color: var(--industrial-select-bg);
-  background-image:
-    linear-gradient(45deg, transparent 50%, var(--industrial-select-arrow) 50%),
-    linear-gradient(135deg, var(--industrial-select-arrow) 50%, transparent 50%),
-    linear-gradient(to bottom, transparent 16%, var(--industrial-select-divider) 16%, var(--industrial-select-divider) 84%, transparent 84%);
-  background-position:
-    calc(100% - 1.05rem) calc(50% - 0.12rem),
-    calc(100% - 0.78rem) calc(50% - 0.12rem),
-    calc(100% - 2.35rem) 50%;
-  background-repeat: no-repeat;
-  background-size: 0.34rem 0.34rem, 0.34rem 0.34rem, 1px 1.65rem;
-  color: var(--industrial-text-strong, #f4f4f5);
-  padding-right: 2.8rem;
-  color-scheme: dark;
-}
-
-html[data-theme='light'] select.industrial-input,
-html[data-theme='light'] .industrial-select,
-html[data-theme='light'] .industrial-form select,
-html[data-theme='light'] .industrial-settings-form select,
-html[data-theme='light'] .industrial-modal-grid select,
-html[data-theme='light'] .industrial-field select,
-html[data-theme='light'] .case-detail-inline-form select,
-html[data-theme='light'] .template-filter-form select,
-html[data-theme='light'] .template-detail-fields select,
-html[data-theme='light'] .template-create-form select,
-html[data-theme='light'] .person-edit-form select,
-html[data-theme='light'] .knowledge-search-bar select {
-  color: #141414;
-  color-scheme: light;
-}
-
-select.industrial-input:hover,
-.industrial-select:hover,
-.industrial-form select:hover,
-.industrial-settings-form select:hover,
-.industrial-modal-grid select:hover,
-.industrial-field select:hover,
-.case-detail-inline-form select:hover,
-.template-filter-form select:hover,
-.template-detail-fields select:hover,
-.template-create-form select:hover,
-.person-edit-form select:hover,
-.knowledge-search-bar select:hover,
-.privacy-review-form select:hover {
-  background-color: var(--industrial-select-bg-hover);
-  border-color: var(--industrial-accent, #facc15);
-}
-
-select.industrial-input option,
-.industrial-select option,
-.industrial-form select option,
-.industrial-settings-form select option,
-.industrial-modal-grid select option,
-.industrial-field select option,
-.case-detail-inline-form select option,
-.template-filter-form select option,
-.template-detail-fields select option,
-.template-create-form select option,
-.person-edit-form select option,
-.knowledge-search-bar select option,
-.privacy-review-form select option {
-  background: var(--industrial-select-option-bg);
-  color: var(--industrial-text-strong, #f4f4f5);
-}
-
-html[data-theme='light'] select.industrial-input option,
-html[data-theme='light'] .industrial-select option,
-html[data-theme='light'] .industrial-form select option,
-html[data-theme='light'] .industrial-settings-form select option,
-html[data-theme='light'] .industrial-modal-grid select option,
-html[data-theme='light'] .industrial-field select option,
-html[data-theme='light'] .case-detail-inline-form select option,
-html[data-theme='light'] .template-filter-form select option,
-html[data-theme='light'] .template-detail-fields select option,
-html[data-theme='light'] .template-create-form select option,
-html[data-theme='light'] .person-edit-form select option,
-html[data-theme='light'] .knowledge-search-bar select option,
-html[data-theme='light'] .privacy-review-form select option {
-  color: #141414;
-}
-
 .case-register-actions .industrial-input {
   width: 100%;
-  min-width: 0;
-}
-
-.industrial-status-card,
-.industrial-record-card,
-.industrial-selection-card {
-  display: grid;
-  gap: 0.5rem;
-  border: 1px solid var(--industrial-border);
-  border-radius: var(--control-radius);
-  background: color-mix(in srgb, var(--industrial-panel-muted) 88%, black 12%);
-  color: var(--industrial-text);
-  padding: clamp(0.75rem, 1vw, 0.95rem);
   min-width: 0;
 }
 
@@ -2159,12 +2000,6 @@ html[data-theme='light'] .privacy-review-form select option {
   resize: vertical;
 }
 
-.person-edit-form textarea,
-.person-edit-form input,
-.person-edit-form select {
-  max-width: 100%;
-}
-
 .person-list-select {
   display: grid;
   gap: 0.2rem;
@@ -2181,20 +2016,6 @@ html[data-theme='light'] .privacy-review-form select option {
 .person-list-delete:focus-visible {
   outline: 2px solid var(--industrial-accent);
   outline-offset: -2px;
-}
-
-.person-edit-form input,
-.person-edit-form select,
-.person-edit-form textarea {
-  width: 100%;
-  min-width: 0;
-  max-width: 100%;
-  border: 1px solid var(--sbv-border);
-  background: #050505;
-  color: var(--sbv-text);
-  padding: 10px 12px;
-  font: inherit;
-  box-sizing: border-box;
 }
 
 .person-edit-form textarea {
@@ -2248,16 +2069,6 @@ html[data-theme='light'] .privacy-review-form select option {
   box-shadow: 0 0 0 1px rgba(255, 213, 0, .35), 0 0 1.25rem rgba(255, 213, 0, .12);
 }
 
-.settings-hub-tab[aria-selected='true'] {
-  border-color: rgba(250, 204, 21, 0.75);
-  box-shadow: inset 0 -2px 0 rgba(250, 204, 21, 0.95);
-}
-
-.settings-hub-tab[aria-selected='true']:hover {
-  border-color: rgba(250, 204, 21, 0.75);
-  box-shadow: inset 0 -2px 0 rgba(250, 204, 21, 0.95);
-}
-
 .gremia-br-toggle-row input[type='checkbox'],
 .gremia-br-relevance-group input[type='checkbox'] {
   width: 1rem;
@@ -2269,20 +2080,6 @@ html[data-theme='light'] .privacy-review-form select option {
 .settings-hub-tab:hover,
 .settings-hub-tab[aria-selected='true']:hover {
   transform: none;
-}
-
-.text-command-help-search input {
-  width: 100%;
-  border: 1px solid rgba(148, 163, 184, 0.28);
-  border-radius: 0;
-  background: rgba(15, 23, 42, 0.86);
-  color: rgb(226, 232, 240);
-  padding: 0.7rem 0.85rem;
-}
-
-.text-command-help-search input:focus-visible {
-  outline: 2px solid rgb(250, 204, 21);
-  outline-offset: 2px;
 }
 
 html[data-theme='light'] .industrial-subpanel h4,
@@ -2322,16 +2119,6 @@ html[data-theme='light'] .industrial-record-card.is-active {
   box-shadow: inset 3px 0 0 var(--accent);
 }
 
-html[data-theme='light'] .industrial-input,
-html[data-theme='light'] .industrial-form input,
-html[data-theme='light'] .industrial-form select,
-html[data-theme='light'] .industrial-form textarea,
-html[data-theme='light'] .industrial-settings-form input,
-html[data-theme='light'] .industrial-settings-form select,
-html[data-theme='light'] .industrial-settings-form textarea,
-html[data-theme='light'] .industrial-field input,
-html[data-theme='light'] .industrial-field select,
-html[data-theme='light'] .industrial-field textarea,
 html[data-theme='light'] .knowledge-search-bar input,
 html[data-theme='light'] .knowledge-search-bar select {
   border-color: var(--border-strong);
@@ -2339,23 +2126,23 @@ html[data-theme='light'] .knowledge-search-bar select {
   color: var(--text-primary);
 }
 
-html[data-theme='light'] .industrial-input::placeholder,
-html[data-theme='light'] .industrial-form input::placeholder,
-html[data-theme='light'] .industrial-form textarea::placeholder,
-html[data-theme='light'] .industrial-settings-form input::placeholder,
-html[data-theme='light'] .industrial-settings-form textarea::placeholder,
-html[data-theme='light'] .industrial-field input::placeholder,
-html[data-theme='light'] .industrial-field textarea::placeholder,
 html[data-theme='light'] .knowledge-search-bar input::placeholder {
   color: #6a6a60;
   opacity: 1;
 }
 
 .text-command-help-search input {
+  width: 100%;
+  padding: 0.7rem 0.85rem;
   border-radius: 0;
   border-color: var(--industrial-border-strong);
   background: var(--industrial-bg);
   color: var(--industrial-text);
+}
+
+.text-command-help-search input:focus-visible {
+  outline: 2px solid var(--industrial-accent);
+  outline-offset: 2px;
 }
 
 .text-command-help-search input::placeholder {
@@ -2406,6 +2193,196 @@ html[data-theme='light'] .text-command-help-modal .industrial-icon-button {
   margin: 0;
 }
 
+.industrial-report-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.industrial-report-card {
+  display: flex;
+  min-height: 210px;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 1px solid var(--industrial-border);
+  border-left: 4px solid var(--industrial-accent);
+  background: linear-gradient(135deg, var(--industrial-panel), var(--industrial-panel-muted));
+  padding: 1rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.industrial-report-card h3 {
+  margin-top: 0.35rem;
+  color: var(--industrial-text);
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.industrial-report-card p {
+  margin-top: 0.5rem;
+  color: var(--industrial-text-muted);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.industrial-report-card.clickable {
+  cursor: pointer;
+  user-select: none;
+  transition:
+    border-color 140ms ease,
+    transform 140ms ease,
+    background 140ms ease;
+}
+
+.industrial-report-card.clickable:hover,
+.industrial-report-card.clickable:focus-visible {
+  border-color: var(--industrial-accent);
+  background: linear-gradient(135deg, var(--industrial-panel-muted), var(--industrial-panel));
+  transform: translateY(-1px);
+}
+
+.industrial-report-card.is-busy {
+  cursor: progress;
+  opacity: 0.78;
+}
+
+.industrial-report-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-top: 1px solid var(--industrial-border);
+  padding-top: 0.75rem;
+  color: var(--industrial-accent);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.report-result-panel {
+  border-left: 4px solid var(--industrial-accent);
+}
+
+.industrial-danger-zone {
+  border-color: rgba(248, 113, 113, 0.55);
+}
+
+.industrial-prewrap {
+  margin: 0.65rem 0 0;
+  min-height: 160px;
+  max-height: 340px;
+  overflow: auto;
+  white-space: pre-wrap;
+  border: 1px solid var(--industrial-border);
+  background: var(--industrial-panel);
+  color: var(--industrial-text);
+  padding: 0.85rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+.industrial-output-area {
+  width: 100%;
+  min-height: 340px;
+  border: 1px solid var(--industrial-border);
+  background: var(--industrial-panel);
+  color: var(--industrial-text);
+  padding: 0.9rem;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.contextual-template-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.contextual-template-actions.compact {
+  margin-top: 0.75rem;
+}
+
+.industrial-inline-link {
+  border: none;
+  background: transparent;
+  color: var(--accent-strong, var(--industrial-accent));
+  cursor: pointer;
+  padding: 0;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-decoration: underline;
+  text-underline-offset: 0.2rem;
+  text-transform: uppercase;
+}
+
+.industrial-inline-link:hover:not(:disabled) {
+  color: var(--text, var(--industrial-text));
+}
+
+.industrial-inline-link:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.industrial-inline-warning {
+  color: var(--danger, var(--industrial-danger));
+  font-size: 0.78rem;
+}
+
+.template-preview-body pre {
+  margin: 0;
+  white-space: pre-wrap;
+  font-family: inherit;
+  line-height: 1.55;
+}
+
+.industrial-command-results {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: .45rem;
+  max-height: 18rem;
+  overflow: auto;
+}
+
+.industrial-command-results button {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  width: 100%;
+  border: 1px solid var(--sbv-border);
+  background: var(--sbv-panel);
+  color: var(--sbv-text);
+  padding: .65rem .75rem;
+  text-align: left;
+}
+
+.industrial-command-results button:hover,
+.industrial-command-results button:focus-visible {
+  border-color: var(--sbv-yellow);
+}
+
+.industrial-command-results p {
+  margin: 0;
+  color: var(--sbv-muted);
+}
+
+.process-overview-topline-actions {
+  justify-content: flex-end;
+}
+
+html[data-theme='light'] .case-note-next {
+  background: color-mix(in srgb, var(--industrial-accent) 10%, transparent);
+}
+
 html[data-theme='light'] .person-lifecycle-badge.ok {
   border-color: rgba(21, 128, 61, 0.48);
   background: rgba(187, 247, 208, 0.9);
@@ -2428,12 +2405,6 @@ html[data-theme='light'] .person-lifecycle-badge.muted {
   border-color: rgba(71, 85, 105, 0.34);
   background: rgba(226, 232, 240, 0.86);
   color: #334155;
-}
-
-.reports-period-error {
-  grid-column: 1 / -1;
-  margin: 0;
-  font-weight: 700;
 }
 
 .reports-data-source-note,

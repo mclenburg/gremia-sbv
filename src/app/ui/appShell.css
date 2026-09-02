@@ -1,9 +1,24 @@
 /* Gremia.SBV 1.0 UI-Fundament: App-Shell, Login-Shell und Hauptlayout. */
 
 .industrial-shell {
+  background:
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(255,255,255,0.018) 1px, transparent 1px),
+    radial-gradient(circle at 60% 0%, rgba(250,204,21,0.08), transparent 30rem),
+    var(--industrial-bg);
+  background-size: 32px 32px, 32px 32px, auto, auto;
   display: grid;
   grid-template-columns: var(--layout-sidebar-width) minmax(0, 1fr);
   min-height: 100vh;
+}
+
+html[data-theme='light'] .industrial-shell {
+  background:
+    linear-gradient(90deg, rgba(0,0,0,0.055) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(0,0,0,0.040) 1px, transparent 1px),
+    radial-gradient(circle at 60% 0%, rgba(196,138,0,0.10), transparent 30rem),
+    var(--industrial-bg);
+  background-size: 32px 32px, 32px 32px, auto, auto;
 }
 
 /* Auth surfaces must remain centered overlays.
@@ -63,16 +78,40 @@
   min-height: 3rem;
 }
 
+.login-panel::after,
+.scanline {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.scanline {
+  background: repeating-linear-gradient(to bottom, transparent 0, transparent 6px, rgba(255,255,255,0.018) 7px);
+  mix-blend-mode: screen;
+}
+
+html[data-theme='light'] .scanline {
+  background: repeating-linear-gradient(to bottom, transparent 0, transparent 6px, rgba(0,0,0,0.025) 7px);
+  mix-blend-mode: multiply;
+}
+
 .industrial-sidebar {
-  position: sticky;
-  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
   grid-column: 1;
-  width: var(--layout-sidebar-width);
   height: 100vh;
+  width: var(--layout-sidebar-width);
+  border-right: 1px solid var(--industrial-border);
+  background: linear-gradient(180deg, rgba(24,24,27,0.98), rgba(9,9,11,0.99));
   overflow: auto;
+  padding: 18px 14px;
+  position: sticky;
   scrollbar-color: color-mix(in srgb, var(--industrial-border-strong) 72%, transparent) color-mix(in srgb, var(--industrial-panel) 86%, transparent);
   scrollbar-gutter: stable;
   scrollbar-width: thin;
+  top: 0;
+  box-shadow: 10px 0 30px rgba(0,0,0,0.45);
 }
 
 .industrial-sidebar::-webkit-scrollbar {
@@ -105,7 +144,9 @@
 }
 
 html[data-theme='light'] .industrial-sidebar {
+  background: linear-gradient(180deg, rgba(238,238,234,0.98), rgba(202,202,195,0.99));
   scrollbar-color: color-mix(in srgb, var(--industrial-border-strong) 68%, transparent) color-mix(in srgb, var(--industrial-panel) 72%, transparent);
+  box-shadow: 10px 0 28px rgba(0,0,0,0.12);
 }
 
 html[data-theme='light'] .industrial-sidebar::-webkit-scrollbar-track {
@@ -122,8 +163,68 @@ html[data-theme='light'] .industrial-sidebar::-webkit-scrollbar-thumb {
   grid-column: 2;
   width: min(100%, var(--layout-content-max));
   margin-left: 0;
+  min-height: 100vh;
   padding: var(--layout-page-padding);
   scroll-margin-top: 1rem;
+}
+
+.brand-block {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--industrial-border-strong);
+  background: var(--industrial-panel);
+  padding: 12px;
+  position: relative;
+}
+
+.brand-block::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--industrial-accent), transparent);
+  opacity: 0.55;
+}
+
+.brand-mark {
+  display: grid;
+  width: 45px;
+  height: 45px;
+  place-items: center;
+  border: 1px solid var(--industrial-accent);
+  background: color-mix(in srgb, var(--industrial-accent) 12%, transparent);
+  color: var(--industrial-accent);
+  font-weight: 950;
+  letter-spacing: -0.05em;
+  box-shadow: 0 0 20px rgba(250,204,21,0.16), inset 0 0 16px rgba(250,204,21,0.08);
+}
+
+.brand-block strong {
+  display: block;
+  color: var(--industrial-text-strong);
+  font-size: 16px;
+  line-height: 1;
+}
+
+.brand-block span {
+  display: block;
+  margin-top: 6px;
+  color: var(--industrial-text-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.32em;
+}
+
+.industrial-nav {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+  overflow: auto;
+  padding-right: 2px;
 }
 
 .industrial-content:focus-visible {
@@ -143,12 +244,36 @@ html[data-theme='light'] .industrial-sidebar::-webkit-scrollbar-thumb {
 }
 
 .industrial-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid var(--industrial-border);
+  background: rgba(9,9,11,0.82);
   gap: var(--layout-gap);
+  padding: 14px 18px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+}
+
+.industrial-topbar h2 {
+  margin: 2px 0 0;
+  font-size: 22px;
+  font-weight: 950;
+  letter-spacing: -0.04em;
+}
+
+.industrial-state {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--industrial-text-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .industrial-topbar h2,
 .industrial-title,
-.industrial-card h2,
 .module-frame h1,
 .industrial-panel-header h2,
 .industrial-modal-header h2 {
@@ -161,7 +286,26 @@ html[data-theme='light'] .industrial-sidebar::-webkit-scrollbar-thumb {
 .industrial-module-header,
 .industrial-settings-form,
 .login-panel {
+  border: 1px solid var(--industrial-border);
   border-radius: var(--control-radius);
+  background: linear-gradient(135deg, rgba(24,24,27,0.95), rgba(9,9,11,0.96));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 10px 28px rgba(0,0,0,0.28);
+  position: relative;
+}
+
+.industrial-hero::before,
+.industrial-module-header::before,
+.industrial-panel::before,
+.login-panel::before,
+.industrial-settings-form::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 0;
+  width: 76px;
+  height: 2px;
+  background: var(--industrial-accent);
+  box-shadow: 0 0 18px rgba(250,204,21,0.34);
 }
 
 .industrial-panel-header {
@@ -220,6 +364,32 @@ html[data-theme='light'] .industrial-sidebar::-webkit-scrollbar-thumb {
   margin-bottom: clamp(0.75rem, 1.1vw, 1rem);
 }
 
+.industrial-hero {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.industrial-kicker {
+  margin: 0 0 8px;
+  color: var(--industrial-accent);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+}
+
+.industrial-title {
+  margin: 0;
+  font-size: clamp(2rem, 3.5vw, 3.5rem);
+  font-weight: 950;
+  letter-spacing: -0.07em;
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+
 .industrial-hero,
 .industrial-panel,
 .industrial-module-header,
@@ -254,14 +424,6 @@ html[data-theme='light'] .industrial-version-badge strong {
   --auth-panel-min-height: auto;
 }
 
-.login-shell .login-panel-compact,
-.login-shell .login-panel-medium,
-.login-shell .login-panel-wide {
-  width: min(100%, var(--auth-panel-max-width));
-  max-width: var(--auth-panel-max-width);
-  min-height: var(--auth-panel-min-height);
-}
-
 .industrial-nav-primary,
 .industrial-nav-group-items {
   display: grid;
@@ -289,4 +451,19 @@ html[data-theme='light'] .industrial-version-badge strong {
   margin: 0 0 0.1rem;
   padding: 0 0.75rem;
   text-transform: uppercase;
+}
+
+html[data-theme='light'] .brand-block,
+html[data-theme='light'] .industrial-topbar {
+  background: var(--surface-base);
+}
+
+html[data-theme='light'] .industrial-hero,
+html[data-theme='light'] .industrial-module-header,
+html[data-theme='light'] .industrial-panel,
+html[data-theme='light'] .login-panel,
+html[data-theme='light'] .industrial-settings-form,
+html[data-theme='light'] .industrial-topbar {
+  background: linear-gradient(135deg, rgba(244,244,239,0.96), rgba(222,222,216,0.98));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.48), 0 10px 24px rgba(0,0,0,0.10);
 }

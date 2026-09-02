@@ -207,20 +207,6 @@ html[data-theme='light'] .case-process-document-link {
   background: rgba(255,255,255,0.62);
 }
 
-.case-process-save-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-3, 0.75rem);
-  border-top: 1px solid var(--industrial-border);
-  padding-top: var(--space-3, 0.75rem);
-}
-
-.case-process-save-row .industrial-meta {
-  margin: 0;
-  flex: 1 1 18rem;
-}
-
 /* App-weite Workbench-Ergänzungen.
    Neue Moduloberflächen nutzen zentrale Industrial-/Workbench-Klassen. */
 .participation-card {
@@ -438,8 +424,4 @@ html[data-theme='light'] .case-process-document-link {
 
 .termination-privacy-panel {
   border-color: rgba(251, 191, 36, .45);
-}
-
-.bem-overview-panel .process-overview-groups {
-  gap: .65rem;
 }

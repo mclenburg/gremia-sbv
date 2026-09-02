@@ -275,14 +275,12 @@
   }
 
   .person-toolbar,
-  .person-import-footer,
-  .person-source-actions {
+  .person-import-footer {
     display: grid;
     grid-template-columns: 1fr;
   }
 
   .person-import-footer button,
-  .person-source-actions button,
   .person-toolbar button {
     width: 100%;
   }
@@ -299,23 +297,10 @@
   }
 }
 
-@media (max-width: 860px) {
-  .person-edit-form {
-    grid-template-columns: 1fr;
-  }
-}
-
 @media (max-width: 720px) {
-  .person-create-dialog,
-  .person-edit-dialog {
+  .person-create-dialog {
     width: calc(100vw - 1rem);
     max-width: calc(100vw - 1rem);
-  }
-}
-
-@media (max-width: 1180px) {
-  .person-edit-form {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -326,9 +311,6 @@
     grid-template-columns: 1fr;
   }
 
-  .person-edit-form {
-    grid-template-columns: 1fr;
-  }
 }
 
 @media (max-width: 900px) {
@@ -395,11 +377,6 @@
   .case-workbench-footer-action-label small {
     display: none;
   }
-}
-
-@media (max-width: 900px) {
-  .case-handover-actions { flex-direction: column; }
-  .case-handover-actions-buttons { justify-content: flex-start; }
 }
 
 @media (max-width: 1250px) {
@@ -547,28 +524,6 @@
     grid-template-columns: 1fr;
   }
 
-  .compliance-export-actions {
-    width: 100%;
-    justify-content: stretch;
-  }
-
-  .compliance-export-actions button {
-    flex: 1 1 12rem;
-  }
-}
-
-@media (max-width: 58rem) {
-  .reports-preview-header {
-    flex-direction: column;
-  }
-
-  .reports-export-actions {
-    width: 100%;
-  }
-
-  .reports-export-actions button {
-    flex: 1 1 12rem;
-  }
 }
 
 @media (max-width: 78rem) {
