@@ -3,6 +3,7 @@ import type {
   GremiaBrDashboardOverview,
   GremiaBrGeneratedPdfDocument,
   GremiaBrPublicSettings,
+  GremiaBrWorkspaceActionRecord,
 } from "../../../domain/models/gremia-br.model";
 import { waitForBridge } from "../../core/bridge/waitForBridge";
 import type { BrMeetingDraft } from "./gremiaBrWorkspaceModel";
@@ -12,6 +13,7 @@ export type GremiaBrWorkspaceSnapshot = {
   settings: GremiaBrPublicSettings;
   overview: GremiaBrDashboardOverview;
   documents: GremiaBrGeneratedPdfDocument[];
+  actions: GremiaBrWorkspaceActionRecord[];
   cases: CaseRecord[];
 };
 
@@ -30,8 +32,9 @@ export async function loadWorkspaceSnapshot(): Promise<GremiaBrWorkspaceSnapshot
   const settings = await bridge.gremiaBr.getSettings();
   const overview = await bridge.gremiaBr.getDashboardOverview();
   const documents = settings.enabled ? await bridge.gremiaBr.listTransferableDocuments(100) : [];
+  const actions = settings.enabled ? await bridge.gremiaBr.listWorkspaceActions(50) : [];
   const cases = settings.enabled && bridge.cases ? await bridge.cases.list() : [];
-  return { settings, overview, documents, cases };
+  return { settings, overview, documents, actions, cases };
 }
 
 export async function refreshReadContextSnapshot(): Promise<{ message: string; snapshot: GremiaBrWorkspaceSnapshot }> {
@@ -46,6 +49,12 @@ export async function loadTransferableDocuments(): Promise<GremiaBrGeneratedPdfD
   const bridge = await waitForBridge();
   if (!bridge?.gremiaBr) throw new Error("Gremia.BR-Dienst ist nicht erreichbar.");
   return bridge.gremiaBr.listTransferableDocuments(100);
+}
+
+export async function loadWorkspaceActions(): Promise<GremiaBrWorkspaceActionRecord[]> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error("Gremia.BR-Dienst ist nicht erreichbar.");
+  return bridge.gremiaBr.listWorkspaceActions(50);
 }
 
 export async function createCaseSummaryPdf(draft: GremiaBrWorkspaceDraft) {

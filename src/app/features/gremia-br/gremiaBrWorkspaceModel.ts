@@ -3,6 +3,7 @@ import type {
   GremiaBrDashboardOverview,
   GremiaBrGeneratedPdfDocument,
   GremiaBrPublicSettings,
+  GremiaBrWorkspaceActionRecord,
 } from "../../../domain/models/gremia-br.model";
 import type { IndustrialFieldOption } from "../../shared/components/IndustrialFormCore";
 import type { WorkbenchStatItem } from "../../shared/components/WorkbenchLayout";
@@ -132,6 +133,37 @@ export function resolveGremiaBrDecisionRows(overview: GremiaBrDashboardOverview)
       gremiaBrItemTitle(decision, "Beschluss"),
       gremiaBrItemDate(decision),
       gremiaBrItemStatus(decision),
+    ],
+  }));
+}
+
+const WORKSPACE_ACTION_LABELS: Record<GremiaBrWorkspaceActionRecord["actionType"], string> = {
+  document_uploaded: "PDF übertragen",
+  document_shared: "PDF freigeben",
+  agenda_item_requested: "TOP angefordert",
+  information_requested: "Information angefordert",
+};
+
+const WORKSPACE_ACTION_STATUS_LABELS: Record<GremiaBrWorkspaceActionRecord["status"], string> = {
+  uploaded: "Übertragen",
+  shared: "Freigegeben",
+  requested: "Angefordert",
+  failed: "Fehlgeschlagen",
+};
+
+export function resolveGremiaBrWorkspaceActionRows(actions: GremiaBrWorkspaceActionRecord[]) {
+  return actions.slice(0, 10).map((action) => ({
+    id: action.id,
+    cells: [
+      action.createdAt,
+      WORKSPACE_ACTION_LABELS[action.actionType],
+      [
+        action.localDocumentTitle,
+        action.caseNumber ? `Fall ${action.caseNumber}` : undefined,
+        action.remoteMeetingId ? `Sitzung ${action.remoteMeetingId}` : undefined,
+      ].filter(Boolean).join(" · ") || "—",
+      action.targetBodyName ?? action.targetSecurityDomain ?? "—",
+      WORKSPACE_ACTION_STATUS_LABELS[action.status],
     ],
   }));
 }

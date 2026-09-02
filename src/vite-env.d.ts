@@ -126,7 +126,7 @@ import type {
   UpdateLegalNormInput,
 } from "./domain/models/knowledge.model";
 import type { TemplateDefaultValues } from "./domain/models/template-default.model";
-import type { CreateGremiaBrCaseSummaryInput, CreateGremiaBrExternalReferenceInput, GremiaBrAgendaItemRequestResult, GremiaBrCachedOverview, GremiaBrCacheRefreshResult, GremiaBrConnectionTestResult, GremiaBrCreatedPdfDocument, GremiaBrDashboardOverview, GremiaBrDocumentTransferResult, GremiaBrExternalReferenceRecord, GremiaBrGeneratedPdfDocument, GremiaBrInlineSuggestion, GremiaBrPublicSettings, GremiaBrRelevanceSettings, GremiaBrSettingsInput, GremiaBrWorkspaceBody, RequestGremiaBrAgendaItemInput, TransferGremiaBrDocumentInput } from "./domain/models/gremia-br.model";
+import type { CreateGremiaBrCaseSummaryInput, CreateGremiaBrExternalReferenceInput, GremiaBrAgendaItemRequestResult, GremiaBrCachedOverview, GremiaBrCacheRefreshResult, GremiaBrConnectionTestResult, GremiaBrCreatedPdfDocument, GremiaBrDashboardOverview, GremiaBrDocumentTransferResult, GremiaBrExternalReferenceRecord, GremiaBrGeneratedPdfDocument, GremiaBrInlineSuggestion, GremiaBrPublicSettings, GremiaBrRelevanceSettings, GremiaBrSettingsInput, GremiaBrWorkspaceActionRecord, GremiaBrWorkspaceBody, RequestGremiaBrAgendaItemInput, TransferGremiaBrDocumentInput } from "./domain/models/gremia-br.model";
 
 import type {
   CreateTemplateInput,
@@ -509,6 +509,7 @@ declare global {
         testConnection(): Promise<GremiaBrConnectionTestResult>;
         listWorkspaceBodies(): Promise<GremiaBrWorkspaceBody[]>;
         listTransferableDocuments(limit?: number): Promise<GremiaBrGeneratedPdfDocument[]>;
+        listWorkspaceActions(limit?: number): Promise<GremiaBrWorkspaceActionRecord[]>;
         createCaseSummaryDocument(input: CreateGremiaBrCaseSummaryInput): Promise<GremiaBrCreatedPdfDocument>;
         transferGeneratedPdf(input: TransferGremiaBrDocumentInput): Promise<GremiaBrDocumentTransferResult>;
         requestAgendaItem(input: RequestGremiaBrAgendaItemInput): Promise<GremiaBrAgendaItemRequestResult>;

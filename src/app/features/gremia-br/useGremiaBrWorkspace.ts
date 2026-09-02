@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import type { CaseRecord } from "../../../domain/models/case.model";
-import type { GremiaBrDashboardOverview, GremiaBrGeneratedPdfDocument } from "../../../domain/models/gremia-br.model";
+import type { GremiaBrDashboardOverview, GremiaBrGeneratedPdfDocument, GremiaBrWorkspaceActionRecord } from "../../../domain/models/gremia-br.model";
 import {
   createCaseSummaryPdf,
   importBrMeeting,
   loadTransferableDocuments,
+  loadWorkspaceActions,
   loadWorkspaceSnapshot,
   refreshReadContextSnapshot,
   requestAgendaItem,
@@ -39,6 +40,7 @@ export function useGremiaBrWorkspace(announce: (message: string, politeness?: "p
   const [settings, setSettings] = useState(EMPTY_GREMIA_BR_SETTINGS);
   const [overview, setOverview] = useState<GremiaBrDashboardOverview>(EMPTY_GREMIA_BR_DASHBOARD);
   const [documents, setDocuments] = useState<GremiaBrGeneratedPdfDocument[]>([]);
+  const [actions, setActions] = useState<GremiaBrWorkspaceActionRecord[]>([]);
   const [cases, setCases] = useState<CaseRecord[]>([]);
   const [draft, setDraft] = useState(INITIAL_DRAFT);
   const [status, setStatus] = useState("");
@@ -50,6 +52,7 @@ export function useGremiaBrWorkspace(announce: (message: string, politeness?: "p
     setSettings(snapshot.settings);
     setOverview(snapshot.overview);
     setDocuments(snapshot.documents);
+    setActions(snapshot.actions);
     setCases(snapshot.cases);
   }
 
@@ -91,6 +94,7 @@ export function useGremiaBrWorkspace(announce: (message: string, politeness?: "p
     settings,
     overview,
     documents,
+    actions,
     cases,
     draft,
     status,
@@ -110,11 +114,20 @@ export function useGremiaBrWorkspace(announce: (message: string, politeness?: "p
     createCaseSummary: () => runAction("summary", async () => {
       const created = await createCaseSummaryPdf(draft);
       setDocuments(await loadTransferableDocuments());
+      setActions(await loadWorkspaceActions());
       updateDraft("selectedDocumentId", created.id);
       return `Fallzusammenfassung wurde erzeugt: ${created.filename}`;
     }),
-    transferDocument: () => runAction("transfer", () => transferGeneratedPdf(draft)),
-    requestAgendaItem: () => runAction("agenda", () => requestAgendaItem(draft)),
+    transferDocument: () => runAction("transfer", async () => {
+      const message = await transferGeneratedPdf(draft);
+      setActions(await loadWorkspaceActions());
+      return message;
+    }),
+    requestAgendaItem: () => runAction("agenda", async () => {
+      const message = await requestAgendaItem(draft);
+      setActions(await loadWorkspaceActions());
+      return message;
+    }),
     importMeeting: () => runAction("import", () => importBrMeeting(draft, meetingDrafts)),
   };
 }

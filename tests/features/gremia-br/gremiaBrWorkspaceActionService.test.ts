@@ -343,6 +343,36 @@ describe('GremiaBrWorkspaceActionService', () => {
     }
   });
 
+  it('stellt bewusst ausgelöste Gremia.BR-Arbeitsbereichsaktionen als sortierte Kontrollhistorie bereit', async () => {
+    const { database, storageRoot } = await createFixture();
+    try {
+      insertCaseFixture(database);
+      const auth = new GremiaBrActionAuthFake(undefined, {
+        items: [],
+      });
+      const service = new GremiaBrWorkspaceActionService(database, () => storageRoot, auth);
+
+      await service.requestAgendaItem({
+        meetingId: 'meeting-1',
+        title: 'SBV-Beteiligung Arbeitsplatzanpassung',
+      });
+
+      const actions = service.listActionHistory();
+
+      expect(actions).toHaveLength(1);
+      expect(actions[0]).toMatchObject({
+        actionType: 'agenda_item_requested',
+        remoteMeetingId: 'meeting-1',
+        remoteAgendaVersionId: 'agenda-version-2',
+        purpose: 'SBV-Tagesordnungspunkt angefordert: SBV-Beteiligung Arbeitsplatzanpassung',
+        status: 'requested',
+      });
+    } finally {
+      database.close();
+      fs.rmSync(storageRoot, { recursive: true, force: true });
+    }
+  });
+
   it('blockiert Aktionen ohne ausgewählten Gremia.BR-2.0-Arbeitsbereich mit konkreter Nutzerführung', async () => {
     const { database, storageRoot } = await createFixture();
     try {

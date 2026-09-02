@@ -12,6 +12,7 @@ import {
   GremiaBrSummary,
   GremiaBrWorkspaceFeedback,
   GremiaBrWorkspaceHeader,
+  GremiaBrWorkspaceActionHistory,
   isGremiaBrActionDisabled,
 } from "./GremiaBrWorkspacePanels";
 import { useGremiaBrWorkspace } from "./useGremiaBrWorkspace";
@@ -70,6 +71,7 @@ export function GremiaBrWorkspaceView() {
           onImport={() => void workspace.importMeeting()}
         />
       </div>
+      <GremiaBrWorkspaceActionHistory actions={workspace.actions} />
       <GremiaBrCacheTables overview={workspace.overview} />
     </section>
   );

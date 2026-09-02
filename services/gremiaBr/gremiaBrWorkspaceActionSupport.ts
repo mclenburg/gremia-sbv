@@ -102,6 +102,24 @@ export type WorkspaceActionInput = {
   status: 'uploaded' | 'shared' | 'requested' | 'failed';
 };
 
+export type WorkspaceActionRow = {
+  id: string;
+  action_type: 'document_uploaded' | 'document_shared' | 'agenda_item_requested' | 'information_requested';
+  local_document_id: string | null;
+  local_document_title: string | null;
+  case_id: string | null;
+  case_number: string | null;
+  target_body_name: string | null;
+  target_security_domain: string | null;
+  remote_document_id: string | null;
+  remote_share_id: string | null;
+  remote_meeting_id: string | null;
+  remote_agenda_version_id: string | null;
+  purpose: string;
+  status: 'uploaded' | 'shared' | 'requested' | 'failed';
+  created_at: string;
+};
+
 type GremiaBrUploadState =
   | 'CREATED'
   | 'QUARANTINED'

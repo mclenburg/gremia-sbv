@@ -6,6 +6,7 @@ import {
   meetingOptions,
   resolveGremiaBrDecisionRows,
   resolveGremiaBrMeetingRows,
+  resolveGremiaBrWorkspaceActionRows,
   resolveGremiaBrWorkspaceSummary,
 } from "../../src/app/features/gremia-br/gremiaBrWorkspaceModel";
 
@@ -91,5 +92,29 @@ describe("Gremia.BR-Arbeitsbereich View-Model", () => {
       value: "meeting-1",
       label: "2026-10-01T09:00:00.000Z · SBV-Jahresplanung",
     });
+  });
+
+  it("bereitet Gremia.BR-Arbeitsbereichsaktionen ohne Rohstatus für die Kontrollsicht auf", () => {
+    expect(resolveGremiaBrWorkspaceActionRows([{
+      id: "action-1",
+      actionType: "document_shared",
+      localDocumentId: "doc-1",
+      localDocumentTitle: "Fallzusammenfassung",
+      caseId: "case-1",
+      caseNumber: "SBV-2026-001",
+      targetBodyName: "Betriebsrat",
+      purpose: "BR informieren",
+      status: "requested",
+      createdAt: "2026-10-01T12:00:00.000Z",
+    }])).toEqual([{
+      id: "action-1",
+      cells: [
+        "2026-10-01T12:00:00.000Z",
+        "PDF freigeben",
+        "Fallzusammenfassung · Fall SBV-2026-001",
+        "Betriebsrat",
+        "Angefordert",
+      ],
+    }]);
   });
 });

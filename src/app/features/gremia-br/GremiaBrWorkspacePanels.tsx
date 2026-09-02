@@ -4,6 +4,7 @@ import type {
   GremiaBrGeneratedPdfDocument,
   GremiaBrPublicSettings,
   GremiaBrProtectionClass,
+  GremiaBrWorkspaceActionRecord,
 } from "../../../domain/models/gremia-br.model";
 import { IndustrialButton, ToolbarButton } from "../../shared/components/IndustrialButton";
 import { SearchableSelectInput, SelectInput, TextareaInput, TextInput } from "../../shared/components/IndustrialForm";
@@ -16,6 +17,7 @@ import {
   meetingOptions,
   resolveGremiaBrDecisionRows,
   resolveGremiaBrMeetingRows,
+  resolveGremiaBrWorkspaceActionRows,
   resolveGremiaBrWorkspaceSummary,
   workspaceLabel,
 } from "./gremiaBrWorkspaceModel";
@@ -290,6 +292,23 @@ export function GremiaBrCacheTables({ overview }: { overview: GremiaBrDashboardO
         />
       </IndustrialPanel>
     </div>
+  );
+}
+
+export function GremiaBrWorkspaceActionHistory({ actions }: { actions: GremiaBrWorkspaceActionRecord[] }) {
+  return (
+    <IndustrialPanel
+      kicker="Nachvollziehbarkeit"
+      title="Gremia.BR-Aktionshistorie"
+      description="Bewusst ausgelöste Übergaben und Anforderungen werden ohne Dokumentinhalt oder Suchbegriffe angezeigt."
+    >
+      <DataTable
+        ariaLabel="Gremia.BR-Aktionshistorie"
+        headers={["Zeitpunkt", "Aktion", "Bezug", "Ziel", "Status"]}
+        rows={resolveGremiaBrWorkspaceActionRows(actions)}
+        empty={<EmptyState title="Noch keine Aktionen" text="Hier erscheinen PDF-Übergaben, Freigaben und Tagesordnungspunkt-Anforderungen." />}
+      />
+    </IndustrialPanel>
   );
 }
 

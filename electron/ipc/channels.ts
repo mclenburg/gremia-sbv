@@ -85,6 +85,7 @@ export const IPC_CHANNELS = Object.freeze({
   gremiaBrCaseSummaryCreate: "gremia-br:case-summary:create",
   gremiaBrDocumentTransfer: "gremia-br:documents:transfer",
   gremiaBrDocumentsList: "gremia-br:documents:list",
+  gremiaBrWorkspaceActionsList: "gremia-br:workspace-actions:list",
   gremiaBrInlineSuggest: "gremia-br:inline:suggest",
   gremiaBrReferencesCreate: "gremia-br:references:create",
   gremiaBrReferencesDelete: "gremia-br:references:delete",

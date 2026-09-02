@@ -13,6 +13,7 @@ import type {
   GremiaBrDocumentTransferResult,
   GremiaBrGeneratedPdfDocument,
   GremiaBrProtectionClass,
+  GremiaBrWorkspaceActionRecord,
   RequestGremiaBrAgendaItemInput,
   TransferGremiaBrDocumentInput,
 } from '../../src/domain/models/gremia-br.model.js';
@@ -39,6 +40,7 @@ import {
   type GremiaBrWorkspaceActionAuthPort,
   type MeasureRow,
   type WorkspaceActionInput,
+  type WorkspaceActionRow,
 } from './gremiaBrWorkspaceActionSupport.js';
 
 export class GremiaBrWorkspaceActionService {
@@ -70,6 +72,36 @@ export class GremiaBrWorkspaceActionService {
       documentKind: row.document_kind ?? 'generic',
       sha256: row.sha256 ?? undefined,
       sizeBytes: row.size_bytes ?? undefined,
+      createdAt: row.created_at,
+    }));
+  }
+
+  listActionHistory(limit = 50): GremiaBrWorkspaceActionRecord[] {
+    return this.database.prepare<WorkspaceActionRow>(`
+      SELECT a.id, a.action_type, a.local_document_id, d.title AS local_document_title,
+             a.case_id, c.case_number, a.target_body_name, a.target_security_domain,
+             a.remote_document_id, a.remote_share_id, a.remote_meeting_id, a.remote_agenda_version_id,
+             a.purpose, a.status, a.created_at
+      FROM gremia_br_workspace_actions a
+      LEFT JOIN generated_documents d ON d.id = a.local_document_id
+      LEFT JOIN cases c ON c.id = a.case_id
+      ORDER BY a.created_at DESC
+      LIMIT ?
+    `).all(boundedLimit(limit)).map((row) => ({
+      id: row.id,
+      actionType: row.action_type,
+      localDocumentId: row.local_document_id ?? undefined,
+      localDocumentTitle: row.local_document_title ?? undefined,
+      caseId: row.case_id ?? undefined,
+      caseNumber: row.case_number ?? undefined,
+      targetBodyName: row.target_body_name ?? undefined,
+      targetSecurityDomain: row.target_security_domain ?? undefined,
+      remoteDocumentId: row.remote_document_id ?? undefined,
+      remoteShareId: row.remote_share_id ?? undefined,
+      remoteMeetingId: row.remote_meeting_id ?? undefined,
+      remoteAgendaVersionId: row.remote_agenda_version_id ?? undefined,
+      purpose: row.purpose,
+      status: row.status,
       createdAt: row.created_at,
     }));
   }

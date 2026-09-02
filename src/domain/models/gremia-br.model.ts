@@ -232,3 +232,21 @@ export interface GremiaBrAgendaItemRequestResult {
   message: string;
   createdAt: string;
 }
+
+export interface GremiaBrWorkspaceActionRecord {
+  id: string;
+  actionType: 'document_uploaded' | 'document_shared' | 'agenda_item_requested' | 'information_requested';
+  localDocumentId?: string;
+  localDocumentTitle?: string;
+  caseId?: string;
+  caseNumber?: string;
+  targetBodyName?: string;
+  targetSecurityDomain?: string;
+  remoteDocumentId?: string;
+  remoteShareId?: string;
+  remoteMeetingId?: string;
+  remoteAgendaVersionId?: string;
+  purpose: string;
+  status: 'uploaded' | 'shared' | 'requested' | 'failed';
+  createdAt: string;
+}

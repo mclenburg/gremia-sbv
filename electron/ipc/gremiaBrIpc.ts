@@ -50,6 +50,10 @@ export function registerGremiaBrIpc(ipcMain: IpcMain, security: SecurityService,
     return services.gremiaBrWorkspaceActions().listTransferableDocuments(typeof limit === 'number' ? limit : undefined);
   });
 
+  registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrWorkspaceActionsList, async (_event, limit: unknown) => {
+    return services.gremiaBrWorkspaceActions().listActionHistory(typeof limit === 'number' ? limit : undefined);
+  });
+
   registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrCaseSummaryCreate, async (_event, input: unknown) => {
     return services.gremiaBrWorkspaceActions().createCaseSummaryDocument(assertRecordInput<CreateGremiaBrCaseSummaryInput>(input, 'gremia-br:case-summary:create'));
   });
