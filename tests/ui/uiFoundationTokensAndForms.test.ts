@@ -87,4 +87,12 @@ describe('UI-Fundament Block 1', () => {
     expect(settings).toContain('DangerButton');
     expect(participation).toContain('ToolbarButton');
   });
+
+  it('verwendet keine nativen Browser-Prompts fuer fachliche Eingaben', () => {
+    const offenders = sourcesUnder('src/app')
+      .filter(({ text }) => /\b(?:window\.)?prompt\s*\(/.test(text))
+      .map(({ path }) => path);
+
+    expect(offenders).toEqual([]);
+  });
 });

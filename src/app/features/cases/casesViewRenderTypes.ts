@@ -135,7 +135,7 @@ export type CasesViewRenderProps = {
   bulkMarkClosedLegacyCases: () => Promise<void>;
   onOpenExportHandover: () => void;
   onOpenImportHandover: () => void;
-  onContinueExpiredHandover: () => Promise<void>;
+  onContinueExpiredHandover: () => void;
   onOpenParticipationViolationPrefill: CasesViewProps["onOpenParticipationViolationPrefill"];
   onOpenCasePrivacyAction: (record: CaseRecord) => void;
   onOpenProcessDelete: (target: { id: string; processType: CaseProcessType; label?: string }) => void;
