@@ -19,7 +19,7 @@ describe('case measure notes design integration', () => {
 
     expect(markup).toContain('class="industrial-subsection compact"');
     expect(markup).toContain('class="case-process-title-row"');
-    expect(markup).toContain('class="industrial-secondary-button"');
+    expect(markup).toContain('class="industrial-secondary-button compact"');
     expect(markup).toContain('Maßnahmennotizen');
     expect(markup).toContain('class="industrial-live-region"');
     expect(markup).toContain('Termine und Verlauf direkt an');

@@ -1552,17 +1552,21 @@ button.dashboard-focus-card:focus-visible {
 
 .dashboard-focus-card-static {
   cursor: default;
+  transform: none;
 }
 
 .dashboard-focus-card-static:hover {
   border-color: rgba(148, 163, 184, 0.18);
+  background: linear-gradient(145deg, rgba(24,24,27,0.98), rgba(9,9,11,1));
   box-shadow: none;
+  transform: none;
 }
 
 .dashboard-focus-secondary-action {
   margin-top: auto;
   min-height: 2rem;
-  padding-block: 0.3rem;
+  padding: 0.3rem 0.7rem;
+  box-shadow: none;
 }
 
 .dashboard-focus-marker {
@@ -1697,32 +1701,6 @@ button.dashboard-focus-card:focus-visible {
   border-radius: 0;
   padding: 0.85rem;
   background: rgba(8, 8, 12, 0.58);
-}
-
-.gremia-br-relevance-group-header {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-  margin-bottom: 0.55rem;
-}
-
-.dashboard-focus-card-static {
-  cursor: default;
-  transform: none;
-}
-
-.dashboard-focus-card-static:hover {
-  border-color: rgba(148, 163, 184, 0.18);
-  background: linear-gradient(145deg, rgba(24,24,27,0.98), rgba(9,9,11,1));
-  box-shadow: none;
-  transform: none;
-}
-
-.dashboard-focus-secondary-action {
-  margin-top: auto;
-  min-height: 2rem;
-  padding: 0.3rem 0.7rem;
-  box-shadow: none;
 }
 
 .dashboard-focus-marker,

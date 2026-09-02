@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { CheckCircle2, PlusCircle } from "lucide-react";
+import { ToolbarButton } from "../../../shared/components/IndustrialButton";
 import { MeasureNoteForm } from "./MeasureNoteForm";
 import { MeasureNoteList } from "./MeasureNoteList";
 import type { MeasureNotesPanelProps } from "./measureNoteTypes";
@@ -26,15 +27,14 @@ export function MeasureNotesPanel({
           <CheckCircle2 className="mr-2 inline h-4 w-4" />
           Maßnahmennotizen
         </h3>
-        <button
+        <ToolbarButton
           type="button"
-          className="industrial-secondary-button"
           aria-expanded={state.isCreating}
           aria-controls={`${fieldPrefix}-form`}
           onClick={state.startCreate}
         >
           <PlusCircle className="h-4 w-4" /> Notiz anlegen
-        </button>
+        </ToolbarButton>
       </div>
       <p className="industrial-meta">Termine und Verlauf direkt an „{measureTitle}“ protokollieren. Mehrere vertrauliche Notizen sind möglich.</p>
       <p className="industrial-meta">Maßnahmennotizen werden als sensible Falldaten gespeichert und bei der Fallanonymisierung mit anonymisiert.</p>

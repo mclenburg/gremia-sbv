@@ -25,12 +25,13 @@ function visibleTextProps(fileSource: string): string[] {
   return Array.from(matches, (match) => match[1]);
 }
 
-function renderedViolationDraft(): string {
+function renderedViolationDraft(overrides: Partial<ComponentProps<typeof ViolationDraftForm>['state']> = {}): string {
   const noop = () => undefined;
   const state = {
     form: createInitialViolationForm([]), contextNotice: null, fieldErrors: {}, caseOptions: [], measureOptions: [],
     busy: false, updateSourceContextType: noop, updateForm: noop, updateCaseContext: noop,
     updateMeasureContext: noop, createViolation: async () => undefined,
+    ...overrides,
   } as unknown as ComponentProps<typeof ViolationDraftForm>['state'];
   return renderToStaticMarkup(createElement(ViolationDraftForm, { state }));
 }
@@ -81,5 +82,20 @@ describe('0.9.5-j Hilfetext-Migration Arbeitsmasken', () => {
         'activityJournal.overview',
       ]),
     );
+  });
+
+  it('zeigt Verstoßwarnungen ohne abweichende Schmuck-Icons im Formularinhalt', () => {
+    const form = { ...createInitialViolationForm([]), stage: 'abmahnung' as const };
+    const markup = renderedViolationDraft({
+      form,
+      contextNotice: {
+        sourceLabel: 'Allgemeiner Arbeitgeberverstoß',
+        privacyNotice: 'Keine Personendaten erforderlich.',
+      },
+    });
+
+    expect(markup).toContain('Allgemeiner Arbeitgeberverstoß');
+    expect(markup).toContain('Scharfe Eskalationsstufe');
+    expect(markup).not.toContain('mt-1 h-5 w-5 text-yellow-300');
   });
 });

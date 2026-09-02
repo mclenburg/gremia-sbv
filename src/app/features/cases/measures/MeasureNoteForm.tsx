@@ -3,6 +3,7 @@ import {
   IndustrialField,
   IndustrialFormGrid,
 } from "../../../shared/components/WorkbenchLayout";
+import { IndustrialButton, ToolbarButton } from "../../../shared/components/IndustrialButton";
 import { TextCommandTextarea } from "../../../shared/textCommands/TextCommandTextarea";
 import type { MeasureNoteFormState } from "./measureNoteTypes";
 
@@ -83,8 +84,8 @@ export function MeasureNoteForm({
     <>
       <MeasureNoteFields fieldPrefix={fieldPrefix} form={form} onChange={onChange} />
       <IndustrialActionRow>
-        <button type="button" className="industrial-secondary-button" onClick={onCancel}>{cancelLabel}</button>
-        <button type="button" className="industrial-button" onClick={onSubmit}>{submitLabel}</button>
+        <ToolbarButton type="button" onClick={onCancel}>{cancelLabel}</ToolbarButton>
+        <IndustrialButton type="button" onClick={onSubmit}>{submitLabel}</IndustrialButton>
       </IndustrialActionRow>
     </>
   );

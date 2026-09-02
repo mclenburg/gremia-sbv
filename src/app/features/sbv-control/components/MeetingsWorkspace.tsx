@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { RefreshCw } from 'lucide-react';
-import { IndustrialButton } from '../../../shared/components/IndustrialButton';
+import { IndustrialButton, ToolbarButton } from '../../../shared/components/IndustrialButton';
 import { CheckboxField, DateInput, DateTimeInput, SearchableSelectInput, SearchInput, SelectInput, TextareaInput, TextInput } from '../../../shared/components/IndustrialForm';
 import { IndustrialHelpButton } from '../../../shared/help/IndustrialHelp';
 import { waitForBridge } from '../../../core/bridge/waitForBridge';
@@ -209,8 +209,8 @@ export function MeetingsWorkspace({ records, onCreate, onAgenda, onAgendaFollowU
         </div>
         <div className="case-pagination sbv-meeting-pagination" aria-label="Sitzungslisten-Seiten">
           <span>Seite {normalizedPage} von {pageCount} · maximal {meetingPageSize} Sitzungen pro Seite</span>
-          <button type="button" className="industrial-secondary-button compact" disabled={normalizedPage <= 1} onClick={() => setMeetingPage(normalizedPage - 1)}>Zurück</button>
-          <button type="button" className="industrial-secondary-button compact" disabled={normalizedPage >= pageCount} onClick={() => setMeetingPage(normalizedPage + 1)}>Weiter</button>
+          <ToolbarButton type="button" disabled={normalizedPage <= 1} onClick={() => setMeetingPage(normalizedPage - 1)}>Zurück</ToolbarButton>
+          <ToolbarButton type="button" disabled={normalizedPage >= pageCount} onClick={() => setMeetingPage(normalizedPage + 1)}>Weiter</ToolbarButton>
         </div>
       </section>
 
