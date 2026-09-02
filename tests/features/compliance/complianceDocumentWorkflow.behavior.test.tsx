@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { listComplianceDocuments, renderComplianceDocument } from "../../../services/complianceCenterService";
-import { ComplianceDocumentPreview } from "../../../src/app/features/compliance/components/ComplianceDocumentPreview";
+import { ComplianceDocumentPreview, complianceDocumentPreviewBlocks } from "../../../src/app/features/compliance/components/ComplianceDocumentPreview";
 import { ComplianceDocumentsPanel } from "../../../src/app/features/compliance/components/ComplianceDocumentsPanel";
 import { buildPdfExportFeedback } from "../../../src/app/shared/documents/pdfExportFeedback";
 import { renderComponent, visibleText } from "../../helpers/renderedMarkup";
@@ -18,6 +18,12 @@ describe("Compliance-Dokumentworkflow", () => {
     expect(text).not.toContain("Markdown");
     expect(text).toContain("PDF erzeugen");
     expect(text).toContain("PDF erzeugen und öffnen");
+    expect(markup).not.toContain("<textarea");
+    expect(text).not.toContain("# TOMs");
+    expect(complianceDocumentPreviewBlocks("# Titel\n\n- **Punkt**")).toEqual([
+      { id: "heading-0", type: "heading", level: 2, text: "Titel" },
+      { id: "list-1", type: "list", items: ["Punkt"] },
+    ]);
   });
 
   it("zeigt nur fachliche Anwenderunterlagen und priorisiert notwendige Compliance-Nachweise", () => {
@@ -31,9 +37,11 @@ describe("Compliance-Dokumentworkflow", () => {
     const text = visibleText(markup);
 
     expect(text).not.toContain("Release-Checkliste");
+    expect(text.indexOf("Technischer Datenschutzstatus")).toBeLessThan(text.indexOf("TOMs"));
     expect(text.indexOf("TOMs")).toBeLessThan(text.indexOf("VVT-Eintrag"));
-    expect(text.indexOf("VVT-Eintrag")).toBeLessThan(text.indexOf("DSFA-Entwurf"));
+    expect(text.indexOf("VVT-Eintrag")).toBeLessThan(text.indexOf("Lösch- und Aufbewahrungskonzept"));
     expect(text.indexOf("Lösch- und Aufbewahrungskonzept")).toBeLessThan(text.indexOf("Export- und Weitergaberegeln"));
+    expect(text.indexOf("Export- und Weitergaberegeln")).toBeLessThan(text.indexOf("DSFA-Entwurf"));
   });
 
   it("unterscheidet PDF-Speicherung von erfolgloser externer Vorschau", () => {

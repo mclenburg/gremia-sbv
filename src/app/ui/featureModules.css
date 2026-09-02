@@ -1246,8 +1246,38 @@
 .compliance-output {
   min-height: 38rem;
   width: 100%;
-  white-space: pre-wrap;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  overflow: auto;
+}
+
+.compliance-document-preview-body {
+  border: 1px solid var(--industrial-border);
+  background: var(--industrial-surface);
+  padding: var(--space-4, 1rem);
+  color: var(--industrial-text);
+  line-height: 1.55;
+}
+
+.compliance-document-preview-body h3,
+.compliance-document-preview-body h4 {
+  margin: 0 0 .75rem;
+}
+
+.compliance-document-preview-body h4 {
+  margin-top: 1.25rem;
+  color: var(--industrial-accent);
+}
+
+.compliance-document-preview-body p {
+  margin: 0 0 .85rem;
+}
+
+.compliance-document-preview-body ul {
+  margin: 0 0 1rem 1.25rem;
+  padding: 0;
+}
+
+.compliance-document-preview-body li + li {
+  margin-top: .35rem;
 }
 
 .compliance-export-actions {
