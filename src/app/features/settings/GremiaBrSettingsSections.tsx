@@ -5,11 +5,18 @@ import type {
   GremiaBrRelevanceKeywordGroup,
   GremiaBrWorkspaceBody,
 } from "../../../domain/models/gremia-br.model";
+import { CheckboxField, PasswordInput, SearchInput, SelectInput, TextareaInput, TextInput } from "../../shared/components/IndustrialForm";
+import type { IndustrialFieldOption } from "../../shared/components/IndustrialFormCore";
 import { DangerButton, IndustrialButton, ToolbarButton } from "../../shared/components/IndustrialButton";
 
 function maskStoredPassword(hasStoredCredentials: boolean): string {
   return hasStoredCredentials ? "••••••••••••" : "";
 }
+
+const gremiaBrApiModeOptions: IndustrialFieldOption[] = [
+  { value: "legacy_read_bridge", label: "Legacy-Lesebrücke" },
+  { value: "gremia_br_v2", label: "Gremia.BR 2.0" },
+];
 
 export function GremiaBrSettingsIntro() {
   return (
@@ -43,10 +50,12 @@ export function GremiaBrEnabledToggle({
 }) {
   return (
     <div className="industrial-subsection compact">
-      <label className="gremia-br-toggle-row">
-        <input type="checkbox" checked={enabled} onChange={(event) => onEnabledChange(event.target.checked)} />
-        <span>Gremia.BR-Anbindung aktivieren</span>
-      </label>
+      <CheckboxField
+        label="Gremia.BR-Anbindung aktivieren"
+        checked={enabled}
+        onCheckedChange={onEnabledChange}
+        helpText="Aktiviert die optionale Brücke. Ohne gespeicherte Konfiguration bleibt der Gremia.BR-Arbeitsbereich ausgeblendet."
+      />
     </div>
   );
 }
@@ -74,33 +83,35 @@ export function GremiaBrCredentialsSection({
 }) {
   return (
     <div className="gremia-br-settings-credentials">
-      <label className="industrial-field">
-        <span>API-Modus</span>
-        <select className="industrial-select" value={apiMode} onChange={(event) => onApiModeChange(event.target.value as GremiaBrApiMode)}>
-          <option value="legacy_read_bridge">Legacy-Lesebrücke</option>
-          <option value="gremia_br_v2">Gremia.BR 2.0</option>
-        </select>
-        <small>Gremia.BR 2.0 behandelt die SBV als eigenes berechtigtes Gremium mit eigenem Arbeitsbereich.</small>
-      </label>
-      <label className="industrial-field">
-        <span>Serveradresse / URL</span>
-        <input type="url" placeholder="https://br-server.example.local" value={serverUrl} onChange={(event) => onServerUrlChange(event.target.value)} autoComplete="off" />
-      </label>
-      <label className="industrial-field">
-        <span>Benutzerkonto / E-Mail</span>
-        <input type="email" value={username} onChange={(event) => onUsernameChange(event.target.value)} autoComplete="username" />
-      </label>
-      <label className="industrial-field">
-        <span>Passwort</span>
-        <input
-          type="password"
-          placeholder={maskStoredPassword(hasStoredCredentials)}
-          value={password}
-          onChange={(event) => onPasswordChange(event.target.value)}
-          autoComplete="current-password"
-        />
-        {hasStoredCredentials && <small>Ein Passwort ist im verschlüsselten Vault hinterlegt. Leer lassen, um es beizubehalten.</small>}
-      </label>
+      <SelectInput
+        label="API-Modus"
+        value={apiMode}
+        onValueChange={(value) => onApiModeChange(value as GremiaBrApiMode)}
+        options={gremiaBrApiModeOptions}
+        helpText="Gremia.BR 2.0 behandelt die SBV als eigenes berechtigtes Gremium mit eigenem Arbeitsbereich."
+      />
+      <TextInput
+        label="Serveradresse / URL"
+        type="url"
+        placeholder="https://br-server.example.local"
+        value={serverUrl}
+        onValueChange={onServerUrlChange}
+        autoComplete="off"
+      />
+      <TextInput
+        label="Benutzerkonto / E-Mail"
+        type="email"
+        value={username}
+        onValueChange={onUsernameChange}
+        autoComplete="username"
+      />
+      <PasswordInput
+        label="Passwort"
+        placeholder={maskStoredPassword(hasStoredCredentials)}
+        value={password}
+        onValueChange={onPasswordChange}
+        helpText={hasStoredCredentials ? "Ein Passwort ist im verschlüsselten Vault hinterlegt. Leer lassen, um es beizubehalten." : undefined}
+      />
     </div>
   );
 }
@@ -141,10 +152,13 @@ export function GremiaBrWorkspaceBodySection({
         <ToolbarButton disabled={busy || !enabled} onClick={onLoadWorkspaceBodies}>SBV-Gremien aus Gremia.BR laden</ToolbarButton>
       </div>
       {workspaceBodies.length > 5 && (
-        <label className="industrial-field mt-3">
-          <span>Gremien filtern</span>
-          <input type="search" value={bodySearch} onChange={(event) => onBodySearchChange(event.target.value)} placeholder="Name des SBV-Gremiums" />
-        </label>
+        <SearchInput
+          className="mt-3"
+          label="Gremien filtern"
+          value={bodySearch}
+          onValueChange={onBodySearchChange}
+          placeholder="Name des SBV-Gremiums"
+        />
       )}
       {workspaceBodies.length > 0 && (
         <div className="industrial-list mt-3" role="list" aria-label="Berechtigte SBV-Gremien aus Gremia.BR">
@@ -183,14 +197,17 @@ export function GremiaBrRelevanceSection({
       <div className="gremia-br-relevance-grid mt-3">
         {relevanceGroups.map((group) => (
           <div key={group.id} className="gremia-br-relevance-group">
-            <label className="gremia-br-relevance-group-header">
-              <input type="checkbox" checked={group.enabled} onChange={(event) => onGroupEnabledChange(group.id, event.target.checked)} />
-              <strong>{group.label}</strong>
-            </label>
-            <label className="industrial-field">
-              <span>Stichwörter</span>
-              <textarea rows={2} value={group.keywords.join(", ")} onChange={(event) => onKeywordsChange(group.id, event.target.value)} />
-            </label>
+            <CheckboxField
+              label={group.label}
+              checked={group.enabled}
+              onCheckedChange={(checked) => onGroupEnabledChange(group.id, checked)}
+            />
+            <TextareaInput
+              label="Stichwörter"
+              rows={2}
+              value={group.keywords.join(", ")}
+              onValueChange={(value) => onKeywordsChange(group.id, value)}
+            />
           </div>
         ))}
       </div>
