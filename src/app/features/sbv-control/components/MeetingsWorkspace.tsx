@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { IndustrialButton } from '../../../shared/components/IndustrialButton';
-import { CheckboxField, DateInput, DateTimeInput, SearchInput, SelectInput, TextareaInput, TextInput } from '../../../shared/components/IndustrialForm';
+import { CheckboxField, DateInput, DateTimeInput, SearchableSelectInput, SearchInput, SelectInput, TextareaInput, TextInput } from '../../../shared/components/IndustrialForm';
 import { IndustrialHelpButton } from '../../../shared/help/IndustrialHelp';
 import { waitForBridge } from '../../../core/bridge/waitForBridge';
 import type { ActivityJournalPrefill } from '../../../../domain/models/activity-journal.model';
@@ -97,7 +97,7 @@ function GremiaBrMeetingImport({ onCreate, onAgenda, onSelectedMeeting }: {
   return <section className="sbv-control-section sbv-meetings-bridge" aria-labelledby="gremia-br-meetings-heading">
     <div><p className="industrial-kicker">Gremia.BR</p><h3 id="gremia-br-meetings-heading">BR-Sitzung übernehmen</h3><p className="industrial-meta">Kooperationsbrücke aktiv. Sitzung und Tagesordnung werden als eigene SBV-Arbeitskopie übernommen; SBV-Relevanz und Bewertungen bleiben bewusst manuell.</p></div>
     <div className="industrial-form-grid two-columns">
-      <SelectInput label="Gremia.BR-Sitzung" value={selectedId} onValueChange={setSelectedId} options={[{ value: '', label: 'Auswählen …' }, ...meetings.map((meeting) => ({ value: meeting.sourceId, label: `${new Date(meeting.startsAt).toLocaleString('de-DE')} · ${meeting.title}` }))]} />
+      <SearchableSelectInput label="Gremia.BR-Sitzung suchen und auswählen" value={selectedId} onValueChange={setSelectedId} placeholder="Termin oder Sitzungstitel tippen …" options={meetings.map((meeting) => ({ value: meeting.sourceId, label: `${new Date(meeting.startsAt).toLocaleString('de-DE')} · ${meeting.title}` }))} />
       <div className="industrial-action-row sbv-meetings-bridge-actions"><IndustrialButton variant="secondary" disabled={busy} onClick={() => void refresh()}><RefreshCw className="h-4 w-4" />{busy ? 'Abruf läuft …' : 'Daten aktualisieren'}</IndustrialButton><IndustrialButton disabled={!selected || busy} onClick={() => void importMeeting()}>In SBV-Sitzung übernehmen</IndustrialButton></div>
     </div>
     {message ? <div className="industrial-message industrial-message-info" role="status">{message}</div> : null}

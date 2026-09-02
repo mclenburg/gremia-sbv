@@ -6,7 +6,7 @@ import type {
   GremiaBrProtectionClass,
 } from "../../../domain/models/gremia-br.model";
 import { IndustrialButton, ToolbarButton } from "../../shared/components/IndustrialButton";
-import { SelectInput, TextareaInput, TextInput } from "../../shared/components/IndustrialForm";
+import { SearchableSelectInput, SelectInput, TextareaInput, TextInput } from "../../shared/components/IndustrialForm";
 import { DataTable, EmptyState, WorkbenchSummary } from "../../shared/components/WorkbenchLayout";
 import { IndustrialPanel } from "../../shared/components/WorkbenchPanels";
 import type { BrMeetingDraft } from "./gremiaBrWorkspaceModel";
@@ -26,6 +26,10 @@ const PROTECTION_OPTIONS = [
   { value: "RESTRICTED", label: "Streng beschränkt" },
   { value: "INTERNAL", label: "Intern" },
 ];
+
+function searchableOptions(options: Array<{ value: string; label: string }>) {
+  return options.filter((option) => option.value);
+}
 
 type BusyAction = "read" | "summary" | "transfer" | "agenda" | "import" | null;
 
@@ -143,7 +147,7 @@ export function GremiaBrCaseSummaryPanel({
       description="Die Zusammenfassung enthält nur für die BR-Befassung erforderliche Falldaten und bleibt ein Gremia.SBV-generiertes PDF."
     >
       <div className="industrial-form-grid two-columns">
-        <SelectInput label="Fallakte" value={draft.selectedCaseId} options={caseOptions(cases)} onValueChange={(value) => onChange("selectedCaseId", value)} disabled={disabled || busy} required />
+        <SearchableSelectInput label="Fallakte suchen und auswählen" value={draft.selectedCaseId} options={searchableOptions(caseOptions(cases))} onValueChange={(value) => onChange("selectedCaseId", value)} disabled={disabled || busy} placeholder="Fallnummer oder Name tippen …" required />
         <TextInput label="Empfängerhinweis" value={draft.recipientLabel} onValueChange={(value) => onChange("recipientLabel", value)} disabled={disabled || busy} />
         <TextareaInput label="Zweck der BR-Information" value={draft.summaryPurpose} onValueChange={(value) => onChange("summaryPurpose", value)} disabled={disabled || busy} wide required />
       </div>
@@ -181,7 +185,7 @@ export function GremiaBrDocumentTransferPanel({
       actions={<ToolbarButton disabled={disabled || busy} onClick={onRefreshDocuments}>PDF-Liste aktualisieren</ToolbarButton>}
     >
       <div className="industrial-form-grid two-columns">
-        <SelectInput label="PDF-Dokument" value={draft.selectedDocumentId} options={documentOptions(documents)} onValueChange={(value) => onChange("selectedDocumentId", value)} disabled={disabled || busy} required />
+        <SearchableSelectInput label="PDF-Dokument suchen und auswählen" value={draft.selectedDocumentId} options={searchableOptions(documentOptions(documents))} onValueChange={(value) => onChange("selectedDocumentId", value)} disabled={disabled || busy} placeholder="Titel, Fallnummer oder Datum tippen …" required />
         <TextInput label="Ziel-Sicherheitsbereich" value={draft.targetSecurityDomain} onValueChange={(value) => onChange("targetSecurityDomain", value)} disabled={disabled || busy} required />
         <SelectInput label="Schutzklasse" value={draft.protectionClass} options={PROTECTION_OPTIONS} onValueChange={(value) => onChange("protectionClass", value as GremiaBrProtectionClass)} disabled={disabled || busy} required />
         <TextInput label="Freigabe gültig bis" type="date" value={draft.transferValidUntil} onValueChange={(value) => onChange("transferValidUntil", value)} disabled={disabled || busy} />
@@ -218,7 +222,7 @@ export function GremiaBrAgendaPanel({
       description="Der Punkt wird an die bestehende Gremia.BR-Tagesordnung angehängt; vorhandene TOP-Schlüssel bleiben erhalten."
     >
       <div className="industrial-form-grid two-columns">
-        <SelectInput label="Gremia.BR-Sitzung" value={draft.selectedAgendaMeetingId} options={meetingOptions(overview)} onValueChange={(value) => onChange("selectedAgendaMeetingId", value)} disabled={disabled || busy} required />
+        <SearchableSelectInput label="Gremia.BR-Sitzung suchen und auswählen" value={draft.selectedAgendaMeetingId} options={searchableOptions(meetingOptions(overview))} onValueChange={(value) => onChange("selectedAgendaMeetingId", value)} disabled={disabled || busy} placeholder="Termin oder Sitzungstitel tippen …" required />
         <TextInput label="Zeitbedarf in Minuten" type="number" min={1} max={240} value={draft.agendaMinutes} onValueChange={(value) => onChange("agendaMinutes", value)} disabled={disabled || busy} />
         <TextInput label="Tagesordnungspunkt" value={draft.agendaTitle} onValueChange={(value) => onChange("agendaTitle", value)} disabled={disabled || busy} wide required />
         <TextareaInput label="Begründung / Kontext" value={draft.agendaDescription} onValueChange={(value) => onChange("agendaDescription", value)} disabled={disabled || busy} wide />
@@ -247,7 +251,7 @@ export function GremiaBrMeetingImportPanel({
   onChange: GremiaBrWorkspaceDraftChange;
   onImport: () => void;
 }) {
-  const options = [{ value: "", label: "Gremia.BR-Sitzung auswählen …" }, ...meetings.map((meeting) => ({ value: meeting.sourceId, label: `${meeting.startsAt} · ${meeting.title}` }))];
+  const options = meetings.map((meeting) => ({ value: meeting.sourceId, label: `${meeting.startsAt} · ${meeting.title}` }));
   return (
     <IndustrialPanel
       kicker="Import"
@@ -255,7 +259,7 @@ export function GremiaBrMeetingImportPanel({
       description="Sitzung und Tagesordnung werden lokal angelegt. SBV-Relevanz und Bewertungen bleiben bewusst manuell."
     >
       <div className="industrial-form-grid two-columns">
-        <SelectInput label="Gremia.BR-Sitzung" value={draft.selectedImportMeetingId} options={options} onValueChange={(value) => onChange("selectedImportMeetingId", value)} disabled={disabled || busy} required />
+        <SearchableSelectInput label="Gremia.BR-Sitzung suchen und auswählen" value={draft.selectedImportMeetingId} options={options} onValueChange={(value) => onChange("selectedImportMeetingId", value)} disabled={disabled || busy} placeholder="Termin oder Sitzungstitel tippen …" required />
       </div>
       <div className="industrial-action-row mt-4">
         <IndustrialButton loading={busy} disabled={disabled || !draft.selectedImportMeetingId} onClick={onImport}>
