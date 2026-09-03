@@ -49,6 +49,14 @@ Beispiele:
 - Gleichstellungsbegleitung,
 - Kündigungsanhörung.
 
+## Fallübergabe importieren
+
+Eine Fallübergabe ist für Vertretung, Krankheit, Urlaub oder Amtswechsel gedacht. Sie ersetzt kein Backup und keine dauerhafte Synchronisation.
+
+Beim Import prüft Gremia.SBV das Paket zuerst und zeigt einen Importplan. Dieser Plan nennt Umfang, Gültigkeit und mögliche lokale Gegenstücke. Sichere Treffer können zur Zusammenführung vorgeschlagen werden. Mögliche Treffer müssen bewusst geprüft werden. Echte Konflikte, etwa gleiches Aktenzeichen mit widersprechendem Personenbezug, dürfen nicht zusammengeführt werden; sie werden als neue lokale Übergabeakte importiert und anschließend fachlich geprüft.
+
+Nach einem erfolgreichen Import erscheint für die betroffene Fallakte ein Datenschutzprüfauftrag. Bearbeite ihn nach Ende der Vertretung oder sobald klar ist, ob die Daten fortgeführt, geschlossen, zurückgegeben, anonymisiert oder gelöscht werden müssen.
+
 ## Notizen schreiben
 
 Schreibe Notizen sachlich. Vermeide Mutmaßungen und emotionale Bewertungen. Besser ist:

@@ -1,6 +1,7 @@
-import type { ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { Download } from "lucide-react";
 import { IndustrialButton } from "./IndustrialButton";
+import type { TransferImportDecisionItem } from "../../../domain/models/transfer.model";
 
 type ExportActionProps = {
   children: ReactNode;
@@ -69,6 +70,8 @@ type ImportPackageReviewProps = {
   integrityLabel?: string;
   fileNotice?: string;
   warnings?: string[];
+  planItems?: TransferImportDecisionItem[];
+  mergeAllowed?: boolean;
   onModeChange: (mode: "create_new" | "merge_existing") => void;
   onTargetChange: (targetId: string) => void;
 };
@@ -85,10 +88,20 @@ export function ImportPackageReview({
   integrityLabel,
   fileNotice,
   warnings = [],
+  planItems = [],
+  mergeAllowed = true,
   onModeChange,
   onTargetChange,
 }: ImportPackageReviewProps) {
+  const [matchFilter, setMatchFilter] = useState("");
   const hasMatches = matches.length > 0;
+  const normalizedFilter = matchFilter.trim().toLocaleLowerCase("de-DE");
+  const visibleMatches = useMemo(
+    () => normalizedFilter
+      ? matches.filter((match) => `${match.label} ${match.reasonLabel}`.toLocaleLowerCase("de-DE").includes(normalizedFilter))
+      : matches,
+    [matches, normalizedFilter],
+  );
   const selectedMatch = matches.find((match) => match.id === targetId);
 
   return (
@@ -107,6 +120,19 @@ export function ImportPackageReview({
           ))}
         </ul>
       ) : null}
+      {planItems.length ? (
+        <div className="industrial-import-plan" aria-label="Importplan">
+          <strong>Importplan</strong>
+          <ul className="industrial-import-package-warnings">
+            {planItems.map((item) => (
+              <li key={item.id} data-severity={item.severity}>
+                <span>{item.label}</span>
+                <small>{item.description}</small>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
       <fieldset className="industrial-import-package-options">
         <legend>Importentscheidung</legend>
         <label className="industrial-checkbox-row compact">
@@ -118,7 +144,7 @@ export function ImportPackageReview({
           />
           <span>Als neue lokale Übergabeakte anlegen</span>
         </label>
-        {hasMatches ? (
+        {hasMatches && mergeAllowed ? (
           <label className="industrial-checkbox-row compact">
             <input
               type="radio"
@@ -129,16 +155,31 @@ export function ImportPackageReview({
             <span>Mit bestehender Fallakte zusammenführen/aktualisieren</span>
           </label>
         ) : null}
-        {mode === "merge_existing" && hasMatches ? (
+        {hasMatches && !mergeAllowed ? (
+          <p className="industrial-message industrial-message-warning" role="alert">
+            Zusammenführung ist wegen echter Konflikte gesperrt. Bitte als neue lokale Übergabeakte importieren und fachlich prüfen.
+          </p>
+        ) : null}
+        {mode === "merge_existing" && hasMatches && mergeAllowed ? (
           <label className="industrial-import-package-target">
             <span>Passendes Gegenstück</span>
+            {matches.length > 5 ? (
+              <input
+                className="industrial-input"
+                value={matchFilter}
+                onChange={(event) => setMatchFilter(event.currentTarget.value)}
+                placeholder="Gegenstücke filtern …"
+                aria-label="Passende Gegenstücke filtern"
+              />
+            ) : null}
             <select className="industrial-select" value={targetId} onChange={(event) => onTargetChange(event.currentTarget.value)}>
-              {matches.map((match) => (
+              {visibleMatches.map((match) => (
                 <option key={match.id} value={match.id}>
                   {match.label} · {match.reasonLabel}
                 </option>
               ))}
             </select>
+            {matches.length > 5 ? <small aria-live="polite">{visibleMatches.length} von {matches.length} Gegenstück(en) sichtbar.</small> : null}
           </label>
         ) : null}
         {selectedMatch ? (

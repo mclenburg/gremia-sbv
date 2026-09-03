@@ -53,6 +53,16 @@ Beim Import kann die Anwendung mögliche Gegenstücke vorschlagen. Die Suche ori
 
 Die nutzende Person entscheidet, ob der Import neu angelegt oder mit einem gefundenen Gegenstück zusammengeführt beziehungsweise aktualisiert wird.
 
+Gremia.SBV erstellt vor dem Import einen Importplan. Dieser Plan zeigt Umfang, Ablaufdatum, Datenschutzfolge und die Bewertung gefundener Gegenstücke:
+
+- Ein sicherer Treffer liegt nur vor, wenn genau ein fachliches Gegenstück ohne widersprechenden Personenbezug gefunden wird.
+- Namens- oder Anzeigenamens-Treffer sind mögliche Treffer. Sie dürfen nicht stillschweigend als Identität gewertet werden.
+- Ein echter Konflikt liegt vor, wenn ein starkes fachliches Kennzeichen wie das Aktenzeichen passt, Name oder Personenbezug aber widersprechen.
+
+Bei echten Konflikten ist eine Zusammenführung technisch gesperrt. Das Paket kann dann nur als neue lokale Übergabeakte importiert und anschließend fachlich geprüft werden. Dadurch bleibt die empfangende SBV arbeitsfähig, ohne fremde oder widersprüchliche Daten in einen bestehenden Fall zu mischen.
+
+Nach jedem erfolgreichen Import entsteht für die betroffenen Fallakten ein konkreter Datenschutzprüfauftrag. Diese Vormerkung ersetzt keine automatische Löschung. Sie zwingt nur zur bewussten Prüfung von Zweck, Vertretungsende, Fortführung oder Bereinigung der übernommenen Daten.
+
 ## Gültigkeit und Ablaufdatum
 
 Beim Export kann ein Gültig-bis-Datum gesetzt werden. Dieses Datum begrenzt die Nutzbarkeit des Übergabepakets und die Vertretungszeit der importierten Daten.
@@ -117,4 +127,6 @@ Die Fallübergabe ersetzt auch keinen Klartext-Dokumentenexport. Ein Dokumentene
 - Datei und Passphrase getrennt übermitteln.
 - Importvorschau prüfen.
 - Zusammenführung nur bewusst durchführen.
+- Echte Konflikte nicht zusammenführen, sondern als neue Übergabeakte fachlich prüfen.
+- Nach Import den Datenschutzprüfauftrag bearbeiten.
 - Übergabedaten nach Ende der Vertretung prüfen, schließen, löschen oder begründet fortführen.

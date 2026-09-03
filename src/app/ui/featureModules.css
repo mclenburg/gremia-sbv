@@ -2064,6 +2064,11 @@ button.dashboard-focus-card:focus-visible {
   gap: 0.35rem;
 }
 
+.industrial-import-plan {
+  display: grid;
+  gap: 0.45rem;
+}
+
 .dashboard-focus-marker {
   border-radius: 0;
   padding-inline: 0.7rem;
@@ -2399,6 +2404,12 @@ html[data-theme='light'] .text-command-help-modal .industrial-icon-button {
 
 .industrial-import-package-warnings li {
   margin: 0;
+}
+
+.industrial-import-package-warnings small {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--industrial-text-muted);
 }
 
 .industrial-report-grid {

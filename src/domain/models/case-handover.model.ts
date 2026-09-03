@@ -1,3 +1,5 @@
+import type { TransferImportConflictLevel, TransferImportPlan } from './transfer.model';
+
 export type CaseHandoverImportMode = 'create_new' | 'merge_existing';
 
 export interface CaseHandoverExportInput {
@@ -25,6 +27,8 @@ export interface CaseHandoverCandidateMatch {
   displayName: string;
   reason: 'case_number' | 'name' | 'person_name';
   confidence: 'high' | 'medium';
+  conflictLevel?: TransferImportConflictLevel;
+  conflictReason?: string;
 }
 
 export interface CaseHandoverInspectResult {
@@ -38,6 +42,7 @@ export interface CaseHandoverInspectResult {
   documentCount: number;
   deadlineCount: number;
   matches: CaseHandoverCandidateMatch[];
+  importPlan: TransferImportPlan;
   warnings: string[];
   integrity?: {
     verified: boolean;
@@ -68,6 +73,7 @@ export interface CaseHandoverImportResult {
   measureCount: number;
   documentCount: number;
   deadlineCount: number;
+  privacyReviewCaseIds: string[];
   expiresAt?: string;
   expired: boolean;
 }

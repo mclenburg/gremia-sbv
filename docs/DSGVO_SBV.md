@@ -32,6 +32,8 @@ Abgelaufene Übergabepakete dürfen nicht importiert werden. Bei bereits importi
 
 Beim Import können mögliche Gegenstücke über Aktenzeichen oder Namen vorgeschlagen werden. Die Entscheidung über neue Anlage oder Zusammenführung trifft die nutzende Person ausdrücklich.
 
+Die Importvorschau unterscheidet sichere Treffer, mögliche Treffer und echte Konflikte. Echte Konflikte sperren die Zusammenführung; die Daten dürfen dann nur als neue lokale Übergabeakte übernommen und anschließend fachlich sowie datenschutzrechtlich geprüft werden. Nach jedem erfolgreichen Import erzeugt Gremia.SBV einen konkreten Datenschutzprüfauftrag zur Zweckbindung und weiteren Aufbewahrung der Übergabedaten.
+
 Export, Import, abgelehnte Importversuche abgelaufener Übergabepakete und die Weiterbearbeitung bereits abgelaufener importierter Übergabedaten werden im Audit-Log nur mit technischen Vorgangsdaten auditiert. Das Audit darf keine Personennamen, Diagnosen, Fallnotizen, Falltitel oder Dokumentinhalte enthalten.
 
 ## Nicht übernommen aus Gremia.BR

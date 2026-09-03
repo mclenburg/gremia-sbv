@@ -6,7 +6,7 @@ import { PersonalDataAuditLogService } from './auditLogService.js';
 import type { CreatePersonalDataAuditInput } from '../src/domain/models/audit.model.js';
 import { auditCaseHandoverContinuedAfterExpiry, auditCaseHandoverExported, auditCaseHandoverImported, auditCaseHandoverImportInspected } from './auditEventBuilders.js';
 import { SearchIndexService } from './search/searchIndexService.js';
-import { buildCandidateMatches, CASE_HANDOVER_FORMAT, CASE_HANDOVER_VERSION, createPackageId, isExpired, packageRef, safeAuditMetadata } from './caseHandoverPolicy.js';
+import { buildCandidateMatches, buildCaseHandoverImportPlan, CASE_HANDOVER_FORMAT, CASE_HANDOVER_VERSION, createPackageId, isExpired, packageRef, safeAuditMetadata } from './caseHandoverPolicy.js';
 import { assertCaseHandoverEnvelope, decryptCaseHandoverEnvelope, encryptCaseHandoverPayloadV2, type CaseHandoverEnvelope } from './caseHandoverCrypto.js';
 import { inspectCaseHandoverFilePath } from './caseHandoverFilePolicy.js';
 import type { CaseHandoverContinueExpiredInput, CaseHandoverContinueExpiredResult, CaseHandoverExportInput, CaseHandoverExportResult, CaseHandoverImportInput, CaseHandoverImportResult, CaseHandoverInspectResult } from '../src/domain/models/case-handover.model.js';
@@ -14,6 +14,8 @@ import { Row, PackagePayload, DecryptedPackage, nowIso, sha256, isRecord, safeSt
 import { encodeDocumentForHandover, sanitizeHandoverDocumentMetadata } from './caseHandoverDocumentCodec.js';
 import { OWNER_ONLY_FILE_MODE, restrictFileToOwner } from './secureFilePermissions.js';
 import { ensureCaseHandoverRuntimeSchema } from './runtimeSchemaCompatibility.js';
+import { PrivacyReviewService } from './privacyReviewService.js';
+import type { TransferImportPlan } from '../src/domain/models/transfer.model.js';
 export class CaseHandoverService {
   constructor(private readonly database: DatabaseAdapter, private readonly dataDirProvider: () => string = () => path.join(process.cwd(), 'data')) {}
 
@@ -116,6 +118,52 @@ export class CaseHandoverService {
     return assertCaseHandoverEnvelope(JSON.parse(fs.readFileSync(file.filePath, 'utf8')));
   }
 
+  private buildImportPlanning(db: DatabaseAdapter, payload: PackagePayload) {
+    const firstCase = payload.cases[0]?.data;
+    const firstPersonId = firstCase?.protected_person_id;
+    const person = payload.protectedPersons.find((entry) => entry.data.id === firstPersonId)?.data;
+    const localCases = this.rows(db, `SELECT c.id, c.case_number, c.display_name, p.first_name AS protected_first_name, p.last_name AS protected_last_name FROM cases c LEFT JOIN protected_persons p ON p.id = c.protected_person_id`) as Array<{ id: string; case_number?: string; display_name?: string; protected_first_name?: string; protected_last_name?: string }>;
+    const matches = buildCandidateMatches({
+      exportedCaseNumber: this.optionalPayloadString(firstCase?.case_number),
+      exportedDisplayName: this.optionalPayloadString(firstCase?.display_name),
+      exportedFirstName: this.optionalPayloadString(person?.first_name),
+      exportedLastName: this.optionalPayloadString(person?.last_name),
+      localCases,
+    });
+    const expired = isExpired(payload.expiresAt);
+    const importPlan = buildCaseHandoverImportPlan({
+      caseCount: payload.cases.length,
+      measureCount: payload.measures.length,
+      documentCount: payload.documents.length,
+      deadlineCount: payload.deadlines.length,
+      expiresAt: payload.expiresAt,
+      isExpired: expired,
+      matches,
+    });
+    return { matches, expired, importPlan };
+  }
+
+  private assertImportAllowed(db: DatabaseAdapter, payload: PackagePayload, input: CaseHandoverImportInput, expired: boolean, importPlan: TransferImportPlan): void {
+    if (expired) {
+      this.audit(db, auditCaseHandoverImported({ packageId: payload.packageId, caseCount: payload.cases.length, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, validUntilPresent: Boolean(payload.expiresAt), mode: input.mode, result: 'failed', reasonCode: 'expired_transfer_package' }));
+      throw new Error('Das Fallübergabepaket ist abgelaufen und darf nicht importiert werden. Bitte eine neue Übergabedatei anfordern.');
+    }
+    if (input.mode === 'merge_existing' && !importPlan.mergeAllowed) {
+      this.audit(db, auditCaseHandoverImported({ packageId: payload.packageId, caseCount: payload.cases.length, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, validUntilPresent: Boolean(payload.expiresAt), mode: input.mode, result: 'failed', reasonCode: 'merge_conflict_review_required' }));
+      throw new Error('Das Übergabepaket enthält echte Konflikte. Bitte als neue lokale Übergabeakte importieren und fachlich prüfen.');
+    }
+  }
+
+  private markImportedCasesForPrivacyReview(db: DatabaseAdapter, caseIds: readonly string[], timestamp: string, priority: 'normal' | 'high'): string[] {
+    const privacyReviewService = new PrivacyReviewService(db);
+    privacyReviewService.ensureSchema();
+    for (const caseId of caseIds) {
+      const row = this.row(db, 'SELECT protected_person_id FROM cases WHERE id = ?', caseId);
+      privacyReviewService.createForCase(caseId, this.optionalPayloadString(row?.protected_person_id) ?? null, 'handover_imported', { freeTextReviewRequired: true }, timestamp, priority);
+    }
+    return [...caseIds];
+  }
+
   private assertPayload(value: unknown, formatVersion: number): PackagePayload {
     if (!isRecord(value)) throw new Error('Fallübergabepaket enthält keine gültige Nutzdatenstruktur.');
     if (value.format !== CASE_HANDOVER_FORMAT || typeof value.version !== 'number') throw new Error('Fallübergabepaket enthält keine gültige Nutzdatenstruktur.');
@@ -180,10 +228,7 @@ export class CaseHandoverService {
   inspect(filePath: string, passphrase: string): CaseHandoverInspectResult {
     const db = this.db();
     let envelope: CaseHandoverEnvelope | undefined;
-    try { const file = inspectCaseHandoverFilePath(filePath); envelope = this.readEnvelope(file.filePath); const decrypted = this.decryptEnvelope(envelope, passphrase); const payload = decrypted.payload; const firstCase = payload.cases[0]?.data; const firstPersonId = firstCase?.protected_person_id; const person = payload.protectedPersons.find((p) => p.data.id === firstPersonId)?.data;
-      const localCases = this.rows(db, `SELECT c.id, c.case_number, c.display_name, p.first_name AS protected_first_name, p.last_name AS protected_last_name FROM cases c LEFT JOIN protected_persons p ON p.id = c.protected_person_id`) as Array<{ id: string; case_number?: string; display_name?: string; protected_first_name?: string; protected_last_name?: string }>;
-      const matches = buildCandidateMatches({ exportedCaseNumber: this.optionalPayloadString(firstCase?.case_number), exportedDisplayName: this.optionalPayloadString(firstCase?.display_name), exportedFirstName: this.optionalPayloadString(person?.first_name), exportedLastName: this.optionalPayloadString(person?.last_name), localCases });
-      const expired = isExpired(payload.expiresAt);
+    try { const file = inspectCaseHandoverFilePath(filePath); envelope = this.readEnvelope(file.filePath); const decrypted = this.decryptEnvelope(envelope, passphrase); const payload = decrypted.payload; const { matches, expired, importPlan } = this.buildImportPlanning(db, payload);
       if (expired) {
         this.audit(db, auditCaseHandoverImportInspected({ packageId: payload.packageId, caseCount: payload.cases.length, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, validUntilPresent: Boolean(payload.expiresAt), result: 'failed', reasonCode: 'expired_transfer_package' }));
       }
@@ -198,6 +243,7 @@ export class CaseHandoverService {
         documentCount: payload.documents.length,
         deadlineCount: payload.deadlines.length,
         matches,
+        importPlan,
         warnings: [
           ...file.warnings,
           ...(expired ? ['Das Übergabepaket ist abgelaufen und darf nicht mehr importiert werden. Bitte eine neue Übergabedatei anfordern.'] : []),
@@ -218,11 +264,8 @@ export class CaseHandoverService {
     const envelope = this.readEnvelope(file.filePath);
     const decrypted = this.decryptEnvelope(envelope, input.passphrase);
     const payload = decrypted.payload;
-    const expired = isExpired(payload.expiresAt);
-    if (expired) {
-      this.audit(db, auditCaseHandoverImported({ packageId: payload.packageId, caseCount: payload.cases.length, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, validUntilPresent: Boolean(payload.expiresAt), mode: input.mode, result: 'failed', reasonCode: 'expired_transfer_package' }));
-      throw new Error('Das Fallübergabepaket ist abgelaufen und darf nicht importiert werden. Bitte eine neue Übergabedatei anfordern.');
-    }
+    const { expired, importPlan } = this.buildImportPlanning(db, payload);
+    this.assertImportAllowed(db, payload, input, expired, importPlan);
     const duplicate = this.row(db, 'SELECT id FROM case_handover_imports WHERE package_id = ?', payload.packageId);
     if (duplicate) throw new Error('Dieses Fallübergabepaket wurde bereits importiert.');
     const importId = randomUUID();
@@ -321,9 +364,10 @@ export class CaseHandoverService {
     }
 
     try { for (const id of [...createdCaseIds, ...updatedCaseIds]) new SearchIndexService(db).reindexCase(id); } catch { /* index best effort */ }
+    const privacyReviewCaseIds = this.markImportedCasesForPrivacyReview(db, [...createdCaseIds, ...updatedCaseIds], timestamp, payload.expiresAt ? 'high' : 'normal');
     db.prepare('UPDATE case_handover_imports SET created_case_count = ?, updated_case_count = ? WHERE id = ?').run(createdCaseIds.length, updatedCaseIds.length, importId);
     this.audit(db, auditCaseHandoverImported({ packageId: payload.packageId, caseCount: payload.cases.length, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, validUntilPresent: Boolean(payload.expiresAt), mode: input.mode, result: 'success' }));
-    return { imported: true, packageId: payload.packageId, mode: input.mode, createdCaseIds, updatedCaseIds, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, expiresAt: payload.expiresAt, expired: false };
+    return { imported: true, packageId: payload.packageId, mode: input.mode, createdCaseIds, updatedCaseIds, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, privacyReviewCaseIds, expiresAt: payload.expiresAt, expired: false };
   }
 
   continueExpired(input: CaseHandoverContinueExpiredInput): CaseHandoverContinueExpiredResult {

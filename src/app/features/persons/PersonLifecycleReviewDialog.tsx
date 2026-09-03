@@ -12,6 +12,7 @@ const reasonLabels: Record<string, string> = {
   legacy_unlinked: 'Altfall ohne sicheren Personenbezug',
   multiple_person_links: 'Mehrere aktive Personenbezüge',
   no_person_link: 'Kein Personenbezug',
+  handover_imported: 'Importierte Übergabedaten',
   retention_due: 'Fortspeicherung erneut prüfen'
 };
 

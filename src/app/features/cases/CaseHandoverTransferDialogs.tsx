@@ -132,7 +132,8 @@ function useHandoverImport({ importOpen, onCloseImport, onSelectImportFile, onIn
       const inspection = await onInspectImport(file.filePath, passphrase);
       if (inspection.isExpired) return setError("Das Übergabepaket ist abgelaufen und darf nicht importiert werden. Bitte eine neue Übergabedatei anfordern.");
       setSelection({ filePath: file.filePath, fileName: file.fileName, inspection });
-      if (inspection.matches[0]) setTargetCaseId(inspection.matches[0].localCaseId);
+      setMode(inspection.importPlan.defaultMode);
+      if (inspection.importPlan.mergeAllowed && inspection.matches[0]) setTargetCaseId(inspection.matches[0].localCaseId);
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Übergabepaket konnte nicht geprüft werden."); }
     finally { setBusy(false); }
   }
@@ -203,7 +204,7 @@ function HandoverExportDialog({ open, selectedCase, onClose, state }: { open: bo
 function HandoverImportReview({ state }: { state: ImportState }) {
   const inspection = state.selection?.inspection;
   if (!inspection) return null;
-  return <ImportPackageReview caseCount={inspection.caseCount} measureCount={inspection.measureCount} documentCount={inspection.documentCount} deadlineCount={inspection.deadlineCount} validUntilLabel={formatGermanDate(inspection.expiresAt)} integrityLabel={inspection.integrity?.verified ? `Integrität kryptografisch bestätigt · Format ${inspection.integrity.formatVersion}` : undefined} fileNotice={inspection.file ? `${inspection.file.fileName} · ${Math.max(1, Math.round(inspection.file.sizeBytes / 1024))} KB` : undefined} warnings={inspection.warnings} matches={inspection.matches.map((match) => ({ id: match.localCaseId, label: `${match.caseNumber} · ${match.displayName}`, reasonLabel: reasonLabel(match.reason) }))} mode={state.mode} targetId={state.targetCaseId} onModeChange={state.setMode} onTargetChange={state.setTargetCaseId} />;
+  return <ImportPackageReview caseCount={inspection.caseCount} measureCount={inspection.measureCount} documentCount={inspection.documentCount} deadlineCount={inspection.deadlineCount} validUntilLabel={formatGermanDate(inspection.expiresAt)} integrityLabel={inspection.integrity?.verified ? `Integrität kryptografisch bestätigt · Format ${inspection.integrity.formatVersion}` : undefined} fileNotice={inspection.file ? `${inspection.file.fileName} · ${Math.max(1, Math.round(inspection.file.sizeBytes / 1024))} KB` : undefined} warnings={inspection.warnings} planItems={inspection.importPlan.decisions} mergeAllowed={inspection.importPlan.mergeAllowed} matches={inspection.matches.map((match) => ({ id: match.localCaseId, label: `${match.caseNumber} · ${match.displayName}`, reasonLabel: match.conflictLevel === "true_conflict" ? `${reasonLabel(match.reason)} · Konflikt` : reasonLabel(match.reason) }))} mode={state.mode} targetId={state.targetCaseId} onModeChange={state.setMode} onTargetChange={state.setTargetCaseId} />;
 }
 
 function HandoverImportDialog({ open, onClose, state }: { open: boolean; onClose: () => void; state: ImportState }) {

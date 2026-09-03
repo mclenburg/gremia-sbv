@@ -1,5 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { CaseHandoverCandidateMatch } from '../src/domain/models/case-handover.model.js';
+import type { TransferImportPlan } from '../src/domain/models/transfer.model.js';
+import { buildTransferImportPlan } from './transferImportPlan.js';
 
 export const CASE_HANDOVER_FORMAT = 'gremia-sbv-case-handover';
 export const CASE_HANDOVER_LEGACY_VERSION = 1;
@@ -94,17 +96,68 @@ export function buildCandidateMatches(args: {
     const localFirst = normalizeNamePart(local.protected_first_name);
     const localLast = normalizeNamePart(local.protected_last_name);
     if (exportedCaseNumber && localCaseNumber && exportedCaseNumber === localCaseNumber) {
-      matches.set(local.id, { localCaseId: local.id, caseNumber: local.case_number ?? '—', displayName: local.display_name ?? '—', reason: 'case_number', confidence: 'high' });
+      const identityConflict = hasIdentityConflict({
+        exportedDisplayName,
+        exportedFirst,
+        exportedLast,
+        localDisplayName,
+        localFirst,
+        localLast,
+      });
+      matches.set(local.id, {
+        localCaseId: local.id,
+        caseNumber: local.case_number ?? '—',
+        displayName: local.display_name ?? '—',
+        reason: 'case_number',
+        confidence: 'high',
+        conflictLevel: identityConflict ? 'true_conflict' : 'safe_match',
+        conflictReason: identityConflict ? 'Aktenzeichen stimmt überein, aber Name oder Personenbezug widersprechen dem Übergabepaket.' : undefined,
+      });
       continue;
     }
     if (exportedDisplayName && localDisplayName && exportedDisplayName === localDisplayName) {
-      matches.set(local.id, { localCaseId: local.id, caseNumber: local.case_number ?? '—', displayName: local.display_name ?? '—', reason: 'name', confidence: 'medium' });
+      matches.set(local.id, { localCaseId: local.id, caseNumber: local.case_number ?? '—', displayName: local.display_name ?? '—', reason: 'name', confidence: 'medium', conflictLevel: 'possible_match' });
       continue;
     }
     const personMatch = (exportedFirst && exportedFirst === localFirst) || (exportedLast && exportedLast === localLast) || (exportedFirst && exportedLast && exportedFirst === localLast && exportedLast === localFirst);
     if (personMatch) {
-      matches.set(local.id, { localCaseId: local.id, caseNumber: local.case_number ?? '—', displayName: local.display_name ?? '—', reason: 'person_name', confidence: exportedFirst && exportedLast && localFirst && localLast ? 'high' : 'medium' });
+      matches.set(local.id, { localCaseId: local.id, caseNumber: local.case_number ?? '—', displayName: local.display_name ?? '—', reason: 'person_name', confidence: exportedFirst && exportedLast && localFirst && localLast ? 'high' : 'medium', conflictLevel: 'possible_match' });
     }
   }
   return [...matches.values()];
+}
+
+export function buildCaseHandoverImportPlan(input: {
+  caseCount: number;
+  measureCount: number;
+  documentCount: number;
+  deadlineCount: number;
+  expiresAt?: string;
+  isExpired: boolean;
+  matches: readonly CaseHandoverCandidateMatch[];
+}): TransferImportPlan {
+  return buildTransferImportPlan({ transferKind: 'case_handover', ...input });
+}
+
+function hasIdentityConflict(input: {
+  exportedDisplayName: string;
+  exportedFirst: string;
+  exportedLast: string;
+  localDisplayName: string;
+  localFirst: string;
+  localLast: string;
+}): boolean {
+  const exportedHasPersonName = Boolean(input.exportedFirst || input.exportedLast);
+  const localHasPersonName = Boolean(input.localFirst || input.localLast);
+  const exportedDisplay = input.exportedDisplayName;
+  const localDisplay = input.localDisplayName;
+
+  if (exportedHasPersonName && localHasPersonName) {
+    const sameDirect = input.exportedFirst === input.localFirst && input.exportedLast === input.localLast;
+    const sameSwapped = input.exportedFirst === input.localLast && input.exportedLast === input.localFirst;
+    return !sameDirect && !sameSwapped;
+  }
+
+  if (exportedDisplay && localDisplay) return exportedDisplay !== localDisplay;
+  return false;
 }
