@@ -8,6 +8,7 @@
 .industrial-modal-backdrop {
   box-sizing: border-box;
   position: fixed;
+  z-index: 1000;
   inset: 0;
   display: flex;
   align-items: flex-start;
@@ -18,10 +19,13 @@
   padding: clamp(0.75rem, 2.5vh, 1.5rem) clamp(0.75rem, 2vw, 1.5rem);
   overflow-x: hidden;
   overflow-y: auto;
+  isolation: isolate;
 }
 
 .industrial-modal {
   box-sizing: border-box;
+  position: relative;
+  z-index: 1;
   width: min(100%, 56rem);
   max-width: calc(100vw - 1.5rem);
   max-height: calc(100vh - 1.5rem);

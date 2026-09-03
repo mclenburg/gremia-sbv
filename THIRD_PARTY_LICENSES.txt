@@ -542,7 +542,7 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - @vitest/utils@4.1.11
   License: MIT
   License text: LICENSES/MIT.txt
-- @xmldom/xmldom@0.8.13
+- @xmldom/xmldom@0.8.15
   License: MIT
   License text: LICENSES/MIT.txt
 - abbrev@4.0.0
@@ -917,7 +917,7 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - fast-levenshtein@2.0.6
   License: MIT
   License text: LICENSES/MIT.txt
-- fast-uri@3.1.5
+- fast-uri@3.1.7
   License: BSD-3-Clause
   License text: LICENSES/BSD-3-Clause.txt
 - fdir@6.5.0

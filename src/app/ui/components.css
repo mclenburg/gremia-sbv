@@ -60,6 +60,42 @@
   filter: brightness(1.08);
 }
 
+.industrial-secondary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid var(--industrial-border-strong);
+  background: color-mix(in srgb, var(--industrial-panel-muted) 88%, transparent);
+  color: var(--industrial-text);
+  cursor: pointer;
+  padding: 9px 12px;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.15;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  box-shadow: none;
+  transition:
+    border-color 120ms ease,
+    background 120ms ease,
+    color 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.industrial-secondary-button.compact {
+  min-height: 34px;
+  padding: 7px 10px;
+}
+
+.industrial-secondary-button:hover:not(:disabled) {
+  border-color: var(--industrial-accent);
+  background: color-mix(in srgb, var(--industrial-accent) 9%, var(--industrial-panel-muted));
+  color: var(--industrial-accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--industrial-accent) 18%, transparent);
+}
+
 .industrial-danger-button {
   display: inline-flex;
   align-items: center;
@@ -150,6 +186,18 @@ html[data-theme='light'] .industrial-ghost-button {
 html[data-theme='light'] .industrial-button {
   background: linear-gradient(180deg, #facc15, #ca8a04);
   color: #111111;
+}
+
+html[data-theme='light'] .industrial-secondary-button {
+  border-color: var(--border-strong);
+  background: #f7f5e8;
+  color: var(--text-primary);
+}
+
+html[data-theme='light'] .industrial-secondary-button:hover:not(:disabled) {
+  border-color: var(--industrial-accent);
+  background: #fff8cc;
+  color: #6f5600;
 }
 
 html[data-theme='light'] .industrial-danger-button {
@@ -296,6 +344,22 @@ html[data-theme='light'] .industrial-lock-button {
   flex-wrap: wrap;
 }
 
+.industrial-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.industrial-card-header.compact {
+  gap: 0.65rem;
+}
+
+.industrial-card-header > * {
+  min-width: 0;
+}
+
 .industrial-card,
 .industrial-deadline-card {
   display: flex;
@@ -401,6 +465,12 @@ html[data-theme='light'] .industrial-lock-button {
   box-shadow: inset 3px 0 0 var(--accent);
 }
 
+.industrial-record-card.industrial-tone-default,
+.industrial-selection-card.industrial-tone-default,
+.industrial-status-card.industrial-tone-default {
+  border-color: var(--border-muted);
+}
+
 .industrial-record-card.industrial-tone-warning,
 .industrial-selection-card.industrial-tone-warning,
 .industrial-status-card.industrial-tone-warning {
@@ -465,6 +535,12 @@ html[data-theme='light'] .industrial-lock-button {
 .industrial-alert,
 .industrial-action-note {
   overflow-wrap: anywhere;
+}
+
+.industrial-confirm-message {
+  color: var(--industrial-text);
+  line-height: 1.5;
+  white-space: pre-wrap;
 }
 
 .industrial-badge,
@@ -559,6 +635,16 @@ html[data-theme='light'] .industrial-lock-button {
   color: var(--industrial-text);
 }
 
+.industrial-message-error {
+  border-color: rgba(248, 113, 113, 0.68);
+  background: rgba(127, 29, 29, 0.26);
+  color: #fecaca;
+}
+
+.industrial-error {
+  color: #fecaca;
+}
+
 .industrial-alert {
   display: flex;
   align-items: flex-start;
@@ -624,6 +710,78 @@ html[data-theme='light'] .industrial-lock-button {
   text-transform: uppercase;
 }
 
+.industrial-list {
+  display: grid;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.industrial-list.compact {
+  gap: 0.35rem;
+}
+
+.industrial-list-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-width: 0;
+  border: 1px solid var(--industrial-border);
+  background: color-mix(in srgb, var(--industrial-panel-muted) 82%, transparent);
+  padding: 0.65rem 0.75rem;
+}
+
+.industrial-stack {
+  display: grid;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.industrial-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(11rem, 100%), 1fr));
+  gap: 0.6rem;
+}
+
+.industrial-meta-grid dt {
+  color: var(--industrial-text-muted);
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.industrial-meta-grid dd {
+  margin: 0.15rem 0 0;
+  color: var(--industrial-text-strong);
+}
+
+.industrial-inline-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  align-items: center;
+  color: var(--industrial-text-muted);
+}
+
+.industrial-field-label-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.industrial-field-hint,
+.industrial-help-text {
+  color: var(--industrial-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.industrial-search-input {
+  min-width: min(18rem, 100%);
+}
+
 .metric {
   min-width: 110px;
   border: 1px solid var(--industrial-border-strong);
@@ -651,6 +809,10 @@ html[data-theme='light'] .industrial-lock-button {
 .metric-warning {
   border-color: color-mix(in srgb, var(--industrial-accent) 55%, transparent);
   box-shadow: inset 3px 0 0 var(--industrial-accent);
+}
+
+.metric-default {
+  border-color: var(--industrial-border-strong);
 }
 
 .metric-warning strong,
@@ -929,6 +1091,16 @@ html[data-theme='light'] .industrial-card,
 html[data-theme='light'] .industrial-deadline-card {
   background: linear-gradient(135deg, rgba(244,244,239,0.96), rgba(222,222,216,0.98));
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.48), 0 10px 24px rgba(0,0,0,0.10);
+}
+
+html[data-theme='dark'] .industrial-card,
+html[data-theme='dark'] .industrial-deadline-card,
+html[data-theme='dark'] .industrial-record-card,
+html[data-theme='dark'] .industrial-selection-card,
+html[data-theme='dark'] .industrial-status-card {
+  background-color: var(--industrial-panel);
+  background-image: linear-gradient(145deg, rgba(24, 24, 27, 0.98), rgba(9, 9, 11, 1));
+  color: var(--industrial-text);
 }
 
 html[data-theme='light'] .industrial-card:hover {
@@ -2025,9 +2197,9 @@ html[data-theme='light'] .text-command-help-item span {
   gap: 7px;
   min-height: 36px;
   padding: 8px 10px;
-  border: 1px solid var(--sbv-border-hard, var(--industrial-border-strong));
+  border: 1px solid var(--industrial-border-strong);
   border-radius: var(--control-radius);
-  background: rgba(9, 9, 11, 0.84);
+  background: color-mix(in srgb, var(--industrial-panel-muted) 88%, transparent);
   color: var(--industrial-text, var(--sbv-text));
   cursor: pointer;
   font-size: 12px;
@@ -2040,7 +2212,7 @@ html[data-theme='light'] .text-command-help-item span {
 .industrial-help-button:focus-visible {
   border-color: var(--industrial-accent);
   color: var(--industrial-accent);
-  background: rgba(9, 9, 11, 0.84);
+  background: color-mix(in srgb, var(--industrial-accent) 9%, var(--industrial-panel-muted));
 }
 
 .industrial-help-button .industrial-help-button-text {
@@ -2094,7 +2266,8 @@ html[data-theme='light'] .text-command-help-item span {
 }
 
 html[data-theme='light'] .industrial-help-button {
-  background: #eeeeea;
+  border-color: var(--border-strong);
+  background: #f7f5e8;
   color: var(--industrial-text, var(--sbv-text));
 }
 
@@ -2102,7 +2275,7 @@ html[data-theme='light'] .industrial-help-button:hover,
 html[data-theme='light'] .industrial-help-button:focus-visible {
   border-color: var(--industrial-accent);
   color: var(--industrial-accent);
-  background: #eeeeea;
+  background: #fff8cc;
 }
 
 .industrial-field-label-row {

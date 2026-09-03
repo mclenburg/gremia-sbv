@@ -200,6 +200,10 @@ html[data-theme='light'] .workbench-summary-card span {
 .industrial-form-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .industrial-form-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .industrial-form-grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.industrial-form-grid-1 { grid-template-columns: minmax(0, 1fr); }
+.industrial-form-grid-auto { grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 1fr)); }
+.industrial-form-grid.two-columns,
+.two-columns { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
 .industrial-field {
   display: grid;

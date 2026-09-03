@@ -691,7 +691,7 @@
     {
       "path": "package-lock.json",
       "size": 294579,
-      "sha256": "7e4d3e919d17dfb1a6b09e9c2c02e13bd6583e271283fe6628cbaaee78bb7232"
+      "sha256": "5ce1d8c7a012319d1e08669f4bfcbcc2dda295cde1ad70b748848cffb5dc7ffd"
     },
     {
       "path": "package.json",
@@ -2130,8 +2130,8 @@
     },
     {
       "path": "src/app/features/cases/CaseRegister.tsx",
-      "size": 5606,
-      "sha256": "7bf8d107dd9b62cbfe66ef43f6b9a01746eedab829fa41ad7402357046326e0f"
+      "size": 5463,
+      "sha256": "f11f92281d2c1ea8bdb35056c77a43057bff0941576967d0de2a4268ada26d81"
     },
     {
       "path": "src/app/features/cases/CaseSearchResultExcerpt.tsx",
@@ -3480,8 +3480,8 @@
     },
     {
       "path": "src/app/ui/components.css",
-      "size": 51212,
-      "sha256": "87f6a328351df945fd93a334a2f96fa68b9ffc29eee05389e26ae0a792b3432c"
+      "size": 55166,
+      "sha256": "35d2071344e1da68246458a416122db044bbaed8c7894833790e29b2e12c4abb"
     },
     {
       "path": "src/app/ui/designTokens.css",
@@ -3490,8 +3490,8 @@
     },
     {
       "path": "src/app/ui/featureModules.css",
-      "size": 71430,
-      "sha256": "a7e11420f4f45f29d29511358c59e2130966e2f1a8ff991bb15b699324d4a8df"
+      "size": 75626,
+      "sha256": "65bbbab2050d1b35b2d9875a3c01bef72b3e9b63461bea8bc581110bc0e06685"
     },
     {
       "path": "src/app/ui/forms.css",
@@ -3500,8 +3500,8 @@
     },
     {
       "path": "src/app/ui/modal.css",
-      "size": 7561,
-      "sha256": "b59774ca2d46116f9681dcb8b2516c8107bc1667006a0122fc253ae1b0018390"
+      "size": 7636,
+      "sha256": "978d93d33acf834f2cbb7d93ac0375d38e8cef8ab3f7910dca2181219eb6a9b2"
     },
     {
       "path": "src/app/ui/processes.css",
@@ -3515,8 +3515,8 @@
     },
     {
       "path": "src/app/ui/workbench.css",
-      "size": 13260,
-      "sha256": "88296cf9c1fb7dfc3b13b1f4c83c4209d166afeb933cd432c3c263eda0d515c8"
+      "size": 13532,
+      "sha256": "ca15b5bc7057bd082e73edc7a28d7420ec6fdd25a5478fd669456cbc49ba667f"
     },
     {
       "path": "src/app/workflowViews.tsx",
@@ -3873,7 +3873,7 @@
     {
       "path": "dist/.vite/manifest.json",
       "size": 10882,
-      "sha256": "e37e769e3d5921d2e33f6344a09ea2985fce192a34d668baaeae9befa9ce3388"
+      "sha256": "89d2346d1ee0d4515a933eb5493b990b94b038c0f6d22042e79dedd16f31455a"
     },
     {
       "path": "dist/assets/512x512-FFLOWpww.png",
@@ -3886,19 +3886,19 @@
       "sha256": "833b34c7bc78f24a04e2b34feb0d744d5255117234eaa691bbb4a37624c9311d"
     },
     {
-      "path": "dist/assets/BemView-C0wKS_Z1.js",
+      "path": "dist/assets/BemView-DnlavxY3.js",
       "size": 2701,
-      "sha256": "87a86e899e5f8e28f9c9f685d82c01d292112462f2af8040d3ecf208b8e6f8c5"
+      "sha256": "f07c8d8ec127081797d1cc4f690c8f41a832b0411fd5f7e801716c38c9797f26"
     },
     {
-      "path": "dist/assets/CasesView-DWPS22hU.js",
-      "size": 271516,
-      "sha256": "c677700669d3c101bd99cf3d811b485304e1c6b3630d6cc8de5052f8df499bd4"
+      "path": "dist/assets/CasesView-Dqcfp_cm.js",
+      "size": 271274,
+      "sha256": "336cb6d0ab15124cb9b906ff77540c22474b5db826cefcf91b1d3a709c0dc016"
     },
     {
-      "path": "dist/assets/ComplianceView-LI0blUv8.js",
+      "path": "dist/assets/ComplianceView-D-CTRJaq.js",
       "size": 78222,
-      "sha256": "7470cf8f5fbd55f0bbe6647f63a694fc17ee85fc1273276e423f102f0fa1d7c4"
+      "sha256": "9b2bf9255ece7736e9a453415c01f7ce0a18aa715e205163df9e535508aecfd2"
     },
     {
       "path": "dist/assets/dates-D6WQa1jA.js",
@@ -3906,9 +3906,9 @@
       "sha256": "b71a8a36cfa8975e0273b2192d72f2bd9694b803df31db523701afd063ee05ea"
     },
     {
-      "path": "dist/assets/ElectionWorkbench-DaieYanw.js",
+      "path": "dist/assets/ElectionWorkbench-BSU9GWou.js",
       "size": 40939,
-      "sha256": "f860ba8f3a56966e516074a62a0f3451ee8d08eeb3c2d505102679dd02a88832"
+      "sha256": "a151e055f117017e6c6ed46a3337edd649727629f5135f82d7c5bd70861d8c87"
     },
     {
       "path": "dist/assets/equalizationShared-itq54AIS.js",
@@ -3916,9 +3916,9 @@
       "sha256": "13c57021e0a05fb7f48814e1b3a82cfaf63b122d78d7ec702aef8f5adfece8a8"
     },
     {
-      "path": "dist/assets/EqualizationView-BSpO099k.js",
+      "path": "dist/assets/EqualizationView-XLgY3TB5.js",
       "size": 7852,
-      "sha256": "e5cbfa2ee5bad00745ffa93285a01747f05bf503e5c3a986c5468e4b2fe620a8"
+      "sha256": "78f9a15d9be7cdc9f923b9d52a370891c0bb0c415bb29bd2450d9356d5adbf25"
     },
     {
       "path": "dist/assets/gremiaBrWorkspaceModel-DAnDB-yi.js",
@@ -3926,19 +3926,19 @@
       "sha256": "a6747fcee93d7537b41a8149081eaddaa9611d3a0f2252cb6b082ae2ba3751fd"
     },
     {
-      "path": "dist/assets/GremiaBrWorkspaceView-bbFSnIEM.js",
+      "path": "dist/assets/GremiaBrWorkspaceView-Xpqyk4Fm.js",
       "size": 15233,
-      "sha256": "8a58a30e8993b1b0e85ea9fee9050f7419e4f443247c5d8cf0f1ff12249afde3"
+      "sha256": "388494641b30ed484ec12fd0f7223823d17b51aefc7c0febb19013a7ee544903"
     },
     {
-      "path": "dist/assets/index-Ci9vn_CN.css",
-      "size": 174080,
-      "sha256": "5c2883879515e3d9df694324e221010e7fd1ca52f65a9d4d4fc3e28510ae6372"
-    },
-    {
-      "path": "dist/assets/index-CnjrEa8q.js",
+      "path": "dist/assets/index-DP_Dt0od.js",
       "size": 232617,
-      "sha256": "72f43115d1352f06b069667cb6b3fffe1c2d9083f5554f7717126b6187d0fe7f"
+      "sha256": "d2d31a6dca81d0b07744796e01077d57398d1110f9a771ec1cbed436ac38fb8f"
+    },
+    {
+      "path": "dist/assets/index-t3RO88IN.css",
+      "size": 181193,
+      "sha256": "e3905e210640a05a15019b8715582fd4f717629f6270abe7a346268bb1648606"
     },
     {
       "path": "dist/assets/KnowledgeView-t3zkylJJ.js",
@@ -3956,9 +3956,9 @@
       "sha256": "da72be831b51b5850136d2115da42ec7bb7cd25f8e2e1b5bf00fbe319685da9e"
     },
     {
-      "path": "dist/assets/ParticipationView-Hqny1nLY.js",
+      "path": "dist/assets/ParticipationView-EO2WsW-L.js",
       "size": 8671,
-      "sha256": "e02ed2a6823b021655ec2a551d7ea96fc8a124f5634c11e3bfb73af6162a4559"
+      "sha256": "f5edb7c6422f3f9ad6ba10cae7b5970b00b103486d053511afa18ffcb68a7352"
     },
     {
       "path": "dist/assets/pdfExportFeedback-BLwP-eKc.js",
@@ -3971,29 +3971,29 @@
       "sha256": "5f26b7694943af1ce72ffffd179e5d0309061feadb1c1cd8283fea998734de0b"
     },
     {
-      "path": "dist/assets/PreventionView-Ryh43WnY.js",
+      "path": "dist/assets/PreventionView-BagPAxz3.js",
       "size": 2524,
-      "sha256": "a96bcc2c085b0626185ddff16d6bfe05951bd74cf98e987f398473e9ef0b79a2"
+      "sha256": "e7b4da9c763d6b3f03dd0bf69bd48fe807562c6a1944dc7a8b21588c09dfdf66"
     },
     {
-      "path": "dist/assets/PrivacyReviewCockpit-CmlqO1bp.js",
+      "path": "dist/assets/PrivacyReviewCockpit-CsfJyp9Y.js",
       "size": 6878,
-      "sha256": "5ba0b3dcb37fc52c411e11b1b37cd98addc892e3b25a6bff38cfbca401737ac2"
+      "sha256": "22d1b792786dd5b8282d87c1669afb8be74f549c2cc38e839683b2283c46c398"
     },
     {
-      "path": "dist/assets/ProcessOverview-D4sA9Jtc.js",
+      "path": "dist/assets/ProcessOverview-CQh9-Iet.js",
       "size": 2665,
-      "sha256": "cb089ba69fae70ed151e6cb70aa156804f2c5b33484b301408b7283dc8146327"
+      "sha256": "0a035bb5986a85f25dd0d8941a973456662493e8c81f291db753275430387163"
     },
     {
-      "path": "dist/assets/RecruitingParticipationsView-DtqcQgvc.js",
+      "path": "dist/assets/RecruitingParticipationsView-B1LUU4oV.js",
       "size": 20415,
-      "sha256": "6879f49a485210656a39a0bf7fa46873ca80ec54e1537ed7631f8e429ff6679a"
+      "sha256": "7e6c324de1b3837cb5718f39ceb5e10e7bc514ece31b0558495bc564c0958ba6"
     },
     {
-      "path": "dist/assets/ReportsView-C1Ondi7a.js",
+      "path": "dist/assets/ReportsView-Bh-OCjjB.js",
       "size": 8210,
-      "sha256": "b3297286eaf393f0294d812b483894ca8b84d3a34b01ce091692284dc71314db"
+      "sha256": "c9c3d696ddf8edb48e03f172b49049dc6d6dd92eec20c53ec7ffc8fb175b931a"
     },
     {
       "path": "dist/assets/rolldown-runtime-CbXtAM7H.js",
@@ -4001,19 +4001,19 @@
       "sha256": "bbf7c5086ae414dc3f33777e3eebf16ea8631325b8bb4690d25091c03567f31a"
     },
     {
-      "path": "dist/assets/SbvControlView-D-4sekL8.js",
+      "path": "dist/assets/SbvControlView-B8fNNtv5.js",
       "size": 64456,
-      "sha256": "115ff5492bad858367ce0fd869c823a6d2040fb882e50d220e579ae491854849"
+      "sha256": "99bf8a2b8dcd24ac54b2c6b70af0e67a510fb5e2dc10f07a9b6de85ed5759141"
     },
     {
-      "path": "dist/assets/SettingsHub-DDpYGPFe.js",
+      "path": "dist/assets/SettingsHub-5pWHDhJd.js",
       "size": 13658,
-      "sha256": "dfbeaef4139986359933c57f8bb4a65c7c688294a62075042d98fa26a01ad258"
+      "sha256": "7856404ad785a627d10165470be9dea3904b8e5a35f2cb3e3578cfe8acdc5bc6"
     },
     {
-      "path": "dist/assets/TemplatesView-BhhjONUY.js",
+      "path": "dist/assets/TemplatesView-DdYzVUfU.js",
       "size": 16472,
-      "sha256": "344e66b3fc09047835ed1e4f994a37461a29056c44eea2866388addbef9f341e"
+      "sha256": "74dc70a0c371c287d7b0774aeb499aaf1cd099c190074f57e0e0ceb5a3eeda69"
     },
     {
       "path": "dist/assets/terminationShared-BGFAg4La.js",
@@ -4021,9 +4021,9 @@
       "sha256": "99fdb6a2ce0416dbc10701da9cad5edf0775401bc85e98010b524d1c18615c2d"
     },
     {
-      "path": "dist/assets/TerminationView-kyV6Z8c_.js",
+      "path": "dist/assets/TerminationView-B6-lBZqz.js",
       "size": 3348,
-      "sha256": "6b90097aab1fa127fa8861d245f2542cc47a0b0d709f5510d0990ae84d18ce0d"
+      "sha256": "7d7daf687464a888821e68110d894e973777fd1ed95eaf55925f5c9ea0fee8d1"
     },
     {
       "path": "dist/assets/vendor-BKKHlQ6u.js",
@@ -4038,7 +4038,7 @@
     {
       "path": "dist/index.html",
       "size": 1100,
-      "sha256": "2820e32ff5aa220d5b3b7cd2919b3a6df5144094398d6b32879c4d93cab9f86e"
+      "sha256": "a4dd7d16a260fae1ca952e2808641439f64573314aa8662e255d13d1a7d346b6"
     },
     {
       "path": "dist-electron/electron/applicationServiceDependencies.js",

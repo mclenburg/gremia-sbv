@@ -1,13 +1,13 @@
 {
   "schemaVersion": 3,
-  "lockSha256": "7e4d3e919d17dfb1a6b09e9c2c02e13bd6583e271283fe6628cbaaee78bb7232",
+  "lockSha256": "5ce1d8c7a012319d1e08669f4bfcbcc2dda295cde1ad70b748848cffb5dc7ffd",
   "packageCount": 591,
-  "inventorySha256": "20181e70189d8ed127b7742ab0b2453da1345dd31c4a8b6b3b04545f8a86f17f",
-  "noticesSha256": "bc4307301b614a36ea3a9734bd5b06c3c50f7322c78c31af569f6eb78f182cbf",
+  "inventorySha256": "68043d55542f255379a8609f117b45c57980a1ed23d926fbe1dc309fc5603b3f",
+  "noticesSha256": "9eb8d1b9dc207535babeebe0e928adefddc48b0b86b5232f940e937378c202e0",
   "licenseFiles": [
     {
       "name": "0BSD.txt",
-      "sha256": "92f3d752ecccc484c3c7b6dac2fbfb30ebb0e7c7fd9e9940e7ee68887c5daed4"
+      "sha256": "98344bca4c7568ae1b413e816c82f0381c32daeebb086eceb5fbdf5cd08c045c"
     },
     {
       "name": "Apache-2.0.txt",
@@ -43,7 +43,7 @@
     },
     {
       "name": "MPL-2.0.txt",
-      "sha256": "d5c7539a52f5ca1abaa142c897501a5bc08948564765abf7e396b3ed89c5bc2d"
+      "sha256": "352a742d1b623bb218b8783ea61c6b68246ca0d21d3d38910d5774a5c8c2eb1c"
     },
     {
       "name": "Python-2.0.txt",
