@@ -2386,11 +2386,6 @@ html[data-theme='light'] .text-command-help-modal .industrial-icon-button {
   background-color: #fafaf5;
 }
 
-:where(.industrial-form-section, .industrial-field-label, .industrial-field-help, .industrial-field-error, .industrial-field-invalid, .industrial-checkbox-field, .industrial-form-actions) {
-}
-
-:where(.industrial-record-card, .industrial-selection-card, .industrial-status-card, .industrial-warning-panel, .industrial-danger-panel, .industrial-tone-warning, .industrial-tone-danger, .industrial-tone-ok) {
-}
 
 .industrial-import-package-warnings {
   display: grid;

@@ -3480,8 +3480,8 @@
     },
     {
       "path": "src/app/ui/components.css",
-      "size": 55166,
-      "sha256": "35d2071344e1da68246458a416122db044bbaed8c7894833790e29b2e12c4abb"
+      "size": 54784,
+      "sha256": "04a089103709d02857a03769a7bc1c049239992dce6dc46302f1059c48c56d55"
     },
     {
       "path": "src/app/ui/designTokens.css",
@@ -3490,8 +3490,8 @@
     },
     {
       "path": "src/app/ui/featureModules.css",
-      "size": 75626,
-      "sha256": "65bbbab2050d1b35b2d9875a3c01bef72b3e9b63461bea8bc581110bc0e06685"
+      "size": 75219,
+      "sha256": "250ae728d084ed8e86f951e4546c749c74b79618177ba6d6db197619b54a4f0f"
     },
     {
       "path": "src/app/ui/forms.css",
@@ -3515,8 +3515,8 @@
     },
     {
       "path": "src/app/ui/workbench.css",
-      "size": 13532,
-      "sha256": "ca15b5bc7057bd082e73edc7a28d7420ec6fdd25a5478fd669456cbc49ba667f"
+      "size": 13424,
+      "sha256": "7dea190cdc6d5a330a6d10404036e657dbb3ba46916621a89f0b84392dd5a523"
     },
     {
       "path": "src/app/workflowViews.tsx",

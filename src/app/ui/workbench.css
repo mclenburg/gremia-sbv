@@ -587,6 +587,3 @@ html[data-theme='light'] .industrial-subpanel {
   color: var(--text-primary);
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.55), 0 8px 18px rgba(0,0,0,0.08);
 }
-
-:where(.workbench-page, .workbench-header, .workbench-sidebar, .workbench-content, .workbench-toolbar) {
-}
