@@ -10,6 +10,7 @@ import {
   DateInput,
   FormActions,
   PasswordInput,
+  TextareaInput,
   TextInput,
 } from "../../shared/components/IndustrialForm";
 import {
@@ -38,9 +39,11 @@ type InspectSelection = {
 type CaseHandoverTransferDialogsProps = {
   exportOpen: boolean;
   importOpen: boolean;
+  continueExpiredOpen: boolean;
   selectedCase?: CaseRecord;
   onCloseExport: () => void;
   onCloseImport: () => void;
+  onCloseContinueExpired: () => void;
   onExport: (
     passphrase: string,
     expiresAt?: string,
@@ -56,6 +59,7 @@ type CaseHandoverTransferDialogsProps = {
     mode: CaseHandoverImportMode;
     targetCaseId?: string;
   }) => Promise<void>;
+  onContinueExpired: (reason: string) => Promise<void>;
 };
 
 function toIsoEndOfDay(value: string): string | undefined {
@@ -146,8 +150,40 @@ function useHandoverImport({ importOpen, onCloseImport, onSelectImportFile, onIn
   return { passphrase, changePassphrase, file, selection, mode, setMode, targetCaseId, setTargetCaseId, error, busy, selectFile, inspect, submit };
 }
 
+function useContinueExpiredHandover({ continueExpiredOpen, onCloseContinueExpired, onContinueExpired }: Pick<CaseHandoverTransferDialogsProps, "continueExpiredOpen" | "onCloseContinueExpired" | "onContinueExpired">) {
+  const [reason, setReason] = useState("");
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    if (!continueExpiredOpen) {
+      setReason("");
+      setError("");
+      setBusy(false);
+    }
+  }, [continueExpiredOpen]);
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError("");
+    if (reason.trim().length < 12) {
+      setError("Bitte die weitere Bearbeitung konkret begründen.");
+      return;
+    }
+    setBusy(true);
+    try {
+      await onContinueExpired(reason.trim());
+      onCloseContinueExpired();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Bestätigung konnte nicht dokumentiert werden.");
+    } finally {
+      setBusy(false);
+    }
+  }
+  return { reason, setReason, error, busy, submit };
+}
+
 type ExportState = ReturnType<typeof useHandoverExport>;
 type ImportState = ReturnType<typeof useHandoverImport>;
+type ContinueExpiredState = ReturnType<typeof useContinueExpiredHandover>;
 
 function HandoverExportDialog({ open, selectedCase, onClose, state }: { open: boolean; selectedCase?: CaseRecord; onClose: () => void; state: ExportState }) {
   if (!open) return null;
@@ -184,11 +220,40 @@ function HandoverImportDialog({ open, onClose, state }: { open: boolean; onClose
   </IndustrialModal>;
 }
 
+function ContinueExpiredHandoverDialog({ open, selectedCase, onClose, state }: { open: boolean; selectedCase?: CaseRecord; onClose: () => void; state: ContinueExpiredState }) {
+  if (!open) return null;
+  return <IndustrialModal
+    title="Weiterbearbeitung abgelaufener Übergabedaten bestätigen"
+    kicker="Fallübergabe / Vertretung"
+    description="Abgelaufene Übergabedaten dürfen nur nach bewusster Prüfung weiterbearbeitet werden. Die Begründung wird nachvollziehbar dokumentiert."
+    icon={<AlertTriangle className="h-5 w-5" />}
+    onClose={onClose}
+  >
+    <form className="industrial-modal-grid" onSubmit={state.submit}>
+      <TextInput label="Fallakte" value={selectedCase ? `${selectedCase.caseNumber} · ${selectedCase.displayName}` : "Keine Fallakte ausgewählt"} readOnly wide onValueChange={() => undefined} />
+      <TextareaInput
+        label="Begründung"
+        value={state.reason}
+        onValueChange={state.setReason}
+        error={state.error}
+        wide
+        required
+        placeholder="Warum ist die weitere Bearbeitung trotz abgelaufener Übergabe erforderlich?"
+      />
+      <p className="industrial-modal-preview industrial-modal-wide">Die Bestätigung ersetzt kein neues Übergabepaket. Sie dokumentiert nur, warum die bereits importierte lokale Übergabeakte weiterbearbeitet wird.</p>
+      {state.error ? <div className="industrial-message industrial-message-warning industrial-modal-wide" role="alert"><AlertTriangle className="h-4 w-4" />{state.error}</div> : null}
+      <FormActions><GhostButton type="button" onClick={onClose} disabled={state.busy}>Abbrechen</GhostButton><IndustrialButton type="submit" disabled={state.busy || !selectedCase} loading={state.busy}>Weiterbearbeitung bestätigen</IndustrialButton></FormActions>
+    </form>
+  </IndustrialModal>;
+}
+
 export function CaseHandoverTransferDialogs(props: CaseHandoverTransferDialogsProps) {
   const exportState = useHandoverExport(props);
   const importState = useHandoverImport(props);
+  const continueExpiredState = useContinueExpiredHandover(props);
   return <>
     <HandoverExportDialog open={props.exportOpen} selectedCase={props.selectedCase} onClose={props.onCloseExport} state={exportState} />
     <HandoverImportDialog open={props.importOpen} onClose={props.onCloseImport} state={importState} />
+    <ContinueExpiredHandoverDialog open={props.continueExpiredOpen} selectedCase={props.selectedCase} onClose={props.onCloseContinueExpired} state={continueExpiredState} />
   </>;
 }

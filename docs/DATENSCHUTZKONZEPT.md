@@ -47,9 +47,9 @@ Die Anwendung versendet keine eigenständigen Informationen nach Art. 13/14 DSGV
 
 Bei destruktiven Datenschutzaktionen weist die Anwendung darauf hin, dass Sicherheitseinträge im Audit-Log aus Integritätsgründen erhalten bleiben. Diese Audit-Einträge enthalten keine Direktidentifikatoren wie Name, E-Mail oder Personalnummer. Der Hinweis verhindert, dass Nutzerinnen und Nutzer eine Löschung oder Anonymisierung als vollständige Entfernung auch der manipulationsgeschützten Sicherheitskette missverstehen.
 
-## Gremia.BR-Lesebrücke und Cache-Speicherbegrenzung
+## Gremia.BR-Kooperationsbrücke und Cache-Speicherbegrenzung
 
-Die optionale Gremia.BR-Anbindung bleibt eine manuell ausgelöste Read-only-Lesebrücke. Abgerufene BR-Kontextdaten werden nicht in SBV-Fallakten importiert. Der lokale Lesecache ist technisch auf 30 Tage begrenzt und wird bei deaktivierter Anbindung bzw. beim Löschen der Zugangsdaten geleert. Damit dient der Cache nur der kurzfristigen Arbeitsunterstützung und nicht der dauerhaften Aufbewahrung von Betriebsratsdaten im SBV-Vault.
+Die optionale Gremia.BR-Anbindung bleibt eine manuell ausgelöste Kooperationsbrücke. Lesende Abrufe liefern kurzfristigen BR-Kontext; schreibende Aktionen sind auf ausdrücklich modellierte SBV-Arbeitsbereichsaktionen begrenzt, insbesondere die Übergabe zentral erzeugter Gremia.SBV-PDF-Dokumente und die Anforderung eines Tagesordnungspunkts. Der lokale Lesecache ist technisch auf 30 Tage begrenzt und wird bei deaktivierter Anbindung bzw. beim Löschen der Zugangsdaten geleert. Damit dient der Cache nur der kurzfristigen Arbeitsunterstützung und nicht der dauerhaften Aufbewahrung von Betriebsratsdaten im SBV-Vault.
 
 ## Fallübergabe / Vertretung
 
@@ -59,4 +59,6 @@ Abgelaufene Übergabepakete dürfen nicht importiert werden. Bereits importierte
 
 ## Auskunft nach Art. 15 DSGVO
 
-Mit dem Personenverzeichnis unterstützt die App Auskunftsfähigkeit: verknüpfte Fallakten, Fristen, Maßnahmen, Importläufe und Lifecycle-Ereignisse sind auffindbar. Im Compliance Center kann eine Antwort auf ein Art.-15-Auskunftsersuchen aus Personen-, Fallakten-, Fristen-, Maßnahmen-, Import- und Lifecycle-Daten vorbefüllt, erzeugt und als Markdown oder PDF exportiert werden. Dieser Export ist ein Arbeitsentwurf; Identitätsprüfung, Drittdatenprüfung, Schwärzung und rechtliche Freigabe bleiben organisatorische Schritte.
+Mit dem Personenverzeichnis unterstützt die App Auskunftsfähigkeit: verknüpfte Fallakten, Fristen, Maßnahmen, Kontakte, Dokumente, Arbeitgeberlisten-Importe, Wahlbezüge, Beteiligungsverstöße, Datenschutzprüfungen und Lifecycle-Ereignisse sind auffindbar. Im Compliance Center erstellt die SBV eine Zuarbeit zur Art.-15-Auskunft für Datenschutzkontakt, verantwortliche Stelle oder – falls vorhanden – Datenschutzbeauftragte*n.
+
+Die App setzt keinen benannten DSB voraus. Kleine Betriebe können stattdessen die verantwortliche Stelle oder einen Datenschutzkontakt hinterlegen. Identitäts-/Berechtigungsprüfung, Drittdatenprüfung, Schwärzung, Rechtsbewertung und Herausgabeentscheidung bleiben organisatorische Schritte der verantwortlichen Stelle.

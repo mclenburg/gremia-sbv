@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { DashboardOverview, groupDashboardModules, resolveDashboardWorkdaySummary } from '../../src/app/features/dashboard/DashboardOverview';
+import { modules } from '../../src/app/core/navigation/modules';
+import { buildDashboardFocusSummary } from '../../src/app/features/dashboard/dashboardFocus';
 import { TextCommandTextarea } from '../../src/app/shared/textCommands/TextCommandTextarea';
 import { bindingLabel, CaseOverviewDetail, resolveCaseNextAction } from '../../src/app/features/cases/CaseOverviewDetail';
 import { lifecycleSeverity, personLabel, PersonList } from '../../src/app/features/persons/PersonList';
@@ -91,52 +92,37 @@ describe('UI-Fundament Block 4 Verhalten', () => {
     expect(markup).not.toContain('text-command-hint');
   });
 
-  it('priorisiert das Dashboard nach kritischen Fristen, 48h-Fristen und Datenschutzprüfungen', () => {
-    expect(resolveDashboardWorkdaySummary({
-      cases: [caseRecord({ privacyReviewRequired: true })],
-      deadlines: [deadline()],
-      dashboardItems: [deadline()],
-    })).toMatchObject({
-      criticalCount: 1,
-      dueSoonCount: 0,
-      privacyReviewCount: 1,
-      nextActionTone: 'danger',
-      nextActionTitle: '1 kritische Frist',
-    });
-
-    expect(resolveDashboardWorkdaySummary({
-      cases: [caseRecord({ privacyReviewRequired: true })],
-      deadlines: [],
-      dashboardItems: [],
-    })).toMatchObject({
-      nextActionTone: 'warning',
-      nextActionTitle: '1 Datenschutzprüfung',
-    });
-  });
-
-  it('gruppiert Dashboard-Module in Kernarbeit, SBV-Verfahren, Werkzeuge und Administration', () => {
-    const groups = groupDashboardModules();
-
-    expect(groups.map((group) => group.id)).toEqual(['core', 'processes', 'tools', 'administration']);
-    expect(groups.find((group) => group.id === 'core')?.modules.map((module) => module.id)).toEqual(['persons', 'cases', 'deadlines', 'activity_journal', 'meetings', 'sbv_control']);
-    expect(groups.find((group) => group.id === 'processes')?.modules.map((module) => module.id)).toEqual(['participation_violations', 'recruiting_participations', 'equalization', 'elections']);
-    expect(groups.find((group) => group.id === 'administration')?.modules.map((module) => module.id)).toEqual(['compliance', 'privacy_review']);
-  });
-
-  it('rendert das Dashboard als Tagessteuerung vor den Modulgruppen', () => {
-    const { markup } = renderComponent(DashboardOverview, {
-      onNavigate: () => undefined,
+  it('priorisiert die aktuelle Dashboard-Fokussicht nach offenen Fristen und Compliance-Warnungen', () => {
+    expect(buildDashboardFocusSummary({
       cases: [caseRecord({ status: 'in_bearbeitung' })],
-      deadlines: [deadline()],
-      dashboardItems: [deadline()],
-      onEditDeadline: () => undefined,
-      onCompleteDeadline: () => undefined,
+      deadlines: [deadline({ status: 'overdue', severity: 'critical' })],
+      compliance: { ok: true, issueCount: 0 },
+      referenceDate: new Date('2026-05-30T12:00:00.000Z'),
+    })).toMatchObject({
+      cases: { open: 1, marker: 'attention' },
+      deadlines: { totalOpen: 1, overdue: 1, marker: 'warning' },
+      compliance: { ok: true, marker: 'ok' },
     });
 
-    const text = visibleText(markup);
-    expect(text).toContain('Was heute wichtig ist');
-    expect(text).toContain('Nächster sauberer Schritt');
-    expect(text.indexOf('Nächster sauberer Schritt')).toBeLessThan(text.indexOf('Kernarbeit'));
+    expect(buildDashboardFocusSummary({
+      cases: [],
+      deadlines: [],
+      compliance: { ok: false, issueCount: 1 },
+    })).toMatchObject({
+      deadlines: { marker: 'ok' },
+      compliance: { ok: false, warnings: 1, marker: 'warning' },
+    });
+  });
+
+  it('hält reine Cockpit-Module aus der Hauptnavigation heraus', () => {
+    const visibleProcessModules = modules
+      .filter((module) => module.group === 'processes' && module.showInNavigation !== false)
+      .map((module) => module.id);
+
+    expect(visibleProcessModules).toEqual(['participation_violations', 'recruiting_participations', 'equalization', 'elections']);
+    expect(modules.find((module) => module.id === 'bem')).toMatchObject({ showInNavigation: false });
+    expect(modules.find((module) => module.id === 'prevention')).toMatchObject({ showInNavigation: false });
+    expect(modules.find((module) => module.id === 'participation')).toMatchObject({ showInNavigation: false });
   });
 
   it('leitet in der Fallübersicht zuerst Datenschutz- und Übergabehandlungen ab', () => {

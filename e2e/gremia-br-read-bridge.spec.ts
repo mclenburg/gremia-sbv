@@ -4,7 +4,7 @@ function mainNavigation(page: import('@playwright/test').Page) {
   return page.getByRole('navigation', { name: 'Hauptnavigation' });
 }
 
-test('konfiguriert die optionale Gremia.BR-Lesebrücke ohne automatische Synchronisation', async ({ page }) => {
+test('konfiguriert die optionale Gremia.BR-Kooperationsbrücke ohne automatische Synchronisation', async ({ page }) => {
   await mainNavigation(page).getByRole('button', { name: /Einstellungen/i }).click();
 
   await page.getByRole('tab', { name: /Gremia\.BR/i }).click();
@@ -23,9 +23,9 @@ test('konfiguriert die optionale Gremia.BR-Lesebrücke ohne automatische Synchro
   await expect(panel).not.toContainText('streng-geheim');
 });
 
-test('zeigt Gremia.BR-Dashboarddaten nur bei aktivierter Lesebrücke und lädt Detaildaten nur nach Nutzeraktion', async ({ page }) => {
+test('zeigt Gremia.BR-Dashboarddaten nur bei aktivierter Kooperationsbrücke und lädt Detaildaten nur nach Nutzeraktion', async ({ page }) => {
 
-  await expect(page.getByLabel('Gremia.BR-Lesebrücke')).toHaveCount(0);
+  await expect(page.getByLabel('Gremia.BR-Kooperationsbrücke')).toHaveCount(0);
   await expect(page.getByRole('region', { name: /Nächste BR-Sitzung mit Agenda/i })).toHaveCount(0);
 
   await mainNavigation(page).getByRole('button', { name: /Einstellungen/i }).click();
@@ -38,7 +38,7 @@ test('zeigt Gremia.BR-Dashboarddaten nur bei aktivierter Lesebrücke und lädt D
   await settingsPanel.getByRole('button', { name: /Einstellungen speichern/i }).click();
 
   await mainNavigation(page).getByRole('button', { name: /Dashboard/i }).click();
-  const enabledCard = page.getByLabel('Gremia.BR-Lesebrücke');
+  const enabledCard = page.getByLabel('Gremia.BR-Kooperationsbrücke');
   await expect(enabledCard).toBeVisible();
   await expect(enabledCard).toContainText(/Letzter Datenabruf/i);
   await expect(enabledCard).toContainText(/noch nicht abgerufen|\d{2}\.\d{2}\.\d{4}/i);

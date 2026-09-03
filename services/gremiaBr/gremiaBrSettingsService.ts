@@ -2,6 +2,7 @@ import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'node:
 import type { DatabaseAdapter } from '../databaseService.js';
 import type {
   GremiaBrConnectionTestResult,
+  GremiaBrApiMode,
   GremiaBrPublicSettings,
   GremiaBrSettingsInput,
   GremiaBrRelevanceSettings,
@@ -15,6 +16,11 @@ interface SettingsRow {
   server_url: string;
   username: string;
   password_secret: string | null;
+  api_mode: string | null;
+  selected_body_id: string | null;
+  selected_body_name: string | null;
+  selected_organization_id: string | null;
+  selected_security_domain: string | null;
   last_connection_test_at: string | null;
   last_successful_login_at: string | null;
   profile_json: string | null;
@@ -28,6 +34,14 @@ function nowIso(): string {
 
 function normalizeUsername(value: unknown): string {
   return typeof value === 'string' ? value.trim() : '';
+}
+
+function normalizeOptionalText(value: unknown): string | undefined {
+  return typeof value === 'string' && value.trim() ? value.trim() : undefined;
+}
+
+function normalizeApiMode(value: unknown): GremiaBrApiMode {
+  return value === 'gremia_br_v2' ? 'gremia_br_v2' : 'legacy_read_bridge';
 }
 
 function parseProfile(profileJson?: string | null): { displayName?: string; role?: string } {
@@ -50,6 +64,11 @@ function toPublicSettings(row?: SettingsRow | null): GremiaBrPublicSettings {
     serverUrl: row?.server_url ?? '',
     username: row?.username ?? '',
     hasStoredCredentials: Boolean(row?.password_secret),
+    apiMode: normalizeApiMode(row?.api_mode),
+    selectedBodyId: normalizeOptionalText(row?.selected_body_id),
+    selectedBodyName: normalizeOptionalText(row?.selected_body_name),
+    selectedOrganizationId: normalizeOptionalText(row?.selected_organization_id),
+    selectedSecurityDomain: normalizeOptionalText(row?.selected_security_domain),
     lastConnectionTestAt: row?.last_connection_test_at ?? undefined,
     lastSuccessfulLoginAt: row?.last_successful_login_at ?? undefined,
     profileDisplayName: profile.displayName,
@@ -203,7 +222,10 @@ export class GremiaBrSettingsService implements GremiaBrSettingsStore {
 
   private readRow(): SettingsRow | undefined {
     return this.db().prepare<SettingsRow>(`
-      SELECT enabled, server_url, username, password_secret, last_connection_test_at, last_successful_login_at, profile_json, relevance_keywords_json, updated_at
+      SELECT
+        enabled, server_url, username, password_secret,
+        api_mode, selected_body_id, selected_body_name, selected_organization_id, selected_security_domain,
+        last_connection_test_at, last_successful_login_at, profile_json, relevance_keywords_json, updated_at
       FROM gremia_br_settings
       WHERE id = 'default'
     `).get();
@@ -224,6 +246,11 @@ export class GremiaBrSettingsService implements GremiaBrSettingsStore {
       serverUrl: row?.server_url ?? '',
       username: row?.username ?? '',
       password: this.decodeSecret(row?.password_secret),
+      apiMode: normalizeApiMode(row?.api_mode),
+      selectedBodyId: normalizeOptionalText(row?.selected_body_id),
+      selectedBodyName: normalizeOptionalText(row?.selected_body_name),
+      selectedOrganizationId: normalizeOptionalText(row?.selected_organization_id),
+      selectedSecurityDomain: normalizeOptionalText(row?.selected_security_domain),
     };
   }
 
@@ -239,6 +266,11 @@ export class GremiaBrSettingsService implements GremiaBrSettingsStore {
 
     const existing = this.readRow();
     const timestamp = nowIso();
+    const apiMode = normalizeApiMode(input.apiMode ?? existing?.api_mode);
+    const selectedBodyId = normalizeOptionalText(input.selectedBodyId) ?? null;
+    const selectedBodyName = normalizeOptionalText(input.selectedBodyName) ?? null;
+    const selectedOrganizationId = normalizeOptionalText(input.selectedOrganizationId) ?? null;
+    const selectedSecurityDomain = normalizeOptionalText(input.selectedSecurityDomain) ?? null;
     const passwordSecret = typeof input.password === 'string' && input.password.length > 0
       ? this.encodeSecret(input.password)
       : this.migrateSecretIfNeeded(existing?.password_secret);
@@ -247,14 +279,20 @@ export class GremiaBrSettingsService implements GremiaBrSettingsStore {
     this.db().prepare(`
       INSERT INTO gremia_br_settings (
         id, enabled, server_url, username, password_secret,
+        api_mode, selected_body_id, selected_body_name, selected_organization_id, selected_security_domain,
         last_connection_test_at, last_successful_login_at, profile_json, relevance_keywords_json,
         created_at, updated_at
-      ) VALUES ('default', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES ('default', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(id) DO UPDATE SET
         enabled = excluded.enabled,
         server_url = excluded.server_url,
         username = excluded.username,
         password_secret = excluded.password_secret,
+        api_mode = excluded.api_mode,
+        selected_body_id = excluded.selected_body_id,
+        selected_body_name = excluded.selected_body_name,
+        selected_organization_id = excluded.selected_organization_id,
+        selected_security_domain = excluded.selected_security_domain,
         relevance_keywords_json = excluded.relevance_keywords_json,
         updated_at = excluded.updated_at
     `).run(
@@ -262,6 +300,11 @@ export class GremiaBrSettingsService implements GremiaBrSettingsStore {
       normalizedUrl,
       username,
       passwordSecret,
+      apiMode,
+      selectedBodyId,
+      selectedBodyName,
+      selectedOrganizationId,
+      selectedSecurityDomain,
       existing?.last_connection_test_at ?? null,
       existing?.last_successful_login_at ?? null,
       existing?.profile_json ?? null,
@@ -275,11 +318,15 @@ export class GremiaBrSettingsService implements GremiaBrSettingsStore {
   clearCredentials(): GremiaBrPublicSettings {
     const timestamp = nowIso();
     this.db().prepare(`
-      INSERT INTO gremia_br_settings (id, enabled, server_url, username, password_secret, relevance_keywords_json, created_at, updated_at)
-      VALUES ('default', 0, '', '', '', ?, ?, ?)
+      INSERT INTO gremia_br_settings (id, enabled, server_url, username, password_secret, api_mode, selected_body_id, selected_body_name, selected_organization_id, selected_security_domain, relevance_keywords_json, created_at, updated_at)
+      VALUES ('default', 0, '', '', '', 'legacy_read_bridge', NULL, NULL, NULL, NULL, ?, ?, ?)
       ON CONFLICT(id) DO UPDATE SET
         enabled = 0,
         password_secret = '',
+        selected_body_id = NULL,
+        selected_body_name = NULL,
+        selected_organization_id = NULL,
+        selected_security_domain = NULL,
         last_successful_login_at = NULL,
         profile_json = NULL,
         updated_at = excluded.updated_at
@@ -295,8 +342,8 @@ export class GremiaBrSettingsService implements GremiaBrSettingsStore {
     const timestamp = nowIso();
     const relevanceJson = serializeGremiaBrRelevanceSettings(settings ?? DEFAULT_GREMIA_BR_RELEVANCE_SETTINGS);
     this.db().prepare(`
-      INSERT INTO gremia_br_settings (id, enabled, server_url, username, password_secret, relevance_keywords_json, created_at, updated_at)
-      VALUES ('default', 0, '', '', '', ?, ?, ?)
+      INSERT INTO gremia_br_settings (id, enabled, server_url, username, password_secret, api_mode, relevance_keywords_json, created_at, updated_at)
+      VALUES ('default', 0, '', '', '', 'legacy_read_bridge', ?, ?, ?)
       ON CONFLICT(id) DO UPDATE SET
         relevance_keywords_json = excluded.relevance_keywords_json,
         updated_at = excluded.updated_at

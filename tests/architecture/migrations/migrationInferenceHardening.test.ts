@@ -14,10 +14,10 @@ describe('MigrationService 0.9.5-d Härtung', () => {
 
   it('hält activity_journal_links in Basisschema und ensureSchema konsistent eindeutig', () => {
     const schema = readFileSync('database/schema.sql', 'utf8');
-    const service = readFileSync('services/activityJournalService.ts', 'utf8');
+    const runtimeSchema = readFileSync('services/migrations/migrationProcessSchemasA.ts', 'utf8');
 
     expect(schema).toContain('UNIQUE(entry_id, target_type, target_id)');
-    expect(service).toContain('UNIQUE(entry_id, target_type, target_id)');
+    expect(runtimeSchema).toContain('UNIQUE(entry_id, target_type, target_id)');
   });
 
   it('dokumentiert die Grenzen des lokalen build:github-Befehls', () => {

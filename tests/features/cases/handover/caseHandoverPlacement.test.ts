@@ -66,13 +66,16 @@ describe('case handover placement 0.9.2', () => {
     const { markup, tree } = renderComponent(CaseHandoverTransferDialogs, {
       exportOpen: false,
       importOpen: true,
+      continueExpiredOpen: false,
       selectedCase: caseRecord,
       onCloseExport: () => undefined,
       onCloseImport: () => undefined,
+      onCloseContinueExpired: () => undefined,
       onExport: async () => ({ exported: false, filePath: '', packageId: '', caseCount: 0, measureCount: 0, documentCount: 0, deadlineCount: 0 }),
       onSelectImportFile: async () => ({ canceled: true }),
       onInspectImport: async () => ({ valid: true, packageId: 'pkg-1', createdAt: '2026-05-01T08:00:00.000Z', caseCount: 0, measureCount: 0, documentCount: 0, deadlineCount: 0, matches: [], isExpired: false, warnings: [] }),
       onImport: async () => undefined,
+      onContinueExpired: async () => undefined,
     });
 
     const text = visibleText(markup);
@@ -85,6 +88,28 @@ describe('case handover placement 0.9.2', () => {
     expect(importButton).toBeTruthy();
     expect(descendants(tree).some((node) => node.attrs.class?.includes('handover-import-file-step'))).toBe(true);
     expect(descendants(tree).some((node) => node.attrs.class?.includes('handover-import-inspect-actions'))).toBe(true);
+  });
+
+  it('fragt die Fortführung abgelaufener Übergabedaten über einen Gremia-Dialog statt Browser-Prompt ab', () => {
+    const { markup } = renderComponent(CaseHandoverTransferDialogs, {
+      exportOpen: false,
+      importOpen: false,
+      continueExpiredOpen: true,
+      selectedCase: caseRecord,
+      onCloseExport: () => undefined,
+      onCloseImport: () => undefined,
+      onCloseContinueExpired: () => undefined,
+      onExport: async () => ({ exported: false, filePath: '', packageId: '', caseCount: 0, measureCount: 0, documentCount: 0, deadlineCount: 0 }),
+      onSelectImportFile: async () => ({ canceled: true }),
+      onInspectImport: async () => ({ valid: true, packageId: 'pkg-1', createdAt: '2026-05-01T08:00:00.000Z', caseCount: 0, measureCount: 0, documentCount: 0, deadlineCount: 0, matches: [], isExpired: false, warnings: [] }),
+      onImport: async () => undefined,
+      onContinueExpired: async () => undefined,
+    });
+
+    const text = visibleText(markup);
+    expect(text).toContain('Weiterbearbeitung abgelaufener Übergabedaten bestätigen');
+    expect(text).toContain('Begründung');
+    expect(text).toContain('Abbrechen');
   });
 
   it('macht die Importentscheidung nach Paketprüfung explizit sichtbar', () => {

@@ -21,15 +21,16 @@ import {
   sanitizeDialogFileName,
 } from "./ipcValidation.js";
 import { requestShellPathOpen } from './shellOpenPath.js';
+import { requestPlainDocumentPreview } from './documentPreviewWorkflow.js';
 
 function destroyBuffer(buffer?: Buffer): void {
   try { buffer?.fill(0); } catch { /* Best-Effort-Speicherhygiene. */ }
 }
 
-function writeTemporaryPlainPdf(
+function readEncryptedReportPdf(
   security: SecurityService,
   exportedFileName: string,
-): string {
+): { pdf: Buffer; originalFileName: string } {
   const safePdfName = sanitizeDialogFileName(
     exportedFileName,
     "reports:open-export-folder",
@@ -56,16 +57,11 @@ function writeTemporaryPlainPdf(
     destroyBuffer(databaseKey);
   }
   const { pdf, originalFileName } = decrypted;
-  security.cleanupTemporaryFiles();
   try {
-    return security.writeTemporaryFile(
-      "report-preview",
-      path.basename(originalFileName),
-      pdf,
-      "preview",
-    );
-  } finally {
+    return { pdf, originalFileName: path.basename(originalFileName) };
+  } catch (error) {
     destroyBuffer(pdf);
+    throw error;
   }
 }
 
@@ -145,8 +141,16 @@ export function registerReportIpc(
         { maxLength: 2_000 },
       );
       if (requestedFileName) {
-        const pathToOpen = writeTemporaryPlainPdf(security, requestedFileName);
-        return requestShellPathOpen(pathToOpen, (targetPath) => shell.openPath(targetPath));
+        const report = readEncryptedReportPdf(security, requestedFileName);
+        return requestPlainDocumentPreview({
+          operation: "reports:open-export-folder",
+          readFailureMessage: "Der verschlüsselte Bericht konnte für die Vorschau nicht gelesen und geprüft werden.",
+          security,
+          opener: (targetPath) => shell.openPath(targetPath),
+          fileName: report.originalFileName,
+          read: () => report.pdf,
+          tempPurpose: "report-preview",
+        });
       }
       return requestShellPathOpen(path.join(security.getDataDirectory(), "exports"), (targetPath) => shell.openPath(targetPath));
     },

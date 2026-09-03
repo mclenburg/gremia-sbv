@@ -110,7 +110,24 @@ export function PersonsView(props: PersonsViewProps) {
       <PersonForm open={personCreateOpen} onClose={() => setPersonCreateOpen(false)} onCreate={createPerson} onCreated={showMessage} onError={showError} />
       <PersonEditDialog open={personEditOpen} person={selected} onClose={() => setPersonEditOpen(false)} onUpdate={updatePerson} onUpdated={showMessage} onError={showError} />
       <PersonCaseCreateDialog open={caseDialogOpen} personLabel={personCaseDialogLabel(selected)} onClose={() => setCaseDialogOpen(false)} onSubmit={createCaseFromPerson} onError={showError} />
-      <PersonImportWizard open={importOpen} onClose={() => setImportOpen(false)} onSelectImportFile={onSelectImportFile} onPreviewImport={onPreviewImport} onExecuteImport={onExecuteImport} onImported={showMessage} onError={showError} />
+      <PersonImportWizard
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        onSelectImportFile={onSelectImportFile}
+        onPreviewImport={onPreviewImport}
+        onExecuteImport={onExecuteImport}
+        onImported={showMessage}
+        onOpenPerson={(id) => {
+          const person = persons.find((item) => item.id === id);
+          if (person) {
+            setSelected(person);
+            showMessage(`Person geöffnet: ${person.lastName}, ${person.firstName}`);
+          } else {
+            showError('Die verknüpfte Person wird nach dem Neuladen der Liste sichtbar.');
+          }
+        }}
+        onError={showError}
+      />
       <PersonPrivacyActionDialog open={personPrivacyAction !== null} mode={personPrivacyAction ?? 'anonymize'} person={selected} affectedCaseCount={selected ? cases.filter((item) => item.protectedPersonId === selected.id).length : 0} onClose={() => setPersonPrivacyAction(null)} onSubmit={submitPersonPrivacyAction} onError={showError} />
     </ModuleFrame>
   );

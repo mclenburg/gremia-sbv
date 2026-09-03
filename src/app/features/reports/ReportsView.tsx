@@ -1,174 +1,60 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Download, ExternalLink, FileText, RefreshCw } from 'lucide-react';
 import { IndustrialButton, ToolbarButton } from '../../shared/components/IndustrialButton';
 import { DateInput } from '../../shared/components/IndustrialForm';
 import { EmptyState, IndustrialRecordCard, ModuleFeedback, WorkbenchPage } from '../../shared/components/WorkbenchLayout';
-import { waitForBridge } from '../../core/bridge/waitForBridge';
-import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
-import type {
-  GenerateReportInput,
-  ReportDescriptor,
-  ReportExportHistoryItem,
-  ReportGenerationResult,
-  ReportType,
-} from '../../../domain/models/report.model';
-import { legalToday } from '../../../domain/time/legalTime';
-
-const GROUP_LABELS: Record<string, string> = {
-  sbv: 'SBV-Fachberichte',
-  datenschutz: 'Datenschutz & Compliance',
-  system: 'Systemberichte',
-};
-
-function today(): string {
-  return legalToday();
-}
-
-function startOfYear(): string {
-  return `${legalToday().slice(0, 4)}-01-01`;
-}
-
-function formatDateTime(value?: string): string {
-  if (!value) return '—';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 'short' }).format(date);
-}
-
-function confidentialityLabel(value: ReportDescriptor['confidentiality']): string {
-  if (value === 'anonymized') return 'Anonymisiert';
-  if (value === 'technical') return 'Technisch vertraulich';
-  return 'Intern vertraulich';
-}
+import {
+  formatReportDateTime,
+  isReportOpenActionDisabled,
+  REPORT_GROUP_LABELS,
+  reportConfidentialityDisplayLabel,
+} from './reportService';
+import { useReportsViewModel } from './useReportsViewModel';
 
 export function ReportsView() {
-  const [descriptors, setDescriptors] = useState<ReportDescriptor[]>([]);
-  const [history, setHistory] = useState<ReportExportHistoryItem[]>([]);
-  const [selectedType, setSelectedType] = useState<ReportType>('activity');
-  const [periodStart, setPeriodStart] = useState(startOfYear);
-  const [periodEnd, setPeriodEnd] = useState(today);
-  const [lastResult, setLastResult] = useState<ReportGenerationResult | null>(null);
-  const [message, setMessage] = useState('');
-  const [loading, setLoading] = useState(false);
-  const announce = useAnnouncer();
-
-  const selectedDescriptor = descriptors.find((descriptor) => descriptor.type === selectedType) ?? descriptors[0];
-  const groupedDescriptors = useMemo(() => {
-    const groups = new Map<string, ReportDescriptor[]>();
-    for (const descriptor of descriptors) {
-      const group = descriptor.group ?? 'sbv';
-      const current = groups.get(group) ?? [];
-      current.push(descriptor);
-      groups.set(group, current);
-    }
-    return Array.from(groups.entries()).map(([group, items]) => [
-      group,
-      items.sort((left, right) => left.shortTitle.localeCompare(right.shortTitle, 'de')),
-    ] as const);
-  }, [descriptors]);
-
-  const loadReports = useCallback(async () => {
-    const bridge = await waitForBridge();
-    if (!bridge?.reports) throw new Error('Berichtsdienst ist nicht erreichbar.');
-    const [nextDescriptors, nextHistory] = await Promise.all([
-      bridge.reports.descriptors(),
-      bridge.reports.history(25),
-    ]);
-    setDescriptors(nextDescriptors);
-    setHistory(nextHistory);
-    if (nextDescriptors.length && !nextDescriptors.some((descriptor: ReportDescriptor) => descriptor.type === selectedType)) {
-      setSelectedType(nextDescriptors[0].type);
-    }
-  }, [selectedType]);
-
-  async function generateReport(openAfterCreate = false) {
-    if (!selectedDescriptor) return;
-    setLoading(true);
-    setMessage('');
-    setLastResult(null);
-    try {
-      const bridge = await waitForBridge();
-      if (!bridge?.reports) throw new Error('Berichtsdienst ist nicht erreichbar.');
-      const input: GenerateReportInput = {
-        type: selectedDescriptor.type,
-        periodStart: periodStart || undefined,
-        periodEnd: periodEnd || undefined,
-      };
-      const result: ReportGenerationResult = await bridge.reports.generate(input);
-      setLastResult(result);
-      if (!result.ok) throw new Error(result.error || 'Bericht konnte nicht erzeugt werden.');
-      await loadReports();
-      if (openAfterCreate) {
-        await bridge.reports.openExportFolder(result.fileName);
-      }
-      const info = `${result.title} wurde als verschlüsselter PDF-Report erzeugt.`;
-      setMessage(info);
-      announce(info, 'polite');
-    } catch (error) {
-      const info = error instanceof Error ? error.message : 'Bericht konnte nicht erzeugt werden.';
-      setMessage(info);
-      announce(info, 'assertive');
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function openReport(fileName: string) {
-    try {
-      const bridge = await waitForBridge();
-      if (!bridge?.reports) throw new Error('Berichtsdienst ist nicht erreichbar.');
-      await bridge.reports.openExportFolder(fileName);
-    } catch (error) {
-      const info = error instanceof Error ? error.message : 'Bericht konnte nicht geöffnet werden.';
-      setMessage(info);
-      announce(info, 'assertive');
-    }
-  }
-
-  useEffect(() => {
-    void loadReports();
-  }, [loadReports]);
+  const reports = useReportsViewModel();
+  const lastGeneratedReport = reports.lastResult?.ok && reports.lastResult.reportType === reports.selectedDescriptor?.type
+    ? reports.lastResult
+    : null;
 
   return (
     <WorkbenchPage title="Berichte" description="SBV-Fachberichte, Datenschutzprüfungen und Systemberichte als verschlüsselte PDF-Reports.">
-      <ModuleFeedback items={[message ? { id: 'reports-message', message } : null]} />
+      <ModuleFeedback items={[reports.message ? { id: 'reports-message', message: reports.message } : null]} />
       <section className="reports-workbench">
         <div className="reports-toolbar reports-toolbar-grid">
-          <DateInput label="Von" value={periodStart} onValueChange={setPeriodStart} />
-          <DateInput label="Bis" value={periodEnd} onValueChange={setPeriodEnd} />
-          <ToolbarButton onClick={() => void loadReports()} disabled={loading}>
+          <DateInput label="Von" value={reports.periodStart} onValueChange={reports.setPeriodStart} />
+          <DateInput label="Bis" value={reports.periodEnd} onValueChange={reports.setPeriodEnd} />
+          <ToolbarButton onClick={() => void reports.loadReports()} disabled={reports.loading}>
             <RefreshCw className="h-4 w-4" />
             Aktualisieren
           </ToolbarButton>
-          <IndustrialButton onClick={() => void generateReport(false)} disabled={loading || !selectedDescriptor}>
+          <IndustrialButton onClick={() => void reports.generateReport(false)} disabled={reports.generationDisabled}>
             <Download className="h-4 w-4" />
             PDF speichern
           </IndustrialButton>
-          <IndustrialButton onClick={() => void generateReport(true)} disabled={loading || !selectedDescriptor}>
+          <IndustrialButton onClick={() => void reports.generateReport(true)} disabled={reports.generationDisabled}>
             <ExternalLink className="h-4 w-4" />
-            PDF erzeugen & öffnen
+            PDF erzeugen und öffnen
           </IndustrialButton>
         </div>
 
-
         <div className="reports-layout-grid">
           <section className="reports-catalog" aria-label="Berichtskatalog">
-            {groupedDescriptors.map(([group, items]) => (
+            {reports.groupedDescriptors.map(([group, items]) => (
               <div className="reports-group" key={group}>
-                <h2>{GROUP_LABELS[group] ?? group}</h2>
+                <h2>{REPORT_GROUP_LABELS[group] ?? group}</h2>
                 <div className="reports-card-list">
                   {items.map((descriptor) => (
                     <ToolbarButton
                       key={descriptor.type}
-                      className={`reports-card ${selectedType === descriptor.type ? 'is-selected' : ''}`}
-                      onClick={() => setSelectedType(descriptor.type)}
-                      aria-pressed={selectedType === descriptor.type}
+                      className={`reports-card ${reports.selectedType === descriptor.type ? 'is-selected' : ''}`}
+                      onClick={() => reports.setSelectedType(descriptor.type)}
+                      aria-pressed={reports.selectedType === descriptor.type}
                     >
                       <span className="reports-card-icon"><FileText className="h-4 w-4" /></span>
                       <span className="reports-card-body">
                         <strong>{descriptor.shortTitle}</strong>
                         <small>{descriptor.description}</small>
-                        <em>{confidentialityLabel(descriptor.confidentiality)}</em>
+                        <em>{reportConfidentialityDisplayLabel(descriptor.confidentiality)}</em>
                       </span>
                     </ToolbarButton>
                   ))}
@@ -178,22 +64,25 @@ export function ReportsView() {
           </section>
 
           <aside className="reports-detail-panel" aria-label="Ausgewählter Bericht">
-            {selectedDescriptor ? (
+            {reports.selectedDescriptor ? (
               <>
                 <p className="industrial-kicker">Ausgewählter Bericht</p>
-                <h2>{selectedDescriptor.title}</h2>
-                <p>{selectedDescriptor.description}</p>
+                <h2>{reports.selectedDescriptor.title}</h2>
+                <p>{reports.selectedDescriptor.description}</p>
                 <dl className="reports-meta-list">
-                  <div><dt>Vertraulichkeit</dt><dd>{confidentialityLabel(selectedDescriptor.confidentiality)}</dd></div>
-                  <div><dt>Zeitraum</dt><dd>{periodStart || '—'} bis {periodEnd || '—'}</dd></div>
+                  <div><dt>Vertraulichkeit</dt><dd>{reportConfidentialityDisplayLabel(reports.selectedDescriptor.confidentiality)}</dd></div>
+                  <div><dt>Zeitraum</dt><dd>{reports.periodStart || '—'} bis {reports.periodEnd || '—'}</dd></div>
                   <div><dt>Format</dt><dd>verschlüsselter .gsbvpdf-Container</dd></div>
                 </dl>
-                {lastResult?.ok && lastResult.reportType === selectedDescriptor.type && (
+                {lastGeneratedReport && (
                   <div className="reports-result-card">
                     <strong>Zuletzt erzeugt</strong>
-                    <span>{lastResult.fileName}</span>
-                    <ToolbarButton onClick={() => void openReport(lastResult.fileName)}>
-                      PDF öffnen
+                    <span>{lastGeneratedReport.fileName}</span>
+                    <ToolbarButton
+                      onClick={() => void reports.openReport(lastGeneratedReport.fileName, lastGeneratedReport.title)}
+                      disabled={isReportOpenActionDisabled({ openingFileName: reports.openingFileName, fileName: lastGeneratedReport.fileName })}
+                    >
+                      {reports.openingFileName === lastGeneratedReport.fileName ? 'Öffnet…' : 'PDF öffnen'}
                     </ToolbarButton>
                   </div>
                 )}
@@ -213,15 +102,18 @@ export function ReportsView() {
             </div>
           </div>
           <div className="reports-history-list">
-            {history.length ? history.map((item) => (
+            {reports.history.length ? reports.history.map((item) => (
               <IndustrialRecordCard className="reports-history-item" key={item.id}>
                 <div>
                   <strong>{item.title}</strong>
-                  <span>{formatDateTime(item.generatedAt)} · {item.fileName}</span>
+                  <span>{formatReportDateTime(item.generatedAt)} · {item.fileName}</span>
                   {item.warningCount > 0 && <em>{item.warningCount} Prüfhinweis(e)</em>}
                 </div>
-                <ToolbarButton onClick={() => void openReport(item.fileName)}>
-                  Öffnen
+                <ToolbarButton
+                  onClick={() => void reports.openReport(item.fileName, item.title)}
+                  disabled={isReportOpenActionDisabled({ openingFileName: reports.openingFileName, fileName: item.fileName })}
+                >
+                  {reports.openingFileName === item.fileName ? 'Öffnet…' : 'Öffnen'}
                 </ToolbarButton>
               </IndustrialRecordCard>
             )) : <EmptyState title="Keine Reports" text="Noch keine PDF-Reports erzeugt." />}

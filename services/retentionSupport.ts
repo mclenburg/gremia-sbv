@@ -29,7 +29,16 @@ export function readNumberSetting(db: DatabaseAdapter, key: string, fallback: nu
   }
 }
 
-export function writeSetting(db: DatabaseAdapter, key: string, value: number): void {
+export function readTextSetting(db: DatabaseAdapter, key: string): string | undefined {
+  try {
+    const row = db.prepare<{ value: string }>('SELECT value FROM settings WHERE key = ?').get(key);
+    return typeof row?.value === 'string' ? row.value : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+export function writeSetting(db: DatabaseAdapter, key: string, value: number | string): void {
   db.prepare(`
     INSERT INTO settings (key, value, updated_at)
     VALUES (?, ?, ?)

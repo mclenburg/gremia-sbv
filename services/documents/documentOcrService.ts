@@ -7,6 +7,7 @@ import type { DatabaseAdapter } from '../databaseService.js';
 import { SearchIndexService } from '../search/searchIndexService.js';
 import { inferMimeType } from './documentTextExtractionService.js';
 import { DocumentContainerService } from '../documentContainerService.js';
+import { ensureDocumentOcrRuntimeSchema } from '../runtimeSchemaCompatibility.js';
 
 const OCR_ERROR_LIMIT = 1_000;
 const OCR_TEXT_LIMIT = 300_000;
@@ -114,20 +115,7 @@ export class DocumentOcrService {
   ) {}
 
   ensureSchema(): void {
-    this.database.exec(`
-      CREATE TABLE IF NOT EXISTS case_document_ocr_jobs (
-        id TEXT PRIMARY KEY,
-        document_id TEXT NOT NULL REFERENCES case_documents(id) ON DELETE CASCADE,
-        case_id TEXT NOT NULL REFERENCES cases(id) ON DELETE CASCADE,
-        status TEXT NOT NULL DEFAULT 'queued' CHECK (status IN ('queued','processing','completed','unsupported','failed')),
-        attempts INTEGER NOT NULL DEFAULT 0,
-        last_error TEXT,
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL
-      );
-      CREATE UNIQUE INDEX IF NOT EXISTS idx_case_document_ocr_jobs_document ON case_document_ocr_jobs(document_id);
-      CREATE INDEX IF NOT EXISTS idx_case_document_ocr_jobs_status ON case_document_ocr_jobs(status, updated_at);
-    `);
+    ensureDocumentOcrRuntimeSchema(this.database);
   }
 
   enqueueIfUseful(documentId: string): boolean {

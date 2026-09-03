@@ -276,143 +276,96 @@ License text: LICENSES/BSD-2-Clause.txt
 
 @emnapi/core@1.11.1
 License: MIT
-Repository: git+https://github.com/toyobayashi/emnapi.git
-Homepage: https://github.com/toyobayashi/emnapi#readme
-Copyright notices:
-- Copyright (c) 2021-present Toyobayashi
-- The above copyright notice and this permission notice shall be included in all
-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @emnapi/runtime@1.11.1
 License: MIT
-Repository: git+https://github.com/toyobayashi/emnapi.git
-Homepage: https://github.com/toyobayashi/emnapi#readme
-Copyright notices:
-- Copyright (c) 2021-present Toyobayashi
-- The above copyright notice and this permission notice shall be included in all
-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @emnapi/wasi-threads@1.2.2
 License: MIT
-Repository: git+https://github.com/toyobayashi/emnapi.git
-Homepage: https://github.com/toyobayashi/emnapi#readme
-Copyright notices:
-- Copyright (c) 2021-present Toyobayashi
-- The above copyright notice and this permission notice shall be included in all
-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @esbuild/aix-ppc64@0.28.1
 License: MIT
-Repository: git+https://github.com/evanw/esbuild.git
-Homepage: https://github.com/evanw/esbuild#readme
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @esbuild/android-arm@0.28.1
 License: MIT
-Repository: git+https://github.com/evanw/esbuild.git
-Homepage: https://github.com/evanw/esbuild#readme
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @esbuild/android-arm64@0.28.1
 License: MIT
-Repository: git+https://github.com/evanw/esbuild.git
-Homepage: https://github.com/evanw/esbuild#readme
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @esbuild/android-x64@0.28.1
 License: MIT
-Repository: git+https://github.com/evanw/esbuild.git
-Homepage: https://github.com/evanw/esbuild#readme
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @esbuild/darwin-arm64@0.28.1
 License: MIT
-Repository: git+https://github.com/evanw/esbuild.git
-Homepage: https://github.com/evanw/esbuild#readme
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @esbuild/darwin-x64@0.28.1
 License: MIT
-Repository: git+https://github.com/evanw/esbuild.git
-Homepage: https://github.com/evanw/esbuild#readme
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @esbuild/freebsd-arm64@0.28.1
 License: MIT
-Repository: git+https://github.com/evanw/esbuild.git
-Homepage: https://github.com/evanw/esbuild#readme
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @esbuild/freebsd-x64@0.28.1
 License: MIT
-Repository: git+https://github.com/evanw/esbuild.git
-Homepage: https://github.com/evanw/esbuild#readme
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @esbuild/linux-arm@0.28.1
 License: MIT
-Repository: git+https://github.com/evanw/esbuild.git
-Homepage: https://github.com/evanw/esbuild#readme
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @esbuild/linux-arm64@0.28.1
 License: MIT
-Repository: git+https://github.com/evanw/esbuild.git
-Homepage: https://github.com/evanw/esbuild#readme
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @esbuild/linux-ia32@0.28.1
 License: MIT
-Repository: git+https://github.com/evanw/esbuild.git
-Homepage: https://github.com/evanw/esbuild#readme
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @esbuild/linux-loong64@0.28.1
 License: MIT
-Repository: git+https://github.com/evanw/esbuild.git
-Homepage: https://github.com/evanw/esbuild#readme
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @esbuild/linux-mips64el@0.28.1
 License: MIT
-Repository: git+https://github.com/evanw/esbuild.git
-Homepage: https://github.com/evanw/esbuild#readme
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @esbuild/linux-ppc64@0.28.1
 License: MIT
-Repository: git+https://github.com/evanw/esbuild.git
-Homepage: https://github.com/evanw/esbuild#readme
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @esbuild/linux-riscv64@0.28.1
 License: MIT
-Repository: git+https://github.com/evanw/esbuild.git
-Homepage: https://github.com/evanw/esbuild#readme
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @esbuild/linux-s390x@0.28.1
 License: MIT
-Repository: git+https://github.com/evanw/esbuild.git
-Homepage: https://github.com/evanw/esbuild#readme
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
@@ -424,64 +377,46 @@ License text: LICENSES/MIT.txt
 
 @esbuild/netbsd-arm64@0.28.1
 License: MIT
-Repository: git+https://github.com/evanw/esbuild.git
-Homepage: https://github.com/evanw/esbuild#readme
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @esbuild/netbsd-x64@0.28.1
 License: MIT
-Repository: git+https://github.com/evanw/esbuild.git
-Homepage: https://github.com/evanw/esbuild#readme
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @esbuild/openbsd-arm64@0.28.1
 License: MIT
-Repository: git+https://github.com/evanw/esbuild.git
-Homepage: https://github.com/evanw/esbuild#readme
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @esbuild/openbsd-x64@0.28.1
 License: MIT
-Repository: git+https://github.com/evanw/esbuild.git
-Homepage: https://github.com/evanw/esbuild#readme
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @esbuild/openharmony-arm64@0.28.1
 License: MIT
-Repository: git+https://github.com/evanw/esbuild.git
-Homepage: https://github.com/evanw/esbuild#readme
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @esbuild/sunos-x64@0.28.1
 License: MIT
-Repository: git+https://github.com/evanw/esbuild.git
-Homepage: https://github.com/evanw/esbuild#readme
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @esbuild/win32-arm64@0.28.1
 License: MIT
-Repository: git+https://github.com/evanw/esbuild.git
-Homepage: https://github.com/evanw/esbuild#readme
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @esbuild/win32-ia32@0.28.1
 License: MIT
-Repository: git+https://github.com/evanw/esbuild.git
-Homepage: https://github.com/evanw/esbuild#readme
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @esbuild/win32-x64@0.28.1
 License: MIT
-Repository: git+https://github.com/evanw/esbuild.git
-Homepage: https://github.com/evanw/esbuild#readme
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
@@ -807,50 +742,36 @@ License text: LICENSES/MIT.txt
 
 @napi-rs/canvas-android-arm64@0.1.100
 License: MIT
-Repository: git+https://github.com/Brooooooklyn/canvas.git
-Homepage: https://github.com/Brooooooklyn/canvas#readme
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @napi-rs/canvas-darwin-arm64@0.1.100
 License: MIT
-Repository: git+https://github.com/Brooooooklyn/canvas.git
-Homepage: https://github.com/Brooooooklyn/canvas#readme
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @napi-rs/canvas-darwin-x64@0.1.100
 License: MIT
-Repository: git+https://github.com/Brooooooklyn/canvas.git
-Homepage: https://github.com/Brooooooklyn/canvas#readme
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @napi-rs/canvas-linux-arm-gnueabihf@0.1.100
 License: MIT
-Repository: git+https://github.com/Brooooooklyn/canvas.git
-Homepage: https://github.com/Brooooooklyn/canvas#readme
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @napi-rs/canvas-linux-arm64-gnu@0.1.100
 License: MIT
-Repository: git+https://github.com/Brooooooklyn/canvas.git
-Homepage: https://github.com/Brooooooklyn/canvas#readme
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @napi-rs/canvas-linux-arm64-musl@0.1.100
 License: MIT
-Repository: git+https://github.com/Brooooooklyn/canvas.git
-Homepage: https://github.com/Brooooooklyn/canvas#readme
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @napi-rs/canvas-linux-riscv64-gnu@0.1.100
 License: MIT
-Repository: git+https://github.com/Brooooooklyn/canvas.git
-Homepage: https://github.com/Brooooooklyn/canvas#readme
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
@@ -868,15 +789,11 @@ License text: LICENSES/MIT.txt
 
 @napi-rs/canvas-win32-arm64-msvc@0.1.100
 License: MIT
-Repository: git+https://github.com/Brooooooklyn/canvas.git
-Homepage: https://github.com/Brooooooklyn/canvas#readme
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @napi-rs/canvas-win32-x64-msvc@0.1.100
 License: MIT
-Repository: git+https://github.com/Brooooooklyn/canvas.git
-Homepage: https://github.com/Brooooooklyn/canvas#readme
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
@@ -891,8 +808,6 @@ License text: LICENSES/MIT.txt
 
 @napi-rs/wasm-runtime@1.1.4
 License: MIT
-Repository: git+https://github.com/napi-rs/napi-rs.git
-Homepage: https://napi.rs/
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
@@ -990,71 +905,51 @@ License text: LICENSES/MIT.txt
 
 @rolldown/binding-android-arm-eabi@1.2.5
 License: MIT
-Repository: git+https://github.com/rolldown/rolldown.git
-Homepage: https://rolldown.rs/
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @rolldown/binding-android-arm64@1.2.5
 License: MIT
-Repository: git+https://github.com/rolldown/rolldown.git
-Homepage: https://rolldown.rs/
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @rolldown/binding-darwin-arm64@1.2.5
 License: MIT
-Repository: git+https://github.com/rolldown/rolldown.git
-Homepage: https://rolldown.rs/
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @rolldown/binding-darwin-x64@1.2.5
 License: MIT
-Repository: git+https://github.com/rolldown/rolldown.git
-Homepage: https://rolldown.rs/
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @rolldown/binding-freebsd-x64@1.2.5
 License: MIT
-Repository: git+https://github.com/rolldown/rolldown.git
-Homepage: https://rolldown.rs/
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @rolldown/binding-linux-arm-gnueabihf@1.2.5
 License: MIT
-Repository: git+https://github.com/rolldown/rolldown.git
-Homepage: https://rolldown.rs/
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @rolldown/binding-linux-arm64-gnu@1.2.5
 License: MIT
-Repository: git+https://github.com/rolldown/rolldown.git
-Homepage: https://rolldown.rs/
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @rolldown/binding-linux-arm64-musl@1.2.5
 License: MIT
-Repository: git+https://github.com/rolldown/rolldown.git
-Homepage: https://rolldown.rs/
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @rolldown/binding-linux-ppc64-gnu@1.2.5
 License: MIT
-Repository: git+https://github.com/rolldown/rolldown.git
-Homepage: https://rolldown.rs/
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @rolldown/binding-linux-s390x-gnu@1.2.5
 License: MIT
-Repository: git+https://github.com/rolldown/rolldown.git
-Homepage: https://rolldown.rs/
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
@@ -1067,29 +962,21 @@ License text: LICENSES/MIT.txt
 
 @rolldown/binding-linux-x64-musl@1.2.5
 License: MIT
-Repository: git+https://github.com/rolldown/rolldown.git
-Homepage: https://rolldown.rs/
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @rolldown/binding-openharmony-arm64@1.2.5
 License: MIT
-Repository: git+https://github.com/rolldown/rolldown.git
-Homepage: https://rolldown.rs/
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @rolldown/binding-win32-arm64-msvc@1.2.5
 License: MIT
-Repository: git+https://github.com/rolldown/rolldown.git
-Homepage: https://rolldown.rs/
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @rolldown/binding-win32-x64-msvc@1.2.5
 License: MIT
-Repository: git+https://github.com/rolldown/rolldown.git
-Homepage: https://rolldown.rs/
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
@@ -1160,65 +1047,37 @@ License text: LICENSES/MIT.txt
 
 @tailwindcss/oxide-android-arm64@4.3.3
 License: MIT
-Repository: git+https://github.com/tailwindlabs/tailwindcss.git
-Copyright notices:
-- Copyright (c) Tailwind Labs, Inc.
-- The above copyright notice and this permission notice shall be included in all
-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @tailwindcss/oxide-darwin-arm64@4.3.3
 License: MIT
-Repository: git+https://github.com/tailwindlabs/tailwindcss.git
-Copyright notices:
-- Copyright (c) Tailwind Labs, Inc.
-- The above copyright notice and this permission notice shall be included in all
-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @tailwindcss/oxide-darwin-x64@4.3.3
 License: MIT
-Repository: git+https://github.com/tailwindlabs/tailwindcss.git
-Copyright notices:
-- Copyright (c) Tailwind Labs, Inc.
-- The above copyright notice and this permission notice shall be included in all
-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @tailwindcss/oxide-freebsd-x64@4.3.3
 License: MIT
-Repository: git+https://github.com/tailwindlabs/tailwindcss.git
-Copyright notices:
-- Copyright (c) Tailwind Labs, Inc.
-- The above copyright notice and this permission notice shall be included in all
-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @tailwindcss/oxide-linux-arm-gnueabihf@4.3.3
 License: MIT
-Repository: git+https://github.com/tailwindlabs/tailwindcss.git
-Copyright notices:
-- Copyright (c) Tailwind Labs, Inc.
-- The above copyright notice and this permission notice shall be included in all
-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @tailwindcss/oxide-linux-arm64-gnu@4.3.3
 License: MIT
-Repository: git+https://github.com/tailwindlabs/tailwindcss.git
-Copyright notices:
-- Copyright (c) Tailwind Labs, Inc.
-- The above copyright notice and this permission notice shall be included in all
-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @tailwindcss/oxide-linux-arm64-musl@4.3.3
 License: MIT
-Repository: git+https://github.com/tailwindlabs/tailwindcss.git
-Copyright notices:
-- Copyright (c) Tailwind Labs, Inc.
-- The above copyright notice and this permission notice shall be included in all
-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @tailwindcss/oxide-linux-x64-gnu@4.3.3
@@ -1241,30 +1100,17 @@ License text: LICENSES/MIT.txt
 
 @tailwindcss/oxide-wasm32-wasi@4.3.3
 License: MIT
-Repository: git+https://github.com/tailwindlabs/tailwindcss.git
-Homepage: https://github.com/toyobayashi/emnapi#readme
-Copyright notices:
-- Copyright (c) 2021-present Toyobayashi
-- The above copyright notice and this permission notice shall be included in all
-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @tailwindcss/oxide-win32-arm64-msvc@4.3.3
 License: MIT
-Repository: git+https://github.com/tailwindlabs/tailwindcss.git
-Copyright notices:
-- Copyright (c) Tailwind Labs, Inc.
-- The above copyright notice and this permission notice shall be included in all
-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @tailwindcss/oxide-win32-x64-msvc@4.3.3
 License: MIT
-Repository: git+https://github.com/tailwindlabs/tailwindcss.git
-Copyright notices:
-- Copyright (c) Tailwind Labs, Inc.
-- The above copyright notice and this permission notice shall be included in all
-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 @tailwindcss/oxide@4.3.3
@@ -1288,8 +1134,6 @@ License text: LICENSES/MIT.txt
 
 @tybys/wasm-util@0.10.2
 License: MIT
-Repository: git+https://github.com/toyobayashi/wasm-util.git
-Homepage: https://github.com/toyobayashi/wasm-util#readme
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
@@ -1663,7 +1507,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@xmldom/xmldom@0.8.13
+@xmldom/xmldom@0.8.15
 License: MIT
 Repository: git://github.com/xmldom/xmldom.git
 Homepage: https://github.com/xmldom/xmldom
@@ -2901,7 +2745,7 @@ Copyright notices:
 - NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
 License text: LICENSES/MIT.txt
 
-fast-uri@3.1.5
+fast-uri@3.1.7
 License: BSD-3-Clause
 Repository: git+https://github.com/fastify/fast-uri.git
 Homepage: https://github.com/fastify/fast-uri
@@ -3696,156 +3540,72 @@ License text: LICENSES/MIT.txt
 
 lightningcss-android-arm64@1.32.0
 License: MPL-2.0
-Repository: git+https://github.com/parcel-bundler/lightningcss.git
-Homepage: https://github.com/parcel-bundler/lightningcss#readme
-Copyright notices:
-- (c) under Patent Claims infringed by Covered Software in the absence of
-- applicable copyright doctrines of fair use, fair dealing, or other
-- (including copyright notices, patent notices, disclaimers of warranty,
-- You may add additional accurate notices of copyright ownership.
+Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MPL-2.0.txt
 
 lightningcss-android-arm64@1.33.0
 License: MPL-2.0
-Repository: git+https://github.com/parcel-bundler/lightningcss.git
-Homepage: https://github.com/parcel-bundler/lightningcss#readme
-Copyright notices:
-- (c) under Patent Claims infringed by Covered Software in the absence of
-- applicable copyright doctrines of fair use, fair dealing, or other
-- (including copyright notices, patent notices, disclaimers of warranty,
-- You may add additional accurate notices of copyright ownership.
+Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MPL-2.0.txt
 
 lightningcss-darwin-arm64@1.32.0
 License: MPL-2.0
-Repository: git+https://github.com/parcel-bundler/lightningcss.git
-Homepage: https://github.com/parcel-bundler/lightningcss#readme
-Copyright notices:
-- (c) under Patent Claims infringed by Covered Software in the absence of
-- applicable copyright doctrines of fair use, fair dealing, or other
-- (including copyright notices, patent notices, disclaimers of warranty,
-- You may add additional accurate notices of copyright ownership.
+Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MPL-2.0.txt
 
 lightningcss-darwin-arm64@1.33.0
 License: MPL-2.0
-Repository: git+https://github.com/parcel-bundler/lightningcss.git
-Homepage: https://github.com/parcel-bundler/lightningcss#readme
-Copyright notices:
-- (c) under Patent Claims infringed by Covered Software in the absence of
-- applicable copyright doctrines of fair use, fair dealing, or other
-- (including copyright notices, patent notices, disclaimers of warranty,
-- You may add additional accurate notices of copyright ownership.
+Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MPL-2.0.txt
 
 lightningcss-darwin-x64@1.32.0
 License: MPL-2.0
-Repository: git+https://github.com/parcel-bundler/lightningcss.git
-Homepage: https://github.com/parcel-bundler/lightningcss#readme
-Copyright notices:
-- (c) under Patent Claims infringed by Covered Software in the absence of
-- applicable copyright doctrines of fair use, fair dealing, or other
-- (including copyright notices, patent notices, disclaimers of warranty,
-- You may add additional accurate notices of copyright ownership.
+Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MPL-2.0.txt
 
 lightningcss-darwin-x64@1.33.0
 License: MPL-2.0
-Repository: git+https://github.com/parcel-bundler/lightningcss.git
-Homepage: https://github.com/parcel-bundler/lightningcss#readme
-Copyright notices:
-- (c) under Patent Claims infringed by Covered Software in the absence of
-- applicable copyright doctrines of fair use, fair dealing, or other
-- (including copyright notices, patent notices, disclaimers of warranty,
-- You may add additional accurate notices of copyright ownership.
+Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MPL-2.0.txt
 
 lightningcss-freebsd-x64@1.32.0
 License: MPL-2.0
-Repository: git+https://github.com/parcel-bundler/lightningcss.git
-Homepage: https://github.com/parcel-bundler/lightningcss#readme
-Copyright notices:
-- (c) under Patent Claims infringed by Covered Software in the absence of
-- applicable copyright doctrines of fair use, fair dealing, or other
-- (including copyright notices, patent notices, disclaimers of warranty,
-- You may add additional accurate notices of copyright ownership.
+Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MPL-2.0.txt
 
 lightningcss-freebsd-x64@1.33.0
 License: MPL-2.0
-Repository: git+https://github.com/parcel-bundler/lightningcss.git
-Homepage: https://github.com/parcel-bundler/lightningcss#readme
-Copyright notices:
-- (c) under Patent Claims infringed by Covered Software in the absence of
-- applicable copyright doctrines of fair use, fair dealing, or other
-- (including copyright notices, patent notices, disclaimers of warranty,
-- You may add additional accurate notices of copyright ownership.
+Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MPL-2.0.txt
 
 lightningcss-linux-arm-gnueabihf@1.32.0
 License: MPL-2.0
-Repository: git+https://github.com/parcel-bundler/lightningcss.git
-Homepage: https://github.com/parcel-bundler/lightningcss#readme
-Copyright notices:
-- (c) under Patent Claims infringed by Covered Software in the absence of
-- applicable copyright doctrines of fair use, fair dealing, or other
-- (including copyright notices, patent notices, disclaimers of warranty,
-- You may add additional accurate notices of copyright ownership.
+Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MPL-2.0.txt
 
 lightningcss-linux-arm-gnueabihf@1.33.0
 License: MPL-2.0
-Repository: git+https://github.com/parcel-bundler/lightningcss.git
-Homepage: https://github.com/parcel-bundler/lightningcss#readme
-Copyright notices:
-- (c) under Patent Claims infringed by Covered Software in the absence of
-- applicable copyright doctrines of fair use, fair dealing, or other
-- (including copyright notices, patent notices, disclaimers of warranty,
-- You may add additional accurate notices of copyright ownership.
+Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MPL-2.0.txt
 
 lightningcss-linux-arm64-gnu@1.32.0
 License: MPL-2.0
-Repository: git+https://github.com/parcel-bundler/lightningcss.git
-Homepage: https://github.com/parcel-bundler/lightningcss#readme
-Copyright notices:
-- (c) under Patent Claims infringed by Covered Software in the absence of
-- applicable copyright doctrines of fair use, fair dealing, or other
-- (including copyright notices, patent notices, disclaimers of warranty,
-- You may add additional accurate notices of copyright ownership.
+Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MPL-2.0.txt
 
 lightningcss-linux-arm64-gnu@1.33.0
 License: MPL-2.0
-Repository: git+https://github.com/parcel-bundler/lightningcss.git
-Homepage: https://github.com/parcel-bundler/lightningcss#readme
-Copyright notices:
-- (c) under Patent Claims infringed by Covered Software in the absence of
-- applicable copyright doctrines of fair use, fair dealing, or other
-- (including copyright notices, patent notices, disclaimers of warranty,
-- You may add additional accurate notices of copyright ownership.
+Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MPL-2.0.txt
 
 lightningcss-linux-arm64-musl@1.32.0
 License: MPL-2.0
-Repository: git+https://github.com/parcel-bundler/lightningcss.git
-Homepage: https://github.com/parcel-bundler/lightningcss#readme
-Copyright notices:
-- (c) under Patent Claims infringed by Covered Software in the absence of
-- applicable copyright doctrines of fair use, fair dealing, or other
-- (including copyright notices, patent notices, disclaimers of warranty,
-- You may add additional accurate notices of copyright ownership.
+Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MPL-2.0.txt
 
 lightningcss-linux-arm64-musl@1.33.0
 License: MPL-2.0
-Repository: git+https://github.com/parcel-bundler/lightningcss.git
-Homepage: https://github.com/parcel-bundler/lightningcss#readme
-Copyright notices:
-- (c) under Patent Claims infringed by Covered Software in the absence of
-- applicable copyright doctrines of fair use, fair dealing, or other
-- (including copyright notices, patent notices, disclaimers of warranty,
-- You may add additional accurate notices of copyright ownership.
+Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MPL-2.0.txt
 
 lightningcss-linux-x64-gnu@1.32.0
@@ -3890,46 +3650,22 @@ License text: LICENSES/MPL-2.0.txt
 
 lightningcss-win32-arm64-msvc@1.32.0
 License: MPL-2.0
-Repository: git+https://github.com/parcel-bundler/lightningcss.git
-Homepage: https://github.com/parcel-bundler/lightningcss#readme
-Copyright notices:
-- (c) under Patent Claims infringed by Covered Software in the absence of
-- applicable copyright doctrines of fair use, fair dealing, or other
-- (including copyright notices, patent notices, disclaimers of warranty,
-- You may add additional accurate notices of copyright ownership.
+Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MPL-2.0.txt
 
 lightningcss-win32-arm64-msvc@1.33.0
 License: MPL-2.0
-Repository: git+https://github.com/parcel-bundler/lightningcss.git
-Homepage: https://github.com/parcel-bundler/lightningcss#readme
-Copyright notices:
-- (c) under Patent Claims infringed by Covered Software in the absence of
-- applicable copyright doctrines of fair use, fair dealing, or other
-- (including copyright notices, patent notices, disclaimers of warranty,
-- You may add additional accurate notices of copyright ownership.
+Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MPL-2.0.txt
 
 lightningcss-win32-x64-msvc@1.32.0
 License: MPL-2.0
-Repository: git+https://github.com/parcel-bundler/lightningcss.git
-Homepage: https://github.com/parcel-bundler/lightningcss#readme
-Copyright notices:
-- (c) under Patent Claims infringed by Covered Software in the absence of
-- applicable copyright doctrines of fair use, fair dealing, or other
-- (including copyright notices, patent notices, disclaimers of warranty,
-- You may add additional accurate notices of copyright ownership.
+Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MPL-2.0.txt
 
 lightningcss-win32-x64-msvc@1.33.0
 License: MPL-2.0
-Repository: git+https://github.com/parcel-bundler/lightningcss.git
-Homepage: https://github.com/parcel-bundler/lightningcss#readme
-Copyright notices:
-- (c) under Patent Claims infringed by Covered Software in the absence of
-- applicable copyright doctrines of fair use, fair dealing, or other
-- (including copyright notices, patent notices, disclaimers of warranty,
-- You may add additional accurate notices of copyright ownership.
+Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MPL-2.0.txt
 
 lightningcss@1.32.0
@@ -5208,10 +4944,7 @@ License text: LICENSES/MIT.txt
 
 tslib@2.8.1
 License: 0BSD
-Repository: git+https://github.com/Microsoft/tslib.git
-Homepage: https://www.typescriptlang.org/
-Copyright notices:
-- Copyright (c) Microsoft Corporation.
+Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/0BSD.txt
 
 tsx@4.23.12

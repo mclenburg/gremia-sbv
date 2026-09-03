@@ -108,6 +108,13 @@ const definitions: Partial<Record<ViewId, LazyFeatureDefinition>> = {
       return { default: module.PrivacyReviewCockpit as ComponentType<object> };
     },
   },
+  gremia_br: {
+    label: "Gremia.BR",
+    load: async () => {
+      const module = await import("../../features/gremia-br/GremiaBrWorkspaceView");
+      return { default: module.GremiaBrWorkspaceView as ComponentType<object> };
+    },
+  },
   recruiting_participations: {
     label: "Beteiligung bei Stellenbesetzungen",
     load: async () => {

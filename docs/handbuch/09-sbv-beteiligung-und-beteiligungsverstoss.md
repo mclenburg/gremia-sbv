@@ -50,7 +50,7 @@ Ein belastbarer Beteiligungsverstoß beschreibt:
 
 ## Schreiben erzeugen
 
-Gremia.SBV kann aus einem dokumentierten Beteiligungsverstoß ein PDF-Schreiben über die zentrale Dokumenterzeugung vorbereiten. In der Nachverfolgung ist **PDF erzeugen & öffnen** die sichtbare Hauptaktion. Weitere Arbeitsschritte wie Statusfortschreibung, Wiedervorlage, Journal-Vorlage oder der Sprung zur verknüpften Beteiligungsmaßnahme liegen gebündelt unter **Weitere Schritte**.
+Gremia.SBV kann aus einem dokumentierten Beteiligungsverstoß ein PDF-Schreiben über die zentrale Dokumenterzeugung vorbereiten. In der Nachverfolgung ist **PDF erzeugen** die sichtbare Dokumentaktion. Das PDF wird verschlüsselt abgelegt; die Anwendung kann anschließend die externe Vorschau anfordern. Weitere Arbeitsschritte wie Statusfortschreibung, Wiedervorlage, Journal-Vorlage oder der Sprung zur verknüpften Beteiligungsmaßnahme liegen gebündelt unter **Weitere Schritte**.
 
 Das Schreiben entsteht aus den strukturierten Angaben des Verstoßes, insbesondere Pflichtverletzung, richtigem Verfahren, Rechtsgrundlage, Frist und Eskalationsstufe.
 

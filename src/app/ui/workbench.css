@@ -200,6 +200,10 @@ html[data-theme='light'] .workbench-summary-card span {
 .industrial-form-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .industrial-form-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .industrial-form-grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.industrial-form-grid-1 { grid-template-columns: minmax(0, 1fr); }
+.industrial-form-grid-auto { grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 1fr)); }
+.industrial-form-grid.two-columns,
+.two-columns { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
 .industrial-field {
   display: grid;
@@ -305,38 +309,10 @@ html[data-theme='light'] .workbench-summary-card span {
   }
 }
 
-.industrial-field input,
-.industrial-field select,
-.industrial-field textarea {
-  border: 1px solid var(--industrial-border-strong);
-  background: var(--industrial-bg);
-  color: var(--industrial-text-strong);
-  outline: none;
-  padding: 0.68rem 0.75rem;
-  border-radius: var(--control-radius);
-}
-
-.industrial-field input:focus-visible,
-.industrial-field select:focus-visible,
-.industrial-field textarea:focus-visible {
-  border-color: var(--industrial-accent);
-  outline: 2px solid var(--industrial-accent);
-  outline-offset: 2px;
-  box-shadow: var(--focus-ring);
-}
-
-html[data-theme='light'] .industrial-field input,
-html[data-theme='light'] .industrial-field select,
-html[data-theme='light'] .industrial-field textarea {
-  background: #f9f9f4;
-  color: #141414;
-}
-
 html[data-theme='light'] .workbench-create-panel,
 html[data-theme='light'] .workbench-list-panel,
 html[data-theme='light'] .workbench-detail-panel,
 html[data-theme='light'] .module-frame,
-html[data-theme='light'] .industrial-card,
 html[data-theme='light'] .industrial-panel {
   background: rgba(255, 255, 250, 0.82);
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.10);
@@ -430,6 +406,26 @@ html[data-theme='light'] .industrial-panel {
   display: grid;
   gap: var(--layout-gap);
   min-width: 0;
+}
+
+.case-workbench {
+  display: grid;
+  grid-template-columns: minmax(14rem, 18rem) minmax(0, 1fr);
+  gap: var(--layout-gap);
+  align-items: start;
+}
+
+.case-tree-panel {
+  position: sticky;
+  top: var(--space-3, 0.75rem);
+  display: grid;
+  gap: 1rem;
+  align-self: start;
+}
+
+.case-detail-panel {
+  display: grid;
+  gap: 1rem;
 }
 
 .person-workbench-grid {
@@ -590,7 +586,4 @@ html[data-theme='light'] .industrial-subpanel {
   background-image: linear-gradient(135deg, rgba(250, 250, 245, 0.96), rgba(225, 224, 214, 0.98));
   color: var(--text-primary);
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.55), 0 8px 18px rgba(0,0,0,0.08);
-}
-
-:where(.workbench-page, .workbench-header, .workbench-sidebar, .workbench-content, .workbench-toolbar) {
 }

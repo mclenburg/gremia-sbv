@@ -10,6 +10,10 @@ const tables = new Set([
   'case_notes',
   'deadlines',
   'case_measures',
+  'sbv_participation_violations',
+  'generated_documents',
+  'activity_journal_entries',
+  'privacy_review_items',
   'person_import_run_items',
   'person_import_runs',
   'personal_data_audit_log',
@@ -32,6 +36,10 @@ class FakeStatement {
     if (this.sql.includes('FROM cases')) return [{ id: 'case-1', case_number: 'SBV-2026-001', display_name: 'Arbeitsplatzgestaltung', category: 'arbeitsplatzgestaltung', status: 'offen', priority: 'normal', opened_at: '2026-05-02', privacy_review_required: 0, summary: 'Max benötigt eine Anpassung.' }];
     if (this.sql.includes('FROM case_notes')) return [{ id: 'note-1', __case_id: 'case-1', __case_number: 'SBV-2026-001', __title: 'Gesprächsnotiz', __occurred_at: '2026-05-06', title: 'Gesprächsnotiz', participants: 'Max', content: 'Max beschreibt Barrieren am Arbeitsplatz.', next_steps: 'Muster prüft Unterlagen.' }];
     if (this.sql.includes('FROM case_measures')) return [{ id: 'measure-1', case_id: 'case-1', type: 'workplace_accommodation', title: 'Hilfsmittel prüfen', status: 'open', risk_level: 'normal', opened_at: '2026-05-03', requires_follow_up: 1, summary: 'Anpassung für Max', next_step: 'Rücksprache' }];
+    if (this.sql.includes('FROM sbv_participation_violations')) return [{ id: 'vio-1', __case_id: 'case-1', __case_number: 'SBV-2026-001', __title: 'Beteiligung übergangen', __occurred_at: '2026-05-07', subject: 'Arbeitgeberverstoß zu Max Muster', measure_description: 'Maßnahme', wrong_behavior: 'Anhörung unterblieb', required_behavior: 'SBV vorher beteiligen', consequence_warning: '', legal_basis: '§ 178 Abs. 2 SGB IX' }];
+    if (this.sql.includes('FROM generated_documents')) return [{ id: 'doc-1', __case_id: 'case-1', __case_number: 'SBV-2026-001', __title: 'Schreiben an Arbeitgeber', __occurred_at: '2026-05-08', title: 'Schreiben an Max Muster', filename: 'schreiben.pdf', document_kind: 'generic', template_version: 'v1' }];
+    if (this.sql.includes('FROM activity_journal_entries')) return [{ id: 'journal-1', __case_id: 'case-1', __case_number: 'SBV-2026-001', __title: 'Beratung Max', __occurred_at: '2026-05-09', title: 'Beratung Max Muster', description: 'Rücksprache geführt', result_note: 'Nächster Termin', category: 'consultation', status: 'final' }];
+    if (this.sql.includes('FROM privacy_review_items')) return [{ id: 'review-1', __case_id: 'case-1', __case_number: 'SBV-2026-001', __title: 'Fall prüfen', __occurred_at: '2026-06-01', reason: 'Löschfrist prüfen Max Muster', priority: 'normal', context_json: '{}', status: 'open' }];
     if (this.sql.includes('FROM deadlines')) return [{ id: 'deadline-1', title: 'Nachfassen', process_type: 'case', deadline_type: 'follow_up', status: 'open', severity: 'important', due_at: '2026-05-30', case_id: 'case-1' }];
     if (this.sql.includes('FROM person_import_run_items')) return [{ id: 'import-1', source_file_name: 'arbeitgeberliste.csv', imported_at: '2026-05-04', action: 'updated', changed_fields_json: '["protectionStatus"]' }];
     if (this.sql.includes('FROM personal_data_audit_log')) return [{ id: 'audit-1', occurred_at: '2026-05-05', action: 'update', subject_type: 'protected_person', subject_id: 'person-1', purpose: 'Personenverzeichnis geändert' }];
@@ -65,6 +73,9 @@ describe('DsarPrefillService 0.9.2', () => {
     expect(result.importRuns).toHaveLength(1);
     expect(result.lifecycleEvents).toHaveLength(1);
     expect(result.freeTextMatches.some((match) => match.sourceType === 'case_note')).toBe(true);
+    expect(result.sourceInventory.find((source) => source.id === 'participation_violations')?.foundCount).toBeGreaterThanOrEqual(1);
+    expect(result.sourceInventory.find((source) => source.id === 'generated_documents')?.releaseMode).toBe('metadata_only');
+    expect(result.reviewItems.some((item) => item.sourceId === 'privacy_reviews')).toBe(true);
   });
 
   it('sucht Namen auch als nur Vorname und nur Nachname in Freitexten', () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { generateAndRequestDocumentPreview } from '../../../electron/ipc/documentPreviewWorkflow';
+import { generateAndRequestDocumentPreview, requestPlainDocumentPreview } from '../../../electron/ipc/documentPreviewWorkflow';
 import type { SecurityService } from '../../../services/securityService';
 import type { SbvOfficeDocumentRecord } from '../../../services/sbvOfficeWorkflowDocumentAdapter';
 import { ApplicationError } from '../../../src/domain/models/application-error.model';
@@ -104,5 +104,27 @@ describe('gemeinsamer PDF-Vorschauablauf', () => {
       code: 'VALIDATION_FAILED',
       message: 'Die Einladung benötigt einen Termin und einen Ort bzw. ein Format.',
     });
+  });
+
+  it('nutzt denselben temporären Vorschauablauf für bereits gespeicherte Klartext-Puffer', async () => {
+    const plain = Buffer.from('%PDF-report');
+    const opener = vi.fn(async () => '');
+    const securityService = security(() => '/isolierte-vorschau/report.pdf');
+
+    const result = await requestPlainDocumentPreview({
+      operation: 'reports:open-export-folder',
+      readFailureMessage: 'Bericht konnte nicht gelesen werden.',
+      security: securityService,
+      opener,
+      fileName: 'taetigkeitsbericht.pdf',
+      read: async () => plain,
+      tempPurpose: 'report-preview',
+    });
+
+    expect(result).toEqual({ opened: true, filePath: '/isolierte-vorschau/report.pdf' });
+    expect(securityService.cleanupTemporaryFiles).toHaveBeenCalledOnce();
+    expect(securityService.writeTemporaryFile).toHaveBeenCalledWith('report-preview', 'taetigkeitsbericht.pdf', expect.any(Buffer), 'preview');
+    expect(opener).toHaveBeenCalledWith('/isolierte-vorschau/report.pdf');
+    expect(plain.equals(Buffer.alloc(plain.length))).toBe(true);
   });
 });

@@ -29,6 +29,7 @@ Automatische Hard Deletes ohne dokumentierte Prüfung sind zu vermeiden.
 ## 4. Falltypbezogene Vorschlagsfristen
 
 Diese Fristen sind Vorschläge für die App und ersetzen keine rechtliche Prüfung.
+Sie werden in den Einstellungen unter **Datenschutz & Löschung** als Modulregeln geführt und können dort an betriebliche Vorgaben angepasst werden. Die Anpassung verändert ausschließlich die Vormerkung zur manuellen Datenschutzprüfung; sie löst keine automatische Löschung aus.
 
 | Falltyp | Vorschlagsfrist |
 |---|---|

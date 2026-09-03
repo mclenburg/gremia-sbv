@@ -207,34 +207,41 @@ export class CaseDocumentService extends CaseNoteService {
   async createTemporaryDocumentCopy(
       id: string,
     ): Promise<{ filePath: string; fileName: string }> {
+      const preview = await this.readDocumentForPreview(id);
+      try {
+        await this.cleanupTemporaryDocumentCopies();
+        const tempPath = this.tempFiles().write(
+          "document-preview",
+          preview.fileName,
+          preview.content,
+          "preview",
+        );
+        return { filePath: tempPath, fileName: preview.fileName };
+      } finally {
+        preview.content.fill(0);
+      }
+    }
+
+  async readDocumentForPreview(
+      id: string,
+    ): Promise<{ content: Buffer; fileName: string }> {
       const db = this.getSafeDb();
       const row = db
         .prepare<DatabaseRow>("SELECT * FROM case_documents WHERE id = ?")
         .get(id);
       if (!row) throw new Error(`Dokument nicht gefunden: ${id}`);
-      await this.cleanupTemporaryDocumentCopies();
       const plain = await this.decryptDocumentRow(row);
-      try {
-        const safeName = this.safeExportFileName(
-          row.filename ?? row.display_title ?? `${id}.bin`,
-        );
-        const tempPath = this.tempFiles().write(
-          "document-preview",
-          safeName,
-          plain,
-          "preview",
-        );
-        this.audit(db, {
-          action: "open",
-          subjectType: "case_document",
-          subjectId: id,
-          caseId: row.case_id,
-          purpose: "Falldokument zur Vorschau entschlüsselt",
-        });
-        return { filePath: tempPath, fileName: safeName };
-      } finally {
-        plain.fill(0);
-      }
+      this.audit(db, {
+        action: "open",
+        subjectType: "case_document",
+        subjectId: id,
+        caseId: row.case_id,
+        purpose: "Falldokument zur Vorschau entschlüsselt",
+      });
+      return {
+        content: plain,
+        fileName: this.safeExportFileName(row.filename ?? row.display_title ?? `${id}.bin`),
+      };
     }
 
   async exportDocument(

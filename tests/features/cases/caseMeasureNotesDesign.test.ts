@@ -18,11 +18,16 @@ describe('case measure notes design integration', () => {
     );
 
     expect(markup).toContain('class="industrial-subsection compact"');
-    expect(markup).toContain('class="case-process-title-row"');
-    expect(markup).toContain('class="industrial-secondary-button"');
+    expect(markup).toContain('case-process-title-row');
+    expect(markup).toContain('case-process-title-row-actions');
+    expect(markup).toContain('class="industrial-secondary-button compact"');
     expect(markup).toContain('Maßnahmennotizen');
+    expect(markup).toContain('Maßnahmennotizen-Hilfe öffnen');
+    expect(markup).toContain('data-help-title="Maßnahmennotizen"');
     expect(markup).toContain('class="industrial-live-region"');
-    expect(markup).toContain('Termine und Verlauf direkt an');
+    expect(markup).toContain('Notizen werden direkt an');
+    expect(markup).not.toContain('Termine und Verlauf direkt an');
+    expect(markup).not.toContain('Maßnahmennotizen werden als sensible Falldaten gespeichert');
     expect(markup).not.toContain('measure-note-form');
     expect(markup).not.toContain('measure-note-card');
     expect(markup).not.toContain('measure-notes-header');

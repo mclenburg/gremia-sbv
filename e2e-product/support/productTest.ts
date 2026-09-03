@@ -12,6 +12,7 @@ const { test: base, expect } = requireE2eTool<{
 const { _electron } = requireE2eTool<{ _electron: { launch: (options: Record<string, unknown>) => Promise<ElectronApplication> } }>('playwright');
 
 const PRODUCT_PASSWORD = 'Gremia-SBV-E2E!2026';
+const PRODUCT_E2E_LINUX_SANDBOX_FLAGS = ['--disable-setuid-sandbox', '--disable-seccomp-filter-sandbox'];
 
 type ProductFixtures = {
   productPage: Page;
@@ -19,6 +20,15 @@ type ProductFixtures = {
   workerDataDir: string;
   runtimeErrors: string[];
 };
+
+function productE2eLaunchArgs(userDataDir: string, workerIndex: number): string[] {
+  const linuxSandboxFlags = process.platform === 'linux' ? PRODUCT_E2E_LINUX_SANDBOX_FLAGS : [];
+  return [
+    ...linuxSandboxFlags,
+    `--user-data-dir=${userDataDir}`,
+    `--full-product-e2e-worker=${workerIndex}`,
+  ];
+}
 
 async function findMainWindow(app: ElectronApplication): Promise<Page> {
   const deadline = Date.now() + 30_000;
@@ -101,7 +111,7 @@ const test = (base as { extend: (fixtures: Record<string, unknown>) => unknown }
 
     const app = await _electron.launch({
       executablePath,
-      args: [`--user-data-dir=${userDataDir}`, `--full-product-e2e-worker=${workerInfo.parallelIndex}`],
+      args: productE2eLaunchArgs(userDataDir, workerInfo.parallelIndex),
       env: {
         ...process.env,
         GREMIA_SBV_E2E: '1',

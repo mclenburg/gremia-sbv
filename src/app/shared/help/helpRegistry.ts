@@ -205,6 +205,27 @@ export const HELP_REGISTRY = {
       },
     ],
   },
+  "cases.measureNotes": {
+    id: "cases.measureNotes",
+    kicker: "Fallakte",
+    title: "Maßnahmennotizen",
+    summary:
+      "Maßnahmennotizen dokumentieren Verlauf, Termine und nächste Schritte direkt an einer fachlichen Maßnahme.",
+    blocks: [
+      {
+        type: "paragraph",
+        text: "Mehrere vertrauliche Notizen pro Maßnahme sind möglich. Sie gehören zur Fallakte und sollten nur den für die SBV-Arbeit erforderlichen Verlauf enthalten.",
+      },
+      {
+        type: "paragraph",
+        text: "Erfasse datensparsam: Zusagen, offene Punkte, Termine, Verantwortlichkeiten und den nächsten sauberen Schritt. Diagnosen oder unnötige Gesundheitsdetails gehören nicht in diese Notizen.",
+      },
+      {
+        type: "paragraph",
+        text: "Bei Löschung oder Anonymisierung der Fallakte werden Maßnahmennotizen als sensible Falldaten mit berücksichtigt. Die Entscheidung bleibt bewusst und manuell.",
+      },
+    ],
+  },
   "elections.setup": {
     id: "elections.setup", kicker: "Wahl", title: "Wahleinleitung",
     summary: "Wahlgrund, Mindestschwelle und Verfahrensvorschlag werden dokumentiert; die Entscheidung bleibt beim zuständigen Wahlorgan.",
@@ -258,7 +279,7 @@ export const HELP_REGISTRY = {
   "sbvOffice.meetings": {
     id: "sbvOffice.meetings", kicker: "Gremien", title: "SBV-Sicht auf Sitzungen",
     summary: "Dokumentiert werden Teilnahme, SBV-relevante Tagesordnungspunkte, eigene Position und gegebenenfalls die Aussetzung nach § 178 Abs. 4 SGB IX.",
-    blocks: [{ type: "paragraph", text: "Die Aufzeichnung ist eine SBV-Eigenaufzeichnung und kein Betriebsratsprotokoll. Bei erheblicher Beeinträchtigung wichtiger Interessen oder fehlender Beteiligung kann eine Aussetzung dokumentiert werden; die Wochenfrist wird zentral nachgehalten. Ist die Gremia.BR-Lesebrücke aktiviert, können Sitzung und Tagesordnung als eigene SBV-Arbeitskopie übernommen werden. SBV-Relevanz, Positionen und Bewertungen werden nicht automatisch gesetzt." }],
+    blocks: [{ type: "paragraph", text: "Die Aufzeichnung ist eine SBV-Eigenaufzeichnung und kein Betriebsratsprotokoll. Bei erheblicher Beeinträchtigung wichtiger Interessen oder fehlender Beteiligung kann eine Aussetzung dokumentiert werden; die Wochenfrist wird zentral nachgehalten. Ist die Gremia.BR-Kooperationsbrücke aktiviert, können Sitzung und Tagesordnung als eigene SBV-Arbeitskopie übernommen werden. SBV-Relevanz, Positionen und Bewertungen werden nicht automatisch gesetzt." }],
   },
   "sbvOffice.assembly": {
     id: "sbvOffice.assembly", kicker: "Versammlung", title: "Schwerbehindertenversammlung",

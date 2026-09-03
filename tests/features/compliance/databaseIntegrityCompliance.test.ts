@@ -15,6 +15,7 @@ import {
   CASES_REQUIRED_COLUMNS,
   GREMIA_BR_CACHE_REQUIRED_COLUMNS,
   GREMIA_BR_SETTINGS_REQUIRED_COLUMNS,
+  GREMIA_BR_WORKSPACE_ACTIONS_REQUIRED_COLUMNS,
   PERSONAL_DATA_AUDIT_REQUIRED_COLUMNS,
   PROTECTED_PERSONS_REQUIRED_COLUMNS,
   SBV_CONTROL_PROTOCOLS_REQUIRED_COLUMNS,
@@ -35,7 +36,7 @@ import { applyDatabasePrivacyPragmas, type DatabaseAdapter } from '../../../serv
 class SchemaDb implements DatabaseAdapter {
   constructor(
     private readonly tables: Record<string, readonly string[]>,
-    private readonly schemaVersion = '0052',
+    private readonly schemaVersion = '0054',
   ) {}
 
   prepare<T = unknown>(sql: string) {
@@ -89,6 +90,7 @@ const completeSchema: Record<string, readonly string[]> = {
   case_document_ocr_jobs: CASE_DOCUMENT_OCR_JOBS_REQUIRED_COLUMNS,
   gremia_br_settings: GREMIA_BR_SETTINGS_REQUIRED_COLUMNS,
   gremia_br_cache_entries: GREMIA_BR_CACHE_REQUIRED_COLUMNS,
+  gremia_br_workspace_actions: GREMIA_BR_WORKSPACE_ACTIONS_REQUIRED_COLUMNS,
   case_external_references: CASE_EXTERNAL_REFERENCES_REQUIRED_COLUMNS,
   case_measures: CASE_MEASURES_REQUIRED_COLUMNS,
   case_handover_imports: CASE_HANDOVER_IMPORTS_REQUIRED_COLUMNS,
@@ -134,7 +136,7 @@ describe('database integrity status for compliance center', () => {
     const result = evaluateDatabaseIntegrity(new SchemaDb(completeSchema));
 
     expect(result.ok).toBe(true);
-    expect(result.appliedSchemaVersion).toBe('0052');
+    expect(result.appliedSchemaVersion).toBe('0054');
     expect(result.missingTables).toEqual([]);
     expect(result.missingColumns).toEqual({});
     expect(result.repairRequired).toBe(false);

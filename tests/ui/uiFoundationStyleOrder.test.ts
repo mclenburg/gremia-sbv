@@ -41,12 +41,12 @@ function uiCss(): string {
     'src/app/ui/base.css',
     'src/app/ui/appShell.css',
     'src/app/ui/components.css',
-  'src/app/ui/modal.css',
+    'src/app/ui/modal.css',
     'src/app/ui/workbench.css',
+    'src/app/ui/forms.css',
     'src/app/ui/processes.css',
     'src/app/ui/featureModules.css',
     'src/app/ui/responsiveDesign.css',
-    'src/app/ui/forms.css',
   ]
     .map((file) => source(file))
     .join('\n');
@@ -62,10 +62,10 @@ describe('UI-Fundament Block 2', () => {
       './ui/components.css',
       './ui/modal.css',
       './ui/workbench.css',
+      './ui/forms.css',
       './ui/processes.css',
       './ui/featureModules.css',
       './ui/responsiveDesign.css',
-      './ui/forms.css',
     ];
 
     const indexes = order.map((specifier) => importIndex(app, specifier));
@@ -88,13 +88,13 @@ describe('UI-Fundament Block 2', () => {
     expect(shell).toContain('.industrial-content');
     expect(components).toContain('.industrial-button');
     expect(components).toContain('.industrial-warning-panel');
+    expect(components).toContain('.industrial-dashboard-card');
     expect(workbench).toContain('.workbench-page');
     expect(workbench).toContain('.industrial-field');
     expect(forms).toContain('.industrial-textarea-input');
     expect(forms).toContain('.industrial-form-error-summary');
     expect(processes).toContain('.case-process-header');
     expect(processes).toContain('.prevention-status-section');
-    expect(features).toContain('.industrial-dashboard-card');
     expect(features).toContain('.person-list-item');
 
     expect(topLevelRuleHeads(responsive).every((head) => head.startsWith('@media'))).toBe(true);
@@ -131,19 +131,37 @@ describe('UI-Fundament Block 2', () => {
     expect(features).toContain('.case-register-privacy-action {');
   });
 
-  it('stylt Privacy-Lifecycle-Auswahllisten in Dark- und Light-Mode lesbar und fokussierbar', () => {
+  it('bewahrt Basis-Chrome fuer Navigation, Fallbaum und Fallaktensuche', () => {
     const components = source('src/app/ui/components.css');
+    const workbench = source('src/app/ui/workbench.css');
     const features = source('src/app/ui/featureModules.css');
-    expect(components).toContain('.privacy-review-form select:focus-visible');
-    expect(components).toContain('.industrial-select:focus-visible');
-    expect(features).toContain('.privacy-review-form select {');
-    expect(features).toContain('.privacy-review-form select:hover {');
-    expect(features).toContain('.privacy-review-form select option {');
-    expect(features).toContain("html[data-theme='light'] .privacy-review-form select");
-    expect(features).toContain("html[data-theme='light'] .privacy-review-form select option");
-    expect(features).toContain('background-color: var(--industrial-select-bg);');
-    expect(features).toContain('background: var(--industrial-select-option-bg);');
-    expect(features).toContain('color: var(--industrial-text-strong, #f4f4f5);');
+    const responsive = source('src/app/ui/responsiveDesign.css');
+
+    expect(components).toMatch(/\.industrial-nav button,\s*\.industrial-lock-button\s*\{[\s\S]*?background:\s*transparent;/);
+    expect(components).toMatch(/\.industrial-nav button,\s*\.industrial-lock-button\s*\{[\s\S]*?cursor:\s*pointer;/);
+    expect(components).toContain('.industrial-nav button:hover:not(:disabled)');
+    expect(workbench).toMatch(/\.case-workbench\s*\{[\s\S]*?display:\s*grid;/);
+    expect(workbench).toMatch(/\.case-workbench\s*\{[\s\S]*?grid-template-columns:/);
+    expect(features).toMatch(/\.case-tree-node\s*\{[\s\S]*?background:\s*rgba\(9, 9, 11, 0\.54\);/);
+    expect(features).toMatch(/\.case-tree-node\s*\{[\s\S]*?cursor:\s*pointer;/);
+    expect(features).toMatch(/\.case-search-result\s*\{[\s\S]*?cursor:\s*pointer;/);
+    expect(features).toContain('.case-tree-node:hover:not(:disabled)');
+    expect(features).toContain('.case-search-result:hover:not(:disabled)');
+    expect(responsive).toMatch(/@media \(max-width: 1180px\)\s*\{[\s\S]*?\.case-workbench\s*\{/);
+    expect(responsive).not.toMatch(/@media \(max-width: 1500px\)\s*\{[\s\S]*?\.case-workbench\s*\{/);
+  });
+
+  it('stylt Privacy-Lifecycle-Auswahllisten in Dark- und Light-Mode lesbar und fokussierbar', () => {
+    const forms = source('src/app/ui/forms.css');
+    expect(forms).toContain('.privacy-review-form select:focus-visible');
+    expect(forms).toContain('.industrial-select:focus-visible');
+    expect(forms).toContain('.privacy-review-form select:hover');
+    expect(forms).toContain('.privacy-review-form select option');
+    expect(forms).toContain("html[data-theme='light'] .privacy-review-form select");
+    expect(forms).toContain("html[data-theme='light'] .privacy-review-form select option");
+    expect(forms).toContain('background-color: var(--industrial-select-bg);');
+    expect(forms).toContain('background: var(--industrial-select-option-bg);');
+    expect(forms).toContain('color: var(--industrial-text-strong, #f4f4f5);');
   });
 
 });

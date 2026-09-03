@@ -58,6 +58,21 @@ function configuredSettings(): GremiaBrServiceSettings {
     serverUrl: 'https://br.example.invalid/api',
     username: 'sbv@example.invalid',
     password: 'streng-geheim',
+    apiMode: 'legacy_read_bridge',
+  };
+}
+
+function configuredV2Settings(): GremiaBrServiceSettings {
+  return {
+    enabled: true,
+    serverUrl: 'https://br.example.invalid',
+    username: 'sbv@example.invalid',
+    password: 'streng-geheim',
+    apiMode: 'gremia_br_v2',
+    selectedBodyId: 'sbv-body',
+    selectedBodyName: 'SBV Testbetrieb',
+    selectedOrganizationId: 'org-1',
+    selectedSecurityDomain: 'sd-sbv',
   };
 }
 
@@ -119,6 +134,35 @@ describe('Gremia.BR HTTP-ReadAdapter 0.9.2-B', () => {
     })).toBe(true);
   });
 
+  it('nutzt im Gremia.BR-2.0-Modus den ausgewählten SBV-Arbeitsbereich statt Legacy-Endpunkte', async () => {
+    const { fetch, calls } = createFetch({
+      'POST /api/v1/auth/login': { access_token: 'v2-token' },
+      'GET /api/v1/bodies/sbv-body/meetings': [
+        { id: 'm1', bodyId: 'sbv-body', plannedStart: '2099-01-08T09:00:00.000Z', status: 'INVITED' },
+        { id: 'm2', bodyId: 'sbv-body', plannedStart: '2099-01-15T09:00:00.000Z', status: 'MINUTES_DRAFT' },
+      ],
+      'GET /api/v1/meetings/m1/agenda': { id: 'agenda-1', items: [{ id: 'a1', title: 'BEM-Unterrichtung' }] },
+      'GET /api/v1/meetings/m1/minutes': { id: 'minutes-1', meetingId: 'm1', contentComplete: true },
+      'GET /api/v1/meetings/m1/decisions': [{ id: 'd1', meetingId: 'm1', text: 'BEM-Beschluss' }],
+      'GET /api/v1/meetings/m2/decisions': [{ id: 'd2', meetingId: 'm2', text: 'Arbeitsplatzgestaltung' }],
+    });
+    const adapter = new GremiaBrHttpReadAdapter(new GremiaBrAuthService(new MemoryGremiaBrSettings(configuredV2Settings()), fetch));
+
+    await expect(adapter.getNextMeeting()).resolves.toMatchObject({ id: 'm1' });
+    await expect(adapter.getMeetingAgenda('m1')).resolves.toEqual([{ id: 'a1', title: 'BEM-Unterrichtung' }]);
+    await expect(adapter.getProtocolByMeeting('m1')).resolves.toMatchObject({ id: 'minutes-1' });
+    await expect(adapter.listRelevantDecisions()).resolves.toHaveLength(2);
+    await expect(adapter.searchDecisions('Arbeitsplatz')).resolves.toEqual([{ id: 'd2', meetingId: 'm2', text: 'Arbeitsplatzgestaltung' }]);
+
+    const callSignatures = calls.map((call) => `${call.init?.method} ${new URL(call.url).pathname}`);
+    expect(callSignatures).toContain('GET /api/v1/bodies/sbv-body/meetings');
+    expect(callSignatures).toContain('GET /api/v1/meetings/m1/agenda');
+    expect(callSignatures).toContain('GET /api/v1/meetings/m1/minutes');
+    expect(callSignatures).toContain('GET /api/v1/meetings/m1/decisions');
+    expect(callSignatures).not.toContain('GET /api/sitzungen/kommende');
+    expect(callSignatures).not.toContain('GET /api/protokolle/beschluesse');
+  });
+
   it('protokolliert jede freigegebene HTTP-Leseanfrage im Audit-Log ohne Inhalte', async () => {
     const { fetch } = createFetch({
       'GET /api/sitzungen/kommende': [{ id: 's1', titel: 'BR-Sitzung' }],
@@ -136,6 +180,39 @@ describe('Gremia.BR HTTP-ReadAdapter 0.9.2-B', () => {
     });
     expect(audit.entries[0].metadata).toMatchObject({ endpoint: 'GET /sitzungen/kommende', outcome: 'ok', status: 200 });
     expect(JSON.stringify(audit.entries[0])).not.toContain('BEM');
+    expect(JSON.stringify(audit.entries[0])).not.toContain('jwt-token');
+  });
+
+  it('überträgt FormData für explizite Gremia.BR-Arbeitsbereichsaktionen ohne JSON-Content-Type und auditiert als Export', async () => {
+    const audit = new MemoryAuditLog();
+    const calls: Array<{ url: string; init?: RequestInit }> = [];
+    const fetch: GremiaBrFetch = async (url, init) => {
+      calls.push({ url, init });
+      return jsonResponse({ id: 'remote-document-1', latestVersionId: 'version-1' });
+    };
+    const formData = new FormData();
+    formData.append('title', 'Fallzusammenfassung');
+    formData.append('file', new Blob([new Uint8Array([37, 80, 68, 70])], { type: 'application/pdf' }), 'fall.pdf');
+    const client = new GremiaBrHttpClient('https://br.example.invalid', fetch, audit);
+
+    const result = await client.request<{ id: string }>('POST', '/api/v1/documents', 'jwt-token', {
+      query: { securityDomain: 'sd-sbv', organizationId: 'org-1' },
+      formData,
+    });
+
+    expect(result).toMatchObject({ id: 'remote-document-1' });
+    expect(calls).toHaveLength(1);
+    const headers = calls[0]?.init?.headers as Record<string, string>;
+    expect(headers.Authorization).toBe('Bearer jwt-token');
+    expect(headers['Content-Type']).toBeUndefined();
+    expect(calls[0]?.init?.body).toBe(formData);
+    expect(new URL(calls[0]!.url).searchParams.get('securityDomain')).toBe('sd-sbv');
+    expect(audit.entries[0]).toMatchObject({
+      action: 'export',
+      subjectType: 'gremia_br_http_request',
+      subjectId: 'POST /api/v1/documents',
+    });
+    expect(JSON.stringify(audit.entries[0])).not.toContain('Fallzusammenfassung');
     expect(JSON.stringify(audit.entries[0])).not.toContain('jwt-token');
   });
 

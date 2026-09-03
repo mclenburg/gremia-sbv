@@ -1,4 +1,4 @@
-import { dialog, shell, type IpcMain } from 'electron';
+import { dialog, type IpcMain } from 'electron';
 import path from 'node:path';
 import type { SecurityService } from '../../services/securityService.js';
 import type { ApplicationServices } from '../applicationServices.js';
@@ -9,7 +9,7 @@ import type { ConfigureElectionSetupInput, CreateElectionInput, GenerateElection
 import type { ElectionCloseInput, ElectionDayChecklistInput, GenerateElectionExecutionDocumentInput, RecordElectionAcceptanceInput, RecordElectionLotInput, RecordElectionTotalsInput, SaveElectionMailBallotInput, SaveElectionPhysicalRecordInput } from '../../src/domain/models/election-execution.model.js';
 import type { ElectionTransferEnvelope } from '../../services/electionTransferCryptoAdapter.js';
 import type { SbvOfficeDocumentRecord } from '../../services/sbvOfficeWorkflowDocumentAdapter.js';
-import type { ExternalPreviewOpener } from './externalPreviewRequest.js';
+import { createExternalPreviewOpener } from './externalPreviewRequest.js';
 import { generateAndRequestDocumentPreview } from './documentPreviewWorkflow.js';
 const eid=(value:unknown,channel:string)=>assertString(value,channel,'Wahl-ID',{minLength:1,maxLength:120});
 const EXECUTION_DOCUMENT_KINDS = [
@@ -33,9 +33,7 @@ function executionDocumentInput(value: unknown, operation: string): GenerateElec
  };
 }
 
-const externalPreviewOpener: ExternalPreviewOpener = process.env.GREMIA_SBV_E2E === '1'
-  ? async () => ''
-  : (previewPath) => shell.openPath(previewPath);
+const externalPreviewOpener = createExternalPreviewOpener();
 
 function generateElectionDocumentPreview(
   security: SecurityService,

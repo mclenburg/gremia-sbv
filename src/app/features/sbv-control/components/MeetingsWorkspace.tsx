@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { RefreshCw } from 'lucide-react';
-import { IndustrialButton } from '../../../shared/components/IndustrialButton';
-import { CheckboxField, DateInput, DateTimeInput, SearchInput, SelectInput, TextareaInput, TextInput } from '../../../shared/components/IndustrialForm';
+import { IndustrialButton, ToolbarButton } from '../../../shared/components/IndustrialButton';
+import { CheckboxField, DateInput, DateTimeInput, SearchableSelectInput, SearchInput, SelectInput, TextareaInput, TextInput } from '../../../shared/components/IndustrialForm';
 import { IndustrialHelpButton } from '../../../shared/help/IndustrialHelp';
 import { waitForBridge } from '../../../core/bridge/waitForBridge';
 import type { ActivityJournalPrefill } from '../../../../domain/models/activity-journal.model';
 import type { GremiaBrCachedOverview } from '../../../../domain/models/gremia-br.model';
+import { buildBrMeetingDrafts } from '../../gremia-br/gremiaBrWorkspaceModel';
 import type {
   CreateSbvMeetingInput,
   SbvMeetingAgendaItemRecord,
@@ -26,72 +27,7 @@ const meetingTypeLabels: Record<SbvMeetingType, string> = {
 };
 type JournalActivity = 'attendance' | 'preparation' | 'top_request' | 'suspension';
 
-type BrMeetingDraft = {
-  sourceId: string;
-  title: string;
-  startsAt: string;
-  location?: string;
-  agenda: string[];
-};
-
-function toRecord(value: unknown): Record<string, unknown> | null {
-  return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : null;
-}
-
-function firstString(record: Record<string, unknown>, keys: string[]): string | undefined {
-  for (const key of keys) {
-    const value = record[key];
-    if (typeof value === 'string' && value.trim()) return value.trim();
-  }
-  return undefined;
-}
-
-function brMeetingId(item: unknown): string | undefined {
-  const record = toRecord(item);
-  return record ? firstString(record, ['id', 'uuid', 'sitzungId']) : undefined;
-}
-
-function brMeetingTitle(item: unknown): string {
-  const record = toRecord(item);
-  return record ? firstString(record, ['titel', 'title', 'name']) ?? 'Betriebsratssitzung' : 'Betriebsratssitzung';
-}
-
-function brMeetingStartsAt(item: unknown): string | undefined {
-  const record = toRecord(item);
-  if (!record) return undefined;
-  return firstString(record, ['startsAt', 'startAt', 'beginn', 'datum', 'date']);
-}
-
-function brMeetingLocation(item: unknown): string | undefined {
-  const record = toRecord(item);
-  return record ? firstString(record, ['ort', 'location', 'raum', 'room']) : undefined;
-}
-
-function brAgendaTitle(item: unknown): string | undefined {
-  const record = toRecord(item);
-  return record ? firstString(record, ['titel', 'title', 'name', 'bezeichnung', 'text']) : undefined;
-}
-
-export function buildBrMeetingDrafts(overview: GremiaBrCachedOverview | null): BrMeetingDraft[] {
-  if (!overview) return [];
-  const raw = [overview.currentMeeting, overview.nextMeeting, ...overview.upcomingMeetings].filter(Boolean);
-  const seen = new Set<string>();
-  const result: BrMeetingDraft[] = [];
-  for (const item of raw) {
-    const sourceId = brMeetingId(item);
-    const startsAt = brMeetingStartsAt(item);
-    if (!sourceId || !startsAt || seen.has(sourceId)) continue;
-    seen.add(sourceId);
-    result.push({
-      sourceId,
-      title: brMeetingTitle(item),
-      startsAt,
-      location: brMeetingLocation(item),
-      agenda: (overview.meetingAgendas[sourceId] ?? []).map(brAgendaTitle).filter((title): title is string => Boolean(title)),
-    });
-  }
-  return result.sort((a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt));
-}
+export { buildBrMeetingDrafts };
 
 function toDateTimeLocal(value?: string): string {
   if (!value) return '';
@@ -134,7 +70,7 @@ function GremiaBrMeetingImport({ onCreate, onAgenda, onSelectedMeeting }: {
     setBusy(true); setMessage('');
     try {
       const bridge = await waitForBridge();
-      if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Lesebrücke ist nicht verfügbar.');
+      if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Kooperationsbrücke ist nicht verfügbar.');
       const result = await bridge.gremiaBr.refreshCache();
       setOverview(result.cached); setMessage(result.message);
     } catch (error) {
@@ -159,9 +95,9 @@ function GremiaBrMeetingImport({ onCreate, onAgenda, onSelectedMeeting }: {
 
   if (!enabled) return null;
   return <section className="sbv-control-section sbv-meetings-bridge" aria-labelledby="gremia-br-meetings-heading">
-    <div><p className="industrial-kicker">Gremia.BR</p><h3 id="gremia-br-meetings-heading">BR-Sitzung übernehmen</h3><p className="industrial-meta">Lesebrücke aktiv. Sitzung und Tagesordnung werden als eigene SBV-Arbeitskopie übernommen; SBV-Relevanz und Bewertungen bleiben bewusst manuell.</p></div>
+    <div><p className="industrial-kicker">Gremia.BR</p><h3 id="gremia-br-meetings-heading">BR-Sitzung übernehmen</h3><p className="industrial-meta">Kooperationsbrücke aktiv. Sitzung und Tagesordnung werden als eigene SBV-Arbeitskopie übernommen; SBV-Relevanz und Bewertungen bleiben bewusst manuell.</p></div>
     <div className="industrial-form-grid two-columns">
-      <SelectInput label="Gremia.BR-Sitzung" value={selectedId} onValueChange={setSelectedId} options={[{ value: '', label: 'Auswählen …' }, ...meetings.map((meeting) => ({ value: meeting.sourceId, label: `${new Date(meeting.startsAt).toLocaleString('de-DE')} · ${meeting.title}` }))]} />
+      <SearchableSelectInput label="Gremia.BR-Sitzung suchen und auswählen" value={selectedId} onValueChange={setSelectedId} placeholder="Termin oder Sitzungstitel tippen …" options={meetings.map((meeting) => ({ value: meeting.sourceId, label: `${new Date(meeting.startsAt).toLocaleString('de-DE')} · ${meeting.title}` }))} />
       <div className="industrial-action-row sbv-meetings-bridge-actions"><IndustrialButton variant="secondary" disabled={busy} onClick={() => void refresh()}><RefreshCw className="h-4 w-4" />{busy ? 'Abruf läuft …' : 'Daten aktualisieren'}</IndustrialButton><IndustrialButton disabled={!selected || busy} onClick={() => void importMeeting()}>In SBV-Sitzung übernehmen</IndustrialButton></div>
     </div>
     {message ? <div className="industrial-message industrial-message-info" role="status">{message}</div> : null}
@@ -273,8 +209,8 @@ export function MeetingsWorkspace({ records, onCreate, onAgenda, onAgendaFollowU
         </div>
         <div className="case-pagination sbv-meeting-pagination" aria-label="Sitzungslisten-Seiten">
           <span>Seite {normalizedPage} von {pageCount} · maximal {meetingPageSize} Sitzungen pro Seite</span>
-          <button type="button" className="industrial-secondary-button compact" disabled={normalizedPage <= 1} onClick={() => setMeetingPage(normalizedPage - 1)}>Zurück</button>
-          <button type="button" className="industrial-secondary-button compact" disabled={normalizedPage >= pageCount} onClick={() => setMeetingPage(normalizedPage + 1)}>Weiter</button>
+          <ToolbarButton type="button" disabled={normalizedPage <= 1} onClick={() => setMeetingPage(normalizedPage - 1)}>Zurück</ToolbarButton>
+          <ToolbarButton type="button" disabled={normalizedPage >= pageCount} onClick={() => setMeetingPage(normalizedPage + 1)}>Weiter</ToolbarButton>
         </div>
       </section>
 

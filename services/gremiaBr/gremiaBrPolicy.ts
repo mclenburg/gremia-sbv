@@ -47,9 +47,14 @@ export function checkGremiaBrEndpoint(method: string, path: string): GremiaBrPol
   }
   const endpoint = findGremiaBrEndpointDefinition(method, normalizedPath);
   if (endpoint) return { allowed: true };
-  return { allowed: false, reason: 'Der Endpunkt ist nicht in der Gremia.SBV-Lesebrücke freigegeben.' };
+  return { allowed: false, reason: 'Der Endpunkt ist nicht für die Gremia.SBV-Gremia.BR-Anbindung freigegeben.' };
 }
 
 export function isGremiaBrReadOnlyEndpoint(method: string, path: string): boolean {
-  return checkGremiaBrEndpoint(method, path).allowed;
+  const endpoint = findGremiaBrEndpointDefinition(method, normalizePath(path.trim()));
+  return endpoint?.category === 'auth' || endpoint?.category === 'read_context';
+}
+
+export function isGremiaBrWorkspaceActionEndpoint(method: string, path: string): boolean {
+  return findGremiaBrEndpointDefinition(method, normalizePath(path.trim()))?.category === 'workspace_action';
 }

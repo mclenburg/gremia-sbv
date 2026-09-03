@@ -1,6 +1,6 @@
 import type { IpcInvoker } from "./invoke.js";
 import { IPC_CHANNELS } from "../ipc/channels.js";
-import type { CreateGremiaBrExternalReferenceInput, GremiaBrCachedOverview, GremiaBrCacheRefreshResult, GremiaBrConnectionTestResult, GremiaBrDashboardOverview, GremiaBrExternalReferenceRecord, GremiaBrInlineSuggestion, GremiaBrPublicSettings, GremiaBrRelevanceSettings, GremiaBrSettingsInput } from "../../src/domain/models/gremia-br.model.js";
+import type { CreateGremiaBrCaseSummaryInput, CreateGremiaBrExternalReferenceInput, GremiaBrAgendaItemRequestResult, GremiaBrCachedOverview, GremiaBrCacheRefreshResult, GremiaBrConnectionTestResult, GremiaBrCreatedPdfDocument, GremiaBrDashboardOverview, GremiaBrDocumentTransferResult, GremiaBrExternalReferenceRecord, GremiaBrGeneratedPdfDocument, GremiaBrInlineSuggestion, GremiaBrPublicSettings, GremiaBrRelevanceSettings, GremiaBrSettingsInput, GremiaBrWorkspaceActionRecord, GremiaBrWorkspaceBody, RequestGremiaBrAgendaItemInput, TransferGremiaBrDocumentInput } from "../../src/domain/models/gremia-br.model.js";
 import type { TemplateDefaultValues } from "../../src/domain/models/template-default.model.js";
 
 export function createSettingsApi(invokeIpc: IpcInvoker) {
@@ -16,6 +16,18 @@ export function createSettingsApi(invokeIpc: IpcInvoker) {
         invokeIpc(IPC_CHANNELS.gremiaBrRelevanceSave, input),
       testConnection: (): Promise<GremiaBrConnectionTestResult> =>
         invokeIpc(IPC_CHANNELS.gremiaBrConnectionTest),
+      listWorkspaceBodies: (): Promise<GremiaBrWorkspaceBody[]> =>
+        invokeIpc(IPC_CHANNELS.gremiaBrWorkspaceBodiesList),
+      listTransferableDocuments: (limit?: number): Promise<GremiaBrGeneratedPdfDocument[]> =>
+        invokeIpc(IPC_CHANNELS.gremiaBrDocumentsList, limit),
+      listWorkspaceActions: (limit?: number): Promise<GremiaBrWorkspaceActionRecord[]> =>
+        invokeIpc(IPC_CHANNELS.gremiaBrWorkspaceActionsList, limit),
+      createCaseSummaryDocument: (input: CreateGremiaBrCaseSummaryInput): Promise<GremiaBrCreatedPdfDocument> =>
+        invokeIpc(IPC_CHANNELS.gremiaBrCaseSummaryCreate, input),
+      transferGeneratedPdf: (input: TransferGremiaBrDocumentInput): Promise<GremiaBrDocumentTransferResult> =>
+        invokeIpc(IPC_CHANNELS.gremiaBrDocumentTransfer, input),
+      requestAgendaItem: (input: RequestGremiaBrAgendaItemInput): Promise<GremiaBrAgendaItemRequestResult> =>
+        invokeIpc(IPC_CHANNELS.gremiaBrAgendaItemRequest, input),
       getCachedOverview: (): Promise<GremiaBrCachedOverview> =>
         invokeIpc(IPC_CHANNELS.gremiaBrCacheGet),
       getDashboardOverview: (): Promise<GremiaBrDashboardOverview> =>

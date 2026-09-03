@@ -26,7 +26,8 @@ import { usePersonsHandlers } from "./features/persons/usePersonsHandlers";
 import { useIcalExportHandlers } from "./features/deadlines/useIcalExportHandlers";
 import { DashboardFocusOverview } from "./features/dashboard/DashboardFocusOverview";
 import { applyTheme, getInitialTheme, nowLabel, type ThemeMode } from "./workflowViews";
-import { DeadlinesView, DeadlineEditor } from "./features/deadlines/DeadlinesView";
+import { DeadlinesView, DeadlineEditor, DeadlineExtensionModal } from "./features/deadlines/DeadlinesView";
+import { resolveDeadlineOpenTarget } from "./features/deadlines/deadlineContext";
 import { LoginGate } from "./features/auth/LoginGate";
 import { waitForBridge } from "./core/bridge/waitForBridge";
 import { recordRendererDiagnostic } from "./core/diagnostics/rendererDiagnostics";
@@ -54,6 +55,7 @@ const IMPLEMENTED_VIEW_IDS = new Set<ViewId>([
   "reports",
   "compliance",
   "privacy_review",
+  "gremia_br",
   "settings",
 ]);
 
@@ -171,6 +173,7 @@ function useWorkData(unlocked: boolean, setCurrentView: (view: ViewId) => void, 
   const [caseMeasures, setCaseMeasures] = useState<CaseMeasureRecord[]>([]);
   const [dashboardDeadlines, setDashboardDeadlines] = useState<DeadlineDashboardItem[]>([]);
   const [selectedDeadline, setSelectedDeadline] = useState<DeadlineRecord | null>(null); const [dataError, setDataError] = useState("");
+  const [deadlineExtensionTarget, setDeadlineExtensionTarget] = useState<DeadlineRecord | null>(null);
   const reloadWorkData = useCallback(async () => {
     const bridge = await waitForBridge();
     if (!bridge?.cases || !bridge.contacts || !bridge.deadlines) throw new Error("Datenbrücke ist nicht geladen.");
@@ -216,8 +219,48 @@ function useWorkData(unlocked: boolean, setCurrentView: (view: ViewId) => void, 
     reloadWorkData().catch((error) => { recordRendererDiagnostic("error", "Arbeitsdaten konnten nicht geladen werden.", error); if (active) setDataError(error instanceof Error ? error.message : "Arbeitsdaten konnten nicht geladen werden."); });
     return () => { active = false; };
   }, [unlocked, reloadWorkData]);
-  return { cases, contacts, deadlines, persons, caseMeasures, dashboardDeadlines, selectedDeadline, setSelectedDeadline, dataError,
+  return { cases, contacts, deadlines, persons, caseMeasures, dashboardDeadlines, selectedDeadline, setSelectedDeadline,
+    deadlineExtensionTarget, setDeadlineExtensionTarget, dataError,
     reloadWorkData, createCase, createContact, deleteContact, createDeadline, updateDeadline, completeDeadline };
+}
+
+const GREMIA_BR_SETTINGS_CHANGED_EVENT = "gremia-sbv:gremia-br-settings-changed";
+
+function isConfiguredGremiaBrNavigationTarget(settings?: { enabled?: boolean; serverUrl?: string; username?: string; hasStoredCredentials?: boolean }): boolean {
+  return Boolean(settings?.enabled && settings.serverUrl?.trim() && settings.username?.trim() && settings.hasStoredCredentials);
+}
+
+function useGremiaBrNavigationVisibility(unlocked: boolean, currentView: ViewId, setCurrentView: (view: ViewId) => void): boolean {
+  const [configured, setConfigured] = useState(false);
+  const reload = useCallback(async () => {
+    try {
+      const bridge = await waitForBridge();
+      if (!bridge?.gremiaBr) {
+        setConfigured(false);
+        return;
+      }
+      setConfigured(isConfiguredGremiaBrNavigationTarget(await bridge.gremiaBr.getSettings()));
+    } catch (error) {
+      recordRendererDiagnostic("warning", "Gremia.BR-Navigation konnte nicht aktualisiert werden.", error);
+      setConfigured(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!unlocked) {
+      setConfigured(false);
+      return;
+    }
+    void reload();
+    window.addEventListener(GREMIA_BR_SETTINGS_CHANGED_EVENT, reload);
+    return () => window.removeEventListener(GREMIA_BR_SETTINGS_CHANGED_EVENT, reload);
+  }, [reload, unlocked]);
+
+  useEffect(() => {
+    if (currentView === "gremia_br" && !configured) setCurrentView("dashboard");
+  }, [configured, currentView, setCurrentView]);
+
+  return configured;
 }
 
 type WorkData = ReturnType<typeof useWorkData>;
@@ -230,16 +273,23 @@ function PrimaryViews(props: PrimaryViewsProps & { openCaseNode: (target: CaseNo
   const { currentView, setCurrentView, work, caseNodeTarget, setCaseNodeTarget, activityJournalPrefill, setActivityJournalPrefill,
     participationViolationPrefill, setParticipationViolationPrefill } = props;
   const { cases, contacts, deadlines, persons, caseMeasures, dashboardDeadlines, setSelectedDeadline, createCase, createContact,
-    deleteContact, createDeadline, completeDeadline, reloadWorkData } = work;
+    deleteContact, createDeadline, completeDeadline, reloadWorkData, setDeadlineExtensionTarget } = work;
   const personHandlers = usePersonsHandlers(reloadWorkData); const icalHandlers = useIcalExportHandlers();
+  const openDeadlineContext = (deadline: DeadlineRecord) => {
+    const target = resolveDeadlineOpenTarget(deadline, new Map(caseMeasures.map((item) => [item.id, item])));
+    if (target.kind === "case") props.openCaseNode(target.target);
+    else setCurrentView(target.view);
+  };
   if (currentView === "dashboard") return <DashboardFocusOverview onNavigate={setCurrentView} cases={cases} deadlines={deadlines}
-    dashboardItems={dashboardDeadlines} onEditDeadline={setSelectedDeadline} onCompleteDeadline={(d) => void completeDeadline(d)} />;
+    measures={caseMeasures} dashboardItems={dashboardDeadlines} onEditDeadline={setSelectedDeadline}
+    onExtendDeadline={setDeadlineExtensionTarget} onOpenDeadlineContext={openDeadlineContext} onCompleteDeadline={(d) => void completeDeadline(d)} />;
   if (currentView === "activity_journal") return <ActivityJournalView pendingPrefill={activityJournalPrefill} onPrefillConsumed={() => setActivityJournalPrefill(null)} />;
   if (currentView === "participation_violations") return <SbvParticipationViolationsView cases={cases} measures={caseMeasures} pendingPrefill={participationViolationPrefill}
     onPrefillConsumed={() => setParticipationViolationPrefill(null)} onOpenCaseNode={props.openCaseNode}
     onOpenJournalPrefill={(prefill) => { setActivityJournalPrefill(prefill); setCurrentView("activity_journal"); }} />;
   if (currentView === "deadlines") return <DeadlinesView cases={cases} measures={caseMeasures} deadlines={deadlines}
-    onCreateDeadline={createDeadline} onEditDeadline={setSelectedDeadline} onCompleteDeadline={(d) => void completeDeadline(d)}
+    onCreateDeadline={createDeadline} onEditDeadline={setSelectedDeadline} onExtendDeadline={setDeadlineExtensionTarget}
+    onOpenDeadlineContext={openDeadlineContext} onCompleteDeadline={(d) => void completeDeadline(d)}
     onExportIcal={(privacyLevel, filters) => icalHandlers.exportIcal({ privacyLevel, filters })} />;
   if (currentView === "persons") return <PersonsView persons={persons} cases={cases}
     onCreateCaseForPerson={async (person, input) => createCase({ ...input, protectedPersonId: person.id, personBindingState: person.recordKind === "pseudonymous_request" ? "anonymous_request" : "active", isPseudonymized: true })}
@@ -303,15 +353,17 @@ function WorkspaceMain(props: PrimaryViewsProps & { currentModule?: (typeof modu
     <GlobalTextCommandController cases={work.cases} contacts={work.contacts} onCreateDeadline={work.createDeadline} /><TextCommandHelpModal />
     {work.selectedDeadline && <DeadlineEditor deadline={work.selectedDeadline} cases={work.cases} onClose={() => work.setSelectedDeadline(null)}
       onSave={work.updateDeadline} onComplete={work.completeDeadline} />}
+    {work.deadlineExtensionTarget && <DeadlineExtensionModal deadline={work.deadlineExtensionTarget} cases={work.cases}
+      onClose={() => work.setDeadlineExtensionTarget(null)} onSave={work.updateDeadline} />}
   </main>;
 }
 
-function AppShell({ currentView, setCurrentView, onLock, children }: { currentView: ViewId; setCurrentView: (view: ViewId) => void;
-  onLock: () => Promise<void>; children: React.ReactNode }) {
+function AppShell({ currentView, setCurrentView, onLock, children, gremiaBrConfigured }: { currentView: ViewId; setCurrentView: (view: ViewId) => void;
+  onLock: () => Promise<void>; children: React.ReactNode; gremiaBrConfigured?: boolean }) {
   return <LiveRegionProvider><ConfirmDialogProvider><a className="skip-link" href="#main-content">Zum Hauptinhalt springen</a>
     <div className="industrial-shell min-h-screen text-zinc-100"><aside className="industrial-sidebar" aria-label="Gremia.SBV Navigation und Sitzung">
       <div className="brand-block"><div className="brand-mark">SBV</div><div><strong>Gremia.SBV</strong><span>LOCAL</span></div></div>
-      <ShellNav current={currentView} onNavigate={setCurrentView} onPreload={(view) => { void preloadLazyFeature(view).catch(() => undefined); }} />
+      <ShellNav current={currentView} onNavigate={setCurrentView} gremiaBrConfigured={gremiaBrConfigured} onPreload={(view) => { void preloadLazyFeature(view).catch(() => undefined); }} />
       <button type="button" className="industrial-lock-button" onClick={() => void onLock()}>
         <LogOut className="h-4 w-4" />Sperren</button>
       <div className="industrial-version-badge" aria-label={`Gremia.SBV Version ${APP_VERSION}`}><span>Version</span><strong>{APP_VERSION}</strong></div>
@@ -326,6 +378,7 @@ export function App() {
   const [participationViolationPrefill, setParticipationViolationPrefill] = useState<SbvParticipationViolationPrefill | null>(null);
   const journal = useActivityJournalNavigation(setCurrentView);
   const work = useWorkData(security.unlocked, setCurrentView, journal.setActivityJournalPrefill);
+  const gremiaBrConfigured = useGremiaBrNavigationVisibility(security.unlocked, currentView, setCurrentView);
   const currentModule = useMemo(() => modules.find((module) => module.id === currentView), [currentView]);
   const openCaseNode = (target: CaseNodeTarget) => { setCaseNodeTarget(target); setCurrentView("cases"); };
   useModalKeyboardShortcuts({ setCurrentView });
@@ -338,6 +391,7 @@ export function App() {
   return <AppShell
     currentView={currentView}
     setCurrentView={setCurrentView}
+    gremiaBrConfigured={gremiaBrConfigured}
     onLock={async () => {
       const result = await requestSecurityLock(window.gremiaSbv?.security?.lock, "manual");
       if (result === "locked") security.switchToLockedSession();

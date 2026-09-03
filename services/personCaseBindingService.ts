@@ -2,9 +2,9 @@ import { randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
 import { assertCanAssignLegacyCase, assertCanCreateRegularCase, decideLegacyCaseBindingMigration, type PersonBindingState } from './personCaseBindingPolicy.js';
+import { ensurePersonCaseBindingRuntimeSchema } from './runtimeSchemaCompatibility.js';
 
 function nowIso(): string { return new Date().toISOString(); }
-function tryExec(db: DatabaseAdapter, sql: string): void { try { db.exec(sql); } catch { /* idempotente SQLite-Spaltenerweiterung */ } }
 
 export interface LegacyCaseAssignmentResult {
   caseId: string;
@@ -28,17 +28,7 @@ export class PersonCaseBindingService {
   constructor(private readonly database: DatabaseAdapter) {}
 
   ensureSchema(): void {
-    tryExec(this.database, `ALTER TABLE cases ADD COLUMN protected_person_id TEXT REFERENCES protected_persons(id) ON DELETE SET NULL;`);
-    tryExec(this.database, `ALTER TABLE cases ADD COLUMN person_binding_state TEXT NOT NULL DEFAULT 'legacy_unlinked' CHECK (person_binding_state IN ('active','migrated','legacy_unlinked','anonymous_request','anonymized','person_deleted','unlinking_in_progress'));`);
-    tryExec(this.database, `ALTER TABLE cases ADD COLUMN privacy_review_required INTEGER NOT NULL DEFAULT 0;`);
-    tryExec(this.database, `ALTER TABLE cases ADD COLUMN privacy_review_reason TEXT;`);
-    tryExec(this.database, `ALTER TABLE cases ADD COLUMN privacy_review_due_at TEXT;`);
-    tryExec(this.database, `ALTER TABLE cases ADD COLUMN privacy_review_priority TEXT NOT NULL DEFAULT 'normal';`);
-    tryExec(this.database, `ALTER TABLE cases ADD COLUMN anonymization_recommended INTEGER NOT NULL DEFAULT 0;`);
-    tryExec(this.database, `ALTER TABLE cases ADD COLUMN anonymized_at TEXT;`);
-    tryExec(this.database, `CREATE INDEX IF NOT EXISTS idx_cases_protected_person ON cases(protected_person_id);`);
-    tryExec(this.database, `CREATE INDEX IF NOT EXISTS idx_cases_person_binding_state ON cases(person_binding_state);`);
-    tryExec(this.database, `CREATE INDEX IF NOT EXISTS idx_cases_privacy_review ON cases(privacy_review_required, privacy_review_due_at);`);
+    ensurePersonCaseBindingRuntimeSchema(this.database);
   }
 
   bindNewCase(caseId: string, protectedPersonId: string | null | undefined, state: PersonBindingState = 'active'): void {

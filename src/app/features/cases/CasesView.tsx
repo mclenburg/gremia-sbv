@@ -91,6 +91,7 @@ function useCaseFeedback(input: { noteInfo: string; setNoteInfo: (value: string)
 function useCaseHandoverActions(selectedCase: CaseRecord | undefined, setSelectedCaseId: (id: string) => void,
   onCasesChanged: () => void | Promise<void>, pushCaseToast: (text: string, variant?: "ok" | "warning") => void) {
   const [handoverExportOpen, setHandoverExportOpen] = useState(false); const [handoverImportOpen, setHandoverImportOpen] = useState(false);
+  const [continueExpiredOpen, setContinueExpiredOpen] = useState(false);
   const exportSelectedCaseHandover = async (passphrase: string, expiresAt?: string) => {
     if (!selectedCase) throw new Error("Bitte zuerst eine Fallakte auswählen.");
     const result = await window.gremiaSbv.caseHandover.export({ caseIds: [selectedCase.id], expiresAt, purpose: "Urlaubsübergabe / SBV-Vertretung", passphrase }, `${selectedCase.caseNumber}-falluebergabe.gsbvtransfer`);
@@ -101,12 +102,12 @@ function useCaseHandoverActions(selectedCase: CaseRecord | undefined, setSelecte
     pushCaseToast(result.mode === "merge_existing" ? "Übergabepaket wurde mit der gewählten Akte zusammengeführt." : "Übergabepaket wurde als neue lokale Übergabeakte importiert.");
     await onCasesChanged(); const nextCaseId = result.updatedCaseIds[0] ?? result.createdCaseIds[0]; if (nextCaseId) setSelectedCaseId(nextCaseId);
   };
-  const continueExpiredHandover = async () => {
-    if (!selectedCase) return; const reason = window.prompt("Begründung für die weitere Bearbeitung abgelaufener Übergabedaten:"); if (!reason) return;
+  const continueExpiredHandover = async (reason: string) => {
+    if (!selectedCase) return;
     try { await window.gremiaSbv.caseHandover.continueExpired(selectedCase.id, reason); pushCaseToast("Weitere Bearbeitung der abgelaufenen Übergabedaten wurde bestätigt."); await onCasesChanged(); }
     catch (error) { pushCaseToast(error instanceof Error ? error.message : "Bestätigung konnte nicht dokumentiert werden.", "warning"); }
   };
-  return { handoverExportOpen, setHandoverExportOpen, handoverImportOpen, setHandoverImportOpen, exportSelectedCaseHandover,
+  return { handoverExportOpen, setHandoverExportOpen, handoverImportOpen, setHandoverImportOpen, continueExpiredOpen, setContinueExpiredOpen, exportSelectedCaseHandover,
     selectCaseHandoverFile: () => window.gremiaSbv.caseHandover.selectFile(), inspectCaseHandover: (filePath: string, passphrase: string) => window.gremiaSbv.caseHandover.inspect(filePath, passphrase),
     importCaseHandover, continueExpiredHandover };
 }
@@ -193,13 +194,13 @@ export function CasesView(props: CasesViewProps) {
       : `Maßnahme wurde gelöscht. ${result.deletedNotes} Maßnahmennotiz(en) und ${result.deletedDeadlines} Frist(en) wurden entfernt${result.detachedDocuments ? `; ${result.detachedDocuments} Dokument(en) bleiben in der Fallakte erhalten.` : '.'}`);
   };
   const documentActions = createCaseDocumentActions({ importDocuments: crud.importDocuments, openDocument: crud.openDocument, exportDocument: crud.exportDocument, deleteDocument: crud.deleteDocument });
-  return <><CaseHandoverTransferDialogs exportOpen={handover.handoverExportOpen} importOpen={handover.handoverImportOpen} selectedCase={workbench.selectedCase}
-    onCloseExport={() => handover.setHandoverExportOpen(false)} onCloseImport={() => handover.setHandoverImportOpen(false)} onExport={handover.exportSelectedCaseHandover}
-    onSelectImportFile={handover.selectCaseHandoverFile} onInspectImport={handover.inspectCaseHandover} onImport={handover.importCaseHandover} />
+  return <><CaseHandoverTransferDialogs exportOpen={handover.handoverExportOpen} importOpen={handover.handoverImportOpen} continueExpiredOpen={handover.continueExpiredOpen} selectedCase={workbench.selectedCase}
+    onCloseExport={() => handover.setHandoverExportOpen(false)} onCloseImport={() => handover.setHandoverImportOpen(false)} onCloseContinueExpired={() => handover.setContinueExpiredOpen(false)} onExport={handover.exportSelectedCaseHandover}
+    onSelectImportFile={handover.selectCaseHandoverFile} onInspectImport={handover.inspectCaseHandover} onImport={handover.importCaseHandover} onContinueExpired={handover.continueExpiredHandover} />
     <CasesViewRender {...register} {...workbench} {...search} {...selected} {...form} {...processUpdates} {...templates} {...processCreation} {...noteEditor} {...crud}
       cases={cases} contacts={contacts} protectedPersons={protectedPersons} caseToast={feedback.caseToast} documentActions={documentActions} inlineCommands={inlineCommands}
       onOpenExportHandover={() => handover.setHandoverExportOpen(true)} onOpenImportHandover={() => handover.setHandoverImportOpen(true)}
-      onContinueExpiredHandover={handover.continueExpiredHandover} closeLegacyBindingDialog={() => form.setLegacyBindingCase(null)} openLegacyBindingDialog={openLegacyBindingDialog}
+      onContinueExpiredHandover={() => handover.setContinueExpiredOpen(true)} closeLegacyBindingDialog={() => form.setLegacyBindingCase(null)} openLegacyBindingDialog={openLegacyBindingDialog}
       assignLegacyCase={assignLegacyCase} closedLegacyBulkCount={closedLegacyBulkCount} bulkMarkClosedLegacyCases={bulkMarkClosedLegacyCases}
       onOpenParticipationViolationPrefill={onOpenParticipationViolationPrefill} onOpenCasePrivacyAction={setCasePrivacyTarget} onOpenProcessDelete={setProcessDeleteTarget} />
     <CasePrivacyActionDialog open={Boolean(casePrivacyTarget)} record={casePrivacyTarget ?? undefined} onClose={() => setCasePrivacyTarget(null)} onSubmit={runCasePrivacyAction} />

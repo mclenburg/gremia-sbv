@@ -10,6 +10,7 @@ export const AUDIT_SUBJECT_TYPES = {
   sbvControlProtocol: 'sbv_control_protocol',
   activityJournal: 'activity_journal',
   gremiaBrHttpRequest: 'gremia_br_http_request',
+  gremiaBrWorkspaceAction: 'gremia_br_workspace_action',
   retentionLegalHold: 'retention_legal_hold',
   electionTransfer: 'election_transfer',
   sbvOfficeDocument: 'sbv_office_document',
@@ -31,7 +32,8 @@ export const AUDIT_PURPOSES = {
   sbvControlProtocolRead: 'Übergreifende SBV-Steuerungsprotokolle anzeigen.',
   activityJournalChanged: 'SBV-Tätigkeitsjournal geändert; Audit enthält keine Freitexte.',
   activityJournalRead: 'SBV-Tätigkeitsjournal anzeigen; Audit enthält keine Freitexte.',
-  gremiaBrRequest: 'Gremia.BR-Lesebrücke: HTTP-Anfrage ohne Inhaltsdaten protokollieren.',
+  gremiaBrRequest: 'Gremia.BR-Kooperationsbrücke: HTTP-Anfrage ohne Inhaltsdaten protokollieren.',
+  gremiaBrWorkspaceAction: 'Gremia.BR-Arbeitsbereich: bewusste Aktion ohne Inhaltsdaten protokollieren.',
   retentionLegalHoldChanged: 'Aufbewahrungssperre eines SBV-Amtsvorgangs geändert; Audit enthält keine Freitexte.',
   electionTransferProcessed: 'Geschützte Wahlaktenübergabe verarbeitet; Audit enthält nur technische Metadaten.',
   sbvOfficeDocumentChanged: 'Verschlüsseltes Dokument eines SBV-Amtsvorgangs geändert; Audit enthält keine Dokumentinhalte.',
@@ -111,9 +113,21 @@ export type SbvOfficeDocumentAuditArgs = {
 };
 
 export type GremiaBrRequestAuditArgs = {
+  action?: Extract<PersonalDataAuditAction, 'read' | 'export' | 'update' | 'delete'>;
   endpoint: string;
   outcome: string;
   status?: number;
+};
+
+export type GremiaBrWorkspaceActionAuditArgs = {
+  action: Extract<PersonalDataAuditAction, 'export' | 'update' | 'delete'>;
+  actionId: string;
+  actionType: string;
+  status: string;
+  caseId?: string;
+  localDocumentId?: string;
+  remoteDocumentId?: string;
+  targetSecurityDomain?: string;
 };
 
 function compactMetadata(metadata: AuditMetadata): Record<string, unknown> {
@@ -290,12 +304,30 @@ export function auditSbvOfficeDocumentChanged(args: SbvOfficeDocumentAuditArgs):
 }
 
 export function auditGremiaBrReadRequest(args: GremiaBrRequestAuditArgs): CreatePersonalDataAuditInput {
+  const action = args.action ?? (args.endpoint.startsWith('GET ') ? 'read' : 'security');
   return {
-    action: args.endpoint.startsWith('GET ') ? 'read' : 'security',
+    action,
     subjectType: AUDIT_SUBJECT_TYPES.gremiaBrHttpRequest,
     subjectId: args.endpoint,
-    purpose: AUDIT_PURPOSES.gremiaBrRequest,
+    purpose: action === 'read' || action === 'security' ? AUDIT_PURPOSES.gremiaBrRequest : AUDIT_PURPOSES.gremiaBrWorkspaceAction,
     metadata: compactMetadata({ endpoint: args.endpoint, outcome: args.outcome, status: args.status }),
+  };
+}
+
+export function auditGremiaBrWorkspaceAction(args: GremiaBrWorkspaceActionAuditArgs): CreatePersonalDataAuditInput {
+  return {
+    action: args.action,
+    subjectType: AUDIT_SUBJECT_TYPES.gremiaBrWorkspaceAction,
+    subjectId: args.actionId,
+    caseId: args.caseId,
+    purpose: AUDIT_PURPOSES.gremiaBrWorkspaceAction,
+    metadata: compactMetadata({
+      actionType: args.actionType,
+      status: args.status,
+      localDocumentId: args.localDocumentId,
+      remoteDocumentId: args.remoteDocumentId,
+      targetSecurityDomain: args.targetSecurityDomain,
+    }),
   };
 }
 

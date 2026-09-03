@@ -1,7 +1,10 @@
-import { useEffect, useRef, type FormEvent } from 'react';
+import type { FormEvent } from 'react';
 import { FolderKanban, UserRoundSearch } from 'lucide-react';
 import type { CaseCategory } from '../../../domain/models/case.model';
 import type { ProtectedPersonRecord } from '../../../domain/models/protected-person.model';
+import { IndustrialModal } from '../../shared/dialogs/IndustrialDialogs';
+import { FormActions, SelectInput, TextInput } from '../../shared/components/IndustrialForm';
+import { IndustrialButton } from '../../shared/components/IndustrialButton';
 
 export function CaseCreateModal({
   open,
@@ -38,45 +41,46 @@ export function CaseCreateModal({
   onSubmit: (event: FormEvent<HTMLFormElement>) => void | Promise<void>;
   onAnonymousSubmit: () => void | Promise<void>;
 }) {
-  const returnFocusRef = useRef<HTMLElement | null>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    returnFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    return () => returnFocusRef.current?.focus();
-  }, [open]);
-
   if (!open) return null;
 
-  const descriptionIds = error ? 'case-create-description case-create-error' : 'case-create-description';
+  const description = 'Neue reguläre Fallakten benötigen eine Person aus dem Personenverzeichnis. Für anonyme Beratungsgespräche ohne Namensnennung: Fallakte ohne Personenbezug anlegen.';
+  const personOptions = [{ value: '', label: 'Person auswählen …' }, ...protectedPersons.map((person) => ({ value: person.id, label: person.pseudonymLabel || `${person.lastName}, ${person.firstName}` }))];
+  const categoryOptions: { value: CaseCategory; label: string }[] = [
+    { value: 'bem', label: 'BEM' },
+    { value: 'praevention', label: 'Prävention' },
+    { value: 'kuendigung', label: 'Kündigung' },
+    { value: 'gleichstellung', label: 'Gleichstellung' },
+    { value: 'gdb', label: 'GdB' },
+    { value: 'nachteilsausgleich', label: 'Nachteilsausgleich' },
+    { value: 'arbeitsplatzgestaltung', label: 'Arbeitsplatzgestaltung' },
+    { value: 'diskriminierung', label: 'Diskriminierung' },
+    { value: 'anregung_beschwerde', label: 'Anregung / Beschwerde' },
+    { value: 'sonstiges', label: 'Sonstiges' },
+  ];
 
   return (
-    <div className="industrial-modal-backdrop" role="presentation">
-      <section className="industrial-modal case-create-modal-responsive" role="dialog" aria-modal="true" aria-labelledby="case-create-title" aria-describedby={descriptionIds}>
-        <div className="industrial-modal-header">
-          <div className="industrial-modal-icon"><FolderKanban className="h-5 w-5" /></div>
-          <div>
-            <p className="industrial-kicker">Fallakte</p>
-            <h2 id="case-create-title">Neue Fallakte anlegen</h2>
-            <p id="case-create-description">Neue reguläre Fallakten benötigen eine Person aus dem Personenverzeichnis. Für anonyme Beratungsgespräche ohne Namensnennung: Fallakte ohne Personenbezug anlegen.</p>
-          </div>
-        </div>
+    <IndustrialModal
+      title="Neue Fallakte anlegen"
+      kicker="Fallakte"
+      description={description}
+      icon={<FolderKanban className="h-5 w-5" aria-hidden="true" />}
+      className="case-create-modal-responsive"
+      onClose={onCancel}
+    >
         <form onSubmit={(event) => void onSubmit(event)} className="industrial-form case-create-form">
-          <label><span>Aktenzeichen</span><input value={caseNumber} onChange={(event) => onCaseNumberChange(event.target.value)} placeholder="z. B. BEM-2026-004" autoFocus aria-describedby={error ? 'case-create-error' : undefined} /></label>
-          <label><span>Person aus Verzeichnis wählen</span><select className="industrial-select" value={selectedProtectedPersonId} onChange={(event) => onProtectedPersonChange(event.target.value)} aria-describedby={descriptionIds}><option value="">Person auswählen …</option>{protectedPersons.map((person) => <option key={person.id} value={person.id}>{person.pseudonymLabel || `${person.lastName}, ${person.firstName}`}</option>)}</select></label>
-          <label><span>Anzeigename / Pseudonym</span><input value={displayName} onChange={(event) => onDisplayNameChange(event.target.value)} placeholder="leer lassen für Personenname oder anonymes Gespräch" /></label>
-          <label><span>Kategorie</span><select className="industrial-select" value={category} onChange={(event) => onCategoryChange(event.target.value as CaseCategory)}><option value="bem">BEM</option><option value="praevention">Prävention</option><option value="kuendigung">Kündigung</option><option value="gleichstellung">Gleichstellung</option><option value="gdb">GdB</option><option value="nachteilsausgleich">Nachteilsausgleich</option><option value="arbeitsplatzgestaltung">Arbeitsplatzgestaltung</option><option value="diskriminierung">Diskriminierung</option><option value="anregung_beschwerde">Anregung / Beschwerde</option><option value="sonstiges">Sonstiges</option></select></label>
-          <label className="industrial-modal-wide"><span>Kurzbeschreibung</span><input value={summary} onChange={(event) => onSummaryChange(event.target.value)} placeholder="knappe Sachebene" /></label>
-          {error && <div id="case-create-error" className="industrial-message industrial-message-warning industrial-modal-wide" role="alert">{error}</div>}
+          <TextInput label="Aktenzeichen" value={caseNumber} onValueChange={onCaseNumberChange} placeholder="z. B. BEM-2026-004" error={error} />
+          <SelectInput label="Person aus Verzeichnis wählen" value={selectedProtectedPersonId} onValueChange={onProtectedPersonChange} options={personOptions} />
+          <TextInput label="Anzeigename / Pseudonym" value={displayName} onValueChange={onDisplayNameChange} placeholder="leer lassen für Personenname oder anonymes Gespräch" />
+          <SelectInput label="Kategorie" value={category} onValueChange={(value) => onCategoryChange(value as CaseCategory)} options={categoryOptions} />
+          <TextInput label="Kurzbeschreibung" value={summary} onValueChange={onSummaryChange} placeholder="knappe Sachebene" wide />
           <div className="case-create-path-actions industrial-modal-wide" aria-label="Anlegewege">
-            <button type="submit" className="industrial-button"><UserRoundSearch className="h-4 w-4" />Person auswählen →</button>
-            <button type="button" className="industrial-secondary-button" onClick={() => void onAnonymousSubmit()} data-e2e="anonymous-request-path">Ohne Personenbezug dokumentieren →</button>
+            <IndustrialButton type="submit"><UserRoundSearch className="h-4 w-4" aria-hidden="true" />Person auswählen →</IndustrialButton>
+            <IndustrialButton type="button" variant="secondary" onClick={() => void onAnonymousSubmit()} data-e2e="anonymous-request-path">Ohne Personenbezug dokumentieren →</IndustrialButton>
           </div>
-          <div className="industrial-modal-actions industrial-modal-wide">
-            <button type="button" className="industrial-secondary-button" onClick={onCancel}>Abbrechen</button>
-          </div>
+          <FormActions className="industrial-modal-wide">
+            <IndustrialButton type="button" variant="secondary" onClick={onCancel}>Abbrechen</IndustrialButton>
+          </FormActions>
         </form>
-      </section>
-    </div>
+    </IndustrialModal>
   );
 }

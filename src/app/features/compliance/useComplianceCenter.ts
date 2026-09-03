@@ -8,23 +8,20 @@ import type {
   ComplianceSelfCheckResult,
   ComplianceStatusOverview,
   CreateComplianceIncidentInput,
-  DataSubjectAccessRequestInput,
   UpdateComplianceIncidentInput,
 } from "../../../domain/models/compliance.model";
 import {
   buildComplianceReportInput,
-  defaultDsarInput,
   listComplianceDocuments,
   renderComplianceDocument,
-  renderDsarResponseDocument,
 } from "@/domain/compliance/complianceCenterService";
-import { type ComplianceWorkspace } from "./complianceConstants";
 import {
+  buildPdfExportFeedback,
   buildFallbackSelfCheck,
   buildFallbackStatus,
-  downloadTextFile,
   loadComplianceStatus,
 } from "./complianceViewUtils";
+import { useComplianceDsar, type ComplianceWorkspace } from "./useComplianceDsar";
 
 export function useComplianceCenter() {
   const descriptors = useMemo(() => listComplianceDocuments(), []);
@@ -35,9 +32,6 @@ export function useComplianceCenter() {
     renderComplianceDocument("toms"),
   );
   const [message, setMessage] = useState("");
-  const [dsarInput, setDsarInput] = useState<DataSubjectAccessRequestInput>(
-    () => defaultDsarInput(),
-  );
   const [statusOverview, setStatusOverview] =
     useState<ComplianceStatusOverview>(() => buildFallbackStatus());
   const [selfCheck, setSelfCheck] = useState<ComplianceSelfCheckResult>(() =>
@@ -45,6 +39,13 @@ export function useComplianceCenter() {
   );
   const [incidents, setIncidents] = useState<ComplianceIncidentRecord[]>([]);
   const announce = useAnnouncer();
+  const dsar = useComplianceDsar({
+    announce,
+    setDocument,
+    setMessage,
+    setSelectedType,
+    setWorkspace,
+  });
 
   const refreshStatus = useCallback(async () => {
     try {
@@ -100,72 +101,23 @@ export function useComplianceCenter() {
     announce(info, "polite");
   }
 
-  function updateDsarInput<K extends keyof DataSubjectAccessRequestInput>(
-    key: K,
-    value: DataSubjectAccessRequestInput[K],
-  ) {
-    const clearsPrefill = key === "requesterName" || key === "caseReference";
-    setDsarInput((current) => ({
-      ...current,
-      [key]: value,
-      ...(clearsPrefill ? { prefill: undefined } : {}),
-    }));
-  }
-
-  function renderDsar() {
-    const next = renderDsarResponseDocument(dsarInput);
-    setSelectedType("dsar_response");
-    setDocument(next);
-    setWorkspace("documents");
-    const info = "Antwort auf DSGVO-Auskunftsersuchen wurde erzeugt.";
-    setMessage(info);
-    announce(info, "polite");
-  }
-
-  async function prefillDsar() {
-    try {
-      const bridge = await waitForBridge();
-      if (!bridge?.compliance?.prefillDsar) throw new Error("DSGVO-Vorbefüllung ist nicht erreichbar.");
-      const prefill = await bridge.compliance.prefillDsar(dsarInput);
-      const nextInput = { ...dsarInput, prefill };
-      setDsarInput(nextInput);
-      setSelectedType("dsar_response");
-      setDocument(renderDsarResponseDocument(nextInput));
-      const count =
-        prefill.persons.length + prefill.cases.length + prefill.deadlines.length +
-        prefill.measures.length + prefill.importRuns.length + prefill.lifecycleEvents.length +
-        prefill.freeTextMatches.length;
-      const info = count > 0
-        ? `Art.-15-Auskunft wurde mit ${count} strukturierten Datensatzbezug/Datensatzbezügen aus Gremia.SBV vorbefüllt.`
-        : "Art.-15-Vorbefüllung ausgeführt; es wurden keine passenden Datensatzbezüge gefunden.";
-      setMessage(info);
-      announce(info, "polite");
-    } catch (error) {
-      const info = error instanceof Error ? error.message : "DSGVO-Vorbefüllung konnte nicht ausgeführt werden.";
-      setMessage(info);
-      announce(info, "assertive");
-    }
-  }
-
-  function downloadCurrent() {
-    downloadTextFile(document);
-    const info = `${document.title} wurde als Markdown exportiert.`;
-    setMessage(info);
-    announce(info, "polite");
-  }
-
   async function exportPdfCurrent(openAfterExport = false) {
     try {
       const bridge = await waitForBridge();
       if (!bridge?.reports) throw new Error("Berichtsdienst ist nicht erreichbar.");
       const result = await bridge.reports.generate(buildComplianceReportInput(document));
       if (!result.ok) throw new Error(result.error ?? "PDF-Dokument konnte nicht erzeugt werden.");
-      if (openAfterExport) await bridge.reports.openExportFolder(result.fileName);
-      const info = openAfterExport
-        ? `${document.title} wurde als PDF erzeugt und geöffnet: ${result.fileName}`
-        : `${document.title} wurde als verschlüsselter PDF-Report erzeugt: ${result.fileName}`;
-      setMessage(info);
-      announce(info, "polite");
+      const openResult = openAfterExport
+        ? await bridge.reports.openExportFolder(result.fileName)
+        : undefined;
+      const feedback = buildPdfExportFeedback({
+        title: document.title,
+        fileName: result.fileName,
+        openRequested: openAfterExport,
+        openResult,
+      });
+      setMessage(feedback.message);
+      announce(feedback.message, feedback.announceMode);
     } catch (error) {
       const info = error instanceof Error ? error.message : "PDF-Dokument konnte nicht erzeugt werden.";
       setMessage(info);
@@ -212,15 +164,17 @@ export function useComplianceCenter() {
     selectedType,
     document,
     message,
-    dsarInput,
+    dsarInput: dsar.dsarInput,
+    dsarReadiness: dsar.dsarReadiness,
+    persons: dsar.persons,
     statusOverview,
     selfCheck,
     incidents,
     render,
-    updateDsarInput,
-    renderDsar,
-    prefillDsar,
-    downloadCurrent,
+    updateDsarInput: dsar.updateDsarInput,
+    selectDsarPerson: dsar.selectDsarPerson,
+    renderDsar: dsar.renderDsar,
+    prefillDsar: dsar.prefillDsar,
     exportPdfCurrent,
     createIncident,
     updateIncident,

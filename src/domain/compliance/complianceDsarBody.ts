@@ -1,105 +1,232 @@
-import type { DataSubjectAccessRequestInput } from '../models/compliance.model.js';
-import { header } from './complianceDocumentSupport.js';
+import type {
+  DataSubjectAccessPrefill,
+  DataSubjectAccessRequestInput,
+  DataSubjectAccessReviewItem,
+  DataSubjectAccessSourceInventoryItem,
+} from '../models/compliance.model.js';
+import {
+  buildDataSubjectAccessReadiness,
+  preferredPrivacyContactLabel,
+  privacyContactRoleLabel,
+} from './dataSubjectAccessPolicy.js';
+import { displayDateTime } from './complianceDocumentSupport.js';
 
-function displayDateTime(value: string): string {
-  return new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
+function safeDateTime(value: string): string {
+  if (!value.trim()) return '—';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return displayDateTime(date.toISOString());
 }
+
 export function dsarCell(value: unknown): string {
   const text = String(value ?? '—').trim() || '—';
   return text.replace(/\|/g, '\\|').replace(/\r?\n/g, ' ');
 }
+
 function dsarTable<T>(headers: string[], rows: T[], map: (row: T) => unknown[]): string {
-  if (!rows.length) return 'Keine automatisch zugeordneten Datensätze gefunden.';
+  if (!rows.length) return 'Keine zugeordneten Datensätze gefunden.';
   return `| ${headers.join(' | ')} |\n| ${headers.map(() => '---').join(' | ')} |\n${rows.map((row) => `| ${map(row).map(dsarCell).join(' | ')} |`).join('\n')}`;
 }
-export function dsarPrefillBody(input: DataSubjectAccessRequestInput): string {
-  const prefill = input.prefill;
-  if (!prefill) {
-    return `## 5. Automatisch vorbefüllte Daten aus Gremia.SBV
 
-Keine automatische Vorbefüllung ausgeführt. Bitte über die Funktion „Daten aus Gremia.SBV vorbefüllen“ Personen-, Fallakten-, Fristen-, Maßnahmen-, Import- und Lifecycle-Daten ermitteln oder den Vorgang manuell dokumentieren.
+function lineList(values: string[]): string {
+  if (!values.length) return '- —';
+  return values.map((value) => `- ${value}`).join('\n');
+}
+
+function statusLabel(status: DataSubjectAccessSourceInventoryItem['status']): string {
+  if (status === 'found') return 'Treffer';
+  if (status === 'not_available') return 'Quelle nicht verfügbar';
+  return 'keine Treffer';
+}
+
+function releaseModeLabel(mode: DataSubjectAccessSourceInventoryItem['releaseMode']): string {
+  if (mode === 'direct_summary') return 'strukturierte Zusammenfassung';
+  if (mode === 'metadata_only') return 'Metadaten / Prüfhinweis';
+  return 'manuelle Prüfung erforderlich';
+}
+
+function readinessBody(input: DataSubjectAccessRequestInput): string {
+  const readiness = buildDataSubjectAccessReadiness(input);
+  return `## 2. Bearbeitungsstand
+
+| Prüfschritt | Stand |
+|---|---|
+| Anfrage erfasst | ${input.requestReceivedAt ? 'Ja' : 'Nein'} |
+| An Datenschutzkontakt / verantwortliche Stelle weitergeleitet | ${input.requestForwardedAt ? input.requestForwardedAt : 'noch offen'} |
+| Identität / Berechtigung | ${input.identityVerified ? 'als geprüft dokumentiert' : 'durch Datenschutzkontakt / verantwortliche Stelle zu prüfen'} |
+| SBV-Dateninventur | ${input.prefill ? `ausgeführt am ${safeDateTime(input.prefill.generatedAt)}` : 'noch offen'} |
+| SBV-Prüfung | ${input.sbvReviewCompleted ? 'abgeschlossen' : 'noch offen'} |
+| Übergabe dokumentiert | ${input.handedOverAt ? input.handedOverAt : 'noch offen'} |
+
+${readiness.ready
+    ? 'Die SBV-Zuarbeit ist nach aktuellem Stand vollständig vorbereitet. Die abschließende Herausgabeentscheidung liegt bei der verantwortlichen Stelle beziehungsweise dem Datenschutzkontakt.'
+    : `**Noch offene Punkte:**\n\n${lineList(readiness.warnings)}\n\n**Nächste Schritte:**\n\n${lineList(readiness.nextActions)}`}
+`;
+}
+
+function sourceInventoryBody(prefill?: DataSubjectAccessPrefill): string {
+  if (!prefill) {
+    return `## 4. Datenquelleninventur
+
+Die SBV-Dateninventur wurde noch nicht ausgeführt. Ohne Inventur darf dieses Dokument nicht als vollständige Zuarbeit verwendet werden.
 `;
   }
-
-  return `## 5. Automatisch vorbefüllte Daten aus Gremia.SBV
-
-Ermittelt am: ${displayDateTime(prefill.generatedAt)}
+  return `## 4. Datenquelleninventur
 
 ${prefill.matchReason}
 
-**Wichtiger Freigabehinweis:** Diese Vorbefüllung ist ein Arbeitsbestand. Vor Herausgabe sind Drittdaten, vertrauliche Angaben aus der SBV-Arbeit, Gesundheitsdaten, freie Notiztexte und gesetzliche Zurückbehaltungsgründe gesondert zu prüfen und erforderlichenfalls zu schwärzen.
+${dsarTable(
+    ['Modul', 'Quelle', 'Status', 'Treffer', 'Ausgabemodus'],
+    prefill.sourceInventory,
+    (source) => [
+      source.module,
+      source.label,
+      statusLabel(source.status),
+      source.foundCount,
+      releaseModeLabel(source.releaseMode),
+    ],
+  )}
+`;
+}
 
-### 5.1 Personenstamm / Schutzstatus
+function legalInformationBody(prefill?: DataSubjectAccessPrefill): string {
+  const relevantSources = (prefill?.sourceInventory ?? []).filter((source) => source.status !== 'not_available');
+  return `## 5. Pflichtinformationen nach Art. 15 DSGVO
+
+### 5.1 Verarbeitungszwecke
+
+${lineList(Array.from(new Set(relevantSources.flatMap((source) => source.purposes))))}
+
+### 5.2 Kategorien personenbezogener Daten
+
+${lineList(Array.from(new Set(relevantSources.flatMap((source) => source.dataCategories))))}
+
+### 5.3 Empfänger oder Empfängerkategorien
+
+${lineList(Array.from(new Set(relevantSources.flatMap((source) => source.recipients))))}
+
+### 5.4 Speicherdauer oder Kriterien
+
+${dsarTable(['Quelle', 'Aufbewahrungsregel'], relevantSources, (source) => [source.label, source.retentionRule])}
+
+### 5.5 Herkunft der Daten
+
+${dsarTable(['Quelle', 'Herkunft'], relevantSources, (source) => [source.label, source.origin])}
+
+### 5.6 Automatisierte Entscheidungen / Profiling
+
+Gremia.SBV dokumentiert SBV-Arbeitsvorgänge lokal. Eine automatisierte Entscheidung im Sinne von Art. 22 DSGVO oder Profiling mit Rechtswirkung gegenüber der betroffenen Person ist in Gremia.SBV nicht vorgesehen.
+
+### 5.7 Rechtehinweise
+
+Die betroffene Person kann gegenüber der verantwortlichen Stelle Berichtigung, Löschung, Einschränkung der Verarbeitung oder Widerspruch verlangen, soweit die gesetzlichen Voraussetzungen vorliegen. Außerdem besteht das Recht auf Beschwerde bei einer Datenschutzaufsichtsbehörde.
+`;
+}
+
+function structuredDataBody(input: DataSubjectAccessRequestInput): string {
+  const prefill = input.prefill;
+  if (!prefill) {
+    return `## 6. Strukturierte personenbezogene Daten
+
+Keine strukturierte Dateninventur vorhanden.
+`;
+  }
+
+  return `## 6. Strukturierte personenbezogene Daten
+
+### 6.1 Personenstamm / Schutzstatus
 
 ${dsarTable(['Name / Kennung', 'Personalnummer', 'E-Mail', 'Schutzstatus', 'Organisation', 'Standort', 'Status gültig bis', 'Lifecycle'], prefill.persons, (person) => [person.displayName, person.personnelNumber, person.workEmail, person.protectionStatus, person.organizationalUnit, person.location, person.statusValidUntil, person.lifecycleState])}
 
-### 5.2 Fallakten
+### 6.2 Fallakten
 
 ${dsarTable(['Aktenzeichen', 'Bezeichnung', 'Kategorie', 'Status', 'Priorität', 'Eröffnet', 'Geschlossen'], prefill.cases, (record) => [record.caseNumber, record.displayName, record.category, record.status, record.priority, record.openedAt, record.closedAt])}
 
-### 5.3 Fristen und Wiedervorlagen
+### 6.3 Fristen und Wiedervorlagen
 
 ${dsarTable(['Titel', 'Prozess', 'Art', 'Status', 'Fälligkeit', 'Rechtsgrundlage'], prefill.deadlines, (deadline) => [deadline.title, deadline.processType, deadline.deadlineType, deadline.status, deadline.dueAt, deadline.legalBasis])}
 
-### 5.4 Maßnahmen und Prozessmodule
+### 6.4 Maßnahmen und Prozessmodule
 
 ${dsarTable(['Titel', 'Typ', 'Status', 'Risiko', 'Eröffnet', 'Fällig', 'Nachverfolgung'], prefill.measures, (measure) => [measure.title, measure.type, measure.status, measure.riskLevel, measure.openedAt, measure.dueAt, measure.requiresFollowUp ? 'Ja' : 'Nein'])}
 
-### 5.5 Arbeitgeberlisten-Importe
+### 6.5 Arbeitgeberlisten-Importe
 
 ${dsarTable(['Quelle', 'Importiert am', 'Importaktion', 'Geänderte Felder'], prefill.importRuns, (run) => [run.sourceFileName, run.importedAt, run.action, run.changedFields.join(', ') || '—'])}
 
-### 5.6 Lifecycle- und Audit-Ereignisse
+### 6.6 Datensparsame Lifecycle- und Audit-Ereignisse
 
 ${dsarTable(['Zeitpunkt', 'Aktion', 'Betreff', 'Zweck'], prefill.lifecycleEvents, (event) => [event.occurredAt, event.action, event.subjectType, event.purpose])}
-
-### 5.7 Freitext-Fundstellen und verknüpfte Fallakteninhalte
-
-Diese Liste ist bewusst als Prüfliste aufgebaut: Sie enthält direkte Namens-/Aktenzeichen-Treffer sowie Freitexte aus eindeutig verknüpften Fallakten, auch wenn dort nur Vorname, nur Nachname oder gar keine Namensnennung im Ausschnitt steht. Jede Fundstelle ist vor Herausgabe auf Drittdaten, Gesundheitsdaten und Schwärzungsbedarf zu prüfen.
-
-${dsarTable(['Quelle', 'Titel', 'Fall', 'Trefferart', 'Suchtreffer', 'Auszug', 'Manuelle Prüfung'], prefill.freeTextMatches ?? [], (match) => [match.sourceLabel, match.title, match.caseNumber || match.caseId, match.matchKind === 'linked_case' ? 'verknüpfte Fallakte' : 'Name/Aktenbezug', match.matchedTerms.join(', ') || 'fallaktenverknüpft', match.excerpt, match.requiresManualReview ? 'erforderlich' : '—'])}
 `;
 }
+
+function reviewRecommendationLabel(value: DataSubjectAccessReviewItem['recommendation']): string {
+  if (value === 'include_summary') return 'zusammenfassen';
+  if (value === 'metadata_only') return 'nur Metadaten';
+  if (value === 'exclude_third_party') return 'wegen Drittdaten ausschließen';
+  return 'vor Herausgabe schwärzen/prüfen';
+}
+
+function reviewBody(input: DataSubjectAccessRequestInput): string {
+  const prefill = input.prefill;
+  if (!prefill) {
+    return `## 7. Prüfliste für Schwärzung und Herausgabe
+
+Keine Prüfliste vorhanden, weil noch keine Dateninventur ausgeführt wurde.
+`;
+  }
+  return `## 7. Prüfliste für Schwärzung und Herausgabe
+
+Freitexte, Dokumentinhalte, Wahlunterlagen, Bewerberdaten, Gremienbezüge und Daten anderer Personen dürfen nicht ungeprüft an die betroffene Person herausgegeben werden. Die folgende Liste ist die interne SBV-Prüfliste für Datenschutzkontakt oder verantwortliche Stelle.
+
+${dsarTable(['Quelle', 'Titel', 'Fall/Bezug', 'Empfehlung', 'Grund', 'Auszug'], prefill.reviewItems, (item) => [item.sourceLabel, item.title, item.caseReference, reviewRecommendationLabel(item.recommendation), item.reason, item.excerpt])}
+`;
+}
+
+function handoverBody(input: DataSubjectAccessRequestInput): string {
+  return `## 8. Übergabe und Signatur
+
+Diese Unterlage ist eine SBV-Zuarbeit zur Bearbeitung eines Auskunftsersuchens nach Art. 15 DSGVO. Die abschließende Prüfung, Berechtigungs-/Identitätsbewertung und Herausgabeentscheidung erfolgt durch die verantwortliche Stelle beziehungsweise den zuständigen Datenschutzkontakt.
+
+Übergabe an: ${preferredPrivacyContactLabel(input)}
+
+${input.privacyContactEmail ? `Kontakt-E-Mail: ${input.privacyContactEmail}\n\n` : ''}${input.handedOverAt ? `Übergeben am: ${input.handedOverAt}\n\n` : ''}${input.preparedBy || 'Schwerbehindertenvertretung'}
+`;
+}
+
 export function dsarBody(input: DataSubjectAccessRequestInput, generatedAt: string): string {
-  return `${header('Antwort auf DSGVO-Auskunftsersuchen – Arbeitsentwurf', generatedAt)}## 1. Vorgang
+  return `# SBV-Zuarbeit zur Art.-15-Auskunft
+
+Erzeugt am: ${safeDateTime(generatedAt)}
+
+Diese Unterlage sammelt die in Gremia.SBV gespeicherten personenbezogenen Datenbezüge zu einem Auskunftsersuchen nach Art. 15 DSGVO. Sie ist keine ungeprüfte Direktantwort an die betroffene Person.
+
+## 1. Anfrage und Zuständigkeit
 
 | Feld | Inhalt |
 |---|---|
 | Anfragende Person | ${input.requesterName || '—'} |
+| Eindeutiger Personenbezug | ${input.subjectPersonId || 'nicht festgelegt'} |
 | Eingang des Ersuchens | ${input.requestReceivedAt || '—'} |
-| Antwortfrist | ${input.responseDueAt || '—'} |
+| Frist zur Bearbeitung | ${input.responseDueAt || '—'} |
 | Fall-/Aktenbezug | ${input.caseReference || '—'} |
-| Identität geprüft | ${input.identityVerified ? 'Ja' : 'Nein / noch offen'} |
+| Umfang des Ersuchens | ${input.requestScope || 'nicht konkretisiert'} |
+| Verantwortliche Stelle | ${input.responsibleEntity || 'nicht hinterlegt'} |
+| Datenschutzkontakt | ${preferredPrivacyContactLabel(input)} |
+| Kontaktrolle | ${privacyContactRoleLabel(input.privacyContactRole)} |
 | Bearbeitet durch | ${input.preparedBy || '—'} |
 
-## 2. Umfang des Ersuchens
+${readinessBody(input)}
+## 3. Zusammenfassung der SBV-Datenlage
 
-${input.requestScope || 'Der Umfang des Ersuchens ist noch zu konkretisieren.'}
+${input.prefill
+    ? `Gremia.SBV hat ${input.prefill.persons.length} Personenbezug/Personenbezüge, ${input.prefill.cases.length} Fallakte(n), ${input.prefill.deadlines.length} Frist(en), ${input.prefill.measures.length} Maßnahme(n), ${input.prefill.importRuns.length} Importbezug/Importbezüge, ${input.prefill.lifecycleEvents.length} Audit-/Lifecycle-Ereignis(se) und ${input.prefill.reviewItems.length} prüfpflichtige Fundstelle(n) ermittelt.`
+    : 'Die Datenlage wurde noch nicht ermittelt.'}
 
-## 3. Prüfschritte vor Antwort
-
-- Identität der anfragenden Person prüfen.
-- Betroffene Datenbestände in Gremia.SBV ermitteln.
-- Drittdaten und vertrauliche Angaben anderer Personen identifizieren.
-- Gesundheitsdaten und besondere Kategorien gesondert prüfen.
-- Lösch- und Aufbewahrungsinteressen abwägen.
-- Datenschutzbeauftragte*n bei Unsicherheit einbinden.
-
-## 4. Antwortbaustein
-
-Sehr geehrte*r ${input.requesterName || '[Name]'},
-
-wir bestätigen den Eingang Ihres Auskunftsersuchens. Nach Prüfung der in Gremia.SBV geführten Daten erhalten Sie eine strukturierte Auskunft über die zu Ihrer Person gespeicherten Datenkategorien, Zwecke, Empfänger bzw. Empfängerkategorien und die vorgesehene Speicherdauer, soweit diese Angaben einschlägig und rechtlich herausgabefähig sind.
-
-Soweit Unterlagen personenbezogene Daten Dritter oder besonders schutzwürdige vertrauliche Angaben enthalten, wird vor Herausgabe eine Schwärzung bzw. gesonderte rechtliche Prüfung vorgenommen.
-
-${dsarPrefillBody(input)}
-## 6. Rechtsbehelfs- und Kontakt-Hinweis
-
-Bei datenschutzrechtlichen Fragen können Sie sich an die zuständige Datenschutzstelle wenden. Unabhängig davon besteht das Recht, sich bei einer Datenschutzaufsichtsbehörde zu beschweren.
-
-## 7. Interner Vermerk
-
-Dieses Dokument ist ein Arbeitsentwurf. Vor Versand ist eine fachliche Prüfung erforderlich.
+${sourceInventoryBody(input.prefill)}
+${legalInformationBody(input.prefill)}
+${structuredDataBody(input)}
+${reviewBody(input)}
+${handoverBody(input)}
 `;
 }

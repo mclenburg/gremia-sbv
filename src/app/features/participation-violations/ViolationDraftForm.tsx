@@ -1,5 +1,4 @@
 import { type FormEvent } from 'react';
-import { AlertTriangle, FileWarning } from 'lucide-react';
 import type { ParticipationViolationSourceContextType, ParticipationViolationStage, ParticipationViolationType } from '../../../domain/models/sbv-participation-violation.model';
 import { FormSection, SearchableSelectInput, SelectInput, TextareaInput, TextInput } from '../../shared/components/IndustrialForm';
 import { IndustrialWarningPanel } from '../../shared/components/WorkbenchLayout';
@@ -31,20 +30,13 @@ export function ViolationDraftForm({ state, onCreated }: { state: ViolationState
     helpId="participationViolations.sourceContext"
   >
     {state.contextNotice && <IndustrialWarningPanel>
-      <div className="flex items-start gap-3">
-        <FileWarning className="mt-1 h-5 w-5 text-yellow-300" aria-hidden="true" />
-        <div><strong>{state.contextNotice.sourceLabel}</strong><p>{state.contextNotice.privacyNotice}</p></div>
-      </div>
+      <strong>{state.contextNotice.sourceLabel}</strong>
+      <p>{state.contextNotice.privacyNotice}</p>
     </IndustrialWarningPanel>}
 
     {needsEscalationHint(state.form.stage) && <IndustrialWarningPanel>
-      <div className="flex items-start gap-3">
-        <AlertTriangle className="mt-1 h-5 w-5 text-yellow-300" aria-hidden="true" />
-        <div>
-          <strong>Scharfe Eskalationsstufe</strong>
-          <p>Abmahnung, Aussetzungsverlangen und OWi-Vorbereitung sollten bei streitigen oder folgenreichen Sachverhalten anwaltlich abgestimmt werden.</p>
-        </div>
-      </div>
+      <strong>Scharfe Eskalationsstufe</strong>
+      <p>Abmahnung, Aussetzungsverlangen und OWi-Vorbereitung sollten bei streitigen oder folgenreichen Sachverhalten anwaltlich abgestimmt werden.</p>
     </IndustrialWarningPanel>}
 
     <form id={VIOLATION_DRAFT_FORM_ID} onSubmit={handleSubmit} noValidate aria-label="Beteiligungsverstoß bewusst speichern">

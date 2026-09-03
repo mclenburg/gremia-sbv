@@ -59,4 +59,12 @@ describe('Schema-Migrationskonsolidierung 0049', () => {
 
     expect(() => service.getSettings()).not.toThrow(/Strukturelles SQL/);
   });
+
+  it('hält Runtime-Schemafassaden frei von eigenen CREATE-/ALTER-/DROP-Definitionen', () => {
+    for (const file of ['services/runtimeSchemaCompatibility.ts', 'services/sbvParticipationViolationSchema.ts']) {
+      const source = readFileSync(file, 'utf8');
+
+      expect(source, file).not.toMatch(/\b(?:CREATE|ALTER|DROP)\b/i);
+    }
+  });
 });

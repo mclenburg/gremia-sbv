@@ -1,5 +1,5 @@
 import { checkGremiaBrEndpoint, validateGremiaBrBaseUrl } from './gremiaBrPolicy.js';
-import { toGremiaBrEndpointLabel } from './gremiaBrApiCatalog.js';
+import { findGremiaBrEndpointDefinition, toGremiaBrEndpointLabel } from './gremiaBrApiCatalog.js';
 import type { GremiaBrRequestOptions } from './gremiaBrTypes.js';
 import type { CreatePersonalDataAuditInput } from '../../src/domain/models/audit.model.js';
 import { auditGremiaBrReadRequest } from '../auditEventBuilders.js';
@@ -25,6 +25,14 @@ function maskPath(path: string): string {
 
 function endpointLabel(method: string, path: string): string {
   return toGremiaBrEndpointLabel(method, maskPath(path));
+}
+
+function endpointAuditAction(method: string, path: string): 'read' | 'export' | 'update' | 'delete' {
+  const definition = findGremiaBrEndpointDefinition(method, maskPath(path));
+  if (definition?.category !== 'workspace_action') return 'read';
+  if (definition.template.includes('/revocation')) return 'delete';
+  if (definition.template.includes('/agenda') || definition.template.includes('/information-requests')) return 'update';
+  return 'export';
 }
 
 async function readResponsePayload(response: Response): Promise<unknown> {
@@ -82,6 +90,10 @@ export class GremiaBrHttpClient {
   }
 
   async request<T>(method: string, path: string, token?: string, options: GremiaBrRequestOptions = {}): Promise<T> {
+    return (await this.requestDetailed<T>(method, path, token, options)).payload;
+  }
+
+  async requestDetailed<T>(method: string, path: string, token?: string, options: GremiaBrRequestOptions = {}): Promise<{ payload: T; headers: Headers }> {
     const endpoint = endpointLabel(method, path);
     const policy = checkGremiaBrEndpoint(method, path);
     if (!policy.allowed) {
@@ -96,12 +108,15 @@ export class GremiaBrHttpClient {
 
     try {
       const headers: Record<string, string> = { Accept: 'application/json' };
-      let body: string | undefined;
-      if (options.body !== undefined) {
+      let body: BodyInit | undefined;
+      if (options.formData) {
+        body = options.formData;
+      } else if (options.body !== undefined) {
         headers['Content-Type'] = 'application/json';
         body = JSON.stringify(options.body);
       }
       if (token) headers.Authorization = `Bearer ${token}`;
+      if (options.sessionCookie) headers.Cookie = options.sessionCookie;
 
       const response = await this.fetchImpl(url.toString(), {
         method: method.trim().toUpperCase(),
@@ -120,7 +135,7 @@ export class GremiaBrHttpClient {
       }
       const payload = await readResponsePayload(response) as T;
       this.auditRequest(endpoint, 'ok', response.status);
-      return payload;
+      return { payload, headers: response.headers };
     } catch (error) {
       if ((error as Error).name === 'AbortError') {
         this.auditRequest(endpoint, 'timeout');
@@ -137,7 +152,10 @@ export class GremiaBrHttpClient {
 
   private auditRequest(endpoint: string, outcome: string, status?: number): void {
     if (!this.auditLog) return;
+    const method = endpoint.split(' ')[0] ?? 'GET';
+    const path = endpoint.replace(/^[A-Z]+\s+/u, '');
     this.auditLog.append(auditGremiaBrReadRequest({
+      action: endpointAuditAction(method, path),
       endpoint,
       outcome,
       ...(typeof status === 'number' ? { status } : {}),

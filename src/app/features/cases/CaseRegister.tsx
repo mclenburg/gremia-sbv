@@ -1,5 +1,5 @@
 import { Plus, Trash2, Upload } from 'lucide-react';
-import { IndustrialButton, GhostButton, IconButton } from '../../shared/components/IndustrialButton';
+import { IndustrialButton, GhostButton, IconButton, ToolbarButton } from '../../shared/components/IndustrialButton';
 import { SearchInput } from '../../shared/components/IndustrialForm';
 import { EmptyState } from '../../shared/components/WorkbenchLayout';
 import type { CaseCategory, CaseRecord } from '../../../domain/models/case.model';
@@ -56,11 +56,11 @@ export function CaseRegister({
             className="case-register-search-input"
           />
           {Boolean(closedLegacyBulkCount) && (
-            <button type="button" className="industrial-secondary-button compact" onClick={onBulkMarkClosedLegacyCases} data-e2e="bulk-mark-closed-legacy">
+            <ToolbarButton onClick={onBulkMarkClosedLegacyCases} data-e2e="bulk-mark-closed-legacy">
               {closedLegacyBulkCount} Altakten vormerken
-            </button>
+            </ToolbarButton>
           )}
-          {onImportHandover && <button type="button" className="industrial-secondary-button compact" onClick={onImportHandover}><Upload className="h-4 w-4" />Übergabe importieren</button>}
+          {onImportHandover && <ToolbarButton onClick={onImportHandover}><Upload className="h-4 w-4" />Übergabe importieren</ToolbarButton>}
         </div>
       </div>
       <div className="industrial-table-shell case-register-table-shell">
@@ -103,9 +103,9 @@ export function CaseRegister({
         )}
       </div>
       <div className="case-pagination" aria-label="Falllisten-Seiten">
-        <span>Seite {page} von {pageCount} · maximal {pageSize} Fälle pro Seite</span>
-        <button type="button" className="industrial-secondary-button compact" disabled={page <= 1} onClick={() => onPageChange(page - 1)}>Zurück</button>
-        <button type="button" className="industrial-secondary-button compact" disabled={page >= pageCount} onClick={() => onPageChange(page + 1)}>Weiter</button>
+        <span className="case-pagination-label">Seite {page} von {pageCount} · maximal {pageSize} Fälle pro Seite</span>
+        <ToolbarButton disabled={page <= 1} onClick={() => onPageChange(page - 1)}>Zurück</ToolbarButton>
+        <ToolbarButton disabled={page >= pageCount} onClick={() => onPageChange(page + 1)}>Weiter</ToolbarButton>
       </div>
     </section>
   );

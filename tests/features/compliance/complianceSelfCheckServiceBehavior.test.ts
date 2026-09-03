@@ -18,6 +18,7 @@ import {
   COMPLIANCE_INCIDENTS_REQUIRED_COLUMNS,
   GREMIA_BR_CACHE_REQUIRED_COLUMNS,
   GREMIA_BR_SETTINGS_REQUIRED_COLUMNS,
+  GREMIA_BR_WORKSPACE_ACTIONS_REQUIRED_COLUMNS,
   PERSONAL_DATA_AUDIT_REQUIRED_COLUMNS,
   PROTECTED_PERSONS_REQUIRED_COLUMNS,
   SBV_CONTROL_PROTOCOLS_REQUIRED_COLUMNS,
@@ -30,6 +31,7 @@ import {
   RECRUITING_PARTICIPATIONS_REQUIRED_COLUMNS,
   SBV_OFFICE_0051_REQUIRED_TABLES,
   DEADLINE_RULE_SNAPSHOT_REQUIRED_COLUMNS,
+  APP_SCHEMA_VERSION,
 } from '../../../services/appSchema';
 
 type TableMap = Record<string, readonly string[]>;
@@ -54,6 +56,7 @@ const completeSchema: TableMap = {
   case_document_ocr_jobs: CASE_DOCUMENT_OCR_JOBS_REQUIRED_COLUMNS,
   gremia_br_settings: GREMIA_BR_SETTINGS_REQUIRED_COLUMNS,
   gremia_br_cache_entries: GREMIA_BR_CACHE_REQUIRED_COLUMNS,
+  gremia_br_workspace_actions: GREMIA_BR_WORKSPACE_ACTIONS_REQUIRED_COLUMNS,
   case_external_references: CASE_EXTERNAL_REFERENCES_REQUIRED_COLUMNS,
   case_measures: CASE_MEASURES_REQUIRED_COLUMNS,
   case_handover_imports: CASE_HANDOVER_IMPORTS_REQUIRED_COLUMNS,
@@ -92,7 +95,7 @@ class SelfCheckDb implements DatabaseAdapter {
           const table = String(params[0] ?? '');
           return (self.tables[table] ? { value: 1 } : undefined) as T | undefined;
         }
-        if (sql.includes('MAX(version)')) return { value: '0052' } as T;
+        if (sql.includes('MAX(version)')) return { value: APP_SCHEMA_VERSION } as T;
         if (sql.includes('privacy_review_items') && sql.includes('due_at <')) return { value: self.values.overduePrivacyReviews ?? 0 } as T;
         if (sql.includes('privacy_review_items')) return { value: self.values.openPrivacyReviews ?? 0 } as T;
         if (sql.includes('compliance_incidents') && sql.includes("risk_level = 'high'")) return { value: self.values.highIncidents ?? 0 } as T;

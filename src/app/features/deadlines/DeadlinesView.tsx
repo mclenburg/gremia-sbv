@@ -40,6 +40,8 @@ export function DeadlinesView({
   measures = [],
   onCreateDeadline,
   onEditDeadline,
+  onExtendDeadline,
+  onOpenDeadlineContext,
   onCompleteDeadline,
   onExportIcal
 }: {
@@ -48,6 +50,8 @@ export function DeadlinesView({
   measures?: CaseMeasureRecord[];
   onCreateDeadline: (input: CreateDeadlineInput) => Promise<void>;
   onEditDeadline: (deadline: DeadlineRecord) => void;
+  onExtendDeadline?: (deadline: DeadlineRecord) => void;
+  onOpenDeadlineContext?: (deadline: DeadlineRecord) => void;
   onCompleteDeadline: (deadline: DeadlineRecord) => void;
   onExportIcal: (privacyLevel: IcalExportPrivacyLevel, filters: DeadlineListFilters) => Promise<void>;
 }) {
@@ -87,7 +91,15 @@ export function DeadlinesView({
         Fachregel: Ein Fallbezug ist optional. Bei fallfreien Fristen muss der Titel den allgemeinen SBV-Vorgang nachvollziehbar beschreiben.
       </p>
 
-      <DeadlineListView deadlines={deadlines} cases={cases} measures={measures} onEdit={onEditDeadline} onComplete={onCompleteDeadline} />
+      <DeadlineListView
+        deadlines={deadlines}
+        cases={cases}
+        measures={measures}
+        onEdit={onEditDeadline}
+        onExtend={onExtendDeadline}
+        onOpenContext={onOpenDeadlineContext}
+        onComplete={onCompleteDeadline}
+      />
 
       {createModalOpen ? (
         <DeadlineCreateModal cases={cases} onCreateDeadline={onCreateDeadline} onClose={() => setCreateModalOpen(false)} />
@@ -163,6 +175,67 @@ export function DeadlineEditor({
           <GhostButton onClick={onClose}>Abbrechen</GhostButton>
           <ToolbarButton onClick={() => void onComplete(deadline)}>Als erledigt markieren</ToolbarButton>
           <IndustrialButton type="submit">Speichern</IndustrialButton>
+        </FormActions>
+      </form>
+    </IndustrialModal>
+  );
+}
+
+export function DeadlineExtensionModal({
+  deadline,
+  cases,
+  onClose,
+  onSave
+}: {
+  deadline: DeadlineRecord;
+  cases: CaseRecord[];
+  onClose: () => void;
+  onSave: (id: string, input: { title: string; dueAt: string; severity: DeadlineSeverity; description?: string; legalBasis?: string; reason: string }) => Promise<void>;
+}) {
+  const defaultDueAt = new Date(deadline.dueAt);
+  defaultDueAt.setDate(defaultDueAt.getDate() + 7);
+  const [dueAt, setDueAt] = useState(toDateTimeLocalValue(defaultDueAt.toISOString()));
+  const [reason, setReason] = useState('Frist nach fachlicher Prüfung verlängert');
+  const [error, setError] = useState('');
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError('');
+    if (!dueAt) {
+      setError('Bitte ein neues Fälligkeitsdatum erfassen.');
+      return;
+    }
+    try {
+      await onSave(deadline.id, {
+        title: deadline.title,
+        dueAt: fromDateTimeLocalValue(dueAt),
+        severity: deadline.severity,
+        description: deadline.description,
+        legalBasis: deadline.legalBasis,
+        reason: reason.trim() || 'Frist verlängert',
+      });
+      onClose();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Frist konnte nicht verlängert werden.');
+    }
+  }
+
+  return (
+    <IndustrialModal
+      title={deadline.title}
+      kicker="Frist verlängern"
+      description={deadline.caseId ? `Fallbezug: ${cases.find((item: CaseRecord) => item.id === deadline.caseId)?.caseNumber ?? 'nicht auflösbar'}` : 'Allgemeine SBV-Aufgabe ohne Fallbezug'}
+      onClose={onClose}
+    >
+      <form onSubmit={submit} className="industrial-settings-form mt-5" noValidate>
+        <FormSection>
+          <DateTimeInput label="Neue Fälligkeit" value={dueAt} onValueChange={setDueAt} required />
+          <TextInput label="Begründung / Audit" value={reason} onValueChange={setReason} required />
+        </FormSection>
+        {error ? <ModuleFeedback items={[{ id: 'deadline-extension-error', tone: 'warning', message: error }]} /> : null}
+        <FormActions>
+          <GhostButton onClick={onClose}>Abbrechen</GhostButton>
+          <IndustrialButton type="submit">Verlängerung speichern</IndustrialButton>
         </FormActions>
       </form>
     </IndustrialModal>

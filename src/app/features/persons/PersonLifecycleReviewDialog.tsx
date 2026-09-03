@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { HelpCircle } from 'lucide-react';
 import type { PrivacyReviewActionInput, PrivacyReviewActionResult, PrivacyReviewItemRecord } from '../../../domain/models/privacy-review.model';
 import { employmentStateLabels, lifecycleStateLabels, protectionStatusLabels, type ProtectedPersonRecord } from '../../../domain/models/protected-person.model';
 import { AUDIT_LOG_RETENTION_NOTICE } from '../../core/copy/privacyNotices';
+import { DateInput, FormActions, IndustrialButton, IndustrialModal, SelectInput, TextareaInput, TextInput } from '../../shared/components/IndustrialControls';
 
 const reasonLabels: Record<string, string> = {
   status_expired: 'Status abgelaufen',
@@ -26,7 +26,7 @@ function InlineAnonymizationHelp() {
   const helpText = 'Freitexte werden nicht blind anonymisiert. Mit ~~ markierte Textstellen werden zunächst als Vormerkung mit Klartext gespeichert und erst bei einer später bestätigten Fallanonymisierung durch [anonymisiert] ersetzt.';
   return (
     <span className="industrial-help-dot" title={helpText} role="img" aria-label={helpText} tabIndex={0}>
-      <HelpCircle className="h-3.5 w-3.5" aria-hidden="true" />
+      ?
     </span>
   );
 }
@@ -68,23 +68,11 @@ export function PersonLifecycleReviewDialog({
   const [reviewAt, setReviewAt] = useState('');
   const [confirmation, setConfirmation] = useState('');
   const openButtonRef = useRef<HTMLButtonElement | null>(null);
-  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
-  const dialogTitleId = `privacy-review-title-${person.id}`; const dialogDescriptionId = `privacy-review-description-${person.id}`;
   const formErrorId = `privacy-review-error-${person.id}`;
   const [formError, setFormError] = useState('');
 
   const requiresReview = reviews.length > 0 || ['expired_review_required', 'anonymization_pending', 'retention_documented'].includes(person.lifecycleState);
   const selectedReview = reviews.find((review) => review.caseId === selectedCaseId) ?? reviews[0];
-
-  useEffect(() => {
-    if (!open) return;
-    closeButtonRef.current?.focus();
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') onClose();
-    }
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [open, onClose]);
 
   useEffect(() => {
     if (!open) openButtonRef.current?.focus();
@@ -134,23 +122,16 @@ export function PersonLifecycleReviewDialog({
       </button>
 
       {open && (
-        <div className="industrial-modal-backdrop" role="presentation">
-          <section
-            className="industrial-modal person-privacy-review-dialog"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby={dialogTitleId}
-            aria-describedby={dialogDescriptionId}
-            data-e2e="privacy-review-dialog"
-          >
-            <div className="industrial-panel-heading">
-              <div>
-                <p className="industrial-kicker">Datenschutz-Lifecycle</p>
-                <h2 id={dialogTitleId}>Prüfung bei Zweckfortfall</h2>
-              </div>
-              <button type="button" className="industrial-secondary-button" ref={closeButtonRef} onClick={onClose}>Schließen</button>
-            </div>
-            <div id={dialogDescriptionId} className="industrial-muted person-lifecycle-review-summary">
+        <IndustrialModal
+          title="Prüfung bei Zweckfortfall"
+          kicker="Datenschutz-Lifecycle"
+          description="Entscheiden Sie pro Fallakte, ob der Status aktualisiert, die Fortspeicherung begründet, anonymisiert, gelöscht oder später erneut geprüft wird."
+          className="person-privacy-review-dialog"
+          onClose={onClose}
+          dataE2e="privacy-review-dialog"
+          actions={<IndustrialButton type="button" variant="secondary" onClick={onClose}>Schließen</IndustrialButton>}
+        >
+            <div className="industrial-muted person-lifecycle-review-summary">
               <p>Entscheiden Sie pro Fallakte, ob der Status aktualisiert, die Fortspeicherung begründet, anonymisiert, gelöscht oder später erneut geprüft wird.</p>
               <InlineAnonymizationHelp />
             </div>
@@ -167,16 +148,16 @@ export function PersonLifecycleReviewDialog({
 
             {!!reviews.length && (
               <form className="privacy-review-form" onSubmit={submitAction}>
-                <label>
-                  <span>Prüfpflichtige Fallakte</span>
-                  <select className="industrial-select" value={selectedReview?.caseId ?? ''} onChange={(event) => setSelectedCaseId(event.target.value)}>
-                    {reviews.map((review) => (
-                      <option key={review.id} value={review.caseId}>
-                        {review.context.caseFile?.caseNumber ?? review.caseId} · {reasonLabels[review.reason] ?? review.reason} · Priorität {priorityLabels[review.priority] ?? review.priority}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                <SelectInput
+                  label="Prüfpflichtige Fallakte"
+                  value={selectedReview?.caseId ?? ''}
+                  onValueChange={setSelectedCaseId}
+                  options={reviews.map((review) => ({
+                    value: review.caseId,
+                    label: `${review.context.caseFile?.caseNumber ?? review.caseId} · ${reasonLabels[review.reason] ?? review.reason} · Priorität ${priorityLabels[review.priority] ?? review.priority}`,
+                  }))}
+                  required
+                />
 
                 {selectedReview && (
                   <dl className="person-detail-grid privacy-context-grid">
@@ -191,23 +172,18 @@ export function PersonLifecycleReviewDialog({
 
                 <label>
                   <span>Aktion</span>
-                  <select className="industrial-select" value={action} onChange={(event) => setAction(event.target.value as typeof action)}>
+                  <select className="industrial-select" value={action} onChange={(event) => setAction(event.target.value as typeof action)} required>
                     <option value="retention">Fortspeicherung begründen</option>
                     <option value="later">später erneut prüfen</option>
                     <option value="clear">Prüfung abschließen / Status aktualisiert</option>
-                    <option value="anonymize_marked">Fallakte anonymisieren · nur vorgemerkte Freitexte</option><option value="anonymize_all">Fallakte anonymisieren · alle Freitexte ersetzen</option>
+                    <option value="anonymize_marked">Fallakte anonymisieren · nur vorgemerkte Freitexte</option>
+                    <option value="anonymize_all">Fallakte anonymisieren · alle Freitexte ersetzen</option>
                     <option value="delete">Fallakte löschen</option>
                   </select>
                 </label>
-                <label>
-                  <span>Grund / Prüfbemerkung</span>
-                  <textarea value={reason} onChange={(event) => setReason(event.target.value)} aria-describedby={formError ? formErrorId : undefined} required />
-                </label>
+                <TextareaInput label="Grund / Prüfbemerkung" value={reason} onValueChange={setReason} aria-describedby={formError ? formErrorId : undefined} required />
                 {(action === 'retention' || action === 'later') && (
-                  <label>
-                    <span>Erneut prüfen am</span>
-                    <input type="date" value={reviewAt} onChange={(event) => setReviewAt(event.target.value)} aria-describedby={formError ? formErrorId : undefined} required />
-                  </label>
+                  <DateInput label="Erneut prüfen am" value={reviewAt} onValueChange={setReviewAt} aria-describedby={formError ? formErrorId : undefined} required />
                 )}
                 {action === 'anonymize_marked' ? <p className="industrial-message industrial-message-warning" role="note">Nicht vorgemerkte personenbezogene Angaben in Freitexten bleiben erhalten und müssen anschließend manuell geprüft werden. Beteiligtenfelder und Personen-/Kontaktverknüpfungen werden immer entfernt.</p> : null}
                 {(action === 'anonymize_marked' || action === 'anonymize_all' || action === 'delete') && (
@@ -215,21 +191,17 @@ export function PersonLifecycleReviewDialog({
                     <p className="industrial-message industrial-message-info" data-e2e="audit-log-retention-notice">
                       {AUDIT_LOG_RETENTION_NOTICE}
                     </p>
-                    <label>
-                      <span>Bestätigung</span>
-                      <input value={confirmation} onChange={(event) => setConfirmation(event.target.value)} placeholder={action === 'anonymize_marked' || action === 'anonymize_all' ? 'FALL ANONYMISIEREN' : 'FALL LÖSCHEN'} aria-describedby={formError ? formErrorId : undefined} required />
-                    </label>
+                    <TextInput label="Bestätigung" value={confirmation} onValueChange={setConfirmation} placeholder={action === 'anonymize_marked' || action === 'anonymize_all' ? 'FALL ANONYMISIEREN' : 'FALL LÖSCHEN'} aria-describedby={formError ? formErrorId : undefined} required />
                   </>
                 )}
                 {formError && <p id={formErrorId} className="industrial-message industrial-message-warning" role="alert">{formError}</p>}
-                <div className="person-toolbar compact">
-                  <button type="submit" className="industrial-button">Aktion dokumentieren</button>
-                  <button type="button" className="industrial-secondary-button" onClick={onClose}>Abbrechen</button>
-                </div>
+                <FormActions align="start" className="person-toolbar compact">
+                  <IndustrialButton type="submit">Aktion dokumentieren</IndustrialButton>
+                  <IndustrialButton type="button" variant="secondary" onClick={onClose}>Abbrechen</IndustrialButton>
+                </FormActions>
               </form>
             )}
-          </section>
-        </div>
+        </IndustrialModal>
       )}
     </section>
   );

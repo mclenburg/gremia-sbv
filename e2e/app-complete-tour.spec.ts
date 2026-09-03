@@ -83,7 +83,7 @@ test('runs a complete synthetic 1.0 product tour across areas not covered by foc
 
   await openRoute(page, 'Berichte');
   await expect(page.getByRole('region', { name: 'Berichtskatalog' }).or(page.locator('[aria-label="Berichtskatalog"]'))).toBeVisible();
-  await page.getByRole('button', { name: /^PDF erzeugen$/ }).click();
+  await page.getByRole('button', { name: /^PDF erzeugen und öffnen$/ }).click();
   const reportsRegion = page.getByLabel('Berichte', { exact: true });
   const reportFeedback = /wurde als verschlüsselter PDF-Report erzeugt/;
   await expect(reportsRegion.locator('.industrial-message').filter({ hasText: reportFeedback })).toBeVisible();

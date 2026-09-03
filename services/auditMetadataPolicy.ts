@@ -78,6 +78,14 @@ const GREMIA_BR_REQUEST_METADATA_FIELDS = [
   'statusCode',
 ] as const;
 
+const GREMIA_BR_WORKSPACE_ACTION_METADATA_FIELDS = [
+  'actionType',
+  'status',
+  'localDocumentId',
+  'remoteDocumentId',
+  'targetSecurityDomain',
+] as const;
+
 const PARTICIPATION_VIOLATION_METADATA_FIELDS = [
   'stage',
   'status',
@@ -186,6 +194,7 @@ export const AUDIT_METADATA_POLICY_BY_SUBJECT_TYPE = {
   sbv_control_protocol: CONTROL_PROTOCOL_METADATA_FIELDS,
   activity_journal: ACTIVITY_JOURNAL_METADATA_FIELDS,
   gremia_br_http_request: GREMIA_BR_REQUEST_METADATA_FIELDS,
+  gremia_br_workspace_action: GREMIA_BR_WORKSPACE_ACTION_METADATA_FIELDS,
   retention_legal_hold: RETENTION_LEGAL_HOLD_METADATA_FIELDS,
   election_transfer: ELECTION_TRANSFER_METADATA_FIELDS,
   election: ELECTION_METADATA_FIELDS,

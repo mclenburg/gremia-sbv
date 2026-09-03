@@ -1,4 +1,4 @@
-export const APP_SCHEMA_VERSION = '0052';
+export const APP_SCHEMA_VERSION = '0054';
 
 export const DATABASE_SCHEMA_VERSION_KEY = 'database.schema.version';
 export const LEGACY_DATABASE_SCHEMA_VERSION_KEY = 'settings.database.schema.version';

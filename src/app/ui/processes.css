@@ -87,6 +87,18 @@
   margin-bottom: 0.45rem;
 }
 
+.case-process-title-row-actions {
+  justify-content: space-between;
+}
+
+.case-process-title-heading {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  min-width: 0;
+}
+
 .case-process-badges {
   justify-content: flex-end;
   max-width: min(38rem, 48vw);
@@ -205,20 +217,6 @@ html[data-theme='light'] .industrial-subsection,
 html[data-theme='light'] .case-process-badge,
 html[data-theme='light'] .case-process-document-link {
   background: rgba(255,255,255,0.62);
-}
-
-.case-process-save-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-3, 0.75rem);
-  border-top: 1px solid var(--industrial-border);
-  padding-top: var(--space-3, 0.75rem);
-}
-
-.case-process-save-row .industrial-meta {
-  margin: 0;
-  flex: 1 1 18rem;
 }
 
 /* App-weite Workbench-Ergänzungen.
@@ -438,8 +436,4 @@ html[data-theme='light'] .case-process-document-link {
 
 .termination-privacy-panel {
   border-color: rgba(251, 191, 36, .45);
-}
-
-.bem-overview-panel .process-overview-groups {
-  gap: .65rem;
 }

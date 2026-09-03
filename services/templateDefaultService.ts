@@ -31,9 +31,16 @@ function writeStoredDefaults(db: DatabaseAdapter, values: TemplateDefaultValues)
 }
 
 export function templateDefaultValuesToContext(values: TemplateDefaultValues): Record<string, string> {
+  const responsibleEntity =
+    values['datenschutz.verantwortliche_stelle'] ||
+    values['arbeitgeber.name'] ||
+    values['unternehmen.name'];
   return {
     ...values,
     'sbv.bezeichnung': values['sbv.funktion'] || values['sbv.name'],
+    'datenschutz.verantwortliche_stelle': responsibleEntity,
+    'datenschutz.kontakt.name': values['datenschutz.kontakt.name'] || values['arbeitgeber.ansprechpartner'],
+    'datenschutz.kontakt.email': values['datenschutz.kontakt.email'] || values['sbv.email'],
   };
 }
 

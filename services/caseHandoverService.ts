@@ -12,61 +12,15 @@ import { inspectCaseHandoverFilePath } from './caseHandoverFilePolicy.js';
 import type { CaseHandoverContinueExpiredInput, CaseHandoverContinueExpiredResult, CaseHandoverExportInput, CaseHandoverExportResult, CaseHandoverImportInput, CaseHandoverImportResult, CaseHandoverInspectResult } from '../src/domain/models/case-handover.model.js';
 import { Row, PackagePayload, DecryptedPackage, nowIso, sha256, isRecord, safeString, ensureArray } from './caseHandoverSupport.js';
 import { encodeDocumentForHandover, sanitizeHandoverDocumentMetadata } from './caseHandoverDocumentCodec.js';
-import { addColumnsIfMissing } from './migrations/schemaColumnMigration.js';
 import { OWNER_ONLY_FILE_MODE, restrictFileToOwner } from './secureFilePermissions.js';
+import { ensureCaseHandoverRuntimeSchema } from './runtimeSchemaCompatibility.js';
 export class CaseHandoverService {
   constructor(private readonly database: DatabaseAdapter, private readonly dataDirProvider: () => string = () => path.join(process.cwd(), 'data')) {}
 
   private db(): DatabaseAdapter { return this.database; }
 
   ensureSchema(db: DatabaseAdapter): void {
-    db.exec(`CREATE TABLE IF NOT EXISTS case_handover_imports (
-      id TEXT PRIMARY KEY,
-      package_id TEXT NOT NULL,
-      imported_at TEXT NOT NULL,
-      valid_until TEXT,
-      status TEXT NOT NULL DEFAULT 'active',
-      mode TEXT NOT NULL DEFAULT 'create_new',
-      created_case_count INTEGER NOT NULL DEFAULT 0,
-      updated_case_count INTEGER NOT NULL DEFAULT 0,
-      metadata_json TEXT NOT NULL DEFAULT '{}'
-    );`);
-    db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_case_handover_package ON case_handover_imports(package_id);`);
-    db.exec(`CREATE TABLE IF NOT EXISTS case_handover_import_items (
-      id TEXT PRIMARY KEY,
-      handover_import_id TEXT NOT NULL,
-      local_entity_type TEXT NOT NULL,
-      local_entity_id TEXT NOT NULL,
-      package_ref TEXT NOT NULL,
-      created_at TEXT NOT NULL,
-      FOREIGN KEY(handover_import_id) REFERENCES case_handover_imports(id) ON DELETE CASCADE
-    );`);
-    db.exec(`CREATE INDEX IF NOT EXISTS idx_case_handover_items_local ON case_handover_import_items(local_entity_type, local_entity_id);`);
-    const handoverColumns = [
-      ['handover_import_id', 'TEXT REFERENCES case_handover_imports(id) ON DELETE SET NULL'],
-      ['handover_package_id', 'TEXT'],
-      ['handover_valid_until', 'TEXT'],
-      ['handover_status', "TEXT NOT NULL DEFAULT 'none'"],
-      ['handover_continue_confirmed_at', 'TEXT'],
-      ['handover_continue_reason', 'TEXT'],
-    ] as const;
-    addColumnsIfMissing(db, 'cases', handoverColumns);
-    addColumnsIfMissing(db, 'case_measures', handoverColumns);
-    db.exec(`CREATE TABLE IF NOT EXISTS case_measure_notes (
-      id TEXT PRIMARY KEY,
-      case_id TEXT NOT NULL,
-      measure_type TEXT NOT NULL,
-      measure_id TEXT NOT NULL,
-      title TEXT NOT NULL,
-      note_at TEXT NOT NULL,
-      participants TEXT,
-      content TEXT NOT NULL,
-      next_steps TEXT,
-      contains_health_data INTEGER NOT NULL DEFAULT 0,
-      confidential_level TEXT NOT NULL DEFAULT 'sensibel',
-      created_at TEXT NOT NULL,
-      updated_at TEXT NOT NULL
-    );`);
+    ensureCaseHandoverRuntimeSchema(db);
     new PersonalDataAuditLogService(db);
   }
 

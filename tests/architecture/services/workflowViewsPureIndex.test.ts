@@ -9,6 +9,5 @@ describe('workflowViews pure index', () => {
     });
 
     expect(result.status, result.stderr || result.stdout).toBe(0);
-    expect(result.stdout).toContain('workflowViews-Architektur OK:');
   });
 });

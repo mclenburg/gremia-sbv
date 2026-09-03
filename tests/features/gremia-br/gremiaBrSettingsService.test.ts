@@ -12,7 +12,7 @@ class GremiaBrSettingsDb implements DatabaseAdapter {
     const self = this;
     return {
       get(): T | undefined {
-        if (/SELECT enabled, server_url, username, password_secret/i.test(sql)) return self.row as T | undefined;
+        if (/FROM gremia_br_settings/i.test(sql) && /WHERE id = 'default'/i.test(sql)) return self.row as T | undefined;
         return undefined;
       },
       all(): T[] { return []; },
@@ -23,12 +23,17 @@ class GremiaBrSettingsDb implements DatabaseAdapter {
             server_url: params[1],
             username: params[2],
             password_secret: params[3],
-            last_connection_test_at: params[4] ?? null,
-            last_successful_login_at: params[5] ?? null,
-            profile_json: params[6] ?? null,
-            relevance_keywords_json: params[7] ?? null,
-            created_at: params[8],
-            updated_at: params[9],
+            api_mode: params[4],
+            selected_body_id: params[5],
+            selected_body_name: params[6],
+            selected_organization_id: params[7],
+            selected_security_domain: params[8],
+            last_connection_test_at: params[9] ?? null,
+            last_successful_login_at: params[10] ?? null,
+            profile_json: params[11] ?? null,
+            relevance_keywords_json: params[12] ?? null,
+            created_at: params[13],
+            updated_at: params[14],
           };
         } else if (/UPDATE gremia_br_settings/i.test(sql)) {
           if (self.row) {
@@ -69,6 +74,33 @@ describe('Gremia.BR Einstellungen 0.9.2-A', () => {
     expect(String(db.row?.password_secret)).not.toMatch(/^b64:v1:/);
     expect(String(db.row?.password_secret)).not.toContain(Buffer.from('streng-geheim', 'utf8').toString('base64'));
     expect(decodeGremiaBrSecret(String(db.row?.password_secret), TEST_DATABASE_KEY)).toBe('streng-geheim');
+  });
+
+  it('speichert den Gremia.BR-2-Arbeitsbereich als fachliche Konfiguration ohne Secret-Leakage', () => {
+    const db = new GremiaBrSettingsDb();
+    const service = new GremiaBrSettingsService(() => db, () => TEST_DATABASE_KEY);
+
+    const saved = service.saveSettings({
+      enabled: true,
+      serverUrl: 'https://br.example.invalid/',
+      username: 'sbv@example.invalid',
+      password: 'streng-geheim',
+      apiMode: 'gremia_br_v2',
+      selectedBodyId: 'body-sbv',
+      selectedBodyName: 'Schwerbehindertenvertretung Werk Rostock',
+      selectedOrganizationId: 'org-1',
+      selectedSecurityDomain: 'sbv-werk-rostock',
+    });
+
+    expect(saved).toMatchObject({
+      enabled: true,
+      apiMode: 'gremia_br_v2',
+      selectedBodyId: 'body-sbv',
+      selectedBodyName: 'Schwerbehindertenvertretung Werk Rostock',
+      selectedOrganizationId: 'org-1',
+      selectedSecurityDomain: 'sbv-werk-rostock',
+    });
+    expect(JSON.stringify(saved)).not.toContain('streng-geheim');
   });
 
   it('weist manipulierte Gremia.BR-Secrets ohne Klartextfreigabe zurück', () => {

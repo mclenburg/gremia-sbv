@@ -35,7 +35,7 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
   {
     id: 'settings-gremia-br',
     label: 'Gremia.BR',
-    description: 'Optionale Lesebrücke, Zugangsdaten, Relevanzfilter und Lesecache.',
+    description: 'Optionale Gremia.BR-Anbindung, Zugangsdaten, Relevanzfilter und Lesecache.',
   },
 ];
 

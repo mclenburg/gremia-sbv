@@ -1,25 +1,13 @@
 import { waitForBridge } from "../../core/bridge/waitForBridge";
+export { buildPdfExportFeedback } from "../../shared/documents/pdfExportFeedback";
 import type {
   ComplianceAuditChainStatus,
   ComplianceDatabaseIntegrityStatus,
-  ComplianceDocument,
   ComplianceSelfCheckResult,
   ComplianceStatusOverview,
   ComplianceTechnicalStatusItem,
   ComplianceTechnicalStatusLevel,
 } from "../../../domain/models/compliance.model";
-
-export function downloadTextFile(document: ComplianceDocument) {
-  const blob = new Blob([document.body], {
-    type: "text/markdown;charset=utf-8",
-  });
-  const url = URL.createObjectURL(blob);
-  const anchor = window.document.createElement("a");
-  anchor.href = url;
-  anchor.download = document.filename;
-  anchor.click();
-  URL.revokeObjectURL(url);
-}
 
 export function technicalLevelLabel(
   level: ComplianceTechnicalStatusLevel,

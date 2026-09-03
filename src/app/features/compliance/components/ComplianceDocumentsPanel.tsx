@@ -16,7 +16,6 @@ export function ComplianceDocumentsPanel({
   selectedType,
   document,
   onRender,
-  onDownload,
   onExportPdf,
 }: {
   descriptors: Array<{
@@ -28,7 +27,6 @@ export function ComplianceDocumentsPanel({
   selectedType: ComplianceDocumentType;
   document: ComplianceDocument;
   onRender: (type: ComplianceDocumentType) => void;
-  onDownload: () => void;
   onExportPdf: (open: boolean) => void;
 }) {
   return (
@@ -56,7 +54,6 @@ export function ComplianceDocumentsPanel({
       </section>
       <ComplianceDocumentPreview
         document={document}
-        onDownload={onDownload}
         onExportPdf={onExportPdf}
       />
     </div>

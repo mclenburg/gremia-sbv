@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, BriefcaseBusiness, CheckCircle2, Clock3, RefreshCw, ShieldCheck, TimerReset } from 'lucide-react';
-import type { CaseRecord } from '../../../domain/models/case.model';
-import type { DeadlineDashboardItem, DeadlineRecord } from '../../../domain/models/deadline.model';
+import type { CaseMeasureRecord, CaseRecord, DeadlineDashboardItem, DeadlineRecord } from '../../appTypes';
 import type { ActivityJournalSummary } from '../../../domain/models/activity-journal.model';
 import { DeadlineDashboardPanel } from '../deadlines/DeadlineDashboardPanel';
 import type { GremiaBrDashboardOverview, GremiaBrRelevanceMatch } from '../../../domain/models/gremia-br.model';
@@ -12,11 +11,10 @@ import { IndustrialButton, ToolbarButton } from '../../shared/components/Industr
 import { legalCalendarDate } from '../../../domain/time/legalTime';
 
 type DashboardFocusOverviewProps = {
-  cases: CaseRecord[];
-  deadlines: DeadlineRecord[];
-  dashboardItems: DeadlineDashboardItem[];
+  cases: CaseRecord[]; measures: CaseMeasureRecord[]; deadlines: DeadlineRecord[]; dashboardItems: DeadlineDashboardItem[];
   onNavigate: (view: ViewId) => void;
-  onEditDeadline: (deadline: DeadlineDashboardItem) => void;
+  onEditDeadline: (deadline: DeadlineDashboardItem) => void; onExtendDeadline: (deadline: DeadlineDashboardItem) => void;
+  onOpenDeadlineContext: (deadline: DeadlineDashboardItem) => void;
   onCompleteDeadline: (deadline: DeadlineDashboardItem) => void;
 };
 
@@ -107,7 +105,7 @@ function MeetingMatch({ match }: { match: GremiaBrRelevanceMatch }) {
   );
 }
 
-export function DashboardFocusOverview({ cases, deadlines, dashboardItems, onNavigate, onEditDeadline, onCompleteDeadline }: DashboardFocusOverviewProps) {
+export function DashboardFocusOverview({ cases, measures, deadlines, dashboardItems, onNavigate, onEditDeadline, onExtendDeadline, onOpenDeadlineContext, onCompleteDeadline }: DashboardFocusOverviewProps) {
   const announce = useAnnouncer();
   const [compliance, setCompliance] = useState<DashboardComplianceLike | null>(null);
   const [complianceError, setComplianceError] = useState('');
@@ -275,7 +273,7 @@ export function DashboardFocusOverview({ cases, deadlines, dashboardItems, onNav
         )}
 
         {gremiaBrTile && (
-          <div className="industrial-card no-card-hover dashboard-focus-card dashboard-focus-card-static" aria-label="Gremia.BR-Lesebrücke">
+          <div className="industrial-card no-card-hover dashboard-focus-card dashboard-focus-card-static" aria-label="Gremia.BR-Kooperationsbrücke">
             <span className="dashboard-focus-marker dashboard-focus-marker-attention">Aktiv</span>
             <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
             <strong>Gremia.BR</strong>
@@ -325,12 +323,8 @@ export function DashboardFocusOverview({ cases, deadlines, dashboardItems, onNav
           </section>
         )}
 
-        <DeadlineDashboardPanel
-          items={dashboardItems}
-          cases={cases}
-          onEdit={onEditDeadline}
-          onComplete={onCompleteDeadline}
-        />
+        <DeadlineDashboardPanel items={dashboardItems} cases={cases} measures={measures}
+          onEdit={onEditDeadline} onExtend={onExtendDeadline} onOpenContext={onOpenDeadlineContext} onComplete={onCompleteDeadline} />
       </div>
     </section>
   );

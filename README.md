@@ -130,9 +130,9 @@ Gremia.SBV unterstützt vertrauliche SBV-Arbeit, ersetzt aber keine organisatori
 
 Die Code-Signing-Strategie steht in [CODE_SIGNING.md](docs/CODE_SIGNING.md).
 
-## Optional: Lesender Blick nach Gremia.BR
+## Optional: Gremia.BR-Kooperationsbrücke
 
-Gremia.SBV kann eine **optionale, standardmäßig deaktivierte Lesebrücke** zu Gremia.BR nutzen. Diese Verbindung ist nur für ausdrücklich ausgelöste, lesende Zugriffe gedacht. Es gibt keine Hintergrundsynchronisation, keine automatische Übernahme von BR-Dokumenten und kein Rückschreiben von SBV-Daten.
+Gremia.SBV kann eine **optionale, standardmäßig deaktivierte Kooperationsbrücke** zu Gremia.BR nutzen. Die SBV arbeitet dort als eigenes berechtigtes Gremium mit eigenem Arbeitsbereich. In Gremia.SBV werden Aktionen ausdrücklich im Gremia.BR-Bereich ausgelöst: BR-Sitzungen können als lokale SBV-Arbeitskopie übernommen werden, Tagesordnungspunkt-Anforderungen können an Gremia.BR übergeben werden und aus Gremia.SBV erzeugte PDF-Dokumente können bewusst in den SBV-Arbeitsbereich von Gremia.BR übertragen werden. Es gibt keine Hintergrundsynchronisation und keine Produktpflicht in eine Richtung.
 
 ## Für Mitentwickler
 

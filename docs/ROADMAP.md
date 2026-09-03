@@ -29,7 +29,7 @@ Im aktuellen Stand umfasst Gremia.SBV folgende Produktbereiche:
 - verschlüsselte Fallübergabe für Vertretung oder Nachfolge,
 - Audit-Log mit dem Ziel, keine Direktidentifikatoren oder Freitexte zu protokollieren,
 - Auto-Lock, Backup/Restore und Export-Guards,
-- optionale Gremia.BR-Lesebrücke nur nach ausdrücklicher Nutzeraktion.
+- optionale Gremia.BR-Kooperationsbrücke nur nach ausdrücklicher Nutzeraktion.
 
 ## Fallübergabe / Vertretung
 
@@ -65,7 +65,7 @@ Neue Großmodule stehen nicht im Vordergrund. Vorrang haben Stabilität und Verl
 
 - Echtdatennahe Prüfung der Migrationen und Altfallpfade,
 - Härtung der Fallübergabe gegen Fehlbedienung, Datenverlust und missverständliche Zusammenführung,
-- Audit-Log ohne Direktidentifikatoren in allen Import-, Export- und Lesebrückenpfaden,
+- Audit-Log ohne Direktidentifikatoren in allen Import-, Export- und Gremia.BR-Kooperationspfaden,
 - Art.-15-Auskunft organisatorisch klar dokumentieren,
 - Barrierefreiheit und Tastaturbedienung in allen kritischen Dialogen sichern,
 - Dashboard, Einstellungen, Fallakten und Compliance Center visuell konsistent im harten Industrial-Design halten,

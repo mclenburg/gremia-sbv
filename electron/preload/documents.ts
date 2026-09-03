@@ -16,7 +16,7 @@ export function createDocumentsApi(invokeIpc: IpcInvoker) {
         invokeIpc(IPC_CHANNELS.reportsHistory, limit),
       generate: (input: GenerateReportInput): Promise<ReportGenerationResult> =>
         invokeIpc(IPC_CHANNELS.reportsGenerate, input),
-      openExportFolder: (fileName?: string): Promise<{ opened: boolean }> =>
+      openExportFolder: (fileName?: string): Promise<{ opened: boolean; filePath?: string; error?: string }> =>
         invokeIpc(IPC_CHANNELS.reportsOpenExportFolder, fileName),
     }
   } as const;

@@ -55,6 +55,8 @@ describe("Patch-4-Cross-Platform- und Packaging-Vertrag", () => {
     expect(startupSmoke).toContain(".gremia-sbv-${canonicalTarget}-artifact.json");
     expect(startupSmoke).toContain("receipt.artifacts");
     expect(startupSmoke).not.toContain("fs.readdirSync(releaseDir).filter((name) => name.endsWith(extension))");
+    expect(startupSmoke).toContain("process.env.CI");
+    expect(startupSmoke).toContain("Der PR-/Release-Build darf den Desktop-Smoke nicht still überspringen.");
     expect(pkg.scripts["release:smoke:windows"]).toContain("run-packaged-startup-smoke.cjs win");
     expect(startupSmoke).toContain("-win-x64-portable\\.exe");
   });

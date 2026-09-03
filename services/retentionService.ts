@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import { randomUUID } from 'node:crypto';
-import type { RetentionDashboard, RetentionModuleSnapshot, RetentionModuleType, RetentionOperationResult, RetentionProtectedPersonSnapshot, RetentionSettings, UpdateRetentionSettingsInput } from '../src/domain/models/retention.model.js';
+import type { RetentionDashboard, RetentionModuleRuleOverrides, RetentionModuleSnapshot, RetentionModuleType, RetentionOperationResult, RetentionProtectedPersonSnapshot, RetentionSettings, UpdateRetentionSettingsInput } from '../src/domain/models/retention.model.js';
 import type { DatabaseAdapter } from './databaseService.js';
 import { DEFAULT_RETENTION_SETTINGS, buildRetentionDashboard, normalizeRetentionSettings, type RetentionActivityJournalSnapshot, type RetentionCaseSnapshot, type RetentionContactSnapshot, type RetentionDeadlineSnapshot, type RetentionDocumentSnapshot, type RetentionParticipationViolationSnapshot } from './retentionPolicy.js';
 import { SearchIndexService } from './search/searchIndexService.js';
@@ -8,7 +8,21 @@ import { MeasureLifecycleAuditService } from './measureLifecycleAuditService.js'
 import { CaseLifecycleAuditService } from './caseLifecycleAuditService.js';
 import { runCaseDeletionTransaction } from './caseDeletionTransaction.js';
 import { RetentionOwnerRegistry } from './retentionOwnerRegistry.js';
-import { CASE_DELETE_CONFIRMATION, DatabaseRow, nowIso, bool, readNumberSetting, writeSetting, safeRun, tableExists, getColumns, latestActivityExpression, CaseDocumentFileRow, removeCaseDocumentFiles, lifecycleRowsForCase } from './retentionSupport.js';
+import { CASE_DELETE_CONFIRMATION, DatabaseRow, nowIso, bool, readNumberSetting, readTextSetting, writeSetting, safeRun, tableExists, getColumns, latestActivityExpression, CaseDocumentFileRow, removeCaseDocumentFiles, lifecycleRowsForCase } from './retentionSupport.js';
+import { ensureRetentionRuntimeSchema } from './runtimeSchemaCompatibility.js';
+const RETENTION_MODULE_RULES_SETTING_KEY = 'retention.moduleRules.v1';
+
+function readModuleRuleSettings(db: DatabaseAdapter): RetentionModuleRuleOverrides | undefined {
+  const raw = readTextSetting(db, RETENTION_MODULE_RULES_SETTING_KEY);
+  if (!raw) return undefined;
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    return parsed && typeof parsed === 'object' ? parsed as RetentionModuleRuleOverrides : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export class RetentionService {
   constructor(
     private readonly database: DatabaseAdapter,
@@ -20,21 +34,7 @@ export class RetentionService {
   }
 
   ensureSchema(db = this.database): void {
-    db.exec(`
-      CREATE TABLE IF NOT EXISTS retention_actions (
-        id TEXT PRIMARY KEY,
-        action_type TEXT NOT NULL,
-        entity_type TEXT NOT NULL,
-        entity_id TEXT,
-        reference TEXT,
-        reason TEXT,
-        affected_rows INTEGER NOT NULL DEFAULT 0,
-        affected_files INTEGER NOT NULL DEFAULT 0,
-        created_at TEXT NOT NULL
-      );
-
-      CREATE INDEX IF NOT EXISTS idx_retention_actions_created ON retention_actions(created_at DESC);
-    `);
+    ensureRetentionRuntimeSchema(db);
   }
 
   getSettings(): RetentionSettings {
@@ -46,12 +46,21 @@ export class RetentionService {
       completedDeadlineRetentionMonths: readNumberSetting(db, 'retention.completedDeadlineRetentionMonths', DEFAULT_RETENTION_SETTINGS.completedDeadlineRetentionMonths),
       activityJournalReviewMonths: readNumberSetting(db, 'retention.activityJournalReviewMonths', DEFAULT_RETENTION_SETTINGS.activityJournalReviewMonths),
       participationViolationReviewMonths: readNumberSetting(db, 'retention.participationViolationReviewMonths', DEFAULT_RETENTION_SETTINGS.participationViolationReviewMonths),
-      minimumGroupSizeForReports: readNumberSetting(db, 'retention.minimumGroupSizeForReports', DEFAULT_RETENTION_SETTINGS.minimumGroupSizeForReports)
+      minimumGroupSizeForReports: readNumberSetting(db, 'retention.minimumGroupSizeForReports', DEFAULT_RETENTION_SETTINGS.minimumGroupSizeForReports),
+      moduleRules: readModuleRuleSettings(db),
     });
   }
 
   updateSettings(input: UpdateRetentionSettingsInput): RetentionSettings {
-    const next = normalizeRetentionSettings({ ...this.getSettings(), ...input });
+    const current = this.getSettings();
+    const moduleRules = { ...current.moduleRules, ...(input.moduleRules ?? {}) };
+    if (input.closedCaseReviewMonths !== undefined && !input.moduleRules?.case_file) {
+      moduleRules.case_file = { kind: 'months_after_completion', months: input.closedCaseReviewMonths };
+    }
+    if (input.participationViolationReviewMonths !== undefined && !input.moduleRules?.sbv_participation) {
+      moduleRules.sbv_participation = { kind: 'term_related', months: input.participationViolationReviewMonths };
+    }
+    const next = normalizeRetentionSettings({ ...current, ...input, moduleRules });
     const db = this.db;
     writeSetting(db, 'retention.closedCaseReviewMonths', next.closedCaseReviewMonths);
     writeSetting(db, 'retention.inactiveOpenCaseMonths', next.inactiveOpenCaseMonths);
@@ -60,6 +69,7 @@ export class RetentionService {
     writeSetting(db, 'retention.activityJournalReviewMonths', next.activityJournalReviewMonths);
     writeSetting(db, 'retention.participationViolationReviewMonths', next.participationViolationReviewMonths);
     writeSetting(db, 'retention.minimumGroupSizeForReports', next.minimumGroupSizeForReports);
+    writeSetting(db, RETENTION_MODULE_RULES_SETTING_KEY, JSON.stringify(next.moduleRules));
     return next;
   }
 

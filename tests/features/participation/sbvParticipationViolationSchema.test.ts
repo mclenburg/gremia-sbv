@@ -8,7 +8,7 @@ const schema = readFileSync('database/schema.sql', 'utf8');
 
 describe('Beteiligungsverstoß-Schema 0.9.4-a', () => {
   it('führt 0042 als nächste Migration nach dem Tätigkeitsjournal ein', () => {
-    expect(APP_SCHEMA_VERSION).toBe('0052');
+    expect(APP_SCHEMA_VERSION).toBe('0054');
     expect(migration).toContain('sbv_participation_violations');
     expect(migration).toContain("REFERENCES activity_journal_entries(id) ON DELETE SET NULL");
     expect(migration).not.toContain('INSERT INTO schema_migrations');

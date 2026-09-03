@@ -6,6 +6,7 @@ import { MeasureLifecycleAuditService } from './measureLifecycleAuditService.js'
 import { noteProcessTypeToCaseMeasureType } from '../src/domain/models/case-measure.model.js';
 import { SearchIndexService } from './search/searchIndexService.js';
 import { deleteCaseProcess } from './caseProcessDeletion.js';
+import { ensureCaseMeasureRuntimeSchema } from './runtimeSchemaCompatibility.js';
 import type { MeasureLifecycleCreationSource } from '../src/domain/models/measure-lifecycle.model.js';
 import type {
   CaseMeasureCreatedFrom,
@@ -133,72 +134,7 @@ export class CaseMeasureService {
   ) {}
 
   ensureSchema(): void {
-    this.database.exec(`
-      CREATE TABLE IF NOT EXISTS case_measures (
-        id TEXT PRIMARY KEY,
-        case_id TEXT NOT NULL,
-        type TEXT NOT NULL,
-        title TEXT NOT NULL,
-        status TEXT NOT NULL DEFAULT 'open',
-        risk_level TEXT NOT NULL DEFAULT 'normal',
-        created_from TEXT NOT NULL DEFAULT 'manual',
-        summary TEXT,
-        next_step TEXT,
-        due_at TEXT,
-        opened_at TEXT NOT NULL,
-        closed_at TEXT,
-        requires_follow_up INTEGER NOT NULL DEFAULT 0,
-        source_id TEXT,
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL,
-        handover_import_id TEXT REFERENCES case_handover_imports(id) ON DELETE SET NULL,
-        handover_package_id TEXT,
-        handover_valid_until TEXT,
-        handover_status TEXT NOT NULL DEFAULT 'none',
-        handover_continue_confirmed_at TEXT,
-        handover_continue_reason TEXT,
-        FOREIGN KEY(case_id) REFERENCES cases(id) ON DELETE CASCADE
-      );
-      CREATE INDEX IF NOT EXISTS idx_case_measures_case ON case_measures(case_id, type, status);
-      CREATE INDEX IF NOT EXISTS idx_case_measures_type_status ON case_measures(type, status);
-      CREATE INDEX IF NOT EXISTS idx_case_measures_due ON case_measures(due_at);
-      CREATE INDEX IF NOT EXISTS idx_case_measures_source ON case_measures(source_id);
-
-      CREATE TABLE IF NOT EXISTS case_measure_notes (
-        id TEXT PRIMARY KEY,
-        case_id TEXT NOT NULL,
-        measure_type TEXT NOT NULL CHECK (measure_type IN ('prevention','bem','termination_hearing','equalization','participation','workplace_accommodation')),
-        measure_id TEXT NOT NULL,
-        title TEXT NOT NULL,
-        note_at TEXT NOT NULL,
-        participants TEXT,
-        content TEXT NOT NULL,
-        next_steps TEXT,
-        contains_health_data INTEGER NOT NULL DEFAULT 1,
-        confidential_level TEXT NOT NULL DEFAULT 'sensibel' CHECK (confidential_level IN ('normal','sensibel','hoch_sensibel')),
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL,
-        FOREIGN KEY(case_id) REFERENCES cases(id) ON DELETE CASCADE
-      );
-      CREATE INDEX IF NOT EXISTS idx_case_measure_notes_measure ON case_measure_notes(measure_type, measure_id, note_at DESC);
-      CREATE INDEX IF NOT EXISTS idx_case_measure_notes_case ON case_measure_notes(case_id, note_at DESC);
-    `);
-    this.ensureHandoverColumns();
-  }
-
-  private ensureHandoverColumns(): void {
-    const columns = this.database.prepare<{ name: string }>('PRAGMA table_info(case_measures)').all().map((row) => row.name);
-    const addColumn = (column: string, definition: string) => {
-      if (columns.includes(column)) return;
-      this.database.exec(`ALTER TABLE case_measures ADD COLUMN ${column} ${definition};`);
-    };
-
-    addColumn('handover_import_id', 'TEXT REFERENCES case_handover_imports(id) ON DELETE SET NULL');
-    addColumn('handover_package_id', 'TEXT');
-    addColumn('handover_valid_until', 'TEXT');
-    addColumn('handover_status', "TEXT NOT NULL DEFAULT 'none'");
-    addColumn('handover_continue_confirmed_at', 'TEXT');
-    addColumn('handover_continue_reason', 'TEXT');
+    ensureCaseMeasureRuntimeSchema(this.database);
   }
 
   private audit(action: Parameters<PersonalDataAuditLogService['append']>[0]['action'], subjectId: string | undefined, caseId: string | undefined, purpose: string, subjectType = 'case_measure'): void {

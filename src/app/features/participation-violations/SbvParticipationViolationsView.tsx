@@ -49,7 +49,7 @@ function ParticipationViolationRowActions({
   return (
     <div className="participation-violation-actions" aria-label={`Aktionen zu ${item.subject}`}>
       <ToolbarButton disabled={busy || documentBusyId === item.id} onClick={() => void onGenerateDocument(item)}>
-        {documentBusyId === item.id ? 'PDF wird erzeugt …' : 'PDF erzeugen & öffnen'}
+        {documentBusyId === item.id ? 'PDF wird erzeugt …' : 'PDF erzeugen'}
       </ToolbarButton>
       {hasFurtherActions ? (
         <details className="participation-violation-more-actions">

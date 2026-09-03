@@ -1,18 +1,15 @@
-import type { RetentionCandidate, RetentionDashboard, RetentionModuleSnapshot, RetentionProtectedPersonSnapshot, RetentionRiskLevel, RetentionSettings } from '../src/domain/models/retention.model.js';
+import type { RetentionCandidate, RetentionDashboard, RetentionModuleSnapshot, RetentionProtectedPersonSnapshot, RetentionRiskLevel, RetentionRule, RetentionSettings } from '../src/domain/models/retention.model.js';
 import type { RetentionOwnerSnapshot } from '../src/domain/models/retention-owner.model.js';
 import { buildOfficeOwnerRetentionCandidates } from './retentionOwnerPolicy.js';
-import { buildModuleRetentionCandidates, RETENTION_POLICY_CATALOG } from './retentionPolicyCatalog.js';
+import {
+  buildModuleRetentionCandidates,
+  retentionReviewDueAt,
+  retentionPolicyDefinitionsWithRules,
+} from './retentionPolicyCatalog.js';
 import { buildRetentionIntegrityCandidates } from './retentionIntegrityPolicy.js';
-
-export const DEFAULT_RETENTION_SETTINGS: RetentionSettings = {
-  closedCaseReviewMonths: 36,
-  inactiveOpenCaseMonths: 6,
-  orphanContactReviewDays: 0,
-  completedDeadlineRetentionMonths: 36,
-  activityJournalReviewMonths: 36,
-  participationViolationReviewMonths: 48,
-  minimumGroupSizeForReports: 3
-};
+import { contactReviewWindowLabel, journalReviewCutoff, journalReviewWindowLabel, reviewCutoffForRule } from './retentionReviewWindow.js';
+import { normalizeRetentionSettings, reviewWindowLabel, type RetentionSettingsInput } from './retentionSettings.js';
+export { DEFAULT_RETENTION_SETTINGS, normalizeRetentionSettings } from './retentionSettings.js';
 
 export interface RetentionCaseSnapshot {
   id: string;
@@ -88,7 +85,7 @@ export interface RetentionDeadlineSnapshot {
 
 export interface RetentionScanInput {
   now?: Date;
-  settings?: Partial<RetentionSettings>;
+  settings?: RetentionSettingsInput;
   cases?: RetentionCaseSnapshot[];
   contacts?: RetentionContactSnapshot[];
   protectedPersons?: RetentionProtectedPersonSnapshot[];
@@ -131,23 +128,21 @@ function riskOrder(risk: RetentionRiskLevel): number {
   return 2;
 }
 
-export function normalizeRetentionSettings(input?: Partial<RetentionSettings>): RetentionSettings {
-  return {
-    ...DEFAULT_RETENTION_SETTINGS,
-    ...(input ?? {})
-  };
+function isRetentionDueAt(reference: string | null | undefined, rule: RetentionRule, now: Date): boolean {
+  const dueAt = reference ? retentionReviewDueAt(reference, rule) : undefined;
+  return Boolean(dueAt && new Date(dueAt).getTime() <= now.getTime());
 }
 
-function appendCaseCandidates(candidates: RetentionCandidate[], input: RetentionScanInput, settings: RetentionSettings, closedCutoff: Date, inactiveCutoff: Date): void {
-for (const record of input.cases ?? []) {
-    if (record.status === 'abgeschlossen' && beforeOrEqual(record.closedAt, closedCutoff)) {
+function appendCaseCandidates(candidates: RetentionCandidate[], input: RetentionScanInput, settings: RetentionSettings, now: Date, inactiveCutoff: Date): void {
+  for (const record of input.cases ?? []) {
+    if (record.status === 'abgeschlossen' && isRetentionDueAt(record.closedAt, settings.moduleRules.case_file, now)) {
       pushCandidate(candidates, {
         id: `case-review-${record.id}`,
         type: 'closed_case_review',
         riskLevel: 'warning',
         title: 'Abgeschlossener Fall zur Löschprüfung',
         reference: record.caseNumber,
-        description: `Fall ist seit mindestens ${settings.closedCaseReviewMonths} Monaten abgeschlossen. Prüfen, ob Anonymisierung oder Löschung möglich ist.`,
+        description: `Fall ist nach ${reviewWindowLabel(settings.moduleRules.case_file, settings.closedCaseReviewMonths)} prüfpflichtig. Prüfen, ob Anonymisierung oder Löschung möglich ist.`,
         recommendedAction: 'anonymisieren',
         createdAt: record.closedAt ?? undefined,
         entityType: 'case',
@@ -176,7 +171,7 @@ for (const record of input.cases ?? []) {
 }
 
 function appendContactCandidates(candidates: RetentionCandidate[], input: RetentionScanInput, settings: RetentionSettings, orphanContactCutoff: Date): void {
-for (const contact of input.contacts ?? []) {
+  for (const contact of input.contacts ?? []) {
     if ((contact.referenceCount ?? 0) === 0 && beforeOrEqual(contact.createdAt, orphanContactCutoff)) {
       pushCandidate(candidates, {
         id: `contact-orphan-${contact.id}`,
@@ -184,7 +179,7 @@ for (const contact of input.contacts ?? []) {
         riskLevel: 'info',
         title: 'Kontakt ohne Text- oder Fallbezug',
         reference: contact.displayName,
-        description: `Kontakt ist seit mindestens ${settings.orphanContactReviewDays} Tagen ohne erkannten Bezug. Löschung oder Anonymisierung prüfen.`,
+        description: `Kontakt ist seit mindestens ${contactReviewWindowLabel(settings)} ohne erkannten Bezug. Löschung oder Anonymisierung prüfen.`,
         recommendedAction: 'loeschen',
         createdAt: contact.createdAt ?? undefined,
         entityType: 'contact',
@@ -229,7 +224,7 @@ function appendProtectedPersonCandidates(candidates: RetentionCandidate[], input
 }
 
 function appendDeadlineCandidates(candidates: RetentionCandidate[], input: RetentionScanInput, settings: RetentionSettings, completedDeadlineCutoff: Date): void {
-for (const deadline of input.deadlines ?? []) {
+  for (const deadline of input.deadlines ?? []) {
     if (deadline.status === 'done' && beforeOrEqual(deadline.completedAt ?? deadline.dueAt, completedDeadlineCutoff)) {
       pushCandidate(candidates, {
         id: `deadline-completed-${deadline.id}`,
@@ -248,7 +243,7 @@ for (const deadline of input.deadlines ?? []) {
 }
 
 function appendJournalCandidates(candidates: RetentionCandidate[], input: RetentionScanInput, settings: RetentionSettings, journalCutoff: Date): void {
-for (const entry of input.journalEntries ?? []) {
+  for (const entry of input.journalEntries ?? []) {
     if (entry.openFollowUp) {
       pushCandidate(candidates, {
         id: `journal-follow-up-${entry.id}`,
@@ -306,7 +301,7 @@ for (const entry of input.journalEntries ?? []) {
         riskLevel: 'info',
         title: 'Fallfreier Journal-Eintrag zur Aufbewahrungsprüfung',
         reference: entry.title,
-        description: `Fallfreier Journaleintrag ist seit mindestens ${settings.activityJournalReviewMonths} Monaten dokumentiert. Prüfen, ob Reduktion auf Statistik oder Löschung möglich ist.`,
+        description: `Fallfreier Journaleintrag ist seit mindestens ${journalReviewWindowLabel(settings)} dokumentiert. Prüfen, ob Reduktion auf Statistik oder Löschung möglich ist.`,
         recommendedAction: 'pruefen',
         createdAt: entry.entryDate,
         entityType: 'activity_journal_entry',
@@ -316,8 +311,8 @@ for (const entry of input.journalEntries ?? []) {
   }
 }
 
-function appendParticipationViolationCandidates(candidates: RetentionCandidate[], input: RetentionScanInput, settings: RetentionSettings, participationViolationCutoff: Date): void {
-for (const violation of input.participationViolations ?? []) {
+function appendParticipationViolationCandidates(candidates: RetentionCandidate[], input: RetentionScanInput, settings: RetentionSettings, now: Date): void {
+  for (const violation of input.participationViolations ?? []) {
     if (violation.sourceContextType === 'recruiting_participation' && !violation.relatedRecruitingParticipationId) {
       pushCandidate(candidates, {
         id: `participation-violation-recruiting-link-${violation.id}`,
@@ -367,14 +362,14 @@ for (const violation of input.participationViolations ?? []) {
       });
       continue;
     }
-    if (beforeOrEqual(violation.closedAt ?? violation.updatedAt ?? violation.createdAt, participationViolationCutoff)) {
+    if (isRetentionDueAt(violation.closedAt ?? violation.updatedAt ?? violation.createdAt, settings.moduleRules.sbv_participation, now)) {
       pushCandidate(candidates, {
         id: `participation-violation-closed-${violation.id}`,
         type: 'participation_violation_closed_review',
         riskLevel: (violation.documentCount ?? 0) > 0 ? 'warning' : 'info',
         title: 'Geschlossener Beteiligungsverstoß zur Aufbewahrungsprüfung',
         reference: violation.subject,
-        description: `Geschlossener Verstoßvorgang ist seit mindestens ${settings.participationViolationReviewMonths} Monaten prüfpflichtig. Dokumente, Nachweisinteresse und Fallbezug bewerten.`,
+        description: `Geschlossener Verstoßvorgang ist nach ${reviewWindowLabel(settings.moduleRules.sbv_participation, settings.participationViolationReviewMonths)} prüfpflichtig. Dokumente, Nachweisinteresse und Fallbezug bewerten.`,
         recommendedAction: 'pruefen',
         createdAt: violation.closedAt ?? violation.updatedAt ?? violation.createdAt ?? undefined,
         entityType: 'sbv_participation_violation',
@@ -387,30 +382,29 @@ for (const violation of input.participationViolations ?? []) {
 export function buildRetentionDashboard(input: RetentionScanInput): RetentionDashboard {
   const now = input.now ?? new Date();
   const settings = normalizeRetentionSettings(input.settings);
+  const policies = retentionPolicyDefinitionsWithRules(settings.moduleRules);
   const candidates: RetentionCandidate[] = [];
-  const closedCutoff = monthsAgo(now, settings.closedCaseReviewMonths);
   const inactiveCutoff = monthsAgo(now, settings.inactiveOpenCaseMonths);
-  const orphanContactCutoff = daysAgo(now, settings.orphanContactReviewDays);
+  const orphanContactCutoff = reviewCutoffForRule(now, settings.moduleRules.protected_person, settings.orphanContactReviewDays);
   const completedDeadlineCutoff = monthsAgo(now, settings.completedDeadlineRetentionMonths);
-  const journalCutoff = monthsAgo(now, settings.activityJournalReviewMonths);
-  const participationViolationCutoff = monthsAgo(now, settings.participationViolationReviewMonths);
+  const journalCutoff = journalReviewCutoff(now, settings);
 
-  appendCaseCandidates(candidates, input, settings, closedCutoff, inactiveCutoff);
+  appendCaseCandidates(candidates, input, settings, now, inactiveCutoff);
   appendContactCandidates(candidates, input, settings, orphanContactCutoff);
   appendProtectedPersonCandidates(candidates, input, orphanContactCutoff);
   candidates.push(...buildRetentionIntegrityCandidates(input.documents ?? []));
   appendDeadlineCandidates(candidates, input, settings, completedDeadlineCutoff);
   appendJournalCandidates(candidates, input, settings, journalCutoff);
-  appendParticipationViolationCandidates(candidates, input, settings, participationViolationCutoff);
+  appendParticipationViolationCandidates(candidates, input, settings, now);
   candidates.push(...buildOfficeOwnerRetentionCandidates(input.officeOwners ?? [], now));
-  candidates.push(...buildModuleRetentionCandidates(input.moduleRecords ?? [], now));
+  candidates.push(...buildModuleRetentionCandidates(input.moduleRecords ?? [], now, policies));
 
-candidates.sort((a, b) => riskOrder(a.riskLevel) - riskOrder(b.riskLevel) || a.title.localeCompare(b.title, 'de-DE'));
+  candidates.sort((a, b) => riskOrder(a.riskLevel) - riskOrder(b.riskLevel) || a.title.localeCompare(b.title, 'de-DE'));
 
   return {
     generatedAt: now.toISOString(),
     settings,
-    policies: RETENTION_POLICY_CATALOG.map((policy) => ({ ...policy, rule: { ...policy.rule } })),
+    policies,
     candidates,
     counts: {
       total: candidates.length,

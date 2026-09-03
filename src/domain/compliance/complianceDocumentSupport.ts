@@ -2,6 +2,12 @@ import type { ComplianceDocumentDescriptor, ComplianceDocumentType } from '../mo
 import { legalCalendarDate } from '../time/legalTime.js';
 export const COMPLIANCE_DOCUMENTS: ComplianceDocumentDescriptor[] = [
   {
+    type: 'data_protection_status',
+    title: 'Technischer Datenschutzstatus vor Produktivnutzung',
+    description: 'Prüfliste für Auto-Lock, Backup, Audit, temporäre Dateien, DSFA/TOM/VVT und organisatorische Freigaben.',
+    buttonLabel: 'Technischen Status abrufen'
+  },
+  {
     type: 'toms',
     title: 'TOMs – Technische und organisatorische Maßnahmen',
     description: 'Dokumentiert die technischen und organisatorischen Schutzmaßnahmen für lokale SBV-Fallarbeit.',
@@ -12,6 +18,30 @@ export const COMPLIANCE_DOCUMENTS: ComplianceDocumentDescriptor[] = [
     title: 'VVT-Eintrag – SBV-Fallarbeit',
     description: 'Entwurf für das Verzeichnis von Verarbeitungstätigkeiten nach Art. 30 DSGVO.',
     buttonLabel: 'VVT abrufen'
+  },
+  {
+    type: 'retention_schedule',
+    title: 'Lösch- und Aufbewahrungskonzept',
+    description: 'Arbeitsentwurf für Aufbewahrung, Löschung, Anonymisierung und Review-Fristen.',
+    buttonLabel: 'Löschkonzept abrufen'
+  },
+  {
+    type: 'export_policy',
+    title: 'Export- und Weitergaberegeln',
+    description: 'Interne Nutzungsregel für Klartextexporte, PDF-Abrufe und externe Weitergabe.',
+    buttonLabel: 'Exportregeln abrufen'
+  },
+  {
+    type: 'data_protection_notice',
+    title: 'Datenschutzinformation Art. 13/14 DSGVO',
+    description: 'Anpassbare Vorlage für die proaktive Datenschutzinformation betroffener Beschäftigter.',
+    buttonLabel: 'Datenschutzinformation abrufen'
+  },
+  {
+    type: 'data_subject_rights',
+    title: 'Prozess Betroffenenrechte',
+    description: 'Prüf- und Ablaufhilfe für Auskunft, Berichtigung, Löschung und Einschränkung.',
+    buttonLabel: 'Betroffenenrechte abrufen'
   },
   {
     type: 'dsfa',
@@ -26,52 +56,16 @@ export const COMPLIANCE_DOCUMENTS: ComplianceDocumentDescriptor[] = [
     buttonLabel: 'Compliance-Auswertung abrufen'
   },
   {
-    type: 'retention_schedule',
-    title: 'Lösch- und Aufbewahrungskonzept',
-    description: 'Arbeitsentwurf für Aufbewahrung, Löschung, Anonymisierung und Review-Fristen.',
-    buttonLabel: 'Löschkonzept abrufen'
-  },
-  {
-    type: 'data_subject_rights',
-    title: 'Prozess Betroffenenrechte',
-    description: 'Prüf- und Ablaufhilfe für Auskunft, Berichtigung, Löschung und Einschränkung.',
-    buttonLabel: 'Betroffenenrechte abrufen'
-  },
-  {
-    type: 'data_protection_notice',
-    title: 'Datenschutzinformation Art. 13/14 DSGVO',
-    description: 'Anpassbare Vorlage für die proaktive Datenschutzinformation betroffener Beschäftigter.',
-    buttonLabel: 'Datenschutzinformation abrufen'
-  },
-  {
-    type: 'export_policy',
-    title: 'Export- und Weitergaberegeln',
-    description: 'Interne Nutzungsregel für Klartextexporte, PDF-Abrufe und externe Weitergabe.',
-    buttonLabel: 'Exportregeln abrufen'
-  },
-  {
     type: 'dsb_it_security_approval',
     title: 'Vorlage DSB / IT-Security',
     description: 'Formular zur Genehmigung der Softwarenutzung mit Sicherheitsmaßnahmen.',
     buttonLabel: 'Freigabeformular abrufen'
   },
   {
-    type: 'data_protection_status',
-    title: 'Technischer Datenschutzstatus vor Produktivnutzung',
-    description: 'Prüfliste für Auto-Lock, Backup, Audit, temporäre Dateien, DSFA/TOM/VVT und organisatorische Freigaben.',
-    buttonLabel: 'Technischen Status abrufen'
-  },
-  {
-    type: 'release_readiness_checklist',
-    title: '1.0-Release-Checkliste',
-    description: 'Abnahmeliste für Build, Migration, Backup/Restore, Berichte, Overlay, Datenschutz und Known Issues.',
-    buttonLabel: 'Release-Checkliste abrufen'
-  },
-  {
     type: 'dsar_response',
-    title: 'Antwort auf DSGVO-Auskunftsersuchen',
-    description: 'Strukturierte Antwort nach Art. 15 DSGVO mit Prüfliste, Datenkategorien und Rechtsbehelfsbelehrung.',
-    buttonLabel: 'Auskunftsantwort abrufen'
+    title: 'SBV-Zuarbeit zur Art.-15-Auskunft',
+    description: 'Geprüfte Zuarbeit der SBV für Datenschutzkontakt oder verantwortliche Stelle; DSB optional, keine ungeprüfte Direktantwort.',
+    buttonLabel: 'Art.-15-Zuarbeit abrufen'
   }
 ];
 export function nowIso(): string {
@@ -88,9 +82,9 @@ export function plusDays(date: Date, days: number): Date {
 export function toDateInputValue(date: Date): string {
   return legalCalendarDate(date);
 }
-export function markdownFileName(type: ComplianceDocumentType, generatedAt: string): string {
+export function complianceDocumentFileName(type: ComplianceDocumentType, generatedAt: string): string {
   const stamp = generatedAt.replace(/[:.]/g, '-').slice(0, 19);
-  return `gremia-sbv-${type}-${stamp}.md`;
+  return `gremia-sbv-${type}-${stamp}.pdf`;
 }
 export function header(title: string, generatedAt: string): string {
   return `# ${title}

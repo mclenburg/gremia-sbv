@@ -15,7 +15,7 @@ import {
   assertString,
   sanitizeDialogFileName,
 } from "./ipcValidation.js";
-import { requestShellPathOpen } from "./shellOpenPath.js";
+import { requestPlainDocumentPreview } from "./documentPreviewWorkflow.js";
 
 const DOCUMENT_IMPORT_EXTENSIONS = [
   "pdf",
@@ -29,6 +29,23 @@ const DOCUMENT_IMPORT_EXTENSIONS = [
   "json",
   "xml",
 ] as const;
+
+async function openCaseDocumentPreview(
+  documentId: string,
+  security: SecurityService,
+  services: ApplicationServices,
+) {
+  const preview = await services.cases.readDocumentForPreview(documentId);
+  return requestPlainDocumentPreview({
+    operation: "cases:documents:open",
+    readFailureMessage: "Das Falldokument konnte für die Vorschau nicht entschlüsselt und geprüft werden.",
+    security,
+    opener: (targetPath) => shell.openPath(targetPath),
+    fileName: preview.fileName,
+    read: () => preview.content,
+    tempPurpose: "document-preview",
+  });
+}
 
 export function registerCaseIpc(
   ipcMain: IpcMain,
@@ -73,10 +90,7 @@ export function registerCaseIpc(
   );
   registerIpcHandler(ipcMain, IPC_CHANNELS.casesDocumentsOpen, async (_event, id: unknown) => {
     const documentId = assertString(id, "cases:documents:open", "Dokument-ID", { minLength: 1, maxLength: 120 });
-    const tempCopy = await cases.createTemporaryDocumentCopy(documentId);
-    const openResult = await requestShellPathOpen(tempCopy.filePath, (targetPath) => shell.openPath(targetPath));
-    if (!openResult.opened) throw new Error(openResult.error);
-    return { opened: true, filePath: tempCopy.filePath };
+    return openCaseDocumentPreview(documentId, security, services);
   });
   registerIpcHandler(ipcMain, IPC_CHANNELS.casesDocumentsExport,
     async (_event, id: unknown, suggestedFileName?: unknown) => {

@@ -18,3 +18,23 @@ export function buildRendererConsoleDiagnostic(level: number, message: string, l
     },
   };
 }
+
+export type RendererConsoleDiagnosticSink = Pick<Console, "error" | "info" | "warn">;
+
+export function emitRendererConsoleDiagnostic(
+  sink: RendererConsoleDiagnosticSink,
+  level: number,
+  message: string,
+  line: number,
+): void {
+  const diagnostic = buildRendererConsoleDiagnostic(level, message, line);
+  if (level >= 2) {
+    sink.error(diagnostic.prefix, diagnostic.metadata);
+    return;
+  }
+  if (level === 1) {
+    sink.warn(diagnostic.prefix, diagnostic.metadata);
+    return;
+  }
+  sink.info(diagnostic.prefix, diagnostic.metadata);
+}

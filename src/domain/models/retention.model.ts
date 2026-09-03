@@ -21,34 +21,6 @@ export type RetentionCandidateType =
 
 export type RetentionRiskLevel = 'info' | 'warning' | 'critical';
 
-export interface RetentionSettings {
-  closedCaseReviewMonths: number;
-  inactiveOpenCaseMonths: number;
-  orphanContactReviewDays: number;
-  completedDeadlineRetentionMonths: number;
-  activityJournalReviewMonths: number;
-  participationViolationReviewMonths: number;
-  minimumGroupSizeForReports: number;
-}
-
-export interface RetentionCandidate {
-  id: string;
-  type: RetentionCandidateType;
-  riskLevel: RetentionRiskLevel;
-  title: string;
-  reference?: string;
-  description: string;
-  recommendedAction: 'pruefen' | 'anonymisieren' | 'loeschen' | 'archivieren';
-  createdAt?: string;
-  dueSince?: string;
-  entityType: RetentionOwnerType | RetentionModuleType | 'contact' | 'document' | 'deadline' | 'activity_journal_entry' | 'sbv_participation_violation' | 'file' | 'system';
-  entityId?: string;
-  caseId?: string;
-  privacyReviewRequired?: boolean;
-  policyKey?: RetentionModuleType;
-  legalBasis?: string;
-}
-
 export type RetentionModuleType =
   | 'recruiting'
   | 'termination_hearing'
@@ -69,6 +41,38 @@ export type RetentionRule =
   | { kind: 'term_related'; months: number }
   | { kind: 'purpose_linked' }
   | { kind: 'permanent_anonymized' };
+
+export type RetentionModuleRuleOverrides = Partial<Record<RetentionModuleType, RetentionRule>>;
+export type RetentionModuleRules = Record<RetentionModuleType, RetentionRule>;
+
+export interface RetentionSettings {
+  closedCaseReviewMonths: number;
+  inactiveOpenCaseMonths: number;
+  orphanContactReviewDays: number;
+  completedDeadlineRetentionMonths: number;
+  activityJournalReviewMonths: number;
+  participationViolationReviewMonths: number;
+  minimumGroupSizeForReports: number;
+  moduleRules: RetentionModuleRules;
+}
+
+export interface RetentionCandidate {
+  id: string;
+  type: RetentionCandidateType;
+  riskLevel: RetentionRiskLevel;
+  title: string;
+  reference?: string;
+  description: string;
+  recommendedAction: 'pruefen' | 'anonymisieren' | 'loeschen' | 'archivieren';
+  createdAt?: string;
+  dueSince?: string;
+  entityType: RetentionOwnerType | RetentionModuleType | 'contact' | 'document' | 'deadline' | 'activity_journal_entry' | 'sbv_participation_violation' | 'file' | 'system';
+  entityId?: string;
+  caseId?: string;
+  privacyReviewRequired?: boolean;
+  policyKey?: RetentionModuleType;
+  legalBasis?: string;
+}
 
 export interface RetentionPolicyDefinition {
   module: RetentionModuleType;
@@ -131,4 +135,5 @@ export interface UpdateRetentionSettingsInput {
   activityJournalReviewMonths?: number;
   participationViolationReviewMonths?: number;
   minimumGroupSizeForReports?: number;
+  moduleRules?: RetentionModuleRuleOverrides;
 }
