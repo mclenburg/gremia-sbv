@@ -1277,7 +1277,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@types/react-dom@19.2.4
+@types/react-dom@19.2.5
 License: MIT
 Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
 Homepage: https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/react-dom
@@ -1417,7 +1417,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@vitejs/plugin-react@6.0.5
+@vitejs/plugin-react@6.1.0
 License: MIT
 Repository: git+https://github.com/vitejs/vite-plugin-react.git
 Homepage: https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#readme
@@ -1591,11 +1591,27 @@ Copyright notices:
 - The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 License text: LICENSES/MIT.txt
 
+ansi-regex@6.3.0
+License: MIT
+Repository: chalk/ansi-regex
+Copyright notices:
+- Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
+- The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+License text: LICENSES/MIT.txt
+
 ansi-styles@4.3.0
 License: MIT
 Repository: chalk/ansi-styles
 Copyright notices:
 - Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (sindresorhus.com)
+- The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+License text: LICENSES/MIT.txt
+
+ansi-styles@6.2.3
+License: MIT
+Repository: chalk/ansi-styles
+Copyright notices:
+- Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
 - The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 License text: LICENSES/MIT.txt
 
@@ -1971,6 +1987,14 @@ Copyright notices:
 - The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 License text: LICENSES/MIT.txt
 
+chalk@5.6.2
+License: MIT
+Repository: chalk/chalk
+Copyright notices:
+- Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
+- The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+License text: LICENSES/MIT.txt
+
 chownr@3.0.0
 License: BlueOak-1.0.0
 Repository: git://github.com/isaacs/chownr.git
@@ -2006,6 +2030,14 @@ Copyright notices:
 License text: LICENSES/MIT.txt
 
 cliui@8.0.1
+License: ISC
+Repository: yargs/cliui
+Copyright notices:
+- Copyright (c) 2015, Contributors
+- that the above copyright notice and this permission notice
+License text: LICENSES/ISC.txt
+
+cliui@9.0.1
 License: ISC
 Repository: yargs/cliui
 Copyright notices:
@@ -2099,7 +2131,7 @@ Copyright notices:
 - COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 License text: LICENSES/MIT.txt
 
-concurrently@9.2.4
+concurrently@10.0.4
 License: MIT
 Repository: https://github.com/open-cli-tools/concurrently.git
 Copyright notices:
@@ -2421,6 +2453,13 @@ Copyright notices:
 - NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
 License text: LICENSES/MIT.txt
 
+emoji-regex@10.6.0
+License: MIT
+Repository: https://github.com/mathiasbynens/emoji-regex.git
+Homepage: https://mths.be/emoji-regex
+Copyright notices: none detected in package metadata or distributed notice files.
+License text: LICENSES/MIT.txt
+
 emoji-regex@8.0.0
 License: MIT
 Repository: https://github.com/mathiasbynens/emoji-regex.git
@@ -2611,7 +2650,7 @@ Copyright notices:
 - that You distribute, all copyright, patent, trademark, and
 License text: LICENSES/Apache-2.0.txt
 
-eslint@10.8.1
+eslint@10.9.0
 License: MIT
 Repository: eslint/eslint
 Homepage: https://eslint.org
@@ -2953,6 +2992,14 @@ Copyright notices:
 - Copyright 2018 Stefan Penner
 - Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted, provided that the above copyright notice and this permission notice appear in all copies.
 License text: LICENSES/ISC.txt
+
+get-east-asian-width@1.6.0
+License: MIT
+Repository: sindresorhus/get-east-asian-width
+Copyright notices:
+- Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
+- The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+License text: LICENSES/MIT.txt
 
 get-intrinsic@1.3.0
 License: MIT
@@ -4761,11 +4808,27 @@ Copyright notices:
 - The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 License text: LICENSES/MIT.txt
 
+string-width@7.2.0
+License: MIT
+Repository: sindresorhus/string-width
+Copyright notices:
+- Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
+- The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+License text: LICENSES/MIT.txt
+
 strip-ansi@6.0.1
 License: MIT
 Repository: chalk/strip-ansi
 Copyright notices:
 - Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (sindresorhus.com)
+- The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+License text: LICENSES/MIT.txt
+
+strip-ansi@7.2.0
+License: MIT
+Repository: chalk/strip-ansi
+Copyright notices:
+- Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
 - The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 License text: LICENSES/MIT.txt
 
@@ -4786,19 +4849,19 @@ Copyright notices:
 - that You distribute, all copyright, patent, trademark, and
 License text: LICENSES/Apache-2.0.txt
 
+supports-color@10.2.2
+License: MIT
+Repository: chalk/supports-color
+Copyright notices:
+- Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
+- The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+License text: LICENSES/MIT.txt
+
 supports-color@7.2.0
 License: MIT
 Repository: chalk/supports-color
 Copyright notices:
 - Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (sindresorhus.com)
-- The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-License text: LICENSES/MIT.txt
-
-supports-color@8.1.1
-License: MIT
-Repository: chalk/supports-color
-Copyright notices:
-- Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
 - The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 License text: LICENSES/MIT.txt
 
@@ -5214,6 +5277,14 @@ Copyright notices:
 - The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 License text: LICENSES/MIT.txt
 
+wrap-ansi@9.0.2
+License: MIT
+Repository: chalk/wrap-ansi
+Copyright notices:
+- Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
+- The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+License text: LICENSES/MIT.txt
+
 wrappy@1.0.2
 License: ISC
 Repository: https://github.com/npm/wrappy
@@ -5294,7 +5365,25 @@ Copyright notices:
 - that the above copyright notice and this permission notice
 License text: LICENSES/ISC.txt
 
+yargs-parser@22.0.0
+License: ISC
+Repository: https://github.com/yargs/yargs-parser.git
+Copyright notices:
+- Copyright (c) 2016, Contributors
+- that the above copyright notice and this permission notice
+License text: LICENSES/ISC.txt
+
 yargs@17.7.2
+License: MIT
+Repository: https://github.com/yargs/yargs.git
+Homepage: https://yargs.js.org/
+Copyright notices:
+- Copyright 2010 James Halliday (mail@substack.net); Modified work Copyright 2014 Contributors (ben@npmjs.com)
+- The above copyright notice and this permission notice shall be included in
+- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+License text: LICENSES/MIT.txt
+
+yargs@18.0.0
 License: MIT
 Repository: https://github.com/yargs/yargs.git
 Homepage: https://yargs.js.org/

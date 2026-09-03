@@ -473,7 +473,7 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - @types/pdfkit@0.17.6
   License: MIT
   License text: LICENSES/MIT.txt
-- @types/react-dom@19.2.4
+- @types/react-dom@19.2.5
   License: MIT
   License text: LICENSES/MIT.txt
 - @types/react@19.2.18
@@ -515,7 +515,7 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - @typescript-eslint/visitor-keys@8.67.0
   License: MIT
   License text: LICENSES/MIT.txt
-- @vitejs/plugin-react@6.0.5
+- @vitejs/plugin-react@6.1.0
   License: MIT
   License text: LICENSES/MIT.txt
 - @vitest/coverage-v8@4.1.11
@@ -569,7 +569,13 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - ansi-regex@5.0.1
   License: MIT
   License text: LICENSES/MIT.txt
+- ansi-regex@6.3.0
+  License: MIT
+  License text: LICENSES/MIT.txt
 - ansi-styles@4.3.0
+  License: MIT
+  License text: LICENSES/MIT.txt
+- ansi-styles@6.2.3
   License: MIT
   License text: LICENSES/MIT.txt
 - app-builder-lib@26.15.3
@@ -683,6 +689,9 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - chalk@4.1.2
   License: MIT
   License text: LICENSES/MIT.txt
+- chalk@5.6.2
+  License: MIT
+  License text: LICENSES/MIT.txt
 - chownr@3.0.0
   License: BlueOak-1.0.0
   License text: LICENSES/BlueOak-1.0.0.txt
@@ -696,6 +705,9 @@ License texts are stored once per used license below LICENSES/. Copyright notice
   License: MIT
   License text: LICENSES/MIT.txt
 - cliui@8.0.1
+  License: ISC
+  License text: LICENSES/ISC.txt
+- cliui@9.0.1
   License: ISC
   License text: LICENSES/ISC.txt
 - clone-response@1.0.3
@@ -728,7 +740,7 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - concat-map@0.0.1
   License: MIT
   License text: LICENSES/MIT.txt
-- concurrently@9.2.4
+- concurrently@10.0.4
   License: MIT
   License text: LICENSES/MIT.txt
 - convert-source-map@2.0.0
@@ -824,6 +836,9 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - electron@43.4.1
   License: MIT
   License text: LICENSES/MIT.txt
+- emoji-regex@10.6.0
+  License: MIT
+  License text: LICENSES/MIT.txt
 - emoji-regex@8.0.0
   License: MIT
   License text: LICENSES/MIT.txt
@@ -881,7 +896,7 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - eslint-visitor-keys@5.0.1
   License: Apache-2.0
   License text: LICENSES/Apache-2.0.txt
-- eslint@10.8.1
+- eslint@10.9.0
   License: MIT
   License text: LICENSES/MIT.txt
 - espree@11.2.0
@@ -983,6 +998,9 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - get-caller-file@2.0.5
   License: ISC
   License text: LICENSES/ISC.txt
+- get-east-asian-width@1.6.0
+  License: MIT
+  License text: LICENSES/MIT.txt
 - get-intrinsic@1.3.0
   License: MIT
   License text: LICENSES/MIT.txt
@@ -1597,16 +1615,22 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - string-width@4.2.3
   License: MIT
   License text: LICENSES/MIT.txt
+- string-width@7.2.0
+  License: MIT
+  License text: LICENSES/MIT.txt
 - strip-ansi@6.0.1
+  License: MIT
+  License text: LICENSES/MIT.txt
+- strip-ansi@7.2.0
   License: MIT
   License text: LICENSES/MIT.txt
 - sumchecker@3.0.1
   License: Apache-2.0
   License text: LICENSES/Apache-2.0.txt
-- supports-color@7.2.0
+- supports-color@10.2.2
   License: MIT
   License text: LICENSES/MIT.txt
-- supports-color@8.1.1
+- supports-color@7.2.0
   License: MIT
   License text: LICENSES/MIT.txt
 - tailwindcss@4.3.3
@@ -1743,6 +1767,9 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - wrap-ansi@7.0.0
   License: MIT
   License text: LICENSES/MIT.txt
+- wrap-ansi@9.0.2
+  License: MIT
+  License text: LICENSES/MIT.txt
 - wrappy@1.0.2
   License: ISC
   License text: LICENSES/ISC.txt
@@ -1770,7 +1797,13 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - yargs-parser@21.1.1
   License: ISC
   License text: LICENSES/ISC.txt
+- yargs-parser@22.0.0
+  License: ISC
+  License text: LICENSES/ISC.txt
 - yargs@17.7.2
+  License: MIT
+  License text: LICENSES/MIT.txt
+- yargs@18.0.0
   License: MIT
   License text: LICENSES/MIT.txt
 - yauzl@3.3.2
