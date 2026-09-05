@@ -38,6 +38,7 @@ import { SearchIndexService } from "../search/searchIndexService.js";
 import { extractDocumentTextBestEffort, inferMimeType } from "../documents/documentTextExtractionService.js";
 import { DocumentOcrService } from "../documents/documentOcrService.js";
 import { OWNER_ONLY_FILE_MODE, restrictFileToOwner } from "../secureFilePermissions.js";
+import { DatabaseUnitOfWork } from "../databaseUnitOfWork.js";
 import { CaseNoteService } from './caseNoteService.js';
 import { mapDocument, nowIso } from './caseSupport.js';
 import type { DatabaseRow } from './caseSupport.js';
@@ -281,22 +282,30 @@ export class CaseDocumentService extends CaseNoteService {
       const storagePath = row?.storage_path
         ? resolveEncryptedDocumentStoragePath(this.dataDirProvider(), String(row.storage_path))
         : undefined;
-      db.prepare("DELETE FROM case_documents_fts WHERE id = ?").run(id);
-      new SearchIndexService(db).deleteSource("document", id);
-      new SearchIndexService(db).deleteSource("document_ocr", id);
-      const result = db
-        .prepare<DatabaseRow>("DELETE FROM case_documents WHERE id = ?")
-        .run(id) as { changes?: number } | undefined;
+      if (!row) return { deleted: false };
+      const result = new DatabaseUnitOfWork(db).run(() => {
+        db.prepare("DELETE FROM case_documents_fts WHERE id = ?").run(id);
+        db.prepare("DELETE FROM case_document_ocr_jobs WHERE document_id = ?").run(id);
+        const searchIndex = new SearchIndexService(db);
+        searchIndex.deleteSource("document", id);
+        searchIndex.deleteSource("document_ocr", id);
+        const deletion = db
+          .prepare<DatabaseRow>("DELETE FROM case_documents WHERE id = ?")
+          .run(id) as { changes?: number } | undefined;
+        if (deletion?.changes) {
+          new PersonalDataAuditLogService(db).append({
+            action: "delete",
+            subjectType: "case_document",
+            subjectId: id,
+            caseId: row.case_id,
+            purpose: "Falldokument gelöscht",
+          });
+        }
+        return deletion;
+      });
       if (storagePath) {
         await fs.promises.rm(storagePath, { force: true }).catch(() => undefined);
       }
-      this.audit(db, {
-        action: "delete",
-        subjectType: "case_document",
-        subjectId: id,
-        caseId: row?.case_id,
-        purpose: "Falldokument gelöscht",
-      });
       return { deleted: Boolean(result?.changes) };
     }
 
