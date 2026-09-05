@@ -3590,8 +3590,8 @@
     },
     {
       "path": "src/app/ui/components.css",
-      "size": 54784,
-      "sha256": "04a089103709d02857a03769a7bc1c049239992dce6dc46302f1059c48c56d55"
+      "size": 54757,
+      "sha256": "60bbadbde7f70426feb44873f99f7fdedee8f511846d72104e9d7a4d8304b567"
     },
     {
       "path": "src/app/ui/designTokens.css",
@@ -3993,7 +3993,7 @@
     {
       "path": "dist/.vite/manifest.json",
       "size": 11402,
-      "sha256": "2b04fb4392fc4a4dea3d341694bde93448ff54ff21461d0260a6edc347e0fa20"
+      "sha256": "c4b39916d061c6d47e42cdb261328f7d56a5d1e2f1adbc6680577c4722738199"
     },
     {
       "path": "dist/assets/512x512-FFLOWpww.png",
@@ -4006,24 +4006,24 @@
       "sha256": "833b34c7bc78f24a04e2b34feb0d744d5255117234eaa691bbb4a37624c9311d"
     },
     {
-      "path": "dist/assets/BemView-Bw2Oh2YL.js",
+      "path": "dist/assets/BemView-MZr-1qOY.js",
       "size": 2701,
-      "sha256": "0d957c82f135bfc7758a057c6b7c2e38979ddff6666963605ecb75a31bfb157f"
+      "sha256": "4fc9f46e7e3b22272e2fa1c3580c90dd8e2d801ff919c4b801f632cbde5ef571"
     },
     {
-      "path": "dist/assets/CaseHandoverCockpitView-DIV6Lhb-.js",
+      "path": "dist/assets/CaseHandoverCockpitView-BlYiGAYG.js",
       "size": 13973,
-      "sha256": "2efe04b548a4256eeac034782cf2b38e1ab1631980da11c7e848a717aa32169b"
+      "sha256": "9d75685621ddd5120c41c9c1fb81c966485f9e388782a746d3d83e86f0364212"
     },
     {
-      "path": "dist/assets/CasesView-Cqwm3_3L.js",
+      "path": "dist/assets/CasesView-B0dY2Qk9.js",
       "size": 272701,
-      "sha256": "89f411b2b951aceb2f0ea005dbe1fe306373c2b23236a80916bfd0dbe6b2a19f"
+      "sha256": "f0d3769f8af918f73f9100fc57789545143437f35346eefde6927c56784c5327"
     },
     {
-      "path": "dist/assets/ComplianceView-DuEZTQ8z.js",
+      "path": "dist/assets/ComplianceView-BGK3PWb0.js",
       "size": 78223,
-      "sha256": "6a583e7034e7b4bf7713dcfd6ddb312070b8aa5fa57388f44f057b1e3e0d6bb4"
+      "sha256": "a9b7cdeba63065899970a54eee8306e1d98da9be06c356156030818354adf325"
     },
     {
       "path": "dist/assets/dates-D6WQa1jA.js",
@@ -4031,9 +4031,9 @@
       "sha256": "b71a8a36cfa8975e0273b2192d72f2bd9694b803df31db523701afd063ee05ea"
     },
     {
-      "path": "dist/assets/ElectionWorkbench-DQbqtpoD.js",
+      "path": "dist/assets/ElectionWorkbench-BVolOSDc.js",
       "size": 41158,
-      "sha256": "1c1f651513c68b6f6317d3bc8589d82f1e1675d3ec8fc32b11a5e5588b553da5"
+      "sha256": "b3983b42581d5cf6ba9671a7af7ccbadae22d76f665f0061536179016ab35600"
     },
     {
       "path": "dist/assets/equalizationShared-itq54AIS.js",
@@ -4041,9 +4041,9 @@
       "sha256": "13c57021e0a05fb7f48814e1b3a82cfaf63b122d78d7ec702aef8f5adfece8a8"
     },
     {
-      "path": "dist/assets/EqualizationView-B7XvMvNH.js",
+      "path": "dist/assets/EqualizationView-ZYg7NdHg.js",
       "size": 7853,
-      "sha256": "3c40a5114751851be0c3b654bdcbe69d79db3ba053def3bb92b0bf44dfbbf88d"
+      "sha256": "f701ffa1fbfcbe8c5eab9cdedb1290966a26749f5b87e133a7453be93c317bce"
     },
     {
       "path": "dist/assets/gremiaBrWorkspaceModel-DAnDB-yi.js",
@@ -4051,19 +4051,19 @@
       "sha256": "a6747fcee93d7537b41a8149081eaddaa9611d3a0f2252cb6b082ae2ba3751fd"
     },
     {
-      "path": "dist/assets/GremiaBrWorkspaceView-CHKXCnBa.js",
+      "path": "dist/assets/GremiaBrWorkspaceView-C6x4AqNy.js",
       "size": 15234,
-      "sha256": "3f5cec633ab738010526e31613f03d985055065b6f9540100c5e7a9da3f63f8a"
+      "sha256": "b532e76fbd019f3fbee1c3ad6f2da63923c259eb1923738ca2ad07e5f6022fb4"
     },
     {
-      "path": "dist/assets/index-C1VD9crJ.js",
+      "path": "dist/assets/index-Dku4kP3c.css",
+      "size": 181333,
+      "sha256": "006ff1ffc89b1575078537f964dcbd522900082df63a1424f64ee763c3d0cb65"
+    },
+    {
+      "path": "dist/assets/index-Dwv5hUEO.js",
       "size": 235550,
-      "sha256": "932cec800384beac80fe35702e85ec986d5d96e93d32192fc60cb445a9ca8281"
-    },
-    {
-      "path": "dist/assets/index-Du4VdtI3.css",
-      "size": 181349,
-      "sha256": "365af7bf9f23a6033265c104042bac6b5097f37eccc59dc5257de76e65822bff"
+      "sha256": "35f30d37300831028ac60ae290a61a09941790f9fccb1d65484c2c3e29b59ed7"
     },
     {
       "path": "dist/assets/KnowledgeView-CILQW30l.js",
@@ -4081,9 +4081,9 @@
       "sha256": "da72be831b51b5850136d2115da42ec7bb7cd25f8e2e1b5bf00fbe319685da9e"
     },
     {
-      "path": "dist/assets/ParticipationView-CYVuK61M.js",
+      "path": "dist/assets/ParticipationView-BxgXwG37.js",
       "size": 8672,
-      "sha256": "9505cfe906f062f4d23ebb217997cb988ea3b12227276edee48f1fb3e2c89de9"
+      "sha256": "af5a54e034135fb1fe7ba25959571dbdbb9cbe2b7682e1f7982ccabb41272697"
     },
     {
       "path": "dist/assets/pdfExportFeedback-BLwP-eKc.js",
@@ -4096,29 +4096,29 @@
       "sha256": "5f26b7694943af1ce72ffffd179e5d0309061feadb1c1cd8283fea998734de0b"
     },
     {
-      "path": "dist/assets/PreventionView-i4Ouya5C.js",
+      "path": "dist/assets/PreventionView-BHJkMygs.js",
       "size": 2524,
-      "sha256": "d50d52353b16b2a8889547e017975b6a88b531a8fdc547b27b0889a6610e58f5"
+      "sha256": "aa60fc1572bb3db3a5fae02ae6c6db0ca346f1f74c1bc6e02300333b38b2cc3d"
     },
     {
-      "path": "dist/assets/PrivacyReviewCockpit-De4b6xR-.js",
+      "path": "dist/assets/PrivacyReviewCockpit-Dz1-Omn8.js",
       "size": 6879,
-      "sha256": "f941ecc14673b41bde74608f61bfefaa5a2537ab9373b8b27a2bbf9718bd3e8d"
+      "sha256": "6b5e3fec45bd51acc167fa265730bc6f74f9bb5b0c8712327b364469f04982d6"
     },
     {
-      "path": "dist/assets/ProcessOverview-Bel1YHCr.js",
+      "path": "dist/assets/ProcessOverview-Da_Y-mNu.js",
       "size": 2665,
-      "sha256": "2c7e1cd40a24ada38ba9830a136046a9b89cc9452ef477c7b243695b130671d0"
+      "sha256": "012cbbd55aee2c454b9036243117251b8da408dba84bb7a9396d6591c385fbcc"
     },
     {
-      "path": "dist/assets/RecruitingParticipationsView-CSlIryzQ.js",
+      "path": "dist/assets/RecruitingParticipationsView-CA8zlRu7.js",
       "size": 20416,
-      "sha256": "d06fff35a3a660d51fe5def74fbc6eea785af7ec52da1e850cb91f057af321fd"
+      "sha256": "81de6737198abafb6e33d9ea292cfd41edecd4f5d258264f8987f3fe5de7587d"
     },
     {
-      "path": "dist/assets/ReportsView-D4VSyme_.js",
+      "path": "dist/assets/ReportsView-C2jv-lr4.js",
       "size": 8211,
-      "sha256": "fd861e0850ec8fe01c8664b4a9687a19ba6ac6e757d006533dfa830fb386498f"
+      "sha256": "dde88447cebaa876dfeb6308928e8baf09012e970ca9a3b0e3797470cb805310"
     },
     {
       "path": "dist/assets/rolldown-runtime-CbXtAM7H.js",
@@ -4126,19 +4126,19 @@
       "sha256": "bbf7c5086ae414dc3f33777e3eebf16ea8631325b8bb4690d25091c03567f31a"
     },
     {
-      "path": "dist/assets/SbvControlView-DKJukrrH.js",
+      "path": "dist/assets/SbvControlView-DFcS3p1i.js",
       "size": 64457,
-      "sha256": "22dcb9accdd19397883d81d56735871acee3e1114d1d30d151b42f4067f77a8e"
+      "sha256": "3d2c8ac6a162336d94dbe6dc01749d7df379f4627dfa4952103a7e4629785ffa"
     },
     {
-      "path": "dist/assets/SettingsHub-Des9UrMu.js",
+      "path": "dist/assets/SettingsHub-CzL6uBz7.js",
       "size": 13659,
-      "sha256": "ebb0803bb4d2e9f6db327a6186b5784fa4c21f03e19e8be829c23558d8a33863"
+      "sha256": "b03c48bb8c6c686b35f5bd5c62e0c6597b2a3d3f49667717ae70fbc826e9dd1c"
     },
     {
-      "path": "dist/assets/TemplatesView-B40ffZf5.js",
+      "path": "dist/assets/TemplatesView-BHHltiGq.js",
       "size": 16473,
-      "sha256": "5f173da3f3d36b2ec5df0884f6c85a41138224ddbbbafab123c24f71fd9d57ce"
+      "sha256": "069c38b02892b86121d89ed097643c75d33ca2a9b98612655dff2315a302057d"
     },
     {
       "path": "dist/assets/terminationShared-BGFAg4La.js",
@@ -4146,9 +4146,9 @@
       "sha256": "99fdb6a2ce0416dbc10701da9cad5edf0775401bc85e98010b524d1c18615c2d"
     },
     {
-      "path": "dist/assets/TerminationView-D9jZnF8a.js",
+      "path": "dist/assets/TerminationView-BcwryQnD.js",
       "size": 3349,
-      "sha256": "26b6b81ad7f1146a67c4ae3a4b3eff287f10a9b2dfe06a72880f29a247f7a9e9"
+      "sha256": "28a402a9014d74e47db21757ae2566b83803a38d028158ef6f54ee378be9bc9e"
     },
     {
       "path": "dist/assets/vendor-ChooAUs9.js",
@@ -4163,7 +4163,7 @@
     {
       "path": "dist/index.html",
       "size": 1100,
-      "sha256": "aac49fd4c484e7725ac90f7c3d75ddff9ec12754f4762df133123310cef1ff30"
+      "sha256": "93026db41b9097d4a2f5faf3ef68bffe96c19c4e85b8fe635051ee5d37627f24"
     },
     {
       "path": "dist-electron/electron/applicationServiceDependencies.js",

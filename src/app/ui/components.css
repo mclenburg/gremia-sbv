@@ -371,7 +371,6 @@ html[data-theme='light'] .industrial-lock-button {
   transition:
     transform 140ms ease,
     border-color 140ms ease,
-    background 140ms ease,
     box-shadow 140ms ease;
 }
 
