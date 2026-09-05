@@ -5,7 +5,7 @@ import { PersonalDataAuditLogService } from './auditLogService.js';
 import { auditElectionTransferProcessed } from './auditEventBuilders.js';
 import { ElectionTransferCryptoAdapter, type ElectionTransferEnvelope } from './electionTransferCryptoAdapter.js';
 import type { ElectionTransferPayload } from './electionTransferPolicy.js';
-import { TransferInstanceIdentityService } from './transferInstanceIdentityService.js';
+import { TransferInstanceIdentityService, type TransferInstancePrivateIdentity } from './transferInstanceIdentityService.js';
 
 export interface ElectionTransferImportResult {
   importId: string;
@@ -23,7 +23,7 @@ export class ElectionTransferImportService {
   constructor(private readonly database: DatabaseAdapter, private readonly crypto = new ElectionTransferCryptoAdapter()) {}
 
   importAtomically(envelope: ElectionTransferEnvelope, passphrase: string, importer: ElectionTransferImporter): ElectionTransferImportResult {
-    const payload = this.crypto.decrypt(envelope, passphrase, new TransferInstanceIdentityService(this.database).getPrivateIdentity());
+    const payload = this.crypto.decrypt(envelope, passphrase, this.localIdentityFor(envelope));
     const manifestHash = this.crypto.manifestHash(payload);
     const importId = randomUUID();
     const now = new Date().toISOString();
@@ -56,5 +56,9 @@ export class ElectionTransferImportService {
       throw error;
     }
     return { importId, packageId: payload.manifest.packageId, electionId: importedElectionId, manifestHash };
+  }
+
+  private localIdentityFor(envelope: ElectionTransferEnvelope): TransferInstancePrivateIdentity | undefined {
+    return envelope.recipientBinding ? new TransferInstanceIdentityService(this.database).getPrivateIdentity() : undefined;
   }
 }

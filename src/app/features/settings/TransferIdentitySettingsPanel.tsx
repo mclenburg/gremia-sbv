@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { Copy, Fingerprint } from "lucide-react";
 import type { TransferInstanceIdentity } from "../../../domain/models/transfer-identity.model";
+import { useAnnouncer } from "../../shared/a11y/LiveRegionProvider";
 import { IndustrialButton } from "../../shared/components/IndustrialButton";
 import { TextareaInput, TextInput } from "../../shared/components/IndustrialForm";
 
 export function TransferIdentitySettingsPanel() {
+  const announce = useAnnouncer();
   const [identity, setIdentity] = useState<TransferInstanceIdentity | null>(null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -22,6 +24,14 @@ export function TransferIdentitySettingsPanel() {
     void loadIdentity();
     return () => { active = false; };
   }, []);
+
+  useEffect(() => {
+    if (message) announce(message, "polite");
+  }, [announce, message]);
+
+  useEffect(() => {
+    if (error) announce(error, "assertive");
+  }, [announce, error]);
 
   async function copyRecipientToken() {
     if (!identity) return;
@@ -61,7 +71,7 @@ export function TransferIdentitySettingsPanel() {
         <Copy className="h-4 w-4" /> Empfängerkennung kopieren
       </IndustrialButton>
       <p className="industrial-settings-note">
-        <Fingerprint className="h-4 w-4 inline-block" aria-hidden="true" /> Die ID ist bewusst kurz und gut diktierbar. Die eigentliche technische Bindung erfolgt über den öffentlichen Schlüssel in der Empfängerkennung.
+        <Fingerprint className="inline-icon" aria-hidden="true" /> Die ID ist bewusst kurz und gut diktierbar. Die eigentliche technische Bindung erfolgt über den öffentlichen Schlüssel in der Empfängerkennung.
       </p>
     </section>
   );

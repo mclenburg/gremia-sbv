@@ -11,7 +11,7 @@ import { assertCaseHandoverEnvelope, decryptCaseHandoverEnvelope, type CaseHando
 import { encryptCaseHandoverPayloadForRecipient } from './caseHandoverTargetCrypto.js';
 import { inspectCaseHandoverFilePath } from './caseHandoverFilePolicy.js';
 import { parseTransferRecipientToken } from './transferInstanceIdentityPolicy.js';
-import { TransferInstanceIdentityService } from './transferInstanceIdentityService.js';
+import { TransferInstanceIdentityService, type TransferInstancePrivateIdentity } from './transferInstanceIdentityService.js';
 import type { CaseHandoverContinueExpiredInput, CaseHandoverContinueExpiredResult, CaseHandoverExportInput, CaseHandoverExportResult, CaseHandoverImportInput, CaseHandoverImportResult, CaseHandoverInspectResult } from '../src/domain/models/case-handover.model.js';
 import { Row, PackagePayload, DecryptedPackage, nowIso, sha256, isRecord, safeString, ensureArray } from './caseHandoverSupport.js';
 import { encodeDocumentForHandover, sanitizeHandoverDocumentMetadata } from './caseHandoverDocumentCodec.js';
@@ -104,8 +104,7 @@ export class CaseHandoverService {
   }
 
   private decryptEnvelope(envelope: CaseHandoverEnvelope, passphrase: string): DecryptedPackage {
-    const localIdentity = new TransferInstanceIdentityService(this.database).getPrivateIdentity();
-    const decrypted = decryptCaseHandoverEnvelope(envelope, passphrase, localIdentity);
+    const decrypted = decryptCaseHandoverEnvelope(envelope, passphrase, this.localIdentityFor(envelope));
     const parsed = JSON.parse(decrypted.payloadText) as unknown;
     const payload = this.assertPayload(parsed, decrypted.formatVersion);
     if (payload.packageId !== envelope.packageId || payload.expiresAt !== envelope.expiresAt) throw new Error('Fallübergabepaket enthält widersprüchliche Metadaten.');
@@ -117,6 +116,12 @@ export class CaseHandoverService {
         algorithm: decrypted.algorithm,
       },
     };
+  }
+
+  private localIdentityFor(envelope: CaseHandoverEnvelope): TransferInstancePrivateIdentity | undefined {
+    return 'crypto' in envelope && envelope.recipientBinding
+      ? new TransferInstanceIdentityService(this.database).getPrivateIdentity()
+      : undefined;
   }
 
   private readEnvelope(filePath: string): CaseHandoverEnvelope {

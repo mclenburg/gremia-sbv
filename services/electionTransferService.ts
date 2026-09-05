@@ -11,7 +11,7 @@ import {
 } from './electionTransferCryptoAdapter.js';
 import { ElectionTransferImportService } from './electionTransferImportService.js';
 import { parseTransferRecipientToken } from './transferInstanceIdentityPolicy.js';
-import { TransferInstanceIdentityService } from './transferInstanceIdentityService.js';
+import { TransferInstanceIdentityService, type TransferInstancePrivateIdentity } from './transferInstanceIdentityService.js';
 import {
   createElectionTransferManifest,
   ELECTION_TRANSFER_TABLE_REFS,
@@ -41,33 +41,18 @@ export class ElectionTransferService {
   export(electionId: string, sourceVaultId: string, passphrase: string, targetRecipientToken: string): ElectionTransferEnvelope {
     const payload = this.createPayload(electionId, sourceVaultId);
     const envelope = this.crypto.encrypt(payload, passphrase, parseTransferRecipientToken(targetRecipientToken));
-    const manifestHash = electionManifestHash(payload.manifest);
-    new DatabaseUnitOfWork(this.database).run(() => {
-      this.database.prepare(`
-        INSERT INTO sbv_election_archive_exports(
-          id,election_id,export_type,format_version,created_at,manifest_hash,file_count,destination_path_metadata_minimal
-        ) VALUES(?,?,?,?,?,?,?,NULL)
-      `).run(
-        randomUUID(), electionId, 'transfer_container', payload.manifest.formatVersion,
-        payload.manifest.createdAt, manifestHash, payload.manifest.items.length,
-      );
-      new PersonalDataAuditLogService(this.database).append(auditElectionTransferProcessed({
-        action: 'export',
-        packageId: payload.manifest.packageId,
-        formatVersion: payload.manifest.formatVersion,
-        manifestHash,
-        result: 'success',
-      }));
-    });
+    this.auditExport(electionId, payload);
     return envelope;
   }
 
 
   async exportToFile(electionId: string, sourceVaultId: string, passphrase: string, targetRecipientToken: string, targetPath: string): Promise<ElectionTransferInspection> {
-    const envelope = this.export(electionId, sourceVaultId, passphrase, targetRecipientToken);
+    const payload = this.createPayload(electionId, sourceVaultId);
+    const envelope = this.crypto.encrypt(payload, passphrase, parseTransferRecipientToken(targetRecipientToken));
+    this.auditExport(electionId, payload);
     await fs.promises.writeFile(targetPath, JSON.stringify(envelope, null, 2), { mode: OWNER_ONLY_FILE_MODE });
     await restrictFileToOwner(targetPath);
-    return this.inspect(envelope, passphrase);
+    return this.inspectPayload(payload);
   }
 
   async inspectFile(filePath: string, passphrase: string): Promise<ElectionTransferInspection> {
@@ -90,7 +75,18 @@ export class ElectionTransferService {
   }
 
   inspect(envelope: ElectionTransferEnvelope, passphrase: string): ElectionTransferInspection {
-    const payload = this.crypto.decrypt(envelope, passphrase, new TransferInstanceIdentityService(this.database).getPrivateIdentity());
+    return this.inspectPayload(this.crypto.decrypt(envelope, passphrase, this.localIdentityFor(envelope)));
+  }
+
+  import(envelope: ElectionTransferEnvelope, passphrase: string) {
+    return this.importer.importAtomically(envelope, passphrase, (payload) => this.importPayload(payload));
+  }
+
+  private localIdentityFor(envelope: ElectionTransferEnvelope): TransferInstancePrivateIdentity | undefined {
+    return envelope.recipientBinding ? new TransferInstanceIdentityService(this.database).getPrivateIdentity() : undefined;
+  }
+
+  private inspectPayload(payload: ElectionTransferPayload): ElectionTransferInspection {
     return {
       packageId: payload.manifest.packageId,
       electionId: payload.manifest.electionId,
@@ -102,8 +98,25 @@ export class ElectionTransferService {
     };
   }
 
-  import(envelope: ElectionTransferEnvelope, passphrase: string) {
-    return this.importer.importAtomically(envelope, passphrase, (payload) => this.importPayload(payload));
+  private auditExport(electionId: string, payload: ElectionTransferPayload): void {
+    const manifestHash = electionManifestHash(payload.manifest);
+    new DatabaseUnitOfWork(this.database).run(() => {
+      this.database.prepare(`
+        INSERT INTO sbv_election_archive_exports(
+          id,election_id,export_type,format_version,created_at,manifest_hash,file_count,destination_path_metadata_minimal
+        ) VALUES(?,?,?,?,?,?,?,NULL)
+      `).run(
+        randomUUID(), electionId, 'transfer_container', payload.manifest.formatVersion,
+        payload.manifest.createdAt, manifestHash, payload.manifest.items.length,
+      );
+      new PersonalDataAuditLogService(this.database).append(auditElectionTransferProcessed({
+        action: 'export',
+        packageId: payload.manifest.packageId,
+        formatVersion: payload.manifest.formatVersion,
+        manifestHash,
+        result: 'success',
+      }));
+    });
   }
 
   private createPayload(electionId: string, sourceVaultId: string): ElectionTransferPayload {
