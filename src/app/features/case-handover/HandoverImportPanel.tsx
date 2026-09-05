@@ -26,6 +26,7 @@ export function HandoverImportPanel({ onCompleted }: { onCompleted: () => Promis
   const [error, setError] = useState('');
   const [status, setStatus] = useState('');
   const [applyOfficeConfiguration, setApplyOfficeConfiguration] = useState(true);
+  const [allowLegacyPackage, setAllowLegacyPackage] = useState(false);
 
   function showError(message: string) {
     setError(message);
@@ -48,6 +49,7 @@ export function HandoverImportPanel({ onCompleted }: { onCompleted: () => Promis
       const nextMode = selected.inspection.packageType === 'return_delta' ? 'merge_existing' : selected.inspection.importPlan.defaultMode;
       setSelection(selected); setMode(nextMode);
       setApplyOfficeConfiguration(selected.inspection.packageType === 'office_handover');
+      setAllowLegacyPackage(false);
       setTargetCaseId(nextMode === 'merge_existing' ? selected.inspection.matches[0]?.localCaseId ?? '' : '');
     } catch (cause) { showError(cause instanceof Error ? cause.message : 'Übergabepaket konnte nicht geprüft werden.'); }
     finally { setBusy(false); }
@@ -61,7 +63,8 @@ export function HandoverImportPanel({ onCompleted }: { onCompleted: () => Promis
     setBusy(true);
     try {
       const handover = await requireCaseHandoverBridge();
-      await handover.import({ filePath: selection.filePath, passphrase, mode, targetCaseId: targetCaseId || undefined, applyOfficeConfiguration });
+      if (selection.inspection.legacyImportConfirmationRequired && !allowLegacyPackage) return showError('Bitte den Import des geprüften Altformats ausdrücklich bestätigen.');
+      await handover.import({ filePath: selection.filePath, passphrase, mode, targetCaseId: targetCaseId || undefined, applyOfficeConfiguration, allowLegacyPackage });
       showStatus(selection.inspection.packageType === 'return_delta'
         ? 'Rückgabe wurde in die ursprünglichen Fallakten eingespielt.'
         : selection.inspection.packageType === 'office_handover'
@@ -92,6 +95,10 @@ export function HandoverImportPanel({ onCompleted }: { onCompleted: () => Promis
       {inspection?.packageType === 'office_handover' ? <label className="industrial-checkbox-row">
         <input type="checkbox" checked={applyOfficeConfiguration} onChange={(event) => setApplyOfficeConfiguration(event.currentTarget.checked)} />
         <span>Übergebene Fristen- und Aufbewahrungsregeln für diese Instanz übernehmen. Lokale Regeln mit gleichem Schlüssel werden bewusst ersetzt.</span>
+      </label> : null}
+      {inspection?.legacyImportConfirmationRequired ? <label className="industrial-checkbox-row">
+        <input type="checkbox" checked={allowLegacyPackage} onChange={(event) => setAllowLegacyPackage(event.currentTarget.checked)} />
+        <span>Ich habe Herkunft und Inhalt dieses älteren, nicht nach aktuellem Standard geschützten Pakets geprüft und möchte es importieren.</span>
       </label> : null}
       {error ? <div className="industrial-message industrial-message-warning" role="alert">{error}</div> : null}
       {status ? <div className="industrial-message industrial-message-success" role="status">{status}</div> : null}

@@ -41,6 +41,7 @@ export interface CaseHandoverExportResult {
   expiresAt?: string;
   targetInstanceId?: string;
   officeScope?: OfficeHandoverScope;
+  legacyImportConfirmationRequired?: boolean;
 }
 
 export interface CaseHandoverCandidateMatch {
@@ -88,6 +89,7 @@ export interface CaseHandoverImportInput {
   mode: CaseHandoverImportMode;
   targetCaseId?: string;
   applyOfficeConfiguration?: boolean;
+  allowLegacyPackage?: boolean;
 }
 
 export interface OfficeHandoverImportSummary {

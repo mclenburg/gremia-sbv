@@ -281,6 +281,7 @@ export class CaseHandoverService {
         integrity: { verified: true, algorithm: decrypted.transfer.algorithm, formatVersion: decrypted.transfer.formatVersion, legacyFormat: decrypted.transfer.legacyFormat },
         targetInstanceId: 'crypto' in envelope ? envelope.recipientBinding?.targetInstanceId : undefined,
         officeScope: officeHandoverScope(payload),
+        legacyImportConfirmationRequired: decrypted.transfer.legacyFormat,
         file: { fileName: file.fileName, sizeBytes: file.sizeBytes, isNetworkPath: file.isNetworkPath },
       };
     } catch (error) {
@@ -295,6 +296,9 @@ export class CaseHandoverService {
     const envelope = this.readEnvelope(file.filePath);
     const decrypted = this.decryptEnvelope(envelope, input.passphrase);
     const payload = decrypted.payload;
+    if (decrypted.transfer.legacyFormat && !input.allowLegacyPackage) {
+      throw new Error('Dieses Übergabepaket nutzt ein Altformat. Bitte den geprüften Altformat-Import ausdrücklich bestätigen.');
+    }
     if (payload.packageType === 'return_delta') {
       return new CaseHandoverReturnDeltaService(this.database, this.dataDirProvider).importPayload(payload, input);
     }
