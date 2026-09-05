@@ -733,7 +733,15 @@
     },
 
     caseHandover: {
-      cockpit: async () => ({ activeVacationCount: 0, expiredVacationCount: 0, returnableCount: 0, outgoing: [], incoming: [] }),
+      cockpit: async () => ({
+        activeVacationCount: 0,
+        expiredVacationCount: 0,
+        returnableCount: 0,
+        officeHandoverCount: 0,
+        officeInventory: { templateCount: 0, deadlineTemplateCount: 0, electionCount: 0, electionDocumentCount: 0, privacyReviewCount: 0, activityJournalIncluded: false },
+        outgoing: [],
+        incoming: [],
+      }),
       export: async () => ({ exported: false, filePath: '', packageId: '', packageType: 'vacation_handover', caseCount: 0, measureCount: 0, documentCount: 0, deadlineCount: 0 }),
       exportReturnDelta: async () => ({ exported: false, filePath: '', packageId: '', packageType: 'return_delta', caseCount: 0, measureCount: 0, documentCount: 0, deadlineCount: 0 }),
       selectFile: async () => ({ canceled: true }),

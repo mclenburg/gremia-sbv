@@ -72,6 +72,8 @@ type ImportPackageReviewProps = {
   warnings?: string[];
   planItems?: TransferImportDecisionItem[];
   mergeAllowed?: boolean;
+  createModeLabel?: string;
+  mergeBlockedMessage?: string;
   onModeChange: (mode: "create_new" | "merge_existing") => void;
   onTargetChange: (targetId: string) => void;
 };
@@ -90,6 +92,8 @@ export function ImportPackageReview({
   warnings = [],
   planItems = [],
   mergeAllowed = true,
+  createModeLabel = "Als neue lokale Übergabeakte anlegen",
+  mergeBlockedMessage = "Zusammenführung ist wegen echter Konflikte gesperrt. Bitte als neue lokale Übergabeakte importieren und fachlich prüfen.",
   onModeChange,
   onTargetChange,
 }: ImportPackageReviewProps) {
@@ -142,7 +146,7 @@ export function ImportPackageReview({
             checked={mode === "create_new"}
             onChange={() => onModeChange("create_new")}
           />
-          <span>Als neue lokale Übergabeakte anlegen</span>
+          <span>{createModeLabel}</span>
         </label>
         {hasMatches && mergeAllowed ? (
           <label className="industrial-checkbox-row compact">
@@ -157,7 +161,7 @@ export function ImportPackageReview({
         ) : null}
         {hasMatches && !mergeAllowed ? (
           <p className="industrial-message industrial-message-warning" role="alert">
-            Zusammenführung ist wegen echter Konflikte gesperrt. Bitte als neue lokale Übergabeakte importieren und fachlich prüfen.
+            {mergeBlockedMessage}
           </p>
         ) : null}
         {mode === "merge_existing" && hasMatches && mergeAllowed ? (

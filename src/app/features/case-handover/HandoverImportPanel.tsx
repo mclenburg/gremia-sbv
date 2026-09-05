@@ -25,6 +25,7 @@ export function HandoverImportPanel({ onCompleted }: { onCompleted: () => Promis
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [status, setStatus] = useState('');
+  const [applyOfficeConfiguration, setApplyOfficeConfiguration] = useState(true);
 
   function showError(message: string) {
     setError(message);
@@ -46,6 +47,7 @@ export function HandoverImportPanel({ onCompleted }: { onCompleted: () => Promis
       if (selected.canceled) return;
       const nextMode = selected.inspection.packageType === 'return_delta' ? 'merge_existing' : selected.inspection.importPlan.defaultMode;
       setSelection(selected); setMode(nextMode);
+      setApplyOfficeConfiguration(selected.inspection.packageType === 'office_handover');
       setTargetCaseId(nextMode === 'merge_existing' ? selected.inspection.matches[0]?.localCaseId ?? '' : '');
     } catch (cause) { showError(cause instanceof Error ? cause.message : 'Übergabepaket konnte nicht geprüft werden.'); }
     finally { setBusy(false); }
@@ -59,8 +61,12 @@ export function HandoverImportPanel({ onCompleted }: { onCompleted: () => Promis
     setBusy(true);
     try {
       const handover = await requireCaseHandoverBridge();
-      await handover.import({ filePath: selection.filePath, passphrase, mode, targetCaseId: targetCaseId || undefined });
-      showStatus(selection.inspection.packageType === 'return_delta' ? 'Rückgabe wurde in die ursprünglichen Fallakten eingespielt.' : 'Urlaubsübergabe wurde als lokale Vertretungsakte importiert.');
+      await handover.import({ filePath: selection.filePath, passphrase, mode, targetCaseId: targetCaseId || undefined, applyOfficeConfiguration });
+      showStatus(selection.inspection.packageType === 'return_delta'
+        ? 'Rückgabe wurde in die ursprünglichen Fallakten eingespielt.'
+        : selection.inspection.packageType === 'office_handover'
+          ? 'Amtsbestand wurde dauerhaft übernommen und zur Datenschutzprüfung vorgemerkt.'
+          : 'Urlaubsübergabe wurde als lokale Vertretungsakte importiert.');
       setSelection(null); setPassphrase('');
       await onCompleted();
     } catch (cause) { showError(cause instanceof Error ? cause.message : 'Übergabepaket konnte nicht importiert werden.'); }
@@ -74,13 +80,19 @@ export function HandoverImportPanel({ onCompleted }: { onCompleted: () => Promis
       <div className="industrial-action-row"><ToolbarButton type="button" onClick={() => void selectAndInspect()} loading={busy}>Datei auswählen und Paket prüfen</ToolbarButton></div>
       {selection ? <TextInput label="Geprüfte Datei" value={selection.fileName} onValueChange={() => undefined} readOnly /> : null}
       {inspection?.packageType === 'return_delta' ? <div className="industrial-message" role="status"><strong>Rückgabe-Delta geprüft.</strong> Die Zuordnung erfolgt ausschließlich über das auf dieser Instanz protokollierte Ausgangspaket.</div> : null}
-      {inspection?.packageType === 'vacation_handover' ? <ImportPackageReview
+      {inspection?.packageType === 'office_handover' ? <div className="industrial-message" role="status"><strong>Amtsübergabe geprüft.</strong> Das Paket enthält dauerhaften Amtsbestand; persönliche Tätigkeitsjournale sind technisch ausgeschlossen.</div> : null}
+      {inspection?.packageType === 'vacation_handover' || inspection?.packageType === 'office_handover' ? <ImportPackageReview
         caseCount={inspection.caseCount} measureCount={inspection.measureCount} documentCount={inspection.documentCount} deadlineCount={inspection.deadlineCount}
-        validUntilLabel={formatDate(inspection.expiresAt)} integrityLabel={inspection.integrity?.verified ? `Integrität kryptografisch bestätigt · Format ${inspection.integrity.formatVersion}` : undefined}
+        validUntilLabel={inspection.packageType === 'office_handover' ? 'dauerhafte Amtsübernahme' : formatDate(inspection.expiresAt)} integrityLabel={inspection.integrity?.verified ? `Integrität kryptografisch bestätigt · Format ${inspection.integrity.formatVersion}` : undefined}
         warnings={inspection.warnings} planItems={inspection.importPlan.decisions} mergeAllowed={inspection.importPlan.mergeAllowed}
-        matches={inspection.matches.map((match) => ({ id: match.localCaseId, label: `${match.caseNumber} · ${match.displayName}`, reasonLabel: match.conflictLevel === 'true_conflict' ? 'Echter Konflikt' : match.confidence === 'high' ? 'Sicherer Treffer' : 'Möglicher Treffer' }))}
+        matches={(inspection.packageType === 'office_handover' ? [] : inspection.matches).map((match) => ({ id: match.localCaseId, label: `${match.caseNumber} · ${match.displayName}`, reasonLabel: match.conflictLevel === 'true_conflict' ? 'Echter Konflikt' : match.confidence === 'high' ? 'Sicherer Treffer' : 'Möglicher Treffer' }))}
         mode={mode} targetId={targetCaseId} onModeChange={setMode} onTargetChange={setTargetCaseId}
+        createModeLabel={inspection.packageType === 'office_handover' ? 'Als neuen lokalen Amtsbestand übernehmen' : undefined}
       /> : null}
+      {inspection?.packageType === 'office_handover' ? <label className="industrial-checkbox-row">
+        <input type="checkbox" checked={applyOfficeConfiguration} onChange={(event) => setApplyOfficeConfiguration(event.currentTarget.checked)} />
+        <span>Übergebene Fristen- und Aufbewahrungsregeln für diese Instanz übernehmen. Lokale Regeln mit gleichem Schlüssel werden bewusst ersetzt.</span>
+      </label> : null}
       {error ? <div className="industrial-message industrial-message-warning" role="alert">{error}</div> : null}
       {status ? <div className="industrial-message industrial-message-success" role="status">{status}</div> : null}
       <FormActions><IndustrialButton type="submit" loading={busy} disabled={!selection}><Upload className="h-4 w-4" aria-hidden="true" />Geprüftes Paket importieren</IndustrialButton></FormActions>
