@@ -20,5 +20,6 @@ export interface TransferImportPlan {
   safeMatchCount: number;
   possibleMatchCount: number;
   conflictCount: number;
+  officeScopeIncluded?: boolean;
   decisions: TransferImportDecisionItem[];
 }

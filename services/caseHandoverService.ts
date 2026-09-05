@@ -13,7 +13,7 @@ import { inspectCaseHandoverFilePath } from './caseHandoverFilePolicy.js';
 import { parseTransferRecipientToken } from './transferInstanceIdentityPolicy.js';
 import { TransferInstanceIdentityService, type TransferInstancePrivateIdentity } from './transferInstanceIdentityService.js';
 import type { CaseHandoverCockpit, CaseHandoverContinueExpiredInput, CaseHandoverContinueExpiredResult, CaseHandoverExportInput, CaseHandoverExportResult, CaseHandoverImportInput, CaseHandoverImportResult, CaseHandoverInspectResult, CaseHandoverReturnDeltaExportInput } from '../src/domain/models/case-handover.model.js';
-import { Row, PackagePayload, DecryptedPackage, nowIso, isRecord, safeString } from './caseHandoverSupport.js';
+import { Row, PackagePayload, DecryptedPackage, nowIso, isRecord, officeHandoverScope, safeString } from './caseHandoverSupport.js';
 import { collectCaseHandoverPayload } from './caseHandoverPayloadCollector.js';
 import { ensureCaseHandoverExportLedgerSchema, recordCaseHandoverExport } from './caseHandoverExportLedger.js';
 import { CaseHandoverReturnDeltaService } from './caseHandoverReturnDeltaService.js';
@@ -23,6 +23,9 @@ import { OWNER_ONLY_FILE_MODE, restrictFileToOwner } from './secureFilePermissio
 import { ensureCaseHandoverRuntimeSchema } from './runtimeSchemaCompatibility.js';
 import { PrivacyReviewService } from './privacyReviewService.js';
 import type { TransferImportPlan } from '../src/domain/models/transfer.model.js';
+import { DatabaseUnitOfWork } from './databaseUnitOfWork.js';
+import { OfficeHandoverImportService } from './officeHandoverImportService.js';
+import { ElectionTransferCryptoAdapter } from './electionTransferCryptoAdapter.js';
 export class CaseHandoverService {
   constructor(private readonly database: DatabaseAdapter, private readonly dataDirProvider: () => string = () => path.join(process.cwd(), 'data')) {}
 
@@ -92,7 +95,7 @@ export class CaseHandoverService {
       localCases,
     });
     const expired = isExpired(payload.expiresAt);
-    const importPlan = buildCaseHandoverImportPlan({
+    let importPlan = buildCaseHandoverImportPlan({
       caseCount: payload.cases.length,
       measureCount: payload.measures.length,
       documentCount: payload.documents.length,
@@ -101,10 +104,31 @@ export class CaseHandoverService {
       isExpired: expired,
       matches,
     });
+    if (payload.packageType === 'office_handover') {
+      importPlan = {
+        ...importPlan,
+        defaultMode: 'create_new',
+        mergeAllowed: false,
+        retentionReviewRequired: true,
+        officeScopeIncluded: true,
+        decisions: [
+          ...importPlan.decisions,
+          {
+            id: 'office_scope',
+            label: 'Amtsbestand übernehmen',
+            severity: 'warning',
+            description: 'Vorlagen, Wahlakten und Datenschutzstatus werden als dauerhafter Amtsbestand übernommen. Das persönliche Tätigkeitsjournal ist ausdrücklich nicht enthalten.',
+          },
+        ],
+      };
+    }
     return { matches, expired, importPlan };
   }
 
   private assertImportAllowed(db: DatabaseAdapter, payload: PackagePayload, input: CaseHandoverImportInput, expired: boolean, importPlan: TransferImportPlan): void {
+    if (payload.packageType === 'office_handover' && input.mode !== 'create_new') {
+      throw new Error('Eine Amtsübergabe muss als neuer lokaler Amtsbestand importiert werden.');
+    }
     if (expired) {
       this.audit(db, auditCaseHandoverImported({ packageId: payload.packageId, caseCount: payload.cases.length, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, validUntilPresent: Boolean(payload.expiresAt), mode: input.mode, result: 'failed', reasonCode: 'expired_transfer_package' }));
       throw new Error('Das Fallübergabepaket ist abgelaufen und darf nicht importiert werden. Bitte eine neue Übergabedatei anfordern.');
@@ -127,12 +151,13 @@ export class CaseHandoverService {
 
   private assertPayload(value: unknown, formatVersion: number): PackagePayload {
     if (!isRecord(value)) throw new Error('Fallübergabepaket enthält keine gültige Nutzdatenstruktur.');
-    if (value.format !== CASE_HANDOVER_FORMAT || typeof value.version !== 'number') throw new Error('Fallübergabepaket enthält keine gültige Nutzdatenstruktur.');
+    if (value.format !== CASE_HANDOVER_FORMAT || value.version !== formatVersion) throw new Error('Fallübergabepaket enthält eine widersprüchliche Formatversion.');
     if (value.packageId === undefined || typeof value.packageId !== 'string') throw new Error('Fallübergabepaket enthält keine gültige Paketkennung.');
     if (value.createdAt === undefined || typeof value.createdAt !== 'string') throw new Error('Fallübergabepaket enthält kein gültiges Erstellungsdatum.');
     if (value.expiresAt !== undefined && typeof value.expiresAt !== 'string') throw new Error('Fallübergabepaket enthält kein gültiges Ablaufdatum.');
-    if (value.packageType !== undefined && value.packageType !== 'vacation_handover' && value.packageType !== 'return_delta') throw new Error('Fallübergabepaket enthält einen ungültigen Übergabetyp.');
+    if (value.packageType !== undefined && value.packageType !== 'vacation_handover' && value.packageType !== 'return_delta' && value.packageType !== 'office_handover') throw new Error('Fallübergabepaket enthält einen ungültigen Übergabetyp.');
     if (value.packageType === 'return_delta' && typeof value.sourcePackageId !== 'string') throw new Error('Rückgabepaket enthält keine Ausgangspaket-Zuordnung.');
+    if (value.packageType === 'office_handover' && (formatVersion < CASE_HANDOVER_VERSION || value.expiresAt !== undefined)) throw new Error('Amtsübergabepaket verwendet ein unzulässiges Format oder Ablaufdatum.');
     const payload = value as unknown as PackagePayload;
     const arrayFields: Array<keyof Pick<PackagePayload, 'cases' | 'protectedPersons' | 'notes' | 'measures' | 'measureNotes' | 'deadlines' | 'documents'>> = ['cases', 'protectedPersons', 'notes', 'measures', 'measureNotes', 'deadlines', 'documents'];
     for (const field of arrayFields) if (!Array.isArray(payload[field])) throw new Error('Fallübergabepaket enthält keine gültige Nutzdatenstruktur.');
@@ -165,7 +190,37 @@ export class CaseHandoverService {
         throw new Error('Fallübergabepaket enthält lokale Dokument-Schlüsseldaten.');
       }
     }
+    if (payload.packageType === 'office_handover') this.assertOfficePayload(payload);
+    else if (payload.officeData !== undefined) throw new Error('Fallübergabepaket enthält unerwartete Amtsdaten.');
     return payload;
+  }
+
+  private assertOfficePayload(payload: PackagePayload): void {
+    const office = payload.officeData;
+    if (!office || !isRecord(office) || office.activityJournalIncluded !== false) throw new Error('Amtsübergabepaket enthält keinen gültigen Amtsbestand.');
+    const arrays = [office.documentTemplates, office.deadlineTemplates, office.privacyReviews, office.elections, office.electionDocuments];
+    if (arrays.some((items) => !Array.isArray(items))) throw new Error('Amtsübergabepaket enthält unvollständige Amtsdaten.');
+    if (!isRecord(office.retentionSettings)) throw new Error('Amtsübergabepaket enthält keine gültigen Aufbewahrungsregeln.');
+    this.assertUniqueRefs('Amtsvorlagen', office.documentTemplates.map((item) => item.ref));
+    this.assertUniqueRefs('Fristvorlagen', office.deadlineTemplates.map((item) => item.ref));
+    this.assertUniqueRefs('Datenschutzstatus', office.privacyReviews.map((item) => item.ref));
+    this.assertUniqueRefs('Wahlakten', office.elections.map((item) => item.ref));
+    this.assertUniqueRefs('Wahldokumente', office.electionDocuments.map((item) => item.ref));
+    const caseRefs = new Set(payload.cases.map((item) => item.ref));
+    for (const review of office.privacyReviews) {
+      if (!caseRefs.has(review.caseRef) || !isRecord(review.data)) throw new Error('Amtsübergabepaket enthält ungültige Datenschutzreferenzen.');
+    }
+    const electionRefs = new Set(office.elections.map((item) => item.ref));
+    const electionCrypto = new ElectionTransferCryptoAdapter();
+    for (const election of office.elections) electionCrypto.validatePayload(election.data);
+    for (const document of office.electionDocuments) {
+      if (!electionRefs.has(document.electionRef) || !isRecord(document.data) || typeof document.contentBase64 !== 'string') {
+        throw new Error('Amtsübergabepaket enthält ungültige Wahldokumente.');
+      }
+      if (['storage_path', 'document_key', 'iv', 'auth_tag'].some((field) => document.data[field] !== undefined)) {
+        throw new Error('Amtsübergabepaket enthält lokale Dokument-Schlüsseldaten.');
+      }
+    }
   }
 
   private optionalPayloadString(value: unknown): string | undefined {
@@ -187,7 +242,7 @@ export class CaseHandoverService {
     const targetInstanceId = 'crypto' in envelope ? envelope.recipientBinding?.targetInstanceId : undefined;
     recordCaseHandoverExport(db, payload, targetInstanceId);
     this.audit(db, auditCaseHandoverExported({ packageId: payload.packageId, caseCount: payload.cases.length, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, validUntilPresent: Boolean(payload.expiresAt), result: 'success' }));
-    return { exported: true, filePath: targetPath, packageId: payload.packageId, packageType: payload.packageType ?? 'vacation_handover', caseCount: payload.cases.length, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, expiresAt: payload.expiresAt, targetInstanceId };
+    return { exported: true, filePath: targetPath, packageId: payload.packageId, packageType: payload.packageType ?? 'vacation_handover', caseCount: payload.cases.length, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, expiresAt: payload.expiresAt, targetInstanceId, officeScope: officeHandoverScope(payload) };
   }
 
   async exportReturnDeltaToFile(input: CaseHandoverReturnDeltaExportInput, targetPath: string): Promise<CaseHandoverExportResult> {
@@ -225,6 +280,7 @@ export class CaseHandoverService {
         ],
         integrity: { verified: true, algorithm: decrypted.transfer.algorithm, formatVersion: decrypted.transfer.formatVersion, legacyFormat: decrypted.transfer.legacyFormat },
         targetInstanceId: 'crypto' in envelope ? envelope.recipientBinding?.targetInstanceId : undefined,
+        officeScope: officeHandoverScope(payload),
         file: { fileName: file.fileName, sizeBytes: file.sizeBytes, isNetworkPath: file.isNetworkPath },
       };
     } catch (error) {
@@ -242,13 +298,17 @@ export class CaseHandoverService {
     if (payload.packageType === 'return_delta') {
       return new CaseHandoverReturnDeltaService(this.database, this.dataDirProvider).importPayload(payload, input);
     }
+    return new DatabaseUnitOfWork(db).run(() => this.importCasePayload(db, payload, input));
+  }
+
+  private importCasePayload(db: DatabaseAdapter, payload: PackagePayload, input: CaseHandoverImportInput): CaseHandoverImportResult {
     const { expired, importPlan } = this.buildImportPlanning(db, payload);
     this.assertImportAllowed(db, payload, input, expired, importPlan);
     const duplicate = this.row(db, 'SELECT id FROM case_handover_imports WHERE package_id = ?', payload.packageId);
     if (duplicate) throw new Error('Dieses Fallübergabepaket wurde bereits importiert.');
     const importId = randomUUID();
     const timestamp = nowIso();
-    const status = 'active';
+    const status = payload.packageType === 'office_handover' ? 'completed' : 'active';
     const caseRefToLocal = new Map<string, string>();
     const measureRefToLocal = new Map<string, string>();
     const createdCaseIds: string[] = [];
@@ -256,7 +316,7 @@ export class CaseHandoverService {
     const personRefToLocal = new Map<string, string>();
 
     db.prepare(`INSERT INTO case_handover_imports (id, package_id, imported_at, valid_until, status, mode, metadata_json) VALUES (?, ?, ?, ?, ?, ?, ?)`)
-      .run(importId, payload.packageId, timestamp, payload.expiresAt ?? null, status, input.mode, JSON.stringify(safeAuditMetadata({ packageId: payload.packageId, caseCount: payload.cases.length, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, hasExpiry: Boolean(payload.expiresAt), expiresAt: payload.expiresAt, mode: input.mode, result: 'success' })));
+      .run(importId, payload.packageId, timestamp, payload.expiresAt ?? null, status, input.mode, JSON.stringify(safeAuditMetadata({ packageId: payload.packageId, caseCount: payload.cases.length, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, hasExpiry: Boolean(payload.expiresAt), expiresAt: payload.expiresAt, mode: input.mode, result: 'success', packageType: payload.packageType })));
 
     for (const person of payload.protectedPersons) {
       const id = randomUUID();
@@ -347,10 +407,13 @@ export class CaseHandoverService {
     }
 
     try { for (const id of [...createdCaseIds, ...updatedCaseIds]) new SearchIndexService(db).reindexCase(id); } catch { /* index best effort */ }
-    const privacyReviewCaseIds = this.markImportedCasesForPrivacyReview(db, [...createdCaseIds, ...updatedCaseIds], timestamp, payload.expiresAt ? 'high' : 'normal');
+    const officeImport = payload.packageType === 'office_handover'
+      ? new OfficeHandoverImportService(db, this.dataDirProvider).import(payload, caseRefToLocal, personRefToLocal, Boolean(input.applyOfficeConfiguration))
+      : undefined;
+    const privacyReviewCaseIds = this.markImportedCasesForPrivacyReview(db, [...createdCaseIds, ...updatedCaseIds], timestamp, payload.packageType === 'office_handover' || payload.expiresAt ? 'high' : 'normal');
     db.prepare('UPDATE case_handover_imports SET created_case_count = ?, updated_case_count = ? WHERE id = ?').run(createdCaseIds.length, updatedCaseIds.length, importId);
     this.audit(db, auditCaseHandoverImported({ packageId: payload.packageId, caseCount: payload.cases.length, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, validUntilPresent: Boolean(payload.expiresAt), mode: input.mode, result: 'success' }));
-    return { imported: true, packageId: payload.packageId, mode: input.mode, createdCaseIds, updatedCaseIds, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, privacyReviewCaseIds, expiresAt: payload.expiresAt, expired: false };
+    return { imported: true, packageId: payload.packageId, mode: input.mode, createdCaseIds, updatedCaseIds, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, privacyReviewCaseIds, expiresAt: payload.expiresAt, expired: false, officeImport };
   }
 
   continueExpired(input: CaseHandoverContinueExpiredInput): CaseHandoverContinueExpiredResult {

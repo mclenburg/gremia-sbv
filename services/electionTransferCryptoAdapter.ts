@@ -50,6 +50,10 @@ export class ElectionTransferCryptoAdapter {
     return electionManifestHash(payload.manifest);
   }
 
+  validatePayload(payload: ElectionTransferPayload): void {
+    this.assertPayload(payload);
+  }
+
   private assertPayload(payload: ElectionTransferPayload): void {
     if (!payload || typeof payload !== 'object' || !payload.manifest || !payload.data) throw new Error('Wahlaktenübergabe enthält keine gültigen Nutzdaten.');
     if (payload.manifest.formatVersion !== ELECTION_TRANSFER_VERSION) throw new Error('Nicht unterstützte Wahlaktenversion.');

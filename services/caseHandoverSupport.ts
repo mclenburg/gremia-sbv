@@ -17,7 +17,7 @@ export type PackagePayload = {
   createdAt: string;
   expiresAt?: string;
   purpose: string;
-  packageType?: 'vacation_handover' | 'return_delta';
+  packageType?: 'vacation_handover' | 'return_delta' | 'office_handover';
   sourcePackageId?: string;
   deltaSince?: string;
   changedRefs?: {
@@ -36,6 +36,17 @@ export type PackagePayload = {
   measureNotes: Array<{ ref: string; caseRef: string; measureRef: string; data: Row }>;
   deadlines: Array<{ ref: string; caseRef?: string; measureRef?: string; data: Row }>;
   documents: Array<{ ref: string; caseRef: string; measureRef?: string; data: Row; contentBase64: string }>;
+  officeData?: OfficeHandoverPayload;
+};
+
+export type OfficeHandoverPayload = {
+  documentTemplates: Array<{ ref: string; data: Row }>;
+  deadlineTemplates: Array<{ ref: string; data: Row }>;
+  retentionSettings: Record<string, unknown>;
+  privacyReviews: Array<{ ref: string; caseRef: string; data: Row }>;
+  elections: Array<{ ref: string; data: import('./electionTransferPolicy.js').ElectionTransferPayload }>;
+  electionDocuments: Array<{ ref: string; electionRef: string; data: Row; contentBase64: string }>;
+  activityJournalIncluded: false;
 };
 
 export type DecryptedPackage = {
@@ -53,3 +64,15 @@ export function isRecord(value: unknown): value is Record<string, unknown> { ret
 
 export function safeString(value: unknown, fallback = ''): string { return String(value ?? fallback); }
 export function ensureArray(value?: string[]): string[] { return [...new Set((value ?? []).filter(Boolean))]; }
+
+export function officeHandoverScope(payload: PackagePayload) {
+  if (!payload.officeData) return undefined;
+  return {
+    templateCount: payload.officeData.documentTemplates.length,
+    deadlineTemplateCount: payload.officeData.deadlineTemplates.length,
+    electionCount: payload.officeData.elections.length,
+    electionDocumentCount: payload.officeData.electionDocuments.length,
+    privacyReviewCount: payload.officeData.privacyReviews.length,
+    activityJournalIncluded: false as const,
+  };
+}

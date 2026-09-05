@@ -3,6 +3,7 @@ import { CASE_HANDOVER_FORMAT, CASE_HANDOVER_VERSION, createPackageId, packageRe
 import { encodeDocumentForHandover, sanitizeHandoverDocumentMetadata } from './caseHandoverDocumentCodec.js';
 import type { CaseHandoverExportInput } from '../src/domain/models/case-handover.model.js';
 import { ensureArray, nowIso, type PackagePayload, type Row } from './caseHandoverSupport.js';
+import { OfficeHandoverPayloadService } from './officeHandoverPayloadService.js';
 
 function rows(db: DatabaseAdapter, sql: string, ...params: unknown[]): Row[] {
   try { return db.prepare<Row>(sql).all(...params); } catch { return []; }
@@ -23,7 +24,9 @@ export function collectCaseHandoverPayload(
   const measureFilter = new Set(ensureArray(input.measureIds));
   const packageId = createPackageId();
   const createdAt = nowIso();
-  const payload: PackagePayload = { format: CASE_HANDOVER_FORMAT, version: CASE_HANDOVER_VERSION, packageId, createdAt, expiresAt: input.expiresAt, purpose: input.purpose?.trim() || 'Urlaubsübergabe / SBV-Vertretung', packageType: 'vacation_handover', cases: [], protectedPersons: [], notes: [], measures: [], measureNotes: [], deadlines: [], documents: [] };
+  const packageType = input.packageType ?? 'vacation_handover';
+  if (packageType === 'office_handover' && input.expiresAt) throw new Error('Eine Amtsübergabe darf kein Ablaufdatum enthalten.');
+  const payload: PackagePayload = { format: CASE_HANDOVER_FORMAT, version: CASE_HANDOVER_VERSION, packageId, createdAt, expiresAt: input.expiresAt, purpose: input.purpose?.trim() || (packageType === 'office_handover' ? 'Amtsübergabe an die gewählte Nachfolge' : 'Urlaubsübergabe / SBV-Vertretung'), packageType, cases: [], protectedPersons: [], notes: [], measures: [], measureNotes: [], deadlines: [], documents: [] };
   const personIdToRef = new Map<string, string>();
   const caseIdToRef = new Map<string, string>();
   const measureIdToRef = new Map<string, string>();
@@ -76,5 +79,8 @@ export function collectCaseHandoverPayload(
     data: sanitizeHandoverDocumentMetadata(document),
     contentBase64: encodeDocumentForHandover(document, dataDirProvider()),
   }));
+  if (packageType === 'office_handover') {
+    payload.officeData = new OfficeHandoverPayloadService(db, dataDirProvider).collect(payload);
+  }
   return payload;
 }

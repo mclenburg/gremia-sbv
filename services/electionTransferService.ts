@@ -39,7 +39,7 @@ export class ElectionTransferService {
   }
 
   export(electionId: string, sourceVaultId: string, passphrase: string, targetRecipientToken: string): ElectionTransferEnvelope {
-    const payload = this.createPayload(electionId, sourceVaultId);
+    const payload = this.createPayloadForEmbedding(electionId, sourceVaultId);
     const envelope = this.crypto.encrypt(payload, passphrase, parseTransferRecipientToken(targetRecipientToken));
     this.auditExport(electionId, payload);
     return envelope;
@@ -47,7 +47,7 @@ export class ElectionTransferService {
 
 
   async exportToFile(electionId: string, sourceVaultId: string, passphrase: string, targetRecipientToken: string, targetPath: string): Promise<ElectionTransferInspection> {
-    const payload = this.createPayload(electionId, sourceVaultId);
+    const payload = this.createPayloadForEmbedding(electionId, sourceVaultId);
     const envelope = this.crypto.encrypt(payload, passphrase, parseTransferRecipientToken(targetRecipientToken));
     this.auditExport(electionId, payload);
     await fs.promises.writeFile(targetPath, JSON.stringify(envelope, null, 2), { mode: OWNER_ONLY_FILE_MODE });
@@ -79,7 +79,7 @@ export class ElectionTransferService {
   }
 
   import(envelope: ElectionTransferEnvelope, passphrase: string) {
-    return this.importer.importAtomically(envelope, passphrase, (payload) => this.importPayload(payload));
+    return this.importer.importAtomically(envelope, passphrase, (payload) => this.importPayloadForEmbedding(payload));
   }
 
   private localIdentityFor(envelope: ElectionTransferEnvelope): TransferInstancePrivateIdentity | undefined {
@@ -119,7 +119,7 @@ export class ElectionTransferService {
     });
   }
 
-  private createPayload(electionId: string, sourceVaultId: string): ElectionTransferPayload {
+  createPayloadForEmbedding(electionId: string, sourceVaultId: string): ElectionTransferPayload {
     if (!this.database.prepare<{ id: string }>('SELECT id FROM sbv_elections WHERE id=?').get(electionId)) {
       throw new Error('Wahlvorgang wurde nicht gefunden.');
     }
@@ -161,7 +161,7 @@ export class ElectionTransferService {
     `).all(electionId);
   }
 
-  private importPayload(payload: ElectionTransferPayload): { importedElectionId: string; importedItems: ImportItem[] } {
+  importPayloadForEmbedding(payload: ElectionTransferPayload): { importedElectionId: string; importedItems: ImportItem[] } {
     const idMap = new Map<string, string>();
     const importedItems: ImportItem[] = [];
     const electionRows = this.rows(payload, 'sbv_elections');

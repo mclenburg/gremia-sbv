@@ -29,10 +29,13 @@ export class CaseHandoverCockpitService {
     const outgoing = this.outgoing();
     const incoming = this.incoming();
     const vacationItems = [...outgoing, ...incoming].filter((item) => item.packageType === 'vacation_handover');
+    const officeItems = [...outgoing, ...incoming].filter((item) => item.packageType === 'office_handover');
     return {
       activeVacationCount: vacationItems.filter((item) => item.status === 'active').length,
       expiredVacationCount: vacationItems.filter((item) => item.status === 'expired').length,
       returnableCount: incoming.filter((item) => item.canExportReturnDelta).length,
+      officeHandoverCount: officeItems.length,
+      officeInventory: this.officeInventory(),
       outgoing,
       incoming,
     };
@@ -97,12 +100,27 @@ export class CaseHandoverCockpitService {
 
   private packageType(header: HeaderRow): CaseHandoverPackageType {
     if (header.package_type === 'return_delta') return 'return_delta';
+    if (header.package_type === 'office_handover') return 'office_handover';
     const metadata = parseMetadata(header.metadata_json);
-    return metadata.mode === 'return_delta' ? 'return_delta' : 'vacation_handover';
+    if (metadata.mode === 'return_delta') return 'return_delta';
+    return metadata.packageType === 'office_handover' ? 'office_handover' : 'vacation_handover';
+  }
+
+  private officeInventory(): CaseHandoverCockpit['officeInventory'] {
+    const count = (sql: string): number => Number(this.database.prepare<{ count: number }>(sql).get()?.count ?? 0);
+    return {
+      templateCount: count('SELECT COUNT(*) AS count FROM document_templates WHERE is_system = 0'),
+      deadlineTemplateCount: count('SELECT COUNT(*) AS count FROM deadline_templates'),
+      electionCount: count('SELECT COUNT(*) AS count FROM sbv_elections'),
+      electionDocumentCount: count("SELECT COUNT(*) AS count FROM sbv_workflow_document_links WHERE owner_type = 'election'"),
+      privacyReviewCount: count("SELECT COUNT(*) AS count FROM privacy_review_items WHERE status = 'open'"),
+      activityJournalIncluded: false,
+    };
   }
 }
 
 function statusFrom(status: string, validUntil?: string | null): CaseHandoverCockpitItem['status'] {
+  if (status === 'completed') return 'completed';
   if (status === 'returned') return 'returned';
   if (validUntil) {
     const expires = new Date(validUntil).getTime();

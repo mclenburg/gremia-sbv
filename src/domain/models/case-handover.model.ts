@@ -1,11 +1,21 @@
 import type { TransferImportConflictLevel, TransferImportPlan } from './transfer.model';
 
 export type CaseHandoverImportMode = 'create_new' | 'merge_existing';
-export type CaseHandoverPackageType = 'vacation_handover' | 'return_delta';
+export type CaseHandoverPackageType = 'vacation_handover' | 'return_delta' | 'office_handover';
+
+export interface OfficeHandoverScope {
+  templateCount: number;
+  deadlineTemplateCount: number;
+  electionCount: number;
+  electionDocumentCount: number;
+  privacyReviewCount: number;
+  activityJournalIncluded: false;
+}
 
 export interface CaseHandoverExportInput {
   caseIds: string[];
   measureIds?: string[];
+  packageType?: 'vacation_handover' | 'office_handover';
   expiresAt?: string;
   purpose?: string;
   passphrase: string;
@@ -30,6 +40,7 @@ export interface CaseHandoverExportResult {
   deadlineCount: number;
   expiresAt?: string;
   targetInstanceId?: string;
+  officeScope?: OfficeHandoverScope;
 }
 
 export interface CaseHandoverCandidateMatch {
@@ -63,6 +74,7 @@ export interface CaseHandoverInspectResult {
     legacyFormat: boolean;
   };
   targetInstanceId?: string;
+  officeScope?: OfficeHandoverScope;
   file?: {
     fileName: string;
     sizeBytes: number;
@@ -75,6 +87,16 @@ export interface CaseHandoverImportInput {
   passphrase: string;
   mode: CaseHandoverImportMode;
   targetCaseId?: string;
+  applyOfficeConfiguration?: boolean;
+}
+
+export interface OfficeHandoverImportSummary {
+  templateCount: number;
+  deadlineTemplateCount: number;
+  electionCount: number;
+  electionDocumentCount: number;
+  privacyReviewCount: number;
+  officeConfigurationApplied: boolean;
 }
 
 export interface CaseHandoverImportResult {
@@ -89,6 +111,7 @@ export interface CaseHandoverImportResult {
   privacyReviewCaseIds: string[];
   expiresAt?: string;
   expired: boolean;
+  officeImport?: OfficeHandoverImportSummary;
 }
 
 export interface CaseHandoverContinueExpiredInput {
@@ -107,7 +130,7 @@ export interface CaseHandoverCockpitItem {
   direction: 'outgoing' | 'incoming';
   packageId: string;
   packageType: CaseHandoverPackageType;
-  status: 'active' | 'expired' | 'returned' | 'open';
+  status: 'active' | 'expired' | 'returned' | 'open' | 'completed';
   createdAt: string;
   validUntil?: string;
   caseCount: number;
@@ -121,6 +144,8 @@ export interface CaseHandoverCockpit {
   activeVacationCount: number;
   expiredVacationCount: number;
   returnableCount: number;
+  officeHandoverCount: number;
+  officeInventory: OfficeHandoverScope;
   outgoing: CaseHandoverCockpitItem[];
   incoming: CaseHandoverCockpitItem[];
 }

@@ -41,13 +41,14 @@ export function recordCaseHandoverExport(
   db.prepare(`
     INSERT OR REPLACE INTO case_handover_exports (
       id, package_id, exported_at, valid_until, package_type, status, target_instance_id, case_count, metadata_json
-    ) VALUES (?, ?, ?, ?, ?, 'open', ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     exportId,
     payload.packageId,
     payload.createdAt,
     payload.expiresAt ?? null,
     packageType,
+    packageType === 'office_handover' ? 'completed' : 'open',
     targetInstanceId ?? null,
     payload.cases.length,
     JSON.stringify({ measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length }),

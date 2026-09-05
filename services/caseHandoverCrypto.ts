@@ -1,5 +1,5 @@
 import { createCipheriv, createDecipheriv, createHash, randomBytes, scryptSync } from 'node:crypto';
-import { CASE_HANDOVER_FORMAT, CASE_HANDOVER_LEGACY_VERSION, CASE_HANDOVER_VERSION } from './caseHandoverPolicy.js';
+import { CASE_HANDOVER_FORMAT, CASE_HANDOVER_LEGACY_VERSION, CASE_HANDOVER_TARGET_BOUND_LEGACY_VERSION, CASE_HANDOVER_VERSION } from './caseHandoverPolicy.js';
 import type { TransferRecipientIdentity } from '../src/domain/models/transfer-identity.model.js';
 import type { TransferInstancePrivateIdentity } from './transferInstanceIdentityService.js';
 import {
@@ -152,7 +152,7 @@ export function assertCaseHandoverEnvelope(value: unknown): CaseHandoverEnvelope
   if (value.expiresAt !== undefined && typeof value.expiresAt !== 'string') throw new Error('Fallübergabepaket enthält kein gültiges Ablaufdatum.');
   if (typeof value.payload !== 'string' || !value.payload) throw new Error('Fallübergabepaket enthält keine Nutzdaten.');
 
-  if (value.version === CASE_HANDOVER_VERSION) {
+  if (value.version === CASE_HANDOVER_VERSION || value.version === CASE_HANDOVER_TARGET_BOUND_LEGACY_VERSION) {
     if (!isRecord(value.crypto) || !isRecord(value.integrity)) throw new Error('Fallübergabepaket enthält keinen gültigen Kryptografie-Header.');
     if (value.crypto.algorithm !== 'aes-256-gcm' || value.crypto.kdf !== 'scrypt') throw new Error('Nicht unterstütztes Fallübergabeformat.');
     const envelope: CaseHandoverEnvelopeV2 = {
@@ -253,9 +253,9 @@ export function decryptCaseHandoverEnvelope(envelope: CaseHandoverEnvelope, pass
       if (!localIdentity) throw new Error('Dieses Fallübergabepaket ist zielgebunden. Die lokale Transfer-Identität konnte nicht geprüft werden.');
       const decrypted = decryptTargetBoundTransferPayload(envelope as TargetBoundTransferEnvelope, passphrase, localIdentity, {
         format: CASE_HANDOVER_FORMAT,
-        version: CASE_HANDOVER_VERSION,
+        version: envelope.version,
       });
-      return { payloadText: decrypted.payloadText, formatVersion: CASE_HANDOVER_VERSION, legacyFormat: false, algorithm: decrypted.algorithm };
+      return { payloadText: decrypted.payloadText, formatVersion: envelope.version, legacyFormat: envelope.version < CASE_HANDOVER_VERSION, algorithm: decrypted.algorithm };
     }
     const salt = Buffer.from(envelope.crypto.salt, 'base64');
     const iv = Buffer.from(envelope.crypto.iv, 'base64');
@@ -271,7 +271,7 @@ export function decryptCaseHandoverEnvelope(envelope: CaseHandoverEnvelope, pass
       decipher.setAuthTag(Buffer.from(envelope.crypto.tag, 'base64'));
       const plain = Buffer.concat([decipher.update(encrypted), decipher.final()]);
       try {
-        return { payloadText: plain.toString('utf8'), formatVersion: CASE_HANDOVER_VERSION, legacyFormat: false, algorithm: 'aes-256-gcm' };
+        return { payloadText: plain.toString('utf8'), formatVersion: envelope.version, legacyFormat: envelope.version < CASE_HANDOVER_VERSION, algorithm: 'aes-256-gcm' };
       } finally {
         safeDestroyBuffer(plain);
         safeDestroyBuffer(encrypted);
