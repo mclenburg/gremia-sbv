@@ -41,6 +41,7 @@ export { SbvResourceService } from '../services/sbvResourceService.js';
 export type { SecurityService } from '../services/securityService.js';
 export { TemplateDefaultService } from '../services/templateDefaultService.js';
 export { TemplateService } from '../services/templateService.js';
+export { TransferInstanceIdentityService } from '../services/transferInstanceIdentityService.js';
 export { TerminationService } from '../services/terminationService.js';
 export { WorkplaceAccommodationService } from '../services/workplaceAccommodationService.js';
 

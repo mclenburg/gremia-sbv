@@ -249,6 +249,7 @@ export const IPC_CHANNELS = Object.freeze({
   securityUnlock: "security:unlock",
   templateDefaultsList: "template-defaults:list",
   templateDefaultsSave: "template-defaults:save",
+  transferIdentityGet: "transfer-identity:get",
   templatesCreate: "templates:create",
   templatesDelete: "templates:delete",
   templatesList: "templates:list",

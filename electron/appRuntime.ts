@@ -26,6 +26,7 @@ import { registerRecruitingParticipationIpc } from "./ipc/recruitingParticipatio
 import { registerSbvOfficeWorkflowIpc } from "./ipc/sbvOfficeWorkflowIpc.js";
 import { registerSbvElectionIpc } from "./ipc/sbvElectionIpc.js";
 import { registerGremiaBrIpc } from "./ipc/gremiaBrIpc.js";
+import { registerTransferIdentityIpc } from "./ipc/transferIdentityIpc.js";
 import type { SecurityResult, SecurityStatus } from "../src/domain/models/security.model.js";
 import { SecurityService } from "../services/securityService.js";
 import { ApplicationServices } from "./applicationServices.js";
@@ -135,6 +136,7 @@ export async function startApplication(existingSplashWindow?: BrowserWindow): Pr
   registerKnowledgeIpc(ipcMain, security, applicationServices);
   registerTemplateIpc(ipcMain, security, applicationServices);
   registerGremiaBrIpc(ipcMain, security, applicationServices);
+  registerTransferIdentityIpc(ipcMain, security, applicationServices);
   registerProtectedPersonIpc(ipcMain, security, applicationServices);
   registerReportIpc(ipcMain, security, applicationServices);
   registerComplianceIpc(ipcMain, security, applicationServices);

@@ -3,6 +3,7 @@ import type { ComplianceAuditChainStatus, ComplianceDatabaseIntegrityStatus, Com
 
 import type { CaseDocumentRecord } from "./domain/models/case-document.model";
 import type { CaseHandoverContinueExpiredResult, CaseHandoverExportInput, CaseHandoverExportResult, CaseHandoverImportInput, CaseHandoverImportResult, CaseHandoverInspectResult } from "./domain/models/case-handover.model";
+import type { TransferInstanceIdentity } from "./domain/models/transfer-identity.model";
 import type { CaseRecord, CreateCaseInput, LegacyCaseBindingInput, LegacyCaseBindingResult } from "./domain/models/case.model";
 import type {
   ContactListFilters,
@@ -524,6 +525,9 @@ declare global {
       templateDefaults: {
         list(): Promise<TemplateDefaultValues>;
         save(values: TemplateDefaultValues): Promise<TemplateDefaultValues>;
+      };
+      transferIdentity: {
+        get(): Promise<TransferInstanceIdentity>;
       };
       reports: {
         descriptors(): Promise<ReportDescriptor[]>;
