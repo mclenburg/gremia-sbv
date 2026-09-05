@@ -2,11 +2,13 @@ import { IPC_CHANNELS, registerIpcHandler } from './ipcHandler.js';
 import { dialog, type IpcMain } from 'electron';
 import type { SecurityService } from '../../services/securityService.js';
 import type { ApplicationServices } from '../applicationServices.js';
-import type { CaseHandoverExportInput, CaseHandoverImportInput } from '../../src/domain/models/case-handover.model.js';
+import type { CaseHandoverExportInput, CaseHandoverImportInput, CaseHandoverReturnDeltaExportInput } from '../../src/domain/models/case-handover.model.js';
 import { assertRecordInput, assertString, sanitizeDialogFileName } from './ipcValidation.js';
 import { issueSelectedFileCapability, resolveSelectedFileCapability, SELECTED_FILE_PURPOSE } from './selectedFileCapability.js';
 
 export function registerCaseHandoverIpc(ipcMain: IpcMain, security: SecurityService, services: ApplicationServices): void {
+  registerIpcHandler(ipcMain, IPC_CHANNELS.caseHandoverCockpit, async () => services.caseHandover().listCockpit());
+
   registerIpcHandler(ipcMain, IPC_CHANNELS.caseHandoverExport, async (_event, input: unknown, suggestedFileName?: unknown) => {
     const validated = assertRecordInput<CaseHandoverExportInput>(input, 'caseHandover:export');
     const safeName = sanitizeDialogFileName(suggestedFileName, 'caseHandover:export', 'vorgeschlagener Dateiname') ?? 'falluebergabe.gsbvtransfer';
@@ -18,6 +20,19 @@ export function registerCaseHandoverIpc(ipcMain: IpcMain, security: SecurityServ
     });
     if (result.canceled || !result.filePath) return { exported: false, filePath: '', packageId: '', caseCount: 0, measureCount: 0, documentCount: 0, deadlineCount: 0 };
     return services.caseHandover().exportToFile(validated, result.filePath);
+  });
+
+  registerIpcHandler(ipcMain, IPC_CHANNELS.caseHandoverReturnDeltaExport, async (_event, input: unknown, suggestedFileName?: unknown) => {
+    const validated = assertRecordInput<CaseHandoverReturnDeltaExportInput>(input, 'caseHandover:return-delta-export');
+    const safeName = sanitizeDialogFileName(suggestedFileName, 'caseHandover:return-delta-export', 'vorgeschlagener Dateiname') ?? 'rueckgabe-delta.gsbvtransfer';
+    const result = await dialog.showSaveDialog({
+      title: 'Verschlüsseltes Rückgabepaket speichern',
+      defaultPath: safeName.endsWith('.gsbvtransfer') ? safeName : `${safeName}.gsbvtransfer`,
+      buttonLabel: 'Rückgabepaket speichern',
+      filters: [{ name: 'Gremia.SBV Rückgabe-Delta', extensions: ['gsbvtransfer'] }],
+    });
+    if (result.canceled || !result.filePath) return { exported: false, filePath: '', packageId: '', packageType: 'return_delta', caseCount: 0, measureCount: 0, documentCount: 0, deadlineCount: 0 };
+    return services.caseHandover().exportReturnDeltaToFile(validated, result.filePath);
   });
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.caseHandoverSelectFile, async () => {

@@ -44,6 +44,27 @@ export const CASE_HANDOVER_IMPORT_ITEMS_REQUIRED_COLUMNS = [
   'created_at'
 ] as const;
 
+export const CASE_HANDOVER_EXPORTS_REQUIRED_COLUMNS = [
+  'id',
+  'package_id',
+  'exported_at',
+  'valid_until',
+  'package_type',
+  'status',
+  'target_instance_id',
+  'case_count',
+  'metadata_json'
+] as const;
+
+export const CASE_HANDOVER_EXPORT_ITEMS_REQUIRED_COLUMNS = [
+  'id',
+  'handover_export_id',
+  'package_ref',
+  'local_entity_type',
+  'local_entity_id',
+  'exported_at'
+] as const;
+
 
 export const SBV_RESOURCE_RECORDS_REQUIRED_COLUMNS = [
   'id',

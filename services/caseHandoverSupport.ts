@@ -17,6 +17,18 @@ export type PackagePayload = {
   createdAt: string;
   expiresAt?: string;
   purpose: string;
+  packageType?: 'vacation_handover' | 'return_delta';
+  sourcePackageId?: string;
+  deltaSince?: string;
+  changedRefs?: {
+    cases?: string[];
+    protectedPersons?: string[];
+    notes?: string[];
+    measures?: string[];
+    measureNotes?: string[];
+    deadlines?: string[];
+    documents?: string[];
+  };
   cases: Array<{ ref: string; data: Row }>;
   protectedPersons: Array<{ ref: string; data: Row }>;
   notes: Array<{ ref: string; caseRef: string; data: Row }>;
@@ -41,4 +53,3 @@ export function isRecord(value: unknown): value is Record<string, unknown> { ret
 
 export function safeString(value: unknown, fallback = ''): string { return String(value ?? fallback); }
 export function ensureArray(value?: string[]): string[] { return [...new Set((value ?? []).filter(Boolean))]; }
-

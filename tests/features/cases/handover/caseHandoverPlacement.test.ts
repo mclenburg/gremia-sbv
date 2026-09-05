@@ -86,7 +86,7 @@ describe('case handover placement 0.9.2', () => {
       onCloseContinueExpired: () => undefined,
       onExport: async () => ({ exported: false, filePath: '', packageId: '', caseCount: 0, measureCount: 0, documentCount: 0, deadlineCount: 0 }),
       onSelectImportFile: async () => ({ canceled: true }),
-      onInspectImport: async () => ({ valid: true, packageId: 'pkg-1', createdAt: '2026-05-01T08:00:00.000Z', caseCount: 0, measureCount: 0, documentCount: 0, deadlineCount: 0, matches: [], importPlan, isExpired: false, warnings: [] }),
+      onInspectImport: async () => ({ valid: true, packageId: 'pkg-1', packageType: 'vacation_handover', createdAt: '2026-05-01T08:00:00.000Z', caseCount: 0, measureCount: 0, documentCount: 0, deadlineCount: 0, matches: [], importPlan, isExpired: false, warnings: [] }),
       onImport: async () => undefined,
       onContinueExpired: async () => undefined,
     });
@@ -114,7 +114,7 @@ describe('case handover placement 0.9.2', () => {
       onCloseContinueExpired: () => undefined,
       onExport: async () => ({ exported: false, filePath: '', packageId: '', caseCount: 0, measureCount: 0, documentCount: 0, deadlineCount: 0 }),
       onSelectImportFile: async () => ({ canceled: true }),
-      onInspectImport: async () => ({ valid: true, packageId: 'pkg-1', createdAt: '2026-05-01T08:00:00.000Z', caseCount: 0, measureCount: 0, documentCount: 0, deadlineCount: 0, matches: [], importPlan, isExpired: false, warnings: [] }),
+      onInspectImport: async () => ({ valid: true, packageId: 'pkg-1', packageType: 'vacation_handover', createdAt: '2026-05-01T08:00:00.000Z', caseCount: 0, measureCount: 0, documentCount: 0, deadlineCount: 0, matches: [], importPlan, isExpired: false, warnings: [] }),
       onImport: async () => undefined,
       onContinueExpired: async () => undefined,
     });

@@ -1,6 +1,7 @@
 import type { TransferImportConflictLevel, TransferImportPlan } from './transfer.model';
 
 export type CaseHandoverImportMode = 'create_new' | 'merge_existing';
+export type CaseHandoverPackageType = 'vacation_handover' | 'return_delta';
 
 export interface CaseHandoverExportInput {
   caseIds: string[];
@@ -11,10 +12,18 @@ export interface CaseHandoverExportInput {
   targetRecipientToken: string;
 }
 
+export interface CaseHandoverReturnDeltaExportInput {
+  sourcePackageId: string;
+  caseIds: string[];
+  passphrase: string;
+  targetRecipientToken: string;
+}
+
 export interface CaseHandoverExportResult {
   exported: boolean;
   filePath: string;
   packageId: string;
+  packageType?: CaseHandoverPackageType;
   caseCount: number;
   measureCount: number;
   documentCount: number;
@@ -36,6 +45,7 @@ export interface CaseHandoverCandidateMatch {
 export interface CaseHandoverInspectResult {
   valid: boolean;
   packageId: string;
+  packageType: CaseHandoverPackageType;
   createdAt: string;
   expiresAt?: string;
   isExpired: boolean;
@@ -90,4 +100,27 @@ export interface CaseHandoverContinueExpiredResult {
   caseId: string;
   confirmed: boolean;
   confirmedAt: string;
+}
+
+export interface CaseHandoverCockpitItem {
+  id: string;
+  direction: 'outgoing' | 'incoming';
+  packageId: string;
+  packageType: CaseHandoverPackageType;
+  status: 'active' | 'expired' | 'returned' | 'open';
+  createdAt: string;
+  validUntil?: string;
+  caseCount: number;
+  caseIds: string[];
+  caseLabels: string[];
+  targetInstanceId?: string;
+  canExportReturnDelta: boolean;
+}
+
+export interface CaseHandoverCockpit {
+  activeVacationCount: number;
+  expiredVacationCount: number;
+  returnableCount: number;
+  outgoing: CaseHandoverCockpitItem[];
+  incoming: CaseHandoverCockpitItem[];
 }

@@ -14,7 +14,7 @@ import type {
   UpdateCaseNoteInput,
 } from "../../src/domain/models/case-note.model.js";
 import type { CaseDocumentRecord } from "../../src/domain/models/case-document.model.js";
-import type { CaseHandoverContinueExpiredResult, CaseHandoverExportInput, CaseHandoverExportResult, CaseHandoverImportInput, CaseHandoverImportResult, CaseHandoverInspectResult } from "../../src/domain/models/case-handover.model.js";
+import type { CaseHandoverCockpit, CaseHandoverContinueExpiredResult, CaseHandoverExportInput, CaseHandoverExportResult, CaseHandoverImportInput, CaseHandoverImportResult, CaseHandoverInspectResult, CaseHandoverReturnDeltaExportInput } from "../../src/domain/models/case-handover.model.js";
 import type {
   CaseMeasureNoteProcessType,
   CaseMeasureNoteRecord,
@@ -40,6 +40,27 @@ import type {
   DeadlineRecord,
   UpdateDeadlineInput,
 } from "../../src/domain/models/deadline.model.js";
+
+function createCaseHandoverApi(invokeIpc: IpcInvoker) {
+  return {
+    cockpit: (): Promise<CaseHandoverCockpit> =>
+      invokeIpc(IPC_CHANNELS.caseHandoverCockpit),
+    export: (input: CaseHandoverExportInput, suggestedFileName?: string): Promise<CaseHandoverExportResult> =>
+      invokeIpc(IPC_CHANNELS.caseHandoverExport, input, suggestedFileName),
+    exportReturnDelta: (input: CaseHandoverReturnDeltaExportInput, suggestedFileName?: string): Promise<CaseHandoverExportResult> =>
+      invokeIpc(IPC_CHANNELS.caseHandoverReturnDeltaExport, input, suggestedFileName),
+    selectFile: (): Promise<{ canceled: true } | { canceled: false; filePath: string; fileName: string }> =>
+      invokeIpc(IPC_CHANNELS.caseHandoverSelectFile),
+    inspect: (filePath: string, passphrase: string): Promise<CaseHandoverInspectResult> =>
+      invokeIpc(IPC_CHANNELS.caseHandoverInspect, filePath, passphrase),
+    selectAndInspect: (passphrase: string): Promise<{ canceled: true } | { canceled: false; filePath: string; fileName: string; inspection: CaseHandoverInspectResult }> =>
+      invokeIpc(IPC_CHANNELS.caseHandoverSelectAndInspect, passphrase),
+    import: (input: CaseHandoverImportInput): Promise<CaseHandoverImportResult> =>
+      invokeIpc(IPC_CHANNELS.caseHandoverImport, input),
+    continueExpired: (caseId: string, reason: string): Promise<CaseHandoverContinueExpiredResult> =>
+      invokeIpc(IPC_CHANNELS.caseHandoverContinueExpired, caseId, reason),
+  };
+}
 
 export function createCasesApi(invokeIpc: IpcInvoker) {
   return {
@@ -87,20 +108,7 @@ export function createCasesApi(invokeIpc: IpcInvoker) {
       search: (input: CaseContentSearchInput): Promise<CaseSearchResult[]> =>
         invokeIpc(IPC_CHANNELS.casesSearch, input),
     },
-  caseHandover: {
-      export: (input: CaseHandoverExportInput, suggestedFileName?: string): Promise<CaseHandoverExportResult> =>
-        invokeIpc(IPC_CHANNELS.caseHandoverExport, input, suggestedFileName),
-      selectFile: (): Promise<{ canceled: true } | { canceled: false; filePath: string; fileName: string }> =>
-        invokeIpc(IPC_CHANNELS.caseHandoverSelectFile),
-      inspect: (filePath: string, passphrase: string): Promise<CaseHandoverInspectResult> =>
-        invokeIpc(IPC_CHANNELS.caseHandoverInspect, filePath, passphrase),
-      selectAndInspect: (passphrase: string): Promise<{ canceled: true } | { canceled: false; filePath: string; fileName: string; inspection: CaseHandoverInspectResult }> =>
-        invokeIpc(IPC_CHANNELS.caseHandoverSelectAndInspect, passphrase),
-      import: (input: CaseHandoverImportInput): Promise<CaseHandoverImportResult> =>
-        invokeIpc(IPC_CHANNELS.caseHandoverImport, input),
-      continueExpired: (caseId: string, reason: string): Promise<CaseHandoverContinueExpiredResult> =>
-        invokeIpc(IPC_CHANNELS.caseHandoverContinueExpired, caseId, reason),
-    },
+  caseHandover: createCaseHandoverApi(invokeIpc),
   caseMeasures: {
       list: (caseId?: string): Promise<CaseMeasureRecord[]> =>
         invokeIpc(IPC_CHANNELS.caseMeasuresList, caseId),

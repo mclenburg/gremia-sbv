@@ -1,20 +1,24 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { createCipheriv, randomBytes, randomUUID } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
 import type { CreatePersonalDataAuditInput } from '../src/domain/models/audit.model.js';
 import { auditCaseHandoverContinuedAfterExpiry, auditCaseHandoverExported, auditCaseHandoverImported, auditCaseHandoverImportInspected } from './auditEventBuilders.js';
 import { SearchIndexService } from './search/searchIndexService.js';
-import { buildCandidateMatches, buildCaseHandoverImportPlan, CASE_HANDOVER_FORMAT, CASE_HANDOVER_VERSION, createPackageId, isExpired, packageRef, safeAuditMetadata } from './caseHandoverPolicy.js';
+import { buildCandidateMatches, buildCaseHandoverImportPlan, CASE_HANDOVER_FORMAT, CASE_HANDOVER_VERSION, isExpired, safeAuditMetadata } from './caseHandoverPolicy.js';
 import { assertCaseHandoverEnvelope, decryptCaseHandoverEnvelope, type CaseHandoverEnvelope } from './caseHandoverCrypto.js';
 import { encryptCaseHandoverPayloadForRecipient } from './caseHandoverTargetCrypto.js';
 import { inspectCaseHandoverFilePath } from './caseHandoverFilePolicy.js';
 import { parseTransferRecipientToken } from './transferInstanceIdentityPolicy.js';
 import { TransferInstanceIdentityService, type TransferInstancePrivateIdentity } from './transferInstanceIdentityService.js';
-import type { CaseHandoverContinueExpiredInput, CaseHandoverContinueExpiredResult, CaseHandoverExportInput, CaseHandoverExportResult, CaseHandoverImportInput, CaseHandoverImportResult, CaseHandoverInspectResult } from '../src/domain/models/case-handover.model.js';
-import { Row, PackagePayload, DecryptedPackage, nowIso, sha256, isRecord, safeString, ensureArray } from './caseHandoverSupport.js';
-import { encodeDocumentForHandover, sanitizeHandoverDocumentMetadata } from './caseHandoverDocumentCodec.js';
+import type { CaseHandoverCockpit, CaseHandoverContinueExpiredInput, CaseHandoverContinueExpiredResult, CaseHandoverExportInput, CaseHandoverExportResult, CaseHandoverImportInput, CaseHandoverImportResult, CaseHandoverInspectResult, CaseHandoverReturnDeltaExportInput } from '../src/domain/models/case-handover.model.js';
+import { Row, PackagePayload, DecryptedPackage, nowIso, isRecord, safeString } from './caseHandoverSupport.js';
+import { collectCaseHandoverPayload } from './caseHandoverPayloadCollector.js';
+import { ensureCaseHandoverExportLedgerSchema, recordCaseHandoverExport } from './caseHandoverExportLedger.js';
+import { CaseHandoverReturnDeltaService } from './caseHandoverReturnDeltaService.js';
+import { CaseHandoverCockpitService } from './caseHandoverCockpitService.js';
+import { storeImportedCaseDocument } from './caseHandoverImportedDocumentStore.js';
 import { OWNER_ONLY_FILE_MODE, restrictFileToOwner } from './secureFilePermissions.js';
 import { ensureCaseHandoverRuntimeSchema } from './runtimeSchemaCompatibility.js';
 import { PrivacyReviewService } from './privacyReviewService.js';
@@ -26,6 +30,7 @@ export class CaseHandoverService {
 
   ensureSchema(db: DatabaseAdapter): void {
     ensureCaseHandoverRuntimeSchema(db);
+    ensureCaseHandoverExportLedgerSchema(db);
     new PersonalDataAuditLogService(db);
   }
 
@@ -35,61 +40,6 @@ export class CaseHandoverService {
 
   private rows(db: DatabaseAdapter, sql: string, ...params: unknown[]): Row[] { try { return db.prepare<Row>(sql).all(...params); } catch { return []; } }
   private row(db: DatabaseAdapter, sql: string, ...params: unknown[]): Row | undefined { try { return db.prepare<Row>(sql).get(...params); } catch { return undefined; } }
-
-  private collectPayload(db: DatabaseAdapter, input: CaseHandoverExportInput): PackagePayload {
-    const caseIds = ensureArray(input.caseIds);
-    if (!caseIds.length) throw new Error('Für eine Fallübergabe muss mindestens eine Fallakte ausgewählt sein.');
-    if (!input.passphrase || input.passphrase.length < 10) throw new Error('Die Transport-Passphrase muss mindestens 10 Zeichen lang sein.');
-    const measureFilter = new Set(ensureArray(input.measureIds));
-    const packageId = createPackageId();
-    const createdAt = nowIso();
-    const payload: PackagePayload = { format: CASE_HANDOVER_FORMAT, version: CASE_HANDOVER_VERSION, packageId, createdAt, expiresAt: input.expiresAt, purpose: input.purpose?.trim() || 'Urlaubsübergabe / SBV-Vertretung', cases: [], protectedPersons: [], notes: [], measures: [], measureNotes: [], deadlines: [], documents: [] };
-    const personIdToRef = new Map<string, string>();
-    const caseIdToRef = new Map<string, string>();
-    const measureIdToRef = new Map<string, string>();
-
-    caseIds.forEach((caseId, index) => {
-      const caseRow = this.row(db, 'SELECT * FROM cases WHERE id = ?', caseId);
-      if (!caseRow) throw new Error(`Fallakte nicht gefunden: ${caseId}`);
-      const ref = packageRef('case', index);
-      caseIdToRef.set(caseId, ref);
-      payload.cases.push({ ref, data: caseRow });
-      if (caseRow.protected_person_id && !personIdToRef.has(caseRow.protected_person_id)) {
-        const personRow = this.row(db, 'SELECT * FROM protected_persons WHERE id = ?', caseRow.protected_person_id);
-        if (personRow) { const personRef = packageRef('person', personIdToRef.size); personIdToRef.set(caseRow.protected_person_id, personRef); payload.protectedPersons.push({ ref: personRef, data: personRow }); }
-      }
-    });
-
-    const placeholders = caseIds.map(() => '?').join(',');
-    const noteRows = this.rows(db, `SELECT * FROM case_notes WHERE case_id IN (${placeholders}) ORDER BY created_at`, ...caseIds);
-    noteRows.forEach((note, index) => payload.notes.push({ ref: packageRef('note', index), caseRef: caseIdToRef.get(note.case_id)!, data: note }));
-
-    let measureRows = this.rows(db, `SELECT * FROM case_measures WHERE case_id IN (${placeholders}) ORDER BY created_at`, ...caseIds);
-    if (measureFilter.size) measureRows = measureRows.filter((m) => measureFilter.has(m.id));
-    measureRows.forEach((measure, index) => { const ref = packageRef('measure', index); measureIdToRef.set(measure.id, ref); payload.measures.push({ ref, caseRef: caseIdToRef.get(measure.case_id)!, data: measure }); });
-
-    if (measureRows.length) {
-      const measureIds = measureRows.map((m) => m.id);
-      const mp = measureIds.map(() => '?').join(',');
-      const measureNoteRows = this.rows(db, `SELECT * FROM case_measure_notes WHERE measure_id IN (${mp}) ORDER BY created_at`, ...measureIds);
-      measureNoteRows.forEach((note, index) => payload.measureNotes.push({ ref: packageRef('measure_note', index), caseRef: caseIdToRef.get(note.case_id)!, measureRef: measureIdToRef.get(note.measure_id)!, data: note }));
-    }
-
-    let deadlineRows = this.rows(db, `SELECT * FROM deadlines WHERE case_id IN (${placeholders}) ORDER BY created_at`, ...caseIds);
-    if (measureFilter.size) deadlineRows = deadlineRows.filter((d) => !d.measure_id || measureFilter.has(d.measure_id));
-    deadlineRows.forEach((deadline, index) => payload.deadlines.push({ ref: packageRef('deadline', index), caseRef: deadline.case_id ? caseIdToRef.get(deadline.case_id) : undefined, measureRef: deadline.measure_id ? measureIdToRef.get(deadline.measure_id) : undefined, data: deadline }));
-
-    let documentRows = this.rows(db, `SELECT * FROM case_documents WHERE case_id IN (${placeholders}) ORDER BY created_at`, ...caseIds);
-    if (measureFilter.size) documentRows = documentRows.filter((d) => !d.measure_id || measureFilter.has(d.measure_id));
-    documentRows.forEach((doc, index) => payload.documents.push({
-        ref: packageRef('document', index),
-        caseRef: caseIdToRef.get(doc.case_id)!,
-        measureRef: doc.measure_id ? measureIdToRef.get(doc.measure_id) : undefined,
-        data: sanitizeHandoverDocumentMetadata(doc),
-        contentBase64: encodeDocumentForHandover(doc, this.dataDirProvider()),
-      }));
-    return payload;
-  }
 
   private encryptPayload(payload: PackagePayload, input: CaseHandoverExportInput): CaseHandoverEnvelope {
     const recipient = parseTransferRecipientToken(input.targetRecipientToken);
@@ -181,6 +131,8 @@ export class CaseHandoverService {
     if (value.packageId === undefined || typeof value.packageId !== 'string') throw new Error('Fallübergabepaket enthält keine gültige Paketkennung.');
     if (value.createdAt === undefined || typeof value.createdAt !== 'string') throw new Error('Fallübergabepaket enthält kein gültiges Erstellungsdatum.');
     if (value.expiresAt !== undefined && typeof value.expiresAt !== 'string') throw new Error('Fallübergabepaket enthält kein gültiges Ablaufdatum.');
+    if (value.packageType !== undefined && value.packageType !== 'vacation_handover' && value.packageType !== 'return_delta') throw new Error('Fallübergabepaket enthält einen ungültigen Übergabetyp.');
+    if (value.packageType === 'return_delta' && typeof value.sourcePackageId !== 'string') throw new Error('Rückgabepaket enthält keine Ausgangspaket-Zuordnung.');
     const payload = value as unknown as PackagePayload;
     const arrayFields: Array<keyof Pick<PackagePayload, 'cases' | 'protectedPersons' | 'notes' | 'measures' | 'measureNotes' | 'deadlines' | 'documents'>> = ['cases', 'protectedPersons', 'notes', 'measures', 'measureNotes', 'deadlines', 'documents'];
     for (const field of arrayFields) if (!Array.isArray(payload[field])) throw new Error('Fallübergabepaket enthält keine gültige Nutzdatenstruktur.');
@@ -227,14 +179,23 @@ export class CaseHandoverService {
 
   async exportToFile(input: CaseHandoverExportInput, targetPath: string): Promise<CaseHandoverExportResult> {
     const db = this.db();
-    const payload = this.collectPayload(db, input);
+    const payload = collectCaseHandoverPayload(db, input, this.dataDirProvider);
     const envelope = this.encryptPayload(payload, input);
     await fs.promises.mkdir(path.dirname(targetPath), { recursive: true });
     await fs.promises.writeFile(targetPath, JSON.stringify(envelope, null, 2), { mode: OWNER_ONLY_FILE_MODE });
     await restrictFileToOwner(targetPath);
-    this.audit(db, auditCaseHandoverExported({ packageId: payload.packageId, caseCount: payload.cases.length, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, validUntilPresent: Boolean(payload.expiresAt), result: 'success' }));
     const targetInstanceId = 'crypto' in envelope ? envelope.recipientBinding?.targetInstanceId : undefined;
-    return { exported: true, filePath: targetPath, packageId: payload.packageId, caseCount: payload.cases.length, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, expiresAt: payload.expiresAt, targetInstanceId };
+    recordCaseHandoverExport(db, payload, targetInstanceId);
+    this.audit(db, auditCaseHandoverExported({ packageId: payload.packageId, caseCount: payload.cases.length, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, validUntilPresent: Boolean(payload.expiresAt), result: 'success' }));
+    return { exported: true, filePath: targetPath, packageId: payload.packageId, packageType: payload.packageType ?? 'vacation_handover', caseCount: payload.cases.length, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, expiresAt: payload.expiresAt, targetInstanceId };
+  }
+
+  async exportReturnDeltaToFile(input: CaseHandoverReturnDeltaExportInput, targetPath: string): Promise<CaseHandoverExportResult> {
+    return new CaseHandoverReturnDeltaService(this.database, this.dataDirProvider).exportToFile(input, targetPath);
+  }
+
+  listCockpit(): CaseHandoverCockpit {
+    return new CaseHandoverCockpitService(this.database).list();
   }
 
   inspect(filePath: string, passphrase: string): CaseHandoverInspectResult {
@@ -247,6 +208,7 @@ export class CaseHandoverService {
       return {
         valid: true,
         packageId: payload.packageId,
+        packageType: payload.packageType ?? 'vacation_handover',
         createdAt: payload.createdAt,
         expiresAt: payload.expiresAt,
         isExpired: expired,
@@ -277,6 +239,9 @@ export class CaseHandoverService {
     const envelope = this.readEnvelope(file.filePath);
     const decrypted = this.decryptEnvelope(envelope, input.passphrase);
     const payload = decrypted.payload;
+    if (payload.packageType === 'return_delta') {
+      return new CaseHandoverReturnDeltaService(this.database, this.dataDirProvider).importPayload(payload, input);
+    }
     const { expired, importPlan } = this.buildImportPlanning(db, payload);
     this.assertImportAllowed(db, payload, input, expired, importPlan);
     const duplicate = this.row(db, 'SELECT id FROM case_handover_imports WHERE package_id = ?', payload.packageId);
@@ -368,11 +333,16 @@ export class CaseHandoverService {
       const id = randomUUID();
       const caseId = caseRefToLocal.get(item.caseRef)!;
       const measureId = item.measureRef ? measureRefToLocal.get(item.measureRef) : null;
-      const plain = Buffer.from(item.contentBase64, 'base64');
-      const documentKey = randomBytes(32); const iv = randomBytes(12); const cipher = createCipheriv('aes-256-gcm', documentKey, iv); const encrypted = Buffer.concat([cipher.update(plain), cipher.final()]); const tag = cipher.getAuthTag();
-      const storageDir = path.join(this.dataDirProvider(), 'documents', caseId); await fs.promises.mkdir(storageDir, { recursive: true }); const storagePath = path.join(storageDir, `${id}.gsbvdoc`); await fs.promises.writeFile(storagePath, encrypted);
-      db.prepare(`INSERT INTO case_documents (id, case_id, measure_id, filename, display_title, mime_type, storage_path, sha256, extracted_text, document_key, iv, auth_tag, size_bytes, imported_at, extraction_quality, text_extraction_status, text_extracted_at, text_extractor_id, text_extraction_error, ocr_status, ocr_text, contains_health_data, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-        .run(id, caseId, measureId, d.filename ?? 'uebergabe-dokument.bin', d.display_title ?? d.filename ?? 'Übergabe-Dokument', d.mime_type ?? null, storagePath, sha256(plain), d.extracted_text ?? null, documentKey.toString('base64'), iv.toString('base64'), tag.toString('base64'), plain.length, timestamp, d.extraction_quality ?? 'unknown', d.text_extraction_status ?? 'unknown', d.text_extracted_at ?? null, d.text_extractor_id ?? null, d.text_extraction_error ?? null, d.ocr_status ?? 'not_required', d.ocr_text ?? null, d.contains_health_data ?? 1, timestamp);
+      storeImportedCaseDocument(db, {
+        id,
+        caseId,
+        measureId,
+        data: d,
+        contentBase64: item.contentBase64,
+        timestamp,
+        dataDirectory: this.dataDirProvider(),
+        titlePrefix: '[Übergabe] ',
+      });
       this.insertItem(db, importId, 'case_document', id, item.ref, timestamp);
     }
 

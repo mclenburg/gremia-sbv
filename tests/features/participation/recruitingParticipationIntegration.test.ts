@@ -30,7 +30,7 @@ describe('Stellenbesetzungen 0.9.5-c Integration', () => {
     const migration = readFileSync('database/migrations/0047_participation_violation_recruiting_context.sql', 'utf8');
     const schema = readFileSync('database/schema.sql', 'utf8');
 
-    expect(APP_SCHEMA_VERSION).toBe('0054');
+    expect(APP_SCHEMA_VERSION).toBe('0055');
     expect(PARTICIPATION_VIOLATION_SOURCE_CONTEXT_TYPES).toContain('recruiting_participation');
     expect(SBV_PARTICIPATION_VIOLATIONS_REQUIRED_COLUMNS).toContain('related_recruiting_participation_id');
     expect(migration).toContain('related_recruiting_participation_id');
