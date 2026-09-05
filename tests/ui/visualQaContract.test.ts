@@ -27,6 +27,7 @@ describe('P11 visual QA contract', () => {
       'dashboard',
       'persons',
       'cases',
+      'case_handover',
       'deadlines',
       'activity_journal',
       'meetings',

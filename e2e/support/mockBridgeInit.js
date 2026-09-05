@@ -732,6 +732,17 @@
       search: searchSyntheticCaseContent,
     },
 
+    caseHandover: {
+      cockpit: async () => ({ activeVacationCount: 0, expiredVacationCount: 0, returnableCount: 0, outgoing: [], incoming: [] }),
+      export: async () => ({ exported: false, filePath: '', packageId: '', packageType: 'vacation_handover', caseCount: 0, measureCount: 0, documentCount: 0, deadlineCount: 0 }),
+      exportReturnDelta: async () => ({ exported: false, filePath: '', packageId: '', packageType: 'return_delta', caseCount: 0, measureCount: 0, documentCount: 0, deadlineCount: 0 }),
+      selectFile: async () => ({ canceled: true }),
+      inspect: async () => { throw new Error('In der Browser-Testumgebung wurde keine Übergabedatei ausgewählt.'); },
+      selectAndInspect: async () => ({ canceled: true }),
+      import: async () => { throw new Error('In der Browser-Testumgebung wurde keine Übergabedatei ausgewählt.'); },
+      continueExpired: async (caseId) => ({ caseId, confirmed: true, confirmedAt: now }),
+    },
+
 
     gremiaBr: {
       getSettings: async () => ({ ...gremiaBrSettings }),

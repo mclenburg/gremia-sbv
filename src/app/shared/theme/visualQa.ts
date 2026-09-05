@@ -10,6 +10,7 @@ export const VISUAL_QA_ROUTES: readonly VisualQaRoute[] = [
   { id: 'dashboard', navName: 'Dashboard', heading: /Dashboard/i },
   { id: 'persons', navName: 'Personen', heading: /Personenverzeichnis/i },
   { id: 'cases', navName: 'Fallakte', heading: /Fälle/i },
+  { id: 'case_handover', navName: 'Übergaben', heading: /Übergaben.*Vertretung/i },
   { id: 'deadlines', navName: 'Fristen', heading: /Fristen/i },
   { id: 'activity_journal', navName: 'Journal', heading: /Tätigkeitsjournal/i },
   { id: 'meetings', navName: 'Sitzungen', heading: /Gremiensitzungen/i },
