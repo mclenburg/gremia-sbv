@@ -20,12 +20,13 @@ function shortcutForHelp() {
 }
 
 async function setTheme(page: Page, theme: VisualTheme) {
-  const apply = (value: VisualTheme) => {
+  const persist = (value: VisualTheme) => {
     window.localStorage.setItem('gremia.sbv.theme', value);
     window.localStorage.setItem('gremia-sbv-theme', value);
-    document.documentElement.dataset.theme = value;
   };
-  await page.evaluate(apply, theme);
+  await page.evaluate(persist, theme);
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
 }
 
 function mainNavigation(page: Page) {
