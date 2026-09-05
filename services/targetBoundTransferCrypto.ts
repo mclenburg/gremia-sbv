@@ -11,6 +11,7 @@ import {
   scryptSync,
 } from 'node:crypto';
 import type { TransferRecipientIdentity } from '../src/domain/models/transfer-identity.model.js';
+import type { TransferProtectionMode } from '../src/domain/models/case-handover.model.js';
 import type { TransferInstancePrivateIdentity } from './transferInstanceIdentityService.js';
 
 export type TransferKdfParams = {
@@ -26,10 +27,16 @@ export type TransferCryptoHeader = {
   kdfParams: TransferKdfParams;
   salt: string;
   iv: string;
+} | {
+  algorithm: 'aes-256-gcm';
+  kdf: 'hkdf-sha256';
+  kdfParams?: undefined;
+  salt: string;
+  iv: string;
 };
 
 export type TransferRecipientBinding = {
-  scheme: 'x25519-scrypt-hkdf-sha256';
+  scheme: 'x25519-scrypt-hkdf-sha256' | 'x25519-hkdf-sha256';
   targetInstanceId: string;
   targetKeyFingerprint: string;
   ephemeralPublicKeyPem: string;
@@ -50,6 +57,7 @@ export type TargetBoundTransferEnvelope = {
 export type TargetBoundDecryptResult = {
   payloadText: string;
   algorithm: 'aes-256-gcm';
+  protectionMode: TransferProtectionMode;
 };
 
 export const CURRENT_TRANSFER_SCRYPT_PARAMS: TransferKdfParams = {
@@ -96,12 +104,12 @@ export function assertBase64(value: unknown, field: string): string {
 export function assertTransferRecipientBinding(value: unknown): TransferRecipientBinding {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Übergabepaket enthält keine gültige Zielbindung.');
   const record = value as Record<string, unknown>;
-  if (record.scheme !== 'x25519-scrypt-hkdf-sha256') throw new Error('Übergabepaket nutzt keine unterstützte Zielbindung.');
+  if (record.scheme !== 'x25519-scrypt-hkdf-sha256' && record.scheme !== 'x25519-hkdf-sha256') throw new Error('Übergabepaket nutzt keine unterstützte Zielbindung.');
   if (typeof record.targetInstanceId !== 'string' || !record.targetInstanceId.trim()) throw new Error('Übergabepaket enthält keine Zielinstanz.');
   if (typeof record.targetKeyFingerprint !== 'string' || !/^[0-9a-f]{64}$/i.test(record.targetKeyFingerprint)) throw new Error('Übergabepaket enthält keinen gültigen Ziel-Fingerprint.');
   if (typeof record.ephemeralPublicKeyPem !== 'string' || !record.ephemeralPublicKeyPem.includes('PUBLIC KEY')) throw new Error('Übergabepaket enthält keinen gültigen Übergabeschlüssel.');
   return {
-    scheme: 'x25519-scrypt-hkdf-sha256',
+    scheme: record.scheme,
     targetInstanceId: record.targetInstanceId,
     targetKeyFingerprint: record.targetKeyFingerprint.toLowerCase(),
     ephemeralPublicKeyPem: record.ephemeralPublicKeyPem,
@@ -119,12 +127,12 @@ export function buildTargetBoundAad(envelope: Omit<TargetBoundTransferEnvelope, 
     crypto: {
       algorithm: envelope.crypto.algorithm,
       kdf: envelope.crypto.kdf,
-      kdfParams: {
+      kdfParams: envelope.crypto.kdf === 'scrypt' ? {
         N: envelope.crypto.kdfParams.N,
         r: envelope.crypto.kdfParams.r,
         p: envelope.crypto.kdfParams.p,
         maxmem: envelope.crypto.kdfParams.maxmem ?? null,
-      },
+      } : null,
       salt: envelope.crypto.salt,
       iv: envelope.crypto.iv,
     },
@@ -134,11 +142,23 @@ export function buildTargetBoundAad(envelope: Omit<TargetBoundTransferEnvelope, 
 function deriveTargetBoundKey(args: {
   passphrase: string;
   salt: Buffer;
-  params: TransferKdfParams;
+  params?: TransferKdfParams;
   sharedSecret: Buffer;
   packageId: string;
   targetInstanceId: string;
+  protectionMode: TransferProtectionMode;
 }): Buffer {
+  if (args.protectionMode === 'recipient_key_only') {
+    return Buffer.from(hkdfSync(
+      'sha256',
+      args.sharedSecret,
+      args.salt,
+      Buffer.from(`gremia-sbv-transfer-key-only:${args.targetInstanceId}:${args.packageId}`, 'utf8'),
+      32,
+    ));
+  }
+  if (!args.passphrase) throw new Error('Dieses Übergabepaket benötigt eine Transport-Passphrase.');
+  if (!args.params) throw new Error('Übergabepaket enthält keine gültigen KDF-Parameter.');
   const passphraseKey = deriveTransferKey(args.passphrase, args.salt, args.params);
   try {
     return Buffer.from(hkdfSync(
@@ -162,6 +182,7 @@ export function encryptTargetBoundTransferPayload(args: {
   payloadText: string;
   passphrase: string;
   recipient: TransferRecipientIdentity;
+  protectionMode?: TransferProtectionMode;
 }): TargetBoundTransferEnvelope {
   if (!args.format.trim() || !Number.isInteger(args.version) || args.version < 1 || !args.packageId.trim() || !args.createdAt.trim()) {
     throw new Error('Übergabe-Envelope enthält ungültige technische Metadaten.');
@@ -174,15 +195,18 @@ export function encryptTargetBoundTransferPayload(args: {
     privateKey: createPrivateKey(ephemeral.privateKey),
     publicKey: createPublicKey(args.recipient.publicKeyPem),
   });
+  const protectionMode = args.protectionMode ?? 'passphrase_and_recipient_key';
+  if (protectionMode === 'passphrase_and_recipient_key' && !args.passphrase) throw new Error('Für diese Schutzart ist eine Transport-Passphrase erforderlich.');
   const salt = randomBytes(16);
   const iv = randomBytes(12);
   const key = deriveTargetBoundKey({
     passphrase: args.passphrase,
     salt,
-    params: CURRENT_TRANSFER_SCRYPT_PARAMS,
+    params: protectionMode === 'passphrase_and_recipient_key' ? CURRENT_TRANSFER_SCRYPT_PARAMS : undefined,
     sharedSecret,
     packageId: args.packageId,
     targetInstanceId: args.recipient.instanceId,
+    protectionMode,
   });
   try {
     const header = {
@@ -192,12 +216,17 @@ export function encryptTargetBoundTransferPayload(args: {
       createdAt: args.createdAt,
       expiresAt: args.expiresAt,
       recipientBinding: {
-        scheme: 'x25519-scrypt-hkdf-sha256' as const,
+        scheme: protectionMode === 'recipient_key_only' ? 'x25519-hkdf-sha256' as const : 'x25519-scrypt-hkdf-sha256' as const,
         targetInstanceId: args.recipient.instanceId,
         targetKeyFingerprint: args.recipient.keyFingerprint,
         ephemeralPublicKeyPem: ephemeral.publicKey.toString(),
       },
-      crypto: {
+      crypto: protectionMode === 'recipient_key_only' ? {
+        algorithm: 'aes-256-gcm' as const,
+        kdf: 'hkdf-sha256' as const,
+        salt: salt.toString('base64'),
+        iv: iv.toString('base64'),
+      } : {
         algorithm: 'aes-256-gcm' as const,
         kdf: 'scrypt' as const,
         kdfParams: CURRENT_TRANSFER_SCRYPT_PARAMS,
@@ -236,11 +265,15 @@ export function decryptTargetBoundTransferPayload(
   expected: { format: string; version: number },
 ): TargetBoundDecryptResult {
   if (envelope.format !== expected.format || envelope.version !== expected.version) throw new Error('Nicht unterstütztes Übergabeformat.');
-  if (envelope.crypto.algorithm !== 'aes-256-gcm' || envelope.crypto.kdf !== 'scrypt') throw new Error('Nicht unterstützte Übergabekryptografie.');
+  if (envelope.crypto.algorithm !== 'aes-256-gcm') throw new Error('Nicht unterstützte Übergabekryptografie.');
+  const protectionMode: TransferProtectionMode = envelope.recipientBinding.scheme === 'x25519-hkdf-sha256' ? 'recipient_key_only' : 'passphrase_and_recipient_key';
+  if ((protectionMode === 'recipient_key_only' && envelope.crypto.kdf !== 'hkdf-sha256') || (protectionMode === 'passphrase_and_recipient_key' && envelope.crypto.kdf !== 'scrypt')) {
+    throw new Error('Nicht unterstützte Übergabekryptografie.');
+  }
   if (envelope.recipientBinding.targetInstanceId !== localIdentity.instanceId || envelope.recipientBinding.targetKeyFingerprint !== localIdentity.keyFingerprint) {
     throw new Error('Dieses Übergabepaket ist für eine andere Gremia.SBV-Instanz verschlüsselt.');
   }
-  const params = assertKdfParams(envelope.crypto.kdfParams);
+  const params = envelope.crypto.kdf === 'scrypt' ? assertKdfParams(envelope.crypto.kdfParams) : undefined;
   const salt = Buffer.from(assertBase64(envelope.crypto.salt, 'salt'), 'base64');
   const iv = Buffer.from(assertBase64(envelope.crypto.iv, 'iv'), 'base64');
   const encrypted = Buffer.from(assertBase64(envelope.payload, 'payload'), 'base64');
@@ -255,6 +288,7 @@ export function decryptTargetBoundTransferPayload(
     sharedSecret,
     packageId: envelope.packageId,
     targetInstanceId: envelope.recipientBinding.targetInstanceId,
+    protectionMode,
   });
   try {
     const aad = buildTargetBoundAad(envelope);
@@ -266,7 +300,7 @@ export function decryptTargetBoundTransferPayload(
     decipher.setAuthTag(Buffer.from(assertBase64(envelope.crypto.tag, 'tag'), 'base64'));
     const plain = Buffer.concat([decipher.update(encrypted), decipher.final()]);
     try {
-      return { payloadText: plain.toString('utf8'), algorithm: 'aes-256-gcm' };
+      return { payloadText: plain.toString('utf8'), algorithm: 'aes-256-gcm', protectionMode };
     } finally {
       safeDestroyBuffer(plain);
     }

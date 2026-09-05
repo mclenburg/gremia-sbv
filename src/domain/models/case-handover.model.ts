@@ -2,6 +2,7 @@ import type { TransferImportConflictLevel, TransferImportPlan } from './transfer
 
 export type CaseHandoverImportMode = 'create_new' | 'merge_existing';
 export type CaseHandoverPackageType = 'vacation_handover' | 'return_delta' | 'office_handover';
+export type TransferProtectionMode = 'passphrase_and_recipient_key' | 'recipient_key_only';
 
 export interface OfficeHandoverScope {
   templateCount: number;
@@ -20,6 +21,7 @@ export interface CaseHandoverExportInput {
   purpose?: string;
   passphrase: string;
   targetRecipientToken: string;
+  protectionMode?: TransferProtectionMode;
 }
 
 export interface CaseHandoverReturnDeltaExportInput {
@@ -27,6 +29,7 @@ export interface CaseHandoverReturnDeltaExportInput {
   caseIds: string[];
   passphrase: string;
   targetRecipientToken: string;
+  protectionMode?: TransferProtectionMode;
 }
 
 export interface CaseHandoverExportResult {
@@ -40,6 +43,7 @@ export interface CaseHandoverExportResult {
   deadlineCount: number;
   expiresAt?: string;
   targetInstanceId?: string;
+  protectionMode?: TransferProtectionMode;
   officeScope?: OfficeHandoverScope;
 }
 
@@ -74,6 +78,7 @@ export interface CaseHandoverInspectResult {
     legacyFormat: boolean;
   };
   targetInstanceId?: string;
+  protectionMode?: TransferProtectionMode;
   officeScope?: OfficeHandoverScope;
   legacyImportConfirmationRequired?: boolean;
   file?: {

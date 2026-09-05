@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import type { TransferProtectionMode } from '../src/domain/models/case-handover.model.js';
 export interface HandoverDatabaseRow extends Record<string, unknown> {
   id: string;
   case_id: string;
@@ -55,6 +56,7 @@ export type DecryptedPackage = {
     formatVersion: number;
     legacyFormat: boolean;
     algorithm: 'aes-256-gcm';
+    protectionMode?: TransferProtectionMode;
   };
 };
 

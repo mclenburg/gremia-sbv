@@ -6,7 +6,8 @@ import { buildTransferImportPlan } from './transferImportPlan.js';
 export const CASE_HANDOVER_FORMAT = 'gremia-sbv-case-handover';
 export const CASE_HANDOVER_LEGACY_VERSION = 1;
 export const CASE_HANDOVER_TARGET_BOUND_LEGACY_VERSION = 2;
-export const CASE_HANDOVER_VERSION = 3;
+export const CASE_HANDOVER_PASSPHRASE_VERSION = 3;
+export const CASE_HANDOVER_VERSION = 4;
 
 export function packageRef(prefix: string, index: number): string {
   return `${prefix}_${index + 1}`;

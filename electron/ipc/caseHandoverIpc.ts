@@ -50,13 +50,13 @@ export function registerCaseHandoverIpc(ipcMain: IpcMain, security: SecurityServ
   registerIpcHandler(ipcMain, IPC_CHANNELS.caseHandoverInspect, async (_event, filePath: unknown, passphrase: unknown) => {
     const fileToken = assertString(filePath, 'caseHandover:inspect', 'Dateiauswahl', { minLength: 1, maxLength: 2000 });
     const validatedFilePath = resolveSelectedFileCapability(fileToken, SELECTED_FILE_PURPOSE.caseHandover, 'caseHandover:inspect');
-    const validatedPassphrase = assertString(passphrase, 'caseHandover:inspect', 'Transport-Passphrase', { minLength: 1, maxLength: 500 });
+    const validatedPassphrase = assertString(passphrase, 'caseHandover:inspect', 'Transport-Passphrase', { minLength: 0, maxLength: 500 });
     if (!validatedFilePath.toLowerCase().endsWith('.gsbvtransfer')) throw new Error('Bitte eine Gremia.SBV-Übergabedatei (*.gsbvtransfer) auswählen.');
     return services.caseHandover().inspect(validatedFilePath, validatedPassphrase);
   });
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.caseHandoverSelectAndInspect, async (_event, passphrase: unknown) => {
-    const validatedPassphrase = assertString(passphrase, 'caseHandover:select-and-inspect', 'Transport-Passphrase', { minLength: 1, maxLength: 500 });
+    const validatedPassphrase = assertString(passphrase, 'caseHandover:select-and-inspect', 'Transport-Passphrase', { minLength: 0, maxLength: 500 });
     const result = await dialog.showOpenDialog({
       title: 'Fallübergabepaket öffnen',
       properties: ['openFile'],

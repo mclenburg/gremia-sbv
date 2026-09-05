@@ -53,6 +53,7 @@ export class CaseHandoverService {
       createdAt: payload.createdAt,
       expiresAt: payload.expiresAt,
       recipient,
+      protectionMode: input.protectionMode,
     });
   }
 
@@ -67,6 +68,7 @@ export class CaseHandoverService {
         formatVersion: decrypted.formatVersion,
         legacyFormat: decrypted.legacyFormat,
         algorithm: decrypted.algorithm,
+        protectionMode: decrypted.protectionMode,
       },
     };
   }
@@ -163,7 +165,7 @@ export class CaseHandoverService {
     const targetInstanceId = 'crypto' in envelope ? envelope.recipientBinding?.targetInstanceId : undefined;
     recordCaseHandoverExport(db, payload, targetInstanceId);
     this.audit(db, auditCaseHandoverExported({ packageId: payload.packageId, caseCount: payload.cases.length, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, validUntilPresent: Boolean(payload.expiresAt), result: 'success' }));
-    return { exported: true, filePath: targetPath, packageId: payload.packageId, packageType: payload.packageType ?? 'vacation_handover', caseCount: payload.cases.length, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, expiresAt: payload.expiresAt, targetInstanceId, officeScope: officeHandoverScope(payload) };
+    return { exported: true, filePath: targetPath, packageId: payload.packageId, packageType: payload.packageType ?? 'vacation_handover', caseCount: payload.cases.length, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, expiresAt: payload.expiresAt, targetInstanceId, protectionMode: input.protectionMode ?? 'passphrase_and_recipient_key', officeScope: officeHandoverScope(payload) };
   }
 
   async exportReturnDeltaToFile(input: CaseHandoverReturnDeltaExportInput, targetPath: string): Promise<CaseHandoverExportResult> {
@@ -201,6 +203,7 @@ export class CaseHandoverService {
         ],
         integrity: { verified: true, algorithm: decrypted.transfer.algorithm, formatVersion: decrypted.transfer.formatVersion, legacyFormat: decrypted.transfer.legacyFormat },
         targetInstanceId: 'crypto' in envelope ? envelope.recipientBinding?.targetInstanceId : undefined,
+        protectionMode: decrypted.transfer.protectionMode ?? 'passphrase_and_recipient_key',
         officeScope: officeHandoverScope(payload),
         legacyImportConfirmationRequired: decrypted.transfer.legacyFormat,
         file: { fileName: file.fileName, sizeBytes: file.sizeBytes, isNetworkPath: file.isNetworkPath },

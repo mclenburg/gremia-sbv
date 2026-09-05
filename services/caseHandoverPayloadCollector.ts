@@ -20,7 +20,6 @@ export function collectCaseHandoverPayload(
 ): PackagePayload {
   const caseIds = ensureArray(input.caseIds);
   if (!caseIds.length) throw new Error('Für eine Fallübergabe muss mindestens eine Fallakte ausgewählt sein.');
-  if (!input.passphrase || input.passphrase.length < 10) throw new Error('Die Transport-Passphrase muss mindestens 10 Zeichen lang sein.');
   const measureFilter = new Set(ensureArray(input.measureIds));
   const packageId = createPackageId();
   const createdAt = nowIso();

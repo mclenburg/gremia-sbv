@@ -33,6 +33,7 @@ export class CaseHandoverReturnDeltaService {
       packageId: payload.packageId,
       createdAt: payload.createdAt,
       recipient,
+      protectionMode: input.protectionMode,
     });
     await fs.promises.mkdir(path.dirname(targetPath), { recursive: true });
     await fs.promises.writeFile(targetPath, JSON.stringify(envelope, null, 2), { mode: OWNER_ONLY_FILE_MODE });
@@ -58,6 +59,7 @@ export class CaseHandoverReturnDeltaService {
       documentCount: payload.changedRefs?.documents?.length ?? 0,
       deadlineCount: payload.changedRefs?.deadlines?.length ?? 0,
       targetInstanceId,
+      protectionMode: input.protectionMode ?? 'passphrase_and_recipient_key',
     };
   }
 
