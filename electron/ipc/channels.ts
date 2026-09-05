@@ -25,6 +25,7 @@ export const IPC_CHANNELS = Object.freeze({
   bemUpdate: "bem:update",
   bemWarnings: "bem:warnings",
   caseHandoverContinueExpired: "caseHandover:continue-expired",
+  caseHandoverChecklist: "caseHandover:checklist",
   caseHandoverCockpit: "caseHandover:cockpit",
   caseHandoverExport: "caseHandover:export",
   caseHandoverReturnDeltaExport: "caseHandover:return-delta-export",

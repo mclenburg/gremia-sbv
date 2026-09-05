@@ -16,6 +16,7 @@ import { OWNER_ONLY_FILE_MODE, restrictFileToOwner } from './secureFilePermissio
 import { nowIso, safeString, type PackagePayload, type Row } from './caseHandoverSupport.js';
 import { PrivacyReviewService } from './privacyReviewService.js';
 import type { TrackImportedFile } from './caseHandoverImportUnitOfWork.js';
+import { CaseHandoverChecklistService } from './caseHandoverChecklistService.js';
 
 type ImportItemMap = Map<string, { packageRef: string; type: string }>;
 type ExportTargetMap = Map<string, { localId: string; type: string }>;
@@ -26,6 +27,7 @@ export class CaseHandoverReturnDeltaService {
   async exportToFile(input: CaseHandoverReturnDeltaExportInput, targetPath: string): Promise<CaseHandoverExportResult> {
     const basis = this.resolveImportedBasis(input);
     const payload = this.buildDeltaPayload(input, basis.importedAt, basis.importItemMap);
+    new CaseHandoverChecklistService(this.database).assertConfirmed({ payload, checklist: input.checklist });
     const recipient = parseTransferRecipientToken(input.targetRecipientToken);
     const envelope = encryptCaseHandoverPayloadForRecipient({
       payloadText: JSON.stringify(payload),

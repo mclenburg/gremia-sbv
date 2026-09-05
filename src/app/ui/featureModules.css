@@ -2192,6 +2192,33 @@ button.dashboard-focus-card:focus-visible {
   margin: 0;
 }
 
+.handover-checklist {
+  display: grid;
+  gap: 1rem;
+}
+
+.handover-checklist-item {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 0.875rem;
+  align-items: start;
+  padding: 0.875rem;
+  border: 1px solid var(--industrial-border-muted);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.handover-checklist-item p {
+  margin-top: 0.25rem;
+}
+
+.handover-checklist-item-attention {
+  border-color: rgba(255, 221, 0, 0.45);
+}
+
+.handover-checklist-item-blocking {
+  border-color: rgba(255, 84, 84, 0.6);
+}
+
 .industrial-status-card p,
 .industrial-status-card small,
 .industrial-record-card p,

@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { DatabaseAdapter } from '../../../../services/databaseService';
 import { MigrationService } from '../../../../services/migrationService';
 import { CaseHandoverService } from '../../../../services/caseHandoverService';
+import { CaseHandoverChecklistService } from '../../../../services/caseHandoverChecklistService';
 import { TransferInstanceIdentityService } from '../../../../services/transferInstanceIdentityService';
 import { storeImportedCaseDocument } from '../../../../services/caseHandoverImportedDocumentStore';
 import { openTestDatabase } from '../../../helpers/openTestDatabase';
@@ -138,6 +139,13 @@ describe('Fallübergabe P1 – Rückgabe-Delta', () => {
       caseIds: [substituteCaseId],
       passphrase,
       targetRecipientToken: sourceRecipient.recipientToken,
+      checklist: {
+        version: 1,
+        acknowledgedItemIds: new CaseHandoverChecklistService(substituteDb).build({
+          packageType: 'return_delta',
+          caseIds: [substituteCaseId],
+        }).requiredAcknowledgementIds,
+      },
     }, deltaFile);
 
     expect(delta.caseCount).toBe(1);

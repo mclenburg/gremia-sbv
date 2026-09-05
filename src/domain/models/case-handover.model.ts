@@ -3,6 +3,35 @@ import type { TransferImportConflictLevel, TransferImportPlan } from './transfer
 export type CaseHandoverImportMode = 'create_new' | 'merge_existing';
 export type CaseHandoverPackageType = 'vacation_handover' | 'return_delta' | 'office_handover';
 export type TransferProtectionMode = 'passphrase_and_recipient_key' | 'recipient_key_only';
+export type CaseHandoverChecklistItemState = 'ready' | 'attention' | 'blocking';
+
+export interface CaseHandoverChecklistItem {
+  id: string;
+  label: string;
+  description: string;
+  state: CaseHandoverChecklistItemState;
+  requiresAcknowledgement: boolean;
+}
+
+export interface CaseHandoverChecklist {
+  packageType: CaseHandoverPackageType;
+  caseCount: number;
+  items: CaseHandoverChecklistItem[];
+  blockingItemIds: string[];
+  requiredAcknowledgementIds: string[];
+  readyToExport: boolean;
+}
+
+export interface CaseHandoverChecklistConfirmation {
+  version: 1;
+  acknowledgedItemIds: string[];
+}
+
+export interface CaseHandoverChecklistInput {
+  caseIds: string[];
+  expiresAt?: string;
+  packageType?: CaseHandoverPackageType;
+}
 
 export interface OfficeHandoverScope {
   templateCount: number;
@@ -22,6 +51,7 @@ export interface CaseHandoverExportInput {
   passphrase: string;
   targetRecipientToken: string;
   protectionMode?: TransferProtectionMode;
+  checklist?: CaseHandoverChecklistConfirmation;
 }
 
 export interface CaseHandoverReturnDeltaExportInput {
@@ -30,6 +60,7 @@ export interface CaseHandoverReturnDeltaExportInput {
   passphrase: string;
   targetRecipientToken: string;
   protectionMode?: TransferProtectionMode;
+  checklist?: CaseHandoverChecklistConfirmation;
 }
 
 export interface CaseHandoverExportResult {

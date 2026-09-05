@@ -12,7 +12,7 @@ import { encryptCaseHandoverPayloadForRecipient } from './caseHandoverTargetCryp
 import { inspectCaseHandoverFilePath } from './caseHandoverFilePolicy.js';
 import { parseTransferRecipientToken } from './transferInstanceIdentityPolicy.js';
 import { TransferInstanceIdentityService, type TransferInstancePrivateIdentity } from './transferInstanceIdentityService.js';
-import type { CaseHandoverCockpit, CaseHandoverContinueExpiredInput, CaseHandoverContinueExpiredResult, CaseHandoverExportInput, CaseHandoverExportResult, CaseHandoverImportInput, CaseHandoverImportResult, CaseHandoverInspectResult, CaseHandoverReturnDeltaExportInput } from '../src/domain/models/case-handover.model.js';
+import type { CaseHandoverChecklist, CaseHandoverChecklistInput, CaseHandoverCockpit, CaseHandoverContinueExpiredInput, CaseHandoverContinueExpiredResult, CaseHandoverExportInput, CaseHandoverExportResult, CaseHandoverImportInput, CaseHandoverImportResult, CaseHandoverInspectResult, CaseHandoverReturnDeltaExportInput } from '../src/domain/models/case-handover.model.js';
 import { Row, PackagePayload, DecryptedPackage, nowIso, officeHandoverScope, safeString } from './caseHandoverSupport.js';
 import { collectCaseHandoverPayload } from './caseHandoverPayloadCollector.js';
 import { ensureCaseHandoverExportLedgerSchema, recordCaseHandoverExport } from './caseHandoverExportLedger.js';
@@ -26,6 +26,7 @@ import type { TransferImportPlan } from '../src/domain/models/transfer.model.js'
 import { OfficeHandoverImportService } from './officeHandoverImportService.js';
 import { assertCaseHandoverPayload } from './caseHandoverPayloadValidator.js';
 import { CaseHandoverImportUnitOfWork, type TrackImportedFile } from './caseHandoverImportUnitOfWork.js';
+import { CaseHandoverChecklistService } from './caseHandoverChecklistService.js';
 export class CaseHandoverService {
   constructor(private readonly database: DatabaseAdapter, private readonly dataDirProvider: () => string = () => path.join(process.cwd(), 'data')) {}
 
@@ -158,6 +159,7 @@ export class CaseHandoverService {
   async exportToFile(input: CaseHandoverExportInput, targetPath: string): Promise<CaseHandoverExportResult> {
     const db = this.db();
     const payload = collectCaseHandoverPayload(db, input, this.dataDirProvider);
+    new CaseHandoverChecklistService(db).assertConfirmed({ payload, checklist: input.checklist });
     const envelope = this.encryptPayload(payload, input);
     await fs.promises.mkdir(path.dirname(targetPath), { recursive: true });
     await fs.promises.writeFile(targetPath, JSON.stringify(envelope, null, 2), { mode: OWNER_ONLY_FILE_MODE });
@@ -174,6 +176,14 @@ export class CaseHandoverService {
 
   listCockpit(): CaseHandoverCockpit {
     return new CaseHandoverCockpitService(this.database).list();
+  }
+
+  checklist(input: CaseHandoverChecklistInput): CaseHandoverChecklist {
+    return new CaseHandoverChecklistService(this.database).build({
+      packageType: input.packageType ?? 'vacation_handover',
+      caseIds: input.caseIds,
+      expiresAt: input.expiresAt,
+    });
   }
 
   inspect(filePath: string, passphrase: string): CaseHandoverInspectResult {

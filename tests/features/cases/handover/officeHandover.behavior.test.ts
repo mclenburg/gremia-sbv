@@ -3,6 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { DatabaseAdapter } from '../../../../services/databaseService';
+import { CaseHandoverChecklistService } from '../../../../services/caseHandoverChecklistService';
 import { CaseHandoverService } from '../../../../services/caseHandoverService';
 import { MigrationService } from '../../../../services/migrationService';
 import { RetentionService } from '../../../../services/retentionService';
@@ -104,6 +105,13 @@ describe('P2 – Amtsübergabe', () => {
       passphrase,
       targetRecipientToken: targetIdentity.recipientToken,
       purpose: 'Amtsübergabe an die gewählte Nachfolge',
+      checklist: {
+        version: 1,
+        acknowledgedItemIds: new CaseHandoverChecklistService(source).build({
+          packageType: 'office_handover',
+          caseIds: ['case-office-1'],
+        }).requiredAcknowledgementIds,
+      },
     }, packagePath);
 
     expect(exported).toMatchObject({
@@ -190,6 +198,13 @@ describe('P2 – Amtsübergabe', () => {
       caseIds: ['case-office-1'],
       passphrase,
       targetRecipientToken: targetIdentity.recipientToken,
+      checklist: {
+        version: 1,
+        acknowledgedItemIds: new CaseHandoverChecklistService(source).build({
+          packageType: 'office_handover',
+          caseIds: ['case-office-1'],
+        }).requiredAcknowledgementIds,
+      },
     }, packagePath);
 
     await expect(new CaseHandoverService(target, () => targetData).importFromFile({

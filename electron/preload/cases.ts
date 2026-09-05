@@ -14,7 +14,7 @@ import type {
   UpdateCaseNoteInput,
 } from "../../src/domain/models/case-note.model.js";
 import type { CaseDocumentRecord } from "../../src/domain/models/case-document.model.js";
-import type { CaseHandoverCockpit, CaseHandoverContinueExpiredResult, CaseHandoverExportInput, CaseHandoverExportResult, CaseHandoverImportInput, CaseHandoverImportResult, CaseHandoverInspectResult, CaseHandoverReturnDeltaExportInput } from "../../src/domain/models/case-handover.model.js";
+import type { CaseHandoverChecklist, CaseHandoverChecklistInput, CaseHandoverCockpit, CaseHandoverContinueExpiredResult, CaseHandoverExportInput, CaseHandoverExportResult, CaseHandoverImportInput, CaseHandoverImportResult, CaseHandoverInspectResult, CaseHandoverReturnDeltaExportInput } from "../../src/domain/models/case-handover.model.js";
 import type {
   CaseMeasureNoteProcessType,
   CaseMeasureNoteRecord,
@@ -45,6 +45,8 @@ function createCaseHandoverApi(invokeIpc: IpcInvoker) {
   return {
     cockpit: (): Promise<CaseHandoverCockpit> =>
       invokeIpc(IPC_CHANNELS.caseHandoverCockpit),
+    checklist: (input: CaseHandoverChecklistInput): Promise<CaseHandoverChecklist> =>
+      invokeIpc(IPC_CHANNELS.caseHandoverChecklist, input),
     export: (input: CaseHandoverExportInput, suggestedFileName?: string): Promise<CaseHandoverExportResult> =>
       invokeIpc(IPC_CHANNELS.caseHandoverExport, input, suggestedFileName),
     exportReturnDelta: (input: CaseHandoverReturnDeltaExportInput, suggestedFileName?: string): Promise<CaseHandoverExportResult> =>

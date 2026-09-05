@@ -1,15 +1,17 @@
 import { useMemo, useState, type FormEvent } from 'react';
 import type { CaseRecord } from '../../../domain/models/case.model';
-import type { CaseHandoverCockpitItem, CaseHandoverExportResult } from '../../../domain/models/case-handover.model';
+import type { CaseHandoverCockpitItem, CaseHandoverExportResult, TransferProtectionMode } from '../../../domain/models/case-handover.model';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 import { IndustrialButton } from '../../shared/components/IndustrialButton';
 import { ExportAction, FileLocationNotice } from '../../shared/components/ImportExportFeedback';
-import { FormActions, PasswordInput, SearchInput, TextareaInput } from '../../shared/components/IndustrialForm';
+import { FormActions, SearchInput } from '../../shared/components/IndustrialForm';
 import { EmptyState } from '../../shared/components/WorkbenchData';
 import { IndustrialPanel, IndustrialRecordCard } from '../../shared/components/WorkbenchPanels';
+import { CaseHandoverChecklistPanel, handoverChecklistConfirmation } from './CaseHandoverChecklistPanel';
 import { CaseHandoverCasePicker } from './CaseHandoverCasePicker';
 import { requireCaseHandoverBridge } from './caseHandoverBridge';
 import { handoverStatusLabel } from './caseHandoverCockpitPolicy';
+import { requiresPassphrase, TransferProtectionFields, type TransferProtectionState } from './TransferProtectionFields';
 
 export function HandoverReturnPanel({ items, cases, onCompleted }: { items: CaseHandoverCockpitItem[]; cases: CaseRecord[]; onCompleted: () => Promise<void> }) {
   const announce = useAnnouncer();
@@ -17,8 +19,8 @@ export function HandoverReturnPanel({ items, cases, onCompleted }: { items: Case
   const [query, setQuery] = useState('');
   const [selectedItemId, setSelectedItemId] = useState('');
   const [caseIds, setCaseIds] = useState<string[]>([]);
-  const [targetRecipientToken, setTargetRecipientToken] = useState('');
-  const [passphrase, setPassphrase] = useState('');
+  const [protection, setProtection] = useState<TransferProtectionState>({ targetRecipientToken: '', passphrase: '', protectionMode: 'passphrase_and_recipient_key' as TransferProtectionMode });
+  const [acknowledgedItemIds, setAcknowledgedItemIds] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [result, setResult] = useState<CaseHandoverExportResult | null>(null);
@@ -42,16 +44,24 @@ export function HandoverReturnPanel({ items, cases, onCompleted }: { items: Case
     event.preventDefault(); setError(''); setResult(null);
     if (!selectedItem) return showError('Bitte zuerst eine übernommene Vertretung auswählen.');
     if (!caseIds.length) return showError('Bitte mindestens eine Fallakte für die Rückgabe auswählen.');
-    if (!targetRecipientToken.trim()) return showError('Bitte die Empfängerkennung der ursprünglichen Instanz einfügen.');
-    if (passphrase.trim().length < 10) return showError('Die Transport-Passphrase muss mindestens 10 Zeichen lang sein.');
+    if (!protection.targetRecipientToken.trim()) return showError('Bitte die Empfängerkennung der ursprünglichen Instanz einfügen.');
+    if (requiresPassphrase(protection.protectionMode) && protection.passphrase.trim().length < 10) return showError('Die Transport-Passphrase muss mindestens 10 Zeichen lang sein.');
     setBusy(true);
     try {
       const handover = await requireCaseHandoverBridge();
-      const exported = await handover.exportReturnDelta({ sourcePackageId: selectedItem.packageId, caseIds, passphrase, targetRecipientToken: targetRecipientToken.trim() }, 'rueckgabe-delta.gsbvtransfer');
+      const exported = await handover.exportReturnDelta({
+        sourcePackageId: selectedItem.packageId,
+        caseIds,
+        passphrase: requiresPassphrase(protection.protectionMode) ? protection.passphrase : '',
+        protectionMode: protection.protectionMode,
+        checklist: handoverChecklistConfirmation(acknowledgedItemIds),
+        targetRecipientToken: protection.targetRecipientToken.trim(),
+      }, 'rueckgabe-delta.gsbvtransfer');
       if (!exported.exported) return showError('Der Export wurde abgebrochen.');
       setResult(exported);
       announce('Rückgabe-Delta wurde verschlüsselt exportiert.', 'polite');
-      setPassphrase('');
+      setProtection((current) => ({ ...current, passphrase: '' }));
+      setAcknowledgedItemIds([]);
       await onCompleted();
     } catch (cause) { showError(cause instanceof Error ? cause.message : 'Rückgabepaket konnte nicht erstellt werden.'); }
     finally { setBusy(false); }
@@ -68,8 +78,8 @@ export function HandoverReturnPanel({ items, cases, onCompleted }: { items: Case
       </div>
       {selectedItem ? <>
         <CaseHandoverCasePicker cases={availableCases} selectedIds={caseIds} onChange={setCaseIds} legend="Fallakten im Rückgabe-Delta" />
-        <TextareaInput label="Empfängerkennung der ursprünglichen Instanz" value={targetRecipientToken} onValueChange={setTargetRecipientToken} rows={3} required />
-        <PasswordInput label="Transport-Passphrase" value={passphrase} onValueChange={setPassphrase} minLength={10} required />
+        <TransferProtectionFields value={protection} onChange={setProtection} targetLabel="Empfängerkennung der ursprünglichen Instanz" />
+        <CaseHandoverChecklistPanel packageType="return_delta" caseIds={caseIds} acknowledgements={acknowledgedItemIds} onAcknowledgementsChange={setAcknowledgedItemIds} />
         {error ? <div className="industrial-message industrial-message-warning" role="alert">{error}</div> : null}
         {result?.exported ? <FileLocationNotice filePath={result.filePath} label="Rückgabepaket gespeichert" /> : null}
         <FormActions><ExportAction type="submit" loading={busy} disabled={!caseIds.length}>Rückgabe-Delta exportieren</ExportAction></FormActions>

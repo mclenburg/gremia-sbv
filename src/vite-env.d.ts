@@ -2,7 +2,7 @@
 import type { ComplianceAuditChainStatus, ComplianceDatabaseIntegrityStatus, ComplianceIncidentRecord, ComplianceSelfCheckResult, CreateComplianceIncidentInput, DataSubjectAccessPrefill, DataSubjectAccessRequestInput, UpdateComplianceIncidentInput } from "./domain/models/compliance.model";
 
 import type { CaseDocumentRecord } from "./domain/models/case-document.model";
-import type { CaseHandoverCockpit, CaseHandoverContinueExpiredResult, CaseHandoverExportInput, CaseHandoverExportResult, CaseHandoverImportInput, CaseHandoverImportResult, CaseHandoverInspectResult, CaseHandoverReturnDeltaExportInput } from "./domain/models/case-handover.model";
+import type { CaseHandoverChecklist, CaseHandoverChecklistInput, CaseHandoverCockpit, CaseHandoverContinueExpiredResult, CaseHandoverExportInput, CaseHandoverExportResult, CaseHandoverImportInput, CaseHandoverImportResult, CaseHandoverInspectResult, CaseHandoverReturnDeltaExportInput } from "./domain/models/case-handover.model";
 import type { TransferInstanceIdentity } from "./domain/models/transfer-identity.model";
 import type { SaveTransferRecipientProfileInput, TransferRecipientProfile } from "./domain/models/transfer-recipient-profile.model";
 import type { CaseRecord, CreateCaseInput, LegacyCaseBindingInput, LegacyCaseBindingResult } from "./domain/models/case.model";
@@ -266,6 +266,7 @@ declare global {
 
       caseHandover: {
       cockpit: () => Promise<CaseHandoverCockpit>;
+      checklist: (input: CaseHandoverChecklistInput) => Promise<CaseHandoverChecklist>;
       export: (input: CaseHandoverExportInput, suggestedFileName?: string) => Promise<CaseHandoverExportResult>;
       exportReturnDelta: (input: CaseHandoverReturnDeltaExportInput, suggestedFileName?: string) => Promise<CaseHandoverExportResult>;
       selectFile: () => Promise<{ canceled: true } | { canceled: false; filePath: string; fileName: string }>;

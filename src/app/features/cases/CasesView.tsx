@@ -15,6 +15,7 @@ import { CaseHandoverTransferDialogs } from "./CaseHandoverTransferDialogs";
 import { formatCaseHandoverExportResultMessage } from "./caseHandoverMessages";
 import type { CasesViewProps, CaseToast } from "./casesViewTypes";
 import type { CaseCategory, CaseRecord } from "../../../domain/models/case.model";
+import type { CaseHandoverChecklistConfirmation, TransferProtectionMode } from "../../../domain/models/case-handover.model";
 import type { ProcessTemplateModalState } from "./ProcessTemplateDocumentsModal";
 import type { CaseProcessDraft } from "./casesViewProcessUtils";
 import { caseRegisterSliceBounds, clampCaseRegisterPage } from "./casesViewUtils";
@@ -92,9 +93,15 @@ function useCaseHandoverActions(selectedCase: CaseRecord | undefined, setSelecte
   onCasesChanged: () => void | Promise<void>, pushCaseToast: (text: string, variant?: "ok" | "warning") => void) {
   const [handoverExportOpen, setHandoverExportOpen] = useState(false); const [handoverImportOpen, setHandoverImportOpen] = useState(false);
   const [continueExpiredOpen, setContinueExpiredOpen] = useState(false);
-  const exportSelectedCaseHandover = async (passphrase: string, expiresAt?: string, targetRecipientToken?: string) => {
+  const exportSelectedCaseHandover = async (
+    passphrase: string,
+    expiresAt?: string,
+    targetRecipientToken?: string,
+    protectionMode?: TransferProtectionMode,
+    checklist?: CaseHandoverChecklistConfirmation,
+  ) => {
     if (!selectedCase) throw new Error("Bitte zuerst eine Fallakte auswählen.");
-    const result = await window.gremiaSbv.caseHandover.export({ caseIds: [selectedCase.id], expiresAt, purpose: "Urlaubsübergabe / SBV-Vertretung", passphrase, targetRecipientToken: targetRecipientToken ?? "" }, `${selectedCase.caseNumber}-falluebergabe.gsbvtransfer`);
+    const result = await window.gremiaSbv.caseHandover.export({ caseIds: [selectedCase.id], expiresAt, purpose: "Urlaubsübergabe / SBV-Vertretung", passphrase, targetRecipientToken: targetRecipientToken ?? "", protectionMode, checklist }, `${selectedCase.caseNumber}-falluebergabe.gsbvtransfer`);
     pushCaseToast(formatCaseHandoverExportResultMessage(result), result.exported ? "ok" : "warning"); return result;
   };
   const importCaseHandover = async (input: { filePath: string; passphrase: string; mode: "create_new" | "merge_existing"; targetCaseId?: string }) => {

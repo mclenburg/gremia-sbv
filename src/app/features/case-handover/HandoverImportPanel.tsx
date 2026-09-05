@@ -40,7 +40,6 @@ export function HandoverImportPanel({ onCompleted }: { onCompleted: () => Promis
 
   async function selectAndInspect() {
     setError(''); setStatus(''); setSelection(null);
-    if (!passphrase.trim()) return showError('Bitte zuerst die Transport-Passphrase eingeben.');
     setBusy(true);
     try {
       const handover = await requireCaseHandoverBridge();
@@ -79,7 +78,7 @@ export function HandoverImportPanel({ onCompleted }: { onCompleted: () => Promis
   const inspection = selection?.inspection;
   return <IndustrialPanel ariaLabel="Übergabe oder Rückgabe importieren" kicker="Eingang" title="Übergabe oder Rückgabe importieren" description="Das Paket wird vor jeder Schreiboperation geprüft; erst danach ist der Import möglich.">
     <form className="industrial-stack" onSubmit={submit}>
-      <PasswordInput label="Transport-Passphrase" value={passphrase} onValueChange={(value) => { setPassphrase(value); setSelection(null); }} required />
+      <PasswordInput label="Transport-Passphrase (nur bei passwortgeschützten Paketen)" value={passphrase} onValueChange={(value) => { setPassphrase(value); setSelection(null); }} />
       <div className="industrial-action-row"><ToolbarButton type="button" onClick={() => void selectAndInspect()} loading={busy}>Datei auswählen und Paket prüfen</ToolbarButton></div>
       {selection ? <TextInput label="Geprüfte Datei" value={selection.fileName} onValueChange={() => undefined} readOnly /> : null}
       {inspection?.packageType === 'return_delta' ? <div className="industrial-message" role="status"><strong>Rückgabe-Delta geprüft.</strong> Die Zuordnung erfolgt ausschließlich über das auf dieser Instanz protokollierte Ausgangspaket.</div> : null}
