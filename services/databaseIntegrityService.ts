@@ -32,6 +32,7 @@ import {
   RECRUITING_PARTICIPATIONS_REQUIRED_COLUMNS,
   SBV_OFFICE_0051_REQUIRED_TABLES,
   DEADLINE_RULE_SNAPSHOT_REQUIRED_COLUMNS,
+  TRANSFER_RECIPIENT_PROFILES_REQUIRED_COLUMNS,
 } from './appSchema.js';
 import type { ComplianceDatabaseIntegrityStatus } from '../src/domain/models/compliance.model.js';
 
@@ -64,6 +65,7 @@ const REQUIRED_TABLES = [
   'case_handover_export_items',
   'case_handover_imports',
   'case_handover_import_items',
+  'transfer_recipient_profiles',
   'sbv_resource_records',
   'sbv_control_protocols',
   'compliance_incidents',
@@ -99,6 +101,7 @@ const REQUIRED_COLUMNS: Record<string, readonly string[]> = {
   case_handover_export_items: CASE_HANDOVER_EXPORT_ITEMS_REQUIRED_COLUMNS,
   case_handover_imports: CASE_HANDOVER_IMPORTS_REQUIRED_COLUMNS,
   case_handover_import_items: CASE_HANDOVER_IMPORT_ITEMS_REQUIRED_COLUMNS,
+  transfer_recipient_profiles: TRANSFER_RECIPIENT_PROFILES_REQUIRED_COLUMNS,
   sbv_resource_records: SBV_RESOURCE_RECORDS_REQUIRED_COLUMNS,
   sbv_control_protocols: SBV_CONTROL_PROTOCOLS_REQUIRED_COLUMNS,
   compliance_incidents: COMPLIANCE_INCIDENTS_REQUIRED_COLUMNS,

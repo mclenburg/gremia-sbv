@@ -4,6 +4,7 @@ import type { ComplianceAuditChainStatus, ComplianceDatabaseIntegrityStatus, Com
 import type { CaseDocumentRecord } from "./domain/models/case-document.model";
 import type { CaseHandoverCockpit, CaseHandoverContinueExpiredResult, CaseHandoverExportInput, CaseHandoverExportResult, CaseHandoverImportInput, CaseHandoverImportResult, CaseHandoverInspectResult, CaseHandoverReturnDeltaExportInput } from "./domain/models/case-handover.model";
 import type { TransferInstanceIdentity } from "./domain/models/transfer-identity.model";
+import type { SaveTransferRecipientProfileInput, TransferRecipientProfile } from "./domain/models/transfer-recipient-profile.model";
 import type { CaseRecord, CreateCaseInput, LegacyCaseBindingInput, LegacyCaseBindingResult } from "./domain/models/case.model";
 import type {
   ContactListFilters,
@@ -530,6 +531,10 @@ declare global {
       };
       transferIdentity: {
         get(): Promise<TransferInstanceIdentity>;
+        listRecipientProfiles(): Promise<TransferRecipientProfile[]>;
+        saveRecipientProfile(input: SaveTransferRecipientProfileInput): Promise<TransferRecipientProfile>;
+        setRecipientProfileActive(id: string, active: boolean): Promise<TransferRecipientProfile>;
+        deleteRecipientProfile(id: string): Promise<{ deleted: boolean }>;
       };
       reports: {
         descriptors(): Promise<ReportDescriptor[]>;

@@ -9,6 +9,7 @@ import { ChangePasswordForm } from './ChangePasswordForm';
 import { BackupRestoreForm } from './BackupRestoreForm';
 import { RetentionSettingsPanel } from './RetentionSettingsPanel';
 import { TransferIdentitySettingsPanel } from './TransferIdentitySettingsPanel';
+import { TransferRecipientProfilesSettings } from './TransferRecipientProfilesSettings';
 import type { SettingsSectionId } from './settingsNavigation';
 
 function SettingsSectionIntro({
@@ -45,6 +46,7 @@ export function SettingsView({
           <SettingsSectionIntro title="Allgemein" description="Darstellung und lokale Arbeitsumgebung ohne Sicherheitsfolgen einstellen." />
           <div className="grid gap-6 xl:grid-cols-2">
             <TransferIdentitySettingsPanel />
+            <TransferRecipientProfilesSettings />
             <ThemeSettingsForm theme={theme} onThemeChange={onThemeChange} />
           </div>
         </>

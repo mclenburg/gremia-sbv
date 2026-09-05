@@ -24,6 +24,7 @@ import {
   SBV_RESOURCE_RECORDS_REQUIRED_COLUMNS,
   COMPLIANCE_INCIDENTS_REQUIRED_COLUMNS,
   GENERATED_DOCUMENTS_REQUIRED_COLUMNS,
+  TRANSFER_RECIPIENT_PROFILES_REQUIRED_COLUMNS,
   SBV_PARTICIPATION_VIOLATION_DOCUMENTS_REQUIRED_COLUMNS,
   SBV_PARTICIPATION_VIOLATION_EVENTS_REQUIRED_COLUMNS,
   SBV_PARTICIPATION_VIOLATIONS_REQUIRED_COLUMNS,
@@ -38,7 +39,7 @@ import { applyDatabasePrivacyPragmas, type DatabaseAdapter } from '../../../serv
 class SchemaDb implements DatabaseAdapter {
   constructor(
     private readonly tables: Record<string, readonly string[]>,
-    private readonly schemaVersion = '0055',
+    private readonly schemaVersion = '0056',
   ) {}
 
   prepare<T = unknown>(sql: string) {
@@ -99,6 +100,7 @@ const completeSchema: Record<string, readonly string[]> = {
   case_handover_export_items: CASE_HANDOVER_EXPORT_ITEMS_REQUIRED_COLUMNS,
   case_handover_imports: CASE_HANDOVER_IMPORTS_REQUIRED_COLUMNS,
   case_handover_import_items: CASE_HANDOVER_IMPORT_ITEMS_REQUIRED_COLUMNS,
+  transfer_recipient_profiles: TRANSFER_RECIPIENT_PROFILES_REQUIRED_COLUMNS,
   sbv_resource_records: SBV_RESOURCE_RECORDS_REQUIRED_COLUMNS,
   sbv_control_protocols: SBV_CONTROL_PROTOCOLS_REQUIRED_COLUMNS,
   compliance_incidents: COMPLIANCE_INCIDENTS_REQUIRED_COLUMNS,
@@ -140,7 +142,7 @@ describe('database integrity status for compliance center', () => {
     const result = evaluateDatabaseIntegrity(new SchemaDb(completeSchema));
 
     expect(result.ok).toBe(true);
-    expect(result.appliedSchemaVersion).toBe('0055');
+    expect(result.appliedSchemaVersion).toBe('0056');
     expect(result.missingTables).toEqual([]);
     expect(result.missingColumns).toEqual({});
     expect(result.repairRequired).toBe(false);

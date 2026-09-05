@@ -190,6 +190,7 @@ const MEASURE_LIFECYCLE_METADATA_FIELDS = [
 export const AUDIT_METADATA_POLICY_BY_SUBJECT_TYPE = {
   compliance_incident: COMPLIANCE_INCIDENT_METADATA_FIELDS,
   case_handover: CASE_HANDOVER_METADATA_FIELDS,
+  transfer_recipient_profile: ['active', 'result'] as const,
   sbv_resource_record: RESOURCE_METADATA_FIELDS,
   sbv_control_protocol: CONTROL_PROTOCOL_METADATA_FIELDS,
   activity_journal: ACTIVITY_JOURNAL_METADATA_FIELDS,

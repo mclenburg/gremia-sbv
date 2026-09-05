@@ -202,6 +202,10 @@ export class MigrationInference extends MigrationCore {
             && this.tableExists('case_handover_export_items')
             && CASE_HANDOVER_EXPORTS_REQUIRED_COLUMNS.every((column) => this.columnExists('case_handover_exports', column))
             && CASE_HANDOVER_EXPORT_ITEMS_REQUIRED_COLUMNS.every((column) => this.columnExists('case_handover_export_items', column));
+        case '0056':
+          return this.tableExists('transfer_recipient_profiles')
+            && ['id', 'label', 'instance_id', 'key_fingerprint', 'recipient_token', 'active', 'created_at', 'updated_at']
+              .every((column) => this.columnExists('transfer_recipient_profiles', column));
       default:
         return false;
     }

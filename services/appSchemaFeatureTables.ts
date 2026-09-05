@@ -273,3 +273,14 @@ export const GENERATED_DOCUMENTS_REQUIRED_COLUMNS = [
   'size_bytes',
   'created_at'
 ] as const;
+
+export const TRANSFER_RECIPIENT_PROFILES_REQUIRED_COLUMNS = [
+  'id',
+  'label',
+  'instance_id',
+  'key_fingerprint',
+  'recipient_token',
+  'active',
+  'created_at',
+  'updated_at',
+] as const;

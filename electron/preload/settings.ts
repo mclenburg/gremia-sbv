@@ -3,6 +3,7 @@ import { IPC_CHANNELS } from "../ipc/channels.js";
 import type { CreateGremiaBrCaseSummaryInput, CreateGremiaBrExternalReferenceInput, GremiaBrAgendaItemRequestResult, GremiaBrCachedOverview, GremiaBrCacheRefreshResult, GremiaBrConnectionTestResult, GremiaBrCreatedPdfDocument, GremiaBrDashboardOverview, GremiaBrDocumentTransferResult, GremiaBrExternalReferenceRecord, GremiaBrGeneratedPdfDocument, GremiaBrInlineSuggestion, GremiaBrPublicSettings, GremiaBrRelevanceSettings, GremiaBrSettingsInput, GremiaBrWorkspaceActionRecord, GremiaBrWorkspaceBody, RequestGremiaBrAgendaItemInput, TransferGremiaBrDocumentInput } from "../../src/domain/models/gremia-br.model.js";
 import type { TemplateDefaultValues } from "../../src/domain/models/template-default.model.js";
 import type { TransferInstanceIdentity } from "../../src/domain/models/transfer-identity.model.js";
+import type { SaveTransferRecipientProfileInput, TransferRecipientProfile } from "../../src/domain/models/transfer-recipient-profile.model.js";
 
 export function createSettingsApi(invokeIpc: IpcInvoker) {
   return {
@@ -53,6 +54,14 @@ export function createSettingsApi(invokeIpc: IpcInvoker) {
   transferIdentity: {
       get: (): Promise<TransferInstanceIdentity> =>
         invokeIpc(IPC_CHANNELS.transferIdentityGet),
+      listRecipientProfiles: (): Promise<TransferRecipientProfile[]> =>
+        invokeIpc(IPC_CHANNELS.transferRecipientProfilesList),
+      saveRecipientProfile: (input: SaveTransferRecipientProfileInput): Promise<TransferRecipientProfile> =>
+        invokeIpc(IPC_CHANNELS.transferRecipientProfilesSave, input),
+      setRecipientProfileActive: (id: string, active: boolean): Promise<TransferRecipientProfile> =>
+        invokeIpc(IPC_CHANNELS.transferRecipientProfilesSetActive, id, active),
+      deleteRecipientProfile: (id: string): Promise<{ deleted: boolean }> =>
+        invokeIpc(IPC_CHANNELS.transferRecipientProfilesDelete, id),
     }
   } as const;
 }
