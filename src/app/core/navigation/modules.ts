@@ -2,6 +2,7 @@ import type { ForwardRefExoticComponent, RefAttributes } from 'react';
 import type { LucideProps } from 'lucide-react';
 import {
   BarChart3,
+  ArrowRightLeft,
   BookOpen,
   ClipboardList,
   ClipboardCheck,
@@ -24,6 +25,7 @@ import {
 export type ViewId =
   | 'dashboard'
   | 'cases'
+  | 'case_handover'
   | 'deadlines'
   | 'activity_journal'
   | 'meetings'
@@ -71,7 +73,7 @@ export interface ModuleGroupDefinition {
 }
 
 export const moduleGroups: ModuleGroupDefinition[] = [
-  { id: 'core', label: 'Kernarbeit', description: 'Personen, Fallakten, Fristen, Journal, Sitzungen und Dokumentation.' },
+  { id: 'core', label: 'Kernarbeit', description: 'Personen, Fallakten, Übergaben, Fristen, Journal, Sitzungen und Dokumentation.' },
   { id: 'processes', label: 'SBV-Verfahren', description: 'BEM, Prävention, Beteiligung und Schutzverfahren.' },
   { id: 'tools', label: 'Werkzeuge', description: 'Vorlagen, Wissen, Kontakte und Berichte.' },
   { id: 'administration', label: 'Administration', description: 'Compliance und betriebliche Datenschutzkontrollen.' },
@@ -92,6 +94,14 @@ export const modules: ModuleDefinition[] = [
     shortTitle: 'Fallakte',
     text: 'Fallakte, Vorgang, Gesprächsnotizen und Protokolle.',
     icon: FolderKanban,
+    group: 'core'
+  },
+  {
+    id: 'case_handover',
+    title: 'Übergaben & Vertretung',
+    shortTitle: 'Übergaben',
+    text: 'Urlaubsvertretungen zielgebunden übergeben, übernehmen und als Delta zurückführen.',
+    icon: ArrowRightLeft,
     group: 'core'
   },
   {

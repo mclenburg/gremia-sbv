@@ -17,6 +17,13 @@ const definitions: Partial<Record<ViewId, LazyFeatureDefinition>> = {
       return { default: module.CasesView as ComponentType<object> };
     },
   },
+  case_handover: {
+    label: "Übergaben und Vertretung",
+    load: async () => {
+      const module = await import("../../features/case-handover/CaseHandoverCockpitView");
+      return { default: module.CaseHandoverCockpitView as ComponentType<object> };
+    },
+  },
   bem: {
     label: "BEM-Verfahren",
     load: async () => {

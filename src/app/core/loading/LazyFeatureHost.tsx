@@ -31,6 +31,10 @@ export function LazyFeatureHost({ view, cases, persons = [], theme, onThemeChang
 
   const CasesFeature = Feature as LazyExoticComponent<ComponentType<{ cases: CaseRecord[] }>>;
   const CaseWorkbenchFeature = Feature as LazyExoticComponent<ComponentType<CasesViewProps>>;
+  const HandoverFeature = Feature as LazyExoticComponent<ComponentType<{
+    cases: CaseRecord[];
+    onRecordsChanged: () => Promise<void>;
+  }>>;
   const SettingsFeature = Feature as LazyExoticComponent<ComponentType<{
     theme: ThemeMode;
     onThemeChange: (theme: ThemeMode) => void;
@@ -63,6 +67,8 @@ export function LazyFeatureHost({ view, cases, persons = [], theme, onThemeChang
     <LazyFeatureBoundary view={view} onRetry={() => { void preloadLazyFeature(view).catch(() => undefined); }}>
       {view === "cases" && caseFeatureProps ? (
         <CaseWorkbenchFeature {...caseFeatureProps} />
+      ) : view === "case_handover" && onRecordsChanged ? (
+        <HandoverFeature cases={cases} onRecordsChanged={onRecordsChanged} />
       ) : view === "knowledge" ? (
         <CasesFeature cases={cases} />
       ) : view === "equalization" && onOpenCaseNode && onRecordsChanged ? (

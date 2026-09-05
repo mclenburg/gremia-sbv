@@ -98,6 +98,20 @@ describe('case handover policy 0.9.2', () => {
     expect(ambiguousPlan).toMatchObject({ defaultMode: 'create_new', mergeAllowed: true, possibleMatchCount: 1 });
   });
 
+  it('verhindert die Zusammenführung mehrerer Übergabefälle in eine einzelne Zielakte', () => {
+    const plan = buildCaseHandoverImportPlan({
+      caseCount: 2,
+      measureCount: 0,
+      documentCount: 0,
+      deadlineCount: 0,
+      isExpired: false,
+      matches: [{ localCaseId: 'local-1', caseNumber: 'SBV-2026-17', displayName: 'Fallakte', reason: 'case_number', confidence: 'high', conflictLevel: 'safe_match' }],
+    });
+
+    expect(plan).toMatchObject({ defaultMode: 'create_new', mergeAllowed: false });
+    expect(plan.decisions.some((item) => item.id === 'multi_case_create_new')).toBe(true);
+  });
+
   it('erzwingt Audit-Metadaten ohne personenbeziehbare Inhalte', () => {
     const metadata = safeAuditMetadata({ packageId: 'handover_123', caseCount: 1, measureCount: 2, documentCount: 3, deadlineCount: 4, hasExpiry: true, expiresAt: '2026-07-31T23:59:59.000Z', mode: 'create_new', result: 'success' });
     expect(metadata).toMatchObject({ packageId: 'handover_123', caseCount: 1, measureCount: 2, result: 'success' });

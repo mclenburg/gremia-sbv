@@ -38,6 +38,7 @@ export class CaseHandoverReturnDeltaService {
     await restrictFileToOwner(targetPath);
     const targetInstanceId = 'crypto' in envelope ? envelope.recipientBinding?.targetInstanceId : undefined;
     recordCaseHandoverExport(this.database, payload, targetInstanceId);
+    this.markVacationHandoverReturned(input.sourcePackageId, payload.createdAt);
     new PersonalDataAuditLogService(this.database).append(auditCaseHandoverExported({
       packageId: payload.packageId,
       caseCount: payload.cases.length,
@@ -57,6 +58,15 @@ export class CaseHandoverReturnDeltaService {
       deadlineCount: payload.changedRefs?.deadlines?.length ?? 0,
       targetInstanceId,
     };
+  }
+
+  private markVacationHandoverReturned(sourcePackageId: string, timestamp: string): void {
+    this.database.prepare("UPDATE case_handover_imports SET status = 'returned' WHERE package_id = ?")
+      .run(sourcePackageId);
+    this.database.prepare("UPDATE cases SET handover_status = 'closed', updated_at = ? WHERE handover_package_id = ?")
+      .run(timestamp, sourcePackageId);
+    this.database.prepare("UPDATE case_measures SET handover_status = 'closed', updated_at = ? WHERE handover_package_id = ?")
+      .run(timestamp, sourcePackageId);
   }
 
   importPayload(payload: PackagePayload, input: CaseHandoverImportInput): CaseHandoverImportResult {

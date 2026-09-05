@@ -91,12 +91,12 @@ export class CaseHandoverCockpitService {
       caseIds: cases.map((item) => item.case_id),
       caseLabels: cases.map((item) => `${item.case_number} · ${item.display_name}`),
       targetInstanceId: header.target_instance_id ?? undefined,
-      canExportReturnDelta: direction === 'incoming' && packageType === 'vacation_handover' && cases.length > 0,
+      canExportReturnDelta: direction === 'incoming' && packageType === 'vacation_handover' && status !== 'returned' && cases.length > 0,
     };
   }
 
   private packageType(header: HeaderRow): CaseHandoverPackageType {
-    if (header.package_type === 'return_delta' || header.status === 'returned') return 'return_delta';
+    if (header.package_type === 'return_delta') return 'return_delta';
     const metadata = parseMetadata(header.metadata_json);
     return metadata.mode === 'return_delta' ? 'return_delta' : 'vacation_handover';
   }

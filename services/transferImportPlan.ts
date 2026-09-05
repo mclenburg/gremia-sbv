@@ -34,7 +34,8 @@ export function buildTransferImportPlan(input: TransferImportPlanInput): Transfe
   const possibleMatchCount = countMatches(input.matches, 'possible_match');
   const conflictCount = countMatches(input.matches, 'true_conflict');
   const hasMatches = input.matches.length > 0;
-  const defaultMode: TransferImportMode = safeMatchCount === 1 && possibleMatchCount === 0 && conflictCount === 0
+  const isSingleCasePackage = input.caseCount === 1;
+  const defaultMode: TransferImportMode = isSingleCasePackage && safeMatchCount === 1 && possibleMatchCount === 0 && conflictCount === 0
     ? 'merge_existing'
     : 'create_new';
   const decisions: TransferImportDecisionItem[] = [
@@ -59,6 +60,15 @@ export function buildTransferImportPlan(input: TransferImportPlanInput): Transfe
       'Vertretungsende nachhalten',
       'warning',
       'Nach Ablauf der Übergabe muss geprüft werden, ob die importierten Daten geschlossen, zurückgegeben, gelöscht oder begründet fortgeführt werden.',
+    ));
+  }
+
+  if (!isSingleCasePackage) {
+    decisions.push(decision(
+      'multi_case_create_new',
+      'Mehrfachübergabe getrennt importieren',
+      'info',
+      'Eine Mehrfachübergabe legt für jede enthaltene Fallakte eine eigene lokale Übergabeakte an. Eine gemeinsame Zielakte wäre fachlich falsch.',
     ));
   }
 
@@ -95,7 +105,7 @@ export function buildTransferImportPlan(input: TransferImportPlanInput): Transfe
   return {
     transferKind: input.transferKind,
     defaultMode,
-    mergeAllowed: hasMatches && conflictCount === 0,
+    mergeAllowed: isSingleCasePackage && hasMatches && conflictCount === 0,
     requiresExplicitDecision: true,
     privacyReviewRequired: true,
     retentionReviewRequired: Boolean(input.expiresAt),

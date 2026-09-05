@@ -143,6 +143,7 @@ describe('Fallübergabe P1 – Rückgabe-Delta', () => {
     expect(delta.caseCount).toBe(1);
     expect(delta.documentCount).toBe(1);
     expect(delta.packageType).toBe('return_delta');
+    expect(substitute.listCockpit()).toMatchObject({ returnableCount: 0, incoming: [{ packageType: 'vacation_handover', status: 'returned', canExportReturnDelta: false }] });
 
     await source.importFromFile({
       filePath: deltaFile,
