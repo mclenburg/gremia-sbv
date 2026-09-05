@@ -1,6 +1,7 @@
 import { useMemo, useState, type FormEvent } from 'react';
 import type { CaseRecord } from '../../../domain/models/case.model';
 import type { CaseHandoverCockpitItem, CaseHandoverExportResult } from '../../../domain/models/case-handover.model';
+import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 import { IndustrialButton } from '../../shared/components/IndustrialButton';
 import { ExportAction, FileLocationNotice } from '../../shared/components/ImportExportFeedback';
 import { FormActions, PasswordInput, SearchInput, TextareaInput } from '../../shared/components/IndustrialForm';
@@ -11,6 +12,7 @@ import { requireCaseHandoverBridge } from './caseHandoverBridge';
 import { handoverStatusLabel } from './caseHandoverCockpitPolicy';
 
 export function HandoverReturnPanel({ items, cases, onCompleted }: { items: CaseHandoverCockpitItem[]; cases: CaseRecord[]; onCompleted: () => Promise<void> }) {
+  const announce = useAnnouncer();
   const returnable = items.filter((item) => item.canExportReturnDelta);
   const [query, setQuery] = useState('');
   const [selectedItemId, setSelectedItemId] = useState('');
@@ -20,6 +22,11 @@ export function HandoverReturnPanel({ items, cases, onCompleted }: { items: Case
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [result, setResult] = useState<CaseHandoverExportResult | null>(null);
+
+  function showError(message: string) {
+    setError(message);
+    announce(message, 'assertive');
+  }
   const selectedItem = returnable.find((item) => item.id === selectedItemId);
   const availableCases = useMemo(() => selectedItem ? cases.filter((record) => selectedItem.caseIds.includes(record.id)) : [], [cases, selectedItem]);
   const visibleItems = useMemo(() => {
@@ -33,19 +40,20 @@ export function HandoverReturnPanel({ items, cases, onCompleted }: { items: Case
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setError(''); setResult(null);
-    if (!selectedItem) return setError('Bitte zuerst eine übernommene Vertretung auswählen.');
-    if (!caseIds.length) return setError('Bitte mindestens eine Fallakte für die Rückgabe auswählen.');
-    if (!targetRecipientToken.trim()) return setError('Bitte die Empfängerkennung der ursprünglichen Instanz einfügen.');
-    if (passphrase.trim().length < 10) return setError('Die Transport-Passphrase muss mindestens 10 Zeichen lang sein.');
+    if (!selectedItem) return showError('Bitte zuerst eine übernommene Vertretung auswählen.');
+    if (!caseIds.length) return showError('Bitte mindestens eine Fallakte für die Rückgabe auswählen.');
+    if (!targetRecipientToken.trim()) return showError('Bitte die Empfängerkennung der ursprünglichen Instanz einfügen.');
+    if (passphrase.trim().length < 10) return showError('Die Transport-Passphrase muss mindestens 10 Zeichen lang sein.');
     setBusy(true);
     try {
       const handover = await requireCaseHandoverBridge();
       const exported = await handover.exportReturnDelta({ sourcePackageId: selectedItem.packageId, caseIds, passphrase, targetRecipientToken: targetRecipientToken.trim() }, 'rueckgabe-delta.gsbvtransfer');
-      if (!exported.exported) return setError('Der Export wurde abgebrochen.');
+      if (!exported.exported) return showError('Der Export wurde abgebrochen.');
       setResult(exported);
+      announce('Rückgabe-Delta wurde verschlüsselt exportiert.', 'polite');
       setPassphrase('');
       await onCompleted();
-    } catch (cause) { setError(cause instanceof Error ? cause.message : 'Rückgabepaket konnte nicht erstellt werden.'); }
+    } catch (cause) { showError(cause instanceof Error ? cause.message : 'Rückgabepaket konnte nicht erstellt werden.'); }
     finally { setBusy(false); }
   }
 

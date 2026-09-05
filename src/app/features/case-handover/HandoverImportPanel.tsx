@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Upload } from 'lucide-react';
 import type { CaseHandoverImportMode, CaseHandoverInspectResult } from '../../../domain/models/case-handover.model';
+import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 import { IndustrialButton, ToolbarButton } from '../../shared/components/IndustrialButton';
 import { ImportPackageReview } from '../../shared/components/ImportExportFeedback';
 import { FormActions, PasswordInput, TextInput } from '../../shared/components/IndustrialForm';
@@ -16,6 +17,7 @@ function formatDate(value?: string): string {
 }
 
 export function HandoverImportPanel({ onCompleted }: { onCompleted: () => Promise<void> }) {
+  const announce = useAnnouncer();
   const [passphrase, setPassphrase] = useState('');
   const [selection, setSelection] = useState<InspectedPackage | null>(null);
   const [mode, setMode] = useState<CaseHandoverImportMode>('create_new');
@@ -24,9 +26,19 @@ export function HandoverImportPanel({ onCompleted }: { onCompleted: () => Promis
   const [error, setError] = useState('');
   const [status, setStatus] = useState('');
 
+  function showError(message: string) {
+    setError(message);
+    announce(message, 'assertive');
+  }
+
+  function showStatus(message: string) {
+    setStatus(message);
+    announce(message, 'polite');
+  }
+
   async function selectAndInspect() {
     setError(''); setStatus(''); setSelection(null);
-    if (!passphrase.trim()) return setError('Bitte zuerst die Transport-Passphrase eingeben.');
+    if (!passphrase.trim()) return showError('Bitte zuerst die Transport-Passphrase eingeben.');
     setBusy(true);
     try {
       const handover = await requireCaseHandoverBridge();
@@ -35,23 +47,23 @@ export function HandoverImportPanel({ onCompleted }: { onCompleted: () => Promis
       const nextMode = selected.inspection.packageType === 'return_delta' ? 'merge_existing' : selected.inspection.importPlan.defaultMode;
       setSelection(selected); setMode(nextMode);
       setTargetCaseId(nextMode === 'merge_existing' ? selected.inspection.matches[0]?.localCaseId ?? '' : '');
-    } catch (cause) { setError(cause instanceof Error ? cause.message : 'Übergabepaket konnte nicht geprüft werden.'); }
+    } catch (cause) { showError(cause instanceof Error ? cause.message : 'Übergabepaket konnte nicht geprüft werden.'); }
     finally { setBusy(false); }
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setError(''); setStatus('');
-    if (!selection) return setError('Bitte zuerst ein Übergabepaket auswählen und prüfen.');
-    if (selection.inspection.isExpired) return setError('Das Übergabepaket ist abgelaufen und darf nicht importiert werden.');
-    if (mode === 'merge_existing' && selection.inspection.packageType === 'vacation_handover' && !targetCaseId) return setError('Bitte die lokale Zielakte auswählen.');
+    if (!selection) return showError('Bitte zuerst ein Übergabepaket auswählen und prüfen.');
+    if (selection.inspection.isExpired) return showError('Das Übergabepaket ist abgelaufen und darf nicht importiert werden.');
+    if (mode === 'merge_existing' && selection.inspection.packageType === 'vacation_handover' && !targetCaseId) return showError('Bitte die lokale Zielakte auswählen.');
     setBusy(true);
     try {
       const handover = await requireCaseHandoverBridge();
       await handover.import({ filePath: selection.filePath, passphrase, mode, targetCaseId: targetCaseId || undefined });
-      setStatus(selection.inspection.packageType === 'return_delta' ? 'Rückgabe wurde in die ursprünglichen Fallakten eingespielt.' : 'Urlaubsübergabe wurde als lokale Vertretungsakte importiert.');
+      showStatus(selection.inspection.packageType === 'return_delta' ? 'Rückgabe wurde in die ursprünglichen Fallakten eingespielt.' : 'Urlaubsübergabe wurde als lokale Vertretungsakte importiert.');
       setSelection(null); setPassphrase('');
       await onCompleted();
-    } catch (cause) { setError(cause instanceof Error ? cause.message : 'Übergabepaket konnte nicht importiert werden.'); }
+    } catch (cause) { showError(cause instanceof Error ? cause.message : 'Übergabepaket konnte nicht importiert werden.'); }
     finally { setBusy(false); }
   }
 
