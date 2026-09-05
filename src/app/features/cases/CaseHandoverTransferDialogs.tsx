@@ -47,6 +47,7 @@ type CaseHandoverTransferDialogsProps = {
   onExport: (
     passphrase: string,
     expiresAt?: string,
+    targetRecipientToken?: string,
   ) => Promise<CaseHandoverExportResult>;
   onSelectImportFile: () => Promise<ImportFileSelection>;
   onInspectImport: (
@@ -86,25 +87,27 @@ function reasonLabel(reason: string): string {
 
 function useHandoverExport({ exportOpen, selectedCase, onExport }: Pick<CaseHandoverTransferDialogsProps, "exportOpen" | "selectedCase" | "onExport">) {
   const [passphrase, setPassphrase] = useState("");
+  const [targetRecipientToken, setTargetRecipientToken] = useState("");
   const [validUntil, setValidUntil] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<CaseHandoverExportResult | null>(null);
-  useEffect(() => { if (!exportOpen) { setPassphrase(""); setValidUntil(""); setError(""); setBusy(false); setResult(null); } }, [exportOpen]);
+  useEffect(() => { if (!exportOpen) { setPassphrase(""); setTargetRecipientToken(""); setValidUntil(""); setError(""); setBusy(false); setResult(null); } }, [exportOpen]);
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setError("");
     if (!selectedCase) return setError("Bitte zuerst eine Fallakte auswählen.");
     if (passphrase.trim().length < 10) return setError("Die Transport-Passphrase muss mindestens 10 Zeichen lang sein.");
+    if (!targetRecipientToken.trim()) return setError("Bitte die Empfängerkennung der Zielinstanz einfügen.");
     if (validUntil.trim() && !toIsoEndOfDay(validUntil)) return setError("Bitte das Ablaufdatum im Format JJJJ-MM-TT eingeben.");
     setBusy(true);
     try {
-      const next = await onExport(passphrase, toIsoEndOfDay(validUntil));
+      const next = await onExport(passphrase, toIsoEndOfDay(validUntil), targetRecipientToken);
       if (!next.exported) return setError("Export wurde abgebrochen.");
       setResult(next);
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Übergabepaket konnte nicht erstellt werden."); }
     finally { setBusy(false); }
   }
-  return { passphrase, setPassphrase, validUntil, setValidUntil, error, busy, result, submit };
+  return { passphrase, setPassphrase, targetRecipientToken, setTargetRecipientToken, validUntil, setValidUntil, error, busy, result, submit };
 }
 
 function useHandoverImport({ importOpen, onCloseImport, onSelectImportFile, onInspectImport, onImport }: Pick<CaseHandoverTransferDialogsProps, "importOpen" | "onCloseImport" | "onSelectImportFile" | "onInspectImport" | "onImport">) {
@@ -192,6 +195,7 @@ function HandoverExportDialog({ open, selectedCase, onClose, state }: { open: bo
   return <IndustrialModal title="Übergabepaket exportieren" kicker="Fallübergabe / Vertretung" description="Die ausgewählte Fallakte wird verschlüsselt als eigenständiges Übergabepaket gespeichert. Der Speicherort wird über den Systemdialog gewählt; es gibt keinen Browser-Download." icon={<Download className="h-5 w-5" />} onClose={onClose}>
     <form className="industrial-modal-grid" onSubmit={state.submit}>
       <TextInput label="Fallakte" value={selectedCase ? `${selectedCase.caseNumber} · ${selectedCase.displayName}` : "Keine Fallakte ausgewählt"} readOnly wide onValueChange={() => undefined} />
+      <TextareaInput label="Empfängerkennung der Zielinstanz" value={state.targetRecipientToken} required wide rows={4} placeholder="GSBV1.… aus Einstellungen → Allgemein der Zielinstanz einfügen" error={state.error && !state.targetRecipientToken.trim() ? state.error : undefined} onValueChange={state.setTargetRecipientToken} />
       <PasswordInput label="Transport-Passphrase" value={state.passphrase} minLength={10} required wide error={state.error && state.passphrase.trim().length < 10 ? state.error : undefined} onValueChange={state.setPassphrase} />
       <DateInput label="Gültig bis (optional)" value={state.validUntil} wide onValueChange={state.setValidUntil} />
       <p className="industrial-modal-preview industrial-modal-wide">Nach Ablauf darf die Übergabedatei nicht mehr importiert werden. Bereits importierte Vertretungsakten werden danach als abgelaufen markiert.</p>

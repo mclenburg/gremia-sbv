@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest';
 import type { DatabaseAdapter } from '../../../services/databaseService';
 import { ElectionTransferCryptoAdapter } from '../../../services/electionTransferCryptoAdapter';
 import { ElectionTransferService } from '../../../services/electionTransferService';
+import { TransferInstanceIdentityService } from '../../../services/transferInstanceIdentityService';
 import { ElectionExecutionService } from '../../../services/electionExecutionService';
 import { RetentionOwnerRegistry } from '../../../services/retentionOwnerRegistry';
 import { SbvElectionService } from '../../../services/sbvElectionService';
@@ -34,13 +35,20 @@ function environment() {
   return { raw, db, election, transfer: new ElectionTransferService(db) };
 }
 
+function transferIdentity(db: DatabaseAdapter) {
+  const service = new TransferInstanceIdentityService(db);
+  const publicIdentity = service.getPublicIdentity();
+  return { publicIdentity, token: publicIdentity.recipientToken, privateIdentity: service.getPrivateIdentity() };
+}
+
 describe('0.9.7-E Wahlakten-Transferhärtung', () => {
   it('rejects unknown or missing manifest areas even when their hashes are internally consistent', () => {
     const env = environment();
     const crypto = new ElectionTransferCryptoAdapter();
     const passphrase = 'release-hardening-passphrase';
-    const valid = env.transfer.export(env.election.id, 'source-vault', passphrase);
-    const payload = crypto.decrypt(valid, passphrase);
+    const identity = transferIdentity(env.db);
+    const valid = env.transfer.export(env.election.id, 'source-vault', passphrase, identity.token);
+    const payload = crypto.decrypt(valid, passphrase, identity.privateIdentity);
 
     payload.data.unknown_area = [{ injected: true }];
     payload.manifest.items.push({
@@ -50,7 +58,7 @@ describe('0.9.7-E Wahlakten-Transferhärtung', () => {
     });
     expect(() => crypto.encrypt(payload, passphrase)).toThrow(/unbekannten Datenbereich/);
 
-    const missing = crypto.decrypt(valid, passphrase);
+    const missing = crypto.decrypt(valid, passphrase, identity.privateIdentity);
     missing.manifest.items = missing.manifest.items.filter((item) => item.ref !== 'deadlines');
     delete missing.data.deadlines;
     expect(() => crypto.encrypt(missing, passphrase)).toThrow(/unvollständig/);
@@ -60,12 +68,13 @@ describe('0.9.7-E Wahlakten-Transferhärtung', () => {
     const source = environment();
     const crypto = new ElectionTransferCryptoAdapter();
     const passphrase = 'release-hardening-passphrase';
-    const valid = source.transfer.export(source.election.id, 'source-vault', passphrase);
-    const payload = crypto.decrypt(valid, passphrase);
-    payload.manifest.electionId = 'different-election-id';
-    const malformed = crypto.encrypt(payload, passphrase);
-
     const target = environment();
+    const targetIdentity = transferIdentity(target.db);
+    const valid = source.transfer.export(source.election.id, 'source-vault', passphrase, targetIdentity.token);
+    const payload = crypto.decrypt(valid, passphrase, targetIdentity.privateIdentity);
+    payload.manifest.electionId = 'different-election-id';
+    const malformed = crypto.encrypt(payload, passphrase, targetIdentity.publicIdentity);
+
     const before = Number((target.raw.prepare('SELECT COUNT(*) AS count FROM sbv_elections').get() as { count: number }).count);
     expect(() => target.transfer.import(malformed, passphrase)).toThrow(/anderen Wahlvorgang/);
     expect(target.raw.prepare('SELECT COUNT(*) AS count FROM sbv_elections').get()).toMatchObject({ count: before });

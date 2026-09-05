@@ -3,6 +3,8 @@ import {
   encryptAuthenticatedTransferPayload,
   type AuthenticatedTransferEnvelopeV2,
 } from './caseHandoverCrypto.js';
+import type { TransferRecipientIdentity } from '../src/domain/models/transfer-identity.model.js';
+import type { TransferInstancePrivateIdentity } from './transferInstanceIdentityService.js';
 import {
   ELECTION_TRANSFER_DATA_REFS,
   ELECTION_TRANSFER_FORMAT,
@@ -15,7 +17,7 @@ import {
 export type ElectionTransferEnvelope = AuthenticatedTransferEnvelopeV2;
 
 export class ElectionTransferCryptoAdapter {
-  encrypt(payload: ElectionTransferPayload, passphrase: string): ElectionTransferEnvelope {
+  encrypt(payload: ElectionTransferPayload, passphrase: string, recipient?: TransferRecipientIdentity): ElectionTransferEnvelope {
     this.assertPassphrase(passphrase);
     this.assertPayload(payload);
     return encryptAuthenticatedTransferPayload({
@@ -25,15 +27,16 @@ export class ElectionTransferCryptoAdapter {
       createdAt: payload.manifest.createdAt,
       payloadText: JSON.stringify(payload),
       passphrase,
+      recipient,
     });
   }
 
-  decrypt(envelope: ElectionTransferEnvelope, passphrase: string): ElectionTransferPayload {
+  decrypt(envelope: ElectionTransferEnvelope, passphrase: string, localIdentity?: TransferInstancePrivateIdentity): ElectionTransferPayload {
     this.assertPassphrase(passphrase);
     const text = decryptAuthenticatedTransferPayload(envelope, passphrase, {
       format: ELECTION_TRANSFER_FORMAT,
       version: ELECTION_TRANSFER_VERSION,
-    });
+    }, localIdentity);
     const parsed = JSON.parse(text) as ElectionTransferPayload;
     this.assertPayload(parsed);
     if (parsed.manifest.packageId !== envelope.packageId || parsed.manifest.createdAt !== envelope.createdAt) {

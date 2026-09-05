@@ -7,8 +7,11 @@ import type { CreatePersonalDataAuditInput } from '../src/domain/models/audit.mo
 import { auditCaseHandoverContinuedAfterExpiry, auditCaseHandoverExported, auditCaseHandoverImported, auditCaseHandoverImportInspected } from './auditEventBuilders.js';
 import { SearchIndexService } from './search/searchIndexService.js';
 import { buildCandidateMatches, buildCaseHandoverImportPlan, CASE_HANDOVER_FORMAT, CASE_HANDOVER_VERSION, createPackageId, isExpired, packageRef, safeAuditMetadata } from './caseHandoverPolicy.js';
-import { assertCaseHandoverEnvelope, decryptCaseHandoverEnvelope, encryptCaseHandoverPayloadV2, type CaseHandoverEnvelope } from './caseHandoverCrypto.js';
+import { assertCaseHandoverEnvelope, decryptCaseHandoverEnvelope, type CaseHandoverEnvelope } from './caseHandoverCrypto.js';
+import { encryptCaseHandoverPayloadForRecipient } from './caseHandoverTargetCrypto.js';
 import { inspectCaseHandoverFilePath } from './caseHandoverFilePolicy.js';
+import { parseTransferRecipientToken } from './transferInstanceIdentityPolicy.js';
+import { TransferInstanceIdentityService } from './transferInstanceIdentityService.js';
 import type { CaseHandoverContinueExpiredInput, CaseHandoverContinueExpiredResult, CaseHandoverExportInput, CaseHandoverExportResult, CaseHandoverImportInput, CaseHandoverImportResult, CaseHandoverInspectResult } from '../src/domain/models/case-handover.model.js';
 import { Row, PackagePayload, DecryptedPackage, nowIso, sha256, isRecord, safeString, ensureArray } from './caseHandoverSupport.js';
 import { encodeDocumentForHandover, sanitizeHandoverDocumentMetadata } from './caseHandoverDocumentCodec.js';
@@ -88,18 +91,21 @@ export class CaseHandoverService {
     return payload;
   }
 
-  private encryptPayload(payload: PackagePayload, passphrase: string): CaseHandoverEnvelope {
-    return encryptCaseHandoverPayloadV2({
+  private encryptPayload(payload: PackagePayload, input: CaseHandoverExportInput): CaseHandoverEnvelope {
+    const recipient = parseTransferRecipientToken(input.targetRecipientToken);
+    return encryptCaseHandoverPayloadForRecipient({
       payloadText: JSON.stringify(payload),
-      passphrase,
+      passphrase: input.passphrase,
       packageId: payload.packageId,
       createdAt: payload.createdAt,
       expiresAt: payload.expiresAt,
+      recipient,
     });
   }
 
   private decryptEnvelope(envelope: CaseHandoverEnvelope, passphrase: string): DecryptedPackage {
-    const decrypted = decryptCaseHandoverEnvelope(envelope, passphrase);
+    const localIdentity = new TransferInstanceIdentityService(this.database).getPrivateIdentity();
+    const decrypted = decryptCaseHandoverEnvelope(envelope, passphrase, localIdentity);
     const parsed = JSON.parse(decrypted.payloadText) as unknown;
     const payload = this.assertPayload(parsed, decrypted.formatVersion);
     if (payload.packageId !== envelope.packageId || payload.expiresAt !== envelope.expiresAt) throw new Error('Fallübergabepaket enthält widersprüchliche Metadaten.');
@@ -217,12 +223,13 @@ export class CaseHandoverService {
   async exportToFile(input: CaseHandoverExportInput, targetPath: string): Promise<CaseHandoverExportResult> {
     const db = this.db();
     const payload = this.collectPayload(db, input);
-    const envelope = this.encryptPayload(payload, input.passphrase);
+    const envelope = this.encryptPayload(payload, input);
     await fs.promises.mkdir(path.dirname(targetPath), { recursive: true });
     await fs.promises.writeFile(targetPath, JSON.stringify(envelope, null, 2), { mode: OWNER_ONLY_FILE_MODE });
     await restrictFileToOwner(targetPath);
     this.audit(db, auditCaseHandoverExported({ packageId: payload.packageId, caseCount: payload.cases.length, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, validUntilPresent: Boolean(payload.expiresAt), result: 'success' }));
-    return { exported: true, filePath: targetPath, packageId: payload.packageId, caseCount: payload.cases.length, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, expiresAt: payload.expiresAt };
+    const targetInstanceId = 'crypto' in envelope ? envelope.recipientBinding?.targetInstanceId : undefined;
+    return { exported: true, filePath: targetPath, packageId: payload.packageId, caseCount: payload.cases.length, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, expiresAt: payload.expiresAt, targetInstanceId };
   }
 
   inspect(filePath: string, passphrase: string): CaseHandoverInspectResult {
@@ -250,6 +257,7 @@ export class CaseHandoverService {
           ...(decrypted.transfer.legacyFormat ? ['Dieses Übergabepaket wurde mit einem älteren Schutzformat erstellt. Der Import ist möglich, für neue Übergaben sollte ein aktuelles Paket erstellt werden.'] : []),
         ],
         integrity: { verified: true, algorithm: decrypted.transfer.algorithm, formatVersion: decrypted.transfer.formatVersion, legacyFormat: decrypted.transfer.legacyFormat },
+        targetInstanceId: 'crypto' in envelope ? envelope.recipientBinding?.targetInstanceId : undefined,
         file: { fileName: file.fileName, sizeBytes: file.sizeBytes, isNetworkPath: file.isNetworkPath },
       };
     } catch (error) {

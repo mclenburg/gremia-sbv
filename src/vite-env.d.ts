@@ -579,10 +579,10 @@ declare global {
         generateExecutionDocument(id: string, input: GenerateElectionExecutionDocumentInput): Promise<{ document: { id: string; filename: string; sha256: string }; previewStatus: 'requested' | 'unavailable'; previewMessage?: string }>;
         exportPdfArchive(id: string): Promise<{ document: { id: string; filename: string; sha256: string }; previewStatus: 'requested' | 'unavailable'; previewMessage?: string }>;
         exportDocument(documentId: string, suggestedFileName?: string): Promise<ElectionDocumentExportResult>;
-        exportTransfer(id: string, passphrase: string): Promise<ElectionTransferEnvelope>;
+        exportTransfer(id: string, passphrase: string, targetRecipientToken: string): Promise<ElectionTransferEnvelope>;
         inspectTransfer(envelope: ElectionTransferEnvelope, passphrase: string): Promise<ElectionTransferInspection>;
         importTransfer(envelope: ElectionTransferEnvelope, passphrase: string): Promise<ElectionTransferImportResult>;
-        exportTransferFile(id: string, passphrase: string, suggestedFileName?: string): Promise<ElectionTransferFileExportResult>;
+        exportTransferFile(id: string, passphrase: string, targetRecipientToken: string, suggestedFileName?: string): Promise<ElectionTransferFileExportResult>;
         selectTransferFile(passphrase: string): Promise<ElectionTransferFileSelection>;
         importTransferFile(fileToken: string, passphrase: string): Promise<ElectionTransferImportResult>;
       };

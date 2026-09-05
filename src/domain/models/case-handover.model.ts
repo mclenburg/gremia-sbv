@@ -8,6 +8,7 @@ export interface CaseHandoverExportInput {
   expiresAt?: string;
   purpose?: string;
   passphrase: string;
+  targetRecipientToken: string;
 }
 
 export interface CaseHandoverExportResult {
@@ -19,6 +20,7 @@ export interface CaseHandoverExportResult {
   documentCount: number;
   deadlineCount: number;
   expiresAt?: string;
+  targetInstanceId?: string;
 }
 
 export interface CaseHandoverCandidateMatch {
@@ -50,6 +52,7 @@ export interface CaseHandoverInspectResult {
     formatVersion: number;
     legacyFormat: boolean;
   };
+  targetInstanceId?: string;
   file?: {
     fileName: string;
     sizeBytes: number;

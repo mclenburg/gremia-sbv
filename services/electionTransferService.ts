@@ -10,6 +10,8 @@ import {
   type ElectionTransferEnvelope,
 } from './electionTransferCryptoAdapter.js';
 import { ElectionTransferImportService } from './electionTransferImportService.js';
+import { parseTransferRecipientToken } from './transferInstanceIdentityPolicy.js';
+import { TransferInstanceIdentityService } from './transferInstanceIdentityService.js';
 import {
   createElectionTransferManifest,
   ELECTION_TRANSFER_TABLE_REFS,
@@ -36,9 +38,9 @@ export class ElectionTransferService {
     this.importer = new ElectionTransferImportService(database, this.crypto);
   }
 
-  export(electionId: string, sourceVaultId: string, passphrase: string): ElectionTransferEnvelope {
+  export(electionId: string, sourceVaultId: string, passphrase: string, targetRecipientToken: string): ElectionTransferEnvelope {
     const payload = this.createPayload(electionId, sourceVaultId);
-    const envelope = this.crypto.encrypt(payload, passphrase);
+    const envelope = this.crypto.encrypt(payload, passphrase, parseTransferRecipientToken(targetRecipientToken));
     const manifestHash = electionManifestHash(payload.manifest);
     new DatabaseUnitOfWork(this.database).run(() => {
       this.database.prepare(`
@@ -61,8 +63,8 @@ export class ElectionTransferService {
   }
 
 
-  async exportToFile(electionId: string, sourceVaultId: string, passphrase: string, targetPath: string): Promise<ElectionTransferInspection> {
-    const envelope = this.export(electionId, sourceVaultId, passphrase);
+  async exportToFile(electionId: string, sourceVaultId: string, passphrase: string, targetRecipientToken: string, targetPath: string): Promise<ElectionTransferInspection> {
+    const envelope = this.export(electionId, sourceVaultId, passphrase, targetRecipientToken);
     await fs.promises.writeFile(targetPath, JSON.stringify(envelope, null, 2), { mode: OWNER_ONLY_FILE_MODE });
     await restrictFileToOwner(targetPath);
     return this.inspect(envelope, passphrase);
@@ -88,7 +90,7 @@ export class ElectionTransferService {
   }
 
   inspect(envelope: ElectionTransferEnvelope, passphrase: string): ElectionTransferInspection {
-    const payload = this.crypto.decrypt(envelope, passphrase);
+    const payload = this.crypto.decrypt(envelope, passphrase, new TransferInstanceIdentityService(this.database).getPrivateIdentity());
     return {
       packageId: payload.manifest.packageId,
       electionId: payload.manifest.electionId,

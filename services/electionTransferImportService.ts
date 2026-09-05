@@ -5,6 +5,7 @@ import { PersonalDataAuditLogService } from './auditLogService.js';
 import { auditElectionTransferProcessed } from './auditEventBuilders.js';
 import { ElectionTransferCryptoAdapter, type ElectionTransferEnvelope } from './electionTransferCryptoAdapter.js';
 import type { ElectionTransferPayload } from './electionTransferPolicy.js';
+import { TransferInstanceIdentityService } from './transferInstanceIdentityService.js';
 
 export interface ElectionTransferImportResult {
   importId: string;
@@ -22,7 +23,7 @@ export class ElectionTransferImportService {
   constructor(private readonly database: DatabaseAdapter, private readonly crypto = new ElectionTransferCryptoAdapter()) {}
 
   importAtomically(envelope: ElectionTransferEnvelope, passphrase: string, importer: ElectionTransferImporter): ElectionTransferImportResult {
-    const payload = this.crypto.decrypt(envelope, passphrase);
+    const payload = this.crypto.decrypt(envelope, passphrase, new TransferInstanceIdentityService(this.database).getPrivateIdentity());
     const manifestHash = this.crypto.manifestHash(payload);
     const importId = randomUUID();
     const now = new Date().toISOString();
