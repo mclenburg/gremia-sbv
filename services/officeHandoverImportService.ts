@@ -9,6 +9,8 @@ import { storeImportedElectionDocument } from './officeHandoverDocumentStore.js'
 import { PrivacyReviewService } from './privacyReviewService.js';
 import type { PrivacyReviewReason } from './privacyReviewPolicy.js';
 import { RetentionService } from './retentionService.js';
+import { normalizeRetentionSettings } from './retentionSettings.js';
+import type { TrackImportedFile } from './caseHandoverImportUnitOfWork.js';
 
 const PRIVACY_REASONS: PrivacyReviewReason[] = [
   'status_expired', 'employment_ended', 'linked_person_anonymized', 'linked_person_deleted',
@@ -26,15 +28,18 @@ export class OfficeHandoverImportService {
     caseRefToLocal: ReadonlyMap<string, string>,
     personRefToLocal: ReadonlyMap<string, string>,
     applyOfficeConfiguration: boolean,
+    trackFile: TrackImportedFile,
   ): OfficeHandoverImportSummary {
     if (!payload.officeData) throw new Error('Amtsübergabepaket enthält keinen Amtsbestand.');
     const office = payload.officeData;
     const templateCount = this.importDocumentTemplates(office);
     const deadlineTemplateCount = applyOfficeConfiguration ? this.importDeadlineTemplates(office) : 0;
     if (applyOfficeConfiguration) {
-      new RetentionService(this.database, this.dataDirectoryProvider).updateSettings(office.retentionSettings as unknown as RetentionSettings);
+      new RetentionService(this.database, this.dataDirectoryProvider).updateSettings(
+        normalizeRetentionSettings(office.retentionSettings as Partial<RetentionSettings>),
+      );
     }
-    const electionResult = this.importElections(office, payload.createdAt);
+    const electionResult = this.importElections(office, payload.createdAt, trackFile);
     const privacyReviewCount = this.importPrivacyReviews(payload, office, caseRefToLocal, personRefToLocal);
     return {
       templateCount,
@@ -115,7 +120,7 @@ export class OfficeHandoverImportService {
     return office.deadlineTemplates.length;
   }
 
-  private importElections(office: OfficeHandoverPayload, importedAt: string): { electionCount: number; documentCount: number } {
+  private importElections(office: OfficeHandoverPayload, importedAt: string, trackFile: TrackImportedFile): { electionCount: number; documentCount: number } {
     const electionRefToLocal = new Map<string, string>();
     const electionTransfer = new ElectionTransferService(this.database);
     const crypto = new ElectionTransferCryptoAdapter();
@@ -145,7 +150,7 @@ export class OfficeHandoverImportService {
     for (const document of office.electionDocuments) {
       const electionId = electionRefToLocal.get(document.electionRef);
       if (!electionId) throw new Error('Wahldokument im Amtsübergabepaket kann keiner Wahlakte zugeordnet werden.');
-      storeImportedElectionDocument(this.database, this.dataDirectoryProvider(), electionId, document.data, document.contentBase64, importedAt);
+      storeImportedElectionDocument(this.database, this.dataDirectoryProvider(), electionId, document.data, document.contentBase64, importedAt, trackFile);
     }
     return { electionCount: office.elections.length, documentCount: office.electionDocuments.length };
   }
@@ -164,13 +169,15 @@ export class OfficeHandoverImportService {
       const personRef = payload.protectedPersons.find((person) => String(person.data.id) === sourcePersonId)?.ref;
       const reason = String(item.data.reason) as PrivacyReviewReason;
       if (!PRIVACY_REASONS.includes(reason)) throw new Error('Amtsübergabepaket enthält einen unbekannten Datenschutz-Prüfgrund.');
+      const priority = String(item.data.priority);
+      if (!['critical', 'high', 'normal', 'low'].includes(priority)) throw new Error('Amtsübergabepaket enthält eine ungültige Datenschutz-Priorität.');
       reviews.createForCase(
         caseId,
         personRef ? personRefToLocal.get(personRef) ?? null : null,
         reason,
         { freeTextReviewRequired: item.data.free_text_review_required !== 0 },
         String(item.data.due_at),
-        String(item.data.priority) as 'critical' | 'high' | 'normal' | 'low',
+        priority as 'critical' | 'high' | 'normal' | 'low',
       );
     }
     return office.privacyReviews.length;

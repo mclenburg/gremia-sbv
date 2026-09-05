@@ -9,6 +9,7 @@ import {
   restrictDirectoryToOwnerSync,
   restrictFileToOwnerSync,
 } from './secureFilePermissions.js';
+import type { TrackImportedFile } from './caseHandoverImportUnitOfWork.js';
 
 export function storeImportedElectionDocument(
   database: DatabaseAdapter,
@@ -17,6 +18,7 @@ export function storeImportedElectionDocument(
   data: Row,
   contentBase64: string,
   timestamp: string,
+  trackFile?: TrackImportedFile,
 ): string {
   const plain = Buffer.from(contentBase64, 'base64');
   const key = randomBytes(32);
@@ -33,6 +35,7 @@ export function storeImportedElectionDocument(
     const storagePath = path.join(storageDirectory, `${documentId}.gsbvdoc`);
     fs.writeFileSync(storagePath, encrypted, { mode: OWNER_ONLY_FILE_MODE });
     restrictFileToOwnerSync(storagePath);
+    trackFile?.(storagePath);
     database.prepare(`
       INSERT INTO generated_documents (
         id, case_id, template_id, violation_id, document_kind, template_version, title,

@@ -2,40 +2,43 @@
 
 ## Zweck
 
-Die Fallübergabe unterstützt Situationen, in denen eine SBV einzelne Vorgänge zeitlich begrenzt an eine berechtigte Stellvertretung oder Nachfolge übergeben muss. Typische Anlässe sind Urlaub, Krankheit, Amtswechsel oder eine kurzfristige Vertretung bei laufenden Fristen.
+Die Übergabefunktion unterstützt sowohl zeitlich begrenzte Vertretungen als auch den dauerhaften Amtswechsel. Beide Vorgänge folgen unterschiedlichen Regeln und werden in der Anwendung ausdrücklich getrennt.
 
 Die Funktion ist kein Backup, keine Synchronisation und keine gemeinsame Datenbank. Jede Gremia.SBV-Instanz bleibt eigenständig.
 
 ## Grundprinzip
 
-Eine ausgewählte Fallakte kann mit den zugehörigen, für die Vertretung erforderlichen Inhalten als verschlüsseltes Übergabepaket exportiert werden. Die empfangende Person importiert das Paket in ihrer eigenen Gremia.SBV-Instanz und entscheidet, ob daraus eine neue lokale Übergabeakte entsteht oder ob ein mögliches vorhandenes Gegenstück bewusst zusammengeführt beziehungsweise aktualisiert wird.
+Ausgewählte Fallakten können mit den zugehörigen erforderlichen Inhalten als verschlüsseltes, auf eine konkrete Zielinstanz gebundenes Übergabepaket exportiert werden. Bei einer Urlaubsvertretung kann ein einzelnes, sicher erkanntes Gegenstück bewusst zusammengeführt werden. Eine Amtsübergabe wird dagegen immer als neuer lokaler Amtsbestand übernommen.
 
 Das Übergabepaket hat die Dateiendung `.gsbvtransfer`.
 
 ## Ablauf für die abgebende SBV
 
-1. Fallakte öffnen.
-2. `Übergabe exportieren` wählen.
-3. Transport-Passphrase vergeben.
-4. Optional ein Gültig-bis-Datum setzen.
-5. Export bestätigen.
-6. Übergabedatei und Passphrase getrennt übermitteln.
+1. Den Bereich `Übergaben` öffnen.
+2. Übergabetyp und erforderliche Fallakten auswählen.
+3. Empfängerkennung der Zielinstanz einfügen.
+4. Transport-Passphrase vergeben.
+5. Bei einer Vertretung ein verbindliches Enddatum setzen; Amtsübergaben haben kein Ablaufdatum.
+6. Umfang prüfen und Export bestätigen.
+7. Übergabedatei und Passphrase getrennt übermitteln.
 
 Die Passphrase gehört nicht in dieselbe E-Mail oder denselben Chat wie die Datei. Sie soll über einen getrennten Kanal weitergegeben werden.
 
 ## Ablauf für die importierende SBV
 
-1. In der Fallliste `Übergabe importieren` wählen.
+1. Den Bereich `Übergaben` öffnen.
 2. Übergabedatei auswählen.
 3. Passphrase eingeben.
 4. Paket prüfen.
 5. Vorschau lesen.
-6. Bei gefundenen möglichen Gegenstücken entscheiden:
+6. Bei einer Urlaubsvertretung und gefundenen möglichen Gegenstücken entscheiden:
    - als neue lokale Übergabeakte anlegen, oder
    - bewusst mit einem vorgeschlagenen Gegenstück zusammenführen beziehungsweise aktualisieren.
 7. Import bestätigen.
 
 Ohne ausdrückliche Entscheidung findet keine Zusammenführung statt.
+
+Bei einer Amtsübergabe entscheidet die Nachfolge zusätzlich, ob die übergebenen Frist- und Aufbewahrungsregeln lokal übernommen werden. Individuelle Vorlagen werden ohne Überschreiben abweichender lokaler Vorlagen importiert.
 
 ## Eigenständige Instanzen
 
@@ -89,6 +92,12 @@ Ein Übergabepaket kann fallbezogen insbesondere enthalten:
 - verknüpfte Dokumente.
 
 Nicht Bestandteil einer Fallübergabe sind globale App-Einstellungen, Gremia.BR-Zugangsdaten, vollständige Backups oder nicht fallbezogene Datenbestände.
+
+Eine Amtsübergabe ergänzt diesen Umfang um individuelle Vorlagen, Frist- und Aufbewahrungsregeln, offene Datenschutzprüfungen der ausgewählten Fälle sowie digitale Wahlakten einschließlich ihrer Dokumente. Das persönliche Tätigkeitsjournal ist ausdrücklich ausgeschlossen. Bereits erzeugte anonymisierte Tätigkeitsberichte können nur als erforderliche, zugeordnete Dokumente Bestandteil des Pakets sein.
+
+## Unterstützte Paketversionen
+
+Neue Übergaben verwenden das aktuelle zielgebundene Format. Unterstützte ältere Formate können weiterhin geprüft werden, erfordern vor dem Import aber eine gesonderte ausdrückliche Bestätigung. Pakethülle und Nutzdaten müssen dieselbe Version tragen. Amtsdaten sind ausschließlich im aktuellen Format zulässig; unbekannte Versionen und unerwartete Datenbereiche werden abgewiesen.
 
 ## Datenschutz und Audit
 

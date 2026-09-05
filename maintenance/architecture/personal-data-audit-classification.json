@@ -103,6 +103,16 @@
       "owner": "CaseHandoverService.importFromFile / CaseHandoverReturnDeltaService.importPayload",
       "reason": "Gemeinsamer verschlüsselter Dokument-Persistenzschritt innerhalb eines fachlich auditierten Übergabe- oder Rückgabeimports."
     },
+    "services/officeHandoverDocumentStore.ts#<module>.storeImportedElectionDocument": {
+      "classification": "delegated",
+      "owner": "CaseHandoverService.importFromFile",
+      "reason": "Verschlüsselte Dokument-Persistenz innerhalb des transaktionalen und fachlich auditierten Amtsübergabeimports."
+    },
+    "services/officeHandoverImportService.ts#OfficeHandoverImportService.importElections": {
+      "classification": "delegated",
+      "owner": "CaseHandoverService.importFromFile",
+      "reason": "Wahlakten- und Importprotokoll-Persistenz innerhalb des transaktionalen und fachlich auditierten Amtsübergabeimports."
+    },
     "services/caseHandoverReturnDeltaService.ts#CaseHandoverReturnDeltaService.importDeadlines": {
       "classification": "delegated",
       "owner": "CaseHandoverReturnDeltaService.importPayload",

@@ -41,7 +41,6 @@ export interface CaseHandoverExportResult {
   expiresAt?: string;
   targetInstanceId?: string;
   officeScope?: OfficeHandoverScope;
-  legacyImportConfirmationRequired?: boolean;
 }
 
 export interface CaseHandoverCandidateMatch {
@@ -76,6 +75,7 @@ export interface CaseHandoverInspectResult {
   };
   targetInstanceId?: string;
   officeScope?: OfficeHandoverScope;
+  legacyImportConfirmationRequired?: boolean;
   file?: {
     fileName: string;
     sizeBytes: number;

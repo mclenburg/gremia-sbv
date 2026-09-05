@@ -15,6 +15,7 @@ import { parseTransferRecipientToken } from './transferInstanceIdentityPolicy.js
 import { OWNER_ONLY_FILE_MODE, restrictFileToOwner } from './secureFilePermissions.js';
 import { nowIso, safeString, type PackagePayload, type Row } from './caseHandoverSupport.js';
 import { PrivacyReviewService } from './privacyReviewService.js';
+import type { TrackImportedFile } from './caseHandoverImportUnitOfWork.js';
 
 type ImportItemMap = Map<string, { packageRef: string; type: string }>;
 type ExportTargetMap = Map<string, { localId: string; type: string }>;
@@ -69,7 +70,7 @@ export class CaseHandoverReturnDeltaService {
       .run(timestamp, sourcePackageId);
   }
 
-  importPayload(payload: PackagePayload, input: CaseHandoverImportInput): CaseHandoverImportResult {
+  importPayload(payload: PackagePayload, input: CaseHandoverImportInput, trackFile: TrackImportedFile = () => undefined): CaseHandoverImportResult {
     if (!payload.sourcePackageId) throw new Error('Rückgabepaket enthält keine Ausgangspaket-Zuordnung.');
     const duplicate = this.database.prepare<{ id: string }>('SELECT id FROM case_handover_imports WHERE package_id = ?').get(payload.packageId);
     if (duplicate) throw new Error('Dieses Rückgabepaket wurde bereits importiert.');
@@ -84,7 +85,7 @@ export class CaseHandoverReturnDeltaService {
     const timestamp = nowIso();
     this.importNotes(payload, caseRefToLocal, timestamp);
     const updatedDeadlineIds = this.importDeadlines(payload, exportMap, caseRefToLocal, measureRefToLocal, timestamp);
-    const createdDocumentIds = this.importDocuments(payload, caseRefToLocal, measureRefToLocal, timestamp);
+    const createdDocumentIds = this.importDocuments(payload, caseRefToLocal, measureRefToLocal, timestamp, trackFile);
     const privacyReviewCaseIds = [...new Set([...caseRefToLocal.values()])];
     const privacyReview = new PrivacyReviewService(this.database);
     privacyReview.ensureSchema();
@@ -262,6 +263,7 @@ export class CaseHandoverReturnDeltaService {
     caseRefToLocal: Map<string, string>,
     measureRefToLocal: Map<string, string>,
     timestamp: string,
+    trackFile: TrackImportedFile,
   ): string[] {
     return payload.documents.map((item) => {
       const caseId = caseRefToLocal.get(item.caseRef);
@@ -276,6 +278,7 @@ export class CaseHandoverReturnDeltaService {
         timestamp,
         dataDirectory: this.dataDirProvider(),
         titlePrefix: '[Rückgabe] ',
+        trackFile,
       });
       return id;
     });

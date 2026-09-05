@@ -6,14 +6,14 @@ import { PersonalDataAuditLogService } from './auditLogService.js';
 import type { CreatePersonalDataAuditInput } from '../src/domain/models/audit.model.js';
 import { auditCaseHandoverContinuedAfterExpiry, auditCaseHandoverExported, auditCaseHandoverImported, auditCaseHandoverImportInspected } from './auditEventBuilders.js';
 import { SearchIndexService } from './search/searchIndexService.js';
-import { buildCandidateMatches, buildCaseHandoverImportPlan, CASE_HANDOVER_FORMAT, CASE_HANDOVER_VERSION, isExpired, safeAuditMetadata } from './caseHandoverPolicy.js';
+import { buildCandidateMatches, buildCaseHandoverImportPlan, isExpired, safeAuditMetadata } from './caseHandoverPolicy.js';
 import { assertCaseHandoverEnvelope, decryptCaseHandoverEnvelope, type CaseHandoverEnvelope } from './caseHandoverCrypto.js';
 import { encryptCaseHandoverPayloadForRecipient } from './caseHandoverTargetCrypto.js';
 import { inspectCaseHandoverFilePath } from './caseHandoverFilePolicy.js';
 import { parseTransferRecipientToken } from './transferInstanceIdentityPolicy.js';
 import { TransferInstanceIdentityService, type TransferInstancePrivateIdentity } from './transferInstanceIdentityService.js';
 import type { CaseHandoverCockpit, CaseHandoverContinueExpiredInput, CaseHandoverContinueExpiredResult, CaseHandoverExportInput, CaseHandoverExportResult, CaseHandoverImportInput, CaseHandoverImportResult, CaseHandoverInspectResult, CaseHandoverReturnDeltaExportInput } from '../src/domain/models/case-handover.model.js';
-import { Row, PackagePayload, DecryptedPackage, nowIso, isRecord, officeHandoverScope, safeString } from './caseHandoverSupport.js';
+import { Row, PackagePayload, DecryptedPackage, nowIso, officeHandoverScope, safeString } from './caseHandoverSupport.js';
 import { collectCaseHandoverPayload } from './caseHandoverPayloadCollector.js';
 import { ensureCaseHandoverExportLedgerSchema, recordCaseHandoverExport } from './caseHandoverExportLedger.js';
 import { CaseHandoverReturnDeltaService } from './caseHandoverReturnDeltaService.js';
@@ -23,9 +23,9 @@ import { OWNER_ONLY_FILE_MODE, restrictFileToOwner } from './secureFilePermissio
 import { ensureCaseHandoverRuntimeSchema } from './runtimeSchemaCompatibility.js';
 import { PrivacyReviewService } from './privacyReviewService.js';
 import type { TransferImportPlan } from '../src/domain/models/transfer.model.js';
-import { DatabaseUnitOfWork } from './databaseUnitOfWork.js';
 import { OfficeHandoverImportService } from './officeHandoverImportService.js';
-import { ElectionTransferCryptoAdapter } from './electionTransferCryptoAdapter.js';
+import { assertCaseHandoverPayload } from './caseHandoverPayloadValidator.js';
+import { CaseHandoverImportUnitOfWork, type TrackImportedFile } from './caseHandoverImportUnitOfWork.js';
 export class CaseHandoverService {
   constructor(private readonly database: DatabaseAdapter, private readonly dataDirProvider: () => string = () => path.join(process.cwd(), 'data')) {}
 
@@ -59,7 +59,7 @@ export class CaseHandoverService {
   private decryptEnvelope(envelope: CaseHandoverEnvelope, passphrase: string): DecryptedPackage {
     const decrypted = decryptCaseHandoverEnvelope(envelope, passphrase, this.localIdentityFor(envelope));
     const parsed = JSON.parse(decrypted.payloadText) as unknown;
-    const payload = this.assertPayload(parsed, decrypted.formatVersion);
+    const payload = assertCaseHandoverPayload(parsed, decrypted.formatVersion);
     if (payload.packageId !== envelope.packageId || payload.expiresAt !== envelope.expiresAt) throw new Error('Fallübergabepaket enthält widersprüchliche Metadaten.');
     return {
       payload,
@@ -149,87 +149,8 @@ export class CaseHandoverService {
     return [...caseIds];
   }
 
-  private assertPayload(value: unknown, formatVersion: number): PackagePayload {
-    if (!isRecord(value)) throw new Error('Fallübergabepaket enthält keine gültige Nutzdatenstruktur.');
-    if (value.format !== CASE_HANDOVER_FORMAT || value.version !== formatVersion) throw new Error('Fallübergabepaket enthält eine widersprüchliche Formatversion.');
-    if (value.packageId === undefined || typeof value.packageId !== 'string') throw new Error('Fallübergabepaket enthält keine gültige Paketkennung.');
-    if (value.createdAt === undefined || typeof value.createdAt !== 'string') throw new Error('Fallübergabepaket enthält kein gültiges Erstellungsdatum.');
-    if (value.expiresAt !== undefined && typeof value.expiresAt !== 'string') throw new Error('Fallübergabepaket enthält kein gültiges Ablaufdatum.');
-    if (value.packageType !== undefined && value.packageType !== 'vacation_handover' && value.packageType !== 'return_delta' && value.packageType !== 'office_handover') throw new Error('Fallübergabepaket enthält einen ungültigen Übergabetyp.');
-    if (value.packageType === 'return_delta' && typeof value.sourcePackageId !== 'string') throw new Error('Rückgabepaket enthält keine Ausgangspaket-Zuordnung.');
-    if (value.packageType === 'office_handover' && (formatVersion < CASE_HANDOVER_VERSION || value.expiresAt !== undefined)) throw new Error('Amtsübergabepaket verwendet ein unzulässiges Format oder Ablaufdatum.');
-    const payload = value as unknown as PackagePayload;
-    const arrayFields: Array<keyof Pick<PackagePayload, 'cases' | 'protectedPersons' | 'notes' | 'measures' | 'measureNotes' | 'deadlines' | 'documents'>> = ['cases', 'protectedPersons', 'notes', 'measures', 'measureNotes', 'deadlines', 'documents'];
-    for (const field of arrayFields) if (!Array.isArray(payload[field])) throw new Error('Fallübergabepaket enthält keine gültige Nutzdatenstruktur.');
-    if (!payload.cases.length) throw new Error('Fallübergabepaket enthält keine Fallakte.');
-    this.assertUniqueRefs('Fallakten', payload.cases.map((item) => item.ref));
-    this.assertUniqueRefs('Personen', payload.protectedPersons.map((item) => item.ref));
-    this.assertUniqueRefs('Notizen', payload.notes.map((item) => item.ref));
-    this.assertUniqueRefs('Maßnahmen', payload.measures.map((item) => item.ref));
-    this.assertUniqueRefs('Maßnahmennotizen', payload.measureNotes.map((item) => item.ref));
-    this.assertUniqueRefs('Fristen', payload.deadlines.map((item) => item.ref));
-    this.assertUniqueRefs('Dokumente', payload.documents.map((item) => item.ref));
-    const caseRefs = new Set(payload.cases.map((item) => item.ref));
-    const measureRefs = new Set(payload.measures.map((item) => item.ref));
-    for (const item of [...payload.notes, ...payload.measures]) if (!caseRefs.has(item.caseRef)) throw new Error('Fallübergabepaket enthält ungültige Fallreferenzen.');
-    for (const item of payload.measureNotes) {
-      if (!caseRefs.has(item.caseRef) || !measureRefs.has(item.measureRef)) throw new Error('Fallübergabepaket enthält ungültige Maßnahmenreferenzen.');
-    }
-    for (const item of payload.deadlines) {
-      if (item.caseRef && !caseRefs.has(item.caseRef)) throw new Error('Fallübergabepaket enthält ungültige Fristreferenzen.');
-      if (item.measureRef && !measureRefs.has(item.measureRef)) throw new Error('Fallübergabepaket enthält ungültige Fristreferenzen.');
-    }
-    for (const item of payload.documents) {
-      if (!caseRefs.has(item.caseRef)) throw new Error('Fallübergabepaket enthält ungültige Dokumentreferenzen.');
-      if (item.measureRef && !measureRefs.has(item.measureRef)) throw new Error('Fallübergabepaket enthält ungültige Dokumentreferenzen.');
-      if (typeof item.contentBase64 !== 'string') throw new Error('Fallübergabepaket enthält ungültige Dokumentdaten.');
-      const data = item.data ?? {};
-      const forbidden = ['storage_path', 'document_key', 'iv', 'auth_tag'].filter((field) => data[field] !== undefined && data[field] !== null && data[field] !== '');
-      if (forbidden.length) throw new Error('Fallübergabepaket enthält lokale Dokument-Schlüsseldaten.');
-      if (formatVersion >= CASE_HANDOVER_VERSION && Object.keys(data).some((field) => ['storage_path', 'document_key', 'iv', 'auth_tag'].includes(field))) {
-        throw new Error('Fallübergabepaket enthält lokale Dokument-Schlüsseldaten.');
-      }
-    }
-    if (payload.packageType === 'office_handover') this.assertOfficePayload(payload);
-    else if (payload.officeData !== undefined) throw new Error('Fallübergabepaket enthält unerwartete Amtsdaten.');
-    return payload;
-  }
-
-  private assertOfficePayload(payload: PackagePayload): void {
-    const office = payload.officeData;
-    if (!office || !isRecord(office) || office.activityJournalIncluded !== false) throw new Error('Amtsübergabepaket enthält keinen gültigen Amtsbestand.');
-    const arrays = [office.documentTemplates, office.deadlineTemplates, office.privacyReviews, office.elections, office.electionDocuments];
-    if (arrays.some((items) => !Array.isArray(items))) throw new Error('Amtsübergabepaket enthält unvollständige Amtsdaten.');
-    if (!isRecord(office.retentionSettings)) throw new Error('Amtsübergabepaket enthält keine gültigen Aufbewahrungsregeln.');
-    this.assertUniqueRefs('Amtsvorlagen', office.documentTemplates.map((item) => item.ref));
-    this.assertUniqueRefs('Fristvorlagen', office.deadlineTemplates.map((item) => item.ref));
-    this.assertUniqueRefs('Datenschutzstatus', office.privacyReviews.map((item) => item.ref));
-    this.assertUniqueRefs('Wahlakten', office.elections.map((item) => item.ref));
-    this.assertUniqueRefs('Wahldokumente', office.electionDocuments.map((item) => item.ref));
-    const caseRefs = new Set(payload.cases.map((item) => item.ref));
-    for (const review of office.privacyReviews) {
-      if (!caseRefs.has(review.caseRef) || !isRecord(review.data)) throw new Error('Amtsübergabepaket enthält ungültige Datenschutzreferenzen.');
-    }
-    const electionRefs = new Set(office.elections.map((item) => item.ref));
-    const electionCrypto = new ElectionTransferCryptoAdapter();
-    for (const election of office.elections) electionCrypto.validatePayload(election.data);
-    for (const document of office.electionDocuments) {
-      if (!electionRefs.has(document.electionRef) || !isRecord(document.data) || typeof document.contentBase64 !== 'string') {
-        throw new Error('Amtsübergabepaket enthält ungültige Wahldokumente.');
-      }
-      if (['storage_path', 'document_key', 'iv', 'auth_tag'].some((field) => document.data[field] !== undefined)) {
-        throw new Error('Amtsübergabepaket enthält lokale Dokument-Schlüsseldaten.');
-      }
-    }
-  }
-
   private optionalPayloadString(value: unknown): string | undefined {
     return typeof value === 'string' && value.length > 0 ? value : undefined;
-  }
-
-  private assertUniqueRefs(label: string, refs: string[]): void {
-    if (refs.some((ref) => typeof ref !== 'string' || !ref)) throw new Error(`${label} im Fallübergabepaket enthalten ungültige Referenzen.`);
-    if (new Set(refs).size !== refs.length) throw new Error(`${label} im Fallübergabepaket enthalten doppelte Referenzen.`);
   }
 
   async exportToFile(input: CaseHandoverExportInput, targetPath: string): Promise<CaseHandoverExportResult> {
@@ -300,12 +221,13 @@ export class CaseHandoverService {
       throw new Error('Dieses Übergabepaket nutzt ein Altformat. Bitte den geprüften Altformat-Import ausdrücklich bestätigen.');
     }
     if (payload.packageType === 'return_delta') {
-      return new CaseHandoverReturnDeltaService(this.database, this.dataDirProvider).importPayload(payload, input);
+      return new CaseHandoverImportUnitOfWork(db, this.dataDirProvider).run((trackFile) =>
+        new CaseHandoverReturnDeltaService(this.database, this.dataDirProvider).importPayload(payload, input, trackFile));
     }
-    return new DatabaseUnitOfWork(db).run(() => this.importCasePayload(db, payload, input));
+    return new CaseHandoverImportUnitOfWork(db, this.dataDirProvider).run((trackFile) => this.importCasePayload(db, payload, input, trackFile));
   }
 
-  private importCasePayload(db: DatabaseAdapter, payload: PackagePayload, input: CaseHandoverImportInput): CaseHandoverImportResult {
+  private importCasePayload(db: DatabaseAdapter, payload: PackagePayload, input: CaseHandoverImportInput, trackFile: TrackImportedFile): CaseHandoverImportResult {
     const { expired, importPlan } = this.buildImportPlanning(db, payload);
     this.assertImportAllowed(db, payload, input, expired, importPlan);
     const duplicate = this.row(db, 'SELECT id FROM case_handover_imports WHERE package_id = ?', payload.packageId);
@@ -313,6 +235,7 @@ export class CaseHandoverService {
     const importId = randomUUID();
     const timestamp = nowIso();
     const status = payload.packageType === 'office_handover' ? 'completed' : 'active';
+    const titlePrefix = payload.packageType === 'office_handover' ? '' : '[Übergabe] ';
     const caseRefToLocal = new Map<string, string>();
     const measureRefToLocal = new Map<string, string>();
     const createdCaseIds: string[] = [];
@@ -337,10 +260,10 @@ export class CaseHandoverService {
       if (localId && !this.row(db, 'SELECT id FROM cases WHERE id = ?', localId)) throw new Error('Gewählte lokale Zielakte wurde nicht gefunden.');
       if (!localId) {
         localId = randomUUID();
-        const localCaseNumber = this.uniqueCaseNumber(db, safeString(d.case_number, 'ÜBERGABE'));
+        const localCaseNumber = this.uniqueCaseNumber(db, safeString(d.case_number, 'ÜBERGABE'), payload.packageType === 'office_handover');
         const personRef = payload.protectedPersons.find((p) => p.data.id === d.protected_person_id)?.ref;
         db.prepare(`INSERT INTO cases (id, case_number, display_name, category, status, priority, opened_at, closed_at, summary, is_pseudonymized, is_locked, created_at, updated_at, protected_person_id, person_binding_state, handover_import_id, handover_package_id, handover_valid_until, handover_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-          .run(localId, localCaseNumber, `[Übergabe] ${d.display_name ?? 'Fallakte'}`, d.category ?? 'sonstiges', d.status ?? 'offen', d.priority ?? 'normal', d.opened_at ?? timestamp, d.closed_at ?? null, d.summary ?? null, d.is_pseudonymized ?? 1, 0, timestamp, timestamp, personRef ? personRefToLocal.get(personRef) ?? null : null, d.person_binding_state ?? 'legacy_unlinked', importId, payload.packageId, payload.expiresAt ?? null, status);
+          .run(localId, localCaseNumber, `${titlePrefix}${d.display_name ?? 'Fallakte'}`, d.category ?? 'sonstiges', d.status ?? 'offen', d.priority ?? 'normal', d.opened_at ?? timestamp, d.closed_at ?? null, d.summary ?? null, d.is_pseudonymized ?? 1, 0, timestamp, timestamp, personRef ? personRefToLocal.get(personRef) ?? null : null, d.person_binding_state ?? 'legacy_unlinked', importId, payload.packageId, payload.expiresAt ?? null, status);
         createdCaseIds.push(localId as string);
       } else {
         db.prepare(`UPDATE cases SET summary = COALESCE(summary, ?) || ?, updated_at = ?, handover_import_id = ?, handover_package_id = ?, handover_valid_until = ?, handover_status = ? WHERE id = ?`)
@@ -359,7 +282,7 @@ export class CaseHandoverService {
       const caseId = caseRefToLocal.get(item.caseRef)!;
       measureRefToLocal.set(item.ref, id);
       db.prepare(`INSERT INTO case_measures (id, case_id, type, title, status, risk_level, created_from, summary, next_step, due_at, opened_at, closed_at, requires_follow_up, source_id, created_at, updated_at, handover_import_id, handover_package_id, handover_valid_until, handover_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-        .run(id, caseId, d.type ?? 'other', `[Übergabe] ${d.title ?? 'Maßnahme'}`, d.status ?? 'open', d.risk_level ?? 'normal', 'import', d.summary ?? null, d.next_step ?? null, d.due_at ?? null, d.opened_at ?? timestamp, d.closed_at ?? null, d.requires_follow_up ?? 0, null, timestamp, timestamp, importId, payload.packageId, payload.expiresAt ?? null, status);
+        .run(id, caseId, d.type ?? 'other', `${titlePrefix}${d.title ?? 'Maßnahme'}`, d.status ?? 'open', d.risk_level ?? 'normal', 'import', d.summary ?? null, d.next_step ?? null, d.due_at ?? null, d.opened_at ?? timestamp, d.closed_at ?? null, d.requires_follow_up ?? 0, null, timestamp, timestamp, importId, payload.packageId, payload.expiresAt ?? null, status);
       this.insertItem(db, importId, 'case_measure', id, item.ref, timestamp);
     }
 
@@ -368,7 +291,7 @@ export class CaseHandoverService {
       const id = randomUUID();
       const caseId = caseRefToLocal.get(item.caseRef)!;
       db.prepare(`INSERT INTO case_notes (id, case_id, title, note_date, note_type, participants, content, next_steps, contains_health_data, confidential_level, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-        .run(id, caseId, `[Übergabe] ${d.title ?? 'Notiz'}`, d.note_date ?? timestamp, d.note_type ?? 'sonstiges', d.participants ?? null, d.content ?? '', d.next_steps ?? null, d.contains_health_data ?? 1, d.confidential_level ?? 'sensibel', timestamp, timestamp);
+        .run(id, caseId, `${titlePrefix}${d.title ?? 'Notiz'}`, d.note_date ?? timestamp, d.note_type ?? 'sonstiges', d.participants ?? null, d.content ?? '', d.next_steps ?? null, d.contains_health_data ?? 1, d.confidential_level ?? 'sensibel', timestamp, timestamp);
       this.insertItem(db, importId, 'case_note', id, item.ref, timestamp);
     }
 
@@ -378,7 +301,7 @@ export class CaseHandoverService {
       const caseId = caseRefToLocal.get(item.caseRef)!;
       const measureId = measureRefToLocal.get(item.measureRef)!;
       db.prepare(`INSERT INTO case_measure_notes (id, case_id, measure_type, measure_id, title, note_at, participants, content, next_steps, contains_health_data, confidential_level, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-        .run(id, caseId, d.measure_type ?? 'bem', measureId, `[Übergabe] ${d.title ?? 'Maßnahmennotiz'}`, d.note_at ?? timestamp, d.participants ?? null, d.content ?? '', d.next_steps ?? null, d.contains_health_data ?? 1, d.confidential_level ?? 'sensibel', timestamp, timestamp);
+        .run(id, caseId, d.measure_type ?? 'bem', measureId, `${titlePrefix}${d.title ?? 'Maßnahmennotiz'}`, d.note_at ?? timestamp, d.participants ?? null, d.content ?? '', d.next_steps ?? null, d.contains_health_data ?? 1, d.confidential_level ?? 'sensibel', timestamp, timestamp);
       this.insertItem(db, importId, 'case_measure_note', id, item.ref, timestamp);
     }
 
@@ -388,7 +311,7 @@ export class CaseHandoverService {
       const caseId = item.caseRef ? caseRefToLocal.get(item.caseRef) : null;
       const measureId = item.measureRef ? measureRefToLocal.get(item.measureRef) : null;
       db.prepare(`INSERT INTO deadlines (id, case_id, measure_id, process_id, process_type, deadline_type, title, confidential_title, description, due_at, reminder_at, legal_basis, source_event, severity, status, calculation_mode, is_legal_deadline, is_user_editable, warning_threshold_hours, critical_threshold_hours, dashboard_from_at, completed_at, completed_note, cancelled_at, cancelled_reason, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-        .run(id, caseId, measureId, null, d.process_type ?? 'case', d.deadline_type ?? 'follow_up', `[Übergabe] ${d.title ?? 'Frist'}`, d.confidential_title ?? null, d.description ?? null, d.due_at ?? timestamp, d.reminder_at ?? null, d.legal_basis ?? null, d.source_event ?? null, d.severity ?? 'normal', d.status ?? 'open', d.calculation_mode ?? 'manual', d.is_legal_deadline ?? 0, d.is_user_editable ?? 1, d.warning_threshold_hours ?? 48, d.critical_threshold_hours ?? 24, d.dashboard_from_at ?? null, d.completed_at ?? null, d.completed_note ?? null, d.cancelled_at ?? null, d.cancelled_reason ?? null, timestamp, timestamp);
+        .run(id, caseId, measureId, null, d.process_type ?? 'case', d.deadline_type ?? 'follow_up', `${titlePrefix}${d.title ?? 'Frist'}`, d.confidential_title ?? null, d.description ?? null, d.due_at ?? timestamp, d.reminder_at ?? null, d.legal_basis ?? null, d.source_event ?? null, d.severity ?? 'normal', d.status ?? 'open', d.calculation_mode ?? 'manual', d.is_legal_deadline ?? 0, d.is_user_editable ?? 1, d.warning_threshold_hours ?? 48, d.critical_threshold_hours ?? 24, d.dashboard_from_at ?? null, d.completed_at ?? null, d.completed_note ?? null, d.cancelled_at ?? null, d.cancelled_reason ?? null, timestamp, timestamp);
       this.insertItem(db, importId, 'deadline', id, item.ref, timestamp);
     }
 
@@ -405,14 +328,15 @@ export class CaseHandoverService {
         contentBase64: item.contentBase64,
         timestamp,
         dataDirectory: this.dataDirProvider(),
-        titlePrefix: '[Übergabe] ',
+        titlePrefix,
+        trackFile,
       });
       this.insertItem(db, importId, 'case_document', id, item.ref, timestamp);
     }
 
     try { for (const id of [...createdCaseIds, ...updatedCaseIds]) new SearchIndexService(db).reindexCase(id); } catch { /* index best effort */ }
     const officeImport = payload.packageType === 'office_handover'
-      ? new OfficeHandoverImportService(db, this.dataDirProvider).import(payload, caseRefToLocal, personRefToLocal, Boolean(input.applyOfficeConfiguration))
+      ? new OfficeHandoverImportService(db, this.dataDirProvider).import(payload, caseRefToLocal, personRefToLocal, Boolean(input.applyOfficeConfiguration), trackFile)
       : undefined;
     const privacyReviewCaseIds = this.markImportedCasesForPrivacyReview(db, [...createdCaseIds, ...updatedCaseIds], timestamp, payload.packageType === 'office_handover' || payload.expiresAt ? 'high' : 'normal');
     db.prepare('UPDATE case_handover_imports SET created_case_count = ?, updated_case_count = ? WHERE id = ?').run(createdCaseIds.length, updatedCaseIds.length, importId);
@@ -430,8 +354,9 @@ export class CaseHandoverService {
     return { caseId: input.caseId, confirmed: true, confirmedAt: timestamp };
   }
 
-  private uniqueCaseNumber(db: DatabaseAdapter, base: string): string {
+  private uniqueCaseNumber(db: DatabaseAdapter, base: string, preserveWhenAvailable = false): string {
     const sanitized = base.replace(/\s+/g, '-').slice(0, 80) || 'UEBERGABE';
+    if (preserveWhenAvailable && !this.row(db, 'SELECT id FROM cases WHERE case_number = ?', sanitized)) return sanitized;
     let candidate = `${sanitized}-IMPORT`;
     let index = 2;
     while (this.row(db, 'SELECT id FROM cases WHERE case_number = ?', candidate)) candidate = `${sanitized}-IMPORT-${index++}`;

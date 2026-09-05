@@ -56,7 +56,7 @@ export function OfficeHandoverExportPanel({
     finally { setBusy(false); }
   }
 
-  return <IndustrialPanel kicker="Amtswechsel" title="Amtsübergabe erstellen" description="Erforderlichen Amtsbestand dauerhaft und zielgebunden an die gewählte Nachfolge übergeben.">
+  return <IndustrialPanel ariaLabel="Amtsübergabe erstellen" kicker="Amtswechsel" title="Amtsübergabe erstellen" description="Erforderlichen Amtsbestand dauerhaft und zielgebunden an die gewählte Nachfolge übergeben.">
     <form className="industrial-stack" onSubmit={submit}>
       <div className="industrial-message" role="note">
         <strong>Enthaltener Amtsbestand</strong>

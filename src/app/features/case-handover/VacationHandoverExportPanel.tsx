@@ -46,7 +46,7 @@ export function VacationHandoverExportPanel({ cases, onCompleted }: { cases: Cas
     finally { setBusy(false); }
   }
 
-  return <IndustrialPanel kicker="Ausgabe" title="Urlaubsvertretung übergeben" description="Ausgewählte Fallakten werden als ein verschlüsseltes, zielgebundenes Paket übergeben.">
+  return <IndustrialPanel ariaLabel="Urlaubsvertretung übergeben" kicker="Ausgabe" title="Urlaubsvertretung übergeben" description="Ausgewählte Fallakten werden als ein verschlüsseltes, zielgebundenes Paket übergeben.">
     <form className="industrial-stack" onSubmit={submit}>
       <CaseHandoverCasePicker cases={cases} selectedIds={caseIds} onChange={setCaseIds} legend="Fallakten für die Vertretung" />
       <TextareaInput label="Empfängerkennung der Vertretungsinstanz" value={targetRecipientToken} onValueChange={setTargetRecipientToken} rows={3} required placeholder="GSBV1.… aus den Einstellungen der Zielinstanz" />

@@ -9,6 +9,7 @@ import {
   restrictDirectoryToOwnerSync,
   restrictFileToOwnerSync,
 } from './secureFilePermissions.js';
+import type { TrackImportedFile } from './caseHandoverImportUnitOfWork.js';
 
 export interface StoreImportedDocumentInput {
   id: string;
@@ -19,6 +20,7 @@ export interface StoreImportedDocumentInput {
   timestamp: string;
   dataDirectory: string;
   titlePrefix: string;
+  trackFile?: TrackImportedFile;
 }
 
 export function storeImportedCaseDocument(
@@ -37,6 +39,7 @@ export function storeImportedCaseDocument(
   const storagePath = path.join(storageDir, `${input.id}.gsbvdoc`);
   fs.writeFileSync(storagePath, encrypted, { mode: OWNER_ONLY_FILE_MODE });
   restrictFileToOwnerSync(storagePath);
+  input.trackFile?.(storagePath);
   database.prepare(`
     INSERT INTO case_documents (
       id, case_id, measure_id, filename, display_title, mime_type, storage_path, sha256,

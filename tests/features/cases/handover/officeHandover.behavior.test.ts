@@ -155,9 +155,49 @@ describe('P2 – Amtsübergabe', () => {
     document.fill(0);
 
     const importedCaseId = imported.createdCaseIds[0];
+    expect(target.prepare<{ case_number: string; display_name: string }>('SELECT case_number, display_name FROM cases WHERE id = ?').get(importedCaseId)).toEqual({
+      case_number: 'SBV-2026-AMT-1',
+      display_name: 'Laufender Amtsvorgang',
+    });
     const reasons = target.prepare<{ reason: string }>(
       "SELECT reason FROM privacy_review_items WHERE case_id = ? AND status = 'open' ORDER BY reason",
     ).all(importedCaseId).map((row) => row.reason);
     expect(reasons).toEqual(['handover_imported', 'retention_due']);
+  });
+
+  it('rollt Datenbank und neu geschriebene Dokumentcontainer gemeinsam zurück', async () => {
+    insertCaseWithPrivacyReview();
+    insertCustomTemplateAndJournal();
+    await insertElectionWithDocument();
+    target.exec(`
+      CREATE TRIGGER reject_imported_privacy_review
+      BEFORE INSERT ON privacy_review_items
+      BEGIN
+        SELECT RAISE(ABORT, 'simulierter Importfehler');
+      END;
+    `);
+
+    const passphrase = 'Atomare Amtsübergabe 0.9.8';
+    const packagePath = path.join(temporaryRoot, 'amtsuebergabe-rollback.gsbvtransfer');
+    const targetData = path.join(temporaryRoot, 'target-data');
+    const targetIdentity = new TransferInstanceIdentityService(target).getPublicIdentity();
+    await new CaseHandoverService(source, () => path.join(temporaryRoot, 'source-data')).exportToFile({
+      packageType: 'office_handover',
+      caseIds: ['case-office-1'],
+      passphrase,
+      targetRecipientToken: targetIdentity.recipientToken,
+    }, packagePath);
+
+    await expect(new CaseHandoverService(target, () => targetData).importFromFile({
+      filePath: packagePath,
+      passphrase,
+      mode: 'create_new',
+      applyOfficeConfiguration: true,
+    })).rejects.toThrow();
+
+    expect(target.prepare<{ count: number }>('SELECT COUNT(*) AS count FROM cases').get()?.count).toBe(0);
+    expect(target.prepare<{ count: number }>('SELECT COUNT(*) AS count FROM sbv_elections').get()?.count).toBe(0);
+    const electionDirectory = path.join(targetData, 'office', 'election');
+    expect(fs.existsSync(electionDirectory) ? fs.readdirSync(electionDirectory) : []).toEqual([]);
   });
 });

@@ -85,6 +85,7 @@ function validateDocs() {
     'docs/handbuch/09-sbv-beteiligung-und-beteiligungsverstoss.md',
     'docs/handbuch/11-backup-restore-und-notfall.md',
     'docs/handbuch/12-barrierearme-bedienung.md',
+    'docs/handbuch/18-amtsuebergabe-und-vertretung.md',
   ];
   for (const doc of requiredDocs) {
     expect(exists(doc), `Pflichtdokument fehlt: ${doc}`);
