@@ -25,17 +25,18 @@ export function storeImportedElectionDocument(
   const iv = randomBytes(12);
   const documentId = randomUUID();
   const linkId = randomUUID();
+  let tag: Buffer | undefined;
   try {
     const cipher = createCipheriv('aes-256-gcm', key, iv);
     const encrypted = Buffer.concat([cipher.update(plain), cipher.final()]);
-    const tag = cipher.getAuthTag();
+    tag = cipher.getAuthTag();
     const storageDirectory = path.join(dataDirectory, 'office', 'election');
     fs.mkdirSync(storageDirectory, { recursive: true, mode: OWNER_ONLY_DIRECTORY_MODE });
     restrictDirectoryToOwnerSync(storageDirectory);
     const storagePath = path.join(storageDirectory, `${documentId}.gsbvdoc`);
+    trackFile?.(storagePath);
     fs.writeFileSync(storagePath, encrypted, { mode: OWNER_ONLY_FILE_MODE });
     restrictFileToOwnerSync(storagePath);
-    trackFile?.(storagePath);
     database.prepare(`
       INSERT INTO generated_documents (
         id, case_id, template_id, violation_id, document_kind, template_version, title,
@@ -75,5 +76,6 @@ export function storeImportedElectionDocument(
     plain.fill(0);
     key.fill(0);
     iv.fill(0);
+    tag?.fill(0);
   }
 }

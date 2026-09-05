@@ -163,6 +163,10 @@ describe('P2 – Amtsübergabe', () => {
       "SELECT reason FROM privacy_review_items WHERE case_id = ? AND status = 'open' ORDER BY reason",
     ).all(importedCaseId).map((row) => row.reason);
     expect(reasons).toEqual(['handover_imported', 'retention_due']);
+    const auditMetadata = target.prepare<{ metadata_json: string }>(
+      "SELECT metadata_json FROM personal_data_audit_log WHERE subject_type = 'case_handover' ORDER BY sequence DESC LIMIT 1",
+    ).get()?.metadata_json ?? '';
+    expect(auditMetadata).not.toMatch(/Laufender Amtsvorgang|Persönlicher Tätigkeitsnachweis|Betriebliche Vorlage/);
   });
 
   it('rollt Datenbank und neu geschriebene Dokumentcontainer gemeinsam zurück', async () => {

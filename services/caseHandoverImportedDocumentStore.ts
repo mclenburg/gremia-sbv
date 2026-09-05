@@ -33,43 +33,36 @@ export function storeImportedCaseDocument(
   const cipher = createCipheriv('aes-256-gcm', documentKey, iv);
   const encrypted = Buffer.concat([cipher.update(plain), cipher.final()]);
   const tag = cipher.getAuthTag();
-  const storageDir = path.join(input.dataDirectory, 'documents', input.caseId);
-  fs.mkdirSync(storageDir, { recursive: true, mode: OWNER_ONLY_DIRECTORY_MODE });
-  restrictDirectoryToOwnerSync(storageDir);
-  const storagePath = path.join(storageDir, `${input.id}.gsbvdoc`);
-  fs.writeFileSync(storagePath, encrypted, { mode: OWNER_ONLY_FILE_MODE });
-  restrictFileToOwnerSync(storagePath);
-  input.trackFile?.(storagePath);
-  database.prepare(`
-    INSERT INTO case_documents (
-      id, case_id, measure_id, filename, display_title, mime_type, storage_path, sha256,
-      extracted_text, document_key, iv, auth_tag, size_bytes, imported_at, extraction_quality,
-      text_extraction_status, text_extracted_at, text_extractor_id, text_extraction_error,
-      ocr_status, ocr_text, contains_health_data, created_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(
-    input.id,
-    input.caseId,
-    input.measureId ?? null,
-    input.data.filename ?? 'uebergabe-dokument.bin',
-    `${input.titlePrefix}${input.data.display_title ?? input.data.filename ?? 'Übergabe-Dokument'}`,
-    input.data.mime_type ?? null,
-    storagePath,
-    sha256(plain),
-    input.data.extracted_text ?? null,
-    documentKey.toString('base64'),
-    iv.toString('base64'),
-    tag.toString('base64'),
-    plain.length,
-    input.timestamp,
-    input.data.extraction_quality ?? 'unknown',
-    input.data.text_extraction_status ?? 'unknown',
-    input.data.text_extracted_at ?? null,
-    input.data.text_extractor_id ?? null,
-    input.data.text_extraction_error ?? null,
-    input.data.ocr_status ?? 'not_required',
-    input.data.ocr_text ?? null,
-    input.data.contains_health_data ?? 1,
-    input.timestamp,
-  );
+  try {
+    const storageDir = path.join(input.dataDirectory, 'documents', input.caseId);
+    fs.mkdirSync(storageDir, { recursive: true, mode: OWNER_ONLY_DIRECTORY_MODE });
+    restrictDirectoryToOwnerSync(storageDir);
+    const storagePath = path.join(storageDir, `${input.id}.gsbvdoc`);
+    input.trackFile?.(storagePath);
+    fs.writeFileSync(storagePath, encrypted, { mode: OWNER_ONLY_FILE_MODE });
+    restrictFileToOwnerSync(storagePath);
+    database.prepare(`
+      INSERT INTO case_documents (
+        id, case_id, measure_id, filename, display_title, mime_type, storage_path, sha256,
+        extracted_text, document_key, iv, auth_tag, size_bytes, imported_at, extraction_quality,
+        text_extraction_status, text_extracted_at, text_extractor_id, text_extraction_error,
+        ocr_status, ocr_text, contains_health_data, created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      input.id, input.caseId, input.measureId ?? null,
+      input.data.filename ?? 'uebergabe-dokument.bin',
+      `${input.titlePrefix}${input.data.display_title ?? input.data.filename ?? 'Übergabe-Dokument'}`,
+      input.data.mime_type ?? null, storagePath, sha256(plain), input.data.extracted_text ?? null,
+      documentKey.toString('base64'), iv.toString('base64'), tag.toString('base64'), plain.length,
+      input.timestamp, input.data.extraction_quality ?? 'unknown', input.data.text_extraction_status ?? 'unknown',
+      input.data.text_extracted_at ?? null, input.data.text_extractor_id ?? null,
+      input.data.text_extraction_error ?? null, input.data.ocr_status ?? 'not_required',
+      input.data.ocr_text ?? null, input.data.contains_health_data ?? 1, input.timestamp,
+    );
+  } finally {
+    plain.fill(0);
+    documentKey.fill(0);
+    iv.fill(0);
+    tag.fill(0);
+  }
 }
