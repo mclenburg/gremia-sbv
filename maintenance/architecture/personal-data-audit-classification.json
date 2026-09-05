@@ -98,6 +98,31 @@
       "owner": "CaseHandoverService.importFromFile",
       "reason": "Technischer Importpositionsdatensatz; der Fallübergabe-Import ist Audit-Owner."
     },
+    "services/caseHandoverImportedDocumentStore.ts#<module>.storeImportedCaseDocument": {
+      "classification": "delegated",
+      "owner": "CaseHandoverService.importFromFile / CaseHandoverReturnDeltaService.importPayload",
+      "reason": "Gemeinsamer verschlüsselter Dokument-Persistenzschritt innerhalb eines fachlich auditierten Übergabe- oder Rückgabeimports."
+    },
+    "services/caseHandoverReturnDeltaService.ts#CaseHandoverReturnDeltaService.importDeadlines": {
+      "classification": "delegated",
+      "owner": "CaseHandoverReturnDeltaService.importPayload",
+      "reason": "Interne Fristsynchronisierung innerhalb des fachlich auditierten Rückgabeimports."
+    },
+    "services/caseHandoverReturnDeltaService.ts#CaseHandoverReturnDeltaService.importNotes": {
+      "classification": "delegated",
+      "owner": "CaseHandoverReturnDeltaService.importPayload",
+      "reason": "Interne Notizübernahme innerhalb des fachlich auditierten Rückgabeimports."
+    },
+    "services/caseHandoverReturnDeltaService.ts#CaseHandoverReturnDeltaService.markVacationHandoverReturned": {
+      "classification": "delegated",
+      "owner": "CaseHandoverReturnDeltaService.exportToFile",
+      "reason": "Schließt den Vertretungsstatus als Teil des fachlich auditierten Rückgabeexports."
+    },
+    "services/caseHandoverReturnDeltaService.ts#CaseHandoverReturnDeltaService.resolveMeasureTargets": {
+      "classification": "delegated",
+      "owner": "CaseHandoverReturnDeltaService.importPayload",
+      "reason": "Interne Maßnahmensynchronisierung innerhalb des fachlich auditierten Rückgabeimports."
+    },
     "services/cases/caseNoteService.ts#CaseNoteService.replaceNoteCaseLinks": {
       "classification": "delegated",
       "owner": "CaseNoteService.createNote/updateNote",

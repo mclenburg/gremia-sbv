@@ -166,9 +166,20 @@ describe('Fallübergabe P1 – Rückgabe-Delta', () => {
       mode: 'merge_existing',
     })).rejects.toThrow('bereits importiert');
 
-    const auditMetadata = sourceDb.prepare<{ metadata_json: string }>(
-      "SELECT metadata_json FROM personal_data_audit_log WHERE subject_type = 'case_handover' ORDER BY sequence DESC LIMIT 1"
-    ).get()?.metadata_json ?? '';
-    expect(auditMetadata).not.toMatch(/Urlaubsvertretung Testfall|Während der Urlaubsvertretung|Rückgabe aus Vertretung/i);
+    const auditEntry = sourceDb.prepare<{ action: string; purpose: string; metadata_json: string }>(
+      "SELECT action, purpose, metadata_json FROM personal_data_audit_log WHERE subject_type = 'case_handover' ORDER BY sequence DESC LIMIT 1"
+    ).get();
+    expect(auditEntry).toMatchObject({
+      action: 'import',
+      purpose: 'SBV-Datenschutzereignis',
+    });
+    expect(JSON.parse(auditEntry?.metadata_json ?? '{}')).toMatchObject({
+      packageId: delta.packageId,
+      caseCount: 1,
+      documentCount: 1,
+      mode: 'return_delta',
+      result: 'success',
+    });
+    expect(auditEntry?.metadata_json).not.toMatch(/Urlaubsvertretung Testfall|Während der Urlaubsvertretung|Rückgabe aus Vertretung/i);
   });
 });
