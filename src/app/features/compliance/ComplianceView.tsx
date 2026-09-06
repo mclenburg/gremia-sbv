@@ -18,6 +18,7 @@ export function ComplianceView() {
     <WorkbenchPage
       title="Compliance Center"
       description="Datenschutz, Sicherheit, Integrität, Audit, Systemzustand, Vorfälle, Betroffenenrechte und Freigabeunterlagen."
+      helpId="compliance.overview"
     >
       <ModuleFeedback
         items={[

@@ -3,8 +3,10 @@ import { AlertTriangle, Download, Upload } from "lucide-react";
 import type { CaseRecord } from "../../../domain/models/case.model";
 import type {
   CaseHandoverExportResult,
+  CaseHandoverChecklistConfirmation,
   CaseHandoverImportMode,
   CaseHandoverInspectResult,
+  TransferProtectionMode,
 } from "../../../domain/models/case-handover.model";
 import {
   DateInput,
@@ -13,6 +15,8 @@ import {
   TextareaInput,
   TextInput,
 } from "../../shared/components/IndustrialForm";
+import { CaseHandoverChecklistPanel, handoverChecklistConfirmation } from "../case-handover/CaseHandoverChecklistPanel";
+import { requiresPassphrase, TransferProtectionFields, type TransferProtectionState } from "../case-handover/TransferProtectionFields";
 import {
   GhostButton,
   IndustrialButton,
@@ -47,6 +51,9 @@ type CaseHandoverTransferDialogsProps = {
   onExport: (
     passphrase: string,
     expiresAt?: string,
+    targetRecipientToken?: string,
+    protectionMode?: TransferProtectionMode,
+    checklist?: CaseHandoverChecklistConfirmation,
   ) => Promise<CaseHandoverExportResult>;
   onSelectImportFile: () => Promise<ImportFileSelection>;
   onInspectImport: (
@@ -85,26 +92,34 @@ function reasonLabel(reason: string): string {
 
 
 function useHandoverExport({ exportOpen, selectedCase, onExport }: Pick<CaseHandoverTransferDialogsProps, "exportOpen" | "selectedCase" | "onExport">) {
-  const [passphrase, setPassphrase] = useState("");
+  const [protection, setProtection] = useState<TransferProtectionState>({ targetRecipientToken: "", passphrase: "", protectionMode: "passphrase_and_recipient_key" as TransferProtectionMode });
+  const [acknowledgedItemIds, setAcknowledgedItemIds] = useState<string[]>([]);
   const [validUntil, setValidUntil] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<CaseHandoverExportResult | null>(null);
-  useEffect(() => { if (!exportOpen) { setPassphrase(""); setValidUntil(""); setError(""); setBusy(false); setResult(null); } }, [exportOpen]);
+  useEffect(() => { if (!exportOpen) { setProtection({ targetRecipientToken: "", passphrase: "", protectionMode: "passphrase_and_recipient_key" }); setAcknowledgedItemIds([]); setValidUntil(""); setError(""); setBusy(false); setResult(null); } }, [exportOpen]);
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setError("");
     if (!selectedCase) return setError("Bitte zuerst eine Fallakte auswählen.");
-    if (passphrase.trim().length < 10) return setError("Die Transport-Passphrase muss mindestens 10 Zeichen lang sein.");
+    if (requiresPassphrase(protection.protectionMode) && protection.passphrase.trim().length < 10) return setError("Die Transport-Passphrase muss mindestens 10 Zeichen lang sein.");
+    if (!protection.targetRecipientToken.trim()) return setError("Bitte die Empfängerkennung der Zielinstanz einfügen.");
     if (validUntil.trim() && !toIsoEndOfDay(validUntil)) return setError("Bitte das Ablaufdatum im Format JJJJ-MM-TT eingeben.");
     setBusy(true);
     try {
-      const next = await onExport(passphrase, toIsoEndOfDay(validUntil));
+      const next = await onExport(
+        requiresPassphrase(protection.protectionMode) ? protection.passphrase : "",
+        toIsoEndOfDay(validUntil),
+        protection.targetRecipientToken,
+        protection.protectionMode,
+        handoverChecklistConfirmation(acknowledgedItemIds),
+      );
       if (!next.exported) return setError("Export wurde abgebrochen.");
       setResult(next);
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Übergabepaket konnte nicht erstellt werden."); }
     finally { setBusy(false); }
   }
-  return { passphrase, setPassphrase, validUntil, setValidUntil, error, busy, result, submit };
+  return { protection, setProtection, acknowledgedItemIds, setAcknowledgedItemIds, validUntil, setValidUntil, error, busy, result, submit };
 }
 
 function useHandoverImport({ importOpen, onCloseImport, onSelectImportFile, onInspectImport, onImport }: Pick<CaseHandoverTransferDialogsProps, "importOpen" | "onCloseImport" | "onSelectImportFile" | "onInspectImport" | "onImport">) {
@@ -126,13 +141,13 @@ function useHandoverImport({ importOpen, onCloseImport, onSelectImportFile, onIn
   async function inspect() {
     setError(""); resetSelection();
     if (!file || file.canceled) return setError("Bitte zuerst eine Übergabedatei auswählen.");
-    if (!passphrase.trim()) return setError("Bitte die Transport-Passphrase eingeben.");
     setBusy(true);
     try {
       const inspection = await onInspectImport(file.filePath, passphrase);
       if (inspection.isExpired) return setError("Das Übergabepaket ist abgelaufen und darf nicht importiert werden. Bitte eine neue Übergabedatei anfordern.");
       setSelection({ filePath: file.filePath, fileName: file.fileName, inspection });
-      if (inspection.matches[0]) setTargetCaseId(inspection.matches[0].localCaseId);
+      setMode(inspection.importPlan.defaultMode);
+      if (inspection.importPlan.mergeAllowed && inspection.matches[0]) setTargetCaseId(inspection.matches[0].localCaseId);
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Übergabepaket konnte nicht geprüft werden."); }
     finally { setBusy(false); }
   }
@@ -191,10 +206,11 @@ function HandoverExportDialog({ open, selectedCase, onClose, state }: { open: bo
   return <IndustrialModal title="Übergabepaket exportieren" kicker="Fallübergabe / Vertretung" description="Die ausgewählte Fallakte wird verschlüsselt als eigenständiges Übergabepaket gespeichert. Der Speicherort wird über den Systemdialog gewählt; es gibt keinen Browser-Download." icon={<Download className="h-5 w-5" />} onClose={onClose}>
     <form className="industrial-modal-grid" onSubmit={state.submit}>
       <TextInput label="Fallakte" value={selectedCase ? `${selectedCase.caseNumber} · ${selectedCase.displayName}` : "Keine Fallakte ausgewählt"} readOnly wide onValueChange={() => undefined} />
-      <PasswordInput label="Transport-Passphrase" value={state.passphrase} minLength={10} required wide error={state.error && state.passphrase.trim().length < 10 ? state.error : undefined} onValueChange={state.setPassphrase} />
+      <TransferProtectionFields value={state.protection} onChange={state.setProtection} />
       <DateInput label="Gültig bis (optional)" value={state.validUntil} wide onValueChange={state.setValidUntil} />
+      {selectedCase ? <div className="industrial-modal-wide"><CaseHandoverChecklistPanel packageType="vacation_handover" caseIds={[selectedCase.id]} expiresAt={toIsoEndOfDay(state.validUntil)} acknowledgements={state.acknowledgedItemIds} onAcknowledgementsChange={state.setAcknowledgedItemIds} /></div> : null}
       <p className="industrial-modal-preview industrial-modal-wide">Nach Ablauf darf die Übergabedatei nicht mehr importiert werden. Bereits importierte Vertretungsakten werden danach als abgelaufen markiert.</p>
-      {state.error && state.passphrase.trim().length >= 10 ? <div className="industrial-message industrial-message-warning industrial-modal-wide" role="alert"><AlertTriangle className="h-4 w-4" />{state.error}</div> : null}
+      {state.error ? <div className="industrial-message industrial-message-warning industrial-modal-wide" role="alert"><AlertTriangle className="h-4 w-4" />{state.error}</div> : null}
       <FormActions><GhostButton type="button" onClick={onClose} disabled={state.busy}>Abbrechen</GhostButton><ExportAction type="submit" disabled={state.busy || !selectedCase} loading={state.busy}>Übergabe exportieren</ExportAction></FormActions>
     </form>
   </IndustrialModal>;
@@ -203,7 +219,7 @@ function HandoverExportDialog({ open, selectedCase, onClose, state }: { open: bo
 function HandoverImportReview({ state }: { state: ImportState }) {
   const inspection = state.selection?.inspection;
   if (!inspection) return null;
-  return <ImportPackageReview caseCount={inspection.caseCount} measureCount={inspection.measureCount} documentCount={inspection.documentCount} deadlineCount={inspection.deadlineCount} validUntilLabel={formatGermanDate(inspection.expiresAt)} integrityLabel={inspection.integrity?.verified ? `Integrität kryptografisch bestätigt · Format ${inspection.integrity.formatVersion}` : undefined} fileNotice={inspection.file ? `${inspection.file.fileName} · ${Math.max(1, Math.round(inspection.file.sizeBytes / 1024))} KB` : undefined} warnings={inspection.warnings} matches={inspection.matches.map((match) => ({ id: match.localCaseId, label: `${match.caseNumber} · ${match.displayName}`, reasonLabel: reasonLabel(match.reason) }))} mode={state.mode} targetId={state.targetCaseId} onModeChange={state.setMode} onTargetChange={state.setTargetCaseId} />;
+  return <ImportPackageReview caseCount={inspection.caseCount} measureCount={inspection.measureCount} documentCount={inspection.documentCount} deadlineCount={inspection.deadlineCount} validUntilLabel={formatGermanDate(inspection.expiresAt)} integrityLabel={inspection.integrity?.verified ? `Integrität kryptografisch bestätigt · Format ${inspection.integrity.formatVersion}` : undefined} fileNotice={inspection.file ? `${inspection.file.fileName} · ${Math.max(1, Math.round(inspection.file.sizeBytes / 1024))} KB` : undefined} warnings={inspection.warnings} planItems={inspection.importPlan.decisions} mergeAllowed={inspection.importPlan.mergeAllowed} matches={inspection.matches.map((match) => ({ id: match.localCaseId, label: `${match.caseNumber} · ${match.displayName}`, reasonLabel: match.conflictLevel === "true_conflict" ? `${reasonLabel(match.reason)} · Konflikt` : reasonLabel(match.reason) }))} mode={state.mode} targetId={state.targetCaseId} onModeChange={state.setMode} onTargetChange={state.setTargetCaseId} />;
 }
 
 function HandoverImportDialog({ open, onClose, state }: { open: boolean; onClose: () => void; state: ImportState }) {
@@ -211,10 +227,10 @@ function HandoverImportDialog({ open, onClose, state }: { open: boolean; onClose
   return <IndustrialModal title="Übergabepaket importieren" kicker="Fallübergabe / Vertretung" description="Import erzeugt grundsätzlich eigene lokale Daten. Bei passenden Gegenstücken entscheidest du bewusst über Zusammenführung oder Neuanlage." icon={<Upload className="h-5 w-5" />} wide onClose={onClose}>
     <form className="industrial-modal-grid" onSubmit={state.submit}>
       <div className="industrial-modal-wide handover-import-file-step"><span>Übergabedatei</span><div className="handover-import-file-row"><TextInput label="Ausgewählte Übergabedatei" value={state.file && !state.file.canceled ? state.file.fileName : "Keine Übergabedatei ausgewählt"} readOnly onValueChange={() => undefined} /><ToolbarButton type="button" onClick={state.selectFile} disabled={state.busy}><Upload className="h-4 w-4" />Datei auswählen</ToolbarButton></div></div>
-      <PasswordInput label="Transport-Passphrase" value={state.passphrase} required wide error={state.error && !state.passphrase.trim() ? state.error : undefined} onValueChange={state.changePassphrase} />
+      <PasswordInput label="Transport-Passphrase (nur bei passwortgeschützten Paketen)" value={state.passphrase} wide onValueChange={state.changePassphrase} />
       <FormActions className="handover-import-inspect-actions"><ToolbarButton type="button" onClick={state.inspect} disabled={state.busy || !state.file || state.file.canceled}>Paket prüfen</ToolbarButton></FormActions>
       <HandoverImportReview state={state} />
-      {state.error && state.passphrase.trim() ? <div className="industrial-message industrial-message-warning industrial-modal-wide" role="alert"><AlertTriangle className="h-4 w-4" />{state.error}</div> : null}
+      {state.error ? <div className="industrial-message industrial-message-warning industrial-modal-wide" role="alert"><AlertTriangle className="h-4 w-4" />{state.error}</div> : null}
       <FormActions><GhostButton type="button" onClick={onClose} disabled={state.busy}>Abbrechen</GhostButton><IndustrialButton type="submit" disabled={state.busy || !state.selection} loading={state.busy}><Upload className="h-4 w-4" />Übergabe importieren</IndustrialButton></FormActions>
     </form>
   </IndustrialModal>;

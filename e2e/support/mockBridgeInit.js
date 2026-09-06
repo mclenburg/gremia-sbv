@@ -70,6 +70,16 @@
     },
   ];
 
+  const transferIdentity = {
+    instanceId: 'E2E4X',
+    keyFingerprint: '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
+    publicKeyPem: '-----BEGIN PUBLIC KEY-----\nE2E SYNTHETIC PUBLIC KEY\n-----END PUBLIC KEY-----',
+    recipientToken: 'GSBV1.E2E4X.0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef.PUBLICKEY',
+    createdAt: now,
+  };
+
+  const transferRecipientProfiles = [];
+
   const deadlines = [
     {
       id: 'deadline-test-0001',
@@ -634,6 +644,7 @@
     ocrTexts,
     privacyReviews,
     contacts,
+    transferRecipientProfiles,
   ];
   const resettableCollectionSnapshots = resettableCollections.map((collection) => cloneForIpc(collection));
   const activityJournalPreferencesSnapshot = cloneForIpc(activityJournalPreferences);
@@ -715,7 +726,39 @@
         return { unlocked: false };
       },
       temporaryFileStatus: async () => ({ remaining: 0, files: [] }),
+      cleanupTemporaryFiles: async () => ({ deleted: 0, failed: 0, remaining: 0, bytesRemaining: 0 }),
       purgeTemporaryFiles: async () => ({ removed: 0, remaining: 0 }),
+    },
+
+    transferIdentity: {
+      get: async () => ({ ...transferIdentity }),
+      listRecipientProfiles: async () => transferRecipientProfiles.map((profile) => ({ ...profile })),
+      saveRecipientProfile: async (input) => {
+        const row = {
+          id: `transfer-profile-${Date.now()}`,
+          label: String(input?.label || 'E2E-Empfängerprofil'),
+          instanceId: transferIdentity.instanceId,
+          keyFingerprint: transferIdentity.keyFingerprint,
+          recipientToken: String(input?.recipientToken || transferIdentity.recipientToken),
+          active: true,
+          createdAt: now,
+          updatedAt: now,
+        };
+        transferRecipientProfiles.unshift(row);
+        return { ...row };
+      },
+      setRecipientProfileActive: async (id, active) => {
+        const row = transferRecipientProfiles.find((profile) => profile.id === id);
+        if (!row) throw new Error('Empfängerprofil nicht gefunden.');
+        row.active = !!active;
+        row.updatedAt = now;
+        return { ...row };
+      },
+      deleteRecipientProfile: async (id) => {
+        const index = transferRecipientProfiles.findIndex((profile) => profile.id === id);
+        if (index >= 0) transferRecipientProfiles.splice(index, 1);
+        return { deleted: true };
+      },
     },
     cases: {
       list: async () => cases,
@@ -730,6 +773,77 @@
       exportDocument: async () => ({ exported: true }),
       deleteDocument: async () => ({ deleted: true }),
       search: searchSyntheticCaseContent,
+    },
+
+    caseHandover: {
+      cockpit: async () => ({
+        activeVacationCount: 0,
+        expiredVacationCount: 0,
+        returnableCount: 0,
+        officeHandoverCount: 0,
+        officeInventory: { templateCount: 0, deadlineTemplateCount: 0, electionCount: 0, electionDocumentCount: 0, privacyReviewCount: 0, activityJournalIncluded: false },
+        outgoing: [],
+        incoming: [],
+      }),
+      checklist: async (input) => {
+        const selectedCases = Array.isArray(input?.caseIds) ? input.caseIds.filter(Boolean) : [];
+        const packageType = input?.packageType || 'vacation_handover';
+        const items = selectedCases.length
+          ? [{ id: 'case_selection', label: `${selectedCases.length} Fallakte(n) ausgewählt`, description: 'Die Auswahl bestimmt den fachlichen Umfang der Übergabe.', state: 'ready', requiresAcknowledgement: false }]
+          : [{ id: 'case_selection', label: 'Fallauswahl fehlt', description: 'Für eine Übergabe muss mindestens eine konkrete Fallakte ausgewählt sein.', state: 'blocking', requiresAcknowledgement: false }];
+        if (packageType === 'office_handover') {
+          items.push({ id: 'office_scope', label: 'Amtsbestand statt Privatjournal', description: 'Vorlagen, Fristenregeln, Wahlakten und Datenschutzstatus gehören zur Amtsübergabe; das persönliche Tätigkeitsjournal bleibt ausgeschlossen.', state: 'attention', requiresAcknowledgement: true });
+        }
+        if (packageType === 'return_delta') {
+          items.push({ id: 'return_delta_scope', label: 'Nur Änderungen aus der Vertretung', description: 'Das Rückgabepaket enthält nur seit dem Import hinzugekommene oder geänderte Fallinhalte.', state: 'attention', requiresAcknowledgement: true });
+        }
+        const blockingItemIds = items.filter((item) => item.state === 'blocking').map((item) => item.id);
+        const requiredAcknowledgementIds = items.filter((item) => item.requiresAcknowledgement).map((item) => item.id);
+        return { packageType, caseCount: selectedCases.length, items, blockingItemIds, requiredAcknowledgementIds, readyToExport: blockingItemIds.length === 0 };
+      },
+      export: async (input) => ({
+        exported: true,
+        filePath: input.packageType === 'office_handover' ? '/tmp/amtsuebergabe.gsbvtransfer' : '/tmp/urlaubsvertretung.gsbvtransfer',
+        packageId: `handover-e2e-${Date.now()}`,
+        packageType: input.packageType || 'vacation_handover',
+        caseCount: input.caseIds.length,
+        measureCount: 0,
+        documentCount: 0,
+        deadlineCount: 0,
+        officeScope: input.packageType === 'office_handover' ? { templateCount: 0, deadlineTemplateCount: 0, electionCount: 0, electionDocumentCount: 0, privacyReviewCount: 0, activityJournalIncluded: false } : undefined,
+      }),
+      exportReturnDelta: async () => ({ exported: false, filePath: '', packageId: '', packageType: 'return_delta', caseCount: 0, measureCount: 0, documentCount: 0, deadlineCount: 0 }),
+      selectFile: async () => ({ canceled: true }),
+      inspect: async () => { throw new Error('In der Browser-Testumgebung wurde keine Übergabedatei ausgewählt.'); },
+      selectAndInspect: async () => ({
+        canceled: false,
+        filePath: 'selected-office-handover-token',
+        fileName: 'amtsuebergabe.gsbvtransfer',
+        inspection: {
+          valid: true,
+          packageId: 'handover-e2e-office',
+          packageType: 'office_handover',
+          createdAt: now,
+          isExpired: false,
+          caseCount: 1,
+          measureCount: 0,
+          documentCount: 0,
+          deadlineCount: 0,
+          matches: [],
+          importPlan: {
+            transferKind: 'case_handover', defaultMode: 'create_new', mergeAllowed: false,
+            requiresExplicitDecision: true, privacyReviewRequired: true, retentionReviewRequired: true,
+            safeMatchCount: 0, possibleMatchCount: 0, conflictCount: 0, officeScopeIncluded: true,
+            decisions: [{ id: 'office_scope', label: 'Amtsbestand übernehmen', severity: 'warning', description: 'Dauerhafter Amtsbestand ohne persönliches Tätigkeitsjournal.' }],
+          },
+          warnings: [],
+          integrity: { verified: true, algorithm: 'aes-256-gcm', formatVersion: 3, legacyFormat: false },
+          officeScope: { templateCount: 0, deadlineTemplateCount: 0, electionCount: 0, electionDocumentCount: 0, privacyReviewCount: 0, activityJournalIncluded: false },
+          legacyImportConfirmationRequired: false,
+        },
+      }),
+      import: async () => ({ imported: true, packageId: 'handover-e2e-office', mode: 'create_new', createdCaseIds: ['case-imported-office'], updatedCaseIds: [], measureCount: 0, documentCount: 0, deadlineCount: 0, privacyReviewCaseIds: ['case-imported-office'], expired: false, officeImport: { templateCount: 0, deadlineTemplateCount: 0, electionCount: 0, electionDocumentCount: 0, privacyReviewCount: 0, officeConfigurationApplied: true } }),
+      continueExpired: async (caseId) => ({ caseId, confirmed: true, confirmedAt: now }),
     },
 
 

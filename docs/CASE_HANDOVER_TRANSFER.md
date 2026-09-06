@@ -2,40 +2,45 @@
 
 ## Zweck
 
-Die Fallübergabe unterstützt Situationen, in denen eine SBV einzelne Vorgänge zeitlich begrenzt an eine berechtigte Stellvertretung oder Nachfolge übergeben muss. Typische Anlässe sind Urlaub, Krankheit, Amtswechsel oder eine kurzfristige Vertretung bei laufenden Fristen.
+Die Übergabefunktion unterstützt sowohl zeitlich begrenzte Vertretungen als auch den dauerhaften Amtswechsel. Beide Vorgänge folgen unterschiedlichen Regeln und werden in der Anwendung ausdrücklich getrennt.
 
 Die Funktion ist kein Backup, keine Synchronisation und keine gemeinsame Datenbank. Jede Gremia.SBV-Instanz bleibt eigenständig.
 
 ## Grundprinzip
 
-Eine ausgewählte Fallakte kann mit den zugehörigen, für die Vertretung erforderlichen Inhalten als verschlüsseltes Übergabepaket exportiert werden. Die empfangende Person importiert das Paket in ihrer eigenen Gremia.SBV-Instanz und entscheidet, ob daraus eine neue lokale Übergabeakte entsteht oder ob ein mögliches vorhandenes Gegenstück bewusst zusammengeführt beziehungsweise aktualisiert wird.
+Ausgewählte Fallakten können mit den zugehörigen erforderlichen Inhalten als verschlüsseltes, auf eine konkrete Zielinstanz gebundenes Übergabepaket exportiert werden. Bei einer Urlaubsvertretung kann ein einzelnes, sicher erkanntes Gegenstück bewusst zusammengeführt werden. Eine Amtsübergabe wird dagegen immer als neuer lokaler Amtsbestand übernommen.
 
 Das Übergabepaket hat die Dateiendung `.gsbvtransfer`.
 
 ## Ablauf für die abgebende SBV
 
-1. Fallakte öffnen.
-2. `Übergabe exportieren` wählen.
-3. Transport-Passphrase vergeben.
-4. Optional ein Gültig-bis-Datum setzen.
-5. Export bestätigen.
-6. Übergabedatei und Passphrase getrennt übermitteln.
+1. Den Bereich `Übergaben` als letzten Punkt der Kernarbeit öffnen.
+2. Das passende Register wählen: `Urlaubsvertretung`, `Rückgabe`, `Amtsübergabe`, `Import` oder `Protokoll`.
+3. Die zu übergebenden Fallakten über die filterbare Fallauswahl auswählen. Große Bestände werden nicht als vollständige Formularwand angezeigt.
+4. Empfängerprofil wählen oder die vollständige öffentliche Empfängerkennung der Zielinstanz einfügen und die angezeigte fünfstellige Zielinstanz-ID prüfen.
+5. Transport-Passphrase vergeben, sofern die gewählte Schutzart eine Passphrase verlangt.
+6. Bei einer Vertretung ein verbindliches Enddatum setzen; Amtsübergaben haben kein Ablaufdatum.
+7. Umfang prüfen und Export bestätigen.
+8. Übergabedatei und Passphrase getrennt übermitteln.
 
 Die Passphrase gehört nicht in dieselbe E-Mail oder denselben Chat wie die Datei. Sie soll über einen getrennten Kanal weitergegeben werden.
 
 ## Ablauf für die importierende SBV
 
-1. In der Fallliste `Übergabe importieren` wählen.
-2. Übergabedatei auswählen.
-3. Passphrase eingeben.
-4. Paket prüfen.
-5. Vorschau lesen.
-6. Bei gefundenen möglichen Gegenstücken entscheiden:
+1. Den Bereich `Übergaben` öffnen.
+2. Das Register `Import` öffnen.
+3. Übergabedatei auswählen.
+4. Passphrase eingeben, sofern das Paket passwortgeschützt ist.
+5. Paket prüfen.
+6. Vorschau lesen.
+7. Bei einer Urlaubsvertretung und gefundenen möglichen Gegenstücken entscheiden:
    - als neue lokale Übergabeakte anlegen, oder
    - bewusst mit einem vorgeschlagenen Gegenstück zusammenführen beziehungsweise aktualisieren.
-7. Import bestätigen.
+8. Import bestätigen.
 
 Ohne ausdrückliche Entscheidung findet keine Zusammenführung statt.
+
+Bei einer Amtsübergabe entscheidet die Nachfolge zusätzlich, ob die übergebenen Frist- und Aufbewahrungsregeln lokal übernommen werden. Individuelle Vorlagen werden ohne Überschreiben abweichender lokaler Vorlagen importiert.
 
 ## Eigenständige Instanzen
 
@@ -52,6 +57,16 @@ Gremia.SBV ist offline-first und instanzunabhängig. Deshalb gilt:
 Beim Import kann die Anwendung mögliche Gegenstücke vorschlagen. Die Suche orientiert sich an fachlichen Merkmalen wie Aktenzeichen, Anzeigename oder Personenname. Diese Vorschläge sind Entscheidungshilfen, keine automatische Identitätsfeststellung.
 
 Die nutzende Person entscheidet, ob der Import neu angelegt oder mit einem gefundenen Gegenstück zusammengeführt beziehungsweise aktualisiert wird.
+
+Gremia.SBV erstellt vor dem Import einen Importplan. Dieser Plan zeigt Umfang, Ablaufdatum, Datenschutzfolge und die Bewertung gefundener Gegenstücke:
+
+- Ein sicherer Treffer liegt nur vor, wenn genau ein fachliches Gegenstück ohne widersprechenden Personenbezug gefunden wird.
+- Namens- oder Anzeigenamens-Treffer sind mögliche Treffer. Sie dürfen nicht stillschweigend als Identität gewertet werden.
+- Ein echter Konflikt liegt vor, wenn ein starkes fachliches Kennzeichen wie das Aktenzeichen passt, Name oder Personenbezug aber widersprechen.
+
+Bei echten Konflikten ist eine Zusammenführung technisch gesperrt. Das Paket kann dann nur als neue lokale Übergabeakte importiert und anschließend fachlich geprüft werden. Dadurch bleibt die empfangende SBV arbeitsfähig, ohne fremde oder widersprüchliche Daten in einen bestehenden Fall zu mischen.
+
+Nach jedem erfolgreichen Import entsteht für die betroffenen Fallakten ein konkreter Datenschutzprüfauftrag. Diese Vormerkung ersetzt keine automatische Löschung. Sie zwingt nur zur bewussten Prüfung von Zweck, Vertretungsende, Fortführung oder Bereinigung der übernommenen Daten.
 
 ## Gültigkeit und Ablaufdatum
 
@@ -79,6 +94,12 @@ Ein Übergabepaket kann fallbezogen insbesondere enthalten:
 - verknüpfte Dokumente.
 
 Nicht Bestandteil einer Fallübergabe sind globale App-Einstellungen, Gremia.BR-Zugangsdaten, vollständige Backups oder nicht fallbezogene Datenbestände.
+
+Eine Amtsübergabe ergänzt diesen Umfang um individuelle Vorlagen, Frist- und Aufbewahrungsregeln, offene Datenschutzprüfungen der ausgewählten Fälle sowie digitale Wahlakten einschließlich ihrer Dokumente. Das persönliche Tätigkeitsjournal ist ausdrücklich ausgeschlossen. Bereits erzeugte anonymisierte Tätigkeitsberichte können nur als erforderliche, zugeordnete Dokumente Bestandteil des Pakets sein.
+
+## Unterstützte Paketversionen
+
+Neue Übergaben verwenden das aktuelle zielgebundene Format. Unterstützte ältere Formate können weiterhin geprüft werden, erfordern vor dem Import aber eine gesonderte ausdrückliche Bestätigung. Pakethülle und Nutzdaten müssen dieselbe Version tragen. Amtsdaten sind ausschließlich im aktuellen Format zulässig; unbekannte Versionen und unerwartete Datenbereiche werden abgewiesen.
 
 ## Datenschutz und Audit
 
@@ -117,4 +138,6 @@ Die Fallübergabe ersetzt auch keinen Klartext-Dokumentenexport. Ein Dokumentene
 - Datei und Passphrase getrennt übermitteln.
 - Importvorschau prüfen.
 - Zusammenführung nur bewusst durchführen.
+- Echte Konflikte nicht zusammenführen, sondern als neue Übergabeakte fachlich prüfen.
+- Nach Import den Datenschutzprüfauftrag bearbeiten.
 - Übergabedaten nach Ende der Vertretung prüfen, schließen, löschen oder begründet fortführen.

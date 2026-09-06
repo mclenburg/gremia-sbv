@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
-import { TemplateHelpModal } from './TemplateHelpModal';
 import { ModuleFrame } from '../../shared/components/ModuleFrame';
 import { ModuleFeedback } from '../../shared/components/ModuleFeedback';
 import { useConfirmDialog } from '../../shared/dialogs/ConfirmDialogProvider';
@@ -50,7 +49,6 @@ export function TemplatesView() {
   const [newTemplate, setNewTemplate] = useState<CreateTemplateInput>(EMPTY_TEMPLATE);
   const [newTemplateProcessStatus, setNewTemplateProcessStatus] = useState<PreventionStatus | ''>('');
   const [isCreateTemplateModalOpen, setIsCreateTemplateModalOpen] = useState(false);
-  const [isTemplateHelpOpen, setIsTemplateHelpOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<TemplateRecord | null>(null);
   const [editTemplateProcessStatus, setEditTemplateProcessStatus] = useState<PreventionStatus | ''>('');
   const confirmDialog = useConfirmDialog();
@@ -193,7 +191,7 @@ export function TemplatesView() {
   }
 
   return (
-    <ModuleFrame title="Vorlagen" kicker="Schriftverkehr" description="Standardschreiben mit Platzhaltern. Tonalität: freundlich, rechtlich klar, verbindlich und ohne unnötige Diskussionsöffnung." actions={<TemplateCatalogToolbar onCreate={() => setIsCreateTemplateModalOpen(true)} onOpenHelp={() => setIsTemplateHelpOpen(true)} />}>
+    <ModuleFrame title="Vorlagen" kicker="Schriftverkehr" description="Standardschreiben mit Platzhaltern. Tonalität: freundlich, rechtlich klar, verbindlich und ohne unnötige Diskussionsöffnung." helpId="templates.overview" actions={<TemplateCatalogToolbar onCreate={() => setIsCreateTemplateModalOpen(true)} />}>
       <section className="industrial-panel">
         <TemplateFilterForm
           query={query}
@@ -230,7 +228,6 @@ export function TemplatesView() {
 
       {isCreateTemplateModalOpen && <TemplateEditorModal mode="create" draft={newTemplate} categories={categories} processStatus={newTemplateProcessStatus} onDraftChange={(updater) => setNewTemplate((current) => updater(current))} onProcessStatusChange={setNewTemplateProcessStatus} onSubmit={createOwnTemplate} onClose={() => setIsCreateTemplateModalOpen(false)} />}
       {editingTemplate && <TemplateEditorModal mode="edit" draft={editingTemplate} categories={categories} processStatus={editTemplateProcessStatus} onDraftChange={(updater) => setEditingTemplate((current) => current ? updater(current) : current)} onProcessStatusChange={setEditTemplateProcessStatus} onSubmit={saveEditedTemplate} onClose={() => setEditingTemplate(null)} />}
-      {isTemplateHelpOpen && <TemplateHelpModal onClose={() => setIsTemplateHelpOpen(false)} />}
     </ModuleFrame>
   );
 }

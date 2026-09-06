@@ -30,6 +30,11 @@ export function restrictFileToOwnerSync(filePath: string): void {
   chmodSync(filePath, OWNER_ONLY_FILE_MODE);
 }
 
+export function restrictDirectoryToOwnerSync(directoryPath: string): void {
+  if (!supportsPosixPermissionBits()) return;
+  chmodSync(directoryPath, OWNER_ONLY_DIRECTORY_MODE);
+}
+
 export async function restrictDirectoryToOwner(directoryPath: string): Promise<void> {
   if (!supportsPosixPermissionBits()) return;
   await chmod(directoryPath, OWNER_ONLY_DIRECTORY_MODE);

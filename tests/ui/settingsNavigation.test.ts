@@ -7,9 +7,11 @@ describe('settings navigation', () => {
       'settings-general',
       'settings-security',
       'settings-data-protection',
+      'settings-handover',
       'settings-templates',
       'settings-gremia-br',
     ]);
+    expect(findSettingsSection('settings-handover')?.description).toContain('Instanz-ID');
     expect(findSettingsSection('settings-gremia-br')?.label).toBe('Gremia.BR');
     expect(findSettingsSection('settings-security')?.description).toContain('Backup');
     expect(findSettingsSection('settings-data-protection')?.label).toBe('Datenschutz');

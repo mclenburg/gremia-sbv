@@ -25,11 +25,20 @@ describe('ElectionTransferCryptoAdapter', () => {
     const adapter = new ElectionTransferCryptoAdapter();
     const passphrase = 'eine ausreichend lange Wahlakten-Passphrase';
     const envelope = adapter.encrypt(payload(), passphrase);
+    expect(envelope.crypto.kdf).toBe('scrypt');
+    if (envelope.crypto.kdf !== 'scrypt') throw new Error('Test erwartet ein scrypt-Envelope.');
 
     expect(() => adapter.decrypt({ ...envelope, version: envelope.version + 1 }, passphrase)).toThrow();
     expect(() => adapter.decrypt({
       ...envelope,
-      crypto: { ...envelope.crypto, kdfParams: { ...envelope.crypto.kdfParams, N: 1_024 } },
+      crypto: {
+        algorithm: 'aes-256-gcm',
+        kdf: 'scrypt',
+        kdfParams: { N: 1_024, r: 8, p: 1, maxmem: 268_435_456 },
+        salt: envelope.crypto.salt,
+        iv: envelope.crypto.iv,
+        tag: envelope.crypto.tag,
+      },
     }, passphrase)).toThrow();
   });
 

@@ -22,6 +22,19 @@ function formatGermanDate(value?: string): string {
   return date.toLocaleDateString('de-DE');
 }
 
+function privacyReviewReasonLabel(reason?: string): string {
+  if (reason === 'handover_imported') return 'Importierte Übergabedaten: Zweck, Ablauf und Fortführung prüfen.';
+  if (reason === 'retention_due') return 'Fortspeicherung erneut prüfen und begründen.';
+  if (reason === 'status_expired') return 'Schutzstatus abgelaufen: Fallbezug und weitere Speicherung prüfen.';
+  if (reason === 'employment_ended') return 'Beschäftigung beendet: weitere Speicherung prüfen.';
+  if (reason === 'legacy_unlinked') return 'Altfall ohne sicheren Personenbezug prüfen.';
+  if (reason === 'multiple_person_links') return 'Mehrere aktive Personenbezüge prüfen.';
+  if (reason === 'no_person_link') return 'Fehlenden Personenbezug prüfen.';
+  if (reason === 'linked_person_anonymized') return 'Person wurde anonymisiert: Fallfortführung prüfen.';
+  if (reason === 'linked_person_deleted') return 'Person wurde gelöscht: Fallfortführung prüfen.';
+  return reason ?? 'Personenbezug, Altfallstatus oder Aufbewahrungsgrund prüfen und dokumentieren.';
+}
+
 export function bindingLabel(record?: CaseRecord): string {
   if (!record) return '—';
   if (record.personBindingState === 'anonymous_request') return 'Anonyme Anfrage';
@@ -54,7 +67,7 @@ export function resolveCaseNextAction(record?: CaseRecord): CaseNextAction {
   if (record.personBindingState === 'legacy_unlinked' || record.privacyReviewRequired) {
     return {
       title: 'Datenschutzprüfung vor Weiterbearbeitung',
-      hint: record.privacyReviewReason ?? 'Personenbezug, Altfallstatus oder Aufbewahrungsgrund prüfen und dokumentieren.',
+      hint: privacyReviewReasonLabel(record.privacyReviewReason),
       tone: 'warning',
     };
   }

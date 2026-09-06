@@ -8,6 +8,8 @@ import { TemporaryFilesSettingsPanel } from './TemporaryFilesSettingsPanel';
 import { ChangePasswordForm } from './ChangePasswordForm';
 import { BackupRestoreForm } from './BackupRestoreForm';
 import { RetentionSettingsPanel } from './RetentionSettingsPanel';
+import { TransferIdentitySettingsPanel } from './TransferIdentitySettingsPanel';
+import { TransferRecipientProfilesSettings } from './TransferRecipientProfilesSettings';
 import type { SettingsSectionId } from './settingsNavigation';
 
 function SettingsSectionIntro({
@@ -64,6 +66,16 @@ export function SettingsView({
           <div className="grid gap-6 xl:grid-cols-2">
             <TemporaryFilesSettingsPanel />
             <RetentionSettingsPanel />
+          </div>
+        </>
+      )}
+
+      {section === 'settings-handover' && (
+        <>
+          <SettingsSectionIntro title="Übergaben" description="Zielgebundene Exporte und wiederkehrende Empfänger ohne Kopierfehler verwalten." />
+          <div className="grid gap-6 xl:grid-cols-2">
+            <TransferIdentitySettingsPanel />
+            <TransferRecipientProfilesSettings />
           </div>
         </>
       )}

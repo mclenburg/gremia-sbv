@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import type { TransferProtectionMode } from '../src/domain/models/case-handover.model.js';
 export interface HandoverDatabaseRow extends Record<string, unknown> {
   id: string;
   case_id: string;
@@ -17,6 +18,18 @@ export type PackagePayload = {
   createdAt: string;
   expiresAt?: string;
   purpose: string;
+  packageType?: 'vacation_handover' | 'return_delta' | 'office_handover';
+  sourcePackageId?: string;
+  deltaSince?: string;
+  changedRefs?: {
+    cases?: string[];
+    protectedPersons?: string[];
+    notes?: string[];
+    measures?: string[];
+    measureNotes?: string[];
+    deadlines?: string[];
+    documents?: string[];
+  };
   cases: Array<{ ref: string; data: Row }>;
   protectedPersons: Array<{ ref: string; data: Row }>;
   notes: Array<{ ref: string; caseRef: string; data: Row }>;
@@ -24,6 +37,17 @@ export type PackagePayload = {
   measureNotes: Array<{ ref: string; caseRef: string; measureRef: string; data: Row }>;
   deadlines: Array<{ ref: string; caseRef?: string; measureRef?: string; data: Row }>;
   documents: Array<{ ref: string; caseRef: string; measureRef?: string; data: Row; contentBase64: string }>;
+  officeData?: OfficeHandoverPayload;
+};
+
+export type OfficeHandoverPayload = {
+  documentTemplates: Array<{ ref: string; data: Row }>;
+  deadlineTemplates: Array<{ ref: string; data: Row }>;
+  retentionSettings: Record<string, unknown>;
+  privacyReviews: Array<{ ref: string; caseRef: string; data: Row }>;
+  elections: Array<{ ref: string; data: import('./electionTransferPolicy.js').ElectionTransferPayload }>;
+  electionDocuments: Array<{ ref: string; electionRef: string; data: Row; contentBase64: string }>;
+  activityJournalIncluded: false;
 };
 
 export type DecryptedPackage = {
@@ -32,6 +56,7 @@ export type DecryptedPackage = {
     formatVersion: number;
     legacyFormat: boolean;
     algorithm: 'aes-256-gcm';
+    protectionMode?: TransferProtectionMode;
   };
 };
 
@@ -42,3 +67,14 @@ export function isRecord(value: unknown): value is Record<string, unknown> { ret
 export function safeString(value: unknown, fallback = ''): string { return String(value ?? fallback); }
 export function ensureArray(value?: string[]): string[] { return [...new Set((value ?? []).filter(Boolean))]; }
 
+export function officeHandoverScope(payload: PackagePayload) {
+  if (!payload.officeData) return undefined;
+  return {
+    templateCount: payload.officeData.documentTemplates.length,
+    deadlineTemplateCount: payload.officeData.deadlineTemplates.length,
+    electionCount: payload.officeData.elections.length,
+    electionDocumentCount: payload.officeData.electionDocuments.length,
+    privacyReviewCount: payload.officeData.privacyReviews.length,
+    activityJournalIncluded: false as const,
+  };
+}

@@ -70,6 +70,7 @@ export function ContactsView({
       title="Kontakte"
       kicker="Netzwerk"
       description="Ansprechpersonen, Stellen und interne Kontakte. In Protokollen mit @@ einfügen."
+      helpId="contacts.overview"
       actions={
         <IndustrialButton onClick={() => setCreateModalOpen(true)} data-e2e="open-contact-create">
           <Plus className="h-4 w-4" />Kontakt anlegen

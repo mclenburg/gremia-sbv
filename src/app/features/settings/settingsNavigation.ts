@@ -2,6 +2,7 @@ export type SettingsSectionId =
   | 'settings-general'
   | 'settings-security'
   | 'settings-data-protection'
+  | 'settings-handover'
   | 'settings-templates'
   | 'settings-gremia-br';
 
@@ -26,6 +27,11 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
     id: 'settings-data-protection',
     label: 'Datenschutz',
     description: 'Temporäre Arbeitskopien, Löschprüfung und Aufbewahrung.',
+  },
+  {
+    id: 'settings-handover',
+    label: 'Übergaben',
+    description: 'Instanz-ID, Empfängerkennungen und Übergabeprofile.',
   },
   {
     id: 'settings-templates',

@@ -33,7 +33,8 @@ Gremia.SBV folgt drei Grundsätzen:
 | [Gleichstellung](15-gleichstellung.md) | Gleichstellungsverfahren datensparsam begleiten |
 | [Stellenbesetzungen](16-stellenbesetzungen.md) | Bewerbungsverfahren, Unterlagen und SBV-Anhörung nachhalten |
 | [Wahlen](17-wahlen.md) | Örtliche SBV-Wahl vorbereiten, durchführen, abschließen und geschützt übergeben |
-| [Glossar](18-glossar.md) | Fachbegriffe kurz erklärt |
+| [Amtsübergabe und Vertretung](18-amtsuebergabe-und-vertretung.md) | Urlaubsvertretung, Rückgabe-Delta und dauerhafter Amtswechsel |
+| [Glossar](19-glossar.md) | Fachbegriffe kurz erklärt |
 
 Das Glossar steht bewusst am Ende, damit es die fachlichen Arbeitsabläufe nicht unterbricht.
 

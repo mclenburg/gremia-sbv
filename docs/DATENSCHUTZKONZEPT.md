@@ -57,6 +57,8 @@ Für Urlaubsvertretung, Krankheit, Amtswechsel oder Nachfolge kann die SBV einze
 
 Abgelaufene Übergabepakete dürfen nicht importiert werden. Bereits importierte Übergabedaten werden nach Ablauf der Vertretungszeit als abgelaufen markiert. Eine weitere Bearbeitung erfordert eine bewusste Bestätigung mit Begründung. Export, Import und Fortführung nach Ablauf werden ohne Personennamen, Diagnosen, Falltitel, Dokumentnamen oder Freitexte auditiert.
 
+Vor dem Import bewertet Gremia.SBV mögliche lokale Gegenstücke. Sichere Treffer, mögliche Treffer und echte Konflikte werden getrennt ausgewiesen. Eine Zusammenführung ist nur zulässig, wenn kein echter Konflikt vorliegt; widersprüchliche Akten-/Personenbezüge werden als neue lokale Übergabeakte importiert und danach fachlich geprüft. Jeder erfolgreiche Import erzeugt zusätzlich einen konkreten Datenschutzprüfauftrag für die betroffene Fallakte. Die Löschung oder Fortführung bleibt manuell.
+
 ## Auskunft nach Art. 15 DSGVO
 
 Mit dem Personenverzeichnis unterstützt die App Auskunftsfähigkeit: verknüpfte Fallakten, Fristen, Maßnahmen, Kontakte, Dokumente, Arbeitgeberlisten-Importe, Wahlbezüge, Beteiligungsverstöße, Datenschutzprüfungen und Lifecycle-Ereignisse sind auffindbar. Im Compliance Center erstellt die SBV eine Zuarbeit zur Art.-15-Auskunft für Datenschutzkontakt, verantwortliche Stelle oder – falls vorhanden – Datenschutzbeauftragte*n.

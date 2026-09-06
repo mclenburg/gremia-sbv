@@ -1,20 +1,24 @@
-import { createCipheriv, createDecipheriv, createHash, randomBytes, scryptSync } from 'node:crypto';
-import { CASE_HANDOVER_FORMAT, CASE_HANDOVER_LEGACY_VERSION, CASE_HANDOVER_VERSION } from './caseHandoverPolicy.js';
+import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto';
+import { CASE_HANDOVER_FORMAT, CASE_HANDOVER_LEGACY_VERSION, CASE_HANDOVER_PASSPHRASE_VERSION, CASE_HANDOVER_TARGET_BOUND_LEGACY_VERSION, CASE_HANDOVER_VERSION } from './caseHandoverPolicy.js';
+import type { TransferProtectionMode } from '../src/domain/models/case-handover.model.js';
+import type { TransferRecipientIdentity } from '../src/domain/models/transfer-identity.model.js';
+import type { TransferInstancePrivateIdentity } from './transferInstanceIdentityService.js';
+import {
+  assertTransferRecipientBinding,
+  assertKdfParams,
+  CURRENT_TRANSFER_SCRYPT_PARAMS,
+  deriveTransferKey,
+  decryptTargetBoundTransferPayload,
+  encryptTargetBoundTransferPayload,
+  safeDestroyBuffer,
+  sha256,
+  type TargetBoundTransferEnvelope,
+  type TransferCryptoHeader,
+  type TransferKdfParams,
+  type TransferRecipientBinding,
+} from './targetBoundTransferCrypto.js';
 
-export type TransferKdfParams = {
-  N: number;
-  r: number;
-  p: number;
-  maxmem?: number;
-};
-
-type TransferCryptoHeader = {
-  algorithm: 'aes-256-gcm';
-  kdf: 'scrypt';
-  kdfParams: TransferKdfParams;
-  salt: string;
-  iv: string;
-};
+export { CURRENT_TRANSFER_SCRYPT_PARAMS, type TransferKdfParams } from './targetBoundTransferCrypto.js';
 
 export type CaseHandoverEnvelopeV1 = {
   format: string;
@@ -37,6 +41,7 @@ export type CaseHandoverEnvelopeV2 = {
   packageId: string;
   createdAt: string;
   expiresAt?: string;
+  recipientBinding?: TransferRecipientBinding;
   crypto: TransferCryptoHeader & { tag: string };
   integrity: {
     aadSha256: string;
@@ -52,13 +57,7 @@ export type DecryptedTransferPayload = {
   formatVersion: number;
   legacyFormat: boolean;
   algorithm: 'aes-256-gcm';
-};
-
-export const CURRENT_TRANSFER_SCRYPT_PARAMS: TransferKdfParams = {
-  N: 131_072,
-  r: 8,
-  p: 1,
-  maxmem: 256 * 1024 * 1024,
+  protectionMode?: TransferProtectionMode;
 };
 
 export const LEGACY_TRANSFER_SCRYPT_PARAMS: TransferKdfParams = {
@@ -66,18 +65,6 @@ export const LEGACY_TRANSFER_SCRYPT_PARAMS: TransferKdfParams = {
   r: 8,
   p: 1,
 };
-
-function sha256(value: Buffer | string): string {
-  return createHash('sha256').update(value).digest('hex');
-}
-
-function safeDestroyBuffer(buffer: Buffer): void {
-  buffer.fill(0);
-}
-
-function deriveTransferKey(passphrase: string, salt: Buffer, params: TransferKdfParams): Buffer {
-  return scryptSync(passphrase, salt, 32, params.maxmem ? { N: params.N, r: params.r, p: params.p, maxmem: params.maxmem } : { N: params.N, r: params.r, p: params.p });
-}
 
 function buildAadV1(envelope: Pick<CaseHandoverEnvelopeV1, 'format' | 'version' | 'packageId' | 'createdAt' | 'expiresAt' | 'kdf' | 'algorithm'>): Buffer {
   return Buffer.from(JSON.stringify({
@@ -101,12 +88,12 @@ function buildAadV2(envelope: { format: string; version: number; packageId: stri
     crypto: {
       algorithm: envelope.crypto.algorithm,
       kdf: envelope.crypto.kdf,
-      kdfParams: {
+      kdfParams: envelope.crypto.kdf === 'scrypt' ? {
         N: envelope.crypto.kdfParams.N,
         r: envelope.crypto.kdfParams.r,
         p: envelope.crypto.kdfParams.p,
         maxmem: envelope.crypto.kdfParams.maxmem ?? null,
-      },
+      } : null,
       salt: envelope.crypto.salt,
       iv: envelope.crypto.iv,
     },
@@ -122,18 +109,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function assertKdfParams(value: unknown): TransferKdfParams {
-  if (!isRecord(value)) throw new Error('Fallübergabepaket enthält keine gültigen KDF-Parameter.');
-  const N = Number(value.N);
-  const r = Number(value.r);
-  const p = Number(value.p);
-  const maxmem = value.maxmem === undefined || value.maxmem === null ? undefined : Number(value.maxmem);
-  if (!Number.isInteger(N) || N < 65_536) throw new Error('Fallübergabepaket nutzt keine zulässigen KDF-Parameter.');
-  if (!Number.isInteger(r) || r < 1 || !Number.isInteger(p) || p < 1) throw new Error('Fallübergabepaket nutzt keine zulässigen KDF-Parameter.');
-  if (maxmem !== undefined && (!Number.isInteger(maxmem) || maxmem < 128 * 1024 * 1024)) throw new Error('Fallübergabepaket nutzt keine zulässigen KDF-Parameter.');
-  return { N, r, p, maxmem };
-}
-
 export function assertCaseHandoverEnvelope(value: unknown): CaseHandoverEnvelope {
   if (!isRecord(value)) throw new Error('Fallübergabepaket ist kein gültiger Übergabe-Envelope.');
   if (value.format !== CASE_HANDOVER_FORMAT) throw new Error('Nicht unterstütztes Fallübergabeformat.');
@@ -142,23 +117,25 @@ export function assertCaseHandoverEnvelope(value: unknown): CaseHandoverEnvelope
   if (value.expiresAt !== undefined && typeof value.expiresAt !== 'string') throw new Error('Fallübergabepaket enthält kein gültiges Ablaufdatum.');
   if (typeof value.payload !== 'string' || !value.payload) throw new Error('Fallübergabepaket enthält keine Nutzdaten.');
 
-  if (value.version === CASE_HANDOVER_VERSION) {
+  if (value.version === CASE_HANDOVER_VERSION || value.version === CASE_HANDOVER_PASSPHRASE_VERSION || value.version === CASE_HANDOVER_TARGET_BOUND_LEGACY_VERSION) {
     if (!isRecord(value.crypto) || !isRecord(value.integrity)) throw new Error('Fallübergabepaket enthält keinen gültigen Kryptografie-Header.');
-    if (value.crypto.algorithm !== 'aes-256-gcm' || value.crypto.kdf !== 'scrypt') throw new Error('Nicht unterstütztes Fallübergabeformat.');
+    if (value.crypto.algorithm !== 'aes-256-gcm' || (value.crypto.kdf !== 'scrypt' && value.crypto.kdf !== 'hkdf-sha256')) throw new Error('Nicht unterstütztes Fallübergabeformat.');
+    if (value.crypto.kdf === 'hkdf-sha256' && value.recipientBinding === undefined) throw new Error('Fallübergabepaket enthält keine gültige Zielbindung.');
     const envelope: CaseHandoverEnvelopeV2 = {
       format: value.format,
       version: value.version,
       packageId: value.packageId,
       createdAt: value.createdAt,
       expiresAt: value.expiresAt,
+      recipientBinding: value.recipientBinding === undefined ? undefined : assertTransferRecipientBinding(value.recipientBinding),
       crypto: {
         algorithm: 'aes-256-gcm',
-        kdf: 'scrypt',
-        kdfParams: assertKdfParams(value.crypto.kdfParams),
+        kdf: value.crypto.kdf,
+        ...(value.crypto.kdf === 'scrypt' ? { kdfParams: assertKdfParams(value.crypto.kdfParams) } : {}),
         salt: assertBase64(value.crypto.salt, 'salt'),
         iv: assertBase64(value.crypto.iv, 'iv'),
         tag: assertBase64(value.crypto.tag, 'tag'),
-      },
+      } as CaseHandoverEnvelopeV2['crypto'],
       integrity: {
         aadSha256: assertBase64(value.integrity.aadSha256, 'aadSha256'),
         ciphertextSha256: assertBase64(value.integrity.ciphertextSha256, 'ciphertextSha256'),
@@ -236,10 +213,19 @@ export function encryptCaseHandoverPayloadV2(args: {
   }
 }
 
-export function decryptCaseHandoverEnvelope(envelope: CaseHandoverEnvelope, passphrase: string): DecryptedTransferPayload {
+export function decryptCaseHandoverEnvelope(envelope: CaseHandoverEnvelope, passphrase: string, localIdentity?: TransferInstancePrivateIdentity): DecryptedTransferPayload {
   if ('crypto' in envelope) {
+    if (envelope.recipientBinding) {
+      if (!localIdentity) throw new Error('Dieses Fallübergabepaket ist zielgebunden. Die lokale Transfer-Identität konnte nicht geprüft werden.');
+      const decrypted = decryptTargetBoundTransferPayload(envelope as TargetBoundTransferEnvelope, passphrase, localIdentity, {
+        format: CASE_HANDOVER_FORMAT,
+        version: envelope.version,
+      });
+      return { payloadText: decrypted.payloadText, formatVersion: envelope.version, legacyFormat: envelope.version <= CASE_HANDOVER_TARGET_BOUND_LEGACY_VERSION, algorithm: decrypted.algorithm, protectionMode: decrypted.protectionMode };
+    }
     const salt = Buffer.from(envelope.crypto.salt, 'base64');
     const iv = Buffer.from(envelope.crypto.iv, 'base64');
+    if (envelope.crypto.kdf !== 'scrypt') throw new Error('Nicht unterstützte Übergabekryptografie.');
     const key = deriveTransferKey(passphrase, salt, envelope.crypto.kdfParams);
     try {
       const aad = buildAadV2(envelope);
@@ -252,7 +238,7 @@ export function decryptCaseHandoverEnvelope(envelope: CaseHandoverEnvelope, pass
       decipher.setAuthTag(Buffer.from(envelope.crypto.tag, 'base64'));
       const plain = Buffer.concat([decipher.update(encrypted), decipher.final()]);
       try {
-        return { payloadText: plain.toString('utf8'), formatVersion: CASE_HANDOVER_VERSION, legacyFormat: false, algorithm: 'aes-256-gcm' };
+        return { payloadText: plain.toString('utf8'), formatVersion: envelope.version, legacyFormat: envelope.version <= CASE_HANDOVER_TARGET_BOUND_LEGACY_VERSION, algorithm: 'aes-256-gcm', protectionMode: 'passphrase_and_recipient_key' };
       } finally {
         safeDestroyBuffer(plain);
         safeDestroyBuffer(encrypted);
@@ -293,6 +279,7 @@ export type AuthenticatedTransferEnvelopeV2 = {
   version: number;
   packageId: string;
   createdAt: string;
+  recipientBinding?: TransferRecipientBinding;
   crypto: TransferCryptoHeader & { tag: string };
   integrity: { aadSha256: string; ciphertextSha256: string };
   payload: string;
@@ -310,9 +297,23 @@ export function encryptAuthenticatedTransferPayload(args: {
   createdAt: string;
   payloadText: string;
   passphrase: string;
+  recipient?: TransferRecipientIdentity;
+  protectionMode?: TransferProtectionMode;
 }): AuthenticatedTransferEnvelopeV2 {
   if (!args.format.trim() || !Number.isInteger(args.version) || args.version < 1 || !args.packageId.trim() || !args.createdAt.trim()) {
     throw new Error('Übergabe-Envelope enthält ungültige technische Metadaten.');
+  }
+  if (args.recipient) {
+    return encryptTargetBoundTransferPayload({
+      format: args.format,
+      version: args.version,
+      packageId: args.packageId,
+      createdAt: args.createdAt,
+      payloadText: args.payloadText,
+      passphrase: args.passphrase,
+      recipient: args.recipient,
+      protectionMode: args.protectionMode,
+    });
   }
   const salt = randomBytes(16);
   const iv = randomBytes(12);
@@ -358,9 +359,15 @@ export function decryptAuthenticatedTransferPayload(
   envelope: AuthenticatedTransferEnvelopeV2,
   passphrase: string,
   expected: { format: string; version: number },
+  localIdentity?: TransferInstancePrivateIdentity,
 ): string {
   if (envelope.format !== expected.format || envelope.version !== expected.version) throw new Error('Nicht unterstütztes Übergabeformat.');
-  if (envelope.crypto.algorithm !== 'aes-256-gcm' || envelope.crypto.kdf !== 'scrypt') throw new Error('Nicht unterstützte Übergabekryptografie.');
+  if (envelope.crypto.algorithm !== 'aes-256-gcm') throw new Error('Nicht unterstützte Übergabekryptografie.');
+  if (envelope.recipientBinding) {
+    if (!localIdentity) throw new Error('Dieses Übergabepaket ist zielgebunden. Die lokale Transfer-Identität konnte nicht geprüft werden.');
+    return decryptTargetBoundTransferPayload(envelope as TargetBoundTransferEnvelope, passphrase, localIdentity, expected).payloadText;
+  }
+  if (envelope.crypto.kdf !== 'scrypt') throw new Error('Nicht unterstützte Übergabekryptografie.');
   const params = assertKdfParams(envelope.crypto.kdfParams);
   const salt = Buffer.from(assertBase64(envelope.crypto.salt, 'salt'), 'base64');
   const iv = Buffer.from(assertBase64(envelope.crypto.iv, 'iv'), 'base64');

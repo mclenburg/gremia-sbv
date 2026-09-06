@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { ElectionExecutionOverview } from '../../../domain/models/election-execution.model';
 import type { ElectionPreparationOverview } from '../../../domain/models/election-workflow.model';
 import { IndustrialButton } from '../../shared/components/IndustrialButton';
-import { CheckboxField, DateInput, FormActions, FormSection, PasswordInput, TextInput } from '../../shared/components/IndustrialForm';
+import { CheckboxField, DateInput, FormActions, FormSection, PasswordInput, TextareaInput, TextInput } from '../../shared/components/IndustrialForm';
 import type { ElectionRunner } from './ElectionPreparationSections';
 import { electionDocumentFeedback } from './electionDocumentFeedback';
 
@@ -19,6 +19,7 @@ export function ArchiveSection({ overview, execution, run }: ArchiveSectionProps
   const [retentionUntil, setRetentionUntil] = useState(overview.election.officeTermEnd ?? '');
   const [challengePending, setChallengePending] = useState(false);
   const [passphrase, setPassphrase] = useState('');
+  const [targetRecipientToken, setTargetRecipientToken] = useState('');
   const [transferFileToken, setTransferFileToken] = useState('');
   const [transferFileName, setTransferFileName] = useState('');
 
@@ -58,9 +59,10 @@ export function ArchiveSection({ overview, execution, run }: ArchiveSectionProps
       </FormSection>
 
       <FormSection title="Geschützter Gremia.SBV-Transfer" description="Geschützte Wahlakten werden vor dem Import geprüft und atomar mit lokalen IDs übernommen.">
+        <TextareaInput label="Empfängerkennung der Zielinstanz" value={targetRecipientToken} rows={4} placeholder="GSBV1.… aus Einstellungen → Allgemein der Zielinstanz einfügen" onValueChange={setTargetRecipientToken} />
         <PasswordInput label="Passphrase" value={passphrase} onValueChange={setPassphrase} />
         <FormActions align="start" className="election-document-actions">
-          <IndustrialButton variant="secondary" disabled={passphrase.length < 10} onClick={() => void run(() => window.gremiaSbv.elections.exportTransferFile(overview.election.id, passphrase), 'Geschützte Wahlakte exportiert und vor dem Schreiben verifiziert.')}>Transferdatei exportieren</IndustrialButton>
+          <IndustrialButton variant="secondary" disabled={passphrase.length < 10 || !targetRecipientToken.trim()} onClick={() => void run(() => window.gremiaSbv.elections.exportTransferFile(overview.election.id, passphrase, targetRecipientToken), 'Geschützte Wahlakte exportiert und vor dem Schreiben verifiziert.')}>Transferdatei exportieren</IndustrialButton>
           <IndustrialButton variant="secondary" disabled={passphrase.length < 10} onClick={() => void (async () => { const selected = await run(() => window.gremiaSbv.elections.selectTransferFile(passphrase), 'Transferdatei geprüft.'); if (selected && !selected.canceled) { setTransferFileToken(selected.fileToken); setTransferFileName(selected.fileName); } })()}>Transferdatei auswählen und prüfen</IndustrialButton>
           <IndustrialButton disabled={!transferFileToken || passphrase.length < 10} onClick={() => void run(() => window.gremiaSbv.elections.importTransferFile(transferFileToken, passphrase), 'Wahlakte atomar importiert; lokale IDs und Auditkette bleiben getrennt.')}>Geprüfte Wahlakte importieren</IndustrialButton>
         </FormActions>

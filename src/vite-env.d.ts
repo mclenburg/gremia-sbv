@@ -2,7 +2,9 @@
 import type { ComplianceAuditChainStatus, ComplianceDatabaseIntegrityStatus, ComplianceIncidentRecord, ComplianceSelfCheckResult, CreateComplianceIncidentInput, DataSubjectAccessPrefill, DataSubjectAccessRequestInput, UpdateComplianceIncidentInput } from "./domain/models/compliance.model";
 
 import type { CaseDocumentRecord } from "./domain/models/case-document.model";
-import type { CaseHandoverContinueExpiredResult, CaseHandoverExportInput, CaseHandoverExportResult, CaseHandoverImportInput, CaseHandoverImportResult, CaseHandoverInspectResult } from "./domain/models/case-handover.model";
+import type { CaseHandoverChecklist, CaseHandoverChecklistInput, CaseHandoverCockpit, CaseHandoverContinueExpiredResult, CaseHandoverExportInput, CaseHandoverExportResult, CaseHandoverImportInput, CaseHandoverImportResult, CaseHandoverInspectResult, CaseHandoverReturnDeltaExportInput } from "./domain/models/case-handover.model";
+import type { TransferInstanceIdentity } from "./domain/models/transfer-identity.model";
+import type { SaveTransferRecipientProfileInput, TransferRecipientProfile } from "./domain/models/transfer-recipient-profile.model";
 import type { CaseRecord, CreateCaseInput, LegacyCaseBindingInput, LegacyCaseBindingResult } from "./domain/models/case.model";
 import type {
   ContactListFilters,
@@ -263,7 +265,10 @@ declare global {
       };
 
       caseHandover: {
+      cockpit: () => Promise<CaseHandoverCockpit>;
+      checklist: (input: CaseHandoverChecklistInput) => Promise<CaseHandoverChecklist>;
       export: (input: CaseHandoverExportInput, suggestedFileName?: string) => Promise<CaseHandoverExportResult>;
+      exportReturnDelta: (input: CaseHandoverReturnDeltaExportInput, suggestedFileName?: string) => Promise<CaseHandoverExportResult>;
       selectFile: () => Promise<{ canceled: true } | { canceled: false; filePath: string; fileName: string }>;
       inspect: (filePath: string, passphrase: string) => Promise<CaseHandoverInspectResult>;
       selectAndInspect: (passphrase: string) => Promise<{ canceled: true } | { canceled: false; filePath: string; fileName: string; inspection: CaseHandoverInspectResult }>;
@@ -525,6 +530,13 @@ declare global {
         list(): Promise<TemplateDefaultValues>;
         save(values: TemplateDefaultValues): Promise<TemplateDefaultValues>;
       };
+      transferIdentity: {
+        get(): Promise<TransferInstanceIdentity>;
+        listRecipientProfiles(): Promise<TransferRecipientProfile[]>;
+        saveRecipientProfile(input: SaveTransferRecipientProfileInput): Promise<TransferRecipientProfile>;
+        setRecipientProfileActive(id: string, active: boolean): Promise<TransferRecipientProfile>;
+        deleteRecipientProfile(id: string): Promise<{ deleted: boolean }>;
+      };
       reports: {
         descriptors(): Promise<ReportDescriptor[]>;
         history(limit?: number): Promise<ReportExportHistoryItem[]>;
@@ -575,10 +587,10 @@ declare global {
         generateExecutionDocument(id: string, input: GenerateElectionExecutionDocumentInput): Promise<{ document: { id: string; filename: string; sha256: string }; previewStatus: 'requested' | 'unavailable'; previewMessage?: string }>;
         exportPdfArchive(id: string): Promise<{ document: { id: string; filename: string; sha256: string }; previewStatus: 'requested' | 'unavailable'; previewMessage?: string }>;
         exportDocument(documentId: string, suggestedFileName?: string): Promise<ElectionDocumentExportResult>;
-        exportTransfer(id: string, passphrase: string): Promise<ElectionTransferEnvelope>;
+        exportTransfer(id: string, passphrase: string, targetRecipientToken: string): Promise<ElectionTransferEnvelope>;
         inspectTransfer(envelope: ElectionTransferEnvelope, passphrase: string): Promise<ElectionTransferInspection>;
         importTransfer(envelope: ElectionTransferEnvelope, passphrase: string): Promise<ElectionTransferImportResult>;
-        exportTransferFile(id: string, passphrase: string, suggestedFileName?: string): Promise<ElectionTransferFileExportResult>;
+        exportTransferFile(id: string, passphrase: string, targetRecipientToken: string, suggestedFileName?: string): Promise<ElectionTransferFileExportResult>;
         selectTransferFile(passphrase: string): Promise<ElectionTransferFileSelection>;
         importTransferFile(fileToken: string, passphrase: string): Promise<ElectionTransferImportResult>;
       };

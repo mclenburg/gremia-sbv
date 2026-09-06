@@ -19,10 +19,10 @@ export function createElectionsApi(invokeIpc:IpcInvoker){return{elections:{
  generateExecutionDocument:(id:string,input:GenerateElectionExecutionDocumentInput):Promise<SbvOfficeDocumentGenerationResult>=>invokeIpc(IPC_CHANNELS.electionsExecutionDocumentGenerate,id,input),
  exportPdfArchive:(id:string):Promise<SbvOfficeDocumentGenerationResult>=>invokeIpc(IPC_CHANNELS.electionsArchivePdf,id),
  exportDocument:(documentId:string,suggestedFileName?:string):Promise<ElectionDocumentExportResult>=>invokeIpc(IPC_CHANNELS.electionsDocumentExport,documentId,suggestedFileName),
- exportTransfer:(id:string,passphrase:string):Promise<ElectionTransferEnvelope>=>invokeIpc(IPC_CHANNELS.electionsTransferExport,id,passphrase),
+ exportTransfer:(id:string,passphrase:string,targetRecipientToken:string):Promise<ElectionTransferEnvelope>=>invokeIpc(IPC_CHANNELS.electionsTransferExport,id,passphrase,targetRecipientToken),
  inspectTransfer:(envelope:ElectionTransferEnvelope,passphrase:string):Promise<ElectionTransferInspection>=>invokeIpc(IPC_CHANNELS.electionsTransferInspect,envelope,passphrase),
  importTransfer:(envelope:ElectionTransferEnvelope,passphrase:string):Promise<ElectionTransferImportResult>=>invokeIpc(IPC_CHANNELS.electionsTransferImport,envelope,passphrase),
- exportTransferFile:(id:string,passphrase:string,suggestedFileName?:string):Promise<ElectionTransferFileExportResult>=>invokeIpc(IPC_CHANNELS.electionsTransferExportFile,id,passphrase,suggestedFileName),
+ exportTransferFile:(id:string,passphrase:string,targetRecipientToken:string,suggestedFileName?:string):Promise<ElectionTransferFileExportResult>=>invokeIpc(IPC_CHANNELS.electionsTransferExportFile,id,passphrase,targetRecipientToken,suggestedFileName),
  selectTransferFile:(passphrase:string):Promise<ElectionTransferFileSelection>=>invokeIpc(IPC_CHANNELS.electionsTransferSelectInspect,passphrase),
  importTransferFile:(fileToken:string,passphrase:string):Promise<ElectionTransferImportResult>=>invokeIpc(IPC_CHANNELS.electionsTransferImportFile,fileToken,passphrase),
 }} as const;}

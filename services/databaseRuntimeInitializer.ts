@@ -4,6 +4,7 @@ import { KnowledgeService } from './knowledgeService.js';
 import { TemplateService } from './templateService.js';
 import type { ReportableMeasureType } from '../src/domain/models/measure-lifecycle.model.js';
 import { DomainAggregateIntegrityService } from './domainAggregateIntegrityService.js';
+import { TransferInstanceIdentityService } from './transferInstanceIdentityService.js';
 
 /**
  * Runs data-only initialization after the versioned structural migrations.
@@ -14,11 +15,12 @@ import { DomainAggregateIntegrityService } from './domainAggregateIntegrityServi
 export class DatabaseRuntimeInitializer {
   constructor(private readonly database: DatabaseAdapter) {}
 
-  initialize(): { baselineEntriesCreated: number; aggregateExtensionsChecked: number } {
+  initialize(): { baselineEntriesCreated: number; aggregateExtensionsChecked: number; transferIdentityEnsured: boolean } {
     const aggregateExtensionsChecked = new DomainAggregateIntegrityService(this.database).verify().checkedExtensions;
     new KnowledgeService(this.database).seedReferenceData(this.database);
     new TemplateService(this.database).seedReferenceData(this.database);
-    return { baselineEntriesCreated: this.ensureMeasureLifecycleBaselines(), aggregateExtensionsChecked };
+    new TransferInstanceIdentityService(this.database).ensureIdentity();
+    return { baselineEntriesCreated: this.ensureMeasureLifecycleBaselines(), aggregateExtensionsChecked, transferIdentityEnsured: true };
   }
 
   private ensureMeasureLifecycleBaselines(): number {

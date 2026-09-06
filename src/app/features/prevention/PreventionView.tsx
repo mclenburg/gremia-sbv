@@ -12,7 +12,6 @@ import {
   isIsoBeforeNow,
   type ProcessOverviewCardModel
 } from '../../shared/process/ProcessOverview';
-import { IndustrialHelpButton } from '../../shared/help/IndustrialHelp';
 import { PREVENTION_OVERVIEW_STATUS_ORDER, isDonePreventionStatus, statusLabel } from './preventionShared';
 
 export function PreventionView({
@@ -91,6 +90,7 @@ export function PreventionView({
         title="Präventionsverfahren"
         kicker="§ 167 Abs. 1 SGB IX"
         description="Übersicht über fallbezogene Präventionsverfahren. Die Bearbeitung erfolgt ausschließlich in der Fallakte."
+        helpId="prevention.overview"
         stats={[
           { label: 'offen', value: openCount },
           { label: 'überfällig', value: overdueCount },
@@ -100,7 +100,6 @@ export function PreventionView({
         groups={groups}
         feedbackItems={[loading ? { id: 'prevention-loading', message: 'Präventionsverfahren werden geladen …' } : null, error ? { id: 'prevention-error', tone: 'warning', message: error } : null]}
         emptyText="Keine Verfahren in diesem Status."
-        helpAction={<IndustrialHelpButton helpId="prevention.overview" label="Bereichshilfe öffnen" />}
         renderItem={(item) => (
           <ProcessOverviewCard
             key={item.id}

@@ -7,7 +7,6 @@
 .industrial-lock-button,
 .industrial-nav button,
 .industrial-table-actions button,
-.template-help-button,
 .template-trash-button {
   min-height: var(--control-min-height);
   border-radius: var(--control-radius);
@@ -371,7 +370,6 @@ html[data-theme='light'] .industrial-lock-button {
   transition:
     transform 140ms ease,
     border-color 140ms ease,
-    background 140ms ease,
     box-shadow 140ms ease;
 }
 
@@ -2279,8 +2277,7 @@ html[data-theme='light'] .industrial-help-button:focus-visible {
 }
 
 /* Legacy help affordances are visually normalized until the owning modules migrate to IndustrialHelpButton. */
-.industrial-help-dot,
-.template-help-button {
+.industrial-help-dot {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2296,24 +2293,19 @@ html[data-theme='light'] .industrial-help-button:focus-visible {
 }
 
 .industrial-help-dot:hover,
-.industrial-help-dot:focus-visible,
-.template-help-button:hover,
-.template-help-button:focus-visible {
+.industrial-help-dot:focus-visible {
   border-color: var(--industrial-accent);
   color: var(--industrial-accent);
   background: rgba(9, 9, 11, 0.84);
 }
 
-html[data-theme='light'] .industrial-help-dot,
-html[data-theme='light'] .template-help-button {
+html[data-theme='light'] .industrial-help-dot {
   background: #eeeeea;
   color: var(--industrial-text, var(--sbv-text));
 }
 
 html[data-theme='light'] .industrial-help-dot:hover,
-html[data-theme='light'] .industrial-help-dot:focus-visible,
-html[data-theme='light'] .template-help-button:hover,
-html[data-theme='light'] .template-help-button:focus-visible {
+html[data-theme='light'] .industrial-help-dot:focus-visible {
   border-color: var(--industrial-accent);
   color: var(--industrial-accent);
   background: #eeeeea;

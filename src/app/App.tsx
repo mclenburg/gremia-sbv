@@ -35,6 +35,7 @@ import { ToolbarButton } from "./shared/components/IndustrialButton";
 const IMPLEMENTED_VIEW_IDS = new Set<ViewId>([
   "dashboard",
   "cases",
+  "case_handover",
   "deadlines",
   "activity_journal",
   "participation_violations",

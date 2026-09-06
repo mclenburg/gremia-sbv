@@ -7,6 +7,7 @@ import { SbvElectionService } from '../../../services/sbvElectionService';
 import { ElectionTransferService } from '../../../services/electionTransferService';
 import { ElectionTransferCryptoAdapter } from '../../../services/electionTransferCryptoAdapter';
 import { sha256Canonical } from '../../../services/electionTransferPolicy';
+import { TransferInstanceIdentityService } from '../../../services/transferInstanceIdentityService';
 
 class SqliteAdapter implements DatabaseAdapter {
   constructor(private readonly db: DatabaseSync) {}
@@ -27,6 +28,12 @@ function database() {
   const raw = new DatabaseSync(':memory:');
   raw.exec(fs.readFileSync('database/schema.sql', 'utf8'));
   return { raw, db: new SqliteAdapter(raw) };
+}
+
+function transferIdentity(db: DatabaseAdapter) {
+  const service = new TransferInstanceIdentityService(db);
+  const publicIdentity = service.getPublicIdentity();
+  return { publicIdentity, token: publicIdentity.recipientToken, privateIdentity: service.getPrivateIdentity() };
 }
 
 function seedClosedElection(db: DatabaseAdapter) {
@@ -88,14 +95,15 @@ describe('ElectionTransferService 0.9.7-D protected archive transfer', () => {
     const seeded = seedClosedElection(source.db);
     const sourceAuditCount = Number((source.raw.prepare('SELECT COUNT(*) AS count FROM personal_data_audit_log').get() as { count: number }).count);
     const sourceTransfer = new ElectionTransferService(source.db);
-    const passphrase = 'eine ausreichend lange Wahlakten-Passphrase';
-    const envelope = sourceTransfer.export(seeded.election.id, 'source-vault-id', passphrase);
-    expect(sourceTransfer.inspect(envelope, passphrase)).toMatchObject({ electionId: seeded.election.id, formatVersion: 1 });
-
     const target = database();
+    const targetIdentity = transferIdentity(target.db);
+    const passphrase = 'eine ausreichend lange Wahlakten-Passphrase';
+    const envelope = sourceTransfer.export(seeded.election.id, 'source-vault-id', passphrase, targetIdentity.token);
+    const targetTransfer = new ElectionTransferService(target.db);
+    expect(targetTransfer.inspect(envelope, passphrase)).toMatchObject({ electionId: seeded.election.id, formatVersion: 1 });
+
     // Deliberate local data ensures import cannot assume an empty target namespace.
     const local = new SbvElectionService(target.db).create({ kind: 'extraordinary_no_sbv', triggerReason: 'lokal' });
-    const targetTransfer = new ElectionTransferService(target.db);
     const imported = targetTransfer.import(envelope, passphrase);
     expect(imported.electionId).not.toBe(seeded.election.id);
     expect(imported.electionId).not.toBe(local.id);
@@ -125,8 +133,9 @@ describe('ElectionTransferService 0.9.7-D protected archive transfer', () => {
     expect(targetAuditRows).toEqual(expect.arrayContaining([{ subject_type: 'election_transfer' }]));
     expect(targetAuditRows.length).toBeLessThan(sourceAuditCount);
 
-    const reExport = targetTransfer.export(imported.electionId, 'target-vault-id', passphrase);
-    expect(targetTransfer.inspect(reExport, passphrase)).toMatchObject({ electionId: imported.electionId, formatVersion: 1 });
+    const sourceIdentity = transferIdentity(source.db);
+    const reExport = targetTransfer.export(imported.electionId, 'target-vault-id', passphrase, sourceIdentity.token);
+    expect(sourceTransfer.inspect(reExport, passphrase)).toMatchObject({ electionId: imported.electionId, formatVersion: 1 });
   });
 
   it('rolls back all target rows when a protected package contains a broken internal reference', () => {
@@ -135,17 +144,18 @@ describe('ElectionTransferService 0.9.7-D protected archive transfer', () => {
     const transfer = new ElectionTransferService(source.db);
     const crypto = new ElectionTransferCryptoAdapter();
     const passphrase = 'eine ausreichend lange Wahlakten-Passphrase';
-    const validEnvelope = transfer.export(seeded.election.id, 'source-vault-id', passphrase);
-    const payload = crypto.decrypt(validEnvelope, passphrase);
+    const target = database();
+    const targetIdentity = transferIdentity(target.db);
+    const validEnvelope = transfer.export(seeded.election.id, 'source-vault-id', passphrase, targetIdentity.token);
+    const payload = crypto.decrypt(validEnvelope, passphrase, targetIdentity.privateIdentity);
     payload.data.sbv_election_proposal_candidates = [{
       id: 'broken-link', proposal_id: 'missing-proposal', candidate_id: seeded.representative.id,
       office_type: 'representative', created_at: '2026-08-20T00:00:00.000Z',
     }];
     const item = payload.manifest.items.find((entry) => entry.ref === 'sbv_election_proposal_candidates')!;
     item.sha256 = sha256Canonical(payload.data.sbv_election_proposal_candidates);
-    const malformedEnvelope = crypto.encrypt(payload, passphrase);
+    const malformedEnvelope = crypto.encrypt(payload, passphrase, targetIdentity.publicIdentity);
 
-    const target = database();
     const targetTransfer = new ElectionTransferService(target.db);
     expect(() => targetTransfer.import(malformedEnvelope, passphrase)).toThrow(/Wahlvorschlag-Referenz/);
     expect(target.raw.prepare('SELECT COUNT(*) AS count FROM sbv_elections').get()).toMatchObject({ count: 0 });

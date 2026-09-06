@@ -12,7 +12,6 @@ import {
   isIsoBeforeNow,
   type ProcessOverviewCardModel
 } from '../../shared/process/ProcessOverview';
-import { IndustrialHelpButton } from '../../shared/help/IndustrialHelp';
 import { BEM_OVERVIEW_STATUS_ORDER, bemStatusLabel, isDoneBemStatus } from './bemShared';
 
 type BemOverviewCardModel = ProcessOverviewCardModel<BemStatus> & {
@@ -93,6 +92,7 @@ export function BemView({ cases, onOpenCaseNode }: { cases: CaseRecord[]; onOpen
         title="BEM-Verfahren"
         kicker="BEM-Leitstand"
         description="Aktive Verfahren zuerst. Abgeschlossene oder abgebrochene Verfahren bleiben am Ende eingeklappt."
+        helpId="bem.overview"
         stats={[
           { label: 'offen', value: openCount },
           { label: 'Reaktion offen', value: waitingCount },
@@ -102,7 +102,6 @@ export function BemView({ cases, onOpenCaseNode }: { cases: CaseRecord[]; onOpen
         groups={groups}
         feedbackItems={[loading ? { id: 'bem-loading', message: 'BEM-Verfahren werden geladen …' } : null, error ? { id: 'bem-error', tone: 'warning', message: error } : null]}
         emptyText="Keine BEM-Verfahren in diesem Status."
-        helpAction={<IndustrialHelpButton helpId="bem.overview" label="Bereichshilfe öffnen" />}
         renderItem={(card) => (
           <ProcessOverviewCard
             key={card.id}

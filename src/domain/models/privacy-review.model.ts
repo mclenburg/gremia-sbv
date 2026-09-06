@@ -9,6 +9,7 @@ export type PrivacyReviewReason =
   | 'legacy_unlinked'
   | 'multiple_person_links'
   | 'no_person_link'
+  | 'handover_imported'
   | 'retention_due';
 
 export type PrivacyReviewPriority = 'critical' | 'high' | 'normal' | 'low';

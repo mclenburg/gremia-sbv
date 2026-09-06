@@ -9,6 +9,7 @@ import { IndustrialButton } from '../../shared/components/IndustrialButton';
 import { SearchInput, SelectInput } from '../../shared/components/IndustrialForm';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 import { WorkbenchSummary } from '../../shared/components/WorkbenchLayout';
+import { ModuleFrame } from '../../shared/components/ModuleFrame';
 
 type RiskFilter = 'all' | RetentionRiskLevel;
 const riskLabels: Record<RetentionRiskLevel, string> = { critical: 'Kritisch', warning: 'Prüfen', info: 'Hinweis' };
@@ -128,7 +129,8 @@ export function PrivacyReviewCockpit({ onNavigate, onOpenCaseNode }: { onNavigat
     });
   }, [dashboard, query, riskFilter]);
 
-  return <section className="industrial-card no-card-hover" aria-labelledby="privacy-review-title" data-e2e="privacy-review-cockpit">
+  return <ModuleFrame title="Datenschutzprüfung & Löschung" kicker="Datenschutz-Cockpit" description="Fällige Prüfaufträge sichtbar machen; fachliche Löschung und Anonymisierung bleiben manuell." compact helpId="privacyReview.overview">
+  <section className="industrial-card no-card-hover" aria-labelledby="privacy-review-title" data-e2e="privacy-review-cockpit">
     <div className="industrial-card-header">
       <div><p className="font-mono text-xs uppercase tracking-[0.22em] text-zinc-500">Datenschutz-Cockpit</p><h3 id="privacy-review-title">Lösch- und Datenschutzprüfung</h3>
         <p>Alle fälligen Prüfaufträge. Die Entscheidung und jede Löschung bleiben ausdrücklich manuell.</p></div>
@@ -163,5 +165,6 @@ export function PrivacyReviewCockpit({ onNavigate, onOpenCaseNode }: { onNavigat
       {!candidates.length && <tr><td colSpan={6}>{dashboard ? 'Keine passenden Prüfaufträge offen.' : 'Prüfaufträge werden geladen …'}</td></tr>}</tbody>
     </table></div>
     {error && <div className="industrial-message industrial-message-warning mt-4" role="alert">{error}</div>}
-  </section>;
+  </section>
+  </ModuleFrame>;
 }

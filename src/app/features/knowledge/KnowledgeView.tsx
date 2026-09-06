@@ -181,7 +181,7 @@ export function KnowledgeView({ cases }: { cases: CaseRecord[] }) {
   }
 
   return (
-    <ModuleFrame title="Wissensdatenbank" kicker="SBV-Kompass" description="Kurze Ratgebertexte zu SBV-relevanten Normen, Pflichten und Handlungsoptionen. In Protokollen mit §§ einfügen.">
+    <ModuleFrame title="Wissensdatenbank" kicker="SBV-Kompass" description="Kurze Ratgebertexte zu SBV-relevanten Normen, Pflichten und Handlungsoptionen. In Protokollen mit §§ einfügen." helpId="knowledge.overview">
       <ModuleFeedback items={[message ? { id: 'knowledge-message', tone: 'success', message } : null, error ? { id: 'knowledge-error', tone: 'warning', message: error } : null]} />
       <KnowledgeSearchPanel query={query} source={source} sources={sources} onQueryChange={setQuery} onSourceChange={setSource} onSubmit={runSearch} />
       <section className="knowledge-layout">

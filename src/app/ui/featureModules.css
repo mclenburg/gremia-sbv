@@ -1009,24 +1009,6 @@ html[data-theme='light'] .case-search-result:focus-visible {
   gap: .75rem;
 }
 
-.template-help-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.1rem;
-  height: 2.1rem;
-  border: 1px solid var(--border-muted);
-  background: var(--surface-base);
-  color: var(--accent);
-  cursor: pointer;
-}
-
-.template-help-button:hover,
-.template-help-button:focus-visible {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 22%, transparent);
-}
-
 .template-filter-form {
   display: grid;
   grid-template-columns: minmax(16rem, 1fr) minmax(12rem, 16rem) auto;
@@ -2064,6 +2046,11 @@ button.dashboard-focus-card:focus-visible {
   gap: 0.35rem;
 }
 
+.industrial-import-plan {
+  display: grid;
+  gap: 0.45rem;
+}
+
 .dashboard-focus-marker {
   border-radius: 0;
   padding-inline: 0.7rem;
@@ -2173,6 +2160,79 @@ button.dashboard-focus-card:focus-visible {
   overflow-wrap: anywhere;
 }
 
+.handover-overview-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.handover-case-picker-list {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  max-height: min(32rem, 58vh);
+  overflow: auto;
+  border: 1px solid var(--industrial-border);
+  background: color-mix(in srgb, var(--industrial-panel) 82%, black 18%);
+  padding: 0.5rem;
+}
+
+.handover-case-picker-row label {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: start;
+  min-width: 0;
+  padding: 0.7rem 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--industrial-border) 74%, transparent);
+  background: color-mix(in srgb, var(--industrial-panel-muted) 76%, transparent);
+}
+
+.handover-case-picker-row strong,
+.handover-case-picker-row small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.handover-case-picker-row small {
+  margin-top: 0.2rem;
+  color: var(--industrial-text-muted);
+  font-weight: 600;
+}
+
+.handover-selected-cases {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  align-items: center;
+}
+
+.handover-selected-case-chip {
+  display: inline-flex;
+  max-width: 100%;
+  border: 1px solid color-mix(in srgb, var(--industrial-accent) 45%, var(--industrial-border));
+  background: color-mix(in srgb, var(--industrial-accent) 10%, transparent);
+  color: var(--industrial-text-strong);
+  padding: 0.35rem 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.transfer-instance-id-input {
+  max-width: 8rem;
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.transfer-recipient-token-input {
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace);
+  font-size: 0.82rem;
+}
+
 .case-register-actions .industrial-input {
   width: 100%;
   min-width: 0;
@@ -2185,6 +2245,33 @@ button.dashboard-focus-card:focus-visible {
 .industrial-selection-card h3,
 .industrial-selection-card p {
   margin: 0;
+}
+
+.handover-checklist {
+  display: grid;
+  gap: 1rem;
+}
+
+.handover-checklist-item {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 0.875rem;
+  align-items: start;
+  padding: 0.875rem;
+  border: 1px solid var(--industrial-border-muted);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.handover-checklist-item p {
+  margin-top: 0.25rem;
+}
+
+.handover-checklist-item-attention {
+  border-color: rgba(255, 221, 0, 0.45);
+}
+
+.handover-checklist-item-blocking {
+  border-color: rgba(255, 84, 84, 0.6);
 }
 
 .industrial-status-card p,
@@ -2399,6 +2486,12 @@ html[data-theme='light'] .text-command-help-modal .industrial-icon-button {
 
 .industrial-import-package-warnings li {
   margin: 0;
+}
+
+.industrial-import-package-warnings small {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--industrial-text-muted);
 }
 
 .industrial-report-grid {

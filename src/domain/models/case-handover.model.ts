@@ -1,22 +1,81 @@
+import type { TransferImportConflictLevel, TransferImportPlan } from './transfer.model';
+
 export type CaseHandoverImportMode = 'create_new' | 'merge_existing';
+export type CaseHandoverPackageType = 'vacation_handover' | 'return_delta' | 'office_handover';
+export type TransferProtectionMode = 'passphrase_and_recipient_key' | 'recipient_key_only';
+export type CaseHandoverChecklistItemState = 'ready' | 'attention' | 'blocking';
+
+export interface CaseHandoverChecklistItem {
+  id: string;
+  label: string;
+  description: string;
+  state: CaseHandoverChecklistItemState;
+  requiresAcknowledgement: boolean;
+}
+
+export interface CaseHandoverChecklist {
+  packageType: CaseHandoverPackageType;
+  caseCount: number;
+  items: CaseHandoverChecklistItem[];
+  blockingItemIds: string[];
+  requiredAcknowledgementIds: string[];
+  readyToExport: boolean;
+}
+
+export interface CaseHandoverChecklistConfirmation {
+  version: 1;
+  acknowledgedItemIds: string[];
+}
+
+export interface CaseHandoverChecklistInput {
+  caseIds: string[];
+  expiresAt?: string;
+  packageType?: CaseHandoverPackageType;
+}
+
+export interface OfficeHandoverScope {
+  templateCount: number;
+  deadlineTemplateCount: number;
+  electionCount: number;
+  electionDocumentCount: number;
+  privacyReviewCount: number;
+  activityJournalIncluded: false;
+}
 
 export interface CaseHandoverExportInput {
   caseIds: string[];
   measureIds?: string[];
+  packageType?: 'vacation_handover' | 'office_handover';
   expiresAt?: string;
   purpose?: string;
   passphrase: string;
+  targetRecipientToken: string;
+  protectionMode?: TransferProtectionMode;
+  checklist?: CaseHandoverChecklistConfirmation;
+}
+
+export interface CaseHandoverReturnDeltaExportInput {
+  sourcePackageId: string;
+  caseIds: string[];
+  passphrase: string;
+  targetRecipientToken: string;
+  protectionMode?: TransferProtectionMode;
+  checklist?: CaseHandoverChecklistConfirmation;
 }
 
 export interface CaseHandoverExportResult {
   exported: boolean;
   filePath: string;
   packageId: string;
+  packageType?: CaseHandoverPackageType;
   caseCount: number;
   measureCount: number;
   documentCount: number;
   deadlineCount: number;
   expiresAt?: string;
+  targetInstanceId?: string;
+  protectionMode?: TransferProtectionMode;
+  officeScope?: OfficeHandoverScope;
 }
 
 export interface CaseHandoverCandidateMatch {
@@ -25,11 +84,14 @@ export interface CaseHandoverCandidateMatch {
   displayName: string;
   reason: 'case_number' | 'name' | 'person_name';
   confidence: 'high' | 'medium';
+  conflictLevel?: TransferImportConflictLevel;
+  conflictReason?: string;
 }
 
 export interface CaseHandoverInspectResult {
   valid: boolean;
   packageId: string;
+  packageType: CaseHandoverPackageType;
   createdAt: string;
   expiresAt?: string;
   isExpired: boolean;
@@ -38,6 +100,7 @@ export interface CaseHandoverInspectResult {
   documentCount: number;
   deadlineCount: number;
   matches: CaseHandoverCandidateMatch[];
+  importPlan: TransferImportPlan;
   warnings: string[];
   integrity?: {
     verified: boolean;
@@ -45,6 +108,10 @@ export interface CaseHandoverInspectResult {
     formatVersion: number;
     legacyFormat: boolean;
   };
+  targetInstanceId?: string;
+  protectionMode?: TransferProtectionMode;
+  officeScope?: OfficeHandoverScope;
+  legacyImportConfirmationRequired?: boolean;
   file?: {
     fileName: string;
     sizeBytes: number;
@@ -57,6 +124,17 @@ export interface CaseHandoverImportInput {
   passphrase: string;
   mode: CaseHandoverImportMode;
   targetCaseId?: string;
+  applyOfficeConfiguration?: boolean;
+  allowLegacyPackage?: boolean;
+}
+
+export interface OfficeHandoverImportSummary {
+  templateCount: number;
+  deadlineTemplateCount: number;
+  electionCount: number;
+  electionDocumentCount: number;
+  privacyReviewCount: number;
+  officeConfigurationApplied: boolean;
 }
 
 export interface CaseHandoverImportResult {
@@ -68,8 +146,10 @@ export interface CaseHandoverImportResult {
   measureCount: number;
   documentCount: number;
   deadlineCount: number;
+  privacyReviewCaseIds: string[];
   expiresAt?: string;
   expired: boolean;
+  officeImport?: OfficeHandoverImportSummary;
 }
 
 export interface CaseHandoverContinueExpiredInput {
@@ -81,4 +161,29 @@ export interface CaseHandoverContinueExpiredResult {
   caseId: string;
   confirmed: boolean;
   confirmedAt: string;
+}
+
+export interface CaseHandoverCockpitItem {
+  id: string;
+  direction: 'outgoing' | 'incoming';
+  packageId: string;
+  packageType: CaseHandoverPackageType;
+  status: 'active' | 'expired' | 'returned' | 'open' | 'completed';
+  createdAt: string;
+  validUntil?: string;
+  caseCount: number;
+  caseIds: string[];
+  caseLabels: string[];
+  targetInstanceId?: string;
+  canExportReturnDelta: boolean;
+}
+
+export interface CaseHandoverCockpit {
+  activeVacationCount: number;
+  expiredVacationCount: number;
+  returnableCount: number;
+  officeHandoverCount: number;
+  officeInventory: OfficeHandoverScope;
+  outgoing: CaseHandoverCockpitItem[];
+  incoming: CaseHandoverCockpitItem[];
 }

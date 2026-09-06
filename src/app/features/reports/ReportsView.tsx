@@ -17,7 +17,7 @@ export function ReportsView() {
     : null;
 
   return (
-    <WorkbenchPage title="Berichte" description="SBV-Fachberichte, Datenschutzprüfungen und Systemberichte als verschlüsselte PDF-Reports.">
+    <WorkbenchPage title="Berichte" description="SBV-Fachberichte, Datenschutzprüfungen und Systemberichte als verschlüsselte PDF-Reports." helpId="reports.overview">
       <ModuleFeedback items={[reports.message ? { id: 'reports-message', message: reports.message } : null]} />
       <section className="reports-workbench">
         <div className="reports-toolbar reports-toolbar-grid">

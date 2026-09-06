@@ -1,3 +1,5 @@
+import { OVERVIEW_HELP_ENTRIES } from './overviewHelpEntries';
+
 export type HelpContentBlock =
   { type: "paragraph"; text: string } | { type: "list"; items: string[] };
 
@@ -10,6 +12,7 @@ export type HelpRegistryEntry = {
 };
 
 export const HELP_REGISTRY = {
+  ...OVERVIEW_HELP_ENTRIES,
   "recruiting.overview": {
     id: "recruiting.overview",
     kicker: "Stellenbesetzungen",
@@ -96,31 +99,6 @@ export const HELP_REGISTRY = {
       {
         type: "paragraph",
         text: "Statusänderungen folgen der zulässigen Transition-Map und erzeugen Verlaufseinträge. Neue Vorgänge sollten aus dem jeweiligen Ausgangsvorgang heraus vorbereitet werden.",
-      },
-    ],
-  },
-
-  "bem.overview": {
-    id: "bem.overview",
-    kicker: "BEM",
-    title: "BEM-Übersicht",
-    summary: "Die Übersicht zeigt fallbezogene BEM-Verfahren und öffnet den jeweiligen Vorgang in der Fallakte.",
-    blocks: [
-      {
-        type: "paragraph",
-        text: "Neue BEM-Verfahren werden in der Fallakte angelegt, damit der Fallbezug eindeutig bleibt. Die Übersicht dient nur der Nachhaltung und Navigation.",
-      },
-    ],
-  },
-  "prevention.overview": {
-    id: "prevention.overview",
-    kicker: "Prävention",
-    title: "Präventionsübersicht",
-    summary: "Die Übersicht bündelt fallbezogene Präventionsverfahren und öffnet den jeweiligen Vorgang in der Fallakte.",
-    blocks: [
-      {
-        type: "paragraph",
-        text: "Die Bearbeitung bleibt in der Fallakte. Die Übersicht zeigt Status, Fristen und Risiken, damit offene Verfahren nicht untergehen.",
       },
     ],
   },
@@ -275,6 +253,82 @@ export const HELP_REGISTRY = {
     id: "elections.archive", kicker: "Wahlakte", title: "Abschluss, Aufbewahrung und Transfer",
     summary: "Bekanntmachung, Mitteilungen, physische Originale, PDF-Wahlakte, Legal Hold und geschützter Instanztransfer werden zusammengeführt.",
     blocks: [{ type: "paragraph", text: "Digitale Exporte ersetzen physische Originale nicht. Importierte Wahlakten erhalten lokale IDs; fremde Auditketten werden nicht in die lokale HashChain übernommen." }],
+  },
+  "caseHandover.overview": {
+    id: "caseHandover.overview", kicker: "Übergaben", title: "Übergaben und Vertretung steuern",
+    summary: "Der Bereich trennt zeitlich begrenzte Vertretung, Rückgabe, Amtsübergabe und Import in eigene Abläufe.",
+    blocks: [
+      { type: "paragraph", text: "Eine Urlaubs- oder Krankheitsvertretung überträgt nur ausgewählte Fallakten und läuft ab. Eine Amtsübergabe ist dauerhaft und enthält zusätzlich den erforderlichen Amtsbestand." },
+      { type: "paragraph", text: "Ein Übergabepaket ersetzt kein Backup und keine Synchronisation. Jede Instanz bleibt eigenständig; Import und Rückgabe werden vor dem Schreiben geprüft." },
+    ],
+  },
+  "caseHandover.vacation": {
+    id: "caseHandover.vacation", kicker: "Vertretung", title: "Zeitlich begrenzte Vertretung",
+    summary: "Nur die Fallakten auswählen, die während der Vertretung wirklich bearbeitet werden müssen.",
+    blocks: [
+      { type: "list", items: [
+        "Fallauswahl fachlich begrenzen und bei großen Beständen über Suche filtern.",
+        "Zielinstanz anhand der kurzen ID prüfen und den öffentlichen Empfänger-Token verwenden.",
+        "Vertretungsende setzen; nach Ablauf werden importierte Vertretungsdaten prüfbedürftig.",
+      ] },
+    ],
+  },
+  "caseHandover.returnDelta": {
+    id: "caseHandover.returnDelta", kicker: "Rückgabe", title: "Änderungen zurückgeben",
+    summary: "Das Rückgabe-Delta enthält nur Änderungen aus einer übernommenen Vertretung.",
+    blocks: [
+      { type: "paragraph", text: "Die Zuordnung erfolgt über das protokollierte Ausgangspaket. Dadurch wird verhindert, dass fremde oder nicht zusammengehörige Fallakten versehentlich vermischt werden." },
+    ],
+  },
+  "caseHandover.office": {
+    id: "caseHandover.office", kicker: "Amtswechsel", title: "Dauerhafte Amtsübergabe",
+    summary: "Die Amtsübergabe dient dem geordneten Wechsel zur gewählten Nachfolge.",
+    blocks: [
+      { type: "paragraph", text: "Übergeben werden ausgewählte Fallakten, erforderliche Dokumente, offene Fristen, Datenschutzstatus, Vorlagen, Fristenregeln und digitale Wahlakten. Das persönliche Tätigkeitsjournal bleibt ausgeschlossen." },
+      { type: "paragraph", text: "Vor dem Export muss der Umfang bewusst bestätigt werden. Physische Originale, Passwörter und externe Zugangsdaten sind nicht Bestandteil des Pakets." },
+    ],
+  },
+  "caseHandover.import": {
+    id: "caseHandover.import", kicker: "Import", title: "Paket prüfen und übernehmen",
+    summary: "Vor jeder Schreiboperation wird das Paket geprüft und ein Importplan angezeigt.",
+    blocks: [
+      { type: "paragraph", text: "Gremia.SBV schreibt erst nach ausdrücklicher Bestätigung. Bei Urlaubsvertretungen werden mögliche Gegenstücke angezeigt; Amtsübergaben werden als neuer lokaler Amtsbestand übernommen." },
+    ],
+  },
+  "caseHandover.history": {
+    id: "caseHandover.history", kicker: "Nachweis", title: "Übergabeprotokoll",
+    summary: "Das Protokoll zeigt lokale Nachweise ohne vertrauliche Inhaltsdaten.",
+    blocks: [
+      { type: "paragraph", text: "Gesendete, importierte und zurückgegebene Pakete werden mit Richtung, Zeitraum und Status nachgehalten. Inhalte der Fallakten oder Dokumente werden hier nicht offengelegt." },
+    ],
+  },
+  "caseHandover.recipientProfile": {
+    id: "caseHandover.recipientProfile", kicker: "Zielinstanz", title: "Empfängerprofil verwenden",
+    summary: "Gespeicherte Profile vermeiden Kopierfehler bei wiederkehrenden Übergabezielen.",
+    blocks: [
+      { type: "paragraph", text: "Ein Profil enthält die öffentliche Empfängerkennung der Zielinstanz. Passphrasen und private Schlüssel werden nicht gespeichert." },
+    ],
+  },
+  "caseHandover.targetInstanceId": {
+    id: "caseHandover.targetInstanceId", kicker: "Zielinstanz", title: "Kurze Instanz-ID prüfen",
+    summary: "Die fünfstellige ID ist eine gut lesbare Kontrolle, nicht der vollständige Schlüssel.",
+    blocks: [
+      { type: "paragraph", text: "Vergleiche diese ID mit der Zielinstanz, bevor du exportierst. Die eigentliche technische Bindung erfolgt über die vollständige öffentliche Empfängerkennung." },
+    ],
+  },
+  "caseHandover.recipientToken": {
+    id: "caseHandover.recipientToken", kicker: "Empfängerkennung", title: "Öffentliche Empfängerkennung",
+    summary: "Der lange Token enthält Instanz-ID, Fingerprint und öffentlichen Schlüssel.",
+    blocks: [
+      { type: "paragraph", text: "Die Empfängerkennung darf weitergegeben werden. Sie enthält keinen privaten Schlüssel, muss aber vollständig und unverändert aus der Zielinstanz übernommen werden." },
+    ],
+  },
+  "caseHandover.protectionMode": {
+    id: "caseHandover.protectionMode", kicker: "Schutzart", title: "Schutzart der Übergabe",
+    summary: "Übergaben sind immer zielgebunden; zusätzlich kann eine Transport-Passphrase verlangt werden.",
+    blocks: [
+      { type: "paragraph", text: "Empfängerschlüssel plus Passphrase ist der robuste Standard. Schlüssel-only ist nur sinnvoll, wenn die Zielinstanz eindeutig bekannt ist und organisatorisch keine geteilte Passphrase genutzt werden soll." },
+    ],
   },
   "sbvOffice.meetings": {
     id: "sbvOffice.meetings", kicker: "Gremien", title: "SBV-Sicht auf Sitzungen",

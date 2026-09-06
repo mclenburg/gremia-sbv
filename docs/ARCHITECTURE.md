@@ -44,6 +44,8 @@ Die Fallübergabe ist ein eigenständiger, verschlüsselter Transferpfad für au
 
 Die Importentscheidung bleibt fachlich bei der nutzenden Person. Mögliche Gegenstücke können vorgeschlagen werden, aber es gibt keine stille Zusammenführung. Ablaufdatum, Importablehnung abgelaufener Pakete und begründungspflichtige Weiterbearbeitung bereits importierter abgelaufener Daten sind Teil der Fachlogik.
 
+Die Bewertung eines Imports läuft über einen zentralen Importplan. Er klassifiziert gefundene Gegenstücke als sicheren Treffer, möglichen Treffer oder echten Konflikt. Nur ein eindeutiger sicherer Treffer darf als Zusammenführung vorgeschlagen werden; echte Konflikte sperren den Merge-Pfad serverseitig. Erfolgreich importierte Übergabedaten werden immer als konkreter Datenschutzprüfauftrag markiert, damit Zweckbindung, Vertretungsende und Fortführung nicht in der Fallakte verschwinden.
+
 ### Gremia.BR-Kooperationsbrücke
 
 Die Gremia.BR-Anbindung ist optional, standardmäßig deaktiviert und nur im konfigurierten Gremia.BR-Bereich sichtbar. Sie nutzt eine harte Endpunkt-Whitelist, speichert Zugangsdaten im Vault und führt Netzwerkzugriffe nur auf explizite Nutzeraktion aus. Lesende Abrufe liefern BR-Kontext; schreibende Aktionen sind auf ausdrücklich modellierte SBV-Arbeitsbereichsaktionen begrenzt. Der lokale Lesecache ist auf 30 Tage begrenzt und wird bei deaktivierter Anbindung geleert.

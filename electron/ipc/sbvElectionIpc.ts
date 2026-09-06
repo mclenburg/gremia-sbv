@@ -122,16 +122,17 @@ export function registerSbvElectionIpc(ipcMain:IpcMain,_security:SecurityService
   const saved=await services.electionArchive().exportDocumentToFile(validatedDocumentId,result.filePath);
   return{...saved,fileName:path.basename(result.filePath)};
  });
- registerIpcHandler(ipcMain,IPC_CHANNELS.electionsTransferExport,async(_e,id,passphrase)=>services.electionTransfer().export(eid(id,'elections:transfer:export'),_security.getVaultTransferSourceId(),assertString(passphrase,'elections:transfer:export','Passphrase',{minLength:10,maxLength:500})));
+ registerIpcHandler(ipcMain,IPC_CHANNELS.electionsTransferExport,async(_e,id,passphrase,targetRecipientToken)=>services.electionTransfer().export(eid(id,'elections:transfer:export'),_security.getVaultTransferSourceId(),assertString(passphrase,'elections:transfer:export','Passphrase',{minLength:10,maxLength:500}),assertString(targetRecipientToken,'elections:transfer:export','Empfängerkennung',{minLength:20,maxLength:5000})));
  registerIpcHandler(ipcMain,IPC_CHANNELS.electionsTransferInspect,async(_e,envelope,passphrase)=>services.electionTransfer().inspect(assertRecordInput<ElectionTransferEnvelope>(envelope,'elections:transfer:inspect'),assertString(passphrase,'elections:transfer:inspect','Passphrase',{minLength:10,maxLength:500})));
  registerIpcHandler(ipcMain,IPC_CHANNELS.electionsTransferImport,async(_e,envelope,passphrase)=>services.electionTransfer().import(assertRecordInput<ElectionTransferEnvelope>(envelope,'elections:transfer:import'),assertString(passphrase,'elections:transfer:import','Passphrase',{minLength:10,maxLength:500})));
- registerIpcHandler(ipcMain,IPC_CHANNELS.electionsTransferExportFile,async(_e,id,passphrase,suggestedFileName)=>{
+ registerIpcHandler(ipcMain,IPC_CHANNELS.electionsTransferExportFile,async(_e,id,passphrase,targetRecipientToken,suggestedFileName)=>{
   const electionId=eid(id,'elections:transfer:exportFile');
   const validatedPassphrase=assertString(passphrase,'elections:transfer:exportFile','Passphrase',{minLength:10,maxLength:500});
+  const validatedTargetRecipientToken=assertString(targetRecipientToken,'elections:transfer:exportFile','Empfängerkennung',{minLength:20,maxLength:5000});
   const safeName=sanitizeDialogFileName(suggestedFileName,'elections:transfer:exportFile','Dateiname')??`wahlakte-${electionId.slice(0,8)}.gsbvelection`;
   const result=await dialog.showSaveDialog({title:'Geschützte Gremia.SBV-Wahlakte speichern',defaultPath:safeName.toLowerCase().endsWith('.gsbvelection')?safeName:`${safeName}.gsbvelection`,buttonLabel:'Wahlakte speichern',filters:[{name:'Gremia.SBV Wahlakte',extensions:['gsbvelection']}]});
   if(result.canceled||!result.filePath)return{exported:false,fileName:'',packageId:'',electionId,createdAt:'',formatVersion:0,legalRuleVersion:'',itemCount:0,manifestHash:''};
-  const inspection=await services.electionTransfer().exportToFile(electionId,_security.getVaultTransferSourceId(),validatedPassphrase,result.filePath);
+  const inspection=await services.electionTransfer().exportToFile(electionId,_security.getVaultTransferSourceId(),validatedPassphrase,validatedTargetRecipientToken,result.filePath);
   return{...inspection,exported:true,fileName:path.basename(result.filePath)};
  });
  registerIpcHandler(ipcMain,IPC_CHANNELS.electionsTransferSelectInspect,async(_e,passphrase)=>{

@@ -1,10 +1,14 @@
 import { describe, expect, it } from 'vitest';
+import { createElement } from 'react';
 import { CaseRegister } from '../../../../src/app/features/cases/CaseRegister';
 import { CaseDetailPanel } from '../../../../src/app/features/cases/CaseDetailPanel';
 import { CaseHandoverTransferDialogs } from '../../../../src/app/features/cases/CaseHandoverTransferDialogs';
+import { CaseHandoverCockpitView } from '../../../../src/app/features/case-handover/CaseHandoverCockpitView';
+import { CaseHandoverCasePicker } from '../../../../src/app/features/case-handover/CaseHandoverCasePicker';
 import { ImportPackageReview } from '../../../../src/app/shared/components/ImportExportFeedback';
+import { LiveRegionProvider } from '../../../../src/app/shared/a11y/LiveRegionProvider';
 import type { CaseRecord } from '../../../../src/domain/models/case.model';
-import { descendants, findDescendants, renderComponent, visibleText } from '../../../helpers/renderedMarkup';
+import { descendants, findDescendants, renderComponent, renderElement, visibleText } from '../../../helpers/renderedMarkup';
 
 const caseRecord: CaseRecord = {
   id: 'case-1',
@@ -18,11 +22,68 @@ const caseRecord: CaseRecord = {
   isLocked: false,
 };
 
+const importPlan = {
+  transferKind: 'case_handover' as const,
+  defaultMode: 'create_new' as const,
+  mergeAllowed: false,
+  requiresExplicitDecision: true,
+  privacyReviewRequired: true,
+  retentionReviewRequired: false,
+  safeMatchCount: 0,
+  possibleMatchCount: 0,
+  conflictCount: 0,
+  decisions: [],
+};
+
 function noopForm(event?: { preventDefault: () => void }) {
   event?.preventDefault();
 }
 
 describe('case handover placement 0.9.2', () => {
+  it('führt Übergaben über Register statt alle Arbeitsformulare gleichzeitig anzuzeigen', () => {
+    const { markup } = renderElement(createElement(LiveRegionProvider, {
+      children: createElement(CaseHandoverCockpitView, {
+        cases: [caseRecord],
+        onRecordsChanged: async () => undefined,
+      }),
+    }));
+    const text = visibleText(markup);
+
+    expect(markup).toContain('<nav');
+    expect(markup).toContain('aria-label="Übergabe-Arbeitsbereiche Navigation"');
+    expect(text).toContain('Übersicht');
+    expect(text).toContain('Urlaubsvertretung');
+    expect(text).toContain('Rückgabe');
+    expect(text).toContain('Amtsübergabe');
+    expect(text).toContain('Import');
+    expect(text).toContain('Protokoll');
+    expect(text).toContain('Was ist als Nächstes zu tun?');
+    expect(text).not.toContain('Fallakten für die Vertretung');
+    expect(text).not.toContain('Erforderliche Fallakten für die Amtsübergabe');
+  });
+
+  it('begrenzt große Fallauswahlen auf eine kompakte, filterbare Trefferliste', () => {
+    const manyCases = Array.from({ length: 30 }, (_, index) => ({
+      ...caseRecord,
+      id: `case-${index + 1}`,
+      caseNumber: `SBV-2026-${String(index + 1).padStart(3, '0')}`,
+      displayName: `Testperson ${index + 1}`,
+    }));
+    const { markup } = renderComponent(CaseHandoverCasePicker, {
+      cases: manyCases,
+      selectedIds: [],
+      onChange: () => undefined,
+      legend: 'Fallakten auswählen',
+    });
+    const text = visibleText(markup);
+
+    expect(text).toContain('Fallakten filtern');
+    expect(text).toContain('20 von 30 Treffern angezeigt');
+    expect(text).toContain('SBV-2026-020');
+    expect(text).not.toContain('SBV-2026-021');
+    expect(text).toContain('Keine Fallakte ausgewählt.');
+  });
+
   it('platziert Import global in der Fallliste und Export in der Fallakten-Suchzeile', () => {
     const register = renderComponent(CaseRegister, {
       filteredCount: 1,
@@ -73,7 +134,7 @@ describe('case handover placement 0.9.2', () => {
       onCloseContinueExpired: () => undefined,
       onExport: async () => ({ exported: false, filePath: '', packageId: '', caseCount: 0, measureCount: 0, documentCount: 0, deadlineCount: 0 }),
       onSelectImportFile: async () => ({ canceled: true }),
-      onInspectImport: async () => ({ valid: true, packageId: 'pkg-1', createdAt: '2026-05-01T08:00:00.000Z', caseCount: 0, measureCount: 0, documentCount: 0, deadlineCount: 0, matches: [], isExpired: false, warnings: [] }),
+      onInspectImport: async () => ({ valid: true, packageId: 'pkg-1', packageType: 'vacation_handover', createdAt: '2026-05-01T08:00:00.000Z', caseCount: 0, measureCount: 0, documentCount: 0, deadlineCount: 0, matches: [], importPlan, isExpired: false, warnings: [] }),
       onImport: async () => undefined,
       onContinueExpired: async () => undefined,
     });
@@ -101,7 +162,7 @@ describe('case handover placement 0.9.2', () => {
       onCloseContinueExpired: () => undefined,
       onExport: async () => ({ exported: false, filePath: '', packageId: '', caseCount: 0, measureCount: 0, documentCount: 0, deadlineCount: 0 }),
       onSelectImportFile: async () => ({ canceled: true }),
-      onInspectImport: async () => ({ valid: true, packageId: 'pkg-1', createdAt: '2026-05-01T08:00:00.000Z', caseCount: 0, measureCount: 0, documentCount: 0, deadlineCount: 0, matches: [], isExpired: false, warnings: [] }),
+      onInspectImport: async () => ({ valid: true, packageId: 'pkg-1', packageType: 'vacation_handover', createdAt: '2026-05-01T08:00:00.000Z', caseCount: 0, measureCount: 0, documentCount: 0, deadlineCount: 0, matches: [], importPlan, isExpired: false, warnings: [] }),
       onImport: async () => undefined,
       onContinueExpired: async () => undefined,
     });

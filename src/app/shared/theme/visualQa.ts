@@ -13,6 +13,8 @@ export const VISUAL_QA_ROUTES: readonly VisualQaRoute[] = [
   { id: 'deadlines', navName: 'Fristen', heading: /Fristen/i },
   { id: 'activity_journal', navName: 'Journal', heading: /Tätigkeitsjournal/i },
   { id: 'meetings', navName: 'Sitzungen', heading: /Gremiensitzungen/i },
+  { id: 'sbv_control', navName: 'Dokumentation', heading: /SBV-Dokumentation/i },
+  { id: 'case_handover', navName: 'Übergaben', heading: /Übergaben.*Vertretung/i },
   { id: 'participation_violations', navName: 'Verstöße', heading: /Beteiligungsverstöße/i },
   { id: 'recruiting_participations', navName: 'Stellenbesetzungen', heading: /Stellenbesetzungen/i },
   { id: 'equalization', navName: 'Gleichstellung', heading: /Gleichstellung|GdB/i },
@@ -22,14 +24,12 @@ export const VISUAL_QA_ROUTES: readonly VisualQaRoute[] = [
   { id: 'contacts', navName: 'Kontakte', heading: /Kontakte/i },
   { id: 'compliance', navName: 'Compliance', heading: /Compliance Center/i },
   { id: 'privacy_review', navName: 'Datenschutzprüfung', heading: /Datenschutzprüfung.*Löschung|Lösch- und Datenschutzprüfung/i },
-  { id: 'sbv_control', navName: 'Dokumentation', heading: /SBV-Dokumentation/i },
   { id: 'reports', navName: 'Berichte', heading: /Berichte/i },
   { id: 'settings', navName: 'Einstellungen', heading: /Einstellungen/i },
 ];
 
 
 export const WORKBENCH_LAYOUT_QA_EXEMPT_ROUTE_IDS = [
-  'privacy_review',
   'settings',
 ] as const;
 
@@ -43,10 +43,24 @@ export const WORKBENCH_LAYOUT_QA_ROUTES = VISUAL_QA_ROUTES.filter(
 
 
 export const HELP_DIALOG_QA_ROUTE_IDS = [
+  'cases',
+  'deadlines',
+  'persons',
+  'meetings',
+  'sbv_control',
   'recruiting_participations',
   'participation_violations',
+  'equalization',
   'activity_journal',
   'elections',
+  'case_handover',
+  'templates',
+  'knowledge',
+  'contacts',
+  'reports',
+  'compliance',
+  'privacy_review',
+  'settings',
 ] as const;
 
 export function isHelpDialogQaRoute(routeId: string): boolean {

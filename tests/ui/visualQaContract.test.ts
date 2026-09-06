@@ -10,6 +10,7 @@ import {
   isRoundedLegacyPill,
   type VisualSurfaceSample,
 } from '../../src/app/shared/theme/visualQa';
+import { getNavigationModules } from '../../src/app/core/navigation/modules';
 
 function sample(partial: Partial<VisualSurfaceSample>): VisualSurfaceSample {
   return {
@@ -25,22 +26,7 @@ describe('P11 visual QA contract', () => {
   it('covers the complete primary navigation matrix including settings', () => {
     expect(VISUAL_QA_ROUTES.map((route) => route.id)).toEqual([
       'dashboard',
-      'persons',
-      'cases',
-      'deadlines',
-      'activity_journal',
-      'meetings',
-      'participation_violations',
-      'recruiting_participations',
-      'equalization',
-      'elections',
-      'templates',
-      'knowledge',
-      'contacts',
-      'compliance',
-      'privacy_review',
-      'sbv_control',
-      'reports',
+      ...getNavigationModules().map((module) => module.id),
       'settings',
     ]);
   });
@@ -71,7 +57,7 @@ describe('P11 visual QA contract', () => {
 
 
   it('trennt Visual-/Axe-Abdeckung von strengem Workbench-Layout-Vertrag', () => {
-    expect(WORKBENCH_LAYOUT_QA_EXEMPT_ROUTE_IDS).toEqual(['privacy_review', 'settings']);
+    expect(WORKBENCH_LAYOUT_QA_EXEMPT_ROUTE_IDS).toEqual(['settings']);
 
     const visualRouteIds = new Set(VISUAL_QA_ROUTES.map((route) => route.id));
     const workbenchRouteIds = new Set(WORKBENCH_LAYOUT_QA_ROUTES.map((route) => route.id));
@@ -81,7 +67,7 @@ describe('P11 visual QA contract', () => {
     expect(visualRouteIds.has('settings')).toBe(true);
     expect(visualRouteIds.has('privacy_review')).toBe(true);
     expect(workbenchRouteIds.has('settings')).toBe(false);
-    expect(workbenchRouteIds.has('privacy_review')).toBe(false);
+    expect(workbenchRouteIds.has('privacy_review')).toBe(true);
     expect(workbenchRouteIds.has('recruiting_participations')).toBe(true);
     expect(workbenchRouteIds.has('participation_violations')).toBe(true);
   });
@@ -91,6 +77,29 @@ describe('P11 visual QA contract', () => {
     const routeIds = new Set(VISUAL_QA_ROUTES.map((route) => route.id));
     for (const routeId of HELP_DIALOG_QA_ROUTE_IDS) {
       expect(routeIds.has(routeId)).toBe(true);
+    }
+  });
+
+  it('prüft Standard-Hilfen für alle dafür verpflichtenden Hauptarbeitsbereiche', () => {
+    const helpRouteIds = new Set<string>(HELP_DIALOG_QA_ROUTE_IDS);
+    for (const routeId of [
+      'persons',
+      'cases',
+      'deadlines',
+      'activity_journal',
+      'meetings',
+      'sbv_control',
+      'case_handover',
+      'equalization',
+      'templates',
+      'knowledge',
+      'contacts',
+      'reports',
+      'compliance',
+      'privacy_review',
+      'settings',
+    ]) {
+      expect(helpRouteIds.has(routeId), `${routeId} braucht einen geprüften Hilfe-Dialog`).toBe(true);
     }
   });
 
