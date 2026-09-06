@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "hardcodedHexOutsideDesignTokens": 126,
+  "focusVisibleOccurrences": 74,
+  "uniqueFontSizeValues": 54,
+  "uniquePaddingValues": 98,
+  "nativeFormControlsWithoutExplicitClassName": 110,
+  "allowedMediaBreakpoints": [
+    "440px",
+    "44rem",
+    "520px",
+    "560px",
+    "680px",
+    "720px",
+    "760px",
+    "820px",
+    "860px",
+    "900px",
+    "980px",
+    "1050px",
+    "1051px",
+    "1100px",
+    "1180px",
+    "1250px",
+    "1280px",
+    "78rem"
+  ]
+}

@@ -52,6 +52,17 @@ Die Oberfläche bildet den fachlichen Arbeitsablauf ab. Sie darf Nutzende nicht 
 - Gleiche Funktionen stehen modulübergreifend an derselben Stelle und verwenden dieselben zentralen Komponenten. Dekorative Icons, Hover-Effekte und Zeiger-Cursor sind nur auf tatsächlich interaktiven Elementen zulässig.
 - SBV-Beteiligungsmaßnahmen werden ausschließlich in der jeweiligen Fallakte bearbeitet. Eine zusätzliche Hauptnavigation oder parallele Querschnittsbearbeitung ist unzulässig. Ein Arbeitgeberverstoß wird als eigener strukturierter Verstoßvorgang geführt; entsteht er aus einer Beteiligungsmaßnahme, werden beide Vorgänge fachlich verknüpft und wechselseitig erreichbar gemacht. Allgemeine Arbeitgeberverstöße dürfen fall- und personenunabhängig bestehen.
 
+## 5a. UI- und CSS-Styleguide
+
+Der verbindliche Styleguide steht in `docs/ui-styleguide.md`. Neue und geänderte Oberflächen müssen ihn einhalten; bestehende Altlasten werden nur als Ratchet-Baseline akzeptiert und dürfen nicht wachsen.
+
+- Neue oder geänderte Komponenten verwenden die öffentliche `--industrial-*`-Token-Schicht. Neue Hex-Farben außerhalb `src/app/ui/designTokens.css` sind unzulässig.
+- Neue lokale `:focus-visible`-Sonderregeln sind unzulässig, außer eine ausdrücklich begründete technische Barrierefreiheitsausnahme wird vorab freigegeben. Standard ist der zentrale Fokus über `--focus-ring`.
+- Neue freie `font-size`-, `padding`-, `margin-`, `gap-` und Breakpoint-Einzelwerte sind zu vermeiden. Bestehende Token, zentrale Komponenten und die definierte Skala sind zu verwenden.
+- Native Formularfelder und Buttons müssen über zentrale Komponenten oder explizite zentrale Klassen gestaltet werden. Neue unklassierte native Controls sind ein Designbruch.
+- Dauerhafte Bedienhinweise gehören nicht in Standardmasken. Hilfen werden über den zentralen Hilfe-Button und die Help-Registry angeboten.
+- `npm run architecture:ui-style:check` ist Teil von `build:verify` und blockiert neue CSS-/UI-Governance-Verstöße.
+
 ## 6. Dokumente und PDF-Erzeugung
 
 - Alle Dokumente werden unabhängig von Modul und Ursprung über die zentrale Dokument-Pipeline erzeugt, gespeichert, entschlüsselt, für die externe Vorschau bereitgestellt und exportiert.
