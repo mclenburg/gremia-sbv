@@ -18,5 +18,6 @@ release/
 /test-results.zip
 /coverage/
 /data/
+/maintenance/build-state/compiled-artifacts.json
 
 /.e2e-tools/
