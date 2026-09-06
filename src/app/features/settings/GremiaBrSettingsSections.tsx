@@ -162,7 +162,9 @@ export function GremiaBrWorkspaceBodySection({
       )}
       {workspaceBodies.length > 0 && (
         <div className="industrial-list mt-3" role="list" aria-label="Berechtigte SBV-Gremien aus Gremia.BR">
-          {filteredWorkspaceBodies.map((body) => (
+          {filteredWorkspaceBodies.length === 0 ? (
+            <div className="industrial-empty-state" role="listitem">Keine passenden SBV-Gremien gefunden.</div>
+          ) : filteredWorkspaceBodies.map((body) => (
             <div className="industrial-list-row" role="listitem" key={body.bodyId}>
               <div>
                 <strong>{body.bodyName}</strong>

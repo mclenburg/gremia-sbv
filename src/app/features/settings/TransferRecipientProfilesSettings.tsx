@@ -70,7 +70,7 @@ export function TransferRecipientProfilesSettings() {
       </ButtonGroup>
 
       <div className="industrial-list" role="list" aria-label="Gespeicherte Empfängerprofile">
-        {profiles.length === 0 ? <div className="industrial-empty-state">Noch kein Empfängerprofil gespeichert.</div> : profiles.map((profile) => (
+        {profiles.length === 0 ? <div className="industrial-empty-state" role="listitem">Noch kein Empfängerprofil gespeichert.</div> : profiles.map((profile) => (
           <div className="industrial-list-row" role="listitem" key={profile.id}>
             <div>
               <strong>{profile.label}</strong>

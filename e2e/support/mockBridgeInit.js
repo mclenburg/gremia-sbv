@@ -70,6 +70,16 @@
     },
   ];
 
+  const transferIdentity = {
+    instanceId: 'E2E4X',
+    keyFingerprint: '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
+    publicKeyPem: '-----BEGIN PUBLIC KEY-----\nE2E SYNTHETIC PUBLIC KEY\n-----END PUBLIC KEY-----',
+    recipientToken: 'GSBV1.E2E4X.0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef.PUBLICKEY',
+    createdAt: now,
+  };
+
+  const transferRecipientProfiles = [];
+
   const deadlines = [
     {
       id: 'deadline-test-0001',
@@ -634,6 +644,7 @@
     ocrTexts,
     privacyReviews,
     contacts,
+    transferRecipientProfiles,
   ];
   const resettableCollectionSnapshots = resettableCollections.map((collection) => cloneForIpc(collection));
   const activityJournalPreferencesSnapshot = cloneForIpc(activityJournalPreferences);
@@ -715,7 +726,39 @@
         return { unlocked: false };
       },
       temporaryFileStatus: async () => ({ remaining: 0, files: [] }),
+      cleanupTemporaryFiles: async () => ({ deleted: 0, failed: 0, remaining: 0, bytesRemaining: 0 }),
       purgeTemporaryFiles: async () => ({ removed: 0, remaining: 0 }),
+    },
+
+    transferIdentity: {
+      get: async () => ({ ...transferIdentity }),
+      listRecipientProfiles: async () => transferRecipientProfiles.map((profile) => ({ ...profile })),
+      saveRecipientProfile: async (input) => {
+        const row = {
+          id: `transfer-profile-${Date.now()}`,
+          label: String(input?.label || 'E2E-Empfängerprofil'),
+          instanceId: transferIdentity.instanceId,
+          keyFingerprint: transferIdentity.keyFingerprint,
+          recipientToken: String(input?.recipientToken || transferIdentity.recipientToken),
+          active: true,
+          createdAt: now,
+          updatedAt: now,
+        };
+        transferRecipientProfiles.unshift(row);
+        return { ...row };
+      },
+      setRecipientProfileActive: async (id, active) => {
+        const row = transferRecipientProfiles.find((profile) => profile.id === id);
+        if (!row) throw new Error('Empfängerprofil nicht gefunden.');
+        row.active = !!active;
+        row.updatedAt = now;
+        return { ...row };
+      },
+      deleteRecipientProfile: async (id) => {
+        const index = transferRecipientProfiles.findIndex((profile) => profile.id === id);
+        if (index >= 0) transferRecipientProfiles.splice(index, 1);
+        return { deleted: true };
+      },
     },
     cases: {
       list: async () => cases,
@@ -742,6 +785,22 @@
         outgoing: [],
         incoming: [],
       }),
+      checklist: async (input) => {
+        const selectedCases = Array.isArray(input?.caseIds) ? input.caseIds.filter(Boolean) : [];
+        const packageType = input?.packageType || 'vacation_handover';
+        const items = selectedCases.length
+          ? [{ id: 'case_selection', label: `${selectedCases.length} Fallakte(n) ausgewählt`, description: 'Die Auswahl bestimmt den fachlichen Umfang der Übergabe.', state: 'ready', requiresAcknowledgement: false }]
+          : [{ id: 'case_selection', label: 'Fallauswahl fehlt', description: 'Für eine Übergabe muss mindestens eine konkrete Fallakte ausgewählt sein.', state: 'blocking', requiresAcknowledgement: false }];
+        if (packageType === 'office_handover') {
+          items.push({ id: 'office_scope', label: 'Amtsbestand statt Privatjournal', description: 'Vorlagen, Fristenregeln, Wahlakten und Datenschutzstatus gehören zur Amtsübergabe; das persönliche Tätigkeitsjournal bleibt ausgeschlossen.', state: 'attention', requiresAcknowledgement: true });
+        }
+        if (packageType === 'return_delta') {
+          items.push({ id: 'return_delta_scope', label: 'Nur Änderungen aus der Vertretung', description: 'Das Rückgabepaket enthält nur seit dem Import hinzugekommene oder geänderte Fallinhalte.', state: 'attention', requiresAcknowledgement: true });
+        }
+        const blockingItemIds = items.filter((item) => item.state === 'blocking').map((item) => item.id);
+        const requiredAcknowledgementIds = items.filter((item) => item.requiresAcknowledgement).map((item) => item.id);
+        return { packageType, caseCount: selectedCases.length, items, blockingItemIds, requiredAcknowledgementIds, readyToExport: blockingItemIds.length === 0 };
+      },
       export: async (input) => ({
         exported: true,
         filePath: input.packageType === 'office_handover' ? '/tmp/amtsuebergabe.gsbvtransfer' : '/tmp/urlaubsvertretung.gsbvtransfer',
