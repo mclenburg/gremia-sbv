@@ -87,6 +87,12 @@ export class MigrationInference extends MigrationCore {
   }
 
   private looksAppliedCurrent(version: string): boolean {
+    return version < '0041'
+      ? this.looksAppliedApplicationSchema(version)
+      : this.looksAppliedWorkflowSchema(version);
+  }
+
+  private looksAppliedApplicationSchema(version: string): boolean {
     switch (version) {
         case '0025':
           return this.tableExists('protected_persons')
@@ -150,6 +156,13 @@ export class MigrationInference extends MigrationCore {
         case '0040':
           return this.tableExists('sbv_control_protocols')
             && SBV_CONTROL_PROTOCOLS_REQUIRED_COLUMNS.every((column) => this.columnExists('sbv_control_protocols', column));
+      default:
+        return false;
+    }
+  }
+
+  private looksAppliedWorkflowSchema(version: string): boolean {
+    switch (version) {
         case '0041':
           return this.tableExists('activity_journal_entries')
             && this.tableExists('activity_journal_links')

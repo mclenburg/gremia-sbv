@@ -1,36 +1,24 @@
-import { createCipheriv, createDecipheriv, createHash, randomBytes, scryptSync } from 'node:crypto';
+import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto';
 import { CASE_HANDOVER_FORMAT, CASE_HANDOVER_LEGACY_VERSION, CASE_HANDOVER_PASSPHRASE_VERSION, CASE_HANDOVER_TARGET_BOUND_LEGACY_VERSION, CASE_HANDOVER_VERSION } from './caseHandoverPolicy.js';
 import type { TransferProtectionMode } from '../src/domain/models/case-handover.model.js';
 import type { TransferRecipientIdentity } from '../src/domain/models/transfer-identity.model.js';
 import type { TransferInstancePrivateIdentity } from './transferInstanceIdentityService.js';
 import {
   assertTransferRecipientBinding,
+  assertKdfParams,
+  CURRENT_TRANSFER_SCRYPT_PARAMS,
+  deriveTransferKey,
   decryptTargetBoundTransferPayload,
   encryptTargetBoundTransferPayload,
+  safeDestroyBuffer,
+  sha256,
   type TargetBoundTransferEnvelope,
+  type TransferCryptoHeader,
+  type TransferKdfParams,
   type TransferRecipientBinding,
 } from './targetBoundTransferCrypto.js';
 
-export type TransferKdfParams = {
-  N: number;
-  r: number;
-  p: number;
-  maxmem?: number;
-};
-
-type TransferCryptoHeader = {
-  algorithm: 'aes-256-gcm';
-  kdf: 'scrypt';
-  kdfParams: TransferKdfParams;
-  salt: string;
-  iv: string;
-} | {
-  algorithm: 'aes-256-gcm';
-  kdf: 'hkdf-sha256';
-  kdfParams?: undefined;
-  salt: string;
-  iv: string;
-};
+export { CURRENT_TRANSFER_SCRYPT_PARAMS, type TransferKdfParams } from './targetBoundTransferCrypto.js';
 
 export type CaseHandoverEnvelopeV1 = {
   format: string;
@@ -72,30 +60,11 @@ export type DecryptedTransferPayload = {
   protectionMode?: TransferProtectionMode;
 };
 
-export const CURRENT_TRANSFER_SCRYPT_PARAMS: TransferKdfParams = {
-  N: 131_072,
-  r: 8,
-  p: 1,
-  maxmem: 256 * 1024 * 1024,
-};
-
 export const LEGACY_TRANSFER_SCRYPT_PARAMS: TransferKdfParams = {
   N: 16_384,
   r: 8,
   p: 1,
 };
-
-function sha256(value: Buffer | string): string {
-  return createHash('sha256').update(value).digest('hex');
-}
-
-function safeDestroyBuffer(buffer: Buffer): void {
-  buffer.fill(0);
-}
-
-function deriveTransferKey(passphrase: string, salt: Buffer, params: TransferKdfParams): Buffer {
-  return scryptSync(passphrase, salt, 32, params.maxmem ? { N: params.N, r: params.r, p: params.p, maxmem: params.maxmem } : { N: params.N, r: params.r, p: params.p });
-}
 
 function buildAadV1(envelope: Pick<CaseHandoverEnvelopeV1, 'format' | 'version' | 'packageId' | 'createdAt' | 'expiresAt' | 'kdf' | 'algorithm'>): Buffer {
   return Buffer.from(JSON.stringify({
@@ -138,18 +107,6 @@ function assertBase64(value: unknown, field: string): string {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-function assertKdfParams(value: unknown): TransferKdfParams {
-  if (!isRecord(value)) throw new Error('Fallübergabepaket enthält keine gültigen KDF-Parameter.');
-  const N = Number(value.N);
-  const r = Number(value.r);
-  const p = Number(value.p);
-  const maxmem = value.maxmem === undefined || value.maxmem === null ? undefined : Number(value.maxmem);
-  if (!Number.isInteger(N) || N < 65_536) throw new Error('Fallübergabepaket nutzt keine zulässigen KDF-Parameter.');
-  if (!Number.isInteger(r) || r < 1 || !Number.isInteger(p) || p < 1) throw new Error('Fallübergabepaket nutzt keine zulässigen KDF-Parameter.');
-  if (maxmem !== undefined && (!Number.isInteger(maxmem) || maxmem < 128 * 1024 * 1024)) throw new Error('Fallübergabepaket nutzt keine zulässigen KDF-Parameter.');
-  return { N, r, p, maxmem };
 }
 
 export function assertCaseHandoverEnvelope(value: unknown): CaseHandoverEnvelope {

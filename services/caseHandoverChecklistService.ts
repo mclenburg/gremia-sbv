@@ -38,93 +38,127 @@ export class CaseHandoverChecklistService {
     expiresAt?: string;
   }): CaseHandoverChecklist {
     const caseIds = unique(input.caseIds);
-    const items: CaseHandoverChecklistItem[] = [];
     const packageType = input.packageType;
+    const items = [
+      this.buildCaseSelectionItem(caseIds),
+      ...this.buildVacationItems(packageType, input.expiresAt),
+      ...this.buildCaseStateItems(caseIds),
+      ...this.buildScopeItems(packageType),
+    ];
 
+    const blockingItemIds = items.filter((entry) => entry.state === 'blocking').map((entry) => entry.id);
+    const requiredAcknowledgementIds = items.filter((entry) => entry.requiresAcknowledgement).map((entry) => entry.id);
+    return {
+      packageType,
+      caseCount: caseIds.length,
+      items,
+      blockingItemIds,
+      requiredAcknowledgementIds,
+      readyToExport: blockingItemIds.length === 0,
+    };
+  }
+
+  private buildCaseSelectionItem(caseIds: readonly string[]): CaseHandoverChecklistItem {
     if (!caseIds.length) {
-      items.push(item({
+      return item({
         id: 'case_selection',
         label: 'Fallauswahl fehlt',
         description: 'Für eine Übergabe muss mindestens eine konkrete Fallakte ausgewählt sein.',
         state: 'blocking',
         requiresAcknowledgement: false,
-      }));
-    } else {
-      items.push(item({
-        id: 'case_selection',
-        label: `${caseIds.length} Fallakte(n) ausgewählt`,
-        description: 'Die Auswahl bestimmt den fachlichen Umfang der Übergabe.',
-        state: 'ready',
+      });
+    }
+    return item({
+      id: 'case_selection',
+      label: `${caseIds.length} Fallakte(n) ausgewählt`,
+      description: 'Die Auswahl bestimmt den fachlichen Umfang der Übergabe.',
+      state: 'ready',
+      requiresAcknowledgement: false,
+    });
+  }
+
+  private buildVacationItems(packageType: CaseHandoverPackageType, expiresAt?: string): CaseHandoverChecklistItem[] {
+    if (packageType !== 'vacation_handover') return [];
+
+    if (!expiresAt || new Date(expiresAt).getTime() <= Date.now()) {
+      return [item({
+        id: 'valid_until',
+        label: 'Ablaufdatum prüfen',
+        description: 'Urlaubsvertretungen brauchen ein zukünftiges Ende, damit die Rückgabe und Datenschutzprüfung steuerbar bleiben.',
+        state: 'blocking',
         requiresAcknowledgement: false,
-      }));
+      })];
     }
 
-    if (packageType === 'vacation_handover') {
-      if (!input.expiresAt || new Date(input.expiresAt).getTime() <= Date.now()) {
-        items.push(item({
-          id: 'valid_until',
-          label: 'Ablaufdatum prüfen',
-          description: 'Urlaubsvertretungen brauchen ein zukünftiges Ende, damit die Rückgabe und Datenschutzprüfung steuerbar bleiben.',
-          state: 'blocking',
-          requiresAcknowledgement: false,
-        }));
-      } else {
-        items.push(item({
-          id: 'valid_until',
-          label: 'Ablaufdatum gesetzt',
-          description: 'Das Übergabepaket ist zeitlich begrenzt.',
-          state: 'ready',
-          requiresAcknowledgement: false,
-        }));
-      }
+    return [item({
+      id: 'valid_until',
+      label: 'Ablaufdatum gesetzt',
+      description: 'Das Übergabepaket ist zeitlich begrenzt.',
+      state: 'ready',
+      requiresAcknowledgement: false,
+    })];
+  }
+
+  private buildCaseStateItems(caseIds: readonly string[]): CaseHandoverChecklistItem[] {
+    if (!caseIds.length) return [];
+
+    return [
+      this.buildCountItem({
+        count: this.countOpenCaseRows('deadlines', caseIds),
+        activeId: 'open_deadlines',
+        activeLabel: (value) => `${value} offene Frist(en) enthalten`,
+        activeDescription: 'Offene Fristen werden mit übergeben und müssen von der empfangenden Stelle aktiv weiterverfolgt werden.',
+        emptyLabel: 'Keine offenen Fristen in der Auswahl',
+        emptyDescription: 'Die ausgewählten Fallakten enthalten keine offenen Fristen.',
+      }),
+      this.buildCountItem({
+        count: this.countOpenCaseRows('privacy_review_items', caseIds),
+        activeId: 'open_privacy_reviews',
+        activeLabel: (value) => `${value} offene Datenschutzprüfung(en) enthalten`,
+        activeDescription: 'Die empfangende Instanz muss erkennen, dass diese Fälle nach dem Import datenschutzrechtlich zu prüfen sind.',
+        emptyLabel: 'Keine offenen Datenschutzprüfungen in der Auswahl',
+        emptyDescription: 'Zur ausgewählten Fallauswahl liegen keine offenen Datenschutzprüfungen vor.',
+      }),
+    ];
+  }
+
+  private countOpenCaseRows(table: 'deadlines' | 'privacy_review_items', caseIds: readonly string[]): number {
+    return count(this.database, `
+      SELECT COUNT(*) AS value
+      FROM ${table}
+      WHERE case_id IN (${placeholders(caseIds)})
+        AND status = 'open'
+    `, ...caseIds);
+  }
+
+  private buildCountItem(input: {
+    count: number;
+    activeId: CaseHandoverChecklistItem['id'];
+    activeLabel: (count: number) => string;
+    activeDescription: string;
+    emptyLabel: string;
+    emptyDescription: string;
+  }): CaseHandoverChecklistItem {
+    if (input.count > 0) {
+      return item({
+        id: input.activeId,
+        label: input.activeLabel(input.count),
+        description: input.activeDescription,
+        state: 'attention',
+        requiresAcknowledgement: true,
+      });
     }
+    return item({
+      id: input.activeId,
+      label: input.emptyLabel,
+      description: input.emptyDescription,
+      state: 'ready',
+      requiresAcknowledgement: false,
+    });
+  }
 
-    if (caseIds.length) {
-      const openDeadlineCount = count(this.database, `
-        SELECT COUNT(*) AS value
-        FROM deadlines
-        WHERE case_id IN (${placeholders(caseIds)})
-          AND status = 'open'
-      `, ...caseIds);
-      items.push(openDeadlineCount > 0
-        ? item({
-          id: 'open_deadlines',
-          label: `${openDeadlineCount} offene Frist(en) enthalten`,
-          description: 'Offene Fristen werden mit übergeben und müssen von der empfangenden Stelle aktiv weiterverfolgt werden.',
-          state: 'attention',
-          requiresAcknowledgement: true,
-        })
-        : item({
-          id: 'open_deadlines',
-          label: 'Keine offenen Fristen in der Auswahl',
-          description: 'Die ausgewählten Fallakten enthalten keine offenen Fristen.',
-          state: 'ready',
-          requiresAcknowledgement: false,
-        }));
-
-      const openPrivacyReviewCount = count(this.database, `
-        SELECT COUNT(*) AS value
-        FROM privacy_review_items
-        WHERE case_id IN (${placeholders(caseIds)})
-          AND status = 'open'
-      `, ...caseIds);
-      items.push(openPrivacyReviewCount > 0
-        ? item({
-          id: 'open_privacy_reviews',
-          label: `${openPrivacyReviewCount} offene Datenschutzprüfung(en) enthalten`,
-          description: 'Die empfangende Instanz muss erkennen, dass diese Fälle nach dem Import datenschutzrechtlich zu prüfen sind.',
-          state: 'attention',
-          requiresAcknowledgement: true,
-        })
-        : item({
-          id: 'open_privacy_reviews',
-          label: 'Keine offenen Datenschutzprüfungen in der Auswahl',
-          description: 'Zur ausgewählten Fallauswahl liegen keine offenen Datenschutzprüfungen vor.',
-          state: 'ready',
-          requiresAcknowledgement: false,
-        }));
-    }
-
+  private buildScopeItems(packageType: CaseHandoverPackageType): CaseHandoverChecklistItem[] {
+    const items: CaseHandoverChecklistItem[] = [];
     if (packageType === 'office_handover') {
       items.push(item({
         id: 'office_scope',
@@ -144,17 +178,7 @@ export class CaseHandoverChecklistService {
         requiresAcknowledgement: true,
       }));
     }
-
-    const blockingItemIds = items.filter((entry) => entry.state === 'blocking').map((entry) => entry.id);
-    const requiredAcknowledgementIds = items.filter((entry) => entry.requiresAcknowledgement).map((entry) => entry.id);
-    return {
-      packageType,
-      caseCount: caseIds.length,
-      items,
-      blockingItemIds,
-      requiredAcknowledgementIds,
-      readyToExport: blockingItemIds.length === 0,
-    };
+    return items;
   }
 
   assertConfirmed(input: {
