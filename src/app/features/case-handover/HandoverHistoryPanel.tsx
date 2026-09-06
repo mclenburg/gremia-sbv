@@ -11,7 +11,7 @@ function formatDate(value?: string): string {
 
 export function HandoverHistoryPanel({ outgoing, incoming }: { outgoing: CaseHandoverCockpitItem[]; incoming: CaseHandoverCockpitItem[] }) {
   const items = [...outgoing, ...incoming].sort((left, right) => right.createdAt.localeCompare(left.createdAt));
-  return <IndustrialPanel kicker="Nachweis" title="Übergabeverlauf" description="Lokaler Nachweis der gesendeten, übernommenen und zurückgespielten Pakete.">
+  return <IndustrialPanel kicker="Nachweis" title="Übergabeverlauf" description="Lokaler Nachweis der gesendeten, übernommenen und zurückgespielten Pakete." helpId="caseHandover.history">
     <DataTable ariaLabel="Übergabeverlauf" headers={['Richtung', 'Fallakten', 'Erstellt', 'Gültig bis', 'Status']} empty={<EmptyState title="Noch keine Übergabe" text="Exportierte und importierte Übergabepakete werden hier ohne vertrauliche Inhaltsdaten nachgehalten." />} rows={items.map((item) => ({
       id: item.id,
       cells: [item.direction === 'outgoing' ? 'Ausgang' : 'Eingang', item.caseLabels.join(', ') || `${item.caseCount} Fallakte(n)`, formatDate(item.createdAt), formatDate(item.validUntil), handoverStatusLabel(item)],

@@ -1,6 +1,8 @@
 # Amtsübergabe und Vertretung
 
-Der Bereich **Übergaben** unterstützt zwei unterschiedliche Situationen:
+Der Bereich **Übergaben** liegt als letzter Punkt der Kernarbeit in der Navigation. Er ist in Register gegliedert, damit Urlaubsvertretung, Rückgabe, Amtsübergabe, Import und Protokoll nicht in einem gemeinsamen Formular vermischt werden.
+
+Der Bereich unterstützt zwei unterschiedliche Situationen:
 
 - Eine **Urlaubs- oder Krankheitsvertretung** ist zeitlich begrenzt. Ausgewählte Fallakten werden an die Stellvertretung übergeben und Änderungen später als Rückgabe-Delta zurückgeführt.
 - Eine **Amtsübergabe** ist dauerhaft. Die gewählte Nachfolge übernimmt den erforderlichen Arbeits- und Nachweisbestand in ihre eigene Gremia.SBV-Instanz.
@@ -9,19 +11,21 @@ Ein Übergabepaket ist weder ein Backup noch eine gemeinsame Datenbank. Beide In
 
 ## Vor jeder Übergabe
 
-Die Zielinstanz zeigt unter **Einstellungen** ihre Empfängerkennung an. Diese Kennung wird in der Quellinstanz eingefügt. Das Paket kann anschließend nur von dieser Zielinstanz entschlüsselt werden. Zusätzlich ist eine Transport-Passphrase mit mindestens zehn Zeichen erforderlich.
+Die Zielinstanz zeigt unter **Einstellungen** ihre kurze Instanz-ID und die vollständige öffentliche Empfängerkennung an. Die kurze ID dient der manuellen Kontrolle. Für den Export wird die vollständige Empfängerkennung oder ein gespeichertes Empfängerprofil verwendet. Das Paket kann anschließend nur von dieser Zielinstanz entschlüsselt werden. Zusätzlich ist im Standard eine Transport-Passphrase mit mindestens zehn Zeichen erforderlich.
 
 Übermittle Datei und Passphrase über getrennte Wege. Prüfe die Empfängerkennung sorgfältig, bevor du den Export speicherst.
 
 ## Urlaubsvertretung
 
 1. Öffne **Übergaben**.
-2. Wähle nur die Fallakten aus, die während der Vertretung bearbeitet werden müssen.
-3. Trage Empfängerkennung, Transport-Passphrase und Vertretungsende ein.
-4. Exportiere das Paket und übermittle Datei und Passphrase getrennt.
-5. Die Stellvertretung prüft das Paket vor dem Import und übernimmt es als lokale Vertretungsakte.
-6. Nach der Vertretung erzeugt sie im Übergabe-Cockpit ein Rückgabe-Delta für die geänderten Inhalte.
-7. Die ursprüngliche SBV prüft und importiert das Delta. Die Zuordnung erfolgt über das protokollierte Ausgangspaket.
+2. Öffne das Register **Urlaubsvertretung**.
+3. Wähle nur die Fallakten aus, die während der Vertretung bearbeitet werden müssen. Bei größeren Beständen filterst du nach Aktenzeichen, Name oder Kategorie.
+4. Wähle ein Empfängerprofil oder füge die vollständige öffentliche Empfängerkennung der Zielinstanz ein. Prüfe die angezeigte fünfstellige Zielinstanz-ID.
+5. Trage Transport-Passphrase und Vertretungsende ein.
+6. Exportiere das Paket und übermittle Datei und Passphrase getrennt.
+7. Die Stellvertretung prüft das Paket im Register **Import** vor dem Schreiben und übernimmt es als lokale Vertretungsakte.
+8. Nach der Vertretung erzeugt sie im Register **Rückgabe** ein Rückgabe-Delta für die geänderten Inhalte.
+9. Die ursprüngliche SBV prüft und importiert das Delta. Die Zuordnung erfolgt über das protokollierte Ausgangspaket.
 
 Abgelaufene Pakete dürfen nicht importiert werden. Bereits importierte Vertretungsdaten werden nach Ablauf sichtbar als prüfbedürftig markiert. Eine fachlich erforderliche Fortführung muss begründet werden.
 
@@ -49,14 +53,16 @@ Ein bereits erzeugter, anonymisierter Tätigkeitsbericht kann übergeben werden,
 ### Ablauf
 
 1. Prüfe offene Fallakten, Fristen, Datenschutzaufträge und Wahlakten.
-2. Wähle im Amtsübergabe-Bereich alle erforderlichen Fallakten aus.
-3. Prüfe die angezeigten Anzahlen für Vorlagen, Fristenregeln, Wahlakten, Wahldokumente und Datenschutzaufträge.
-4. Trage Empfängerkennung und Transport-Passphrase ein.
-5. Bestätige den geprüften Umfang und exportiere das Paket.
-6. Die Nachfolge wählt das Paket aus und prüft den Importplan vollständig.
-7. Sie entscheidet ausdrücklich, ob übergebene Fristen- und Aufbewahrungsregeln die lokalen Regeln ersetzen sollen.
-8. Erst danach wird der Amtsbestand als neuer lokaler Bestand importiert.
-9. Die Nachfolge bearbeitet die erzeugten Datenschutzprüfungen und kontrolliert offene Fristen sowie Wahlunterlagen.
+2. Öffne im Bereich **Übergaben** das Register **Amtsübergabe**.
+3. Wähle alle erforderlichen Fallakten aus. Bei größeren Beständen filterst du gezielt; die Auswahl zeigt nur eine begrenzte Trefferliste und eine separate Zusammenfassung der ausgewählten Akten.
+4. Prüfe die angezeigten Anzahlen für Vorlagen, Fristenregeln, Wahlakten, Wahldokumente und Datenschutzaufträge.
+5. Wähle ein Empfängerprofil oder füge die vollständige öffentliche Empfängerkennung ein. Prüfe die angezeigte Zielinstanz-ID.
+6. Trage die Transport-Passphrase ein.
+7. Bestätige den geprüften Umfang und exportiere das Paket.
+8. Die Nachfolge wählt das Paket im Register **Import** aus und prüft den Importplan vollständig.
+9. Sie entscheidet ausdrücklich, ob übergebene Fristen- und Aufbewahrungsregeln die lokalen Regeln ersetzen sollen.
+10. Erst danach wird der Amtsbestand als neuer lokaler Bestand importiert.
+11. Die Nachfolge bearbeitet die erzeugten Datenschutzprüfungen und kontrolliert offene Fristen sowie Wahlunterlagen.
 
 Fallakten werden bei einer Amtsübergabe nicht automatisch mit vorhandenen Akten zusammengeführt. Dadurch gelangen widersprüchliche Personen- oder Falldaten nicht unbemerkt in einen bestehenden Bestand.
 

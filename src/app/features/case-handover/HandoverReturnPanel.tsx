@@ -67,7 +67,7 @@ export function HandoverReturnPanel({ items, cases, onCompleted }: { items: Case
     finally { setBusy(false); }
   }
 
-  return <IndustrialPanel kicker="Rückübergabe" title="Änderungen aus der Vertretung zurückgeben" description="Nur seit dem Import neu angelegte oder geänderte Inhalte werden als Delta exportiert.">
+  return <IndustrialPanel kicker="Rückübergabe" title="Änderungen aus der Vertretung zurückgeben" description="Nur seit dem Import neu angelegte oder geänderte Inhalte werden als Delta exportiert." helpId="caseHandover.returnDelta">
     {!returnable.length ? <EmptyState title="Keine Rückgabe offen" text="Nach dem Import einer Urlaubsübergabe erscheint sie hier für die spätere Rückgabe." /> : <form className="industrial-stack" onSubmit={submit}>
       {returnable.length > 5 ? <SearchInput label="Übernommene Vertretungen filtern" value={query} onValueChange={setQuery} /> : null}
       <div className="industrial-list" aria-label="Übernommene Vertretungen">
@@ -78,7 +78,7 @@ export function HandoverReturnPanel({ items, cases, onCompleted }: { items: Case
       </div>
       {selectedItem ? <>
         <CaseHandoverCasePicker cases={availableCases} selectedIds={caseIds} onChange={setCaseIds} legend="Fallakten im Rückgabe-Delta" />
-        <TransferProtectionFields value={protection} onChange={setProtection} targetLabel="Empfängerkennung der ursprünglichen Instanz" />
+        <TransferProtectionFields value={protection} onChange={setProtection} targetLabel="Öffentliche Empfängerkennung der ursprünglichen Instanz" />
         <CaseHandoverChecklistPanel packageType="return_delta" caseIds={caseIds} acknowledgements={acknowledgedItemIds} onAcknowledgementsChange={setAcknowledgedItemIds} />
         {error ? <div className="industrial-message industrial-message-warning" role="alert">{error}</div> : null}
         {result?.exported ? <FileLocationNotice filePath={result.filePath} label="Rückgabepaket gespeichert" /> : null}

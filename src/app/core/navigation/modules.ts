@@ -97,14 +97,6 @@ export const modules: ModuleDefinition[] = [
     group: 'core'
   },
   {
-    id: 'case_handover',
-    title: 'Übergaben & Vertretung',
-    shortTitle: 'Übergaben',
-    text: 'Urlaubsvertretungen zielgebunden übergeben, übernehmen und als Delta zurückführen.',
-    icon: ArrowRightLeft,
-    group: 'core'
-  },
-  {
     id: 'deadlines',
     title: 'Fristen',
     shortTitle: 'Fristen',
@@ -128,7 +120,6 @@ export const modules: ModuleDefinition[] = [
     icon: CalendarDays,
     group: 'core'
   },
-
   {
     id: 'bem',
     title: 'BEM',
@@ -264,6 +255,14 @@ export const modules: ModuleDefinition[] = [
     shortTitle: 'Dokumentation',
     text: 'Sitzungen, Protokolle, Nachweise, Arbeitgeberpflichten, Inklusionsvereinbarung und weitere SBV-Dokumentation.',
     icon: ClipboardCheck,
+    group: 'core'
+  },
+  {
+    id: 'case_handover',
+    title: 'Übergaben & Vertretung',
+    shortTitle: 'Übergaben',
+    text: 'Urlaubsvertretungen zielgebunden übergeben, übernehmen und als Delta zurückführen.',
+    icon: ArrowRightLeft,
     group: 'core'
   },
   {

@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { TransferProtectionMode } from '../../../domain/models/case-handover.model';
 import type { TransferRecipientProfile } from '../../../domain/models/transfer-recipient-profile.model';
-import { PasswordInput, SelectInput, TextareaInput } from '../../shared/components/IndustrialForm';
+import { PasswordInput, SelectInput, TextareaInput, TextInput } from '../../shared/components/IndustrialForm';
 
 const MANUAL_PROFILE = '__manual__';
+const RECIPIENT_TOKEN_INSTANCE_ID_PATTERN = /^GSBV1\.([A-HJ-NP-Z2-9]{5})\./;
 
 export type TransferProtectionState = {
   targetRecipientToken: string;
@@ -17,6 +18,10 @@ export function requiresPassphrase(mode: TransferProtectionMode): boolean {
 
 function profileLabel(profile: TransferRecipientProfile): string {
   return `${profile.label} · ${profile.instanceId} · ${profile.keyFingerprint}`;
+}
+
+function extractInstanceId(recipientToken: string): string {
+  return recipientToken.trim().match(RECIPIENT_TOKEN_INSTANCE_ID_PATTERN)?.[1] ?? '';
 }
 
 export function TransferProtectionFields({
@@ -60,27 +65,52 @@ export function TransferProtectionFields({
     if (profile) update({ targetRecipientToken: profile.recipientToken });
   }
 
+  const selectedProfile = profiles.find((entry) => entry.id === selectedProfileId);
+  const targetInstanceId = selectedProfile?.instanceId ?? extractInstanceId(value.targetRecipientToken);
+  const keyFingerprint = selectedProfile?.keyFingerprint ?? '';
+  const manualEntry = selectedProfileId === MANUAL_PROFILE;
+
   return <>
     <SelectInput
       label="Empfängerprofil"
       value={selectedProfileId}
       options={options}
       onValueChange={selectProfile}
-      helpText="Gespeicherte Empfängerprofile vermeiden Kopierfehler. Bei mehr als fünf Profilen ist die Auswahl filterbar."
+      helpId="caseHandover.recipientProfile"
       wide
     />
-    <TextareaInput
-      label={targetLabel}
-      value={value.targetRecipientToken}
-      onValueChange={(targetRecipientToken) => {
-        setSelectedProfileId(MANUAL_PROFILE);
-        update({ targetRecipientToken });
-      }}
-      rows={3}
-      required
-      wide
-      placeholder="GSBV1.… aus den Einstellungen der Zielinstanz"
-    />
+    <div className="industrial-form-grid industrial-form-grid-2">
+      <TextInput
+        label="Zielinstanz-ID"
+        value={targetInstanceId || '—'}
+        onValueChange={() => undefined}
+        readOnly
+        className="transfer-instance-id-input"
+        helpId="caseHandover.targetInstanceId"
+      />
+      <TextInput
+        label="Schlüssel-Fingerprint"
+        value={keyFingerprint ? keyFingerprint.slice(0, 16) : targetInstanceId ? 'aus Empfängerkennung' : '—'}
+        onValueChange={() => undefined}
+        readOnly
+      />
+    </div>
+    {manualEntry ? (
+      <TextareaInput
+        label={targetLabel}
+        value={value.targetRecipientToken}
+        onValueChange={(targetRecipientToken) => {
+          setSelectedProfileId(MANUAL_PROFILE);
+          update({ targetRecipientToken });
+        }}
+        rows={2}
+        required
+        wide
+        className="transfer-recipient-token-input"
+        helpId="caseHandover.recipientToken"
+        placeholder="GSBV1.<ID>.<Fingerprint>.<öffentlicher Schlüssel>"
+      />
+    ) : null}
     <SelectInput
       label="Schutzart"
       value={value.protectionMode}
@@ -89,7 +119,7 @@ export function TransferProtectionFields({
         { value: 'recipient_key_only', label: 'Nur Empfängerschlüssel' },
       ]}
       onValueChange={(protectionMode) => update({ protectionMode: protectionMode as TransferProtectionMode })}
-      helpText="Schlüssel-only ist nur für eindeutig erkannte Zielinstanzen gedacht. Die Datei ist weiterhin zielgebunden verschlüsselt; eine geteilte Passphrase entfällt."
+      helpId="caseHandover.protectionMode"
       wide
     />
     {requiresPassphrase(value.protectionMode) ? <PasswordInput

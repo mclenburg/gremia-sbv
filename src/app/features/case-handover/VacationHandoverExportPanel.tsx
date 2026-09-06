@@ -57,10 +57,10 @@ export function VacationHandoverExportPanel({ cases, onCompleted }: { cases: Cas
     finally { setBusy(false); }
   }
 
-  return <IndustrialPanel ariaLabel="Urlaubsvertretung übergeben" kicker="Ausgabe" title="Urlaubsvertretung übergeben" description="Ausgewählte Fallakten werden als ein verschlüsseltes, zielgebundenes Paket übergeben.">
+  return <IndustrialPanel ariaLabel="Urlaubsvertretung übergeben" kicker="Ausgabe" title="Urlaubsvertretung übergeben" description="Ausgewählte Fallakten werden als ein verschlüsseltes, zielgebundenes Paket übergeben." helpId="caseHandover.vacation">
     <form className="industrial-stack" onSubmit={submit}>
       <CaseHandoverCasePicker cases={cases} selectedIds={caseIds} onChange={setCaseIds} legend="Fallakten für die Vertretung" />
-      <TransferProtectionFields value={protection} onChange={setProtection} targetLabel="Empfängerkennung der Vertretungsinstanz" />
+      <TransferProtectionFields value={protection} onChange={setProtection} targetLabel="Öffentliche Empfängerkennung der Vertretungsinstanz" />
       <DateInput label="Vertretung endet am" value={validUntil} onValueChange={setValidUntil} required />
       <CaseHandoverChecklistPanel packageType="vacation_handover" caseIds={caseIds} expiresAt={toHandoverExpiry(validUntil)} acknowledgements={acknowledgedItemIds} onAcknowledgementsChange={setAcknowledgedItemIds} />
       {error ? <div className="industrial-message industrial-message-warning" role="alert">{error}</div> : null}

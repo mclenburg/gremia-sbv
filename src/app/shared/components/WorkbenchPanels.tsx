@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import { IndustrialHelpButton } from "../help/IndustrialHelp";
+import type { HelpRegistryId } from "../help/helpRegistry";
 import { StatusBadge } from "./StatusBadges";
 export type IndustrialPanelTone =
   | "default" | "ok" | "success" | "warning" | "danger" | "problem" | "info" | "muted" | "neutral";
@@ -14,6 +16,7 @@ export function IndustrialPanel({
   actions,
   className,
   ariaLabel,
+  helpId,
 }: {
   children: ReactNode;
   kicker?: string;
@@ -22,6 +25,7 @@ export function IndustrialPanel({
   actions?: ReactNode;
   className?: string;
   ariaLabel?: string;
+  helpId?: HelpRegistryId;
 }) {
   return (
     <section
@@ -34,6 +38,7 @@ export function IndustrialPanel({
           title={title}
           description={description}
           actions={actions}
+          helpId={helpId}
         />
       ) : null}
       {children}
@@ -167,18 +172,23 @@ export function IndustrialPanelHeader({
   description,
   actions,
   compact = true,
+  helpId,
 }: {
   kicker?: string;
   title: string;
   description?: string;
   actions?: ReactNode;
   compact?: boolean;
+  helpId?: HelpRegistryId;
 }) {
   return (
     <div className={`industrial-panel-header ${compact ? "compact" : ""}`}>
       <div>
         {kicker ? <p className="industrial-kicker">{kicker}</p> : null}
-        <h2>{title}</h2>
+        <div className="industrial-section-title-row">
+          <h2>{title}</h2>
+          {helpId ? <IndustrialHelpButton helpId={helpId} label="Abschnittshilfe öffnen" /> : null}
+        </div>
         {description ? <p>{description}</p> : null}
       </div>
       {actions ? <div className="industrial-action-row">{actions}</div> : null}

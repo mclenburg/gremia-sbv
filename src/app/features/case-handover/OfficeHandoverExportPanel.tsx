@@ -62,7 +62,7 @@ export function OfficeHandoverExportPanel({
     finally { setBusy(false); }
   }
 
-  return <IndustrialPanel ariaLabel="Amtsübergabe erstellen" kicker="Amtswechsel" title="Amtsübergabe erstellen" description="Erforderlichen Amtsbestand dauerhaft und zielgebunden an die gewählte Nachfolge übergeben.">
+  return <IndustrialPanel ariaLabel="Amtsübergabe erstellen" kicker="Amtswechsel" title="Amtsübergabe erstellen" description="Erforderlichen Amtsbestand dauerhaft und zielgebunden an die gewählte Nachfolge übergeben." helpId="caseHandover.office">
     <form className="industrial-stack" onSubmit={submit}>
       <div className="industrial-message" role="note">
         <strong>Enthaltener Amtsbestand</strong>
@@ -70,7 +70,7 @@ export function OfficeHandoverExportPanel({
         <p>Das persönliche Tätigkeitsjournal wird nicht übergeben. Bereits erzeugte anonymisierte Berichte können als Dokument Bestandteil einer ausgewählten Fallakte sein.</p>
       </div>
       <CaseHandoverCasePicker cases={cases} selectedIds={caseIds} onChange={setCaseIds} legend="Erforderliche Fallakten für die Amtsübergabe" />
-      <TransferProtectionFields value={protection} onChange={setProtection} targetLabel="Empfängerkennung der Nachfolgeinstanz" />
+      <TransferProtectionFields value={protection} onChange={setProtection} targetLabel="Öffentliche Empfängerkennung der Nachfolgeinstanz" />
       <CaseHandoverChecklistPanel packageType="office_handover" caseIds={caseIds} acknowledgements={acknowledgedItemIds} onAcknowledgementsChange={setAcknowledgedItemIds} />
       <label className="industrial-checkbox-row">
         <input type="checkbox" checked={confirmed} onChange={(event) => setConfirmed(event.currentTarget.checked)} required />

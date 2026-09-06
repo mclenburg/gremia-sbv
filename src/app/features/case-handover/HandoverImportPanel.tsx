@@ -76,7 +76,7 @@ export function HandoverImportPanel({ onCompleted }: { onCompleted: () => Promis
   }
 
   const inspection = selection?.inspection;
-  return <IndustrialPanel ariaLabel="Übergabe oder Rückgabe importieren" kicker="Eingang" title="Übergabe oder Rückgabe importieren" description="Das Paket wird vor jeder Schreiboperation geprüft; erst danach ist der Import möglich.">
+  return <IndustrialPanel ariaLabel="Übergabe oder Rückgabe importieren" kicker="Eingang" title="Übergabe oder Rückgabe importieren" description="Das Paket wird vor jeder Schreiboperation geprüft; erst danach ist der Import möglich." helpId="caseHandover.import">
     <form className="industrial-stack" onSubmit={submit}>
       <PasswordInput label="Transport-Passphrase (nur bei passwortgeschützten Paketen)" value={passphrase} onValueChange={(value) => { setPassphrase(value); setSelection(null); }} />
       <div className="industrial-action-row"><ToolbarButton type="button" onClick={() => void selectAndInspect()} loading={busy}>Datei auswählen und Paket prüfen</ToolbarButton></div>

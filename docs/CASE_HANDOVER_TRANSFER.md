@@ -14,27 +14,29 @@ Das Übergabepaket hat die Dateiendung `.gsbvtransfer`.
 
 ## Ablauf für die abgebende SBV
 
-1. Den Bereich `Übergaben` öffnen.
-2. Übergabetyp und erforderliche Fallakten auswählen.
-3. Empfängerkennung der Zielinstanz einfügen.
-4. Transport-Passphrase vergeben.
-5. Bei einer Vertretung ein verbindliches Enddatum setzen; Amtsübergaben haben kein Ablaufdatum.
-6. Umfang prüfen und Export bestätigen.
-7. Übergabedatei und Passphrase getrennt übermitteln.
+1. Den Bereich `Übergaben` als letzten Punkt der Kernarbeit öffnen.
+2. Das passende Register wählen: `Urlaubsvertretung`, `Rückgabe`, `Amtsübergabe`, `Import` oder `Protokoll`.
+3. Die zu übergebenden Fallakten über die filterbare Fallauswahl auswählen. Große Bestände werden nicht als vollständige Formularwand angezeigt.
+4. Empfängerprofil wählen oder die vollständige öffentliche Empfängerkennung der Zielinstanz einfügen und die angezeigte fünfstellige Zielinstanz-ID prüfen.
+5. Transport-Passphrase vergeben, sofern die gewählte Schutzart eine Passphrase verlangt.
+6. Bei einer Vertretung ein verbindliches Enddatum setzen; Amtsübergaben haben kein Ablaufdatum.
+7. Umfang prüfen und Export bestätigen.
+8. Übergabedatei und Passphrase getrennt übermitteln.
 
 Die Passphrase gehört nicht in dieselbe E-Mail oder denselben Chat wie die Datei. Sie soll über einen getrennten Kanal weitergegeben werden.
 
 ## Ablauf für die importierende SBV
 
 1. Den Bereich `Übergaben` öffnen.
-2. Übergabedatei auswählen.
-3. Passphrase eingeben.
-4. Paket prüfen.
-5. Vorschau lesen.
-6. Bei einer Urlaubsvertretung und gefundenen möglichen Gegenstücken entscheiden:
+2. Das Register `Import` öffnen.
+3. Übergabedatei auswählen.
+4. Passphrase eingeben, sofern das Paket passwortgeschützt ist.
+5. Paket prüfen.
+6. Vorschau lesen.
+7. Bei einer Urlaubsvertretung und gefundenen möglichen Gegenstücken entscheiden:
    - als neue lokale Übergabeakte anlegen, oder
    - bewusst mit einem vorgeschlagenen Gegenstück zusammenführen beziehungsweise aktualisieren.
-7. Import bestätigen.
+8. Import bestätigen.
 
 Ohne ausdrückliche Entscheidung findet keine Zusammenführung statt.
 
