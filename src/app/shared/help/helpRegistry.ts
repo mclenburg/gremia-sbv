@@ -1,3 +1,5 @@
+import { OVERVIEW_HELP_ENTRIES } from './overviewHelpEntries';
+
 export type HelpContentBlock =
   { type: "paragraph"; text: string } | { type: "list"; items: string[] };
 
@@ -10,6 +12,7 @@ export type HelpRegistryEntry = {
 };
 
 export const HELP_REGISTRY = {
+  ...OVERVIEW_HELP_ENTRIES,
   "recruiting.overview": {
     id: "recruiting.overview",
     kicker: "Stellenbesetzungen",
@@ -96,31 +99,6 @@ export const HELP_REGISTRY = {
       {
         type: "paragraph",
         text: "Statusänderungen folgen der zulässigen Transition-Map und erzeugen Verlaufseinträge. Neue Vorgänge sollten aus dem jeweiligen Ausgangsvorgang heraus vorbereitet werden.",
-      },
-    ],
-  },
-
-  "bem.overview": {
-    id: "bem.overview",
-    kicker: "BEM",
-    title: "BEM-Übersicht",
-    summary: "Die Übersicht zeigt fallbezogene BEM-Verfahren und öffnet den jeweiligen Vorgang in der Fallakte.",
-    blocks: [
-      {
-        type: "paragraph",
-        text: "Neue BEM-Verfahren werden in der Fallakte angelegt, damit der Fallbezug eindeutig bleibt. Die Übersicht dient nur der Nachhaltung und Navigation.",
-      },
-    ],
-  },
-  "prevention.overview": {
-    id: "prevention.overview",
-    kicker: "Prävention",
-    title: "Präventionsübersicht",
-    summary: "Die Übersicht bündelt fallbezogene Präventionsverfahren und öffnet den jeweiligen Vorgang in der Fallakte.",
-    blocks: [
-      {
-        type: "paragraph",
-        text: "Die Bearbeitung bleibt in der Fallakte. Die Übersicht zeigt Status, Fristen und Risiken, damit offene Verfahren nicht untergehen.",
       },
     ],
   },

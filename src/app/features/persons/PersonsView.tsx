@@ -15,7 +15,9 @@ import { PersonCaseCreateDialog } from './PersonCaseCreateDialog';
 import { PersonPrivacyActionDialog, type PersonPrivacyActionMode } from './PersonPrivacyActionDialog';
 import { PersonToolbar } from './PersonToolbar';
 import { IndustrialButton } from '../../shared/components/IndustrialButton';
+import { WorkbenchSummary } from '../../shared/components/WorkbenchLayout';
 import type { CreateCaseForPersonInput, PersonsViewProps } from './personsViewTypes';
+import { summarizePersonDirectory } from './personSummary';
 
 function personCaseDialogLabel(selected: ProtectedPersonRecord | null): string {
   if (!selected) return 'ausgewählte Person';
@@ -40,6 +42,7 @@ export function PersonsView(props: PersonsViewProps) {
   const [privacyReviewLoading, setPrivacyReviewLoading] = useState(false);
   const [expiryEvaluating, setExpiryEvaluating] = useState(false);
   const [expiryFeedback, setExpiryFeedback] = useState('');
+  const summary = useMemo(() => summarizePersonDirectory(persons), [persons]);
 
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -93,8 +96,18 @@ export function PersonsView(props: PersonsViewProps) {
   }
 
   return (
-    <ModuleFrame title="Personenverzeichnis" kicker="Datenschutz-Lifecycle" description="Datensparsames Verzeichnis schwerbehinderter und gleichgestellter Personen mit Import, Statusablauf und Fristenintegration." actions={<IndustrialButton data-e2e="open-person-create-dialog" onClick={() => setPersonCreateOpen(true)}>Person anlegen</IndustrialButton>}>
+    <ModuleFrame title="Personenverzeichnis" kicker="Datenschutz-Lifecycle" description="Datensparsames Verzeichnis schwerbehinderter und gleichgestellter Personen mit Import, Statusablauf und Fristenintegration." helpId="persons.overview" actions={<IndustrialButton data-e2e="open-person-create-dialog" onClick={() => setPersonCreateOpen(true)}>Person anlegen</IndustrialButton>}>
       <div className="industrial-alert"><ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-yellow-300" aria-hidden="true" /><p>Gremia.SBV speichert hier nur den Schutzstatus, nicht den GdB. Importdateien werden lokal verarbeitet und nicht dauerhaft gespeichert.</p></div>
+      <WorkbenchSummary
+        ariaLabel="Personenverzeichnis Kennzahlen"
+        items={[
+          { label: 'Gesamt', value: summary.total },
+          { label: 'Schwerbehindert', value: summary.severelyDisabled, tone: 'success' },
+          { label: 'Gleichgestellt', value: summary.equivalent, tone: 'success' },
+          { label: 'Status prüfen', value: summary.pendingOrUnclear, tone: summary.pendingOrUnclear ? 'warning' : 'default' },
+          { label: 'Ausgeschieden', value: summary.leftCompany, tone: summary.leftCompany ? 'warning' : 'default' },
+        ]}
+      />
       <PersonToolbar query={query} onQueryChange={setQuery} onOpenImport={() => setImportOpen(true)} onExportIcal={() => void exportIcal()} />
       <ModuleFeedback items={[
         message ? { id: 'persons-message', tone: 'success', message } : null,

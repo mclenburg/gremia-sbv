@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import { HelpCircle } from 'lucide-react';
 import type { CaseRecord } from '../../../domain/models/case.model';
 import type { TerminationHearingRecord, TerminationHearingStatus } from '../../../domain/models/termination.model';
 import type { CaseNodeTarget } from '../../core/navigation/caseNodeTarget';
@@ -13,7 +12,6 @@ import {
   isIsoBeforeNow,
   type ProcessOverviewCardModel
 } from '../../shared/process/ProcessOverview';
-import { ToolbarButton, IndustrialButton } from '../../shared/components/IndustrialButton';
 import { isDoneTerminationStatus, protectionStatusLabel, terminationStatusLabel, terminationStatusOrder, terminationTypeLabel } from './terminationShared';
 
 function toCard(process: TerminationHearingRecord, cases: CaseRecord[]): ProcessOverviewCardModel<TerminationHearingStatus> {
@@ -37,7 +35,6 @@ export function TerminationView({ cases, onOpenCaseNode }: { cases: CaseRecord[]
   const [processes, setProcesses] = useState<TerminationHearingRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [showHelp, setShowHelp] = useState(false);
   const announce = useAnnouncer();
 
   useEffect(() => {
@@ -89,6 +86,7 @@ export function TerminationView({ cases, onOpenCaseNode }: { cases: CaseRecord[]
         title="Kündigungsanhörung"
         kicker="SBV-Fristen und Schutzprüfung"
         description="Aktive Anhörungen zuerst. Fristen, Integrationsamt und SBV-Stellungnahme stehen im Mittelpunkt."
+        helpId="termination.overview"
         stats={[
           { label: 'offen', value: openCount },
           { label: 'überfällig', value: overdueCount },
@@ -97,12 +95,6 @@ export function TerminationView({ cases, onOpenCaseNode }: { cases: CaseRecord[]
         groups={groups}
         feedbackItems={[loading ? { id: 'termination-loading', message: 'Kündigungsanhörungen werden geladen …' } : null, error ? { id: 'termination-error', tone: 'warning', message: error } : null]}
         emptyText="Keine Kündigungsanhörung in diesem Status."
-        helpAction={(
-          <ToolbarButton onClick={() => setShowHelp(true)} aria-label="Hilfe zur Kündigungsanhörung öffnen">
-            <HelpCircle className="h-4 w-4" />
-            Hilfe
-          </ToolbarButton>
-        )}
         renderItem={(card) => (
           <ProcessOverviewCard
             key={card.id}
@@ -111,19 +103,6 @@ export function TerminationView({ cases, onOpenCaseNode }: { cases: CaseRecord[]
           />
         )}
       />
-
-      {showHelp && (
-        <div className="industrial-modal-backdrop" role="presentation">
-          <section className="industrial-modal" role="dialog" aria-modal="true" aria-labelledby="termination-help-title">
-            <h2 id="termination-help-title">Kündigungsanhörung</h2>
-            <p>Das Modul führt durch Eingang, Unterlagenprüfung, SBV-Anhörung, Integrationsamt und Stellungnahme.</p>
-            <p>Besonders kritisch sind Eingangsdatum, Frist, Schutzstatus und die Frage, ob das Integrationsamt beteiligt werden muss.</p>
-            <div className="industrial-modal-actions">
-              <IndustrialButton onClick={() => setShowHelp(false)}>Verstanden</IndustrialButton>
-            </div>
-          </section>
-        </div>
-      )}
     </>
   );
 }

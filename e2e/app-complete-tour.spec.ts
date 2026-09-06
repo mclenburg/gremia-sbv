@@ -62,7 +62,7 @@ test('runs a complete synthetic 1.0 product tour across areas not covered by foc
   await expect(page.locator('.industrial-live-region[role="status"]').filter({ hasText: caseLinkFeedback })).toHaveText(caseLinkFeedback);
 
   await openRoute(page, 'Vorlagen');
-  await page.getByLabel(/Hilfe zu Vorlagen und Platzhaltern öffnen/).click();
+  await page.locator('[data-e2e="industrial-help-button"]').first().click();
   const helpDialog = page.getByRole('dialog', { name: /Platzhalter|Vorlagen/i });
   await expect(helpDialog).toBeVisible();
   await helpDialog.getByRole('button', { name: 'Schließen' }).click();

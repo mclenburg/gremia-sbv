@@ -25,7 +25,8 @@ describe('case measure notes design integration', () => {
     expect(markup).toContain('Maßnahmennotizen-Hilfe öffnen');
     expect(markup).toContain('data-help-title="Maßnahmennotizen"');
     expect(markup).toContain('class="industrial-live-region"');
-    expect(markup).toContain('Notizen werden direkt an');
+    expect(markup).toContain('Noch keine Notiz zu dieser Maßnahme');
+    expect(markup).not.toContain('Notizen werden direkt an');
     expect(markup).not.toContain('Termine und Verlauf direkt an');
     expect(markup).not.toContain('Maßnahmennotizen werden als sensible Falldaten gespeichert');
     expect(markup).not.toContain('measure-note-form');

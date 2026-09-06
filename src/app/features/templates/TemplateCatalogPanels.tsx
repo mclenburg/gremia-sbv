@@ -1,5 +1,5 @@
 import type { FormEvent } from 'react';
-import { FileText, HelpCircle, Plus, Search, Trash2 } from 'lucide-react';
+import { FileText, Plus, Search, Trash2 } from 'lucide-react';
 import { IconButton, IndustrialButton, ToolbarButton } from '../../shared/components/IndustrialButton';
 import { SelectInput, TextInput } from '../../shared/components/IndustrialForm';
 import type { TemplateCategory, TemplateRecord } from '../../../domain/models/template.model';
@@ -14,22 +14,12 @@ type TemplateGroup = {
 
 export function TemplateCatalogToolbar({
   onCreate,
-  onOpenHelp,
 }: {
   onCreate: () => void;
-  onOpenHelp: () => void;
 }) {
   return (
     <div className="template-catalog-toolbar">
       <div className="template-title-cluster">
-        <IconButton
-          className="template-help-button"
-          onClick={onOpenHelp}
-          aria-label="Hilfe zu Vorlagen und Platzhaltern öffnen"
-          title="Hilfe zu Platzhaltern"
-        >
-          <HelpCircle className="h-4 w-4" aria-hidden="true" />
-        </IconButton>
         <div>
           <p className="industrial-kicker">Auswahl</p>
           <h2>Vorlagenkatalog</h2>

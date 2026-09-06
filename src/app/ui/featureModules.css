@@ -1009,24 +1009,6 @@ html[data-theme='light'] .case-search-result:focus-visible {
   gap: .75rem;
 }
 
-.template-help-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.1rem;
-  height: 2.1rem;
-  border: 1px solid var(--border-muted);
-  background: var(--surface-base);
-  color: var(--accent);
-  cursor: pointer;
-}
-
-.template-help-button:hover,
-.template-help-button:focus-visible {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 22%, transparent);
-}
-
 .template-filter-form {
   display: grid;
   grid-template-columns: minmax(16rem, 1fr) minmax(12rem, 16rem) auto;

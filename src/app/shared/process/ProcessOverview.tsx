@@ -4,6 +4,7 @@ import { ModuleFeedback, type ModuleFeedbackItem } from '../components/ModuleFee
 import { ToolbarButton } from '../components/IndustrialButton';
 import { EmptyState, IndustrialPanel, WorkbenchPage, WorkbenchSummary } from '../components/WorkbenchLayout';
 import { ProcessStatusBadge } from '../components/StatusBadges';
+import type { HelpRegistryId } from '../help/helpRegistry';
 
 export type ProcessOverviewStatusGroup<TStatus extends string, TRecord> = {
   status: TStatus;
@@ -120,7 +121,7 @@ export function ProcessOverviewPage<TStatus extends string>({
   groups,
   renderItem,
   emptyText,
-  helpAction,
+  helpId,
   pageActions,
   feedbackItems = [],
   children
@@ -132,21 +133,15 @@ export function ProcessOverviewPage<TStatus extends string>({
   groups: ProcessOverviewStatusGroup<TStatus, ProcessOverviewCardModel<TStatus>>[];
   renderItem: (item: ProcessOverviewCardModel<TStatus>) => ReactNode;
   emptyText: string;
-  helpAction?: ReactNode;
+  helpId?: HelpRegistryId;
   pageActions?: ReactNode;
   feedbackItems?: Array<ModuleFeedbackItem | null | undefined | false>;
   children?: ReactNode;
 }) {
   return (
-    <WorkbenchPage title={title} kicker={kicker} description={description} actions={pageActions}>
+    <WorkbenchPage title={title} kicker={kicker} description={description} helpId={helpId} actions={pageActions}>
       <ModuleFeedback items={feedbackItems} />
       <IndustrialPanel className="process-overview-panel">
-        {helpAction && (
-          <div className="process-overview-topline process-overview-topline-actions">
-            <span aria-hidden="true" />
-            {helpAction}
-          </div>
-        )}
         <WorkbenchSummary items={stats.map((stat) => ({ label: stat.label, value: stat.value }))} ariaLabel="Kennzahlen" />
         {children}
         <div className="process-overview-groups">

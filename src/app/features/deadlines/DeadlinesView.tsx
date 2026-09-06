@@ -64,6 +64,7 @@ export function DeadlinesView({
       title="Fristen & Wiedervorlagen"
       kicker="48h-Regel aktiv"
       description="Übersicht, Priorisierung und Kontrolle zeitkritischer SBV-Arbeit. Fristen können fallbezogen oder für allgemeine SBV-Aufgaben geführt werden."
+      helpId="deadlines.overview"
       actions={
         <>
           <ToolbarButton onClick={() => setExportModalOpen(true)} data-e2e="open-deadline-ical-export">

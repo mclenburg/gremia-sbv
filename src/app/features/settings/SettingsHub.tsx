@@ -3,6 +3,7 @@ import { SettingsView, type ThemeMode } from '../../workflowViews';
 import { GremiaBrSettingsPanel } from './GremiaBrSettingsPanel';
 import { ToolbarButton } from '../../shared/components/IndustrialButton';
 import { SETTINGS_SECTIONS } from './settingsNavigation';
+import { IndustrialHelpButton } from '../../shared/help/IndustrialHelp';
 
 export function SettingsHub({
   theme,
@@ -22,7 +23,10 @@ export function SettingsHub({
       <div className="industrial-card-header settings-hub-header">
         <div>
           <p className="font-mono text-xs uppercase tracking-[0.22em] text-zinc-500">Einstellungen</p>
-          <h3 id="settings-hub-title">Konfiguration</h3>
+          <div className="industrial-section-title-row">
+            <h3 id="settings-hub-title">Konfiguration</h3>
+            <IndustrialHelpButton helpId="settings.overview" label="Bereichshilfe öffnen" />
+          </div>
         </div>
       </div>
 

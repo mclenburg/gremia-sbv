@@ -13,7 +13,6 @@ export function MeasureNotesPanel({
   caseId,
   measureType,
   measureId,
-  measureTitle,
 }: MeasureNotesPanelProps) {
   const state = useMeasureNotes({ caseId, measureType, measureId });
   const fieldPrefix = useMemo(
@@ -40,9 +39,6 @@ export function MeasureNotesPanel({
           <PlusCircle className="h-4 w-4" /> Notiz anlegen
         </ToolbarButton>
       </div>
-      <p className="industrial-meta">
-        Notizen werden direkt an „{measureTitle}“ gespeichert.
-      </p>
 
       {state.error ? <div className="industrial-message industrial-message-warning" role="alert">{state.error}</div> : null}
 

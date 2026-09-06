@@ -45,8 +45,6 @@ export function SettingsView({
         <>
           <SettingsSectionIntro title="Allgemein" description="Darstellung und lokale Arbeitsumgebung ohne Sicherheitsfolgen einstellen." />
           <div className="grid gap-6 xl:grid-cols-2">
-            <TransferIdentitySettingsPanel />
-            <TransferRecipientProfilesSettings />
             <ThemeSettingsForm theme={theme} onThemeChange={onThemeChange} />
           </div>
         </>
@@ -68,6 +66,16 @@ export function SettingsView({
           <div className="grid gap-6 xl:grid-cols-2">
             <TemporaryFilesSettingsPanel />
             <RetentionSettingsPanel />
+          </div>
+        </>
+      )}
+
+      {section === 'settings-handover' && (
+        <>
+          <SettingsSectionIntro title="Übergaben" description="Zielgebundene Exporte und wiederkehrende Empfänger ohne Kopierfehler verwalten." />
+          <div className="grid gap-6 xl:grid-cols-2">
+            <TransferIdentitySettingsPanel />
+            <TransferRecipientProfilesSettings />
           </div>
         </>
       )}

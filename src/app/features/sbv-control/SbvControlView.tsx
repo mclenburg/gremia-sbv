@@ -106,9 +106,8 @@ export function SbvControlView({
     <WorkbenchPage
       title={initialSection === 'meetings' ? 'Gremiensitzungen' : 'SBV-Dokumentation'}
       kicker="SBV-Arbeit"
-      description={initialSection === 'meetings'
-        ? 'BR- und Ausschusssitzungen aus eigener SBV-Sicht vorbereiten, begleiten und dokumentieren.'
-        : 'Sitzungen, Protokolle, Nachweise, Arbeitgeberpflichten und weitere übergreifende SBV-Dokumentation. Kein Ersatz für Fallakten.'}
+      description={initialSection === 'meetings' ? 'BR- und Ausschusssitzungen aus eigener SBV-Sicht vorbereiten, begleiten und dokumentieren.' : 'Sitzungen, Protokolle, Nachweise, Arbeitgeberpflichten und weitere übergreifende SBV-Dokumentation. Kein Ersatz für Fallakten.'}
+      helpId={initialSection === 'meetings' ? 'sbvOffice.meetings' : 'sbvOffice.overview'}
     >
       <ModuleFeedback
         items={[

@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { HelpCircle, Plus } from 'lucide-react';
-import { ToolbarButton, IndustrialButton } from '../../shared/components/IndustrialButton';
+import { Plus } from 'lucide-react';
+import { IndustrialButton } from '../../shared/components/IndustrialButton';
 import { EmptyState } from '../../shared/components/WorkbenchLayout';
-import { IndustrialModal } from '../../shared/dialogs/IndustrialDialogs';
 import type { CaseRecord } from '../../../domain/models/case.model';
 import type { EqualizationProcessRecord, EqualizationStatus } from '../../../domain/models/equalization.model';
 import type { CreateEqualizationIntakeInput, EqualizationIntakeResult } from '../../../domain/models/equalization.model';
@@ -38,20 +37,6 @@ function toCard(process: EqualizationProcessRecord, cases: CaseRecord[]): Proces
   };
 }
 
-function EqualizationHelpDialog({ onClose }: { onClose: () => void }) {
-  return (
-    <IndustrialModal
-      title="Gleichstellung / GdB"
-      kicker="Hilfe"
-      description="Diese Übersicht zeigt Beratungs-, Antrags-, Bescheid- und Widerspruchsstände. Mit einem Klick öffnet sich die Fallakte direkt am Verfahren."
-      onClose={onClose}
-      actions={<IndustrialButton onClick={onClose}>Verstanden</IndustrialButton>}
-    >
-      <p>Wichtig sind Antragseinreichung, Geschäftszeichen, Bescheidzugang und Widerspruchsfrist.</p>
-    </IndustrialModal>
-  );
-}
-
 function EqualizationEmptyState() {
   return (
     <EmptyState
@@ -70,7 +55,6 @@ export function EqualizationView({ cases, persons, onOpenCaseNode, onRecordsChan
   const [processes, setProcesses] = useState<EqualizationProcessRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [showHelp, setShowHelp] = useState(false);
   const [showIntake, setShowIntake] = useState(false);
   const announce = useAnnouncer();
 
@@ -136,6 +120,7 @@ export function EqualizationView({ cases, persons, onOpenCaseNode, onRecordsChan
         title="Gleichstellung / GdB"
         kicker="Antrag, Bescheid, Widerspruch"
         description="Übersicht über Gleichstellungs- und GdB-bezogene Verfahren. Die Bearbeitung erfolgt in der Fallakte."
+        helpId="equalization.overview"
         stats={[
           { label: 'offen', value: openCount },
           { label: 'Widerspruch / Ablehnung', value: objectionCount },
@@ -145,12 +130,6 @@ export function EqualizationView({ cases, persons, onOpenCaseNode, onRecordsChan
         groups={cards.length === 0 ? [] : groups}
         feedbackItems={[loading ? { id: 'equalization-loading', message: 'Gleichstellungsverfahren werden geladen …' } : null, error ? { id: 'equalization-error', tone: 'warning', message: error } : null]}
         emptyText="Keine Verfahren in diesem Status."
-        helpAction={(
-          <ToolbarButton onClick={() => setShowHelp(true)} aria-label="Hilfe zur Gleichstellungsübersicht öffnen">
-            <HelpCircle className="h-4 w-4" />
-            Hilfe
-          </ToolbarButton>
-        )}
         pageActions={(
           <IndustrialButton onClick={() => setShowIntake(true)}>
             <Plus className="h-4 w-4" />
@@ -169,8 +148,6 @@ export function EqualizationView({ cases, persons, onOpenCaseNode, onRecordsChan
           <EqualizationEmptyState />
         )}
       </ProcessOverviewPage>
-
-      {showHelp && <EqualizationHelpDialog onClose={() => setShowHelp(false)} />}
       {showIntake && (
         <EqualizationIntakeDialog persons={persons} onClose={() => setShowIntake(false)} onCreate={createIntake} />
       )}

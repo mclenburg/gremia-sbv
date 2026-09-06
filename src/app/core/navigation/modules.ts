@@ -73,7 +73,7 @@ export interface ModuleGroupDefinition {
 }
 
 export const moduleGroups: ModuleGroupDefinition[] = [
-  { id: 'core', label: 'Kernarbeit', description: 'Personen, Fallakten, Übergaben, Fristen, Journal, Sitzungen und Dokumentation.' },
+  { id: 'core', label: 'Kernarbeit', description: 'Personen, Fallakten, Fristen, Journal, Sitzungen, Dokumentation und Übergaben.' },
   { id: 'processes', label: 'SBV-Verfahren', description: 'BEM, Prävention, Beteiligung und Schutzverfahren.' },
   { id: 'tools', label: 'Werkzeuge', description: 'Vorlagen, Wissen, Kontakte und Berichte.' },
   { id: 'administration', label: 'Administration', description: 'Compliance und betriebliche Datenschutzkontrollen.' },
@@ -118,6 +118,22 @@ export const modules: ModuleDefinition[] = [
     shortTitle: 'Sitzungen',
     text: 'BR- und Ausschusssitzungen aus SBV-Sicht vorbereiten, begleiten und dokumentieren.',
     icon: CalendarDays,
+    group: 'core'
+  },
+  {
+    id: 'sbv_control',
+    title: 'SBV-Dokumentation',
+    shortTitle: 'Dokumentation',
+    text: 'Sitzungen, Protokolle, Nachweise, Arbeitgeberpflichten, Inklusionsvereinbarung und weitere SBV-Dokumentation.',
+    icon: ClipboardCheck,
+    group: 'core'
+  },
+  {
+    id: 'case_handover',
+    title: 'Übergaben & Vertretung',
+    shortTitle: 'Übergaben',
+    text: 'Urlaubsvertretungen zielgebunden übergeben, übernehmen und als Delta zurückführen.',
+    icon: ArrowRightLeft,
     group: 'core'
   },
   {
@@ -248,22 +264,6 @@ export const modules: ModuleDefinition[] = [
     group: 'administration',
     showInNavigation: false,
     visibility: 'gremia_br_configured'
-  },
-  {
-    id: 'sbv_control',
-    title: 'SBV-Dokumentation',
-    shortTitle: 'Dokumentation',
-    text: 'Sitzungen, Protokolle, Nachweise, Arbeitgeberpflichten, Inklusionsvereinbarung und weitere SBV-Dokumentation.',
-    icon: ClipboardCheck,
-    group: 'core'
-  },
-  {
-    id: 'case_handover',
-    title: 'Übergaben & Vertretung',
-    shortTitle: 'Übergaben',
-    text: 'Urlaubsvertretungen zielgebunden übergeben, übernehmen und als Delta zurückführen.',
-    icon: ArrowRightLeft,
-    group: 'core'
   },
   {
     id: 'reports',
