@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type Dispatch, type SetStateAction } from 'react';
 import type { CaseHandoverChecklist, CaseHandoverChecklistConfirmation, CaseHandoverPackageType } from '../../../domain/models/case-handover.model';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 
@@ -19,22 +19,23 @@ export function CaseHandoverChecklistPanel({
   caseIds: readonly string[];
   expiresAt?: string;
   acknowledgements: readonly string[];
-  onAcknowledgementsChange: (value: string[]) => void;
+  onAcknowledgementsChange: Dispatch<SetStateAction<string[]>>;
 }) {
   const announce = useAnnouncer();
   const [checklist, setChecklist] = useState<CaseHandoverChecklist | null>(null);
   const [error, setError] = useState('');
-  const joinedCaseIds = useMemo(() => [...caseIds].sort().join('|'), [caseIds]);
+  const caseIdKey = useMemo(() => JSON.stringify([...caseIds].sort()), [caseIds]);
+  const selectedCaseIds = useMemo(() => JSON.parse(caseIdKey) as string[], [caseIdKey]);
 
   useEffect(() => {
     let cancelled = false;
     setError('');
-    void window.gremiaSbv.caseHandover.checklist({ packageType, caseIds: [...caseIds], expiresAt })
+    void window.gremiaSbv.caseHandover.checklist({ packageType, caseIds: selectedCaseIds, expiresAt })
       .then((next) => {
         if (cancelled) return;
         setChecklist(next);
         const allowed = new Set(next.requiredAcknowledgementIds);
-        onAcknowledgementsChange(acknowledgements.filter((id) => allowed.has(id)));
+        onAcknowledgementsChange((current) => current.filter((id) => allowed.has(id)));
       })
       .catch((cause) => {
         if (cancelled) return;
@@ -43,12 +44,12 @@ export function CaseHandoverChecklistPanel({
         announce(message, 'assertive');
       });
     return () => { cancelled = true; };
-  }, [packageType, joinedCaseIds, expiresAt]);
+  }, [packageType, selectedCaseIds, expiresAt, onAcknowledgementsChange, announce]);
 
   function toggle(itemId: string) {
-    onAcknowledgementsChange(acknowledgements.includes(itemId)
-      ? acknowledgements.filter((id) => id !== itemId)
-      : [...acknowledgements, itemId]);
+    onAcknowledgementsChange((current) => current.includes(itemId)
+      ? current.filter((id) => id !== itemId)
+      : [...current, itemId]);
   }
 
   return <fieldset className="industrial-selection-card handover-checklist">
