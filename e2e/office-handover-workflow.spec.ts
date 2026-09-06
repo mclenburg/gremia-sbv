@@ -5,7 +5,8 @@ test('führt eine Amtsübergabe vom geprüften Export bis zum bestätigten Impor
     .getByRole('button', { name: 'Übergaben', exact: true })
     .click();
 
-  await page.getByRole('button', { name: /Amtsübergabe/ }).click();
+  const handoverTabs = page.getByRole('navigation', { name: 'Übergabe-Arbeitsbereiche Navigation' });
+  await handoverTabs.getByRole('button', { name: /^Amtsübergabe/ }).click();
   const exportRegion = page.getByRole('region', { name: 'Amtsübergabe erstellen' });
   await expect(exportRegion).toBeVisible();
   await expect(exportRegion.getByText(/Tätigkeitsjournal wird nicht übergeben/)).toBeVisible();
@@ -16,7 +17,7 @@ test('führt eine Amtsübergabe vom geprüften Export bis zum bestätigten Impor
   await exportRegion.getByRole('button', { name: 'Amtsübergabe exportieren' }).click();
   await expect(exportRegion.getByText('Amtsübergabepaket gespeichert')).toBeVisible();
 
-  await page.getByRole('button', { name: /Import/ }).click();
+  await handoverTabs.getByRole('button', { name: /^Import/ }).click();
   const importRegion = page.getByRole('region', { name: 'Übergabe oder Rückgabe importieren' });
   await importRegion.getByLabel('Transport-Passphrase').fill('Sichere Amtsübergabe 2026');
   await importRegion.getByRole('button', { name: 'Datei auswählen und Paket prüfen' }).click();
