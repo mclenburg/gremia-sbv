@@ -34,6 +34,7 @@ import {
   SBV_OFFICE_0051_REQUIRED_TABLES,
   DEADLINE_RULE_SNAPSHOT_REQUIRED_COLUMNS,
   APP_SCHEMA_VERSION,
+  TRANSFER_RECIPIENT_PROFILES_REQUIRED_COLUMNS,
 } from '../../../services/appSchema';
 
 type TableMap = Record<string, readonly string[]>;
@@ -65,6 +66,7 @@ const completeSchema: TableMap = {
   case_handover_export_items: CASE_HANDOVER_EXPORT_ITEMS_REQUIRED_COLUMNS,
   case_handover_imports: CASE_HANDOVER_IMPORTS_REQUIRED_COLUMNS,
   case_handover_import_items: CASE_HANDOVER_IMPORT_ITEMS_REQUIRED_COLUMNS,
+  transfer_recipient_profiles: TRANSFER_RECIPIENT_PROFILES_REQUIRED_COLUMNS,
   sbv_resource_records: SBV_RESOURCE_RECORDS_REQUIRED_COLUMNS,
   sbv_control_protocols: SBV_CONTROL_PROTOCOLS_REQUIRED_COLUMNS,
   compliance_incidents: COMPLIANCE_INCIDENTS_REQUIRED_COLUMNS,
