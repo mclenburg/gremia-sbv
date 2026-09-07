@@ -2488,44 +2488,6 @@ html[data-theme='light'] .knowledge-search-bar input::placeholder {
   opacity: 1;
 }
 
-.text-command-help-search input {
-  width: 100%;
-  padding: 0.7rem 0.85rem;
-  border-radius: 0;
-  border-color: var(--industrial-border-strong);
-  background: var(--industrial-bg);
-  color: var(--industrial-text);
-}
-
-.text-command-help-search input::placeholder {
-  color: var(--industrial-text-muted);
-}
-
-/* P10F: Light-Mode-Selektoren behalten ebenfalls die harte Kante. */
-html[data-theme='light'] .text-command-help-modal,
-html[data-theme='light'] .text-command-help-search,
-html[data-theme='light'] .text-command-help-group,
-html[data-theme='light'] .text-command-help-item,
-html[data-theme='light'] .text-command-help-empty,
-html[data-theme='light'] .text-command-help-search input,
-html[data-theme='light'] .text-command-help-modal .industrial-icon-button {
-  border-radius: 0;
-}
-
-/* P12A: Visual-QA misst background-color; Light-Mode-Flächen dürfen nicht nur ein Gradient-Image haben. */
-html[data-theme='light'] .industrial-empty-state,
-html[data-theme='light'] .text-command-help-modal,
-html[data-theme='light'] .text-command-help-group,
-html[data-theme='light'] .text-command-help-item,
-html[data-theme='light'] .text-command-help-search,
-html[data-theme='light'] .text-command-help-empty,
-html[data-theme='light'] .text-command-help-modal .industrial-inline-note,
-html[data-theme='light'] .text-command-help-search input,
-html[data-theme='light'] .text-command-help-modal .industrial-icon-button {
-  background-color: #fafaf5;
-}
-
-
 .industrial-import-package-warnings {
   display: grid;
   gap: 0.4rem;
