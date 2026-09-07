@@ -233,7 +233,7 @@ html[data-theme='light'] .industrial-danger-button {
 .industrial-nav button[aria-current='page'] {
   border-color: rgba(250, 204, 21, 0.62);
   background: linear-gradient(90deg, rgba(250,204,21,0.16), rgba(39,39,42,0.48));
-  color: #fde047;
+  color: var(--industrial-accent);
 }
 
 .industrial-nav button.active,

@@ -46,9 +46,14 @@ function cssSources(files = appCssFiles()): string {
   return files.map(readProjectFile).join('\n');
 }
 
-function uniqueDeclarationValues(propertyName: 'font-size' | 'padding'): string[] {
+function uniqueComponentDeclarationValues(propertyName: 'font-size' | 'padding'): string[] {
   const pattern = new RegExp(`${propertyName}\\s*:\\s*([^;]+);`, 'g');
-  return [...new Set([...cssSources().matchAll(pattern)].map((match) => match[1].trim()))].sort((a, b) => a.localeCompare(b));
+  const componentCss = cssSources(appCssFiles().filter((file) => !file.endsWith('/designTokens.css')));
+  return [...new Set(
+    [...componentCss.matchAll(pattern)]
+      .map((match) => match[1].trim())
+      .filter((value) => !value.includes('var(')),
+  )].sort((a, b) => a.localeCompare(b));
 }
 
 function findJsxAttribute(
@@ -118,8 +123,8 @@ describe('UI-Styleguide-Governance', () => {
     expect([...cssSources(cssFiles).matchAll(/:focus-visible\b/g)].length).toBeLessThanOrEqual(
       baseline.focusVisibleOccurrences,
     );
-    expect(uniqueDeclarationValues('font-size').length).toBeLessThanOrEqual(baseline.uniqueFontSizeValues);
-    expect(uniqueDeclarationValues('padding').length).toBeLessThanOrEqual(baseline.uniquePaddingValues);
+    expect(uniqueComponentDeclarationValues('font-size').length).toBeLessThanOrEqual(baseline.uniqueFontSizeValues);
+    expect(uniqueComponentDeclarationValues('padding').length).toBeLessThanOrEqual(baseline.uniquePaddingValues);
   });
 
   it('verbietet neue undokumentierte CSS-Breakpoints', () => {

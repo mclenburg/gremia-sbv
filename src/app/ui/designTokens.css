@@ -47,6 +47,21 @@
   --industrial-corner-radius: 0;
   --focus-ring: 0 0 0 3px color-mix(in srgb, var(--industrial-accent) 32%, transparent);
 
+  --font-size-2xs: 0.68rem;
+  --font-size-xs: 0.74rem;
+  --font-size-sm: 0.82rem;
+  --font-size-base: 0.9rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.15rem;
+  --font-size-xl: 1.4rem;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+
   --industrial-control-bg: color-mix(in srgb, var(--industrial-panel-muted) 82%, #000000 18%);
   --industrial-control-bg-hover: color-mix(in srgb, var(--industrial-panel-muted) 74%, var(--industrial-accent) 6%, #000000 20%);
   --industrial-control-text: var(--industrial-text-strong);

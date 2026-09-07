@@ -2440,11 +2440,6 @@ html[data-theme='light'] .knowledge-search-bar input::placeholder {
   color: var(--industrial-text);
 }
 
-.text-command-help-search input:focus-visible {
-  outline: 2px solid var(--industrial-accent);
-  outline-offset: 2px;
-}
-
 .text-command-help-search input::placeholder {
   color: var(--industrial-text-muted);
 }

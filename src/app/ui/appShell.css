@@ -98,14 +98,14 @@ html[data-theme='light'] .scanline {
 .industrial-sidebar {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: var(--space-5);
   grid-column: 1;
   height: 100vh;
   width: var(--layout-sidebar-width);
   border-right: 1px solid var(--industrial-border);
   background: linear-gradient(180deg, rgba(24,24,27,0.98), rgba(9,9,11,0.99));
   overflow: auto;
-  padding: 18px 14px;
+  padding: var(--space-5) var(--space-4);
   position: sticky;
   scrollbar-color: color-mix(in srgb, var(--industrial-border-strong) 72%, transparent) color-mix(in srgb, var(--industrial-panel) 86%, transparent);
   scrollbar-gutter: stable;
@@ -171,10 +171,10 @@ html[data-theme='light'] .industrial-sidebar::-webkit-scrollbar-thumb {
 .brand-block {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-3);
   border: 1px solid var(--industrial-border-strong);
   background: var(--industrial-panel);
-  padding: 12px;
+  padding: var(--space-3);
   position: relative;
 }
 
@@ -205,16 +205,16 @@ html[data-theme='light'] .industrial-sidebar::-webkit-scrollbar-thumb {
 .brand-block strong {
   display: block;
   color: var(--industrial-text-strong);
-  font-size: 16px;
+  font-size: var(--font-size-md);
   line-height: 1;
 }
 
 .brand-block span {
   display: block;
-  margin-top: 6px;
+  margin-top: var(--space-2);
   color: var(--industrial-text-muted);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 11px;
+  font-size: var(--font-size-2xs);
   letter-spacing: 0.32em;
 }
 
@@ -222,14 +222,9 @@ html[data-theme='light'] .industrial-sidebar::-webkit-scrollbar-thumb {
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-2);
   overflow: auto;
   padding-right: 2px;
-}
-
-.industrial-content:focus-visible {
-  outline: 2px solid var(--industrial-accent);
-  outline-offset: -2px;
 }
 
 .industrial-topbar,
@@ -250,13 +245,13 @@ html[data-theme='light'] .industrial-sidebar::-webkit-scrollbar-thumb {
   border: 1px solid var(--industrial-border);
   background: rgba(9,9,11,0.82);
   gap: var(--layout-gap);
-  padding: 14px 18px;
+  padding: var(--space-4) var(--space-5);
   box-shadow: 0 10px 24px rgba(0,0,0,0.25);
 }
 
 .industrial-topbar h2 {
   margin: 2px 0 0;
-  font-size: 22px;
+  font-size: var(--font-size-xl);
   font-weight: 950;
   letter-spacing: -0.04em;
 }
@@ -264,10 +259,10 @@ html[data-theme='light'] .industrial-sidebar::-webkit-scrollbar-thumb {
 .industrial-state {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   color: var(--industrial-text-muted);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 12px;
+  font-size: var(--font-size-xs);
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
@@ -313,7 +308,7 @@ html[data-theme='light'] .industrial-sidebar::-webkit-scrollbar-thumb {
   flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 18px;
+  gap: var(--space-5);
   margin-bottom: 18px;
 }
 
@@ -334,7 +329,7 @@ html[data-theme='light'] .industrial-sidebar::-webkit-scrollbar-thumb {
   margin: 8px 0 0;
   max-width: 780px;
   color: var(--sbv-muted);
-  font-size: 13px;
+  font-size: var(--font-size-sm);
   line-height: 1.6;
 }
 
@@ -368,14 +363,14 @@ html[data-theme='light'] .industrial-sidebar::-webkit-scrollbar-thumb {
   display: flex;
   align-items: stretch;
   justify-content: space-between;
-  gap: 18px;
+  gap: var(--space-5);
 }
 
 .industrial-kicker {
   margin: 0 0 8px;
   color: var(--industrial-accent);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 11px;
+  font-size: var(--font-size-2xs);
   font-weight: 800;
   letter-spacing: 0.32em;
   text-transform: uppercase;
@@ -427,29 +422,29 @@ html[data-theme='light'] .industrial-version-badge strong {
 .industrial-nav-primary,
 .industrial-nav-group-items {
   display: grid;
-  gap: 0.35rem;
+  gap: var(--space-1);
 }
 
 .industrial-nav-group {
   display: grid;
-  gap: 0.35rem;
-  padding-top: 0.55rem;
+  gap: var(--space-1);
+  padding-top: var(--space-2);
 }
 
 .industrial-nav-group + .industrial-nav-group {
   border-top: 1px solid rgba(148, 163, 184, 0.14);
-  margin-top: 0.35rem;
+  margin-top: var(--space-1);
 }
 
 .industrial-nav-group-title {
   color: var(--industrial-muted);
   font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace);
-  font-size: 0.63rem;
+  font-size: var(--font-size-2xs);
   font-weight: 800;
   letter-spacing: 0.18em;
   line-height: 1.2;
   margin: 0 0 0.1rem;
-  padding: 0 0.75rem;
+  padding: 0 var(--space-3);
   text-transform: uppercase;
 }
 
