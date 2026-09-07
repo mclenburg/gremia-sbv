@@ -139,6 +139,12 @@
   text-transform: uppercase;
 }
 
+.case-tree-group-icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
 .case-tree-group-title span {
   margin-left: auto;
   color: var(--sbv-muted);
@@ -371,6 +377,16 @@ html[data-theme='light'] .case-tree-node.active {
 .person-expiry-card,
 .person-form {
   min-width: 0;
+}
+
+.person-panel-icon,
+.person-alert-icon {
+  flex-shrink: 0;
+  color: var(--industrial-accent);
+}
+
+.person-alert-icon {
+  margin-top: var(--space-1);
 }
 
 .person-list {
@@ -776,6 +792,10 @@ html[data-theme='light'] .case-tree-node.active {
   grid-template-columns: auto minmax(18rem, 1fr) minmax(10rem, auto) auto;
   align-items: center;
   padding-bottom: 0.9rem;
+}
+
+.case-detail-search-icon {
+  color: var(--industrial-accent);
 }
 
 .case-detail-search-button {
@@ -2069,14 +2089,14 @@ button.dashboard-focus-card:hover {
 }
 
 .industrial-deadline-counter strong {
-  font-size: 2rem;
+  font-size: var(--font-size-xl);
 }
 
 .industrial-deadline-counter span {
-  margin-top: 0.35rem;
-  color: var(--sbv-muted);
+  margin-top: var(--space-1);
+  color: var(--industrial-text-muted);
   font-family: inherit;
-  font-size: 0.85rem;
+  font-size: var(--font-size-sm);
   font-weight: 650;
   letter-spacing: 0.02em;
   text-transform: none;
@@ -2084,18 +2104,28 @@ button.dashboard-focus-card:hover {
 
 .industrial-deadline-panel .industrial-status-badge {
   border-radius: 0;
-  padding-inline: 0.7rem;
+  padding-inline: var(--space-3);
 }
 
 .industrial-deadline-panel .industrial-card-status-row {
   align-items: center;
-  gap: 0.55rem;
+  gap: var(--space-2);
 }
 
 .industrial-deadline-panel .industrial-alert-danger {
   display: flex;
   align-items: flex-start;
-  gap: 0.65rem;
+  gap: var(--space-3);
+}
+
+.deadline-dashboard-alert-icon,
+.deadline-dashboard-action-icon {
+  flex-shrink: 0;
+  margin-top: var(--space-1);
+}
+
+.deadline-dashboard-action-icon {
+  color: var(--industrial-accent);
 }
 
 .industrial-deadline-panel .industrial-alert-danger p {
@@ -2104,21 +2134,21 @@ button.dashboard-focus-card:hover {
 
 .industrial-deadline-context {
   display: grid;
-  gap: 0.35rem;
-  margin-block: 0.45rem 0.75rem;
+  gap: var(--space-1);
+  margin-block: var(--space-2) var(--space-3);
 }
 
 .industrial-deadline-context p {
   display: grid;
-  gap: 0.15rem;
+  gap: var(--space-1);
   margin: 0;
-  color: var(--sbv-text);
+  color: var(--industrial-text);
 }
 
 .industrial-deadline-context span {
-  color: var(--sbv-muted);
+  color: var(--industrial-text-muted);
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: var(--font-size-2xs);
   font-weight: 800;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -3616,14 +3646,6 @@ html[data-theme='light'] .person-lifecycle-badge.muted {
 }
 
 /* Definierte Modul-Chrome-Klassen: keine verwendete Projektklasse bleibt ohne CSS-Vertrag. */
-.auth-recovery-footer {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  align-items: center;
-  justify-content: space-between;
-}
-
 .module-header {
   display: grid;
   gap: 0.55rem;

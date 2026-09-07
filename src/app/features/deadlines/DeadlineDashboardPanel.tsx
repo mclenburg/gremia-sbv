@@ -62,7 +62,7 @@ export function DeadlineDashboardPanel({
 
       {criticalCount > 0 && (
         <IndustrialWarningPanel className="industrial-alert-danger">
-          <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0" />
+          <ShieldAlert className="h-5 w-5 deadline-dashboard-alert-icon" />
           <p>{criticalCount} Frist(en) sind kritisch oder überfällig. Diese Vorgänge zuerst prüfen und die Bearbeitung dokumentieren.</p>
         </IndustrialWarningPanel>
       )}
@@ -89,7 +89,7 @@ export function DeadlineDashboardPanel({
             </div>
             {item.legalBasis && <p className="industrial-legal-note">Rechtsbezug: {item.legalBasis}</p>}
             <div className="industrial-action-note">
-              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-yellow-300" />
+              <AlertTriangle className="h-4 w-4 deadline-dashboard-action-icon" />
               <p>{item.actionHint}</p>
             </div>
             <div className="industrial-card-actions">

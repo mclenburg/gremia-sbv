@@ -46,7 +46,7 @@ export function PersonList({
           <p className="industrial-kicker">Personen</p>
           <h2 id="person-list-heading">Personenverzeichnis</h2>
         </div>
-        <UserRoundCheck className="h-5 w-5 text-yellow-300" aria-hidden="true" />
+        <UserRoundCheck className="h-5 w-5 person-panel-icon" aria-hidden="true" />
       </div>
       <div className="person-list" role="list" aria-label="Personen im Verzeichnis">
         {persons.map((person) => {

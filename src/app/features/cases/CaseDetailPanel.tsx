@@ -63,7 +63,7 @@ export function CaseDetailPanel({
         onSubmit={(event) => void onSearchSubmit(event)} className="knowledge-search-bar case-detail-search-bar"
         aria-busy={isSearching}
       >
-        <Search className="h-4 w-4 text-yellow-300" aria-hidden="true" />
+        <Search className="h-4 w-4 case-detail-search-icon" aria-hidden="true" />
         <input className="industrial-input"
           data-global-search-target="case-fulltext"
           value={searchQuery}

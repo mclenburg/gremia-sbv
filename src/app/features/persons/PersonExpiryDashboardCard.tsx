@@ -33,7 +33,7 @@ export function PersonExpiryDashboardCard({
           <p className="industrial-kicker">Fristenintegration</p>
           <h2 id="person-expiry-heading">Statusabläufe</h2>
         </div>
-        <CalendarCheck className="h-5 w-5 text-yellow-300" aria-hidden="true" />
+        <CalendarCheck className="h-5 w-5 person-panel-icon" aria-hidden="true" />
       </div>
       <div className="person-expiry-stats" aria-label="Statusablauf-Zusammenfassung">
         <span>{expiringSoon} laufen bald ab</span>
