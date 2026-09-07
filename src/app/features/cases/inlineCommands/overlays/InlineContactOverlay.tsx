@@ -15,7 +15,7 @@ function ContactSearch({ props }: { props: ContactOverlayProps }) {
   return <>
     <div className="industrial-modal-grid"><label className="industrial-modal-wide"><span>Bestehenden Kontakt suchen</span><input value={draft.query} onChange={(event) => setInlineContactDraft((current) => current ? { ...current, query: event.target.value } : current)} placeholder="Name, Organisation, Rolle, E-Mail …" className="industrial-input" /></label></div>
     <div className="inline-contact-results">
-      {matches.map((contact) => <button key={contact.id} type="button" className="inline-contact-result" onClick={() => void insertExistingContactFromProtocol(contact)}><strong>{formatContactReference(contact)}</strong><span>{[contact.role, contact.email, contact.phone].filter(Boolean).join(" · ") || "Kontakt"}</span></button>)}
+      {matches.map((contact) => <button key={contact.id} type="button" className="industrial-command-result inline-contact-result" onClick={() => void insertExistingContactFromProtocol(contact)}><strong>{formatContactReference(contact)}</strong><span>{[contact.role, contact.email, contact.phone].filter(Boolean).join(" · ") || "Kontakt"}</span></button>)}
       {!matches.length && <div className="industrial-empty compact">Kein bestehender Kontakt gefunden. Unten neu erfassen.</div>}
     </div>
   </>;

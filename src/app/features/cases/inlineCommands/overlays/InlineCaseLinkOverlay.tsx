@@ -145,7 +145,8 @@ export function InlineCaseLinkOverlay({ props }: { props: InlineCommandOverlaysP
           ).map((record) => (
             <button
               key={record.id}
-              type="button" className="inline-contact-result"
+              type="button"
+              className="industrial-command-result inline-contact-result"
               onClick={() => void insertCaseReferenceFromProtocol(record)}
             >
               <strong>{record.caseNumber}</strong>

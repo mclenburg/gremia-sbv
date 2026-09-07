@@ -292,38 +292,35 @@ html[data-theme='light'] .case-tree-node.active {
 
 .inline-contact-results {
   display: grid;
-  gap: 0.5rem;
+  gap: var(--space-2);
   max-height: 14rem;
   overflow: auto;
-  border: 1px solid var(--industrial-border, rgba(250, 204, 21, 0.25));
-  background: var(--industrial-panel, rgba(9, 9, 11, 0.92));
-  padding: 0.75rem;
+  border: 1px solid var(--industrial-border);
+  background: var(--industrial-panel);
+  padding: var(--space-3);
 }
 
 .inline-contact-result {
-  display: flex;
   flex-direction: column;
   gap: 0.15rem;
-  border: 1px solid var(--industrial-border, rgba(250, 204, 21, 0.25));
-  background: var(--industrial-card, rgba(24, 24, 27, 0.95));
-  color: var(--industrial-text, #f4f4f5);
-  padding: 0.65rem 0.75rem;
-  text-align: left;
+  border-color: var(--industrial-border);
+  background: var(--industrial-card);
+  color: var(--industrial-text);
 }
 
 .inline-contact-result:hover {
-  border-color: var(--industrial-accent, #facc15);
-  box-shadow: inset 3px 0 0 var(--industrial-accent, #facc15);
+  border-color: var(--industrial-accent);
+  box-shadow: inset 3px 0 0 var(--industrial-accent);
 }
 
 .inline-contact-result strong {
-  color: var(--industrial-text-strong, #fff);
-  font-size: 0.9rem;
+  color: var(--industrial-text-strong);
+  font-size: var(--font-size-base);
 }
 
 .inline-contact-result span {
-  color: var(--industrial-muted, #a1a1aa);
-  font-size: 0.75rem;
+  color: var(--industrial-muted);
+  font-size: var(--font-size-xs);
 }
 
 .process-drop-zone {

@@ -145,7 +145,8 @@ export function InlineLegalNormOverlay({ props }: { props: InlineCommandOverlays
           ).map((norm) => (
             <button
               key={norm.id}
-              type="button" className="inline-contact-result"
+              type="button"
+              className="industrial-command-result inline-contact-result"
               onClick={() => void insertLegalNormFromProtocol(norm)}
             >
               <strong>{formatLegalNormText(norm)}</strong>
