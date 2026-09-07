@@ -25,7 +25,7 @@ export function CaseHandoverCasePicker({
   return <fieldset className="industrial-selection-card">
     <legend>{legend}</legend>
     {cases.length > 5 ? <SearchInput label="Fallakten filtern" value={query} onValueChange={setQuery} placeholder="Aktenzeichen, Name oder Kategorie …" /> : null}
-    <div className="industrial-action-row mt-4">
+    <div className="industrial-action-row">
       <ToolbarButton type="button" onClick={() => onChange([...new Set([...selectedIds, ...displayedCases.map((record) => record.id)])])}>Angezeigte auswählen</ToolbarButton>
       <ToolbarButton type="button" onClick={() => onChange(selectedIds.filter((id) => !displayedCases.some((record) => record.id === id)))}>Angezeigte abwählen</ToolbarButton>
       <span role="status" aria-live="polite">{selectedIds.length} von {cases.length} ausgewählt</span>

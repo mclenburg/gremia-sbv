@@ -254,6 +254,12 @@ html[data-theme='light'] .workbench-summary-card span {
   align-items: center;
 }
 
+.industrial-form-grid + .industrial-action-row,
+.industrial-message .industrial-search-actions,
+.industrial-warning-panel .industrial-action-row {
+  margin-top: var(--space-3);
+}
+
 .industrial-checkbox-row label {
   display: inline-flex;
   flex-direction: row;

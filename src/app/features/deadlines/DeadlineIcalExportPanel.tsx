@@ -46,7 +46,7 @@ export function DeadlineIcalExportModal({
       onClose={onClose}
       dataE2e="deadline-ical-export-modal"
     >
-      <div className="industrial-form mt-5" data-e2e="deadline-ical-export-panel">
+      <div className="industrial-form" data-e2e="deadline-ical-export-panel">
         <FormSection title="Export-Einstellungen">
           <div className="industrial-form-grid industrial-form-grid-2">
             <SelectInput

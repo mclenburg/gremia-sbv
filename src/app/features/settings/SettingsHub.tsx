@@ -22,7 +22,7 @@ export function SettingsHub({
     <section className="settings-hub industrial-card no-card-hover" aria-labelledby="settings-hub-title">
       <div className="industrial-card-header settings-hub-header">
         <div>
-          <p className="font-mono text-xs uppercase tracking-[0.22em] text-zinc-500">Einstellungen</p>
+          <p className="industrial-kicker">Einstellungen</p>
           <div className="industrial-section-title-row">
             <h3 id="settings-hub-title">Konfiguration</h3>
             <IndustrialHelpButton helpId="settings.overview" label="Bereichshilfe öffnen" />

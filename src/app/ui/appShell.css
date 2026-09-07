@@ -160,6 +160,9 @@ html[data-theme='light'] .industrial-sidebar::-webkit-scrollbar-thumb {
 }
 
 .industrial-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
   grid-column: 2;
   width: min(100%, var(--layout-content-max));
   margin-left: 0;
