@@ -21,9 +21,9 @@ const gremiaBrApiModeOptions: IndustrialFieldOption[] = [
 export function GremiaBrSettingsIntro() {
   return (
     <div>
-      <p className="font-mono text-xs uppercase tracking-[0.22em] text-zinc-500">Optionale Gremiumsanbindung</p>
+      <p className="industrial-kicker">Optionale Gremiumsanbindung</p>
       <h3 id="gremia-br-settings-title">Gremia.BR</h3>
-      <p className="text-sm text-zinc-400 mt-2">
+      <p className="industrial-muted">
         Gremia.SBV arbeitet mit klarer Datensouveränität: keine Hintergrundsynchronisation, kein Rückschreiben nach Gremia.BR ohne ausdrückliche Aktion.
         Lesecache und schreibende Aktionen erfolgen nur auf ausdrückliche Nutzeraktion; PDF-Übergaben ausschließlich im eigenen Gremia.BR-Bereich
         und nur mit von Gremia.SBV erzeugten PDF-Dokumenten.
@@ -143,17 +143,16 @@ export function GremiaBrWorkspaceBodySection({
   return (
     <div className="industrial-subsection compact">
       <p className="industrial-kicker">SBV-Gremium in Gremia.BR</p>
-      <p className="text-sm text-zinc-400 mt-2">
+      <p className="industrial-muted">
         Wählen Sie den SBV-Arbeitsbereich aus den Gremien, für die Ihr Gremia.BR-Konto aktuell berechtigt ist.
         Technische IDs werden nicht als manuelle Eingabe verlangt.
       </p>
-      {selectedBodyName && <div className="industrial-message mt-3" role="status">Ausgewählter Arbeitsbereich: {selectedBodyName}</div>}
-      <div className="industrial-action-row mt-3">
+      {selectedBodyName && <div className="industrial-message" role="status">Ausgewählter Arbeitsbereich: {selectedBodyName}</div>}
+      <div className="industrial-action-row">
         <ToolbarButton disabled={busy || !enabled} onClick={onLoadWorkspaceBodies}>SBV-Gremien aus Gremia.BR laden</ToolbarButton>
       </div>
       {workspaceBodies.length > 5 && (
         <SearchInput
-          className="mt-3"
           label="Gremien filtern"
           value={bodySearch}
           onValueChange={onBodySearchChange}
@@ -161,14 +160,14 @@ export function GremiaBrWorkspaceBodySection({
         />
       )}
       {workspaceBodies.length > 0 && (
-        <div className="industrial-list mt-3" role="list" aria-label="Berechtigte SBV-Gremien aus Gremia.BR">
+        <div className="industrial-list" role="list" aria-label="Berechtigte SBV-Gremien aus Gremia.BR">
           {filteredWorkspaceBodies.length === 0 ? (
             <div className="industrial-empty-state" role="listitem">Keine passenden SBV-Gremien gefunden.</div>
           ) : filteredWorkspaceBodies.map((body) => (
             <div className="industrial-list-row" role="listitem" key={body.bodyId}>
               <div>
                 <strong>{body.bodyName}</strong>
-                <p className="text-sm text-zinc-500">
+                <p className="industrial-meta">
                   {body.contentProtectionClass ? `Schutzklasse ${body.contentProtectionClass}` : "Schutzklasse von Gremia.BR vorgegeben"}
                 </p>
               </div>
@@ -193,10 +192,10 @@ export function GremiaBrRelevanceSection({
   return (
     <details className="industrial-subsection compact" open>
       <summary>Lokaler Relevanzfilter für Dashboard-Sitzungen</summary>
-      <p className="text-sm text-zinc-500 mt-2">
+      <p className="industrial-muted">
         Diese Stichwörter werden nur lokal in Gremia.SBV gegen gecachte Tagesordnungen geprüft und nicht an Gremia.BR gesendet.
       </p>
-      <div className="gremia-br-relevance-grid mt-3">
+      <div className="gremia-br-relevance-grid">
         {relevanceGroups.map((group) => (
           <div key={group.id} className="gremia-br-relevance-group">
             <CheckboxField

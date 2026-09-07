@@ -132,7 +132,7 @@ export function PrivacyReviewCockpit({ onNavigate, onOpenCaseNode }: { onNavigat
   return <ModuleFrame title="Datenschutzprüfung & Löschung" kicker="Datenschutz-Cockpit" description="Fällige Prüfaufträge sichtbar machen; fachliche Löschung und Anonymisierung bleiben manuell." compact helpId="privacyReview.overview">
   <section className="industrial-card no-card-hover" aria-labelledby="privacy-review-title" data-e2e="privacy-review-cockpit">
     <div className="industrial-card-header">
-      <div><p className="font-mono text-xs uppercase tracking-[0.22em] text-zinc-500">Datenschutz-Cockpit</p><h3 id="privacy-review-title">Lösch- und Datenschutzprüfung</h3>
+      <div><p className="industrial-kicker">Datenschutz-Cockpit</p><h3 id="privacy-review-title">Lösch- und Datenschutzprüfung</h3>
         <p>Alle fälligen Prüfaufträge. Die Entscheidung und jede Löschung bleiben ausdrücklich manuell.</p></div>
       <IndustrialButton variant="secondary" onClick={() => void reloadRetention()}><RefreshCw className="h-4 w-4" aria-hidden="true" /> Aktualisieren</IndustrialButton>
     </div>
@@ -142,14 +142,14 @@ export function PrivacyReviewCockpit({ onNavigate, onOpenCaseNode }: { onNavigat
       { label: 'Prüfen', value: dashboard.counts.warning, tone: 'warning' },
       { label: 'Hinweis', value: dashboard.counts.info },
     ]} />}
-    <div className="industrial-form-grid industrial-form-grid-2 mt-4">
+    <div className="industrial-form-grid industrial-form-grid-2">
       <SelectInput label="Risiko filtern" value={riskFilter} onValueChange={(value) => setRiskFilter(value as RiskFilter)} options={[
         { value: 'all', label: 'Alle Risikostufen' }, { value: 'critical', label: 'Kritisch' },
         { value: 'warning', label: 'Prüfen' }, { value: 'info', label: 'Hinweis' },
       ]} />
       <SearchInput label="Prüfaufträge durchsuchen" value={query} onValueChange={setQuery} />
     </div>
-    <div className="industrial-table-shell mt-4"><table className="industrial-table">
+    <div className="industrial-table-shell"><table className="industrial-table">
       <caption className="sr-only">Fällige Lösch- und Datenschutzprüfungen</caption>
       <thead><tr><th>Risiko</th><th>Prüfauftrag</th><th>Fällig seit</th><th>Empfehlung</th><th>Rechtsgrundlage</th><th>Arbeitsbereich / Aktion</th></tr></thead>
       <tbody>{candidates.map((candidate) => { const action = retentionCandidateUiAction(candidate); return <tr key={candidate.id}>
@@ -164,7 +164,7 @@ export function PrivacyReviewCockpit({ onNavigate, onOpenCaseNode }: { onNavigat
       </tr>; })}
       {!candidates.length && <tr><td colSpan={6}>{dashboard ? 'Keine passenden Prüfaufträge offen.' : 'Prüfaufträge werden geladen …'}</td></tr>}</tbody>
     </table></div>
-    {error && <div className="industrial-message industrial-message-warning mt-4" role="alert">{error}</div>}
+    {error && <div className="industrial-message industrial-message-warning" role="alert">{error}</div>}
   </section>
   </ModuleFrame>;
 }

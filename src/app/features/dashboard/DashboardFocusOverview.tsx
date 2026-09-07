@@ -99,8 +99,8 @@ function MeetingMatch({ match }: { match: GremiaBrRelevanceMatch }) {
   return (
     <li className="dashboard-support-list-item">
       <strong>{itemTitle(match.item, 'BR-Sitzung')}</strong>
-      {itemDate(match.item) && <span className="text-zinc-500"> · {itemDate(match.item)}</span>}
-      <div className="text-xs text-zinc-500">Treffer: {match.matchedGroups.join(', ')}</div>
+      {itemDate(match.item) && <span className="industrial-muted"> · {itemDate(match.item)}</span>}
+      <div className="industrial-meta">Treffer: {match.matchedGroups.join(', ')}</div>
     </li>
   );
 }
@@ -235,11 +235,11 @@ export function DashboardFocusOverview({ cases, measures, deadlines, dashboardIt
     <section className="dashboard-focus" aria-labelledby="dashboard-focus-title">
       <div className="industrial-card-header">
         <div>
-          <p className="font-mono text-xs uppercase tracking-[0.22em] text-zinc-500">Arbeitsübersicht</p>
+          <p className="industrial-kicker">Arbeitsübersicht</p>
           <h3 id="dashboard-focus-title">Wesentliches auf einen Blick</h3>
         </div>
       </div>
-      <div className="dashboard-focus-grid mt-4">
+      <div className="dashboard-focus-grid">
         <button type="button" className="industrial-card dashboard-focus-card" onClick={() => onNavigate('cases')}>
           <span className={markerClass(summary.cases.marker)}>{markerText(summary.cases.marker)}</span>
           <BriefcaseBusiness className="h-5 w-5" aria-hidden="true" />
@@ -286,39 +286,39 @@ export function DashboardFocusOverview({ cases, measures, deadlines, dashboardIt
         )}
       </div>
 
-      <div className="dashboard-support-grid mt-4">
+      <div className="dashboard-support-grid">
         {gremiaBrEnabled && (
           <section className="industrial-card no-card-hover dashboard-support-card" aria-labelledby="dashboard-next-br-meeting-title">
             <div className="industrial-card-header compact">
               <div>
-                <p className="font-mono text-xs uppercase tracking-[0.22em] text-zinc-500">Gremia.BR-Lesecache</p>
+                <p className="industrial-kicker">Gremia.BR-Lesecache</p>
                 <h4 id="dashboard-next-br-meeting-title">Nächste BR-Sitzung mit Agenda</h4>
               </div>
             </div>
-            {gremiaBrError && <div className="industrial-message industrial-message-warning mt-3" role="alert">{gremiaBrError}</div>}
-            {gremiaBrStatus && <div className="industrial-message industrial-message-success mt-3" role="status">{gremiaBrStatus}</div>}
+            {gremiaBrError && <div className="industrial-message industrial-message-warning" role="alert">{gremiaBrError}</div>}
+            {gremiaBrStatus && <div className="industrial-message industrial-message-success" role="status">{gremiaBrStatus}</div>}
             {nextMeeting ? (
               <>
                 <p className="dashboard-support-headline">{itemTitle(nextMeeting, 'BR-Sitzung')}</p>
-                {itemDate(nextMeeting) && <p className="text-xs text-zinc-500">{itemDate(nextMeeting)}</p>}
+                {itemDate(nextMeeting) && <p className="industrial-meta">{itemDate(nextMeeting)}</p>}
                 {nextAgenda.length ? (
-                  <ul className="dashboard-support-list mt-3">
+                  <ul className="dashboard-support-list">
                     {nextAgenda.map((agenda, index) => <li key={`${itemTitle(agenda, 'TOP')}-${index}`}>{itemTitle(agenda, `TOP ${index + 1}`)}</li>)}
                   </ul>
                 ) : (
-                  <p className="text-sm text-zinc-500 mt-3">Keine Tagesordnung im aktuellen Lesecache.</p>
+                  <p className="industrial-muted">Keine Tagesordnung im aktuellen Lesecache.</p>
                 )}
                 {gremiaBrOverview.relevantMeetings.length > 0 && (
-                  <div className="mt-4">
+                  <div className="dashboard-support-section">
                     <h5>SBV-relevante Tagesordnungstreffer</h5>
-                    <ul className="dashboard-support-list mt-2">
+                    <ul className="dashboard-support-list">
                       {gremiaBrOverview.relevantMeetings.slice(0, 3).map((match, index) => <MeetingMatch key={`${itemTitle(match.item, 'meeting')}-${index}`} match={match} />)}
                     </ul>
                   </div>
                 )}
               </>
             ) : (
-              <p className="text-sm text-zinc-500">Keine BR-Sitzung im lokalen Lesecache.</p>
+              <p className="industrial-muted">Keine BR-Sitzung im lokalen Lesecache.</p>
             )}
           </section>
         )}

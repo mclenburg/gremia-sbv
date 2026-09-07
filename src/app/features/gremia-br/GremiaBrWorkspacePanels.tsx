@@ -61,7 +61,7 @@ export function DisabledGremiaBrWorkspace() {
     <section className="industrial-card no-card-hover" aria-labelledby="gremia-br-workspace-title">
       <p className="industrial-kicker">Optionale Gremiumsanbindung</p>
       <h1 id="gremia-br-workspace-title">Gremia.BR</h1>
-      <p className="text-sm text-zinc-400 mt-2">
+      <p className="industrial-muted">
         Die Gremia.BR-Anbindung ist nicht aktiviert. Gremia.SBV arbeitet vollständig lokal weiter.
       </p>
     </section>
@@ -73,7 +73,7 @@ export function GremiaBrWorkspaceHeader() {
     <div className="industrial-card no-card-hover">
       <p className="industrial-kicker">Optionale Gremiumsanbindung</p>
       <h1 id="gremia-br-workspace-title">Gremia.BR</h1>
-      <p className="text-sm text-zinc-400 mt-2">
+      <p className="industrial-muted">
         Arbeitsbereich für bewusste Gremienaktionen: Lesekontext abrufen, BR-Tagesordnungspunkte anfordern,
         SBV-Sitzungen übernehmen und zentral erzeugte PDF-Dokumente an Gremia.BR übertragen.
       </p>
@@ -93,14 +93,14 @@ export function GremiaBrWorkspaceFeedback({ error, status }: { error: string; st
 export function GremiaBrConfigurationCard({ settings }: { settings: GremiaBrPublicSettings }) {
   return (
     <IndustrialPanel kicker="Konfiguration" title="Verbundene Instanz">
-      <dl className="industrial-meta-grid mt-3">
+      <dl className="industrial-meta-grid">
         <div><dt>Server</dt><dd>{settings.serverUrl}</dd></div>
         <div><dt>Benutzerkonto</dt><dd>{settings.username}</dd></div>
         <div><dt>API-Modus</dt><dd>{settings.apiMode === "gremia_br_v2" ? "Gremia.BR 2.0" : "Legacy-Lesebrücke"}</dd></div>
         <div><dt>SBV-Gremium</dt><dd>{workspaceLabel(settings)}</dd></div>
       </dl>
       {settings.apiMode === "gremia_br_v2" && !settings.selectedBodyId ? (
-        <div className="industrial-message industrial-message-warning mt-4" role="status">
+        <div className="industrial-message industrial-message-warning" role="status">
           Für Gremia.BR 2.0 muss in den Einstellungen ein berechtigtes SBV-Gremium ausgewählt sein.
         </div>
       ) : null}
@@ -153,7 +153,7 @@ export function GremiaBrCaseSummaryPanel({
         <TextInput label="Empfängerhinweis" value={draft.recipientLabel} onValueChange={(value) => onChange("recipientLabel", value)} disabled={disabled || busy} />
         <TextareaInput label="Zweck der BR-Information" value={draft.summaryPurpose} onValueChange={(value) => onChange("summaryPurpose", value)} disabled={disabled || busy} wide required />
       </div>
-      <div className="industrial-action-row mt-4">
+      <div className="industrial-action-row">
         <IndustrialButton loading={busy} disabled={disabled || !draft.selectedCaseId || !draft.summaryPurpose.trim()} onClick={onCreate}>
           Fallzusammenfassung erzeugen
         </IndustrialButton>
@@ -193,7 +193,7 @@ export function GremiaBrDocumentTransferPanel({
         <TextInput label="Freigabe gültig bis" type="date" value={draft.transferValidUntil} onValueChange={(value) => onChange("transferValidUntil", value)} disabled={disabled || busy} />
         <TextareaInput label="Freigabezweck" value={draft.transferPurpose} onValueChange={(value) => onChange("transferPurpose", value)} disabled={disabled || busy} wide required />
       </div>
-      <div className="industrial-action-row mt-4">
+      <div className="industrial-action-row">
         <IndustrialButton loading={busy} disabled={disabled || !draft.selectedDocumentId || !draft.targetSecurityDomain.trim() || !draft.transferPurpose.trim()} onClick={onTransfer}>
           PDF übertragen und freigeben
         </IndustrialButton>
@@ -229,7 +229,7 @@ export function GremiaBrAgendaPanel({
         <TextInput label="Tagesordnungspunkt" value={draft.agendaTitle} onValueChange={(value) => onChange("agendaTitle", value)} disabled={disabled || busy} wide required />
         <TextareaInput label="Begründung / Kontext" value={draft.agendaDescription} onValueChange={(value) => onChange("agendaDescription", value)} disabled={disabled || busy} wide />
       </div>
-      <div className="industrial-action-row mt-4">
+      <div className="industrial-action-row">
         <IndustrialButton loading={busy} disabled={disabled || !draft.selectedAgendaMeetingId || !draft.agendaTitle.trim()} onClick={onRequest}>
           Tagesordnungspunkt anfordern
         </IndustrialButton>
@@ -263,7 +263,7 @@ export function GremiaBrMeetingImportPanel({
       <div className="industrial-form-grid two-columns">
         <SearchableSelectInput label="Gremia.BR-Sitzung suchen und auswählen" value={draft.selectedImportMeetingId} options={options} onValueChange={(value) => onChange("selectedImportMeetingId", value)} disabled={disabled || busy} placeholder="Termin oder Sitzungstitel tippen …" required />
       </div>
-      <div className="industrial-action-row mt-4">
+      <div className="industrial-action-row">
         <IndustrialButton loading={busy} disabled={disabled || !draft.selectedImportMeetingId} onClick={onImport}>
           In SBV-Sitzungen übernehmen
         </IndustrialButton>
