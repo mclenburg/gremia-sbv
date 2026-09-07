@@ -2286,42 +2286,7 @@ html[data-theme='light'] .industrial-help-button:focus-visible {
 .industrial-field-label-row {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
-}
-
-/* Legacy help affordances are visually normalized until the owning modules migrate to IndustrialHelpButton. */
-.industrial-help-dot {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  min-width: 36px;
-  height: 36px;
-  min-height: 36px;
-  padding: 0;
-  border: 1px solid var(--sbv-border-hard, var(--industrial-border-strong));
-  border-radius: var(--control-radius);
-  background: rgba(9, 9, 11, 0.84);
-  color: var(--industrial-text, var(--sbv-text));
-}
-
-.industrial-help-dot:hover,
-.industrial-help-dot:focus-visible {
-  border-color: var(--industrial-accent);
-  color: var(--industrial-accent);
-  background: rgba(9, 9, 11, 0.84);
-}
-
-html[data-theme='light'] .industrial-help-dot {
-  background: #eeeeea;
-  color: var(--industrial-text, var(--sbv-text));
-}
-
-html[data-theme='light'] .industrial-help-dot:hover,
-html[data-theme='light'] .industrial-help-dot:focus-visible {
-  border-color: var(--industrial-accent);
-  color: var(--industrial-accent);
-  background: #eeeeea;
+  gap: var(--space-2);
 }
 
 

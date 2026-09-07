@@ -47,7 +47,7 @@ const review: PrivacyReviewItemRecord = {
 };
 
 describe('Privacy Review Tooltip UX 0.9.1', () => {
-  it('rendert Inline-Anonymisierung als zugänglichen Tooltip statt als langen UI-Hinweis', () => {
+  it('rendert Inline-Anonymisierung über das zentrale Hilfesystem statt als langen UI-Hinweis', () => {
     const { markup, tree } = renderComponent(PersonLifecycleReviewDialog, {
       person,
       open: true,
@@ -64,11 +64,12 @@ describe('Privacy Review Tooltip UX 0.9.1', () => {
       onError: () => undefined,
     });
 
-    const helpDots = descendants(tree).filter((node) => node.attrs.class?.includes('industrial-help-dot'));
-    expect(helpDots.length).toBeGreaterThanOrEqual(2);
-    expect(helpDots.every((node) => node.attrs.role === 'img')).toBe(true);
-    expect(helpDots.every((node) => node.attrs['aria-label'] === node.attrs.title)).toBe(true);
-    expect(helpDots[0].attrs.title).toContain('~~ markierte Textstellen');
+    const helpButtons = descendants(tree).filter((node) => node.attrs.class?.includes('industrial-help-button'));
+    expect(helpButtons.length).toBeGreaterThanOrEqual(2);
+    expect(helpButtons.every((node) => node.attrs['aria-haspopup'] === 'dialog')).toBe(true);
+    expect(helpButtons.every((node) => node.attrs['aria-label'] === 'Hilfe zur Anonymisierung vormerkter Freitexte öffnen')).toBe(true);
+    expect(helpButtons[0].attrs['data-help-title']).toBe('Vorgemerkte Freitexte anonymisieren');
+    expect(visibleText(markup)).not.toContain('Freitexte werden nicht blind anonymisiert');
     expect(visibleText(markup)).not.toContain('indem auf ~~ der zu anonymisierende Inhalt folgt');
   });
 });
