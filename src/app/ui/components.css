@@ -189,14 +189,14 @@ html[data-theme='light'] .industrial-button {
 
 html[data-theme='light'] .industrial-secondary-button {
   border-color: var(--border-strong);
-  background: #f7f5e8;
+  background: var(--industrial-control-bg);
   color: var(--text-primary);
 }
 
 html[data-theme='light'] .industrial-secondary-button:hover:not(:disabled) {
   border-color: var(--industrial-accent);
-  background: #fff8cc;
-  color: #6f5600;
+  background: var(--industrial-control-bg-hover);
+  color: var(--industrial-accent);
 }
 
 html[data-theme='light'] .industrial-danger-button {
@@ -250,6 +250,19 @@ html[data-theme='light'] .industrial-danger-button {
 html[data-theme='light'] .industrial-nav button,
 html[data-theme='light'] .industrial-lock-button {
   color: var(--industrial-text);
+}
+
+html[data-theme='light'] .industrial-nav button:hover:not(:disabled),
+html[data-theme='light'] .industrial-lock-button:hover:not(:disabled),
+html[data-theme='light'] .industrial-nav button.active,
+html[data-theme='light'] .industrial-nav button[aria-current='page'] {
+  border-color: color-mix(in srgb, var(--industrial-accent) 62%, transparent);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--industrial-accent) 18%, transparent),
+    color-mix(in srgb, var(--industrial-panel-muted) 72%, transparent)
+  );
+  color: var(--industrial-accent);
 }
 
 html[data-theme='light'] .industrial-lock-button {
