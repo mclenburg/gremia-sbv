@@ -79,24 +79,21 @@ export function ChangePasswordForm() {
         <input
           type="password"
           value={currentPassword}
-          onChange={(event) => setCurrentPassword(event.target.value)}
-        />
+          onChange={(event) => setCurrentPassword(event.target.value)} className="industrial-input" />
       </label>
       <label>
         <span>Neues Passwort</span>
         <input
           type="password"
           value={newPassword}
-          onChange={(event) => setNewPassword(event.target.value)}
-        />
+          onChange={(event) => setNewPassword(event.target.value)} className="industrial-input" />
       </label>
       <label>
         <span>Neues Passwort wiederholen</span>
         <input
           type="password"
           value={repeatPassword}
-          onChange={(event) => setRepeatPassword(event.target.value)}
-        />
+          onChange={(event) => setRepeatPassword(event.target.value)} className="industrial-input" />
       </label>
 
       {error && (

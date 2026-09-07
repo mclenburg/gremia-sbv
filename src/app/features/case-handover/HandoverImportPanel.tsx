@@ -92,11 +92,11 @@ export function HandoverImportPanel({ onCompleted }: { onCompleted: () => Promis
         createModeLabel={inspection.packageType === 'office_handover' ? 'Als neuen lokalen Amtsbestand übernehmen' : undefined}
       /> : null}
       {inspection?.packageType === 'office_handover' ? <label className="industrial-checkbox-row">
-        <input type="checkbox" checked={applyOfficeConfiguration} onChange={(event) => setApplyOfficeConfiguration(event.currentTarget.checked)} />
+        <input type="checkbox" checked={applyOfficeConfiguration} onChange={(event) => setApplyOfficeConfiguration(event.currentTarget.checked)} className="industrial-input" />
         <span>Übergebene Fristen- und Aufbewahrungsregeln für diese Instanz übernehmen. Lokale Regeln mit gleichem Schlüssel werden bewusst ersetzt.</span>
       </label> : null}
       {inspection?.legacyImportConfirmationRequired ? <label className="industrial-checkbox-row">
-        <input type="checkbox" checked={allowLegacyPackage} onChange={(event) => setAllowLegacyPackage(event.currentTarget.checked)} />
+        <input type="checkbox" checked={allowLegacyPackage} onChange={(event) => setAllowLegacyPackage(event.currentTarget.checked)} className="industrial-input" />
         <span>Ich habe Herkunft und Inhalt dieses älteren, nicht nach aktuellem Standard geschützten Pakets geprüft und möchte es importieren.</span>
       </label> : null}
       {error ? <div className="industrial-message industrial-message-warning" role="alert">{error}</div> : null}

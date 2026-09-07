@@ -202,6 +202,7 @@ export function CheckboxField({
           aria-invalid={invalid ? "true" : undefined}
           aria-describedby={describedBy}
           onChange={(event) => onCheckedChange(event.currentTarget.checked)}
+          className="industrial-input"
         />
       )}
     </FormField>

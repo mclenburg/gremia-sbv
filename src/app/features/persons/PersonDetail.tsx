@@ -88,8 +88,8 @@ export function PersonDetail({
       </dl>
       <PersonLifecycleReviewDialog person={person} open={privacyReviewOpen} reviews={privacyReviews} loading={privacyReviewLoading} onOpen={onOpenPrivacyReview} onClose={onClosePrivacyReview} onDocumentRetention={onDocumentRetention} onScheduleLater={onScheduleLater} onClear={onClearReview} onAnonymizeCase={onAnonymizeCase} onDeleteCase={onDeleteCase} onMessage={onMessage} onError={onError} />
       <div className="industrial-settings-form">
-        <label><span>Status gültig bis</span><input type="date" defaultValue={toInputDate(person.statusValidUntil)} onBlur={(event) => void updateSelected({ statusValidUntil: event.target.value || undefined, protectionStatus: event.target.value ? person.protectionStatus : 'expired' })} /></label>
-        <label><span>Beschäftigungsende</span><input type="date" defaultValue={toInputDate(person.leftCompanyAt)} onBlur={(event) => { const value = event.target.value; void updateSelected({ employmentState: value && value <= legalToday() ? 'left_company' : 'active_employee', leftCompanyAt: value || undefined }); }} /></label>
+        <label><span>Status gültig bis</span><input type="date" defaultValue={toInputDate(person.statusValidUntil)} onBlur={(event) => void updateSelected({ statusValidUntil: event.target.value || undefined, protectionStatus: event.target.value ? person.protectionStatus : 'expired' })} className="industrial-input" /></label>
+        <label><span>Beschäftigungsende</span><input type="date" defaultValue={toInputDate(person.leftCompanyAt)} onBlur={(event) => { const value = event.target.value; void updateSelected({ employmentState: value && value <= legalToday() ? 'left_company' : 'active_employee', leftCompanyAt: value || undefined }); }} className="industrial-input" /></label>
       </div>
       <p className="industrial-muted">Verknüpfte Fallakten werden bei einer Anonymisierung nicht mehr mit Namen angezeigt, sondern erhalten eine Datenschutz-Prüfmarkierung.</p>
       <p className="industrial-meta">Verknüpfte Fallakten: {linkedCaseCount}</p>

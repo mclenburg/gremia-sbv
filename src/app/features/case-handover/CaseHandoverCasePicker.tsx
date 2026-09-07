@@ -38,7 +38,7 @@ export function CaseHandoverCasePicker({
     <div className="handover-case-picker-list" aria-label={`${legend}: Treffer`}>
       {displayedCases.map((record) => <div className="handover-case-picker-row" key={record.id}>
         <label>
-          <input type="checkbox" checked={selected.has(record.id)} onChange={() => onChange(toggleHandoverCase(selectedIds, record.id))} />
+          <input type="checkbox" checked={selected.has(record.id)} onChange={() => onChange(toggleHandoverCase(selectedIds, record.id))} className="industrial-input" />
           <span><strong>{record.caseNumber}</strong><small>{record.displayName} · {record.category} · {record.status}</small></span>
         </label>
       </div>)}

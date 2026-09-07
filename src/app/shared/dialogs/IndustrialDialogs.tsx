@@ -375,6 +375,7 @@ export function ReasonRequiredDialog({
             value={reason}
             onChange={(event) => onReasonChange(event.currentTarget.value)}
             aria-invalid={error ? "true" : undefined}
+            className="industrial-textarea-input"
           />
         </label>
         {error ? (

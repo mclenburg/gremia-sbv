@@ -23,13 +23,13 @@ export function MeasureNoteFields({
     <>
       <IndustrialFormGrid columns={3}>
         <IndustrialField label="Titel">
-          <input value={form.title} onChange={(event) => onChange({ title: event.target.value })} />
+          <input value={form.title} onChange={(event) => onChange({ title: event.target.value })} className="industrial-input" />
         </IndustrialField>
         <IndustrialField label="Termin / Zeitpunkt">
-          <input type="datetime-local" value={form.noteAt} onChange={(event) => onChange({ noteAt: event.target.value })} />
+          <input type="datetime-local" value={form.noteAt} onChange={(event) => onChange({ noteAt: event.target.value })} className="industrial-input" />
         </IndustrialField>
         <IndustrialField label="Beteiligte">
-          <input value={form.participants} onChange={(event) => onChange({ participants: event.target.value })} placeholder="z. B. SBV, HR, betroffene Person" />
+          <input value={form.participants} onChange={(event) => onChange({ participants: event.target.value })} placeholder="z. B. SBV, HR, betroffene Person" className="industrial-input" />
         </IndustrialField>
       </IndustrialFormGrid>
       <IndustrialFormGrid columns={2}>
