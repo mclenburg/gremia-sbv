@@ -107,8 +107,7 @@ export function InlineEqualizationOverlay({ props }: { props: InlineCommandOverl
   } = props;
 
   return inlineEqualizationDraft ? (
-    <IndustrialModalSurface
-      className="inline-command-quick"
+    <IndustrialModalSurface className="inline-command-quick"
       labelledById="inline-equalization-title"
       onClose={cancelInlineEqualizationDraft}
     >
@@ -141,8 +140,7 @@ export function InlineEqualizationOverlay({ props }: { props: InlineCommandOverl
                     : current,
                 )
               }
-              placeholder="z. B. Gleichstellungsantrag vorbereiten"
-            />
+              placeholder="z. B. Gleichstellungsantrag vorbereiten" className="industrial-input" />
           </label>
           <label>
             <span>Status</span>
@@ -181,8 +179,7 @@ export function InlineEqualizationOverlay({ props }: { props: InlineCommandOverl
                     ? { ...current, objectionDueAt: event.target.value }
                     : current,
                 )
-              }
-            />
+              } className="industrial-input" />
           </label>
           <label className="industrial-modal-wide">
             <FieldCaption draft={inlineEqualizationDraft} field="note">
@@ -197,8 +194,7 @@ export function InlineEqualizationOverlay({ props }: { props: InlineCommandOverl
                     : current,
                 )
               }
-              placeholder="z. B. Voraussetzungen prüfen, Unterlagen sammeln"
-            />
+              placeholder="z. B. Voraussetzungen prüfen, Unterlagen sammeln" className="industrial-input" />
           </label>
           <label className="industrial-modal-wide">
             <FieldCaption draft={inlineEqualizationDraft} field="nextStep">
@@ -212,8 +208,7 @@ export function InlineEqualizationOverlay({ props }: { props: InlineCommandOverl
                     ? { ...current, nextStep: event.target.value }
                     : current,
                 )
-              }
-            />
+              } className="industrial-input" />
           </label>
         </div>
         <div className="industrial-modal-preview">
@@ -224,15 +219,13 @@ export function InlineEqualizationOverlay({ props }: { props: InlineCommandOverl
         </div>
         <div className="industrial-modal-actions">
           <button
-            type="button"
-            className="industrial-secondary-button"
+            type="button" className="industrial-secondary-button"
             onClick={cancelInlineEqualizationDraft}
           >
             Abbrechen
           </button>
           <button
-            type="button"
-            className="industrial-button"
+            type="button" className="industrial-button"
             onClick={() => void createEqualizationFromProtocol()}
           >
             Vormerken und weiterprotokollieren

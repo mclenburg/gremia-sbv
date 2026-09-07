@@ -4,7 +4,7 @@
   "focusVisibleOccurrences": 74,
   "uniqueFontSizeValues": 54,
   "uniquePaddingValues": 98,
-  "nativeFormControlsWithoutExplicitClassName": 110,
+  "nativeFormControlsWithoutExplicitClassName": 55,
   "allowedMediaBreakpoints": [
     "440px",
     "44rem",

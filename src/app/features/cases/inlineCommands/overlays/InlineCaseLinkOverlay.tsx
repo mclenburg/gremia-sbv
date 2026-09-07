@@ -135,8 +135,7 @@ export function InlineCaseLinkOverlay({ props }: { props: InlineCommandOverlaysP
                     : current,
                 )
               }
-              placeholder="Aktenzeichen, Name/Pseudonym, Kategorie …"
-            />
+              placeholder="Aktenzeichen, Name/Pseudonym, Kategorie …" className="industrial-input" />
           </label>
         </div>
         <div className="inline-contact-results">
@@ -146,8 +145,7 @@ export function InlineCaseLinkOverlay({ props }: { props: InlineCommandOverlaysP
           ).map((record) => (
             <button
               key={record.id}
-              type="button"
-              className="inline-contact-result"
+              type="button" className="inline-contact-result"
               onClick={() => void insertCaseReferenceFromProtocol(record)}
             >
               <strong>{record.caseNumber}</strong>
@@ -159,8 +157,7 @@ export function InlineCaseLinkOverlay({ props }: { props: InlineCommandOverlaysP
         </div>
         <div className="industrial-modal-actions">
           <button
-            type="button"
-            className="industrial-secondary-button"
+            type="button" className="industrial-secondary-button"
             onClick={cancelInlineCaseLinkDraft}
           >
             Abbrechen

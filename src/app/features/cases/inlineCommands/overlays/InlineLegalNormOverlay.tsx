@@ -135,8 +135,7 @@ export function InlineLegalNormOverlay({ props }: { props: InlineCommandOverlays
                     : current,
                 )
               }
-              placeholder="z. B. 178, Prävention, Kündigung, AGG …"
-            />
+              placeholder="z. B. 178, Prävention, Kündigung, AGG …" className="industrial-input" />
           </label>
         </div>
         <div className="inline-contact-results">
@@ -146,8 +145,7 @@ export function InlineLegalNormOverlay({ props }: { props: InlineCommandOverlays
           ).map((norm) => (
             <button
               key={norm.id}
-              type="button"
-              className="inline-contact-result"
+              type="button" className="inline-contact-result"
               onClick={() => void insertLegalNormFromProtocol(norm)}
             >
               <strong>{formatLegalNormText(norm)}</strong>
@@ -157,8 +155,7 @@ export function InlineLegalNormOverlay({ props }: { props: InlineCommandOverlays
         </div>
         <div className="industrial-modal-actions">
           <button
-            type="button"
-            className="industrial-secondary-button"
+            type="button" className="industrial-secondary-button"
             onClick={cancelInlineLegalNormDraft}
           >
             Abbrechen

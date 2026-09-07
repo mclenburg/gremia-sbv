@@ -13,7 +13,7 @@ function ContactSearch({ props }: { props: ContactOverlayProps }) {
   if (!draft) return null;
   const matches = filterContactsForQuery(contacts, draft.query);
   return <>
-    <div className="industrial-modal-grid"><label className="industrial-modal-wide"><span>Bestehenden Kontakt suchen</span><input value={draft.query} onChange={(event) => setInlineContactDraft((current) => current ? { ...current, query: event.target.value } : current)} placeholder="Name, Organisation, Rolle, E-Mail …" /></label></div>
+    <div className="industrial-modal-grid"><label className="industrial-modal-wide"><span>Bestehenden Kontakt suchen</span><input value={draft.query} onChange={(event) => setInlineContactDraft((current) => current ? { ...current, query: event.target.value } : current)} placeholder="Name, Organisation, Rolle, E-Mail …" className="industrial-input" /></label></div>
     <div className="inline-contact-results">
       {matches.map((contact) => <button key={contact.id} type="button" className="inline-contact-result" onClick={() => void insertExistingContactFromProtocol(contact)}><strong>{formatContactReference(contact)}</strong><span>{[contact.role, contact.email, contact.phone].filter(Boolean).join(" · ") || "Kontakt"}</span></button>)}
       {!matches.length && <div className="industrial-empty compact">Kein bestehender Kontakt gefunden. Unten neu erfassen.</div>}
@@ -27,15 +27,15 @@ function ContactCreateFields({ props }: { props: ContactOverlayProps }) {
   const update = (patch: Partial<typeof draft>) => setInlineContactDraft((current) => current ? { ...current, ...patch } : current);
   return <>
     <div className="industrial-modal-grid">
-      <label><span>Vorname</span><input value={draft.firstName} onChange={(event) => update({ firstName: event.target.value })} /></label>
-      <label><span>Nachname</span><input value={draft.lastName} onChange={(event) => update({ lastName: event.target.value })} /></label>
-      <label><span>Firma / Stelle</span><input value={draft.organization} onChange={(event) => update({ organization: event.target.value })} /></label>
-      <label><span>Rolle</span><input value={draft.role} onChange={(event) => update({ role: event.target.value })} placeholder="z. B. Personalleiter" /></label>
+      <label><span>Vorname</span><input value={draft.firstName} onChange={(event) => update({ firstName: event.target.value })} className="industrial-input" /></label>
+      <label><span>Nachname</span><input value={draft.lastName} onChange={(event) => update({ lastName: event.target.value })} className="industrial-input" /></label>
+      <label><span>Firma / Stelle</span><input value={draft.organization} onChange={(event) => update({ organization: event.target.value })} className="industrial-input" /></label>
+      <label><span>Rolle</span><input value={draft.role} onChange={(event) => update({ role: event.target.value })} placeholder="z. B. Personalleiter" className="industrial-input" /></label>
       <label><span>Kategorie</span><select className="industrial-select" value={draft.category} onChange={(event) => update({ category: event.target.value as ContactCategory })}>
         <option value="arbeitgeber">Arbeitgeber</option><option value="inklusionsamt">Inklusionsamt</option><option value="agentur_fuer_arbeit">Agentur für Arbeit</option><option value="betriebsarzt">Betriebsarzt</option><option value="betriebsrat">Betriebsrat</option><option value="beratung">Beratung</option><option value="intern">intern</option><option value="sonstiges">sonstiges</option>
       </select></label>
-      <label><span>E-Mail</span><input value={draft.email} onChange={(event) => update({ email: event.target.value })} /></label>
-      <label><span>Telefon</span><input value={draft.phone} onChange={(event) => update({ phone: event.target.value })} /></label>
+      <label><span>E-Mail</span><input value={draft.email} onChange={(event) => update({ email: event.target.value })} className="industrial-input" /></label>
+      <label><span>Telefon</span><input value={draft.phone} onChange={(event) => update({ phone: event.target.value })} className="industrial-input" /></label>
     </div>
     {(draft.firstName || draft.lastName) && <div className="industrial-modal-preview">Wird im Protokoll eingefügt: <strong>{formatContactReference({ firstName: draft.firstName, lastName: draft.lastName, organization: draft.organization })}</strong></div>}
   </>;

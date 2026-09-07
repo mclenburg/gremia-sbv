@@ -58,8 +58,7 @@ export function TextCommandHelpModal() {
   return (
     <div className="industrial-modal-backdrop" role="presentation">
       <section
-        ref={dialogRef}
-        className="industrial-modal text-command-help-modal"
+        ref={dialogRef} className="industrial-modal text-command-help-modal"
         data-e2e="inline-help-dialog"
         data-focus-managed="true"
         role="dialog"
@@ -81,7 +80,7 @@ export function TextCommandHelpModal() {
 
         <label className="text-command-help-search">
           <span><Search className="h-4 w-4" /> Kurzbefehle durchsuchen</span>
-          <input ref={searchRef} value={query} onChange={(event) => setQuery(event.target.value)} placeholder="z. B. Frist, Beteiligung, Datenschutz, /anp …" />
+          <input ref={searchRef} value={query} onChange={(event) => setQuery(event.target.value)} placeholder="z. B. Frist, Beteiligung, Datenschutz, /anp …" className="industrial-input" />
         </label>
 
         <div className="industrial-inline-note" role="note">

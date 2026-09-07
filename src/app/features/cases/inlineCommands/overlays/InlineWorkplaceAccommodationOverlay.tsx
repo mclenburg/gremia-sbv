@@ -107,8 +107,7 @@ export function InlineWorkplaceAccommodationOverlay({ props }: { props: InlineCo
   } = props;
 
   return inlineWorkplaceAccommodationDraft ? (
-    <IndustrialModalSurface
-      className="inline-command-quick"
+    <IndustrialModalSurface className="inline-command-quick"
       labelledById="inline-workplace-title"
       onClose={cancelInlineWorkplaceAccommodationDraft}
     >
@@ -145,8 +144,7 @@ export function InlineWorkplaceAccommodationOverlay({ props }: { props: InlineCo
                     : current,
                 )
               }
-              placeholder="z. B. fester Arbeitsplatz / technische Arbeitshilfe"
-            />
+              placeholder="z. B. fester Arbeitsplatz / technische Arbeitshilfe" className="industrial-input" />
           </label>
           <label className="industrial-modal-wide">
             <FieldCaption
@@ -167,8 +165,7 @@ export function InlineWorkplaceAccommodationOverlay({ props }: { props: InlineCo
                     : current,
                 )
               }
-              placeholder="z. B. fester Arbeitsplatz wegen behinderungsbedingter Belastung"
-            />
+              placeholder="z. B. fester Arbeitsplatz wegen behinderungsbedingter Belastung" className="industrial-input" />
           </label>
           <label>
             <FieldCaption
@@ -249,8 +246,7 @@ export function InlineWorkplaceAccommodationOverlay({ props }: { props: InlineCo
                       }
                     : current,
                 )
-              }
-            />
+              } className="industrial-input" />
           </label>
           <label className="industrial-modal-wide">
             <FieldCaption
@@ -267,8 +263,7 @@ export function InlineWorkplaceAccommodationOverlay({ props }: { props: InlineCo
                     ? { ...current, nextStep: event.target.value }
                     : current,
                 )
-              }
-            />
+              } className="industrial-input" />
           </label>
         </div>
         <div className="industrial-modal-preview">
@@ -280,15 +275,13 @@ export function InlineWorkplaceAccommodationOverlay({ props }: { props: InlineCo
         </div>
         <div className="industrial-modal-actions">
           <button
-            type="button"
-            className="industrial-secondary-button"
+            type="button" className="industrial-secondary-button"
             onClick={cancelInlineWorkplaceAccommodationDraft}
           >
             Abbrechen
           </button>
           <button
-            type="button"
-            className="industrial-button"
+            type="button" className="industrial-button"
             onClick={() => void createWorkplaceAccommodationFromProtocol()}
           >
             Vormerken und weiterprotokollieren

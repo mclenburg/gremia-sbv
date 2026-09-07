@@ -107,8 +107,7 @@ export function InlineBemOverlay({ props }: { props: InlineCommandOverlaysProps 
   } = props;
 
   return inlineBemDraft ? (
-    <IndustrialModalSurface
-      className="inline-command-quick"
+    <IndustrialModalSurface className="inline-command-quick"
       labelledById="inline-bem-title"
       onClose={cancelInlineBemDraft}
     >
@@ -139,8 +138,7 @@ export function InlineBemOverlay({ props }: { props: InlineCommandOverlaysProps 
                     : current,
                 )
               }
-              placeholder="z. B. BEM wegen wiederholter Arbeitsunfähigkeit"
-            />
+              placeholder="z. B. BEM wegen wiederholter Arbeitsunfähigkeit" className="industrial-input" />
           </label>
           <label className="industrial-modal-wide">
             <FieldCaption draft={inlineBemDraft} field="triggerDescription">
@@ -155,8 +153,7 @@ export function InlineBemOverlay({ props }: { props: InlineCommandOverlaysProps 
                     : current,
                 )
               }
-              placeholder="z. B. Rückkehr nach längerer AU, Beschäftigte wünscht Begleitung"
-            />
+              placeholder="z. B. Rückkehr nach längerer AU, Beschäftigte wünscht Begleitung" className="industrial-input" />
           </label>
           <label>
             <FieldCaption draft={inlineBemDraft} field="triggerType">
@@ -195,8 +192,7 @@ export function InlineBemOverlay({ props }: { props: InlineCommandOverlaysProps 
                     ? { ...current, responseDueAt: event.target.value }
                     : current,
                 )
-              }
-            />
+              } className="industrial-input" />
           </label>
           <label className="industrial-modal-wide">
             <FieldCaption draft={inlineBemDraft} field="nextStep">
@@ -210,8 +206,7 @@ export function InlineBemOverlay({ props }: { props: InlineCommandOverlaysProps 
                     ? { ...current, nextStep: event.target.value }
                     : current,
                 )
-              }
-            />
+              } className="industrial-input" />
           </label>
         </div>
         <div className="industrial-modal-preview">
@@ -220,15 +215,13 @@ export function InlineBemOverlay({ props }: { props: InlineCommandOverlaysProps 
         </div>
         <div className="industrial-modal-actions">
           <button
-            type="button"
-            className="industrial-secondary-button"
+            type="button" className="industrial-secondary-button"
             onClick={cancelInlineBemDraft}
           >
             Abbrechen
           </button>
           <button
-            type="button"
-            className="industrial-button"
+            type="button" className="industrial-button"
             onClick={() => void createBemFromProtocol()}
           >
             Vormerken und weiterprotokollieren

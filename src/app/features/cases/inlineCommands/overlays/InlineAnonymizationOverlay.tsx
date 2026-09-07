@@ -106,8 +106,7 @@ export function InlineAnonymizationOverlay({ props }: { props: InlineCommandOver
   } = props;
 
   return inlineAnonymizationDraft ? (
-    <IndustrialModalSurface
-      className="inline-anonymization-modal"
+    <IndustrialModalSurface className="inline-anonymization-modal"
       labelledById="inline-anon-title"
       onClose={cancelInlineAnonymizationDraft}
     >
@@ -136,8 +135,7 @@ export function InlineAnonymizationOverlay({ props }: { props: InlineCommandOver
                     : current,
                 )
               }
-              placeholder="z. B. Name, Bereich, Funktion, Gesundheitsdetail"
-            />
+              placeholder="z. B. Name, Bereich, Funktion, Gesundheitsdetail" className="industrial-input" />
           </label>
         </div>
         <div className="industrial-modal-preview">
@@ -148,15 +146,13 @@ export function InlineAnonymizationOverlay({ props }: { props: InlineCommandOver
         </div>
         <div className="industrial-modal-actions">
           <button
-            type="button"
-            className="industrial-secondary-button"
+            type="button" className="industrial-secondary-button"
             onClick={cancelInlineAnonymizationDraft}
           >
             Abbrechen
           </button>
           <button
-            type="button"
-            className="industrial-button"
+            type="button" className="industrial-button"
             onClick={applyAnonymizationMarkerFromProtocol}
           >
             Vormerken

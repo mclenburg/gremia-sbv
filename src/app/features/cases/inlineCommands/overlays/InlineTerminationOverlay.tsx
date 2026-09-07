@@ -107,8 +107,7 @@ export function InlineTerminationOverlay({ props }: { props: InlineCommandOverla
   } = props;
 
   return inlineTerminationDraft ? (
-    <IndustrialModalSurface
-      className="inline-command-quick"
+    <IndustrialModalSurface className="inline-command-quick"
       labelledById="inline-termination-title"
       onClose={cancelInlineTerminationDraft}
     >
@@ -141,8 +140,7 @@ export function InlineTerminationOverlay({ props }: { props: InlineCommandOverla
                     : current,
                 )
               }
-              placeholder="z. B. Anhörung zur ordentlichen Kündigung"
-            />
+              placeholder="z. B. Anhörung zur ordentlichen Kündigung" className="industrial-input" />
           </label>
           <label>
             <FieldCaption
@@ -220,8 +218,7 @@ export function InlineTerminationOverlay({ props }: { props: InlineCommandOverla
                     ? { ...current, receivedAt: event.target.value }
                     : current,
                 )
-              }
-            />
+              } className="industrial-input" />
           </label>
           <label>
             <span>SBV-Frist optional</span>
@@ -234,8 +231,7 @@ export function InlineTerminationOverlay({ props }: { props: InlineCommandOverla
                     ? { ...current, sbvStatementDueAt: event.target.value }
                     : current,
                 )
-              }
-            />
+              } className="industrial-input" />
           </label>
           <label className="industrial-modal-wide">
             <FieldCaption
@@ -252,8 +248,7 @@ export function InlineTerminationOverlay({ props }: { props: InlineCommandOverla
                     ? { ...current, employerReason: event.target.value }
                     : current,
                 )
-              }
-            />
+              } className="industrial-input" />
           </label>
           <label className="industrial-modal-wide">
             <FieldCaption draft={inlineTerminationDraft} field="nextStep">
@@ -267,8 +262,7 @@ export function InlineTerminationOverlay({ props }: { props: InlineCommandOverla
                     ? { ...current, nextStep: event.target.value }
                     : current,
                 )
-              }
-            />
+              } className="industrial-input" />
           </label>
         </div>
         <div className="industrial-modal-preview">
@@ -279,15 +273,13 @@ export function InlineTerminationOverlay({ props }: { props: InlineCommandOverla
         </div>
         <div className="industrial-modal-actions">
           <button
-            type="button"
-            className="industrial-secondary-button"
+            type="button" className="industrial-secondary-button"
             onClick={cancelInlineTerminationDraft}
           >
             Abbrechen
           </button>
           <button
-            type="button"
-            className="industrial-button"
+            type="button" className="industrial-button"
             onClick={() => void createTerminationFromProtocol()}
           >
             Vormerken und weiterprotokollieren

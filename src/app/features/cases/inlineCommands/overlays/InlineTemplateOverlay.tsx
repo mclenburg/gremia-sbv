@@ -106,8 +106,7 @@ export function InlineTemplateOverlay({ props }: { props: InlineCommandOverlaysP
   } = props;
 
   return inlineTemplateDraft ? (
-    <IndustrialModalSurface
-      className="inline-command-quick"
+    <IndustrialModalSurface className="inline-command-quick"
       labelledById="inline-template-title"
       onClose={cancelInlineTemplateDraft}
     >
@@ -136,8 +135,7 @@ export function InlineTemplateOverlay({ props }: { props: InlineCommandOverlaysP
                     : current,
                 )
               }
-              placeholder="z. B. Unterlagenanforderung Beteiligung"
-            />
+              placeholder="z. B. Unterlagenanforderung Beteiligung" className="industrial-input" />
           </label>
         </div>
         <div className="industrial-modal-preview">
@@ -148,15 +146,13 @@ export function InlineTemplateOverlay({ props }: { props: InlineCommandOverlaysP
         </div>
         <div className="industrial-modal-actions">
           <button
-            type="button"
-            className="industrial-secondary-button"
+            type="button" className="industrial-secondary-button"
             onClick={cancelInlineTemplateDraft}
           >
             Abbrechen
           </button>
           <button
-            type="button"
-            className="industrial-button"
+            type="button" className="industrial-button"
             onClick={applyTemplateMarkerFromProtocol}
           >
             Vormerken

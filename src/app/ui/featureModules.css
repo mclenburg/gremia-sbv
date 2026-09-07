@@ -2654,20 +2654,20 @@ html[data-theme='light'] .text-command-help-modal .industrial-icon-button {
   overflow: auto;
 }
 
-.industrial-command-results button {
+.industrial-command-result {
   display: flex;
   align-items: center;
-  gap: .5rem;
+  gap: var(--space-2, 0.5rem);
   width: 100%;
   border: 1px solid var(--sbv-border);
   background: var(--sbv-panel);
   color: var(--sbv-text);
-  padding: .65rem .75rem;
+  padding: 0.65rem 0.75rem;
   text-align: left;
 }
 
-.industrial-command-results button:hover,
-.industrial-command-results button:focus-visible {
+.industrial-command-result:hover,
+.industrial-command-result:focus-visible {
   border-color: var(--sbv-yellow);
 }
 

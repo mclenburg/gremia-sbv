@@ -134,8 +134,7 @@ export function InlineOpenTaskOverlay({ props }: { props: InlineCommandOverlaysP
                     : current,
                 )
               }
-              placeholder="z. B. Inklusionsamt nachfassen"
-            />
+              placeholder="z. B. Inklusionsamt nachfassen" className="industrial-input" />
           </label>
           <label>
             <span>Stufe</span>
@@ -168,8 +167,7 @@ export function InlineOpenTaskOverlay({ props }: { props: InlineCommandOverlaysP
                     ? { ...current, description: event.target.value }
                     : current,
                 )
-              }
-            />
+              } className="industrial-input" />
           </label>
         </div>
         <div className="industrial-modal-preview">
@@ -178,15 +176,13 @@ export function InlineOpenTaskOverlay({ props }: { props: InlineCommandOverlaysP
         </div>
         <div className="industrial-modal-actions">
           <button
-            type="button"
-            className="industrial-secondary-button"
+            type="button" className="industrial-secondary-button"
             onClick={cancelInlineOpenTaskDraft}
           >
             Abbrechen
           </button>
           <button
-            type="button"
-            className="industrial-button"
+            type="button" className="industrial-button"
             onClick={() => void createOpenTaskFromProtocol()}
           >
             Aufgabe vormerken

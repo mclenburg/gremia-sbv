@@ -11,8 +11,7 @@ export function isPrefilled(
 
 export function PrefillIndicator({ active }: { active: boolean }) {
   return active ? (
-    <span
-      className="prefill-marker"
+    <span className="prefill-marker"
       aria-label="automatisch vorbelegt"
       title="automatisch vorbelegt"
     >
