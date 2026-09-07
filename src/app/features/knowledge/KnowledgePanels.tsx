@@ -24,7 +24,7 @@ export function KnowledgeSearchPanel({
   return (
     <section className="industrial-panel">
       <form onSubmit={onSubmit} className="knowledge-search-bar">
-        <Search className="h-4 w-4 text-yellow-300" aria-hidden="true" />
+        <Search className="h-4 w-4 knowledge-search-icon" aria-hidden="true" />
         <TextInput label="Suchbegriff" value={query} onValueChange={onQueryChange} placeholder="Norm, Stichwort oder Praxisbegriff suchen …" />
         <SelectInput
           label="Quelle"
@@ -121,14 +121,14 @@ export function KnowledgeDetailPanel({
             </div>
           </div>
 
-          <div className="grid gap-4 xl:grid-cols-2">
+          <div className="knowledge-reference-grid">
             <div className="industrial-subpanel"><h4>SBV-Bedeutung</h4><p>{selectedNorm.sbvMeaning ?? 'Noch nicht ergänzt.'}</p></div>
             <div className="industrial-subpanel"><h4>Praxishinweis</h4><p>{selectedNorm.practiceNote ?? 'Noch nicht ergänzt.'}</p></div>
             <div className="industrial-subpanel"><h4>Typische Fälle</h4><p>{selectedNorm.typicalCases ?? 'Noch nicht ergänzt.'}</p></div>
             <div className="industrial-subpanel"><h4>Tags</h4><p>{selectedNorm.tags.join(', ') || '—'}</p></div>
           </div>
 
-          <details className="industrial-subpanel mt-4 knowledge-case-link">
+          <details className="industrial-subpanel knowledge-case-link">
             <summary>Mit Fallakte verknüpfen</summary>
             <div className="industrial-form-grid compact">
               <SelectInput
@@ -140,13 +140,13 @@ export function KnowledgeDetailPanel({
               />
               <IndustrialButton onClick={() => void onLinkSelectedNormToCase()}>Rechtsbezug setzen</IndustrialButton>
             </div>
-            <div className="mt-3">
+            <div className="knowledge-case-reference-list">
               {caseReferences.map((reference) => <p key={reference.id} className="industrial-meta"><strong>{reference.caseNumber}</strong> · {reference.createdAt.slice(0, 10)}</p>)}
               {!caseReferences.length && <p className="industrial-meta">Noch keine Fallverknüpfung.</p>}
             </div>
           </details>
 
-          <div className="grid gap-4 xl:grid-cols-3 mt-4">
+          <div className="knowledge-working-grid">
             <section className="industrial-subpanel">
               <h4>Checkliste</h4>
               {checklist.map((item) => <p key={item.id} className="industrial-meta">□ {item.text}</p>)}

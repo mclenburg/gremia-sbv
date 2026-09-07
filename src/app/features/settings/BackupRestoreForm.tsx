@@ -127,7 +127,7 @@ export function BackupRestoreForm() {
         </p>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="settings-backup-grid">
         <div className="industrial-subpanel">
           <h4>Backup erstellen</h4>
           <PasswordInput
@@ -184,7 +184,7 @@ export function BackupRestoreForm() {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-3">
+      <div className="industrial-action-row">
         <IndustrialButton
           variant="secondary"
           onClick={() => void window.gremiaSbv?.backup?.openBackupFolder()}

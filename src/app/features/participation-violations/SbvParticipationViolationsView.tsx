@@ -108,7 +108,7 @@ export function SbvParticipationViolationsView({
   const rows = state.items.map((item) => ({
     id: item.id,
     cells: [
-      <div key="subject"><strong>{item.subject}</strong><p className="industrial-settings-note mt-1">{item.measureDescription}</p></div>,
+      <div key="subject"><strong>{item.subject}</strong><p className="industrial-settings-note">{item.measureDescription}</p></div>,
       stageLabels[item.stage],
       violationTypeLabels[item.violationType],
       statusLabels[item.status],

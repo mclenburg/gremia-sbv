@@ -67,7 +67,7 @@ export function ContactCreateModal({
       onClose={onClose}
       dataE2e="contact-create-modal"
     >
-      <form onSubmit={submit} className="industrial-settings-form mt-5" noValidate>
+      <form onSubmit={submit} className="industrial-settings-form" noValidate>
         <FormSection title="Kontaktdaten" description="Mindestens Name, Organisation oder Kategorie sollte fachlich eindeutig sein.">
           <div className="industrial-form-grid">
             <TextInput label="Vorname" value={firstName} onValueChange={setFirstName} autoFocus />

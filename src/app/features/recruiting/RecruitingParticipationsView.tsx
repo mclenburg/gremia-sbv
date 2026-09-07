@@ -268,7 +268,7 @@ export function RecruitingParticipationsView({
                   <CheckboxField label="Nachhaltung erforderlich" checked={interviewForm.followUpNeeded} onCheckedChange={(checked) => updateInterviewForm({ followUpNeeded: checked })} />
                   <TextareaInput label="Verfahrensnotiz zum Ereignis" wide value={interviewForm.proceduralNote} onValueChange={(value) => updateInterviewForm({ proceduralNote: value })} helpId="recruiting.proceduralNote" />
                 </div>
-                <div className="industrial-action-row mt-4">
+                <div className="industrial-action-row">
                   <IndustrialButton loading={saving} onClick={() => void addInterview()}><BriefcaseBusiness className="h-4 w-4" /> Gespräch erfassen</IndustrialButton>
                 </div>
               </FormSection>
@@ -277,7 +277,7 @@ export function RecruitingParticipationsView({
                 <div className="industrial-form-grid">
                   <DateInput label="Wiedervorlage am" value={followUpDueAt} onValueChange={setFollowUpDueAt} />
                 </div>
-                <div className="industrial-action-row mt-4">
+                <div className="industrial-action-row">
                   <IndustrialButton variant="secondary" onClick={() => void createRecruitingFollowUp('documents')}><CalendarClock className="h-4 w-4" /> Unterlagen nachhalten</IndustrialButton>
                   <IndustrialButton variant="secondary" onClick={() => void createRecruitingFollowUp('hearing')}><ClipboardList className="h-4 w-4" /> Anhörung nachhalten</IndustrialButton>
                   <IndustrialButton variant="danger" loading={saving} onClick={() => openParticipationViolationPrefill()}><AlertTriangle className="h-4 w-4" /> Beteiligungsverstoß prüfen</IndustrialButton>

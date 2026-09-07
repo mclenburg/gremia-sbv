@@ -105,20 +105,20 @@ export function ContextualTemplateButton({
               </div>
             </div>
             {!!rendered.unresolvedPlaceholders.length && (
-              <div className="industrial-message industrial-message-warning mt-4" role="alert">
+              <div className="industrial-message industrial-message-warning" role="alert">
                 {missingPlaceholderWarning(rendered.unresolvedPlaceholders)}
               </div>
             )}
             {message && (
-              <div className="industrial-message industrial-message-ok mt-4" role="status">
+              <div className="industrial-message industrial-message-ok" role="status">
                 {message}
               </div>
             )}
-            <div className="industrial-subpanel mt-4">
+            <div className="industrial-subpanel">
               <h4>Betreff</h4>
               <p>{rendered.subject}</p>
             </div>
-            <div className="industrial-subpanel mt-4 template-preview-body">
+            <div className="industrial-subpanel template-preview-body">
               <h4>Textvorschau</h4>
               <pre>{rendered.body}</pre>
             </div>

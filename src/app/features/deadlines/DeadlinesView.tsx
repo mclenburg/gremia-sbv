@@ -162,7 +162,7 @@ export function DeadlineEditor({
       description={deadline.caseId ? `Fallbezug: ${cases.find((item: CaseRecord) => item.id === deadline.caseId)?.caseNumber ?? 'nicht auflösbar'}` : 'Allgemeine SBV-Aufgabe ohne Fallbezug'}
       onClose={onClose}
     >
-      <form onSubmit={submit} className="industrial-settings-form mt-5" noValidate>
+      <form onSubmit={submit} className="industrial-settings-form" noValidate>
         <FormSection>
           <TextInput label="Titel" value={title} onValueChange={setTitle} required />
           <DateTimeInput label="Fällig am" value={dueAt} onValueChange={setDueAt} required />
@@ -228,7 +228,7 @@ export function DeadlineExtensionModal({
       description={deadline.caseId ? `Fallbezug: ${cases.find((item: CaseRecord) => item.id === deadline.caseId)?.caseNumber ?? 'nicht auflösbar'}` : 'Allgemeine SBV-Aufgabe ohne Fallbezug'}
       onClose={onClose}
     >
-      <form onSubmit={submit} className="industrial-settings-form mt-5" noValidate>
+      <form onSubmit={submit} className="industrial-settings-form" noValidate>
         <FormSection>
           <DateTimeInput label="Neue Fälligkeit" value={dueAt} onValueChange={setDueAt} required />
           <TextInput label="Begründung / Audit" value={reason} onValueChange={setReason} required />

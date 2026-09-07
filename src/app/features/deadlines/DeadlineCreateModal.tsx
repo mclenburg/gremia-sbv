@@ -97,7 +97,7 @@ export function DeadlineCreateModal({
       wide
       dataE2e="deadline-create-modal"
     >
-      <form onSubmit={addDeadline} className="industrial-settings-form mt-5" noValidate>
+      <form onSubmit={addDeadline} className="industrial-settings-form" noValidate>
         <FormSection title="Fristdaten" description="Erfasse nur Informationen, die für die Fristensteuerung erforderlich sind.">
           <div className="industrial-form-grid industrial-form-grid-2">
             <TextInput label="Titel" value={title} onValueChange={setTitle} placeholder="z. B. Stellungnahme SBV" required />

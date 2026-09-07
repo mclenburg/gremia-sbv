@@ -1380,33 +1380,37 @@ html[data-theme='light'] .case-search-result:focus-visible {
 .knowledge-search-bar {
   display: grid;
   grid-template-columns: auto minmax(18rem, 1fr) minmax(10rem, 14rem) auto;
-  gap: .75rem;
+  gap: var(--space-3);
   align-items: center;
+}
+
+.knowledge-search-icon {
+  color: var(--industrial-accent);
 }
 
 .knowledge-layout {
   display: grid;
   grid-template-columns: minmax(17rem, .75fr) minmax(0, 1.65fr);
-  gap: 1rem;
+  gap: var(--space-4);
   align-items: start;
 }
 
 .knowledge-register-list {
   display: grid;
-  gap: .35rem;
+  gap: var(--space-2);
   max-height: calc(100vh - 20rem);
   overflow: auto;
-  padding-right: .25rem;
+  padding-right: var(--space-1);
 }
 
 .knowledge-register-row {
   display: grid;
-  gap: .2rem;
+  gap: var(--space-1);
   width: 100%;
-  padding: .7rem .8rem;
+  padding: var(--space-3);
   border: 1px solid transparent;
   background: transparent;
-  color: var(--text-primary);
+  color: var(--industrial-text);
   text-align: left;
   cursor: pointer;
 }
@@ -1419,24 +1423,23 @@ html[data-theme='light'] .case-search-result:focus-visible {
 }
 
 .knowledge-register-row strong {
-  font-size: .95rem;
+  font-size: var(--font-size-base);
 }
 
 .knowledge-register-row span {
-  color: var(--text-primary);
+  color: var(--industrial-text);
   line-height: 1.35;
 }
 
 .knowledge-register-row small {
-  color: var(--text-muted);
+  color: var(--industrial-text-muted);
   line-height: 1.35;
 }
 
 .knowledge-register-row:hover,
-.knowledge-register-row:focus-visible,
 .knowledge-register-row.active {
-  border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 12%, var(--surface-panel));
+  border-color: var(--industrial-accent);
+  background: color-mix(in srgb, var(--industrial-accent) 12%, var(--industrial-panel));
 }
 
 .knowledge-detail-panel .industrial-panel-header h2 {
@@ -1449,16 +1452,35 @@ html[data-theme='light'] .case-search-result:focus-visible {
 
 .knowledge-case-link summary {
   cursor: pointer;
-  color: var(--text-muted);
-  font-size: .75rem;
+  color: var(--industrial-text-muted);
+  font-size: var(--font-size-xs);
   font-weight: 800;
   letter-spacing: .14em;
   text-transform: uppercase;
 }
 
 .knowledge-case-link[open] summary {
-  margin-bottom: .85rem;
-  color: var(--accent);
+  margin-bottom: var(--space-3);
+  color: var(--industrial-accent);
+}
+
+.knowledge-reference-grid,
+.knowledge-working-grid,
+.knowledge-case-reference-list {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.knowledge-reference-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+}
+
+.knowledge-working-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+}
+
+.knowledge-case-reference-list {
+  gap: var(--space-2);
 }
 
 /* App-weiter Stilblock: complianceCenter.css. */
@@ -1874,7 +1896,7 @@ button.dashboard-focus-card:hover {
 .settings-hub {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--space-4);
 }
 
 .settings-hub-header {
@@ -1883,39 +1905,33 @@ button.dashboard-focus-card:hover {
 
 .settings-hub-tabs {
   display: grid;
-  gap: 0.75rem;
+  gap: var(--space-3);
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
 .settings-hub-tab {
-  border: 1px solid rgba(148, 163, 184, 0.18);
+  border: 1px solid color-mix(in srgb, var(--industrial-border-strong) 45%, transparent);
   border-radius: 0;
-  background: rgba(8, 8, 12, 0.72);
+  background: color-mix(in srgb, var(--industrial-panel-muted) 72%, transparent);
   color: inherit;
   cursor: pointer;
   min-height: 3.75rem;
-  padding: 0.85rem 0.95rem;
+  padding: var(--space-3) var(--space-4);
   justify-content: flex-start;
   text-align: left;
   transition: border-color 120ms ease, background 120ms ease, color 120ms ease, box-shadow 120ms ease;
 }
 
 .settings-hub-tab:hover {
-  border-color: rgba(148, 163, 184, 0.18);
+  border-color: color-mix(in srgb, var(--industrial-border-strong) 45%, transparent);
   box-shadow: none;
-}
-
-.settings-hub-tab:focus-visible {
-  outline: 2px solid var(--industrial-accent);
-  outline-offset: 3px;
-  box-shadow: var(--focus-ring);
 }
 
 .settings-hub-tab span {
   display: block;
-  margin-top: 0.25rem;
-  color: rgb(148, 163, 184);
-  font-size: 0.82rem;
+  margin-top: var(--space-1);
+  color: var(--industrial-text-muted);
+  font-size: var(--font-size-sm);
   line-height: 1.35;
 }
 
@@ -1926,12 +1942,12 @@ button.dashboard-focus-card:hover {
 .gremia-br-settings-layout {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--space-4);
 }
 
 .gremia-br-settings-credentials {
   display: grid;
-  gap: 1rem;
+  gap: var(--space-4);
   grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr);
 }
 
@@ -2121,6 +2137,21 @@ button.dashboard-focus-card:hover {
 .settings-section-workbench {
   display: grid;
   gap: var(--layout-gap);
+}
+
+.settings-section-grid,
+.settings-backup-grid {
+  display: grid;
+  gap: var(--space-5);
+  align-items: start;
+}
+
+.settings-section-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr));
+}
+
+.settings-backup-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
 }
 
 .settings-section-intro {

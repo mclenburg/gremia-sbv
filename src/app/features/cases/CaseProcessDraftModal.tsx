@@ -36,7 +36,7 @@ export function CaseProcessDraftModal({
             <p>Die Maßnahme wird direkt im Fallbaum der aktuellen Fallakte ergänzt.</p>
           </div>
         </div>
-        <div className="industrial-settings-form mt-5">
+        <div className="industrial-settings-form">
           <label><span>Art</span><select className="industrial-select" value={draft.processType} onChange={(event) => update({ processType: event.target.value as CaseProcessType })}><option value="prevention">Präventionsverfahren</option><option value="bem">BEM</option><option value="participation">SBV-Beteiligung</option><option value="workplace_accommodation">Arbeitsplatzgestaltung</option><option value="termination_hearing">Kündigungsanhörung</option><option value="equalization">Gleichstellung</option></select></label>
           <label><span>Titel</span><input value={draft.title} onChange={(event) => update({ title: event.target.value })} className="industrial-input" /></label>
           <label><span>Beschreibung / Anlass</span><TextCommandTextarea fieldId="case-process-description" value={draft.description} onChange={(event) => update({ description: event.target.value })} /></label>

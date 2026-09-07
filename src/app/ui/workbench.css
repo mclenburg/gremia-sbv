@@ -567,6 +567,21 @@ html[data-theme='light'] .industrial-panel {
   opacity: 0.82;
 }
 
+.industrial-subpanel {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+  border: 1px solid var(--industrial-border);
+  background: color-mix(in srgb, var(--industrial-panel-muted) 72%, transparent);
+  padding: var(--space-4);
+}
+
+.industrial-subpanel + .industrial-subpanel,
+.industrial-message + .industrial-subpanel,
+.process-template-list + .industrial-subpanel {
+  margin-top: var(--space-4);
+}
+
 .template-workbench-grid {
   display: grid;
   grid-template-columns: minmax(18rem, 0.72fr) minmax(0, 1.28fr);

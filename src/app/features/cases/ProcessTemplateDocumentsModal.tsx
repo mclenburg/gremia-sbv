@@ -138,9 +138,9 @@ export function ProcessTemplateDocumentsModal({
         </div>
 
         {state.rendered && (
-          <div className="industrial-subpanel mt-4">
+          <div className="industrial-subpanel">
             <h4>Zuletzt erzeugt</h4>
-            {state.rendered.unresolvedPlaceholders.length > 0 && <div className="industrial-message industrial-message-warning mb-3" role="alert">Offene Platzhalter: {state.rendered.unresolvedPlaceholders.join(', ')}</div>}
+            {state.rendered.unresolvedPlaceholders.length > 0 && <div className="industrial-message industrial-message-warning" role="alert">Offene Platzhalter: {state.rendered.unresolvedPlaceholders.join(', ')}</div>}
             <p className="industrial-meta"><strong>Betreff:</strong> {state.rendered.subject}</p>
             <textarea className="industrial-output-area" value={state.rendered.body} readOnly />
           </div>

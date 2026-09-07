@@ -70,7 +70,7 @@ export function ActivityJournalView({
       entry.entryDate,
       <div key="activity">
         <strong>{entry.title}</strong>
-        {entry.resultNote ? <p className="industrial-settings-note mt-1">{entry.resultNote}</p> : null}
+        {entry.resultNote ? <p className="industrial-settings-note">{entry.resultNote}</p> : null}
       </div>,
       categoryLabel(entry.category),
       <span key="time"><Clock className="inline h-4 w-4" /> {formatDuration(entry.durationMinutes)}</span>,
