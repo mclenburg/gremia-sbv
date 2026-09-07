@@ -71,34 +71,6 @@ html[data-theme='light'] body {
   color: var(--industrial-text);
 }
 
-html[data-theme='light'] .text-zinc-100,
-html[data-theme='light'] .text-zinc-300,
-html[data-theme='light'] .text-zinc-400,
-html[data-theme='light'] .text-zinc-500,
-html[data-theme='light'] .text-yellow-100,
-html[data-theme='light'] .text-yellow-300 {
-  color: var(--industrial-text) !important;
-}
-
-html[data-theme='light'] .text-red-100,
-html[data-theme='light'] .text-red-300 {
-  color: var(--industrial-danger) !important;
-}
-
-html[data-theme='light'] .border-zinc-700,
-html[data-theme='light'] .border-zinc-800,
-html[data-theme='light'] .border-yellow-500\/40,
-html[data-theme='light'] .border-yellow-500\/50 {
-  border-color: var(--industrial-border-strong) !important;
-}
-
-html[data-theme='light'] .bg-zinc-950\/95,
-html[data-theme='light'] .bg-yellow-500\/10,
-html[data-theme='light'] .bg-yellow-400\/10,
-html[data-theme='light'] .bg-red-500\/5 {
-  background-color: var(--industrial-panel) !important;
-}
-
 .skip-link {
   position: fixed;
   z-index: 9999;
