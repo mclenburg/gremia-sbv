@@ -37,7 +37,7 @@
       --sbv-yellow-soft: rgba(250, 204, 21, 0.12);
       --sbv-danger: #ef4444;
       --sbv-ok: #84cc16;
-      --page-max: 1180px;
+      --page-max: 1560px;
       --page-padding: clamp(1rem, 3vw, 2rem);
       --focus-ring: 0 0 0 3px rgba(250, 204, 21, 0.24);
     }
@@ -160,7 +160,7 @@
     .hero {
       min-height: calc(100vh - 66px);
       display: grid;
-      grid-template-columns: minmax(0, 0.78fr) minmax(36rem, 1.22fr);
+      grid-template-columns: minmax(22rem, 0.66fr) minmax(48rem, 1.34fr);
       gap: clamp(2rem, 4.5vw, 4.25rem);
       align-items: center;
       padding: clamp(4rem, 9vw, 7rem) 0;
@@ -186,7 +186,7 @@
     .hero h1 .product-name {
       display: block;
       max-width: 8ch;
-      font-size: clamp(3.35rem, 8vw, 6.8rem);
+      font-size: clamp(3.2rem, 6vw, 5.7rem);
       line-height: 0.84;
       letter-spacing: -0.08em;
     }
@@ -280,8 +280,8 @@
     .product-frame {
       position: relative;
       justify-self: end;
-      width: min(100%, 820px);
-      aspect-ratio: 16 / 10;
+      width: min(100%, 1040px);
+      aspect-ratio: 16 / 9;
       overflow: hidden;
       border: 1px solid var(--sbv-border-hard);
       background: linear-gradient(145deg, rgba(18,18,20,0.98), rgba(5,5,5,0.98));
@@ -300,7 +300,7 @@
     }
 
     .product-topbar {
-      height: 48px;
+      height: 44px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -330,8 +330,8 @@
 
     .product-body {
       display: grid;
-      grid-template-columns: 176px minmax(0, 1fr);
-      height: calc(100% - 48px);
+      grid-template-columns: 164px minmax(0, 1fr);
+      height: calc(100% - 44px);
       min-height: 0;
     }
 
@@ -360,7 +360,7 @@
     }
 
     .product-nav-item {
-      min-height: 24px;
+      min-height: 25px;
       display: flex;
       align-items: center;
       gap: 0.48rem;
@@ -403,18 +403,59 @@
       overflow: hidden;
     }
 
-    .product-heading {
+    .product-workspace-bar {
       display: flex;
-      align-items: end;
+      align-items: center;
       justify-content: space-between;
       gap: 1rem;
+      border: 1px solid rgba(148,163,184,0.18);
+      background: rgba(5,5,5,0.5);
+      padding: 0.62rem 0.72rem;
+      margin-bottom: 0.8rem;
+    }
+
+    .product-workspace-bar p {
+      margin: 0;
+      color: var(--sbv-dim);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.54rem;
+      font-weight: 850;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .product-workspace-bar strong {
+      display: block;
+      margin-top: 0.18rem;
+      color: #fff;
+      font-size: 0.95rem;
+    }
+
+    .product-unlocked {
+      color: var(--sbv-muted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.52rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .product-heading {
       margin-bottom: 0.7rem;
     }
 
     .product-heading h2 {
       margin: 0;
       color: #fff;
-      font-size: 1.08rem;
+      font-size: 0.82rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .product-heading strong {
+      display: block;
+      margin-top: 0.2rem;
+      color: #fff;
+      font-size: 1.05rem;
       letter-spacing: -0.035em;
     }
 
@@ -428,12 +469,12 @@
 
     .metric-grid {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 0.65rem;
     }
 
     .metric {
-      min-height: 74px;
+      min-height: 98px;
       border: 1px solid var(--sbv-border-hard);
       background: var(--sbv-panel);
       padding: 0.62rem;
@@ -452,6 +493,24 @@
       text-transform: uppercase;
     }
 
+    .metric em {
+      display: block;
+      width: max-content;
+      max-width: 100%;
+      border: 1px solid currentColor;
+      margin-bottom: 0.48rem;
+      padding: 0.16rem 0.42rem;
+      color: var(--sbv-yellow);
+      font-style: normal;
+      font-size: 0.48rem;
+      font-weight: 850;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .metric.warning em { color: var(--sbv-danger); }
+    .metric.ok em { color: var(--sbv-ok); }
+
     .metric strong {
       display: block;
       margin-top: 0.42rem;
@@ -465,12 +524,13 @@
 
     .work-grid {
       display: grid;
-      grid-template-columns: 1.05fr 0.95fr;
+      grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
       gap: 0.65rem;
       margin-top: 0.65rem;
     }
 
     .work-panel {
+      min-height: 130px;
       border: 1px solid var(--sbv-border);
       background: rgba(9,9,11,0.82);
       padding: 0.72rem;
@@ -480,6 +540,12 @@
       margin: 0 0 0.55rem;
       color: #fff;
       font-size: 0.8rem;
+    }
+
+    .work-panel .kicker {
+      margin-bottom: 0.26rem;
+      font-size: 0.5rem;
+      letter-spacing: 0.22em;
     }
 
     .work-row {
@@ -854,39 +920,56 @@
             </aside>
 
             <div class="product-content">
+              <div class="product-workspace-bar">
+                <div>
+                  <p>SBV-Arbeitsbereich</p>
+                  <strong>Dashboard</strong>
+                </div>
+                <span class="product-unlocked">Entsperrt · lokal</span>
+              </div>
+
               <div class="product-heading">
-                <h2>Dashboard</h2>
-                <span>Arbeitsübersicht</span>
+                <h2>Arbeitsübersicht</h2>
+                <strong>Wesentliches auf einen Blick</strong>
               </div>
 
               <div class="metric-grid">
                 <div class="metric">
+                  <em>Beachten</em>
                   <span>Offene Fälle</span>
-                  <strong>12</strong>
+                  <strong>3</strong>
                 </div>
                 <div class="metric warning">
+                  <em>Handlungsbedarf</em>
                   <span>Fristen</span>
-                  <strong>5</strong>
+                  <strong>2</strong>
                 </div>
-                <div class="metric danger">
-                  <span>Datenschutzprüfung</span>
-                  <strong>1</strong>
+                <div class="metric ok">
+                  <em>OK</em>
+                  <span>Compliance-Center</span>
+                  <strong>0</strong>
+                </div>
+                <div class="metric">
+                  <em>Prüfen</em>
+                  <span>Lösch- und Datenschutzprüfung</span>
+                  <strong>2</strong>
                 </div>
               </div>
 
               <div class="work-grid">
                 <section class="work-panel" aria-label="Beispielhafte Fallübersicht">
-                  <h3>Fallakten</h3>
-                  <div class="work-row"><span>Arbeitsplatzgestaltung</span><span class="status">In Arbeit</span></div>
-                  <div class="work-row"><span>BEM-Begleitung</span><span class="status">Offen</span></div>
-                  <div class="work-row"><span>Vertretungspaket</span><span class="status ok">Bereit</span></div>
+                  <p class="kicker">Gremia.BR-Lesecache</p>
+                  <h3>Nächste BR-Sitzung mit Agenda</h3>
+                  <div class="work-row"><span>Sitzung aus Lesecache</span><span class="status">Prüfen</span></div>
+                  <div class="work-row"><span>SBV-relevanter TOP</span><span class="status ok">Relevant</span></div>
                 </section>
 
                 <section class="work-panel" aria-label="Beispielhafte Fristenübersicht">
-                  <h3>Fristen, Datenschutz & BR-Kontext</h3>
-                  <div class="work-row"><span>Stellungnahme</span><span class="status danger">Heute</span></div>
-                  <div class="work-row"><span>Löschprüfung</span><span class="status">Prüfen</span></div>
-                  <div class="work-row"><span>Gremia.BR-Sitzung</span><span class="status ok">Relevant</span></div>
+                  <p class="kicker">Pflichtanzeige ab 48 Stunden</p>
+                  <h3>Fristen & Wiedervorlagen</h3>
+                  <div class="work-row"><span>Stellungnahme Maßnahme</span><span class="status danger">Heute</span></div>
+                  <div class="work-row"><span>Löschprüfung Fallakte</span><span class="status">Prüfen</span></div>
+                  <div class="work-row"><span>Wiedervorlage Gespräch</span><span class="status ok">7 Tage</span></div>
                 </section>
               </div>
             </div>
