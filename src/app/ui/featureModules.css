@@ -515,7 +515,7 @@ html[data-theme='light'] .case-tree-node.active {
   max-height: min(48rem, calc(100vh - 2rem));
   overflow: auto;
   border: 1px solid var(--industrial-border);
-  background: var(--industrial-panel));
+  background: var(--industrial-panel);
   box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.45);
   padding: var(--layout-page-padding);
 }

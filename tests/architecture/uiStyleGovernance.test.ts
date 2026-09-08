@@ -119,6 +119,21 @@ function collectInlineStyleAttributes(): string[] {
   });
 }
 
+function collectMalformedTokenDeclarations(): string[] {
+  return appCssFiles().flatMap((file) => {
+    const source = readProjectFile(file);
+    return source
+      .split('\n')
+      .flatMap((line, index) => {
+        const declaration = line.trim();
+        const malformedDirectTokenDeclaration = /^[\w-]+\s*:\s*(?:[^();]+\s+)*var\(--[\w-]+\)\);$/;
+        return malformedDirectTokenDeclaration.test(declaration)
+          ? [`${file}:${index + 1} ${declaration}`]
+          : [];
+      });
+  });
+}
+
 describe('UI-Styleguide-Governance', () => {
   it('friert harte CSS-Altlasten als Ratchet ein', () => {
     const cssFiles = appCssFiles();
@@ -153,5 +168,9 @@ describe('UI-Styleguide-Governance', () => {
 
   it('hält Inline-Styles im Renderer verboten', () => {
     expect(collectInlineStyleAttributes()).toEqual([]);
+  });
+
+  it('verhindert malformed CSS-Token-Deklarationen', () => {
+    expect(collectMalformedTokenDeclarations()).toEqual([]);
   });
 });

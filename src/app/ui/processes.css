@@ -320,9 +320,9 @@ html[data-theme='light'] .case-process-document-link {
   gap: 0.5rem;
   margin-top: 0.75rem;
   padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--industrial-danger-border));
+  border: 1px solid var(--industrial-danger-border);
   border-radius: 0;
-  background: var(--industrial-danger-bg));
+  background: var(--industrial-danger-bg);
   color: var(--industrial-text);
 }
 
