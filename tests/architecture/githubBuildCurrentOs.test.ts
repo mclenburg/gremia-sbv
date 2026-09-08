@@ -4,6 +4,8 @@ import { describe, expect, it } from 'vitest';
 const require = createRequire(import.meta.url);
 const githubBuild = require('../../scripts/run-github-build-current-os.cjs') as {
   buildSequence(): Array<[string, string[]]>;
+  githubBuildEnvironment(baseEnv?: NodeJS.ProcessEnv): NodeJS.ProcessEnv;
+  githubCoverageDirectory(pid?: number): string;
 };
 
 describe('0.9.5-e local GitHub build command', () => {
@@ -17,5 +19,14 @@ describe('0.9.5-e local GitHub build command', () => {
     ]);
     expect(sequence.some((command) => /^npm run build:package:(linux|windows|mac)$/u.test(command))).toBe(true);
     expect(sequence).not.toContain('npm run licenses:generate');
+  });
+
+  it('isoliert Vitest-Coverage pro GitHub-Build-Prozess gegen parallele lokale Läufe', () => {
+    const coverageDirectory = githubBuild.githubCoverageDirectory(12345);
+    const environment = githubBuild.githubBuildEnvironment({ PATH: '/usr/bin' });
+
+    expect(coverageDirectory).toContain('/coverage/github-build-12345');
+    expect(environment.PATH).toBe('/usr/bin');
+    expect(environment.GREMIA_SBV_COVERAGE_DIR).toContain('/coverage/github-build-');
   });
 });

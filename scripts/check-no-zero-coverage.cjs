@@ -16,7 +16,11 @@ function findZeroCoveredFiles(coverage) {
   return zero.sort();
 }
 
-function validateNoZeroCoverage(reportPath = path.join(process.cwd(), 'coverage', 'coverage-final.json')) {
+function defaultCoverageReportPath() {
+  return path.resolve(process.cwd(), process.env.GREMIA_SBV_COVERAGE_DIR || 'coverage', 'coverage-final.json');
+}
+
+function validateNoZeroCoverage(reportPath = defaultCoverageReportPath()) {
   if (!fs.existsSync(reportPath)) {
     return { reportPath, violations: [`Coverage-JSON fehlt: ${reportPath}`], zeroFiles: [] };
   }
@@ -39,4 +43,4 @@ if (require.main === module) {
   console.log(`Zero-Coverage-Gate OK: keine vollständig ungetestete Datei im Coverage-Scope.`);
 }
 
-module.exports = { countStatementCoverage, findZeroCoveredFiles, validateNoZeroCoverage };
+module.exports = { countStatementCoverage, defaultCoverageReportPath, findZeroCoveredFiles, validateNoZeroCoverage };

@@ -38,6 +38,8 @@ const rcCriticalServiceCoverage = [
   'services/portableProfileService.ts'
 ];
 
+const coverageReportsDirectory = process.env.GREMIA_SBV_COVERAGE_DIR || './coverage';
+
 export default defineConfig({
   resolve: {
     alias: {
@@ -57,7 +59,7 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
-      reportsDirectory: './coverage',
+      reportsDirectory: coverageReportsDirectory,
       include: rcCriticalServiceCoverage,
       exclude: [
         'services/**/*.test.ts',

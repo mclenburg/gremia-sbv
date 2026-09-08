@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 const { spawnSync } = require('node:child_process');
 const os = require('node:os');
+const path = require('node:path');
 
 function hasFlag(name) {
   return process.argv.slice(2).includes(name);
@@ -22,6 +23,17 @@ function currentPlatformReleaseScript() {
 
 function npmRun(scriptName) {
   return ['npm', ['run', scriptName]];
+}
+
+function githubCoverageDirectory(pid = process.pid) {
+  return path.join(process.cwd(), 'coverage', `github-build-${pid}`);
+}
+
+function githubBuildEnvironment(baseEnv = process.env) {
+  return {
+    ...baseEnv,
+    GREMIA_SBV_COVERAGE_DIR: githubCoverageDirectory(),
+  };
 }
 
 function buildSequence() {
@@ -59,8 +71,9 @@ function runGithubBuildCurrentOs() {
     console.log('Dry-Run: Befehle werden nur ausgegeben, nicht ausgeführt.');
   }
 
+  const env = githubBuildEnvironment();
   for (const [command, args] of buildSequence()) {
-    run(command, args);
+    run(command, args, { env });
   }
 
   console.log(dryRun ? '\nGitHub-Build-Sequenz für das aktuelle OS wurde im Dry-Run vollständig ausgegeben.' : '\nGitHub-Build-Sequenz für das aktuelle OS erfolgreich abgeschlossen.');
@@ -70,4 +83,12 @@ if (require.main === module) {
   runGithubBuildCurrentOs();
 }
 
-module.exports = { buildSequence, currentPlatformBuildScript, currentPlatformReleaseScript, npmRun, runGithubBuildCurrentOs };
+module.exports = {
+  buildSequence,
+  currentPlatformBuildScript,
+  currentPlatformReleaseScript,
+  githubBuildEnvironment,
+  githubCoverageDirectory,
+  npmRun,
+  runGithubBuildCurrentOs,
+};
