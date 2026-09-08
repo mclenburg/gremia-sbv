@@ -47,7 +47,7 @@ Gleiche Funktionen stehen modulübergreifend an derselben Stelle und verwenden d
 
 ## Governance
 
-`tests/architecture/uiStyleGovernance.test.ts` friert bestehende Altlasten als Ratchet ein:
+`tests/architecture/uiStyleGovernance.test.ts` erzwingt den bereinigten Zielzustand:
 
 - keine neuen Hex-Farben außerhalb `designTokens.css`,
 - keine zusätzlichen lokalen `:focus-visible`-Vorkommen,
@@ -56,4 +56,4 @@ Gleiche Funktionen stehen modulübergreifend an derselben Stelle und verwenden d
 - keine neuen nativen Formular-Controls ohne explizite Klasse,
 - keine Inline-Styles.
 
-Die Baseline liegt in `maintenance/architecture/ui-style-baseline.json`. Sinkende Werte sind erwünscht; steigende Werte sind ein Designbruch und müssen fachlich begründet und vorab freigegeben werden.
+Die Baseline liegt in `maintenance/architecture/ui-style-baseline.json` und steht für diese Kernverstöße auf `0`. Jeder neue Treffer ist ein Designbruch und muss vorab ausdrücklich freigegeben werden.

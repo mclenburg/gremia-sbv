@@ -56,6 +56,13 @@ function uniqueComponentDeclarationValues(propertyName: 'font-size' | 'padding')
   )].sort((a, b) => a.localeCompare(b));
 }
 
+function collectLegacyTokenReferences(): string[] {
+  const forbiddenToken = /var\(--(?:sbv-[\w-]+|accent|surface[\w-]*|border[\w-]*|text[\w-]*|panel[\w-]*|warning[\w-]*|color[\w-]*)\)/g;
+  return appCssFiles()
+    .filter((file) => !file.endsWith('/designTokens.css'))
+    .flatMap((file) => [...readProjectFile(file).matchAll(forbiddenToken)].map((match) => `${file}: ${match[0]}`));
+}
+
 function findJsxAttribute(
   node: ts.JsxOpeningElement | ts.JsxSelfClosingElement,
   name: string,
@@ -125,6 +132,10 @@ describe('UI-Styleguide-Governance', () => {
     );
     expect(uniqueComponentDeclarationValues('font-size').length).toBeLessThanOrEqual(baseline.uniqueFontSizeValues);
     expect(uniqueComponentDeclarationValues('padding').length).toBeLessThanOrEqual(baseline.uniquePaddingValues);
+  });
+
+  it('verwendet außerhalb der Token-Definition keine alten SBV- oder Alias-Token', () => {
+    expect(collectLegacyTokenReferences()).toEqual([]);
   });
 
   it('verbietet neue undokumentierte CSS-Breakpoints', () => {

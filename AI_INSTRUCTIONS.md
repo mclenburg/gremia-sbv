@@ -54,7 +54,7 @@ Die Oberfläche bildet den fachlichen Arbeitsablauf ab. Sie darf Nutzende nicht 
 
 ## 5a. UI- und CSS-Styleguide
 
-Der verbindliche Styleguide steht in `docs/ui-styleguide.md`. Neue und geänderte Oberflächen müssen ihn einhalten; bestehende Altlasten werden nur als Ratchet-Baseline akzeptiert und dürfen nicht wachsen.
+Der verbindliche Styleguide steht in `docs/ui-styleguide.md`. Neue und geänderte Oberflächen müssen ihn einhalten; die Kernverstöße Hex-Farben außerhalb der Token-Schicht, lokale Fokus-Sonderregeln sowie freie `font-size`- und `padding`-Einzelwerte sind auf `0` bereinigt und dürfen nicht wieder eingeführt werden.
 
 - Neue oder geänderte Komponenten verwenden die öffentliche `--industrial-*`-Token-Schicht. Neue Hex-Farben außerhalb `src/app/ui/designTokens.css` sind unzulässig.
 - Neue lokale `:focus-visible`-Sonderregeln sind unzulässig, außer eine ausdrücklich begründete technische Barrierefreiheitsausnahme wird vorab freigegeben. Standard ist der zentrale Fokus über `--focus-ring`.

@@ -23,7 +23,7 @@
   align-items: end;
   border: 1px solid var(--industrial-border);
   background: rgba(9,9,11,0.92);
-  padding: 16px;
+  padding: var(--space-4);
 }
 
 .industrial-settings-form {
@@ -34,7 +34,7 @@
 .industrial-settings-form h3 {
   margin: 0 0 4px;
   color: var(--industrial-text-strong);
-  font-size: 20px;
+  font-size: var(--font-size-lg);
   font-weight: 950;
   letter-spacing: -0.04em;
   text-transform: uppercase;
@@ -80,14 +80,14 @@
   margin-bottom: 7px;
   color: var(--industrial-text-muted);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 11px;
+  font-size: var(--font-size-2xs);
   letter-spacing: 0.18em;
   text-transform: uppercase;
 }
 
 .industrial-field-label {
   color: var(--industrial-text-muted);
-  font-size: 0.74rem;
+  font-size: var(--font-size-xs);
   letter-spacing: 0.07em;
   text-transform: uppercase;
 }
@@ -95,7 +95,7 @@
 .industrial-field-help,
 .industrial-field-error {
   margin: 0;
-  font-size: 0.78rem;
+  font-size: var(--font-size-sm);
   line-height: 1.35;
   letter-spacing: normal;
   text-transform: none;
@@ -128,7 +128,7 @@
 
 .industrial-checkbox-field .industrial-field-label {
   color: var(--industrial-text);
-  font-size: 0.8rem;
+  font-size: var(--font-size-sm);
   letter-spacing: normal;
   text-transform: none;
 }
@@ -275,30 +275,30 @@
   background-color: var(--industrial-control-bg-hover);
 }
 
-.industrial-input:focus-visible,
-.industrial-select:focus-visible,
-.industrial-text-input:focus-visible,
-.industrial-textarea-input:focus-visible,
-.industrial-select-input:focus-visible,
-.industrial-form input:focus-visible,
-.industrial-form select:focus-visible,
-.industrial-form textarea:focus-visible,
-.industrial-settings-form input:focus-visible,
-.industrial-settings-form select:focus-visible,
-.industrial-settings-form textarea:focus-visible,
-.case-detail-inline-form input:focus-visible,
-.case-detail-inline-form select:focus-visible,
-.case-detail-inline-form textarea:focus-visible,
-.industrial-field input:focus-visible,
-.industrial-field select:focus-visible,
-.industrial-field textarea:focus-visible,
-.industrial-modal-grid input:focus-visible,
-.industrial-modal-grid select:focus-visible,
-.industrial-modal input:not([type="checkbox"]):not([type="radio"]):focus-visible,
-.industrial-modal select:focus-visible,
-.industrial-modal textarea:focus-visible,
-.industrial-modal-grid textarea:focus-visible,
-.privacy-review-form select:focus-visible {
+.industrial-input:focus,
+.industrial-select:focus,
+.industrial-text-input:focus,
+.industrial-textarea-input:focus,
+.industrial-select-input:focus,
+.industrial-form input:focus,
+.industrial-form select:focus,
+.industrial-form textarea:focus,
+.industrial-settings-form input:focus,
+.industrial-settings-form select:focus,
+.industrial-settings-form textarea:focus,
+.case-detail-inline-form input:focus,
+.case-detail-inline-form select:focus,
+.case-detail-inline-form textarea:focus,
+.industrial-field input:focus,
+.industrial-field select:focus,
+.industrial-field textarea:focus,
+.industrial-modal-grid input:focus,
+.industrial-modal-grid select:focus,
+.industrial-modal input:not([type="checkbox"]):not([type="radio"]):focus,
+.industrial-modal select:focus,
+.industrial-modal textarea:focus,
+.industrial-modal-grid textarea:focus,
+.privacy-review-form select:focus {
   border-color: var(--industrial-control-border-focus);
   outline: 2px solid var(--industrial-control-border-focus);
   outline-offset: 2px;
@@ -342,7 +342,7 @@ select.industrial-input,
     calc(100% - 2.35rem) 50%;
   background-repeat: no-repeat;
   background-size: 0.34rem 0.34rem, 0.34rem 0.34rem, 1px 1.65rem;
-  color: var(--industrial-text-strong, #f4f4f5);
+  color: var(--industrial-text);
   color-scheme: dark;
   padding-right: 2.8rem;
 }
@@ -357,17 +357,17 @@ select.industrial-input option,
 .industrial-field select option,
 .privacy-review-form select option {
   background: var(--industrial-select-option-bg);
-  color: var(--industrial-text-strong, #f4f4f5);
+  color: var(--industrial-text);
 }
 
 .industrial-form-error-summary {
   display: grid;
   gap: var(--space-2, 0.5rem);
-  border: 1px solid var(--industrial-danger, #ef4444);
+  border: 1px solid var(--industrial-danger);
   border-left-width: 4px;
   border-radius: var(--industrial-control-radius);
-  background: color-mix(in srgb, var(--industrial-danger, #ef4444) 11%, var(--industrial-panel, #09090b));
-  color: var(--industrial-text-strong, #f4f4f5);
+  background: color-mix(in srgb, var(--industrial-danger) 11%, var(--industrial-panel));
+  color: var(--industrial-text);
   padding: var(--space-3, 0.75rem) var(--space-4, 1rem);
 }
 
@@ -414,9 +414,9 @@ html[data-theme='light'] .industrial-modal select,
 html[data-theme='light'] .industrial-modal textarea,
 html[data-theme='light'] .industrial-modal-grid textarea,
 html[data-theme='light'] .privacy-review-form select {
-  border-color: var(--border-strong);
-  background: #fbfaf2;
-  color: var(--text-primary);
+  border-color: var(--industrial-border-strong);
+  background: var(--industrial-light-control);
+  color: var(--industrial-text);
 }
 
 html[data-theme='light'] select.industrial-input,
@@ -429,7 +429,7 @@ html[data-theme='light'] .industrial-modal-grid select,
 html[data-theme='light'] .industrial-field select,
 html[data-theme='light'] .privacy-review-form select {
   background-color: var(--industrial-select-bg);
-  color: #141414;
+  color: var(--industrial-light-text);
   color-scheme: light;
 }
 
@@ -442,7 +442,7 @@ html[data-theme='light'] .case-detail-inline-form select option,
 html[data-theme='light'] .industrial-modal-grid select option,
 html[data-theme='light'] .industrial-field select option,
 html[data-theme='light'] .privacy-review-form select option {
-  color: #141414;
+  color: var(--industrial-light-text);
 }
 
 html[data-theme='light'] .industrial-input::placeholder,
@@ -460,6 +460,6 @@ html[data-theme='light'] .industrial-modal-grid input::placeholder,
 html[data-theme='light'] .industrial-modal input::placeholder,
 html[data-theme='light'] .industrial-modal textarea::placeholder,
 html[data-theme='light'] .industrial-modal-grid textarea::placeholder {
-  color: #6a6a60;
+  color: var(--industrial-light-muted);
   opacity: 1;
 }

@@ -31,7 +31,7 @@
   justify-content: space-between;
   align-items: flex-start;
   gap: var(--layout-gap);
-  padding: clamp(0.8rem, 1vw, 1rem);
+  padding: var(--space-4);
   border: 1px solid var(--industrial-border);
   background: color-mix(in srgb, var(--industrial-panel-muted) 88%, black 12%);
   box-shadow: 0 10px 28px rgba(0,0,0,.18);
@@ -83,29 +83,29 @@
 .workbench-summary-card {
   border: 1px solid var(--industrial-border);
   background: color-mix(in srgb, var(--industrial-panel-muted) 88%, black 12%);
-  padding: clamp(0.75rem, 1vw, 1rem);
+  padding: var(--space-4);
   min-width: 0;
   box-shadow: 0 10px 28px rgba(0,0,0,.22);
 }
 
 html[data-theme='light'] .workbench-summary-card {
-  background: linear-gradient(180deg, var(--surface-panel), var(--surface-muted));
-  color: var(--text-primary);
+  background: linear-gradient(180deg, var(--industrial-panel), var(--industrial-panel-muted));
+  color: var(--industrial-text);
   box-shadow: 0 8px 22px rgba(20,20,20,.08);
 }
 
 html[data-theme='light'] .workbench-summary-card strong {
-  color: var(--text-primary);
+  color: var(--industrial-text);
 }
 
 html[data-theme='light'] .workbench-summary-card span {
-  color: var(--text-muted);
+  color: var(--industrial-text-muted);
 }
 
 .workbench-summary-card strong {
   display: block;
   color: var(--industrial-text-strong);
-  font-size: clamp(1.2rem, 2.1vw, 1.65rem);
+  font-size: var(--font-size-2xl);
   line-height: 1;
 }
 
@@ -113,7 +113,7 @@ html[data-theme='light'] .workbench-summary-card span {
   display: block;
   margin-top: 0.45rem;
   color: var(--industrial-text-muted);
-  font-size: 0.75rem;
+  font-size: var(--font-size-xs);
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -144,7 +144,7 @@ html[data-theme='light'] .workbench-summary-card span {
 .workbench-create-panel {
   display: grid;
   gap: var(--space-4, 1rem);
-  padding: clamp(0.9rem, 1.2vw, 1.2rem);
+  padding: var(--layout-page-padding);
   margin-bottom: var(--space-4, 1rem);
 }
 
@@ -158,7 +158,7 @@ html[data-theme='light'] .workbench-summary-card span {
 .workbench-panel-head h2 {
   margin: 0;
   color: var(--industrial-text-strong);
-  font-size: 1rem;
+  font-size: var(--font-size-md);
 }
 
 .workbench-panel-head p {
@@ -183,7 +183,7 @@ html[data-theme='light'] .workbench-summary-card span {
 .workbench-detail-panel {
   display: grid;
   gap: var(--space-4, 1rem);
-  padding: clamp(0.9rem, 1.2vw, 1.2rem);
+  padding: var(--layout-page-padding);
   min-width: 0;
   position: sticky;
   top: var(--space-3, 0.75rem);
@@ -230,7 +230,7 @@ html[data-theme='light'] .workbench-summary-card span {
 
 .industrial-field > span {
   color: var(--industrial-text-muted);
-  font-size: 0.74rem;
+  font-size: var(--font-size-xs);
   letter-spacing: 0.07em;
   text-transform: uppercase;
 }
@@ -377,7 +377,7 @@ html[data-theme='light'] .industrial-panel {
   border-radius: var(--control-radius);
   background: color-mix(in srgb, var(--industrial-panel) 88%, black 12%);
   color: var(--industrial-text);
-  padding: 0.8rem 0.85rem;
+  padding: var(--space-3);
   text-align: left;
   cursor: pointer;
 }
@@ -395,12 +395,12 @@ html[data-theme='light'] .industrial-panel {
 
 .industrial-workspace-nav strong {
   color: var(--industrial-text-strong);
-  font-size: 0.92rem;
+  font-size: var(--font-size-base);
 }
 
 .industrial-workspace-nav span {
   color: var(--industrial-text-muted);
-  font-size: 0.78rem;
+  font-size: var(--font-size-sm);
   line-height: 1.35;
 }
 
@@ -443,7 +443,7 @@ html[data-theme='light'] .industrial-panel {
 .case-workbench-footer {
   display: grid;
   gap: 1rem;
-  border-top: 1px solid var(--sbv-border);
+  border-top: 1px solid var(--industrial-border);
   padding-top: 1rem;
 }
 
@@ -460,17 +460,17 @@ html[data-theme='light'] .industrial-panel {
 }
 
 .case-workbench-footer-heading span {
-  color: var(--sbv-yellow);
+  color: var(--industrial-accent);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 0.72rem;
+  font-size: var(--font-size-xs);
   font-weight: 900;
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
 .case-workbench-footer-heading small {
-  color: var(--sbv-muted);
-  font-size: 0.78rem;
+  color: var(--industrial-text-muted);
+  font-size: var(--font-size-sm);
   line-height: 1.35;
 }
 
@@ -493,7 +493,7 @@ html[data-theme='light'] .industrial-panel {
   align-items: flex-start;
   text-align: left;
   gap: 0.7rem;
-  padding: 0.8rem 0.9rem;
+  padding: var(--space-3);
   box-shadow: none;
 }
 
@@ -507,7 +507,7 @@ html[data-theme='light'] .industrial-panel {
 }
 
 .case-workbench-footer-button-secondary:hover:not(:disabled),
-.case-workbench-footer-button-secondary:focus-visible {
+.case-workbench-footer-button-secondary:focus {
   background: rgba(24, 24, 27, 0.88);
 }
 
@@ -519,14 +519,14 @@ html[data-theme='light'] .industrial-panel {
 
 .case-workbench-footer-action-label strong {
   color: inherit;
-  font-size: 0.92rem;
+  font-size: var(--font-size-base);
   font-weight: 850;
   line-height: 1.2;
 }
 
 .case-workbench-footer-action-label small {
-  color: var(--sbv-muted);
-  font-size: 0.72rem;
+  color: var(--industrial-text-muted);
+  font-size: var(--font-size-xs);
   line-height: 1.35;
 }
 
@@ -556,11 +556,11 @@ html[data-theme='light'] .industrial-panel {
 }
 
 .case-workbench-footer-actions-secondary .case-workbench-footer-action-label strong {
-  font-size: 0.86rem;
+  font-size: var(--font-size-base);
 }
 
 .case-workbench-footer-actions-secondary .case-workbench-footer-action-label small {
-  font-size: 0.68rem;
+  font-size: var(--font-size-2xs);
 }
 
 .case-workbench-footer-actions-secondary .case-workbench-footer-button .h-4 {
@@ -598,9 +598,9 @@ html[data-theme='light'] .industrial-status-card,
 html[data-theme='light'] .industrial-data-table-shell,
 html[data-theme='light'] .industrial-empty-state,
 html[data-theme='light'] .industrial-subpanel {
-  border-color: var(--border-muted);
-  background-color: #fafaf5;
+  border-color: var(--industrial-border);
+  background-color: var(--industrial-light-panel);
   background-image: linear-gradient(135deg, rgba(250, 250, 245, 0.96), rgba(225, 224, 214, 0.98));
-  color: var(--text-primary);
+  color: var(--industrial-text);
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.55), 0 8px 18px rgba(0,0,0,0.08);
 }

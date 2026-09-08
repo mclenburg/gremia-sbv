@@ -47,7 +47,7 @@ button,
   touch-action: manipulation;
 }
 
-:focus-visible {
+:focus {
   outline: 2px solid var(--industrial-accent);
   outline-offset: 3px;
   box-shadow: var(--focus-ring);
@@ -80,14 +80,14 @@ html[data-theme='light'] body {
   border: 2px solid var(--industrial-accent);
   background: var(--industrial-bg);
   color: var(--industrial-text-strong);
-  padding: 0.75rem 1rem;
+  padding: var(--space-3) var(--space-4);
   font-weight: 900;
   text-decoration: none;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
 }
 
 .skip-link:focus,
-.skip-link:focus-visible {
+.skip-link:focus {
   transform: translateY(0);
   outline: 3px solid var(--industrial-accent);
   outline-offset: 3px;

@@ -36,7 +36,7 @@
     overflow: visible;
     border-right: 0;
     border-bottom: 1px solid var(--industrial-border);
-    padding: 0.75rem;
+    padding: var(--space-3);
   }
 
   .brand-block {
@@ -49,12 +49,12 @@
     grid-auto-columns: minmax(8.5rem, max-content);
     overflow-x: auto;
     overflow-y: hidden;
-    padding: 0.2rem 0 0.35rem;
+    padding: var(--space-1) var(--space-0);
     scrollbar-width: thin;
   }
 
   .industrial-nav {
-    mask-image: linear-gradient(90deg, transparent 0, #000 1rem, #000 calc(100% - 2.25rem), transparent 100%);
+    mask-image: linear-gradient(90deg, transparent 0, black 1rem, black calc(100% - 2.25rem), transparent 100%);
   }
 
   .industrial-nav button {
@@ -74,7 +74,7 @@
 
 @media (max-width: 760px) {
   html {
-    --layout-page-padding: 0.75rem;
+    --layout-page-padding: var(--space-3);
     --layout-gap: 0.75rem;
   }
 
@@ -83,7 +83,7 @@
   }
 
   .brand-block {
-    padding: 0.75rem;
+    padding: var(--space-3);
   }
 
   .industrial-topbar,
@@ -106,11 +106,11 @@
   .industrial-settings-form,
   .industrial-form,
   .login-panel {
-    padding: 1rem;
+    padding: var(--space-4);
   }
 
   .industrial-title {
-    font-size: clamp(1.7rem, 14vw, 2.55rem);
+    font-size: var(--font-size-display);
   }
 
   .industrial-card,
@@ -144,7 +144,7 @@
   }
 
   .industrial-nav button {
-    font-size: 0.78rem;
+    font-size: var(--font-size-sm);
     padding-inline: 0.6rem;
   }
 
@@ -271,7 +271,7 @@
   .person-import-dialog {
     width: calc(100vw - 1rem);
     max-height: calc(100vh - 1rem);
-    padding: 0.85rem;
+    padding: var(--space-3);
   }
 
   .person-toolbar,

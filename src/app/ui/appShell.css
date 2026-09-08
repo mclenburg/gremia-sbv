@@ -32,13 +32,13 @@ html[data-theme='light'] .industrial-shell {
   justify-content: center;
   min-height: 100vh;
   width: 100%;
-  padding: 2rem 1.5rem;
+  padding: var(--space-1) var(--space-5);
 }
 
 .login-shell .login-panel {
   flex: 0 1 auto;
   overflow: hidden;
-  padding: clamp(1.75rem, 2.4vw, 2.25rem);
+  padding: var(--layout-page-padding);
 }
 
 .login-shell .login-panel-compact {
@@ -465,8 +465,8 @@ html[data-theme='light'] .industrial-sidebar::-webkit-scrollbar-thumb {
 
 .industrial-panel-header h2 {
   margin: 8px 0 0;
-  color: var(--sbv-text);
-  font-size: 26px;
+  color: var(--industrial-text);
+  font-size: var(--font-size-2xl);
   font-weight: 950;
   letter-spacing: -0.05em;
   text-transform: uppercase;
@@ -475,7 +475,7 @@ html[data-theme='light'] .industrial-sidebar::-webkit-scrollbar-thumb {
 .industrial-panel-header p {
   margin: 8px 0 0;
   max-width: 780px;
-  color: var(--sbv-muted);
+  color: var(--industrial-text-muted);
   font-size: var(--font-size-sm);
   line-height: 1.6;
 }
@@ -483,7 +483,7 @@ html[data-theme='light'] .industrial-sidebar::-webkit-scrollbar-thumb {
 :root {
   --layout-content-max: none;
   --layout-gap: clamp(0.65rem, 1.2vw, 1rem);
-  --layout-page-padding: clamp(0.75rem, 1.25vw, 1.1rem);
+  --layout-page-padding: var(--space-4);
 }
 
 .industrial-content {
@@ -525,7 +525,7 @@ html[data-theme='light'] .industrial-sidebar::-webkit-scrollbar-thumb {
 
 .industrial-title {
   margin: 0;
-  font-size: clamp(2rem, 3.5vw, 3.5rem);
+  font-size: var(--font-size-display);
   font-weight: 950;
   letter-spacing: -0.07em;
   line-height: 0.95;
@@ -536,7 +536,7 @@ html[data-theme='light'] .industrial-sidebar::-webkit-scrollbar-thumb {
 .industrial-panel,
 .industrial-module-header,
 .industrial-settings-form {
-  padding: clamp(0.85rem, 1.2vw, 1.15rem);
+  padding: var(--layout-page-padding);
 }
 
 @media (min-width: 1051px) {
@@ -553,7 +553,7 @@ html[data-theme='light'] .industrial-sidebar::-webkit-scrollbar-thumb {
 html[data-theme='light'] .industrial-version-badge {
   border-color: var(--industrial-border);
   background: linear-gradient(135deg, rgba(250, 250, 245, 0.95), rgba(226, 225, 214, 0.98));
-  color: var(--text-secondary);
+  color: var(--industrial-text-muted);
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.65);
 }
 
@@ -591,13 +591,13 @@ html[data-theme='light'] .industrial-version-badge strong {
   letter-spacing: 0.18em;
   line-height: 1.2;
   margin: 0 0 0.1rem;
-  padding: 0 var(--space-3);
+  padding: var(--space-0) var(--space-3);
   text-transform: uppercase;
 }
 
 html[data-theme='light'] .brand-block,
 html[data-theme='light'] .industrial-topbar {
-  background: var(--surface-base);
+  background: var(--industrial-bg);
 }
 
 html[data-theme='light'] .industrial-hero,
