@@ -39,7 +39,7 @@ export function WorkplaceAccommodationView({
       <WorkbenchGrid>
         <WorkbenchListPanel ariaLabel="Arbeitsplatzgestaltung über alle Fallakten">
           <div className="workbench-panel-head">
-            <h2><Wrench className="mr-2 inline h-5 w-5" />Arbeitsplatzgestaltung</h2>
+            <h2><Wrench className="inline-icon" />Arbeitsplatzgestaltung</h2>
             <p>Übersicht über fallaktenbezogene Maßnahmen nach § 164 Abs. 4 SGB IX. Anlage und Bearbeitung erfolgen in der Fallakte.</p>
           </div>
           <div className="industrial-list compact">

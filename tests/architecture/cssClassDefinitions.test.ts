@@ -78,26 +78,30 @@ function isExternalUtilityClass(className: string): boolean {
   return /^(?:-?(?:left|right|top|bottom)-\d+|-?(?:mt|mr|mb|ml|mx|my|pt|pr|pb|pl|px|py|p|m|gap|space-y)-\d+(?:\.\d)?|(?:h|w)-\d+(?:\.\d)?|min-h-screen|max-w-\w+|flex(?:-\w+)?|grid(?:-cols-\d+)?|items-\w+|justify-\w+|place-items-\w+|relative|absolute|overflow-\w+|pointer-events-none|select-all|rounded-none|border(?:-[trblxy])?|border-[a-z]+-\d+(?:\/\d+)?|bg-[a-z]+-\d+(?:\/\d+)?|text-(?:xs|sm|lg|xl|\dxl|left|center|[a-z]+-\d+(?:\/\d+)?)|font-\w+|leading-\d+|tracking-(?:tight|\[[^\]]+\])|shadow(?:-\w+|-\[[^\]]+\])?|opacity-\[[^\]]+\]|saturate-\d+|uppercase|inline|sr-only|w-full|shrink-0|(?:sm|md|lg|xl):[\w:-]+)$/.test(className);
 }
 
-function pushTokens(usages: ClassUsage[], raw: string, file: string): void {
+function pushTokens(usages: ClassUsage[], raw: string, file: string, includeExternalUtilities = false): void {
   for (const className of raw.split(/\s+/).filter(Boolean)) {
-    if (className.includes("${") || isExternalUtilityClass(className)) continue;
+    if (className.includes("${") || (!includeExternalUtilities && isExternalUtilityClass(className))) continue;
     usages.push({ className, file });
   }
 }
 
-function collectClassTokens(expression: ts.Expression | undefined, file: string): ClassUsage[] {
+function collectClassTokens(
+  expression: ts.Expression | undefined,
+  file: string,
+  includeExternalUtilities = false,
+): ClassUsage[] {
   const usages: ClassUsage[] = [];
   if (!expression) return usages;
 
   function collect(node: ts.Expression | undefined): void {
     if (!node) return;
     if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
-      pushTokens(usages, node.text, file);
+      pushTokens(usages, node.text, file, includeExternalUtilities);
       return;
     }
     if (ts.isTemplateExpression(node)) {
-      pushTokens(usages, node.head.text, file);
-      for (const span of node.templateSpans) pushTokens(usages, span.literal.text, file);
+      pushTokens(usages, node.head.text, file, includeExternalUtilities);
+      for (const span of node.templateSpans) pushTokens(usages, span.literal.text, file, includeExternalUtilities);
       return;
     }
     if (ts.isParenthesizedExpression(node) || ts.isAsExpression(node) || ts.isTypeAssertionExpression(node)) {
@@ -140,7 +144,7 @@ function collectClassTokens(expression: ts.Expression | undefined, file: string)
   return usages;
 }
 
-function usedClassNames(): ClassUsage[] {
+function usedClassNames(includeExternalUtilities = false): ClassUsage[] {
   return walkFiles(path.join(projectRoot, "src", "app"), (file) => /\.(ts|tsx)$/.test(file))
     .flatMap((file) => {
       const absolute = path.join(projectRoot, file);
@@ -161,9 +165,9 @@ function usedClassNames(): ClassUsage[] {
           node.initializer
         ) {
           if (ts.isStringLiteral(node.initializer)) {
-            pushTokens(usages, node.initializer.text, file);
+            pushTokens(usages, node.initializer.text, file, includeExternalUtilities);
           } else if (ts.isJsxExpression(node.initializer)) {
-            usages.push(...collectClassTokens(node.initializer.expression, file));
+            usages.push(...collectClassTokens(node.initializer.expression, file, includeExternalUtilities));
           }
         }
         ts.forEachChild(node, visit);
@@ -188,5 +192,15 @@ describe("CSS-Klassenvertrag", () => {
       .sort((a, b) => a.localeCompare(b));
 
     expect(missing).toEqual([]);
+  });
+
+  it("verbietet neue Tailwind-/Utility-Designklassen in Renderer-Markup", () => {
+    const forbiddenVisualUtility = /^(?:(?:mt|mr|mb|ml|mx|my|pt|pr|pb|pl|px|py|p|m|gap|space-y)-\d(?:\.\d)?|(?:text|bg|border)-(?:yellow|zinc|red|green|slate|white|black|gray|neutral|stone)-\d+(?:\/\d+)?|text-(?:xs|sm|lg|xl|\dxl)|font-\w+|leading-\d+|tracking-(?:tight|\[[^\]]+\])|shadow(?:-\w+|-\[[^\]]+\])?|rounded-\w+|opacity-\[[^\]]+\]|saturate-\d+)$/;
+    const forbidden = usedClassNames(true)
+      .filter(({ className }) => forbiddenVisualUtility.test(className))
+      .map(({ className, file }) => `${className} (${file})`)
+      .sort((a, b) => a.localeCompare(b));
+
+    expect(forbidden).toEqual([]);
   });
 });

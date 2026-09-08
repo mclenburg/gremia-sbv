@@ -32,7 +32,7 @@ export function CaseProcessDraftModal({
         <div className="industrial-panel-header compact">
           <div>
             <p className="industrial-kicker">Fallmaßnahme</p>
-            <h2 id="case-process-draft-title"><Workflow className="mr-2 inline h-5 w-5" />Maßnahme anlegen</h2>
+            <h2 id="case-process-draft-title"><Workflow className="inline-icon" />Maßnahme anlegen</h2>
             <p>Die Maßnahme wird direkt im Fallbaum der aktuellen Fallakte ergänzt.</p>
           </div>
         </div>

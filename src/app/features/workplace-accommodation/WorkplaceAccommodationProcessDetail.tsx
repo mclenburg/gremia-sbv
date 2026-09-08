@@ -269,7 +269,7 @@ export function WorkplaceAccommodationProcessDetail({
 
         <fieldset className="industrial-subsection compact">
           <legend>
-            <CheckCircle2 className="mr-2 inline h-4 w-4" />
+            <CheckCircle2 className="inline-icon" />
             Prüfpunkte
           </legend>
           <div className="industrial-checkbox-grid">

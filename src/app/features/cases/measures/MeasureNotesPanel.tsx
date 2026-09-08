@@ -25,7 +25,7 @@ export function MeasureNotesPanel({
       <div className="case-process-title-row case-process-title-row-actions">
         <div className="case-process-title-heading">
           <h3 id={`${fieldPrefix}-heading`}>
-            <CheckCircle2 className="mr-2 inline h-4 w-4" />
+            <CheckCircle2 className="inline-icon" />
             Maßnahmennotizen
           </h3>
           <IndustrialHelpButton helpId="cases.measureNotes" label="Maßnahmennotizen-Hilfe öffnen" />
