@@ -86,6 +86,33 @@ describe('UI-Fundament Block 4 Verhalten', () => {
     expect(nodes.some((node) => node.tag === 'select')).toBe(false);
   });
 
+  it('behandelt leere Auswahloptionen in filterbaren Auswahllisten als Platzhalter statt als Suchtext', () => {
+    const { tree } = renderComponent(SelectInput, {
+      label: 'Fallakte auswählen',
+      value: '',
+      onValueChange: () => undefined,
+      options: [
+        { value: '', label: 'Fallakte auswählen …' },
+        ...Array.from({ length: 6 }, (_, index) => ({ value: `case-${index + 1}`, label: `Fallakte ${index + 1}` })),
+      ],
+    });
+
+    const nodes = descendants(tree);
+    const searchInput = nodes.find((node) => node.tag === 'input' && node.attrs.type === 'search');
+    const datalistOptions = nodes.filter((node) => node.tag === 'option').map((node) => node.attrs.value);
+
+    expect(searchInput?.attrs.value ?? '').toBe('');
+    expect(searchInput?.attrs.placeholder).toBe('Tippen, um zu filtern …');
+    expect(datalistOptions).toEqual([
+      'Fallakte 1',
+      'Fallakte 2',
+      'Fallakte 3',
+      'Fallakte 4',
+      'Fallakte 5',
+      'Fallakte 6',
+    ]);
+  });
+
   it('hält Kurzbefehlerklärungen standardmäßig aus Arbeitsfeldern heraus', () => {
     const { markup } = renderComponent(TextCommandTextarea, { fieldId: 'test-field', value: '', onChange: () => undefined });
     expect(visibleText(markup)).not.toContain('Strg+H');

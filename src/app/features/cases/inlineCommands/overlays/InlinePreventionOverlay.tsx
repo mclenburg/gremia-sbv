@@ -107,14 +107,13 @@ export function InlinePreventionOverlay({ props }: { props: InlineCommandOverlay
   } = props;
 
   return inlinePreventionDraft ? (
-    <IndustrialModalSurface
-      className="inline-command-quick"
+    <IndustrialModalSurface className="inline-command-quick"
       labelledById="inline-prevention-title"
       onClose={cancelInlinePreventionDraft}
     >
         <div className="industrial-modal-header">
           <div className="industrial-modal-icon">
-            <ShieldAlert className="h-5 w-5" />
+            <ShieldAlert className="industrial-icon-md" />
           </div>
           <div>
             <p className="industrial-kicker">Inline-Maßnahme</p>
@@ -139,8 +138,7 @@ export function InlinePreventionOverlay({ props }: { props: InlineCommandOverlay
                     : current,
                 )
               }
-              placeholder="z. B. Arbeitsplatzgefährdung frühzeitig klären"
-            />
+              placeholder="z. B. Arbeitsplatzgefährdung frühzeitig klären" className="industrial-input" />
           </label>
           <label className="industrial-modal-wide">
             <FieldCaption
@@ -158,8 +156,7 @@ export function InlinePreventionOverlay({ props }: { props: InlineCommandOverlay
                     : current,
                 )
               }
-              placeholder="z. B. Konflikt mit Führungskraft, Überlastung, Kündigungsrisiko"
-            />
+              placeholder="z. B. Konflikt mit Führungskraft, Überlastung, Kündigungsrisiko" className="industrial-input" />
           </label>
           <label>
             <FieldCaption
@@ -237,8 +234,7 @@ export function InlinePreventionOverlay({ props }: { props: InlineCommandOverlay
                       }
                     : current,
                 )
-              }
-            />
+              } className="industrial-input" />
           </label>
           <label className="industrial-modal-wide">
             <FieldCaption draft={inlinePreventionDraft} field="nextStep">
@@ -252,27 +248,24 @@ export function InlinePreventionOverlay({ props }: { props: InlineCommandOverlay
                     ? { ...current, nextStep: event.target.value }
                     : current,
                 )
-              }
-            />
+              } className="industrial-input" />
           </label>
         </div>
         <div className="industrial-modal-preview">
-          <ShieldAlert className="h-4 w-4" /> Wird mit dem Speichern der Notiz als Fallaktenvorgang angelegt:{" "}
+          <ShieldAlert className="industrial-icon" /> Wird mit dem Speichern der Notiz als Fallaktenvorgang angelegt:{" "}
           <strong>
             {inlinePreventionDraft.title.trim() || "Präventionsverfahren"}
           </strong>
         </div>
         <div className="industrial-modal-actions">
           <button
-            type="button"
-            className="industrial-secondary-button"
+            type="button" className="industrial-secondary-button"
             onClick={cancelInlinePreventionDraft}
           >
             Abbrechen
           </button>
           <button
-            type="button"
-            className="industrial-button"
+            type="button" className="industrial-button"
             onClick={() => void createPreventionFromProtocol()}
           >
             Vormerken und weiterprotokollieren

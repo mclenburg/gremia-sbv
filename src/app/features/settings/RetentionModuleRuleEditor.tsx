@@ -49,7 +49,7 @@ export function RetentionModuleRuleEditor({
   onRuleChange: (module: RetentionModuleType, rule: RetentionRule) => void;
 }) {
   return (
-    <div className="industrial-table-shell mt-3">
+    <div className="industrial-table-shell">
       <table className="industrial-table">
         <thead>
           <tr>
@@ -65,7 +65,7 @@ export function RetentionModuleRuleEditor({
             <tr key={policy.module}>
               <td>
                 <strong>{policy.label}</strong>
-                <p className="industrial-settings-note mt-1">{policy.explanation}</p>
+                <p className="industrial-settings-note">{policy.explanation}</p>
               </td>
               <td>
                 <SelectInput

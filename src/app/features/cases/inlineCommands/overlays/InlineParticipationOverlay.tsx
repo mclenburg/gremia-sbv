@@ -107,14 +107,13 @@ export function InlineParticipationOverlay({ props }: { props: InlineCommandOver
   } = props;
 
   return inlineParticipationDraft ? (
-    <IndustrialModalSurface
-      className="inline-command-quick"
+    <IndustrialModalSurface className="inline-command-quick"
       labelledById="inline-participation-title"
       onClose={cancelInlineParticipationDraft}
     >
         <div className="industrial-modal-header">
           <div className="industrial-modal-icon">
-            <ClipboardCheck className="h-5 w-5" />
+            <ClipboardCheck className="industrial-icon-md" />
           </div>
           <div>
             <p className="industrial-kicker">Inline-Maßnahme</p>
@@ -139,8 +138,7 @@ export function InlineParticipationOverlay({ props }: { props: InlineCommandOver
                     : current,
                 )
               }
-              placeholder="z. B. Versetzung ohne vorherige SBV-Anhörung"
-            />
+              placeholder="z. B. Versetzung ohne vorherige SBV-Anhörung" className="industrial-input" />
           </label>
           <label>
             <FieldCaption
@@ -158,8 +156,7 @@ export function InlineParticipationOverlay({ props }: { props: InlineCommandOver
                     : current,
                 )
               }
-              placeholder="z. B. Versetzung angekündigt, Unterlagen fehlen"
-            />
+              placeholder="z. B. Versetzung angekündigt, Unterlagen fehlen" className="industrial-input" />
           </label>
           <label>
             <FieldCaption
@@ -198,8 +195,7 @@ export function InlineParticipationOverlay({ props }: { props: InlineCommandOver
                     ? { ...current, statementDueAt: event.target.value }
                     : current,
                 )
-              }
-            />
+              } className="industrial-input" />
           </label>
           <label className="industrial-modal-wide">
             <FieldCaption draft={inlineParticipationDraft} field="nextStep">
@@ -213,27 +209,24 @@ export function InlineParticipationOverlay({ props }: { props: InlineCommandOver
                     ? { ...current, nextStep: event.target.value }
                     : current,
                 )
-              }
-            />
+              } className="industrial-input" />
           </label>
         </div>
         <div className="industrial-modal-preview">
-          <ClipboardCheck className="h-4 w-4" /> Wird mit dem Speichern der Notiz als Fallaktenmaßnahme angelegt:{" "}
+          <ClipboardCheck className="industrial-icon" /> Wird mit dem Speichern der Notiz als Fallaktenmaßnahme angelegt:{" "}
           <strong>
             {inlineParticipationDraft.title.trim() || "SBV-Beteiligung"}
           </strong>
         </div>
         <div className="industrial-modal-actions">
           <button
-            type="button"
-            className="industrial-secondary-button"
+            type="button" className="industrial-secondary-button"
             onClick={cancelInlineParticipationDraft}
           >
             Abbrechen
           </button>
           <button
-            type="button"
-            className="industrial-button"
+            type="button" className="industrial-button"
             onClick={() => void createParticipationFromProtocol()}
           >
             Vormerken und weiterprotokollieren

@@ -31,7 +31,7 @@ function renderSearchExcerpt(result: CaseSearchResult) {
   const segments = result.excerptSegments?.length ? result.excerptSegments : [{ text: result.excerpt, match: false }];
   return segments.map((segment, index) => segment.match
     ? <mark key={`${segment.text}-${index}`}>{segment.text}</mark>
-    : <span key={`${segment.text}-${index}`}>{segment.text}</span>);
+    : <span key={`${segment.text}-${index}`} className="industrial-text-fragment">{segment.text}</span>);
 }
 
 function selectSearchResult(result: CaseSearchResult, props: CasesViewRenderProps) {
@@ -144,7 +144,7 @@ function CaseResourceContent({ props }: { props: CasesViewRenderProps }) {
       <div className="industrial-card-actions">
         <ToolbarButton onClick={() => startEditNote(selectedNote)}>Bearbeiten</ToolbarButton>
         <DangerButton compact onClick={() => void deleteNote(selectedNote)}>
-          <Trash2 className="h-4 w-4" /> Löschen</DangerButton>
+          <Trash2 className="industrial-icon" /> Löschen</DangerButton>
       </div>
     </article>}
     <CaseDocumentDetail document={selectedDocument} formatNoteDate={formatNoteDate} formatBytes={formatBytes}
@@ -224,12 +224,12 @@ export function CasesViewRender(props: CasesViewRenderProps) {
     bulkMarkClosedLegacyCases, processTemplateModal, setProcessTemplateModal, renderAndDownloadProcessTemplate } = props;
   return <>
     {caseToast && <div className={`case-toast case-toast-${caseToast.variant}`} role="status" aria-live="assertive">
-      {caseToast.variant === "warning" ? <AlertTriangle className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}
+      {caseToast.variant === "warning" ? <AlertTriangle className="industrial-icon" /> : <CheckCircle2 className="industrial-icon" />}
       <span>{caseToast.text}</span>
     </div>}
     <ProcessTemplateDocumentsModal state={processTemplateModal} onClose={() => setProcessTemplateModal(null)}
       onDownload={(template) => void renderAndDownloadProcessTemplate(template)} processTypeLabel={processTypeLabel} />
-    <ModuleFrame title="Fälle" kicker="Fallakten" description="Fallakten, Notizen, Prozesse und Unterlagen bearbeiten." compact helpId="cases.overview" actions={<IndustrialButton onClick={openCaseCreateModal}><Plus className="h-4 w-4" aria-hidden="true" /> Fallakte anlegen</IndustrialButton>}>
+    <ModuleFrame title="Fälle" kicker="Fallakten" description="Fallakten, Notizen, Prozesse und Unterlagen bearbeiten." compact helpId="cases.overview" actions={<IndustrialButton onClick={openCaseCreateModal}><Plus className="industrial-icon" aria-hidden="true" /> Fallakte anlegen</IndustrialButton>}>
       <CaseRegister filteredCount={filteredCases.length} visibleCases={visibleCases} selectedCaseId={selectedCaseId}
         caseFilter={caseFilter} onCaseFilterChange={(value) => { setCaseFilter(value); setCaseRegisterPage(1); }}
         onSelectCase={props.setSelectedCaseId} onCreateCase={openCaseCreateModal} onImportHandover={props.onOpenImportHandover}

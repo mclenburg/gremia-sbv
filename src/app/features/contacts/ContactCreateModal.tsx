@@ -63,11 +63,11 @@ export function ContactCreateModal({
       title="Kontakt anlegen"
       kicker="Netzwerk"
       description="Kontaktstammdaten werden zentral erfasst und können in Protokollen mit @@ referenziert werden."
-      icon={<UserRoundPlus className="h-5 w-5" />}
+      icon={<UserRoundPlus className="industrial-icon-md" />}
       onClose={onClose}
       dataE2e="contact-create-modal"
     >
-      <form onSubmit={submit} className="industrial-settings-form mt-5" noValidate>
+      <form onSubmit={submit} className="industrial-settings-form" noValidate>
         <FormSection title="Kontaktdaten" description="Mindestens Name, Organisation oder Kategorie sollte fachlich eindeutig sein.">
           <div className="industrial-form-grid">
             <TextInput label="Vorname" value={firstName} onValueChange={setFirstName} autoFocus />
@@ -87,7 +87,7 @@ export function ContactCreateModal({
         {error ? <ModuleFeedback items={[{ id: 'contact-create-error', tone: 'warning', message: error }]} /> : null}
         <FormActions>
           <GhostButton onClick={onClose}>Abbrechen</GhostButton>
-          <IndustrialButton type="submit"><Save className="h-4 w-4" />Kontakt speichern</IndustrialButton>
+          <IndustrialButton type="submit"><Save className="industrial-icon" />Kontakt speichern</IndustrialButton>
         </FormActions>
       </form>
     </IndustrialModal>

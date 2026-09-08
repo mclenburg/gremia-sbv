@@ -25,7 +25,7 @@ export function MeasureNotesPanel({
       <div className="case-process-title-row case-process-title-row-actions">
         <div className="case-process-title-heading">
           <h3 id={`${fieldPrefix}-heading`}>
-            <CheckCircle2 className="mr-2 inline h-4 w-4" />
+            <CheckCircle2 className="inline-icon" />
             Maßnahmennotizen
           </h3>
           <IndustrialHelpButton helpId="cases.measureNotes" label="Maßnahmennotizen-Hilfe öffnen" />
@@ -36,7 +36,7 @@ export function MeasureNotesPanel({
           aria-controls={`${fieldPrefix}-form`}
           onClick={state.startCreate}
         >
-          <PlusCircle className="h-4 w-4" /> Notiz anlegen
+          <PlusCircle className="industrial-icon" /> Notiz anlegen
         </ToolbarButton>
       </div>
 

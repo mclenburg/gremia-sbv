@@ -11,8 +11,7 @@ export function isPrefilled(
 
 export function PrefillIndicator({ active }: { active: boolean }) {
   return active ? (
-    <span
-      className="prefill-marker"
+    <span className="prefill-marker"
       aria-label="automatisch vorbelegt"
       title="automatisch vorbelegt"
     >
@@ -31,7 +30,7 @@ export function FieldCaption({
   field: string;
 }) {
   return (
-    <span>
+    <span className="industrial-text-fragment">
       {children}
       <PrefillIndicator active={isPrefilled(draft, field)} />
     </span>

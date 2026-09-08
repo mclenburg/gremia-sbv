@@ -204,6 +204,23 @@ export const HELP_REGISTRY = {
       },
     ],
   },
+  "persons.lifecycleAnonymization": {
+    id: "persons.lifecycleAnonymization",
+    kicker: "Datenschutzprüfung",
+    title: "Vorgemerkte Freitexte anonymisieren",
+    summary:
+      "Vorgemerkte Textstellen werden nicht automatisch ersetzt; jede Anonymisierung bleibt eine bewusste Prüfung.",
+    blocks: [
+      {
+        type: "paragraph",
+        text: "Mit ~~ markierte Textstellen werden zunächst als Vormerkung mit Klartext gespeichert. Erst bei einer später bestätigten Fallanonymisierung werden sie durch den Anonymisierungshinweis ersetzt.",
+      },
+      {
+        type: "paragraph",
+        text: "Nicht vorgemerkte personenbezogene Angaben bleiben erhalten und müssen manuell geprüft werden. Beteiligtenfelder sowie Personen- und Kontaktverknüpfungen werden unabhängig davon entfernt.",
+      },
+    ],
+  },
   "elections.setup": {
     id: "elections.setup", kicker: "Wahl", title: "Wahleinleitung",
     summary: "Wahlgrund, Mindestschwelle und Verfahrensvorschlag werden dokumentiert; die Entscheidung bleibt beim zuständigen Wahlorgan.",

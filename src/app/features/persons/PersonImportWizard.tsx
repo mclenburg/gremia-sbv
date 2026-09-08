@@ -121,8 +121,7 @@ export function PersonImportWizard({
       title="Personen importieren"
       kicker="Import-Assistent"
       description="Excel- oder CSV-Arbeitgeberlisten lokal prüfen, Spalten zuordnen und Änderungen bewusst übernehmen."
-      wide
-      className="person-import-dialog"
+      wide className="person-import-dialog"
       onClose={resetAndClose}
       dataE2e="person-import-wizard"
       actions={<IndustrialButton type="button" variant="secondary" onClick={resetAndClose} data-e2e="person-import-close-icon">Schließen</IndustrialButton>}
@@ -184,7 +183,7 @@ function SourceStep({ csvText, onCsvTextChange, onLoadFile, onPreviewPastedCsv }
       <details className="person-csv-details">
         <summary>Erweiterte Option: CSV direkt einfügen</summary>
         <form onSubmit={onPreviewPastedCsv} className="industrial-settings-form person-import-csv-form">
-          <label className="span-2"><span>CSV-Daten</span><textarea value={csvText} onChange={(event) => onCsvTextChange(event.target.value)} rows={5} placeholder={'Name;Status;Gültig bis\nMustermann, Max;gleichgestellt;15.06.2026'} /></label>
+          <label className="span-2"><span>CSV-Daten</span><textarea value={csvText} onChange={(event) => onCsvTextChange(event.target.value)} rows={5} placeholder={'Name;Status;Gültig bis\nMustermann, Max;gleichgestellt;15.06.2026'} className="industrial-textarea-input" /></label>
           <IndustrialButton type="submit" variant="secondary">CSV-Vorschau erzeugen</IndustrialButton>
         </form>
       </details>

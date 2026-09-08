@@ -63,7 +63,7 @@ export function CaseHandoverChecklistPanel({
             <strong>{entry.label}</strong>
             <p>{entry.description}</p>
             {entry.requiresAcknowledgement ? <label className="industrial-checkbox-row">
-              <input type="checkbox" checked={acknowledgements.includes(entry.id)} onChange={() => toggle(entry.id)} />
+              <input type="checkbox" checked={acknowledgements.includes(entry.id)} onChange={() => toggle(entry.id)} className="industrial-input" />
               <span>Bewusst geprüft und für diese Übergabe bestätigt.</span>
             </label> : null}
           </div>

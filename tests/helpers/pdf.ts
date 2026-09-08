@@ -22,7 +22,8 @@ function collectStructureRoles(node: unknown, roles: string[]): void {
 }
 
 export async function inspectPdf(buffer: Buffer): Promise<InspectedPdf> {
-  const document = await getDocument({ data: new Uint8Array(buffer) }).promise;
+  const loadingTask = getDocument({ data: new Uint8Array(buffer) });
+  const document = await loadingTask.promise;
   try {
     const textByPage: string[] = [];
     let hasStructureTree = false;
@@ -57,6 +58,7 @@ export async function inspectPdf(buffer: Buffer): Promise<InspectedPdf> {
       structureRoles,
     };
   } finally {
-    await document.destroy();
+    await document.cleanup();
+    await loadingTask.destroy();
   }
 }

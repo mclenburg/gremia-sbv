@@ -7,21 +7,21 @@ import { recordRendererDiagnostic, waitForBridge } from "../../core/bridge/waitF
 import { validateAppPassword } from "../../../domain/security/passwordPolicy";
 export function SecurityUnavailable() {
   return (
-    <main className="industrial-shell login-shell min-h-screen items-center justify-center text-zinc-100">
-      <section className="login-panel login-panel-compact relative w-full overflow-hidden rounded-none border border-yellow-500/40 bg-zinc-950/95 p-7 shadow-2xl">
+    <main className="industrial-shell login-shell">
+      <section className="login-panel login-panel-compact">
         <div className="scanline" />
-        <div className="mb-5 flex items-center gap-3 border-b border-zinc-800 pb-5">
-          <div className="grid h-11 w-11 place-items-center border border-yellow-400 bg-yellow-400/10 text-yellow-300">
-            <AlertTriangle className="h-6 w-6" />
+        <div className="auth-panel-header auth-panel-header-row">
+          <div className="auth-panel-icon">
+            <AlertTriangle className="industrial-icon-lg" />
           </div>
           <div>
             <p className="industrial-kicker">Gremia.SBV</p>
-            <h1 className="text-2xl font-black tracking-tight text-zinc-100">
+            <h1 className="auth-panel-title">
               Start nicht abgeschlossen
             </h1>
           </div>
         </div>
-        <p className="text-sm leading-6 text-zinc-300">
+        <p className="auth-copy">
           Die interne Sicherheitsbrücke wurde nicht geladen. Bitte die Anwendung
           schließen, neu starten und bei erneutem Auftreten die Terminalausgabe
           prüfen.
@@ -39,32 +39,32 @@ export function RecoveryKeyPanel({
   onConfirm: () => void;
 }) {
   return (
-    <main className="industrial-shell login-shell min-h-screen items-center justify-center text-zinc-100">
-      <section className="login-panel login-panel-medium relative w-full overflow-hidden rounded-none border border-yellow-500/40 bg-zinc-950/95 p-7 shadow-2xl">
+    <main className="industrial-shell login-shell">
+      <section className="login-panel login-panel-medium">
         <div className="scanline" />
-        <div className="mb-6 flex items-center gap-3 border-b border-zinc-800 pb-5">
-          <div className="grid h-11 w-11 place-items-center border border-yellow-400 bg-yellow-400/10 text-yellow-300 shadow-[0_0_18px_rgba(250,204,21,0.22)]">
-            <LockKeyhole className="h-6 w-6" />
+        <div className="auth-panel-header auth-panel-header-row">
+          <div className="auth-panel-icon">
+            <LockKeyhole className="industrial-icon-lg" />
           </div>
           <div>
             <p className="industrial-kicker">Recovery-Key</p>
-            <h1 className="text-2xl font-black tracking-tight text-zinc-100">
+            <h1 className="auth-panel-title">
               Sicher verwahren
             </h1>
           </div>
         </div>
 
-        <div className="space-y-5 text-sm leading-6 text-zinc-300">
+        <div className="auth-body">
           <p>
             Dieser Recovery-Key ist die einzige Möglichkeit, das Passwort
             zurückzusetzen, wenn das aktuelle Passwort nicht mehr bekannt ist.
             Er wird nicht im Klartext gespeichert und später nicht erneut
             angezeigt.
           </p>
-          <div className="border border-yellow-500/50 bg-yellow-500/10 p-4 font-mono text-lg font-black tracking-[0.18em] text-yellow-100 select-all">
+          <code className="auth-secret">
             {recoveryKey}
-          </div>
-          <p className="text-zinc-400">
+          </code>
+          <p className="industrial-muted">
             Bitte außerhalb der App sicher ablegen, zum Beispiel in einem
             versiegelten Umschlag oder einem freigegebenen Passwort-Tresor der
             berechtigten SBV-Person.
@@ -177,16 +177,16 @@ export function RecoveryGate({
   }
 
   return (
-    <main className="industrial-shell login-shell min-h-screen items-center justify-center text-zinc-100">
-      <section className="login-panel login-panel-wide relative w-full overflow-hidden rounded-none border border-yellow-500/40 bg-zinc-950/95 p-7 shadow-2xl">
+    <main className="industrial-shell login-shell">
+      <section className="login-panel login-panel-wide">
         <div className="scanline" />
-        <div className="mb-7 flex items-center gap-3 border-b border-zinc-800 pb-5">
-          <div className="grid h-11 w-11 place-items-center border border-yellow-400 bg-yellow-400/10 text-yellow-300 shadow-[0_0_18px_rgba(250,204,21,0.22)]">
-            <ShieldAlert className="h-6 w-6" />
+        <div className="auth-panel-header auth-panel-header-row">
+          <div className="auth-panel-icon">
+            <ShieldAlert className="industrial-icon-lg" />
           </div>
           <div>
             <p className="industrial-kicker">Geschützter Datenbestand</p>
-            <h1 className="text-2xl font-black tracking-tight text-zinc-100">
+            <h1 className="auth-panel-title">
               {triggeredFromLogin
                 ? "Passwort vergessen"
                 : "Wiederherstellung erforderlich"}
@@ -194,12 +194,12 @@ export function RecoveryGate({
           </div>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-2">
-          <form onSubmit={resetPassword} className="space-y-4">
-            <h2 className="text-lg font-black uppercase tracking-tight text-zinc-100">
+        <div className="auth-recovery-grid">
+          <form onSubmit={resetPassword} className="auth-body">
+            <h2 className="auth-section-title">
               Passwort zurücksetzen
             </h2>
-            <p className="text-sm leading-6 text-zinc-400">
+            <p className="industrial-muted">
               {triggeredFromLogin
                 ? "Nutze den bei der Ersteinrichtung ausgegebenen Recovery-Key, um ein neues App-Passwort zu setzen."
                 : "Ein vorhandener Datenbestand wurde erkannt. Ein neues Passwort kann nur mit dem Recovery-Key gesetzt werden."}
@@ -227,28 +227,28 @@ export function RecoveryGate({
               onValueChange={setRepeatPassword}
               autoComplete="new-password"
             />
-            <FormActions align="between" className="flex-col gap-3 sm:flex-row">
+            <FormActions align="between" className="auth-form-actions">
               {onCancel && (
                 <IndustrialButton
                   type="button"
                   variant="secondary"
-                  className="flex-1"
+                  className="auth-form-action"
                   onClick={onCancel}
                 >
                   Zurück zum Entsperren
                 </IndustrialButton>
               )}
-              <IndustrialButton type="submit" className="flex-1">
+              <IndustrialButton type="submit" className="auth-form-action">
                 Passwort zurücksetzen
               </IndustrialButton>
             </FormActions>
           </form>
 
-          <div className="border border-red-500/35 bg-red-500/5 p-4">
-            <h2 className="text-lg font-black uppercase tracking-tight text-red-100">
+          <div className="auth-danger-panel">
+            <h2 className="auth-section-title auth-section-title-danger">
               Datenbestand verwerfen
             </h2>
-            <p className="mt-2 text-sm leading-6 text-zinc-400">
+            <p className="industrial-muted">
               Ohne Passwort und ohne Recovery-Key ist ein Zugriff auf den
               vorhandenen Datenbestand nicht vorgesehen. Diese Option legt nach
               ausdrücklicher Bestätigung nur einen neuen leeren Datenbestand an.
@@ -258,13 +258,12 @@ export function RecoveryGate({
                 type="button"
                 variant="secondary"
                 wide
-                className="mt-4"
                 onClick={() => setShowDestroyVault(true)}
               >
                 Löschbereich bewusst öffnen
               </IndustrialButton>
             ) : (
-              <div className="mt-4 space-y-4">
+              <div className="auth-body">
                 <TextInput
                   label="Bestätigung"
                   aria-label="Bestätigung Datenbestand löschen"
@@ -287,12 +286,12 @@ export function RecoveryGate({
         </div>
 
         {error && (
-          <div className="industrial-message industrial-message-warning mt-5" role="alert">
+          <div className="industrial-message industrial-message-warning" role="alert">
             {error}
           </div>
         )}
         {message && (
-          <div className="industrial-message industrial-message-ok mt-5" role="status">
+          <div className="industrial-message industrial-message-ok" role="status">
             {message}
           </div>
         )}

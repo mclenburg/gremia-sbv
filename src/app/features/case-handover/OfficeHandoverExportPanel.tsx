@@ -73,7 +73,7 @@ export function OfficeHandoverExportPanel({
       <TransferProtectionFields value={protection} onChange={setProtection} targetLabel="Öffentliche Empfängerkennung der Nachfolgeinstanz" />
       <CaseHandoverChecklistPanel packageType="office_handover" caseIds={caseIds} acknowledgements={acknowledgedItemIds} onAcknowledgementsChange={setAcknowledgedItemIds} />
       <label className="industrial-checkbox-row">
-        <input type="checkbox" checked={confirmed} onChange={(event) => setConfirmed(event.currentTarget.checked)} required />
+        <input type="checkbox" checked={confirmed} onChange={(event) => setConfirmed(event.currentTarget.checked)} required className="industrial-input" />
         <span>Ich habe Fallauswahl, Wahlakten, Vorlagen, Fristenregeln und Datenschutzstatus geprüft.</span>
       </label>
       {error ? <div className="industrial-message industrial-message-warning" role="alert">{error}</div> : null}

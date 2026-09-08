@@ -112,7 +112,7 @@ export function InlineDeadlineOverlay({ props }: { props: InlineCommandOverlaysP
     >
         <div className="industrial-modal-header">
           <div className="industrial-modal-icon">
-            <CalendarPlus className="h-5 w-5" />
+            <CalendarPlus className="industrial-icon-md" />
           </div>
           <div>
             <p className="industrial-kicker">Inline-Frist</p>
@@ -136,8 +136,7 @@ export function InlineDeadlineOverlay({ props }: { props: InlineCommandOverlaysP
                     : current,
                 )
               }
-              placeholder="z. B. Antwort Arbeitgeber nachhalten"
-            />
+              placeholder="z. B. Antwort Arbeitgeber nachhalten" className="industrial-input" />
           </label>
           <label>
             <span>Ablaufdatum</span>
@@ -150,8 +149,7 @@ export function InlineDeadlineOverlay({ props }: { props: InlineCommandOverlaysP
                     ? { ...current, dueAt: event.target.value }
                     : current,
                 )
-              }
-            />
+              } className="industrial-input" />
           </label>
           <label>
             <span>Stufe</span>
@@ -185,8 +183,7 @@ export function InlineDeadlineOverlay({ props }: { props: InlineCommandOverlaysP
                     : current,
                 )
               }
-              placeholder="optional"
-            />
+              placeholder="optional" className="industrial-input" />
           </label>
           <label className="industrial-modal-wide">
             <span>Notiz zur Frist</span>
@@ -198,8 +195,7 @@ export function InlineDeadlineOverlay({ props }: { props: InlineCommandOverlaysP
                     ? { ...current, description: event.target.value }
                     : current,
                 )
-              }
-            />
+              } className="industrial-input" />
           </label>
         </div>
 
@@ -212,18 +208,16 @@ export function InlineDeadlineOverlay({ props }: { props: InlineCommandOverlaysP
 
         <div className="industrial-modal-actions">
           <button
-            type="button"
-            className="industrial-secondary-button"
+            type="button" className="industrial-secondary-button"
             onClick={cancelInlineDeadlineDraft}
           >
             Abbrechen
           </button>
           <button
-            type="button"
-            className="industrial-button"
+            type="button" className="industrial-button"
             onClick={() => void createInlineDeadlineFromProtocol()}
           >
-            <CalendarPlus className="h-4 w-4" />
+            <CalendarPlus className="industrial-icon" />
             Frist vormerken
           </button>
         </div>

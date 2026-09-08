@@ -97,7 +97,7 @@ export function DeadlineCreateModal({
       wide
       dataE2e="deadline-create-modal"
     >
-      <form onSubmit={addDeadline} className="industrial-settings-form mt-5" noValidate>
+      <form onSubmit={addDeadline} className="industrial-settings-form" noValidate>
         <FormSection title="Fristdaten" description="Erfasse nur Informationen, die für die Fristensteuerung erforderlich sind.">
           <div className="industrial-form-grid industrial-form-grid-2">
             <TextInput label="Titel" value={title} onValueChange={setTitle} placeholder="z. B. Stellungnahme SBV" required />
@@ -120,7 +120,7 @@ export function DeadlineCreateModal({
         <FormActions>
           <GhostButton onClick={onClose}>Abbrechen</GhostButton>
           <IndustrialButton type="submit">
-            <Plus className="h-4 w-4" aria-hidden="true" />
+            <Plus className="industrial-icon" aria-hidden="true" />
             Frist anlegen
           </IndustrialButton>
         </FormActions>

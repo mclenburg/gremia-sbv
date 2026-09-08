@@ -46,7 +46,7 @@ export function DeadlineIcalExportModal({
       onClose={onClose}
       dataE2e="deadline-ical-export-modal"
     >
-      <div className="industrial-form mt-5" data-e2e="deadline-ical-export-panel">
+      <div className="industrial-form" data-e2e="deadline-ical-export-panel">
         <FormSection title="Export-Einstellungen">
           <div className="industrial-form-grid industrial-form-grid-2">
             <SelectInput
@@ -85,7 +85,7 @@ export function DeadlineIcalExportModal({
         <FormActions>
           <GhostButton onClick={onClose}>Schließen</GhostButton>
           <IndustrialButton onClick={() => void exportIcal()} data-e2e="export-deadlines-ical">
-            <Download className="h-4 w-4" aria-hidden="true" />
+            <Download className="industrial-icon" aria-hidden="true" />
             iCal-Datei erzeugen
           </IndustrialButton>
         </FormActions>

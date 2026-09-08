@@ -23,10 +23,9 @@ export function ExportAction({
       type={type}
       disabled={disabled}
       loading={loading}
-      onClick={onClick}
-      className="industrial-export-action"
+      onClick={onClick} className="industrial-export-action"
     >
-      <Download className="h-4 w-4" />
+      <Download className="industrial-icon" />
       {children}
     </IndustrialButton>
   );
@@ -144,8 +143,7 @@ export function ImportPackageReview({
             type="radio"
             name="handover-import-mode"
             checked={mode === "create_new"}
-            onChange={() => onModeChange("create_new")}
-          />
+            onChange={() => onModeChange("create_new")} className="industrial-input" />
           <span>{createModeLabel}</span>
         </label>
         {hasMatches && mergeAllowed ? (
@@ -154,8 +152,7 @@ export function ImportPackageReview({
               type="radio"
               name="handover-import-mode"
               checked={mode === "merge_existing"}
-              onChange={() => onModeChange("merge_existing")}
-            />
+              onChange={() => onModeChange("merge_existing")} className="industrial-input" />
             <span>Mit bestehender Fallakte zusammenführen/aktualisieren</span>
           </label>
         ) : null}
@@ -168,8 +165,7 @@ export function ImportPackageReview({
           <label className="industrial-import-package-target">
             <span>Passendes Gegenstück</span>
             {matches.length > 5 ? (
-              <input
-                className="industrial-input"
+              <input className="industrial-input"
                 value={matchFilter}
                 onChange={(event) => setMatchFilter(event.currentTarget.value)}
                 placeholder="Gegenstücke filtern …"

@@ -112,7 +112,7 @@ export function InlineConfidentialityOverlay({ props }: { props: InlineCommandOv
     >
         <div className="industrial-modal-header">
           <div className="industrial-modal-icon">
-            <Lock className="h-5 w-5" />
+            <Lock className="industrial-icon-md" />
           </div>
           <div>
             <p className="industrial-kicker">Inline-Vertraulichkeit</p>
@@ -154,15 +154,13 @@ export function InlineConfidentialityOverlay({ props }: { props: InlineCommandOv
         </div>
         <div className="industrial-modal-actions">
           <button
-            type="button"
-            className="industrial-secondary-button"
+            type="button" className="industrial-secondary-button"
             onClick={cancelInlineConfidentialityDraft}
           >
             Abbrechen
           </button>
           <button
-            type="button"
-            className="industrial-button"
+            type="button" className="industrial-button"
             onClick={applyConfidentialityFromProtocol}
           >
             Übernehmen

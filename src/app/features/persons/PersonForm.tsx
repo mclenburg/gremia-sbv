@@ -76,7 +76,7 @@ export function PersonForm({
     <div className="industrial-modal-backdrop" role="presentation" data-e2e="person-create-dialog">
       <section className="industrial-modal person-create-dialog" role="dialog" aria-modal="true" aria-labelledby="person-create-heading" aria-describedby="person-create-description">
         <div className="industrial-modal-header">
-          <div className="industrial-modal-icon"><UserRoundPlus className="h-5 w-5" aria-hidden="true" /></div>
+          <div className="industrial-modal-icon"><UserRoundPlus className="industrial-icon-md" aria-hidden="true" /></div>
           <div>
             <p className="industrial-kicker">Personenverzeichnis</p>
             <h2 id="person-create-heading">Person anlegen</h2>
@@ -84,19 +84,19 @@ export function PersonForm({
           </div>
         </div>
         <form className="industrial-form person-create-form" onSubmit={(event) => void submitPerson(event)}>
-          <label><span>Vorname</span><input value={firstName} onChange={(event) => setFirstName(event.target.value)} required autoFocus /></label>
-          <label><span>Nachname</span><input value={lastName} onChange={(event) => setLastName(event.target.value)} required /></label>
+          <label><span>Vorname</span><input value={firstName} onChange={(event) => setFirstName(event.target.value)} required autoFocus className="industrial-input" /></label>
+          <label><span>Nachname</span><input value={lastName} onChange={(event) => setLastName(event.target.value)} required className="industrial-input" /></label>
           <label>
             <span>Schutzstatus</span>
             <select className="industrial-select" value={status} onChange={(event) => setStatus(event.target.value as ProtectionStatus)}>
               {statusOptions.map((option) => <option key={option} value={option}>{protectionStatusLabels[option]}</option>)}
             </select>
           </label>
-          <label><span>Status gültig bis</span><input type="date" value={statusValidUntil} onChange={(event) => setStatusValidUntil(event.target.value)} /></label>
-          <label><span>Beschäftigungsende</span><input type="date" value={leftCompanyAt} onChange={(event) => setLeftCompanyAt(event.target.value)} /></label>
+          <label><span>Status gültig bis</span><input type="date" value={statusValidUntil} onChange={(event) => setStatusValidUntil(event.target.value)} className="industrial-input" /></label>
+          <label><span>Beschäftigungsende</span><input type="date" value={leftCompanyAt} onChange={(event) => setLeftCompanyAt(event.target.value)} className="industrial-input" /></label>
           <div className="industrial-modal-actions industrial-modal-wide">
             <button type="button" className="industrial-secondary-button" onClick={onClose}>Abbrechen</button>
-            <button type="submit" className="industrial-button"><Plus className="h-4 w-4" aria-hidden="true" />Person anlegen</button>
+            <button type="submit" className="industrial-button"><Plus className="industrial-icon" aria-hidden="true" />Person anlegen</button>
           </div>
         </form>
       </section>

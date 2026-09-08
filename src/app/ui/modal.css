@@ -16,7 +16,7 @@
   width: 100vw;
   max-width: 100vw;
   min-height: 100vh;
-  padding: clamp(0.75rem, 2.5vh, 1.5rem) clamp(0.75rem, 2vw, 1.5rem);
+  padding: var(--layout-page-padding);
   overflow-x: hidden;
   overflow-y: auto;
   isolation: isolate;
@@ -36,14 +36,14 @@
   background-image: linear-gradient(135deg, color-mix(in srgb, var(--industrial-panel) 96%, transparent), color-mix(in srgb, var(--industrial-panel-muted) 96%, transparent));
   color: var(--industrial-text);
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
-  padding: clamp(0.9rem, 1.5vw, 1.15rem);
+  padding: var(--space-4);
 }
 
 html[data-theme='light'] .industrial-modal {
-  border-color: var(--border-muted);
-  background-color: #fafaf5;
+  border-color: var(--industrial-border);
+  background-color: var(--industrial-light-panel);
   background-image: linear-gradient(135deg, rgba(250, 250, 245, 0.98), rgba(228, 227, 216, 0.99));
-  color: var(--text-primary);
+  color: var(--industrial-text);
   box-shadow: 0 24px 70px rgba(20, 20, 20, 0.18);
 }
 
@@ -63,9 +63,9 @@ html[data-theme='dark'] .industrial-modal {
 }
 
 html[data-theme='light'] .industrial-modal.industrial-help-dialog {
-  background-color: #fafaf5;
+  background-color: var(--industrial-light-panel);
   background-image: linear-gradient(135deg, rgba(250, 250, 245, 0.99), rgba(232, 231, 220, 0.99));
-  color: var(--text-primary);
+  color: var(--industrial-text);
 }
 
 html[data-theme='dark'] .industrial-modal.industrial-help-dialog {
@@ -150,7 +150,7 @@ html[data-theme='dark'] .industrial-modal.industrial-help-dialog {
 
 @media (max-width: 720px) {
   .industrial-modal-backdrop {
-    padding: 0.5rem;
+    padding: var(--space-2);
   }
 
   .industrial-modal,

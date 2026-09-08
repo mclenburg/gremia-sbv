@@ -135,7 +135,7 @@ export function WorkplaceAccommodationProcessDetail({
       <div className="workplace-accommodation-detail">
         {(hasOpenEmployerResponse || rejectedWithoutInclusionOffice) && (
           <div className="industrial-message industrial-message-warning">
-            <AlertTriangle className="h-4 w-4" />
+            <AlertTriangle className="industrial-icon" />
             {rejectedWithoutInclusionOffice
               ? "Ablehnung dokumentiert. Einschaltung des Inklusionsamts bzw. weitere Eskalation prüfen."
               : "Arbeitgeberreaktion ist offen. Wiedervorlage und konkrete Unterlagenanforderung prüfen."}
@@ -269,7 +269,7 @@ export function WorkplaceAccommodationProcessDetail({
 
         <fieldset className="industrial-subsection compact">
           <legend>
-            <CheckCircle2 className="mr-2 inline h-4 w-4" />
+            <CheckCircle2 className="inline-icon" />
             Prüfpunkte
           </legend>
           <div className="industrial-checkbox-grid">

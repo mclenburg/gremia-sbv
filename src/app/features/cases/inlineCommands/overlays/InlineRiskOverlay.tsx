@@ -112,7 +112,7 @@ export function InlineRiskOverlay({ props }: { props: InlineCommandOverlaysProps
     >
         <div className="industrial-modal-header">
           <div className="industrial-modal-icon">
-            <AlertTriangle className="h-5 w-5" />
+            <AlertTriangle className="industrial-icon-md" />
           </div>
           <div>
             <p className="industrial-kicker">Inline-Risiko</p>
@@ -156,8 +156,7 @@ export function InlineRiskOverlay({ props }: { props: InlineCommandOverlaysProps
                     : current,
                 )
               }
-              placeholder="z. B. Kündigungsrisiko, Chronifizierungsrisiko, Arbeitgeber blockiert …"
-            />
+              placeholder="z. B. Kündigungsrisiko, Chronifizierungsrisiko, Arbeitgeber blockiert …" className="industrial-input" />
           </label>
         </div>
         <div className="industrial-modal-preview">
@@ -168,15 +167,13 @@ export function InlineRiskOverlay({ props }: { props: InlineCommandOverlaysProps
         </div>
         <div className="industrial-modal-actions">
           <button
-            type="button"
-            className="industrial-secondary-button"
+            type="button" className="industrial-secondary-button"
             onClick={cancelInlineRiskDraft}
           >
             Abbrechen
           </button>
           <button
-            type="button"
-            className="industrial-button"
+            type="button" className="industrial-button"
             onClick={() => void insertRiskFromProtocol()}
           >
             Risiko einfügen

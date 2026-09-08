@@ -25,7 +25,7 @@ export function CaseHandoverCasePicker({
   return <fieldset className="industrial-selection-card">
     <legend>{legend}</legend>
     {cases.length > 5 ? <SearchInput label="Fallakten filtern" value={query} onValueChange={setQuery} placeholder="Aktenzeichen, Name oder Kategorie …" /> : null}
-    <div className="industrial-action-row mt-4">
+    <div className="industrial-action-row">
       <ToolbarButton type="button" onClick={() => onChange([...new Set([...selectedIds, ...displayedCases.map((record) => record.id)])])}>Angezeigte auswählen</ToolbarButton>
       <ToolbarButton type="button" onClick={() => onChange(selectedIds.filter((id) => !displayedCases.some((record) => record.id === id)))}>Angezeigte abwählen</ToolbarButton>
       <span role="status" aria-live="polite">{selectedIds.length} von {cases.length} ausgewählt</span>
@@ -38,7 +38,7 @@ export function CaseHandoverCasePicker({
     <div className="handover-case-picker-list" aria-label={`${legend}: Treffer`}>
       {displayedCases.map((record) => <div className="handover-case-picker-row" key={record.id}>
         <label>
-          <input type="checkbox" checked={selected.has(record.id)} onChange={() => onChange(toggleHandoverCase(selectedIds, record.id))} />
+          <input type="checkbox" checked={selected.has(record.id)} onChange={() => onChange(toggleHandoverCase(selectedIds, record.id))} className="industrial-input" />
           <span><strong>{record.caseNumber}</strong><small>{record.displayName} · {record.category} · {record.status}</small></span>
         </label>
       </div>)}

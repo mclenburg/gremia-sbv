@@ -114,10 +114,10 @@ function useDetectedCommand() {
 function DeadlineFields({ draft, setDraft }: { draft: GlobalDraft; setDraft: DraftSetter }) {
   return <div className="industrial-modal-grid">
     <label><span>Titel</span><input value={draft.title} onChange={(e) => updateDraft(setDraft, { title: e.target.value })}
-      autoFocus placeholder="z. B. Rückmeldung Arbeitgeber nachhalten" /></label>
+      autoFocus placeholder="z. B. Rückmeldung Arbeitgeber nachhalten" className="industrial-input" /></label>
     <label><span>Datum</span><input type="datetime-local" value={draft.dueAt}
-      onChange={(e) => updateDraft(setDraft, { dueAt: e.target.value })} /></label>
-    <div className="industrial-modal-preview"><CalendarPlus className="h-4 w-4" /> Wird eingefügt:{" "}
+      onChange={(e) => updateDraft(setDraft, { dueAt: e.target.value })} className="industrial-input" /></label>
+    <div className="industrial-modal-preview"><CalendarPlus className="industrial-icon" /> Wird eingefügt:{" "}
       <strong>{`Frist bis ${formatDate(draft.dueAt)}: ${draft.title.trim() || "Wiedervorlage"}`}</strong></div>
   </div>;
 }
@@ -126,7 +126,7 @@ function SearchFields({ label, placeholder, draft, setDraft, children }: { label
   setDraft: DraftSetter; children: React.ReactNode }) {
   return <div className="industrial-modal-grid">
     <label className="industrial-modal-wide"><span>{label}</span><input value={draft.query}
-      onChange={(e) => updateDraft(setDraft, { query: e.target.value })} autoFocus placeholder={placeholder} /></label>
+      onChange={(e) => updateDraft(setDraft, { query: e.target.value })} autoFocus placeholder={placeholder} className="industrial-input" /></label>
     <div className="industrial-command-results">{children}</div>
   </div>;
 }
@@ -138,19 +138,19 @@ function SelectionFields({ kind, draft, setDraft, cases, contacts, replace }: { 
   const matchingContacts = useMemo(() => contacts.filter((item) => !query || `${item.firstName} ${item.lastName} ${item.organization ?? ""} ${item.role ?? ""} ${item.email ?? ""}`.toLowerCase().includes(query)).slice(0, 8), [contacts, query]);
   const matchingNorms = useMemo(() => LEGAL_NORM_SUGGESTIONS.filter((item) => !query || `${item.paragraph} ${item.title} ${item.shortText} ${item.source}`.toLowerCase().includes(query)).slice(0, 8), [query]);
   if (kind === "contact") return <SearchFields label="Kontakt suchen" placeholder="Name, Organisation, Rolle …" {...{ draft, setDraft }}>
-    {matchingContacts.map((contact) => <button key={contact.id} type="button" onClick={() => replace(formatContactReferenceText(contact))}>
-      <UserPlus className="h-4 w-4" />{formatContactReferenceText(contact)}</button>)}
-    {!matchingContacts.length && <p>Kein passender Kontakt gefunden.</p>}
+    {matchingContacts.map((contact) => <button key={contact.id} type="button" onClick={() => replace(formatContactReferenceText(contact))} className="industrial-command-result">
+      <UserPlus className="industrial-icon" />{formatContactReferenceText(contact)}</button>)}
+    {!matchingContacts.length && <p className="industrial-empty-state">Kein passender Kontakt gefunden.</p>}
   </SearchFields>;
   if (kind === "case_reference") return <SearchFields label="Fall suchen" placeholder="Aktenzeichen, Name, Kurzbeschreibung …" {...{ draft, setDraft }}>
-    {matchingCases.map((item) => <button key={item.id} type="button" onClick={() => replace(formatCaseReferenceText(item.caseNumber, item.displayName))}>
-      <Link2 className="h-4 w-4" />{item.caseNumber} · {item.displayName}</button>)}
-    {!matchingCases.length && <p>Kein passender Fall gefunden.</p>}
+    {matchingCases.map((item) => <button key={item.id} type="button" onClick={() => replace(formatCaseReferenceText(item.caseNumber, item.displayName))} className="industrial-command-result">
+      <Link2 className="industrial-icon" />{item.caseNumber} · {item.displayName}</button>)}
+    {!matchingCases.length && <p className="industrial-empty-state">Kein passender Fall gefunden.</p>}
   </SearchFields>;
   if (kind === "legal_norm") return <SearchFields label="Norm suchen" placeholder="z. B. 167, BEM, Kündigung, AGG …" {...{ draft, setDraft }}>
-    {matchingNorms.map((norm) => <button key={norm.id} type="button" onClick={() => replace(formatLegalNormText(norm))}>
-      <FileText className="h-4 w-4" />{norm.paragraph} · {norm.title}</button>)}
-    {!matchingNorms.length && <p>Keine passende Norm gefunden.</p>}
+    {matchingNorms.map((norm) => <button key={norm.id} type="button" onClick={() => replace(formatLegalNormText(norm))} className="industrial-command-result">
+      <FileText className="industrial-icon" />{norm.paragraph} · {norm.title}</button>)}
+    {!matchingNorms.length && <p className="industrial-empty-state">Keine passende Norm gefunden.</p>}
   </SearchFields>;
   return null;
 }
@@ -160,28 +160,28 @@ function RiskAndConfidentialityFields({ kind, draft, setDraft }: { kind: Command
     <label><span>Risikostufe</span><select className="industrial-select" value={draft.riskLevel} onChange={(e) => updateDraft(setDraft, { riskLevel: e.target.value as RiskLevelCommand })}>
       <option value="low">niedrig</option><option value="medium">mittel</option><option value="high">hoch</option><option value="critical">kritisch</option></select></label>
     <label className="industrial-modal-wide"><span>Hinweis</span><input value={draft.title} onChange={(e) => updateDraft(setDraft, { title: e.target.value })}
-      autoFocus placeholder="z. B. Kündigungsrisiko, Chronifizierung, Blockade …" /></label>
+      autoFocus placeholder="z. B. Kündigungsrisiko, Chronifizierung, Blockade …" className="industrial-input" /></label>
   </div>;
   if (kind === "confidentiality") return <div className="industrial-modal-grid">
     <label><span>Stufe</span><select className="industrial-select" value={draft.confidentiality} onChange={(e) => updateDraft(setDraft, { confidentiality: e.target.value as ConfidentialCommandLevel })}>
       <option value="normal">normal</option><option value="sensibel">sensibel</option><option value="hoch_sensibel">hoch sensibel</option></select></label>
-    <div className="industrial-modal-preview"><Lock className="h-4 w-4" /> Wird eingefügt: <strong>{formatConfidentialityText(draft.confidentiality)}</strong></div>
+    <div className="industrial-modal-preview"><Lock className="industrial-icon" /> Wird eingefügt: <strong>{formatConfidentialityText(draft.confidentiality)}</strong></div>
   </div>;
   return null;
 }
 
 function SimpleCommandFields({ kind, draft, setDraft }: { kind: CommandKind; draft: GlobalDraft; setDraft: DraftSetter }) {
   if (kind === "open_task") return <div className="industrial-modal-grid"><label className="industrial-modal-wide"><span>Aufgabe</span>
-    <input value={draft.title} onChange={(e) => updateDraft(setDraft, { title: e.target.value })} autoFocus placeholder="z. B. Inklusionsamt nachfassen" /></label></div>;
+    <input value={draft.title} onChange={(e) => updateDraft(setDraft, { title: e.target.value })} autoFocus placeholder="z. B. Inklusionsamt nachfassen" className="industrial-input" /></label></div>;
   if (kind === "anonymization") return <div className="industrial-modal-grid"><label className="industrial-modal-wide"><span>Art der Textstelle</span>
-    <input value={draft.label} onChange={(e) => updateDraft(setDraft, { label: e.target.value })} autoFocus placeholder="z. B. Name, Bereich, Gesundheitsdetail" /></label>
-    <div className="industrial-modal-preview"><ShieldAlert className="h-4 w-4" /> Wird eingefügt: <strong>{formatAnonymizationMarkerText(draft.label)}</strong></div></div>;
+    <input value={draft.label} onChange={(e) => updateDraft(setDraft, { label: e.target.value })} autoFocus placeholder="z. B. Name, Bereich, Gesundheitsdetail" className="industrial-input" /></label>
+    <div className="industrial-modal-preview"><ShieldAlert className="industrial-icon" /> Wird eingefügt: <strong>{formatAnonymizationMarkerText(draft.label)}</strong></div></div>;
   if (MEASURE_KINDS.includes(kind)) return <div className="industrial-modal-grid"><label className="industrial-modal-wide"><span>Titel</span>
-    <input value={draft.title} onChange={(e) => updateDraft(setDraft, { title: e.target.value })} autoFocus placeholder="z. B. Vorgang in der Fallakte anlegen" /></label>
-    <div className="industrial-modal-preview"><ShieldAlert className="h-4 w-4" /> Personenbezogene Maßnahmen werden nur in einer geöffneten Fallakte strukturiert angelegt. In allgemeinen Textfeldern wird nur ein Hinweis eingefügt.</div></div>;
+    <input value={draft.title} onChange={(e) => updateDraft(setDraft, { title: e.target.value })} autoFocus placeholder="z. B. Vorgang in der Fallakte anlegen" className="industrial-input" /></label>
+    <div className="industrial-modal-preview"><ShieldAlert className="industrial-icon" /> Personenbezogene Maßnahmen werden nur in einer geöffneten Fallakte strukturiert angelegt. In allgemeinen Textfeldern wird nur ein Hinweis eingefügt.</div></div>;
   if (kind === "template") return <div className="industrial-modal-grid"><label className="industrial-modal-wide"><span>Vorlagenhinweis</span>
-    <input value={draft.query} onChange={(e) => updateDraft(setDraft, { query: e.target.value })} autoFocus placeholder="z. B. Unterlagenanforderung" /></label>
-    <div className="industrial-modal-preview"><FileText className="h-4 w-4" /> Wird eingefügt: <strong>{formatTemplateMarkerText(draft.query)}</strong></div></div>;
+    <input value={draft.query} onChange={(e) => updateDraft(setDraft, { query: e.target.value })} autoFocus placeholder="z. B. Unterlagenanforderung" className="industrial-input" /></label>
+    <div className="industrial-modal-preview"><FileText className="industrial-icon" /> Wird eingefügt: <strong>{formatTemplateMarkerText(draft.query)}</strong></div></div>;
   return null;
 }
 
@@ -230,7 +230,7 @@ export function GlobalTextCommandController({ cases, contacts, onCreateDeadline 
     <section ref={dialogRef} className={kind === "anonymization" ? "industrial-modal inline-anonymization-modal" : "industrial-modal"}
       role="dialog" aria-modal="true" aria-labelledby="global-text-command-title" aria-describedby="global-text-command-description"
       onKeyDown={handleDialogKeyDown}>
-      <div className="industrial-modal-header"><div className="industrial-modal-icon"><Search className="h-5 w-5" /></div><div>
+      <div className="industrial-modal-header"><div className="industrial-modal-icon"><Search className="industrial-icon-md" /></div><div>
         <p className="industrial-kicker">Inline-Befehl</p><h2 id="global-text-command-title">{TITLE_BY_KIND[kind]}</h2>
         <p id="global-text-command-description">Dieser Befehl wirkt direkt auf das aktuell bearbeitete Textfeld. Strg+Enter speichert, Esc bricht ab.</p>
       </div></div>

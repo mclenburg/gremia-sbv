@@ -33,7 +33,7 @@ export function ComplianceStatusPanel({
           finding="warning"
           label={
             <>
-              <ShieldCheck className="h-4 w-4" aria-hidden="true" />
+              <ShieldCheck className="industrial-icon" aria-hidden="true" />
               Technische Prüfung
             </>
           }

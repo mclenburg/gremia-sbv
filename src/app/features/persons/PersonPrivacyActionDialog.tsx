@@ -116,8 +116,7 @@ export function PersonPrivacyActionDialog({
 
   return (
     <div className="industrial-modal-backdrop" role="presentation">
-      <section
-        className="industrial-modal person-privacy-action-dialog"
+      <section className="industrial-modal person-privacy-action-dialog"
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
@@ -127,9 +126,9 @@ export function PersonPrivacyActionDialog({
         <div className="industrial-modal-header">
           <div className="industrial-modal-icon">
             {mode === "delete" ? (
-              <Trash2 className="h-5 w-5" aria-hidden="true" />
+              <Trash2 className="industrial-icon-md" aria-hidden="true" />
             ) : (
-              <ShieldAlert className="h-5 w-5" aria-hidden="true" />
+              <ShieldAlert className="industrial-icon-md" aria-hidden="true" />
             )}
           </div>
           <div>
@@ -161,8 +160,7 @@ export function PersonPrivacyActionDialog({
               value={reason}
               onChange={(event) => setReason(event.target.value)}
               aria-describedby={formError ? errorId : undefined}
-              required
-            />
+              required className="industrial-textarea-input" />
           </label>
           <label>
             <span>Bestätigung</span>
@@ -171,13 +169,11 @@ export function PersonPrivacyActionDialog({
               onChange={(event) => setConfirmation(event.target.value)}
               placeholder={texts.confirmation}
               aria-describedby={formError ? errorId : undefined}
-              required
-            />
+              required className="industrial-input" />
           </label>
           {formError && (
             <p
-              id={errorId}
-              className="industrial-message industrial-message-warning"
+              id={errorId} className="industrial-message industrial-message-warning"
               role="alert"
             >
               {formError}
@@ -188,8 +184,7 @@ export function PersonPrivacyActionDialog({
               {texts.button}
             </button>
             <button
-              type="button"
-              className="industrial-secondary-button"
+              type="button" className="industrial-secondary-button"
               ref={closeButtonRef}
               onClick={onClose}
             >

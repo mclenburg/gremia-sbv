@@ -8,7 +8,7 @@ function PrivacyReviewMarker() {
   const message = 'Datenschutzprüfung erforderlich: weitere Speicherung der abgeschlossenen Maßnahme prüfen.';
   return <span className="case-tree-privacy-marker" role="img" aria-label={message}
     title="Datenschutzprüfung erforderlich: Prüfen, ob die weitere Speicherung dieser abgeschlossenen Maßnahme noch erforderlich ist.">
-    <ShieldAlert className="h-3.5 w-3.5" aria-hidden="true" />
+    <ShieldAlert className="industrial-icon-sm" aria-hidden="true" />
     <span aria-hidden="true">DS</span>
   </span>;
 }
@@ -23,7 +23,7 @@ function ProcessNode({ id, processType, label, status, selection, onSelect, onDe
       <small>{subtitle}</small>
     </button>
     {onDeleteProcess ? <IconButton className="privacy-destructive-action case-tree-process-delete" aria-label={`${label} löschen`} title={`${label} löschen`} disabled={disabled} onClick={() => onDeleteProcess({ id, processType, label })}>
-      <Trash2 className="h-4 w-4" aria-hidden="true" />
+      <Trash2 className="industrial-icon" aria-hidden="true" />
     </IconButton> : null}
   </div>;
 }
@@ -58,7 +58,7 @@ export function CaseTreePanel({
       ) : null}
 
       <div className="case-tree-group process-drop-zone" aria-busy={isLoading ? "true" : undefined}>
-        <div className="case-tree-group-title"><Workflow className="h-4 w-4" /> Maßnahmen <span>{preventionProcesses.length + bemProcesses.length + equalizationProcesses.length + terminationProcesses.length + participationProcesses.length + workplaceAccommodationProcesses.length}</span></div>
+        <div className="case-tree-group-title"><Workflow className="case-tree-group-icon" /> Maßnahmen <span>{preventionProcesses.length + bemProcesses.length + equalizationProcesses.length + terminationProcesses.length + participationProcesses.length + workplaceAccommodationProcesses.length}</span></div>
         {preventionProcesses.map((process) => <ProcessNode key={process.id} id={process.id} processType="prevention" label="Prävention" status={process.status} selection={selection} onSelect={onSelect} onDeleteProcess={onDeleteProcess} disabled={isLoading} subtitle={formatProcessNodeSubtitle('prevention', process.status)} />)}
         {bemProcesses.map((process) => <ProcessNode key={process.id} id={process.id} processType="bem" label="BEM" status={process.status} selection={selection} onSelect={onSelect} onDeleteProcess={onDeleteProcess} disabled={isLoading} subtitle={formatProcessNodeSubtitle('bem', process.status)} />)}
         {equalizationProcesses.map((process) => <ProcessNode key={process.id} id={process.id} processType="equalization" label="Gleichstellung" status={process.applicationStatus} selection={selection} onSelect={onSelect} onDeleteProcess={onDeleteProcess} disabled={isLoading} subtitle={formatProcessNodeSubtitle('equalization', process.applicationStatus)} />)}
@@ -73,7 +73,7 @@ export function CaseTreePanel({
       </button>
 
       <div className="case-tree-group">
-        <div className="case-tree-group-title"><MessageSquare className="h-4 w-4" /> Notizen & Protokolle <span>{notes.length}</span></div>
+        <div className="case-tree-group-title"><MessageSquare className="case-tree-group-icon" /> Notizen & Protokolle <span>{notes.length}</span></div>
         {notes.map((note) => (
           <button
             key={note.id}
@@ -88,7 +88,7 @@ export function CaseTreePanel({
       </div>
 
       <div className="case-tree-group">
-        <div className="case-tree-group-title"><FileText className="h-4 w-4" /> Dokumente <span>{documents.length}</span></div>
+        <div className="case-tree-group-title"><FileText className="case-tree-group-icon" /> Dokumente <span>{documents.length}</span></div>
         {documents.map((document) => (
           <button
             key={document.id}

@@ -59,12 +59,11 @@ export function CasePrivacyActionDialog({
     }
   }
 
-  return <IndustrialModal
-    className="case-privacy-action-dialog"
+  return <IndustrialModal className="case-privacy-action-dialog"
     title="Fallakte: Datenschutzaktion"
     kicker="Datenschutz-Lifecycle"
     description={`Für ${record.caseNumber} bewusst zwischen Anonymisierung und endgültiger Löschung wählen.`}
-    icon={<ShieldAlert className="h-5 w-5" />}
+    icon={<ShieldAlert className="industrial-icon-md" />}
     role="alertdialog"
     variant="danger"
     initialFocusRef={cancelRef}
@@ -77,26 +76,26 @@ export function CasePrivacyActionDialog({
         <legend>Gewünschte Aktion</legend>
         <div className="case-privacy-action-options">
           <label className={`case-privacy-action-option ${mode === 'anonymize' ? 'is-selected' : ''}`}>
-            <input type="radio" name="case-privacy-action" checked={mode === 'anonymize'} onChange={() => { setMode('anonymize'); setConfirmation(''); }} />
+            <input type="radio" name="case-privacy-action" checked={mode === 'anonymize'} onChange={() => { setMode('anonymize'); setConfirmation(''); }} className="industrial-input" />
             <span><strong>Anonymisieren</strong><small>Personenbezug entfernen; fachliche Restdaten nur soweit erforderlich erhalten.</small></span>
           </label>
           <label className={`case-privacy-action-option case-privacy-action-option-danger ${mode === 'delete' ? 'is-selected' : ''}`}>
-            <input type="radio" name="case-privacy-action" checked={mode === 'delete'} onChange={() => { setMode('delete'); setConfirmation(''); }} />
+            <input type="radio" name="case-privacy-action" checked={mode === 'delete'} onChange={() => { setMode('delete'); setConfirmation(''); }} className="industrial-input" />
             <span><strong>Endgültig löschen</strong><small>Fallakte und zugehörige Fachdaten dauerhaft entfernen.</small></span>
           </label>
         </div>
       </fieldset>
       {mode === 'anonymize' ? <CaseAnonymizationModeFieldset value={anonymizationMode} onChange={setAnonymizationMode} name="case-anonymization-mode" /> : null}
       <div className="case-privacy-action-fields">
-        <label><span>Grund</span><textarea rows={3} value={reason} onChange={(event) => setReason(event.target.value)} required aria-invalid={Boolean(error && !reason.trim())} aria-describedby={error ? errorId : undefined} /></label>
-        <label><span>Bestätigung</span><input value={confirmation} onChange={(event) => setConfirmation(event.target.value)} placeholder={expectedConfirmation} required aria-invalid={Boolean(error && confirmation.trim() !== expectedConfirmation)} aria-describedby={error ? errorId : undefined} /><small className="industrial-muted">Zur Sicherheit exakt „{expectedConfirmation}“ eingeben.</small></label>
+        <label><span>Grund</span><textarea rows={3} value={reason} onChange={(event) => setReason(event.target.value)} required aria-invalid={Boolean(error && !reason.trim())} aria-describedby={error ? errorId : undefined} className="industrial-textarea-input" /></label>
+        <label><span>Bestätigung</span><input value={confirmation} onChange={(event) => setConfirmation(event.target.value)} placeholder={expectedConfirmation} required aria-invalid={Boolean(error && confirmation.trim() !== expectedConfirmation)} aria-describedby={error ? errorId : undefined} className="industrial-input" /><small className="industrial-muted">Zur Sicherheit exakt „{expectedConfirmation}“ eingeben.</small></label>
       </div>
       {error ? <p id={errorId} className="industrial-message industrial-message-warning" role="alert">{error}</p> : null}
       <div className="industrial-modal-actions">
         <GhostButton ref={cancelRef} onClick={onClose} disabled={busy}>Abbrechen</GhostButton>
         {mode === 'delete'
-          ? <DangerButton type="submit" loading={busy}><Trash2 className="h-4 w-4" aria-hidden="true" /> Fall löschen</DangerButton>
-          : <IndustrialButton type="submit" loading={busy}><ShieldAlert className="h-4 w-4" aria-hidden="true" /> Fall anonymisieren</IndustrialButton>}
+          ? <DangerButton type="submit" loading={busy}><Trash2 className="industrial-icon" aria-hidden="true" /> Fall löschen</DangerButton>
+          : <IndustrialButton type="submit" loading={busy}><ShieldAlert className="industrial-icon" aria-hidden="true" /> Fall anonymisieren</IndustrialButton>}
       </div>
     </form>
   </IndustrialModal>;

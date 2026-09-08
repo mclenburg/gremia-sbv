@@ -117,7 +117,7 @@ export function PersonEditDialog({
     <div className="industrial-modal-backdrop" role="presentation" data-e2e="person-edit-dialog">
       <section className="industrial-modal person-edit-dialog" role="dialog" aria-modal="true" aria-labelledby="person-edit-heading" aria-describedby="person-edit-description">
         <div className="industrial-modal-header">
-          <div className="industrial-modal-icon"><Pencil className="h-5 w-5" aria-hidden="true" /></div>
+          <div className="industrial-modal-icon"><Pencil className="industrial-icon-md" aria-hidden="true" /></div>
           <div>
             <p className="industrial-kicker">Personenverzeichnis</p>
             <h2 id="person-edit-heading">Person bearbeiten</h2>
@@ -125,21 +125,21 @@ export function PersonEditDialog({
           </div>
         </div>
         <form className="person-edit-form" onSubmit={(event) => void submit(event)}>
-          <label><span>Vorname</span><input value={form.firstName} onChange={(event) => updateField('firstName', event.target.value)} /></label>
-          <label><span>Nachname</span><input value={form.lastName} onChange={(event) => updateField('lastName', event.target.value)} /></label>
-          <label><span>Pseudonym/Label</span><input value={form.pseudonymLabel} onChange={(event) => updateField('pseudonymLabel', event.target.value)} placeholder={title || '—'} /></label>
-          <label><span>Personalnummer</span><input value={form.personnelNumber} onChange={(event) => updateField('personnelNumber', event.target.value)} /></label>
-          <label><span>Dienstliche E-Mail</span><input type="email" value={form.workEmail} onChange={(event) => updateField('workEmail', event.target.value)} /></label>
-          <label><span>Organisationseinheit</span><input value={form.organizationalUnit} onChange={(event) => updateField('organizationalUnit', event.target.value)} /></label>
-          <label><span>Standort</span><input value={form.location} onChange={(event) => updateField('location', event.target.value)} /></label>
+          <label><span>Vorname</span><input value={form.firstName} onChange={(event) => updateField('firstName', event.target.value)} className="industrial-input" /></label>
+          <label><span>Nachname</span><input value={form.lastName} onChange={(event) => updateField('lastName', event.target.value)} className="industrial-input" /></label>
+          <label><span>Pseudonym/Label</span><input value={form.pseudonymLabel} onChange={(event) => updateField('pseudonymLabel', event.target.value)} placeholder={title || '—'} className="industrial-input" /></label>
+          <label><span>Personalnummer</span><input value={form.personnelNumber} onChange={(event) => updateField('personnelNumber', event.target.value)} className="industrial-input" /></label>
+          <label><span>Dienstliche E-Mail</span><input type="email" value={form.workEmail} onChange={(event) => updateField('workEmail', event.target.value)} className="industrial-input" /></label>
+          <label><span>Organisationseinheit</span><input value={form.organizationalUnit} onChange={(event) => updateField('organizationalUnit', event.target.value)} className="industrial-input" /></label>
+          <label><span>Standort</span><input value={form.location} onChange={(event) => updateField('location', event.target.value)} className="industrial-input" /></label>
           <label><span>Schutzstatus</span><select className="industrial-select" value={form.protectionStatus} onChange={(event) => updateField('protectionStatus', event.target.value as ProtectionStatus)}>{statusOptions.map((option) => <option key={option} value={option}>{protectionStatusLabels[option]}</option>)}</select></label>
-          <label><span>Status gültig von</span><input type="date" value={form.statusValidFrom} onChange={(event) => updateField('statusValidFrom', event.target.value)} /></label>
-          <label><span>Status gültig bis</span><input type="date" value={form.statusValidUntil} onChange={(event) => updateField('statusValidUntil', event.target.value)} /></label>
-          <label><span>Nachweis geprüft am</span><input type="date" value={form.evidenceCheckedAt} onChange={(event) => updateField('evidenceCheckedAt', event.target.value)} /></label>
+          <label><span>Status gültig von</span><input type="date" value={form.statusValidFrom} onChange={(event) => updateField('statusValidFrom', event.target.value)} className="industrial-input" /></label>
+          <label><span>Status gültig bis</span><input type="date" value={form.statusValidUntil} onChange={(event) => updateField('statusValidUntil', event.target.value)} className="industrial-input" /></label>
+          <label><span>Nachweis geprüft am</span><input type="date" value={form.evidenceCheckedAt} onChange={(event) => updateField('evidenceCheckedAt', event.target.value)} className="industrial-input" /></label>
           <label><span>Statusquelle</span><select className="industrial-select" value={form.statusSource} onChange={(event) => updateField('statusSource', event.target.value as ProtectedPersonStatusSource)}>{sourceOptions.map((option) => <option key={option} value={option}>{sourceLabel(option)}</option>)}</select></label>
           <label><span>Beschäftigungsstatus</span><select className="industrial-select" value={form.employmentState} onChange={(event) => updateField('employmentState', event.target.value as EmploymentState)}>{employmentOptions.map((option) => <option key={option} value={option}>{employmentStateLabels[option]}</option>)}</select></label>
-          <label><span>Beschäftigungsende</span><input type="date" value={form.leftCompanyAt} onChange={(event) => updateField('leftCompanyAt', event.target.value)} /></label>
-          <label className="span-2"><span>Notiz</span><textarea rows={4} value={form.notes} onChange={(event) => updateField('notes', event.target.value)} /></label>
+          <label><span>Beschäftigungsende</span><input type="date" value={form.leftCompanyAt} onChange={(event) => updateField('leftCompanyAt', event.target.value)} className="industrial-input" /></label>
+          <label className="span-2"><span>Notiz</span><textarea rows={4} value={form.notes} onChange={(event) => updateField('notes', event.target.value)} className="industrial-textarea-input" /></label>
           <div className="industrial-modal-actions industrial-modal-wide">
             <button type="button" className="industrial-secondary-button" onClick={onClose}>Abbrechen</button>
             <button type="submit" className="industrial-button">Person speichern</button>

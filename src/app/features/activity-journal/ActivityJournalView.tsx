@@ -68,16 +68,16 @@ export function ActivityJournalView({
     id: entry.id,
     cells: [
       entry.entryDate,
-      <div key="activity">
+      <div key="activity" className="industrial-content-fragment">
         <strong>{entry.title}</strong>
-        {entry.resultNote ? <p className="industrial-settings-note mt-1">{entry.resultNote}</p> : null}
+        {entry.resultNote ? <p className="industrial-settings-note">{entry.resultNote}</p> : null}
       </div>,
       categoryLabel(entry.category),
-      <span key="time"><Clock className="inline h-4 w-4" /> {formatDuration(entry.durationMinutes)}</span>,
+      <span key="time" className="industrial-text-fragment"><Clock className="inline-icon" /> {formatDuration(entry.durationMinutes)}</span>,
       entryReferenceLabel(entry),
       statusLabel(entry),
       <IconButton key="delete" aria-label={`Journaleintrag ${entry.title} löschen`} disabled={journal.busy} onClick={() => void confirmDelete(entry)}>
-        <Trash2 className="h-4 w-4" />
+        <Trash2 className="industrial-icon" />
       </IconButton>,
     ],
   }));
@@ -86,7 +86,7 @@ export function ActivityJournalView({
     <WorkbenchPage
       title="Tätigkeitsjournal"
       helpId="activityJournal.overview"
-      actions={<IndustrialButton onClick={() => setCreateOpen(true)}><Plus className="h-4 w-4" aria-hidden="true" /> Tätigkeit erfassen</IndustrialButton>}
+      actions={<IndustrialButton onClick={() => setCreateOpen(true)}><Plus className="industrial-icon" aria-hidden="true" /> Tätigkeit erfassen</IndustrialButton>}
     >
       <ModuleFeedback items={[
         journal.message ? { id: 'activity-journal-message', tone: 'success', message: journal.message } : null,
@@ -128,7 +128,7 @@ export function ActivityJournalView({
               </ToolbarButton>
             </div>
             <span className="industrial-search-count" aria-live="polite">
-              <Search className="inline h-4 w-4" aria-hidden="true" /> {journal.entries.length} Treffer
+              <Search className="inline-icon" aria-hidden="true" /> {journal.entries.length} Treffer
             </span>
           </div>
 

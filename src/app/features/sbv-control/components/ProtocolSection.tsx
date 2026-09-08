@@ -84,7 +84,7 @@ export function ProtocolSection({
                     aria-label={`Protokoll ${record.title} löschen`}
                     onClick={() => void deleteProtocol(record.id)}
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className="industrial-icon" />
                   </DangerButton>
                 </div>
               </IndustrialRecordCard>

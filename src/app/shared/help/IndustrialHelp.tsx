@@ -21,7 +21,7 @@ function renderHelpBlock(block: ReturnType<typeof getHelpEntry>['blocks'][number
       </ul>
     );
   }
-  return <p>{block.text}</p>;
+  return <p className="industrial-text-block">{block.text}</p>;
 }
 
 export function IndustrialHelpButton({
@@ -47,7 +47,7 @@ export function IndustrialHelpButton({
         onClick={() => setOpen(true)}
         data-e2e="industrial-help-button"
       >
-        <HelpCircle className="h-4 w-4" aria-hidden="true" />
+        <HelpCircle className="industrial-icon" aria-hidden="true" />
         {!compactMode ? <span className="industrial-help-button-text">Hilfe</span> : null}
       </IconButton>
       {open ? (

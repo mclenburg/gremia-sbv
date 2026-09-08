@@ -107,7 +107,7 @@ export function ElectionWorkbench() {
       title="SBV-Wahlen"
       kicker="Wahlakte"
       description="Örtliche SBV-Wahl von der Einleitung bis zur dokumentierten Amtsübergabe."
-      actions={<IndustrialButton onClick={() => setCreateOpen(true)}><Plus className="h-4 w-4" aria-hidden="true" /> Wahlvorgang anlegen</IndustrialButton>}
+      actions={<IndustrialButton onClick={() => setCreateOpen(true)}><Plus className="industrial-icon" aria-hidden="true" /> Wahlvorgang anlegen</IndustrialButton>}
     >
       <ModuleFeedback items={[
         state.error ? { id: 'election-error', tone: 'warning' as const, message: state.error } : null,

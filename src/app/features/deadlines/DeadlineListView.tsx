@@ -61,13 +61,13 @@ export function DeadlineListView({
         <DeadlineSeverityBadge severity={deadline.severity} />,
         <div className="industrial-table-actions">
           <ToolbarButton onClick={() => onOpenContext?.(deadline)}>
-            <ExternalLink className="h-4 w-4" aria-hidden="true" /> {context.actionLabel}
+            <ExternalLink className="industrial-icon" aria-hidden="true" /> {context.actionLabel}
           </ToolbarButton>
           <ToolbarButton onClick={() => onEdit?.(deadline)}>
-            <Edit3 className="h-4 w-4" aria-hidden="true" /> Bearbeiten
+            <Edit3 className="industrial-icon" aria-hidden="true" /> Bearbeiten
           </ToolbarButton>
           <ToolbarButton onClick={() => onExtend?.(deadline)}>
-            <TimerReset className="h-4 w-4" aria-hidden="true" /> Verlängern
+            <TimerReset className="industrial-icon" aria-hidden="true" /> Verlängern
           </ToolbarButton>
           <ActivityJournalContextButton
             compact
@@ -81,7 +81,7 @@ export function DeadlineListView({
             }}
           />
           <ToolbarButton onClick={() => onComplete?.(deadline)}>
-            <CheckCircle2 className="h-4 w-4" aria-hidden="true" /> Erledigt
+            <CheckCircle2 className="industrial-icon" aria-hidden="true" /> Erledigt
           </ToolbarButton>
         </div>
       ]

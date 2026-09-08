@@ -27,7 +27,7 @@ export function SbvControlPanel({
         actions ?? (actionLabel && onAction ? (
           <ToolbarButton onClick={onAction}>
             {actionLabel}
-            <ArrowRight className="h-4 w-4" />
+            <ArrowRight className="industrial-icon" />
           </ToolbarButton>
         ) : undefined)
       }

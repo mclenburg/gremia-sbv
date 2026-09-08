@@ -44,7 +44,7 @@ export function SettingsView({
       {section === 'settings-general' && (
         <>
           <SettingsSectionIntro title="Allgemein" description="Darstellung und lokale Arbeitsumgebung ohne Sicherheitsfolgen einstellen." />
-          <div className="grid gap-6 xl:grid-cols-2">
+          <div className="settings-section-grid">
             <ThemeSettingsForm theme={theme} onThemeChange={onThemeChange} />
           </div>
         </>
@@ -53,7 +53,7 @@ export function SettingsView({
       {section === 'settings-security' && (
         <>
           <SettingsSectionIntro title="Sicherheit" description="Passwort und verschlüsselte Sicherungen sind kritische Aktionen und werden bewusst getrennt geführt." />
-          <div className="grid gap-6 xl:grid-cols-2">
+          <div className="settings-section-grid">
             <ChangePasswordForm />
             <BackupRestoreForm />
           </div>
@@ -63,7 +63,7 @@ export function SettingsView({
       {section === 'settings-data-protection' && (
         <>
           <SettingsSectionIntro title="Datenschutz & Löschung" description="Temporäre Dateien, Prüffristen und Löschentscheidungen bleiben sichtbar und dokumentiert." />
-          <div className="grid gap-6 xl:grid-cols-2">
+          <div className="settings-section-grid">
             <TemporaryFilesSettingsPanel />
             <RetentionSettingsPanel />
           </div>
@@ -73,7 +73,7 @@ export function SettingsView({
       {section === 'settings-handover' && (
         <>
           <SettingsSectionIntro title="Übergaben" description="Zielgebundene Exporte und wiederkehrende Empfänger ohne Kopierfehler verwalten." />
-          <div className="grid gap-6 xl:grid-cols-2">
+          <div className="settings-section-grid">
             <TransferIdentitySettingsPanel />
             <TransferRecipientProfilesSettings />
           </div>
@@ -83,7 +83,7 @@ export function SettingsView({
       {section === 'settings-templates' && (
         <>
           <SettingsSectionIntro title="Vorlagen-Standardwerte" description="Standardwerte vereinheitlichen Schreiben, ohne Falldaten unnötig in Vorlagen zu tragen." />
-          <div className="grid gap-6 xl:grid-cols-2">
+          <div className="settings-section-grid">
             <TemplateDefaultSettingsForm />
           </div>
         </>

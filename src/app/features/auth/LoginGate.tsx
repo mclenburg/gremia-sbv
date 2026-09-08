@@ -110,11 +110,11 @@ export function LoginGate({
 
   if (mode === "loading") {
     return (
-      <main className="industrial-shell login-shell min-h-screen items-center justify-center text-zinc-100">
-        <section className="login-panel login-panel-compact relative w-full overflow-hidden rounded-none border border-zinc-700 bg-zinc-950/95 p-7 shadow-2xl">
+      <main className="industrial-shell login-shell">
+        <section className="login-panel login-panel-compact">
           <div className="scanline" />
           <p className="industrial-kicker">Gremia.SBV</p>
-          <h1 className="text-2xl font-black tracking-tight text-zinc-100">
+          <h1 className="auth-panel-title">
             Initialisierung
           </h1>
         </section>
@@ -123,28 +123,28 @@ export function LoginGate({
   }
 
   return (
-    <main className="industrial-shell login-shell min-h-screen items-center justify-center text-zinc-100">
-      <section className="login-panel login-panel-compact relative w-full overflow-hidden rounded-none border border-zinc-700 bg-zinc-950/95 p-7 shadow-2xl">
+    <main className="industrial-shell login-shell">
+      <section className="login-panel login-panel-compact">
         <div className="scanline" />
         <img
           src={appIconUrl}
           alt=""
           aria-hidden="true"
-          className="pointer-events-none absolute -right-12 -top-10 h-44 w-44 opacity-[0.08] saturate-0"
+          className="auth-background-mark"
         />
-        <div className="relative mb-7 border-b border-zinc-800 pb-5">
-          <div className="mb-2 grid h-9 w-9 place-items-center border border-yellow-400 bg-yellow-400/10 text-yellow-300 shadow-[0_0_14px_rgba(250,204,21,0.18)]">
-            <LockKeyhole className="h-5 w-5" />
+        <div className="auth-panel-header">
+          <div className="auth-panel-icon auth-panel-icon-small">
+            <LockKeyhole className="industrial-icon-md" />
           </div>
-          <p className="mb-1 font-mono text-xs uppercase tracking-[0.35em] text-yellow-300">
+          <p className="auth-panel-kicker">
             {isSetup ? "Ersteinrichtung" : "Entsperren"}
           </p>
-          <h1 className="text-2xl font-black tracking-tight text-zinc-100">
+          <h1 className="auth-panel-title">
             Gremia.SBV
           </h1>
         </div>
 
-        <form onSubmit={submit} className="auth-form space-y-5">
+        <form onSubmit={submit} className="auth-form">
           <TextInput
             autoFocus
             type="password"
@@ -175,21 +175,21 @@ export function LoginGate({
           )}
 
           {error && (
-            <div className="flex gap-3 border border-yellow-500/40 bg-yellow-500/10 p-3 text-sm text-yellow-100">
-              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-yellow-300" />
+            <div className="industrial-message industrial-message-warning auth-inline-alert">
+              <AlertTriangle className="industrial-icon" />
               <p>{error}</p>
             </div>
           )}
 
           <IndustrialButton type="submit" wide>
-            <Lock className="h-4 w-4" />
+            <Lock className="industrial-icon" />
             {isSetup ? "Initialpasswort speichern" : "Entsperren"}
           </IndustrialButton>
         </form>
 
         {!isSetup && (
-          <div className="auth-recovery-footer mt-6 border-t border-zinc-800 pt-4 text-center">
-            <p className="mb-3 text-xs leading-5 text-zinc-500">
+          <div className="auth-recovery-footer">
+            <p className="auth-recovery-note">
               Passwort vergessen? Dafür brauchst du den langen Recovery-Key aus
               der Ersteinrichtung.
             </p>

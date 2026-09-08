@@ -41,7 +41,7 @@ export function ActivityJournalContextButton({
         onClick={() => void openJournalPrefill()}
         data-e2e="activity-journal-context-button"
       >
-        <Clock3 className="h-3.5 w-3.5" aria-hidden="true" />
+        <Clock3 className="industrial-icon-sm" aria-hidden="true" />
         {compact ? 'Journal' : label}
       </ToolbarButton>
       {!compact ? <ActivityJournalSessionSuggestion context={context} onAccept={() => void openJournalPrefill()} /> : null}

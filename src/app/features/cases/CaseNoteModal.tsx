@@ -119,7 +119,7 @@ export function CaseNoteModal({
     <div className="industrial-modal-backdrop" role="presentation">
       <section className="industrial-modal industrial-modal-wide" role="dialog" aria-modal="true" aria-labelledby="case-note-title">
         <div className="industrial-modal-header">
-          <div className="industrial-modal-icon"><MessageSquare className="h-5 w-5" /></div>
+          <div className="industrial-modal-icon"><MessageSquare className="industrial-icon-md" /></div>
           <div>
             <p className="industrial-kicker">Fallbaum</p>
             <h2 id="case-note-title">{editingNote ? 'Notiz / Protokoll bearbeiten' : 'Neue Gesprächsnotiz / neues Protokoll'}</h2>
@@ -127,10 +127,10 @@ export function CaseNoteModal({
           </div>
         </div>
         <form onSubmit={(event) => void onSubmit(event)} className="industrial-form case-note-form">
-          <label><span>Titel</span><input value={noteTitle} onChange={(event) => onTitleChange(event.target.value)} placeholder="z. B. Erstgespräch" autoFocus /></label>
-          <label><span>Datum</span><input type="datetime-local" value={noteDate} onChange={(event) => onDateChange(event.target.value)} /></label>
+          <label><span>Titel</span><input value={noteTitle} onChange={(event) => onTitleChange(event.target.value)} placeholder="z. B. Erstgespräch" autoFocus className="industrial-input" /></label>
+          <label><span>Datum</span><input type="datetime-local" value={noteDate} onChange={(event) => onDateChange(event.target.value)} className="industrial-input" /></label>
           <label><span>Typ</span><select className="industrial-select" value={noteType} onChange={(event) => onNoteTypeChange(event.target.value as CaseNoteType)}><option value="gespraech">Gespräch</option><option value="protokoll">Protokoll</option><option value="telefonat">Telefonat</option><option value="videocall">Videocall</option><option value="email">E-Mail</option><option value="bem">BEM</option><option value="anhoerung">Anhörung</option><option value="interne_notiz">Interne Notiz</option><option value="sonstiges">Sonstiges</option></select></label>
-          <label><span>Beteiligte</span><input value={participants} onChange={(event) => onParticipantsChange(event.target.value)} placeholder="optional" /></label>
+          <label><span>Beteiligte</span><input value={participants} onChange={(event) => onParticipantsChange(event.target.value)} placeholder="optional" className="industrial-input" /></label>
           <label className="case-note-content-input"><span>Inhalt</span><TextCommandTextarea fieldId="case-note-content" value={content} onChange={(event) => onProtocolTextChange('content', event.target.value)} onTextCommand={(command) => onProtocolTextCommand('content', command)} placeholder="Gesprächsinhalt / Protokoll …" aria-describedby={contentHelpId} /><small id={contentHelpId} className="industrial-field-help">Datensparsam protokollieren: keine Diagnosen, keine unnötigen Gesundheitsdetails, nur arbeitsbezogene Beobachtungen und vereinbarte Schritte.</small></label>
           <label className="case-note-content-input"><span>Nächste Schritte</span><TextCommandTextarea fieldId="case-note-next-steps" value={nextSteps} onChange={(event) => onProtocolTextChange('nextSteps', event.target.value)} onTextCommand={(command) => onProtocolTextCommand('nextSteps', command)} placeholder="optional" aria-describedby={nextStepsHelpId} /><small id={nextStepsHelpId} className="industrial-field-help">Konkrete Handlung festhalten: wer macht was bis wann, mit welchem Fall- oder Maßnahmenbezug.</small></label>
           <div className="case-note-link-panel">
@@ -139,7 +139,7 @@ export function CaseNoteModal({
             <div className="case-note-link-grid">
               {cases.map((record) => (
                 <label key={record.id} className="industrial-checkbox-row compact">
-                  <input type="checkbox" checked={linkedCaseIds.includes(record.id) || record.id === selectedCaseId} disabled={record.id === selectedCaseId} onChange={(event) => onToggleLinkedCase(record.id, event.target.checked)} />
+                  <input type="checkbox" checked={linkedCaseIds.includes(record.id) || record.id === selectedCaseId} disabled={record.id === selectedCaseId} onChange={(event) => onToggleLinkedCase(record.id, event.target.checked)} className="industrial-input" />
                   <span>{record.caseNumber} · {record.displayName}</span>
                 </label>
               ))}
@@ -147,10 +147,10 @@ export function CaseNoteModal({
           </div>
           <PendingInlineActionsPanel actions={pendingInlineActions} onRemove={onRemovePendingInlineAction} />
           <label><span>Vertraulichkeit</span><select className="industrial-select" value={confidentialLevel} onChange={(event) => onConfidentialLevelChange(event.target.value as ConfidentialLevel)}><option value="normal">normal</option><option value="sensibel">sensibel</option><option value="hoch_sensibel">hoch sensibel</option></select></label>
-          <label className="industrial-checkbox-row"><input type="checkbox" checked={containsHealthData} onChange={(event) => onContainsHealthDataChange(event.target.checked)} /><span>enthält Gesundheits-/Behinderungsbezug</span></label>
+          <label className="industrial-checkbox-row"><input type="checkbox" checked={containsHealthData} onChange={(event) => onContainsHealthDataChange(event.target.checked)} className="industrial-input" /><span>enthält Gesundheits-/Behinderungsbezug</span></label>
           {noteError && <div className="industrial-message industrial-message-warning industrial-modal-wide" role="alert">{noteError}</div>}
           {noteInfo && <div className="industrial-message industrial-message-ok industrial-modal-wide" role="status">{noteInfo}</div>}
-          <div className="industrial-modal-actions industrial-modal-wide"><button type="button" className="industrial-secondary-button" onClick={onCancel}>Abbrechen</button><button type="submit" className="industrial-button"><Save className="h-4 w-4" />Speichern</button></div>
+          <div className="industrial-modal-actions industrial-modal-wide"><button type="button" className="industrial-secondary-button" onClick={onCancel}>Abbrechen</button><button type="submit" className="industrial-button"><Save className="industrial-icon" />Speichern</button></div>
         </form>
       </section>
     </div>

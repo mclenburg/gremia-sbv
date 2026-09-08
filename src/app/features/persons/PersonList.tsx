@@ -17,9 +17,9 @@ export function lifecycleSeverity(state: PersonLifecycleState): 'ok' | 'warning'
 }
 
 function LifecycleIcon({ severity }: { severity: ReturnType<typeof lifecycleSeverity> }) {
-  if (severity === 'critical') return <AlertTriangle className="h-4 w-4" aria-hidden="true" />;
-  if (severity === 'warning') return <Clock3 className="h-4 w-4" aria-hidden="true" />;
-  return <ShieldCheck className="h-4 w-4" aria-hidden="true" />;
+  if (severity === 'critical') return <AlertTriangle className="industrial-icon" aria-hidden="true" />;
+  if (severity === 'warning') return <Clock3 className="industrial-icon" aria-hidden="true" />;
+  return <ShieldCheck className="industrial-icon" aria-hidden="true" />;
 }
 
 export function PersonList({
@@ -46,7 +46,7 @@ export function PersonList({
           <p className="industrial-kicker">Personen</p>
           <h2 id="person-list-heading">Personenverzeichnis</h2>
         </div>
-        <UserRoundCheck className="h-5 w-5 text-yellow-300" aria-hidden="true" />
+        <UserRoundCheck className="industrial-icon-md person-panel-icon" aria-hidden="true" />
       </div>
       <div className="person-list" role="list" aria-label="Personen im Verzeichnis">
         {persons.map((person) => {
@@ -67,7 +67,7 @@ export function PersonList({
                   title={`Person bearbeiten: ${label}`}
                   onClick={() => onEdit(person)}
                 >
-                  <Pencil className="h-4 w-4" aria-hidden="true" />
+                  <Pencil className="industrial-icon" aria-hidden="true" />
                 </IconButton>
                 <IconButton
                   className="privacy-destructive-action person-list-delete"
@@ -75,7 +75,7 @@ export function PersonList({
                   title={`Person löschen: ${label}`}
                   onClick={() => onDelete(person)}
                 >
-                  <Trash2 className="h-4 w-4" aria-hidden="true" />
+                  <Trash2 className="industrial-icon" aria-hidden="true" />
                 </IconButton>
               </div>
             </div>

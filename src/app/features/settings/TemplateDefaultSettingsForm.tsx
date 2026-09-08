@@ -71,8 +71,7 @@ export function TemplateDefaultSettingsForm() {
 
   return (
     <form
-      onSubmit={submit}
-      className="industrial-settings-form template-default-settings xl:col-span-2"
+      onSubmit={submit} className="industrial-settings-form template-default-settings settings-section-full"
     >
       <div>
         <h3>Vorlagen & Standardwerte</h3>
@@ -91,8 +90,7 @@ export function TemplateDefaultSettingsForm() {
         <div className="template-default-grid">
           {TEMPLATE_DEFAULT_FIELDS.map((field) => (
             <label
-              key={field.key}
-              className={field.multiline ? "template-default-wide" : undefined}
+              key={field.key} className={field.multiline ? "template-default-wide" : undefined}
             >
               <span>{field.label}</span>
               <small>{field.description}</small>
@@ -109,8 +107,7 @@ export function TemplateDefaultSettingsForm() {
                   value={values[field.key]}
                   onChange={(event) =>
                     updateValue(field.key, event.target.value)
-                  }
-                />
+                  } className="industrial-input" />
               )}
             </label>
           ))}
@@ -129,7 +126,7 @@ export function TemplateDefaultSettingsForm() {
       )}
 
       <button type="submit" className="industrial-button" disabled={loading}>
-        <Save className="h-4 w-4" /> Standardwerte speichern
+        <Save className="industrial-icon" /> Standardwerte speichern
       </button>
     </form>
   );

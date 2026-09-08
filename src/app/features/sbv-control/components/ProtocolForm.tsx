@@ -105,12 +105,12 @@ export function ProtocolForm({
 
       <FormActions className="sbv-resource-actions">
         <IndustrialButton type="submit" disabled={!protocolForm.title?.trim()}>
-          <Save className="h-4 w-4" />
+          <Save className="industrial-icon" />
           {editingProtocolId ? 'Protokoll aktualisieren' : 'Protokoll speichern'}
         </IndustrialButton>
         {editingProtocolId && (
           <ToolbarButton onClick={state.resetProtocolForm}>
-            <Plus className="h-4 w-4" />
+            <Plus className="industrial-icon" />
             Neu erfassen
           </ToolbarButton>
         )}

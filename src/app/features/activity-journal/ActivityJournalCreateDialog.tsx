@@ -43,7 +43,7 @@ export function ActivityJournalCreateDialog({
         <TextareaInput label="Ergebnis / nächster Schritt" value={journal.form.resultNote} wide textCommandFieldId="activity-journal-result" onValueChange={journal.updateResultNote} />
         {journal.timeSuggestion ? <IndustrialWarningPanel className="industrial-field-wide">
           <strong>/zeit-Vorschlag</strong><p>{journal.timeSuggestion.label}</p>
-          <div className="industrial-action-row mt-2"><ToolbarButton onClick={journal.acceptTimeSuggestion}>Übernehmen</ToolbarButton><ToolbarButton onClick={journal.dismissTimeSuggestion}>Verwerfen</ToolbarButton></div>
+          <div className="industrial-action-row"><ToolbarButton onClick={journal.acceptTimeSuggestion}>Übernehmen</ToolbarButton><ToolbarButton onClick={journal.dismissTimeSuggestion}>Verwerfen</ToolbarButton></div>
         </IndustrialWarningPanel> : null}
         <DateInput label="Wiedervorlage optional" value={journal.form.followUpDueAt} onValueChange={(followUpDueAt) => journal.setForm({ ...journal.form, followUpDueAt, status: followUpDueAt ? 'follow_up_open' : journal.form.status })} />
         <CheckboxField label="Außerhalb der regulären Arbeitszeit angefallen" checked={journal.form.performedOutsideContractWorkTime} onCheckedChange={(performedOutsideContractWorkTime) => journal.setForm({ ...journal.form, performedOutsideContractWorkTime })} />

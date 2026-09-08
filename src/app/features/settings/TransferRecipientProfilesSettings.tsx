@@ -46,7 +46,7 @@ export function TransferRecipientProfilesSettings() {
   }
 
   return (
-    <section className="industrial-settings-form xl:col-span-2" aria-labelledby="transfer-recipient-profiles-title">
+    <section className="industrial-settings-form settings-section-full" aria-labelledby="transfer-recipient-profiles-title">
       <div>
         <h3 id="transfer-recipient-profiles-title">Empfängerprofile</h3>
         <p className="industrial-settings-note">
@@ -64,7 +64,7 @@ export function TransferRecipientProfilesSettings() {
           setDraft(EMPTY_DRAFT);
           setMessage(`Empfängerprofil „${saved.label}“ wurde gespeichert.`);
         })}>
-          <Save className="h-4 w-4" aria-hidden="true" /> Profil speichern
+          <Save className="industrial-icon" aria-hidden="true" /> Profil speichern
         </IndustrialButton>
         {(draft.label || draft.recipientToken) ? <IndustrialButton variant="secondary" disabled={busy} onClick={() => setDraft(EMPTY_DRAFT)}>Eingabe leeren</IndustrialButton> : null}
       </ButtonGroup>
@@ -77,11 +77,11 @@ export function TransferRecipientProfilesSettings() {
               <div className="industrial-settings-note">Instanz {profile.instanceId} · Fingerprint {profile.keyFingerprint.slice(0, 16)} · {profile.active ? 'aktiv' : 'deaktiviert'}</div>
             </div>
             <ButtonGroup ariaLabel={`Aktionen für ${profile.label}`}>
-              <ToolbarButton disabled={busy} onClick={() => edit(profile)}><Pencil className="h-4 w-4" aria-hidden="true" /> Bearbeiten</ToolbarButton>
+              <ToolbarButton disabled={busy} onClick={() => edit(profile)}><Pencil className="industrial-icon" aria-hidden="true" /> Bearbeiten</ToolbarButton>
               <ToolbarButton disabled={busy} onClick={() => void run(async () => {
                 const updated = await window.gremiaSbv.transferIdentity.setRecipientProfileActive(profile.id, !profile.active);
                 setMessage(`Empfängerprofil „${updated.label}“ wurde ${updated.active ? 'aktiviert' : 'deaktiviert'}.`);
-              })}><Power className="h-4 w-4" aria-hidden="true" /> {profile.active ? 'Deaktivieren' : 'Aktivieren'}</ToolbarButton>
+              })}><Power className="industrial-icon" aria-hidden="true" /> {profile.active ? 'Deaktivieren' : 'Aktivieren'}</ToolbarButton>
               <IndustrialButton variant="danger" compact disabled={busy} onClick={() => void (async () => {
                 const confirmed = await confirm({ title: 'Empfängerprofil löschen?', message: `Das Profil „${profile.label}“ wird lokal gelöscht. Bereits erzeugte Übergabepakete bleiben unverändert.`, confirmLabel: 'Profil löschen', variant: 'danger' });
                 if (!confirmed) return;
@@ -89,7 +89,7 @@ export function TransferRecipientProfilesSettings() {
                   await window.gremiaSbv.transferIdentity.deleteRecipientProfile(profile.id);
                   setMessage(`Empfängerprofil „${profile.label}“ wurde gelöscht.`);
                 });
-              })()}><Trash2 className="h-4 w-4" aria-hidden="true" /> Löschen</IndustrialButton>
+              })()}><Trash2 className="industrial-icon" aria-hidden="true" /> Löschen</IndustrialButton>
             </ButtonGroup>
           </div>
         ))}

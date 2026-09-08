@@ -44,7 +44,7 @@ export function ThemeSettingsForm({
           className={theme === "dark" ? "active" : ""}
           onClick={() => onThemeChange("dark")}
         >
-          <Moon className="h-4 w-4" />
+          <Moon className="industrial-icon" />
           Dark Industrial
         </button>
         <button
@@ -52,7 +52,7 @@ export function ThemeSettingsForm({
           className={theme === "light" ? "active" : ""}
           onClick={() => onThemeChange("light")}
         >
-          <Sun className="h-4 w-4" />
+          <Sun className="industrial-icon" />
           Light Industrial
         </button>
       </div>

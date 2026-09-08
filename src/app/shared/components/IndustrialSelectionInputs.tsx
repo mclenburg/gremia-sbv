@@ -111,13 +111,19 @@ export function SearchableSelectInput({
   className,
   ...inputProps
 }: SearchableSelectInputProps) {
-  const selectedLabel = options.find((option) => option.value === value)?.label ?? "";
+  const selectableOptions = useMemo(
+    () => options.filter((option) => option.value !== ""),
+    [options],
+  );
+  const selectedLabel = value
+    ? selectableOptions.find((option) => option.value === value)?.label ?? ""
+    : "";
   const [query, setQuery] = useState(selectedLabel);
   useEffect(() => { setQuery(selectedLabel); }, [selectedLabel]);
   const normalizedQuery = query.trim().toLocaleLowerCase("de-DE");
-  const matches = useMemo(() => options.filter((option) => (
+  const matches = useMemo(() => selectableOptions.filter((option) => (
     !normalizedQuery || option.label.toLocaleLowerCase("de-DE").includes(normalizedQuery)
-  )), [normalizedQuery, options]);
+  )), [normalizedQuery, selectableOptions]);
 
   return (
     <FormField label={label} helpText={helpText} helpId={helpRegistryId} error={error} wide={wide} required={required}>
@@ -140,18 +146,18 @@ export function SearchableSelectInput({
             onChange={(event) => {
               const next = event.currentTarget.value;
               setQuery(next);
-              const exact = options.find((option) => option.label.localeCompare(next, "de-DE", { sensitivity: "accent" }) === 0);
+              const exact = selectableOptions.find((option) => option.label.localeCompare(next, "de-DE", { sensitivity: "accent" }) === 0);
               if (exact) onValueChange(exact.value);
               else if (!next) onValueChange("");
             }}
             onBlur={(event) => {
               inputProps.onBlur?.(event);
-              const exact = options.find((option) => option.label.localeCompare(event.currentTarget.value, "de-DE", { sensitivity: "accent" }) === 0);
+              const exact = selectableOptions.find((option) => option.label.localeCompare(event.currentTarget.value, "de-DE", { sensitivity: "accent" }) === 0);
               if (!exact) setQuery(selectedLabel);
             }}
           />
           <datalist id={listId}>{matches.map((option) => <option key={option.value} value={option.label} />)}</datalist>
-          <span id={resultId} className="sr-only" role="status" aria-live="polite">{matches.length} Treffer verfügbar.</span>
+          <span id={resultId} className="industrial-sr-only" role="status" aria-live="polite">{matches.length} Treffer verfügbar.</span>
         </>;
       }}
     </FormField>
@@ -202,6 +208,7 @@ export function CheckboxField({
           aria-invalid={invalid ? "true" : undefined}
           aria-describedby={describedBy}
           onChange={(event) => onCheckedChange(event.currentTarget.checked)}
+          className="industrial-input"
         />
       )}
     </FormField>

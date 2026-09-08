@@ -36,7 +36,7 @@ function renderExcerpt(segments?: CaseSearchHighlightSegment[], fallback = '') {
     textOffset += segment.text.length;
     return segment.match
       ? <mark key={key}>{segment.text}</mark>
-      : <span key={key}>{segment.text}</span>;
+      : <span key={key} className="industrial-text-fragment">{segment.text}</span>;
   });
 }
 
@@ -60,13 +60,11 @@ export function CaseDetailPanel({
   return (
     <section className="industrial-panel case-detail-panel">
       <form
-        onSubmit={(event) => void onSearchSubmit(event)}
-        className="knowledge-search-bar case-detail-search-bar"
+        onSubmit={(event) => void onSearchSubmit(event)} className="knowledge-search-bar case-detail-search-bar"
         aria-busy={isSearching}
       >
-        <Search className="h-4 w-4 text-yellow-300" aria-hidden="true" />
-        <input
-          className="industrial-input"
+        <Search className="industrial-icon case-detail-search-icon" aria-hidden="true" />
+        <input className="industrial-input"
           data-global-search-target="case-fulltext"
           value={searchQuery}
           onChange={(event) => onSearchQueryChange(event.target.value)}
@@ -77,26 +75,23 @@ export function CaseDetailPanel({
           <input
             type="checkbox"
             checked={searchOnlySelectedCase}
-            onChange={(event) => onSearchOnlySelectedCaseChange(event.target.checked)}
-          />
+            onChange={(event) => onSearchOnlySelectedCaseChange(event.target.checked)} className="industrial-input" />
           <span>nur diese Fallakte</span>
         </label>
         <div className="case-detail-search-actions">
           <ToolbarButton
-            type="submit"
-            className="case-detail-search-button"
+            type="submit" className="case-detail-search-button"
             disabled={isSearching}
           >
             {isSearching ? 'Suche läuft …' : 'Suchen'}
           </ToolbarButton>
           {onExportHandover && (
-            <ToolbarButton
-              className="case-detail-handover-export-button"
+            <ToolbarButton className="case-detail-handover-export-button"
               disabled={!canExportHandover}
               onClick={onExportHandover}
               aria-label="Ausgewählte Fallakte als Übergabepaket exportieren"
             >
-              <Download className="h-4 w-4" aria-hidden="true" />
+              <Download className="industrial-icon" aria-hidden="true" />
               Übergabe exportieren
             </ToolbarButton>
           )}
@@ -106,8 +101,7 @@ export function CaseDetailPanel({
 
 
       {(searchError || searchInfo) && (
-        <p
-          className={searchError ? "case-search-status error" : "case-search-status"}
+        <p className={searchError ? "case-search-status error" : "case-search-status"}
           role={searchError ? "alert" : "status"}
           aria-live={searchError ? "assertive" : "polite"}
         >
@@ -128,8 +122,7 @@ export function CaseDetailPanel({
             <input
               type="checkbox"
               checked={selectedSearchSourceTypes.includes(filter.type)}
-              onChange={() => onSearchSourceTypesChange(toggleSourceType(selectedSearchSourceTypes, filter.type))}
-            />
+              onChange={() => onSearchSourceTypesChange(toggleSourceType(selectedSearchSourceTypes, filter.type))} className="industrial-input" />
             <span>{filter.label}</span>
           </label>
         ))}
@@ -140,8 +133,7 @@ export function CaseDetailPanel({
           {searchResults.map((result) => (
             <button
               key={`${result.sourceType}-${result.sourceId}`}
-              type="button"
-              className="case-search-result"
+              type="button" className="case-search-result"
               onClick={() => onSelectSearchResult(result)}
             >
               <span>

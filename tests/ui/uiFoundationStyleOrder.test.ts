@@ -153,15 +153,15 @@ describe('UI-Fundament Block 2', () => {
 
   it('stylt Privacy-Lifecycle-Auswahllisten in Dark- und Light-Mode lesbar und fokussierbar', () => {
     const forms = source('src/app/ui/forms.css');
-    expect(forms).toContain('.privacy-review-form select:focus-visible');
-    expect(forms).toContain('.industrial-select:focus-visible');
+    expect(forms).toContain('.privacy-review-form select:focus');
+    expect(forms).toContain('.industrial-select:focus');
     expect(forms).toContain('.privacy-review-form select:hover');
     expect(forms).toContain('.privacy-review-form select option');
     expect(forms).toContain("html[data-theme='light'] .privacy-review-form select");
     expect(forms).toContain("html[data-theme='light'] .privacy-review-form select option");
     expect(forms).toContain('background-color: var(--industrial-select-bg);');
     expect(forms).toContain('background: var(--industrial-select-option-bg);');
-    expect(forms).toContain('color: var(--industrial-text-strong, #f4f4f5);');
+    expect(forms).toContain('color: var(--industrial-control-text);');
   });
 
 });

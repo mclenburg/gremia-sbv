@@ -14,14 +14,14 @@ export function ActivityJournalSessionSuggestion({
   if (!suggestion.visible) return null;
 
   return (
-    <div className="industrial-message industrial-message-warning mt-3" role="status" data-e2e="activity-journal-session-suggestion">
-      <Clock3 className="h-4 w-4" aria-hidden="true" />
+    <div className="industrial-message industrial-message-warning" role="status" data-e2e="activity-journal-session-suggestion">
+      <Clock3 className="industrial-icon" aria-hidden="true" />
       <span>{suggestion.label} Gespeichert wird erst nach bewusster Bestätigung.</span>
       <IndustrialButton compact variant="secondary" onClick={onAccept}>
         Vorlage öffnen
       </IndustrialButton>
       <IconButton aria-label="Journal-Vorschlag verwerfen" onClick={suggestion.dismiss}>
-        <X className="h-4 w-4" aria-hidden="true" />
+        <X className="industrial-icon" aria-hidden="true" />
       </IconButton>
     </div>
   );

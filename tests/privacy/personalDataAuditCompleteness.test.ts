@@ -12,6 +12,7 @@ import { openTestDatabase } from '../helpers/openTestDatabase';
 
 const require = createRequire(import.meta.url);
 const zeroCoverage = require('../../scripts/check-no-zero-coverage.cjs') as {
+  defaultCoverageReportPath(): string;
   findZeroCoveredFiles(coverage: Record<string, unknown>): string[];
 };
 
@@ -28,6 +29,18 @@ afterEach(() => {
 });
 
 describe('Phase 4 – personenbezogene Audit-Vollständigkeit', () => {
+  it('liest den Coverage-Report aus dem pro Build isolierbaren Coverage-Verzeichnis', () => {
+    const previousCoverageDirectory = process.env.GREMIA_SBV_COVERAGE_DIR;
+    const isolatedCoverageDirectory = path.join(tmpdir(), 'gremia-sbv-isolated-coverage');
+    process.env.GREMIA_SBV_COVERAGE_DIR = isolatedCoverageDirectory;
+    try {
+      expect(zeroCoverage.defaultCoverageReportPath()).toBe(path.join(isolatedCoverageDirectory, 'coverage-final.json'));
+    } finally {
+      if (previousCoverageDirectory === undefined) delete process.env.GREMIA_SBV_COVERAGE_DIR;
+      else process.env.GREMIA_SBV_COVERAGE_DIR = previousCoverageDirectory;
+    }
+  });
+
   it('lässt vollständig ungetestete Dateien im Coverage-Scope nicht mehr durch', () => {
     expect(zeroCoverage.findZeroCoveredFiles({
       '/tested.ts': { s: { 0: 1, 1: 0 } },

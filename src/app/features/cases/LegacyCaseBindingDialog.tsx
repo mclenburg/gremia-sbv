@@ -47,7 +47,7 @@ export function LegacyCaseBindingDialog({ open, legacyCase, persons, error, onCl
       title="Altfall einer Person zuordnen"
       kicker="Legacy-Zuordnung"
       description={description}
-      icon={<Link2 className="h-5 w-5" aria-hidden="true" />}
+      icon={<Link2 className="industrial-icon-md" aria-hidden="true" />}
       className="case-create-modal-responsive"
       initialFocusRef={personSelectRef}
       onClose={onClose}

@@ -1,7 +1,7 @@
 .measure-detail-header {
   display: grid;
   gap: 0.6rem;
-  padding: 0.85rem;
+  padding: var(--space-3);
   border: 1px solid var(--border-subtle, rgba(255,255,255,0.14));
   background: rgba(255,255,255,0.025);
 }
@@ -15,12 +15,12 @@
 
 .measure-detail-title {
   margin: 0;
-  font-size: clamp(1.05rem, 1.1vw, 1.35rem);
+  font-size: var(--font-size-xl);
 }
 
 .measure-detail-meta {
   margin: 0;
-  color: var(--text-muted, #aeb4c2);
+  color: var(--industrial-text-muted);
 }
 
 .measure-status-badge,
@@ -29,10 +29,10 @@
   display: inline-flex;
   align-items: center;
   min-height: 1.55rem;
-  padding: 0.18rem 0.5rem;
+  padding: var(--space-1) var(--space-2);
   border: 1px solid var(--border-subtle, rgba(255,255,255,0.14));
   background: rgba(255,255,255,0.035);
-  font-size: 0.74rem;
+  font-size: var(--font-size-xs);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -47,7 +47,7 @@
 
 .measure-follow-up-badge {
   border-color: rgba(245, 208, 0, 0.55);
-  color: var(--color-accent, #f5d000);
+  color: var(--industrial-accent);
 }
 
 .case-detail-inline-form,
@@ -63,7 +63,7 @@
   gap: var(--layout-gap, 1rem);
   align-items: start;
   min-width: 0;
-  padding: clamp(0.85rem, 1.2vw, 1.1rem);
+  padding: var(--layout-page-padding);
   border: 1px solid var(--border-subtle, rgba(255,255,255,0.14));
   background: rgba(255,255,255,0.025);
 }
@@ -111,11 +111,11 @@
   gap: 0.35rem;
   min-height: 1.9rem;
   max-width: 100%;
-  padding: 0.24rem 0.55rem;
+  padding: var(--space-1) var(--space-2);
   border: 1px solid var(--border-subtle, rgba(255,255,255,0.14));
   background: rgba(255,255,255,0.035);
-  color: var(--text-primary, var(--sbv-text));
-  font-size: 0.74rem;
+  color: var(--industrial-text);
+  font-size: var(--font-size-xs);
   font-weight: 800;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -123,8 +123,8 @@
 }
 
 .case-process-badge strong {
-  color: var(--text-muted, var(--sbv-muted));
-  font-size: 0.68rem;
+  color: var(--industrial-text-muted);
+  font-size: var(--font-size-2xs);
   letter-spacing: 0.08em;
 }
 
@@ -133,9 +133,9 @@
 }
 
 .case-process-document-link:hover,
-.case-process-document-link:focus-visible {
-  border-color: var(--industrial-accent, var(--sbv-yellow));
-  outline: 2px solid var(--industrial-accent, var(--sbv-yellow));
+.case-process-document-link:focus {
+  border-color: var(--industrial-accent);
+  outline: 2px solid var(--industrial-accent);
   outline-offset: 2px;
 }
 
@@ -152,7 +152,7 @@
   display: grid;
   gap: 0.8rem;
   min-width: 0;
-  padding: clamp(0.85rem, 1.2vw, 1.1rem);
+  padding: var(--layout-page-padding);
   border: 1px solid var(--border-subtle, rgba(255,255,255,0.14));
   background: rgba(255,255,255,0.02);
 }
@@ -174,7 +174,7 @@
   min-width: 1.65rem;
   min-height: 1.65rem;
   border: 1px solid var(--border-subtle, rgba(255,255,255,0.14));
-  color: var(--color-accent, var(--sbv-yellow));
+  color: var(--industrial-accent);
   font-weight: 900;
 }
 
@@ -189,16 +189,16 @@
   display: grid;
   gap: 0.38rem;
   min-width: 0;
-  color: var(--industrial-text, var(--sbv-text));
+  color: var(--industrial-text);
   font-weight: 700;
 }
 
 .case-detail-inline-form label:not(.industrial-field) > span,
 .prevention-status-section > label > span,
 .bem-status-sections > section > label > span {
-  color: var(--industrial-text-muted, var(--sbv-muted));
+  color: var(--industrial-text-muted);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 0.72rem;
+  font-size: var(--font-size-xs);
   font-weight: 900;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -250,7 +250,7 @@ html[data-theme='light'] .case-process-document-link {
 
 .participation-card span:not(.participation-card-title):not(.participation-card-warning) {
   color: var(--industrial-text-muted);
-  font-size: 0.86rem;
+  font-size: var(--font-size-base);
 }
 
 .participation-card-warning {
@@ -273,7 +273,7 @@ html[data-theme='light'] .case-process-document-link {
 .participation-detail-header h2 {
   margin: 0.15rem 0;
   color: var(--industrial-text-strong);
-  font-size: clamp(1.05rem, 1.6vw, 1.28rem);
+  font-size: var(--font-size-xl);
 }
 
 .participation-detail-header p {
@@ -293,7 +293,7 @@ html[data-theme='light'] .case-process-document-link {
   gap: 0.45rem;
   align-items: center;
   border: 1px solid var(--industrial-border);
-  padding: 0.65rem 0.75rem;
+  padding: var(--space-2) var(--space-3);
   min-width: 0;
   color: var(--industrial-text-strong);
   font-weight: 800;
@@ -319,11 +319,11 @@ html[data-theme='light'] .case-process-document-link {
   display: grid;
   gap: 0.5rem;
   margin-top: 0.75rem;
-  padding: 0.9rem 1rem;
-  border: 1px solid var(--industrial-danger-border, rgba(220, 38, 38, 0.45));
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--industrial-danger-border);
   border-radius: 0;
-  background: var(--industrial-danger-bg, rgba(127, 29, 29, 0.16));
-  color: var(--industrial-text, inherit);
+  background: var(--industrial-danger-bg);
+  color: var(--industrial-text);
 }
 
 .participation-legal-warning-title {
@@ -341,26 +341,26 @@ html[data-theme='light'] .case-process-document-link {
 .participation-document-matrix {
   display: grid;
   gap: .75rem;
-  padding: .95rem;
-  border: 1px solid var(--border-muted);
-  background: color-mix(in srgb, var(--surface-panel) 96%, black 4%);
+  padding: var(--space-3);
+  border: 1px solid var(--industrial-border);
+  background: color-mix(in srgb, var(--industrial-panel) 96%, black 4%);
 }
 
 .participation-escalation-panel p,
 .participation-document-matrix p {
   margin: 0;
-  color: var(--text-muted);
+  color: var(--industrial-text-muted);
   line-height: 1.5;
 }
 
 .participation-escalation-critical {
-  border-color: color-mix(in srgb, #ef4444 68%, var(--border-muted));
-  background: color-mix(in srgb, #7f1d1d 16%, var(--surface-panel));
+  border-color: color-mix(in srgb, var(--industrial-danger) 68%, var(--industrial-border));
+  background: color-mix(in srgb, var(--industrial-danger-bg) 16%, var(--industrial-panel));
 }
 
 .participation-escalation-warning {
-  border-color: color-mix(in srgb, #ffb020 72%, var(--border-muted));
-  background: color-mix(in srgb, #ffb020 12%, var(--surface-panel));
+  border-color: color-mix(in srgb, var(--industrial-warning) 72%, var(--industrial-border));
+  background: color-mix(in srgb, var(--industrial-warning) 12%, var(--industrial-panel));
 }
 
 .participation-section-head {
@@ -368,20 +368,20 @@ html[data-theme='light'] .case-process-document-link {
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
-  border-bottom: 1px solid var(--border-muted);
+  border-bottom: 1px solid var(--industrial-border);
   padding-bottom: .6rem;
 }
 
 .participation-section-head h3 {
   margin: .1rem 0 0;
-  font-size: 1rem;
+  font-size: var(--font-size-md);
 }
 
 .participation-section-head > span {
-  border: 1px solid var(--border-muted);
-  padding: .15rem .45rem;
+  border: 1px solid var(--industrial-border);
+  padding: var(--space-1) var(--space-1);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: .72rem;
+  font-size: var(--font-size-xs);
   text-transform: uppercase;
   letter-spacing: .08em;
 }
@@ -393,11 +393,11 @@ html[data-theme='light'] .case-process-document-link {
 }
 
 .participation-action-chips span {
-  border: 1px solid var(--border-muted);
-  padding: .25rem .5rem;
-  background: var(--surface-base);
-  color: var(--text-primary);
-  font-size: .78rem;
+  border: 1px solid var(--industrial-border);
+  padding: var(--space-1) var(--space-1);
+  background: var(--industrial-bg);
+  color: var(--industrial-text);
+  font-size: var(--font-size-sm);
   font-weight: 700;
 }
 
@@ -405,21 +405,21 @@ html[data-theme='light'] .case-process-document-link {
   display: grid;
   gap: .45rem;
   margin: 0;
-  padding: 0;
+  padding: var(--space-0);
   list-style: none;
 }
 
 .participation-document-matrix li {
   display: grid;
   gap: .15rem;
-  padding: .55rem .65rem;
-  border: 1px solid var(--border-muted);
-  background: var(--surface-base);
+  padding: var(--space-2) var(--space-2);
+  border: 1px solid var(--industrial-border);
+  background: var(--industrial-bg);
 }
 
 .participation-document-matrix li span {
-  color: var(--text-muted);
-  font-size: .85rem;
+  color: var(--industrial-text-muted);
+  font-size: var(--font-size-base);
   line-height: 1.4;
 }
 

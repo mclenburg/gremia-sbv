@@ -74,7 +74,7 @@ export function SetupSection({ overview, create, configure, run, createOpen, onC
         title="Neuen Wahlvorgang anlegen"
         actions={(
           <IndustrialButton onClick={() => void create({ kind, triggerReason: reason || undefined, incumbentTermEnd: termEnd || undefined, electionDate: date || undefined }).then(onCloseCreate)}>
-            <Plus className="h-4 w-4" /> Wahlvorgang anlegen
+            <Plus className="industrial-icon" /> Wahlvorgang anlegen
           </IndustrialButton>
         )}
       >
@@ -93,7 +93,7 @@ export function SetupSection({ overview, create, configure, run, createOpen, onC
             <>
               <IndustrialButton variant="secondary" onClick={() => void run(() => window.gremiaSbv.elections.markPreparation(overview.election.id), 'Wahlvorbereitung freigegeben.')}>Vorbereitung freigeben</IndustrialButton>
               <IndustrialButton onClick={() => void configure({ eligibilityCheckDate: today(), confirmedSeverelyDisabledCount: severe, confirmedEqualizedCount: equalized, pendingEqualizationCount: pending, spatiallySeparated: separated, procedure: procedure || undefined, deputyCount: deputies, electionDate: date || overview.election.electionDate })}>
-                <Save className="h-4 w-4" /> Prüfung speichern
+                <Save className="industrial-icon" /> Prüfung speichern
               </IndustrialButton>
             </>
           )}
@@ -126,7 +126,7 @@ export function BodySection({ overview, run }: { overview: ElectionPreparationOv
     <div className="election-section-stack">
       <FormSection
         title={simplified ? 'Wahlleitung' : 'Wahlvorstand'}
-        actions={<IndustrialButton onClick={() => void run(async () => { await window.gremiaSbv.elections.saveBoardMember(overview.election.id, { role: actualRole, name, adultConfirmed: true, employedConfirmed: true, appointedAt: today() }); setName(''); }, 'Wahlorgan gespeichert.')}><Save className="h-4 w-4" /> Speichern</IndustrialButton>}
+        actions={<IndustrialButton onClick={() => void run(async () => { await window.gremiaSbv.elections.saveBoardMember(overview.election.id, { role: actualRole, name, adultConfirmed: true, employedConfirmed: true, appointedAt: today() }); setName(''); }, 'Wahlorgan gespeichert.')}><Save className="industrial-icon" /> Speichern</IndustrialButton>}
       >
         <div className="industrial-form-grid industrial-form-grid-2 election-form-grid">
           <SelectInput label="Rolle" value={actualRole} options={simplified ? [{ value: 'election_leader', label: 'Wahlleitung' }, { value: 'assistant', label: 'Wahlhilfe' }] : [{ value: 'chair', label: 'Vorsitz' }, { value: 'member', label: 'Mitglied' }, { value: 'substitute', label: 'Ersatzmitglied' }]} onValueChange={(value) => setRole(value as typeof role)} />
@@ -239,7 +239,7 @@ export function VotersSection({ overview, run }: { overview: ElectionPreparation
             <TextInput label="Betrieb/Dienststelle" value={unit} onValueChange={setUnit} />
             <SelectInput label="Statusbasis" value={basis} options={[{ value: 'severely_disabled_confirmed', label: 'Schwerbehinderung bestätigt' }, { value: 'equalized_confirmed', label: 'Gleichstellung bestätigt' }, { value: 'pending_equalization_not_eligible', label: 'Gleichstellung beantragt' }]} onValueChange={(value) => setBasis(value as typeof basis)} />
           </div>
-          <FormActions><IndustrialButton variant="secondary" onClick={() => void run(async () => { await window.gremiaSbv.elections.saveVoter(overview.election.id, { lastName: last, firstName: first, birthDate: birth || undefined, orgUnit: unit || undefined, eligibilityBasis: basis, eligibilityVerifiedAt: today() }); setLast(''); setFirst(''); }, 'Wählerlisteneintrag gespeichert.')}><Plus className="h-4 w-4" /> Eintrag speichern</IndustrialButton></FormActions>
+          <FormActions><IndustrialButton variant="secondary" onClick={() => void run(async () => { await window.gremiaSbv.elections.saveVoter(overview.election.id, { lastName: last, firstName: first, birthDate: birth || undefined, orgUnit: unit || undefined, eligibilityBasis: basis, eligibilityVerifiedAt: today() }); setLast(''); setFirst(''); }, 'Wählerlisteneintrag gespeichert.')}><Plus className="industrial-icon" /> Eintrag speichern</IndustrialButton></FormActions>
         </div>
       </details>
 
@@ -265,7 +265,7 @@ export function NominationsSection({ overview, run }: { overview: ElectionPrepar
 
   return (
     <div className="election-section-stack">
-      <FormSection title="Kandidatur" actions={<IndustrialButton onClick={() => void run(async () => { await window.gremiaSbv.elections.saveCandidate(overview.election.id, { officeType: office, personSnapshot: name, consentAt: today(), ageOnElectionDay: age, monthsInOperation: months, operationAgeMonths: operationAge, excludedFromRepresentativeBodyByLaw: excluded, notTemporaryEmployment: permanent }); setName(''); }, 'Kandidatur geprüft und gespeichert.')}><Plus className="h-4 w-4" /> Kandidatur speichern</IndustrialButton>}>
+      <FormSection title="Kandidatur" actions={<IndustrialButton onClick={() => void run(async () => { await window.gremiaSbv.elections.saveCandidate(overview.election.id, { officeType: office, personSnapshot: name, consentAt: today(), ageOnElectionDay: age, monthsInOperation: months, operationAgeMonths: operationAge, excludedFromRepresentativeBodyByLaw: excluded, notTemporaryEmployment: permanent }); setName(''); }, 'Kandidatur geprüft und gespeichert.')}><Plus className="industrial-icon" /> Kandidatur speichern</IndustrialButton>}>
         <div className="industrial-form-grid industrial-form-grid-3 election-form-grid">
           <TextInput label="Person" value={name} onValueChange={setName} />
           <SelectInput label="Wahlgang" value={office} options={[{ value: 'representative', label: 'Vertrauensperson' }, { value: 'deputy', label: 'Stellvertretung' }]} onValueChange={(value) => setOffice(value as typeof office)} />
@@ -304,7 +304,7 @@ export function DocumentsSection({ overview, run }: { overview: ElectionPreparat
     <div className="election-section-stack">
       <FormSection title="Vorbereitende Wahlunterlagen" description="Dokumente werden verschlüsselt in der Wahlakte gespeichert und anschließend in der externen PDF-Anwendung angefordert.">
         <FormActions align="start" className="election-document-actions">
-          <IndustrialButton variant="secondary" onClick={() => void generate('setup_summary')}><FileText className="h-4 w-4" /> Wahl-Setup</IndustrialButton>
+          <IndustrialButton variant="secondary" onClick={() => void generate('setup_summary')}><FileText className="industrial-icon" /> Wahl-Setup</IndustrialButton>
           <IndustrialButton variant="secondary" onClick={() => void generate('voter_list')}>Wählerliste</IndustrialButton>
           <IndustrialButton variant="secondary" onClick={() => void generate('candidate_announcement')}>Kandidaturen</IndustrialButton>
           {overview.election.procedure === 'formal' ? <><IndustrialButton variant="secondary" onClick={() => void generate('board_appointment')}>Bestellung Wahlvorstand</IndustrialButton>{overview.boardSessions[0] ? <IndustrialButton variant="secondary" onClick={() => void generate('board_minutes', { boardSessionId: overview.boardSessions[0].id })}>Niederschrift Wahlvorstand</IndustrialButton> : null}<IndustrialButton variant="secondary" onClick={() => void generate('proposal_correction_notice')}>Korrekturaufforderung</IndustrialButton><IndustrialButton variant="secondary" onClick={() => void generate('proposal_grace_notice')}>Nachfrist-Bekanntmachung</IndustrialButton></> : null}

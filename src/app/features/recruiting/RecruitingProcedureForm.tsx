@@ -71,10 +71,10 @@ export function RecruitingProcedureForm({
       {form.flaggedForViolationReview ? <SelectInput label="Prüfanlass" value={form.violationReviewReason} options={violationReasonOptions} onValueChange={(violationReviewReason) => onFormChange({ violationReviewReason: violationReviewReason as RecruitingViolationReviewReason })} /> : null}
       <TextareaInput label="Verfahrensnotiz" wide value={form.notes} onValueChange={(notes) => onFormChange({ notes })} helpId="recruiting.proceduralNote" />
     </div>
-    <div className="industrial-action-row mt-4">
+    <div className="industrial-action-row">
       {selected
-        ? <IndustrialButton loading={saving} onClick={onUpdate}><Save className="h-4 w-4" /> Speichern</IndustrialButton>
-        : <IndustrialButton loading={saving} onClick={onCreate}><PlusCircle className="h-4 w-4" /> Stellenbesetzung anlegen</IndustrialButton>}
+        ? <IndustrialButton loading={saving} onClick={onUpdate}><Save className="industrial-icon" /> Speichern</IndustrialButton>
+        : <IndustrialButton loading={saving} onClick={onCreate}><PlusCircle className="industrial-icon" /> Stellenbesetzung anlegen</IndustrialButton>}
       {selected ? <ToolbarButton onClick={() => onFormChange({ status: suggestNextRecruitingStatus({ ...selected, ...inputFromForm(form) } as RecruitingParticipationRecord) })}>Status vorschlagen</ToolbarButton> : null}
     </div>
   </FormSection>;

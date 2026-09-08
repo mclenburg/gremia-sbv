@@ -35,7 +35,7 @@ export function ProcessDetailHeader({
                 className="case-process-document-link"
                 onClick={documentAction}
               >
-                <FileText className="h-3.5 w-3.5" />
+                <FileText className="industrial-icon-sm" />
                 Dokumente
               </ToolbarButton>
             )}

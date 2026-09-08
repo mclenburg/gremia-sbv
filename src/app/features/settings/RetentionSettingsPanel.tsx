@@ -18,7 +18,7 @@ export function RetentionSettingsPanel() {
   } = useRetentionSettings();
 
   return (
-    <section className="industrial-settings-form xl:col-span-2">
+    <section className="industrial-settings-form settings-section-full">
       <div>
         <h3>Datenschutz: Löschprüfung & Aufbewahrung</h3>
         <p className="industrial-settings-note">
@@ -41,7 +41,7 @@ export function RetentionSettingsPanel() {
         </section>
       )}
 
-      <div className="flex flex-wrap gap-3">
+      <div className="industrial-action-row">
         <IndustrialButton loading={busy} onClick={() => void saveSettings()}>
           Einstellungen speichern
         </IndustrialButton>
@@ -53,7 +53,7 @@ export function RetentionSettingsPanel() {
       {dashboard && (
         <details className="industrial-subpanel">
           <summary>Aktuelle Prüfkandidaten</summary>
-          <p className="industrial-settings-note mt-3">
+          <p className="industrial-settings-note">
             Gesamt: {dashboard.counts.total}, kritisch: {dashboard.counts.critical},
             Warnung: {dashboard.counts.warning}, Hinweis: {dashboard.counts.info}.
           </p>

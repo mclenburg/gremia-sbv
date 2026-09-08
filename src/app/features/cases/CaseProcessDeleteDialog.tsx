@@ -68,7 +68,7 @@ export function CaseProcessDeleteDialog({
     title={`${label} bereinigen`}
     kicker="Manuelle Datenschutzentscheidung"
     description={actionDescription}
-    icon={<Trash2 className="h-5 w-5" />}
+    icon={<Trash2 className="industrial-icon-md" />}
     role="alertdialog"
     variant="danger"
     initialFocusRef={cancelRef}
@@ -80,23 +80,23 @@ export function CaseProcessDeleteDialog({
         <legend>Gewünschte Aktion</legend>
         <div className="case-privacy-action-options">
           <label className={`case-privacy-action-option ${action === 'anonymize' ? 'is-selected' : ''}`}>
-            <input type="radio" name="case-process-privacy-action" value="anonymize" checked={action === 'anonymize'} onChange={() => { setAction('anonymize'); setConfirmation(''); setError(''); }} />
+            <input type="radio" name="case-process-privacy-action" value="anonymize" checked={action === 'anonymize'} onChange={() => { setAction('anonymize'); setConfirmation(''); setError(''); }} className="industrial-input" />
             <span><strong>BEM anonymisieren</strong><small>Nachweis erhalten, Personenbezug aus BEM-Freitexten, Kontakten und Verknüpfungen entfernen.</small></span>
           </label>
           <label className={`case-privacy-action-option case-privacy-action-option-danger ${action === 'delete' ? 'is-selected' : ''}`}>
-            <input type="radio" name="case-process-privacy-action" value="delete" checked={action === 'delete'} onChange={() => { setAction('delete'); setConfirmation(''); setError(''); }} />
+            <input type="radio" name="case-process-privacy-action" value="delete" checked={action === 'delete'} onChange={() => { setAction('delete'); setConfirmation(''); setError(''); }} className="industrial-input" />
             <span><strong>BEM vollständig löschen</strong><small>Vorgang dauerhaft entfernen; Dokumente bleiben nur ohne Maßnahmenbezug in der Fallakte.</small></span>
           </label>
         </div>
       </fieldset> : null}
       <label><span>Löschgrund</span><select className="industrial-select case-process-delete-reason" value={reasonCode} onChange={(event) => setReasonCode(event.target.value as CaseProcessDeleteReason)} required><option value="created_by_mistake">Fehleingabe</option><option value="duplicate">Doppelt angelegt</option><option value="no_longer_required">Nicht mehr erforderlich</option><option value="other">Sonstiger Grund</option></select></label>
-      <label><span>Bestätigung</span><input value={confirmation} onChange={(event) => setConfirmation(event.target.value)} placeholder={requiredConfirmation} required aria-invalid={Boolean(error && confirmation.trim() !== requiredConfirmation)} aria-describedby={error ? errorId : undefined} /></label>
+      <label><span>Bestätigung</span><input value={confirmation} onChange={(event) => setConfirmation(event.target.value)} placeholder={requiredConfirmation} required aria-invalid={Boolean(error && confirmation.trim() !== requiredConfirmation)} aria-describedby={error ? errorId : undefined} className="industrial-input" /></label>
       {error ? <p id={errorId} className="industrial-message industrial-message-warning" role="alert">{error}</p> : null}
       <div className="industrial-modal-actions">
         <GhostButton ref={cancelRef} onClick={onClose} disabled={busy}>Abbrechen</GhostButton>
         {effectiveAction === 'anonymize'
           ? <IndustrialButton type="submit" loading={busy}>BEM anonymisieren</IndustrialButton>
-          : <DangerButton type="submit" loading={busy}><Trash2 className="h-4 w-4" aria-hidden="true" /> Maßnahme löschen</DangerButton>}
+          : <DangerButton type="submit" loading={busy}><Trash2 className="industrial-icon" aria-hidden="true" /> Maßnahme löschen</DangerButton>}
       </div>
     </form>
   </IndustrialModal>;

@@ -91,7 +91,7 @@ function WorkplaceAccommodationContainer({
 
   return (
     <>
-      {error && <div className="industrial-message industrial-message-warning mb-4" role="alert">{error}</div>}
+      {error && <div className="industrial-message industrial-message-warning" role="alert">{error}</div>}
       <WorkplaceAccommodationView
         items={items}
         onOpenCase={(caseId, processId) => onOpenCaseNode({ caseId, nodeType: "workplace_accommodation", nodeId: processId })}
@@ -335,17 +335,17 @@ function WorkspaceMain(props: PrimaryViewsProps & { currentModule?: (typeof modu
   theme: ThemeMode; setTheme: (theme: ThemeMode) => void; securityWarning?: string; onDismissSecurityWarning: () => void; }) {
   const { currentView, currentModule, setCurrentView, work } = props;
   return <main id="main-content" className="industrial-content" tabIndex={-1}>
-    <header className="industrial-topbar"><div><p className="font-mono text-xs uppercase tracking-[0.28em] text-zinc-500">SBV-Arbeitsbereich</p>
+    <header className="industrial-topbar"><div><p className="industrial-kicker">SBV-Arbeitsbereich</p>
       <h2>{currentView === "dashboard" ? "Dashboard" : currentView === "settings" ? "Einstellungen" : currentModule?.title}</h2></div>
-      <div className="industrial-state"><CheckCircle2 className="h-4 w-4 text-yellow-300" />entsperrt · {nowLabel()}</div></header>
-    {props.securityWarning && <div className="industrial-message industrial-message-warning mb-4" role="alert">
+      <div className="industrial-state"><CheckCircle2 className="industrial-icon" />entsperrt · {nowLabel()}</div></header>
+    {props.securityWarning && <div className="industrial-message industrial-message-warning" role="alert">
       <p>{props.securityWarning}</p>
-      <div className="industrial-search-actions mt-3">
+      <div className="industrial-search-actions">
         <ToolbarButton onClick={() => setCurrentView("privacy_review")}>Datenschutzprüfung öffnen</ToolbarButton>
         <ToolbarButton onClick={props.onDismissSecurityWarning}>Hinweis schließen</ToolbarButton>
       </div>
     </div>}
-    {work.dataError && <div className="industrial-message industrial-message-warning mb-4" role="alert">{work.dataError}</div>}
+    {work.dataError && <div className="industrial-message industrial-message-warning" role="alert">{work.dataError}</div>}
     <PrimaryViews {...props} />
     <ProcessViews currentView={currentView} setCurrentView={setCurrentView} work={work} caseNodeTarget={props.caseNodeTarget}
       setCaseNodeTarget={props.setCaseNodeTarget} openCaseNode={props.openCaseNode} theme={props.theme} setTheme={props.setTheme}
@@ -362,11 +362,11 @@ function WorkspaceMain(props: PrimaryViewsProps & { currentModule?: (typeof modu
 function AppShell({ currentView, setCurrentView, onLock, children, gremiaBrConfigured }: { currentView: ViewId; setCurrentView: (view: ViewId) => void;
   onLock: () => Promise<void>; children: React.ReactNode; gremiaBrConfigured?: boolean }) {
   return <LiveRegionProvider><ConfirmDialogProvider><a className="skip-link" href="#main-content">Zum Hauptinhalt springen</a>
-    <div className="industrial-shell min-h-screen text-zinc-100"><aside className="industrial-sidebar" aria-label="Gremia.SBV Navigation und Sitzung">
+    <div className="industrial-shell"><aside className="industrial-sidebar" aria-label="Gremia.SBV Navigation und Sitzung">
       <div className="brand-block"><div className="brand-mark">SBV</div><div><strong>Gremia.SBV</strong><span>LOCAL</span></div></div>
       <ShellNav current={currentView} onNavigate={setCurrentView} gremiaBrConfigured={gremiaBrConfigured} onPreload={(view) => { void preloadLazyFeature(view).catch(() => undefined); }} />
       <button type="button" className="industrial-lock-button" onClick={() => void onLock()}>
-        <LogOut className="h-4 w-4" />Sperren</button>
+        <LogOut className="industrial-icon" />Sperren</button>
       <div className="industrial-version-badge" aria-label={`Gremia.SBV Version ${APP_VERSION}`}><span>Version</span><strong>{APP_VERSION}</strong></div>
     </aside>{children}</div></ConfirmDialogProvider></LiveRegionProvider>;
 }
