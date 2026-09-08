@@ -7,15 +7,15 @@
   <meta name="theme-color" content="#050505" />
   <meta name="color-scheme" content="dark" />
   <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
-  <meta name="description" content="Gremia.SBV ist Open-Source-SBV-Software für Schwerbehindertenvertretungen: Fallakten, Fristen, BEM, Prävention, Beteiligungen und Dokumentation lokal, verschlüsselt und ohne Cloudpflicht." />
+  <meta name="description" content="Gremia.SBV ist Open-Source-SBV-Software für Schwerbehindertenvertretungen: Fallakten, Fristen, Personenverzeichnis, Dokumentation, Datenschutzprüfung, sichere Übergaben und optionale Gremia.BR-Anbindung lokal, verschlüsselt und ohne Cloudpflicht." />
   <meta property="og:type" content="website" />
   <meta property="og:locale" content="de_DE" />
   <meta property="og:site_name" content="Gremia.SBV" />
   <meta property="og:title" content="Gremia.SBV – SBV-Software für Schwerbehindertenvertretungen" />
-  <meta property="og:description" content="Open-Source-Fachsoftware für die vertrauliche Arbeit der Schwerbehindertenvertretung – lokal, verschlüsselt, offline-first und ohne Telemetrie." />
+  <meta property="og:description" content="Open-Source-Fachsoftware für die vertrauliche Arbeit der Schwerbehindertenvertretung – lokal, verschlüsselt, offline-first, mit sicherer Übergabe und ohne Telemetrie." />
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content="Gremia.SBV – SBV-Software für Schwerbehindertenvertretungen" />
-  <meta name="twitter:description" content="Open-Source-Fachsoftware für die vertrauliche Arbeit der Schwerbehindertenvertretung – lokal, verschlüsselt und ohne Cloudpflicht." />
+  <meta name="twitter:description" content="Open-Source-Fachsoftware für die vertrauliche Arbeit der Schwerbehindertenvertretung – lokal, verschlüsselt, offline-first und mit sicherer Übergabe." />
   <title>Gremia.SBV – SBV-Software für Schwerbehindertenvertretungen</title>
 
   <link rel="icon" href="assets/gremia-sbv-icon-64.png" sizes="64x64" type="image/png" />
@@ -326,7 +326,7 @@
 
     .product-body {
       display: grid;
-      grid-template-columns: 166px minmax(0, 1fr);
+      grid-template-columns: 190px minmax(0, 1fr);
       min-height: 430px;
     }
 
@@ -661,6 +661,34 @@
       font-size: 0.85rem;
     }
 
+    .search-info {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      border: 1px solid var(--sbv-border);
+      background: rgba(9, 9, 11, 0.78);
+    }
+
+    .search-info article {
+      min-width: 0;
+      padding: 1.25rem;
+      border-right: 1px solid var(--sbv-border);
+    }
+
+    .search-info article:last-child { border-right: 0; }
+
+    .search-info h3 {
+      margin: 0;
+      color: #fff;
+      font-size: 1rem;
+      line-height: 1.35;
+    }
+
+    .search-info p {
+      margin: 0.6rem 0 0;
+      color: var(--sbv-muted);
+      line-height: 1.65;
+    }
+
     @media (max-width: 980px) {
       .hero {
         min-height: auto;
@@ -698,35 +726,6 @@
       .search-info article:last-child { border-bottom: 0; }
       .demo-panel { grid-template-columns: 1fr; }
       .demo-panel .button { width: 100%; }
-    }
-
-
-    .search-info {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      border: 1px solid var(--sbv-border);
-      background: rgba(9, 9, 11, 0.78);
-    }
-
-    .search-info article {
-      min-width: 0;
-      padding: 1.25rem;
-      border-right: 1px solid var(--sbv-border);
-    }
-
-    .search-info article:last-child { border-right: 0; }
-
-    .search-info h3 {
-      margin: 0;
-      color: #fff;
-      font-size: 1rem;
-      line-height: 1.35;
-    }
-
-    .search-info p {
-      margin: 0.6rem 0 0;
-      color: var(--sbv-muted);
-      line-height: 1.65;
     }
 
     .version-inline {
@@ -777,7 +776,7 @@
           </h1>
           <p class="hero-lead">Der geschützte Arbeitsraum für die Schwerbehindertenvertretung (SBV).</p>
           <p class="hero-copy">
-            Gremia.SBV unterstützt die vertrauliche SBV-Arbeit mit Fallakten, Fristen, BEM, Prävention, Beteiligungen und Dokumentation in einer lokalen Anwendung – ohne Cloudpflicht, ohne Telemetrie und mit nachvollziehbaren Arbeitsabläufen.
+            Gremia.SBV unterstützt vertrauliche SBV-Arbeit mit Personenverzeichnis, Fallakten, Fristen, Dokumentation, Datenschutzprüfung, sicheren Übergaben und optionaler Gremia.BR-Anbindung – ohne Cloudpflicht, ohne Telemetrie und mit nachvollziehbaren Arbeitsabläufen.
           </p>
 
           <div class="hero-actions">
@@ -811,19 +810,28 @@
                 <div class="product-nav-item"><span class="mini-icon">•</span>Fallakte</div>
                 <div class="product-nav-item"><span class="mini-icon">•</span>Fristen</div>
                 <div class="product-nav-item"><span class="mini-icon">•</span>Journal</div>
+                <div class="product-nav-item"><span class="mini-icon">•</span>Sitzungen</div>
+                <div class="product-nav-item"><span class="mini-icon">•</span>Dokumentation</div>
+                <div class="product-nav-item"><span class="mini-icon">•</span>Übergaben</div>
               </div>
               <div class="product-nav-group">
                 <p class="product-nav-label">SBV-Verfahren</p>
-                <div class="product-nav-item"><span class="mini-icon">•</span>BEM</div>
-                <div class="product-nav-item"><span class="mini-icon">•</span>Prävention</div>
-                <div class="product-nav-item"><span class="mini-icon">•</span>Beteiligung</div>
-                <div class="product-nav-item"><span class="mini-icon">•</span>Arbeitsplatz</div>
+                <div class="product-nav-item"><span class="mini-icon">•</span>Verstöße</div>
+                <div class="product-nav-item"><span class="mini-icon">•</span>Stellenbesetzungen</div>
+                <div class="product-nav-item"><span class="mini-icon">•</span>Gleichstellung</div>
+                <div class="product-nav-item"><span class="mini-icon">•</span>Wahlen</div>
               </div>
               <div class="product-nav-group">
                 <p class="product-nav-label">Werkzeuge</p>
                 <div class="product-nav-item"><span class="mini-icon">•</span>Vorlagen</div>
                 <div class="product-nav-item"><span class="mini-icon">•</span>Wissen</div>
+                <div class="product-nav-item"><span class="mini-icon">•</span>Kontakte</div>
                 <div class="product-nav-item"><span class="mini-icon">•</span>Berichte</div>
+              </div>
+              <div class="product-nav-group">
+                <p class="product-nav-label">Administration</p>
+                <div class="product-nav-item"><span class="mini-icon">•</span>Compliance</div>
+                <div class="product-nav-item"><span class="mini-icon">•</span>Datenschutz</div>
               </div>
             </aside>
 
@@ -835,7 +843,7 @@
 
               <div class="metric-grid">
                 <div class="metric">
-                  <span>Offene Fallakten</span>
+                  <span>Offene Fälle</span>
                   <strong>12</strong>
                 </div>
                 <div class="metric warning">
@@ -843,7 +851,7 @@
                   <strong>5</strong>
                 </div>
                 <div class="metric danger">
-                  <span>Überfällig</span>
+                  <span>Datenschutzprüfung</span>
                   <strong>1</strong>
                 </div>
               </div>
@@ -853,14 +861,14 @@
                   <h3>Fallakten</h3>
                   <div class="work-row"><span>Arbeitsplatzgestaltung</span><span class="status">In Arbeit</span></div>
                   <div class="work-row"><span>BEM-Begleitung</span><span class="status">Offen</span></div>
-                  <div class="work-row"><span>SBV-Beteiligung</span><span class="status ok">Erledigt</span></div>
+                  <div class="work-row"><span>Vertretungspaket</span><span class="status ok">Bereit</span></div>
                 </section>
 
                 <section class="work-panel" aria-label="Beispielhafte Fristenübersicht">
-                  <h3>Fristen & Wiedervorlagen</h3>
+                  <h3>Fristen, Datenschutz & BR-Kontext</h3>
                   <div class="work-row"><span>Stellungnahme</span><span class="status danger">Heute</span></div>
-                  <div class="work-row"><span>BEM-Folgegespräch</span><span class="status">3 Tage</span></div>
-                  <div class="work-row"><span>Unterlagen prüfen</span><span class="status">7 Tage</span></div>
+                  <div class="work-row"><span>Löschprüfung</span><span class="status">Prüfen</span></div>
+                  <div class="work-row"><span>Gremia.BR-Sitzung</span><span class="status ok">Relevant</span></div>
                 </section>
               </div>
             </div>
@@ -877,7 +885,7 @@
             <h2>SBV-Software für die tägliche Arbeit der Schwerbehindertenvertretung.</h2>
           </div>
           <p class="section-intro">
-            Gremia.SBV bündelt Einzelfallarbeit und wiederkehrende Aufgaben der Schwerbehindertenvertretung nach dem SGB IX an einem Ort. Die Fachsoftware unterstützt Organisation und Dokumentation, ohne rechtliche Entscheidungen zu automatisieren.
+            Gremia.SBV bündelt Einzelfallarbeit, wiederkehrende Fristen, Gremienarbeit und Datenschutzpflichten der Schwerbehindertenvertretung nach dem SGB IX an einem Ort. Die Fachsoftware unterstützt Organisation und Dokumentation, ohne rechtliche Entscheidungen zu automatisieren.
           </p>
         </div>
 
@@ -885,22 +893,22 @@
           <article class="feature-card">
             <span class="feature-index">01 · Kernarbeit</span>
             <h3>Fälle, Personen & Fristen</h3>
-            <p>Fallakten, Gesprächsnotizen, Maßnahmen, Dokumente, Wiedervorlagen und Tätigkeitsjournal zusammenführen.</p>
+            <p>Personenverzeichnis, Fallakten, Gesprächsnotizen, Maßnahmen, Dokumente, Wiedervorlagen und Tätigkeitsjournal zusammenführen.</p>
           </article>
           <article class="feature-card">
             <span class="feature-index">02 · Verfahren</span>
-            <h3>BEM, Prävention & Beteiligung</h3>
-            <p>SBV-relevante Abläufe strukturiert nachhalten – einschließlich Beteiligungsverstößen und kritischen Fristen.</p>
+            <h3>SBV-Verfahren & Verstöße</h3>
+            <p>BEM, Prävention, Beteiligung, Stellenbesetzungen, Gleichstellung/GdB, Wahlen und Beteiligungsverstöße fachlich geordnet nachhalten.</p>
           </article>
           <article class="feature-card">
             <span class="feature-index">03 · Datenschutz</span>
-            <h3>Löschen, anonymisieren, übergeben</h3>
-            <p>Datenschutz-Lifecycle, Audit und verschlüsselte Fallübergaben sind Teil des Arbeitsablaufs, nicht nachträgliches Zubehör.</p>
+            <h3>Prüfen, löschen, übergeben</h3>
+            <p>Datenschutz-Lifecycle, Audit, manuelle Löschprüfungen und zielgebundene verschlüsselte Übergaben sind Teil des Arbeitsablaufs.</p>
           </article>
           <article class="feature-card">
             <span class="feature-index">04 · Werkzeuge</span>
-            <h3>Vorlagen, Wissen & Berichte</h3>
-            <p>Wiederkehrende Schreiben, Wissensbausteine und anonymisierte Auswertungen unterstützen die tägliche Arbeit.</p>
+            <h3>Dokumente, Wissen & Gremia.BR</h3>
+            <p>Vorlagen, PDF-Dokumente, Wissensbausteine, Berichte und die optionale Gremia.BR-Brücke vermeiden Doppelerfassung.</p>
           </article>
         </div>
       </div>
@@ -925,11 +933,11 @@
           </article>
           <article>
             <h3>Welche SBV-Aufgaben werden unterstützt?</h3>
-            <p>Unter anderem Fallakten, Fristen, Tätigkeitsjournal, BEM, Prävention, Beteiligungen, Stellenbesetzungen, Arbeitsplatzgestaltung, Gleichstellung, Kündigungsanhörungen und SBV-Wahlen.</p>
+            <p>Unter anderem Personenverzeichnis, Fallakten, Fristen, Tätigkeitsjournal, SBV-Dokumentation, Übergaben, Datenschutzprüfung, BEM, Prävention, Beteiligungen, Stellenbesetzungen, Gleichstellung/GdB, Kündigungsanhörungen und SBV-Wahlen.</p>
           </article>
           <article>
             <h3>Wo liegen die Daten?</h3>
-            <p>Die Arbeitsdaten verbleiben lokal in einem verschlüsselten Tresor. Gremia.SBV ist offline-first ausgelegt, benötigt keine Cloud und übermittelt keine Telemetriedaten.</p>
+            <p>Die Arbeitsdaten verbleiben lokal in einem verschlüsselten Tresor. Gremia.SBV ist offline-first ausgelegt, benötigt keine Cloud und übermittelt keine Telemetriedaten. Übergabepakete werden zielgebunden verschlüsselt.</p>
           </article>
         </div>
       </div>
