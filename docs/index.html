@@ -469,8 +469,8 @@
 
     .metric-grid {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 0.65rem;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 0.55rem;
     }
 
     .metric {
@@ -519,12 +519,20 @@
       line-height: 1;
     }
 
+    .metric small {
+      display: block;
+      margin-top: 0.42rem;
+      color: var(--sbv-muted);
+      font-size: 0.58rem;
+      line-height: 1.35;
+    }
+
     .metric.warning strong { color: var(--sbv-yellow-strong); }
     .metric.danger strong { color: #fecaca; }
 
     .work-grid {
       display: grid;
-      grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+      grid-template-columns: 1fr;
       gap: 0.65rem;
       margin-top: 0.65rem;
     }
@@ -550,13 +558,66 @@
 
     .work-row {
       display: grid;
-      grid-template-columns: 1fr auto;
+      grid-template-columns: minmax(0, 1fr) auto;
       gap: 0.75rem;
       align-items: center;
       border-top: 1px solid var(--sbv-border);
       padding: 0.5rem 0;
       color: #d4d4d8;
       font-size: 0.62rem;
+    }
+
+    .deadline-preview {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 0.75rem;
+      align-items: start;
+    }
+
+    .deadline-preview-card {
+      border: 1px solid var(--sbv-border);
+      box-shadow: inset 56px 0 0 rgba(250,204,21,0.03);
+      padding: 0.65rem;
+    }
+
+    .deadline-preview-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin-top: 0.62rem;
+    }
+
+    .mini-button {
+      border: 1px solid var(--sbv-border-hard);
+      background: rgba(9,9,11,0.82);
+      color: #fff;
+      padding: 0.26rem 0.42rem;
+      font-size: 0.52rem;
+      font-weight: 900;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .deadline-preview-count {
+      min-width: 74px;
+      border: 1px solid var(--sbv-border-hard);
+      padding: 0.6rem;
+      text-align: right;
+    }
+
+    .deadline-preview-count strong {
+      display: block;
+      color: #fff;
+      font-size: 1.45rem;
+      line-height: 1;
+    }
+
+    .deadline-preview-count span {
+      display: block;
+      margin-top: 0.2rem;
+      color: var(--sbv-muted);
+      font-size: 0.54rem;
+      font-weight: 850;
     }
 
     .work-row:first-of-type { border-top: 0; }
@@ -942,34 +1003,51 @@
                 <div class="metric warning">
                   <em>Handlungsbedarf</em>
                   <span>Fristen</span>
-                  <strong>2</strong>
+                  <strong>1</strong>
+                  <small>0 anstehend · 1 überschritten</small>
                 </div>
                 <div class="metric ok">
                   <em>OK</em>
                   <span>Compliance-Center</span>
                   <strong>0</strong>
+                  <small>Integrität ohne Warnung</small>
                 </div>
-                <div class="metric">
-                  <em>Prüfen</em>
+                <div class="metric warning">
+                  <em>Handlungsbedarf</em>
                   <span>Lösch- und Datenschutzprüfung</span>
                   <strong>2</strong>
+                  <small>1 kritisch</small>
+                </div>
+                <div class="metric">
+                  <em>Info</em>
+                  <span>Tätigkeitsjournal</span>
+                  <strong>1</strong>
+                  <small>Diese Woche 0 h 00 min</small>
                 </div>
               </div>
 
               <div class="work-grid">
-                <section class="work-panel" aria-label="Beispielhafte Fallübersicht">
-                  <p class="kicker">Gremia.BR-Lesecache</p>
-                  <h3>Nächste BR-Sitzung mit Agenda</h3>
-                  <div class="work-row"><span>Sitzung aus Lesecache</span><span class="status">Prüfen</span></div>
-                  <div class="work-row"><span>SBV-relevanter TOP</span><span class="status ok">Relevant</span></div>
-                </section>
-
                 <section class="work-panel" aria-label="Beispielhafte Fristenübersicht">
                   <p class="kicker">Pflichtanzeige ab 48 Stunden</p>
                   <h3>Fristen & Wiedervorlagen</h3>
-                  <div class="work-row"><span>Stellungnahme Maßnahme</span><span class="status danger">Heute</span></div>
-                  <div class="work-row"><span>Löschprüfung Fallakte</span><span class="status">Prüfen</span></div>
-                  <div class="work-row"><span>Wiedervorlage Gespräch</span><span class="status ok">7 Tage</span></div>
+                  <div class="deadline-preview">
+                    <div class="deadline-preview-card">
+                      <div class="work-row"><span>Synthetische Wiedervorlage</span><span class="status ok">Normal</span></div>
+                      <div class="work-row"><span>Kontext · TEST-0001 · Testperson Alpha</span><span>Fallakte</span></div>
+                      <div class="work-row"><span>Fällig: 12.05.2026, 12:00</span><span>168 h verbleibend</span></div>
+                      <div class="work-row"><span>Nachfassen</span><span class="status">Dashboard</span></div>
+                      <div class="deadline-preview-actions" aria-hidden="true">
+                        <span class="mini-button">Fallakte öffnen</span>
+                        <span class="mini-button">Bearbeiten</span>
+                        <span class="mini-button">Verlängern</span>
+                        <span class="mini-button">Erledigt</span>
+                      </div>
+                    </div>
+                    <div class="deadline-preview-count">
+                      <strong>1</strong>
+                      <span>Offene Fristen</span>
+                    </div>
+                  </div>
                 </section>
               </div>
             </div>
