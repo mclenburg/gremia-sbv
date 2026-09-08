@@ -111,13 +111,19 @@ export function SearchableSelectInput({
   className,
   ...inputProps
 }: SearchableSelectInputProps) {
-  const selectedLabel = options.find((option) => option.value === value)?.label ?? "";
+  const selectableOptions = useMemo(
+    () => options.filter((option) => option.value !== ""),
+    [options],
+  );
+  const selectedLabel = value
+    ? selectableOptions.find((option) => option.value === value)?.label ?? ""
+    : "";
   const [query, setQuery] = useState(selectedLabel);
   useEffect(() => { setQuery(selectedLabel); }, [selectedLabel]);
   const normalizedQuery = query.trim().toLocaleLowerCase("de-DE");
-  const matches = useMemo(() => options.filter((option) => (
+  const matches = useMemo(() => selectableOptions.filter((option) => (
     !normalizedQuery || option.label.toLocaleLowerCase("de-DE").includes(normalizedQuery)
-  )), [normalizedQuery, options]);
+  )), [normalizedQuery, selectableOptions]);
 
   return (
     <FormField label={label} helpText={helpText} helpId={helpRegistryId} error={error} wide={wide} required={required}>
@@ -140,13 +146,13 @@ export function SearchableSelectInput({
             onChange={(event) => {
               const next = event.currentTarget.value;
               setQuery(next);
-              const exact = options.find((option) => option.label.localeCompare(next, "de-DE", { sensitivity: "accent" }) === 0);
+              const exact = selectableOptions.find((option) => option.label.localeCompare(next, "de-DE", { sensitivity: "accent" }) === 0);
               if (exact) onValueChange(exact.value);
               else if (!next) onValueChange("");
             }}
             onBlur={(event) => {
               inputProps.onBlur?.(event);
-              const exact = options.find((option) => option.label.localeCompare(event.currentTarget.value, "de-DE", { sensitivity: "accent" }) === 0);
+              const exact = selectableOptions.find((option) => option.label.localeCompare(event.currentTarget.value, "de-DE", { sensitivity: "accent" }) === 0);
               if (!exact) setQuery(selectedLabel);
             }}
           />
