@@ -6,16 +6,29 @@ import { createRequire } from "node:module";
 import { describe, expect, it } from "vitest";
 
 const require = createRequire(import.meta.url);
-const yaml = require("js-yaml") as { load(source: string): { jobs?: Record<string, { steps?: Array<{ uses?: string }> }> } };
+type WorkflowStep = {
+  name?: string;
+  uses?: string;
+  if?: string;
+};
+
+const yaml = require("js-yaml") as { load(source: string): { jobs?: Record<string, { steps?: WorkflowStep[] }> } };
 
 const taggedReleaseWorkflow = readFileSync(".github/workflows/build-release.yml", "utf8");
 const pullRequestWorkflow = readFileSync(".github/workflows/cross-platform-release-verification.yml", "utf8");
 const signPathWorkflow = readFileSync(".github/workflows/signpath-windows-exe.yml", "utf8");
+const pullRequestWorkflowDefinition = yaml.load(pullRequestWorkflow);
 const buildPlatformScript = readFileSync("scripts/build-platform.cjs", "utf8");
 const packageJson = JSON.parse(readFileSync("package.json", "utf8")) as { version: string; scripts: Record<string, string> };
 const signPathActionNames = Object.values(yaml.load(signPathWorkflow).jobs ?? {})
   .flatMap((job) => job.steps ?? [])
   .flatMap((step) => step.uses ? [step.uses.split("@")[0]] : []);
+
+function crossPlatformUploadArtifactSteps(): WorkflowStep[] {
+  return Object.values(pullRequestWorkflowDefinition.jobs ?? {})
+    .flatMap((job) => job.steps ?? [])
+    .filter((step) => step.uses?.startsWith("actions/upload-artifact@"));
+}
 
 function includesAll(value: string, required: string[]): boolean {
   return required.every((entry) => value.includes(entry));
@@ -158,6 +171,12 @@ describe("Taggebundener GitHub-Release-Build", () => {
       appBuildDoesNotRepeatTests: true,
       targetedRegressionScript: true,
     });
+  });
+
+  it("führt im Pull-Request keine Artefakt-Uploads aus", () => {
+    const uploadSteps = crossPlatformUploadArtifactSteps();
+    expect(uploadSteps).toHaveLength(1);
+    expect(uploadSteps[0].if).toBe("github.event_name == 'workflow_dispatch'");
   });
 
   it("ignoriert interne win-unpacked EXEs bei der Endanwender-Artefaktprüfung", () => {
