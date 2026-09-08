@@ -31,9 +31,10 @@ afterEach(() => {
 describe('Phase 4 – personenbezogene Audit-Vollständigkeit', () => {
   it('liest den Coverage-Report aus dem pro Build isolierbaren Coverage-Verzeichnis', () => {
     const previousCoverageDirectory = process.env.GREMIA_SBV_COVERAGE_DIR;
-    process.env.GREMIA_SBV_COVERAGE_DIR = '/tmp/gremia-sbv-isolated-coverage';
+    const isolatedCoverageDirectory = path.join(tmpdir(), 'gremia-sbv-isolated-coverage');
+    process.env.GREMIA_SBV_COVERAGE_DIR = isolatedCoverageDirectory;
     try {
-      expect(zeroCoverage.defaultCoverageReportPath()).toBe('/tmp/gremia-sbv-isolated-coverage/coverage-final.json');
+      expect(zeroCoverage.defaultCoverageReportPath()).toBe(path.join(isolatedCoverageDirectory, 'coverage-final.json'));
     } finally {
       if (previousCoverageDirectory === undefined) delete process.env.GREMIA_SBV_COVERAGE_DIR;
       else process.env.GREMIA_SBV_COVERAGE_DIR = previousCoverageDirectory;
