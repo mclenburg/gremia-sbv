@@ -24,15 +24,15 @@ export function ReportsView() {
           <DateInput label="Von" value={reports.periodStart} onValueChange={reports.setPeriodStart} />
           <DateInput label="Bis" value={reports.periodEnd} onValueChange={reports.setPeriodEnd} />
           <ToolbarButton onClick={() => void reports.loadReports()} disabled={reports.loading}>
-            <RefreshCw className="h-4 w-4" />
+            <RefreshCw className="industrial-icon" />
             Aktualisieren
           </ToolbarButton>
           <IndustrialButton onClick={() => void reports.generateReport(false)} disabled={reports.generationDisabled}>
-            <Download className="h-4 w-4" />
+            <Download className="industrial-icon" />
             PDF speichern
           </IndustrialButton>
           <IndustrialButton onClick={() => void reports.generateReport(true)} disabled={reports.generationDisabled}>
-            <ExternalLink className="h-4 w-4" />
+            <ExternalLink className="industrial-icon" />
             PDF erzeugen und öffnen
           </IndustrialButton>
         </div>
@@ -50,7 +50,7 @@ export function ReportsView() {
                       onClick={() => reports.setSelectedType(descriptor.type)}
                       aria-pressed={reports.selectedType === descriptor.type}
                     >
-                      <span className="reports-card-icon"><FileText className="h-4 w-4" /></span>
+                      <span className="reports-card-icon"><FileText className="industrial-icon" /></span>
                       <span className="reports-card-body">
                         <strong>{descriptor.shortTitle}</strong>
                         <small>{descriptor.description}</small>

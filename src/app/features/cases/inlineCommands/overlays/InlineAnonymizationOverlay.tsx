@@ -112,7 +112,7 @@ export function InlineAnonymizationOverlay({ props }: { props: InlineCommandOver
     >
         <div className="industrial-modal-header">
           <div className="industrial-modal-icon">
-            <ShieldAlert className="h-5 w-5" />
+            <ShieldAlert className="industrial-icon-md" />
           </div>
           <div>
             <p className="industrial-kicker">Inline-Anonymisierung</p>

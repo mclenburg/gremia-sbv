@@ -112,7 +112,7 @@ export function InlineOpenTaskOverlay({ props }: { props: InlineCommandOverlaysP
     >
         <div className="industrial-modal-header">
           <div className="industrial-modal-icon">
-            <CheckCircle2 className="h-5 w-5" />
+            <CheckCircle2 className="industrial-icon-md" />
           </div>
           <div>
             <p className="industrial-kicker">Inline-Aufgabe</p>

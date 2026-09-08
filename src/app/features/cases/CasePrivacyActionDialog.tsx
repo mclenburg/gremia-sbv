@@ -63,7 +63,7 @@ export function CasePrivacyActionDialog({
     title="Fallakte: Datenschutzaktion"
     kicker="Datenschutz-Lifecycle"
     description={`Für ${record.caseNumber} bewusst zwischen Anonymisierung und endgültiger Löschung wählen.`}
-    icon={<ShieldAlert className="h-5 w-5" />}
+    icon={<ShieldAlert className="industrial-icon-md" />}
     role="alertdialog"
     variant="danger"
     initialFocusRef={cancelRef}
@@ -94,8 +94,8 @@ export function CasePrivacyActionDialog({
       <div className="industrial-modal-actions">
         <GhostButton ref={cancelRef} onClick={onClose} disabled={busy}>Abbrechen</GhostButton>
         {mode === 'delete'
-          ? <DangerButton type="submit" loading={busy}><Trash2 className="h-4 w-4" aria-hidden="true" /> Fall löschen</DangerButton>
-          : <IndustrialButton type="submit" loading={busy}><ShieldAlert className="h-4 w-4" aria-hidden="true" /> Fall anonymisieren</IndustrialButton>}
+          ? <DangerButton type="submit" loading={busy}><Trash2 className="industrial-icon" aria-hidden="true" /> Fall löschen</DangerButton>
+          : <IndustrialButton type="submit" loading={busy}><ShieldAlert className="industrial-icon" aria-hidden="true" /> Fall anonymisieren</IndustrialButton>}
       </div>
     </form>
   </IndustrialModal>;

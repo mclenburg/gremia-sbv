@@ -97,7 +97,7 @@ export function PersonsView(props: PersonsViewProps) {
 
   return (
     <ModuleFrame title="Personenverzeichnis" kicker="Datenschutz-Lifecycle" description="Datensparsames Verzeichnis schwerbehinderter und gleichgestellter Personen mit Import, Statusablauf und Fristenintegration." helpId="persons.overview" actions={<IndustrialButton data-e2e="open-person-create-dialog" onClick={() => setPersonCreateOpen(true)}>Person anlegen</IndustrialButton>}>
-      <div className="industrial-alert"><ShieldAlert className="h-5 w-5 person-alert-icon" aria-hidden="true" /><p>Gremia.SBV speichert hier nur den Schutzstatus, nicht den GdB. Importdateien werden lokal verarbeitet und nicht dauerhaft gespeichert.</p></div>
+      <div className="industrial-alert"><ShieldAlert className="industrial-icon-md person-alert-icon" aria-hidden="true" /><p>Gremia.SBV speichert hier nur den Schutzstatus, nicht den GdB. Importdateien werden lokal verarbeitet und nicht dauerhaft gespeichert.</p></div>
       <WorkbenchSummary
         ariaLabel="Personenverzeichnis Kennzahlen"
         items={[

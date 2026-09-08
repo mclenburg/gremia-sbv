@@ -70,7 +70,7 @@ export function TemplateEditorModal<TDraft extends TemplateEditorDraft>({
       title={title}
       kicker={isEdit ? "Vorlage bearbeiten" : "Eigene Vorlage"}
       description={description}
-      icon={<FileText className="h-5 w-5" />}
+      icon={<FileText className="industrial-icon-md" />}
       onClose={onClose}
       wide
       className="template-create-modal"
@@ -192,7 +192,7 @@ export function TemplateEditorModal<TDraft extends TemplateEditorDraft>({
             Abbrechen
           </GhostButton>
           <IndustrialButton type="submit">
-            <Save className="h-4 w-4" aria-hidden="true" />
+            <Save className="industrial-icon" aria-hidden="true" />
             {isEdit ? "Änderungen speichern" : "Vorlage speichern"}
           </IndustrialButton>
         </FormActions>

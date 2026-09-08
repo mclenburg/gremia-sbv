@@ -85,7 +85,7 @@ export function DeadlineIcalExportModal({
         <FormActions>
           <GhostButton onClick={onClose}>Schließen</GhostButton>
           <IndustrialButton onClick={() => void exportIcal()} data-e2e="export-deadlines-ical">
-            <Download className="h-4 w-4" aria-hidden="true" />
+            <Download className="industrial-icon" aria-hidden="true" />
             iCal-Datei erzeugen
           </IndustrialButton>
         </FormActions>

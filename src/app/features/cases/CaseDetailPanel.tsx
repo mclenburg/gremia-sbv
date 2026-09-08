@@ -63,7 +63,7 @@ export function CaseDetailPanel({
         onSubmit={(event) => void onSearchSubmit(event)} className="knowledge-search-bar case-detail-search-bar"
         aria-busy={isSearching}
       >
-        <Search className="h-4 w-4 case-detail-search-icon" aria-hidden="true" />
+        <Search className="industrial-icon case-detail-search-icon" aria-hidden="true" />
         <input className="industrial-input"
           data-global-search-target="case-fulltext"
           value={searchQuery}
@@ -91,7 +91,7 @@ export function CaseDetailPanel({
               onClick={onExportHandover}
               aria-label="Ausgewählte Fallakte als Übergabepaket exportieren"
             >
-              <Download className="h-4 w-4" aria-hidden="true" />
+              <Download className="industrial-icon" aria-hidden="true" />
               Übergabe exportieren
             </ToolbarButton>
           )}

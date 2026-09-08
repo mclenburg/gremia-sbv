@@ -26,7 +26,7 @@ export function TemplateCatalogToolbar({
         </div>
       </div>
       <IndustrialButton onClick={onCreate}>
-        <Plus className="h-4 w-4" aria-hidden="true" /> Neue Vorlage
+        <Plus className="industrial-icon" aria-hidden="true" /> Neue Vorlage
       </IndustrialButton>
     </div>
   );
@@ -76,7 +76,7 @@ export function TemplateFilterForm({
         onValueChange={(value) => onPageSizeChange(Number(value))}
         options={TEMPLATE_PAGE_SIZE_OPTIONS.map((size) => ({ value: String(size), label: String(size) }))}
       />
-      <ToolbarButton type="submit"><Search className="h-4 w-4" aria-hidden="true" />Filtern</ToolbarButton>
+      <ToolbarButton type="submit"><Search className="industrial-icon" aria-hidden="true" />Filtern</ToolbarButton>
     </form>
   );
 }
@@ -122,13 +122,13 @@ export function TemplateListPanel({
           <div className="template-list-stack">
             {group.items.map((template) => (
               <div key={template.id} className={`template-list-row ${selectedTemplate?.id === template.id ? 'active' : ''}`}>
-                <ToolbarButton className="industrial-list-item template-list-main w-full text-left" onClick={() => onSelectTemplate(template.id)}>
+                <ToolbarButton className="industrial-list-item template-list-main template-list-action" onClick={() => onSelectTemplate(template.id)}>
                   <strong>{template.title}</strong>
                   <span>{templateCategoryLabels[template.category]} · {template.legalBasis.join(', ') || 'ohne Normbezug'}</span>
                   <p>{template.description}</p>
                 </ToolbarButton>
                 <IconButton className="template-trash-button" onClick={() => onDeleteTemplate(template)} aria-label={`Vorlage ${template.title} löschen`} title="Vorlage löschen">
-                  <Trash2 className="h-4 w-4" aria-hidden="true" />
+                  <Trash2 className="industrial-icon" aria-hidden="true" />
                 </IconButton>
               </div>
             ))}
@@ -165,7 +165,7 @@ export function TemplateDetailPanel({
               <p>{selectedTemplate.description}</p>
             </div>
             <IndustrialButton className="template-detail-edit-button" onClick={() => onEditTemplate(selectedTemplate)}>
-              <FileText className="h-4 w-4" aria-hidden="true" />Bearbeiten
+              <FileText className="industrial-icon" aria-hidden="true" />Bearbeiten
             </IndustrialButton>
           </div>
           <div className="template-detail-meta">

@@ -104,11 +104,11 @@ function ParticipationCheckMatrix({ process, update }: { process: ParticipationR
   const critical = !process.informationComplete || ((process.decisionStage === "entscheidung_getroffen" || process.decisionStage === "umgesetzt") && !process.hearingBeforeDecision);
   return <>
     <div className="participation-check-matrix" aria-label="Prüfmatrix § 178 Abs. 2 SGB IX">
-      <ToolbarButton className={process.informationComplete ? "check-ok" : "check-missing"} onClick={() => update({ informationComplete: !process.informationComplete })}><CheckCircle2 className="h-4 w-4" /> Unterrichtung vollständig</ToolbarButton>
-      <ToolbarButton className={process.hearingBeforeDecision ? "check-ok" : "check-missing"} onClick={() => update({ hearingBeforeDecision: !process.hearingBeforeDecision })}><ShieldCheck className="h-4 w-4" /> Anhörung vor Entscheidung</ToolbarButton>
-      <ToolbarButton className={process.decisionNotified ? "check-ok" : "check-missing"} onClick={() => update({ decisionNotified: !process.decisionNotified })}><FileWarning className="h-4 w-4" /> Entscheidung mitgeteilt</ToolbarButton>
+      <ToolbarButton className={process.informationComplete ? "check-ok" : "check-missing"} onClick={() => update({ informationComplete: !process.informationComplete })}><CheckCircle2 className="industrial-icon" /> Unterrichtung vollständig</ToolbarButton>
+      <ToolbarButton className={process.hearingBeforeDecision ? "check-ok" : "check-missing"} onClick={() => update({ hearingBeforeDecision: !process.hearingBeforeDecision })}><ShieldCheck className="industrial-icon" /> Anhörung vor Entscheidung</ToolbarButton>
+      <ToolbarButton className={process.decisionNotified ? "check-ok" : "check-missing"} onClick={() => update({ decisionNotified: !process.decisionNotified })}><FileWarning className="industrial-icon" /> Entscheidung mitgeteilt</ToolbarButton>
     </div>
-    {critical && <div className="industrial-message industrial-message-warning"><AlertTriangle className="h-4 w-4" /> Beteiligung kritisch prüfen. Bei fehlender oder verspäteter Beteiligung Aussetzung nach § 178 Abs. 2 Satz 2 SGB IX erwägen.</div>}
+    {critical && <div className="industrial-message industrial-message-warning"><AlertTriangle className="industrial-icon" /> Beteiligung kritisch prüfen. Bei fehlender oder verspäteter Beteiligung Aussetzung nach § 178 Abs. 2 Satz 2 SGB IX erwägen.</div>}
   </>;
 }
 
@@ -123,7 +123,7 @@ function ParticipationGuidance({ process }: { process: ParticipationRecord }) {
       <div className="participation-action-chips" aria-label="Direkt ableitbare SBV-Aktionen">{actionLabels.map((label) => <ToolbarButton key={label}>{label}</ToolbarButton>)}</div>
     </section>
     <section className="participation-document-matrix" aria-label="Unterlagenmatrix nach Maßnahmentyp">
-      <div className="participation-section-head"><div><p className="industrial-kicker">Unterlagenmatrix</p><h3>Für {measureLabels[process.measureType]} vor Stellungnahme prüfen</h3></div><ClipboardList className="h-5 w-5" aria-hidden="true" /></div>
+      <div className="participation-section-head"><div><p className="industrial-kicker">Unterlagenmatrix</p><h3>Für {measureLabels[process.measureType]} vor Stellungnahme prüfen</h3></div><ClipboardList className="industrial-icon-md" aria-hidden="true" /></div>
       <ul>{documents.map((item) => <li key={item.id}><strong>{item.label}</strong><span>{item.reason}</span></li>)}</ul>
     </section>
   </>;
@@ -162,9 +162,9 @@ export function ParticipationProcessDetail({ process, onUpdate, caseRecord, onOp
 }) {
   if (!process) return <article className="case-detail-content"><h2>SBV-Beteiligung</h2><p>Wähle eine Beteiligungsmaßnahme im Fallbaum aus oder lege sie über „Maßnahme“ in dieser Fallakte an.</p></article>;
   const update: ParticipationUpdate = (input) => void onUpdate(process.id, input);
-  return <MeasureDetailFrame typeLabel="SBV-Beteiligung" title={process.title} statusLabel={statusLabels[process.status]} riskLevel={process.riskLevel} riskLabel={riskLabels[process.riskLevel]} summary={`§ 178 Abs. 2 SGB IX · ${measureLabels[process.measureType]} · Bearbeitung in dieser Fallakte`} nextStep={process.nextStep} requiresFollowUp={!process.informationComplete || !process.hearingBeforeDecision} actions={<div className="industrial-search-actions"><ActivityJournalContextButton context={{ contextType: "sbv_participation", contextId: process.id, caseId: process.caseId, title: process.title }} compact />{onOpenViolationPrefill && <ToolbarButton onClick={() => onOpenViolationPrefill(buildParticipationViolationPrefillFromMeasure(process, caseRecord))}><FileWarning className="h-4 w-4" aria-hidden="true" /> Verstoß aus Maßnahme erfassen</ToolbarButton>}</div>}>
+  return <MeasureDetailFrame typeLabel="SBV-Beteiligung" title={process.title} statusLabel={statusLabels[process.status]} riskLevel={process.riskLevel} riskLabel={riskLabels[process.riskLevel]} summary={`§ 178 Abs. 2 SGB IX · ${measureLabels[process.measureType]} · Bearbeitung in dieser Fallakte`} nextStep={process.nextStep} requiresFollowUp={!process.informationComplete || !process.hearingBeforeDecision} actions={<div className="industrial-search-actions"><ActivityJournalContextButton context={{ contextType: "sbv_participation", contextId: process.id, caseId: process.caseId, title: process.title }} compact />{onOpenViolationPrefill && <ToolbarButton onClick={() => onOpenViolationPrefill(buildParticipationViolationPrefillFromMeasure(process, caseRecord))}><FileWarning className="industrial-icon" aria-hidden="true" /> Verstoß aus Maßnahme erfassen</ToolbarButton>}</div>}>
     <div className="participation-case-detail">
-      {process.violationSummary?.trim() ? <div className="industrial-message industrial-message-warning"><FileWarning className="h-4 w-4" aria-hidden="true" /> Historischer Verstoßhinweis vorhanden. Er wird beim Erstellen des strukturierten Verstoßvorgangs übernommen und bleibt bis zur Datenmigration unverändert erhalten.</div> : null}
+      {process.violationSummary?.trim() ? <div className="industrial-message industrial-message-warning"><FileWarning className="industrial-icon" aria-hidden="true" /> Historischer Verstoßhinweis vorhanden. Er wird beim Erstellen des strukturierten Verstoßvorgangs übernommen und bleibt bis zur Datenmigration unverändert erhalten.</div> : null}
       <ParticipationCheckMatrix process={process} update={update} />
       <ParticipationGuidance process={process} />
       <ParticipationStructuredFields process={process} update={update} />

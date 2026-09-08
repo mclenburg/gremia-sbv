@@ -18,7 +18,7 @@ export function RetentionSettingsPanel() {
   } = useRetentionSettings();
 
   return (
-    <section className="industrial-settings-form xl:col-span-2">
+    <section className="industrial-settings-form settings-section-full">
       <div>
         <h3>Datenschutz: Löschprüfung & Aufbewahrung</h3>
         <p className="industrial-settings-note">

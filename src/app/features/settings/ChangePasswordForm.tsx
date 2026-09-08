@@ -72,7 +72,7 @@ export function ChangePasswordForm() {
   }
 
   return (
-    <form onSubmit={submit} className="industrial-settings-form max-w-2xl">
+    <form onSubmit={submit} className="industrial-settings-form settings-section-narrow">
       <h3>Passwort ändern</h3>
       <label>
         <span>Aktuelles Passwort</span>

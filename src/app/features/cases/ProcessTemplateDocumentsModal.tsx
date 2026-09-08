@@ -132,7 +132,7 @@ export function ProcessTemplateDocumentsModal({
                 <p>{template.description}</p>
                 <span>{template.legalBasis.join(', ') || 'ohne Normbezug'}</span>
               </div>
-              <button type="button" className="industrial-button" onClick={() => onDownload(template)}><Download className="h-4 w-4" />Download</button>
+              <button type="button" className="industrial-button" onClick={() => onDownload(template)}><Download className="industrial-icon" />Download</button>
             </article>
           ))}
         </div>

@@ -103,7 +103,7 @@ function ParticipationLegalViolationWarning({ record }: { record: ParticipationR
 
   return (
     <section className="participation-legal-warning" role="note" aria-label="Dokumentierter Pflichtverstoß nach § 178 Absatz 2 SGB IX">
-      <div className="participation-legal-warning-title"><AlertTriangle className="h-4 w-4" /> Beteiligungspflichtverletzung dokumentiert</div>
+      <div className="participation-legal-warning-title"><AlertTriangle className="industrial-icon" /> Beteiligungspflichtverletzung dokumentiert</div>
       <p>
         Für diese Maßnahme ist eine Verletzung der Unterrichtungs- und Anhörungspflicht der SBV nach § 178 Abs. 2 Satz 1 SGB IX dokumentiert.
       </p>
@@ -204,7 +204,7 @@ export function ParticipationView({
                 <span>{caseLabel(relatedCase)}</span>
                 <span>{measureLabels[record.measureType]} · {statusLabels[record.status]} · Risiko {riskLabels[record.riskLevel]}</span>
                 <span>{record.statementDueAt ? `Stellungnahme bis ${formatDateShort(record.statementDueAt)}` : 'keine Stellungnahmefrist'}</span>
-                {critical > 0 && <span className="participation-card-warning"><AlertTriangle className="h-3.5 w-3.5" /> {critical} kritische Prüfung(en)</span>}
+                {critical > 0 && <span className="participation-card-warning"><AlertTriangle className="industrial-icon-sm" /> {critical} kritische Prüfung(en)</span>}
               </GhostButton>
             );
           })}
@@ -240,7 +240,7 @@ export function ParticipationView({
                 <p className="industrial-meta">Dieses Cockpit ist die Kontrollsicht. Änderungen erfolgen in der Fallakte, damit Verlauf, Unterlagenprüfung und Maßnahme zusammen bleiben.</p>
               </div>
               <div className="industrial-card-actions">
-                <IndustrialButton onClick={() => onOpenCaseNode({ caseId: selected.caseId, nodeType: 'participation', nodeId: selected.id })}><ExternalLink className="h-4 w-4" /> Maßnahme in Fallakte öffnen</IndustrialButton>
+                <IndustrialButton onClick={() => onOpenCaseNode({ caseId: selected.caseId, nodeType: 'participation', nodeId: selected.id })}><ExternalLink className="industrial-icon" /> Maßnahme in Fallakte öffnen</IndustrialButton>
               </div>
             </>
           )}

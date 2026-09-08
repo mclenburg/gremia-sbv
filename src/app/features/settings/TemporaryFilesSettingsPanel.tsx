@@ -106,7 +106,7 @@ export function TemporaryFilesSettingsPanel() {
         className="industrial-secondary-button"
         onClick={() => void cleanup()}
       >
-        <ShieldCheck className="h-4 w-4" /> Temporäre Dateien jetzt löschen
+        <ShieldCheck className="industrial-icon" /> Temporäre Dateien jetzt löschen
       </button>
     </section>
   );

@@ -38,7 +38,7 @@ function FooterActionButton({ action, disabled }: { action: FooterAction; disabl
 
   return (
     <button type="button" className={className} disabled={disabled} onClick={action.onClick}>
-      <Icon className="h-4 w-4" />
+      <Icon className="industrial-icon" />
       <ActionLabel label={action.label} detail={action.detail} />
     </button>
   );

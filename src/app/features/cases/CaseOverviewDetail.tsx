@@ -145,7 +145,7 @@ export function CaseOverviewDetail({
       </div>
 
       <section className={`industrial-message case-next-action case-next-action-${nextAction.tone}`} aria-labelledby="case-next-action-label">
-        <ShieldCheck className="h-4 w-4" aria-hidden="true" />
+        <ShieldCheck className="industrial-icon" aria-hidden="true" />
         <div>
           <span id="case-next-action-label" className="industrial-kicker">Nächster sauberer Schritt</span>
           <strong>{nextAction.title}</strong>
@@ -155,14 +155,14 @@ export function CaseOverviewDetail({
 
       {isLegacy && (
         <div className="industrial-message industrial-message-warning" role="note" data-e2e="legacy-case-hint">
-          <AlertTriangle className="h-4 w-4" aria-hidden="true" />
+          <AlertTriangle className="industrial-icon" aria-hidden="true" />
           <span>Altfall ohne sicheren führenden Personenbezug. Bitte Zuordnung prüfen oder Datenschutzprüfung fortführen.</span>
           {onOpenLegacyBinding && <ToolbarButton onClick={onOpenLegacyBinding}>Legacy-Zuordnung prüfen</ToolbarButton>}
         </div>
       )}
       {isExpiredHandover && (
         <div className="industrial-message industrial-message-warning" role="alert" data-e2e="handover-expired-hint">
-          <AlertTriangle className="h-4 w-4" aria-hidden="true" />
+          <AlertTriangle className="industrial-icon" aria-hidden="true" />
           <span>Diese Fallakte stammt aus einer abgelaufenen Übergabe. Weitere Bearbeitung muss ausdrücklich bestätigt und begründet werden.</span>
           {onContinueExpiredHandover && <ToolbarButton onClick={onContinueExpiredHandover}>Weiterbearbeitung bestätigen</ToolbarButton>}
         </div>

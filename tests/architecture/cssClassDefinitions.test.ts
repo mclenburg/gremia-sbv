@@ -332,10 +332,21 @@ describe("CSS-Klassenvertrag", () => {
     expect(missing).toEqual([]);
   });
 
-  it("verbietet neue Tailwind-/Utility-Designklassen in Renderer-Markup", () => {
-    const forbiddenVisualUtility = /^(?:(?:mt|mr|mb|ml|mx|my|pt|pr|pb|pl|px|py|p|m|gap|space-y)-\d(?:\.\d)?|(?:text|bg|border)-(?:yellow|zinc|red|green|slate|white|black|gray|neutral|stone)-\d+(?:\/\d+)?|text-(?:xs|sm|lg|xl|\dxl)|font-\w+|leading-\d+|tracking-(?:tight|\[[^\]]+\])|shadow(?:-\w+|-\[[^\]]+\])?|rounded-\w+|opacity-\[[^\]]+\]|saturate-\d+)$/;
+  it("verbietet rohe Tailwind-/Utility-Klassen in Renderer-Markup", () => {
     const forbidden = usedClassNames(true)
-      .filter(({ className }) => forbiddenVisualUtility.test(className))
+      .filter(({ className }) => isExternalUtilityClass(className))
+      .map(({ className, file }) => `${className} (${file})`)
+      .sort((a, b) => a.localeCompare(b));
+
+    expect(forbidden).toEqual([]);
+  });
+
+  it("hält Settings-Layoutbreiten in zentralen Gremia-Klassen statt Utility-Markup", () => {
+    const forbidden = usedClassNames(true)
+      .filter(({ className, file }) =>
+        file.startsWith("src/app/features/settings/") &&
+        /^(?:xl:col-span-\d+|max-w-[\w-]+)$/.test(className),
+      )
       .map(({ className, file }) => `${className} (${file})`)
       .sort((a, b) => a.localeCompare(b));
 

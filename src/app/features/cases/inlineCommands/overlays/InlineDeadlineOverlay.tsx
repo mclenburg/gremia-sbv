@@ -112,7 +112,7 @@ export function InlineDeadlineOverlay({ props }: { props: InlineCommandOverlaysP
     >
         <div className="industrial-modal-header">
           <div className="industrial-modal-icon">
-            <CalendarPlus className="h-5 w-5" />
+            <CalendarPlus className="industrial-icon-md" />
           </div>
           <div>
             <p className="industrial-kicker">Inline-Frist</p>
@@ -217,7 +217,7 @@ export function InlineDeadlineOverlay({ props }: { props: InlineCommandOverlaysP
             type="button" className="industrial-button"
             onClick={() => void createInlineDeadlineFromProtocol()}
           >
-            <CalendarPlus className="h-4 w-4" />
+            <CalendarPlus className="industrial-icon" />
             Frist vormerken
           </button>
         </div>

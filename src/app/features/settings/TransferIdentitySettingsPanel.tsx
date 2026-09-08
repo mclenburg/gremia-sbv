@@ -46,7 +46,7 @@ export function TransferIdentitySettingsPanel() {
   }
 
   return (
-    <section className="industrial-settings-form xl:col-span-2" aria-labelledby="transfer-identity-settings-title">
+    <section className="industrial-settings-form settings-section-full" aria-labelledby="transfer-identity-settings-title">
       <div>
         <h3 id="transfer-identity-settings-title">Lokale Transfer-Identität</h3>
         <p className="industrial-settings-note">
@@ -68,7 +68,7 @@ export function TransferIdentitySettingsPanel() {
       {message ? <div className="industrial-message industrial-message-ok" role="status">{message}</div> : null}
       {error ? <div className="industrial-message industrial-message-warning" role="alert">{error}</div> : null}
       <IndustrialButton variant="secondary" disabled={!identity} onClick={() => void copyRecipientToken()}>
-        <Copy className="h-4 w-4" /> Empfängerkennung kopieren
+        <Copy className="industrial-icon" /> Empfängerkennung kopieren
       </IndustrialButton>
       <p className="industrial-settings-note">
         <Fingerprint className="inline-icon" aria-hidden="true" /> Die ID ist bewusst kurz und gut diktierbar. Die eigentliche technische Bindung erfolgt über den öffentlichen Schlüssel in der Empfängerkennung.

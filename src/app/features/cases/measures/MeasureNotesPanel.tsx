@@ -36,7 +36,7 @@ export function MeasureNotesPanel({
           aria-controls={`${fieldPrefix}-form`}
           onClick={state.startCreate}
         >
-          <PlusCircle className="h-4 w-4" /> Notiz anlegen
+          <PlusCircle className="industrial-icon" /> Notiz anlegen
         </ToolbarButton>
       </div>
 

@@ -76,7 +76,7 @@ export function ResourceSection({
                   aria-label={`Nachweis ${record.title} löschen`}
                   onClick={() => void deleteResource(record.id)}
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Trash2 className="industrial-icon" />
                 </DangerButton>
               </IndustrialRecordCard>
             )}

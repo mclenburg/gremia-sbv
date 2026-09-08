@@ -69,17 +69,17 @@ export function TextCommandHelpModal() {
         onKeyDown={handleDialogKeyDown}
       >
         <div className="industrial-modal-header">
-          <div className="industrial-modal-icon"><Keyboard className="h-5 w-5" /></div>
+          <div className="industrial-modal-icon"><Keyboard className="industrial-icon-md" /></div>
           <div>
             <p className="industrial-kicker">Live-Erfassung</p>
             <h2 id="text-command-help-title">Kurzbefehle</h2>
             <p id="text-command-help-description">Strg+H öffnet oder schließt diese Übersicht. Die Liste ist durchsuchbar; Esc schließt das Fenster.</p>
           </div>
-          <button type="button" className="industrial-icon-button" onClick={close} aria-label="Kurzbefehle schließen"><X className="h-4 w-4" /></button>
+          <button type="button" className="industrial-icon-button" onClick={close} aria-label="Kurzbefehle schließen"><X className="industrial-icon" /></button>
         </div>
 
         <label className="text-command-help-search">
-          <span><Search className="h-4 w-4" /> Kurzbefehle durchsuchen</span>
+          <span><Search className="industrial-icon" /> Kurzbefehle durchsuchen</span>
           <input ref={searchRef} value={query} onChange={(event) => setQuery(event.target.value)} placeholder="z. B. Frist, Beteiligung, Datenschutz, /anp …" className="industrial-input" />
         </label>
 

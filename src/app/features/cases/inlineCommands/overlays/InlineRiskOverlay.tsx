@@ -112,7 +112,7 @@ export function InlineRiskOverlay({ props }: { props: InlineCommandOverlaysProps
     >
         <div className="industrial-modal-header">
           <div className="industrial-modal-icon">
-            <AlertTriangle className="h-5 w-5" />
+            <AlertTriangle className="industrial-icon-md" />
           </div>
           <div>
             <p className="industrial-kicker">Inline-Risiko</p>

@@ -60,7 +60,7 @@ export function CaseRegister({
               {closedLegacyBulkCount} Altakten vormerken
             </ToolbarButton>
           )}
-          {onImportHandover && <ToolbarButton onClick={onImportHandover}><Upload className="h-4 w-4" />Übergabe importieren</ToolbarButton>}
+          {onImportHandover && <ToolbarButton onClick={onImportHandover}><Upload className="industrial-icon" />Übergabe importieren</ToolbarButton>}
         </div>
       </div>
       <div className="industrial-table-shell case-register-table-shell">
@@ -73,7 +73,7 @@ export function CaseRegister({
               <th>Status</th>
               <th>Bindung</th>
               <th>Kurzbeschreibung</th>
-              <th><span className="sr-only">Aktionen</span></th>
+              <th><span className="industrial-sr-only">Aktionen</span></th>
             </tr>
           </thead>
           <tbody>
@@ -85,7 +85,7 @@ export function CaseRegister({
                 <td>{record.status}</td>
                 <td>{record.personBindingState === 'legacy_unlinked' ? 'Altfall' : record.personBindingState === 'anonymous_request' ? 'Anonym' : record.protectedPersonId ? 'Person' : '—'}</td>
                 <td>{record.summary ?? '—'}</td>
-                <td className="case-register-row-actions">{onPrivacyAction ? <IconButton className="privacy-destructive-action case-register-privacy-action" aria-label={`Fallakte löschen oder anonymisieren: ${record.caseNumber}`} title={`Fallakte löschen oder anonymisieren: ${record.caseNumber}`} onClick={(event) => { event.stopPropagation(); onPrivacyAction(record); }}><Trash2 className="h-4 w-4" aria-hidden="true" /></IconButton> : null}</td>
+                <td className="case-register-row-actions">{onPrivacyAction ? <IconButton className="privacy-destructive-action case-register-privacy-action" aria-label={`Fallakte löschen oder anonymisieren: ${record.caseNumber}`} title={`Fallakte löschen oder anonymisieren: ${record.caseNumber}`} onClick={(event) => { event.stopPropagation(); onPrivacyAction(record); }}><Trash2 className="industrial-icon" aria-hidden="true" /></IconButton> : null}</td>
               </tr>
             ))}
           </tbody>
@@ -98,7 +98,7 @@ export function CaseRegister({
               : 'Lege die erste Fallakte an, um Beratung, Fristen, Notizen und Maßnahmen zusammenzuführen.'}
             action={hasActiveFilter
               ? <GhostButton compact onClick={() => onCaseFilterChange('')}>Filter zurücksetzen</GhostButton>
-              : <IndustrialButton compact onClick={onCreateCase}><Plus className="h-4 w-4" aria-hidden="true" />Ersten Fall anlegen</IndustrialButton>}
+              : <IndustrialButton compact onClick={onCreateCase}><Plus className="industrial-icon" aria-hidden="true" />Ersten Fall anlegen</IndustrialButton>}
           />
         )}
       </div>

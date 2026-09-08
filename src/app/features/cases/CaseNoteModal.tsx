@@ -119,7 +119,7 @@ export function CaseNoteModal({
     <div className="industrial-modal-backdrop" role="presentation">
       <section className="industrial-modal industrial-modal-wide" role="dialog" aria-modal="true" aria-labelledby="case-note-title">
         <div className="industrial-modal-header">
-          <div className="industrial-modal-icon"><MessageSquare className="h-5 w-5" /></div>
+          <div className="industrial-modal-icon"><MessageSquare className="industrial-icon-md" /></div>
           <div>
             <p className="industrial-kicker">Fallbaum</p>
             <h2 id="case-note-title">{editingNote ? 'Notiz / Protokoll bearbeiten' : 'Neue Gesprächsnotiz / neues Protokoll'}</h2>
@@ -150,7 +150,7 @@ export function CaseNoteModal({
           <label className="industrial-checkbox-row"><input type="checkbox" checked={containsHealthData} onChange={(event) => onContainsHealthDataChange(event.target.checked)} className="industrial-input" /><span>enthält Gesundheits-/Behinderungsbezug</span></label>
           {noteError && <div className="industrial-message industrial-message-warning industrial-modal-wide" role="alert">{noteError}</div>}
           {noteInfo && <div className="industrial-message industrial-message-ok industrial-modal-wide" role="status">{noteInfo}</div>}
-          <div className="industrial-modal-actions industrial-modal-wide"><button type="button" className="industrial-secondary-button" onClick={onCancel}>Abbrechen</button><button type="submit" className="industrial-button"><Save className="h-4 w-4" />Speichern</button></div>
+          <div className="industrial-modal-actions industrial-modal-wide"><button type="button" className="industrial-secondary-button" onClick={onCancel}>Abbrechen</button><button type="submit" className="industrial-button"><Save className="industrial-icon" />Speichern</button></div>
         </form>
       </section>
     </div>

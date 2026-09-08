@@ -24,7 +24,7 @@ export function KnowledgeSearchPanel({
   return (
     <section className="industrial-panel">
       <form onSubmit={onSubmit} className="knowledge-search-bar">
-        <Search className="h-4 w-4 knowledge-search-icon" aria-hidden="true" />
+        <Search className="industrial-icon knowledge-search-icon" aria-hidden="true" />
         <TextInput label="Suchbegriff" value={query} onValueChange={onQueryChange} placeholder="Norm, Stichwort oder Praxisbegriff suchen …" />
         <SelectInput
           label="Quelle"

@@ -68,7 +68,7 @@ export function CaseProcessDeleteDialog({
     title={`${label} bereinigen`}
     kicker="Manuelle Datenschutzentscheidung"
     description={actionDescription}
-    icon={<Trash2 className="h-5 w-5" />}
+    icon={<Trash2 className="industrial-icon-md" />}
     role="alertdialog"
     variant="danger"
     initialFocusRef={cancelRef}
@@ -96,7 +96,7 @@ export function CaseProcessDeleteDialog({
         <GhostButton ref={cancelRef} onClick={onClose} disabled={busy}>Abbrechen</GhostButton>
         {effectiveAction === 'anonymize'
           ? <IndustrialButton type="submit" loading={busy}>BEM anonymisieren</IndustrialButton>
-          : <DangerButton type="submit" loading={busy}><Trash2 className="h-4 w-4" aria-hidden="true" /> Maßnahme löschen</DangerButton>}
+          : <DangerButton type="submit" loading={busy}><Trash2 className="industrial-icon" aria-hidden="true" /> Maßnahme löschen</DangerButton>}
       </div>
     </form>
   </IndustrialModal>;

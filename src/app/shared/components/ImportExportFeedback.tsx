@@ -25,7 +25,7 @@ export function ExportAction({
       loading={loading}
       onClick={onClick} className="industrial-export-action"
     >
-      <Download className="h-4 w-4" />
+      <Download className="industrial-icon" />
       {children}
     </IndustrialButton>
   );

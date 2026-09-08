@@ -1156,6 +1156,12 @@ html[data-theme='light'] .case-search-result:focus {
   min-width: 0;
 }
 
+.template-list-action {
+  width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+}
+
 .template-trash-button {
   display: inline-flex;
   align-items: center;
@@ -2178,6 +2184,14 @@ button.dashboard-focus-card:hover {
 
 .settings-section-grid {
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr));
+}
+
+.settings-section-full {
+  grid-column: 1 / -1;
+}
+
+.settings-section-narrow {
+  max-width: 42rem;
 }
 
 .settings-backup-grid {

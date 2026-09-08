@@ -116,7 +116,7 @@ export function BackupRestoreForm() {
   }
 
   return (
-    <section className="industrial-settings-form xl:col-span-2">
+    <section className="industrial-settings-form settings-section-full">
       <div>
         <h3>Backup & Wiederherstellung</h3>
         <p className="industrial-settings-note">
@@ -138,7 +138,7 @@ export function BackupRestoreForm() {
           />
           <FormActions align="start">
             <IndustrialButton disabled={busy} onClick={() => void createBackup()}>
-              <Save className="h-4 w-4" aria-hidden="true" /> Backup speichern
+              <Save className="industrial-icon" aria-hidden="true" /> Backup speichern
             </IndustrialButton>
           </FormActions>
         </div>
@@ -189,7 +189,7 @@ export function BackupRestoreForm() {
           variant="secondary"
           onClick={() => void window.gremiaSbv?.backup?.openBackupFolder()}
         >
-          <FolderOpen className="h-4 w-4" aria-hidden="true" /> Backup-Ordner öffnen
+          <FolderOpen className="industrial-icon" aria-hidden="true" /> Backup-Ordner öffnen
         </IndustrialButton>
       </div>
 

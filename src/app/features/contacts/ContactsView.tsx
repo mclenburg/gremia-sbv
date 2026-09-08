@@ -73,7 +73,7 @@ export function ContactsView({
       helpId="contacts.overview"
       actions={
         <IndustrialButton onClick={() => setCreateModalOpen(true)} data-e2e="open-contact-create">
-          <Plus className="h-4 w-4" />Kontakt anlegen
+          <Plus className="industrial-icon" />Kontakt anlegen
         </IndustrialButton>
       }
     >
@@ -104,7 +104,7 @@ export function ContactsView({
                   title="Kontakt löschen und Textbezüge anonymisieren"
                   aria-label={`${formatContactReference(contact)} löschen`}
                 >
-                  <Trash2 className="h-3.5 w-3.5" />
+                  <Trash2 className="industrial-icon-sm" />
                 </DangerButton>
               </div>
             </IndustrialRecordCard>

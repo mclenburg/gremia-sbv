@@ -58,7 +58,7 @@ export const IndustrialButton = forwardRef<HTMLButtonElement, BaseButtonProps>(
         className={joinClassNames(
           variantClass(variant),
           compact && "compact",
-          wide && "w-full",
+          wide && "industrial-button-wide",
           loading && "industrial-button-loading",
           className,
         )}

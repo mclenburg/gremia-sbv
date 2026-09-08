@@ -33,14 +33,14 @@ export function PersonExpiryDashboardCard({
           <p className="industrial-kicker">Fristenintegration</p>
           <h2 id="person-expiry-heading">Statusabläufe</h2>
         </div>
-        <CalendarCheck className="h-5 w-5 person-panel-icon" aria-hidden="true" />
+        <CalendarCheck className="industrial-icon-md person-panel-icon" aria-hidden="true" />
       </div>
       <div className="person-expiry-stats" aria-label="Statusablauf-Zusammenfassung">
         <span>{expiringSoon} laufen bald ab</span>
         <span>{reviewRequired} Datenschutzprüfungen</span>
       </div>
       <div className="person-toolbar compact">
-        <ToolbarButton type="button" disabled={evaluating} aria-busy={evaluating} onClick={() => void onEvaluateExpiry()}>{evaluating && <Loader2 className="h-4 w-4 spin" aria-hidden="true" />}{evaluating ? 'Prüfung läuft …' : 'Ablauf prüfen'}</ToolbarButton>
+        <ToolbarButton type="button" disabled={evaluating} aria-busy={evaluating} onClick={() => void onEvaluateExpiry()}>{evaluating && <Loader2 className="industrial-icon spin" aria-hidden="true" />}{evaluating ? 'Prüfung läuft …' : 'Ablauf prüfen'}</ToolbarButton>
         <ToolbarButton type="button" onClick={() => void onExportIcal()}>Fristen als iCal exportieren</ToolbarButton>
       </div>
       {lastEvaluationMessage && <p className="industrial-meta" role="status">{lastEvaluationMessage}</p>}

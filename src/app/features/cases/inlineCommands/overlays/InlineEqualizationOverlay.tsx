@@ -113,7 +113,7 @@ export function InlineEqualizationOverlay({ props }: { props: InlineCommandOverl
     >
         <div className="industrial-modal-header">
           <div className="industrial-modal-icon">
-            <BadgeCheck className="h-5 w-5" />
+            <BadgeCheck className="industrial-icon-md" />
           </div>
           <div>
             <p className="industrial-kicker">Inline-Maßnahme</p>
@@ -212,7 +212,7 @@ export function InlineEqualizationOverlay({ props }: { props: InlineCommandOverl
           </label>
         </div>
         <div className="industrial-modal-preview">
-          <BadgeCheck className="h-4 w-4" /> Wird mit dem Speichern der Notiz als Fallaktenvorgang angelegt:{" "}
+          <BadgeCheck className="industrial-icon" /> Wird mit dem Speichern der Notiz als Fallaktenvorgang angelegt:{" "}
           <strong>
             {inlineEqualizationDraft.title.trim() || "Gleichstellung/GdB"}
           </strong>

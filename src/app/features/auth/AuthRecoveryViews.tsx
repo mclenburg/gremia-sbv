@@ -12,7 +12,7 @@ export function SecurityUnavailable() {
         <div className="scanline" />
         <div className="auth-panel-header auth-panel-header-row">
           <div className="auth-panel-icon">
-            <AlertTriangle className="h-6 w-6" />
+            <AlertTriangle className="industrial-icon-lg" />
           </div>
           <div>
             <p className="industrial-kicker">Gremia.SBV</p>
@@ -44,7 +44,7 @@ export function RecoveryKeyPanel({
         <div className="scanline" />
         <div className="auth-panel-header auth-panel-header-row">
           <div className="auth-panel-icon">
-            <LockKeyhole className="h-6 w-6" />
+            <LockKeyhole className="industrial-icon-lg" />
           </div>
           <div>
             <p className="industrial-kicker">Recovery-Key</p>
@@ -182,7 +182,7 @@ export function RecoveryGate({
         <div className="scanline" />
         <div className="auth-panel-header auth-panel-header-row">
           <div className="auth-panel-icon">
-            <ShieldAlert className="h-6 w-6" />
+            <ShieldAlert className="industrial-icon-lg" />
           </div>
           <div>
             <p className="industrial-kicker">Geschützter Datenbestand</p>

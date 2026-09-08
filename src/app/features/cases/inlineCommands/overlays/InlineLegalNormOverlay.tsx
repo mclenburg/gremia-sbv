@@ -112,7 +112,7 @@ export function InlineLegalNormOverlay({ props }: { props: InlineCommandOverlays
     >
         <div className="industrial-modal-header">
           <div className="industrial-modal-icon">
-            <Scale className="h-5 w-5" />
+            <Scale className="industrial-icon-md" />
           </div>
           <div>
             <p className="industrial-kicker">Inline-Rechtsnorm</p>

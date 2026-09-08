@@ -120,7 +120,7 @@ export function DeadlineCreateModal({
         <FormActions>
           <GhostButton onClick={onClose}>Abbrechen</GhostButton>
           <IndustrialButton type="submit">
-            <Plus className="h-4 w-4" aria-hidden="true" />
+            <Plus className="industrial-icon" aria-hidden="true" />
             Frist anlegen
           </IndustrialButton>
         </FormActions>

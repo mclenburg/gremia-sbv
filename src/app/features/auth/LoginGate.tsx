@@ -134,7 +134,7 @@ export function LoginGate({
         />
         <div className="auth-panel-header">
           <div className="auth-panel-icon auth-panel-icon-small">
-            <LockKeyhole className="h-5 w-5" />
+            <LockKeyhole className="industrial-icon-md" />
           </div>
           <p className="auth-panel-kicker">
             {isSetup ? "Ersteinrichtung" : "Entsperren"}
@@ -176,13 +176,13 @@ export function LoginGate({
 
           {error && (
             <div className="industrial-message industrial-message-warning auth-inline-alert">
-              <AlertTriangle className="h-4 w-4" />
+              <AlertTriangle className="industrial-icon" />
               <p>{error}</p>
             </div>
           )}
 
           <IndustrialButton type="submit" wide>
-            <Lock className="h-4 w-4" />
+            <Lock className="industrial-icon" />
             {isSetup ? "Initialpasswort speichern" : "Entsperren"}
           </IndustrialButton>
         </form>

@@ -117,12 +117,12 @@ export function ResourceForm({
       />
       <FormActions className="sbv-resource-actions">
         <IndustrialButton type="submit" disabled={!resourceForm.title?.trim()}>
-          <Save className="h-4 w-4" />
+          <Save className="industrial-icon" />
           {editingResourceId ? 'Nachweis aktualisieren' : 'Nachweis speichern'}
         </IndustrialButton>
         {editingResourceId && (
           <ToolbarButton onClick={state.resetResourceForm}>
-            <Plus className="h-4 w-4" />
+            <Plus className="industrial-icon" />
             Neu erfassen
           </ToolbarButton>
         )}

@@ -337,7 +337,7 @@ function WorkspaceMain(props: PrimaryViewsProps & { currentModule?: (typeof modu
   return <main id="main-content" className="industrial-content" tabIndex={-1}>
     <header className="industrial-topbar"><div><p className="industrial-kicker">SBV-Arbeitsbereich</p>
       <h2>{currentView === "dashboard" ? "Dashboard" : currentView === "settings" ? "Einstellungen" : currentModule?.title}</h2></div>
-      <div className="industrial-state"><CheckCircle2 className="h-4 w-4" />entsperrt · {nowLabel()}</div></header>
+      <div className="industrial-state"><CheckCircle2 className="industrial-icon" />entsperrt · {nowLabel()}</div></header>
     {props.securityWarning && <div className="industrial-message industrial-message-warning" role="alert">
       <p>{props.securityWarning}</p>
       <div className="industrial-search-actions">
@@ -366,7 +366,7 @@ function AppShell({ currentView, setCurrentView, onLock, children, gremiaBrConfi
       <div className="brand-block"><div className="brand-mark">SBV</div><div><strong>Gremia.SBV</strong><span>LOCAL</span></div></div>
       <ShellNav current={currentView} onNavigate={setCurrentView} gremiaBrConfigured={gremiaBrConfigured} onPreload={(view) => { void preloadLazyFeature(view).catch(() => undefined); }} />
       <button type="button" className="industrial-lock-button" onClick={() => void onLock()}>
-        <LogOut className="h-4 w-4" />Sperren</button>
+        <LogOut className="industrial-icon" />Sperren</button>
       <div className="industrial-version-badge" aria-label={`Gremia.SBV Version ${APP_VERSION}`}><span>Version</span><strong>{APP_VERSION}</strong></div>
     </aside>{children}</div></ConfirmDialogProvider></LiveRegionProvider>;
 }

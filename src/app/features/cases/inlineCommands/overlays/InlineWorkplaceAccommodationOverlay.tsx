@@ -113,7 +113,7 @@ export function InlineWorkplaceAccommodationOverlay({ props }: { props: InlineCo
     >
         <div className="industrial-modal-header">
           <div className="industrial-modal-icon">
-            <Wrench className="h-5 w-5" />
+            <Wrench className="industrial-icon-md" />
           </div>
           <div>
             <p className="industrial-kicker">Inline-Maßnahme</p>
@@ -267,7 +267,7 @@ export function InlineWorkplaceAccommodationOverlay({ props }: { props: InlineCo
           </label>
         </div>
         <div className="industrial-modal-preview">
-          <Wrench className="h-4 w-4" /> Wird mit dem Speichern der Notiz als Fallaktenmaßnahme angelegt:{" "}
+          <Wrench className="industrial-icon" /> Wird mit dem Speichern der Notiz als Fallaktenmaßnahme angelegt:{" "}
           <strong>
             {inlineWorkplaceAccommodationDraft.title.trim() ||
               "Arbeitsplatzgestaltung"}

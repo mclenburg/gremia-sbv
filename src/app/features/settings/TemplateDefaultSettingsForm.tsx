@@ -71,7 +71,7 @@ export function TemplateDefaultSettingsForm() {
 
   return (
     <form
-      onSubmit={submit} className="industrial-settings-form template-default-settings xl:col-span-2"
+      onSubmit={submit} className="industrial-settings-form template-default-settings settings-section-full"
     >
       <div>
         <h3>Vorlagen & Standardwerte</h3>
@@ -126,7 +126,7 @@ export function TemplateDefaultSettingsForm() {
       )}
 
       <button type="submit" className="industrial-button" disabled={loading}>
-        <Save className="h-4 w-4" /> Standardwerte speichern
+        <Save className="industrial-icon" /> Standardwerte speichern
       </button>
     </form>
   );

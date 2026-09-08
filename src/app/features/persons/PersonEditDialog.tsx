@@ -117,7 +117,7 @@ export function PersonEditDialog({
     <div className="industrial-modal-backdrop" role="presentation" data-e2e="person-edit-dialog">
       <section className="industrial-modal person-edit-dialog" role="dialog" aria-modal="true" aria-labelledby="person-edit-heading" aria-describedby="person-edit-description">
         <div className="industrial-modal-header">
-          <div className="industrial-modal-icon"><Pencil className="h-5 w-5" aria-hidden="true" /></div>
+          <div className="industrial-modal-icon"><Pencil className="industrial-icon-md" aria-hidden="true" /></div>
           <div>
             <p className="industrial-kicker">Personenverzeichnis</p>
             <h2 id="person-edit-heading">Person bearbeiten</h2>

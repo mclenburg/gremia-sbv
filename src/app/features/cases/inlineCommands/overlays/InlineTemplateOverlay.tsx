@@ -112,7 +112,7 @@ export function InlineTemplateOverlay({ props }: { props: InlineCommandOverlaysP
     >
         <div className="industrial-modal-header">
           <div className="industrial-modal-icon">
-            <FileText className="h-5 w-5" />
+            <FileText className="industrial-icon-md" />
           </div>
           <div>
             <p className="industrial-kicker">Inline-Vorlage</p>
@@ -139,7 +139,7 @@ export function InlineTemplateOverlay({ props }: { props: InlineCommandOverlaysP
           </label>
         </div>
         <div className="industrial-modal-preview">
-          <FileText className="h-4 w-4" /> Wird eingefügt:{" "}
+          <FileText className="industrial-icon" /> Wird eingefügt:{" "}
           <strong>
             {formatTemplateMarkerText(inlineTemplateDraft.query)}
           </strong>

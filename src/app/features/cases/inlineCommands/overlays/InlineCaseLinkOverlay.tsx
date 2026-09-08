@@ -112,7 +112,7 @@ export function InlineCaseLinkOverlay({ props }: { props: InlineCommandOverlaysP
     >
         <div className="industrial-modal-header">
           <div className="industrial-modal-icon">
-            <FolderKanban className="h-5 w-5" />
+            <FolderKanban className="industrial-icon-md" />
           </div>
           <div>
             <p className="industrial-kicker">Inline-Fallbezug</p>

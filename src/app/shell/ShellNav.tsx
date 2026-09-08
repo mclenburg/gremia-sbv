@@ -21,7 +21,7 @@ export function ShellNav({
     <nav className="industrial-nav" aria-label="Hauptnavigation" data-e2e="main-nav">
       <div className="industrial-nav-primary">
         <button type="button" data-e2e="main-nav-dashboard" className={current === 'dashboard' ? 'active' : ''} aria-current={current === 'dashboard' ? 'page' : undefined} onClick={() => onNavigate('dashboard')}>
-          <TerminalSquare className="h-4 w-4" />
+          <TerminalSquare className="industrial-icon" />
           Dashboard
         </button>
       </div>
@@ -47,7 +47,7 @@ export function ShellNav({
                   disabled={module.status === 'planned'}
                   title={module.status === 'planned' ? `In Entwicklung${module.plannedVersion ? `: ${module.plannedVersion}` : ''}` : module.text}
                 >
-                  <module.icon className="h-4 w-4" />
+                  <module.icon className="industrial-icon" />
                   {module.shortTitle}
                 </button>
               ))}
@@ -69,7 +69,7 @@ export function ShellNav({
             onPointerEnter={() => onPreload?.('settings')}
             title="Lokale Konfiguration und Sicherheitsoptionen"
           >
-            <SettingsIcon className="h-4 w-4" />
+            <SettingsIcon className="industrial-icon" />
             Einstellungen
           </button>
         </div>

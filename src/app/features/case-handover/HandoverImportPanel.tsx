@@ -101,7 +101,7 @@ export function HandoverImportPanel({ onCompleted }: { onCompleted: () => Promis
       </label> : null}
       {error ? <div className="industrial-message industrial-message-warning" role="alert">{error}</div> : null}
       {status ? <div className="industrial-message industrial-message-success" role="status">{status}</div> : null}
-      <FormActions><IndustrialButton type="submit" loading={busy} disabled={!selection}><Upload className="h-4 w-4" aria-hidden="true" />Geprüftes Paket importieren</IndustrialButton></FormActions>
+      <FormActions><IndustrialButton type="submit" loading={busy} disabled={!selection}><Upload className="industrial-icon" aria-hidden="true" />Geprüftes Paket importieren</IndustrialButton></FormActions>
     </form>
   </IndustrialPanel>;
 }

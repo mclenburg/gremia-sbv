@@ -242,21 +242,21 @@ export function DashboardFocusOverview({ cases, measures, deadlines, dashboardIt
       <div className="dashboard-focus-grid">
         <button type="button" className="industrial-card dashboard-focus-card" onClick={() => onNavigate('cases')}>
           <span className={markerClass(summary.cases.marker)}>{markerText(summary.cases.marker)}</span>
-          <BriefcaseBusiness className="h-5 w-5" aria-hidden="true" />
+          <BriefcaseBusiness className="industrial-icon-md" aria-hidden="true" />
           <strong>Fälle</strong>
           <span>{summary.cases.open} offen · {summary.cases.total} gesamt</span>
         </button>
 
         <button type="button" className="industrial-card dashboard-focus-card" onClick={() => onNavigate('deadlines')}>
           <span className={markerClass(summary.deadlines.marker)}>{markerText(summary.deadlines.marker)}</span>
-          {summary.deadlines.marker === 'warning' ? <AlertTriangle className="h-5 w-5" aria-hidden="true" /> : <TimerReset className="h-5 w-5" aria-hidden="true" />}
+          {summary.deadlines.marker === 'warning' ? <AlertTriangle className="industrial-icon-md" aria-hidden="true" /> : <TimerReset className="industrial-icon-md" aria-hidden="true" />}
           <strong>Fristen</strong>
           <span>{summary.deadlines.totalOpen} offen · {summary.deadlines.dueSoon} anstehend · {summary.deadlines.overdue} überschritten</span>
         </button>
 
         <button type="button" className="industrial-card dashboard-focus-card" onClick={() => onNavigate('compliance')}>
           <span className={markerClass(summary.compliance.marker)}>{markerText(summary.compliance.marker)}</span>
-          {summary.compliance.ok ? <ShieldCheck className="h-5 w-5" aria-hidden="true" /> : <AlertTriangle className="h-5 w-5" aria-hidden="true" />}
+          {summary.compliance.ok ? <ShieldCheck className="industrial-icon-md" aria-hidden="true" /> : <AlertTriangle className="industrial-icon-md" aria-hidden="true" />}
           <strong>Compliance-Center</strong>
           <span>{summary.compliance.ok ? 'Auditkette und Datenbankintegrität ohne Warnung.' : `${summary.compliance.warnings || 1} Warnung(en) prüfen.`}</span>
           {complianceError && <small>{complianceError}</small>}
@@ -265,7 +265,7 @@ export function DashboardFocusOverview({ cases, measures, deadlines, dashboardIt
         {journalSummary && journalSummary.totalEntries > 0 && (
           <IndustrialButton variant="ghost" className="industrial-card dashboard-focus-card" onClick={() => onNavigate('activity_journal')}>
             <span className={markerClass(journalSummary.openFollowUps.length > 0 ? 'attention' : journalWeekReview.visible ? journalWeekReview.marker : 'neutral')}>{journalSummary.openFollowUps.length > 0 ? 'Nachhalten' : journalWeekReview.visible ? 'Prüfen' : 'Info'}</span>
-            <Clock3 className="h-5 w-5" aria-hidden="true" />
+            <Clock3 className="industrial-icon-md" aria-hidden="true" />
             <strong>{journalWeekReview.visible ? journalWeekReview.title : 'Tätigkeitsjournal'}</strong>
             <span>{journalWeekReview.visible ? journalWeekReview.description : `${journalSummary.totalEntries} Einträge · diese Woche ${Math.floor(journalSummary.weekMinutes / 60)} h ${String(journalSummary.weekMinutes % 60).padStart(2, '0')} min`}</span>
             {journalSummary.openFollowUps.length > 0 && <small>{journalSummary.openFollowUps.length} Journal-Wiedervorlage(n) offen.</small>}
@@ -275,7 +275,7 @@ export function DashboardFocusOverview({ cases, measures, deadlines, dashboardIt
         {gremiaBrTile && (
           <div className="industrial-card no-card-hover dashboard-focus-card dashboard-focus-card-static" aria-label="Gremia.BR-Kooperationsbrücke">
             <span className="dashboard-focus-marker dashboard-focus-marker-attention">Aktiv</span>
-            <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
+            <CheckCircle2 className="industrial-icon-md" aria-hidden="true" />
             <strong>Gremia.BR</strong>
             <span>{gremiaBrTile.relevantMeetingCount} relevante Sitzung(en) im Lesecache.</span>
             <small>Letzter Datenabruf: {gremiaBrTile.lastFetchedLabel}</small>

@@ -201,7 +201,7 @@ export function RecruitingParticipationsView({
       description="SBV-Beteiligung bei Stellenbesetzungen nachhalten."
       helpId="recruiting.overview"
       compact
-      actions={<IndustrialButton onClick={() => { creatingRef.current = true; setCreateOpen(true); setSelectedId(null); setForm(emptyParticipationForm()); setInterviews([]); }}><PlusCircle className="h-4 w-4" aria-hidden="true" /> Stellenbesetzung anlegen</IndustrialButton>}
+      actions={<IndustrialButton onClick={() => { creatingRef.current = true; setCreateOpen(true); setSelectedId(null); setForm(emptyParticipationForm()); setInterviews([]); }}><PlusCircle className="industrial-icon" aria-hidden="true" /> Stellenbesetzung anlegen</IndustrialButton>}
     >
       <ModuleFeedback items={[
         error ? { id: 'recruiting-error', tone: 'warning', message: error } : null,
@@ -235,7 +235,7 @@ export function RecruitingParticipationsView({
                 <strong>{record.vacancyTitle}</strong>
                 <span>{record.department || 'Organisationseinheit offen'} · {recruitingStatusLabels[record.status]}</span>
                 <span>{record.interviewCount} Gespräch(e) · Anhörung bis {formatRecruitingDate(record.hearingDueDate)}</span>
-                {hints.length > 0 ? <span className="participation-card-warning"><AlertTriangle className="h-3.5 w-3.5" /> {hints.join(' · ')}</span> : null}
+                {hints.length > 0 ? <span className="participation-card-warning"><AlertTriangle className="industrial-icon-sm" /> {hints.join(' · ')}</span> : null}
               </GhostButton>
             );
           })}
@@ -269,7 +269,7 @@ export function RecruitingParticipationsView({
                   <TextareaInput label="Verfahrensnotiz zum Ereignis" wide value={interviewForm.proceduralNote} onValueChange={(value) => updateInterviewForm({ proceduralNote: value })} helpId="recruiting.proceduralNote" />
                 </div>
                 <div className="industrial-action-row">
-                  <IndustrialButton loading={saving} onClick={() => void addInterview()}><BriefcaseBusiness className="h-4 w-4" /> Gespräch erfassen</IndustrialButton>
+                  <IndustrialButton loading={saving} onClick={() => void addInterview()}><BriefcaseBusiness className="industrial-icon" /> Gespräch erfassen</IndustrialButton>
                 </div>
               </FormSection>
 
@@ -278,9 +278,9 @@ export function RecruitingParticipationsView({
                   <DateInput label="Wiedervorlage am" value={followUpDueAt} onValueChange={setFollowUpDueAt} />
                 </div>
                 <div className="industrial-action-row">
-                  <IndustrialButton variant="secondary" onClick={() => void createRecruitingFollowUp('documents')}><CalendarClock className="h-4 w-4" /> Unterlagen nachhalten</IndustrialButton>
-                  <IndustrialButton variant="secondary" onClick={() => void createRecruitingFollowUp('hearing')}><ClipboardList className="h-4 w-4" /> Anhörung nachhalten</IndustrialButton>
-                  <IndustrialButton variant="danger" loading={saving} onClick={() => openParticipationViolationPrefill()}><AlertTriangle className="h-4 w-4" /> Beteiligungsverstoß prüfen</IndustrialButton>
+                  <IndustrialButton variant="secondary" onClick={() => void createRecruitingFollowUp('documents')}><CalendarClock className="industrial-icon" /> Unterlagen nachhalten</IndustrialButton>
+                  <IndustrialButton variant="secondary" onClick={() => void createRecruitingFollowUp('hearing')}><ClipboardList className="industrial-icon" /> Anhörung nachhalten</IndustrialButton>
+                  <IndustrialButton variant="danger" loading={saving} onClick={() => openParticipationViolationPrefill()}><AlertTriangle className="industrial-icon" /> Beteiligungsverstoß prüfen</IndustrialButton>
                 </div>
               </FormSection>
 

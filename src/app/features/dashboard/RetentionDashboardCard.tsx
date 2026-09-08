@@ -33,7 +33,7 @@ export function RetentionDashboardCard({ onOpen }: { onOpen: () => void }) {
       <span className={`dashboard-focus-marker dashboard-focus-marker-${hasCriticalCandidates ? 'warning' : hasCandidates ? 'attention' : 'ok'}`}>
         {hasCriticalCandidates ? 'Handlungsbedarf' : hasCandidates ? 'Prüfen' : 'OK'}
       </span>
-      {!hasCandidates ? <ShieldCheck className="h-5 w-5" aria-hidden="true" /> : <AlertTriangle className="h-5 w-5" aria-hidden="true" />}
+      {!hasCandidates ? <ShieldCheck className="industrial-icon-md" aria-hidden="true" /> : <AlertTriangle className="industrial-icon-md" aria-hidden="true" />}
       <strong>Lösch- und Datenschutzprüfung</strong>
       <span>{dashboard ? `${dashboard.counts.total} manuelle Prüfaufträge · ${dashboard.counts.critical} kritisch` : 'Prüfstatus nicht verfügbar.'}</span>
       {error && <small>{error}</small>}

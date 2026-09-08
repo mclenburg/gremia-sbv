@@ -46,7 +46,7 @@ export function DeadlineDashboardPanel({
       <div className="industrial-panel-header">
         <div>
           <div className="industrial-chip industrial-chip-warning">
-            <CalendarClock className="h-4 w-4" />
+            <CalendarClock className="industrial-icon" />
             Pflichtanzeige ab 48 Stunden
           </div>
           <h2>Fristen & Wiedervorlagen</h2>
@@ -62,7 +62,7 @@ export function DeadlineDashboardPanel({
 
       {criticalCount > 0 && (
         <IndustrialWarningPanel className="industrial-alert-danger">
-          <ShieldAlert className="h-5 w-5 deadline-dashboard-alert-icon" />
+          <ShieldAlert className="industrial-icon-md deadline-dashboard-alert-icon" />
           <p>{criticalCount} Frist(en) sind kritisch oder überfällig. Diese Vorgänge zuerst prüfen und die Bearbeitung dokumentieren.</p>
         </IndustrialWarningPanel>
       )}
@@ -89,24 +89,24 @@ export function DeadlineDashboardPanel({
             </div>
             {item.legalBasis && <p className="industrial-legal-note">Rechtsbezug: {item.legalBasis}</p>}
             <div className="industrial-action-note">
-              <AlertTriangle className="h-4 w-4 deadline-dashboard-action-icon" />
+              <AlertTriangle className="industrial-icon deadline-dashboard-action-icon" />
               <p>{item.actionHint}</p>
             </div>
             <div className="industrial-card-actions">
               <ToolbarButton onClick={() => onOpenContext?.(item)}>
-                <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                <ExternalLink className="industrial-icon" aria-hidden="true" />
                 {context.actionLabel}
               </ToolbarButton>
               <ToolbarButton onClick={() => onEdit?.(item)}>
-                <Edit3 className="h-4 w-4" aria-hidden="true" />
+                <Edit3 className="industrial-icon" aria-hidden="true" />
                 Bearbeiten
               </ToolbarButton>
               <ToolbarButton onClick={() => onExtend?.(item)}>
-                <TimerReset className="h-4 w-4" aria-hidden="true" />
+                <TimerReset className="industrial-icon" aria-hidden="true" />
                 Verlängern
               </ToolbarButton>
               <ToolbarButton onClick={() => onComplete?.(item)}>
-                <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
+                <CheckCircle2 className="industrial-icon" aria-hidden="true" />
                 Erledigt
               </ToolbarButton>
             </div>

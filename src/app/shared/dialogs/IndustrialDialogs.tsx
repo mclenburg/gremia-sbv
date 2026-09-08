@@ -175,9 +175,9 @@ export function ConfirmDialog({
       description="Bitte prüfe die Auswirkung dieser Aktion, bevor du fortfährst."
       icon={
         variant === "danger" ? (
-          <ShieldAlert className="h-5 w-5" />
+          <ShieldAlert className="industrial-icon-md" />
         ) : (
-          <AlertTriangle className="h-5 w-5" />
+          <AlertTriangle className="industrial-icon-md" />
         )
       }
       role="alertdialog"
@@ -254,7 +254,7 @@ export function PassphraseDialog({
       title={title}
       kicker={kicker}
       description={description}
-      icon={<KeyRound className="h-5 w-5" />}
+      icon={<KeyRound className="industrial-icon-md" />}
       onClose={onCancel}
       wide={wide}
     >
@@ -312,7 +312,7 @@ export function ExportResultDialog({
       title={title}
       kicker={kicker}
       description={description}
-      icon={<Download className="h-5 w-5" />}
+      icon={<Download className="industrial-icon-md" />}
       initialFocusRef={closeButtonRef}
       onClose={onClose}
       role="dialog"
@@ -357,7 +357,7 @@ export function ReasonRequiredDialog({
       title={title}
       kicker="Begründung erforderlich"
       description={description}
-      icon={<AlertTriangle className="h-5 w-5" />}
+      icon={<AlertTriangle className="industrial-icon-md" />}
       role="alertdialog"
       variant="warning"
       onClose={onCancel}

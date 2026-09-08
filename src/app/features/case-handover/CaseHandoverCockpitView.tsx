@@ -45,7 +45,7 @@ export function CaseHandoverCockpitView({ cases, onRecordsChanged }: { cases: Ca
   useEffect(() => { void reload(); }, [reload]);
   const complete = useCallback(async () => { await onRecordsChanged(); await reload(); }, [onRecordsChanged, reload]);
 
-  return <WorkbenchPage title="Übergaben & Vertretung" kicker="SBV-Arbeit" description="Zeitlich begrenzte Vertretungen und dauerhafte Amtswechsel zielgebunden, nachvollziehbar und ohne Doppelerfassung durchführen." helpId="caseHandover.overview" actions={<IndustrialButton variant="secondary" onClick={() => void reload()} loading={loading}><RefreshCw className="h-4 w-4" aria-hidden="true" />Aktualisieren</IndustrialButton>}>
+  return <WorkbenchPage title="Übergaben & Vertretung" kicker="SBV-Arbeit" description="Zeitlich begrenzte Vertretungen und dauerhafte Amtswechsel zielgebunden, nachvollziehbar und ohne Doppelerfassung durchführen." helpId="caseHandover.overview" actions={<IndustrialButton variant="secondary" onClick={() => void reload()} loading={loading}><RefreshCw className="industrial-icon" aria-hidden="true" />Aktualisieren</IndustrialButton>}>
     <WorkbenchSummary ariaLabel="Status der Übergaben" items={[
       { label: 'Aktive Vertretungen', value: cockpit.activeVacationCount },
       { label: 'Rückgabe möglich', value: cockpit.returnableCount, tone: cockpit.returnableCount ? 'warning' : 'default' },

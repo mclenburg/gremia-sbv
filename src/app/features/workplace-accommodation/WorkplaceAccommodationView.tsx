@@ -59,8 +59,8 @@ export function WorkplaceAccommodationView({
             <h2>Arbeitsort bleibt die Fallakte</h2>
             <p>Dieses Cockpit dient nur der Übersicht. Die fachliche Dokumentation, Fristen und Nachbearbeitung erfolgen im Maßnahmenbereich der jeweiligen Fallakte.</p>
           </div>
-          <div className="industrial-message industrial-message-info"><FolderOpen className="h-4 w-4" /> Öffne eine Maßnahme, um direkt in die Fallakte zu springen.</div>
-          <div className="industrial-message industrial-message-warning"><AlertTriangle className="h-4 w-4" /> Bei Ablehnung oder Verzögerung: Inklusionsamt, Reha-Träger und Beteiligungsrechte prüfen.</div>
+          <div className="industrial-message industrial-message-info"><FolderOpen className="industrial-icon" /> Öffne eine Maßnahme, um direkt in die Fallakte zu springen.</div>
+          <div className="industrial-message industrial-message-warning"><AlertTriangle className="industrial-icon" /> Bei Ablehnung oder Verzögerung: Inklusionsamt, Reha-Träger und Beteiligungsrechte prüfen.</div>
         </WorkbenchDetailPanel>
       </WorkbenchGrid>
     </div>

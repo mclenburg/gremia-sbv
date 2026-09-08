@@ -126,9 +126,9 @@ export function PersonPrivacyActionDialog({
         <div className="industrial-modal-header">
           <div className="industrial-modal-icon">
             {mode === "delete" ? (
-              <Trash2 className="h-5 w-5" aria-hidden="true" />
+              <Trash2 className="industrial-icon-md" aria-hidden="true" />
             ) : (
-              <ShieldAlert className="h-5 w-5" aria-hidden="true" />
+              <ShieldAlert className="industrial-icon-md" aria-hidden="true" />
             )}
           </div>
           <div>

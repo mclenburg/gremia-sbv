@@ -8,7 +8,7 @@ function PrivacyReviewMarker() {
   const message = 'Datenschutzprüfung erforderlich: weitere Speicherung der abgeschlossenen Maßnahme prüfen.';
   return <span className="case-tree-privacy-marker" role="img" aria-label={message}
     title="Datenschutzprüfung erforderlich: Prüfen, ob die weitere Speicherung dieser abgeschlossenen Maßnahme noch erforderlich ist.">
-    <ShieldAlert className="h-3.5 w-3.5" aria-hidden="true" />
+    <ShieldAlert className="industrial-icon-sm" aria-hidden="true" />
     <span aria-hidden="true">DS</span>
   </span>;
 }
@@ -23,7 +23,7 @@ function ProcessNode({ id, processType, label, status, selection, onSelect, onDe
       <small>{subtitle}</small>
     </button>
     {onDeleteProcess ? <IconButton className="privacy-destructive-action case-tree-process-delete" aria-label={`${label} löschen`} title={`${label} löschen`} disabled={disabled} onClick={() => onDeleteProcess({ id, processType, label })}>
-      <Trash2 className="h-4 w-4" aria-hidden="true" />
+      <Trash2 className="industrial-icon" aria-hidden="true" />
     </IconButton> : null}
   </div>;
 }

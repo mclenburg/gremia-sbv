@@ -113,7 +113,7 @@ export function InlineBemOverlay({ props }: { props: InlineCommandOverlaysProps 
     >
         <div className="industrial-modal-header">
           <div className="industrial-modal-icon">
-            <HeartPulse className="h-5 w-5" />
+            <HeartPulse className="industrial-icon-md" />
           </div>
           <div>
             <p className="industrial-kicker">Inline-Maßnahme</p>
@@ -210,7 +210,7 @@ export function InlineBemOverlay({ props }: { props: InlineCommandOverlaysProps 
           </label>
         </div>
         <div className="industrial-modal-preview">
-          <HeartPulse className="h-4 w-4" /> Wird mit dem Speichern der Notiz als Fallaktenvorgang angelegt:{" "}
+          <HeartPulse className="industrial-icon" /> Wird mit dem Speichern der Notiz als Fallaktenvorgang angelegt:{" "}
           <strong>{inlineBemDraft.title.trim() || "BEM-Vorgang"}</strong>
         </div>
         <div className="industrial-modal-actions">

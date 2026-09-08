@@ -203,14 +203,14 @@ type ContinueExpiredState = ReturnType<typeof useContinueExpiredHandover>;
 function HandoverExportDialog({ open, selectedCase, onClose, state }: { open: boolean; selectedCase?: CaseRecord; onClose: () => void; state: ExportState }) {
   if (!open) return null;
   if (state.result?.exported) return <ExportResultDialog title="Übergabepaket exportiert" filePath={state.result.filePath} description="Das verschlüsselte Übergabepaket wurde über den Systemdialog gespeichert. Der Speicherort bleibt sichtbares Nutzerfeedback und wird nicht als personenbezogener Inhalt ins Audit geschrieben." onClose={onClose} />;
-  return <IndustrialModal title="Übergabepaket exportieren" kicker="Fallübergabe / Vertretung" description="Die ausgewählte Fallakte wird verschlüsselt als eigenständiges Übergabepaket gespeichert. Der Speicherort wird über den Systemdialog gewählt; es gibt keinen Browser-Download." icon={<Download className="h-5 w-5" />} onClose={onClose}>
+  return <IndustrialModal title="Übergabepaket exportieren" kicker="Fallübergabe / Vertretung" description="Die ausgewählte Fallakte wird verschlüsselt als eigenständiges Übergabepaket gespeichert. Der Speicherort wird über den Systemdialog gewählt; es gibt keinen Browser-Download." icon={<Download className="industrial-icon-md" />} onClose={onClose}>
     <form className="industrial-modal-grid" onSubmit={state.submit}>
       <TextInput label="Fallakte" value={selectedCase ? `${selectedCase.caseNumber} · ${selectedCase.displayName}` : "Keine Fallakte ausgewählt"} readOnly wide onValueChange={() => undefined} />
       <TransferProtectionFields value={state.protection} onChange={state.setProtection} />
       <DateInput label="Gültig bis (optional)" value={state.validUntil} wide onValueChange={state.setValidUntil} />
       {selectedCase ? <div className="industrial-modal-wide"><CaseHandoverChecklistPanel packageType="vacation_handover" caseIds={[selectedCase.id]} expiresAt={toIsoEndOfDay(state.validUntil)} acknowledgements={state.acknowledgedItemIds} onAcknowledgementsChange={state.setAcknowledgedItemIds} /></div> : null}
       <p className="industrial-modal-preview industrial-modal-wide">Nach Ablauf darf die Übergabedatei nicht mehr importiert werden. Bereits importierte Vertretungsakten werden danach als abgelaufen markiert.</p>
-      {state.error ? <div className="industrial-message industrial-message-warning industrial-modal-wide" role="alert"><AlertTriangle className="h-4 w-4" />{state.error}</div> : null}
+      {state.error ? <div className="industrial-message industrial-message-warning industrial-modal-wide" role="alert"><AlertTriangle className="industrial-icon" />{state.error}</div> : null}
       <FormActions><GhostButton type="button" onClick={onClose} disabled={state.busy}>Abbrechen</GhostButton><ExportAction type="submit" disabled={state.busy || !selectedCase} loading={state.busy}>Übergabe exportieren</ExportAction></FormActions>
     </form>
   </IndustrialModal>;
@@ -224,14 +224,14 @@ function HandoverImportReview({ state }: { state: ImportState }) {
 
 function HandoverImportDialog({ open, onClose, state }: { open: boolean; onClose: () => void; state: ImportState }) {
   if (!open) return null;
-  return <IndustrialModal title="Übergabepaket importieren" kicker="Fallübergabe / Vertretung" description="Import erzeugt grundsätzlich eigene lokale Daten. Bei passenden Gegenstücken entscheidest du bewusst über Zusammenführung oder Neuanlage." icon={<Upload className="h-5 w-5" />} wide onClose={onClose}>
+  return <IndustrialModal title="Übergabepaket importieren" kicker="Fallübergabe / Vertretung" description="Import erzeugt grundsätzlich eigene lokale Daten. Bei passenden Gegenstücken entscheidest du bewusst über Zusammenführung oder Neuanlage." icon={<Upload className="industrial-icon-md" />} wide onClose={onClose}>
     <form className="industrial-modal-grid" onSubmit={state.submit}>
-      <div className="industrial-modal-wide handover-import-file-step"><span>Übergabedatei</span><div className="handover-import-file-row"><TextInput label="Ausgewählte Übergabedatei" value={state.file && !state.file.canceled ? state.file.fileName : "Keine Übergabedatei ausgewählt"} readOnly onValueChange={() => undefined} /><ToolbarButton type="button" onClick={state.selectFile} disabled={state.busy}><Upload className="h-4 w-4" />Datei auswählen</ToolbarButton></div></div>
+      <div className="industrial-modal-wide handover-import-file-step"><span>Übergabedatei</span><div className="handover-import-file-row"><TextInput label="Ausgewählte Übergabedatei" value={state.file && !state.file.canceled ? state.file.fileName : "Keine Übergabedatei ausgewählt"} readOnly onValueChange={() => undefined} /><ToolbarButton type="button" onClick={state.selectFile} disabled={state.busy}><Upload className="industrial-icon" />Datei auswählen</ToolbarButton></div></div>
       <PasswordInput label="Transport-Passphrase (nur bei passwortgeschützten Paketen)" value={state.passphrase} wide onValueChange={state.changePassphrase} />
       <FormActions className="handover-import-inspect-actions"><ToolbarButton type="button" onClick={state.inspect} disabled={state.busy || !state.file || state.file.canceled}>Paket prüfen</ToolbarButton></FormActions>
       <HandoverImportReview state={state} />
-      {state.error ? <div className="industrial-message industrial-message-warning industrial-modal-wide" role="alert"><AlertTriangle className="h-4 w-4" />{state.error}</div> : null}
-      <FormActions><GhostButton type="button" onClick={onClose} disabled={state.busy}>Abbrechen</GhostButton><IndustrialButton type="submit" disabled={state.busy || !state.selection} loading={state.busy}><Upload className="h-4 w-4" />Übergabe importieren</IndustrialButton></FormActions>
+      {state.error ? <div className="industrial-message industrial-message-warning industrial-modal-wide" role="alert"><AlertTriangle className="industrial-icon" />{state.error}</div> : null}
+      <FormActions><GhostButton type="button" onClick={onClose} disabled={state.busy}>Abbrechen</GhostButton><IndustrialButton type="submit" disabled={state.busy || !state.selection} loading={state.busy}><Upload className="industrial-icon" />Übergabe importieren</IndustrialButton></FormActions>
     </form>
   </IndustrialModal>;
 }
@@ -242,7 +242,7 @@ function ContinueExpiredHandoverDialog({ open, selectedCase, onClose, state }: {
     title="Weiterbearbeitung abgelaufener Übergabedaten bestätigen"
     kicker="Fallübergabe / Vertretung"
     description="Abgelaufene Übergabedaten dürfen nur nach bewusster Prüfung weiterbearbeitet werden. Die Begründung wird nachvollziehbar dokumentiert."
-    icon={<AlertTriangle className="h-5 w-5" />}
+    icon={<AlertTriangle className="industrial-icon-md" />}
     onClose={onClose}
   >
     <form className="industrial-modal-grid" onSubmit={state.submit}>
@@ -257,7 +257,7 @@ function ContinueExpiredHandoverDialog({ open, selectedCase, onClose, state }: {
         placeholder="Warum ist die weitere Bearbeitung trotz abgelaufener Übergabe erforderlich?"
       />
       <p className="industrial-modal-preview industrial-modal-wide">Die Bestätigung ersetzt kein neues Übergabepaket. Sie dokumentiert nur, warum die bereits importierte lokale Übergabeakte weiterbearbeitet wird.</p>
-      {state.error ? <div className="industrial-message industrial-message-warning industrial-modal-wide" role="alert"><AlertTriangle className="h-4 w-4" />{state.error}</div> : null}
+      {state.error ? <div className="industrial-message industrial-message-warning industrial-modal-wide" role="alert"><AlertTriangle className="industrial-icon" />{state.error}</div> : null}
       <FormActions><GhostButton type="button" onClick={onClose} disabled={state.busy}>Abbrechen</GhostButton><IndustrialButton type="submit" disabled={state.busy || !selectedCase} loading={state.busy}>Weiterbearbeitung bestätigen</IndustrialButton></FormActions>
     </form>
   </IndustrialModal>;

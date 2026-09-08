@@ -15,7 +15,7 @@ export function SbvAssemblyDashboardAlert({ onOpen }: { onOpen: () => void }) {
   if (!visible) return null;
   return <button type="button" className="industrial-card dashboard-focus-card" onClick={onOpen}>
     <span className="dashboard-focus-marker dashboard-focus-marker-warning">Handlungsbedarf</span>
-    <AlertTriangle className="h-5 w-5" aria-hidden="true" />
+    <AlertTriangle className="industrial-icon-md" aria-hidden="true" />
     <strong>Schwerbehindertenversammlung</strong>
     <span>Für das laufende Kalenderjahr ist noch keine Versammlung terminiert oder durchgeführt.</span>
   </button>;

@@ -132,7 +132,7 @@ export function EqualizationView({ cases, persons, onOpenCaseNode, onRecordsChan
         emptyText="Keine Verfahren in diesem Status."
         pageActions={(
           <IndustrialButton onClick={() => setShowIntake(true)}>
-            <Plus className="h-4 w-4" />
+            <Plus className="industrial-icon" />
             Vorgang anlegen
           </IndustrialButton>
         )}

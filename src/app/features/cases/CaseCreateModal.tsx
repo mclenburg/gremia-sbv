@@ -63,7 +63,7 @@ export function CaseCreateModal({
       title="Neue Fallakte anlegen"
       kicker="Fallakte"
       description={description}
-      icon={<FolderKanban className="h-5 w-5" aria-hidden="true" />}
+      icon={<FolderKanban className="industrial-icon-md" aria-hidden="true" />}
       className="case-create-modal-responsive"
       onClose={onCancel}
     >
@@ -74,7 +74,7 @@ export function CaseCreateModal({
           <SelectInput label="Kategorie" value={category} onValueChange={(value) => onCategoryChange(value as CaseCategory)} options={categoryOptions} />
           <TextInput label="Kurzbeschreibung" value={summary} onValueChange={onSummaryChange} placeholder="knappe Sachebene" wide />
           <div className="case-create-path-actions industrial-modal-wide" aria-label="Anlegewege">
-            <IndustrialButton type="submit"><UserRoundSearch className="h-4 w-4" aria-hidden="true" />Person auswählen →</IndustrialButton>
+            <IndustrialButton type="submit"><UserRoundSearch className="industrial-icon" aria-hidden="true" />Person auswählen →</IndustrialButton>
             <IndustrialButton type="button" variant="secondary" onClick={() => void onAnonymousSubmit()} data-e2e="anonymous-request-path">Ohne Personenbezug dokumentieren →</IndustrialButton>
           </div>
           <FormActions className="industrial-modal-wide">

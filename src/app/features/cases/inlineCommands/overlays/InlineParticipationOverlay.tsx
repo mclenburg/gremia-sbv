@@ -113,7 +113,7 @@ export function InlineParticipationOverlay({ props }: { props: InlineCommandOver
     >
         <div className="industrial-modal-header">
           <div className="industrial-modal-icon">
-            <ClipboardCheck className="h-5 w-5" />
+            <ClipboardCheck className="industrial-icon-md" />
           </div>
           <div>
             <p className="industrial-kicker">Inline-Maßnahme</p>
@@ -213,7 +213,7 @@ export function InlineParticipationOverlay({ props }: { props: InlineCommandOver
           </label>
         </div>
         <div className="industrial-modal-preview">
-          <ClipboardCheck className="h-4 w-4" /> Wird mit dem Speichern der Notiz als Fallaktenmaßnahme angelegt:{" "}
+          <ClipboardCheck className="industrial-icon" /> Wird mit dem Speichern der Notiz als Fallaktenmaßnahme angelegt:{" "}
           <strong>
             {inlineParticipationDraft.title.trim() || "SBV-Beteiligung"}
           </strong>

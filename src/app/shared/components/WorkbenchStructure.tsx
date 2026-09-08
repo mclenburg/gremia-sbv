@@ -56,7 +56,7 @@ export function WorkbenchHeader({
       <div>
         {kicker ? <p className="industrial-kicker">{kicker}</p> : null}
         <div className="workbench-header-title-row">
-          <h2 className={visuallyHiddenTitle ? "sr-only" : undefined}>{title}</h2>
+          <h2 className={visuallyHiddenTitle ? "industrial-sr-only" : undefined}>{title}</h2>
           {helpId ? <IndustrialHelpButton helpId={helpId} label="Bereichshilfe öffnen" /> : null}
         </div>
         {description ? <p>{description}</p> : null}

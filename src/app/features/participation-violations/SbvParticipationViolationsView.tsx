@@ -63,7 +63,7 @@ function ParticipationViolationRowActions({
             ))}
             {hasCaseMeasureLink ? (
               <ToolbarButton onClick={() => onOpenCaseNode?.({ caseId: item.caseId!, nodeType: 'participation', nodeId: item.relatedCaseMeasureId! })}>
-                <ExternalLink className="h-4 w-4" aria-hidden="true" /> Beteiligungsmaßnahme öffnen
+                <ExternalLink className="industrial-icon" aria-hidden="true" /> Beteiligungsmaßnahme öffnen
               </ToolbarButton>
             ) : null}
             {!item.relatedDeadlineId ? (
@@ -135,7 +135,7 @@ export function SbvParticipationViolationsView({
       title="Beteiligungsverstöße"
       description="Beteiligungsverstöße nachverfolgen und bearbeiten."
       helpId="participationViolations.sourceContext"
-      actions={<IndustrialButton onClick={() => setCreateOpen(true)}><Plus className="h-4 w-4" aria-hidden="true" /> Verstoß erfassen</IndustrialButton>}
+      actions={<IndustrialButton onClick={() => setCreateOpen(true)}><Plus className="industrial-icon" aria-hidden="true" /> Verstoß erfassen</IndustrialButton>}
     >
       <ModuleFeedback items={[
         state.message ? { id: 'participation-violation-message', tone: 'success', message: state.message } : null,
@@ -154,7 +154,7 @@ export function SbvParticipationViolationsView({
         actions={<>
           <ToolbarButton disabled={state.busy} onClick={() => setCreateOpen(false)}>Abbrechen</ToolbarButton>
           <IndustrialButton type="submit" form={VIOLATION_DRAFT_FORM_ID} disabled={state.busy} loading={state.busy}>
-            <Plus className="h-4 w-4" aria-hidden="true" /> Verstoß bewusst speichern
+            <Plus className="industrial-icon" aria-hidden="true" /> Verstoß bewusst speichern
           </IndustrialButton>
         </>}
       >

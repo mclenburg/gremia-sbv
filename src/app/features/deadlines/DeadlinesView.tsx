@@ -68,11 +68,11 @@ export function DeadlinesView({
       actions={
         <>
           <ToolbarButton onClick={() => setExportModalOpen(true)} data-e2e="open-deadline-ical-export">
-            <Download className="h-4 w-4" aria-hidden="true" />
+            <Download className="industrial-icon" aria-hidden="true" />
             Kalender exportieren
           </ToolbarButton>
           <IndustrialButton onClick={() => setCreateModalOpen(true)} data-e2e="open-deadline-create">
-            <CalendarPlus className="h-4 w-4" aria-hidden="true" />
+            <CalendarPlus className="industrial-icon" aria-hidden="true" />
             Frist anlegen
           </IndustrialButton>
         </>

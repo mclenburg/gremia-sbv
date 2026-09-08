@@ -112,7 +112,7 @@ export function InlineConfidentialityOverlay({ props }: { props: InlineCommandOv
     >
         <div className="industrial-modal-header">
           <div className="industrial-modal-icon">
-            <Lock className="h-5 w-5" />
+            <Lock className="industrial-icon-md" />
           </div>
           <div>
             <p className="industrial-kicker">Inline-Vertraulichkeit</p>

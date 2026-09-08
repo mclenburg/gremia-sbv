@@ -24,10 +24,10 @@ export function MeasureNoteCard({
       {note.nextSteps ? <p className="case-note-next"><strong>Nächste Schritte:</strong> {note.nextSteps}</p> : null}
       <IndustrialActionRow>
         <ToolbarButton aria-label={`Notiz bearbeiten: ${note.title}`} onClick={() => onEdit(note)}>
-          <Pencil className="h-4 w-4" /> Bearbeiten
+          <Pencil className="industrial-icon" /> Bearbeiten
         </ToolbarButton>
         <DangerButton compact aria-label={`Notiz löschen: ${note.title}`} onClick={() => onDelete(note)}>
-          <Trash2 className="h-4 w-4" /> Löschen
+          <Trash2 className="industrial-icon" /> Löschen
         </DangerButton>
       </IndustrialActionRow>
     </>

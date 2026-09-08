@@ -157,7 +157,7 @@ export function SearchableSelectInput({
             }}
           />
           <datalist id={listId}>{matches.map((option) => <option key={option.value} value={option.label} />)}</datalist>
-          <span id={resultId} className="sr-only" role="status" aria-live="polite">{matches.length} Treffer verfügbar.</span>
+          <span id={resultId} className="industrial-sr-only" role="status" aria-live="polite">{matches.length} Treffer verfügbar.</span>
         </>;
       }}
     </FormField>

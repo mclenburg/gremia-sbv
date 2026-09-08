@@ -67,7 +67,7 @@ export function PersonCaseCreateDialog({
     <div className="industrial-modal-backdrop" role="presentation">
       <section className="industrial-modal case-create-modal-responsive" role="dialog" aria-modal="true" aria-labelledby="person-case-create-title" aria-describedby="person-case-create-description">
         <div className="industrial-modal-header">
-          <div className="industrial-modal-icon"><FolderKanban className="h-5 w-5" aria-hidden="true" /></div>
+          <div className="industrial-modal-icon"><FolderKanban className="industrial-icon-md" aria-hidden="true" /></div>
           <div>
             <p className="industrial-kicker">Personengebundene Fallakte</p>
             <h2 id="person-case-create-title">Fallakte aus Person anlegen</h2>
@@ -80,7 +80,7 @@ export function PersonCaseCreateDialog({
           <label className="industrial-modal-wide"><span>Kurzbeschreibung</span><input value={caseSummary} onChange={(event) => setCaseSummary(event.target.value)} placeholder="knappe Sachebene" className="industrial-input" /></label>
           <div className="industrial-modal-actions industrial-modal-wide">
             <button type="button" className="industrial-secondary-button" onClick={onClose}>Abbrechen</button>
-            <button type="submit" className="industrial-button"><Plus className="h-4 w-4" aria-hidden="true" />Fallakte aus Person anlegen</button>
+            <button type="submit" className="industrial-button"><Plus className="industrial-icon" aria-hidden="true" />Fallakte aus Person anlegen</button>
           </div>
         </form>
       </section>

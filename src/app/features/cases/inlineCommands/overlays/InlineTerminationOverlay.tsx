@@ -113,7 +113,7 @@ export function InlineTerminationOverlay({ props }: { props: InlineCommandOverla
     >
         <div className="industrial-modal-header">
           <div className="industrial-modal-icon">
-            <Siren className="h-5 w-5" />
+            <Siren className="industrial-icon-md" />
           </div>
           <div>
             <p className="industrial-kicker">Inline-Maßnahme</p>
@@ -266,7 +266,7 @@ export function InlineTerminationOverlay({ props }: { props: InlineCommandOverla
           </label>
         </div>
         <div className="industrial-modal-preview">
-          <Siren className="h-4 w-4" /> Wird mit dem Speichern der Notiz als Fallaktenvorgang angelegt:{" "}
+          <Siren className="industrial-icon" /> Wird mit dem Speichern der Notiz als Fallaktenvorgang angelegt:{" "}
           <strong>
             {inlineTerminationDraft.title.trim() || "Kündigungsanhörung"}
           </strong>

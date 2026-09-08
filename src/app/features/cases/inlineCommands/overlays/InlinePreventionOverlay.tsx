@@ -113,7 +113,7 @@ export function InlinePreventionOverlay({ props }: { props: InlineCommandOverlay
     >
         <div className="industrial-modal-header">
           <div className="industrial-modal-icon">
-            <ShieldAlert className="h-5 w-5" />
+            <ShieldAlert className="industrial-icon-md" />
           </div>
           <div>
             <p className="industrial-kicker">Inline-Maßnahme</p>
@@ -252,7 +252,7 @@ export function InlinePreventionOverlay({ props }: { props: InlineCommandOverlay
           </label>
         </div>
         <div className="industrial-modal-preview">
-          <ShieldAlert className="h-4 w-4" /> Wird mit dem Speichern der Notiz als Fallaktenvorgang angelegt:{" "}
+          <ShieldAlert className="industrial-icon" /> Wird mit dem Speichern der Notiz als Fallaktenvorgang angelegt:{" "}
           <strong>
             {inlinePreventionDraft.title.trim() || "Präventionsverfahren"}
           </strong>
