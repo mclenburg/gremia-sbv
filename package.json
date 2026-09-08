@@ -155,7 +155,7 @@
     "test:e2e:full-product:debug": "node scripts/run-full-product-e2e.cjs --reuse-build --debug",
     "pretest:coverage": "node scripts/ensure-node-native-deps.cjs",
     "architecture:constructors:check": "node scripts/check-service-constructor-purity.cjs",
-    "architecture:ui-style:check": "vitest run tests/architecture/uiStyleGovernance.test.ts",
+    "architecture:ui-style:check": "vitest run tests/architecture/uiStyleGovernance.test.ts tests/architecture/cssClassDefinitions.test.ts tests/architecture/moduleCssArchitecture.test.ts",
     "architecture:audit-completeness:check": "node scripts/check-personal-data-audit-completeness.cjs",
     "coverage:no-zero:check": "node scripts/check-no-zero-coverage.cjs",
     "test:layout:check": "node scripts/check-test-layout.cjs",

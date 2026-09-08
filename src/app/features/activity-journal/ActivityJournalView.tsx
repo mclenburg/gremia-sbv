@@ -68,12 +68,12 @@ export function ActivityJournalView({
     id: entry.id,
     cells: [
       entry.entryDate,
-      <div key="activity">
+      <div key="activity" className="industrial-content-fragment">
         <strong>{entry.title}</strong>
         {entry.resultNote ? <p className="industrial-settings-note">{entry.resultNote}</p> : null}
       </div>,
       categoryLabel(entry.category),
-      <span key="time"><Clock className="inline h-4 w-4" /> {formatDuration(entry.durationMinutes)}</span>,
+      <span key="time" className="industrial-text-fragment"><Clock className="inline h-4 w-4" /> {formatDuration(entry.durationMinutes)}</span>,
       entryReferenceLabel(entry),
       statusLabel(entry),
       <IconButton key="delete" aria-label={`Journaleintrag ${entry.title} löschen`} disabled={journal.busy} onClick={() => void confirmDelete(entry)}>

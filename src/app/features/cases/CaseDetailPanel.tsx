@@ -36,7 +36,7 @@ function renderExcerpt(segments?: CaseSearchHighlightSegment[], fallback = '') {
     textOffset += segment.text.length;
     return segment.match
       ? <mark key={key}>{segment.text}</mark>
-      : <span key={key}>{segment.text}</span>;
+      : <span key={key} className="industrial-text-fragment">{segment.text}</span>;
   });
 }
 

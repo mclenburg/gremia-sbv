@@ -1624,6 +1624,19 @@ html[data-theme='light'] .industrial-action-note {
   vertical-align: -0.15rem;
 }
 
+.industrial-text-fragment {
+  color: inherit;
+}
+
+.industrial-content-fragment {
+  min-width: 0;
+}
+
+.industrial-text-block {
+  margin: 0;
+  color: inherit;
+}
+
 .privacy-review-form {
   display: grid;
   gap: 0.75rem;

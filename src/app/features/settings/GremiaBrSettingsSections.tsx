@@ -20,7 +20,7 @@ const gremiaBrApiModeOptions: IndustrialFieldOption[] = [
 
 export function GremiaBrSettingsIntro() {
   return (
-    <div>
+    <div className="industrial-stack">
       <p className="industrial-kicker">Optionale Gremiumsanbindung</p>
       <h3 id="gremia-br-settings-title">Gremia.BR</h3>
       <p className="industrial-muted">

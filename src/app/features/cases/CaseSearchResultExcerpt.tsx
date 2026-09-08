@@ -14,14 +14,14 @@ function splitSnippet(snippet: string): { text: string; highlighted: boolean }[]
 
 export function CaseSearchResultExcerpt({ excerpt }: { excerpt: string }) {
   const segments = splitSnippet(excerpt);
-  if (!segments.some((segment) => segment.highlighted)) return <p>{excerpt}</p>;
+  if (!segments.some((segment) => segment.highlighted)) return <p className="industrial-text-block">{excerpt}</p>;
   return (
-    <p>
+    <p className="industrial-text-block">
       {segments.map((segment, index) =>
         segment.highlighted ? (
           <mark key={`${segment.text}-${index}`}>{segment.text}</mark>
         ) : (
-          <span key={`${segment.text}-${index}`}>{segment.text}</span>
+          <span key={`${segment.text}-${index}`} className="industrial-text-fragment">{segment.text}</span>
         ),
       )}
     </p>

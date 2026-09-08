@@ -30,7 +30,7 @@ export function FieldCaption({
   field: string;
 }) {
   return (
-    <span>
+    <span className="industrial-text-fragment">
       {children}
       <PrefillIndicator active={isPrefilled(draft, field)} />
     </span>

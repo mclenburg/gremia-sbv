@@ -34,6 +34,76 @@ type ClassUsage = {
   file: string;
 };
 
+type UnstyledElement = {
+  file: string;
+  line: number;
+  tagName: string;
+};
+
+const visibleNativeElements = new Set([
+  "article",
+  "aside",
+  "button",
+  "details",
+  "div",
+  "fieldset",
+  "footer",
+  "form",
+  "header",
+  "input",
+  "label",
+  "li",
+  "main",
+  "nav",
+  "ol",
+  "p",
+  "section",
+  "select",
+  "span",
+  "summary",
+  "table",
+  "tbody",
+  "td",
+  "textarea",
+  "th",
+  "thead",
+  "tr",
+  "ul",
+]);
+
+const selfStyledElements = new Set([
+  "button",
+  "fieldset",
+  "input",
+  "select",
+  "textarea",
+]);
+
+const centralStyledComponents = new Set([
+  "DataTable",
+  "DangerButton",
+  "FormActions",
+  "FormSection",
+  "GhostButton",
+  "IconButton",
+  "IndustrialButton",
+  "IndustrialModal",
+  "ModuleFrame",
+  "SearchableSelectInput",
+  "SelectInput",
+  "StatusBadge",
+  "TextareaInput",
+  "TextInput",
+  "ToolbarButton",
+  "WorkbenchDetailPanel",
+  "WorkbenchLayout",
+  "WorkbenchListPanel",
+  "WorkbenchPage",
+  "WorkbenchPanel",
+  "WorkbenchSection",
+  "WorkbenchToolbar",
+]);
+
 function toPosix(relativePath: string): string {
   return relativePath.split(path.sep).join("/");
 }
@@ -178,6 +248,74 @@ function usedClassNames(includeExternalUtilities = false): ClassUsage[] {
     });
 }
 
+function jsxTagName(node: ts.JsxTagNameExpression): string {
+  if (ts.isIdentifier(node)) return node.text;
+  if (ts.isPropertyAccessExpression(node)) return node.name.text;
+  return node.getText();
+}
+
+function hasAttribute(attributes: ts.JsxAttributes, name: string): boolean {
+  return attributes.properties.some(
+    (attribute) => ts.isJsxAttribute(attribute) && ts.isIdentifier(attribute.name) && attribute.name.text === name,
+  );
+}
+
+function hasStyleAnchor(attributes: ts.JsxAttributes): boolean {
+  return hasAttribute(attributes, "className");
+}
+
+function collectUnstyledVisibleElements(): UnstyledElement[] {
+  return walkFiles(path.join(projectRoot, "src", "app"), (file) => /\.tsx$/.test(file))
+    .flatMap((file) => {
+      const absolute = path.join(projectRoot, file);
+      const source = ts.createSourceFile(
+        file,
+        readFileSync(absolute, "utf8"),
+        ts.ScriptTarget.Latest,
+        true,
+        ts.ScriptKind.TSX,
+      );
+      const findings: UnstyledElement[] = [];
+      const styledAncestorStack: boolean[] = [];
+
+      function recordIfUnstyled(tagName: string, attributes: ts.JsxAttributes, node: ts.Node): void {
+        if (!visibleNativeElements.has(tagName)) return;
+
+        const selfStyled = hasStyleAnchor(attributes);
+        const styledByContext = styledAncestorStack.includes(true);
+        if (!selfStyled && (!styledByContext || selfStyledElements.has(tagName))) {
+          const { line } = source.getLineAndCharacterOfPosition(node.getStart(source));
+          findings.push({ file, line: line + 1, tagName });
+        }
+      }
+
+      function visit(node: ts.Node): void {
+        if (ts.isJsxElement(node)) {
+          const tagName = jsxTagName(node.openingElement.tagName);
+          const selfStyled = hasStyleAnchor(node.openingElement.attributes);
+          const centralStyled = centralStyledComponents.has(tagName);
+          recordIfUnstyled(tagName, node.openingElement.attributes, node.openingElement);
+          styledAncestorStack.push(selfStyled || centralStyled);
+          for (const child of node.children) visit(child);
+          styledAncestorStack.pop();
+          return;
+        }
+
+        if (ts.isJsxSelfClosingElement(node)) {
+          const tagName = jsxTagName(node.tagName);
+          recordIfUnstyled(tagName, node.attributes, node);
+          return;
+        }
+
+        ts.forEachChild(node, visit);
+      }
+
+      visit(source);
+      return findings;
+    })
+    .sort((a, b) => `${a.file}:${a.line}`.localeCompare(`${b.file}:${b.line}`));
+}
+
 describe("CSS-Klassenvertrag", () => {
   it("definiert alle statisch verwendeten Projektklassen in der zentralen CSS-Schicht", () => {
     const defined = definedCssClasses();
@@ -202,5 +340,13 @@ describe("CSS-Klassenvertrag", () => {
       .sort((a, b) => a.localeCompare(b));
 
     expect(forbidden).toEqual([]);
+  });
+
+  it("verhindert ungestylte sichtbare Renderer-Elemente", () => {
+    const unstyledElements = collectUnstyledVisibleElements().map(
+      ({ file, line, tagName }) => `${file}:${line} <${tagName}>`,
+    );
+
+    expect(unstyledElements).toEqual([]);
   });
 });

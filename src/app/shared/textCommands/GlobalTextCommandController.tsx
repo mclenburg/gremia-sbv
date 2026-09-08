@@ -140,17 +140,17 @@ function SelectionFields({ kind, draft, setDraft, cases, contacts, replace }: { 
   if (kind === "contact") return <SearchFields label="Kontakt suchen" placeholder="Name, Organisation, Rolle …" {...{ draft, setDraft }}>
     {matchingContacts.map((contact) => <button key={contact.id} type="button" onClick={() => replace(formatContactReferenceText(contact))} className="industrial-command-result">
       <UserPlus className="h-4 w-4" />{formatContactReferenceText(contact)}</button>)}
-    {!matchingContacts.length && <p>Kein passender Kontakt gefunden.</p>}
+    {!matchingContacts.length && <p className="industrial-empty-state">Kein passender Kontakt gefunden.</p>}
   </SearchFields>;
   if (kind === "case_reference") return <SearchFields label="Fall suchen" placeholder="Aktenzeichen, Name, Kurzbeschreibung …" {...{ draft, setDraft }}>
     {matchingCases.map((item) => <button key={item.id} type="button" onClick={() => replace(formatCaseReferenceText(item.caseNumber, item.displayName))} className="industrial-command-result">
       <Link2 className="h-4 w-4" />{item.caseNumber} · {item.displayName}</button>)}
-    {!matchingCases.length && <p>Kein passender Fall gefunden.</p>}
+    {!matchingCases.length && <p className="industrial-empty-state">Kein passender Fall gefunden.</p>}
   </SearchFields>;
   if (kind === "legal_norm") return <SearchFields label="Norm suchen" placeholder="z. B. 167, BEM, Kündigung, AGG …" {...{ draft, setDraft }}>
     {matchingNorms.map((norm) => <button key={norm.id} type="button" onClick={() => replace(formatLegalNormText(norm))} className="industrial-command-result">
       <FileText className="h-4 w-4" />{norm.paragraph} · {norm.title}</button>)}
-    {!matchingNorms.length && <p>Keine passende Norm gefunden.</p>}
+    {!matchingNorms.length && <p className="industrial-empty-state">Keine passende Norm gefunden.</p>}
   </SearchFields>;
   return null;
 }

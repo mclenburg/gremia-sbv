@@ -31,7 +31,7 @@ function renderSearchExcerpt(result: CaseSearchResult) {
   const segments = result.excerptSegments?.length ? result.excerptSegments : [{ text: result.excerpt, match: false }];
   return segments.map((segment, index) => segment.match
     ? <mark key={`${segment.text}-${index}`}>{segment.text}</mark>
-    : <span key={`${segment.text}-${index}`}>{segment.text}</span>);
+    : <span key={`${segment.text}-${index}`} className="industrial-text-fragment">{segment.text}</span>);
 }
 
 function selectSearchResult(result: CaseSearchResult, props: CasesViewRenderProps) {

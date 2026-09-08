@@ -21,7 +21,7 @@ function renderHelpBlock(block: ReturnType<typeof getHelpEntry>['blocks'][number
       </ul>
     );
   }
-  return <p>{block.text}</p>;
+  return <p className="industrial-text-block">{block.text}</p>;
 }
 
 export function IndustrialHelpButton({
