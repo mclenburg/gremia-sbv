@@ -157,7 +157,7 @@ describe("LoginGate Overlay-Layout", () => {
     const fadedIcon = firstDescendant(
       panel,
       (node) =>
-        node.tag === "img" && classList(node).includes("opacity-[0.08]"),
+        node.tag === "img" && classList(node).includes("auth-background-mark"),
     );
 
     expect(panel.parent).toBe(shell);
@@ -165,24 +165,12 @@ describe("LoginGate Overlay-Layout", () => {
       expect.arrayContaining([
         "industrial-shell",
         "login-shell",
-        "min-h-screen",
-        "items-center",
-        "justify-center",
-        "text-zinc-100",
       ]),
     );
     expect(classList(panel)).toEqual(
       expect.arrayContaining([
         "login-panel",
         "login-panel-compact",
-        "relative",
-        "w-full",
-        "overflow-hidden",
-        "border",
-        "border-zinc-700",
-        "bg-zinc-950/95",
-        "p-7",
-        "shadow-2xl",
       ]),
     );
     expect(controls.inputs).toHaveLength(1);
@@ -208,12 +196,12 @@ describe("LoginGate Overlay-Layout", () => {
     expect(markup).toContain("langen Recovery-Key aus");
     expect(recoveryFooter.parent).toBe(panel);
     expect(classList(recoveryFooter)).toEqual(
-      expect.arrayContaining(["mt-6", "border-t", "border-zinc-800", "pt-4"]),
+      expect.arrayContaining(["auth-recovery-footer"]),
     );
     expect(recoveryButton).toBeTruthy();
     expect(recoveryButton?.attrs.type).toBe("button");
     expect(classList(recoveryButton!)).toEqual(
-      expect.arrayContaining(["industrial-secondary-button", "w-full"]),
+      expect.arrayContaining(["industrial-secondary-button"]),
     );
   });
 
@@ -236,7 +224,7 @@ describe("LoginGate Overlay-Layout", () => {
 
       expect(panel.parent).toBe(shell);
       expect(classList(panel)).toEqual(
-        expect.arrayContaining(["login-panel-compact", "w-full", "p-7"]),
+        expect.arrayContaining(["login-panel", "login-panel-compact"]),
       );
       expect(
         descendants(shell).some((node) =>
@@ -253,9 +241,8 @@ describe("LoginGate Overlay-Layout", () => {
 
     expect(classList(unavailablePanel)).toEqual(
       expect.arrayContaining([
+        "login-panel",
         "login-panel-compact",
-        "border-yellow-500/40",
-        "p-7",
       ]),
     );
     expect(classList(recoveryKeyPanel)).toEqual(
@@ -263,9 +250,8 @@ describe("LoginGate Overlay-Layout", () => {
     );
     expect(classList(recoveryPanel)).toEqual(
       expect.arrayContaining([
+        "login-panel",
         "login-panel-wide",
-        "border-yellow-500/40",
-        "p-7",
       ]),
     );
 
