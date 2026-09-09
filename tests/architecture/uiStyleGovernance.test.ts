@@ -134,6 +134,30 @@ function collectMalformedTokenDeclarations(): string[] {
   });
 }
 
+function collectNonInteractiveCardHoverSelectors(): string[] {
+  const allowedInteractiveMarkers = [
+    'button.industrial-card',
+    'a.industrial-card',
+    ".industrial-card[role='button']",
+    '.industrial-card[role="button"]',
+    '.industrial-card.clickable',
+  ];
+
+  return appCssFiles().flatMap((file) => {
+    const source = readProjectFile(file);
+    return [...source.matchAll(/([^{}]+)\{[^{}]*\}/g)].flatMap((match) => {
+      const selectorGroup = match[1];
+      if (!selectorGroup.includes('.industrial-card') || !selectorGroup.includes(':hover')) return [];
+      return selectorGroup
+        .split(',')
+        .map((selector) => selector.trim())
+        .filter((selector) => selector.includes('.industrial-card') && selector.includes(':hover'))
+        .filter((selector) => !allowedInteractiveMarkers.some((marker) => selector.includes(marker)))
+        .map((selector) => `${file}: ${selector}`);
+    });
+  });
+}
+
 describe('UI-Styleguide-Governance', () => {
   it('friert harte CSS-Altlasten als Ratchet ein', () => {
     const cssFiles = appCssFiles();
@@ -172,5 +196,9 @@ describe('UI-Styleguide-Governance', () => {
 
   it('verhindert malformed CSS-Token-Deklarationen', () => {
     expect(collectMalformedTokenDeclarations()).toEqual([]);
+  });
+
+  it('beschränkt industrial-card-Hover appweit auf interaktive Karten', () => {
+    expect(collectNonInteractiveCardHoverSelectors()).toEqual([]);
   });
 });

@@ -393,6 +393,13 @@ html[data-theme='light'] .industrial-lock-button {
 .industrial-card {
   min-height: 190px;
   padding: var(--space-4);
+  cursor: default;
+}
+
+button.industrial-card,
+a.industrial-card,
+.industrial-card[role='button'],
+.industrial-card.clickable {
   cursor: pointer;
 }
 
@@ -408,7 +415,10 @@ html[data-theme='light'] .industrial-lock-button {
   box-shadow: 0 0 18px rgba(250,204,21,0.34);
 }
 
-.industrial-card:hover {
+button.industrial-card:hover:not(:disabled),
+a.industrial-card:hover,
+.industrial-card[role='button']:hover,
+.industrial-card.clickable:hover {
   transform: translateY(-2px);
   border-color: color-mix(in srgb, var(--industrial-accent) 72%, transparent);
   background: linear-gradient(145deg, rgba(39,39,42,0.98), rgba(9,9,11,1));
@@ -1100,20 +1110,6 @@ html[data-theme='light'] .industrial-panel-header p {
   cursor: default;
 }
 
-.industrial-card.no-card-hover:hover {
-  transform: none;
-  border-color: var(--industrial-border);
-  background: linear-gradient(145deg, rgba(24,24,27,0.98), rgba(9,9,11,1));
-  box-shadow: none;
-}
-
-html[data-theme='light'] .industrial-card.no-card-hover:hover {
-  transform: none;
-  border-color: var(--industrial-border);
-  background: rgba(255, 255, 250, 0.82);
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.10);
-}
-
 html[data-theme='light'] .industrial-card,
 html[data-theme='light'] .industrial-deadline-card {
   background: linear-gradient(135deg, rgba(244,244,239,0.96), rgba(222,222,216,0.98));
@@ -1130,7 +1126,10 @@ html[data-theme='dark'] .industrial-status-card {
   color: var(--industrial-text);
 }
 
-html[data-theme='light'] .industrial-card:hover {
+html[data-theme='light'] button.industrial-card:hover:not(:disabled),
+html[data-theme='light'] a.industrial-card:hover,
+html[data-theme='light'] .industrial-card[role='button']:hover,
+html[data-theme='light'] .industrial-card.clickable:hover {
   background: linear-gradient(145deg, rgba(250,250,245,0.98), rgba(218,218,211,1));
   box-shadow: 0 0 0 1px rgba(196,138,0,0.18), 0 14px 24px rgba(0,0,0,0.12);
 }
