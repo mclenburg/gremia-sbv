@@ -121,7 +121,7 @@ function benefitCard(x, y, width, height, title, text, accent = colors.yellow) {
   doc.font('Bold').fontSize(13).fillColor(colors.text).text(title, x + 16, y + 18, { width: width - 32 });
   const titleHeight = doc.heightOfString(title, { width: width - 32 });
   doc.font('Regular').fontSize(10).lineGap(3).fillColor(colors.muted)
-    .text(text, x + 16, y + 26 + titleHeight, { width: width - 32, height: height - titleHeight - 34 });
+    .text(text, x + 16, y + 26 + titleHeight, { width: width - 32 });
 }
 
 function numberedStep(number, title, text, x, y, width) {
@@ -156,21 +156,21 @@ screenshotFrame(dashboardDarkImage, 490, 148, 300, 'Echter Dashboard-Screenshot 
 footer(pageNo);
 
 pageNo += 1; addPage(); background(); brand();
-kicker('Zwei Modi, ein Arbeitsablauf', 46, 112);
-headline('Dark und Light nutzen dieselben Masken, dieselben Komponenten und dieselbe Logik.', 46, 142, 720, 27);
-body('Der Light-Mode ist kein Anhängsel. Er ist derselbe Arbeitsplatz mit eigener, kontrastreicher Farbwelt für andere Lichtverhältnisse und Vorlieben.', 46, 215, 720, 13);
-smallCaps('Dark-Mode', 58, 286, 240);
-screenshotFrame(dashboardDarkImage, 58, 306, 338);
-smallCaps('Light-Mode', 446, 286, 240);
-screenshotFrame(dashboardLightImage, 446, 306, 338);
+kicker('Arbeitsmodus nach Tagesform', 46, 112);
+headline('Helles Köpfchen oder dunkle Seele? Hauptsache: alles bleibt an seinem Platz.', 46, 142, 700, 29);
+body('Morgens im hellen Büro, abends bei der letzten Frist: Gremia.SBV fühlt sich nicht plötzlich anders an. Du findest dieselben Fälle, dieselben Fristen und dieselben nächsten Schritte - nur in der Farbwelt, die gerade besser passt.', 46, 226, 700, 13);
+smallCaps('Konzentriert dunkel', 58, 304, 240);
+screenshotFrame(dashboardDarkImage, 58, 326, 338);
+smallCaps('Klar und hell', 446, 304, 240);
+screenshotFrame(dashboardLightImage, 446, 326, 338);
 footer(pageNo);
 
 pageNo += 1; addPage(); background(); brand();
-kicker('Aus Sicht der SBV', 46, 116);
-headline('Die Frage ist nicht: Wo speichere ich etwas? Sondern: Was muss ich als Nächstes tun?', 46, 146, 720, 29);
-quote('Ein Gespräch wird zur Fallakte. Aus der Fallakte entsteht eine Maßnahme. Aus der Maßnahme entsteht eine Frist. Und am Ende muss nachvollziehbar bleiben, warum gehandelt wurde.', 58, 275, 500);
-benefitCard(620, 260, 180, 92, 'Kein HR-System', 'Gremia.SBV bleibt Werkzeug der SBV - nicht Personalakte und nicht Arbeitgeberablage.', colors.red);
-benefitCard(620, 380, 180, 118, 'Kein Datensumpf', 'Datenschutzprüfung und Aufbewahrung werden als konkrete Arbeitsaufträge sichtbar.');
+kicker('Aus dem SBV-Alltag', 46, 116);
+headline('Aus "Hast du kurz Zeit?" wird keine Zettelwirtschaft.', 46, 146, 690, 32);
+quote('Gremia.SBV nimmt den Moment auf, bevor er verloren geht: Anliegen sichern, Fall bilden, Maßnahme starten, Frist setzen - und später noch wissen, warum.', 58, 282, 505);
+benefitCard(620, 252, 180, 108, 'Nicht alles ist ein Fall', 'Kurzberatung, anonyme Anfrage oder Fallakte - passend zum Anliegen.', colors.green);
+benefitCard(620, 388, 180, 108, 'Nicht alles gehört allen', 'SBV-Daten bleiben lokal - getrennt von Arbeitgeber und BR.');
 footer(pageNo);
 
 pageNo += 1; addPage(); background(); brand();
