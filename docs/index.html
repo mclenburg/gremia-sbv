@@ -37,7 +37,7 @@
       --sbv-yellow-soft: rgba(250, 204, 21, 0.12);
       --sbv-danger: #ef4444;
       --sbv-ok: #84cc16;
-      --page-max: 1560px;
+      --page-max: 1760px;
       --page-padding: clamp(1rem, 3vw, 2rem);
       --focus-ring: 0 0 0 3px rgba(250, 204, 21, 0.24);
     }
@@ -160,8 +160,8 @@
     .hero {
       min-height: calc(100vh - 66px);
       display: grid;
-      grid-template-columns: minmax(22rem, 0.66fr) minmax(48rem, 1.34fr);
-      gap: clamp(2rem, 4.5vw, 4.25rem);
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: clamp(2.5rem, 5vw, 5rem);
       align-items: center;
       padding: clamp(4rem, 9vw, 7rem) 0;
     }
@@ -280,7 +280,7 @@
     .product-frame {
       position: relative;
       justify-self: end;
-      width: min(100%, 1040px);
+      width: 100%;
       aspect-ratio: 16 / 9;
       overflow: hidden;
       border: 1px solid var(--sbv-border-hard);
@@ -297,341 +297,16 @@
       height: 2px;
       background: var(--sbv-yellow);
       box-shadow: 0 0 18px rgba(250,204,21,0.34);
+      z-index: 1;
     }
 
-    .product-topbar {
-      height: 44px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 1rem;
-      border-bottom: 1px solid var(--sbv-border);
-      padding: 0.65rem 0.85rem;
-      background: rgba(9,9,11,0.88);
-    }
-
-    .product-brand {
-      display: flex;
-      align-items: center;
-      gap: 0.55rem;
-      font-size: 0.82rem;
-      font-weight: 900;
-    }
-
-    .product-brand img { width: 24px; height: 24px; }
-
-    .product-state {
-      color: var(--sbv-dim);
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-size: 0.64rem;
-      letter-spacing: 0.11em;
-      text-transform: uppercase;
-    }
-
-    .product-body {
-      display: grid;
-      grid-template-columns: 164px minmax(0, 1fr);
-      height: calc(100% - 44px);
-      min-height: 0;
-    }
-
-    .product-nav {
-      border-right: 1px solid var(--sbv-border);
-      background: linear-gradient(180deg, rgba(18,18,20,0.95), rgba(9,9,11,0.98));
-      overflow: hidden;
-      padding: 0.65rem 0.55rem;
-    }
-
-    .product-nav-group + .product-nav-group {
-      border-top: 1px solid rgba(148,163,184,0.14);
-      margin-top: 0.48rem;
-      padding-top: 0.5rem;
-    }
-
-    .product-nav-label {
-      margin: 0 0 0.26rem;
-      padding: 0 0.5rem;
-      color: var(--sbv-dim);
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-size: 0.48rem;
-      font-weight: 800;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-    }
-
-    .product-nav-item {
-      min-height: 25px;
-      display: flex;
-      align-items: center;
-      gap: 0.48rem;
-      border: 1px solid transparent;
-      padding: 0.25rem 0.44rem;
-      color: #d4d4d8;
-      font-size: 0.58rem;
-      font-weight: 760;
-    }
-
-    .product-nav-item.active {
-      border-color: rgba(250,204,21,0.5);
-      background: linear-gradient(90deg, rgba(250,204,21,0.14), rgba(39,39,42,0.42));
-      color: var(--sbv-yellow-strong);
-      box-shadow: inset 3px 0 0 var(--sbv-yellow);
-    }
-
-    .mini-icon {
-      width: 13px;
-      height: 13px;
-      display: inline-grid;
-      place-items: center;
-      border: 1px solid currentColor;
-      position: relative;
-      font-size: 0;
-      line-height: 1;
-    }
-
-    .mini-icon::before {
-      content: '';
-      width: 5px;
-      height: 5px;
-      border: 1px solid currentColor;
-      opacity: 0.9;
-    }
-
-    .product-content {
-      min-width: 0;
-      padding: 0.85rem;
-      overflow: hidden;
-    }
-
-    .product-workspace-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 1rem;
-      border: 1px solid rgba(148,163,184,0.18);
-      background: rgba(5,5,5,0.5);
-      padding: 0.62rem 0.72rem;
-      margin-bottom: 0.8rem;
-    }
-
-    .product-workspace-bar p {
-      margin: 0;
-      color: var(--sbv-dim);
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-size: 0.54rem;
-      font-weight: 850;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-    }
-
-    .product-workspace-bar strong {
+    .product-frame img {
+      width: 100%;
+      height: 100%;
       display: block;
-      margin-top: 0.18rem;
-      color: #fff;
-      font-size: 0.95rem;
+      object-fit: cover;
+      object-position: left top;
     }
-
-    .product-unlocked {
-      color: var(--sbv-muted);
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-size: 0.52rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-    }
-
-    .product-heading {
-      margin-bottom: 0.7rem;
-    }
-
-    .product-heading h2 {
-      margin: 0;
-      color: #fff;
-      font-size: 0.82rem;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-    }
-
-    .product-heading strong {
-      display: block;
-      margin-top: 0.2rem;
-      color: #fff;
-      font-size: 1.05rem;
-      letter-spacing: -0.035em;
-    }
-
-    .product-heading span {
-      color: var(--sbv-dim);
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-size: 0.62rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-    }
-
-    .metric-grid {
-      display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 0.55rem;
-    }
-
-    .metric {
-      min-height: 98px;
-      border: 1px solid var(--sbv-border-hard);
-      background: var(--sbv-panel);
-      padding: 0.62rem;
-    }
-
-    .metric.warning { box-shadow: inset 3px 0 0 var(--sbv-yellow); }
-    .metric.danger { box-shadow: inset 3px 0 0 var(--sbv-danger); }
-
-    .metric span {
-      display: block;
-      color: var(--sbv-dim);
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-size: 0.54rem;
-      font-weight: 800;
-      letter-spacing: 0.11em;
-      text-transform: uppercase;
-    }
-
-    .metric em {
-      display: block;
-      width: max-content;
-      max-width: 100%;
-      border: 1px solid currentColor;
-      margin-bottom: 0.48rem;
-      padding: 0.16rem 0.42rem;
-      color: var(--sbv-yellow);
-      font-style: normal;
-      font-size: 0.48rem;
-      font-weight: 850;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-
-    .metric.warning em { color: var(--sbv-danger); }
-    .metric.ok em { color: var(--sbv-ok); }
-
-    .metric strong {
-      display: block;
-      margin-top: 0.42rem;
-      color: #fff;
-      font-size: 1.45rem;
-      line-height: 1;
-    }
-
-    .metric small {
-      display: block;
-      margin-top: 0.42rem;
-      color: var(--sbv-muted);
-      font-size: 0.58rem;
-      line-height: 1.35;
-    }
-
-    .metric.warning strong { color: var(--sbv-yellow-strong); }
-    .metric.danger strong { color: #fecaca; }
-
-    .work-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 0.65rem;
-      margin-top: 0.65rem;
-    }
-
-    .work-panel {
-      min-height: 130px;
-      border: 1px solid var(--sbv-border);
-      background: rgba(9,9,11,0.82);
-      padding: 0.72rem;
-    }
-
-    .work-panel h3 {
-      margin: 0 0 0.55rem;
-      color: #fff;
-      font-size: 0.8rem;
-    }
-
-    .work-panel .kicker {
-      margin-bottom: 0.26rem;
-      font-size: 0.5rem;
-      letter-spacing: 0.22em;
-    }
-
-    .work-row {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 0.75rem;
-      align-items: center;
-      border-top: 1px solid var(--sbv-border);
-      padding: 0.5rem 0;
-      color: #d4d4d8;
-      font-size: 0.62rem;
-    }
-
-    .deadline-preview {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 0.75rem;
-      align-items: start;
-    }
-
-    .deadline-preview-card {
-      border: 1px solid var(--sbv-border);
-      box-shadow: inset 56px 0 0 rgba(250,204,21,0.03);
-      padding: 0.65rem;
-    }
-
-    .deadline-preview-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.35rem;
-      margin-top: 0.62rem;
-    }
-
-    .mini-button {
-      border: 1px solid var(--sbv-border-hard);
-      background: rgba(9,9,11,0.82);
-      color: #fff;
-      padding: 0.26rem 0.42rem;
-      font-size: 0.52rem;
-      font-weight: 900;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-    }
-
-    .deadline-preview-count {
-      min-width: 74px;
-      border: 1px solid var(--sbv-border-hard);
-      padding: 0.6rem;
-      text-align: right;
-    }
-
-    .deadline-preview-count strong {
-      display: block;
-      color: #fff;
-      font-size: 1.45rem;
-      line-height: 1;
-    }
-
-    .deadline-preview-count span {
-      display: block;
-      margin-top: 0.2rem;
-      color: var(--sbv-muted);
-      font-size: 0.54rem;
-      font-weight: 850;
-    }
-
-    .work-row:first-of-type { border-top: 0; }
-
-    .status {
-      color: var(--sbv-yellow-strong);
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-size: 0.57rem;
-      font-weight: 850;
-      text-transform: uppercase;
-    }
-
-    .status.danger { color: #fca5a5; }
-    .status.ok { color: #bef264; }
 
     .section {
       padding: clamp(4rem, 8vw, 7rem) 0;
@@ -850,10 +525,6 @@
       .site-header-inner { align-items: flex-start; padding-block: 0.8rem; }
       .site-nav { display: none; }
       .hero { padding-top: 3rem; }
-      .product-body { grid-template-columns: 1fr; min-height: 0; }
-      .product-nav { display: none; }
-      .metric-grid { grid-template-columns: 1fr; }
-      .work-grid { grid-template-columns: 1fr; }
       .feature-grid,
       .principles,
       .search-info { grid-template-columns: 1fr; }
@@ -937,121 +608,13 @@
           </div>
         </div>
 
-        <div class="product-frame" aria-label="Darstellung der Gremia.SBV-Arbeitsoberfläche">
-          <div class="product-topbar">
-            <div class="product-brand">
-              <img src="assets/gremia-sbv-icon-64.png" alt="" width="24" height="24" />
-              <span>Gremia.SBV</span>
-            </div>
-            <span class="product-state">Lokaler Arbeitsraum</span>
-          </div>
-
-          <div class="product-body">
-            <aside class="product-nav" aria-hidden="true">
-              <div class="product-nav-group">
-                <p class="product-nav-label">Kernarbeit</p>
-                <div class="product-nav-item active"><span class="mini-icon">•</span>Dashboard</div>
-                <div class="product-nav-item"><span class="mini-icon">•</span>Personen</div>
-                <div class="product-nav-item"><span class="mini-icon">•</span>Fallakte</div>
-                <div class="product-nav-item"><span class="mini-icon">•</span>Fristen</div>
-                <div class="product-nav-item"><span class="mini-icon">•</span>Journal</div>
-                <div class="product-nav-item"><span class="mini-icon">•</span>Sitzungen</div>
-                <div class="product-nav-item"><span class="mini-icon">•</span>Dokumentation</div>
-                <div class="product-nav-item"><span class="mini-icon">•</span>Übergaben</div>
-              </div>
-              <div class="product-nav-group">
-                <p class="product-nav-label">SBV-Verfahren</p>
-                <div class="product-nav-item"><span class="mini-icon">•</span>Verstöße</div>
-                <div class="product-nav-item"><span class="mini-icon">•</span>Stellenbesetzungen</div>
-                <div class="product-nav-item"><span class="mini-icon">•</span>Gleichstellung</div>
-                <div class="product-nav-item"><span class="mini-icon">•</span>Wahlen</div>
-              </div>
-              <div class="product-nav-group">
-                <p class="product-nav-label">Werkzeuge</p>
-                <div class="product-nav-item"><span class="mini-icon">•</span>Vorlagen</div>
-                <div class="product-nav-item"><span class="mini-icon">•</span>Wissen</div>
-                <div class="product-nav-item"><span class="mini-icon">•</span>Kontakte</div>
-                <div class="product-nav-item"><span class="mini-icon">•</span>Berichte</div>
-              </div>
-              <div class="product-nav-group">
-                <p class="product-nav-label">Administration</p>
-                <div class="product-nav-item"><span class="mini-icon">•</span>Compliance</div>
-                <div class="product-nav-item"><span class="mini-icon">•</span>Datenschutz</div>
-              </div>
-            </aside>
-
-            <div class="product-content">
-              <div class="product-workspace-bar">
-                <div>
-                  <p>SBV-Arbeitsbereich</p>
-                  <strong>Dashboard</strong>
-                </div>
-                <span class="product-unlocked">Entsperrt · lokal</span>
-              </div>
-
-              <div class="product-heading">
-                <h2>Arbeitsübersicht</h2>
-                <strong>Wesentliches auf einen Blick</strong>
-              </div>
-
-              <div class="metric-grid">
-                <div class="metric">
-                  <em>Beachten</em>
-                  <span>Offene Fälle</span>
-                  <strong>3</strong>
-                </div>
-                <div class="metric warning">
-                  <em>Handlungsbedarf</em>
-                  <span>Fristen</span>
-                  <strong>1</strong>
-                  <small>0 anstehend · 1 überschritten</small>
-                </div>
-                <div class="metric ok">
-                  <em>OK</em>
-                  <span>Compliance-Center</span>
-                  <strong>0</strong>
-                  <small>Integrität ohne Warnung</small>
-                </div>
-                <div class="metric warning">
-                  <em>Handlungsbedarf</em>
-                  <span>Lösch- und Datenschutzprüfung</span>
-                  <strong>2</strong>
-                  <small>1 kritisch</small>
-                </div>
-                <div class="metric">
-                  <em>Info</em>
-                  <span>Tätigkeitsjournal</span>
-                  <strong>1</strong>
-                  <small>Diese Woche 0 h 00 min</small>
-                </div>
-              </div>
-
-              <div class="work-grid">
-                <section class="work-panel" aria-label="Beispielhafte Fristenübersicht">
-                  <p class="kicker">Pflichtanzeige ab 48 Stunden</p>
-                  <h3>Fristen & Wiedervorlagen</h3>
-                  <div class="deadline-preview">
-                    <div class="deadline-preview-card">
-                      <div class="work-row"><span>Synthetische Wiedervorlage</span><span class="status ok">Normal</span></div>
-                      <div class="work-row"><span>Kontext · TEST-0001 · Testperson Alpha</span><span>Fallakte</span></div>
-                      <div class="work-row"><span>Fällig: 12.05.2026, 12:00</span><span>168 h verbleibend</span></div>
-                      <div class="work-row"><span>Nachfassen</span><span class="status">Dashboard</span></div>
-                      <div class="deadline-preview-actions" aria-hidden="true">
-                        <span class="mini-button">Fallakte öffnen</span>
-                        <span class="mini-button">Bearbeiten</span>
-                        <span class="mini-button">Verlängern</span>
-                        <span class="mini-button">Erledigt</span>
-                      </div>
-                    </div>
-                    <div class="deadline-preview-count">
-                      <strong>1</strong>
-                      <span>Offene Fristen</span>
-                    </div>
-                  </div>
-                </section>
-              </div>
-            </div>
-          </div>
+        <div class="product-frame">
+          <img
+            src="assets/gremia-sbv-dashboard-preview.png"
+            width="1600"
+            height="900"
+            alt="Echter Screenshot des Gremia.SBV-Dashboards im Demo-Modus mit Navigation, fünf Arbeitsübersicht-Kacheln und dem Bereich Fristen und Wiedervorlagen."
+          />
         </div>
       </section>
     </div>
