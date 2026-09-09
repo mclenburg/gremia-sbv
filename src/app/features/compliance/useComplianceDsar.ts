@@ -109,6 +109,7 @@ export function useComplianceDsar({
   const [dsarInput, setDsarInput] = useState<DataSubjectAccessRequestInput>(
     () => defaultDsarInput(),
   );
+  const [dsarPrefillBusy, setDsarPrefillBusy] = useState(false);
   const persons = useDsarPersons(announce, setMessage);
   const dsarReadiness = useMemo(
     () => buildDataSubjectAccessReadiness(dsarInput),
@@ -156,6 +157,11 @@ export function useComplianceDsar({
   }
 
   async function prefillDsar() {
+    if (dsarPrefillBusy) return;
+    setDsarPrefillBusy(true);
+    const startedInfo = "SBV-Dateninventur läuft. Gremia.SBV durchsucht alle relevanten lokalen Datenquellen ohne Trefferbegrenzung …";
+    setMessage(startedInfo);
+    announce(startedInfo, "polite");
     try {
       const bridge = await waitForBridge();
       if (!bridge?.compliance?.prefillDsar) throw new Error("DSGVO-Vorbefüllung ist nicht erreichbar.");
@@ -174,6 +180,8 @@ export function useComplianceDsar({
       const info = error instanceof Error ? error.message : "DSGVO-Vorbefüllung konnte nicht ausgeführt werden.";
       setMessage(info);
       announce(info, "assertive");
+    } finally {
+      setDsarPrefillBusy(false);
     }
   }
 
@@ -181,6 +189,7 @@ export function useComplianceDsar({
     dsarInput,
     dsarReadiness,
     persons,
+    dsarPrefillBusy,
     updateDsarInput,
     selectDsarPerson,
     renderDsar,

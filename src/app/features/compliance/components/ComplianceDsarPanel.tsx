@@ -141,11 +141,13 @@ function DsarPersonSelector({
 function DsarActionArea({
   input,
   readiness,
+  prefillBusy,
   onPrefill,
   onRenderDsar,
 }: {
   input: DataSubjectAccessRequestInput;
   readiness: DataSubjectAccessReadiness;
+  prefillBusy: boolean;
   onPrefill: () => void;
   onRenderDsar: () => void;
 }) {
@@ -154,9 +156,16 @@ function DsarActionArea({
   return (
     <>
       <ButtonGroup className="industrial-action-row" ariaLabel="Art.-15-Zuarbeit-Aktionen">
-        <ToolbarButton onClick={onPrefill}>SBV-Dateninventur starten</ToolbarButton>
-        <IndustrialButton onClick={onRenderDsar} disabled={!readiness.ready}>Geprüfte Zuarbeit erzeugen</IndustrialButton>
+        <ToolbarButton onClick={onPrefill} loading={prefillBusy}>
+          {prefillBusy ? "Dateninventur läuft …" : "SBV-Dateninventur starten"}
+        </ToolbarButton>
+        <IndustrialButton onClick={onRenderDsar} disabled={!readiness.ready || prefillBusy}>Geprüfte Zuarbeit erzeugen</IndustrialButton>
       </ButtonGroup>
+      {prefillBusy && (
+        <div className="industrial-message industrial-message-info" role="status" aria-live="polite">
+          Gremia.SBV durchsucht Personen, Fallakten, Maßnahmen, Fristen, Dokument-Metadaten, Journalbezüge, Wahl- und Compliance-Daten vollständig. Das kann bei großen Beständen dauern.
+        </div>
+      )}
       {input.prefill && (
         <div className="compliance-dsar-prefill-summary" aria-live="polite">
           <strong>Inventur vorbereitet:</strong> {prefillCount} Datensatzbezüge, {reviewCount} prüfpflichtige Fundstellen.
@@ -175,6 +184,7 @@ function DsarActionArea({
 export function ComplianceDsarPanel({
   dsarInput,
   dsarReadiness,
+  prefillBusy,
   persons,
   document,
   onInputChange,
@@ -185,6 +195,7 @@ export function ComplianceDsarPanel({
 }: {
   dsarInput: DataSubjectAccessRequestInput;
   dsarReadiness: DataSubjectAccessReadiness;
+  prefillBusy: boolean;
   persons: ProtectedPersonRecord[];
   document: ComplianceDocument;
   onInputChange: <K extends keyof DataSubjectAccessRequestInput>(
@@ -199,7 +210,7 @@ export function ComplianceDsarPanel({
   const reviewCount = dsarInput.prefill?.reviewItems.length ?? 0;
 
   return (
-    <div className="compliance-layout compliance-dsar-layout">
+    <div className="compliance-layout compliance-dsar-layout" aria-busy={prefillBusy ? "true" : undefined}>
       <FormSection
         className="industrial-panel compliance-dsar-form"
         kicker="Art. 15 DSGVO"
@@ -210,7 +221,7 @@ export function ComplianceDsarPanel({
         <DsarWorkflowSteps input={dsarInput} reviewCount={reviewCount} />
         <DsarRequestFields input={dsarInput} onInputChange={onInputChange} />
         <DsarPersonSelector input={dsarInput} persons={persons} onInputChange={onInputChange} onPersonSelect={onPersonSelect} />
-        <DsarActionArea input={dsarInput} readiness={dsarReadiness} onPrefill={onPrefill} onRenderDsar={onRenderDsar} />
+        <DsarActionArea input={dsarInput} readiness={dsarReadiness} prefillBusy={prefillBusy} onPrefill={onPrefill} onRenderDsar={onRenderDsar} />
       </FormSection>
       <ComplianceDocumentPreview
         document={document}

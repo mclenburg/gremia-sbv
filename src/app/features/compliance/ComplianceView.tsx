@@ -69,6 +69,7 @@ export function ComplianceView() {
             <ComplianceDsarPanel
               dsarInput={state.dsarInput}
               dsarReadiness={state.dsarReadiness}
+              prefillBusy={state.dsarPrefillBusy}
               persons={state.persons}
               document={state.document}
               onInputChange={state.updateDsarInput}

@@ -69,7 +69,7 @@ export function buildDsarSourceInventory(
 }
 
 export function buildDsarReviewItems(matches: DataSubjectAccessPrefillFreeTextMatch[]): DataSubjectAccessReviewItem[] {
-  return matches.slice(0, 120).map((match) => {
+  return matches.map((match) => {
     const sourceId = FREE_TEXT_SOURCE_TO_INVENTORY[match.sourceType] ?? match.sourceType;
     const metadataOnly = ['generated_documents', 'privacy_reviews', 'lifecycle_audit', 'external_references'].includes(sourceId);
     return {

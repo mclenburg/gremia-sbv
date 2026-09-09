@@ -166,6 +166,7 @@ export function useComplianceCenter() {
     message,
     dsarInput: dsar.dsarInput,
     dsarReadiness: dsar.dsarReadiness,
+    dsarPrefillBusy: dsar.dsarPrefillBusy,
     persons: dsar.persons,
     statusOverview,
     selfCheck,
