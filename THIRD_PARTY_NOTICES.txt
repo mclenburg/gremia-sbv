@@ -783,7 +783,6 @@ License text: LICENSES/MIT.txt
 
 @napi-rs/canvas-linux-x64-musl@1.0.8
 License: MIT
-Repository: git+https://github.com/Brooooooklyn/canvas.git
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
@@ -3406,7 +3405,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-joi@18.2.3
+joi@18.2.8
 License: BSD-3-Clause
 Repository: git://github.com/hapijs/joi.git
 Copyright notices:
@@ -3445,7 +3444,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-js-yaml@4.3.1
+js-yaml@4.3.2
 License: MIT
 Repository: nodeca/js-yaml
 Copyright notices:
