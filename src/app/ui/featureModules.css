@@ -2294,7 +2294,7 @@ button.dashboard-focus-card:hover {
 
 .handover-mobile-qr-shell {
   display: grid;
-  grid-template-columns: minmax(16rem, max-content) minmax(0, 1fr);
+  grid-template-columns: minmax(22rem, max-content) minmax(0, 1fr);
   gap: var(--space-4);
   align-items: start;
 }
@@ -2320,8 +2320,32 @@ button.dashboard-focus-card:hover {
 .handover-mobile-frame-controls {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: var(--space-2);
   align-items: center;
+}
+
+.handover-mobile-qr-paused {
+  display: grid;
+  place-items: center;
+  min-width: 21rem;
+  min-height: 21rem;
+  border: 1px dashed var(--industrial-border-strong);
+  font-size: var(--font-size-lg);
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.handover-mobile-countdown {
+  align-self: end;
+  min-height: var(--control-height-md);
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--industrial-border);
+  padding: var(--space-2) var(--space-3);
+  color: var(--industrial-text-strong);
+  font-weight: 900;
 }
 
 .transfer-instance-id-input {

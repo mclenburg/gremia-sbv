@@ -3,12 +3,13 @@ import { deflateSync } from 'node:zlib';
 import { describe, expect, it } from 'vitest';
 import { MigrationService } from '../../../services/migrationService';
 import {
+  createMobileCompanionQrFrames,
   decodeMobileCompanionSnapshotPayload,
   MOBILE_COMPANION_SNAPSHOT_FORMAT,
   MOBILE_COMPANION_SNAPSHOT_VERSION,
   MobileCompanionService,
 } from '../../../services/mobileCompanionService';
-import { decryptTargetBoundTransferPayload } from '../../../services/targetBoundTransferCrypto';
+import { decryptTargetBoundTransferPayload, sha256 } from '../../../services/targetBoundTransferCrypto';
 import { TransferInstanceIdentityService } from '../../../services/transferInstanceIdentityService';
 import { openTestDatabase } from '../../helpers/openTestDatabase';
 
@@ -94,6 +95,21 @@ function insertCaseWithSensitiveAdjacentData(database: Awaited<ReturnType<typeof
   );
 }
 
+function decodeQrFrame(frame: string) {
+  const encoded = frame.replace('gsbvmobile://v1/', '');
+  return JSON.parse(Buffer.from(encoded, 'base64url').toString('utf8')) as {
+    transferSessionId: string;
+    encryptionMode: string;
+    packageId: string;
+    frameIndex: number;
+    frameCount: number;
+    payloadLength: number;
+    chunkChecksum: string;
+    packageSha256: string;
+    payload: string;
+  };
+}
+
 describe('Mobile Begleit-App Snapshot', () => {
   it('exportiert eine reduzierte, zielgebundene Mobile-Projektion ohne Notizen oder Dokumentinhalte', async () => {
     const desktop = await migratedDatabase();
@@ -120,6 +136,13 @@ describe('Mobile Begleit-App Snapshot', () => {
       });
       expect(exported.qrFrames.length).toBeGreaterThan(0);
       expect(exported.qrFrames.every((frame) => frame.startsWith('gsbvmobile://v1/'))).toBe(true);
+      const decodedFrames = exported.qrFrames.map(decodeQrFrame);
+      expect(new Set(decodedFrames.map((frame) => frame.transferSessionId))).toHaveLength(1);
+      expect(decodedFrames.every((frame) => frame.encryptionMode === 'recipient_key_only')).toBe(true);
+      expect(decodedFrames.map((frame) => frame.frameIndex)).toEqual(decodedFrames.map((_, index) => index));
+      expect(decodedFrames.every((frame) => frame.frameCount === decodedFrames.length)).toBe(true);
+      expect(decodedFrames.every((frame) => frame.payloadLength === Buffer.byteLength(frame.payload, 'utf8'))).toBe(true);
+      expect(decodedFrames.every((frame) => frame.chunkChecksum === sha256(frame.payload))).toBe(true);
 
       const envelope = JSON.parse(exported.serializedEnvelope);
       expect(envelope).toMatchObject({
@@ -190,5 +213,16 @@ describe('Mobile Begleit-App Snapshot', () => {
     } finally {
       database.close();
     }
+  });
+
+  it('erzeugt selbstprüfbare QR-Frames mit gemeinsamer Sitzung und vollständiger Reihenfolge', () => {
+    const frames = createMobileCompanionQrFrames('abcdefghijklmnopqrstuvwxyz'.repeat(120), 'mobile-test-package', 'qr-session-test');
+    const decoded = frames.map(decodeQrFrame);
+
+    expect(decoded.length).toBeGreaterThan(1);
+    expect(decoded.every((frame) => frame.transferSessionId === 'qr-session-test')).toBe(true);
+    expect(decoded.every((frame) => frame.packageId === 'mobile-test-package')).toBe(true);
+    expect(decoded.map((frame) => frame.frameIndex)).toEqual(decoded.map((_, index) => index));
+    expect(decoded.map((frame) => frame.payload).join('')).toBe('abcdefghijklmnopqrstuvwxyz'.repeat(120));
   });
 });

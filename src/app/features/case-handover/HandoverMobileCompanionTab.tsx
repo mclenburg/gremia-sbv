@@ -1,13 +1,15 @@
-import { useEffect, useState, type FormEvent } from 'react';
-import { QRCodeSVG } from 'qrcode.react';
-import { Copy, Smartphone } from 'lucide-react';
+import { type FormEvent } from 'react';
+import { Smartphone } from 'lucide-react';
 import type { CaseRecord } from '../../../domain/models/case.model';
 import type { MobileCompanionDevice, MobileCompanionSnapshotResult } from '../../../domain/models/mobile-companion.model';
 import { IndustrialButton, ToolbarButton } from '../../shared/components/IndustrialButton';
 import { FormActions, SelectInput, TextareaInput, TextInput } from '../../shared/components/IndustrialForm';
 import { IndustrialPanel } from '../../shared/components/WorkbenchPanels';
 import { CaseHandoverCasePicker } from './CaseHandoverCasePicker';
+import { MobileSnapshotResultPanel } from './MobileSnapshotResultPanel';
 import { useMobileCompanionWorkflow, type MobileDeviceDraft } from './useMobileCompanionWorkflow';
+
+export { MobileSnapshotResultPanel } from './MobileSnapshotResultPanel';
 
 function formatDateTime(value?: string) {
   if (!value) return '—';
@@ -80,63 +82,6 @@ function MobileDevicePairingPanel({
     </form>
     <MobileDeviceTable devices={devices} busy={busy} onDisable={onDisable} />
   </IndustrialPanel>;
-}
-
-function nextFrameIndex(current: number, direction: -1 | 1, frameCount: number) {
-  return Math.min(Math.max(current + direction, 0), Math.max(frameCount - 1, 0));
-}
-
-export function MobileSnapshotResultPanel({
-  snapshot,
-  onCopyFrame,
-}: {
-  snapshot: MobileCompanionSnapshotResult;
-  onCopyFrame: (frame: string) => void;
-}) {
-  const [frameIndex, setFrameIndex] = useState(0);
-  const frameCount = snapshot.qrFrames.length;
-  const currentFrame = snapshot.qrFrames[frameIndex] ?? snapshot.qrFrames[0] ?? '';
-
-  useEffect(() => { setFrameIndex(0); }, [snapshot.packageId]);
-
-  return <div className="industrial-stack" aria-live="polite">
-    <dl className="industrial-meta-grid">
-      <dt>Fallakten</dt><dd>{snapshot.caseCount}</dd>
-      <dt>Fristen</dt><dd>{snapshot.deadlineCount}</dd>
-      <dt>QR-Frames</dt><dd>{frameCount}</dd>
-      <dt>Zielinstanz</dt><dd>{snapshot.targetInstanceId}</dd>
-    </dl>
-    <div className="handover-mobile-qr-shell">
-      <figure className="handover-mobile-qr-card">
-        <QRCodeSVG
-          value={currentFrame}
-          size={248}
-          marginSize={3}
-          level="M"
-          bgColor="var(--industrial-qr-bg)"
-          fgColor="var(--industrial-qr-fg)"
-          title={`Mobile-Frame ${frameIndex + 1} von ${frameCount}`}
-        />
-        <figcaption>Frame {frameIndex + 1} von {frameCount}</figcaption>
-      </figure>
-      <div className="industrial-stack">
-        <p className="industrial-meta">
-          In der Begleit-App „Snapshot scannen“ öffnen und die Frames nacheinander erfassen.
-          Jeder Frame ist zielgebunden verschlüsselt und nur für die gewählte Mobilinstanz nutzbar.
-        </p>
-        <div className="handover-mobile-frame-controls" aria-label="Mobile-Frames durchschalten">
-          <ToolbarButton type="button" disabled={frameIndex === 0} onClick={() => setFrameIndex((current) => nextFrameIndex(current, -1, frameCount))}>Vorheriger Frame</ToolbarButton>
-          <ToolbarButton type="button" disabled={frameIndex >= frameCount - 1} onClick={() => setFrameIndex((current) => nextFrameIndex(current, 1, frameCount))}>Nächster Frame</ToolbarButton>
-        </div>
-        <TextareaInput label="Aktueller Mobile-Frame" value={currentFrame} onValueChange={() => undefined} rows={4} readOnly wide />
-      </div>
-    </div>
-    <FormActions>
-      <IndustrialButton variant="secondary" onClick={() => onCopyFrame(currentFrame)}>
-        <Copy className="industrial-icon" aria-hidden="true" /> Aktuellen Frame kopieren
-      </IndustrialButton>
-    </FormActions>
-  </div>;
 }
 
 function MobileSnapshotPanel({

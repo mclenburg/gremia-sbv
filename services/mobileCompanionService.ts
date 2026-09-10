@@ -184,7 +184,7 @@ export function decodeMobileCompanionSnapshotPayload(encoded: string): MobileCom
   }
 }
 
-export function createMobileCompanionQrFrames(serializedEnvelope: string, packageId: string): string[] {
+export function createMobileCompanionQrFrames(serializedEnvelope: string, packageId: string, transferSessionId: string = randomUUID()): string[] {
   const packageSha256 = sha256(serializedEnvelope);
   const chunks = serializedEnvelope.match(new RegExp(`.{1,${MAX_MOBILE_QR_FRAME_PAYLOAD_CHARS}}`, 'g')) ?? [];
   if (!chunks.length) throw new Error('Mobile-Snapshot enthält keine übertragbaren Daten.');
@@ -193,9 +193,13 @@ export function createMobileCompanionQrFrames(serializedEnvelope: string, packag
   }
   return chunks.map((payload, index) => encodeProtocolFrame({
     protocolVersion: MOBILE_COMPANION_PROTOCOL_VERSION,
+    transferSessionId,
+    encryptionMode: 'recipient_key_only',
     packageId,
     frameIndex: index,
     frameCount: chunks.length,
+    payloadLength: Buffer.byteLength(payload, 'utf8'),
+    chunkChecksum: sha256(payload),
     packageSha256,
     payload,
   }));

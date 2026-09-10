@@ -101,6 +101,8 @@ Eine Amtsübergabe ergänzt diesen Umfang um individuelle Vorlagen, Frist- und A
 
 Die Android-Begleit-App erhält keinen vollständigen Fallaktenexport. Sie arbeitet mit einer zielgebunden verschlüsselten Projektion für ein gekoppeltes Gerät.
 
+Die Desktop-Anwendung überträgt diese Projektion als automatisch wechselnde QR-Frame-Serie. Standard ist ein kamerafreundliches Tempo von zwei Frames pro Sekunde; für ältere Geräte steht ein kompatibler Modus mit einem Frame pro Sekunde bereit. Jeder Frame enthält Sitzung, Reihenfolge, Payload-Länge, Paket-Hash und Chunk-Checksumme, damit die Begleit-App verlorene, doppelte oder falsche Frames sicher erkennen kann. Der Ablauf besitzt Pause, manuelles Weiterschalten, Abbruch und ein sichtbares Zeitfenster.
+
 Enthalten sind:
 
 - ausgewählte Fallköpfe mit Aktenzeichen, Anzeigename, Kategorie, Status und Priorität,

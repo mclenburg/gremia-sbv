@@ -39,6 +39,8 @@ Die Begleit-App ist kein zweiter vollständiger Tresor. Sie dient dazu, unterweg
 3. Kopple das Mobilgerät mit der öffentlichen Empfängerkennung aus der App.
 4. Wähle nur die Fallakten aus, die mobil benötigt werden. Bei größeren Beständen filterst du gezielt.
 5. Erzeuge die mobile Arbeitsprojektion für genau dieses Gerät.
+6. Öffne in der Begleit-App den Scan-Ablauf. Gremia.SBV zeigt die QR-Frames automatisch nacheinander an.
+7. Nutze bei älteren oder schwächeren Kameras das Tempo **Kompatibel**. Die Automatik kann jederzeit pausiert, manuell weitergeschaltet oder abgebrochen werden.
 
 Übertragen werden Fallkopf, Status und offene Fristen. Notizen, Dokumentdateien, Dokumentnamen, vollständige Freitexte und Fallzusammenfassungen bleiben im Desktop-Tresor. Die Protokollierung enthält nur technische Zähldaten wie Fallanzahl, Fristanzahl, Frame-Anzahl und Zielinstanz.
 

@@ -296,6 +296,7 @@ export const HELP_REGISTRY = {
     blocks: [
       { type: "paragraph", text: "Die Begleit-App ist kein zweiter Tresor und keine Synchronisation. Sie unterstützt kurze mobile Arbeitssituationen, ohne vertrauliche Notizen, Dokumentdateien oder vollständige Fallinhalte aus dem Desktop herauszugeben." },
       { type: "paragraph", text: "Die Kopplung erfolgt über die öffentliche Empfängerkennung der App. Jeder Snapshot ist an genau dieses Gerät gebunden und wird in der Audit-Chain nur mit technischen Zähldaten protokolliert." },
+      { type: "paragraph", text: "Nach dem Erzeugen zeigt Gremia.SBV automatisch wechselnde QR-Frames an. Für ältere Kameras Tempo „Kompatibel“ wählen; die Übertragung kann pausiert, manuell weitergeschaltet oder abgebrochen werden." },
     ],
   },
   "caseHandover.returnDelta": {

@@ -67,9 +67,13 @@ export interface MobileCompanionSnapshotPayload {
 
 export interface MobileCompanionQrFrame {
   protocolVersion: '1.0';
+  transferSessionId: string;
+  encryptionMode: 'recipient_key_only';
   packageId: string;
   frameIndex: number;
   frameCount: number;
+  payloadLength: number;
+  chunkChecksum: string;
   packageSha256: string;
   payload: string;
 }

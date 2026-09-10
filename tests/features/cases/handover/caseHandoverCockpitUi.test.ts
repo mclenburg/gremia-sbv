@@ -55,6 +55,9 @@ describe('Übergabe-Cockpit – filterbare Mehrfachauswahl', () => {
 
     expect(nodes.some((node) => node.tag === 'svg')).toBe(true);
     expect(text).toContain('Frame 1 von 2');
+    expect(text).toContain('Automatik pausieren');
+    expect(text).toContain('Übertragung abbrechen');
+    expect(text).toContain('Tempo');
     expect(text).toContain('Nächster Frame');
     expect(nodes.some((node) => node.tag === 'textarea' && node.attrs.readOnly !== undefined)).toBe(true);
   });

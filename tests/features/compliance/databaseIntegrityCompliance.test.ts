@@ -32,6 +32,7 @@ import {
   RECRUITING_PARTICIPATIONS_REQUIRED_COLUMNS,
   SBV_OFFICE_0051_REQUIRED_TABLES,
   DEADLINE_RULE_SNAPSHOT_REQUIRED_COLUMNS,
+  MOBILE_COMPANION_DEVICES_REQUIRED_COLUMNS,
 } from '../../../services/appSchema';
 import { evaluateDatabaseIntegrity } from '../../../services/databaseIntegrityService';
 import { applyDatabasePrivacyPragmas, type DatabaseAdapter } from '../../../services/databaseService';
@@ -39,7 +40,7 @@ import { applyDatabasePrivacyPragmas, type DatabaseAdapter } from '../../../serv
 class SchemaDb implements DatabaseAdapter {
   constructor(
     private readonly tables: Record<string, readonly string[]>,
-    private readonly schemaVersion = '0056',
+    private readonly schemaVersion = '0057',
   ) {}
 
   prepare<T = unknown>(sql: string) {
@@ -101,6 +102,7 @@ const completeSchema: Record<string, readonly string[]> = {
   case_handover_imports: CASE_HANDOVER_IMPORTS_REQUIRED_COLUMNS,
   case_handover_import_items: CASE_HANDOVER_IMPORT_ITEMS_REQUIRED_COLUMNS,
   transfer_recipient_profiles: TRANSFER_RECIPIENT_PROFILES_REQUIRED_COLUMNS,
+  mobile_companion_devices: MOBILE_COMPANION_DEVICES_REQUIRED_COLUMNS,
   sbv_resource_records: SBV_RESOURCE_RECORDS_REQUIRED_COLUMNS,
   sbv_control_protocols: SBV_CONTROL_PROTOCOLS_REQUIRED_COLUMNS,
   compliance_incidents: COMPLIANCE_INCIDENTS_REQUIRED_COLUMNS,
@@ -142,7 +144,7 @@ describe('database integrity status for compliance center', () => {
     const result = evaluateDatabaseIntegrity(new SchemaDb(completeSchema));
 
     expect(result.ok).toBe(true);
-    expect(result.appliedSchemaVersion).toBe('0056');
+    expect(result.appliedSchemaVersion).toBe('0057');
     expect(result.missingTables).toEqual([]);
     expect(result.missingColumns).toEqual({});
     expect(result.repairRequired).toBe(false);
@@ -170,13 +172,13 @@ describe('database integrity status for compliance center', () => {
     expect(result.issues).toContain('Spalte cases.handover_valid_until fehlt.');
   });
 
-  it('reports repair need when the handover import tables through schema 0042 are missing', () => {
-    const { case_handover_imports: _imports, case_handover_import_items: _items, ...brokenSchema } = completeSchema;
+  it('reports repair need when the handover import tables are missing', () => {
+    const { case_handover_imports: _imports, case_handover_import_items: _items, mobile_companion_devices: _devices, ...brokenSchema } = completeSchema;
 
     const result = evaluateDatabaseIntegrity(new SchemaDb(brokenSchema));
 
     expect(result.ok).toBe(false);
     expect(result.repairRequired).toBe(true);
-    expect(result.missingTables).toEqual(['case_handover_imports', 'case_handover_import_items']);
+    expect(result.missingTables).toEqual(['case_handover_imports', 'case_handover_import_items', 'mobile_companion_devices']);
   });
 });
