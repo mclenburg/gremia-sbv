@@ -21,3 +21,8 @@ release/
 /maintenance/build-state/compiled-artifacts.json
 
 /.e2e-tools/
+
+# Android companion app local build state
+/companion-app/android/.gradle/
+/companion-app/android/local.properties
+/companion-app/android/**/build/

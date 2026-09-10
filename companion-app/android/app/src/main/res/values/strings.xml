@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Gremia.SBV Begleit-App</string>
+    <string name="app_shell_description">Mobiler Arbeitsbereich für verschlüsselte Projektionen aus Gremia.SBV.</string>
+</resources>
