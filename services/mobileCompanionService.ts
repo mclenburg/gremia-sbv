@@ -354,6 +354,15 @@ export class MobileCompanionService {
       SELECT id, case_number, display_name, category, status, priority, opened_at, updated_at
       FROM cases
       WHERE id IN (${placeholders(caseIds)})
+        AND status <> 'abgeschlossen'
+        AND (
+          NOT EXISTS (SELECT 1 FROM case_measures m WHERE m.case_id = cases.id)
+          OR EXISTS (
+            SELECT 1 FROM case_measures m
+            WHERE m.case_id = cases.id
+              AND m.status NOT IN ('completed', 'cancelled')
+          )
+        )
       ORDER BY case_number COLLATE NOCASE, display_name COLLATE NOCASE
     `).all(...caseIds).map(mapCase);
   }

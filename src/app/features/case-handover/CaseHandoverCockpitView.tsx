@@ -68,7 +68,7 @@ export function CaseHandoverCockpitView({ cases, onRecordsChanged }: { cases: Ca
     >
       {activeTab === 'overview' ? <HandoverOverviewTab cockpit={cockpit} onSelectTab={setActiveTab} /> : null}
       {activeTab === 'vacation' ? <HandoverVacationTab cases={cases} onCompleted={complete} /> : null}
-      {activeTab === 'mobile' ? <HandoverMobileCompanionTab cases={cases} /> : null}
+      {activeTab === 'mobile' ? <HandoverMobileCompanionTab cases={cases} onImported={complete} /> : null}
       {activeTab === 'return' ? <HandoverReturnTab items={cockpit.incoming} cases={cases} onCompleted={complete} /> : null}
       {activeTab === 'office' ? <HandoverOfficeTab cases={cases} inventory={cockpit.officeInventory} onCompleted={complete} /> : null}
       {activeTab === 'import' ? <HandoverImportTab onCompleted={complete} /> : null}

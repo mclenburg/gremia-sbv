@@ -117,4 +117,27 @@ export function registerCaseHandoverIpc(ipcMain: IpcMain, security: SecurityServ
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.caseHandoverMobileSnapshotCreate, async (_event, input: unknown) =>
     services.mobileCompanion().createSnapshot(validateMobileSnapshotInput(input)));
+
+  registerIpcHandler(ipcMain, IPC_CHANNELS.caseHandoverMobileReturnSelectInspect, async () => {
+    const result = await dialog.showOpenDialog({
+      title: 'Mobile Rückgabedatei öffnen',
+      properties: ['openFile'],
+      filters: [{ name: 'Gremia.SBV Mobile-Rückgabe', extensions: ['gsbvmobile'] }],
+    });
+    if (result.canceled || !result.filePaths[0]) return { canceled: true };
+    const filePath = result.filePaths[0];
+    const capability = issueSelectedFileCapability(filePath, SELECTED_FILE_PURPOSE.mobileCompanionReturn);
+    return {
+      canceled: false,
+      filePath: capability.fileToken,
+      fileName: capability.fileName,
+      inspection: services.mobileCompanionReturn().inspectFile(filePath),
+    };
+  });
+
+  registerIpcHandler(ipcMain, IPC_CHANNELS.caseHandoverMobileReturnImport, async (_event, filePath: unknown) => {
+    const fileToken = assertString(filePath, 'caseHandover:mobile:return:import', 'Dateiauswahl', { minLength: 1, maxLength: 2000 });
+    const resolvedFilePath = resolveSelectedFileCapability(fileToken, SELECTED_FILE_PURPOSE.mobileCompanionReturn, 'caseHandover:mobile:return:import');
+    return services.mobileCompanionReturn().importFile(resolvedFilePath);
+  });
 }

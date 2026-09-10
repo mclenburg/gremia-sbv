@@ -37,4 +37,22 @@ export class DatabaseUnitOfWork {
       throw error;
     }
   }
+
+  async runAsync<T>(operation: () => Promise<T>, _options: UnitOfWorkOptions = {}): Promise<T> {
+    const savepoint = nextSavepointName();
+    this.database.exec(`SAVEPOINT ${savepoint}`);
+    try {
+      const result = await operation();
+      this.database.exec(`RELEASE SAVEPOINT ${savepoint}`);
+      return result;
+    } catch (error) {
+      try {
+        this.database.exec(`ROLLBACK TO SAVEPOINT ${savepoint}`);
+        this.database.exec(`RELEASE SAVEPOINT ${savepoint}`);
+      } catch {
+        // Preserve the original failure. Cleanup failure is secondary.
+      }
+      throw error;
+    }
+  }
 }

@@ -87,3 +87,100 @@ export interface MobileCompanionSnapshotResult {
   qrFrames: string[];
   createdAt: string;
 }
+
+export type MobileCompanionReturnChangeType =
+  | 'create_note'
+  | 'create_deadline'
+  | 'complete_deadline';
+
+export interface MobileCompanionReturnCreateNoteChange {
+  type: 'create_note';
+  mobileId: string;
+  caseId: string;
+  changedAt: string;
+  title: string;
+  content: string;
+  participants?: string;
+  nextSteps?: string;
+  containsHealthData?: boolean;
+}
+
+export interface MobileCompanionReturnCreateDeadlineChange {
+  type: 'create_deadline';
+  mobileId: string;
+  caseId: string;
+  changedAt: string;
+  title: string;
+  dueAt: string;
+  reminderAt?: string;
+  description?: string;
+  severity?: 'normal' | 'important' | 'critical' | 'fatal';
+}
+
+export interface MobileCompanionReturnCompleteDeadlineChange {
+  type: 'complete_deadline';
+  mobileId: string;
+  deadlineId: string;
+  changedAt: string;
+  baseUpdatedAt: string;
+  completedNote?: string;
+}
+
+export type MobileCompanionReturnChange =
+  | MobileCompanionReturnCreateNoteChange
+  | MobileCompanionReturnCreateDeadlineChange
+  | MobileCompanionReturnCompleteDeadlineChange;
+
+export interface MobileCompanionReturnPayload {
+  protocolVersion: '1.0';
+  schemaVersion: 1;
+  packageId: string;
+  sourceInstanceId: string;
+  targetInstanceId: string;
+  sourceSnapshotPackageId?: string;
+  createdAt: string;
+  changes: MobileCompanionReturnChange[];
+}
+
+export type MobileCompanionReturnPlanDisposition =
+  | 'apply'
+  | 'already_done'
+  | 'conflict'
+  | 'rejected';
+
+export interface MobileCompanionReturnPlanItem {
+  mobileId: string;
+  type: MobileCompanionReturnChangeType;
+  disposition: MobileCompanionReturnPlanDisposition;
+  summary: string;
+  caseId?: string;
+  deadlineId?: string;
+  reason?: string;
+}
+
+export interface MobileCompanionReturnInspectResult {
+  packageId: string;
+  sourceInstanceId: string;
+  targetInstanceId: string;
+  sourceDeviceLabel?: string;
+  createdAt: string;
+  noteCount: number;
+  deadlineCount: number;
+  completedDeadlineCount: number;
+  applyCount: number;
+  conflictCount: number;
+  rejectedCount: number;
+  alreadyDoneCount: number;
+  canImport: boolean;
+  plan: MobileCompanionReturnPlanItem[];
+}
+
+export interface MobileCompanionReturnImportResult {
+  imported: boolean;
+  packageId: string;
+  createdNoteCount: number;
+  createdDeadlineCount: number;
+  completedDeadlineCount: number;
+  updatedCaseIds: string[];
+  privacyReviewCaseIds: string[];
+}

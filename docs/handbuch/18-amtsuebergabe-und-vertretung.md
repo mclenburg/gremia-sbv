@@ -36,13 +36,16 @@ Die Begleit-App ist kein zweiter vollständiger Tresor. Sie dient dazu, unterweg
 
 1. Öffne **Übergaben**.
 2. Öffne das Register **Begleit-App**.
-3. Kopple das Mobilgerät mit der öffentlichen Empfängerkennung aus der App.
-4. Wähle nur die Fallakten aus, die mobil benötigt werden. Bei größeren Beständen filterst du gezielt.
+3. Kopple das Mobilgerät über **Mobilgerät koppeln** oben rechts mit der öffentlichen Empfängerkennung aus der App.
+4. Wähle nur offene Arbeitsfälle aus, die mobil benötigt werden. Abgeschlossene Fälle ohne offene Maßnahmen werden nicht angeboten. Bei größeren Beständen filterst du gezielt.
 5. Erzeuge die mobile Arbeitsprojektion für genau dieses Gerät.
 6. Öffne in der Begleit-App den Scan-Ablauf. Gremia.SBV zeigt die QR-Frames automatisch nacheinander an.
 7. Nutze bei älteren oder schwächeren Kameras das Tempo **Kompatibel**. Die Automatik kann jederzeit pausiert, manuell weitergeschaltet oder abgebrochen werden.
+8. Nach der Besprechung exportiert die Begleit-App eine verschlüsselte Rückgabedatei. Wähle diese im Desktop aus, prüfe den Importplan und übernimm nur konfliktfreie Änderungen.
 
 Übertragen werden Fallkopf, Status und offene Fristen. Notizen, Dokumentdateien, Dokumentnamen, vollständige Freitexte und Fallzusammenfassungen bleiben im Desktop-Tresor. Die Protokollierung enthält nur technische Zähldaten wie Fallanzahl, Fristanzahl, Frame-Anzahl und Zielinstanz.
+
+Aus der Begleit-App zurück übernommen werden mobile Gesprächsnotizen, neue mobile Wiedervorlagen und erledigte Fristen. Der Desktop bleibt führend: wurde eine Frist seit dem Snapshot im Desktop geändert, blockiert Gremia.SBV die mobile Erledigung und zeigt den Konflikt im Importplan.
 
 ## Amtsübergabe
 

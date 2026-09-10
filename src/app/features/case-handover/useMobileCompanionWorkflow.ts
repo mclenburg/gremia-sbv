@@ -66,7 +66,7 @@ export function useMobileCompanionWorkflow(cases: CaseRecord[]) {
   useEffect(() => { void reloadDevices().catch((cause) => showError(cause)); }, [reloadDevices, showError]);
   useEffect(() => { setCaseIds((current) => current.filter((id) => cases.some((record) => record.id === id))); }, [cases]);
 
-  async function saveDevice(event: FormEvent<HTMLFormElement>) {
+  async function saveDevice(event: FormEvent<HTMLFormElement>): Promise<boolean> {
     event.preventDefault();
     setBusy(true);
     setSnapshot(null);
@@ -80,8 +80,10 @@ export function useMobileCompanionWorkflow(cases: CaseRecord[]) {
       await reloadDevices();
       setSelectedDeviceId(device.id);
       showMessage('Mobilgerät wurde gekoppelt.');
+      return true;
     } catch (cause) {
       showError(cause);
+      return false;
     } finally {
       setBusy(false);
     }

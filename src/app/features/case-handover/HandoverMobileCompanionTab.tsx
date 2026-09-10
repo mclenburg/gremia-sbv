@@ -1,12 +1,16 @@
-import { type FormEvent } from 'react';
-import { Smartphone } from 'lucide-react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { Plus, Smartphone } from 'lucide-react';
 import type { CaseRecord } from '../../../domain/models/case.model';
+import type { CaseMeasureRecord } from '../../../domain/models/case-measure.model';
 import type { MobileCompanionDevice, MobileCompanionSnapshotResult } from '../../../domain/models/mobile-companion.model';
 import { IndustrialButton, ToolbarButton } from '../../shared/components/IndustrialButton';
 import { FormActions, SelectInput, TextareaInput, TextInput } from '../../shared/components/IndustrialForm';
 import { IndustrialPanel } from '../../shared/components/WorkbenchPanels';
+import { IndustrialModal } from '../../shared/dialogs/IndustrialDialogs';
 import { CaseHandoverCasePicker } from './CaseHandoverCasePicker';
+import { MobileReturnImportPanel } from './MobileReturnImportPanel';
 import { MobileSnapshotResultPanel } from './MobileSnapshotResultPanel';
+import { activeMobileWorkCases } from './caseHandoverCockpitPolicy';
 import { useMobileCompanionWorkflow, type MobileDeviceDraft } from './useMobileCompanionWorkflow';
 
 export { MobileSnapshotResultPanel } from './MobileSnapshotResultPanel';
@@ -51,36 +55,54 @@ function MobileDevicePairingPanel({
   devices,
   draft,
   busy,
+  open,
   onDraftChange,
   onSubmit,
   onDisable,
+  onOpen,
+  onClose,
 }: {
   devices: MobileCompanionDevice[];
   draft: MobileDeviceDraft;
   busy: boolean;
+  open: boolean;
   onDraftChange: (draft: MobileDeviceDraft) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
   onDisable: (id: string) => void;
+  onOpen: () => void;
+  onClose: () => void;
 }) {
   return <IndustrialPanel
     ariaLabel="Mobile Begleit-App koppeln"
     kicker="Begleit-App"
-    title="Mobilgerät koppeln"
+    title="Gekoppelte Mobilgeräte"
     description="Die App liefert ihre öffentliche Empfängerkennung. Private Schlüssel bleiben auf dem jeweiligen Gerät."
+    actions={<IndustrialButton onClick={onOpen}><Plus className="industrial-icon" aria-hidden="true" /> Mobilgerät koppeln</IndustrialButton>}
     helpId="caseHandover.mobile"
   >
-    <form className="industrial-stack" onSubmit={onSubmit}>
-      <div className="industrial-form-grid industrial-form-grid-2">
-        <TextInput label="Gerätename" value={draft.label} onValueChange={(label) => onDraftChange({ ...draft, label })} placeholder="z. B. Diensthandy SBV" required />
-        <TextareaInput label="Empfängerkennung der App" value={draft.recipientToken} onValueChange={(recipientToken) => onDraftChange({ ...draft, recipientToken })} rows={3} required />
-      </div>
-      <FormActions>
-        <IndustrialButton type="submit" loading={busy} disabled={!draft.label.trim() || !draft.recipientToken.trim()}>
-          <Smartphone className="industrial-icon" aria-hidden="true" /> Mobilgerät koppeln
-        </IndustrialButton>
-      </FormActions>
-    </form>
     <MobileDeviceTable devices={devices} busy={busy} onDisable={onDisable} />
+    {open ? <IndustrialModal
+      title="Mobilgerät koppeln"
+      kicker="Neue mobile Arbeitsstation"
+      description="Die Begleit-App zeigt ihre öffentliche Empfängerkennung an. Private Schlüssel verlassen das Mobilgerät nicht."
+      icon={<Smartphone className="industrial-icon-md" />}
+      onClose={busy ? undefined : onClose}
+      closeOnEscape={!busy}
+      wide
+      actions={<>
+        <ToolbarButton onClick={onClose} disabled={busy}>Abbrechen</ToolbarButton>
+        <IndustrialButton type="submit" form="mobile-device-pairing-form" loading={busy} disabled={!draft.label.trim() || !draft.recipientToken.trim()}>
+          Mobilgerät koppeln
+        </IndustrialButton>
+      </>}
+    >
+      <form id="mobile-device-pairing-form" className="industrial-modal-form" onSubmit={onSubmit}>
+        <div className="industrial-form-grid industrial-form-grid-2">
+          <TextInput label="Gerätename" value={draft.label} onValueChange={(label) => onDraftChange({ ...draft, label })} placeholder="z. B. Diensthandy SBV" required />
+          <TextareaInput label="Empfängerkennung der App" value={draft.recipientToken} onValueChange={(recipientToken) => onDraftChange({ ...draft, recipientToken })} rows={3} required wide />
+        </div>
+      </form>
+    </IndustrialModal> : null}
   </IndustrialPanel>;
 }
 
@@ -137,6 +159,7 @@ function MobileCompanionPanels({
   cases,
   devices,
   deviceDraft,
+  pairingOpen,
   caseIds,
   deviceOptions,
   selectedDeviceId,
@@ -147,14 +170,18 @@ function MobileCompanionPanels({
   onDraftChange,
   onSaveDevice,
   onDisableDevice,
+  onOpenPairing,
+  onClosePairing,
   onCaseIdsChange,
   onDeviceChange,
   onCreateSnapshot,
   onCopyFrame,
+  onImported,
 }: {
   cases: CaseRecord[];
   devices: MobileCompanionDevice[];
   deviceDraft: MobileDeviceDraft;
+  pairingOpen: boolean;
   caseIds: string[];
   deviceOptions: Array<{ value: string; label: string }>;
   selectedDeviceId: string;
@@ -165,13 +192,26 @@ function MobileCompanionPanels({
   onDraftChange: (draft: MobileDeviceDraft) => void;
   onSaveDevice: (event: FormEvent<HTMLFormElement>) => void;
   onDisableDevice: (id: string) => void;
+  onOpenPairing: () => void;
+  onClosePairing: () => void;
   onCaseIdsChange: (ids: string[]) => void;
   onDeviceChange: (id: string) => void;
   onCreateSnapshot: (event: FormEvent<HTMLFormElement>) => void;
   onCopyFrame: (frame: string) => void;
+  onImported?: () => Promise<void>;
 }) {
   return <div className="industrial-stack">
-    <MobileDevicePairingPanel devices={devices} draft={deviceDraft} busy={busy} onDraftChange={onDraftChange} onSubmit={onSaveDevice} onDisable={onDisableDevice} />
+    <MobileDevicePairingPanel
+      devices={devices}
+      draft={deviceDraft}
+      busy={busy}
+      open={pairingOpen}
+      onDraftChange={onDraftChange}
+      onSubmit={onSaveDevice}
+      onDisable={onDisableDevice}
+      onOpen={onOpenPairing}
+      onClose={onClosePairing}
+    />
     <MobileSnapshotPanel
       cases={cases}
       caseIds={caseIds}
@@ -186,16 +226,29 @@ function MobileCompanionPanels({
       onSubmit={onCreateSnapshot}
       onCopyFrame={onCopyFrame}
     />
+    <MobileReturnImportPanel onImported={onImported} />
   </div>;
 }
 
-export function HandoverMobileCompanionTab({ cases }: { cases: CaseRecord[] }) {
-  const workflow = useMobileCompanionWorkflow(cases);
+export function HandoverMobileCompanionTab({ cases, onImported }: { cases: CaseRecord[]; onImported?: () => Promise<void> }) {
+  const [pairingOpen, setPairingOpen] = useState(false);
+  const [measures, setMeasures] = useState<CaseMeasureRecord[]>([]);
+  useEffect(() => {
+    if (!window.gremiaSbv?.caseMeasures) return undefined;
+    let active = true;
+    void window.gremiaSbv.caseMeasures.list()
+      .then((records) => { if (active) setMeasures(records); })
+      .catch(() => { if (active) setMeasures([]); });
+    return () => { active = false; };
+  }, []);
+  const mobileCases = useMemo(() => activeMobileWorkCases(cases, measures), [cases, measures]);
+  const workflow = useMobileCompanionWorkflow(mobileCases);
 
   return <MobileCompanionPanels
-    cases={cases}
+    cases={mobileCases}
     devices={workflow.devices}
     deviceDraft={workflow.deviceDraft}
+    pairingOpen={pairingOpen}
     caseIds={workflow.caseIds}
     deviceOptions={workflow.deviceOptions}
     selectedDeviceId={workflow.selectedDeviceId}
@@ -204,11 +257,14 @@ export function HandoverMobileCompanionTab({ cases }: { cases: CaseRecord[] }) {
     message={workflow.message}
     snapshot={workflow.snapshot}
     onDraftChange={workflow.setDeviceDraft}
-    onSaveDevice={workflow.saveDevice}
+    onSaveDevice={(event) => void workflow.saveDevice(event).then((saved) => { if (saved) setPairingOpen(false); })}
     onDisableDevice={(id) => void workflow.disableDevice(id)}
+    onOpenPairing={() => setPairingOpen(true)}
+    onClosePairing={() => setPairingOpen(false)}
     onCaseIdsChange={workflow.setCaseIds}
     onDeviceChange={workflow.setSelectedDeviceId}
     onCreateSnapshot={workflow.createSnapshot}
     onCopyFrame={(frame) => void workflow.copyFrame(frame)}
+    onImported={onImported}
   />;
 }

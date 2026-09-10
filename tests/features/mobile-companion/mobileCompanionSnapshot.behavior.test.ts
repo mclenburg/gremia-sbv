@@ -215,6 +215,52 @@ describe('Mobile Begleit-App Snapshot', () => {
     }
   });
 
+  it('überträgt nur aktive Arbeitsfälle in die mobile Besprechungsprojektion', async () => {
+    const desktop = await migratedDatabase();
+    const mobile = await migratedDatabase();
+    try {
+      const now = '2026-09-10T08:00:00.000Z';
+      desktop.prepare(`
+        INSERT INTO cases (
+          id, case_number, display_name, category, status, priority, opened_at,
+          is_pseudonymized, is_locked, created_at, updated_at
+        ) VALUES (?, ?, ?, 'beteiligung', ?, 'normal', ?, 0, 0, ?, ?)
+      `).run('case-closed-mobile', 'SBV-2026-CLOSED', 'Abgeschlossener Fall', 'abgeschlossen', now, now, now);
+      desktop.prepare(`
+        INSERT INTO cases (
+          id, case_number, display_name, category, status, priority, opened_at,
+          is_pseudonymized, is_locked, created_at, updated_at
+        ) VALUES (?, ?, ?, 'beteiligung', 'offen', 'normal', ?, 0, 0, ?, ?)
+      `).run('case-done-measure-mobile', 'SBV-2026-DONE', 'Nur erledigte Maßnahme', now, now, now);
+      desktop.prepare(`
+        INSERT INTO case_measures (
+          id, case_id, type, title, status, risk_level, created_from,
+          opened_at, closed_at, created_at, updated_at
+        ) VALUES ('measure-done-mobile', 'case-done-measure-mobile', 'sbv_participation',
+          'Erledigte Maßnahme', 'completed', 'normal', 'manual', ?, ?, ?, ?)
+      `).run(now, now, now, now);
+      const mobileService = new MobileCompanionService(desktop);
+      const device = mobileService.saveDevice({
+        label: 'Diensthandy SBV',
+        recipientToken: new TransferInstanceIdentityService(mobile).getPublicIdentity().recipientToken,
+      });
+
+      expect(() => mobileService.createSnapshot({
+        deviceId: device.id,
+        caseIds: ['case-closed-mobile'],
+        uiThemeMode: 'dark',
+      })).toThrow(/nicht gefunden/i);
+      expect(() => mobileService.createSnapshot({
+        deviceId: device.id,
+        caseIds: ['case-done-measure-mobile'],
+        uiThemeMode: 'dark',
+      })).toThrow(/nicht gefunden/i);
+    } finally {
+      desktop.close();
+      mobile.close();
+    }
+  });
+
   it('erzeugt selbstprüfbare QR-Frames mit gemeinsamer Sitzung und vollständiger Reihenfolge', () => {
     const frames = createMobileCompanionQrFrames('abcdefghijklmnopqrstuvwxyz'.repeat(120), 'mobile-test-package', 'qr-session-test');
     const decoded = frames.map(decodeQrFrame);

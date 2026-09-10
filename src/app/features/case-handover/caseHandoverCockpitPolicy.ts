@@ -1,5 +1,23 @@
 import type { CaseRecord } from '../../../domain/models/case.model';
 import type { CaseHandoverCockpitItem } from '../../../domain/models/case-handover.model';
+import type { CaseMeasureRecord } from '../../../domain/models/case-measure.model';
+
+const OPEN_MEASURE_STATUSES = new Set(['draft', 'open', 'in_progress', 'waiting', 'follow_up_required']);
+
+export function activeMobileWorkCases(
+  cases: readonly CaseRecord[],
+  measures: readonly CaseMeasureRecord[] = [],
+): CaseRecord[] {
+  const measuresByCase = new Map<string, CaseMeasureRecord[]>();
+  for (const measure of measures) {
+    measuresByCase.set(measure.caseId, [...(measuresByCase.get(measure.caseId) ?? []), measure]);
+  }
+  return cases.filter((record) => {
+    if (record.status === 'abgeschlossen' || record.isLocked || record.isPseudonymized) return false;
+    const linkedMeasures = measuresByCase.get(record.id) ?? [];
+    return linkedMeasures.length === 0 || linkedMeasures.some((measure) => OPEN_MEASURE_STATUSES.has(measure.status));
+  });
+}
 
 export function filterHandoverCases(cases: readonly CaseRecord[], query: string): CaseRecord[] {
   const normalized = query.trim().toLocaleLowerCase('de-DE');
