@@ -274,6 +274,10 @@ declare global {
       selectAndInspect: (passphrase: string) => Promise<{ canceled: true } | { canceled: false; filePath: string; fileName: string; inspection: CaseHandoverInspectResult }>;
       import: (input: CaseHandoverImportInput) => Promise<CaseHandoverImportResult>;
       continueExpired: (caseId: string, reason: string) => Promise<CaseHandoverContinueExpiredResult>;
+      listMobileDevices: () => Promise<import("./domain/models/mobile-companion.model").MobileCompanionDevice[]>;
+      saveMobileDevice: (input: import("./domain/models/mobile-companion.model").SaveMobileCompanionDeviceInput) => Promise<import("./domain/models/mobile-companion.model").MobileCompanionDevice>;
+      setMobileDeviceStatus: (id: string, status: import("./domain/models/mobile-companion.model").MobileCompanionDeviceStatus) => Promise<import("./domain/models/mobile-companion.model").MobileCompanionDevice>;
+      createMobileSnapshot: (input: import("./domain/models/mobile-companion.model").MobileCompanionSnapshotInput) => Promise<import("./domain/models/mobile-companion.model").MobileCompanionSnapshotResult>;
     };
 
     caseMeasures: {

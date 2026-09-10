@@ -65,6 +65,18 @@ export const CASE_HANDOVER_EXPORT_ITEMS_REQUIRED_COLUMNS = [
   'exported_at'
 ] as const;
 
+export const MOBILE_COMPANION_DEVICES_REQUIRED_COLUMNS = [
+  'id',
+  'label',
+  'instance_id',
+  'key_fingerprint',
+  'recipient_token',
+  'status',
+  'created_at',
+  'updated_at',
+  'last_snapshot_at'
+] as const;
+
 
 export const SBV_RESOURCE_RECORDS_REQUIRED_COLUMNS = [
   'id',

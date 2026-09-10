@@ -15,6 +15,7 @@ import type {
 } from "../../src/domain/models/case-note.model.js";
 import type { CaseDocumentRecord } from "../../src/domain/models/case-document.model.js";
 import type { CaseHandoverChecklist, CaseHandoverChecklistInput, CaseHandoverCockpit, CaseHandoverContinueExpiredResult, CaseHandoverExportInput, CaseHandoverExportResult, CaseHandoverImportInput, CaseHandoverImportResult, CaseHandoverInspectResult, CaseHandoverReturnDeltaExportInput } from "../../src/domain/models/case-handover.model.js";
+import type { MobileCompanionDevice, MobileCompanionDeviceStatus, MobileCompanionSnapshotInput, MobileCompanionSnapshotResult, SaveMobileCompanionDeviceInput } from "../../src/domain/models/mobile-companion.model.js";
 import type {
   CaseMeasureNoteProcessType,
   CaseMeasureNoteRecord,
@@ -61,6 +62,14 @@ function createCaseHandoverApi(invokeIpc: IpcInvoker) {
       invokeIpc(IPC_CHANNELS.caseHandoverImport, input),
     continueExpired: (caseId: string, reason: string): Promise<CaseHandoverContinueExpiredResult> =>
       invokeIpc(IPC_CHANNELS.caseHandoverContinueExpired, caseId, reason),
+    listMobileDevices: (): Promise<MobileCompanionDevice[]> =>
+      invokeIpc(IPC_CHANNELS.caseHandoverMobileDevicesList),
+    saveMobileDevice: (input: SaveMobileCompanionDeviceInput): Promise<MobileCompanionDevice> =>
+      invokeIpc(IPC_CHANNELS.caseHandoverMobileDevicesSave, input),
+    setMobileDeviceStatus: (id: string, status: MobileCompanionDeviceStatus): Promise<MobileCompanionDevice> =>
+      invokeIpc(IPC_CHANNELS.caseHandoverMobileDeviceStatus, id, status),
+    createMobileSnapshot: (input: MobileCompanionSnapshotInput): Promise<MobileCompanionSnapshotResult> =>
+      invokeIpc(IPC_CHANNELS.caseHandoverMobileSnapshotCreate, input),
   };
 }
 

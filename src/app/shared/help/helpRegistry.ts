@@ -290,6 +290,14 @@ export const HELP_REGISTRY = {
       ] },
     ],
   },
+  "caseHandover.mobile": {
+    id: "caseHandover.mobile", kicker: "Begleit-App", title: "Mobile Arbeitsprojektion",
+    summary: "Gekoppelte Geräte erhalten nur einen reduzierten, zielgebunden verschlüsselten Arbeitsauszug.",
+    blocks: [
+      { type: "paragraph", text: "Die Begleit-App ist kein zweiter Tresor und keine Synchronisation. Sie unterstützt kurze mobile Arbeitssituationen, ohne vertrauliche Notizen, Dokumentdateien oder vollständige Fallinhalte aus dem Desktop herauszugeben." },
+      { type: "paragraph", text: "Die Kopplung erfolgt über die öffentliche Empfängerkennung der App. Jeder Snapshot ist an genau dieses Gerät gebunden und wird in der Audit-Chain nur mit technischen Zähldaten protokolliert." },
+    ],
+  },
   "caseHandover.returnDelta": {
     id: "caseHandover.returnDelta", kicker: "Rückgabe", title: "Änderungen zurückgeben",
     summary: "Das Rückgabe-Delta enthält nur Änderungen aus einer übernommenen Vertretung.",

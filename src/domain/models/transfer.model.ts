@@ -1,4 +1,4 @@
-export type TransferImportKind = 'case_handover';
+export type TransferImportKind = 'case_handover' | 'mobile_companion';
 export type TransferImportMode = 'create_new' | 'merge_existing';
 export type TransferImportConflictLevel = 'safe_match' | 'possible_match' | 'true_conflict';
 export type TransferImportDecisionSeverity = 'info' | 'warning' | 'critical';

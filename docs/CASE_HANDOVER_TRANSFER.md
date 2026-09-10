@@ -2,7 +2,7 @@
 
 ## Zweck
 
-Die Übergabefunktion unterstützt sowohl zeitlich begrenzte Vertretungen als auch den dauerhaften Amtswechsel. Beide Vorgänge folgen unterschiedlichen Regeln und werden in der Anwendung ausdrücklich getrennt.
+Die Übergabefunktion unterstützt zeitlich begrenzte Vertretungen, mobile Begleit-App-Projektionen und den dauerhaften Amtswechsel. Diese Vorgänge folgen unterschiedlichen Regeln und werden in der Anwendung ausdrücklich getrennt.
 
 Die Funktion ist kein Backup, keine Synchronisation und keine gemeinsame Datenbank. Jede Gremia.SBV-Instanz bleibt eigenständig.
 
@@ -10,12 +10,12 @@ Die Funktion ist kein Backup, keine Synchronisation und keine gemeinsame Datenba
 
 Ausgewählte Fallakten können mit den zugehörigen erforderlichen Inhalten als verschlüsseltes, auf eine konkrete Zielinstanz gebundenes Übergabepaket exportiert werden. Bei einer Urlaubsvertretung kann ein einzelnes, sicher erkanntes Gegenstück bewusst zusammengeführt werden. Eine Amtsübergabe wird dagegen immer als neuer lokaler Amtsbestand übernommen.
 
-Das Übergabepaket hat die Dateiendung `.gsbvtransfer`.
+Fall- und Amtsübergabepakete haben die Dateiendung `.gsbvtransfer`. Mobile Begleit-App-Projektionen nutzen ein eigenes, reduziertes Snapshot-Format und werden nicht als vollständige Fallübergabe behandelt.
 
 ## Ablauf für die abgebende SBV
 
 1. Den Bereich `Übergaben` als letzten Punkt der Kernarbeit öffnen.
-2. Das passende Register wählen: `Urlaubsvertretung`, `Rückgabe`, `Amtsübergabe`, `Import` oder `Protokoll`.
+2. Das passende Register wählen: `Urlaubsvertretung`, `Begleit-App`, `Rückgabe`, `Amtsübergabe`, `Import` oder `Protokoll`.
 3. Die zu übergebenden Fallakten über die filterbare Fallauswahl auswählen. Große Bestände werden nicht als vollständige Formularwand angezeigt.
 4. Empfängerprofil wählen oder die vollständige öffentliche Empfängerkennung der Zielinstanz einfügen und die angezeigte fünfstellige Zielinstanz-ID prüfen.
 5. Transport-Passphrase vergeben, sofern die gewählte Schutzart eine Passphrase verlangt.
@@ -97,6 +97,26 @@ Nicht Bestandteil einer Fallübergabe sind globale App-Einstellungen, Gremia.BR-
 
 Eine Amtsübergabe ergänzt diesen Umfang um individuelle Vorlagen, Frist- und Aufbewahrungsregeln, offene Datenschutzprüfungen der ausgewählten Fälle sowie digitale Wahlakten einschließlich ihrer Dokumente. Das persönliche Tätigkeitsjournal ist ausdrücklich ausgeschlossen. Bereits erzeugte anonymisierte Tätigkeitsberichte können nur als erforderliche, zugeordnete Dokumente Bestandteil des Pakets sein.
 
+## Begleit-App-Abgrenzung
+
+Die Android-Begleit-App erhält keinen vollständigen Fallaktenexport. Sie arbeitet mit einer zielgebunden verschlüsselten Projektion für ein gekoppeltes Gerät.
+
+Enthalten sind:
+
+- ausgewählte Fallköpfe mit Aktenzeichen, Anzeigename, Kategorie, Status und Priorität,
+- offene fallbezogene Fristen mit Fälligkeit, Rechtsgrundlage und Schweregrad,
+- technische Synchronisations- und Anzeigeinformationen.
+
+Nicht enthalten sind:
+
+- Gesprächsnotizen,
+- Maßnahmennotizen,
+- Dokumentdateien oder Dokumentnamen,
+- vollständige Fallzusammenfassungen,
+- globale Einstellungen, Zugangsdaten oder Backups.
+
+Damit bleibt der Desktop-Tresor fachlich führend. Die mobile Projektion hilft bei der Arbeit unterwegs, ohne aus der Begleit-App eine zweite vollständige Gremia.SBV-Instanz zu machen.
+
 ## Unterstützte Paketversionen
 
 Neue Übergaben verwenden das aktuelle zielgebundene Format. Unterstützte ältere Formate können weiterhin geprüft werden, erfordern vor dem Import aber eine gesonderte ausdrückliche Bestätigung. Pakethülle und Nutzdaten müssen dieselbe Version tragen. Amtsdaten sind ausschließlich im aktuellen Format zulässig; unbekannte Versionen und unerwartete Datenbereiche werden abgewiesen.
@@ -112,6 +132,7 @@ Protokolliert werden nur technische und organisatorische Eckdaten, zum Beispiel:
 - Aktion,
 - Ergebnis,
 - Anzahl exportierter oder importierter Fallakten, Maßnahmen, Dokumente und Fristen,
+- bei Mobile-Snapshots zusätzlich Frame-Anzahl und Zielinstanz,
 - ob ein Ablaufdatum gesetzt wurde,
 - Importmodus.
 

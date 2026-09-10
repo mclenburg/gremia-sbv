@@ -1,10 +1,11 @@
 # Amtsübergabe und Vertretung
 
-Der Bereich **Übergaben** liegt als letzter Punkt der Kernarbeit in der Navigation. Er ist in Register gegliedert, damit Urlaubsvertretung, Rückgabe, Amtsübergabe, Import und Protokoll nicht in einem gemeinsamen Formular vermischt werden.
+Der Bereich **Übergaben** liegt als letzter Punkt der Kernarbeit in der Navigation. Er ist in Register gegliedert, damit Urlaubsvertretung, Begleit-App, Rückgabe, Amtsübergabe, Import und Protokoll nicht in einem gemeinsamen Formular vermischt werden.
 
 Der Bereich unterstützt zwei unterschiedliche Situationen:
 
 - Eine **Urlaubs- oder Krankheitsvertretung** ist zeitlich begrenzt. Ausgewählte Fallakten werden an die Stellvertretung übergeben und Änderungen später als Rückgabe-Delta zurückgeführt.
+- Die **Begleit-App** erhält nur eine reduzierte mobile Arbeitsprojektion für kurze Arbeitssituationen außerhalb des Desktop-Arbeitsplatzes.
 - Eine **Amtsübergabe** ist dauerhaft. Die gewählte Nachfolge übernimmt den erforderlichen Arbeits- und Nachweisbestand in ihre eigene Gremia.SBV-Instanz.
 
 Ein Übergabepaket ist weder ein Backup noch eine gemeinsame Datenbank. Beide Instanzen bleiben technisch selbstständig.
@@ -28,6 +29,18 @@ Die Zielinstanz zeigt unter **Einstellungen** ihre kurze Instanz-ID und die voll
 9. Die ursprüngliche SBV prüft und importiert das Delta. Die Zuordnung erfolgt über das protokollierte Ausgangspaket.
 
 Abgelaufene Pakete dürfen nicht importiert werden. Bereits importierte Vertretungsdaten werden nach Ablauf sichtbar als prüfbedürftig markiert. Eine fachlich erforderliche Fortführung muss begründet werden.
+
+## Begleit-App
+
+Die Begleit-App ist kein zweiter vollständiger Tresor. Sie dient dazu, unterwegs den notwendigen Arbeitskontext zu sehen, ohne vertrauliche Fallakten vollständig auf ein Mobilgerät zu übertragen.
+
+1. Öffne **Übergaben**.
+2. Öffne das Register **Begleit-App**.
+3. Kopple das Mobilgerät mit der öffentlichen Empfängerkennung aus der App.
+4. Wähle nur die Fallakten aus, die mobil benötigt werden. Bei größeren Beständen filterst du gezielt.
+5. Erzeuge die mobile Arbeitsprojektion für genau dieses Gerät.
+
+Übertragen werden Fallkopf, Status und offene Fristen. Notizen, Dokumentdateien, Dokumentnamen, vollständige Freitexte und Fallzusammenfassungen bleiben im Desktop-Tresor. Die Protokollierung enthält nur technische Zähldaten wie Fallanzahl, Fristanzahl, Frame-Anzahl und Zielinstanz.
 
 ## Amtsübergabe
 

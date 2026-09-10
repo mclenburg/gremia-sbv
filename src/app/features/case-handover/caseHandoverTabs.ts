@@ -1,6 +1,7 @@
 export type CaseHandoverTabId =
   | 'overview'
   | 'vacation'
+  | 'mobile'
   | 'return'
   | 'office'
   | 'import'
@@ -20,6 +21,11 @@ export const CASE_HANDOVER_TABS: Array<{
     id: 'vacation',
     title: 'Urlaubsvertretung',
     description: 'Zeitlich begrenzt ausgewählte Fallakten übergeben.',
+  },
+  {
+    id: 'mobile',
+    title: 'Begleit-App',
+    description: 'Mobile Arbeitsprojektion für gekoppelte Geräte erzeugen.',
   },
   {
     id: 'return',

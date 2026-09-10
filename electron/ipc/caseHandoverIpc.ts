@@ -3,8 +3,28 @@ import { dialog, type IpcMain } from 'electron';
 import type { SecurityService } from '../../services/securityService.js';
 import type { ApplicationServices } from '../applicationServices.js';
 import type { CaseHandoverChecklistInput, CaseHandoverExportInput, CaseHandoverImportInput, CaseHandoverReturnDeltaExportInput } from '../../src/domain/models/case-handover.model.js';
-import { assertRecordInput, assertString, sanitizeDialogFileName } from './ipcValidation.js';
+import type { MobileCompanionDeviceStatus, MobileCompanionSnapshotInput, SaveMobileCompanionDeviceInput } from '../../src/domain/models/mobile-companion.model.js';
+import { assertAllowedEnum, assertRecordInput, assertString, sanitizeDialogFileName } from './ipcValidation.js';
 import { issueSelectedFileCapability, resolveSelectedFileCapability, SELECTED_FILE_PURPOSE } from './selectedFileCapability.js';
+
+function validateMobileDeviceInput(input: unknown): SaveMobileCompanionDeviceInput {
+  const value = assertRecordInput<Record<string, unknown>>(input, 'caseHandover:mobile:devices:save');
+  return {
+    label: assertString(value.label, 'caseHandover:mobile:devices:save', 'Gerätename', { minLength: 1, maxLength: 120 }),
+    recipientToken: assertString(value.recipientToken, 'caseHandover:mobile:devices:save', 'Empfängerkennung', { minLength: 1, maxLength: 3000 }),
+  };
+}
+
+function validateMobileSnapshotInput(input: unknown): MobileCompanionSnapshotInput {
+  const value = assertRecordInput<Record<string, unknown>>(input, 'caseHandover:mobile:snapshot:create');
+  const caseIds = Array.isArray(value.caseIds) ? value.caseIds.map((caseId) =>
+    assertString(caseId, 'caseHandover:mobile:snapshot:create', 'Fall-ID', { minLength: 1, maxLength: 120 })) : [];
+  return {
+    deviceId: assertString(value.deviceId, 'caseHandover:mobile:snapshot:create', 'Mobilgerät', { minLength: 1, maxLength: 120 }),
+    caseIds,
+    uiThemeMode: value.uiThemeMode === 'light' ? 'light' : 'dark',
+  };
+}
 
 export function registerCaseHandoverIpc(ipcMain: IpcMain, security: SecurityService, services: ApplicationServices): void {
   registerIpcHandler(ipcMain, IPC_CHANNELS.caseHandoverCockpit, async () => services.caseHandover().listCockpit());
@@ -82,4 +102,19 @@ export function registerCaseHandoverIpc(ipcMain: IpcMain, security: SecurityServ
     const validatedReason = assertString(reason, 'caseHandover:continue-expired', 'Begründung', { minLength: 3, maxLength: 2000 });
     return services.caseHandover().continueExpired({ caseId: validatedCaseId, reason: validatedReason });
   });
+
+  registerIpcHandler(ipcMain, IPC_CHANNELS.caseHandoverMobileDevicesList, async () =>
+    services.mobileCompanion().listDevices());
+
+  registerIpcHandler(ipcMain, IPC_CHANNELS.caseHandoverMobileDevicesSave, async (_event, input: unknown) =>
+    services.mobileCompanion().saveDevice(validateMobileDeviceInput(input)));
+
+  registerIpcHandler(ipcMain, IPC_CHANNELS.caseHandoverMobileDeviceStatus, async (_event, id: unknown, status: unknown) =>
+    services.mobileCompanion().setDeviceStatus(
+      assertString(id, 'caseHandover:mobile:device-status', 'Mobilgerät', { minLength: 1, maxLength: 120 }),
+      assertAllowedEnum<MobileCompanionDeviceStatus>(status, 'caseHandover:mobile:device-status', 'Status', ['active', 'disabled']),
+    ));
+
+  registerIpcHandler(ipcMain, IPC_CHANNELS.caseHandoverMobileSnapshotCreate, async (_event, input: unknown) =>
+    services.mobileCompanion().createSnapshot(validateMobileSnapshotInput(input)));
 }
