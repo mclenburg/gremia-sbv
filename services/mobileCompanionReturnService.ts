@@ -5,13 +5,20 @@ import type { DatabaseAdapter } from './databaseService.js';
 import { DatabaseUnitOfWork } from './databaseUnitOfWork.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
 import { TransferInstanceIdentityService } from './transferInstanceIdentityService.js';
-import { decryptTargetBoundTransferPayload, type TargetBoundTransferEnvelope } from './targetBoundTransferCrypto.js';
+import { decryptTargetBoundTransferPayload } from './targetBoundTransferCrypto.js';
 import { CaseService } from './caseService.js';
 import { DeadlineService } from './deadlineService.js';
 import { PrivacyReviewService } from './privacyReviewService.js';
+import {
+  assertMobileCompanionReturnPayload,
+  assertTargetBoundReturnEnvelope,
+  MOBILE_COMPANION_RETURN_FORMAT,
+  MOBILE_COMPANION_RETURN_VERSION,
+  safeMobileReturnSummary,
+  uniqueMobileReturnValues,
+} from './mobileCompanionReturnPayload.js';
 import type {
   MobileCompanionReturnChange,
-  MobileCompanionReturnCreateDeadlineChange,
   MobileCompanionReturnCreateNoteChange,
   MobileCompanionReturnCompleteDeadlineChange,
   MobileCompanionReturnImportResult,
@@ -20,8 +27,7 @@ import type {
   MobileCompanionReturnPlanItem,
 } from '../src/domain/models/mobile-companion.model.js';
 
-export const MOBILE_COMPANION_RETURN_FORMAT = 'gremia-sbv-mobile-return';
-export const MOBILE_COMPANION_RETURN_VERSION = 1;
+export { MOBILE_COMPANION_RETURN_FORMAT, MOBILE_COMPANION_RETURN_VERSION } from './mobileCompanionReturnPayload.js';
 
 type DeviceRow = { label: string; status: string };
 type CaseRow = {
@@ -44,117 +50,6 @@ type DuplicateRow = { id: string };
 
 function nowIso(): string {
   return new Date().toISOString();
-}
-
-function assertEnvelope(value: unknown): TargetBoundTransferEnvelope {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    throw new Error('Mobile-Rückgabepaket ist kein gültiger Übergabe-Envelope.');
-  }
-  return value as TargetBoundTransferEnvelope;
-}
-
-function assertText(value: unknown, label: string, maxLength = 5000): string {
-  if (typeof value !== 'string') throw new Error(`${label} fehlt im Mobile-Rückgabepaket.`);
-  const trimmed = value.trim();
-  if (!trimmed) throw new Error(`${label} fehlt im Mobile-Rückgabepaket.`);
-  if (trimmed.length > maxLength) throw new Error(`${label} ist für die mobile Rückgabe zu lang.`);
-  return trimmed;
-}
-
-function assertOptionalText(value: unknown, label: string, maxLength = 5000): string | undefined {
-  if (value === undefined || value === null || value === '') return undefined;
-  return assertText(value, label, maxLength);
-}
-
-function assertIsoDate(value: unknown, label: string): string {
-  const text = assertText(value, label, 80);
-  if (Number.isNaN(new Date(text).getTime())) throw new Error(`${label} enthält kein gültiges Datum.`);
-  return new Date(text).toISOString();
-}
-
-function assertOptionalIsoDate(value: unknown, label: string): string | undefined {
-  if (value === undefined || value === null || value === '') return undefined;
-  return assertIsoDate(value, label);
-}
-
-function assertSeverity(value: unknown): MobileCompanionReturnCreateDeadlineChange['severity'] {
-  if (value === undefined || value === null || value === '') return undefined;
-  if (value === 'normal' || value === 'important' || value === 'critical' || value === 'fatal') return value;
-  throw new Error('Mobile-Rückgabepaket enthält eine ungültige Frist-Priorität.');
-}
-
-function safeSummary(value: string, maxLength = 120): string {
-  const compact = value.replace(/\s+/g, ' ').trim();
-  return compact.length <= maxLength ? compact : `${compact.slice(0, maxLength - 1)}…`;
-}
-
-function unique(values: readonly string[]): string[] {
-  return Array.from(new Set(values.filter(Boolean)));
-}
-
-function assertReturnChange(value: unknown): MobileCompanionReturnChange {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    throw new Error('Mobile-Rückgabepaket enthält eine ungültige Änderung.');
-  }
-  const record = value as Record<string, unknown>;
-  const type = record.type;
-  if (type === 'create_note') {
-    return {
-      type,
-      mobileId: assertText(record.mobileId, 'Mobile Änderungs-ID', 120),
-      caseId: assertText(record.caseId, 'Fallbezug', 120),
-      changedAt: assertIsoDate(record.changedAt, 'Änderungszeitpunkt'),
-      title: assertText(record.title, 'Notiztitel', 180),
-      content: assertText(record.content, 'Notizinhalt', 20_000),
-      participants: assertOptionalText(record.participants, 'Teilnehmende', 1000),
-      nextSteps: assertOptionalText(record.nextSteps, 'Nächste Schritte', 5000),
-      containsHealthData: record.containsHealthData !== false,
-    };
-  }
-  if (type === 'create_deadline') {
-    return {
-      type,
-      mobileId: assertText(record.mobileId, 'Mobile Änderungs-ID', 120),
-      caseId: assertText(record.caseId, 'Fallbezug', 120),
-      changedAt: assertIsoDate(record.changedAt, 'Änderungszeitpunkt'),
-      title: assertText(record.title, 'Fristentitel', 180),
-      dueAt: assertIsoDate(record.dueAt, 'Fälligkeit'),
-      reminderAt: assertOptionalIsoDate(record.reminderAt, 'Erinnerung'),
-      description: assertOptionalText(record.description, 'Fristbeschreibung', 5000),
-      severity: assertSeverity(record.severity),
-    };
-  }
-  if (type === 'complete_deadline') {
-    return {
-      type,
-      mobileId: assertText(record.mobileId, 'Mobile Änderungs-ID', 120),
-      deadlineId: assertText(record.deadlineId, 'Fristbezug', 120),
-      changedAt: assertIsoDate(record.changedAt, 'Änderungszeitpunkt'),
-      baseUpdatedAt: assertIsoDate(record.baseUpdatedAt, 'Frist-Basisstand'),
-      completedNote: assertOptionalText(record.completedNote, 'Erledigungsvermerk', 5000),
-    };
-  }
-  throw new Error('Mobile-Rückgabepaket enthält eine nicht unterstützte Änderungsart.');
-}
-
-function assertReturnPayload(payloadText: string): MobileCompanionReturnPayload {
-  const parsed = JSON.parse(payloadText) as Record<string, unknown>;
-  if (parsed.protocolVersion !== '1.0' || parsed.schemaVersion !== MOBILE_COMPANION_RETURN_VERSION) {
-    throw new Error('Mobile-Rückgabepaket nutzt kein unterstütztes Format.');
-  }
-  const changes = Array.isArray(parsed.changes) ? parsed.changes.map(assertReturnChange) : [];
-  if (!changes.length) throw new Error('Mobile-Rückgabepaket enthält keine Änderungen.');
-  if (changes.length > 1000) throw new Error('Mobile-Rückgabepaket enthält zu viele Änderungen.');
-  return {
-    protocolVersion: '1.0',
-    schemaVersion: MOBILE_COMPANION_RETURN_VERSION,
-    packageId: assertText(parsed.packageId, 'Paketkennung', 160),
-    sourceInstanceId: assertText(parsed.sourceInstanceId, 'Quellinstanz', 80),
-    targetInstanceId: assertText(parsed.targetInstanceId, 'Zielinstanz', 80),
-    sourceSnapshotPackageId: assertOptionalText(parsed.sourceSnapshotPackageId, 'Ausgangs-Snapshot', 160),
-    createdAt: assertIsoDate(parsed.createdAt, 'Erstellungszeitpunkt'),
-    changes,
-  };
 }
 
 export class MobileCompanionReturnService {
@@ -195,13 +90,13 @@ export class MobileCompanionReturnService {
   }
 
   private decryptPayload(envelopeText: string): MobileCompanionReturnPayload {
-    const envelope = assertEnvelope(JSON.parse(envelopeText));
+    const envelope = assertTargetBoundReturnEnvelope(JSON.parse(envelopeText));
     const identity = new TransferInstanceIdentityService(this.database).getPrivateIdentity();
     const decrypted = decryptTargetBoundTransferPayload(envelope, '', identity, {
       format: MOBILE_COMPANION_RETURN_FORMAT,
       version: MOBILE_COMPANION_RETURN_VERSION,
     });
-    const payload = assertReturnPayload(decrypted.payloadText);
+    const payload = assertMobileCompanionReturnPayload(decrypted.payloadText);
     if (payload.packageId !== envelope.packageId) {
       throw new Error('Mobile-Rückgabepaket enthält widersprüchliche Paketkennungen.');
     }
@@ -277,8 +172,8 @@ export class MobileCompanionReturnService {
       type: change.type,
       disposition: 'apply',
       summary: change.type === 'create_note'
-        ? `Neue mobile Notiz zu ${caseRow.case_number}: ${safeSummary(change.title)}`
-        : `Neue mobile Frist zu ${caseRow.case_number}: ${safeSummary(change.title)}`,
+        ? `Neue mobile Notiz zu ${caseRow.case_number}: ${safeMobileReturnSummary(change.title)}`
+        : `Neue mobile Frist zu ${caseRow.case_number}: ${safeMobileReturnSummary(change.title)}`,
       caseId: change.caseId,
     };
   }
@@ -291,7 +186,7 @@ export class MobileCompanionReturnService {
         mobileId: change.mobileId,
         type: change.type,
         disposition: 'already_done',
-        summary: `Frist ist bereits erledigt: ${safeSummary(row.title)}`,
+        summary: `Frist ist bereits erledigt: ${safeMobileReturnSummary(row.title)}`,
         caseId: row.case_id ?? undefined,
         deadlineId: row.id,
       };
@@ -301,7 +196,7 @@ export class MobileCompanionReturnService {
         mobileId: change.mobileId,
         type: change.type,
         disposition: 'conflict',
-        summary: `Frist wurde seit dem Mobile-Snapshot im Desktop geändert: ${safeSummary(row.title)}`,
+        summary: `Frist wurde seit dem Mobile-Snapshot im Desktop geändert: ${safeMobileReturnSummary(row.title)}`,
         caseId: row.case_id ?? undefined,
         deadlineId: row.id,
         reason: 'deadline_changed',
@@ -311,7 +206,7 @@ export class MobileCompanionReturnService {
       mobileId: change.mobileId,
       type: change.type,
       disposition: 'apply',
-      summary: `Frist als erledigt übernehmen: ${safeSummary(row.title)}`,
+      summary: `Frist als erledigt übernehmen: ${safeMobileReturnSummary(row.title)}`,
       caseId: row.case_id ?? undefined,
       deadlineId: row.id,
     };
@@ -366,7 +261,7 @@ export class MobileCompanionReturnService {
         if (deadline.caseId) completedDeadlineCaseIds.push(deadline.caseId);
       }
     }
-    const privacyReviewCaseIds = unique([...createdNoteCaseIds, ...createdDeadlineCaseIds, ...completedDeadlineCaseIds]);
+    const privacyReviewCaseIds = uniqueMobileReturnValues([...createdNoteCaseIds, ...createdDeadlineCaseIds, ...completedDeadlineCaseIds]);
     const privacyReview = new PrivacyReviewService(this.database);
     privacyReview.ensureSchema();
     const timestamp = nowIso();
