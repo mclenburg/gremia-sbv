@@ -4421,6 +4421,15 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
+qrcode.react@4.2.0
+License: ISC
+Repository: https://github.com/zpao/qrcode.react.git
+Homepage: http://zpao.github.io/qrcode.react
+Copyright notices:
+- Copyright (c) 2015, Paul O’Shannessy
+- copyright notice and this permission notice appear in all copies.
+License text: LICENSES/ISC.txt
+
 quick-lru@5.1.1
 License: MIT
 Repository: sindresorhus/quick-lru

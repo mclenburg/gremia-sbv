@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { CaseHandoverCasePicker } from '../../../../src/app/features/case-handover/CaseHandoverCasePicker';
+import { MobileSnapshotResultPanel } from '../../../../src/app/features/case-handover/HandoverMobileCompanionTab';
 import { filterHandoverCases, toggleHandoverCase } from '../../../../src/app/features/case-handover/caseHandoverCockpitPolicy';
 import type { CaseRecord } from '../../../../src/domain/models/case.model';
 import { descendants, renderComponent, visibleText } from '../../../helpers/renderedMarkup';
@@ -34,5 +35,27 @@ describe('Übergabe-Cockpit – filterbare Mehrfachauswahl', () => {
     expect(filterHandoverCases(cases, 'gesuchter')).toEqual([cases[5]]);
     expect(toggleHandoverCase(['case-1', 'case-2'], 'case-2')).toEqual(['case-1']);
     expect(toggleHandoverCase(['case-1'], 'case-3')).toEqual(['case-1', 'case-3']);
+  });
+
+  it('zeigt Mobile-Snapshots als scannbare QR-Frames mit bedienbarer Fallback-Ausgabe', () => {
+    const rendered = renderComponent(MobileSnapshotResultPanel, {
+      snapshot: {
+        packageId: 'mobile-snapshot-1',
+        targetInstanceId: 'GSBV1',
+        serializedEnvelope: 'verschluesselter-snapshot',
+        createdAt: '2026-09-10T10:00:00.000Z',
+        caseCount: 2,
+        deadlineCount: 3,
+        qrFrames: ['gsbvmobile://v1/frame-1', 'gsbvmobile://v1/frame-2'],
+      },
+      onCopyFrame: () => undefined,
+    });
+    const text = visibleText(rendered.markup);
+    const nodes = descendants(rendered.tree);
+
+    expect(nodes.some((node) => node.tag === 'svg')).toBe(true);
+    expect(text).toContain('Frame 1 von 2');
+    expect(text).toContain('Nächster Frame');
+    expect(nodes.some((node) => node.tag === 'textarea' && node.attrs.readOnly !== undefined)).toBe(true);
   });
 });

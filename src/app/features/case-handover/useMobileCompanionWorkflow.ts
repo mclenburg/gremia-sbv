@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
 import type { CaseRecord } from '../../../domain/models/case.model';
 import type { MobileCompanionDevice, MobileCompanionSnapshotResult } from '../../../domain/models/mobile-companion.model';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
@@ -43,27 +43,27 @@ export function useMobileCompanionWorkflow(cases: CaseRecord[]) {
   const [snapshot, setSnapshot] = useState<MobileCompanionSnapshotResult | null>(null);
   const deviceOptions = useMemo(() => mobileDeviceOptions(devices), [devices]);
 
-  function showError(cause: unknown) {
+  const showError = useCallback((cause: unknown) => {
     const text = errorText(cause);
     setError(text);
     setMessage('');
     announce(text, 'assertive');
-  }
+  }, [announce]);
 
-  function showMessage(text: string) {
+  const showMessage = useCallback((text: string) => {
     setMessage(text);
     setError('');
     announce(text, 'polite');
-  }
+  }, [announce]);
 
-  async function reloadDevices() {
+  const reloadDevices = useCallback(async () => {
     const handover = await requireCaseHandoverBridge();
     const nextDevices = await handover.listMobileDevices();
     setDevices(nextDevices);
     setSelectedDeviceId((current) => nextSelectedDeviceId(current, nextDevices));
-  }
+  }, []);
 
-  useEffect(() => { void reloadDevices().catch((cause) => showError(cause)); }, []);
+  useEffect(() => { void reloadDevices().catch((cause) => showError(cause)); }, [reloadDevices, showError]);
   useEffect(() => { setCaseIds((current) => current.filter((id) => cases.some((record) => record.id === id))); }, [cases]);
 
   async function saveDevice(event: FormEvent<HTMLFormElement>) {
@@ -106,11 +106,11 @@ export function useMobileCompanionWorkflow(cases: CaseRecord[]) {
     }
   }
 
-  async function copyFirstFrame() {
-    if (!snapshot?.qrFrames[0]) return;
+  async function copyFrame(frame: string) {
+    if (!frame) return;
     try {
-      await navigator.clipboard.writeText(snapshot.qrFrames[0]);
-      showMessage('Erster Mobile-Frame wurde in die Zwischenablage kopiert.');
+      await navigator.clipboard.writeText(frame);
+      showMessage('Mobile-Frame wurde in die Zwischenablage kopiert.');
     } catch {
       showError(new Error('Mobile-Frame konnte nicht kopiert werden. Bitte manuell markieren.'));
     }
@@ -145,7 +145,7 @@ export function useMobileCompanionWorkflow(cases: CaseRecord[]) {
     setSelectedDeviceId,
     saveDevice,
     createSnapshot,
-    copyFirstFrame,
+    copyFrame,
     disableDevice,
   };
 }

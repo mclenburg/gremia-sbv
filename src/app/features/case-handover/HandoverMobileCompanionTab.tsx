@@ -1,4 +1,5 @@
-import type { FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
 import { Copy, Smartphone } from 'lucide-react';
 import type { CaseRecord } from '../../../domain/models/case.model';
 import type { MobileCompanionDevice, MobileCompanionSnapshotResult } from '../../../domain/models/mobile-companion.model';
@@ -81,24 +82,58 @@ function MobileDevicePairingPanel({
   </IndustrialPanel>;
 }
 
-function MobileSnapshotResultPanel({
+function nextFrameIndex(current: number, direction: -1 | 1, frameCount: number) {
+  return Math.min(Math.max(current + direction, 0), Math.max(frameCount - 1, 0));
+}
+
+export function MobileSnapshotResultPanel({
   snapshot,
-  onCopyFirstFrame,
+  onCopyFrame,
 }: {
   snapshot: MobileCompanionSnapshotResult;
-  onCopyFirstFrame: () => void;
+  onCopyFrame: (frame: string) => void;
 }) {
+  const [frameIndex, setFrameIndex] = useState(0);
+  const frameCount = snapshot.qrFrames.length;
+  const currentFrame = snapshot.qrFrames[frameIndex] ?? snapshot.qrFrames[0] ?? '';
+
+  useEffect(() => { setFrameIndex(0); }, [snapshot.packageId]);
+
   return <div className="industrial-stack" aria-live="polite">
     <dl className="industrial-meta-grid">
       <dt>Fallakten</dt><dd>{snapshot.caseCount}</dd>
       <dt>Fristen</dt><dd>{snapshot.deadlineCount}</dd>
-      <dt>QR-Frames</dt><dd>{snapshot.qrFrames.length}</dd>
+      <dt>QR-Frames</dt><dd>{frameCount}</dd>
       <dt>Zielinstanz</dt><dd>{snapshot.targetInstanceId}</dd>
     </dl>
-    <TextareaInput label="Erster Mobile-Frame" value={snapshot.qrFrames[0] ?? ''} onValueChange={() => undefined} rows={4} readOnly wide />
+    <div className="handover-mobile-qr-shell">
+      <figure className="handover-mobile-qr-card">
+        <QRCodeSVG
+          value={currentFrame}
+          size={248}
+          marginSize={3}
+          level="M"
+          bgColor="var(--industrial-qr-bg)"
+          fgColor="var(--industrial-qr-fg)"
+          title={`Mobile-Frame ${frameIndex + 1} von ${frameCount}`}
+        />
+        <figcaption>Frame {frameIndex + 1} von {frameCount}</figcaption>
+      </figure>
+      <div className="industrial-stack">
+        <p className="industrial-meta">
+          In der Begleit-App „Snapshot scannen“ öffnen und die Frames nacheinander erfassen.
+          Jeder Frame ist zielgebunden verschlüsselt und nur für die gewählte Mobilinstanz nutzbar.
+        </p>
+        <div className="handover-mobile-frame-controls" aria-label="Mobile-Frames durchschalten">
+          <ToolbarButton type="button" disabled={frameIndex === 0} onClick={() => setFrameIndex((current) => nextFrameIndex(current, -1, frameCount))}>Vorheriger Frame</ToolbarButton>
+          <ToolbarButton type="button" disabled={frameIndex >= frameCount - 1} onClick={() => setFrameIndex((current) => nextFrameIndex(current, 1, frameCount))}>Nächster Frame</ToolbarButton>
+        </div>
+        <TextareaInput label="Aktueller Mobile-Frame" value={currentFrame} onValueChange={() => undefined} rows={4} readOnly wide />
+      </div>
+    </div>
     <FormActions>
-      <IndustrialButton variant="secondary" onClick={onCopyFirstFrame}>
-        <Copy className="industrial-icon" aria-hidden="true" /> Ersten Frame kopieren
+      <IndustrialButton variant="secondary" onClick={() => onCopyFrame(currentFrame)}>
+        <Copy className="industrial-icon" aria-hidden="true" /> Aktuellen Frame kopieren
       </IndustrialButton>
     </FormActions>
   </div>;
@@ -116,7 +151,7 @@ function MobileSnapshotPanel({
   onCaseIdsChange,
   onDeviceChange,
   onSubmit,
-  onCopyFirstFrame,
+  onCopyFrame,
 }: {
   cases: CaseRecord[];
   caseIds: string[];
@@ -129,7 +164,7 @@ function MobileSnapshotPanel({
   onCaseIdsChange: (ids: string[]) => void;
   onDeviceChange: (id: string) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
-  onCopyFirstFrame: () => void;
+  onCopyFrame: (frame: string) => void;
 }) {
   return <IndustrialPanel
     ariaLabel="Mobile Projektion erstellen"
@@ -143,7 +178,7 @@ function MobileSnapshotPanel({
       <SelectInput label="Zielgerät" value={selectedDeviceId} onValueChange={onDeviceChange} options={deviceOptions} required />
       {error ? <div className="industrial-message industrial-message-warning" role="alert">{error}</div> : null}
       {message ? <div className="industrial-message industrial-message-ok" role="status">{message}</div> : null}
-      {snapshot ? <MobileSnapshotResultPanel snapshot={snapshot} onCopyFirstFrame={onCopyFirstFrame} /> : null}
+      {snapshot ? <MobileSnapshotResultPanel snapshot={snapshot} onCopyFrame={onCopyFrame} /> : null}
       <FormActions>
         <IndustrialButton type="submit" loading={busy} disabled={!selectedDeviceId || !caseIds.length}>
           Mobile-Projektion erzeugen
@@ -170,7 +205,7 @@ function MobileCompanionPanels({
   onCaseIdsChange,
   onDeviceChange,
   onCreateSnapshot,
-  onCopyFirstFrame,
+  onCopyFrame,
 }: {
   cases: CaseRecord[];
   devices: MobileCompanionDevice[];
@@ -188,7 +223,7 @@ function MobileCompanionPanels({
   onCaseIdsChange: (ids: string[]) => void;
   onDeviceChange: (id: string) => void;
   onCreateSnapshot: (event: FormEvent<HTMLFormElement>) => void;
-  onCopyFirstFrame: () => void;
+  onCopyFrame: (frame: string) => void;
 }) {
   return <div className="industrial-stack">
     <MobileDevicePairingPanel devices={devices} draft={deviceDraft} busy={busy} onDraftChange={onDraftChange} onSubmit={onSaveDevice} onDisable={onDisableDevice} />
@@ -204,7 +239,7 @@ function MobileCompanionPanels({
       onCaseIdsChange={onCaseIdsChange}
       onDeviceChange={onDeviceChange}
       onSubmit={onCreateSnapshot}
-      onCopyFirstFrame={onCopyFirstFrame}
+      onCopyFrame={onCopyFrame}
     />
   </div>;
 }
@@ -229,6 +264,6 @@ export function HandoverMobileCompanionTab({ cases }: { cases: CaseRecord[] }) {
     onCaseIdsChange={workflow.setCaseIds}
     onDeviceChange={workflow.setSelectedDeviceId}
     onCreateSnapshot={workflow.createSnapshot}
-    onCopyFirstFrame={() => void workflow.copyFirstFrame()}
+    onCopyFrame={(frame) => void workflow.copyFrame(frame)}
   />;
 }

@@ -2292,6 +2292,38 @@ button.dashboard-focus-card:hover {
   overflow-wrap: anywhere;
 }
 
+.handover-mobile-qr-shell {
+  display: grid;
+  grid-template-columns: minmax(16rem, max-content) minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.handover-mobile-qr-card {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: center;
+  margin: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--industrial-border);
+  background: var(--industrial-qr-bg);
+  color: var(--industrial-qr-fg);
+}
+
+.handover-mobile-qr-card figcaption {
+  font-size: var(--font-size-xs);
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.handover-mobile-frame-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
 .transfer-instance-id-input {
   max-width: 8rem;
   font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace);

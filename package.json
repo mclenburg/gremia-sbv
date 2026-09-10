@@ -172,6 +172,7 @@
     "ical-generator": "^11.0.0",
     "lucide-react": "^1.31.0",
     "pdfkit": "^0.19.1",
+    "qrcode.react": "^4.2.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "yauzl": "^3.3.2",

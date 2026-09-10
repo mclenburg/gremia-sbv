@@ -1491,6 +1491,9 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - pvutils@1.1.5
   License: MIT
   License text: LICENSES/MIT.txt
+- qrcode.react@4.2.0
+  License: ISC
+  License text: LICENSES/ISC.txt
 - quick-lru@5.1.1
   License: MIT
   License text: LICENSES/MIT.txt
