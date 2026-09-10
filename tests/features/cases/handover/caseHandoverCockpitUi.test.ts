@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { CaseHandoverCasePicker } from '../../../../src/app/features/case-handover/CaseHandoverCasePicker';
 import { MobileSnapshotResultPanel } from '../../../../src/app/features/case-handover/HandoverMobileCompanionTab';
-import { filterHandoverCases, toggleHandoverCase } from '../../../../src/app/features/case-handover/caseHandoverCockpitPolicy';
+import { activeMobileWorkCases, filterHandoverCases, toggleHandoverCase } from '../../../../src/app/features/case-handover/caseHandoverCockpitPolicy';
 import type { CaseRecord } from '../../../../src/domain/models/case.model';
+import type { CaseMeasureRecord } from '../../../../src/domain/models/case-measure.model';
 import { descendants, renderComponent, visibleText } from '../../../helpers/renderedMarkup';
 
 function caseRecord(index: number): CaseRecord {
@@ -37,6 +38,20 @@ describe('Übergabe-Cockpit – filterbare Mehrfachauswahl', () => {
     expect(toggleHandoverCase(['case-1'], 'case-3')).toEqual(['case-1', 'case-3']);
   });
 
+  it('bietet offene Mobile-Arbeitsfälle auch mit fachlichen oder alten Maßnahmenstatuswerten an', () => {
+    const cases = [caseRecord(1), caseRecord(2), caseRecord(3)].map((record) => ({
+      ...record,
+      isPseudonymized: false,
+    }));
+    const measures = [
+      measureRecord('measure-1', 'case-1', 'neu'),
+      measureRecord('measure-2', 'case-2', 'completed'),
+      measureRecord('measure-3', 'case-3', 'abgeschlossen'),
+    ];
+
+    expect(activeMobileWorkCases(cases, measures).map((record) => record.id)).toEqual(['case-1']);
+  });
+
   it('zeigt Mobile-Snapshots als scannbare QR-Frames mit bedienbarer Fallback-Ausgabe', () => {
     const rendered = renderComponent(MobileSnapshotResultPanel, {
       snapshot: {
@@ -62,3 +77,19 @@ describe('Übergabe-Cockpit – filterbare Mehrfachauswahl', () => {
     expect(nodes.some((node) => node.tag === 'textarea' && node.attrs.readOnly !== undefined)).toBe(true);
   });
 });
+
+function measureRecord(id: string, caseId: string, status: string): CaseMeasureRecord {
+  return {
+    id,
+    caseId,
+    type: 'sbv_participation',
+    title: 'SBV-Beteiligung',
+    status: status as CaseMeasureRecord['status'],
+    riskLevel: 'normal',
+    createdFrom: 'manual',
+    openedAt: '2026-09-05T08:00:00.000Z',
+    requiresFollowUp: true,
+    createdAt: '2026-09-05T08:00:00.000Z',
+    updatedAt: '2026-09-05T08:00:00.000Z',
+  };
+}

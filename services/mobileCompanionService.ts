@@ -21,6 +21,7 @@ import type {
   MobileCompanionSnapshotResult,
   SaveMobileCompanionDeviceInput,
 } from '../src/domain/models/mobile-companion.model.js';
+import { CLOSED_CASE_MEASURE_STATUSES } from '../src/domain/case-measures/caseMeasureStatusPolicy.js';
 
 export const MOBILE_COMPANION_SNAPSHOT_FORMAT = 'gremia-sbv-mobile-snapshot';
 export const MOBILE_COMPANION_SNAPSHOT_VERSION = 1;
@@ -360,11 +361,11 @@ export class MobileCompanionService {
           OR EXISTS (
             SELECT 1 FROM case_measures m
             WHERE m.case_id = cases.id
-              AND m.status NOT IN ('completed', 'cancelled')
+              AND m.status NOT IN (${placeholders(CLOSED_CASE_MEASURE_STATUSES)})
           )
         )
       ORDER BY case_number COLLATE NOCASE, display_name COLLATE NOCASE
-    `).all(...caseIds).map(mapCase);
+    `).all(...caseIds, ...CLOSED_CASE_MEASURE_STATUSES).map(mapCase);
   }
 
   private readDeadlineProjection(caseIds: readonly string[]): MobileCompanionDeadlineProjection[] {

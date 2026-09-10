@@ -233,12 +233,25 @@ describe('Mobile Begleit-App Snapshot', () => {
         ) VALUES (?, ?, ?, 'beteiligung', 'offen', 'normal', ?, 0, 0, ?, ?)
       `).run('case-done-measure-mobile', 'SBV-2026-DONE', 'Nur erledigte Maßnahme', now, now, now);
       desktop.prepare(`
+        INSERT INTO cases (
+          id, case_number, display_name, category, status, priority, opened_at,
+          is_pseudonymized, is_locked, created_at, updated_at
+        ) VALUES (?, ?, ?, 'beteiligung', 'offen', 'normal', ?, 0, 0, ?, ?)
+      `).run('case-legacy-open-mobile', 'SBV-2026-LEGACY', 'Offene Alt-Beteiligung', now, now, now);
+      desktop.prepare(`
         INSERT INTO case_measures (
           id, case_id, type, title, status, risk_level, created_from,
           opened_at, closed_at, created_at, updated_at
         ) VALUES ('measure-done-mobile', 'case-done-measure-mobile', 'sbv_participation',
           'Erledigte Maßnahme', 'completed', 'normal', 'manual', ?, ?, ?, ?)
       `).run(now, now, now, now);
+      desktop.prepare(`
+        INSERT INTO case_measures (
+          id, case_id, type, title, status, risk_level, created_from,
+          opened_at, created_at, updated_at
+        ) VALUES ('measure-legacy-open-mobile', 'case-legacy-open-mobile', 'sbv_participation',
+          'Offene Alt-Maßnahme', 'neu', 'normal', 'manual', ?, ?, ?)
+      `).run(now, now, now);
       const mobileService = new MobileCompanionService(desktop);
       const device = mobileService.saveDevice({
         label: 'Diensthandy SBV',
@@ -255,6 +268,12 @@ describe('Mobile Begleit-App Snapshot', () => {
         caseIds: ['case-done-measure-mobile'],
         uiThemeMode: 'dark',
       })).toThrow(/nicht gefunden/i);
+      const exported = mobileService.createSnapshot({
+        deviceId: device.id,
+        caseIds: ['case-legacy-open-mobile'],
+        uiThemeMode: 'dark',
+      });
+      expect(exported.caseCount).toBe(1);
     } finally {
       desktop.close();
       mobile.close();
