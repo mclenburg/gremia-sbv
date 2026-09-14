@@ -13,21 +13,21 @@ const TARGETS = {
   },
   win: {
     os: 'win',
-    label: 'Windows portable + setup x64 EXE',
-    builderArgs: ['--win', '--x64'],
-    artifactHint: 'release/Gremia.SBV-<version>-win-x64-portable.exe + release/Gremia.SBV-<version>-win-x64-setup.exe'
+    label: 'Windows portable x64 EXE + MSI',
+    builderArgs: ['--win', 'portable', 'msi', '--x64'],
+    artifactHint: 'release/Gremia.SBV-<version>-win-x64-portable.exe + release/Gremia.SBV-<version>-win-x64.msi'
   },
   windows: {
     os: 'win',
-    label: 'Windows portable + setup x64 EXE',
-    builderArgs: ['--win', '--x64'],
-    artifactHint: 'release/Gremia.SBV-<version>-win-x64-portable.exe + release/Gremia.SBV-<version>-win-x64-setup.exe'
+    label: 'Windows portable x64 EXE + MSI',
+    builderArgs: ['--win', 'portable', 'msi', '--x64'],
+    artifactHint: 'release/Gremia.SBV-<version>-win-x64-portable.exe + release/Gremia.SBV-<version>-win-x64.msi'
   },
   'win-portable': {
     os: 'win',
-    label: 'Windows portable + setup x64 EXE',
-    builderArgs: ['--win', '--x64'],
-    artifactHint: 'release/Gremia.SBV-<version>-win-x64-portable.exe + release/Gremia.SBV-<version>-win-x64-setup.exe'
+    label: 'Windows portable x64 EXE + MSI',
+    builderArgs: ['--win', 'portable', 'msi', '--x64'],
+    artifactHint: 'release/Gremia.SBV-<version>-win-x64-portable.exe + release/Gremia.SBV-<version>-win-x64.msi'
   },
   mac: {
     os: 'mac',

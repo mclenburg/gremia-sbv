@@ -8,11 +8,6 @@ const buildDoc = readNormalizedSourceText('docs/BUILD.md');
 const pkg = JSON.parse(readNormalizedSourceText('package.json')) as {
   version: string;
   scripts: Record<string, string>;
-  build: {
-    win: { target: Array<{ target: string }> };
-    portable?: { artifactName?: string };
-    nsis?: { artifactName?: string };
-  };
 };
 const lock = JSON.parse(readNormalizedSourceText('package-lock.json')) as {
   version: string;
@@ -25,25 +20,24 @@ describe('Windows release artifacts', () => {
     expect(lock.packages[''].version).toBe(pkg.version);
   });
 
-  it('builds both portable Windows executable and NSIS installer', () => {
-    expect(buildPlatform).toContain("label: 'Windows portable + setup x64 EXE'");
-    expect(buildPlatform).toContain("builderArgs: ['--win', '--x64']");
-    expect(pkg.build.win.target.map((entry) => entry.target)).toEqual(['portable', 'nsis']);
-    expect(pkg.build.portable?.artifactName).toContain('-portable.');
-    expect(pkg.build.nsis?.artifactName).toContain('-setup.');
+  it('builds portable Windows executable and native MSI for the release path', () => {
+    expect(buildPlatform).toContain("label: 'Windows portable x64 EXE + MSI'");
+    expect(buildPlatform).toContain("builderArgs: ['--win', 'portable', 'msi', '--x64']");
+    expect(buildPlatform).toContain('-win-x64-portable.exe');
+    expect(buildPlatform).toContain('-win-x64.msi');
+    expect(buildPlatform).not.toContain('setup x64 EXE');
   });
 
-  it('uploads only the free-account release artifacts from the tagged workflow', () => {
+  it('uploads only the intended free-account release artifacts from the tagged workflow', () => {
     expect(workflow).toContain('release/*.AppImage');
-    expect(workflow).toContain('release/*.exe');
+    expect(workflow).toContain('release/*-win-x64-portable.exe');
+    expect(workflow).toContain('release/*-win-x64.msi');
     expect(workflow).not.toContain('release/*.dmg');
     expect(workflow).not.toContain('macos-latest');
     expect(workflow).not.toContain('release/*.blockmap');
     expect(workflow).not.toContain('release/latest.yml');
     expect(workflow).not.toContain('release/*.zip');
   });
-
-
 
   it('paketiert ausschließlich einen unveränderten, zuvor kompilierten Artefaktstand', () => {
     expect(buildPlatform).toContain("runNodeScript('scripts/build-artifact-state.cjs', ['check'])");
@@ -54,11 +48,12 @@ describe('Windows release artifacts', () => {
     expect(buildPlatform).not.toContain("run(command('node')");
   });
 
-  it('documents the dual Windows release decision', () => {
+  it('documents portable EXE plus MSI as the Windows release decision', () => {
     expect(windowsBuildDoc).toContain('portable');
-    expect(windowsBuildDoc).toContain('NSIS-Installer');
-    expect(windowsBuildDoc).toContain('Self-Extract');
-    expect(buildDoc).toContain('portable `.exe` + NSIS-Setup `.exe`');
+    expect(windowsBuildDoc).toContain('MSI');
+    expect(windowsBuildDoc).not.toContain('NSIS-Installer');
+    expect(buildDoc).toContain('portable `.exe` + `.msi`');
+    expect(buildDoc).toContain('-win-x64.msi');
   });
 
   it('exposes the RC verification script', () => {

@@ -143,7 +143,7 @@ jobs:
             label: Linux AppImage
             os: ubuntu-latest
           - platform: windows
-            label: Windows portable + setup EXE
+            label: Windows portable + MSI
             os: windows-latest
 
     steps:
@@ -179,7 +179,7 @@ jobs:
         if: matrix.platform == 'linux'
         run: xvfb-run -a npm run release:platform:linux
 
-      - name: Package Windows portable + setup EXE
+      - name: Package Windows portable EXE + MSI
         if: matrix.platform == 'windows'
         run: node scripts/build-platform.cjs win
 
@@ -207,14 +207,20 @@ jobs:
         run: |
           set -euo pipefail
 
-          legacy_asset="Gremia.SBV-${PACKAGE_VERSION}-win-x64.exe"
-          if gh release view "${RELEASE_TAG}" --repo "${GH_REPO}" --json assets \
-            --jq '.assets[].name' | grep -Fxq "${legacy_asset}"; then
-            echo "Removing legacy Windows asset ${legacy_asset}"
-            gh release delete-asset "${RELEASE_TAG}" "${legacy_asset}" --yes --repo "${GH_REPO}"
-          fi
+          obsolete_assets=(
+            "Gremia.SBV-${PACKAGE_VERSION}-win-x64.exe"
+            "Gremia.SBV-${PACKAGE_VERSION}-win-x64-setup.exe"
+          )
+          for obsolete_asset in "${obsolete_assets[@]}"; do
+            if gh release view "${RELEASE_TAG}" --repo "${GH_REPO}" --json assets \
+              --jq '.assets[].name' | grep -Fxq "${obsolete_asset}"; then
+              echo "Removing obsolete Windows asset ${obsolete_asset}"
+              gh release delete-asset "${RELEASE_TAG}" "${obsolete_asset}" --yes --repo "${GH_REPO}"
+            fi
+          done
 
           gh release upload "${RELEASE_TAG}" \
-            release/*.exe \
+            release/*-win-x64-portable.exe \
+            release/*-win-x64.msi \
             --clobber \
             --repo "${GH_REPO}"

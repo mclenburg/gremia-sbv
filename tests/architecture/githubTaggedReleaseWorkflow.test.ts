@@ -84,10 +84,10 @@ function inspectTaggedReleaseWorkflow(workflow: string) {
       "node scripts/build-platform.cjs linux",
       "node scripts/build-platform.cjs win",
       "Linux AppImage",
-      "Windows portable + setup EXE",
+      "Windows portable + MSI",
     ]),
-    windowsDualArtifacts: includesAll(buildPlatformScript, ["'--win', '--x64'", "portable + setup"])
-      && includesAll(workflow, ["Package Windows portable + setup EXE", "release/*.exe"]),
+    windowsDualArtifacts: includesAll(buildPlatformScript, ["'--win', 'portable', 'msi', '--x64'", "portable x64 EXE + MSI"])
+      && includesAll(workflow, ["Package Windows portable EXE + MSI", "release/*-win-x64-portable.exe", "release/*-win-x64.msi"]),
     publishIsSingleOwner: includesAll(buildPlatformScript, ["'--publish', 'never'"])
       && includesAll(workflow, ["gh release upload", "--clobber"])
       && includesNone(workflow, ["softprops/action-gh-release@v2"]),
@@ -96,11 +96,12 @@ function inspectTaggedReleaseWorkflow(workflow: string) {
       "gh release upload \"${RELEASE_TAG}\"",
       "--clobber",
       "gh release delete-asset",
-      "legacy_asset=",
+      "obsolete_assets=(",
+      "-win-x64-setup.exe",
     ]),
     platformVerificationFollowsPackaging:
       workflow.indexOf("Verify Windows artifacts, portable startup, paths and backup/restore")
-        > workflow.indexOf("Package Windows portable + setup EXE")
+        > workflow.indexOf("Package Windows portable EXE + MSI")
       && workflow.indexOf("Verify Linux artifact, desktop startup, paths and backup/restore")
         > workflow.indexOf("Package Linux AppImage"),
     noWorkflowArtifactRoundtrip: includesNone(workflow, [
@@ -150,6 +151,16 @@ function createSparsePe(pathname: string): void {
   }
 }
 
+function createSparseMsi(pathname: string): void {
+  const fd = openSync(pathname, "w");
+  try {
+    writeSync(fd, Buffer.from([0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1]), 0, 8, 0);
+    ftruncateSync(fd, 26 * 1024 * 1024);
+  } finally {
+    closeSync(fd);
+  }
+}
+
 describe("Taggebundener GitHub-Release-Build", () => {
   it("erfüllt den vollständigen semantischen Releasevertrag", () => {
     expect(inspectTaggedReleaseWorkflow(taggedReleaseWorkflow)).toEqual({
@@ -188,7 +199,7 @@ describe("Taggebundener GitHub-Release-Build", () => {
 
       const since = Date.now() - 1000;
       createSparsePe(path.join(releaseDir, `Gremia.SBV-${packageJson.version}-win-x64-portable.exe`));
-      createSparsePe(path.join(releaseDir, `Gremia.SBV-${packageJson.version}-win-x64-setup.exe`));
+      createSparseMsi(path.join(releaseDir, `Gremia.SBV-${packageJson.version}-win-x64.msi`));
       createSparsePe(path.join(unpackedDir, "Gremia.SBV.exe"));
 
       const verifier = path.resolve("scripts/verify-release-artifacts.cjs");
@@ -204,6 +215,7 @@ describe("Taggebundener GitHub-Release-Build", () => {
       rmSync(temp, { recursive: true, force: true });
     }
   });
+
   it("kann die Plattformprüfung nach dem Packaging über einen verifizierten Buildbeleg erneut ausführen", () => {
     const temp = mkdtempSync(path.join(os.tmpdir(), "gremia-release-receipt-"));
     try {
@@ -211,9 +223,9 @@ describe("Taggebundener GitHub-Release-Build", () => {
       mkdirSync(releaseDir, { recursive: true });
       const since = Date.now() - 1000;
       const portable = path.join(releaseDir, `Gremia.SBV-${packageJson.version}-win-x64-portable.exe`);
-      const setup = path.join(releaseDir, `Gremia.SBV-${packageJson.version}-win-x64-setup.exe`);
+      const msi = path.join(releaseDir, `Gremia.SBV-${packageJson.version}-win-x64.msi`);
       createSparsePe(portable);
-      createSparsePe(setup);
+      createSparseMsi(msi);
 
       const verifier = path.resolve("scripts/verify-release-artifacts.cjs");
       const first = spawnSync(process.execPath, [verifier, "win", "--since", String(since), "--write-receipt"], {
@@ -230,8 +242,8 @@ describe("Taggebundener GitHub-Release-Build", () => {
     }
   });
 
-  it("verweigert einen Windows-Release, wenn der Setup-Installer fehlt", () => {
-    const temp = mkdtempSync(path.join(os.tmpdir(), "gremia-release-missing-setup-"));
+  it("verweigert einen Windows-Release, wenn das MSI-Artefakt fehlt", () => {
+    const temp = mkdtempSync(path.join(os.tmpdir(), "gremia-release-missing-msi-"));
     try {
       const releaseDir = path.join(temp, "release");
       mkdirSync(releaseDir, { recursive: true });
@@ -245,10 +257,9 @@ describe("Taggebundener GitHub-Release-Build", () => {
       });
 
       expect(result.status).not.toBe(0);
-      expect(result.stderr).toContain("setup-Artefakt erwartet");
+      expect(result.stderr).toContain("msi-Artefakt erwartet");
     } finally {
       rmSync(temp, { recursive: true, force: true });
     }
   });
-
 });
