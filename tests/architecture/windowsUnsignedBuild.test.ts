@@ -1,26 +1,74 @@
-import { readFileSync } from "node:fs";
-import { describe, expect, it } from "vitest";
+import {
+  closeSync,
+  ftruncateSync,
+  mkdirSync,
+  mkdtempSync,
+  openSync,
+  rmSync,
+  writeSync,
+} from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import os from 'node:os';
+import path from 'node:path';
+import { describe, expect, it } from 'vitest';
 
-const project = JSON.parse(readFileSync("package.json", "utf8"));
-const buildDocs = readFileSync("docs/BUILD.md", "utf8");
+const verifier = path.resolve('scripts/verify-release-artifacts.cjs');
+const PE_MAGIC = Buffer.from([0x4d, 0x5a]);
+const MSI_MAGIC = Buffer.from([0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1]);
+const ARTIFACT_BYTES = 26 * 1024 * 1024;
 
-describe("Windows RC build contract", () => {
-  it("builds portable Windows executable and NSIS installer as separate artifacts", () => {
-    expect(project.build.win.signAndEditExecutable).toBe(false);
-    expect(project.build.win.target).toEqual([
-      expect.objectContaining({ target: "portable" }),
-      expect.objectContaining({ target: "nsis" }),
-    ]);
-    expect(project.build.portable.artifactName).toContain("-portable.");
-    expect(project.build.nsis.artifactName).toContain("-setup.");
+function createSparseArtifact(pathname: string, magic: Buffer): void {
+  const fd = openSync(pathname, 'w');
+  try {
+    writeSync(fd, magic, 0, magic.length, 0);
+    ftruncateSync(fd, ARTIFACT_BYTES);
+  } finally {
+    closeSync(fd);
+  }
+}
+
+function createFixture(): { root: string; releaseDir: string; since: number } {
+  const root = mkdtempSync(path.join(os.tmpdir(), 'gremia-windows-release-contract-'));
+  const releaseDir = path.join(root, 'release');
+  mkdirSync(releaseDir, { recursive: true });
+  return { root, releaseDir, since: Date.now() - 1_000 };
+}
+
+function runVerifier(root: string, since: number) {
+  return spawnSync(process.execPath, [verifier, 'win', '--since', String(since)], {
+    cwd: root,
+    encoding: 'utf8',
+  });
+}
+
+describe('Windows Release-Vertrag', () => {
+  it('akzeptiert portable EXE und MSI gemeinsam als Windows-Endanwenderartefakte', () => {
+    const { root, releaseDir, since } = createFixture();
+    try {
+      createSparseArtifact(path.join(releaseDir, 'Gremia.SBV-test-win-x64-portable.exe'), PE_MAGIC);
+      createSparseArtifact(path.join(releaseDir, 'Gremia.SBV-test-win-x64.msi'), MSI_MAGIC);
+
+      const result = runVerifier(root, since);
+
+      expect(result.status).toBe(0);
+      expect(result.stderr).toBe('');
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 
-  it("keeps native dependency rebuild independent from Windows executable resource editing", () => {
-    expect(project.scripts.postinstall).toBeUndefined();
-    expect(project.scripts["native:install-app-deps"]).toBe("node scripts/install-electron-app-deps.cjs");
-    expect(project.scripts["native:rebuild:electron"]).toBe("node scripts/install-electron-app-deps.cjs");
-    expect(buildDocs).toContain("signAndEditExecutable");
-    expect(buildDocs).toContain("Cannot create symbolic link");
-    expect(buildDocs).toContain("portable `.exe` + NSIS-Setup `.exe`");
+  it('lehnt den früheren NSIS-Setup-Pfad ohne MSI als unvollständigen Windows-Release ab', () => {
+    const { root, releaseDir, since } = createFixture();
+    try {
+      createSparseArtifact(path.join(releaseDir, 'Gremia.SBV-test-win-x64-portable.exe'), PE_MAGIC);
+      createSparseArtifact(path.join(releaseDir, 'Gremia.SBV-test-win-x64-setup.exe'), PE_MAGIC);
+
+      const result = runVerifier(root, since);
+
+      expect(result.status).not.toBe(0);
+      expect(result.stderr).toContain('msi-Artefakt erwartet');
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 });

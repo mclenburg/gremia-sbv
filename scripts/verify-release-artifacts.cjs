@@ -147,7 +147,7 @@ try {
 
   if (candidates.length !== verifiedArtifacts.length) {
     const unexpected = candidates.filter((candidate) => !verifiedArtifacts.some(({ artifact }) => artifact === candidate));
-    fail(`unerwartete aktuelle Endanwenderartefakte: ${unexpected.map(path.basename).join(', ') || candidates.length}`);
+    fail(`unerwartete aktuelle Endanwenderartefakte: ${unexpected.map((candidate) => path.basename(candidate)).join(', ') || candidates.length}`);
   }
 
   if (receipt) {
