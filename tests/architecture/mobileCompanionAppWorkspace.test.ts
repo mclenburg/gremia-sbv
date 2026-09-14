@@ -49,7 +49,7 @@ describe('Android-Begleit-App Arbeitsbereich', () => {
 
     expect(policy.includes('"GSBV1"')).toBe(true);
     expect(policy.includes('"ABCDEFGHJKLMNPQRSTUVWXYZ23456789"')).toBe(true);
-    expect(factory.includes('id_X25519')).toBe(true);
+    expect(factory.includes('"1.3.101.110"')).toBe(true);
     expect(appBuild.includes('org.bouncycastle:bcprov-jdk18on:1.85.2')).toBe(true);
     expect(appBuild.includes('firebase')).toBe(false);
     expect(licenses.includes('AGPL-3-kompatibel')).toBe(true);
