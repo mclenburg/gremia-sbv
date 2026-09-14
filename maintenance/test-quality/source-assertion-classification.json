@@ -79,12 +79,6 @@
       "rationale": "Statische Architekturregel: Der versionierte Migrationshook darf keine Fachservices als zweite Schemaquelle instanziieren und Runtime-Fassaden dürfen keine zweite strukturelle Schemaquelle enthalten."
     },
     {
-      "file": "tests/platform/electron/rcWindowsPortableArtifact.test.ts",
-      "category": "A",
-      "sourceAssertions": 21,
-      "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
-    },
-    {
       "file": "tests/features/participation/recruitingParticipationIntegration.test.ts",
       "category": "A",
       "sourceAssertions": 3,
