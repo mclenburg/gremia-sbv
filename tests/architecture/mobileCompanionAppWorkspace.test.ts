@@ -18,6 +18,12 @@ describe('Android-Begleit-App Arbeitsbereich', () => {
       'app/build.gradle.kts',
       'app/src/main/AndroidManifest.xml',
       'app/src/main/java/de/gremia/sbv/companion/MainActivity.kt',
+      'app/src/main/java/de/gremia/sbv/companion/data/security/AndroidSecretBox.kt',
+      'app/src/main/java/de/gremia/sbv/companion/data/transfer/TransferIdentityRepository.kt',
+      'app/src/main/java/de/gremia/sbv/companion/domain/transfer/TransferIdentity.kt',
+      'app/src/main/java/de/gremia/sbv/companion/domain/transfer/TransferIdentityPolicy.kt',
+      'app/src/main/java/de/gremia/sbv/companion/domain/transfer/X25519IdentityFactory.kt',
+      'app/src/main/java/de/gremia/sbv/companion/ui/AppShellRenderer.kt',
     ]) {
       expect(existsSync(join(workspaceRoot, file))).toBe(true);
     }
@@ -33,5 +39,19 @@ describe('Android-Begleit-App Arbeitsbereich', () => {
     expect(appBuild.includes('de.gremia.sbv.companion')).toBe(true);
     expect(appBuild.includes('project(":')).toBe(false);
     expect(strings.includes('Gremia.SBV Begleit-App')).toBe(true);
+  });
+
+  it('stellt die Desktop-kompatible Empfängerkennung ohne Telemetrie-Abhängigkeit bereit', () => {
+    const appBuild = readWorkspaceFile('app/build.gradle.kts');
+    const policy = readWorkspaceFile('app/src/main/java/de/gremia/sbv/companion/domain/transfer/TransferIdentityPolicy.kt');
+    const factory = readWorkspaceFile('app/src/main/java/de/gremia/sbv/companion/domain/transfer/X25519IdentityFactory.kt');
+    const licenses = readWorkspaceFile('THIRD_PARTY_LICENSES.md');
+
+    expect(policy.includes('"GSBV1"')).toBe(true);
+    expect(policy.includes('"ABCDEFGHJKLMNPQRSTUVWXYZ23456789"')).toBe(true);
+    expect(factory.includes('id_X25519')).toBe(true);
+    expect(appBuild.includes('org.bouncycastle:bcprov-jdk18on:1.85.2')).toBe(true);
+    expect(appBuild.includes('firebase')).toBe(false);
+    expect(licenses.includes('AGPL-3-kompatibel')).toBe(true);
   });
 });

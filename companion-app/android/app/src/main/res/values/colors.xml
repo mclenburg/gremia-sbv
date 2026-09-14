@@ -2,6 +2,8 @@
 <resources>
     <color name="gremia_background">#0B0B0F</color>
     <color name="gremia_surface">#15151B</color>
+    <color name="gremia_value_background">#0F0F14</color>
+    <color name="gremia_border">#3E3E48</color>
     <color name="gremia_text_primary">#F7F7FA</color>
     <color name="gremia_text_secondary">#B8B8C3</color>
     <color name="gremia_accent">#FFD400</color>

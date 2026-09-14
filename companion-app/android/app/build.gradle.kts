@@ -37,3 +37,7 @@ android {
         jvmTarget = "17"
     }
 }
+
+dependencies {
+    implementation("org.bouncycastle:bcprov-jdk18on:1.85.2")
+}

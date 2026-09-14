@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Gremia.SBV Begleit-App</string>
-    <string name="app_shell_description">Mobiler Arbeitsbereich für verschlüsselte Projektionen aus Gremia.SBV.</string>
+    <string name="app_shell_kicker">MOBILER SBV-ARBEITSRAUM</string>
+    <string name="app_shell_description">Mobiler Arbeitsbereich für verschlüsselte Projektionen aus Gremia.SBV. Der Desktop-Tresor bleibt führend.</string>
+    <string name="pairing_kicker">KOPPLUNG</string>
+    <string name="pairing_title">Dieses Mobilgerät koppeln</string>
+    <string name="pairing_description">Diese öffentliche Empfängerkennung wird in Gremia.SBV Desktop unter Übergaben → Begleit-App eingetragen.</string>
+    <string name="instance_id_label">Instanz-ID</string>
+    <string name="recipient_token_label">Öffentliche Empfängerkennung</string>
+    <string name="copy_recipient_token">Empfängerkennung kopieren</string>
+    <string name="recipient_token_copied">Empfängerkennung wurde kopiert.</string>
 </resources>

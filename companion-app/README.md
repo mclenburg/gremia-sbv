@@ -20,5 +20,8 @@ Rückgabedatei zurück.
 
 - `android/` enthält den eigenständigen Android-Gradle-Build.
 - `android/app/src/main/java/de/gremia/sbv/companion/` enthält die App-Shell.
+- Die erste produktive App-Funktion erzeugt lokal eine X25519-Transferidentität,
+  schützt den privaten Schlüssel mit dem Android Keystore und zeigt nur die
+  öffentliche Empfängerkennung für die Kopplung mit Gremia.SBV Desktop an.
 - Fachlogik für QR-Empfang, Projektion, lokale Bearbeitung und Rückgabe wird in
-  späteren Slices getrennt nach Domäne, Transfer und UI ergänzt.
+  den nächsten Slices getrennt nach Domäne, Transfer und UI ergänzt.
