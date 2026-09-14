@@ -24,10 +24,10 @@ const TARGETS = {
     artifactHint: 'release/Gremia.SBV-<version>-win-x64-portable.exe + release/Gremia.SBV-<version>-win-x64.msi'
   },
   'win-portable': {
-    os: 'win',
-    label: 'Windows portable x64 EXE + MSI',
-    builderArgs: ['--win', 'portable', 'msi', '--x64'],
-    artifactHint: 'release/Gremia.SBV-<version>-win-x64-portable.exe + release/Gremia.SBV-<version>-win-x64.msi'
+    os: 'win-portable',
+    label: 'Windows portable x64 EXE',
+    builderArgs: ['--win', 'portable', '--x64'],
+    artifactHint: 'release/Gremia.SBV-<version>-win-x64-portable.exe'
   },
   mac: {
     os: 'mac',

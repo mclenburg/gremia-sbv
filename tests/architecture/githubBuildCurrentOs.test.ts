@@ -4,6 +4,8 @@ import { describe, expect, it } from 'vitest';
 const require = createRequire(import.meta.url);
 const githubBuild = require('../../scripts/run-github-build-current-os.cjs') as {
   buildSequence(): Array<[string, string[]]>;
+  currentPlatformBuildScript(platform?: NodeJS.Platform): string;
+  currentPlatformReleaseScript(platform?: NodeJS.Platform): string | null;
   githubBuildEnvironment(baseEnv?: NodeJS.ProcessEnv): NodeJS.ProcessEnv;
   githubCoverageDirectory(pid?: number): string;
 };
@@ -17,8 +19,13 @@ describe('0.9.5-e local GitHub build command', () => {
       'npm run build:quality',
       'npm run build:compile',
     ]);
-    expect(sequence.some((command) => /^npm run build:package:(linux|windows|mac)$/u.test(command))).toBe(true);
+    expect(sequence.some((command) => /^npm run build:package:(linux|windows-portable|mac)$/u.test(command))).toBe(true);
     expect(sequence).not.toContain('npm run licenses:generate');
+  });
+
+  it('verwendet im Windows-PR-Build nur den portablen Windows-Vertrag ohne MSI/WiX-Download', () => {
+    expect(githubBuild.currentPlatformBuildScript('win32')).toBe('build:package:windows-portable');
+    expect(githubBuild.currentPlatformReleaseScript('win32')).toBe('release:platform:windows-portable');
   });
 
   it('isoliert Vitest-Coverage pro GitHub-Build-Prozess gegen parallele lokale Läufe', () => {

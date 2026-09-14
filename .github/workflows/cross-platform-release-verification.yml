@@ -38,10 +38,10 @@ jobs:
             package_script: build:package:linux
             platform_check: release:platform:linux
           - platform: windows
-            label: Windows portable + setup EXE
+            label: Windows portable EXE
             os: windows-latest
-            package_script: build:package:windows
-            platform_check: release:platform:windows
+            package_script: build:package:windows-portable
+            platform_check: release:platform:windows-portable
     steps:
       - name: Checkout
         uses: actions/checkout@v4

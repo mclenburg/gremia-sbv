@@ -24,6 +24,11 @@ const contracts = {
       { id: 'msi', pattern: /-win-x64\.msi$/, extension: '.msi', magic: MSI_MAGIC, minimumBytes: 25 * 1024 * 1024 },
     ],
   },
+  'win-portable': {
+    expectedArtifacts: [
+      { id: 'portable', pattern: /-win-x64-portable\.exe$/, extension: '.exe', magic: PE_MAGIC, minimumBytes: 25 * 1024 * 1024 },
+    ],
+  },
   windows: null,
   mac: {
     expectedArtifacts: [
@@ -107,7 +112,7 @@ function writeBuildReceipt(value, since, artifacts) {
 
 try {
   const contract = contracts[target];
-  if (!contract) fail('Nutzung: node scripts/verify-release-artifacts.cjs <linux|win|mac> [--since <Zeitstempel>] [--write-receipt]');
+  if (!contract) fail('Nutzung: node scripts/verify-release-artifacts.cjs <linux|win|win-portable|mac> [--since <Zeitstempel>] [--write-receipt]');
   if (writeReceipt && (!Number.isFinite(explicitSince) || explicitSince <= 0)) {
     fail('--write-receipt benötigt einen gültigen Buildstart-Zeitstempel (--since <Millisekunden>).');
   }
