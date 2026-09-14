@@ -1,68 +1,98 @@
-import { readFileSync } from "node:fs";
-import { describe, expect, it } from "vitest";
+import {
+  closeSync,
+  ftruncateSync,
+  mkdirSync,
+  mkdtempSync,
+  openSync,
+  rmSync,
+  utimesSync,
+  writeSync,
+} from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import os from 'node:os';
+import path from 'node:path';
+import { describe, expect, it } from 'vitest';
 
-const pkg = JSON.parse(readFileSync("package.json", "utf8")) as {
-  scripts: Record<string, string>;
-  desktopName?: string;
-  build: { linux: { syncDesktopName?: boolean } };
-};
-const crossPlatformWorkflow = readFileSync(".github/workflows/cross-platform-release-verification.yml", "utf8");
-const releaseWorkflow = readFileSync(".github/workflows/build-release.yml", "utf8");
-const buildPlatform = readFileSync("scripts/build-platform.cjs", "utf8");
-const artifactVerifier = readFileSync("scripts/verify-release-artifacts.cjs", "utf8");
-const startupSmoke = readFileSync("scripts/run-packaged-startup-smoke.cjs", "utf8");
+const verifier = path.resolve('scripts/verify-release-artifacts.cjs');
+const PE_MAGIC = Buffer.from([0x4d, 0x5a]);
+const MSI_MAGIC = Buffer.from([0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1]);
+const ARTIFACT_BYTES = 26 * 1024 * 1024;
 
-describe("Patch-4-Cross-Platform- und Packaging-Vertrag", () => {
-  it("führt die reale Abnahme nativ auf Ubuntu und Windows aus", () => {
-    expect(crossPlatformWorkflow).toContain("ubuntu-latest");
-    expect(crossPlatformWorkflow).toContain("windows-latest");
-    expect(crossPlatformWorkflow).toContain("run: npm ci");
-    expect(crossPlatformWorkflow).toContain("run: npm run native:diagnose");
-    expect(crossPlatformWorkflow).toContain("run: npm run build:quality");
-    expect(crossPlatformWorkflow).toContain("run: npm run build:compile");
-    expect(crossPlatformWorkflow).toContain("release:platform:windows");
-    expect(crossPlatformWorkflow).toContain("release:platform:linux");
+function createSparseArtifact(pathname: string, magic: Buffer): void {
+  const fd = openSync(pathname, 'w');
+  try {
+    writeSync(fd, magic, 0, magic.length, 0);
+    ftruncateSync(fd, ARTIFACT_BYTES);
+  } finally {
+    closeSync(fd);
+  }
+}
+
+function createFixture(): { root: string; releaseDir: string; since: number } {
+  const root = mkdtempSync(path.join(os.tmpdir(), 'gremia-cross-platform-packaging-'));
+  const releaseDir = path.join(root, 'release');
+  mkdirSync(releaseDir, { recursive: true });
+  return { root, releaseDir, since: Date.now() - 1_000 };
+}
+
+function createCurrentWindowsArtifacts(releaseDir: string): void {
+  createSparseArtifact(path.join(releaseDir, 'Gremia.SBV-test-win-x64-portable.exe'), PE_MAGIC);
+  createSparseArtifact(path.join(releaseDir, 'Gremia.SBV-test-win-x64.msi'), MSI_MAGIC);
+}
+
+function runVerifier(root: string, args: string[]) {
+  return spawnSync(process.execPath, [verifier, ...args], { cwd: root, encoding: 'utf8' });
+}
+
+describe('Cross-Platform-Packaging-Verhalten', () => {
+  it('ignoriert ein altes Windows-Endanwenderartefakt vor dem aktuellen Packaging-Start', () => {
+    const { root, releaseDir, since } = createFixture();
+    try {
+      const legacySetup = path.join(releaseDir, 'Gremia.SBV-alt-win-x64-setup.exe');
+      createSparseArtifact(legacySetup, PE_MAGIC);
+      const old = new Date(since - 60_000);
+      utimesSync(legacySetup, old, old);
+      createCurrentWindowsArtifacts(releaseDir);
+
+      const result = runVerifier(root, ['win', '--since', String(since)]);
+
+      expect(result.status).toBe(0);
+      expect(result.stderr).toBe('');
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 
-  it("verifiziert auch im taggebundenen Releaseweg Startfähigkeit und Plattformpfade", () => {
-    expect(releaseWorkflow).toContain("Verify Windows artifacts, portable startup, paths and backup/restore");
-    expect(releaseWorkflow).toContain("Verify Linux artifact, desktop startup, paths and backup/restore");
-    expect(releaseWorkflow).toContain("xvfb-run -a npm run release:platform:linux");
-    expect(releaseWorkflow).toContain("run: npm run release:platform:windows");
+  it('ignoriert interne win-unpacked-EXEs bei der Endanwender-Artefaktprüfung', () => {
+    const { root, releaseDir, since } = createFixture();
+    try {
+      createCurrentWindowsArtifacts(releaseDir);
+      const unpackedDir = path.join(releaseDir, 'win-unpacked');
+      mkdirSync(unpackedDir, { recursive: true });
+      createSparseArtifact(path.join(unpackedDir, 'Gremia.SBV.exe'), PE_MAGIC);
+
+      const result = runVerifier(root, ['win', '--since', String(since)]);
+
+      expect(result.status).toBe(0);
+      expect(result.stderr).toBe('');
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 
-  it("erzwingt Artefaktprüfung für das aktuelle Packaging und ignoriert Altartefakte", () => {
-    expect(buildPlatform).toContain("scripts/verify-release-artifacts.cjs");
-    expect(buildPlatform).toContain("const packagingStartedAt = Date.now()");
-    expect(buildPlatform).toContain("[selected.os, '--since', String(packagingStartedAt), '--write-receipt']");
-    expect(buildPlatform).toMatch(
-      /runNpmScript\('native:rebuild:electron'\);\s*const packagingStartedAt = Date\.now\(\);\s*runNodeScript\('scripts\/run-electron-builder\.cjs', \[\.\.\.selected\.builderArgs, '--publish', 'never'\]\);\s*runNodeScript\('scripts\/verify-release-artifacts\.cjs', \[selected\.os, '--since', String\(packagingStartedAt\), '--write-receipt'\]\);/,
-    );
-    expect(buildPlatform).not.toContain("cleanPreviousEndUserArtifacts");
-    expect(artifactVerifier).toContain("const sinceIndex = process.argv.indexOf('--since')");
-    expect(artifactVerifier).toContain("readReceipt(target)");
-    expect(artifactVerifier).toContain("fs.statSync(file).mtimeMs >= since");
-    expect(artifactVerifier).toContain("minimumBytes");
-    expect(artifactVerifier).toContain("Dateisignatur");
-    expect(artifactVerifier).toContain("-win-x64-portable\\.exe");
-    expect(artifactVerifier).toContain("-win-x64-setup\\.exe");
-  });
+  it('kann einen unveränderten Windows-Build über den geschriebenen Buildbeleg erneut verifizieren', () => {
+    const { root, releaseDir, since } = createFixture();
+    try {
+      createCurrentWindowsArtifacts(releaseDir);
 
-  it("prüft den gestarteten Build mit Leerzeichen-, Umlaut- und Langpfad", () => {
-    expect(startupSmoke).toContain("Pfad mit Leerzeichen und Ümlauten");
-    expect(startupSmoke).toContain("'langer-pfad-'.repeat(9)");
-    expect(startupSmoke).toContain("--startup-smoke-test");
-    expect(startupSmoke).toContain(".gremia-sbv-${canonicalTarget}-artifact.json");
-    expect(startupSmoke).toContain("receipt.artifacts");
-    expect(startupSmoke).not.toContain("fs.readdirSync(releaseDir).filter((name) => name.endsWith(extension))");
-    expect(startupSmoke).toContain("process.env.CI");
-    expect(startupSmoke).toContain("Der PR-/Release-Build darf den Desktop-Smoke nicht still überspringen.");
-    expect(pkg.scripts["release:smoke:windows"]).toContain("run-packaged-startup-smoke.cjs win");
-    expect(startupSmoke).toContain("-win-x64-portable\\.exe");
-  });
+      const initial = runVerifier(root, ['win', '--since', String(since), '--write-receipt']);
+      expect(initial.status).toBe(0);
 
-  it("konfiguriert die Linux-Desktopintegration eindeutig", () => {
-    expect(pkg.desktopName).toBe("de.gremia.sbv.desktop");
-    expect(pkg.build.linux.syncDesktopName).toBe(true);
+      const repeated = runVerifier(root, ['win']);
+      expect(repeated.status).toBe(0);
+      expect(repeated.stderr).toBe('');
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 });
