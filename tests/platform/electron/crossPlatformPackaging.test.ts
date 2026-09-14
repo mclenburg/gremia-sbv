@@ -40,6 +40,10 @@ function createCurrentWindowsArtifacts(releaseDir: string): void {
   createSparseArtifact(path.join(releaseDir, 'Gremia.SBV-test-win-x64.msi'), MSI_MAGIC);
 }
 
+function createCurrentWindowsPortableArtifact(releaseDir: string): void {
+  createSparseArtifact(path.join(releaseDir, 'Gremia.SBV-test-win-x64-portable.exe'), PE_MAGIC);
+}
+
 function runVerifier(root: string, args: string[]) {
   return spawnSync(process.execPath, [verifier, ...args], { cwd: root, encoding: 'utf8' });
 }
@@ -91,6 +95,35 @@ describe('Cross-Platform-Packaging-Verhalten', () => {
       const repeated = runVerifier(root, ['win']);
       expect(repeated.status).toBe(0);
       expect(repeated.stderr).toBe('');
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('akzeptiert im PR-Vertrag eine portable Windows-EXE ohne MSI', () => {
+    const { root, releaseDir, since } = createFixture();
+    try {
+      createCurrentWindowsPortableArtifact(releaseDir);
+
+      const result = runVerifier(root, ['win-portable', '--since', String(since), '--write-receipt']);
+
+      expect(result.status).toBe(0);
+      expect(result.stderr).toBe('');
+      expect(result.stdout).toContain('Gremia.SBV-test-win-x64-portable.exe');
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('lässt den vollständigen Windows-Release-Vertrag weiter an fehlender MSI scheitern', () => {
+    const { root, releaseDir, since } = createFixture();
+    try {
+      createCurrentWindowsPortableArtifact(releaseDir);
+
+      const result = runVerifier(root, ['win', '--since', String(since)]);
+
+      expect(result.status).not.toBe(0);
+      expect(result.stderr).toContain('msi-Artefakt erwartet');
     } finally {
       rmSync(root, { recursive: true, force: true });
     }

@@ -17,6 +17,7 @@ const expected = {
   'build:mac': 'npm run build:verify && npm run build:compile && npm run build:package:mac',
   'build:package:linux': 'node scripts/build-platform.cjs linux',
   'build:package:windows': 'node scripts/build-platform.cjs win',
+  'build:package:windows-portable': 'node scripts/build-platform.cjs win-portable',
   'build:package:mac': 'node scripts/build-platform.cjs mac',
   'build:current': 'node scripts/build-current-platform.cjs',
   'native:clean': 'node scripts/clean-native-build.cjs'
@@ -26,7 +27,7 @@ for (const [name, value] of Object.entries(expected)) {
   if (scripts[name] !== value) fail(`${name} muss "${value}" sein, ist aber "${scripts[name]}".`);
 }
 
-for (const name of ['build:linux', 'build:win', 'build:windows', 'build:mac', 'build:package:linux', 'build:package:windows', 'build:package:mac']) {
+for (const name of ['build:linux', 'build:win', 'build:windows', 'build:mac', 'build:package:linux', 'build:package:windows', 'build:package:windows-portable', 'build:package:mac']) {
   if (/\bbash\b|\.sh\b/.test(scripts[name] || '')) {
     fail(`${name} darf nicht von Bash abhängig sein.`);
   }

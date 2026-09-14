@@ -5,9 +5,10 @@ const path = require('node:path');
 const { spawn } = require('node:child_process');
 
 const target = (process.argv[2] || '').toLowerCase();
-const extension = target === 'linux' ? '.AppImage' : (target === 'win' || target === 'windows' ? '.exe' : null);
+const isWindowsTarget = target === 'win' || target === 'windows' || target === 'win-portable';
+const extension = target === 'linux' ? '.AppImage' : (isWindowsTarget ? '.exe' : null);
 if (!extension) {
-  console.error('Nutzung: node scripts/run-packaged-startup-smoke.cjs <linux|win>');
+  console.error('Nutzung: node scripts/run-packaged-startup-smoke.cjs <linux|win|win-portable>');
   process.exit(2);
 }
 
@@ -28,7 +29,7 @@ if (receipt?.version !== 2 || receipt?.target !== canonicalTarget || !Array.isAr
 const startupArtifacts = receipt.artifacts
   .map((entry) => typeof entry?.artifact === 'string' ? entry.artifact : '')
   .filter((name) => name.endsWith(extension))
-  .filter((name) => canonicalTarget !== 'win' || /-win-x64-portable\.exe$/i.test(name))
+  .filter((name) => !isWindowsTarget || /-win-x64-portable\.exe$/i.test(name))
   .map((name) => path.join(releaseDir, path.basename(name)));
 if (startupArtifacts.length !== 1) {
   console.error(`Startup-Smoke-Test erwartet genau ein startbares ${extension}-Artefakt im aktuellen Buildbeleg, gefunden: ${startupArtifacts.length}.`);

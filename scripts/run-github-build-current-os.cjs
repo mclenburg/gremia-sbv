@@ -9,15 +9,15 @@ function hasFlag(name) {
 
 const dryRun = hasFlag('--dry-run');
 
-function currentPlatformBuildScript() {
-  if (process.platform === 'win32') return 'build:package:windows';
-  if (process.platform === 'darwin') return 'build:package:mac';
+function currentPlatformBuildScript(platform = process.platform) {
+  if (platform === 'win32') return 'build:package:windows-portable';
+  if (platform === 'darwin') return 'build:package:mac';
   return 'build:package:linux';
 }
 
-function currentPlatformReleaseScript() {
-  if (process.platform === 'win32') return 'release:platform:windows';
-  if (process.platform === 'linux') return 'release:platform:linux';
+function currentPlatformReleaseScript(platform = process.platform) {
+  if (platform === 'win32') return 'release:platform:windows-portable';
+  if (platform === 'linux') return 'release:platform:linux';
   return null;
 }
 
