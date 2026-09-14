@@ -9,28 +9,26 @@ const sinceIndex = process.argv.indexOf('--since');
 const explicitSince = sinceIndex >= 0 ? Number(process.argv[sinceIndex + 1]) : Number.NaN;
 const writeReceipt = process.argv.includes('--write-receipt');
 
+const PE_MAGIC = Buffer.from([0x4d, 0x5a]);
+const MSI_MAGIC = Buffer.from([0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1]);
+
 const contracts = {
   linux: {
-    extension: '.AppImage',
-    magic: Buffer.from([0x7f, 0x45, 0x4c, 0x46]),
-    minimumBytes: 25 * 1024 * 1024,
-    expectedArtifacts: [{ id: 'appimage', pattern: /\.AppImage$/ }],
+    expectedArtifacts: [
+      { id: 'appimage', pattern: /\.AppImage$/, extension: '.AppImage', magic: Buffer.from([0x7f, 0x45, 0x4c, 0x46]), minimumBytes: 25 * 1024 * 1024 },
+    ],
   },
   win: {
-    extension: '.exe',
-    magic: Buffer.from([0x4d, 0x5a]),
-    minimumBytes: 25 * 1024 * 1024,
     expectedArtifacts: [
-      { id: 'portable', pattern: /-win-x64-portable\.exe$/ },
-      { id: 'setup', pattern: /-win-x64-setup\.exe$/ },
+      { id: 'portable', pattern: /-win-x64-portable\.exe$/, extension: '.exe', magic: PE_MAGIC, minimumBytes: 25 * 1024 * 1024 },
+      { id: 'msi', pattern: /-win-x64\.msi$/, extension: '.msi', magic: MSI_MAGIC, minimumBytes: 25 * 1024 * 1024 },
     ],
   },
   windows: null,
   mac: {
-    extension: '.dmg',
-    magic: null,
-    minimumBytes: 1 * 1024 * 1024,
-    expectedArtifacts: [{ id: 'dmg', pattern: /\.dmg$/ }],
+    expectedArtifacts: [
+      { id: 'dmg', pattern: /\.dmg$/, extension: '.dmg', magic: null, minimumBytes: 1 * 1024 * 1024 },
+    ],
   },
 };
 contracts.windows = contracts.win;
@@ -104,8 +102,7 @@ function writeBuildReceipt(value, since, artifacts) {
       mtimeMs: stat.mtimeMs,
     })),
     verifiedAt: Date.now(),
-  }, null, 2)}
-`, 'utf8');
+  }, null, 2)}\n`, 'utf8');
 }
 
 try {
@@ -120,12 +117,13 @@ try {
   const since = receipt ? receipt.since : explicitSince;
   if (!Number.isFinite(since) || since <= 0) fail('gültiger Buildstart-Zeitstempel fehlt (--since <Millisekunden>) und kein Buildbeleg ist verfügbar.');
 
+  const expectedExtensions = new Set(contract.expectedArtifacts.map((artifact) => artifact.extension));
   const files = walk(releaseDir);
   const candidates = files.filter((file) => {
     // Only top-level release files are end-user artifacts. Files such as
     // release/win-unpacked/Gremia.SBV.exe are internal packaging output.
     if (path.dirname(file) !== releaseDir) return false;
-    if (!file.endsWith(contract.extension)) return false;
+    if (!expectedExtensions.has(path.extname(file))) return false;
     return fs.statSync(file).mtimeMs >= since;
   });
 
@@ -137,19 +135,19 @@ try {
     const artifact = matches[0];
     const name = path.basename(artifact);
     const stat = fs.statSync(artifact);
-    if (stat.size < contract.minimumBytes) fail(`Artefakt ist unplausibel klein (${stat.size} Bytes): ${name}`);
-    if (contract.magic) {
-      const header = Buffer.alloc(contract.magic.length);
+    if (stat.size < expected.minimumBytes) fail(`Artefakt ist unplausibel klein (${stat.size} Bytes): ${name}`);
+    if (expected.magic) {
+      const header = Buffer.alloc(expected.magic.length);
       const descriptor = fs.openSync(artifact, 'r');
       try { fs.readSync(descriptor, header, 0, header.length, 0); } finally { fs.closeSync(descriptor); }
-      if (!header.equals(contract.magic)) fail(`Dateisignatur passt nicht zu ${contract.extension}: ${name}`);
+      if (!header.equals(expected.magic)) fail(`Dateisignatur passt nicht zu ${expected.extension}: ${name}`);
     }
     return { artifact, stat };
   });
 
   if (candidates.length !== verifiedArtifacts.length) {
     const unexpected = candidates.filter((candidate) => !verifiedArtifacts.some(({ artifact }) => artifact === candidate));
-    fail(`unerwartete aktuelle ${contract.extension}-Endanwenderartefakte: ${unexpected.map(path.basename).join(', ') || candidates.length}`);
+    fail(`unerwartete aktuelle Endanwenderartefakte: ${unexpected.map(path.basename).join(', ') || candidates.length}`);
   }
 
   if (receipt) {

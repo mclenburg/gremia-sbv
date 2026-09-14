@@ -1,6 +1,6 @@
 # Windows-Build
 
-Der Windows-Build von Gremia.SBV erzeugt zwei Endanwender-Artefakte: eine portable direkt startbare `.exe` und zusätzlich einen NSIS-Installer. Die portable Variante bleibt vollständig erhalten; der Installer ist die empfohlene Variante, wenn ein schnellerer regulärer Programmstart ohne Portable-Self-Extract-Overhead gewünscht ist.
+Der Windows-Release-Build von Gremia.SBV erzeugt zwei Endanwender-Artefakte: eine portable direkt startbare `.exe` und zusätzlich ein natives MSI-Paket. Die portable Variante bleibt vollständig erhalten; die MSI-Datei ersetzt den bisherigen NSIS-Installer im GitHub-Release und eignet sich insbesondere für eine reguläre bzw. administrierte Windows-Installation.
 
 ## Build
 
@@ -20,11 +20,12 @@ Dieser Lauf umfasst zusätzlich die Windows-Artefaktprüfung, den Start-Smoke-Te
 
 ## Erwartung
 
-- Zielartefakte: `Gremia.SBV-<version>-win-x64-portable.exe` und `Gremia.SBV-<version>-win-x64-setup.exe`
-- Upload: beide Endanwender-EXEs aus `release/*.exe`
+- Zielartefakte des Release-Builds: `Gremia.SBV-<version>-win-x64-portable.exe` und `Gremia.SBV-<version>-win-x64.msi`
+- Upload: genau diese beiden Windows-Endanwender-Artefakte
 - Installation bleibt optional; die portable Variante wird weiterhin angeboten
-- `requestedExecutionLevel`: `asInvoker`
-- bei nicht signierten Artefakten können SmartScreen-Hinweise auftreten
+- die MSI-Datei ist das native Windows-Installerformat für verwaltete Bereitstellung
+- `requestedExecutionLevel`: `asInvoker` bleibt für die portable EXE unverändert
+- bei nicht signierten Artefakten können Windows-Sicherheitswarnungen auftreten
 
 ## Tests
 
@@ -32,7 +33,7 @@ Der Windows-Build wird durch plattformunabhängige Tests abgesichert. Testcode d
 
 ## Abgrenzung
 
-Portable EXE und Installer sind gleichwertige Release-Artefakte mit unterschiedlichen Start-/Bereitstellungsprofilen. Die portable EXE benötigt keine Installation, kann wegen des Self-Extract-Wrappers aber vor dem Electron-Splash deutlich länger benötigen. Der Installer beseitigt diesen Wrapper-Startweg für regulär installierte Nutzung.
+Portable EXE und MSI sind Release-Artefakte mit unterschiedlichen Bereitstellungsprofilen. Die portable EXE benötigt keine Installation und bleibt der direkt startbare Build. Die MSI-Datei ist für die installierte Nutzung und insbesondere für typische Windows-Deployment-Werkzeuge vorgesehen.
 
 ## Portable Datenhaltung und Plattformabnahme
 
@@ -52,4 +53,4 @@ build:package:windows
 release:platform:windows
 ```
 
-Die Artefaktprüfung verlangt beide Windows-Endanwender-EXEs. Der Startup-Smoke startet bewusst die portable EXE mit einem isolierten Pfad, der Leerzeichen, Umlaute und einen langen Pfadabschnitt enthält; der Installer wird als PE-Artefakt, Name, Frische und Größe verifiziert. Anschließend werden Backup und Restore in derselben Pfadklasse geprüft.
+Die Artefaktprüfung verlangt portable EXE und MSI. Der Startup-Smoke startet bewusst nur die portable EXE mit einem isolierten Pfad, der Leerzeichen, Umlaute und einen langen Pfadabschnitt enthält; die MSI-Datei wird als OLE/Compound-File-Artefakt anhand von Name, Frische, Mindestgröße und Binärsignatur verifiziert. Anschließend werden Backup und Restore in derselben Pfadklasse geprüft.
