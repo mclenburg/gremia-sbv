@@ -45,14 +45,16 @@ describe('Übergabe-Cockpit – filterbare Mehrfachauswahl', () => {
       caseRecord(3),
       { ...caseRecord(4), status: 'abgeschlossen' as const },
       caseRecord(5),
+      caseRecord(6),
     ];
     const measures = [
       measureRecord('measure-1', 'case-1', 'neu'),
       measureRecord('measure-2', 'case-2', 'completed'),
       measureRecord('measure-3', 'case-3', 'abgeschlossen'),
+      measureRecord('measure-4', 'case-6', 'offen'),
     ];
 
-    expect(activeMobileWorkCases(cases, measures).map((record) => record.id)).toEqual(['case-1', 'case-5']);
+    expect(activeMobileWorkCases(cases, measures).map((record) => record.id)).toEqual(['case-1', 'case-5', 'case-6']);
   });
 
   it('zeigt Mobile-Snapshots als scannbare QR-Frames mit bedienbarer Fallback-Ausgabe', () => {
