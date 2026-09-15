@@ -100,6 +100,24 @@ describe('case handover placement 0.9.2', () => {
     expect(visibleText(returnTab.markup)).toContain('Mobile Rückgabe auswählen');
   });
 
+  it('zeigt die filterbare Fallauswahl direkt in der Desktop-Begleit-App-Ausgabe', () => {
+    const manyCases = Array.from({ length: 30 }, (_, index) => ({
+      ...caseRecord,
+      id: `case-${index + 1}`,
+      caseNumber: `SBV-2026-${String(index + 1).padStart(3, '0')}`,
+      displayName: `Mobile Fallakte ${index + 1}`,
+    }));
+    const mobile = renderElement(createElement(LiveRegionProvider, {
+      children: createElement(HandoverMobileCompanionTab, { cases: manyCases, measures: [] }),
+    }));
+    const text = visibleText(mobile.markup);
+
+    expect(text).toContain('Fallakten filtern');
+    expect(text).toContain('20 von 30 Treffern angezeigt');
+    expect(text).toContain('SBV-2026-020');
+    expect(text).not.toContain('SBV-2026-021');
+  });
+
   it('begrenzt große Fallauswahlen auf eine kompakte, filterbare Trefferliste', () => {
     const manyCases = Array.from({ length: 30 }, (_, index) => ({
       ...caseRecord,
