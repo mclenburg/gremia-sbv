@@ -12,7 +12,10 @@ class PairingPanelRenderer(
     fun render(identity: TransferIdentity, onCopyRecipientToken: () -> Unit): LinearLayout =
         ui.panel().apply {
             addView(ui.kicker(context.getString(R.string.pairing_kicker)))
-            addView(ui.sectionTitle(context.getString(R.string.pairing_title)))
+            addView(ui.sectionHeader(
+                context.getString(R.string.pairing_title),
+                context.getString(R.string.pairing_description),
+            ))
             addView(ui.fieldLabel(context.getString(R.string.instance_id_label)))
             addView(ui.monospaceValue(identity.instanceId, context.getString(R.string.instance_id_label)))
             addView(ui.fieldLabel(context.getString(R.string.recipient_token_label)))

@@ -14,6 +14,7 @@
     <string name="pairing_kicker">KOPPLUNG</string>
     <string name="pairing_title">Dieses Mobilgerät koppeln</string>
     <string name="pairing_description">Diese öffentliche Empfängerkennung wird in Gremia.SBV Desktop unter Übergaben → Begleit-App eingetragen.</string>
+    <string name="help_action">Hilfe</string>
     <string name="instance_id_label">Instanz-ID</string>
     <string name="recipient_token_label">Öffentliche Empfängerkennung</string>
     <string name="copy_recipient_token">Empfängerkennung kopieren</string>
@@ -36,6 +37,7 @@
     <string name="snapshot_case_filter_label">Fallakten filtern</string>
     <string name="snapshot_case_filter_hint">Aktenzeichen, Name, Kategorie oder Status filtern</string>
     <string name="snapshot_cases_filter_empty">Keine Fallakte passt zum aktuellen Filter.</string>
+    <string name="snapshot_cases_filter_limited">%1$d von %2$d Treffern angezeigt. Bitte weiter filtern.</string>
     <string name="snapshot_case_summary">%1$s · %2$s · %3$s · %4$d offene Frist(en)</string>
     <string name="snapshot_case_no_deadline">Keine offene Frist in dieser Fallakte.</string>
     <string name="snapshot_deadline_summary">Frist: %1$s · fällig %2$s · %3$s · %4$s</string>
@@ -45,9 +47,13 @@
     <string name="return_title">Mobile Änderungen zurückgeben</string>
     <string name="return_empty">Erst eine mobile Arbeitsprojektion empfangen, dann können Änderungen für die Rückgabe erfasst werden.</string>
     <string name="return_description">Erfasst werden mobile Notizen, neue Wiedervorlagen und erledigte Fristen. Das Rückgabepaket wird verschlüsselt für die Desktop-Instanz erstellt.</string>
-    <string name="return_case_label">Fallakte für die Notiz</string>
+    <string name="return_selected_case">Ausgewählte Fallakte: %1$s · %2$s</string>
+    <string name="return_no_case_selected">Keine Fallakte ausgewählt.</string>
+    <string name="return_case_filter_empty">Keine Fallakte passt zum aktuellen Filter.</string>
+    <string name="return_case_filter_limited">%1$d von %2$d Treffern angezeigt. Bitte weiter filtern.</string>
+    <string name="return_case_label">Fallakte für mobile Änderung</string>
     <string name="return_case_filter_label">Fallakte suchen</string>
-    <string name="return_case_filter_hint">Fallakte für die mobile Notiz filtern</string>
+    <string name="return_case_filter_hint">Aktenzeichen, Name, Kategorie oder Status filtern</string>
     <string name="return_case_select_button">%1$s · %2$s</string>
     <string name="return_note_title_label">Notiztitel</string>
     <string name="return_note_title_hint">z. B. Gespräch im Termin</string>

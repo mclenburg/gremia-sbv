@@ -72,17 +72,24 @@ class AppShellRenderer(
             setPadding(padding, padding, padding, padding)
             addView(ui.kicker(context.getString(R.string.app_shell_kicker)))
             addView(ui.title(context.getString(R.string.app_name)))
-            addView(pairingPanel.render(identity, onCopyRecipientToken))
-            addView(snapshotPanel.renderImport(onScanFrame, onAcceptFrame, onResetFrames))
-            addView(snapshotPanel.renderCurrent(snapshot))
-            addView(returnPanel.render(
-                snapshot,
-                returnDrafts,
-                onAddReturnNote,
-                onAddReturnDeadline,
-                onCompleteReturnDeadline,
-                onCreateReturnPackage,
-                onClearReturnDrafts,
-            ))
+            val intakeColumn = LinearLayout(context).apply {
+                orientation = LinearLayout.VERTICAL
+                addView(pairingPanel.render(identity, onCopyRecipientToken))
+                addView(snapshotPanel.renderImport(onScanFrame, onAcceptFrame, onResetFrames))
+            }
+            val workColumn = LinearLayout(context).apply {
+                orientation = LinearLayout.VERTICAL
+                addView(snapshotPanel.renderCurrent(snapshot))
+                addView(returnPanel.render(
+                    snapshot,
+                    returnDrafts,
+                    onAddReturnNote,
+                    onAddReturnDeadline,
+                    onCompleteReturnDeadline,
+                    onCreateReturnPackage,
+                    onClearReturnDrafts,
+                ))
+            }
+            addView(ui.responsiveColumns(intakeColumn, workColumn))
         }
 }

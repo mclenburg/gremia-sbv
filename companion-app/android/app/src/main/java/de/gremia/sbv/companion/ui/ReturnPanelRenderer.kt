@@ -5,8 +5,10 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.widget.EditText
 import android.widget.LinearLayout
+import android.widget.TextView
 import de.gremia.sbv.companion.R
 import de.gremia.sbv.companion.domain.mobile.MobileCaseProjection
+import de.gremia.sbv.companion.domain.mobile.MobileCaseProjectionSearch
 import de.gremia.sbv.companion.domain.mobile.MobileDeadlineProjection
 import de.gremia.sbv.companion.domain.mobile.MobileReturnDraftSet
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshot
@@ -15,6 +17,8 @@ class ReturnPanelRenderer(
     private val context: Context,
     private val ui: GremiaUi,
 ) {
+    private val caseSearch = MobileCaseProjectionSearch()
+
     fun render(
         snapshot: MobileSnapshot?,
         drafts: MobileReturnDraftSet,
@@ -26,13 +30,20 @@ class ReturnPanelRenderer(
     ): LinearLayout =
         ui.panel().apply {
             addView(ui.kicker(context.getString(R.string.return_kicker)))
-            addView(ui.sectionTitle(context.getString(R.string.return_title)))
+            addView(ui.sectionHeader(
+                context.getString(R.string.return_title),
+                context.getString(R.string.return_description),
+            ))
             if (snapshot == null) {
                 addView(ui.paragraph(context.getString(R.string.return_empty)))
                 return@apply
             }
-            addView(noteForm(snapshot.cases, onAddNote))
-            addView(deadlineForm(snapshot.cases, onAddDeadline))
+            val selectedCase = SelectedCaseState(snapshot.cases.firstOrNull()?.id.orEmpty())
+            addView(caseSelector(snapshot.cases, selectedCase))
+            addView(ui.responsiveColumns(
+                noteForm(selectedCase, onAddNote),
+                deadlineForm(selectedCase, onAddDeadline),
+            ))
             addView(deadlineCompletionList(snapshot.deadlines, drafts, onCompleteDeadline))
             addView(draftList(drafts))
             addView(ui.horizontalActions(
@@ -41,27 +52,56 @@ class ReturnPanelRenderer(
             ))
         }
 
-    private fun noteForm(cases: List<MobileCaseProjection>, onAddNote: (String, String, String) -> Unit): LinearLayout =
+    private fun caseSelector(cases: List<MobileCaseProjection>, selectedCase: SelectedCaseState): LinearLayout =
         LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
-            var selectedCaseId = cases.firstOrNull()?.id.orEmpty()
             addView(ui.fieldLabel(context.getString(R.string.return_case_label)))
+            val selectedLabel = selectedCaseLabel(selectedCase.id, cases)
+            addView(selectedLabel)
             val caseList = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
             fun renderCases(filter: String) {
                 caseList.removeAllViews()
-                cases.filter { caseMatches(it, filter) }.forEach { record ->
+                val result = caseSearch.filter(cases, filter)
+                if (result.matches.isEmpty()) {
+                    caseList.addView(ui.paragraph(context.getString(R.string.return_case_filter_empty)))
+                    return
+                }
+                if (result.hiddenMatchCount > 0) {
+                    caseList.addView(ui.listText(context.getString(
+                        R.string.return_case_filter_limited,
+                        result.matches.size,
+                        result.totalMatchCount,
+                    )))
+                }
+                result.matches.forEach { record ->
                     caseList.addView(ui.button(context.getString(
                         R.string.return_case_select_button,
                         record.caseNumber,
                         record.displayName,
                     )) {
-                        selectedCaseId = record.id
+                        selectedCase.id = record.id
+                        selectedLabel.text = selectedCaseText(record.id, cases)
+                        selectedLabel.contentDescription = selectedLabel.text
                     })
                 }
             }
             if (cases.size > FILTER_THRESHOLD) addView(caseFilterInput(::renderCases))
             renderCases("")
             addView(caseList)
+        }
+
+    private fun selectedCaseLabel(caseId: String, cases: List<MobileCaseProjection>): TextView =
+        ui.listText(selectedCaseText(caseId, cases), selectedCaseText(caseId, cases))
+
+    private fun selectedCaseText(caseId: String, cases: List<MobileCaseProjection>): String {
+        val record = cases.firstOrNull { item -> item.id == caseId }
+            ?: return context.getString(R.string.return_no_case_selected)
+        return context.getString(R.string.return_selected_case, record.caseNumber, record.displayName)
+    }
+
+    private fun noteForm(selectedCase: SelectedCaseState, onAddNote: (String, String, String) -> Unit): LinearLayout =
+        LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
             val title = textInput(R.string.return_note_title_label, R.string.return_note_title_hint, false)
             val content = textInput(R.string.return_note_content_label, R.string.return_note_content_hint, true)
             addView(ui.fieldLabel(context.getString(R.string.return_note_title_label)))
@@ -69,36 +109,18 @@ class ReturnPanelRenderer(
             addView(ui.fieldLabel(context.getString(R.string.return_note_content_label)))
             addView(content)
             addView(ui.button(context.getString(R.string.return_note_add)) {
-                onAddNote(selectedCaseId, title.text.toString(), content.text.toString())
+                onAddNote(selectedCase.id, title.text.toString(), content.text.toString())
                 title.text.clear()
                 content.text.clear()
             })
         }
 
     private fun deadlineForm(
-        cases: List<MobileCaseProjection>,
+        selectedCase: SelectedCaseState,
         onAddDeadline: (String, String, String, String?, String) -> Unit,
     ): LinearLayout =
         LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
-            var selectedCaseId = cases.firstOrNull()?.id.orEmpty()
-            addView(ui.fieldLabel(context.getString(R.string.return_deadline_case_label)))
-            val caseList = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
-            fun renderCases(filter: String) {
-                caseList.removeAllViews()
-                cases.filter { caseMatches(it, filter) }.forEach { record ->
-                    caseList.addView(ui.button(context.getString(
-                        R.string.return_case_select_button,
-                        record.caseNumber,
-                        record.displayName,
-                    )) {
-                        selectedCaseId = record.id
-                    })
-                }
-            }
-            if (cases.size > FILTER_THRESHOLD) addView(caseFilterInput(::renderCases))
-            renderCases("")
-            addView(caseList)
             val title = textInput(R.string.return_deadline_title_label, R.string.return_deadline_title_hint, false)
             val dueAt = textInput(R.string.return_deadline_due_label, R.string.return_deadline_due_hint, false)
             val severity = textInput(R.string.return_deadline_severity_label, R.string.return_deadline_severity_hint, false)
@@ -113,7 +135,7 @@ class ReturnPanelRenderer(
             addView(description)
             addView(ui.button(context.getString(R.string.return_deadline_add)) {
                 onAddDeadline(
-                    selectedCaseId,
+                    selectedCase.id,
                     title.text.toString(),
                     dueAt.text.toString(),
                     description.text.toString(),
@@ -140,7 +162,7 @@ class ReturnPanelRenderer(
                 addView(ui.listText(context.getString(R.string.return_deadline_complete_empty)))
                 return@apply
             }
-            openDeadlines.take(LIST_PREVIEW_LIMIT).forEach { deadline ->
+            openDeadlines.forEach { deadline ->
                 addView(ui.listItem(
                     primary = deadline.title,
                     secondary = context.getString(
@@ -172,13 +194,13 @@ class ReturnPanelRenderer(
         LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
             addView(ui.paragraph(context.getString(R.string.return_draft_summary, drafts.changeCount)))
-            drafts.notes.take(LIST_PREVIEW_LIMIT).forEach { note ->
+            drafts.notes.forEach { note ->
                 addView(ui.listText(context.getString(R.string.return_note_draft_entry, note.title)))
             }
-            drafts.deadlines.take(LIST_PREVIEW_LIMIT).forEach { deadline ->
+            drafts.deadlines.forEach { deadline ->
                 addView(ui.listText(context.getString(R.string.return_deadline_draft_entry, deadline.title)))
             }
-            drafts.deadlineCompletions.take(LIST_PREVIEW_LIMIT).forEach { completion ->
+            drafts.deadlineCompletions.forEach { completion ->
                 addView(ui.listText(context.getString(R.string.return_deadline_completion_draft_entry, completion.deadlineId)))
             }
         }
@@ -197,15 +219,9 @@ class ReturnPanelRenderer(
     private fun textInput(labelId: Int, hintId: Int, multiLine: Boolean): EditText =
         ui.textInput(context.getString(labelId), context.getString(hintId), multiLine)
 
-    private fun caseMatches(record: MobileCaseProjection, filter: String): Boolean {
-        val normalized = filter.trim().lowercase()
-        if (normalized.isEmpty()) return true
-        return listOf(record.caseNumber, record.displayName, record.category, record.status)
-            .any { value -> value.lowercase().contains(normalized) }
-    }
+    private data class SelectedCaseState(var id: String)
 
     private companion object {
         private const val FILTER_THRESHOLD = 5
-        private const val LIST_PREVIEW_LIMIT = 8
     }
 }
