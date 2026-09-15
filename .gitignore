@@ -14,6 +14,7 @@ release/
 .idea/usage.statistics.xml
 /.idea/
 /companion-app/.idea/
+/companion-app/android/.idea/
 /gremia-sbv.zip
 /test-results/
 /test-results.zip
