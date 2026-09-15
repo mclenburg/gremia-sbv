@@ -15,7 +15,7 @@ function caseRecord(index: number): CaseRecord {
     status: 'offen',
     priority: 'normal',
     openedAt: '2026-09-05T08:00:00.000Z',
-    isPseudonymized: true,
+    isPseudonymized: false,
     isLocked: false,
   };
 }

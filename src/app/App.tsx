@@ -314,6 +314,7 @@ function ProcessViews({ currentView, setCurrentView, work, caseNodeTarget, setCa
   const { cases, contacts, deadlines, persons, createCase, createContact, createDeadline, reloadWorkData } = work;
   if (currentView === "workplace_accommodation") return <WorkplaceAccommodationContainer onOpenCaseNode={openCaseNode} />;
   return <LazyFeatureHost view={currentView} cases={cases} persons={persons} theme={theme} onThemeChange={setTheme} onCreateDeadline={createDeadline}
+    measures={work.caseMeasures}
     onOpenCaseNode={openCaseNode} deadlines={deadlines} onNavigate={setCurrentView}
     onRecordsChanged={reloadWorkData}
     caseFeatureProps={{

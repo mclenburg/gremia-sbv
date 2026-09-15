@@ -1,5 +1,6 @@
 import { useMemo, type ComponentType, type LazyExoticComponent } from "react";
 import type { CaseRecord } from "../../../domain/models/case.model";
+import type { CaseMeasureRecord } from "../../../domain/models/case-measure.model";
 import type { ProtectedPersonRecord } from "../../../domain/models/protected-person.model";
 import type { ViewId } from "../navigation/modules";
 import type { ThemeMode } from "../../shared/theme/appTheme";
@@ -13,6 +14,7 @@ import { getLazyFeatureComponent, preloadLazyFeature } from "./lazyFeatureViews"
 type LazyFeatureHostProps = {
   view: ViewId;
   cases: CaseRecord[];
+  measures?: CaseMeasureRecord[];
   persons?: ProtectedPersonRecord[];
   theme: ThemeMode;
   onThemeChange: (theme: ThemeMode) => void;
@@ -25,7 +27,7 @@ type LazyFeatureHostProps = {
   onRecordsChanged?: () => Promise<void>;
 };
 
-export function LazyFeatureHost({ view, cases, persons = [], theme, onThemeChange, onCreateDeadline, onOpenParticipationViolationPrefill, onOpenCaseNode, deadlines = [], onNavigate, caseFeatureProps, onRecordsChanged }: LazyFeatureHostProps) {
+export function LazyFeatureHost({ view, cases, measures = [], persons = [], theme, onThemeChange, onCreateDeadline, onOpenParticipationViolationPrefill, onOpenCaseNode, deadlines = [], onNavigate, caseFeatureProps, onRecordsChanged }: LazyFeatureHostProps) {
   const Feature = useMemo(() => getLazyFeatureComponent(view), [view]);
   if (!Feature) return null;
 
@@ -33,6 +35,7 @@ export function LazyFeatureHost({ view, cases, persons = [], theme, onThemeChang
   const CaseWorkbenchFeature = Feature as LazyExoticComponent<ComponentType<CasesViewProps>>;
   const HandoverFeature = Feature as LazyExoticComponent<ComponentType<{
     cases: CaseRecord[];
+    measures: CaseMeasureRecord[];
     onRecordsChanged: () => Promise<void>;
   }>>;
   const SettingsFeature = Feature as LazyExoticComponent<ComponentType<{
@@ -68,7 +71,7 @@ export function LazyFeatureHost({ view, cases, persons = [], theme, onThemeChang
       {view === "cases" && caseFeatureProps ? (
         <CaseWorkbenchFeature {...caseFeatureProps} />
       ) : view === "case_handover" && onRecordsChanged ? (
-        <HandoverFeature cases={cases} onRecordsChanged={onRecordsChanged} />
+        <HandoverFeature cases={cases} measures={measures} onRecordsChanged={onRecordsChanged} />
       ) : view === "knowledge" ? (
         <CasesFeature cases={cases} />
       ) : view === "equalization" && onOpenCaseNode && onRecordsChanged ? (

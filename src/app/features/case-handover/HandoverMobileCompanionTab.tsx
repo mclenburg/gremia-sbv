@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useMemo, useState, type FormEvent } from 'react';
 import { Plus, Smartphone } from 'lucide-react';
 import type { CaseRecord } from '../../../domain/models/case.model';
 import type { CaseMeasureRecord } from '../../../domain/models/case-measure.model';
@@ -224,17 +224,8 @@ function MobileCompanionPanels({
   </div>;
 }
 
-export function HandoverMobileCompanionTab({ cases }: { cases: CaseRecord[] }) {
+export function HandoverMobileCompanionTab({ cases, measures = [] }: { cases: CaseRecord[]; measures?: CaseMeasureRecord[] }) {
   const [pairingOpen, setPairingOpen] = useState(false);
-  const [measures, setMeasures] = useState<CaseMeasureRecord[]>([]);
-  useEffect(() => {
-    if (!window.gremiaSbv?.caseMeasures) return undefined;
-    let active = true;
-    void window.gremiaSbv.caseMeasures.list()
-      .then((records) => { if (active) setMeasures(records); })
-      .catch(() => { if (active) setMeasures([]); });
-    return () => { active = false; };
-  }, []);
   const mobileCases = useMemo(() => activeMobileWorkCases(cases, measures), [cases, measures]);
   const workflow = useMobileCompanionWorkflow(mobileCases);
 
