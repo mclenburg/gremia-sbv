@@ -56,6 +56,11 @@ export interface MobileCompanionSnapshotPayload {
   packageId: string;
   sourceInstanceId: string;
   targetInstanceId: string;
+  returnTarget: {
+    instanceId: string;
+    keyFingerprint: string;
+    publicKeyPem: string;
+  };
   createdAt: string;
   baseAuditSequence: number;
   uiPreferences: {

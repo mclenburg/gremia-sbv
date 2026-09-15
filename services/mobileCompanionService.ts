@@ -286,6 +286,11 @@ export class MobileCompanionService {
         packageId,
         sourceInstanceId: sourceIdentity.instanceId,
         targetInstanceId: device.instanceId,
+        returnTarget: {
+          instanceId: sourceIdentity.instanceId,
+          keyFingerprint: sourceIdentity.keyFingerprint,
+          publicKeyPem: sourceIdentity.publicKeyPem,
+        },
         createdAt,
         baseAuditSequence: this.currentAuditSequence(),
         uiPreferences: { themeMode: input.uiThemeMode === 'light' ? 'light' : 'dark' },

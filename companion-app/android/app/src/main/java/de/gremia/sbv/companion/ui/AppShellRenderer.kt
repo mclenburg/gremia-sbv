@@ -5,6 +5,7 @@ import android.view.Gravity
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import de.gremia.sbv.companion.R
+import de.gremia.sbv.companion.domain.mobile.MobileReturnNoteDraft
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshot
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshotIntakeResult
 import de.gremia.sbv.companion.domain.transfer.TransferIdentity
@@ -15,25 +16,44 @@ class AppShellRenderer(
     private val ui = GremiaUi(context)
     private val pairingPanel = PairingPanelRenderer(context, ui)
     private val snapshotPanel = SnapshotPanelRenderer(context, ui)
+    private val returnPanel = ReturnPanelRenderer(context, ui)
 
     fun render(
         identity: TransferIdentity,
         snapshot: MobileSnapshot?,
+        returnNotes: List<MobileReturnNoteDraft>,
         onCopyRecipientToken: () -> Unit,
         onAcceptFrame: (String) -> MobileSnapshotIntakeResult,
         onResetFrames: () -> Unit,
+        onAddReturnNote: (String, String, String) -> Unit,
+        onCreateReturnPackage: () -> Unit,
+        onClearReturnNotes: () -> Unit,
     ): ScrollView =
         ScrollView(context).apply {
             setBackgroundColor(ui.color(R.color.gremia_background))
-            addView(content(identity, snapshot, onCopyRecipientToken, onAcceptFrame, onResetFrames))
+            addView(content(
+                identity,
+                snapshot,
+                returnNotes,
+                onCopyRecipientToken,
+                onAcceptFrame,
+                onResetFrames,
+                onAddReturnNote,
+                onCreateReturnPackage,
+                onClearReturnNotes,
+            ))
         }
 
     private fun content(
         identity: TransferIdentity,
         snapshot: MobileSnapshot?,
+        returnNotes: List<MobileReturnNoteDraft>,
         onCopyRecipientToken: () -> Unit,
         onAcceptFrame: (String) -> MobileSnapshotIntakeResult,
         onResetFrames: () -> Unit,
+        onAddReturnNote: (String, String, String) -> Unit,
+        onCreateReturnPackage: () -> Unit,
+        onClearReturnNotes: () -> Unit,
     ): LinearLayout =
         LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
@@ -46,5 +66,12 @@ class AppShellRenderer(
             addView(pairingPanel.render(identity, onCopyRecipientToken))
             addView(snapshotPanel.renderImport(onAcceptFrame, onResetFrames))
             addView(snapshotPanel.renderCurrent(snapshot))
+            addView(returnPanel.render(
+                snapshot,
+                returnNotes,
+                onAddReturnNote,
+                onCreateReturnPackage,
+                onClearReturnNotes,
+            ))
         }
 }

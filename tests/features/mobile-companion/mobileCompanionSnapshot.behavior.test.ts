@@ -162,6 +162,11 @@ describe('Mobile Begleit-App Snapshot', () => {
       });
       const payload = decodeMobileCompanionSnapshotPayload(decrypted.payloadText);
       expect(payload.uiPreferences.themeMode).toBe('dark');
+      expect(payload.returnTarget).toMatchObject({
+        instanceId: new TransferInstanceIdentityService(desktop).getPublicIdentity().instanceId,
+        keyFingerprint: new TransferInstanceIdentityService(desktop).getPublicIdentity().keyFingerprint,
+      });
+      expect(payload.returnTarget.publicKeyPem).toContain('PUBLIC KEY');
       expect(payload.cases).toEqual([
         expect.objectContaining({
           id: 'case-mobile-1',

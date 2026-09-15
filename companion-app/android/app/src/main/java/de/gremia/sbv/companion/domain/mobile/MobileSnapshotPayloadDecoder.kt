@@ -35,12 +35,18 @@ class MobileSnapshotPayloadDecoder {
             "Der Mobile-Snapshot nutzt kein unterstütztes Schema."
         }
         val preferences = json.getJSONObject("uiPreferences")
+        val returnTarget = json.getJSONObject("returnTarget")
         val cases = json.getJSONArray("cases")
         val deadlines = json.getJSONArray("deadlines")
         return MobileSnapshot(
             packageId = json.getString("packageId"),
             sourceInstanceId = json.getString("sourceInstanceId"),
             targetInstanceId = json.getString("targetInstanceId"),
+            returnTarget = MobileReturnTarget(
+                instanceId = returnTarget.getString("instanceId"),
+                keyFingerprint = returnTarget.getString("keyFingerprint"),
+                publicKeyPem = returnTarget.getString("publicKeyPem"),
+            ),
             createdAt = json.getString("createdAt"),
             themeMode = preferences.optString("themeMode", "dark"),
             cases = List(cases.length()) { index ->

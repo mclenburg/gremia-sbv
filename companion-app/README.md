@@ -25,5 +25,5 @@ Rückgabedatei zurück.
   öffentliche Empfängerkennung für die Kopplung mit Gremia.SBV Desktop an.
 - QR-Frames aus der Desktop-Anwendung werden validiert, zusammengesetzt,
   zielinstanzgebunden entschlüsselt und geschützt auf dem Gerät abgelegt.
-- Lokale Bearbeitung und verschlüsselte Rückgabe werden in den nächsten Slices
-  getrennt nach Domäne, Transfer und UI ergänzt.
+- Mobile Notizen werden lokal verschlüsselt vorgemerkt und als `.gsbvmobile`
+  zielgebunden für die Desktop-Instanz freigegeben.
