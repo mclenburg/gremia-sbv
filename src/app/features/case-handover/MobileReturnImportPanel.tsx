@@ -42,7 +42,7 @@ export function MobileReturnImportPanel({ onImported }: { onImported?: () => Pro
     kicker="Rückgabe"
     title="Mobile Änderungen übernehmen"
     description="Notizen und Friständerungen aus Besprechungen werden zuerst geprüft und erst danach in den Desktop-Tresor übernommen."
-    helpId="caseHandover.mobile"
+    helpId="caseHandover.mobileReturn"
     actions={<IndustrialButton onClick={() => void workflow.selectReturnFile()} loading={workflow.busy}>
       <Upload className="industrial-icon" aria-hidden="true" /> Mobile Rückgabe auswählen
     </IndustrialButton>}

@@ -300,6 +300,14 @@ export const HELP_REGISTRY = {
       { type: "paragraph", text: "Mobile Notizen und Friständerungen kommen als verschlüsselte Rückgabedatei zurück. Gremia.SBV zeigt vor dem Import einen Plan und übernimmt nur konfliktfreie Änderungen in den Desktop-Tresor." },
     ],
   },
+  "caseHandover.mobileReturn": {
+    id: "caseHandover.mobileReturn", kicker: "Rückgabe", title: "Mobile Änderungen übernehmen",
+    summary: "Mobile Rückgaben werden vor dem Schreiben gegen den bekannten Desktop-Snapshot geprüft.",
+    blocks: [
+      { type: "paragraph", text: "Die Rückgabedatei muss zu einem auf dieser Instanz erzeugten Mobile-Snapshot gehören. Änderungen an anderen Fallakten oder Fristen werden abgewiesen, bevor Daten geschrieben werden." },
+      { type: "paragraph", text: "Gremia.SBV übernimmt nur neue mobile Notizen, neue Fristen und konfliktfreie Fristerledigungen. Jede Übernahme wird protokolliert und für die Datenschutzprüfung markiert." },
+    ],
+  },
   "caseHandover.returnDelta": {
     id: "caseHandover.returnDelta", kicker: "Rückgabe", title: "Änderungen zurückgeben",
     summary: "Das Rückgabe-Delta enthält nur Änderungen aus einer übernommenen Vertretung.",

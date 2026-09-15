@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import type { CaseHandoverPackageType } from '../src/domain/models/case-handover.model.js';
+import type { MobileCompanionSnapshotPayload } from '../src/domain/models/mobile-companion.model.js';
 import type { DatabaseAdapter } from './databaseService.js';
 import type { PackagePayload } from './caseHandoverSupport.js';
 
@@ -54,6 +55,42 @@ export function recordCaseHandoverExport(
     JSON.stringify({ measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length }),
   );
   for (const item of exportItems(payload)) {
+    db.prepare(`
+      INSERT INTO case_handover_export_items (
+        id, handover_export_id, package_ref, local_entity_type, local_entity_id, exported_at
+      ) VALUES (?, ?, ?, ?, ?, ?)
+    `).run(randomUUID(), exportId, item.ref, item.type, item.localId, payload.createdAt);
+  }
+}
+
+export function recordMobileCompanionSnapshotExport(
+  db: DatabaseAdapter,
+  payload: MobileCompanionSnapshotPayload,
+  frameCount: number,
+): void {
+  ensureCaseHandoverExportLedgerSchema(db);
+  const exportId = randomUUID();
+  db.prepare(`
+    INSERT OR REPLACE INTO case_handover_exports (
+      id, package_id, exported_at, valid_until, package_type, status, target_instance_id, case_count, metadata_json
+    ) VALUES (?, ?, ?, NULL, 'mobile_snapshot', 'open', ?, ?, ?)
+  `).run(
+    exportId,
+    payload.packageId,
+    payload.createdAt,
+    payload.targetInstanceId,
+    payload.cases.length,
+    JSON.stringify({
+      deadlineCount: payload.deadlines.length,
+      frameCount,
+      schemaVersion: payload.schemaVersion,
+      source: 'mobile_companion',
+    }),
+  );
+  for (const item of [
+    ...payload.cases.map((record) => ({ ref: record.id, type: 'case', localId: record.id })),
+    ...payload.deadlines.map((record) => ({ ref: record.id, type: 'deadline', localId: record.id })),
+  ]) {
     db.prepare(`
       INSERT INTO case_handover_export_items (
         id, handover_export_id, package_ref, local_entity_type, local_entity_id, exported_at

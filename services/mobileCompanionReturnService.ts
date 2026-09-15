@@ -47,6 +47,11 @@ type DeadlineRow = {
   updated_at: string;
 };
 type DuplicateRow = { id: string };
+type SnapshotScope = {
+  known: boolean;
+  caseIds: Set<string>;
+  deadlineIds: Set<string>;
+};
 
 function nowIso(): string {
   return new Date().toISOString();
@@ -110,6 +115,7 @@ export class MobileCompanionReturnService {
     const sourceDevice = this.database.prepare<DeviceRow>(
       'SELECT label, status FROM mobile_companion_devices WHERE instance_id = ?',
     ).get(payload.sourceInstanceId);
+    const snapshotScope = this.loadSnapshotScope(payload);
     const plan: MobileCompanionReturnPlanItem[] = [];
     const duplicate = this.database.prepare<DuplicateRow>('SELECT id FROM case_handover_imports WHERE package_id = ?').get(payload.packageId);
     if (duplicate) {
@@ -130,8 +136,17 @@ export class MobileCompanionReturnService {
         reason: 'unknown_or_disabled_device',
       });
     }
+    if (!snapshotScope.known) {
+      plan.push({
+        mobileId: payload.packageId,
+        type: 'create_note',
+        disposition: 'rejected',
+        summary: 'Ausgangs-Snapshot ist auf dieser Desktop-Instanz nicht bekannt.',
+        reason: 'source_snapshot_unknown',
+      });
+    }
     for (const change of payload.changes) {
-      plan.push(this.planChange(change));
+      plan.push(this.planChange(change, snapshotScope));
     }
     const noteCount = payload.changes.filter((change) => change.type === 'create_note').length;
     const createdDeadlineCount = payload.changes.filter((change) => change.type === 'create_deadline').length;
@@ -158,8 +173,36 @@ export class MobileCompanionReturnService {
     };
   }
 
-  private planChange(change: MobileCompanionReturnChange): MobileCompanionReturnPlanItem {
-    if (change.type === 'complete_deadline') return this.planDeadlineCompletion(change);
+  private loadSnapshotScope(payload: MobileCompanionReturnPayload): SnapshotScope {
+    if (!payload.sourceSnapshotPackageId) {
+      return { known: false, caseIds: new Set(), deadlineIds: new Set() };
+    }
+    const exportRow = this.database.prepare<{ id: string }>(`
+      SELECT id
+      FROM case_handover_exports
+      WHERE package_id = ?
+        AND package_type = 'mobile_snapshot'
+        AND target_instance_id = ?
+    `).get(payload.sourceSnapshotPackageId, payload.sourceInstanceId);
+    if (!exportRow) return { known: false, caseIds: new Set(), deadlineIds: new Set() };
+    const itemRows = this.database.prepare<{ local_entity_type: string; local_entity_id: string }>(`
+      SELECT local_entity_type, local_entity_id
+      FROM case_handover_export_items
+      WHERE handover_export_id = ?
+        AND local_entity_type IN ('case', 'deadline')
+    `).all(exportRow.id);
+    return {
+      known: true,
+      caseIds: new Set(itemRows.filter((item) => item.local_entity_type === 'case').map((item) => item.local_entity_id)),
+      deadlineIds: new Set(itemRows.filter((item) => item.local_entity_type === 'deadline').map((item) => item.local_entity_id)),
+    };
+  }
+
+  private planChange(change: MobileCompanionReturnChange, snapshotScope: SnapshotScope): MobileCompanionReturnPlanItem {
+    if (change.type === 'complete_deadline') return this.planDeadlineCompletion(change, snapshotScope);
+    if (!snapshotScope.caseIds.has(change.caseId)) {
+      return this.rejected(change, 'Fallakte war nicht Bestandteil des mobilen Ausgangs-Snapshots.', 'case_not_in_snapshot');
+    }
     const caseRow = this.database.prepare<CaseRow>('SELECT * FROM cases WHERE id = ?').get(change.caseId);
     if (!caseRow) {
       return this.rejected(change, 'Fallakte wurde im Desktop nicht gefunden.', 'case_missing');
@@ -178,7 +221,10 @@ export class MobileCompanionReturnService {
     };
   }
 
-  private planDeadlineCompletion(change: MobileCompanionReturnCompleteDeadlineChange): MobileCompanionReturnPlanItem {
+  private planDeadlineCompletion(change: MobileCompanionReturnCompleteDeadlineChange, snapshotScope: SnapshotScope): MobileCompanionReturnPlanItem {
+    if (!snapshotScope.deadlineIds.has(change.deadlineId)) {
+      return this.rejected(change, 'Frist war nicht Bestandteil des mobilen Ausgangs-Snapshots.', 'deadline_not_in_snapshot');
+    }
     const row = this.database.prepare<DeadlineRow>('SELECT id, case_id, title, status, updated_at FROM deadlines WHERE id = ?').get(change.deadlineId);
     if (!row) return this.rejected(change, 'Frist wurde im Desktop nicht gefunden.', 'deadline_missing');
     if (row.status === 'done' || row.status === 'erledigt') {

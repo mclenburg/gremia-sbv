@@ -8,7 +8,6 @@ import { FormActions, SelectInput, TextareaInput, TextInput } from '../../shared
 import { IndustrialPanel } from '../../shared/components/WorkbenchPanels';
 import { IndustrialModal } from '../../shared/dialogs/IndustrialDialogs';
 import { CaseHandoverCasePicker } from './CaseHandoverCasePicker';
-import { MobileReturnImportPanel } from './MobileReturnImportPanel';
 import { MobileSnapshotResultPanel } from './MobileSnapshotResultPanel';
 import { activeMobileWorkCases } from './caseHandoverCockpitPolicy';
 import { useMobileCompanionWorkflow, type MobileDeviceDraft } from './useMobileCompanionWorkflow';
@@ -176,7 +175,6 @@ function MobileCompanionPanels({
   onDeviceChange,
   onCreateSnapshot,
   onCopyFrame,
-  onImported,
 }: {
   cases: CaseRecord[];
   devices: MobileCompanionDevice[];
@@ -198,7 +196,6 @@ function MobileCompanionPanels({
   onDeviceChange: (id: string) => void;
   onCreateSnapshot: (event: FormEvent<HTMLFormElement>) => void;
   onCopyFrame: (frame: string) => void;
-  onImported?: () => Promise<void>;
 }) {
   return <div className="industrial-stack">
     <MobileDevicePairingPanel
@@ -226,11 +223,10 @@ function MobileCompanionPanels({
       onSubmit={onCreateSnapshot}
       onCopyFrame={onCopyFrame}
     />
-    <MobileReturnImportPanel onImported={onImported} />
   </div>;
 }
 
-export function HandoverMobileCompanionTab({ cases, onImported }: { cases: CaseRecord[]; onImported?: () => Promise<void> }) {
+export function HandoverMobileCompanionTab({ cases }: { cases: CaseRecord[] }) {
   const [pairingOpen, setPairingOpen] = useState(false);
   const [measures, setMeasures] = useState<CaseMeasureRecord[]>([]);
   useEffect(() => {
@@ -265,6 +261,5 @@ export function HandoverMobileCompanionTab({ cases, onImported }: { cases: CaseR
     onDeviceChange={workflow.setSelectedDeviceId}
     onCreateSnapshot={workflow.createSnapshot}
     onCopyFrame={(frame) => void workflow.copyFrame(frame)}
-    onImported={onImported}
   />;
 }

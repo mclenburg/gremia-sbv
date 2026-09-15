@@ -22,6 +22,7 @@ import type {
   SaveMobileCompanionDeviceInput,
 } from '../src/domain/models/mobile-companion.model.js';
 import { CLOSED_CASE_MEASURE_STATUSES } from '../src/domain/case-measures/caseMeasureStatusPolicy.js';
+import { recordMobileCompanionSnapshotExport } from './caseHandoverExportLedger.js';
 
 export const MOBILE_COMPANION_SNAPSHOT_FORMAT = 'gremia-sbv-mobile-snapshot';
 export const MOBILE_COMPANION_SNAPSHOT_VERSION = 1;
@@ -309,6 +310,7 @@ export class MobileCompanionService {
       });
       const serializedEnvelope = JSON.stringify(envelope satisfies TargetBoundTransferEnvelope);
       const qrFrames = createMobileCompanionQrFrames(serializedEnvelope, packageId);
+      recordMobileCompanionSnapshotExport(this.database, payload, qrFrames.length);
       this.database.prepare('UPDATE mobile_companion_devices SET last_snapshot_at = ?, updated_at = ? WHERE id = ?')
         .run(createdAt, createdAt, device.id);
       this.auditLog.append({

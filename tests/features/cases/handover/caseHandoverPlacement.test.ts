@@ -5,6 +5,8 @@ import { CaseDetailPanel } from '../../../../src/app/features/cases/CaseDetailPa
 import { CaseHandoverTransferDialogs } from '../../../../src/app/features/cases/CaseHandoverTransferDialogs';
 import { CaseHandoverCockpitView } from '../../../../src/app/features/case-handover/CaseHandoverCockpitView';
 import { CaseHandoverCasePicker } from '../../../../src/app/features/case-handover/CaseHandoverCasePicker';
+import { HandoverMobileCompanionTab } from '../../../../src/app/features/case-handover/HandoverMobileCompanionTab';
+import { HandoverReturnTab } from '../../../../src/app/features/case-handover/HandoverReturnTab';
 import { ImportPackageReview } from '../../../../src/app/shared/components/ImportExportFeedback';
 import { LiveRegionProvider } from '../../../../src/app/shared/a11y/LiveRegionProvider';
 import type { CaseRecord } from '../../../../src/domain/models/case.model';
@@ -58,8 +60,27 @@ describe('case handover placement 0.9.2', () => {
     expect(text).toContain('Import');
     expect(text).toContain('Protokoll');
     expect(text).toContain('Was ist als Nächstes zu tun?');
+    expect(text).toContain('Mobile Projektion erstellen');
     expect(text).not.toContain('Fallakten für die Vertretung');
     expect(text).not.toContain('Erforderliche Fallakten für die Amtsübergabe');
+  });
+
+  it('trennt mobile Ausgabe und mobile Rückgabe in die fachlich passenden Register', () => {
+    const mobile = renderElement(createElement(LiveRegionProvider, {
+      children: createElement(HandoverMobileCompanionTab, { cases: [caseRecord] }),
+    }));
+    const returnTab = renderElement(createElement(LiveRegionProvider, {
+      children: createElement(HandoverReturnTab, {
+        items: [],
+        cases: [caseRecord],
+        onCompleted: async () => undefined,
+      }),
+    }));
+
+    expect(visibleText(mobile.markup)).toContain('Mobile Arbeitsprojektion erstellen');
+    expect(visibleText(mobile.markup)).not.toContain('Mobile Änderungen übernehmen');
+    expect(visibleText(returnTab.markup)).toContain('Mobile Änderungen übernehmen');
+    expect(visibleText(returnTab.markup)).toContain('Mobile Rückgabe auswählen');
   });
 
   it('begrenzt große Fallauswahlen auf eine kompakte, filterbare Trefferliste', () => {

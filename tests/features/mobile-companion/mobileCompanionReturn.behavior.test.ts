@@ -21,19 +21,21 @@ async function migratedDatabase() {
 
 function insertCase(database: DatabaseAdapter, caseId = 'case-mobile-return-1') {
   const now = '2026-09-10T09:00:00.000Z';
+  const caseSuffix = caseId.replace(/^case-mobile-return-?/u, '') || '1';
+  const deadlineId = caseId === 'case-mobile-return-1' ? 'deadline-mobile-return-1' : `deadline-${caseId}`;
   database.prepare(`
     INSERT INTO cases (
       id, case_number, display_name, category, status, priority, opened_at,
       is_pseudonymized, is_locked, person_binding_state, created_at, updated_at
     ) VALUES (?, ?, ?, 'beteiligung', 'offen', 'hoch', ?, 0, 0, 'active', ?, ?)
-  `).run(caseId, 'SBV-2026-MOB-R', 'Mobiler Rückgabefall', now, now, now);
+  `).run(caseId, `SBV-2026-MOB-${caseSuffix}`, 'Mobiler Rückgabefall', now, now, now);
   database.prepare(`
     INSERT INTO deadlines (
       id, case_id, deadline_type, process_type, title, due_at, severity, status,
       calculation_mode, is_legal_deadline, is_user_editable, created_at, updated_at
-    ) VALUES ('deadline-mobile-return-1', ?, 'follow_up', 'case', 'Unterlagen nachhalten',
+    ) VALUES (?, ?, 'follow_up', 'case', 'Unterlagen nachhalten',
       '2026-09-15T10:00:00.000Z', 'important', 'open', 'manual', 0, 1, ?, ?)
-  `).run(caseId, now, now);
+  `).run(deadlineId, caseId, now, now);
 }
 
 function encryptedReturnPayload(
@@ -71,13 +73,19 @@ describe('Mobile Begleit-App Rückgabe', () => {
     const mobile = await migratedDatabase();
     try {
       insertCase(desktop);
-      new MobileCompanionService(desktop).saveDevice({
+      const device = new MobileCompanionService(desktop).saveDevice({
         label: 'Tablet SBV',
         recipientToken: new TransferInstanceIdentityService(mobile).getPublicIdentity().recipientToken,
+      });
+      const snapshot = new MobileCompanionService(desktop).createSnapshot({
+        deviceId: device.id,
+        caseIds: ['case-mobile-return-1'],
+        uiThemeMode: 'dark',
       });
       const packageId = 'mobile_return_safe';
       const envelope = encryptedReturnPayload(desktop, mobile, {
         packageId,
+        sourceSnapshotPackageId: snapshot.packageId,
         changes: [
           {
             type: 'create_note',
@@ -150,13 +158,19 @@ describe('Mobile Begleit-App Rückgabe', () => {
     const mobile = await migratedDatabase();
     try {
       insertCase(desktop);
-      new MobileCompanionService(desktop).saveDevice({
+      const device = new MobileCompanionService(desktop).saveDevice({
         label: 'Tablet SBV',
         recipientToken: new TransferInstanceIdentityService(mobile).getPublicIdentity().recipientToken,
+      });
+      const snapshot = new MobileCompanionService(desktop).createSnapshot({
+        deviceId: device.id,
+        caseIds: ['case-mobile-return-1'],
+        uiThemeMode: 'dark',
       });
       desktop.prepare("UPDATE deadlines SET updated_at = '2026-09-10T09:30:00.000Z' WHERE id = 'deadline-mobile-return-1'").run();
       const envelope = encryptedReturnPayload(desktop, mobile, {
         packageId: 'mobile_return_conflict',
+        sourceSnapshotPackageId: snapshot.packageId,
         changes: [{
           type: 'complete_deadline',
           mobileId: 'mobile-complete-conflict',
@@ -173,6 +187,83 @@ describe('Mobile Begleit-App Rückgabe', () => {
       expect(inspection.conflictCount).toBe(1);
       await expect(service.importEnvelopeText(envelope)).rejects.toThrow(/Konflikte/i);
       expect(desktop.prepare<{ status: string }>('SELECT status FROM deadlines WHERE id = ?').get('deadline-mobile-return-1')?.status).toBe('open');
+    } finally {
+      desktop.close();
+      mobile.close();
+    }
+  });
+
+  it('weist Rückgaben ohne bekannten Desktop-Snapshot vor Schreiboperationen zurück', async () => {
+    const desktop = await migratedDatabase();
+    const mobile = await migratedDatabase();
+    try {
+      insertCase(desktop);
+      new MobileCompanionService(desktop).saveDevice({
+        label: 'Tablet SBV',
+        recipientToken: new TransferInstanceIdentityService(mobile).getPublicIdentity().recipientToken,
+      });
+      const envelope = encryptedReturnPayload(desktop, mobile, {
+        packageId: 'mobile_return_unknown_snapshot',
+        sourceSnapshotPackageId: 'mobile_snapshot_missing',
+        changes: [{
+          type: 'create_note',
+          mobileId: 'mobile-note-unknown-snapshot',
+          caseId: 'case-mobile-return-1',
+          changedAt: '2026-09-10T10:15:00.000Z',
+          title: 'Besprechung',
+          content: 'Wird nicht geschrieben.',
+        }],
+      });
+      const service = new MobileCompanionReturnService(desktop);
+
+      const inspection = service.inspectEnvelopeText(envelope);
+
+      expect(inspection.canImport).toBe(false);
+      expect(inspection.rejectedCount).toBeGreaterThan(0);
+      await expect(service.importEnvelopeText(envelope)).rejects.toThrow(/Importplan/i);
+      expect(desktop.prepare<{ count: number }>('SELECT COUNT(*) AS count FROM case_notes WHERE case_id = ?').get('case-mobile-return-1')?.count).toBe(0);
+    } finally {
+      desktop.close();
+      mobile.close();
+    }
+  });
+
+  it('blockiert mobile Änderungen, die nicht im Ausgangs-Snapshot enthalten waren', async () => {
+    const desktop = await migratedDatabase();
+    const mobile = await migratedDatabase();
+    try {
+      insertCase(desktop, 'case-mobile-return-allowed');
+      insertCase(desktop, 'case-mobile-return-outside');
+      const mobileService = new MobileCompanionService(desktop);
+      const device = mobileService.saveDevice({
+        label: 'Tablet SBV',
+        recipientToken: new TransferInstanceIdentityService(mobile).getPublicIdentity().recipientToken,
+      });
+      const snapshot = mobileService.createSnapshot({
+        deviceId: device.id,
+        caseIds: ['case-mobile-return-allowed'],
+        uiThemeMode: 'dark',
+      });
+      const envelope = encryptedReturnPayload(desktop, mobile, {
+        packageId: 'mobile_return_outside_scope',
+        sourceSnapshotPackageId: snapshot.packageId,
+        changes: [{
+          type: 'create_note',
+          mobileId: 'mobile-note-outside-scope',
+          caseId: 'case-mobile-return-outside',
+          changedAt: '2026-09-10T10:15:00.000Z',
+          title: 'Nicht im Snapshot',
+          content: 'Wird nicht geschrieben.',
+        }],
+      });
+      const service = new MobileCompanionReturnService(desktop);
+
+      const inspection = service.inspectEnvelopeText(envelope);
+
+      expect(inspection.canImport).toBe(false);
+      expect(inspection.rejectedCount).toBeGreaterThan(0);
+      await expect(service.importEnvelopeText(envelope)).rejects.toThrow(/Importplan/i);
+      expect(desktop.prepare<{ count: number }>('SELECT COUNT(*) AS count FROM case_notes WHERE case_id = ?').get('case-mobile-return-outside')?.count).toBe(0);
     } finally {
       desktop.close();
       mobile.close();

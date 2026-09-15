@@ -34,6 +34,7 @@ export function toggleHandoverCase(selectedIds: readonly string[], caseId: strin
 export function handoverStatusLabel(item: CaseHandoverCockpitItem): string {
   if (item.status === 'expired') return 'Abgelaufen – Rückgabe oder Abschluss prüfen';
   if (item.status === 'returned') return 'Rückgabe eingespielt';
+  if (item.packageType === 'mobile_snapshot') return 'Mobile Arbeitsprojektion';
   if (item.packageType === 'return_delta') return 'Rückgabe-Delta';
   if (item.packageType === 'office_handover') return item.direction === 'incoming' ? 'Amtsbestand übernommen' : 'Amtsbestand übergeben';
   return item.direction === 'incoming' ? 'Vertretung übernommen' : 'An Vertretung übergeben';
