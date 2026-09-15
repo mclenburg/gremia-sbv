@@ -1,13 +1,15 @@
 package de.gremia.sbv.companion
 
-import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
+import androidx.activity.ComponentActivity
 import androidx.core.content.FileProvider
+import com.journeyapps.barcodescanner.ScanContract
+import com.journeyapps.barcodescanner.ScanOptions
 import de.gremia.sbv.companion.data.mobile.MobileReturnDraftRepository
 import de.gremia.sbv.companion.data.mobile.MobileSnapshotRepository
 import de.gremia.sbv.companion.data.transfer.TransferIdentityRepository
@@ -17,12 +19,15 @@ import de.gremia.sbv.companion.domain.mobile.MobileSnapshotQrController
 import de.gremia.sbv.companion.ui.AppShellRenderer
 import java.io.File
 
-class MainActivity : Activity() {
+class MainActivity : ComponentActivity() {
     private lateinit var identityRepository: TransferIdentityRepository
     private lateinit var snapshotRepository: MobileSnapshotRepository
     private lateinit var returnDraftRepository: MobileReturnDraftRepository
     private lateinit var returnPackageCreator: MobileReturnPackageCreator
     private lateinit var snapshotController: MobileSnapshotQrController
+    private val qrScanLauncher = registerForActivityResult(ScanContract()) { result ->
+        if (result.contents != null) acceptSnapshotFrame(result.contents)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,14 +47,9 @@ class MainActivity : Activity() {
                 snapshot = snapshotRepository.current(),
                 returnNotes = returnDraftRepository.listNotes(),
                 onCopyRecipientToken = { copyRecipientToken(identity.recipientToken) },
+                onScanFrame = { startQrScan() },
                 onAcceptFrame = { frame ->
-                    val result = snapshotController.accept(frame)
-                    Toast.makeText(this, result.message, Toast.LENGTH_SHORT).show()
-                    if (result is MobileSnapshotIntakeResult.Completed) {
-                        returnDraftRepository.clear()
-                        renderContent()
-                    }
-                    result
+                    acceptSnapshotFrame(frame)
                 },
                 onResetFrames = {
                     snapshotController.reset()
@@ -69,6 +69,25 @@ class MainActivity : Activity() {
         val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         clipboard.setPrimaryClip(ClipData.newPlainText(getString(R.string.recipient_token_label), recipientToken))
         Toast.makeText(this, R.string.recipient_token_copied, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun startQrScan() {
+        qrScanLauncher.launch(ScanOptions().apply {
+            setDesiredBarcodeFormats(ScanOptions.QR_CODE)
+            setPrompt(getString(R.string.snapshot_scan_prompt))
+            setBeepEnabled(false)
+            setOrientationLocked(false)
+        })
+    }
+
+    private fun acceptSnapshotFrame(frame: String): MobileSnapshotIntakeResult {
+        val result = snapshotController.accept(frame)
+        Toast.makeText(this, result.message, Toast.LENGTH_SHORT).show()
+        if (result is MobileSnapshotIntakeResult.Completed) {
+            returnDraftRepository.clear()
+            renderContent()
+        }
+        return result
     }
 
     private fun addReturnNote(caseId: String, title: String, content: String) {

@@ -16,6 +16,8 @@
     <string name="snapshot_frame_label">Aktueller QR-Frame</string>
     <string name="snapshot_frame_hint">QR-Frame aus Gremia.SBV Desktop einfügen</string>
     <string name="snapshot_frame_empty">Noch kein Frame erfasst.</string>
+    <string name="snapshot_frame_scan">QR-Code scannen</string>
+    <string name="snapshot_scan_prompt">Gremia.SBV-QR-Frame scannen</string>
     <string name="snapshot_frame_accept">Frame übernehmen</string>
     <string name="snapshot_frames_reset">Frames zurücksetzen</string>
     <string name="snapshot_current_kicker">ARBEITSSTAND</string>

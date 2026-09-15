@@ -51,10 +51,13 @@ describe('Android-Begleit-App Arbeitsbereich', () => {
     expect(manifest.includes('android.permission.INTERNET')).toBe(false);
     expect(manifest.includes('android:allowBackup="false"')).toBe(true);
     expect(appBuild.includes('de.gremia.sbv.companion')).toBe(true);
+    expect(appBuild.includes('androidx.activity:activity-ktx:1.9.3')).toBe(true);
     expect(appBuild.includes('androidx.core:core-ktx:1.13.1')).toBe(true);
+    expect(appBuild.includes('com.journeyapps:zxing-android-embedded:4.3.0')).toBe(true);
     expect(appBuild.includes('project(":')).toBe(false);
     expect(strings.includes('Gremia.SBV Begleit-App')).toBe(true);
     expect(strings.includes('Snapshot empfangen')).toBe(true);
+    expect(strings.includes('QR-Code scannen')).toBe(true);
     expect(strings.includes('Mobile Änderungen zurückgeben')).toBe(true);
     expect(strings.includes('Fallakten filtern')).toBe(true);
   });

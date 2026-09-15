@@ -15,9 +15,17 @@ nicht in der Desktop-Abhängigkeitsliste untergehen.
 
 ## AndroidX Core
 
-- Artefakt: `androidx.core:core-ktx`
-- Version: `1.13.1`
+- Artefakte: `androidx.core:core-ktx`, `androidx.activity:activity-ktx`
+- Versionen: `core-ktx 1.13.1`, `activity-ktx 1.9.3`
 - Zweck: Sichere Bereitstellung lokal erzeugter Rückgabedateien über
-  `FileProvider`, ohne externe Speicherberechtigung.
+  `FileProvider` sowie moderner Activity-Result-Vertrag für den QR-Scanner.
 - Lizenz: Apache License 2.0; AGPL-3-kompatibel.
 - Quelle: <https://developer.android.com/jetpack/androidx/releases/core>
+
+## ZXing Android Embedded
+
+- Artefakt: `com.journeyapps:zxing-android-embedded`
+- Version: `4.3.0`
+- Zweck: Kamera-gestützte Erfassung der QR-Frames aus Gremia.SBV Desktop.
+- Lizenz: Apache License 2.0; AGPL-3-kompatibel.
+- Quelle: <https://github.com/journeyapps/zxing-android-embedded>

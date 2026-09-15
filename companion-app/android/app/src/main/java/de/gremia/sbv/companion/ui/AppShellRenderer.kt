@@ -23,6 +23,7 @@ class AppShellRenderer(
         snapshot: MobileSnapshot?,
         returnNotes: List<MobileReturnNoteDraft>,
         onCopyRecipientToken: () -> Unit,
+        onScanFrame: () -> Unit,
         onAcceptFrame: (String) -> MobileSnapshotIntakeResult,
         onResetFrames: () -> Unit,
         onAddReturnNote: (String, String, String) -> Unit,
@@ -36,6 +37,7 @@ class AppShellRenderer(
                 snapshot,
                 returnNotes,
                 onCopyRecipientToken,
+                onScanFrame,
                 onAcceptFrame,
                 onResetFrames,
                 onAddReturnNote,
@@ -49,6 +51,7 @@ class AppShellRenderer(
         snapshot: MobileSnapshot?,
         returnNotes: List<MobileReturnNoteDraft>,
         onCopyRecipientToken: () -> Unit,
+        onScanFrame: () -> Unit,
         onAcceptFrame: (String) -> MobileSnapshotIntakeResult,
         onResetFrames: () -> Unit,
         onAddReturnNote: (String, String, String) -> Unit,
@@ -64,7 +67,7 @@ class AppShellRenderer(
             addView(ui.title(context.getString(R.string.app_name)))
             addView(ui.paragraph(context.getString(R.string.app_shell_description)))
             addView(pairingPanel.render(identity, onCopyRecipientToken))
-            addView(snapshotPanel.renderImport(onAcceptFrame, onResetFrames))
+            addView(snapshotPanel.renderImport(onScanFrame, onAcceptFrame, onResetFrames))
             addView(snapshotPanel.renderCurrent(snapshot))
             addView(returnPanel.render(
                 snapshot,

@@ -16,6 +16,7 @@ class SnapshotPanelRenderer(
     private val ui: GremiaUi,
 ) {
     fun renderImport(
+        onScanFrame: () -> Unit,
         onAcceptFrame: (String) -> MobileSnapshotIntakeResult,
         onResetFrames: () -> Unit,
     ): LinearLayout =
@@ -29,6 +30,7 @@ class SnapshotPanelRenderer(
             addView(input)
             addView(status)
             addView(ui.horizontalActions(
+                ui.button(context.getString(R.string.snapshot_frame_scan), onScanFrame),
                 ui.button(context.getString(R.string.snapshot_frame_accept)) {
                     val result = onAcceptFrame(input.text.toString())
                     status.text = result.message
