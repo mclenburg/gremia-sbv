@@ -72,7 +72,6 @@ class AppShellRenderer(
             setPadding(padding, padding, padding, padding)
             addView(ui.kicker(context.getString(R.string.app_shell_kicker)))
             addView(ui.title(context.getString(R.string.app_name)))
-            addView(ui.paragraph(context.getString(R.string.app_shell_description)))
             addView(pairingPanel.render(identity, onCopyRecipientToken))
             addView(snapshotPanel.renderImport(onScanFrame, onAcceptFrame, onResetFrames))
             addView(snapshotPanel.renderCurrent(snapshot))

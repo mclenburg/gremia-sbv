@@ -31,7 +31,6 @@ class ReturnPanelRenderer(
                 addView(ui.paragraph(context.getString(R.string.return_empty)))
                 return@apply
             }
-            addView(ui.paragraph(context.getString(R.string.return_description)))
             addView(noteForm(snapshot.cases, onAddNote))
             addView(deadlineForm(snapshot.cases, onAddDeadline))
             addView(deadlineCompletionList(snapshot.deadlines, drafts, onCompleteDeadline))

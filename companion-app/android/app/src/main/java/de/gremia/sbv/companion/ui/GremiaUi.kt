@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
+import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
@@ -121,8 +122,16 @@ class GremiaUi(private val context: Context) {
 
     fun horizontalActions(vararg buttons: Button): LinearLayout =
         LinearLayout(context).apply {
-            orientation = LinearLayout.HORIZONTAL
-            buttons.forEach { addView(it) }
+            orientation = LinearLayout.VERTICAL
+            buttons.forEachIndexed { index, button ->
+                button.layoutParams = LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                ).apply {
+                    if (index > 0) topMargin = dimen(R.dimen.space_sm)
+                }
+                addView(button)
+            }
         }
 
     fun panel(): LinearLayout =

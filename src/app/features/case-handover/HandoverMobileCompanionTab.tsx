@@ -75,7 +75,6 @@ function MobileDevicePairingPanel({
     ariaLabel="Mobile Begleit-App koppeln"
     kicker="Begleit-App"
     title="Gekoppelte Mobilgeräte"
-    description="Die App liefert ihre öffentliche Empfängerkennung. Private Schlüssel bleiben auf dem jeweiligen Gerät."
     actions={<IndustrialButton onClick={onOpen}><Plus className="industrial-icon" aria-hidden="true" /> Mobilgerät koppeln</IndustrialButton>}
     helpId="caseHandover.mobile"
   >
@@ -136,7 +135,6 @@ function MobileSnapshotPanel({
     ariaLabel="Mobile Projektion erstellen"
     kicker="Ausgabe"
     title="Mobile Arbeitsprojektion erstellen"
-    description="Übertragen werden nur Fallkopf, Status und offene Fristen. Notizen, Dokumente und Freitexte bleiben im Desktop-Tresor."
     helpId="caseHandover.mobile"
   >
     <form className="industrial-stack" onSubmit={onSubmit}>

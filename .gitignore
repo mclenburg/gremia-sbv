@@ -13,6 +13,7 @@ release/
 .idea/tasks.xml
 .idea/usage.statistics.xml
 /.idea/
+/companion-app/.idea/
 /gremia-sbv.zip
 /test-results/
 /test-results.zip

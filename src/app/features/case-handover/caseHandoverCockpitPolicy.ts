@@ -12,7 +12,7 @@ export function activeMobileWorkCases(
     measuresByCase.set(measure.caseId, [...(measuresByCase.get(measure.caseId) ?? []), measure]);
   }
   return cases.filter((record) => {
-    if (record.status === 'abgeschlossen' || record.isLocked || record.isPseudonymized) return false;
+    if (record.status === 'abgeschlossen' || record.isLocked) return false;
     const linkedMeasures = measuresByCase.get(record.id) ?? [];
     return linkedMeasures.length === 0 || linkedMeasures.some((measure) => isRunningCaseMeasureStatus(measure.status));
   });

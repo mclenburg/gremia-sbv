@@ -27,7 +27,6 @@ class SnapshotPanelRenderer(
         ui.panel().apply {
             addView(ui.kicker(context.getString(R.string.snapshot_receive_kicker)))
             addView(ui.sectionTitle(context.getString(R.string.snapshot_receive_title)))
-            addView(ui.paragraph(context.getString(R.string.snapshot_receive_description)))
 
             val input = frameInput()
             val status = ui.paragraph(context.getString(R.string.snapshot_frame_empty))
