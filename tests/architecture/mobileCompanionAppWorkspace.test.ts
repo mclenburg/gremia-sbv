@@ -23,7 +23,16 @@ describe('Android-Begleit-App Arbeitsbereich', () => {
       'app/src/main/java/de/gremia/sbv/companion/domain/transfer/TransferIdentity.kt',
       'app/src/main/java/de/gremia/sbv/companion/domain/transfer/TransferIdentityPolicy.kt',
       'app/src/main/java/de/gremia/sbv/companion/domain/transfer/X25519IdentityFactory.kt',
+      'app/src/main/java/de/gremia/sbv/companion/domain/mobile/MobileQrFrame.kt',
+      'app/src/main/java/de/gremia/sbv/companion/domain/mobile/MobileQrFrameParser.kt',
+      'app/src/main/java/de/gremia/sbv/companion/domain/mobile/MobileSnapshotFrameAssembler.kt',
+      'app/src/main/java/de/gremia/sbv/companion/domain/mobile/MobileSnapshotPayloadDecoder.kt',
+      'app/src/main/java/de/gremia/sbv/companion/data/mobile/MobileSnapshotRepository.kt',
+      'app/src/main/java/de/gremia/sbv/companion/data/transfer/TargetBoundSnapshotDecryptor.kt',
       'app/src/main/java/de/gremia/sbv/companion/ui/AppShellRenderer.kt',
+      'app/src/main/java/de/gremia/sbv/companion/ui/GremiaUi.kt',
+      'app/src/main/java/de/gremia/sbv/companion/ui/PairingPanelRenderer.kt',
+      'app/src/main/java/de/gremia/sbv/companion/ui/SnapshotPanelRenderer.kt',
     ]) {
       expect(existsSync(join(workspaceRoot, file))).toBe(true);
     }
@@ -39,6 +48,8 @@ describe('Android-Begleit-App Arbeitsbereich', () => {
     expect(appBuild.includes('de.gremia.sbv.companion')).toBe(true);
     expect(appBuild.includes('project(":')).toBe(false);
     expect(strings.includes('Gremia.SBV Begleit-App')).toBe(true);
+    expect(strings.includes('Snapshot empfangen')).toBe(true);
+    expect(strings.includes('Fallakten filtern')).toBe(true);
   });
 
   it('stellt die Desktop-kompatible Empfängerkennung ohne Telemetrie-Abhängigkeit bereit', () => {
@@ -53,5 +64,19 @@ describe('Android-Begleit-App Arbeitsbereich', () => {
     expect(appBuild.includes('org.bouncycastle:bcprov-jdk18on:1.85.2')).toBe(true);
     expect(appBuild.includes('firebase')).toBe(false);
     expect(licenses.includes('AGPL-3-kompatibel')).toBe(true);
+  });
+
+  it('nimmt Mobile-Snapshots nur zielgebunden, vollständig und geschützt entgegen', () => {
+    const parser = readWorkspaceFile('app/src/main/java/de/gremia/sbv/companion/domain/mobile/MobileQrFrameParser.kt');
+    const assembler = readWorkspaceFile('app/src/main/java/de/gremia/sbv/companion/domain/mobile/MobileSnapshotFrameAssembler.kt');
+    const decryptor = readWorkspaceFile('app/src/main/java/de/gremia/sbv/companion/data/transfer/TargetBoundSnapshotDecryptor.kt');
+    const repository = readWorkspaceFile('app/src/main/java/de/gremia/sbv/companion/data/mobile/MobileSnapshotRepository.kt');
+
+    expect(parser).toContain('gsbvmobile://v1/');
+    expect(parser).toContain('chunkChecksum');
+    expect(assembler).toContain('packageSha256');
+    expect(decryptor).toContain('x25519-hkdf-sha256');
+    expect(decryptor).toContain('targetInstanceId');
+    expect(repository).toContain('AndroidSecretBox("gremia_sbv_companion_snapshot_v1")');
   });
 });

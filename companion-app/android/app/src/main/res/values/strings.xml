@@ -10,4 +10,19 @@
     <string name="recipient_token_label">Öffentliche Empfängerkennung</string>
     <string name="copy_recipient_token">Empfängerkennung kopieren</string>
     <string name="recipient_token_copied">Empfängerkennung wurde kopiert.</string>
+    <string name="snapshot_receive_kicker">MOBILE PROJEKTION</string>
+    <string name="snapshot_receive_title">Snapshot empfangen</string>
+    <string name="snapshot_receive_description">QR-Frames aus Gremia.SBV Desktop werden geprüft, zusammengesetzt, entschlüsselt und geschützt auf diesem Gerät abgelegt.</string>
+    <string name="snapshot_frame_label">Aktueller QR-Frame</string>
+    <string name="snapshot_frame_hint">QR-Frame einfügen oder später aus dem Scanner übernehmen</string>
+    <string name="snapshot_frame_empty">Noch kein Frame erfasst.</string>
+    <string name="snapshot_frame_accept">Frame übernehmen</string>
+    <string name="snapshot_frames_reset">Frames zurücksetzen</string>
+    <string name="snapshot_current_kicker">ARBEITSSTAND</string>
+    <string name="snapshot_current_title">Aktuelle mobile Arbeitsprojektion</string>
+    <string name="snapshot_current_empty">Noch keine mobile Arbeitsprojektion gespeichert.</string>
+    <string name="snapshot_current_summary">%1$d Fallakte(n), %2$d offene Frist(en) aus Instanz %3$s.</string>
+    <string name="snapshot_cases_label">Fallakten</string>
+    <string name="snapshot_case_filter_label">Fallakten filtern</string>
+    <string name="snapshot_case_filter_hint">Aktenzeichen, Name, Kategorie oder Status filtern</string>
 </resources>

@@ -23,5 +23,7 @@ Rückgabedatei zurück.
 - Die erste produktive App-Funktion erzeugt lokal eine X25519-Transferidentität,
   schützt den privaten Schlüssel mit dem Android Keystore und zeigt nur die
   öffentliche Empfängerkennung für die Kopplung mit Gremia.SBV Desktop an.
-- Fachlogik für QR-Empfang, Projektion, lokale Bearbeitung und Rückgabe wird in
-  den nächsten Slices getrennt nach Domäne, Transfer und UI ergänzt.
+- QR-Frames aus der Desktop-Anwendung werden validiert, zusammengesetzt,
+  zielinstanzgebunden entschlüsselt und geschützt auf dem Gerät abgelegt.
+- Lokale Bearbeitung und verschlüsselte Rückgabe werden in den nächsten Slices
+  getrennt nach Domäne, Transfer und UI ergänzt.

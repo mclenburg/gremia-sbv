@@ -42,4 +42,5 @@ android {
 
 dependencies {
     implementation("org.bouncycastle:bcprov-jdk18on:1.85.2")
+    testImplementation(kotlin("test"))
 }
