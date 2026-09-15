@@ -31,9 +31,13 @@ data class MobileCaseProjection(
 data class MobileDeadlineProjection(
     val id: String,
     val caseId: String,
+    val type: String,
     val title: String,
     val dueAt: String,
+    val reminderAt: String?,
+    val legalBasis: String?,
     val severity: String,
     val status: String,
+    val isLegalDeadline: Boolean,
     val updatedAt: String,
 )

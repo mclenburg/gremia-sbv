@@ -29,13 +29,16 @@ describe('Android-Begleit-App Arbeitsbereich', () => {
       'app/src/main/java/de/gremia/sbv/companion/domain/mobile/MobileSnapshotPayloadDecoder.kt',
       'app/src/main/java/de/gremia/sbv/companion/domain/mobile/MobileWorkProjection.kt',
       'app/src/main/java/de/gremia/sbv/companion/domain/mobile/MobileReturnDraft.kt',
+      'app/src/main/java/de/gremia/sbv/companion/domain/mobile/MobileReturnPayloadBuilder.kt',
       'app/src/main/java/de/gremia/sbv/companion/domain/mobile/MobileReturnPackageCreator.kt',
+      'app/src/main/java/de/gremia/sbv/companion/domain/security/MobileLockPolicy.kt',
       'app/src/main/java/de/gremia/sbv/companion/data/mobile/MobileSnapshotRepository.kt',
       'app/src/main/java/de/gremia/sbv/companion/data/mobile/MobileReturnDraftRepository.kt',
       'app/src/main/java/de/gremia/sbv/companion/data/transfer/TargetBoundSnapshotDecryptor.kt',
       'app/src/main/java/de/gremia/sbv/companion/data/transfer/TargetBoundReturnEncryptor.kt',
       'app/src/main/java/de/gremia/sbv/companion/ui/AppShellRenderer.kt',
       'app/src/main/java/de/gremia/sbv/companion/ui/GremiaUi.kt',
+      'app/src/main/java/de/gremia/sbv/companion/ui/LockPanelRenderer.kt',
       'app/src/main/java/de/gremia/sbv/companion/ui/MobileDateFormatter.kt',
       'app/src/main/java/de/gremia/sbv/companion/ui/PairingPanelRenderer.kt',
       'app/src/main/java/de/gremia/sbv/companion/ui/SnapshotPanelRenderer.kt',
@@ -62,6 +65,7 @@ describe('Android-Begleit-App Arbeitsbereich', () => {
     expect(strings.includes('QR-Code scannen')).toBe(true);
     expect(strings.includes('Mobile Änderungen zurückgeben')).toBe(true);
     expect(strings.includes('Fallakten filtern')).toBe(true);
+    expect(strings.includes('Begleit-App gesperrt')).toBe(true);
   });
 
   it('stellt die Desktop-kompatible Empfängerkennung ohne Telemetrie-Abhängigkeit bereit', () => {
@@ -84,6 +88,8 @@ describe('Android-Begleit-App Arbeitsbereich', () => {
     const decryptor = readWorkspaceFile('app/src/main/java/de/gremia/sbv/companion/data/transfer/TargetBoundSnapshotDecryptor.kt');
     const encryptor = readWorkspaceFile('app/src/main/java/de/gremia/sbv/companion/data/transfer/TargetBoundReturnEncryptor.kt');
     const repository = readWorkspaceFile('app/src/main/java/de/gremia/sbv/companion/data/mobile/MobileSnapshotRepository.kt');
+    const lockPolicy = readWorkspaceFile('app/src/main/java/de/gremia/sbv/companion/domain/security/MobileLockPolicy.kt');
+    const activity = readWorkspaceFile('app/src/main/java/de/gremia/sbv/companion/MainActivity.kt');
 
     expect(parser).toContain('gsbvmobile://v1/');
     expect(parser).toContain('chunkChecksum');
@@ -93,11 +99,29 @@ describe('Android-Begleit-App Arbeitsbereich', () => {
     expect(encryptor).toContain('x25519-hkdf-sha256');
     expect(decryptor).toContain('targetInstanceId');
     expect(repository).toContain('AndroidSecretBox("gremia_sbv_companion_snapshot_v1")');
+    expect(lockPolicy).toContain('initialState()');
+    expect(activity).toContain('FLAG_SECURE');
+    expect(activity).toContain('createConfirmDeviceCredentialIntent');
+  });
+
+  it('gibt mobile Änderungen als vollständigen Rückgabe-Vertrag zurück', () => {
+    const drafts = readWorkspaceFile('app/src/main/java/de/gremia/sbv/companion/domain/mobile/MobileReturnDraft.kt');
+    const builder = readWorkspaceFile('app/src/main/java/de/gremia/sbv/companion/domain/mobile/MobileReturnPayloadBuilder.kt');
+    const repository = readWorkspaceFile('app/src/main/java/de/gremia/sbv/companion/data/mobile/MobileReturnDraftRepository.kt');
+
+    expect(drafts).toContain('MobileReturnDeadlineDraft');
+    expect(drafts).toContain('MobileReturnDeadlineCompletionDraft');
+    expect(builder).toContain('"create_note"');
+    expect(builder).toContain('"create_deadline"');
+    expect(builder).toContain('"complete_deadline"');
+    expect(repository).toContain('fun addDeadline(');
+    expect(repository).toContain('fun completeDeadline(');
   });
 
   it('stylt native UI-Elemente über die zentrale Gremia-UI-Schicht', () => {
     const uiShellFiles = [
       'app/src/main/java/de/gremia/sbv/companion/ui/AppShellRenderer.kt',
+      'app/src/main/java/de/gremia/sbv/companion/ui/LockPanelRenderer.kt',
       'app/src/main/java/de/gremia/sbv/companion/ui/PairingPanelRenderer.kt',
       'app/src/main/java/de/gremia/sbv/companion/ui/SnapshotPanelRenderer.kt',
       'app/src/main/java/de/gremia/sbv/companion/ui/ReturnPanelRenderer.kt',

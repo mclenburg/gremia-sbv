@@ -7,7 +7,8 @@ import android.widget.EditText
 import android.widget.LinearLayout
 import de.gremia.sbv.companion.R
 import de.gremia.sbv.companion.domain.mobile.MobileCaseProjection
-import de.gremia.sbv.companion.domain.mobile.MobileReturnNoteDraft
+import de.gremia.sbv.companion.domain.mobile.MobileDeadlineProjection
+import de.gremia.sbv.companion.domain.mobile.MobileReturnDraftSet
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshot
 
 class ReturnPanelRenderer(
@@ -16,10 +17,12 @@ class ReturnPanelRenderer(
 ) {
     fun render(
         snapshot: MobileSnapshot?,
-        notes: List<MobileReturnNoteDraft>,
+        drafts: MobileReturnDraftSet,
         onAddNote: (String, String, String) -> Unit,
+        onAddDeadline: (String, String, String, String?, String) -> Unit,
+        onCompleteDeadline: (MobileDeadlineProjection, String?) -> Unit,
         onCreatePackage: () -> Unit,
-        onClearNotes: () -> Unit,
+        onClearDrafts: () -> Unit,
     ): LinearLayout =
         ui.panel().apply {
             addView(ui.kicker(context.getString(R.string.return_kicker)))
@@ -30,10 +33,12 @@ class ReturnPanelRenderer(
             }
             addView(ui.paragraph(context.getString(R.string.return_description)))
             addView(noteForm(snapshot.cases, onAddNote))
-            addView(draftList(notes))
+            addView(deadlineForm(snapshot.cases, onAddDeadline))
+            addView(deadlineCompletionList(snapshot.deadlines, drafts, onCompleteDeadline))
+            addView(draftList(drafts))
             addView(ui.horizontalActions(
                 ui.button(context.getString(R.string.return_create_package), onCreatePackage),
-                ui.button(context.getString(R.string.return_clear_drafts), onClearNotes),
+                ui.button(context.getString(R.string.return_clear_drafts), onClearDrafts),
             ))
         }
 
@@ -71,12 +76,111 @@ class ReturnPanelRenderer(
             })
         }
 
-    private fun draftList(notes: List<MobileReturnNoteDraft>): LinearLayout =
+    private fun deadlineForm(
+        cases: List<MobileCaseProjection>,
+        onAddDeadline: (String, String, String, String?, String) -> Unit,
+    ): LinearLayout =
         LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
-            addView(ui.paragraph(context.getString(R.string.return_draft_summary, notes.size)))
-            notes.take(LIST_PREVIEW_LIMIT).forEach { note ->
-                addView(ui.listText(context.getString(R.string.return_draft_entry, note.title)))
+            var selectedCaseId = cases.firstOrNull()?.id.orEmpty()
+            addView(ui.fieldLabel(context.getString(R.string.return_deadline_case_label)))
+            val caseList = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
+            fun renderCases(filter: String) {
+                caseList.removeAllViews()
+                cases.filter { caseMatches(it, filter) }.forEach { record ->
+                    caseList.addView(ui.button(context.getString(
+                        R.string.return_case_select_button,
+                        record.caseNumber,
+                        record.displayName,
+                    )) {
+                        selectedCaseId = record.id
+                    })
+                }
+            }
+            if (cases.size > FILTER_THRESHOLD) addView(caseFilterInput(::renderCases))
+            renderCases("")
+            addView(caseList)
+            val title = textInput(R.string.return_deadline_title_label, R.string.return_deadline_title_hint, false)
+            val dueAt = textInput(R.string.return_deadline_due_label, R.string.return_deadline_due_hint, false)
+            val severity = textInput(R.string.return_deadline_severity_label, R.string.return_deadline_severity_hint, false)
+            val description = textInput(R.string.return_deadline_description_label, R.string.return_deadline_description_hint, true)
+            addView(ui.fieldLabel(context.getString(R.string.return_deadline_title_label)))
+            addView(title)
+            addView(ui.fieldLabel(context.getString(R.string.return_deadline_due_label)))
+            addView(dueAt)
+            addView(ui.fieldLabel(context.getString(R.string.return_deadline_severity_label)))
+            addView(severity)
+            addView(ui.fieldLabel(context.getString(R.string.return_deadline_description_label)))
+            addView(description)
+            addView(ui.button(context.getString(R.string.return_deadline_add)) {
+                onAddDeadline(
+                    selectedCaseId,
+                    title.text.toString(),
+                    dueAt.text.toString(),
+                    description.text.toString(),
+                    severity.text.toString(),
+                )
+                title.text.clear()
+                dueAt.text.clear()
+                severity.text.clear()
+                description.text.clear()
+            })
+        }
+
+    private fun deadlineCompletionList(
+        deadlines: List<MobileDeadlineProjection>,
+        drafts: MobileReturnDraftSet,
+        onCompleteDeadline: (MobileDeadlineProjection, String?) -> Unit,
+    ): LinearLayout =
+        LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            val completionIds = drafts.deadlineCompletions.map { completion -> completion.deadlineId }.toSet()
+            val openDeadlines = deadlines.filter { deadline -> deadline.status != "done" && deadline.status != "completed" }
+            addView(ui.fieldLabel(context.getString(R.string.return_deadline_complete_label)))
+            if (openDeadlines.isEmpty()) {
+                addView(ui.listText(context.getString(R.string.return_deadline_complete_empty)))
+                return@apply
+            }
+            openDeadlines.take(LIST_PREVIEW_LIMIT).forEach { deadline ->
+                addView(ui.listItem(
+                    primary = deadline.title,
+                    secondary = context.getString(
+                        R.string.return_deadline_complete_summary,
+                        MobileDateFormatter.formatDateTime(deadline.dueAt),
+                        deadline.severity,
+                    ),
+                ))
+                val note = textInput(
+                    R.string.return_deadline_complete_note_label,
+                    R.string.return_deadline_complete_note_hint,
+                    multiLine = false,
+                )
+                addView(note)
+                val label = if (completionIds.contains(deadline.id)) {
+                    context.getString(R.string.return_deadline_complete_planned)
+                } else {
+                    context.getString(R.string.return_deadline_complete_action)
+                }
+                addView(ui.button(label) {
+                    if (!completionIds.contains(deadline.id)) {
+                        onCompleteDeadline(deadline, note.text.toString())
+                    }
+                })
+            }
+        }
+
+    private fun draftList(drafts: MobileReturnDraftSet): LinearLayout =
+        LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            addView(ui.paragraph(context.getString(R.string.return_draft_summary, drafts.changeCount)))
+            drafts.notes.take(LIST_PREVIEW_LIMIT).forEach { note ->
+                addView(ui.listText(context.getString(R.string.return_note_draft_entry, note.title)))
+            }
+            drafts.deadlines.take(LIST_PREVIEW_LIMIT).forEach { deadline ->
+                addView(ui.listText(context.getString(R.string.return_deadline_draft_entry, deadline.title)))
+            }
+            drafts.deadlineCompletions.take(LIST_PREVIEW_LIMIT).forEach { completion ->
+                addView(ui.listText(context.getString(R.string.return_deadline_completion_draft_entry, completion.deadlineId)))
             }
         }
 

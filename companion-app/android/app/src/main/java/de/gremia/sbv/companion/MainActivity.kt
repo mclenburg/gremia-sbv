@@ -4,8 +4,15 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.app.KeyguardManager
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.os.SystemClock
+import android.provider.Settings
+import android.view.WindowManager
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.ComponentActivity
 import androidx.core.content.FileProvider
 import com.journeyapps.barcodescanner.ScanContract
@@ -13,10 +20,13 @@ import com.journeyapps.barcodescanner.ScanOptions
 import de.gremia.sbv.companion.data.mobile.MobileReturnDraftRepository
 import de.gremia.sbv.companion.data.mobile.MobileSnapshotRepository
 import de.gremia.sbv.companion.data.transfer.TransferIdentityRepository
+import de.gremia.sbv.companion.domain.mobile.MobileDeadlineProjection
 import de.gremia.sbv.companion.domain.mobile.MobileReturnPackageCreator
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshotIntakeResult
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshotQrController
+import de.gremia.sbv.companion.domain.security.MobileLockPolicy
 import de.gremia.sbv.companion.ui.AppShellRenderer
+import de.gremia.sbv.companion.ui.LockPanelRenderer
 import java.io.File
 
 class MainActivity : ComponentActivity() {
@@ -25,27 +35,70 @@ class MainActivity : ComponentActivity() {
     private lateinit var returnDraftRepository: MobileReturnDraftRepository
     private lateinit var returnPackageCreator: MobileReturnPackageCreator
     private lateinit var snapshotController: MobileSnapshotQrController
+    private val lockPolicy = MobileLockPolicy()
+    private val lockCheckHandler = Handler(Looper.getMainLooper())
+    private var unlocked = false
+    private var lastInteractionAtMillis = 0L
     private val qrScanLauncher = registerForActivityResult(ScanContract()) { result ->
-        if (result.contents != null) acceptSnapshotFrame(result.contents)
+        if (result.contents != null) acceptScannedSnapshotFrame(result.contents)
+    }
+    private val unlockLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == RESULT_OK) {
+            unlock()
+        } else {
+            renderLockScreen()
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        secureWindow()
         identityRepository = TransferIdentityRepository(this)
         snapshotRepository = MobileSnapshotRepository(this)
         returnDraftRepository = MobileReturnDraftRepository(this)
         returnPackageCreator = MobileReturnPackageCreator(this)
         snapshotController = MobileSnapshotQrController(identityRepository.getOrCreate(), snapshotRepository)
-        renderContent()
+        val initial = lockPolicy.initialState()
+        unlocked = !initial.locked
+        if (unlocked) renderContent() else renderLockScreen()
+    }
+
+    override fun onUserInteraction() {
+        super.onUserInteraction()
+        if (unlocked) lastInteractionAtMillis = SystemClock.elapsedRealtime()
+    }
+
+    override fun onDestroy() {
+        lockCheckHandler.removeCallbacksAndMessages(null)
+        super.onDestroy()
+    }
+
+    private fun secureWindow() {
+        window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
+    }
+
+    private fun renderLockScreen() {
+        lockCheckHandler.removeCallbacksAndMessages(null)
+        setContentView(
+            LockPanelRenderer(this).render(
+                canUseDeviceCredential = canUseDeviceCredential(),
+                onUnlock = { requestUnlock() },
+                onOpenSecuritySettings = { openSecuritySettings() },
+            ),
+        )
     }
 
     private fun renderContent() {
+        if (!unlocked) {
+            renderLockScreen()
+            return
+        }
         val identity = identityRepository.getOrCreate()
         setContentView(
             AppShellRenderer(this).render(
                 identity = identity,
                 snapshot = snapshotRepository.current(),
-                returnNotes = returnDraftRepository.listNotes(),
+                returnDrafts = returnDraftRepository.listDrafts(),
                 onCopyRecipientToken = { copyRecipientToken(identity.recipientToken) },
                 onScanFrame = { startQrScan() },
                 onAcceptFrame = { frame ->
@@ -56,13 +109,65 @@ class MainActivity : ComponentActivity() {
                     Toast.makeText(this, R.string.snapshot_frames_reset, Toast.LENGTH_SHORT).show()
                 },
                 onAddReturnNote = { caseId, title, content -> addReturnNote(caseId, title, content) },
+                onAddReturnDeadline = { caseId, title, dueAt, description, severity ->
+                    addReturnDeadline(caseId, title, dueAt, description, severity)
+                },
+                onCompleteReturnDeadline = { deadline, completedNote ->
+                    completeReturnDeadline(deadline, completedNote)
+                },
                 onCreateReturnPackage = { createAndShareReturnPackage() },
-                onClearReturnNotes = {
+                onClearReturnDrafts = {
                     returnDraftRepository.clear()
                     renderContent()
                 },
             ),
         )
+        scheduleAutoLockCheck()
+    }
+
+    private fun canUseDeviceCredential(): Boolean {
+        val keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
+        return keyguardManager.isDeviceSecure
+    }
+
+    private fun requestUnlock() {
+        val keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
+        val intent = keyguardManager.createConfirmDeviceCredentialIntent(
+            getString(R.string.lock_title),
+            getString(R.string.lock_unlock_description),
+        )
+        if (intent == null) {
+            unlock()
+            return
+        }
+        unlockLauncher.launch(intent)
+    }
+
+    private fun unlock() {
+        unlocked = true
+        lastInteractionAtMillis = SystemClock.elapsedRealtime()
+        renderContent()
+    }
+
+    private fun openSecuritySettings() {
+        startActivity(Intent(Settings.ACTION_SECURITY_SETTINGS))
+    }
+
+    private fun scheduleAutoLockCheck() {
+        lockCheckHandler.removeCallbacksAndMessages(null)
+        lockCheckHandler.postDelayed({
+            val decision = lockPolicy.stateForInactivity(
+                unlocked = unlocked,
+                lastInteractionAtMillis = lastInteractionAtMillis,
+                nowMillis = SystemClock.elapsedRealtime(),
+            )
+            if (decision.locked) {
+                unlocked = false
+                renderLockScreen()
+            } else {
+                scheduleAutoLockCheck()
+            }
+        }, LOCK_CHECK_INTERVAL_MILLIS)
     }
 
     private fun copyRecipientToken(recipientToken: String) {
@@ -72,6 +177,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun startQrScan() {
+        if (!unlocked) return
         qrScanLauncher.launch(ScanOptions().apply {
             setDesiredBarcodeFormats(ScanOptions.QR_CODE)
             setPrompt(getString(R.string.snapshot_scan_prompt))
@@ -80,7 +186,15 @@ class MainActivity : ComponentActivity() {
         })
     }
 
+    private fun acceptScannedSnapshotFrame(frame: String) {
+        val result = acceptSnapshotFrame(frame)
+        if (result is MobileSnapshotIntakeResult.Progress && unlocked) {
+            startQrScan()
+        }
+    }
+
     private fun acceptSnapshotFrame(frame: String): MobileSnapshotIntakeResult {
+        if (!unlocked) return MobileSnapshotIntakeResult.Error(getString(R.string.lock_title))
         val result = snapshotController.accept(frame)
         Toast.makeText(this, result.message, Toast.LENGTH_SHORT).show()
         if (result is MobileSnapshotIntakeResult.Completed) {
@@ -100,10 +214,30 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private fun addReturnDeadline(caseId: String, title: String, dueAt: String, description: String?, severity: String) {
+        runCatching {
+            returnDraftRepository.addDeadline(caseId, title, dueAt, description, severity)
+        }.onSuccess {
+            renderContent()
+        }.onFailure { cause ->
+            Toast.makeText(this, cause.message ?: getString(R.string.return_title), Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun completeReturnDeadline(deadline: MobileDeadlineProjection, completedNote: String?) {
+        runCatching {
+            returnDraftRepository.completeDeadline(deadline, completedNote)
+        }.onSuccess {
+            renderContent()
+        }.onFailure { cause ->
+            Toast.makeText(this, cause.message ?: getString(R.string.return_title), Toast.LENGTH_LONG).show()
+        }
+    }
+
     private fun createAndShareReturnPackage() {
         runCatching {
             val snapshot = requireNotNull(snapshotRepository.current()) { getString(R.string.return_empty) }
-            returnPackageCreator.create(snapshot, identityRepository.getOrCreate(), returnDraftRepository.listNotes())
+            returnPackageCreator.create(snapshot, identityRepository.getOrCreate(), returnDraftRepository.listDrafts())
         }.onSuccess { result ->
             Toast.makeText(this, R.string.return_file_ready, Toast.LENGTH_SHORT).show()
             val file = File(result.filePath)
@@ -117,5 +251,9 @@ class MainActivity : ComponentActivity() {
         }.onFailure { cause ->
             Toast.makeText(this, cause.message ?: getString(R.string.return_title), Toast.LENGTH_LONG).show()
         }
+    }
+
+    private companion object {
+        private const val LOCK_CHECK_INTERVAL_MILLIS = 15_000L
     }
 }

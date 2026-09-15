@@ -5,7 +5,8 @@ import android.view.Gravity
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import de.gremia.sbv.companion.R
-import de.gremia.sbv.companion.domain.mobile.MobileReturnNoteDraft
+import de.gremia.sbv.companion.domain.mobile.MobileDeadlineProjection
+import de.gremia.sbv.companion.domain.mobile.MobileReturnDraftSet
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshot
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshotIntakeResult
 import de.gremia.sbv.companion.domain.transfer.TransferIdentity
@@ -21,42 +22,48 @@ class AppShellRenderer(
     fun render(
         identity: TransferIdentity,
         snapshot: MobileSnapshot?,
-        returnNotes: List<MobileReturnNoteDraft>,
+        returnDrafts: MobileReturnDraftSet,
         onCopyRecipientToken: () -> Unit,
         onScanFrame: () -> Unit,
         onAcceptFrame: (String) -> MobileSnapshotIntakeResult,
         onResetFrames: () -> Unit,
         onAddReturnNote: (String, String, String) -> Unit,
+        onAddReturnDeadline: (String, String, String, String?, String) -> Unit,
+        onCompleteReturnDeadline: (MobileDeadlineProjection, String?) -> Unit,
         onCreateReturnPackage: () -> Unit,
-        onClearReturnNotes: () -> Unit,
+        onClearReturnDrafts: () -> Unit,
     ): ScrollView =
         ScrollView(context).apply {
             setBackgroundColor(ui.color(R.color.gremia_background))
             addView(content(
                 identity,
                 snapshot,
-                returnNotes,
+                returnDrafts,
                 onCopyRecipientToken,
                 onScanFrame,
                 onAcceptFrame,
                 onResetFrames,
                 onAddReturnNote,
+                onAddReturnDeadline,
+                onCompleteReturnDeadline,
                 onCreateReturnPackage,
-                onClearReturnNotes,
+                onClearReturnDrafts,
             ))
         }
 
     private fun content(
         identity: TransferIdentity,
         snapshot: MobileSnapshot?,
-        returnNotes: List<MobileReturnNoteDraft>,
+        returnDrafts: MobileReturnDraftSet,
         onCopyRecipientToken: () -> Unit,
         onScanFrame: () -> Unit,
         onAcceptFrame: (String) -> MobileSnapshotIntakeResult,
         onResetFrames: () -> Unit,
         onAddReturnNote: (String, String, String) -> Unit,
+        onAddReturnDeadline: (String, String, String, String?, String) -> Unit,
+        onCompleteReturnDeadline: (MobileDeadlineProjection, String?) -> Unit,
         onCreateReturnPackage: () -> Unit,
-        onClearReturnNotes: () -> Unit,
+        onClearReturnDrafts: () -> Unit,
     ): LinearLayout =
         LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
@@ -71,10 +78,12 @@ class AppShellRenderer(
             addView(snapshotPanel.renderCurrent(snapshot))
             addView(returnPanel.render(
                 snapshot,
-                returnNotes,
+                returnDrafts,
                 onAddReturnNote,
+                onAddReturnDeadline,
+                onCompleteReturnDeadline,
                 onCreateReturnPackage,
-                onClearReturnNotes,
+                onClearReturnDrafts,
             ))
         }
 }

@@ -66,10 +66,14 @@ class MobileSnapshotPayloadDecoder {
                 MobileDeadlineProjection(
                     id = item.getString("id"),
                     caseId = item.getString("caseId"),
+                    type = item.optString("type", "follow_up"),
                     title = item.getString("title"),
                     dueAt = item.getString("dueAt"),
+                    reminderAt = item.optString("reminderAt").takeIf { value -> value.isNotBlank() },
+                    legalBasis = item.optString("legalBasis").takeIf { value -> value.isNotBlank() },
                     severity = item.getString("severity"),
                     status = item.getString("status"),
+                    isLegalDeadline = item.optBoolean("isLegalDeadline", false),
                     updatedAt = item.getString("updatedAt"),
                 )
             },

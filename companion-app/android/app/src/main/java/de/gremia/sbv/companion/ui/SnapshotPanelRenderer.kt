@@ -138,6 +138,7 @@ class SnapshotPanelRenderer(
             deadline.title,
             MobileDateFormatter.formatDateTime(deadline.dueAt),
             deadline.severity,
+            deadline.legalBasis ?: context.getString(R.string.snapshot_deadline_without_legal_basis),
         ))
 
     private fun caseMatches(item: MobileCaseWorkItem, filter: String): Boolean {

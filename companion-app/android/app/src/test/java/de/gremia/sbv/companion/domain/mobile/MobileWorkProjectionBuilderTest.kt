@@ -85,10 +85,14 @@ class MobileWorkProjectionBuilderTest {
         MobileDeadlineProjection(
             id = id,
             caseId = caseId,
+            type = "follow_up",
             title = title,
             dueAt = dueAt,
+            reminderAt = null,
+            legalBasis = "§ 178 SGB IX",
             severity = severity,
             status = status,
+            isLegalDeadline = false,
             updatedAt = "2026-09-10T10:00:00Z",
         )
 }
