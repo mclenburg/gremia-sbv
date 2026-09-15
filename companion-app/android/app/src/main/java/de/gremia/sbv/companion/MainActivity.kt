@@ -5,7 +5,11 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.app.KeyguardManager
+import android.hardware.biometrics.BiometricManager
+import android.hardware.biometrics.BiometricPrompt
+import android.os.Build
 import android.os.Bundle
+import android.os.CancellationSignal
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
@@ -14,6 +18,7 @@ import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.ComponentActivity
+import androidx.annotation.RequiresApi
 import androidx.core.content.FileProvider
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
@@ -28,6 +33,7 @@ import de.gremia.sbv.companion.domain.security.MobileLockPolicy
 import de.gremia.sbv.companion.ui.AppShellRenderer
 import de.gremia.sbv.companion.ui.LockPanelRenderer
 import java.io.File
+import java.util.concurrent.Executor
 
 class MainActivity : ComponentActivity() {
     private lateinit var identityRepository: TransferIdentityRepository
@@ -39,6 +45,7 @@ class MainActivity : ComponentActivity() {
     private val lockCheckHandler = Handler(Looper.getMainLooper())
     private var unlocked = false
     private var lastInteractionAtMillis = 0L
+    private var unlockCancellationSignal: CancellationSignal? = null
     private val qrScanLauncher = registerForActivityResult(ScanContract()) { result ->
         if (result.contents != null) acceptScannedSnapshotFrame(result.contents)
     }
@@ -69,6 +76,8 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
+        unlockCancellationSignal?.cancel()
+        unlockCancellationSignal = null
         lockCheckHandler.removeCallbacksAndMessages(null)
         super.onDestroy()
     }
@@ -131,6 +140,60 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun requestUnlock() {
+        if (!canUseDeviceCredential()) {
+            renderLockScreen()
+            return
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            requestPlatformUnlock()
+        } else {
+            requestLegacyUnlock()
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun requestPlatformUnlock() {
+        unlockCancellationSignal?.cancel()
+        val cancellationSignal = CancellationSignal()
+        unlockCancellationSignal = cancellationSignal
+        val builder = BiometricPrompt.Builder(this)
+            .setTitle(getString(R.string.lock_title))
+            .setDescription(getString(R.string.lock_unlock_description))
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            builder.setAllowedAuthenticators(
+                BiometricManager.Authenticators.DEVICE_CREDENTIAL or
+                    BiometricManager.Authenticators.BIOMETRIC_STRONG,
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            builder.setDeviceCredentialAllowed(true)
+        }
+        builder.build().authenticate(
+            cancellationSignal,
+            mainThreadExecutor(),
+            object : BiometricPrompt.AuthenticationCallback() {
+                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult?) {
+                    unlockCancellationSignal = null
+                    unlock()
+                }
+
+                override fun onAuthenticationError(errorCode: Int, errString: CharSequence?) {
+                    unlockCancellationSignal = null
+                    if (errorCode != BiometricPrompt.BIOMETRIC_ERROR_CANCELED) {
+                        Toast.makeText(
+                            this@MainActivity,
+                            errString ?: getString(R.string.lock_title),
+                            Toast.LENGTH_LONG,
+                        ).show()
+                    }
+                    renderLockScreen()
+                }
+            },
+        )
+    }
+
+    @Suppress("DEPRECATION")
+    private fun requestLegacyUnlock() {
         val keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
         val intent = keyguardManager.createConfirmDeviceCredentialIntent(
             getString(R.string.lock_title),
@@ -142,6 +205,9 @@ class MainActivity : ComponentActivity() {
         }
         unlockLauncher.launch(intent)
     }
+
+    private fun mainThreadExecutor(): Executor =
+        Executor { command -> lockCheckHandler.post(command) }
 
     private fun unlock() {
         unlocked = true

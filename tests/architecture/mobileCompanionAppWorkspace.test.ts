@@ -101,6 +101,7 @@ describe('Android-Begleit-App Arbeitsbereich', () => {
     expect(repository).toContain('AndroidSecretBox("gremia_sbv_companion_snapshot_v1")');
     expect(lockPolicy).toContain('initialState()');
     expect(activity).toContain('FLAG_SECURE');
+    expect(activity).toContain('BiometricPrompt');
     expect(activity).toContain('createConfirmDeviceCredentialIntent');
   });
 
