@@ -7,13 +7,18 @@ import android.widget.EditText
 import android.widget.LinearLayout
 import de.gremia.sbv.companion.R
 import de.gremia.sbv.companion.domain.mobile.MobileCaseProjection
+import de.gremia.sbv.companion.domain.mobile.MobileCaseWorkItem
+import de.gremia.sbv.companion.domain.mobile.MobileDeadlineProjection
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshot
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshotIntakeResult
+import de.gremia.sbv.companion.domain.mobile.MobileWorkProjectionBuilder
 
 class SnapshotPanelRenderer(
     private val context: Context,
     private val ui: GremiaUi,
 ) {
+    private val workProjectionBuilder = MobileWorkProjectionBuilder()
+
     fun renderImport(
         onScanFrame: () -> Unit,
         onAcceptFrame: (String) -> MobileSnapshotIntakeResult,
@@ -57,8 +62,13 @@ class SnapshotPanelRenderer(
                 snapshot.deadlines.size,
                 snapshot.sourceInstanceId,
             )))
+            val workProjection = workProjectionBuilder.build(snapshot)
             addView(ui.fieldLabel(context.getString(R.string.snapshot_cases_label)))
-            addView(filterableCaseList(snapshot.cases))
+            addView(filterableCaseList(workProjection.cases))
+            if (workProjection.unassignedDeadlines.isNotEmpty()) {
+                addView(ui.fieldLabel(context.getString(R.string.snapshot_unassigned_deadlines_label)))
+                workProjection.unassignedDeadlines.forEach { deadline -> addView(deadlineRow(deadline)) }
+            }
         }
 
     private fun frameInput(): EditText =
@@ -70,15 +80,25 @@ class SnapshotPanelRenderer(
             minLines = 3
         }
 
-    private fun filterableCaseList(cases: List<MobileCaseProjection>): LinearLayout =
+    private fun filterableCaseList(cases: List<MobileCaseWorkItem>): LinearLayout =
         LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
             val caseList = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
             fun renderCases(filter: String) {
                 caseList.removeAllViews()
-                cases
-                    .filter { record -> caseMatches(record, filter) }
-                    .forEach { record -> caseList.addView(caseRow(record)) }
+                val filteredCases = cases.filter { item -> caseMatches(item, filter) }
+                if (filteredCases.isEmpty()) {
+                    caseList.addView(ui.paragraph(context.getString(R.string.snapshot_cases_filter_empty)))
+                    return
+                }
+                filteredCases.forEach { item ->
+                    caseList.addView(caseRow(item))
+                    if (item.openDeadlines.isEmpty()) {
+                        caseList.addView(ui.listText(context.getString(R.string.snapshot_case_no_deadline)))
+                    } else {
+                        item.openDeadlines.forEach { deadline -> caseList.addView(deadlineRow(deadline)) }
+                    }
+                }
             }
             if (cases.size > FILTER_THRESHOLD) addView(caseFilterInput(::renderCases))
             renderCases("")
@@ -99,17 +119,41 @@ class SnapshotPanelRenderer(
             })
         }
 
-    private fun caseRow(record: MobileCaseProjection) =
+    private fun caseRow(item: MobileCaseWorkItem) =
         ui.listItem(
-            primary = record.caseNumber,
-            secondary = "${record.displayName} · ${record.category} · ${record.status}",
-            label = "${record.caseNumber}, ${record.displayName}, ${record.category}, ${record.status}",
+            primary = item.caseRecord.caseNumber,
+            secondary = context.getString(
+                R.string.snapshot_case_summary,
+                item.caseRecord.displayName,
+                item.caseRecord.category,
+                item.caseRecord.status,
+                item.openDeadlines.size,
+            ),
+            label = "${item.caseRecord.caseNumber}, ${item.caseRecord.displayName}, ${item.caseRecord.category}, ${item.caseRecord.status}",
         )
 
-    private fun caseMatches(record: MobileCaseProjection, filter: String): Boolean {
+    private fun deadlineRow(deadline: MobileDeadlineProjection) =
+        ui.listText(context.getString(
+            R.string.snapshot_deadline_summary,
+            deadline.title,
+            MobileDateFormatter.formatDateTime(deadline.dueAt),
+            deadline.severity,
+        ))
+
+    private fun caseMatches(item: MobileCaseWorkItem, filter: String): Boolean {
         val normalized = filter.trim().lowercase()
         if (normalized.isEmpty()) return true
-        return listOf(record.caseNumber, record.displayName, record.category, record.status)
+        val caseValues = listOf(
+            item.caseRecord.caseNumber,
+            item.caseRecord.displayName,
+            item.caseRecord.category,
+            item.caseRecord.status,
+            item.caseRecord.priority,
+        )
+        val deadlineValues = item.openDeadlines.flatMap { deadline ->
+            listOf(deadline.title, deadline.dueAt, deadline.severity, deadline.status)
+        }
+        return (caseValues + deadlineValues)
             .any { value -> value.lowercase().contains(normalized) }
     }
 
