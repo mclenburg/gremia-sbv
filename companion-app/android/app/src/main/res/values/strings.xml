@@ -34,12 +34,14 @@
     <string name="return_case_label">Fallakte für die Notiz</string>
     <string name="return_case_filter_label">Fallakte suchen</string>
     <string name="return_case_filter_hint">Fallakte für die mobile Notiz filtern</string>
+    <string name="return_case_select_button">%1$s · %2$s</string>
     <string name="return_note_title_label">Notiztitel</string>
     <string name="return_note_title_hint">z. B. Gespräch im Termin</string>
     <string name="return_note_content_label">Notizinhalt</string>
     <string name="return_note_content_hint">Wesentliche Punkte und Ergebnis erfassen</string>
     <string name="return_note_add">Mobile Notiz speichern</string>
     <string name="return_draft_summary">%1$d mobile Änderung(en) vorgemerkt.</string>
+    <string name="return_draft_entry">• %1$s</string>
     <string name="return_create_package">Rückgabedatei freigeben</string>
     <string name="return_clear_drafts">Mobile Änderungen verwerfen</string>
     <string name="return_file_ready">Rückgabedatei wurde erstellt.</string>

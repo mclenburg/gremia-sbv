@@ -92,4 +92,28 @@ describe('Android-Begleit-App Arbeitsbereich', () => {
     expect(decryptor).toContain('targetInstanceId');
     expect(repository).toContain('AndroidSecretBox("gremia_sbv_companion_snapshot_v1")');
   });
+
+  it('stylt native UI-Elemente über die zentrale Gremia-UI-Schicht', () => {
+    const uiShellFiles = [
+      'app/src/main/java/de/gremia/sbv/companion/ui/AppShellRenderer.kt',
+      'app/src/main/java/de/gremia/sbv/companion/ui/PairingPanelRenderer.kt',
+      'app/src/main/java/de/gremia/sbv/companion/ui/SnapshotPanelRenderer.kt',
+      'app/src/main/java/de/gremia/sbv/companion/ui/ReturnPanelRenderer.kt',
+    ];
+
+    for (const file of uiShellFiles) {
+      const source = readWorkspaceFile(file);
+      expect(source).not.toMatch(/\b(EditText|TextView|Button)\s*\(/);
+      expect(source).not.toContain('setTextColor(');
+      expect(source).not.toContain('setHintTextColor(');
+      expect(source).not.toContain('textSize =');
+      expect(source).not.toContain('background =');
+    }
+
+    const ui = readWorkspaceFile('app/src/main/java/de/gremia/sbv/companion/ui/GremiaUi.kt');
+    expect(ui).toContain('fun textInput(');
+    expect(ui).toContain('fun listItem(');
+    expect(ui).toContain('fun button(');
+    expect(ui).toContain('R.color.gremia_accent');
+  });
 });

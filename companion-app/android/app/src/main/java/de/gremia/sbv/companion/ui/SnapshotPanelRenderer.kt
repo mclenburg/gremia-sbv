@@ -5,7 +5,6 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.widget.EditText
 import android.widget.LinearLayout
-import android.widget.TextView
 import de.gremia.sbv.companion.R
 import de.gremia.sbv.companion.domain.mobile.MobileCaseProjection
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshot
@@ -63,16 +62,12 @@ class SnapshotPanelRenderer(
         }
 
     private fun frameInput(): EditText =
-        EditText(context).apply {
-            hint = context.getString(R.string.snapshot_frame_hint)
-            contentDescription = context.getString(R.string.snapshot_frame_label)
+        ui.textInput(
+            context.getString(R.string.snapshot_frame_label),
+            context.getString(R.string.snapshot_frame_hint),
+            multiLine = true,
+        ).apply {
             minLines = 3
-            setSingleLine(false)
-            setTextColor(ui.color(R.color.gremia_text_primary))
-            setHintTextColor(ui.color(R.color.gremia_text_secondary))
-            val padding = ui.dimen(R.dimen.space_md)
-            setPadding(padding, padding, padding, padding)
-            background = ui.valueBackground()
         }
 
     private fun filterableCaseList(cases: List<MobileCaseProjection>): LinearLayout =
@@ -91,15 +86,10 @@ class SnapshotPanelRenderer(
         }
 
     private fun caseFilterInput(onFilterChanged: (String) -> Unit): EditText =
-        EditText(context).apply {
-            hint = context.getString(R.string.snapshot_case_filter_hint)
-            contentDescription = context.getString(R.string.snapshot_case_filter_label)
-            setSingleLine(true)
-            setTextColor(ui.color(R.color.gremia_text_primary))
-            setHintTextColor(ui.color(R.color.gremia_text_secondary))
-            val padding = ui.dimen(R.dimen.space_md)
-            setPadding(padding, padding, padding, padding)
-            background = ui.valueBackground()
+        ui.textInput(
+            context.getString(R.string.snapshot_case_filter_label),
+            context.getString(R.string.snapshot_case_filter_hint),
+        ).apply {
             addTextChangedListener(object : TextWatcher {
                 override fun beforeTextChanged(text: CharSequence?, start: Int, count: Int, after: Int) = Unit
                 override fun onTextChanged(text: CharSequence?, start: Int, before: Int, count: Int) {
@@ -109,15 +99,12 @@ class SnapshotPanelRenderer(
             })
         }
 
-    private fun caseRow(record: MobileCaseProjection): TextView =
-        TextView(context).apply {
-            text = "${record.caseNumber}\n${record.displayName} · ${record.category} · ${record.status}"
-            setTextColor(ui.color(R.color.gremia_text_primary))
-            textSize = 15f
-            val padding = ui.dimen(R.dimen.space_md)
-            setPadding(padding, padding, padding, padding)
-            background = ui.valueBackground()
-        }
+    private fun caseRow(record: MobileCaseProjection) =
+        ui.listItem(
+            primary = record.caseNumber,
+            secondary = "${record.displayName} · ${record.category} · ${record.status}",
+            label = "${record.caseNumber}, ${record.displayName}, ${record.category}, ${record.status}",
+        )
 
     private fun caseMatches(record: MobileCaseProjection, filter: String): Boolean {
         val normalized = filter.trim().lowercase()

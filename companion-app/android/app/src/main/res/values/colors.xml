@@ -7,4 +7,5 @@
     <color name="gremia_text_primary">#F7F7FA</color>
     <color name="gremia_text_secondary">#B8B8C3</color>
     <color name="gremia_accent">#FFD400</color>
+    <color name="gremia_accent_dark">#B38900</color>
 </resources>

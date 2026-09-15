@@ -5,6 +5,7 @@ import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
 import android.widget.Button
+import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
 import de.gremia.sbv.companion.R
@@ -67,11 +68,54 @@ class GremiaUi(private val context: Context) {
             background = valueBackground()
         }
 
+    fun textInput(label: String, hint: String, multiLine: Boolean = false): EditText =
+        EditText(context).apply {
+            this.hint = hint
+            contentDescription = label
+            setTextColor(color(R.color.gremia_text_primary))
+            setHintTextColor(color(R.color.gremia_text_secondary))
+            textSize = 16f
+            val padding = dimen(R.dimen.space_md)
+            setPadding(padding, padding, padding, padding)
+            background = valueBackground()
+            if (multiLine) {
+                minLines = 4
+                setSingleLine(false)
+            } else {
+                setSingleLine(true)
+            }
+        }
+
+    fun listItem(primary: String, secondary: String? = null, label: String = primary): TextView =
+        TextView(context).apply {
+            text = listOfNotNull(primary, secondary).joinToString("\n")
+            contentDescription = label
+            setTextColor(color(R.color.gremia_text_primary))
+            textSize = 15f
+            typeface = Typeface.DEFAULT_BOLD
+            val padding = dimen(R.dimen.space_md)
+            setPadding(padding, padding, padding, padding)
+            background = valueBackground()
+        }
+
+    fun listText(value: String, label: String = value): TextView =
+        TextView(context).apply {
+            text = value
+            contentDescription = label
+            setTextColor(color(R.color.gremia_text_primary))
+            textSize = 15f
+            setPadding(0, dimen(R.dimen.space_xs), 0, dimen(R.dimen.space_xs))
+        }
+
     fun button(label: String, onClick: () -> Unit): Button =
         Button(context).apply {
             text = label
             contentDescription = label
             isAllCaps = false
+            setTextColor(color(R.color.gremia_background))
+            textSize = 14f
+            typeface = Typeface.DEFAULT_BOLD
+            background = actionBackground()
             setOnClickListener { onClick() }
         }
 
@@ -108,5 +152,13 @@ class GremiaUi(private val context: Context) {
         GradientDrawable().apply {
             setColor(color(R.color.gremia_surface))
             setStroke(dimen(R.dimen.border_width), color(R.color.gremia_border))
+        }
+
+    private fun actionBackground(): GradientDrawable =
+        GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, intArrayOf(
+            color(R.color.gremia_accent),
+            color(R.color.gremia_accent_dark),
+        )).apply {
+            setStroke(dimen(R.dimen.border_width), color(R.color.gremia_accent))
         }
 }

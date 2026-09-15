@@ -5,7 +5,6 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.widget.EditText
 import android.widget.LinearLayout
-import android.widget.TextView
 import de.gremia.sbv.companion.R
 import de.gremia.sbv.companion.domain.mobile.MobileCaseProjection
 import de.gremia.sbv.companion.domain.mobile.MobileReturnNoteDraft
@@ -47,7 +46,11 @@ class ReturnPanelRenderer(
             fun renderCases(filter: String) {
                 caseList.removeAllViews()
                 cases.filter { caseMatches(it, filter) }.forEach { record ->
-                    caseList.addView(ui.button("${record.caseNumber} · ${record.displayName}") {
+                    caseList.addView(ui.button(context.getString(
+                        R.string.return_case_select_button,
+                        record.caseNumber,
+                        record.displayName,
+                    )) {
                         selectedCaseId = record.id
                     })
                 }
@@ -73,11 +76,7 @@ class ReturnPanelRenderer(
             orientation = LinearLayout.VERTICAL
             addView(ui.paragraph(context.getString(R.string.return_draft_summary, notes.size)))
             notes.take(LIST_PREVIEW_LIMIT).forEach { note ->
-                addView(TextView(context).apply {
-                    text = "• ${note.title}"
-                    setTextColor(ui.color(R.color.gremia_text_primary))
-                    textSize = 15f
-                })
+                addView(ui.listText(context.getString(R.string.return_draft_entry, note.title)))
             }
         }
 
@@ -93,21 +92,7 @@ class ReturnPanelRenderer(
         }
 
     private fun textInput(labelId: Int, hintId: Int, multiLine: Boolean): EditText =
-        EditText(context).apply {
-            hint = context.getString(hintId)
-            contentDescription = context.getString(labelId)
-            setTextColor(ui.color(R.color.gremia_text_primary))
-            setHintTextColor(ui.color(R.color.gremia_text_secondary))
-            val padding = ui.dimen(R.dimen.space_md)
-            setPadding(padding, padding, padding, padding)
-            background = ui.valueBackground()
-            if (multiLine) {
-                minLines = 4
-                setSingleLine(false)
-            } else {
-                setSingleLine(true)
-            }
-        }
+        ui.textInput(context.getString(labelId), context.getString(hintId), multiLine)
 
     private fun caseMatches(record: MobileCaseProjection, filter: String): Boolean {
         val normalized = filter.trim().lowercase()
