@@ -1,6 +1,7 @@
 package de.gremia.sbv.companion.data.transfer
 
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshot
+import de.gremia.sbv.companion.domain.mobile.MobileSnapshotEnvelopeDecryptor
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshotPayloadDecoder
 import de.gremia.sbv.companion.domain.mobile.sha256
 import de.gremia.sbv.companion.domain.transfer.TransferIdentity
@@ -19,8 +20,8 @@ import javax.crypto.spec.GCMParameterSpec
 
 class TargetBoundSnapshotDecryptor(
     private val payloadDecoder: MobileSnapshotPayloadDecoder = MobileSnapshotPayloadDecoder(),
-) {
-    fun decryptSnapshotEnvelope(envelopeText: String, identity: TransferIdentity): MobileSnapshot {
+) : MobileSnapshotEnvelopeDecryptor {
+    override fun decryptSnapshotEnvelope(envelopeText: String, identity: TransferIdentity): MobileSnapshot {
         val envelope = JSONObject(envelopeText)
         require(envelope.getString("format") == SNAPSHOT_FORMAT) {
             "Die Datei ist keine Mobile-Projektion."

@@ -29,6 +29,11 @@
     <string name="snapshot_scan_prompt">Gremia.SBV-QR-Frame scannen</string>
     <string name="snapshot_frame_accept">Frame übernehmen</string>
     <string name="snapshot_frames_reset">Frames zurücksetzen</string>
+    <string name="snapshot_import_preview_title">Geprüfte Mobile-Projektion</string>
+    <string name="snapshot_import_preview_summary">%1$d Fallakte(n), %2$d offene Frist(en) aus Instanz %3$s. Paket: %4$s</string>
+    <string name="snapshot_import_ready">Die Projektion wurde entschlüsselt und geprüft. Sie wird erst nach Bestätigung gespeichert.</string>
+    <string name="snapshot_import_confirm">Import bestätigen</string>
+    <string name="snapshot_import_cancel">Import abbrechen</string>
     <string name="snapshot_current_kicker">ARBEITSSTAND</string>
     <string name="snapshot_current_title">Aktuelle mobile Arbeitsprojektion</string>
     <string name="snapshot_current_help">Die Desktop-Anwendung bleibt führend. Die App zeigt die übergebenen offenen Fallakten und Fristen mobil an. Android-Hinweise sind bewusst allgemein formuliert und zeigen keine Namen, Aktenzeichen oder Fristentitel auf dem Sperrbildschirm.</string>

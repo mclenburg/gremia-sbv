@@ -12,6 +12,7 @@ import de.gremia.sbv.companion.domain.mobile.MobileCaseWorkItem
 import de.gremia.sbv.companion.domain.mobile.MobileDeadlineMonitor
 import de.gremia.sbv.companion.domain.mobile.MobileDeadlineProjection
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshot
+import de.gremia.sbv.companion.domain.mobile.MobileSnapshotImportPreview
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshotIntakeResult
 import de.gremia.sbv.companion.domain.mobile.MobileWorkProjectionBuilder
 
@@ -24,9 +25,12 @@ class SnapshotPanelRenderer(
     private val deadlineMonitor = MobileDeadlineMonitor()
 
     fun renderImport(
+        pendingImport: MobileSnapshotImportPreview?,
         onScanFrame: () -> Unit,
         onAcceptFrame: (String) -> MobileSnapshotIntakeResult,
         onResetFrames: () -> Unit,
+        onConfirmImport: () -> MobileSnapshotIntakeResult,
+        onCancelImport: () -> MobileSnapshotIntakeResult,
     ): LinearLayout =
         ui.panel().apply {
             addView(ui.kicker(context.getString(R.string.snapshot_receive_kicker)))
@@ -34,6 +38,21 @@ class SnapshotPanelRenderer(
                 context.getString(R.string.snapshot_receive_title),
                 context.getString(R.string.snapshot_receive_description),
             ))
+
+            if (pendingImport != null) {
+                addView(importPreview(pendingImport))
+                val status = ui.paragraph(context.getString(R.string.snapshot_import_ready))
+                addView(status)
+                addView(ui.horizontalActions(
+                    ui.button(context.getString(R.string.snapshot_import_confirm)) {
+                        status.text = onConfirmImport().message
+                    },
+                    ui.button(context.getString(R.string.snapshot_import_cancel)) {
+                        status.text = onCancelImport().message
+                    },
+                ))
+                return@apply
+            }
 
             val input = frameInput()
             val status = ui.paragraph(context.getString(R.string.snapshot_frame_empty))
@@ -52,6 +71,19 @@ class SnapshotPanelRenderer(
                 },
             ))
         }
+
+    private fun importPreview(preview: MobileSnapshotImportPreview) =
+        ui.listItem(
+            primary = context.getString(R.string.snapshot_import_preview_title),
+            secondary = context.getString(
+                R.string.snapshot_import_preview_summary,
+                preview.caseCount,
+                preview.deadlineCount,
+                preview.sourceInstanceId,
+                preview.packageId,
+            ),
+            label = context.getString(R.string.snapshot_import_preview_title),
+        )
 
     fun renderCurrent(snapshot: MobileSnapshot?): LinearLayout =
         ui.panel().apply {

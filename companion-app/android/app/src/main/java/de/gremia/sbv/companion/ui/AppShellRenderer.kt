@@ -8,6 +8,7 @@ import de.gremia.sbv.companion.R
 import de.gremia.sbv.companion.domain.mobile.MobileDeadlineProjection
 import de.gremia.sbv.companion.domain.mobile.MobileReturnDraftSet
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshot
+import de.gremia.sbv.companion.domain.mobile.MobileSnapshotImportPreview
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshotIntakeResult
 import de.gremia.sbv.companion.domain.transfer.TransferIdentity
 
@@ -22,11 +23,14 @@ class AppShellRenderer(
     fun render(
         identity: TransferIdentity,
         snapshot: MobileSnapshot?,
+        pendingImport: MobileSnapshotImportPreview?,
         returnDrafts: MobileReturnDraftSet,
         onCopyRecipientToken: () -> Unit,
         onScanFrame: () -> Unit,
         onAcceptFrame: (String) -> MobileSnapshotIntakeResult,
         onResetFrames: () -> Unit,
+        onConfirmImport: () -> MobileSnapshotIntakeResult,
+        onCancelImport: () -> MobileSnapshotIntakeResult,
         onAddReturnNote: (String, String, String) -> Unit,
         onAddReturnDeadline: (String, String, String, String?, String) -> Unit,
         onCompleteReturnDeadline: (MobileDeadlineProjection, String?) -> Unit,
@@ -38,11 +42,14 @@ class AppShellRenderer(
             addView(content(
                 identity,
                 snapshot,
+                pendingImport,
                 returnDrafts,
                 onCopyRecipientToken,
                 onScanFrame,
                 onAcceptFrame,
                 onResetFrames,
+                onConfirmImport,
+                onCancelImport,
                 onAddReturnNote,
                 onAddReturnDeadline,
                 onCompleteReturnDeadline,
@@ -54,11 +61,14 @@ class AppShellRenderer(
     private fun content(
         identity: TransferIdentity,
         snapshot: MobileSnapshot?,
+        pendingImport: MobileSnapshotImportPreview?,
         returnDrafts: MobileReturnDraftSet,
         onCopyRecipientToken: () -> Unit,
         onScanFrame: () -> Unit,
         onAcceptFrame: (String) -> MobileSnapshotIntakeResult,
         onResetFrames: () -> Unit,
+        onConfirmImport: () -> MobileSnapshotIntakeResult,
+        onCancelImport: () -> MobileSnapshotIntakeResult,
         onAddReturnNote: (String, String, String) -> Unit,
         onAddReturnDeadline: (String, String, String, String?, String) -> Unit,
         onCompleteReturnDeadline: (MobileDeadlineProjection, String?) -> Unit,
@@ -75,7 +85,14 @@ class AppShellRenderer(
             val intakeColumn = LinearLayout(context).apply {
                 orientation = LinearLayout.VERTICAL
                 addView(pairingPanel.render(identity, onCopyRecipientToken))
-                addView(snapshotPanel.renderImport(onScanFrame, onAcceptFrame, onResetFrames))
+                addView(snapshotPanel.renderImport(
+                    pendingImport,
+                    onScanFrame,
+                    onAcceptFrame,
+                    onResetFrames,
+                    onConfirmImport,
+                    onCancelImport,
+                ))
             }
             val workColumn = LinearLayout(context).apply {
                 orientation = LinearLayout.VERTICAL

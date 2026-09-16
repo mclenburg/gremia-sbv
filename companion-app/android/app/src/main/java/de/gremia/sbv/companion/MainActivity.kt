@@ -116,6 +116,7 @@ class MainActivity : ComponentActivity() {
             AppShellRenderer(this).render(
                 identity = identity,
                 snapshot = snapshotRepository.current(),
+                pendingImport = snapshotController.pendingPreview(),
                 returnDrafts = returnDraftRepository.listDrafts(),
                 onCopyRecipientToken = { copyRecipientToken(identity.recipientToken) },
                 onScanFrame = { startQrScan() },
@@ -125,7 +126,10 @@ class MainActivity : ComponentActivity() {
                 onResetFrames = {
                     snapshotController.reset()
                     Toast.makeText(this, R.string.snapshot_frames_reset, Toast.LENGTH_SHORT).show()
+                    renderContent()
                 },
+                onConfirmImport = { confirmSnapshotImport() },
+                onCancelImport = { cancelSnapshotImport() },
                 onAddReturnNote = { caseId, title, content -> addReturnNote(caseId, title, content) },
                 onAddReturnDeadline = { caseId, title, dueAt, description, severity ->
                     addReturnDeadline(caseId, title, dueAt, description, severity)
@@ -272,11 +276,27 @@ class MainActivity : ComponentActivity() {
         if (!unlocked) return MobileSnapshotIntakeResult.Error(getString(R.string.lock_title))
         val result = snapshotController.accept(frame)
         Toast.makeText(this, result.message, Toast.LENGTH_SHORT).show()
+        if (result is MobileSnapshotIntakeResult.ReadyForConfirmation) {
+            renderContent()
+        }
+        return result
+    }
+
+    private fun confirmSnapshotImport(): MobileSnapshotIntakeResult {
+        val result = snapshotController.confirmPendingImport()
+        Toast.makeText(this, result.message, Toast.LENGTH_SHORT).show()
         if (result is MobileSnapshotIntakeResult.Completed) {
             returnDraftRepository.clear()
             scheduleDeadlineNotifications()
             renderContent()
         }
+        return result
+    }
+
+    private fun cancelSnapshotImport(): MobileSnapshotIntakeResult {
+        val result = snapshotController.cancelPendingImport()
+        Toast.makeText(this, result.message, Toast.LENGTH_SHORT).show()
+        renderContent()
         return result
     }
 
