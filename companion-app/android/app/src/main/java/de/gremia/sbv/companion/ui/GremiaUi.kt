@@ -129,6 +129,21 @@ class GremiaUi(private val context: Context) {
             setOnClickListener { onClick() }
         }
 
+    fun navigationButton(label: String, selected: Boolean, onClick: () -> Unit): Button =
+        Button(context).apply {
+            text = label
+            contentDescription = label
+            isAllCaps = false
+            setTextColor(color(if (selected) R.color.gremia_background else R.color.gremia_text_primary))
+            textSize = 14f
+            typeface = Typeface.DEFAULT_BOLD
+            background = if (selected) actionBackground() else valueBackground()
+            minHeight = dimen(R.dimen.button_min_height)
+            val padding = dimen(R.dimen.space_md)
+            setPadding(padding, 0, padding, 0)
+            setOnClickListener { onClick() }
+        }
+
     fun helpButton(title: String, message: String): Button =
         Button(context).apply {
             text = context.getString(R.string.help_action)

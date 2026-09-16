@@ -36,6 +36,7 @@ import de.gremia.sbv.companion.domain.mobile.MobileSnapshotQrController
 import de.gremia.sbv.companion.domain.security.MobileLockPolicy
 import de.gremia.sbv.companion.ui.AppShellRenderer
 import de.gremia.sbv.companion.ui.LockPanelRenderer
+import de.gremia.sbv.companion.ui.MobileAppSection
 import java.io.File
 import java.util.concurrent.Executor
 
@@ -50,6 +51,7 @@ class MainActivity : ComponentActivity() {
     private val lockCheckHandler = Handler(Looper.getMainLooper())
     private var unlocked = false
     private var lastInteractionAtMillis = 0L
+    private var activeSection = MobileAppSection.Synchronization
     private var unlockCancellationSignal: CancellationSignal? = null
     private val qrScanLauncher = registerForActivityResult(ScanContract()) { result ->
         if (result.contents != null) acceptScannedSnapshotFrame(result.contents)
@@ -118,6 +120,11 @@ class MainActivity : ComponentActivity() {
                 snapshot = snapshotRepository.current(),
                 pendingImport = snapshotController.pendingPreview(),
                 returnDrafts = returnDraftRepository.listDrafts(),
+                activeSection = activeSection,
+                onSelectSection = { section ->
+                    activeSection = section
+                    renderContent()
+                },
                 onCopyRecipientToken = { copyRecipientToken(identity.recipientToken) },
                 onScanFrame = { startQrScan() },
                 onAcceptFrame = { frame ->
@@ -288,6 +295,7 @@ class MainActivity : ComponentActivity() {
         if (result is MobileSnapshotIntakeResult.Completed) {
             returnDraftRepository.clear()
             scheduleDeadlineNotifications()
+            activeSection = MobileAppSection.Work
             renderContent()
         }
         return result
@@ -317,6 +325,7 @@ class MainActivity : ComponentActivity() {
         runCatching {
             returnDraftRepository.addNote(caseId, title, content)
         }.onSuccess {
+            activeSection = MobileAppSection.Return
             renderContent()
         }.onFailure { cause ->
             Toast.makeText(this, cause.message ?: getString(R.string.return_title), Toast.LENGTH_LONG).show()
@@ -327,6 +336,7 @@ class MainActivity : ComponentActivity() {
         runCatching {
             returnDraftRepository.addDeadline(caseId, title, dueAt, description, severity)
         }.onSuccess {
+            activeSection = MobileAppSection.Return
             renderContent()
         }.onFailure { cause ->
             Toast.makeText(this, cause.message ?: getString(R.string.return_title), Toast.LENGTH_LONG).show()
@@ -337,6 +347,7 @@ class MainActivity : ComponentActivity() {
         runCatching {
             returnDraftRepository.completeDeadline(deadline, completedNote)
         }.onSuccess {
+            activeSection = MobileAppSection.Return
             renderContent()
         }.onFailure { cause ->
             Toast.makeText(this, cause.message ?: getString(R.string.return_title), Toast.LENGTH_LONG).show()

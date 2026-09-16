@@ -25,6 +25,8 @@ class AppShellRenderer(
         snapshot: MobileSnapshot?,
         pendingImport: MobileSnapshotImportPreview?,
         returnDrafts: MobileReturnDraftSet,
+        activeSection: MobileAppSection,
+        onSelectSection: (MobileAppSection) -> Unit,
         onCopyRecipientToken: () -> Unit,
         onScanFrame: () -> Unit,
         onAcceptFrame: (String) -> MobileSnapshotIntakeResult,
@@ -44,6 +46,8 @@ class AppShellRenderer(
                 snapshot,
                 pendingImport,
                 returnDrafts,
+                activeSection,
+                onSelectSection,
                 onCopyRecipientToken,
                 onScanFrame,
                 onAcceptFrame,
@@ -63,6 +67,8 @@ class AppShellRenderer(
         snapshot: MobileSnapshot?,
         pendingImport: MobileSnapshotImportPreview?,
         returnDrafts: MobileReturnDraftSet,
+        activeSection: MobileAppSection,
+        onSelectSection: (MobileAppSection) -> Unit,
         onCopyRecipientToken: () -> Unit,
         onScanFrame: () -> Unit,
         onAcceptFrame: (String) -> MobileSnapshotIntakeResult,
@@ -82,22 +88,21 @@ class AppShellRenderer(
             setPadding(padding, padding, padding, padding)
             addView(ui.kicker(context.getString(R.string.app_shell_kicker)))
             addView(ui.title(context.getString(R.string.app_name)))
-            val intakeColumn = LinearLayout(context).apply {
-                orientation = LinearLayout.VERTICAL
-                addView(pairingPanel.render(identity, onCopyRecipientToken))
-                addView(snapshotPanel.renderImport(
-                    pendingImport,
-                    onScanFrame,
-                    onAcceptFrame,
-                    onResetFrames,
-                    onConfirmImport,
-                    onCancelImport,
-                ))
-            }
-            val workColumn = LinearLayout(context).apply {
-                orientation = LinearLayout.VERTICAL
-                addView(snapshotPanel.renderCurrent(snapshot))
-                addView(returnPanel.render(
+            addView(sectionNavigation(activeSection, onSelectSection))
+            when (activeSection) {
+                MobileAppSection.Synchronization -> {
+                    addView(pairingPanel.render(identity, onCopyRecipientToken))
+                    addView(snapshotPanel.renderImport(
+                        pendingImport,
+                        onScanFrame,
+                        onAcceptFrame,
+                        onResetFrames,
+                        onConfirmImport,
+                        onCancelImport,
+                    ))
+                }
+                MobileAppSection.Work -> addView(snapshotPanel.renderCurrent(snapshot))
+                MobileAppSection.Return -> addView(returnPanel.render(
                     snapshot,
                     returnDrafts,
                     onAddReturnNote,
@@ -107,6 +112,24 @@ class AppShellRenderer(
                     onClearReturnDrafts,
                 ))
             }
-            addView(ui.responsiveColumns(intakeColumn, workColumn))
         }
+
+    private fun sectionNavigation(
+        activeSection: MobileAppSection,
+        onSelectSection: (MobileAppSection) -> Unit,
+    ): LinearLayout =
+        ui.horizontalActions(
+            ui.navigationButton(
+                context.getString(R.string.app_section_sync),
+                activeSection == MobileAppSection.Synchronization,
+            ) { onSelectSection(MobileAppSection.Synchronization) },
+            ui.navigationButton(
+                context.getString(R.string.app_section_work),
+                activeSection == MobileAppSection.Work,
+            ) { onSelectSection(MobileAppSection.Work) },
+            ui.navigationButton(
+                context.getString(R.string.app_section_return),
+                activeSection == MobileAppSection.Return,
+            ) { onSelectSection(MobileAppSection.Return) },
+        )
 }

@@ -3,6 +3,9 @@
     <string name="app_name">Gremia.SBV Begleit-App</string>
     <string name="app_shell_kicker">MOBILER SBV-ARBEITSRAUM</string>
     <string name="app_shell_description">Mobiler Arbeitsbereich für verschlüsselte Projektionen aus Gremia.SBV. Der Desktop-Tresor bleibt führend.</string>
+    <string name="app_section_sync">Synchronisation</string>
+    <string name="app_section_work">Arbeitsstand</string>
+    <string name="app_section_return">Rückgabe</string>
     <string name="lock_kicker">GESCHÜTZTER SBV-ARBEITSRAUM</string>
     <string name="lock_title">Begleit-App gesperrt</string>
     <string name="lock_description">Diese App zeigt personenbezogene und gesundheitsbezogene SBV-Arbeitsdaten erst nach Entsperrung mit der Gerätesperre an.</string>
