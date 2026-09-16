@@ -1,10 +1,12 @@
 package de.gremia.sbv.companion
 
+import android.Manifest
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.app.KeyguardManager
+import android.content.pm.PackageManager
 import android.hardware.biometrics.BiometricManager
 import android.hardware.biometrics.BiometricPrompt
 import android.os.Build
@@ -19,10 +21,12 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.ComponentActivity
 import androidx.annotation.RequiresApi
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
 import de.gremia.sbv.companion.data.mobile.MobileReturnDraftRepository
+import de.gremia.sbv.companion.data.mobile.MobileDeadlineNotificationScheduler
 import de.gremia.sbv.companion.data.mobile.MobileSnapshotRepository
 import de.gremia.sbv.companion.data.transfer.TransferIdentityRepository
 import de.gremia.sbv.companion.domain.mobile.MobileDeadlineProjection
@@ -40,6 +44,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var snapshotRepository: MobileSnapshotRepository
     private lateinit var returnDraftRepository: MobileReturnDraftRepository
     private lateinit var returnPackageCreator: MobileReturnPackageCreator
+    private lateinit var deadlineNotificationScheduler: MobileDeadlineNotificationScheduler
     private lateinit var snapshotController: MobileSnapshotQrController
     private val lockPolicy = MobileLockPolicy()
     private val lockCheckHandler = Handler(Looper.getMainLooper())
@@ -56,6 +61,9 @@ class MainActivity : ComponentActivity() {
             renderLockScreen()
         }
     }
+    private val notificationPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) snapshotRepository.current()?.let { snapshot -> deadlineNotificationScheduler.schedule(snapshot) }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,6 +72,7 @@ class MainActivity : ComponentActivity() {
         snapshotRepository = MobileSnapshotRepository(this)
         returnDraftRepository = MobileReturnDraftRepository(this)
         returnPackageCreator = MobileReturnPackageCreator(this)
+        deadlineNotificationScheduler = MobileDeadlineNotificationScheduler(this)
         snapshotController = MobileSnapshotQrController(identityRepository.getOrCreate(), snapshotRepository)
         val initial = lockPolicy.initialState()
         unlocked = !initial.locked
@@ -265,9 +274,23 @@ class MainActivity : ComponentActivity() {
         Toast.makeText(this, result.message, Toast.LENGTH_SHORT).show()
         if (result is MobileSnapshotIntakeResult.Completed) {
             returnDraftRepository.clear()
+            scheduleDeadlineNotifications()
             renderContent()
         }
         return result
+    }
+
+    private fun scheduleDeadlineNotifications() {
+        val snapshot = snapshotRepository.current() ?: return
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            deadlineNotificationScheduler.schedule(snapshot)
+            return
+        }
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+            deadlineNotificationScheduler.schedule(snapshot)
+        } else {
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
     }
 
     private fun addReturnNote(caseId: String, title: String, content: String) {

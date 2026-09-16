@@ -9,6 +9,7 @@ import de.gremia.sbv.companion.R
 import de.gremia.sbv.companion.domain.mobile.MobileCaseProjection
 import de.gremia.sbv.companion.domain.mobile.MobileCaseProjectionSearch
 import de.gremia.sbv.companion.domain.mobile.MobileCaseWorkItem
+import de.gremia.sbv.companion.domain.mobile.MobileDeadlineMonitor
 import de.gremia.sbv.companion.domain.mobile.MobileDeadlineProjection
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshot
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshotIntakeResult
@@ -20,6 +21,7 @@ class SnapshotPanelRenderer(
 ) {
     private val workProjectionBuilder = MobileWorkProjectionBuilder()
     private val caseSearch = MobileCaseProjectionSearch()
+    private val deadlineMonitor = MobileDeadlineMonitor()
 
     fun renderImport(
         onScanFrame: () -> Unit,
@@ -54,7 +56,10 @@ class SnapshotPanelRenderer(
     fun renderCurrent(snapshot: MobileSnapshot?): LinearLayout =
         ui.panel().apply {
             addView(ui.kicker(context.getString(R.string.snapshot_current_kicker)))
-            addView(ui.sectionTitle(context.getString(R.string.snapshot_current_title)))
+            addView(ui.sectionHeader(
+                context.getString(R.string.snapshot_current_title),
+                context.getString(R.string.snapshot_current_help),
+            ))
             if (snapshot == null) {
                 addView(ui.paragraph(context.getString(R.string.snapshot_current_empty)))
                 return@apply
@@ -66,6 +71,18 @@ class SnapshotPanelRenderer(
                 snapshot.deadlines.size,
                 snapshot.sourceInstanceId,
             )))
+            val summary = deadlineMonitor.summarize(snapshot)
+            addView(ui.listItem(
+                primary = context.getString(R.string.snapshot_deadline_monitor_label),
+                secondary = context.getString(
+                    R.string.snapshot_deadline_monitor_summary,
+                    summary.totalOpen,
+                    summary.overdue,
+                    summary.dueToday,
+                    summary.critical,
+                    summary.nextSevenDays,
+                ),
+            ))
             val workProjection = workProjectionBuilder.build(snapshot)
             addView(ui.fieldLabel(context.getString(R.string.snapshot_cases_label)))
             addView(filterableCaseList(workProjection.cases))

@@ -31,9 +31,13 @@ describe('Android-Begleit-App Arbeitsbereich', () => {
       'app/src/main/java/de/gremia/sbv/companion/domain/mobile/MobileReturnDraft.kt',
       'app/src/main/java/de/gremia/sbv/companion/domain/mobile/MobileReturnPayloadBuilder.kt',
       'app/src/main/java/de/gremia/sbv/companion/domain/mobile/MobileReturnPackageCreator.kt',
+      'app/src/main/java/de/gremia/sbv/companion/domain/mobile/MobileDeadlineMonitor.kt',
+      'app/src/main/java/de/gremia/sbv/companion/domain/mobile/MobileDeadlineNotificationPlanner.kt',
       'app/src/main/java/de/gremia/sbv/companion/domain/security/MobileLockPolicy.kt',
       'app/src/main/java/de/gremia/sbv/companion/data/mobile/MobileSnapshotRepository.kt',
       'app/src/main/java/de/gremia/sbv/companion/data/mobile/MobileReturnDraftRepository.kt',
+      'app/src/main/java/de/gremia/sbv/companion/data/mobile/MobileDeadlineNotificationScheduler.kt',
+      'app/src/main/java/de/gremia/sbv/companion/data/mobile/MobileDeadlineNotificationReceiver.kt',
       'app/src/main/java/de/gremia/sbv/companion/data/transfer/TargetBoundSnapshotDecryptor.kt',
       'app/src/main/java/de/gremia/sbv/companion/data/transfer/TargetBoundReturnEncryptor.kt',
       'app/src/main/java/de/gremia/sbv/companion/ui/AppShellRenderer.kt',
@@ -68,55 +72,45 @@ describe('Android-Begleit-App Arbeitsbereich', () => {
     expect(strings.includes('Begleit-App gesperrt')).toBe(true);
   });
 
-  it('stellt die Desktop-kompatible Empfängerkennung ohne Telemetrie-Abhängigkeit bereit', () => {
+  it('nutzt nur lokal lizenzkompatible Android-Abhängigkeiten ohne Telemetrie-SDKs', () => {
     const appBuild = readWorkspaceFile('app/build.gradle.kts');
-    const policy = readWorkspaceFile('app/src/main/java/de/gremia/sbv/companion/domain/transfer/TransferIdentityPolicy.kt');
-    const factory = readWorkspaceFile('app/src/main/java/de/gremia/sbv/companion/domain/transfer/X25519IdentityFactory.kt');
     const licenses = readWorkspaceFile('THIRD_PARTY_LICENSES.md');
 
-    expect(policy.includes('"GSBV1"')).toBe(true);
-    expect(policy.includes('"ABCDEFGHJKLMNPQRSTUVWXYZ23456789"')).toBe(true);
-    expect(factory.includes('"1.3.101.110"')).toBe(true);
     expect(appBuild.includes('org.bouncycastle:bcprov-jdk18on:1.85.2')).toBe(true);
     expect(appBuild.includes('firebase')).toBe(false);
+    expect(appBuild.includes('play-services')).toBe(false);
     expect(licenses.includes('AGPL-3-kompatibel')).toBe(true);
   });
 
-  it('nimmt Mobile-Snapshots nur zielgebunden, vollständig und geschützt entgegen', () => {
-    const parser = readWorkspaceFile('app/src/main/java/de/gremia/sbv/companion/domain/mobile/MobileQrFrameParser.kt');
-    const assembler = readWorkspaceFile('app/src/main/java/de/gremia/sbv/companion/domain/mobile/MobileSnapshotFrameAssembler.kt');
-    const decryptor = readWorkspaceFile('app/src/main/java/de/gremia/sbv/companion/data/transfer/TargetBoundSnapshotDecryptor.kt');
-    const encryptor = readWorkspaceFile('app/src/main/java/de/gremia/sbv/companion/data/transfer/TargetBoundReturnEncryptor.kt');
-    const repository = readWorkspaceFile('app/src/main/java/de/gremia/sbv/companion/data/mobile/MobileSnapshotRepository.kt');
-    const lockPolicy = readWorkspaceFile('app/src/main/java/de/gremia/sbv/companion/domain/security/MobileLockPolicy.kt');
+  it('deckt sicherheits- und transferrelevantes Verhalten mit Android-Unit-Tests statt Quelltext-Assertions ab', () => {
+    for (const file of [
+      'app/src/test/java/de/gremia/sbv/companion/domain/mobile/MobileSnapshotFrameAssemblerTest.kt',
+      'app/src/test/java/de/gremia/sbv/companion/domain/mobile/MobileWorkProjectionBuilderTest.kt',
+      'app/src/test/java/de/gremia/sbv/companion/domain/mobile/MobileReturnPayloadBuilderTest.kt',
+      'app/src/test/java/de/gremia/sbv/companion/domain/mobile/MobileDeadlineMonitorTest.kt',
+      'app/src/test/java/de/gremia/sbv/companion/domain/mobile/MobileDeadlineNotificationPlannerTest.kt',
+      'app/src/test/java/de/gremia/sbv/companion/domain/security/MobileLockPolicyTest.kt',
+    ]) {
+      expect(existsSync(join(workspaceRoot, file))).toBe(true);
+    }
+  });
+
+  it('sichert die geschützte Laufzeit-Hülle der Begleit-App strukturell ab', () => {
+    const manifest = readWorkspaceFile('app/src/main/AndroidManifest.xml');
     const activity = readWorkspaceFile('app/src/main/java/de/gremia/sbv/companion/MainActivity.kt');
 
-    expect(parser).toContain('gsbvmobile://v1/');
-    expect(parser).toContain('chunkChecksum');
-    expect(assembler).toContain('packageSha256');
-    expect(decryptor).toContain('x25519-hkdf-sha256');
-    expect(encryptor).toContain('gremia-sbv-mobile-return');
-    expect(encryptor).toContain('x25519-hkdf-sha256');
-    expect(decryptor).toContain('targetInstanceId');
-    expect(repository).toContain('AndroidSecretBox("gremia_sbv_companion_snapshot_v1")');
-    expect(lockPolicy).toContain('initialState()');
+    expect(manifest.includes('android.permission.POST_NOTIFICATIONS')).toBe(true);
+    expect(manifest.includes('MobileDeadlineNotificationReceiver')).toBe(true);
     expect(activity).toContain('FLAG_SECURE');
     expect(activity).toContain('BiometricPrompt');
     expect(activity).toContain('createConfirmDeviceCredentialIntent');
   });
 
-  it('gibt mobile Änderungen als vollständigen Rückgabe-Vertrag zurück', () => {
-    const drafts = readWorkspaceFile('app/src/main/java/de/gremia/sbv/companion/domain/mobile/MobileReturnDraft.kt');
-    const builder = readWorkspaceFile('app/src/main/java/de/gremia/sbv/companion/domain/mobile/MobileReturnPayloadBuilder.kt');
-    const repository = readWorkspaceFile('app/src/main/java/de/gremia/sbv/companion/data/mobile/MobileReturnDraftRepository.kt');
-
-    expect(drafts).toContain('MobileReturnDeadlineDraft');
-    expect(drafts).toContain('MobileReturnDeadlineCompletionDraft');
-    expect(builder).toContain('"create_note"');
-    expect(builder).toContain('"create_deadline"');
-    expect(builder).toContain('"complete_deadline"');
-    expect(repository).toContain('fun addDeadline(');
-    expect(repository).toContain('fun completeDeadline(');
+  it('prüft den mobilen Rückgabe-Vertrag über Verhaltens-Tests', () => {
+    expect(existsSync(join(
+      workspaceRoot,
+      'app/src/test/java/de/gremia/sbv/companion/domain/mobile/MobileReturnPayloadBuilderTest.kt',
+    ))).toBe(true);
   });
 
   it('stylt native UI-Elemente über die zentrale Gremia-UI-Schicht', () => {

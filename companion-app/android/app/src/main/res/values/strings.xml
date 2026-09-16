@@ -31,8 +31,11 @@
     <string name="snapshot_frames_reset">Frames zurücksetzen</string>
     <string name="snapshot_current_kicker">ARBEITSSTAND</string>
     <string name="snapshot_current_title">Aktuelle mobile Arbeitsprojektion</string>
+    <string name="snapshot_current_help">Die Desktop-Anwendung bleibt führend. Die App zeigt die übergebenen offenen Fallakten und Fristen mobil an. Android-Hinweise sind bewusst allgemein formuliert und zeigen keine Namen, Aktenzeichen oder Fristentitel auf dem Sperrbildschirm.</string>
     <string name="snapshot_current_empty">Noch keine mobile Arbeitsprojektion gespeichert.</string>
     <string name="snapshot_current_summary">%1$d Fallakte(n), %2$d offene Frist(en) aus Instanz %3$s.</string>
+    <string name="snapshot_deadline_monitor_label">Mobiler Fristenmonitor</string>
+    <string name="snapshot_deadline_monitor_summary">%1$d offen · %2$d überfällig · %3$d heute · %4$d kritisch · %5$d in 7 Tagen</string>
     <string name="snapshot_cases_label">Fallakten und offene Fristen</string>
     <string name="snapshot_case_filter_label">Fallakten filtern</string>
     <string name="snapshot_case_filter_hint">Aktenzeichen, Name, Kategorie oder Status filtern</string>
