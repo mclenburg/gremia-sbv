@@ -9,8 +9,11 @@ import de.gremia.sbv.companion.R
 import de.gremia.sbv.companion.domain.mobile.MobileCaseProjection
 import de.gremia.sbv.companion.domain.mobile.MobileCaseProjectionSearch
 import de.gremia.sbv.companion.domain.mobile.MobileCaseWorkItem
+import de.gremia.sbv.companion.domain.mobile.MobileDeadlineDisplayStatus
 import de.gremia.sbv.companion.domain.mobile.MobileDeadlineMonitor
-import de.gremia.sbv.companion.domain.mobile.MobileDeadlineProjection
+import de.gremia.sbv.companion.domain.mobile.MobileDeadlineWorkItem
+import de.gremia.sbv.companion.domain.mobile.MobileDeadlineWorklistBuilder
+import de.gremia.sbv.companion.domain.mobile.MobileDeadlineWorklistSearch
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshot
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshotImportPreview
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshotIntakeResult
@@ -22,6 +25,8 @@ class SnapshotPanelRenderer(
 ) {
     private val workProjectionBuilder = MobileWorkProjectionBuilder()
     private val caseSearch = MobileCaseProjectionSearch()
+    private val deadlineWorklistBuilder = MobileDeadlineWorklistBuilder()
+    private val deadlineSearch = MobileDeadlineWorklistSearch()
     private val deadlineMonitor = MobileDeadlineMonitor()
 
     fun renderImport(
@@ -116,12 +121,11 @@ class SnapshotPanelRenderer(
                 ),
             ))
             val workProjection = workProjectionBuilder.build(snapshot)
+            val deadlineWorklist = deadlineWorklistBuilder.build(snapshot)
+            addView(ui.fieldLabel(context.getString(R.string.snapshot_deadlines_label)))
+            addView(filterableDeadlineList(deadlineWorklist.items))
             addView(ui.fieldLabel(context.getString(R.string.snapshot_cases_label)))
             addView(filterableCaseList(workProjection.cases))
-            if (workProjection.unassignedDeadlines.isNotEmpty()) {
-                addView(ui.fieldLabel(context.getString(R.string.snapshot_unassigned_deadlines_label)))
-                workProjection.unassignedDeadlines.forEach { deadline -> addView(deadlineRow(deadline)) }
-            }
         }
 
     private fun frameInput(): EditText =
@@ -155,11 +159,6 @@ class SnapshotPanelRenderer(
                 }
                 filteredCases.forEach { item ->
                     caseList.addView(caseRow(item))
-                    if (item.openDeadlines.isEmpty()) {
-                        caseList.addView(ui.listText(context.getString(R.string.snapshot_case_no_deadline)))
-                    } else {
-                        item.openDeadlines.forEach { deadline -> caseList.addView(deadlineRow(deadline)) }
-                    }
                 }
             }
             if (cases.size > FILTER_THRESHOLD) addView(caseFilterInput(::renderCases))
@@ -167,10 +166,49 @@ class SnapshotPanelRenderer(
             addView(caseList)
         }
 
+    private fun filterableDeadlineList(deadlines: List<MobileDeadlineWorkItem>): LinearLayout =
+        LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            val deadlineList = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
+            fun renderDeadlines(filter: String) {
+                deadlineList.removeAllViews()
+                val result = deadlineSearch.filter(deadlines, filter)
+                if (result.matches.isEmpty()) {
+                    deadlineList.addView(ui.paragraph(context.getString(R.string.snapshot_deadlines_filter_empty)))
+                    return
+                }
+                if (result.hiddenMatchCount > 0) {
+                    deadlineList.addView(ui.listText(context.getString(
+                        R.string.snapshot_deadlines_filter_limited,
+                        result.matches.size,
+                        result.totalMatchCount,
+                    )))
+                }
+                result.matches.forEach { item -> deadlineList.addView(deadlineWorkItemRow(item)) }
+            }
+            if (deadlines.size > FILTER_THRESHOLD) addView(deadlineFilterInput(::renderDeadlines))
+            renderDeadlines("")
+            addView(deadlineList)
+        }
+
     private fun caseFilterInput(onFilterChanged: (String) -> Unit): EditText =
         ui.textInput(
             context.getString(R.string.snapshot_case_filter_label),
             context.getString(R.string.snapshot_case_filter_hint),
+        ).apply {
+            addTextChangedListener(object : TextWatcher {
+                override fun beforeTextChanged(text: CharSequence?, start: Int, count: Int, after: Int) = Unit
+                override fun onTextChanged(text: CharSequence?, start: Int, before: Int, count: Int) {
+                    onFilterChanged(text?.toString().orEmpty())
+                }
+                override fun afterTextChanged(editable: Editable?) = Unit
+            })
+        }
+
+    private fun deadlineFilterInput(onFilterChanged: (String) -> Unit): EditText =
+        ui.textInput(
+            context.getString(R.string.snapshot_deadline_filter_label),
+            context.getString(R.string.snapshot_deadline_filter_hint),
         ).apply {
             addTextChangedListener(object : TextWatcher {
                 override fun beforeTextChanged(text: CharSequence?, start: Int, count: Int, after: Int) = Unit
@@ -194,14 +232,35 @@ class SnapshotPanelRenderer(
             label = "${item.caseRecord.caseNumber}, ${item.caseRecord.displayName}, ${item.caseRecord.category}, ${item.caseRecord.status}",
         )
 
-    private fun deadlineRow(deadline: MobileDeadlineProjection) =
-        ui.listText(context.getString(
-            R.string.snapshot_deadline_summary,
-            deadline.title,
-            MobileDateFormatter.formatDateTime(deadline.dueAt),
-            deadline.severity,
-            deadline.legalBasis ?: context.getString(R.string.snapshot_deadline_without_legal_basis),
-        ))
+    private fun deadlineWorkItemRow(item: MobileDeadlineWorkItem) =
+        ui.listItem(
+            primary = item.deadline.title,
+            secondary = context.getString(
+                R.string.snapshot_deadline_work_item_summary,
+                deadlineStatusLabel(item.displayStatus),
+                MobileDateFormatter.formatDateTime(item.deadline.dueAt),
+                deadlineCaseLabel(item),
+                item.deadline.legalBasis ?: context.getString(R.string.snapshot_deadline_without_legal_basis),
+            ),
+            label = "${item.deadline.title}, ${deadlineStatusLabel(item.displayStatus)}, ${deadlineCaseLabel(item)}",
+        )
+
+    private fun deadlineCaseLabel(item: MobileDeadlineWorkItem): String =
+        item.caseRecord?.let { record ->
+            context.getString(
+                R.string.snapshot_deadline_case_reference,
+                record.caseNumber,
+                record.displayName,
+            )
+        } ?: context.getString(R.string.snapshot_deadline_case_unassigned)
+
+    private fun deadlineStatusLabel(status: MobileDeadlineDisplayStatus): String =
+        when (status) {
+            MobileDeadlineDisplayStatus.Overdue -> context.getString(R.string.snapshot_deadline_status_overdue)
+            MobileDeadlineDisplayStatus.DueToday -> context.getString(R.string.snapshot_deadline_status_today)
+            MobileDeadlineDisplayStatus.Critical -> context.getString(R.string.snapshot_deadline_status_critical)
+            MobileDeadlineDisplayStatus.Open -> context.getString(R.string.snapshot_deadline_status_open)
+        }
 
     private companion object {
         private const val FILTER_THRESHOLD = 5
