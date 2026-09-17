@@ -129,6 +129,21 @@ class GremiaUi(private val context: Context) {
             setOnClickListener { onClick() }
         }
 
+    fun secondaryButton(label: String, onClick: () -> Unit): Button =
+        Button(context).apply {
+            text = label
+            contentDescription = label
+            isAllCaps = false
+            setTextColor(color(R.color.gremia_text_primary))
+            textSize = 14f
+            typeface = Typeface.DEFAULT_BOLD
+            background = valueBackground()
+            minHeight = dimen(R.dimen.button_min_height)
+            val padding = dimen(R.dimen.space_md)
+            setPadding(padding, 0, padding, 0)
+            setOnClickListener { onClick() }
+        }
+
     fun navigationButton(label: String, selected: Boolean, onClick: () -> Unit): Button =
         Button(context).apply {
             text = label
@@ -232,6 +247,17 @@ class GremiaUi(private val context: Context) {
             }
             addView(left)
             addView(right)
+        }
+
+    fun summaryCard(label: String, value: String, detail: String): LinearLayout =
+        LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            background = valueBackground()
+            val padding = dimen(R.dimen.space_md)
+            setPadding(padding, padding, padding, padding)
+            addView(kicker(label))
+            addView(sectionTitle(value))
+            addView(listText(detail))
         }
 
     fun valueBackground(): GradientDrawable =

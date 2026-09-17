@@ -1,8 +1,9 @@
 package de.gremia.sbv.companion.ui
 
 enum class MobileAppSection {
-    Synchronization,
-    Work,
+    Dashboard,
+    Deadlines,
     Capture,
-    Return,
+    Synchronization,
+    Settings,
 }

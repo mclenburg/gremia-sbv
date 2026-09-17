@@ -54,7 +54,7 @@ class MainActivity : ComponentActivity() {
     private val lockCheckHandler = Handler(Looper.getMainLooper())
     private var unlocked = false
     private var lastInteractionAtMillis = 0L
-    private var activeSection = MobileAppSection.Synchronization
+    private var activeSection = MobileAppSection.Dashboard
     private var unlockCancellationSignal: CancellationSignal? = null
     private var pendingReturnPackage: PendingReturnPackage? = null
     private val qrScanLauncher = registerForActivityResult(ScanContract()) { result ->
@@ -306,7 +306,7 @@ class MainActivity : ComponentActivity() {
         if (result is MobileSnapshotIntakeResult.Completed) {
             returnDraftRepository.clear()
             scheduleDeadlineNotifications()
-            activeSection = MobileAppSection.Work
+            activeSection = MobileAppSection.Dashboard
             renderContent()
         }
         return result
@@ -369,7 +369,7 @@ class MainActivity : ComponentActivity() {
         runCatching {
             returnDraftRepository.completeDeadline(deadline, completedNote)
         }.onSuccess {
-            activeSection = MobileAppSection.Return
+            activeSection = MobileAppSection.Deadlines
             renderContent()
         }.onFailure { cause ->
             Toast.makeText(this, cause.message ?: getString(R.string.return_title), Toast.LENGTH_LONG).show()

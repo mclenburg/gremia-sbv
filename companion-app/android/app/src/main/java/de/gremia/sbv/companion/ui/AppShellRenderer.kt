@@ -17,10 +17,12 @@ class AppShellRenderer(
     private val context: Context,
 ) {
     private val ui = GremiaUi(context)
+    private val dashboardPanel = DashboardPanelRenderer(context, ui)
     private val pairingPanel = PairingPanelRenderer(context, ui)
     private val snapshotPanel = SnapshotPanelRenderer(context, ui)
     private val capturePanel = CapturePanelRenderer(context, ui)
     private val returnPanel = ReturnPanelRenderer(context, ui)
+    private val settingsPanel = SettingsPanelRenderer(context, ui)
 
     fun render(
         identity: TransferIdentity,
@@ -98,6 +100,8 @@ class AppShellRenderer(
             addView(ui.title(context.getString(R.string.app_name)))
             addView(sectionNavigation(activeSection, onSelectSection))
             when (activeSection) {
+                MobileAppSection.Dashboard -> addView(dashboardPanel.render(snapshot, returnDrafts))
+                MobileAppSection.Deadlines -> addView(snapshotPanel.renderCurrent(snapshot))
                 MobileAppSection.Synchronization -> {
                     addView(pairingPanel.render(identity, onCopyRecipientToken, onCreatePairingResponse))
                     addView(snapshotPanel.renderImport(
@@ -108,21 +112,21 @@ class AppShellRenderer(
                         onConfirmImport,
                         onCancelImport,
                     ))
+                    addView(returnPanel.render(
+                        snapshot,
+                        returnDrafts,
+                        onCompleteReturnDeadline,
+                        onCreateReturnPackage,
+                        onClearReturnDrafts,
+                    ))
                 }
-                MobileAppSection.Work -> addView(snapshotPanel.renderCurrent(snapshot))
                 MobileAppSection.Capture -> addView(capturePanel.render(
                     snapshot,
                     onAddReturnNote,
                     onAddReturnInbox,
                     onAddReturnDeadline,
                 ))
-                MobileAppSection.Return -> addView(returnPanel.render(
-                    snapshot,
-                    returnDrafts,
-                    onCompleteReturnDeadline,
-                    onCreateReturnPackage,
-                    onClearReturnDrafts,
-                ))
+                MobileAppSection.Settings -> addView(settingsPanel.render(identity, snapshot))
             }
         }
 
@@ -132,20 +136,24 @@ class AppShellRenderer(
     ): LinearLayout =
         ui.horizontalActions(
             ui.navigationButton(
-                context.getString(R.string.app_section_sync),
-                activeSection == MobileAppSection.Synchronization,
-            ) { onSelectSection(MobileAppSection.Synchronization) },
+                context.getString(R.string.app_section_dashboard),
+                activeSection == MobileAppSection.Dashboard,
+            ) { onSelectSection(MobileAppSection.Dashboard) },
             ui.navigationButton(
-                context.getString(R.string.app_section_work),
-                activeSection == MobileAppSection.Work,
-            ) { onSelectSection(MobileAppSection.Work) },
+                context.getString(R.string.app_section_deadlines),
+                activeSection == MobileAppSection.Deadlines,
+            ) { onSelectSection(MobileAppSection.Deadlines) },
             ui.navigationButton(
                 context.getString(R.string.app_section_capture),
                 activeSection == MobileAppSection.Capture,
             ) { onSelectSection(MobileAppSection.Capture) },
             ui.navigationButton(
-                context.getString(R.string.app_section_return),
-                activeSection == MobileAppSection.Return,
-            ) { onSelectSection(MobileAppSection.Return) },
+                context.getString(R.string.app_section_sync),
+                activeSection == MobileAppSection.Synchronization,
+            ) { onSelectSection(MobileAppSection.Synchronization) },
+            ui.navigationButton(
+                context.getString(R.string.app_section_settings),
+                activeSection == MobileAppSection.Settings,
+            ) { onSelectSection(MobileAppSection.Settings) },
         )
 }
