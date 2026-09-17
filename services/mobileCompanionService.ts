@@ -10,11 +10,17 @@ import {
   sha256,
   type TargetBoundTransferEnvelope,
 } from './targetBoundTransferCrypto.js';
+import {
+  createMobileCompanionPairingRequest,
+  formatMobileCompanionPairingSecurityCode,
+  parseMobileCompanionPairingResponse,
+} from './mobileCompanionPairingPolicy.js';
 import type {
   MobileCompanionCaseProjection,
   MobileCompanionDeadlineProjection,
   MobileCompanionDevice,
   MobileCompanionDeviceStatus,
+  MobileCompanionPairingRequestResult as MobileCompanionPairingRequestModel,
   MobileCompanionQrFrame,
   MobileCompanionSnapshotInput,
   MobileCompanionSnapshotPayload,
@@ -27,6 +33,7 @@ import { recordMobileCompanionSnapshotExport } from './caseHandoverExportLedger.
 export const MOBILE_COMPANION_SNAPSHOT_FORMAT = 'gremia-sbv-mobile-snapshot';
 export const MOBILE_COMPANION_SNAPSHOT_VERSION = 1;
 export const MOBILE_COMPANION_PROTOCOL_VERSION = '1.0' as const;
+export { createMobileCompanionPairingResponse } from './mobileCompanionPairingPolicy.js';
 
 const MAX_MOBILE_SNAPSHOT_BYTES = 1_000_000;
 const MAX_MOBILE_QR_FRAME_PAYLOAD_CHARS = 900;
@@ -86,6 +93,12 @@ function normalizeLabel(value: string): string {
 
 function assertDeviceStatus(value: string): asserts value is MobileCompanionDeviceStatus {
   if (value !== 'active' && value !== 'disabled') throw new Error('Ungültiger Mobilgeräte-Status.');
+}
+
+function normalizeSecurityCode(value: string): string {
+  const code = value.trim().toUpperCase().replace(/[\s-]/gu, '');
+  if (!/^[A-HJ-NP-Z2-9]{12}$/u.test(code)) throw new Error('Bitte den 12-stelligen Sicherheitscode der Begleit-App bestätigen.');
+  return code;
 }
 
 function uniqueIds(ids: readonly string[], label: string): string[] {
@@ -221,9 +234,28 @@ export class MobileCompanionService {
     `).all().map(mapDevice);
   }
 
+  createPairingRequest(): MobileCompanionPairingRequestModel {
+    const identity = new TransferInstanceIdentityService(this.database).getPublicIdentity();
+    return createMobileCompanionPairingRequest(identity);
+  }
+
   saveDevice(input: SaveMobileCompanionDeviceInput): MobileCompanionDevice {
     const label = normalizeLabel(input.label);
-    const recipient = parseTransferRecipientToken(input.recipientToken);
+    const response = parseMobileCompanionPairingResponse(input.pairingResponse);
+    const recipient = parseTransferRecipientToken(response.mobileRecipientToken);
+    const expectedCode = normalizeSecurityCode(formatMobileCompanionPairingSecurityCode(response));
+    const confirmedCode = normalizeSecurityCode(input.securityCode);
+    if (confirmedCode !== expectedCode) {
+      throw new Error('Sicherheitscode stimmt nicht überein. Mobilgerät wurde nicht gekoppelt.');
+    }
+    const localIdentity = new TransferInstanceIdentityService(this.database).getPublicIdentity();
+    const requestDesktop = parseTransferRecipientToken(response.request.desktopRecipientToken);
+    if (
+      requestDesktop.instanceId !== localIdentity.instanceId ||
+      requestDesktop.keyFingerprint !== localIdentity.keyFingerprint
+    ) {
+      throw new Error('Pairingantwort gehört nicht zu dieser Gremia.SBV-Instanz.');
+    }
     return this.unitOfWork.run(() => {
       const timestamp = nowIso();
       const existing = this.database.prepare<MobileCompanionDeviceRow>(

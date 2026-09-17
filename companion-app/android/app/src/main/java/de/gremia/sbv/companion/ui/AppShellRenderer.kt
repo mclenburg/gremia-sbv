@@ -6,6 +6,7 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import de.gremia.sbv.companion.R
 import de.gremia.sbv.companion.domain.mobile.MobileDeadlineProjection
+import de.gremia.sbv.companion.domain.mobile.MobilePairingResponseResult
 import de.gremia.sbv.companion.domain.mobile.MobileReturnDraftSet
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshot
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshotImportPreview
@@ -28,6 +29,7 @@ class AppShellRenderer(
         activeSection: MobileAppSection,
         onSelectSection: (MobileAppSection) -> Unit,
         onCopyRecipientToken: () -> Unit,
+        onCreatePairingResponse: (String) -> MobilePairingResponseResult,
         onScanFrame: () -> Unit,
         onAcceptFrame: (String) -> MobileSnapshotIntakeResult,
         onResetFrames: () -> Unit,
@@ -49,6 +51,7 @@ class AppShellRenderer(
                 activeSection,
                 onSelectSection,
                 onCopyRecipientToken,
+                onCreatePairingResponse,
                 onScanFrame,
                 onAcceptFrame,
                 onResetFrames,
@@ -70,6 +73,7 @@ class AppShellRenderer(
         activeSection: MobileAppSection,
         onSelectSection: (MobileAppSection) -> Unit,
         onCopyRecipientToken: () -> Unit,
+        onCreatePairingResponse: (String) -> MobilePairingResponseResult,
         onScanFrame: () -> Unit,
         onAcceptFrame: (String) -> MobileSnapshotIntakeResult,
         onResetFrames: () -> Unit,
@@ -91,7 +95,7 @@ class AppShellRenderer(
             addView(sectionNavigation(activeSection, onSelectSection))
             when (activeSection) {
                 MobileAppSection.Synchronization -> {
-                    addView(pairingPanel.render(identity, onCopyRecipientToken))
+                    addView(pairingPanel.render(identity, onCopyRecipientToken, onCreatePairingResponse))
                     addView(snapshotPanel.renderImport(
                         pendingImport,
                         onScanFrame,

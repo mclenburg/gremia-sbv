@@ -2,7 +2,7 @@ import { useMemo, useState, type FormEvent } from 'react';
 import { Plus, Smartphone } from 'lucide-react';
 import type { CaseRecord } from '../../../domain/models/case.model';
 import type { CaseMeasureRecord } from '../../../domain/models/case-measure.model';
-import type { MobileCompanionDevice, MobileCompanionSnapshotResult } from '../../../domain/models/mobile-companion.model';
+import type { MobileCompanionDevice, MobileCompanionPairingRequestResult, MobileCompanionSnapshotResult } from '../../../domain/models/mobile-companion.model';
 import { IndustrialButton, ToolbarButton } from '../../shared/components/IndustrialButton';
 import { FormActions, SelectInput, TextareaInput, TextInput } from '../../shared/components/IndustrialForm';
 import { IndustrialPanel } from '../../shared/components/WorkbenchPanels';
@@ -53,6 +53,7 @@ function MobileDeviceTable({
 function MobileDevicePairingPanel({
   devices,
   draft,
+  pairingRequest,
   busy,
   open,
   onDraftChange,
@@ -63,6 +64,7 @@ function MobileDevicePairingPanel({
 }: {
   devices: MobileCompanionDevice[];
   draft: MobileDeviceDraft;
+  pairingRequest: MobileCompanionPairingRequestResult | null;
   busy: boolean;
   open: boolean;
   onDraftChange: (draft: MobileDeviceDraft) => void;
@@ -82,14 +84,14 @@ function MobileDevicePairingPanel({
     {open ? <IndustrialModal
       title="Mobilgerät koppeln"
       kicker="Neue mobile Arbeitsstation"
-      description="Die Begleit-App zeigt ihre öffentliche Empfängerkennung an. Private Schlüssel verlassen das Mobilgerät nicht."
+    description="Die Desktop-Anfrage wird in der Begleit-App beantwortet. Gekoppelt wird erst nach übereinstimmendem Sicherheitscode."
       icon={<Smartphone className="industrial-icon-md" />}
       onClose={busy ? undefined : onClose}
       closeOnEscape={!busy}
       wide
       actions={<>
         <ToolbarButton onClick={onClose} disabled={busy}>Abbrechen</ToolbarButton>
-        <IndustrialButton type="submit" form="mobile-device-pairing-form" loading={busy} disabled={!draft.label.trim() || !draft.recipientToken.trim()}>
+        <IndustrialButton type="submit" form="mobile-device-pairing-form" loading={busy} disabled={!draft.label.trim() || !draft.pairingResponse.trim() || !draft.securityCode.trim()}>
           Mobilgerät koppeln
         </IndustrialButton>
       </>}
@@ -97,7 +99,9 @@ function MobileDevicePairingPanel({
       <form id="mobile-device-pairing-form" className="industrial-modal-form" onSubmit={onSubmit}>
         <div className="industrial-form-grid industrial-form-grid-2">
           <TextInput label="Gerätename" value={draft.label} onValueChange={(label) => onDraftChange({ ...draft, label })} placeholder="z. B. Diensthandy SBV" required />
-          <TextareaInput label="Empfängerkennung der App" value={draft.recipientToken} onValueChange={(recipientToken) => onDraftChange({ ...draft, recipientToken })} rows={3} required wide />
+          <TextareaInput label="Desktop-Pairinganfrage" value={pairingRequest?.pairingRequest ?? ''} onValueChange={() => undefined} rows={3} readOnly wide />
+          <TextareaInput label="Pairingantwort der App" value={draft.pairingResponse} onValueChange={(pairingResponse) => onDraftChange({ ...draft, pairingResponse })} rows={3} required wide />
+          <TextInput label="Sicherheitscode" value={draft.securityCode} onValueChange={(securityCode) => onDraftChange({ ...draft, securityCode })} placeholder="AAAA-BBBB-CCCC" required />
         </div>
       </form>
     </IndustrialModal> : null}
@@ -156,6 +160,7 @@ function MobileCompanionPanels({
   cases,
   devices,
   deviceDraft,
+  pairingRequest,
   pairingOpen,
   caseIds,
   deviceOptions,
@@ -177,6 +182,7 @@ function MobileCompanionPanels({
   cases: CaseRecord[];
   devices: MobileCompanionDevice[];
   deviceDraft: MobileDeviceDraft;
+  pairingRequest: MobileCompanionPairingRequestResult | null;
   pairingOpen: boolean;
   caseIds: string[];
   deviceOptions: Array<{ value: string; label: string }>;
@@ -199,6 +205,7 @@ function MobileCompanionPanels({
     <MobileDevicePairingPanel
       devices={devices}
       draft={deviceDraft}
+      pairingRequest={pairingRequest}
       busy={busy}
       open={pairingOpen}
       onDraftChange={onDraftChange}
@@ -233,6 +240,7 @@ export function HandoverMobileCompanionTab({ cases, measures = [] }: { cases: Ca
     cases={mobileCases}
     devices={workflow.devices}
     deviceDraft={workflow.deviceDraft}
+    pairingRequest={workflow.pairingRequest}
     pairingOpen={pairingOpen}
     caseIds={workflow.caseIds}
     deviceOptions={workflow.deviceOptions}
@@ -244,8 +252,8 @@ export function HandoverMobileCompanionTab({ cases, measures = [] }: { cases: Ca
     onDraftChange={workflow.setDeviceDraft}
     onSaveDevice={(event) => void workflow.saveDevice(event).then((saved) => { if (saved) setPairingOpen(false); })}
     onDisableDevice={(id) => void workflow.disableDevice(id)}
-    onOpenPairing={() => setPairingOpen(true)}
-    onClosePairing={() => setPairingOpen(false)}
+    onOpenPairing={() => void workflow.beginPairing().then((started) => { if (started) setPairingOpen(true); })}
+    onClosePairing={() => { workflow.cancelPairing(); setPairingOpen(false); }}
     onCaseIdsChange={workflow.setCaseIds}
     onDeviceChange={workflow.setSelectedDeviceId}
     onCreateSnapshot={workflow.createSnapshot}

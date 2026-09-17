@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { MigrationService } from '../../../services/migrationService';
 import {
   createMobileCompanionQrFrames,
+  createMobileCompanionPairingResponse,
   decodeMobileCompanionSnapshotPayload,
   MOBILE_COMPANION_SNAPSHOT_FORMAT,
   MOBILE_COMPANION_SNAPSHOT_VERSION,
@@ -110,7 +111,58 @@ function decodeQrFrame(frame: string) {
   };
 }
 
+function pairMobileDevice(
+  desktop: Awaited<ReturnType<typeof migratedDatabase>>,
+  mobile: Awaited<ReturnType<typeof migratedDatabase>>,
+  label = 'Diensthandy SBV',
+) {
+  const mobileService = new MobileCompanionService(desktop);
+  const request = mobileService.createPairingRequest();
+  const response = createMobileCompanionPairingResponse(
+    request.pairingRequest,
+    new TransferInstanceIdentityService(mobile).getPublicIdentity().recipientToken,
+  );
+  return mobileService.saveDevice({
+    label,
+    pairingResponse: response.pairingResponse,
+    securityCode: response.securityCode,
+  });
+}
+
 describe('Mobile Begleit-App Snapshot', () => {
+  it('koppelt ein Mobilgerät erst nach bestätigtem Pairing-Sicherheitscode', async () => {
+    const desktop = await migratedDatabase();
+    const mobile = await migratedDatabase();
+    try {
+      const desktopService = new MobileCompanionService(desktop);
+      const pairingRequest = desktopService.createPairingRequest();
+      const mobileIdentity = new TransferInstanceIdentityService(mobile).getPublicIdentity();
+      const response = createMobileCompanionPairingResponse(pairingRequest.pairingRequest, mobileIdentity.recipientToken);
+
+      expect(() => desktopService.saveDevice({
+        label: 'Tablet SBV',
+        pairingResponse: response.pairingResponse,
+        securityCode: 'AAAA-BBBB-CCCC',
+      })).toThrow(/Sicherheitscode/i);
+
+      const device = desktopService.saveDevice({
+        label: 'Tablet SBV',
+        pairingResponse: response.pairingResponse,
+        securityCode: response.securityCode,
+      });
+
+      expect(device).toMatchObject({
+        label: 'Tablet SBV',
+        instanceId: mobileIdentity.instanceId,
+        keyFingerprint: mobileIdentity.keyFingerprint,
+        status: 'active',
+      });
+    } finally {
+      desktop.close();
+      mobile.close();
+    }
+  });
+
   it('exportiert eine reduzierte, zielgebundene Mobile-Projektion ohne Notizen oder Dokumentinhalte', async () => {
     const desktop = await migratedDatabase();
     const mobile = await migratedDatabase();
@@ -118,10 +170,7 @@ describe('Mobile Begleit-App Snapshot', () => {
       insertCaseWithSensitiveAdjacentData(desktop);
       const mobileIdentity = new TransferInstanceIdentityService(mobile);
       const mobileService = new MobileCompanionService(desktop);
-      const device = mobileService.saveDevice({
-        label: 'Diensthandy SBV',
-        recipientToken: mobileIdentity.getPublicIdentity().recipientToken,
-      });
+      const device = pairMobileDevice(desktop, mobile);
 
       const exported = mobileService.createSnapshot({
         deviceId: device.id,
@@ -258,10 +307,7 @@ describe('Mobile Begleit-App Snapshot', () => {
           'Offene Alt-Maßnahme', 'neu', 'normal', 'manual', ?, ?, ?)
       `).run(now, now, now);
       const mobileService = new MobileCompanionService(desktop);
-      const device = mobileService.saveDevice({
-        label: 'Diensthandy SBV',
-        recipientToken: new TransferInstanceIdentityService(mobile).getPublicIdentity().recipientToken,
-      });
+      const device = pairMobileDevice(desktop, mobile);
 
       expect(() => mobileService.createSnapshot({
         deviceId: device.id,

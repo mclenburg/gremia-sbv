@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
 import type { CaseRecord } from '../../../domain/models/case.model';
-import type { MobileCompanionDevice, MobileCompanionSnapshotResult } from '../../../domain/models/mobile-companion.model';
+import type { MobileCompanionDevice, MobileCompanionPairingRequestResult, MobileCompanionSnapshotResult } from '../../../domain/models/mobile-companion.model';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 import { requireCaseHandoverBridge } from './caseHandoverBridge';
 
-export const EMPTY_MOBILE_DEVICE_DRAFT = { label: '', recipientToken: '' };
+export const EMPTY_MOBILE_DEVICE_DRAFT = { label: '', pairingResponse: '', securityCode: '' };
 export type MobileDeviceDraft = typeof EMPTY_MOBILE_DEVICE_DRAFT;
 
 function currentThemeMode(): 'dark' | 'light' {
@@ -36,6 +36,7 @@ export function useMobileCompanionWorkflow(cases: CaseRecord[]) {
   const [devices, setDevices] = useState<MobileCompanionDevice[]>([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState('');
   const [deviceDraft, setDeviceDraft] = useState(EMPTY_MOBILE_DEVICE_DRAFT);
+  const [pairingRequest, setPairingRequest] = useState<MobileCompanionPairingRequestResult | null>(null);
   const [caseIds, setCaseIds] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -66,6 +67,29 @@ export function useMobileCompanionWorkflow(cases: CaseRecord[]) {
   useEffect(() => { void reloadDevices().catch((cause) => showError(cause)); }, [reloadDevices, showError]);
   useEffect(() => { setCaseIds((current) => current.filter((id) => cases.some((record) => record.id === id))); }, [cases]);
 
+  async function beginPairing(): Promise<boolean> {
+    setBusy(true);
+    setSnapshot(null);
+    try {
+      const handover = await requireCaseHandoverBridge();
+      const request = await handover.createMobilePairingRequest();
+      setPairingRequest(request);
+      setDeviceDraft(EMPTY_MOBILE_DEVICE_DRAFT);
+      showMessage('Pairing-Anfrage wurde erstellt. Bitte in der Begleit-App eine Antwort erzeugen.');
+      return true;
+    } catch (cause) {
+      showError(cause);
+      return false;
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function cancelPairing() {
+    setPairingRequest(null);
+    setDeviceDraft(EMPTY_MOBILE_DEVICE_DRAFT);
+  }
+
   async function saveDevice(event: FormEvent<HTMLFormElement>): Promise<boolean> {
     event.preventDefault();
     setBusy(true);
@@ -74,9 +98,11 @@ export function useMobileCompanionWorkflow(cases: CaseRecord[]) {
       const handover = await requireCaseHandoverBridge();
       const device = await handover.saveMobileDevice({
         label: deviceDraft.label,
-        recipientToken: deviceDraft.recipientToken,
+        pairingResponse: deviceDraft.pairingResponse,
+        securityCode: deviceDraft.securityCode,
       });
       setDeviceDraft(EMPTY_MOBILE_DEVICE_DRAFT);
+      setPairingRequest(null);
       await reloadDevices();
       setSelectedDeviceId(device.id);
       showMessage('Mobilgerät wurde gekoppelt.');
@@ -136,6 +162,7 @@ export function useMobileCompanionWorkflow(cases: CaseRecord[]) {
     devices,
     selectedDeviceId,
     deviceDraft,
+    pairingRequest,
     caseIds,
     busy,
     error,
@@ -146,6 +173,8 @@ export function useMobileCompanionWorkflow(cases: CaseRecord[]) {
     setCaseIds,
     setSelectedDeviceId,
     saveDevice,
+    beginPairing,
+    cancelPairing,
     createSnapshot,
     copyFrame,
     disableDevice,

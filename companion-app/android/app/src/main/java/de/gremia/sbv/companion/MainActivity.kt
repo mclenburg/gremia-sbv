@@ -30,6 +30,7 @@ import de.gremia.sbv.companion.data.mobile.MobileDeadlineNotificationScheduler
 import de.gremia.sbv.companion.data.mobile.MobileSnapshotRepository
 import de.gremia.sbv.companion.data.transfer.TransferIdentityRepository
 import de.gremia.sbv.companion.domain.mobile.MobileDeadlineProjection
+import de.gremia.sbv.companion.domain.mobile.MobilePairingExchange
 import de.gremia.sbv.companion.domain.mobile.MobileReturnPackageCreator
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshotIntakeResult
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshotQrController
@@ -47,6 +48,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var returnPackageCreator: MobileReturnPackageCreator
     private lateinit var deadlineNotificationScheduler: MobileDeadlineNotificationScheduler
     private lateinit var snapshotController: MobileSnapshotQrController
+    private val pairingExchange = MobilePairingExchange()
     private val lockPolicy = MobileLockPolicy()
     private val lockCheckHandler = Handler(Looper.getMainLooper())
     private var unlocked = false
@@ -126,6 +128,7 @@ class MainActivity : ComponentActivity() {
                     renderContent()
                 },
                 onCopyRecipientToken = { copyRecipientToken(identity.recipientToken) },
+                onCreatePairingResponse = { request -> pairingExchange.createResponse(request, identity) },
                 onScanFrame = { startQrScan() },
                 onAcceptFrame = { frame ->
                     acceptSnapshotFrame(frame)

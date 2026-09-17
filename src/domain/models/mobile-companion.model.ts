@@ -15,7 +15,16 @@ export interface MobileCompanionDevice {
 
 export interface SaveMobileCompanionDeviceInput {
   label: string;
-  recipientToken: string;
+  pairingResponse: string;
+  securityCode: string;
+}
+
+export interface MobileCompanionPairingRequestResult {
+  sessionId: string;
+  createdAt: string;
+  pairingRequest: string;
+  desktopInstanceId: string;
+  desktopKeyFingerprint: string;
 }
 
 export interface MobileCompanionSnapshotInput {

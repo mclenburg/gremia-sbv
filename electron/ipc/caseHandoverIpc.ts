@@ -11,7 +11,8 @@ function validateMobileDeviceInput(input: unknown): SaveMobileCompanionDeviceInp
   const value = assertRecordInput<Record<string, unknown>>(input, 'caseHandover:mobile:devices:save');
   return {
     label: assertString(value.label, 'caseHandover:mobile:devices:save', 'Gerätename', { minLength: 1, maxLength: 120 }),
-    recipientToken: assertString(value.recipientToken, 'caseHandover:mobile:devices:save', 'Empfängerkennung', { minLength: 1, maxLength: 3000 }),
+    pairingResponse: assertString(value.pairingResponse, 'caseHandover:mobile:devices:save', 'Pairingantwort', { minLength: 1, maxLength: 7000 }),
+    securityCode: assertString(value.securityCode, 'caseHandover:mobile:devices:save', 'Sicherheitscode', { minLength: 1, maxLength: 32 }),
   };
 }
 
@@ -105,6 +106,9 @@ export function registerCaseHandoverIpc(ipcMain: IpcMain, security: SecurityServ
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.caseHandoverMobileDevicesList, async () =>
     services.mobileCompanion().listDevices());
+
+  registerIpcHandler(ipcMain, IPC_CHANNELS.caseHandoverMobilePairingRequest, async () =>
+    services.mobileCompanion().createPairingRequest());
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.caseHandoverMobileDevicesSave, async (_event, input: unknown) =>
     services.mobileCompanion().saveDevice(validateMobileDeviceInput(input)));

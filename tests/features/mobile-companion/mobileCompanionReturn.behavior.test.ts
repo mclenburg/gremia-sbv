@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
 import { MigrationService } from '../../../services/migrationService';
-import { MobileCompanionService } from '../../../services/mobileCompanionService';
+import { createMobileCompanionPairingResponse, MobileCompanionService } from '../../../services/mobileCompanionService';
 import {
   MOBILE_COMPANION_RETURN_FORMAT,
   MOBILE_COMPANION_RETURN_VERSION,
@@ -68,15 +68,26 @@ function encryptedReturnPayload(
 }
 
 describe('Mobile Begleit-App Rückgabe', () => {
+  function pairMobileDevice(desktop: DatabaseAdapter, mobile: DatabaseAdapter, label = 'Tablet SBV') {
+    const service = new MobileCompanionService(desktop);
+    const request = service.createPairingRequest();
+    const response = createMobileCompanionPairingResponse(
+      request.pairingRequest,
+      new TransferInstanceIdentityService(mobile).getPublicIdentity().recipientToken,
+    );
+    return service.saveDevice({
+      label,
+      pairingResponse: response.pairingResponse,
+      securityCode: response.securityCode,
+    });
+  }
+
   it('übernimmt mobile Notizen und Friständerungen erst nach konfliktfreiem Importplan', async () => {
     const desktop = await migratedDatabase();
     const mobile = await migratedDatabase();
     try {
       insertCase(desktop);
-      const device = new MobileCompanionService(desktop).saveDevice({
-        label: 'Tablet SBV',
-        recipientToken: new TransferInstanceIdentityService(mobile).getPublicIdentity().recipientToken,
-      });
+      const device = pairMobileDevice(desktop, mobile);
       const snapshot = new MobileCompanionService(desktop).createSnapshot({
         deviceId: device.id,
         caseIds: ['case-mobile-return-1'],
@@ -158,10 +169,7 @@ describe('Mobile Begleit-App Rückgabe', () => {
     const mobile = await migratedDatabase();
     try {
       insertCase(desktop);
-      const device = new MobileCompanionService(desktop).saveDevice({
-        label: 'Tablet SBV',
-        recipientToken: new TransferInstanceIdentityService(mobile).getPublicIdentity().recipientToken,
-      });
+      const device = pairMobileDevice(desktop, mobile);
       const snapshot = new MobileCompanionService(desktop).createSnapshot({
         deviceId: device.id,
         caseIds: ['case-mobile-return-1'],
@@ -198,10 +206,7 @@ describe('Mobile Begleit-App Rückgabe', () => {
     const mobile = await migratedDatabase();
     try {
       insertCase(desktop);
-      new MobileCompanionService(desktop).saveDevice({
-        label: 'Tablet SBV',
-        recipientToken: new TransferInstanceIdentityService(mobile).getPublicIdentity().recipientToken,
-      });
+      pairMobileDevice(desktop, mobile);
       const envelope = encryptedReturnPayload(desktop, mobile, {
         packageId: 'mobile_return_unknown_snapshot',
         sourceSnapshotPackageId: 'mobile_snapshot_missing',
@@ -235,10 +240,7 @@ describe('Mobile Begleit-App Rückgabe', () => {
       insertCase(desktop, 'case-mobile-return-allowed');
       insertCase(desktop, 'case-mobile-return-outside');
       const mobileService = new MobileCompanionService(desktop);
-      const device = mobileService.saveDevice({
-        label: 'Tablet SBV',
-        recipientToken: new TransferInstanceIdentityService(mobile).getPublicIdentity().recipientToken,
-      });
+      const device = pairMobileDevice(desktop, mobile);
       const snapshot = mobileService.createSnapshot({
         deviceId: device.id,
         caseIds: ['case-mobile-return-allowed'],
