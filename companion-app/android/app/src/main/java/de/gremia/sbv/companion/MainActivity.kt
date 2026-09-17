@@ -148,6 +148,7 @@ class MainActivity : ComponentActivity() {
                 onConfirmImport = { confirmSnapshotImport() },
                 onCancelImport = { cancelSnapshotImport() },
                 onAddReturnNote = { caseId, title, content -> addReturnNote(caseId, title, content) },
+                onAddReturnInbox = { title, content, nextSteps -> addReturnInbox(title, content, nextSteps) },
                 onAddReturnDeadline = { caseId, title, dueAt, description, severity ->
                     addReturnDeadline(caseId, title, dueAt, description, severity)
                 },
@@ -334,6 +335,17 @@ class MainActivity : ComponentActivity() {
     private fun addReturnNote(caseId: String, title: String, content: String) {
         runCatching {
             returnDraftRepository.addNote(caseId, title, content)
+        }.onSuccess {
+            activeSection = MobileAppSection.Return
+            renderContent()
+        }.onFailure { cause ->
+            Toast.makeText(this, cause.message ?: getString(R.string.return_title), Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun addReturnInbox(title: String, content: String, nextSteps: String?) {
+        runCatching {
+            returnDraftRepository.addInbox(title, content, nextSteps)
         }.onSuccess {
             activeSection = MobileAppSection.Return
             renderContent()

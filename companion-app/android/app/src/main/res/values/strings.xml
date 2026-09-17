@@ -92,6 +92,15 @@
     <string name="return_note_content_label">Notizinhalt</string>
     <string name="return_note_content_hint">Wesentliche Punkte und Ergebnis erfassen</string>
     <string name="return_note_add">Mobile Notiz speichern</string>
+    <string name="return_inbox_title">Fallfreie Schnellerfassung</string>
+    <string name="return_inbox_help">Für Gesprächsvermerke oder Hinweise, die unterwegs noch keiner Fallakte sicher zugeordnet werden können. Die Desktop-Anwendung übernimmt sie fallfrei ins Tätigkeitsjournal; die fachliche Zuordnung erfolgt später bewusst im Tresor.</string>
+    <string name="return_inbox_title_label">Titel</string>
+    <string name="return_inbox_title_hint">z. B. Rückfrage aus Besprechung</string>
+    <string name="return_inbox_content_label">Inhalt</string>
+    <string name="return_inbox_content_hint">Nur die für die spätere Bearbeitung nötigen Punkte erfassen</string>
+    <string name="return_inbox_next_steps_label">Nächster Schritt</string>
+    <string name="return_inbox_next_steps_hint">Optional, z. B. Fallbezug am Desktop klären</string>
+    <string name="return_inbox_add">Fallfreien Eintrag speichern</string>
     <string name="return_deadline_case_label">Fallakte für die Wiedervorlage</string>
     <string name="return_deadline_title_label">Wiedervorlagetitel</string>
     <string name="return_deadline_title_hint">z. B. Rückmeldung Arbeitgeber prüfen</string>
@@ -113,6 +122,7 @@
     <string name="return_note_draft_entry">Notiz: %1$s</string>
     <string name="return_deadline_draft_entry">Wiedervorlage: %1$s</string>
     <string name="return_deadline_completion_draft_entry">Frist erledigt: %1$s</string>
+    <string name="return_inbox_draft_entry">Fallfreier Eintrag: %1$s</string>
     <string name="return_create_package">Rückgabedatei speichern</string>
     <string name="return_clear_drafts">Mobile Änderungen verwerfen</string>
     <string name="return_file_ready">Rückgabedatei wurde erstellt. Bitte Speicherort wählen.</string>

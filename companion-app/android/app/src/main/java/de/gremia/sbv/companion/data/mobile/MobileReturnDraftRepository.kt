@@ -6,6 +6,7 @@ import de.gremia.sbv.companion.domain.mobile.MobileDeadlineProjection
 import de.gremia.sbv.companion.domain.mobile.MobileReturnDeadlineCompletionDraft
 import de.gremia.sbv.companion.domain.mobile.MobileReturnDeadlineDraft
 import de.gremia.sbv.companion.domain.mobile.MobileReturnDraftSet
+import de.gremia.sbv.companion.domain.mobile.MobileReturnInboxDraft
 import de.gremia.sbv.companion.domain.mobile.MobileReturnNoteDraft
 import org.json.JSONArray
 import org.json.JSONObject
@@ -23,16 +24,17 @@ class MobileReturnDraftRepository(
     private val preferences = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
 
     fun listDrafts(): MobileReturnDraftSet {
-        val stored = preferences.getString(DRAFTS_KEY, null) ?: return MobileReturnDraftSet(emptyList(), emptyList(), emptyList())
+        val stored = preferences.getString(DRAFTS_KEY, null) ?: return emptyDrafts()
         val plainText = secretBox.decrypt(stored)
         if (plainText.trimStart().startsWith("[")) {
-            return MobileReturnDraftSet(notesFromArray(JSONArray(plainText)), emptyList(), emptyList())
+            return MobileReturnDraftSet(notesFromArray(JSONArray(plainText)), emptyList(), emptyList(), emptyList())
         }
         val state = JSONObject(plainText)
         return MobileReturnDraftSet(
             notes = notesFromArray(state.optJSONArray("notes") ?: JSONArray()),
             deadlines = deadlinesFromArray(state.optJSONArray("deadlines") ?: JSONArray()),
             deadlineCompletions = completionsFromArray(state.optJSONArray("deadlineCompletions") ?: JSONArray()),
+            inboxEntries = inboxFromArray(state.optJSONArray("inboxEntries") ?: JSONArray()),
         )
     }
 
@@ -47,6 +49,20 @@ class MobileReturnDraftRepository(
         val current = listDrafts()
         saveDrafts(current.copy(notes = current.notes + note))
         return note
+    }
+
+    fun addInbox(title: String, content: String, nextSteps: String?): MobileReturnInboxDraft {
+        val entry = MobileReturnInboxDraft(
+            mobileId = "mobile_inbox_${UUID.randomUUID()}",
+            changedAt = Instant.now().toString(),
+            title = requireText(title, "Bitte einen Inbox-Titel angeben.", 180),
+            content = requireText(content, "Bitte einen Inhalt angeben.", 20_000),
+            nextSteps = nextSteps?.trim()?.takeIf { value -> value.isNotEmpty() },
+            containsHealthData = true,
+        )
+        val current = listDrafts()
+        saveDrafts(current.copy(inboxEntries = current.inboxEntries + entry))
+        return entry
     }
 
     fun addDeadline(caseId: String, title: String, dueAt: String, description: String?, severity: String): MobileReturnDeadlineDraft {
@@ -123,6 +139,19 @@ class MobileReturnDraftRepository(
             )
         }
 
+    private fun inboxFromArray(items: JSONArray): List<MobileReturnInboxDraft> =
+        List(items.length()) { index ->
+            val item = items.getJSONObject(index)
+            MobileReturnInboxDraft(
+                mobileId = item.getString("mobileId"),
+                changedAt = item.getString("changedAt"),
+                title = item.getString("title"),
+                content = item.getString("content"),
+                nextSteps = item.optString("nextSteps").takeIf { value -> value.isNotBlank() },
+                containsHealthData = item.optBoolean("containsHealthData", true),
+            )
+        }
+
     private fun saveDrafts(drafts: MobileReturnDraftSet) {
         require(drafts.changeCount <= MAX_DRAFTS) { "Es können höchstens $MAX_DRAFTS mobile Änderungen in einer Rückgabe gesammelt werden." }
         val state = JSONObject()
@@ -161,6 +190,19 @@ class MobileReturnDraftRepository(
                         })
                 }
             })
+            .put("inboxEntries", JSONArray().also { items ->
+                drafts.inboxEntries.forEach { entry ->
+                    items.put(JSONObject()
+                        .put("mobileId", entry.mobileId)
+                        .put("changedAt", entry.changedAt)
+                        .put("title", entry.title)
+                        .put("content", entry.content)
+                        .put("containsHealthData", entry.containsHealthData)
+                        .apply {
+                            entry.nextSteps?.let { value -> put("nextSteps", value) }
+                        })
+                }
+            })
         preferences.edit()
             .putString(DRAFTS_KEY, secretBox.encrypt(state.toString()))
             .apply()
@@ -191,6 +233,8 @@ class MobileReturnDraftRepository(
             "important", "wichtig", "hoch" -> "important"
             else -> "normal"
         }
+
+    private fun emptyDrafts(): MobileReturnDraftSet = MobileReturnDraftSet(emptyList(), emptyList(), emptyList(), emptyList())
 
     private companion object {
         private const val PREFERENCES_NAME = "gremia_sbv_companion_return_drafts"

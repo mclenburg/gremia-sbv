@@ -2,6 +2,7 @@ import { type TargetBoundTransferEnvelope } from './targetBoundTransferCrypto.js
 import type {
   MobileCompanionReturnChange,
   MobileCompanionReturnCreateDeadlineChange,
+  MobileCompanionReturnCreateInboxChange,
   MobileCompanionReturnPayload,
 } from '../src/domain/models/mobile-companion.model.js';
 
@@ -76,6 +77,17 @@ function assertReturnChange(value: unknown): MobileCompanionReturnChange {
       severity: assertSeverity(record.severity),
     };
   }
+  if (type === 'create_inbox') {
+    return {
+      type,
+      mobileId: assertText(record.mobileId, 'Mobile Änderungs-ID', 120),
+      changedAt: assertIsoDate(record.changedAt, 'Änderungszeitpunkt'),
+      title: assertText(record.title, 'Inbox-Titel', 180),
+      content: assertText(record.content, 'Inbox-Inhalt', 20_000),
+      nextSteps: assertOptionalText(record.nextSteps, 'Nächste Schritte', 5000),
+      containsHealthData: normalizeContainsHealthData(record.containsHealthData),
+    };
+  }
   if (type === 'complete_deadline') {
     return {
       type,
@@ -87,6 +99,10 @@ function assertReturnChange(value: unknown): MobileCompanionReturnChange {
     };
   }
   throw new Error('Mobile-Rückgabepaket enthält eine nicht unterstützte Änderungsart.');
+}
+
+function normalizeContainsHealthData(value: unknown): MobileCompanionReturnCreateInboxChange['containsHealthData'] {
+  return value !== false;
 }
 
 function assertText(value: unknown, label: string, maxLength = 5000): string {

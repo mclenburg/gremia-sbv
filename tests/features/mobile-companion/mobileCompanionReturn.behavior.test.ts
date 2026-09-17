@@ -134,6 +134,7 @@ describe('Mobile Begleit-App Rückgabe', () => {
         packageId,
         canImport: true,
         noteCount: 1,
+        inboxCount: 0,
         deadlineCount: 1,
         completedDeadlineCount: 1,
         conflictCount: 0,
@@ -146,6 +147,7 @@ describe('Mobile Begleit-App Rückgabe', () => {
         imported: true,
         packageId,
         createdNoteCount: 1,
+        createdInboxCount: 0,
         createdDeadlineCount: 1,
         completedDeadlineCount: 1,
       });
@@ -158,6 +160,91 @@ describe('Mobile Begleit-App Rückgabe', () => {
       const auditMetadata = JSON.stringify(auditRows);
       expect(auditMetadata).toContain(packageId);
       expect(auditMetadata).not.toMatch(/Nachteilsausgleich|Arbeitgeber sagt|Unterlagen wurden/i);
+    } finally {
+      desktop.close();
+      mobile.close();
+    }
+  });
+
+  it('übernimmt fallfreie mobile Inbox-Einträge als Tätigkeitsjournal ohne Fallbezug', async () => {
+    const desktop = await migratedDatabase();
+    const mobile = await migratedDatabase();
+    try {
+      insertCase(desktop);
+      const device = pairMobileDevice(desktop, mobile);
+      const snapshot = new MobileCompanionService(desktop).createSnapshot({
+        deviceId: device.id,
+        caseIds: ['case-mobile-return-1'],
+        uiThemeMode: 'dark',
+      });
+      const packageId = 'mobile_return_inbox';
+      const envelope = encryptedReturnPayload(desktop, mobile, {
+        packageId,
+        sourceSnapshotPackageId: snapshot.packageId,
+        changes: [{
+          type: 'create_inbox',
+          mobileId: 'mobile-inbox-1',
+          changedAt: '2026-09-10T10:20:00.000Z',
+          title: 'Spontanes Gespräch',
+          content: 'Beschäftigte Person bittet um vertrauliche Rückmeldung zur Versetzung.',
+          nextSteps: 'Fallbezug am Desktop prüfen',
+          containsHealthData: true,
+        }],
+      });
+      const service = new MobileCompanionReturnService(desktop);
+
+      const inspection = service.inspectEnvelopeText(envelope);
+
+      expect(inspection).toMatchObject({
+        packageId,
+        canImport: true,
+        noteCount: 0,
+        inboxCount: 1,
+        deadlineCount: 0,
+        completedDeadlineCount: 0,
+      });
+      expect(inspection.plan).toEqual([
+        expect.objectContaining({
+          type: 'create_inbox',
+          disposition: 'apply',
+        }),
+      ]);
+      expect(inspection.plan[0]).not.toHaveProperty('caseId');
+
+      const imported = await service.importEnvelopeText(envelope);
+
+      expect(imported).toMatchObject({
+        imported: true,
+        packageId,
+        createdNoteCount: 0,
+        createdInboxCount: 1,
+        createdDeadlineCount: 0,
+        completedDeadlineCount: 0,
+        updatedCaseIds: [],
+        privacyReviewCaseIds: [],
+      });
+      const entry = desktop.prepare<{
+        id: string;
+        title: string;
+        description: string;
+        result_note: string;
+        confidentiality_level: string;
+        created_from: string;
+      }>('SELECT id, title, description, result_note, confidentiality_level, created_from FROM activity_journal_entries').get();
+      expect(entry).toMatchObject({
+        title: 'Spontanes Gespräch',
+        description: 'Beschäftigte Person bittet um vertrauliche Rückmeldung zur Versetzung.',
+        result_note: 'Fallbezug am Desktop prüfen',
+        confidentiality_level: 'highly_confidential',
+        created_from: 'import',
+      });
+      expect(desktop.prepare<{ count: number }>('SELECT COUNT(*) AS count FROM activity_journal_links WHERE entry_id = ?').get(entry?.id)?.count).toBe(0);
+      const auditRows = desktop.prepare<{ metadata_json: string | null }>(
+        "SELECT metadata_json FROM personal_data_audit_log WHERE subject_type IN ('mobile_companion_transfer', 'case_handover', 'activity_journal')",
+      ).all();
+      const auditMetadata = JSON.stringify(auditRows);
+      expect(auditMetadata).toContain(packageId);
+      expect(auditMetadata).not.toMatch(/Spontanes Gespräch|Versetzung|Fallbezug am Desktop/i);
     } finally {
       desktop.close();
       mobile.close();

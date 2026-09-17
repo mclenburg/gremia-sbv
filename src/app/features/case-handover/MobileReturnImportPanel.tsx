@@ -12,6 +12,12 @@ function dispositionLabel(item: MobileCompanionReturnPlanItem): string {
 }
 
 function PlanTable({ inspection }: { inspection: MobileCompanionReturnInspectResult }) {
+  const typeLabel = (item: MobileCompanionReturnPlanItem): string => {
+    if (item.type === 'create_note') return 'Notiz';
+    if (item.type === 'create_inbox') return 'Fallfreier Eintrag';
+    if (item.type === 'create_deadline') return 'Frist';
+    return 'Frist erledigen';
+  };
   return <div className="industrial-table-shell">
     <table className="industrial-table">
       <thead>
@@ -24,7 +30,7 @@ function PlanTable({ inspection }: { inspection: MobileCompanionReturnInspectRes
       <tbody>
         {inspection.plan.map((item) => (
           <tr key={`${item.mobileId}-${item.type}`}>
-            <td>{item.type === 'create_note' ? 'Notiz' : item.type === 'create_deadline' ? 'Frist' : 'Frist erledigen'}</td>
+            <td>{typeLabel(item)}</td>
             <td>{dispositionLabel(item)}</td>
             <td>{item.summary}</td>
           </tr>
@@ -51,11 +57,12 @@ export function MobileReturnImportPanel({ onImported }: { onImported?: () => Pro
       {workflow.error ? <div className="industrial-message industrial-message-warning" role="alert">{workflow.error}</div> : null}
       {workflow.message ? <div className="industrial-message industrial-message-ok" role="status">{workflow.message}</div> : null}
       {workflow.result ? <div className="industrial-message industrial-message-ok" role="status">
-        Übernommen: {workflow.result.createdNoteCount} Notiz(en), {workflow.result.createdDeadlineCount} neue Frist(en), {workflow.result.completedDeadlineCount} erledigte Frist(en).
+        Übernommen: {workflow.result.createdNoteCount} Notiz(en), {workflow.result.createdInboxCount} fallfreie Einträge, {workflow.result.createdDeadlineCount} neue Frist(en), {workflow.result.completedDeadlineCount} erledigte Frist(en).
       </div> : null}
       {inspection ? <>
         <div className="workbench-summary-grid" aria-label="Mobile Rückgabe Übersicht">
           <div className="workbench-summary-card"><span>{inspection.noteCount}</span><strong>Notizen</strong></div>
+          <div className="workbench-summary-card"><span>{inspection.inboxCount}</span><strong>Fallfrei</strong></div>
           <div className="workbench-summary-card"><span>{inspection.deadlineCount}</span><strong>Neue Fristen</strong></div>
           <div className="workbench-summary-card"><span>{inspection.completedDeadlineCount}</span><strong>Erledigungen</strong></div>
           <div className="workbench-summary-card"><span>{inspection.conflictCount + inspection.rejectedCount}</span><strong>Klärungen</strong></div>

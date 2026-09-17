@@ -81,6 +81,18 @@ class MobileReturnPayloadBuilder {
                     "completedNote" to completion.completedNote,
                 ),
             )
+        } + drafts.inboxEntries.map { entry ->
+            MobileReturnPayloadChange(
+                type = "create_inbox",
+                values = mapOf(
+                    "mobileId" to entry.mobileId,
+                    "changedAt" to entry.changedAt,
+                    "title" to entry.title,
+                    "content" to entry.content,
+                    "nextSteps" to entry.nextSteps,
+                    "containsHealthData" to entry.containsHealthData,
+                ),
+            )
         }
 
     private fun changes(plannedChanges: List<MobileReturnPayloadChange>): JSONArray =

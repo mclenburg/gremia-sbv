@@ -9,6 +9,7 @@ import { decryptTargetBoundTransferPayload } from './targetBoundTransferCrypto.j
 import { CaseService } from './caseService.js';
 import { DeadlineService } from './deadlineService.js';
 import { PrivacyReviewService } from './privacyReviewService.js';
+import { ActivityJournalService } from './activityJournalService.js';
 import {
   assertMobileCompanionReturnPayload,
   assertTargetBoundReturnEnvelope,
@@ -19,6 +20,7 @@ import {
 } from './mobileCompanionReturnPayload.js';
 import type {
   MobileCompanionReturnChange,
+  MobileCompanionReturnCreateInboxChange,
   MobileCompanionReturnCreateNoteChange,
   MobileCompanionReturnCompleteDeadlineChange,
   MobileCompanionReturnImportResult,
@@ -149,6 +151,7 @@ export class MobileCompanionReturnService {
       plan.push(this.planChange(change, snapshotScope));
     }
     const noteCount = payload.changes.filter((change) => change.type === 'create_note').length;
+    const inboxCount = payload.changes.filter((change) => change.type === 'create_inbox').length;
     const createdDeadlineCount = payload.changes.filter((change) => change.type === 'create_deadline').length;
     const completedDeadlineCount = payload.changes.filter((change) => change.type === 'complete_deadline').length;
     const conflictCount = plan.filter((item) => item.disposition === 'conflict').length;
@@ -162,6 +165,7 @@ export class MobileCompanionReturnService {
       sourceDeviceLabel: sourceDevice?.label,
       createdAt: payload.createdAt,
       noteCount,
+      inboxCount,
       deadlineCount: createdDeadlineCount,
       completedDeadlineCount,
       applyCount,
@@ -200,6 +204,14 @@ export class MobileCompanionReturnService {
 
   private planChange(change: MobileCompanionReturnChange, snapshotScope: SnapshotScope): MobileCompanionReturnPlanItem {
     if (change.type === 'complete_deadline') return this.planDeadlineCompletion(change, snapshotScope);
+    if (change.type === 'create_inbox') {
+      return {
+        mobileId: change.mobileId,
+        type: change.type,
+        disposition: 'apply',
+        summary: `Fallfreier mobiler Inbox-Eintrag: ${safeMobileReturnSummary(change.title)}`,
+      };
+    }
     if (!snapshotScope.caseIds.has(change.caseId)) {
       return this.rejected(change, 'Fallakte war nicht Bestandteil des mobilen Ausgangs-Snapshots.', 'case_not_in_snapshot');
     }
@@ -279,7 +291,9 @@ export class MobileCompanionReturnService {
     const applyIds = new Set(plan.filter((item) => item.disposition === 'apply').map((item) => item.mobileId));
     const caseService = new CaseService(() => this.database);
     const deadlineService = new DeadlineService(this.database);
+    const activityJournalService = new ActivityJournalService(this.database);
     const createdNoteCaseIds: string[] = [];
+    let createdInboxCount = 0;
     const createdDeadlineCaseIds: string[] = [];
     const completedDeadlineCaseIds: string[] = [];
     for (const change of payload.changes) {
@@ -287,6 +301,9 @@ export class MobileCompanionReturnService {
       if (change.type === 'create_note') {
         await this.createNote(caseService, change);
         createdNoteCaseIds.push(change.caseId);
+      } else if (change.type === 'create_inbox') {
+        this.createInboxEntry(activityJournalService, change);
+        createdInboxCount += 1;
       } else if (change.type === 'create_deadline') {
         deadlineService.create({
           caseId: change.caseId,
@@ -324,6 +341,7 @@ export class MobileCompanionReturnService {
       packageId: payload.packageId,
       caseCount: privacyReviewCaseIds.length,
       deadlineCount: createdDeadlineCaseIds.length + completedDeadlineCaseIds.length,
+      inboxCount: createdInboxCount,
       result: 'success',
       schemaVersion: MOBILE_COMPANION_RETURN_VERSION,
     }));
@@ -336,6 +354,7 @@ export class MobileCompanionReturnService {
         packageId: payload.packageId,
         caseCount: privacyReviewCaseIds.length,
         deadlineCount: createdDeadlineCaseIds.length + completedDeadlineCaseIds.length,
+        inboxCount: createdInboxCount,
         result: 'success',
         schemaVersion: MOBILE_COMPANION_RETURN_VERSION,
       },
@@ -344,6 +363,7 @@ export class MobileCompanionReturnService {
       imported: true,
       packageId: payload.packageId,
       createdNoteCount: createdNoteCaseIds.length,
+      createdInboxCount,
       createdDeadlineCount: createdDeadlineCaseIds.length,
       completedDeadlineCount: completedDeadlineCaseIds.length,
       updatedCaseIds: privacyReviewCaseIds,
@@ -365,6 +385,25 @@ export class MobileCompanionReturnService {
       nextSteps: change.nextSteps,
       containsHealthData: change.containsHealthData,
       confidentialLevel: 'sensibel',
+    });
+  }
+
+  private createInboxEntry(
+    activityJournalService: ActivityJournalService,
+    change: MobileCompanionReturnCreateInboxChange,
+  ): void {
+    activityJournalService.createEntry({
+      entryDate: change.changedAt.slice(0, 10),
+      startedAt: change.changedAt,
+      timeMode: 'none',
+      category: 'consultation',
+      title: change.title,
+      description: change.content,
+      resultNote: change.nextSteps,
+      confidentialityLevel: change.containsHealthData === false ? 'confidential' : 'highly_confidential',
+      status: 'final',
+      createdFrom: 'import',
+      links: [],
     });
   }
 }

@@ -27,12 +27,22 @@ data class MobileReturnDeadlineCompletionDraft(
     val completedNote: String?,
 )
 
+data class MobileReturnInboxDraft(
+    val mobileId: String,
+    val changedAt: String,
+    val title: String,
+    val content: String,
+    val nextSteps: String?,
+    val containsHealthData: Boolean,
+)
+
 data class MobileReturnDraftSet(
     val notes: List<MobileReturnNoteDraft>,
     val deadlines: List<MobileReturnDeadlineDraft>,
     val deadlineCompletions: List<MobileReturnDeadlineCompletionDraft>,
+    val inboxEntries: List<MobileReturnInboxDraft> = emptyList(),
 ) {
-    val changeCount: Int = notes.size + deadlines.size + deadlineCompletions.size
+    val changeCount: Int = notes.size + deadlines.size + deadlineCompletions.size + inboxEntries.size
 }
 
 data class MobileReturnPackageFile(

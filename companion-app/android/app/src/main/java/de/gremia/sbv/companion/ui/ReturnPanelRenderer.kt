@@ -23,6 +23,7 @@ class ReturnPanelRenderer(
         snapshot: MobileSnapshot?,
         drafts: MobileReturnDraftSet,
         onAddNote: (String, String, String) -> Unit,
+        onAddInbox: (String, String, String?) -> Unit,
         onAddDeadline: (String, String, String, String?, String) -> Unit,
         onCompleteDeadline: (MobileDeadlineProjection, String?) -> Unit,
         onCreatePackage: () -> Unit,
@@ -44,12 +45,37 @@ class ReturnPanelRenderer(
                 noteForm(selectedCase, onAddNote),
                 deadlineForm(selectedCase, onAddDeadline),
             ))
+            addView(inboxForm(onAddInbox))
             addView(deadlineCompletionList(snapshot.deadlines, drafts, onCompleteDeadline))
             addView(draftList(drafts))
             addView(ui.horizontalActions(
                 ui.button(context.getString(R.string.return_create_package), onCreatePackage),
                 ui.button(context.getString(R.string.return_clear_drafts), onClearDrafts),
             ))
+        }
+
+    private fun inboxForm(onAddInbox: (String, String, String?) -> Unit): LinearLayout =
+        LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            addView(ui.sectionHeader(
+                context.getString(R.string.return_inbox_title),
+                context.getString(R.string.return_inbox_help),
+            ))
+            val title = textInput(R.string.return_inbox_title_label, R.string.return_inbox_title_hint, false)
+            val content = textInput(R.string.return_inbox_content_label, R.string.return_inbox_content_hint, true)
+            val nextSteps = textInput(R.string.return_inbox_next_steps_label, R.string.return_inbox_next_steps_hint, false)
+            addView(ui.fieldLabel(context.getString(R.string.return_inbox_title_label)))
+            addView(title)
+            addView(ui.fieldLabel(context.getString(R.string.return_inbox_content_label)))
+            addView(content)
+            addView(ui.fieldLabel(context.getString(R.string.return_inbox_next_steps_label)))
+            addView(nextSteps)
+            addView(ui.button(context.getString(R.string.return_inbox_add)) {
+                onAddInbox(title.text.toString(), content.text.toString(), nextSteps.text.toString())
+                title.text.clear()
+                content.text.clear()
+                nextSteps.text.clear()
+            })
         }
 
     private fun caseSelector(cases: List<MobileCaseProjection>, selectedCase: SelectedCaseState): LinearLayout =
@@ -202,6 +228,9 @@ class ReturnPanelRenderer(
             }
             drafts.deadlineCompletions.forEach { completion ->
                 addView(ui.listText(context.getString(R.string.return_deadline_completion_draft_entry, completion.deadlineId)))
+            }
+            drafts.inboxEntries.forEach { entry ->
+                addView(ui.listText(context.getString(R.string.return_inbox_draft_entry, entry.title)))
             }
         }
 

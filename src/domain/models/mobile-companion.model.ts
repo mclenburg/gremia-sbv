@@ -104,6 +104,7 @@ export interface MobileCompanionSnapshotResult {
 
 export type MobileCompanionReturnChangeType =
   | 'create_note'
+  | 'create_inbox'
   | 'create_deadline'
   | 'complete_deadline';
 
@@ -115,6 +116,16 @@ export interface MobileCompanionReturnCreateNoteChange {
   title: string;
   content: string;
   participants?: string;
+  nextSteps?: string;
+  containsHealthData?: boolean;
+}
+
+export interface MobileCompanionReturnCreateInboxChange {
+  type: 'create_inbox';
+  mobileId: string;
+  changedAt: string;
+  title: string;
+  content: string;
   nextSteps?: string;
   containsHealthData?: boolean;
 }
@@ -142,6 +153,7 @@ export interface MobileCompanionReturnCompleteDeadlineChange {
 
 export type MobileCompanionReturnChange =
   | MobileCompanionReturnCreateNoteChange
+  | MobileCompanionReturnCreateInboxChange
   | MobileCompanionReturnCreateDeadlineChange
   | MobileCompanionReturnCompleteDeadlineChange;
 
@@ -179,6 +191,7 @@ export interface MobileCompanionReturnInspectResult {
   sourceDeviceLabel?: string;
   createdAt: string;
   noteCount: number;
+  inboxCount: number;
   deadlineCount: number;
   completedDeadlineCount: number;
   applyCount: number;
@@ -193,6 +206,7 @@ export interface MobileCompanionReturnImportResult {
   imported: boolean;
   packageId: string;
   createdNoteCount: number;
+  createdInboxCount: number;
   createdDeadlineCount: number;
   completedDeadlineCount: number;
   updatedCaseIds: string[];

@@ -38,14 +38,23 @@ class MobileReturnPayloadBuilderTest {
                     baseUpdatedAt = "2026-09-10T10:00:00Z",
                     completedNote = "im Termin erledigt",
                 )),
+                inboxEntries = listOf(MobileReturnInboxDraft(
+                    mobileId = "inbox-1",
+                    changedAt = "2026-09-15T10:04:00Z",
+                    title = "Fallfreie Rückfrage",
+                    content = "Gesprächsinhalt für spätere Zuordnung",
+                    nextSteps = "Desktop-Zuordnung prüfen",
+                    containsHealthData = true,
+                )),
             ),
         )
 
         assertEquals("mobile_return_test", plan.packageId)
         assertEquals("GSBV1BBBBB", plan.sourceInstanceId)
         assertEquals("GSBV1AAAAA", plan.targetInstanceId)
-        assertEquals(listOf("create_note", "create_deadline", "complete_deadline"), plan.changes.map { it.type })
+        assertEquals(listOf("create_note", "create_deadline", "complete_deadline", "create_inbox"), plan.changes.map { it.type })
         assertEquals(true, plan.changes.first().values["containsHealthData"])
+        assertEquals("Desktop-Zuordnung prüfen", plan.changes.last().values["nextSteps"])
     }
 
     @Test
@@ -56,7 +65,7 @@ class MobileReturnPayloadBuilderTest {
                 createdAt = "2026-09-15T10:00:00Z",
                 snapshot = snapshot(),
                 sourceIdentity = identity(),
-                drafts = MobileReturnDraftSet(emptyList(), emptyList(), emptyList()),
+                drafts = MobileReturnDraftSet(emptyList(), emptyList(), emptyList(), emptyList()),
             )
         }
     }
