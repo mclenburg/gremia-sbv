@@ -9,6 +9,7 @@ import android.app.KeyguardManager
 import android.content.pm.PackageManager
 import android.hardware.biometrics.BiometricManager
 import android.hardware.biometrics.BiometricPrompt
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.CancellationSignal
@@ -22,7 +23,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.ComponentActivity
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
 import de.gremia.sbv.companion.data.mobile.MobileReturnDraftRepository
@@ -39,6 +39,7 @@ import de.gremia.sbv.companion.ui.AppShellRenderer
 import de.gremia.sbv.companion.ui.LockPanelRenderer
 import de.gremia.sbv.companion.ui.MobileAppSection
 import java.io.File
+import java.io.FileInputStream
 import java.util.concurrent.Executor
 
 class MainActivity : ComponentActivity() {
@@ -55,6 +56,7 @@ class MainActivity : ComponentActivity() {
     private var lastInteractionAtMillis = 0L
     private var activeSection = MobileAppSection.Synchronization
     private var unlockCancellationSignal: CancellationSignal? = null
+    private var pendingReturnPackage: PendingReturnPackage? = null
     private val qrScanLauncher = registerForActivityResult(ScanContract()) { result ->
         if (result.contents != null) acceptScannedSnapshotFrame(result.contents)
     }
@@ -67,6 +69,11 @@ class MainActivity : ComponentActivity() {
     }
     private val notificationPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         if (granted) snapshotRepository.current()?.let { snapshot -> deadlineNotificationScheduler.schedule(snapshot) }
+    }
+    private val returnPackageDocumentLauncher = registerForActivityResult(
+        ActivityResultContracts.CreateDocument(RETURN_PACKAGE_MIME_TYPE),
+    ) { uri ->
+        completeReturnPackageSave(uri)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -147,7 +154,7 @@ class MainActivity : ComponentActivity() {
                 onCompleteReturnDeadline = { deadline, completedNote ->
                     completeReturnDeadline(deadline, completedNote)
                 },
-                onCreateReturnPackage = { createAndShareReturnPackage() },
+                onCreateReturnPackage = { createAndSaveReturnPackage() },
                 onClearReturnDrafts = {
                     returnDraftRepository.clear()
                     renderContent()
@@ -357,26 +364,44 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun createAndShareReturnPackage() {
+    private fun createAndSaveReturnPackage() {
         runCatching {
             val snapshot = requireNotNull(snapshotRepository.current()) { getString(R.string.return_empty) }
             returnPackageCreator.create(snapshot, identityRepository.getOrCreate(), returnDraftRepository.listDrafts())
         }.onSuccess { result ->
+            pendingReturnPackage = PendingReturnPackage(result.filePath, result.fileName)
             Toast.makeText(this, R.string.return_file_ready, Toast.LENGTH_SHORT).show()
-            val file = File(result.filePath)
-            val uri = FileProvider.getUriForFile(this, "${packageName}.files", file)
-            val sendIntent = Intent(Intent.ACTION_SEND).apply {
-                type = "application/vnd.gremia.sbv.mobile-return"
-                putExtra(Intent.EXTRA_STREAM, uri)
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }
-            startActivity(Intent.createChooser(sendIntent, getString(R.string.return_share_title)))
+            returnPackageDocumentLauncher.launch(result.fileName)
         }.onFailure { cause ->
             Toast.makeText(this, cause.message ?: getString(R.string.return_title), Toast.LENGTH_LONG).show()
         }
     }
 
+    private fun completeReturnPackageSave(uri: Uri?) {
+        val pending = pendingReturnPackage ?: return
+        pendingReturnPackage = null
+        if (uri == null) {
+            Toast.makeText(this, R.string.return_file_save_canceled, Toast.LENGTH_SHORT).show()
+            return
+        }
+        runCatching {
+            contentResolver.openOutputStream(uri, "w")?.use { output ->
+                FileInputStream(File(pending.filePath)).use { input -> input.copyTo(output) }
+            } ?: error(getString(R.string.return_file_save_failed))
+        }.onSuccess {
+            Toast.makeText(this, getString(R.string.return_file_saved, pending.fileName), Toast.LENGTH_LONG).show()
+        }.onFailure { cause ->
+            Toast.makeText(this, cause.message ?: getString(R.string.return_file_save_failed), Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private data class PendingReturnPackage(
+        val filePath: String,
+        val fileName: String,
+    )
+
     private companion object {
         private const val LOCK_CHECK_INTERVAL_MILLIS = 15_000L
+        private const val RETURN_PACKAGE_MIME_TYPE = "application/vnd.gremia.sbv.mobile-return"
     }
 }

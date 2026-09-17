@@ -113,8 +113,10 @@
     <string name="return_note_draft_entry">Notiz: %1$s</string>
     <string name="return_deadline_draft_entry">Wiedervorlage: %1$s</string>
     <string name="return_deadline_completion_draft_entry">Frist erledigt: %1$s</string>
-    <string name="return_create_package">Rückgabedatei freigeben</string>
+    <string name="return_create_package">Rückgabedatei speichern</string>
     <string name="return_clear_drafts">Mobile Änderungen verwerfen</string>
-    <string name="return_file_ready">Rückgabedatei wurde erstellt.</string>
-    <string name="return_share_title">Gremia.SBV-Mobile-Rückgabe teilen</string>
+    <string name="return_file_ready">Rückgabedatei wurde erstellt. Bitte Speicherort wählen.</string>
+    <string name="return_file_saved">Rückgabedatei gespeichert: %1$s</string>
+    <string name="return_file_save_canceled">Speichern der Rückgabedatei abgebrochen.</string>
+    <string name="return_file_save_failed">Rückgabedatei konnte nicht gespeichert werden.</string>
 </resources>
