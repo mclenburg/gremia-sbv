@@ -45,6 +45,14 @@ data class MobileReturnDraftSet(
     val inboxEntries: List<MobileReturnInboxDraft> = emptyList(),
 ) {
     val changeCount: Int = notes.size + deadlines.size + deadlineCompletions.size + inboxEntries.size
+
+    fun without(mobileId: String): MobileReturnDraftSet =
+        copy(
+            notes = notes.filterNot { draft -> draft.mobileId == mobileId },
+            deadlines = deadlines.filterNot { draft -> draft.mobileId == mobileId },
+            deadlineCompletions = deadlineCompletions.filterNot { draft -> draft.mobileId == mobileId },
+            inboxEntries = inboxEntries.filterNot { draft -> draft.mobileId == mobileId },
+        )
 }
 
 data class MobileReturnPackageFile(

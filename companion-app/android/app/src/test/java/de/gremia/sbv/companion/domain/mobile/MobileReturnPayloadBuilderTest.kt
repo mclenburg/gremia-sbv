@@ -7,6 +7,18 @@ import kotlin.test.assertFailsWith
 
 class MobileReturnPayloadBuilderTest {
     @Test
+    fun `entfernt eine ausgewaehlte mobile Aenderung ohne andere Entwuerfe anzutasten`() {
+        val drafts = returnDrafts()
+
+        val remaining = drafts.without("note-mobile-1")
+
+        assertEquals(0, remaining.notes.size)
+        assertEquals(3, remaining.changeCount)
+        assertEquals(listOf("deadline-mobile-1"), remaining.deadlines.map { draft -> draft.mobileId })
+        assertEquals(listOf("inbox-mobile-1"), remaining.inboxEntries.map { draft -> draft.mobileId })
+    }
+
+    @Test
     fun plansEverySupportedMobileChange() {
         val plan = MobileReturnPayloadBuilder().plan(
             packageId = "mobile_return_test",
@@ -85,6 +97,22 @@ class MobileReturnPayloadBuilderTest {
             cases = emptyList(),
             deadlines = emptyList(),
             rawPayloadJson = "{}",
+        )
+
+    private fun returnDrafts(): MobileReturnDraftSet =
+        MobileReturnDraftSet(
+            notes = listOf(MobileReturnNoteDraft(
+                "note-mobile-1", "case-1", "2026-09-15T10:01:00Z", "Notiz", "Inhalt", "gespraech", null,
+            )),
+            deadlines = listOf(MobileReturnDeadlineDraft(
+                "deadline-mobile-1", "case-1", "2026-09-15T10:02:00Z", "Frist", "2026-09-20T10:00:00Z", null, null, "normal",
+            )),
+            deadlineCompletions = listOf(MobileReturnDeadlineCompletionDraft(
+                "done-mobile-1", "deadline-1", "2026-09-15T10:03:00Z", "2026-09-10T10:00:00Z", null,
+            )),
+            inboxEntries = listOf(MobileReturnInboxDraft(
+                "inbox-mobile-1", "2026-09-15T10:04:00Z", "Inbox", "Inhalt", null, true,
+            )),
         )
 
     private fun identity(): TransferIdentity =

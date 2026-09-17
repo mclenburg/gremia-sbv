@@ -76,6 +76,7 @@
     <string name="snapshot_import_ready">Die Projektion wurde entschlüsselt und geprüft. Sie wird erst nach Bestätigung gespeichert.</string>
     <string name="snapshot_import_confirm">Import bestätigen</string>
     <string name="snapshot_import_cancel">Import abbrechen</string>
+    <string name="snapshot_import_blocked_unsent_changes">Der Snapshot wurde nicht ersetzt: %1$d mobile Änderung(en) sind noch nicht zurückgegeben. Bitte zuerst eine Rückgabedatei speichern oder die Änderungen bewusst verwerfen.</string>
     <string name="snapshot_current_kicker">ARBEITSSTAND</string>
     <string name="snapshot_current_title">Aktuelle mobile Arbeitsprojektion</string>
     <string name="snapshot_current_help">Die Desktop-Anwendung bleibt führend. Die App zeigt die übergebenen offenen Fallakten und Fristen mobil an. Android-Hinweise sind bewusst allgemein formuliert und zeigen keine Namen, Aktenzeichen oder Fristentitel auf dem Sperrbildschirm.</string>
@@ -162,8 +163,19 @@
     <string name="return_inbox_draft_entry">Fallfreier Eintrag: %1$s</string>
     <string name="return_create_package">Rückgabedatei speichern</string>
     <string name="return_clear_drafts">Mobile Änderungen verwerfen</string>
+    <string name="return_discard_draft">Verwerfen</string>
+    <string name="return_clear_confirm_title">Alle mobilen Änderungen verwerfen?</string>
+    <string name="return_clear_confirm_message">Die vorgemerkten Änderungen wurden noch nicht an Gremia.SBV Desktop zurückgegeben und können nach dem Verwerfen nicht wiederhergestellt werden.</string>
     <string name="return_file_ready">Rückgabedatei wurde erstellt. Bitte Speicherort wählen.</string>
     <string name="return_file_saved">Rückgabedatei gespeichert: %1$s</string>
     <string name="return_file_save_canceled">Speichern der Rückgabedatei abgebrochen.</string>
     <string name="return_file_save_failed">Rückgabedatei konnte nicht gespeichert werden.</string>
+    <string name="sync_history_kicker">TRANSFERPROTOKOLL</string>
+    <string name="sync_history_title">Import- und Exporthistorie</string>
+    <string name="sync_history_help">Die Historie enthält nur technische Transferdaten und Anzahlen, keine Namen, Falltexte, Notizen oder Fristentitel.</string>
+    <string name="sync_history_empty">Noch kein erfolgreicher Snapshot-Import oder Rückgabe-Export protokolliert.</string>
+    <string name="sync_history_import">Desktop-Snapshot importiert · %1$s</string>
+    <string name="sync_history_export">Rückgabedatei gespeichert · %1$s</string>
+    <string name="sync_history_import_summary">%1$d Fälle · %2$d Fristen · Paket %3$s</string>
+    <string name="sync_history_export_summary">%1$d Änderungen · Paket %2$s</string>
 </resources>

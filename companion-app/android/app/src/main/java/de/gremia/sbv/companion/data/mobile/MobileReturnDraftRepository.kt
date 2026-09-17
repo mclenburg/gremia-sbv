@@ -102,6 +102,14 @@ class MobileReturnDraftRepository(
         preferences.edit().remove(DRAFTS_KEY).apply()
     }
 
+    fun remove(mobileId: String): Boolean {
+        val current = listDrafts()
+        val updated = current.without(mobileId)
+        if (updated.changeCount == current.changeCount) return false
+        if (updated.changeCount == 0) clear() else saveDrafts(updated)
+        return true
+    }
+
     private fun notesFromArray(items: JSONArray): List<MobileReturnNoteDraft> =
         List(items.length()) { index ->
             val item = items.getJSONObject(index)

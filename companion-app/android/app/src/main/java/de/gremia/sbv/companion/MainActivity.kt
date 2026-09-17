@@ -28,12 +28,14 @@ import com.journeyapps.barcodescanner.ScanOptions
 import de.gremia.sbv.companion.data.mobile.MobileReturnDraftRepository
 import de.gremia.sbv.companion.data.mobile.MobileDeadlineNotificationScheduler
 import de.gremia.sbv.companion.data.mobile.MobileSnapshotRepository
+import de.gremia.sbv.companion.data.mobile.MobileSyncJournalRepository
 import de.gremia.sbv.companion.data.transfer.TransferIdentityRepository
 import de.gremia.sbv.companion.domain.mobile.MobileDeadlineProjection
 import de.gremia.sbv.companion.domain.mobile.MobilePairingExchange
 import de.gremia.sbv.companion.domain.mobile.MobileReturnPackageCreator
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshotIntakeResult
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshotQrController
+import de.gremia.sbv.companion.domain.mobile.MobileSnapshotReplacementPolicy
 import de.gremia.sbv.companion.domain.security.MobileLockPolicy
 import de.gremia.sbv.companion.ui.AppShellRenderer
 import de.gremia.sbv.companion.ui.LockPanelRenderer
@@ -49,7 +51,9 @@ class MainActivity : ComponentActivity() {
     private lateinit var returnPackageCreator: MobileReturnPackageCreator
     private lateinit var deadlineNotificationScheduler: MobileDeadlineNotificationScheduler
     private lateinit var snapshotController: MobileSnapshotQrController
+    private lateinit var syncJournalRepository: MobileSyncJournalRepository
     private val pairingExchange = MobilePairingExchange()
+    private val snapshotReplacementPolicy = MobileSnapshotReplacementPolicy()
     private val lockPolicy = MobileLockPolicy()
     private val lockCheckHandler = Handler(Looper.getMainLooper())
     private var unlocked = false
@@ -84,6 +88,8 @@ class MainActivity : ComponentActivity() {
         returnDraftRepository = MobileReturnDraftRepository(this)
         returnPackageCreator = MobileReturnPackageCreator(this)
         deadlineNotificationScheduler = MobileDeadlineNotificationScheduler(this)
+        syncJournalRepository = MobileSyncJournalRepository(this)
+        returnPackageCreator.clearTemporaryPackages()
         snapshotController = MobileSnapshotQrController(identityRepository.getOrCreate(), snapshotRepository)
         val initial = lockPolicy.initialState()
         unlocked = !initial.locked
@@ -129,6 +135,7 @@ class MainActivity : ComponentActivity() {
                 snapshot = snapshotRepository.current(),
                 pendingImport = snapshotController.pendingPreview(),
                 returnDrafts = returnDraftRepository.listDrafts(),
+                syncEvents = syncJournalRepository.listEvents(),
                 activeSection = activeSection,
                 onSelectSection = { section ->
                     activeSection = section
@@ -156,6 +163,9 @@ class MainActivity : ComponentActivity() {
                     completeReturnDeadline(deadline, completedNote)
                 },
                 onCreateReturnPackage = { createAndSaveReturnPackage() },
+                onDiscardReturnDraft = { mobileId ->
+                    if (returnDraftRepository.remove(mobileId)) renderContent()
+                },
                 onClearReturnDrafts = {
                     returnDraftRepository.clear()
                     renderContent()
@@ -301,10 +311,17 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun confirmSnapshotImport(): MobileSnapshotIntakeResult {
+        val replacementDecision = snapshotReplacementPolicy.evaluate(returnDraftRepository.listDrafts())
+        if (!replacementDecision.allowed) {
+            return MobileSnapshotIntakeResult.Error(getString(
+                R.string.snapshot_import_blocked_unsent_changes,
+                replacementDecision.unsentChangeCount,
+            ))
+        }
         val result = snapshotController.confirmPendingImport()
         Toast.makeText(this, result.message, Toast.LENGTH_SHORT).show()
         if (result is MobileSnapshotIntakeResult.Completed) {
-            returnDraftRepository.clear()
+            snapshotRepository.current()?.let(syncJournalRepository::recordSnapshotImport)
             scheduleDeadlineNotifications()
             activeSection = MobileAppSection.Dashboard
             renderContent()
@@ -381,7 +398,7 @@ class MainActivity : ComponentActivity() {
             val snapshot = requireNotNull(snapshotRepository.current()) { getString(R.string.return_empty) }
             returnPackageCreator.create(snapshot, identityRepository.getOrCreate(), returnDraftRepository.listDrafts())
         }.onSuccess { result ->
-            pendingReturnPackage = PendingReturnPackage(result.filePath, result.fileName)
+            pendingReturnPackage = PendingReturnPackage(result.packageId, result.filePath, result.fileName, result.changeCount)
             Toast.makeText(this, R.string.return_file_ready, Toast.LENGTH_SHORT).show()
             returnPackageDocumentLauncher.launch(result.fileName)
         }.onFailure { cause ->
@@ -393,6 +410,7 @@ class MainActivity : ComponentActivity() {
         val pending = pendingReturnPackage ?: return
         pendingReturnPackage = null
         if (uri == null) {
+            returnPackageCreator.discardTemporaryPackage(pending.filePath)
             Toast.makeText(this, R.string.return_file_save_canceled, Toast.LENGTH_SHORT).show()
             return
         }
@@ -401,15 +419,22 @@ class MainActivity : ComponentActivity() {
                 FileInputStream(File(pending.filePath)).use { input -> input.copyTo(output) }
             } ?: error(getString(R.string.return_file_save_failed))
         }.onSuccess {
+            syncJournalRepository.recordReturnExport(pending.packageId, pending.changeCount)
+            returnDraftRepository.clear()
             Toast.makeText(this, getString(R.string.return_file_saved, pending.fileName), Toast.LENGTH_LONG).show()
+            renderContent()
         }.onFailure { cause ->
             Toast.makeText(this, cause.message ?: getString(R.string.return_file_save_failed), Toast.LENGTH_LONG).show()
+        }.also {
+            returnPackageCreator.discardTemporaryPackage(pending.filePath)
         }
     }
 
     private data class PendingReturnPackage(
+        val packageId: String,
         val filePath: String,
         val fileName: String,
+        val changeCount: Int,
     )
 
     private companion object {

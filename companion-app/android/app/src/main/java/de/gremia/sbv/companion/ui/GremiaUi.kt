@@ -114,6 +114,37 @@ class GremiaUi(private val context: Context) {
             setPadding(0, dimen(R.dimen.space_xs), 0, dimen(R.dimen.space_xs))
         }
 
+    fun actionListItem(primary: String, secondary: String?, actionLabel: String, onAction: () -> Unit): LinearLayout =
+        LinearLayout(context).apply {
+            orientation = if (tabletLayout) LinearLayout.HORIZONTAL else LinearLayout.VERTICAL
+            gravity = if (tabletLayout) Gravity.CENTER_VERTICAL else Gravity.NO_GRAVITY
+            addView(listItem(primary, secondary).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    if (tabletLayout) 0 else LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    if (tabletLayout) 1f else 0f,
+                )
+            })
+            addView(secondaryButton(actionLabel, onAction).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    if (tabletLayout) LinearLayout.LayoutParams.WRAP_CONTENT else LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                ).apply {
+                    if (tabletLayout) leftMargin = dimen(R.dimen.space_sm) else topMargin = dimen(R.dimen.space_sm)
+                }
+            })
+        }
+
+    fun confirmingSecondaryButton(label: String, title: String, message: String, onConfirmed: () -> Unit): Button =
+        secondaryButton(label) {
+            AlertDialog.Builder(context)
+                .setTitle(title)
+                .setMessage(message)
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(label) { _, _ -> onConfirmed() }
+                .show()
+        }
+
     fun button(label: String, onClick: () -> Unit): Button =
         Button(context).apply {
             text = label

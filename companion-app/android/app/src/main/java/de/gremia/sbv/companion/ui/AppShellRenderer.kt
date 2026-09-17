@@ -11,6 +11,7 @@ import de.gremia.sbv.companion.domain.mobile.MobileReturnDraftSet
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshot
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshotImportPreview
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshotIntakeResult
+import de.gremia.sbv.companion.domain.mobile.MobileSyncEvent
 import de.gremia.sbv.companion.domain.transfer.TransferIdentity
 
 class AppShellRenderer(
@@ -23,12 +24,14 @@ class AppShellRenderer(
     private val capturePanel = CapturePanelRenderer(context, ui)
     private val returnPanel = ReturnPanelRenderer(context, ui)
     private val settingsPanel = SettingsPanelRenderer(context, ui)
+    private val syncHistoryPanel = SyncHistoryPanelRenderer(context, ui)
 
     fun render(
         identity: TransferIdentity,
         snapshot: MobileSnapshot?,
         pendingImport: MobileSnapshotImportPreview?,
         returnDrafts: MobileReturnDraftSet,
+        syncEvents: List<MobileSyncEvent>,
         activeSection: MobileAppSection,
         onSelectSection: (MobileAppSection) -> Unit,
         onCopyRecipientToken: () -> Unit,
@@ -43,6 +46,7 @@ class AppShellRenderer(
         onAddReturnDeadline: (String, String, String, String?, String) -> Unit,
         onCompleteReturnDeadline: (MobileDeadlineProjection, String?) -> Unit,
         onCreateReturnPackage: () -> Unit,
+        onDiscardReturnDraft: (String) -> Unit,
         onClearReturnDrafts: () -> Unit,
     ): ScrollView =
         ScrollView(context).apply {
@@ -52,6 +56,7 @@ class AppShellRenderer(
                 snapshot,
                 pendingImport,
                 returnDrafts,
+                syncEvents,
                 activeSection,
                 onSelectSection,
                 onCopyRecipientToken,
@@ -66,6 +71,7 @@ class AppShellRenderer(
                 onAddReturnDeadline,
                 onCompleteReturnDeadline,
                 onCreateReturnPackage,
+                onDiscardReturnDraft,
                 onClearReturnDrafts,
             ))
         }
@@ -75,6 +81,7 @@ class AppShellRenderer(
         snapshot: MobileSnapshot?,
         pendingImport: MobileSnapshotImportPreview?,
         returnDrafts: MobileReturnDraftSet,
+        syncEvents: List<MobileSyncEvent>,
         activeSection: MobileAppSection,
         onSelectSection: (MobileAppSection) -> Unit,
         onCopyRecipientToken: () -> Unit,
@@ -89,6 +96,7 @@ class AppShellRenderer(
         onAddReturnDeadline: (String, String, String, String?, String) -> Unit,
         onCompleteReturnDeadline: (MobileDeadlineProjection, String?) -> Unit,
         onCreateReturnPackage: () -> Unit,
+        onDiscardReturnDraft: (String) -> Unit,
         onClearReturnDrafts: () -> Unit,
     ): LinearLayout =
         LinearLayout(context).apply {
@@ -117,8 +125,10 @@ class AppShellRenderer(
                         returnDrafts,
                         onCompleteReturnDeadline,
                         onCreateReturnPackage,
+                        onDiscardReturnDraft,
                         onClearReturnDrafts,
                     ))
+                    addView(syncHistoryPanel.render(syncEvents))
                 }
                 MobileAppSection.Capture -> addView(capturePanel.render(
                     snapshot,

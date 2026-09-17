@@ -16,6 +16,7 @@ class ReturnPanelRenderer(
         drafts: MobileReturnDraftSet,
         onCompleteDeadline: (MobileDeadlineProjection, String?) -> Unit,
         onCreatePackage: () -> Unit,
+        onDiscardDraft: (String) -> Unit,
         onClearDrafts: () -> Unit,
     ): LinearLayout =
         ui.panel().apply {
@@ -29,10 +30,15 @@ class ReturnPanelRenderer(
                 return@apply
             }
             addView(deadlineCompletionList(snapshot.deadlines, drafts, onCompleteDeadline))
-            addView(draftList(drafts))
+            addView(draftList(drafts, onDiscardDraft))
             addView(ui.horizontalActions(
                 ui.button(context.getString(R.string.return_create_package), onCreatePackage),
-                ui.button(context.getString(R.string.return_clear_drafts), onClearDrafts),
+                ui.confirmingSecondaryButton(
+                    context.getString(R.string.return_clear_drafts),
+                    context.getString(R.string.return_clear_confirm_title),
+                    context.getString(R.string.return_clear_confirm_message),
+                    onClearDrafts,
+                ),
             ))
         }
 
@@ -78,23 +84,30 @@ class ReturnPanelRenderer(
             }
         }
 
-    private fun draftList(drafts: MobileReturnDraftSet): LinearLayout =
+    private fun draftList(drafts: MobileReturnDraftSet, onDiscardDraft: (String) -> Unit): LinearLayout =
         LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
             addView(ui.paragraph(context.getString(R.string.return_draft_summary, drafts.changeCount)))
             drafts.notes.forEach { note ->
-                addView(ui.listText(context.getString(R.string.return_note_draft_entry, note.title)))
+                addView(draftRow(context.getString(R.string.return_note_draft_entry, note.title), note.mobileId, onDiscardDraft))
             }
             drafts.deadlines.forEach { deadline ->
-                addView(ui.listText(context.getString(R.string.return_deadline_draft_entry, deadline.title)))
+                addView(draftRow(context.getString(R.string.return_deadline_draft_entry, deadline.title), deadline.mobileId, onDiscardDraft))
             }
             drafts.deadlineCompletions.forEach { completion ->
-                addView(ui.listText(context.getString(R.string.return_deadline_completion_draft_entry, completion.deadlineId)))
+                addView(draftRow(context.getString(R.string.return_deadline_completion_draft_entry, completion.deadlineId), completion.mobileId, onDiscardDraft))
             }
             drafts.inboxEntries.forEach { entry ->
-                addView(ui.listText(context.getString(R.string.return_inbox_draft_entry, entry.title)))
+                addView(draftRow(context.getString(R.string.return_inbox_draft_entry, entry.title), entry.mobileId, onDiscardDraft))
             }
         }
+
+    private fun draftRow(label: String, mobileId: String, onDiscardDraft: (String) -> Unit): LinearLayout =
+        ui.actionListItem(
+            primary = label,
+            secondary = null,
+            actionLabel = context.getString(R.string.return_discard_draft),
+        ) { onDiscardDraft(mobileId) }
 
     private fun textInput(labelId: Int, hintId: Int, multiLine: Boolean) =
         ui.textInput(context.getString(labelId), context.getString(hintId), multiLine)
