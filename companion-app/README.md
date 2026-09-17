@@ -20,10 +20,12 @@ Rückgabedatei zurück.
 
 - `android/` enthält den eigenständigen Android-Gradle-Build.
 - `android/app/src/main/java/de/gremia/sbv/companion/` enthält die App-Shell.
-- Die erste produktive App-Funktion erzeugt lokal eine X25519-Transferidentität,
-  schützt den privaten Schlüssel mit dem Android Keystore und zeigt nur die
-  öffentliche Empfängerkennung für die Kopplung mit Gremia.SBV Desktop an.
+- Die App erzeugt lokal eine X25519-Transferidentität, schützt den privaten
+  Schlüssel mit dem Android Keystore und koppelt sich über eine
+  Desktop-Pairinganfrage, eine App-Pairingantwort und einen beidseitig
+  zu vergleichenden Sicherheitscode.
 - QR-Frames aus der Desktop-Anwendung werden validiert, zusammengesetzt,
   zielinstanzgebunden entschlüsselt und geschützt auf dem Gerät abgelegt.
-- Mobile Notizen werden lokal verschlüsselt vorgemerkt und als `.gsbvmobile`
-  zielgebunden für die Desktop-Instanz freigegeben.
+- Mobile Notizen, mobile Wiedervorlagen und Fristerledigungen werden lokal
+  verschlüsselt vorgemerkt und als `.gsbvmobile` zielgebunden für die
+  Desktop-Instanz gespeichert.

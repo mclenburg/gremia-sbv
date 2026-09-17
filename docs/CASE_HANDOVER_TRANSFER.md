@@ -101,6 +101,8 @@ Eine Amtsübergabe ergänzt diesen Umfang um individuelle Vorlagen, Frist- und A
 
 Die Android-Begleit-App erhält keinen vollständigen Fallaktenexport. Sie arbeitet mit einer zielgebunden verschlüsselten Projektion für ein gekoppeltes Gerät.
 
+Die Kopplung erfolgt nicht durch blindes Speichern einer öffentlichen Gerätekennung. Die Desktop-Anwendung erzeugt eine Pairinganfrage für die aktuelle Gremia.SBV-Instanz. Die Begleit-App beantwortet diese Anfrage mit ihrer öffentlichen mobilen Empfängerkennung. Gremia.SBV speichert das Gerät erst, wenn die Pairingantwort zur lokalen Desktop-Instanz passt und der in beiden Anwendungen angezeigte Sicherheitscode manuell bestätigt wurde.
+
 Die Desktop-Anwendung überträgt diese Projektion als automatisch wechselnde QR-Frame-Serie. Standard ist ein kamerafreundliches Tempo von zwei Frames pro Sekunde; für ältere Geräte steht ein kompatibler Modus mit einem Frame pro Sekunde bereit. Jeder Frame enthält Sitzung, Reihenfolge, Payload-Länge, Paket-Hash und Chunk-Checksumme, damit die Begleit-App verlorene, doppelte oder falsche Frames sicher erkennen kann. Der Ablauf besitzt Pause, manuelles Weiterschalten, Abbruch und ein sichtbares Zeitfenster. Die Fallauswahl ist filterbar und fachlich auf offene Arbeitsfälle begrenzt.
 
 Enthalten sind:
@@ -121,7 +123,7 @@ Damit bleibt der Desktop-Tresor fachlich führend. Die mobile Projektion hilft b
 
 ### Mobile Rückgabe
 
-Die Begleit-App liefert Besprechungsnotizen, neue Wiedervorlagen und erledigte Fristen als verschlüsselte `.gsbvmobile`-Rückgabedatei zurück. Gremia.SBV entschlüsselt diese Datei nur auf der Zielinstanz, zeigt vor dem Schreiben einen Importplan und übernimmt konfliktfreie Änderungen über die bestehenden Fallnotiz- und Fristenservices.
+Die Begleit-App liefert Besprechungsnotizen, neue Wiedervorlagen und erledigte Fristen als verschlüsselte `.gsbvmobile`-Rückgabedatei zurück. Die Datei wird über den Android-Dokumentdialog an einem bewusst gewählten Speicherort abgelegt. Gremia.SBV entschlüsselt diese Datei nur auf der Zielinstanz, zeigt vor dem Schreiben einen Importplan und übernimmt konfliktfreie Änderungen über die bestehenden Fallnotiz- und Fristenservices.
 
 Konflikte blockieren den Import vollständig. Das gilt insbesondere für unbekannte oder deaktivierte Mobilgeräte, gelöschte oder abgeschlossene Fallakten und Fristen, deren Desktop-Stand seit dem Mobile-Snapshot geändert wurde. Audit- und Importprotokolle enthalten nur technische Zähldaten, keine Notiztexte oder sonstigen Freitextinhalte.
 
