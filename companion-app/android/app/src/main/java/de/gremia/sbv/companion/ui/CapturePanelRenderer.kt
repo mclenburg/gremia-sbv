@@ -1,0 +1,184 @@
+package de.gremia.sbv.companion.ui
+
+import android.content.Context
+import android.text.Editable
+import android.text.TextWatcher
+import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.TextView
+import de.gremia.sbv.companion.R
+import de.gremia.sbv.companion.domain.mobile.MobileCaseProjection
+import de.gremia.sbv.companion.domain.mobile.MobileCaseProjectionSearch
+import de.gremia.sbv.companion.domain.mobile.MobileSnapshot
+
+class CapturePanelRenderer(
+    private val context: Context,
+    private val ui: GremiaUi,
+) {
+    private val caseSearch = MobileCaseProjectionSearch()
+
+    fun render(
+        snapshot: MobileSnapshot?,
+        onAddNote: (String, String, String) -> Unit,
+        onAddInbox: (String, String, String?) -> Unit,
+        onAddDeadline: (String, String, String, String?, String) -> Unit,
+    ): LinearLayout =
+        ui.panel().apply {
+            addView(ui.kicker(context.getString(R.string.capture_kicker)))
+            addView(ui.sectionHeader(
+                context.getString(R.string.capture_title),
+                context.getString(R.string.capture_help),
+            ))
+            if (snapshot == null) {
+                addView(ui.paragraph(context.getString(R.string.return_empty)))
+                return@apply
+            }
+            val selectedCase = SelectedCaseState(snapshot.cases.firstOrNull()?.id.orEmpty())
+            addView(caseSelector(snapshot.cases, selectedCase))
+            addView(ui.responsiveColumns(
+                noteForm(selectedCase, onAddNote),
+                deadlineForm(selectedCase, onAddDeadline),
+            ))
+            addView(inboxForm(onAddInbox))
+        }
+
+    private fun caseSelector(cases: List<MobileCaseProjection>, selectedCase: SelectedCaseState): LinearLayout =
+        LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            addView(ui.fieldLabel(context.getString(R.string.return_case_label)))
+            val selectedLabel = selectedCaseLabel(selectedCase.id, cases)
+            addView(selectedLabel)
+            val caseList = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
+            fun renderCases(filter: String) {
+                caseList.removeAllViews()
+                val result = caseSearch.filter(cases, filter)
+                if (result.matches.isEmpty()) {
+                    caseList.addView(ui.paragraph(context.getString(R.string.return_case_filter_empty)))
+                    return
+                }
+                if (result.hiddenMatchCount > 0) {
+                    caseList.addView(ui.listText(context.getString(
+                        R.string.return_case_filter_limited,
+                        result.matches.size,
+                        result.totalMatchCount,
+                    )))
+                }
+                result.matches.forEach { record ->
+                    caseList.addView(ui.button(context.getString(
+                        R.string.return_case_select_button,
+                        record.caseNumber,
+                        record.displayName,
+                    )) {
+                        selectedCase.id = record.id
+                        selectedLabel.text = selectedCaseText(record.id, cases)
+                        selectedLabel.contentDescription = selectedLabel.text
+                    })
+                }
+            }
+            if (cases.size > FILTER_THRESHOLD) addView(caseFilterInput(::renderCases))
+            renderCases("")
+            addView(caseList)
+        }
+
+    private fun selectedCaseLabel(caseId: String, cases: List<MobileCaseProjection>): TextView =
+        ui.listText(selectedCaseText(caseId, cases), selectedCaseText(caseId, cases))
+
+    private fun selectedCaseText(caseId: String, cases: List<MobileCaseProjection>): String {
+        val record = cases.firstOrNull { item -> item.id == caseId }
+            ?: return context.getString(R.string.return_no_case_selected)
+        return context.getString(R.string.return_selected_case, record.caseNumber, record.displayName)
+    }
+
+    private fun noteForm(selectedCase: SelectedCaseState, onAddNote: (String, String, String) -> Unit): LinearLayout =
+        LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            val title = textInput(R.string.return_note_title_label, R.string.return_note_title_hint, false)
+            val content = textInput(R.string.return_note_content_label, R.string.return_note_content_hint, true)
+            addView(ui.fieldLabel(context.getString(R.string.return_note_title_label)))
+            addView(title)
+            addView(ui.fieldLabel(context.getString(R.string.return_note_content_label)))
+            addView(content)
+            addView(ui.button(context.getString(R.string.return_note_add)) {
+                onAddNote(selectedCase.id, title.text.toString(), content.text.toString())
+                title.text.clear()
+                content.text.clear()
+            })
+        }
+
+    private fun deadlineForm(
+        selectedCase: SelectedCaseState,
+        onAddDeadline: (String, String, String, String?, String) -> Unit,
+    ): LinearLayout =
+        LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            val title = textInput(R.string.return_deadline_title_label, R.string.return_deadline_title_hint, false)
+            val dueAt = textInput(R.string.return_deadline_due_label, R.string.return_deadline_due_hint, false)
+            val severity = textInput(R.string.return_deadline_severity_label, R.string.return_deadline_severity_hint, false)
+            val description = textInput(R.string.return_deadline_description_label, R.string.return_deadline_description_hint, true)
+            addView(ui.fieldLabel(context.getString(R.string.return_deadline_title_label)))
+            addView(title)
+            addView(ui.fieldLabel(context.getString(R.string.return_deadline_due_label)))
+            addView(dueAt)
+            addView(ui.fieldLabel(context.getString(R.string.return_deadline_severity_label)))
+            addView(severity)
+            addView(ui.fieldLabel(context.getString(R.string.return_deadline_description_label)))
+            addView(description)
+            addView(ui.button(context.getString(R.string.return_deadline_add)) {
+                onAddDeadline(
+                    selectedCase.id,
+                    title.text.toString(),
+                    dueAt.text.toString(),
+                    description.text.toString(),
+                    severity.text.toString(),
+                )
+                title.text.clear()
+                dueAt.text.clear()
+                severity.text.clear()
+                description.text.clear()
+            })
+        }
+
+    private fun inboxForm(onAddInbox: (String, String, String?) -> Unit): LinearLayout =
+        LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            addView(ui.sectionHeader(
+                context.getString(R.string.return_inbox_title),
+                context.getString(R.string.return_inbox_help),
+            ))
+            val title = textInput(R.string.return_inbox_title_label, R.string.return_inbox_title_hint, false)
+            val content = textInput(R.string.return_inbox_content_label, R.string.return_inbox_content_hint, true)
+            val nextSteps = textInput(R.string.return_inbox_next_steps_label, R.string.return_inbox_next_steps_hint, false)
+            addView(ui.fieldLabel(context.getString(R.string.return_inbox_title_label)))
+            addView(title)
+            addView(ui.fieldLabel(context.getString(R.string.return_inbox_content_label)))
+            addView(content)
+            addView(ui.fieldLabel(context.getString(R.string.return_inbox_next_steps_label)))
+            addView(nextSteps)
+            addView(ui.button(context.getString(R.string.return_inbox_add)) {
+                onAddInbox(title.text.toString(), content.text.toString(), nextSteps.text.toString())
+                title.text.clear()
+                content.text.clear()
+                nextSteps.text.clear()
+            })
+        }
+
+    private fun caseFilterInput(onFilterChanged: (String) -> Unit): EditText =
+        textInput(R.string.return_case_filter_label, R.string.return_case_filter_hint, false).apply {
+            addTextChangedListener(object : TextWatcher {
+                override fun beforeTextChanged(text: CharSequence?, start: Int, count: Int, after: Int) = Unit
+                override fun onTextChanged(text: CharSequence?, start: Int, before: Int, count: Int) {
+                    onFilterChanged(text?.toString().orEmpty())
+                }
+                override fun afterTextChanged(editable: Editable?) = Unit
+            })
+        }
+
+    private fun textInput(labelId: Int, hintId: Int, multiLine: Boolean): EditText =
+        ui.textInput(context.getString(labelId), context.getString(hintId), multiLine)
+
+    private data class SelectedCaseState(var id: String)
+
+    private companion object {
+        private const val FILTER_THRESHOLD = 5
+    }
+}

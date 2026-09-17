@@ -19,6 +19,7 @@ class AppShellRenderer(
     private val ui = GremiaUi(context)
     private val pairingPanel = PairingPanelRenderer(context, ui)
     private val snapshotPanel = SnapshotPanelRenderer(context, ui)
+    private val capturePanel = CapturePanelRenderer(context, ui)
     private val returnPanel = ReturnPanelRenderer(context, ui)
 
     fun render(
@@ -109,12 +110,15 @@ class AppShellRenderer(
                     ))
                 }
                 MobileAppSection.Work -> addView(snapshotPanel.renderCurrent(snapshot))
-                MobileAppSection.Return -> addView(returnPanel.render(
+                MobileAppSection.Capture -> addView(capturePanel.render(
                     snapshot,
-                    returnDrafts,
                     onAddReturnNote,
                     onAddReturnInbox,
                     onAddReturnDeadline,
+                ))
+                MobileAppSection.Return -> addView(returnPanel.render(
+                    snapshot,
+                    returnDrafts,
                     onCompleteReturnDeadline,
                     onCreateReturnPackage,
                     onClearReturnDrafts,
@@ -135,6 +139,10 @@ class AppShellRenderer(
                 context.getString(R.string.app_section_work),
                 activeSection == MobileAppSection.Work,
             ) { onSelectSection(MobileAppSection.Work) },
+            ui.navigationButton(
+                context.getString(R.string.app_section_capture),
+                activeSection == MobileAppSection.Capture,
+            ) { onSelectSection(MobileAppSection.Capture) },
             ui.navigationButton(
                 context.getString(R.string.app_section_return),
                 activeSection == MobileAppSection.Return,

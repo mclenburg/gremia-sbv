@@ -336,7 +336,7 @@ class MainActivity : ComponentActivity() {
         runCatching {
             returnDraftRepository.addNote(caseId, title, content)
         }.onSuccess {
-            activeSection = MobileAppSection.Return
+            activeSection = MobileAppSection.Capture
             renderContent()
         }.onFailure { cause ->
             Toast.makeText(this, cause.message ?: getString(R.string.return_title), Toast.LENGTH_LONG).show()
@@ -347,7 +347,7 @@ class MainActivity : ComponentActivity() {
         runCatching {
             returnDraftRepository.addInbox(title, content, nextSteps)
         }.onSuccess {
-            activeSection = MobileAppSection.Return
+            activeSection = MobileAppSection.Capture
             renderContent()
         }.onFailure { cause ->
             Toast.makeText(this, cause.message ?: getString(R.string.return_title), Toast.LENGTH_LONG).show()
@@ -358,7 +358,7 @@ class MainActivity : ComponentActivity() {
         runCatching {
             returnDraftRepository.addDeadline(caseId, title, dueAt, description, severity)
         }.onSuccess {
-            activeSection = MobileAppSection.Return
+            activeSection = MobileAppSection.Capture
             renderContent()
         }.onFailure { cause ->
             Toast.makeText(this, cause.message ?: getString(R.string.return_title), Toast.LENGTH_LONG).show()

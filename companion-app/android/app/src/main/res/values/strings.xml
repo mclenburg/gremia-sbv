@@ -5,6 +5,7 @@
     <string name="app_shell_description">Mobiler Arbeitsbereich für verschlüsselte Projektionen aus Gremia.SBV. Der Desktop-Tresor bleibt führend.</string>
     <string name="app_section_sync">Synchronisation</string>
     <string name="app_section_work">Arbeitsstand</string>
+    <string name="app_section_capture">Erfassen</string>
     <string name="app_section_return">Rückgabe</string>
     <string name="lock_kicker">GESCHÜTZTER SBV-ARBEITSRAUM</string>
     <string name="lock_title">Begleit-App gesperrt</string>
@@ -79,6 +80,9 @@
     <string name="return_title">Mobile Änderungen zurückgeben</string>
     <string name="return_empty">Erst eine mobile Arbeitsprojektion empfangen, dann können Änderungen für die Rückgabe erfasst werden.</string>
     <string name="return_description">Erfasst werden mobile Notizen, neue Wiedervorlagen und erledigte Fristen. Das Rückgabepaket wird verschlüsselt für die Desktop-Instanz erstellt.</string>
+    <string name="capture_kicker">MOBILE ERFASSUNG</string>
+    <string name="capture_title">Schnellerfassung</string>
+    <string name="capture_help">Notizen, Wiedervorlagen und fallfreie Inbox-Einträge werden nur lokal vorgemerkt. Erst die Rückgabedatei übergibt diese Änderungen an den Desktop-Tresor.</string>
     <string name="return_selected_case">Ausgewählte Fallakte: %1$s · %2$s</string>
     <string name="return_no_case_selected">Keine Fallakte ausgewählt.</string>
     <string name="return_case_filter_empty">Keine Fallakte passt zum aktuellen Filter.</string>
