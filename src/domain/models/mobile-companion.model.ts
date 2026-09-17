@@ -115,6 +115,7 @@ export interface MobileCompanionReturnCreateNoteChange {
   changedAt: string;
   title: string;
   content: string;
+  noteType?: 'gespraech' | 'protokoll' | 'telefonat' | 'videocall' | 'email' | 'bem' | 'anhoerung' | 'interne_notiz' | 'sonstiges';
   participants?: string;
   nextSteps?: string;
   containsHealthData?: boolean;

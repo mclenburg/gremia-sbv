@@ -19,7 +19,7 @@ class CapturePanelRenderer(
 
     fun render(
         snapshot: MobileSnapshot?,
-        onAddNote: (String, String, String) -> Unit,
+        onAddNote: (String, String, String, String, String?) -> Unit,
         onAddInbox: (String, String, String?) -> Unit,
         onAddDeadline: (String, String, String, String?, String) -> Unit,
     ): LinearLayout =
@@ -89,19 +89,33 @@ class CapturePanelRenderer(
         return context.getString(R.string.return_selected_case, record.caseNumber, record.displayName)
     }
 
-    private fun noteForm(selectedCase: SelectedCaseState, onAddNote: (String, String, String) -> Unit): LinearLayout =
+    private fun noteForm(selectedCase: SelectedCaseState, onAddNote: (String, String, String, String, String?) -> Unit): LinearLayout =
         LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
             val title = textInput(R.string.return_note_title_label, R.string.return_note_title_hint, false)
+            val category = textInput(R.string.return_note_type_label, R.string.return_note_type_hint, false)
             val content = textInput(R.string.return_note_content_label, R.string.return_note_content_hint, true)
+            val nextSteps = textInput(R.string.return_note_next_steps_label, R.string.return_note_next_steps_hint, false)
             addView(ui.fieldLabel(context.getString(R.string.return_note_title_label)))
             addView(title)
+            addView(ui.fieldLabel(context.getString(R.string.return_note_type_label)))
+            addView(category)
             addView(ui.fieldLabel(context.getString(R.string.return_note_content_label)))
             addView(content)
+            addView(ui.fieldLabel(context.getString(R.string.return_note_next_steps_label)))
+            addView(nextSteps)
             addView(ui.button(context.getString(R.string.return_note_add)) {
-                onAddNote(selectedCase.id, title.text.toString(), content.text.toString())
+                onAddNote(
+                    selectedCase.id,
+                    title.text.toString(),
+                    content.text.toString(),
+                    category.text.toString(),
+                    nextSteps.text.toString(),
+                )
                 title.text.clear()
+                category.text.clear()
                 content.text.clear()
+                nextSteps.text.clear()
             })
         }
 

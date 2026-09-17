@@ -53,6 +53,8 @@ class MobileReturnPayloadBuilder {
                     "changedAt" to note.changedAt,
                     "title" to note.title,
                     "content" to note.content,
+                    "noteType" to note.noteType,
+                    "nextSteps" to note.nextSteps,
                     "containsHealthData" to true,
                 ),
             )

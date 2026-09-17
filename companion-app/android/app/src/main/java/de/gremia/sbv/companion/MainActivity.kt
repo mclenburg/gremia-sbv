@@ -147,7 +147,7 @@ class MainActivity : ComponentActivity() {
                 },
                 onConfirmImport = { confirmSnapshotImport() },
                 onCancelImport = { cancelSnapshotImport() },
-                onAddReturnNote = { caseId, title, content -> addReturnNote(caseId, title, content) },
+                onAddReturnNote = { caseId, title, content, noteType, nextSteps -> addReturnNote(caseId, title, content, noteType, nextSteps) },
                 onAddReturnInbox = { title, content, nextSteps -> addReturnInbox(title, content, nextSteps) },
                 onAddReturnDeadline = { caseId, title, dueAt, description, severity ->
                     addReturnDeadline(caseId, title, dueAt, description, severity)
@@ -332,9 +332,9 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun addReturnNote(caseId: String, title: String, content: String) {
+    private fun addReturnNote(caseId: String, title: String, content: String, noteType: String, nextSteps: String?) {
         runCatching {
-            returnDraftRepository.addNote(caseId, title, content)
+            returnDraftRepository.addNote(caseId, title, content, noteType, nextSteps)
         }.onSuccess {
             activeSection = MobileAppSection.Capture
             renderContent()

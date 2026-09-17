@@ -20,6 +20,8 @@ class MobileReturnPayloadBuilderTest {
                     changedAt = "2026-09-15T10:01:00Z",
                     title = "Gespräch",
                     content = "Gesprächsnotiz",
+                    noteType = "interne_notiz",
+                    nextSteps = "Maßnahmenidee am Desktop prüfen",
                 )),
                 deadlines = listOf(MobileReturnDeadlineDraft(
                     mobileId = "deadline-1",
@@ -54,6 +56,8 @@ class MobileReturnPayloadBuilderTest {
         assertEquals("GSBV1AAAAA", plan.targetInstanceId)
         assertEquals(listOf("create_note", "create_deadline", "complete_deadline", "create_inbox"), plan.changes.map { it.type })
         assertEquals(true, plan.changes.first().values["containsHealthData"])
+        assertEquals("interne_notiz", plan.changes.first().values["noteType"])
+        assertEquals("Maßnahmenidee am Desktop prüfen", plan.changes.first().values["nextSteps"])
         assertEquals("Desktop-Zuordnung prüfen", plan.changes.last().values["nextSteps"])
     }
 

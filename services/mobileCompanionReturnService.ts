@@ -379,7 +379,7 @@ export class MobileCompanionReturnService {
       caseId: change.caseId,
       title: change.title,
       noteDate: change.changedAt,
-      noteType: 'gespraech',
+      noteType: change.noteType ?? 'gespraech',
       participants: change.participants,
       content: change.content,
       nextSteps: change.nextSteps,

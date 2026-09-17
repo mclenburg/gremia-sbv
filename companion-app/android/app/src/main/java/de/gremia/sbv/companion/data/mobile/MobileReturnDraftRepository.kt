@@ -38,13 +38,15 @@ class MobileReturnDraftRepository(
         )
     }
 
-    fun addNote(caseId: String, title: String, content: String): MobileReturnNoteDraft {
+    fun addNote(caseId: String, title: String, content: String, noteType: String, nextSteps: String?): MobileReturnNoteDraft {
         val note = MobileReturnNoteDraft(
             mobileId = "mobile_note_${UUID.randomUUID()}",
             caseId = requireText(caseId, "Bitte eine Fallakte auswählen.", 160),
             changedAt = Instant.now().toString(),
             title = requireText(title, "Bitte einen Notiztitel angeben.", 180),
             content = requireText(content, "Bitte einen Notizinhalt angeben.", 20_000),
+            noteType = normalizeNoteType(noteType),
+            nextSteps = nextSteps?.trim()?.takeIf { value -> value.isNotEmpty() },
         )
         val current = listDrafts()
         saveDrafts(current.copy(notes = current.notes + note))
@@ -109,6 +111,8 @@ class MobileReturnDraftRepository(
                 changedAt = item.getString("changedAt"),
                 title = item.getString("title"),
                 content = item.getString("content"),
+                noteType = item.optString("noteType", "gespraech"),
+                nextSteps = item.optString("nextSteps").takeIf { value -> value.isNotBlank() },
             )
         }
 
@@ -156,12 +160,18 @@ class MobileReturnDraftRepository(
         require(drafts.changeCount <= MAX_DRAFTS) { "Es können höchstens $MAX_DRAFTS mobile Änderungen in einer Rückgabe gesammelt werden." }
         val state = JSONObject()
             .put("notes", JSONArray().also { items ->
-                drafts.notes.forEach { note -> items.put(JSONObject()
-                .put("mobileId", note.mobileId)
-                .put("caseId", note.caseId)
-                .put("changedAt", note.changedAt)
-                .put("title", note.title)
-                .put("content", note.content)) }
+                drafts.notes.forEach { note ->
+                    items.put(JSONObject()
+                        .put("mobileId", note.mobileId)
+                        .put("caseId", note.caseId)
+                        .put("changedAt", note.changedAt)
+                        .put("title", note.title)
+                        .put("content", note.content)
+                        .put("noteType", note.noteType)
+                        .apply {
+                            note.nextSteps?.let { value -> put("nextSteps", value) }
+                        })
+                }
             })
             .put("deadlines", JSONArray().also { items ->
                 drafts.deadlines.forEach { deadline ->
@@ -232,6 +242,19 @@ class MobileReturnDraftRepository(
             "critical", "kritisch" -> "critical"
             "important", "wichtig", "hoch" -> "important"
             else -> "normal"
+        }
+
+    private fun normalizeNoteType(value: String): String =
+        when (value.trim().lowercase()) {
+            "telefonat", "telefon" -> "telefonat"
+            "protokoll" -> "protokoll"
+            "videocall", "video" -> "videocall"
+            "email", "e-mail" -> "email"
+            "bem" -> "bem"
+            "anhoerung", "anhörung" -> "anhoerung"
+            "interne_notiz", "intern", "maßnahmenidee", "massnahmenidee", "follow-up", "followup" -> "interne_notiz"
+            "sonstiges" -> "sonstiges"
+            else -> "gespraech"
         }
 
     private fun emptyDrafts(): MobileReturnDraftSet = MobileReturnDraftSet(emptyList(), emptyList(), emptyList(), emptyList())

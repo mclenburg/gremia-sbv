@@ -105,6 +105,7 @@ describe('Mobile Begleit-App Rückgabe', () => {
             changedAt: '2026-09-10T10:15:00.000Z',
             title: 'Besprechung mit Arbeitgeber',
             content: 'Arbeitgeber sagt Nachteilsausgleich bis Freitag zu.',
+            noteType: 'interne_notiz',
             nextSteps: 'Freitag nachhalten',
             containsHealthData: true,
           },
@@ -152,6 +153,10 @@ describe('Mobile Begleit-App Rückgabe', () => {
         completedDeadlineCount: 1,
       });
       expect(desktop.prepare<{ count: number }>('SELECT COUNT(*) AS count FROM case_notes WHERE case_id = ?').get('case-mobile-return-1')?.count).toBe(1);
+      expect(desktop.prepare<{ note_type: string; next_steps: string }>('SELECT note_type, next_steps FROM case_notes WHERE case_id = ?').get('case-mobile-return-1')).toMatchObject({
+        note_type: 'interne_notiz',
+        next_steps: 'Freitag nachhalten',
+      });
       expect(desktop.prepare<{ status: string }>('SELECT status FROM deadlines WHERE id = ?').get('deadline-mobile-return-1')?.status).toBe('done');
       expect(desktop.prepare<{ count: number }>("SELECT COUNT(*) AS count FROM privacy_review_items WHERE case_id = ? AND reason = 'handover_imported'").get('case-mobile-return-1')?.count).toBe(1);
       const auditRows = desktop.prepare<{ metadata_json: string }>(

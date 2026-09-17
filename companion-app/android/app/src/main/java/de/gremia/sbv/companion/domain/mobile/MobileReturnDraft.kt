@@ -6,6 +6,8 @@ data class MobileReturnNoteDraft(
     val changedAt: String,
     val title: String,
     val content: String,
+    val noteType: String,
+    val nextSteps: String?,
 )
 
 data class MobileReturnDeadlineDraft(

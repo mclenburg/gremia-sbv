@@ -3,6 +3,7 @@ import type {
   MobileCompanionReturnChange,
   MobileCompanionReturnCreateDeadlineChange,
   MobileCompanionReturnCreateInboxChange,
+  MobileCompanionReturnCreateNoteChange,
   MobileCompanionReturnPayload,
 } from '../src/domain/models/mobile-companion.model.js';
 
@@ -59,6 +60,7 @@ function assertReturnChange(value: unknown): MobileCompanionReturnChange {
       changedAt: assertIsoDate(record.changedAt, 'Änderungszeitpunkt'),
       title: assertText(record.title, 'Notiztitel', 180),
       content: assertText(record.content, 'Notizinhalt', 20_000),
+      noteType: assertNoteType(record.noteType),
       participants: assertOptionalText(record.participants, 'Teilnehmende', 1000),
       nextSteps: assertOptionalText(record.nextSteps, 'Nächste Schritte', 5000),
       containsHealthData: record.containsHealthData !== false,
@@ -103,6 +105,22 @@ function assertReturnChange(value: unknown): MobileCompanionReturnChange {
 
 function normalizeContainsHealthData(value: unknown): MobileCompanionReturnCreateInboxChange['containsHealthData'] {
   return value !== false;
+}
+
+function assertNoteType(value: unknown): MobileCompanionReturnCreateNoteChange['noteType'] {
+  if (value === undefined || value === null || value === '') return undefined;
+  if (
+    value === 'gespraech'
+    || value === 'protokoll'
+    || value === 'telefonat'
+    || value === 'videocall'
+    || value === 'email'
+    || value === 'bem'
+    || value === 'anhoerung'
+    || value === 'interne_notiz'
+    || value === 'sonstiges'
+  ) return value;
+  throw new Error('Mobile-Rückgabepaket enthält eine ungültige Notizkategorie.');
 }
 
 function assertText(value: unknown, label: string, maxLength = 5000): string {

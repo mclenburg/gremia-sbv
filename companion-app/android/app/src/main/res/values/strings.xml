@@ -93,8 +93,12 @@
     <string name="return_case_select_button">%1$s · %2$s</string>
     <string name="return_note_title_label">Notiztitel</string>
     <string name="return_note_title_hint">z. B. Gespräch im Termin</string>
+    <string name="return_note_type_label">Kategorie</string>
+    <string name="return_note_type_hint">z. B. Gespräch, Telefonat, Follow-up</string>
     <string name="return_note_content_label">Notizinhalt</string>
     <string name="return_note_content_hint">Wesentliche Punkte und Ergebnis erfassen</string>
+    <string name="return_note_next_steps_label">Nächster Schritt</string>
+    <string name="return_note_next_steps_hint">Optional, z. B. Rückmeldung nachhalten</string>
     <string name="return_note_add">Mobile Notiz speichern</string>
     <string name="return_inbox_title">Fallfreie Schnellerfassung</string>
     <string name="return_inbox_help">Für Gesprächsvermerke oder Hinweise, die unterwegs noch keiner Fallakte sicher zugeordnet werden können. Die Desktop-Anwendung übernimmt sie fallfrei ins Tätigkeitsjournal; die fachliche Zuordnung erfolgt später bewusst im Tresor.</string>
