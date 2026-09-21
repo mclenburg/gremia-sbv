@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="diagnostic_export">Technischen Diagnosebericht speichern</string>
+    <string name="diagnostic_scope">Der Bericht enthält Versionsnummern, die Anzahl ungesendeter Änderungen sowie Sperr- und Displayschutzeinstellungen. Namen, Falltexte, Gerätekennungen und Schlüssel sind nicht enthalten. Du bestimmst den Speicherort.</string>
+    <string name="diagnostic_saved">Diagnosebericht gespeichert.</string>
+    <string name="diagnostic_failed">Der Diagnosebericht konnte nicht gespeichert werden. Bitte prüfe den gewählten Speicherort.</string>
     <string name="app_name">Gremia.SBV Begleit-App</string>
     <string name="app_shell_kicker">MOBILER SBV-ARBEITSRAUM</string>
     <string name="app_section_dashboard">Start</string>

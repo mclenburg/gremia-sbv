@@ -73,6 +73,13 @@ class MainActivity : ComponentActivity() {
     private var unlockCancellationSignal: CancellationSignal? = null
     private var pendingReturnPackage: MobileReturnPackageFile? = null
     private val windowProtection by lazy { MobileWindowProtection(this) }
+    private val diagnosticExport = de.gremia.sbv.companion.ui.MobileDiagnosticExport(this, { unlocked }) {
+        de.gremia.sbv.companion.domain.security.MobileDiagnosticReport(
+            androidx.core.content.pm.PackageInfoCompat.getLongVersionCode(packageManager.getPackageInfo(packageName, 0)),
+            Build.VERSION.SDK_INT, snapshotRepository.current() != null,
+            returnDraftRepository.listDrafts().changeCount, appSettings,
+        )
+    }
     private val qrScanLauncher = registerForActivityResult(ScanContract()) { result ->
         if (result.contents != null) acceptScannedSnapshotFrame(result.contents)
     }
@@ -187,6 +194,7 @@ class MainActivity : ComponentActivity() {
                 onSetSecureScreen = { enabled -> updateSecureScreen(enabled) },
                 onClearWorkData = { clearMobileWorkData() },
                 onInitializeNewDevice = { initializeNewDevice() },
+                onExportDiagnostics = diagnosticExport::launch,
             ),
         )
         scheduleAutoLockCheck()
@@ -412,31 +420,25 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun addReturnNote(caseId: String, title: String, content: String, noteType: String, nextSteps: String?) {
-        runCatching {
+        saveCapture {
             returnDraftRepository.addNote(caseId, title, content, noteType, nextSteps)
-        }.onSuccess {
-            activeSection = MobileAppSection.Capture
-            renderContent()
-        }.onFailure { cause ->
-            Toast.makeText(this, cause.message ?: getString(R.string.return_title), Toast.LENGTH_LONG).show()
         }
     }
 
     private fun addReturnInbox(title: String, content: String, nextSteps: String?) {
-        runCatching {
+        saveCapture {
             returnDraftRepository.addInbox(title, content, nextSteps)
-        }.onSuccess {
-            activeSection = MobileAppSection.Capture
-            renderContent()
-        }.onFailure { cause ->
-            Toast.makeText(this, cause.message ?: getString(R.string.return_title), Toast.LENGTH_LONG).show()
         }
     }
 
     private fun addReturnDeadline(caseId: String, title: String, dueAt: String, description: String?, severity: String) {
-        runCatching {
+        saveCapture {
             returnDraftRepository.addDeadline(caseId, title, dueAt, description, severity)
-        }.onSuccess {
+        }
+    }
+
+    private fun saveCapture(save: () -> Unit) {
+        runCatching(save).onSuccess {
             activeSection = MobileAppSection.Capture
             renderContent()
         }.onFailure { cause ->

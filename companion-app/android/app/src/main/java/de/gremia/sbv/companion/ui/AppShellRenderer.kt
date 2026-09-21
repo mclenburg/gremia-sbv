@@ -57,6 +57,7 @@ class AppShellRenderer(
         onSetSecureScreen: (Boolean) -> Unit,
         onClearWorkData: () -> Unit,
         onInitializeNewDevice: () -> Unit,
+        onExportDiagnostics: () -> Unit,
     ): ScrollView =
         ScrollView(context).apply {
             setBackgroundColor(ui.backgroundColor())
@@ -87,6 +88,7 @@ class AppShellRenderer(
                 onSetSecureScreen,
                 onClearWorkData,
                 onInitializeNewDevice,
+                onExportDiagnostics,
             ))
         }
 
@@ -117,6 +119,7 @@ class AppShellRenderer(
         onSetSecureScreen: (Boolean) -> Unit,
         onClearWorkData: () -> Unit,
         onInitializeNewDevice: () -> Unit,
+        onExportDiagnostics: () -> Unit,
     ): LinearLayout =
         LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
@@ -166,6 +169,7 @@ class AppShellRenderer(
                     onSetSecureScreen,
                     onClearWorkData,
                     onInitializeNewDevice,
+                    onExportDiagnostics,
                 ))
             }
         }

@@ -63,6 +63,12 @@ Kopplungsidentität. **Gerät neu initialisieren** entfernt zusätzlich Identit�
 und lokale Einstellungen. Bereits außerhalb der App gespeicherte
 Rückgabedateien müssen am gewählten Speicherort separat gelöscht werden.
 
+Über **Technischen Diagnosebericht speichern** in den mobilen Einstellungen
+kannst du einen Bericht für Supportanfragen an einem selbst gewählten Ort
+speichern. Er enthält Versionsnummern, die Anzahl ungesendeter Änderungen und
+Sperr-/Displayschutzeinstellungen, aber keine Namen, Falltexte, Gerätekennungen
+oder Schlüssel. Die App versendet den Bericht nicht automatisch.
+
 ## Amtsübergabe
 
 Die Amtsübergabe enthält:

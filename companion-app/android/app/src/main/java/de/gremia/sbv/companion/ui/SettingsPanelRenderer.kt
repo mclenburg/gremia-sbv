@@ -20,6 +20,7 @@ class SettingsPanelRenderer(
         onSetSecureScreen: (Boolean) -> Unit,
         onClearWorkData: () -> Unit,
         onInitializeNewDevice: () -> Unit,
+        onExportDiagnostics: () -> Unit,
     ): LinearLayout =
         ui.panel().apply {
             addView(ui.kicker(context.getString(R.string.settings_kicker)))
@@ -43,6 +44,12 @@ class SettingsPanelRenderer(
             addView(ui.listItem(
                 primary = context.getString(R.string.settings_app_version, appVersion()),
                 secondary = context.getString(R.string.settings_protocol_version, MOBILE_PROTOCOL_VERSION),
+            ))
+            addView(ui.confirmingSecondaryButton(
+                context.getString(R.string.diagnostic_export),
+                context.getString(R.string.diagnostic_export),
+                context.getString(R.string.diagnostic_scope),
+                onExportDiagnostics,
             ))
             addView(ui.fieldLabel(context.getString(R.string.settings_auto_lock)))
             addView(ui.horizontalActions(*MobileAutoLockTimeout.entries.map { timeout ->
