@@ -30,6 +30,11 @@ class AndroidSecretBox(
         return String(cipher.doFinal(decoder.decode(parts[1])), Charsets.UTF_8)
     }
 
+    fun deleteKey() {
+        val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
+        if (keyStore.containsAlias(alias)) keyStore.deleteEntry(alias)
+    }
+
     private fun secretKey(): SecretKey {
         val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
         val existing = keyStore.getEntry(alias, null) as? KeyStore.SecretKeyEntry

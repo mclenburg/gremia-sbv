@@ -1,5 +1,6 @@
 package de.gremia.sbv.companion.data.mobile
 
+import android.annotation.SuppressLint
 import android.content.Context
 import de.gremia.sbv.companion.data.security.AndroidSecretBox
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshot
@@ -22,6 +23,12 @@ class MobileSnapshotRepository(
         preferences.edit()
             .putString(SNAPSHOT_KEY, secretBox.encrypt(snapshot.rawPayloadJson))
             .apply()
+    }
+
+    @SuppressLint("ApplySharedPref")
+    fun clear() {
+        preferences.edit().remove(SNAPSHOT_KEY).commit()
+        secretBox.deleteKey()
     }
 
     private companion object {

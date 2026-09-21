@@ -22,6 +22,10 @@ class MobileDashboardBuilderTest {
         val summary = MobileDashboardBuilder().build(
             snapshot = snapshot,
             drafts = drafts,
+            syncEvents = listOf(
+                syncEvent("snapshot:snapshot-17", MobileSyncDirection.DesktopToMobile, "snapshot-17", "2026-09-16T18:02:00Z"),
+                syncEvent("return:return-17", MobileSyncDirection.MobileToDesktop, "return-17", "2026-09-17T07:30:00Z"),
+            ),
             now = Instant.parse("2026-09-17T08:00:00Z"),
             zoneId = ZoneId.of("UTC"),
         )
@@ -33,8 +37,8 @@ class MobileDashboardBuilderTest {
         assertEquals(3, summary.openDeadlines)
         assertEquals(5, summary.unsentChanges)
         assertEquals(listOf("case-a", "case-b"), summary.recentlyEditedCases.map { record -> record.id })
-        assertEquals("2026-09-16T18:00:00Z", summary.lastSnapshotAt)
-        assertEquals("snapshot-17", summary.lastSnapshotPackageId)
+        assertEquals("snapshot-17", summary.lastImport?.packageId)
+        assertEquals("return-17", summary.lastExport?.packageId)
     }
 
     @Test
@@ -46,7 +50,7 @@ class MobileDashboardBuilderTest {
         assertEquals(0, summary.openDeadlines)
         assertEquals(1, summary.unsentChanges)
         assertEquals(emptyList(), summary.recentlyEditedCases)
-        assertEquals(null, summary.lastSnapshotAt)
+        assertEquals(null, summary.lastImport)
     }
 
     private fun testSnapshot(): MobileSnapshot =
@@ -86,4 +90,7 @@ class MobileDashboardBuilderTest {
 
     private fun inbox(id: String) =
         MobileReturnInboxDraft(id, "2026-09-17T10:00:00Z", id, "Inhalt", null, true)
+
+    private fun syncEvent(eventId: String, direction: MobileSyncDirection, packageId: String, occurredAt: String) =
+        MobileSyncEvent(eventId, direction, packageId, occurredAt, 2, 3, 1)
 }

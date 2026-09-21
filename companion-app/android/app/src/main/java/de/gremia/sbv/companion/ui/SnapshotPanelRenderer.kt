@@ -6,9 +6,6 @@ import android.text.TextWatcher
 import android.widget.EditText
 import android.widget.LinearLayout
 import de.gremia.sbv.companion.R
-import de.gremia.sbv.companion.domain.mobile.MobileCaseProjection
-import de.gremia.sbv.companion.domain.mobile.MobileCaseProjectionSearch
-import de.gremia.sbv.companion.domain.mobile.MobileCaseWorkItem
 import de.gremia.sbv.companion.domain.mobile.MobileDeadlineDisplayStatus
 import de.gremia.sbv.companion.domain.mobile.MobileDeadlineMonitor
 import de.gremia.sbv.companion.domain.mobile.MobileDeadlineWorkItem
@@ -17,14 +14,13 @@ import de.gremia.sbv.companion.domain.mobile.MobileDeadlineWorklistSearch
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshot
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshotImportPreview
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshotIntakeResult
-import de.gremia.sbv.companion.domain.mobile.MobileWorkProjectionBuilder
+import de.gremia.sbv.companion.domain.mobile.MobileReturnDraftSet
+import de.gremia.sbv.companion.domain.mobile.MobileDeadlineProjection
 
 class SnapshotPanelRenderer(
     private val context: Context,
     private val ui: GremiaUi,
 ) {
-    private val workProjectionBuilder = MobileWorkProjectionBuilder()
-    private val caseSearch = MobileCaseProjectionSearch()
     private val deadlineWorklistBuilder = MobileDeadlineWorklistBuilder()
     private val deadlineSearch = MobileDeadlineWorklistSearch()
     private val deadlineMonitor = MobileDeadlineMonitor()
@@ -90,7 +86,11 @@ class SnapshotPanelRenderer(
             label = context.getString(R.string.snapshot_import_preview_title),
         )
 
-    fun renderCurrent(snapshot: MobileSnapshot?): LinearLayout =
+    fun renderCurrent(
+        snapshot: MobileSnapshot?,
+        drafts: MobileReturnDraftSet,
+        onCompleteDeadline: (MobileDeadlineProjection, String?) -> Unit,
+    ): LinearLayout =
         ui.panel().apply {
             addView(ui.kicker(context.getString(R.string.snapshot_current_kicker)))
             addView(ui.sectionHeader(
@@ -120,12 +120,9 @@ class SnapshotPanelRenderer(
                     summary.nextSevenDays,
                 ),
             ))
-            val workProjection = workProjectionBuilder.build(snapshot)
             val deadlineWorklist = deadlineWorklistBuilder.build(snapshot)
             addView(ui.fieldLabel(context.getString(R.string.snapshot_deadlines_label)))
-            addView(filterableDeadlineList(deadlineWorklist.items))
-            addView(ui.fieldLabel(context.getString(R.string.snapshot_cases_label)))
-            addView(filterableCaseList(workProjection.cases))
+            addView(filterableDeadlineList(deadlineWorklist.items, drafts, onCompleteDeadline))
         }
 
     private fun frameInput(): EditText =
@@ -137,39 +134,15 @@ class SnapshotPanelRenderer(
             minLines = 3
         }
 
-    private fun filterableCaseList(cases: List<MobileCaseWorkItem>): LinearLayout =
-        LinearLayout(context).apply {
-            orientation = LinearLayout.VERTICAL
-            val caseList = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
-            fun renderCases(filter: String) {
-                caseList.removeAllViews()
-                val result = caseSearch.filter(cases.map { item -> item.caseRecord }, filter)
-                val casesById = cases.associateBy { item -> item.caseRecord.id }
-                val filteredCases = result.matches.mapNotNull { record -> casesById[record.id] }
-                if (filteredCases.isEmpty()) {
-                    caseList.addView(ui.paragraph(context.getString(R.string.snapshot_cases_filter_empty)))
-                    return
-                }
-                if (result.hiddenMatchCount > 0) {
-                    caseList.addView(ui.listText(context.getString(
-                        R.string.snapshot_cases_filter_limited,
-                        result.matches.size,
-                        result.totalMatchCount,
-                    )))
-                }
-                filteredCases.forEach { item ->
-                    caseList.addView(caseRow(item))
-                }
-            }
-            if (cases.size > FILTER_THRESHOLD) addView(caseFilterInput(::renderCases))
-            renderCases("")
-            addView(caseList)
-        }
-
-    private fun filterableDeadlineList(deadlines: List<MobileDeadlineWorkItem>): LinearLayout =
+    private fun filterableDeadlineList(
+        deadlines: List<MobileDeadlineWorkItem>,
+        drafts: MobileReturnDraftSet,
+        onCompleteDeadline: (MobileDeadlineProjection, String?) -> Unit,
+    ): LinearLayout =
         LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
             val deadlineList = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
+            val completionIds = drafts.deadlineCompletions.map { completion -> completion.deadlineId }.toSet()
             fun renderDeadlines(filter: String) {
                 deadlineList.removeAllViews()
                 val result = deadlineSearch.filter(deadlines, filter)
@@ -184,25 +157,13 @@ class SnapshotPanelRenderer(
                         result.totalMatchCount,
                     )))
                 }
-                result.matches.forEach { item -> deadlineList.addView(deadlineWorkItemRow(item)) }
+                result.matches.forEach { item ->
+                    deadlineList.addView(deadlineWorkItemRow(item, completionIds, onCompleteDeadline))
+                }
             }
             if (deadlines.size > FILTER_THRESHOLD) addView(deadlineFilterInput(::renderDeadlines))
             renderDeadlines("")
             addView(deadlineList)
-        }
-
-    private fun caseFilterInput(onFilterChanged: (String) -> Unit): EditText =
-        ui.textInput(
-            context.getString(R.string.snapshot_case_filter_label),
-            context.getString(R.string.snapshot_case_filter_hint),
-        ).apply {
-            addTextChangedListener(object : TextWatcher {
-                override fun beforeTextChanged(text: CharSequence?, start: Int, count: Int, after: Int) = Unit
-                override fun onTextChanged(text: CharSequence?, start: Int, before: Int, count: Int) {
-                    onFilterChanged(text?.toString().orEmpty())
-                }
-                override fun afterTextChanged(editable: Editable?) = Unit
-            })
         }
 
     private fun deadlineFilterInput(onFilterChanged: (String) -> Unit): EditText =
@@ -219,31 +180,40 @@ class SnapshotPanelRenderer(
             })
         }
 
-    private fun caseRow(item: MobileCaseWorkItem) =
-        ui.listItem(
-            primary = item.caseRecord.caseNumber,
-            secondary = context.getString(
-                R.string.snapshot_case_summary,
-                item.caseRecord.displayName,
-                item.caseRecord.category,
-                item.caseRecord.status,
-                item.openDeadlines.size,
-            ),
-            label = "${item.caseRecord.caseNumber}, ${item.caseRecord.displayName}, ${item.caseRecord.category}, ${item.caseRecord.status}",
-        )
-
-    private fun deadlineWorkItemRow(item: MobileDeadlineWorkItem) =
-        ui.listItem(
-            primary = item.deadline.title,
-            secondary = context.getString(
+    private fun deadlineWorkItemRow(
+        item: MobileDeadlineWorkItem,
+        completionIds: Set<String>,
+        onCompleteDeadline: (MobileDeadlineProjection, String?) -> Unit,
+    ): LinearLayout {
+        val summary = context.getString(
                 R.string.snapshot_deadline_work_item_summary,
                 deadlineStatusLabel(item.displayStatus),
                 MobileDateFormatter.formatDateTime(item.deadline.dueAt),
                 deadlineCaseLabel(item),
                 item.deadline.legalBasis ?: context.getString(R.string.snapshot_deadline_without_legal_basis),
-            ),
-            label = "${item.deadline.title}, ${deadlineStatusLabel(item.displayStatus)}, ${deadlineCaseLabel(item)}",
         )
+        if (completionIds.contains(item.deadline.id)) {
+            return LinearLayout(context).apply {
+                orientation = LinearLayout.VERTICAL
+                addView(ui.listItem(
+                    item.deadline.title,
+                    "$summary · ${context.getString(R.string.return_deadline_complete_planned)}",
+                ))
+            }
+        }
+        return ui.actionListItem(
+            primary = item.deadline.title,
+            secondary = summary,
+            actionLabel = context.getString(R.string.return_deadline_complete_action),
+        ) {
+            ui.promptForOptionalText(
+                title = item.deadline.title,
+                label = context.getString(R.string.return_deadline_complete_note_label),
+                hint = context.getString(R.string.return_deadline_complete_note_hint),
+                confirmLabel = context.getString(R.string.return_deadline_complete_action),
+            ) { note -> onCompleteDeadline(item.deadline, note) }
+        }
+    }
 
     private fun deadlineCaseLabel(item: MobileDeadlineWorkItem): String =
         item.caseRecord?.let { record ->

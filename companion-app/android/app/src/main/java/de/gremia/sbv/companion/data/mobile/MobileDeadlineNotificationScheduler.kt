@@ -7,7 +7,6 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import de.gremia.sbv.companion.domain.mobile.MobileDeadlineNotificationPlan
 import de.gremia.sbv.companion.domain.mobile.MobileDeadlineNotificationPlanner
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshot
@@ -29,15 +28,17 @@ class MobileDeadlineNotificationScheduler(
             .apply()
     }
 
+    fun cancelAll() {
+        cancelPreviouslyScheduled()
+        preferences.edit().remove(SCHEDULED_NOTIFICATION_IDS_KEY).apply()
+        context.getSystemService(NotificationManager::class.java).cancelAll()
+    }
+
     private fun schedule(plan: MobileDeadlineNotificationPlan) {
         val alarmManager = context.getSystemService(AlarmManager::class.java)
         val triggerAtMillis = plan.triggerAt.toEpochMilli()
         val pendingIntent = pendingIntentFor(plan)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent)
-        } else {
-            alarmManager.set(AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent)
-        }
+        alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent)
     }
 
     private fun cancelPreviouslyScheduled() {
@@ -70,7 +71,6 @@ class MobileDeadlineNotificationScheduler(
         )
 
     private fun createChannel() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         val channel = NotificationChannel(
             CHANNEL_ID,
             "Gremia.SBV Fristen",

@@ -13,11 +13,15 @@ import de.gremia.sbv.companion.domain.mobile.MobileSnapshotImportPreview
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshotIntakeResult
 import de.gremia.sbv.companion.domain.mobile.MobileSyncEvent
 import de.gremia.sbv.companion.domain.transfer.TransferIdentity
+import de.gremia.sbv.companion.domain.security.MobileThemeMode
+import de.gremia.sbv.companion.domain.security.MobileAppSettings
+import de.gremia.sbv.companion.domain.security.MobileAutoLockTimeout
 
 class AppShellRenderer(
     private val context: Context,
+    themeMode: MobileThemeMode,
 ) {
-    private val ui = GremiaUi(context)
+    private val ui = GremiaUi(context, themeMode)
     private val dashboardPanel = DashboardPanelRenderer(context, ui)
     private val pairingPanel = PairingPanelRenderer(context, ui)
     private val snapshotPanel = SnapshotPanelRenderer(context, ui)
@@ -32,6 +36,7 @@ class AppShellRenderer(
         pendingImport: MobileSnapshotImportPreview?,
         returnDrafts: MobileReturnDraftSet,
         syncEvents: List<MobileSyncEvent>,
+        settings: MobileAppSettings,
         activeSection: MobileAppSection,
         onSelectSection: (MobileAppSection) -> Unit,
         onCopyRecipientToken: () -> Unit,
@@ -48,15 +53,20 @@ class AppShellRenderer(
         onCreateReturnPackage: () -> Unit,
         onDiscardReturnDraft: (String) -> Unit,
         onClearReturnDrafts: () -> Unit,
+        onSetAutoLockTimeout: (MobileAutoLockTimeout) -> Unit,
+        onSetSecureScreen: (Boolean) -> Unit,
+        onClearWorkData: () -> Unit,
+        onInitializeNewDevice: () -> Unit,
     ): ScrollView =
         ScrollView(context).apply {
-            setBackgroundColor(ui.color(R.color.gremia_background))
+            setBackgroundColor(ui.backgroundColor())
             addView(content(
                 identity,
                 snapshot,
                 pendingImport,
                 returnDrafts,
                 syncEvents,
+                settings,
                 activeSection,
                 onSelectSection,
                 onCopyRecipientToken,
@@ -73,6 +83,10 @@ class AppShellRenderer(
                 onCreateReturnPackage,
                 onDiscardReturnDraft,
                 onClearReturnDrafts,
+                onSetAutoLockTimeout,
+                onSetSecureScreen,
+                onClearWorkData,
+                onInitializeNewDevice,
             ))
         }
 
@@ -82,6 +96,7 @@ class AppShellRenderer(
         pendingImport: MobileSnapshotImportPreview?,
         returnDrafts: MobileReturnDraftSet,
         syncEvents: List<MobileSyncEvent>,
+        settings: MobileAppSettings,
         activeSection: MobileAppSection,
         onSelectSection: (MobileAppSection) -> Unit,
         onCopyRecipientToken: () -> Unit,
@@ -98,6 +113,10 @@ class AppShellRenderer(
         onCreateReturnPackage: () -> Unit,
         onDiscardReturnDraft: (String) -> Unit,
         onClearReturnDrafts: () -> Unit,
+        onSetAutoLockTimeout: (MobileAutoLockTimeout) -> Unit,
+        onSetSecureScreen: (Boolean) -> Unit,
+        onClearWorkData: () -> Unit,
+        onInitializeNewDevice: () -> Unit,
     ): LinearLayout =
         LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
@@ -108,8 +127,12 @@ class AppShellRenderer(
             addView(ui.title(context.getString(R.string.app_name)))
             addView(sectionNavigation(activeSection, onSelectSection))
             when (activeSection) {
-                MobileAppSection.Dashboard -> addView(dashboardPanel.render(snapshot, returnDrafts))
-                MobileAppSection.Deadlines -> addView(snapshotPanel.renderCurrent(snapshot))
+                MobileAppSection.Dashboard -> addView(dashboardPanel.render(snapshot, returnDrafts, syncEvents))
+                MobileAppSection.Deadlines -> addView(snapshotPanel.renderCurrent(
+                    snapshot,
+                    returnDrafts,
+                    onCompleteReturnDeadline,
+                ))
                 MobileAppSection.Synchronization -> {
                     addView(pairingPanel.render(identity, onCopyRecipientToken, onCreatePairingResponse))
                     addView(snapshotPanel.renderImport(
@@ -123,7 +146,6 @@ class AppShellRenderer(
                     addView(returnPanel.render(
                         snapshot,
                         returnDrafts,
-                        onCompleteReturnDeadline,
                         onCreateReturnPackage,
                         onDiscardReturnDraft,
                         onClearReturnDrafts,
@@ -136,7 +158,15 @@ class AppShellRenderer(
                     onAddReturnInbox,
                     onAddReturnDeadline,
                 ))
-                MobileAppSection.Settings -> addView(settingsPanel.render(identity, snapshot))
+                MobileAppSection.Settings -> addView(settingsPanel.render(
+                    identity,
+                    snapshot,
+                    settings,
+                    onSetAutoLockTimeout,
+                    onSetSecureScreen,
+                    onClearWorkData,
+                    onInitializeNewDevice,
+                ))
             }
         }
 

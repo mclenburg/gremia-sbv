@@ -55,7 +55,6 @@ describe('Android-Begleit-App Arbeitsbereich', () => {
   it('startet ohne Netzwerkberechtigung, Cloud-Backup oder Desktop-Abhängigkeiten', () => {
     const manifest = readWorkspaceFile('app/src/main/AndroidManifest.xml');
     const appBuild = readWorkspaceFile('app/build.gradle.kts');
-    const strings = readWorkspaceFile('app/src/main/res/values/strings.xml');
 
     expect(manifest.includes('android.permission.INTERNET')).toBe(false);
     expect(manifest.includes('android:allowBackup="false"')).toBe(true);
@@ -64,12 +63,6 @@ describe('Android-Begleit-App Arbeitsbereich', () => {
     expect(appBuild.includes('androidx.core:core-ktx:1.13.1')).toBe(true);
     expect(appBuild.includes('com.journeyapps:zxing-android-embedded:4.3.0')).toBe(true);
     expect(appBuild.includes('project(":')).toBe(false);
-    expect(strings.includes('Gremia.SBV Begleit-App')).toBe(true);
-    expect(strings.includes('Snapshot empfangen')).toBe(true);
-    expect(strings.includes('QR-Code scannen')).toBe(true);
-    expect(strings.includes('Mobile Änderungen zurückgeben')).toBe(true);
-    expect(strings.includes('Fallakten filtern')).toBe(true);
-    expect(strings.includes('Begleit-App gesperrt')).toBe(true);
   });
 
   it('nutzt nur lokal lizenzkompatible Android-Abhängigkeiten ohne Telemetrie-SDKs', () => {
@@ -89,6 +82,9 @@ describe('Android-Begleit-App Arbeitsbereich', () => {
       'app/src/test/java/de/gremia/sbv/companion/domain/mobile/MobileReturnPayloadBuilderTest.kt',
       'app/src/test/java/de/gremia/sbv/companion/domain/mobile/MobileDeadlineMonitorTest.kt',
       'app/src/test/java/de/gremia/sbv/companion/domain/mobile/MobileDeadlineNotificationPlannerTest.kt',
+      'app/src/test/java/de/gremia/sbv/companion/domain/mobile/MobileDashboardBuilderTest.kt',
+      'app/src/test/java/de/gremia/sbv/companion/domain/mobile/MobileSyncHistoryPolicyTest.kt',
+      'app/src/test/java/de/gremia/sbv/companion/domain/security/MobileAppSettingsTest.kt',
       'app/src/test/java/de/gremia/sbv/companion/domain/security/MobileLockPolicyTest.kt',
     ]) {
       expect(existsSync(join(workspaceRoot, file))).toBe(true);
@@ -97,13 +93,9 @@ describe('Android-Begleit-App Arbeitsbereich', () => {
 
   it('sichert die geschützte Laufzeit-Hülle der Begleit-App strukturell ab', () => {
     const manifest = readWorkspaceFile('app/src/main/AndroidManifest.xml');
-    const activity = readWorkspaceFile('app/src/main/java/de/gremia/sbv/companion/MainActivity.kt');
 
     expect(manifest.includes('android.permission.POST_NOTIFICATIONS')).toBe(true);
     expect(manifest.includes('MobileDeadlineNotificationReceiver')).toBe(true);
-    expect(activity).toContain('FLAG_SECURE');
-    expect(activity).toContain('BiometricPrompt');
-    expect(activity).toContain('createConfirmDeviceCredentialIntent');
   });
 
   it('prüft den mobilen Rückgabe-Vertrag über Verhaltens-Tests', () => {

@@ -29,3 +29,15 @@ Rückgabedatei zurück.
 - Mobile Notizen, mobile Wiedervorlagen und Fristerledigungen werden lokal
   verschlüsselt vorgemerkt und als `.gsbvmobile` zielgebunden für die
   Desktop-Instanz gespeichert.
+- Die Arbeitsbereiche **Start**, **Fristen**, **Erfassen**, **Synchronisation**
+  und **Einstellungen** trennen Überblick, mobile Arbeit und technische
+  Übertragung klar voneinander.
+- Der Startbereich zeigt fällige Arbeit, offene Folgeschritte, ungesendete
+  Änderungen sowie den letzten Im- und Export. Fristen lassen sich filtern und
+  mit einer optionalen Abschlussnotiz erledigen.
+- Die App übernimmt Hell- oder Dunkeldarstellung aus der mobilen Projektion.
+  Displayschutz, automatische Sperre und die gezielte Löschung des mobilen
+  Arbeitsbestands bleiben lokal konfigurierbar.
+- Der technische Synchronisationsverlauf wird verschlüsselt gespeichert. Eine
+  neue Projektion ersetzt keinen Arbeitsbestand, solange ungesendete mobile
+  Änderungen vorhanden sind.

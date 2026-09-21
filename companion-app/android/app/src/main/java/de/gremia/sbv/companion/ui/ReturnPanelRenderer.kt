@@ -3,7 +3,6 @@ package de.gremia.sbv.companion.ui
 import android.content.Context
 import android.widget.LinearLayout
 import de.gremia.sbv.companion.R
-import de.gremia.sbv.companion.domain.mobile.MobileDeadlineProjection
 import de.gremia.sbv.companion.domain.mobile.MobileReturnDraftSet
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshot
 
@@ -14,7 +13,6 @@ class ReturnPanelRenderer(
     fun render(
         snapshot: MobileSnapshot?,
         drafts: MobileReturnDraftSet,
-        onCompleteDeadline: (MobileDeadlineProjection, String?) -> Unit,
         onCreatePackage: () -> Unit,
         onDiscardDraft: (String) -> Unit,
         onClearDrafts: () -> Unit,
@@ -29,7 +27,6 @@ class ReturnPanelRenderer(
                 addView(ui.paragraph(context.getString(R.string.return_empty)))
                 return@apply
             }
-            addView(deadlineCompletionList(snapshot.deadlines, drafts, onCompleteDeadline))
             addView(draftList(drafts, onDiscardDraft))
             addView(ui.horizontalActions(
                 ui.button(context.getString(R.string.return_create_package), onCreatePackage),
@@ -40,48 +37,6 @@ class ReturnPanelRenderer(
                     onClearDrafts,
                 ),
             ))
-        }
-
-    private fun deadlineCompletionList(
-        deadlines: List<MobileDeadlineProjection>,
-        drafts: MobileReturnDraftSet,
-        onCompleteDeadline: (MobileDeadlineProjection, String?) -> Unit,
-    ): LinearLayout =
-        LinearLayout(context).apply {
-            orientation = LinearLayout.VERTICAL
-            val completionIds = drafts.deadlineCompletions.map { completion -> completion.deadlineId }.toSet()
-            val openDeadlines = deadlines.filter { deadline -> deadline.status != "done" && deadline.status != "completed" }
-            addView(ui.fieldLabel(context.getString(R.string.return_deadline_complete_label)))
-            if (openDeadlines.isEmpty()) {
-                addView(ui.listText(context.getString(R.string.return_deadline_complete_empty)))
-                return@apply
-            }
-            openDeadlines.forEach { deadline ->
-                addView(ui.listItem(
-                    primary = deadline.title,
-                    secondary = context.getString(
-                        R.string.return_deadline_complete_summary,
-                        MobileDateFormatter.formatDateTime(deadline.dueAt),
-                        deadline.severity,
-                    ),
-                ))
-                val note = textInput(
-                    R.string.return_deadline_complete_note_label,
-                    R.string.return_deadline_complete_note_hint,
-                    multiLine = false,
-                )
-                addView(note)
-                val label = if (completionIds.contains(deadline.id)) {
-                    context.getString(R.string.return_deadline_complete_planned)
-                } else {
-                    context.getString(R.string.return_deadline_complete_action)
-                }
-                addView(ui.button(label) {
-                    if (!completionIds.contains(deadline.id)) {
-                        onCompleteDeadline(deadline, note.text.toString())
-                    }
-                })
-            }
         }
 
     private fun draftList(drafts: MobileReturnDraftSet, onDiscardDraft: (String) -> Unit): LinearLayout =
@@ -109,6 +64,4 @@ class ReturnPanelRenderer(
             actionLabel = context.getString(R.string.return_discard_draft),
         ) { onDiscardDraft(mobileId) }
 
-    private fun textInput(labelId: Int, hintId: Int, multiLine: Boolean) =
-        ui.textInput(context.getString(labelId), context.getString(hintId), multiLine)
 }

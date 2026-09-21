@@ -1,5 +1,6 @@
 package de.gremia.sbv.companion.data.transfer
 
+import android.annotation.SuppressLint
 import android.content.Context
 import de.gremia.sbv.companion.data.security.AndroidSecretBox
 import de.gremia.sbv.companion.domain.transfer.TransferIdentity
@@ -30,6 +31,12 @@ class TransferIdentityRepository(
             .putString(IDENTITY_KEY, secretBox.encrypt(encode(created)))
             .apply()
         return created
+    }
+
+    @SuppressLint("ApplySharedPref")
+    fun clear() {
+        preferences.edit().remove(IDENTITY_KEY).commit()
+        secretBox.deleteKey()
     }
 
     private fun encode(identity: TransferIdentity): String =

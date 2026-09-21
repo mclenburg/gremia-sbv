@@ -49,6 +49,20 @@ Die Begleit-App ist kein zweiter vollständiger Tresor. Sie dient dazu, unterweg
 
 Aus der Begleit-App zurück übernommen werden mobile Gesprächsnotizen, neue mobile Wiedervorlagen und erledigte Fristen. Der Desktop bleibt führend: wurde eine Frist seit dem Snapshot im Desktop geändert, blockiert Gremia.SBV die mobile Erledigung und zeigt den Konflikt im Importplan.
 
+In der Begleit-App führt **Start** durch die aktuelle Arbeit. **Fristen** bietet
+eine filterbare Liste und erfasst Erledigungen mit optionaler Abschlussnotiz;
+**Erfassen** nimmt Gesprächsnotizen, Eingangsthemen und neue Wiedervorlagen auf.
+Unter **Synchronisation** werden neue Projektionen eingelesen, Rückgabedateien
+gespeichert und der verschlüsselte technische Verlauf angezeigt. Eine neue
+Projektion kann ungesendete Änderungen nicht still überschreiben.
+
+Unter **Einstellungen** werden Displayschutz und automatische Sperre verwaltet.
+**Arbeitsbestand löschen** entfernt Projektion, Entwürfe, Verlauf,
+Benachrichtigungen und temporäre Rückgabedateien vom Gerät, behält aber die
+Kopplungsidentität. **Gerät neu initialisieren** entfernt zusätzlich Identität
+und lokale Einstellungen. Bereits außerhalb der App gespeicherte
+Rückgabedateien müssen am gewählten Speicherort separat gelöscht werden.
+
 ## Amtsübergabe
 
 Die Amtsübergabe enthält:

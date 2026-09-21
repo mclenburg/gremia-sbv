@@ -12,15 +12,19 @@ import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
 import de.gremia.sbv.companion.R
+import de.gremia.sbv.companion.domain.security.MobileThemeMode
 
-class GremiaUi(private val context: Context) {
+class GremiaUi(
+    private val context: Context,
+    private val themeMode: MobileThemeMode = MobileThemeMode.Dark,
+) {
     val tabletLayout: Boolean
         get() = context.resources.configuration.smallestScreenWidthDp >= 600
 
     fun title(value: String): TextView =
         TextView(context).apply {
             text = value
-            setTextColor(color(R.color.gremia_text_primary))
+            setTextColor(textPrimaryColor())
             textSize = 28f
             typeface = Typeface.DEFAULT_BOLD
             gravity = Gravity.CENTER
@@ -29,7 +33,7 @@ class GremiaUi(private val context: Context) {
     fun sectionTitle(value: String): TextView =
         TextView(context).apply {
             text = value
-            setTextColor(color(R.color.gremia_text_primary))
+            setTextColor(textPrimaryColor())
             textSize = 22f
             typeface = Typeface.DEFAULT_BOLD
         }
@@ -37,7 +41,7 @@ class GremiaUi(private val context: Context) {
     fun kicker(value: String): TextView =
         TextView(context).apply {
             text = value
-            setTextColor(color(R.color.gremia_accent))
+            setTextColor(accentColor())
             textSize = 12f
             letterSpacing = 0.22f
             typeface = Typeface.DEFAULT_BOLD
@@ -46,7 +50,7 @@ class GremiaUi(private val context: Context) {
     fun paragraph(value: String): TextView =
         TextView(context).apply {
             text = value
-            setTextColor(color(R.color.gremia_text_secondary))
+            setTextColor(textSecondaryColor())
             textSize = 16f
             setPadding(0, dimen(R.dimen.space_sm), 0, dimen(R.dimen.space_lg))
         }
@@ -54,7 +58,7 @@ class GremiaUi(private val context: Context) {
     fun fieldLabel(value: String): TextView =
         TextView(context).apply {
             text = value
-            setTextColor(color(R.color.gremia_text_secondary))
+            setTextColor(textSecondaryColor())
             textSize = 12f
             typeface = Typeface.DEFAULT_BOLD
             letterSpacing = 0.16f
@@ -65,7 +69,7 @@ class GremiaUi(private val context: Context) {
         TextView(context).apply {
             text = value
             contentDescription = "$label: $value"
-            setTextColor(color(R.color.gremia_text_primary))
+            setTextColor(textPrimaryColor())
             textSize = 14f
             typeface = Typeface.MONOSPACE
             setTextIsSelectable(true)
@@ -78,8 +82,8 @@ class GremiaUi(private val context: Context) {
         EditText(context).apply {
             this.hint = hint
             contentDescription = label
-            setTextColor(color(R.color.gremia_text_primary))
-            setHintTextColor(color(R.color.gremia_text_secondary))
+            setTextColor(textPrimaryColor())
+            setHintTextColor(textSecondaryColor())
             textSize = 16f
             val padding = dimen(R.dimen.space_md)
             setPadding(padding, padding, padding, padding)
@@ -97,7 +101,7 @@ class GremiaUi(private val context: Context) {
         TextView(context).apply {
             text = listOfNotNull(primary, secondary).joinToString("\n")
             contentDescription = label
-            setTextColor(color(R.color.gremia_text_primary))
+            setTextColor(textPrimaryColor())
             textSize = 15f
             typeface = Typeface.DEFAULT_BOLD
             val padding = dimen(R.dimen.space_md)
@@ -109,7 +113,7 @@ class GremiaUi(private val context: Context) {
         TextView(context).apply {
             text = value
             contentDescription = label
-            setTextColor(color(R.color.gremia_text_primary))
+            setTextColor(textPrimaryColor())
             textSize = 15f
             setPadding(0, dimen(R.dimen.space_xs), 0, dimen(R.dimen.space_xs))
         }
@@ -150,7 +154,7 @@ class GremiaUi(private val context: Context) {
             text = label
             contentDescription = label
             isAllCaps = false
-            setTextColor(color(R.color.gremia_background))
+            setTextColor(actionTextColor())
             textSize = 14f
             typeface = Typeface.DEFAULT_BOLD
             background = actionBackground()
@@ -165,7 +169,7 @@ class GremiaUi(private val context: Context) {
             text = label
             contentDescription = label
             isAllCaps = false
-            setTextColor(color(R.color.gremia_text_primary))
+            setTextColor(textPrimaryColor())
             textSize = 14f
             typeface = Typeface.DEFAULT_BOLD
             background = valueBackground()
@@ -180,7 +184,7 @@ class GremiaUi(private val context: Context) {
             text = label
             contentDescription = label
             isAllCaps = false
-            setTextColor(color(if (selected) R.color.gremia_background else R.color.gremia_text_primary))
+            setTextColor(if (selected) actionTextColor() else textPrimaryColor())
             textSize = 14f
             typeface = Typeface.DEFAULT_BOLD
             background = if (selected) actionBackground() else valueBackground()
@@ -195,7 +199,7 @@ class GremiaUi(private val context: Context) {
             text = context.getString(R.string.help_action)
             contentDescription = "${context.getString(R.string.help_action)}: $title"
             isAllCaps = false
-            setTextColor(color(R.color.gremia_text_primary))
+            setTextColor(textPrimaryColor())
             textSize = 14f
             typeface = Typeface.DEFAULT_BOLD
             background = valueBackground()
@@ -280,7 +284,7 @@ class GremiaUi(private val context: Context) {
             addView(right)
         }
 
-    fun summaryCard(label: String, value: String, detail: String): LinearLayout =
+    fun summaryCard(label: String, value: String): LinearLayout =
         LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
             background = valueBackground()
@@ -288,30 +292,69 @@ class GremiaUi(private val context: Context) {
             setPadding(padding, padding, padding, padding)
             addView(kicker(label))
             addView(sectionTitle(value))
-            addView(listText(detail))
         }
+
+    fun promptForOptionalText(
+        title: String,
+        label: String,
+        hint: String,
+        confirmLabel: String,
+        onConfirmed: (String) -> Unit,
+    ) {
+        val input = textInput(label, hint)
+        val content = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            val padding = dimen(R.dimen.space_lg)
+            setPadding(padding, padding, padding, padding)
+            addView(fieldLabel(label))
+            addView(input)
+        }
+        AlertDialog.Builder(context)
+            .setTitle(title)
+            .setView(content)
+            .setNegativeButton(android.R.string.cancel, null)
+            .setPositiveButton(confirmLabel) { _, _ -> onConfirmed(input.text.toString()) }
+            .show()
+    }
 
     fun valueBackground(): GradientDrawable =
         GradientDrawable().apply {
-            setColor(color(R.color.gremia_value_background))
-            setStroke(dimen(R.dimen.border_width), color(R.color.gremia_border))
+            setColor(valueBackgroundColor())
+            setStroke(dimen(R.dimen.border_width), borderColor())
         }
 
     fun dimen(id: Int): Int = context.resources.getDimensionPixelSize(id)
 
     fun color(id: Int): Int = context.getColor(id)
 
+    fun backgroundColor(): Int = themedColor(R.color.gremia_background, R.color.gremia_background_light)
+
     private fun panelBackground(): GradientDrawable =
         GradientDrawable().apply {
-            setColor(color(R.color.gremia_surface))
-            setStroke(dimen(R.dimen.border_width), color(R.color.gremia_border))
+            setColor(themedColor(R.color.gremia_surface, R.color.gremia_surface_light))
+            setStroke(dimen(R.dimen.border_width), borderColor())
         }
 
     private fun actionBackground(): GradientDrawable =
         GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, intArrayOf(
-            color(R.color.gremia_accent),
-            color(R.color.gremia_accent_dark),
+            accentColor(),
+            themedColor(R.color.gremia_accent_dark, R.color.gremia_accent_dark_light),
         )).apply {
-            setStroke(dimen(R.dimen.border_width), color(R.color.gremia_accent))
+            setStroke(dimen(R.dimen.border_width), accentColor())
         }
+
+    private fun textPrimaryColor(): Int = themedColor(R.color.gremia_text_primary, R.color.gremia_text_primary_light)
+
+    private fun textSecondaryColor(): Int = themedColor(R.color.gremia_text_secondary, R.color.gremia_text_secondary_light)
+
+    private fun valueBackgroundColor(): Int = themedColor(R.color.gremia_value_background, R.color.gremia_value_background_light)
+
+    private fun borderColor(): Int = themedColor(R.color.gremia_border, R.color.gremia_border_light)
+
+    private fun accentColor(): Int = themedColor(R.color.gremia_accent, R.color.gremia_accent_light)
+
+    private fun actionTextColor(): Int = color(R.color.gremia_action_text)
+
+    private fun themedColor(darkColor: Int, lightColor: Int): Int =
+        color(if (themeMode == MobileThemeMode.Light) lightColor else darkColor)
 }

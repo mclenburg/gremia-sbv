@@ -5,11 +5,13 @@ import android.view.Gravity
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import de.gremia.sbv.companion.R
+import de.gremia.sbv.companion.domain.security.MobileThemeMode
 
 class LockPanelRenderer(
     private val context: Context,
+    themeMode: MobileThemeMode,
 ) {
-    private val ui = GremiaUi(context)
+    private val ui = GremiaUi(context, themeMode)
 
     fun render(
         canUseDeviceCredential: Boolean,
@@ -17,7 +19,7 @@ class LockPanelRenderer(
         onOpenSecuritySettings: () -> Unit,
     ): ScrollView =
         ScrollView(context).apply {
-            setBackgroundColor(ui.color(R.color.gremia_background))
+            setBackgroundColor(ui.backgroundColor())
             addView(LinearLayout(context).apply {
                 orientation = LinearLayout.VERTICAL
                 gravity = Gravity.CENTER_HORIZONTAL

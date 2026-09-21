@@ -6,7 +6,6 @@
     <dimen name="space_sm">8dp</dimen>
     <dimen name="space_md">12dp</dimen>
     <dimen name="space_lg">20dp</dimen>
-    <dimen name="space_xl">32dp</dimen>
     <dimen name="button_min_height">48dp</dimen>
     <dimen name="border_width">1dp</dimen>
 </resources>

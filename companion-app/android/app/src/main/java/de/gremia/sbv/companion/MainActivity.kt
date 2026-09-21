@@ -17,7 +17,6 @@ import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.provider.Settings
-import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.ComponentActivity
@@ -29,20 +28,30 @@ import de.gremia.sbv.companion.data.mobile.MobileReturnDraftRepository
 import de.gremia.sbv.companion.data.mobile.MobileDeadlineNotificationScheduler
 import de.gremia.sbv.companion.data.mobile.MobileSnapshotRepository
 import de.gremia.sbv.companion.data.mobile.MobileSyncJournalRepository
+import de.gremia.sbv.companion.data.security.AndroidMobileDataResetOperations
+import de.gremia.sbv.companion.data.security.MobileAppSettingsRepository
 import de.gremia.sbv.companion.data.transfer.TransferIdentityRepository
 import de.gremia.sbv.companion.domain.mobile.MobileDeadlineProjection
 import de.gremia.sbv.companion.domain.mobile.MobilePairingExchange
+import de.gremia.sbv.companion.domain.mobile.MobileReturnPackageFile
 import de.gremia.sbv.companion.domain.mobile.MobileReturnPackageCreator
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshotIntakeResult
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshotQrController
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshotReplacementPolicy
 import de.gremia.sbv.companion.domain.security.MobileLockPolicy
+import de.gremia.sbv.companion.domain.security.MobileAppSettings
+import de.gremia.sbv.companion.domain.security.MobileAutoLockTimeout
+import de.gremia.sbv.companion.domain.security.MobileDataResetCoordinator
+import de.gremia.sbv.companion.domain.security.MobileThemeMode
 import de.gremia.sbv.companion.ui.AppShellRenderer
 import de.gremia.sbv.companion.ui.LockPanelRenderer
 import de.gremia.sbv.companion.ui.MobileAppSection
+import de.gremia.sbv.companion.ui.MobileWindowProtection
 import java.io.File
 import java.io.FileInputStream
-import java.util.concurrent.Executor
+
+private const val LOCK_CHECK_INTERVAL_MILLIS = 15_000L
+private const val RETURN_PACKAGE_MIME_TYPE = "application/vnd.gremia.sbv.mobile-return"
 
 class MainActivity : ComponentActivity() {
     private lateinit var identityRepository: TransferIdentityRepository
@@ -52,15 +61,18 @@ class MainActivity : ComponentActivity() {
     private lateinit var deadlineNotificationScheduler: MobileDeadlineNotificationScheduler
     private lateinit var snapshotController: MobileSnapshotQrController
     private lateinit var syncJournalRepository: MobileSyncJournalRepository
+    private lateinit var settingsRepository: MobileAppSettingsRepository
     private val pairingExchange = MobilePairingExchange()
     private val snapshotReplacementPolicy = MobileSnapshotReplacementPolicy()
-    private val lockPolicy = MobileLockPolicy()
+    private var appSettings = MobileAppSettings()
+    private var lockPolicy = MobileLockPolicy(appSettings.autoLockTimeout.milliseconds)
     private val lockCheckHandler = Handler(Looper.getMainLooper())
     private var unlocked = false
     private var lastInteractionAtMillis = 0L
     private var activeSection = MobileAppSection.Dashboard
     private var unlockCancellationSignal: CancellationSignal? = null
-    private var pendingReturnPackage: PendingReturnPackage? = null
+    private var pendingReturnPackage: MobileReturnPackageFile? = null
+    private val windowProtection by lazy { MobileWindowProtection(this) }
     private val qrScanLauncher = registerForActivityResult(ScanContract()) { result ->
         if (result.contents != null) acceptScannedSnapshotFrame(result.contents)
     }
@@ -82,7 +94,10 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        secureWindow()
+        settingsRepository = MobileAppSettingsRepository(this)
+        appSettings = settingsRepository.load()
+        lockPolicy = MobileLockPolicy(appSettings.autoLockTimeout.milliseconds)
+        windowProtection.apply(appSettings, currentThemeMode())
         identityRepository = TransferIdentityRepository(this)
         snapshotRepository = MobileSnapshotRepository(this)
         returnDraftRepository = MobileReturnDraftRepository(this)
@@ -108,17 +123,13 @@ class MainActivity : ComponentActivity() {
         super.onDestroy()
     }
 
-    private fun secureWindow() {
-        window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
-    }
-
     private fun renderLockScreen() {
         lockCheckHandler.removeCallbacksAndMessages(null)
         setContentView(
-            LockPanelRenderer(this).render(
+            LockPanelRenderer(this, currentThemeMode()).render(
                 canUseDeviceCredential = canUseDeviceCredential(),
                 onUnlock = { requestUnlock() },
-                onOpenSecuritySettings = { openSecuritySettings() },
+                onOpenSecuritySettings = { startActivity(Intent(Settings.ACTION_SECURITY_SETTINGS)) },
             ),
         )
     }
@@ -128,14 +139,16 @@ class MainActivity : ComponentActivity() {
             renderLockScreen()
             return
         }
+        windowProtection.apply(appSettings, currentThemeMode())
         val identity = identityRepository.getOrCreate()
         setContentView(
-            AppShellRenderer(this).render(
+            AppShellRenderer(this, currentThemeMode()).render(
                 identity = identity,
                 snapshot = snapshotRepository.current(),
                 pendingImport = snapshotController.pendingPreview(),
                 returnDrafts = returnDraftRepository.listDrafts(),
                 syncEvents = syncJournalRepository.listEvents(),
+                settings = appSettings,
                 activeSection = activeSection,
                 onSelectSection = { section ->
                     activeSection = section
@@ -170,6 +183,10 @@ class MainActivity : ComponentActivity() {
                     returnDraftRepository.clear()
                     renderContent()
                 },
+                onSetAutoLockTimeout = { timeout -> updateAutoLockTimeout(timeout) },
+                onSetSecureScreen = { enabled -> updateSecureScreen(enabled) },
+                onClearWorkData = { clearMobileWorkData() },
+                onInitializeNewDevice = { initializeNewDevice() },
             ),
         )
         scheduleAutoLockCheck()
@@ -211,7 +228,7 @@ class MainActivity : ComponentActivity() {
         }
         builder.build().authenticate(
             cancellationSignal,
-            mainThreadExecutor(),
+            java.util.concurrent.Executor { command -> lockCheckHandler.post(command) },
             object : BiometricPrompt.AuthenticationCallback() {
                 override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult?) {
                     unlockCancellationSignal = null
@@ -247,17 +264,10 @@ class MainActivity : ComponentActivity() {
         unlockLauncher.launch(intent)
     }
 
-    private fun mainThreadExecutor(): Executor =
-        Executor { command -> lockCheckHandler.post(command) }
-
     private fun unlock() {
         unlocked = true
         lastInteractionAtMillis = SystemClock.elapsedRealtime()
         renderContent()
-    }
-
-    private fun openSecuritySettings() {
-        startActivity(Intent(Settings.ACTION_SECURITY_SETTINGS))
     }
 
     private fun scheduleAutoLockCheck() {
@@ -276,6 +286,59 @@ class MainActivity : ComponentActivity() {
             }
         }, LOCK_CHECK_INTERVAL_MILLIS)
     }
+
+    private fun currentThemeMode(): MobileThemeMode {
+        val snapshotTheme = if (::snapshotRepository.isInitialized) snapshotRepository.current()?.themeMode else null
+        return MobileThemeMode.fromSnapshot(snapshotTheme)
+    }
+
+    private fun updateAutoLockTimeout(timeout: MobileAutoLockTimeout) {
+        appSettings = appSettings.copy(autoLockTimeout = timeout)
+        settingsRepository.save(appSettings)
+        lockPolicy = MobileLockPolicy(timeout.milliseconds)
+        lastInteractionAtMillis = SystemClock.elapsedRealtime()
+        renderContent()
+    }
+
+    private fun updateSecureScreen(enabled: Boolean) {
+        appSettings = appSettings.copy(secureScreenEnabled = enabled)
+        settingsRepository.save(appSettings)
+        windowProtection.apply(appSettings, currentThemeMode())
+        renderContent()
+    }
+
+    private fun clearMobileWorkData() {
+        dataResetCoordinator().clearWorkData()
+        snapshotController = MobileSnapshotQrController(identityRepository.getOrCreate(), snapshotRepository)
+        activeSection = MobileAppSection.Dashboard
+        Toast.makeText(this, R.string.settings_work_data_cleared, Toast.LENGTH_LONG).show()
+        renderContent()
+    }
+
+    private fun initializeNewDevice() {
+        dataResetCoordinator().initializeNewDevice()
+        appSettings = settingsRepository.load()
+        lockPolicy = MobileLockPolicy(appSettings.autoLockTimeout.milliseconds)
+        windowProtection.apply(appSettings, currentThemeMode())
+        snapshotController = MobileSnapshotQrController(identityRepository.getOrCreate(), snapshotRepository)
+        activeSection = MobileAppSection.Synchronization
+        Toast.makeText(this, R.string.settings_device_initialized, Toast.LENGTH_LONG).show()
+        renderContent()
+    }
+
+    private fun dataResetCoordinator(): MobileDataResetCoordinator =
+        MobileDataResetCoordinator(
+            AndroidMobileDataResetOperations(
+                resetPendingSnapshot = snapshotController::reset,
+                snapshotRepository = snapshotRepository,
+                returnDraftRepository = returnDraftRepository,
+                syncJournalRepository = syncJournalRepository,
+                deadlineNotificationScheduler = deadlineNotificationScheduler,
+                returnPackageCreator = returnPackageCreator,
+                identityRepository = identityRepository,
+                settingsRepository = settingsRepository,
+            ),
+        )
 
     private fun copyRecipientToken(recipientToken: String) {
         val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
@@ -315,7 +378,6 @@ class MainActivity : ComponentActivity() {
         if (!replacementDecision.allowed) {
             return MobileSnapshotIntakeResult.Error(getString(
                 R.string.snapshot_import_blocked_unsent_changes,
-                replacementDecision.unsentChangeCount,
             ))
         }
         val result = snapshotController.confirmPendingImport()
@@ -398,7 +460,7 @@ class MainActivity : ComponentActivity() {
             val snapshot = requireNotNull(snapshotRepository.current()) { getString(R.string.return_empty) }
             returnPackageCreator.create(snapshot, identityRepository.getOrCreate(), returnDraftRepository.listDrafts())
         }.onSuccess { result ->
-            pendingReturnPackage = PendingReturnPackage(result.packageId, result.filePath, result.fileName, result.changeCount)
+            pendingReturnPackage = result
             Toast.makeText(this, R.string.return_file_ready, Toast.LENGTH_SHORT).show()
             returnPackageDocumentLauncher.launch(result.fileName)
         }.onFailure { cause ->
@@ -430,15 +492,4 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private data class PendingReturnPackage(
-        val packageId: String,
-        val filePath: String,
-        val fileName: String,
-        val changeCount: Int,
-    )
-
-    private companion object {
-        private const val LOCK_CHECK_INTERVAL_MILLIS = 15_000L
-        private const val RETURN_PACKAGE_MIME_TYPE = "application/vnd.gremia.sbv.mobile-return"
-    }
 }

@@ -11,8 +11,8 @@ data class MobileDashboardSummary(
     val openDeadlines: Int,
     val unsentChanges: Int,
     val recentlyEditedCases: List<MobileCaseProjection>,
-    val lastSnapshotAt: String?,
-    val lastSnapshotPackageId: String?,
+    val lastImport: MobileSyncEvent?,
+    val lastExport: MobileSyncEvent?,
 )
 
 class MobileDashboardBuilder(
@@ -21,6 +21,7 @@ class MobileDashboardBuilder(
     fun build(
         snapshot: MobileSnapshot?,
         drafts: MobileReturnDraftSet,
+        syncEvents: List<MobileSyncEvent> = emptyList(),
         now: Instant = Instant.now(),
         zoneId: ZoneId = ZoneId.systemDefault(),
     ): MobileDashboardSummary {
@@ -33,8 +34,8 @@ class MobileDashboardBuilder(
                 openDeadlines = 0,
                 unsentChanges = drafts.changeCount,
                 recentlyEditedCases = emptyList(),
-                lastSnapshotAt = null,
-                lastSnapshotPackageId = null,
+                lastImport = latest(syncEvents, MobileSyncDirection.DesktopToMobile),
+                lastExport = latest(syncEvents, MobileSyncDirection.MobileToDesktop),
             )
         }
 
@@ -56,10 +57,13 @@ class MobileDashboardBuilder(
             openDeadlines = deadlineSummary.totalOpen,
             unsentChanges = drafts.changeCount,
             recentlyEditedCases = recentCaseIds.mapNotNull(casesById::get).take(RECENT_CASE_LIMIT),
-            lastSnapshotAt = snapshot.createdAt,
-            lastSnapshotPackageId = snapshot.packageId,
+            lastImport = latest(syncEvents, MobileSyncDirection.DesktopToMobile),
+            lastExport = latest(syncEvents, MobileSyncDirection.MobileToDesktop),
         )
     }
+
+    private fun latest(events: List<MobileSyncEvent>, direction: MobileSyncDirection): MobileSyncEvent? =
+        events.filter { event -> event.direction == direction }.maxByOrNull { event -> event.occurredAt }
 
     private fun parseChangedAt(value: String): Instant =
         runCatching { Instant.parse(value) }.getOrDefault(Instant.EPOCH)

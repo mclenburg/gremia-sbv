@@ -1,5 +1,6 @@
 package de.gremia.sbv.companion.data.mobile
 
+import android.annotation.SuppressLint
 import android.content.Context
 import de.gremia.sbv.companion.data.security.AndroidSecretBox
 import de.gremia.sbv.companion.domain.mobile.MobileDeadlineProjection
@@ -98,8 +99,10 @@ class MobileReturnDraftRepository(
         return completion
     }
 
-    fun clear() {
-        preferences.edit().remove(DRAFTS_KEY).apply()
+    @SuppressLint("ApplySharedPref")
+    fun clear(destroyKey: Boolean = false) {
+        preferences.edit().remove(DRAFTS_KEY).commit()
+        if (destroyKey) secretBox.deleteKey()
     }
 
     fun remove(mobileId: String): Boolean {
