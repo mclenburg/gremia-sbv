@@ -41,3 +41,23 @@ Rückgabedatei zurück.
 - Der technische Synchronisationsverlauf wird verschlüsselt gespeichert. Eine
   neue Projektion ersetzt keinen Arbeitsbestand, solange ungesendete mobile
   Änderungen vorhanden sind.
+
+## Android-Build und Release-Signierung
+
+Im Android-Arbeitsverzeichnis führt `gradle testDebugUnitTest lintDebug assembleDebug`
+die lokalen Prüfungen aus und erzeugt `app/build/outputs/apk/debug/app-debug.apk`.
+
+Für installierbare Releases benötigt das Projekt einen dauerhaft aufbewahrten,
+privaten Signing-Key. Der Schlüssel und seine Passwörter gehören nicht ins
+Repository. Die nicht versionierte Datei `android/keystore.properties` enthält
+`STORE_FILE`, `STORE_PASSWORD`, `KEY_ALIAS` und `KEY_PASSWORD`. Relative
+Schlüsselpfade beziehen sich auf das Android-Arbeitsverzeichnis. Alternativ
+werden diese vier Werte als Umgebungsvariablen mit Präfix `GREMIA_ANDROID_`
+aus geschützten CI-Secrets bereitgestellt; diese haben Vorrang.
+
+`gradle releaseChecksum` baut die optimierte, signierte Release-APK unter
+`app/build/outputs/apk/release/app-release.apk` und die zugehörige Datei
+`app-release.apk.sha256`. Ohne vollständige Signierung bricht der Release-Build
+mit einer konkreten Fehlermeldung ab. Debug-Builds benötigen keinen Release-Key.
+Updates benötigen denselben Signing-Key und einen erhöhten `versionCode`;
+der Schlüssel muss daher außerhalb des Repositorys gesichert werden.

@@ -27,4 +27,7 @@ release/
 # Android companion app local build state
 /companion-app/android/.gradle/
 /companion-app/android/local.properties
+/companion-app/android/keystore.properties
+/companion-app/android/**/*.jks
+/companion-app/android/**/*.keystore
 /companion-app/android/**/build/
