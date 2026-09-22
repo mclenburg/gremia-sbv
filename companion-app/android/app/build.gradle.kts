@@ -107,4 +107,9 @@ dependencies {
     implementation("com.journeyapps:zxing-android-embedded:4.3.0")
     implementation("org.bouncycastle:bcprov-jdk18on:1.85.2")
     testImplementation(kotlin("test"))
+    testImplementation("org.json:json:20240303")
+}
+
+tasks.withType<Test>().configureEach {
+    systemProperty("gremia.repository", rootProject.projectDir.resolve("../..").canonicalPath)
 }

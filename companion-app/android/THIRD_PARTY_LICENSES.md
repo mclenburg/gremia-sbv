@@ -4,6 +4,13 @@ Die Android-Begleit-App ist ein eigener Build-Arbeitsbereich. Zusätzliche
 Android-Abhängigkeiten werden hier dokumentiert, damit Lizenzentscheidungen
 nicht in der Desktop-Abhängigkeitsliste untergehen.
 
+## JSON-java (nur JVM-Tests)
+
+- Artefakt: `org.json:json:20240303`
+- Zweck: Reale JSON-Verarbeitung im Desktop–Android-Integrationstest statt Android-Teststubs.
+- Lizenz: Public Domain; AGPL-3-kompatibel. Nicht Bestandteil der APK.
+- Quelle: <https://github.com/stleary/JSON-java/wiki/The-JSON-Java-license>
+
 ## Bouncy Castle Java APIs
 
 - Artefakt: `org.bouncycastle:bcprov-jdk18on`

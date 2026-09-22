@@ -47,6 +47,15 @@ Rückgabedatei zurück.
 Im Android-Arbeitsverzeichnis führt `gradle testDebugUnitTest lintDebug assembleDebug`
 die lokalen Prüfungen aus und erzeugt `app/build/outputs/apk/debug/app-debug.apk`.
 
+Die JVM-Tests enthalten einen echten Desktop–Android-Rundlauf: Kotlin erzeugt
+die Kopplungsantwort, liest Desktop-QR-Frames und verschlüsselt eine Rückgabe.
+Der Desktop prüft und importiert diese in eine frisch migrierte Testdatenbank.
+Dafür müssen Node 24 im `PATH` und die npm-Abhängigkeiten des Projekt-Roots
+installiert sein; `npm run native:rebuild:node` bereitet bei einem vorherigen
+Electron-Build das native Datenbankmodul vor. Es werden ausschließlich
+synthetische Daten und flüchtige Testschlüssel verwendet, kein laufender Tresor.
+Dieser Integrationstest ersetzt keine Geräte-, Kamera- oder Screenreaderprüfung.
+
 Für installierbare Releases benötigt das Projekt einen dauerhaft aufbewahrten,
 privaten Signing-Key. Der Schlüssel und seine Passwörter gehören nicht ins
 Repository. Die nicht versionierte Datei `android/keystore.properties` enthält
