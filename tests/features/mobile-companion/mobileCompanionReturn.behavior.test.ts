@@ -8,6 +8,8 @@ import {
   MobileCompanionReturnService,
 } from '../../../services/mobileCompanionReturnService';
 import { encryptTargetBoundTransferPayload } from '../../../services/targetBoundTransferCrypto';
+import { authenticateMobileTransfer } from '../../../services/mobileTransferOriginProof';
+import { formatTransferRecipientToken } from '../../../services/transferInstanceIdentityPolicy';
 import { TransferInstanceIdentityService } from '../../../services/transferInstanceIdentityService';
 import type { DatabaseAdapter } from '../../../services/databaseService';
 import type { MobileCompanionReturnPayload } from '../../../src/domain/models/mobile-companion.model';
@@ -41,12 +43,12 @@ function insertCase(database: DatabaseAdapter, caseId = 'case-mobile-return-1') 
 function encryptedReturnPayload(
   desktop: DatabaseAdapter,
   mobile: DatabaseAdapter,
-  payload: Omit<MobileCompanionReturnPayload, 'protocolVersion' | 'schemaVersion' | 'packageId' | 'sourceInstanceId' | 'targetInstanceId' | 'createdAt'> & { packageId?: string },
+  payload: Omit<MobileCompanionReturnPayload, 'protocolVersion' | 'schemaVersion' | 'packageId' | 'sourceInstanceId' | 'targetInstanceId' | 'createdAt'> & { packageId?: string; sourceInstanceId?: string },
 ): string {
   const desktopIdentity = new TransferInstanceIdentityService(desktop).getPublicIdentity();
   const mobileIdentity = new TransferInstanceIdentityService(mobile).getPublicIdentity();
   const packageId = payload.packageId ?? `mobile_return_${randomUUID()}`;
-  return JSON.stringify(encryptTargetBoundTransferPayload({
+  const envelope = encryptTargetBoundTransferPayload({
     format: MOBILE_COMPANION_RETURN_FORMAT,
     version: MOBILE_COMPANION_RETURN_VERSION,
     packageId,
@@ -55,7 +57,7 @@ function encryptedReturnPayload(
       protocolVersion: '1.0',
       schemaVersion: 1,
       packageId,
-      sourceInstanceId: mobileIdentity.instanceId,
+      sourceInstanceId: payload.sourceInstanceId ?? mobileIdentity.instanceId,
       targetInstanceId: desktopIdentity.instanceId,
       sourceSnapshotPackageId: payload.sourceSnapshotPackageId,
       createdAt: '2026-09-10T10:00:00.000Z',
@@ -64,16 +66,105 @@ function encryptedReturnPayload(
     passphrase: '',
     recipient: desktopIdentity,
     protectionMode: 'recipient_key_only',
-  }));
+  });
+  return JSON.stringify(authenticateMobileTransfer(envelope,
+    new TransferInstanceIdentityService(mobile).getPrivateIdentity(), desktopIdentity.publicKeyPem, 'return'));
 }
 
 describe('Mobile Begleit-App Rückgabe', () => {
-  function pairMobileDevice(desktop: DatabaseAdapter, mobile: DatabaseAdapter, label = 'Tablet SBV') {
+  it('bindet den Ausgangs-Snapshot an den Kopplungsschlüssel statt nur an die fünfstellige ID', async () => {
+    const desktop = await migratedDatabase();
+    const mobile = await migratedDatabase();
+    const other = await migratedDatabase();
+    try {
+      insertCase(desktop);
+      const companion = new MobileCompanionService(desktop);
+      const device = pairMobileDevice(desktop, mobile);
+      const snapshot = companion.createSnapshot({ deviceId: device.id, caseIds: ['case-mobile-return-1'] });
+      const payload = { sourceSnapshotPackageId: snapshot.packageId, sourceInstanceId: device.instanceId,
+        changes: [{ type: 'create_note' as const, mobileId: 'origin-bound', caseId: 'case-mobile-return-1',
+          changedAt: new Date().toISOString(), title: 'Nachweis', content: 'Nur vom ursprünglichen Gerät übernehmen.' }] };
+      const service = new MobileCompanionReturnService(desktop);
+      const original = encryptedReturnPayload(desktop, mobile, payload);
+      expect(service.inspectEnvelopeText(original).canImport).toBe(true);
+      const metadata = desktop.prepare<{ metadata_json: string }>('SELECT metadata_json FROM case_handover_exports WHERE package_id = ?').get(snapshot.packageId)!.metadata_json;
+      desktop.prepare("UPDATE case_handover_exports SET metadata_json = '{}' WHERE package_id = ?").run(snapshot.packageId);
+      expect(service.inspectEnvelopeText(original).canImport).toBe(true); // eindeutig zuordenbarer Altbestand
+      pairMobileDevice(desktop, other, 'Zweites Gerät', device.instanceId);
+      expect(service.inspectEnvelopeText(original).canImport).toBe(false); // mehrdeutiger Altbestand
+      desktop.prepare('UPDATE case_handover_exports SET metadata_json = ? WHERE package_id = ?').run(metadata, snapshot.packageId);
+      expect(service.inspectEnvelopeText(original).canImport).toBe(true);
+      const substituted = encryptedReturnPayload(desktop, other, payload);
+      expect(service.inspectEnvelopeText(substituted).canImport).toBe(false);
+      await expect(service.importEnvelopeText(substituted)).rejects.toThrow(/Importplan/);
+      expect(desktop.prepare<{ count: number }>('SELECT COUNT(*) AS count FROM case_notes').get()?.count).toBe(0);
+    } finally {
+      desktop.close();
+      mobile.close();
+      other.close();
+    }
+  });
+
+  it.each(['widerrufene Kopplung', 'abweichende Quellinstanz'])('weist %s auch beim tatsächlichen Import zurück', async (reason) => {
+    const desktop = await migratedDatabase();
+    const mobile = await migratedDatabase();
+    try {
+      insertCase(desktop);
+      const companion = new MobileCompanionService(desktop);
+      const device = pairMobileDevice(desktop, mobile);
+      const snapshot = companion.createSnapshot({ deviceId: device.id, caseIds: ['case-mobile-return-1'] });
+      const envelope = encryptedReturnPayload(desktop, mobile, {
+        sourceSnapshotPackageId: snapshot.packageId,
+        sourceInstanceId: reason === 'abweichende Quellinstanz' ? `${device.instanceId}-other` : undefined,
+        changes: [{ type: 'create_note', mobileId: 'rejected-note', caseId: 'case-mobile-return-1',
+          changedAt: new Date().toISOString(), title: 'Rückgabe', content: 'Nicht übernehmen.' }],
+      });
+      const service = new MobileCompanionReturnService(desktop);
+      if (reason === 'widerrufene Kopplung') {
+        expect(service.inspectEnvelopeText(envelope).canImport).toBe(true);
+        companion.setDeviceStatus(device.id, 'disabled');
+      }
+      expect(() => service.inspectEnvelopeText(envelope)).toThrow(/Herkunftsnachweis/);
+      await expect(service.importEnvelopeText(envelope)).rejects.toThrow(/Herkunftsnachweis/);
+      expect(desktop.prepare<{ count: number }>('SELECT COUNT(*) AS count FROM case_notes').get()?.count).toBe(0);
+      expect(desktop.prepare<{ count: number }>('SELECT COUNT(*) AS count FROM case_handover_imports').get()?.count).toBe(0);
+    } finally {
+      desktop.close();
+      mobile.close();
+    }
+  });
+
+  it('weist ein nur an den Desktop verschlüsseltes Paket ohne Absendernachweis vor jeder Änderung zurück', async () => {
+    const desktop = await migratedDatabase();
+    const mobile = await migratedDatabase();
+    try {
+      insertCase(desktop);
+      const device = pairMobileDevice(desktop, mobile);
+      const snapshot = new MobileCompanionService(desktop).createSnapshot({ deviceId: device.id, caseIds: ['case-mobile-return-1'] });
+      const unsigned = JSON.parse(encryptedReturnPayload(desktop, mobile, {
+        sourceSnapshotPackageId: snapshot.packageId,
+        changes: [{ type: 'create_note', mobileId: 'forged-note', caseId: 'case-mobile-return-1',
+          changedAt: new Date().toISOString(), title: 'Behaupteter Absender', content: 'Darf nicht importiert werden.' }],
+      }));
+      delete unsigned.senderProof;
+      const service = new MobileCompanionReturnService(desktop);
+      expect(() => service.inspectEnvelopeText(JSON.stringify(unsigned))).toThrow(/Herkunftsnachweis/);
+      await expect(service.importEnvelopeText(JSON.stringify(unsigned))).rejects.toThrow(/Herkunftsnachweis/);
+      expect(desktop.prepare<{ count: number }>('SELECT COUNT(*) AS count FROM case_notes').get()?.count).toBe(0);
+      expect(desktop.prepare<{ count: number }>('SELECT COUNT(*) AS count FROM case_handover_imports').get()?.count).toBe(0);
+    } finally {
+      desktop.close();
+      mobile.close();
+    }
+  });
+
+  function pairMobileDevice(desktop: DatabaseAdapter, mobile: DatabaseAdapter, label = 'Tablet SBV', instanceId?: string) {
     const service = new MobileCompanionService(desktop);
     const request = service.createPairingRequest();
+    const mobileIdentity = new TransferInstanceIdentityService(mobile).getPublicIdentity();
     const response = createMobileCompanionPairingResponse(
       request.pairingRequest,
-      new TransferInstanceIdentityService(mobile).getPublicIdentity().recipientToken,
+      instanceId ? formatTransferRecipientToken({ ...mobileIdentity, instanceId }) : mobileIdentity.recipientToken,
     );
     return service.saveDevice({
       label,

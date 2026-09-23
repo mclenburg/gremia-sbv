@@ -67,6 +67,7 @@ export function recordMobileCompanionSnapshotExport(
   db: DatabaseAdapter,
   payload: MobileCompanionSnapshotPayload,
   frameCount: number,
+  targetKeyFingerprint: string,
 ): void {
   ensureCaseHandoverExportLedgerSchema(db);
   const exportId = randomUUID();
@@ -85,6 +86,7 @@ export function recordMobileCompanionSnapshotExport(
       frameCount,
       schemaVersion: payload.schemaVersion,
       source: 'mobile_companion',
+      targetKeyFingerprint,
     }),
   );
   for (const item of [

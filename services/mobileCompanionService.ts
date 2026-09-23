@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { authenticateMobileSnapshot } from './mobileSnapshotOriginProof.js';
+import { authenticateMobileTransfer } from './mobileTransferOriginProof.js';
 import { ApplicationError } from '../src/domain/models/application-error.model.js';
 import { deflateSync, inflateSync } from 'node:zlib';
 import type { DatabaseAdapter } from './databaseService.js';
@@ -342,11 +342,11 @@ export class MobileCompanionService {
         },
         protectionMode: 'recipient_key_only',
       });
-      const authenticated = authenticateMobileSnapshot(envelope satisfies TargetBoundTransferEnvelope,
-        new TransferInstanceIdentityService(this.database).getPrivateIdentity(), parseTransferRecipientToken(device.recipientToken).publicKeyPem);
+      const authenticated = authenticateMobileTransfer(envelope satisfies TargetBoundTransferEnvelope,
+        new TransferInstanceIdentityService(this.database).getPrivateIdentity(), parseTransferRecipientToken(device.recipientToken).publicKeyPem, 'snapshot');
       const serializedEnvelope = JSON.stringify(authenticated);
       const qrFrames = createMobileCompanionQrFrames(serializedEnvelope, packageId);
-      recordMobileCompanionSnapshotExport(this.database, payload, qrFrames.length);
+      recordMobileCompanionSnapshotExport(this.database, payload, qrFrames.length, device.keyFingerprint);
       this.database.prepare('UPDATE mobile_companion_devices SET last_snapshot_at = ?, updated_at = ? WHERE id = ?')
         .run(createdAt, createdAt, device.id);
       this.auditLog.append({

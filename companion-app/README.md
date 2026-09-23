@@ -35,7 +35,11 @@ Rückgabedatei zurück.
   die bestehende Zielverschlüsselung noch die beidseitige Codeprüfung.
 - Mobile Notizen, mobile Wiedervorlagen und Fristerledigungen werden lokal
   verschlüsselt vorgemerkt und als `.gsbvmobile` zielgebunden für die
-  Desktop-Instanz gespeichert.
+  Desktop-Instanz gespeichert. Auch die Rückgabe trägt einen Herkunftsnachweis
+  des Mobilgeräts; dessen aktiver Kopplungsschlüssel wird am Desktop vor
+  Vorschau und Import geprüft. Die Schlüsselableitung trennt Hin- und Rückweg.
+  Ältere Rückgabedateien ohne Nachweis werden nicht importiert: App aktualisieren
+  und aus den erhalten gebliebenen Entwürfen eine neue Rückgabedatei erzeugen.
 - Die Arbeitsbereiche **Start**, **Fristen**, **Erfassen**, **Synchronisation**
   und **Einstellungen** trennen Überblick, mobile Arbeit und technische
   Übertragung klar voneinander.

@@ -62,7 +62,16 @@ class MobileDesktopInteropTest {
                 "Änderung: Größe, Straße und 職場 bleiben unverändert.", "interne_notiz", "Rückmeldung prüfen",
             )), emptyList(), emptyList())
             val payload = MobileReturnPayloadBuilder().build("interop-return", now, snapshot, identity, drafts)
-            val envelope = TargetBoundReturnEncryptor().encrypt(payload, "interop-return", now, snapshot.returnTarget)
+            val envelope = TargetBoundReturnEncryptor().encrypt(payload, "interop-return", now, snapshot.returnTarget, identity)
+            val missingReturnOrigin = JSONObject(envelope).apply { remove("senderProof") }
+            val forgedReturnOrigin = JSONObject(envelope).apply {
+                getJSONObject("senderProof").put("mac", java.util.Base64.getEncoder().encodeToString(ByteArray(32)))
+            }
+            val imposter = X25519IdentityFactory().create().copy(keyFingerprint = identity.keyFingerprint)
+            val forgedReturn = TargetBoundReturnEncryptor().encrypt(payload, "interop-return", now, snapshot.returnTarget, imposter)
+            for (invalid in listOf(missingReturnOrigin.toString(), forgedReturnOrigin.toString(), forgedReturn)) {
+                assertTrue(desktop.call(JSONObject().put("action", "inspectRejected").put("envelope", invalid)).getBoolean("rejected"))
+            }
             val inspection = desktop.call(JSONObject().put("action", "inspect").put("envelope", envelope))
             assertTrue(inspection.getBoolean("canImport"))
             assertEquals(1, inspection.getInt("noteCount"))

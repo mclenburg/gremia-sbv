@@ -3,6 +3,7 @@ package de.gremia.sbv.companion.data.transfer
 import de.gremia.sbv.companion.domain.mobile.MobileReturnTarget
 import de.gremia.sbv.companion.domain.mobile.sha256
 import de.gremia.sbv.companion.domain.transfer.pemBlock
+import de.gremia.sbv.companion.domain.transfer.TransferIdentity
 import org.bouncycastle.asn1.ASN1ObjectIdentifier
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo
@@ -22,6 +23,7 @@ class TargetBoundReturnEncryptor(
         packageId: String,
         createdAt: String,
         target: MobileReturnTarget,
+        sender: TransferIdentity,
     ): String {
         val ephemeralPrivate = X25519PrivateKeyParameters(random)
         val ephemeralPublicPem = ephemeralPublicPem(ephemeralPrivate)
@@ -58,6 +60,7 @@ class TargetBoundReturnEncryptor(
                     .put("aadSha256", sha256(aad))
                     .put("ciphertextSha256", sha256(cipherText)))
                 .put("payload", encoder.encodeToString(cipherText))
+                .let { MobileTransferOriginProof.authenticate(it, sender, target.publicKeyPem, MobileTransferPurpose.RETURN) }
                 .toString()
         } finally {
             key.fill(0)

@@ -39,6 +39,14 @@ async function main() {
         case 'inspect':
           response = returns.inspectEnvelopeText(request.envelope);
           break;
+        case 'inspectRejected':
+          try {
+            returns.inspectEnvelopeText(request.envelope);
+            response = { rejected: false };
+          } catch {
+            response = { rejected: true };
+          }
+          break;
         case 'import':
           response = await returns.importEnvelopeText(request.envelope);
           break;

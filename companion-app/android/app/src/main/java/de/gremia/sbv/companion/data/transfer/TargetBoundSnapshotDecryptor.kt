@@ -42,7 +42,7 @@ class TargetBoundSnapshotDecryptor(
         require(integrity.getString("aadSha256").equals(sha256(aad), ignoreCase = true)) {
             "Die Mobile-Projektion enthält widersprüchliche Kopfdaten."
         }
-        MobileSnapshotOriginVerifier.verify(envelope, identity, trustedDesktop())
+        MobileTransferOriginProof.verify(envelope, identity, trustedDesktop(), MobileTransferPurpose.SNAPSHOT)
         val ciphertext = Base64.getDecoder().decode(envelope.getString("payload"))
         require(integrity.getString("ciphertextSha256").equals(sha256(ciphertext), ignoreCase = true)) {
             "Die Mobile-Projektion enthält beschädigte Nutzdaten."

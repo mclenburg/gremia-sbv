@@ -16,7 +16,7 @@ class MobileReturnPackageCreator(
         val packageId = "mobile_return_${UUID.randomUUID()}"
         val createdAt = Instant.now().toString()
         val payload = payloadBuilder.build(packageId, createdAt, snapshot, sourceIdentity, drafts)
-        val envelope = encryptor.encrypt(payload, packageId, createdAt, snapshot.returnTarget)
+        val envelope = encryptor.encrypt(payload, packageId, createdAt, snapshot.returnTarget, sourceIdentity)
         val directory = File(context.cacheDir, "mobile-return").apply { mkdirs() }
         val fileName = "$packageId.gsbvmobile"
         val file = File(directory, fileName)

@@ -55,6 +55,17 @@ zurückgeben, dann den mobilen Arbeitsbestand entfernen und beide Geräte neu
 koppeln. Projektionen anschließend mit dem aktuellen Desktop neu erzeugen.
 Ein Desktopwechsel ist bei vorhandenem mobilen Arbeitsbestand gesperrt.
 
+Auch bei der Rückgabe prüft der Desktop den kryptografischen Herkunftsnachweis
+des weiterhin aktiv gekoppelten Mobilgeräts – erneut beim Import, nicht nur
+bei der Vorschau. Fehlt der Nachweis in einer älteren Rückgabedatei, aktualisiere
+die Begleit-App und erzeuge die Rückgabedatei aus den vorhandenen Entwürfen
+erneut. Weder Entwürfe noch Arbeitsbestand dafür löschen oder die App
+deinstallieren. Eine deaktivierte Kopplung verhindert die Übernahme.
+Neue Projektionen werden dem Empfängerschlüssel zugeordnet, nicht allein
+der fünfstelligen Kennung. Bei älteren Projektionen ohne gespeicherten
+Schlüsselbezug muss die Gerätezuordnung eindeutig sein; mehrdeutige
+Altbestände werden nicht automatisch übernommen.
+
 Aus der Begleit-App zurück übernommen werden mobile Gesprächsnotizen, neue mobile Wiedervorlagen und erledigte Fristen. Der Desktop bleibt führend: wurde eine Frist seit dem Snapshot im Desktop geändert, blockiert Gremia.SBV die mobile Erledigung und zeigt den Konflikt im Importplan.
 
 In der Begleit-App führt **Start** durch die aktuelle Arbeit. **Fristen** bietet

@@ -6,6 +6,9 @@ import { DatabaseUnitOfWork } from './databaseUnitOfWork.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
 import { TransferInstanceIdentityService } from './transferInstanceIdentityService.js';
 import { decryptTargetBoundTransferPayload } from './targetBoundTransferCrypto.js';
+import { requireMobileOriginProof, verifyMobileTransferOrigin } from './mobileTransferOriginProof.js';
+import { parseTransferRecipientToken } from './transferInstanceIdentityPolicy.js';
+import { ApplicationError } from '../src/domain/models/application-error.model.js';
 import { CaseService } from './caseService.js';
 import { DeadlineService } from './deadlineService.js';
 import { PrivacyReviewService } from './privacyReviewService.js';
@@ -31,7 +34,7 @@ import type {
 
 export { MOBILE_COMPANION_RETURN_FORMAT, MOBILE_COMPANION_RETURN_VERSION } from './mobileCompanionReturnPayload.js';
 
-type DeviceRow = { label: string; status: string };
+type DeviceRow = { label: string; status: string; instance_id: string; recipient_token: string; key_fingerprint: string };
 type CaseRow = {
   id: string;
   case_number: string;
@@ -70,8 +73,8 @@ export class MobileCompanionReturnService {
   }
 
   inspectEnvelopeText(envelopeText: string): MobileCompanionReturnInspectResult {
-    const payload = this.decryptPayload(envelopeText);
-    return this.buildPlan(payload);
+    const { payload, sourceDevice } = this.decryptPayload(envelopeText);
+    return this.buildPlan(payload, sourceDevice);
   }
 
   async importFile(filePath: string): Promise<MobileCompanionReturnImportResult> {
@@ -79,12 +82,14 @@ export class MobileCompanionReturnService {
   }
 
   async importEnvelopeText(envelopeText: string): Promise<MobileCompanionReturnImportResult> {
-    const payload = this.decryptPayload(envelopeText);
-    const inspection = this.buildPlan(payload);
-    if (!inspection.canImport) {
-      throw new Error('Mobile-Rückgabe enthält Konflikte oder nicht übernehmbare Änderungen. Bitte zuerst den Importplan prüfen.');
-    }
-    return this.unitOfWork.runAsync(() => this.applyPayload(payload, inspection.plan));
+    return this.unitOfWork.runAsync(() => {
+      const { payload, sourceDevice } = this.decryptPayload(envelopeText);
+      const inspection = this.buildPlan(payload, sourceDevice);
+      if (!inspection.canImport) {
+        throw new ApplicationError('VALIDATION_FAILED', 'Mobile-Rückgabe enthält Konflikte oder nicht übernehmbare Änderungen. Bitte zuerst den Importplan prüfen.');
+      }
+      return this.applyPayload(payload, inspection.plan);
+    });
   }
 
   private readPackageFile(filePath: string): string {
@@ -96,28 +101,36 @@ export class MobileCompanionReturnService {
     return fs.readFileSync(filePath, 'utf8');
   }
 
-  private decryptPayload(envelopeText: string): MobileCompanionReturnPayload {
+  private decryptPayload(envelopeText: string): { payload: MobileCompanionReturnPayload; sourceDevice: DeviceRow } {
     const envelope = assertTargetBoundReturnEnvelope(JSON.parse(envelopeText));
+    const proof = requireMobileOriginProof(envelope);
+    const sourceDevice = this.database.prepare<DeviceRow>(
+      'SELECT label, status, instance_id, recipient_token, key_fingerprint FROM mobile_companion_devices WHERE key_fingerprint = ?',
+    ).get(proof.keyFingerprint);
+    if (!sourceDevice || sourceDevice.status !== 'active') {
+      throw new ApplicationError('VALIDATION_FAILED', 'Der Herkunftsnachweis gehört zu keinem aktiven Mobilgerät. Bitte die Kopplung prüfen.');
+    }
     const identity = new TransferInstanceIdentityService(this.database).getPrivateIdentity();
+    verifyMobileTransferOrigin(envelope, identity, parseTransferRecipientToken(sourceDevice.recipient_token), 'return');
     const decrypted = decryptTargetBoundTransferPayload(envelope, '', identity, {
       format: MOBILE_COMPANION_RETURN_FORMAT,
       version: MOBILE_COMPANION_RETURN_VERSION,
     });
     const payload = assertMobileCompanionReturnPayload(decrypted.payloadText);
+    if (payload.sourceInstanceId !== sourceDevice.instance_id) {
+      throw new ApplicationError('VALIDATION_FAILED', 'Der Herkunftsnachweis und die Quellinstanz der Rückgabe stimmen nicht überein.');
+    }
     if (payload.packageId !== envelope.packageId) {
       throw new Error('Mobile-Rückgabepaket enthält widersprüchliche Paketkennungen.');
     }
     if (payload.targetInstanceId !== identity.instanceId) {
       throw new Error('Mobile-Rückgabepaket ist nicht für diese Gremia.SBV-Instanz bestimmt.');
     }
-    return payload;
+    return { payload, sourceDevice };
   }
 
-  private buildPlan(payload: MobileCompanionReturnPayload): MobileCompanionReturnInspectResult {
-    const sourceDevice = this.database.prepare<DeviceRow>(
-      'SELECT label, status FROM mobile_companion_devices WHERE instance_id = ?',
-    ).get(payload.sourceInstanceId);
-    const snapshotScope = this.loadSnapshotScope(payload);
+  private buildPlan(payload: MobileCompanionReturnPayload, sourceDevice: DeviceRow): MobileCompanionReturnInspectResult {
+    const snapshotScope = this.loadSnapshotScope(payload, sourceDevice);
     const plan: MobileCompanionReturnPlanItem[] = [];
     const duplicate = this.database.prepare<DuplicateRow>('SELECT id FROM case_handover_imports WHERE package_id = ?').get(payload.packageId);
     if (duplicate) {
@@ -129,21 +142,12 @@ export class MobileCompanionReturnService {
         reason: 'duplicate_package',
       });
     }
-    if (!sourceDevice || sourceDevice.status !== 'active') {
-      plan.push({
-        mobileId: payload.packageId,
-        type: 'create_note',
-        disposition: 'rejected',
-        summary: 'Quellgerät ist nicht als aktives Mobilgerät gekoppelt.',
-        reason: 'unknown_or_disabled_device',
-      });
-    }
     if (!snapshotScope.known) {
       plan.push({
         mobileId: payload.packageId,
         type: 'create_note',
         disposition: 'rejected',
-        summary: 'Ausgangs-Snapshot ist auf dieser Desktop-Instanz nicht bekannt.',
+        summary: 'Ausgangs-Snapshot ist dem gekoppelten Gerät nicht eindeutig zugeordnet. Bitte die Übergabe prüfen; mobile Entwürfe behalten.',
         reason: 'source_snapshot_unknown',
       });
     }
@@ -162,7 +166,7 @@ export class MobileCompanionReturnService {
       packageId: payload.packageId,
       sourceInstanceId: payload.sourceInstanceId,
       targetInstanceId: payload.targetInstanceId,
-      sourceDeviceLabel: sourceDevice?.label,
+      sourceDeviceLabel: sourceDevice.label,
       createdAt: payload.createdAt,
       noteCount,
       inboxCount,
@@ -177,18 +181,24 @@ export class MobileCompanionReturnService {
     };
   }
 
-  private loadSnapshotScope(payload: MobileCompanionReturnPayload): SnapshotScope {
+  private loadSnapshotScope(payload: MobileCompanionReturnPayload, sourceDevice: DeviceRow): SnapshotScope {
     if (!payload.sourceSnapshotPackageId) {
       return { known: false, caseIds: new Set(), deadlineIds: new Set() };
     }
-    const exportRow = this.database.prepare<{ id: string }>(`
-      SELECT id
+    const exportRow = this.database.prepare<{ id: string; metadata_json: string }>(`
+      SELECT id, metadata_json
       FROM case_handover_exports
       WHERE package_id = ?
         AND package_type = 'mobile_snapshot'
         AND target_instance_id = ?
     `).get(payload.sourceSnapshotPackageId, payload.sourceInstanceId);
     if (!exportRow) return { known: false, caseIds: new Set(), deadlineIds: new Set() };
+    const metadata = JSON.parse(exportRow.metadata_json) as { targetKeyFingerprint?: unknown };
+    const legacyDevices = metadata.targetKeyFingerprint === undefined
+      ? this.database.prepare<{ key_fingerprint: string }>('SELECT key_fingerprint FROM mobile_companion_devices WHERE instance_id = ?').all(payload.sourceInstanceId)
+      : [];
+    const boundFingerprint = metadata.targetKeyFingerprint ?? (legacyDevices.length === 1 ? legacyDevices[0].key_fingerprint : undefined);
+    if (boundFingerprint !== sourceDevice.key_fingerprint) return { known: false, caseIds: new Set(), deadlineIds: new Set() };
     const itemRows = this.database.prepare<{ local_entity_type: string; local_entity_id: string }>(`
       SELECT local_entity_type, local_entity_id
       FROM case_handover_export_items
