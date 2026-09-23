@@ -6,13 +6,7 @@ import de.gremia.sbv.companion.domain.transfer.pemBlock
 import org.bouncycastle.asn1.ASN1ObjectIdentifier
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo
-import org.bouncycastle.crypto.agreement.X25519Agreement
-import org.bouncycastle.crypto.digests.SHA256Digest
-import org.bouncycastle.crypto.generators.HKDFBytesGenerator
-import org.bouncycastle.crypto.params.HKDFParameters
 import org.bouncycastle.crypto.params.X25519PrivateKeyParameters
-import org.bouncycastle.crypto.params.X25519PublicKeyParameters
-import org.bouncycastle.crypto.util.PublicKeyFactory
 import org.json.JSONObject
 import java.security.SecureRandom
 import java.util.Base64
@@ -33,8 +27,8 @@ class TargetBoundReturnEncryptor(
         val ephemeralPublicPem = ephemeralPublicPem(ephemeralPrivate)
         val salt = ByteArray(16).also(random::nextBytes)
         val iv = ByteArray(12).also(random::nextBytes)
-        val sharedSecret = sharedSecret(ephemeralPrivate, target.publicKeyPem)
-        val key = deriveKey(sharedSecret, salt, "gremia-sbv-transfer-key-only:${target.instanceId}:$packageId")
+        val sharedSecret = TransferKeyDerivation.sharedSecret(ephemeralPrivate, target.publicKeyPem)
+        val key = TransferKeyDerivation.deriveKey(sharedSecret, salt, "gremia-sbv-transfer-key-only:${target.instanceId}:$packageId")
         return try {
             val header = Header(packageId, createdAt, target, ephemeralPublicPem, salt, iv)
             val aad = buildAad(header).toByteArray(Charsets.UTF_8)
@@ -73,22 +67,6 @@ class TargetBoundReturnEncryptor(
         }
     }
 
-    private fun sharedSecret(privateKey: X25519PrivateKeyParameters, publicPem: String): ByteArray {
-        val publicKey = PublicKeyFactory.createKey(pemBytes(publicPem)) as X25519PublicKeyParameters
-        val secret = ByteArray(32)
-        X25519Agreement().apply {
-            init(privateKey)
-            calculateAgreement(publicKey, secret, 0)
-        }
-        return secret
-    }
-
-    private fun deriveKey(sharedSecret: ByteArray, salt: ByteArray, info: String): ByteArray {
-        val generator = HKDFBytesGenerator(SHA256Digest())
-        generator.init(HKDFParameters(sharedSecret, salt, info.toByteArray(Charsets.UTF_8)))
-        return ByteArray(32).also { generator.generateBytes(it, 0, it.size) }
-    }
-
     private fun ephemeralPublicPem(privateKey: X25519PrivateKeyParameters): String {
         val publicDer = SubjectPublicKeyInfo(
             AlgorithmIdentifier(X25519_OBJECT_IDENTIFIER),
@@ -96,13 +74,6 @@ class TargetBoundReturnEncryptor(
         ).encoded
         return pemBlock("PUBLIC KEY", publicDer)
     }
-
-    private fun pemBytes(pem: String): ByteArray =
-        Base64.getMimeDecoder().decode(
-            pem.lineSequence()
-                .filterNot { line -> line.startsWith("-----") }
-                .joinToString(separator = ""),
-        )
 
     private fun buildAad(header: Header): String =
         "{" +

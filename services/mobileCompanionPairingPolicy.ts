@@ -1,6 +1,7 @@
 import { createHash, randomUUID } from 'node:crypto';
 import type { TransferInstanceIdentity } from '../src/domain/models/transfer-identity.model.js';
 import { parseTransferRecipientToken } from './transferInstanceIdentityPolicy.js';
+import { ApplicationError } from '../src/domain/models/application-error.model.js';
 
 export const MOBILE_COMPANION_PAIRING_PREFIX = 'GSBVMOBILEPAIR1';
 export const MOBILE_COMPANION_PAIRING_PROTOCOL_VERSION = '1.0';
@@ -142,6 +143,19 @@ export function formatMobileCompanionPairingSecurityCode(response: MobileCompani
     ].join('|'), 'utf8')
     .digest();
   return base32Code(digest, 12).replace(/(.{4})/g, '$1-').replace(/-$/u, '');
+}
+
+export function verifyMobilePairingResponse(response: MobileCompanionPairingResponse, code: string, localIdentity: TransferInstanceIdentity) {
+  const normalized = code.trim().toUpperCase().replace(/[\s-]/gu, '');
+  const expected = formatMobileCompanionPairingSecurityCode(response).replace(/-/gu, '');
+  if (normalized !== expected) {
+    throw new ApplicationError('VALIDATION_FAILED', 'Sicherheitscode stimmt nicht überein. Mobilgerät wurde nicht gekoppelt.');
+  }
+  const desktop = parseTransferRecipientToken(response.request.desktopRecipientToken);
+  if (desktop.instanceId !== localIdentity.instanceId || desktop.keyFingerprint !== localIdentity.keyFingerprint) {
+    throw new ApplicationError('VALIDATION_FAILED', 'Pairingantwort gehört nicht zu dieser Gremia.SBV-Instanz.');
+  }
+  return parseTransferRecipientToken(response.mobileRecipientToken);
 }
 
 function base32Code(bytes: Buffer, length: number): string {

@@ -213,7 +213,7 @@ class GremiaUi(
             }
         }
 
-    fun sectionHeader(title: String, helpText: String? = null): LinearLayout =
+    fun sectionHeader(title: String, helpText: String? = null, primaryAction: Button? = null): LinearLayout =
         LinearLayout(context).apply {
             orientation = if (tabletLayout) LinearLayout.HORIZONTAL else LinearLayout.VERTICAL
             gravity = if (tabletLayout) Gravity.CENTER_VERTICAL else Gravity.NO_GRAVITY
@@ -232,6 +232,14 @@ class GremiaUi(
                     ).apply {
                         if (tabletLayout) leftMargin = dimen(R.dimen.space_md) else topMargin = dimen(R.dimen.space_sm)
                     }
+                })
+            }
+            primaryAction?.let { action ->
+                addView(action, LinearLayout.LayoutParams(
+                    if (tabletLayout) LinearLayout.LayoutParams.WRAP_CONTENT else LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                ).apply {
+                    if (tabletLayout) leftMargin = dimen(R.dimen.space_md) else topMargin = dimen(R.dimen.space_sm)
                 })
             }
         }

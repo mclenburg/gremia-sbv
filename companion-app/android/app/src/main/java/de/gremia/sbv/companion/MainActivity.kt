@@ -1,8 +1,6 @@
 package de.gremia.sbv.companion
 
 import android.Manifest
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.app.KeyguardManager
@@ -32,7 +30,10 @@ import de.gremia.sbv.companion.data.security.AndroidMobileDataResetOperations
 import de.gremia.sbv.companion.data.security.MobileAppSettingsRepository
 import de.gremia.sbv.companion.data.transfer.TransferIdentityRepository
 import de.gremia.sbv.companion.domain.mobile.MobileDeadlineProjection
-import de.gremia.sbv.companion.domain.mobile.MobilePairingExchange
+import de.gremia.sbv.companion.data.transfer.TargetBoundSnapshotDecryptor
+import de.gremia.sbv.companion.data.transfer.MobileDesktopTrustRepository
+import de.gremia.sbv.companion.domain.mobile.accepts
+import de.gremia.sbv.companion.ui.MobilePairingFlow
 import de.gremia.sbv.companion.domain.mobile.MobileReturnPackageFile
 import de.gremia.sbv.companion.domain.mobile.MobileReturnPackageCreator
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshotIntakeResult
@@ -62,7 +63,8 @@ class MainActivity : ComponentActivity() {
     private lateinit var snapshotController: MobileSnapshotQrController
     private lateinit var syncJournalRepository: MobileSyncJournalRepository
     private lateinit var settingsRepository: MobileAppSettingsRepository
-    private val pairingExchange = MobilePairingExchange()
+    private lateinit var desktopTrust: MobileDesktopTrustRepository
+    private lateinit var pairingFlow: MobilePairingFlow
     private val snapshotReplacementPolicy = MobileSnapshotReplacementPolicy()
     private var appSettings = MobileAppSettings()
     private var lockPolicy = MobileLockPolicy(appSettings.autoLockTimeout.milliseconds)
@@ -111,8 +113,11 @@ class MainActivity : ComponentActivity() {
         returnPackageCreator = MobileReturnPackageCreator(this)
         deadlineNotificationScheduler = MobileDeadlineNotificationScheduler(this)
         syncJournalRepository = MobileSyncJournalRepository(this)
+        desktopTrust = MobileDesktopTrustRepository(this)
+        pairingFlow = MobilePairingFlow(this, identityRepository::getOrCreate, desktopTrust, { unlocked },
+            { snapshotRepository.current() != null || returnDraftRepository.listDrafts().changeCount > 0 }, ::renderContent)
         returnPackageCreator.clearTemporaryPackages()
-        snapshotController = MobileSnapshotQrController(identityRepository.getOrCreate(), snapshotRepository)
+        snapshotController = newSnapshotController()
         val initial = lockPolicy.initialState()
         unlocked = !initial.locked
         if (unlocked) renderContent() else renderLockScreen()
@@ -127,10 +132,13 @@ class MainActivity : ComponentActivity() {
         unlockCancellationSignal?.cancel()
         unlockCancellationSignal = null
         lockCheckHandler.removeCallbacksAndMessages(null)
+        if (::pairingFlow.isInitialized) pairingFlow.close()
         super.onDestroy()
     }
 
     private fun renderLockScreen() {
+        if (::pairingFlow.isInitialized) pairingFlow.cancel()
+        if (::snapshotController.isInitialized) snapshotController.reset()
         lockCheckHandler.removeCallbacksAndMessages(null)
         setContentView(
             LockPanelRenderer(this, currentThemeMode()).render(
@@ -161,8 +169,7 @@ class MainActivity : ComponentActivity() {
                     activeSection = section
                     renderContent()
                 },
-                onCopyRecipientToken = { copyRecipientToken(identity.recipientToken) },
-                onCreatePairingResponse = { request -> pairingExchange.createResponse(request, identity) },
+                renderPairing = pairingFlow::render,
                 onScanFrame = { startQrScan() },
                 onAcceptFrame = { frame ->
                     acceptSnapshotFrame(frame)
@@ -174,8 +181,8 @@ class MainActivity : ComponentActivity() {
                 },
                 onConfirmImport = { confirmSnapshotImport() },
                 onCancelImport = { cancelSnapshotImport() },
-                onAddReturnNote = { caseId, title, content, noteType, nextSteps -> addReturnNote(caseId, title, content, noteType, nextSteps) },
-                onAddReturnInbox = { title, content, nextSteps -> addReturnInbox(title, content, nextSteps) },
+                onAddReturnNote = { caseId, title, content, noteType, nextSteps -> saveCapture { returnDraftRepository.addNote(caseId, title, content, noteType, nextSteps) } },
+                onAddReturnInbox = { title, content, nextSteps -> saveCapture { returnDraftRepository.addInbox(title, content, nextSteps) } },
                 onAddReturnDeadline = { caseId, title, dueAt, description, severity ->
                     addReturnDeadline(caseId, title, dueAt, description, severity)
                 },
@@ -295,6 +302,11 @@ class MainActivity : ComponentActivity() {
         }, LOCK_CHECK_INTERVAL_MILLIS)
     }
 
+    private fun newSnapshotController() = MobileSnapshotQrController(
+        identityRepository.getOrCreate(), snapshotRepository, desktopTrust::accepts,
+        decryptor = TargetBoundSnapshotDecryptor({ desktopTrust.current()?.identity }),
+    )
+
     private fun currentThemeMode(): MobileThemeMode {
         val snapshotTheme = if (::snapshotRepository.isInitialized) snapshotRepository.current()?.themeMode else null
         return MobileThemeMode.fromSnapshot(snapshotTheme)
@@ -317,7 +329,7 @@ class MainActivity : ComponentActivity() {
 
     private fun clearMobileWorkData() {
         dataResetCoordinator().clearWorkData()
-        snapshotController = MobileSnapshotQrController(identityRepository.getOrCreate(), snapshotRepository)
+        snapshotController = newSnapshotController()
         activeSection = MobileAppSection.Dashboard
         Toast.makeText(this, R.string.settings_work_data_cleared, Toast.LENGTH_LONG).show()
         renderContent()
@@ -328,7 +340,7 @@ class MainActivity : ComponentActivity() {
         appSettings = settingsRepository.load()
         lockPolicy = MobileLockPolicy(appSettings.autoLockTimeout.milliseconds)
         windowProtection.apply(appSettings, currentThemeMode())
-        snapshotController = MobileSnapshotQrController(identityRepository.getOrCreate(), snapshotRepository)
+        snapshotController = newSnapshotController()
         activeSection = MobileAppSection.Synchronization
         Toast.makeText(this, R.string.settings_device_initialized, Toast.LENGTH_LONG).show()
         renderContent()
@@ -344,15 +356,10 @@ class MainActivity : ComponentActivity() {
                 deadlineNotificationScheduler = deadlineNotificationScheduler,
                 returnPackageCreator = returnPackageCreator,
                 identityRepository = identityRepository,
+                desktopTrust = desktopTrust,
                 settingsRepository = settingsRepository,
             ),
         )
-
-    private fun copyRecipientToken(recipientToken: String) {
-        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        clipboard.setPrimaryClip(ClipData.newPlainText(getString(R.string.recipient_token_label), recipientToken))
-        Toast.makeText(this, R.string.recipient_token_copied, Toast.LENGTH_SHORT).show()
-    }
 
     private fun startQrScan() {
         if (!unlocked) return
@@ -416,18 +423,6 @@ class MainActivity : ComponentActivity() {
             deadlineNotificationScheduler.schedule(snapshot)
         } else {
             notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-        }
-    }
-
-    private fun addReturnNote(caseId: String, title: String, content: String, noteType: String, nextSteps: String?) {
-        saveCapture {
-            returnDraftRepository.addNote(caseId, title, content, noteType, nextSteps)
-        }
-    }
-
-    private fun addReturnInbox(title: String, content: String, nextSteps: String?) {
-        saveCapture {
-            returnDraftRepository.addInbox(title, content, nextSteps)
         }
     }
 

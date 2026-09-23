@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { deflateSync } from 'node:zlib';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { MigrationService } from '../../../services/migrationService';
 import {
   createMobileCompanionQrFrames,
@@ -130,6 +130,28 @@ function pairMobileDevice(
 }
 
 describe('Mobile Begleit-App Snapshot', () => {
+  it('verwirft abgebrochene, abgelaufene und bereits bestätigte Kopplungen', async () => {
+    const desktop = await migratedDatabase();
+    const mobile = await migratedDatabase();
+    const service = new MobileCompanionService(desktop);
+    const recipient = new TransferInstanceIdentityService(mobile).getPublicIdentity();
+    const response = () => ({ label: 'Tablet', ...createMobileCompanionPairingResponse(service.createPairingRequest().pairingRequest, recipient.recipientToken) });
+    try {
+      const canceled = response();
+      service.cancelPairing();
+      expect(() => service.saveDevice(canceled)).toThrow(/abgelaufen|abgebrochen/);
+      const expired = response();
+      const clock = vi.spyOn(Date, 'now').mockReturnValue(Date.now() + 6 * 60_000);
+      expect(() => service.saveDevice(expired)).toThrow(/abgelaufen/);
+      clock.mockRestore();
+      expect(service.listDevices()).toHaveLength(0);
+      const valid = response();
+      service.saveDevice(valid);
+      expect(() => service.saveDevice(valid)).toThrow(/abgelaufen|abgebrochen/);
+      expect(service.listDevices()).toHaveLength(1);
+    } finally { vi.restoreAllMocks(); desktop.close(); mobile.close(); }
+  });
+
   it('koppelt ein Mobilgerät erst nach bestätigtem Pairing-Sicherheitscode', async () => {
     const desktop = await migratedDatabase();
     const mobile = await migratedDatabase();

@@ -2,6 +2,7 @@ package de.gremia.sbv.companion.domain.mobile
 
 import de.gremia.sbv.companion.domain.transfer.TransferIdentity
 import de.gremia.sbv.companion.domain.transfer.parseRecipientToken
+import de.gremia.sbv.companion.domain.transfer.TransferRecipientPublicIdentity
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 import java.util.Base64
@@ -10,6 +11,8 @@ data class MobilePairingResponseResult(
     val pairingResponse: String,
     val securityCode: String,
     val desktopInstanceId: String,
+    val desktopIdentity: TransferRecipientPublicIdentity,
+    val requestedAt: String,
 )
 
 class MobilePairingExchange {
@@ -21,6 +24,8 @@ class MobilePairingExchange {
             pairingResponse = encode(response.toJson()),
             securityCode = securityCode(response),
             desktopInstanceId = desktop.instanceId,
+            desktopIdentity = desktop,
+            requestedAt = request.createdAt,
         )
     }
 

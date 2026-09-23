@@ -1,12 +1,12 @@
 package de.gremia.sbv.companion.ui
 
 import android.content.Context
+import android.view.View
 import android.view.Gravity
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import de.gremia.sbv.companion.R
 import de.gremia.sbv.companion.domain.mobile.MobileDeadlineProjection
-import de.gremia.sbv.companion.domain.mobile.MobilePairingResponseResult
 import de.gremia.sbv.companion.domain.mobile.MobileReturnDraftSet
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshot
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshotImportPreview
@@ -23,7 +23,6 @@ class AppShellRenderer(
 ) {
     private val ui = GremiaUi(context, themeMode)
     private val dashboardPanel = DashboardPanelRenderer(context, ui)
-    private val pairingPanel = PairingPanelRenderer(context, ui)
     private val snapshotPanel = SnapshotPanelRenderer(context, ui)
     private val capturePanel = CapturePanelRenderer(context, ui)
     private val returnPanel = ReturnPanelRenderer(context, ui)
@@ -39,8 +38,7 @@ class AppShellRenderer(
         settings: MobileAppSettings,
         activeSection: MobileAppSection,
         onSelectSection: (MobileAppSection) -> Unit,
-        onCopyRecipientToken: () -> Unit,
-        onCreatePairingResponse: (String) -> MobilePairingResponseResult,
+        renderPairing: (GremiaUi) -> View,
         onScanFrame: () -> Unit,
         onAcceptFrame: (String) -> MobileSnapshotIntakeResult,
         onResetFrames: () -> Unit,
@@ -70,8 +68,7 @@ class AppShellRenderer(
                 settings,
                 activeSection,
                 onSelectSection,
-                onCopyRecipientToken,
-                onCreatePairingResponse,
+                renderPairing,
                 onScanFrame,
                 onAcceptFrame,
                 onResetFrames,
@@ -101,8 +98,7 @@ class AppShellRenderer(
         settings: MobileAppSettings,
         activeSection: MobileAppSection,
         onSelectSection: (MobileAppSection) -> Unit,
-        onCopyRecipientToken: () -> Unit,
-        onCreatePairingResponse: (String) -> MobilePairingResponseResult,
+        renderPairing: (GremiaUi) -> View,
         onScanFrame: () -> Unit,
         onAcceptFrame: (String) -> MobileSnapshotIntakeResult,
         onResetFrames: () -> Unit,
@@ -137,7 +133,7 @@ class AppShellRenderer(
                     onCompleteReturnDeadline,
                 ))
                 MobileAppSection.Synchronization -> {
-                    addView(pairingPanel.render(identity, onCopyRecipientToken, onCreatePairingResponse))
+                    addView(renderPairing(ui))
                     addView(snapshotPanel.renderImport(
                         pendingImport,
                         onScanFrame,

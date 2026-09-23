@@ -1,6 +1,5 @@
 package de.gremia.sbv.companion.domain.mobile
 
-import de.gremia.sbv.companion.data.transfer.TargetBoundSnapshotDecryptor
 import de.gremia.sbv.companion.domain.transfer.TransferIdentity
 import java.time.Duration
 import java.time.Instant
@@ -8,8 +7,9 @@ import java.time.Instant
 class MobileSnapshotQrController(
     private val identity: TransferIdentity,
     private val snapshotStore: MobileSnapshotStore,
+    private val isTrusted: (MobileSnapshot) -> Boolean,
     private val assembler: MobileSnapshotFrameAssembler = MobileSnapshotFrameAssembler(),
-    private val decryptor: MobileSnapshotEnvelopeDecryptor = TargetBoundSnapshotDecryptor(),
+    private val decryptor: MobileSnapshotEnvelopeDecryptor,
     private val now: () -> Instant = { Instant.now() },
     private val inactivityTimeout: Duration = DEFAULT_INACTIVITY_TIMEOUT,
 ) {
@@ -36,6 +36,7 @@ class MobileSnapshotQrController(
                 is MobileFrameAssemblyResult.Complete -> {
                     val snapshot = decryptor.decryptSnapshotEnvelope(result.serializedEnvelope, identity)
                     assembler.reset()
+                    check(isTrusted(snapshot)) { "Der Desktop ist nicht bestätigt gekoppelt. Bitte zuerst koppeln." }
                     val preview = snapshot.toImportPreview(result.progress)
                     pendingSnapshot = PendingSnapshot(snapshot, preview)
                     MobileSnapshotIntakeResult.ReadyForConfirmation(
@@ -58,6 +59,7 @@ class MobileSnapshotQrController(
             expireInactiveSessionIfNeeded()
             val pending = pendingSnapshot
                 ?: return MobileSnapshotIntakeResult.Error("Es liegt keine geprüfte Mobile-Projektion zur Übernahme vor.")
+            check(isTrusted(pending.snapshot)) { "Die Desktop-Kopplung ist nicht mehr gültig. Bitte erneut koppeln." }
             snapshotStore.save(pending.snapshot)
             pendingSnapshot = null
             lastActivityAt = null

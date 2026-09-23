@@ -33,18 +33,27 @@ class MobileDesktopInteropTest {
             // Scanning may start in the middle of a repeating sequence, not at frame zero.
             val results = (frames.length() - 1 downTo 0).map { assembler.accept(frames.getString(it)) }
             val assembled = assertIs<MobileFrameAssemblyResult.Complete>(results.last())
-            val snapshot = TargetBoundSnapshotDecryptor().decryptSnapshotEnvelope(assembled.serializedEnvelope, identity)
+            val decryptor = TargetBoundSnapshotDecryptor({ pairing.desktopIdentity })
+            assertFailsWith<IllegalArgumentException> {
+                TargetBoundSnapshotDecryptor({ null }).decryptSnapshotEnvelope(assembled.serializedEnvelope, identity)
+            }
+            val snapshot = decryptor.decryptSnapshotEnvelope(assembled.serializedEnvelope, identity)
+            val forgedOrigin = JSONObject(assembled.serializedEnvelope)
+            forgedOrigin.getJSONObject("senderProof").put("mac", java.util.Base64.getEncoder().encodeToString(ByteArray(32)))
+            assertFailsWith<IllegalArgumentException> { decryptor.decryptSnapshotEnvelope(forgedOrigin.toString(), identity) }
+            val missingOrigin = JSONObject(assembled.serializedEnvelope).apply { remove("senderProof") }
+            assertFailsWith<IllegalArgumentException> { decryptor.decryptSnapshotEnvelope(missingOrigin.toString(), identity) }
             assertEquals("Änne Übung", snapshot.cases.single().displayName)
             assertEquals("light", snapshot.themeMode)
             assertEquals(exported.getString("packageId"), snapshot.packageId)
             assertFailsWith<IllegalArgumentException> {
-                TargetBoundSnapshotDecryptor().decryptSnapshotEnvelope(assembled.serializedEnvelope, X25519IdentityFactory().create())
+                decryptor.decryptSnapshotEnvelope(assembled.serializedEnvelope, X25519IdentityFactory().create())
             }
             val damaged = JSONObject(assembled.serializedEnvelope)
             val ciphertext = damaged.getString("payload")
             damaged.put("payload", (if (ciphertext[0] == 'A') "B" else "A") + ciphertext.drop(1))
             assertFailsWith<IllegalArgumentException> {
-                TargetBoundSnapshotDecryptor().decryptSnapshotEnvelope(damaged.toString(), identity)
+                decryptor.decryptSnapshotEnvelope(damaged.toString(), identity)
             }
 
             val now = Instant.now().toString()

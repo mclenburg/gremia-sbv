@@ -38,6 +38,7 @@ export function useMobileDevicePairing(actions: PairingActions) {
   function cancelPairing() {
     setPairingRequest(null);
     setDeviceDraft(EMPTY_MOBILE_DEVICE_DRAFT);
+    if (pairingRequest) void requireCaseHandoverBridge().then((bridge) => bridge.cancelMobilePairing(pairingRequest.sessionId)).catch(actions.showError);
   }
 
   async function saveDevice(event: FormEvent<HTMLFormElement>): Promise<boolean> {

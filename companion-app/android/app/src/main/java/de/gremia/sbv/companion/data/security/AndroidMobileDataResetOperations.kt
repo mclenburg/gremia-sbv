@@ -7,6 +7,7 @@ import de.gremia.sbv.companion.data.mobile.MobileSyncJournalRepository
 import de.gremia.sbv.companion.data.transfer.TransferIdentityRepository
 import de.gremia.sbv.companion.domain.mobile.MobileReturnPackageCreator
 import de.gremia.sbv.companion.domain.security.MobileDataResetOperations
+import de.gremia.sbv.companion.domain.mobile.MobileDesktopTrustStore
 
 class AndroidMobileDataResetOperations(
     private val resetPendingSnapshot: () -> Unit,
@@ -16,6 +17,7 @@ class AndroidMobileDataResetOperations(
     private val deadlineNotificationScheduler: MobileDeadlineNotificationScheduler,
     private val returnPackageCreator: MobileReturnPackageCreator,
     private val identityRepository: TransferIdentityRepository,
+    private val desktopTrust: MobileDesktopTrustStore,
     private val settingsRepository: MobileAppSettingsRepository,
 ) : MobileDataResetOperations {
     override fun clearSnapshot() {
@@ -31,7 +33,10 @@ class AndroidMobileDataResetOperations(
 
     override fun clearTemporaryFiles() = returnPackageCreator.clearTemporaryPackages()
 
-    override fun clearIdentity() = identityRepository.clear()
+    override fun clearIdentity() {
+        desktopTrust.clear()
+        identityRepository.clear()
+    }
 
     override fun resetSettings() = settingsRepository.reset()
 }

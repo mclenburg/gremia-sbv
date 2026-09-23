@@ -36,9 +36,9 @@ Die Begleit-App ist kein zweiter vollständiger Tresor. Sie dient dazu, unterweg
 
 1. Öffne **Übergaben**.
 2. Öffne das Register **Begleit-App**.
-3. Starte über **Mobilgerät koppeln** die Kopplung. Gremia.SBV zeigt eine Desktop-Pairinganfrage.
-4. Füge diese Anfrage in der Begleit-App ein und erzeuge dort die Pairingantwort samt Sicherheitscode.
-5. Übertrage die Pairingantwort in Gremia.SBV und bestätige den identischen Sicherheitscode. Erst danach ist das Mobilgerät als Zielgerät gespeichert.
+3. Starte über **Mobilgerät koppeln** die Kopplung. Gremia.SBV zeigt einen QR-Code und bietet die öffentliche Anfrage auch als `.gsbvpair`-Datei an.
+4. Öffne in der Begleit-App unter **Synchronisation** den Dialog **Desktop koppeln**. Scanne den Anfrage-QR oder öffne die Anfragedatei. Alternativ kannst du den Anfragetext einfügen.
+5. Speichere die Antwortdatei in der App und öffne sie im Desktop über **Antwortdatei öffnen**; alternativ überträgst du den Antworttext. Vergleiche den Sicherheitscode und bestätige am Desktop. Bestätige anschließend auch in der App **Gleichen Code am Desktop bestätigt**. Erst diese bewusste Bestätigung speichert dort den vertrauenswürdigen Desktop. Die Desktop-Anfrage gilt fünf Minuten; bei Ablauf beginnt die Kopplung erneut. Abbrechen ersetzt keine bestehende Kopplung.
 6. Wähle nur offene Arbeitsfälle aus, die mobil benötigt werden. Abgeschlossene Fälle ohne offene Maßnahmen werden nicht angeboten. Bei größeren Beständen filterst du gezielt.
 7. Erzeuge die mobile Arbeitsprojektion für genau dieses Gerät.
 8. Öffne in der Begleit-App den Scan-Ablauf. Gremia.SBV zeigt die QR-Frames automatisch nacheinander an.
@@ -46,6 +46,14 @@ Die Begleit-App ist kein zweiter vollständiger Tresor. Sie dient dazu, unterweg
 10. Nach der Besprechung speichert die Begleit-App eine verschlüsselte Rückgabedatei. Wähle diese im Desktop aus, prüfe den Importplan und übernimm nur konfliktfreie Änderungen.
 
 Übertragen werden Fallkopf, Status und offene Fristen. Notizen, Dokumentdateien, Dokumentnamen, vollständige Freitexte und Fallzusammenfassungen bleiben im Desktop-Tresor. Die Protokollierung enthält nur technische Zähldaten wie Fallanzahl, Fristanzahl, Frame-Anzahl und Zielinstanz.
+
+Die App akzeptiert neue Projektionen nur vom bestätigt gekoppelten Desktop
+mit passendem kryptografischem Herkunftsnachweis. Bereits gespeicherte mobile
+Arbeitsstände werden durch diese Prüfung nicht gelöscht. Bei älteren, noch
+nicht bestätigt gekoppelten App-Installationen zuerst offene Änderungen
+zurückgeben, dann den mobilen Arbeitsbestand entfernen und beide Geräte neu
+koppeln. Projektionen anschließend mit dem aktuellen Desktop neu erzeugen.
+Ein Desktopwechsel ist bei vorhandenem mobilen Arbeitsbestand gesperrt.
 
 Aus der Begleit-App zurück übernommen werden mobile Gesprächsnotizen, neue mobile Wiedervorlagen und erledigte Fristen. Der Desktop bleibt führend: wurde eine Frist seit dem Snapshot im Desktop geändert, blockiert Gremia.SBV die mobile Erledigung und zeigt den Konflikt im Importplan.
 
@@ -59,7 +67,7 @@ Projektion kann ungesendete Änderungen nicht still überschreiben.
 Unter **Einstellungen** werden Displayschutz und automatische Sperre verwaltet.
 **Arbeitsbestand löschen** entfernt Projektion, Entwürfe, Verlauf,
 Benachrichtigungen und temporäre Rückgabedateien vom Gerät, behält aber die
-Kopplungsidentität. **Gerät neu initialisieren** entfernt zusätzlich Identität
+Kopplungsidentität und bestätigten Desktop. **Gerät neu initialisieren** entfernt zusätzlich Identität, Desktop-Kopplung
 und lokale Einstellungen. Bereits außerhalb der App gespeicherte
 Rückgabedateien müssen am gewählten Speicherort separat gelöscht werden.
 

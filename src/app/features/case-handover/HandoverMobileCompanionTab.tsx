@@ -1,4 +1,5 @@
 import { useMemo, useState, type FormEvent } from 'react';
+import { MobilePairingExchangePanel } from './MobilePairingExchangePanel';
 import { Plus, Smartphone } from 'lucide-react';
 import type { CaseRecord } from '../../../domain/models/case.model';
 import type { CaseMeasureRecord } from '../../../domain/models/case-measure.model';
@@ -97,6 +98,8 @@ function MobileDevicePairingPanel({
       </>}
     >
       <form id="mobile-device-pairing-form" className="industrial-modal-form" onSubmit={onSubmit}>
+        {pairingRequest ? <MobilePairingExchangePanel request={pairingRequest.pairingRequest} disabled={busy}
+          onResponse={(pairingResponse) => onDraftChange({ ...draft, pairingResponse })} /> : null}
         <div className="industrial-form-grid industrial-form-grid-2">
           <TextInput label="Gerätename" value={draft.label} onValueChange={(label) => onDraftChange({ ...draft, label })} placeholder="z. B. Diensthandy SBV" required />
           <TextareaInput label="Desktop-Pairinganfrage" value={pairingRequest?.pairingRequest ?? ''} onValueChange={() => undefined} rows={3} readOnly wide />

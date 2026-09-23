@@ -10,6 +10,21 @@ import kotlin.test.assertNull
 
 class MobileSnapshotQrControllerTest {
     @Test
+    fun rejectsUntrustedDesktopAndRevocationBeforeImportWithoutReplacingData() {
+        val store = FakeSnapshotStore(snapshot("existing", 1, 1))
+        var trusted = false
+        val controller = controller(framesFor("{}", 1), store, snapshot("incoming", 1, 1),
+            isTrusted = { trusted })
+        assertIs<MobileSnapshotIntakeResult.Error>(controller.accept("frame-0"))
+        assertNull(controller.pendingPreview())
+        trusted = true
+        assertIs<MobileSnapshotIntakeResult.ReadyForConfirmation>(controller.accept("frame-0"))
+        trusted = false
+        assertIs<MobileSnapshotIntakeResult.Error>(controller.confirmPendingImport())
+        assertEquals("existing", store.current()?.packageId)
+    }
+
+    @Test
     fun waitsForExplicitConfirmationBeforeReplacingTheStoredSnapshot() {
         val frames = framesFor("""{"envelope":"one"}""", frameCount = 2)
         val store = FakeSnapshotStore(snapshot("existing", caseCount = 1, deadlineCount = 1))
@@ -71,10 +86,12 @@ class MobileSnapshotQrControllerTest {
         decryptedSnapshot: MobileSnapshot,
         now: () -> Instant = { Instant.parse("2026-09-16T10:00:00Z") },
         inactivityTimeout: Duration = Duration.ofMinutes(5),
+        isTrusted: (MobileSnapshot) -> Boolean = { true },
     ): MobileSnapshotQrController =
         MobileSnapshotQrController(
             identity = identity(),
             snapshotStore = store,
+            isTrusted = isTrusted,
             assembler = MobileSnapshotFrameAssembler(QrControllerFakeParser(frames)),
             decryptor = FakeDecryptor(decryptedSnapshot),
             now = now,

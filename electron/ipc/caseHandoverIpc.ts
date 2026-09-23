@@ -6,6 +6,7 @@ import type { CaseHandoverChecklistInput, CaseHandoverExportInput, CaseHandoverI
 import type { MobileCompanionDeviceStatus, MobileCompanionSnapshotInput, SaveMobileCompanionDeviceInput } from '../../src/domain/models/mobile-companion.model.js';
 import { assertAllowedEnum, assertRecordInput, assertString, sanitizeDialogFileName } from './ipcValidation.js';
 import { issueSelectedFileCapability, resolveSelectedFileCapability, SELECTED_FILE_PURPOSE } from './selectedFileCapability.js';
+import { registerMobilePairingFileIpc } from './mobilePairingFileIpc.js';
 
 function validateMobileDeviceInput(input: unknown): SaveMobileCompanionDeviceInput {
   const value = assertRecordInput<Record<string, unknown>>(input, 'caseHandover:mobile:devices:save');
@@ -28,6 +29,7 @@ function validateMobileSnapshotInput(input: unknown): MobileCompanionSnapshotInp
 }
 
 export function registerCaseHandoverIpc(ipcMain: IpcMain, security: SecurityService, services: ApplicationServices): void {
+  registerMobilePairingFileIpc(ipcMain, services);
   registerIpcHandler(ipcMain, IPC_CHANNELS.caseHandoverCockpit, async () => services.caseHandover().listCockpit());
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.caseHandoverChecklist, async (_event, input: unknown) =>
@@ -106,9 +108,6 @@ export function registerCaseHandoverIpc(ipcMain: IpcMain, security: SecurityServ
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.caseHandoverMobileDevicesList, async () =>
     services.mobileCompanion().listDevices());
-
-  registerIpcHandler(ipcMain, IPC_CHANNELS.caseHandoverMobilePairingRequest, async () =>
-    services.mobileCompanion().createPairingRequest());
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.caseHandoverMobileDevicesSave, async (_event, input: unknown) =>
     services.mobileCompanion().saveDevice(validateMobileDeviceInput(input)));

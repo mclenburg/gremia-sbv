@@ -25,7 +25,14 @@ Rückgabedatei zurück.
   Desktop-Pairinganfrage, eine App-Pairingantwort und einen beidseitig
   zu vergleichenden Sicherheitscode.
 - QR-Frames aus der Desktop-Anwendung werden validiert, zusammengesetzt,
+  auf den Herkunftsnachweis des bestätigt gekoppelten Desktops geprüft,
   zielinstanzgebunden entschlüsselt und geschützt auf dem Gerät abgelegt.
+  Anfrage-QR, `.gsbvpair`-Dateien und Texteingabe dienen der Kopplung.
+  Die App speichert die Desktop-Vertrauensbeziehung erst nach ausdrücklicher
+  Bestätigung; Abbruch, Sperre und Timeout verwerfen nur den offenen Dialog.
+  Der Herkunftsnachweis verwendet X25519, zweckgebundenes HKDF-SHA-256 und
+  HMAC-SHA-256 über AAD-Hash, Ciphertext-Hash und GCM-Tag. Er ersetzt weder
+  die bestehende Zielverschlüsselung noch die beidseitige Codeprüfung.
 - Mobile Notizen, mobile Wiedervorlagen und Fristerledigungen werden lokal
   verschlüsselt vorgemerkt und als `.gsbvmobile` zielgebunden für die
   Desktop-Instanz gespeichert.
@@ -44,8 +51,10 @@ Rückgabedatei zurück.
 
 ## Android-Build und Release-Signierung
 
-Im Android-Arbeitsverzeichnis führt `gradle testDebugUnitTest lintDebug assembleDebug`
+Im Android-Arbeitsverzeichnis führt `./gradlew testDebugUnitTest lintDebug assembleDebug`
 die lokalen Prüfungen aus und erzeugt `app/build/outputs/apk/debug/app-debug.apk`.
+Unter Windows wird `gradlew.bat` verwendet. Der versionierte Wrapper nutzt
+Gradle 9.3.0 mit festgelegter SHA-256-Prüfsumme der Distribution.
 
 Die JVM-Tests enthalten einen echten Desktop–Android-Rundlauf: Kotlin erzeugt
 die Kopplungsantwort, liest Desktop-QR-Frames und verschlüsselt eine Rückgabe.
@@ -64,7 +73,7 @@ Schlüsselpfade beziehen sich auf das Android-Arbeitsverzeichnis. Alternativ
 werden diese vier Werte als Umgebungsvariablen mit Präfix `GREMIA_ANDROID_`
 aus geschützten CI-Secrets bereitgestellt; diese haben Vorrang.
 
-`gradle releaseChecksum` baut die optimierte, signierte Release-APK unter
+`./gradlew releaseChecksum` baut die optimierte, signierte Release-APK unter
 `app/build/outputs/apk/release/app-release.apk` und die zugehörige Datei
 `app-release.apk.sha256`. Ohne vollständige Signierung bricht der Release-Build
 mit einer konkreten Fehlermeldung ab. Debug-Builds benötigen keinen Release-Key.

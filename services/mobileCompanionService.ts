@@ -1,4 +1,6 @@
 import { randomUUID } from 'node:crypto';
+import { authenticateMobileSnapshot } from './mobileSnapshotOriginProof.js';
+import { ApplicationError } from '../src/domain/models/application-error.model.js';
 import { deflateSync, inflateSync } from 'node:zlib';
 import type { DatabaseAdapter } from './databaseService.js';
 import { DatabaseUnitOfWork } from './databaseUnitOfWork.js';
@@ -12,7 +14,7 @@ import {
 } from './targetBoundTransferCrypto.js';
 import {
   createMobileCompanionPairingRequest,
-  formatMobileCompanionPairingSecurityCode,
+  verifyMobilePairingResponse,
   parseMobileCompanionPairingResponse,
 } from './mobileCompanionPairingPolicy.js';
 import type {
@@ -93,12 +95,6 @@ function normalizeLabel(value: string): string {
 
 function assertDeviceStatus(value: string): asserts value is MobileCompanionDeviceStatus {
   if (value !== 'active' && value !== 'disabled') throw new Error('Ungültiger Mobilgeräte-Status.');
-}
-
-function normalizeSecurityCode(value: string): string {
-  const code = value.trim().toUpperCase().replace(/[\s-]/gu, '');
-  if (!/^[A-HJ-NP-Z2-9]{12}$/u.test(code)) throw new Error('Bitte den 12-stelligen Sicherheitscode der Begleit-App bestätigen.');
-  return code;
 }
 
 function uniqueIds(ids: readonly string[], label: string): string[] {
@@ -221,6 +217,7 @@ export function createMobileCompanionQrFrames(serializedEnvelope: string, packag
 }
 
 export class MobileCompanionService {
+  private pairingSession: { id: string; expiresAt: number } | null = null;
   constructor(
     private readonly database: DatabaseAdapter,
     private readonly auditLog = new PersonalDataAuditLogService(database),
@@ -236,27 +233,25 @@ export class MobileCompanionService {
 
   createPairingRequest(): MobileCompanionPairingRequestModel {
     const identity = new TransferInstanceIdentityService(this.database).getPublicIdentity();
-    return createMobileCompanionPairingRequest(identity);
+    const request = createMobileCompanionPairingRequest(identity);
+    this.pairingSession = { id: request.sessionId, expiresAt: Date.now() + 5 * 60_000 };
+    return request;
+  }
+
+  cancelPairing(sessionId?: string): void {
+    if (sessionId === undefined || this.pairingSession?.id === sessionId) this.pairingSession = null;
   }
 
   saveDevice(input: SaveMobileCompanionDeviceInput): MobileCompanionDevice {
     const label = normalizeLabel(input.label);
     const response = parseMobileCompanionPairingResponse(input.pairingResponse);
-    const recipient = parseTransferRecipientToken(response.mobileRecipientToken);
-    const expectedCode = normalizeSecurityCode(formatMobileCompanionPairingSecurityCode(response));
-    const confirmedCode = normalizeSecurityCode(input.securityCode);
-    if (confirmedCode !== expectedCode) {
-      throw new Error('Sicherheitscode stimmt nicht überein. Mobilgerät wurde nicht gekoppelt.');
+    if (!this.pairingSession || this.pairingSession.id !== response.request.sessionId || this.pairingSession.expiresAt <= Date.now()) {
+      this.cancelPairing();
+      throw new ApplicationError('VALIDATION_FAILED', 'Kopplung ist abgelaufen oder wurde abgebrochen. Bitte eine neue Anfrage erstellen.');
     }
     const localIdentity = new TransferInstanceIdentityService(this.database).getPublicIdentity();
-    const requestDesktop = parseTransferRecipientToken(response.request.desktopRecipientToken);
-    if (
-      requestDesktop.instanceId !== localIdentity.instanceId ||
-      requestDesktop.keyFingerprint !== localIdentity.keyFingerprint
-    ) {
-      throw new Error('Pairingantwort gehört nicht zu dieser Gremia.SBV-Instanz.');
-    }
-    return this.unitOfWork.run(() => {
+    const recipient = verifyMobilePairingResponse(response, input.securityCode, localIdentity);
+    const device = this.unitOfWork.run(() => {
       const timestamp = nowIso();
       const existing = this.database.prepare<MobileCompanionDeviceRow>(
         'SELECT * FROM mobile_companion_devices WHERE key_fingerprint = ?',
@@ -282,6 +277,8 @@ export class MobileCompanionService {
       });
       return this.requireDevice(id);
     });
+    this.cancelPairing();
+    return device;
   }
 
   setDeviceStatus(id: string, status: MobileCompanionDeviceStatus): MobileCompanionDevice {
@@ -345,7 +342,9 @@ export class MobileCompanionService {
         },
         protectionMode: 'recipient_key_only',
       });
-      const serializedEnvelope = JSON.stringify(envelope satisfies TargetBoundTransferEnvelope);
+      const authenticated = authenticateMobileSnapshot(envelope satisfies TargetBoundTransferEnvelope,
+        new TransferInstanceIdentityService(this.database).getPrivateIdentity(), parseTransferRecipientToken(device.recipientToken).publicKeyPem);
+      const serializedEnvelope = JSON.stringify(authenticated);
       const qrFrames = createMobileCompanionQrFrames(serializedEnvelope, packageId);
       recordMobileCompanionSnapshotExport(this.database, payload, qrFrames.length);
       this.database.prepare('UPDATE mobile_companion_devices SET last_snapshot_at = ?, updated_at = ? WHERE id = ?')

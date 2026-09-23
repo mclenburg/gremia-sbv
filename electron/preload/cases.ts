@@ -66,6 +66,11 @@ function createCaseHandoverApi(invokeIpc: IpcInvoker) {
       invokeIpc(IPC_CHANNELS.caseHandoverMobileDevicesList),
     createMobilePairingRequest: (): Promise<MobileCompanionPairingRequestResult> =>
       invokeIpc(IPC_CHANNELS.caseHandoverMobilePairingRequest),
+    exportMobilePairingRequest: (request: string): Promise<boolean> =>
+      invokeIpc(IPC_CHANNELS.caseHandoverMobilePairingExport, request),
+    readMobilePairingResponse: (): Promise<string | null> =>
+      invokeIpc(IPC_CHANNELS.caseHandoverMobilePairingRead),
+    cancelMobilePairing: (sessionId: string): Promise<void> => invokeIpc(IPC_CHANNELS.caseHandoverMobilePairingCancel, sessionId),
     saveMobileDevice: (input: SaveMobileCompanionDeviceInput): Promise<MobileCompanionDevice> =>
       invokeIpc(IPC_CHANNELS.caseHandoverMobileDevicesSave, input),
     setMobileDeviceStatus: (id: string, status: MobileCompanionDeviceStatus): Promise<MobileCompanionDevice> =>
