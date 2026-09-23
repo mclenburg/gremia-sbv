@@ -80,12 +80,36 @@ class MobileSnapshotQrControllerTest {
         assertNull(controller.pendingPreview())
     }
 
+    @Test
+    fun importSessionExpiresAtTotalLimitDespiteRecentFrameActivity() {
+        val frames = framesFor("""{"envelope":"one"}""", frameCount = 2)
+        val store = FakeSnapshotStore(snapshot("existing", caseCount = 1, deadlineCount = 1))
+        var currentTime = Instant.parse("2026-09-16T10:00:00Z")
+        val controller = controller(
+            frames = frames,
+            store = store,
+            decryptedSnapshot = snapshot("incoming", caseCount = 3, deadlineCount = 5),
+            now = { currentTime },
+            inactivityTimeout = Duration.ofMinutes(10),
+            totalTimeout = Duration.ofMinutes(5),
+        )
+
+        assertIs<MobileSnapshotIntakeResult.Progress>(controller.accept("frame-0"))
+        currentTime = Instant.parse("2026-09-16T10:06:00Z")
+        val expired = assertIs<MobileSnapshotIntakeResult.Error>(controller.accept("frame-1"))
+
+        assertEquals("Die QR-Import-Sitzung ist abgelaufen. Bitte neu scannen.", expired.message)
+        assertEquals("existing", store.current()?.packageId)
+        assertNull(controller.pendingPreview())
+    }
+
     private fun controller(
         frames: List<MobileQrFrame>,
         store: FakeSnapshotStore,
         decryptedSnapshot: MobileSnapshot,
         now: () -> Instant = { Instant.parse("2026-09-16T10:00:00Z") },
         inactivityTimeout: Duration = Duration.ofMinutes(5),
+        totalTimeout: Duration = Duration.ofMinutes(15),
         isTrusted: (MobileSnapshot) -> Boolean = { true },
     ): MobileSnapshotQrController =
         MobileSnapshotQrController(
@@ -96,6 +120,7 @@ class MobileSnapshotQrControllerTest {
             decryptor = FakeDecryptor(decryptedSnapshot),
             now = now,
             inactivityTimeout = inactivityTimeout,
+            totalTimeout = totalTimeout,
         )
 
     private fun framesFor(envelope: String, frameCount: Int): List<MobileQrFrame> {

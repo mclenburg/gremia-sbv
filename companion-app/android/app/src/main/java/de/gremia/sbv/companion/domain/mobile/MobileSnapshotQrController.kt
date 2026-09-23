@@ -12,8 +12,10 @@ class MobileSnapshotQrController(
     private val decryptor: MobileSnapshotEnvelopeDecryptor,
     private val now: () -> Instant = { Instant.now() },
     private val inactivityTimeout: Duration = DEFAULT_INACTIVITY_TIMEOUT,
+    private val totalTimeout: Duration = DEFAULT_TOTAL_TIMEOUT,
 ) {
     private var pendingSnapshot: PendingSnapshot? = null
+    private var sessionStartedAt: Instant? = null
     private var lastActivityAt: Instant? = null
 
     fun pendingPreview(): MobileSnapshotImportPreview? =
@@ -27,7 +29,9 @@ class MobileSnapshotQrController(
                     "Mobile-Projektion ist vollständig. Bitte Import bestätigen oder abbrechen.",
                 )
             }
-            lastActivityAt = now()
+            val acceptedAt = now()
+            if (sessionStartedAt == null) sessionStartedAt = acceptedAt
+            lastActivityAt = acceptedAt
             when (val result = assembler.accept(rawFrame)) {
                 is MobileFrameAssemblyResult.Accepted -> MobileSnapshotIntakeResult.Progress(
                     "Frame erfasst: ${result.progress.receivedFrames} von ${result.progress.frameCount}.",
@@ -62,6 +66,7 @@ class MobileSnapshotQrController(
             check(isTrusted(pending.snapshot)) { "Die Desktop-Kopplung ist nicht mehr gültig. Bitte erneut koppeln." }
             snapshotStore.save(pending.snapshot)
             pendingSnapshot = null
+            sessionStartedAt = null
             lastActivityAt = null
             MobileSnapshotIntakeResult.Completed(
                 "Mobile Projektion übernommen: ${pending.preview.caseCount} Fallakte(n), ${pending.preview.deadlineCount} offene Frist(en).",
@@ -75,6 +80,7 @@ class MobileSnapshotQrController(
     fun cancelPendingImport(): MobileSnapshotIntakeResult.Canceled {
         assembler.reset()
         pendingSnapshot = null
+        sessionStartedAt = null
         lastActivityAt = null
         return MobileSnapshotIntakeResult.Canceled("Mobile-Projektion verworfen. Der bisherige Arbeitsstand bleibt erhalten.")
     }
@@ -82,14 +88,19 @@ class MobileSnapshotQrController(
     fun reset() {
         assembler.reset()
         pendingSnapshot = null
+        sessionStartedAt = null
         lastActivityAt = null
     }
 
     private fun expireInactiveSessionIfNeeded() {
         val lastActivity = lastActivityAt ?: return
-        if (Duration.between(lastActivity, now()) <= inactivityTimeout) return
+        val current = now()
+        val started = sessionStartedAt ?: lastActivity
+        if (Duration.between(lastActivity, current) <= inactivityTimeout
+            && Duration.between(started, current) <= totalTimeout) return
         assembler.reset()
         pendingSnapshot = null
+        sessionStartedAt = null
         lastActivityAt = null
         throw IllegalStateException("Die QR-Import-Sitzung ist abgelaufen. Bitte neu scannen.")
     }
@@ -101,6 +112,7 @@ class MobileSnapshotQrController(
 
     companion object {
         val DEFAULT_INACTIVITY_TIMEOUT: Duration = Duration.ofMinutes(5)
+        val DEFAULT_TOTAL_TIMEOUT: Duration = Duration.ofMinutes(15)
     }
 }
 
