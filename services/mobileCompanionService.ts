@@ -1,7 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { authenticateMobileTransfer } from './mobileTransferOriginProof.js';
 import { ApplicationError } from '../src/domain/models/application-error.model.js';
-import { deflateSync, inflateSync } from 'node:zlib';
 import type { DatabaseAdapter } from './databaseService.js';
 import { DatabaseUnitOfWork } from './databaseUnitOfWork.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
@@ -31,13 +30,22 @@ import type {
 } from '../src/domain/models/mobile-companion.model.js';
 import { CLOSED_CASE_MEASURE_STATUSES } from '../src/domain/case-measures/caseMeasureStatusPolicy.js';
 import { recordMobileCompanionSnapshotExport } from './caseHandoverExportLedger.js';
+import {
+  encodeMobileCompanionSnapshotPayload,
+  MOBILE_COMPANION_PROTOCOL_VERSION,
+  MOBILE_COMPANION_SNAPSHOT_FORMAT,
+  MOBILE_COMPANION_SNAPSHOT_VERSION,
+} from './mobileCompanionSnapshotCodec.js';
 
-export const MOBILE_COMPANION_SNAPSHOT_FORMAT = 'gremia-sbv-mobile-snapshot';
-export const MOBILE_COMPANION_SNAPSHOT_VERSION = 1;
-export const MOBILE_COMPANION_PROTOCOL_VERSION = '1.0' as const;
+export {
+  decodeMobileCompanionSnapshotPayload,
+  encodeMobileCompanionSnapshotPayload,
+  MOBILE_COMPANION_PROTOCOL_VERSION,
+  MOBILE_COMPANION_SNAPSHOT_FORMAT,
+  MOBILE_COMPANION_SNAPSHOT_VERSION,
+} from './mobileCompanionSnapshotCodec.js';
 export { createMobileCompanionPairingResponse } from './mobileCompanionPairingPolicy.js';
 
-const MAX_MOBILE_SNAPSHOT_BYTES = 1_000_000;
 const MAX_MOBILE_QR_FRAME_PAYLOAD_CHARS = 900;
 const MAX_MOBILE_QR_FRAMES = 300;
 
@@ -154,45 +162,6 @@ function mapDeadline(row: DeadlineRow): MobileCompanionDeadlineProjection {
 
 function encodeProtocolFrame(frame: MobileCompanionQrFrame): string {
   return `gsbvmobile://v1/${Buffer.from(JSON.stringify(frame), 'utf8').toString('base64url')}`;
-}
-
-export function encodeMobileCompanionSnapshotPayload(payload: MobileCompanionSnapshotPayload): string {
-  const serializedPayload = JSON.stringify(payload);
-  if (Buffer.byteLength(serializedPayload, 'utf8') > MAX_MOBILE_SNAPSHOT_BYTES) {
-    throw new Error('Mobile-Snapshot ist zu groß. Bitte weniger Fälle auswählen.');
-  }
-  return JSON.stringify({
-    protocolVersion: MOBILE_COMPANION_PROTOCOL_VERSION,
-    schemaVersion: MOBILE_COMPANION_SNAPSHOT_VERSION,
-    payloadCompression: 'deflate',
-    payloadBase64: deflateSync(serializedPayload).toString('base64'),
-  });
-}
-
-export function decodeMobileCompanionSnapshotPayload(encoded: string): MobileCompanionSnapshotPayload {
-  const wrapper = JSON.parse(encoded) as {
-    protocolVersion?: unknown;
-    schemaVersion?: unknown;
-    payloadCompression?: unknown;
-    payloadBase64?: unknown;
-  };
-  if (
-    wrapper.protocolVersion !== MOBILE_COMPANION_PROTOCOL_VERSION ||
-    wrapper.schemaVersion !== MOBILE_COMPANION_SNAPSHOT_VERSION ||
-    wrapper.payloadCompression !== 'deflate' ||
-    typeof wrapper.payloadBase64 !== 'string'
-  ) {
-    throw new Error('Mobile-Snapshot nutzt kein unterstütztes Format.');
-  }
-  const compressed = Buffer.from(wrapper.payloadBase64, 'base64');
-  if (compressed.byteLength > MAX_MOBILE_SNAPSHOT_BYTES) throw new Error('Mobile-Snapshot ist zu groß.');
-  const inflated = inflateSync(compressed);
-  try {
-    if (inflated.byteLength > MAX_MOBILE_SNAPSHOT_BYTES) throw new Error('Mobile-Snapshot ist zu groß.');
-    return JSON.parse(inflated.toString('utf8')) as MobileCompanionSnapshotPayload;
-  } finally {
-    inflated.fill(0);
-  }
 }
 
 export function createMobileCompanionQrFrames(serializedEnvelope: string, packageId: string, transferSessionId: string = randomUUID()): string[] {

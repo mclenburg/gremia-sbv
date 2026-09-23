@@ -19,11 +19,14 @@ class MobileSnapshotPayloadDecoder {
         }
         val compressed = Base64.getDecoder().decode(wrapper.getString("payloadBase64"))
         require(compressed.size <= MAX_SNAPSHOT_BYTES) { "Der Mobile-Snapshot ist zu groß." }
-        val inflated = InflaterInputStream(ByteArrayInputStream(compressed)).use { input ->
-            input.readBytes()
+        var inflated: ByteArray? = null
+        return try {
+            inflated = inflateBounded(compressed)
+            decodePlainPayload(String(inflated, Charsets.UTF_8))
+        } finally {
+            inflated?.fill(0)
+            compressed.fill(0)
         }
-        require(inflated.size <= MAX_SNAPSHOT_BYTES) { "Der Mobile-Snapshot ist zu groß." }
-        return decodePlainPayload(String(inflated, Charsets.UTF_8))
     }
 
     fun decodePlainPayload(payloadJson: String): MobileSnapshot {
@@ -83,5 +86,23 @@ class MobileSnapshotPayloadDecoder {
 
     private companion object {
         private const val MAX_SNAPSHOT_BYTES = 1_000_000
+
+        fun inflateBounded(compressed: ByteArray): ByteArray {
+            val output = ByteArray(MAX_SNAPSHOT_BYTES + 1)
+            var size = 0
+            try {
+                InflaterInputStream(ByteArrayInputStream(compressed)).use { input ->
+                while (true) {
+                        val count = input.read(output, size, output.size - size)
+                    if (count == -1) break
+                        size += count
+                        require(size <= MAX_SNAPSHOT_BYTES) { "Der Mobile-Snapshot ist zu groß." }
+                }
+            }
+                return output.copyOf(size)
+            } finally {
+                output.fill(0)
+            }
+        }
     }
 }
