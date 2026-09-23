@@ -415,7 +415,10 @@ describe('Mobile Begleit-App Rückgabe', () => {
     }
   });
 
-  it('blockiert die Rückgabe, wenn die Desktop-Frist seit dem Snapshot verändert wurde', async () => {
+  it.each([
+    ['Desktop-Stand behalten', 'keep_desktop' as const, 'open'],
+    ['mobile Erledigung übernehmen', 'apply_mobile' as const, 'done'],
+  ])('löst einen Fristkonflikt einzeln durch %s und übernimmt konfliktfreie Änderungen weiter', async (_label, decision, expectedStatus) => {
     const desktop = await migratedDatabase();
     const mobile = await migratedDatabase();
     try {
@@ -431,6 +434,13 @@ describe('Mobile Begleit-App Rückgabe', () => {
         packageId: 'mobile_return_conflict',
         sourceSnapshotPackageId: snapshot.packageId,
         changes: [{
+          type: 'create_note',
+          mobileId: `mobile-note-alongside-conflict-${decision}`,
+          caseId: 'case-mobile-return-1',
+          changedAt: '2026-09-10T10:16:00.000Z',
+          title: 'Konfliktfreie Gesprächsnotiz',
+          content: 'Diese Notiz darf nicht durch den Fristkonflikt blockiert werden.',
+        }, {
           type: 'complete_deadline',
           mobileId: 'mobile-complete-conflict',
           deadlineId: 'deadline-mobile-return-1',
@@ -442,10 +452,47 @@ describe('Mobile Begleit-App Rückgabe', () => {
 
       const inspection = service.inspectEnvelopeText(envelope);
 
-      expect(inspection.canImport).toBe(false);
+      expect(inspection.canImport).toBe(true);
       expect(inspection.conflictCount).toBe(1);
-      await expect(service.importEnvelopeText(envelope)).rejects.toThrow(/Konflikte/i);
+      await expect(service.importEnvelopeText(envelope)).rejects.toThrow(/jeden Konflikt/i);
+      const result = await service.importEnvelopeText(envelope, [{ mobileId: 'mobile-complete-conflict', decision }]);
+      expect(result).toMatchObject({
+        createdNoteCount: 1,
+        completedDeadlineCount: decision === 'apply_mobile' ? 1 : 0,
+        skippedConflictCount: decision === 'keep_desktop' ? 1 : 0,
+      });
+      expect(desktop.prepare<{ status: string }>('SELECT status FROM deadlines WHERE id = ?').get('deadline-mobile-return-1')?.status).toBe(expectedStatus);
+      expect(desktop.prepare<{ count: number }>('SELECT COUNT(*) AS count FROM case_notes').get()?.count).toBe(1);
+    } finally {
+      desktop.close();
+      mobile.close();
+    }
+  });
+
+  it('bestätigt auch ein Paket, dessen einziger Konflikt zugunsten des Desktop-Stands entschieden wurde', async () => {
+    const desktop = await migratedDatabase();
+    const mobile = await migratedDatabase();
+    try {
+      insertCase(desktop);
+      const device = pairMobileDevice(desktop, mobile);
+      const snapshot = new MobileCompanionService(desktop).createSnapshot({ deviceId: device.id, caseIds: ['case-mobile-return-1'] });
+      desktop.prepare("UPDATE deadlines SET updated_at = '2026-09-10T09:30:00.000Z' WHERE id = 'deadline-mobile-return-1'").run();
+      const envelope = encryptedReturnPayload(desktop, mobile, {
+        packageId: 'mobile_return_keep_desktop_only', sourceSnapshotPackageId: snapshot.packageId,
+        changes: [{
+          type: 'complete_deadline', mobileId: 'mobile-conflict-kept-on-desktop', deadlineId: 'deadline-mobile-return-1',
+          changedAt: '2026-09-10T10:17:00.000Z', baseUpdatedAt: '2026-09-10T09:00:00.000Z',
+        }],
+      });
+      const service = new MobileCompanionReturnService(desktop);
+
+      const result = await service.importEnvelopeText(envelope, [
+        { mobileId: 'mobile-conflict-kept-on-desktop', decision: 'keep_desktop' },
+      ]);
+
+      expect(result).toMatchObject({ imported: true, completedDeadlineCount: 0, skippedConflictCount: 1 });
       expect(desktop.prepare<{ status: string }>('SELECT status FROM deadlines WHERE id = ?').get('deadline-mobile-return-1')?.status).toBe('open');
+      expect(desktop.prepare<{ count: number }>('SELECT COUNT(*) AS count FROM mobile_companion_change_imports').get()?.count).toBe(1);
     } finally {
       desktop.close();
       mobile.close();

@@ -7,6 +7,7 @@ import type { MobileCompanionDeviceStatus, MobileCompanionSnapshotInput, SaveMob
 import { assertAllowedEnum, assertRecordInput, assertString, sanitizeDialogFileName } from './ipcValidation.js';
 import { issueSelectedFileCapability, resolveSelectedFileCapability, SELECTED_FILE_PURPOSE } from './selectedFileCapability.js';
 import { registerMobilePairingFileIpc } from './mobilePairingFileIpc.js';
+import { validateMobileReturnImportInput } from './mobileReturnIpcValidation.js';
 
 function validateMobileDeviceInput(input: unknown): SaveMobileCompanionDeviceInput {
   const value = assertRecordInput<Record<string, unknown>>(input, 'caseHandover:mobile:devices:save');
@@ -138,9 +139,9 @@ export function registerCaseHandoverIpc(ipcMain: IpcMain, security: SecurityServ
     };
   });
 
-  registerIpcHandler(ipcMain, IPC_CHANNELS.caseHandoverMobileReturnImport, async (_event, filePath: unknown) => {
-    const fileToken = assertString(filePath, 'caseHandover:mobile:return:import', 'Dateiauswahl', { minLength: 1, maxLength: 2000 });
-    const resolvedFilePath = resolveSelectedFileCapability(fileToken, SELECTED_FILE_PURPOSE.mobileCompanionReturn, 'caseHandover:mobile:return:import');
-    return services.mobileCompanionReturn().importFile(resolvedFilePath);
+  registerIpcHandler(ipcMain, IPC_CHANNELS.caseHandoverMobileReturnImport, async (_event, input: unknown) => {
+    const validated = validateMobileReturnImportInput(input);
+    const resolvedFilePath = resolveSelectedFileCapability(validated.filePath, SELECTED_FILE_PURPOSE.mobileCompanionReturn, 'caseHandover:mobile:return:import');
+    return services.mobileCompanionReturn().importFile(resolvedFilePath, validated.resolutions);
   });
 }

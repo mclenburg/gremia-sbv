@@ -23,7 +23,7 @@ export class MobileCompanionReturnImportApplier {
     sourceKeyFingerprint: string,
     plan: MobileCompanionReturnPlanItem[],
   ): Promise<MobileCompanionReturnImportResult> {
-    const applyIds = new Set(plan.filter((item) => item.disposition === 'apply').map((item) => item.mobileId));
+    const planByMobileId = new Map(plan.map((item) => [item.mobileId, item]));
     const caseService = new CaseService(() => this.database);
     const deadlineService = new DeadlineService(this.database);
     const journalService = new ActivityJournalService(this.database);
@@ -37,7 +37,16 @@ export class MobileCompanionReturnImportApplier {
     const importedChanges = new MobileCompanionChangeImportStore(this.database);
 
     for (const change of payload.changes) {
-      if (!applyIds.has(change.mobileId)) continue;
+      const planned = planByMobileId.get(change.mobileId);
+      if (planned?.disposition === 'skipped') {
+        if (change.type !== 'complete_deadline') throw new Error('Nicht unterstützte Konfliktentscheidung.');
+        importedChanges.record({
+          sourceKeyFingerprint, change, localEntityType: 'deadline', localEntityId: change.deadlineId,
+          handoverImportId, importedAt,
+        });
+        continue;
+      }
+      if (planned?.disposition !== 'apply') continue;
       let localEntityType: string;
       let localEntityId: string;
       if (change.type === 'create_note') {
@@ -70,6 +79,7 @@ export class MobileCompanionReturnImportApplier {
     this.createPrivacyReviews(reviewCaseIds, importedAt);
     const deadlineCount = createdDeadlineCaseIds.length + completedDeadlineCaseIds.length;
     const metadata = { packageId: payload.packageId, caseCount: reviewCaseIds.length, deadlineCount, inboxCount,
+      skippedConflictCount: plan.filter((item) => item.disposition === 'skipped').length,
       result: 'success', schemaVersion: MOBILE_COMPANION_RETURN_VERSION };
     this.database.prepare('UPDATE case_handover_imports SET updated_case_count = ?, metadata_json = ? WHERE id = ?')
       .run(reviewCaseIds.length, JSON.stringify(metadata), handoverImportId);
@@ -82,6 +92,7 @@ export class MobileCompanionReturnImportApplier {
       createdInboxCount: inboxCount, createdDeadlineCount: createdDeadlineCaseIds.length,
       completedDeadlineCount: completedDeadlineCaseIds.length, updatedCaseIds: reviewCaseIds,
       privacyReviewCaseIds: reviewCaseIds,
+      skippedConflictCount: metadata.skippedConflictCount,
     };
   }
 

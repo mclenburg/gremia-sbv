@@ -1,8 +1,9 @@
 import { Upload } from 'lucide-react';
-import type { MobileCompanionReturnInspectResult, MobileCompanionReturnPlanItem } from '../../../domain/models/mobile-companion.model';
+import type { MobileCompanionReturnConflictDecision, MobileCompanionReturnInspectResult, MobileCompanionReturnPlanItem } from '../../../domain/models/mobile-companion.model';
 import { IndustrialButton, ToolbarButton } from '../../shared/components/IndustrialButton';
 import { IndustrialPanel } from '../../shared/components/WorkbenchPanels';
 import { useMobileReturnImportWorkflow } from './useMobileReturnImportWorkflow';
+import { areMobileReturnConflictsResolved } from './mobileReturnConflictPolicy';
 
 function dispositionLabel(item: MobileCompanionReturnPlanItem): string {
   if (item.disposition === 'apply') return 'Übernehmen';
@@ -11,7 +12,11 @@ function dispositionLabel(item: MobileCompanionReturnPlanItem): string {
   return 'Nicht übernehmbar';
 }
 
-function PlanTable({ inspection }: { inspection: MobileCompanionReturnInspectResult }) {
+function PlanTable({ inspection, decisions, onDecision }: {
+  inspection: MobileCompanionReturnInspectResult;
+  decisions: Record<string, MobileCompanionReturnConflictDecision>;
+  onDecision: (mobileId: string, decision: MobileCompanionReturnConflictDecision) => void;
+}) {
   const typeLabel = (item: MobileCompanionReturnPlanItem): string => {
     if (item.type === 'create_note') return 'Notiz';
     if (item.type === 'create_inbox') return 'Fallfreier Eintrag';
@@ -25,6 +30,7 @@ function PlanTable({ inspection }: { inspection: MobileCompanionReturnInspectRes
           <th>Änderung</th>
           <th>Status</th>
           <th>Einordnung</th>
+          <th>Entscheidung</th>
         </tr>
       </thead>
       <tbody>
@@ -32,7 +38,22 @@ function PlanTable({ inspection }: { inspection: MobileCompanionReturnInspectRes
           <tr key={`${item.mobileId}-${item.type}`}>
             <td>{typeLabel(item)}</td>
             <td>{dispositionLabel(item)}</td>
-            <td>{item.summary}</td>
+            <td>{item.summary}{item.desktopState || item.mobileChange ? <div className="industrial-stack industrial-meta">
+              {item.desktopState ? <span>{item.desktopState}</span> : null}
+              {item.mobileChange ? <span>{item.mobileChange}</span> : null}
+            </div> : null}</td>
+            <td>{item.disposition === 'conflict' ? <label className="industrial-field">
+              <span className="industrial-sr-only">Entscheidung für {item.summary}</span>
+              <select
+                className="industrial-select"
+                value={decisions[item.mobileId] ?? ''}
+                onChange={(event) => onDecision(item.mobileId, event.target.value as MobileCompanionReturnConflictDecision)}
+              >
+                <option value="" disabled>Bitte entscheiden</option>
+                <option value="keep_desktop">Desktop-Stand behalten</option>
+                <option value="apply_mobile">Mobile Änderung übernehmen</option>
+              </select>
+            </label> : <span className="industrial-meta">Keine Entscheidung nötig</span>}</td>
           </tr>
         ))}
       </tbody>
@@ -43,6 +64,9 @@ function PlanTable({ inspection }: { inspection: MobileCompanionReturnInspectRes
 export function MobileReturnImportPanel({ onImported }: { onImported?: () => Promise<void> }) {
   const workflow = useMobileReturnImportWorkflow(onImported);
   const inspection = workflow.selected?.inspection;
+  const allConflictsDecided = inspection
+    ? areMobileReturnConflictsResolved(inspection, workflow.conflictDecisions)
+    : false;
   return <IndustrialPanel
     ariaLabel="Mobile Rückgabe importieren"
     kicker="Rückgabe"
@@ -57,7 +81,7 @@ export function MobileReturnImportPanel({ onImported }: { onImported?: () => Pro
       {workflow.error ? <div className="industrial-message industrial-message-warning" role="alert">{workflow.error}</div> : null}
       {workflow.message ? <div className="industrial-message industrial-message-ok" role="status">{workflow.message}</div> : null}
       {workflow.result ? <div className="industrial-message industrial-message-ok" role="status">
-        Übernommen: {workflow.result.createdNoteCount} Notiz(en), {workflow.result.createdInboxCount} fallfreie Einträge, {workflow.result.createdDeadlineCount} neue Frist(en), {workflow.result.completedDeadlineCount} erledigte Frist(en).
+        Übernommen: {workflow.result.createdNoteCount} Notiz(en), {workflow.result.createdInboxCount} fallfreie Einträge, {workflow.result.createdDeadlineCount} neue Frist(en), {workflow.result.completedDeadlineCount} erledigte Frist(en). Desktop-Stand beibehalten: {workflow.result.skippedConflictCount}.
       </div> : null}
       {inspection ? <>
         <div className="workbench-summary-grid" aria-label="Mobile Rückgabe Übersicht">
@@ -70,10 +94,10 @@ export function MobileReturnImportPanel({ onImported }: { onImported?: () => Pro
         <p className="industrial-meta">
           Datei: {workflow.selected?.fileName} · Mobilgerät: {inspection.sourceDeviceLabel ?? inspection.sourceInstanceId}
         </p>
-        <PlanTable inspection={inspection} />
+        <PlanTable inspection={inspection} decisions={workflow.conflictDecisions} onDecision={workflow.setConflictDecision} />
         <div className="industrial-action-row">
           <ToolbarButton onClick={workflow.clearSelection} disabled={workflow.busy}>Abbrechen</ToolbarButton>
-          <IndustrialButton onClick={() => void workflow.importSelected()} loading={workflow.busy} disabled={!inspection.canImport}>
+          <IndustrialButton onClick={() => void workflow.importSelected()} loading={workflow.busy} disabled={!inspection.canImport || !allConflictsDecided}>
             Mobile Änderungen übernehmen
           </IndustrialButton>
         </div>

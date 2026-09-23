@@ -173,7 +173,20 @@ export type MobileCompanionReturnPlanDisposition =
   | 'apply'
   | 'already_done'
   | 'conflict'
-  | 'rejected';
+  | 'rejected'
+  | 'skipped';
+
+export type MobileCompanionReturnConflictDecision = 'apply_mobile' | 'keep_desktop';
+
+export interface MobileCompanionReturnConflictResolution {
+  mobileId: string;
+  decision: MobileCompanionReturnConflictDecision;
+}
+
+export interface MobileCompanionReturnImportInput {
+  filePath: string;
+  resolutions: MobileCompanionReturnConflictResolution[];
+}
 
 export interface MobileCompanionReturnPlanItem {
   mobileId: string;
@@ -183,6 +196,8 @@ export interface MobileCompanionReturnPlanItem {
   caseId?: string;
   deadlineId?: string;
   reason?: string;
+  desktopState?: string;
+  mobileChange?: string;
 }
 
 export interface MobileCompanionReturnInspectResult {
@@ -199,6 +214,7 @@ export interface MobileCompanionReturnInspectResult {
   conflictCount: number;
   rejectedCount: number;
   alreadyDoneCount: number;
+  blockingErrorCount: number;
   canImport: boolean;
   plan: MobileCompanionReturnPlanItem[];
 }
@@ -212,4 +228,5 @@ export interface MobileCompanionReturnImportResult {
   completedDeadlineCount: number;
   updatedCaseIds: string[];
   privacyReviewCaseIds: string[];
+  skippedConflictCount: number;
 }

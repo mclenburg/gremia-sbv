@@ -1,7 +1,8 @@
 import { useCallback, useState } from 'react';
-import type { MobileCompanionReturnImportResult, MobileCompanionReturnInspectResult } from '../../../domain/models/mobile-companion.model';
+import type { MobileCompanionReturnConflictDecision, MobileCompanionReturnImportResult, MobileCompanionReturnInspectResult } from '../../../domain/models/mobile-companion.model';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 import { requireCaseHandoverBridge } from './caseHandoverBridge';
+import { buildMobileReturnConflictResolutions } from './mobileReturnConflictPolicy';
 
 type SelectedMobileReturn = {
   filePath: string;
@@ -20,6 +21,7 @@ export function useMobileReturnImportWorkflow(onImported?: () => Promise<void>) 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [conflictDecisions, setConflictDecisions] = useState<Record<string, MobileCompanionReturnConflictDecision>>({});
 
   const showError = useCallback((cause: unknown) => {
     const text = toErrorText(cause);
@@ -38,6 +40,7 @@ export function useMobileReturnImportWorkflow(onImported?: () => Promise<void>) 
       const picked = await handover.selectAndInspectMobileReturn();
       if (picked.canceled) return;
       setSelected(picked);
+      setConflictDecisions({});
       const text = picked.inspection.canImport
         ? 'Mobile Rückgabe wurde geprüft und kann übernommen werden.'
         : 'Mobile Rückgabe wurde geprüft. Bitte Konflikte im Importplan klären.';
@@ -57,7 +60,11 @@ export function useMobileReturnImportWorkflow(onImported?: () => Promise<void>) 
     setMessage('');
     try {
       const handover = await requireCaseHandoverBridge();
-      const imported = await handover.importMobileReturn(selected.filePath);
+      const resolutions = buildMobileReturnConflictResolutions(selected.inspection, conflictDecisions);
+      const imported = await handover.importMobileReturn({
+        filePath: selected.filePath,
+        resolutions,
+      });
       setResult(imported);
       setSelected(null);
       await onImported?.();
@@ -69,7 +76,7 @@ export function useMobileReturnImportWorkflow(onImported?: () => Promise<void>) 
     } finally {
       setBusy(false);
     }
-  }, [announce, onImported, selected, showError]);
+  }, [announce, conflictDecisions, onImported, selected, showError]);
 
   return {
     selected,
@@ -77,8 +84,11 @@ export function useMobileReturnImportWorkflow(onImported?: () => Promise<void>) 
     busy,
     error,
     message,
+    conflictDecisions,
+    setConflictDecision: (mobileId: string, decision: MobileCompanionReturnConflictDecision) =>
+      setConflictDecisions((current) => ({ ...current, [mobileId]: decision })),
     selectReturnFile,
     importSelected,
-    clearSelection: () => setSelected(null),
+    clearSelection: () => { setSelected(null); setConflictDecisions({}); },
   };
 }

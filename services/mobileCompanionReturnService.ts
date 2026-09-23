@@ -19,6 +19,7 @@ import {
 import type {
   MobileCompanionReturnChange,
   MobileCompanionReturnCompleteDeadlineChange,
+  MobileCompanionReturnConflictResolution,
   MobileCompanionReturnImportResult,
   MobileCompanionReturnInspectResult,
   MobileCompanionReturnPayload,
@@ -66,19 +67,20 @@ export class MobileCompanionReturnService {
     return this.buildPlan(payload, sourceDevice);
   }
 
-  async importFile(filePath: string): Promise<MobileCompanionReturnImportResult> {
-    return this.importEnvelopeText(this.readPackageFile(filePath));
+  async importFile(filePath: string, resolutions: MobileCompanionReturnConflictResolution[] = []): Promise<MobileCompanionReturnImportResult> {
+    return this.importEnvelopeText(this.readPackageFile(filePath), resolutions);
   }
 
-  async importEnvelopeText(envelopeText: string): Promise<MobileCompanionReturnImportResult> {
+  async importEnvelopeText(envelopeText: string, resolutions: MobileCompanionReturnConflictResolution[] = []): Promise<MobileCompanionReturnImportResult> {
     return this.unitOfWork.runAsync(() => {
       const { payload, sourceDevice } = this.decryptPayload(envelopeText);
       const inspection = this.buildPlan(payload, sourceDevice);
       if (!inspection.canImport) {
-        throw new ApplicationError('VALIDATION_FAILED', 'Mobile-Rückgabe enthält Konflikte oder nicht übernehmbare Änderungen. Bitte zuerst den Importplan prüfen.');
+        throw new ApplicationError('VALIDATION_FAILED', 'Mobile-Rückgabe enthält keine sicher übernehmbare Änderung oder einen Paketfehler. Bitte den Importplan prüfen.');
       }
+      const resolvedPlan = this.resolveConflicts(inspection.plan, resolutions);
       return new MobileCompanionReturnImportApplier(this.database)
-        .apply(payload, sourceDevice.key_fingerprint, inspection.plan);
+        .apply(payload, sourceDevice.key_fingerprint, resolvedPlan);
     });
   }
 
@@ -159,6 +161,7 @@ export class MobileCompanionReturnService {
     const rejectedCount = plan.filter((item) => item.disposition === 'rejected').length;
     const alreadyDoneCount = plan.filter((item) => item.disposition === 'already_done').length;
     const applyCount = plan.filter((item) => item.disposition === 'apply').length;
+    const blockingErrorCount = plan.filter((item) => item.reason === 'duplicate_package' || item.reason === 'source_snapshot_unknown').length;
     return {
       packageId: payload.packageId,
       sourceInstanceId: payload.sourceInstanceId,
@@ -173,9 +176,33 @@ export class MobileCompanionReturnService {
       conflictCount,
       rejectedCount,
       alreadyDoneCount,
-      canImport: applyCount > 0 && conflictCount === 0 && rejectedCount === 0,
+      blockingErrorCount,
+      canImport: blockingErrorCount === 0 && applyCount + conflictCount > 0,
       plan,
     };
+  }
+
+  private resolveConflicts(
+    plan: MobileCompanionReturnPlanItem[],
+    resolutions: MobileCompanionReturnConflictResolution[],
+  ): MobileCompanionReturnPlanItem[] {
+    const decisions = new Map<string, MobileCompanionReturnConflictResolution['decision']>();
+    for (const resolution of resolutions) {
+      if (!resolution.mobileId.trim() || decisions.has(resolution.mobileId)
+        || (resolution.decision !== 'apply_mobile' && resolution.decision !== 'keep_desktop')) {
+        throw new ApplicationError('VALIDATION_FAILED', 'Konfliktentscheidungen sind unvollständig oder doppelt.');
+      }
+      decisions.set(resolution.mobileId, resolution.decision);
+    }
+    const conflicts = plan.filter((item) => item.disposition === 'conflict');
+    if (conflicts.some((item) => !decisions.has(item.mobileId)) || decisions.size !== conflicts.length) {
+      throw new ApplicationError('VALIDATION_FAILED', 'Bitte für jeden Konflikt festlegen, ob die mobile Änderung oder der Desktop-Stand gelten soll.');
+    }
+    const resolved = plan.map((item): MobileCompanionReturnPlanItem => {
+      if (item.disposition !== 'conflict') return item;
+      return { ...item, disposition: decisions.get(item.mobileId) === 'apply_mobile' ? 'apply' : 'skipped' };
+    });
+    return resolved;
   }
 
   private loadSnapshotScope(payload: MobileCompanionReturnPayload, sourceDevice: DeviceRow): SnapshotScope {
@@ -265,6 +292,8 @@ export class MobileCompanionReturnService {
         caseId: row.case_id ?? undefined,
         deadlineId: row.id,
         reason: 'deadline_changed',
+        desktopState: `Desktop: Frist ist offen; zuletzt geändert am ${row.updated_at}.`,
+        mobileChange: `Mobil: Frist als erledigt markieren${change.completedNote ? ' – mit Erledigungsvermerk' : ''}.`,
       };
     }
     return {

@@ -283,7 +283,7 @@ declare global {
       setMobileDeviceStatus: (id: string, status: import("./domain/models/mobile-companion.model").MobileCompanionDeviceStatus) => Promise<import("./domain/models/mobile-companion.model").MobileCompanionDevice>;
       createMobileSnapshot: (input: import("./domain/models/mobile-companion.model").MobileCompanionSnapshotInput) => Promise<import("./domain/models/mobile-companion.model").MobileCompanionSnapshotResult>;
       selectAndInspectMobileReturn: () => Promise<{ canceled: true } | { canceled: false; filePath: string; fileName: string; inspection: import("./domain/models/mobile-companion.model").MobileCompanionReturnInspectResult }>;
-      importMobileReturn: (filePath: string) => Promise<import("./domain/models/mobile-companion.model").MobileCompanionReturnImportResult>;
+      importMobileReturn: (input: import("./domain/models/mobile-companion.model").MobileCompanionReturnImportInput) => Promise<import("./domain/models/mobile-companion.model").MobileCompanionReturnImportResult>;
     };
 
     caseMeasures: {

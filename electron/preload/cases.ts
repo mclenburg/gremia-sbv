@@ -15,7 +15,7 @@ import type {
 } from "../../src/domain/models/case-note.model.js";
 import type { CaseDocumentRecord } from "../../src/domain/models/case-document.model.js";
 import type { CaseHandoverChecklist, CaseHandoverChecklistInput, CaseHandoverCockpit, CaseHandoverContinueExpiredResult, CaseHandoverExportInput, CaseHandoverExportResult, CaseHandoverImportInput, CaseHandoverImportResult, CaseHandoverInspectResult, CaseHandoverReturnDeltaExportInput } from "../../src/domain/models/case-handover.model.js";
-import type { MobileCompanionDevice, MobileCompanionDeviceStatus, MobileCompanionPairingRequestResult, MobileCompanionReturnImportResult, MobileCompanionReturnInspectResult, MobileCompanionSnapshotInput, MobileCompanionSnapshotResult, SaveMobileCompanionDeviceInput } from "../../src/domain/models/mobile-companion.model.js";
+import type { MobileCompanionDevice, MobileCompanionDeviceStatus, MobileCompanionPairingRequestResult, MobileCompanionReturnImportInput, MobileCompanionReturnImportResult, MobileCompanionReturnInspectResult, MobileCompanionSnapshotInput, MobileCompanionSnapshotResult, SaveMobileCompanionDeviceInput } from "../../src/domain/models/mobile-companion.model.js";
 import type {
   CaseMeasureNoteProcessType,
   CaseMeasureNoteRecord,
@@ -79,8 +79,8 @@ function createCaseHandoverApi(invokeIpc: IpcInvoker) {
       invokeIpc(IPC_CHANNELS.caseHandoverMobileSnapshotCreate, input),
     selectAndInspectMobileReturn: (): Promise<{ canceled: true } | { canceled: false; filePath: string; fileName: string; inspection: MobileCompanionReturnInspectResult }> =>
       invokeIpc(IPC_CHANNELS.caseHandoverMobileReturnSelectInspect),
-    importMobileReturn: (filePath: string): Promise<MobileCompanionReturnImportResult> =>
-      invokeIpc(IPC_CHANNELS.caseHandoverMobileReturnImport, filePath),
+    importMobileReturn: (input: MobileCompanionReturnImportInput): Promise<MobileCompanionReturnImportResult> =>
+      invokeIpc(IPC_CHANNELS.caseHandoverMobileReturnImport, input),
   };
 }
 

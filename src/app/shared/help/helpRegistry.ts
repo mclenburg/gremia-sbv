@@ -298,14 +298,14 @@ export const HELP_REGISTRY = {
       { type: "paragraph", text: "Mobilgerät koppeln zeigt einen Anfrage-QR und bietet eine .gsbvpair-Anfragedatei. In der App unter Synchronisation → Desktop koppeln übernehmen; die Antwortdatei oder den Antworttext am Desktop einlesen. Den Sicherheitscode vergleichen und zuerst am Desktop, dann auch in der App bestätigen. Die Desktop-Anfrage gilt fünf Minuten. Abbruch verändert bestehende Kopplungen nicht." },
       { type: "paragraph", text: "Jeder Snapshot ist an genau dieses Gerät gebunden. Die App prüft zusätzlich den kryptografischen Herkunftsnachweis des bestätigt gekoppelten Desktops. In der Audit-Chain stehen nur technische Zähldaten. Vor einem Desktopwechsel mobile Änderungen zurückgeben und den Arbeitsbestand unter Einstellungen entfernen." },
       { type: "paragraph", text: "Nach dem Erzeugen zeigt Gremia.SBV automatisch wechselnde QR-Frames an. Für ältere Kameras Tempo „Kompatibel“ wählen; die Übertragung kann pausiert, manuell weitergeschaltet oder abgebrochen werden." },
-      { type: "paragraph", text: "Mobile Notizen und Friständerungen kommen als verschlüsselte Rückgabedatei zurück. Gremia.SBV zeigt vor dem Import einen Plan und übernimmt nur konfliktfreie Änderungen in den Desktop-Tresor." },
+      { type: "paragraph", text: "Mobile Notizen und Friständerungen kommen als verschlüsselte Rückgabedatei zurück. Gremia.SBV zeigt vor dem Import einen Plan. Konfliktfreie Änderungen bleiben übernehmbar; bei abweichenden Fristständen entscheidest du einzeln zwischen Desktop-Stand und mobiler Änderung." },
     ],
   },
   "caseHandover.mobileReturn": {
     id: "caseHandover.mobileReturn", kicker: "Rückgabe", title: "Mobile Änderungen übernehmen",
     summary: "Mobile Rückgaben werden vor dem Schreiben gegen den bekannten Desktop-Snapshot geprüft.",
     blocks: [
-      { type: "paragraph", text: "Die Rückgabedatei muss zu einem auf dieser Instanz erzeugten Mobile-Snapshot gehören. Änderungen an anderen Fallakten oder Fristen werden abgewiesen, bevor Daten geschrieben werden." },
+      { type: "paragraph", text: "Die Rückgabedatei muss zu einem auf dieser Instanz erzeugten Mobile-Snapshot gehören. Änderungen an anderen Fallakten oder Fristen werden abgewiesen. Bei einem echten Fristkonflikt zeigt der Importplan beide Stände und verlangt vor dem Schreiben eine Entscheidung." },
       { type: "paragraph", text: "Gremia.SBV übernimmt nur neue mobile Notizen, neue Fristen und konfliktfreie Fristerledigungen. Jede Übernahme wird protokolliert und für die Datenschutzprüfung markiert." },
     ],
   },
