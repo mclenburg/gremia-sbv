@@ -38,3 +38,18 @@ class MobileSnapshotReplacementPolicy {
             unsentChangeCount = drafts.changeCount,
         )
 }
+
+data class MobileReturnExportOutcome(
+    val pendingDesktopImportCount: Int,
+    val draftsRemainAvailable: Boolean,
+)
+
+class MobileReturnExportPolicy {
+    fun afterSuccessfulFileSave(changeCount: Int): MobileReturnExportOutcome {
+        require(changeCount > 0) { "Eine Rückgabedatei muss mindestens eine Änderung enthalten." }
+        return MobileReturnExportOutcome(
+            pendingDesktopImportCount = changeCount,
+            draftsRemainAvailable = true,
+        )
+    }
+}

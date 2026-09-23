@@ -39,6 +39,7 @@ import de.gremia.sbv.companion.domain.mobile.MobileReturnPackageCreator
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshotIntakeResult
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshotQrController
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshotReplacementPolicy
+import de.gremia.sbv.companion.domain.mobile.MobileReturnExportPolicy
 import de.gremia.sbv.companion.domain.security.MobileLockPolicy
 import de.gremia.sbv.companion.domain.security.MobileAppSettings
 import de.gremia.sbv.companion.domain.security.MobileAutoLockTimeout
@@ -66,6 +67,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var desktopTrust: MobileDesktopTrustRepository
     private lateinit var pairingFlow: MobilePairingFlow
     private val snapshotReplacementPolicy = MobileSnapshotReplacementPolicy()
+    private val returnExportPolicy = MobileReturnExportPolicy()
     private var appSettings = MobileAppSettings()
     private var lockPolicy = MobileLockPolicy(appSettings.autoLockTimeout.milliseconds)
     private val lockCheckHandler = Handler(Looper.getMainLooper())
@@ -479,8 +481,16 @@ class MainActivity : ComponentActivity() {
             } ?: error(getString(R.string.return_file_save_failed))
         }.onSuccess {
             syncJournalRepository.recordReturnExport(pending.packageId, pending.changeCount)
-            returnDraftRepository.clear()
-            Toast.makeText(this, getString(R.string.return_file_saved, pending.fileName), Toast.LENGTH_LONG).show()
+            val outcome = returnExportPolicy.afterSuccessfulFileSave(pending.changeCount)
+            Toast.makeText(
+                this,
+                getString(
+                    R.string.return_file_saved_pending_import,
+                    pending.fileName,
+                    outcome.pendingDesktopImportCount,
+                ),
+                Toast.LENGTH_LONG,
+            ).show()
             renderContent()
         }.onFailure { cause ->
             Toast.makeText(this, cause.message ?: getString(R.string.return_file_save_failed), Toast.LENGTH_LONG).show()

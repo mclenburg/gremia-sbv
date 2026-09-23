@@ -2,6 +2,8 @@ package de.gremia.sbv.companion.domain.mobile
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 class MobileSyncHistoryPolicyTest {
     @Test
@@ -58,4 +60,21 @@ class MobileSyncHistoryPolicyTest {
             deadlineCount = 3,
             changeCount = 0,
         )
+}
+
+class MobileReturnExportPolicyTest {
+    @Test
+    fun `gespeicherte Rückgabedatei löscht noch nicht vom Desktop bestätigte Änderungen nicht`() {
+        val outcome = MobileReturnExportPolicy().afterSuccessfulFileSave(3)
+
+        assertEquals(3, outcome.pendingDesktopImportCount)
+        assertTrue(outcome.draftsRemainAvailable)
+    }
+
+    @Test
+    fun `leere Rückgabe kann nicht als erfolgreicher Export behandelt werden`() {
+        assertFailsWith<IllegalArgumentException> {
+            MobileReturnExportPolicy().afterSuccessfulFileSave(0)
+        }
+    }
 }
