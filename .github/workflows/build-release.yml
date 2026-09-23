@@ -127,6 +127,56 @@ jobs:
 
           gh release create "${release_args[@]}"
 
+  build-android:
+    name: Build signed Android APK
+    runs-on: ubuntu-latest
+    needs: [verify-tag, quality-gates, prepare-release]
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Install Android SDK components
+        run: '"${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" "build-tools;34.0.0"'
+
+      - name: Install desktop interoperability dependencies
+        run: npm ci
+
+      - name: Test, sign and verify release APK
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: node scripts/build-android-release.cjs
+
+      - name: Replace Android assets in release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PACKAGE_VERSION: ${{ needs.verify-tag.outputs.package_version }}
+        run: |
+          set -euo pipefail
+          gh release upload "${RELEASE_TAG}" \
+            "release/Gremia.SBV-${PACKAGE_VERSION}-android.apk" \
+            "release/Gremia.SBV-${PACKAGE_VERSION}-android.apk.sha256" \
+            --clobber --repo "${GH_REPO}"
+
   build-artifacts:
     name: Build ${{ matrix.label }}
     runs-on: ${{ matrix.os }}

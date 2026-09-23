@@ -6,6 +6,7 @@ on:
     paths:
       - "electron/**"
       - "services/**"
+      - "companion-app/**"
       - "scripts/**"
       - "tests/**"
       - "package.json"
@@ -24,6 +25,32 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 jobs:
+  verify-android:
+    name: Verify Android companion
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install Android SDK components
+        run: '"${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" "build-tools;34.0.0"'
+      - name: Install desktop interoperability dependencies
+        run: npm ci
+      - name: Test, lint and build without release credentials or upload
+        run: ./companion-app/android/gradlew -p companion-app/android --no-daemon --max-workers=2 testDebugUnitTest lintDebug assembleDebug
+
   verify-platform:
     name: Verify ${{ matrix.label }}
     runs-on: ${{ matrix.os }}

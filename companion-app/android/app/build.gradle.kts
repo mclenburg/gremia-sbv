@@ -17,7 +17,8 @@ fun signingValue(name: String): String? =
 val releaseStore = signingValue("STORE_FILE")?.let { rootProject.file(it) }
 val releaseStorePassword = signingValue("STORE_PASSWORD")
 val releaseKeyAlias = signingValue("KEY_ALIAS")
-val releaseKeyPassword = signingValue("KEY_PASSWORD")
+val releaseKeyPassword = signingValue("KEY_PASSWORD")?.takeIf { it.isNotEmpty() }
+    ?: releaseStorePassword
 val releaseSigningReady = releaseStore?.isFile == true &&
     listOf(releaseStorePassword, releaseKeyAlias, releaseKeyPassword).all { !it.isNullOrBlank() }
 

@@ -76,6 +76,9 @@ Repository. Die nicht versionierte Datei `android/keystore.properties` enthält
 Schlüsselpfade beziehen sich auf das Android-Arbeitsverzeichnis. Alternativ
 werden diese vier Werte als Umgebungsvariablen mit Präfix `GREMIA_ANDROID_`
 aus geschützten CI-Secrets bereitgestellt; diese haben Vorrang.
+`KEY_PASSWORD` ist optional: Fehlt es oder ist es leer, wird `STORE_PASSWORD`
+auch zum Entsperren des privaten Schlüssels verwendet. Bei einem tatsächlich
+abweichenden Schlüsselpasswort muss dieses ausdrücklich angegeben werden.
 
 `./gradlew releaseChecksum` baut die optimierte, signierte Release-APK unter
 `app/build/outputs/apk/release/app-release.apk` und die zugehörige Datei
@@ -83,3 +86,35 @@ aus geschützten CI-Secrets bereitgestellt; diese haben Vorrang.
 mit einer konkreten Fehlermeldung ab. Debug-Builds benötigen keinen Release-Key.
 Updates benötigen denselben Signing-Key und einen erhöhten `versionCode`;
 der Schlüssel muss daher außerhalb des Repositorys gesichert werden.
+
+### GitHub-Release
+
+Der Workflow **Build tagged release** baut bei einem Versionstag und beim
+manuellen Start mit `release_tag` neben AppImage, portabler EXE und MSI auch die
+signierte Android-App. Dafür werden diese Repository-Secrets verwendet:
+
+| Secret | Inhalt |
+| --- | --- |
+| `KEYSTORE_BASE64` | Vollständige Keystore-Datei, Base64-kodiert |
+| `KEYSTORE_PASSWORD` | Passwort des Keystores |
+| `KEY_ALIAS` | Alias des zu verwendenden privaten Schlüssels |
+| `KEY_PASSWORD` | Optionales abweichendes Schlüsselpasswort; sonst Keystore-Passwort |
+
+Nach JVM-Tests einschließlich Desktop–Android-Rundlauf, Release-Lint und
+optimiertem Build werden APK-Signatur, Anwendungskennung, nicht-debuggable
+Release-Modus, Versionsübereinstimmung und Prüfsumme geprüft. Erst dann werden
+`Gremia.SBV-<Version>-android.apk` und die zugehörige `.sha256`-Datei in dasselbe
+GitHub-Release hochgeladen. Ein manueller Lauf ersetzt dessen APK und Prüfsumme.
+Fehlende oder falsche Zugangsdaten brechen den Build ab; es gibt keinen
+Rückfall auf eine Debug-APK. Der Keystore liegt nur in einem temporären,
+zugriffsbeschränkten Verzeichnis und wird auch bei Buildfehlern entfernt.
+
+Der Pull-Request-Workflow prüft die App ohne Release-Secrets mit JVM-Tests,
+Debug-Lint und Debug-Build. Er lädt weder APKs noch andere Artefakte hoch.
+
+Der lokale Linux-Integrationstest `node scripts/test-android-release-signing.cjs`
+führt denselben Release-Build mit einem kurzlebigen Testschlüssel aus. Er prüft
+den Passwort-Fallback, das fertige APK, die Ablehnung eines falschen Schlüsselalias
+und die Erkennung nachträglicher APK-Manipulation. Er benötigt Java 21, Node 24,
+Android SDK 35 mit Build-Tools 34.0.0 und die npm-Abhängigkeiten. Er veröffentlicht
+nichts; Testschlüssel und exportierte Testartefakte werden anschließend entfernt.
