@@ -1,30 +1,23 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
 import { DatabaseUnitOfWork } from './databaseUnitOfWork.js';
-import { PersonalDataAuditLogService } from './auditLogService.js';
 import { TransferInstanceIdentityService } from './transferInstanceIdentityService.js';
 import { decryptTargetBoundTransferPayload } from './targetBoundTransferCrypto.js';
 import { requireMobileOriginProof, verifyMobileTransferOrigin } from './mobileTransferOriginProof.js';
 import { parseTransferRecipientToken } from './transferInstanceIdentityPolicy.js';
 import { ApplicationError } from '../src/domain/models/application-error.model.js';
-import { CaseService } from './caseService.js';
-import { DeadlineService } from './deadlineService.js';
-import { PrivacyReviewService } from './privacyReviewService.js';
-import { ActivityJournalService } from './activityJournalService.js';
+import { MobileCompanionChangeImportStore } from './mobileCompanionChangeImportStore.js';
+import { MobileCompanionReturnImportApplier } from './mobileCompanionReturnImportApplier.js';
 import {
   assertMobileCompanionReturnPayload,
   assertTargetBoundReturnEnvelope,
   MOBILE_COMPANION_RETURN_FORMAT,
   MOBILE_COMPANION_RETURN_VERSION,
   safeMobileReturnSummary,
-  uniqueMobileReturnValues,
 } from './mobileCompanionReturnPayload.js';
 import type {
   MobileCompanionReturnChange,
-  MobileCompanionReturnCreateInboxChange,
-  MobileCompanionReturnCreateNoteChange,
   MobileCompanionReturnCompleteDeadlineChange,
   MobileCompanionReturnImportResult,
   MobileCompanionReturnInspectResult,
@@ -58,10 +51,6 @@ type SnapshotScope = {
   deadlineIds: Set<string>;
 };
 
-function nowIso(): string {
-  return new Date().toISOString();
-}
-
 export class MobileCompanionReturnService {
   constructor(
     private readonly database: DatabaseAdapter,
@@ -88,7 +77,8 @@ export class MobileCompanionReturnService {
       if (!inspection.canImport) {
         throw new ApplicationError('VALIDATION_FAILED', 'Mobile-Rückgabe enthält Konflikte oder nicht übernehmbare Änderungen. Bitte zuerst den Importplan prüfen.');
       }
-      return this.applyPayload(payload, inspection.plan);
+      return new MobileCompanionReturnImportApplier(this.database)
+        .apply(payload, sourceDevice.key_fingerprint, inspection.plan);
     });
   }
 
@@ -152,7 +142,14 @@ export class MobileCompanionReturnService {
       });
     }
     for (const change of payload.changes) {
-      plan.push(this.planChange(change, snapshotScope));
+      const imported = new MobileCompanionChangeImportStore(this.database).find(sourceDevice.key_fingerprint, change.mobileId);
+      plan.push(imported ? {
+        mobileId: change.mobileId,
+        type: change.type,
+        disposition: 'already_done',
+        summary: 'Diese mobile Änderung wurde bereits übernommen.',
+        reason: 'mobile_change_already_imported',
+      } : this.planChange(change, snapshotScope));
     }
     const noteCount = payload.changes.filter((change) => change.type === 'create_note').length;
     const inboxCount = payload.changes.filter((change) => change.type === 'create_inbox').length;
@@ -294,126 +291,4 @@ export class MobileCompanionReturnService {
     };
   }
 
-  private async applyPayload(
-    payload: MobileCompanionReturnPayload,
-    plan: MobileCompanionReturnPlanItem[],
-  ): Promise<MobileCompanionReturnImportResult> {
-    const applyIds = new Set(plan.filter((item) => item.disposition === 'apply').map((item) => item.mobileId));
-    const caseService = new CaseService(() => this.database);
-    const deadlineService = new DeadlineService(this.database);
-    const activityJournalService = new ActivityJournalService(this.database);
-    const createdNoteCaseIds: string[] = [];
-    let createdInboxCount = 0;
-    const createdDeadlineCaseIds: string[] = [];
-    const completedDeadlineCaseIds: string[] = [];
-    for (const change of payload.changes) {
-      if (!applyIds.has(change.mobileId)) continue;
-      if (change.type === 'create_note') {
-        await this.createNote(caseService, change);
-        createdNoteCaseIds.push(change.caseId);
-      } else if (change.type === 'create_inbox') {
-        this.createInboxEntry(activityJournalService, change);
-        createdInboxCount += 1;
-      } else if (change.type === 'create_deadline') {
-        deadlineService.create({
-          caseId: change.caseId,
-          processType: 'case',
-          deadlineType: 'follow_up',
-          title: change.title,
-          description: change.description,
-          dueAt: change.dueAt,
-          reminderAt: change.reminderAt,
-          severity: change.severity ?? 'normal',
-          calculationMode: 'manual',
-          isLegalDeadline: false,
-          sourceEvent: 'mobile_companion_return',
-        });
-        createdDeadlineCaseIds.push(change.caseId);
-      } else {
-        const deadline = deadlineService.complete(change.deadlineId, change.completedNote ?? 'Über mobile Begleit-App erledigt.');
-        if (deadline.caseId) completedDeadlineCaseIds.push(deadline.caseId);
-      }
-    }
-    const privacyReviewCaseIds = uniqueMobileReturnValues([...createdNoteCaseIds, ...createdDeadlineCaseIds, ...completedDeadlineCaseIds]);
-    const privacyReview = new PrivacyReviewService(this.database);
-    privacyReview.ensureSchema();
-    const timestamp = nowIso();
-    for (const caseId of privacyReviewCaseIds) {
-      const row = this.database.prepare<{ protected_person_id: string | null }>('SELECT protected_person_id FROM cases WHERE id = ?').get(caseId);
-      privacyReview.createForCase(caseId, row?.protected_person_id ?? null, 'handover_imported', { mobileReturnReviewRequired: true }, timestamp, 'high');
-    }
-    this.database.prepare(`
-      INSERT INTO case_handover_imports (
-        id, package_id, imported_at, valid_until, status, mode,
-        created_case_count, updated_case_count, metadata_json
-      ) VALUES (?, ?, ?, NULL, 'returned', 'mobile_companion', 0, ?, ?)
-    `).run(randomUUID(), payload.packageId, timestamp, privacyReviewCaseIds.length, JSON.stringify({
-      packageId: payload.packageId,
-      caseCount: privacyReviewCaseIds.length,
-      deadlineCount: createdDeadlineCaseIds.length + completedDeadlineCaseIds.length,
-      inboxCount: createdInboxCount,
-      result: 'success',
-      schemaVersion: MOBILE_COMPANION_RETURN_VERSION,
-    }));
-    new PersonalDataAuditLogService(this.database).append({
-      action: 'import',
-      subjectType: 'mobile_companion_transfer',
-      subjectId: payload.packageId,
-      purpose: 'Mobile-Begleit-App-Rückgabe importiert',
-      metadata: {
-        packageId: payload.packageId,
-        caseCount: privacyReviewCaseIds.length,
-        deadlineCount: createdDeadlineCaseIds.length + completedDeadlineCaseIds.length,
-        inboxCount: createdInboxCount,
-        result: 'success',
-        schemaVersion: MOBILE_COMPANION_RETURN_VERSION,
-      },
-    });
-    return {
-      imported: true,
-      packageId: payload.packageId,
-      createdNoteCount: createdNoteCaseIds.length,
-      createdInboxCount,
-      createdDeadlineCount: createdDeadlineCaseIds.length,
-      completedDeadlineCount: completedDeadlineCaseIds.length,
-      updatedCaseIds: privacyReviewCaseIds,
-      privacyReviewCaseIds,
-    };
-  }
-
-  private async createNote(
-    caseService: CaseService,
-    change: MobileCompanionReturnCreateNoteChange,
-  ): Promise<void> {
-    await caseService.createNote({
-      caseId: change.caseId,
-      title: change.title,
-      noteDate: change.changedAt,
-      noteType: change.noteType ?? 'gespraech',
-      participants: change.participants,
-      content: change.content,
-      nextSteps: change.nextSteps,
-      containsHealthData: change.containsHealthData,
-      confidentialLevel: 'sensibel',
-    });
-  }
-
-  private createInboxEntry(
-    activityJournalService: ActivityJournalService,
-    change: MobileCompanionReturnCreateInboxChange,
-  ): void {
-    activityJournalService.createEntry({
-      entryDate: change.changedAt.slice(0, 10),
-      startedAt: change.changedAt,
-      timeMode: 'none',
-      category: 'consultation',
-      title: change.title,
-      description: change.content,
-      resultNote: change.nextSteps,
-      confidentialityLevel: change.containsHealthData === false ? 'confidential' : 'highly_confidential',
-      status: 'final',
-      createdFrom: 'import',
-      links: [],
-    });
-  }
 }

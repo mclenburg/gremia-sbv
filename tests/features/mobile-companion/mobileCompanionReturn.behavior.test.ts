@@ -262,6 +262,74 @@ describe('Mobile Begleit-App Rückgabe', () => {
     }
   });
 
+  it('übernimmt dieselbe mobile Änderung desselben Geräts auch aus einem neuen Paket nur einmal', async () => {
+    const desktop = await migratedDatabase();
+    const mobile = await migratedDatabase();
+    try {
+      insertCase(desktop);
+      const device = pairMobileDevice(desktop, mobile);
+      const snapshot = new MobileCompanionService(desktop).createSnapshot({ deviceId: device.id, caseIds: ['case-mobile-return-1'] });
+      const repeatedNote = {
+        type: 'create_note' as const,
+        mobileId: 'stable-mobile-note-id',
+        caseId: 'case-mobile-return-1',
+        changedAt: '2026-09-10T10:15:00.000Z',
+        title: 'Nur einmal übernehmen',
+        content: 'Dieser Entwurf bleibt bis zur Desktop-Bestätigung auf dem Gerät.',
+      };
+      const service = new MobileCompanionReturnService(desktop);
+      await service.importEnvelopeText(encryptedReturnPayload(desktop, mobile, {
+        packageId: 'mobile_return_first_package', sourceSnapshotPackageId: snapshot.packageId, changes: [repeatedNote],
+      }));
+      const secondEnvelope = encryptedReturnPayload(desktop, mobile, {
+        packageId: 'mobile_return_second_package',
+        sourceSnapshotPackageId: snapshot.packageId,
+        changes: [repeatedNote, {
+          type: 'create_inbox', mobileId: 'new-mobile-inbox-id', changedAt: '2026-09-10T10:20:00.000Z',
+          title: 'Neue Änderung', content: 'Diese Änderung soll zusätzlich übernommen werden.',
+        }],
+      });
+
+      const inspection = service.inspectEnvelopeText(secondEnvelope);
+      expect(inspection).toMatchObject({ canImport: true, applyCount: 1, alreadyDoneCount: 1 });
+      expect(inspection.plan).toEqual(expect.arrayContaining([
+        expect.objectContaining({ mobileId: repeatedNote.mobileId, disposition: 'already_done', reason: 'mobile_change_already_imported' }),
+        expect.objectContaining({ mobileId: 'new-mobile-inbox-id', disposition: 'apply' }),
+      ]));
+      const result = await service.importEnvelopeText(secondEnvelope);
+      expect(result).toMatchObject({ createdNoteCount: 0, createdInboxCount: 1 });
+      expect(desktop.prepare<{ count: number }>('SELECT COUNT(*) AS count FROM case_notes').get()?.count).toBe(1);
+      expect(desktop.prepare<{ count: number }>('SELECT COUNT(*) AS count FROM mobile_companion_change_imports').get()?.count).toBe(2);
+    } finally {
+      desktop.close();
+      mobile.close();
+    }
+  });
+
+  it('weist doppelte mobile Änderungskennungen innerhalb eines Pakets ohne Schreiboperation zurück', async () => {
+    const desktop = await migratedDatabase();
+    const mobile = await migratedDatabase();
+    try {
+      insertCase(desktop);
+      const device = pairMobileDevice(desktop, mobile);
+      const snapshot = new MobileCompanionService(desktop).createSnapshot({ deviceId: device.id, caseIds: ['case-mobile-return-1'] });
+      const duplicate = {
+        type: 'create_note' as const, mobileId: 'duplicate-mobile-id', caseId: 'case-mobile-return-1',
+        changedAt: '2026-09-10T10:15:00.000Z', title: 'Doppelt', content: 'Nicht übernehmen.',
+      };
+      const envelope = encryptedReturnPayload(desktop, mobile, {
+        sourceSnapshotPackageId: snapshot.packageId, changes: [duplicate, { ...duplicate, title: 'Noch einmal' }],
+      });
+      const service = new MobileCompanionReturnService(desktop);
+      expect(() => service.inspectEnvelopeText(envelope)).toThrow(/Änderungs-ID mehrfach/);
+      await expect(service.importEnvelopeText(envelope)).rejects.toThrow(/Änderungs-ID mehrfach/);
+      expect(desktop.prepare<{ count: number }>('SELECT COUNT(*) AS count FROM case_notes').get()?.count).toBe(0);
+    } finally {
+      desktop.close();
+      mobile.close();
+    }
+  });
+
   it('übernimmt fallfreie mobile Inbox-Einträge als Tätigkeitsjournal ohne Fallbezug', async () => {
     const desktop = await migratedDatabase();
     const mobile = await migratedDatabase();

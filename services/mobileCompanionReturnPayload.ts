@@ -25,6 +25,9 @@ export function assertMobileCompanionReturnPayload(payloadText: string): MobileC
   const changes = Array.isArray(parsed.changes) ? parsed.changes.map(assertReturnChange) : [];
   if (!changes.length) throw new Error('Mobile-Rückgabepaket enthält keine Änderungen.');
   if (changes.length > 1000) throw new Error('Mobile-Rückgabepaket enthält zu viele Änderungen.');
+  if (new Set(changes.map((change) => change.mobileId)).size !== changes.length) {
+    throw new Error('Mobile-Rückgabepaket enthält eine Änderungs-ID mehrfach.');
+  }
   return {
     protocolVersion: '1.0',
     schemaVersion: MOBILE_COMPANION_RETURN_VERSION,

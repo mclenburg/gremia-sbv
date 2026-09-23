@@ -77,6 +77,17 @@ export const MOBILE_COMPANION_DEVICES_REQUIRED_COLUMNS = [
   'last_snapshot_at'
 ] as const;
 
+export const MOBILE_COMPANION_CHANGE_IMPORTS_REQUIRED_COLUMNS = [
+  'id',
+  'source_key_fingerprint',
+  'mobile_change_id',
+  'change_type',
+  'local_entity_type',
+  'local_entity_id',
+  'handover_import_id',
+  'imported_at'
+] as const;
+
 
 export const SBV_RESOURCE_RECORDS_REQUIRED_COLUMNS = [
   'id',
