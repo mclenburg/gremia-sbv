@@ -3,6 +3,7 @@ package de.gremia.sbv.companion.data.mobile
 import android.annotation.SuppressLint
 import android.content.Context
 import de.gremia.sbv.companion.data.security.AndroidSecretBox
+import de.gremia.sbv.companion.data.security.commitOrThrow
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshot
 import de.gremia.sbv.companion.domain.mobile.MobileSyncDirection
 import de.gremia.sbv.companion.domain.mobile.MobileSyncEvent
@@ -50,7 +51,8 @@ class MobileSyncJournalRepository(
 
     @SuppressLint("ApplySharedPref")
     fun clear(destroyKey: Boolean = false) {
-        preferences.edit().remove(EVENTS_KEY).commit()
+        preferences.edit().remove(EVENTS_KEY)
+            .commitOrThrow("Der mobile Synchronisationsnachweis konnte nicht gelöscht werden.")
         if (destroyKey) secretBox.deleteKey()
     }
 
@@ -59,7 +61,8 @@ class MobileSyncJournalRepository(
         val encoded = JSONArray().also { items ->
             events.forEach { item -> items.put(encode(item)) }
         }.toString()
-        preferences.edit().putString(EVENTS_KEY, secretBox.encrypt(encoded)).apply()
+        preferences.edit().putString(EVENTS_KEY, secretBox.encrypt(encoded))
+            .commitOrThrow("Der mobile Synchronisationsnachweis konnte nicht dauerhaft gespeichert werden.")
     }
 
     private fun encode(event: MobileSyncEvent): JSONObject =

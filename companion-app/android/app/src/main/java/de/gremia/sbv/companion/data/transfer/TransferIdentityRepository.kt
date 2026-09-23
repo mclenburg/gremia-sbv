@@ -3,6 +3,7 @@ package de.gremia.sbv.companion.data.transfer
 import android.annotation.SuppressLint
 import android.content.Context
 import de.gremia.sbv.companion.data.security.AndroidSecretBox
+import de.gremia.sbv.companion.data.security.commitOrThrow
 import de.gremia.sbv.companion.domain.transfer.TransferIdentity
 import de.gremia.sbv.companion.domain.transfer.X25519IdentityFactory
 import de.gremia.sbv.companion.domain.transfer.formatRecipientToken
@@ -29,13 +30,14 @@ class TransferIdentityRepository(
         val created = identityFactory.create()
         preferences.edit()
             .putString(IDENTITY_KEY, secretBox.encrypt(encode(created)))
-            .apply()
+            .commitOrThrow("Die Geräteidentität konnte nicht dauerhaft gespeichert werden.")
         return created
     }
 
     @SuppressLint("ApplySharedPref")
     fun clear() {
-        preferences.edit().remove(IDENTITY_KEY).commit()
+        preferences.edit().remove(IDENTITY_KEY)
+            .commitOrThrow("Die Geräteidentität konnte nicht gelöscht werden.")
         secretBox.deleteKey()
     }
 

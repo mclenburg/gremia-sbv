@@ -3,6 +3,7 @@ package de.gremia.sbv.companion.data.mobile
 import android.annotation.SuppressLint
 import android.content.Context
 import de.gremia.sbv.companion.data.security.AndroidSecretBox
+import de.gremia.sbv.companion.data.security.commitOrThrow
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshot
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshotPayloadDecoder
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshotStore
@@ -22,12 +23,13 @@ class MobileSnapshotRepository(
     override fun save(snapshot: MobileSnapshot) {
         preferences.edit()
             .putString(SNAPSHOT_KEY, secretBox.encrypt(snapshot.rawPayloadJson))
-            .apply()
+            .commitOrThrow("Die mobile Arbeitsprojektion konnte nicht dauerhaft gespeichert werden.")
     }
 
     @SuppressLint("ApplySharedPref")
     fun clear() {
-        preferences.edit().remove(SNAPSHOT_KEY).commit()
+        preferences.edit().remove(SNAPSHOT_KEY)
+            .commitOrThrow("Die mobile Arbeitsprojektion konnte nicht gelöscht werden.")
         secretBox.deleteKey()
     }
 

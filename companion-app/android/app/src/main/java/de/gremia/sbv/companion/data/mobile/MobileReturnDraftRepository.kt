@@ -3,6 +3,7 @@ package de.gremia.sbv.companion.data.mobile
 import android.annotation.SuppressLint
 import android.content.Context
 import de.gremia.sbv.companion.data.security.AndroidSecretBox
+import de.gremia.sbv.companion.data.security.commitOrThrow
 import de.gremia.sbv.companion.domain.mobile.MobileDeadlineProjection
 import de.gremia.sbv.companion.domain.mobile.MobileReturnDeadlineCompletionDraft
 import de.gremia.sbv.companion.domain.mobile.MobileReturnDeadlineDraft
@@ -101,7 +102,8 @@ class MobileReturnDraftRepository(
 
     @SuppressLint("ApplySharedPref")
     fun clear(destroyKey: Boolean = false) {
-        preferences.edit().remove(DRAFTS_KEY).commit()
+        preferences.edit().remove(DRAFTS_KEY)
+            .commitOrThrow("Die mobilen Änderungen konnten nicht gelöscht werden.")
         if (destroyKey) secretBox.deleteKey()
     }
 
@@ -226,7 +228,7 @@ class MobileReturnDraftRepository(
             })
         preferences.edit()
             .putString(DRAFTS_KEY, secretBox.encrypt(state.toString()))
-            .apply()
+            .commitOrThrow("Die mobilen Änderungen konnten nicht dauerhaft gespeichert werden.")
     }
 
     private fun requireText(value: String, message: String, maxLength: Int): String {

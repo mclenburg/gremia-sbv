@@ -19,11 +19,12 @@ class MobileAppSettingsRepository(context: Context) {
         preferences.edit()
             .putInt(AUTO_LOCK_MINUTES_KEY, settings.autoLockTimeout.minutes)
             .putBoolean(SECURE_SCREEN_KEY, settings.secureScreenEnabled)
-            .apply()
+            .commitOrThrow("Die Sicherheitseinstellungen konnten nicht dauerhaft gespeichert werden.")
     }
 
     fun reset() {
-        preferences.edit().clear().apply()
+        preferences.edit().clear()
+            .commitOrThrow("Die Sicherheitseinstellungen konnten nicht zurückgesetzt werden.")
     }
 
     private companion object {

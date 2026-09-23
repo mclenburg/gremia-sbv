@@ -10,6 +10,7 @@ import android.content.Intent
 import de.gremia.sbv.companion.domain.mobile.MobileDeadlineNotificationPlan
 import de.gremia.sbv.companion.domain.mobile.MobileDeadlineNotificationPlanner
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshot
+import de.gremia.sbv.companion.data.security.commitOrThrow
 import java.time.Instant
 
 class MobileDeadlineNotificationScheduler(
@@ -25,12 +26,13 @@ class MobileDeadlineNotificationScheduler(
         plans.forEach { plan -> schedule(plan) }
         preferences.edit()
             .putStringSet(SCHEDULED_NOTIFICATION_IDS_KEY, plans.map { plan -> plan.notificationId.toString() }.toSet())
-            .apply()
+            .commitOrThrow("Die geplanten Fristerinnerungen konnten nicht dauerhaft gespeichert werden.")
     }
 
     fun cancelAll() {
         cancelPreviouslyScheduled()
-        preferences.edit().remove(SCHEDULED_NOTIFICATION_IDS_KEY).apply()
+        preferences.edit().remove(SCHEDULED_NOTIFICATION_IDS_KEY)
+            .commitOrThrow("Die geplanten Fristerinnerungen konnten nicht zurückgesetzt werden.")
         context.getSystemService(NotificationManager::class.java).cancelAll()
     }
 
