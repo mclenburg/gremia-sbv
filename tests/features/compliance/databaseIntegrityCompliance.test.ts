@@ -10,6 +10,7 @@ import {
   CASE_HANDOVER_EXPORTS_REQUIRED_COLUMNS,
   CASE_HANDOVER_IMPORT_ITEMS_REQUIRED_COLUMNS,
   CASE_HANDOVER_IMPORTS_REQUIRED_COLUMNS,
+  APP_SCHEMA_VERSION,
   CASE_MEASURES_REQUIRED_COLUMNS,
   CASE_MEASURE_NOTES_REQUIRED_COLUMNS,
   CASE_SEARCH_INDEX_REQUIRED_COLUMNS,
@@ -33,6 +34,7 @@ import {
   SBV_OFFICE_0051_REQUIRED_TABLES,
   DEADLINE_RULE_SNAPSHOT_REQUIRED_COLUMNS,
   MOBILE_COMPANION_DEVICES_REQUIRED_COLUMNS,
+  MOBILE_COMPANION_CHANGE_IMPORTS_REQUIRED_COLUMNS,
 } from '../../../services/appSchema';
 import { evaluateDatabaseIntegrity } from '../../../services/databaseIntegrityService';
 import { applyDatabasePrivacyPragmas, type DatabaseAdapter } from '../../../services/databaseService';
@@ -40,7 +42,7 @@ import { applyDatabasePrivacyPragmas, type DatabaseAdapter } from '../../../serv
 class SchemaDb implements DatabaseAdapter {
   constructor(
     private readonly tables: Record<string, readonly string[]>,
-    private readonly schemaVersion = '0057',
+    private readonly schemaVersion = APP_SCHEMA_VERSION,
   ) {}
 
   prepare<T = unknown>(sql: string) {
@@ -103,6 +105,7 @@ const completeSchema: Record<string, readonly string[]> = {
   case_handover_import_items: CASE_HANDOVER_IMPORT_ITEMS_REQUIRED_COLUMNS,
   transfer_recipient_profiles: TRANSFER_RECIPIENT_PROFILES_REQUIRED_COLUMNS,
   mobile_companion_devices: MOBILE_COMPANION_DEVICES_REQUIRED_COLUMNS,
+  mobile_companion_change_imports: MOBILE_COMPANION_CHANGE_IMPORTS_REQUIRED_COLUMNS,
   sbv_resource_records: SBV_RESOURCE_RECORDS_REQUIRED_COLUMNS,
   sbv_control_protocols: SBV_CONTROL_PROTOCOLS_REQUIRED_COLUMNS,
   compliance_incidents: COMPLIANCE_INCIDENTS_REQUIRED_COLUMNS,
@@ -144,7 +147,7 @@ describe('database integrity status for compliance center', () => {
     const result = evaluateDatabaseIntegrity(new SchemaDb(completeSchema));
 
     expect(result.ok).toBe(true);
-    expect(result.appliedSchemaVersion).toBe('0057');
+    expect(result.appliedSchemaVersion).toBe(APP_SCHEMA_VERSION);
     expect(result.missingTables).toEqual([]);
     expect(result.missingColumns).toEqual({});
     expect(result.repairRequired).toBe(false);
