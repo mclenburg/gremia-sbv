@@ -47,7 +47,7 @@ export class ApplicationServices {
     this.reports = new ReportService(databaseProvider, () => security.getDataDirectory());
     this.gremiaBrSettings = new GremiaBrSettingsService(databaseProvider, () => security.getActiveDatabaseKey());
     this.gremiaBrAuth = new GremiaBrAuthService(this.gremiaBrSettings, undefined, auditProvider);
-    this.gremiaBrCache = new GremiaBrCacheService(databaseProvider);
+    this.gremiaBrCache = new GremiaBrCacheService();
     this.gremiaBrReferences = new GremiaBrExternalReferenceService(databaseProvider);
     this.participationViolationTemplates = new SbvParticipationViolationTemplateService();
   }

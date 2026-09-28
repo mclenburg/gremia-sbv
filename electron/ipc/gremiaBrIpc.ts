@@ -27,7 +27,7 @@ export function registerGremiaBrIpc(ipcMain: IpcMain, security: SecurityService,
   registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrSettingsSave, async (_event, input: unknown) => {
     auth.clearToken();
     const saved = settings.saveSettings(assertRecordInput<GremiaBrSettingsInput>(input, 'gremia-br:settings:save'));
-    if (!saved.enabled) cache.clear();
+    cache.clear();
     return saved;
   });
 

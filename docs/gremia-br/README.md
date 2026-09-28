@@ -44,6 +44,7 @@ Ausgeschlossen sind:
 - Server-URL und Zugangsdaten werden im SQLCipher-Vault gespeichert.
 - JWT-Token werden ausschließlich im Arbeitsspeicher gehalten und nicht persistiert.
 - Der Adapter nutzt eine harte Whitelist für lesende Endpunkte und ausdrücklich freigegebene SBV-Arbeitsbereichsaktionen.
+- Der manuell abgerufene Remote-Arbeitsstand bleibt nur im Arbeitsspeicher. Ein fehlgeschlagener Gesamtabruf ersetzt den zuvor sichtbaren Stand nicht teilweise.
 - Suchbegriffe und Antwortinhalte werden nicht auditiert.
 - Dokumente werden nicht automatisch importiert oder übertragen; jede Übergabe bleibt eine bewusste Nutzeraktion.
 
@@ -62,13 +63,13 @@ Nicht freigegeben bleiben insbesondere Admin, Audit, DSGVO, Notizen, Abwesenheit
 
 ## Nutzung
 
-Die Verbindung wird unter **Einstellungen → Gremia.BR** eingerichtet. Der eigenständige Bereich **Gremia.BR** wird nur sichtbar, wenn eine Instanz konfiguriert ist. Das Dashboard zeigt nur gecachte Daten und aktualisiert diese ausschließlich durch eine bewusste Nutzeraktion. Der lokale Lesecache ist auf 30 Tage begrenzt; abgelaufene Einträge werden beim Lesen/Aktualisieren entfernt. Wird die Anbindung deaktiviert oder werden Zugangsdaten gelöscht, wird der Lesecache geleert.
+Die Verbindung wird unter **Einstellungen → Gremia.BR** eingerichtet. Der eigenständige Bereich **Gremia.BR** wird nur sichtbar, wenn eine Instanz konfiguriert ist. Das Dashboard zeigt nur den flüchtigen Arbeitsstand und aktualisiert diesen ausschließlich durch eine bewusste Nutzeraktion. Nach einem Neustart sind die Remote-Inhalte nicht mehr vorhanden. Bereits aus früheren Versionen persistierte Lesecache-Inhalte werden beim Datenbank-Upgrade entfernt. Wird die Anbindung deaktiviert oder werden Zugangsdaten gelöscht, wird der Arbeitsstand geleert.
 
 Alle Übergaben nach Gremia.BR werden im Gremia.BR-Bereich ausgelöst und geprüft. Dadurch bleibt sichtbar, welche Daten Gremia.SBV verlassen und ob Gremia.BR die Aktion angenommen, zurückgestellt oder abgelehnt hat.
 
 ## Sitzungsübernahme in die SBV-Dokumentation
 
-Ist die Kooperationsbrücke aktiviert, kann der direkte Bereich **Sitzungen** beziehungsweise **Dokumentation → Gremien** den lokalen Gremia.BR-Lesecache verwenden. Angezeigt werden verfügbare BR-Sitzungen; eine Aktualisierung des Caches erfolgt weiterhin nur durch eine bewusste Nutzeraktion.
+Ist die Kooperationsbrücke aktiviert, kann der direkte Bereich **Sitzungen** beziehungsweise **Dokumentation → Gremien** den flüchtigen Gremia.BR-Arbeitsstand verwenden. Angezeigt werden verfügbare BR-Sitzungen; eine Aktualisierung erfolgt weiterhin nur durch eine bewusste Nutzeraktion.
 
 Über **BR-Sitzung übernehmen** kann eine ausgewählte Sitzung in einen eigenen lokalen SBV-Sitzungsvorgang kopiert werden. Soweit vorhanden, werden Sitzungstitel, Beginn, Ort und Tagesordnungspunkte als Arbeitsgrundlage übernommen.
 

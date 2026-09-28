@@ -62,7 +62,7 @@ Regeln:
 - harte Endpunkt-Whitelist,
 - JWT bevorzugt nur im Arbeitsspeicher,
 - Zugangsdaten im SQLCipher-Vault,
-- lokaler Gremia.BR-Lesecache mit fester 30-Tage-TTL und automatischem Leeren bei deaktivierter Anbindung,
+- flüchtiger Gremia.BR-Arbeitsstand ohne persistente Remote-Inhalte, der bei Konfigurationswechsel geleert wird; frühere Lesecache-Inhalte werden beim Upgrade entfernt,
 - Audit nur über Aktion, Zeitpunkt, Endpunkt und Ergebnis – nicht über Inhalte, Query-Werte oder Suchbegriffe.
 
 ## Audit

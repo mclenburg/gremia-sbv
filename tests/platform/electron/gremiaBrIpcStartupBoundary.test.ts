@@ -52,6 +52,19 @@ function createLockedStartupServices() {
 }
 
 describe("Gremia.BR IPC-Startup-Grenze", () => {
+  it("verwirft den Remote-Arbeitsstand bei Konfigurationswechsel und gelöschten Zugangsdaten", async () => {
+    const { ipcMain, handlers } = createIpcRecorder();
+    const services = createLockedStartupServices();
+    services.gremiaBrSettings.saveSettings.mockReturnValue({ enabled: true });
+    registerGremiaBrIpc(ipcMain as never, {} as never, services as never);
+    const event = { senderFrame: { url: "file:///app/index.html" } };
+
+    await handlers.get(IPC_CHANNELS.gremiaBrSettingsSave)?.(event, { enabled: true });
+    expect(services.gremiaBrCache.clear).toHaveBeenCalledTimes(1);
+    await handlers.get(IPC_CHANNELS.gremiaBrCredentialsClear)?.(event);
+    expect(services.gremiaBrCache.clear).toHaveBeenCalledTimes(2);
+  });
+
   it("registriert Handler ohne datenbankgebundene Workspace-Actions beim App-Start zu erzeugen", async () => {
     const { ipcMain, handlers } = createIpcRecorder();
     const services = createLockedStartupServices();

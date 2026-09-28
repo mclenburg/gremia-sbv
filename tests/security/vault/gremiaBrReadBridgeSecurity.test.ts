@@ -1,4 +1,3 @@
-import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { checkGremiaBrEndpoint, validateGremiaBrBaseUrl } from '../../../services/gremiaBr/gremiaBrPolicy';
 import { GremiaBrHttpClient, MAX_GREMIA_BR_RESPONSE_BYTES, type GremiaBrFetch } from '../../../services/gremiaBr/gremiaBrHttpClient';
@@ -98,26 +97,6 @@ describe('Gremia.BR Lesebrücke Security-Härtung 0.9.2-F', () => {
     const oversizedStream: GremiaBrFetch = async () => new Response(body, { status: 200, headers: { 'content-type': 'text/plain' } });
     const streamingClient = new GremiaBrHttpClient('https://br.example.local', oversizedStream);
     await expect(streamingClient.request('GET', '/search', 'token', { query: { q: 'BEM' } })).rejects.toThrow(/zulässige Größe/i);
-  });
-
-  it('leert den lokalen BR-Lesecache bei Deaktivierung oder Credential-Clear der Anbindung', () => {
-    const ipc = readFileSync('electron/ipc/gremiaBrIpc.ts', 'utf8');
-
-    expect(ipc).toContain('if (!saved.enabled) cache.clear();');
-    expect(ipc).toContain('const next = settings.clearCredentials();');
-    expect(ipc).toContain('cache.clear();');
-  });
-
-
-  it('dokumentiert die 30-Tage-TTL des lokalen BR-Lesecaches als Datenschutzgrenze', () => {
-    const dsfa = readFileSync('docs/gremia-br/DSFA_TOM_VVT.md', 'utf8');
-    const readme = readFileSync('docs/gremia-br/README.md', 'utf8');
-    const privacy = readFileSync('docs/PRIVACY_AND_SECURITY.md', 'utf8');
-
-    expect(dsfa).toContain('30 Tage');
-    expect(readme).toContain('30 Tage');
-    expect(privacy).toContain('30-Tage-TTL');
-    expect(dsfa).toContain('Leeren des Lesecaches bei deaktivierter Gremia.BR-Anbindung');
   });
 
 });
