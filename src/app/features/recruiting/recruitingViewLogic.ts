@@ -6,6 +6,27 @@ import type {
   RecruitingParticipationStatus,
   RecruitingViolationReviewReason,
 } from '../../../domain/models/recruiting-participation.model';
+import { recordMatchesQuery } from '../../shared/components/WorkbenchData';
+
+export type RecruitingListStatusFilter = 'all' | 'open' | 'closed';
+
+export function filterRecruitingRecords(
+  records: RecruitingParticipationRecord[],
+  query: string,
+  statusFilter: RecruitingListStatusFilter,
+): RecruitingParticipationRecord[] {
+  return records.filter((record) => {
+    if (statusFilter === 'open' && record.status === 'closed') return false;
+    if (statusFilter === 'closed' && record.status !== 'closed') return false;
+    return recordMatchesQuery([
+      record.vacancyTitle,
+      record.vacancyReference,
+      record.department,
+      record.location,
+      recruitingStatusLabels[record.status],
+    ], query);
+  });
+}
 
 export const recruitingStatusLabels: Record<RecruitingParticipationStatus, string> = {
   draft: 'Entwurf',

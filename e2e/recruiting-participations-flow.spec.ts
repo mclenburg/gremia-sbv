@@ -43,6 +43,15 @@ test('tracks recruiting participation without case file and opens violation only
   await secondCreateDialog.getByRole('button', { name: 'Stellenbesetzung anlegen', exact: true }).click();
   await expect(page.locator('.industrial-record-card').filter({ hasText: 'E2E Zweite Stellenbesetzung' }).first()).toBeVisible();
 
+  const search = page.getByRole('searchbox', { name: 'Stellenbesetzungen suchen' });
+  await search.fill('REC-095E-2');
+  await expect(page.locator('.industrial-search-count')).toHaveText('1 Treffer');
+  await expect(page.locator('.industrial-record-card').filter({ hasText: 'E2E Fachadministration' })).toHaveCount(0);
+  await page.getByLabel('Status filtern').selectOption('closed');
+  await expect(page.getByText('Keine passende Stellenbesetzung gefunden.')).toBeVisible();
+  await page.getByLabel('Status filtern').selectOption('all');
+  await search.clear();
+
   await page.locator('.industrial-record-card').filter({ hasText: 'E2E Fachadministration' }).first().click();
   await page.getByLabel('Gesprächsdatum').fill('2026-05-08');
   await page.getByLabel('Bewerbungsreferenz').fill('Klarname Test darf nicht ins Journal');
