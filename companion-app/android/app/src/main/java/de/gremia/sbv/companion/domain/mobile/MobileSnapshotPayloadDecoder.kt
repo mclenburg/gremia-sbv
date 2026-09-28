@@ -92,13 +92,13 @@ class MobileSnapshotPayloadDecoder {
             var size = 0
             try {
                 InflaterInputStream(ByteArrayInputStream(compressed)).use { input ->
-                while (true) {
+                    while (true) {
                         val count = input.read(output, size, output.size - size)
-                    if (count == -1) break
+                        if (count == -1) break
                         size += count
                         require(size <= MAX_SNAPSHOT_BYTES) { "Der Mobile-Snapshot ist zu groß." }
+                    }
                 }
-            }
                 return output.copyOf(size)
             } finally {
                 output.fill(0)

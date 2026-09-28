@@ -20,8 +20,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.ComponentActivity
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
-import com.journeyapps.barcodescanner.ScanContract
-import com.journeyapps.barcodescanner.ScanOptions
 import de.gremia.sbv.companion.data.mobile.MobileReturnDraftRepository
 import de.gremia.sbv.companion.data.mobile.MobileDeadlineNotificationScheduler
 import de.gremia.sbv.companion.data.mobile.MobileSnapshotRepository
@@ -34,6 +32,7 @@ import de.gremia.sbv.companion.data.transfer.TargetBoundSnapshotDecryptor
 import de.gremia.sbv.companion.data.transfer.MobileDesktopTrustRepository
 import de.gremia.sbv.companion.domain.mobile.accepts
 import de.gremia.sbv.companion.ui.MobilePairingFlow
+import de.gremia.sbv.companion.ui.MobileSnapshotScanner
 import de.gremia.sbv.companion.domain.mobile.MobileReturnPackageFile
 import de.gremia.sbv.companion.domain.mobile.MobileReturnPackageCreator
 import de.gremia.sbv.companion.domain.mobile.MobileSnapshotIntakeResult
@@ -66,6 +65,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var settingsRepository: MobileAppSettingsRepository
     private lateinit var desktopTrust: MobileDesktopTrustRepository
     private lateinit var pairingFlow: MobilePairingFlow
+    private lateinit var snapshotScanner: MobileSnapshotScanner
     private val snapshotReplacementPolicy = MobileSnapshotReplacementPolicy()
     private val returnExportPolicy = MobileReturnExportPolicy()
     private var appSettings = MobileAppSettings()
@@ -84,8 +84,9 @@ class MainActivity : ComponentActivity() {
             returnDraftRepository.listDrafts().changeCount, appSettings,
         )
     }
-    private val qrScanLauncher = registerForActivityResult(ScanContract()) { result ->
-        if (result.contents != null) acceptScannedSnapshotFrame(result.contents)
+    private val cameraPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted && unlocked) snapshotScanner.open()
+        else if (!granted) Toast.makeText(this, R.string.snapshot_camera_permission_required, Toast.LENGTH_LONG).show()
     }
     private val unlockLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == RESULT_OK) {
@@ -120,6 +121,9 @@ class MainActivity : ComponentActivity() {
             { snapshotRepository.current() != null || returnDraftRepository.listDrafts().changeCount > 0 }, ::renderContent)
         returnPackageCreator.clearTemporaryPackages()
         snapshotController = newSnapshotController()
+        snapshotScanner = MobileSnapshotScanner(this, ::currentThemeMode, { acceptSnapshotFrame(it, showToast = false) }) {
+            snapshotController.reset()
+        }
         val initial = lockPolicy.initialState()
         unlocked = !initial.locked
         if (unlocked) renderContent() else renderLockScreen()
@@ -130,7 +134,18 @@ class MainActivity : ComponentActivity() {
         if (unlocked) lastInteractionAtMillis = SystemClock.elapsedRealtime()
     }
 
+    override fun onPause() {
+        if (::snapshotScanner.isInitialized) snapshotScanner.pause()
+        super.onPause()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (::snapshotScanner.isInitialized) snapshotScanner.resume()
+    }
+
     override fun onDestroy() {
+        if (::snapshotScanner.isInitialized) snapshotScanner.close()
         unlockCancellationSignal?.cancel()
         unlockCancellationSignal = null
         lockCheckHandler.removeCallbacksAndMessages(null)
@@ -139,6 +154,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun renderLockScreen() {
+        if (::snapshotScanner.isInitialized) snapshotScanner.close()
         if (::pairingFlow.isInitialized) pairingFlow.cancel()
         if (::snapshotController.isInitialized) snapshotController.reset()
         lockCheckHandler.removeCallbacksAndMessages(null)
@@ -365,25 +381,15 @@ class MainActivity : ComponentActivity() {
 
     private fun startQrScan() {
         if (!unlocked) return
-        qrScanLauncher.launch(ScanOptions().apply {
-            setDesiredBarcodeFormats(ScanOptions.QR_CODE)
-            setPrompt(getString(R.string.snapshot_scan_prompt))
-            setBeepEnabled(false)
-            setOrientationLocked(false)
-        })
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+            snapshotScanner.open()
+        } else cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
     }
 
-    private fun acceptScannedSnapshotFrame(frame: String) {
-        val result = acceptSnapshotFrame(frame)
-        if (result is MobileSnapshotIntakeResult.Progress && unlocked) {
-            startQrScan()
-        }
-    }
-
-    private fun acceptSnapshotFrame(frame: String): MobileSnapshotIntakeResult {
+    private fun acceptSnapshotFrame(frame: String, showToast: Boolean = true): MobileSnapshotIntakeResult {
         if (!unlocked) return MobileSnapshotIntakeResult.Error(getString(R.string.lock_title))
         val result = snapshotController.accept(frame)
-        Toast.makeText(this, result.message, Toast.LENGTH_SHORT).show()
+        if (showToast) Toast.makeText(this, result.message, Toast.LENGTH_SHORT).show()
         if (result is MobileSnapshotIntakeResult.ReadyForConfirmation) {
             renderContent()
         }

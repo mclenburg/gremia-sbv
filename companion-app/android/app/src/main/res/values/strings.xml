@@ -96,6 +96,8 @@
     <string name="snapshot_frame_empty">Noch kein Frame erfasst.</string>
     <string name="snapshot_frame_scan">QR-Code scannen</string>
     <string name="snapshot_scan_prompt">Gremia.SBV-QR-Frame scannen</string>
+    <string name="snapshot_scan_expired">QR-Import abgelaufen. Bitte neu scannen.</string>
+    <string name="snapshot_camera_permission_required">Für den QR-Scan wird die Kameraberechtigung benötigt. Alternativ können Frames als Text eingefügt werden.</string>
     <string name="snapshot_frame_accept">Frame übernehmen</string>
     <string name="snapshot_frames_reset">Frames zurücksetzen</string>
     <string name="snapshot_import_preview_title">Geprüfte Mobile-Projektion</string>
