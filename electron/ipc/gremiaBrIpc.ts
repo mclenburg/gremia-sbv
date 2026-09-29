@@ -18,7 +18,6 @@ export function registerGremiaBrIpc(ipcMain: IpcMain, security: SecurityService,
   const settings = services.gremiaBrSettings;
   const auth = services.gremiaBrAuth;
   const cache = services.gremiaBrCache;
-  const adapter = new GremiaBrHttpReadAdapter(auth);
   const workspace = new GremiaBrV2WorkspaceService(auth);
   const references = services.gremiaBrReferences;
 
@@ -71,7 +70,7 @@ export function registerGremiaBrIpc(ipcMain: IpcMain, security: SecurityService,
   registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrDashboardGet, async () => cache.getDashboardOverview(settings.getRelevanceSettings()));
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrCacheRefresh, async () => {
-    const result = await cache.refresh(adapter);
+    const result = await cache.refresh(new GremiaBrHttpReadAdapter(auth));
     return {
       ...result,
       cached: cache.getDashboardOverview(settings.getRelevanceSettings()),
@@ -80,7 +79,7 @@ export function registerGremiaBrIpc(ipcMain: IpcMain, security: SecurityService,
 
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrInlineSuggest, async (_event, query: unknown) => {
-    return references.suggestBrDecisions(adapter, assertString(query, 'gremia-br:inline-suggest', 'Suchbegriff', { minLength: 1, maxLength: 120 }));
+    return references.suggestBrDecisions(new GremiaBrHttpReadAdapter(auth), assertString(query, 'gremia-br:inline-suggest', 'Suchbegriff', { minLength: 1, maxLength: 120 }));
   });
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrReferencesList, async (_event, caseId: unknown) => {
