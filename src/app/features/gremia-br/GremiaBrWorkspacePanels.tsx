@@ -2,6 +2,7 @@ import type { CaseRecord } from "../../../domain/models/case.model";
 import type {
   GremiaBrDashboardOverview,
   GremiaBrGeneratedPdfDocument,
+  GremiaBrOwnTaskStatus,
   GremiaBrPublicSettings,
   GremiaBrProtectionClass,
   GremiaBrWorkspaceActionRecord,
@@ -124,11 +125,12 @@ export function GremiaBrReadContextPanel({
       actions={<ToolbarButton loading={busy} onClick={onRefresh}>{busy ? "Aktualisierung läuft …" : "Gremia.BR aktualisieren"}</ToolbarButton>}
     >
       <p className="industrial-meta">Letzter erfolgreicher Abruf: {lastFetchedAt ? <time dateTime={lastFetchedAt}>{new Date(lastFetchedAt).toLocaleString('de-DE')}</time> : 'noch keiner'}</p>
+      {lastFetchedAt ? <p className="industrial-meta">Momentaufnahme, möglicherweise veraltet.</p> : null}
     </IndustrialPanel>
   );
 }
 
-const OWN_TASK_STATUS_LABELS: Record<string, string> = {
+const OWN_TASK_STATUS_LABELS: Record<GremiaBrOwnTaskStatus, string> = {
   OPEN: 'Offen',
   IN_PROGRESS: 'In Bearbeitung',
   BLOCKED: 'Blockiert',
@@ -142,8 +144,8 @@ export function GremiaBrOpenActionsPanel({ overview }: { overview: GremiaBrDashb
       id: `task:${task.id}`,
       cells: [
         task.title,
-        task.subjectType === 'MEETING' ? 'Sitzung' : task.subjectType === 'PROCEDURE' ? 'Verfahren' : 'Gremia.BR-Aufgabe',
-        OWN_TASK_STATUS_LABELS[task.status] ?? task.status,
+        task.subjectType === 'MEETING' ? 'Sitzung' : task.subjectType === 'AGENDA_ITEM' ? 'Tagesordnungspunkt' : task.subjectType === 'PROCEDURE' ? 'Verfahren' : 'Gremia.BR-Aufgabe',
+        OWN_TASK_STATUS_LABELS[task.status],
         task.dueAt ? `Fällig: ${new Date(task.dueAt).toLocaleString('de-DE')}` : 'Keine Fälligkeit',
       ],
     })),

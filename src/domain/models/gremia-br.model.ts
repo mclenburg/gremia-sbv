@@ -95,10 +95,13 @@ export interface GremiaBrCachedOverview {
   cacheAgeLabel?: string;
 }
 
+export const GREMIA_BR_OPEN_TASK_STATUSES = ['OPEN', 'IN_PROGRESS', 'BLOCKED', 'WAITING_EXTERNAL', 'QUESTION'] as const;
+export type GremiaBrOwnTaskStatus = (typeof GREMIA_BR_OPEN_TASK_STATUSES)[number];
+
 export interface GremiaBrOwnTask {
   id: string;
   title: string;
-  status: string;
+  status: GremiaBrOwnTaskStatus;
   dueAt?: string;
   subjectType?: string;
   subjectId?: string;

@@ -79,6 +79,18 @@ function configuredV2Settings(): GremiaBrServiceSettings {
 }
 
 describe('Gremia.BR HTTP-ReadAdapter 0.9.2-B', () => {
+  it('verwirft einen unbekannten Aufgabenstatus statt einen technischen Status anzuzeigen', async () => {
+    const { fetch } = createFetch({
+      'POST /api/v1/auth/login': { access_token: 'token' },
+      'GET /api/v1/tasks': { items: [{ id: 'task-1', title: 'Prüfung', status: 'SERVER_INTERNAL' }], total: 1 },
+    });
+    const adapter = new GremiaBrHttpReadAdapter(new GremiaBrAuthService(
+      new MemoryGremiaBrSettings(configuredV2Settings()), fetch, auditFactory,
+    ));
+
+    await expect(adapter.listOwnTasks()).rejects.toThrow('nicht unterstützte Aufgabe');
+  });
+
   it('liest ausschließlich eigene noch offene Zugriffsanträge ohne weitere Antragsdetails', async () => {
     const { fetch, calls } = createFetch({
       'POST /api/v1/auth/login': { access_token: 'token' },

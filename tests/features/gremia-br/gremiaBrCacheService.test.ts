@@ -7,7 +7,7 @@ class FakeReadAdapter implements GremiaBrReadAdapter {
 
   async listOwnTasks() {
     this.calls.push('own-tasks');
-    return [{ id: 'task-1', title: 'Stellungnahme prüfen', status: 'OPEN', dueAt: '2026-10-01T10:00:00.000Z' }];
+    return [{ id: 'task-1', title: 'Stellungnahme prüfen', status: 'OPEN' as const, dueAt: '2026-10-01T10:00:00.000Z' }];
   }
 
   async listOwnPendingAccessApprovals() {

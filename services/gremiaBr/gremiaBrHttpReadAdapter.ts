@@ -1,15 +1,20 @@
 import { GremiaBrAuthService } from './gremiaBrAuthService.js';
 import type { GremiaBrReadAdapter } from './gremiaBrTypes.js';
 import { gremiaBrArrayFromResponse, gremiaBrRecord } from './gremiaBrPayload.js';
-import type { GremiaBrOwnTask, GremiaBrOwnAccessApproval } from '../../src/domain/models/gremia-br.model.js';
+import { GREMIA_BR_OPEN_TASK_STATUSES } from '../../src/domain/models/gremia-br.model.js';
+import type { GremiaBrOwnTask, GremiaBrOwnAccessApproval, GremiaBrOwnTaskStatus } from '../../src/domain/models/gremia-br.model.js';
 
-const OPEN_TASK_STATUSES = ['OPEN', 'IN_PROGRESS', 'BLOCKED', 'WAITING_EXTERNAL', 'QUESTION'] as const;
 const TASK_PAGE_SIZE = 100;
 const MAX_OWN_TASKS = 1_000;
+const OPEN_TASK_STATUS_SET: ReadonlySet<string> = new Set(GREMIA_BR_OPEN_TASK_STATUSES);
+
+function isOpenTaskStatus(value: unknown): value is GremiaBrOwnTaskStatus {
+  return typeof value === 'string' && OPEN_TASK_STATUS_SET.has(value);
+}
 
 function ownTaskFromResponse(value: unknown): GremiaBrOwnTask | null {
   const item = gremiaBrRecord(value);
-  if (!item || typeof item.id !== 'string' || typeof item.title !== 'string' || typeof item.status !== 'string') return null;
+  if (!item || typeof item.id !== 'string' || typeof item.title !== 'string' || !isOpenTaskStatus(item.status)) return null;
   return {
     id: item.id,
     title: item.title,
@@ -54,12 +59,12 @@ export class GremiaBrHttpReadAdapter implements GremiaBrReadAdapter {
     const tasks: GremiaBrOwnTask[] = [];
     for (let offset = 0; offset < MAX_OWN_TASKS;) {
       const response = gremiaBrRecord(await this.auth.get<unknown>('/api/v1/tasks', {
-        query: { mine: true, status: [...OPEN_TASK_STATUSES], limit: TASK_PAGE_SIZE, offset },
+        query: { mine: true, status: [...GREMIA_BR_OPEN_TASK_STATUSES], limit: TASK_PAGE_SIZE, offset },
       }));
       const items = response?.items;
       if (!Array.isArray(items) || typeof response?.total !== 'number') throw new Error('Gremia.BR hat keine gültige Aufgabenliste zurückgegeben.');
       const page = items.map(ownTaskFromResponse);
-      if (page.some((task) => !task)) throw new Error('Gremia.BR hat eine unvollständige Aufgabe zurückgegeben.');
+      if (page.some((task) => !task)) throw new Error('Gremia.BR hat eine unvollständige oder nicht unterstützte Aufgabe zurückgegeben. Der bisherige Arbeitsstand bleibt erhalten. Bitte die Serverversion prüfen und erneut aktualisieren.');
       tasks.push(...page as GremiaBrOwnTask[]);
       if (tasks.length >= response.total) return tasks;
       if (items.length === 0) throw new Error('Die Gremia.BR-Aufgabenliste ist unvollständig. Bitte erneut aktualisieren.');
