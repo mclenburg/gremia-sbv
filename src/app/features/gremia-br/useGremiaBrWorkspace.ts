@@ -16,8 +16,9 @@ import {
   EMPTY_GREMIA_BR_DASHBOARD,
   EMPTY_GREMIA_BR_SETTINGS,
 } from "./gremiaBrWorkspaceModel";
-import type { GremiaBrWorkspaceDraft } from "./GremiaBrWorkspacePanels";
+import type { BusyAction, GremiaBrWorkspaceDraft } from "./GremiaBrWorkspacePanels";
 import { useGremiaBrTaskDetail } from './useGremiaBrTaskDetail';
+import { useGremiaBrProcedureLinks } from './useGremiaBrProcedureLinks';
 
 const INITIAL_DRAFT: GremiaBrWorkspaceDraft = {
   selectedCaseId: "",
@@ -34,8 +35,6 @@ const INITIAL_DRAFT: GremiaBrWorkspaceDraft = {
   agendaMinutes: "15",
   selectedImportMeetingId: "",
 };
-
-export type BusyAction = "read" | "summary" | "transfer" | "agenda" | "import" | null;
 
 export function useGremiaBrWorkspace(announce: (message: string, politeness?: "polite" | "assertive") => void) {
   const [settings, setSettings] = useState(EMPTY_GREMIA_BR_SETTINGS);
@@ -79,6 +78,8 @@ export function useGremiaBrWorkspace(announce: (message: string, politeness?: "p
     }
   }
 
+  const procedureState = useGremiaBrProcedureLinks(announce, runAction, setError);
+
   useEffect(() => {
     let active = true;
     void loadWorkspaceSnapshot()
@@ -103,11 +104,13 @@ export function useGremiaBrWorkspace(announce: (message: string, politeness?: "p
     error,
     busyAction,
     ...taskDetailState,
+    ...procedureState,
     meetingDrafts,
     updateDraft,
     refreshReadContext: () => runAction("read", async () => {
       const result = await refreshReadContextSnapshot();
       applySnapshot(result.snapshot);
+      procedureState.resetRemoteSelection();
       return result.message;
     }),
     refreshDocuments: () => runAction("transfer", async () => {

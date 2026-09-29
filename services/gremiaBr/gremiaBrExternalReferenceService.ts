@@ -69,6 +69,7 @@ function rowToRecord(row: ExternalReferenceRow): GremiaBrExternalReferenceRecord
 }
 
 function sanitizeSnapshot(input: CreateGremiaBrExternalReferenceInput): string | null {
+  if (input.sourceType === 'verfahren') return null;
   const snapshot = {
     sourceSystem: 'gremia_br',
     sourceType: input.sourceType,
@@ -124,7 +125,7 @@ export class GremiaBrExternalReferenceService {
   createOrUpdate(input: CreateGremiaBrExternalReferenceInput): GremiaBrExternalReferenceRecord {
     const caseId = requireText(input.caseId, 'Fallakten-ID', 120);
     const sourceType = requireText(input.sourceType, 'Quelltyp', 80) as GremiaBrExternalReferenceType;
-    if (!['beschluss', 'sitzung', 'agenda', 'protokoll'].includes(sourceType)) {
+    if (!['beschluss', 'sitzung', 'agenda', 'protokoll', 'verfahren'].includes(sourceType)) {
       throw new Error('Dieser Gremia.BR-Quelltyp kann nicht als externe Referenz gespeichert werden.');
     }
     const sourceId = requireText(input.sourceId, 'Gremia.BR-Quell-ID', 160);

@@ -34,7 +34,7 @@ function searchableOptions(options: Array<{ value: string; label: string }>) {
   return options.filter((option) => option.value);
 }
 
-type BusyAction = "read" | "summary" | "transfer" | "agenda" | "import" | null;
+export type BusyAction = "read" | "summary" | "transfer" | "agenda" | "import" | "procedure" | null;
 
 export type GremiaBrWorkspaceDraft = {
   selectedCaseId: string;

@@ -104,6 +104,16 @@ export interface GremiaBrRemoteCase {
   procedureIds: string[];
 }
 
+export interface GremiaBrProcedureDetail {
+  id: string;
+  masterCaseId: string;
+  procedureType: string;
+  state: string;
+  workflow: string;
+  openedAt: string;
+  version: number;
+}
+
 export const GREMIA_BR_OPEN_TASK_STATUSES = ['OPEN', 'IN_PROGRESS', 'BLOCKED', 'WAITING_EXTERNAL', 'QUESTION'] as const;
 export type GremiaBrOwnTaskStatus = (typeof GREMIA_BR_OPEN_TASK_STATUSES)[number];
 export const GREMIA_BR_TASK_STATUSES = [...GREMIA_BR_OPEN_TASK_STATUSES, 'COMPLETED', 'CANCELLED'] as const;
@@ -177,7 +187,7 @@ export interface GremiaBrDashboardOverview extends GremiaBrCachedOverview {
   overdueDecisionCount: number;
 }
 
-export type GremiaBrExternalReferenceType = 'beschluss' | 'sitzung' | 'agenda' | 'protokoll';
+export type GremiaBrExternalReferenceType = 'beschluss' | 'sitzung' | 'agenda' | 'protokoll' | 'verfahren';
 
 export interface GremiaBrExternalReferenceRecord {
   id: string;

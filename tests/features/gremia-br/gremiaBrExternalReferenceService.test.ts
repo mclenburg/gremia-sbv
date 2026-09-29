@@ -7,7 +7,7 @@ interface ReferenceRow {
   id: string;
   case_id: string;
   source_system: 'gremia_br';
-  source_type: 'beschluss' | 'sitzung' | 'agenda' | 'protokoll';
+  source_type: 'beschluss' | 'sitzung' | 'agenda' | 'protokoll' | 'verfahren';
   source_id: string;
   title: string;
   description?: string | null;
@@ -113,6 +113,20 @@ class SuggestAdapter implements GremiaBrReadAdapter {
 }
 
 describe('Gremia.BR externe Referenzen 0.9.2-E', () => {
+  it('speichert eine Verfahrensverknüpfung ohne Remote-Snapshot', () => {
+    const db = new ReferenceDb();
+    const service = new GremiaBrExternalReferenceService(() => db);
+
+    const saved = service.createOrUpdate({
+      caseId: 'case-1', sourceType: 'verfahren', sourceId: 'procedure-1', title: 'BR-2026-17 · Arbeitsplatzgestaltung',
+      snapshot: { confidential: 'nicht übernehmen' },
+    });
+
+    expect(saved.sourceType).toBe('verfahren');
+    expect(saved.snapshot).toBeUndefined();
+    expect(db.rows[0]?.snapshot_json).toBeNull();
+  });
+
   it('speichert BR-Beschlüsse als Fallaktenreferenz ohne SBV-Daten an Gremia.BR zurückzuschreiben', () => {
     const db = new ReferenceDb();
     const service = new GremiaBrExternalReferenceService(() => db);

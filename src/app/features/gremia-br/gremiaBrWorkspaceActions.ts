@@ -3,6 +3,8 @@ import type {
   GremiaBrDashboardOverview,
   GremiaBrGeneratedPdfDocument,
   GremiaBrOwnTaskDetail,
+  GremiaBrProcedureDetail,
+  GremiaBrExternalReferenceRecord,
   GremiaBrTaskTransitionInput,
   GremiaBrTaskTransitionOptions,
   GremiaBrPublicSettings,
@@ -58,6 +60,31 @@ export async function loadOwnTaskDetail(id: string): Promise<GremiaBrOwnTaskDeta
   const bridge = await waitForBridge();
   if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
   return bridge.gremiaBr.getOwnTaskDetail(id);
+}
+
+export async function loadProcedureDetail(id: string): Promise<GremiaBrProcedureDetail> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.getProcedureDetail(id);
+}
+
+export async function loadProcedureLinks(caseId: string): Promise<GremiaBrExternalReferenceRecord[]> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.listExternalReferences(caseId);
+}
+
+export async function saveProcedureLink(caseId: string, procedureId: string): Promise<void> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  await bridge.gremiaBr.saveExternalReference({ caseId, sourceType: 'verfahren', sourceId: procedureId, title: '' });
+}
+
+export async function deleteProcedureLink(id: string): Promise<void> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  const result = await bridge.gremiaBr.deleteExternalReference(id);
+  if (!result.deleted) throw new Error('Die Verknüpfung war nicht mehr vorhanden. Bitte die lokale Ansicht neu laden.');
 }
 
 export async function loadOwnTaskTransitions(id: string): Promise<GremiaBrTaskTransitionOptions> {

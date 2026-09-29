@@ -1,0 +1,50 @@
+import type { IpcMain } from 'electron';
+import type { ApplicationServices } from '../applicationServices.js';
+import type { CreateGremiaBrExternalReferenceInput } from '../../src/domain/models/gremia-br.model.js';
+import { ApplicationError } from '../../src/domain/models/application-error.model.js';
+import { GremiaBrHttpReadAdapter } from '../../services/gremiaBr/gremiaBrHttpReadAdapter.js';
+import { GremiaBrProcedureService } from '../../services/gremiaBr/gremiaBrProcedureService.js';
+import { IPC_CHANNELS, registerIpcHandler } from './ipcHandler.js';
+import { assertRecordInput, assertString } from './ipcValidation.js';
+
+export function registerGremiaBrReferenceIpc(ipcMain: IpcMain, services: ApplicationServices): void {
+  const { gremiaBrAuth: auth, gremiaBrCache: cache, gremiaBrReferences: references } = services;
+
+  function accessibleProcedure(rawId: unknown, channel: string) {
+    const id = assertString(rawId, channel, 'Verfahrens-ID', { minLength: 1, maxLength: 120 });
+    const remoteCase = cache.getOverview().accessibleCases?.find((item) => item.procedureIds.includes(id));
+    if (!remoteCase) throw new ApplicationError('NOT_FOUND', 'Dieses Verfahren gehört nicht zum aktuellen berechtigten Arbeitsstand. Bitte Gremia.BR bewusst aktualisieren.');
+    return { id, remoteCase };
+  }
+
+  registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrProcedureDetailGet, async (_event, rawId: unknown) => {
+    const { id, remoteCase } = accessibleProcedure(rawId, 'gremia-br:procedure:detail:get');
+    return new GremiaBrProcedureService(auth).getDetail(id, remoteCase.id);
+  });
+
+  registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrInlineSuggest, async (_event, query: unknown) => {
+    return references.suggestBrDecisions(new GremiaBrHttpReadAdapter(auth), assertString(query, 'gremia-br:inline-suggest', 'Suchbegriff', { minLength: 1, maxLength: 120 }));
+  });
+
+  registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrReferencesList, async (_event, caseId: unknown) => {
+    return references.listForCase(assertString(caseId, 'gremia-br:references:list', 'Fallakten-ID', { minLength: 1, maxLength: 120 }));
+  });
+
+  registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrReferencesCreate, async (_event, input: unknown) => {
+    const record = assertRecordInput<CreateGremiaBrExternalReferenceInput>(input, 'gremia-br:references:create');
+    if (record.sourceType === 'verfahren') {
+      const { remoteCase } = accessibleProcedure(record.sourceId, 'gremia-br:references:create');
+      return references.createOrUpdate({
+        caseId: record.caseId,
+        sourceType: 'verfahren',
+        sourceId: record.sourceId,
+        title: `${remoteCase.reference} · ${remoteCase.subject}`,
+      });
+    }
+    return references.createOrUpdate(record);
+  });
+
+  registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrReferencesDelete, async (_event, referenceId: unknown) => {
+    return references.delete(assertString(referenceId, 'gremia-br:references:delete', 'Referenz-ID', { minLength: 1, maxLength: 120 }));
+  });
+}

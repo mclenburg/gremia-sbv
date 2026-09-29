@@ -54,6 +54,49 @@ function createLockedStartupServices() {
 }
 
 describe("Gremia.BR IPC-Startup-Grenze", () => {
+  it('verknüpft nur ein Verfahren aus dem manuell geladenen berechtigten Arbeitsstand', async () => {
+    const { ipcMain, handlers } = createIpcRecorder();
+    const services = createLockedStartupServices();
+    services.gremiaBrCache.getOverview.mockReturnValue({
+      accessibleCases: [{ id: 'remote-case-1', reference: 'BR-2026-17', subject: 'Arbeitsplatzgestaltung', procedureIds: ['procedure-1'] }],
+    });
+    registerGremiaBrIpc(ipcMain as never, {} as never, services as never);
+    const save = handlers.get(IPC_CHANNELS.gremiaBrReferencesCreate)!;
+    const event = { senderFrame: { url: 'file:///app/index.html' } };
+
+    await expect(save(event, { caseId: 'local-case-1', sourceType: 'verfahren', sourceId: 'procedure-2', title: 'Fremd' })).rejects.toThrow();
+    expect(services.gremiaBrReferences.createOrUpdate).not.toHaveBeenCalled();
+    await save(event, { caseId: 'local-case-1', sourceType: 'verfahren', sourceId: 'procedure-1', title: 'Manipuliert', snapshot: { secret: true } });
+    expect(services.gremiaBrReferences.createOrUpdate).toHaveBeenCalledWith({
+      caseId: 'local-case-1', sourceType: 'verfahren', sourceId: 'procedure-1', title: 'BR-2026-17 · Arbeitsplatzgestaltung',
+    });
+    expect(services.gremiaBrAuth.get).not.toHaveBeenCalled();
+  });
+
+  it('lädt Verfahrensdetails erst nach eigener Auswahl aus dem berechtigten Arbeitsstand', async () => {
+    const { ipcMain, handlers } = createIpcRecorder();
+    const services = createLockedStartupServices();
+    services.gremiaBrCache.getOverview.mockReturnValue({
+      accessibleCases: [{ id: 'remote-case-1', reference: 'BR-2026-17', subject: 'Arbeitsplatzgestaltung', procedureIds: ['procedure-1'] }],
+    });
+    services.gremiaBrAuth.get.mockResolvedValue({
+      id: 'procedure-1', masterCaseId: 'remote-case-1', procedureType: 'SBV_PARTICIPATION', state: 'UNDER_REVIEW',
+      workflow: 'STANDARD', openedAt: '2026-09-20T10:00:00.000Z', version: 2, confidential: 'nicht übernehmen',
+    });
+    registerGremiaBrIpc(ipcMain as never, {} as never, services as never);
+    const detail = handlers.get(IPC_CHANNELS.gremiaBrProcedureDetailGet)!;
+    const event = { senderFrame: { url: 'file:///app/index.html' } };
+
+    expect(services.gremiaBrAuth.get).not.toHaveBeenCalled();
+    await expect(detail(event, 'procedure-2')).rejects.toThrow();
+    expect(services.gremiaBrAuth.get).not.toHaveBeenCalled();
+    expect(await detail(event, 'procedure-1')).toEqual({
+      id: 'procedure-1', masterCaseId: 'remote-case-1', procedureType: 'SBV_PARTICIPATION', state: 'UNDER_REVIEW',
+      workflow: 'STANDARD', openedAt: '2026-09-20T10:00:00.000Z', version: 2,
+    });
+    expect(services.gremiaBrAuth.get).toHaveBeenCalledWith('/api/v1/procedures/procedure-1');
+  });
+
   it('fragt Details nur für eine Aufgabe aus dem eigenen manuellen Snapshot ab', async () => {
     const { ipcMain, handlers } = createIpcRecorder();
     const services = createLockedStartupServices();

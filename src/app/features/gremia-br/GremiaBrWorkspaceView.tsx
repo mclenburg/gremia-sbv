@@ -17,6 +17,7 @@ import {
   isGremiaBrActionDisabled,
 } from "./GremiaBrWorkspacePanels";
 import { GremiaBrTaskDetailDialog } from './GremiaBrTaskDetailDialog';
+import { GremiaBrProcedureLinksPanel } from './GremiaBrProcedureLinksPanel';
 import { useGremiaBrWorkspace } from "./useGremiaBrWorkspace";
 
 export function GremiaBrWorkspaceView() {
@@ -41,6 +42,25 @@ export function GremiaBrWorkspaceView() {
         lastFetchedAt={workspace.overview.lastFetchedAt}
       />
       <GremiaBrOpenActionsPanel overview={workspace.overview} onOpenTask={(id) => void workspace.openTaskDetail(id)} />
+      {workspace.settings.apiMode === 'gremia_br_v2' ? (
+        <GremiaBrProcedureLinksPanel
+          cases={workspace.cases}
+          overview={workspace.overview}
+          localCaseId={workspace.procedureLocalCaseId}
+          remoteCaseId={workspace.procedureRemoteCaseId}
+          procedureId={workspace.procedureId}
+          detail={workspace.procedureDetail}
+          links={workspace.procedureLinks}
+          busy={busyMatches(workspace.busyAction, 'procedure')}
+          disabled={actionDisabled}
+          onLocalCaseChange={workspace.setProcedureLocalCaseId}
+          onRemoteCaseChange={workspace.selectProcedureRemoteCase}
+          onProcedureChange={workspace.selectProcedure}
+          onLoadDetail={() => void workspace.loadSelectedProcedure()}
+          onLink={() => void workspace.linkSelectedProcedure()}
+          onUnlink={(id) => void workspace.unlinkProcedure(id)}
+        />
+      ) : null}
       {selectedTaskId ? (
         <GremiaBrTaskDetailDialog
           title={workspace.overview.ownTasks.find((task) => task.id === selectedTaskId)?.title ?? 'Aufgabendetails'}

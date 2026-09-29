@@ -1066,7 +1066,7 @@ CREATE TABLE IF NOT EXISTS case_external_references (
   id TEXT PRIMARY KEY,
   case_id TEXT NOT NULL,
   source_system TEXT NOT NULL DEFAULT 'gremia_br' CHECK (source_system IN ('gremia_br')),
-  source_type TEXT NOT NULL CHECK (source_type IN ('beschluss','sitzung','agenda','protokoll')),
+  source_type TEXT NOT NULL CHECK (source_type IN ('beschluss','sitzung','agenda','protokoll','verfahren')),
   source_id TEXT NOT NULL,
   title TEXT NOT NULL,
   description TEXT,

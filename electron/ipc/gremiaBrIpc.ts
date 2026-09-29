@@ -9,20 +9,19 @@ import { ApplicationError } from '../../src/domain/models/application-error.mode
 import { GremiaBrV2WorkspaceService } from '../../services/gremiaBr/gremiaBrV2WorkspaceService.js';
 import type {
   CreateGremiaBrCaseSummaryInput,
-  CreateGremiaBrExternalReferenceInput,
   GremiaBrRelevanceSettings,
   GremiaBrSettingsInput,
   RequestGremiaBrAgendaItemInput,
   TransferGremiaBrDocumentInput,
 } from '../../src/domain/models/gremia-br.model.js';
 import { assertPlainObject, assertRecordInput, assertString, IpcValidationError } from './ipcValidation.js';
+import { registerGremiaBrReferenceIpc } from './gremiaBrReferenceIpc.js';
 
 export function registerGremiaBrIpc(ipcMain: IpcMain, security: SecurityService, services: ApplicationServices): void {
   const settings = services.gremiaBrSettings;
   const auth = services.gremiaBrAuth;
   const cache = services.gremiaBrCache;
   const workspace = new GremiaBrV2WorkspaceService(auth);
-  const references = services.gremiaBrReferences;
 
   function ownTaskId(rawId: unknown, channel: string): string {
     const id = assertString(rawId, channel, 'Aufgaben-ID', { minLength: 1, maxLength: 120 });
@@ -120,20 +119,5 @@ export function registerGremiaBrIpc(ipcMain: IpcMain, security: SecurityService,
     }
   });
 
-
-  registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrInlineSuggest, async (_event, query: unknown) => {
-    return references.suggestBrDecisions(new GremiaBrHttpReadAdapter(auth), assertString(query, 'gremia-br:inline-suggest', 'Suchbegriff', { minLength: 1, maxLength: 120 }));
-  });
-
-  registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrReferencesList, async (_event, caseId: unknown) => {
-    return references.listForCase(assertString(caseId, 'gremia-br:references:list', 'Fallakten-ID', { minLength: 1, maxLength: 120 }));
-  });
-
-  registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrReferencesCreate, async (_event, input: unknown) => {
-    return references.createOrUpdate(assertRecordInput<CreateGremiaBrExternalReferenceInput>(input, 'gremia-br:references:create'));
-  });
-
-  registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrReferencesDelete, async (_event, referenceId: unknown) => {
-    return references.delete(assertString(referenceId, 'gremia-br:references:delete', 'Referenz-ID', { minLength: 1, maxLength: 120 }));
-  });
+  registerGremiaBrReferenceIpc(ipcMain, services);
 }
