@@ -101,26 +101,32 @@ export async function startApplication(existingSplashWindow?: BrowserWindow): Pr
     console.info("Gremia.SBV data directory resolved.");
   }
   await updateStartupSplash("ipc");
-  registerSecurityIpc(ipcMain, security, demoMode ? {
-    status: async (): Promise<SecurityStatus> => {
-      if (!demoVaultPreparing || demoVaultReady) return security.status();
-      return {
-        initialized: true,
-        unlocked: false,
-        dataProtectionState: "locked",
-        recoveryRequired: false,
-      };
+  registerSecurityIpc(ipcMain, security, {
+    afterLock: () => {
+      applicationServices.gremiaBrAuth.clearToken();
+      applicationServices.gremiaBrCache.clear();
     },
-    unlock: async (): Promise<SecurityResult | null> => {
-      if (!demoVaultPreparing || demoVaultReady) return null;
-      return {
-        ok: false,
-        initialized: true,
-        unlocked: false,
-        error: "Die Demoumgebung wird noch vorbereitet. Bitte kurz warten und erneut entsperren.",
-      };
-    },
-  } : undefined);
+    ...(demoMode ? {
+      status: async (): Promise<SecurityStatus> => {
+        if (!demoVaultPreparing || demoVaultReady) return security.status();
+        return {
+          initialized: true,
+          unlocked: false,
+          dataProtectionState: "locked",
+          recoveryRequired: false,
+        };
+      },
+      unlock: async (): Promise<SecurityResult | null> => {
+        if (!demoVaultPreparing || demoVaultReady) return null;
+        return {
+          ok: false,
+          initialized: true,
+          unlocked: false,
+          error: "Die Demoumgebung wird noch vorbereitet. Bitte kurz warten und erneut entsperren.",
+        };
+      },
+    } : {}),
+  });
   registerCaseIpc(ipcMain, security, applicationServices);
   registerCaseHandoverIpc(ipcMain, security, applicationServices);
   registerCaseMeasureIpc(ipcMain, security, applicationServices);
