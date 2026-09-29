@@ -9,6 +9,7 @@ import {
   GremiaBrDocumentTransferPanel,
   GremiaBrMeetingImportPanel,
   GremiaBrOpenActionsPanel,
+  GremiaBrTaskDetailDialog,
   GremiaBrReadContextPanel,
   GremiaBrSummary,
   GremiaBrWorkspaceFeedback,
@@ -38,7 +39,16 @@ export function GremiaBrWorkspaceView() {
         onRefresh={() => void workspace.refreshReadContext()}
         lastFetchedAt={workspace.overview.lastFetchedAt}
       />
-      <GremiaBrOpenActionsPanel overview={workspace.overview} />
+      <GremiaBrOpenActionsPanel overview={workspace.overview} onOpenTask={(id) => void workspace.openTaskDetail(id)} />
+      {workspace.selectedTaskId ? (
+        <GremiaBrTaskDetailDialog
+          title={workspace.overview.ownTasks.find((task) => task.id === workspace.selectedTaskId)?.title ?? 'Aufgabendetails'}
+          detail={workspace.taskDetail}
+          busy={workspace.taskDetailBusy}
+          error={workspace.taskDetailError}
+          onClose={workspace.closeTaskDetail}
+        />
+      ) : null}
       <div className="industrial-grid-two">
         <GremiaBrCaseSummaryPanel
           cases={workspace.cases}

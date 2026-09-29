@@ -2,6 +2,7 @@ import type { CaseRecord } from "../../../domain/models/case.model";
 import type {
   GremiaBrDashboardOverview,
   GremiaBrGeneratedPdfDocument,
+  GremiaBrOwnTaskDetail,
   GremiaBrPublicSettings,
   GremiaBrWorkspaceActionRecord,
 } from "../../../domain/models/gremia-br.model";
@@ -49,6 +50,12 @@ export async function loadTransferableDocuments(): Promise<GremiaBrGeneratedPdfD
   const bridge = await waitForBridge();
   if (!bridge?.gremiaBr) throw new Error("Gremia.BR-Dienst ist nicht erreichbar.");
   return bridge.gremiaBr.listTransferableDocuments(100);
+}
+
+export async function loadOwnTaskDetail(id: string): Promise<GremiaBrOwnTaskDetail> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.getOwnTaskDetail(id);
 }
 
 export async function loadWorkspaceActions(): Promise<GremiaBrWorkspaceActionRecord[]> {

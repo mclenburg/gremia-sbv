@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { GremiaBrOpenActionsPanel, GremiaBrReadContextPanel } from '../../src/app/features/gremia-br/GremiaBrWorkspacePanels';
+import { GremiaBrOpenActionsPanel, GremiaBrReadContextPanel, GremiaBrTaskDetailDialog } from '../../src/app/features/gremia-br/GremiaBrWorkspacePanels';
 import { EMPTY_GREMIA_BR_DASHBOARD } from '../../src/app/features/gremia-br/gremiaBrWorkspaceModel';
 
 describe('Gremia.BR Offene Aktionen', () => {
@@ -9,9 +9,10 @@ describe('Gremia.BR Offene Aktionen', () => {
       ...EMPTY_GREMIA_BR_DASHBOARD,
       ownTasks: [{ id: 'task-1', title: 'Stellungnahme prüfen', status: 'BLOCKED', dueAt: '2026-10-01T10:00:00.000Z', subjectType: 'AGENDA_ITEM' }],
       ownAccessApprovals: [{ id: 'approval-1', resourceType: 'DOCUMENT', status: 'PENDING', requestedAt: '2026-10-01T11:00:00.000Z' }],
-    }} />);
+    }} onOpenTask={() => undefined} />);
 
     expect(html).toContain('aria-label="Eigene offene Gremia.BR-Aktionen"');
+    expect(html).toContain('aria-label="Details zu Stellungnahme prüfen"');
     expect(html).toContain('Stellungnahme prüfen');
     expect(html).toContain('Blockiert');
     expect(html).toContain('Tagesordnungspunkt');
@@ -20,6 +21,22 @@ describe('Gremia.BR Offene Aktionen', () => {
     expect(html).toContain('Fällig');
     expect(html).not.toContain('task-1');
     expect(html).not.toContain('approval-1');
+  });
+
+  it('zeigt Details nur im zugänglichen Dialog und ohne technische Kennungen', () => {
+    const html = renderToStaticMarkup(<GremiaBrTaskDetailDialog
+      title="Stellungnahme prüfen"
+      detail={{ id: 'task-1', title: 'Stellungnahme prüfen', status: 'OPEN', description: 'Vertraulicher Aufgabentext' }}
+      busy={false}
+      error=""
+      onClose={() => undefined}
+    />);
+
+    expect(html).toContain('role="dialog"');
+    expect(html).toContain('aria-modal="true"');
+    expect(html).toContain('Vertraulicher Aufgabentext');
+    expect(html).toContain('Schließen');
+    expect(html).not.toContain('task-1');
   });
 
   it('zeigt den letzten manuellen Abruf und eine eindeutige Aktualisierungsaktion', () => {

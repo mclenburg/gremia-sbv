@@ -49,6 +49,7 @@ export const GREMIA_BR_API_CATALOG: readonly GremiaBrEndpointDefinition[] = [
   { method: 'GET', template: '/api/v1/documents/{documentId}/versions', auth: 'bearer', category: 'read_context', purpose: 'Dokumentversionen in Gremia.BR 2.0 lesen' },
   { method: 'GET', template: '/api/v1/documents/versions/{documentVersionId}/content', auth: 'bearer', category: 'read_context', purpose: 'Dokumentversion nach expliziter Nutzeraktion aus Gremia.BR 2.0 laden' },
   { method: 'GET', template: '/api/v1/tasks', auth: 'bearer', category: 'read_context', purpose: 'Eigene offene Aufgaben nach bewusstem Gesamtabruf lesen' },
+  { method: 'GET', template: '/api/v1/tasks/{taskId}', auth: 'bearer', category: 'read_context', purpose: 'Eigene Aufgabendetails nach ausdrücklicher Auswahl lesen' },
   { method: 'GET', template: '/api/v1/access-approvals/mine', auth: 'bearer', category: 'read_context', purpose: 'Eigene Zugriffsanträge nach bewusstem Gesamtabruf lesen' },
   { method: 'POST', template: '/api/v1/documents', auth: 'bearer', category: 'workspace_action', purpose: 'Von Gremia.SBV erzeugtes PDF in den ausgewählten SBV-Arbeitsbereich übertragen' },
   { method: 'POST', template: '/api/v1/documents/{documentId}/shares', auth: 'bearer', category: 'workspace_action', purpose: 'Von der SBV bewusst ausgelöste Dokumentfreigabe an BR oder anderes Gremium' },

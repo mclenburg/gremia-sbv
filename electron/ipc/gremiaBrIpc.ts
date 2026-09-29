@@ -77,6 +77,14 @@ export function registerGremiaBrIpc(ipcMain: IpcMain, security: SecurityService,
     };
   });
 
+  registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrOwnTaskDetailGet, async (_event, rawId: unknown) => {
+    const id = assertString(rawId, 'gremia-br:own-task:detail:get', 'Aufgaben-ID', { minLength: 1, maxLength: 120 });
+    if (!cache.getOverview().ownTasks.some((task) => task.id === id)) {
+      throw new Error('Diese Aufgabe gehört nicht zum aktuellen eigenen Arbeitsstand. Bitte Gremia.BR erneut aktualisieren.');
+    }
+    return new GremiaBrHttpReadAdapter(auth).getOwnTaskDetail(id);
+  });
+
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrInlineSuggest, async (_event, query: unknown) => {
     return references.suggestBrDecisions(new GremiaBrHttpReadAdapter(auth), assertString(query, 'gremia-br:inline-suggest', 'Suchbegriff', { minLength: 1, maxLength: 120 }));

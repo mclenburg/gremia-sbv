@@ -2,11 +2,12 @@ import { GremiaBrAuthService } from './gremiaBrAuthService.js';
 import type { GremiaBrReadAdapter } from './gremiaBrTypes.js';
 import { gremiaBrArrayFromResponse, gremiaBrRecord } from './gremiaBrPayload.js';
 import { GREMIA_BR_OPEN_TASK_STATUSES } from '../../src/domain/models/gremia-br.model.js';
-import type { GremiaBrOwnTask, GremiaBrOwnAccessApproval, GremiaBrOwnTaskStatus } from '../../src/domain/models/gremia-br.model.js';
+import type { GremiaBrOwnTask, GremiaBrOwnAccessApproval, GremiaBrOwnTaskStatus, GremiaBrOwnTaskDetail } from '../../src/domain/models/gremia-br.model.js';
 
 const TASK_PAGE_SIZE = 100;
 const MAX_OWN_TASKS = 1_000;
 const OPEN_TASK_STATUS_SET: ReadonlySet<string> = new Set(GREMIA_BR_OPEN_TASK_STATUSES);
+const TASK_STATUS_SET: ReadonlySet<string> = new Set([...GREMIA_BR_OPEN_TASK_STATUSES, 'COMPLETED', 'CANCELLED']);
 
 function isOpenTaskStatus(value: unknown): value is GremiaBrOwnTaskStatus {
   return typeof value === 'string' && OPEN_TASK_STATUS_SET.has(value);
@@ -71,6 +72,22 @@ export class GremiaBrHttpReadAdapter implements GremiaBrReadAdapter {
       offset += items.length;
     }
     throw new Error('Gremia.BR meldet zu viele eigene Aufgaben für einen vollständigen Abruf.');
+  }
+
+  async getOwnTaskDetail(id: string): Promise<GremiaBrOwnTaskDetail> {
+    if (!this.isV2()) throw new Error('Aufgabendetails sind nur mit Gremia.BR 2.0 verfügbar.');
+    const item = gremiaBrRecord(await this.auth.get<unknown>(`/api/v1/tasks/${encodeURIComponent(id)}`));
+    if (!item || item.id !== id || typeof item.title !== 'string' || typeof item.status !== 'string' || !TASK_STATUS_SET.has(item.status)) {
+      throw new Error('Gremia.BR hat keine gültigen Aufgabendetails zurückgegeben. Bitte den Arbeitsstand erneut aktualisieren.');
+    }
+    return {
+      id,
+      title: item.title,
+      status: item.status as GremiaBrOwnTaskDetail['status'],
+      ...(typeof item.description === 'string' ? { description: item.description } : {}),
+      ...(typeof item.dueAt === 'string' ? { dueAt: item.dueAt } : {}),
+      ...(typeof item.subjectType === 'string' ? { subjectType: item.subjectType } : {}),
+    };
   }
 
   async listOwnPendingAccessApprovals(): Promise<GremiaBrOwnAccessApproval[]> {

@@ -107,6 +107,15 @@ export interface GremiaBrOwnTask {
   subjectId?: string;
 }
 
+export interface GremiaBrOwnTaskDetail {
+  id: string;
+  title: string;
+  status: GremiaBrOwnTaskStatus | 'COMPLETED' | 'CANCELLED';
+  description?: string;
+  dueAt?: string;
+  subjectType?: string;
+}
+
 export interface GremiaBrOwnAccessApproval {
   id: string;
   resourceType: string;

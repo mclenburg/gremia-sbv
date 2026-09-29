@@ -128,7 +128,7 @@ import type {
   UpdateLegalNormInput,
 } from "./domain/models/knowledge.model";
 import type { TemplateDefaultValues } from "./domain/models/template-default.model";
-import type { CreateGremiaBrCaseSummaryInput, CreateGremiaBrExternalReferenceInput, GremiaBrAgendaItemRequestResult, GremiaBrCachedOverview, GremiaBrCacheRefreshResult, GremiaBrConnectionTestResult, GremiaBrCreatedPdfDocument, GremiaBrDashboardOverview, GremiaBrDocumentTransferResult, GremiaBrExternalReferenceRecord, GremiaBrGeneratedPdfDocument, GremiaBrInlineSuggestion, GremiaBrPublicSettings, GremiaBrRelevanceSettings, GremiaBrSettingsInput, GremiaBrWorkspaceActionRecord, GremiaBrWorkspaceBody, RequestGremiaBrAgendaItemInput, TransferGremiaBrDocumentInput } from "./domain/models/gremia-br.model";
+import type { CreateGremiaBrCaseSummaryInput, CreateGremiaBrExternalReferenceInput, GremiaBrAgendaItemRequestResult, GremiaBrCachedOverview, GremiaBrCacheRefreshResult, GremiaBrConnectionTestResult, GremiaBrCreatedPdfDocument, GremiaBrDashboardOverview, GremiaBrDocumentTransferResult, GremiaBrExternalReferenceRecord, GremiaBrGeneratedPdfDocument, GremiaBrInlineSuggestion, GremiaBrOwnTaskDetail, GremiaBrPublicSettings, GremiaBrRelevanceSettings, GremiaBrSettingsInput, GremiaBrWorkspaceActionRecord, GremiaBrWorkspaceBody, RequestGremiaBrAgendaItemInput, TransferGremiaBrDocumentInput } from "./domain/models/gremia-br.model";
 
 import type {
   CreateTemplateInput,
@@ -531,6 +531,7 @@ declare global {
         getCachedOverview(): Promise<GremiaBrCachedOverview>;
         getDashboardOverview(): Promise<GremiaBrDashboardOverview>;
         refreshCache(): Promise<GremiaBrCacheRefreshResult>;
+        getOwnTaskDetail(id: string): Promise<GremiaBrOwnTaskDetail>;
         suggestInlineReferences(query: string): Promise<GremiaBrInlineSuggestion[]>;
         listExternalReferences(caseId: string): Promise<GremiaBrExternalReferenceRecord[]>;
         saveExternalReference(input: CreateGremiaBrExternalReferenceInput): Promise<GremiaBrExternalReferenceRecord>;

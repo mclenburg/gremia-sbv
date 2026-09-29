@@ -1,6 +1,6 @@
 import type { IpcInvoker } from "./invoke.js";
 import { IPC_CHANNELS } from "../ipc/channels.js";
-import type { CreateGremiaBrCaseSummaryInput, CreateGremiaBrExternalReferenceInput, GremiaBrAgendaItemRequestResult, GremiaBrCachedOverview, GremiaBrCacheRefreshResult, GremiaBrConnectionTestResult, GremiaBrCreatedPdfDocument, GremiaBrDashboardOverview, GremiaBrDocumentTransferResult, GremiaBrExternalReferenceRecord, GremiaBrGeneratedPdfDocument, GremiaBrInlineSuggestion, GremiaBrPublicSettings, GremiaBrRelevanceSettings, GremiaBrSettingsInput, GremiaBrWorkspaceActionRecord, GremiaBrWorkspaceBody, RequestGremiaBrAgendaItemInput, TransferGremiaBrDocumentInput } from "../../src/domain/models/gremia-br.model.js";
+import type { CreateGremiaBrCaseSummaryInput, CreateGremiaBrExternalReferenceInput, GremiaBrAgendaItemRequestResult, GremiaBrCachedOverview, GremiaBrCacheRefreshResult, GremiaBrConnectionTestResult, GremiaBrCreatedPdfDocument, GremiaBrDashboardOverview, GremiaBrDocumentTransferResult, GremiaBrExternalReferenceRecord, GremiaBrGeneratedPdfDocument, GremiaBrInlineSuggestion, GremiaBrOwnTaskDetail, GremiaBrPublicSettings, GremiaBrRelevanceSettings, GremiaBrSettingsInput, GremiaBrWorkspaceActionRecord, GremiaBrWorkspaceBody, RequestGremiaBrAgendaItemInput, TransferGremiaBrDocumentInput } from "../../src/domain/models/gremia-br.model.js";
 import type { TemplateDefaultValues } from "../../src/domain/models/template-default.model.js";
 import type { TransferInstanceIdentity } from "../../src/domain/models/transfer-identity.model.js";
 import type { SaveTransferRecipientProfileInput, TransferRecipientProfile } from "../../src/domain/models/transfer-recipient-profile.model.js";
@@ -36,6 +36,8 @@ export function createSettingsApi(invokeIpc: IpcInvoker) {
         invokeIpc(IPC_CHANNELS.gremiaBrDashboardGet),
       refreshCache: (): Promise<GremiaBrCacheRefreshResult> =>
         invokeIpc(IPC_CHANNELS.gremiaBrCacheRefresh),
+      getOwnTaskDetail: (id: string): Promise<GremiaBrOwnTaskDetail> =>
+        invokeIpc(IPC_CHANNELS.gremiaBrOwnTaskDetailGet, id),
       suggestInlineReferences: (query: string): Promise<GremiaBrInlineSuggestion[]> =>
         invokeIpc(IPC_CHANNELS.gremiaBrInlineSuggest, query),
       listExternalReferences: (caseId: string): Promise<GremiaBrExternalReferenceRecord[]> =>

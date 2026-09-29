@@ -79,6 +79,27 @@ function configuredV2Settings(): GremiaBrServiceSettings {
 }
 
 describe('Gremia.BR HTTP-ReadAdapter 0.9.2-B', () => {
+  it('liest Aufgabendetails erst auf expliziten Aufruf und übernimmt nur fachlich nötige Felder', async () => {
+    const { fetch, calls } = createFetch({
+      'POST /api/v1/auth/login': { access_token: 'token' },
+      'GET /api/v1/tasks/task-1': {
+        id: 'task-1', title: 'Stellungnahme prüfen', status: 'OPEN',
+        description: 'Vertraulicher Aufgabentext', subjectType: 'PROCEDURE',
+        securityDomain: 'SBV', assignments: [{ reference: 'person-1' }],
+      },
+    });
+    const adapter = new GremiaBrHttpReadAdapter(new GremiaBrAuthService(
+      new MemoryGremiaBrSettings(configuredV2Settings()), fetch, auditFactory,
+    ));
+
+    expect(calls).toHaveLength(0);
+    expect(await adapter.getOwnTaskDetail('task-1')).toEqual({
+      id: 'task-1', title: 'Stellungnahme prüfen', status: 'OPEN',
+      description: 'Vertraulicher Aufgabentext', subjectType: 'PROCEDURE',
+    });
+    expect(calls.some((call) => new URL(call.url).pathname === '/api/v1/tasks/task-1')).toBe(true);
+  });
+
   it('verwirft einen unbekannten Aufgabenstatus statt einen technischen Status anzuzeigen', async () => {
     const { fetch } = createFetch({
       'POST /api/v1/auth/login': { access_token: 'token' },

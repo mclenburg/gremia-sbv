@@ -53,6 +53,26 @@ function createLockedStartupServices() {
 }
 
 describe("Gremia.BR IPC-Startup-Grenze", () => {
+  it('fragt Details nur für eine Aufgabe aus dem eigenen manuellen Snapshot ab', async () => {
+    const { ipcMain, handlers } = createIpcRecorder();
+    const services = createLockedStartupServices();
+    services.gremiaBrAuth.getReadContext.mockReturnValue({ apiMode: 'gremia_br_v2', selectedBodyId: 'sbv' });
+    services.gremiaBrAuth.get.mockImplementation(async (path: string) => {
+      if (path === '/api/v1/tasks/task-1') return { id: 'task-1', title: 'Prüfung', status: 'OPEN', description: 'Details' };
+      throw new Error(`Unerwarteter Pfad: ${path}`);
+    });
+    services.gremiaBrCache.getOverview.mockReturnValue({ ownTasks: [{ id: 'task-1' }] });
+    registerGremiaBrIpc(ipcMain as never, {} as never, services as never);
+    const event = { senderFrame: { url: 'file:///app/index.html' } };
+    const detail = handlers.get(IPC_CHANNELS.gremiaBrOwnTaskDetailGet)!;
+
+    expect(services.gremiaBrAuth.get).not.toHaveBeenCalled();
+    await expect(detail(event, 'task-2')).rejects.toThrow();
+    expect(services.gremiaBrAuth.get).not.toHaveBeenCalled();
+    expect(await detail(event, 'task-1')).toMatchObject({ title: 'Prüfung', description: 'Details' });
+    expect(services.gremiaBrAuth.get).toHaveBeenCalledTimes(1);
+  });
+
   it("ruft bei jedem bewussten Gesamt-Refresh einen neuen V2-Stand ab", async () => {
     const { ipcMain, handlers } = createIpcRecorder();
     const services = createLockedStartupServices();

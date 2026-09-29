@@ -17,6 +17,7 @@ import {
   EMPTY_GREMIA_BR_SETTINGS,
 } from "./gremiaBrWorkspaceModel";
 import type { GremiaBrWorkspaceDraft } from "./GremiaBrWorkspacePanels";
+import { useGremiaBrTaskDetail } from './useGremiaBrTaskDetail';
 
 const INITIAL_DRAFT: GremiaBrWorkspaceDraft = {
   selectedCaseId: "",
@@ -46,6 +47,7 @@ export function useGremiaBrWorkspace(announce: (message: string, politeness?: "p
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
   const [busyAction, setBusyAction] = useState<BusyAction>(null);
+  const taskDetailState = useGremiaBrTaskDetail(announce);
   const meetingDrafts = useMemo(() => buildBrMeetingDrafts(overview), [overview]);
 
   function applySnapshot(snapshot: Awaited<ReturnType<typeof loadWorkspaceSnapshot>>) {
@@ -100,6 +102,7 @@ export function useGremiaBrWorkspace(announce: (message: string, politeness?: "p
     status,
     error,
     busyAction,
+    ...taskDetailState,
     meetingDrafts,
     updateDraft,
     refreshReadContext: () => runAction("read", async () => {
