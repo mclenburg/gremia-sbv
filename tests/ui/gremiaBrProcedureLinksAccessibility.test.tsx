@@ -18,6 +18,9 @@ describe('Gremia.BR-Verfahrensverknüpfung', () => {
       links={[]}
       informationRequests={[]}
       informationRequestsProcedureId=""
+      requestItems=""
+      requestReason=""
+      responseDueDate=""
       busy={false}
       disabled={false}
       onLocalCaseChange={noop}
@@ -25,6 +28,10 @@ describe('Gremia.BR-Verfahrensverknüpfung', () => {
       onProcedureChange={noop}
       onLoadDetail={noop}
       onLoadInformationRequests={noop}
+      onCreateInformationRequest={noop}
+      onRequestItemsChange={noop}
+      onRequestReasonChange={noop}
+      onResponseDueDateChange={noop}
       onLink={noop}
       onUnlink={noop}
     />);
@@ -33,6 +40,7 @@ describe('Gremia.BR-Verfahrensverknüpfung', () => {
     expect(html).toContain('Gremia.BR-Sachverhalt');
     expect(html).toContain('BR-2026-17');
     expect(html).toContain('Verfahrensdetails laden');
+    expect(html).not.toContain('Informationsanforderung erstellen');
     const visibleText = html.replace(/<[^>]*>/g, '');
     expect(visibleText).not.toContain('procedure-1');
     expect(visibleText).not.toContain('remote-1');
@@ -54,6 +62,9 @@ describe('Gremia.BR-Verfahrensverknüpfung', () => {
       links={[link]}
       informationRequests={[{ id: 'request-1', procedureId: 'procedure-1', status: 'OPEN', requestedAt: '2026-09-29T10:00:00.000Z', responseDueAt: '2026-10-05T10:00:00.000Z', version: 1 }]}
       informationRequestsProcedureId="procedure-1"
+      requestItems="Unterlage zur Arbeitsplatzgestaltung"
+      requestReason="Für Stellungnahme"
+      responseDueDate="2026-10-05"
       busy={false}
       disabled={false}
       onLocalCaseChange={noop}
@@ -61,6 +72,10 @@ describe('Gremia.BR-Verfahrensverknüpfung', () => {
       onProcedureChange={noop}
       onLoadDetail={noop}
       onLoadInformationRequests={noop}
+      onCreateInformationRequest={noop}
+      onRequestItemsChange={noop}
+      onRequestReasonChange={noop}
+      onResponseDueDateChange={noop}
       onLink={noop}
       onUnlink={noop}
     />);
@@ -72,5 +87,7 @@ describe('Gremia.BR-Verfahrensverknüpfung', () => {
     expect(html).toContain('Informationsanforderungen laden');
     expect(html).toContain('Antwort fällig');
     expect(html).toContain('Offen');
+    expect(html).toContain('Welche Angaben fehlen?');
+    expect(html).toContain('Informationsanforderung erstellen');
   });
 });

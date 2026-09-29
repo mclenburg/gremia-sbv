@@ -5,15 +5,14 @@ import { SearchableSelectInput, SelectInput } from '../../shared/components/Indu
 import { DataTable, EmptyState } from '../../shared/components/WorkbenchLayout';
 import { IndustrialPanel } from '../../shared/components/WorkbenchPanels';
 import { caseOptions } from './gremiaBrWorkspaceModel';
+import { GremiaBrInformationRequestComposer } from './GremiaBrInformationRequestComposer';
+import { GremiaBrInformationRequestsTable } from './GremiaBrInformationRequestsTable';
 
 const STATE_LABELS: Record<string, string> = {
   RECEIVED: 'Eingegangen', UNDER_REVIEW: 'In Prüfung', INFORMATION_REQUESTED: 'Information angefordert',
   READY: 'Bereit', IN_PROGRESS: 'In Bearbeitung', DECISION_PENDING: 'Entscheidung ausstehend',
   DECIDED: 'Entschieden', COMMUNICATION_PENDING: 'Mitteilung ausstehend', COMMUNICATED: 'Mitgeteilt',
   COMPLETED: 'Abgeschlossen', CANCELLED: 'Abgebrochen',
-};
-const REQUEST_STATUS_LABELS: Record<GremiaBrInformationRequest['status'], string> = {
-  OPEN: 'Offen', PARTIALLY_FULFILLED: 'Teilweise erfüllt', FULFILLED: 'Erfüllt', WITHDRAWN: 'Zurückgezogen',
 };
 
 function procedureTypeLabel(value: string): string {
@@ -22,8 +21,10 @@ function procedureTypeLabel(value: string): string {
 }
 
 export function GremiaBrProcedureLinksPanel({
-  cases, overview, localCaseId, remoteCaseId, procedureId, detail, links, informationRequests, informationRequestsProcedureId, busy, disabled,
-  onLocalCaseChange, onRemoteCaseChange, onProcedureChange, onLoadDetail, onLoadInformationRequests, onLink, onUnlink,
+  cases, overview, localCaseId, remoteCaseId, procedureId, detail, links, informationRequests, informationRequestsProcedureId,
+  requestItems, requestReason, responseDueDate, busy, disabled,
+  onLocalCaseChange, onRemoteCaseChange, onProcedureChange, onLoadDetail, onLoadInformationRequests, onCreateInformationRequest,
+  onRequestItemsChange, onRequestReasonChange, onResponseDueDateChange, onLink, onUnlink,
 }: {
   cases: CaseRecord[];
   overview: GremiaBrDashboardOverview;
@@ -34,6 +35,9 @@ export function GremiaBrProcedureLinksPanel({
   links: GremiaBrExternalReferenceRecord[];
   informationRequests: GremiaBrInformationRequest[];
   informationRequestsProcedureId: string;
+  requestItems: string;
+  requestReason: string;
+  responseDueDate: string;
   busy: boolean;
   disabled: boolean;
   onLocalCaseChange: (id: string) => void;
@@ -41,6 +45,10 @@ export function GremiaBrProcedureLinksPanel({
   onProcedureChange: (id: string) => void;
   onLoadDetail: () => void;
   onLoadInformationRequests: () => void;
+  onCreateInformationRequest: () => void;
+  onRequestItemsChange: (value: string) => void;
+  onRequestReasonChange: (value: string) => void;
+  onResponseDueDateChange: (value: string) => void;
   onLink: () => void;
   onUnlink: (id: string) => void;
 }) {
@@ -100,19 +108,19 @@ export function GremiaBrProcedureLinksPanel({
         </div>
       ) : null}
       {alreadyLinked && informationRequestsProcedureId === procedureId ? (
-        <DataTable
-          ariaLabel="Informationsanforderungen des verknüpften Verfahrens"
-          headers={['Anforderung', 'Status', 'Angefordert', 'Antwort fällig']}
-          rows={informationRequests.map((request, index) => ({
-            id: request.id,
-            cells: [
-              `Informationsanforderung ${index + 1}`,
-              REQUEST_STATUS_LABELS[request.status],
-              new Date(request.requestedAt).toLocaleDateString('de-DE'),
-              request.responseDueAt ? new Date(request.responseDueAt).toLocaleDateString('de-DE') : 'Keine Frist',
-            ],
-          }))}
-          empty={<EmptyState title="Keine Informationsanforderungen" text="Für dieses Verfahren sind derzeit keine Anforderungen vorhanden." />}
+        <GremiaBrInformationRequestsTable requests={informationRequests} />
+      ) : null}
+      {validDetail && alreadyLinked ? (
+        <GremiaBrInformationRequestComposer
+          items={requestItems}
+          reason={requestReason}
+          dueDate={responseDueDate}
+          busy={busy}
+          disabled={disabled}
+          onItemsChange={onRequestItemsChange}
+          onReasonChange={onRequestReasonChange}
+          onDueDateChange={onResponseDueDateChange}
+          onCreate={onCreateInformationRequest}
         />
       ) : null}
       {localCaseId ? (

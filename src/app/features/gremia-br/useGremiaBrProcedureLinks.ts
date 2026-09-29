@@ -1,9 +1,29 @@
 import { useEffect, useState } from 'react';
 import type { GremiaBrExternalReferenceRecord, GremiaBrInformationRequest, GremiaBrProcedureDetail } from '../../../domain/models/gremia-br.model';
-import { deleteProcedureLink, loadInformationRequests, loadProcedureDetail, loadProcedureLinks, saveProcedureLink } from './gremiaBrWorkspaceActions';
+import { createInformationRequest, deleteProcedureLink, loadInformationRequests, loadProcedureDetail, loadProcedureLinks, saveProcedureLink } from './gremiaBrWorkspaceActions';
 import type { BusyAction } from './GremiaBrWorkspacePanels';
 
 type RunAction = (action: Exclude<BusyAction, null>, work: () => Promise<string>) => Promise<void>;
+
+async function submitInformationRequest(input: {
+  caseId: string;
+  procedureId: string;
+  links: GremiaBrExternalReferenceRecord[];
+  items: string;
+  reason: string;
+  dueDate: string;
+}): Promise<GremiaBrInformationRequest> {
+  if (!input.caseId || !input.procedureId || !input.links.some((link) => link.sourceType === 'verfahren' && link.sourceId === input.procedureId)) {
+    throw new Error('Bitte ein verknüpftes Verfahren auswählen.');
+  }
+  return createInformationRequest({
+    caseId: input.caseId,
+    procedureId: input.procedureId,
+    items: input.items,
+    ...(input.reason.trim() ? { reason: input.reason } : {}),
+    ...(input.dueDate ? { responseDueAt: new Date(`${input.dueDate}T23:59:59`).toISOString() } : {}),
+  });
+}
 
 export function useGremiaBrProcedureLinks(
   announce: (message: string, politeness?: 'polite' | 'assertive') => void,
@@ -17,6 +37,15 @@ export function useGremiaBrProcedureLinks(
   const [procedureLinks, setProcedureLinks] = useState<GremiaBrExternalReferenceRecord[]>([]);
   const [informationRequests, setInformationRequests] = useState<GremiaBrInformationRequest[]>([]);
   const [informationRequestsProcedureId, setInformationRequestsProcedureId] = useState('');
+  const [requestItems, setRequestItems] = useState('');
+  const [requestReason, setRequestReason] = useState('');
+  const [responseDueDate, setResponseDueDate] = useState('');
+
+  function clearRequestDraft() {
+    setRequestItems('');
+    setRequestReason('');
+    setResponseDueDate('');
+  }
 
   useEffect(() => {
     if (!procedureLocalCaseId) {
@@ -42,15 +71,19 @@ export function useGremiaBrProcedureLinks(
     setProcedureDetail(null);
     setInformationRequests([]);
     setInformationRequestsProcedureId('');
+    clearRequestDraft();
   }
 
   return {
     procedureLocalCaseId, procedureRemoteCaseId, procedureId, procedureDetail, procedureLinks,
     informationRequests, informationRequestsProcedureId,
+    requestItems, requestReason, responseDueDate,
+    setRequestItems, setRequestReason, setResponseDueDate,
     selectProcedureLocalCase: (id: string) => {
       setProcedureLocalCaseId(id);
       setInformationRequests([]);
       setInformationRequestsProcedureId('');
+      clearRequestDraft();
     },
     resetRemoteSelection,
     selectProcedureRemoteCase: (id: string) => {
@@ -59,12 +92,14 @@ export function useGremiaBrProcedureLinks(
       setProcedureDetail(null);
       setInformationRequests([]);
       setInformationRequestsProcedureId('');
+      clearRequestDraft();
     },
     selectProcedure: (id: string) => {
       setProcedureId(id);
       setProcedureDetail(null);
       setInformationRequests([]);
       setInformationRequestsProcedureId('');
+      clearRequestDraft();
     },
     loadSelectedProcedure: () => runAction('procedure', async () => {
       if (!procedureId) throw new Error('Bitte ein Verfahren auswählen.');
@@ -79,6 +114,15 @@ export function useGremiaBrProcedureLinks(
       setInformationRequests(requests);
       setInformationRequestsProcedureId(procedureId);
       return 'Informationsanforderungen wurden geladen.';
+    }),
+    createSelectedInformationRequest: () => runAction('procedure', async () => {
+      const created = await submitInformationRequest({
+        caseId: procedureLocalCaseId, procedureId, links: procedureLinks,
+        items: requestItems, reason: requestReason, dueDate: responseDueDate,
+      });
+      if (informationRequestsProcedureId === procedureId) setInformationRequests((current) => [...current, created]);
+      clearRequestDraft();
+      return 'Informationsanforderung wurde in Gremia.BR erstellt.';
     }),
     linkSelectedProcedure: () => runAction('procedure', async () => {
       if (!procedureLocalCaseId || !procedureDetail || procedureDetail.id !== procedureId || procedureDetail.masterCaseId !== procedureRemoteCaseId) {

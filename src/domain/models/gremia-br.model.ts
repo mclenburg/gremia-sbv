@@ -123,6 +123,14 @@ export interface GremiaBrInformationRequest {
   version: number;
 }
 
+export interface CreateGremiaBrInformationRequestInput {
+  caseId: string;
+  procedureId: string;
+  items: string;
+  reason?: string;
+  responseDueAt?: string;
+}
+
 export const GREMIA_BR_OPEN_TASK_STATUSES = ['OPEN', 'IN_PROGRESS', 'BLOCKED', 'WAITING_EXTERNAL', 'QUESTION'] as const;
 export type GremiaBrOwnTaskStatus = (typeof GREMIA_BR_OPEN_TASK_STATUSES)[number];
 export const GREMIA_BR_TASK_STATUSES = [...GREMIA_BR_OPEN_TASK_STATUSES, 'COMPLETED', 'CANCELLED'] as const;

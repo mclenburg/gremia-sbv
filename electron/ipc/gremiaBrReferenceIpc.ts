@@ -1,6 +1,6 @@
 import type { IpcMain } from 'electron';
 import type { ApplicationServices } from '../applicationServices.js';
-import type { CreateGremiaBrExternalReferenceInput } from '../../src/domain/models/gremia-br.model.js';
+import type { CreateGremiaBrExternalReferenceInput, CreateGremiaBrInformationRequestInput } from '../../src/domain/models/gremia-br.model.js';
 import { ApplicationError } from '../../src/domain/models/application-error.model.js';
 import { GremiaBrHttpReadAdapter } from '../../services/gremiaBr/gremiaBrHttpReadAdapter.js';
 import { GremiaBrProcedureService } from '../../services/gremiaBr/gremiaBrProcedureService.js';
@@ -17,18 +17,29 @@ export function registerGremiaBrReferenceIpc(ipcMain: IpcMain, services: Applica
     return { id, remoteCase };
   }
 
+  function linkedProcedure(rawCaseId: unknown, rawProcedureId: unknown, channel: string) {
+    const caseId = assertString(rawCaseId, channel, 'Fallakten-ID', { minLength: 1, maxLength: 120 });
+    const { id } = accessibleProcedure(rawProcedureId, channel);
+    if (!references.listForCase(caseId).some((link) => link.sourceType === 'verfahren' && link.sourceId === id)) {
+      throw new ApplicationError('NOT_FOUND', 'Dieses Verfahren ist nicht mit der ausgewählten Fallakte verknüpft.');
+    }
+    return { caseId, id };
+  }
+
   registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrProcedureDetailGet, async (_event, rawId: unknown) => {
     const { id, remoteCase } = accessibleProcedure(rawId, 'gremia-br:procedure:detail:get');
     return new GremiaBrProcedureService(auth).getDetail(id, remoteCase.id);
   });
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrInformationRequestsList, async (_event, rawCaseId: unknown, rawProcedureId: unknown) => {
-    const caseId = assertString(rawCaseId, 'gremia-br:procedure:information-requests:list', 'Fallakten-ID', { minLength: 1, maxLength: 120 });
-    const { id } = accessibleProcedure(rawProcedureId, 'gremia-br:procedure:information-requests:list');
-    if (!references.listForCase(caseId).some((link) => link.sourceType === 'verfahren' && link.sourceId === id)) {
-      throw new ApplicationError('NOT_FOUND', 'Dieses Verfahren ist nicht mit der ausgewählten Fallakte verknüpft.');
-    }
+    const { id } = linkedProcedure(rawCaseId, rawProcedureId, 'gremia-br:procedure:information-requests:list');
     return new GremiaBrProcedureService(auth).listInformationRequests(id);
+  });
+
+  registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrInformationRequestCreate, async (_event, rawInput: unknown) => {
+    const input = assertRecordInput<CreateGremiaBrInformationRequestInput>(rawInput, 'gremia-br:procedure:information-request:create');
+    const { id } = linkedProcedure(input.caseId, input.procedureId, 'gremia-br:procedure:information-request:create');
+    return new GremiaBrProcedureService(auth).createInformationRequest(id, input);
   });
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrInlineSuggest, async (_event, query: unknown) => {
