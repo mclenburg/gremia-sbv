@@ -28,6 +28,7 @@ function overview(): GremiaBrDashboardOverview {
     plannedStart: "2026-10-01T09:00:00.000Z",
   };
   return {
+    accessibleCases: [],
     ownTasks: [{ id: 'task-1', title: 'Stellungnahme prüfen', status: 'OPEN' }],
     ownAccessApprovals: [{ id: 'approval-1', resourceType: 'DOCUMENT', status: 'PENDING', requestedAt: '2026-10-01T10:00:00.000Z' }],
     upcomingMeetings: [

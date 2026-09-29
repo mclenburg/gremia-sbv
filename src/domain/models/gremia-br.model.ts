@@ -58,6 +58,7 @@ export interface GremiaBrPolicyCheckResult {
 
 
 export type GremiaBrCacheSourceType =
+  | 'accessible_cases'
   | 'own_tasks'
   | 'own_access_approvals'
   | 'next_meeting'
@@ -79,6 +80,7 @@ export interface GremiaBrCacheEntry {
 }
 
 export interface GremiaBrCachedOverview {
+  accessibleCases: GremiaBrRemoteCase[];
   ownTasks: GremiaBrOwnTask[];
   ownAccessApprovals: GremiaBrOwnAccessApproval[];
   nextMeeting?: unknown;
@@ -93,6 +95,13 @@ export interface GremiaBrCachedOverview {
   extendedDecisionStatistics?: unknown;
   lastFetchedAt?: string;
   cacheAgeLabel?: string;
+}
+
+export interface GremiaBrRemoteCase {
+  id: string;
+  reference: string;
+  subject: string;
+  procedureIds: string[];
 }
 
 export const GREMIA_BR_OPEN_TASK_STATUSES = ['OPEN', 'IN_PROGRESS', 'BLOCKED', 'WAITING_EXTERNAL', 'QUESTION'] as const;

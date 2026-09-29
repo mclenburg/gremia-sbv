@@ -7,11 +7,13 @@ import type {
   GremiaBrRelevanceSettings,
   GremiaBrOwnTask,
   GremiaBrOwnAccessApproval,
+  GremiaBrRemoteCase,
 } from '../../src/domain/models/gremia-br.model.js';
 import type { GremiaBrReadAdapter } from './gremiaBrTypes.js';
 import { filterRelevantGremiaBrMeetings, getGremiaBrItemId } from './gremiaBrRelevanceService.js';
 
 const CACHE_KEYS: readonly GremiaBrCacheSourceType[] = [
+  'accessible_cases',
   'own_tasks',
   'own_access_approvals',
   'next_meeting',
@@ -78,6 +80,7 @@ export class GremiaBrCacheService {
   }
 
   getOverview(): GremiaBrCachedOverview {
+    const accessibleCases = this.readEntry('accessible_cases');
     const ownTasks = this.readEntry('own_tasks');
     const ownAccessApprovals = this.readEntry('own_access_approvals');
     const nextMeeting = this.readEntry('next_meeting');
@@ -91,10 +94,11 @@ export class GremiaBrCacheService {
     const decisionStatistics = this.readEntry('decision_statistics');
     const extendedDecisionStatistics = this.readEntry('extended_decision_statistics');
     const lastFetchedAt = latestTimestamp([
-      ownTasks, ownAccessApprovals, nextMeeting, currentMeeting, upcomingMeetings, meetingAgendas, pendingFollowUps, decisions, dueDecisions, overdueDecisions, decisionStatistics, extendedDecisionStatistics,
+      accessibleCases, ownTasks, ownAccessApprovals, nextMeeting, currentMeeting, upcomingMeetings, meetingAgendas, pendingFollowUps, decisions, dueDecisions, overdueDecisions, decisionStatistics, extendedDecisionStatistics,
     ]);
 
     return {
+      accessibleCases: asArray(accessibleCases?.payload) as GremiaBrRemoteCase[],
       ownTasks: asArray(ownTasks?.payload) as GremiaBrOwnTask[],
       ownAccessApprovals: asArray(ownAccessApprovals?.payload) as GremiaBrOwnAccessApproval[],
       nextMeeting: nextMeeting?.payload,
@@ -130,6 +134,7 @@ export class GremiaBrCacheService {
 
   async refresh(adapter: GremiaBrReadAdapter): Promise<GremiaBrCacheRefreshResult> {
     const checkedAt = nowIso();
+    const accessibleCases = await adapter.listAccessibleCases();
     const ownTasks = await adapter.listOwnTasks();
     const ownAccessApprovals = await adapter.listOwnPendingAccessApprovals();
     const nextMeeting = await adapter.getNextMeeting();
@@ -151,6 +156,7 @@ export class GremiaBrCacheService {
     const extendedDecisionStatistics = await adapter.getExtendedDecisionStatistics();
 
     const writes: Array<[GremiaBrCacheSourceType, unknown]> = [
+      ['accessible_cases', accessibleCases],
       ['own_tasks', ownTasks],
       ['own_access_approvals', ownAccessApprovals],
       ['next_meeting', nextMeeting],

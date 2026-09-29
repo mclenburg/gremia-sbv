@@ -79,6 +79,25 @@ function configuredV2Settings(): GremiaBrServiceSettings {
 }
 
 describe('Gremia.BR HTTP-ReadAdapter 0.9.2-B', () => {
+  it('liest nur berechtigte Sachverhalte und minimiert die Daten für die Verfahrensauswahl', async () => {
+    const { fetch, calls } = createFetch({
+      'POST /api/v1/auth/login': { access_token: 'token' },
+      'GET /api/v1/cases': { items: [{
+        id: 'case-1', reference: 'BR-2026-17', subject: 'Arbeitsplatzgestaltung',
+        procedureIds: ['procedure-1'], description: 'Vertraulicher Volltext',
+      }], total: 1 },
+    });
+    const adapter = new GremiaBrHttpReadAdapter(new GremiaBrAuthService(
+      new MemoryGremiaBrSettings(configuredV2Settings()), fetch, auditFactory,
+    ));
+
+    const cases = await adapter.listAccessibleCases();
+
+    expect(cases).toEqual([{ id: 'case-1', reference: 'BR-2026-17', subject: 'Arbeitsplatzgestaltung', procedureIds: ['procedure-1'] }]);
+    expect(calls.some((call) => new URL(call.url).pathname === '/api/v1/cases')).toBe(true);
+    expect(JSON.stringify(cases)).not.toContain('Vertraulicher Volltext');
+  });
+
   it('liest Aufgabendetails erst auf expliziten Aufruf und übernimmt nur fachlich nötige Felder', async () => {
     const { fetch, calls } = createFetch({
       'POST /api/v1/auth/login': { access_token: 'token' },

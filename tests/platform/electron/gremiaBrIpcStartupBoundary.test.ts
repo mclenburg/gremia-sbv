@@ -106,6 +106,7 @@ describe("Gremia.BR IPC-Startup-Grenze", () => {
     let meetingId = "m1";
     services.gremiaBrAuth.getReadContext.mockReturnValue({ apiMode: "gremia_br_v2", selectedBodyId: "sbv" });
     services.gremiaBrAuth.get.mockImplementation(async (path: string) => {
+      if (path === "/api/v1/cases") return { items: [], total: 0 };
       if (path === "/api/v1/tasks") return { items: [], total: 0 };
       if (path === "/api/v1/access-approvals/mine") return [];
       if (path === "/api/v1/bodies/sbv/meetings") {

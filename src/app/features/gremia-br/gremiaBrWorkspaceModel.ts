@@ -18,6 +18,7 @@ export const EMPTY_GREMIA_BR_SETTINGS: GremiaBrPublicSettings = {
 };
 
 export const EMPTY_GREMIA_BR_DASHBOARD: GremiaBrDashboardOverview = {
+  accessibleCases: [],
   ownTasks: [],
   ownAccessApprovals: [],
   upcomingMeetings: [],

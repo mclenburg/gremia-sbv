@@ -2,11 +2,12 @@ import { GremiaBrAuthService } from './gremiaBrAuthService.js';
 import type { GremiaBrReadAdapter } from './gremiaBrTypes.js';
 import { gremiaBrArrayFromResponse, gremiaBrRecord } from './gremiaBrPayload.js';
 import { GREMIA_BR_OPEN_TASK_STATUSES } from '../../src/domain/models/gremia-br.model.js';
-import type { GremiaBrOwnTask, GremiaBrOwnAccessApproval, GremiaBrOwnTaskStatus, GremiaBrOwnTaskDetail } from '../../src/domain/models/gremia-br.model.js';
+import type { GremiaBrOwnTask, GremiaBrOwnAccessApproval, GremiaBrOwnTaskStatus, GremiaBrOwnTaskDetail, GremiaBrRemoteCase } from '../../src/domain/models/gremia-br.model.js';
 import { GremiaBrTaskService } from './gremiaBrTaskService.js';
 
 const TASK_PAGE_SIZE = 100;
 const MAX_OWN_TASKS = 1_000;
+const MAX_ACCESSIBLE_CASES = 1_000;
 const OPEN_TASK_STATUS_SET: ReadonlySet<string> = new Set(GREMIA_BR_OPEN_TASK_STATUSES);
 
 function isOpenTaskStatus(value: unknown): value is GremiaBrOwnTaskStatus {
@@ -24,6 +25,13 @@ function ownTaskFromResponse(value: unknown): GremiaBrOwnTask | null {
     ...(typeof item.subjectType === 'string' ? { subjectType: item.subjectType } : {}),
     ...(typeof item.subjectId === 'string' ? { subjectId: item.subjectId } : {}),
   };
+}
+
+function remoteCaseFromResponse(value: unknown): GremiaBrRemoteCase | null {
+  const item = gremiaBrRecord(value);
+  if (!item || typeof item.id !== 'string' || typeof item.reference !== 'string' || typeof item.subject !== 'string'
+    || !Array.isArray(item.procedureIds) || !item.procedureIds.every((id) => typeof id === 'string')) return null;
+  return { id: item.id, reference: item.reference, subject: item.subject, procedureIds: [...item.procedureIds] };
 }
 
 function idFromItem(item: unknown): string | undefined {
@@ -54,6 +62,30 @@ export class GremiaBrHttpReadAdapter implements GremiaBrReadAdapter {
   private v2DecisionCache?: Promise<unknown[]>;
 
   constructor(private readonly auth: GremiaBrAuthService) {}
+
+  async listAccessibleCases(): Promise<GremiaBrRemoteCase[]> {
+    if (!this.isV2()) return [];
+    const cases: GremiaBrRemoteCase[] = [];
+    for (let offset = 0; offset < MAX_ACCESSIBLE_CASES;) {
+      const response = gremiaBrRecord(await this.auth.get<unknown>('/api/v1/cases', {
+        query: { limit: TASK_PAGE_SIZE, offset },
+      }));
+      const items = response?.items;
+      if (!Array.isArray(items) || typeof response?.total !== 'number' || !Number.isInteger(response.total) || response.total < 0) {
+        throw new Error('Gremia.BR hat keine gültige Sachverhaltsliste zurückgegeben.');
+      }
+      const page = items.map(remoteCaseFromResponse);
+      if (page.some((item) => !item)) throw new Error('Gremia.BR hat einen unvollständigen Sachverhalt zurückgegeben. Der bisherige Arbeitsstand bleibt erhalten.');
+      cases.push(...page as GremiaBrRemoteCase[]);
+      if (cases.length > MAX_ACCESSIBLE_CASES || cases.length > response.total) {
+        throw new Error('Gremia.BR hat eine widersprüchliche oder zu große Sachverhaltsliste zurückgegeben.');
+      }
+      if (cases.length >= response.total) return cases;
+      if (items.length === 0) throw new Error('Die Gremia.BR-Sachverhaltsliste ist unvollständig. Bitte erneut aktualisieren.');
+      offset += items.length;
+    }
+    throw new Error('Gremia.BR meldet zu viele Sachverhalte für einen vollständigen Abruf.');
+  }
 
   async listOwnTasks(): Promise<GremiaBrOwnTask[]> {
     if (!this.isV2()) return [];

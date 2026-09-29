@@ -15,6 +15,7 @@ Die SBV kann gezielt BR-Informationen abrufen, die für ihre Arbeit relevant sin
 - Suchvorschläge für externe BR-Referenzen.
 - eigene offene Aufgaben als persönlichen Arbeitsvorrat.
 - eigene noch ausstehende Zugriffsanträge.
+- berechtigte Sachverhalte als flüchtige Auswahlgrundlage für verknüpfte Verfahren.
 
 In Gremia.BR 2.0 kann die SBV außerdem bewusst Aktionen für ihren eigenen SBV-Arbeitsbereich auslösen:
 
@@ -72,6 +73,8 @@ Nicht freigegeben bleiben insbesondere Admin, Audit, DSGVO, Notizen, Abwesenheit
 Die Verbindung wird unter **Einstellungen → Gremia.BR** eingerichtet. Der eigenständige Bereich **Gremia.BR** wird nur sichtbar, wenn eine Instanz konfiguriert ist. Das Dashboard zeigt nur den flüchtigen Arbeitsstand und aktualisiert diesen ausschließlich durch eine bewusste Nutzeraktion. Nach einem Neustart sind die Remote-Inhalte nicht mehr vorhanden. Bereits aus früheren Versionen persistierte Lesecache-Inhalte werden beim Datenbank-Upgrade entfernt. Wird die Anbindung deaktiviert oder werden Zugangsdaten gelöscht, wird der Arbeitsstand geleert.
 
 **Gremia.BR aktualisieren** lädt auch die eigenen offenen Aufgaben und noch ausstehenden Zugriffsanträge in den Bereich **Offene Aktionen**. Bei Aufgaben werden nur Titel, Herkunft, Status und Fälligkeit angezeigt; Beschreibungen und Zuweisungsdetails bleiben außerhalb des lokalen Arbeitsstands. Sitzungs-, TOP- und verfahrensbezogene Aufgaben werden fachlich eingeordnet. Unbekannte Aufgabenstatus werden nicht als technische Werte angezeigt, sondern verhindern einen unvollständigen Gesamtabruf. Bei Zugriffsanträgen werden nur Ressourcenart, Status und Antragsdatum übernommen. Die Anzeige nennt den Zeitpunkt des letzten erfolgreichen Gesamtabrufs und kennzeichnet den Arbeitsstand als möglicherweise veraltete Momentaufnahme.
+
+Der bewusste Gesamtabruf lädt außerdem die für die angemeldete Person zugänglichen Gremia.BR-Sachverhalte. In der flüchtigen Übersicht bleiben davon nur Kennzeichen, Betreff und Verfahrenskennungen; Fallbeschreibungen werden nicht übernommen. Ein unvollständiger Abruf ersetzt den vorherigen Arbeitsstand nicht.
 
 **Details** an einer eigenen Aufgabe löst erst beim Anklicken einen zusätzlichen auditierten Remote-Abruf aus. Der Main-Prozess akzeptiert dafür nur Aufgaben aus dem aktuellen eigenen Arbeitsstand. Die Antwort wird auf die für den Dialog benötigten Felder reduziert und beim Schließen aus dem UI-Zustand entfernt; sie wird weder in den Gesamtsnapshot noch in den Vault geschrieben.
 

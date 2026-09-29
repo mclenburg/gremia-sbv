@@ -5,6 +5,11 @@ import type { GremiaBrReadAdapter } from '../../../services/gremiaBr/gremiaBrTyp
 class FakeReadAdapter implements GremiaBrReadAdapter {
   calls: string[] = [];
 
+  async listAccessibleCases() {
+    this.calls.push('accessible-cases');
+    return [{ id: 'case-1', reference: 'BR-2026-17', subject: 'Arbeitsplatzgestaltung', procedureIds: ['procedure-1'] }];
+  }
+
   async listOwnTasks() {
     this.calls.push('own-tasks');
     return [{ id: 'task-1', title: 'Stellungnahme prüfen', status: 'OPEN' as const, dueAt: '2026-10-01T10:00:00.000Z' }];
@@ -84,8 +89,9 @@ describe('Gremia.BR Remote-Arbeitsstand', () => {
     const result = await service.refresh(adapter);
 
     expect(result.status).toBe('ok');
-    expect(result.refreshedKeys).toEqual(['own_tasks', 'own_access_approvals', 'next_meeting', 'current_meeting', 'upcoming_meetings', 'meeting_agendas', 'pending_follow_ups', 'decisions', 'due_decisions', 'overdue_decisions', 'decision_statistics', 'extended_decision_statistics']);
-    expect(adapter.calls).toEqual(['own-tasks', 'own-access-approvals', 'next', 'current', 'upcoming', 'followups', 'agenda:s1', 'agenda:s0', 'agenda:s2', 'decisions', 'due', 'overdue', 'stats', 'extended-stats']);
+    expect(result.refreshedKeys).toEqual(['accessible_cases', 'own_tasks', 'own_access_approvals', 'next_meeting', 'current_meeting', 'upcoming_meetings', 'meeting_agendas', 'pending_follow_ups', 'decisions', 'due_decisions', 'overdue_decisions', 'decision_statistics', 'extended_decision_statistics']);
+    expect(adapter.calls).toEqual(['accessible-cases', 'own-tasks', 'own-access-approvals', 'next', 'current', 'upcoming', 'followups', 'agenda:s1', 'agenda:s0', 'agenda:s2', 'decisions', 'due', 'overdue', 'stats', 'extended-stats']);
+    expect(result.cached.accessibleCases).toMatchObject([{ id: 'case-1', procedureIds: ['procedure-1'] }]);
     expect(result.cached.ownTasks).toMatchObject([{ id: 'task-1', title: 'Stellungnahme prüfen' }]);
     expect(result.cached.ownAccessApprovals).toMatchObject([{ id: 'approval-1', status: 'PENDING' }]);
     expect(result.cached.nextMeeting).toMatchObject({ id: 's1' });
