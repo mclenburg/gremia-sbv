@@ -32,6 +32,7 @@ describe('Gremia.BR-Verfahrensverknüpfung', () => {
       onRequestItemsChange={noop}
       onRequestReasonChange={noop}
       onResponseDueDateChange={noop}
+      onCompleteInformationRequest={noop}
       onLink={noop}
       onUnlink={noop}
     />);
@@ -76,6 +77,7 @@ describe('Gremia.BR-Verfahrensverknüpfung', () => {
       onRequestItemsChange={noop}
       onRequestReasonChange={noop}
       onResponseDueDateChange={noop}
+      onCompleteInformationRequest={noop}
       onLink={noop}
       onUnlink={noop}
     />);
@@ -89,5 +91,6 @@ describe('Gremia.BR-Verfahrensverknüpfung', () => {
     expect(html).toContain('Offen');
     expect(html).toContain('Welche Angaben fehlen?');
     expect(html).toContain('Informationsanforderung erstellen');
+    expect(html).toContain('Informationsanforderung 1 als erfüllt abschließen');
   });
 });

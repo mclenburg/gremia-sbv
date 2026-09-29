@@ -2,6 +2,23 @@ import { describe, expect, it, vi } from 'vitest';
 import { GremiaBrProcedureService } from '../../../services/gremiaBr/gremiaBrProcedureService';
 
 describe('Gremia.BR-Verfahrensdienst', () => {
+  it('schließt nur eine noch offene Anforderung mit bestätigter aktueller Version ab', async () => {
+    const get = vi.fn().mockResolvedValue([{
+      id: 'request-1', procedureId: 'procedure-1', status: 'OPEN', requestedAt: '2026-09-29T10:00:00.000Z', version: 3,
+    }]);
+    const post = vi.fn().mockResolvedValue({
+      id: 'request-1', procedureId: 'procedure-1', status: 'FULFILLED', requestedAt: '2026-09-29T10:00:00.000Z', version: 4,
+    });
+    const service = new GremiaBrProcedureService({ get, post } as never);
+
+    await expect(service.completeInformationRequest('procedure-1', 'request-1', 2)).rejects.toThrow();
+    expect(post).not.toHaveBeenCalled();
+    expect(await service.completeInformationRequest('procedure-1', 'request-1', 3)).toMatchObject({ status: 'FULFILLED', version: 4 });
+    expect(post).toHaveBeenCalledWith('/api/v1/procedures/information-requests/request-1/resolve', {
+      body: { to: 'FULFILLED', expectedVersion: 3 },
+    });
+  });
+
   it('legt eine Informationsanforderung nur mit fachlich begrenzten Feldern an', async () => {
     const post = vi.fn().mockResolvedValue({
       id: 'request-2', procedureId: 'procedure-1', status: 'OPEN', requestedAt: '2026-09-29T12:00:00.000Z', version: 1,

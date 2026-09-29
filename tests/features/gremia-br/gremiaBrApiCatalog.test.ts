@@ -27,6 +27,7 @@ describe('Gremia.BR API-Katalog 0.9.2-G', () => {
       'POST /api/v1/documents/shares/{shareId}/revocation',
       'POST /api/v1/meetings/{meetingId}/agenda',
       'POST /api/v1/procedures/{procedureId}/information-requests',
+      'POST /api/v1/procedures/information-requests/{requestId}/resolve',
     ]);
     for (const endpoint of workspaceActions) {
       expect(checkGremiaBrEndpoint(endpoint.method, endpoint.template).allowed).toBe(true);

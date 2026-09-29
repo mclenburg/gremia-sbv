@@ -62,4 +62,20 @@ export class GremiaBrProcedureService {
     };
     return informationRequestFromResponse(await this.auth.post<unknown>(`/api/v1/procedures/${encodeURIComponent(procedureId)}/information-requests`, { body }), procedureId);
   }
+
+  async completeInformationRequest(procedureId: string, requestId: string, expectedVersion: number): Promise<GremiaBrInformationRequest> {
+    if (!Number.isInteger(expectedVersion) || expectedVersion < 0) throw new Error('Die Version der Informationsanforderung ist ungültig.');
+    const current = (await this.listInformationRequests(procedureId)).find((request) => request.id === requestId);
+    if (!current || !['OPEN', 'PARTIALLY_FULFILLED'].includes(current.status) || current.version !== expectedVersion) {
+      throw new Error('Die Informationsanforderung ist nicht mehr offen oder wurde geändert. Bitte die Liste bewusst neu laden.');
+    }
+    const resolved = informationRequestFromResponse(await this.auth.post<unknown>(
+      `/api/v1/procedures/information-requests/${encodeURIComponent(requestId)}/resolve`,
+      { body: { to: 'FULFILLED', expectedVersion } },
+    ), procedureId);
+    if (resolved.id !== requestId || resolved.status !== 'FULFILLED') {
+      throw new Error('Gremia.BR hat den Abschluss nicht eindeutig bestätigt. Bitte die Liste bewusst neu laden.');
+    }
+    return resolved;
+  }
 }

@@ -1,7 +1,8 @@
 import type { IpcMain } from 'electron';
 import type { ApplicationServices } from '../applicationServices.js';
-import type { CreateGremiaBrExternalReferenceInput, CreateGremiaBrInformationRequestInput } from '../../src/domain/models/gremia-br.model.js';
+import type { CompleteGremiaBrInformationRequestInput, CreateGremiaBrExternalReferenceInput, CreateGremiaBrInformationRequestInput } from '../../src/domain/models/gremia-br.model.js';
 import { ApplicationError } from '../../src/domain/models/application-error.model.js';
+import { GremiaBrHttpError } from '../../services/gremiaBr/gremiaBrHttpClient.js';
 import { GremiaBrHttpReadAdapter } from '../../services/gremiaBr/gremiaBrHttpReadAdapter.js';
 import { GremiaBrProcedureService } from '../../services/gremiaBr/gremiaBrProcedureService.js';
 import { IPC_CHANNELS, registerIpcHandler } from './ipcHandler.js';
@@ -40,6 +41,21 @@ export function registerGremiaBrReferenceIpc(ipcMain: IpcMain, services: Applica
     const input = assertRecordInput<CreateGremiaBrInformationRequestInput>(rawInput, 'gremia-br:procedure:information-request:create');
     const { id } = linkedProcedure(input.caseId, input.procedureId, 'gremia-br:procedure:information-request:create');
     return new GremiaBrProcedureService(auth).createInformationRequest(id, input);
+  });
+
+  registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrInformationRequestComplete, async (_event, rawInput: unknown) => {
+    const channel = 'gremia-br:procedure:information-request:complete';
+    const input = assertRecordInput<CompleteGremiaBrInformationRequestInput>(rawInput, channel);
+    const { id } = linkedProcedure(input.caseId, input.procedureId, channel);
+    const requestId = assertString(input.requestId, channel, 'Anforderungs-ID', { minLength: 1, maxLength: 120 });
+    try {
+      return await new GremiaBrProcedureService(auth).completeInformationRequest(id, requestId, input.expectedVersion);
+    } catch (error) {
+      if (error instanceof GremiaBrHttpError && error.status === 409) {
+        throw new ApplicationError('CONFLICT', 'Die Informationsanforderung wurde zwischenzeitlich geändert. Bitte die Liste bewusst neu laden.');
+      }
+      throw error;
+    }
   });
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrInlineSuggest, async (_event, query: unknown) => {

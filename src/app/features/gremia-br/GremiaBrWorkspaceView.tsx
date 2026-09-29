@@ -67,6 +67,7 @@ export function GremiaBrWorkspaceView() {
           onRequestItemsChange={workspace.setRequestItems}
           onRequestReasonChange={workspace.setRequestReason}
           onResponseDueDateChange={workspace.setResponseDueDate}
+          onCompleteInformationRequest={(id) => void workspace.completeSelectedInformationRequest(id)}
           onLink={() => void workspace.linkSelectedProcedure()}
           onUnlink={(id) => void workspace.unlinkProcedure(id)}
         />

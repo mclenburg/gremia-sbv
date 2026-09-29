@@ -1,9 +1,32 @@
 import { useEffect, useState } from 'react';
 import type { GremiaBrExternalReferenceRecord, GremiaBrInformationRequest, GremiaBrProcedureDetail } from '../../../domain/models/gremia-br.model';
-import { createInformationRequest, deleteProcedureLink, loadInformationRequests, loadProcedureDetail, loadProcedureLinks, saveProcedureLink } from './gremiaBrWorkspaceActions';
+import { completeInformationRequest, createInformationRequest, deleteProcedureLink, loadInformationRequests, loadProcedureDetail, loadProcedureLinks, saveProcedureLink } from './gremiaBrWorkspaceActions';
 import type { BusyAction } from './GremiaBrWorkspacePanels';
 
 type RunAction = (action: Exclude<BusyAction, null>, work: () => Promise<string>) => Promise<void>;
+
+function useLocalProcedureReferences(
+  caseId: string,
+  announce: (message: string, politeness?: 'polite' | 'assertive') => void,
+  onError: (message: string) => void,
+) {
+  const [links, setLinks] = useState<GremiaBrExternalReferenceRecord[]>([]);
+  useEffect(() => {
+    if (!caseId) { setLinks([]); return; }
+    let active = true;
+    setLinks([]);
+    void loadProcedureLinks(caseId)
+      .then((result) => { if (active) setLinks(result); })
+      .catch((err) => {
+        if (!active) return;
+        const message = err instanceof Error ? err.message : 'Verknüpfungen konnten nicht geladen werden.';
+        onError(message);
+        announce(message, 'assertive');
+      });
+    return () => { active = false; };
+  }, [caseId, announce, onError]);
+  return [links, setLinks] as const;
+}
 
 async function submitInformationRequest(input: {
   caseId: string;
@@ -25,6 +48,22 @@ async function submitInformationRequest(input: {
   });
 }
 
+async function finishInformationRequest(input: {
+  caseId: string;
+  procedureId: string;
+  requestsProcedureId: string;
+  requests: GremiaBrInformationRequest[];
+  requestId: string;
+}): Promise<GremiaBrInformationRequest> {
+  const request = input.requestsProcedureId === input.procedureId
+    ? input.requests.find((item) => item.id === input.requestId && ['OPEN', 'PARTIALLY_FULFILLED'].includes(item.status))
+    : undefined;
+  if (!input.caseId || !request) throw new Error('Bitte die offenen Informationsanforderungen bewusst neu laden.');
+  return completeInformationRequest({
+    caseId: input.caseId, procedureId: input.procedureId, requestId: request.id, expectedVersion: request.version,
+  });
+}
+
 export function useGremiaBrProcedureLinks(
   announce: (message: string, politeness?: 'polite' | 'assertive') => void,
   runAction: RunAction,
@@ -34,7 +73,7 @@ export function useGremiaBrProcedureLinks(
   const [procedureRemoteCaseId, setProcedureRemoteCaseId] = useState('');
   const [procedureId, setProcedureId] = useState('');
   const [procedureDetail, setProcedureDetail] = useState<GremiaBrProcedureDetail | null>(null);
-  const [procedureLinks, setProcedureLinks] = useState<GremiaBrExternalReferenceRecord[]>([]);
+  const [procedureLinks, setProcedureLinks] = useLocalProcedureReferences(procedureLocalCaseId, announce, onError);
   const [informationRequests, setInformationRequests] = useState<GremiaBrInformationRequest[]>([]);
   const [informationRequestsProcedureId, setInformationRequestsProcedureId] = useState('');
   const [requestItems, setRequestItems] = useState('');
@@ -46,24 +85,6 @@ export function useGremiaBrProcedureLinks(
     setRequestReason('');
     setResponseDueDate('');
   }
-
-  useEffect(() => {
-    if (!procedureLocalCaseId) {
-      setProcedureLinks([]);
-      return;
-    }
-    let active = true;
-    setProcedureLinks([]);
-    void loadProcedureLinks(procedureLocalCaseId)
-      .then((links) => { if (active) setProcedureLinks(links); })
-      .catch((err) => {
-        if (!active) return;
-        const message = err instanceof Error ? err.message : 'Verknüpfungen konnten nicht geladen werden.';
-        onError(message);
-        announce(message, 'assertive');
-      });
-    return () => { active = false; };
-  }, [procedureLocalCaseId, announce, onError]);
 
   function resetRemoteSelection() {
     setProcedureRemoteCaseId('');
@@ -123,6 +144,14 @@ export function useGremiaBrProcedureLinks(
       if (informationRequestsProcedureId === procedureId) setInformationRequests((current) => [...current, created]);
       clearRequestDraft();
       return 'Informationsanforderung wurde in Gremia.BR erstellt.';
+    }),
+    completeSelectedInformationRequest: (requestId: string) => runAction('procedure', async () => {
+      const completed = await finishInformationRequest({
+        caseId: procedureLocalCaseId, procedureId, requestsProcedureId: informationRequestsProcedureId,
+        requests: informationRequests, requestId,
+      });
+      setInformationRequests((current) => current.map((request) => request.id === completed.id ? completed : request));
+      return 'Informationsanforderung wurde in Gremia.BR als erfüllt abgeschlossen.';
     }),
     linkSelectedProcedure: () => runAction('procedure', async () => {
       if (!procedureLocalCaseId || !procedureDetail || procedureDetail.id !== procedureId || procedureDetail.masterCaseId !== procedureRemoteCaseId) {

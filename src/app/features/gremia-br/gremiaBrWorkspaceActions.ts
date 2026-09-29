@@ -7,6 +7,7 @@ import type {
   GremiaBrExternalReferenceRecord,
   GremiaBrInformationRequest,
   CreateGremiaBrInformationRequestInput,
+  CompleteGremiaBrInformationRequestInput,
   GremiaBrTaskTransitionInput,
   GremiaBrTaskTransitionOptions,
   GremiaBrPublicSettings,
@@ -80,6 +81,12 @@ export async function createInformationRequest(input: CreateGremiaBrInformationR
   const bridge = await waitForBridge();
   if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
   return bridge.gremiaBr.createInformationRequest(input);
+}
+
+export async function completeInformationRequest(input: CompleteGremiaBrInformationRequestInput): Promise<GremiaBrInformationRequest> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.completeInformationRequest(input);
 }
 
 export async function loadProcedureLinks(caseId: string): Promise<GremiaBrExternalReferenceRecord[]> {

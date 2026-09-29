@@ -25,6 +25,7 @@ export function GremiaBrProcedureLinksPanel({
   requestItems, requestReason, responseDueDate, busy, disabled,
   onLocalCaseChange, onRemoteCaseChange, onProcedureChange, onLoadDetail, onLoadInformationRequests, onCreateInformationRequest,
   onRequestItemsChange, onRequestReasonChange, onResponseDueDateChange, onLink, onUnlink,
+  onCompleteInformationRequest,
 }: {
   cases: CaseRecord[];
   overview: GremiaBrDashboardOverview;
@@ -49,6 +50,7 @@ export function GremiaBrProcedureLinksPanel({
   onRequestItemsChange: (value: string) => void;
   onRequestReasonChange: (value: string) => void;
   onResponseDueDateChange: (value: string) => void;
+  onCompleteInformationRequest: (id: string) => void;
   onLink: () => void;
   onUnlink: (id: string) => void;
 }) {
@@ -108,7 +110,7 @@ export function GremiaBrProcedureLinksPanel({
         </div>
       ) : null}
       {alreadyLinked && informationRequestsProcedureId === procedureId ? (
-        <GremiaBrInformationRequestsTable requests={informationRequests} />
+        <GremiaBrInformationRequestsTable requests={informationRequests} busy={busy || disabled} onComplete={onCompleteInformationRequest} />
       ) : null}
       {validDetail && alreadyLinked ? (
         <GremiaBrInformationRequestComposer

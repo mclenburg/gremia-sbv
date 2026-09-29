@@ -136,6 +136,27 @@ describe("Gremia.BR IPC-Startup-Grenze", () => {
     expect(services.gremiaBrAuth.post).toHaveBeenCalledTimes(1);
   });
 
+  it('schließt eine Informationsanforderung nur im verknüpften berechtigten Verfahren ab', async () => {
+    const { ipcMain, handlers } = createIpcRecorder();
+    const services = createLockedStartupServices();
+    services.gremiaBrCache.getOverview.mockReturnValue({
+      accessibleCases: [{ id: 'remote-case-1', reference: 'BR-2026-17', subject: 'Arbeitsplatzgestaltung', procedureIds: ['procedure-1'] }],
+    });
+    services.gremiaBrReferences.listForCase.mockReturnValue([]);
+    services.gremiaBrAuth.get.mockResolvedValue([{ id: 'request-1', procedureId: 'procedure-1', status: 'OPEN', requestedAt: '2026-09-29T10:00:00.000Z', version: 3 }]);
+    services.gremiaBrAuth.post.mockResolvedValue({ id: 'request-1', procedureId: 'procedure-1', status: 'FULFILLED', requestedAt: '2026-09-29T10:00:00.000Z', version: 4 });
+    registerGremiaBrIpc(ipcMain as never, {} as never, services as never);
+    const complete = handlers.get(IPC_CHANNELS.gremiaBrInformationRequestComplete)!;
+    const event = { senderFrame: { url: 'file:///app/index.html' } };
+    const input = { caseId: 'local-case-1', procedureId: 'procedure-1', requestId: 'request-1', expectedVersion: 3 };
+
+    await expect(complete(event, input)).rejects.toThrow();
+    expect(services.gremiaBrAuth.get).not.toHaveBeenCalled();
+    services.gremiaBrReferences.listForCase.mockReturnValue([{ sourceType: 'verfahren', sourceId: 'procedure-1' }]);
+    expect(await complete(event, input)).toMatchObject({ status: 'FULFILLED' });
+    expect(services.gremiaBrAuth.post).toHaveBeenCalledTimes(1);
+  });
+
   it('fragt Details nur für eine Aufgabe aus dem eigenen manuellen Snapshot ab', async () => {
     const { ipcMain, handlers } = createIpcRecorder();
     const services = createLockedStartupServices();

@@ -82,6 +82,8 @@ Bei einem verknüpften Verfahren lädt **Informationsanforderungen laden** die z
 
 Eine neue Informationsanforderung wird am verknüpften Verfahren mit fehlenden Angaben, optionaler Begründung und optionaler Antwortfrist bewusst erstellt. Die Eingabe wird weder in den allgemeinen Arbeitsstand noch in die lokale Fallakte kopiert. Nach bestätigter Erstellung bleibt die Liste unverändert, sofern sie zuvor nicht ausdrücklich geladen wurde; es erfolgt kein automatischer Remote-Abruf.
 
+**Als erfüllt abschließen** ist nur für zuvor bewusst geladene offene oder teilweise erfüllte Anforderungen verfügbar. Vor dem Statuswechsel wird der aktuelle Stand im Rahmen derselben Nutzeraktion nochmals auditiert gelesen und mit der angezeigten Version verglichen. Bei Konflikt wird kein Abschluss behauptet; die Liste muss bewusst neu geladen werden.
+
 **Details** an einer eigenen Aufgabe löst erst beim Anklicken einen zusätzlichen auditierten Remote-Abruf aus. Der Main-Prozess akzeptiert dafür nur Aufgaben aus dem aktuellen eigenen Arbeitsstand. Die Antwort wird auf die für den Dialog benötigten Felder reduziert und beim Schließen aus dem UI-Zustand entfernt; sie wird weder in den Gesamtsnapshot noch in den Vault geschrieben.
 
 Im Aufgabendialog lädt **Statusänderungen abrufen** die aktuell von Gremia.BR angebotenen Übergänge erst auf bewusste Aktion. Nur diese Werte stehen in der filterbaren Auswahl. **Statusänderung bestätigen** sendet den gewählten Zielstatus mit der zuletzt gelesenen Aufgabenversion als eigenen auditierten Request. Gremia.BR entscheidet weiterhin über Berechtigung und Zustandswechsel. Bei einem Konflikt fordert die Oberfläche dazu auf, die Details bewusst neu zu laden; der allgemeine Arbeitsstand wird nicht automatisch oder teilweise aktualisiert.
