@@ -3,6 +3,8 @@ import type {
   GremiaBrDashboardOverview,
   GremiaBrGeneratedPdfDocument,
   GremiaBrOwnTaskDetail,
+  GremiaBrTaskTransitionInput,
+  GremiaBrTaskTransitionOptions,
   GremiaBrPublicSettings,
   GremiaBrWorkspaceActionRecord,
 } from "../../../domain/models/gremia-br.model";
@@ -56,6 +58,18 @@ export async function loadOwnTaskDetail(id: string): Promise<GremiaBrOwnTaskDeta
   const bridge = await waitForBridge();
   if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
   return bridge.gremiaBr.getOwnTaskDetail(id);
+}
+
+export async function loadOwnTaskTransitions(id: string): Promise<GremiaBrTaskTransitionOptions> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.getOwnTaskTransitions(id);
+}
+
+export async function transitionOwnTask(input: GremiaBrTaskTransitionInput): Promise<GremiaBrOwnTaskDetail> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.transitionOwnTask(input);
 }
 
 export async function loadWorkspaceActions(): Promise<GremiaBrWorkspaceActionRecord[]> {

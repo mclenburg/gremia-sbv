@@ -97,6 +97,8 @@ export interface GremiaBrCachedOverview {
 
 export const GREMIA_BR_OPEN_TASK_STATUSES = ['OPEN', 'IN_PROGRESS', 'BLOCKED', 'WAITING_EXTERNAL', 'QUESTION'] as const;
 export type GremiaBrOwnTaskStatus = (typeof GREMIA_BR_OPEN_TASK_STATUSES)[number];
+export const GREMIA_BR_TASK_STATUSES = [...GREMIA_BR_OPEN_TASK_STATUSES, 'COMPLETED', 'CANCELLED'] as const;
+export type GremiaBrTaskStatus = (typeof GREMIA_BR_TASK_STATUSES)[number];
 
 export interface GremiaBrOwnTask {
   id: string;
@@ -110,10 +112,22 @@ export interface GremiaBrOwnTask {
 export interface GremiaBrOwnTaskDetail {
   id: string;
   title: string;
-  status: GremiaBrOwnTaskStatus | 'COMPLETED' | 'CANCELLED';
+  status: GremiaBrTaskStatus;
+  version: number;
   description?: string;
   dueAt?: string;
   subjectType?: string;
+}
+
+export interface GremiaBrTaskTransitionOptions {
+  from: GremiaBrTaskStatus;
+  allowed: GremiaBrTaskStatus[];
+}
+
+export interface GremiaBrTaskTransitionInput {
+  taskId: string;
+  to: GremiaBrTaskStatus;
+  expectedVersion: number;
 }
 
 export interface GremiaBrOwnAccessApproval {

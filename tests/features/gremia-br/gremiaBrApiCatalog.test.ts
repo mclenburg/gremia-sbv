@@ -20,6 +20,7 @@ describe('Gremia.BR API-Katalog 0.9.2-G', () => {
     const workspaceActions = GREMIA_BR_API_CATALOG.filter((endpoint) => endpoint.category === 'workspace_action');
 
     expect(workspaceActions.map((endpoint) => `${endpoint.method} ${endpoint.template}`)).toEqual([
+      'POST /api/v1/procedures/tasks/{taskId}/transitions',
       'POST /api/v1/documents',
       'POST /api/v1/documents/{documentId}/shares',
       'POST /api/v1/documents/{documentId}/links',
@@ -40,6 +41,7 @@ describe('Gremia.BR API-Katalog 0.9.2-G', () => {
     expect(findGremiaBrEndpointDefinition('GET', '/api/v1/meetings/meeting-1/agenda')?.template).toBe('/api/v1/meetings/{meetingId}/agenda');
     expect(toGremiaBrEndpointLabel('GET', '/protokolle/protokoll-1/beschluesse')).toBe('GET /protokolle/{id}/beschluesse');
     expect(toGremiaBrEndpointLabel('GET', '/api/v1/documents/document-1/versions')).toBe('GET /api/v1/documents/{documentId}/versions');
+    expect(toGremiaBrEndpointLabel('POST', '/api/v1/procedures/tasks/task-1/transitions')).toBe('POST /api/v1/procedures/tasks/{taskId}/transitions');
   });
 
   it('blockiert Schreib-, Verwaltungs- und personenbezogene Massendatenpfade', () => {

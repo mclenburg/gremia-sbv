@@ -2,8 +2,6 @@ import type { CaseRecord } from "../../../domain/models/case.model";
 import type {
   GremiaBrDashboardOverview,
   GremiaBrGeneratedPdfDocument,
-  GremiaBrOwnTaskStatus,
-  GremiaBrOwnTaskDetail,
   GremiaBrPublicSettings,
   GremiaBrProtectionClass,
   GremiaBrWorkspaceActionRecord,
@@ -12,7 +10,7 @@ import { IndustrialButton, ToolbarButton } from "../../shared/components/Industr
 import { SearchableSelectInput, SelectInput, TextareaInput, TextInput } from "../../shared/components/IndustrialForm";
 import { DataTable, EmptyState, WorkbenchSummary } from "../../shared/components/WorkbenchLayout";
 import { IndustrialPanel } from "../../shared/components/WorkbenchPanels";
-import { IndustrialModal } from "../../shared/dialogs/IndustrialDialogs";
+import { GREMIA_BR_TASK_STATUS_LABELS } from './gremiaBrTaskPresentation';
 import type { BrMeetingDraft } from "./gremiaBrWorkspaceModel";
 import {
   caseOptions,
@@ -132,14 +130,6 @@ export function GremiaBrReadContextPanel({
   );
 }
 
-const OWN_TASK_STATUS_LABELS: Record<GremiaBrOwnTaskStatus, string> = {
-  OPEN: 'Offen',
-  IN_PROGRESS: 'In Bearbeitung',
-  BLOCKED: 'Blockiert',
-  WAITING_EXTERNAL: 'Wartet auf Rückmeldung',
-  QUESTION: 'Rückfrage',
-};
-
 export function GremiaBrOpenActionsPanel({ overview, onOpenTask }: { overview: GremiaBrDashboardOverview; onOpenTask: (id: string) => void }) {
   const rows = [
     ...overview.ownTasks.map((task) => ({
@@ -147,7 +137,7 @@ export function GremiaBrOpenActionsPanel({ overview, onOpenTask }: { overview: G
       cells: [
         task.title,
         task.subjectType === 'MEETING' ? 'Sitzung' : task.subjectType === 'AGENDA_ITEM' ? 'Tagesordnungspunkt' : task.subjectType === 'PROCEDURE' ? 'Verfahren' : 'Gremia.BR-Aufgabe',
-        OWN_TASK_STATUS_LABELS[task.status],
+        GREMIA_BR_TASK_STATUS_LABELS[task.status],
         task.dueAt ? `Fällig: ${new Date(task.dueAt).toLocaleString('de-DE')}` : 'Keine Fälligkeit',
         <ToolbarButton key={task.id} onClick={() => onOpenTask(task.id)} aria-label={`Details zu ${task.title}`}>Details</ToolbarButton>,
       ],
@@ -172,38 +162,6 @@ export function GremiaBrOpenActionsPanel({ overview, onOpenTask }: { overview: G
         empty={<EmptyState title="Keine offenen Aktionen" text="Nach dem nächsten Abruf erscheinen hier Ihre eigenen Gremia.BR-Aufgaben und Zugriffsanträge." />}
       />
     </IndustrialPanel>
-  );
-}
-
-const TASK_DETAIL_STATUS_LABELS: Record<GremiaBrOwnTaskDetail['status'], string> = {
-  ...OWN_TASK_STATUS_LABELS,
-  COMPLETED: 'Erledigt',
-  CANCELLED: 'Abgebrochen',
-};
-
-export function GremiaBrTaskDetailDialog({
-  title, detail, busy, error, onClose,
-}: {
-  title: string;
-  detail: GremiaBrOwnTaskDetail | null;
-  busy: boolean;
-  error: string;
-  onClose: () => void;
-}) {
-  return (
-    <IndustrialModal title={detail?.title ?? title} kicker="Gremia.BR-Aufgabe" onClose={onClose} actions={<IndustrialButton variant="secondary" onClick={onClose}>Schließen</IndustrialButton>}>
-      {busy ? <p role="status">Aufgabendetails werden geladen.</p> : null}
-      {error ? <p className="industrial-message industrial-message-warning" role="alert">{error}</p> : null}
-      {detail ? (
-        <>
-          <dl className="industrial-meta-grid">
-            <div><dt>Status</dt><dd>{TASK_DETAIL_STATUS_LABELS[detail.status]}</dd></div>
-            {detail.dueAt ? <div><dt>Fällig</dt><dd>{new Date(detail.dueAt).toLocaleString('de-DE')}</dd></div> : null}
-          </dl>
-          {detail.description ? <p>{detail.description}</p> : null}
-        </>
-      ) : null}
-    </IndustrialModal>
   );
 }
 

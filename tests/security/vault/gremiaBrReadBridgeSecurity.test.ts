@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { checkGremiaBrEndpoint, validateGremiaBrBaseUrl } from '../../../services/gremiaBr/gremiaBrPolicy';
 import { GremiaBrHttpClient, MAX_GREMIA_BR_RESPONSE_BYTES, type GremiaBrFetch } from '../../../services/gremiaBr/gremiaBrHttpClient';
+import type { CreatePersonalDataAuditInput } from '../../../src/domain/models/audit.model';
 
 const audit = { append: () => undefined };
 
@@ -29,6 +30,8 @@ describe('Gremia.BR Lesebrücke Security-Härtung 0.9.2-F', () => {
     expect(checkGremiaBrEndpoint('POST', '/api/v1/documents').allowed).toBe(true);
     expect(checkGremiaBrEndpoint('POST', '/api/v1/documents/document-1/shares').allowed).toBe(true);
     expect(checkGremiaBrEndpoint('POST', '/api/v1/meetings/meeting-1/agenda').allowed).toBe(true);
+    expect(checkGremiaBrEndpoint('GET', '/api/v1/tasks/task-1/transitions').allowed).toBe(true);
+    expect(checkGremiaBrEndpoint('POST', '/api/v1/procedures/tasks/task-1/transitions').allowed).toBe(true);
 
     for (const [method, path] of [
       ['GET', '/admin/health'],
@@ -58,6 +61,21 @@ describe('Gremia.BR Lesebrücke Security-Härtung 0.9.2-F', () => {
 
     await expect(client.request('GET', '/admin/health')).rejects.toThrow(/gesperrt|nicht freigegeben/i);
     expect(networkCalls).toBe(0);
+  });
+
+  it('auditiert eine Aufgabenstatusänderung ohne die Aufgaben-ID', async () => {
+    const entries: CreatePersonalDataAuditInput[] = [];
+    const client = new GremiaBrHttpClient('https://br.example.local', async () => new Response('{}', {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    }), { append: (entry) => entries.push(entry) });
+
+    await client.request('POST', '/api/v1/procedures/tasks/task-1/transitions', 'token', {
+      body: { to: 'IN_PROGRESS', expectedVersion: 3 },
+    });
+
+    expect(entries.map((entry) => entry.action)).toEqual(['update', 'update']);
+    expect(JSON.stringify(entries)).not.toContain('task-1');
   });
 
   it('normalisiert Serveradressen ohne Credentials und akzeptiert HTTP nur für lokale Testserver', () => {

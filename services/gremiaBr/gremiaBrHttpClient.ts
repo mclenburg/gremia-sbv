@@ -32,7 +32,7 @@ function endpointAuditAction(method: string, path: string): 'read' | 'export' | 
   const definition = findGremiaBrEndpointDefinition(method, maskPath(path));
   if (definition?.category !== 'workspace_action') return 'read';
   if (definition.template.includes('/revocation')) return 'delete';
-  if (definition.template.includes('/agenda') || definition.template.includes('/information-requests')) return 'update';
+  if (definition.template.includes('/agenda') || definition.template.includes('/information-requests') || definition.template.includes('/tasks/')) return 'update';
   return 'export';
 }
 

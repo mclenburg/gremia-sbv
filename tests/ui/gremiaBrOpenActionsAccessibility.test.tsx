@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { GremiaBrOpenActionsPanel, GremiaBrReadContextPanel, GremiaBrTaskDetailDialog } from '../../src/app/features/gremia-br/GremiaBrWorkspacePanels';
+import { GremiaBrOpenActionsPanel, GremiaBrReadContextPanel } from '../../src/app/features/gremia-br/GremiaBrWorkspacePanels';
+import { GremiaBrTaskDetailDialog } from '../../src/app/features/gremia-br/GremiaBrTaskDetailDialog';
 import { EMPTY_GREMIA_BR_DASHBOARD } from '../../src/app/features/gremia-br/gremiaBrWorkspaceModel';
 
 describe('Gremia.BR Offene Aktionen', () => {
@@ -26,9 +27,18 @@ describe('Gremia.BR Offene Aktionen', () => {
   it('zeigt Details nur im zugänglichen Dialog und ohne technische Kennungen', () => {
     const html = renderToStaticMarkup(<GremiaBrTaskDetailDialog
       title="Stellungnahme prüfen"
-      detail={{ id: 'task-1', title: 'Stellungnahme prüfen', status: 'OPEN', description: 'Vertraulicher Aufgabentext' }}
+      detail={{ id: 'task-1', title: 'Stellungnahme prüfen', status: 'OPEN', version: 3, description: 'Vertraulicher Aufgabentext' }}
       busy={false}
       error=""
+      transitionOptions={null}
+      selectedTransition=""
+      optionsBusy={false}
+      transitionBusy={false}
+      status=""
+      onLoadTransitions={() => undefined}
+      onSelectTransition={() => undefined}
+      onSubmitTransition={() => undefined}
+      onReloadDetail={() => undefined}
       onClose={() => undefined}
     />);
 
@@ -36,7 +46,54 @@ describe('Gremia.BR Offene Aktionen', () => {
     expect(html).toContain('aria-modal="true"');
     expect(html).toContain('Vertraulicher Aufgabentext');
     expect(html).toContain('Schließen');
+    expect(html).toContain('Statusänderungen abrufen');
     expect(html).not.toContain('task-1');
+  });
+
+  it('bietet nur die vom Server gelieferten Statusoptionen in einer zugänglichen Suche an', () => {
+    const html = renderToStaticMarkup(<GremiaBrTaskDetailDialog
+      title="Prüfung"
+      detail={{ id: 'task-1', title: 'Prüfung', status: 'OPEN', version: 3 }}
+      busy={false}
+      error=""
+      transitionOptions={{ from: 'OPEN', allowed: ['IN_PROGRESS', 'BLOCKED'] }}
+      selectedTransition=""
+      optionsBusy={false}
+      transitionBusy={false}
+      status=""
+      onLoadTransitions={() => undefined}
+      onSelectTransition={() => undefined}
+      onSubmitTransition={() => undefined}
+      onReloadDetail={() => undefined}
+      onClose={() => undefined}
+    />);
+
+    expect(html).toContain('Neuer Status');
+    expect(html).toContain('In Bearbeitung');
+    expect(html).toContain('Blockiert');
+    expect(html).toContain('Status wählen');
+    expect(html).not.toContain('Erledigt');
+  });
+
+  it('benennt die schreibende Aktion mit dem ausgewählten Zielstatus', () => {
+    const html = renderToStaticMarkup(<GremiaBrTaskDetailDialog
+      title="Prüfung"
+      detail={{ id: 'task-1', title: 'Prüfung', status: 'OPEN', version: 3 }}
+      busy={false}
+      error=""
+      transitionOptions={{ from: 'OPEN', allowed: ['IN_PROGRESS'] }}
+      selectedTransition="IN_PROGRESS"
+      optionsBusy={false}
+      transitionBusy={false}
+      status=""
+      onLoadTransitions={() => undefined}
+      onSelectTransition={() => undefined}
+      onSubmitTransition={() => undefined}
+      onReloadDetail={() => undefined}
+      onClose={() => undefined}
+    />);
+
+    expect(html).toContain('Status zu In Bearbeitung ändern');
   });
 
   it('zeigt den letzten manuellen Abruf und eine eindeutige Aktualisierungsaktion', () => {

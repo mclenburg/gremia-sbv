@@ -9,7 +9,6 @@ import {
   GremiaBrDocumentTransferPanel,
   GremiaBrMeetingImportPanel,
   GremiaBrOpenActionsPanel,
-  GremiaBrTaskDetailDialog,
   GremiaBrReadContextPanel,
   GremiaBrSummary,
   GremiaBrWorkspaceFeedback,
@@ -17,11 +16,13 @@ import {
   GremiaBrWorkspaceActionHistory,
   isGremiaBrActionDisabled,
 } from "./GremiaBrWorkspacePanels";
+import { GremiaBrTaskDetailDialog } from './GremiaBrTaskDetailDialog';
 import { useGremiaBrWorkspace } from "./useGremiaBrWorkspace";
 
 export function GremiaBrWorkspaceView() {
   const announce = useAnnouncer();
   const workspace = useGremiaBrWorkspace(announce);
+  const selectedTaskId = workspace.selectedTaskId;
   const actionDisabled = isGremiaBrActionDisabled(workspace.settings);
 
   if (!workspace.settings.enabled) {
@@ -40,12 +41,21 @@ export function GremiaBrWorkspaceView() {
         lastFetchedAt={workspace.overview.lastFetchedAt}
       />
       <GremiaBrOpenActionsPanel overview={workspace.overview} onOpenTask={(id) => void workspace.openTaskDetail(id)} />
-      {workspace.selectedTaskId ? (
+      {selectedTaskId ? (
         <GremiaBrTaskDetailDialog
-          title={workspace.overview.ownTasks.find((task) => task.id === workspace.selectedTaskId)?.title ?? 'Aufgabendetails'}
+          title={workspace.overview.ownTasks.find((task) => task.id === selectedTaskId)?.title ?? 'Aufgabendetails'}
           detail={workspace.taskDetail}
           busy={workspace.taskDetailBusy}
           error={workspace.taskDetailError}
+          status={workspace.taskDetailStatus}
+          transitionOptions={workspace.transitionOptions}
+          selectedTransition={workspace.selectedTransition}
+          optionsBusy={workspace.optionsBusy}
+          transitionBusy={workspace.transitionBusy}
+          onLoadTransitions={() => void workspace.loadTransitions()}
+          onSelectTransition={workspace.setSelectedTransition}
+          onSubmitTransition={() => void workspace.submitTransition()}
+          onReloadDetail={() => void workspace.openTaskDetail(selectedTaskId)}
           onClose={workspace.closeTaskDetail}
         />
       ) : null}

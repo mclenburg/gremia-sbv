@@ -83,7 +83,7 @@ describe('Gremia.BR HTTP-ReadAdapter 0.9.2-B', () => {
     const { fetch, calls } = createFetch({
       'POST /api/v1/auth/login': { access_token: 'token' },
       'GET /api/v1/tasks/task-1': {
-        id: 'task-1', title: 'Stellungnahme prüfen', status: 'OPEN',
+        id: 'task-1', title: 'Stellungnahme prüfen', status: 'OPEN', version: 3,
         description: 'Vertraulicher Aufgabentext', subjectType: 'PROCEDURE',
         securityDomain: 'SBV', assignments: [{ reference: 'person-1' }],
       },
@@ -94,7 +94,7 @@ describe('Gremia.BR HTTP-ReadAdapter 0.9.2-B', () => {
 
     expect(calls).toHaveLength(0);
     expect(await adapter.getOwnTaskDetail('task-1')).toEqual({
-      id: 'task-1', title: 'Stellungnahme prüfen', status: 'OPEN',
+      id: 'task-1', title: 'Stellungnahme prüfen', status: 'OPEN', version: 3,
       description: 'Vertraulicher Aufgabentext', subjectType: 'PROCEDURE',
     });
     expect(calls.some((call) => new URL(call.url).pathname === '/api/v1/tasks/task-1')).toBe(true);

@@ -3,6 +3,7 @@ import { registerGremiaBrIpc } from "../../../electron/ipc/gremiaBrIpc";
 import { IPC_CHANNELS } from "../../../electron/ipc/channels";
 import { ApplicationError } from "../../../src/domain/models/application-error.model";
 import { GremiaBrCacheService } from "../../../services/gremiaBr/gremiaBrCacheService";
+import { GremiaBrHttpError } from '../../../services/gremiaBr/gremiaBrHttpClient';
 
 type RegisteredHandler = (event: object, ...args: unknown[]) => Promise<unknown>;
 
@@ -58,7 +59,7 @@ describe("Gremia.BR IPC-Startup-Grenze", () => {
     const services = createLockedStartupServices();
     services.gremiaBrAuth.getReadContext.mockReturnValue({ apiMode: 'gremia_br_v2', selectedBodyId: 'sbv' });
     services.gremiaBrAuth.get.mockImplementation(async (path: string) => {
-      if (path === '/api/v1/tasks/task-1') return { id: 'task-1', title: 'Prüfung', status: 'OPEN', description: 'Details' };
+      if (path === '/api/v1/tasks/task-1') return { id: 'task-1', title: 'Prüfung', status: 'OPEN', version: 3, description: 'Details' };
       throw new Error(`Unerwarteter Pfad: ${path}`);
     });
     services.gremiaBrCache.getOverview.mockReturnValue({ ownTasks: [{ id: 'task-1' }] });
@@ -71,6 +72,31 @@ describe("Gremia.BR IPC-Startup-Grenze", () => {
     expect(services.gremiaBrAuth.get).not.toHaveBeenCalled();
     expect(await detail(event, 'task-1')).toMatchObject({ title: 'Prüfung', description: 'Details' });
     expect(services.gremiaBrAuth.get).toHaveBeenCalledTimes(1);
+  });
+
+  it('liest und ändert Aufgabenstatus nur nach eigenen IPC-Aktionen für den aktuellen Arbeitsstand', async () => {
+    const { ipcMain, handlers } = createIpcRecorder();
+    const services = createLockedStartupServices();
+    services.gremiaBrCache.getOverview.mockReturnValue({ ownTasks: [{ id: 'task-1' }] });
+    services.gremiaBrAuth.get.mockResolvedValue({ from: 'OPEN', allowed: ['IN_PROGRESS'] });
+    services.gremiaBrAuth.post.mockResolvedValue({ id: 'task-1', title: 'Prüfung', status: 'IN_PROGRESS', version: 4 });
+    registerGremiaBrIpc(ipcMain as never, {} as never, services as never);
+    const event = { senderFrame: { url: 'file:///app/index.html' } };
+    const options = handlers.get(IPC_CHANNELS.gremiaBrOwnTaskTransitionsGet)!;
+    const transition = handlers.get(IPC_CHANNELS.gremiaBrOwnTaskTransitionPost)!;
+
+    expect(services.gremiaBrAuth.get).not.toHaveBeenCalled();
+    await expect(options(event, 'task-2')).rejects.toThrow();
+    expect(services.gremiaBrAuth.get).not.toHaveBeenCalled();
+    expect(await options(event, 'task-1')).toEqual({ from: 'OPEN', allowed: ['IN_PROGRESS'] });
+    await expect(transition(event, { taskId: 'task-2', to: 'IN_PROGRESS', expectedVersion: 3 })).rejects.toThrow();
+    expect(services.gremiaBrAuth.post).not.toHaveBeenCalled();
+    expect(await transition(event, { taskId: 'task-1', to: 'IN_PROGRESS', expectedVersion: 3 }))
+      .toMatchObject({ status: 'IN_PROGRESS', version: 4 });
+    expect(services.gremiaBrAuth.post).toHaveBeenCalledTimes(1);
+    services.gremiaBrAuth.post.mockRejectedValueOnce(new GremiaBrHttpError('Konflikt', 409, 'POST /api/v1/procedures/tasks/{taskId}/transitions'));
+    await expect(transition(event, { taskId: 'task-1', to: 'IN_PROGRESS', expectedVersion: 3 }))
+      .rejects.toThrow('zwischenzeitlich geändert');
   });
 
   it("ruft bei jedem bewussten Gesamt-Refresh einen neuen V2-Stand ab", async () => {
