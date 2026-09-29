@@ -22,6 +22,15 @@ export function registerGremiaBrReferenceIpc(ipcMain: IpcMain, services: Applica
     return new GremiaBrProcedureService(auth).getDetail(id, remoteCase.id);
   });
 
+  registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrInformationRequestsList, async (_event, rawCaseId: unknown, rawProcedureId: unknown) => {
+    const caseId = assertString(rawCaseId, 'gremia-br:procedure:information-requests:list', 'Fallakten-ID', { minLength: 1, maxLength: 120 });
+    const { id } = accessibleProcedure(rawProcedureId, 'gremia-br:procedure:information-requests:list');
+    if (!references.listForCase(caseId).some((link) => link.sourceType === 'verfahren' && link.sourceId === id)) {
+      throw new ApplicationError('NOT_FOUND', 'Dieses Verfahren ist nicht mit der ausgewählten Fallakte verknüpft.');
+    }
+    return new GremiaBrProcedureService(auth).listInformationRequests(id);
+  });
+
   registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrInlineSuggest, async (_event, query: unknown) => {
     return references.suggestBrDecisions(new GremiaBrHttpReadAdapter(auth), assertString(query, 'gremia-br:inline-suggest', 'Suchbegriff', { minLength: 1, maxLength: 120 }));
   });

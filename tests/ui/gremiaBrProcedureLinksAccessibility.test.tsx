@@ -16,12 +16,15 @@ describe('Gremia.BR-Verfahrensverknüpfung', () => {
       procedureId="procedure-1"
       detail={null}
       links={[]}
+      informationRequests={[]}
+      informationRequestsProcedureId=""
       busy={false}
       disabled={false}
       onLocalCaseChange={noop}
       onRemoteCaseChange={noop}
       onProcedureChange={noop}
       onLoadDetail={noop}
+      onLoadInformationRequests={noop}
       onLink={noop}
       onUnlink={noop}
     />);
@@ -49,12 +52,15 @@ describe('Gremia.BR-Verfahrensverknüpfung', () => {
       procedureId="procedure-1"
       detail={{ id: 'procedure-1', masterCaseId: 'remote-1', procedureType: 'SBV_PARTICIPATION', state: 'UNDER_REVIEW', workflow: 'STANDARD', openedAt: '2026-09-20T10:00:00.000Z', version: 2 }}
       links={[link]}
+      informationRequests={[{ id: 'request-1', procedureId: 'procedure-1', status: 'OPEN', requestedAt: '2026-09-29T10:00:00.000Z', responseDueAt: '2026-10-05T10:00:00.000Z', version: 1 }]}
+      informationRequestsProcedureId="procedure-1"
       busy={false}
       disabled={false}
       onLocalCaseChange={noop}
       onRemoteCaseChange={noop}
       onProcedureChange={noop}
       onLoadDetail={noop}
+      onLoadInformationRequests={noop}
       onLink={noop}
       onUnlink={noop}
     />);
@@ -63,5 +69,8 @@ describe('Gremia.BR-Verfahrensverknüpfung', () => {
     expect(html).toContain('In Prüfung');
     expect(html).toContain('Verknüpfung zu BR-2026-17 · Arbeitsplatzgestaltung aufheben');
     expect(html).toContain('Bereits verknüpft');
+    expect(html).toContain('Informationsanforderungen laden');
+    expect(html).toContain('Antwort fällig');
+    expect(html).toContain('Offen');
   });
 });

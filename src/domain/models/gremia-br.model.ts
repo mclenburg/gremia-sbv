@@ -114,6 +114,15 @@ export interface GremiaBrProcedureDetail {
   version: number;
 }
 
+export interface GremiaBrInformationRequest {
+  id: string;
+  procedureId: string;
+  status: 'OPEN' | 'PARTIALLY_FULFILLED' | 'FULFILLED' | 'WITHDRAWN';
+  requestedAt: string;
+  responseDueAt?: string;
+  version: number;
+}
+
 export const GREMIA_BR_OPEN_TASK_STATUSES = ['OPEN', 'IN_PROGRESS', 'BLOCKED', 'WAITING_EXTERNAL', 'QUESTION'] as const;
 export type GremiaBrOwnTaskStatus = (typeof GREMIA_BR_OPEN_TASK_STATUSES)[number];
 export const GREMIA_BR_TASK_STATUSES = [...GREMIA_BR_OPEN_TASK_STATUSES, 'COMPLETED', 'CANCELLED'] as const;

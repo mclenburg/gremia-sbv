@@ -5,6 +5,7 @@ import type {
   GremiaBrOwnTaskDetail,
   GremiaBrProcedureDetail,
   GremiaBrExternalReferenceRecord,
+  GremiaBrInformationRequest,
   GremiaBrTaskTransitionInput,
   GremiaBrTaskTransitionOptions,
   GremiaBrPublicSettings,
@@ -66,6 +67,12 @@ export async function loadProcedureDetail(id: string): Promise<GremiaBrProcedure
   const bridge = await waitForBridge();
   if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
   return bridge.gremiaBr.getProcedureDetail(id);
+}
+
+export async function loadInformationRequests(caseId: string, procedureId: string): Promise<GremiaBrInformationRequest[]> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.listInformationRequests(caseId, procedureId);
 }
 
 export async function loadProcedureLinks(caseId: string): Promise<GremiaBrExternalReferenceRecord[]> {

@@ -1,5 +1,5 @@
 import type { CaseRecord } from '../../../domain/models/case.model';
-import type { GremiaBrDashboardOverview, GremiaBrExternalReferenceRecord, GremiaBrProcedureDetail } from '../../../domain/models/gremia-br.model';
+import type { GremiaBrDashboardOverview, GremiaBrExternalReferenceRecord, GremiaBrInformationRequest, GremiaBrProcedureDetail } from '../../../domain/models/gremia-br.model';
 import { IndustrialButton, ToolbarButton } from '../../shared/components/IndustrialButton';
 import { SearchableSelectInput, SelectInput } from '../../shared/components/IndustrialForm';
 import { DataTable, EmptyState } from '../../shared/components/WorkbenchLayout';
@@ -12,6 +12,9 @@ const STATE_LABELS: Record<string, string> = {
   DECIDED: 'Entschieden', COMMUNICATION_PENDING: 'Mitteilung ausstehend', COMMUNICATED: 'Mitgeteilt',
   COMPLETED: 'Abgeschlossen', CANCELLED: 'Abgebrochen',
 };
+const REQUEST_STATUS_LABELS: Record<GremiaBrInformationRequest['status'], string> = {
+  OPEN: 'Offen', PARTIALLY_FULFILLED: 'Teilweise erfüllt', FULFILLED: 'Erfüllt', WITHDRAWN: 'Zurückgezogen',
+};
 
 function procedureTypeLabel(value: string): string {
   if (value === 'SBV_PARTICIPATION') return 'SBV-Beteiligung';
@@ -19,8 +22,8 @@ function procedureTypeLabel(value: string): string {
 }
 
 export function GremiaBrProcedureLinksPanel({
-  cases, overview, localCaseId, remoteCaseId, procedureId, detail, links, busy, disabled,
-  onLocalCaseChange, onRemoteCaseChange, onProcedureChange, onLoadDetail, onLink, onUnlink,
+  cases, overview, localCaseId, remoteCaseId, procedureId, detail, links, informationRequests, informationRequestsProcedureId, busy, disabled,
+  onLocalCaseChange, onRemoteCaseChange, onProcedureChange, onLoadDetail, onLoadInformationRequests, onLink, onUnlink,
 }: {
   cases: CaseRecord[];
   overview: GremiaBrDashboardOverview;
@@ -29,12 +32,15 @@ export function GremiaBrProcedureLinksPanel({
   procedureId: string;
   detail: GremiaBrProcedureDetail | null;
   links: GremiaBrExternalReferenceRecord[];
+  informationRequests: GremiaBrInformationRequest[];
+  informationRequestsProcedureId: string;
   busy: boolean;
   disabled: boolean;
   onLocalCaseChange: (id: string) => void;
   onRemoteCaseChange: (id: string) => void;
   onProcedureChange: (id: string) => void;
   onLoadDetail: () => void;
+  onLoadInformationRequests: () => void;
   onLink: () => void;
   onUnlink: (id: string) => void;
 }) {
@@ -87,6 +93,27 @@ export function GremiaBrProcedureLinksPanel({
             </IndustrialButton>
           </div>
         </>
+      ) : null}
+      {validDetail && alreadyLinked ? (
+        <div className="industrial-action-row">
+          <ToolbarButton disabled={!canInteract} onClick={onLoadInformationRequests}>Informationsanforderungen laden</ToolbarButton>
+        </div>
+      ) : null}
+      {alreadyLinked && informationRequestsProcedureId === procedureId ? (
+        <DataTable
+          ariaLabel="Informationsanforderungen des verknüpften Verfahrens"
+          headers={['Anforderung', 'Status', 'Angefordert', 'Antwort fällig']}
+          rows={informationRequests.map((request, index) => ({
+            id: request.id,
+            cells: [
+              `Informationsanforderung ${index + 1}`,
+              REQUEST_STATUS_LABELS[request.status],
+              new Date(request.requestedAt).toLocaleDateString('de-DE'),
+              request.responseDueAt ? new Date(request.responseDueAt).toLocaleDateString('de-DE') : 'Keine Frist',
+            ],
+          }))}
+          empty={<EmptyState title="Keine Informationsanforderungen" text="Für dieses Verfahren sind derzeit keine Anforderungen vorhanden." />}
+        />
       ) : null}
       {localCaseId ? (
         <DataTable

@@ -1,4 +1,4 @@
-import type { GremiaBrProcedureDetail } from '../../src/domain/models/gremia-br.model.js';
+import type { GremiaBrInformationRequest, GremiaBrProcedureDetail } from '../../src/domain/models/gremia-br.model.js';
 import { gremiaBrRecord } from './gremiaBrPayload.js';
 import { GremiaBrAuthService } from './gremiaBrAuthService.js';
 
@@ -22,5 +22,26 @@ export class GremiaBrProcedureService {
       openedAt: item.openedAt,
       version: item.version,
     };
+  }
+
+  async listInformationRequests(procedureId: string): Promise<GremiaBrInformationRequest[]> {
+    const response = await this.auth.get<unknown>(`/api/v1/procedures/${encodeURIComponent(procedureId)}/information-requests`);
+    if (!Array.isArray(response)) throw new Error('Gremia.BR hat keine gültige Liste der Informationsanforderungen geliefert.');
+    return response.map((value) => {
+      const item = gremiaBrRecord(value);
+      if (!item || typeof item.id !== 'string' || item.procedureId !== procedureId
+        || !['OPEN', 'PARTIALLY_FULFILLED', 'FULFILLED', 'WITHDRAWN'].includes(String(item.status))
+        || typeof item.requestedAt !== 'string' || typeof item.version !== 'number' || !Number.isInteger(item.version)) {
+        throw new Error('Gremia.BR hat eine widersprüchliche Informationsanforderung geliefert. Bitte erneut bewusst abrufen.');
+      }
+      return {
+        id: item.id,
+        procedureId,
+        status: item.status as GremiaBrInformationRequest['status'],
+        requestedAt: item.requestedAt,
+        ...(typeof item.responseDueAt === 'string' ? { responseDueAt: item.responseDueAt } : {}),
+        version: item.version,
+      };
+    });
   }
 }
