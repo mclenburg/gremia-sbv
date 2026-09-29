@@ -58,6 +58,7 @@ export interface GremiaBrPolicyCheckResult {
 
 
 export type GremiaBrCacheSourceType =
+  | 'own_tasks'
   | 'next_meeting'
   | 'current_meeting'
   | 'upcoming_meetings'
@@ -77,6 +78,7 @@ export interface GremiaBrCacheEntry {
 }
 
 export interface GremiaBrCachedOverview {
+  ownTasks: GremiaBrOwnTask[];
   nextMeeting?: unknown;
   currentMeeting?: unknown;
   upcomingMeetings: unknown[];
@@ -89,6 +91,15 @@ export interface GremiaBrCachedOverview {
   extendedDecisionStatistics?: unknown;
   lastFetchedAt?: string;
   cacheAgeLabel?: string;
+}
+
+export interface GremiaBrOwnTask {
+  id: string;
+  title: string;
+  status: string;
+  dueAt?: string;
+  subjectType?: string;
+  subjectId?: string;
 }
 
 export interface GremiaBrCacheRefreshResult extends GremiaBrConnectionTestResult {

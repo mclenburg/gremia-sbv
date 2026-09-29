@@ -1,6 +1,7 @@
 import type { GremiaBrReadAdapter } from './gremiaBrTypes.js';
 
 export class NoopGremiaBrReadAdapter implements GremiaBrReadAdapter {
+  async listOwnTasks() { return []; }
   async listWorksAgreements(): Promise<unknown[]> { return []; }
   async listRelevantMeetings(): Promise<unknown[]> { return []; }
   async getReferenceById(_id: string): Promise<unknown | null> { return null; }

@@ -28,6 +28,7 @@ function overview(): GremiaBrDashboardOverview {
     plannedStart: "2026-10-01T09:00:00.000Z",
   };
   return {
+    ownTasks: [{ id: 'task-1', title: 'Stellungnahme prüfen', status: 'OPEN' }],
     upcomingMeetings: [
       relevantMeeting,
       { id: "meeting-2", title: "Regelsitzung", plannedStart: "2026-10-08T09:00:00.000Z" },
@@ -52,8 +53,8 @@ describe("Gremia.BR-Arbeitsbereich View-Model", () => {
     const summary = resolveGremiaBrWorkspaceSummary(SETTINGS, overview());
 
     expect(summary).toEqual([
-      { label: "API-Modus", value: "2.0" },
-      { label: "Sitzungen im Cache", value: "2" },
+      { label: "Eigene offene Aufgaben", value: "1" },
+      { label: "Sitzungen", value: "2" },
       { label: "SBV-Treffer", value: "1", tone: "warning" },
       { label: "Beschlüsse", value: "1" },
     ]);

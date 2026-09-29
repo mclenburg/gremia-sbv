@@ -111,18 +111,47 @@ export function GremiaBrConfigurationCard({ settings }: { settings: GremiaBrPubl
 export function GremiaBrReadContextPanel({
   busy,
   onRefresh,
+  lastFetchedAt,
 }: {
   busy: boolean;
   onRefresh: () => void;
+  lastFetchedAt?: string;
 }) {
   return (
     <IndustrialPanel
       kicker="Lesekontext"
-      title="BR-/Gremienkontext abrufen"
-      description="Sitzungen, Tagesordnungen und Beschlüsse werden nur auf ausdrückliche Aktion geladen und lokal als Lesekontext genutzt."
-      actions={<ToolbarButton loading={busy} onClick={onRefresh}>{busy ? "Abruf läuft …" : "Lesekontext abrufen"}</ToolbarButton>}
+      title="Gremia.BR-Arbeitsstand"
+      actions={<ToolbarButton loading={busy} onClick={onRefresh}>{busy ? "Aktualisierung läuft …" : "Gremia.BR aktualisieren"}</ToolbarButton>}
     >
-      <p className="industrial-meta">Keine automatische Synchronisation, keine Fallübertragung.</p>
+      <p className="industrial-meta">Letzter erfolgreicher Abruf: {lastFetchedAt ? <time dateTime={lastFetchedAt}>{new Date(lastFetchedAt).toLocaleString('de-DE')}</time> : 'noch keiner'}</p>
+    </IndustrialPanel>
+  );
+}
+
+const OWN_TASK_STATUS_LABELS: Record<string, string> = {
+  OPEN: 'Offen',
+  IN_PROGRESS: 'In Bearbeitung',
+  BLOCKED: 'Blockiert',
+  WAITING_EXTERNAL: 'Wartet auf Rückmeldung',
+  QUESTION: 'Rückfrage',
+};
+
+export function GremiaBrOpenActionsPanel({ overview }: { overview: GremiaBrDashboardOverview }) {
+  return (
+    <IndustrialPanel kicker="Persönlicher Arbeitsvorrat" title="Offene Aktionen">
+      <DataTable
+        ariaLabel="Eigene offene Gremia.BR-Aufgaben"
+        headers={['Aufgabe', 'Status', 'Fällig']}
+        rows={overview.ownTasks.map((task) => ({
+          id: task.id,
+          cells: [
+            task.title,
+            OWN_TASK_STATUS_LABELS[task.status] ?? task.status,
+            task.dueAt ? new Date(task.dueAt).toLocaleString('de-DE') : 'Keine Fälligkeit',
+          ],
+        }))}
+        empty={<EmptyState title="Keine offenen Aufgaben" text="Nach dem nächsten Abruf erscheinen hier Ihre eigenen Gremia.BR-Aufgaben." />}
+      />
     </IndustrialPanel>
   );
 }
@@ -275,20 +304,20 @@ export function GremiaBrMeetingImportPanel({
 export function GremiaBrCacheTables({ overview }: { overview: GremiaBrDashboardOverview }) {
   return (
     <div className="industrial-grid-two">
-      <IndustrialPanel kicker="Gelesene Sitzungen" title="Sitzungen im lokalen Cache">
+      <IndustrialPanel kicker="Gelesene Sitzungen" title="Sitzungen">
         <DataTable
-          ariaLabel="Gremia.BR-Sitzungen im lokalen Cache"
+          ariaLabel="Gremia.BR-Sitzungen im Arbeitsstand"
           headers={["Sitzung", "Termin", "Einordnung"]}
           rows={resolveGremiaBrMeetingRows(overview)}
           empty={<EmptyState title="Kein Lesekontext" text="Noch keine Sitzungen aus Gremia.BR abgerufen." />}
         />
       </IndustrialPanel>
-      <IndustrialPanel kicker="Gelesene Beschlüsse" title="Beschlüsse im lokalen Cache">
+      <IndustrialPanel kicker="Gelesene Beschlüsse" title="Beschlüsse">
         <DataTable
-          ariaLabel="Gremia.BR-Beschlüsse im lokalen Cache"
+          ariaLabel="Gremia.BR-Beschlüsse im Arbeitsstand"
           headers={["Beschluss", "Datum", "Status"]}
           rows={resolveGremiaBrDecisionRows(overview)}
-          empty={<EmptyState title="Keine Beschlüsse" text="Noch keine Beschlüsse aus Gremia.BR im lokalen Cache." />}
+          empty={<EmptyState title="Keine Beschlüsse" text="Noch keine Beschlüsse aus Gremia.BR abgerufen." />}
         />
       </IndustrialPanel>
     </div>

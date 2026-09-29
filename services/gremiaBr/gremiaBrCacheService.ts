@@ -5,11 +5,13 @@ import type {
   GremiaBrCacheRefreshResult,
   GremiaBrCacheSourceType,
   GremiaBrRelevanceSettings,
+  GremiaBrOwnTask,
 } from '../../src/domain/models/gremia-br.model.js';
 import type { GremiaBrReadAdapter } from './gremiaBrTypes.js';
 import { filterRelevantGremiaBrMeetings, getGremiaBrItemId } from './gremiaBrRelevanceService.js';
 
 const CACHE_KEYS: readonly GremiaBrCacheSourceType[] = [
+  'own_tasks',
   'next_meeting',
   'current_meeting',
   'upcoming_meetings',
@@ -74,6 +76,7 @@ export class GremiaBrCacheService {
   }
 
   getOverview(): GremiaBrCachedOverview {
+    const ownTasks = this.readEntry('own_tasks');
     const nextMeeting = this.readEntry('next_meeting');
     const currentMeeting = this.readEntry('current_meeting');
     const upcomingMeetings = this.readEntry('upcoming_meetings');
@@ -85,10 +88,11 @@ export class GremiaBrCacheService {
     const decisionStatistics = this.readEntry('decision_statistics');
     const extendedDecisionStatistics = this.readEntry('extended_decision_statistics');
     const lastFetchedAt = latestTimestamp([
-      nextMeeting, currentMeeting, upcomingMeetings, meetingAgendas, pendingFollowUps, decisions, dueDecisions, overdueDecisions, decisionStatistics, extendedDecisionStatistics,
+      ownTasks, nextMeeting, currentMeeting, upcomingMeetings, meetingAgendas, pendingFollowUps, decisions, dueDecisions, overdueDecisions, decisionStatistics, extendedDecisionStatistics,
     ]);
 
     return {
+      ownTasks: asArray(ownTasks?.payload) as GremiaBrOwnTask[],
       nextMeeting: nextMeeting?.payload,
       currentMeeting: currentMeeting?.payload,
       upcomingMeetings: asArray(upcomingMeetings?.payload),
@@ -122,6 +126,7 @@ export class GremiaBrCacheService {
 
   async refresh(adapter: GremiaBrReadAdapter): Promise<GremiaBrCacheRefreshResult> {
     const checkedAt = nowIso();
+    const ownTasks = await adapter.listOwnTasks();
     const nextMeeting = await adapter.getNextMeeting();
     const currentMeeting = await adapter.getCurrentMeeting();
     const upcomingMeetings = await adapter.getUpcomingMeetings();
@@ -141,6 +146,7 @@ export class GremiaBrCacheService {
     const extendedDecisionStatistics = await adapter.getExtendedDecisionStatistics();
 
     const writes: Array<[GremiaBrCacheSourceType, unknown]> = [
+      ['own_tasks', ownTasks],
       ['next_meeting', nextMeeting],
       ['current_meeting', currentMeeting],
       ['upcoming_meetings', upcomingMeetings],

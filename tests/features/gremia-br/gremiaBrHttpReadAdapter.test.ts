@@ -79,6 +79,62 @@ function configuredV2Settings(): GremiaBrServiceSettings {
 }
 
 describe('Gremia.BR HTTP-ReadAdapter 0.9.2-B', () => {
+  it('liest nur eigene offene V2-Aufgaben und übernimmt keine Beschreibungen in den Arbeitsstand', async () => {
+    const { fetch, calls } = createFetch({
+      'POST /api/v1/auth/login': { access_token: 'token' },
+      'GET /api/v1/tasks': {
+        items: [{
+          id: '11111111-1111-4111-8111-111111111111',
+          title: 'Stellungnahme prüfen',
+          description: 'Vertraulicher Volltext',
+          status: 'OPEN',
+          dueAt: '2026-10-01T10:00:00.000Z',
+          subjectType: 'PROCEDURE',
+          subjectId: '22222222-2222-4222-8222-222222222222',
+          assignments: [{ kind: 'PERSON', reference: 'person-1', role: 'RESPONSIBLE' }],
+        }],
+        total: 1,
+      },
+    });
+    const adapter = new GremiaBrHttpReadAdapter(new GremiaBrAuthService(
+      new MemoryGremiaBrSettings(configuredV2Settings()), fetch, auditFactory,
+    ));
+
+    const tasks = await adapter.listOwnTasks();
+
+    expect(tasks).toEqual([{
+      id: '11111111-1111-4111-8111-111111111111',
+      title: 'Stellungnahme prüfen',
+      status: 'OPEN',
+      dueAt: '2026-10-01T10:00:00.000Z',
+      subjectType: 'PROCEDURE',
+      subjectId: '22222222-2222-4222-8222-222222222222',
+    }]);
+    const taskCall = calls.find((call) => new URL(call.url).pathname === '/api/v1/tasks');
+    expect(taskCall).toBeDefined();
+    expect(new URL(taskCall!.url).searchParams.get('mine')).toBe('true');
+    expect(new URL(taskCall!.url).searchParams.getAll('status')).toEqual(['OPEN', 'IN_PROGRESS', 'BLOCKED', 'WAITING_EXTERNAL', 'QUESTION']);
+    expect(JSON.stringify(tasks)).not.toContain('Vertraulicher Volltext');
+  });
+
+  it('liest weitere Aufgabenseiten auch dann vollständig, wenn der Server eine kleinere Seite liefert', async () => {
+    const offsets: string[] = [];
+    const fetch: GremiaBrFetch = async (url) => {
+      const parsed = new URL(url);
+      if (parsed.pathname === '/api/v1/auth/login') return jsonResponse({ access_token: 'token' });
+      const offset = parsed.searchParams.get('offset') ?? '0';
+      offsets.push(offset);
+      const id = offset === '0' ? 'task-1' : 'task-2';
+      return jsonResponse({ items: [{ id, title: id, status: 'OPEN' }], total: 2 });
+    };
+    const adapter = new GremiaBrHttpReadAdapter(new GremiaBrAuthService(
+      new MemoryGremiaBrSettings(configuredV2Settings()), fetch, auditFactory,
+    ));
+
+    expect((await adapter.listOwnTasks()).map((task) => task.id)).toEqual(['task-1', 'task-2']);
+    expect(offsets).toEqual(['0', '1']);
+  });
+
   it('meldet sich an, prüft das Profil und gibt keine Zugangsdaten im Ergebnis zurück', async () => {
     const { fetch, calls } = createFetch({
       'POST /api/auth/login': { access_token: 'jwt-token' },

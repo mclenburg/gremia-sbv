@@ -22,6 +22,7 @@ export const EMPTY_GREMIA_BR_SETTINGS: GremiaBrPublicSettings = {
 };
 
 export const EMPTY_GREMIA_BR_CACHE: GremiaBrCachedOverview = {
+  ownTasks: [],
   upcomingMeetings: [],
   pendingFollowUps: [],
   decisions: [],

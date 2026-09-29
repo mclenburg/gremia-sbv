@@ -1,4 +1,4 @@
-import type { GremiaBrApiMode } from '../../src/domain/models/gremia-br.model.js';
+import type { GremiaBrApiMode, GremiaBrOwnTask } from '../../src/domain/models/gremia-br.model.js';
 
 export interface GremiaBrStoredSettings {
   id: 'default';
@@ -53,6 +53,7 @@ export interface GremiaBrReadContext {
 }
 
 export interface GremiaBrReadAdapter {
+  listOwnTasks(): Promise<GremiaBrOwnTask[]>;
   listWorksAgreements(): Promise<unknown[]>;
   listRelevantMeetings(): Promise<unknown[]>;
   getReferenceById(id: string): Promise<unknown | null>;

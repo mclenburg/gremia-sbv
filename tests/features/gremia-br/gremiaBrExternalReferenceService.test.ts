@@ -80,6 +80,7 @@ class ReferenceDb implements DatabaseAdapter {
 
 class SuggestAdapter implements GremiaBrReadAdapter {
   requestedQueries: string[] = [];
+  async listOwnTasks() { return []; }
   async listWorksAgreements(): Promise<unknown[]> { return []; }
   async listRelevantMeetings(): Promise<unknown[]> { return []; }
   async getReferenceById(): Promise<unknown | null> { return null; }

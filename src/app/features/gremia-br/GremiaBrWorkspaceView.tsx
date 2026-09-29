@@ -8,6 +8,7 @@ import {
   GremiaBrConfigurationCard,
   GremiaBrDocumentTransferPanel,
   GremiaBrMeetingImportPanel,
+  GremiaBrOpenActionsPanel,
   GremiaBrReadContextPanel,
   GremiaBrSummary,
   GremiaBrWorkspaceFeedback,
@@ -35,7 +36,9 @@ export function GremiaBrWorkspaceView() {
       <GremiaBrReadContextPanel
         busy={busyMatches(workspace.busyAction, "read")}
         onRefresh={() => void workspace.refreshReadContext()}
+        lastFetchedAt={workspace.overview.lastFetchedAt}
       />
+      <GremiaBrOpenActionsPanel overview={workspace.overview} />
       <div className="industrial-grid-two">
         <GremiaBrCaseSummaryPanel
           cases={workspace.cases}

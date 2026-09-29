@@ -18,6 +18,7 @@ export const EMPTY_GREMIA_BR_SETTINGS: GremiaBrPublicSettings = {
 };
 
 export const EMPTY_GREMIA_BR_DASHBOARD: GremiaBrDashboardOverview = {
+  ownTasks: [],
   upcomingMeetings: [],
   meetingAgendas: {},
   pendingFollowUps: [],
@@ -104,12 +105,12 @@ export function buildBrMeetingDrafts(overview: Pick<GremiaBrDashboardOverview, "
 }
 
 export function resolveGremiaBrWorkspaceSummary(
-  settings: GremiaBrPublicSettings,
+  _settings: GremiaBrPublicSettings,
   overview: GremiaBrDashboardOverview,
 ): WorkbenchStatItem[] {
   return [
-    { label: "API-Modus", value: settings.apiMode === "gremia_br_v2" ? "2.0" : "Legacy" },
-    { label: "Sitzungen im Cache", value: String(overview.upcomingMeetings.length) },
+    { label: "Eigene offene Aufgaben", value: String(overview.ownTasks.length) },
+    { label: "Sitzungen", value: String(overview.upcomingMeetings.length) },
     { label: "SBV-Treffer", value: String(overview.relevantMeetings.length), tone: overview.relevantMeetings.length ? "warning" : "default" },
     { label: "Beschlüsse", value: String(overview.openDecisionCount) },
   ];

@@ -13,6 +13,7 @@ Die SBV kann gezielt BR-Informationen abrufen, die für ihre Arbeit relevant sin
 - Beschlussstatistiken als Kontext,
 - Dokument-Metadaten und Kategorien als Referenz,
 - Suchvorschläge für externe BR-Referenzen.
+- eigene offene Aufgaben als persönlichen Arbeitsvorrat.
 
 In Gremia.BR 2.0 kann die SBV außerdem bewusst Aktionen für ihren eigenen SBV-Arbeitsbereich auslösen:
 
@@ -56,6 +57,7 @@ Die aktuelle Gremia.BR-OpenAPI stellt zusätzliche Endpunkte für den SBV-Arbeit
 
 - Auth: Login, Refresh, Logout, Session-/Profilprüfung,
 - Sitzungen: nächste, laufende, kommende Sitzung, Tagesordnung und Protokollstatus,
+- Aufgaben: eigene offene Aufgaben nach manuell ausgelöstem Gesamtabruf,
 - Protokolle/Beschlüsse: Listen, Sitzungsbezug, Fälligkeiten und Statistik,
 - Dokumente: Liste, Kategorien, Metadaten und HTML-Vorschau,
 - Suche: Suche, Vorschläge, erweiterte Suche und Suchstatistik,
@@ -66,6 +68,8 @@ Nicht freigegeben bleiben insbesondere Admin, Audit, DSGVO, Notizen, Abwesenheit
 ## Nutzung
 
 Die Verbindung wird unter **Einstellungen → Gremia.BR** eingerichtet. Der eigenständige Bereich **Gremia.BR** wird nur sichtbar, wenn eine Instanz konfiguriert ist. Das Dashboard zeigt nur den flüchtigen Arbeitsstand und aktualisiert diesen ausschließlich durch eine bewusste Nutzeraktion. Nach einem Neustart sind die Remote-Inhalte nicht mehr vorhanden. Bereits aus früheren Versionen persistierte Lesecache-Inhalte werden beim Datenbank-Upgrade entfernt. Wird die Anbindung deaktiviert oder werden Zugangsdaten gelöscht, wird der Arbeitsstand geleert.
+
+**Gremia.BR aktualisieren** lädt auch die eigenen offenen Aufgaben in den Bereich **Offene Aktionen**. Angezeigt werden nur Titel, Status und Fälligkeit. Beschreibungen und Zuweisungsdetails bleiben außerhalb des lokalen Arbeitsstands. Die Anzeige nennt den Zeitpunkt des letzten erfolgreichen Gesamtabrufs.
 
 Alle Übergaben nach Gremia.BR werden im Gremia.BR-Bereich ausgelöst und geprüft. Dadurch bleibt sichtbar, welche Daten Gremia.SBV verlassen und ob Gremia.BR die Aktion angenommen, zurückgestellt oder abgelehnt hat.
 
