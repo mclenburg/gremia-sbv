@@ -3,6 +3,8 @@ import { GremiaBrAuthService } from '../../../services/gremiaBr/gremiaBrAuthServ
 import type { GremiaBrFetch } from '../../../services/gremiaBr/gremiaBrHttpClient';
 import type { GremiaBrProfileSnapshot, GremiaBrServiceSettings, GremiaBrSettingsStore } from '../../../services/gremiaBr/gremiaBrTypes';
 
+const auditFactory = () => ({ append: () => undefined });
+
 class MemorySettings implements GremiaBrSettingsStore {
   successfulProfile: GremiaBrProfileSnapshot | undefined;
   failures = 0;
@@ -57,7 +59,7 @@ describe('Gremia.BR Auth-Profilvertrag 0.9.2-Q', () => {
     });
     const settings = new MemorySettings();
 
-    const result = await new GremiaBrAuthService(settings, fetch).testConnection();
+    const result = await new GremiaBrAuthService(settings, fetch, auditFactory).testConnection();
 
     expect(result.status).toBe('ok');
     expect(result.profileDisplayName).toBe('SBV Nutzerin');
@@ -75,7 +77,7 @@ describe('Gremia.BR Auth-Profilvertrag 0.9.2-Q', () => {
       'GET /api/auth/profile': { profile: { fullName: 'Vertrauensperson SBV', rolle: 'sbv' } },
     });
 
-    const result = await new GremiaBrAuthService(new MemorySettings(), fetch).testConnection();
+    const result = await new GremiaBrAuthService(new MemorySettings(), fetch, auditFactory).testConnection();
 
     expect(result.status).toBe('ok');
     expect(result.profileDisplayName).toBe('Vertrauensperson SBV');
@@ -115,7 +117,7 @@ describe('Gremia.BR Auth-Profilvertrag 0.9.2-Q', () => {
     const result = await new GremiaBrAuthService(new MemorySettings({
       apiMode: 'gremia_br_v2',
       serverUrl: 'https://br.example.invalid',
-    }), fetch).testConnection();
+    }), fetch, auditFactory).testConnection();
 
     expect(result).toMatchObject({
       status: 'ok',

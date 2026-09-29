@@ -52,6 +52,8 @@ class MemoryAuditLog {
   }
 }
 
+const auditFactory = () => new MemoryAuditLog();
+
 function configuredSettings(): GremiaBrServiceSettings {
   return {
     enabled: true,
@@ -84,7 +86,7 @@ describe('Gremia.BR HTTP-ReadAdapter 0.9.2-B', () => {
       'GET /api/auth/profile': { displayName: 'SBV Nutzerin', role: 'sbv', email: 'sbv@example.invalid' },
     });
     const settings = new MemoryGremiaBrSettings(configuredSettings());
-    const auth = new GremiaBrAuthService(settings, fetch);
+    const auth = new GremiaBrAuthService(settings, fetch, auditFactory);
 
     const result = await auth.testConnection();
 
@@ -116,7 +118,7 @@ describe('Gremia.BR HTTP-ReadAdapter 0.9.2-B', () => {
       'GET /api/search': { results: [{ id: 'b3', type: 'beschluss', titel: 'Arbeitsplatzgestaltung' }] },
       'GET /api/search/suggest': [{ value: 'BEM', label: 'BEM-Beschluss', type: 'beschluss' }],
     });
-    const adapter = new GremiaBrHttpReadAdapter(new GremiaBrAuthService(new MemoryGremiaBrSettings(configuredSettings()), fetch));
+    const adapter = new GremiaBrHttpReadAdapter(new GremiaBrAuthService(new MemoryGremiaBrSettings(configuredSettings()), fetch, auditFactory));
 
     expect(await adapter.getNextMeeting()).toMatchObject({ id: 's1' });
     expect(await adapter.getUpcomingMeetings()).toHaveLength(1);
@@ -146,7 +148,7 @@ describe('Gremia.BR HTTP-ReadAdapter 0.9.2-B', () => {
       'GET /api/v1/meetings/m1/decisions': [{ id: 'd1', meetingId: 'm1', text: 'BEM-Beschluss' }],
       'GET /api/v1/meetings/m2/decisions': [{ id: 'd2', meetingId: 'm2', text: 'Arbeitsplatzgestaltung' }],
     });
-    const adapter = new GremiaBrHttpReadAdapter(new GremiaBrAuthService(new MemoryGremiaBrSettings(configuredV2Settings()), fetch));
+    const adapter = new GremiaBrHttpReadAdapter(new GremiaBrAuthService(new MemoryGremiaBrSettings(configuredV2Settings()), fetch, auditFactory));
 
     await expect(adapter.getNextMeeting()).resolves.toMatchObject({ id: 'm1' });
     await expect(adapter.getMeetingAgenda('m1')).resolves.toEqual([{ id: 'a1', title: 'BEM-Unterrichtung' }]);
@@ -172,15 +174,30 @@ describe('Gremia.BR HTTP-ReadAdapter 0.9.2-B', () => {
 
     await client.request('GET', '/sitzungen/kommende', 'jwt-token', { query: { q: 'BEM', limit: 5 } });
 
-    expect(audit.entries).toHaveLength(1);
-    expect(audit.entries[0]).toMatchObject({
+    expect(audit.entries).toHaveLength(2);
+    expect(audit.entries[0].metadata).toMatchObject({ outcome: 'started' });
+    expect(audit.entries[0].metadata?.correlationId).toEqual(expect.any(String));
+    expect(audit.entries[1].metadata?.correlationId).toBe(audit.entries[0].metadata?.correlationId);
+    expect(audit.entries[1].metadata?.durationMs).toEqual(expect.any(Number));
+    expect(audit.entries[1]).toMatchObject({
       action: 'read',
       subjectType: 'gremia_br_http_request',
       subjectId: 'GET /sitzungen/kommende',
     });
-    expect(audit.entries[0].metadata).toMatchObject({ endpoint: 'GET /sitzungen/kommende', outcome: 'ok', status: 200 });
+    expect(audit.entries[1].metadata).toMatchObject({ endpoint: 'GET /sitzungen/kommende', outcome: 'ok', status: 200 });
     expect(JSON.stringify(audit.entries[0])).not.toContain('BEM');
     expect(JSON.stringify(audit.entries[0])).not.toContain('jwt-token');
+  });
+
+  it('startet keinen Gremia.BR-Request, wenn der Audit-Eintrag nicht geschrieben werden kann', async () => {
+    let networkCalls = 0;
+    const client = new GremiaBrHttpClient('https://br.example.invalid', async () => {
+      networkCalls += 1;
+      return jsonResponse({});
+    }, { append: () => { throw new Error('Audit nicht verfügbar'); } });
+
+    await expect(client.request('GET', '/api/v1/me/bodies')).rejects.toThrow('Audit nicht verfügbar');
+    expect(networkCalls).toBe(0);
   });
 
   it('überträgt FormData für explizite Gremia.BR-Arbeitsbereichsaktionen ohne JSON-Content-Type und auditiert als Export', async () => {
@@ -207,7 +224,7 @@ describe('Gremia.BR HTTP-ReadAdapter 0.9.2-B', () => {
     expect(headers['Content-Type']).toBeUndefined();
     expect(calls[0]?.init?.body).toBe(formData);
     expect(new URL(calls[0]!.url).searchParams.get('securityDomain')).toBe('sd-sbv');
-    expect(audit.entries[0]).toMatchObject({
+    expect(audit.entries[1]).toMatchObject({
       action: 'export',
       subjectType: 'gremia_br_http_request',
       subjectId: 'POST /api/v1/documents',
@@ -222,7 +239,7 @@ describe('Gremia.BR HTTP-ReadAdapter 0.9.2-B', () => {
       calls.push(`${init?.method} ${url}`);
       return jsonResponse({});
     };
-    const client = new GremiaBrHttpClient('https://br.example.invalid/api', fetch);
+    const client = new GremiaBrHttpClient('https://br.example.invalid/api', fetch, new MemoryAuditLog());
 
     await expect(client.request('GET', '/admin/health', 'jwt-token')).rejects.toThrow(/gesperrt|freigegeben/);
     await expect(client.request('POST', '/protokolle/beschluesse', 'jwt-token', { body: {} })).rejects.toThrow(/freigegeben/);
@@ -233,7 +250,7 @@ describe('Gremia.BR HTTP-ReadAdapter 0.9.2-B', () => {
     const { fetch } = createFetch({
       'POST /api/auth/login': { message: 'ok aber ohne token' },
     });
-    const auth = new GremiaBrAuthService(new MemoryGremiaBrSettings(configuredSettings()), fetch);
+    const auth = new GremiaBrAuthService(new MemoryGremiaBrSettings(configuredSettings()), fetch, auditFactory);
 
     const result = await auth.testConnection();
 

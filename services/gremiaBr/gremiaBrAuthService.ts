@@ -65,12 +65,15 @@ function sessionCookieFromHeaders(headers: Headers): string {
 export class GremiaBrAuthService {
   private token = '';
   private sessionCookie = '';
+  private readonly fetchImpl?: GremiaBrFetch;
 
   constructor(
     private readonly settingsStore: GremiaBrSettingsStore,
-    private readonly fetchImpl?: GremiaBrFetch,
-    private readonly auditLogFactory?: () => GremiaBrAuditSink,
-  ) {}
+    fetchImpl: GremiaBrFetch | undefined,
+    private readonly auditLogFactory: () => GremiaBrAuditSink,
+  ) {
+    this.fetchImpl = fetchImpl;
+  }
 
   clearToken(): void {
     this.token = '';
@@ -209,6 +212,6 @@ export class GremiaBrAuthService {
   }
 
   private client(): GremiaBrHttpClient {
-    return new GremiaBrHttpClient(this.settingsStore.getServiceSettings().serverUrl, this.fetchImpl, this.auditLogFactory?.());
+    return new GremiaBrHttpClient(this.settingsStore.getServiceSettings().serverUrl, this.fetchImpl, this.auditLogFactory());
   }
 }

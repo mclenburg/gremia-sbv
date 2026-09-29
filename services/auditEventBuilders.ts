@@ -117,6 +117,8 @@ export type GremiaBrRequestAuditArgs = {
   endpoint: string;
   outcome: string;
   status?: number;
+  correlationId?: string;
+  durationMs?: number;
 };
 
 export type GremiaBrWorkspaceActionAuditArgs = {
@@ -310,7 +312,7 @@ export function auditGremiaBrReadRequest(args: GremiaBrRequestAuditArgs): Create
     subjectType: AUDIT_SUBJECT_TYPES.gremiaBrHttpRequest,
     subjectId: args.endpoint,
     purpose: action === 'read' || action === 'security' ? AUDIT_PURPOSES.gremiaBrRequest : AUDIT_PURPOSES.gremiaBrWorkspaceAction,
-    metadata: compactMetadata({ endpoint: args.endpoint, outcome: args.outcome, status: args.status }),
+    metadata: compactMetadata({ endpoint: args.endpoint, outcome: args.outcome, status: args.status, correlationId: args.correlationId, durationMs: args.durationMs }),
   };
 }
 
