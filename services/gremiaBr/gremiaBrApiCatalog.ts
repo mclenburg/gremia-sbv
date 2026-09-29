@@ -63,6 +63,7 @@ export const GREMIA_BR_API_CATALOG: readonly GremiaBrEndpointDefinition[] = [
   { method: 'POST', template: '/api/v1/meetings/{meetingId}/agenda', auth: 'bearer', category: 'workspace_action', purpose: 'SBV-Thema als bewusste Agenda-Anforderung an eine Gremia.BR-Sitzung übergeben' },
   { method: 'POST', template: '/api/v1/procedures/{procedureId}/information-requests', auth: 'bearer', category: 'workspace_action', purpose: 'Fehlende Informationen zu einem Gremia.BR-Verfahren anfordern' },
   { method: 'POST', template: '/api/v1/procedures/information-requests/{requestId}/resolve', auth: 'bearer', category: 'workspace_action', purpose: 'Informationsanforderung nach ausdrücklicher Bestätigung abschließen' },
+  { method: 'POST', template: '/api/v1/procedures/{procedureId}/tasks', auth: 'bearer', category: 'workspace_action', purpose: 'Eigene Aufgabe im ausdrücklich verknüpften Verfahren anlegen' },
 ] as const;
 
 export const GREMIA_BR_READ_API_CATALOG = GREMIA_BR_API_CATALOG

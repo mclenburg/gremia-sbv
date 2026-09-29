@@ -128,7 +128,7 @@ import type {
   UpdateLegalNormInput,
 } from "./domain/models/knowledge.model";
 import type { TemplateDefaultValues } from "./domain/models/template-default.model";
-import type { CompleteGremiaBrInformationRequestInput, CreateGremiaBrCaseSummaryInput, CreateGremiaBrExternalReferenceInput, CreateGremiaBrInformationRequestInput, GremiaBrAgendaItemRequestResult, GremiaBrCachedOverview, GremiaBrCacheRefreshResult, GremiaBrConnectionTestResult, GremiaBrCreatedPdfDocument, GremiaBrDashboardOverview, GremiaBrDocumentTransferResult, GremiaBrExternalReferenceRecord, GremiaBrGeneratedPdfDocument, GremiaBrInformationRequest, GremiaBrInlineSuggestion, GremiaBrOwnTaskDetail, GremiaBrProcedureDetail, GremiaBrPublicSettings, GremiaBrRelevanceSettings, GremiaBrSettingsInput, GremiaBrTaskTransitionInput, GremiaBrTaskTransitionOptions, GremiaBrWorkspaceActionRecord, GremiaBrWorkspaceBody, RequestGremiaBrAgendaItemInput, TransferGremiaBrDocumentInput } from "./domain/models/gremia-br.model";
+import type { CompleteGremiaBrInformationRequestInput, CreateGremiaBrCaseSummaryInput, CreateGremiaBrExternalReferenceInput, CreateGremiaBrInformationRequestInput, CreateGremiaBrProcedureTaskInput, GremiaBrAgendaItemRequestResult, GremiaBrCachedOverview, GremiaBrCacheRefreshResult, GremiaBrConnectionTestResult, GremiaBrCreatedPdfDocument, GremiaBrDashboardOverview, GremiaBrDocumentTransferResult, GremiaBrExternalReferenceRecord, GremiaBrGeneratedPdfDocument, GremiaBrInformationRequest, GremiaBrInlineSuggestion, GremiaBrOwnTaskDetail, GremiaBrProcedureDetail, GremiaBrPublicSettings, GremiaBrRelevanceSettings, GremiaBrSettingsInput, GremiaBrTaskTransitionInput, GremiaBrTaskTransitionOptions, GremiaBrWorkspaceActionRecord, GremiaBrWorkspaceBody, RequestGremiaBrAgendaItemInput, TransferGremiaBrDocumentInput } from "./domain/models/gremia-br.model";
 
 import type {
   CreateTemplateInput,
@@ -538,6 +538,7 @@ declare global {
         listInformationRequests(caseId: string, procedureId: string): Promise<GremiaBrInformationRequest[]>;
         createInformationRequest(input: CreateGremiaBrInformationRequestInput): Promise<GremiaBrInformationRequest>;
         completeInformationRequest(input: CompleteGremiaBrInformationRequestInput): Promise<GremiaBrInformationRequest>;
+        createProcedureTask(input: CreateGremiaBrProcedureTaskInput): Promise<GremiaBrOwnTaskDetail>;
         suggestInlineReferences(query: string): Promise<GremiaBrInlineSuggestion[]>;
         listExternalReferences(caseId: string): Promise<GremiaBrExternalReferenceRecord[]>;
         saveExternalReference(input: CreateGremiaBrExternalReferenceInput): Promise<GremiaBrExternalReferenceRecord>;

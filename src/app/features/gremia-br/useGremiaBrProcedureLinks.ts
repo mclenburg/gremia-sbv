@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { GremiaBrExternalReferenceRecord, GremiaBrInformationRequest, GremiaBrProcedureDetail } from '../../../domain/models/gremia-br.model';
 import { completeInformationRequest, createInformationRequest, deleteProcedureLink, loadInformationRequests, loadProcedureDetail, loadProcedureLinks, saveProcedureLink } from './gremiaBrWorkspaceActions';
 import type { BusyAction } from './GremiaBrWorkspacePanels';
+import { useGremiaBrProcedureTaskCreation } from './useGremiaBrProcedureTaskCreation';
 
 type RunAction = (action: Exclude<BusyAction, null>, work: () => Promise<string>) => Promise<void>;
 
@@ -79,6 +80,7 @@ export function useGremiaBrProcedureLinks(
   const [requestItems, setRequestItems] = useState('');
   const [requestReason, setRequestReason] = useState('');
   const [responseDueDate, setResponseDueDate] = useState('');
+  const taskCreation = useGremiaBrProcedureTaskCreation(procedureLocalCaseId, procedureId, procedureLinks, runAction);
 
   function clearRequestDraft() {
     setRequestItems('');
@@ -99,6 +101,7 @@ export function useGremiaBrProcedureLinks(
     procedureLocalCaseId, procedureRemoteCaseId, procedureId, procedureDetail, procedureLinks,
     informationRequests, informationRequestsProcedureId,
     requestItems, requestReason, responseDueDate,
+    ...taskCreation,
     setRequestItems, setRequestReason, setResponseDueDate,
     selectProcedureLocalCase: (id: string) => {
       setProcedureLocalCaseId(id);

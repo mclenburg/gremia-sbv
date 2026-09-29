@@ -56,6 +56,9 @@ export function GremiaBrWorkspaceView() {
           requestItems={workspace.requestItems}
           requestReason={workspace.requestReason}
           responseDueDate={workspace.responseDueDate}
+          taskTitle={workspace.taskTitle}
+          taskDescription={workspace.taskDescription}
+          taskDueDate={workspace.taskDueDate}
           busy={busyMatches(workspace.busyAction, 'procedure')}
           disabled={actionDisabled}
           onLocalCaseChange={workspace.selectProcedureLocalCase}
@@ -68,6 +71,10 @@ export function GremiaBrWorkspaceView() {
           onRequestReasonChange={workspace.setRequestReason}
           onResponseDueDateChange={workspace.setResponseDueDate}
           onCompleteInformationRequest={(id) => void workspace.completeSelectedInformationRequest(id)}
+          onTaskTitleChange={workspace.setTaskTitle}
+          onTaskDescriptionChange={workspace.setTaskDescription}
+          onTaskDueDateChange={workspace.setTaskDueDate}
+          onCreateTask={() => void workspace.createSelectedProcedureTask()}
           onLink={() => void workspace.linkSelectedProcedure()}
           onUnlink={(id) => void workspace.unlinkProcedure(id)}
         />

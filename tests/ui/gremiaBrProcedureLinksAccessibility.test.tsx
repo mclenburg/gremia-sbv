@@ -21,6 +21,9 @@ describe('Gremia.BR-Verfahrensverknüpfung', () => {
       requestItems=""
       requestReason=""
       responseDueDate=""
+      taskTitle=""
+      taskDescription=""
+      taskDueDate=""
       busy={false}
       disabled={false}
       onLocalCaseChange={noop}
@@ -33,6 +36,10 @@ describe('Gremia.BR-Verfahrensverknüpfung', () => {
       onRequestReasonChange={noop}
       onResponseDueDateChange={noop}
       onCompleteInformationRequest={noop}
+      onTaskTitleChange={noop}
+      onTaskDescriptionChange={noop}
+      onTaskDueDateChange={noop}
+      onCreateTask={noop}
       onLink={noop}
       onUnlink={noop}
     />);
@@ -42,6 +49,7 @@ describe('Gremia.BR-Verfahrensverknüpfung', () => {
     expect(html).toContain('BR-2026-17');
     expect(html).toContain('Verfahrensdetails laden');
     expect(html).not.toContain('Informationsanforderung erstellen');
+    expect(html).not.toContain('Eigene Aufgabe in Gremia.BR anlegen');
     const visibleText = html.replace(/<[^>]*>/g, '');
     expect(visibleText).not.toContain('procedure-1');
     expect(visibleText).not.toContain('remote-1');
@@ -66,6 +74,9 @@ describe('Gremia.BR-Verfahrensverknüpfung', () => {
       requestItems="Unterlage zur Arbeitsplatzgestaltung"
       requestReason="Für Stellungnahme"
       responseDueDate="2026-10-05"
+      taskTitle="Stellungnahme vorbereiten"
+      taskDescription=""
+      taskDueDate="2026-10-07"
       busy={false}
       disabled={false}
       onLocalCaseChange={noop}
@@ -78,6 +89,10 @@ describe('Gremia.BR-Verfahrensverknüpfung', () => {
       onRequestReasonChange={noop}
       onResponseDueDateChange={noop}
       onCompleteInformationRequest={noop}
+      onTaskTitleChange={noop}
+      onTaskDescriptionChange={noop}
+      onTaskDueDateChange={noop}
+      onCreateTask={noop}
       onLink={noop}
       onUnlink={noop}
     />);
@@ -92,5 +107,6 @@ describe('Gremia.BR-Verfahrensverknüpfung', () => {
     expect(html).toContain('Welche Angaben fehlen?');
     expect(html).toContain('Informationsanforderung erstellen');
     expect(html).toContain('Informationsanforderung 1 als erfüllt abschließen');
+    expect(html).toContain('Eigene Aufgabe in Gremia.BR anlegen');
   });
 });

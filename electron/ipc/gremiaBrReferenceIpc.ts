@@ -1,6 +1,6 @@
 import type { IpcMain } from 'electron';
 import type { ApplicationServices } from '../applicationServices.js';
-import type { CompleteGremiaBrInformationRequestInput, CreateGremiaBrExternalReferenceInput, CreateGremiaBrInformationRequestInput } from '../../src/domain/models/gremia-br.model.js';
+import type { CompleteGremiaBrInformationRequestInput, CreateGremiaBrExternalReferenceInput, CreateGremiaBrInformationRequestInput, CreateGremiaBrProcedureTaskInput } from '../../src/domain/models/gremia-br.model.js';
 import { ApplicationError } from '../../src/domain/models/application-error.model.js';
 import { GremiaBrHttpError } from '../../services/gremiaBr/gremiaBrHttpClient.js';
 import { GremiaBrHttpReadAdapter } from '../../services/gremiaBr/gremiaBrHttpReadAdapter.js';
@@ -56,6 +56,13 @@ export function registerGremiaBrReferenceIpc(ipcMain: IpcMain, services: Applica
       }
       throw error;
     }
+  });
+
+  registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrProcedureTaskCreate, async (_event, rawInput: unknown) => {
+    const channel = 'gremia-br:procedure:task:create';
+    const input = assertRecordInput<CreateGremiaBrProcedureTaskInput>(rawInput, channel);
+    const { id } = linkedProcedure(input.caseId, input.procedureId, channel);
+    return new GremiaBrProcedureService(auth).createOwnTask(id, input);
   });
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrInlineSuggest, async (_event, query: unknown) => {

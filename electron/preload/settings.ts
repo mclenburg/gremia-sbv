@@ -1,6 +1,6 @@
 import type { IpcInvoker } from "./invoke.js";
 import { IPC_CHANNELS } from "../ipc/channels.js";
-import type { CompleteGremiaBrInformationRequestInput, CreateGremiaBrCaseSummaryInput, CreateGremiaBrExternalReferenceInput, CreateGremiaBrInformationRequestInput, GremiaBrAgendaItemRequestResult, GremiaBrCachedOverview, GremiaBrCacheRefreshResult, GremiaBrConnectionTestResult, GremiaBrCreatedPdfDocument, GremiaBrDashboardOverview, GremiaBrDocumentTransferResult, GremiaBrExternalReferenceRecord, GremiaBrGeneratedPdfDocument, GremiaBrInformationRequest, GremiaBrInlineSuggestion, GremiaBrOwnTaskDetail, GremiaBrProcedureDetail, GremiaBrPublicSettings, GremiaBrRelevanceSettings, GremiaBrSettingsInput, GremiaBrTaskTransitionInput, GremiaBrTaskTransitionOptions, GremiaBrWorkspaceActionRecord, GremiaBrWorkspaceBody, RequestGremiaBrAgendaItemInput, TransferGremiaBrDocumentInput } from "../../src/domain/models/gremia-br.model.js";
+import type { CompleteGremiaBrInformationRequestInput, CreateGremiaBrCaseSummaryInput, CreateGremiaBrExternalReferenceInput, CreateGremiaBrInformationRequestInput, CreateGremiaBrProcedureTaskInput, GremiaBrAgendaItemRequestResult, GremiaBrCachedOverview, GremiaBrCacheRefreshResult, GremiaBrConnectionTestResult, GremiaBrCreatedPdfDocument, GremiaBrDashboardOverview, GremiaBrDocumentTransferResult, GremiaBrExternalReferenceRecord, GremiaBrGeneratedPdfDocument, GremiaBrInformationRequest, GremiaBrInlineSuggestion, GremiaBrOwnTaskDetail, GremiaBrProcedureDetail, GremiaBrPublicSettings, GremiaBrRelevanceSettings, GremiaBrSettingsInput, GremiaBrTaskTransitionInput, GremiaBrTaskTransitionOptions, GremiaBrWorkspaceActionRecord, GremiaBrWorkspaceBody, RequestGremiaBrAgendaItemInput, TransferGremiaBrDocumentInput } from "../../src/domain/models/gremia-br.model.js";
 import type { TemplateDefaultValues } from "../../src/domain/models/template-default.model.js";
 import type { TransferInstanceIdentity } from "../../src/domain/models/transfer-identity.model.js";
 import type { SaveTransferRecipientProfileInput, TransferRecipientProfile } from "../../src/domain/models/transfer-recipient-profile.model.js";
@@ -50,6 +50,8 @@ export function createSettingsApi(invokeIpc: IpcInvoker) {
         invokeIpc(IPC_CHANNELS.gremiaBrInformationRequestCreate, input),
       completeInformationRequest: (input: CompleteGremiaBrInformationRequestInput): Promise<GremiaBrInformationRequest> =>
         invokeIpc(IPC_CHANNELS.gremiaBrInformationRequestComplete, input),
+      createProcedureTask: (input: CreateGremiaBrProcedureTaskInput): Promise<GremiaBrOwnTaskDetail> =>
+        invokeIpc(IPC_CHANNELS.gremiaBrProcedureTaskCreate, input),
       suggestInlineReferences: (query: string): Promise<GremiaBrInlineSuggestion[]> =>
         invokeIpc(IPC_CHANNELS.gremiaBrInlineSuggest, query),
       listExternalReferences: (caseId: string): Promise<GremiaBrExternalReferenceRecord[]> =>

@@ -2,6 +2,24 @@ import { describe, expect, it, vi } from 'vitest';
 import { GremiaBrProcedureService } from '../../../services/gremiaBr/gremiaBrProcedureService';
 
 describe('Gremia.BR-Verfahrensdienst', () => {
+  it('legt eine eigene Verfahrensaufgabe mit der aktuellen Serveridentität an', async () => {
+    const get = vi.fn().mockResolvedValue({ userId: 'person-1' });
+    const post = vi.fn().mockResolvedValue({
+      id: 'task-1', title: 'Stellungnahme vorbereiten', status: 'OPEN', version: 1,
+      subjectType: 'PROCEDURE', subjectId: 'procedure-1', description: 'Vertraulicher Volltext',
+    });
+    const service = new GremiaBrProcedureService({ get, post } as never);
+
+    expect(await service.createOwnTask('procedure-1', { title: 'Stellungnahme vorbereiten' })).toEqual({
+      id: 'task-1', title: 'Stellungnahme vorbereiten', status: 'OPEN', version: 1, subjectType: 'PROCEDURE',
+    });
+    expect(get).toHaveBeenCalledWith('/api/v1/auth/session');
+    expect(post).toHaveBeenCalledWith('/api/v1/procedures/procedure-1/tasks', {
+      body: { title: 'Stellungnahme vorbereiten', assignments: [{ kind: 'PERSON', reference: 'person-1', role: 'RESPONSIBLE' }] },
+    });
+    expect(JSON.stringify(post.mock.calls)).not.toContain('Vertraulicher Volltext');
+  });
+
   it('schließt nur eine noch offene Anforderung mit bestätigter aktueller Version ab', async () => {
     const get = vi.fn().mockResolvedValue([{
       id: 'request-1', procedureId: 'procedure-1', status: 'OPEN', requestedAt: '2026-09-29T10:00:00.000Z', version: 3,

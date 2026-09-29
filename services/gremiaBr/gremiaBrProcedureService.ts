@@ -1,4 +1,5 @@
-import type { CreateGremiaBrInformationRequestInput, GremiaBrInformationRequest, GremiaBrProcedureDetail } from '../../src/domain/models/gremia-br.model.js';
+import { GREMIA_BR_TASK_STATUSES } from '../../src/domain/models/gremia-br.model.js';
+import type { CreateGremiaBrInformationRequestInput, CreateGremiaBrProcedureTaskInput, GremiaBrInformationRequest, GremiaBrOwnTaskDetail, GremiaBrProcedureDetail } from '../../src/domain/models/gremia-br.model.js';
 import { gremiaBrRecord } from './gremiaBrPayload.js';
 import { GremiaBrAuthService } from './gremiaBrAuthService.js';
 
@@ -77,5 +78,36 @@ export class GremiaBrProcedureService {
       throw new Error('Gremia.BR hat den Abschluss nicht eindeutig bestätigt. Bitte die Liste bewusst neu laden.');
     }
     return resolved;
+  }
+
+  async createOwnTask(procedureId: string, input: Pick<CreateGremiaBrProcedureTaskInput, 'title' | 'description' | 'dueAt'>): Promise<GremiaBrOwnTaskDetail> {
+    const title = typeof input.title === 'string' ? input.title.trim() : '';
+    const description = typeof input.description === 'string' ? input.description.trim() : '';
+    if (!title || title.length > 512) throw new Error('Bitte einen Aufgabentitel mit höchstens 512 Zeichen eingeben.');
+    if (description.length > 4096) throw new Error('Die Aufgabenbeschreibung darf höchstens 4096 Zeichen umfassen.');
+    if (input.dueAt && (typeof input.dueAt !== 'string' || !Number.isFinite(Date.parse(input.dueAt)))) {
+      throw new Error('Die Aufgabenfälligkeit ist ungültig. Bitte das Datum prüfen.');
+    }
+    const session = gremiaBrRecord(await this.auth.get<unknown>('/api/v1/auth/session'));
+    if (typeof session?.userId !== 'string' || !session.userId.trim()) {
+      throw new Error('Die eigene Gremia.BR-Identität konnte nicht bestätigt werden. Es wurde keine Aufgabe angelegt.');
+    }
+    const body = {
+      title,
+      ...(description ? { description } : {}),
+      ...(input.dueAt ? { dueAt: input.dueAt } : {}),
+      assignments: [{ kind: 'PERSON', reference: session.userId, role: 'RESPONSIBLE' }],
+    };
+    const item = gremiaBrRecord(await this.auth.post<unknown>(`/api/v1/procedures/${encodeURIComponent(procedureId)}/tasks`, { body }));
+    if (!item || typeof item.id !== 'string' || item.title !== title || item.subjectType !== 'PROCEDURE'
+      || item.subjectId !== procedureId || typeof item.status !== 'string' || !GREMIA_BR_TASK_STATUSES.includes(item.status as GremiaBrOwnTaskDetail['status'])
+      || typeof item.version !== 'number' || !Number.isInteger(item.version)) {
+      throw new Error('Gremia.BR hat die Aufgabenanlage nicht eindeutig bestätigt. Bitte den eigenen Arbeitsstand bewusst aktualisieren, bevor Sie erneut anlegen.');
+    }
+    return {
+      id: item.id, title, status: item.status as GremiaBrOwnTaskDetail['status'], version: item.version,
+      subjectType: item.subjectType as GremiaBrOwnTaskDetail['subjectType'],
+      ...(typeof item.dueAt === 'string' ? { dueAt: item.dueAt } : {}),
+    };
   }
 }
