@@ -79,6 +79,25 @@ function configuredV2Settings(): GremiaBrServiceSettings {
 }
 
 describe('Gremia.BR HTTP-ReadAdapter 0.9.2-B', () => {
+  it('liest ausschließlich eigene noch offene Zugriffsanträge ohne weitere Antragsdetails', async () => {
+    const { fetch, calls } = createFetch({
+      'POST /api/v1/auth/login': { access_token: 'token' },
+      'GET /api/v1/access-approvals/mine': [
+        { id: 'approval-1', resourceType: 'DOCUMENT', status: 'PENDING', requestedAt: '2026-10-01T10:00:00.000Z', purpose: 'Vertrauliche Begründung', requestedBy: 'person-1' },
+        { id: 'approval-2', resourceType: 'DOCUMENT', status: 'APPROVED', requestedAt: '2026-09-30T10:00:00.000Z' },
+      ],
+    });
+    const adapter = new GremiaBrHttpReadAdapter(new GremiaBrAuthService(
+      new MemoryGremiaBrSettings(configuredV2Settings()), fetch, auditFactory,
+    ));
+
+    const approvals = await adapter.listOwnPendingAccessApprovals();
+
+    expect(approvals).toEqual([{ id: 'approval-1', resourceType: 'DOCUMENT', status: 'PENDING', requestedAt: '2026-10-01T10:00:00.000Z' }]);
+    expect(calls.some((call) => new URL(call.url).pathname === '/api/v1/access-approvals/mine')).toBe(true);
+    expect(JSON.stringify(approvals)).not.toContain('Vertrauliche Begründung');
+  });
+
   it('liest nur eigene offene V2-Aufgaben und übernimmt keine Beschreibungen in den Arbeitsstand', async () => {
     const { fetch, calls } = createFetch({
       'POST /api/v1/auth/login': { access_token: 'token' },

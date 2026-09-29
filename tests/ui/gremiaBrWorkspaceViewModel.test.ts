@@ -29,6 +29,7 @@ function overview(): GremiaBrDashboardOverview {
   };
   return {
     ownTasks: [{ id: 'task-1', title: 'Stellungnahme prüfen', status: 'OPEN' }],
+    ownAccessApprovals: [{ id: 'approval-1', resourceType: 'DOCUMENT', status: 'PENDING', requestedAt: '2026-10-01T10:00:00.000Z' }],
     upcomingMeetings: [
       relevantMeeting,
       { id: "meeting-2", title: "Regelsitzung", plannedStart: "2026-10-08T09:00:00.000Z" },
@@ -53,7 +54,7 @@ describe("Gremia.BR-Arbeitsbereich View-Model", () => {
     const summary = resolveGremiaBrWorkspaceSummary(SETTINGS, overview());
 
     expect(summary).toEqual([
-      { label: "Eigene offene Aufgaben", value: "1" },
+      { label: "Offene Aktionen", value: "2" },
       { label: "Sitzungen", value: "2" },
       { label: "SBV-Treffer", value: "1", tone: "warning" },
       { label: "Beschlüsse", value: "1" },

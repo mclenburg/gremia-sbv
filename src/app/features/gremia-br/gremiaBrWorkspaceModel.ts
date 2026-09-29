@@ -19,6 +19,7 @@ export const EMPTY_GREMIA_BR_SETTINGS: GremiaBrPublicSettings = {
 
 export const EMPTY_GREMIA_BR_DASHBOARD: GremiaBrDashboardOverview = {
   ownTasks: [],
+  ownAccessApprovals: [],
   upcomingMeetings: [],
   meetingAgendas: {},
   pendingFollowUps: [],
@@ -109,7 +110,7 @@ export function resolveGremiaBrWorkspaceSummary(
   overview: GremiaBrDashboardOverview,
 ): WorkbenchStatItem[] {
   return [
-    { label: "Eigene offene Aufgaben", value: String(overview.ownTasks.length) },
+    { label: "Offene Aktionen", value: String(overview.ownTasks.length + overview.ownAccessApprovals.length) },
     { label: "Sitzungen", value: String(overview.upcomingMeetings.length) },
     { label: "SBV-Treffer", value: String(overview.relevantMeetings.length), tone: overview.relevantMeetings.length ? "warning" : "default" },
     { label: "Beschlüsse", value: String(overview.openDecisionCount) },

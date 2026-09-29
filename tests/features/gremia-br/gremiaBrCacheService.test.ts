@@ -10,6 +10,11 @@ class FakeReadAdapter implements GremiaBrReadAdapter {
     return [{ id: 'task-1', title: 'Stellungnahme prüfen', status: 'OPEN', dueAt: '2026-10-01T10:00:00.000Z' }];
   }
 
+  async listOwnPendingAccessApprovals() {
+    this.calls.push('own-access-approvals');
+    return [{ id: 'approval-1', resourceType: 'DOCUMENT', status: 'PENDING' as const, requestedAt: '2026-10-01T10:00:00.000Z' }];
+  }
+
   async listWorksAgreements(): Promise<unknown[]> { return []; }
   async listRelevantMeetings(): Promise<unknown[]> { return this.getUpcomingMeetings(); }
   async getReferenceById(_id: string): Promise<unknown | null> { return null; }
@@ -79,9 +84,10 @@ describe('Gremia.BR Remote-Arbeitsstand', () => {
     const result = await service.refresh(adapter);
 
     expect(result.status).toBe('ok');
-    expect(result.refreshedKeys).toEqual(['own_tasks', 'next_meeting', 'current_meeting', 'upcoming_meetings', 'meeting_agendas', 'pending_follow_ups', 'decisions', 'due_decisions', 'overdue_decisions', 'decision_statistics', 'extended_decision_statistics']);
-    expect(adapter.calls).toEqual(['own-tasks', 'next', 'current', 'upcoming', 'followups', 'agenda:s1', 'agenda:s0', 'agenda:s2', 'decisions', 'due', 'overdue', 'stats', 'extended-stats']);
+    expect(result.refreshedKeys).toEqual(['own_tasks', 'own_access_approvals', 'next_meeting', 'current_meeting', 'upcoming_meetings', 'meeting_agendas', 'pending_follow_ups', 'decisions', 'due_decisions', 'overdue_decisions', 'decision_statistics', 'extended_decision_statistics']);
+    expect(adapter.calls).toEqual(['own-tasks', 'own-access-approvals', 'next', 'current', 'upcoming', 'followups', 'agenda:s1', 'agenda:s0', 'agenda:s2', 'decisions', 'due', 'overdue', 'stats', 'extended-stats']);
     expect(result.cached.ownTasks).toMatchObject([{ id: 'task-1', title: 'Stellungnahme prüfen' }]);
+    expect(result.cached.ownAccessApprovals).toMatchObject([{ id: 'approval-1', status: 'PENDING' }]);
     expect(result.cached.nextMeeting).toMatchObject({ id: 's1' });
     expect(result.cached.currentMeeting).toMatchObject({ id: 's0' });
     expect(result.cached.upcomingMeetings).toHaveLength(2);

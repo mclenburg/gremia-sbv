@@ -1,7 +1,7 @@
 import { GremiaBrAuthService } from './gremiaBrAuthService.js';
 import type { GremiaBrReadAdapter } from './gremiaBrTypes.js';
 import { gremiaBrArrayFromResponse, gremiaBrRecord } from './gremiaBrPayload.js';
-import type { GremiaBrOwnTask } from '../../src/domain/models/gremia-br.model.js';
+import type { GremiaBrOwnTask, GremiaBrOwnAccessApproval } from '../../src/domain/models/gremia-br.model.js';
 
 const OPEN_TASK_STATUSES = ['OPEN', 'IN_PROGRESS', 'BLOCKED', 'WAITING_EXTERNAL', 'QUESTION'] as const;
 const TASK_PAGE_SIZE = 100;
@@ -66,6 +66,21 @@ export class GremiaBrHttpReadAdapter implements GremiaBrReadAdapter {
       offset += items.length;
     }
     throw new Error('Gremia.BR meldet zu viele eigene Aufgaben für einen vollständigen Abruf.');
+  }
+
+  async listOwnPendingAccessApprovals(): Promise<GremiaBrOwnAccessApproval[]> {
+    if (!this.isV2()) return [];
+    const response = await this.auth.get<unknown>('/api/v1/access-approvals/mine');
+    if (!Array.isArray(response)) throw new Error('Gremia.BR hat keine gültige Liste eigener Zugriffsanträge zurückgegeben.');
+    return response.flatMap((value) => {
+      const item = gremiaBrRecord(value);
+      if (!item || typeof item.status !== 'string') throw new Error('Gremia.BR hat einen unvollständigen Zugriffsantrag zurückgegeben.');
+      if (item.status !== 'PENDING') return [];
+      if (typeof item.id !== 'string' || typeof item.resourceType !== 'string' || typeof item.requestedAt !== 'string') {
+        throw new Error('Gremia.BR hat einen unvollständigen offenen Zugriffsantrag zurückgegeben.');
+      }
+      return [{ id: item.id, resourceType: item.resourceType, status: 'PENDING' as const, requestedAt: item.requestedAt }];
+    });
   }
 
   async listWorksAgreements(): Promise<unknown[]> { return []; }

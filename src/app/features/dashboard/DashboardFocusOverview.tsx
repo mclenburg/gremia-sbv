@@ -20,6 +20,7 @@ type DashboardFocusOverviewProps = {
 
 const EMPTY_GREMIA_BR_OVERVIEW: GremiaBrDashboardOverview = {
   ownTasks: [],
+  ownAccessApprovals: [],
   upcomingMeetings: [],
   meetingAgendas: {},
   pendingFollowUps: [],

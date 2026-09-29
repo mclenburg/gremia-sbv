@@ -59,6 +59,7 @@ export interface GremiaBrPolicyCheckResult {
 
 export type GremiaBrCacheSourceType =
   | 'own_tasks'
+  | 'own_access_approvals'
   | 'next_meeting'
   | 'current_meeting'
   | 'upcoming_meetings'
@@ -79,6 +80,7 @@ export interface GremiaBrCacheEntry {
 
 export interface GremiaBrCachedOverview {
   ownTasks: GremiaBrOwnTask[];
+  ownAccessApprovals: GremiaBrOwnAccessApproval[];
   nextMeeting?: unknown;
   currentMeeting?: unknown;
   upcomingMeetings: unknown[];
@@ -100,6 +102,13 @@ export interface GremiaBrOwnTask {
   dueAt?: string;
   subjectType?: string;
   subjectId?: string;
+}
+
+export interface GremiaBrOwnAccessApproval {
+  id: string;
+  resourceType: string;
+  status: 'PENDING';
+  requestedAt: string;
 }
 
 export interface GremiaBrCacheRefreshResult extends GremiaBrConnectionTestResult {

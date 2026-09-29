@@ -137,20 +137,33 @@ const OWN_TASK_STATUS_LABELS: Record<string, string> = {
 };
 
 export function GremiaBrOpenActionsPanel({ overview }: { overview: GremiaBrDashboardOverview }) {
+  const rows = [
+    ...overview.ownTasks.map((task) => ({
+      id: `task:${task.id}`,
+      cells: [
+        task.title,
+        task.subjectType === 'MEETING' ? 'Sitzung' : task.subjectType === 'PROCEDURE' ? 'Verfahren' : 'Gremia.BR-Aufgabe',
+        OWN_TASK_STATUS_LABELS[task.status] ?? task.status,
+        task.dueAt ? `Fällig: ${new Date(task.dueAt).toLocaleString('de-DE')}` : 'Keine Fälligkeit',
+      ],
+    })),
+    ...overview.ownAccessApprovals.map((approval) => ({
+      id: `access:${approval.id}`,
+      cells: [
+        'Zugriffsantrag',
+        approval.resourceType === 'DOCUMENT' ? 'Dokument' : approval.resourceType === 'PROCEDURE' ? 'Verfahren' : 'Gremia.BR',
+        'Ausstehend',
+        `Beantragt: ${new Date(approval.requestedAt).toLocaleString('de-DE')}`,
+      ],
+    })),
+  ];
   return (
     <IndustrialPanel kicker="Persönlicher Arbeitsvorrat" title="Offene Aktionen">
       <DataTable
-        ariaLabel="Eigene offene Gremia.BR-Aufgaben"
-        headers={['Aufgabe', 'Status', 'Fällig']}
-        rows={overview.ownTasks.map((task) => ({
-          id: task.id,
-          cells: [
-            task.title,
-            OWN_TASK_STATUS_LABELS[task.status] ?? task.status,
-            task.dueAt ? new Date(task.dueAt).toLocaleString('de-DE') : 'Keine Fälligkeit',
-          ],
-        }))}
-        empty={<EmptyState title="Keine offenen Aufgaben" text="Nach dem nächsten Abruf erscheinen hier Ihre eigenen Gremia.BR-Aufgaben." />}
+        ariaLabel="Eigene offene Gremia.BR-Aktionen"
+        headers={['Vorgang', 'Herkunft', 'Status', 'Termin']}
+        rows={rows}
+        empty={<EmptyState title="Keine offenen Aktionen" text="Nach dem nächsten Abruf erscheinen hier Ihre eigenen Gremia.BR-Aufgaben und Zugriffsanträge." />}
       />
     </IndustrialPanel>
   );
