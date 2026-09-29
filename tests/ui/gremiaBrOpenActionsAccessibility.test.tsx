@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { GremiaBrOpenActionsPanel, GremiaBrReadContextPanel } from '../../src/app/features/gremia-br/GremiaBrWorkspacePanels';
+import { GremiaBrAccessApprovalsPanel, GremiaBrOpenActionsPanel, GremiaBrReadContextPanel } from '../../src/app/features/gremia-br/GremiaBrWorkspacePanels';
 import { GremiaBrTaskDetailDialog } from '../../src/app/features/gremia-br/GremiaBrTaskDetailDialog';
 import { EMPTY_GREMIA_BR_DASHBOARD } from '../../src/app/features/gremia-br/gremiaBrWorkspaceModel';
 
@@ -22,6 +22,26 @@ describe('Gremia.BR Offene Aktionen', () => {
     expect(html).toContain('Fällig');
     expect(html).not.toContain('task-1');
     expect(html).not.toContain('approval-1');
+  });
+
+  it('trennt abgeschlossene Anträge von offenen Aktionen und zeigt eigene Status datensparsam an', () => {
+    const overview = {
+      ...EMPTY_GREMIA_BR_DASHBOARD,
+      ownAccessApprovals: [
+        { id: 'approval-1', resourceType: 'DOCUMENT', status: 'PENDING' as const, requestedAt: '2026-10-01T11:00:00.000Z' },
+        { id: 'approval-2', resourceType: 'DOCUMENT', status: 'APPROVED' as const, requestedAt: '2026-09-30T11:00:00.000Z' },
+      ],
+    };
+    const openActions = renderToStaticMarkup(<GremiaBrOpenActionsPanel overview={overview} onOpenTask={() => undefined} />);
+    const requests = renderToStaticMarkup(<GremiaBrAccessApprovalsPanel approvals={overview.ownAccessApprovals} />);
+
+    expect(openActions).toContain('Beantragt');
+    expect(openActions).not.toContain('Genehmigt');
+    expect(requests).toContain('aria-label="Eigene Gremia.BR-Zugriffsanträge"');
+    expect(requests).toContain('Ausstehend');
+    expect(requests).toContain('Genehmigt');
+    expect(requests).not.toContain('approval-1');
+    expect(requests).not.toContain('approval-2');
   });
 
   it('zeigt Details nur im zugänglichen Dialog und ohne technische Kennungen', () => {

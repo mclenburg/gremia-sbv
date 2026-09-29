@@ -2,6 +2,7 @@ import type { CaseRecord } from "../../../domain/models/case.model";
 import type {
   GremiaBrDashboardOverview,
   GremiaBrGeneratedPdfDocument,
+  GremiaBrOwnAccessApproval,
   GremiaBrPublicSettings,
   GremiaBrProtectionClass,
   GremiaBrWorkspaceActionRecord,
@@ -29,6 +30,21 @@ const PROTECTION_OPTIONS = [
   { value: "RESTRICTED", label: "Streng beschränkt" },
   { value: "INTERNAL", label: "Intern" },
 ];
+
+const ACCESS_APPROVAL_STATUS_LABELS: Record<GremiaBrOwnAccessApproval['status'], string> = {
+  PENDING: 'Ausstehend',
+  APPROVED: 'Genehmigt',
+  REJECTED: 'Abgelehnt',
+  REVOKED: 'Widerrufen',
+  EXPIRED: 'Abgelaufen',
+};
+
+function accessApprovalResourceLabel(resourceType: string): string {
+  if (resourceType.toLowerCase().includes('document')) return 'Dokument';
+  if (resourceType.toLowerCase().includes('procedure')) return 'Verfahren';
+  if (resourceType.toLowerCase().includes('meeting')) return 'Sitzung';
+  return 'Gremia.BR-Inhalt';
+}
 
 function searchableOptions(options: Array<{ value: string; label: string }>) {
   return options.filter((option) => option.value);
@@ -142,11 +158,11 @@ export function GremiaBrOpenActionsPanel({ overview, onOpenTask }: { overview: G
         <ToolbarButton key={task.id} onClick={() => onOpenTask(task.id)} aria-label={`Details zu ${task.title}`}>Details</ToolbarButton>,
       ],
     })),
-    ...overview.ownAccessApprovals.map((approval) => ({
+    ...overview.ownAccessApprovals.filter((approval) => approval.status === 'PENDING').map((approval) => ({
       id: `access:${approval.id}`,
       cells: [
         'Zugriffsantrag',
-        approval.resourceType === 'DOCUMENT' ? 'Dokument' : approval.resourceType === 'PROCEDURE' ? 'Verfahren' : 'Gremia.BR',
+        accessApprovalResourceLabel(approval.resourceType),
         'Ausstehend',
         `Beantragt: ${new Date(approval.requestedAt).toLocaleString('de-DE')}`,
         '',
@@ -160,6 +176,26 @@ export function GremiaBrOpenActionsPanel({ overview, onOpenTask }: { overview: G
         headers={['Vorgang', 'Herkunft', 'Status', 'Termin', 'Aktion']}
         rows={rows}
         empty={<EmptyState title="Keine offenen Aktionen" text="Nach dem nächsten Abruf erscheinen hier Ihre eigenen Gremia.BR-Aufgaben und Zugriffsanträge." />}
+      />
+    </IndustrialPanel>
+  );
+}
+
+export function GremiaBrAccessApprovalsPanel({ approvals }: { approvals: GremiaBrOwnAccessApproval[] }) {
+  return (
+    <IndustrialPanel kicker="Eigene Anträge" title="Zugriffsanträge">
+      <DataTable
+        ariaLabel="Eigene Gremia.BR-Zugriffsanträge"
+        headers={['Inhalt', 'Status', 'Beantragt am']}
+        rows={approvals.map((approval) => ({
+          id: approval.id,
+          cells: [
+            accessApprovalResourceLabel(approval.resourceType),
+            ACCESS_APPROVAL_STATUS_LABELS[approval.status],
+            new Date(approval.requestedAt).toLocaleString('de-DE'),
+          ],
+        }))}
+        empty={<EmptyState title="Keine Zugriffsanträge" text="Nach dem nächsten bewussten Abruf erscheinen hier Ihre eigenen Anträge." />}
       />
     </IndustrialPanel>
   );

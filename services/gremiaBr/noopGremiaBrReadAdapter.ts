@@ -3,7 +3,7 @@ import type { GremiaBrReadAdapter } from './gremiaBrTypes.js';
 export class NoopGremiaBrReadAdapter implements GremiaBrReadAdapter {
   async listAccessibleCases() { return []; }
   async listOwnTasks() { return []; }
-  async listOwnPendingAccessApprovals() { return []; }
+  async listOwnAccessApprovals() { return []; }
   async listWorksAgreements(): Promise<unknown[]> { return []; }
   async listRelevantMeetings(): Promise<unknown[]> { return []; }
   async getReferenceById(_id: string): Promise<unknown | null> { return null; }

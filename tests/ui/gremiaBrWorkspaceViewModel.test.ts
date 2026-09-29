@@ -62,6 +62,15 @@ describe("Gremia.BR-Arbeitsbereich View-Model", () => {
     ]);
   });
 
+  it('zählt genehmigte Zugriffsanträge nicht als offene Aktion', () => {
+    const state = overview();
+    state.ownAccessApprovals.push({
+      id: 'approval-2', resourceType: 'DOCUMENT', status: 'APPROVED', requestedAt: '2026-09-30T10:00:00.000Z',
+    });
+
+    expect(resolveGremiaBrWorkspaceSummary(SETTINGS, state)[0]).toEqual({ label: 'Offene Aktionen', value: '2' });
+  });
+
   it("bereitet gelesene Sitzungen und Beschlüsse ohne technische Eingabe-IDs für zentrale Tabellen auf", () => {
     const state = overview();
 

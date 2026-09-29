@@ -136,7 +136,7 @@ export class GremiaBrCacheService {
     const checkedAt = nowIso();
     const accessibleCases = await adapter.listAccessibleCases();
     const ownTasks = await adapter.listOwnTasks();
-    const ownAccessApprovals = await adapter.listOwnPendingAccessApprovals();
+    const ownAccessApprovals = await adapter.listOwnAccessApprovals();
     const nextMeeting = await adapter.getNextMeeting();
     const currentMeeting = await adapter.getCurrentMeeting();
     const upcomingMeetings = await adapter.getUpcomingMeetings();

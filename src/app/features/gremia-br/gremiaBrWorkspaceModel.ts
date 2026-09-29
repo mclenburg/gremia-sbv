@@ -111,7 +111,7 @@ export function resolveGremiaBrWorkspaceSummary(
   overview: GremiaBrDashboardOverview,
 ): WorkbenchStatItem[] {
   return [
-    { label: "Offene Aktionen", value: String(overview.ownTasks.length + overview.ownAccessApprovals.length) },
+    { label: "Offene Aktionen", value: String(overview.ownTasks.length + overview.ownAccessApprovals.filter((approval) => approval.status === 'PENDING').length) },
     { label: "Sitzungen", value: String(overview.upcomingMeetings.length) },
     { label: "SBV-Treffer", value: String(overview.relevantMeetings.length), tone: overview.relevantMeetings.length ? "warning" : "default" },
     { label: "Beschlüsse", value: String(overview.openDecisionCount) },

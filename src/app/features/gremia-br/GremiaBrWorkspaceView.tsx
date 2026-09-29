@@ -2,6 +2,7 @@ import { useAnnouncer } from "../../shared/a11y/LiveRegionProvider";
 import {
   busyMatches,
   DisabledGremiaBrWorkspace,
+  GremiaBrAccessApprovalsPanel,
   GremiaBrAgendaPanel,
   GremiaBrCacheTables,
   GremiaBrCaseSummaryPanel,
@@ -42,6 +43,7 @@ export function GremiaBrWorkspaceView() {
         lastFetchedAt={workspace.overview.lastFetchedAt}
       />
       <GremiaBrOpenActionsPanel overview={workspace.overview} onOpenTask={(id) => void workspace.openTaskDetail(id)} />
+      {workspace.settings.apiMode === 'gremia_br_v2' ? <GremiaBrAccessApprovalsPanel approvals={workspace.overview.ownAccessApprovals} /> : null}
       {workspace.settings.apiMode === 'gremia_br_v2' ? (
         <GremiaBrProcedureLinksPanel
           cases={workspace.cases}

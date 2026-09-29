@@ -14,7 +14,7 @@ Die SBV kann gezielt BR-Informationen abrufen, die für ihre Arbeit relevant sin
 - Dokument-Metadaten und Kategorien als Referenz,
 - Suchvorschläge für externe BR-Referenzen.
 - eigene offene Aufgaben als persönlichen Arbeitsvorrat.
-- eigene noch ausstehende Zugriffsanträge.
+- eigene Zugriffsanträge mit ihrem Status.
 - berechtigte Sachverhalte als flüchtige Auswahlgrundlage für verknüpfte Verfahren.
 
 In Gremia.BR 2.0 kann die SBV außerdem bewusst Aktionen für ihren eigenen SBV-Arbeitsbereich auslösen:
@@ -60,7 +60,7 @@ Die aktuelle Gremia.BR-OpenAPI stellt zusätzliche Endpunkte für den SBV-Arbeit
 - Auth: Login, Refresh, Logout, Session-/Profilprüfung,
 - Sitzungen: nächste, laufende, kommende Sitzung, Tagesordnung und Protokollstatus,
 - Aufgaben: eigene offene Aufgaben nach manuell ausgelöstem Gesamtabruf,
-- Zugriffsanträge: eigene noch ausstehende Anträge nach demselben Gesamtabruf,
+- Zugriffsanträge: eigene Anträge mit Status nach demselben Gesamtabruf,
 - Protokolle/Beschlüsse: Listen, Sitzungsbezug, Fälligkeiten und Statistik,
 - Dokumente: Liste, Kategorien, Metadaten und HTML-Vorschau,
 - Suche: Suche, Vorschläge, erweiterte Suche und Suchstatistik,
@@ -72,7 +72,7 @@ Nicht freigegeben bleiben insbesondere Admin, Audit, DSGVO, Notizen, Abwesenheit
 
 Die Verbindung wird unter **Einstellungen → Gremia.BR** eingerichtet. Der eigenständige Bereich **Gremia.BR** wird nur sichtbar, wenn eine Instanz konfiguriert ist. Das Dashboard zeigt nur den flüchtigen Arbeitsstand und aktualisiert diesen ausschließlich durch eine bewusste Nutzeraktion. Nach einem Neustart sind die Remote-Inhalte nicht mehr vorhanden. Bereits aus früheren Versionen persistierte Lesecache-Inhalte werden beim Datenbank-Upgrade entfernt. Wird die Anbindung deaktiviert oder werden Zugangsdaten gelöscht, wird der Arbeitsstand geleert.
 
-**Gremia.BR aktualisieren** lädt auch die eigenen offenen Aufgaben und noch ausstehenden Zugriffsanträge in den Bereich **Offene Aktionen**. Bei Aufgaben werden nur Titel, Herkunft, Status und Fälligkeit angezeigt; Beschreibungen und Zuweisungsdetails bleiben außerhalb des lokalen Arbeitsstands. Sitzungs-, TOP- und verfahrensbezogene Aufgaben werden fachlich eingeordnet. Unbekannte Aufgabenstatus werden nicht als technische Werte angezeigt, sondern verhindern einen unvollständigen Gesamtabruf. Bei Zugriffsanträgen werden nur Ressourcenart, Status und Antragsdatum übernommen. Die Anzeige nennt den Zeitpunkt des letzten erfolgreichen Gesamtabrufs und kennzeichnet den Arbeitsstand als möglicherweise veraltete Momentaufnahme.
+**Gremia.BR aktualisieren** lädt auch die eigenen offenen Aufgaben und Zugriffsanträge. In **Offene Aktionen** erscheinen nur ausstehende Anträge; die eigene Statusübersicht zeigt auch genehmigte, abgelehnte, widerrufene und abgelaufene Anträge. Bei Aufgaben werden nur Titel, Herkunft, Status und Fälligkeit angezeigt; Beschreibungen und Zuweisungsdetails bleiben außerhalb des lokalen Arbeitsstands. Sitzungs-, TOP- und verfahrensbezogene Aufgaben werden fachlich eingeordnet. Unbekannte Status verhindern einen unvollständigen Gesamtabruf. Bei Zugriffsanträgen werden nur Ressourcenart, Status und Antragsdatum übernommen. Die Anzeige nennt den Zeitpunkt des letzten erfolgreichen Gesamtabrufs und kennzeichnet den Arbeitsstand als möglicherweise veraltete Momentaufnahme.
 
 Der bewusste Gesamtabruf lädt außerdem die für die angemeldete Person zugänglichen Gremia.BR-Sachverhalte. In der flüchtigen Übersicht bleiben davon nur Kennzeichen, Betreff und Verfahrenskennungen; Fallbeschreibungen werden nicht übernommen. Ein unvollständiger Abruf ersetzt den vorherigen Arbeitsstand nicht.
 

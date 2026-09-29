@@ -131,7 +131,7 @@ describe('Gremia.BR HTTP-ReadAdapter 0.9.2-B', () => {
     await expect(adapter.listOwnTasks()).rejects.toThrow('nicht unterstützte Aufgabe');
   });
 
-  it('liest ausschließlich eigene noch offene Zugriffsanträge ohne weitere Antragsdetails', async () => {
+  it('liest den Status aller eigenen Zugriffsanträge ohne weitere Antragsdetails', async () => {
     const { fetch, calls } = createFetch({
       'POST /api/v1/auth/login': { access_token: 'token' },
       'GET /api/v1/access-approvals/mine': [
@@ -143,11 +143,28 @@ describe('Gremia.BR HTTP-ReadAdapter 0.9.2-B', () => {
       new MemoryGremiaBrSettings(configuredV2Settings()), fetch, auditFactory,
     ));
 
-    const approvals = await adapter.listOwnPendingAccessApprovals();
+    const approvals = await adapter.listOwnAccessApprovals();
 
-    expect(approvals).toEqual([{ id: 'approval-1', resourceType: 'DOCUMENT', status: 'PENDING', requestedAt: '2026-10-01T10:00:00.000Z' }]);
+    expect(approvals).toEqual([
+      { id: 'approval-1', resourceType: 'DOCUMENT', status: 'PENDING', requestedAt: '2026-10-01T10:00:00.000Z' },
+      { id: 'approval-2', resourceType: 'DOCUMENT', status: 'APPROVED', requestedAt: '2026-09-30T10:00:00.000Z' },
+    ]);
     expect(calls.some((call) => new URL(call.url).pathname === '/api/v1/access-approvals/mine')).toBe(true);
     expect(JSON.stringify(approvals)).not.toContain('Vertrauliche Begründung');
+  });
+
+  it('verwirft unbekannte Zugriffsantragsstatus vor dem Ersetzen des Arbeitsstands', async () => {
+    const { fetch } = createFetch({
+      'POST /api/v1/auth/login': { access_token: 'token' },
+      'GET /api/v1/access-approvals/mine': [
+        { id: 'approval-1', resourceType: 'DOCUMENT', status: 'SERVER_INTERNAL', requestedAt: '2026-10-01T10:00:00.000Z' },
+      ],
+    });
+    const adapter = new GremiaBrHttpReadAdapter(new GremiaBrAuthService(
+      new MemoryGremiaBrSettings(configuredV2Settings()), fetch, auditFactory,
+    ));
+
+    await expect(adapter.listOwnAccessApprovals()).rejects.toThrow('nicht unterstützten Zugriffsantragsstatus');
   });
 
   it('liest nur eigene offene V2-Aufgaben und übernimmt keine Beschreibungen in den Arbeitsstand', async () => {

@@ -184,7 +184,7 @@ export interface GremiaBrTaskTransitionInput {
 export interface GremiaBrOwnAccessApproval {
   id: string;
   resourceType: string;
-  status: 'PENDING';
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'REVOKED' | 'EXPIRED';
   requestedAt: string;
 }
 

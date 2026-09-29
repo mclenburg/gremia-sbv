@@ -55,7 +55,7 @@ export interface GremiaBrReadContext {
 export interface GremiaBrReadAdapter {
   listAccessibleCases(): Promise<GremiaBrRemoteCase[]>;
   listOwnTasks(): Promise<GremiaBrOwnTask[]>;
-  listOwnPendingAccessApprovals(): Promise<GremiaBrOwnAccessApproval[]>;
+  listOwnAccessApprovals(): Promise<GremiaBrOwnAccessApproval[]>;
   listWorksAgreements(): Promise<unknown[]>;
   listRelevantMeetings(): Promise<unknown[]>;
   getReferenceById(id: string): Promise<unknown | null>;
