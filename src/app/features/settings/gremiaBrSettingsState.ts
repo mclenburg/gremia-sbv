@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import type {
-  GremiaBrApiMode,
   GremiaBrCachedOverview,
   GremiaBrPublicSettings,
   GremiaBrRelevanceKeywordGroup,
@@ -17,7 +16,7 @@ export const EMPTY_GREMIA_BR_SETTINGS: GremiaBrPublicSettings = {
   serverUrl: "",
   username: "",
   hasStoredCredentials: false,
-  apiMode: "legacy_read_bridge",
+  apiMode: "gremia_br_v2",
   relevanceSettings: { groups: [] },
 };
 
@@ -50,7 +49,6 @@ export interface GremiaBrSettingsSetters {
   setServerUrl: Dispatch<SetStateAction<string>>;
   setUsername: Dispatch<SetStateAction<string>>;
   setPassword: Dispatch<SetStateAction<string>>;
-  setApiMode: Dispatch<SetStateAction<GremiaBrApiMode>>;
   setSelectedBodyId: Dispatch<SetStateAction<string>>;
   setSelectedBodyName: Dispatch<SetStateAction<string>>;
   setSelectedOrganizationId: Dispatch<SetStateAction<string>>;
@@ -70,7 +68,6 @@ export function applyGremiaBrSettingsSnapshot(
   setters.setServerUrl(next.serverUrl);
   setters.setUsername(next.username);
   setters.setPassword("");
-  setters.setApiMode(next.apiMode);
   setters.setSelectedBodyId(next.selectedBodyId ?? "");
   setters.setSelectedBodyName(next.selectedBodyName ?? "");
   setters.setSelectedOrganizationId(next.selectedOrganizationId ?? "");

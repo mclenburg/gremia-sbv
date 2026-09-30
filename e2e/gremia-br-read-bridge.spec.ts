@@ -12,6 +12,7 @@ test('konfiguriert die optionale Gremia.BR-Kooperationsbrücke ohne automatische
   await expect(panel).toBeVisible();
   await expect(panel).toContainText(/keine Hintergrundsynchronisation/i);
   await expect(panel).toContainText(/kein Rückschreiben/i);
+  await expect(panel.getByLabel('API-Modus')).toHaveCount(0);
 
   await panel.getByLabel(/Gremia\.BR-Anbindung aktivieren/i).check();
   await panel.getByLabel(/Serveradresse/i).fill('https://br.example.local');
@@ -53,7 +54,6 @@ test('zeigt Remote-Zugang erst nach bewusster Sitzungsaktion und entfernt ihn be
   await page.getByRole('tab', { name: /Gremia\.BR/i }).click();
   const settings = page.getByRole('tabpanel', { name: /Gremia\.BR/i });
   await settings.getByLabel(/Gremia\.BR-Anbindung aktivieren/i).check();
-  await settings.getByLabel('API-Modus').selectOption('gremia_br_v2');
   await settings.getByLabel(/Serveradresse/i).fill('https://br.example.local');
   await settings.getByLabel(/Benutzerkonto/i).fill('sbv@example.local');
   await settings.getByLabel(/Passwort/i).fill('streng-geheim');

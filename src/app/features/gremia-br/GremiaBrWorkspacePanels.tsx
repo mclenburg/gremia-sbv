@@ -113,12 +113,11 @@ export function GremiaBrConfigurationCard({ settings }: { settings: GremiaBrPubl
       <dl className="industrial-meta-grid">
         <div><dt>Server</dt><dd>{settings.serverUrl}</dd></div>
         <div><dt>Benutzerkonto</dt><dd>{settings.username}</dd></div>
-        <div><dt>API-Modus</dt><dd>{settings.apiMode === "gremia_br_v2" ? "Gremia.BR 2.0" : "Legacy-Lesebrücke"}</dd></div>
         <div><dt>SBV-Gremium</dt><dd>{workspaceLabel(settings)}</dd></div>
       </dl>
-      {settings.apiMode === "gremia_br_v2" && !settings.selectedBodyId ? (
+      {!settings.selectedBodyId ? (
         <div className="industrial-message industrial-message-warning" role="status">
-          Für Gremia.BR 2.0 muss in den Einstellungen ein berechtigtes SBV-Gremium ausgewählt sein.
+          Für Gremia.BR muss in den Einstellungen ein berechtigtes SBV-Gremium ausgewählt sein.
         </div>
       ) : null}
     </IndustrialPanel>

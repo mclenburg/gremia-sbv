@@ -66,6 +66,8 @@ describe('Gremia.BR Einstellungen 0.9.2-A', () => {
     expect(saved.enabled).toBe(true);
     expect(saved.serverUrl).toBe('https://br.example.invalid');
     expect(saved.username).toBe('sbv@example.invalid');
+    expect(saved.apiMode).toBe('gremia_br_v2');
+    expect(db.row?.api_mode).toBe('gremia_br_v2');
     expect(saved.hasStoredCredentials).toBe(true);
     expect(saved.relevanceSettings.groups.length).toBeGreaterThan(0);
     expect(JSON.stringify(saved)).not.toContain('streng-geheim');
@@ -74,6 +76,25 @@ describe('Gremia.BR Einstellungen 0.9.2-A', () => {
     expect(String(db.row?.password_secret)).not.toMatch(/^b64:v1:/);
     expect(String(db.row?.password_secret)).not.toContain(Buffer.from('streng-geheim', 'utf8').toString('base64'));
     expect(decodeGremiaBrSecret(String(db.row?.password_secret), TEST_DATABASE_KEY)).toBe('streng-geheim');
+  });
+
+  it('liest einen gespeicherten Entwicklungsmodus ohne Datenverlust als aktuellen API-Vertrag', () => {
+    const db = new GremiaBrSettingsDb();
+    const service = new GremiaBrSettingsService(() => db, () => TEST_DATABASE_KEY);
+    service.saveSettings({
+      enabled: true,
+      serverUrl: 'https://br.example.invalid',
+      username: 'sbv@example.invalid',
+      password: 'streng-geheim',
+      selectedBodyId: 'body-sbv',
+    });
+    db.row!.api_mode = 'legacy_read_bridge';
+
+    expect(service.getPublicSettings()).toMatchObject({ apiMode: 'gremia_br_v2', selectedBodyId: 'body-sbv', hasStoredCredentials: true });
+    expect(service.getServiceSettings()).toMatchObject({ apiMode: 'gremia_br_v2', selectedBodyId: 'body-sbv', password: 'streng-geheim' });
+    expect(db.row?.api_mode).toBe('legacy_read_bridge');
+    service.saveSettings({ enabled: true, serverUrl: 'https://br.example.invalid', username: 'sbv@example.invalid', selectedBodyId: 'body-sbv', apiMode: 'legacy_read_bridge' });
+    expect(db.row?.api_mode).toBe('gremia_br_v2');
   });
 
   it('speichert den Gremia.BR-2-Arbeitsbereich als fachliche Konfiguration ohne Secret-Leakage', () => {

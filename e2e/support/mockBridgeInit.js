@@ -473,7 +473,7 @@
       .map((item, index) => toSearchResult(item, input.query, index + 1));
   };
 
-  let gremiaBrSettings = { enabled: false, serverUrl: '', username: '', hasStoredCredentials: false, apiMode: 'legacy_read_bridge', relevanceSettings: { groups: [] } };
+  let gremiaBrSettings = { enabled: false, serverUrl: '', username: '', hasStoredCredentials: false, apiMode: 'gremia_br_v2', relevanceSettings: { groups: [] } };
   let gremiaBrCache = { accessibleCases: [], ownTasks: [], ownAccessApprovals: [], upcomingMeetings: [], meetingAgendas: {}, decisions: [], dueDecisions: [], overdueDecisions: [] };
   let remoteAccessRequests = 0;
   window.__GREMIA_BR_REMOTE_ACCESS_REQUESTS = () => remoteAccessRequests;
@@ -862,7 +862,7 @@
           serverUrl: input.serverUrl || '',
           username: input.username || '',
           hasStoredCredentials: !!input.password || gremiaBrSettings.hasStoredCredentials,
-          apiMode: input.apiMode || gremiaBrSettings.apiMode || 'legacy_read_bridge',
+          apiMode: 'gremia_br_v2',
           selectedBodyId: input.selectedBodyId || gremiaBrSettings.selectedBodyId,
           selectedBodyName: input.selectedBodyName || gremiaBrSettings.selectedBodyName,
           selectedOrganizationId: input.selectedOrganizationId || gremiaBrSettings.selectedOrganizationId,
@@ -873,7 +873,7 @@
         return { ...gremiaBrSettings };
       },
       clearCredentials: async () => {
-        gremiaBrSettings = { enabled: false, serverUrl: '', username: '', hasStoredCredentials: false, apiMode: 'legacy_read_bridge', relevanceSettings: { groups: [] }, updatedAt: now };
+        gremiaBrSettings = { enabled: false, serverUrl: '', username: '', hasStoredCredentials: false, apiMode: 'gremia_br_v2', relevanceSettings: { groups: [] }, updatedAt: now };
         gremiaBrCache = { accessibleCases: [], ownTasks: [], ownAccessApprovals: [], upcomingMeetings: [], meetingAgendas: {}, decisions: [], dueDecisions: [], overdueDecisions: [] };
         return { ...gremiaBrSettings };
       },

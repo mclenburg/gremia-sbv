@@ -2,7 +2,6 @@ import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'node:
 import type { DatabaseAdapter } from '../databaseService.js';
 import type {
   GremiaBrConnectionTestResult,
-  GremiaBrApiMode,
   GremiaBrPublicSettings,
   GremiaBrSettingsInput,
   GremiaBrRelevanceSettings,
@@ -40,10 +39,6 @@ function normalizeOptionalText(value: unknown): string | undefined {
   return typeof value === 'string' && value.trim() ? value.trim() : undefined;
 }
 
-function normalizeApiMode(value: unknown): GremiaBrApiMode {
-  return value === 'gremia_br_v2' ? 'gremia_br_v2' : 'legacy_read_bridge';
-}
-
 function parseProfile(profileJson?: string | null): { displayName?: string; role?: string } {
   if (!profileJson) return {};
   try {
@@ -64,7 +59,7 @@ function toPublicSettings(row?: SettingsRow | null): GremiaBrPublicSettings {
     serverUrl: row?.server_url ?? '',
     username: row?.username ?? '',
     hasStoredCredentials: Boolean(row?.password_secret),
-    apiMode: normalizeApiMode(row?.api_mode),
+    apiMode: 'gremia_br_v2',
     selectedBodyId: normalizeOptionalText(row?.selected_body_id),
     selectedBodyName: normalizeOptionalText(row?.selected_body_name),
     selectedOrganizationId: normalizeOptionalText(row?.selected_organization_id),
@@ -246,7 +241,7 @@ export class GremiaBrSettingsService implements GremiaBrSettingsStore {
       serverUrl: row?.server_url ?? '',
       username: row?.username ?? '',
       password: this.decodeSecret(row?.password_secret),
-      apiMode: normalizeApiMode(row?.api_mode),
+      apiMode: 'gremia_br_v2',
       selectedBodyId: normalizeOptionalText(row?.selected_body_id),
       selectedBodyName: normalizeOptionalText(row?.selected_body_name),
       selectedOrganizationId: normalizeOptionalText(row?.selected_organization_id),
@@ -266,7 +261,7 @@ export class GremiaBrSettingsService implements GremiaBrSettingsStore {
 
     const existing = this.readRow();
     const timestamp = nowIso();
-    const apiMode = normalizeApiMode(input.apiMode ?? existing?.api_mode);
+    const apiMode = 'gremia_br_v2';
     const selectedBodyId = normalizeOptionalText(input.selectedBodyId) ?? null;
     const selectedBodyName = normalizeOptionalText(input.selectedBodyName) ?? null;
     const selectedOrganizationId = normalizeOptionalText(input.selectedOrganizationId) ?? null;
@@ -319,9 +314,10 @@ export class GremiaBrSettingsService implements GremiaBrSettingsStore {
     const timestamp = nowIso();
     this.db().prepare(`
       INSERT INTO gremia_br_settings (id, enabled, server_url, username, password_secret, api_mode, selected_body_id, selected_body_name, selected_organization_id, selected_security_domain, relevance_keywords_json, created_at, updated_at)
-      VALUES ('default', 0, '', '', '', 'legacy_read_bridge', NULL, NULL, NULL, NULL, ?, ?, ?)
+      VALUES ('default', 0, '', '', '', 'gremia_br_v2', NULL, NULL, NULL, NULL, ?, ?, ?)
       ON CONFLICT(id) DO UPDATE SET
         enabled = 0,
+        api_mode = excluded.api_mode,
         password_secret = '',
         selected_body_id = NULL,
         selected_body_name = NULL,
@@ -343,7 +339,7 @@ export class GremiaBrSettingsService implements GremiaBrSettingsStore {
     const relevanceJson = serializeGremiaBrRelevanceSettings(settings ?? DEFAULT_GREMIA_BR_RELEVANCE_SETTINGS);
     this.db().prepare(`
       INSERT INTO gremia_br_settings (id, enabled, server_url, username, password_secret, api_mode, relevance_keywords_json, created_at, updated_at)
-      VALUES ('default', 0, '', '', '', 'legacy_read_bridge', ?, ?, ?)
+      VALUES ('default', 0, '', '', '', 'gremia_br_v2', ?, ?, ?)
       ON CONFLICT(id) DO UPDATE SET
         relevance_keywords_json = excluded.relevance_keywords_json,
         updated_at = excluded.updated_at

@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import type {
-  GremiaBrApiMode,
   GremiaBrPublicSettings,
   GremiaBrRelevanceKeywordGroup,
   GremiaBrSettingsInput,
@@ -36,7 +35,6 @@ export function GremiaBrSettingsPanel() {
   const [serverUrl, setServerUrl] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [apiMode, setApiMode] = useState<GremiaBrApiMode>('legacy_read_bridge');
   const [selectedBodyId, setSelectedBodyId] = useState('');
   const [selectedBodyName, setSelectedBodyName] = useState('');
   const [selectedOrganizationId, setSelectedOrganizationId] = useState('');
@@ -54,7 +52,6 @@ export function GremiaBrSettingsPanel() {
     setServerUrl,
     setUsername,
     setPassword,
-    setApiMode,
     setSelectedBodyId,
     setSelectedBodyName,
     setSelectedOrganizationId,
@@ -70,7 +67,6 @@ export function GremiaBrSettingsPanel() {
       enabled,
       serverUrl,
       username,
-      apiMode,
       selectedBodyId,
       selectedBodyName,
       selectedOrganizationId,
@@ -233,8 +229,6 @@ export function GremiaBrSettingsPanel() {
       <GremiaBrFeedback error={error} status={status} />
       <GremiaBrEnabledToggle enabled={enabled} onEnabledChange={setEnabled} />
       <GremiaBrCredentialsSection
-        apiMode={apiMode}
-        onApiModeChange={setApiMode}
         serverUrl={serverUrl}
         onServerUrlChange={setServerUrl}
         username={username}
@@ -244,7 +238,7 @@ export function GremiaBrSettingsPanel() {
         hasStoredCredentials={settings.hasStoredCredentials}
       />
       <GremiaBrWorkspaceBodySection
-        visible={enabled && apiMode === 'gremia_br_v2'}
+        visible={enabled}
         busy={busy}
         enabled={enabled}
         selectedBodyName={selectedBodyName}

@@ -13,7 +13,7 @@ export const EMPTY_GREMIA_BR_SETTINGS: GremiaBrPublicSettings = {
   serverUrl: "",
   username: "",
   hasStoredCredentials: false,
-  apiMode: "legacy_read_bridge",
+  apiMode: "gremia_br_v2",
   relevanceSettings: { groups: [] },
 };
 

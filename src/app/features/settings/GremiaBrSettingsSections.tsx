@@ -1,22 +1,15 @@
 import type {
-  GremiaBrApiMode,
   GremiaBrCachedOverview,
   GremiaBrPublicSettings,
   GremiaBrRelevanceKeywordGroup,
   GremiaBrWorkspaceBody,
 } from "../../../domain/models/gremia-br.model";
-import { CheckboxField, PasswordInput, SearchInput, SelectInput, TextareaInput, TextInput } from "../../shared/components/IndustrialForm";
-import type { IndustrialFieldOption } from "../../shared/components/IndustrialFormCore";
+import { CheckboxField, PasswordInput, SearchInput, TextareaInput, TextInput } from "../../shared/components/IndustrialForm";
 import { DangerButton, IndustrialButton, ToolbarButton } from "../../shared/components/IndustrialButton";
 
 function maskStoredPassword(hasStoredCredentials: boolean): string {
   return hasStoredCredentials ? "••••••••••••" : "";
 }
-
-const gremiaBrApiModeOptions: IndustrialFieldOption[] = [
-  { value: "legacy_read_bridge", label: "Legacy-Lesebrücke" },
-  { value: "gremia_br_v2", label: "Gremia.BR 2.0" },
-];
 
 export function GremiaBrSettingsIntro() {
   return (
@@ -61,8 +54,6 @@ export function GremiaBrEnabledToggle({
 }
 
 export function GremiaBrCredentialsSection({
-  apiMode,
-  onApiModeChange,
   serverUrl,
   onServerUrlChange,
   username,
@@ -71,8 +62,6 @@ export function GremiaBrCredentialsSection({
   onPasswordChange,
   hasStoredCredentials,
 }: {
-  apiMode: GremiaBrApiMode;
-  onApiModeChange: (value: GremiaBrApiMode) => void;
   serverUrl: string;
   onServerUrlChange: (value: string) => void;
   username: string;
@@ -83,13 +72,6 @@ export function GremiaBrCredentialsSection({
 }) {
   return (
     <div className="gremia-br-settings-credentials">
-      <SelectInput
-        label="API-Modus"
-        value={apiMode}
-        onValueChange={(value) => onApiModeChange(value as GremiaBrApiMode)}
-        options={gremiaBrApiModeOptions}
-        helpText="Gremia.BR 2.0 behandelt die SBV als eigenes berechtigtes Gremium mit eigenem Arbeitsbereich."
-      />
       <TextInput
         label="Serveradresse / URL"
         type="url"
