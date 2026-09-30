@@ -50,6 +50,8 @@ export function createSettingsApi(invokeIpc: IpcInvoker) {
         invokeIpc(IPC_CHANNELS.gremiaBrRemoteDocumentsSearch, query),
       getRemoteDocumentDetail: (documentId: string): Promise<GremiaBrDocumentDetail> =>
         invokeIpc(IPC_CHANNELS.gremiaBrRemoteDocumentDetailGet, documentId),
+      requestDocumentAccess: (input: import('../../src/domain/models/gremia-br.model.js').GremiaBrDocumentAccessRequestInput): Promise<import('../../src/domain/models/gremia-br.model.js').GremiaBrOwnAccessApproval> =>
+        invokeIpc(IPC_CHANNELS.gremiaBrDocumentAccessRequest, input),
       openRemoteDocumentVersion: (documentId: string, versionId: string): Promise<{ opened: boolean; error?: string }> =>
         invokeIpc(IPC_CHANNELS.gremiaBrRemoteDocumentVersionOpen, { documentId, versionId }),
       importRemoteDocumentVersion: (input: GremiaBrDocumentImportInput): Promise<CaseDocumentRecord> =>

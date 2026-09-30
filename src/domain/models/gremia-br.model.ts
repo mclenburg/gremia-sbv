@@ -255,6 +255,13 @@ export interface GremiaBrOwnAccessApproval {
   requestedAt: string;
 }
 
+export interface GremiaBrDocumentAccessRequestInput {
+  documentId: string;
+  actionScope: 'READ' | 'MANAGE';
+  purpose: string;
+  durationMs: number;
+}
+
 export interface GremiaBrCacheRefreshResult extends GremiaBrConnectionTestResult {
   refreshedKeys: GremiaBrCacheSourceType[];
   cached: GremiaBrCachedOverview;

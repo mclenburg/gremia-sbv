@@ -103,6 +103,7 @@ export const IPC_CHANNELS = Object.freeze({
   gremiaBrManagedDocumentsList: "gremia-br:managed-documents:list",
   gremiaBrOwnShareCreate: "gremia-br:own-share:create",
   gremiaBrOwnShareRevoke: "gremia-br:own-share:revoke",
+  gremiaBrDocumentAccessRequest: "gremia-br:document:access-request:create",
   gremiaBrOwnTaskTransitionsGet: "gremia-br:own-task:transitions:get",
   gremiaBrOwnTaskTransitionPost: "gremia-br:own-task:transition:post",
   gremiaBrProcedureDetailGet: "gremia-br:procedure:detail:get",

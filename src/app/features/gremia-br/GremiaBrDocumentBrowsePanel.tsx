@@ -7,6 +7,7 @@ import { IndustrialPanel } from '../../shared/components/WorkbenchPanels';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 import { loadRemoteDocumentDetail, openRemoteDocumentVersion, searchRemoteDocuments } from './gremiaBrWorkspaceActions';
 import { GremiaBrDocumentImportSection } from './GremiaBrDocumentImportSection';
+import { GremiaBrDocumentAccessRequestSection } from './GremiaBrDocumentAccessRequestSection';
 
 const PROTECTION_LABELS: Record<string, string> = {
   INTERNAL: 'Intern', CONFIDENTIAL: 'Vertraulich', HIGH: 'Hoch schutzbedürftig', RESTRICTED: 'Streng beschränkt',
@@ -158,6 +159,7 @@ export function GremiaBrDocumentBrowsePanel({ cases }: { cases: CaseRecord[] }) 
       {status ? <p className="industrial-message industrial-message-success" role="status">{status}</p> : null}
       {detail ? <>
         <DocumentDetailSection detail={detail} busy={busy !== null} onOpenVersion={(versionId) => void openVersion(versionId)} />
+        <GremiaBrDocumentAccessRequestSection key={`access-${detail.id}`} documentId={detail.id} title={detail.title} />
         <GremiaBrDocumentImportSection key={detail.id} detail={detail} cases={cases} />
       </> : null}
     </IndustrialPanel>

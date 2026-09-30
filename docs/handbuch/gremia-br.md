@@ -21,6 +21,8 @@ In **Tagesordnung und Remote-Zugang** kannst du eine Sitzung aus dem aktuellen A
 Für eine eigene SBV-Dokumentation kannst du eine BR-Sitzung über **BR-Sitzung übernehmen** als lokale Arbeitskopie anlegen. Du prüfst und ergänzt dort selbst SBV-Relevanz, Position und Bewertung; spätere Änderungen in Gremia.BR ändern diese Arbeitskopie nicht automatisch. Die Sitzungsarbeit in Gremia.SBV wird im [Kapitel Dokumentation](14-dokumentation.md) beschrieben.
 
 Im Bereich **Gremia.BR-Dokumente** startest du eine Suche ausdrücklich mit **Suche starten**. Sie ist auf den gewählten Sicherheitsbereich begrenzt. Wähle einen Treffer und klicke **Details abrufen**, um Schutzklasse, Versionen und vorhandene Freigaben zu sehen. Diese Angaben verschwinden bei der nächsten Aktualisierung oder beim Verlassen des Bereichs.
+
+Beim geöffneten Dokument kannst du unter **Zugriff beantragen** die Zugriffsart, Laufzeit und Begründung wählen. Erst **Antrag stellen** sendet den Antrag. Ein ausstehender Antrag gewährt noch keinen Zugriff; nach einer Entscheidung aktualisierst du Gremia.BR bewusst, um den eigenen Antragsstatus zu sehen.
 Eine verfügbare Version kannst du mit **Version öffnen** in der externen Vorschau öffnen. Sie wird dadurch nicht dauerhaft in Gremia.SBV übernommen.
 Soll eine Version dauerhaft in einer Fallakte liegen, wähle unter **In Fallakte übernehmen** die Version und den Zielfall, prüfe den Hinweis zu Gesundheitsdaten und bestätige **Dokument dauerhaft übernehmen**. Erst dann wird eine lokale, verschlüsselte Kopie erstellt; die Herkunft bleibt am Falldokument erkennbar.
 

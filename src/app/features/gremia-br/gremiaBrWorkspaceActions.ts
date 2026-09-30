@@ -98,6 +98,12 @@ export async function loadRemoteDocumentDetail(documentId: string): Promise<Grem
   return bridge.gremiaBr.getRemoteDocumentDetail(documentId);
 }
 
+export async function requestDocumentAccess(input: import('../../../domain/models/gremia-br.model').GremiaBrDocumentAccessRequestInput): Promise<import('../../../domain/models/gremia-br.model').GremiaBrOwnAccessApproval> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.requestDocumentAccess(input);
+}
+
 export async function openRemoteDocumentVersion(documentId: string, versionId: string): Promise<{ opened: boolean; error?: string }> {
   const bridge = await waitForBridge();
   if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');

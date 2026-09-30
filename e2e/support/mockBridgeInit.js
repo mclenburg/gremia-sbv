@@ -480,6 +480,8 @@
   window.__GREMIA_BR_REMOTE_ACCESS_REQUESTS = () => remoteAccessRequests;
   let remoteDocumentSearches = 0;
   window.__GREMIA_BR_DOCUMENT_SEARCHES = () => remoteDocumentSearches;
+  let documentAccessRequests = 0;
+  window.__GREMIA_BR_DOCUMENT_ACCESS_REQUESTS = () => documentAccessRequests;
   let startupRefreshes = 0;
   window.__GREMIA_BR_STARTUP_REFRESHES = () => startupRefreshes;
   const gremiaBrSampleCache = () => ({
@@ -929,6 +931,11 @@
           versions: [{ id: 'remote-version-1', versionNumber: 1, filename: 'stellungnahme.pdf', mimeType: 'application/pdf', byteSize: 1024, processingState: 'READY' }],
           shares: [{ id: 'share-1', status: 'ACTIVE', targetSecurityDomain: 'br-domain', validUntil: '2026-12-01T00:00:00Z', requirement: 'NONE' }],
         };
+      },
+      requestDocumentAccess: async (input) => {
+        documentAccessRequests += 1;
+        if (input.documentId !== 'remote-doc-1' || !input.purpose.trim()) throw new Error('Antrag ungültig.');
+        return { id: 'approval-1', resourceType: 'documents.document', status: 'PENDING', requestedAt: now };
       },
       openRemoteDocumentVersion: async () => ({ opened: true }),
       importRemoteDocumentVersion: async () => ({ id: 'imported-doc-1', caseId: 'case-1' }),

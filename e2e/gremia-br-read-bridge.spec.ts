@@ -127,6 +127,14 @@ test('sucht Remote-Dokumente bewusst und zeigt Metadaten erst nach Detailaktion'
   await expect(documents).toContainText('Für die BR-Beratung');
   await expect(documents).toContainText('Hoch schutzbedürftig');
   await expect(documents).toContainText('br-domain');
+  expect(await page.evaluate(() => (window as Window & { __GREMIA_BR_DOCUMENT_ACCESS_REQUESTS: () => number }).__GREMIA_BR_DOCUMENT_ACCESS_REQUESTS())).toBe(0);
+  await documents.getByRole('button', { name: 'Zugriff beantragen' }).click();
+  await expect(documents.getByRole('button', { name: 'Antrag stellen' })).toBeDisabled();
+  await documents.getByLabel('Benötigter Zugriff').selectOption('MANAGE');
+  await documents.getByLabel('Begründung für den Zugriff').fill('Für die Beratung erforderlich');
+  await documents.getByRole('button', { name: 'Antrag stellen' }).click();
+  await expect(documents.getByText(/wartet auf eine Entscheidung in Gremia\.BR/)).toBeVisible();
+  expect(await page.evaluate(() => (window as Window & { __GREMIA_BR_DOCUMENT_ACCESS_REQUESTS: () => number }).__GREMIA_BR_DOCUMENT_ACCESS_REQUESTS())).toBe(1);
   await documents.getByRole('button', { name: 'Version 1 öffnen' }).click();
   await expect(documents.getByText('Die Dokumentvorschau wurde angefordert.')).toBeVisible();
   expect(await page.evaluate(() => (window as Window & { __GREMIA_BR_DOCUMENT_SEARCHES: () => number }).__GREMIA_BR_DOCUMENT_SEARCHES())).toBe(1);
