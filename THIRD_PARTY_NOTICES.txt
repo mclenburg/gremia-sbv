@@ -1824,7 +1824,7 @@ Copyright notices:
 - The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 License text: LICENSES/MIT.txt
 
-brace-expansion@1.1.18
+brace-expansion@1.1.21
 License: MIT
 Repository: git://github.com/juliangruber/brace-expansion.git
 Homepage: https://github.com/juliangruber/brace-expansion
@@ -1834,7 +1834,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-brace-expansion@2.1.4
+brace-expansion@2.1.7
 License: MIT
 Repository: git://github.com/juliangruber/brace-expansion.git
 Homepage: https://github.com/juliangruber/brace-expansion
@@ -1844,7 +1844,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-brace-expansion@5.0.9
+brace-expansion@5.0.12
 License: MIT
 Repository: git+https://github.com/juliangruber/brace-expansion.git
 Copyright notices:
@@ -2783,7 +2783,7 @@ Copyright notices:
 - NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
 License text: LICENSES/MIT.txt
 
-fast-uri@3.1.7
+fast-uri@3.1.8
 License: BSD-3-Clause
 Repository: git+https://github.com/fastify/fast-uri.git
 Homepage: https://github.com/fastify/fast-uri
@@ -5075,7 +5075,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-undici@6.28.0
+undici@6.29.0
 License: MIT
 Repository: git+https://github.com/nodejs/undici.git
 Homepage: https://undici.nodejs.org
@@ -5085,7 +5085,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-undici@7.29.0
+undici@7.30.0
 License: MIT
 Repository: git+https://github.com/nodejs/undici.git
 Homepage: https://undici.nodejs.org
