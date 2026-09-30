@@ -107,6 +107,8 @@ test('sucht Remote-Dokumente bewusst und zeigt Metadaten erst nach Detailaktion'
   await expect(documents).toContainText('Für die BR-Beratung');
   await expect(documents).toContainText('Hoch schutzbedürftig');
   await expect(documents).toContainText('br-domain');
+  await documents.getByRole('button', { name: 'Version 1 öffnen' }).click();
+  await expect(documents.getByText('Die Dokumentvorschau wurde angefordert.')).toBeVisible();
   expect(await page.evaluate(() => (window as Window & { __GREMIA_BR_DOCUMENT_SEARCHES: () => number }).__GREMIA_BR_DOCUMENT_SEARCHES())).toBe(1);
   await page.getByRole('button', { name: 'Gremia.BR aktualisieren' }).click();
   await expect(documents).not.toContainText('Für die BR-Beratung');

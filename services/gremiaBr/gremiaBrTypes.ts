@@ -42,6 +42,7 @@ export interface GremiaBrRequestOptions {
   formData?: FormData;
   sessionCookie?: string;
   timeoutMs?: number;
+  responseType?: 'bytes';
 }
 
 export interface GremiaBrReadContext {

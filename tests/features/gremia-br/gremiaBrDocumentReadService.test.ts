@@ -55,4 +55,30 @@ describe('Gremia.BR-Dokumentarbeitsbereich', () => {
     await expect(new GremiaBrDocumentReadService(auth(vi.fn(), post) as never).search('  ')).rejects.toThrow('Suchbegriff');
     expect(post).not.toHaveBeenCalled();
   });
+
+  it('prüft Version, Dateityp und Digest vor der temporären Vorschau', async () => {
+    const { createHash } = await import('node:crypto');
+    const bytes = new TextEncoder().encode('%PDF-1.4\nTest');
+    const digest = createHash('sha256').update(bytes).digest('hex');
+    const get = vi.fn(async (path: string) => path.endsWith('/versions') ? [{
+      id: 'version-1', documentId: 'doc-1', processingState: 'READY',
+      metadata: { filename: 'fall.pdf', mimeType: 'application/pdf', plaintextDigest: digest },
+    }] : bytes);
+    const service = new GremiaBrDocumentReadService(auth(get) as never);
+
+    const result = await service.readVersionForPreview('doc-1', 'version-1');
+
+    expect(result.filename).toBe('fall.pdf');
+    expect(result.content).toEqual(Buffer.from(bytes));
+    expect(get).toHaveBeenCalledWith('/api/v1/documents/versions/version-1/content', { responseType: 'bytes' });
+  });
+
+  it('verweigert veränderte Bytes ohne sie zur Vorschau weiterzugeben', async () => {
+    const get = vi.fn(async (path: string) => path.endsWith('/versions') ? [{
+      id: 'version-1', documentId: 'doc-1', processingState: 'READY',
+      metadata: { filename: 'fall.pdf', mimeType: 'application/pdf', plaintextDigest: '0'.repeat(64) },
+    }] : new TextEncoder().encode('%PDF-1.4\nAndere Bytes'));
+    await expect(new GremiaBrDocumentReadService(auth(get) as never)
+      .readVersionForPreview('doc-1', 'version-1')).rejects.toThrow('Integrität');
+  });
 });

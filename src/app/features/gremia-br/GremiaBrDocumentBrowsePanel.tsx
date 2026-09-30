@@ -4,7 +4,7 @@ import { ToolbarButton } from '../../shared/components/IndustrialButton';
 import { SearchableSelectInput, TextInput } from '../../shared/components/IndustrialForm';
 import { IndustrialPanel } from '../../shared/components/WorkbenchPanels';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
-import { loadRemoteDocumentDetail, searchRemoteDocuments } from './gremiaBrWorkspaceActions';
+import { loadRemoteDocumentDetail, openRemoteDocumentVersion, searchRemoteDocuments } from './gremiaBrWorkspaceActions';
 
 const PROTECTION_LABELS: Record<string, string> = {
   INTERNAL: 'Intern', CONFIDENTIAL: 'Vertraulich', HIGH: 'Hoch schutzbedürftig', RESTRICTED: 'Streng beschränkt',
@@ -16,14 +16,43 @@ const SHARE_STATUS_LABELS: Record<string, string> = {
   REQUESTED: 'Angefragt', ACTIVE: 'Aktiv', EXPIRED: 'Abgelaufen', REVOKED: 'Widerrufen',
 };
 
+function DocumentDetailSection({ detail, busy, onOpenVersion }: {
+  detail: GremiaBrDocumentDetail;
+  busy: boolean;
+  onOpenVersion: (versionId: string) => void;
+}) {
+  return (
+    <div className="industrial-form-section">
+      <h3>{detail.title}</h3>
+      {detail.description ? <p>{detail.description}</p> : null}
+      <dl className="industrial-meta-grid">
+        <div><dt>Status</dt><dd>{DOCUMENT_STATUS_LABELS[detail.status] ?? detail.status}</dd></div>
+        <div><dt>Schutzklasse</dt><dd>{PROTECTION_LABELS[detail.protectionClass] ?? detail.protectionClass}</dd></div>
+        <div><dt>Versionen</dt><dd>{detail.versions.length}</dd></div>
+      </dl>
+      <h4>Versionen</h4>
+      {detail.versions.length ? <ul>{detail.versions.map((version) => (
+        <li key={version.id}>Version {version.versionNumber}: {version.filename || 'Dateiname nicht freigegeben'} ({version.mimeType || 'Dateityp unbekannt'}){' '}
+          {version.processingState === 'READY' ? <ToolbarButton disabled={busy} onClick={() => onOpenVersion(version.id)}>Version {version.versionNumber} öffnen</ToolbarButton> : null}
+        </li>
+      ))}</ul> : <p className="industrial-muted">Keine Versionen verfügbar.</p>}
+      <h4>Freigaben</h4>
+      {detail.shares.length ? <ul>{detail.shares.map((share) => (
+        <li key={share.id}>{share.targetSecurityDomain}: {SHARE_STATUS_LABELS[share.status] ?? share.status}, gültig bis {new Date(share.validUntil).toLocaleDateString('de-DE')}</li>
+      ))}</ul> : <p className="industrial-muted">Keine Freigaben vorhanden.</p>}
+    </div>
+  );
+}
+
 export function GremiaBrDocumentBrowsePanel() {
   const announce = useAnnouncer();
   const [query, setQuery] = useState('');
   const [hits, setHits] = useState<GremiaBrDocumentHit[] | null>(null);
   const [selectedId, setSelectedId] = useState('');
   const [detail, setDetail] = useState<GremiaBrDocumentDetail | null>(null);
-  const [busy, setBusy] = useState<'search' | 'detail' | null>(null);
+  const [busy, setBusy] = useState<'search' | 'detail' | 'preview' | null>(null);
   const [error, setError] = useState('');
+  const [status, setStatus] = useState('');
   const sequence = useRef(0);
   useEffect(() => () => { sequence.current += 1; }, []);
 
@@ -32,6 +61,7 @@ export function GremiaBrDocumentBrowsePanel() {
     const request = ++sequence.current;
     setBusy('search');
     setError('');
+    setStatus('');
     setHits(null);
     setSelectedId('');
     setDetail(null);
@@ -57,6 +87,7 @@ export function GremiaBrDocumentBrowsePanel() {
     const request = ++sequence.current;
     setBusy('detail');
     setError('');
+    setStatus('');
     setDetail(null);
     try {
       const result = await loadRemoteDocumentDetail(selectedId);
@@ -67,6 +98,30 @@ export function GremiaBrDocumentBrowsePanel() {
     } catch (cause) {
       if (sequence.current === request) {
         const message = cause instanceof Error ? cause.message : 'Dokumentdetails konnten nicht geladen werden. Bitte erneut versuchen.';
+        setError(message);
+        announce(message, 'assertive');
+      }
+    } finally {
+      if (sequence.current === request) setBusy(null);
+    }
+  }
+
+  async function openVersion(versionId: string) {
+    if (!detail || busy || !detail.versions.some((version) => version.id === versionId)) return;
+    const request = ++sequence.current;
+    setBusy('preview');
+    setError('');
+    setStatus('');
+    try {
+      const result = await openRemoteDocumentVersion(detail.id, versionId);
+      if (sequence.current === request) {
+        if (!result.opened) throw new Error(result.error || 'Die Vorschau konnte nicht geöffnet werden.');
+        setStatus('Die Dokumentvorschau wurde angefordert.');
+        announce('Die Dokumentvorschau wurde angefordert.', 'polite');
+      }
+    } catch (cause) {
+      if (sequence.current === request) {
+        const message = cause instanceof Error ? cause.message : 'Die Dokumentversion konnte nicht geöffnet werden.';
         setError(message);
         announce(message, 'assertive');
       }
@@ -90,7 +145,7 @@ export function GremiaBrDocumentBrowsePanel() {
               label="Gefundenes Dokument auswählen"
               value={selectedId}
               options={hits.map((hit) => ({ value: hit.documentId, label: hit.title }))}
-              onValueChange={(value) => { sequence.current += 1; setSelectedId(value); setDetail(null); setBusy(null); }}
+              onValueChange={(value) => { sequence.current += 1; setSelectedId(value); setDetail(null); setStatus(''); setBusy(null); }}
               placeholder="Dokumenttitel tippen …"
             />
             <ToolbarButton loading={busy === 'detail'} disabled={busy !== null || !selectedId} onClick={() => void loadDetail()}>Details abrufen</ToolbarButton>
@@ -98,25 +153,8 @@ export function GremiaBrDocumentBrowsePanel() {
         ) : <p className="industrial-muted">Keine Dokumente gefunden.</p>
       ) : null}
       {error ? <p className="industrial-message industrial-message-warning" role="alert">{error}</p> : null}
-      {detail ? (
-        <div className="industrial-form-section">
-          <h3>{detail.title}</h3>
-          {detail.description ? <p>{detail.description}</p> : null}
-          <dl className="industrial-meta-grid">
-            <div><dt>Status</dt><dd>{DOCUMENT_STATUS_LABELS[detail.status] ?? detail.status}</dd></div>
-            <div><dt>Schutzklasse</dt><dd>{PROTECTION_LABELS[detail.protectionClass] ?? detail.protectionClass}</dd></div>
-            <div><dt>Versionen</dt><dd>{detail.versions.length}</dd></div>
-          </dl>
-          <h4>Versionen</h4>
-          {detail.versions.length ? <ul>{detail.versions.map((version) => (
-            <li key={version.id}>Version {version.versionNumber}: {version.filename || 'Dateiname nicht freigegeben'} ({version.mimeType || 'Dateityp unbekannt'})</li>
-          ))}</ul> : <p className="industrial-muted">Keine Versionen verfügbar.</p>}
-          <h4>Freigaben</h4>
-          {detail.shares.length ? <ul>{detail.shares.map((share) => (
-            <li key={share.id}>{share.targetSecurityDomain}: {SHARE_STATUS_LABELS[share.status] ?? share.status}, gültig bis {new Date(share.validUntil).toLocaleDateString('de-DE')}</li>
-          ))}</ul> : <p className="industrial-muted">Keine Freigaben vorhanden.</p>}
-        </div>
-      ) : null}
+      {status ? <p className="industrial-message industrial-message-success" role="status">{status}</p> : null}
+      {detail ? <DocumentDetailSection detail={detail} busy={busy !== null} onOpenVersion={(versionId) => void openVersion(versionId)} /> : null}
     </IndustrialPanel>
   );
 }

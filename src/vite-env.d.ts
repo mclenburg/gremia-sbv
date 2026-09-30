@@ -536,6 +536,7 @@ declare global {
         getMeetingAgendaChanges(meetingId: string): Promise<GremiaBrAgendaChanges>;
         searchRemoteDocuments(query: string): Promise<GremiaBrDocumentHit[]>;
         getRemoteDocumentDetail(documentId: string): Promise<GremiaBrDocumentDetail>;
+        openRemoteDocumentVersion(documentId: string, versionId: string): Promise<{ opened: boolean; error?: string }>;
         getOwnTaskTransitions(id: string): Promise<GremiaBrTaskTransitionOptions>;
         transitionOwnTask(input: GremiaBrTaskTransitionInput): Promise<GremiaBrOwnTaskDetail>;
         getProcedureDetail(id: string): Promise<GremiaBrProcedureDetail>;

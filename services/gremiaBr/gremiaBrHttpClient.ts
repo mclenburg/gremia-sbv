@@ -10,6 +10,7 @@ export type GremiaBrAuditSink = { append(input: CreatePersonalDataAuditInput): u
 
 const DEFAULT_TIMEOUT_MS = 8_000;
 export const MAX_GREMIA_BR_RESPONSE_BYTES = 5 * 1024 * 1024;
+export const MAX_GREMIA_BR_BINARY_BYTES = 25 * 1024 * 1024;
 
 function appendQuery(url: URL, query?: GremiaBrRequestOptions['query']): void {
   if (!query) return;
@@ -36,10 +37,11 @@ function endpointAuditAction(method: string, path: string): 'read' | 'export' | 
   return 'export';
 }
 
-async function readResponsePayload(response: Response): Promise<unknown> {
+async function readResponsePayload(response: Response, asBytes = false): Promise<unknown> {
   if (response.status === 204) return null;
+  const maxBytes = asBytes ? MAX_GREMIA_BR_BINARY_BYTES : MAX_GREMIA_BR_RESPONSE_BYTES;
   const declaredLength = Number(response.headers.get('content-length') ?? '0');
-  if (Number.isFinite(declaredLength) && declaredLength > MAX_GREMIA_BR_RESPONSE_BYTES) {
+  if (Number.isFinite(declaredLength) && declaredLength > maxBytes) {
     throw new Error('Gremia.BR-Antwort überschreitet die zulässige Größe.');
   }
 
@@ -52,7 +54,7 @@ async function readResponsePayload(response: Response): Promise<unknown> {
     if (done) break;
     if (!value) continue;
     total += value.byteLength;
-    if (total > MAX_GREMIA_BR_RESPONSE_BYTES) {
+    if (total > maxBytes) {
       await reader.cancel();
       throw new Error('Gremia.BR-Antwort überschreitet die zulässige Größe.');
     }
@@ -61,6 +63,7 @@ async function readResponsePayload(response: Response): Promise<unknown> {
   const bytes = new Uint8Array(total);
   let offset = 0;
   for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
+  if (asBytes) return bytes;
   const text = new TextDecoder('utf-8', { fatal: false }).decode(bytes);
   const contentType = response.headers.get('content-type') ?? '';
   if (contentType.includes('application/json')) return text ? JSON.parse(text) : null;
@@ -117,7 +120,7 @@ export class GremiaBrHttpClient {
     let result: { payload: T; headers: Headers };
     let responseStatus: number | undefined;
     try {
-      const headers: Record<string, string> = { Accept: 'application/json' };
+      const headers: Record<string, string> = { Accept: options.responseType === 'bytes' ? 'application/octet-stream' : 'application/json' };
       let body: BodyInit | undefined;
       if (options.formData) {
         body = options.formData;
@@ -142,7 +145,7 @@ export class GremiaBrHttpClient {
       if (!response.ok) {
         throw new GremiaBrHttpError(`Gremia.BR-Anfrage fehlgeschlagen (${response.status}).`, response.status, endpoint);
       }
-      const payload = await readResponsePayload(response) as T;
+      const payload = await readResponsePayload(response, options.responseType === 'bytes') as T;
       result = { payload, headers: response.headers };
     } catch (error) {
       if ((error as Error).name === 'AbortError') {

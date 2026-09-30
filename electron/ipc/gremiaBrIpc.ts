@@ -135,5 +135,5 @@ export function registerGremiaBrIpc(ipcMain: IpcMain, security: SecurityService,
   });
 
   registerGremiaBrReferenceIpc(ipcMain, services);
-  registerGremiaBrDocumentReadIpc(ipcMain, auth);
+  registerGremiaBrDocumentReadIpc(ipcMain, auth, security);
 }

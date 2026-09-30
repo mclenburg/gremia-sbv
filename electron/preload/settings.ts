@@ -46,6 +46,8 @@ export function createSettingsApi(invokeIpc: IpcInvoker) {
         invokeIpc(IPC_CHANNELS.gremiaBrRemoteDocumentsSearch, query),
       getRemoteDocumentDetail: (documentId: string): Promise<GremiaBrDocumentDetail> =>
         invokeIpc(IPC_CHANNELS.gremiaBrRemoteDocumentDetailGet, documentId),
+      openRemoteDocumentVersion: (documentId: string, versionId: string): Promise<{ opened: boolean; error?: string }> =>
+        invokeIpc(IPC_CHANNELS.gremiaBrRemoteDocumentVersionOpen, { documentId, versionId }),
       getOwnTaskTransitions: (id: string): Promise<GremiaBrTaskTransitionOptions> =>
         invokeIpc(IPC_CHANNELS.gremiaBrOwnTaskTransitionsGet, id),
       transitionOwnTask: (input: GremiaBrTaskTransitionInput): Promise<GremiaBrOwnTaskDetail> =>

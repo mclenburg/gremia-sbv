@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import type { GremiaBrAuthService } from './gremiaBrAuthService.js';
 import type { GremiaBrDocumentDetail, GremiaBrDocumentHit } from '../../src/domain/models/gremia-br.model.js';
 import { ApplicationError } from '../../src/domain/models/application-error.model.js';
@@ -86,5 +87,40 @@ export class GremiaBrDocumentReadService {
       ...(text(detail.currentVersionId) ? { currentVersionId: text(detail.currentVersionId) } : {}),
       versions, shares,
     };
+  }
+
+  async readVersionForPreview(documentId: string, versionId: string): Promise<{ filename: string; content: Buffer }> {
+    const id = text(documentId);
+    const selectedVersionId = text(versionId);
+    if (!id || !selectedVersionId) throw new ApplicationError('VALIDATION_FAILED', 'Bitte eine Dokumentversion auswählen.');
+    let rawVersions: unknown;
+    try {
+      rawVersions = await this.auth.get<unknown>(`/api/v1/documents/${encodeURIComponent(id)}/versions`);
+    } catch { throw readFailed(); }
+    if (!Array.isArray(rawVersions)) throw readFailed();
+    const version = rawVersions.map(gremiaBrRecord).find((item) => item?.id === selectedVersionId && item.documentId === id);
+    const metadata = gremiaBrRecord(version?.metadata);
+    const filename = text(metadata?.filename);
+    const mimeType = text(metadata?.mimeType);
+    const digest = text(metadata?.plaintextDigest).toLowerCase();
+    if (!version || version.processingState !== 'READY' || !filename || !['application/pdf', 'image/png', 'image/jpeg', 'text/plain'].includes(mimeType)
+      || !/^[0-9a-f]{64}$/.test(digest)) {
+      throw new ApplicationError('REMOTE_READ_FAILED', 'Diese Dokumentversion ist für eine sichere Vorschau nicht verfügbar. Bitte eine andere Version wählen.');
+    }
+    let payload: unknown;
+    try {
+      payload = await this.auth.get<Uint8Array>(`/api/v1/documents/versions/${encodeURIComponent(selectedVersionId)}/content`, { responseType: 'bytes' });
+    } catch { throw readFailed(); }
+    if (!(payload instanceof Uint8Array)) throw readFailed();
+    const content = Buffer.from(payload);
+    if (createHash('sha256').update(content).digest('hex') !== digest) {
+      content.fill(0);
+      throw new ApplicationError('REMOTE_READ_FAILED', 'Die Integrität der Dokumentversion konnte nicht bestätigt werden. Die Vorschau wurde nicht geöffnet.');
+    }
+    if (mimeType === 'application/pdf' && content.subarray(0, 5).toString('ascii') !== '%PDF-') {
+      content.fill(0);
+      throw new ApplicationError('REMOTE_READ_FAILED', 'Die Dokumentversion entspricht nicht dem angegebenen Dateityp. Die Vorschau wurde nicht geöffnet.');
+    }
+    return { filename, content };
   }
 }

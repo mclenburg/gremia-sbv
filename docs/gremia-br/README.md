@@ -25,6 +25,8 @@ Bei hybriden Sitzungen wird der Remote-Zugang ausschließlich über `GET /api/v1
 
 Die Dokumentensuche sendet den Suchbegriff ausschließlich auf Klick an `/api/v1/documents/search`, eingegrenzt auf die ausdrücklich gewählte Organisation und Sicherheitsdomäne. Treffer übernehmen keine Textausschnitte oder Digests. Für ein ausgewähltes Dokument werden Detail, Versionen und Freigaben erst auf eine weitere Aktion geladen; diese Daten bleiben im flüchtigen UI-Zustand und werden beim Gesamt-Refresh verworfen.
 
+Eine ausgewählte, bereite Dokumentversion wird erst auf **Version öffnen** binär abgerufen. Der HTTP-Client begrenzt die Antwort, der Main-Prozess gleicht die Version mit dem Dokument ab und prüft SHA-256 sowie bei PDF den Dateianfang. Danach nutzt er die zentrale geschützte temporäre Vorschau und gibt weder Bytes noch Dateipfade an den Renderer zurück. Die temporäre Datei wird beim nächsten Vorschauauftrag oder Sperren bereinigt; bei fehlgeschlagenem Öffnen sofort.
+
 ## Schreibende Arbeitsabläufe
 
 Eine neue eigene Aufgabe oder Informationsanforderung wird nur im Kontext eines verknüpften Verfahrens und durch eine ausdrückliche Aktion erstellt. Die Aufgabe bleibt in Gremia.BR. Für den Abschluss einer Informationsanforderung wird der aktuelle Stand im Rahmen derselben Nutzeraktion nochmals gelesen und mit der angezeigten Version verglichen.

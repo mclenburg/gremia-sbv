@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { checkGremiaBrEndpoint, validateGremiaBrBaseUrl } from '../../../services/gremiaBr/gremiaBrPolicy';
-import { GremiaBrHttpClient, MAX_GREMIA_BR_RESPONSE_BYTES, type GremiaBrFetch } from '../../../services/gremiaBr/gremiaBrHttpClient';
+import { GremiaBrHttpClient, MAX_GREMIA_BR_BINARY_BYTES, MAX_GREMIA_BR_RESPONSE_BYTES, type GremiaBrFetch } from '../../../services/gremiaBr/gremiaBrHttpClient';
 import type { CreatePersonalDataAuditInput } from '../../../src/domain/models/audit.model';
 
 const audit = { append: () => undefined };
@@ -108,6 +108,26 @@ describe('Gremia.BR Lesebrücke Security-Härtung 0.9.2-F', () => {
     const oversizedStream: GremiaBrFetch = async () => new Response(body, { status: 200, headers: { 'content-type': 'text/plain' } });
     const streamingClient = new GremiaBrHttpClient('https://br.example.local', oversizedStream, audit);
     await expect(streamingClient.request('GET', '/api/v1/me/bodies', 'token')).rejects.toThrow(/zulässige Größe/i);
+  });
+
+  it('liest Dokumentbytes begrenzt und auditiert nur das Endpunkt-Template', async () => {
+    const entries: CreatePersonalDataAuditInput[] = [];
+    const bytes = new TextEncoder().encode('%PDF-1.4\nVertraulich');
+    const fetchImpl: GremiaBrFetch = async (_url, init) => {
+      expect((init?.headers as Record<string, string>).Accept).toBe('application/octet-stream');
+      return new Response(bytes, { status: 200, headers: { 'content-type': 'application/pdf' } });
+    };
+    const client = new GremiaBrHttpClient('https://br.example.local', fetchImpl, { append: (entry) => entries.push(entry) });
+
+    expect(await client.request<Uint8Array>('GET', '/api/v1/documents/versions/version-1/content', 'token', { responseType: 'bytes' })).toEqual(bytes);
+    expect(JSON.stringify(entries)).not.toContain('Vertraulich');
+    expect(JSON.stringify(entries)).not.toContain('version-1');
+
+    const oversized = new GremiaBrHttpClient('https://br.example.local', async () => new Response('x', {
+      headers: { 'content-length': String(MAX_GREMIA_BR_BINARY_BYTES + 1) },
+    }), audit);
+    await expect(oversized.request('GET', '/api/v1/documents/versions/version-1/content', 'token', { responseType: 'bytes' }))
+      .rejects.toThrow('zulässige Größe');
   });
 
 });
