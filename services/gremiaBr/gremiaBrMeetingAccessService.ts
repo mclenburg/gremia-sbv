@@ -2,9 +2,112 @@ import type { GremiaBrAuthService } from './gremiaBrAuthService.js';
 import { GremiaBrHttpError } from './gremiaBrHttpClient.js';
 import { ApplicationError } from '../../src/domain/models/application-error.model.js';
 import type { GremiaBrCachedOverview } from '../../src/domain/models/gremia-br.model.js';
+import type { GremiaBrAgendaChanges } from '../../src/domain/models/gremia-br.model.js';
+
+interface AgendaItem {
+  itemKey: string;
+  ordinal: number;
+  title: string | null;
+  description: string | null;
+  type: string;
+  expectsDecision: boolean;
+  timeAllocationMinutes: number | null;
+}
+
+interface AgendaVersion {
+  versionNumber: number;
+  sealed: boolean;
+  items: AgendaItem[];
+}
+
+function agendaVersion(value: unknown): AgendaVersion | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const record = value as Record<string, unknown>;
+  if (!Number.isInteger(record.versionNumber) || typeof record.sealed !== 'boolean' || !Array.isArray(record.items)) return null;
+  const items: AgendaItem[] = [];
+  const keys = new Set<string>();
+  for (const candidate of record.items) {
+    if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate)) return null;
+    const item = candidate as Record<string, unknown>;
+    if (typeof item.itemKey !== 'string' || !item.itemKey || keys.has(item.itemKey)
+      || !Number.isInteger(item.ordinal) || typeof item.type !== 'string'
+      || typeof item.expectsDecision !== 'boolean'
+      || !(item.title == null || typeof item.title === 'string')
+      || !(item.description == null || typeof item.description === 'string')
+      || !(item.timeAllocationMinutes == null || typeof item.timeAllocationMinutes === 'number')) return null;
+    keys.add(item.itemKey);
+    items.push({
+      itemKey: item.itemKey,
+      ordinal: item.ordinal as number,
+      title: item.title as string | null ?? null,
+      description: item.description as string | null ?? null,
+      type: item.type,
+      expectsDecision: item.expectsDecision,
+      timeAllocationMinutes: item.timeAllocationMinutes as number | null ?? null,
+    });
+  }
+  return { versionNumber: record.versionNumber as number, sealed: record.sealed, items };
+}
+
+function agendaTitle(item: AgendaItem): string {
+  return item.title?.trim() || 'Titel nicht freigegeben';
+}
+
+function agendaItemChanged(before: AgendaItem, current: AgendaItem): boolean {
+  return before.ordinal !== current.ordinal || before.title !== current.title
+    || before.description !== current.description || before.type !== current.type
+    || before.expectsDecision !== current.expectsDecision
+    || before.timeAllocationMinutes !== current.timeAllocationMinutes;
+}
 
 export class GremiaBrMeetingAccessService {
   constructor(private readonly auth: Pick<GremiaBrAuthService, 'get' | 'getReadContext'>) {}
+
+  async getAgendaChanges(meetingId: string, overview: GremiaBrCachedOverview): Promise<GremiaBrAgendaChanges> {
+    const context = this.auth.getReadContext();
+    const meetings = [overview.currentMeeting, overview.nextMeeting, ...overview.upcomingMeetings];
+    const eligible = meetings.some((value) => {
+      if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+      const meeting = value as Record<string, unknown>;
+      return meeting.id === meetingId && meeting.bodyId === context.selectedBodyId;
+    });
+    if (!eligible) throw new ApplicationError('NOT_FOUND', 'Die Sitzung gehört nicht zum aktuellen Arbeitsstand. Bitte Gremia.BR aktualisieren.');
+
+    let currentPayload: unknown;
+    let versionsPayload: unknown;
+    try {
+      currentPayload = await this.auth.get<unknown>(`/api/v1/meetings/${encodeURIComponent(meetingId)}/agenda`);
+      versionsPayload = await this.auth.get<unknown>(`/api/v1/meetings/${encodeURIComponent(meetingId)}/agenda/versions`);
+    } catch (error) {
+      if (error instanceof GremiaBrHttpError && error.status === 403) {
+        throw new ApplicationError('PERMISSION_DENIED', 'Gremia.BR erlaubt den Zugriff auf diese Tagesordnung nicht. Bitte die Berechtigung dort prüfen.');
+      }
+      throw new ApplicationError('REMOTE_READ_FAILED', 'Tagesordnung und Änderungen konnten nicht geladen werden. Bitte erneut abrufen.');
+    }
+    const current = agendaVersion(currentPayload);
+    const versions = Array.isArray(versionsPayload) ? versionsPayload.map(agendaVersion) : null;
+    if (!current || !versions || versions.some((version) => !version)) {
+      throw new ApplicationError('REMOTE_READ_FAILED', 'Gremia.BR hat unvollständige Tagesordnungsdaten geliefert. Bitte erneut abrufen.');
+    }
+    const baseline = (versions as AgendaVersion[]).filter((version) => version.sealed)
+      .sort((left, right) => left.versionNumber - right.versionNumber)[0];
+    const items = [...current.items].sort((left, right) => left.ordinal - right.ordinal)
+      .map((item) => ({ title: agendaTitle(item) }));
+    if (!baseline) return { items, comparisonAvailable: false, changes: [] };
+
+    const previousByKey = new Map(baseline.items.map((item) => [item.itemKey, item]));
+    const currentByKey = new Map(current.items.map((item) => [item.itemKey, item]));
+    const changes: GremiaBrAgendaChanges['changes'] = [];
+    for (const item of current.items) {
+      const previous = previousByKey.get(item.itemKey);
+      if (!previous) changes.push({ kind: 'added', title: agendaTitle(item) });
+      else if (agendaItemChanged(previous, item)) changes.push({ kind: 'changed', title: agendaTitle(item), previousTitle: agendaTitle(previous) });
+    }
+    for (const item of baseline.items) {
+      if (!currentByKey.has(item.itemKey)) changes.push({ kind: 'removed', title: agendaTitle(item) });
+    }
+    return { items, comparisonAvailable: true, changes };
+  }
 
   async getAccess(meetingId: string, overview: GremiaBrCachedOverview): Promise<string> {
     const context = this.auth.getReadContext();

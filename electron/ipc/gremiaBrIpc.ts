@@ -99,6 +99,12 @@ export function registerGremiaBrIpc(ipcMain: IpcMain, security: SecurityService,
     return new GremiaBrMeetingAccessService(auth).getAccess(id, cache.getOverview());
   });
 
+  registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrMeetingAgendaChangesGet, async (_event, rawId: unknown) => {
+    const channel = 'gremia-br:meeting:agenda-changes:get';
+    const id = assertString(rawId, channel, 'Sitzungs-ID', { minLength: 1, maxLength: 120 });
+    return new GremiaBrMeetingAccessService(auth).getAgendaChanges(id, cache.getOverview());
+  });
+
   registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrOwnTaskTransitionsGet, async (_event, rawId: unknown) => {
     const id = ownTaskId(rawId, 'gremia-br:own-task:transitions:get');
     return new GremiaBrTaskService(auth).getTransitionOptions(id);

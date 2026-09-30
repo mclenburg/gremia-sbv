@@ -66,9 +66,11 @@ test('zeigt Remote-Zugang erst nach bewusster Sitzungsaktion und entfernt ihn be
   await expect(meeting).toBeVisible();
   await expect(meeting).not.toContainText('PIN: 123456');
   await page.getByRole('button', { name: 'Gremia.BR aktualisieren' }).click();
-  await meeting.getByLabel('Hybride Sitzung suchen und auswählen').fill('2026-05-29T09:00:00.000Z · BR-Sitzung Mai');
+  await meeting.getByLabel('Sitzung suchen und auswählen').fill('2026-05-29T09:00:00.000Z · BR-Sitzung Mai');
+  await expect(meeting).not.toContainText('TOP 1: Arbeitsplatzausstattung');
+  await meeting.getByRole('button', { name: 'Tagesordnung abrufen' }).click();
   await expect(meeting).toContainText('TOP 1: Arbeitsplatzausstattung');
-  await expect(meeting).not.toContainText('Präsenzsitzung');
+  await expect(meeting).toContainText('Hinzugefügt: TOP 2: Mobiles Arbeiten');
   await expect(meeting).not.toContainText('PIN: 123456');
   expect(await page.evaluate(() => (window as Window & { __GREMIA_BR_REMOTE_ACCESS_REQUESTS: () => number }).__GREMIA_BR_REMOTE_ACCESS_REQUESTS())).toBe(0);
 
@@ -77,4 +79,5 @@ test('zeigt Remote-Zugang erst nach bewusster Sitzungsaktion und entfernt ihn be
   expect(await page.evaluate(() => (window as Window & { __GREMIA_BR_REMOTE_ACCESS_REQUESTS: () => number }).__GREMIA_BR_REMOTE_ACCESS_REQUESTS())).toBe(1);
   await page.getByRole('button', { name: 'Gremia.BR aktualisieren' }).click();
   await expect(meeting).not.toContainText('PIN: 123456');
+  await expect(meeting).not.toContainText('TOP 1: Arbeitsplatzausstattung');
 });

@@ -1,5 +1,11 @@
 export type GremiaBrApiMode = 'legacy_read_bridge' | 'gremia_br_v2';
 
+export interface GremiaBrAgendaChanges {
+  items: Array<{ title: string }>;
+  comparisonAvailable: boolean;
+  changes: Array<{ kind: 'added' | 'changed' | 'removed'; title: string; previousTitle?: string }>;
+}
+
 export interface GremiaBrSettingsInput {
   enabled: boolean;
   serverUrl: string;

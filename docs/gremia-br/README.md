@@ -19,7 +19,9 @@ Eigene Aufgabendetails und die vom Server angebotenen Statusübergänge werden j
 
 Für verknüpfte Verfahren werden Remote-Sachverhalte aus dem berechtigten Arbeitsstand ausgewählt. Die lokale Referenz enthält keinen Verfahrensvolltext. Verfahrensdetails und Informationsanforderungen werden erst nach ausdrücklicher Auswahl abgerufen und bleiben flüchtig. Die lokale Verknüpfung wird in Migration 0060 eingeführt.
 
-Bei hybriden Sitzungen wird der Remote-Zugang ausschließlich über `GET /api/v1/meetings/{meetingId}/remote-access` auf einen eigenen Klick geladen. Der Main-Prozess akzeptiert nur eine hybride Sitzung mit vorhandenem Zugang aus dem aktuellen Arbeitsstand des ausgewählten Gremiums; Gremia.BR entscheidet über die tatsächliche Berechtigung. Der Zugang erscheint zusammen mit der zuletzt geladenen Tagesordnung und wird weder im Snapshot noch in der Datenbank gespeichert. Auswahlwechsel, Refresh und Verlassen der Ansicht entfernen ihn aus dem UI-Zustand. Fehlertexte dieses Abrufs werden vor der IPC-Übertragung bereinigt.
+Die Tagesordnung einer Sitzung aus dem ausgewählten Gremium wird über `GET /api/v1/meetings/{meetingId}/agenda` und `/agenda/versions` erst auf eine eigene Aktion geladen. `itemKey` verbindet TOPs über Versionen hinweg. Die erste versandte (`sealed`) Fassung ist der Vergleichsstand; ohne solche Fassung zeigt die Oberfläche keinen behaupteten Änderungsstatus. Hinzugefügte, geänderte und entfernte TOPs werden rein informativ dargestellt, ohne rechtliche Bewertung.
+
+Bei hybriden Sitzungen wird der Remote-Zugang ausschließlich über `GET /api/v1/meetings/{meetingId}/remote-access` auf einen eigenen Klick geladen. Der Main-Prozess akzeptiert nur eine hybride Sitzung mit vorhandenem Zugang aus dem aktuellen Arbeitsstand des ausgewählten Gremiums; Gremia.BR entscheidet über die tatsächliche Berechtigung. Der Zugang erscheint in derselben Sitzungsansicht und wird weder im Snapshot noch in der Datenbank gespeichert. Auswahlwechsel, Refresh und Verlassen der Ansicht entfernen ihn und die gezielt geladene Agenda aus dem UI-Zustand. Fehlertexte dieser Abrufe werden vor der IPC-Übertragung bereinigt.
 
 ## Schreibende Arbeitsabläufe
 

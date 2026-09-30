@@ -14,7 +14,7 @@ Die Übersicht zeigt eigene Aufgaben und ausstehende eigene Zugriffsanträge. Di
 
 ## Sitzungen
 
-In **Tagesordnung und Remote-Zugang** kannst du eine hybride Sitzung aus dem aktuellen Arbeitsstand auswählen. Die Tagesordnung stammt aus dem letzten bewussten Gesamt-Abruf. **Remote-Zugang abrufen** lädt Einwahldaten erst nach deinem Klick. Sie werden nur in der aktuellen Ansicht gezeigt und bei Sitzungswechsel, Aktualisierung oder Verlassen des Bereichs entfernt. Gib den Zugang nur an berechtigte Teilnehmende weiter.
+In **Tagesordnung und Remote-Zugang** kannst du eine Sitzung aus dem aktuellen Arbeitsstand auswählen. **Tagesordnung abrufen** lädt die aktuelle Fassung und zeigt, welche TOPs seit der versandten Einladung hinzugefügt, geändert oder entfernt wurden. Falls keine versandte Fassung verfügbar ist, kann die App keinen Vergleich anzeigen. Prüfe die Änderungen selbst; eine rechtliche Bewertung erfolgt nicht automatisch. Bei einer hybriden Sitzung lädt **Remote-Zugang abrufen** die Einwahldaten erst nach deinem Klick. Die gezielt geladenen Angaben werden nur in der aktuellen Ansicht gezeigt und bei Sitzungswechsel, Aktualisierung oder Verlassen des Bereichs entfernt. Gib den Zugang nur an berechtigte Teilnehmende weiter.
 
 Für eine eigene SBV-Dokumentation kannst du eine BR-Sitzung über **BR-Sitzung übernehmen** als lokale Arbeitskopie anlegen. Du prüfst und ergänzt dort selbst SBV-Relevanz, Position und Bewertung; spätere Änderungen in Gremia.BR ändern diese Arbeitskopie nicht automatisch. Die Sitzungsarbeit in Gremia.SBV wird im [Kapitel Dokumentation](14-dokumentation.md) beschrieben.
 

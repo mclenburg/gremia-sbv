@@ -901,6 +901,14 @@
         if (meetingId !== 'br-meeting-2026-05-29') throw new Error('Kein Remote-Zugang verfügbar.');
         return 'Einwahl: https://konferenz.example.invalid/raum\nPIN: 123456';
       },
+      getMeetingAgendaChanges: async (meetingId) => {
+        if (meetingId !== 'br-meeting-2026-05-29') throw new Error('Keine Tagesordnung verfügbar.');
+        return {
+          items: [{ title: 'TOP 1: Arbeitsplatzausstattung' }, { title: 'TOP 2: Mobiles Arbeiten' }],
+          comparisonAvailable: true,
+          changes: [{ kind: 'added', title: 'TOP 2: Mobiles Arbeiten' }],
+        };
+      },
       getCachedOverview: async () => ({ ...gremiaBrCache }),
       getDashboardOverview: async () => gremiaBrDashboardOverview(),
       refreshCache: async () => {
