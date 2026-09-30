@@ -474,10 +474,16 @@
   };
 
   let gremiaBrSettings = { enabled: false, serverUrl: '', username: '', hasStoredCredentials: false, apiMode: 'legacy_read_bridge', relevanceSettings: { groups: [] } };
-  let gremiaBrCache = { upcomingMeetings: [], meetingAgendas: {}, decisions: [], dueDecisions: [], overdueDecisions: [] };
+  let gremiaBrCache = { accessibleCases: [], ownTasks: [], ownAccessApprovals: [], upcomingMeetings: [], meetingAgendas: {}, decisions: [], dueDecisions: [], overdueDecisions: [] };
+  let remoteAccessRequests = 0;
+  window.__GREMIA_BR_REMOTE_ACCESS_REQUESTS = () => remoteAccessRequests;
   const gremiaBrSampleCache = () => ({
-    nextMeeting: { id: 'br-meeting-2026-05-29', title: 'BR-Sitzung Mai', date: '2026-05-29T09:00:00.000Z' },
-    upcomingMeetings: [{ id: 'br-meeting-2026-05-29', title: 'BR-Sitzung Mai', date: '2026-05-29T09:00:00.000Z' }],
+    accessibleCases: [], ownTasks: [], ownAccessApprovals: [],
+    nextMeeting: { id: 'br-meeting-2026-05-29', bodyId: 'sbv-body-e2e', title: 'BR-Sitzung Mai', date: '2026-05-29T09:00:00.000Z', mode: 'HYBRID', hasRemoteAccess: true },
+    upcomingMeetings: [
+      { id: 'br-meeting-2026-05-29', bodyId: 'sbv-body-e2e', title: 'BR-Sitzung Mai', date: '2026-05-29T09:00:00.000Z', mode: 'HYBRID', hasRemoteAccess: true },
+      { id: 'br-meeting-2026-06-05', bodyId: 'sbv-body-e2e', title: 'Präsenzsitzung', date: '2026-06-05T09:00:00.000Z', mode: 'PRESENCE', hasRemoteAccess: false },
+    ],
     meetingAgendas: {
       'br-meeting-2026-05-29': [
         { id: 'top-1', title: 'TOP 1: Arbeitsplatzausstattung' },
@@ -664,6 +670,7 @@
     resetObject(activityJournalPreferences, activityJournalPreferencesSnapshot);
     gremiaBrSettings = cloneForIpc(gremiaBrSettingsSnapshot);
     gremiaBrCache = cloneForIpc(gremiaBrCacheSnapshot);
+    remoteAccessRequests = 0;
     securityState = cloneForIpc(securityStateSnapshot);
     window.__GREMIA_SBV_E2E_ICAL_EXPORTS.splice(0, window.__GREMIA_SBV_E2E_ICAL_EXPORTS.length);
   };
@@ -867,7 +874,7 @@
       },
       clearCredentials: async () => {
         gremiaBrSettings = { enabled: false, serverUrl: '', username: '', hasStoredCredentials: false, apiMode: 'legacy_read_bridge', relevanceSettings: { groups: [] }, updatedAt: now };
-        gremiaBrCache = { upcomingMeetings: [], meetingAgendas: {}, decisions: [], dueDecisions: [], overdueDecisions: [] };
+        gremiaBrCache = { accessibleCases: [], ownTasks: [], ownAccessApprovals: [], upcomingMeetings: [], meetingAgendas: {}, decisions: [], dueDecisions: [], overdueDecisions: [] };
         return { ...gremiaBrSettings };
       },
       saveRelevanceSettings: async (input) => {
@@ -887,6 +894,13 @@
           contentProtectionClass: 'HIGH',
         },
       ],
+      listTransferableDocuments: async () => [],
+      listWorkspaceActions: async () => [],
+      getMeetingRemoteAccess: async (meetingId) => {
+        remoteAccessRequests += 1;
+        if (meetingId !== 'br-meeting-2026-05-29') throw new Error('Kein Remote-Zugang verfügbar.');
+        return 'Einwahl: https://konferenz.example.invalid/raum\nPIN: 123456';
+      },
       getCachedOverview: async () => ({ ...gremiaBrCache }),
       getDashboardOverview: async () => gremiaBrDashboardOverview(),
       refreshCache: async () => {

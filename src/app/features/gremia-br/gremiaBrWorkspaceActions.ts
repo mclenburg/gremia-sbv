@@ -66,6 +66,12 @@ export async function loadOwnTaskDetail(id: string): Promise<GremiaBrOwnTaskDeta
   return bridge.gremiaBr.getOwnTaskDetail(id);
 }
 
+export async function loadMeetingRemoteAccess(meetingId: string): Promise<string> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.getMeetingRemoteAccess(meetingId);
+}
+
 export async function loadProcedureDetail(id: string): Promise<GremiaBrProcedureDetail> {
   const bridge = await waitForBridge();
   if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');

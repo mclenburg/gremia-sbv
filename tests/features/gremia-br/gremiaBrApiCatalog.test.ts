@@ -41,6 +41,7 @@ describe('Gremia.BR API-Katalog 0.9.2-G', () => {
     expect(findGremiaBrEndpointDefinition('GET', '/sitzungen/abc-123/agenda')?.template).toBe('/sitzungen/{id}/agenda');
     expect(findGremiaBrEndpointDefinition('GET', '/protokolle/sitzung/sitzung-1')?.template).toBe('/protokolle/sitzung/{sitzungId}');
     expect(findGremiaBrEndpointDefinition('GET', '/api/v1/meetings/meeting-1/agenda')?.template).toBe('/api/v1/meetings/{meetingId}/agenda');
+    expect(toGremiaBrEndpointLabel('GET', '/api/v1/meetings/meeting-1/remote-access')).toBe('GET /api/v1/meetings/{meetingId}/remote-access');
     expect(toGremiaBrEndpointLabel('GET', '/protokolle/protokoll-1/beschluesse')).toBe('GET /protokolle/{id}/beschluesse');
     expect(toGremiaBrEndpointLabel('GET', '/api/v1/documents/document-1/versions')).toBe('GET /api/v1/documents/{documentId}/versions');
     expect(toGremiaBrEndpointLabel('POST', '/api/v1/procedures/tasks/task-1/transitions')).toBe('POST /api/v1/procedures/tasks/{taskId}/transitions');

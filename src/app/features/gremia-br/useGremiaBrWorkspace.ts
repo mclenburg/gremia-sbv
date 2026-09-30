@@ -46,10 +46,12 @@ export function useGremiaBrWorkspace(announce: (message: string, politeness?: "p
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
   const [busyAction, setBusyAction] = useState<BusyAction>(null);
+  const [snapshotRevision, setSnapshotRevision] = useState(0);
   const taskDetailState = useGremiaBrTaskDetail(announce);
   const meetingDrafts = useMemo(() => buildBrMeetingDrafts(overview), [overview]);
 
   function applySnapshot(snapshot: Awaited<ReturnType<typeof loadWorkspaceSnapshot>>) {
+    setSnapshotRevision((revision) => revision + 1);
     setSettings(snapshot.settings);
     setOverview(snapshot.overview);
     setDocuments(snapshot.documents);
@@ -103,6 +105,7 @@ export function useGremiaBrWorkspace(announce: (message: string, politeness?: "p
     status,
     error,
     busyAction,
+    snapshotRevision,
     ...taskDetailState,
     ...procedureState,
     meetingDrafts,

@@ -19,6 +19,7 @@ import {
 } from "./GremiaBrWorkspacePanels";
 import { GremiaBrTaskDetailDialog } from './GremiaBrTaskDetailDialog';
 import { GremiaBrProcedureLinksPanel } from './GremiaBrProcedureLinksPanel';
+import { GremiaBrMeetingAccessPanel } from './GremiaBrMeetingAccessPanel';
 import { useGremiaBrWorkspace } from "./useGremiaBrWorkspace";
 
 export function GremiaBrWorkspaceView() {
@@ -44,6 +45,7 @@ export function GremiaBrWorkspaceView() {
       />
       <GremiaBrOpenActionsPanel overview={workspace.overview} onOpenTask={(id) => void workspace.openTaskDetail(id)} />
       {workspace.settings.apiMode === 'gremia_br_v2' ? <GremiaBrAccessApprovalsPanel approvals={workspace.overview.ownAccessApprovals} /> : null}
+      {workspace.settings.apiMode === 'gremia_br_v2' ? <GremiaBrMeetingAccessPanel key={workspace.snapshotRevision} overview={workspace.overview} /> : null}
       {workspace.settings.apiMode === 'gremia_br_v2' ? (
         <GremiaBrProcedureLinksPanel
           cases={workspace.cases}

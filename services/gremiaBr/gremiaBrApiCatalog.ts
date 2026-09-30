@@ -40,6 +40,7 @@ export const GREMIA_BR_API_CATALOG: readonly GremiaBrEndpointDefinition[] = [
   { method: 'GET', template: '/api/v1/meetings/{meetingId}', auth: 'bearer', category: 'read_context', purpose: 'Sitzungsdetails in Gremia.BR 2.0 lesen' },
   { method: 'GET', template: '/api/v1/meetings/{meetingId}/agenda', auth: 'bearer', category: 'read_context', purpose: 'Tagesordnung in Gremia.BR 2.0 lesen' },
   { method: 'GET', template: '/api/v1/meetings/{meetingId}/agenda/versions', auth: 'bearer', category: 'read_context', purpose: 'Tagesordnungsversionen in Gremia.BR 2.0 lesen' },
+  { method: 'GET', template: '/api/v1/meetings/{meetingId}/remote-access', auth: 'bearer', category: 'read_context', purpose: 'Geschützten Remote-Zugang nach ausdrücklicher Nutzeraktion lesen' },
   { method: 'GET', template: '/api/v1/meetings/{meetingId}/decisions', auth: 'bearer', category: 'read_context', purpose: 'Beschlüsse einer Sitzung in Gremia.BR 2.0 lesen' },
   { method: 'GET', template: '/api/v1/meetings/decisions/{decisionId}', auth: 'bearer', category: 'read_context', purpose: 'Beschlussdetails in Gremia.BR 2.0 lesen' },
   { method: 'GET', template: '/api/v1/meetings/{meetingId}/minutes', auth: 'bearer', category: 'read_context', purpose: 'Protokoll einer Sitzung in Gremia.BR 2.0 lesen' },

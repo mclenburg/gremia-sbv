@@ -38,6 +38,8 @@ export function createSettingsApi(invokeIpc: IpcInvoker) {
         invokeIpc(IPC_CHANNELS.gremiaBrCacheRefresh),
       getOwnTaskDetail: (id: string): Promise<GremiaBrOwnTaskDetail> =>
         invokeIpc(IPC_CHANNELS.gremiaBrOwnTaskDetailGet, id),
+      getMeetingRemoteAccess: (meetingId: string): Promise<string> =>
+        invokeIpc(IPC_CHANNELS.gremiaBrMeetingRemoteAccessGet, meetingId),
       getOwnTaskTransitions: (id: string): Promise<GremiaBrTaskTransitionOptions> =>
         invokeIpc(IPC_CHANNELS.gremiaBrOwnTaskTransitionsGet, id),
       transitionOwnTask: (input: GremiaBrTaskTransitionInput): Promise<GremiaBrOwnTaskDetail> =>

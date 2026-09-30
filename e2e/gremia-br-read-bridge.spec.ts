@@ -47,3 +47,34 @@ test('zeigt Gremia.BR-Dashboarddaten nur bei aktivierter Kooperationsbrücke und
 
   await expect(page.getByRole('region', { name: /Nächste BR-Sitzung mit Agenda/i })).toBeVisible();
 });
+
+test('zeigt Remote-Zugang erst nach bewusster Sitzungsaktion und entfernt ihn beim Refresh', async ({ page }) => {
+  await mainNavigation(page).getByRole('button', { name: /Einstellungen/i }).click();
+  await page.getByRole('tab', { name: /Gremia\.BR/i }).click();
+  const settings = page.getByRole('tabpanel', { name: /Gremia\.BR/i });
+  await settings.getByLabel(/Gremia\.BR-Anbindung aktivieren/i).check();
+  await settings.getByLabel('API-Modus').selectOption('gremia_br_v2');
+  await settings.getByLabel(/Serveradresse/i).fill('https://br.example.local');
+  await settings.getByLabel(/Benutzerkonto/i).fill('sbv@example.local');
+  await settings.getByLabel(/Passwort/i).fill('streng-geheim');
+  await settings.getByRole('button', { name: 'SBV-Gremien aus Gremia.BR laden' }).click();
+  await settings.getByRole('list', { name: 'Berechtigte SBV-Gremien aus Gremia.BR' }).getByRole('button', { name: 'Auswählen' }).click();
+  await settings.getByRole('button', { name: /Einstellungen speichern/i }).click();
+  await mainNavigation(page).getByRole('button', { name: 'Gremia.BR', exact: true }).click();
+
+  const meeting = page.getByRole('region', { name: 'Tagesordnung und Remote-Zugang' });
+  await expect(meeting).toBeVisible();
+  await expect(meeting).not.toContainText('PIN: 123456');
+  await page.getByRole('button', { name: 'Gremia.BR aktualisieren' }).click();
+  await meeting.getByLabel('Hybride Sitzung suchen und auswählen').fill('2026-05-29T09:00:00.000Z · BR-Sitzung Mai');
+  await expect(meeting).toContainText('TOP 1: Arbeitsplatzausstattung');
+  await expect(meeting).not.toContainText('Präsenzsitzung');
+  await expect(meeting).not.toContainText('PIN: 123456');
+  expect(await page.evaluate(() => (window as Window & { __GREMIA_BR_REMOTE_ACCESS_REQUESTS: () => number }).__GREMIA_BR_REMOTE_ACCESS_REQUESTS())).toBe(0);
+
+  await meeting.getByRole('button', { name: 'Remote-Zugang abrufen' }).click();
+  await expect(meeting).toContainText('PIN: 123456');
+  expect(await page.evaluate(() => (window as Window & { __GREMIA_BR_REMOTE_ACCESS_REQUESTS: () => number }).__GREMIA_BR_REMOTE_ACCESS_REQUESTS())).toBe(1);
+  await page.getByRole('button', { name: 'Gremia.BR aktualisieren' }).click();
+  await expect(meeting).not.toContainText('PIN: 123456');
+});

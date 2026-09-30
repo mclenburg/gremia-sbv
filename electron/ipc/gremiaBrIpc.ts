@@ -4,6 +4,7 @@ import type { SecurityService } from '../../services/securityService.js';
 import type { ApplicationServices } from '../applicationServices.js';
 import { GremiaBrHttpReadAdapter } from '../../services/gremiaBr/gremiaBrHttpReadAdapter.js';
 import { GremiaBrTaskService } from '../../services/gremiaBr/gremiaBrTaskService.js';
+import { GremiaBrMeetingAccessService } from '../../services/gremiaBr/gremiaBrMeetingAccessService.js';
 import { GremiaBrHttpError } from '../../services/gremiaBr/gremiaBrHttpClient.js';
 import { ApplicationError } from '../../src/domain/models/application-error.model.js';
 import { GremiaBrV2WorkspaceService } from '../../services/gremiaBr/gremiaBrV2WorkspaceService.js';
@@ -90,6 +91,12 @@ export function registerGremiaBrIpc(ipcMain: IpcMain, security: SecurityService,
   registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrOwnTaskDetailGet, async (_event, rawId: unknown) => {
     const id = ownTaskId(rawId, 'gremia-br:own-task:detail:get');
     return new GremiaBrHttpReadAdapter(auth).getOwnTaskDetail(id);
+  });
+
+  registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrMeetingRemoteAccessGet, async (_event, rawId: unknown) => {
+    const channel = 'gremia-br:meeting:remote-access:get';
+    const id = assertString(rawId, channel, 'Sitzungs-ID', { minLength: 1, maxLength: 120 });
+    return new GremiaBrMeetingAccessService(auth).getAccess(id, cache.getOverview());
   });
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrOwnTaskTransitionsGet, async (_event, rawId: unknown) => {

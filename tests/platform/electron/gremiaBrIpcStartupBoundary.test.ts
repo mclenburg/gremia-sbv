@@ -54,6 +54,28 @@ function createLockedStartupServices() {
 }
 
 describe("Gremia.BR IPC-Startup-Grenze", () => {
+  it('gibt geschützten Sitzungszugang nur für eine manuell geladene hybride Sitzung auf Einzelaktion frei', async () => {
+    const { ipcMain, handlers } = createIpcRecorder();
+    const services = createLockedStartupServices();
+    services.gremiaBrAuth.getReadContext.mockReturnValue({ apiMode: 'gremia_br_v2', selectedBodyId: 'body-1' });
+    services.gremiaBrCache.getOverview.mockReturnValue({
+      upcomingMeetings: [
+        { id: 'meeting-1', bodyId: 'body-1', mode: 'HYBRID', hasRemoteAccess: true },
+        { id: 'meeting-2', bodyId: 'body-1', mode: 'PRESENCE', hasRemoteAccess: false },
+      ],
+    });
+    services.gremiaBrAuth.get.mockResolvedValue({ access: 'vertraulicher Zugang' });
+    registerGremiaBrIpc(ipcMain as never, {} as never, services as never);
+    const load = handlers.get(IPC_CHANNELS.gremiaBrMeetingRemoteAccessGet)!;
+    const event = { senderFrame: { url: 'file:///app/index.html' } };
+
+    expect(services.gremiaBrAuth.get).not.toHaveBeenCalled();
+    await expect(load(event, 'meeting-2')).rejects.toThrow();
+    await expect(load(event, 'meeting-3')).rejects.toThrow();
+    expect(services.gremiaBrAuth.get).not.toHaveBeenCalled();
+    expect(await load(event, 'meeting-1')).toBe('vertraulicher Zugang');
+    expect(services.gremiaBrAuth.get).toHaveBeenCalledExactlyOnceWith('/api/v1/meetings/meeting-1/remote-access');
+  });
   it('verknüpft nur ein Verfahren aus dem manuell geladenen berechtigten Arbeitsstand', async () => {
     const { ipcMain, handlers } = createIpcRecorder();
     const services = createLockedStartupServices();

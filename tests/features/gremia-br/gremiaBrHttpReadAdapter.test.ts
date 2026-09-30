@@ -333,6 +333,20 @@ describe('Gremia.BR HTTP-ReadAdapter 0.9.2-B', () => {
     expect(JSON.stringify(audit.entries[0])).not.toContain('jwt-token');
   });
 
+  it('auditiert den Remote-Zugangsabruf ohne Sitzungskennung oder Zugangsdaten', async () => {
+    const secret = 'Einwahl: vertraulich, PIN: 123456';
+    const { fetch } = createFetch({ 'GET /api/v1/meetings/meeting-1/remote-access': { access: secret } });
+    const audit = new MemoryAuditLog();
+    const client = new GremiaBrHttpClient('https://br.example.invalid', fetch, audit);
+
+    expect(await client.request('GET', '/api/v1/meetings/meeting-1/remote-access', 'jwt-token')).toEqual({ access: secret });
+    expect(audit.entries).toHaveLength(2);
+    expect(audit.entries[1].metadata).toMatchObject({ endpoint: 'GET /api/v1/meetings/{meetingId}/remote-access', outcome: 'ok' });
+    expect(JSON.stringify(audit.entries)).not.toContain(secret);
+    expect(JSON.stringify(audit.entries)).not.toContain('meeting-1');
+    expect(JSON.stringify(audit.entries)).not.toContain('jwt-token');
+  });
+
   it('startet keinen Gremia.BR-Request, wenn der Audit-Eintrag nicht geschrieben werden kann', async () => {
     let networkCalls = 0;
     const client = new GremiaBrHttpClient('https://br.example.invalid', async () => {

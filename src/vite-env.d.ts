@@ -532,6 +532,7 @@ declare global {
         getDashboardOverview(): Promise<GremiaBrDashboardOverview>;
         refreshCache(): Promise<GremiaBrCacheRefreshResult>;
         getOwnTaskDetail(id: string): Promise<GremiaBrOwnTaskDetail>;
+        getMeetingRemoteAccess(meetingId: string): Promise<string>;
         getOwnTaskTransitions(id: string): Promise<GremiaBrTaskTransitionOptions>;
         transitionOwnTask(input: GremiaBrTaskTransitionInput): Promise<GremiaBrOwnTaskDetail>;
         getProcedureDetail(id: string): Promise<GremiaBrProcedureDetail>;

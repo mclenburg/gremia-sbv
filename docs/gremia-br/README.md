@@ -48,6 +48,7 @@ Ausgeschlossen sind:
 - JWT-Token werden ausschließlich im Arbeitsspeicher gehalten und nicht persistiert.
 - Der Adapter nutzt eine harte Whitelist für lesende Endpunkte und ausdrücklich freigegebene SBV-Arbeitsbereichsaktionen.
 - Der manuell abgerufene Remote-Arbeitsstand bleibt nur im Arbeitsspeicher. Ein fehlgeschlagener Gesamtabruf ersetzt den zuvor sichtbaren Stand nicht teilweise.
+- Der Remote-Zugang einer hybriden Sitzung wird erst nach ausdrücklicher Auswahl und Klick separat abgerufen. Er erscheint zusammen mit der zuletzt manuell geladenen Tagesordnung, bleibt ausschließlich im aktuellen UI-Zustand und verschwindet bei Auswahlwechsel, Refresh oder Verlassen des Bereichs. Weder Zugangsdaten noch konkrete Sitzungskennungen werden im lokalen HTTP-Audit gespeichert.
 - Beim Sperren oder Zurücksetzen des lokalen Tresors werden der flüchtige Arbeitsstand und die Gremia.BR-Sitzung verworfen.
 - Suchbegriffe und Antwortinhalte werden nicht auditiert.
 - Jeder HTTP-Zugriff benötigt ein verfügbares lokales Audit. Vor dem Netzwerkstart wird ein datensparsamer Startsatz geschrieben; ein Ergebnissatz ergänzt Status, Dauer und dieselbe Korrelations-ID. Ist das Audit nicht verfügbar, wird kein Request gestartet.
