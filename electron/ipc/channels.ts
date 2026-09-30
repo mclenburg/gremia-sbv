@@ -101,6 +101,8 @@ export const IPC_CHANNELS = Object.freeze({
   gremiaBrRemoteDocumentVersionOpen: "gremia-br:remote-document:version:open",
   gremiaBrRemoteDocumentVersionImport: "gremia-br:remote-document:version:import",
   gremiaBrOwnSharesList: "gremia-br:own-shares:list",
+  gremiaBrDocumentClassificationGet: "gremia-br:document:classification:get",
+  gremiaBrDocumentClassificationChange: "gremia-br:document:classification:change",
   gremiaBrManagedDocumentsList: "gremia-br:managed-documents:list",
   gremiaBrOwnShareCreate: "gremia-br:own-share:create",
   gremiaBrOwnShareRevoke: "gremia-br:own-share:revoke",

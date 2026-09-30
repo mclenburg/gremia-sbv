@@ -39,6 +39,8 @@ Für ein bewusst geöffnetes Dokument kann der angemeldete Benutzer einen eigene
 
 Freigabeverwaltung ist nur für durch `document_uploaded` nachgewiesene eigene Remote-Dokumente freigeschaltet. Die lokale Auswahl ist nicht durch das Aktionshistorienlimit begrenzt. Listen, Anlegen und Widerruf laufen über separate IPC-Aktionen und den zentral auditierten Auth-Port; vor dem Widerruf wird die konkrete Freigabe nochmals serverseitig gelesen. Der Server entscheidet weiterhin über Schutzklasse, MFA, zweite Freigabe und Laufzeit.
 
+Für dieselben eigenen Dokumente kann die Schutzklasse separat bewusst geladen und mit Begründung geändert werden. Der Main-Service sendet den angezeigten Optimistic-Lock-Stand als `expectedVersion` an `/api/v1/documents/{documentId}/classification`; bei HTTP 409 ist ein neuer bewusster Abruf nötig. Eine Herabstufung wird nicht lokal als zulässig bewertet, sondern bleibt Gremia.BR vorbehalten.
+
 Der HTTP-Port setzt für jeden Request eine `x-correlation-id` und übernimmt eine intern bereitgestellte Kennung für mehrstufige Aktionen. Korrelations-ID und Dauer gelangen über die Audit-Whitelist in die verschlüsselte lokale Audit-Chain, nie Antwortinhalt oder Zugangsdaten. Dokumentupload und anschließende Freigabe verwenden dieselbe Kennung; die beiden lokalen Aktionsaudits tragen sie ebenfalls.
 
 ## Schreibende Arbeitsabläufe

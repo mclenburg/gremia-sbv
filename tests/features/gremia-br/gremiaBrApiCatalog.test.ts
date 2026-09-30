@@ -25,6 +25,7 @@ describe('Gremia.BR API-Katalog 0.9.2-G', () => {
       'POST /api/v1/cases',
       'POST /api/v1/procedures',
       'POST /api/v1/documents',
+      'POST /api/v1/documents/{documentId}/classification',
       'POST /api/v1/documents/{documentId}/shares',
       'POST /api/v1/documents/{documentId}/links',
       'POST /api/v1/documents/shares/{shareId}/revocation',

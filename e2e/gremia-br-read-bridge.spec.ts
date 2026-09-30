@@ -72,6 +72,34 @@ test('legt einen Remote-Fall erst nach Vorschau und ausdrücklicher Bestätigung
   expect(await page.evaluate(() => (window as Window & { __GREMIA_BR_CASE_CREATIONS: () => number }).__GREMIA_BR_CASE_CREATIONS())).toBe(1);
 });
 
+test('ändert die Schutzklasse eigener Dokumente erst nach Vorschau', async ({ page }) => {
+  await mainNavigation(page).getByRole('button', { name: /Einstellungen/i }).click();
+  await page.getByRole('tab', { name: /Gremia\.BR/i }).click();
+  const settings = page.getByRole('tabpanel', { name: /Gremia\.BR/i });
+  await settings.getByLabel(/Gremia\.BR-Anbindung aktivieren/i).check();
+  await settings.getByLabel(/Serveradresse/i).fill('https://br.example.local');
+  await settings.getByLabel(/Benutzerkonto/i).fill('sbv@example.local');
+  await settings.getByLabel(/Passwort/i).fill('streng-geheim');
+  await settings.getByRole('button', { name: 'SBV-Gremien aus Gremia.BR laden' }).click();
+  await settings.getByRole('list', { name: 'Berechtigte SBV-Gremien aus Gremia.BR' }).getByRole('button', { name: 'Auswählen' }).click();
+  await settings.getByRole('button', { name: /Einstellungen speichern/i }).click();
+  await mainNavigation(page).getByRole('button', { name: 'Gremia.BR', exact: true }).click();
+
+  const panel = page.getByRole('region', { name: 'Eigene Gremia.BR-Dokumentfreigaben' });
+  await panel.getByLabel('Selbst übertragenes Dokument').fill('Eigene Stellungnahme');
+  expect(await page.evaluate(() => (window as Window & { __GREMIA_BR_CLASSIFICATION_CHANGES: () => number }).__GREMIA_BR_CLASSIFICATION_CHANGES())).toBe(0);
+  await panel.getByRole('button', { name: 'Klassifizierung abrufen' }).click();
+  await expect(panel).toContainText('Aktuell: Hoch schutzbedürftig');
+  await panel.getByLabel('Neue Schutzklasse').selectOption('CONFIDENTIAL');
+  await panel.getByLabel('Grund für die Änderung').fill('Prüfung abgeschlossen');
+  await panel.getByRole('button', { name: 'Änderung prüfen' }).click();
+  await expect(panel).toContainText('Hoch schutzbedürftig → Vertraulich');
+  expect(await page.evaluate(() => (window as Window & { __GREMIA_BR_CLASSIFICATION_CHANGES: () => number }).__GREMIA_BR_CLASSIFICATION_CHANGES())).toBe(0);
+  await panel.getByRole('button', { name: 'Schutzklasse verbindlich ändern' }).click();
+  await expect(panel).toContainText('Schutzklasse geändert');
+  expect(await page.evaluate(() => (window as Window & { __GREMIA_BR_CLASSIFICATION_CHANGES: () => number }).__GREMIA_BR_CLASSIFICATION_CHANGES())).toBe(1);
+});
+
 test('zeigt Gremia.BR-Dashboarddaten nur bei aktivierter Kooperationsbrücke und lädt Detaildaten nur nach Nutzeraktion', async ({ page }) => {
 
   await expect(page.getByLabel('Gremia.BR-Kooperationsbrücke')).toHaveCount(0);

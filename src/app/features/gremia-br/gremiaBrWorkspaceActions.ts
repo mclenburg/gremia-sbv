@@ -3,6 +3,8 @@ import type {
   GremiaBrDashboardOverview,
   GremiaBrAgendaChanges,
   GremiaBrMinutesSummary,
+  GremiaBrDocumentClassification,
+  ChangeGremiaBrDocumentClassificationInput,
   GremiaBrDocumentDetail,
   GremiaBrDocumentImportInput,
   GremiaBrOwnShare,
@@ -118,6 +120,18 @@ export async function loadMeetingMinutes(meetingId: string): Promise<GremiaBrMin
   const bridge = await waitForBridge();
   if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
   return bridge.gremiaBr.getMeetingMinutes(meetingId);
+}
+
+export async function loadDocumentClassification(documentId: string): Promise<GremiaBrDocumentClassification> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.getDocumentClassification(documentId);
+}
+
+export async function changeDocumentClassification(input: ChangeGremiaBrDocumentClassificationInput): Promise<GremiaBrDocumentClassification> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.changeDocumentClassification(input);
 }
 
 export async function searchRemoteDocuments(query: string): Promise<GremiaBrDocumentHit[]> {

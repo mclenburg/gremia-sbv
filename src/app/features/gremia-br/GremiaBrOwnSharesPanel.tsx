@@ -6,6 +6,7 @@ import { CheckboxField } from '../../shared/components/IndustrialSelectionInputs
 import { IndustrialPanel } from '../../shared/components/WorkbenchPanels';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 import { createOwnDocumentShare, listManagedRemoteDocuments, listOwnDocumentShares, revokeOwnDocumentShare } from './gremiaBrWorkspaceActions';
+import { GremiaBrClassificationSection } from './GremiaBrClassificationSection';
 
 const SHARE_STATUS: Record<string, string> = { REQUESTED: 'Angefragt', ACTIVE: 'Aktiv', EXPIRED: 'Abgelaufen', REVOKED: 'Widerrufen' };
 const REQUIREMENT: Record<string, string> = { NONE: 'Keine weitere Prüfung', APPROVAL: 'Zweite Freigabe erforderlich', STEP_UP: 'Zusätzliche Authentisierung erforderlich', APPROVAL_AND_STEP_UP: 'Zweite Freigabe und zusätzliche Authentisierung erforderlich' };
@@ -57,6 +58,7 @@ export function GremiaBrOwnSharesPanel({ actions }: { actions: GremiaBrWorkspace
         onValueChange={(value) => { setDocumentId(value); setShares(null); setShareId(''); setError(''); setStatus(''); }}
         placeholder="Dokument suchen …" disabled={busy} />
       {selectedDocument ? <>
+        <GremiaBrClassificationSection key={documentId} documentId={documentId} title={selectedDocument.title} />
         <ToolbarButton loading={busy} disabled={busy} onClick={() => void execute(async () => {
           const result = await listOwnDocumentShares(documentId);
           setShares(result); setShareId(''); success(`${result.length} Freigaben geladen.`);

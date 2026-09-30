@@ -1,7 +1,8 @@
 import type { DatabaseAdapter } from '../databaseService.js';
 import type { GremiaBrAuthService } from './gremiaBrAuthService.js';
-import type { GremiaBrManagedDocument, GremiaBrOwnShare, GremiaBrShareCreateInput, GremiaBrShareRevokeInput } from '../../src/domain/models/gremia-br.model.js';
+import type { ChangeGremiaBrDocumentClassificationInput, GremiaBrDocumentClassification, GremiaBrManagedDocument, GremiaBrOwnShare, GremiaBrShareCreateInput, GremiaBrShareRevokeInput } from '../../src/domain/models/gremia-br.model.js';
 import { ApplicationError } from '../../src/domain/models/application-error.model.js';
+import { GremiaBrHttpError } from './gremiaBrHttpClient.js';
 import { gremiaBrRecord } from './gremiaBrPayload.js';
 
 function required(value: unknown, label: string): string {
@@ -20,6 +21,15 @@ function parseShare(value: unknown, documentId: string): GremiaBrOwnShare {
     validUntil: share.validUntil, requirement: typeof share.requirement === 'string' ? share.requirement : '',
     purpose: typeof share.purpose === 'string' ? share.purpose : '',
   };
+}
+
+function parseClassification(value: unknown, documentId: string): GremiaBrDocumentClassification {
+  const document = gremiaBrRecord(value);
+  if (!document || document.id !== documentId || !['INTERNAL', 'CONFIDENTIAL', 'HIGH', 'RESTRICTED'].includes(String(document.protectionClass))
+    || !Number.isInteger(document.version) || (document.version as number) < 0) {
+    throw new ApplicationError('REMOTE_READ_FAILED', 'Gremia.BR hat einen unvollständigen Dokumentstand geliefert. Bitte erneut abrufen.');
+  }
+  return { documentId, protectionClass: document.protectionClass as GremiaBrDocumentClassification['protectionClass'], version: document.version as number };
 }
 
 export class GremiaBrOwnShareService {
@@ -52,6 +62,37 @@ export class GremiaBrOwnShareService {
     const response = await this.auth.get<unknown>(`/api/v1/documents/${encodeURIComponent(id)}/shares`);
     if (!Array.isArray(response)) throw new ApplicationError('REMOTE_READ_FAILED', 'Gremia.BR-Freigaben konnten nicht gelesen werden.');
     return response.map((value) => parseShare(value, id));
+  }
+
+  async getClassification(documentId: string): Promise<GremiaBrDocumentClassification> {
+    const id = this.assertOwned(documentId);
+    return parseClassification(await this.auth.get<unknown>(`/api/v1/documents/${encodeURIComponent(id)}`), id);
+  }
+
+  async changeClassification(input: ChangeGremiaBrDocumentClassificationInput): Promise<GremiaBrDocumentClassification> {
+    const id = this.assertOwned(input.documentId);
+    if (!['INTERNAL', 'CONFIDENTIAL', 'HIGH', 'RESTRICTED'].includes(input.protectionClass)
+      || !Number.isInteger(input.expectedVersion) || input.expectedVersion < 0) {
+      throw new ApplicationError('VALIDATION_FAILED', 'Bitte eine gültige Schutzklasse und den zuletzt geladenen Dokumentstand wählen.');
+    }
+    const reason = required(input.reason, 'einen Grund für die Schutzklassenänderung');
+    if (reason.length > 1024) throw new ApplicationError('VALIDATION_FAILED', 'Der Grund darf höchstens 1024 Zeichen enthalten.');
+    let response: unknown;
+    try {
+      response = await this.auth.post<unknown>(`/api/v1/documents/${encodeURIComponent(id)}/classification`, {
+        body: { protectionClass: input.protectionClass, reason, expectedVersion: input.expectedVersion },
+      });
+    } catch (error) {
+      if (error instanceof GremiaBrHttpError && error.status === 409) {
+        throw new ApplicationError('CONFLICT', 'Das Dokument wurde inzwischen geändert. Bitte die Klassifizierung bewusst neu abrufen.');
+      }
+      throw error;
+    }
+    const classification = parseClassification(response, id);
+    if (classification.protectionClass !== input.protectionClass || classification.version <= input.expectedVersion) {
+      throw new ApplicationError('REMOTE_READ_FAILED', 'Gremia.BR hat die neue Schutzklasse nicht eindeutig bestätigt. Bitte den Dokumentstand prüfen.');
+    }
+    return classification;
   }
 
   async create(input: GremiaBrShareCreateInput): Promise<GremiaBrOwnShare> {

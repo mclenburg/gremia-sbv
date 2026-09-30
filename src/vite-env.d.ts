@@ -542,6 +542,8 @@ declare global {
         openRemoteDocumentVersion(documentId: string, versionId: string): Promise<{ opened: boolean; error?: string }>;
         importRemoteDocumentVersion(input: import('./domain/models/gremia-br.model').GremiaBrDocumentImportInput): Promise<CaseDocumentRecord>;
         listOwnDocumentShares(documentId: string): Promise<import('./domain/models/gremia-br.model').GremiaBrOwnShare[]>;
+        getDocumentClassification(documentId: string): Promise<import('./domain/models/gremia-br.model').GremiaBrDocumentClassification>;
+        changeDocumentClassification(input: import('./domain/models/gremia-br.model').ChangeGremiaBrDocumentClassificationInput): Promise<import('./domain/models/gremia-br.model').GremiaBrDocumentClassification>;
         listManagedRemoteDocuments(): Promise<import('./domain/models/gremia-br.model').GremiaBrManagedDocument[]>;
         createOwnDocumentShare(input: import('./domain/models/gremia-br.model').GremiaBrShareCreateInput): Promise<import('./domain/models/gremia-br.model').GremiaBrOwnShare>;
         revokeOwnDocumentShare(input: import('./domain/models/gremia-br.model').GremiaBrShareRevokeInput): Promise<import('./domain/models/gremia-br.model').GremiaBrOwnShare>;

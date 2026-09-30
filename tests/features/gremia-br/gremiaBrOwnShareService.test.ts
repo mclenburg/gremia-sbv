@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { MigrationService } from '../../../services/migrationService';
 import { openTestDatabase } from '../../helpers/openTestDatabase';
 import { GremiaBrOwnShareService } from '../../../services/gremiaBr/gremiaBrOwnShareService';
+import { GremiaBrHttpError } from '../../../services/gremiaBr/gremiaBrHttpClient';
 
 async function setup() {
   const db = await openTestDatabase();
@@ -55,6 +56,34 @@ describe('Eigene Dokumentfreigaben', () => {
           VALUES (?, 'document_uploaded', ?, 'Test', 'uploaded', '2026-09-30T08:00:00Z')`).run(`action-extra-${index}`, `doc-${index}`);
       }
       expect(service.listManagedDocuments()).toHaveLength(102);
+    } finally { db.close(); }
+  });
+
+  it('ändert die Schutzklasse nur mit bewusst gelesenem Stand, Grund und Optimistic Lock', async () => {
+    const { db, get, post, service } = await setup();
+    const current = { id: 'owned-doc', protectionClass: 'HIGH', status: 'ACTIVE', version: 3 };
+    get.mockResolvedValueOnce(current);
+    post.mockResolvedValueOnce({ ...current, protectionClass: 'CONFIDENTIAL', version: 4 });
+    try {
+      expect(await service.getClassification('owned-doc')).toEqual({ documentId: 'owned-doc', protectionClass: 'HIGH', version: 3 });
+      expect(await service.changeClassification({ documentId: 'owned-doc', protectionClass: 'CONFIDENTIAL', reason: 'Prüfung abgeschlossen', expectedVersion: 3 }))
+        .toEqual({ documentId: 'owned-doc', protectionClass: 'CONFIDENTIAL', version: 4 });
+      expect(post).toHaveBeenCalledWith('/api/v1/documents/owned-doc/classification', { body: {
+        protectionClass: 'CONFIDENTIAL', reason: 'Prüfung abgeschlossen', expectedVersion: 3,
+      } });
+    } finally { db.close(); }
+  });
+
+  it('blockiert fremde Dokumente und erzwingt nach Versionskonflikt einen neuen bewussten Abruf', async () => {
+    const { db, get, post, service } = await setup();
+    try {
+      await expect(service.getClassification('foreign-doc')).rejects.toThrow('selbst übertragen');
+      await expect(service.changeClassification({ documentId: 'foreign-doc', protectionClass: 'HIGH', reason: 'Test', expectedVersion: 1 })).rejects.toThrow('selbst übertragen');
+      expect(get).not.toHaveBeenCalled();
+      expect(post).not.toHaveBeenCalled();
+      post.mockRejectedValueOnce(new GremiaBrHttpError('Konflikt', 409, 'POST /api/v1/documents/{documentId}/classification'));
+      await expect(service.changeClassification({ documentId: 'owned-doc', protectionClass: 'HIGH', reason: 'Erneut geprüft', expectedVersion: 1 }))
+        .rejects.toThrow('neu abrufen');
     } finally { db.close(); }
   });
 });

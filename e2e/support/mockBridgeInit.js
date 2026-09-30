@@ -484,6 +484,8 @@
   window.__GREMIA_BR_DOCUMENT_SEARCHES = () => remoteDocumentSearches;
   let documentAccessRequests = 0;
   window.__GREMIA_BR_DOCUMENT_ACCESS_REQUESTS = () => documentAccessRequests;
+  let classificationChanges = 0;
+  window.__GREMIA_BR_CLASSIFICATION_CHANGES = () => classificationChanges;
   let remoteCaseCreations = 0;
   window.__GREMIA_BR_CASE_CREATIONS = () => remoteCaseCreations;
   let startupRefreshes = 0;
@@ -957,7 +959,13 @@
       },
       openRemoteDocumentVersion: async () => ({ opened: true }),
       importRemoteDocumentVersion: async () => ({ id: 'imported-doc-1', caseId: 'case-1' }),
-      listManagedRemoteDocuments: async () => [],
+      listManagedRemoteDocuments: async () => [{ remoteDocumentId: 'owned-doc-e2e', title: 'Eigene Stellungnahme' }],
+      getDocumentClassification: async () => ({ documentId: 'owned-doc-e2e', protectionClass: classificationChanges ? 'CONFIDENTIAL' : 'HIGH', version: classificationChanges ? 2 : 1 }),
+      changeDocumentClassification: async (input) => {
+        if (input.documentId !== 'owned-doc-e2e' || !input.reason || input.expectedVersion !== 1) throw new Error('Klassifizierung ungültig.');
+        classificationChanges += 1;
+        return { documentId: input.documentId, protectionClass: input.protectionClass, version: 2 };
+      },
       listOwnDocumentShares: async () => [],
       createOwnDocumentShare: async () => ({ id: 'share-created', status: 'REQUESTED', targetSecurityDomain: 'br-domain', validUntil: '2026-12-01T00:00:00Z', requirement: 'APPROVAL', purpose: 'Beratung' }),
       revokeOwnDocumentShare: async () => ({ id: 'share-created', status: 'REVOKED', targetSecurityDomain: 'br-domain', validUntil: '2026-12-01T00:00:00Z', requirement: 'APPROVAL', purpose: 'Beratung' }),

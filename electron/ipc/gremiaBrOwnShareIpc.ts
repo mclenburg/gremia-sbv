@@ -12,6 +12,20 @@ export function registerGremiaBrOwnShareIpc(ipcMain: IpcMain, auth: GremiaBrAuth
     const id = assertString(rawId, 'gremia-br:own-shares:list', 'Dokument-ID', { minLength: 1, maxLength: 120 });
     return new GremiaBrOwnShareService(getDatabase, auth).list(id);
   });
+  registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrDocumentClassificationGet, async (_event, rawId: unknown) => {
+    const id = assertString(rawId, 'gremia-br:document:classification:get', 'Dokument-ID', { minLength: 1, maxLength: 120 });
+    return new GremiaBrOwnShareService(getDatabase, auth).getClassification(id);
+  });
+  registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrDocumentClassificationChange, async (_event, rawInput: unknown) => {
+    const channel = 'gremia-br:document:classification:change';
+    const input = assertPlainObject(rawInput, channel);
+    return new GremiaBrOwnShareService(getDatabase, auth).changeClassification({
+      documentId: assertString(input.documentId, channel, 'Dokument-ID', { minLength: 1, maxLength: 120 }),
+      protectionClass: assertString(input.protectionClass, channel, 'Schutzklasse', { minLength: 1, maxLength: 20 }) as 'INTERNAL' | 'CONFIDENTIAL' | 'HIGH' | 'RESTRICTED',
+      reason: assertString(input.reason, channel, 'Grund', { minLength: 1, maxLength: 1024 }),
+      expectedVersion: input.expectedVersion as number,
+    });
+  });
   registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrOwnShareCreate, async (_event, rawInput: unknown) => {
     const channel = 'gremia-br:own-share:create';
     const input = assertPlainObject(rawInput, channel);

@@ -40,6 +40,8 @@ Soll eine Version dauerhaft in einer Fallakte liegen, wähle unter **In Fallakte
 
 Unter **Eigene Freigaben** wählst du ein zuvor selbst übertragenes Dokument. **Freigaben abrufen** liest den aktuellen Serverstand erst auf deinen Klick. Du kannst eine weitere Freigabe mit Zielbereich, Zweck und Ablaufdatum anlegen oder eine bestehende aktive Freigabe mit Begründung widerrufen. Nach einer Änderung rufst du den Stand erneut bewusst ab; eine angefragte Freigabe ist noch keine aktive Freigabe.
 
+Mit **Klassifizierung abrufen** liest du für ein eigenes übertragenes Dokument die aktuelle Schutzklasse. Eine Änderung benötigt eine Begründung und eine Vorschau; erst **Schutzklasse verbindlich ändern** sendet sie. Hat sich das Dokument inzwischen geändert, lade die Klassifizierung erneut. Gremia.BR entscheidet, ob die Änderung zulässig ist.
+
 ## Verknüpfte Verfahren
 
 Wähle eine lokale Fallakte und einen für dich zugänglichen Gremia.BR-Sachverhalt aus. Nach dem Verbinden kannst du Verfahrensdetails und Informationsanforderungen jeweils bewusst laden. Eine neue Informationsanforderung oder eigene Aufgabe legst du im ausgewählten Verfahren an. Diese Vorgänge bleiben in Gremia.BR; eine neue Aufgabe erscheint im allgemeinen Arbeitsstand erst nach dem nächsten Klick auf **Gremia.BR aktualisieren**.

@@ -60,6 +60,10 @@ export function createSettingsApi(invokeIpc: IpcInvoker) {
         invokeIpc(IPC_CHANNELS.gremiaBrRemoteDocumentVersionImport, input),
       listOwnDocumentShares: (documentId: string): Promise<GremiaBrOwnShare[]> =>
         invokeIpc(IPC_CHANNELS.gremiaBrOwnSharesList, documentId),
+      getDocumentClassification: (documentId: string): Promise<import('../../src/domain/models/gremia-br.model.js').GremiaBrDocumentClassification> =>
+        invokeIpc(IPC_CHANNELS.gremiaBrDocumentClassificationGet, documentId),
+      changeDocumentClassification: (input: import('../../src/domain/models/gremia-br.model.js').ChangeGremiaBrDocumentClassificationInput): Promise<import('../../src/domain/models/gremia-br.model.js').GremiaBrDocumentClassification> =>
+        invokeIpc(IPC_CHANNELS.gremiaBrDocumentClassificationChange, input),
       listManagedRemoteDocuments: (): Promise<GremiaBrManagedDocument[]> =>
         invokeIpc(IPC_CHANNELS.gremiaBrManagedDocumentsList),
       createOwnDocumentShare: (input: GremiaBrShareCreateInput): Promise<GremiaBrOwnShare> =>

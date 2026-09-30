@@ -46,6 +46,7 @@ export const GREMIA_BR_API_CATALOG: readonly GremiaBrEndpointDefinition[] = [
   { method: 'POST', template: '/api/v1/cases', auth: 'bearer', category: 'workspace_action', purpose: 'Aus einem lokalen SBV-Fall bewusst einen minimalen Gremia.BR-Sachverhalt anlegen' },
   { method: 'POST', template: '/api/v1/procedures', auth: 'bearer', category: 'workspace_action', purpose: 'Ein bewusst gewähltes SBV-Verfahren zum neuen Sachverhalt anlegen' },
   { method: 'POST', template: '/api/v1/documents', auth: 'bearer', category: 'workspace_action', purpose: 'Von Gremia.SBV erzeugtes PDF in den ausgewählten SBV-Arbeitsbereich übertragen' },
+  { method: 'POST', template: '/api/v1/documents/{documentId}/classification', auth: 'bearer', category: 'workspace_action', purpose: 'Schutzklasse eines selbst übertragenen Dokuments bewusst ändern' },
   { method: 'POST', template: '/api/v1/documents/{documentId}/shares', auth: 'bearer', category: 'workspace_action', purpose: 'Von der SBV bewusst ausgelöste Dokumentfreigabe an BR oder anderes Gremium' },
   { method: 'POST', template: '/api/v1/documents/{documentId}/links', auth: 'bearer', category: 'workspace_action', purpose: 'Übertragenes PDF fachlich mit dem SBV-Gremium verknüpfen' },
   { method: 'POST', template: '/api/v1/documents/shares/{shareId}/revocation', auth: 'bearer', category: 'workspace_action', purpose: 'Von der SBV ausgelöste Freigabe widerrufen' },

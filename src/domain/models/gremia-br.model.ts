@@ -58,6 +58,19 @@ export interface GremiaBrShareRevokeInput {
   reason: string;
 }
 
+export interface GremiaBrDocumentClassification {
+  documentId: string;
+  protectionClass: GremiaBrProtectionClass;
+  version: number;
+}
+
+export interface ChangeGremiaBrDocumentClassificationInput {
+  documentId: string;
+  protectionClass: GremiaBrProtectionClass;
+  reason: string;
+  expectedVersion: number;
+}
+
 export interface GremiaBrDocumentDetail {
   id: string;
   title: string;
