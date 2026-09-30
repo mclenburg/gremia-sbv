@@ -1,114 +1,34 @@
-# Gremia.BR-Kooperationsbrücke
+# Gremia.BR-Integration: technische Dokumentation
 
-Gremia.SBV kann optional mit einem Gremia.BR-Server verbunden werden. Diese Funktion ist eine **kontrollierte, manuell ausgelöste Kooperationsbrücke**. Sie ergänzt die SBV-Arbeit um BR-Kontext und ermöglicht ausdrücklich ausgelöste Übergaben in den SBV-Arbeitsbereich von Gremia.BR, ohne die getrennten Datenräume von Betriebsrat und Schwerbehindertenvertretung aufzulösen.
+Diese Datei beschreibt die Implementierung der Gremia.BR-Anbindung für Entwicklung, Betrieb und Prüfung. Die Bedienung steht im [Benutzerhandbuch](../handbuch/gremia-br.md). Maßgeblich ist die aktuelle Gremia.BR-OpenAPI mit Endpunkten unter `/api/v1`.
 
-## Zweck
+## Architektur und Datenfluss
 
-Die SBV kann gezielt BR-Informationen abrufen, die für ihre Arbeit relevant sind:
+- Der Renderer verwendet ausschließlich die typisierte Preload-Bridge. IPC-Handler validieren Eingaben und begrenzen Remote-Aktionen auf den bewusst gewählten Arbeitsstand.
+- `GremiaBrAuthService` hält Token und Session-Cookie nur im Arbeitsspeicher. Serveradresse und Anmeldedaten liegen im verschlüsselten lokalen Tresor.
+- `GremiaBrApiCatalog` und `GremiaBrPolicy` begrenzen die erlaubten Endpunkte. Der HTTP-Client startet einen Request nur, wenn der lokale Audit-Startsatz geschrieben werden konnte.
+- Jeder Request erhält einen Audit-Start- und Ergebnissatz mit Endpunkt-Template, Ergebnis, Status, Dauer und Korrelations-ID. Suchbegriffe, konkrete Remote-IDs, Antworttexte und Zugangsdaten gehören nicht ins Audit.
+- `GremiaBrCacheService` ersetzt den flüchtigen Arbeitsstand erst nach einem vollständigen, manuell ausgelösten Gesamtabruf. Ein fehlgeschlagener Abruf lässt den bisherigen Stand bestehen. Der Zeitstempel der letzten erfolgreichen Aktualisierung bleibt sichtbar.
+- Beim Sperren, beim Zurücksetzen der Verbindung und beim Beenden werden Remote-Arbeitsstand und Authentifizierung verworfen. Remote-Objekte werden nicht als lokale Fachdatensätze dupliziert, sofern die SBV keine ausdrückliche lokale Übernahme auslöst.
 
-- nächste, laufende und kommende BR-Sitzungen,
-- Tagesordnungspunkte mit möglichem SBV-Bezug,
-- Protokollstatus und Protokollreferenzen,
-- fällige oder überfällige BR-Beschlüsse,
-- Beschlussstatistiken als Kontext,
-- Dokument-Metadaten und Kategorien als Referenz,
-- Suchvorschläge für externe BR-Referenzen.
-- eigene offene Aufgaben als persönlichen Arbeitsvorrat.
-- eigene Zugriffsanträge mit ihrem Status.
-- berechtigte Sachverhalte als flüchtige Auswahlgrundlage für verknüpfte Verfahren.
+## Lesende Arbeitsabläufe
 
-In Gremia.BR 2.0 kann die SBV außerdem bewusst Aktionen für ihren eigenen SBV-Arbeitsbereich auslösen:
+**Gremia.BR aktualisieren** lädt in einer bewussten Aktion die eigenen offenen Aufgaben, eigenen Zugriffsanträge, berechtigten Sachverhalte und Sitzungsdaten. Die Übersicht übernimmt nur arbeitsrelevante Felder. Aufgabenbeschreibungen und Zuweisungsdetails werden erst auf eigene Detailaktion gelesen. Unbekannte Aufgabenstatus oder unvollständige Listen verhindern einen teilweisen Snapshot.
 
-- lokal erzeugte PDF-Dokumente aus Gremia.SBV an Gremia.BR übergeben,
-- Fallzusammenfassungen als PDF erzeugen und im SBV-Arbeitsbereich bereitstellen,
-- Themen als Tagesordnungspunkt für eine Gremia.BR-Sitzung anfordern,
-- Gremia.BR-Sitzungen als lokale SBV-Arbeitskopie nach Gremia.SBV übernehmen.
+Eigene Aufgabendetails und die vom Server angebotenen Statusübergänge werden jeweils getrennt auf Klick abgerufen. Eine Statusänderung sendet Zielstatus und gelesene Version als eigene Aktion. Bei Konflikt muss die Person die Details bewusst neu laden; der Gesamtsnapshot wird nicht still aktualisiert.
 
-## Nicht-Zweck
+Für verknüpfte Verfahren werden Remote-Sachverhalte aus dem berechtigten Arbeitsstand ausgewählt. Die lokale Referenz enthält keinen Verfahrensvolltext. Verfahrensdetails und Informationsanforderungen werden erst nach ausdrücklicher Auswahl abgerufen und bleiben flüchtig. Die lokale Verknüpfung wird in Migration 0060 eingeführt.
 
-Die Kooperationsbrücke ist keine Synchronisation und kein gemeinsamer Datenraum.
+Bei hybriden Sitzungen wird der Remote-Zugang ausschließlich über `GET /api/v1/meetings/{meetingId}/remote-access` auf einen eigenen Klick geladen. Der Main-Prozess akzeptiert nur eine hybride Sitzung mit vorhandenem Zugang aus dem aktuellen Arbeitsstand des ausgewählten Gremiums; Gremia.BR entscheidet über die tatsächliche Berechtigung. Der Zugang erscheint zusammen mit der zuletzt geladenen Tagesordnung und wird weder im Snapshot noch in der Datenbank gespeichert. Auswahlwechsel, Refresh und Verlassen der Ansicht entfernen ihn aus dem UI-Zustand. Fehlertexte dieses Abrufs werden vor der IPC-Übertragung bereinigt.
 
-Ausgeschlossen sind:
+## Schreibende Arbeitsabläufe
 
-- Hintergrundübertragung oder automatische Synchronisation,
-- beliebige Datei-Uploads außerhalb zentral erzeugter Gremia.SBV-PDF-Dokumente,
-- Massentransfers vollständiger SBV-Falldaten,
-- Hintergrundabfragen,
-- BR-Mitgliederverwaltung,
-- BR-Notizen,
-- Abwesenheiten,
-- Audit-Logs,
-- Stimmrechtsänderungen,
-- Admin- und DSGVO-Endpunkte von Gremia.BR.
+Eine neue eigene Aufgabe oder Informationsanforderung wird nur im Kontext eines verknüpften Verfahrens und durch eine ausdrückliche Aktion erstellt. Die Aufgabe bleibt in Gremia.BR. Für den Abschluss einer Informationsanforderung wird der aktuelle Stand im Rahmen derselben Nutzeraktion nochmals gelesen und mit der angezeigten Version verglichen.
 
-## Sicherheit
+Eine Tagesordnungspunkt-Anforderung wird an die ausgewählte Sitzung gesendet. Eine BR-Sitzung kann separat als lokale SBV-Arbeitskopie übernommen werden; Titel, Termin, Ort und Tagesordnung bilden nur eine neutrale Grundlage. Eigene SBV-Positionen und rechtliche Bewertungen werden nicht automatisch gesetzt. Spätere Remote-Aktualisierungen überschreiben die Arbeitskopie nicht.
 
-- Verbindung ist standardmäßig deaktiviert.
-- Server-URL und Zugangsdaten werden im SQLCipher-Vault gespeichert.
-- JWT-Token werden ausschließlich im Arbeitsspeicher gehalten und nicht persistiert.
-- Der Adapter nutzt eine harte Whitelist für lesende Endpunkte und ausdrücklich freigegebene SBV-Arbeitsbereichsaktionen.
-- Der manuell abgerufene Remote-Arbeitsstand bleibt nur im Arbeitsspeicher. Ein fehlgeschlagener Gesamtabruf ersetzt den zuvor sichtbaren Stand nicht teilweise.
-- Der Remote-Zugang einer hybriden Sitzung wird erst nach ausdrücklicher Auswahl und Klick separat abgerufen. Er erscheint zusammen mit der zuletzt manuell geladenen Tagesordnung, bleibt ausschließlich im aktuellen UI-Zustand und verschwindet bei Auswahlwechsel, Refresh oder Verlassen des Bereichs. Weder Zugangsdaten noch konkrete Sitzungskennungen werden im lokalen HTTP-Audit gespeichert.
-- Beim Sperren oder Zurücksetzen des lokalen Tresors werden der flüchtige Arbeitsstand und die Gremia.BR-Sitzung verworfen.
-- Suchbegriffe und Antwortinhalte werden nicht auditiert.
-- Jeder HTTP-Zugriff benötigt ein verfügbares lokales Audit. Vor dem Netzwerkstart wird ein datensparsamer Startsatz geschrieben; ein Ergebnissatz ergänzt Status, Dauer und dieselbe Korrelations-ID. Ist das Audit nicht verfügbar, wird kein Request gestartet.
-- Dokumente werden nicht automatisch importiert oder übertragen; jede Übergabe bleibt eine bewusste Nutzeraktion.
+Die Dokumentübertragung verwendet ausschließlich zentral erzeugte Gremia.SBV-PDFs. Die SBV wählt Dokument, Ziel und Zweck aus. Lokale Fallzusammenfassungen werden über die zentrale PDF-Pipeline erstellt; Diagnoseangaben und interne Notizen werden nicht in den BR-Text übernommen. Die Aktion zeigt den bestätigten Gremia.BR-Status und hält eine lokale Kontrollhistorie der Übertragung.
 
-## Neue Gremia.BR-API
+## Prüfung
 
-Die aktuelle Gremia.BR-OpenAPI stellt zusätzliche Endpunkte für den SBV-Arbeitsbereich bereit. Gremia.SBV nutzt davon nur den fachlich passenden Ausschnitt:
-
-- Auth: Login, Refresh, Logout, Session-/Profilprüfung,
-- Sitzungen: nächste, laufende, kommende Sitzung, Tagesordnung und Protokollstatus,
-- Aufgaben: eigene offene Aufgaben nach manuell ausgelöstem Gesamtabruf,
-- Zugriffsanträge: eigene Anträge mit Status nach demselben Gesamtabruf,
-- Protokolle/Beschlüsse: Listen, Sitzungsbezug, Fälligkeiten und Statistik,
-- Dokumente: Liste, Kategorien, Metadaten und HTML-Vorschau,
-- Suche: Suche, Vorschläge, erweiterte Suche und Suchstatistik,
-- SBV-Arbeitsbereich: PDF-Dokument übergeben, Freigabe im Zielgremium anfordern, Tagesordnungspunkt anfordern.
-
-Nicht freigegeben bleiben insbesondere Admin, Audit, DSGVO, Notizen, Abwesenheiten, Mitgliederverwaltung, Ausschüsse, generische Uploads und alle fachlichen Schreiboperationen außerhalb der ausdrücklich modellierten SBV-Arbeitsbereichsaktionen.
-
-## Nutzung
-
-Die Verbindung wird unter **Einstellungen → Gremia.BR** eingerichtet. Der eigenständige Bereich **Gremia.BR** wird nur sichtbar, wenn eine Instanz konfiguriert ist. Das Dashboard zeigt nur den flüchtigen Arbeitsstand und aktualisiert diesen ausschließlich durch eine bewusste Nutzeraktion. Nach einem Neustart sind die Remote-Inhalte nicht mehr vorhanden. Bereits aus früheren Versionen persistierte Lesecache-Inhalte werden beim Datenbank-Upgrade entfernt. Wird die Anbindung deaktiviert oder werden Zugangsdaten gelöscht, wird der Arbeitsstand geleert.
-
-**Gremia.BR aktualisieren** lädt auch die eigenen offenen Aufgaben und Zugriffsanträge. In **Offene Aktionen** erscheinen nur ausstehende Anträge; die eigene Statusübersicht zeigt auch genehmigte, abgelehnte, widerrufene und abgelaufene Anträge. Bei Aufgaben werden nur Titel, Herkunft, Status und Fälligkeit angezeigt; Beschreibungen und Zuweisungsdetails bleiben außerhalb des lokalen Arbeitsstands. Sitzungs-, TOP- und verfahrensbezogene Aufgaben werden fachlich eingeordnet. Unbekannte Status verhindern einen unvollständigen Gesamtabruf. Bei Zugriffsanträgen werden nur Ressourcenart, Status und Antragsdatum übernommen. Die Anzeige nennt den Zeitpunkt des letzten erfolgreichen Gesamtabrufs und kennzeichnet den Arbeitsstand als möglicherweise veraltete Momentaufnahme.
-
-Der bewusste Gesamtabruf lädt außerdem die für die angemeldete Person zugänglichen Gremia.BR-Sachverhalte. In der flüchtigen Übersicht bleiben davon nur Kennzeichen, Betreff und Verfahrenskennungen; Fallbeschreibungen werden nicht übernommen. Ein unvollständiger Abruf ersetzt den vorherigen Arbeitsstand nicht.
-
-Unter **Verknüpfte Gremia.BR-Verfahren** kann eine lokale Fallakte mit einem Verfahren aus diesem berechtigten Arbeitsstand verbunden werden. Die Auswahl nutzt Fallnummer, Remote-Kennzeichen und Betreff statt technischer Kennungen. **Verfahrensdetails laden** löst erst nach der konkreten Auswahl einen eigenen auditierten Remote-Abruf aus. Anschließend kann die Beziehung bewusst gespeichert oder aufgehoben werden. Die lokale Referenz enthält keinen Remote-Verfahrensvolltext; die Verfahrensdetails bleiben flüchtig. Ein bestehender Datenbestand wird über Schema-Migration 0060 ohne Verlust alter Referenzen erweitert.
-
-Bei einem verknüpften Verfahren lädt **Informationsanforderungen laden** die zugängliche Liste erst nach bewusstem Klick. Die Anzeige enthält ausschließlich Status und Termine aus der aktuellen Antwort; sie wird nicht in der lokalen Fallakte oder einem Suchindex gespeichert.
-
-Eine neue Informationsanforderung wird am verknüpften Verfahren mit fehlenden Angaben, optionaler Begründung und optionaler Antwortfrist bewusst erstellt. Die Eingabe wird weder in den allgemeinen Arbeitsstand noch in die lokale Fallakte kopiert. Nach bestätigter Erstellung bleibt die Liste unverändert, sofern sie zuvor nicht ausdrücklich geladen wurde; es erfolgt kein automatischer Remote-Abruf.
-
-**Als erfüllt abschließen** ist nur für zuvor bewusst geladene offene oder teilweise erfüllte Anforderungen verfügbar. Vor dem Statuswechsel wird der aktuelle Stand im Rahmen derselben Nutzeraktion nochmals auditiert gelesen und mit der angezeigten Version verglichen. Bei Konflikt wird kein Abschluss behauptet; die Liste muss bewusst neu geladen werden.
-
-Im verknüpften Verfahren kann eine neue **eigene Aufgabe** angelegt werden. Die aktuelle Gremia.BR-Sitzung liefert dafür die eigene Personenkennung; sie wird als alleinige verantwortliche Zuweisung gesendet. Titel, optionale Beschreibung und Fälligkeit werden erst durch **Eigene Aufgabe in Gremia.BR anlegen** übertragen. Die Aufgabe wird nicht lokal dupliziert und erscheint in **Offene Aktionen** erst nach dem nächsten bewussten Gesamtabruf.
-
-**Details** an einer eigenen Aufgabe löst erst beim Anklicken einen zusätzlichen auditierten Remote-Abruf aus. Der Main-Prozess akzeptiert dafür nur Aufgaben aus dem aktuellen eigenen Arbeitsstand. Die Antwort wird auf die für den Dialog benötigten Felder reduziert und beim Schließen aus dem UI-Zustand entfernt; sie wird weder in den Gesamtsnapshot noch in den Vault geschrieben.
-
-Im Aufgabendialog lädt **Statusänderungen abrufen** die aktuell von Gremia.BR angebotenen Übergänge erst auf bewusste Aktion. Nur diese Werte stehen in der filterbaren Auswahl. **Statusänderung bestätigen** sendet den gewählten Zielstatus mit der zuletzt gelesenen Aufgabenversion als eigenen auditierten Request. Gremia.BR entscheidet weiterhin über Berechtigung und Zustandswechsel. Bei einem Konflikt fordert die Oberfläche dazu auf, die Details bewusst neu zu laden; der allgemeine Arbeitsstand wird nicht automatisch oder teilweise aktualisiert.
-
-Alle Übergaben nach Gremia.BR werden im Gremia.BR-Bereich ausgelöst und geprüft. Dadurch bleibt sichtbar, welche Daten Gremia.SBV verlassen und ob Gremia.BR die Aktion angenommen, zurückgestellt oder abgelehnt hat.
-
-## Sitzungsübernahme in die SBV-Dokumentation
-
-Ist die Kooperationsbrücke aktiviert, kann der direkte Bereich **Sitzungen** beziehungsweise **Dokumentation → Gremien** den flüchtigen Gremia.BR-Arbeitsstand verwenden. Angezeigt werden verfügbare BR-Sitzungen; eine Aktualisierung erfolgt weiterhin nur durch eine bewusste Nutzeraktion.
-
-Über **BR-Sitzung übernehmen** kann eine ausgewählte Sitzung in einen eigenen lokalen SBV-Sitzungsvorgang kopiert werden. Soweit vorhanden, werden Sitzungstitel, Beginn, Ort und Tagesordnungspunkte als Arbeitsgrundlage übernommen.
-
-Die Übernahme ist bewusst keine Synchronisation:
-
-- die importierte Sitzung ist anschließend eine eigene SBV-Arbeitskopie,
-- Tagesordnungspunkte werden zunächst ohne automatisch gesetzte SBV-Relevanz angelegt,
-- eigene SBV-Positionen, Beeinträchtigungsbewertungen und Nichtbeteiligungsbewertungen werden nicht aus Gremia.BR abgeleitet,
-- Änderungen in Gremia.SBV werden nicht nach Gremia.BR zurückgeschrieben,
-- eine erneute Cache-Aktualisierung überschreibt nicht automatisch die bereits angelegte SBV-Eigenaufzeichnung.
-
-Damit liefert Gremia.BR organisatorischen Sitzungskontext; die fachliche SBV-Dokumentation und Bewertung bleibt im getrennten Gremia.SBV-Datenraum.
-
-## Dokumentübergabe nach Gremia.BR
-
-Für Übergaben nach Gremia.BR sind ausschließlich durch Gremia.SBV erzeugte PDF-Dokumente vorgesehen. Eine Fallzusammenfassung fasst den für den Betriebsrat erforderlichen Kontext zusammen, ohne Diagnosen, unnötige Gesundheitsdaten oder interne SBV-Notizen auszugeben. Der Transfer ist kein Automatismus: Die SBV wählt Dokument, Ziel und Zweck aus, löst die Übertragung aus und erhält anschließend eine nachvollziehbare Statusmeldung.
+Die Tests für die Integrationsgrenzen liegen unter `tests/features/gremia-br/`, `tests/platform/electron/` und `e2e/gremia-br-read-bridge.spec.ts`. Das projektweite Gate ist `npm run build:verify`. Browserabläufe werden mit `npm run test:e2e -- e2e/gremia-br-read-bridge.spec.ts --project=ui-flows` geprüft.

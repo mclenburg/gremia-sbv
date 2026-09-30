@@ -65,9 +65,9 @@ Zweite Zielgruppe sind Personen, die Gremia.SBV betreiben, prüfen oder weiteren
 
 ## Gremia.BR-Kooperationsbrücke
 
-Die Kooperationsbrücke ist optional und standardmäßig deaktiviert. Sie ruft BR-Kontext nur auf ausdrückliche Nutzeraktion ab und erlaubt im Gremia.BR-2.0-Modus ausschließlich modellierte SBV-Arbeitsbereichsaktionen wie PDF-Übergabe und Tagesordnungspunkt-Anforderung. Es gibt keine Hintergrundsynchronisation und keine automatische Übernahme von BR-Dokumenten.
+Die Kooperationsbrücke ist optional und standardmäßig deaktiviert. Sie ruft BR-Kontext nur auf ausdrückliche Nutzeraktion ab und ermöglicht gezielte SBV-Arbeitsbereichsaktionen wie PDF-Übergabe und Tagesordnungspunkt-Anforderung. Es gibt keine Hintergrundsynchronisation.
 
-Details stehen unter [`gremia-br/`](gremia-br/README.md).
+Die [technische Integration](gremia-br/README.md) und die [Bedienung im Handbuch](handbuch/gremia-br.md) werden getrennt dokumentiert.
 
 ## Dokumentationsregel
 
