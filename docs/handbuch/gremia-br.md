@@ -20,6 +20,7 @@ Für eine eigene SBV-Dokumentation kannst du eine BR-Sitzung über **BR-Sitzung 
 
 Im Bereich **Gremia.BR-Dokumente** startest du eine Suche ausdrücklich mit **Suche starten**. Sie ist auf den gewählten Sicherheitsbereich begrenzt. Wähle einen Treffer und klicke **Details abrufen**, um Schutzklasse, Versionen und vorhandene Freigaben zu sehen. Diese Angaben verschwinden bei der nächsten Aktualisierung oder beim Verlassen des Bereichs.
 Eine verfügbare Version kannst du mit **Version öffnen** in der externen Vorschau öffnen. Sie wird dadurch nicht dauerhaft in Gremia.SBV übernommen.
+Soll eine Version dauerhaft in einer Fallakte liegen, wähle unter **In Fallakte übernehmen** die Version und den Zielfall, prüfe den Hinweis zu Gesundheitsdaten und bestätige **Dokument dauerhaft übernehmen**. Erst dann wird eine lokale, verschlüsselte Kopie erstellt; die Herkunft bleibt am Falldokument erkennbar.
 
 ## Verknüpfte Verfahren
 

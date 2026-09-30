@@ -13,6 +13,14 @@ export interface GremiaBrDocumentHit {
   filename: string;
 }
 
+export interface GremiaBrDocumentImportInput {
+  documentId: string;
+  versionId: string;
+  title: string;
+  caseId: string;
+  containsHealthData: boolean;
+}
+
 export interface GremiaBrDocumentDetail {
   id: string;
   title: string;

@@ -118,6 +118,9 @@ CREATE TABLE IF NOT EXISTS case_documents (
   ocr_completed_at TEXT,
   ocr_error TEXT,
   contains_health_data INTEGER NOT NULL DEFAULT 0,
+  remote_document_id TEXT,
+  remote_version_id TEXT,
+  remote_title TEXT,
   created_at TEXT NOT NULL
 );
 

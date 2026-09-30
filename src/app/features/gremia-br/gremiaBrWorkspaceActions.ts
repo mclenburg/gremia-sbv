@@ -3,6 +3,7 @@ import type {
   GremiaBrDashboardOverview,
   GremiaBrAgendaChanges,
   GremiaBrDocumentDetail,
+  GremiaBrDocumentImportInput,
   GremiaBrDocumentHit,
   GremiaBrGeneratedPdfDocument,
   GremiaBrOwnTaskDetail,
@@ -97,6 +98,12 @@ export async function openRemoteDocumentVersion(documentId: string, versionId: s
   const bridge = await waitForBridge();
   if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
   return bridge.gremiaBr.openRemoteDocumentVersion(documentId, versionId);
+}
+
+export async function importRemoteDocumentVersion(input: GremiaBrDocumentImportInput): Promise<void> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  await bridge.gremiaBr.importRemoteDocumentVersion(input);
 }
 
 export async function loadProcedureDetail(id: string): Promise<GremiaBrProcedureDetail> {

@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import type { GremiaBrDocumentDetail, GremiaBrDocumentHit } from '../../../domain/models/gremia-br.model';
+import type { CaseRecord } from '../../../domain/models/case.model';
 import { ToolbarButton } from '../../shared/components/IndustrialButton';
 import { SearchableSelectInput, TextInput } from '../../shared/components/IndustrialForm';
 import { IndustrialPanel } from '../../shared/components/WorkbenchPanels';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 import { loadRemoteDocumentDetail, openRemoteDocumentVersion, searchRemoteDocuments } from './gremiaBrWorkspaceActions';
+import { GremiaBrDocumentImportSection } from './GremiaBrDocumentImportSection';
 
 const PROTECTION_LABELS: Record<string, string> = {
   INTERNAL: 'Intern', CONFIDENTIAL: 'Vertraulich', HIGH: 'Hoch schutzbedürftig', RESTRICTED: 'Streng beschränkt',
@@ -44,7 +46,7 @@ function DocumentDetailSection({ detail, busy, onOpenVersion }: {
   );
 }
 
-export function GremiaBrDocumentBrowsePanel() {
+export function GremiaBrDocumentBrowsePanel({ cases }: { cases: CaseRecord[] }) {
   const announce = useAnnouncer();
   const [query, setQuery] = useState('');
   const [hits, setHits] = useState<GremiaBrDocumentHit[] | null>(null);
@@ -154,7 +156,10 @@ export function GremiaBrDocumentBrowsePanel() {
       ) : null}
       {error ? <p className="industrial-message industrial-message-warning" role="alert">{error}</p> : null}
       {status ? <p className="industrial-message industrial-message-success" role="status">{status}</p> : null}
-      {detail ? <DocumentDetailSection detail={detail} busy={busy !== null} onOpenVersion={(versionId) => void openVersion(versionId)} /> : null}
+      {detail ? <>
+        <DocumentDetailSection detail={detail} busy={busy !== null} onOpenVersion={(versionId) => void openVersion(versionId)} />
+        <GremiaBrDocumentImportSection key={detail.id} detail={detail} cases={cases} />
+      </> : null}
     </IndustrialPanel>
   );
 }

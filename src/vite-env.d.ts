@@ -537,6 +537,7 @@ declare global {
         searchRemoteDocuments(query: string): Promise<GremiaBrDocumentHit[]>;
         getRemoteDocumentDetail(documentId: string): Promise<GremiaBrDocumentDetail>;
         openRemoteDocumentVersion(documentId: string, versionId: string): Promise<{ opened: boolean; error?: string }>;
+        importRemoteDocumentVersion(input: import('./domain/models/gremia-br.model').GremiaBrDocumentImportInput): Promise<CaseDocumentRecord>;
         getOwnTaskTransitions(id: string): Promise<GremiaBrTaskTransitionOptions>;
         transitionOwnTask(input: GremiaBrTaskTransitionInput): Promise<GremiaBrOwnTaskDetail>;
         getProcedureDetail(id: string): Promise<GremiaBrProcedureDetail>;

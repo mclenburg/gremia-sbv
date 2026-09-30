@@ -27,6 +27,8 @@ Die Dokumentensuche sendet den Suchbegriff ausschließlich auf Klick an `/api/v1
 
 Eine ausgewählte, bereite Dokumentversion wird erst auf **Version öffnen** binär abgerufen. Der HTTP-Client begrenzt die Antwort, der Main-Prozess gleicht die Version mit dem Dokument ab und prüft SHA-256 sowie bei PDF den Dateianfang. Danach nutzt er die zentrale geschützte temporäre Vorschau und gibt weder Bytes noch Dateipfade an den Renderer zurück. Die temporäre Datei wird beim nächsten Vorschauauftrag oder Sperren bereinigt; bei fehlgeschlagenem Öffnen sofort.
 
+Die explizite Übernahme in einen ausgewählten lokalen Fall verwendet dieselbe Versions- und Integritätsprüfung. Die Bytes gelangen über eine geschützte temporäre Datei in die zentrale verschlüsselte Falldokument-Pipeline und werden danach bereinigt. Migration 0061 hält Remote-Dokument-ID, Versions-ID und Titel direkt am lokalen Falldokument; ohne Übernahme entsteht kein persistenter Remote-Dokumentdatensatz.
+
 ## Schreibende Arbeitsabläufe
 
 Eine neue eigene Aufgabe oder Informationsanforderung wird nur im Kontext eines verknüpften Verfahrens und durch eine ausdrückliche Aktion erstellt. Die Aufgabe bleibt in Gremia.BR. Für den Abschluss einer Informationsanforderung wird der aktuelle Stand im Rahmen derselben Nutzeraktion nochmals gelesen und mit der angezeigten Version verglichen.

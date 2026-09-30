@@ -47,7 +47,7 @@ export function GremiaBrWorkspaceView() {
       <GremiaBrOpenActionsPanel overview={workspace.overview} onOpenTask={(id) => void workspace.openTaskDetail(id)} />
       {workspace.settings.apiMode === 'gremia_br_v2' ? <GremiaBrAccessApprovalsPanel approvals={workspace.overview.ownAccessApprovals} /> : null}
       {workspace.settings.apiMode === 'gremia_br_v2' ? <GremiaBrMeetingAccessPanel key={`meeting-${workspace.snapshotRevision}`} overview={workspace.overview} /> : null}
-      {workspace.settings.apiMode === 'gremia_br_v2' ? <GremiaBrDocumentBrowsePanel key={`document-${workspace.snapshotRevision}`} /> : null}
+      {workspace.settings.apiMode === 'gremia_br_v2' ? <GremiaBrDocumentBrowsePanel key={`document-${workspace.snapshotRevision}`} cases={workspace.cases} /> : null}
       {workspace.settings.apiMode === 'gremia_br_v2' ? (
         <GremiaBrProcedureLinksPanel
           cases={workspace.cases}
