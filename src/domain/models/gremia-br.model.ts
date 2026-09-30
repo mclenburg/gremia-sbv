@@ -6,6 +6,15 @@ export interface GremiaBrAgendaChanges {
   changes: Array<{ kind: 'added' | 'changed' | 'removed'; title: string; previousTitle?: string }>;
 }
 
+export interface GremiaBrMinutesSummary {
+  kind: 'RESULT_MINUTES' | 'PROCEEDINGS_MINUTES';
+  status: 'DRAFT' | 'CONTENT_REVIEW' | 'CONTENT_FINAL' | 'SIGNATURE_PENDING' | 'SIGNED_EVIDENCE_COMPLETE' | 'COMPLETED';
+  protectionClass: 'INTERNAL' | 'CONFIDENTIAL' | 'HIGH' | 'RESTRICTED';
+  version: number;
+  contentComplete: boolean;
+  contentMissing: string[];
+}
+
 export interface GremiaBrDocumentHit {
   documentId: string;
   documentVersionId: string;

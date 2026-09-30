@@ -46,6 +46,8 @@ export function createSettingsApi(invokeIpc: IpcInvoker) {
         invokeIpc(IPC_CHANNELS.gremiaBrMeetingRemoteAccessGet, meetingId),
       getMeetingAgendaChanges: (meetingId: string): Promise<GremiaBrAgendaChanges> =>
         invokeIpc(IPC_CHANNELS.gremiaBrMeetingAgendaChangesGet, meetingId),
+      getMeetingMinutes: (meetingId: string): Promise<import('../../src/domain/models/gremia-br.model.js').GremiaBrMinutesSummary | null> =>
+        invokeIpc(IPC_CHANNELS.gremiaBrMeetingMinutesGet, meetingId),
       searchRemoteDocuments: (query: string): Promise<GremiaBrDocumentHit[]> =>
         invokeIpc(IPC_CHANNELS.gremiaBrRemoteDocumentsSearch, query),
       getRemoteDocumentDetail: (documentId: string): Promise<GremiaBrDocumentDetail> =>

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { GremiaBrMeetingAccessService } from '../../../services/gremiaBr/gremiaBrMeetingAccessService';
 import { serializeApplicationError } from '../../../electron/ipc/ipcHandler';
+import { GremiaBrHttpError } from '../../../services/gremiaBr/gremiaBrHttpClient';
 
 const overview = {
   upcomingMeetings: [{ id: 'meeting-1', bodyId: 'body-1', mode: 'HYBRID', hasRemoteAccess: true }],
@@ -41,6 +42,28 @@ describe('Gremia.BR-Sitzungszugang', () => {
     }
     expect(message).toContain('Remote-Zugang konnte nicht geladen werden');
     expect(message).not.toContain('PIN 456');
+  });
+});
+
+describe('Gremia.BR-Niederschrift', () => {
+  it('liest nur die ausgewählte berechtigte Sitzung und gibt keine fremden Daten weiter', async () => {
+    const get = vi.fn().mockResolvedValue({ id: 'minutes-1', meetingId: 'meeting-1', kind: 'RESULT_MINUTES', status: 'COMPLETED', protectionClass: 'HIGH', currentVersionId: 'version-1', contentComplete: true, contentMissing: [], version: 2 });
+    const service = new GremiaBrMeetingAccessService(createAuth(get) as never);
+    await expect(service.getMinutes('meeting-2', overview as never)).rejects.toThrow('aktuellen Arbeitsstand');
+    expect(get).not.toHaveBeenCalled();
+    await expect(service.getMinutes('meeting-1', overview as never)).resolves.toEqual({
+      kind: 'RESULT_MINUTES', status: 'COMPLETED', protectionClass: 'HIGH', version: 2,
+      contentComplete: true, contentMissing: [],
+    });
+    expect(get).toHaveBeenCalledExactlyOnceWith('/api/v1/meetings/meeting-1/minutes');
+  });
+
+  it('zeigt fehlende Niederschriften ehrlich und verwirft unvollständige Antworten', async () => {
+    const get = vi.fn().mockRejectedValueOnce(new GremiaBrHttpError('Nicht gefunden', 404, 'GET /api/v1/meetings/{meetingId}/minutes'))
+      .mockResolvedValueOnce({ id: 'minutes-1', meetingId: 'meeting-2', status: 'COMPLETED' });
+    const service = new GremiaBrMeetingAccessService(createAuth(get) as never);
+    await expect(service.getMinutes('meeting-1', overview as never)).resolves.toBeNull();
+    await expect(service.getMinutes('meeting-1', overview as never)).rejects.toThrow('unvollständige Niederschrift');
   });
 });
 

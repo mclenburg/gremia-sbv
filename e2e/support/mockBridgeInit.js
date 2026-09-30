@@ -478,6 +478,8 @@
   let gremiaBrCache = { accessibleCases: [], ownTasks: [], ownAccessApprovals: [], upcomingMeetings: [], meetingAgendas: {}, decisions: [], dueDecisions: [], overdueDecisions: [] };
   let remoteAccessRequests = 0;
   window.__GREMIA_BR_REMOTE_ACCESS_REQUESTS = () => remoteAccessRequests;
+  let meetingMinutesRequests = 0;
+  window.__GREMIA_BR_MEETING_MINUTES_REQUESTS = () => meetingMinutesRequests;
   let remoteDocumentSearches = 0;
   window.__GREMIA_BR_DOCUMENT_SEARCHES = () => remoteDocumentSearches;
   let documentAccessRequests = 0;
@@ -928,6 +930,11 @@
           comparisonAvailable: true,
           changes: [{ kind: 'added', title: 'TOP 2: Mobiles Arbeiten' }],
         };
+      },
+      getMeetingMinutes: async (meetingId) => {
+        meetingMinutesRequests += 1;
+        if (meetingId !== 'br-meeting-2026-05-29') throw new Error('Niederschrift nicht verfügbar.');
+        return { kind: 'RESULT_MINUTES', status: 'CONTENT_REVIEW', protectionClass: 'HIGH', version: 2, contentComplete: false, contentMissing: ['Beschlusstext'] };
       },
       searchRemoteDocuments: async () => {
         remoteDocumentSearches += 1;

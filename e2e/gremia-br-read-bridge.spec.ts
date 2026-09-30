@@ -97,7 +97,7 @@ test('zeigt Gremia.BR-Dashboarddaten nur bei aktivierter Kooperationsbrücke und
   await expect(page.getByRole('region', { name: /Nächste BR-Sitzung mit Agenda/i })).toBeVisible();
 });
 
-test('zeigt Remote-Zugang erst nach bewusster Sitzungsaktion und entfernt ihn beim Refresh', async ({ page }) => {
+test('lädt Sitzungsdaten nur bewusst und entfernt sie beim Refresh', async ({ page }) => {
   await mainNavigation(page).getByRole('button', { name: /Einstellungen/i }).click();
   await page.getByRole('tab', { name: /Gremia\.BR/i }).click();
   const settings = page.getByRole('tabpanel', { name: /Gremia\.BR/i });
@@ -116,6 +116,7 @@ test('zeigt Remote-Zugang erst nach bewusster Sitzungsaktion und entfernt ihn be
   await page.getByRole('button', { name: 'Gremia.BR aktualisieren' }).click();
   await expect(meeting).toHaveCount(1);
   await meeting.getByLabel('Sitzung suchen und auswählen').fill('2026-05-29T09:00:00.000Z · BR-Sitzung Mai');
+  expect(await page.evaluate(() => (window as Window & { __GREMIA_BR_MEETING_MINUTES_REQUESTS: () => number }).__GREMIA_BR_MEETING_MINUTES_REQUESTS())).toBe(0);
   await expect(meeting).not.toContainText('TOP 1: Arbeitsplatzausstattung');
   await meeting.getByRole('button', { name: 'Tagesordnung abrufen' }).click();
   await expect(meeting).toContainText('TOP 1: Arbeitsplatzausstattung');
@@ -125,10 +126,15 @@ test('zeigt Remote-Zugang erst nach bewusster Sitzungsaktion und entfernt ihn be
 
   await meeting.getByRole('button', { name: 'Remote-Zugang abrufen' }).click();
   await expect(meeting).toContainText('PIN: 123456');
+  await meeting.getByRole('button', { name: 'Niederschrift abrufen' }).click();
+  await expect(meeting).toContainText('Inhaltsprüfung');
+  await expect(meeting).toContainText('Gremia.BR liefert hier Statusangaben, keinen Niederschrifttext.');
+  expect(await page.evaluate(() => (window as Window & { __GREMIA_BR_MEETING_MINUTES_REQUESTS: () => number }).__GREMIA_BR_MEETING_MINUTES_REQUESTS())).toBe(1);
   expect(await page.evaluate(() => (window as Window & { __GREMIA_BR_REMOTE_ACCESS_REQUESTS: () => number }).__GREMIA_BR_REMOTE_ACCESS_REQUESTS())).toBe(1);
   await page.getByRole('button', { name: 'Gremia.BR aktualisieren' }).click();
   await expect(meeting).not.toContainText('PIN: 123456');
   await expect(meeting).not.toContainText('TOP 1: Arbeitsplatzausstattung');
+  await expect(meeting).not.toContainText('Inhaltsprüfung');
 });
 
 test('sucht Remote-Dokumente bewusst und zeigt Metadaten erst nach Detailaktion', async ({ page }) => {

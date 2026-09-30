@@ -3,6 +3,7 @@ import { GremiaBrHttpError } from './gremiaBrHttpClient.js';
 import { ApplicationError } from '../../src/domain/models/application-error.model.js';
 import type { GremiaBrCachedOverview } from '../../src/domain/models/gremia-br.model.js';
 import type { GremiaBrAgendaChanges } from '../../src/domain/models/gremia-br.model.js';
+import type { GremiaBrMinutesSummary } from '../../src/domain/models/gremia-br.model.js';
 
 interface AgendaItem {
   itemKey: string;
@@ -62,6 +63,46 @@ function agendaItemChanged(before: AgendaItem, current: AgendaItem): boolean {
 
 export class GremiaBrMeetingAccessService {
   constructor(private readonly auth: Pick<GremiaBrAuthService, 'get' | 'getReadContext'>) {}
+
+  async getMinutes(meetingId: string, overview: GremiaBrCachedOverview): Promise<GremiaBrMinutesSummary | null> {
+    const context = this.auth.getReadContext();
+    const meetings = [overview.currentMeeting, overview.nextMeeting, ...overview.upcomingMeetings];
+    const eligible = meetings.some((value) => {
+      if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+      const meeting = value as Record<string, unknown>;
+      return meeting.id === meetingId && meeting.bodyId === context.selectedBodyId;
+    });
+    if (!eligible) throw new ApplicationError('NOT_FOUND', 'Die Sitzung gehört nicht zum aktuellen Arbeitsstand. Bitte Gremia.BR aktualisieren.');
+    let payload: unknown;
+    try {
+      payload = await this.auth.get<unknown>(`/api/v1/meetings/${encodeURIComponent(meetingId)}/minutes`);
+    } catch (error) {
+      if (error instanceof GremiaBrHttpError && error.status === 404) return null;
+      if (error instanceof GremiaBrHttpError && error.status === 403) {
+        throw new ApplicationError('PERMISSION_DENIED', 'Gremia.BR erlaubt den Zugriff auf diese Niederschrift nicht. Bitte die Berechtigung dort prüfen.');
+      }
+      throw new ApplicationError('REMOTE_READ_FAILED', 'Die Niederschrift konnte nicht geladen werden. Bitte erneut abrufen.');
+    }
+    if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+      throw new ApplicationError('REMOTE_READ_FAILED', 'Gremia.BR hat eine unvollständige Niederschrift geliefert.');
+    }
+    const minutes = payload as Record<string, unknown>;
+    const kind = ['RESULT_MINUTES', 'PROCEEDINGS_MINUTES'];
+    const statuses = ['DRAFT', 'CONTENT_REVIEW', 'CONTENT_FINAL', 'SIGNATURE_PENDING', 'SIGNED_EVIDENCE_COMPLETE', 'COMPLETED'];
+    const protectionClasses = ['INTERNAL', 'CONFIDENTIAL', 'HIGH', 'RESTRICTED'];
+    if (minutes.meetingId !== meetingId || !kind.includes(String(minutes.kind)) || !statuses.includes(String(minutes.status))
+      || !protectionClasses.includes(String(minutes.protectionClass)) || !Number.isInteger(minutes.version)
+      || typeof minutes.contentComplete !== 'boolean' || !Array.isArray(minutes.contentMissing)
+      || !minutes.contentMissing.every((item) => typeof item === 'string')) {
+      throw new ApplicationError('REMOTE_READ_FAILED', 'Gremia.BR hat eine unvollständige Niederschrift geliefert.');
+    }
+    return {
+      kind: minutes.kind as GremiaBrMinutesSummary['kind'], status: minutes.status as GremiaBrMinutesSummary['status'],
+      protectionClass: minutes.protectionClass as GremiaBrMinutesSummary['protectionClass'],
+      version: minutes.version as number, contentComplete: minutes.contentComplete,
+      contentMissing: minutes.contentMissing as string[],
+    };
+  }
 
   async getAgendaChanges(meetingId: string, overview: GremiaBrCachedOverview): Promise<GremiaBrAgendaChanges> {
     const context = this.auth.getReadContext();

@@ -6,6 +6,7 @@ import { IndustrialPanel } from '../../shared/components/WorkbenchPanels';
 import { buildBrMeetingDrafts } from './gremiaBrWorkspaceModel';
 import { loadMeetingAgendaChanges, loadMeetingRemoteAccess } from './gremiaBrWorkspaceActions';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
+import { GremiaBrMeetingMinutesSection } from './GremiaBrMeetingMinutesSection';
 
 function remoteMeetingIds(overview: GremiaBrDashboardOverview): Set<string> {
   const meetings = [overview.currentMeeting, overview.nextMeeting, ...overview.upcomingMeetings];
@@ -124,6 +125,7 @@ export function GremiaBrMeetingAccessPanel({ overview }: { overview: GremiaBrDas
               <p className="industrial-confirm-message industrial-message" role="status">{access}</p>
             </div>
           ) : null}
+          <GremiaBrMeetingMinutesSection key={selected.sourceId} meetingId={selected.sourceId} />
         </div>
       ) : null}
     </IndustrialPanel>

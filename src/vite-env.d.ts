@@ -535,6 +535,7 @@ declare global {
         getOwnTaskDetail(id: string): Promise<GremiaBrOwnTaskDetail>;
         getMeetingRemoteAccess(meetingId: string): Promise<string>;
         getMeetingAgendaChanges(meetingId: string): Promise<GremiaBrAgendaChanges>;
+        getMeetingMinutes(meetingId: string): Promise<import('./domain/models/gremia-br.model').GremiaBrMinutesSummary | null>;
         searchRemoteDocuments(query: string): Promise<GremiaBrDocumentHit[]>;
         getRemoteDocumentDetail(documentId: string): Promise<GremiaBrDocumentDetail>;
         requestDocumentAccess(input: import('./domain/models/gremia-br.model').GremiaBrDocumentAccessRequestInput): Promise<import('./domain/models/gremia-br.model').GremiaBrOwnAccessApproval>;

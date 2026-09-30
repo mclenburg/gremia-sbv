@@ -2,6 +2,7 @@ import type { CaseRecord } from "../../../domain/models/case.model";
 import type {
   GremiaBrDashboardOverview,
   GremiaBrAgendaChanges,
+  GremiaBrMinutesSummary,
   GremiaBrDocumentDetail,
   GremiaBrDocumentImportInput,
   GremiaBrOwnShare,
@@ -111,6 +112,12 @@ export async function loadMeetingAgendaChanges(meetingId: string): Promise<Gremi
   const bridge = await waitForBridge();
   if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
   return bridge.gremiaBr.getMeetingAgendaChanges(meetingId);
+}
+
+export async function loadMeetingMinutes(meetingId: string): Promise<GremiaBrMinutesSummary | null> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.getMeetingMinutes(meetingId);
 }
 
 export async function searchRemoteDocuments(query: string): Promise<GremiaBrDocumentHit[]> {
