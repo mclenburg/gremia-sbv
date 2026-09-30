@@ -70,6 +70,14 @@ export function createSettingsApi(invokeIpc: IpcInvoker) {
         invokeIpc(IPC_CHANNELS.gremiaBrOwnTaskTransitionPost, input),
       getProcedureDetail: (id: string): Promise<GremiaBrProcedureDetail> =>
         invokeIpc(IPC_CHANNELS.gremiaBrProcedureDetailGet, id),
+      listProcedureTypes: (): Promise<import('../../src/domain/models/gremia-br.model.js').GremiaBrProcedureTypeOption[]> =>
+        invokeIpc(IPC_CHANNELS.gremiaBrProcedureTypesList),
+      getPendingCaseCreation: (caseId: string): Promise<import('../../src/domain/models/gremia-br.model.js').GremiaBrCaseCreationRecord | null> =>
+        invokeIpc(IPC_CHANNELS.gremiaBrCaseCreationPendingGet, caseId),
+      createRemoteCase: (input: import('../../src/domain/models/gremia-br.model.js').CreateGremiaBrRemoteCaseInput): Promise<import('../../src/domain/models/gremia-br.model.js').GremiaBrCaseCreationRecord> =>
+        invokeIpc(IPC_CHANNELS.gremiaBrCaseCreationCreate, input),
+      resumeCaseCreation: (id: string): Promise<import('../../src/domain/models/gremia-br.model.js').GremiaBrCaseCreationRecord> =>
+        invokeIpc(IPC_CHANNELS.gremiaBrCaseCreationResume, id),
       listInformationRequests: (caseId: string, procedureId: string): Promise<GremiaBrInformationRequest[]> =>
         invokeIpc(IPC_CHANNELS.gremiaBrInformationRequestsList, caseId, procedureId),
       createInformationRequest: (input: CreateGremiaBrInformationRequestInput): Promise<GremiaBrInformationRequest> =>

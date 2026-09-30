@@ -10,6 +10,12 @@ Mit **Gremia.BR aktualisieren** holst du den aktuellen Arbeitsstand bewusst ab. 
 
 Optional kannst du in denselben Einstellungen **Gremia.BR nach dem Entsperren beim Programmstart automatisch aktualisieren** aktivieren. Standardmäßig ist dies ausgeschaltet. Ist es aktiviert, läuft nach dem ersten Entsperren genau ein Gesamtabruf; Erfolg oder Fehler wird im Arbeitsbereich angezeigt. Weitere Abrufe bleiben manuell, und es gibt kein Polling.
 
+## Fall und Verfahren anlegen
+
+Im Gremia.BR-Arbeitsbereich wählst du zuerst die lokale Fallakte, gibst einen für Gremia.BR geeigneten Sachverhalt ein und lädst die verfügbaren SBV-Verfahrensarten. **Übertragung prüfen** zeigt genau die Angaben, die an Gremia.BR gehen. Erst **Fall und Verfahren verbindlich anlegen** sendet sie. Interne Fallnotizen und Dokumente werden dabei nicht mitgesendet.
+
+Nach erfolgreicher Anlage ist das Verfahren mit der lokalen Fallakte verknüpft. Aktualisiere Gremia.BR, um den neuen Stand in der Übersicht zu sehen. Falls nur der Fall bestätigt wurde, kannst du die Verfahrensanlage bewusst fortsetzen. Bei unklarem Serverstand prüfe den Fall zuerst in Gremia.BR; die App verhindert bis dahin eine erneute Anlage aus derselben Fallakte.
+
 ## Offene Aktionen
 
 Die Übersicht zeigt eigene Aufgaben und ausstehende eigene Zugriffsanträge. Die separate Antragsübersicht zeigt auch bereits entschiedene Anträge. Für eine Aufgabe öffnet **Details** erst nach deinem Klick die zusätzlichen Angaben. **Statusänderungen abrufen** zeigt die aktuell von Gremia.BR angebotenen Möglichkeiten; **Statusänderung bestätigen** sendet genau deine Auswahl. Bei einem Konflikt lade die Aufgabendetails erneut und prüfe den neuen Stand.

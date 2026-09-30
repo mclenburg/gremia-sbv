@@ -482,6 +482,8 @@
   window.__GREMIA_BR_DOCUMENT_SEARCHES = () => remoteDocumentSearches;
   let documentAccessRequests = 0;
   window.__GREMIA_BR_DOCUMENT_ACCESS_REQUESTS = () => documentAccessRequests;
+  let remoteCaseCreations = 0;
+  window.__GREMIA_BR_CASE_CREATIONS = () => remoteCaseCreations;
   let startupRefreshes = 0;
   window.__GREMIA_BR_STARTUP_REFRESHES = () => startupRefreshes;
   const gremiaBrSampleCache = () => ({
@@ -906,6 +908,14 @@
       ],
       listTransferableDocuments: async () => [],
       listWorkspaceActions: async () => [],
+      listProcedureTypes: async () => [{ id: 'sbv.participation', title: 'SBV-Beteiligung' }],
+      getPendingCaseCreation: async () => null,
+      createRemoteCase: async (input) => {
+        remoteCaseCreations += 1;
+        if (!input.localCaseId || !input.subject || input.procedureType !== 'sbv.participation') throw new Error('Anlage ungültig.');
+        return { id: 'creation-e2e', localCaseId: input.localCaseId, procedureType: input.procedureType, remoteCaseReference: 'BR-2026-17', status: 'completed' };
+      },
+      resumeCaseCreation: async () => { throw new Error('Keine offene Anlage.'); },
       getMeetingRemoteAccess: async (meetingId) => {
         remoteAccessRequests += 1;
         if (meetingId !== 'br-meeting-2026-05-29') throw new Error('Kein Remote-Zugang verfügbar.');

@@ -547,6 +547,10 @@ declare global {
         getOwnTaskTransitions(id: string): Promise<GremiaBrTaskTransitionOptions>;
         transitionOwnTask(input: GremiaBrTaskTransitionInput): Promise<GremiaBrOwnTaskDetail>;
         getProcedureDetail(id: string): Promise<GremiaBrProcedureDetail>;
+        listProcedureTypes(): Promise<import('./domain/models/gremia-br.model').GremiaBrProcedureTypeOption[]>;
+        getPendingCaseCreation(caseId: string): Promise<import('./domain/models/gremia-br.model').GremiaBrCaseCreationRecord | null>;
+        createRemoteCase(input: import('./domain/models/gremia-br.model').CreateGremiaBrRemoteCaseInput): Promise<import('./domain/models/gremia-br.model').GremiaBrCaseCreationRecord>;
+        resumeCaseCreation(id: string): Promise<import('./domain/models/gremia-br.model').GremiaBrCaseCreationRecord>;
         listInformationRequests(caseId: string, procedureId: string): Promise<GremiaBrInformationRequest[]>;
         createInformationRequest(input: CreateGremiaBrInformationRequestInput): Promise<GremiaBrInformationRequest>;
         completeInformationRequest(input: CompleteGremiaBrInformationRequestInput): Promise<GremiaBrInformationRequest>;

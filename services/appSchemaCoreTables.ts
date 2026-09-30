@@ -221,6 +221,12 @@ export const GREMIA_BR_WORKSPACE_ACTIONS_REQUIRED_COLUMNS = [
   'created_at'
 ] as const;
 
+export const GREMIA_BR_CASE_CREATIONS_REQUIRED_COLUMNS = [
+  'id', 'local_case_id', 'organization_id', 'security_domain', 'procedure_type',
+  'remote_case_id', 'remote_case_reference', 'remote_procedure_id', 'status',
+  'correlation_id', 'created_at', 'updated_at'
+] as const;
+
 
 
 export const CASE_EXTERNAL_REFERENCES_REQUIRED_COLUMNS = [

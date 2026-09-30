@@ -39,6 +39,8 @@ Der HTTP-Port setzt für jeden Request eine `x-correlation-id` und übernimmt ei
 
 ## Schreibende Arbeitsabläufe
 
+**Fall und Verfahren anlegen** verwendet nach ausdrücklicher Vorschau `POST /api/v1/cases` und danach `POST /api/v1/procedures`. Die Verfahrensarten stammen aus dem aktuellen SBV-Katalog. Nur Organisation, Sicherheitsbereich, Ursprung und der eingegebene Sachverhalt werden für den Fall gesendet; lokale Notizen, Gesundheitsdaten und Dokumente werden nicht automatisch übernommen. Migration 0063 merkt den Anlagezustand vor dem ersten Remote-Schreiben im verschlüsselten Tresor. Beide Requests verwenden dieselbe Korrelations-ID. Erst nach bestätigtem Verfahren wird eine lokale Referenz zur Fallakte angelegt. Ein eindeutig abgelehnter Verfahrensaufruf kann bewusst wiederaufgenommen werden; bei unklarem Remote-Stand sperrt der Dienst eine doppelte Anlage bis zur manuellen Prüfung.
+
 Eine neue eigene Aufgabe oder Informationsanforderung wird nur im Kontext eines verknüpften Verfahrens und durch eine ausdrückliche Aktion erstellt. Die Aufgabe bleibt in Gremia.BR. Für den Abschluss einer Informationsanforderung wird der aktuelle Stand im Rahmen derselben Nutzeraktion nochmals gelesen und mit der angezeigten Version verglichen.
 
 Eine Tagesordnungspunkt-Anforderung wird an die ausgewählte Sitzung gesendet. Eine BR-Sitzung kann separat als lokale SBV-Arbeitskopie übernommen werden; Titel, Termin, Ort und Tagesordnung bilden nur eine neutrale Grundlage. Eigene SBV-Positionen und rechtliche Bewertungen werden nicht automatisch gesetzt. Spätere Remote-Aktualisierungen überschreiben die Arbeitskopie nicht.

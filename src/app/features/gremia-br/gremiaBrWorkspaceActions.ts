@@ -20,6 +20,9 @@ import type {
   GremiaBrTaskTransitionInput,
   GremiaBrTaskTransitionOptions,
   GremiaBrPublicSettings,
+  GremiaBrProcedureTypeOption,
+  GremiaBrCaseCreationRecord,
+  CreateGremiaBrRemoteCaseInput,
   GremiaBrWorkspaceActionRecord,
 } from "../../../domain/models/gremia-br.model";
 import { waitForBridge } from "../../core/bridge/waitForBridge";
@@ -52,6 +55,30 @@ export async function loadWorkspaceSnapshot(): Promise<GremiaBrWorkspaceSnapshot
   const actions = settings.enabled ? await bridge.gremiaBr.listWorkspaceActions(50) : [];
   const cases = settings.enabled && bridge.cases ? await bridge.cases.list() : [];
   return { settings, overview, documents, actions, cases };
+}
+
+export async function listRemoteProcedureTypes(): Promise<GremiaBrProcedureTypeOption[]> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.listProcedureTypes();
+}
+
+export async function getPendingRemoteCaseCreation(caseId: string): Promise<GremiaBrCaseCreationRecord | null> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.getPendingCaseCreation(caseId);
+}
+
+export async function createRemoteCase(input: CreateGremiaBrRemoteCaseInput): Promise<GremiaBrCaseCreationRecord> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.createRemoteCase(input);
+}
+
+export async function resumeRemoteCaseCreation(id: string): Promise<GremiaBrCaseCreationRecord> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.resumeCaseCreation(id);
 }
 
 export async function refreshReadContextSnapshot(): Promise<{ message: string; snapshot: GremiaBrWorkspaceSnapshot }> {

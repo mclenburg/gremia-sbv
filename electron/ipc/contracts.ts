@@ -15,6 +15,10 @@ function endpoint<const TArguments extends readonly IpcArgumentKind[]>(contract:
 }
 
 export const IPC_ENDPOINT_CONTRACTS: Readonly<Record<IpcChannel, IpcEndpointContract>> = Object.freeze({
+  "gremia-br:procedure-types:list": endpoint({ arguments: [], outputType: "GremiaBrProcedureTypeOption[]", outputSchema: "structured-clone-value", rejectsAbsoluteRendererPaths: true, behaviorTest: "validates every exposed IPC endpoint contract at runtime" }),
+  "gremia-br:case-creation:pending:get": endpoint({ arguments: ["string"], outputType: "GremiaBrCaseCreationRecord | null", outputSchema: "structured-clone-value", rejectsAbsoluteRendererPaths: true, behaviorTest: "validates every exposed IPC endpoint contract at runtime" }),
+  "gremia-br:case-creation:create": endpoint({ arguments: ["record"], outputType: "GremiaBrCaseCreationRecord", outputSchema: "structured-clone-value", rejectsAbsoluteRendererPaths: true, behaviorTest: "validates every exposed IPC endpoint contract at runtime" }),
+  "gremia-br:case-creation:resume": endpoint({ arguments: ["string"], outputType: "GremiaBrCaseCreationRecord", outputSchema: "structured-clone-value", rejectsAbsoluteRendererPaths: true, behaviorTest: "validates every exposed IPC endpoint contract at runtime" }),
   "activityJournal:create": endpoint({ arguments: ["record"], outputType: "ActivityJournalEntryRecord", outputSchema: "structured-clone-value", rejectsAbsoluteRendererPaths: true, behaviorTest: "validates every exposed IPC endpoint contract at runtime" }),
   "activityJournal:delete": endpoint({ arguments: ["string"], outputType: "{ deleted: boolean }", outputSchema: "structured-clone-value", rejectsAbsoluteRendererPaths: true, behaviorTest: "validates every exposed IPC endpoint contract at runtime" }),
   "activityJournal:export": endpoint({ arguments: ["optional-record","optional-unknown","optional-record"], outputType: "ActivityJournalExportResult", outputSchema: "structured-clone-value", rejectsAbsoluteRendererPaths: true, behaviorTest: "validates every exposed IPC endpoint contract at runtime" }),

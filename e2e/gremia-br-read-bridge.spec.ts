@@ -44,6 +44,34 @@ test('führt den ausdrücklich aktivierten Startabruf nach Neustart einmal aus',
   expect(await page.evaluate(() => (window as Window & { __GREMIA_BR_STARTUP_REFRESHES: () => number }).__GREMIA_BR_STARTUP_REFRESHES())).toBe(1);
 });
 
+test('legt einen Remote-Fall erst nach Vorschau und ausdrücklicher Bestätigung an', async ({ page }) => {
+  await mainNavigation(page).getByRole('button', { name: /Einstellungen/i }).click();
+  await page.getByRole('tab', { name: /Gremia\.BR/i }).click();
+  const settings = page.getByRole('tabpanel', { name: /Gremia\.BR/i });
+  await settings.getByLabel(/Gremia\.BR-Anbindung aktivieren/i).check();
+  await settings.getByLabel(/Serveradresse/i).fill('https://br.example.local');
+  await settings.getByLabel(/Benutzerkonto/i).fill('sbv@example.local');
+  await settings.getByLabel(/Passwort/i).fill('streng-geheim');
+  await settings.getByRole('button', { name: 'SBV-Gremien aus Gremia.BR laden' }).click();
+  await settings.getByRole('list', { name: 'Berechtigte SBV-Gremien aus Gremia.BR' }).getByRole('button', { name: 'Auswählen' }).click();
+  await settings.getByRole('button', { name: /Einstellungen speichern/i }).click();
+  await mainNavigation(page).getByRole('button', { name: 'Gremia.BR', exact: true }).click();
+
+  const panel = page.getByRole('region', { name: 'Gremia.BR-Fallanlage' });
+  await panel.getByLabel('Lokale Fallakte').fill('TEST-0001 · Testperson Alpha');
+  await panel.getByLabel('Sachverhalt für Gremia.BR').fill('Arbeitsplatzanpassung');
+  await panel.getByRole('button', { name: 'SBV-Verfahrensarten abrufen' }).click();
+  await panel.getByLabel('SBV-Verfahrensart').fill('SBV-Beteiligung');
+  expect(await page.evaluate(() => (window as Window & { __GREMIA_BR_CASE_CREATIONS: () => number }).__GREMIA_BR_CASE_CREATIONS())).toBe(0);
+  await panel.getByRole('button', { name: 'Übertragung prüfen' }).click();
+  await expect(panel).toContainText('Arbeitsplatzanpassung');
+  await expect(panel).toContainText('Weitere Fallakteninhalte oder Dokumente werden nicht übertragen.');
+  expect(await page.evaluate(() => (window as Window & { __GREMIA_BR_CASE_CREATIONS: () => number }).__GREMIA_BR_CASE_CREATIONS())).toBe(0);
+  await panel.getByRole('button', { name: 'Fall und Verfahren verbindlich anlegen' }).click();
+  await expect(panel).toContainText('BR-2026-17');
+  expect(await page.evaluate(() => (window as Window & { __GREMIA_BR_CASE_CREATIONS: () => number }).__GREMIA_BR_CASE_CREATIONS())).toBe(1);
+});
+
 test('zeigt Gremia.BR-Dashboarddaten nur bei aktivierter Kooperationsbrücke und lädt Detaildaten nur nach Nutzeraktion', async ({ page }) => {
 
   await expect(page.getByLabel('Gremia.BR-Kooperationsbrücke')).toHaveCount(0);

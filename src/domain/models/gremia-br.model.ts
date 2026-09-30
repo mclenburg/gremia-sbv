@@ -267,6 +267,25 @@ export interface GremiaBrDocumentAccessRequestInput {
   durationMs: number;
 }
 
+export interface GremiaBrProcedureTypeOption {
+  id: string;
+  title: string;
+}
+
+export interface CreateGremiaBrRemoteCaseInput {
+  localCaseId: string;
+  subject: string;
+  procedureType: string;
+}
+
+export interface GremiaBrCaseCreationRecord {
+  id: string;
+  localCaseId: string;
+  procedureType: string;
+  remoteCaseReference?: string;
+  status: 'case_submission_pending' | 'case_created' | 'procedure_created' | 'completed' | 'needs_review';
+}
+
 export interface GremiaBrCacheRefreshResult extends GremiaBrConnectionTestResult {
   refreshedKeys: GremiaBrCacheSourceType[];
   cached: GremiaBrCachedOverview;

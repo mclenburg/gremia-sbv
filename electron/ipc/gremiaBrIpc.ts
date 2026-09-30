@@ -21,6 +21,7 @@ import { registerGremiaBrDocumentReadIpc } from './gremiaBrDocumentReadIpc.js';
 import { registerGremiaBrOwnShareIpc } from './gremiaBrOwnShareIpc.js';
 import { GremiaBrStartupRefreshService } from '../../services/gremiaBr/gremiaBrStartupRefreshService.js';
 import { registerGremiaBrAccessApprovalIpc } from './gremiaBrAccessApprovalIpc.js';
+import { registerGremiaBrCaseCreationIpc } from './gremiaBrCaseCreationIpc.js';
 
 export function registerGremiaBrIpc(ipcMain: IpcMain, security: SecurityService, services: ApplicationServices): void {
   const settings = services.gremiaBrSettings;
@@ -35,7 +36,6 @@ export function registerGremiaBrIpc(ipcMain: IpcMain, security: SecurityService,
     }
     return id;
   }
-
   registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrSettingsGet, async () => settings.getPublicSettings());
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrSettingsSave, async (_event, input: unknown) => {
@@ -141,4 +141,5 @@ export function registerGremiaBrIpc(ipcMain: IpcMain, security: SecurityService,
   registerGremiaBrDocumentReadIpc(ipcMain, auth, security, services.cases);
   registerGremiaBrOwnShareIpc(ipcMain, auth, () => security.getActiveDatabase());
   registerGremiaBrAccessApprovalIpc(ipcMain, auth);
+  registerGremiaBrCaseCreationIpc(ipcMain, security, services);
 }

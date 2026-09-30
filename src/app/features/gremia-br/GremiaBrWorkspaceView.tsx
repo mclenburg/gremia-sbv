@@ -22,6 +22,7 @@ import { GremiaBrProcedureLinksPanel } from './GremiaBrProcedureLinksPanel';
 import { GremiaBrMeetingAccessPanel } from './GremiaBrMeetingAccessPanel';
 import { GremiaBrDocumentBrowsePanel } from './GremiaBrDocumentBrowsePanel';
 import { GremiaBrOwnSharesPanel } from './GremiaBrOwnSharesPanel';
+import { GremiaBrCaseCreationPanel } from './GremiaBrCaseCreationPanel';
 import { useGremiaBrWorkspace } from "./useGremiaBrWorkspace";
 
 export function GremiaBrWorkspaceView() {
@@ -29,9 +30,7 @@ export function GremiaBrWorkspaceView() {
   const workspace = useGremiaBrWorkspace(announce);
   const selectedTaskId = workspace.selectedTaskId;
   const actionDisabled = isGremiaBrActionDisabled(workspace.settings);
-  if (!workspace.settings.enabled) {
-    return <DisabledGremiaBrWorkspace />;
-  }
+  if (!workspace.settings.enabled) return <DisabledGremiaBrWorkspace />;
 
   return (
     <section className="feature-stack" aria-labelledby="gremia-br-workspace-title">
@@ -49,6 +48,7 @@ export function GremiaBrWorkspaceView() {
       {workspace.settings.apiMode === 'gremia_br_v2' ? <GremiaBrMeetingAccessPanel key={`meeting-${workspace.snapshotRevision}`} overview={workspace.overview} /> : null}
       {workspace.settings.apiMode === 'gremia_br_v2' ? <GremiaBrDocumentBrowsePanel key={`document-${workspace.snapshotRevision}`} cases={workspace.cases} /> : null}
       {workspace.settings.apiMode === 'gremia_br_v2' ? <GremiaBrOwnSharesPanel key={`shares-${workspace.snapshotRevision}`} actions={workspace.actions} /> : null}
+      {workspace.settings.apiMode === 'gremia_br_v2' ? <GremiaBrCaseCreationPanel cases={workspace.cases} settings={workspace.settings} /> : null}
       {workspace.settings.apiMode === 'gremia_br_v2' ? (
         <GremiaBrProcedureLinksPanel
           cases={workspace.cases}
