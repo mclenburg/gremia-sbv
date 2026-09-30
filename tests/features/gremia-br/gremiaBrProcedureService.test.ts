@@ -1,7 +1,49 @@
 import { describe, expect, it, vi } from 'vitest';
 import { GremiaBrProcedureService } from '../../../services/gremiaBr/gremiaBrProcedureService';
+import { GremiaBrHttpError } from '../../../services/gremiaBr/gremiaBrHttpClient';
 
 describe('Gremia.BR-Verfahrensdienst', () => {
+  it('lädt den fachlichen Verfahrensstand nur auf Aktion und mit gemeinsamer Request-Korrelation', async () => {
+    const get = vi.fn().mockImplementation(async (url: string) => {
+      if (url.endsWith('/outcome')) return { id: 'outcome-1', procedureId: 'procedure-1', outcomeCode: 'APPROVED', recordedAt: '2026-09-29T10:00:00Z' };
+      if (url.endsWith('/deadlines')) return [{ id: 'deadline-1', procedureId: 'procedure-1', rule: 'Frist', calculatedDeadline: '2026-10-05T10:00:00Z', status: 'CALCULATED' }];
+      if (url.endsWith('/deferrals')) return [
+        { id: 'deferral-1', subjectType: 'PROCEDURE', subjectId: 'procedure-1', title: 'Rückmeldung prüfen', nextDueAt: '2026-10-06T10:00:00Z', active: true },
+        { id: 'deferral-foreign', subjectType: 'PROCEDURE', subjectId: 'procedure-2', title: 'Fremder Vorgang', nextDueAt: '2026-10-06T10:00:00Z', active: true },
+      ];
+      return { id: 'procedure-1', masterCaseId: 'case-1', procedureType: 'SBV_PARTICIPATION', state: 'UNDER_REVIEW', workflow: 'STANDARD', openedAt: '2026-09-20T10:00:00Z', version: 2, technicalCompleteness: 'COMPLETE', substantiveCompleteness: 'INFORMATION_REQUESTED' };
+    });
+    const service = new GremiaBrProcedureService({ get } as never);
+    expect(get).not.toHaveBeenCalled();
+    const detail = await service.getDetail('procedure-1', 'case-1');
+    expect(detail).toMatchObject({
+      technicalCompleteness: 'COMPLETE', substantiveCompleteness: 'INFORMATION_REQUESTED',
+      outcome: { code: 'APPROVED' }, deadlines: [{ id: 'deadline-1' }], deferrals: [{ title: 'Rückmeldung prüfen' }],
+    });
+    expect(JSON.stringify(detail)).not.toContain('Fremder Vorgang');
+    expect(get).toHaveBeenCalledTimes(4);
+    const ids = get.mock.calls.map((call) => call[1]?.correlationId);
+    expect(new Set(ids).size).toBe(1);
+    expect(ids[0]).toEqual(expect.any(String));
+  });
+
+  it('akzeptiert ein noch fehlendes Ergebnis, aber keine fremden Fristen', async () => {
+    const get = vi.fn().mockImplementation(async (url: string) => {
+      if (url.endsWith('/outcome')) throw new GremiaBrHttpError('Nicht gefunden', 404, url);
+      if (url.endsWith('/deadlines')) return [{ id: 'deadline-foreign', procedureId: 'other', rule: 'Frist', calculatedDeadline: '2026-10-05T10:00:00Z', status: 'CALCULATED' }];
+      if (url.endsWith('/deferrals')) return [];
+      return { id: 'procedure-1', masterCaseId: 'case-1', procedureType: 'SBV_PARTICIPATION', state: 'UNDER_REVIEW', workflow: 'STANDARD', openedAt: '2026-09-20T10:00:00Z', version: 2, technicalCompleteness: 'COMPLETE', substantiveCompleteness: 'NOT_REVIEWED' };
+    });
+    const service = new GremiaBrProcedureService({ get } as never);
+    await expect(service.getDetail('procedure-1', 'case-1')).rejects.toThrow('widersprüchliche Verfahrensfrist');
+    get.mockImplementation(async (url: string) => {
+      if (url.endsWith('/outcome')) throw new GremiaBrHttpError('Nicht gefunden', 404, url);
+      if (url.endsWith('/deadlines') || url.endsWith('/deferrals')) return [];
+      return { id: 'procedure-1', masterCaseId: 'case-1', procedureType: 'SBV_PARTICIPATION', state: 'UNDER_REVIEW', workflow: 'STANDARD', openedAt: '2026-09-20T10:00:00Z', version: 2, technicalCompleteness: 'COMPLETE', substantiveCompleteness: 'NOT_REVIEWED' };
+    });
+    await expect(service.getDetail('procedure-1', 'case-1')).resolves.toMatchObject({ outcome: null, deadlines: [], deferrals: [] });
+  });
+
   it('legt eine eigene Verfahrensaufgabe mit der aktuellen Serveridentität an', async () => {
     const get = vi.fn().mockResolvedValue({ userId: 'person-1' });
     const post = vi.fn().mockResolvedValue({

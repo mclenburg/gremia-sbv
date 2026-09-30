@@ -67,7 +67,7 @@ describe('Gremia.BR-Verfahrensverknüpfung', () => {
       localCaseId="local-1"
       remoteCaseId="remote-1"
       procedureId="procedure-1"
-      detail={{ id: 'procedure-1', masterCaseId: 'remote-1', procedureType: 'SBV_PARTICIPATION', state: 'UNDER_REVIEW', workflow: 'STANDARD', openedAt: '2026-09-20T10:00:00.000Z', version: 2 }}
+      detail={{ id: 'procedure-1', masterCaseId: 'remote-1', procedureType: 'SBV_PARTICIPATION', state: 'UNDER_REVIEW', workflow: 'STANDARD', openedAt: '2026-09-20T10:00:00.000Z', version: 2, technicalCompleteness: 'COMPLETE', substantiveCompleteness: 'NOT_REVIEWED', outcome: { code: 'APPROVED', recordedAt: '2026-09-28T10:00:00.000Z' }, deadlines: [{ id: 'deadline-1', rule: 'Stellungnahmefrist', dueAt: '2026-10-05T10:00:00.000Z', status: 'CONFIRMED' }], deferrals: [{ id: 'deferral-1', title: 'Rückmeldung prüfen', dueAt: '2026-10-06T10:00:00.000Z' }] }}
       links={[link]}
       informationRequests={[{ id: 'request-1', procedureId: 'procedure-1', status: 'OPEN', requestedAt: '2026-09-29T10:00:00.000Z', responseDueAt: '2026-10-05T10:00:00.000Z', version: 1 }]}
       informationRequestsProcedureId="procedure-1"
@@ -99,6 +99,10 @@ describe('Gremia.BR-Verfahrensverknüpfung', () => {
 
     expect(html).toContain('SBV-Beteiligung');
     expect(html).toContain('In Prüfung');
+    expect(html).toContain('Technische Vollständigkeit');
+    expect(html).toContain('APPROVED');
+    expect(html).toContain('Stellungnahmefrist');
+    expect(html).toContain('Rückmeldung prüfen');
     expect(html).toContain('Verknüpfung zu BR-2026-17 · Arbeitsplatzgestaltung aufheben');
     expect(html).toContain('Bereits verknüpft');
     expect(html).toContain('Informationsanforderungen laden');

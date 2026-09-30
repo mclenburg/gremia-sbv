@@ -8,14 +8,36 @@ const STATE_LABELS: Record<string, string> = {
   DECIDED: 'Entschieden', COMMUNICATION_PENDING: 'Mitteilung ausstehend', COMMUNICATED: 'Mitgeteilt',
   COMPLETED: 'Abgeschlossen', CANCELLED: 'Abgebrochen',
 };
+const COMPLETENESS_LABELS: Record<string, string> = {
+  NOT_CHECKED: 'Nicht geprüft', NOT_REVIEWED: 'Nicht geprüft', COMPLETE: 'Vollständig',
+  INCOMPLETE: 'Unvollständig', INFORMATION_REQUESTED: 'Information angefordert',
+  REQUIRE_CONFIRMATION: 'Bestätigung erforderlich',
+};
+const DEADLINE_STATUS_LABELS: Record<string, string> = {
+  CALCULATED: 'Berechnet', CONFIRMED: 'Bestätigt', SUPERSEDED: 'Ersetzt', EXPIRED: 'Abgelaufen', CANCELLED: 'Aufgehoben',
+};
 
 export function GremiaBrProcedureSummary({ detail }: { detail: GremiaBrProcedureDetail }) {
   return (
-    <dl className="industrial-meta-grid">
-      <div><dt>Verfahrensart</dt><dd>{detail.procedureType === 'SBV_PARTICIPATION' ? 'SBV-Beteiligung' : 'Verfahren'}</dd></div>
-      <div><dt>Status</dt><dd>{STATE_LABELS[detail.state] ?? 'Status nicht zugeordnet'}</dd></div>
-      <div><dt>Eröffnet</dt><dd><time dateTime={detail.openedAt}>{new Date(detail.openedAt).toLocaleDateString('de-DE')}</time></dd></div>
-    </dl>
+    <div className="industrial-form-section">
+      <h3>Aktueller Verfahrensstand</h3>
+      <dl className="industrial-meta-grid">
+        <div><dt>Verfahrensart</dt><dd>{detail.procedureType === 'SBV_PARTICIPATION' ? 'SBV-Beteiligung' : 'Verfahren'}</dd></div>
+        <div><dt>Status</dt><dd>{STATE_LABELS[detail.state] ?? 'Status nicht zugeordnet'}</dd></div>
+        <div><dt>Technische Vollständigkeit</dt><dd>{COMPLETENESS_LABELS[detail.technicalCompleteness] ?? 'Nicht zugeordnet'}</dd></div>
+        <div><dt>Fachliche Vollständigkeit</dt><dd>{COMPLETENESS_LABELS[detail.substantiveCompleteness] ?? 'Nicht zugeordnet'}</dd></div>
+        <div><dt>Eröffnet</dt><dd><time dateTime={detail.openedAt}>{new Date(detail.openedAt).toLocaleDateString('de-DE')}</time></dd></div>
+        <div><dt>Ergebnis</dt><dd>{detail.outcome ? `${detail.outcome.code} · ${new Date(detail.outcome.recordedAt).toLocaleDateString('de-DE')}` : 'Noch kein Ergebnis erfasst'}</dd></div>
+      </dl>
+      <h4>Fristen</h4>
+      {detail.deadlines.length ? <ul>{detail.deadlines.map((deadline) => (
+        <li key={deadline.id}>{deadline.rule}: <time dateTime={deadline.dueAt}>{new Date(deadline.dueAt).toLocaleString('de-DE')}</time> · {DEADLINE_STATUS_LABELS[deadline.status] ?? deadline.status}</li>
+      ))}</ul> : <p className="industrial-muted">Keine Fristen gemeldet.</p>}
+      <h4>Wiedervorlagen</h4>
+      {detail.deferrals.length ? <ul>{detail.deferrals.map((deferral) => (
+        <li key={deferral.id}>{deferral.title}: <time dateTime={deferral.dueAt}>{new Date(deferral.dueAt).toLocaleString('de-DE')}</time></li>
+      ))}</ul> : <p className="industrial-muted">Keine aktiven Wiedervorlagen gemeldet.</p>}
+    </div>
   );
 }
 

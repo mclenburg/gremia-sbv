@@ -2,6 +2,45 @@ import { GREMIA_BR_TASK_STATUSES } from '../../src/domain/models/gremia-br.model
 import type { CreateGremiaBrInformationRequestInput, CreateGremiaBrProcedureTaskInput, GremiaBrInformationRequest, GremiaBrOwnTaskDetail, GremiaBrProcedureDetail } from '../../src/domain/models/gremia-br.model.js';
 import { gremiaBrRecord } from './gremiaBrPayload.js';
 import { GremiaBrAuthService } from './gremiaBrAuthService.js';
+import { GremiaBrHttpError } from './gremiaBrHttpClient.js';
+import { randomUUID } from 'node:crypto';
+
+function validDate(value: unknown): value is string {
+  return typeof value === 'string' && Number.isFinite(Date.parse(value));
+}
+
+function procedureOutcome(value: unknown, procedureId: string): GremiaBrProcedureDetail['outcome'] {
+  if (value === null) return null;
+  const item = gremiaBrRecord(value);
+  if (!item || item.procedureId !== procedureId || typeof item.outcomeCode !== 'string' || !validDate(item.recordedAt)) {
+    throw new Error('Gremia.BR hat ein widersprüchliches Verfahrensergebnis geliefert. Bitte den Stand erneut bewusst laden.');
+  }
+  return { code: item.outcomeCode, recordedAt: item.recordedAt };
+}
+
+function procedureDeadlines(value: unknown, procedureId: string): GremiaBrProcedureDetail['deadlines'] {
+  if (!Array.isArray(value)) throw new Error('Gremia.BR hat keine gültige Fristenliste geliefert.');
+  return value.map((entry) => {
+    const item = gremiaBrRecord(entry);
+    if (!item || item.procedureId !== procedureId || typeof item.id !== 'string' || typeof item.rule !== 'string'
+      || typeof item.status !== 'string' || !validDate(item.calculatedDeadline)
+      || (item.confirmedDeadline != null && !validDate(item.confirmedDeadline))) {
+      throw new Error('Gremia.BR hat eine widersprüchliche Verfahrensfrist geliefert. Bitte den Stand erneut bewusst laden.');
+    }
+    return { id: item.id, rule: item.rule, dueAt: (item.confirmedDeadline ?? item.calculatedDeadline) as string, status: item.status };
+  });
+}
+
+function procedureDeferrals(value: unknown, procedureId: string): GremiaBrProcedureDetail['deferrals'] {
+  if (!Array.isArray(value)) throw new Error('Gremia.BR hat keine gültige Wiedervorlagenliste geliefert.');
+  return value.map(gremiaBrRecord).filter((item) => item?.subjectType === 'PROCEDURE' && item.subjectId === procedureId && item.active === true)
+    .map((item) => {
+      if (!item || typeof item.id !== 'string' || typeof item.title !== 'string' || !validDate(item.nextDueAt)) {
+        throw new Error('Gremia.BR hat eine widersprüchliche Wiedervorlage geliefert. Bitte den Stand erneut bewusst laden.');
+      }
+      return { id: item.id, title: item.title, dueAt: item.nextDueAt };
+    });
+}
 
 function informationRequestFromResponse(value: unknown, procedureId: string): GremiaBrInformationRequest {
   const item = gremiaBrRecord(value);
@@ -24,13 +63,22 @@ export class GremiaBrProcedureService {
   constructor(private readonly auth: GremiaBrAuthService) {}
 
   async getDetail(id: string, expectedCaseId: string): Promise<GremiaBrProcedureDetail> {
-    const item = gremiaBrRecord(await this.auth.get<unknown>(`/api/v1/procedures/${encodeURIComponent(id)}`));
+    const path = `/api/v1/procedures/${encodeURIComponent(id)}`;
+    const correlationId = randomUUID();
+    const options = { correlationId };
+    const item = gremiaBrRecord(await this.auth.get<unknown>(path, options));
     if (!item || item.id !== id || item.masterCaseId !== expectedCaseId
       || typeof item.procedureType !== 'string' || typeof item.state !== 'string'
       || typeof item.workflow !== 'string' || typeof item.openedAt !== 'string'
-      || typeof item.version !== 'number' || !Number.isInteger(item.version)) {
+      || typeof item.version !== 'number' || !Number.isInteger(item.version)
+      || typeof item.technicalCompleteness !== 'string' || typeof item.substantiveCompleteness !== 'string') {
       throw new Error('Gremia.BR hat widersprüchliche oder unvollständige Verfahrensdetails geliefert. Bitte den Arbeitsstand bewusst aktualisieren.');
     }
+    let rawOutcome: unknown;
+    try { rawOutcome = await this.auth.get<unknown>(`${path}/outcome`, options); }
+    catch (error) { if (error instanceof GremiaBrHttpError && error.status === 404) rawOutcome = null; else throw error; }
+    const rawDeadlines = await this.auth.get<unknown>(`${path}/deadlines`, options);
+    const rawDeferrals = await this.auth.get<unknown>(`${path}/deferrals`, options);
     return {
       id,
       masterCaseId: expectedCaseId,
@@ -39,6 +87,11 @@ export class GremiaBrProcedureService {
       workflow: item.workflow,
       openedAt: item.openedAt,
       version: item.version,
+      technicalCompleteness: item.technicalCompleteness,
+      substantiveCompleteness: item.substantiveCompleteness,
+      outcome: procedureOutcome(rawOutcome, id),
+      deadlines: procedureDeadlines(rawDeadlines, id),
+      deferrals: procedureDeferrals(rawDeferrals, id),
     };
   }
 

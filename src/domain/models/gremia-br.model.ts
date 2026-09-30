@@ -179,6 +179,11 @@ export interface GremiaBrProcedureDetail {
   workflow: string;
   openedAt: string;
   version: number;
+  technicalCompleteness: string;
+  substantiveCompleteness: string;
+  outcome: { code: string; recordedAt: string } | null;
+  deadlines: Array<{ id: string; rule: string; dueAt: string; status: string }>;
+  deferrals: Array<{ id: string; title: string; dueAt: string }>;
 }
 
 export interface GremiaBrInformationRequest {

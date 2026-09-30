@@ -101,9 +101,14 @@ describe("Gremia.BR IPC-Startup-Grenze", () => {
     services.gremiaBrCache.getOverview.mockReturnValue({
       accessibleCases: [{ id: 'remote-case-1', reference: 'BR-2026-17', subject: 'Arbeitsplatzgestaltung', procedureIds: ['procedure-1'] }],
     });
-    services.gremiaBrAuth.get.mockResolvedValue({
-      id: 'procedure-1', masterCaseId: 'remote-case-1', procedureType: 'SBV_PARTICIPATION', state: 'UNDER_REVIEW',
-      workflow: 'STANDARD', openedAt: '2026-09-20T10:00:00.000Z', version: 2, confidential: 'nicht übernehmen',
+    services.gremiaBrAuth.get.mockImplementation(async (path: string) => {
+      if (path.endsWith('/outcome')) return null;
+      if (path.endsWith('/deadlines') || path.endsWith('/deferrals')) return [];
+      return {
+        id: 'procedure-1', masterCaseId: 'remote-case-1', procedureType: 'SBV_PARTICIPATION', state: 'UNDER_REVIEW',
+        workflow: 'STANDARD', openedAt: '2026-09-20T10:00:00.000Z', version: 2,
+        technicalCompleteness: 'COMPLETE', substantiveCompleteness: 'NOT_REVIEWED', confidential: 'nicht übernehmen',
+      };
     });
     registerGremiaBrIpc(ipcMain as never, {} as never, services as never);
     const detail = handlers.get(IPC_CHANNELS.gremiaBrProcedureDetailGet)!;
@@ -115,8 +120,14 @@ describe("Gremia.BR IPC-Startup-Grenze", () => {
     expect(await detail(event, 'procedure-1')).toEqual({
       id: 'procedure-1', masterCaseId: 'remote-case-1', procedureType: 'SBV_PARTICIPATION', state: 'UNDER_REVIEW',
       workflow: 'STANDARD', openedAt: '2026-09-20T10:00:00.000Z', version: 2,
+      technicalCompleteness: 'COMPLETE', substantiveCompleteness: 'NOT_REVIEWED', outcome: null, deadlines: [], deferrals: [],
     });
-    expect(services.gremiaBrAuth.get).toHaveBeenCalledWith('/api/v1/procedures/procedure-1');
+    expect(services.gremiaBrAuth.get).toHaveBeenCalledTimes(4);
+    expect(services.gremiaBrAuth.get.mock.calls.map((call) => call[0])).toEqual([
+      '/api/v1/procedures/procedure-1', '/api/v1/procedures/procedure-1/outcome',
+      '/api/v1/procedures/procedure-1/deadlines', '/api/v1/procedures/procedure-1/deferrals',
+    ]);
+    expect(new Set(services.gremiaBrAuth.get.mock.calls.map((call) => call[1]?.correlationId)).size).toBe(1);
   });
 
   it('liest Informationsanforderungen nur zu einem lokal verknüpften und weiterhin berechtigten Verfahren', async () => {
