@@ -13,6 +13,7 @@ type Announce = (message: string, politeness?: "polite" | "assertive") => void;
 
 export const EMPTY_GREMIA_BR_SETTINGS: GremiaBrPublicSettings = {
   enabled: false,
+  autoRefreshOnStartup: false,
   serverUrl: "",
   username: "",
   hasStoredCredentials: false,
@@ -46,6 +47,7 @@ export interface GremiaBrSettingsSetters {
   setSettings: Dispatch<SetStateAction<GremiaBrPublicSettings>>;
   setCache: Dispatch<SetStateAction<GremiaBrCachedOverview>>;
   setEnabled: Dispatch<SetStateAction<boolean>>;
+  setAutoRefreshOnStartup: Dispatch<SetStateAction<boolean>>;
   setServerUrl: Dispatch<SetStateAction<string>>;
   setUsername: Dispatch<SetStateAction<string>>;
   setPassword: Dispatch<SetStateAction<string>>;
@@ -65,6 +67,7 @@ export function applyGremiaBrSettingsSnapshot(
   setters.setSettings(next);
   setters.setCache(cached);
   setters.setEnabled(next.enabled);
+  setters.setAutoRefreshOnStartup(next.autoRefreshOnStartup);
   setters.setServerUrl(next.serverUrl);
   setters.setUsername(next.username);
   setters.setPassword("");

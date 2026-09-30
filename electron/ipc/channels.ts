@@ -91,6 +91,7 @@ export const IPC_CHANNELS = Object.freeze({
   equalizationWarnings: "equalization:warnings",
   gremiaBrCacheGet: "gremia-br:cache:get",
   gremiaBrCacheRefresh: "gremia-br:cache:refresh",
+  gremiaBrStartupRefresh: "gremia-br:startup:refresh",
   gremiaBrOwnTaskDetailGet: "gremia-br:own-task:detail:get",
   gremiaBrMeetingRemoteAccessGet: "gremia-br:meeting:remote-access:get",
   gremiaBrMeetingAgendaChangesGet: "gremia-br:meeting:agenda-changes:get",

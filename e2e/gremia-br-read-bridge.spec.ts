@@ -10,18 +10,38 @@ test('konfiguriert die optionale Gremia.BR-Kooperationsbrücke ohne automatische
   await page.getByRole('tab', { name: /Gremia\.BR/i }).click();
   const panel = page.getByRole('tabpanel', { name: /Gremia\.BR/i });
   await expect(panel).toBeVisible();
-  await expect(panel).toContainText(/keine Hintergrundsynchronisation/i);
+  await expect(panel).toContainText(/keine laufende Hintergrundsynchronisation/i);
   await expect(panel).toContainText(/kein Rückschreiben/i);
   await expect(panel.getByLabel('API-Modus')).toHaveCount(0);
+  const startupRefresh = panel.getByRole('checkbox', { name: /beim Programmstart automatisch aktualisieren/i });
+  await expect(startupRefresh).not.toBeChecked();
 
   await panel.getByLabel(/Gremia\.BR-Anbindung aktivieren/i).check();
   await panel.getByLabel(/Serveradresse/i).fill('https://br.example.local');
   await panel.getByLabel(/Benutzerkonto/i).fill('sbv@example.local');
   await panel.getByLabel(/Passwort/i).fill('streng-geheim');
+  await startupRefresh.check();
 
   await panel.getByRole('button', { name: /Einstellungen speichern/i }).click();
   await expect(panel.getByRole('status')).toContainText(/gespeichert/i);
+  await expect(startupRefresh).toBeChecked();
   await expect(panel).not.toContainText('streng-geheim');
+});
+
+test('führt den ausdrücklich aktivierten Startabruf nach Neustart einmal aus', async ({ page }) => {
+  await mainNavigation(page).getByRole('button', { name: /Einstellungen/i }).click();
+  await page.getByRole('tab', { name: /Gremia\.BR/i }).click();
+  const panel = page.getByRole('tabpanel', { name: /Gremia\.BR/i });
+  await panel.getByLabel(/Gremia\.BR-Anbindung aktivieren/i).check();
+  await panel.getByLabel(/Serveradresse/i).fill('https://br.example.local');
+  await panel.getByLabel(/Benutzerkonto/i).fill('sbv@example.local');
+  await panel.getByLabel(/Passwort/i).fill('streng-geheim');
+  await panel.getByRole('checkbox', { name: /beim Programmstart automatisch aktualisieren/i }).check();
+  await panel.getByRole('button', { name: /Einstellungen speichern/i }).click();
+
+  await page.reload();
+  await expect(page.getByRole('status').filter({ hasText: 'Gremia.BR wurde nach dem Programmstart aktualisiert.' })).toBeVisible();
+  expect(await page.evaluate(() => (window as Window & { __GREMIA_BR_STARTUP_REFRESHES: () => number }).__GREMIA_BR_STARTUP_REFRESHES())).toBe(1);
 });
 
 test('zeigt Gremia.BR-Dashboarddaten nur bei aktivierter Kooperationsbrücke und lädt Detaildaten nur nach Nutzeraktion', async ({ page }) => {

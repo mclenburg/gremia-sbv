@@ -12,6 +12,7 @@ import {
 
 const SETTINGS: GremiaBrPublicSettings = {
   enabled: true,
+  autoRefreshOnStartup: false,
   serverUrl: "https://br.example.invalid",
   username: "sbv",
   hasStoredCredentials: true,

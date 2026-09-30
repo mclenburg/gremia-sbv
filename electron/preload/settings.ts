@@ -38,6 +38,8 @@ export function createSettingsApi(invokeIpc: IpcInvoker) {
         invokeIpc(IPC_CHANNELS.gremiaBrDashboardGet),
       refreshCache: (): Promise<GremiaBrCacheRefreshResult> =>
         invokeIpc(IPC_CHANNELS.gremiaBrCacheRefresh),
+      refreshOnStartup: (): Promise<import('../../src/domain/models/gremia-br.model.js').GremiaBrStartupRefreshResult> =>
+        invokeIpc(IPC_CHANNELS.gremiaBrStartupRefresh),
       getOwnTaskDetail: (id: string): Promise<GremiaBrOwnTaskDetail> =>
         invokeIpc(IPC_CHANNELS.gremiaBrOwnTaskDetailGet, id),
       getMeetingRemoteAccess: (meetingId: string): Promise<string> =>

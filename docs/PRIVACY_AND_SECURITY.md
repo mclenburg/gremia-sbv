@@ -55,7 +55,7 @@ Die Gremia.BR-Anbindung dient ausschließlich der Zusammenarbeit zwischen BR und
 Regeln:
 
 - keine automatische Synchronisation,
-- keine Hintergrundabfragen,
+- keine periodischen Hintergrundabfragen; optional ein ausdrücklich aktivierter, einmaliger Gremia.BR-Startabruf nach Entsperren,
 - keine generischen Schreibzugriffe nach Gremia.BR,
 - keine Massentransfers vollständiger SBV-Falldaten,
 - nur explizit ausgelöste lesende Zugriffe und ausdrücklich modellierte SBV-Arbeitsbereichsaktionen,

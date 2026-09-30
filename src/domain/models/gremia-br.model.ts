@@ -62,6 +62,7 @@ export interface GremiaBrDocumentDetail {
 
 export interface GremiaBrSettingsInput {
   enabled: boolean;
+  autoRefreshOnStartup?: boolean;
   serverUrl: string;
   username: string;
   password?: string;
@@ -75,6 +76,7 @@ export interface GremiaBrSettingsInput {
 
 export interface GremiaBrPublicSettings {
   enabled: boolean;
+  autoRefreshOnStartup: boolean;
   serverUrl: string;
   username: string;
   hasStoredCredentials: boolean;
@@ -99,6 +101,11 @@ export interface GremiaBrConnectionTestResult {
   profileDisplayName?: string;
   profileRole?: string;
   checkedAt: string;
+}
+
+export interface GremiaBrStartupRefreshResult {
+  started: boolean;
+  message: string;
 }
 
 export interface GremiaBrWorkspaceBody {

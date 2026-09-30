@@ -293,6 +293,7 @@ CREATE TABLE IF NOT EXISTS settings (
 CREATE TABLE IF NOT EXISTS gremia_br_settings (
   id TEXT PRIMARY KEY CHECK (id = 'default'),
   enabled INTEGER NOT NULL DEFAULT 0 CHECK (enabled IN (0, 1)),
+  auto_refresh_on_startup INTEGER NOT NULL DEFAULT 0 CHECK (auto_refresh_on_startup IN (0, 1)),
   server_url TEXT NOT NULL DEFAULT '',
   username TEXT NOT NULL DEFAULT '',
   password_secret TEXT NOT NULL DEFAULT '',

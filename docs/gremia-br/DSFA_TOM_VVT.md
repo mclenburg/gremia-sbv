@@ -48,4 +48,4 @@ Hauptrisiko ist nicht die technische Verbindung an sich, sondern eine Zweckversc
 
 ## Bewertung
 
-Die Kooperationsbrücke ist vertretbar, wenn sie optional bleibt, keine Hintergrundprozesse auslöst und ausschließlich durch bewusste Nutzeraktion arbeitet. Die SBV-Datenhoheit bleibt bei Gremia.SBV; jede Übergabe an Gremia.BR muss fachlich sichtbar, begrenzt und nachvollziehbar bleiben.
+Die Kooperationsbrücke bleibt optional. Remote-Abrufe erfolgen standardmäßig nur auf bewusste Nutzeraktion; der einmalige Abruf nach dem ersten Entsperren eines Programmstarts kann ausdrücklich aktiviert werden und ist standardmäßig aus. Es gibt weder Polling noch laufende Hintergrundsynchronisation. Die SBV-Datenhoheit bleibt bei Gremia.SBV; jede Übergabe an Gremia.BR muss fachlich sichtbar, begrenzt und nachvollziehbar bleiben.

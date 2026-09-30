@@ -473,12 +473,15 @@
       .map((item, index) => toSearchResult(item, input.query, index + 1));
   };
 
-  let gremiaBrSettings = { enabled: false, serverUrl: '', username: '', hasStoredCredentials: false, apiMode: 'gremia_br_v2', relevanceSettings: { groups: [] } };
+  let gremiaBrSettings = JSON.parse(sessionStorage.getItem('gremia-br-e2e-settings') || 'null')
+    || { enabled: false, autoRefreshOnStartup: false, serverUrl: '', username: '', hasStoredCredentials: false, apiMode: 'gremia_br_v2', relevanceSettings: { groups: [] } };
   let gremiaBrCache = { accessibleCases: [], ownTasks: [], ownAccessApprovals: [], upcomingMeetings: [], meetingAgendas: {}, decisions: [], dueDecisions: [], overdueDecisions: [] };
   let remoteAccessRequests = 0;
   window.__GREMIA_BR_REMOTE_ACCESS_REQUESTS = () => remoteAccessRequests;
   let remoteDocumentSearches = 0;
   window.__GREMIA_BR_DOCUMENT_SEARCHES = () => remoteDocumentSearches;
+  let startupRefreshes = 0;
+  window.__GREMIA_BR_STARTUP_REFRESHES = () => startupRefreshes;
   const gremiaBrSampleCache = () => ({
     accessibleCases: [], ownTasks: [], ownAccessApprovals: [],
     nextMeeting: { id: 'br-meeting-2026-05-29', bodyId: 'sbv-body-e2e', title: 'BR-Sitzung Mai', date: '2026-05-29T09:00:00.000Z', mode: 'HYBRID', hasRemoteAccess: true },
@@ -861,6 +864,7 @@
       saveSettings: async (input) => {
         gremiaBrSettings = {
           enabled: !!input.enabled,
+          autoRefreshOnStartup: !!input.autoRefreshOnStartup,
           serverUrl: input.serverUrl || '',
           username: input.username || '',
           hasStoredCredentials: !!input.password || gremiaBrSettings.hasStoredCredentials,
@@ -872,10 +876,12 @@
           relevanceSettings: input.relevanceSettings || { groups: [] },
           updatedAt: now,
         };
+        sessionStorage.setItem('gremia-br-e2e-settings', JSON.stringify(gremiaBrSettings));
         return { ...gremiaBrSettings };
       },
       clearCredentials: async () => {
-        gremiaBrSettings = { enabled: false, serverUrl: '', username: '', hasStoredCredentials: false, apiMode: 'gremia_br_v2', relevanceSettings: { groups: [] }, updatedAt: now };
+        gremiaBrSettings = { enabled: false, autoRefreshOnStartup: false, serverUrl: '', username: '', hasStoredCredentials: false, apiMode: 'gremia_br_v2', relevanceSettings: { groups: [] }, updatedAt: now };
+        sessionStorage.removeItem('gremia-br-e2e-settings');
         gremiaBrCache = { accessibleCases: [], ownTasks: [], ownAccessApprovals: [], upcomingMeetings: [], meetingAgendas: {}, decisions: [], dueDecisions: [], overdueDecisions: [] };
         return { ...gremiaBrSettings };
       },
@@ -925,6 +931,11 @@
         };
       },
       openRemoteDocumentVersion: async () => ({ opened: true }),
+      importRemoteDocumentVersion: async () => ({ id: 'imported-doc-1', caseId: 'case-1' }),
+      listManagedRemoteDocuments: async () => [],
+      listOwnDocumentShares: async () => [],
+      createOwnDocumentShare: async () => ({ id: 'share-created', status: 'REQUESTED', targetSecurityDomain: 'br-domain', validUntil: '2026-12-01T00:00:00Z', requirement: 'APPROVAL', purpose: 'Beratung' }),
+      revokeOwnDocumentShare: async () => ({ id: 'share-created', status: 'REVOKED', targetSecurityDomain: 'br-domain', validUntil: '2026-12-01T00:00:00Z', requirement: 'APPROVAL', purpose: 'Beratung' }),
       getCachedOverview: async () => ({ ...gremiaBrCache }),
       getDashboardOverview: async () => gremiaBrDashboardOverview(),
       refreshCache: async () => {
@@ -933,6 +944,12 @@
         }
         gremiaBrCache = gremiaBrSampleCache();
         return { status: 'ok', message: 'Gremia.BR-Lesecache wurde manuell aktualisiert.', checkedAt: now, refreshedKeys: ['next_meeting', 'upcoming_meetings', 'meeting_agendas'], cached: gremiaBrDashboardOverview() };
+      },
+      refreshOnStartup: async () => {
+        if (!gremiaBrSettings.enabled || !gremiaBrSettings.autoRefreshOnStartup) return { started: false, message: 'Startabruf ist nicht aktiviert.' };
+        startupRefreshes += 1;
+        gremiaBrCache = gremiaBrSampleCache();
+        return { started: true, message: 'Gremia.BR wurde nach dem Programmstart aktualisiert.' };
       },
       suggestInlineReferences: async (query) => String(query || '').length < 2 ? [] : [{ sourceSystem: 'gremia_br', sourceType: 'beschluss', sourceId: 'BR-B-2026-012', title: 'Betriebsvereinbarung Homeoffice', label: 'BR-Beschluss · Betriebsvereinbarung Homeoffice' }],
       listExternalReferences: async () => [],

@@ -175,6 +175,7 @@ export const CASE_MEASURE_WORKPLACE_ACCOMMODATION_REQUIRED_COLUMNS = [
 export const GREMIA_BR_SETTINGS_REQUIRED_COLUMNS = [
   'id',
   'enabled',
+  'auto_refresh_on_startup',
   'server_url',
   'username',
   'password_secret',

@@ -10,6 +10,7 @@ import type { WorkbenchStatItem } from "../../shared/components/WorkbenchLayout"
 
 export const EMPTY_GREMIA_BR_SETTINGS: GremiaBrPublicSettings = {
   enabled: false,
+  autoRefreshOnStartup: false,
   serverUrl: "",
   username: "",
   hasStoredCredentials: false,

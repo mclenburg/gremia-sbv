@@ -9,6 +9,7 @@ import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 import {
   GremiaBrCredentialsSection,
   GremiaBrEnabledToggle,
+  GremiaBrStartupRefreshToggle,
   GremiaBrFeedback,
   GremiaBrRelevanceSection,
   GremiaBrSettingsActions,
@@ -32,6 +33,7 @@ export function GremiaBrSettingsPanel() {
   const [settings, setSettings] = useState<GremiaBrPublicSettings>(EMPTY_GREMIA_BR_SETTINGS);
   const [cache, setCache] = useState(EMPTY_GREMIA_BR_CACHE);
   const [enabled, setEnabled] = useState(false);
+  const [autoRefreshOnStartup, setAutoRefreshOnStartup] = useState(false);
   const [serverUrl, setServerUrl] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -49,6 +51,7 @@ export function GremiaBrSettingsPanel() {
     setSettings,
     setCache,
     setEnabled,
+    setAutoRefreshOnStartup,
     setServerUrl,
     setUsername,
     setPassword,
@@ -65,6 +68,7 @@ export function GremiaBrSettingsPanel() {
   function currentSettingsInput(): GremiaBrSettingsInput {
     const input: GremiaBrSettingsInput = {
       enabled,
+      autoRefreshOnStartup,
       serverUrl,
       username,
       selectedBodyId,
@@ -114,6 +118,7 @@ export function GremiaBrSettingsPanel() {
       const next = await bridge.gremiaBr.clearCredentials();
       setSettings(next);
       setEnabled(next.enabled);
+      setAutoRefreshOnStartup(next.autoRefreshOnStartup);
       setSelectedBodyId('');
       setSelectedBodyName('');
       setSelectedOrganizationId('');
@@ -228,6 +233,7 @@ export function GremiaBrSettingsPanel() {
       <GremiaBrSettingsIntro />
       <GremiaBrFeedback error={error} status={status} />
       <GremiaBrEnabledToggle enabled={enabled} onEnabledChange={setEnabled} />
+      <GremiaBrStartupRefreshToggle enabled={enabled} checked={autoRefreshOnStartup} onCheckedChange={setAutoRefreshOnStartup} />
       <GremiaBrCredentialsSection
         serverUrl={serverUrl}
         onServerUrlChange={setServerUrl}

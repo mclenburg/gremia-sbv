@@ -531,6 +531,7 @@ declare global {
         getCachedOverview(): Promise<GremiaBrCachedOverview>;
         getDashboardOverview(): Promise<GremiaBrDashboardOverview>;
         refreshCache(): Promise<GremiaBrCacheRefreshResult>;
+        refreshOnStartup(): Promise<import('./domain/models/gremia-br.model').GremiaBrStartupRefreshResult>;
         getOwnTaskDetail(id: string): Promise<GremiaBrOwnTaskDetail>;
         getMeetingRemoteAccess(meetingId: string): Promise<string>;
         getMeetingAgendaChanges(meetingId: string): Promise<GremiaBrAgendaChanges>;

@@ -17,8 +17,8 @@ export function GremiaBrSettingsIntro() {
       <p className="industrial-kicker">Optionale Gremiumsanbindung</p>
       <h3 id="gremia-br-settings-title">Gremia.BR</h3>
       <p className="industrial-muted">
-        Gremia.SBV arbeitet mit klarer Datensouveränität: keine Hintergrundsynchronisation, kein Rückschreiben nach Gremia.BR ohne ausdrückliche Aktion.
-        Lesecache und schreibende Aktionen erfolgen nur auf ausdrückliche Nutzeraktion; PDF-Übergaben ausschließlich im eigenen Gremia.BR-Bereich
+        Gremia.SBV arbeitet mit klarer Datensouveränität: Der Abruf erfolgt standardmäßig manuell; ein einzelner automatischer Startabruf ist wählbar. Es gibt keine laufende Hintergrundsynchronisation und kein Rückschreiben nach Gremia.BR ohne ausdrückliche Aktion.
+        PDF-Übergaben erfolgen ausschließlich im eigenen Gremia.BR-Bereich
         und nur mit von Gremia.SBV erzeugten PDF-Dokumenten.
       </p>
     </div>
@@ -51,6 +51,18 @@ export function GremiaBrEnabledToggle({
       />
     </div>
   );
+}
+
+export function GremiaBrStartupRefreshToggle({ enabled, checked, onCheckedChange }: {
+  enabled: boolean;
+  checked: boolean;
+  onCheckedChange: (value: boolean) => void;
+}) {
+  return <div className="industrial-subsection compact">
+    <CheckboxField label="Gremia.BR nach dem Entsperren beim Programmstart automatisch aktualisieren"
+      checked={checked} onCheckedChange={onCheckedChange} disabled={!enabled}
+      helpText="Einmal pro Programmstart nach dem Entsperren; danach nur über Gremia.BR aktualisieren. Jeder Request wird auditiert." />
+  </div>;
 }
 
 export function GremiaBrCredentialsSection({

@@ -19,13 +19,14 @@ import { assertPlainObject, assertRecordInput, assertString, IpcValidationError 
 import { registerGremiaBrReferenceIpc } from './gremiaBrReferenceIpc.js';
 import { registerGremiaBrDocumentReadIpc } from './gremiaBrDocumentReadIpc.js';
 import { registerGremiaBrOwnShareIpc } from './gremiaBrOwnShareIpc.js';
+import { GremiaBrStartupRefreshService } from '../../services/gremiaBr/gremiaBrStartupRefreshService.js';
 
 export function registerGremiaBrIpc(ipcMain: IpcMain, security: SecurityService, services: ApplicationServices): void {
   const settings = services.gremiaBrSettings;
   const auth = services.gremiaBrAuth;
   const cache = services.gremiaBrCache;
   const workspace = new GremiaBrV2WorkspaceService(auth);
-
+  const startupRefresh = new GremiaBrStartupRefreshService(settings, auth, cache);
   function ownTaskId(rawId: unknown, channel: string): string {
     const id = assertString(rawId, channel, 'Aufgaben-ID', { minLength: 1, maxLength: 120 });
     if (!cache.getOverview().ownTasks.some((task) => task.id === id)) {
@@ -90,6 +91,8 @@ export function registerGremiaBrIpc(ipcMain: IpcMain, security: SecurityService,
     };
   });
 
+  registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrStartupRefresh, async () => startupRefresh.run());
+
   registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrOwnTaskDetailGet, async (_event, rawId: unknown) => {
     const id = ownTaskId(rawId, 'gremia-br:own-task:detail:get');
     return new GremiaBrHttpReadAdapter(auth).getOwnTaskDetail(id);
@@ -106,8 +109,6 @@ export function registerGremiaBrIpc(ipcMain: IpcMain, security: SecurityService,
     const id = assertString(rawId, channel, 'Sitzungs-ID', { minLength: 1, maxLength: 120 });
     return new GremiaBrMeetingAccessService(auth).getAgendaChanges(id, cache.getOverview());
   });
-
-
   registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrOwnTaskTransitionsGet, async (_event, rawId: unknown) => {
     const id = ownTaskId(rawId, 'gremia-br:own-task:transitions:get');
     return new GremiaBrTaskService(auth).getTransitionOptions(id);

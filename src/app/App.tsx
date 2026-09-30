@@ -32,6 +32,7 @@ import { LoginGate } from "./features/auth/LoginGate";
 import { waitForBridge } from "./core/bridge/waitForBridge";
 import { recordRendererDiagnostic } from "./core/diagnostics/rendererDiagnostics";
 import { ToolbarButton } from "./shared/components/IndustrialButton";
+import { useGremiaBrStartupRefresh, type GremiaBrStartupNotice } from './core/security/useGremiaBrStartupRefresh';
 const IMPLEMENTED_VIEW_IDS = new Set<ViewId>([
   "dashboard",
   "cases",
@@ -333,7 +334,8 @@ function ProcessViews({ currentView, setCurrentView, work, caseNodeTarget, setCa
 }
 
 function WorkspaceMain(props: PrimaryViewsProps & { currentModule?: (typeof modules)[number]; openCaseNode: (target: CaseNodeTarget) => void;
-  theme: ThemeMode; setTheme: (theme: ThemeMode) => void; securityWarning?: string; onDismissSecurityWarning: () => void; }) {
+  theme: ThemeMode; setTheme: (theme: ThemeMode) => void; securityWarning?: string; onDismissSecurityWarning: () => void;
+  startupNotice: GremiaBrStartupNotice | null; onDismissStartupNotice: () => void; }) {
   const { currentView, currentModule, setCurrentView, work } = props;
   return <main id="main-content" className="industrial-content" tabIndex={-1}>
     <header className="industrial-topbar"><div><p className="industrial-kicker">SBV-Arbeitsbereich</p>
@@ -345,6 +347,11 @@ function WorkspaceMain(props: PrimaryViewsProps & { currentModule?: (typeof modu
         <ToolbarButton onClick={() => setCurrentView("privacy_review")}>Datenschutzprüfung öffnen</ToolbarButton>
         <ToolbarButton onClick={props.onDismissSecurityWarning}>Hinweis schließen</ToolbarButton>
       </div>
+    </div>}
+    {props.startupNotice && <div className={`industrial-message ${props.startupNotice.kind === 'error' ? 'industrial-message-warning' : 'industrial-message-success'}`}
+      role={props.startupNotice.kind === 'error' ? 'alert' : 'status'}>
+      <p>{props.startupNotice.message}</p>
+      {props.startupNotice.kind !== 'loading' ? <ToolbarButton onClick={props.onDismissStartupNotice}>Hinweis schließen</ToolbarButton> : null}
     </div>}
     {work.dataError && <div className="industrial-message industrial-message-warning" role="alert">{work.dataError}</div>}
     <PrimaryViews {...props} />
@@ -374,6 +381,7 @@ function AppShell({ currentView, setCurrentView, onLock, children, gremiaBrConfi
 
 export function App() {
   const security = useSecuritySession();
+  const startupRefresh = useGremiaBrStartupRefresh(security.unlocked);
   const [currentView, setCurrentView] = useState<ViewId>(INITIAL_SESSION_VIEW);
   const [theme, setTheme] = useState<ThemeMode>(() => getInitialTheme());
   const [caseNodeTarget, setCaseNodeTarget] = useState<CaseNodeTarget | null>(null);
@@ -401,6 +409,7 @@ export function App() {
     }}
   >
     <WorkspaceMain {...viewProps} currentModule={currentModule} openCaseNode={openCaseNode} theme={theme} setTheme={setTheme}
-      securityWarning={security.maintenanceWarning} onDismissSecurityWarning={security.dismissMaintenanceWarning} />
+      securityWarning={security.maintenanceWarning} onDismissSecurityWarning={security.dismissMaintenanceWarning}
+      startupNotice={startupRefresh.notice} onDismissStartupNotice={startupRefresh.dismissNotice} />
   </AppShell>;
 }
