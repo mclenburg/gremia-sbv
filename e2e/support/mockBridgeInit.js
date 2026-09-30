@@ -477,6 +477,8 @@
   let gremiaBrCache = { accessibleCases: [], ownTasks: [], ownAccessApprovals: [], upcomingMeetings: [], meetingAgendas: {}, decisions: [], dueDecisions: [], overdueDecisions: [] };
   let remoteAccessRequests = 0;
   window.__GREMIA_BR_REMOTE_ACCESS_REQUESTS = () => remoteAccessRequests;
+  let remoteDocumentSearches = 0;
+  window.__GREMIA_BR_DOCUMENT_SEARCHES = () => remoteDocumentSearches;
   const gremiaBrSampleCache = () => ({
     accessibleCases: [], ownTasks: [], ownAccessApprovals: [],
     nextMeeting: { id: 'br-meeting-2026-05-29', bodyId: 'sbv-body-e2e', title: 'BR-Sitzung Mai', date: '2026-05-29T09:00:00.000Z', mode: 'HYBRID', hasRemoteAccess: true },
@@ -907,6 +909,19 @@
           items: [{ title: 'TOP 1: Arbeitsplatzausstattung' }, { title: 'TOP 2: Mobiles Arbeiten' }],
           comparisonAvailable: true,
           changes: [{ kind: 'added', title: 'TOP 2: Mobiles Arbeiten' }],
+        };
+      },
+      searchRemoteDocuments: async () => {
+        remoteDocumentSearches += 1;
+        return [{ documentId: 'remote-doc-1', documentVersionId: 'remote-version-1', title: 'Stellungnahme', filename: 'stellungnahme.pdf' }];
+      },
+      getRemoteDocumentDetail: async (documentId) => {
+        if (documentId !== 'remote-doc-1') throw new Error('Dokument nicht verfügbar.');
+        return {
+          id: documentId, title: 'Stellungnahme', description: 'Für die BR-Beratung',
+          protectionClass: 'HIGH', status: 'ACTIVE', currentVersionId: 'remote-version-1',
+          versions: [{ id: 'remote-version-1', versionNumber: 1, filename: 'stellungnahme.pdf', mimeType: 'application/pdf', byteSize: 1024, processingState: 'READY' }],
+          shares: [{ id: 'share-1', status: 'ACTIVE', targetSecurityDomain: 'br-domain', validUntil: '2026-12-01T00:00:00Z', requirement: 'NONE' }],
         };
       },
       getCachedOverview: async () => ({ ...gremiaBrCache }),

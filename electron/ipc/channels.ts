@@ -94,6 +94,8 @@ export const IPC_CHANNELS = Object.freeze({
   gremiaBrOwnTaskDetailGet: "gremia-br:own-task:detail:get",
   gremiaBrMeetingRemoteAccessGet: "gremia-br:meeting:remote-access:get",
   gremiaBrMeetingAgendaChangesGet: "gremia-br:meeting:agenda-changes:get",
+  gremiaBrRemoteDocumentsSearch: "gremia-br:remote-documents:search",
+  gremiaBrRemoteDocumentDetailGet: "gremia-br:remote-document:detail:get",
   gremiaBrOwnTaskTransitionsGet: "gremia-br:own-task:transitions:get",
   gremiaBrOwnTaskTransitionPost: "gremia-br:own-task:transition:post",
   gremiaBrProcedureDetailGet: "gremia-br:procedure:detail:get",

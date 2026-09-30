@@ -1,0 +1,58 @@
+import { describe, expect, it, vi } from 'vitest';
+import { GremiaBrDocumentReadService } from '../../../services/gremiaBr/gremiaBrDocumentReadService';
+
+function auth(get = vi.fn(), post = vi.fn()) {
+  return {
+    get,
+    post,
+    getReadContext: () => ({
+      selectedOrganizationId: 'org-1', selectedSecurityDomain: 'sbv-domain', selectedBodyId: 'body-1',
+    }),
+  };
+}
+
+describe('Gremia.BR-Dokumentarbeitsbereich', () => {
+  it('sucht nur auf Klick im ausgewählten Sicherheitsbereich und übernimmt keine Textausschnitte', async () => {
+    const post = vi.fn().mockResolvedValue({ total: 1, hits: [{
+      documentId: 'doc-1', documentVersionId: 'version-1',
+      metadata: { title: 'Stellungnahme', filename: 'stellungnahme.pdf', mimeType: 'application/pdf', plaintextDigest: 'secret' },
+      snippet: 'vertraulicher Dokumenttext',
+    }] });
+    const service = new GremiaBrDocumentReadService(auth(vi.fn(), post) as never);
+
+    expect(post).not.toHaveBeenCalled();
+    expect(await service.search('Stellungnahme')).toEqual([{
+      documentId: 'doc-1', documentVersionId: 'version-1', title: 'Stellungnahme', filename: 'stellungnahme.pdf',
+    }]);
+    expect(post).toHaveBeenCalledWith('/api/v1/documents/search', {
+      body: { organizationId: 'org-1', securityDomain: 'sbv-domain', query: 'Stellungnahme', limit: 25 },
+    });
+  });
+
+  it('lädt Details, Versionen und Freigaben erst nach Auswahl und beschränkt die Rückgabe auf Fachmetadaten', async () => {
+    const get = vi.fn(async (path: string) => {
+      if (path.endsWith('/versions')) return [{ id: 'version-1', documentId: 'doc-1', versionNumber: 1, processingState: 'READY', byteSize: 200,
+        metadata: { filename: 'fall.pdf', title: 'Stellungnahme', mimeType: 'application/pdf', plaintextDigest: 'secret' } }];
+      if (path.endsWith('/shares')) return [{ id: 'share-1', status: 'ACTIVE', targetSecurityDomain: 'br-domain', validUntil: '2026-12-01T00:00:00Z', requirement: 'NONE', purpose: 'Beratung' }];
+      return { id: 'doc-1', organizationId: 'org-1', securityDomain: 'sbv-domain', protectionClass: 'HIGH', status: 'ACTIVE', currentVersionId: 'version-1', versionCount: 1,
+        currentVersion: { metadata: { filename: 'fall.pdf', title: 'Stellungnahme', description: 'Für BR', mimeType: 'application/pdf', plaintextDigest: 'secret' } } };
+    });
+    const service = new GremiaBrDocumentReadService(auth(get) as never);
+
+    const result = await service.getDetail('doc-1');
+
+    expect(result).toMatchObject({ title: 'Stellungnahme', description: 'Für BR', protectionClass: 'HIGH', currentVersionId: 'version-1' });
+    expect(result.versions).toEqual([{ id: 'version-1', versionNumber: 1, filename: 'fall.pdf', mimeType: 'application/pdf', byteSize: 200, processingState: 'READY' }]);
+    expect(result.shares).toEqual([{ id: 'share-1', status: 'ACTIVE', targetSecurityDomain: 'br-domain', validUntil: '2026-12-01T00:00:00Z', requirement: 'NONE' }]);
+    expect(JSON.stringify(result)).not.toContain('secret');
+    expect(get).toHaveBeenCalledTimes(3);
+  });
+
+  it('startet ohne Sicherheitsbereich und bei leerer Suche keinen Remote-Request', async () => {
+    const post = vi.fn();
+    const service = new GremiaBrDocumentReadService({ ...auth(vi.fn(), post), getReadContext: () => ({}) } as never);
+    await expect(service.search('Stellungnahme')).rejects.toThrow('Sicherheitsbereich');
+    await expect(new GremiaBrDocumentReadService(auth(vi.fn(), post) as never).search('  ')).rejects.toThrow('Suchbegriff');
+    expect(post).not.toHaveBeenCalled();
+  });
+});

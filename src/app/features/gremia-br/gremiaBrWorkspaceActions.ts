@@ -2,6 +2,8 @@ import type { CaseRecord } from "../../../domain/models/case.model";
 import type {
   GremiaBrDashboardOverview,
   GremiaBrAgendaChanges,
+  GremiaBrDocumentDetail,
+  GremiaBrDocumentHit,
   GremiaBrGeneratedPdfDocument,
   GremiaBrOwnTaskDetail,
   GremiaBrProcedureDetail,
@@ -77,6 +79,18 @@ export async function loadMeetingAgendaChanges(meetingId: string): Promise<Gremi
   const bridge = await waitForBridge();
   if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
   return bridge.gremiaBr.getMeetingAgendaChanges(meetingId);
+}
+
+export async function searchRemoteDocuments(query: string): Promise<GremiaBrDocumentHit[]> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.searchRemoteDocuments(query);
+}
+
+export async function loadRemoteDocumentDetail(documentId: string): Promise<GremiaBrDocumentDetail> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.getRemoteDocumentDetail(documentId);
 }
 
 export async function loadProcedureDetail(id: string): Promise<GremiaBrProcedureDetail> {

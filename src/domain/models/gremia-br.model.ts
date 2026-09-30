@@ -6,6 +6,24 @@ export interface GremiaBrAgendaChanges {
   changes: Array<{ kind: 'added' | 'changed' | 'removed'; title: string; previousTitle?: string }>;
 }
 
+export interface GremiaBrDocumentHit {
+  documentId: string;
+  documentVersionId: string;
+  title: string;
+  filename: string;
+}
+
+export interface GremiaBrDocumentDetail {
+  id: string;
+  title: string;
+  description?: string;
+  protectionClass: string;
+  status: string;
+  currentVersionId?: string;
+  versions: Array<{ id: string; versionNumber: number; filename: string; mimeType: string; byteSize: number; processingState: string }>;
+  shares: Array<{ id: string; status: string; targetSecurityDomain: string; validUntil: string; requirement: string }>;
+}
+
 export interface GremiaBrSettingsInput {
   enabled: boolean;
   serverUrl: string;

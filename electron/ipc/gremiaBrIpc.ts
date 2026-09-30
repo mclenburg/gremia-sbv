@@ -17,6 +17,7 @@ import type {
 } from '../../src/domain/models/gremia-br.model.js';
 import { assertPlainObject, assertRecordInput, assertString, IpcValidationError } from './ipcValidation.js';
 import { registerGremiaBrReferenceIpc } from './gremiaBrReferenceIpc.js';
+import { registerGremiaBrDocumentReadIpc } from './gremiaBrDocumentReadIpc.js';
 
 export function registerGremiaBrIpc(ipcMain: IpcMain, security: SecurityService, services: ApplicationServices): void {
   const settings = services.gremiaBrSettings;
@@ -105,6 +106,7 @@ export function registerGremiaBrIpc(ipcMain: IpcMain, security: SecurityService,
     return new GremiaBrMeetingAccessService(auth).getAgendaChanges(id, cache.getOverview());
   });
 
+
   registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrOwnTaskTransitionsGet, async (_event, rawId: unknown) => {
     const id = ownTaskId(rawId, 'gremia-br:own-task:transitions:get');
     return new GremiaBrTaskService(auth).getTransitionOptions(id);
@@ -133,4 +135,5 @@ export function registerGremiaBrIpc(ipcMain: IpcMain, security: SecurityService,
   });
 
   registerGremiaBrReferenceIpc(ipcMain, services);
+  registerGremiaBrDocumentReadIpc(ipcMain, auth);
 }
