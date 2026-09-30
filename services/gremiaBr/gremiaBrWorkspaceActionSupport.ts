@@ -88,6 +88,7 @@ export type DraftAgendaItem = {
 };
 
 export type WorkspaceActionInput = {
+  correlationId?: string;
   actionType: 'document_uploaded' | 'document_shared' | 'agenda_item_requested' | 'information_requested';
   localDocumentId?: string;
   caseId?: string;

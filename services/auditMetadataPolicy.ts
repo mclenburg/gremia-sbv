@@ -86,6 +86,8 @@ const GREMIA_BR_REQUEST_METADATA_FIELDS = [
   'outcome',
   'status',
   'statusCode',
+  'correlationId',
+  'durationMs',
 ] as const;
 
 const GREMIA_BR_WORKSPACE_ACTION_METADATA_FIELDS = [
@@ -94,6 +96,7 @@ const GREMIA_BR_WORKSPACE_ACTION_METADATA_FIELDS = [
   'localDocumentId',
   'remoteDocumentId',
   'targetSecurityDomain',
+  'correlationId',
 ] as const;
 
 const PARTICIPATION_VIOLATION_METADATA_FIELDS = [

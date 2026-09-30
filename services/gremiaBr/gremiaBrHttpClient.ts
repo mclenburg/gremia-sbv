@@ -102,7 +102,8 @@ export class GremiaBrHttpClient {
 
   async requestDetailed<T>(method: string, path: string, token?: string, options: GremiaBrRequestOptions = {}): Promise<{ payload: T; headers: Headers }> {
     const endpoint = endpointLabel(method, path);
-    const correlationId = randomUUID();
+    const correlationId = options.correlationId && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(options.correlationId)
+      ? options.correlationId : randomUUID();
     const policy = checkGremiaBrEndpoint(method, path);
     if (!policy.allowed) {
       this.auditRequest(endpoint, 'blocked_by_policy', undefined, correlationId);
@@ -129,6 +130,7 @@ export class GremiaBrHttpClient {
         body = JSON.stringify(options.body);
       }
       if (token) headers.Authorization = `Bearer ${token}`;
+      headers['x-correlation-id'] = correlationId;
       if (options.sessionCookie) headers.Cookie = options.sessionCookie;
 
       const response = await this.fetchImpl(url.toString(), {

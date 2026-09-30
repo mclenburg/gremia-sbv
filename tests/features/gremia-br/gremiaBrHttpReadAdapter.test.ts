@@ -326,6 +326,23 @@ describe('Gremia.BR HTTP-ReadAdapter 0.9.2-B', () => {
     expect(JSON.stringify(audit.entries[0])).not.toContain('jwt-token');
   });
 
+  it('verbindet mehrere bewusst ausgelöste Requests über dieselbe Korrelations-ID im Header und Audit', async () => {
+    const { fetch, calls } = createFetch({
+      'GET /api/v1/documents/owned-doc': { id: 'owned-doc' },
+      'GET /api/v1/documents/owned-doc/shares': [],
+    });
+    const audit = new MemoryAuditLog();
+    const client = new GremiaBrHttpClient('https://br.example.invalid', fetch, audit);
+    const correlationId = '2fab14d5-a36c-434a-b7f3-0d47f21b3e00';
+
+    await client.request('GET', '/api/v1/documents/owned-doc', 'jwt-token', { correlationId });
+    await client.request('GET', '/api/v1/documents/owned-doc/shares', 'jwt-token', { correlationId });
+
+    expect(calls).toHaveLength(2);
+    expect(calls.map((call) => new Headers(call.init?.headers).get('x-correlation-id'))).toEqual([correlationId, correlationId]);
+    expect(audit.entries.map((entry) => entry.metadata?.correlationId)).toEqual([correlationId, correlationId, correlationId, correlationId]);
+  });
+
   it('auditiert den Remote-Zugangsabruf ohne Sitzungskennung oder Zugangsdaten', async () => {
     const secret = 'Einwahl: vertraulich, PIN: 123456';
     const { fetch } = createFetch({ 'GET /api/v1/meetings/meeting-1/remote-access': { access: secret } });

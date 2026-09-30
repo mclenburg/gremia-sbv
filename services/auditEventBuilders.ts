@@ -122,6 +122,7 @@ export type GremiaBrRequestAuditArgs = {
 };
 
 export type GremiaBrWorkspaceActionAuditArgs = {
+  correlationId?: string;
   action: Extract<PersonalDataAuditAction, 'export' | 'update' | 'delete'>;
   actionId: string;
   actionType: string;
@@ -329,6 +330,7 @@ export function auditGremiaBrWorkspaceAction(args: GremiaBrWorkspaceActionAuditA
       localDocumentId: args.localDocumentId,
       remoteDocumentId: args.remoteDocumentId,
       targetSecurityDomain: args.targetSecurityDomain,
+      correlationId: args.correlationId,
     }),
   };
 }

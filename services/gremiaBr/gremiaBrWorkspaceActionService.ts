@@ -143,6 +143,7 @@ export class GremiaBrWorkspaceActionService {
   }
 
   async transferGeneratedPdf(input: TransferGremiaBrDocumentInput): Promise<GremiaBrDocumentTransferResult> {
+    const correlationId = randomUUID();
     const context = requireV2WorkspaceContext(this.auth.getReadContext());
     const documentId = trimRequired(input.documentId, 'PDF-Dokument');
     const purpose = trimRequired(input.purpose, 'Freigabezweck');
@@ -152,13 +153,15 @@ export class GremiaBrWorkspaceActionService {
     const plain = await this.documentStore.read(documentId);
     try {
       const uploadPayload = await this.auth.post<unknown>('/api/v1/documents', {
+        correlationId,
         query: { organizationId: context.selectedOrganizationId, securityDomain: context.selectedSecurityDomain },
         formData: this.documentUploadForm(document, plain, context.selectedBodyId, input.protectionClass ?? 'HIGH', purpose),
       });
       const upload = acceptedDocumentUploadFromResponse(uploadPayload);
       const remoteDocumentId = upload.documentId;
-      const uploadedActionId = this.recordDocumentUpload(input, document, targetSecurityDomain, remoteDocumentId, purpose);
+      const uploadedActionId = this.recordDocumentUpload(input, document, targetSecurityDomain, remoteDocumentId, purpose, correlationId);
       const sharePayload = await this.auth.post<unknown>(`/api/v1/documents/${encodeURIComponent(remoteDocumentId)}/shares`, {
+        correlationId,
         query: { organizationId: context.selectedOrganizationId, securityDomain: context.selectedSecurityDomain },
         body: {
           targetSecurityDomain,
@@ -169,7 +172,7 @@ export class GremiaBrWorkspaceActionService {
         },
       });
       const share = documentShareAcceptanceFromResponse(sharePayload);
-      const sharedActionId = this.recordDocumentShare(input, document, targetSecurityDomain, remoteDocumentId, share.shareId, purpose, share.status);
+      const sharedActionId = this.recordDocumentShare(input, document, targetSecurityDomain, remoteDocumentId, share.shareId, purpose, share.status, correlationId);
       return {
         id: share.shareId ? sharedActionId : uploadedActionId,
         localDocumentId: document.id,
@@ -188,10 +191,12 @@ export class GremiaBrWorkspaceActionService {
   }
 
   async requestAgendaItem(input: RequestGremiaBrAgendaItemInput): Promise<GremiaBrAgendaItemRequestResult> {
+    const correlationId = randomUUID();
     const context = requireV2WorkspaceContext(this.auth.getReadContext());
     const meetingId = trimRequired(input.meetingId, 'Sitzung');
     const title = trimRequired(input.title, 'Tagesordnungspunkt');
     const currentAgendaPayload = await this.auth.get<unknown>(`/api/v1/meetings/${encodeURIComponent(meetingId)}/agenda`, {
+      correlationId,
       query: { organizationId: context.selectedOrganizationId, securityDomain: context.selectedSecurityDomain },
     });
     const currentItems = gremiaBrArrayFromResponse(currentAgendaPayload).map(existingAgendaItemFromPayload);
@@ -199,11 +204,13 @@ export class GremiaBrWorkspaceActionService {
       throw new Error('Die vorhandene Gremia.BR-Tagesordnung konnte nicht sicher übernommen werden.');
     }
     const payload = await this.auth.post<unknown>(`/api/v1/meetings/${encodeURIComponent(meetingId)}/agenda`, {
+      correlationId,
       query: { organizationId: context.selectedOrganizationId, securityDomain: context.selectedSecurityDomain },
       body: { items: this.appendSbvAgendaItem(currentItems as DraftAgendaItem[], input, title), changeNote: 'SBV-Anforderung aus Gremia.SBV' },
     });
     const agendaVersionId = responseId(payload, 'agendaVersionId', 'versionId');
     const actionId = this.recordAction({
+      correlationId,
       actionType: 'agenda_item_requested',
       targetBodyId: context.selectedBodyId,
       targetBodyName: context.selectedBodyName,
@@ -235,9 +242,10 @@ export class GremiaBrWorkspaceActionService {
     }];
   }
 
-  private recordDocumentUpload(input: TransferGremiaBrDocumentInput, document: GeneratedDocumentRow, targetSecurityDomain: string, remoteDocumentId: string, purpose: string): string {
+  private recordDocumentUpload(input: TransferGremiaBrDocumentInput, document: GeneratedDocumentRow, targetSecurityDomain: string, remoteDocumentId: string, purpose: string, correlationId: string): string {
     const context = requireV2WorkspaceContext(this.auth.getReadContext());
     return this.recordAction({
+      correlationId,
       actionType: 'document_uploaded',
       localDocumentId: document.id,
       caseId: document.case_id ?? undefined,
@@ -250,9 +258,10 @@ export class GremiaBrWorkspaceActionService {
     });
   }
 
-  private recordDocumentShare(input: TransferGremiaBrDocumentInput, document: GeneratedDocumentRow, targetSecurityDomain: string, remoteDocumentId: string, remoteShareId: string | undefined, purpose: string, status: 'shared' | 'requested'): string {
+  private recordDocumentShare(input: TransferGremiaBrDocumentInput, document: GeneratedDocumentRow, targetSecurityDomain: string, remoteDocumentId: string, remoteShareId: string | undefined, purpose: string, status: 'shared' | 'requested', correlationId: string): string {
     const context = requireV2WorkspaceContext(this.auth.getReadContext());
     return this.recordAction({
+      correlationId,
       actionType: 'document_shared',
       localDocumentId: document.id,
       caseId: document.case_id ?? undefined,
@@ -352,6 +361,7 @@ export class GremiaBrWorkspaceActionService {
         timestamp,
       );
       new PersonalDataAuditLogService(this.database).append(auditGremiaBrWorkspaceAction({
+        correlationId: input.correlationId,
         action: input.actionType === 'agenda_item_requested' || input.actionType === 'information_requested' ? 'update' : 'export',
         actionId,
         actionType: input.actionType,

@@ -37,6 +37,7 @@ export interface GremiaBrProfileSnapshot {
 }
 
 export interface GremiaBrRequestOptions {
+  correlationId?: string;
   query?: Record<string, string | number | boolean | Array<string | number | boolean> | undefined>;
   body?: unknown;
   formData?: FormData;
