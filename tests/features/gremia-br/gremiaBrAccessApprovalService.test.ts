@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { GremiaBrAccessApprovalService } from '../../../services/gremiaBr/gremiaBrAccessApprovalService';
+import { GremiaBrHttpClient } from '../../../services/gremiaBr/gremiaBrHttpClient';
 
 const approval = {
   id: 'approval-1', resourceType: 'documents.document', resourceId: 'document-1',
@@ -23,5 +24,17 @@ describe('Eigener Gremia.BR-Zugriffsantrag', () => {
     await expect(service.requestDocumentAccess({ documentId: 'document-1', actionScope: 'READ', purpose: ' ', durationMs: 86_400_000 })).rejects.toThrow();
     expect(post).not.toHaveBeenCalled();
     await expect(service.requestDocumentAccess({ documentId: 'document-1', actionScope: 'MANAGE', purpose: 'Beratung', durationMs: 86_400_000 })).rejects.toThrow('nicht eindeutig bestätigt');
+  });
+
+  it('erreicht die echte HTTP-Allowlist und auditiert den Antrag ohne Zwecktext', async () => {
+    const fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify(approval), { status: 200, headers: { 'content-type': 'application/json' } }));
+    const entries: unknown[] = [];
+    const client = new GremiaBrHttpClient('https://br.example.invalid', fetch, { append: (entry) => { entries.push(entry); } });
+    const service = new GremiaBrAccessApprovalService({ post: (path: string, options: unknown) => client.request('POST', path, 'token', options as never) } as never);
+    await expect(service.requestDocumentAccess({ documentId: 'document-1', actionScope: 'MANAGE', purpose: 'Vertraulicher Vorgang', durationMs: 86_400_000 })).resolves.toMatchObject({ status: 'PENDING' });
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(entries).toHaveLength(2);
+    expect(JSON.stringify(entries)).not.toContain('Vertraulicher Vorgang');
+    expect(JSON.stringify(entries)).not.toContain('document-1');
   });
 });

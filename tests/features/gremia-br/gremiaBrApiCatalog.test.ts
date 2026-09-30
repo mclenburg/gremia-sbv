@@ -21,6 +21,7 @@ describe('Gremia.BR API-Katalog 0.9.2-G', () => {
 
     expect(workspaceActions.map((endpoint) => `${endpoint.method} ${endpoint.template}`)).toEqual([
       'POST /api/v1/procedures/tasks/{taskId}/transitions',
+      'POST /api/v1/access-approvals',
       'POST /api/v1/documents',
       'POST /api/v1/documents/{documentId}/shares',
       'POST /api/v1/documents/{documentId}/links',
