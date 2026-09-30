@@ -67,6 +67,7 @@ export interface GremiaBrDocumentDetail {
   currentVersionId?: string;
   versions: Array<{ id: string; versionNumber: number; filename: string; mimeType: string; byteSize: number; processingState: string }>;
   shares: Array<{ id: string; status: string; targetSecurityDomain: string; validUntil: string; requirement: string }>;
+  signatures?: { requested: number; signed: number; declined: number; cancelled: number; expired: number; verificationFailed: number };
 }
 
 export interface GremiaBrSettingsInput {

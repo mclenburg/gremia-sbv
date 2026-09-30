@@ -43,6 +43,17 @@ function DocumentDetailSection({ detail, busy, onOpenVersion }: {
       {detail.shares.length ? <ul>{detail.shares.map((share) => (
         <li key={share.id}>{share.targetSecurityDomain}: {SHARE_STATUS_LABELS[share.status] ?? share.status}, gültig bis {new Date(share.validUntil).toLocaleDateString('de-DE')}</li>
       ))}</ul> : <p className="industrial-muted">Keine Freigaben vorhanden.</p>}
+      {detail.signatures ? <>
+        <h4>Signaturen der aktuellen Version</h4>
+        <dl className="industrial-meta-grid">
+          <div><dt>Offen</dt><dd>{detail.signatures.requested}</dd></div>
+          <div><dt>Geleistet</dt><dd>{detail.signatures.signed}</dd></div>
+          <div><dt>Abgelehnt</dt><dd>{detail.signatures.declined}</dd></div>
+          <div><dt>Zurückgezogen</dt><dd>{detail.signatures.cancelled}</dd></div>
+          <div><dt>Abgelaufen</dt><dd>{detail.signatures.expired}</dd></div>
+          <div><dt>Prüfung fehlgeschlagen</dt><dd>{detail.signatures.verificationFailed}</dd></div>
+        </dl>
+      </> : null}
     </div>
   );
 }

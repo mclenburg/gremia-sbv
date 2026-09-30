@@ -27,6 +27,7 @@ export const GREMIA_BR_API_CATALOG: readonly GremiaBrEndpointDefinition[] = [
   { method: 'POST', template: '/api/v1/documents/search', auth: 'bearer', category: 'read_context', purpose: 'Dokumente in einem ausdrücklich gewählten Sicherheitsbereich in Gremia.BR 2.0 suchen' },
   { method: 'GET', template: '/api/v1/documents/{documentId}', auth: 'bearer', category: 'read_context', purpose: 'Dokumentmetadaten in Gremia.BR 2.0 lesen' },
   { method: 'GET', template: '/api/v1/documents/{documentId}/versions', auth: 'bearer', category: 'read_context', purpose: 'Dokumentversionen in Gremia.BR 2.0 lesen' },
+  { method: 'GET', template: '/api/v1/documents/versions/{documentVersionId}/signatures', auth: 'bearer', category: 'read_context', purpose: 'Signaturstatus der bewusst geöffneten Dokumentversion lesen' },
   { method: 'GET', template: '/api/v1/documents/{documentId}/shares', auth: 'bearer', category: 'read_context', purpose: 'Freigaben eines bewusst ausgewählten Dokuments lesen' },
   { method: 'GET', template: '/api/v1/documents/versions/{documentVersionId}/content', auth: 'bearer', category: 'read_context', purpose: 'Dokumentversion nach expliziter Nutzeraktion aus Gremia.BR 2.0 laden' },
   { method: 'GET', template: '/api/v1/cases', auth: 'bearer', category: 'read_context', purpose: 'Berechtigte Sachverhalte für die bewusste Verfahrensauswahl lesen' },

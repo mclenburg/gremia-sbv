@@ -947,6 +947,7 @@
           protectionClass: 'HIGH', status: 'ACTIVE', currentVersionId: 'remote-version-1',
           versions: [{ id: 'remote-version-1', versionNumber: 1, filename: 'stellungnahme.pdf', mimeType: 'application/pdf', byteSize: 1024, processingState: 'READY' }],
           shares: [{ id: 'share-1', status: 'ACTIVE', targetSecurityDomain: 'br-domain', validUntil: '2026-12-01T00:00:00Z', requirement: 'NONE' }],
+          signatures: { requested: 1, signed: 2, declined: 0, cancelled: 0, expired: 0, verificationFailed: 0 },
         };
       },
       requestDocumentAccess: async (input) => {

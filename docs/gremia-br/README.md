@@ -27,6 +27,8 @@ Die Niederschrift wird über `GET /api/v1/meetings/{meetingId}/minutes` ausschli
 
 Die Dokumentensuche sendet den Suchbegriff ausschließlich auf Klick an `/api/v1/documents/search`, eingegrenzt auf die ausdrücklich gewählte Organisation und Sicherheitsdomäne. Treffer übernehmen keine Textausschnitte oder Digests. Für ein ausgewähltes Dokument werden Detail, Versionen und Freigaben erst auf eine weitere Aktion geladen; diese Daten bleiben im flüchtigen UI-Zustand und werden beim Gesamt-Refresh verworfen.
 
+Beim bewussten Dokumentdetailabruf werden für die bestätigte aktuelle Version auch Signaturzustände gelesen. Die Fassade gibt nur aggregierte Zustandszahlen und fehlgeschlagene Verifikationen an den Renderer weiter, keine `personId`, Signaturbytes oder Ablehnungsgründe. Das ist keine persönliche Signatur-Inbox.
+
 Eine ausgewählte, bereite Dokumentversion wird erst auf **Version öffnen** binär abgerufen. Der HTTP-Client begrenzt die Antwort, der Main-Prozess gleicht die Version mit dem Dokument ab und prüft SHA-256 sowie bei PDF den Dateianfang. Danach nutzt er die zentrale geschützte temporäre Vorschau und gibt weder Bytes noch Dateipfade an den Renderer zurück. Die temporäre Datei wird beim nächsten Vorschauauftrag oder Sperren bereinigt; bei fehlgeschlagenem Öffnen sofort.
 
 Die explizite Übernahme in einen ausgewählten lokalen Fall verwendet dieselbe Versions- und Integritätsprüfung. Die Bytes gelangen über eine geschützte temporäre Datei in die zentrale verschlüsselte Falldokument-Pipeline und werden danach bereinigt. Migration 0061 hält Remote-Dokument-ID, Versions-ID und Titel direkt am lokalen Falldokument; ohne Übernahme entsteht kein persistenter Remote-Dokumentdatensatz.

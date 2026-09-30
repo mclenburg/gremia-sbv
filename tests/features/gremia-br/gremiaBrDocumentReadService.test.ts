@@ -31,6 +31,10 @@ describe('Gremia.BR-Dokumentarbeitsbereich', () => {
 
   it('lädt Details, Versionen und Freigaben erst nach Auswahl und beschränkt die Rückgabe auf Fachmetadaten', async () => {
     const get = vi.fn(async (path: string) => {
+      if (path.endsWith('/signatures')) return [
+        { id: 'sig-1', documentVersionId: 'version-1', personId: 'private-person-1', state: 'SIGNED', verificationState: 'VERIFIED' },
+        { id: 'sig-2', documentVersionId: 'version-1', personId: 'private-person-2', state: 'REQUESTED', verificationState: 'PENDING' },
+      ];
       if (path.endsWith('/versions')) return [{ id: 'version-1', documentId: 'doc-1', versionNumber: 1, processingState: 'READY', byteSize: 200,
         metadata: { filename: 'fall.pdf', title: 'Stellungnahme', mimeType: 'application/pdf', plaintextDigest: 'secret' } }];
       if (path.endsWith('/shares')) return [{ id: 'share-1', status: 'ACTIVE', targetSecurityDomain: 'br-domain', validUntil: '2026-12-01T00:00:00Z', requirement: 'NONE', purpose: 'Beratung' }];
@@ -44,8 +48,11 @@ describe('Gremia.BR-Dokumentarbeitsbereich', () => {
     expect(result).toMatchObject({ title: 'Stellungnahme', description: 'Für BR', protectionClass: 'HIGH', currentVersionId: 'version-1' });
     expect(result.versions).toEqual([{ id: 'version-1', versionNumber: 1, filename: 'fall.pdf', mimeType: 'application/pdf', byteSize: 200, processingState: 'READY' }]);
     expect(result.shares).toEqual([{ id: 'share-1', status: 'ACTIVE', targetSecurityDomain: 'br-domain', validUntil: '2026-12-01T00:00:00Z', requirement: 'NONE' }]);
+    expect(result.signatures).toEqual({ requested: 1, signed: 1, declined: 0, cancelled: 0, expired: 0, verificationFailed: 0 });
     expect(JSON.stringify(result)).not.toContain('secret');
-    expect(get).toHaveBeenCalledTimes(3);
+    expect(JSON.stringify(result)).not.toContain('private-person');
+    expect(get).toHaveBeenCalledWith('/api/v1/documents/versions/version-1/signatures');
+    expect(get).toHaveBeenCalledTimes(4);
   });
 
   it('startet ohne Sicherheitsbereich und bei leerer Suche keinen Remote-Request', async () => {

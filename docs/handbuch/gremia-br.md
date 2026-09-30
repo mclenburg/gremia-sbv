@@ -30,6 +30,8 @@ Für eine eigene SBV-Dokumentation kannst du eine BR-Sitzung über **BR-Sitzung 
 
 Im Bereich **Gremia.BR-Dokumente** startest du eine Suche ausdrücklich mit **Suche starten**. Sie ist auf den gewählten Sicherheitsbereich begrenzt. Wähle einen Treffer und klicke **Details abrufen**, um Schutzklasse, Versionen und vorhandene Freigaben zu sehen. Diese Angaben verschwinden bei der nächsten Aktualisierung oder beim Verlassen des Bereichs.
 
+Im Dokumentdetail erscheinen außerdem die Signaturzustände der aktuellen Version als Zahlen. Daraus ist nicht ersichtlich, welche Person noch unterschreiben muss; die Angaben sind keine persönliche Signaturaufforderung.
+
 Beim geöffneten Dokument kannst du unter **Zugriff beantragen** die Zugriffsart, Laufzeit und Begründung wählen. Erst **Antrag stellen** sendet den Antrag. Ein ausstehender Antrag gewährt noch keinen Zugriff; nach einer Entscheidung aktualisierst du Gremia.BR bewusst, um den eigenen Antragsstatus zu sehen.
 
 Bei einem ausgewählten Verfahren zeigt **Verfahrensdetails laden** den aktuellen Status, den Bearbeitungsstand, ein erfasstes Ergebnis sowie Fristen und aktive Wiedervorlagen zusammen. Der Abruf erfolgt nur nach deinem Klick. Fristangaben sind der Gremia.BR-Stand und keine automatische rechtliche Bewertung durch Gremia.SBV.

@@ -49,6 +49,7 @@ export class GremiaBrDocumentReadService {
     let rawDetail: unknown;
     let rawVersions: unknown;
     let rawShares: unknown;
+    let rawSignatures: unknown;
     try {
       rawDetail = await this.auth.get<unknown>(`/api/v1/documents/${encodeURIComponent(id)}`);
       rawVersions = await this.auth.get<unknown>(`/api/v1/documents/${encodeURIComponent(id)}/versions`);
@@ -59,6 +60,15 @@ export class GremiaBrDocumentReadService {
     const metadata = gremiaBrRecord(currentVersion?.metadata);
     if (!detail || detail.id !== id || !text(detail.protectionClass) || !text(detail.status)
       || !Array.isArray(rawVersions) || !Array.isArray(rawShares)) throw readFailed();
+
+    const currentVersionId = text(detail.currentVersionId);
+    if (currentVersionId) {
+      if (!rawVersions.some((value) => gremiaBrRecord(value)?.id === currentVersionId)) throw readFailed();
+      try {
+        rawSignatures = await this.auth.get<unknown>(`/api/v1/documents/versions/${encodeURIComponent(currentVersionId)}/signatures`);
+      } catch { throw readFailed(); }
+      if (!Array.isArray(rawSignatures)) throw readFailed();
+    }
 
     const versions = rawVersions.map((value) => {
       const version = gremiaBrRecord(value);
@@ -80,12 +90,28 @@ export class GremiaBrDocumentReadService {
         validUntil: text(share.validUntil), requirement: text(share.requirement),
       };
     });
+    const signatures = currentVersionId ? {
+      requested: 0, signed: 0, declined: 0, cancelled: 0, expired: 0, verificationFailed: 0,
+    } : undefined;
+    if (signatures) for (const value of rawSignatures as unknown[]) {
+      const signature = gremiaBrRecord(value);
+      if (!signature || signature.documentVersionId !== currentVersionId || !text(signature.id)
+        || !['REQUESTED', 'SIGNED', 'DECLINED', 'CANCELLED', 'EXPIRED'].includes(text(signature.state))
+        || !['NOT_APPLICABLE', 'PENDING', 'VERIFIED', 'FAILED'].includes(text(signature.verificationState))) throw readFailed();
+      if (signature.state === 'REQUESTED') signatures.requested += 1;
+      if (signature.state === 'SIGNED') signatures.signed += 1;
+      if (signature.state === 'DECLINED') signatures.declined += 1;
+      if (signature.state === 'CANCELLED') signatures.cancelled += 1;
+      if (signature.state === 'EXPIRED') signatures.expired += 1;
+      if (signature.verificationState === 'FAILED') signatures.verificationFailed += 1;
+    }
     return {
       id, title: text(metadata?.title) || text(metadata?.filename) || 'Dokument ohne Titel',
       ...(text(metadata?.description) ? { description: text(metadata?.description) } : {}),
       protectionClass: text(detail.protectionClass), status: text(detail.status),
       ...(text(detail.currentVersionId) ? { currentVersionId: text(detail.currentVersionId) } : {}),
       versions, shares,
+      ...(signatures ? { signatures } : {}),
     };
   }
 
