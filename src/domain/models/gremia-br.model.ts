@@ -21,6 +21,34 @@ export interface GremiaBrDocumentImportInput {
   containsHealthData: boolean;
 }
 
+export interface GremiaBrOwnShare {
+  id: string;
+  status: string;
+  targetSecurityDomain: string;
+  validUntil: string;
+  requirement: string;
+  purpose: string;
+}
+
+export interface GremiaBrManagedDocument {
+  remoteDocumentId: string;
+  title: string;
+}
+
+export interface GremiaBrShareCreateInput {
+  documentId: string;
+  targetSecurityDomain: string;
+  purpose: string;
+  validUntil: string;
+  soloJustification?: string;
+}
+
+export interface GremiaBrShareRevokeInput {
+  documentId: string;
+  shareId: string;
+  reason: string;
+}
+
 export interface GremiaBrDocumentDetail {
   id: string;
   title: string;

@@ -22,6 +22,8 @@ Im Bereich **Gremia.BR-Dokumente** startest du eine Suche ausdrücklich mit **Su
 Eine verfügbare Version kannst du mit **Version öffnen** in der externen Vorschau öffnen. Sie wird dadurch nicht dauerhaft in Gremia.SBV übernommen.
 Soll eine Version dauerhaft in einer Fallakte liegen, wähle unter **In Fallakte übernehmen** die Version und den Zielfall, prüfe den Hinweis zu Gesundheitsdaten und bestätige **Dokument dauerhaft übernehmen**. Erst dann wird eine lokale, verschlüsselte Kopie erstellt; die Herkunft bleibt am Falldokument erkennbar.
 
+Unter **Eigene Freigaben** wählst du ein zuvor selbst übertragenes Dokument. **Freigaben abrufen** liest den aktuellen Serverstand erst auf deinen Klick. Du kannst eine weitere Freigabe mit Zielbereich, Zweck und Ablaufdatum anlegen oder eine bestehende aktive Freigabe mit Begründung widerrufen. Nach einer Änderung rufst du den Stand erneut bewusst ab; eine angefragte Freigabe ist noch keine aktive Freigabe.
+
 ## Verknüpfte Verfahren
 
 Wähle eine lokale Fallakte und einen für dich zugänglichen Gremia.BR-Sachverhalt aus. Nach dem Verbinden kannst du Verfahrensdetails und Informationsanforderungen jeweils bewusst laden. Eine neue Informationsanforderung oder eigene Aufgabe legst du im ausgewählten Verfahren an. Diese Vorgänge bleiben in Gremia.BR; eine neue Aufgabe erscheint im allgemeinen Arbeitsstand erst nach dem nächsten Klick auf **Gremia.BR aktualisieren**.

@@ -538,6 +538,10 @@ declare global {
         getRemoteDocumentDetail(documentId: string): Promise<GremiaBrDocumentDetail>;
         openRemoteDocumentVersion(documentId: string, versionId: string): Promise<{ opened: boolean; error?: string }>;
         importRemoteDocumentVersion(input: import('./domain/models/gremia-br.model').GremiaBrDocumentImportInput): Promise<CaseDocumentRecord>;
+        listOwnDocumentShares(documentId: string): Promise<import('./domain/models/gremia-br.model').GremiaBrOwnShare[]>;
+        listManagedRemoteDocuments(): Promise<import('./domain/models/gremia-br.model').GremiaBrManagedDocument[]>;
+        createOwnDocumentShare(input: import('./domain/models/gremia-br.model').GremiaBrShareCreateInput): Promise<import('./domain/models/gremia-br.model').GremiaBrOwnShare>;
+        revokeOwnDocumentShare(input: import('./domain/models/gremia-br.model').GremiaBrShareRevokeInput): Promise<import('./domain/models/gremia-br.model').GremiaBrOwnShare>;
         getOwnTaskTransitions(id: string): Promise<GremiaBrTaskTransitionOptions>;
         transitionOwnTask(input: GremiaBrTaskTransitionInput): Promise<GremiaBrOwnTaskDetail>;
         getProcedureDetail(id: string): Promise<GremiaBrProcedureDetail>;

@@ -18,6 +18,7 @@ import type {
 import { assertPlainObject, assertRecordInput, assertString, IpcValidationError } from './ipcValidation.js';
 import { registerGremiaBrReferenceIpc } from './gremiaBrReferenceIpc.js';
 import { registerGremiaBrDocumentReadIpc } from './gremiaBrDocumentReadIpc.js';
+import { registerGremiaBrOwnShareIpc } from './gremiaBrOwnShareIpc.js';
 
 export function registerGremiaBrIpc(ipcMain: IpcMain, security: SecurityService, services: ApplicationServices): void {
   const settings = services.gremiaBrSettings;
@@ -136,4 +137,5 @@ export function registerGremiaBrIpc(ipcMain: IpcMain, security: SecurityService,
 
   registerGremiaBrReferenceIpc(ipcMain, services);
   registerGremiaBrDocumentReadIpc(ipcMain, auth, security, services.cases);
+  registerGremiaBrOwnShareIpc(ipcMain, auth, () => security.getActiveDatabase());
 }

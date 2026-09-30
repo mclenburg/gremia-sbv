@@ -3,7 +3,7 @@ import { IPC_CHANNELS } from "../ipc/channels.js";
 import type { CompleteGremiaBrInformationRequestInput, CreateGremiaBrCaseSummaryInput, CreateGremiaBrExternalReferenceInput, CreateGremiaBrInformationRequestInput, CreateGremiaBrProcedureTaskInput, GremiaBrAgendaChanges, GremiaBrAgendaItemRequestResult, GremiaBrCachedOverview, GremiaBrCacheRefreshResult, GremiaBrConnectionTestResult, GremiaBrCreatedPdfDocument, GremiaBrDashboardOverview, GremiaBrDocumentDetail, GremiaBrDocumentHit, GremiaBrDocumentTransferResult, GremiaBrExternalReferenceRecord, GremiaBrGeneratedPdfDocument, GremiaBrInformationRequest, GremiaBrInlineSuggestion, GremiaBrOwnTaskDetail, GremiaBrProcedureDetail, GremiaBrPublicSettings, GremiaBrRelevanceSettings, GremiaBrSettingsInput, GremiaBrTaskTransitionInput, GremiaBrTaskTransitionOptions, GremiaBrWorkspaceActionRecord, GremiaBrWorkspaceBody, RequestGremiaBrAgendaItemInput, TransferGremiaBrDocumentInput } from "../../src/domain/models/gremia-br.model.js";
 import type { TemplateDefaultValues } from "../../src/domain/models/template-default.model.js";
 import type { CaseDocumentRecord } from "../../src/domain/models/case-document.model.js";
-import type { GremiaBrDocumentImportInput } from "../../src/domain/models/gremia-br.model.js";
+import type { GremiaBrDocumentImportInput, GremiaBrManagedDocument, GremiaBrOwnShare, GremiaBrShareCreateInput, GremiaBrShareRevokeInput } from "../../src/domain/models/gremia-br.model.js";
 import type { TransferInstanceIdentity } from "../../src/domain/models/transfer-identity.model.js";
 import type { SaveTransferRecipientProfileInput, TransferRecipientProfile } from "../../src/domain/models/transfer-recipient-profile.model.js";
 
@@ -52,6 +52,14 @@ export function createSettingsApi(invokeIpc: IpcInvoker) {
         invokeIpc(IPC_CHANNELS.gremiaBrRemoteDocumentVersionOpen, { documentId, versionId }),
       importRemoteDocumentVersion: (input: GremiaBrDocumentImportInput): Promise<CaseDocumentRecord> =>
         invokeIpc(IPC_CHANNELS.gremiaBrRemoteDocumentVersionImport, input),
+      listOwnDocumentShares: (documentId: string): Promise<GremiaBrOwnShare[]> =>
+        invokeIpc(IPC_CHANNELS.gremiaBrOwnSharesList, documentId),
+      listManagedRemoteDocuments: (): Promise<GremiaBrManagedDocument[]> =>
+        invokeIpc(IPC_CHANNELS.gremiaBrManagedDocumentsList),
+      createOwnDocumentShare: (input: GremiaBrShareCreateInput): Promise<GremiaBrOwnShare> =>
+        invokeIpc(IPC_CHANNELS.gremiaBrOwnShareCreate, input),
+      revokeOwnDocumentShare: (input: GremiaBrShareRevokeInput): Promise<GremiaBrOwnShare> =>
+        invokeIpc(IPC_CHANNELS.gremiaBrOwnShareRevoke, input),
       getOwnTaskTransitions: (id: string): Promise<GremiaBrTaskTransitionOptions> =>
         invokeIpc(IPC_CHANNELS.gremiaBrOwnTaskTransitionsGet, id),
       transitionOwnTask: (input: GremiaBrTaskTransitionInput): Promise<GremiaBrOwnTaskDetail> =>

@@ -29,6 +29,8 @@ Eine ausgewählte, bereite Dokumentversion wird erst auf **Version öffnen** bin
 
 Die explizite Übernahme in einen ausgewählten lokalen Fall verwendet dieselbe Versions- und Integritätsprüfung. Die Bytes gelangen über eine geschützte temporäre Datei in die zentrale verschlüsselte Falldokument-Pipeline und werden danach bereinigt. Migration 0061 hält Remote-Dokument-ID, Versions-ID und Titel direkt am lokalen Falldokument; ohne Übernahme entsteht kein persistenter Remote-Dokumentdatensatz.
 
+Freigabeverwaltung ist nur für durch `document_uploaded` nachgewiesene eigene Remote-Dokumente freigeschaltet. Die lokale Auswahl ist nicht durch das Aktionshistorienlimit begrenzt. Listen, Anlegen und Widerruf laufen über separate IPC-Aktionen und den zentral auditierten Auth-Port; vor dem Widerruf wird die konkrete Freigabe nochmals serverseitig gelesen. Der Server entscheidet weiterhin über Schutzklasse, MFA, zweite Freigabe und Laufzeit.
+
 ## Schreibende Arbeitsabläufe
 
 Eine neue eigene Aufgabe oder Informationsanforderung wird nur im Kontext eines verknüpften Verfahrens und durch eine ausdrückliche Aktion erstellt. Die Aufgabe bleibt in Gremia.BR. Für den Abschluss einer Informationsanforderung wird der aktuelle Stand im Rahmen derselben Nutzeraktion nochmals gelesen und mit der angezeigten Version verglichen.

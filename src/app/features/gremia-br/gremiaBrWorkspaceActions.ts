@@ -4,6 +4,10 @@ import type {
   GremiaBrAgendaChanges,
   GremiaBrDocumentDetail,
   GremiaBrDocumentImportInput,
+  GremiaBrOwnShare,
+  GremiaBrManagedDocument,
+  GremiaBrShareCreateInput,
+  GremiaBrShareRevokeInput,
   GremiaBrDocumentHit,
   GremiaBrGeneratedPdfDocument,
   GremiaBrOwnTaskDetail,
@@ -104,6 +108,30 @@ export async function importRemoteDocumentVersion(input: GremiaBrDocumentImportI
   const bridge = await waitForBridge();
   if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
   await bridge.gremiaBr.importRemoteDocumentVersion(input);
+}
+
+export async function listOwnDocumentShares(documentId: string): Promise<GremiaBrOwnShare[]> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.listOwnDocumentShares(documentId);
+}
+
+export async function listManagedRemoteDocuments(): Promise<GremiaBrManagedDocument[]> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.listManagedRemoteDocuments();
+}
+
+export async function createOwnDocumentShare(input: GremiaBrShareCreateInput): Promise<GremiaBrOwnShare> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.createOwnDocumentShare(input);
+}
+
+export async function revokeOwnDocumentShare(input: GremiaBrShareRevokeInput): Promise<GremiaBrOwnShare> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.revokeOwnDocumentShare(input);
 }
 
 export async function loadProcedureDetail(id: string): Promise<GremiaBrProcedureDetail> {
