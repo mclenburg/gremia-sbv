@@ -8,7 +8,7 @@ describe('Gremia.BR API-Katalog 0.9.2-G', () => {
     for (const endpoint of GREMIA_BR_READ_API_CATALOG) {
       expect(['GET', 'POST']).toContain(endpoint.method);
       if (endpoint.method === 'POST') {
-        expect(['/auth/login', '/api/v1/auth/login', '/api/v1/documents/search']).toContain(endpoint.template);
+        expect(['/api/v1/auth/login', '/api/v1/documents/search']).toContain(endpoint.template);
       }
       expect(endpoint.template).not.toMatch(/^\/(admin|dsgvo|mitglieder|abwesenheiten|ausschuesse|files|upload-links|public-upload|agenda)\b/);
       expect(checkGremiaBrEndpoint(endpoint.method, endpoint.template).allowed).toBe(true);
@@ -38,11 +38,8 @@ describe('Gremia.BR API-Katalog 0.9.2-G', () => {
   });
 
   it('ordnet konkrete Pfade stabil dem Template zu und verhindert Audit-Leakage konkreter IDs', () => {
-    expect(findGremiaBrEndpointDefinition('GET', '/sitzungen/abc-123/agenda')?.template).toBe('/sitzungen/{id}/agenda');
-    expect(findGremiaBrEndpointDefinition('GET', '/protokolle/sitzung/sitzung-1')?.template).toBe('/protokolle/sitzung/{sitzungId}');
     expect(findGremiaBrEndpointDefinition('GET', '/api/v1/meetings/meeting-1/agenda')?.template).toBe('/api/v1/meetings/{meetingId}/agenda');
     expect(toGremiaBrEndpointLabel('GET', '/api/v1/meetings/meeting-1/remote-access')).toBe('GET /api/v1/meetings/{meetingId}/remote-access');
-    expect(toGremiaBrEndpointLabel('GET', '/protokolle/protokoll-1/beschluesse')).toBe('GET /protokolle/{id}/beschluesse');
     expect(toGremiaBrEndpointLabel('GET', '/api/v1/documents/document-1/versions')).toBe('GET /api/v1/documents/{documentId}/versions');
     expect(toGremiaBrEndpointLabel('POST', '/api/v1/procedures/tasks/task-1/transitions')).toBe('POST /api/v1/procedures/tasks/{taskId}/transitions');
   });
@@ -59,6 +56,18 @@ describe('Gremia.BR API-Katalog 0.9.2-G', () => {
       ['POST', '/api/v1/documents/shares/share-1/approval'],
       ['POST', '/protokolle/beschluesse'],
       ['PATCH', '/sitzungen/s1/agenda'],
+    ] as const) {
+      expect(checkGremiaBrEndpoint(method, path).allowed, `${method} ${path}`).toBe(false);
+    }
+  });
+
+  it('gibt keine Endpunkte einer unveröffentlichten älteren API frei', () => {
+    for (const [method, path] of [
+      ['POST', '/auth/login'],
+      ['GET', '/auth/me'],
+      ['GET', '/sitzungen/kommende'],
+      ['GET', '/protokolle/beschluesse'],
+      ['GET', '/search/suggest'],
     ] as const) {
       expect(checkGremiaBrEndpoint(method, path).allowed, `${method} ${path}`).toBe(false);
     }

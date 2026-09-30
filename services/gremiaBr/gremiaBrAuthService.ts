@@ -45,14 +45,6 @@ function profileFromPayload(payload: unknown, fallbackEmail: string): GremiaBrPr
   return { displayName, role, email };
 }
 
-function mergeProfileSnapshots(primary: GremiaBrProfileSnapshot, fallback: GremiaBrProfileSnapshot): GremiaBrProfileSnapshot {
-  return {
-    displayName: primary.displayName ?? fallback.displayName,
-    role: primary.role ?? fallback.role,
-    email: primary.email ?? fallback.email,
-  };
-}
-
 function sessionCookieFromHeaders(headers: Headers): string {
   const headerWithMultipleCookies = headers as Headers & { getSetCookie?: () => string[] };
   const cookies = headerWithMultipleCookies.getSetCookie?.() ?? [headers.get('set-cookie') ?? ''];
@@ -83,7 +75,7 @@ export class GremiaBrAuthService {
   getReadContext(): GremiaBrReadContext {
     const settings = this.settingsStore.getServiceSettings();
     return {
-      apiMode: settings.apiMode,
+      apiMode: 'gremia_br_v2',
       selectedBodyId: settings.selectedBodyId,
       selectedBodyName: settings.selectedBodyName,
       selectedOrganizationId: settings.selectedOrganizationId,
@@ -130,19 +122,14 @@ export class GremiaBrAuthService {
   }
 
   private async authenticatedRequest<T>(method: 'GET' | 'POST', path: string, options: GremiaBrRequestOptions = {}): Promise<T> {
-    const settings = this.settingsStore.getServiceSettings();
-    const auth = settings.apiMode === 'gremia_br_v2'
-      ? await this.ensureV2Auth()
-      : { token: await this.ensureToken(), sessionCookie: undefined };
+    const auth = await this.ensureV2Auth();
     const client = this.client();
     try {
       return await client.request<T>(method, path, auth.token, { ...options, sessionCookie: auth.sessionCookie });
     } catch (error) {
       if (error && typeof error === 'object' && 'status' in error && (error as { status?: number }).status === 401) {
         this.clearToken();
-        const retryAuth = settings.apiMode === 'gremia_br_v2'
-          ? await this.ensureV2Auth()
-          : { token: await this.ensureToken(), sessionCookie: undefined };
+        const retryAuth = await this.ensureV2Auth();
         return await client.request<T>(method, path, retryAuth.token, { ...options, sessionCookie: retryAuth.sessionCookie });
       }
       throw error;
@@ -150,29 +137,13 @@ export class GremiaBrAuthService {
   }
 
   private async loginAndFetchProfile(): Promise<GremiaBrProfileSnapshot> {
-    if (this.settingsStore.getServiceSettings().apiMode === 'gremia_br_v2') {
-      await this.login();
-      const settings = this.settingsStore.getServiceSettings();
-      const auth = await this.ensureV2Auth();
-      const sessionPayload = await this.client().request<unknown>('GET', '/api/v1/auth/session', auth.token, {
-        sessionCookie: auth.sessionCookie,
-      });
-      return profileFromPayload(sessionPayload, settings.username);
-    }
     await this.login();
     const settings = this.settingsStore.getServiceSettings();
-    const client = this.client();
-    const sessionPayload = await client.request<unknown>('GET', '/auth/me', this.token);
-    const profilePayload = await client.request<unknown>('GET', '/auth/profile', this.token);
-    return mergeProfileSnapshots(
-      profileFromPayload(profilePayload, settings.username),
-      profileFromPayload(sessionPayload, settings.username),
-    );
-  }
-
-  private async ensureToken(): Promise<string> {
-    if (!this.token) await this.login();
-    return this.token;
+    const auth = await this.ensureV2Auth();
+    const sessionPayload = await this.client().request<unknown>('GET', '/api/v1/auth/session', auth.token, {
+      sessionCookie: auth.sessionCookie,
+    });
+    return profileFromPayload(sessionPayload, settings.username);
   }
 
   private async ensureV2Auth(): Promise<{ token?: string; sessionCookie?: string }> {
@@ -189,26 +160,17 @@ export class GremiaBrAuthService {
     if (!settings.serverUrl || !settings.username || !settings.password) {
       throw new Error('Serveradresse, Benutzerkonto oder Passwort fehlen.');
     }
-    if (settings.apiMode === 'gremia_br_v2') {
-      const response = await this.client().requestDetailed<unknown>('POST', '/api/v1/auth/login', undefined, {
-        body: { identifier: settings.username, password: settings.password },
-      });
-      const token = extractToken(response.payload);
-      if (token) {
-        this.token = token;
-        return;
-      }
-      const cookie = sessionCookieFromHeaders(response.headers);
-      if (!cookie) throw new Error('Gremia.BR hat keine gültige Sitzung zurückgegeben.');
-      this.sessionCookie = cookie;
+    const response = await this.client().requestDetailed<unknown>('POST', '/api/v1/auth/login', undefined, {
+      body: { identifier: settings.username, password: settings.password },
+    });
+    const token = extractToken(response.payload);
+    if (token) {
+      this.token = token;
       return;
     }
-    const payload = await this.client().request<unknown>('POST', '/auth/login', undefined, {
-      body: { email: settings.username, password: settings.password },
-    });
-    const token = extractToken(payload);
-    if (!token) throw new Error('Gremia.BR hat kein gültiges Zugriffstoken zurückgegeben.');
-    this.token = token;
+    const cookie = sessionCookieFromHeaders(response.headers);
+    if (!cookie) throw new Error('Gremia.BR hat keine gültige Sitzung zurückgegeben.');
+    this.sessionCookie = cookie;
   }
 
   private client(): GremiaBrHttpClient {

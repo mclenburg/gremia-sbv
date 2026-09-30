@@ -14,7 +14,7 @@ class MemorySettings implements GremiaBrSettingsStore {
   getServiceSettings(): GremiaBrServiceSettings {
     return {
       enabled: true,
-      serverUrl: 'https://br.example.invalid/api',
+      serverUrl: 'https://br.example.invalid',
       username: 'sbv@example.invalid',
       password: 'streng-geheim',
       apiMode: 'legacy_read_bridge',
@@ -51,11 +51,10 @@ function fetchFor(routes: Record<string, unknown>): { fetch: GremiaBrFetch; call
 }
 
 describe('Gremia.BR Auth-Profilvertrag 0.9.2-Q', () => {
-  it('nutzt nach dem Sessioncheck das Profil als führende Quelle für Anzeigename und Rolle', async () => {
+  it('nutzt die aktuelle Session als Quelle für Anzeigename und Rolle', async () => {
     const { fetch, calls } = fetchFor({
-      'POST /api/auth/login': { access_token: 'jwt-token' },
-      'GET /api/auth/me': { id: 'u1', email: 'sbv@example.invalid', displayName: 'Session Name' },
-      'GET /api/auth/profile': { displayName: 'SBV Nutzerin', role: 'sbv', email: 'sbv@example.invalid' },
+      'POST /api/v1/auth/login': { access_token: 'jwt-token' },
+      'GET /api/v1/auth/session': { displayName: 'SBV Nutzerin', role: 'sbv', email: 'sbv@example.invalid' },
     });
     const settings = new MemorySettings();
 
@@ -65,16 +64,15 @@ describe('Gremia.BR Auth-Profilvertrag 0.9.2-Q', () => {
     expect(result.profileDisplayName).toBe('SBV Nutzerin');
     expect(result.profileRole).toBe('sbv');
     expect(settings.successfulProfile).toMatchObject({ displayName: 'SBV Nutzerin', role: 'sbv' });
-    expect(calls).toEqual(['POST /api/auth/login', 'GET /api/auth/me', 'GET /api/auth/profile']);
+    expect(calls).toEqual(['POST /api/v1/auth/login', 'GET /api/v1/auth/session']);
     expect(JSON.stringify(result)).not.toContain('streng-geheim');
     expect(JSON.stringify(result)).not.toContain('jwt-token');
   });
 
-  it('wertet auch gekapselte Profilantworten aus der neuen API-Struktur aus', async () => {
+  it('wertet auch gekapselte Sessionprofile aus', async () => {
     const { fetch } = fetchFor({
-      'POST /api/auth/login': { accessToken: 'jwt-token' },
-      'GET /api/auth/me': { user: { email: 'sbv@example.invalid' } },
-      'GET /api/auth/profile': { profile: { fullName: 'Vertrauensperson SBV', rolle: 'sbv' } },
+      'POST /api/v1/auth/login': { accessToken: 'jwt-token' },
+      'GET /api/v1/auth/session': { profile: { fullName: 'Vertrauensperson SBV', rolle: 'sbv' } },
     });
 
     const result = await new GremiaBrAuthService(new MemorySettings(), fetch, auditFactory).testConnection();
@@ -129,5 +127,19 @@ describe('Gremia.BR Auth-Profilvertrag 0.9.2-Q', () => {
     expect(calls.some((call) => call.authorization)).toBe(false);
     expect(JSON.stringify(result)).not.toContain('streng-geheim');
     expect(JSON.stringify(result)).not.toContain('session-token');
+  });
+
+  it('verwendet auch bei einem injizierten alten Modus nur den aktuellen Auth-Pfad', async () => {
+    const { fetch, calls } = fetchFor({
+      'POST /api/v1/auth/login': { access_token: 'jwt-token' },
+      'GET /api/v1/auth/session': { displayName: 'SBV Nutzerin', roles: ['sbv'] },
+    });
+    const result = await new GremiaBrAuthService(new MemorySettings({
+      serverUrl: 'https://br.example.invalid',
+      apiMode: 'legacy_read_bridge',
+    }), fetch, auditFactory).testConnection();
+
+    expect(result.status).toBe('ok');
+    expect(calls).toEqual(['POST /api/v1/auth/login', 'GET /api/v1/auth/session']);
   });
 });

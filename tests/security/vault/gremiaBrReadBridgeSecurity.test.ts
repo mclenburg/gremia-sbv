@@ -7,20 +7,6 @@ const audit = { append: () => undefined };
 
 describe('Gremia.BR Lesebrücke Security-Härtung 0.9.2-F', () => {
   it('erlaubt nur explizit freigegebene Lese- und Arbeitsbereichsendpunkte und blockiert Verwaltungszugriffe vor dem Netzwerk', async () => {
-    expect(checkGremiaBrEndpoint('GET', '/sitzungen/kommende').allowed).toBe(true);
-    expect(checkGremiaBrEndpoint('GET', '/sitzungen/aktuelle').allowed).toBe(true);
-    expect(checkGremiaBrEndpoint('GET', '/sitzungen/wiedervorlagen?datum=2026-05-27').allowed).toBe(true);
-    expect(checkGremiaBrEndpoint('GET', '/sitzungen/s1').allowed).toBe(true);
-    expect(checkGremiaBrEndpoint('GET', '/sitzungen/s1/protokoll-status').allowed).toBe(true);
-    expect(checkGremiaBrEndpoint('GET', '/protokolle').allowed).toBe(true);
-    expect(checkGremiaBrEndpoint('GET', '/protokolle/p1').allowed).toBe(true);
-    expect(checkGremiaBrEndpoint('GET', '/protokolle/sitzung/s1').allowed).toBe(true);
-    expect(checkGremiaBrEndpoint('GET', '/protokolle/p1/beschluesse').allowed).toBe(true);
-    expect(checkGremiaBrEndpoint('GET', '/protokolle/beschluesse/faellig').allowed).toBe(true);
-    expect(checkGremiaBrEndpoint('GET', '/protokolle/beschluesse/statistik').allowed).toBe(true);
-    expect(checkGremiaBrEndpoint('GET', '/protokolle/beschluesse/statistik-extended').allowed).toBe(true);
-    expect(checkGremiaBrEndpoint('GET', '/search/suggest?q=BEM').allowed).toBe(true);
-    expect(checkGremiaBrEndpoint('POST', '/auth/login').allowed).toBe(true);
     expect(checkGremiaBrEndpoint('POST', '/api/v1/auth/login').allowed).toBe(true);
     expect(checkGremiaBrEndpoint('GET', '/api/v1/auth/session').allowed).toBe(true);
     expect(checkGremiaBrEndpoint('GET', '/api/v1/me/bodies').allowed).toBe(true);
@@ -35,6 +21,11 @@ describe('Gremia.BR Lesebrücke Security-Härtung 0.9.2-F', () => {
 
     for (const [method, path] of [
       ['GET', '/admin/health'],
+      ['GET', '/sitzungen/kommende'],
+      ['GET', '/sitzungen/s1/protokoll-status'],
+      ['GET', '/protokolle/beschluesse/faellig'],
+      ['GET', '/search/suggest?q=BEM'],
+      ['POST', '/auth/login'],
       ['GET', '/dsgvo/dashboard'],
       ['GET', '/mitglieder'],
       ['GET', '/abwesenheiten'],
@@ -95,7 +86,7 @@ describe('Gremia.BR Lesebrücke Security-Härtung 0.9.2-F', () => {
     });
     const client = new GremiaBrHttpClient('https://br.example.local', fetchImpl, audit);
 
-    await expect(client.request('GET', '/search', 'token', { query: { q: 'BEM' } })).rejects.toThrow(/umgeleitet/i);
+    await expect(client.request('GET', '/api/v1/me/bodies', 'token')).rejects.toThrow(/umgeleitet/i);
   });
 
 
@@ -105,7 +96,7 @@ describe('Gremia.BR Lesebrücke Security-Härtung 0.9.2-F', () => {
       headers: { 'content-type': 'application/json', 'content-length': String(MAX_GREMIA_BR_RESPONSE_BYTES + 1) },
     });
     const client = new GremiaBrHttpClient('https://br.example.local', oversizedByHeader, audit);
-    await expect(client.request('GET', '/search', 'token', { query: { q: 'BEM' } })).rejects.toThrow(/zulässige Größe/i);
+    await expect(client.request('GET', '/api/v1/me/bodies', 'token')).rejects.toThrow(/zulässige Größe/i);
 
     const chunk = 'x'.repeat(1024 * 1024);
     const body = new ReadableStream<Uint8Array>({
@@ -116,7 +107,7 @@ describe('Gremia.BR Lesebrücke Security-Härtung 0.9.2-F', () => {
     });
     const oversizedStream: GremiaBrFetch = async () => new Response(body, { status: 200, headers: { 'content-type': 'text/plain' } });
     const streamingClient = new GremiaBrHttpClient('https://br.example.local', oversizedStream, audit);
-    await expect(streamingClient.request('GET', '/search', 'token', { query: { q: 'BEM' } })).rejects.toThrow(/zulässige Größe/i);
+    await expect(streamingClient.request('GET', '/api/v1/me/bodies', 'token')).rejects.toThrow(/zulässige Größe/i);
   });
 
 });

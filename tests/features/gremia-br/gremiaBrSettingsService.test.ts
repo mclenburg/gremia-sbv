@@ -155,8 +155,9 @@ describe('Gremia.BR Einstellungen 0.9.2-A', () => {
     expect(validateGremiaBrBaseUrl('http://localhost:4200')).toBe('http://localhost:4200');
     expect(() => validateGremiaBrBaseUrl('http://br.example.invalid')).toThrow(/HTTPS/);
 
-    expect(checkGremiaBrEndpoint('GET', '/search').allowed).toBe(true);
-    expect(checkGremiaBrEndpoint('POST', '/auth/login').allowed).toBe(true);
+    expect(checkGremiaBrEndpoint('GET', '/search').allowed).toBe(false);
+    expect(checkGremiaBrEndpoint('POST', '/auth/login').allowed).toBe(false);
+    expect(checkGremiaBrEndpoint('POST', '/api/v1/auth/login').allowed).toBe(true);
     expect(checkGremiaBrEndpoint('GET', '/admin/health').allowed).toBe(false);
     expect(checkGremiaBrEndpoint('POST', '/protokolle/beschluesse').allowed).toBe(false);
   });

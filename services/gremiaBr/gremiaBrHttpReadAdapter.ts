@@ -64,7 +64,6 @@ export class GremiaBrHttpReadAdapter implements GremiaBrReadAdapter {
   constructor(private readonly auth: GremiaBrAuthService) {}
 
   async listAccessibleCases(): Promise<GremiaBrRemoteCase[]> {
-    if (!this.isV2()) return [];
     const cases: GremiaBrRemoteCase[] = [];
     for (let offset = 0; offset < MAX_ACCESSIBLE_CASES;) {
       const response = gremiaBrRecord(await this.auth.get<unknown>('/api/v1/cases', {
@@ -88,7 +87,6 @@ export class GremiaBrHttpReadAdapter implements GremiaBrReadAdapter {
   }
 
   async listOwnTasks(): Promise<GremiaBrOwnTask[]> {
-    if (!this.isV2()) return [];
     const tasks: GremiaBrOwnTask[] = [];
     for (let offset = 0; offset < MAX_OWN_TASKS;) {
       const response = gremiaBrRecord(await this.auth.get<unknown>('/api/v1/tasks', {
@@ -111,7 +109,6 @@ export class GremiaBrHttpReadAdapter implements GremiaBrReadAdapter {
   }
 
   async listOwnAccessApprovals(): Promise<GremiaBrOwnAccessApproval[]> {
-    if (!this.isV2()) return [];
     const response = await this.auth.get<unknown>('/api/v1/access-approvals/mine');
     if (!Array.isArray(response)) throw new Error('Gremia.BR hat keine gültige Liste eigener Zugriffsanträge zurückgegeben.');
     return response.flatMap((value) => {
@@ -130,11 +127,7 @@ export class GremiaBrHttpReadAdapter implements GremiaBrReadAdapter {
   async getReferenceById(id: string): Promise<unknown | null> { return this.getDecisionById(id); }
 
   async getDecisionById(id: string): Promise<unknown | null> {
-    if (this.isV2()) return await this.auth.get<unknown | null>(`/api/v1/meetings/decisions/${encodeURIComponent(id)}`);
-    const results = gremiaBrArrayFromResponse(await this.auth.get<unknown>('/search', {
-      query: { q: id, types: ['beschluss'], limit: 1 },
-    }));
-    return results[0] ?? null;
+    return await this.auth.get<unknown | null>(`/api/v1/meetings/decisions/${encodeURIComponent(id)}`);
   }
 
   async listRelevantMeetings(): Promise<unknown[]> {
@@ -142,115 +135,71 @@ export class GremiaBrHttpReadAdapter implements GremiaBrReadAdapter {
   }
 
   async getNextMeeting(): Promise<unknown | null> {
-    if (this.isV2()) return (await this.getUpcomingMeetings())[0] ?? null;
-    return await this.auth.get<unknown | null>('/sitzungen/naechste');
+    return (await this.getUpcomingMeetings())[0] ?? null;
   }
 
   async getCurrentMeeting(): Promise<unknown | null> {
-    if (this.isV2()) {
-      return (await this.listV2BodyMeetings())
-        .filter((meeting) => gremiaBrRecord(meeting)?.status === 'IN_PROGRESS')
-        .sort((left, right) => dateFromItem(left) - dateFromItem(right))[0] ?? null;
-    }
-    return await this.auth.get<unknown | null>('/sitzungen/aktuelle');
+    return (await this.listV2BodyMeetings())
+      .filter((meeting) => gremiaBrRecord(meeting)?.status === 'IN_PROGRESS')
+      .sort((left, right) => dateFromItem(left) - dateFromItem(right))[0] ?? null;
   }
 
   async getUpcomingMeetings(): Promise<unknown[]> {
-    if (this.isV2()) {
-      const now = Date.now();
-      return (await this.listV2BodyMeetings())
-        .filter((meeting) => {
-          const item = gremiaBrRecord(meeting);
-          return item?.status !== 'CANCELLED' && dateFromItem(meeting) >= now;
-        })
-        .sort((left, right) => dateFromItem(left) - dateFromItem(right));
-    }
-    return gremiaBrArrayFromResponse(await this.auth.get<unknown>('/sitzungen/kommende'));
+    const now = Date.now();
+    return (await this.listV2BodyMeetings())
+      .filter((meeting) => {
+        const item = gremiaBrRecord(meeting);
+        return item?.status !== 'CANCELLED' && dateFromItem(meeting) >= now;
+      })
+      .sort((left, right) => dateFromItem(left) - dateFromItem(right));
   }
 
-  async getPendingFollowUps(date?: string): Promise<unknown[]> {
-    if (this.isV2()) return [];
-    return gremiaBrArrayFromResponse(await this.auth.get<unknown>('/sitzungen/wiedervorlagen', {
-      query: { datum: date },
-    }));
+  async getPendingFollowUps(_date?: string): Promise<unknown[]> {
+    return [];
   }
 
   async getMeetingById(id: string): Promise<unknown | null> {
-    if (this.isV2()) return await this.auth.get<unknown | null>(`/api/v1/meetings/${encodeURIComponent(id)}`);
-    return await this.auth.get<unknown | null>(`/sitzungen/${encodeURIComponent(id)}`);
+    return await this.auth.get<unknown | null>(`/api/v1/meetings/${encodeURIComponent(id)}`);
   }
 
   async getMeetingAgenda(id: string): Promise<unknown[]> {
-    if (this.isV2()) return gremiaBrArrayFromResponse(await this.auth.get<unknown>(`/api/v1/meetings/${encodeURIComponent(id)}/agenda`));
-    return gremiaBrArrayFromResponse(await this.auth.get<unknown>(`/sitzungen/${encodeURIComponent(id)}/agenda`));
+    return gremiaBrArrayFromResponse(await this.auth.get<unknown>(`/api/v1/meetings/${encodeURIComponent(id)}/agenda`));
   }
 
   async getMeetingProtocolStatus(id: string): Promise<unknown | null> {
-    if (this.isV2()) return await this.getProtocolByMeeting(id);
-    return await this.auth.get<unknown | null>(`/sitzungen/${encodeURIComponent(id)}/protokoll-status`);
+    return await this.getProtocolByMeeting(id);
   }
 
-  async listProtocols(): Promise<unknown[]> {
-    if (this.isV2()) return [];
-    return gremiaBrArrayFromResponse(await this.auth.get<unknown>('/protokolle'));
-  }
+  async listProtocols(): Promise<unknown[]> { return []; }
 
-  async getProtocolById(id: string): Promise<unknown | null> {
-    if (this.isV2()) return null;
-    return await this.auth.get<unknown | null>(`/protokolle/${encodeURIComponent(id)}`);
-  }
+  async getProtocolById(_id: string): Promise<unknown | null> { return null; }
 
   async getProtocolByMeeting(sitzungId: string): Promise<unknown | null> {
-    if (this.isV2()) return await this.auth.get<unknown | null>(`/api/v1/meetings/${encodeURIComponent(sitzungId)}/minutes`);
-    return await this.auth.get<unknown | null>(`/protokolle/sitzung/${encodeURIComponent(sitzungId)}`);
+    return await this.auth.get<unknown | null>(`/api/v1/meetings/${encodeURIComponent(sitzungId)}/minutes`);
   }
 
   async listProtocolDecisions(id: string): Promise<unknown[]> {
-    if (this.isV2()) return gremiaBrArrayFromResponse(await this.auth.get<unknown>(`/api/v1/meetings/${encodeURIComponent(id)}/decisions`));
-    return gremiaBrArrayFromResponse(await this.auth.get<unknown>(`/protokolle/${encodeURIComponent(id)}/beschluesse`));
+    return gremiaBrArrayFromResponse(await this.auth.get<unknown>(`/api/v1/meetings/${encodeURIComponent(id)}/decisions`));
   }
 
   async listRelevantDecisions(): Promise<unknown[]> {
-    if (this.isV2()) return this.listV2Decisions();
-    return gremiaBrArrayFromResponse(await this.auth.get<unknown>('/protokolle/beschluesse'));
+    return this.listV2Decisions();
   }
 
-  async getDueDecisions(): Promise<unknown[]> {
-    if (this.isV2()) return [];
-    return gremiaBrArrayFromResponse(await this.auth.get<unknown>('/protokolle/beschluesse/faellig'));
-  }
+  async getDueDecisions(): Promise<unknown[]> { return []; }
 
-  async getOverdueDecisions(): Promise<unknown[]> {
-    if (this.isV2()) return [];
-    return gremiaBrArrayFromResponse(await this.auth.get<unknown>('/protokolle/beschluesse/ueberfaellig'));
-  }
+  async getOverdueDecisions(): Promise<unknown[]> { return []; }
 
-  async getDecisionStatistics(): Promise<unknown | null> {
-    if (this.isV2()) return null;
-    return await this.auth.get<unknown | null>('/protokolle/beschluesse/statistik');
-  }
+  async getDecisionStatistics(): Promise<unknown | null> { return null; }
 
-  async getExtendedDecisionStatistics(): Promise<unknown | null> {
-    if (this.isV2()) return null;
-    return await this.auth.get<unknown | null>('/protokolle/beschluesse/statistik-extended');
-  }
+  async getExtendedDecisionStatistics(): Promise<unknown | null> { return null; }
 
   async searchDecisions(query: string): Promise<unknown[]> {
-    if (this.isV2()) return (await this.listV2Decisions()).filter((decision) => textMatchesQuery(decision, query));
-    return gremiaBrArrayFromResponse(await this.auth.get<unknown>('/search', {
-      query: { q: query, types: ['beschluss', 'protokoll'], limit: 20 },
-    }));
+    return (await this.listV2Decisions()).filter((decision) => textMatchesQuery(decision, query));
   }
 
   async suggestForInlineCommand(q: string): Promise<unknown[]> {
-    if (this.isV2()) return (await this.searchDecisions(q)).slice(0, 10);
-    return gremiaBrArrayFromResponse(await this.auth.get<unknown>('/search/suggest', {
-      query: { q, types: ['beschluss'], limit: 10 },
-    }));
-  }
-
-  private isV2(): boolean {
-    return this.auth.getReadContext().apiMode === 'gremia_br_v2';
+    return (await this.searchDecisions(q)).slice(0, 10);
   }
 
   private selectedV2BodyId(): string {
