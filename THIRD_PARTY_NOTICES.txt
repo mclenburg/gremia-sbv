@@ -1731,7 +1731,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-axios@1.19.0
+axios@1.20.0
 License: MIT
 Repository: https://github.com/axios/axios.git
 Homepage: https://axios-http.com

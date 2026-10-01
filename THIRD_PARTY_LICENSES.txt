@@ -614,7 +614,7 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - aws4@1.13.2
   License: MIT
   License text: LICENSES/MIT.txt
-- axios@1.19.0
+- axios@1.20.0
   License: MIT
   License text: LICENSES/MIT.txt
 - balanced-match@1.0.2
