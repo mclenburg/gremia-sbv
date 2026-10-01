@@ -1,4 +1,5 @@
 import { Plus, Save } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 import type { SbvControlProtocolPartner, SbvControlProtocolStatus, SbvControlProtocolTopic } from '../../../../domain/models/sbv-control-protocol.model';
 import { DateInput, FormActions, SelectInput, TextareaInput, TextInput } from '../../../shared/components/IndustrialForm';
 import { IndustrialButton, ToolbarButton } from '../../../shared/components/IndustrialButton';
@@ -13,10 +14,15 @@ export function ProtocolForm({
   onSubmit: () => void;
 }) {
   const { protocolForm, protocolTitleError, editingProtocolId } = state;
+  const formRef = useRef<HTMLFormElement>(null);
+  useEffect(() => { if (editingProtocolId) formRef.current?.focus(); }, [editingProtocolId]);
 
   return (
     <form
+      ref={formRef}
       className="sbv-resource-form"
+      aria-label={editingProtocolId ? 'Protokoll bearbeiten' : 'Protokoll erfassen'}
+      tabIndex={-1}
       onSubmit={(event) => {
         event.preventDefault();
         onSubmit();

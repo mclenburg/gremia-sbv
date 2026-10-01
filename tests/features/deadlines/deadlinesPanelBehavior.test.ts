@@ -116,6 +116,14 @@ describe('Fristenpanel Verhalten 0.9.2', () => {
     expect(resolveDeadlineContextInfo(journalDeadline).actionLabel).toBe('Journaleintrag öffnen');
   });
 
+  it('öffnet Protokoll-Wiedervorlagen beim konkreten SBV-Protokoll', () => {
+    const protocolDeadline = deadline({ caseId: undefined, processType: 'sbv_control_protocol', processId: 'protocol-1' });
+    expect(resolveDeadlineOpenTarget(protocolDeadline)).toEqual({
+      kind: 'record', view: 'sbv_control', recordId: 'protocol-1', sourceEvent: undefined,
+    });
+    expect(resolveDeadlineContextInfo(protocolDeadline).actionLabel).toBe('Protokoll öffnen');
+  });
+
   it('öffnet bei Statusablauffristen die konkret betroffene Person', () => {
     const statusDeadline = deadline({
       processType: 'custom',

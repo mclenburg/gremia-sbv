@@ -17,10 +17,11 @@ import { ReportsPanel } from './components/ReportsPanel';
 import { SbvOfficeSections } from './components/SbvOfficeSections';
 import { ProtocolSection } from './components/ProtocolSection';
 import { useSbvResources } from './hooks/useSbvResources';
-import { useSbvControlProtocols } from './hooks/useSbvControlProtocols';
+import { useSbvControlProtocols, useSbvControlProtocolTarget } from './hooks/useSbvControlProtocols';
 import { useSbvOfficeWorkflows } from './hooks/useSbvOfficeWorkflows';
 import {
   countCriticalParticipation,
+  buildSbvControlReportHints,
   monthLabel,
 } from './sbvControlLogic';
 import { buildSbvControlSections, type ControlSectionId } from './sbvControlSections';
@@ -30,6 +31,8 @@ type SbvControlViewProps = {
   deadlines: DeadlineRecord[];
   onNavigate?: (viewId: ViewId) => void;
   initialSection?: ControlSectionId;
+  targetProtocolId?: string;
+  onTargetConsumed?: () => void;
 };
 
 export function SbvControlView({
@@ -37,17 +40,21 @@ export function SbvControlView({
   deadlines,
   onNavigate,
   initialSection = 'resources',
+  targetProtocolId,
+  onTargetConsumed,
 }: SbvControlViewProps) {
   const [participations, setParticipations] = useState<ParticipationRecord[]>([]);
   const [activeSection, setActiveSection] = useState<ControlSectionId>(initialSection);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const [protocolsLoaded, setProtocolsLoaded] = useState(false);
   const resourcesState = useSbvResources();
   const protocolsState = useSbvControlProtocols();
   const officeState = useSbvOfficeWorkflows();
   const { loadResources } = resourcesState;
   const { loadProtocols } = protocolsState;
   const { load: loadOfficeWorkflows } = officeState;
+  useSbvControlProtocolTarget({ targetProtocolId, onTargetConsumed, protocolsLoaded, protocolsState, setActiveSection, setError });
 
   useEffect(() => {
     let active = true;
@@ -59,6 +66,7 @@ export function SbvControlView({
         if (bridge?.participation) setParticipations(await bridge.participation.list());
         await loadResources();
         await loadProtocols();
+        if (active) setProtocolsLoaded(true);
         await loadOfficeWorkflows();
       } catch (loadError) {
         if (active) {
@@ -78,18 +86,9 @@ export function SbvControlView({
   }, [cases.length, loadResources, loadProtocols, loadOfficeWorkflows]);
 
   const openDeadlines = deadlines.filter((deadline) => deadline.status !== 'done').length;
-  const criticalParticipation = useMemo(
-    () => countCriticalParticipation(participations),
-    [participations],
-  );
+  const criticalParticipation = useMemo(() => countCriticalParticipation(participations), [participations]);
   const privacyReviewCases = cases.filter((item) => item.privacyReviewRequired).length;
-  const reportHints = [
-    { label: 'Fallakten im Arbeitsbestand', value: cases.length },
-    { label: 'Beteiligungsvorgänge', value: participations.length },
-    { label: 'Protokolle', value: protocolsState.protocols.length },
-    { label: 'offene Fristen / Wiedervorlagen', value: openDeadlines },
-    { label: 'Akten mit Datenschutzprüfung', value: privacyReviewCases },
-  ];
+  const reportHints = buildSbvControlReportHints(cases.length, participations.length, protocolsState.protocols.length, openDeadlines, privacyReviewCases);
 
   const sectionTabs = buildSbvControlSections({
     resources: resourcesState.resources.length, meetings: officeState.meetings.length, assemblies: officeState.assemblies.length, assemblyWarning: officeState.assemblyWarning,

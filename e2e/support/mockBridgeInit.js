@@ -121,6 +121,8 @@
       links: [],
     },
   ];
+  const sbvControlProtocols = [];
+  let nextSbvControlProtocolId = 1;
   const activityJournalPreferences = {};
   function activityJournalSummary() {
     const totalMinutes = activityJournalEntries.reduce((sum, entry) => sum + (entry.durationMinutes || 0), 0);
@@ -640,6 +642,7 @@
     persons,
     deadlines,
     activityJournalEntries,
+    sbvControlProtocols,
     recruitingParticipations,
     recruitingInterviews,
     participationViolations,
@@ -1171,6 +1174,25 @@
         const ics = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nSUMMARY:${summary}\r\nDESCRIPTION:Bitte Vorgang in Gremia.SBV prüfen.\r\nEND:VCALENDAR\r\n`;
         window.__GREMIA_SBV_E2E_ICAL_EXPORTS.push({ filters, privacyLevel: level, ics });
         return ics;
+      },
+    },
+    sbvControlProtocols: {
+      list: async () => cloneForIpc(sbvControlProtocols),
+      create: async (input) => {
+        const row = { id: `protocol-e2e-${nextSbvControlProtocolId++}`, title: input.title, partner: input.partner || 'employer', topic: input.topic || 'other', meetingAt: input.meetingAt || now.slice(0, 10), status: input.status || 'documented', createdAt: now, updatedAt: now, ...input };
+        sbvControlProtocols.unshift(row);
+        return cloneForIpc(row);
+      },
+      update: async (id, input) => {
+        const row = sbvControlProtocols.find((item) => item.id === id);
+        if (!row) throw new Error('Protokoll nicht gefunden.');
+        Object.assign(row, input, { updatedAt: now });
+        return cloneForIpc(row);
+      },
+      delete: async (id) => {
+        const index = sbvControlProtocols.findIndex((item) => item.id === id);
+        if (index >= 0) sbvControlProtocols.splice(index, 1);
+        return { deleted: index >= 0 };
       },
     },
     caseMeasures: { list: async () => measures, create: createRecord, update: createRecord, listNotes: async () => [], createNote: createRecord, updateNote: createRecord, deleteNote: async () => ({ deleted: true }) },

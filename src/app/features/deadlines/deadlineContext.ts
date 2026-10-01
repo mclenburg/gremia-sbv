@@ -40,7 +40,7 @@ export type DeadlineOpenTarget =
   | { kind: 'case'; target: CaseNodeTarget }
   | { kind: 'person'; personId: string }
   | { kind: 'deadline'; deadlineId: string }
-  | { kind: 'record'; view: 'recruiting_participations' | 'elections' | 'activity_journal'; recordId: string; sourceEvent?: string }
+  | { kind: 'record'; view: 'recruiting_participations' | 'elections' | 'activity_journal' | 'sbv_control'; recordId: string; sourceEvent?: string }
   | { kind: 'view'; view: ViewId };
 
 export type DeadlineContextInfo = {
@@ -72,6 +72,7 @@ function generalActionLabel(openTarget: DeadlineOpenTarget): string {
   if (openTarget.kind === 'record') {
     if (openTarget.view === 'elections') return 'Wahlvorgang öffnen';
     if (openTarget.view === 'activity_journal') return 'Journaleintrag öffnen';
+    if (openTarget.view === 'sbv_control') return 'Protokoll öffnen';
     return 'Stellenbesetzung öffnen';
   }
   if (openTarget.kind === 'deadline') return 'Frist öffnen';
@@ -106,6 +107,9 @@ export function resolveDeadlineOpenTarget(deadline: DeadlineRecord, measuresById
   }
   if (deadline.processId && deadline.processType === 'activity_journal') {
     return { kind: 'record', view: 'activity_journal', recordId: deadline.processId, sourceEvent: deadline.sourceEvent };
+  }
+  if (deadline.processId && deadline.processType === 'sbv_control_protocol') {
+    return { kind: 'record', view: 'sbv_control', recordId: deadline.processId, sourceEvent: deadline.sourceEvent };
   }
   if (deadline.processType === 'custom') {
     return { kind: 'deadline', deadlineId: deadline.id };

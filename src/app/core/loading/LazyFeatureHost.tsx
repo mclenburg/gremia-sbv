@@ -71,6 +71,8 @@ export function LazyFeatureHost({ view, cases, measures = [], persons = [], them
     deadlines: DeadlineRecord[];
     onNavigate?: (viewId: ViewId) => void;
     initialSection?: "meetings";
+    targetProtocolId?: string;
+    onTargetConsumed?: () => void;
   }>>;
   return (
     <LazyFeatureBoundary view={view} onRetry={() => { void preloadLazyFeature(view).catch(() => undefined); }}>
@@ -85,7 +87,8 @@ export function LazyFeatureHost({ view, cases, measures = [], persons = [], them
       ) : ["bem", "prevention", "participation", "termination_hearing"].includes(view) && onOpenCaseNode ? (
         <CaseNodeFeature cases={cases} onOpenCaseNode={onOpenCaseNode} />
       ) : view === "sbv_control" || view === "meetings" ? (
-        <SbvControlFeature cases={cases} deadlines={deadlines} onNavigate={onNavigate} initialSection={view === "meetings" ? "meetings" : undefined} />
+        <SbvControlFeature cases={cases} deadlines={deadlines} onNavigate={onNavigate} initialSection={view === "meetings" ? "meetings" : undefined}
+          targetProtocolId={recordTarget?.view === 'sbv_control' ? recordTarget.recordId : undefined} onTargetConsumed={onRecordTargetConsumed} />
       ) : view === "settings" ? (
         <SettingsFeature theme={theme} onThemeChange={onThemeChange} />
       ) : view === "privacy_review" && onNavigate && onOpenCaseNode ? (

@@ -24,6 +24,16 @@ import { legalToday } from '../../../domain/time/legalTime';
 export type ResourceFormState = CreateSbvResourceRecordInput;
 export type ProtocolFormState = CreateSbvControlProtocolInput;
 
+export function buildSbvControlReportHints(caseCount: number, participationCount: number, protocolCount: number, deadlineCount: number, privacyReviewCount: number) {
+  return [
+    { label: 'Fallakten im Arbeitsbestand', value: caseCount },
+    { label: 'Beteiligungsvorgänge', value: participationCount },
+    { label: 'Protokolle', value: protocolCount },
+    { label: 'offene Fristen / Wiedervorlagen', value: deadlineCount },
+    { label: 'Akten mit Datenschutzprüfung', value: privacyReviewCount },
+  ];
+}
+
 export const initialResourceForm: ResourceFormState = {
   kind: 'training',
   title: '',
