@@ -822,6 +822,7 @@ License text: LICENSES/MIT.txt
 
 @napi-rs/canvas-linux-x64-musl@1.0.8
 License: MIT
+Repository: git+https://github.com/Brooooooklyn/canvas.git
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
@@ -1000,6 +1001,8 @@ License text: LICENSES/MIT.txt
 
 @rolldown/binding-linux-x64-musl@1.2.9
 License: MIT
+Repository: git+https://github.com/rolldown/rolldown.git
+Homepage: https://rolldown.rs/
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
@@ -3522,6 +3525,15 @@ Copyright notices:
 License text: LICENSES/MIT.txt
 
 js-yaml@4.3.2
+License: MIT
+Repository: nodeca/js-yaml
+Copyright notices:
+- Copyright (C) 2011-2015 by Vitaly Puzrin
+- The above copyright notice and this permission notice shall be included in
+- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+License text: LICENSES/MIT.txt
+
+js-yaml@5.4.2
 License: MIT
 Repository: nodeca/js-yaml
 Copyright notices:
