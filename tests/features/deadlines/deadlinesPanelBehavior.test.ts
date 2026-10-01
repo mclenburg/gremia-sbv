@@ -108,6 +108,14 @@ describe('Fristenpanel Verhalten 0.9.2', () => {
     expect(resolveDeadlineOpenTarget(freeDeadline)).toEqual({ kind: 'deadline', deadlineId: 'deadline-free' });
   });
 
+  it('öffnet Journal-Wiedervorlagen beim konkreten Journaleintrag', () => {
+    const journalDeadline = deadline({ caseId: undefined, processType: 'activity_journal', processId: 'journal-1' });
+    expect(resolveDeadlineOpenTarget(journalDeadline)).toEqual({
+      kind: 'record', view: 'activity_journal', recordId: 'journal-1', sourceEvent: undefined,
+    });
+    expect(resolveDeadlineContextInfo(journalDeadline).actionLabel).toBe('Journaleintrag öffnen');
+  });
+
   it('öffnet bei Statusablauffristen die konkret betroffene Person', () => {
     const statusDeadline = deadline({
       processType: 'custom',

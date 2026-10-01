@@ -40,7 +40,7 @@ export type DeadlineOpenTarget =
   | { kind: 'case'; target: CaseNodeTarget }
   | { kind: 'person'; personId: string }
   | { kind: 'deadline'; deadlineId: string }
-  | { kind: 'record'; view: 'recruiting_participations' | 'elections'; recordId: string; sourceEvent?: string }
+  | { kind: 'record'; view: 'recruiting_participations' | 'elections' | 'activity_journal'; recordId: string; sourceEvent?: string }
   | { kind: 'view'; view: ViewId };
 
 export type DeadlineContextInfo = {
@@ -68,6 +68,17 @@ function measureContext(deadline: DeadlineRecord, measuresById: Map<string, Case
   };
 }
 
+function generalActionLabel(openTarget: DeadlineOpenTarget): string {
+  if (openTarget.kind === 'record') {
+    if (openTarget.view === 'elections') return 'Wahlvorgang öffnen';
+    if (openTarget.view === 'activity_journal') return 'Journaleintrag öffnen';
+    return 'Stellenbesetzung öffnen';
+  }
+  if (openTarget.kind === 'deadline') return 'Frist öffnen';
+  if (openTarget.kind === 'view' && openTarget.view === 'deadlines') return 'Fristenregister öffnen';
+  return 'Vorgang öffnen';
+}
+
 export function resolveDeadlineOpenTarget(deadline: DeadlineRecord, measuresById = new Map<string, CaseMeasureRecord>()): DeadlineOpenTarget {
   if ((deadline.sourceEvent === 'protected_person.status_expiry_warning' || deadline.sourceEvent === 'protected_person.status_expired_privacy_review') && (deadline.personId || deadline.processId)) {
     return { kind: 'person', personId: deadline.personId ?? deadline.processId! };
@@ -92,6 +103,9 @@ export function resolveDeadlineOpenTarget(deadline: DeadlineRecord, measuresById
   }
   if (deadline.processId && deadline.processType === 'election') {
     return { kind: 'record', view: 'elections', recordId: deadline.processId, sourceEvent: deadline.sourceEvent };
+  }
+  if (deadline.processId && deadline.processType === 'activity_journal') {
+    return { kind: 'record', view: 'activity_journal', recordId: deadline.processId, sourceEvent: deadline.sourceEvent };
   }
   if (deadline.processType === 'custom') {
     return { kind: 'deadline', deadlineId: deadline.id };
@@ -140,7 +154,7 @@ export function resolveDeadlineContextInfo(
   return {
     primary: deadline.processType === 'custom' ? 'Allgemeine SBV-Aufgabe ohne Fallbezug' : processLabel,
     secondary: typeLabel,
-    actionLabel: openTarget.kind === 'record' ? deadline.processType === 'election' ? 'Wahlvorgang öffnen' : 'Stellenbesetzung öffnen' : openTarget.kind === 'deadline' ? 'Frist öffnen' : openTarget.kind === 'view' && openTarget.view === 'deadlines' ? 'Fristenregister öffnen' : 'Vorgang öffnen',
+    actionLabel: generalActionLabel(openTarget),
     openTarget,
   };
 }
