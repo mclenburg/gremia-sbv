@@ -132,6 +132,14 @@ describe('Fristenpanel Verhalten 0.9.2', () => {
     expect(resolveDeadlineContextInfo(reviewDeadline).actionLabel).toBe('Prüfvorgang öffnen');
   });
 
+  it('öffnet Inklusionsvereinbarungs-Wiedervorlagen bei der konkreten Verhandlungsakte', () => {
+    const agreementDeadline = deadline({ caseId: undefined, processType: 'inclusion_agreement', processId: 'agreement-1', sourceEvent: 'inclusion_agreement_review' });
+    expect(resolveDeadlineOpenTarget(agreementDeadline)).toEqual({
+      kind: 'record', view: 'sbv_control', recordId: 'agreement-1', processType: 'inclusion_agreement', sourceEvent: 'inclusion_agreement_review',
+    });
+    expect(resolveDeadlineContextInfo(agreementDeadline).actionLabel).toBe('Verhandlungsakte öffnen');
+  });
+
   it('öffnet eine fallbezogene Verstoß-Wiedervorlage beim Verstoß statt in der Fallübersicht', () => {
     const violationDeadline = deadline({
       caseId: 'case-1', processType: 'sbv_participation_violation', processId: 'violation-1',

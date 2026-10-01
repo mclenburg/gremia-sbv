@@ -79,29 +79,38 @@ export function useSbvOfficeWorkflows() {
   };
 }
 
-export function useEmployerObligationTarget({ targetId, onTargetConsumed, loaded, reviews, setActiveSection, setError }: {
-  targetId?: string;
+export type SbvOfficeRecordTarget = {
+  recordId: string;
+  processType: 'employer_obligation_review' | 'inclusion_agreement';
+  sourceEvent?: string;
+};
+
+export function useSbvOfficeRecordTarget({ target, onTargetConsumed, loaded, obligations, agreements, setActiveSection, setError }: {
+  target?: SbvOfficeRecordTarget;
   onTargetConsumed?: () => void;
   loaded: boolean;
-  reviews: EmployerObligationReviewRecord[];
+  obligations: EmployerObligationReviewRecord[];
+  agreements: InclusionAgreementRecord[];
   setActiveSection: Dispatch<SetStateAction<ControlSectionId>>;
   setError: Dispatch<SetStateAction<string>>;
 }) {
-  const [selectedId, setSelectedId] = useState<string>();
+  const [selectedTarget, setSelectedTarget] = useState<SbvOfficeRecordTarget>();
   const onTargetConsumedRef = useRef(onTargetConsumed);
   useEffect(() => { onTargetConsumedRef.current = onTargetConsumed; }, [onTargetConsumed]);
   useEffect(() => {
-    if (!targetId) return;
-    setActiveSection('obligations');
+    if (!target) return;
+    const isObligation = target.processType === 'employer_obligation_review';
+    setActiveSection(isObligation ? 'obligations' : 'inclusion');
     if (!loaded) return;
-    if (reviews.some((review) => review.id === targetId)) {
-      setSelectedId(targetId);
+    const records = isObligation ? obligations : agreements;
+    if (records.some((record) => record.id === target.recordId)) {
+      setSelectedTarget(target);
       setError('');
     } else {
-      setSelectedId(undefined);
-      setError('Der verknüpfte Prüfvorgang ist nicht mehr vorhanden. Prüfen Sie die Wiedervorlage im Fristenregister.');
+      setSelectedTarget(undefined);
+      setError(`${isObligation ? 'Der verknüpfte Prüfvorgang' : 'Die verknüpfte Verhandlungsakte'} ist nicht mehr vorhanden. Prüfen Sie die Wiedervorlage im Fristenregister.`);
     }
     onTargetConsumedRef.current?.();
-  }, [loaded, reviews, setActiveSection, setError, targetId]);
-  return selectedId;
+  }, [agreements, loaded, obligations, setActiveSection, setError, target]);
+  return selectedTarget;
 }

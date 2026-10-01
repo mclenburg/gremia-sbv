@@ -1,12 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { IndustrialButton } from '../../../shared/components/IndustrialButton';
 import { DateInput, SelectInput, TextareaInput, TextInput } from '../../../shared/components/IndustrialForm';
 import { IndustrialHelpButton } from '../../../shared/help/IndustrialHelp';
 import { INCLUSION_AGREEMENT_TOPIC_LABELS, type InclusionAgreementRecord, type InclusionAgreementTopicRecord, type SaveInclusionAgreementInput, type SaveInclusionAgreementTopicInput } from '../../../../domain/models/sbv-office-workflow.model';
 import { SbvControlPanel } from './SbvControlPanel';
 
-export function InclusionAgreementWorkspace({ records, onSave, onSaveTopic, onRequestDraft, onResponseDeadline }: {
+export function InclusionAgreementWorkspace({ records, selectedAgreementId, targetSourceEvent, onSave, onSaveTopic, onRequestDraft, onResponseDeadline }: {
   records: InclusionAgreementRecord[];
+  selectedAgreementId?: string;
+  targetSourceEvent?: string;
   onSave: (input: SaveInclusionAgreementInput) => Promise<void>;
   onSaveTopic: (agreementId: string, input: SaveInclusionAgreementTopicInput) => Promise<void>;
   onRequestDraft: (dueAt?: string) => Promise<{ text: string; responseDueAt?: string }>;
@@ -25,6 +27,18 @@ export function InclusionAgreementWorkspace({ records, onSave, onSaveTopic, onRe
   const [resultText, setResultText] = useState('');
   const current = records.find((record) => record.id === selected);
   const topic = current?.topics.find((item) => item.id === topicId);
+  const startHeadingRef = useRef<HTMLHeadingElement>(null);
+  const negotiationHeadingRef = useRef<HTMLHeadingElement>(null);
+  const followUpHeadingRef = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => {
+    if (!selectedAgreementId || !records.some((record) => record.id === selectedAgreementId)) return;
+    setSelected(selectedAgreementId);
+    setTopicId('');
+    const heading = targetSourceEvent === 'inclusion_agreement_review' ? followUpHeadingRef :
+      targetSourceEvent === 'inclusion_agreement_negotiation_request' ? startHeadingRef : negotiationHeadingRef;
+    requestAnimationFrame(() => heading.current?.focus());
+  }, [records, selectedAgreementId, targetSourceEvent]);
 
   useEffect(() => {
     setCurrentState(topic?.currentState ?? '');
@@ -43,7 +57,7 @@ export function InclusionAgreementWorkspace({ records, onSave, onSaveTopic, onRe
       <section className="sbv-control-section" aria-labelledby="inclusion-start-heading">
         <div className="sbv-control-section-heading-with-actions">
           <div>
-            <h3 id="inclusion-start-heading">Verhandlung anstoßen</h3>
+            <h3 id="inclusion-start-heading" ref={startHeadingRef} tabIndex={-1}>Verhandlung anstoßen</h3>
             <p>Verhandlungsakte anlegen, Anforderung vorbereiten und Antwortfrist nachhalten.</p>
           </div>
           <div className="industrial-action-row"><IndustrialButton onClick={() => void onSave({ title, status: 'negotiation_requested', requestedAt: new Date().toISOString() })}>Verhandlungsakte anlegen</IndustrialButton></div>
@@ -64,7 +78,7 @@ export function InclusionAgreementWorkspace({ records, onSave, onSaveTopic, onRe
       <section className="sbv-control-section" aria-labelledby="inclusion-negotiation-heading">
         <div className="sbv-control-section-heading-with-actions">
           <div>
-            <h3 id="inclusion-negotiation-heading">Verhandlungsakte bearbeiten</h3>
+            <h3 id="inclusion-negotiation-heading" ref={negotiationHeadingRef} tabIndex={-1}>Verhandlungsakte bearbeiten</h3>
             <p>Themenfelder und Positionen getrennt dokumentieren; die App trifft keine rechtliche oder taktische Entscheidung.</p>
           </div>
           {current ? <div className="industrial-action-row">
@@ -86,7 +100,7 @@ export function InclusionAgreementWorkspace({ records, onSave, onSaveTopic, onRe
       <section className="sbv-control-section" aria-labelledby="inclusion-followup-heading">
         <div className="sbv-control-section-heading-with-actions">
           <div>
-            <h3 id="inclusion-followup-heading">Evaluation und Übermittlung</h3>
+            <h3 id="inclusion-followup-heading" ref={followUpHeadingRef} tabIndex={-1}>Evaluation und Übermittlung</h3>
             <p>Evaluation terminieren und den Versand nach Abschluss dokumentieren.</p>
           </div>
           {current?.signedAt ? <div className="industrial-action-row">

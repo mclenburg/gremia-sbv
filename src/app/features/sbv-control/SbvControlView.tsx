@@ -18,7 +18,7 @@ import { SbvOfficeSections } from './components/SbvOfficeSections';
 import { ProtocolSection } from './components/ProtocolSection';
 import { useSbvResources } from './hooks/useSbvResources';
 import { useSbvControlProtocols, useSbvControlProtocolTarget } from './hooks/useSbvControlProtocols';
-import { useSbvOfficeWorkflows, useEmployerObligationTarget } from './hooks/useSbvOfficeWorkflows';
+import { useSbvOfficeWorkflows, useSbvOfficeRecordTarget, type SbvOfficeRecordTarget } from './hooks/useSbvOfficeWorkflows';
 import {
   countCriticalParticipation,
   buildSbvControlReportHints,
@@ -32,7 +32,7 @@ type SbvControlViewProps = {
   onNavigate?: (viewId: ViewId) => void;
   initialSection?: ControlSectionId;
   targetProtocolId?: string;
-  targetObligationId?: string;
+  targetOffice?: SbvOfficeRecordTarget;
   onTargetConsumed?: () => void;
 };
 
@@ -42,7 +42,7 @@ export function SbvControlView({
   onNavigate,
   initialSection = 'resources',
   targetProtocolId,
-  targetObligationId,
+  targetOffice,
   onTargetConsumed,
 }: SbvControlViewProps) {
   const [participations, setParticipations] = useState<ParticipationRecord[]>([]);
@@ -57,7 +57,7 @@ export function SbvControlView({
   const { loadProtocols } = protocolsState;
   const { load: loadOfficeWorkflows } = officeState;
   useSbvControlProtocolTarget({ targetProtocolId, onTargetConsumed, protocolsLoaded, protocolsState, setActiveSection, setError });
-  const selectedObligationId = useEmployerObligationTarget({ targetId: targetObligationId, onTargetConsumed, loaded: officeState.loaded, reviews: officeState.obligations, setActiveSection, setError });
+  const selectedOfficeTarget = useSbvOfficeRecordTarget({ target: targetOffice, onTargetConsumed, loaded: officeState.loaded, obligations: officeState.obligations, agreements: officeState.agreements, setActiveSection, setError });
 
   useEffect(() => {
     let active = true;
@@ -169,7 +169,7 @@ export function SbvControlView({
         {activeSection === 'participation' && (
           <ParticipationPanel participations={participations} onNavigate={onNavigate} />
         )}
-        <SbvOfficeSections activeSection={activeSection} cases={cases} state={officeState} onNotice={setNotice} selectedObligationId={selectedObligationId} />
+        <SbvOfficeSections activeSection={activeSection} cases={cases} state={officeState} onNotice={setNotice} selectedOfficeTarget={selectedOfficeTarget} />
         {activeSection === 'reports' && (
           <ReportsPanel reportHints={reportHints} onNavigate={onNavigate} />
         )}
