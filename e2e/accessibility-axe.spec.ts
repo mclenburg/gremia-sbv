@@ -117,3 +117,23 @@ test.describe('P15m Axe accessibility scan', () => {
     await expectNoSeriousAxeViolations(page, 'inline-command-help-dialog');
   });
 });
+
+test('Gremia.BR-Arbeitsbereiche: keine schwerwiegenden Axe-Verstöße', async ({ page }) => {
+  test.setTimeout(60_000);
+  await mainNavigation(page).getByRole('button', { name: /Einstellungen/i }).click();
+  await page.getByRole('tab', { name: /Gremia\.BR/i }).click();
+  const settings = page.getByRole('tabpanel', { name: /Gremia\.BR/i });
+  await settings.getByLabel(/Gremia\.BR-Anbindung aktivieren/i).check();
+  await settings.getByLabel(/Serveradresse/i).fill('https://br.example.local');
+  await settings.getByLabel(/Benutzerkonto/i).fill('sbv@example.local');
+  await settings.getByLabel(/Passwort/i).fill('streng-geheim');
+  await settings.getByRole('button', { name: 'SBV-Gremien aus Gremia.BR laden' }).click();
+  await settings.getByRole('list', { name: 'Berechtigte SBV-Gremien aus Gremia.BR' }).getByRole('button', { name: 'Auswählen' }).click();
+  await settings.getByRole('button', { name: /Einstellungen speichern/i }).click();
+  await mainNavigation(page).getByRole('button', { name: 'Gremia.BR', exact: true }).click();
+
+  for (const section of ['Übersicht', 'Sitzungen', 'Verfahren', 'Dokumente']) {
+    await page.getByRole('tab', { name: section, exact: true }).click();
+    await expectNoSeriousAxeViolations(page, `Gremia.BR/${section}`);
+  }
+});

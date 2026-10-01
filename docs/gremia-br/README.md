@@ -9,6 +9,7 @@ Diese Datei beschreibt die Implementierung der Gremia.BR-Anbindung für Entwickl
 - `GremiaBrApiCatalog` und `GremiaBrPolicy` begrenzen die erlaubten Endpunkte. Der HTTP-Client startet einen Request nur, wenn der lokale Audit-Startsatz geschrieben werden konnte.
 - Jeder Request erhält einen Audit-Start- und Ergebnissatz mit Endpunkt-Template, Ergebnis, Status, Dauer und Korrelations-ID. Suchbegriffe, konkrete Remote-IDs, Antworttexte und Zugangsdaten gehören nicht ins Audit.
 - `GremiaBrCacheService` ersetzt den flüchtigen Arbeitsstand erst nach einem vollständigen Gesamtabruf. Dieser wird manuell ausgelöst oder bei ausdrücklich aktiviertem Opt-in genau einmal nach dem ersten Tresor-Unlock des Programmstarts. Ein fehlgeschlagener Abruf lässt den bisherigen Stand bestehen. Der Zeitstempel der letzten erfolgreichen Aktualisierung bleibt sichtbar.
+- Der Renderer gliedert den Arbeitsbereich in Übersicht, Sitzungen, Verfahren und Dokumente. Der zentrale Refresh steht vor der Tab-Navigation; Tabwechsel lesen nur den vorhandenen lokalen Arbeitsstand. Flüchtige Sitzungs- und Dokumentdetails werden beim Verlassen der jeweiligen Ansicht verworfen.
 - Beim Sperren, beim Zurücksetzen der Verbindung und beim Beenden werden Remote-Arbeitsstand und Authentifizierung verworfen. Remote-Objekte werden nicht als lokale Fachdatensätze dupliziert, sofern die SBV keine ausdrückliche lokale Übernahme auslöst.
 
 ## Lesende Arbeitsabläufe

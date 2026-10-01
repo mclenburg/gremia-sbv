@@ -56,6 +56,7 @@ test('legt einen Remote-Fall erst nach Vorschau und ausdrücklicher Bestätigung
   await settings.getByRole('list', { name: 'Berechtigte SBV-Gremien aus Gremia.BR' }).getByRole('button', { name: 'Auswählen' }).click();
   await settings.getByRole('button', { name: /Einstellungen speichern/i }).click();
   await mainNavigation(page).getByRole('button', { name: 'Gremia.BR', exact: true }).click();
+  await page.getByRole('tab', { name: 'Verfahren', exact: true }).click();
 
   const panel = page.getByRole('region', { name: 'Gremia.BR-Fallanlage' });
   await panel.getByLabel('Lokale Fallakte').fill('TEST-0001 · Testperson Alpha');
@@ -84,6 +85,7 @@ test('ändert die Schutzklasse eigener Dokumente erst nach Vorschau', async ({ p
   await settings.getByRole('list', { name: 'Berechtigte SBV-Gremien aus Gremia.BR' }).getByRole('button', { name: 'Auswählen' }).click();
   await settings.getByRole('button', { name: /Einstellungen speichern/i }).click();
   await mainNavigation(page).getByRole('button', { name: 'Gremia.BR', exact: true }).click();
+  await page.getByRole('tab', { name: 'Dokumente', exact: true }).click();
 
   const panel = page.getByRole('region', { name: 'Eigene Gremia.BR-Dokumentfreigaben' });
   await panel.getByLabel('Selbst übertragenes Dokument').fill('Eigene Stellungnahme');
@@ -137,11 +139,18 @@ test('lädt Sitzungsdaten nur bewusst und entfernt sie beim Refresh', async ({ p
   await settings.getByRole('list', { name: 'Berechtigte SBV-Gremien aus Gremia.BR' }).getByRole('button', { name: 'Auswählen' }).click();
   await settings.getByRole('button', { name: /Einstellungen speichern/i }).click();
   await mainNavigation(page).getByRole('button', { name: 'Gremia.BR', exact: true }).click();
+  const overviewTab = page.getByRole('tab', { name: 'Übersicht', exact: true });
+  await expect(overviewTab).toHaveAttribute('aria-selected', 'true');
+  await overviewTab.focus();
+  await overviewTab.press('ArrowRight');
+  await expect(page.getByRole('tab', { name: 'Sitzungen', exact: true })).toHaveAttribute('aria-selected', 'true');
+  expect(await page.evaluate(() => (window as Window & { __GREMIA_BR_READ_REFRESHES: () => number }).__GREMIA_BR_READ_REFRESHES())).toBe(0);
 
   const meeting = page.getByRole('region', { name: 'Tagesordnung und Remote-Zugang' });
   await expect(meeting).toBeVisible();
   await expect(meeting).not.toContainText('PIN: 123456');
   await page.getByRole('button', { name: 'Gremia.BR aktualisieren' }).click();
+  expect(await page.evaluate(() => (window as Window & { __GREMIA_BR_READ_REFRESHES: () => number }).__GREMIA_BR_READ_REFRESHES())).toBe(1);
   await expect(meeting).toHaveCount(1);
   await meeting.getByLabel('Sitzung suchen und auswählen').fill('2026-05-29T09:00:00.000Z · BR-Sitzung Mai');
   expect(await page.evaluate(() => (window as Window & { __GREMIA_BR_MEETING_MINUTES_REQUESTS: () => number }).__GREMIA_BR_MEETING_MINUTES_REQUESTS())).toBe(0);
@@ -177,6 +186,7 @@ test('sucht Remote-Dokumente bewusst und zeigt Metadaten erst nach Detailaktion'
   await settings.getByRole('list', { name: 'Berechtigte SBV-Gremien aus Gremia.BR' }).getByRole('button', { name: 'Auswählen' }).click();
   await settings.getByRole('button', { name: /Einstellungen speichern/i }).click();
   await mainNavigation(page).getByRole('button', { name: 'Gremia.BR', exact: true }).click();
+  await page.getByRole('tab', { name: 'Dokumente', exact: true }).click();
 
   const documents = page.getByRole('region', { name: 'Gremia.BR-Dokumente' });
   await expect(documents).not.toContainText('Stellungnahme');

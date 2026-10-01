@@ -490,6 +490,8 @@
   window.__GREMIA_BR_CASE_CREATIONS = () => remoteCaseCreations;
   let startupRefreshes = 0;
   window.__GREMIA_BR_STARTUP_REFRESHES = () => startupRefreshes;
+  let readRefreshes = 0;
+  window.__GREMIA_BR_READ_REFRESHES = () => readRefreshes;
   const gremiaBrSampleCache = () => ({
     accessibleCases: [], ownTasks: [], ownAccessApprovals: [],
     nextMeeting: { id: 'br-meeting-2026-05-29', bodyId: 'sbv-body-e2e', title: 'BR-Sitzung Mai', date: '2026-05-29T09:00:00.000Z', mode: 'HYBRID', hasRemoteAccess: true },
@@ -972,6 +974,7 @@
       getCachedOverview: async () => ({ ...gremiaBrCache }),
       getDashboardOverview: async () => gremiaBrDashboardOverview(),
       refreshCache: async () => {
+        readRefreshes += 1;
         if (!gremiaBrSettings.enabled) {
           return { status: 'disabled', message: 'Die Gremia.BR-Anbindung ist deaktiviert.', checkedAt: now, refreshedKeys: [], cached: gremiaBrDashboardOverview() };
         }

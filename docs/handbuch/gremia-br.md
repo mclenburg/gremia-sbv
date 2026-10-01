@@ -6,7 +6,7 @@ Gremia.SBV verbindet sich standardmäßig nur auf deine ausdrückliche Aktion mi
 
 Aktiviere die Anbindung unter **Einstellungen → Gremia.BR**, trage Serveradresse und Anmeldedaten ein und wähle dein berechtigtes SBV-Gremium aus der geladenen Liste. Danach erscheint der Bereich **Gremia.BR** in der Hauptnavigation.
 
-Mit **Gremia.BR aktualisieren** holst du den aktuellen Arbeitsstand bewusst ab. Der Zeitpunkt des letzten erfolgreichen Abrufs steht dabei. Bis zur nächsten Aktualisierung kann die Anzeige veraltet sein. Ein fehlgeschlagener Abruf ersetzt den bisherigen Stand nicht teilweise.
+Mit **Gremia.BR aktualisieren** holst du den aktuellen Arbeitsstand bewusst ab. Der Zeitpunkt des letzten erfolgreichen Abrufs steht dabei. Bis zur nächsten Aktualisierung kann die Anzeige veraltet sein. Ein fehlgeschlagener Abruf ersetzt den bisherigen Stand nicht teilweise. Die Aktion bleibt über den Ansichten **Übersicht**, **Sitzungen**, **Verfahren** und **Dokumente** erreichbar. Ein Wechsel zwischen diesen Ansichten ruft Gremia.BR nicht ab.
 
 Optional kannst du in denselben Einstellungen **Gremia.BR nach dem Entsperren beim Programmstart automatisch aktualisieren** aktivieren. Standardmäßig ist dies ausgeschaltet. Ist es aktiviert, läuft nach dem ersten Entsperren genau ein Gesamtabruf; Erfolg oder Fehler wird im Arbeitsbereich angezeigt. Weitere Abrufe bleiben manuell, und es gibt kein Polling.
 
