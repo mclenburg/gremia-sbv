@@ -40,6 +40,7 @@ describe('Gremia.BR-Verfahrensverknüpfung', () => {
       onTaskDescriptionChange={noop}
       onTaskDueDateChange={noop}
       onCreateTask={noop}
+      onOpenTask={noop}
       onLink={noop}
       onUnlink={noop}
     />);
@@ -63,7 +64,7 @@ describe('Gremia.BR-Verfahrensverknüpfung', () => {
     };
     const html = renderToStaticMarkup(<GremiaBrProcedureLinksPanel
       cases={[]}
-      overview={{ ...EMPTY_GREMIA_BR_DASHBOARD, lastFetchedAt: '2026-09-29T10:00:00.000Z', accessibleCases: [{ id: 'remote-1', reference: 'BR-2026-17', subject: 'Arbeitsplatzgestaltung', procedureIds: ['procedure-1'] }] }}
+      overview={{ ...EMPTY_GREMIA_BR_DASHBOARD, lastFetchedAt: '2026-09-29T10:00:00.000Z', accessibleCases: [{ id: 'remote-1', reference: 'BR-2026-17', subject: 'Arbeitsplatzgestaltung', procedureIds: ['procedure-1'] }], ownTasks: [{ id: 'task-1', title: 'Stellungnahme abgeben', status: 'OPEN', subjectType: 'PROCEDURE', subjectId: 'procedure-1' }] }}
       localCaseId="local-1"
       remoteCaseId="remote-1"
       procedureId="procedure-1"
@@ -93,6 +94,7 @@ describe('Gremia.BR-Verfahrensverknüpfung', () => {
       onTaskDescriptionChange={noop}
       onTaskDueDateChange={noop}
       onCreateTask={noop}
+      onOpenTask={noop}
       onLink={noop}
       onUnlink={noop}
     />);
@@ -112,5 +114,6 @@ describe('Gremia.BR-Verfahrensverknüpfung', () => {
     expect(html).toContain('Informationsanforderung erstellen');
     expect(html).toContain('Informationsanforderung 1 als erfüllt abschließen');
     expect(html).toContain('Eigene Aufgabe in Gremia.BR anlegen');
+    expect(html).toContain('Stellungnahme abgeben');
   });
 });

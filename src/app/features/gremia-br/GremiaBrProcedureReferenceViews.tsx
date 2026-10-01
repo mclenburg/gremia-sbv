@@ -1,6 +1,7 @@
-import type { GremiaBrExternalReferenceRecord, GremiaBrProcedureDetail } from '../../../domain/models/gremia-br.model';
+import type { GremiaBrExternalReferenceRecord, GremiaBrOwnTask, GremiaBrProcedureDetail } from '../../../domain/models/gremia-br.model';
 import { ToolbarButton } from '../../shared/components/IndustrialButton';
 import { DataTable, EmptyState } from '../../shared/components/WorkbenchLayout';
+import { GREMIA_BR_TASK_STATUS_LABELS } from './gremiaBrTaskPresentation';
 
 const STATE_LABELS: Record<string, string> = {
   RECEIVED: 'Eingegangen', UNDER_REVIEW: 'In Prüfung', INFORMATION_REQUESTED: 'Information angefordert',
@@ -56,5 +57,32 @@ export function GremiaBrProcedureLinksTable({ links, busy, onUnlink }: {
       }))}
       empty={<EmptyState title="Keine Verknüpfung" text="Für diese Fallakte ist noch kein Gremia.BR-Verfahren verknüpft." />}
     />
+  );
+}
+
+export function GremiaBrProcedureOwnTasks({ procedureId, tasks, onOpenTask }: {
+  procedureId: string;
+  tasks: GremiaBrOwnTask[];
+  onOpenTask: (id: string) => void;
+}) {
+  const relatedTasks = tasks.filter((task) => task.subjectType === 'PROCEDURE' && task.subjectId === procedureId);
+  return (
+    <div className="industrial-form-section">
+      <h3>Eigene offene Aufgaben</h3>
+      <DataTable
+        ariaLabel="Eigene offene Aufgaben dieses Verfahrens"
+        headers={['Aufgabe', 'Status', 'Fälligkeit', 'Aktion']}
+        rows={relatedTasks.map((task) => ({
+          id: task.id,
+          cells: [
+            task.title,
+            GREMIA_BR_TASK_STATUS_LABELS[task.status],
+            task.dueAt ? new Date(task.dueAt).toLocaleString('de-DE') : 'Keine Fälligkeit',
+            <ToolbarButton key={task.id} onClick={() => onOpenTask(task.id)} aria-label={`Details zu ${task.title}`}>Details</ToolbarButton>,
+          ],
+        }))}
+        empty={<EmptyState title="Keine eigenen offenen Aufgaben" text="Im letzten Gremia.BR-Arbeitsstand sind diesem Verfahren keine eigenen offenen Aufgaben zugeordnet." />}
+      />
+    </div>
   );
 }

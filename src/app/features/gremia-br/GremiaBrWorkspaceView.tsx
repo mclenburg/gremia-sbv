@@ -82,6 +82,7 @@ export function GremiaBrWorkspaceView() {
           onTaskDescriptionChange={workspace.setTaskDescription}
           onTaskDueDateChange={workspace.setTaskDueDate}
           onCreateTask={() => void workspace.createSelectedProcedureTask()}
+          onOpenTask={(id) => void workspace.openTaskDetail(id)}
           onLink={() => void workspace.linkSelectedProcedure()}
           onUnlink={(id) => void workspace.unlinkProcedure(id)}
         />

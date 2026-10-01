@@ -44,7 +44,7 @@ Mit **Klassifizierung abrufen** liest du für ein eigenes übertragenes Dokument
 
 ## Verknüpfte Verfahren
 
-Wähle eine lokale Fallakte und einen für dich zugänglichen Gremia.BR-Sachverhalt aus. Nach dem Verbinden kannst du Verfahrensdetails und Informationsanforderungen jeweils bewusst laden. Eine neue Informationsanforderung oder eigene Aufgabe legst du im ausgewählten Verfahren an. Diese Vorgänge bleiben in Gremia.BR; eine neue Aufgabe erscheint im allgemeinen Arbeitsstand erst nach dem nächsten Klick auf **Gremia.BR aktualisieren**.
+Wähle eine lokale Fallakte und einen für dich zugänglichen Gremia.BR-Sachverhalt aus. Nach dem Verbinden kannst du Verfahrensdetails und Informationsanforderungen jeweils bewusst laden. Eigene offene Aufgaben zum Verfahren erscheinen dort aus dem letzten Gremia.BR-Arbeitsstand; **Details** lädt zusätzliche Angaben erst auf deinen Klick. Eine neue Informationsanforderung oder eigene Aufgabe legst du im ausgewählten Verfahren an. Diese Vorgänge bleiben in Gremia.BR; eine neue Aufgabe erscheint im allgemeinen Arbeitsstand erst nach dem nächsten Klick auf **Gremia.BR aktualisieren**.
 
 ## Dokumente und Tagesordnungspunkte
 

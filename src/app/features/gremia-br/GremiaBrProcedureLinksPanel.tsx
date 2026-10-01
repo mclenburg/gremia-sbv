@@ -5,7 +5,7 @@ import { IndustrialPanel } from '../../shared/components/WorkbenchPanels';
 import { GremiaBrInformationRequestComposer } from './GremiaBrInformationRequestComposer';
 import { GremiaBrInformationRequestsTable } from './GremiaBrInformationRequestsTable';
 import { GremiaBrProcedureTaskComposer } from './GremiaBrProcedureTaskComposer';
-import { GremiaBrProcedureLinksTable, GremiaBrProcedureSummary } from './GremiaBrProcedureReferenceViews';
+import { GremiaBrProcedureLinksTable, GremiaBrProcedureOwnTasks, GremiaBrProcedureSummary } from './GremiaBrProcedureReferenceViews';
 import { GremiaBrProcedureSelection } from './GremiaBrProcedureSelection';
 
 export function GremiaBrProcedureLinksPanel({
@@ -16,6 +16,7 @@ export function GremiaBrProcedureLinksPanel({
   onRequestItemsChange, onRequestReasonChange, onResponseDueDateChange, onLink, onUnlink,
   onCompleteInformationRequest,
   onTaskTitleChange, onTaskDescriptionChange, onTaskDueDateChange, onCreateTask,
+  onOpenTask,
 }: {
   cases: CaseRecord[];
   overview: GremiaBrDashboardOverview;
@@ -48,6 +49,7 @@ export function GremiaBrProcedureLinksPanel({
   onTaskDescriptionChange: (value: string) => void;
   onTaskDueDateChange: (value: string) => void;
   onCreateTask: () => void;
+  onOpenTask: (id: string) => void;
   onLink: () => void;
   onUnlink: (id: string) => void;
 }) {
@@ -94,30 +96,31 @@ export function GremiaBrProcedureLinksPanel({
         <GremiaBrInformationRequestsTable requests={informationRequests} busy={busy || disabled} onComplete={onCompleteInformationRequest} />
       ) : null}
       {validDetail && alreadyLinked ? (
-        <GremiaBrInformationRequestComposer
-          items={requestItems}
-          reason={requestReason}
-          dueDate={responseDueDate}
-          busy={busy}
-          disabled={disabled}
-          onItemsChange={onRequestItemsChange}
-          onReasonChange={onRequestReasonChange}
-          onDueDateChange={onResponseDueDateChange}
-          onCreate={onCreateInformationRequest}
-        />
-      ) : null}
-      {validDetail && alreadyLinked ? (
-        <GremiaBrProcedureTaskComposer
-          title={taskTitle}
-          description={taskDescription}
-          dueDate={taskDueDate}
-          busy={busy}
-          disabled={disabled}
-          onTitleChange={onTaskTitleChange}
-          onDescriptionChange={onTaskDescriptionChange}
-          onDueDateChange={onTaskDueDateChange}
-          onCreate={onCreateTask}
-        />
+        <>
+          <GremiaBrInformationRequestComposer
+            items={requestItems}
+            reason={requestReason}
+            dueDate={responseDueDate}
+            busy={busy}
+            disabled={disabled}
+            onItemsChange={onRequestItemsChange}
+            onReasonChange={onRequestReasonChange}
+            onDueDateChange={onResponseDueDateChange}
+            onCreate={onCreateInformationRequest}
+          />
+          <GremiaBrProcedureOwnTasks procedureId={procedureId} tasks={overview.ownTasks} onOpenTask={onOpenTask} />
+          <GremiaBrProcedureTaskComposer
+            title={taskTitle}
+            description={taskDescription}
+            dueDate={taskDueDate}
+            busy={busy}
+            disabled={disabled}
+            onTitleChange={onTaskTitleChange}
+            onDescriptionChange={onTaskDescriptionChange}
+            onDueDateChange={onTaskDueDateChange}
+            onCreate={onCreateTask}
+          />
+        </>
       ) : null}
       {localCaseId ? (
         <GremiaBrProcedureLinksTable links={procedureLinks} busy={!canInteract} onUnlink={onUnlink} />

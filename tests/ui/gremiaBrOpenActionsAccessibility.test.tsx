@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { GremiaBrAccessApprovalsPanel, GremiaBrOpenActionsPanel, GremiaBrReadContextPanel } from '../../src/app/features/gremia-br/GremiaBrWorkspacePanels';
 import { GremiaBrTaskDetailDialog } from '../../src/app/features/gremia-br/GremiaBrTaskDetailDialog';
+import { GremiaBrProcedureOwnTasks } from '../../src/app/features/gremia-br/GremiaBrProcedureReferenceViews';
 import { EMPTY_GREMIA_BR_DASHBOARD } from '../../src/app/features/gremia-br/gremiaBrWorkspaceModel';
 
 describe('Gremia.BR Offene Aktionen', () => {
@@ -123,5 +124,24 @@ describe('Gremia.BR Offene Aktionen', () => {
     expect(html).toContain('Letzter erfolgreicher Abruf');
     expect(html).toContain('möglicherweise veraltet');
     expect(html).toContain('dateTime="2026-10-01T10:00:00.000Z"');
+  });
+
+  it('zeigt im Verfahren nur eigene offene Aufgaben mit passendem Verfahrensbezug', () => {
+    const html = renderToStaticMarkup(<GremiaBrProcedureOwnTasks
+      procedureId="procedure-1"
+      tasks={[
+        { id: 'own-task', title: 'Stellungnahme abschließen', status: 'OPEN', subjectType: 'PROCEDURE', subjectId: 'procedure-1' },
+        { id: 'other-procedure', title: 'Anderes Verfahren', status: 'OPEN', subjectType: 'PROCEDURE', subjectId: 'procedure-2' },
+        { id: 'meeting-task', title: 'Sitzungsaufgabe', status: 'OPEN', subjectType: 'MEETING', subjectId: 'procedure-1' },
+      ]}
+      onOpenTask={() => undefined}
+    />);
+
+    expect(html).toContain('aria-label="Eigene offene Aufgaben dieses Verfahrens"');
+    expect(html).toContain('Stellungnahme abschließen');
+    expect(html).toContain('aria-label="Details zu Stellungnahme abschließen"');
+    expect(html).not.toContain('Anderes Verfahren');
+    expect(html).not.toContain('Sitzungsaufgabe');
+    expect(html).not.toContain('own-task');
   });
 });
