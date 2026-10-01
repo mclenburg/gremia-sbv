@@ -6,6 +6,7 @@ import { FormSection } from '../../shared/components/IndustrialForm';
 import { ModuleFeedback } from '../../shared/components/ModuleFeedback';
 import { DataTable, EmptyState, WorkbenchPage, WorkbenchSummary } from '../../shared/components/WorkbenchLayout';
 import { useSbvParticipationViolations } from './hooks/useSbvParticipationViolations';
+import { useParticipationViolationTarget } from './hooks/useParticipationViolationTarget';
 import type { ViolationDraftContextInput } from './hooks/useViolationDraftContext';
 import type { CaseNodeTarget } from '../../core/navigation/caseNodeTarget';
 import { IndustrialModal } from '../../shared/dialogs/IndustrialDialogs';
@@ -83,6 +84,32 @@ function ParticipationViolationRowActions({
   );
 }
 
+function ParticipationViolationDetailDialog({ item, state, onOpenCaseNode, onOpenJournalPrefill, onClose }: {
+  item: SbvParticipationViolationRecord;
+  state: ReturnType<typeof useSbvParticipationViolations>;
+  onOpenCaseNode?: (target: CaseNodeTarget) => void;
+  onOpenJournalPrefill?: (prefill: ActivityJournalPrefill) => void;
+  onClose: () => void;
+}) {
+  return <IndustrialModal title={item.subject} kicker="Beteiligungsverstoß" onClose={onClose}
+    actions={<ToolbarButton onClick={onClose}>Schließen</ToolbarButton>} wide>
+    <dl className="industrial-meta-grid">
+      <div><dt>Stufe</dt><dd>{stageLabels[item.stage]}</dd></div>
+      <div><dt>Verstoßart</dt><dd>{violationTypeLabels[item.violationType]}</dd></div>
+      <div><dt>Status</dt><dd>{statusLabels[item.status]}</dd></div>
+      <div><dt>Maßnahme / Sachverhalt</dt><dd>{item.measureDescription}</dd></div>
+      <div><dt>Was war falsch?</dt><dd>{item.wrongBehavior}</dd></div>
+      <div><dt>Erforderliches Verhalten</dt><dd>{item.requiredBehavior}</dd></div>
+      <div><dt>Rechtsgrundlage</dt><dd>{item.legalBasis}</dd></div>
+      {item.followUpDueAt ? <div><dt>Wiedervorlage</dt><dd>{new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium' }).format(new Date(item.followUpDueAt))}</dd></div> : null}
+    </dl>
+    <ParticipationViolationRowActions item={item} busy={state.busy} documentBusyId={state.documentBusyId}
+      followUpBusyId={state.followUpBusyId} canOpenJournal={Boolean(onOpenJournalPrefill)}
+      onChangeStatus={state.changeStatus} onGenerateDocument={state.generateDocument}
+      onCreateFollowUp={state.createFollowUp} onOpenJournalPrefill={state.openJournalPrefill} onOpenCaseNode={onOpenCaseNode} />
+  </IndustrialModal>;
+}
+
 export function SbvParticipationViolationsView({
   cases,
   measures,
@@ -90,15 +117,21 @@ export function SbvParticipationViolationsView({
   onPrefillConsumed,
   onOpenJournalPrefill,
   onOpenCaseNode,
+  targetId,
+  onTargetConsumed,
 }: ViolationDraftContextInput & {
   pendingPrefill?: SbvParticipationViolationPrefill | null;
   onPrefillConsumed?: () => void;
   onOpenJournalPrefill?: (prefill: ActivityJournalPrefill) => void;
   onOpenCaseNode?: (target: CaseNodeTarget) => void;
+  targetId?: string;
+  onTargetConsumed?: () => void;
 }) {
   const [createOpen, setCreateOpen] = useState(Boolean(pendingPrefill));
   const state = useSbvParticipationViolations({ cases, measures, pendingPrefill, onPrefillConsumed, onOpenJournalPrefill });
   const { loadInitial } = state;
+  const { targetItem, setTargetItem, targetError, targetLoading } = useParticipationViolationTarget(targetId, onTargetConsumed);
+  const detailItem = targetItem ? state.items.find((item) => item.id === targetItem.id) ?? targetItem : null;
 
   useEffect(() => {
     void loadInitial();
@@ -140,7 +173,12 @@ export function SbvParticipationViolationsView({
       <ModuleFeedback items={[
         state.message ? { id: 'participation-violation-message', tone: 'success', message: state.message } : null,
         state.error ? { id: 'participation-violation-error', tone: 'warning', message: state.error } : null,
+        targetError ? { id: 'participation-violation-target-error', tone: 'warning', message: targetError } : null,
       ]} />
+
+      {targetLoading ? <p role="status">Beteiligungsverstoß wird geladen.</p> : null}
+      {detailItem ? <ParticipationViolationDetailDialog item={detailItem} state={state} onOpenCaseNode={onOpenCaseNode}
+        onOpenJournalPrefill={onOpenJournalPrefill} onClose={() => setTargetItem(null)} /> : null}
 
       <WorkbenchSummary items={state.summaryItems} />
 

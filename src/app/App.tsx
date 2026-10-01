@@ -293,6 +293,7 @@ function PrimaryViews(props: PrimaryViewsProps & { openCaseNode: (target: CaseNo
     targetId={recordTarget?.view === 'activity_journal' ? recordTarget.recordId : undefined} onTargetConsumed={() => setRecordTarget(null)} />;
   if (currentView === "participation_violations") return <SbvParticipationViolationsView cases={cases} measures={caseMeasures} pendingPrefill={participationViolationPrefill}
     onPrefillConsumed={() => setParticipationViolationPrefill(null)} onOpenCaseNode={props.openCaseNode}
+    targetId={recordTarget?.view === 'participation_violations' ? recordTarget.recordId : undefined} onTargetConsumed={() => setRecordTarget(null)}
     onOpenJournalPrefill={(prefill) => { setActivityJournalPrefill(prefill); setCurrentView("activity_journal"); }} />;
   if (currentView === "deadlines") return <DeadlinesView cases={cases} measures={caseMeasures} deadlines={deadlines}
     onCreateDeadline={createDeadline} onEditDeadline={setSelectedDeadline} onExtendDeadline={setDeadlineExtensionTarget}

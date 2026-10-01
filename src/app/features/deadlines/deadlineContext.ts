@@ -40,7 +40,7 @@ export type DeadlineOpenTarget =
   | { kind: 'case'; target: CaseNodeTarget }
   | { kind: 'person'; personId: string }
   | { kind: 'deadline'; deadlineId: string }
-  | { kind: 'record'; view: 'recruiting_participations' | 'elections' | 'activity_journal' | 'sbv_control'; recordId: string; sourceEvent?: string }
+  | { kind: 'record'; view: 'recruiting_participations' | 'elections' | 'activity_journal' | 'sbv_control' | 'participation_violations'; recordId: string; sourceEvent?: string }
   | { kind: 'view'; view: ViewId };
 
 export type DeadlineContextInfo = {
@@ -73,6 +73,7 @@ function generalActionLabel(openTarget: DeadlineOpenTarget): string {
     if (openTarget.view === 'elections') return 'Wahlvorgang öffnen';
     if (openTarget.view === 'activity_journal') return 'Journaleintrag öffnen';
     if (openTarget.view === 'sbv_control') return 'Protokoll öffnen';
+    if (openTarget.view === 'participation_violations') return 'Beteiligungsverstoß öffnen';
     return 'Stellenbesetzung öffnen';
   }
   if (openTarget.kind === 'deadline') return 'Frist öffnen';
@@ -83,6 +84,9 @@ function generalActionLabel(openTarget: DeadlineOpenTarget): string {
 export function resolveDeadlineOpenTarget(deadline: DeadlineRecord, measuresById = new Map<string, CaseMeasureRecord>()): DeadlineOpenTarget {
   if ((deadline.sourceEvent === 'protected_person.status_expiry_warning' || deadline.sourceEvent === 'protected_person.status_expired_privacy_review') && (deadline.personId || deadline.processId)) {
     return { kind: 'person', personId: deadline.personId ?? deadline.processId! };
+  }
+  if (deadline.processId && deadline.processType === 'sbv_participation_violation') {
+    return { kind: 'record', view: 'participation_violations', recordId: deadline.processId, sourceEvent: deadline.sourceEvent };
   }
   if (deadline.caseId) {
     const measure = measureContext(deadline, measuresById);
@@ -132,7 +136,7 @@ export function resolveDeadlineContextInfo(
     return {
       primary: linkedCase,
       secondary: measure.label,
-      actionLabel: measure.targetNode ? 'Maßnahme öffnen' : 'Fallakte öffnen',
+      actionLabel: openTarget.kind === 'record' ? generalActionLabel(openTarget) : measure.targetNode ? 'Maßnahme öffnen' : 'Fallakte öffnen',
       openTarget,
     };
   }
@@ -141,7 +145,7 @@ export function resolveDeadlineContextInfo(
     return {
       primary: linkedCase,
       secondary: `${processLabel} · ${typeLabel}`,
-      actionLabel: 'Fallakte öffnen',
+      actionLabel: openTarget.kind === 'record' ? generalActionLabel(openTarget) : 'Fallakte öffnen',
       openTarget,
     };
   }

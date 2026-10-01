@@ -73,3 +73,41 @@ test('uses the full tracking width and requests an external PDF preview', async 
   await expect(page.locator('.industrial-live-region[role="status"]')).toContainText('an die externe Vorschau übergeben');
   await expect(page.locator('.industrial-message-ok')).toContainText('beteiligungsverstoss-e2e.pdf');
 });
+
+test('opens a case-related violation deadline at its violation record', async ({ page }) => {
+  await page.evaluate(async () => {
+    await window.gremiaSbv.deadlines.create({
+      caseId: 'case-test-0001', processId: 'violation-e2e-0001',
+      processType: 'sbv_participation_violation', deadlineType: 'follow_up',
+      title: 'Nachholung der SBV-Beteiligung prüfen', dueAt: '2026-05-20T10:00:00.000Z',
+      sourceEvent: 'sbv_participation_violation.follow_up', severity: 'important',
+      calculationMode: 'workflow', isLegalDeadline: false,
+    });
+  });
+  await mainNavigation(page).getByRole('button', { name: 'Verstöße', exact: true }).click();
+  await mainNavigation(page).getByRole('button', { name: 'Fristen', exact: true }).click();
+  const row = page.getByRole('table', { name: 'Offene Fristen und Wiedervorlagen' }).locator('tbody tr').filter({ hasText: 'Nachholung der SBV-Beteiligung prüfen' });
+  await row.getByRole('button', { name: 'Beteiligungsverstoß öffnen' }).click();
+  const detail = page.getByRole('dialog', { name: 'E2E Beteiligungsverstoß aus Maßnahme' });
+  await expect(detail).toBeVisible();
+  await expect(detail).toContainText('Unterrichtung unvollständig.');
+  await expect(detail.getByRole('button', { name: 'PDF erzeugen' })).toBeVisible();
+});
+
+test('reports a missing linked violation instead of opening the case overview', async ({ page }) => {
+  await page.evaluate(async () => {
+    await window.gremiaSbv.deadlines.create({
+      caseId: 'case-test-0001', processId: 'missing-violation',
+      processType: 'sbv_participation_violation', deadlineType: 'follow_up',
+      title: 'Fehlenden Verstoß nachhalten', dueAt: '2026-05-20T10:00:00.000Z',
+      sourceEvent: 'sbv_participation_violation.follow_up', severity: 'important',
+      calculationMode: 'workflow', isLegalDeadline: false,
+    });
+  });
+  await mainNavigation(page).getByRole('button', { name: 'Verstöße', exact: true }).click();
+  await mainNavigation(page).getByRole('button', { name: 'Fristen', exact: true }).click();
+  const row = page.getByRole('table', { name: 'Offene Fristen und Wiedervorlagen' }).locator('tbody tr').filter({ hasText: 'Fehlenden Verstoß nachhalten' });
+  await row.getByRole('button', { name: 'Beteiligungsverstoß öffnen' }).click();
+  await expect(page.getByText('Der verknüpfte Beteiligungsverstoß ist nicht mehr vorhanden. Prüfen Sie die Wiedervorlage im Fristenregister.')).toBeVisible();
+  await expect(page.getByRole('dialog', { name: 'E2E Beteiligungsverstoß aus Maßnahme' })).toHaveCount(0);
+});

@@ -124,6 +124,18 @@ describe('Fristenpanel Verhalten 0.9.2', () => {
     expect(resolveDeadlineContextInfo(protocolDeadline).actionLabel).toBe('Protokoll öffnen');
   });
 
+  it('öffnet eine fallbezogene Verstoß-Wiedervorlage beim Verstoß statt in der Fallübersicht', () => {
+    const violationDeadline = deadline({
+      caseId: 'case-1', processType: 'sbv_participation_violation', processId: 'violation-1',
+      sourceEvent: 'sbv_participation_violation.follow_up',
+    });
+    expect(resolveDeadlineOpenTarget(violationDeadline)).toEqual({
+      kind: 'record', view: 'participation_violations', recordId: 'violation-1',
+      sourceEvent: 'sbv_participation_violation.follow_up',
+    });
+    expect(resolveDeadlineContextInfo(violationDeadline).actionLabel).toBe('Beteiligungsverstoß öffnen');
+  });
+
   it('öffnet bei Statusablauffristen die konkret betroffene Person', () => {
     const statusDeadline = deadline({
       processType: 'custom',
