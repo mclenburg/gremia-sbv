@@ -70,6 +70,7 @@ export function PersonLifecycleReviewDialog({
   const [reviewAt, setReviewAt] = useState('');
   const [confirmation, setConfirmation] = useState('');
   const openButtonRef = useRef<HTMLButtonElement | null>(null);
+  const wasOpenRef = useRef(open);
   const formErrorId = `privacy-review-error-${person.id}`;
   const [formError, setFormError] = useState('');
 
@@ -77,7 +78,8 @@ export function PersonLifecycleReviewDialog({
   const selectedReview = reviews.find((review) => review.caseId === selectedCaseId) ?? reviews[0];
 
   useEffect(() => {
-    if (!open) openButtonRef.current?.focus();
+    if (wasOpenRef.current && !open) openButtonRef.current?.focus();
+    wasOpenRef.current = open;
   }, [open]);
 
   useEffect(() => {

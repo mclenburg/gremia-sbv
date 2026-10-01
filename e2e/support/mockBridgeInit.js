@@ -1019,7 +1019,17 @@
       list: async () => persons,
       create: async (input) => { const row = { id: `person-${Date.now()}`, ...input, createdAt: now, updatedAt: now, lifecycleState: 'active' }; persons.push(row); return row; },
       createAnonymousRequest: async (label) => { const row = { id: `person-anon-${Date.now()}`, recordKind: 'pseudonymous_request', firstName: '', lastName: '', pseudonymLabel: label || 'Anonyme Anfrage 2026-0001', employmentState: 'unknown', protectionStatus: 'unclear', statusSource: 'manual', lifecycleState: 'active', createdAt: now, updatedAt: now }; persons.push(row); return row; },
-      update: async (id, input) => { const row = persons.find((person) => person.id === id); Object.assign(row, input, { updatedAt: now }); return row; },
+      update: async (id, input) => {
+        const row = persons.find((person) => person.id === id);
+        if (input.statusValidUntil !== undefined && input.statusValidUntil !== row.statusValidUntil) {
+          for (const deadline of deadlines) {
+            if (deadline.processId === id && deadline.sourceEvent === 'protected_person.status_expiry_warning' && deadline.status === 'open') deadline.status = 'cancelled';
+          }
+          row.lifecycleState = 'active';
+        }
+        Object.assign(row, input, { updatedAt: now });
+        return row;
+      },
       linkCase: async (personId, caseId) => ({ id: `link-${Date.now()}`, protectedPersonId: personId, caseFileId: caseId, linkState: 'active', createdAt: now }),
       previewImport: async (input) => {
         const lines = String(input?.csvText || 'Name;Status\nImportperson, Ida;gleichgestellt').trim().split(/\r?\n/);
@@ -1041,7 +1051,19 @@
         return { run: { id: `run-${Date.now()}`, totalRows: 1, createdCount: 1, updatedCount: 0, unchangedCount: 0, conflictCount: 0, skippedCount: 0, missingCount: 0, sourceFileName: 'e2e.csv', sourceFileHash: 'synthetic', importedAt: now }, imported: [importedPerson] };
       },
       selectImportFile: async () => null,
-      evaluateExpiry: async () => ({ expiringSoon: persons, expiredReviewRequired: [] }),
+      evaluateExpiry: async () => {
+        const today = new Date().toISOString().slice(0, 10);
+        const warningEnd = new Date();
+        warningEnd.setUTCDate(warningEnd.getUTCDate() + 30);
+        const expiringSoon = persons.filter((person) => person.employmentState !== 'left_company' && person.statusValidUntil >= today && person.statusValidUntil <= warningEnd.toISOString().slice(0, 10));
+        for (const person of expiringSoon) {
+          person.lifecycleState = 'expiring_soon';
+          if (!deadlines.some((deadline) => deadline.processId === person.id && deadline.sourceEvent === 'protected_person.status_expiry_warning' && deadline.status === 'open')) {
+            deadlines.unshift({ id: `deadline-status-${person.id}`, processId: person.id, processType: 'custom', deadlineType: 'warning', title: 'Statusnachweis läuft ab', dueAt: `${person.statusValidUntil}T09:00:00.000Z`, sourceEvent: 'protected_person.status_expiry_warning', severity: 'important', status: 'open', calculationMode: 'workflow', isLegalDeadline: false, isUserEditable: false, warningThresholdHours: 720, criticalThresholdHours: 168, createdAt: now, updatedAt: now });
+          }
+        }
+        return { expiringSoon, expiredReviewRequired: [] };
+      },
       anonymize: async (id, reason) => {
         const row = persons.find((person) => person.id === id);
         const affected = cases.filter((item) => item.protectedPersonId === id);

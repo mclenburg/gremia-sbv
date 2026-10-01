@@ -99,7 +99,7 @@ export function PersonEditDialog({
         location: asOptional(form.location),
         protectionStatus: form.protectionStatus,
         statusValidFrom: form.statusValidFrom || undefined,
-        statusValidUntil: form.statusValidUntil || undefined,
+        statusValidUntil: form.statusValidUntil,
         evidenceCheckedAt: form.evidenceCheckedAt || undefined,
         statusSource: form.statusSource,
         employmentState: form.employmentState,

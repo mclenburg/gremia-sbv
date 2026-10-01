@@ -267,12 +267,12 @@ function useGremiaBrNavigationVisibility(unlocked: boolean, currentView: ViewId,
 
 type WorkData = ReturnType<typeof useWorkData>;
 type PrimaryViewsProps = { currentView: ViewId; setCurrentView: (view: ViewId) => void; work: WorkData; caseNodeTarget: CaseNodeTarget | null;
-  setCaseNodeTarget: (target: CaseNodeTarget | null) => void; activityJournalPrefill: ActivityJournalPrefill | null;
+  setCaseNodeTarget: (target: CaseNodeTarget | null) => void; personTargetId: string | null; setPersonTargetId: (id: string | null) => void; activityJournalPrefill: ActivityJournalPrefill | null;
   setActivityJournalPrefill: (prefill: ActivityJournalPrefill | null) => void; participationViolationPrefill: SbvParticipationViolationPrefill | null;
   setParticipationViolationPrefill: (prefill: SbvParticipationViolationPrefill | null) => void; };
 
 function PrimaryViews(props: PrimaryViewsProps & { openCaseNode: (target: CaseNodeTarget) => void }) {
-  const { currentView, setCurrentView, work, caseNodeTarget, setCaseNodeTarget, activityJournalPrefill, setActivityJournalPrefill,
+  const { currentView, setCurrentView, work, caseNodeTarget, setCaseNodeTarget, personTargetId, setPersonTargetId, activityJournalPrefill, setActivityJournalPrefill,
     participationViolationPrefill, setParticipationViolationPrefill } = props;
   const { cases, contacts, deadlines, persons, caseMeasures, dashboardDeadlines, setSelectedDeadline, createCase, createContact,
     deleteContact, createDeadline, completeDeadline, reloadWorkData, setDeadlineExtensionTarget } = work;
@@ -280,6 +280,7 @@ function PrimaryViews(props: PrimaryViewsProps & { openCaseNode: (target: CaseNo
   const openDeadlineContext = (deadline: DeadlineRecord) => {
     const target = resolveDeadlineOpenTarget(deadline, new Map(caseMeasures.map((item) => [item.id, item])));
     if (target.kind === "case") props.openCaseNode(target.target);
+    else if (target.kind === "person") { setPersonTargetId(target.personId); setCurrentView("persons"); }
     else setCurrentView(target.view);
   };
   if (currentView === "dashboard") return <DashboardFocusOverview onNavigate={setCurrentView} cases={cases} deadlines={deadlines}
@@ -293,7 +294,7 @@ function PrimaryViews(props: PrimaryViewsProps & { openCaseNode: (target: CaseNo
     onCreateDeadline={createDeadline} onEditDeadline={setSelectedDeadline} onExtendDeadline={setDeadlineExtensionTarget}
     onOpenDeadlineContext={openDeadlineContext} onCompleteDeadline={(d) => void completeDeadline(d)}
     onExportIcal={(privacyLevel, filters) => icalHandlers.exportIcal({ privacyLevel, filters })} />;
-  if (currentView === "persons") return <PersonsView persons={persons} cases={cases}
+  if (currentView === "persons") return <PersonsView persons={persons} cases={cases} targetPersonId={personTargetId} onTargetConsumed={() => setPersonTargetId(null)}
     onCreateCaseForPerson={async (person, input) => createCase({ ...input, protectedPersonId: person.id, personBindingState: person.recordKind === "pseudonymous_request" ? "anonymous_request" : "active", isPseudonymized: true })}
     onCreate={personHandlers.createProtectedPerson} onUpdate={personHandlers.updateProtectedPerson}
     onSelectImportFile={personHandlers.selectProtectedPersonImportFile} onPreviewImport={personHandlers.previewProtectedPersonsImport}
@@ -385,6 +386,7 @@ export function App() {
   const [currentView, setCurrentView] = useState<ViewId>(INITIAL_SESSION_VIEW);
   const [theme, setTheme] = useState<ThemeMode>(() => getInitialTheme());
   const [caseNodeTarget, setCaseNodeTarget] = useState<CaseNodeTarget | null>(null);
+  const [personTargetId, setPersonTargetId] = useState<string | null>(null);
   const [participationViolationPrefill, setParticipationViolationPrefill] = useState<SbvParticipationViolationPrefill | null>(null);
   const journal = useActivityJournalNavigation(setCurrentView);
   const work = useWorkData(security.unlocked, setCurrentView, journal.setActivityJournalPrefill);
@@ -395,7 +397,7 @@ export function App() {
   useEffect(() => { applyTheme(theme); }, [theme]);
   if (!security.unlocked) return <LoginGate mode={security.authMode} onUnlock={security.completeUnlock}
     onResetToSetup={() => { security.setUnlocked(false); security.setAuthMode("setup"); }} />;
-  const viewProps: PrimaryViewsProps = { currentView, setCurrentView, work, caseNodeTarget, setCaseNodeTarget,
+  const viewProps: PrimaryViewsProps = { currentView, setCurrentView, work, caseNodeTarget, setCaseNodeTarget, personTargetId, setPersonTargetId,
     activityJournalPrefill: journal.activityJournalPrefill, setActivityJournalPrefill: journal.setActivityJournalPrefill,
     participationViolationPrefill, setParticipationViolationPrefill };
   return <AppShell

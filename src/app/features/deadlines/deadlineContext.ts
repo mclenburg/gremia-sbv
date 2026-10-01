@@ -38,6 +38,7 @@ const processFallbackView: Partial<Record<DeadlineProcessType, ViewId>> = {
 
 export type DeadlineOpenTarget =
   | { kind: 'case'; target: CaseNodeTarget }
+  | { kind: 'person'; personId: string }
   | { kind: 'view'; view: ViewId };
 
 export type DeadlineContextInfo = {
@@ -55,8 +56,9 @@ function caseLabel(deadline: DeadlineRecord, casesById: Map<string, CaseRecord>)
 }
 
 function measureContext(deadline: DeadlineRecord, measuresById: Map<string, CaseMeasureRecord>): { label: string; targetNode?: CaseNodeTarget['nodeType'] } | undefined {
-  if (!deadline.measureId) return undefined;
-  const measure = measuresById.get(deadline.measureId);
+  const measureId = deadline.measureId ?? (deadline.processId && measuresById.has(deadline.processId) ? deadline.processId : undefined);
+  if (!measureId) return undefined;
+  const measure = measuresById.get(measureId);
   if (!measure) return { label: 'Maßnahme nicht auflösbar' };
   return {
     label: `${caseMeasureTypeLabels[measure.type]} · ${measure.title}`,
@@ -65,10 +67,14 @@ function measureContext(deadline: DeadlineRecord, measuresById: Map<string, Case
 }
 
 export function resolveDeadlineOpenTarget(deadline: DeadlineRecord, measuresById = new Map<string, CaseMeasureRecord>()): DeadlineOpenTarget {
+  if ((deadline.sourceEvent === 'protected_person.status_expiry_warning' || deadline.sourceEvent === 'protected_person.status_expired_privacy_review') && (deadline.personId || deadline.processId)) {
+    return { kind: 'person', personId: deadline.personId ?? deadline.processId! };
+  }
   if (deadline.caseId) {
     const measure = measureContext(deadline, measuresById);
-    if (measure?.targetNode && deadline.measureId) {
-      return { kind: 'case', target: { caseId: deadline.caseId, nodeType: measure.targetNode, nodeId: deadline.measureId } };
+    const measureId = deadline.measureId ?? (deadline.processId && measuresById.has(deadline.processId) ? deadline.processId : undefined);
+    if (measure?.targetNode && measureId) {
+      return { kind: 'case', target: { caseId: deadline.caseId, nodeType: measure.targetNode, nodeId: measureId } };
     }
 
     const processNode = processTypeTarget[deadline.processType];
@@ -115,8 +121,8 @@ export function resolveDeadlineContextInfo(
     return {
       primary: 'Personenverzeichnis',
       secondary: `${processLabel} · ${typeLabel}`,
-      actionLabel: 'Personen öffnen',
-      openTarget: { kind: 'view', view: 'persons' },
+      actionLabel: openTarget.kind === 'person' ? 'Person öffnen' : 'Personenverzeichnis öffnen',
+      openTarget,
     };
   }
 

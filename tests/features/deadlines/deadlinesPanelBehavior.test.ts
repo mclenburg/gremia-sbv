@@ -108,6 +108,33 @@ describe('Fristenpanel Verhalten 0.9.2', () => {
     expect(resolveDeadlineOpenTarget(freeDeadline)).toEqual({ kind: 'view', view: 'deadlines' });
   });
 
+  it('öffnet bei Statusablauffristen die konkret betroffene Person', () => {
+    const statusDeadline = deadline({
+      processType: 'custom',
+      processId: 'person-123',
+      sourceEvent: 'protected_person.status_expiry_warning',
+    });
+
+    expect(resolveDeadlineContextInfo(statusDeadline).actionLabel).toBe('Person öffnen');
+    expect(resolveDeadlineOpenTarget(statusDeadline)).toEqual({ kind: 'person', personId: 'person-123' });
+  });
+
+  it('öffnet automatisch erzeugte Maßnahmenfristen direkt in der betroffenen Maßnahme', () => {
+    const measuresById = new Map([
+      ['participation-1', measure({ id: 'participation-1', type: 'sbv_participation' })],
+      ['workplace-1', measure({ id: 'workplace-1', type: 'workplace_accommodation' })],
+    ]);
+    const participationDeadline = deadline({ caseId: 'case-1', processType: 'custom', processId: 'participation-1', sourceEvent: 'case_measure_participation_created' });
+    const workplaceDeadline = deadline({ caseId: 'case-1', processType: 'custom', processId: 'workplace-1', sourceEvent: 'case_measure_workplace_accommodation_created' });
+
+    expect(resolveDeadlineOpenTarget(participationDeadline, measuresById)).toEqual({
+      kind: 'case', target: { caseId: 'case-1', nodeType: 'participation', nodeId: 'participation-1' },
+    });
+    expect(resolveDeadlineOpenTarget(workplaceDeadline, measuresById)).toEqual({
+      kind: 'case', target: { caseId: 'case-1', nodeType: 'workplace_accommodation', nodeId: 'workplace-1' },
+    });
+  });
+
   it('trennt Erfassung und Export in zentrale Modal-Komponenten', () => {
     const create = renderComponent(DeadlineCreateModal, {
       cases: [caseRecord()],
