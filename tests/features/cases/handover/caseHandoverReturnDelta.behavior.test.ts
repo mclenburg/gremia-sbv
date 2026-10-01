@@ -69,7 +69,7 @@ describe('Fallübergabe P1 – Rückgabe-Delta', () => {
 
     await source.exportToFile({
       caseIds: ['source-case-1'],
-      expiresAt: '2026-09-30T21:59:59.000Z',
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       purpose: 'Urlaubsvertretung',
       passphrase,
       targetRecipientToken: substituteRecipient.recipientToken,

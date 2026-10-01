@@ -54,7 +54,7 @@ function createTransferFile(): { filePath: string; passphrase: string; dataDir: 
     version: CASE_HANDOVER_VERSION,
     packageId,
     createdAt,
-    expiresAt: '2026-09-30T21:59:59.000Z',
+    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
     purpose: 'Urlaubsvertretung',
     cases: [{
       ref: 'case_1',
