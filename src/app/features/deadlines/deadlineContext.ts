@@ -1,4 +1,3 @@
-import type { ViewId } from '../../core/navigation/modules';
 import type { CaseNodeTarget } from '../../core/navigation/caseNodeTarget';
 import type { CaseRecord } from '../../../domain/models/case.model';
 import type { CaseMeasureRecord, CaseMeasureType } from '../../../domain/models/case-measure.model';
@@ -23,27 +22,13 @@ const processTypeTarget: Partial<Record<DeadlineProcessType, CaseNodeTarget['nod
   termination_hearing: 'termination_hearing',
 };
 
-const processFallbackView: Partial<Record<DeadlineProcessType, ViewId>> = {
-  activity_journal: 'activity_journal',
-  custom: 'deadlines',
-  election: 'elections',
-  employer_obligation_review: 'sbv_control',
-  inclusion_agreement: 'sbv_control',
-  recruiting_participation: 'recruiting_participations',
-  sbv_assembly: 'sbv_control',
-  sbv_control_protocol: 'sbv_control',
-  sbv_meeting: 'meetings',
-  sbv_participation_violation: 'participation_violations',
-};
-
 export type DeadlineOpenTarget =
   | { kind: 'case'; target: CaseNodeTarget }
   | { kind: 'person'; personId: string }
   | { kind: 'deadline'; deadlineId: string }
   | { kind: 'record'; view: 'recruiting_participations' | 'elections' | 'activity_journal' | 'participation_violations'; recordId: string; sourceEvent?: string }
   | { kind: 'record'; view: 'meetings'; recordId: string; processType: 'sbv_meeting'; sourceEvent?: string }
-  | { kind: 'record'; view: 'sbv_control'; recordId: string; processType: 'sbv_control_protocol' | 'employer_obligation_review' | 'inclusion_agreement' | 'sbv_assembly'; sourceEvent?: string }
-  | { kind: 'view'; view: ViewId };
+  | { kind: 'record'; view: 'sbv_control'; recordId: string; processType: 'sbv_control_protocol' | 'employer_obligation_review' | 'inclusion_agreement' | 'sbv_assembly'; sourceEvent?: string };
 
 export type DeadlineContextInfo = {
   primary: string;
@@ -84,7 +69,6 @@ function generalActionLabel(openTarget: DeadlineOpenTarget): string {
     return 'Stellenbesetzung öffnen';
   }
   if (openTarget.kind === 'deadline') return 'Frist öffnen';
-  if (openTarget.kind === 'view' && openTarget.view === 'deadlines') return 'Fristenregister öffnen';
   return 'Vorgang öffnen';
 }
 
@@ -95,21 +79,6 @@ export function resolveDeadlineOpenTarget(deadline: DeadlineRecord, measuresById
   if (deadline.processId && deadline.processType === 'sbv_participation_violation') {
     return { kind: 'record', view: 'participation_violations', recordId: deadline.processId, sourceEvent: deadline.sourceEvent };
   }
-  if (deadline.caseId) {
-    const measure = measureContext(deadline, measuresById);
-    const measureId = deadline.measureId ?? (deadline.processId && measuresById.has(deadline.processId) ? deadline.processId : undefined);
-    if (measure?.targetNode && measureId) {
-      return { kind: 'case', target: { caseId: deadline.caseId, nodeType: measure.targetNode, nodeId: measureId } };
-    }
-
-    const processNode = processTypeTarget[deadline.processType];
-    if (processNode && deadline.processId) {
-      return { kind: 'case', target: { caseId: deadline.caseId, nodeType: processNode, nodeId: deadline.processId } };
-    }
-
-    return { kind: 'case', target: { caseId: deadline.caseId, nodeType: 'overview' } };
-  }
-
   if (deadline.processId && deadline.processType === 'recruiting_participation') {
     return { kind: 'record', view: 'recruiting_participations', recordId: deadline.processId, sourceEvent: deadline.sourceEvent };
   }
@@ -134,10 +103,19 @@ export function resolveDeadlineOpenTarget(deadline: DeadlineRecord, measuresById
   if (deadline.processId && deadline.processType === 'sbv_meeting') {
     return { kind: 'record', view: 'meetings', recordId: deadline.processId, processType: 'sbv_meeting', sourceEvent: deadline.sourceEvent };
   }
-  if (deadline.processType === 'custom') {
-    return { kind: 'deadline', deadlineId: deadline.id };
+  if (deadline.caseId) {
+    const measure = measureContext(deadline, measuresById);
+    const measureId = deadline.measureId ?? (deadline.processId && measuresById.has(deadline.processId) ? deadline.processId : undefined);
+    if (measure?.targetNode && measureId) {
+      return { kind: 'case', target: { caseId: deadline.caseId, nodeType: measure.targetNode, nodeId: measureId } };
+    }
+
+    const processNode = processTypeTarget[deadline.processType];
+    if (processNode && deadline.processId) {
+      return { kind: 'case', target: { caseId: deadline.caseId, nodeType: processNode, nodeId: deadline.processId } };
+    }
   }
-  return { kind: 'view', view: processFallbackView[deadline.processType] ?? 'deadlines' };
+  return { kind: 'deadline', deadlineId: deadline.id };
 }
 
 export function resolveDeadlineContextInfo(
@@ -155,7 +133,7 @@ export function resolveDeadlineContextInfo(
     return {
       primary: linkedCase,
       secondary: measure.label,
-      actionLabel: openTarget.kind === 'record' ? generalActionLabel(openTarget) : measure.targetNode ? 'Maßnahme öffnen' : 'Fallakte öffnen',
+      actionLabel: openTarget.kind === 'deadline' || openTarget.kind === 'record' ? generalActionLabel(openTarget) : measure.targetNode ? 'Maßnahme öffnen' : 'Fallakte öffnen',
       openTarget,
     };
   }
@@ -164,7 +142,7 @@ export function resolveDeadlineContextInfo(
     return {
       primary: linkedCase,
       secondary: `${processLabel} · ${typeLabel}`,
-      actionLabel: openTarget.kind === 'record' ? generalActionLabel(openTarget) : 'Fallakte öffnen',
+      actionLabel: openTarget.kind === 'deadline' || openTarget.kind === 'record' ? generalActionLabel(openTarget) : 'Fallakte öffnen',
       openTarget,
     };
   }

@@ -32,6 +32,7 @@ test('opens a journal follow-up at its exact source entry', async ({ page }) => 
       followUpDueAt: '2026-05-20',
     });
     await window.gremiaSbv.deadlines.create({
+      caseId: 'case-test-0001',
       processId: entry.id,
       processType: 'activity_journal',
       deadlineType: 'follow_up',

@@ -109,7 +109,7 @@ describe('Fristenpanel Verhalten 0.9.2', () => {
   });
 
   it('öffnet Journal-Wiedervorlagen beim konkreten Journaleintrag', () => {
-    const journalDeadline = deadline({ caseId: undefined, processType: 'activity_journal', processId: 'journal-1' });
+    const journalDeadline = deadline({ caseId: 'case-1', processType: 'activity_journal', processId: 'journal-1' });
     expect(resolveDeadlineOpenTarget(journalDeadline)).toEqual({
       kind: 'record', view: 'activity_journal', recordId: 'journal-1', sourceEvent: undefined,
     });
@@ -154,6 +154,16 @@ describe('Fristenpanel Verhalten 0.9.2', () => {
       kind: 'record', view: 'meetings', recordId: 'agenda-2', processType: 'sbv_meeting', sourceEvent: 'Beschlussfassung',
     });
     expect(resolveDeadlineContextInfo(agendaDeadline).actionLabel).toBe('Tagesordnungspunkt öffnen');
+  });
+
+  it('öffnet Fristen ohne auflösbare Quellakte direkt am Fristdatensatz', () => {
+    const manualCaseDeadline = deadline({ id: 'manual-case-deadline', caseId: 'case-1', processType: 'case', processId: undefined });
+    const missingMeasureDeadline = deadline({ id: 'missing-measure-deadline', caseId: 'case-1', measureId: 'missing-measure', processType: 'custom' });
+    const unlinkedWorkflowDeadline = deadline({ id: 'unlinked-workflow-deadline', caseId: undefined, processType: 'sbv_meeting', processId: undefined });
+    for (const record of [manualCaseDeadline, missingMeasureDeadline, unlinkedWorkflowDeadline]) {
+      expect(resolveDeadlineOpenTarget(record)).toEqual({ kind: 'deadline', deadlineId: record.id });
+      expect(resolveDeadlineContextInfo(record, new Map([[caseRecord().id, caseRecord()]])).actionLabel).toBe('Frist öffnen');
+    }
   });
 
   it('öffnet eine fallbezogene Verstoß-Wiedervorlage beim Verstoß statt in der Fallübersicht', () => {

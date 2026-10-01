@@ -284,7 +284,6 @@ function PrimaryViews(props: PrimaryViewsProps & { openCaseNode: (target: CaseNo
     else if (target.kind === "person") { setPersonTargetId(target.personId); setCurrentView("persons"); }
     else if (target.kind === "deadline") setSelectedDeadline(deadline);
     else if (target.kind === "record") { setRecordTarget(target); setCurrentView(target.view); }
-    else setCurrentView(target.view);
   };
   if (currentView === "dashboard") return <DashboardFocusOverview onNavigate={setCurrentView} cases={cases} deadlines={deadlines}
     measures={caseMeasures} dashboardItems={dashboardDeadlines} onEditDeadline={setSelectedDeadline}
