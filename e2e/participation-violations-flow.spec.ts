@@ -44,12 +44,12 @@ test('creates a general violation without a case and progressively offers search
   await expect(secondDialog.getByLabel('Fallakte suchen und auswählen')).toHaveCount(0);
   const measureSelection = secondDialog.getByLabel('SBV-Beteiligungsmaßnahme suchen und auswählen');
   await expect(measureSelection).toBeVisible();
+  await measureSelection.click();
+  const resultList = secondDialog.getByRole('listbox');
+  await expect(resultList).toBeVisible();
   await measureSelection.fill('Arbeitszeitregelung');
-  const resultListId = await measureSelection.getAttribute('list');
-  expect(resultListId).toBeTruthy();
-  await expect(page.locator(`#${resultListId} option`)).toHaveCount(1);
-  await measureSelection.fill('Beteiligung zur allgemeinen Arbeitszeitregelung · TEST-0001');
-  await measureSelection.blur();
+  await expect(resultList.getByRole('option')).toHaveCount(1);
+  await resultList.getByRole('option', { name: 'Beteiligung zur allgemeinen Arbeitszeitregelung · TEST-0001' }).click();
   await expect(measureSelection).toHaveValue('Beteiligung zur allgemeinen Arbeitszeitregelung · TEST-0001');
 
   await secondSourceContext.selectOption('general_employer_practice');
