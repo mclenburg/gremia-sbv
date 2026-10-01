@@ -475,8 +475,9 @@
       .map((item, index) => toSearchResult(item, input.query, index + 1));
   };
 
+  const defaultGremiaBrSettings = { enabled: false, autoRefreshOnStartup: false, serverUrl: '', username: '', hasStoredCredentials: false, apiMode: 'gremia_br_v2', relevanceSettings: { groups: [] } };
   let gremiaBrSettings = JSON.parse(sessionStorage.getItem('gremia-br-e2e-settings') || 'null')
-    || { enabled: false, autoRefreshOnStartup: false, serverUrl: '', username: '', hasStoredCredentials: false, apiMode: 'gremia_br_v2', relevanceSettings: { groups: [] } };
+    || cloneForIpc(defaultGremiaBrSettings);
   let gremiaBrCache = { accessibleCases: [], ownTasks: [], ownAccessApprovals: [], upcomingMeetings: [], meetingAgendas: {}, decisions: [], dueDecisions: [], overdueDecisions: [] };
   let remoteAccessRequests = 0;
   window.__GREMIA_BR_REMOTE_ACCESS_REQUESTS = () => remoteAccessRequests;
@@ -672,7 +673,7 @@
   ];
   const resettableCollectionSnapshots = resettableCollections.map((collection) => cloneForIpc(collection));
   const activityJournalPreferencesSnapshot = cloneForIpc(activityJournalPreferences);
-  const gremiaBrSettingsSnapshot = cloneForIpc(gremiaBrSettings);
+  const gremiaBrSettingsSnapshot = cloneForIpc(defaultGremiaBrSettings);
   const gremiaBrCacheSnapshot = cloneForIpc(gremiaBrCache);
   const securityStateSnapshot = cloneForIpc(securityState);
 
@@ -687,8 +688,16 @@
     });
     resetObject(activityJournalPreferences, activityJournalPreferencesSnapshot);
     gremiaBrSettings = cloneForIpc(gremiaBrSettingsSnapshot);
+    sessionStorage.removeItem('gremia-br-e2e-settings');
     gremiaBrCache = cloneForIpc(gremiaBrCacheSnapshot);
     remoteAccessRequests = 0;
+    meetingMinutesRequests = 0;
+    remoteDocumentSearches = 0;
+    documentAccessRequests = 0;
+    classificationChanges = 0;
+    remoteCaseCreations = 0;
+    startupRefreshes = 0;
+    readRefreshes = 0;
     securityState = cloneForIpc(securityStateSnapshot);
     window.__GREMIA_SBV_E2E_ICAL_EXPORTS.splice(0, window.__GREMIA_SBV_E2E_ICAL_EXPORTS.length);
   };
