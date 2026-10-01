@@ -360,6 +360,50 @@ select.industrial-input option,
   color: var(--industrial-text);
 }
 
+.industrial-searchable-select {
+  position: relative;
+}
+
+.industrial-searchable-select-input {
+  width: 100%;
+}
+
+.industrial-searchable-select-options {
+  position: absolute;
+  z-index: 30;
+  top: 100%;
+  right: 0;
+  left: 0;
+  max-height: 40vh;
+  overflow-y: auto;
+  margin: var(--space-1) 0 0;
+  padding: var(--space-1);
+  border: 1px solid var(--industrial-control-border);
+  border-radius: var(--industrial-control-radius);
+  background: var(--industrial-select-option-bg);
+  color: var(--industrial-text);
+  list-style: none;
+  box-shadow: var(--focus-ring);
+}
+
+.industrial-searchable-select-option,
+.industrial-searchable-select-empty {
+  padding: var(--space-2) var(--space-3);
+}
+
+.industrial-searchable-select-option {
+  cursor: pointer;
+}
+
+.industrial-searchable-select-option:hover,
+.industrial-searchable-select-option[data-active='true'] {
+  background: var(--industrial-select-bg-hover);
+}
+
+.industrial-searchable-select-option[aria-selected='true'] {
+  font-weight: 700;
+}
+
 .industrial-form-error-summary {
   display: grid;
   gap: var(--space-2, 0.5rem);

@@ -1,5 +1,5 @@
 import type { ChangeEvent, InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from "react";
-import { isValidElement, useEffect, useMemo, useState } from "react";
+import { isValidElement, useEffect, useMemo, useRef, useState } from "react";
 import type { HelpRegistryId } from "../help/helpRegistry";
 import { FormField, joinClassNames, type IndustrialFieldOption } from "./IndustrialFormCore";
 export type SelectInputProps = Omit<
@@ -118,47 +118,107 @@ export function SearchableSelectInput({
   const selectedLabel = value
     ? selectableOptions.find((option) => option.value === value)?.label ?? ""
     : "";
-  const [query, setQuery] = useState(selectedLabel);
-  useEffect(() => { setQuery(selectedLabel); }, [selectedLabel]);
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [activeIndex, setActiveIndex] = useState(0);
+  const listRef = useRef<HTMLUListElement>(null);
   const normalizedQuery = query.trim().toLocaleLowerCase("de-DE");
   const matches = useMemo(() => selectableOptions.filter((option) => (
-    !normalizedQuery || option.label.toLocaleLowerCase("de-DE").includes(normalizedQuery)
-  )), [normalizedQuery, selectableOptions]);
+    !open || !normalizedQuery || option.label.toLocaleLowerCase("de-DE").includes(normalizedQuery)
+  )), [normalizedQuery, open, selectableOptions]);
+
+  useEffect(() => {
+    if (open) listRef.current?.querySelector<HTMLElement>("[data-active='true']")?.scrollIntoView({ block: "nearest" });
+  }, [activeIndex, open, query]);
+
+  function openOptions() {
+    setQuery("");
+    setActiveIndex(Math.max(0, selectableOptions.findIndex((option) => option.value === value)));
+    setOpen(true);
+  }
+
+  function closeOptions() {
+    setOpen(false);
+    setQuery("");
+  }
+
+  function selectOption(option: IndustrialFieldOption) {
+    onValueChange(option.value);
+    closeOptions();
+  }
 
   return (
     <FormField label={label} helpText={helpText} helpId={helpRegistryId} error={error} wide={wide} required={required}>
       {({ id, describedBy, invalid }) => {
         const listId = `${id}-options`;
         const resultId = `${id}-results`;
-        return <>
+        return <div className="industrial-searchable-select">
           <input
             {...inputProps}
             id={id}
-            type="search"
+            type="text"
+            role="combobox"
+            autoComplete="off"
+            aria-autocomplete="list"
+            aria-expanded={open}
+            aria-controls={listId}
+            aria-activedescendant={open && matches.length ? `${listId}-${Math.min(activeIndex, matches.length - 1)}` : undefined}
             aria-describedby={[describedBy, resultId].filter(Boolean).join(" ") || undefined}
             aria-invalid={invalid ? "true" : undefined}
             aria-required={required ? "true" : undefined}
-            className={joinClassNames("industrial-input", className)}
-            list={listId}
-            value={query}
+            className={joinClassNames("industrial-input industrial-select-input industrial-searchable-select-input", className)}
+            value={open ? query : selectedLabel}
             placeholder={placeholder}
-            required={required}
+            required={required && !value}
+            onFocus={(event) => {
+              inputProps.onFocus?.(event);
+              if (!open) openOptions();
+            }}
+            onClick={() => { if (!open) openOptions(); }}
             onChange={(event) => {
               const next = event.currentTarget.value;
+              if (!open) setOpen(true);
               setQuery(next);
+              setActiveIndex(0);
               const exact = selectableOptions.find((option) => option.label.localeCompare(next, "de-DE", { sensitivity: "accent" }) === 0);
-              if (exact) onValueChange(exact.value);
+              if (exact) selectOption(exact);
               else if (!next) onValueChange("");
+            }}
+            onKeyDown={(event) => {
+              inputProps.onKeyDown?.(event);
+              if (event.defaultPrevented) return;
+              if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+                event.preventDefault();
+                if (!open) openOptions();
+                else if (matches.length) setActiveIndex((index) => (index + (event.key === "ArrowDown" ? 1 : -1) + matches.length) % matches.length);
+              } else if (event.key === "Enter" && open) {
+                event.preventDefault();
+                if (matches.length) selectOption(matches[Math.min(activeIndex, matches.length - 1)]);
+              } else if (event.key === "Escape" && open) {
+                event.preventDefault();
+                closeOptions();
+              }
             }}
             onBlur={(event) => {
               inputProps.onBlur?.(event);
-              const exact = selectableOptions.find((option) => option.label.localeCompare(event.currentTarget.value, "de-DE", { sensitivity: "accent" }) === 0);
-              if (!exact) setQuery(selectedLabel);
+              closeOptions();
             }}
           />
-          <datalist id={listId}>{matches.map((option) => <option key={option.value} value={option.label} />)}</datalist>
-          <span id={resultId} className="industrial-sr-only" role="status" aria-live="polite">{matches.length} Treffer verfügbar.</span>
-        </>;
+          {open && <ul ref={listRef} id={listId} className="industrial-searchable-select-options" role="listbox">
+            {matches.map((option, index) => <li
+              key={option.value}
+              id={`${listId}-${index}`}
+              className="industrial-searchable-select-option"
+              role="option"
+              aria-selected={option.value === value}
+              data-active={index === Math.min(activeIndex, matches.length - 1) ? "true" : undefined}
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => selectOption(option)}
+            >{option.label}</li>)}
+            {!matches.length && <li className="industrial-searchable-select-empty">Keine Treffer</li>}
+          </ul>}
+          <span id={resultId} className="industrial-sr-only" role="status" aria-live="polite">{open ? `${matches.length} Treffer verfügbar.` : ""}</span>
+        </div>;
       }}
     </FormField>
   );
