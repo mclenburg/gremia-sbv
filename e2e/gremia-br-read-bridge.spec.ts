@@ -154,15 +154,15 @@ test('lädt Sitzungsdaten nur bewusst und entfernt sie beim Refresh', async ({ p
 
   await meeting.getByRole('button', { name: 'Remote-Zugang abrufen' }).click();
   await expect(meeting).toContainText('PIN: 123456');
-  await meeting.getByRole('button', { name: 'Niederschrift abrufen' }).click();
-  await expect(meeting).toContainText('Inhaltsprüfung');
-  await expect(meeting).toContainText('Gremia.BR liefert hier Statusangaben, keinen Niederschrifttext.');
+  await meeting.getByRole('button', { name: 'Niederschrift prüfen' }).click();
+  await expect(meeting).toContainText('Niederschrift vorhanden.');
+  await expect(meeting).not.toContainText('Inhaltsprüfung');
   expect(await page.evaluate(() => (window as Window & { __GREMIA_BR_MEETING_MINUTES_REQUESTS: () => number }).__GREMIA_BR_MEETING_MINUTES_REQUESTS())).toBe(1);
   expect(await page.evaluate(() => (window as Window & { __GREMIA_BR_REMOTE_ACCESS_REQUESTS: () => number }).__GREMIA_BR_REMOTE_ACCESS_REQUESTS())).toBe(1);
   await page.getByRole('button', { name: 'Gremia.BR aktualisieren' }).click();
   await expect(meeting).not.toContainText('PIN: 123456');
   await expect(meeting).not.toContainText('TOP 1: Arbeitsplatzausstattung');
-  await expect(meeting).not.toContainText('Inhaltsprüfung');
+  await expect(meeting).not.toContainText('Niederschrift vorhanden.');
 });
 
 test('sucht Remote-Dokumente bewusst und zeigt Metadaten erst nach Detailaktion', async ({ page }) => {

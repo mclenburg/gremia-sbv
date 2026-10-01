@@ -24,7 +24,7 @@ Die Übersicht zeigt eigene Aufgaben und ausstehende eigene Zugriffsanträge. Di
 
 In **Tagesordnung und Remote-Zugang** kannst du eine Sitzung aus dem aktuellen Arbeitsstand auswählen. **Tagesordnung abrufen** lädt die aktuelle Fassung und zeigt, welche TOPs seit der versandten Einladung hinzugefügt, geändert oder entfernt wurden. Falls keine versandte Fassung verfügbar ist, kann die App keinen Vergleich anzeigen. Prüfe die Änderungen selbst; eine rechtliche Bewertung erfolgt nicht automatisch. Bei einer hybriden Sitzung lädt **Remote-Zugang abrufen** die Einwahldaten erst nach deinem Klick. Die gezielt geladenen Angaben werden nur in der aktuellen Ansicht gezeigt und bei Sitzungswechsel, Aktualisierung oder Verlassen des Bereichs entfernt. Gib den Zugang nur an berechtigte Teilnehmende weiter.
 
-Mit **Niederschrift abrufen** lädst du für dieselbe Sitzung den verfügbaren Status, die Schutzklasse und Angaben zur Vollständigkeit. Die aktuelle Gremia.BR-Schnittstelle liefert hier keinen Niederschrifttext; die App zeigt deshalb keinen Text oder Download an. Die Angaben verschwinden beim Sitzungswechsel oder Aktualisieren.
+Mit **Niederschrift prüfen** siehst du für dieselbe Sitzung, ob eine Niederschrift vorhanden ist. Die aktuelle Gremia.BR-Schnittstelle liefert hier keinen Niederschrifttext oder Download. Die Anzeige verschwindet beim Sitzungswechsel oder Aktualisieren.
 
 Für eine eigene SBV-Dokumentation kannst du eine BR-Sitzung über **BR-Sitzung übernehmen** als lokale Arbeitskopie anlegen. Du prüfst und ergänzt dort selbst SBV-Relevanz, Position und Bewertung; spätere Änderungen in Gremia.BR ändern diese Arbeitskopie nicht automatisch. Die Sitzungsarbeit in Gremia.SBV wird im [Kapitel Dokumentation](14-dokumentation.md) beschrieben.
 
