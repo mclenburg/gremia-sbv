@@ -81,8 +81,8 @@ describe('UI-Fundament Block 4 Verhalten', () => {
       options: Array.from({ length: 6 }, (_, index) => ({ value: String(index), label: `Vorgang ${index + 1}` })),
     });
     const nodes = descendants(tree);
-    expect(nodes.some((node) => node.tag === 'input' && node.attrs.type === 'search')).toBe(true);
-    expect(nodes.some((node) => node.tag === 'datalist')).toBe(true);
+    expect(nodes.some((node) => node.tag === 'input' && node.attrs.role === 'combobox')).toBe(true);
+    expect(nodes.some((node) => node.tag === 'datalist')).toBe(false);
     expect(nodes.some((node) => node.tag === 'select')).toBe(false);
   });
 
@@ -98,19 +98,12 @@ describe('UI-Fundament Block 4 Verhalten', () => {
     });
 
     const nodes = descendants(tree);
-    const searchInput = nodes.find((node) => node.tag === 'input' && node.attrs.type === 'search');
-    const datalistOptions = nodes.filter((node) => node.tag === 'option').map((node) => node.attrs.value);
+    const searchInput = nodes.find((node) => node.tag === 'input' && node.attrs.role === 'combobox');
 
     expect(searchInput?.attrs.value ?? '').toBe('');
     expect(searchInput?.attrs.placeholder).toBe('Tippen, um zu filtern …');
-    expect(datalistOptions).toEqual([
-      'Fallakte 1',
-      'Fallakte 2',
-      'Fallakte 3',
-      'Fallakte 4',
-      'Fallakte 5',
-      'Fallakte 6',
-    ]);
+    expect(searchInput?.attrs['aria-expanded']).toBe('false');
+    expect(nodes.some((node) => node.attrs.role === 'option')).toBe(false);
   });
 
   it('hält Kurzbefehlerklärungen standardmäßig aus Arbeitsfeldern heraus', () => {

@@ -97,6 +97,36 @@ export type SearchableSelectInputProps = Omit<
   wide?: boolean;
 };
 
+function SearchableSelectOptions({
+  listId, options, activeIndex, value, onSelect,
+}: {
+  listId: string;
+  options: IndustrialFieldOption[];
+  activeIndex: number;
+  value: string;
+  onSelect: (option: IndustrialFieldOption) => void;
+}) {
+  const listRef = useRef<HTMLUListElement>(null);
+  const activeOptionIndex = Math.min(activeIndex, options.length - 1);
+  useEffect(() => {
+    listRef.current?.querySelector<HTMLElement>("[data-active='true']")?.scrollIntoView({ block: "nearest" });
+  }, [activeOptionIndex, options]);
+
+  return <ul ref={listRef} id={listId} className="industrial-searchable-select-options" role="listbox">
+    {options.map((option, index) => <li
+      key={option.value}
+      id={`${listId}-${index}`}
+      className="industrial-searchable-select-option"
+      role="option"
+      aria-selected={option.value === value}
+      data-active={index === activeOptionIndex ? "true" : undefined}
+      onMouseDown={(event) => event.preventDefault()}
+      onClick={() => onSelect(option)}
+    >{option.label}</li>)}
+    {!options.length && <li className="industrial-searchable-select-empty">Keine Treffer</li>}
+  </ul>;
+}
+
 export function SearchableSelectInput({
   label,
   value,
@@ -121,15 +151,10 @@ export function SearchableSelectInput({
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
-  const listRef = useRef<HTMLUListElement>(null);
   const normalizedQuery = query.trim().toLocaleLowerCase("de-DE");
   const matches = useMemo(() => selectableOptions.filter((option) => (
     !open || !normalizedQuery || option.label.toLocaleLowerCase("de-DE").includes(normalizedQuery)
   )), [normalizedQuery, open, selectableOptions]);
-
-  useEffect(() => {
-    if (open) listRef.current?.querySelector<HTMLElement>("[data-active='true']")?.scrollIntoView({ block: "nearest" });
-  }, [activeIndex, open, query]);
 
   function openOptions() {
     setQuery("");
@@ -204,19 +229,7 @@ export function SearchableSelectInput({
               closeOptions();
             }}
           />
-          {open && <ul ref={listRef} id={listId} className="industrial-searchable-select-options" role="listbox">
-            {matches.map((option, index) => <li
-              key={option.value}
-              id={`${listId}-${index}`}
-              className="industrial-searchable-select-option"
-              role="option"
-              aria-selected={option.value === value}
-              data-active={index === Math.min(activeIndex, matches.length - 1) ? "true" : undefined}
-              onMouseDown={(event) => event.preventDefault()}
-              onClick={() => selectOption(option)}
-            >{option.label}</li>)}
-            {!matches.length && <li className="industrial-searchable-select-empty">Keine Treffer</li>}
-          </ul>}
+          {open && <SearchableSelectOptions listId={listId} options={matches} activeIndex={activeIndex} value={value} onSelect={selectOption} />}
           <span id={resultId} className="industrial-sr-only" role="status" aria-live="polite">{open ? `${matches.length} Treffer verfügbar.` : ""}</span>
         </div>;
       }}

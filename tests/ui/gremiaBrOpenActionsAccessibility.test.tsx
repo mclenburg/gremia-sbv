@@ -71,7 +71,7 @@ describe('Gremia.BR Offene Aktionen', () => {
     expect(html).not.toContain('task-1');
   });
 
-  it('bietet nur die vom Server gelieferten Statusoptionen in einer zugänglichen Suche an', () => {
+  it('zeigt eine zugängliche Statussuche, ohne geschlossene Optionen vorwegzunehmen', () => {
     const html = renderToStaticMarkup(<GremiaBrTaskDetailDialog
       title="Prüfung"
       detail={{ id: 'task-1', title: 'Prüfung', status: 'OPEN', version: 3 }}
@@ -90,9 +90,11 @@ describe('Gremia.BR Offene Aktionen', () => {
     />);
 
     expect(html).toContain('Neuer Status');
-    expect(html).toContain('In Bearbeitung');
-    expect(html).toContain('Blockiert');
+    expect(html).toContain('role="combobox"');
+    expect(html).toContain('aria-expanded="false"');
     expect(html).toContain('Status wählen');
+    expect(html).not.toContain('In Bearbeitung');
+    expect(html).not.toContain('Blockiert');
     expect(html).not.toContain('Erledigt');
   });
 
