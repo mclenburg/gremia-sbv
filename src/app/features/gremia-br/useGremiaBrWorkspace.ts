@@ -113,6 +113,7 @@ export function useGremiaBrWorkspace(announce: (message: string, politeness?: "p
     refreshReadContext: () => runAction("read", async () => {
       const result = await refreshReadContextSnapshot();
       applySnapshot(result.snapshot);
+      taskDetailState.closeTaskDetail();
       procedureState.resetRemoteSelection();
       return result.message;
     }),

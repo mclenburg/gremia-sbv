@@ -84,13 +84,13 @@ export class GremiaBrOwnShareService {
       });
     } catch (error) {
       if (error instanceof GremiaBrHttpError && error.status === 409) {
-        throw new ApplicationError('CONFLICT', 'Das Dokument wurde inzwischen geändert. Bitte die Klassifizierung bewusst neu abrufen.');
+        throw new ApplicationError('CONFLICT', 'Das Dokument wurde inzwischen geändert. Bitte Gremia.BR aktualisieren und die Klassifizierung erneut prüfen.');
       }
       throw error;
     }
     const classification = parseClassification(response, id);
     if (classification.protectionClass !== input.protectionClass || classification.version <= input.expectedVersion) {
-      throw new ApplicationError('REMOTE_READ_FAILED', 'Gremia.BR hat die neue Schutzklasse nicht eindeutig bestätigt. Bitte den Dokumentstand prüfen.');
+      throw new ApplicationError('REMOTE_READ_FAILED', 'Gremia.BR hat die neue Schutzklasse nicht eindeutig bestätigt. Bitte Gremia.BR aktualisieren und den Dokumentstand prüfen.');
     }
     return classification;
   }
@@ -116,7 +116,7 @@ export class GremiaBrOwnShareService {
     if (reason.length > 1024) throw new ApplicationError('VALIDATION_FAILED', 'Der Widerrufsgrund darf höchstens 1024 Zeichen enthalten.');
     const shares = await this.list(id);
     if (!shares.some((share) => share.id === shareId && ['ACTIVE', 'REQUESTED'].includes(share.status))) {
-      throw new ApplicationError('CONFLICT', 'Diese Freigabe ist nicht mehr widerrufbar. Bitte die Freigaben bewusst neu abrufen.');
+      throw new ApplicationError('CONFLICT', 'Diese Freigabe ist nicht mehr widerrufbar. Bitte Gremia.BR aktualisieren und die Freigaben erneut prüfen.');
     }
     const response = await this.auth.post<unknown>(`/api/v1/documents/shares/${encodeURIComponent(shareId)}/revocation`, { body: { reason } });
     return parseShare(response, id);

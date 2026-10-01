@@ -52,7 +52,7 @@ export function registerGremiaBrReferenceIpc(ipcMain: IpcMain, services: Applica
       return await new GremiaBrProcedureService(auth).completeInformationRequest(id, requestId, input.expectedVersion);
     } catch (error) {
       if (error instanceof GremiaBrHttpError && error.status === 409) {
-        throw new ApplicationError('CONFLICT', 'Die Informationsanforderung wurde zwischenzeitlich geändert. Bitte die Liste bewusst neu laden.');
+        throw new ApplicationError('CONFLICT', 'Die Informationsanforderung wurde zwischenzeitlich geändert. Bitte Gremia.BR aktualisieren und die Anforderung erneut prüfen.');
       }
       throw error;
     }

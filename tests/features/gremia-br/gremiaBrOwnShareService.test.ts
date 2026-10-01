@@ -83,7 +83,7 @@ describe('Eigene Dokumentfreigaben', () => {
       expect(post).not.toHaveBeenCalled();
       post.mockRejectedValueOnce(new GremiaBrHttpError('Konflikt', 409, 'POST /api/v1/documents/{documentId}/classification'));
       await expect(service.changeClassification({ documentId: 'owned-doc', protectionClass: 'HIGH', reason: 'Erneut geprüft', expectedVersion: 1 }))
-        .rejects.toThrow('neu abrufen');
+        .rejects.toThrow('Gremia.BR aktualisieren');
     } finally { db.close(); }
   });
 });

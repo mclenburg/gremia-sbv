@@ -5,7 +5,7 @@ import { GremiaBrAuthService } from './gremiaBrAuthService.js';
 import { gremiaBrRecord } from './gremiaBrPayload.js';
 
 const STATUS_SET: ReadonlySet<string> = new Set(GREMIA_BR_TASK_STATUSES);
-const UNCONFIRMED_TRANSITION_MESSAGE = 'Gremia.BR hat die Statusänderung nicht eindeutig bestätigt. Bitte die Aufgabendetails bewusst neu laden, bevor Sie erneut handeln.';
+const UNCONFIRMED_TRANSITION_MESSAGE = 'Gremia.BR hat die Statusänderung nicht eindeutig bestätigt. Bitte Gremia.BR aktualisieren und den Aufgabenstand prüfen, bevor Sie erneut handeln.';
 
 function isTaskStatus(value: unknown): value is GremiaBrTaskStatus {
   return typeof value === 'string' && STATUS_SET.has(value);

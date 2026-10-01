@@ -62,7 +62,7 @@ export function useGremiaBrTaskDetail(announce: (message: string, politeness?: '
       const options = await loadOwnTaskTransitions(selectedTaskId);
       if (request !== requestCounter.current) return;
       if (options.from !== taskDetail.status) {
-        throw new Error('Der Aufgabenstatus hat sich geändert. Bitte die Details bewusst neu laden.');
+        throw new Error('Der Aufgabenstatus hat sich geändert. Bitte Gremia.BR aktualisieren und die Aufgabe erneut prüfen.');
       }
       setTransitionOptions(options);
     } catch (err) {
@@ -92,7 +92,7 @@ export function useGremiaBrTaskDetail(announce: (message: string, politeness?: '
       announce('Der Aufgabenstatus wurde in Gremia.BR geändert.', 'polite');
     } catch (err) {
       if (request !== requestCounter.current) return;
-      const message = err instanceof Error ? err.message : 'Der Aufgabenstatus konnte nicht geändert werden. Bitte die Details erneut laden.';
+      const message = err instanceof Error ? err.message : 'Der Aufgabenstatus konnte nicht geändert werden. Bitte Gremia.BR aktualisieren und die Aufgabe erneut prüfen.';
       setTransitionOptions(null);
       setSelectedTransition('');
       setTaskDetailError(message);

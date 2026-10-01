@@ -16,7 +16,7 @@ Diese Datei beschreibt die Implementierung der Gremia.BR-Anbindung für Entwickl
 
 **Gremia.BR aktualisieren** lädt in einer bewussten Aktion die eigenen offenen Aufgaben, eigenen Zugriffsanträge, berechtigten Sachverhalte und Sitzungsdaten. Die Übersicht übernimmt nur arbeitsrelevante Felder. Aufgabenbeschreibungen und Zuweisungsdetails werden erst auf eigene Detailaktion gelesen. Unbekannte Aufgabenstatus oder unvollständige Listen verhindern einen teilweisen Snapshot.
 
-Eigene Aufgabendetails und die vom Server angebotenen Statusübergänge werden jeweils getrennt auf Klick abgerufen. Eine Statusänderung sendet Zielstatus und gelesene Version als eigene Aktion. Bei Konflikt muss die Person die Details bewusst neu laden; der Gesamtsnapshot wird nicht still aktualisiert.
+Eigene Aufgabendetails und die vom Server angebotenen Statusübergänge werden jeweils getrennt auf Klick abgerufen. Eine Statusänderung sendet Zielstatus und gelesene Version als eigene Aktion. Bei Konflikt bleibt der Gesamtsnapshot unverändert; die Person muss bewusst den zentralen Gesamt-Refresh auslösen und den neuen Aufgabenstand prüfen.
 
 Für verknüpfte Verfahren werden Remote-Sachverhalte aus dem berechtigten Arbeitsstand ausgewählt. Die lokale Referenz enthält keinen Verfahrensvolltext. Verfahrensdetails und Informationsanforderungen werden erst nach ausdrücklicher Auswahl abgerufen und bleiben flüchtig. Die lokale Verknüpfung wird in Migration 0060 eingeführt.
 
@@ -42,7 +42,7 @@ Für ein bewusst geöffnetes Dokument kann der angemeldete Benutzer einen eigene
 
 Freigabeverwaltung ist nur für durch `document_uploaded` nachgewiesene eigene Remote-Dokumente freigeschaltet. Die lokale Auswahl ist nicht durch das Aktionshistorienlimit begrenzt. Listen, Anlegen und Widerruf laufen über separate IPC-Aktionen und den zentral auditierten Auth-Port; vor dem Widerruf wird die konkrete Freigabe nochmals serverseitig gelesen. Der Server entscheidet weiterhin über Schutzklasse, MFA, zweite Freigabe und Laufzeit.
 
-Für dieselben eigenen Dokumente kann die Schutzklasse separat bewusst geladen und mit Begründung geändert werden. Der Main-Service sendet den angezeigten Optimistic-Lock-Stand als `expectedVersion` an `/api/v1/documents/{documentId}/classification`; bei HTTP 409 ist ein neuer bewusster Abruf nötig. Eine Herabstufung wird nicht lokal als zulässig bewertet, sondern bleibt Gremia.BR vorbehalten.
+Für dieselben eigenen Dokumente kann die Schutzklasse separat bewusst geladen und mit Begründung geändert werden. Der Main-Service sendet den angezeigten Optimistic-Lock-Stand als `expectedVersion` an `/api/v1/documents/{documentId}/classification`; bei HTTP 409 ist ein bewusster Gesamt-Refresh vor einer neuen Prüfung nötig. Eine Herabstufung wird nicht lokal als zulässig bewertet, sondern bleibt Gremia.BR vorbehalten.
 
 Der HTTP-Port setzt für jeden Request eine `x-correlation-id` und übernimmt eine intern bereitgestellte Kennung für mehrstufige Aktionen. Korrelations-ID und Dauer gelangen über die Audit-Whitelist in die verschlüsselte lokale Audit-Chain, nie Antwortinhalt oder Zugangsdaten. Dokumentupload und anschließende Freigabe verwenden dieselbe Kennung; die beiden lokalen Aktionsaudits tragen sie ebenfalls.
 

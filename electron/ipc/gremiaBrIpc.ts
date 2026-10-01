@@ -129,7 +129,7 @@ export function registerGremiaBrIpc(ipcMain: IpcMain, security: SecurityService,
       return await new GremiaBrTaskService(auth).transition(id, to, version);
     } catch (error) {
       if (error instanceof GremiaBrHttpError && error.status === 409) {
-        throw new ApplicationError('CONFLICT', 'Die Aufgabe wurde zwischenzeitlich geändert. Bitte die Details bewusst neu laden und erneut prüfen.');
+        throw new ApplicationError('CONFLICT', 'Die Aufgabe wurde zwischenzeitlich geändert. Bitte Gremia.BR aktualisieren und den Aufgabenstand erneut prüfen.');
       }
       if (error instanceof GremiaBrHttpError && error.status === 403) {
         throw new ApplicationError('PERMISSION_DENIED', 'Gremia.BR erlaubt diese Statusänderung nicht. Bitte den eigenen Zugriff dort prüfen.');

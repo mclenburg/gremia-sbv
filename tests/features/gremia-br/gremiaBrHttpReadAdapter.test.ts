@@ -368,6 +368,37 @@ describe('Gremia.BR HTTP-ReadAdapter 0.9.2-B', () => {
     expect(networkCalls).toBe(0);
   });
 
+  it.each([
+    [401, /Sitzung.*abgelaufen/i],
+    [403, /Zugriff.*verweigert/i],
+    [409, /Gremia\.BR aktualisieren/i],
+    [503, /nicht erreichbar/i],
+  ])('meldet HTTP %i handlungsorientiert und auditiert ohne Antwortinhalt', async (status, expectedMessage) => {
+    const audit = new MemoryAuditLog();
+    const client = new GremiaBrHttpClient('https://br.example.invalid', async () => new Response(
+      JSON.stringify({ detail: 'vertraulicher Servertext' }),
+      { status, headers: { 'content-type': 'application/json' } },
+    ), audit);
+
+    await expect(client.request('GET', '/api/v1/me/bodies', 'jwt-token')).rejects.toThrow(expectedMessage);
+    expect(audit.entries).toHaveLength(2);
+    expect(audit.entries[1].metadata).toMatchObject({ outcome: 'http_error', status });
+    expect(JSON.stringify(audit.entries)).not.toContain('vertraulicher Servertext');
+  });
+
+  it('meldet einen Verbindungsabbruch ohne technischen Fehlertext und auditiert ihn', async () => {
+    const audit = new MemoryAuditLog();
+    const client = new GremiaBrHttpClient('https://br.example.invalid', async () => {
+      throw new TypeError('failed to fetch: vertrauliche Netzwerkdiagnose');
+    }, audit);
+
+    await expect(client.request('GET', '/api/v1/me/bodies', 'jwt-token'))
+      .rejects.toThrow(/Verbindung zu Gremia\.BR konnte nicht hergestellt werden/i);
+    expect(audit.entries).toHaveLength(2);
+    expect(audit.entries[1].metadata).toMatchObject({ outcome: 'request_error' });
+    expect(JSON.stringify(audit.entries)).not.toContain('vertrauliche Netzwerkdiagnose');
+  });
+
   it('überträgt FormData für explizite Gremia.BR-Arbeitsbereichsaktionen ohne JSON-Content-Type und auditiert als Export', async () => {
     const audit = new MemoryAuditLog();
     const calls: Array<{ url: string; init?: RequestInit }> = [];

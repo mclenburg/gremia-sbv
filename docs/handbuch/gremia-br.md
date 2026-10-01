@@ -18,7 +18,7 @@ Nach erfolgreicher Anlage ist das Verfahren mit der lokalen Fallakte verknüpft.
 
 ## Offene Aktionen
 
-Die Übersicht zeigt eigene Aufgaben und ausstehende eigene Zugriffsanträge. Die separate Antragsübersicht zeigt auch bereits entschiedene Anträge. Für eine Aufgabe öffnet **Details** erst nach deinem Klick die zusätzlichen Angaben. **Statusänderungen abrufen** zeigt die aktuell von Gremia.BR angebotenen Möglichkeiten; **Statusänderung bestätigen** sendet genau deine Auswahl. Bei einem Konflikt lade die Aufgabendetails erneut und prüfe den neuen Stand.
+Die Übersicht zeigt eigene Aufgaben und ausstehende eigene Zugriffsanträge. Die separate Antragsübersicht zeigt auch bereits entschiedene Anträge. Für eine Aufgabe öffnet **Details** erst nach deinem Klick die zusätzlichen Angaben. **Statusänderungen abrufen** zeigt die aktuell von Gremia.BR angebotenen Möglichkeiten; **Statusänderung bestätigen** sendet genau deine Auswahl. Bei einem Konflikt aktualisiere Gremia.BR bewusst und prüfe danach den neuen Aufgabenstand.
 
 ## Sitzungen
 
@@ -40,7 +40,7 @@ Soll eine Version dauerhaft in einer Fallakte liegen, wähle unter **In Fallakte
 
 Unter **Eigene Freigaben** wählst du ein zuvor selbst übertragenes Dokument. **Freigaben abrufen** liest den aktuellen Serverstand erst auf deinen Klick. Du kannst eine weitere Freigabe mit Zielbereich, Zweck und Ablaufdatum anlegen oder eine bestehende aktive Freigabe mit Begründung widerrufen. Nach einer Änderung rufst du den Stand erneut bewusst ab; eine angefragte Freigabe ist noch keine aktive Freigabe.
 
-Mit **Klassifizierung abrufen** liest du für ein eigenes übertragenes Dokument die aktuelle Schutzklasse. Eine Änderung benötigt eine Begründung und eine Vorschau; erst **Schutzklasse verbindlich ändern** sendet sie. Hat sich das Dokument inzwischen geändert, lade die Klassifizierung erneut. Gremia.BR entscheidet, ob die Änderung zulässig ist.
+Mit **Klassifizierung abrufen** liest du für ein eigenes übertragenes Dokument die aktuelle Schutzklasse. Eine Änderung benötigt eine Begründung und eine Vorschau; erst **Schutzklasse verbindlich ändern** sendet sie. Hat sich das Dokument inzwischen geändert, aktualisiere Gremia.BR bewusst und prüfe die Klassifizierung erneut. Gremia.BR entscheidet, ob die Änderung zulässig ist.
 
 ## Verknüpfte Verfahren
 

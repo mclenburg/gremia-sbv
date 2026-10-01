@@ -37,6 +37,17 @@ function endpointAuditAction(method: string, path: string): 'read' | 'export' | 
   return 'export';
 }
 
+function httpFailureMessage(status: number): string {
+  switch (status) {
+    case 401: return 'Die Gremia.BR-Sitzung ist abgelaufen. Bitte die Verbindung in den Einstellungen erneut prüfen und Gremia.BR aktualisieren.';
+    case 403: return 'Gremia.BR hat den Zugriff verweigert. Bitte Berechtigung und erforderliche Sicherheitsnachweise dort prüfen.';
+    case 404: return 'Der angeforderte Gremia.BR-Vorgang ist nicht mehr verfügbar. Bitte Gremia.BR aktualisieren.';
+    case 409: return 'Der Gremia.BR-Stand hat sich geändert. Bitte Gremia.BR aktualisieren und die Aktion erneut prüfen.';
+    case 503: return 'Gremia.BR ist derzeit nicht erreichbar. Bitte den Abruf später erneut versuchen.';
+    default: return `Gremia.BR konnte die Anfrage nicht abschließen (HTTP ${status}). Bitte den Vorgang prüfen und erneut versuchen.`;
+  }
+}
+
 async function readResponsePayload(response: Response, asBytes = false): Promise<unknown> {
   if (response.status === 204) return null;
   const maxBytes = asBytes ? MAX_GREMIA_BR_BINARY_BYTES : MAX_GREMIA_BR_RESPONSE_BYTES;
@@ -145,7 +156,7 @@ export class GremiaBrHttpClient {
         throw new GremiaBrHttpError('Gremia.BR hat auf eine andere Adresse umgeleitet. Die Anfrage wurde aus Sicherheitsgründen abgebrochen.', response.status, endpoint);
       }
       if (!response.ok) {
-        throw new GremiaBrHttpError(`Gremia.BR-Anfrage fehlgeschlagen (${response.status}).`, response.status, endpoint);
+        throw new GremiaBrHttpError(httpFailureMessage(response.status), response.status, endpoint);
       }
       const payload = await readResponsePayload(response, options.responseType === 'bytes') as T;
       result = { payload, headers: response.headers };
@@ -155,6 +166,9 @@ export class GremiaBrHttpClient {
         throw new Error('Die Gremia.BR-Anfrage wurde wegen Zeitüberschreitung abgebrochen.');
       }
       this.auditRequest(endpoint, error instanceof GremiaBrHttpError ? 'http_error' : 'request_error', responseStatus, correlationId, performance.now() - startedAt);
+      if (error instanceof TypeError) {
+        throw new Error('Die Verbindung zu Gremia.BR konnte nicht hergestellt werden. Bitte die Serververbindung prüfen und den Abruf erneut versuchen.');
+      }
       throw error;
     } finally {
       clearTimeout(timeout);

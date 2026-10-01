@@ -59,7 +59,7 @@ async function finishInformationRequest(input: {
   const request = input.requestsProcedureId === input.procedureId
     ? input.requests.find((item) => item.id === input.requestId && ['OPEN', 'PARTIALLY_FULFILLED'].includes(item.status))
     : undefined;
-  if (!input.caseId || !request) throw new Error('Bitte die offenen Informationsanforderungen bewusst neu laden.');
+  if (!input.caseId || !request) throw new Error('Bitte Gremia.BR aktualisieren und die offenen Informationsanforderungen erneut prüfen.');
   return completeInformationRequest({
     caseId: input.caseId, procedureId: input.procedureId, requestId: request.id, expectedVersion: request.version,
   });

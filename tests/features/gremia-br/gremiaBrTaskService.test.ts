@@ -35,6 +35,6 @@ describe('Gremia.BR eigene Aufgabenstatus', () => {
     const { auth, service } = createService();
     auth.post.mockResolvedValueOnce({ id: 'task-1', status: 'IN_PROGRESS', version: 4 } as never);
 
-    await expect(service.transition('task-1', 'IN_PROGRESS', 3)).rejects.toThrow('nicht eindeutig bestätigt');
+    await expect(service.transition('task-1', 'IN_PROGRESS', 3)).rejects.toThrow('Gremia.BR aktualisieren');
   });
 });
