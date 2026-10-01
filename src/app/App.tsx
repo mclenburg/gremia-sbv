@@ -282,6 +282,7 @@ function PrimaryViews(props: PrimaryViewsProps & { openCaseNode: (target: CaseNo
     const target = resolveDeadlineOpenTarget(deadline, new Map(caseMeasures.map((item) => [item.id, item])));
     if (target.kind === "case") props.openCaseNode(target.target);
     else if (target.kind === "person") { setPersonTargetId(target.personId); setCurrentView("persons"); }
+    else if (target.kind === "deadline") setSelectedDeadline(deadline);
     else if (target.kind === "record") { setRecordTarget(target); setCurrentView(target.view); }
     else setCurrentView(target.view);
   };

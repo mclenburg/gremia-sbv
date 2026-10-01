@@ -104,8 +104,8 @@ describe('Fristenpanel Verhalten 0.9.2', () => {
       kind: 'case',
       target: { caseId: 'case-1', nodeType: 'participation', nodeId: 'measure-1' },
     });
-    expect(resolveDeadlineContextInfo(freeDeadline).actionLabel).toBe('Fristenregister öffnen');
-    expect(resolveDeadlineOpenTarget(freeDeadline)).toEqual({ kind: 'view', view: 'deadlines' });
+    expect(resolveDeadlineContextInfo(freeDeadline).actionLabel).toBe('Frist öffnen');
+    expect(resolveDeadlineOpenTarget(freeDeadline)).toEqual({ kind: 'deadline', deadlineId: 'deadline-free' });
   });
 
   it('öffnet bei Statusablauffristen die konkret betroffene Person', () => {
