@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { IndustrialButton } from '../../../shared/components/IndustrialButton';
 import { DateInput, DateTimeInput, SelectInput, TextareaInput, TextInput } from '../../../shared/components/IndustrialForm';
 import { IndustrialHelpButton } from '../../../shared/help/IndustrialHelp';
@@ -28,14 +28,34 @@ function AssemblyDocumentActions({ current, onGenerate }: {
   </div>;
 }
 
-export function AssemblyWorkspace({ records, onSave, onGenerateDocument, onCreateFollowUp }: {
+function useAssemblySelection(records: SbvAssemblyRecord[], selectedAssemblyId?: string) {
+  const currentYear = new Date().getFullYear();
+  const [year, setYear] = useState(currentYear);
+  const years = [...new Set([currentYear, ...records.map((record) => record.year)])].sort((a, b) => b - a);
+  const existing = records.find((record) => record.year === year);
+  const followUpHeadingRef = useRef<HTMLHeadingElement>(null);
+  const appliedTargetRef = useRef<string | undefined>(undefined);
+
+  useEffect(() => {
+    if (!selectedAssemblyId || appliedTargetRef.current === selectedAssemblyId) return;
+    const target = records.find((record) => record.id === selectedAssemblyId);
+    if (!target) return;
+    appliedTargetRef.current = selectedAssemblyId;
+    setYear(target.year);
+    requestAnimationFrame(() => followUpHeadingRef.current?.focus());
+  }, [records, selectedAssemblyId]);
+
+  return { year, setYear, years, existing, followUpHeadingRef };
+}
+
+export function AssemblyWorkspace({ records, selectedAssemblyId, onSave, onGenerateDocument, onCreateFollowUp }: {
   records: SbvAssemblyRecord[];
+  selectedAssemblyId?: string;
   onSave: (input: { id?: string; year: number; scheduledAt?: string; locationOrMode?: string; invitationAt?: string; agenda?: string; accessibilityCheckStatus?: string; materialsStatus?: string; employerReportStatus: EmployerReportStatus; minutes?: string; status: string }) => Promise<void>;
   onGenerateDocument: (id: string, kind: AssemblyDocumentKind) => Promise<AssemblyDocumentResult>;
   onCreateFollowUp: (id: string, dueAt: string) => Promise<void>;
 }) {
-  const year = new Date().getFullYear();
-  const existing = records.find((record) => record.year === year);
+  const { year, setYear, years, existing, followUpHeadingRef } = useAssemblySelection(records, selectedAssemblyId);
   const [scheduledAt, setScheduledAt] = useState('');
   const [location, setLocation] = useState('');
   const [invitationAt, setInvitationAt] = useState('');
@@ -98,6 +118,8 @@ export function AssemblyWorkspace({ records, onSave, onGenerateDocument, onCreat
       title={`Schwerbehindertenversammlung ${year}`}
       actions={<IndustrialHelpButton helpId="sbvOffice.assembly" label="Hilfe zur Schwerbehindertenversammlung öffnen" />}
     >
+      <SelectInput label="Versammlungsjahr" value={String(year)} onValueChange={(value) => setYear(Number(value))}
+        options={years.map((recordYear) => ({ value: String(recordYear), label: String(recordYear) }))} />
       <section className="sbv-control-section" aria-labelledby="assembly-plan-heading">
         <div className="sbv-control-section-heading-with-actions">
           <div>
@@ -123,7 +145,7 @@ export function AssemblyWorkspace({ records, onSave, onGenerateDocument, onCreat
       <section className="sbv-control-section" aria-labelledby="assembly-followup-heading">
         <div className="sbv-control-section-heading-with-actions">
           <div>
-            <h3 id="assembly-followup-heading">Ergebnis und Nachbereitung</h3>
+            <h3 id="assembly-followup-heading" ref={followUpHeadingRef} tabIndex={-1}>Ergebnis und Nachbereitung</h3>
             <p>Eigenes Ergebnisprotokoll, Folgeaufgaben und erzeugbare Unterlagen.</p>
           </div>
           {existing ? (

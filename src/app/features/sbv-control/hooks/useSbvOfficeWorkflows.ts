@@ -81,16 +81,17 @@ export function useSbvOfficeWorkflows() {
 
 export type SbvOfficeRecordTarget = {
   recordId: string;
-  processType: 'employer_obligation_review' | 'inclusion_agreement';
+  processType: 'employer_obligation_review' | 'inclusion_agreement' | 'sbv_assembly';
   sourceEvent?: string;
 };
 
-export function useSbvOfficeRecordTarget({ target, onTargetConsumed, loaded, obligations, agreements, setActiveSection, setError }: {
+export function useSbvOfficeRecordTarget({ target, onTargetConsumed, loaded, obligations, agreements, assemblies, setActiveSection, setError }: {
   target?: SbvOfficeRecordTarget;
   onTargetConsumed?: () => void;
   loaded: boolean;
   obligations: EmployerObligationReviewRecord[];
   agreements: InclusionAgreementRecord[];
+  assemblies: SbvAssemblyRecord[];
   setActiveSection: Dispatch<SetStateAction<ControlSectionId>>;
   setError: Dispatch<SetStateAction<string>>;
 }) {
@@ -100,17 +101,18 @@ export function useSbvOfficeRecordTarget({ target, onTargetConsumed, loaded, obl
   useEffect(() => {
     if (!target) return;
     const isObligation = target.processType === 'employer_obligation_review';
-    setActiveSection(isObligation ? 'obligations' : 'inclusion');
+    const isAssembly = target.processType === 'sbv_assembly';
+    setActiveSection(isObligation ? 'obligations' : isAssembly ? 'assembly' : 'inclusion');
     if (!loaded) return;
-    const records = isObligation ? obligations : agreements;
+    const records = isObligation ? obligations : isAssembly ? assemblies : agreements;
     if (records.some((record) => record.id === target.recordId)) {
       setSelectedTarget(target);
       setError('');
     } else {
       setSelectedTarget(undefined);
-      setError(`${isObligation ? 'Der verknüpfte Prüfvorgang' : 'Die verknüpfte Verhandlungsakte'} ist nicht mehr vorhanden. Prüfen Sie die Wiedervorlage im Fristenregister.`);
+      setError(`${isObligation ? 'Der verknüpfte Prüfvorgang' : isAssembly ? 'Die verknüpfte Versammlung' : 'Die verknüpfte Verhandlungsakte'} ist nicht mehr vorhanden. Prüfen Sie die Wiedervorlage im Fristenregister.`);
     }
     onTargetConsumedRef.current?.();
-  }, [agreements, loaded, obligations, setActiveSection, setError, target]);
+  }, [agreements, assemblies, loaded, obligations, setActiveSection, setError, target]);
   return selectedTarget;
 }

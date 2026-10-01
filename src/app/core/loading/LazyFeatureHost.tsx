@@ -72,7 +72,7 @@ export function LazyFeatureHost({ view, cases, measures = [], persons = [], them
     onNavigate?: (viewId: ViewId) => void;
     initialSection?: "meetings";
     targetProtocolId?: string;
-    targetOffice?: { recordId: string; processType: 'employer_obligation_review' | 'inclusion_agreement'; sourceEvent?: string };
+    targetOffice?: { recordId: string; processType: 'employer_obligation_review' | 'inclusion_agreement' | 'sbv_assembly'; sourceEvent?: string };
     onTargetConsumed?: () => void;
   }>>;
   return (
@@ -90,7 +90,7 @@ export function LazyFeatureHost({ view, cases, measures = [], persons = [], them
       ) : view === "sbv_control" || view === "meetings" ? (
         <SbvControlFeature cases={cases} deadlines={deadlines} onNavigate={onNavigate} initialSection={view === "meetings" ? "meetings" : undefined}
           targetProtocolId={recordTarget?.view === 'sbv_control' && recordTarget.processType === 'sbv_control_protocol' ? recordTarget.recordId : undefined}
-          targetOffice={recordTarget?.view === 'sbv_control' && (recordTarget.processType === 'employer_obligation_review' || recordTarget.processType === 'inclusion_agreement')
+          targetOffice={recordTarget?.view === 'sbv_control' && (recordTarget.processType === 'employer_obligation_review' || recordTarget.processType === 'inclusion_agreement' || recordTarget.processType === 'sbv_assembly')
             ? { recordId: recordTarget.recordId, processType: recordTarget.processType, sourceEvent: recordTarget.sourceEvent } : undefined}
           onTargetConsumed={onRecordTargetConsumed} />
       ) : view === "settings" ? (

@@ -140,6 +140,14 @@ describe('Fristenpanel Verhalten 0.9.2', () => {
     expect(resolveDeadlineContextInfo(agreementDeadline).actionLabel).toBe('Verhandlungsakte öffnen');
   });
 
+  it('öffnet Versammlungs-Wiedervorlagen bei der konkreten Jahresversammlung', () => {
+    const assemblyDeadline = deadline({ caseId: undefined, processType: 'sbv_assembly', processId: 'assembly-2024', sourceEvent: 'sbv_assembly_follow_up' });
+    expect(resolveDeadlineOpenTarget(assemblyDeadline)).toEqual({
+      kind: 'record', view: 'sbv_control', recordId: 'assembly-2024', processType: 'sbv_assembly', sourceEvent: 'sbv_assembly_follow_up',
+    });
+    expect(resolveDeadlineContextInfo(assemblyDeadline).actionLabel).toBe('Versammlung öffnen');
+  });
+
   it('öffnet eine fallbezogene Verstoß-Wiedervorlage beim Verstoß statt in der Fallübersicht', () => {
     const violationDeadline = deadline({
       caseId: 'case-1', processType: 'sbv_participation_violation', processId: 'violation-1',
