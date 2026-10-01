@@ -16,10 +16,15 @@ import { RecruitingInterviewEvents, RecruitingListPanel } from './RecruitingPane
 export function RecruitingParticipationsView({
   onCreateDeadline,
   onOpenParticipationViolationPrefill,
+  targetId,
+  onTargetConsumed,
 }: {
   onCreateDeadline: (input: CreateDeadlineInput) => Promise<void>;
   onOpenParticipationViolationPrefill?: (prefill: SbvParticipationViolationPrefill) => void;
+  targetId?: string;
+  onTargetConsumed?: () => void;
 }) {
+  const initialTargetId = useRef(targetId).current;
   const [records, setRecords] = useState<RecruitingParticipationRecord[]>([]);
   const [interviews, setInterviews] = useState<RecruitingInterviewEventRecord[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -50,7 +55,8 @@ export function RecruitingParticipationsView({
       setRecords(rows);
       if (preferredId === undefined && creatingRef.current) { setSelectedId(null); setInterviews([]); return; }
       const nextId = preferredId === undefined ? rows[0]?.id ?? null : preferredId;
-      const resolvedId = nextId && rows.some((row) => row.id === nextId) ? nextId : rows[0]?.id ?? null;
+      const resolvedId = nextId && rows.some((row) => row.id === nextId) ? nextId : preferredId ? null : rows[0]?.id ?? null;
+      if (preferredId && !resolvedId) setError('Die Stellenbesetzung zur Frist ist nicht mehr vorhanden.');
       setSelectedId(resolvedId);
       if (resolvedId) {
         const detail = rows.find((row) => row.id === resolvedId) ?? null;
@@ -69,8 +75,14 @@ export function RecruitingParticipationsView({
   }, []);
 
   useEffect(() => {
-    void reload();
-  }, [reload]);
+    void reload(initialTargetId);
+  }, [reload, initialTargetId]);
+
+  useEffect(() => {
+    if (!targetId || loading) return;
+    if (selectedId === targetId) document.querySelector<HTMLElement>('.workbench-detail-panel')?.focus();
+    if (selectedId === targetId || error) onTargetConsumed?.();
+  }, [targetId, selectedId, loading, error, onTargetConsumed]);
 
   useEffect(() => {
     if (error) announce(error, 'assertive');
@@ -237,7 +249,7 @@ export function RecruitingParticipationsView({
           onSelect={(id) => void selectRecord(id)}
         />
 
-        <WorkbenchDetailPanel ariaLabel="Stellenbesetzung Detail">
+        <WorkbenchDetailPanel ariaLabel="Stellenbesetzung Detail" tabIndex={-1}>
           {selected || createOpen ? <RecruitingProcedureForm
             form={form}
             selected={selected}

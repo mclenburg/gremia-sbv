@@ -154,12 +154,14 @@ export function WorkbenchListPanel({
 export function WorkbenchDetailPanel({
   children,
   ariaLabel,
+  tabIndex,
 }: {
   children: ReactNode;
   ariaLabel: string;
+  tabIndex?: number;
 }) {
   return (
-    <section className="workbench-detail-panel" aria-label={ariaLabel}>
+    <section className="workbench-detail-panel" aria-label={ariaLabel} tabIndex={tabIndex}>
       {children}
     </section>
   );

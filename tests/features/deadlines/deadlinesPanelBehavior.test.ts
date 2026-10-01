@@ -135,6 +135,15 @@ describe('Fristenpanel Verhalten 0.9.2', () => {
     });
   });
 
+  it('trägt den konkreten Vorgang bei Stellenbesetzung und Wahl weiter', () => {
+    expect(resolveDeadlineOpenTarget(deadline({ processType: 'recruiting_participation', processId: 'recruiting-2' }))).toEqual({
+      kind: 'record', view: 'recruiting_participations', recordId: 'recruiting-2', sourceEvent: undefined,
+    });
+    expect(resolveDeadlineOpenTarget(deadline({ processType: 'election', processId: 'election-3', sourceEvent: 'formal.proposal.submit' }))).toEqual({
+      kind: 'record', view: 'elections', recordId: 'election-3', sourceEvent: 'formal.proposal.submit',
+    });
+  });
+
   it('trennt Erfassung und Export in zentrale Modal-Komponenten', () => {
     const create = renderComponent(DeadlineCreateModal, {
       cases: [caseRecord()],

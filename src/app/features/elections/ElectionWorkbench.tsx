@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Plus } from 'lucide-react';
 import { ModuleFeedback } from '../../shared/components/ModuleFeedback';
 import {
@@ -86,12 +86,31 @@ function ElectionSelector({ state }: { state: ReturnType<typeof useElectionWorkb
   );
 }
 
-export function ElectionWorkbench() {
-  const state = useElectionWorkbench();
+export function sectionForDeadline(sourceEvent?: string): Section {
+  if (sourceEvent?.includes('voterlist')) return 'voters';
+  if (sourceEvent?.includes('proposal') || sourceEvent?.includes('candidates')) return 'nominations';
+  if (sourceEvent?.includes('board')) return 'body';
+  if (sourceEvent?.includes('notice')) return 'documents';
+  return 'setup';
+}
+
+export function ElectionWorkbench({ targetId, sourceEvent, onTargetConsumed }: { targetId?: string; sourceEvent?: string; onTargetConsumed?: () => void }) {
+  const state = useElectionWorkbench(targetId);
   const [section, setSection] = useState<Section>('setup');
   const [createOpen, setCreateOpen] = useState(false);
   const overview = state.overview;
   const execution = state.execution;
+
+  useEffect(() => {
+    if (!targetId) return;
+    if (state.overview?.election.id === targetId) {
+      setSection(sectionForDeadline(sourceEvent));
+      document.querySelector<HTMLElement>('.election-selector-panel input, .election-selector-panel select')?.focus();
+      onTargetConsumed?.();
+    } else if (state.error) {
+      onTargetConsumed?.();
+    }
+  }, [targetId, sourceEvent, state.overview, state.error, onTargetConsumed]);
 
   async function journal() {
     if (!overview) return;

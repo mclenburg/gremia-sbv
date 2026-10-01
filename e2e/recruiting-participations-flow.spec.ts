@@ -66,6 +66,11 @@ test('tracks recruiting participation without case file and opens violation only
   await page.getByRole('button', { name: /Anhörung nachhalten/ }).click();
   await expect(page.locator('.industrial-live-region[role="status"]').filter({ hasText: /Wiedervorlage wurde angelegt/ })).toBeVisible();
 
+  await mainNavigation(page).getByRole('button', { name: 'Fristen', exact: true }).click();
+  await page.getByRole('table', { name: 'Offene Fristen und Wiedervorlagen' }).locator('tbody tr').filter({ hasText: 'Stellenbesetzung: Anhörung vor Auswahlentscheidung – E2E Fachadministration' }).getByRole('button', { name: 'Stellenbesetzung öffnen' }).click();
+  await expect(page.getByRole('region', { name: 'Stellenbesetzung Detail' })).toBeFocused();
+  await expect(page.getByRole('region', { name: 'Stellenbesetzung Detail' }).getByLabel(/Stelle \/ Bezeichnung/)).toHaveValue('E2E Fachadministration');
+
   await page.getByRole('button', { name: 'Beteiligungsverstoß prüfen', exact: true }).click();
   await expect(page.getByRole('heading', { name: /Beteiligungsverstöße/i }).first()).toBeVisible();
   await expect(page.getByLabel('Ausgangskontext', { exact: true })).toHaveValue('recruiting_participation');

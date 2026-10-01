@@ -39,6 +39,7 @@ const processFallbackView: Partial<Record<DeadlineProcessType, ViewId>> = {
 export type DeadlineOpenTarget =
   | { kind: 'case'; target: CaseNodeTarget }
   | { kind: 'person'; personId: string }
+  | { kind: 'record'; view: 'recruiting_participations' | 'elections'; recordId: string; sourceEvent?: string }
   | { kind: 'view'; view: ViewId };
 
 export type DeadlineContextInfo = {
@@ -85,6 +86,12 @@ export function resolveDeadlineOpenTarget(deadline: DeadlineRecord, measuresById
     return { kind: 'case', target: { caseId: deadline.caseId, nodeType: 'overview' } };
   }
 
+  if (deadline.processId && deadline.processType === 'recruiting_participation') {
+    return { kind: 'record', view: 'recruiting_participations', recordId: deadline.processId, sourceEvent: deadline.sourceEvent };
+  }
+  if (deadline.processId && deadline.processType === 'election') {
+    return { kind: 'record', view: 'elections', recordId: deadline.processId, sourceEvent: deadline.sourceEvent };
+  }
   return { kind: 'view', view: processFallbackView[deadline.processType] ?? 'deadlines' };
 }
 
@@ -129,7 +136,7 @@ export function resolveDeadlineContextInfo(
   return {
     primary: deadline.processType === 'custom' ? 'Allgemeine SBV-Aufgabe ohne Fallbezug' : processLabel,
     secondary: typeLabel,
-    actionLabel: openTarget.kind === 'view' && openTarget.view === 'deadlines' ? 'Fristenregister öffnen' : 'Vorgang öffnen',
+    actionLabel: openTarget.kind === 'record' ? deadline.processType === 'election' ? 'Wahlvorgang öffnen' : 'Stellenbesetzung öffnen' : openTarget.kind === 'view' && openTarget.view === 'deadlines' ? 'Fristenregister öffnen' : 'Vorgang öffnen',
     openTarget,
   };
 }

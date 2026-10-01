@@ -71,3 +71,30 @@ test('Wählerlistenarbeit wird im Tätigkeitsjournal als SBV-Wahl vorbelegt', as
   await expect(page.getByText('Vorbelegung übernommen.')).toBeVisible();
   await expect(page.getByText(/voter_list/)).toHaveCount(0);
 });
+
+test('öffnet eine Wahlfrist in der richtigen Wahlakte und im betroffenen Arbeitsbereich', async ({ page }) => {
+  await createElection(page);
+  const electionId = await page.evaluate(async () => {
+    const election = (await window.gremiaSbv.elections.list())[0];
+    await window.gremiaSbv.deadlines.create({
+      processId: election.id,
+      processType: 'election',
+      deadlineType: 'legal_deadline',
+      title: 'Wahlvorschläge Testfrist',
+      dueAt: new Date(Date.now() + 86_400_000).toISOString(),
+      sourceEvent: 'formal.proposal.submit',
+      severity: 'important',
+      calculationMode: 'legal',
+      isLegalDeadline: true,
+    });
+    return election.id;
+  });
+  await nav(page).getByRole('button', { name: 'Personen', exact: true }).click();
+  await page.getByRole('button', { name: /Ablauf prüfen/ }).click();
+  await expect(page.locator('.person-expiry-card [role="status"]')).toBeVisible();
+  await nav(page).getByRole('button', { name: 'Fristen', exact: true }).click();
+  await page.getByRole('table', { name: 'Offene Fristen und Wiedervorlagen' }).locator('tbody tr').filter({ hasText: 'Wahlvorschläge Testfrist' }).getByRole('button', { name: 'Wahlvorgang öffnen' }).click();
+
+  await expect(page.getByLabel('Wahlvorgang')).toHaveValue(electionId);
+  await expect(page.getByRole('navigation', { name: 'SBV-Wahl Arbeitsbereiche' }).getByRole('button', { name: /^Vorschläge\b/ })).toHaveAttribute('aria-current', 'page');
+});

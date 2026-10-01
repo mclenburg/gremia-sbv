@@ -18,7 +18,7 @@ function errorMessage(error: unknown, fallback: string): string {
   return error instanceof Error ? error.message : fallback;
 }
 
-export function useElectionWorkbench() {
+export function useElectionWorkbench(initialTargetId?: string) {
   const [elections, setElections] = useState<ElectionRecord[]>([]);
   const [selectedId, setSelectedId] = useState('');
   const [overview, setOverview] = useState<ElectionPreparationOverview | null>(null);
@@ -26,6 +26,7 @@ export function useElectionWorkbench() {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const selectedIdRef = useRef('');
+  const initialTargetIdRef = useRef(initialTargetId);
 
   const selectId = useCallback((id: string) => {
     selectedIdRef.current = id;
@@ -51,13 +52,19 @@ export function useElectionWorkbench() {
     setElections(list);
 
     const nextSelectedId = preferId || selectedIdRef.current || list[0]?.id || '';
+    if (preferId && !list.some((item) => item.id === preferId)) {
+      selectId('');
+      clearElectionDetails();
+      setError('Der Wahlvorgang zur Frist ist nicht mehr vorhanden.');
+      return;
+    }
     selectId(nextSelectedId);
     if (nextSelectedId) await loadElectionDetails(nextSelectedId);
     else clearElectionDetails();
   }, [clearElectionDetails, loadElectionDetails, selectId]);
 
   useEffect(() => {
-    void refresh().catch((loadError) => setError(errorMessage(loadError, 'Wahlbereich konnte nicht geladen werden.')));
+    void refresh(initialTargetIdRef.current).catch((loadError) => setError(errorMessage(loadError, 'Wahlbereich konnte nicht geladen werden.')));
   }, [refresh]);
 
   async function select(id: string) {
