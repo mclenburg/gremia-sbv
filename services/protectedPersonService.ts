@@ -69,6 +69,9 @@ export class ProtectedPersonService {
     const statusValidityChanged = input.statusValidUntil !== undefined && normalizeOptional(input.statusValidUntil) !== normalizeOptional(before.statusValidUntil);
     if (statusValidityChanged) {
       new DeadlineService(this.database).cancelAutomaticPersonStatusDeadlines(id);
+      if (merged.protectionStatus === 'expired' && (!merged.statusValidUntil || merged.statusValidUntil >= legalToday())) {
+        merged.protectionStatus = 'unclear';
+      }
       if (merged.lifecycleState === 'expiring_soon' || merged.lifecycleState === 'expired_review_required') {
         merged.lifecycleState = 'active';
         merged.expiryWarningCreatedAt = undefined;

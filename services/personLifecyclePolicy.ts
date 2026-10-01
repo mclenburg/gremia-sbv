@@ -28,7 +28,7 @@ export function decidePersonLifecycleTransition(
 ): PersonLifecycleDecision | null {
   const classification = classifyPersonStatusExpiry(person, referenceDate, warningDays);
   if (classification === 'none' && (person.lifecycleState === 'expiring_soon' || person.lifecycleState === 'expired_review_required')) {
-    return { lifecycleState: 'active', expiryWarningCreatedAt: '', expiryReviewDueAt: '' };
+    return { lifecycleState: 'active', ...(person.protectionStatus === 'expired' ? { protectionStatus: 'unclear' as const } : {}), expiryWarningCreatedAt: '', expiryReviewDueAt: '' };
   }
   if (classification === 'expired' && (person.lifecycleState !== 'expired_review_required' || person.protectionStatus !== 'expired')) {
     return {

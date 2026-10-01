@@ -68,4 +68,25 @@ describe('Statusablauffristen nach Korrektur des Personenstatus', () => {
       raw.close();
     }
   });
+
+  it('ersetzt einen überholten Ablaufstatus nach Korrektur nur durch einen prüfbaren unklaren Status', () => {
+    const raw = new DatabaseSync(':memory:');
+    try {
+      raw.exec(readFileSync('database/schema.sql', 'utf8'));
+      const database = new SqliteAdapter(raw);
+      const persons = new ProtectedPersonService(database);
+      const person = persons.create({ firstName: 'Mara', lastName: 'Beispiel', protectionStatus: 'equivalent', statusValidUntil: dateAfter(-2) });
+      const expiry = new PersonStatusExpiryService(database);
+      expiry.evaluate();
+      expect(persons.get(person.id)).toMatchObject({ protectionStatus: 'expired', lifecycleState: 'expired_review_required' });
+
+      persons.update(person.id, { statusValidUntil: dateAfter(90), protectionStatus: 'expired' });
+      expiry.evaluate();
+
+      expect(persons.get(person.id)).toMatchObject({ protectionStatus: 'unclear', lifecycleState: 'active' });
+      expect(raw.prepare("SELECT status FROM deadlines WHERE process_id = ? AND source_event = 'protected_person.status_expired_privacy_review'").get(person.id)).toMatchObject({ status: 'cancelled' });
+    } finally {
+      raw.close();
+    }
+  });
 });
