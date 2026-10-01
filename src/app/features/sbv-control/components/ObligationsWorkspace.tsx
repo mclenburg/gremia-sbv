@@ -1,13 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { IndustrialButton } from '../../../shared/components/IndustrialButton';
 import { DateInput, SelectInput, TextareaInput, TextInput } from '../../../shared/components/IndustrialForm';
 import { IndustrialHelpButton } from '../../../shared/help/IndustrialHelp';
 import { EMPLOYER_OBLIGATION_LABELS, type EmployerObligationReviewRecord, type InclusionOfficerSnapshotRecord, type SaveEmployerObligationReviewInput, type SaveInclusionOfficerSnapshotInput } from '../../../../domain/models/sbv-office-workflow.model';
 import { SbvControlPanel } from './SbvControlPanel';
 
-export function ObligationsWorkspace({ reviews, officers, onEnsure, onSaveReview, onSaveOfficer, onAttachEvidence }: {
+export function ObligationsWorkspace({ reviews, officers, selectedReviewId, onEnsure, onSaveReview, onSaveOfficer, onAttachEvidence }: {
   reviews: EmployerObligationReviewRecord[];
   officers: InclusionOfficerSnapshotRecord[];
+  selectedReviewId?: string;
   onEnsure: (year: number) => Promise<void>;
   onSaveReview: (input: SaveEmployerObligationReviewInput) => Promise<void>;
   onSaveOfficer: (input: SaveInclusionOfficerSnapshotInput) => Promise<void>;
@@ -17,6 +18,7 @@ export function ObligationsWorkspace({ reviews, officers, onEnsure, onSaveReview
   const latest = officers[0];
   const [selectedId, setSelectedId] = useState('');
   const review = reviews.find((item) => item.id === selectedId);
+  const reviewHeadingRef = useRef<HTMLHeadingElement>(null);
   const [finding, setFinding] = useState('');
   const [nextAction, setNextAction] = useState('');
   const [followUp, setFollowUp] = useState('');
@@ -29,6 +31,11 @@ export function ObligationsWorkspace({ reviews, officers, onEnsure, onSaveReview
     setNextAction(review?.nextAction ?? '');
     setFollowUp(review?.followUpDueAt?.slice(0, 10) ?? '');
   }, [review]);
+  useEffect(() => {
+    if (!selectedReviewId || !reviews.some((item) => item.id === selectedReviewId)) return;
+    setSelectedId(selectedReviewId);
+    requestAnimationFrame(() => reviewHeadingRef.current?.focus());
+  }, [reviews, selectedReviewId]);
   useEffect(() => {
     setOfficerName(latest?.name ?? '');
     setOfficerFunction(latest?.function ?? '');
@@ -58,7 +65,7 @@ export function ObligationsWorkspace({ reviews, officers, onEnsure, onSaveReview
       <section className="sbv-control-section" aria-labelledby="obligation-review-heading">
         <div className="sbv-control-section-heading-with-actions">
           <div>
-            <h3 id="obligation-review-heading">Prüfvorgang bearbeiten</h3>
+            <h3 id="obligation-review-heading" ref={reviewHeadingRef} tabIndex={-1}>Prüfvorgang bearbeiten</h3>
             <p>Unterlagen, Feststellung und notwendige Folgeaktion dokumentieren.</p>
           </div>
           {review ? <div className="industrial-action-row">

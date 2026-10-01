@@ -40,7 +40,8 @@ export type DeadlineOpenTarget =
   | { kind: 'case'; target: CaseNodeTarget }
   | { kind: 'person'; personId: string }
   | { kind: 'deadline'; deadlineId: string }
-  | { kind: 'record'; view: 'recruiting_participations' | 'elections' | 'activity_journal' | 'sbv_control' | 'participation_violations'; recordId: string; sourceEvent?: string }
+  | { kind: 'record'; view: 'recruiting_participations' | 'elections' | 'activity_journal' | 'participation_violations'; recordId: string; sourceEvent?: string }
+  | { kind: 'record'; view: 'sbv_control'; recordId: string; processType: 'sbv_control_protocol' | 'employer_obligation_review'; sourceEvent?: string }
   | { kind: 'view'; view: ViewId };
 
 export type DeadlineContextInfo = {
@@ -72,7 +73,7 @@ function generalActionLabel(openTarget: DeadlineOpenTarget): string {
   if (openTarget.kind === 'record') {
     if (openTarget.view === 'elections') return 'Wahlvorgang öffnen';
     if (openTarget.view === 'activity_journal') return 'Journaleintrag öffnen';
-    if (openTarget.view === 'sbv_control') return 'Protokoll öffnen';
+    if (openTarget.view === 'sbv_control') return openTarget.processType === 'employer_obligation_review' ? 'Prüfvorgang öffnen' : 'Protokoll öffnen';
     if (openTarget.view === 'participation_violations') return 'Beteiligungsverstoß öffnen';
     return 'Stellenbesetzung öffnen';
   }
@@ -113,7 +114,10 @@ export function resolveDeadlineOpenTarget(deadline: DeadlineRecord, measuresById
     return { kind: 'record', view: 'activity_journal', recordId: deadline.processId, sourceEvent: deadline.sourceEvent };
   }
   if (deadline.processId && deadline.processType === 'sbv_control_protocol') {
-    return { kind: 'record', view: 'sbv_control', recordId: deadline.processId, sourceEvent: deadline.sourceEvent };
+    return { kind: 'record', view: 'sbv_control', recordId: deadline.processId, processType: 'sbv_control_protocol', sourceEvent: deadline.sourceEvent };
+  }
+  if (deadline.processId && deadline.processType === 'employer_obligation_review') {
+    return { kind: 'record', view: 'sbv_control', recordId: deadline.processId, processType: 'employer_obligation_review', sourceEvent: deadline.sourceEvent };
   }
   if (deadline.processType === 'custom') {
     return { kind: 'deadline', deadlineId: deadline.id };

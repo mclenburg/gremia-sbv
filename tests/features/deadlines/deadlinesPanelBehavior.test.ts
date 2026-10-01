@@ -119,9 +119,17 @@ describe('Fristenpanel Verhalten 0.9.2', () => {
   it('öffnet Protokoll-Wiedervorlagen beim konkreten SBV-Protokoll', () => {
     const protocolDeadline = deadline({ caseId: undefined, processType: 'sbv_control_protocol', processId: 'protocol-1' });
     expect(resolveDeadlineOpenTarget(protocolDeadline)).toEqual({
-      kind: 'record', view: 'sbv_control', recordId: 'protocol-1', sourceEvent: undefined,
+      kind: 'record', view: 'sbv_control', recordId: 'protocol-1', processType: 'sbv_control_protocol', sourceEvent: undefined,
     });
     expect(resolveDeadlineContextInfo(protocolDeadline).actionLabel).toBe('Protokoll öffnen');
+  });
+
+  it('öffnet Arbeitgeberpflicht-Wiedervorlagen beim konkreten Prüfvorgang', () => {
+    const reviewDeadline = deadline({ caseId: undefined, processType: 'employer_obligation_review', processId: 'review-1' });
+    expect(resolveDeadlineOpenTarget(reviewDeadline)).toEqual({
+      kind: 'record', view: 'sbv_control', recordId: 'review-1', processType: 'employer_obligation_review', sourceEvent: undefined,
+    });
+    expect(resolveDeadlineContextInfo(reviewDeadline).actionLabel).toBe('Prüfvorgang öffnen');
   });
 
   it('öffnet eine fallbezogene Verstoß-Wiedervorlage beim Verstoß statt in der Fallübersicht', () => {

@@ -18,7 +18,7 @@ import { SbvOfficeSections } from './components/SbvOfficeSections';
 import { ProtocolSection } from './components/ProtocolSection';
 import { useSbvResources } from './hooks/useSbvResources';
 import { useSbvControlProtocols, useSbvControlProtocolTarget } from './hooks/useSbvControlProtocols';
-import { useSbvOfficeWorkflows } from './hooks/useSbvOfficeWorkflows';
+import { useSbvOfficeWorkflows, useEmployerObligationTarget } from './hooks/useSbvOfficeWorkflows';
 import {
   countCriticalParticipation,
   buildSbvControlReportHints,
@@ -32,6 +32,7 @@ type SbvControlViewProps = {
   onNavigate?: (viewId: ViewId) => void;
   initialSection?: ControlSectionId;
   targetProtocolId?: string;
+  targetObligationId?: string;
   onTargetConsumed?: () => void;
 };
 
@@ -41,6 +42,7 @@ export function SbvControlView({
   onNavigate,
   initialSection = 'resources',
   targetProtocolId,
+  targetObligationId,
   onTargetConsumed,
 }: SbvControlViewProps) {
   const [participations, setParticipations] = useState<ParticipationRecord[]>([]);
@@ -55,6 +57,7 @@ export function SbvControlView({
   const { loadProtocols } = protocolsState;
   const { load: loadOfficeWorkflows } = officeState;
   useSbvControlProtocolTarget({ targetProtocolId, onTargetConsumed, protocolsLoaded, protocolsState, setActiveSection, setError });
+  const selectedObligationId = useEmployerObligationTarget({ targetId: targetObligationId, onTargetConsumed, loaded: officeState.loaded, reviews: officeState.obligations, setActiveSection, setError });
 
   useEffect(() => {
     let active = true;
@@ -85,10 +88,9 @@ export function SbvControlView({
     };
   }, [cases.length, loadResources, loadProtocols, loadOfficeWorkflows]);
 
-  const openDeadlines = deadlines.filter((deadline) => deadline.status !== 'done').length;
   const criticalParticipation = useMemo(() => countCriticalParticipation(participations), [participations]);
   const privacyReviewCases = cases.filter((item) => item.privacyReviewRequired).length;
-  const reportHints = buildSbvControlReportHints(cases.length, participations.length, protocolsState.protocols.length, openDeadlines, privacyReviewCases);
+  const reportHints = buildSbvControlReportHints(cases.length, participations.length, protocolsState.protocols.length, deadlines.filter((item) => item.status !== 'done').length, privacyReviewCases);
 
   const sectionTabs = buildSbvControlSections({
     resources: resourcesState.resources.length, meetings: officeState.meetings.length, assemblies: officeState.assemblies.length, assemblyWarning: officeState.assemblyWarning,
@@ -167,7 +169,7 @@ export function SbvControlView({
         {activeSection === 'participation' && (
           <ParticipationPanel participations={participations} onNavigate={onNavigate} />
         )}
-        <SbvOfficeSections activeSection={activeSection} cases={cases} state={officeState} onNotice={setNotice} />
+        <SbvOfficeSections activeSection={activeSection} cases={cases} state={officeState} onNotice={setNotice} selectedObligationId={selectedObligationId} />
         {activeSection === 'reports' && (
           <ReportsPanel reportHints={reportHints} onNavigate={onNavigate} />
         )}

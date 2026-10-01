@@ -1,5 +1,6 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react';
 import { waitForBridge } from '../../../core/bridge/waitForBridge';
+import type { ControlSectionId } from '../sbvControlSections';
 import type {
   ComplaintWorkflowRecord,
   EmployerObligationReviewRecord,
@@ -11,6 +12,7 @@ import type {
 } from '../../../../domain/models/sbv-office-workflow.model';
 
 export function useSbvOfficeWorkflows() {
+  const [loaded, setLoaded] = useState(false);
   const [assemblyWarning, setAssemblyWarning] = useState(false);
   const [meetings, setMeetings] = useState<SbvMeetingRecord[]>([]);
   const [assemblies, setAssemblies] = useState<SbvAssemblyRecord[]>([]);
@@ -59,9 +61,11 @@ export function useSbvOfficeWorkflows() {
     setComplaints(loadedComplaints);
     setTemplates(loadedTemplates);
     setAssemblyWarning(warning);
+    setLoaded(true);
   }, []);
 
   return {
+    loaded,
     meetings,
     assemblies,
     assemblyWarning,
@@ -73,4 +77,31 @@ export function useSbvOfficeWorkflows() {
     load,
     bridge,
   };
+}
+
+export function useEmployerObligationTarget({ targetId, onTargetConsumed, loaded, reviews, setActiveSection, setError }: {
+  targetId?: string;
+  onTargetConsumed?: () => void;
+  loaded: boolean;
+  reviews: EmployerObligationReviewRecord[];
+  setActiveSection: Dispatch<SetStateAction<ControlSectionId>>;
+  setError: Dispatch<SetStateAction<string>>;
+}) {
+  const [selectedId, setSelectedId] = useState<string>();
+  const onTargetConsumedRef = useRef(onTargetConsumed);
+  useEffect(() => { onTargetConsumedRef.current = onTargetConsumed; }, [onTargetConsumed]);
+  useEffect(() => {
+    if (!targetId) return;
+    setActiveSection('obligations');
+    if (!loaded) return;
+    if (reviews.some((review) => review.id === targetId)) {
+      setSelectedId(targetId);
+      setError('');
+    } else {
+      setSelectedId(undefined);
+      setError('Der verknüpfte Prüfvorgang ist nicht mehr vorhanden. Prüfen Sie die Wiedervorlage im Fristenregister.');
+    }
+    onTargetConsumedRef.current?.();
+  }, [loaded, reviews, setActiveSection, setError, targetId]);
+  return selectedId;
 }

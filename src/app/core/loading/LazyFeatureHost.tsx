@@ -72,6 +72,7 @@ export function LazyFeatureHost({ view, cases, measures = [], persons = [], them
     onNavigate?: (viewId: ViewId) => void;
     initialSection?: "meetings";
     targetProtocolId?: string;
+    targetObligationId?: string;
     onTargetConsumed?: () => void;
   }>>;
   return (
@@ -88,7 +89,9 @@ export function LazyFeatureHost({ view, cases, measures = [], persons = [], them
         <CaseNodeFeature cases={cases} onOpenCaseNode={onOpenCaseNode} />
       ) : view === "sbv_control" || view === "meetings" ? (
         <SbvControlFeature cases={cases} deadlines={deadlines} onNavigate={onNavigate} initialSection={view === "meetings" ? "meetings" : undefined}
-          targetProtocolId={recordTarget?.view === 'sbv_control' ? recordTarget.recordId : undefined} onTargetConsumed={onRecordTargetConsumed} />
+          targetProtocolId={recordTarget?.view === 'sbv_control' && recordTarget.processType === 'sbv_control_protocol' ? recordTarget.recordId : undefined}
+          targetObligationId={recordTarget?.view === 'sbv_control' && recordTarget.processType === 'employer_obligation_review' ? recordTarget.recordId : undefined}
+          onTargetConsumed={onRecordTargetConsumed} />
       ) : view === "settings" ? (
         <SettingsFeature theme={theme} onThemeChange={onThemeChange} />
       ) : view === "privacy_review" && onNavigate && onOpenCaseNode ? (
