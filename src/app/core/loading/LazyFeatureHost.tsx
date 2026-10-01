@@ -72,7 +72,7 @@ export function LazyFeatureHost({ view, cases, measures = [], persons = [], them
     onNavigate?: (viewId: ViewId) => void;
     initialSection?: "meetings";
     targetProtocolId?: string;
-    targetOffice?: { recordId: string; processType: 'employer_obligation_review' | 'inclusion_agreement' | 'sbv_assembly'; sourceEvent?: string };
+    targetOffice?: { recordId: string; processType: 'employer_obligation_review' | 'inclusion_agreement' | 'sbv_assembly' | 'sbv_meeting'; sourceEvent?: string };
     onTargetConsumed?: () => void;
   }>>;
   return (
@@ -90,8 +90,10 @@ export function LazyFeatureHost({ view, cases, measures = [], persons = [], them
       ) : view === "sbv_control" || view === "meetings" ? (
         <SbvControlFeature cases={cases} deadlines={deadlines} onNavigate={onNavigate} initialSection={view === "meetings" ? "meetings" : undefined}
           targetProtocolId={recordTarget?.view === 'sbv_control' && recordTarget.processType === 'sbv_control_protocol' ? recordTarget.recordId : undefined}
-          targetOffice={recordTarget?.view === 'sbv_control' && (recordTarget.processType === 'employer_obligation_review' || recordTarget.processType === 'inclusion_agreement' || recordTarget.processType === 'sbv_assembly')
-            ? { recordId: recordTarget.recordId, processType: recordTarget.processType, sourceEvent: recordTarget.sourceEvent } : undefined}
+          targetOffice={recordTarget?.view === 'meetings'
+            ? { recordId: recordTarget.recordId, processType: 'sbv_meeting', sourceEvent: recordTarget.sourceEvent }
+            : recordTarget?.view === 'sbv_control' && (recordTarget.processType === 'employer_obligation_review' || recordTarget.processType === 'inclusion_agreement' || recordTarget.processType === 'sbv_assembly')
+              ? { recordId: recordTarget.recordId, processType: recordTarget.processType, sourceEvent: recordTarget.sourceEvent } : undefined}
           onTargetConsumed={onRecordTargetConsumed} />
       ) : view === "settings" ? (
         <SettingsFeature theme={theme} onThemeChange={onThemeChange} />

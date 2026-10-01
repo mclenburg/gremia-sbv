@@ -57,7 +57,7 @@ export function SbvControlView({
   const { loadProtocols } = protocolsState;
   const { load: loadOfficeWorkflows } = officeState;
   useSbvControlProtocolTarget({ targetProtocolId, onTargetConsumed, protocolsLoaded, protocolsState, setActiveSection, setError });
-  const selectedOfficeTarget = useSbvOfficeRecordTarget({ target: targetOffice, onTargetConsumed, loaded: officeState.loaded, obligations: officeState.obligations, agreements: officeState.agreements, assemblies: officeState.assemblies, setActiveSection, setError });
+  const selectedOfficeTarget = useSbvOfficeRecordTarget({ target: targetOffice, onTargetConsumed, loaded: officeState.loaded, obligations: officeState.obligations, agreements: officeState.agreements, assemblies: officeState.assemblies, meetings: officeState.meetings, setActiveSection, setError });
 
   useEffect(() => {
     let active = true;

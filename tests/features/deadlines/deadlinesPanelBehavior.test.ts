@@ -148,6 +148,14 @@ describe('Fristenpanel Verhalten 0.9.2', () => {
     expect(resolveDeadlineContextInfo(assemblyDeadline).actionLabel).toBe('Versammlung öffnen');
   });
 
+  it('öffnet Sitzungsfristen beim konkreten Tagesordnungspunkt', () => {
+    const agendaDeadline = deadline({ caseId: undefined, processType: 'sbv_meeting', processId: 'agenda-2', sourceEvent: 'Beschlussfassung' });
+    expect(resolveDeadlineOpenTarget(agendaDeadline)).toEqual({
+      kind: 'record', view: 'meetings', recordId: 'agenda-2', processType: 'sbv_meeting', sourceEvent: 'Beschlussfassung',
+    });
+    expect(resolveDeadlineContextInfo(agendaDeadline).actionLabel).toBe('Tagesordnungspunkt öffnen');
+  });
+
   it('öffnet eine fallbezogene Verstoß-Wiedervorlage beim Verstoß statt in der Fallübersicht', () => {
     const violationDeadline = deadline({
       caseId: 'case-1', processType: 'sbv_participation_violation', processId: 'violation-1',

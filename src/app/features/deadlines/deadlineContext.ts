@@ -41,6 +41,7 @@ export type DeadlineOpenTarget =
   | { kind: 'person'; personId: string }
   | { kind: 'deadline'; deadlineId: string }
   | { kind: 'record'; view: 'recruiting_participations' | 'elections' | 'activity_journal' | 'participation_violations'; recordId: string; sourceEvent?: string }
+  | { kind: 'record'; view: 'meetings'; recordId: string; processType: 'sbv_meeting'; sourceEvent?: string }
   | { kind: 'record'; view: 'sbv_control'; recordId: string; processType: 'sbv_control_protocol' | 'employer_obligation_review' | 'inclusion_agreement' | 'sbv_assembly'; sourceEvent?: string }
   | { kind: 'view'; view: ViewId };
 
@@ -73,6 +74,7 @@ function generalActionLabel(openTarget: DeadlineOpenTarget): string {
   if (openTarget.kind === 'record') {
     if (openTarget.view === 'elections') return 'Wahlvorgang öffnen';
     if (openTarget.view === 'activity_journal') return 'Journaleintrag öffnen';
+    if (openTarget.view === 'meetings') return 'Tagesordnungspunkt öffnen';
     if (openTarget.view === 'sbv_control') {
       if (openTarget.processType === 'employer_obligation_review') return 'Prüfvorgang öffnen';
       if (openTarget.processType === 'sbv_assembly') return 'Versammlung öffnen';
@@ -128,6 +130,9 @@ export function resolveDeadlineOpenTarget(deadline: DeadlineRecord, measuresById
   }
   if (deadline.processId && deadline.processType === 'sbv_assembly') {
     return { kind: 'record', view: 'sbv_control', recordId: deadline.processId, processType: 'sbv_assembly', sourceEvent: deadline.sourceEvent };
+  }
+  if (deadline.processId && deadline.processType === 'sbv_meeting') {
+    return { kind: 'record', view: 'meetings', recordId: deadline.processId, processType: 'sbv_meeting', sourceEvent: deadline.sourceEvent };
   }
   if (deadline.processType === 'custom') {
     return { kind: 'deadline', deadlineId: deadline.id };
