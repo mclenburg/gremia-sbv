@@ -22,7 +22,7 @@ import {
 } from '../../shared/components/WorkbenchLayout';
 import { formatDateShort } from '../../shared/format/dates';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
-import { getParticipationActionLabels, getParticipationDocumentRequirements, getParticipationEscalationAdvice } from './participationPolicy';
+import { countParticipationCriticalIssues, getParticipationActionLabels, getParticipationDocumentRequirements, getParticipationEscalationAdvice, getParticipationSummary } from './participationPolicy';
 
 const measureLabels: Record<ParticipationMeasureType, string> = {
   einstellung: 'Einstellung',
@@ -74,11 +74,6 @@ function caseLabel(record: CaseRecord | undefined): string {
   return `${record.caseNumber} · ${record.displayName}`;
 }
 
-function isOpenStatus(status: ParticipationStatus): boolean {
-  return !['abgeschlossen', 'pflichtverstoss_dokumentiert'].includes(status);
-}
-
-
 function ParticipationLegalViolationWarning({ record }: { record: ParticipationRecord }) {
   if (record.status !== 'pflichtverstoss_dokumentiert') return null;
 
@@ -95,14 +90,6 @@ function ParticipationLegalViolationWarning({ record }: { record: ParticipationR
       {record.violationSummary && <p><strong>Dokumentierter Anlass:</strong> {record.violationSummary}</p>}
     </section>
   );
-}
-
-function criticalCount(record: ParticipationRecord): number {
-  let count = 0;
-  if (!record.informationComplete) count += 1;
-  if ((record.decisionStage === 'entscheidung_getroffen' || record.decisionStage === 'umgesetzt') && !record.hearingBeforeDecision) count += 1;
-  if (record.suspensionDueAt && record.status === 'aussetzung_verlangt' && new Date(record.suspensionDueAt) < new Date()) count += 1;
-  return count;
 }
 
 export function ParticipationView({
@@ -144,12 +131,7 @@ export function ParticipationView({
     if (error) announce(error, 'assertive');
   }, [error, announce]);
 
-  const stats = useMemo(() => ({
-    open: records.filter((record) => isOpenStatus(record.status)).length,
-    critical: records.filter((record) => record.riskLevel === 'kritisch' || criticalCount(record) > 0).length,
-    suspensions: records.filter((record) => record.status === 'aussetzung_verlangt').length,
-    violations: records.filter((record) => record.status === 'pflichtverstoss_dokumentiert').length
-  }), [records]);
+  const stats = useMemo(() => getParticipationSummary(records), [records]);
 
   const selectedCase = selected ? cases.find((item) => item.id === selected.caseId) : undefined;
   const selectedAdvice = selected ? getParticipationEscalationAdvice(selected) : null;
@@ -164,7 +146,7 @@ export function ParticipationView({
         items={[
           { label: 'offen', value: stats.open },
           { label: 'kritisch', value: stats.critical, tone: stats.critical > 0 ? 'danger' : 'default' },
-          { label: 'Aussetzungen', value: stats.suspensions, tone: stats.suspensions > 0 ? 'warning' : 'default' },
+          { label: 'Aussetzungen', value: stats.suspensionOpen, tone: stats.suspensionOpen > 0 ? 'warning' : 'default' },
           { label: 'Pflichtverstöße', value: stats.violations, tone: stats.violations > 0 ? 'danger' : 'default' }
         ]}
         actions={(
@@ -178,7 +160,7 @@ export function ParticipationView({
           {records.length === 0 && !loading && <div className="industrial-empty-state">Noch keine Beteiligungsprüfung angelegt.</div>}
           {records.map((record) => {
             const relatedCase = cases.find((item) => item.id === record.caseId);
-            const critical = criticalCount(record);
+            const critical = countParticipationCriticalIssues(record);
             return (
               <GhostButton key={record.id} className={`participation-card ${selected?.id === record.id ? 'participation-card-active' : ''}`} onClick={() => setSelectedId(record.id)}>
                 <span className="participation-card-title">{record.title}</span>
