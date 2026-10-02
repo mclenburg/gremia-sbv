@@ -1,4 +1,4 @@
-# 16 Stellenbesetzungen
+# Stellenbesetzungen
 
 Das Modul **Stellenbesetzungen** dokumentiert fallaktenunabhängig, ob die SBV bei Bewerbungen schwerbehinderter oder gleichgestellter Menschen im Verfahren beteiligt wurde. Es ist keine Bewerberakte und kein Gesprächsprotokoll.
 
@@ -14,6 +14,10 @@ Erfasst wird der Verfahrensstand:
 - ob eine Nachhaltung oder Verstoßprüfung erforderlich ist.
 
 Nicht dokumentiert werden Gesprächsinhalte, Diagnosen, Eignungsbewertungen oder private Umstände der Bewerberinnen und Bewerber.
+
+## Verfahren finden
+
+Die Liste lässt sich über **Stellenbesetzungen suchen** nach Stellenbezeichnung, Kennziffer, Organisationseinheit oder Ort durchsuchen. Mit **Status filtern** begrenzt du die Anzeige auf **Alle**, **Offen** oder **Abgeschlossen**. Die Trefferzahl und ein Leerzustand zeigen an, ob die Auswahl Ergebnisse enthält. Öffne einen Eintrag aus der Liste, um das konkrete Verfahren zu bearbeiten.
 
 ## Vorstellungsgespräch als Beteiligungsereignis
 

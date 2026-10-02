@@ -110,7 +110,7 @@ Nach einem Abschluss lassen sich Evaluation und dokumentierte Übermittlungen na
 
 Unter **Nachweise** dokumentierst du Ressourcen der SBV wie Schulungen, Heranziehungen und Sachmittel. Der Bereich dient der eigenen Nachweisführung und Nachhaltung.
 
-Der Arbeitsbereich **Berichte** unterstützt die Vorbereitung eines Tätigkeitsberichts mit Kennzahlen und Hinweisen aus den vorhandenen Arbeitsbeständen. Er ersetzt keine fachliche Prüfung des späteren Berichtsinhalts.
+Der Arbeitsbereich **Berichte** erzeugt den Tätigkeitsbericht aus der zuvor verifizierten Auditkette. Er enthält aggregierte Kennzahlen statt vertraulicher Falltexte. Prüfe den Bericht vor einer Weitergabe fachlich und insbesondere bei kleinen Fallzahlen auf mögliche Rückschlüsse auf Einzelpersonen.
 
 ## Datenschutzgrenzen
 

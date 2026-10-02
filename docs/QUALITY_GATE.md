@@ -78,7 +78,7 @@ Die taggebundene GitHub-Action ist bewusst auf schnelle, günstige Gates begrenz
 npm run release:local-e2e
 ```
 
-Dieses lokale Gate führt die isolierte Playwright-/Axe-Installation sowie Visual-, Core-UI-, Complete-Tour- und Accessibility-E2E-Tests aus. Ein Release-Tag darf erst gesetzt werden, wenn dieses Gate lokal grün war.
+Dieses lokale Gate installiert die isolierten Playwright-/Axe-Werkzeuge und führt die Projekte `ui-flows`, `visual-a11y` und `isolated-browser` aus. Sie decken Nutzerflüsse einschließlich Produkttour sowie Visual-, Responsive- und Accessibility-Prüfungen ab. Ein Release-Tag darf erst gesetzt werden, wenn dieses Gate lokal grün war. Der zusätzliche Lauf `npm run test:e2e:full-product` prüft die gepackte Desktop-Anwendung mit isolierten Test-Tresoren.
 
 Zusätzlich gehört zur Freigabe vor öffentlicher Bereitstellung der schnelle Backup-/Restore-Prozesscheck:
 

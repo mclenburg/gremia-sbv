@@ -2,7 +2,7 @@
 
 **Gremia.SBV ist ein geschützter Arbeitsraum für Schwerbehindertenvertretungen.**
 
-Die Anwendung unterstützt SBVen dabei, vertrauliche Beratung, Fallakten, Fristen, BEM, Prävention, Beteiligungen, Kündigungsanhörungen, Arbeitsplatzgestaltung, Vorlagen, Berichte und Übergaben an einem Ort zu organisieren. Alles läuft lokal auf dem eigenen Gerät. Es gibt keine Cloudpflicht, keine Telemetrie und keine Hintergrundverbindungen.
+Die Anwendung unterstützt SBVen dabei, vertrauliche Beratung, Fallakten, Fristen, BEM, Prävention, Beteiligungen, Kündigungsanhörungen, Arbeitsplatzgestaltung, Stellenbesetzungen, Wahlen, Dokumentation und Übergaben an einem Ort zu organisieren. Der geschützte Arbeitsbestand liegt lokal auf dem eigenen Gerät. Es gibt keine Cloudpflicht und keine Telemetrie. Die optionale Gremia.BR-Anbindung ist standardmäßig ausgeschaltet.
 
 Der öffentliche Einstieg richtet sich zuerst an Anwenderinnen und Anwender. Technische Hintergründe, Architekturentscheidungen und Entwicklungsdetails liegen unter [`docs/`](docs/README.md).
 
@@ -63,9 +63,15 @@ Dokumente können lokal abgelegt und über die Suche wiedergefunden werden. Vorl
 
 Berichte, Tätigkeitsnachweise und Strukturinformationen helfen, SBV-Arbeit nachvollziehbar zu machen – für die eigene Arbeit, für Vertretung und für spätere Auswertung.
 
+### Stellenbesetzungen und Wahlen begleiten
+
+Stellenbesetzungen halten die SBV-Beteiligung im Verfahren nach, ohne eine Bewerberakte anzulegen. Wahlakten unterstützen Vorbereitung, Durchführung, Abschluss und Nachweise einer SBV-Wahl.
+
 ### Fälle sicher übergeben
 
 Für Urlaubsvertretung, Krankheit oder Amtswechsel können ausgewählte Fallakten mit den erforderlichen Maßnahmen, Fristen, Notizen und Dokumenten als verschlüsseltes `.gsbvtransfer`-Paket exportiert und in einer eigenständigen Gremia.SBV-Instanz importiert werden.
+
+Für kurze mobile Arbeitssituationen gibt es außerdem die Android-Begleit-App. Sie erhält nur eine ausgewählte Arbeitsprojektion; der Desktop-Tresor bleibt führend. Die Bedienung ist im [Benutzerhandbuch](docs/handbuch/README.md) beschrieben.
 
 ## Gremia.SBV gefahrlos ausprobieren: Demo-Modus
 
@@ -106,7 +112,7 @@ Gremia.SBV behandelt SBV-Daten so, wie SBV-Daten behandelt werden müssen: lokal
 
 Die wichtigsten Punkte:
 
-- **Offline-first:** keine Hintergrundverbindungen und keine Cloudpflicht.
+- **Offline-first:** ohne Cloudpflicht und ohne Netzwerkabrufe im Standardbetrieb. Die Gremia.BR-Brücke und ihr einmaliger Startabruf müssen bewusst aktiviert werden.
 - **Lokaler Tresor:** Daten liegen in einem verschlüsselten SQLCipher-Vault auf dem eigenen Gerät.
 - **Keine Telemetrie:** die Anwendung sendet keine Nutzungsdaten an Dritte.
 - **Datenschutzpfade:** Löschung, Anonymisierung, Retention, Audit und Suchindex werden gemeinsam betrachtet.
@@ -116,13 +122,9 @@ Die wichtigsten Punkte:
 
 Details stehen im [Datenschutz- und Sicherheitskonzept](docs/PRIVACY_AND_SECURITY.md). Unterlagen für Datenschutzbeauftragte und IT-Security sind in [FREIGABE_DSB_IT_SECURITY.md](docs/FREIGABE_DSB_IT_SECURITY.md) gebündelt.
 
-## Was Gremia.SBV bewusst nicht ist
-
-Gremia.SBV ist keine Personalakte, kein HR-System und keine Cloud-Plattform. Die Anwendung ersetzt keine rechtliche Beratung, keine Beschlussfassung des Betriebsrats und keine organisatorische Datenschutzfreigabe. Sie unterstützt die SBV dabei, ihre eigene Arbeit sauber, vertraulich und nachvollziehbar zu organisieren.
-
 ## Fachliche Grenzen und Betriebsvoraussetzungen
 
-Gremia.SBV unterstützt vertrauliche SBV-Arbeit, ersetzt aber keine organisatorische Freigabe, keine rechtliche Einzelfallprüfung und keine Verantwortung der SBV für datensparsame Dokumentation. Vor Einführung sollten die fachlichen Grenzen, Betriebsgrenzen und Prüfpunkte bewusst gelesen werden: [Betriebsgrenzen und Prüfpunkte](docs/BETRIEBSGRENZEN.md).
+Gremia.SBV ist ein Arbeitsmittel der SBV, keine Personalakte und kein HR-System. Es ersetzt weder rechtliche Einzelfallprüfung noch organisatorische Datenschutzfreigabe oder die Verantwortung der SBV für datensparsame Dokumentation. Vor Einführung sollten die [Betriebsgrenzen und Prüfpunkte](docs/BETRIEBSGRENZEN.md) gelesen werden.
 
 ## Hinweise zu Signaturen und Sicherheitswarnungen
 
@@ -132,7 +134,7 @@ Die Code-Signing-Strategie steht in [CODE_SIGNING.md](docs/CODE_SIGNING.md).
 
 ## Optional: Gremia.BR-Kooperationsbrücke
 
-Gremia.SBV kann eine **optionale, standardmäßig deaktivierte Kooperationsbrücke** zu Gremia.BR nutzen. Die SBV arbeitet dort als eigenes berechtigtes Gremium mit eigenem Arbeitsbereich. In Gremia.SBV werden Aktionen ausdrücklich im Gremia.BR-Bereich ausgelöst: BR-Sitzungen können als lokale SBV-Arbeitskopie übernommen werden, Tagesordnungspunkt-Anforderungen können an Gremia.BR übergeben werden und aus Gremia.SBV erzeugte PDF-Dokumente können bewusst in den SBV-Arbeitsbereich von Gremia.BR übertragen werden. Es gibt keine Hintergrundsynchronisation und keine Produktpflicht in eine Richtung.
+Gremia.SBV kann eine **optionale, standardmäßig deaktivierte Kooperationsbrücke** zu Gremia.BR nutzen. Die SBV arbeitet dort als eigenes berechtigtes Gremium mit eigenem Arbeitsbereich. Abrufe und gezielte Übergaben werden ausdrücklich ausgelöst; nur ein einmaliger Abruf nach dem Entsperren beim Programmstart kann separat aktiviert werden und ist standardmäßig ausgeschaltet. BR-Sitzungen können als lokale SBV-Arbeitskopie übernommen werden, Tagesordnungspunkt-Anforderungen können an Gremia.BR übergeben werden und aus Gremia.SBV erzeugte PDF-Dokumente können bewusst in den SBV-Arbeitsbereich von Gremia.BR übertragen werden. Es gibt keine laufende Hintergrundsynchronisation.
 
 ## Für Mitentwickler
 
