@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, BriefcaseBusiness, CheckCircle2, Clock3, RefreshCw, ShieldCheck, TimerReset } from 'lucide-react';
+import { AlertTriangle, BriefcaseBusiness, CheckCircle2, Clock3, ShieldCheck, TimerReset } from 'lucide-react';
 import type { CaseMeasureRecord, CaseRecord, DeadlineDashboardItem, DeadlineRecord } from '../../appTypes';
 import type { ActivityJournalSummary } from '../../../domain/models/activity-journal.model';
 import { DeadlineDashboardPanel } from '../deadlines/DeadlineDashboardPanel';

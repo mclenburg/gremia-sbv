@@ -68,7 +68,7 @@ export class SbvElectionService{
   const firstDataIndex=input.firstDataRowIndex??1;
   let imported=0,skipped=0;
   const warnings:string[]=[];
-  new DatabaseUnitOfWork(this.database).run(()=>{for(const [index,rowObject] of parsed.objects.slice(Math.max(0,firstDataIndex-1)).entries()){
+  new DatabaseUnitOfWork(this.database).run(()=>{for(const rowObject of parsed.objects.slice(Math.max(0,firstDataIndex-1))){
     const mapped=buildPersonInput(rowObject,input.mapping);
     const status=mapped.input.protectionStatus;
     if(mapped.validationErrors.length||mapped.input.employmentState==='left_company'||(status!=='severely_disabled'&&status!=='equivalent')){skipped+=1;continue;}
