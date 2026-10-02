@@ -57,6 +57,33 @@ export function KnowledgeRegisterPanel({ norms, selectedNormId, onSelectNorm }: 
   );
 }
 
+type KnowledgeDetailPanelProps = {
+  selectedNorm?: LegalNormRecord;
+  cases: CaseRecord[];
+  linkCaseId: string;
+  caseReferences: CaseLegalReferenceRecord[];
+  checklist: NormChecklistItemRecord[];
+  comments: NormCommentRecord[];
+  caseLaw: CaseLawRecord[];
+  checklistText: string;
+  commentTitle: string;
+  commentText: string;
+  caseLawCourt: string;
+  caseLawFileNumber: string;
+  caseLawHolding: string;
+  onLinkCaseIdChange: (value: string) => void;
+  onLinkSelectedNormToCase: () => void | Promise<void>;
+  onChecklistTextChange: (value: string) => void;
+  onCommentTitleChange: (value: string) => void;
+  onCommentTextChange: (value: string) => void;
+  onCaseLawCourtChange: (value: string) => void;
+  onCaseLawFileNumberChange: (value: string) => void;
+  onCaseLawHoldingChange: (value: string) => void;
+  onCreateChecklistItem: (event: FormEvent<HTMLFormElement>) => void | Promise<void>;
+  onCreateComment: (event: FormEvent<HTMLFormElement>) => void | Promise<void>;
+  onCreateCaseLaw: (event: FormEvent<HTMLFormElement>) => void | Promise<void>;
+};
+
 export function KnowledgeDetailPanel({
   selectedNorm,
   cases,
@@ -82,32 +109,7 @@ export function KnowledgeDetailPanel({
   onCreateChecklistItem,
   onCreateComment,
   onCreateCaseLaw
-}: {
-  selectedNorm?: LegalNormRecord;
-  cases: CaseRecord[];
-  linkCaseId: string;
-  caseReferences: CaseLegalReferenceRecord[];
-  checklist: NormChecklistItemRecord[];
-  comments: NormCommentRecord[];
-  caseLaw: CaseLawRecord[];
-  checklistText: string;
-  commentTitle: string;
-  commentText: string;
-  caseLawCourt: string;
-  caseLawFileNumber: string;
-  caseLawHolding: string;
-  onLinkCaseIdChange: (value: string) => void;
-  onLinkSelectedNormToCase: () => void | Promise<void>;
-  onChecklistTextChange: (value: string) => void;
-  onCommentTitleChange: (value: string) => void;
-  onCommentTextChange: (value: string) => void;
-  onCaseLawCourtChange: (value: string) => void;
-  onCaseLawFileNumberChange: (value: string) => void;
-  onCaseLawHoldingChange: (value: string) => void;
-  onCreateChecklistItem: (event: FormEvent<HTMLFormElement>) => void | Promise<void>;
-  onCreateComment: (event: FormEvent<HTMLFormElement>) => void | Promise<void>;
-  onCreateCaseLaw: (event: FormEvent<HTMLFormElement>) => void | Promise<void>;
-}) {
+}: KnowledgeDetailPanelProps) {
   return (
     <section className="industrial-panel knowledge-detail-panel">
       {!selectedNorm && <div className="industrial-empty">Norm auswählen.</div>}

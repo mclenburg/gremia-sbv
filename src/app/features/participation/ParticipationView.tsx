@@ -69,25 +69,6 @@ const decisionStageLabels: Record<ParticipationDecisionStage, string> = {
   unklar: 'unklar'
 };
 
-const measureOrder = Object.keys(measureLabels) as ParticipationMeasureType[];
-const statusOrder = Object.keys(statusLabels) as ParticipationStatus[];
-const riskOrder = Object.keys(riskLabels) as ParticipationRiskLevel[];
-const personStatusOrder = Object.keys(personStatusLabels) as ParticipationPersonStatus[];
-const decisionStageOrder = Object.keys(decisionStageLabels) as ParticipationDecisionStage[];
-
-function toDateTimeLocal(iso?: string): string {
-  if (!iso) return '';
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return '';
-  const offset = date.getTimezoneOffset();
-  const local = new Date(date.getTime() - offset * 60_000);
-  return local.toISOString().slice(0, 16);
-}
-
-function fromDateTimeLocal(value: string): string | undefined {
-  return value ? new Date(value).toISOString() : undefined;
-}
-
 function caseLabel(record: CaseRecord | undefined): string {
   if (!record) return 'Fall nicht auflösbar';
   return `${record.caseNumber} · ${record.displayName}`;
