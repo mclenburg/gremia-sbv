@@ -14,21 +14,7 @@ import type {
   SbvParticipationViolationTemplateValidationResult,
   UpdateSbvParticipationViolationInput,
 } from "../../src/domain/models/sbv-participation-violation.model.js";
-import type {
-  ActivityJournalCategoryPreferenceRecord,
-  ActivityJournalEntryRecord,
-  ActivityJournalExportOptions,
-  ActivityJournalExportResult,
-  ActivityJournalLinkRecord,
-  ActivityJournalLinkTarget,
-  ActivityJournalListFilter,
-  ActivityJournalPrefill,
-  ActivityJournalPrefillContext,
-  ActivityJournalSummary,
-  ActivityJournalSummaryFilter,
-  CreateActivityJournalEntryInput,
-  UpdateActivityJournalEntryInput,
-} from "../../src/domain/models/activity-journal.model.js";
+import type { ActivityJournalPrefill } from "../../src/domain/models/activity-journal.model.js";
 
 export function createPrivacyApi(invokeIpc: IpcInvoker) {
   return {
