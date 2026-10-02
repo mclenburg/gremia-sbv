@@ -51,6 +51,18 @@ describe('textCommandPolicy', () => {
     expect(replaceCommandMarker(text, index, '~~', formatAnonymizationMarkerText(argument), getTextCommandRangeLength(text, index, '~~'))).toBe('Gespräch mit [Anonymisierung vormerken: Max Mustermann]\nNächste Zeile bleibt');
   });
 
+  it('ersetzt ein Argument mit mehrfachen Leerzeichen vollständig und erhält die Folgezeile', () => {
+    const text = 'Gespräch mit ~~   Max   Mustermann\nNächste Zeile bleibt';
+    const index = text.indexOf('~~');
+    const argument = getTextCommandArgument(text, index, '~~');
+    const rangeLength = getTextCommandRangeLength(text, index, '~~');
+
+    expect(argument).toBe('Max Mustermann');
+    expect(rangeLength).toBe('~~   Max   Mustermann'.length);
+    expect(replaceCommandMarker(text, index, '~~', formatAnonymizationMarkerText(argument), rangeLength))
+      .toBe('Gespräch mit [Anonymisierung vormerken: Max Mustermann]\nNächste Zeile bleibt');
+  });
+
   it('ersetzt vorgemerkte Anonymisierungsstellen erst beim späteren Lifecycle-Ereignis', () => {
     const text = 'Gespräch mit [Anonymisierung vormerken: Max Mustermann] und [Anonymisierung vormerken: P-12345].';
     expect(applyPendingAnonymizationMarkers(text)).toBe('Gespräch mit [anonymisiert] und [anonymisiert].');

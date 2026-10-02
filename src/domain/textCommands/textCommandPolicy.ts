@@ -189,18 +189,20 @@ export function findFirstTextCommand(value: string, disabledCommands: TextComman
   return matches.sort((a, b) => a.index - b.index || b.token.length - a.token.length)[0] ?? null;
 }
 
-export function getTextCommandArgument(value: string, markerIndex: number, token: TextCommandToken): string {
+function getTextCommandSegment(value: string, markerIndex: number, token: TextCommandToken): string | null {
   const index = isTextCommandAt(value, markerIndex, token) ? markerIndex : value.indexOf(token);
-  if (index < 0) return '';
+  if (index < 0) return null;
   const afterToken = value.slice(index + token.length);
   const newlineIndex = afterToken.search(/[\r\n]/);
-  const segment = newlineIndex >= 0 ? afterToken.slice(0, newlineIndex) : afterToken;
-  return segment.replace(/\s+/g, ' ').trim();
+  return newlineIndex >= 0 ? afterToken.slice(0, newlineIndex) : afterToken;
+}
+
+export function getTextCommandArgument(value: string, markerIndex: number, token: TextCommandToken): string {
+  return getTextCommandSegment(value, markerIndex, token)?.replace(/\s+/g, ' ').trim() ?? '';
 }
 
 export function getTextCommandRangeLength(value: string, markerIndex: number, token: TextCommandToken): number {
-  const argument = getTextCommandArgument(value, markerIndex, token);
-  return token.length + (argument ? argument.length + 1 : 0);
+  return token.length + (getTextCommandSegment(value, markerIndex, token)?.trimEnd().length ?? 0);
 }
 
 export function replaceCommandMarker(value: string, markerIndex: number, token: TextCommandToken, replacement: string, rangeLength?: number): string {
