@@ -2,7 +2,7 @@
 
 Der Bereich **Übergaben** liegt als letzter Punkt der Kernarbeit in der Navigation. Er ist in Register gegliedert, damit Urlaubsvertretung, Begleit-App, Rückgabe, Amtsübergabe, Import und Protokoll nicht in einem gemeinsamen Formular vermischt werden.
 
-Der Bereich unterstützt zwei unterschiedliche Situationen:
+Der Bereich unterstützt drei unterschiedliche Situationen:
 
 - Eine **Urlaubs- oder Krankheitsvertretung** ist zeitlich begrenzt. Ausgewählte Fallakten werden an die Stellvertretung übergeben und Änderungen später als Rückgabe-Delta zurückgeführt.
 - Die **Begleit-App** erhält nur eine reduzierte mobile Arbeitsprojektion für kurze Arbeitssituationen außerhalb des Desktop-Arbeitsplatzes.

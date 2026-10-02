@@ -56,4 +56,4 @@ Kategorien helfen bei Auswertung und Bericht. Wähle die Kategorie, die den Schw
 
 ## Tätigkeitsbericht
 
-Aus Journal-Daten können aggregierte Auswertungen entstehen. Der Bericht soll Arbeitsschwerpunkte zeigen, nicht vertrauliche Einzelfälle offenlegen. Prüfe Exporte immer vor Weitergabe.
+Das Journal hält eigene Tätigkeiten fest. Der Tätigkeitsbericht wird aus der zuvor verifizierten Auditkette abgeleitet und zeigt aggregierte Arbeitsschwerpunkte, keine vertraulichen Einzelfalltexte. Prüfe ihn vor jeder Weitergabe, besonders bei kleinen Fallzahlen.
