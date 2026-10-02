@@ -241,16 +241,6 @@ export function formatConfidentialityText(level: ConfidentialCommandLevel): stri
 
 export type AnonymizationTargetKind = 'name' | 'email' | 'personnel_number' | 'organizational_unit' | 'health_detail' | 'case_reference' | 'text_segment';
 
-const ANONYMIZATION_TARGET_LABELS: Record<AnonymizationTargetKind, string> = {
-  name: 'Name',
-  email: 'E-Mail-Adresse',
-  personnel_number: 'Personalnummer',
-  organizational_unit: 'Organisationseinheit',
-  health_detail: 'Gesundheitsdetail',
-  case_reference: 'Fallbezug',
-  text_segment: 'Textstelle'
-};
-
 export function classifyAnonymizationTarget(value: string): AnonymizationTargetKind {
   const text = value.trim();
   const normalized = text.toLowerCase();

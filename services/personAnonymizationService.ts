@@ -27,7 +27,7 @@ export class PersonAnonymizationService {
   }
 
   deleteStructuredPersonData(id: string, reason: string): { ok: true; affectedCaseIds: string[]; deletedPersonId: string } {
-    const normalizedReason = assertPersonPrivacyReason(reason);
+    assertPersonPrivacyReason(reason);
     const person = new ProtectedPersonService(this.database).get(id);
     if (!person) throw new Error(`Person nicht gefunden: ${id}`);
     const decision = decidePersonDeletion();

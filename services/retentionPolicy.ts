@@ -103,10 +103,6 @@ function monthsAgo(now: Date, months: number): Date {
   return copy;
 }
 
-function daysAgo(now: Date, days: number): Date {
-  return new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
-}
-
 function parseDate(value?: string | null): Date | null {
   if (!value) return null;
   const parsed = new Date(value);
