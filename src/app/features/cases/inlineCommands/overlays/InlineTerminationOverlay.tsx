@@ -1,7 +1,7 @@
 import { Siren } from "lucide-react";
 import type { InlineCommandOverlaysProps } from "../InlineCommandOverlays";
-import type { InlineTerminationDraft } from "../inlineCommandTypes";
-import { FieldCaption, IndustrialModalSurface } from "./inlineCommandOverlayShared";
+import { IndustrialModalSurface } from "./inlineCommandOverlayShared";
+import { InlineTerminationFields } from "./InlineTerminationFields";
 
 type OverlayProps = Pick<InlineCommandOverlaysProps,
   "inlineTerminationDraft" | "setInlineTerminationDraft" | "createTerminationFromProtocol" | "cancelInlineTerminationDraft">;
@@ -34,145 +34,8 @@ export function InlineTerminationOverlay({ props }: { props: OverlayProps }) {
             </p>
           </div>
         </div>
-        <div className="industrial-modal-grid">
-          <label className="industrial-modal-wide">
-            <FieldCaption draft={inlineTerminationDraft} field="title">
-              Titel
-            </FieldCaption>
-            <input
-              value={inlineTerminationDraft.title}
-              onChange={(event) =>
-                setInlineTerminationDraft((current) =>
-                  current
-                    ? { ...current, title: event.target.value }
-                    : current,
-                )
-              }
-              placeholder="z. B. Anhörung zur ordentlichen Kündigung" className="industrial-input" />
-          </label>
-          <label>
-            <FieldCaption
-              draft={inlineTerminationDraft}
-              field="terminationType"
-            >
-              Kündigungsart
-            </FieldCaption>
-            <select className="industrial-select"
-              value={inlineTerminationDraft.terminationType}
-              onChange={(event) =>
-                setInlineTerminationDraft((current) =>
-                  current
-                    ? {
-                        ...current,
-                        terminationType: event.target
-                          .value as InlineTerminationDraft["terminationType"],
-                      }
-                    : current,
-                )
-              }
-            >
-              <option value="ordentlich">ordentlich</option>
-              <option value="ausserordentlich">außerordentlich</option>
-              <option value="aenderungskuendigung">
-                Änderungskündigung
-              </option>
-              <option value="verdachtskuendigung">
-                Verdachtskündigung
-              </option>
-              <option value="personenbedingt">personenbedingt</option>
-              <option value="verhaltensbedingt">verhaltensbedingt</option>
-              <option value="betriebsbedingt">betriebsbedingt</option>
-              <option value="sonstiges">Sonstiges</option>
-            </select>
-          </label>
-          <label>
-            <FieldCaption
-              draft={inlineTerminationDraft}
-              field="protectionStatus"
-            >
-              Schutzstatus
-            </FieldCaption>
-            <select className="industrial-select"
-              value={inlineTerminationDraft.protectionStatus}
-              onChange={(event) =>
-                setInlineTerminationDraft((current) =>
-                  current
-                    ? {
-                        ...current,
-                        protectionStatus: event.target
-                          .value as InlineTerminationDraft["protectionStatus"],
-                      }
-                    : current,
-                )
-              }
-            >
-              <option value="unklar">unklar</option>
-              <option value="schwerbehindert">schwerbehindert</option>
-              <option value="gleichgestellt">gleichgestellt</option>
-              <option value="antrag_laeuft">Antrag läuft</option>
-              <option value="nicht_bekannt">nicht bekannt</option>
-            </select>
-          </label>
-          <label>
-            <FieldCaption draft={inlineTerminationDraft} field="receivedAt">
-              Eingang optional
-            </FieldCaption>
-            <input
-              type="datetime-local"
-              value={inlineTerminationDraft.receivedAt}
-              onChange={(event) =>
-                setInlineTerminationDraft((current) =>
-                  current
-                    ? { ...current, receivedAt: event.target.value }
-                    : current,
-                )
-              } className="industrial-input" />
-          </label>
-          <label>
-            <span>SBV-Frist optional</span>
-            <input
-              type="datetime-local"
-              value={inlineTerminationDraft.sbvStatementDueAt}
-              onChange={(event) =>
-                setInlineTerminationDraft((current) =>
-                  current
-                    ? { ...current, sbvStatementDueAt: event.target.value }
-                    : current,
-                )
-              } className="industrial-input" />
-          </label>
-          <label className="industrial-modal-wide">
-            <FieldCaption
-              draft={inlineTerminationDraft}
-              field="employerReason"
-            >
-              Arbeitgebervortrag / Kurznotiz
-            </FieldCaption>
-            <input
-              value={inlineTerminationDraft.employerReason}
-              onChange={(event) =>
-                setInlineTerminationDraft((current) =>
-                  current
-                    ? { ...current, employerReason: event.target.value }
-                    : current,
-                )
-              } className="industrial-input" />
-          </label>
-          <label className="industrial-modal-wide">
-            <FieldCaption draft={inlineTerminationDraft} field="nextStep">
-              Nächster Schritt
-            </FieldCaption>
-            <input
-              value={inlineTerminationDraft.nextStep}
-              onChange={(event) =>
-                setInlineTerminationDraft((current) =>
-                  current
-                    ? { ...current, nextStep: event.target.value }
-                    : current,
-                )
-              } className="industrial-input" />
-          </label>
-        </div>
+        <InlineTerminationFields inlineTerminationDraft={inlineTerminationDraft} setInlineTerminationDraft={setInlineTerminationDraft} />
+
         <div className="industrial-modal-preview">
           <Siren className="industrial-icon" /> Wird mit dem Speichern der Notiz als Fallaktenvorgang angelegt:{" "}
           <strong>
