@@ -1,109 +1,17 @@
-import {
-  AlertTriangle,
-  BadgeCheck,
-  CalendarPlus,
-  CheckCircle2,
-  ClipboardCheck,
-  FileText,
-  HeartPulse,
-  Wrench,
-  FolderKanban,
-  Lock,
-  Scale,
-  ShieldAlert,
-  Siren,
-  Users,
-} from "lucide-react";
-import type { LegalNormSuggestion } from "@/domain/textCommands/textCommandPolicy";
-import {
-  LEGAL_NORM_SUGGESTIONS,
-  formatAnonymizationMarkerText,
-  formatBemMarkerText,
-  formatConfidentialityText,
-  formatLegalNormText,
-  formatOpenTaskText,
-  formatPreventionMarkerText,
-  formatEqualizationMarkerText,
-  formatTerminationMarkerText,
-  formatRiskText,
-  formatTemplateMarkerText,
-} from "@/domain/textCommands/textCommandPolicy";
-import type { ContactCategory } from "../../../../../domain/models/contact.model";
-import type { DeadlineSeverity } from "../../../../../domain/models/deadline.model";
-import type { ConfidentialCommandLevel, RiskLevelCommand } from "@/domain/textCommands/textCommandPolicy";
-import { filterContactsForQuery, formatContactReference } from "../../../contacts/contactDisplay";
-import { filterCasesForInlineCommand, filterNormsForInlineCommand } from "../inlineCommandSearch";
+import { Wrench } from "lucide-react";
 import type { InlineCommandOverlaysProps } from "../InlineCommandOverlays";
 import type { InlineWorkplaceAccommodationDraft } from "../inlineCommandTypes";
 import { FieldCaption, IndustrialModalSurface } from "./inlineCommandOverlayShared";
 
-export function InlineWorkplaceAccommodationOverlay({ props }: { props: InlineCommandOverlaysProps }) {
+type OverlayProps = Pick<InlineCommandOverlaysProps,
+  "inlineWorkplaceAccommodationDraft" | "setInlineWorkplaceAccommodationDraft" | "createWorkplaceAccommodationFromProtocol" | "cancelInlineWorkplaceAccommodationDraft">;
+
+export function InlineWorkplaceAccommodationOverlay({ props }: { props: OverlayProps }) {
   const {
-    inlineCaseLinkDraft,
-    setInlineCaseLinkDraft,
-    cases,
-    insertCaseReferenceFromProtocol,
-    cancelInlineCaseLinkDraft,
-    inlineLegalNormDraft,
-    setInlineLegalNormDraft,
-    insertLegalNormFromProtocol,
-    cancelInlineLegalNormDraft,
-    inlineRiskDraft,
-    setInlineRiskDraft,
-    insertRiskFromProtocol,
-    cancelInlineRiskDraft,
-    inlineOpenTaskDraft,
-    setInlineOpenTaskDraft,
-    createOpenTaskFromProtocol,
-    cancelInlineOpenTaskDraft,
-    inlineConfidentialityDraft,
-    setInlineConfidentialityDraft,
-    applyConfidentialityFromProtocol,
-    cancelInlineConfidentialityDraft,
-    inlineAnonymizationDraft,
-    setInlineAnonymizationDraft,
-    applyAnonymizationMarkerFromProtocol,
-    cancelInlineAnonymizationDraft,
-    inlineContactDraft,
-    setInlineContactDraft,
-    contacts,
-    insertExistingContactFromProtocol,
-    createAndInsertContactFromProtocol,
-    cancelInlineContactDraft,
-    inlineBemDraft,
-    setInlineBemDraft,
-    createBemFromProtocol,
-    cancelInlineBemDraft,
-    inlinePreventionDraft,
-    setInlinePreventionDraft,
-    createPreventionFromProtocol,
-    cancelInlinePreventionDraft,
-    inlineEqualizationDraft,
-    setInlineEqualizationDraft,
-    createEqualizationFromProtocol,
-    cancelInlineEqualizationDraft,
-    inlineTerminationDraft,
-    setInlineTerminationDraft,
-    createTerminationFromProtocol,
-    cancelInlineTerminationDraft,
-    inlineParticipationDraft,
-    setInlineParticipationDraft,
-    createParticipationFromProtocol,
-    cancelInlineParticipationDraft,
     inlineWorkplaceAccommodationDraft,
     setInlineWorkplaceAccommodationDraft,
     createWorkplaceAccommodationFromProtocol,
     cancelInlineWorkplaceAccommodationDraft,
-    inlineTemplateDraft,
-    setInlineTemplateDraft,
-    applyTemplateMarkerFromProtocol,
-    cancelInlineTemplateDraft,
-    inlineDeadlineDraft,
-    setInlineDeadlineDraft,
-    selectedCase,
-    buildInlineDeadlineText,
-    createInlineDeadlineFromProtocol,
-    cancelInlineDeadlineDraft,
   } = props;
 
   return inlineWorkplaceAccommodationDraft ? (

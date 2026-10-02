@@ -14,7 +14,7 @@
   },
   "summary": {
     "filesScanned": 632,
-    "debtFiles": 55
+    "debtFiles": 46
   },
   "debt": {
     "electron/ipc/protectedPersonIpc.ts": {
@@ -83,29 +83,11 @@
       "maxFunctionLines": 183,
       "imports": 6
     },
-    "src/app/features/cases/inlineCommands/overlays/InlineAnonymizationOverlay.tsx": {
-      "physicalLines": 168,
-      "codeLines": 165,
-      "maxFunctionLines": 129,
-      "imports": 10
-    },
     "src/app/features/cases/inlineCommands/overlays/InlineBemOverlay.tsx": {
       "physicalLines": 240,
       "codeLines": 237,
       "maxFunctionLines": 200,
       "imports": 11
-    },
-    "src/app/features/cases/inlineCommands/overlays/InlineCaseLinkOverlay.tsx": {
-      "physicalLines": 172,
-      "codeLines": 169,
-      "maxFunctionLines": 133,
-      "imports": 10
-    },
-    "src/app/features/cases/inlineCommands/overlays/InlineConfidentialityOverlay.tsx": {
-      "physicalLines": 174,
-      "codeLines": 171,
-      "maxFunctionLines": 135,
-      "imports": 10
     },
     "src/app/features/cases/inlineCommands/overlays/InlineDeadlineOverlay.tsx": {
       "physicalLines": 233,
@@ -119,18 +101,6 @@
       "maxFunctionLines": 204,
       "imports": 11
     },
-    "src/app/features/cases/inlineCommands/overlays/InlineLegalNormOverlay.tsx": {
-      "physicalLines": 170,
-      "codeLines": 167,
-      "maxFunctionLines": 131,
-      "imports": 10
-    },
-    "src/app/features/cases/inlineCommands/overlays/InlineOpenTaskOverlay.tsx": {
-      "physicalLines": 198,
-      "codeLines": 195,
-      "maxFunctionLines": 159,
-      "imports": 10
-    },
     "src/app/features/cases/inlineCommands/overlays/InlineParticipationOverlay.tsx": {
       "physicalLines": 245,
       "codeLines": 242,
@@ -142,18 +112,6 @@
       "codeLines": 281,
       "maxFunctionLines": 244,
       "imports": 11
-    },
-    "src/app/features/cases/inlineCommands/overlays/InlineRiskOverlay.tsx": {
-      "physicalLines": 188,
-      "codeLines": 185,
-      "maxFunctionLines": 149,
-      "imports": 10
-    },
-    "src/app/features/cases/inlineCommands/overlays/InlineTemplateOverlay.tsx": {
-      "physicalLines": 168,
-      "codeLines": 165,
-      "maxFunctionLines": 129,
-      "imports": 10
     },
     "src/app/features/cases/inlineCommands/overlays/InlineTerminationOverlay.tsx": {
       "physicalLines": 299,
