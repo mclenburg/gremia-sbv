@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ShieldCheck } from "lucide-react";
+import { useAnnouncer } from "../../shared/a11y/LiveRegionProvider";
 
 export function TemporaryFilesSettingsPanel() {
   const [status, setStatus] = useState<{
@@ -10,24 +11,25 @@ export function TemporaryFilesSettingsPanel() {
   } | null>(null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const announce = useAnnouncer();
 
-  async function loadStatus() {
+  const loadStatus = useCallback(async () => {
     try {
       const nextStatus =
         await window.gremiaSbv?.security?.temporaryFileStatus?.();
       if (nextStatus) setStatus(nextStatus);
     } catch (loadError) {
-      setError(
-        loadError instanceof Error
-          ? loadError.message
-          : "Status der temporären Arbeitskopien konnte nicht geladen werden.",
-      );
+      const errorMessage = loadError instanceof Error
+        ? loadError.message
+        : "Status der temporären Arbeitskopien konnte nicht geladen werden.";
+      setError(errorMessage);
+      announce(errorMessage, "assertive");
     }
-  }
+  }, [announce]);
 
   useEffect(() => {
     void loadStatus();
-  }, []);
+  }, [loadStatus]);
 
   async function cleanup() {
     setMessage("");
@@ -35,16 +37,16 @@ export function TemporaryFilesSettingsPanel() {
     try {
       const result =
         await window.gremiaSbv?.security?.cleanupTemporaryFiles?.();
-      setMessage(
-        `Temporäre Arbeitskopien bereinigt: ${result?.deleted ?? 0} gelöscht, ${result?.remaining ?? 0} verbleibend.`,
-      );
+      const successMessage = `Temporäre Arbeitskopien bereinigt: ${result?.deleted ?? 0} gelöscht, ${result?.remaining ?? 0} verbleibend.`;
+      setMessage(successMessage);
+      announce(successMessage, "polite");
       await loadStatus();
     } catch (cleanupError) {
-      setError(
-        cleanupError instanceof Error
-          ? cleanupError.message
-          : "Temporäre Arbeitskopien konnten nicht bereinigt werden.",
-      );
+      const errorMessage = cleanupError instanceof Error
+        ? cleanupError.message
+        : "Temporäre Arbeitskopien konnten nicht bereinigt werden.";
+      setError(errorMessage);
+      announce(errorMessage, "assertive");
     }
   }
 
