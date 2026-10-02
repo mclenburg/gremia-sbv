@@ -15,115 +15,81 @@ type UseCaseProcessUpdatesDeps = {
   selectedCase?: CaseRecord;
 };
 
+type ProcessBridge = Awaited<ReturnType<typeof waitForBridge>>;
+type ProcessUpdateDeps = Pick<UseCaseProcessUpdatesDeps,
+  "setNoteError" | "setNoteInfo" | "reloadSelectedCaseChildren">;
+
+async function runProcessUpdate(
+  deps: ProcessUpdateDeps,
+  update: (bridge: ProcessBridge) => Promise<void>,
+  successMessage: string,
+  fallbackError: string,
+) {
+  deps.setNoteError("");
+  deps.setNoteInfo("");
+  try {
+    await update(await waitForBridge());
+    await deps.reloadSelectedCaseChildren();
+    deps.setNoteInfo(successMessage);
+  } catch (error) {
+    deps.setNoteError(error instanceof Error ? error.message : fallbackError);
+  }
+}
+
 export function useCaseProcessUpdates(deps: UseCaseProcessUpdatesDeps) {
   const { setNoteError, setNoteInfo, reloadSelectedCaseChildren, selectedCase } = deps;
   async function updateCasePreventionProcess(
     processId: string,
     input: UpdatePreventionProcessInput,
   ) {
-    setNoteError("");
-    setNoteInfo("");
-    try {
-      const bridge = await waitForBridge();
+    await runProcessUpdate(deps, async (bridge) => {
       if (!bridge?.prevention)
         throw new Error("Präventionsdienst ist nicht erreichbar.");
       await bridge.prevention.update(processId, input);
-      await reloadSelectedCaseChildren();
-      setNoteInfo("Präventionsverfahren wurde aktualisiert.");
-    } catch (error) {
-      setNoteError(
-        error instanceof Error
-          ? error.message
-          : "Präventionsverfahren konnte nicht aktualisiert werden.",
-      );
-    }
+    }, "Präventionsverfahren wurde aktualisiert.", "Präventionsverfahren konnte nicht aktualisiert werden.");
   }
 
   async function updateCaseBemProcess(
     processId: string,
     input: UpdateBemProcessInput,
   ) {
-    setNoteError("");
-    setNoteInfo("");
-    try {
-      const bridge = await waitForBridge();
+    await runProcessUpdate(deps, async (bridge) => {
       if (!bridge?.bem) throw new Error("BEM-Dienst ist nicht erreichbar.");
       await bridge.bem.update(processId, input);
-      await reloadSelectedCaseChildren();
-      setNoteInfo("BEM-Verfahren wurde aktualisiert.");
-    } catch (error) {
-      setNoteError(
-        error instanceof Error
-          ? error.message
-          : "BEM-Verfahren konnte nicht aktualisiert werden.",
-      );
-    }
+    }, "BEM-Verfahren wurde aktualisiert.", "BEM-Verfahren konnte nicht aktualisiert werden.");
   }
 
   async function updateCaseTerminationProcess(
     processId: string,
     input: UpdateTerminationHearingInput,
   ) {
-    setNoteError("");
-    setNoteInfo("");
-    try {
-      const bridge = await waitForBridge();
+    await runProcessUpdate(deps, async (bridge) => {
       if (!bridge?.termination)
         throw new Error("Kündigungsdienst ist nicht erreichbar.");
       await bridge.termination.update(processId, input);
-      await reloadSelectedCaseChildren();
-      setNoteInfo("Kündigungsanhörung wurde aktualisiert.");
-    } catch (error) {
-      setNoteError(
-        error instanceof Error
-          ? error.message
-          : "Kündigungsanhörung konnte nicht aktualisiert werden.",
-      );
-    }
+    }, "Kündigungsanhörung wurde aktualisiert.", "Kündigungsanhörung konnte nicht aktualisiert werden.");
   }
 
   async function updateCaseParticipationProcess(
     processId: string,
     input: UpdateParticipationInput,
   ) {
-    setNoteError("");
-    setNoteInfo("");
-    try {
-      const bridge = await waitForBridge();
+    await runProcessUpdate(deps, async (bridge) => {
       if (!bridge?.participation)
         throw new Error("Beteiligungsdienst ist nicht erreichbar.");
       await bridge.participation.update(processId, input);
-      await reloadSelectedCaseChildren();
-      setNoteInfo("SBV-Beteiligungsmaßnahme wurde aktualisiert.");
-    } catch (error) {
-      setNoteError(
-        error instanceof Error
-          ? error.message
-          : "SBV-Beteiligungsmaßnahme konnte nicht aktualisiert werden.",
-      );
-    }
+    }, "SBV-Beteiligungsmaßnahme wurde aktualisiert.", "SBV-Beteiligungsmaßnahme konnte nicht aktualisiert werden.");
   }
 
   async function updateCaseWorkplaceAccommodationProcess(
     processId: string,
     input: UpdateWorkplaceAccommodationInput,
   ) {
-    setNoteError("");
-    setNoteInfo("");
-    try {
-      const bridge = await waitForBridge();
+    await runProcessUpdate(deps, async (bridge) => {
       if (!bridge?.workplaceAccommodation)
         throw new Error("Arbeitsplatzgestaltungsdienst ist nicht erreichbar.");
       await bridge.workplaceAccommodation.update(processId, input);
-      await reloadSelectedCaseChildren();
-      setNoteInfo("Arbeitsplatzgestaltung wurde aktualisiert.");
-    } catch (error) {
-      setNoteError(
-        error instanceof Error
-          ? error.message
-          : "Arbeitsplatzgestaltung konnte nicht aktualisiert werden.",
-      );
-    }
+    }, "Arbeitsplatzgestaltung wurde aktualisiert.", "Arbeitsplatzgestaltung konnte nicht aktualisiert werden.");
   }
 
   async function createEqualizationSecureNote(
@@ -166,22 +132,11 @@ export function useCaseProcessUpdates(deps: UseCaseProcessUpdatesDeps) {
     processId: string,
     input: UpdateEqualizationProcessInput,
   ) {
-    setNoteError("");
-    setNoteInfo("");
-    try {
-      const bridge = await waitForBridge();
+    await runProcessUpdate(deps, async (bridge) => {
       if (!bridge?.equalization)
         throw new Error("Gleichstellungsdienst ist nicht erreichbar.");
       await bridge.equalization.update(processId, input);
-      await reloadSelectedCaseChildren();
-      setNoteInfo("Gleichstellungs-/GdB-Verfahren wurde aktualisiert.");
-    } catch (error) {
-      setNoteError(
-        error instanceof Error
-          ? error.message
-          : "Gleichstellungsverfahren konnte nicht aktualisiert werden.",
-      );
-    }
+    }, "Gleichstellungs-/GdB-Verfahren wurde aktualisiert.", "Gleichstellungsverfahren konnte nicht aktualisiert werden.");
   }
 
 
